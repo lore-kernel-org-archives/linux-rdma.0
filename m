@@ -6,48 +6,44 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4928FC433E1
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:02:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F88C433E1
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:02:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16FEE20756
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:02:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 695BE20756
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 07:02:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726468AbgETHCb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 03:02:31 -0400
+        id S1726510AbgETHCf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 03:02:35 -0400
 Received: from mga01.intel.com ([192.55.52.88]:53333 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgETHCa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 20 May 2020 03:02:30 -0400
-IronPort-SDR: BapTQfBBXQNQqBOIlT8/TUffbGvnwCivFMvsQVSudMjCXq8fcG088BQQRWIrleC0gEi0H4RDQ0
- 9S4hYD3x9CWg==
+        id S1726455AbgETHCc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 May 2020 03:02:32 -0400
+IronPort-SDR: VzzBzSPCFfl/Ln21p92BUYgBl9UKLKvUyuWUZLh7DNRMxa/LMY7y+wSIKH009N060rRjhc3dmR
+ zLNqn8RLLCxA==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2020 00:02:29 -0700
-IronPort-SDR: noZEW9vmI4AbczewWeOGxZi6qhmgHoO6wjKvFYhD1Wy7tnv7jlAGJaRZPiVtoMPXG9HbsQWfOs
- AyqZ1uMrKPSA==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2020 00:02:30 -0700
+IronPort-SDR: Y0YvtIvju30OZjD/+elfN/JlKbsMw2OgWNlR6zOZW/jQ+TC4oF+hWC/67cjngfld0nY/B+LVZU
+ BXe5QTfDkzAA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.73,413,1583222400"; 
-   d="scan'208";a="299841165"
+   d="scan'208";a="299841175"
 Received: from jtkirshe-desk1.jf.intel.com ([134.134.177.86])
-  by fmsmga002.fm.intel.com with ESMTP; 20 May 2020 00:02:29 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 20 May 2020 00:02:30 -0700
 From:   Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 To:     davem@davemloft.net, gregkh@linuxfoundation.org
 Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, nhorman@redhat.com,
-        sassmann@redhat.com, jgg@ziepe.ca, parav@mellanox.com,
-        galpress@amazon.com, selvin.xavier@broadcom.com,
-        sriharsha.basavapatna@broadcom.com, benve@cisco.com,
-        bharat@chelsio.com, xavier.huwei@huawei.com, yishaih@mellanox.com,
-        leonro@mellanox.com, mkalderon@marvell.com, aditr@vmware.com,
+        sassmann@redhat.com, jgg@ziepe.ca,
         ranjani.sridharan@linux.intel.com,
         pierre-louis.bossart@linux.intel.com,
-        Kiran Patil <kiran.patil@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
         Andrew Bowers <andrewx.bowers@intel.com>,
         Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: [net-next v4 01/12] Implementation of Virtual Bus
-Date:   Wed, 20 May 2020 00:02:16 -0700
-Message-Id: <20200520070227.3392100-2-jeffrey.t.kirsher@intel.com>
+Subject: [net-next v4 03/12] ice: Complete RDMA peer registration
+Date:   Wed, 20 May 2020 00:02:18 -0700
+Message-Id: <20200520070227.3392100-4-jeffrey.t.kirsher@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520070227.3392100-1-jeffrey.t.kirsher@intel.com>
 References: <20200520070227.3392100-1-jeffrey.t.kirsher@intel.com>
@@ -60,520 +56,597 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Dave Ertman <david.m.ertman@intel.com>
 
-This is the initial implementation of the Virtual Bus,
-virtbus_device and virtbus_driver.  The virtual bus is
-a software based bus intended to support registering
-virtbus_devices and virtbus_drivers and provide matching
-between them and probing of the registered drivers.
-
-The bus will support probe/remove shutdown and
-suspend/resume callbacks.
+Ensure that the peer supports the minimal set of operations required
+for operation and, if so, open the connection to the peer.
 
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Kiran Patil <kiran.patil@intel.com>
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 Tested-by: Andrew Bowers <andrewx.bowers@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 ---
- Documentation/driver-api/index.rst       |   1 +
- Documentation/driver-api/virtual_bus.rst |  93 ++++++++++
- drivers/bus/Kconfig                      |  10 ++
- drivers/bus/Makefile                     |   2 +
- drivers/bus/virtual_bus.c                | 215 +++++++++++++++++++++++
- include/linux/mod_devicetable.h          |   8 +
- include/linux/virtual_bus.h              |  62 +++++++
- scripts/mod/devicetable-offsets.c        |   3 +
- scripts/mod/file2alias.c                 |   7 +
- 9 files changed, 401 insertions(+)
- create mode 100644 Documentation/driver-api/virtual_bus.rst
- create mode 100644 drivers/bus/virtual_bus.c
- create mode 100644 include/linux/virtual_bus.h
+ drivers/net/ethernet/intel/ice/ice_idc.c      | 288 ++++++++++++++++++
+ drivers/net/ethernet/intel/ice/ice_idc_int.h  |  36 +++
+ drivers/net/ethernet/intel/ice/ice_lib.c      |  33 ++
+ drivers/net/ethernet/intel/ice/ice_lib.h      |   2 +
+ drivers/net/ethernet/intel/ice/ice_main.c     |  18 +-
+ drivers/net/ethernet/intel/ice/ice_switch.c   |  23 ++
+ drivers/net/ethernet/intel/ice/ice_switch.h   |   2 +
+ .../net/ethernet/intel/ice/ice_virtchnl_pf.c  |  25 --
+ 8 files changed, 401 insertions(+), 26 deletions(-)
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index d4e78cb3ef4d..4e628a6b8408 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -101,6 +101,7 @@ available subsections can be seen below.
-    sync_file
-    vfio-mediated-device
-    vfio
-+   virtual_bus
-    xilinx/index
-    xillybus
-    zorro
-diff --git a/Documentation/driver-api/virtual_bus.rst b/Documentation/driver-api/virtual_bus.rst
-new file mode 100644
-index 000000000000..c01fb2f079d5
---- /dev/null
-+++ b/Documentation/driver-api/virtual_bus.rst
-@@ -0,0 +1,93 @@
-+===============================
-+Virtual Bus Devices and Drivers
-+===============================
-+
-+See <linux/virtual_bus.h> for the models for virtbus_device and virtbus_driver.
-+
-+This bus is meant to be a minimalist software-based bus used for
-+connecting devices (that may not physically exist) to be able to
-+communicate with each other.
-+
-+
-+Memory Allocation Lifespan and Model
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+The memory for a virtbus_device or virtbus_driver needs to be
-+allocated before registering them on the virtual bus.
-+
-+The memory for the virtual_device is expected to remain viable until the
-+device's mandatory .release() callback which is invoked when the device
-+is unregistered by calling virtbus_unregister_device().
-+
-+Memory associated with a virtbus_driver is expected to remain viable
-+until the driver's .remove() or .shutdown() callbacks are invoked
-+during module insertion or removal.
-+
-+Device Enumeration
-+~~~~~~~~~~~~~~~~~~
-+
-+The virtbus device is enumerated when it is attached to the bus. The
-+device is assigned a unique ID that will be appended to its name
-+making it unique.  If two virtbus_devices both named "foo" are
-+registered onto the bus, they will have a sub-device names of "foo.x"
-+and "foo.y" where x and y are unique integers.
-+
-+Common Usage and Structure Design
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+The virtbus_device and virtbus_driver need to have a common header
-+file.
-+
-+In the common header file outside of the virtual_bus infrastructure,
-+define struct virtbus_object:
-+
-+.. code-block:: c
-+
-+        struct virtbus_object {
-+                virtbus_device vdev;
-+                struct my_private_struct *my_stuff;
-+        }
-+
-+When the virtbus_device vdev is passed to the virtbus_driver's probe
-+callback, it can then get access to the struct my_stuff.
-+
-+An example of the driver encapsulation:
-+
-+.. code-block:: c
-+
-+	struct custom_driver {
-+		struct virtbus_driver virtbus_drv;
-+		const struct custom_driver_ops ops;
-+	}
-+
-+An example of this usage would be :
-+
-+.. code-block:: c
-+
-+	struct custom_driver custom_drv = {
-+		.virtbus_drv = {
-+			.driver = {
-+				.name = "sof-ipc-test-virtbus-drv",
-+			},
-+			.id_table = custom_virtbus_id_table,
-+			.probe = custom_probe,
-+			.remove = custom_remove,
-+			.shutdown = custom_shutdown,
-+		},
-+		.ops = custom_ops,
-+	};
-+
-+Mandatory Elements
-+~~~~~~~~~~~~~~~~~~
-+
-+virtbus_device:
-+
-+- .release() callback must not be NULL and is expected to perform memory cleanup.
-+- .match_name must be populated to be able to match with a driver
-+
-+virtbus_driver:
-+
-+- .probe() callback must not be NULL
-+- .remove() callback must not be NULL
-+- .shutdown() callback must not be NULL
-+- .id_table must not be NULL, used to perform matching
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 6d4e4497b59b..00553c78510c 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -203,4 +203,14 @@ config DA8XX_MSTPRI
- source "drivers/bus/fsl-mc/Kconfig"
- source "drivers/bus/mhi/Kconfig"
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
+index 68d6b524d6d4..499c1b77dfc9 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc.c
++++ b/drivers/net/ethernet/intel/ice/ice_idc.c
+@@ -146,6 +146,78 @@ ice_peer_state_change(struct ice_peer_dev_int *peer_dev, long new_state,
+ 		mutex_unlock(&peer_dev->peer_dev_state_mutex);
+ }
  
-+config VIRTUAL_BUS
-+       tristate "Software based Virtual Bus"
-+       help
-+         Provides a software bus for virtbus_devices to be added to it
-+         and virtbus_drivers to be registered on it.  It matches driver
-+         and device based on id and calls the driver's probe routine.
-+         One example is the irdma driver needing to connect with various
-+         PCI LAN drivers to request resources (queues) to be able to perform
-+         its function.
-+
- endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 05f32cd694a4..d30828a4768c 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -37,3 +37,5 @@ obj-$(CONFIG_DA8XX_MSTPRI)	+= da8xx-mstpri.o
- 
- # MHI
- obj-$(CONFIG_MHI_BUS)		+= mhi/
-+
-+obj-$(CONFIG_VIRTUAL_BUS)	+= virtual_bus.o
-diff --git a/drivers/bus/virtual_bus.c b/drivers/bus/virtual_bus.c
-new file mode 100644
-index 000000000000..b70023d5b58a
---- /dev/null
-+++ b/drivers/bus/virtual_bus.c
-@@ -0,0 +1,215 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * virtual_bus.c - lightweight software based bus for virtual devices
++/**
++ * ice_peer_close - close a peer device
++ * @peer_dev_int: device to close
++ * @data: pointer to opaque data
 + *
-+ * Copyright (c) 2019-2020 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for
-+ * more information
++ * This function will also set the state bit for the peer to CLOSED. This
++ * function is meant to be called from a ice_for_each_peer().
 + */
-+
-+#include <linux/string.h>
-+#include <linux/virtual_bus.h>
-+#include <linux/of_irq.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/pm_domain.h>
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Virtual Bus");
-+MODULE_AUTHOR("David Ertman <david.m.ertman@intel.com>");
-+MODULE_AUTHOR("Kiran Patil <kiran.patil@intel.com>");
-+
-+static DEFINE_IDA(virtbus_dev_ida);
-+#define VIRTBUS_INVALID_ID	0xFFFFFFFF
-+
-+static const
-+struct virtbus_dev_id *virtbus_match_id(const struct virtbus_dev_id *id,
-+					struct virtbus_device *vdev)
++int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data)
 +{
-+	while (id->name[0]) {
-+		if (!strcmp(vdev->match_name, id->name))
-+			return id;
-+		id++;
-+	}
-+	return NULL;
-+}
++	enum iidc_close_reason reason = *(enum iidc_close_reason *)(data);
++	struct iidc_peer_dev *peer_dev;
++	struct ice_pf *pf;
++	int i;
 +
-+static int virtbus_match(struct device *dev, struct device_driver *drv)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(drv);
-+	struct virtbus_device *vdev = to_virtbus_dev(dev);
++	peer_dev = &peer_dev_int->peer_dev;
++	/* return 0 so ice_for_each_peer will continue closing other peers */
++	if (!ice_validate_peer_dev(peer_dev))
++		return 0;
++	pf = pci_get_drvdata(peer_dev->pdev);
 +
-+	return virtbus_match_id(vdrv->id_table, vdev) != NULL;
-+}
++	if (test_bit(__ICE_DOWN, pf->state) ||
++	    test_bit(__ICE_SUSPENDED, pf->state) ||
++	    test_bit(__ICE_NEEDS_RESTART, pf->state))
++		return 0;
 +
-+static int virtbus_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	struct virtbus_device *vdev = to_virtbus_dev(dev);
++	mutex_lock(&peer_dev_int->peer_dev_state_mutex);
 +
-+	if (add_uevent_var(env, "MODALIAS=%s%s", "virtbus:", vdev->match_name))
-+		return -ENOMEM;
++	/* no peer driver, already closed, closing or opening nothing to do */
++	if (test_bit(ICE_PEER_DEV_STATE_CLOSED, peer_dev_int->state) ||
++	    test_bit(ICE_PEER_DEV_STATE_CLOSING, peer_dev_int->state) ||
++	    test_bit(ICE_PEER_DEV_STATE_OPENING, peer_dev_int->state) ||
++	    test_bit(ICE_PEER_DEV_STATE_REMOVED, peer_dev_int->state))
++		goto peer_close_out;
++
++	/* Set the peer state to CLOSING */
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSING, true);
++
++	for (i = 0; i < IIDC_EVENT_NBITS; i++)
++		bitmap_zero(peer_dev_int->current_events[i].type,
++			    IIDC_EVENT_NBITS);
++
++	if (peer_dev->peer_ops && peer_dev->peer_ops->close)
++		peer_dev->peer_ops->close(peer_dev, reason);
++
++	/* Set the peer state to CLOSED */
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_CLOSED, true);
++
++peer_close_out:
++	mutex_unlock(&peer_dev_int->peer_dev_state_mutex);
 +
 +	return 0;
 +}
 +
-+static const struct dev_pm_ops virtbus_dev_pm_ops = {
-+	SET_RUNTIME_PM_OPS(pm_generic_runtime_suspend,
-+			   pm_generic_runtime_resume, NULL)
-+#ifdef CONFIG_PM_SLEEP
-+	SET_SYSTEM_SLEEP_PM_OPS(pm_generic_suspend, pm_generic_resume)
-+#endif
-+};
-+
-+struct bus_type virtual_bus_type = {
-+	.name = "virtbus",
-+	.match = virtbus_match,
-+	.uevent = virtbus_uevent,
-+	.pm = &virtbus_dev_pm_ops,
-+};
-+
 +/**
-+ * virtbus_release_device - Destroy a virtbus device
-+ * @_dev: device to release
++ * ice_peer_update_vsi - update the pf_vsi info in peer_dev struct
++ * @peer_dev_int: pointer to peer dev internal struct
++ * @data: opaque pointer - VSI to be updated
 + */
-+static void virtbus_release_device(struct device *_dev)
++int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data)
 +{
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	u32 ida = vdev->id;
++	struct ice_vsi *vsi = (struct ice_vsi *)data;
++	struct iidc_peer_dev *peer_dev;
 +
-+	vdev->release(vdev);
-+	if (ida != VIRTBUS_INVALID_ID)
-+		ida_simple_remove(&virtbus_dev_ida, ida);
-+}
++	peer_dev = &peer_dev_int->peer_dev;
++	if (!peer_dev)
++		return 0;
 +
-+/**
-+ * virtbus_register_device - add a virtual bus device
-+ * @vdev: virtual bus device to add
-+ */
-+int virtbus_register_device(struct virtbus_device *vdev)
-+{
-+	int ret;
-+
-+	if (WARN_ON(!vdev->release))
-+		return -EINVAL;
-+
-+	/* All error paths out of this function after the device_initialize
-+	 * must perform a put_device() so that the .release() callback is
-+	 * called for an error condition.
-+	 */
-+	device_initialize(&vdev->dev);
-+
-+	vdev->dev.bus = &virtual_bus_type;
-+	vdev->dev.release = virtbus_release_device;
-+
-+	/* All device IDs are automatically allocated */
-+	ret = ida_simple_get(&virtbus_dev_ida, 0, 0, GFP_KERNEL);
-+
-+	if (ret < 0) {
-+		vdev->id = VIRTBUS_INVALID_ID;
-+		dev_err(&vdev->dev, "get IDA idx for virtbus device failed!\n");
-+		goto device_add_err;
-+	}
-+
-+	vdev->id = ret;
-+
-+	ret = dev_set_name(&vdev->dev, "%s.%d", vdev->match_name, vdev->id);
-+	if (ret) {
-+		dev_err(&vdev->dev, "dev_set_name failed for device\n");
-+		goto device_add_err;
-+	}
-+
-+	dev_dbg(&vdev->dev, "Registering virtbus device '%s'\n",
-+		dev_name(&vdev->dev));
-+
-+	ret = device_add(&vdev->dev);
-+	if (ret)
-+		goto device_add_err;
-+
++	peer_dev->pf_vsi_num = vsi->vsi_num;
 +	return 0;
-+
-+device_add_err:
-+	dev_err(&vdev->dev, "Add device to virtbus failed!: %d\n", ret);
-+	put_device(&vdev->dev);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(virtbus_register_device);
-+
-+static int virtbus_probe_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret;
-+
-+	ret = dev_pm_domain_attach(_dev, true);
-+	if (ret) {
-+		dev_warn(_dev, "Failed to attach to PM Domain : %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = vdrv->probe(vdev);
-+	if (ret) {
-+		dev_err(&vdev->dev, "Probe returned error\n");
-+		dev_pm_domain_detach(_dev, true);
-+	}
-+
-+	return ret;
 +}
 +
-+static int virtbus_remove_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+	int ret = 0;
-+
-+	ret = vdrv->remove(vdev);
-+	dev_pm_domain_detach(_dev, true);
-+
-+	return ret;
-+}
-+
-+static void virtbus_shutdown_driver(struct device *_dev)
-+{
-+	struct virtbus_driver *vdrv = to_virtbus_drv(_dev->driver);
-+	struct virtbus_device *vdev = to_virtbus_dev(_dev);
-+
-+	vdrv->shutdown(vdev);
-+}
-+
-+/**
-+ * __virtbus_register_driver - register a driver for virtual bus devices
-+ * @vdrv: virtbus_driver structure
-+ * @owner: owning module/driver
-+ */
-+int __virtbus_register_driver(struct virtbus_driver *vdrv, struct module *owner)
-+{
-+	if (!vdrv->probe || !vdrv->remove || !vdrv->shutdown || !vdrv->id_table)
-+		return -EINVAL;
-+
-+	vdrv->driver.owner = owner;
-+	vdrv->driver.bus = &virtual_bus_type;
-+	vdrv->driver.probe = virtbus_probe_driver;
-+	vdrv->driver.remove = virtbus_remove_driver;
-+	vdrv->driver.shutdown = virtbus_shutdown_driver;
-+
-+	return driver_register(&vdrv->driver);
-+}
-+EXPORT_SYMBOL_GPL(__virtbus_register_driver);
-+
-+static int __init virtual_bus_init(void)
-+{
-+	return bus_register(&virtual_bus_type);
-+}
-+
-+static void __exit virtual_bus_exit(void)
-+{
-+	bus_unregister(&virtual_bus_type);
-+	ida_destroy(&virtbus_dev_ida);
-+}
-+
-+module_init(virtual_bus_init);
-+module_exit(virtual_bus_exit);
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 4c2ddd0941a7..60bcfe75fb94 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -832,4 +832,12 @@ struct mhi_device_id {
- 	kernel_ulong_t driver_data;
- };
- 
-+#define VIRTBUS_NAME_SIZE 20
-+#define VIRTBUS_MODULE_PREFIX "virtbus:"
-+
-+struct virtbus_dev_id {
-+	char name[VIRTBUS_NAME_SIZE];
-+	kernel_ulong_t driver_data;
-+};
-+
- #endif /* LINUX_MOD_DEVICETABLE_H */
-diff --git a/include/linux/virtual_bus.h b/include/linux/virtual_bus.h
-new file mode 100644
-index 000000000000..4872fd5a9218
---- /dev/null
-+++ b/include/linux/virtual_bus.h
-@@ -0,0 +1,62 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * virtual_bus.h - lightweight software bus
-+ *
-+ * Copyright (c) 2019-2020 Intel Corporation
-+ *
-+ * Please see Documentation/driver-api/virtual_bus.rst for more information
-+ */
-+
-+#ifndef _VIRTUAL_BUS_H_
-+#define _VIRTUAL_BUS_H_
-+
-+#include <linux/device.h>
-+
-+struct virtbus_device {
-+	struct device dev;
-+	const char *match_name;
-+	void (*release)(struct virtbus_device *);
-+	u32 id;
-+};
-+
-+struct virtbus_driver {
-+	int (*probe)(struct virtbus_device *);
-+	int (*remove)(struct virtbus_device *);
-+	void (*shutdown)(struct virtbus_device *);
-+	int (*suspend)(struct virtbus_device *, pm_message_t);
-+	int (*resume)(struct virtbus_device *);
-+	struct device_driver driver;
-+	const struct virtbus_dev_id *id_table;
-+};
-+
-+static inline
-+struct virtbus_device *to_virtbus_dev(struct device *dev)
-+{
-+	return container_of(dev, struct virtbus_device, dev);
-+}
-+
-+static inline
-+struct virtbus_driver *to_virtbus_drv(struct device_driver *drv)
-+{
-+	return container_of(drv, struct virtbus_driver, driver);
-+}
-+
-+int virtbus_register_device(struct virtbus_device *vdev);
-+
-+int
-+__virtbus_register_driver(struct virtbus_driver *vdrv, struct module *owner);
-+
-+#define virtbus_register_driver(vdrv) \
-+	__virtbus_register_driver(vdrv, THIS_MODULE)
-+
-+static inline void virtbus_unregister_device(struct virtbus_device *vdev)
-+{
-+	device_unregister(&vdev->dev);
-+}
-+
-+static inline void virtbus_unregister_driver(struct virtbus_driver *vdrv)
-+{
-+	driver_unregister(&vdrv->driver);
-+}
-+
-+#endif /* _VIRTUAL_BUS_H_ */
-diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
-index 010be8ba2116..0c8e0e3a7c84 100644
---- a/scripts/mod/devicetable-offsets.c
-+++ b/scripts/mod/devicetable-offsets.c
-@@ -241,5 +241,8 @@ int main(void)
- 	DEVID(mhi_device_id);
- 	DEVID_FIELD(mhi_device_id, chan);
- 
-+	DEVID(virtbus_dev_id);
-+	DEVID_FIELD(virtbus_dev_id, name);
-+
+ /**
+  * ice_for_each_peer - iterate across and call function for each peer dev
+  * @pf: pointer to private board struct
+@@ -176,6 +248,89 @@ ice_for_each_peer(struct ice_pf *pf, void *data,
  	return 0;
  }
-diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
-index 02d5d79da284..7d78fa3fba34 100644
---- a/scripts/mod/file2alias.c
-+++ b/scripts/mod/file2alias.c
-@@ -1358,7 +1358,13 @@ static int do_mhi_entry(const char *filename, void *symval, char *alias)
- {
- 	DEF_FIELD_ADDR(symval, mhi_device_id, chan);
- 	sprintf(alias, MHI_DEVICE_MODALIAS_FMT, *chan);
-+	return 1;
-+}
  
-+static int do_virtbus_entry(const char *filename, void *symval, char *alias)
++/**
++ * ice_finish_init_peer_device - complete peer device initialization
++ * @peer_dev_int: ptr to peer device internal struct
++ * @data: ptr to opaque data
++ *
++ * This function completes remaining initialization of peer_devices
++ */
++int
++ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int,
++			    void __always_unused *data)
 +{
-+	DEF_FIELD_ADDR(symval, virtbus_dev_id, name);
-+	sprintf(alias, VIRTBUS_MODULE_PREFIX "%s", *name);
- 	return 1;
++	struct iidc_peer_dev *peer_dev;
++	struct iidc_peer_drv *peer_drv;
++	struct device *dev;
++	struct ice_pf *pf;
++	int ret = 0;
++
++	peer_dev = &peer_dev_int->peer_dev;
++	/* peer_dev will not always be populated at the time of this check */
++	if (!ice_validate_peer_dev(peer_dev))
++		return ret;
++
++	peer_drv = peer_dev->peer_drv;
++	pf = pci_get_drvdata(peer_dev->pdev);
++	dev = ice_pf_to_dev(pf);
++	/* There will be several assessments of the peer_dev's state in this
++	 * chunk of logic.  We need to hold the peer_dev_int's state mutex
++	 * for the entire part so that the flow progresses without another
++	 * context changing things mid-flow
++	 */
++	mutex_lock(&peer_dev_int->peer_dev_state_mutex);
++
++	if (!peer_dev->peer_ops) {
++		dev_err(dev, "peer_ops not defined on peer dev\n");
++		goto init_unlock;
++	}
++
++	if (!peer_dev->peer_ops->open) {
++		dev_err(dev, "peer_ops:open not defined on peer dev\n");
++		goto init_unlock;
++	}
++
++	if (!peer_dev->peer_ops->close) {
++		dev_err(dev, "peer_ops:close not defined on peer dev\n");
++		goto init_unlock;
++	}
++
++	/* Peer driver expected to set driver_id during registration */
++	if (!peer_drv->driver_id) {
++		dev_err(dev, "Peer driver did not set driver_id\n");
++		goto init_unlock;
++	}
++
++	if ((test_bit(ICE_PEER_DEV_STATE_CLOSED, peer_dev_int->state) ||
++	     test_bit(ICE_PEER_DEV_STATE_PROBED, peer_dev_int->state)) &&
++	    ice_pf_state_is_nominal(pf)) {
++		/* If the RTNL is locked, we defer opening the peer
++		 * until the next time this function is called by the
++		 * service task.
++		 */
++		if (rtnl_is_locked())
++			goto init_unlock;
++		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENING,
++				      true);
++		ret = peer_dev->peer_ops->open(peer_dev);
++		if (ret) {
++			dev_err(dev, "Peer %d failed to open\n",
++				peer_dev->peer_dev_id);
++			ice_peer_state_change(peer_dev_int,
++					      ICE_PEER_DEV_STATE_PROBED, true);
++			goto init_unlock;
++		}
++
++		ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_OPENED,
++				      true);
++	}
++
++init_unlock:
++	mutex_unlock(&peer_dev_int->peer_dev_state_mutex);
++
++	return ret;
++}
++
+ /**
+  * ice_unreg_peer_device - unregister specified device
+  * @peer_dev_int: ptr to peer device internal
+@@ -200,6 +355,9 @@ ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int,
+ 	if (peer_dev_int->ice_peer_wq) {
+ 		if (peer_dev_int->peer_prep_task.func)
+ 			cancel_work_sync(&peer_dev_int->peer_prep_task);
++
++		if (peer_dev_int->peer_close_task.func)
++			cancel_work_sync(&peer_dev_int->peer_close_task);
+ 		destroy_workqueue(peer_dev_int->ice_peer_wq);
+ 	}
+ 
+@@ -230,6 +388,134 @@ ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int,
+ 	return 0;
  }
  
-@@ -1436,6 +1442,7 @@ static const struct devtable devtable[] = {
- 	{"tee", SIZE_tee_client_device_id, do_tee_entry},
- 	{"wmi", SIZE_wmi_device_id, do_wmi_entry},
- 	{"mhi", SIZE_mhi_device_id, do_mhi_entry},
-+	{"virtbus", SIZE_virtbus_dev_id, do_virtbus_entry},
++/**
++ * ice_peer_unregister - request to unregister peer
++ * @peer_dev: peer device
++ *
++ * This function triggers close/remove on peer_dev allowing peer
++ * to unregister.
++ */
++static int ice_peer_unregister(struct iidc_peer_dev *peer_dev)
++{
++	enum iidc_close_reason reason = IIDC_REASON_PEER_DEV_UNINIT;
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_pf *pf;
++	int ret;
++
++	if (!ice_validate_peer_dev(peer_dev))
++		return -EINVAL;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++	if (ice_is_reset_in_progress(pf->state))
++		return -EBUSY;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++
++	ret = ice_peer_close(peer_dev_int, &reason);
++	if (ret)
++		return ret;
++
++	peer_dev->peer_ops = NULL;
++
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_REMOVED, false);
++
++	return 0;
++}
++
++/**
++ * ice_peer_register - Called by peer to open communication with LAN
++ * @peer_dev: ptr to peer device
++ *
++ * registering peer is expected to populate the ice_peerdrv->name field
++ * before calling this function.
++ */
++static int ice_peer_register(struct iidc_peer_dev *peer_dev)
++{
++	struct ice_peer_drv_int *peer_drv_int;
++	struct ice_peer_dev_int *peer_dev_int;
++	struct iidc_peer_drv *peer_drv;
++
++	if (!peer_dev) {
++		pr_err("Failed to reg peer dev: peer_dev ptr NULL\n");
++		return -EINVAL;
++	}
++
++	if (!peer_dev->pdev) {
++		pr_err("Failed to reg peer dev: peer dev pdev NULL\n");
++		return -EINVAL;
++	}
++
++	if (!peer_dev->peer_ops || !peer_dev->ops) {
++		pr_err("Failed to reg peer dev: peer dev peer_ops/ops NULL\n");
++		return -EINVAL;
++	}
++
++	peer_drv = peer_dev->peer_drv;
++	if (!peer_drv) {
++		pr_err("Failed to reg peer dev: peer drv NULL\n");
++		return -EINVAL;
++	}
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	peer_drv_int = peer_dev_int->peer_drv_int;
++	if (!peer_drv_int) {
++		pr_err("Failed to match peer_drv_int to peer_dev\n");
++		return -EINVAL;
++	}
++
++	peer_drv_int->peer_drv = peer_drv;
++
++	ice_peer_state_change(peer_dev_int, ICE_PEER_DEV_STATE_PROBED, false);
++
++	return 0;
++}
++
++/**
++ * ice_peer_update_vsi_filter - update main VSI filters for RDMA
++ * @peer_dev: pointer to RDMA peer device
++ * @filter: selection of filters to enable or disable
++ * @enable: bool whether to enable or disable filters
++ */
++static int
++ice_peer_update_vsi_filter(struct iidc_peer_dev *peer_dev,
++			   enum iidc_rdma_filter __always_unused filter,
++			   bool enable)
++{
++	struct ice_vsi *vsi;
++	struct ice_pf *pf;
++	int ret;
++
++	if (!ice_validate_peer_dev(peer_dev))
++		return -EINVAL;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++
++	vsi = ice_get_main_vsi(pf);
++	if (!vsi)
++		return -EINVAL;
++
++	ret = ice_cfg_iwarp_fltr(&pf->hw, vsi->idx, enable);
++
++	if (ret) {
++		dev_err(ice_pf_to_dev(pf), "Failed to  %sable iWARP filtering\n",
++			enable ? "en" : "dis");
++	} else {
++		if (enable)
++			vsi->info.q_opt_flags |= ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++		else
++			vsi->info.q_opt_flags &= ~ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++	}
++
++	return ret;
++}
++
++/* Initialize the ice_ops struct, which is used in 'ice_init_peer_devices' */
++static const struct iidc_ops ops = {
++	.peer_register			= ice_peer_register,
++	.peer_unregister		= ice_peer_unregister,
++	.update_vsi_filter		= ice_peer_update_vsi_filter,
++};
++
+ /**
+  * ice_reserve_peer_qvector - Reserve vector resources for peer drivers
+  * @pf: board private structure to initialize
+@@ -364,6 +650,8 @@ int ice_init_peer_devices(struct ice_pf *pf)
+ 
+ 		/* for DCB, override the qos_info defaults. */
+ 		ice_setup_dcb_qos_info(pf, qos_info);
++		/* Initialize ice_ops */
++		peer_dev->ops = &ops;
+ 
+ 		/* make sure peer specific resources such as msix_count and
+ 		 * msix_entries are initialized
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+index daac19c45490..d22e6f5bb50e 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
++++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+@@ -62,6 +62,42 @@ struct ice_peer_dev_int {
+ 	enum iidc_close_reason rst_type;
  };
  
- /* Create MODULE_ALIAS() statements.
++int ice_peer_update_vsi(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unroll_peer(struct ice_peer_dev_int *peer_dev_int, void *data);
+ int ice_unreg_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
++int ice_peer_close(struct ice_peer_dev_int *peer_dev_int, void *data);
++int
++ice_finish_init_peer_device(struct ice_peer_dev_int *peer_dev_int, void *data);
++
++static inline struct
++ice_peer_dev_int *peer_to_ice_dev_int(struct iidc_peer_dev *peer_dev)
++{
++	return  container_of(peer_dev, struct ice_peer_dev_int, peer_dev);
++}
++
++static inline bool ice_validate_peer_dev(struct iidc_peer_dev *peer_dev)
++{
++	struct ice_peer_dev_int *peer_dev_int;
++	struct ice_pf *pf;
++
++	if (!peer_dev || !peer_dev->pdev)
++		return false;
++
++	if (!peer_dev->peer_ops)
++		return false;
++
++	pf = pci_get_drvdata(peer_dev->pdev);
++	if (!pf)
++		return false;
++
++	peer_dev_int = peer_to_ice_dev_int(peer_dev);
++	if (!peer_dev_int)
++		return false;
++
++	if (test_bit(ICE_PEER_DEV_STATE_REMOVED, peer_dev_int->state) ||
++	    test_bit(ICE_PEER_DEV_STATE_INIT, peer_dev_int->state))
++		return false;
++
++	return true;
++}
+ #endif /* !_ICE_IDC_INT_H_ */
+diff --git a/drivers/net/ethernet/intel/ice/ice_lib.c b/drivers/net/ethernet/intel/ice/ice_lib.c
+index 205ac5900551..5043d5ed1b2a 100644
+--- a/drivers/net/ethernet/intel/ice/ice_lib.c
++++ b/drivers/net/ethernet/intel/ice/ice_lib.c
+@@ -1379,6 +1379,30 @@ ice_add_mac_to_list(struct ice_vsi *vsi, struct list_head *add_list,
+ 	return 0;
+ }
+ 
++/**
++ * ice_pf_state_is_nominal - checks the PF for nominal state
++ * @pf: pointer to PF to check
++ *
++ * Check the PF's state for a collection of bits that would indicate
++ * the PF is in a state that would inhibit normal operation for
++ * driver functionality.
++ *
++ * Returns true if PF is in a nominal state, false otherwise
++ */
++bool ice_pf_state_is_nominal(struct ice_pf *pf)
++{
++	DECLARE_BITMAP(check_bits, __ICE_STATE_NBITS) = { 0 };
++
++	if (!pf)
++		return false;
++
++	bitmap_set(check_bits, 0, __ICE_STATE_NOMINAL_CHECK_BITS);
++	if (bitmap_intersects(pf->state, check_bits, __ICE_STATE_NBITS))
++		return false;
++
++	return true;
++}
++
+ /**
+  * ice_update_eth_stats - Update VSI-specific ethernet statistics counters
+  * @vsi: the VSI to be updated
+@@ -2390,6 +2414,15 @@ void ice_vsi_free_rx_rings(struct ice_vsi *vsi)
+  */
+ void ice_vsi_close(struct ice_vsi *vsi)
+ {
++	enum iidc_close_reason reason = IIDC_REASON_INTERFACE_DOWN;
++
++	if (!ice_is_safe_mode(vsi->back) && vsi->type == ICE_VSI_PF) {
++		int ret = ice_for_each_peer(vsi->back, &reason, ice_peer_close);
++
++		if (ret)
++			dev_dbg(ice_pf_to_dev(vsi->back), "Peer device did not implement close function\n");
++	}
++
+ 	if (!test_and_set_bit(__ICE_DOWN, vsi->state))
+ 		ice_down(vsi);
+ 
+diff --git a/drivers/net/ethernet/intel/ice/ice_lib.h b/drivers/net/ethernet/intel/ice/ice_lib.h
+index db07cc065b10..f77ddd6883c3 100644
+--- a/drivers/net/ethernet/intel/ice/ice_lib.h
++++ b/drivers/net/ethernet/intel/ice/ice_lib.h
+@@ -14,6 +14,8 @@ ice_add_mac_to_list(struct ice_vsi *vsi, struct list_head *add_list,
+ 
+ void ice_free_fltr_list(struct device *dev, struct list_head *h);
+ 
++bool ice_pf_state_is_nominal(struct ice_pf *pf);
++
+ void ice_update_eth_stats(struct ice_vsi *vsi);
+ 
+ int ice_vsi_cfg_rxqs(struct ice_vsi *vsi);
+diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
+index 033e463bcdf1..ac0c6d5b01e4 100644
+--- a/drivers/net/ethernet/intel/ice/ice_main.c
++++ b/drivers/net/ethernet/intel/ice/ice_main.c
+@@ -1492,6 +1492,9 @@ static void ice_service_task(struct work_struct *work)
+ 		return;
+ 	}
+ 
++	/* Invoke remaining initialization of peer devices */
++	ice_for_each_peer(pf, NULL, ice_finish_init_peer_device);
++
+ 	ice_process_vflr_event(pf);
+ 	ice_clean_mailboxq_subtask(pf);
+ 
+@@ -3451,6 +3454,7 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
+ static void ice_remove(struct pci_dev *pdev)
+ {
+ 	struct ice_pf *pf = pci_get_drvdata(pdev);
++	enum iidc_close_reason reason;
+ 	int i;
+ 
+ 	if (!pf)
+@@ -3467,8 +3471,12 @@ static void ice_remove(struct pci_dev *pdev)
+ 		ice_free_vfs(pf);
+ 	}
+ 
+-	set_bit(__ICE_DOWN, pf->state);
+ 	ice_service_task_stop(pf);
++	if (ice_is_peer_ena(pf)) {
++		reason = IIDC_REASON_INTERFACE_DOWN;
++		ice_for_each_peer(pf, &reason, ice_peer_close);
++	}
++	set_bit(__ICE_DOWN, pf->state);
+ 
+ 	ice_devlink_destroy_port(pf);
+ 	ice_vsi_release_all(pf);
+@@ -4785,7 +4793,15 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
+ 		dev_err(dev, "PF VSI rebuild failed: %d\n", err);
+ 		goto err_vsi_rebuild;
+ 	}
++	if (ice_is_peer_ena(pf)) {
++		struct ice_vsi *vsi = ice_get_main_vsi(pf);
+ 
++		if (!vsi) {
++			dev_err(dev, "No PF_VSI to update peer\n");
++			goto err_vsi_rebuild;
++		}
++		ice_for_each_peer(pf, vsi, ice_peer_update_vsi);
++	}
+ 	if (test_bit(ICE_FLAG_SRIOV_ENA, pf->flags)) {
+ 		err = ice_vsi_rebuild_by_type(pf, ICE_VSI_VF);
+ 		if (err) {
+diff --git a/drivers/net/ethernet/intel/ice/ice_switch.c b/drivers/net/ethernet/intel/ice/ice_switch.c
+index 51825a203e35..cf8e1553599a 100644
+--- a/drivers/net/ethernet/intel/ice/ice_switch.c
++++ b/drivers/net/ethernet/intel/ice/ice_switch.c
+@@ -430,6 +430,29 @@ ice_update_vsi(struct ice_hw *hw, u16 vsi_handle, struct ice_vsi_ctx *vsi_ctx,
+ 	return ice_aq_update_vsi(hw, vsi_ctx, cd);
+ }
+ 
++/**
++ * ice_cfg_iwarp_fltr - enable/disable iWARP filtering on VSI
++ * @hw: pointer to HW struct
++ * @vsi_handle: VSI SW index
++ * @enable: boolean for enable/disable
++ */
++enum ice_status
++ice_cfg_iwarp_fltr(struct ice_hw *hw, u16 vsi_handle, bool enable)
++{
++	struct ice_vsi_ctx *ctx;
++
++	ctx = ice_get_vsi_ctx(hw, vsi_handle);
++	if (!ctx)
++		return ICE_ERR_DOES_NOT_EXIST;
++
++	if (enable)
++		ctx->info.q_opt_flags |= ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++	else
++		ctx->info.q_opt_flags &= ~ICE_AQ_VSI_Q_OPT_PE_FLTR_EN;
++
++	return ice_update_vsi(hw, vsi_handle, ctx, NULL);
++}
++
+ /**
+  * ice_aq_alloc_free_vsi_list
+  * @hw: pointer to the HW struct
+diff --git a/drivers/net/ethernet/intel/ice/ice_switch.h b/drivers/net/ethernet/intel/ice/ice_switch.h
+index fa14b9545dab..96010d3d96fd 100644
+--- a/drivers/net/ethernet/intel/ice/ice_switch.h
++++ b/drivers/net/ethernet/intel/ice/ice_switch.h
+@@ -220,6 +220,8 @@ void ice_remove_vsi_fltr(struct ice_hw *hw, u16 vsi_handle);
+ enum ice_status
+ ice_add_vlan(struct ice_hw *hw, struct list_head *m_list);
+ enum ice_status ice_remove_vlan(struct ice_hw *hw, struct list_head *v_list);
++enum ice_status
++ice_cfg_iwarp_fltr(struct ice_hw *hw, u16 vsi_handle, bool enable);
+ 
+ /* Promisc/defport setup for VSIs */
+ enum ice_status
+diff --git a/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c b/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
+index 15191a325918..07f3d4b456c7 100644
+--- a/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
++++ b/drivers/net/ethernet/intel/ice/ice_virtchnl_pf.c
+@@ -1375,31 +1375,6 @@ static int ice_alloc_vfs(struct ice_pf *pf, u16 num_alloc_vfs)
+ 	return ret;
+ }
+ 
+-/**
+- * ice_pf_state_is_nominal - checks the PF for nominal state
+- * @pf: pointer to PF to check
+- *
+- * Check the PF's state for a collection of bits that would indicate
+- * the PF is in a state that would inhibit normal operation for
+- * driver functionality.
+- *
+- * Returns true if PF is in a nominal state.
+- * Returns false otherwise
+- */
+-static bool ice_pf_state_is_nominal(struct ice_pf *pf)
+-{
+-	DECLARE_BITMAP(check_bits, __ICE_STATE_NBITS) = { 0 };
+-
+-	if (!pf)
+-		return false;
+-
+-	bitmap_set(check_bits, 0, __ICE_STATE_NOMINAL_CHECK_BITS);
+-	if (bitmap_intersects(pf->state, check_bits, __ICE_STATE_NBITS))
+-		return false;
+-
+-	return true;
+-}
+-
+ /**
+  * ice_pci_sriov_ena - Enable or change number of VFs
+  * @pf: pointer to the PF structure
 -- 
 2.26.2
 
