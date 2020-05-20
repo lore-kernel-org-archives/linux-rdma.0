@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F074C433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F4FC433E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39E74207E8
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66D25207F9
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 19:57:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="K2oWWvnR"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="W6xMYpJm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728391AbgETT5P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 15:57:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51298 "EHLO
+        id S1728415AbgETT5E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 15:57:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727113AbgETT5M (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:57:12 -0400
+        with ESMTP id S1728391AbgETT5D (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 15:57:03 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DBB3C061A0F;
-        Wed, 20 May 2020 12:57:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3214C061A0E;
+        Wed, 20 May 2020 12:57:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=fQB1MoUY1DoFW/LCHHPWdcIToW6X3yYHVE9OqGHCLRE=; b=K2oWWvnRH0bAH7t3M/NnCWXcm6
-        ijivdECtWhaXVJ9Ypm89bAnX4whjcAd817MKj9/1duM88xuNoIJYmMK5lAa983D4SQdlcoKgkDaZt
-        A8bUfDx6BggU+nIWrVPichd+qhQxBHbSFUSNG6MCTMqhIFJTalznNkB8DGfUEzNlEYZfzGVfVfTt4
-        sHW2HR+w0ZhzZArJKVNNv7/R34a9K+uwHatVrlcvBH09MPGxyNG9BbR9WwV0maBao/a9dTcwW5eTe
-        BJgMzLjSgJ94TZm1sr4vNSSwrl62C0W8o7xQl3iB80GeJaa6yc+kAwOFqITPFjdx6GkORG0M0bhw5
-        La8oZZPg==;
+        bh=TVWRZ+dDVbUkqjKFRCRZsKcY4V10hWh4MQUOMOhQzp0=; b=W6xMYpJmfq6e+cBhu3IXfq0F7J
+        1awdkKkfctWpBz5liyupxCbX8YQv1Na/qQpO67S0j1a98bLcoWpj0HYWvfze27JPSxvaxsSstQ5zM
+        gSz/cEH8aI0rEBIJSkT8oIjFYvRLAiC/z7iqRkR4T6zgaqQL5iXdfhmthyv5brhymQRJCH7QW0bSB
+        genBzBLGGBpLQNKVa2162RYrKcJtleKqRNH0WMivQwOPrnxblf87/mKRzd/lQwww7Lp/vVOajbEN0
+        d0L/Gd/BfyH8AMusu7b0uVltVijFIVDzMqCKov0Aha/7TOPvsv22qZQOhSMnZGGinxDpB/cfKYCkj
+        PG+1mJmg==;
 Received: from [2001:4bb8:188:1506:c70:4a89:bc61:2] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jbUph-0003bo-G7; Wed, 20 May 2020 19:56:53 +0000
+        id 1jbUpQ-0003Tx-Ac; Wed, 20 May 2020 19:56:48 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -55,9 +55,9 @@ Cc:     Eric Dumazet <edumazet@google.com>,
         netdev@vger.kernel.org, linux-sctp@vger.kernel.org,
         ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-nfs@vger.kernel.org
-Subject: [PATCH 32/33] net: add a new bind_add method
-Date:   Wed, 20 May 2020 21:55:08 +0200
-Message-Id: <20200520195509.2215098-33-hch@lst.de>
+Subject: [PATCH 30/33] tipc: call tsk_set_importance from tipc_topsrv_create_listener
+Date:   Wed, 20 May 2020 21:55:06 +0200
+Message-Id: <20200520195509.2215098-31-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200520195509.2215098-1-hch@lst.de>
 References: <20200520195509.2215098-1-hch@lst.de>
@@ -69,134 +69,99 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The SCTP protocol allows to bind multiple address to a socket.  That
-feature is currently only exposed as a socket option.  Add a bind_add
-method struct proto that allows to bind additional addresses, and
-switch the dlm code to use the method instead of going through the
-socket option from kernel space.
+Avoid using kernel_setsockopt for the TIPC_IMPORTANCE option when we can
+just use the internal helper.  The only change needed is to pass a struct
+sock instead of tipc_sock, which is private to socket.c
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/dlm/lowcomms.c  |  9 +++------
- include/net/sock.h |  6 +++++-
- net/core/sock.c    |  8 ++++++++
- net/sctp/socket.c  | 23 +++++++++++++++++++++++
- 4 files changed, 39 insertions(+), 7 deletions(-)
+ net/tipc/socket.c | 18 +++++++++---------
+ net/tipc/socket.h |  2 ++
+ net/tipc/topsrv.c |  6 +++---
+ 3 files changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/fs/dlm/lowcomms.c b/fs/dlm/lowcomms.c
-index 9f1c3cdc9d653..3543a8fec9075 100644
---- a/fs/dlm/lowcomms.c
-+++ b/fs/dlm/lowcomms.c
-@@ -882,6 +882,7 @@ static void writequeue_entry_complete(struct writequeue_entry *e, int completed)
- static int sctp_bind_addrs(struct connection *con, uint16_t port)
+diff --git a/net/tipc/socket.c b/net/tipc/socket.c
+index e370ad0edd768..28c57d4544c53 100644
+--- a/net/tipc/socket.c
++++ b/net/tipc/socket.c
+@@ -191,17 +191,17 @@ static int tsk_importance(struct tipc_sock *tsk)
+ 	return msg_importance(&tsk->phdr);
+ }
+ 
+-static int tsk_set_importance(struct tipc_sock *tsk, int imp)
++static struct tipc_sock *tipc_sk(const struct sock *sk)
  {
- 	struct sockaddr_storage localaddr;
-+	struct sockaddr *addr = (struct sockaddr *)&localaddr;
- 	int i, addr_len, result = 0;
- 
- 	for (i = 0; i < dlm_local_count; i++) {
-@@ -889,13 +890,9 @@ static int sctp_bind_addrs(struct connection *con, uint16_t port)
- 		make_sockaddr(&localaddr, port, &addr_len);
- 
- 		if (!i)
--			result = kernel_bind(con->sock,
--					     (struct sockaddr *)&localaddr,
--					     addr_len);
-+			result = kernel_bind(con->sock, addr, addr_len);
- 		else
--			result = kernel_setsockopt(con->sock, SOL_SCTP,
--						   SCTP_SOCKOPT_BINDX_ADD,
--						   (char *)&localaddr, addr_len);
-+			result = sock_bind_add(con->sock->sk, addr, addr_len);
- 
- 		if (result < 0) {
- 			log_print("Can't bind to %d addr number %d, %d.\n",
-diff --git a/include/net/sock.h b/include/net/sock.h
-index d994daa418ec2..6e9f713a78607 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -1156,7 +1156,9 @@ struct proto {
- 	int			(*sendpage)(struct sock *sk, struct page *page,
- 					int offset, size_t size, int flags);
- 	int			(*bind)(struct sock *sk,
--					struct sockaddr *uaddr, int addr_len);
-+					struct sockaddr *addr, int addr_len);
-+	int			(*bind_add)(struct sock *sk,
-+					struct sockaddr *addr, int addr_len);
- 
- 	int			(*backlog_rcv) (struct sock *sk,
- 						struct sk_buff *skb);
-@@ -2698,4 +2700,6 @@ void sock_set_reuseaddr(struct sock *sk);
- void sock_set_reuseport(struct sock *sk);
- void sock_set_sndtimeo(struct sock *sk, s64 secs);
- 
-+int sock_bind_add(struct sock *sk, struct sockaddr *addr, int addr_len);
-+
- #endif	/* _SOCK_H */
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 2ca3425b519c0..61ec573221a60 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -3712,3 +3712,11 @@ bool sk_busy_loop_end(void *p, unsigned long start_time)
- }
- EXPORT_SYMBOL(sk_busy_loop_end);
- #endif /* CONFIG_NET_RX_BUSY_POLL */
-+
-+int sock_bind_add(struct sock *sk, struct sockaddr *addr, int addr_len)
-+{
-+	if (!sk->sk_prot->bind_add)
-+		return -EOPNOTSUPP;
-+	return sk->sk_prot->bind_add(sk, addr, addr_len);
-+}
-+EXPORT_SYMBOL(sock_bind_add);
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index 827a9903ee288..8a0b9258f65c0 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -1057,6 +1057,27 @@ static int sctp_setsockopt_bindx(struct sock *sk,
- 	return err;
+-	if (imp > TIPC_CRITICAL_IMPORTANCE)
+-		return -EINVAL;
+-	msg_set_importance(&tsk->phdr, (u32)imp);
+-	return 0;
++	return container_of(sk, struct tipc_sock, sk);
  }
  
-+static int sctp_bind_add(struct sock *sk, struct sockaddr *addr,
-+		int addrlen)
-+{
-+	struct sctp_af *af = sctp_get_af_specific(addr->sa_family);
-+	int err;
-+
-+	if (!af || af->sockaddr_len > addrlen)
+-static struct tipc_sock *tipc_sk(const struct sock *sk)
++int tsk_set_importance(struct sock *sk, int imp)
+ {
+-	return container_of(sk, struct tipc_sock, sk);
++	if (imp > TIPC_CRITICAL_IMPORTANCE)
 +		return -EINVAL;
-+	err = security_sctp_bind_connect(sk, SCTP_SOCKOPT_BINDX_ADD, addr,
-+			addrlen);
-+	if (err)
-+		return err;
++	msg_set_importance(&tipc_sk(sk)->phdr, (u32)imp);
++	return 0;
+ }
+ 
+ static bool tsk_conn_cong(struct tipc_sock *tsk)
+@@ -2681,7 +2681,7 @@ static int tipc_accept(struct socket *sock, struct socket *new_sock, int flags,
+ 	/* Connect new socket to it's peer */
+ 	tipc_sk_finish_conn(new_tsock, msg_origport(msg), msg_orignode(msg));
+ 
+-	tsk_set_importance(new_tsock, msg_importance(msg));
++	tsk_set_importance(new_sk, msg_importance(msg));
+ 	if (msg_named(msg)) {
+ 		new_tsock->conn_type = msg_nametype(msg);
+ 		new_tsock->conn_instance = msg_nameinst(msg);
+@@ -3099,7 +3099,7 @@ static int tipc_setsockopt(struct socket *sock, int lvl, int opt,
+ 
+ 	switch (opt) {
+ 	case TIPC_IMPORTANCE:
+-		res = tsk_set_importance(tsk, value);
++		res = tsk_set_importance(sk, value);
+ 		break;
+ 	case TIPC_SRC_DROPPABLE:
+ 		if (sock->type != SOCK_STREAM)
+diff --git a/net/tipc/socket.h b/net/tipc/socket.h
+index 235b9679acee4..b11575afc66fe 100644
+--- a/net/tipc/socket.h
++++ b/net/tipc/socket.h
+@@ -75,4 +75,6 @@ u32 tipc_sock_get_portid(struct sock *sk);
+ bool tipc_sk_overlimit1(struct sock *sk, struct sk_buff *skb);
+ bool tipc_sk_overlimit2(struct sock *sk, struct sk_buff *skb);
+ 
++int tsk_set_importance(struct sock *sk, int imp);
 +
+ #endif
+diff --git a/net/tipc/topsrv.c b/net/tipc/topsrv.c
+index 446af7bbd13e6..1489cfb941d8e 100644
+--- a/net/tipc/topsrv.c
++++ b/net/tipc/topsrv.c
+@@ -497,7 +497,6 @@ static void tipc_topsrv_listener_data_ready(struct sock *sk)
+ 
+ static int tipc_topsrv_create_listener(struct tipc_topsrv *srv)
+ {
+-	int imp = TIPC_CRITICAL_IMPORTANCE;
+ 	struct socket *lsock = NULL;
+ 	struct sockaddr_tipc saddr;
+ 	struct sock *sk;
+@@ -514,8 +513,9 @@ static int tipc_topsrv_create_listener(struct tipc_topsrv *srv)
+ 	sk->sk_user_data = srv;
+ 	write_unlock_bh(&sk->sk_callback_lock);
+ 
+-	rc = kernel_setsockopt(lsock, SOL_TIPC, TIPC_IMPORTANCE,
+-			       (char *)&imp, sizeof(imp));
 +	lock_sock(sk);
-+	err = sctp_do_bind(sk, (union sctp_addr *)addr, af->sockaddr_len);
-+	if (!err)
-+		err = sctp_send_asconf_add_ip(sk, addr, 1);
++	rc = tsk_set_importance(sk, TIPC_CRITICAL_IMPORTANCE);
 +	release_sock(sk);
-+	return err;
-+}
-+
- static int sctp_connect_new_asoc(struct sctp_endpoint *ep,
- 				 const union sctp_addr *daddr,
- 				 const struct sctp_initmsg *init,
-@@ -9625,6 +9646,7 @@ struct proto sctp_prot = {
- 	.sendmsg     =	sctp_sendmsg,
- 	.recvmsg     =	sctp_recvmsg,
- 	.bind        =	sctp_bind,
-+	.bind_add    =  sctp_bind_add,
- 	.backlog_rcv =	sctp_backlog_rcv,
- 	.hash        =	sctp_hash,
- 	.unhash      =	sctp_unhash,
-@@ -9667,6 +9689,7 @@ struct proto sctpv6_prot = {
- 	.sendmsg	= sctp_sendmsg,
- 	.recvmsg	= sctp_recvmsg,
- 	.bind		= sctp_bind,
-+	.bind_add	= sctp_bind_add,
- 	.backlog_rcv	= sctp_backlog_rcv,
- 	.hash		= sctp_hash,
- 	.unhash		= sctp_unhash,
+ 	if (rc < 0)
+ 		goto err;
+ 
 -- 
 2.26.2
 
