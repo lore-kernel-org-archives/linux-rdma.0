@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5075AC433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E40C433E1
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E3C0207F9
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDE4E20829
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 13:53:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726576AbgETNxs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 09:53:48 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:56374 "EHLO huawei.com"
+        id S1726790AbgETNxr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 May 2020 09:53:47 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:56372 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726747AbgETNxs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 20 May 2020 09:53:48 -0400
+        id S1726801AbgETNxr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 May 2020 09:53:47 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id ED924223CE8A558903BB;
+        by Forcepoint Email with ESMTP id E3AEA9958A4A6F9104CB;
         Wed, 20 May 2020 21:53:41 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 20 May 2020 21:53:36 +0800
+ 14.3.487.0; Wed, 20 May 2020 21:53:35 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 4/9] RDMA/hns: Remove unused code about assert
-Date:   Wed, 20 May 2020 21:53:14 +0800
-Message-ID: <1589982799-28728-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 2/9] RDMA/hns: Add CQ flag instead of independent enable flag
+Date:   Wed, 20 May 2020 21:53:12 +0800
+Message-ID: <1589982799-28728-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
 References: <1589982799-28728-1-git-send-email-liweihang@huawei.com>
@@ -43,44 +43,99 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-The codes related to assert are no longer used and need to be deleted.
+It's easier to understand and maintain enable flags of cq using a single
+field in type of u32 than defining a field for every flags in the structure
+hns_roce_cq, and we can add new flags for features more conveniently in the
+future.
 
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_common.h | 4 ----
- drivers/infiniband/hw/hns/hns_roce_main.c   | 1 -
- 2 files changed, 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 10 +++++-----
+ drivers/infiniband/hw/hns/hns_roce_device.h |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  6 +++---
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index 8e95a1a..f5669ff 100644
---- a/drivers/infiniband/hw/hns/hns_roce_common.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -33,10 +33,6 @@
- #ifndef _HNS_ROCE_COMMON_H
- #define _HNS_ROCE_COMMON_H
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index d2d7074..925fb77 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -186,8 +186,8 @@ static int alloc_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
+ 						   &hr_cq->db);
+ 			if (err)
+ 				return err;
+-			hr_cq->db_en = 1;
+-			resp->cap_flags |= HNS_ROCE_SUPPORT_CQ_RECORD_DB;
++			hr_cq->flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
++			resp->cap_flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
+ 		}
+ 	} else {
+ 		if (has_db) {
+@@ -196,7 +196,7 @@ static int alloc_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
+ 				return err;
+ 			hr_cq->set_ci_db = hr_cq->db.db_record;
+ 			*hr_cq->set_ci_db = 0;
+-			hr_cq->db_en = 1;
++			hr_cq->flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
+ 		}
+ 		hr_cq->cq_db_l = hr_dev->reg_base + hr_dev->odb_offset +
+ 				 DB_REG_OFFSET * hr_dev->priv_uar.index;
+@@ -210,10 +210,10 @@ static void free_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
+ {
+ 	struct hns_roce_ucontext *uctx;
  
--#ifndef assert
--#define assert(cond)
--#endif
--
- #define roce_write(dev, reg, val)	writel((val), (dev)->reg_base + (reg))
- #define roce_read(dev, reg)		readl((dev)->reg_base + (reg))
- #define roce_raw_write(value, addr) \
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index fd3581e..50763cf 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -233,7 +233,6 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
- 	enum ib_mtu mtu;
- 	u8 port;
+-	if (!hr_cq->db_en)
++	if (!(hr_cq->flags & HNS_ROCE_CQ_FLAG_RECORD_DB))
+ 		return;
  
--	assert(port_num > 0);
- 	port = port_num - 1;
+-	hr_cq->db_en = 0;
++	hr_cq->flags &= ~HNS_ROCE_CQ_FLAG_RECORD_DB;
+ 	if (udata) {
+ 		uctx = rdma_udata_to_drv_context(udata,
+ 						 struct hns_roce_ucontext,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 4fcd608e..06bafa1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -135,8 +135,8 @@ enum {
+ 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = BIT(1),
+ };
  
- 	/* props being zeroed by the caller, avoid zeroing it here */
+-enum {
+-	HNS_ROCE_SUPPORT_CQ_RECORD_DB = 1 << 0,
++enum hns_roce_cq_flags {
++	HNS_ROCE_CQ_FLAG_RECORD_DB = BIT(0),
+ };
+ 
+ enum hns_roce_qp_state {
+@@ -454,7 +454,7 @@ struct hns_roce_cq {
+ 	struct ib_cq			ib_cq;
+ 	struct hns_roce_mtr		mtr;
+ 	struct hns_roce_db		db;
+-	u8				db_en;
++	u32				flags;
+ 	spinlock_t			lock;
+ 	u32				cq_depth;
+ 	u32				cons_index;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 7d0556ef..36a9871 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2905,9 +2905,9 @@ static void hns_roce_v2_write_cqc(struct hns_roce_dev *hr_dev,
+ 	roce_set_field(cq_context->byte_40_cqe_ba, V2_CQC_BYTE_40_CQE_BA_M,
+ 		       V2_CQC_BYTE_40_CQE_BA_S, (dma_handle >> (32 + 3)));
+ 
+-	if (hr_cq->db_en)
+-		roce_set_bit(cq_context->byte_44_db_record,
+-			     V2_CQC_BYTE_44_DB_RECORD_EN_S, 1);
++	roce_set_bit(cq_context->byte_44_db_record,
++		     V2_CQC_BYTE_44_DB_RECORD_EN_S,
++		     (hr_cq->flags & HNS_ROCE_CQ_FLAG_RECORD_DB) ? 1 : 0);
+ 
+ 	roce_set_field(cq_context->byte_44_db_record,
+ 		       V2_CQC_BYTE_44_DB_RECORD_ADDR_M,
 -- 
 2.8.1
 
