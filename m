@@ -1,104 +1,90 @@
-Return-Path: <SRS0=bXLp=7C=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=17PT=7D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5678C433E1
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 23:39:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 337F5C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 07:44:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8366A2072C
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 May 2020 23:39:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E924F2065F
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 07:44:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FsipvN1G"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Xwo4P6Vg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726844AbgETXjT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 May 2020 19:39:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57742 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726697AbgETXjS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 May 2020 19:39:18 -0400
-Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com [IPv6:2607:f8b0:4864:20::841])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B934C061A0E;
-        Wed, 20 May 2020 16:39:17 -0700 (PDT)
-Received: by mail-qt1-x841.google.com with SMTP id m44so4094210qtm.8;
-        Wed, 20 May 2020 16:39:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=usgVE9wGsTmR3Ul4KmzuJXmMmNEoxcCV+K4pKCDDnEw=;
-        b=FsipvN1GuGM9UbR7VsW4XkubLiUqC8Dqtu7L937s2qadx/bxbgPsMl9fWYiJlizujH
-         c9qxkVWOxpVMlAT7nNkHzdOL6XRXbCOpar1C4DQC47Sws3swXaaqI9YAuQyLubSZ0OK0
-         rRko/wzRAKCkIy15w/nWQBRVBLwMvtGjJCE2gisIPTfPY2zdgnpj1FMzVNCnVI10QH79
-         YBAX7tezDRj2K0TOr70GJg9yP9kYgu14VxvOjzih8uvep1FVSB5EojcU0QtKwd0T+IdB
-         hjRKTNxmgJ9liw0vUGr1peJpzaW/R/f+lsktCjxXTndLxOoBi3/frCJqvNi3QaPXR6GX
-         kpaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=usgVE9wGsTmR3Ul4KmzuJXmMmNEoxcCV+K4pKCDDnEw=;
-        b=NX+9uVe/yO0GL9KKvOXOHz5GefBwZRpFfy0UuHRq/9fs+d7Q54crmTq+eztKuFh4KV
-         mrzbWrwiEF2044382M3G9Q8ipjtasHXxaTgrRfrg1RYxTHCm7fS2H2ArcoYXKnToO3dE
-         Om5GFMxY/+u7KqgCb9kq2W2sZVymiitDmKy4DA3wEseC06UIt+1E1DK+wY4U3jydrwmv
-         LXqXEbW0BXFdo6Bm0kQ6Ryvi6DPK/2qKTmhxkiPfs4/05L4icxx3gP9RTEARQkq0U2pn
-         RQMMLV+aRGJoxOYKx6cq2unZSbgeV9mINAar97dF/XXoKCwgN0KU5W5FXpfdXXnNWSQd
-         Y8fw==
-X-Gm-Message-State: AOAM530kitqhp7j8IZQRRpzIFXJBDZpaIJprNSrFUZrdCEHBVWeplmTB
-        C59Pm4gBUHx/XTUg8i+HSa8=
-X-Google-Smtp-Source: ABdhPJzb0RQavdlFPdZ2esbonBQnAnxuJh+Wdn80ZrxdL0NcIMXKvb5xhinFWySzKcTGVqX7yVkgxA==
-X-Received: by 2002:ac8:1af3:: with SMTP id h48mr7625941qtk.371.1590017956516;
-        Wed, 20 May 2020 16:39:16 -0700 (PDT)
-Received: from localhost.localdomain ([168.181.48.225])
-        by smtp.gmail.com with ESMTPSA id z10sm3685208qtu.22.2020.05.20.16.39.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 May 2020 16:39:15 -0700 (PDT)
-Received: by localhost.localdomain (Postfix, from userid 1000)
-        id 43E1FC0DAC; Wed, 20 May 2020 20:39:13 -0300 (-03)
-Date:   Wed, 20 May 2020 20:39:13 -0300
-From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To:     David Miller <davem@davemloft.net>
-Cc:     hch@lst.de, kuba@kernel.org, edumazet@google.com,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, vyasevich@gmail.com,
-        nhorman@tuxdriver.com, jmaloy@redhat.com, ying.xue@windriver.com,
-        drbd-dev@lists.linbit.com, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org,
+        id S1728338AbgEUHo2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 May 2020 03:44:28 -0400
+Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:27216 "EHLO
+        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1727003AbgEUHo2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 May 2020 03:44:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1590047066;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=E3GyhKojXVNo0Mooki74/Av48EK9IfzgPCl8v5tu8BM=;
+        b=Xwo4P6VgM0yNFQLsL8aITpXqDNEKsLPcFnOddg8jHV4Uj5x9q3F+W4WR5HxU9uPjqvwq2N
+        nnhgshTmq8Y4LQ6yxQobET0AM0/EixBnpB5Y4Ln2GS7ODfgrBnUVO4tNw4Z3bfJ8VLwU8B
+        gY/g431tAQi+2xczP2qv25cojVqsQ9Y=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-290-M92JCxb1Oi-ciaPgtC3hqA-1; Thu, 21 May 2020 03:44:24 -0400
+X-MC-Unique: M92JCxb1Oi-ciaPgtC3hqA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6D59A835B42;
+        Thu, 21 May 2020 07:44:20 +0000 (UTC)
+Received: from warthog.procyon.org.uk (ovpn-112-138.rdu2.redhat.com [10.10.112.138])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1D7135C1B0;
+        Thu, 21 May 2020 07:44:11 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <20200520195509.2215098-30-hch@lst.de>
+References: <20200520195509.2215098-30-hch@lst.de> <20200520195509.2215098-1-hch@lst.de>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     dhowells@redhat.com, "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Eric Dumazet <edumazet@google.com>,
+        linux-nvme@lists.infradead.org, linux-sctp@vger.kernel.org,
         target-devel@vger.kernel.org, linux-afs@lists.infradead.org,
-        linux-cifs@vger.kernel.org, cluster-devel@redhat.com,
-        ocfs2-devel@oss.oracle.com, netdev@vger.kernel.org,
-        linux-sctp@vger.kernel.org, ceph-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
-Subject: Re: [PATCH 31/33] sctp: add sctp_sock_set_nodelay
-Message-ID: <20200520233913.GV2491@localhost.localdomain>
-References: <20200520195509.2215098-1-hch@lst.de>
- <20200520195509.2215098-32-hch@lst.de>
- <20200520231001.GU2491@localhost.localdomain>
- <20200520.162355.2212209708127373208.davem@davemloft.net>
+        drbd-dev@lists.linbit.com, linux-cifs@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org,
+        cluster-devel@redhat.com, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        ceph-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
+        Neil Horman <nhorman@tuxdriver.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netdev@vger.kernel.org, Vlad Yasevich <vyasevich@gmail.com>,
+        linux-kernel@vger.kernel.org, Jon Maloy <jmaloy@redhat.com>,
+        Ying Xue <ying.xue@windriver.com>, ocfs2-devel@oss.oracle.com
+Subject: Re: [PATCH 29/33] rxrpc: add rxrpc_sock_set_min_security_level
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200520.162355.2212209708127373208.davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <71190.1590047051.1@warthog.procyon.org.uk>
+Date:   Thu, 21 May 2020 08:44:11 +0100
+Message-ID: <71191.1590047051@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, May 20, 2020 at 04:23:55PM -0700, David Miller wrote:
-> From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-> Date: Wed, 20 May 2020 20:10:01 -0300
-> 
-> > The duplication with sctp_setsockopt_nodelay() is quite silly/bad.
-> > Also, why have the 'true' hardcoded? It's what dlm uses, yes, but the
-> > API could be a bit more complete than that.
-> 
-> The APIs are being designed based upon what in-tree users actually
-> make use of.  We can expand things later if necessary.
+Christoph Hellwig <hch@lst.de> wrote:
 
-Sometimes expanding things later can be though, thus why the worry.
-But ok, I get it. Thanks.
+> Add a helper to directly set the RXRPC_MIN_SECURITY_LEVEL sockopt from
+> kernel space without going through a fake uaccess.
+> 
+> Thanks to David Howells for the documentation updates.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-The comment still applies, though. (re the duplication)
+Acked-by: David Howells <dhowells@redhat.com>
+
