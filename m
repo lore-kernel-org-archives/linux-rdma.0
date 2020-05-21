@@ -2,54 +2,52 @@ Return-Path: <SRS0=17PT=7D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DATE_IN_PAST_24_48,
+X-Spam-Status: No, score=-9.0 required=3.0 tests=DATE_IN_PAST_06_12,
 	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D5EC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E5CC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C219F207D3
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32554207FB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590083980;
-	bh=Xzcvdz3FlpLT9Nzn5Hqst0gx8lZ3MqeNZ8pXGB0b1VY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=kHQd0MJca3ypBHLZFvpNBODEpmGxFyDDiLpVo68pnWk/DKeqkynM2aT5dl3sNKhir
-	 KsmWSpgaUyd3xENKDKo6IpqvV7c9+srYGv9KkkxtM/fLN8jx5ovFY88dZqyz4rrJKA
-	 O+xCaktbZbWp05IKYGbapw0/83fLasRgKm7/W0Fc=
+	s=default; t=1590083991;
+	bh=XUkt723noMCabretrHSgM7zZ5aVfQCZhLfj+LRvUyt8=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=pnGFEMQYBHfKmFmfwN1K+HKMbnVsRRZc/rZsxSychBqW0pNsEGuzVAIttdCs8IRcS
+	 n+tXHWOYZRkN14xGnIYFD97KnVkSGtzp+rWahojIbPCrzdGt9t8KpY9nAhN8H5SOVO
+	 Kk3WpnolS7KUmRy/ULoBGC8X4DoBMpHI9SKbUrio=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729067AbgEUR7k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 May 2020 13:59:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59530 "EHLO mail.kernel.org"
+        id S1728988AbgEUR7u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 May 2020 13:59:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59668 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727883AbgEUR7j (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 May 2020 13:59:39 -0400
+        id S1727966AbgEUR7u (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 May 2020 13:59:50 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4825C20759;
-        Thu, 21 May 2020 17:59:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EF36B20759;
+        Thu, 21 May 2020 17:59:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590083979;
-        bh=Xzcvdz3FlpLT9Nzn5Hqst0gx8lZ3MqeNZ8pXGB0b1VY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PQIxPAeXq6Nw7MWyWR8exN7IOzaLtEXLehsVACfkmWtpG3qXuqEYEabwtt5Yh4kVR
-         yJ3Y10mnNrt15UbpFMcXhzbz0+00bfOadhlNNteZdA7gyHKuKwiuoBDyqCYzq6Aef8
-         PpeSc4JdezvXcN0e04gY3z/ABPLst6gOJsLo3+hw=
+        s=default; t=1590083989;
+        bh=XUkt723noMCabretrHSgM7zZ5aVfQCZhLfj+LRvUyt8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=DeFZNIAAr7zfc/tuqfltrC+LBmtJP+97Kt9VMVBY6V2WZYa9x/4yCeCJD0xuwf68O
+         nfl501sDJiggE961NgNNvp0koS3ZfCoyKh9tRMvWMZsRzD4HK8dWBYbt5ioStZ47l+
+         ambwbnWKBKnTcD3R+vduEJnE3jW8AoVQHbDSy1Z8=
 From:   Leon Romanovsky <leon@kernel.org>
-To:     David Ahern <dsahern@gmail.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Maor Gottlieb <maorg@mellanox.com>,
-        netdev <netdev@vger.kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH iproute2-next 2/4] rdma: Add support to get QP in raw format
-Date:   Wed, 20 May 2020 13:25:37 +0300
-Message-Id: <20200520102539.458983-3-leon@kernel.org>
+        Artemy Kovalyov <artemyko@mellanox.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc] RDMA/mlx5: Fix NULL pointer dereference in destroy_prefetch_work
+Date:   Thu, 21 May 2020 10:25:04 +0300
+Message-Id: <20200521072504.567406-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200520102539.458983-1-leon@kernel.org>
-References: <20200520102539.458983-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -59,253 +57,78 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-Add 'raw' argument to get the resource in raw format.
-When RDMA_NLDEV_ATTR_RES_RAW is set in the netlink message,
-then the resource fields are in raw format, print it as byte array.
+q_deferred_work isn't initialized when user create an explicit ODP
+memory region. It could lead to NULL pointer dereference when user
+performs asynchronous prefetch MR.
+Fix it by initialize q_deferred_work for explicit ODP.
 
-Example:
-$rdma res show qp link rocep0s12f0/1 lqpn 1137 -j -r
-[{"ifindex":7,"ifname":"mlx5_1","port":1,"lqpn":265,"pid":24336
-"comm":"ibv_rc_pingpong","data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,...]}]
+[ 2360.844536] BUG: kernel NULL pointer dereference, address:
+0000000000000000
+[ 2360.855944] #PF: supervisor read access in kernel mode
+[ 2360.858276] #PF: error_code(0x0000) - not-present page
+[ 2360.860600] PGD 0 P4D 0
+[ 2360.861636] Oops: 0000 [#1] SMP PTI
+[ 2360.862781] CPU: 4 PID: 6074 Comm: kworker/u16:6 Not tainted
+5.7.0-rc1-for-upstream-perf-2020-04-17_07-03-39-64 #1
+[ 2360.865369] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS
+rel-1.12.1-0-ga5cab58e9a3f-prebuilt.qemu.org 04/01/2014
+[ 2360.868090] Workqueue: events_unbound mlx5_ib_prefetch_mr_work
+[mlx5_ib]
+[ 2360.869641] RIP: 0010:__wake_up_common+0x49/0x120
+[ 2360.870906] Code: 04 89 54 24 0c 89 4c 24 08 74 0a 41 f6 01 04 0f 85
+8e 00 00 00 48 8b 47 08 48 83 e8 18 4c 8d 67 08 48 8d 50 18 49 39 d4 74
+66 <48> 8b 70 18 31 db 4c 8d 7e e8 eb 17 49 8b 47 18 48 8d 50 e8 49 8d
+[ 2360.875211] RSP: 0000:ffffc9000097bd88 EFLAGS: 00010082
+[ 2360.876594] RAX: ffffffffffffffe8 RBX: ffff888454cd9f90 RCX:
+0000000000000000
+[ 2360.878261] RDX: 0000000000000000 RSI: 0000000000000003 RDI:
+ffff888454cd9f90
+[ 2360.879930] RBP: ffffc9000097bdd0 R08: 0000000000000000 R09:
+ffffc9000097bdd0
+[ 2360.881593] R10: 0000000000000000 R11: 0000000000000001 R12:
+ffff888454cd9f98
+[ 2360.883291] R13: 0000000000000000 R14: 0000000000000000 R15:
+0000000000000003
+[ 2360.884970] FS:  0000000000000000(0000) GS:ffff88846fd00000(0000)
+knlGS:0000000000000000
+[ 2360.887231] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 2360.888656] CR2: 0000000000000000 CR3: 000000044c19e002 CR4:
+0000000000760ee0
+[ 2360.890269] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+0000000000000000
+[ 2360.891881] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:
+0000000000000400
+[ 2360.893489] PKRU: 55555554
+[ 2360.894504] Call Trace:
+[ 2360.895484]  __wake_up_common_lock+0x7a/0xc0
+[ 2360.896728]  destroy_prefetch_work+0x5a/0x60 [mlx5_ib]
+[ 2360.898106]  mlx5_ib_prefetch_mr_work+0x64/0x80 [mlx5_ib]
+[ 2360.899525]  process_one_work+0x15b/0x360
+[ 2360.900726]  worker_thread+0x49/0x3d0
+[ 2360.901879]  kthread+0xf5/0x130
+[ 2360.902961]  ? rescuer_thread+0x310/0x310
+[ 2360.904172]  ? kthread_bind+0x10/0x10
+[ 2360.905334]  ret_from_fork+0x1f/0x30
 
+Fixes: de5ed007a03d ("IB/mlx5: Fix implicit ODP race")
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- man/man8/rdma-resource.8 |  5 +++++
- man/man8/rdma.8          |  4 ++++
- rdma/rdma.c              |  8 +++++++-
- rdma/rdma.h              |  7 +++++--
- rdma/res-qp.c            | 37 ++++++++++++++++++++++++++++++++-----
- rdma/res.c               |  1 +
- rdma/utils.c             | 20 ++++++++++++++++++++
- 7 files changed, 74 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index 05030d0a..8d0d14c6 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -83,6 +83,11 @@ rdma res show qp link mlx5_4/1 lqpn 0-6
- Limit to specific Local QPNs.
- .RE
- .PP
-+rdma res show qp link mlx5_4/1 lqpn 6 -r
-+.RS 4
-+Driver specific details in raw format.
-+.RE
-+.PP
- rdma resource show cm_id dst-port 7174
- .RS 4
- Show CM_IDs with destination ip port of 7174.
-diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
-index 221bf334..c9e5d50d 100644
---- a/man/man8/rdma.8
-+++ b/man/man8/rdma.8
-@@ -51,6 +51,10 @@ If there were any errors during execution of the commands, the application retur
- .BR "\-d" , " --details"
- Output detailed information.  Adding a second \-d includes driver-specific details.
-
-+.TP
-+.BR "\-r" , " --raw"
-+Output includes driver-specific details in raw format.
-+
- .TP
- .BR "\-p" , " --pretty"
- When combined with -j generate a pretty JSON output.
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index 22050555..19fadeb5 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -112,6 +112,7 @@ int main(int argc, char **argv)
- 		{ "json",		no_argument,		NULL, 'j' },
- 		{ "pretty",		no_argument,		NULL, 'p' },
- 		{ "details",		no_argument,		NULL, 'd' },
-+		{ "raw",		no_argument,		NULL, 'r' },
- 		{ "force",		no_argument,		NULL, 'f' },
- 		{ "batch",		required_argument,	NULL, 'b' },
- 		{ NULL, 0, NULL, 0 }
-@@ -120,6 +121,7 @@ int main(int argc, char **argv)
- 	const char *batch_file = NULL;
- 	bool show_details = false;
- 	bool json_output = false;
-+	bool show_raw = false;
- 	bool force = false;
- 	struct rd rd = {};
- 	char *filename;
-@@ -127,7 +129,7 @@ int main(int argc, char **argv)
- 	int err;
- 	filename = basename(argv[0]);
-
--	while ((opt = getopt_long(argc, argv, ":Vhdpjfb:",
-+	while ((opt = getopt_long(argc, argv, ":Vhdrpjfb:",
- 				  long_options, NULL)) >= 0) {
- 		switch (opt) {
- 		case 'V':
-@@ -143,6 +145,9 @@ int main(int argc, char **argv)
- 			else
- 				show_details = true;
- 			break;
-+		case 'r':
-+			show_raw = true;
-+			break;
- 		case 'j':
- 			json_output = 1;
- 			break;
-@@ -172,6 +177,7 @@ int main(int argc, char **argv)
- 	rd.show_driver_details = show_driver_details;
- 	rd.json_output = json_output;
- 	rd.pretty_output = pretty;
-+	rd.show_raw = show_raw;
-
- 	err = rd_init(&rd, filename);
- 	if (err)
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 735b1bf7..a6c6bdea 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -57,8 +57,9 @@ struct rd {
- 	int argc;
- 	char **argv;
- 	char *filename;
--	bool show_details;
--	bool show_driver_details;
-+	uint8_t show_details:1;
-+	uint8_t show_driver_details:1;
-+	uint8_t show_raw:1;
- 	struct list_head dev_map_list;
- 	uint32_t dev_idx;
- 	uint32_t port_idx;
-@@ -134,9 +135,11 @@ int rd_attr_check(const struct nlattr *attr, int *typep);
-  * Print helpers
-  */
- void print_driver_table(struct rd *rd, struct nlattr *tb);
-+void print_raw_data(struct rd *rd, struct nlattr **nla_line);
- void newline(struct rd *rd);
- void newline_indent(struct rd *rd);
- void print_on_off(struct rd *rd, const char *key_str, bool on);
-+void print_raw_data(struct rd *rd, struct nlattr **nla_line);
- #define MAX_LINE_LENGTH 80
-
- #endif /* _RDMA_TOOL_H_ */
-diff --git a/rdma/res-qp.c b/rdma/res-qp.c
-index b36b7289..f5e36439 100644
---- a/rdma/res-qp.c
-+++ b/rdma/res-qp.c
-@@ -71,16 +71,38 @@ struct res_qp_info {
- 	char *comm;
- };
-
--static bool resp_is_valid(struct nlattr **nla_line)
-+static bool resp_is_valid(struct nlattr **nla_line, bool raw)
- {
--	if (!nla_line[RDMA_NLDEV_ATTR_RES_LQPN] ||
--	    !nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN] ||
-+	if (!nla_line[RDMA_NLDEV_ATTR_RES_LQPN])
-+		return false;
-+
-+	if (raw)
-+		return nla_line[RDMA_NLDEV_ATTR_RES_RAW] ? true : false;
-+
-+	if (!nla_line[RDMA_NLDEV_ATTR_RES_SQ_PSN] ||
- 	    !nla_line[RDMA_NLDEV_ATTR_RES_TYPE] ||
- 	    !nla_line[RDMA_NLDEV_ATTR_RES_STATE])
- 		return false;
-+
- 	return true;
- }
-
-+static void res_qp_line_raw(struct rd *rd, const char *name, int idx,
-+			    struct nlattr **nla_line,
-+			    struct res_qp_info *info)
-+{
-+	open_json_object(NULL);
-+	print_link(rd, idx, name, info->port, nla_line);
-+	res_print_uint(rd, "lqpn", info->lqpn,
-+		       nla_line[RDMA_NLDEV_ATTR_RES_LQPN]);
-+
-+	res_print_uint(rd, "pid", info->pid, nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+	print_comm(rd, info->comm, nla_line);
-+
-+	print_raw_data(rd, nla_line);
-+	newline(rd);
-+}
-+
- static void res_qp_line_query(struct rd *rd, const char *name, int idx,
- 			      struct nlattr **nla_line,
- 			      struct res_qp_info *info)
-@@ -156,8 +178,9 @@ static int res_qp_line(struct rd *rd, const char *name, int idx,
- 		       struct nlattr **nla_line)
- {
- 	struct res_qp_info info = {};
-+	bool raw = rd->show_raw;
-
--	if (!resp_is_valid(nla_line))
-+	if (!resp_is_valid(nla_line, raw))
- 		return MNL_CB_ERROR;
-
- 	if (nla_line[RDMA_NLDEV_ATTR_PORT_INDEX])
-@@ -187,7 +210,11 @@ static int res_qp_line(struct rd *rd, const char *name, int idx,
- 		info.comm = (char *)mnl_attr_get_str(line);
- 	}
-
--	res_qp_line_query(rd, name, idx, nla_line, &info);
-+	if (raw)
-+		res_qp_line_raw(rd, name, idx, nla_line, &info);
-+	else
-+		res_qp_line_query(rd, name, idx, nla_line, &info);
-+
- out:
- 	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
- 		free(info.comm);
-diff --git a/rdma/res.c b/rdma/res.c
-index 251f5041..759a1151 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -97,6 +97,7 @@ int _res_send_idx_msg(struct rd *rd, uint32_t command, mnl_cb_t callback,
-
- 	mnl_attr_put_u32(rd->nlh, id, idx);
-
-+	mnl_attr_put_u8(rd->nlh, RDMA_NLDEV_ATTR_RES_RAW, rd->show_raw);
- 	if (command == RDMA_NLDEV_CMD_STAT_GET)
- 		mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_STAT_RES,
- 				 RDMA_NLDEV_ATTR_RES_MR);
-diff --git a/rdma/utils.c b/rdma/utils.c
-index e25c3adf..4d3de4fa 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -450,6 +450,7 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_STAT_RES] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_DEV_DIM] = MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_RES_RAW] = MNL_TYPE_BINARY,
- };
-
- int rd_attr_check(const struct nlattr *attr, int *typep)
-@@ -890,6 +891,25 @@ static int print_driver_entry(struct rd *rd, struct nlattr *key_attr,
- 	return ret;
- }
-
-+void print_raw_data(struct rd *rd, struct nlattr **nla_line)
-+{
-+	uint8_t *data;
-+	uint32_t len;
-+	int i = 0;
-+
-+	if (!rd->show_raw)
-+		return;
-+
-+	len = mnl_attr_get_payload_len(nla_line[RDMA_NLDEV_ATTR_RES_RAW]);
-+	data = mnl_attr_get_payload(nla_line[RDMA_NLDEV_ATTR_RES_RAW]);
-+	open_json_array(PRINT_JSON, "data");
-+	while (i < len) {
-+		print_color_uint(PRINT_ANY, COLOR_NONE, NULL, "%d", data[i]);
-+		i++;
-+	}
-+	close_json_array(PRINT_ANY, ">");
-+}
-+
- void print_driver_table(struct rd *rd, struct nlattr *tb)
- {
- 	int print_type = RDMA_NLDEV_PRINT_TYPE_UNSPEC;
---
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index a401931189b7..44683073be0c 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1439,6 +1439,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ 	if (is_odp_mr(mr)) {
+ 		to_ib_umem_odp(mr->umem)->private = mr;
++		init_waitqueue_head(&mr->q_deferred_work);
+ 		atomic_set(&mr->num_deferred_work, 0);
+ 		err = xa_err(xa_store(&dev->odp_mkeys,
+ 				      mlx5_base_mkey(mr->mmkey.key), &mr->mmkey,
+-- 
 2.26.2
 
