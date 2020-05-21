@@ -2,98 +2,122 @@ Return-Path: <SRS0=17PT=7D=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=DATE_IN_PAST_06_12,
-	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46574C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 650C9C433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 18:39:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27420207FB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 17:59:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590083994;
-	bh=qPAVg2uQT1WzX5C9bhHA2uhhgUZDPmtRQwxeGPSpIMA=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=nO5aSI8Sz3Ki5by5OgETOR4f+8uL64fWp7ZoQESLNVex/8EcaSPIi8r0RMJWMWp69
-	 Cb+FaSv9wJRhsLBc1YTTQqt17zILXnZ0yDwFDAgHZPQmQYi738NtCoi6laZHWhXv4R
-	 MSKnEfsw1p4UryuslBxeFeZx2d71Zaj9uM8H2hmc=
+	by mail.kernel.org (Postfix) with ESMTP id 4ACB120759
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 May 2020 18:39:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="IWFKsoJv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729092AbgEUR7x (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 May 2020 13:59:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59714 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727966AbgEUR7x (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 May 2020 13:59:53 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6B3AF20759;
-        Thu, 21 May 2020 17:59:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590083993;
-        bh=qPAVg2uQT1WzX5C9bhHA2uhhgUZDPmtRQwxeGPSpIMA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ptATd2SQSukxh4sk56uWisUuAUX5emTF/dtryeyRe6wUDzhtyBmlz8zQE/qzX5ekA
-         ZA3ENPnvtDilxkPy6Pyg9P1iHrSpJxwcmA3f9t02NKCOHmEGktylbW81M7tlGSF6EE
-         kpxq5dOp6BzizbTxujimpC5Jte12BY/iO0UpAr/I=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next] IB/cma: Fix ports memory leak in cma_configfs
-Date:   Thu, 21 May 2020 10:26:50 +0300
-Message-Id: <20200521072650.567908-1-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
+        id S1729625AbgEUSjz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 May 2020 14:39:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37818 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728240AbgEUSjz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 May 2020 14:39:55 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75606C061A0E;
+        Thu, 21 May 2020 11:39:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
+        Subject:Sender:Reply-To:Content-ID:Content-Description;
+        bh=En08B0VmVu+Rrpznv1PvjxQP21WWZNWy251YyWEC4UQ=; b=IWFKsoJvv9I8S0HThzn5lAoAed
+        hc/JvIYv7b7AY3Xb0j87M9MQSmks+gmMUyeFdv5bbc2kRH6sxq3b7WqzHHJVoPiKn9D3h9815ZQHH
+        npTQ3OwfNK70crTrvFtcsZsVyHevTFCfkq+ipN3SxlmnkC+awYcX4xrRPaEj2r0u6TQ8IYaJulFIS
+        TZXYqpaPgaD85Vpsxe2u0T4QsalbzEsGLi67aVsG5Xa4Vm1Zh2efb6J2GeCnR+bonNkBUBQsF74uv
+        FdizJqxbq0tfjcg9kV7dC+axTe337TINH6ijGR5TAF6kXtSxVgGtCtXqLhEeaFCNIL6PLTq5vKZ07
+        HmJCIyOw==;
+Received: from [2601:1c0:6280:3f0::19c2]
+        by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jbq6g-0002Um-Pe; Thu, 21 May 2020 18:39:50 +0000
+Subject: Re: [PATCH] rnbd: fix compilation error when CONFIG_MODULES is
+ disabled
+To:     Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+        dledford@redhat.com, jgg@ziepe.ca
+Cc:     axboe@kernel.dk, bvanassche@acm.org, leon@kernel.org,
+        jinpu.wang@cloud.ionos.com, guoqing.jiang@cloud.ionos.com
+References: <86962843-e786-4a3f-0b85-1e06fbdbd76a@infradead.org>
+ <20200521175001.445208-1-danil.kipnis@cloud.ionos.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <ca0729a1-2e4d-670d-2519-a175b3035b28@infradead.org>
+Date:   Thu, 21 May 2020 11:39:49 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200521175001.445208-1-danil.kipnis@cloud.ionos.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+On 5/21/20 10:50 AM, Danil Kipnis wrote:
+> module_is_live function is only defined when CONFIG_MODULES is enabled.
+> Use try_module_get instead to check whether the module is being removed.
+> 
+> When module unload and manuall unmapping is happening in parallel, we can
+> try removing the symlink twice: rnbd_client_exit vs. rnbd_clt_unmap_dev_store.
+> 
+> This is probably not the best way to deal with this race in general, but for
+> now this fixes the compilation issue when CONFIG_MODULES is disabled and has
+> no functional impact. Regression tests passed.
+> 
+> Fixes: 1eb54f8f5dd8 block/rnbd: client: sysfs interface functions
 
-The allocated ports structure in never freed. The free function
-should be called by release_cma_ports_group, but the group
-is never released since we don't remove its default group.
+The Fixes: line has a specific expected format. It should be like this:
 
-Remove default groups when device group is deleted.
+Fixes: 1eb54f8f5dd8 ("block/rnbd: client: sysfs interface functions")
 
-Fixes: 045959db65c6 ("IB/cma: Add configfs for rdma_cm")
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/cma_configfs.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Suggested-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+> Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index c672a4978bfd..5b6754f89a98 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -322,8 +322,21 @@ static struct config_group *make_cma_dev(struct config_group *group,
- 	return ERR_PTR(err);
- }
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
 
-+static void drop_cma_dev(struct config_group *cgroup,
-+		struct config_item *item)
-+{
-+	struct config_group *group =
-+		container_of(item, struct config_group, cg_item);
-+	struct cma_dev_group *cma_dev_group =
-+		container_of(group, struct cma_dev_group, device_group);
-+	configfs_remove_default_groups(&cma_dev_group->ports_group);
-+	configfs_remove_default_groups(&cma_dev_group->device_group);
-+	config_item_put(item);
-+}
-+
- static struct configfs_group_operations cma_subsys_group_ops = {
- 	.make_group	= make_cma_dev,
-+	.drop_item	= drop_cma_dev,
- };
 
- static const struct config_item_type cma_subsys_type = {
---
-2.26.2
+Thanks.
 
+> ---
+>  drivers/block/rnbd/rnbd-clt-sysfs.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/block/rnbd/rnbd-clt-sysfs.c b/drivers/block/rnbd/rnbd-clt-sysfs.c
+> index a4508fcc7ffe..73d7cb40abb3 100644
+> --- a/drivers/block/rnbd/rnbd-clt-sysfs.c
+> +++ b/drivers/block/rnbd/rnbd-clt-sysfs.c
+> @@ -428,12 +428,14 @@ static struct attribute *rnbd_dev_attrs[] = {
+>  void rnbd_clt_remove_dev_symlink(struct rnbd_clt_dev *dev)
+>  {
+>  	/*
+> -	 * The module_is_live() check is crucial and helps to avoid annoying
+> -	 * sysfs warning raised in sysfs_remove_link(), when the whole sysfs
+> -	 * path was just removed, see rnbd_close_sessions().
+> +	 * The module unload rnbd_client_exit path is racing with unmapping of the
+> +	 * last single device from the sysfs manually i.e. rnbd_clt_unmap_dev_store()
+> +	 * leading to a sysfs warning because of sysfs link already was removed already.
+>  	 */
+> -	if (strlen(dev->blk_symlink_name) && module_is_live(THIS_MODULE))
+> +	if (strlen(dev->blk_symlink_name) && try_module_get(THIS_MODULE)) {
+>  		sysfs_remove_link(rnbd_devs_kobj, dev->blk_symlink_name);
+> +		module_put(THIS_MODULE);
+> +	}
+>  }
+>  
+>  static struct kobj_type rnbd_dev_ktype = {
+> 
+> base-commit: f11e0ec55f0c80ff47693af2150bad5db0e20387
+> 
+
+
+-- 
+~Randy
