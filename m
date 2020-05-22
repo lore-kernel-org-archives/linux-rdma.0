@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94796C433E0
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 14:54:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E88FC433E1
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 14:55:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60DB6221FF
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 14:54:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D3162067B
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 14:55:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590159250;
-	bh=G02uOQXZHAtlp5iiuYiQJAEfyrr+0VCf29HFdP4vK7Q=;
+	s=default; t=1590159336;
+	bh=6kVV4ZMdmQGY7iWp7IKfiscB6QlOrHGowsptdcBnKRA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=R1N/CWqIw6wdjb2cntcUgY45l+5ebWnbWuYqPaq8uQHpJcxtQrESXKtZiFZqASyHC
-	 FHwqcm7i/m9P19e78P1xCKfxe6mhAITFGSUzTMrlv33ehvYacwfeBLTNchNhL3SnR2
-	 LLX8Jr3OF4HksFRN0LzDAlE65WOFt0bQzCyiWo7o=
+	b=jbCw5yX35/PsFoAkEkLnqNnSiTeLlOqpw6omoHKa1MOxYVhredklrzErG+yTrNMMJ
+	 1mdq7JB4wTa67GN2NunU82nroeqFNjU1d21eiUt9zxJlEpTIUCXQisLWL+KljhT/Gx
+	 FmOmEvjgTHfx0EMvrITKxXA2RmzxOTA51fA6H0wM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730096AbgEVOyF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 May 2020 10:54:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53550 "EHLO mail.kernel.org"
+        id S1730924AbgEVOvL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 May 2020 10:51:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731063AbgEVOvj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 May 2020 10:51:39 -0400
+        id S1730914AbgEVOvK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 May 2020 10:51:10 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C2B342145D;
-        Fri, 22 May 2020 14:51:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE3B6221FF;
+        Fri, 22 May 2020 14:51:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590159098;
-        bh=G02uOQXZHAtlp5iiuYiQJAEfyrr+0VCf29HFdP4vK7Q=;
+        s=default; t=1590159069;
+        bh=6kVV4ZMdmQGY7iWp7IKfiscB6QlOrHGowsptdcBnKRA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oH/g/x0F+9xXU5KDbvawZAJ4G6qhEINOOGgkbzRdOYoHFM6rGoqOB6etG2ko1HISJ
-         J/G3LMkWNAB51UDDaaph2OAw8nFyQqA1yLIbjtA0jfvVl9rSYXM5iYJx2ud2ZaexBU
-         AAo5zp5DOEWpHQX/J/vepqVU82hxs/ZiTYl1S5t0=
+        b=pU+Y5ePHr2TqThWHJOyrAayMfAPiUMKCPrWdGLDjaI3haano0MqAUjRBj+Q493N3T
+         OuRuxI6Gp4AF1Hf9zmQ47h4ksFxjPwJ42s4QAyFI958zFZ4t4MMpi8s/1zKDSopKif
+         Iw3jyiCSRddkXRmJokfdQBfQlSy9AHIvZnqgytnk=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "Denis V. Lunev" <den@openvz.org>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 16/19] IB/i40iw: Remove bogus call to netdev_master_upper_dev_get()
-Date:   Fri, 22 May 2020 10:51:17 -0400
-Message-Id: <20200522145120.434921-16-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 22/32] IB/i40iw: Remove bogus call to netdev_master_upper_dev_get()
+Date:   Fri, 22 May 2020 10:50:34 -0400
+Message-Id: <20200522145044.434677-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200522145120.434921-1-sashal@kernel.org>
-References: <20200522145120.434921-1-sashal@kernel.org>
+In-Reply-To: <20200522145044.434677-1-sashal@kernel.org>
+References: <20200522145044.434677-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -104,10 +104,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 771eb6bd0785..4321b9e3dbb4 100644
+index 2d6a378e8560..b1df93b69df4 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1984,7 +1984,6 @@ static int i40iw_addr_resolve_neigh(struct i40iw_device *iwdev,
+@@ -1987,7 +1987,6 @@ static int i40iw_addr_resolve_neigh(struct i40iw_device *iwdev,
  	struct rtable *rt;
  	struct neighbour *neigh;
  	int rc = arpindex;
@@ -115,7 +115,7 @@ index 771eb6bd0785..4321b9e3dbb4 100644
  	__be32 dst_ipaddr = htonl(dst_ip);
  	__be32 src_ipaddr = htonl(src_ip);
  
-@@ -1994,9 +1993,6 @@ static int i40iw_addr_resolve_neigh(struct i40iw_device *iwdev,
+@@ -1997,9 +1996,6 @@ static int i40iw_addr_resolve_neigh(struct i40iw_device *iwdev,
  		return rc;
  	}
  
@@ -125,7 +125,7 @@ index 771eb6bd0785..4321b9e3dbb4 100644
  	neigh = dst_neigh_lookup(&rt->dst, &dst_ipaddr);
  
  	rcu_read_lock();
-@@ -2062,7 +2058,6 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
+@@ -2065,7 +2061,6 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
  {
  	struct neighbour *neigh;
  	int rc = arpindex;
@@ -133,7 +133,7 @@ index 771eb6bd0785..4321b9e3dbb4 100644
  	struct dst_entry *dst;
  	struct sockaddr_in6 dst_addr;
  	struct sockaddr_in6 src_addr;
-@@ -2083,9 +2078,6 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
+@@ -2086,9 +2081,6 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
  		return rc;
  	}
  
