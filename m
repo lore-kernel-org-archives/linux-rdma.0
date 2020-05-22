@@ -2,36 +2,38 @@ Return-Path: <SRS0=h3HC=7E=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51418C433E0
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 13:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC61BC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 13:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32BBE20723
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 13:03:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDFB0206D5
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 May 2020 13:03:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729334AbgEVNDY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 May 2020 09:03:24 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:39524 "EHLO huawei.com"
+        id S1729828AbgEVND3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 May 2020 09:03:29 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:39682 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729046AbgEVNDY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 May 2020 09:03:24 -0400
+        id S1729292AbgEVND2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 22 May 2020 09:03:28 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id C79E1AECDDE6E92D3213;
-        Fri, 22 May 2020 21:03:21 +0800 (CST)
+        by Forcepoint Email with ESMTP id D3EFDCC83B7AB3BDFD6E;
+        Fri, 22 May 2020 21:03:26 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 22 May 2020 21:03:15 +0800
+ 14.3.487.0; Fri, 22 May 2020 21:03:16 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/4] RDMA/hns: Misc cleanups
-Date:   Fri, 22 May 2020 21:02:55 +0800
-Message-ID: <1590152579-32364-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 4/4] RDMA/hns: Make the end of sge process more clear
+Date:   Fri, 22 May 2020 21:02:59 +0800
+Message-ID: <1590152579-32364-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1590152579-32364-1-git-send-email-liweihang@huawei.com>
+References: <1590152579-32364-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -41,27 +43,41 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is another series of cleanups for kernel 5.8 if it's not too late.
+From: Yixian Liu <liuyixian@huawei.com>
 
-Lang Cheng (1):
-  RDMA/hns: Simplify process related to poll cq
+Instead of i with the sge number of wr will make the comparision more
+clear, that is, when the sge number in wr is small than the maximum
+supported sge number in the queue, then a stop sge needed to be filled at
+the end of sges in wr.
 
-Weihang Li (1):
-  RDMA/hns: Remove redundant type cast for general pointers
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Wenpeng Liang (1):
-  RDMA/hns: Remove redundant parameters from free_srq/qp_wrid()
-
-Yixian Liu (1):
-  RDMA/hns: Make the end of sge process more clear
-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 180 ++++++++++-------------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  43 +++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |   2 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c    |   7 +-
- drivers/infiniband/hw/hns/hns_roce_srq.c   |   6 +-
- 5 files changed, 84 insertions(+), 154 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index e02afd2..d8b3d86 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -646,7 +646,7 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
+ 			dseg++;
+ 		}
+ 
+-		if (i < hr_qp->rq.max_gs) {
++		if (wr->num_sge < hr_qp->rq.max_gs) {
+ 			dseg->lkey = cpu_to_le32(HNS_ROCE_INVALID_LKEY);
+ 			dseg->addr = 0;
+ 			dseg->len = cpu_to_le32(HNS_ROCE_INVALID_SGE_LENGTH);
+@@ -782,7 +782,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 			dseg[i].addr = cpu_to_le64(wr->sg_list[i].addr);
+ 		}
+ 
+-		if (i < srq->max_gs) {
++		if (wr->num_sge < srq->max_gs) {
+ 			dseg[i].len = cpu_to_le32(HNS_ROCE_INVALID_SGE_LENGTH);
+ 			dseg[i].lkey = cpu_to_le32(HNS_ROCE_INVALID_LKEY);
+ 			dseg[i].addr = 0;
 -- 
 2.8.1
 
