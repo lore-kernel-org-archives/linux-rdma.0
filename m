@@ -2,125 +2,96 @@ Return-Path: <SRS0=ECiD=7H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D32CCC433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:22:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74041C433E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:22:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF3232070A
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:22:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 533EE2070A
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:22:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="A3/X19Gz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391289AbgEYRW1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2391291AbgEYRW1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 25 May 2020 13:22:27 -0400
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:41898 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45232 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
         with ESMTP id S2388230AbgEYRW1 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 May 2020 13:22:27 -0400
-Received: by mail-pl1-f194.google.com with SMTP id a13so7683424pls.8
-        for <linux-rdma@vger.kernel.org>; Mon, 25 May 2020 10:22:26 -0700 (PDT)
+Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com [IPv6:2607:f8b0:4864:20::744])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2089EC061A0E
+        for <linux-rdma@vger.kernel.org>; Mon, 25 May 2020 10:22:27 -0700 (PDT)
+Received: by mail-qk1-x744.google.com with SMTP id f83so17961529qke.13
+        for <linux-rdma@vger.kernel.org>; Mon, 25 May 2020 10:22:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=ot+IcM8qPkKqAOCfj/m77ORc6vsqR0+D6xrRuetngZU=;
+        b=A3/X19Gz8RQI+F4DhJ5DIhogl9QufHNqYFw3fHHAE3QoLjfAjqCkZSFBpFFZgjDEc2
+         sTTRJd0MpXzPPTKat5qMRmXDpb0m79jNzErOdu6iM1s7TBvSw+pgKLKGugv+lTkjcHT1
+         ZEolZak1wQ7CCERVBTAjJo4xTiNtFlFn4bakh0P6XPmBxPGZ10atGOcnVw03GTbQbtDO
+         I7zeOLw4N7XtcX2zBaHs9AeJfaSd7wzxIU1sTDEVmRg4ucesNhnhkOJm5XLVqjCZaCRL
+         lJU4LPLtrogDn+XpWl6EbVlq123MOLmX0KFhNgOcJLnWLsFTJLwH/EKRDsasfqQjQJoH
+         wXOA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=HhAPnQrHX3/PcCvPRKRSrGzu3ZqP3FWjJECBy4unszE=;
-        b=Zv9MaHfozxH0woxWgyYMOIcN7cQ7xjmaCNAqGlIwrsBu2tj2z0lOj5WfOOcTY6hoff
-         wvMHxiVY8a+n56I4kSefOlJmHX5Bdem3fcQuw1IVfclqwR8g5anT0+IxjHecbqL2JDg6
-         13l/7ND0Rt4F2AXQYYq/ThoOaMLdwjqQ6GfR7oVTpcH8kLZGObnW+VFP7kPAUsXDnpZx
-         YzvXye6Qow9QEHFdaZRbJXxvuEog8gsuGp0PX0iya3euznERidSEHZE2G6o+Jfz3V8ET
-         RVTIkSx3YOL+lO/ju0wFrjFbACa1Te6Fp1hxD22QEXhMn9cpm1Dt6N9RyuPGEG0aHlZr
-         Bj0Q==
-X-Gm-Message-State: AOAM530eMairz4xWFF0nVuQFTEdloM9OQiuEsmCmzA3JmVQzgeVFS21K
-        BR2OnrFnG/e09ImqQH4NZ3c=
-X-Google-Smtp-Source: ABdhPJwYOooy6S7ZupH/K5HuJWJXofYBKBG8FAtgUXGcsS4HN3C5s8G1d3FEq9fG+KDt18+f0WZThQ==
-X-Received: by 2002:a17:90a:8c8e:: with SMTP id b14mr20291852pjo.222.1590427346051;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=ot+IcM8qPkKqAOCfj/m77ORc6vsqR0+D6xrRuetngZU=;
+        b=ERimG/SJ+ZdPst4OZ24c3sUwrl68SfeAzwip/DsYNgOBhON1TqMRqOJ3f4Ljj4CgAK
+         cFGg/kzMoxK7XfMgVDOQ1kd29rWp/sVyKENBbIAXVonJW6YlNwPwGOldF2pomiE3k/hZ
+         l01i47bmWeLH67GFosfCJajlokNCsWVGA94TdEgg0sNUsFEp66gbbwIUPj5PpQ9D+y2t
+         N+NGbKu1ZU667c2kxV5y4w+ltkl86TwpT7lEI8S68BF/oYCnlS8PYzg+Pb0haQaIr7Hz
+         7o442uUJdUGuNKn/FhqW2mgkHlshlRNQe1rJNgWdRdWf6vt5y3UoWFpX1ShRQKM9Dv72
+         985w==
+X-Gm-Message-State: AOAM530oruWXtuYCW4w88FEVnOw9jmwU2FgoAxpuG0rt2Awb41Pv/V9t
+        rJcVn3wEvxr7PJ7OXhqJr3kz9+5GDO4=
+X-Google-Smtp-Source: ABdhPJx93FD6gE2VVWIQ/eIY6ZRFq03BiO1cXl3eXyunEk79p16Ky7ijvQ1fjUvF9cDJ+pqQj1p+nQ==
+X-Received: by 2002:a37:4351:: with SMTP id q78mr24385471qka.242.1590427346418;
         Mon, 25 May 2020 10:22:26 -0700 (PDT)
-Received: from localhost.localdomain ([2601:647:4000:d7:2590:9462:ff8a:101f])
-        by smtp.gmail.com with ESMTPSA id p9sm3213238pff.71.2020.05.25.10.22.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 May 2020 10:22:25 -0700 (PDT)
-From:   Bart Van Assche <bvanassche@acm.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Bart Van Assche <bvanassche@acm.org>,
-        Laurence Oberman <loberman@redhat.com>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH v2 1/4] RDMA/srp: Make the channel count configurable per target
-Date:   Mon, 25 May 2020 10:22:09 -0700
-Message-Id: <20200525172212.14413-2-bvanassche@acm.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200525172212.14413-1-bvanassche@acm.org>
-References: <20200525172212.14413-1-bvanassche@acm.org>
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id s4sm13430084qkh.120.2020.05.25.10.22.26
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Mon, 25 May 2020 10:22:26 -0700 (PDT)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jdGnx-0007a0-LA; Mon, 25 May 2020 14:22:25 -0300
+Date:   Mon, 25 May 2020 14:22:25 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Weihang Li <liweihang@huawei.com>
+Cc:     dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org,
+        linuxarm@huawei.com
+Subject: Re: [PATCH for-next 0/4] RDMA/hns: Misc cleanups
+Message-ID: <20200525172225.GA29081@ziepe.ca>
+References: <1590152579-32364-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1590152579-32364-1-git-send-email-liweihang@huawei.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Increase the flexibility of the SRP initiator driver by making the channel
-count configurable per target instead of only providing a kernel module
-parameter for configuring the channel count.
+On Fri, May 22, 2020 at 09:02:55PM +0800, Weihang Li wrote:
+> This is another series of cleanups for kernel 5.8 if it's not too late.
+> 
+> Lang Cheng (1):
+>   RDMA/hns: Simplify process related to poll cq
+> 
+> Weihang Li (1):
+>   RDMA/hns: Remove redundant type cast for general pointers
+> 
+> Wenpeng Liang (1):
+>   RDMA/hns: Remove redundant parameters from free_srq/qp_wrid()
+> 
+> Yixian Liu (1):
+>   RDMA/hns: Make the end of sge process more clear
 
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Kamal Heib <kamalheib1@gmail.com>
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+Applied to for-next, thanks
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 00b4f88b113e..4018c4abf2e2 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3424,6 +3424,7 @@ enum {
- 	SRP_OPT_IP_DEST		= 1 << 16,
- 	SRP_OPT_TARGET_CAN_QUEUE= 1 << 17,
- 	SRP_OPT_MAX_IT_IU_SIZE  = 1 << 18,
-+	SRP_OPT_CH_COUNT	= 1 << 19,
- };
- 
- static unsigned int srp_opt_mandatory[] = {
-@@ -3457,6 +3458,7 @@ static const match_table_t srp_opt_tokens = {
- 	{ SRP_OPT_IP_SRC,		"src=%s"		},
- 	{ SRP_OPT_IP_DEST,		"dest=%s"		},
- 	{ SRP_OPT_MAX_IT_IU_SIZE,	"max_it_iu_size=%d"	},
-+	{ SRP_OPT_CH_COUNT,		"ch_count=%u",		},
- 	{ SRP_OPT_ERR,			NULL 			}
- };
- 
-@@ -3758,6 +3760,14 @@ static int srp_parse_options(struct net *net, const char *buf,
- 			target->max_it_iu_size = token;
- 			break;
- 
-+		case SRP_OPT_CH_COUNT:
-+			if (match_int(args, &token) || token < 1) {
-+				pr_warn("bad channel count %s\n", p);
-+				goto out;
-+			}
-+			target->ch_count = token;
-+			break;
-+
- 		default:
- 			pr_warn("unknown parameter or missing value '%s' in target creation request\n",
- 				p);
-@@ -3921,11 +3931,12 @@ static ssize_t srp_create_target(struct device *dev,
- 		goto out;
- 
- 	ret = -ENOMEM;
--	target->ch_count = max_t(unsigned, num_online_nodes(),
--				 min(ch_count ? :
--				     min(4 * num_online_nodes(),
--					 ibdev->num_comp_vectors),
--				     num_online_cpus()));
-+	if (target->ch_count == 0)
-+		target->ch_count = max_t(unsigned, num_online_nodes(),
-+					 min(ch_count ? :
-+					     min(4 * num_online_nodes(),
-+						 ibdev->num_comp_vectors),
-+					     num_online_cpus()));
- 	target->ch = kcalloc(target->ch_count, sizeof(*target->ch),
- 			     GFP_KERNEL);
- 	if (!target->ch)
+Jason
