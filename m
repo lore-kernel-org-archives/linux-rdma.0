@@ -2,101 +2,107 @@ Return-Path: <SRS0=ECiD=7H=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90350C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:44:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE36C433E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:47:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C7772078B
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:44:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01E3A207D8
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 May 2020 17:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590428684;
-	bh=5FBRlSAMNJ229oNYIFST38PkaK0/WfRuud3yRstm+yU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=P8CdyHxl35neg6+uxW2jwb6hF+HKMTDNIvVTxxrFgJ3Sm7wujNsbj+zlEVBgfxJJA
-	 6yL1QFkIzgMc6KIEjHF1Hj1EJ/HRNMrJWICcP16PADSRTCqiGXsHsjJ9uGsOC9wS7V
-	 tpKkA2ZdQ/VSUwrHo22pFxGuZFfb250jSGRdNCQs=
+	s=default; t=1590428865;
+	bh=9dsJN6DALY4LnqZTMxAlhM/L8YJWZ/9Uj0S00hPFALw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=0fvkl3FakydYp0LCrzRI/6PNbCYOmG+g1R2kBymhrTTbakIPjsAUGjpLhQkBWHQk6
+	 QpvvKFWk93/+zg9G58ko8/KKodoBKHUXD7Q9ZNZzs7C/Wxq5QcV2Kbsn+fEn0ixHyo
+	 ImHHkkl7NCZVRtpEuHGpoBeZrHw/Ynf9Y1YVnznU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388907AbgEYRon (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 May 2020 13:44:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48312 "EHLO mail.kernel.org"
+        id S2388874AbgEYRro (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 May 2020 13:47:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388621AbgEYRon (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 25 May 2020 13:44:43 -0400
+        id S2388621AbgEYRro (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 25 May 2020 13:47:44 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 56BBB207D8;
-        Mon, 25 May 2020 17:44:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BA82320776;
+        Mon, 25 May 2020 17:47:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590428683;
-        bh=5FBRlSAMNJ229oNYIFST38PkaK0/WfRuud3yRstm+yU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PdkyBIiGxa86NzijYvIT1h4MFhDOhw4yFFwBOqZ1toPhVbFDCcn/Cqpnsey/KQrKz
-         qYq2l8rfuCRGwr98PQfcGucsLGTGRs3ZhyDOS9A8g5PPOFZRk8o9/Y/0WzxtZ37lAE
-         rup17RGla2fweqT64XlwgTtJU9HQveQS0/10+A64=
+        s=default; t=1590428863;
+        bh=9dsJN6DALY4LnqZTMxAlhM/L8YJWZ/9Uj0S00hPFALw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=GfADdmH1SMNbEuQpPRBMYJi40qURIfiE05ACeT9FCbCB8S9W+/xUGAkf5dazDR+xw
+         +lBHJ/pWiiF2gQroc7G/+pNQtEvM6gVZ9GsrMd0Os5nvsWGhS8vr1V2YPD8ja9pihf
+         F+E7GsNtQ1yBC0nmzypSsWEgrYEd9dAerFbjloCI=
+Date:   Mon, 25 May 2020 20:47:39 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 7/9] RDMA/mlx5: Advertise ECE support
-Date:   Mon, 25 May 2020 20:43:59 +0300
-Message-Id: <20200525174401.71152-8-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200525174401.71152-1-leon@kernel.org>
-References: <20200525174401.71152-1-leon@kernel.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-next v2 3/7] RDMA/ucma: Extend ucma_connect to
+ receive ECE parameters
+Message-ID: <20200525174739.GH10591@unreal>
+References: <20200413141538.935574-1-leon@kernel.org>
+ <20200413141538.935574-4-leon@kernel.org>
+ <20200525174141.GA24366@ziepe.ca>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200525174141.GA24366@ziepe.ca>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Mon, May 25, 2020 at 02:41:41PM -0300, Jason Gunthorpe wrote:
+> On Mon, Apr 13, 2020 at 05:15:34PM +0300, Leon Romanovsky wrote:
+>
+> > -	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+> > +	in_size = min_t(size_t, in_len, sizeof(cmd));
+> > +	if (copy_from_user(&cmd, inbuf, in_size))
+> >  		return -EFAULT;
+> >
+> >  	if (!cmd.conn_param.valid)
+> > @@ -1086,8 +1089,13 @@ static ssize_t ucma_connect(struct ucma_file *file, const char __user *inbuf,
+> >  		return PTR_ERR(ctx);
+> >
+> >  	ucma_copy_conn_param(ctx->cm_id, &conn_param, &cmd.conn_param);
+> > +	if (offsetofend(typeof(cmd), ece) <= in_size) {
+> > +		ece.vendor_id = cmd.ece.vendor_id;
+> > +		ece.attr_mod = cmd.ece.attr_mod;
+> > +	}
+>
+> The uapi changes in the prior patch should be placed in the patches
+> that actually implement them, eg one here..
 
-The ECE bits are configured through create_qp and modify_qp commands.
-While the create_qp() can be easily extended, it is not an easy task
-for the modify_qp().
+I wanted to simplify the series and keep its bisectable at the same
+time. Should I squash them?
 
-The new bit in the comp_mask is needed to mark that kernel supports
-ECE and can receive data instead of "reserved" field in the
-struct mlx5_ib_modify_qp.
+>
+> > diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+> > index 71f48cfdc24c..86a849214c84 100644
+> > --- a/include/rdma/rdma_cm.h
+> > +++ b/include/rdma/rdma_cm.h
+> > @@ -264,6 +264,17 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
+> >   */
+> >  int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
+> >
+> > +/**
+> > + * rdma_connect_ece - Initiate an active connection request with ECE data.
+> > + * @id: Connection identifier to connect.
+> > + * @conn_param: Connection information used for connected QPs.
+> > + * @ece: ECE parameters
+> > + *
+> > + * See rdma_connect() explanation.
+> > + */
+> > +int rdma_connect_ece(struct rdma_cm_id *id, struct rdma_conn_param *conn_param,
+> > +		     struct rdma_ucm_ece *ece);
+>
+> kdoc's go in the C files
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c | 3 +++
- include/uapi/rdma/mlx5-abi.h      | 1 +
- 2 files changed, 4 insertions(+)
+I know, but didn't know if to follow existing pattern or not.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 6094ab2f4cd7..570c519ca530 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1971,6 +1971,9 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 		resp.response_length += sizeof(resp.dump_fill_mkey);
- 	}
-
-+	if (MLX5_CAP_GEN(dev->mdev, ece_support))
-+		resp.comp_mask |= MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_ECE;
-+
- 	err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 	if (err)
- 		goto out_mdev;
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index bc9d9e3cb369..90ea1e5aa291 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -100,6 +100,7 @@ struct mlx5_ib_alloc_ucontext_req_v2 {
- enum mlx5_ib_alloc_ucontext_resp_mask {
- 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
- 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_DUMP_FILL_MKEY    = 1UL << 1,
-+	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_ECE               = 1UL << 2,
- };
-
- enum mlx5_user_cmds_supp_uhw {
---
-2.26.2
-
+>
+> Jason
