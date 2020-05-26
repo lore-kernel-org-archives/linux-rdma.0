@@ -2,61 +2,52 @@ Return-Path: <SRS0=D52B=7I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8047C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BAF2C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 808332084C
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 240EC2084C
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590489191;
-	bh=pq8On3WUlO+xI1ImWpqd/5ofHohCbw1G+yEvp3sHefs=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=ZTxeHROPLZjvzz5GZImOeRwDbw3l/khWZoHvtj+k6Qi2HpEjtkm21kYy1W9obz0D/
-	 vd3D2wwi7o5E3ysaMv4PPNySIgER53I9CrZ6LWoBJygaA7z1kvfTL34eBp7P/cEvB8
-	 yo1JiN7kzsjR+w9pKz5IzT4jwU2ziLR4+MENqJ1Q=
+	s=default; t=1590489196;
+	bh=FpoR4uLbsX7b2E6ObsQf4i4twTBg96o90Da1QPbHIRA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=v9hbi5UrJfHnzjgYCzmnTvLq2WIIhtjnsIPe1XkRZBdaEKLxvyxgRqhEk+pgNGl3h
+	 t68SoyvhKc8lzhZsbBeafkZUx3YAU2J0jTPon3d/BbIPdYkANh/w4kJx+YIyHhiWmp
+	 QEcoQ+hnEbbg0o/ACfu7vA6SqCmzn79EIt2qN2FQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731820AbgEZKdK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 May 2020 06:33:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50112 "EHLO mail.kernel.org"
+        id S1731883AbgEZKdP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 May 2020 06:33:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731745AbgEZKdK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 May 2020 06:33:10 -0400
+        id S1731745AbgEZKdO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 May 2020 06:33:14 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1A27020776;
-        Tue, 26 May 2020 10:33:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E35B32086A;
+        Tue, 26 May 2020 10:33:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590489189;
-        bh=pq8On3WUlO+xI1ImWpqd/5ofHohCbw1G+yEvp3sHefs=;
-        h=From:To:Cc:Subject:Date:From;
-        b=qkE3vJD9pAkF3cpL6g/1BJ8bDOux9VE1YndQK4NqxcMh4hT2fmc40ZL5t9TsMrLkG
-         qbQSJclWxYQTHsvHpBI2AXOJrwu3R5UBhsw9393Ad6ubNcE9wVhHthIvjWc46dgnlQ
-         JIsvvXdejMOAtF4xzU3albNtewmk9ma1rOo0IF+Y=
+        s=default; t=1590489193;
+        bh=FpoR4uLbsX7b2E6ObsQf4i4twTBg96o90Da1QPbHIRA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=g4741HAu8SFZqyIxT7NedSdv9K8dH35zNrGz2sE/rwEGViO9sLpp3UWrFF00qYa1n
+         VbBqWt9R3oT7lFycz2T3QfkjcE6UnX6gjCgCW1IPQ64ZSyYIBeI8zAlq85npUiS9Ci
+         jJ2p/Tqxs1wqRt7X+urTMH/p6/0nwvHdrXNg3Ngo=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jack Wang <jinpu.wang@cloud.ionos.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, rds-devel@oss.oracle.com,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        target-devel@vger.kernel.org
-Subject: [PATCH rdma-next v3 0/6] Add Enhanced Connection Established (ECE)
-Date:   Tue, 26 May 2020 13:32:58 +0300
-Message-Id: <20200526103304.196371-1-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v3 2/6] RDMA/ucma: Extend ucma_connect to receive ECE parameters
+Date:   Tue, 26 May 2020 13:33:00 +0300
+Message-Id: <20200526103304.196371-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200526103304.196371-1-leon@kernel.org>
+References: <20200526103304.196371-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -66,62 +57,135 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
- v3:
- * Rebased on top of ebd6e96b33a2 RDMA/ipoib: Remove can_sleep parameter from iboib_mcast_alloc
- * Updated rdma_reject patch to include newly added RTR ulp
- * Remove empty hunks added by rebase
- * Changed signature of rdma_reject so kernel users will provide reason by themselves
- * Squashed UAPI patch to other patches which add functionality
- * Removed define of the IBTA reason from UAPI
- v2: https://lore.kernel.org/linux-rdma/20200413141538.935574-1-leon@kernel.org/
- * Rebased on latest rdma-next and removed already accepted patches.
- * Updated all rdma_reject in-kernel users to provide reject reason.
- v1: Dropped field_avail patch in favor of mass conversion to use function
-     which already exists in the kernel code.
- https://lore.kernel.org/lkml/20200310091438.248429-1-leon@kernel.org
- v0: https://lore.kernel.org/lkml/20200305150105.207959-1-leon@kernel.org
+Active side of CMID initiates connection through librdmacm's rdma_connect()
+and kernel's ucma_connect(). Extend UCMA interface to handle those new
+parameters.
 
-Enhanced Connection Established or ECE is new negotiation scheme
-introduced in IBTA v1.4 to exchange extra information about nodes
-capabilities and later negotiate them at the connection establishment
-phase.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/cma.c      | 21 +++++++++++++++++++++
+ drivers/infiniband/core/cma_priv.h |  1 +
+ drivers/infiniband/core/ucma.c     | 14 +++++++++++---
+ include/rdma/rdma_cm.h             |  3 +++
+ include/uapi/rdma/rdma_user_cm.h   |  6 ++++++
+ 5 files changed, 42 insertions(+), 3 deletions(-)
 
-The RDMA-CM messages (REQ, REP, SIDR_REQ and SIDR_REP) were extended
-to carry two fields, one new and another gained new functionality:
- * VendorID is a new field that indicates that common subset of vendor
-   option bits are supported as indicated by that VendorID.
- * AttributeModifier already exists, but overloaded to indicate which
-   vendor options are supported by this VendorID.
-
-This is kernel part of such functionality which is responsible to get data
-from librdmacm and properly create and handle RDMA-CM messages.
-
-Thanks
-
-Leon Romanovsky (6):
-  RDMA/cm: Add Enhanced Connection Establishment (ECE) bits
-  RDMA/ucma: Extend ucma_connect to receive ECE parameters
-  RDMA/ucma: Deliver ECE parameters through UCMA events
-  RDMA/cm: Send and receive ECE parameter over the wire
-  RDMA/cma: Connect ECE to rdma_accept
-  RDMA/cma: Provide ECE reject reason
-
- drivers/infiniband/core/cm.c            | 39 ++++++++++++++---
- drivers/infiniband/core/cma.c           | 57 ++++++++++++++++++++++---
- drivers/infiniband/core/cma_priv.h      |  1 +
- drivers/infiniband/core/ucma.c          | 49 +++++++++++++++++----
- drivers/infiniband/ulp/isert/ib_isert.c |  4 +-
- drivers/infiniband/ulp/rtrs/rtrs-srv.c  |  2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.c   |  3 +-
- drivers/nvme/target/rdma.c              |  3 +-
- include/rdma/ib_cm.h                    |  9 +++-
- include/rdma/ibta_vol1_c12.h            |  6 +++
- include/rdma/rdma_cm.h                  |  9 +++-
- include/uapi/rdma/rdma_user_cm.h        | 11 ++++-
- net/rds/ib_cm.c                         |  4 +-
- 13 files changed, 170 insertions(+), 27 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 432eec472164..e81b8a523a3e 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4036,6 +4036,27 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+ }
+ EXPORT_SYMBOL(rdma_connect);
+ 
++/**
++ * rdma_connect_ece - Initiate an active connection request with ECE data.
++ * @id: Connection identifier to connect.
++ * @conn_param: Connection information used for connected QPs.
++ * @ece: ECE parameters
++ *
++ * See rdma_connect() explanation.
++ */
++int rdma_connect_ece(struct rdma_cm_id *id, struct rdma_conn_param *conn_param,
++		     struct rdma_ucm_ece *ece)
++{
++	struct rdma_id_private *id_priv =
++		container_of(id, struct rdma_id_private, id);
++
++	id_priv->ece.vendor_id = ece->vendor_id;
++	id_priv->ece.attr_mod = ece->attr_mod;
++
++	return rdma_connect(id, conn_param);
++}
++EXPORT_SYMBOL(rdma_connect_ece);
++
+ static int cma_accept_ib(struct rdma_id_private *id_priv,
+ 			 struct rdma_conn_param *conn_param)
+ {
+diff --git a/drivers/infiniband/core/cma_priv.h b/drivers/infiniband/core/cma_priv.h
+index 5edcf44a9307..caece96ebcf5 100644
+--- a/drivers/infiniband/core/cma_priv.h
++++ b/drivers/infiniband/core/cma_priv.h
+@@ -95,6 +95,7 @@ struct rdma_id_private {
+ 	 * Internal to RDMA/core, don't use in the drivers
+ 	 */
+ 	struct rdma_restrack_entry     res;
++	struct rdma_ucm_ece ece;
+ };
+ 
+ #if IS_ENABLED(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS)
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 06127c800a49..7cbb63690241 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1072,12 +1072,15 @@ static void ucma_copy_conn_param(struct rdma_cm_id *id,
+ static ssize_t ucma_connect(struct ucma_file *file, const char __user *inbuf,
+ 			    int in_len, int out_len)
+ {
+-	struct rdma_ucm_connect cmd;
+ 	struct rdma_conn_param conn_param;
++	struct rdma_ucm_ece ece = {};
++	struct rdma_ucm_connect cmd;
+ 	struct ucma_context *ctx;
++	size_t in_size;
+ 	int ret;
+ 
+-	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
++	in_size = min_t(size_t, in_len, sizeof(cmd));
++	if (copy_from_user(&cmd, inbuf, in_size))
+ 		return -EFAULT;
+ 
+ 	if (!cmd.conn_param.valid)
+@@ -1088,8 +1091,13 @@ static ssize_t ucma_connect(struct ucma_file *file, const char __user *inbuf,
+ 		return PTR_ERR(ctx);
+ 
+ 	ucma_copy_conn_param(ctx->cm_id, &conn_param, &cmd.conn_param);
++	if (offsetofend(typeof(cmd), ece) <= in_size) {
++		ece.vendor_id = cmd.ece.vendor_id;
++		ece.attr_mod = cmd.ece.attr_mod;
++	}
++
+ 	mutex_lock(&ctx->mutex);
+-	ret = rdma_connect(ctx->cm_id, &conn_param);
++	ret = rdma_connect_ece(ctx->cm_id, &conn_param, &ece);
+ 	mutex_unlock(&ctx->mutex);
+ 	ucma_put_ctx(ctx);
+ 	return ret;
+diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+index ea8e794785ed..4e2975eb3643 100644
+--- a/include/rdma/rdma_cm.h
++++ b/include/rdma/rdma_cm.h
+@@ -264,6 +264,9 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
+  */
+ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
+ 
++int rdma_connect_ece(struct rdma_cm_id *id, struct rdma_conn_param *conn_param,
++		     struct rdma_ucm_ece *ece);
++
+ /**
+  * rdma_listen - This function is called by the passive side to
+  *   listen for incoming connection requests.
+diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
+index 1bb6e75d254b..c1409dd7225f 100644
+--- a/include/uapi/rdma/rdma_user_cm.h
++++ b/include/uapi/rdma/rdma_user_cm.h
+@@ -210,10 +210,16 @@ struct rdma_ucm_ud_param {
+ 	__u8  reserved[7];
+ };
+ 
++struct rdma_ucm_ece {
++	__u32 vendor_id;
++	__u32 attr_mod;
++};
++
+ struct rdma_ucm_connect {
+ 	struct rdma_ucm_conn_param conn_param;
+ 	__u32 id;
+ 	__u32 reserved;
++	struct rdma_ucm_ece ece;
+ };
+ 
+ struct rdma_ucm_listen {
+-- 
 2.26.2
 
