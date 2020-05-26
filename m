@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C150C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB8AC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:54:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 699152073B
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:54:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5683D2073B
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:54:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590494091;
-	bh=3w9EHrWnwxGPmckA1/aq/NId8EtHAO8uHrW2bDoh4Ac=;
+	s=default; t=1590494095;
+	bh=XB8hItuJCyAOCYYQttxSiS8G2SnLhqGN8kIGa/7odn0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ZuNpfhahV7RfDsnZ7p2YbxO9R3BVO0UjOxROyJU+0Kv3L0HPgrnBG41nvV86JavFC
-	 j2nPJMO5QxQDwaH6T4DnlZHHdpOX0mAG8SbBiw3pKG5Nja3GmzhemSTSDsmmbEzsjw
-	 2PcLUf75PCTPMQi/C8n173Lg144wCRzWXiaafy90=
+	b=1OSg+Q3sxmC/Jahx9YUYKdviZNJmrfl1Rkplb3ADGIqTPqlCO3dtNQjYGKjYWX1jo
+	 vCRp9/0JRGgSTMZDoDJ8U5yDEcyzcCvkrJ2TiVUoNVx1KTEccKspcaxNWGSjOoH+3H
+	 EM8j+0v8/2j8t2Np5hHOBZMPrUFrAIFujBmnjwow=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388965AbgEZLyu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 May 2020 07:54:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48630 "EHLO mail.kernel.org"
+        id S2388966AbgEZLyy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 May 2020 07:54:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388964AbgEZLyu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 May 2020 07:54:50 -0400
+        id S2388964AbgEZLyy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 May 2020 07:54:54 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E73A20663;
-        Tue, 26 May 2020 11:54:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E076320663;
+        Tue, 26 May 2020 11:54:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590494089;
-        bh=3w9EHrWnwxGPmckA1/aq/NId8EtHAO8uHrW2bDoh4Ac=;
+        s=default; t=1590494093;
+        bh=XB8hItuJCyAOCYYQttxSiS8G2SnLhqGN8kIGa/7odn0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GHqjAuoUwXzUlKUD7HeCddP0/lXduZRUZZKZdlDx69f3Yjmww21idd9EvAwRfXDFD
-         79crhIxrn6fH464F0jfzi1Z0nIu+MtWps7vKfUkQehIpKj/5Bb9W9+ccoLyrZFAgMl
-         Gtamk8/9vseeGII3o7ahAhvTCpP5OZl3uX+cu10I=
+        b=YJczY9sPP7dTIHhRYc1x+OVGGw4f6pJjsXLW3dT2kt+Rp184FGDlocHjcbsIisVD4
+         tAChDBV3juGfEdwhMh5syLjLoxwd3zo0Ic+/wvywy8UH/BYc4fyqf1YfJS0HvgVEZ4
+         2mzwucSFTC1LAHGgVHpAXn5F/AWidY56cnTJ+Fn4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Mark Zhang <markz@mellanox.com>
-Subject: [PATCH rdma-next v3 2/8] RDMA/mlx5: Get ECE options from FW during create QP
-Date:   Tue, 26 May 2020 14:54:34 +0300
-Message-Id: <20200526115440.205922-3-leon@kernel.org>
+Subject: [PATCH rdma-next v3 4/8] RDMA/mlx5: Use direct modify QP implementation
+Date:   Tue, 26 May 2020 14:54:36 +0300
+Message-Id: <20200526115440.205922-5-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200526115440.205922-1-leon@kernel.org>
 References: <20200526115440.205922-1-leon@kernel.org>
@@ -58,160 +58,53 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Supported ECE options are returned from FW in the create_qp phase
-and zero means that field is not valid. Such default value allows
-us to reuse reserved field without worries about comp_mask.
-
-Update create QP API to return ECE options.
+As a preparation to removal hand crafted mlx5_qp_context, convert
+counter code to use mlx5_cmd_exec_in() directly.
 
 Reviewed-by: Mark Zhang <markz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c  | 16 +++++++++++-----
- drivers/infiniband/hw/mlx5/qp.h  |  4 ++--
- drivers/infiniband/hw/mlx5/qpc.c |  8 ++++----
- include/uapi/rdma/mlx5-abi.h     |  2 +-
- 4 files changed, 18 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 2e28752e8cd2..be7289c480f7 100644
+index eb70eb371b4b..8a3aee57a196 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1842,6 +1842,7 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	struct ib_qp_init_attr *attr = params->attr;
- 	u32 uidx = params->uidx;
- 	struct mlx5_ib_resources *devr = &dev->devr;
-+	u32 out[MLX5_ST_SZ_DW(create_qp_out)] = {};
- 	int inlen = MLX5_ST_SZ_BYTES(create_qp_in);
- 	struct mlx5_core_dev *mdev = dev->mdev;
+@@ -3688,10 +3688,11 @@ static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
+ 				    struct rdma_counter *counter)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
++	u32 in[MLX5_ST_SZ_DW(rts2rts_qp_in)] = {};
+ 	struct mlx5_ib_qp *mqp = to_mqp(qp);
+-	struct mlx5_qp_context context = {};
  	struct mlx5_ib_qp_base *base;
-@@ -1894,13 +1895,14 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	}
+ 	u32 set_id;
++	u32 *qpc;
  
- 	base = &qp->trans_qp.base;
--	err = mlx5_core_create_qp(dev, &base->mqp, in, inlen);
-+	err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 	kvfree(in);
- 	if (err)
- 		return err;
+ 	if (counter)
+ 		set_id = counter->id;
+@@ -3699,11 +3700,15 @@ static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
+ 		set_id = mlx5_ib_get_counters_id(dev, mqp->port - 1);
  
- 	base->container_mibqp = qp;
- 	base->mqp.event = mlx5_ib_qp_event;
-+	params->resp.ece_options = MLX5_GET(create_qp_out, out, ece);
- 
- 	spin_lock_irqsave(&dev->reset_flow_resource_lock, flags);
- 	list_add_tail(&qp->qps_list, &dev->qp_list);
-@@ -1916,6 +1918,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- {
- 	struct ib_qp_init_attr *init_attr = params->attr;
- 	struct mlx5_ib_create_qp *ucmd = params->ucmd;
-+	u32 out[MLX5_ST_SZ_DW(create_qp_out)] = {};
- 	struct ib_udata *udata = params->udata;
- 	u32 uidx = params->uidx;
- 	struct mlx5_ib_resources *devr = &dev->devr;
-@@ -2065,7 +2068,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		err = create_raw_packet_qp(dev, qp, in, inlen, pd, udata,
- 					   &params->resp);
- 	} else
--		err = mlx5_core_create_qp(dev, &base->mqp, in, inlen);
-+		err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 
- 	kvfree(in);
- 	if (err)
-@@ -2073,6 +2076,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 
- 	base->container_mibqp = qp;
- 	base->mqp.event = mlx5_ib_qp_event;
-+	params->resp.ece_options = MLX5_GET(create_qp_out, out, ece);
- 
- 	get_cqs(qp->type, init_attr->send_cq, init_attr->recv_cq,
- 		&send_cq, &recv_cq);
-@@ -2105,6 +2109,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	struct ib_qp_init_attr *attr = params->attr;
- 	u32 uidx = params->uidx;
- 	struct mlx5_ib_resources *devr = &dev->devr;
-+	u32 out[MLX5_ST_SZ_DW(create_qp_out)] = {};
- 	int inlen = MLX5_ST_SZ_BYTES(create_qp_in);
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_ib_cq *send_cq;
-@@ -2195,7 +2200,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	if (qp->flags & IB_QP_CREATE_IPOIB_UD_LSO)
- 		MLX5_SET(qpc, qpc, ulp_stateless_offload_mode, 1);
- 
--	err = mlx5_core_create_qp(dev, &base->mqp, in, inlen);
-+	err = mlx5_qpc_create_qp(dev, &base->mqp, in, inlen, out);
- 	kvfree(in);
- 	if (err)
- 		goto err_create;
-@@ -2779,12 +2784,13 @@ static int create_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		qp->ibqp.qp_num = qp->trans_qp.base.mqp.qpn;
- 
- 	mlx5_ib_dbg(dev,
--		"QP type %d, ib qpn 0x%X, mlx qpn 0x%x, rcqn 0x%x, scqn 0x%x\n",
-+		"QP type %d, ib qpn 0x%X, mlx qpn 0x%x, rcqn 0x%x, scqn 0x%x, ece 0x%x\n",
- 		qp->type, qp->ibqp.qp_num, qp->trans_qp.base.mqp.qpn,
- 		params->attr->recv_cq ? to_mcq(params->attr->recv_cq)->mcq.cqn :
- 					-1,
- 		params->attr->send_cq ? to_mcq(params->attr->send_cq)->mcq.cqn :
--					-1);
-+					-1,
-+		params->resp.ece_options);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/mlx5/qp.h b/drivers/infiniband/hw/mlx5/qp.h
-index ad9d76e3e18a..795c21f88962 100644
---- a/drivers/infiniband/hw/mlx5/qp.h
-+++ b/drivers/infiniband/hw/mlx5/qp.h
-@@ -13,8 +13,8 @@ void mlx5_cleanup_qp_table(struct mlx5_ib_dev *dev);
- 
- int mlx5_core_create_dct(struct mlx5_ib_dev *dev, struct mlx5_core_dct *qp,
- 			 u32 *in, int inlen, u32 *out, int outlen);
--int mlx5_core_create_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp,
--			u32 *in, int inlen);
-+int mlx5_qpc_create_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp,
-+		       u32 *in, int inlen, u32 *out);
- int mlx5_core_qp_modify(struct mlx5_ib_dev *dev, u16 opcode, u32 opt_param_mask,
- 			void *qpc, struct mlx5_core_qp *qp);
- int mlx5_core_destroy_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp);
-diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index ea62735042f0..69c80859a6ee 100644
---- a/drivers/infiniband/hw/mlx5/qpc.c
-+++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -236,16 +236,16 @@ int mlx5_core_create_dct(struct mlx5_ib_dev *dev, struct mlx5_core_dct *dct,
- 	return err;
+ 	base = &mqp->trans_qp.base;
+-	context.qp_counter_set_usr_page &= cpu_to_be32(0xffffff);
+-	context.qp_counter_set_usr_page |= cpu_to_be32(set_id << 24);
+-	return mlx5_core_qp_modify(dev, MLX5_CMD_OP_RTS2RTS_QP,
+-				   MLX5_QP_OPTPAR_COUNTER_SET_ID, &context,
+-				   &base->mqp);
++	MLX5_SET(rts2rts_qp_in, in, opcode, MLX5_CMD_OP_RTS2RTS_QP);
++	MLX5_SET(rts2rts_qp_in, in, qpn, base->mqp.qpn);
++	MLX5_SET(rts2rts_qp_in, in, uid, base->mqp.uid);
++	MLX5_SET(rts2rts_qp_in, in, opt_param_mask,
++		 MLX5_QP_OPTPAR_COUNTER_SET_ID);
++
++	qpc = MLX5_ADDR_OF(rts2rts_qp_in, in, qpc);
++	MLX5_SET(qpc, qpc, counter_set_id, set_id);
++	return mlx5_cmd_exec_in(dev->mdev, rts2rts_qp, in);
  }
  
--int mlx5_core_create_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp,
--			u32 *in, int inlen)
-+int mlx5_qpc_create_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp,
-+		       u32 *in, int inlen, u32 *out)
- {
--	u32 out[MLX5_ST_SZ_DW(create_qp_out)] = {};
- 	u32 din[MLX5_ST_SZ_DW(destroy_qp_in)] = {};
- 	int err;
- 
- 	MLX5_SET(create_qp_in, in, opcode, MLX5_CMD_OP_CREATE_QP);
- 
--	err = mlx5_cmd_exec(dev->mdev, in, inlen, out, sizeof(out));
-+	err = mlx5_cmd_exec(dev->mdev, in, inlen, out,
-+			    MLX5_ST_SZ_BYTES(create_qp_out));
- 	if (err)
- 		return err;
- 
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index df1cc3641bda..106fbb3bec6a 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -371,7 +371,7 @@ enum mlx5_ib_create_qp_resp_mask {
- 
- struct mlx5_ib_create_qp_resp {
- 	__u32	bfreg_index;
--	__u32   reserved;
-+	__u32   ece_options;
- 	__u32	comp_mask;
- 	__u32	tirn;
- 	__u32	tisn;
+ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
 -- 
 2.26.2
 
