@@ -2,49 +2,61 @@ Return-Path: <SRS0=D52B=7I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDB8C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8971BC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20C442084C
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E00C2088E
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 10:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590489212;
-	bh=DKm3MFs7Z13mLOrPE4c2peB9YGZzBuJrsj3q/MOJ4jg=;
+	s=default; t=1590489221;
+	bh=dzqvhtpLkofEHaV2L3738BnH0FvXH20o9HIlfF46rRo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=xSXlrgDCctysCEEx9TxojthKAXbgt6jAFjDwya1Vl3MEV7s5UKt59nLjSGmahhqzl
-	 BX+N+Y8OpaXTfOKOXDXBQqXAdon74OooMM4/crjBrz5+hXOBN3jSt36rEU1CavB/4+
-	 OBsdv8Bz/lJIsVQo0c+U/7vTISCJPZ+mVAoo+B98=
+	b=OueeNmfDX9j9EBMvns9rDNAhFCFD6FLpncV6ZqGqd7UibsZvI5WOOmINc2Hse2tDp
+	 qflMidLAkhoPvFjaeRJFm3IfOzjs4qRagwGQn5Pc6+QU4ej9HTklNhqtgES2Ugf7xz
+	 AFvDIERC8Acr7Xhc37jCYjBXMGRuxqvFjWdZXa30=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731891AbgEZKdb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 May 2020 06:33:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50426 "EHLO mail.kernel.org"
+        id S1731892AbgEZKdh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 May 2020 06:33:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731745AbgEZKda (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 May 2020 06:33:30 -0400
+        id S1731745AbgEZKdg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 May 2020 06:33:36 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 09413207CB;
-        Tue, 26 May 2020 10:33:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 24F3A2086A;
+        Tue, 26 May 2020 10:33:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590489209;
-        bh=DKm3MFs7Z13mLOrPE4c2peB9YGZzBuJrsj3q/MOJ4jg=;
+        s=default; t=1590489215;
+        bh=dzqvhtpLkofEHaV2L3738BnH0FvXH20o9HIlfF46rRo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DMbOT5USIgn+rW6o0qqfpAkPHr3pvbztJA6/hfBHygPgqwxZ0PURoqyh7qRXAk1MK
-         0trzI7xni6B0Gq9YJaLSgZWY4zx+A7m0U6gdYPVJ45oUlnBqsNQpcPyRKcZGnvSmf5
-         To2ybaEH0XPg6bDEroE/+t0perLK8/WAoi7MyUXU=
+        b=S1DFZ/++4sBSd5e/tAe1qVYb8Z5ell8eJcabRETlBCTm5NoZeU2QmyKovnJgzKd1u
+         ZUYzOs4N9uDc74CP808/+SKROtRUh5pI4/XqGJ6HtgHWkvOdjNvR0o5WKXtvS7Ym3n
+         8fzegTcb8o1STFmqEzF6Kt7OtV9brvHQtDXz4ThI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v3 4/6] RDMA/cm: Send and receive ECE parameter over the wire
-Date:   Tue, 26 May 2020 13:33:02 +0300
-Message-Id: <20200526103304.196371-5-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, rds-devel@oss.oracle.com,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        target-devel@vger.kernel.org
+Subject: [PATCH rdma-next v3 6/6] RDMA/cma: Provide ECE reject reason
+Date:   Tue, 26 May 2020 13:33:04 +0300
+Message-Id: <20200526103304.196371-7-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200526103304.196371-1-leon@kernel.org>
 References: <20200526103304.196371-1-leon@kernel.org>
@@ -57,232 +69,209 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-ECE parameters are exchanged through REQ->REP/SIDR_REP messages,
-this patch adds the data to provide to other side of CMID communication
-channel.
+IBTA declares "vendor option not supported" reject reason in REJ
+messages if passive side doesn't want to accept proposed ECE options.
+
+Due to the fact that ECE is managed by userspace, there is a need to let
+users to provide such rejected reason.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cm.c  | 39 ++++++++++++++++++++++++++++++-----
- drivers/infiniband/core/cma.c |  8 +++++++
- include/rdma/ib_cm.h          |  9 +++++++-
- 3 files changed, 50 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/cma.c           |  9 ++++-----
+ drivers/infiniband/core/ucma.c          | 15 ++++++++++++++-
+ drivers/infiniband/ulp/isert/ib_isert.c |  4 ++--
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c  |  2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c   |  3 ++-
+ drivers/nvme/target/rdma.c              |  3 ++-
+ include/rdma/rdma_cm.h                  |  2 +-
+ include/uapi/rdma/rdma_user_cm.h        |  3 ++-
+ net/rds/ib_cm.c                         |  4 +++-
+ 9 files changed, 31 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index f38ff46abe8f..085c146fe400 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -66,6 +66,8 @@ static const char * const ibcm_rej_reason_strs[] = {
- 	[IB_CM_REJ_INVALID_CLASS_VERSION]	= "invalid class version",
- 	[IB_CM_REJ_INVALID_FLOW_LABEL]		= "invalid flow label",
- 	[IB_CM_REJ_INVALID_ALT_FLOW_LABEL]	= "invalid alt flow label",
-+	[IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED] =
-+		"vendor option is not supported",
- };
- 
- const char *__attribute_const__ ibcm_reject_msg(int reason)
-@@ -290,6 +292,8 @@ struct cm_id_private {
- 
- 	struct list_head work_list;
- 	atomic_t work_count;
-+
-+	struct rdma_ucm_ece ece;
- };
- 
- static void cm_work_handler(struct work_struct *work);
-@@ -1318,6 +1322,13 @@ static void cm_format_mad_hdr(struct ib_mad_hdr *hdr,
- 	hdr->tid	   = tid;
- }
- 
-+static void cm_format_mad_ece_hdr(struct ib_mad_hdr *hdr, __be16 attr_id,
-+				  __be64 tid, u32 attr_mod)
-+{
-+	cm_format_mad_hdr(hdr, attr_id, tid);
-+	hdr->attr_mod = cpu_to_be32(attr_mod);
-+}
-+
- static void cm_format_req(struct cm_req_msg *req_msg,
- 			  struct cm_id_private *cm_id_priv,
- 			  struct ib_cm_req_param *param)
-@@ -1330,8 +1341,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		pri_ext = opa_is_extended_lid(pri_path->opa.dlid,
- 					      pri_path->opa.slid);
- 
--	cm_format_mad_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
--			  cm_form_tid(cm_id_priv));
-+	cm_format_mad_ece_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
-+			      cm_form_tid(cm_id_priv), param->ece.attr_mod);
- 
- 	IBA_SET(CM_REQ_LOCAL_COMM_ID, req_msg,
- 		be32_to_cpu(cm_id_priv->id.local_id));
-@@ -1454,6 +1465,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
- 				       alt_path->packet_life_time));
- 	}
-+	IBA_SET(CM_REQ_VENDOR_ID, req_msg, param->ece.vendor_id);
- 
- 	if (param->private_data && param->private_data_len)
- 		IBA_SET_MEM(CM_REQ_PRIVATE_DATA, req_msg, param->private_data,
-@@ -1810,6 +1822,9 @@ static void cm_format_req_event(struct cm_work *work,
- 	param->rnr_retry_count = IBA_GET(CM_REQ_RNR_RETRY_COUNT, req_msg);
- 	param->srq = IBA_GET(CM_REQ_SRQ, req_msg);
- 	param->ppath_sgid_attr = cm_id_priv->av.ah_attr.grh.sgid_attr;
-+	param->ece.vendor_id = IBA_GET(CM_REQ_VENDOR_ID, req_msg);
-+	param->ece.attr_mod = be32_to_cpu(req_msg->hdr.attr_mod);
-+
- 	work->cm_event.private_data =
- 		IBA_GET_MEM_PTR(CM_REQ_PRIVATE_DATA, req_msg);
- }
-@@ -2202,7 +2217,8 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 			  struct cm_id_private *cm_id_priv,
- 			  struct ib_cm_rep_param *param)
- {
--	cm_format_mad_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid);
-+	cm_format_mad_ece_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid,
-+			      param->ece.attr_mod);
- 	IBA_SET(CM_REP_LOCAL_COMM_ID, rep_msg,
- 		be32_to_cpu(cm_id_priv->id.local_id));
- 	IBA_SET(CM_REP_REMOTE_COMM_ID, rep_msg,
-@@ -2229,6 +2245,10 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 		IBA_SET(CM_REP_LOCAL_EE_CONTEXT_NUMBER, rep_msg, param->qp_num);
- 	}
- 
-+	IBA_SET(CM_REP_VENDOR_ID_L, rep_msg, param->ece.vendor_id);
-+	IBA_SET(CM_REP_VENDOR_ID_M, rep_msg, param->ece.vendor_id >> 8);
-+	IBA_SET(CM_REP_VENDOR_ID_H, rep_msg, param->ece.vendor_id >> 16);
-+
- 	if (param->private_data && param->private_data_len)
- 		IBA_SET_MEM(CM_REP_PRIVATE_DATA, rep_msg, param->private_data,
- 			    param->private_data_len);
-@@ -2376,6 +2396,11 @@ static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
- 	param->flow_control = IBA_GET(CM_REP_END_TO_END_FLOW_CONTROL, rep_msg);
- 	param->rnr_retry_count = IBA_GET(CM_REP_RNR_RETRY_COUNT, rep_msg);
- 	param->srq = IBA_GET(CM_REP_SRQ, rep_msg);
-+	param->ece.vendor_id = IBA_GET(CM_REP_VENDOR_ID_H, rep_msg) << 16;
-+	param->ece.vendor_id |= IBA_GET(CM_REP_VENDOR_ID_M, rep_msg) << 8;
-+	param->ece.vendor_id |= IBA_GET(CM_REP_VENDOR_ID_L, rep_msg);
-+	param->ece.attr_mod = be32_to_cpu(rep_msg->hdr.attr_mod);
-+
- 	work->cm_event.private_data =
- 		IBA_GET_MEM_PTR(CM_REP_PRIVATE_DATA, rep_msg);
- }
-@@ -3597,8 +3622,8 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
- 			       struct cm_id_private *cm_id_priv,
- 			       struct ib_cm_sidr_rep_param *param)
- {
--	cm_format_mad_hdr(&sidr_rep_msg->hdr, CM_SIDR_REP_ATTR_ID,
--			  cm_id_priv->tid);
-+	cm_format_mad_ece_hdr(&sidr_rep_msg->hdr, CM_SIDR_REP_ATTR_ID,
-+			      cm_id_priv->tid, param->ece.attr_mod);
- 	IBA_SET(CM_SIDR_REP_REQUESTID, sidr_rep_msg,
- 		be32_to_cpu(cm_id_priv->id.remote_id));
- 	IBA_SET(CM_SIDR_REP_STATUS, sidr_rep_msg, param->status);
-@@ -3606,6 +3631,10 @@ static void cm_format_sidr_rep(struct cm_sidr_rep_msg *sidr_rep_msg,
- 	IBA_SET(CM_SIDR_REP_SERVICEID, sidr_rep_msg,
- 		be64_to_cpu(cm_id_priv->id.service_id));
- 	IBA_SET(CM_SIDR_REP_Q_KEY, sidr_rep_msg, param->qkey);
-+	IBA_SET(CM_SIDR_REP_VENDOR_ID_L, sidr_rep_msg,
-+		param->ece.vendor_id & 0xFF);
-+	IBA_SET(CM_SIDR_REP_VENDOR_ID_H, sidr_rep_msg,
-+		(param->ece.vendor_id >> 8) & 0xFF);
- 
- 	if (param->info && param->info_length)
- 		IBA_SET_MEM(CM_SIDR_REP_ADDITIONAL_INFORMATION, sidr_rep_msg,
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index e81b8a523a3e..f554a371f4fa 100644
+index d449afe5557b..8026ee56546a 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1911,6 +1911,9 @@ static void cma_set_rep_event_data(struct rdma_cm_event *event,
- 	event->param.conn.rnr_retry_count = rep_data->rnr_retry_count;
- 	event->param.conn.srq = rep_data->srq;
- 	event->param.conn.qp_num = rep_data->remote_qpn;
+@@ -4196,7 +4196,7 @@ int __rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param,
+ 	return 0;
+ reject:
+ 	cma_modify_qp_err(id_priv);
+-	rdma_reject(id, NULL, 0);
++	rdma_reject(id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(__rdma_accept);
+@@ -4236,7 +4236,7 @@ int rdma_notify(struct rdma_cm_id *id, enum ib_event_type event)
+ EXPORT_SYMBOL(rdma_notify);
+ 
+ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+-		u8 private_data_len)
++		u8 private_data_len, u8 reason)
+ {
+ 	struct rdma_id_private *id_priv;
+ 	int ret;
+@@ -4251,9 +4251,8 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+ 						private_data, private_data_len);
+ 		} else {
+ 			trace_cm_send_rej(id_priv);
+-			ret = ib_send_cm_rej(id_priv->cm_id.ib,
+-					     IB_CM_REJ_CONSUMER_DEFINED, NULL,
+-					     0, private_data, private_data_len);
++			ret = ib_send_cm_rej(id_priv->cm_id.ib, reason, NULL, 0,
++					     private_data, private_data_len);
+ 		}
+ 	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
+ 		ret = iw_cm_reject(id_priv->cm_id.iw,
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 6b27b210b890..5b87eee8ccc8 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -52,6 +52,7 @@
+ #include <rdma/rdma_cm_ib.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib.h>
++#include <rdma/ib_cm.h>
+ #include <rdma/rdma_netlink.h>
+ #include "core_priv.h"
+ 
+@@ -1181,12 +1182,24 @@ static ssize_t ucma_reject(struct ucma_file *file, const char __user *inbuf,
+ 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+ 		return -EFAULT;
+ 
++	if (!cmd.reason)
++		cmd.reason = IB_CM_REJ_CONSUMER_DEFINED;
 +
-+	event->ece.vendor_id = rep_data->ece.vendor_id;
-+	event->ece.attr_mod = rep_data->ece.attr_mod;
++	switch (cmd.reason) {
++	case IB_CM_REJ_CONSUMER_DEFINED:
++	case IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED:
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	ctx = ucma_get_ctx_dev(file, cmd.id);
+ 	if (IS_ERR(ctx))
+ 		return PTR_ERR(ctx);
+ 
+ 	mutex_lock(&ctx->mutex);
+-	ret = rdma_reject(ctx->cm_id, cmd.private_data, cmd.private_data_len);
++	ret = rdma_reject(ctx->cm_id, cmd.private_data, cmd.private_data_len,
++			  cmd.reason);
+ 	mutex_unlock(&ctx->mutex);
+ 	ucma_put_ctx(ctx);
+ 	return ret;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index a1a035270cab..7bc598d7a15c 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -502,7 +502,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 	if (!np->enabled) {
+ 		spin_unlock_bh(&np->np_thread_lock);
+ 		isert_dbg("iscsi_np is not enabled, reject connect request\n");
+-		return rdma_reject(cma_id, NULL, 0);
++		return rdma_reject(cma_id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+ 	}
+ 	spin_unlock_bh(&np->np_thread_lock);
+ 
+@@ -553,7 +553,7 @@ isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 	isert_free_login_buf(isert_conn);
+ out:
+ 	kfree(isert_conn);
+-	rdma_reject(cma_id, NULL, 0);
++	rdma_reject(cma_id, NULL, 0, IB_CM_REJ_CONSUMER_DEFINED);
+ 	return ret;
  }
  
- static int cma_cm_event_handler(struct rdma_id_private *id_priv,
-@@ -2129,6 +2132,9 @@ static void cma_set_req_event_data(struct rdma_cm_event *event,
- 	event->param.conn.rnr_retry_count = req_data->rnr_retry_count;
- 	event->param.conn.srq = req_data->srq;
- 	event->param.conn.qp_num = req_data->remote_qpn;
-+
-+	event->ece.vendor_id = req_data->ece.vendor_id;
-+	event->ece.attr_mod = req_data->ece.attr_mod;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 5ef8988ee75b..67d164ff5aaa 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -1576,7 +1576,7 @@ static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno)
+ 		.errno = cpu_to_le16(errno),
+ 	};
+ 
+-	err = rdma_reject(cm_id, &msg, sizeof(msg));
++	err = rdma_reject(cm_id, &msg, sizeof(msg), IB_CM_REJ_CONSUMER_DEFINED);
+ 	if (err)
+ 		pr_err("rdma_reject(), err: %d\n", err);
+ 
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index a294630f2100..cdc8c239d6c0 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2497,7 +2497,8 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 				   SRP_BUF_FORMAT_INDIRECT);
+ 
+ 	if (rdma_cm_id)
+-		rdma_reject(rdma_cm_id, rej, sizeof(*rej));
++		rdma_reject(rdma_cm_id, rej, sizeof(*rej),
++			    IB_CM_REJ_CONSUMER_DEFINED);
+ 	else
+ 		ib_send_cm_rej(ib_cm_id, IB_CM_REJ_CONSUMER_DEFINED, NULL, 0,
+ 			       rej, sizeof(*rej));
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index fd47de0e4e4e..30a0a9adaddd 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -1138,7 +1138,8 @@ static int nvmet_rdma_cm_reject(struct rdma_cm_id *cm_id,
+ 	rej.recfmt = cpu_to_le16(NVME_RDMA_CM_FMT_1_0);
+ 	rej.sts = cpu_to_le16(status);
+ 
+-	return rdma_reject(cm_id, (void *)&rej, sizeof(rej));
++	return rdma_reject(cm_id, (void *)&rej, sizeof(rej),
++			   IB_CM_REJ_CONSUMER_DEFINED);
  }
  
- static int cma_ib_check_req_qp_type(const struct rdma_cm_id *id,
-@@ -3947,6 +3953,8 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	req.local_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
- 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
- 	req.srq = id_priv->srq ? 1 : 0;
-+	req.ece.vendor_id = id_priv->ece.vendor_id;
-+	req.ece.attr_mod = id_priv->ece.attr_mod;
- 
- 	trace_cm_send_req(id_priv);
- 	ret = ib_send_cm_req(id_priv->cm_id.ib, &req);
-diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-index 058cfbc2b37f..0f1ea5f2d01c 100644
---- a/include/rdma/ib_cm.h
-+++ b/include/rdma/ib_cm.h
-@@ -11,6 +11,7 @@
- 
- #include <rdma/ib_mad.h>
- #include <rdma/ib_sa.h>
-+#include <rdma/rdma_cm.h>
- 
- /* ib_cm and ib_user_cm modules share /sys/class/infiniband_cm */
- extern struct class cm_class;
-@@ -115,6 +116,7 @@ struct ib_cm_req_event_param {
- 	unsigned int		retry_count:3;
- 	unsigned int		rnr_retry_count:3;
- 	unsigned int		srq:1;
-+	struct rdma_ucm_ece	ece;
- };
- 
- struct ib_cm_rep_event_param {
-@@ -129,6 +131,7 @@ struct ib_cm_rep_event_param {
- 	unsigned int		flow_control:1;
- 	unsigned int		rnr_retry_count:3;
- 	unsigned int		srq:1;
-+	struct rdma_ucm_ece	ece;
- };
- 
- enum ib_cm_rej_reason {
-@@ -164,7 +167,8 @@ enum ib_cm_rej_reason {
- 	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
- 	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
- 	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
--	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
-+	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33,
-+	IB_CM_REJ_VENDOR_OPTION_NOT_SUPPORTED	= 35,
- };
- 
- struct ib_cm_rej_event_param {
-@@ -369,6 +373,7 @@ struct ib_cm_req_param {
- 	u8			rnr_retry_count;
- 	u8			max_cm_retries;
- 	u8			srq;
-+	struct rdma_ucm_ece	ece;
- };
+ static struct nvmet_rdma_queue *
+diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
+index 7ac91677660f..939d7abe026f 100644
+--- a/include/rdma/rdma_cm.h
++++ b/include/rdma/rdma_cm.h
+@@ -320,7 +320,7 @@ int rdma_notify(struct rdma_cm_id *id, enum ib_event_type event);
+  * rdma_reject - Called to reject a connection request or response.
+  */
+ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
+-		u8 private_data_len);
++		u8 private_data_len, u8 reason);
  
  /**
-@@ -392,6 +397,7 @@ struct ib_cm_rep_param {
- 	u8		flow_control;
- 	u8		rnr_retry_count;
- 	u8		srq;
-+	struct rdma_ucm_ece ece;
+  * rdma_disconnect - This function disconnects the associated QP and
+diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
+index 6b883dde7064..ed5a514305c1 100644
+--- a/include/uapi/rdma/rdma_user_cm.h
++++ b/include/uapi/rdma/rdma_user_cm.h
+@@ -238,7 +238,8 @@ struct rdma_ucm_accept {
+ struct rdma_ucm_reject {
+ 	__u32 id;
+ 	__u8  private_data_len;
+-	__u8  reserved[3];
++	__u8  reason;
++	__u8  reserved[2];
+ 	__u8  private_data[RDMA_MAX_PRIVATE_DATA];
  };
  
- /**
-@@ -546,6 +552,7 @@ struct ib_cm_sidr_rep_param {
- 	u8			info_length;
- 	const void		*private_data;
- 	u8			private_data_len;
-+	struct rdma_ucm_ece	ece;
- };
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index c71f4328d138..0fec4171564e 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -37,6 +37,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ratelimit.h>
+ #include <net/addrconf.h>
++#include <rdma/ib_cm.h>
  
- /**
+ #include "rds_single_path.h"
+ #include "rds.h"
+@@ -927,7 +928,8 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 	if (conn)
+ 		mutex_unlock(&conn->c_cm_lock);
+ 	if (err)
+-		rdma_reject(cm_id, &err, sizeof(int));
++		rdma_reject(cm_id, &err, sizeof(int),
++			    IB_CM_REJ_CONSUMER_DEFINED);
+ 	return destroy;
+ }
+ 
 -- 
 2.26.2
 
