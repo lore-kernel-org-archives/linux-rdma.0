@@ -2,559 +2,189 @@ Return-Path: <SRS0=D52B=7I=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85794C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE7C1C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 12:07:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58E9E2073B
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 11:55:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590494114;
-	bh=G8PNIqQcf7DvRn4lIYcoexs4nWDEOu87RFjcXMg9t/k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YwDTGyTm9L8fzrshWX2mSJYSQ0MxRwLbBs23UJLoFqTDwnXefowc94bPJMTC0z7w2
-	 8AHtYzdiZi35nlYbauLcmc17h2raByNG63DQzcPYBY8Uln5972reSSWtjtTBBhHeBd
-	 4AmLYVHDTLHSfUDnmCownPvdrzoWx+kJ8KJJm2z8=
+	by mail.kernel.org (Postfix) with ESMTP id 7C97F20787
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 May 2020 12:07:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="ESaoUXLU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388982AbgEZLzN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 May 2020 07:55:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48826 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388967AbgEZLzN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 May 2020 07:55:13 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8888F20663;
-        Tue, 26 May 2020 11:55:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590494112;
-        bh=G8PNIqQcf7DvRn4lIYcoexs4nWDEOu87RFjcXMg9t/k=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dFT790w4cO8TTruBPcgEmDDqdjN2L8y81crJzNRdjmWgPUbuq+2JsIRe48v0gy4Go
-         tvOMTdha4VSmj/NxQt8S5G0ubKEpcrDK6oMPHm712gwBXrkFEBuCm2eX5chTqV1vxL
-         EYoWFtycOKiQJJiqCZ5AksdO36fKM/QVrYg+o82s=
-From:   Leon Romanovsky <leon@kernel.org>
+        id S1731540AbgEZMH5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 May 2020 08:07:57 -0400
+Received: from mail-eopbgr40064.outbound.protection.outlook.com ([40.107.4.64]:52451
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1731465AbgEZMH4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 May 2020 08:07:56 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=fxkeFZ1bmP/EJw2/B7Cb+TeveE4oe54d4esa6P24jYLgcoax8cfcMs9AH4RpEwZS2fP7Cd8PO8GdU2lefa8ykF6q+HKLAH0/WPQ8A27j45f8QUI6y9/LfJ2+0/ae3ExFYTtOD56BrcvlicjeE2QQC1NiNqA1qsNDL4y+sPjJ4gb+E+LMnkNgUj4ZOGNksATpmorQ4RoOfDrsP+jFTC6A7oCY3rLlycajH9jylipZR9YN6iIDoZyBm3fMtQEMDpUQqQuJYRPuah5mRRiMlhCrDi7TYW+v0OOPkqigE/U5nLUlaArjyRcc/1V8u95ebOwor+RYXX505xG80KGrXUol8A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Xri0+aqNsATTPKW66PDEhU1P6lhhIavlDnjhBMmCbE0=;
+ b=d3ZwcYc3vHR/FoflSbSB62DXVdZgZ3OIyi9MRJJdM9HZC8FAjj6yofTHqgPRQiVAbS3BF06jeL89izwjwtDvQwZtQEgN2rgdeZg3QaaC212LK9EkoQKCGS3COb19XHMJTtXveL8iYySHLXjnwbWchMRCw5H27ea9y59pkLBZsnffRT1PveEWcLjLP+FdMQQtEixA2mTp15LnOa3UpO4ivmUih7OZwIHt9ZjsKoo21SqBAup9eMFoepGx6EiyQOdCYrvtIINZKFYWnvMGHlWn3c/RkATLXX1x4SjE36bwwJ7pctQRad0iRLtL7pnTfDm64rAWMmtjaiQ35NPyT0V/iA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Xri0+aqNsATTPKW66PDEhU1P6lhhIavlDnjhBMmCbE0=;
+ b=ESaoUXLUDfTkCqAsQd0JkUhmyakwRkaZ2ujK/7vVb3bGKX5pZ88zS86UOoaFR799cPFaE6o0s1PHZtUsc22+draMeeQqXmSHgrmuYa5aI5KkRb/k+fHwDpXOn1zrZD36zCc0rWqkMOjx3dsB/TsORBPOSr4qfHrfFPjJaD6MaIo=
+Authentication-Results: redhat.com; dkim=none (message not signed)
+ header.d=none;redhat.com; dmarc=none action=none header.from=mellanox.com;
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com (2603:10a6:20b:b8::23)
+ by AM6PR05MB6264.eurprd05.prod.outlook.com (2603:10a6:20b:6::32) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3021.29; Tue, 26 May
+ 2020 12:07:52 +0000
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::1466:c39b:c016:3301]) by AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::1466:c39b:c016:3301%4]) with mapi id 15.20.3021.029; Tue, 26 May 2020
+ 12:07:52 +0000
+Date:   Tue, 26 May 2020 15:07:50 +0300
+From:   Leon Romanovsky <leonro@mellanox.com>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Mark Zhang <markz@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next v3 6/8] RDMA/mlx5: Convert modify QP to use MLX5_SET macros
-Date:   Tue, 26 May 2020 14:54:38 +0300
-Message-Id: <20200526115440.205922-7-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200526115440.205922-1-leon@kernel.org>
-References: <20200526115440.205922-1-leon@kernel.org>
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, rds-devel@oss.oracle.com,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        target-devel@vger.kernel.org
+Subject: Re: [PATCH rdma-next v3 6/6] RDMA/cma: Provide ECE reject reason
+Message-ID: <20200526120750.GD100179@unreal>
+References: <20200526103304.196371-1-leon@kernel.org>
+ <20200526103304.196371-7-leon@kernel.org>
+ <20200526113628.GC100179@unreal>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200526113628.GC100179@unreal>
+X-ClientProxiedBy: AM0PR01CA0077.eurprd01.prod.exchangelabs.com
+ (2603:10a6:208:10e::18) To AM6PR05MB6408.eurprd05.prod.outlook.com
+ (2603:10a6:20b:b8::23)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from localhost (2a00:a040:183:2d::a43) by AM0PR01CA0077.eurprd01.prod.exchangelabs.com (2603:10a6:208:10e::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3021.24 via Frontend Transport; Tue, 26 May 2020 12:07:52 +0000
+X-Originating-IP: [2a00:a040:183:2d::a43]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: d34c67ca-46ab-4a9f-e3cc-08d8016d6a92
+X-MS-TrafficTypeDiagnostic: AM6PR05MB6264:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM6PR05MB62649DC49587DA5A52A9D770B0B00@AM6PR05MB6264.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:1247;
+X-Forefront-PRVS: 041517DFAB
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Uii6fm7sszQxMeT5AXuoKcZ5410TYbAj38yZEjj+eDKkn4JPRwJ3Mr9B3LZ9IFRKuQcmeBK1weqXACuS/XkpuacE4yJfTc0O9aN0whZBgvbbj7xQ35oZaE070GIMDPtMN14v3iaWZK2RV4iDYoO74HJAHXPCjRzBo6nSqirn/WWCpCOgR71+krGBaqfUCP/qaJqmSjwfLvBLwNuiVcC+kdwKFQD7v/NXf0fGBxSVUG3NB1fecE+HuToRZiXTsr+q67djV8VLL4clOH5cejs76CZmjnKfh8gOba5Xv1CyogVHa5JuEteBX/m9zg2NrGEM
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR05MB6408.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(7916004)(4636009)(366004)(66556008)(66476007)(66946007)(6496006)(2906002)(6636002)(52116002)(186003)(33656002)(110136005)(498600001)(8936002)(7416002)(1076003)(16526019)(86362001)(54906003)(6486002)(4326008)(9686003)(8676002)(33716001)(5660300002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: UQv62W/Vzxz1LT22qug8hf+YleOOsMP0/1+exWxdDf2gJu5iTfyNyOx/IDQYUbCdQsqy923etsisakQyitmrZDq3IIPCKdMA13QMi90nrm1MYmtkpx3KryhmJkJnseNxQNWaryRO7ucTeRl07IwWSxKVqu5cCLzmr7YRl4KMVRPsO4C61uXwuAtsrQgMA5NyQJ1fECMPlPgknNzNelFpYriE6krMlZbRU15h115EFZ0vo3TJIZ5VauTjXq5vPt2G26Nyw6RERjiIcXqfplb5kBtVnGQdUwzeHSfYHM8iaUBkPwac6hKPihLr0lWc5Pe49G/8GFjV16GUlXCQMyRcCipNGRNrI7vnLHbyDZ52Ny4ilDw3cD9avqUBZofPOL+NRf/0gweGFn4JfPwdGA4hWiQDVj+WWcQFioPc6Avm9hGfzXRe/lWKIt8kNitNtaZ6EGtl59pz4MNeZ2oLHtk8lC6BkeOKXnEKbc4CyZdWbjZfE7IxXgdqwiAQbCzoxcFbOOnQZ5jkMyFlbdZaJFtpJw==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d34c67ca-46ab-4a9f-e3cc-08d8016d6a92
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 May 2020 12:07:52.6588
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 3fQMWZKrVqkF0KAi/GVHbQ/a6JgWSbvC+bQUFA5Z2rjRZPV9KMvUCsviUmJGwkHyo3QdfJax8i7ffjaYvlToFg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB6264
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Tue, May 26, 2020 at 02:36:28PM +0300, Leon Romanovsky wrote:
+> On Tue, May 26, 2020 at 01:33:04PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > IBTA declares "vendor option not supported" reject reason in REJ
+> > messages if passive side doesn't want to accept proposed ECE options.
+> >
+> > Due to the fact that ECE is managed by userspace, there is a need to let
+> > users to provide such rejected reason.
+> >
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > ---
+> >  drivers/infiniband/core/cma.c           |  9 ++++-----
+> >  drivers/infiniband/core/ucma.c          | 15 ++++++++++++++-
+> >  drivers/infiniband/ulp/isert/ib_isert.c |  4 ++--
+> >  drivers/infiniband/ulp/rtrs/rtrs-srv.c  |  2 +-
+> >  drivers/infiniband/ulp/srpt/ib_srpt.c   |  3 ++-
+> >  drivers/nvme/target/rdma.c              |  3 ++-
+> >  include/rdma/rdma_cm.h                  |  2 +-
+> >  include/uapi/rdma/rdma_user_cm.h        |  3 ++-
+> >  net/rds/ib_cm.c                         |  4 +++-
+> >  9 files changed, 31 insertions(+), 14 deletions(-)
+>
+> For some reason didn't get the failure in CI, this small fixup is
+> needed.
+>
+> commit af02a4a50ec0d18fe9bfb86b96411dfb42054f97 (HEAD -> rdma-next)
+> Author: Leon Romanovsky <leon@kernel.org>
+> Date:   Tue May 26 14:34:34 2020 +0300
+>
+>     fixup! RDMA/cma: Provide ECE reject reason
+>
+>     Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>
+> diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+> index 30a0a9adaddd..d84765f66d49 100644
+> --- a/drivers/nvme/target/rdma.c
+> +++ b/drivers/nvme/target/rdma.c
+> @@ -18,6 +18,7 @@
+>  #include <asm/unaligned.h>
+>
+>  #include <rdma/ib_verbs.h>
+> +#include <rdma/ib_cm.h>
+>  #include <rdma/rdma_cm.h>
+>  #include <rdma/rw.h>
+>
 
-Instead of hand crafted mlx5_qp_context and mlx5_qp_path
-use common MLX5_SET() macros.
+and this one:
+commit 4c489c296115d1c795f24cd4aad741058671fe50 (HEAD -> rdma-next)
+Author: Leon Romanovsky <leon@kernel.org>
+Date:   Tue May 26 15:01:19 2020 +0300
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Reviewed-by: Mark Zhang <markz@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 203 +++++++++++++++-----------------
- include/linux/mlx5/qp.h         |  66 -----------
- 2 files changed, 97 insertions(+), 172 deletions(-)
+    fixup! RDMA/cma: Provide ECE reject reason
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5099866533dd..a24176a8ec83 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3028,14 +3028,13 @@ int mlx5_ib_destroy_qp(struct ib_qp *qp, struct ib_udata *udata)
- 	return 0;
- }
+    Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 
--static int to_mlx5_access_flags(struct mlx5_ib_qp *qp,
--				const struct ib_qp_attr *attr,
--				int attr_mask, __be32 *hw_access_flags_be)
-+static int set_qpc_atomic_flags(struct mlx5_ib_qp *qp,
-+				const struct ib_qp_attr *attr, int attr_mask,
-+				void *qpc)
- {
--	u8 dest_rd_atomic;
--	u32 access_flags, hw_access_flags = 0;
--
- 	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
-+	u8 dest_rd_atomic;
-+	u32 access_flags;
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 7bc598d7a15c..b7df38ee8ae0 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -15,6 +15,7 @@
+ #include <linux/in.h>
+ #include <linux/in6.h>
+ #include <rdma/ib_verbs.h>
++#include <rdma/ib_cm.h>
+ #include <rdma/rdma_cm.h>
+ #include <target/target_core_base.h>
+ #include <target/target_core_fabric.h>
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 67d164ff5aaa..0d9241f5d9e6 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -15,6 +15,7 @@
 
- 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
- 		dest_rd_atomic = attr->max_dest_rd_atomic;
-@@ -3050,8 +3049,8 @@ static int to_mlx5_access_flags(struct mlx5_ib_qp *qp,
- 	if (!dest_rd_atomic)
- 		access_flags &= IB_ACCESS_REMOTE_WRITE;
+ #include "rtrs-srv.h"
+ #include "rtrs-log.h"
++#include <rdma/ib_cm.h>
 
--	if (access_flags & IB_ACCESS_REMOTE_READ)
--		hw_access_flags |= MLX5_QP_BIT_RRE;
-+	MLX5_SET(qpc, qpc, rre, !!(access_flags & IB_ACCESS_REMOTE_READ));
-+
- 	if (access_flags & IB_ACCESS_REMOTE_ATOMIC) {
- 		int atomic_mode;
-
-@@ -3059,15 +3058,11 @@ static int to_mlx5_access_flags(struct mlx5_ib_qp *qp,
- 		if (atomic_mode < 0)
- 			return -EOPNOTSUPP;
-
--		hw_access_flags |= MLX5_QP_BIT_RAE;
--		hw_access_flags |= atomic_mode << MLX5_ATOMIC_MODE_OFFSET;
-+		MLX5_SET(qpc, qpc, rae, 1);
-+		MLX5_SET(qpc, qpc, atomic_mode, atomic_mode);
- 	}
-
--	if (access_flags & IB_ACCESS_REMOTE_WRITE)
--		hw_access_flags |= MLX5_QP_BIT_RWE;
--
--	*hw_access_flags_be = cpu_to_be32(hw_access_flags);
--
-+	MLX5_SET(qpc, qpc, rwe, !!(access_flags & IB_ACCESS_REMOTE_WRITE));
- 	return 0;
- }
-
-@@ -3147,26 +3142,22 @@ static int modify_raw_packet_tx_affinity(struct mlx5_core_dev *dev,
- 	return err;
- }
-
--static void mlx5_set_path_udp_sport(struct mlx5_qp_path *path,
--				    const struct rdma_ah_attr *ah,
-+static void mlx5_set_path_udp_sport(void *path, const struct rdma_ah_attr *ah,
- 				    u32 lqpn, u32 rqpn)
-
- {
- 	u32 fl = ah->grh.flow_label;
--	u16 sport;
-
- 	if (!fl)
- 		fl = rdma_calc_flow_label(lqpn, rqpn);
-
--	sport = rdma_flow_label_to_udp_sport(fl);
--	path->udp_sport = cpu_to_be16(sport);
-+	MLX5_SET(ads, path, udp_sport, rdma_flow_label_to_udp_sport(fl));
- }
-
- static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
--			 const struct rdma_ah_attr *ah,
--			 struct mlx5_qp_path *path, u8 port, int attr_mask,
--			 u32 path_flags, const struct ib_qp_attr *attr,
--			 bool alt)
-+			 const struct rdma_ah_attr *ah, void *path, u8 port,
-+			 int attr_mask, u32 path_flags,
-+			 const struct ib_qp_attr *attr, bool alt)
- {
- 	const struct ib_global_route *grh = rdma_ah_read_grh(ah);
- 	int err;
-@@ -3175,8 +3166,8 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	u8 sl = rdma_ah_get_sl(ah);
-
- 	if (attr_mask & IB_QP_PKEY_INDEX)
--		path->pkey_index = cpu_to_be16(alt ? attr->alt_pkey_index :
--						     attr->pkey_index);
-+		MLX5_SET(ads, path, pkey_index,
-+			 alt ? attr->alt_pkey_index : attr->pkey_index);
-
- 	if (ah_flags & IB_AH_GRH) {
- 		if (grh->sgid_index >=
-@@ -3192,7 +3183,8 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		if (!(ah_flags & IB_AH_GRH))
- 			return -EINVAL;
-
--		memcpy(path->rmac, ah->roce.dmac, sizeof(ah->roce.dmac));
-+		ether_addr_copy(MLX5_ADDR_OF(ads, path, rmac_47_32),
-+				ah->roce.dmac);
- 		if ((qp->ibqp.qp_type == IB_QPT_RC ||
- 		     qp->ibqp.qp_type == IB_QPT_UC ||
- 		     qp->ibqp.qp_type == IB_QPT_XRC_INI ||
-@@ -3202,38 +3194,38 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 			mlx5_set_path_udp_sport(path, ah,
- 						qp->ibqp.qp_num,
- 						attr->dest_qp_num);
--		path->dci_cfi_prio_sl = (sl & 0x7) << 4;
-+		MLX5_SET(ads, path, eth_prio, sl & 0x7);
- 		gid_type = ah->grh.sgid_attr->gid_type;
- 		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
--			path->ecn_dscp = (grh->traffic_class >> 2) & 0x3f;
-+			MLX5_SET(ads, path, dscp, grh->traffic_class >> 2);
- 	} else {
--		path->fl_free_ar = (path_flags & MLX5_PATH_FLAG_FL) ? 0x80 : 0;
--		path->fl_free_ar |=
--			(path_flags & MLX5_PATH_FLAG_FREE_AR) ? 0x40 : 0;
--		path->rlid = cpu_to_be16(rdma_ah_get_dlid(ah));
--		path->grh_mlid = rdma_ah_get_path_bits(ah) & 0x7f;
--		if (ah_flags & IB_AH_GRH)
--			path->grh_mlid	|= 1 << 7;
--		path->dci_cfi_prio_sl = sl & 0xf;
-+		MLX5_SET(ads, path, fl, !!(path_flags & MLX5_PATH_FLAG_FL));
-+		MLX5_SET(ads, path, free_ar,
-+			 !!(path_flags & MLX5_PATH_FLAG_FREE_AR));
-+		MLX5_SET(ads, path, rlid, rdma_ah_get_dlid(ah));
-+		MLX5_SET(ads, path, mlid, rdma_ah_get_path_bits(ah));
-+		MLX5_SET(ads, path, grh, !!(ah_flags & IB_AH_GRH));
-+		MLX5_SET(ads, path, sl, sl);
- 	}
-
- 	if (ah_flags & IB_AH_GRH) {
--		path->mgid_index = grh->sgid_index;
--		path->hop_limit  = grh->hop_limit;
--		path->tclass_flowlabel =
--			cpu_to_be32((grh->traffic_class << 20) |
--				    (grh->flow_label));
--		memcpy(path->rgid, grh->dgid.raw, 16);
-+		MLX5_SET(ads, path, src_addr_index, grh->sgid_index);
-+		MLX5_SET(ads, path, hop_limit, grh->hop_limit);
-+		MLX5_SET(ads, path, tclass, grh->traffic_class);
-+		MLX5_SET(ads, path, flow_label, grh->flow_label);
-+		memcpy(MLX5_ADDR_OF(ads, path, rgid_rip), grh->dgid.raw,
-+		       sizeof(grh->dgid.raw));
- 	}
-
- 	err = ib_rate_to_mlx5(dev, rdma_ah_get_static_rate(ah));
- 	if (err < 0)
- 		return err;
--	path->static_rate = err;
--	path->port = port;
-+	MLX5_SET(ads, path, stat_rate, err);
-+	MLX5_SET(ads, path, vhca_port_num, port);
-
- 	if (attr_mask & IB_QP_TIMEOUT)
--		path->ackto_lt = (alt ? attr->alt_timeout : attr->timeout) << 3;
-+		MLX5_SET(ads, path, ack_timeout,
-+			 alt ? attr->alt_timeout : attr->timeout);
-
- 	if ((qp->ibqp.qp_type == IB_QPT_RAW_PACKET) && qp->sq.wqe_cnt)
- 		return modify_raw_packet_eth_prio(dev->mdev,
-@@ -3759,9 +3751,9 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
- 	struct mlx5_ib_cq *send_cq, *recv_cq;
--	struct mlx5_qp_context *context;
- 	struct mlx5_ib_pd *pd;
- 	enum mlx5_qp_state mlx5_cur, mlx5_new;
-+	void *qpc, *pri_path, *alt_path;
- 	enum mlx5_qp_optpar optpar = 0;
- 	u32 set_id = 0;
- 	int mlx5_st;
-@@ -3773,25 +3765,25 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	if (mlx5_st < 0)
- 		return -EINVAL;
-
--	context = kzalloc(sizeof(*context), GFP_KERNEL);
--	if (!context)
-+	qpc = kzalloc(MLX5_ST_SZ_BYTES(qpc), GFP_KERNEL);
-+	if (!qpc)
- 		return -ENOMEM;
-
- 	pd = to_mpd(qp->ibqp.pd);
--	context->flags = cpu_to_be32(mlx5_st << 16);
-+	MLX5_SET(qpc, qpc, st, mlx5_st);
-
- 	if (!(attr_mask & IB_QP_PATH_MIG_STATE)) {
--		context->flags |= cpu_to_be32(MLX5_QP_PM_MIGRATED << 11);
-+		MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
- 	} else {
- 		switch (attr->path_mig_state) {
- 		case IB_MIG_MIGRATED:
--			context->flags |= cpu_to_be32(MLX5_QP_PM_MIGRATED << 11);
-+			MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
- 			break;
- 		case IB_MIG_REARM:
--			context->flags |= cpu_to_be32(MLX5_QP_PM_REARM << 11);
-+			MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_REARM);
- 			break;
- 		case IB_MIG_ARMED:
--			context->flags |= cpu_to_be32(MLX5_QP_PM_ARMED << 11);
-+			MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_ARMED);
- 			break;
- 		}
- 	}
-@@ -3799,19 +3791,20 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	tx_affinity = get_tx_affinity(ibqp, attr, attr_mask,
- 				      cur_state == IB_QPS_RESET &&
- 				      new_state == IB_QPS_INIT, udata);
--	if (tx_affinity) {
--		context->flags |= cpu_to_be32(tx_affinity << 24);
--		if (new_state == IB_QPS_RTR &&
--		    MLX5_CAP_GEN(dev->mdev, init2_lag_tx_port_affinity))
--			optpar |= MLX5_QP_OPTPAR_LAG_TX_AFF;
--	}
-+
-+	MLX5_SET(qpc, qpc, lag_tx_port_affinity, tx_affinity);
-+	if (tx_affinity && new_state == IB_QPS_RTR &&
-+	    MLX5_CAP_GEN(dev->mdev, init2_lag_tx_port_affinity))
-+		optpar |= MLX5_QP_OPTPAR_LAG_TX_AFF;
-
- 	if (is_sqp(ibqp->qp_type)) {
--		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
-+		MLX5_SET(qpc, qpc, mtu, IB_MTU_256);
-+		MLX5_SET(qpc, qpc, log_msg_max, 8);
- 	} else if ((ibqp->qp_type == IB_QPT_UD &&
- 		    !(qp->flags & IB_QP_CREATE_SOURCE_QPN)) ||
- 		   ibqp->qp_type == MLX5_IB_QPT_REG_UMR) {
--		context->mtu_msgmax = (IB_MTU_4096 << 5) | 12;
-+		MLX5_SET(qpc, qpc, mtu, IB_MTU_4096);
-+		MLX5_SET(qpc, qpc, log_msg_max, 12);
- 	} else if (attr_mask & IB_QP_PATH_MTU) {
- 		if (attr->path_mtu < IB_MTU_256 ||
- 		    attr->path_mtu > IB_MTU_4096) {
-@@ -3819,40 +3812,45 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			err = -EINVAL;
- 			goto out;
- 		}
--		context->mtu_msgmax = (attr->path_mtu << 5) |
--				      (u8)MLX5_CAP_GEN(dev->mdev, log_max_msg);
-+		MLX5_SET(qpc, qpc, mtu, attr->path_mtu);
-+		MLX5_SET(qpc, qpc, log_msg_max,
-+			 MLX5_CAP_GEN(dev->mdev, log_max_msg));
- 	}
-
- 	if (attr_mask & IB_QP_DEST_QPN)
--		context->log_pg_sz_remote_qpn = cpu_to_be32(attr->dest_qp_num);
-+		MLX5_SET(qpc, qpc, remote_qpn, attr->dest_qp_num);
-+
-+	pri_path = MLX5_ADDR_OF(qpc, qpc, primary_address_path);
-+	alt_path = MLX5_ADDR_OF(qpc, qpc, secondary_address_path);
-
- 	if (attr_mask & IB_QP_PKEY_INDEX)
--		context->pri_path.pkey_index = cpu_to_be16(attr->pkey_index);
-+		MLX5_SET(ads, pri_path, pkey_index, attr->pkey_index);
-
- 	/* todo implement counter_index functionality */
-
- 	if (is_sqp(ibqp->qp_type))
--		context->pri_path.port = qp->port;
-+		MLX5_SET(ads, pri_path, vhca_port_num, qp->port);
-
- 	if (attr_mask & IB_QP_PORT)
--		context->pri_path.port = attr->port_num;
-+		MLX5_SET(ads, pri_path, vhca_port_num, attr->port_num);
-
- 	if (attr_mask & IB_QP_AV) {
--		err = mlx5_set_path(dev, qp, &attr->ah_attr, &context->pri_path,
--				    attr_mask & IB_QP_PORT ? attr->port_num : qp->port,
-+		err = mlx5_set_path(dev, qp, &attr->ah_attr, pri_path,
-+				    attr_mask & IB_QP_PORT ? attr->port_num :
-+							     qp->port,
- 				    attr_mask, 0, attr, false);
- 		if (err)
- 			goto out;
- 	}
-
- 	if (attr_mask & IB_QP_TIMEOUT)
--		context->pri_path.ackto_lt |= attr->timeout << 3;
-+		MLX5_SET(ads, pri_path, ack_timeout, attr->timeout);
-
- 	if (attr_mask & IB_QP_ALT_PATH) {
--		err = mlx5_set_path(dev, qp, &attr->alt_ah_attr,
--				    &context->alt_path,
-+		err = mlx5_set_path(dev, qp, &attr->alt_ah_attr, alt_path,
- 				    attr->alt_port_num,
--				    attr_mask | IB_QP_PKEY_INDEX | IB_QP_TIMEOUT,
-+				    attr_mask | IB_QP_PKEY_INDEX |
-+					    IB_QP_TIMEOUT,
- 				    0, attr, true);
- 		if (err)
- 			goto out;
-@@ -3861,53 +3859,47 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	get_cqs(qp->ibqp.qp_type, qp->ibqp.send_cq, qp->ibqp.recv_cq,
- 		&send_cq, &recv_cq);
-
--	context->flags_pd = cpu_to_be32(pd ? pd->pdn : to_mpd(dev->devr.p0)->pdn);
--	context->cqn_send = send_cq ? cpu_to_be32(send_cq->mcq.cqn) : 0;
--	context->cqn_recv = recv_cq ? cpu_to_be32(recv_cq->mcq.cqn) : 0;
--	context->params1  = cpu_to_be32(MLX5_IB_ACK_REQ_FREQ << 28);
-+	MLX5_SET(qpc, qpc, pd, pd ? pd->pdn : to_mpd(dev->devr.p0)->pdn);
-+	if (send_cq)
-+		MLX5_SET(qpc, qpc, cqn_snd, send_cq->mcq.cqn);
-+	if (recv_cq)
-+		MLX5_SET(qpc, qpc, cqn_rcv, recv_cq->mcq.cqn);
-+
-+	MLX5_SET(qpc, qpc, log_ack_req_freq, MLX5_IB_ACK_REQ_FREQ);
-
- 	if (attr_mask & IB_QP_RNR_RETRY)
--		context->params1 |= cpu_to_be32(attr->rnr_retry << 13);
-+		MLX5_SET(qpc, qpc, rnr_retry, attr->rnr_retry);
-
- 	if (attr_mask & IB_QP_RETRY_CNT)
--		context->params1 |= cpu_to_be32(attr->retry_cnt << 16);
-+		MLX5_SET(qpc, qpc, retry_count, attr->retry_cnt);
-
--	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC) {
--		if (attr->max_rd_atomic)
--			context->params1 |=
--				cpu_to_be32(fls(attr->max_rd_atomic - 1) << 21);
--	}
-+	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC && attr->max_rd_atomic)
-+		MLX5_SET(qpc, qpc, log_sra_max, ilog2(attr->max_rd_atomic));
-
- 	if (attr_mask & IB_QP_SQ_PSN)
--		context->next_send_psn = cpu_to_be32(attr->sq_psn);
-+		MLX5_SET(qpc, qpc, next_send_psn, attr->sq_psn);
-
--	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC) {
--		if (attr->max_dest_rd_atomic)
--			context->params2 |=
--				cpu_to_be32(fls(attr->max_dest_rd_atomic - 1) << 21);
--	}
-+	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC && attr->max_dest_rd_atomic)
-+		MLX5_SET(qpc, qpc, log_rra_max,
-+			 ilog2(attr->max_dest_rd_atomic));
-
- 	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC)) {
--		__be32 access_flags;
--
--		err = to_mlx5_access_flags(qp, attr, attr_mask, &access_flags);
-+		err = set_qpc_atomic_flags(qp, attr, attr_mask, qpc);
- 		if (err)
- 			goto out;
--
--		context->params2 |= access_flags;
- 	}
-
- 	if (attr_mask & IB_QP_MIN_RNR_TIMER)
--		context->rnr_nextrecvpsn |= cpu_to_be32(attr->min_rnr_timer << 24);
-+		MLX5_SET(qpc, qpc, min_rnr_nak, attr->min_rnr_timer);
-
- 	if (attr_mask & IB_QP_RQ_PSN)
--		context->rnr_nextrecvpsn |= cpu_to_be32(attr->rq_psn);
-+		MLX5_SET(qpc, qpc, next_rcv_psn, attr->rq_psn);
-
- 	if (attr_mask & IB_QP_QKEY)
--		context->qkey = cpu_to_be32(attr->qkey);
-+		MLX5_SET(qpc, qpc, q_key, attr->qkey);
-
- 	if (qp->rq.wqe_cnt && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
--		context->db_rec_addr = cpu_to_be64(qp->db.dma);
-+		MLX5_SET64(qpc, qpc, dbr_addr, qp->db.dma);
-
- 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
- 		u8 port_num = (attr_mask & IB_QP_PORT ? attr->port_num :
-@@ -3921,15 +3913,14 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			set_id = ibqp->counter->id;
- 		else
- 			set_id = mlx5_ib_get_counters_id(dev, port_num);
--		context->qp_counter_set_usr_page |=
--			cpu_to_be32(set_id << 24);
-+		MLX5_SET(qpc, qpc, counter_set_id, set_id);
- 	}
-
- 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
--		context->sq_crq_size |= cpu_to_be16(1 << 4);
-+		MLX5_SET(qpc, qpc, rlky, 1);
-
- 	if (qp->flags & MLX5_IB_QP_CREATE_SQPN_QP1)
--		context->deth_sqpn = cpu_to_be32(1);
-+		MLX5_SET(qpc, qpc, deth_sqpn, 1);
-
- 	mlx5_cur = to_mlx5_state(cur_state);
- 	mlx5_new = to_mlx5_state(new_state);
-@@ -3987,7 +3978,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
-
- 		err = modify_raw_packet_qp(dev, qp, &raw_qp_param, tx_affinity);
- 	} else {
--		err = mlx5_core_qp_modify(dev, op, optpar, context, &base->mqp);
-+		err = mlx5_core_qp_modify(dev, op, optpar, qpc, &base->mqp);
- 	}
-
- 	if (err)
-@@ -4034,7 +4025,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	}
-
- out:
--	kfree(context);
-+	kfree(qpc);
- 	return err;
- }
-
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index def601199a1a..b8992b861ae6 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -495,72 +495,6 @@ struct mlx5_core_dct {
- 	struct completion	drained;
- };
-
--struct mlx5_qp_path {
--	u8			fl_free_ar;
--	u8			rsvd3;
--	__be16			pkey_index;
--	u8			rsvd0;
--	u8			grh_mlid;
--	__be16			rlid;
--	u8			ackto_lt;
--	u8			mgid_index;
--	u8			static_rate;
--	u8			hop_limit;
--	__be32			tclass_flowlabel;
--	union {
--		u8		rgid[16];
--		u8		rip[16];
--	};
--	u8			f_dscp_ecn_prio;
--	u8			ecn_dscp;
--	__be16			udp_sport;
--	u8			dci_cfi_prio_sl;
--	u8			port;
--	u8			rmac[6];
--};
--
--/* FIXME: use mlx5_ifc.h qpc */
--struct mlx5_qp_context {
--	__be32			flags;
--	__be32			flags_pd;
--	u8			mtu_msgmax;
--	u8			rq_size_stride;
--	__be16			sq_crq_size;
--	__be32			qp_counter_set_usr_page;
--	__be32			wire_qpn;
--	__be32			log_pg_sz_remote_qpn;
--	struct			mlx5_qp_path pri_path;
--	struct			mlx5_qp_path alt_path;
--	__be32			params1;
--	u8			reserved2[4];
--	__be32			next_send_psn;
--	__be32			cqn_send;
--	__be32			deth_sqpn;
--	u8			reserved3[4];
--	__be32			last_acked_psn;
--	__be32			ssn;
--	__be32			params2;
--	__be32			rnr_nextrecvpsn;
--	__be32			xrcd;
--	__be32			cqn_recv;
--	__be64			db_rec_addr;
--	__be32			qkey;
--	__be32			rq_type_srqn;
--	__be32			rmsn;
--	__be16			hw_sq_wqe_counter;
--	__be16			sw_sq_wqe_counter;
--	__be16			hw_rcyclic_byte_counter;
--	__be16			hw_rq_counter;
--	__be16			sw_rcyclic_byte_counter;
--	__be16			sw_rq_counter;
--	u8			rsvd0[5];
--	u8			cgs;
--	u8			cs_req;
--	u8			cs_res;
--	__be64			dc_access_key;
--	u8			rsvd1[24];
--};
--
- int mlx5_debug_qp_add(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
- void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp);
-
---
-2.26.2
+ MODULE_DESCRIPTION("RDMA Transport Server");
+ MODULE_LICENSE("GPL");
+(END)
 
