@@ -2,158 +2,117 @@ Return-Path: <SRS0=0PZL=7J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6183C433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 08:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCB6BC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 08:35:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8970820EDD
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 08:17:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="IUVqhVJv"
+	by mail.kernel.org (Postfix) with ESMTP id B2B282078B
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 08:35:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387866AbgE0IRp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 May 2020 04:17:45 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:34484 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387835AbgE0IRp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 May 2020 04:17:45 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04R828PC095552;
-        Wed, 27 May 2020 08:17:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-type :
- content-transfer-encoding; s=corp-2020-01-29;
- bh=gugubNejoCMtl+eqY6O431jnnbLH20ChLaQRQ8pFt8M=;
- b=IUVqhVJvWlUd73sw6DN8iKxZkAnC2Os7d+PxH6KrTGEWqJe7EhJDNalxXlUh8bxGHcLn
- fHLKmPMOd2AoaOT2K3iLr6llqjki4XdpY64M3RLWK8xeY6YJav4D/7qInUePSBOcfExZ
- GKuvReRYCkpdkPjzQ3TNbwQQLXEA1vSKnRnYV9GNkMtfehJRAlTe7D99XUF1rp0Bg57Z
- dlpC4ndJFUz/ZX9mLpSZLcNypYcXRXZkLWDSUeSunl8CQbkmqkZ1JWCg/WwJfYVFzE8Q
- H2J7Nof4vYWvRqDoe7Ti9sIz9NimAqmcj512y5cARiPwws/lW948r3STBTi9tCDR7LtY Ig== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by aserp2120.oracle.com with ESMTP id 318xe1e1n3-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Wed, 27 May 2020 08:17:44 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04R832EI114316;
-        Wed, 27 May 2020 08:17:44 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by aserp3030.oracle.com with ESMTP id 317ddqcay1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 27 May 2020 08:17:43 +0000
-Received: from abhmp0011.oracle.com (abhmp0011.oracle.com [141.146.116.17])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04R8Hhkq011717;
-        Wed, 27 May 2020 08:17:43 GMT
-Received: from oracle.com (/73.15.177.101)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 27 May 2020 01:17:43 -0700
-From:   rao.shoaib@oracle.com
-To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rao.shoaib@oracle.com
-Cc:     Somasundaram Krishnasamy <somasundaram.krishnasamy@oracle.com>
-Subject: [PATCH net-next] rds: transport module should be auto loaded when transport is set
-Date:   Wed, 27 May 2020 01:17:42 -0700
-Message-Id: <20200527081742.25718-1-rao.shoaib@oracle.com>
-X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9633 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0 mlxscore=0
- phishscore=0 adultscore=0 suspectscore=0 spamscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005270062
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9633 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxlogscore=999
- adultscore=0 cotscore=-2147483648 mlxscore=0 bulkscore=0
- priorityscore=1501 phishscore=0 lowpriorityscore=0 malwarescore=0
- clxscore=1011 impostorscore=0 suspectscore=0 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005270062
+        id S2388075AbgE0IfA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 May 2020 04:35:00 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:42733 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S2387811AbgE0Ie7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 May 2020 04:34:59 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yaminf@mellanox.com)
+        with ESMTPS (AES256-SHA encrypted); 27 May 2020 11:34:57 +0300
+Received: from arch012.mtl.labs.mlnx. (arch012.mtl.labs.mlnx [10.7.13.12])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 04R8YvRW003290;
+        Wed, 27 May 2020 11:34:57 +0300
+From:   Yamin Friedman <yaminf@mellanox.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Christoph Hellwig <hch@lst.de>,
+        Leon Romanovsky <leonro@mellanox.com>
+Cc:     linux-rdma@vger.kernel.org, Yamin Friedman <yaminf@mellanox.com>
+Subject: [PATCH V4 1/4] RDMA/core: Add protection for shared CQs used by ULPs
+Date:   Wed, 27 May 2020 11:34:52 +0300
+Message-Id: <1590568495-101621-2-git-send-email-yaminf@mellanox.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1590568495-101621-1-git-send-email-yaminf@mellanox.com>
+References: <1590568495-101621-1-git-send-email-yaminf@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Rao Shoaib <rao.shoaib@oracle.com>
+A pre-step for adding shared CQs. Add the infrastructure to prevent
+shared CQ users from altering the CQ configurations. For now all cqs are
+marked as private (non-shared). The core driver should use the new force
+functions to perform resize/destroy/moderation changes that are not
+allowed for users of shared CQs.
 
-This enhancement auto loads transport module when the transport
-is set via SO_RDS_TRANSPORT socket option.
-
-Orabug: 31032127
-
-Reviewed-by: Ka-Cheong Poon <ka-cheong.poon@oracle.com>
-Reviewed-by: Håkon Bugge <haakon.bugge@oracle.com>
-Signed-off-by: Rao Shoaib <rao.shoaib@oracle.com>
-Signed-off-by: Somasundaram Krishnasamy <somasundaram.krishnasamy@oracle.com>
+Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/uapi/linux/rds.h |  2 +-
- net/rds/transport.c      | 26 +++++++++++++++++---------
- 2 files changed, 18 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/verbs.c | 9 +++++++++
+ include/rdma/ib_verbs.h         | 5 ++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/rds.h b/include/uapi/linux/rds.h
-index cba368e55863..7273c681e6c1 100644
---- a/include/uapi/linux/rds.h
-+++ b/include/uapi/linux/rds.h
-@@ -64,7 +64,7 @@
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bf0249f..675f601 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1990,6 +1990,9 @@ struct ib_cq *__ib_create_cq(struct ib_device *device,
  
- /* supported values for SO_RDS_TRANSPORT */
- #define	RDS_TRANS_IB	0
--#define	RDS_TRANS_IWARP	1
-+#define	RDS_TRANS_GAP	1
- #define	RDS_TRANS_TCP	2
- #define RDS_TRANS_COUNT	3
- #define	RDS_TRANS_NONE	(~0)
-diff --git a/net/rds/transport.c b/net/rds/transport.c
-index 46f709a4b577..f8001ec80867 100644
---- a/net/rds/transport.c
-+++ b/net/rds/transport.c
-@@ -38,6 +38,12 @@
- #include "rds.h"
- #include "loop.h"
- 
-+static char * const rds_trans_modules[] = {
-+	[RDS_TRANS_IB] = "rds_rdma",
-+	[RDS_TRANS_GAP] = NULL,
-+	[RDS_TRANS_TCP] = "rds_tcp",
-+};
-+
- static struct rds_transport *transports[RDS_TRANS_COUNT];
- static DECLARE_RWSEM(rds_trans_sem);
- 
-@@ -110,18 +116,20 @@ struct rds_transport *rds_trans_get(int t_type)
+ int rdma_set_cq_moderation(struct ib_cq *cq, u16 cq_count, u16 cq_period)
  {
- 	struct rds_transport *ret = NULL;
- 	struct rds_transport *trans;
--	unsigned int i;
- 
- 	down_read(&rds_trans_sem);
--	for (i = 0; i < RDS_TRANS_COUNT; i++) {
--		trans = transports[i];
--
--		if (trans && trans->t_type == t_type &&
--		    (!trans->t_owner || try_module_get(trans->t_owner))) {
--			ret = trans;
--			break;
--		}
-+	trans = transports[t_type];
-+	if (!trans) {
-+		up_read(&rds_trans_sem);
-+		if (rds_trans_modules[t_type])
-+			request_module(rds_trans_modules[t_type]);
-+		down_read(&rds_trans_sem);
-+		trans = transports[t_type];
- 	}
-+	if (trans && trans->t_type == t_type &&
-+	    (!trans->t_owner || try_module_get(trans->t_owner)))
-+		ret = trans;
++	if (cq->shared)
++		return -EOPNOTSUPP;
 +
- 	up_read(&rds_trans_sem);
+ 	return cq->device->ops.modify_cq ?
+ 		cq->device->ops.modify_cq(cq, cq_count,
+ 					  cq_period) : -EOPNOTSUPP;
+@@ -1998,6 +2001,9 @@ int rdma_set_cq_moderation(struct ib_cq *cq, u16 cq_count, u16 cq_period)
  
- 	return ret;
+ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ {
++	if (WARN_ON_ONCE(cq->shared))
++		return -EOPNOTSUPP;
++
+ 	if (atomic_read(&cq->usecnt))
+ 		return -EBUSY;
+ 
+@@ -2010,6 +2016,9 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 
+ int ib_resize_cq(struct ib_cq *cq, int cqe)
+ {
++	if (cq->shared)
++		return -EOPNOTSUPP;
++
+ 	return cq->device->ops.resize_cq ?
+ 		cq->device->ops.resize_cq(cq, cqe, NULL) : -EOPNOTSUPP;
+ }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 4c488ca..322dacf 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1576,7 +1576,8 @@ struct ib_cq {
+ 
+ 	/* updated only by trace points */
+ 	ktime_t timestamp;
+-	bool interrupt;
++	u8 interrupt:1;
++	u8 shared:1;
+ 
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+@@ -3824,6 +3825,8 @@ static inline struct ib_cq *ib_alloc_cq_any(struct ib_device *dev,
+  * ib_free_cq_user - Free kernel/user CQ
+  * @cq: The CQ to free
+  * @udata: Valid user data or NULL for kernel objects
++ *
++ * NOTE: This function shouldn't be called on shared CQs.
+  */
+ void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata);
+ 
 -- 
-2.16.6
+1.8.3.1
 
