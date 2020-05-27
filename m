@@ -6,38 +6,38 @@ X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD4C7C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:58:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC8EC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:03:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2192208DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:58:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BD2B20C09
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:03:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590587900;
-	bh=fFPA0K02yuhpsOujQX4dpnN+Uaj87fjy3IaWpkVclYw=;
+	s=default; t=1590588196;
+	bh=7KEBN8QuPIzKTX9gxsHtjgCELp/KT9SAVYTu62u0cWk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=RzeTlJ9mH8UePbuHQOrgLUB2Hq0aXSdjGgaLDLUBJsgH0pBRZ7mNLvaK+EBPs+NGu
-	 En6H6vgHAFCvs2OoxKd8WyO7kRZhc7dcBK7AzMqDWvUs+4Me2lOHE5V0PWcJOV4Bz/
-	 UKGiZxEDkj/mnvJ15QOZgK1uddjrbveKnRJRFk8g=
+	b=ZDONDpFWabU5bPHapwXGuzaYAsWj0gf3ISumAjMLxvMBz97//rwQx+GqDdj+Km6O6
+	 kviCAXaDL5WV+2dVWrC8Wcg5mGG60+QbA59ThYnr0oNIzq0vzT0h5HXOAF3z1s0ZYS
+	 IKb2ROJyvr7Fj3nbrQAzY6+aKjyRzEixFHnayCds=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389013AbgE0N6T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 May 2020 09:58:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52492 "EHLO mail.kernel.org"
+        id S1730307AbgE0ODN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 May 2020 10:03:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389091AbgE0N6S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 May 2020 09:58:18 -0400
+        id S1730223AbgE0ODM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 May 2020 10:03:12 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 34134208C3;
-        Wed, 27 May 2020 13:58:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 87715206F1;
+        Wed, 27 May 2020 14:03:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590587897;
-        bh=fFPA0K02yuhpsOujQX4dpnN+Uaj87fjy3IaWpkVclYw=;
+        s=default; t=1590588192;
+        bh=7KEBN8QuPIzKTX9gxsHtjgCELp/KT9SAVYTu62u0cWk=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ZCayY+a4E0iLfsGRm0vArSZEoU+XvOnm7YS7OCAoYgjRR7IYRDhDof/6nVZu2ucuZ
-         W2/N6lbgLzUugnD1g/aAfzGR52QhRz33CEVr5vIQo/D/hEjunkpka6tZVwSyCAaQzq
-         HNiMlz9Pmsp/NBQKcYjqv6yvHQoh/DbQukAJvAQs=
-Date:   Wed, 27 May 2020 16:58:13 +0300
+        b=zX4y3ZgFlwopC39SN2bl6mTt5Auw2oYxOhj9YLGBD8ewmYVos79HLxV0p3ftPa7aF
+         nlNcbO49zLNQfIn8XeXITrtqzbwOfaJA1rY31Ocra5kohcH9TeWOKGbIOnuc4m6w8u
+         2RXZ7cq6pXOeNmsE0yudvp8I9+ZfRahnSRbqy86M=
+Date:   Wed, 27 May 2020 17:03:08 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Max Gurtovoy <maxg@mellanox.com>
 Cc:     jgg@mellanox.com, dledford@redhat.com, galpress@amazon.com,
@@ -46,30 +46,35 @@ Cc:     jgg@mellanox.com, dledford@redhat.com, galpress@amazon.com,
         santosh.shilimkar@oracle.com, tom@talpey.com,
         aron.silverton@oracle.com, israelr@mellanox.com, oren@mellanox.com,
         shlomin@mellanox.com, vladimirk@mellanox.com
-Subject: Re: [PATCH 1/9] RDMA/mlx5: Remove FMR leftovers
-Message-ID: <20200527135813.GF349682@unreal>
+Subject: Re: [PATCH 2/9] RDMA/mlx4: remove FMR support for memory registration
+Message-ID: <20200527140308.GG349682@unreal>
 References: <20200527094634.24240-1-maxg@mellanox.com>
- <20200527094634.24240-2-maxg@mellanox.com>
+ <20200527094634.24240-3-maxg@mellanox.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200527094634.24240-2-maxg@mellanox.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200527094634.24240-3-maxg@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, May 27, 2020 at 12:46:26PM +0300, Max Gurtovoy wrote:
-> From: Gal Pressman <galpress@amazon.com>
+On Wed, May 27, 2020 at 12:46:27PM +0300, Max Gurtovoy wrote:
+> HCA's that are driven by mlx4 driver support FRWR method to register
+> memory. Remove the ancient and unsafe FMR method.
 >
-> Remove a few leftovers from FMR functionality which are no longer used.
->
-> Signed-off-by: Gal Pressman <galpress@amazon.com>
 > Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
 > ---
->  drivers/infiniband/hw/mlx5/mlx5_ib.h | 8 --------
->  1 file changed, 8 deletions(-)
+>  drivers/infiniband/hw/mlx4/main.c       |  10 --
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h    |  16 ---
+>  drivers/infiniband/hw/mlx4/mr.c         |  93 ----------------
+>  drivers/net/ethernet/mellanox/mlx4/mr.c | 183 --------------------------------
+>  include/linux/mlx4/device.h             |  21 +---
+>  5 files changed, 2 insertions(+), 321 deletions(-)
 
+I don't see this line removed and all "max_fmr_maps" related.
+➜  kernel git:(rdma-next) git grep fmr drivers/infiniband/hw/mlx4/ | head -1
+drivers/infiniband/hw/mlx4/main.c: props->max_map_per_fmr = dev->dev->caps.max_fmr_maps;
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
+Thanks
