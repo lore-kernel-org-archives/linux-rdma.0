@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF02C433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31560C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:54:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8155207D8
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:54:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BB60208DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 13:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590587682;
-	bh=Zpt+G3scYB/jyOTi9KQv7Qxe13O63oW1UYuHm2S+dSc=;
+	s=default; t=1590587686;
+	bh=OqPRxSCL0/8bk4Ov3JbtRAkueUx1RyfK3ic761F9Aow=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dKpgWVM+JwhEvEhkJctc+e+D0UkOsdhLAcf+Md6BskcxPRSQ7sfhKW2s0qzyPZ9df
-	 6qjkCY/qA4BSFJAPzhExdnmXAR/Z8m9cRcX2UAbY4RUCy8y7d+HIxCmuP9qBikilxS
-	 VyMc0vfBeJ8L8uwUyR4mFAOElNBuMZzsEy/70Jds=
+	b=YkoZUOjmpI3UYCiITBNwuf2Jm/aL8SweeMbjd3phg0rLuhNeSjoJ5ClWu+FBPE84b
+	 s+nJMbChSlRYOx6dXGuyvWNnSAQ2WGr5eQtahcpL+MRa6REXUeMAKNZMPSttI8dlhA
+	 yYzStrtATFldCvk1GaT/EnPeW+cHLfdYwaCDvjhQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388976AbgE0Nym (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 May 2020 09:54:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50934 "EHLO mail.kernel.org"
+        id S2388977AbgE0Nyp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 May 2020 09:54:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388891AbgE0Nyl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 May 2020 09:54:41 -0400
+        id S2388891AbgE0Nyo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 May 2020 09:54:44 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2DCD7208DB;
-        Wed, 27 May 2020 13:54:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id ECDF6207D8;
+        Wed, 27 May 2020 13:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590587680;
-        bh=Zpt+G3scYB/jyOTi9KQv7Qxe13O63oW1UYuHm2S+dSc=;
+        s=default; t=1590587684;
+        bh=OqPRxSCL0/8bk4Ov3JbtRAkueUx1RyfK3ic761F9Aow=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RRZAY1Vzl1kzXuhkEyogIeJsIZBUqiTBmPl/+DrBDgolhyJTfC1WkEhI+QcOoWdBD
-         Z0E50W5RCWt/5LUS7ru1UcF3Im/KBxzGygeHnoLqcfgzyuevMdT14+cSMX16UKLSpR
-         bt+1FIeccEwyV4NS4g00rHYQIUKmjAiCMpCNKAvQ=
+        b=Nr+vO2tW6FDyHL5rznwxCQdDUiADe53QZJZ8zyxC6vphJ1wt2r0MnzeQbF0fQINFC
+         cCfAy5zkhh2dTihfJQctYaZUrdp6Cgg5O+K6i8MKmp2onkC8gdgEpKjAVvi3GX3+sn
+         iI1Y/ucn/KNLf7YovKfJjDgTLWiRKXpTLPvxGJD0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>
-Subject: [PATCH rdma-next v1 06/11] RDMA: Add dedicated QP resource tracker function
-Date:   Wed, 27 May 2020 16:54:03 +0300
-Message-Id: <20200527135408.480878-7-leon@kernel.org>
+Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1 09/11] RDMA/mlx5: Add support to get QP resource in raw format
+Date:   Wed, 27 May 2020 16:54:06 +0300
+Message-Id: <20200527135408.480878-10-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200527135408.480878-1-leon@kernel.org>
 References: <20200527135408.480878-1-leon@kernel.org>
@@ -58,94 +57,141 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-In order to avoid double multiplexing of the resource when it's QP,
-add a dedicated callback function.
+Add a generic function that use the resource dump mechanism
+to get the resource data.
+This patch adds the support to QP.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/device.c       | 1 +
- drivers/infiniband/core/nldev.c        | 5 ++---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 1 +
- drivers/infiniband/hw/cxgb4/restrack.c | 5 +----
- include/rdma/ib_verbs.h                | 1 +
- 5 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c     |  1 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h  |  2 +
+ drivers/infiniband/hw/mlx5/restrack.c | 79 +++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 4ea2789360e0..5c9fc7849da9 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2620,6 +2620,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, fill_res_cq_entry);
- 	SET_DEVICE_OP(dev_ops, fill_res_entry);
- 	SET_DEVICE_OP(dev_ops, fill_res_mr_entry);
-+	SET_DEVICE_OP(dev_ops, fill_res_qp_entry);
- 	SET_DEVICE_OP(dev_ops, fill_stat_mr_entry);
- 	SET_DEVICE_OP(dev_ops, get_dev_fw_str);
- 	SET_DEVICE_OP(dev_ops, get_dma_mr);
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 707f724db1dd..79d0980a75e0 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -507,9 +507,8 @@ static int fill_res_qp_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 	if (fill_res_name_pid(msg, res))
- 		goto err;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 66f4bca1aa5d..d81cb7139e98 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6609,6 +6609,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.drain_sq = mlx5_ib_drain_sq,
+ 	.enable_driver = mlx5_ib_enable_driver,
+ 	.fill_res_mr_entry = mlx5_ib_fill_res_mr_entry,
++	.fill_res_qp_entry = mlx5_ib_fill_res_qp_entry,
+ 	.fill_stat_mr_entry = mlx5_ib_fill_stat_mr_entry,
+ 	.get_dev_fw_str = get_dev_fw_str,
+ 	.get_dma_mr = mlx5_ib_get_dma_mr,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 270a9f1c92c4..8959db266a35 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1385,6 +1385,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
+ 				  u8 port_num);
+ int mlx5_ib_fill_res_mr_entry(struct sk_buff *msg, struct ib_mr *ib_mr,
+ 			      bool raw);
++int mlx5_ib_fill_res_qp_entry(struct sk_buff *msg, struct ib_qp *ibqp,
++			      bool raw);
+ int mlx5_ib_fill_stat_mr_entry(struct sk_buff *msg, struct ib_mr *ib_mr);
  
--	if (fill_res_entry(dev, msg, res))
--		goto err;
--
-+	if (dev->ops.fill_res_qp_entry)
-+		return dev->ops.fill_res_qp_entry(msg, qp);
- 	return 0;
+ extern const struct uapi_definition mlx5_ib_devx_defs[];
+diff --git a/drivers/infiniband/hw/mlx5/restrack.c b/drivers/infiniband/hw/mlx5/restrack.c
+index 32b1bdf5768b..cf2322109f88 100644
+--- a/drivers/infiniband/hw/mlx5/restrack.c
++++ b/drivers/infiniband/hw/mlx5/restrack.c
+@@ -4,10 +4,79 @@
+  */
  
- err:	return -EMSGSIZE;
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 18a2c1a44dcc..c84aa7c937f1 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -1057,6 +1057,7 @@ typedef int c4iw_restrack_func(struct sk_buff *msg,
- 			       struct rdma_restrack_entry *res);
- int c4iw_fill_res_mr_entry(struct sk_buff *msg, struct ib_mr *ibmr);
- int c4iw_fill_res_cq_entry(struct sk_buff *msg, struct ib_cq *ibcq);
-+int c4iw_fill_res_qp_entry(struct sk_buff *msg, struct ib_qp *ibqp);
- extern c4iw_restrack_func *c4iw_restrack_funcs[RDMA_RESTRACK_MAX];
+ #include <uapi/rdma/rdma_netlink.h>
++#include <linux/mlx5/rsc_dump.h>
+ #include <rdma/ib_umem_odp.h>
+ #include <rdma/restrack.h>
+ #include "mlx5_ib.h"
  
- #endif
-diff --git a/drivers/infiniband/hw/cxgb4/restrack.c b/drivers/infiniband/hw/cxgb4/restrack.c
-index ead2cd08793d..5144d3b67293 100644
---- a/drivers/infiniband/hw/cxgb4/restrack.c
-+++ b/drivers/infiniband/hw/cxgb4/restrack.c
-@@ -134,10 +134,8 @@ static int fill_swsqes(struct sk_buff *msg, struct t4_sq *sq,
++#define MAX_DUMP_SIZE 1024
++
++static int dump_rsc(struct mlx5_core_dev *dev, enum mlx5_sgmt_type type,
++		    int index, void *data, int *data_len)
++{
++	struct mlx5_core_dev *mdev = dev;
++	struct mlx5_rsc_dump_cmd *cmd;
++	struct mlx5_rsc_key key = {};
++	struct page *page;
++	int offset = 0;
++	int err = 0;
++	int cmd_err;
++	int size;
++
++	page = alloc_page(GFP_KERNEL);
++	if (!page)
++		return -ENOMEM;
++
++	key.size = PAGE_SIZE;
++	key.rsc = type;
++	key.index1 = index;
++	key.num_of_obj1 = 1;
++
++	cmd = mlx5_rsc_dump_cmd_create(mdev, &key);
++	if (IS_ERR(cmd)) {
++		err = PTR_ERR(cmd);
++		goto free_page;
++	}
++
++	do {
++		cmd_err = mlx5_rsc_dump_next(mdev, cmd, page, &size);
++		if (cmd_err < 0 || size + offset > MAX_DUMP_SIZE) {
++			err = cmd_err;
++			goto destroy_cmd;
++		}
++		memcpy(data + offset, page_address(page), size);
++		offset += size;
++	} while (cmd_err > 0);
++	*data_len = offset;
++
++destroy_cmd:
++	mlx5_rsc_dump_cmd_destroy(cmd);
++free_page:
++	__free_page(page);
++	return err;
++}
++
++static int fill_res_raw(struct sk_buff *msg, struct mlx5_ib_dev *dev,
++			enum mlx5_sgmt_type type, u32 key)
++{
++	int len = 0;
++	void *data;
++	int err;
++
++	data = kzalloc(MAX_DUMP_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	err = dump_rsc(dev->mdev, type, key, data, &len);
++	if (err)
++		goto out;
++
++	err = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, len, data);
++out:
++	kfree(data);
++	return err;
++}
++
+ int mlx5_ib_fill_stat_mr_entry(struct sk_buff *msg,
+ 			       struct ib_mr *ibmr)
+ {
+@@ -71,3 +140,13 @@ int mlx5_ib_fill_res_mr_entry(struct sk_buff *msg,
+ 	nla_nest_cancel(msg, table_attr);
  	return -EMSGSIZE;
  }
- 
--static int fill_res_qp_entry(struct sk_buff *msg,
--			     struct rdma_restrack_entry *res)
-+int c4iw_fill_res_qp_entry(struct sk_buff *msg, struct ib_qp *ibqp)
- {
--	struct ib_qp *ibqp = container_of(res, struct ib_qp, res);
- 	struct t4_swsqe *fsp = NULL, *lsp = NULL;
- 	struct c4iw_qp *qhp = to_c4iw_qp(ibqp);
- 	u16 first_sq_idx = 0, last_sq_idx = 0;
-@@ -490,6 +488,5 @@ int c4iw_fill_res_mr_entry(struct sk_buff *msg, struct ib_mr *ibmr)
- }
- 
- c4iw_restrack_func *c4iw_restrack_funcs[RDMA_RESTRACK_MAX] = {
--	[RDMA_RESTRACK_QP]	= fill_res_qp_entry,
- 	[RDMA_RESTRACK_CM_ID]	= fill_res_ep_entry,
- };
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index fc354b49b9e3..c3c0d49bb614 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2600,6 +2600,7 @@ struct ib_device_ops {
- 			      struct rdma_restrack_entry *entry);
- 	int (*fill_res_mr_entry)(struct sk_buff *msg, struct ib_mr *ibmr);
- 	int (*fill_res_cq_entry)(struct sk_buff *msg, struct ib_cq *ibcq);
-+	int (*fill_res_qp_entry)(struct sk_buff *msg, struct ib_qp *ibqp);
- 
- 	/* Device lifecycle callbacks */
- 	/*
++
++int mlx5_ib_fill_res_qp_entry(struct sk_buff *msg, struct ib_qp *ibqp, bool raw)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
++
++	if (!raw)
++		return 0;
++	return fill_res_raw(msg, dev, MLX5_SGMT_TYPE_PRM_QUERY_QP,
++			    ibqp->qp_num);
++}
 -- 
 2.26.2
 
