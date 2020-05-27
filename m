@@ -2,187 +2,133 @@ Return-Path: <SRS0=0PZL=7J=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E123BC433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 644C7C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:37:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6E9C20C09
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:03:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4273120873
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 May 2020 14:37:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590590220;
+	bh=ZKanhQJK0P/djH+WNpQI7TX6FSFCpbdAlBTPqGNAsog=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=2hlIabu5kY+t6dp3Rvj5tpXdRj+Iw2IS32c8bxEvG4JReiM1SVRKkwxr4sDEp9vZh
+	 qZS97Nu8fbf4R2cwPqOe0qzt5ia+NIz0uj60gMJA9ciSkqWCHHZLsTI0Lfr5Z7PODU
+	 bgtcdsaV6xtftA6Q88Ej7IIZ4DCszRbABjLRhCfs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730319AbgE0ODl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 May 2020 10:03:41 -0400
-Received: from mga11.intel.com ([192.55.52.93]:52053 "EHLO mga11.intel.com"
+        id S2389318AbgE0Og6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 May 2020 10:36:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730313AbgE0ODl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 May 2020 10:03:41 -0400
-IronPort-SDR: w9VlWd3ecUKFvU/lplCqOkxHAur6WquGc6TU4+pUeYQiHPsEIOiFWyuyDqPi3GAyM03Cvsyu9h
- xaZAt4gCVzkg==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2020 07:03:40 -0700
-IronPort-SDR: BgrxeIDOT6JFP6pXyzU2axg/jYipdACUyH+DdMW+W/AgFSd1w10gRYmvFhnxRAFNMExe6JZygV
- NUgbZVztdTWw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.73,441,1583222400"; 
-   d="scan'208";a="255791499"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by orsmga007.jf.intel.com with ESMTP; 27 May 2020 07:03:38 -0700
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1jdwef-000DJa-T0; Wed, 27 May 2020 22:03:37 +0800
-Date:   Wed, 27 May 2020 22:03:05 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-rc] BUILD SUCCESS
- db857e6ae548f0f4f4a0f63fffeeedf3cca21f9d
-Message-ID: <5ece7319.MILU3OujEsWIlzLK%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S2389308AbgE0Og6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 May 2020 10:36:58 -0400
+Received: from embeddedor (unknown [189.207.59.248])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id EF662207D8;
+        Wed, 27 May 2020 14:36:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1590590217;
+        bh=ZKanhQJK0P/djH+WNpQI7TX6FSFCpbdAlBTPqGNAsog=;
+        h=Date:From:To:Cc:Subject:From;
+        b=YSD+ZGCItrXkd1UID3bNMcDqtjMYtcaWkWR/jbiZi+m6f00sd5fV2w2LtxMDmqNVx
+         nn9JF+KjKberrBy+2S0xaU79c9o95nS1uUTTAC8qQy7puJvTVh72gh1HgPweYrUXGQ
+         fG2LQN5mleXFZtua1j9s0LsOSQep5IedKWhcFSzc=
+Date:   Wed, 27 May 2020 09:41:52 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] IB/core: Use sizeof_field() helper
+Message-ID: <20200527144152.GA22605@embeddedor>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-rc
-branch HEAD: db857e6ae548f0f4f4a0f63fffeeedf3cca21f9d  RDMA/pvrdma: Fix missing pci disable in pvrdma_pci_probe()
+Make use of the sizeof_field() helper instead of an open-coded version.
 
-elapsed time: 2674m
-
-configs tested: 121
-configs skipped: 1
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                               allnoconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm64                            allmodconfig
-arm64                             allnoconfig
-sh                           se7722_defconfig
-arc                        vdk_hs38_defconfig
-arm                          gemini_defconfig
-sh                          sdk7786_defconfig
-powerpc                      ppc64e_defconfig
-h8300                               defconfig
-i386                              allnoconfig
-i386                             allyesconfig
-i386                                defconfig
-i386                              debian-10.3
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                              allnoconfig
-ia64                             allyesconfig
-m68k                              allnoconfig
-m68k                             allyesconfig
-m68k                             allmodconfig
-m68k                           sun3_defconfig
-m68k                                defconfig
-nios2                               defconfig
-nios2                            allyesconfig
-openrisc                            defconfig
-c6x                              allyesconfig
-c6x                               allnoconfig
-openrisc                         allyesconfig
-nds32                               defconfig
-nds32                             allnoconfig
-csky                             allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-h8300                            allmodconfig
-xtensa                              defconfig
-arc                                 defconfig
-sh                               allmodconfig
-sh                                allnoconfig
-microblaze                        allnoconfig
-arc                              allyesconfig
-mips                             allyesconfig
-mips                              allnoconfig
-mips                             allmodconfig
-parisc                            allnoconfig
-parisc                              defconfig
-parisc                           allyesconfig
-parisc                           allmodconfig
-powerpc                          allyesconfig
-powerpc                          rhel-kconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-x86_64               randconfig-a006-20200527
-x86_64               randconfig-a002-20200527
-x86_64               randconfig-a005-20200527
-x86_64               randconfig-a003-20200527
-x86_64               randconfig-a004-20200527
-x86_64               randconfig-a001-20200527
-i386                 randconfig-a001-20200527
-i386                 randconfig-a004-20200527
-i386                 randconfig-a003-20200527
-i386                 randconfig-a006-20200527
-i386                 randconfig-a002-20200527
-i386                 randconfig-a005-20200527
-i386                 randconfig-a001-20200526
-i386                 randconfig-a004-20200526
-i386                 randconfig-a003-20200526
-i386                 randconfig-a006-20200526
-i386                 randconfig-a002-20200526
-i386                 randconfig-a005-20200526
-x86_64               randconfig-a015-20200526
-x86_64               randconfig-a013-20200526
-x86_64               randconfig-a016-20200526
-x86_64               randconfig-a012-20200526
-x86_64               randconfig-a014-20200526
-x86_64               randconfig-a011-20200526
-i386                 randconfig-a013-20200527
-i386                 randconfig-a015-20200527
-i386                 randconfig-a012-20200527
-i386                 randconfig-a011-20200527
-i386                 randconfig-a016-20200527
-i386                 randconfig-a014-20200527
-i386                 randconfig-a013-20200526
-i386                 randconfig-a015-20200526
-i386                 randconfig-a012-20200526
-i386                 randconfig-a011-20200526
-i386                 randconfig-a016-20200526
-i386                 randconfig-a014-20200526
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                            allmodconfig
-s390                             allyesconfig
-s390                              allnoconfig
-s390                             allmodconfig
-s390                                defconfig
-sparc                            allyesconfig
-sparc                               defconfig
-sparc64                             defconfig
-sparc64                           allnoconfig
-sparc64                          allyesconfig
-sparc64                          allmodconfig
-um                                allnoconfig
-um                                  defconfig
-um                               allyesconfig
-um                               allmodconfig
-x86_64                               rhel-7.6
-x86_64                    rhel-7.6-kselftests
-x86_64                                   rhel
-x86_64                         rhel-7.2-clear
-x86_64                                    lkp
-x86_64                              fedora-25
-x86_64                                  kexec
-
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/infiniband/core/sa_query.c     | 8 ++++----
+ drivers/infiniband/core/uverbs_cmd.c   | 2 +-
+ drivers/infiniband/core/uverbs_ioctl.c | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 5c878646ff62a..8f70c5c38ab7c 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -190,7 +190,7 @@ static u32 tid;
+ 
+ #define PATH_REC_FIELD(field) \
+ 	.struct_offset_bytes = offsetof(struct sa_path_rec, field),	\
+-	.struct_size_bytes   = sizeof((struct sa_path_rec *)0)->field,	\
++	.struct_size_bytes   = sizeof_field(struct sa_path_rec, field),	\
+ 	.field_name          = "sa_path_rec:" #field
+ 
+ static const struct ib_field path_rec_table[] = {
+@@ -292,7 +292,7 @@ static const struct ib_field path_rec_table[] = {
+ 	.struct_offset_bytes = \
+ 		offsetof(struct sa_path_rec, field), \
+ 	.struct_size_bytes   = \
+-		sizeof((struct sa_path_rec *)0)->field,	\
++		sizeof_field(struct sa_path_rec, field),	\
+ 	.field_name          = "sa_path_rec:" #field
+ 
+ static const struct ib_field opa_path_rec_table[] = {
+@@ -552,7 +552,7 @@ static const struct ib_field service_rec_table[] = {
+ 
+ #define CLASSPORTINFO_REC_FIELD(field) \
+ 	.struct_offset_bytes = offsetof(struct ib_class_port_info, field),	\
+-	.struct_size_bytes   = sizeof((struct ib_class_port_info *)0)->field,	\
++	.struct_size_bytes   = sizeof_field(struct ib_class_port_info, field),	\
+ 	.field_name          = "ib_class_port_info:" #field
+ 
+ static const struct ib_field ib_classport_info_rec_table[] = {
+@@ -630,7 +630,7 @@ static const struct ib_field ib_classport_info_rec_table[] = {
+ 	.struct_offset_bytes =\
+ 		offsetof(struct opa_class_port_info, field),	\
+ 	.struct_size_bytes   = \
+-		sizeof((struct opa_class_port_info *)0)->field,	\
++		sizeof_field(struct opa_class_port_info, field),	\
+ 	.field_name          = "opa_class_port_info:" #field
+ 
+ static const struct ib_field opa_classport_info_rec_table[] = {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 4859ac0df17c7..2067a939788bd 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3741,7 +3741,7 @@ static int ib_uverbs_ex_modify_cq(struct uverbs_attr_bundle *attrs)
+ #define UAPI_DEF_WRITE_IO(req, resp)                                           \
+ 	.write.has_resp = 1 +                                                  \
+ 			  BUILD_BUG_ON_ZERO(offsetof(req, response) != 0) +    \
+-			  BUILD_BUG_ON_ZERO(sizeof(((req *)0)->response) !=    \
++			  BUILD_BUG_ON_ZERO(sizeof_field(req, response) !=    \
+ 					    sizeof(u64)),                      \
+ 	.write.req_size = sizeof(req), .write.resp_size = sizeof(resp)
+ 
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 42c5696f03bd7..2d882c02387c1 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -137,7 +137,7 @@ EXPORT_SYMBOL(_uverbs_alloc);
+ static bool uverbs_is_attr_cleared(const struct ib_uverbs_attr *uattr,
+ 				   u16 len)
+ {
+-	if (uattr->len > sizeof(((struct ib_uverbs_attr *)0)->data))
++	if (uattr->len > sizeof_field(struct ib_uverbs_attr, data))
+ 		return ib_is_buffer_cleared(u64_to_user_ptr(uattr->data) + len,
+ 					    uattr->len - len);
+ 
+-- 
+2.26.2
+
