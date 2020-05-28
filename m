@@ -2,83 +2,130 @@ Return-Path: <SRS0=4t+U=7K=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90C8FC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 07:55:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DED68C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 10:45:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74DC820776
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 07:55:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2D4F208DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 10:45:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1590662750;
+	bh=Ue2F8Srr3xnS800AxSipqkHzBXEszGzZ7bGmOn5Al+U=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=1yFh9iQc0hEGiahoW/njUKTiSXn0cxMyz+ol0npMFaTAkeAVvL30xh6QIpbD4g3sX
+	 1JNEltMUvXN+sfpZZsvauQ37HMRrPdEycWp8wFVr4IQoseiEvsrSBqDDvpRcndj1mX
+	 ZBTpcy+w9s/JWSH8LwJFvxki3w1f7ixNDPXIVFZ0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726085AbgE1HzO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 May 2020 03:55:14 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:5300 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725901AbgE1HzO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 28 May 2020 03:55:14 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id E437587AD107F6AD0F4C;
-        Thu, 28 May 2020 15:55:12 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 28 May 2020 15:55:06 +0800
-From:   YueHaibing <yuehaibing@huawei.com>
-To:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        "Jason Gunthorpe" <jgg@ziepe.ca>
-CC:     YueHaibing <yuehaibing@huawei.com>, <linux-rdma@vger.kernel.org>,
-        <kernel-janitors@vger.kernel.org>
-Subject: [PATCH -next] IB/hfi1: Remove set but not used variable 'priv'
-Date:   Thu, 28 May 2020 07:59:46 +0000
-Message-ID: <20200528075946.123480-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.20.1
+        id S2387913AbgE1Kpt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 May 2020 06:45:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44514 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387902AbgE1Kpt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 28 May 2020 06:45:49 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 73F19207D3;
+        Thu, 28 May 2020 10:45:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1590662748;
+        bh=Ue2F8Srr3xnS800AxSipqkHzBXEszGzZ7bGmOn5Al+U=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=n03+AcCPHH5Mprg0wvNevEOV/ofdK/gRsDEomWR3Eak0jVVISflY7Pi3WpkJoQRd8
+         acCHSb95BdR7GuBaUJcZNos5ygLgzwYDsCfSVbwZFY8MUeJmKukLDJiVP59IlqPCz+
+         6I+2mssBCDVGcj3SnOaKgkq6PUo1x1ppSM5dHPCc=
+Date:   Thu, 28 May 2020 12:45:45 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
+        davem@davemloft.net, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, nhorman@redhat.com,
+        sassmann@redhat.com, pierre-louis.bossart@linux.intel.com,
+        Fred Oh <fred.oh@linux.intel.com>
+Subject: Re: [net-next v4 11/12] ASoC: SOF: Create client driver for IPC test
+Message-ID: <20200528104545.GA3115014@kroah.com>
+References: <20200520070227.3392100-1-jeffrey.t.kirsher@intel.com>
+ <20200520070227.3392100-12-jeffrey.t.kirsher@intel.com>
+ <20200520125611.GI31189@ziepe.ca>
+ <b51ee1d61dbfbb8914d29338918ba49bff1b4b75.camel@linux.intel.com>
+ <20200528001207.GR744@ziepe.ca>
+ <d44a50f6a8af0162a5ff1a6d483adebf16d11256.camel@linux.intel.com>
 MIME-Version: 1.0
-Content-Type:   text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d44a50f6a8af0162a5ff1a6d483adebf16d11256.camel@linux.intel.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-drivers/infiniband/hw/hfi1/netdev_rx.c: In function 'hfi1_netdev_free':
-drivers/infiniband/hw/hfi1/netdev_rx.c:374:27: warning:
- variable 'priv' set but not used [-Wunused-but-set-variable]
+On Wed, May 27, 2020 at 06:40:05PM -0700, Ranjani Sridharan wrote:
+> On Wed, 2020-05-27 at 21:12 -0300, Jason Gunthorpe wrote:
+> > On Wed, May 27, 2020 at 01:18:35PM -0700, Ranjani Sridharan wrote:
+> > > On Wed, 2020-05-20 at 09:56 -0300, Jason Gunthorpe wrote:
+> > > > On Wed, May 20, 2020 at 12:02:26AM -0700, Jeff Kirsher wrote:
+> > > > > +static const struct virtbus_dev_id sof_ipc_virtbus_id_table[]
+> > > > > = {
+> > > > > +	{"sof-ipc-test"},
+> > > > > +	{},
+> > > > > +};
+> > > > > +
+> > > > > +static struct sof_client_drv sof_ipc_test_client_drv = {
+> > > > > +	.name = "sof-ipc-test-client-drv",
+> > > > > +	.type = SOF_CLIENT_IPC,
+> > > > > +	.virtbus_drv = {
+> > > > > +		.driver = {
+> > > > > +			.name = "sof-ipc-test-virtbus-drv",
+> > > > > +		},
+> > > > > +		.id_table = sof_ipc_virtbus_id_table,
+> > > > > +		.probe = sof_ipc_test_probe,
+> > > > > +		.remove = sof_ipc_test_remove,
+> > > > > +		.shutdown = sof_ipc_test_shutdown,
+> > > > > +	},
+> > > > > +};
+> > > > > +
+> > > > > +module_sof_client_driver(sof_ipc_test_client_drv);
+> > > > > +
+> > > > > +MODULE_DESCRIPTION("SOF IPC Test Client Driver");
+> > > > > +MODULE_LICENSE("GPL v2");
+> > > > > +MODULE_IMPORT_NS(SND_SOC_SOF_CLIENT);
+> > > > > +MODULE_ALIAS("virtbus:sof-ipc-test");
+> > > > 
+> > > > Usually the MODULE_ALIAS happens automatically rhough the struct
+> > > > virtbus_dev_id - is something missing in the enabling patches?
+> > > 
+> > > Hi Jason,
+> > > 
+> > > Without the MODULE_ALIAS,  the driver never probes when the virtual
+> > > bus
+> > > device is registered. The MODULE_ALIAS is not different from the
+> > > ones
+> > > we typically have in the platform drivers. Could you please give me
+> > > some pointers on what you think might be missing?
+> > 
+> > Look at how the stuff in include/linux/mod_devicetable.h works and do
+> > the same for virtbus
+> It looks like include/linux/mod_devicetable.h has everything needed for
+> virtbus already.
+> > 
+> > Looks like you push a MODALIAS= uevent when creating the device and
+> > the generic machinery does the rest based on the matching table, once
+> > mod_devicetable.h and related is updated. But it has been a long time
+> > since I looked at this..
+> 
+> This is also done with uevent callback in the bus_type definition for
+> the virtual_bus.
+> 
+> Is your expectation that with the above changes, we should not be
+> needing the MODULE_ALIAS() in the driver?
 
-It is never used, so can be removed, then null check before
-kfree is unneeded.
+Yes, it should not be needed if you did everything properly in
+mod_devicetable.h
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/infiniband/hw/hfi1/netdev_rx.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+thanks,
 
-diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
-index 58af6a454761..bd6546b52159 100644
---- a/drivers/infiniband/hw/hfi1/netdev_rx.c
-+++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
-@@ -371,14 +371,9 @@ int hfi1_netdev_alloc(struct hfi1_devdata *dd)
- 
- void hfi1_netdev_free(struct hfi1_devdata *dd)
- {
--	struct hfi1_netdev_priv *priv;
--
--	if (dd->dummy_netdev) {
--		priv = hfi1_netdev_priv(dd->dummy_netdev);
--		dd_dev_info(dd, "hfi1 netdev freed\n");
--		kfree(dd->dummy_netdev);
--		dd->dummy_netdev = NULL;
--	}
-+	dd_dev_info(dd, "hfi1 netdev freed\n");
-+	kfree(dd->dummy_netdev);
-+	dd->dummy_netdev = NULL;
- }
- 
- /**
-
-
-
+greg k-h
