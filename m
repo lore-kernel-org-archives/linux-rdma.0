@@ -2,159 +2,113 @@ Return-Path: <SRS0=4t+U=7K=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B90C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 12:07:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9543C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 12:48:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8F3A21548
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 12:07:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1590667668;
-	bh=wRtU7PCfTBmPc8X0k2+ZdEGfMk5/kYEWd3d3rEus7J4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hWpudQ511eMMGfE5LRjAjYeew6suw2Gq0w8oF9wyVGRCqKvUC4sz4ELUma6cI8RC2
-	 VZ1P02595Z9qZuVezKS2q4/erIYMcTZeDY2B03JHSgT3fpB+b2/twzQ6FxQpbiI9M1
-	 OMH4MqlU8Y+3ltLsNjls4o9HsUMcblCYmkWYflVE=
+	by mail.kernel.org (Postfix) with ESMTP id 9236A206F1
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 12:48:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="geURq/j8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388994AbgE1MH1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 May 2020 08:07:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48674 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388799AbgE1L4n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 28 May 2020 07:56:43 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 97E4821475;
-        Thu, 28 May 2020 11:56:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1590667002;
-        bh=wRtU7PCfTBmPc8X0k2+ZdEGfMk5/kYEWd3d3rEus7J4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=wE3hWAnKkgzwTHCxmDug7MdKaFthM+I02PdPPVO05FKXfiydzloOYTHPA6NEdhObv
-         +lJxbByBM/QjoshkaESx1Tn6tFT39qx1FRJ79oqi2fSwgVfXqugomuwsS2Ewv3jpA0
-         OnM8Iuv+1GywC3KZIiHRHRdN4qCYyEEUYYrwnxwg=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Moshe Shemesh <moshe@mellanox.com>,
-        Eran Ben Elisha <eranbe@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 37/47] net/mlx5: Add command entry handling completion
-Date:   Thu, 28 May 2020 07:55:50 -0400
-Message-Id: <20200528115600.1405808-37-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200528115600.1405808-1-sashal@kernel.org>
-References: <20200528115600.1405808-1-sashal@kernel.org>
+        id S2389961AbgE1MsS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 May 2020 08:48:18 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:59638 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389852AbgE1MsR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 May 2020 08:48:17 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04SCbfKr144094;
+        Thu, 28 May 2020 12:48:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
+ bh=4MhLm3IwlAX0+PMwL8iXWxVwK1DxULSymdapXAO1u2U=;
+ b=geURq/j8aOmtLLp/5ebYTnaPSflS7Q4ZZQP10agwdrg+sGBAFkmBidSZpVegN9bVDAnC
+ e+binqmqMEDxkU0XZ0jsYgzfgIgFsb+F96JadoXONk8ma5oLw3lLUrQhihLH5Ko+sknD
+ d0K73kLVHXyrUYsCInSaTgQnjBYxIwr4N2BVrCdRV3S7b+z90OEk0JVT63y9GrDVgWW0
+ QnGLjhd/ffgPL3H3L+D8haetQ2JUU9bHnU84hpY3B0QuaeDVy93tCTSmimwRc9/cmjYq
+ ITjH3ysWzIy0E0dhIKIa3M74BA3aZO5oDUcD6knFK3qQiIDvO2PpoLILxQZai6xyKwG9 bw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by userp2130.oracle.com with ESMTP id 316u8r4s80-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 28 May 2020 12:48:12 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 04SCbcGG191796;
+        Thu, 28 May 2020 12:48:12 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by userp3020.oracle.com with ESMTP id 31a9kse0dj-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 28 May 2020 12:48:12 +0000
+Received: from abhmp0015.oracle.com (abhmp0015.oracle.com [141.146.116.21])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 04SCmBm9021233;
+        Thu, 28 May 2020 12:48:11 GMT
+Received: from mwanda (/41.57.98.10)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 28 May 2020 05:48:10 -0700
+Date:   Thu, 28 May 2020 15:48:03 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Saeed Mahameed <saeedm@mellanox.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vlad Buslov <vladbu@mellanox.com>,
+        Roi Dayan <roid@mellanox.com>,
+        Paul Blakey <paulb@mellanox.com>, Eli Cohen <eli@mellanox.com>,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH net-next] net/mlx5e: Uninitialized variable in
+ mlx5e_attach_decap()
+Message-ID: <20200528124803.GC1219412@mwanda>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9634 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxscore=0 adultscore=0
+ mlxlogscore=999 malwarescore=0 spamscore=0 bulkscore=0 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2005280087
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9634 signatures=668686
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
+ priorityscore=1501 spamscore=0 cotscore=-2147483648 suspectscore=0
+ phishscore=0 clxscore=1011 mlxlogscore=999 bulkscore=0 adultscore=0
+ lowpriorityscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2005280087
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Moshe Shemesh <moshe@mellanox.com>
+The "ret" variable isn't initialized on the success path.
 
-[ Upstream commit 17d00e839d3b592da9659c1977d45f85b77f986a ]
+There is an uninitentional behavior in current releases of GCC where
+instead of warning about the uninitialized variable, it instead
+initializes it to zero.  So that means that this bug likely doesn't
+affect testing.
 
-When FW response to commands is very slow and all command entries in
-use are waiting for completion we can have a race where commands can get
-timeout before they get out of the queue and handled. Timeout
-completion on uninitialized command will cause releasing command's
-buffers before accessing it for initialization and then we will get NULL
-pointer exception while trying access it. It may also cause releasing
-buffers of another command since we may have timeout completion before
-even allocating entry index for this command.
-Add entry handling completion to avoid this race.
-
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
-Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: 14e6b038afa0 ("net/mlx5e: Add support for hw decapsulation of MPLS over UDP")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 14 ++++++++++++++
- include/linux/mlx5/driver.h                   |  1 +
- 2 files changed, 15 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index cede5bdfd598..d695b75bc0af 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -861,6 +861,7 @@ static void cmd_work_handler(struct work_struct *work)
- 	int alloc_ret;
- 	int cmd_mode;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 571da14809fec..ae53bf5994215 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -3637,7 +3637,7 @@ static int mlx5e_attach_decap(struct mlx5e_priv *priv,
+ 	struct mlx5e_decap_entry *d;
+ 	struct mlx5e_decap_key key;
+ 	uintptr_t hash_key;
+-	int err;
++	int err = 0;
  
-+	complete(&ent->handling);
- 	sem = ent->page_queue ? &cmd->pages_sem : &cmd->sem;
- 	down(sem);
- 	if (!ent->page_queue) {
-@@ -978,6 +979,11 @@ static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
- 	struct mlx5_cmd *cmd = &dev->cmd;
- 	int err;
- 
-+	if (!wait_for_completion_timeout(&ent->handling, timeout) &&
-+	    cancel_work_sync(&ent->work)) {
-+		ent->ret = -ECANCELED;
-+		goto out_err;
-+	}
- 	if (cmd->mode == CMD_MODE_POLLING || ent->polling) {
- 		wait_for_completion(&ent->done);
- 	} else if (!wait_for_completion_timeout(&ent->done, timeout)) {
-@@ -985,12 +991,17 @@ static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
- 		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
- 	}
- 
-+out_err:
- 	err = ent->ret;
- 
- 	if (err == -ETIMEDOUT) {
- 		mlx5_core_warn(dev, "%s(0x%x) timeout. Will cause a leak of a command resource\n",
- 			       mlx5_command_str(msg_to_opcode(ent->in)),
- 			       msg_to_opcode(ent->in));
-+	} else if (err == -ECANCELED) {
-+		mlx5_core_warn(dev, "%s(0x%x) canceled on out of queue timeout.\n",
-+			       mlx5_command_str(msg_to_opcode(ent->in)),
-+			       msg_to_opcode(ent->in));
- 	}
- 	mlx5_core_dbg(dev, "err %d, delivery status %s(%d)\n",
- 		      err, deliv_status_to_str(ent->status), ent->status);
-@@ -1026,6 +1037,7 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
- 	ent->token = token;
- 	ent->polling = force_polling;
- 
-+	init_completion(&ent->handling);
- 	if (!callback)
- 		init_completion(&ent->done);
- 
-@@ -1045,6 +1057,8 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
- 	err = wait_func(dev, ent);
- 	if (err == -ETIMEDOUT)
- 		goto out;
-+	if (err == -ECANCELED)
-+		goto out_free;
- 
- 	ds = ent->ts2 - ent->ts1;
- 	op = MLX5_GET(mbox_in, in->first.data, opcode);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 277a51d3ec40..b596353a3a12 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -761,6 +761,7 @@ struct mlx5_cmd_work_ent {
- 	struct delayed_work	cb_timeout_work;
- 	void		       *context;
- 	int			idx;
-+	struct completion	handling;
- 	struct completion	done;
- 	struct mlx5_cmd        *cmd;
- 	struct work_struct	work;
+ 	parse_attr = attr->parse_attr;
+ 	if (sizeof(parse_attr->eth) > MLX5_CAP_ESW(priv->mdev, max_encap_header_size)) {
 -- 
-2.25.1
+2.26.2
 
