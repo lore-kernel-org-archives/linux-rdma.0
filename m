@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB98C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 05:16:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F80AC433E1
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 05:16:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D7FA20721
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 05:16:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3927120721
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 May 2020 05:16:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="H3PbpRvN"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ecyQiY8g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728048AbgE1FOA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 May 2020 01:14:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40506 "EHLO
+        id S1727975AbgE1FNs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 May 2020 01:13:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728034AbgE1FN6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 May 2020 01:13:58 -0400
+        with ESMTP id S1727961AbgE1FNr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 May 2020 01:13:47 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FB56C08C5C2;
-        Wed, 27 May 2020 22:13:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DE24C05BD1E;
+        Wed, 27 May 2020 22:13:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=et+g5ZdKD14ecJAaL2pyLZLrEI/7sCh55AG+Ht1xyLs=; b=H3PbpRvNODkiwNwh32tmfkY52s
-        OvlW5TTlXQVAVIzN4RUNLR0AdlTy4gh3UJDEJ4oI7JP090R0ZWhbrqm3vpFAhJ9NgiRkb/OIFFF8P
-        Zh9jtOQtXBw6M6hnm76dQE6oXWRJjBRBGeSsV3XX9vuN7B2YWMPunqH0Gzkyc3TL5KvNFyjQ7zv2M
-        MyLEvfo2Ml9VsU/SGUs17dAYymrD5k+zQoNAsJmk/c+3iRoe01M7MkmsQ86SmAceIozbIORRFz3+G
-        sv00fodvERUowi88/E2qBd5EFXo1qXtsnm2FjjBw53XRfTXDTHhrJs/AfIuxPkjL23HNjNufXYt74
-        WAEqXPuQ==;
+        bh=4NVYDD9dVtr0WtQxy7SjHzDrfj1IJPmnztjpKvUnyfA=; b=ecyQiY8g1fLTxrra97lQ51hie1
+        FCBYr4uYGnx9ADQjJAxMAORUaYSQyKAN/RlqeP1RkVN22xvfFyjOur7VoiIbl36C8IhqX0r1S/wq/
+        VBgrO2yffvVMYroulbgnUEjmVWDth9Z89lHIfFxTFhwP/8tJIZput+a/AovCT41tYchoTGsjATPg5
+        VaEQg0tTcAJ3vejtwqX9IGPcIIQCIkAgAo9Z3l2rs2tOdfOz89ma3+b1GPxSSWORActfc/PRqO5L+
+        hL1iDllB3jmb4cQuJHXmpr23U1Mm2fj88LDhBsFA0uFZFVzDYlUMroqOxOwwxKIln+QcvYoZ4cnUo
+        cE3CqBLg==;
 Received: from p4fdb1ad2.dip0.t-ipconnect.de ([79.219.26.210] helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jeArB-00024H-Hf; Thu, 28 May 2020 05:13:30 +0000
+        id 1jeAr2-0001xI-Hi; Thu, 28 May 2020 05:13:21 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -52,9 +52,9 @@ Cc:     Eric Dumazet <edumazet@google.com>,
         netdev@vger.kernel.org, ceph-devel@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org,
         tipc-discussion@lists.sourceforge.net
-Subject: [PATCH 15/28] tcp: add tcp_sock_set_keepidle
-Date:   Thu, 28 May 2020 07:12:23 +0200
-Message-Id: <20200528051236.620353-16-hch@lst.de>
+Subject: [PATCH 12/28] tcp: add tcp_sock_set_quickack
+Date:   Thu, 28 May 2020 07:12:20 +0200
+Message-Id: <20200528051236.620353-13-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200528051236.620353-1-hch@lst.de>
 References: <20200528051236.620353-1-hch@lst.de>
@@ -66,126 +66,127 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a helper to directly set the TCP_KEEP_IDLE sockopt from kernel
-space without going through a fake uaccess.
+Add a helper to directly set the TCP_QUICKACK sockopt from kernel space
+without going through a fake uaccess.  Cleanup the callers to avoid
+pointless wrappers now that this is a simple function call.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/tcp.h   |  1 +
- net/ipv4/tcp.c        | 49 ++++++++++++++++++++++++++++++-------------
- net/rds/tcp_listen.c  |  5 +----
- net/sunrpc/xprtsock.c |  3 +--
- 4 files changed, 37 insertions(+), 21 deletions(-)
+ drivers/block/drbd/drbd_int.h      |  7 ------
+ drivers/block/drbd/drbd_receiver.c |  5 ++--
+ include/linux/tcp.h                |  1 +
+ net/ipv4/tcp.c                     | 39 ++++++++++++++++++++----------
+ 4 files changed, 29 insertions(+), 23 deletions(-)
 
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index e24bba87c8e02..14345a87c7cc5 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -1570,13 +1570,6 @@ extern void drbd_set_recv_tcq(struct drbd_device *device, int tcq_enabled);
+ extern void _drbd_clear_done_ee(struct drbd_device *device, struct list_head *to_be_freed);
+ extern int drbd_connected(struct drbd_peer_device *);
+ 
+-static inline void drbd_tcp_quickack(struct socket *sock)
+-{
+-	int val = 2;
+-	(void) kernel_setsockopt(sock, SOL_TCP, TCP_QUICKACK,
+-			(char*)&val, sizeof(val));
+-}
+-
+ /* sets the number of 512 byte sectors of our virtual device */
+ void drbd_set_my_capacity(struct drbd_device *device, sector_t size);
+ 
+diff --git a/drivers/block/drbd/drbd_receiver.c b/drivers/block/drbd/drbd_receiver.c
+index 20a5e94494acd..3a3f2b6a821f3 100644
+--- a/drivers/block/drbd/drbd_receiver.c
++++ b/drivers/block/drbd/drbd_receiver.c
+@@ -1223,7 +1223,7 @@ static int drbd_recv_header_maybe_unplug(struct drbd_connection *connection, str
+ 		 * quickly as possible, and let remote TCP know what we have
+ 		 * received so far. */
+ 		if (err == -EAGAIN) {
+-			drbd_tcp_quickack(connection->data.socket);
++			tcp_sock_set_quickack(connection->data.socket->sk, 2);
+ 			drbd_unplug_all_devices(connection);
+ 		}
+ 		if (err > 0) {
+@@ -4959,8 +4959,7 @@ static int receive_UnplugRemote(struct drbd_connection *connection, struct packe
+ {
+ 	/* Make sure we've acked all the TCP data associated
+ 	 * with the data requests being unplugged */
+-	drbd_tcp_quickack(connection->data.socket);
+-
++	tcp_sock_set_quickack(connection->data.socket->sk, 2);
+ 	return 0;
+ }
+ 
 diff --git a/include/linux/tcp.h b/include/linux/tcp.h
-index de682143efe4d..5724dd84a85ed 100644
+index 9e42c7fe50a8b..2eaf8320b9db0 100644
 --- a/include/linux/tcp.h
 +++ b/include/linux/tcp.h
-@@ -498,6 +498,7 @@ int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from, int pcount,
- 		  int shiftlen);
+@@ -499,5 +499,6 @@ int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from, int pcount,
  
  void tcp_sock_set_cork(struct sock *sk, bool on);
-+int tcp_sock_set_keepidle(struct sock *sk, int val);
  void tcp_sock_set_nodelay(struct sock *sk);
- void tcp_sock_set_quickack(struct sock *sk, int val);
- int tcp_sock_set_syncnt(struct sock *sk, int val);
++void tcp_sock_set_quickack(struct sock *sk, int val);
+ 
+ #endif	/* _LINUX_TCP_H */
 diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 0004bd9ae7b0a..bdf0ff9333514 100644
+index a65f293a19fac..27b5e7a4e2ef9 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -2901,6 +2901,39 @@ void tcp_sock_set_user_timeout(struct sock *sk, u32 val)
+@@ -2856,6 +2856,31 @@ void tcp_sock_set_nodelay(struct sock *sk)
  }
- EXPORT_SYMBOL(tcp_sock_set_user_timeout);
+ EXPORT_SYMBOL(tcp_sock_set_nodelay);
  
-+static int __tcp_sock_set_keepidle(struct sock *sk, int val)
++static void __tcp_sock_set_quickack(struct sock *sk, int val)
 +{
-+	struct tcp_sock *tp = tcp_sk(sk);
-+
-+	if (val < 1 || val > MAX_TCP_KEEPIDLE)
-+		return -EINVAL;
-+
-+	tp->keepalive_time = val * HZ;
-+	if (sock_flag(sk, SOCK_KEEPOPEN) &&
-+	    !((1 << sk->sk_state) & (TCPF_CLOSE | TCPF_LISTEN))) {
-+		u32 elapsed = keepalive_time_elapsed(tp);
-+
-+		if (tp->keepalive_time > elapsed)
-+			elapsed = tp->keepalive_time - elapsed;
-+		else
-+			elapsed = 0;
-+		inet_csk_reset_keepalive_timer(sk, elapsed);
++	if (!val) {
++		inet_csk_enter_pingpong_mode(sk);
++		return;
 +	}
 +
-+	return 0;
++	inet_csk_exit_pingpong_mode(sk);
++	if ((1 << sk->sk_state) & (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT) &&
++	    inet_csk_ack_scheduled(sk)) {
++		inet_csk(sk)->icsk_ack.pending |= ICSK_ACK_PUSHED;
++		tcp_cleanup_rbuf(sk, 1);
++		if (!(val & 1))
++			inet_csk_enter_pingpong_mode(sk);
++	}
 +}
 +
-+int tcp_sock_set_keepidle(struct sock *sk, int val)
++void tcp_sock_set_quickack(struct sock *sk, int val)
 +{
-+	int err;
-+
 +	lock_sock(sk);
-+	err = __tcp_sock_set_keepidle(sk, val);
++	__tcp_sock_set_quickack(sk, val);
 +	release_sock(sk);
-+	return err;
 +}
-+EXPORT_SYMBOL(tcp_sock_set_keepidle);
++EXPORT_SYMBOL(tcp_sock_set_quickack);
 +
  /*
   *	Socket option code for TCP.
   */
-@@ -3070,21 +3103,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
+@@ -3096,19 +3121,7 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
  		break;
  
- 	case TCP_KEEPIDLE:
--		if (val < 1 || val > MAX_TCP_KEEPIDLE)
--			err = -EINVAL;
--		else {
--			tp->keepalive_time = val * HZ;
--			if (sock_flag(sk, SOCK_KEEPOPEN) &&
--			    !((1 << sk->sk_state) &
--			      (TCPF_CLOSE | TCPF_LISTEN))) {
--				u32 elapsed = keepalive_time_elapsed(tp);
--				if (tp->keepalive_time > elapsed)
--					elapsed = tp->keepalive_time - elapsed;
--				else
--					elapsed = 0;
--				inet_csk_reset_keepalive_timer(sk, elapsed);
+ 	case TCP_QUICKACK:
+-		if (!val) {
+-			inet_csk_enter_pingpong_mode(sk);
+-		} else {
+-			inet_csk_exit_pingpong_mode(sk);
+-			if ((1 << sk->sk_state) &
+-			    (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT) &&
+-			    inet_csk_ack_scheduled(sk)) {
+-				icsk->icsk_ack.pending |= ICSK_ACK_PUSHED;
+-				tcp_cleanup_rbuf(sk, 1);
+-				if (!(val & 1))
+-					inet_csk_enter_pingpong_mode(sk);
 -			}
 -		}
-+		err = __tcp_sock_set_keepidle(sk, val);
++		__tcp_sock_set_quickack(sk, val);
  		break;
- 	case TCP_KEEPINTVL:
- 		if (val < 1 || val > MAX_TCP_KEEPINTVL)
-diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
-index 6f90ea077adcd..79f9adc008114 100644
---- a/net/rds/tcp_listen.c
-+++ b/net/rds/tcp_listen.c
-@@ -52,10 +52,7 @@ int rds_tcp_keepalive(struct socket *sock)
- 	if (ret < 0)
- 		goto bail;
  
--	ret = kernel_setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE,
--				(char *)&keepidle, sizeof(keepidle));
--	if (ret < 0)
--		goto bail;
-+	tcp_sock_set_keepidle(sock->sk, keepidle);
- 
- 	/* KEEPINTVL is the interval between successive probes. We follow
- 	 * the model in xs_tcp_finish_connecting() and re-use keepidle.
-diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
-index 231fd6162f68d..473290f7c5c0a 100644
---- a/net/sunrpc/xprtsock.c
-+++ b/net/sunrpc/xprtsock.c
-@@ -2107,8 +2107,7 @@ static void xs_tcp_set_socket_timeouts(struct rpc_xprt *xprt,
- 
- 	/* TCP Keepalive options */
- 	sock_set_keepalive(sock->sk);
--	kernel_setsockopt(sock, SOL_TCP, TCP_KEEPIDLE,
--			(char *)&keepidle, sizeof(keepidle));
-+	tcp_sock_set_keepidle(sock->sk, keepidle);
- 	kernel_setsockopt(sock, SOL_TCP, TCP_KEEPINTVL,
- 			(char *)&keepidle, sizeof(keepidle));
- 	kernel_setsockopt(sock, SOL_TCP, TCP_KEEPCNT,
+ #ifdef CONFIG_TCP_MD5SIG
 -- 
 2.26.2
 
