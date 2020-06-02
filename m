@@ -2,116 +2,69 @@ Return-Path: <SRS0=kW50=7P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54583C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 19:50:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD2D4C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 22:20:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2375F2072F
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 19:50:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="PNQJOo4N"
+	by mail.kernel.org (Postfix) with ESMTP id 96B2F2067B
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 22:20:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1591136407;
+	bh=AY1pqien7wCMuZ9apGiNukl+u+CVWaQr0SUzXRzJi7E=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=cbnJRIsoMWSN6MZj/Ex44u4T+D1IWQyOO4zop4j8/iPG8uTz7B04y0PWxoZ/y1rHC
+	 8dCw1KNZk+WpupYrd8KIpsF0Cu/RbJLfEJWXtG6jeoy1+bZavoQh5pihtA+sVx+j8i
+	 JpaIDXt2td9ohPAS6u6QLOokrfeBF4A4YG5H8rNo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726580AbgFBTuR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Jun 2020 15:50:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52566 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726373AbgFBTuR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Jun 2020 15:50:17 -0400
-Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com [IPv6:2607:f8b0:4864:20::744])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2646C08C5C0
-        for <linux-rdma@vger.kernel.org>; Tue,  2 Jun 2020 12:50:16 -0700 (PDT)
-Received: by mail-qk1-x744.google.com with SMTP id c185so13779933qke.7
-        for <linux-rdma@vger.kernel.org>; Tue, 02 Jun 2020 12:50:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=QvCsB0PVS7CynSuPm893zY4nLBK4JjrCQe68TzbJ2/w=;
-        b=PNQJOo4NCvQo7Nl6vNISAlpyJuKBLwzvinHrY5qCznokm+V2Bdfq3hY4mJ1Mia/rQ2
-         KcmGMX9YL6Lff1dhmhrLnAoFYhqQkTRG8Vm/biA8PbbPLIAkm9DJsj5k3Hi9948jOAst
-         vzKdwhCt+yF/wB9sCwPwkrDVadMPEoQXq7bOoPiDoDdX+3xJLSbKpBBGZyVsAk2PZDMI
-         3tu6DhKyWuP4VfEcSdiMx8AFJn5IDdbI/UO9tudIjxAxxI5T3nOqzoqr4bZtvwymf2w7
-         zZYO5HTIQa3siO2RMF/A/IB8t9jUrlqT3k9KitUiHvaPxPyL8iVqV0VllPZ1dhZnuJx3
-         Yp5A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=QvCsB0PVS7CynSuPm893zY4nLBK4JjrCQe68TzbJ2/w=;
-        b=PEZdxGHxE1Q4pdM6nHTnUT1ImS9eHlp4I1UyjOo1zobqHjWrN5u0HYeojwXM/ltVBo
-         8vD8nOA4WsTh5ve/HJqhAset0+bgFeL6U1fKWQpXPrW50jTB2vT58mVHV8PeSEoGqFpR
-         +nFn6+z56yb1n4upVDGzHK2X35lPf6ty/C2ceqaRZ+YaFOiG/B8s89gJ/+QCUgQvGZsv
-         MZL0Bc/jTvKAo+kq4AuD7IA/fVcOTOpMS6Re7qYlQkPUMKJfArA9wsx8czszsP5F2FIW
-         sxjvacypijiu+he7PfkG5mZyZ1+vkD+NApJPkeFxSieTJyM/YWWfmMbN+EwuDHZI6Dd1
-         ddtw==
-X-Gm-Message-State: AOAM532VywJ3cWQT+lj+qCMz3e7FvxRSu7CKts69eUWnPZkkpcU09PnF
-        pNSN82KycuRc6XBc+jGwH9xMpQ==
-X-Google-Smtp-Source: ABdhPJxyiK4yz0ganTNe8de/k3FggbOuNF3cPf3FjltocqFPic12xPMwzvJp62kzvddYBykTRylmQA==
-X-Received: by 2002:a37:a7c3:: with SMTP id q186mr25606794qke.499.1591127416013;
-        Tue, 02 Jun 2020 12:50:16 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id 207sm3250120qki.134.2020.06.02.12.50.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 02 Jun 2020 12:50:15 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jgCvP-000Jad-3I; Tue, 02 Jun 2020 16:50:15 -0300
-Date:   Tue, 2 Jun 2020 16:50:15 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Benjamin Drung <benjamin.drung@cloud.ionos.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: Re: Race condition between / wrong load order of ib_umad and ib_ipoib
-Message-ID: <20200602195015.GD6578@ziepe.ca>
-References: <6c58097c2310a57a987959660a8612467d8bd96c.camel@cloud.ionos.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6c58097c2310a57a987959660a8612467d8bd96c.camel@cloud.ionos.com>
+        id S1728883AbgFBWUG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Jun 2020 18:20:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43086 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728880AbgFBWUG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 2 Jun 2020 18:20:06 -0400
+Subject: Re: [GIT PULL] Please pull hmm changes
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1591136406;
+        bh=AY1pqien7wCMuZ9apGiNukl+u+CVWaQr0SUzXRzJi7E=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=sZxhAJMoYDlcxViwgIgPzf+ZBYGVhm32Sb3Aw8WnPkQSkeNu3Wwk8qlt/aN66mYly
+         nXXVNr0PmlK8MSAV5W/LnecCde0luklRe6EHstQ6pYv0Hsfa2hIz/e/WKmEEAeKHgm
+         xJwqcJDQRZe68DDnExQAFXWDeeg6bsa0cw2LioDo=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20200601182552.GA28020@ziepe.ca>
+References: <20200601182552.GA28020@ziepe.ca>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20200601182552.GA28020@ziepe.ca>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+ tags/for-linus-hmm
+X-PR-Tracked-Commit-Id: f07e2f6be37a750737b93f5635485171ad459eb9
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: cfa3b8068b09f25037146bfd5eed041b78878bee
+Message-Id: <159113640626.9664.5574442426922899316.pr-tracker-bot@kernel.org>
+Date:   Tue, 02 Jun 2020 22:20:06 +0000
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jun 02, 2020 at 05:11:31PM +0200, Benjamin Drung wrote:
-> Hi,
-> 
-> after a kernel upgrade to version 4.19 (in-house built with Mellanox
-> OFED drivers), some of our systems fail to bring up their IPoIB devices
-> on boot. Different HCAs are affected (e.g. MT4099 and MT26428). We are
-> using rdma-core on Debian and have IPoIB devices (like `ib0.dddd`)
-> configured in `/etc/network/interfaces`. Big cluster seem to be more
-> affected than smaller ones. In case of the failure, we see this kernel
-> message:
-> 
-> ```
-> ib0.dddd: P_Key 0xdddd is not found
-> ```
+The pull request you sent on Mon, 1 Jun 2020 15:25:52 -0300:
 
-I think this means you are missing some IPoIB bug fixes?
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus-hmm
 
-This warning means ipoib was started before the subnet manager had
-programmed in the pkey table. (ie it is a race)
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/cfa3b8068b09f25037146bfd5eed041b78878bee
 
-The way it is supposed to work is for IPoIB to create the interface
-anyhow in the down state and wait for the SM to program the pkey, then
-move to the up state.
+Thank you!
 
-> Pinging other hosts will fail then with:
-> 
-> ```
-> ping: sendmsg: Network is unreachable
-> ```
-
-This suggests ipoib is stuck down, so it missed the pkey change
-event..
-
-> changing the order in this configuration file to load `ib_umad` before
-> `ib_ipoib`, the servers come up correctly.
-
-This is probably just adding enough delay that the SM has setup pkey
-table before starting ipoib...
-
-Jason 
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
