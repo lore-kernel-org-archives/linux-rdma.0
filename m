@@ -1,108 +1,98 @@
-Return-Path: <SRS0=DDHZ=7O=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=kW50=7P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C0FC433DF
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Jun 2020 18:54:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2409EC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 00:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32F5B20679
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Jun 2020 18:54:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="nTMVfaPd"
+	by mail.kernel.org (Postfix) with ESMTP id E53D420897
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 00:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729830AbgFASBr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 1 Jun 2020 14:01:47 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:52670 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729824AbgFASBp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 1 Jun 2020 14:01:45 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 051HrAJo101049;
-        Mon, 1 Jun 2020 18:01:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=AHke+bg16Z5eFtvtzQE+luqkCa/0wc68XqV/6ESZPME=;
- b=nTMVfaPdq7B4yo989SJoDn0hDwQ/Yoq8LnWD25djRrXr3/0t6tMByz1UakWsd25PKDbV
- bfc9zJ3U87FxkxrFiEAK7dLuH91B6dwN2xzUnIN1P410u4QoxuZg0+mJM3qBOlNSVl0j
- gk6sp6gKvgrebkWL6UXE/pLexaGfdcPpHQ8kQ44fvHEx2VYVvM7OzdFHktru890KitmE
- o/bhSc/YUCq5R1alF7gBNjkL+Y9t65MUkvCMaTkN3IWnLl50kR2L5AymTj7CBR/qj7Hu
- go4iJf33m64W8wi1DEVo5KcrApj9d1TGZNa3jku62pWgUO6e1U14rthZaw2jjEYBfmYE EQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 31bfem01sg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Mon, 01 Jun 2020 18:01:41 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 051Hru8f029414;
-        Mon, 1 Jun 2020 18:01:40 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by userp3020.oracle.com with ESMTP id 31c18rvg12-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 01 Jun 2020 18:01:40 +0000
-Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 051I1cxv012436;
-        Mon, 1 Jun 2020 18:01:38 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 01 Jun 2020 11:01:38 -0700
-Date:   Mon, 1 Jun 2020 21:01:31 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Grzegorz Andrejczuk <grzegorz.andrejczuk@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH v2] IB/hfi1: Fix hfi1_netdev_rx_init() error handling
-Message-ID: <20200601180131.GU22511@kadam>
-References: <BY5PR11MB3958CF61BB1F59A6F6B5234D868F0@BY5PR11MB3958.namprd11.prod.outlook.com>
- <20200530140224.GA1330098@mwanda>
- <20200601141450.GA24045@ziepe.ca>
+        id S1725804AbgFBA7Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 1 Jun 2020 20:59:24 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:40716 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725793AbgFBA7Y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 1 Jun 2020 20:59:24 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id A46C03EAA86A60DBE163;
+        Tue,  2 Jun 2020 08:59:21 +0800 (CST)
+Received: from [127.0.0.1] (10.166.215.154) by DGGEMS410-HUB.china.huawei.com
+ (10.3.19.210) with Microsoft SMTP Server id 14.3.487.0; Tue, 2 Jun 2020
+ 08:59:18 +0800
+Subject: Re: [PATCH -next] IB/hfi1: Remove set but not used variable 'priv'
+To:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>
+References: <20200528075946.123480-1-yuehaibing@huawei.com>
+ <MN2PR11MB396654BC46500F828609C6A3868E0@MN2PR11MB3966.namprd11.prod.outlook.com>
+ <86634519-3dd8-0c6a-a8d2-19f4b986fd3d@intel.com>
+ <20200601135644.GD4872@ziepe.ca>
+CC:     "Marciniszyn, Mike" <mike.marciniszyn@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+        "Dan Carpenter (dan.carpenter@oracle.com)" <dan.carpenter@oracle.com>
+From:   Yuehaibing <yuehaibing@huawei.com>
+Message-ID: <56063ae0-30a2-6522-2b6a-86b749264e78@huawei.com>
+Date:   Tue, 2 Jun 2020 08:59:17 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.8.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200601141450.GA24045@ziepe.ca>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9639 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 bulkscore=0 mlxscore=0
- adultscore=0 mlxlogscore=999 suspectscore=0 spamscore=0 phishscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006010134
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9639 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 suspectscore=0
- mlxlogscore=999 priorityscore=1501 bulkscore=0 phishscore=0 clxscore=1015
- impostorscore=0 adultscore=0 spamscore=0 mlxscore=0 lowpriorityscore=0
- cotscore=-2147483648 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2006010134
+In-Reply-To: <20200601135644.GD4872@ziepe.ca>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.166.215.154]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 01, 2020 at 11:14:50AM -0300, Jason Gunthorpe wrote:
-> On Sat, May 30, 2020 at 05:02:24PM +0300, Dan Carpenter wrote:
-> > The hfi1_vnic_up() function doesn't check whether hfi1_netdev_rx_init()
-> > returns errors.  In hfi1_vnic_init() we need to change the code to
-> > preserve the error code instead of returning success.
-> > 
-> > Fixes: 2280740f01ae ("IB/hfi1: Virtual Network Interface Controller (VNIC) HW support")
-> > Fixes: 4730f4a6c6b2 ("IB/hfi1: Activate the dummy netdev")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > v2: Add error handling in hfi1_vnic_up() and add second fixes tag
-> > 
-> >  drivers/infiniband/hw/hfi1/vnic_main.c | 11 +++++++++--
-> >  1 file changed, 9 insertions(+), 2 deletions(-)
+On 2020/6/1 21:56, Jason Gunthorpe wrote:
+> On Mon, Jun 01, 2020 at 09:45:52AM -0400, Dennis Dalessandro wrote:
+>> On 5/28/2020 7:25 AM, Marciniszyn, Mike wrote:
+>>>> From: YueHaibing <yuehaibing@huawei.com>
+>>>> Sent: Thursday, May 28, 2020 4:00 AM
+>>>> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+>>>>   drivers/infiniband/hw/hfi1/netdev_rx.c | 11 +++--------
+>>>>   1 file changed, 3 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c
+>>>> b/drivers/infiniband/hw/hfi1/netdev_rx.c
+>>>> index 58af6a454761..bd6546b52159 100644
+>>>> +++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
+>>>> @@ -371,14 +371,9 @@ int hfi1_netdev_alloc(struct hfi1_devdata *dd)
+>>>>
+>>>>   void hfi1_netdev_free(struct hfi1_devdata *dd)
+>>>>   {
+>>>> -struct hfi1_netdev_priv *priv;
+>>>> -
+>>>> -if (dd->dummy_netdev) {
+>>>> -priv = hfi1_netdev_priv(dd->dummy_netdev);
+>>>> -dd_dev_info(dd, "hfi1 netdev freed\n");
+>>>> -kfree(dd->dummy_netdev);
+>>>> -dd->dummy_netdev = NULL;
+>>>> -}
+>>>> +dd_dev_info(dd, "hfi1 netdev freed\n");
+>>>> +kfree(dd->dummy_netdev);
+>>>
+>>> Dan Carpenter has reported kfree() should be free_netdev()...
+>>>
+>>> Mike
+>>>
+>>
+>> I'm OK with this patch going in and then adding a separate one to fix the
+>> kfree. Or this one can be touched up to include that as well.
 > 
-> Applied to for-next with the 'if (rc)' fixup, thanks
+> Please resend it with both things fixed
 
-Thanks.  I would have resent it, but it's a three day weekend here...
-
-regards,
-dan carpenter
+Ok, will do that in v2.
+> 
+> Jason
+> 
+> 
 
