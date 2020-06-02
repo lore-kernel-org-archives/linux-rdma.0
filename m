@@ -2,78 +2,94 @@ Return-Path: <SRS0=kW50=7P=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07EA0C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 06:17:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ECE4C433E2
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 06:17:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D125620734
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 06:17:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 221C320734
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Jun 2020 06:17:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1591078640;
+	bh=ep5l1ExG4gfRIqOhdJgGRgQz5NIwz5nYtmlie8CVHk0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=rl0XSwK/rl63xWst116/SmUtXfpJZOQt9DT+6ZEdSbK67yZ8NGlXCKmHeIXEGbMJ8
+	 5RMkZcQe8SS3yd9tUYJzHkvi+p4V6lzOvsXjrpcS3FwLSnFBM8jJwhNID6zhDpBMBj
+	 Y8BI5snYWIqeF7B6nI1tLHZr+voDwQCEnfJOBM0k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725937AbgFBGRD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Jun 2020 02:17:03 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:34478 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725616AbgFBGRD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 2 Jun 2020 02:17:03 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id CDB40BC41E81E25A4047;
-        Tue,  2 Jun 2020 14:16:54 +0800 (CST)
-Received: from localhost (10.166.215.154) by DGGEMS402-HUB.china.huawei.com
- (10.3.19.202) with Microsoft SMTP Server id 14.3.487.0; Tue, 2 Jun 2020
- 14:16:44 +0800
-From:   YueHaibing <yuehaibing@huawei.com>
-To:     <mike.marciniszyn@intel.com>, <dennis.dalessandro@intel.com>,
-        <dledford@redhat.com>, <jgg@ziepe.ca>,
-        <sadanand.warrier@intel.com>, <grzegorz.andrejczuk@intel.com>,
-        <yuehaibing@huawei.com>
-CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <dan.carpenter@oracle.com>, <kernel-janitors@vger.kernel.org>
-Subject: [PATCH -next] IB/hfi1: Use free_netdev() in hfi1_netdev_free()
-Date:   Tue, 2 Jun 2020 14:16:35 +0800
-Message-ID: <20200602061635.31224-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.10.2.windows.1
-In-Reply-To: <20200601135644.GD4872@ziepe.ca>
-References: <20200601135644.GD4872@ziepe.ca>
+        id S1726141AbgFBGRT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Jun 2020 02:17:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50050 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725616AbgFBGRT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 2 Jun 2020 02:17:19 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4587B20772;
+        Tue,  2 Jun 2020 06:17:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1591078639;
+        bh=ep5l1ExG4gfRIqOhdJgGRgQz5NIwz5nYtmlie8CVHk0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=BTHW6K9EtYZMHqWIKankCYohBkF5ZQUGzXIM0CeutRMPBUevZalzoyQq0KpjOBcaD
+         qeiETdixprK14YCDQgZZi8fU5rKI5bsfKoWUKChQzkBX9p4SAY97jBGGjch8ww5MfK
+         Jz/83myBFWfGC6X66baOsPAZqwi0hQHXH44PRGIM=
+Date:   Tue, 2 Jun 2020 09:17:15 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Rao Shoaib <rao.shoaib@oracle.com>
+Cc:     David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, somasundaram.krishnasamy@oracle.com
+Subject: Re: [PATCH net-next] rds: transport module should be auto loaded
+ when transport is set
+Message-ID: <20200602061715.GA56352@unreal>
+References: <20200527081742.25718-1-rao.shoaib@oracle.com>
+ <20200529.164107.1817677145426311890.davem@davemloft.net>
+ <4f86d778-1f6b-d533-c062-c78daa257829@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.166.215.154]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4f86d778-1f6b-d533-c062-c78daa257829@oracle.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-dummy_netdev shold be freed by free_netdev() instead of
-kfree(). Also remove unneeded variable 'priv'
+On Mon, Jun 01, 2020 at 09:59:30AM -0700, Rao Shoaib wrote:
+>
+> On 5/29/20 4:41 PM, David Miller wrote:
+> > From: rao.shoaib@oracle.com
+> > Date: Wed, 27 May 2020 01:17:42 -0700
+> >
+> > > diff --git a/include/uapi/linux/rds.h b/include/uapi/linux/rds.h
+> > > index cba368e55863..7273c681e6c1 100644
+> > > --- a/include/uapi/linux/rds.h
+> > > +++ b/include/uapi/linux/rds.h
+> > > @@ -64,7 +64,7 @@
+> > >   /* supported values for SO_RDS_TRANSPORT */
+> > >   #define	RDS_TRANS_IB	0
+> > > -#define	RDS_TRANS_IWARP	1
+> > > +#define	RDS_TRANS_GAP	1
+> > >   #define	RDS_TRANS_TCP	2
+> > >   #define RDS_TRANS_COUNT	3
+> > >   #define	RDS_TRANS_NONE	(~0)
+> > You can't break user facing UAPI like this, sorry.
+>
+> I was hoping that this could be considered an exception as IWARP has been
+> deprecated for almost a decade and there is no current product using it.
+> With the change any old binary will continue to work, a new compilation fill
+> fail so that the code can be examined, otherwise we will never be able to
+> reuse this number.
+>
+> If the above is not acceptable I can revert this part of the change.
 
-Fixes: 4730f4a6c6b2 ("IB/hfi1: Activate the dummy netdev")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/infiniband/hw/hfi1/netdev_rx.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Nothing prohibits you from adding the following lines:
 
-diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
-index 58af6a454761..63688e85e8da 100644
---- a/drivers/infiniband/hw/hfi1/netdev_rx.c
-+++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
-@@ -371,12 +371,9 @@ int hfi1_netdev_alloc(struct hfi1_devdata *dd)
- 
- void hfi1_netdev_free(struct hfi1_devdata *dd)
- {
--	struct hfi1_netdev_priv *priv;
--
- 	if (dd->dummy_netdev) {
--		priv = hfi1_netdev_priv(dd->dummy_netdev);
- 		dd_dev_info(dd, "hfi1 netdev freed\n");
--		kfree(dd->dummy_netdev);
-+		free_netdev(dd->dummy_netdev);
- 		dd->dummy_netdev = NULL;
- 	}
- }
--- 
-2.17.1
++ /* don't use RDS_TRANS_IWARP - it is deprecated */
++ #define  RDS_TRANS_GAP RDS_TRANS_IWARP
 
-
+>
+> Shoaib
+>
