@@ -2,103 +2,107 @@ Return-Path: <SRS0=sGH3=7Q=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49D7EC433E0
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Jun 2020 13:35:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A1DC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Jun 2020 15:29:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26B1A206C3
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Jun 2020 13:35:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5E55206A2
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Jun 2020 15:29:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="U/EUw749"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ku9emOtt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725916AbgFCNfp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Jun 2020 09:35:45 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:53236 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725834AbgFCNfp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Jun 2020 09:35:45 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 053DWUs4103221
-        for <linux-rdma@vger.kernel.org>; Wed, 3 Jun 2020 13:35:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id; s=corp-2020-01-29;
- bh=xYoFnHnvClOci2PtFpL4SoSPiEq3QPGnXmz0v1ujty0=;
- b=U/EUw749g24y8TgcAz8bSrfwSb/v6sxxAU47n4lwdlpuKQ5gT6rczB1g7OJu1nUe+nFX
- OjK8SfFoi7PQJ1EFq9/WVUCcnyyNijjzkVBYWqUFdoR5EhYANnl8otRC59tw20Y3xecC
- 65liQ5NEZTqBydYfg53UhRq2xlWiP0n/u/h9bcdV5VYsmC9Q+xSMXhMKPKTwt3z58VJk
- gK7ea8e8IjqQqo+rKCL7mdZ7e8rF3+MdfmcRfFX/8ru23cnM6eQHP2pIr+ZNOXb8NSdi
- qGZugxVX1trpt8ie0yyUQBVYwGDGQvwJDSSqrKmijBrRHzYo1XGYAjVogUzhXITldT/c TA== 
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by aserp2120.oracle.com with ESMTP id 31bfem98uw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL)
-        for <linux-rdma@vger.kernel.org>; Wed, 03 Jun 2020 13:35:43 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 053DO15L082672
-        for <linux-rdma@vger.kernel.org>; Wed, 3 Jun 2020 13:33:43 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3020.oracle.com with ESMTP id 31c25s54sx-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-        for <linux-rdma@vger.kernel.org>; Wed, 03 Jun 2020 13:33:43 +0000
-Received: from abhmp0010.oracle.com (abhmp0010.oracle.com [141.146.116.16])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 053DXgYS025761
-        for <linux-rdma@vger.kernel.org>; Wed, 3 Jun 2020 13:33:42 GMT
-Received: from ca-dev40.us.oracle.com (/10.129.135.27)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Wed, 03 Jun 2020 06:33:42 -0700
-From:   Ka-Cheong Poon <ka-cheong.poon@oracle.com>
-To:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next] RDMA/cm: Spurious WARNING triggered in cm_destroy_id()
-Date:   Wed,  3 Jun 2020 06:33:38 -0700
-Message-Id: <1591191218-9446-1-git-send-email-ka-cheong.poon@oracle.com>
-X-Mailer: git-send-email 1.8.3.1
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9640 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 suspectscore=1 spamscore=0
- malwarescore=0 bulkscore=0 mlxscore=0 phishscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006030106
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9640 signatures=668686
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 suspectscore=1
- mlxlogscore=999 priorityscore=1501 bulkscore=0 phishscore=0 clxscore=1015
- impostorscore=0 adultscore=0 spamscore=0 mlxscore=0 lowpriorityscore=0
- cotscore=-2147483648 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2004280000 definitions=main-2006030107
+        id S1725985AbgFCP3H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Jun 2020 11:29:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37494 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725904AbgFCP3G (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Jun 2020 11:29:06 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04DE7C08C5C0
+        for <linux-rdma@vger.kernel.org>; Wed,  3 Jun 2020 08:29:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=ScFMdV2Z8LCxdHq9mBB24jrXvESyG26CqkFOcoDuAY8=; b=ku9emOttAuZ9ETjz+/BxvVDgny
+        stYCubjYGUL2d7O+cZeLyuEE1xTQ0JT3faZyFmOi7WDSdJuN8UrdezhdplTpEWSYZyXjftLXcCAoN
+        CIe8d4tOpb8MTMjjLWz/v+EQI8euKZOI27U/OxpQqPKMkAWGHxybtflYNA1cb2o/sOYyBTeSGpus9
+        ia3FjrkWB18e15d6WnH++gSEa8EJc5Y5dOSmIvXD2J2koaXE5OaolnDJYjvkG3MnqI0gCszeN40lo
+        pbrvWmvvrzIKN9kJaQPks8HXTc7LgLKmbTI02sefwuZtBK+l3ITxtyRi8gTXEHu66Gfh70AH1WvmF
+        Qg7WPcAQ==;
+Received: from willy by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1jgVKB-0004kW-7L; Wed, 03 Jun 2020 15:29:03 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     linux-rdma@vger.kernel.org, Paul Blakey <paulb@mellanox.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Saeed Mahameed <saeedm@mellanox.com>
+Cc:     "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: [PATCH] net/mlx5: Improve tuple ID allocation
+Date:   Wed,  3 Jun 2020 08:29:01 -0700
+Message-Id: <20200603152901.17985-1-willy@infradead.org>
+X-Mailer: git-send-email 2.21.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Suppose the cm_id state is IB_CM_REP_SENT when cm_destroy_id() is
-called.  Then it calls cm_send_rej_locked().  In cm_send_rej_locked(),
-it calls cm_enter_timewait() and the state is changed to
-IB_CM_TIMEWAIT.  Now back to cm_destroy_id(), it breaks from the
-switch statement.  And the next call is WARN_ON(cm_id->state !=
-IB_CM_IDLE).  This triggers a spurious warning.  Instead, the code
-should goto retest after returning from cm_send_rej_locked().
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 
-Signed-off-by: Ka-Cheong Poon <ka-cheong.poon@oracle.com>
+There's no need to use a temporary variable; the XArray is designed to
+write directly into the object being allocated.
+
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
- drivers/infiniband/core/cm.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 17f14e0..1c2bf18 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1076,7 +1076,9 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 	case IB_CM_REP_SENT:
- 	case IB_CM_MRA_REP_RCVD:
- 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
--		/* Fall through */
-+		cm_send_rej_locked(cm_id_priv, IB_CM_REJ_CONSUMER_DEFINED, NULL,
-+				   0, NULL, 0);
-+		goto retest;
- 	case IB_CM_MRA_REQ_SENT:
- 	case IB_CM_REP_RCVD:
- 	case IB_CM_MRA_REP_SENT:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
+index 4eb305af0106..63d392a8043d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
+@@ -57,7 +57,7 @@ struct mlx5_ct_flow {
+ struct mlx5_ct_zone_rule {
+ 	struct mlx5_flow_handle *rule;
+ 	struct mlx5_esw_flow_attr attr;
+-	int tupleid;
++	u32 tupleid;
+ 	bool nat;
+ };
+ 
+@@ -484,7 +484,6 @@ mlx5_tc_ct_entry_add_rule(struct mlx5_tc_ct_priv *ct_priv,
+ 	struct mlx5_esw_flow_attr *attr = &zone_rule->attr;
+ 	struct mlx5_eswitch *esw = ct_priv->esw;
+ 	struct mlx5_flow_spec *spec = NULL;
+-	u32 tupleid;
+ 	int err;
+ 
+ 	zone_rule->nat = nat;
+@@ -494,17 +493,16 @@ mlx5_tc_ct_entry_add_rule(struct mlx5_tc_ct_priv *ct_priv,
+ 		return -ENOMEM;
+ 
+ 	/* Get tuple unique id */
+-	err = xa_alloc(&ct_priv->tuple_ids, &tupleid, zone_rule,
++	err = xa_alloc(&ct_priv->tuple_ids, &zone_rule->tupleid, zone_rule,
+ 		       XA_LIMIT(1, TUPLE_ID_MAX), GFP_KERNEL);
+ 	if (err) {
+ 		netdev_warn(ct_priv->netdev,
+ 			    "Failed to allocate tuple id, err: %d\n", err);
+ 		goto err_xa_alloc;
+ 	}
+-	zone_rule->tupleid = tupleid;
+ 
+ 	err = mlx5_tc_ct_entry_create_mod_hdr(ct_priv, attr, flow_rule,
+-					      tupleid, nat);
++					      zone_rule->tupleid, nat);
+ 	if (err) {
+ 		ct_dbg("Failed to create ct entry mod hdr");
+ 		goto err_mod_hdr;
 -- 
-1.8.3.1
+2.26.2
 
