@@ -5,55 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41A28C433ED
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jun 2020 08:13:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 319BFC433EC
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jun 2020 08:13:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13A6220738
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jun 2020 08:13:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E12320738
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Jun 2020 08:13:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="IEeSF84M"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="WQ76x/1R"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728123AbgFDINo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Jun 2020 04:13:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51476 "EHLO
+        id S1728137AbgFDINt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Jun 2020 04:13:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727021AbgFDIMq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Jun 2020 04:12:46 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFAE2C08C5C0
-        for <linux-rdma@vger.kernel.org>; Thu,  4 Jun 2020 01:12:44 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id v19so4303842wmj.0
-        for <linux-rdma@vger.kernel.org>; Thu, 04 Jun 2020 01:12:44 -0700 (PDT)
+        with ESMTP id S1727058AbgFDIMo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Jun 2020 04:12:44 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81C64C03E96E
+        for <linux-rdma@vger.kernel.org>; Thu,  4 Jun 2020 01:12:43 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id g10so4293159wmh.4
+        for <linux-rdma@vger.kernel.org>; Thu, 04 Jun 2020 01:12:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=QpRcEBLBFti7+uwIPhFpaG5e28opFzcZsYVebGatC0I=;
-        b=IEeSF84MYGmRcfj4sMCd4J+zYZKwLXaJxMSpi3fUTEKdsfossRgSDuWbe+zZ21xpAx
-         3y3tAVuXjHWRsIi+zJrg554cTrk73ezXwhTX3+vOBsrV//Okft/By/0MmGxexiInifje
-         DtXukw743V5Gql830qv9EKpT7CFp/fzcgsUTM=
+        bh=RU/4ty0eEugeyrPrVEiQiwkrKqeJ+uZPrr4qGpCy8Ns=;
+        b=WQ76x/1RuTy1JkP9aezKfVnljVf6mBF2k34u6CEzkCHMD5rjzO23Ol0qswF1Uqnn3r
+         NZfMgpfPaWZjBnzc3b4R0o6daICNWxE3wsC5YBUn7XLwXhFfZLN5ZIKJ1vC7UEvOJvnQ
+         jpY5agvtrUOJPNYvXTokA+XG56fPkvmyjcTDY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=QpRcEBLBFti7+uwIPhFpaG5e28opFzcZsYVebGatC0I=;
-        b=ELfAlGRG8R2AvcvWCV1l+UPb0x/s3S4ZOrmqMAbroHbTNM0hqtyWdorGYT1BCGcE6e
-         FT3VvJlSnJK8vf2ZbIIXqa0/ZEnE/9rs9uuTPKx6Fz0Sp3th0yutgqf8Qabp70zWLF09
-         VgFnlihbg1jGc9LNYixgMU8NKbzL9Ih6VPCQsBB22G4fbUN6QjYY/475axPhMfmUpeb/
-         8QYN/sGYuPp9Rp1g0yiHzULYKVfR8A/pOQwqlXypjKYBKsGlT6xxiIYPVo+vyfjyKjrs
-         3LVPlRZw3MmOZ8JVGkujfrfF/qdpFcuR1HvFCJs2jOveY8zM2aOvEftMMsMZ50YpbyE7
-         jmLg==
-X-Gm-Message-State: AOAM531YJ3NMt0bS5AlHOv0Ui38Ii11UzG5t+Zu+FRNDRYHcCBzWxQj1
-        3fpQPUKQ/bRwmcHT+BGOjIW+IA==
-X-Google-Smtp-Source: ABdhPJzK094CFf7KReF2ex18c6m+K0h2mhk+2HMb53cWYgjLEFwQL7H9L4hoB3ty2HpwgAOoCcUgiQ==
-X-Received: by 2002:a1c:5502:: with SMTP id j2mr3075373wmb.56.1591258363614;
-        Thu, 04 Jun 2020 01:12:43 -0700 (PDT)
-Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id f11sm6873305wrj.2.2020.06.04.01.12.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        bh=RU/4ty0eEugeyrPrVEiQiwkrKqeJ+uZPrr4qGpCy8Ns=;
+        b=pUjinNZpO9o8cj9RZMOOC8tBnIpXv9Xmnx1xoTzBafB18CT20tOK4JvBpGH30yvMWG
+         iqVsvojNgOao4C4S+vxbGjVmL/Hjh+AxYC/jWO7tXXl+F718/b0kGEN7y151pjIyBTHn
+         vxBteGkzraf/wJEwOhgWxD78Maw7cfER2dqYNKFoRV0SAiFi+IuJTWydPYmNP18GbSyE
+         cJ3KPH1we8Bpx4zJ1mfcfc/AZMBZyESO6yUMzUJbx0sdsQ+8QUs5T9cq2s2g1tVdw9Tt
+         r+QCRzHOdNxRKy6agxRurzNPFef0l9283CFmwehiysfc8643bAv70XNImAAvSbleF1ax
+         Qq7Q==
+X-Gm-Message-State: AOAM533LRm0d8eMYu2JKr9guBVlNMLke4qOE9wZFMpxJchnv6UztqlGO
+        HY7wEx2oDRNMDVqA+B/HikNtpw==
+X-Google-Smtp-Source: ABdhPJzyEEdLMFWp1SPIqCkQHe7o3lL3hDIhqzkna+QlwTAI0JRQsL2kauEYBN5PgJQKziIXdiNizg==
+X-Received: by 2002:a1c:4008:: with SMTP id n8mr3030923wma.118.1591258362288;
         Thu, 04 Jun 2020 01:12:42 -0700 (PDT)
+Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
+        by smtp.gmail.com with ESMTPSA id f11sm6873305wrj.2.2020.06.04.01.12.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 04 Jun 2020 01:12:41 -0700 (PDT)
 From:   Daniel Vetter <daniel.vetter@ffwll.ch>
 To:     DRI Development <dri-devel@lists.freedesktop.org>
 Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
@@ -65,9 +65,9 @@ Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
         =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH 09/18] drm/scheduler: use dma-fence annotations in main thread
-Date:   Thu,  4 Jun 2020 10:12:15 +0200
-Message-Id: <20200604081224.863494-10-daniel.vetter@ffwll.ch>
+Subject: [PATCH 08/18] drm/amdgpu: add dma-fence annotations to atomic commit path
+Date:   Thu,  4 Jun 2020 10:12:14 +0200
+Message-Id: <20200604081224.863494-9-daniel.vetter@ffwll.ch>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200604081224.863494-1-daniel.vetter@ffwll.ch>
 References: <20200604081224.863494-1-daniel.vetter@ffwll.ch>
@@ -79,13 +79,8 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-If the scheduler rt thread gets stuck on a mutex that we're holding
-while waiting for gpu workloads to complete, we have a problem.
-
-Add dma-fence annotations so that lockdep can check this for us.
-
-I've tried to quite carefully review this, and I think it's at the
-right spot. But obviosly no expert on drm scheduler.
+I need a canary in a ttm-based atomic driver to make sure the
+dma_fence_begin/end_signalling annotations actually work.
 
 Cc: linux-media@vger.kernel.org
 Cc: linaro-mm-sig@lists.linaro.org
@@ -97,35 +92,39 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Christian König <christian.koenig@amd.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
 ---
- drivers/gpu/drm/scheduler/sched_main.c | 6 ++++++
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
-index 2f319102ae9f..06a736e506ad 100644
---- a/drivers/gpu/drm/scheduler/sched_main.c
-+++ b/drivers/gpu/drm/scheduler/sched_main.c
-@@ -763,9 +763,12 @@ static int drm_sched_main(void *param)
- 	struct sched_param sparam = {.sched_priority = 1};
- 	struct drm_gpu_scheduler *sched = (struct drm_gpu_scheduler *)param;
- 	int r;
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index bdba0bfd6df1..adabfa929f42 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -57,6 +57,7 @@
+ 
+ #include "ivsrcid/ivsrcid_vislands30.h"
+ 
++#include <linux/module.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/version.h>
+@@ -7320,6 +7321,9 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+ 	struct drm_connector_state *old_con_state, *new_con_state;
+ 	struct dm_crtc_state *dm_old_crtc_state, *dm_new_crtc_state;
+ 	int crtc_disable_count = 0;
 +	bool fence_cookie;
- 
- 	sched_setscheduler(current, SCHED_FIFO, &sparam);
- 
++
 +	fence_cookie = dma_fence_begin_signalling();
-+
- 	while (!kthread_should_stop()) {
- 		struct drm_sched_entity *entity = NULL;
- 		struct drm_sched_fence *s_fence;
-@@ -823,6 +826,9 @@ static int drm_sched_main(void *param)
  
- 		wake_up(&sched->job_scheduled);
- 	}
-+
+ 	drm_atomic_helper_update_legacy_modeset_state(dev, state);
+ 
+@@ -7600,6 +7604,8 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+ 	/* Signal HW programming completion */
+ 	drm_atomic_helper_commit_hw_done(state);
+ 
 +	dma_fence_end_signalling(fence_cookie);
 +
- 	return 0;
- }
+ 	if (wait_for_vblank)
+ 		drm_atomic_helper_wait_for_flip_done(dev, state);
  
 -- 
 2.26.2
