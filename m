@@ -2,119 +2,144 @@ Return-Path: <SRS0=eUhC=7S=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B1CAC433DF
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jun 2020 12:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5A8DC433DF
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jun 2020 12:41:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FB242070B
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jun 2020 12:30:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591360245;
-	bh=l4goMsgBlX7Qdo2R6HC4NAyX8/LlC3Ade5FePF2ZsME=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VIzFEfXo959yhuIBuPOXVnveHMRQJx4rJPZW74J6ZbJ1nOKarVrqO9EnXkDpuEkUq
-	 YteNdMpaXxjASu98UzpCVNazzCFh0ySl370xfUwdcdgz8nk8bwsdouBhsx4U3mJa9Z
-	 pFVH1efHJ9V4AklqQzQSNSw1HmZf6X6+77PtR+kU=
+	by mail.kernel.org (Postfix) with ESMTP id B44262075B
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Jun 2020 12:41:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="Y0FSL3jo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726817AbgFEMZf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Jun 2020 08:25:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57002 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726793AbgFEMZe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 5 Jun 2020 08:25:34 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 40B0A2075B;
-        Fri,  5 Jun 2020 12:25:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591359934;
-        bh=l4goMsgBlX7Qdo2R6HC4NAyX8/LlC3Ade5FePF2ZsME=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KKO48Us345OfDmSot9pl9Gj3z0XcLzDYdJW6DbYpx/rMME6NQPh/hK8aw8WsztMGa
-         nf9g/d4wrNwZSFs3kGg9BY6WmCQNVZz5LBj86z4AQJ+yitd0pfZoGinZReU+BcqwgQ
-         fGSGPp4zDFuju//w8qwBmhhQi+tg/0GR48nXTtpc=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Mark Bloch <markb@mellanox.com>, Dexuan Cui <decui@microsoft.com>,
-        Moshe Shemesh <moshe@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 13/17] net/mlx5: Fix crash upon suspend/resume
-Date:   Fri,  5 Jun 2020 08:25:12 -0400
-Message-Id: <20200605122517.2882338-13-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200605122517.2882338-1-sashal@kernel.org>
-References: <20200605122517.2882338-1-sashal@kernel.org>
+        id S1726587AbgFEMls (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Jun 2020 08:41:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33424 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726529AbgFEMlq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Jun 2020 08:41:46 -0400
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com [IPv6:2607:f8b0:4864:20::241])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 715A7C08C5C3
+        for <linux-rdma@vger.kernel.org>; Fri,  5 Jun 2020 05:41:46 -0700 (PDT)
+Received: by mail-oi1-x241.google.com with SMTP id 25so7153670oiy.13
+        for <linux-rdma@vger.kernel.org>; Fri, 05 Jun 2020 05:41:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=b8lHa3VSsS3EH4GstrmtufuSPQnby9wIaLbKSXX2gR4=;
+        b=Y0FSL3jop1Ktvp+81IKa884hHcJEOFCxyltl1k0MHEops3eSwWVVNdvKPpCE7Zx9WU
+         //QeTiDmbXPc/dqdkmu7fHeWYxTzH103/85ltphoFY/gEm8OQl2oqXW4w61a7KN1Jhgb
+         CSloh85q5YYyHCGG2UV5knxi5s6dBfhtE6irk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=b8lHa3VSsS3EH4GstrmtufuSPQnby9wIaLbKSXX2gR4=;
+        b=MAYOzFMMKzC2scXJ7baLZEcnO4Q7/WLYw9EiiWWK81DkjwkBvGvMWJjRo2qICWi2xc
+         Zon3zDW3D2SgSXMLWCHEcjuVmvA1LRz4Br88hZLJXnp2kgidO+YtkM0hrD83tYdnDQKL
+         f1T9rA+jEKno7HYLIw0Qli5h2axr6Y5PYXnUug1IoNrzIg95y6w2vteUeF2CQ1EwnKnq
+         TGwms/NprlmLwwcpVnXAhd3ZNrnayjawuoILDXXLtRshMPygf5UMJWIvwi+Duy2tbsfn
+         4zjmhtrxjW8qZYJehjEu6IJDHPk0mQYv6VrenpbCRVvtflFKmir6r0HwO1na014KKzYL
+         wtQA==
+X-Gm-Message-State: AOAM53110440GNDYwWXf60ii2JkynW8+ieJj4bfa6wxyT9C7n4BeDb5P
+        4ij9HrXL68fDEpRg/e3mESb3v7Rd/e3mVFYcHs/nTg==
+X-Google-Smtp-Source: ABdhPJxDBFuxj/jT06KYKDwsSDsZtaJk7DJpn+CTYVJxr0/W+a1EfH/HPafid8DVkUdwYip+bwgoQY+h1NITtsGMh7k=
+X-Received: by 2002:aca:ed42:: with SMTP id l63mr1645633oih.101.1591360905783;
+ Fri, 05 Jun 2020 05:41:45 -0700 (PDT)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+References: <20200604081224.863494-1-daniel.vetter@ffwll.ch>
+ <20200604081224.863494-14-daniel.vetter@ffwll.ch> <e0bfd872-5d38-6718-a23d-6b14b3c14f25@amd.com>
+In-Reply-To: <e0bfd872-5d38-6718-a23d-6b14b3c14f25@amd.com>
+From:   Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Fri, 5 Jun 2020 14:41:34 +0200
+Message-ID: <CAKMK7uG6VN93ZS3Rbi6edvDAMefXJ6CotMx5j916VcUy2nuvqQ@mail.gmail.com>
+Subject: Re: [PATCH 13/18] drm/amdgpu/dc: Stop dma_resv_lock inversion in commit_tail
+To:     Pierre-Eric Pelloux-Prayer <pierre-eric.pelloux-prayer@amd.com>
+Cc:     DRI Development <dri-devel@lists.freedesktop.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+On Fri, Jun 5, 2020 at 10:30 AM Pierre-Eric Pelloux-Prayer
+<pierre-eric.pelloux-prayer@amd.com> wrote:
+>
+> Hi Daniel,
+>
+> On 04/06/2020 10:12, Daniel Vetter wrote:
+> [...]
+> > @@ -6910,7 +6910,11 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+> >                * explicitly on fences instead
+> >                * and in general should be called for
+> >                * blocking commit to as per framework helpers
+> > +              *
+> > +              * Yes, this deadlocks, since you're calling dma_resv_lock in a
+> > +              * path that leads to a dma_fence_signal(). Don't do that.
+> >                */
+> > +#if 0
+> >               r = amdgpu_bo_reserve(abo, true);
+> >               if (unlikely(r != 0))
+> >                       DRM_ERROR("failed to reserve buffer before flip\n");
+> > @@ -6920,6 +6924,12 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
+> >               tmz_surface = amdgpu_bo_encrypted(abo);
+> >
+> >               amdgpu_bo_unreserve(abo);
+> > +#endif
+> > +             /*
+> > +              * this races anyway, so READ_ONCE isn't any better or worse
+> > +              * than the stuff above. Except the stuff above can deadlock.
+> > +              */
+> > +             tiling_flags = READ_ONCE(abo->tiling_flags);
+>
+> With this change "tmz_surface" won't be initialized properly.
+> Adding the following line should fix it:
+>
+>   tmz_surface = READ_ONCE(abo->flags) & AMDGPU_GEM_CREATE_ENCRYPTED;
 
-[ Upstream commit 8fc3e29be9248048f449793502c15af329f35c6e ]
+So to make this clear, I'm not really proposing to fix up all the
+drivers in detail. There's a lot more bugs in all the other drivers,
+I'm pretty sure. The driver fixups really are just quick hacks to
+illustrate the problem, and at least in some cases, maybe illustrate a
+possible solution.
 
-Currently a Linux system with the mlx5 NIC always crashes upon
-hibernation - suspend/resume.
+For the real fixes I think this needs driver teams working on this,
+and make sure it's all solid. I can help a bit with review (especially
+for placing the annotations, e.g. the one I put in cs_submit()
+annotates a bit too much), but that's it.
 
-Add basic callbacks so the NIC could be suspended and resumed.
+Also I think the patch is from before tmz landed, and I just blindly
+rebased over it :-)
+-Daniel
 
-Fixes: 9603b61de1ee ("mlx5: Move pci device handling from mlx5_ib to mlx5_core")
-Tested-by: Dexuan Cui <decui@microsoft.com>
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Reviewed-by: Moshe Shemesh <moshe@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+>
+>
+> Pierre-Eric
+>
+>
+> >
+> >               fill_dc_plane_info_and_addr(
+> >                       dm->adev, new_plane_state, tiling_flags,
+> >
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 4a08e4eef283..20e12e14cfa8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1552,6 +1552,22 @@ static void shutdown(struct pci_dev *pdev)
- 	mlx5_pci_disable_device(dev);
- }
- 
-+static int mlx5_suspend(struct pci_dev *pdev, pm_message_t state)
-+{
-+	struct mlx5_core_dev *dev = pci_get_drvdata(pdev);
-+
-+	mlx5_unload_one(dev, false);
-+
-+	return 0;
-+}
-+
-+static int mlx5_resume(struct pci_dev *pdev)
-+{
-+	struct mlx5_core_dev *dev = pci_get_drvdata(pdev);
-+
-+	return mlx5_load_one(dev, false);
-+}
-+
- static const struct pci_device_id mlx5_core_pci_table[] = {
- 	{ PCI_VDEVICE(MELLANOX, PCI_DEVICE_ID_MELLANOX_CONNECTIB) },
- 	{ PCI_VDEVICE(MELLANOX, 0x1012), MLX5_PCI_DEV_IS_VF},	/* Connect-IB VF */
-@@ -1595,6 +1611,8 @@ static struct pci_driver mlx5_core_driver = {
- 	.id_table       = mlx5_core_pci_table,
- 	.probe          = init_one,
- 	.remove         = remove_one,
-+	.suspend        = mlx5_suspend,
-+	.resume         = mlx5_resume,
- 	.shutdown	= shutdown,
- 	.err_handler	= &mlx5_err_handler,
- 	.sriov_configure   = mlx5_core_sriov_configure,
+
+
 -- 
-2.25.1
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
