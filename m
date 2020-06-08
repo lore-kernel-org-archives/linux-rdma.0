@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F651C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:24:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C33C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:24:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCE9620775
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:24:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6561820775
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:24:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591662260;
-	bh=RTHvjndCvV6ADLn+r0W+rPQcSQTf0BWUC/SP4e7CYLM=;
+	s=default; t=1591662270;
+	bh=JJEYW8LD89bBtMkRmC/DxgoeVEhaIy42/RS1/a/Bm40=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Y9MD2Jw5h+xOZZhjQ3uQ7x9SWkYX/H+87GyQLCET3E2IL6nTxhkqQXoSUuMuAnFYo
-	 AyhqvAFXPpltOfm2ujZNuEGjtNmYnQ99x+q7ASvNOuTKur1bpjtf9Cu2h95TJEyWDu
-	 3Fc1WkKDcN6BUwXkn2LI+HS/fhgDwPqYoISUTmS4=
+	b=AElWU8qySh8SQ3TGeg4mNcJ+sz/WkHndjdOrgI2AmjmBD3PsPGlOf4Jw8uKOfu8Q9
+	 4pdphoHazkdC2W2i6/p1eW1iipcPRIZjkrNsQwapIF/MatZAOj/rt5KWfCOemcv5mO
+	 sPpDEVC4DZLVOJGHEvHg+TgVAgWdgHQJnZxZrHFs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730493AbgFIAYR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:24:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38618 "EHLO mail.kernel.org"
+        id S1732756AbgFIAY3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jun 2020 20:24:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728310AbgFHXRI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:17:08 -0400
+        id S1728818AbgFHXRE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:17:04 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B88720842;
-        Mon,  8 Jun 2020 23:17:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9999A2078D;
+        Mon,  8 Jun 2020 23:17:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591658228;
-        bh=RTHvjndCvV6ADLn+r0W+rPQcSQTf0BWUC/SP4e7CYLM=;
+        s=default; t=1591658224;
+        bh=JJEYW8LD89bBtMkRmC/DxgoeVEhaIy42/RS1/a/Bm40=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WphmkZeT6GaCno6w2hyDJUnHPrGHjsHz6rZBqzfNhXEGA8hSRg6C9+u7FBvH526x3
-         L9b6YeZFQzBRG9XXVRGXomrZcol6XjiXJjLX81GqREGLDtG+EzE2+FLV8k3gTrF86B
-         2r2RkvPNXhx5tk8ciTrzACFWrEUpsOqvsPxmsB9Q=
+        b=m617ZEN9/P+XrrDyoRwc7S6GjHVbQ5IlvqgXK6rItSgXcMzBIucykUvqryU6Xs32f
+         jq5kicfs0lTZHg1MmbZV0pNO3I6llr6Aa10KZWZdCOb+h30CGWXJDkDqLnEQcZc/hs
+         OauTvaoN/VKxD8G9yNnr3IFaFBMHPF/caHIwlRc8=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Eran Ben Elisha <eranbe@mellanox.com>,
@@ -45,9 +45,9 @@ Cc:     Eran Ben Elisha <eranbe@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 241/606] net/mlx5: Avoid processing commands before cmdif is ready
-Date:   Mon,  8 Jun 2020 19:06:06 -0400
-Message-Id: <20200608231211.3363633-241-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 238/606] net/mlx5: Fix a race when moving command interface to events mode
+Date:   Mon,  8 Jun 2020 19:06:03 -0400
+Message-Id: <20200608231211.3363633-238-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
 References: <20200608231211.3363633-1-sashal@kernel.org>
@@ -62,13 +62,26 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Eran Ben Elisha <eranbe@mellanox.com>
 
-commit f7936ddd35d8b849daf0372770c7c9dbe7910fca upstream.
+[ Upstream commit d43b7007dbd1195a5b6b83213e49b1516aaf6f5e ]
 
-When driver is reloading during recovery flow, it can't get new commands
-till command interface is up again. Otherwise we may get to null pointer
-trying to access non initialized command structures.
+After driver creates (via FW command) an EQ for commands, the driver will
+be informed on new commands completion by EQE. However, due to a race in
+driver's internal command mode metadata update, some new commands will
+still be miss-handled by driver as if we are in polling mode. Such commands
+can get two non forced completion, leading to already freed command entry
+access.
 
-Add cmdif state to avoid processing commands while cmdif is not ready.
+CREATE_EQ command, that maps EQ to the command queue must be posted to the
+command queue while it is empty and no other command should be posted.
+
+Add SW mechanism that once the CREATE_EQ command is about to be executed,
+all other commands will return error without being sent to the FW. Allow
+sending other commands only after successfully changing the driver's
+internal command mode metadata.
+We can safely return error to all other commands while creating the command
+EQ, as all other commands might be sent from the user/application during
+driver load. Application can rerun them later after driver's load was
+finished.
 
 Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
 Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
@@ -76,113 +89,142 @@ Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c  | 10 ++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/main.c |  4 ++++
- include/linux/mlx5/driver.h                    |  9 +++++++++
- 3 files changed, 23 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 35 ++++++++++++++++---
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  |  3 ++
+ include/linux/mlx5/driver.h                   |  6 ++++
+ 3 files changed, 40 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 2f3cafdc3b1f..7a77fe40af3a 100644
+index d695b75bc0af..2f3cafdc3b1f 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -923,6 +923,7 @@ static void cmd_work_handler(struct work_struct *work)
+@@ -848,6 +848,14 @@ static void free_msg(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *msg);
+ static void mlx5_free_cmd_msg(struct mlx5_core_dev *dev,
+ 			      struct mlx5_cmd_msg *msg);
+ 
++static bool opcode_allowed(struct mlx5_cmd *cmd, u16 opcode)
++{
++	if (cmd->allowed_opcode == CMD_ALLOWED_OPCODE_ALL)
++		return true;
++
++	return cmd->allowed_opcode == opcode;
++}
++
+ static void cmd_work_handler(struct work_struct *work)
+ {
+ 	struct mlx5_cmd_work_ent *ent = container_of(work, struct mlx5_cmd_work_ent, work);
+@@ -914,7 +922,8 @@ static void cmd_work_handler(struct work_struct *work)
+ 
  	/* Skip sending command to fw if internal error */
  	if (pci_channel_offline(dev->pdev) ||
- 	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR ||
-+	    cmd->state != MLX5_CMDIF_STATE_UP ||
- 	    !opcode_allowed(&dev->cmd, ent->op)) {
+-	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
++	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR ||
++	    !opcode_allowed(&dev->cmd, ent->op)) {
  		u8 status = 0;
  		u32 drv_synd;
-@@ -1712,6 +1713,7 @@ static int cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
- 	opcode = MLX5_GET(mbox_in, in, opcode);
+ 
+@@ -1405,6 +1414,22 @@ static void create_debugfs_files(struct mlx5_core_dev *dev)
+ 	mlx5_cmdif_debugfs_init(dev);
+ }
+ 
++void mlx5_cmd_allowed_opcode(struct mlx5_core_dev *dev, u16 opcode)
++{
++	struct mlx5_cmd *cmd = &dev->cmd;
++	int i;
++
++	for (i = 0; i < cmd->max_reg_cmds; i++)
++		down(&cmd->sem);
++	down(&cmd->pages_sem);
++
++	cmd->allowed_opcode = opcode;
++
++	up(&cmd->pages_sem);
++	for (i = 0; i < cmd->max_reg_cmds; i++)
++		up(&cmd->sem);
++}
++
+ static void mlx5_cmd_change_mod(struct mlx5_core_dev *dev, int mode)
+ {
+ 	struct mlx5_cmd *cmd = &dev->cmd;
+@@ -1681,12 +1706,13 @@ static int cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
+ 	int err;
+ 	u8 status = 0;
+ 	u32 drv_synd;
++	u16 opcode;
+ 	u8 token;
+ 
++	opcode = MLX5_GET(mbox_in, in, opcode);
  	if (pci_channel_offline(dev->pdev) ||
- 	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR ||
-+	    dev->cmd.state != MLX5_CMDIF_STATE_UP ||
- 	    !opcode_allowed(&dev->cmd, opcode)) {
+-	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
+-		u16 opcode = MLX5_GET(mbox_in, in, opcode);
+-
++	    dev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR ||
++	    !opcode_allowed(&dev->cmd, opcode)) {
  		err = mlx5_internal_err_ret_value(dev, opcode, &drv_synd, &status);
  		MLX5_SET(mbox_out, out, status, status);
-@@ -1977,6 +1979,7 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
- 		goto err_free_page;
- 	}
+ 		MLX5_SET(mbox_out, out, syndrome, drv_synd);
+@@ -1988,6 +2014,7 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
+ 	mlx5_core_dbg(dev, "descriptor at dma 0x%llx\n", (unsigned long long)(cmd->dma));
  
-+	cmd->state = MLX5_CMDIF_STATE_DOWN;
- 	cmd->checksum_disabled = 1;
- 	cmd->max_reg_cmds = (1 << cmd->log_sz) - 1;
- 	cmd->bitmask = (1UL << cmd->max_reg_cmds) - 1;
-@@ -2054,3 +2057,10 @@ void mlx5_cmd_cleanup(struct mlx5_core_dev *dev)
- 	dma_pool_destroy(cmd->pool);
- }
- EXPORT_SYMBOL(mlx5_cmd_cleanup);
-+
-+void mlx5_cmd_set_state(struct mlx5_core_dev *dev,
-+			enum mlx5_cmdif_state cmdif_state)
-+{
-+	dev->cmd.state = cmdif_state;
-+}
-+EXPORT_SYMBOL(mlx5_cmd_set_state);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 7d67268ff686..4a08e4eef283 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -962,6 +962,8 @@ static int mlx5_function_setup(struct mlx5_core_dev *dev, bool boot)
- 		goto err_cmd_cleanup;
- 	}
+ 	cmd->mode = CMD_MODE_POLLING;
++	cmd->allowed_opcode = CMD_ALLOWED_OPCODE_ALL;
  
-+	mlx5_cmd_set_state(dev, MLX5_CMDIF_STATE_UP);
-+
- 	err = mlx5_core_enable_hca(dev, 0);
- 	if (err) {
- 		mlx5_core_err(dev, "enable hca failed\n");
-@@ -1023,6 +1025,7 @@ static int mlx5_function_setup(struct mlx5_core_dev *dev, bool boot)
- err_disable_hca:
- 	mlx5_core_disable_hca(dev, 0);
- err_cmd_cleanup:
-+	mlx5_cmd_set_state(dev, MLX5_CMDIF_STATE_DOWN);
- 	mlx5_cmd_cleanup(dev);
+ 	create_msg_cache(dev);
  
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index cccea3a8eddd..ce6c621af043 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -611,11 +611,13 @@ static int create_async_eqs(struct mlx5_core_dev *dev)
+ 		.nent = MLX5_NUM_CMD_EQE,
+ 		.mask[0] = 1ull << MLX5_EVENT_TYPE_CMD,
+ 	};
++	mlx5_cmd_allowed_opcode(dev, MLX5_CMD_OP_CREATE_EQ);
+ 	err = setup_async_eq(dev, &table->cmd_eq, &param, "cmd");
+ 	if (err)
+ 		goto err1;
+ 
+ 	mlx5_cmd_use_events(dev);
++	mlx5_cmd_allowed_opcode(dev, CMD_ALLOWED_OPCODE_ALL);
+ 
+ 	param = (struct mlx5_eq_param) {
+ 		.irq_index = 0,
+@@ -645,6 +647,7 @@ static int create_async_eqs(struct mlx5_core_dev *dev)
+ 	mlx5_cmd_use_polling(dev);
+ 	cleanup_async_eq(dev, &table->cmd_eq, "cmd");
+ err1:
++	mlx5_cmd_allowed_opcode(dev, CMD_ALLOWED_OPCODE_ALL);
+ 	mlx5_eq_notifier_unregister(dev, &table->cq_err_nb);
  	return err;
-@@ -1040,6 +1043,7 @@ static int mlx5_function_teardown(struct mlx5_core_dev *dev, bool boot)
- 	}
- 	mlx5_reclaim_startup_pages(dev);
- 	mlx5_core_disable_hca(dev, 0);
-+	mlx5_cmd_set_state(dev, MLX5_CMDIF_STATE_DOWN);
- 	mlx5_cmd_cleanup(dev);
- 
- 	return 0;
+ }
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 6050264ebde1..a1842ce8bd4e 100644
+index b596353a3a12..6050264ebde1 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
-@@ -230,6 +230,12 @@ struct mlx5_bfreg_info {
- 	u32			num_dyn_bfregs;
- };
+@@ -301,6 +301,7 @@ struct mlx5_cmd {
+ 	struct semaphore sem;
+ 	struct semaphore pages_sem;
+ 	int	mode;
++	u16     allowed_opcode;
+ 	struct mlx5_cmd_work_ent *ent_arr[MLX5_MAX_COMMANDS];
+ 	struct dma_pool *pool;
+ 	struct mlx5_cmd_debug dbg;
+@@ -893,10 +894,15 @@ mlx5_frag_buf_get_idx_last_contig_stride(struct mlx5_frag_buf_ctrl *fbc, u32 ix)
+ 	return min_t(u32, last_frag_stride_idx - fbc->strides_offset, fbc->sz_m1);
+ }
  
-+enum mlx5_cmdif_state {
-+	MLX5_CMDIF_STATE_UNINITIALIZED,
-+	MLX5_CMDIF_STATE_UP,
-+	MLX5_CMDIF_STATE_DOWN,
++enum {
++	CMD_ALLOWED_OPCODE_ALL,
 +};
 +
- struct mlx5_cmd_first {
- 	__be32		data[4];
- };
-@@ -275,6 +281,7 @@ struct mlx5_cmd_stats {
- struct mlx5_cmd {
- 	struct mlx5_nb    nb;
- 
-+	enum mlx5_cmdif_state	state;
- 	void	       *cmd_alloc_buf;
- 	dma_addr_t	alloc_dma;
- 	int		alloc_size;
-@@ -900,6 +907,8 @@ enum {
- 
  int mlx5_cmd_init(struct mlx5_core_dev *dev);
  void mlx5_cmd_cleanup(struct mlx5_core_dev *dev);
-+void mlx5_cmd_set_state(struct mlx5_core_dev *dev,
-+			enum mlx5_cmdif_state cmdif_state);
  void mlx5_cmd_use_events(struct mlx5_core_dev *dev);
  void mlx5_cmd_use_polling(struct mlx5_core_dev *dev);
- void mlx5_cmd_allowed_opcode(struct mlx5_core_dev *dev, u16 opcode);
++void mlx5_cmd_allowed_opcode(struct mlx5_core_dev *dev, u16 opcode);
+ 
+ struct mlx5_async_ctx {
+ 	struct mlx5_core_dev *dev;
 -- 
 2.25.1
 
