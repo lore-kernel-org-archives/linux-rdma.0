@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54DD6C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC222C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:37:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2990B207F9
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:27:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAB702072F
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:37:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591662469;
-	bh=OK2NHAg48HW6FBRqhKzU70isoJaQpL16CRC437CTNJ0=;
+	s=default; t=1591663070;
+	bh=eQL/+0ePE1H1rx1MzZmNKPOckAY08l+N/zU64kPQEBc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oWLfbetaumaRJBVwItk8qny7C856cGXlInb2qpFLaxAZUepCRrpbtEgACN6+y1fvh
-	 Gjf+RhAWepd5d5k3ijCVyiIh6wXk+vaFget00Iz/NpiiN5BRxK+iB2wyojjDnh46IV
-	 J2cHac4phrE3TC/3m4LcWRVeBWNsbRDpn9mNr8mg=
+	b=VL7ZOCurQLgm1yqS9Ys73dpHNNi7jPMEg1Rnvo5odQ2FG7QDDJHf3KXaVpkl8ORCH
+	 u8LImpgyzBrbsg2rU09G/6qjEg90CENDKmJG5XhMbPqYrUYhMPrb3Y883k1kDld22C
+	 tACmvz6uwhxVHwMyCadxKH3kBp86AoVsEpKEMoxE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730579AbgFIA1h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:27:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38042 "EHLO mail.kernel.org"
+        id S1729538AbgFHXNl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jun 2020 19:13:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730289AbgFHXQh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:16:37 -0400
+        id S1729530AbgFHXNj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:13:39 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2157120823;
-        Mon,  8 Jun 2020 23:16:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1151320C09;
+        Mon,  8 Jun 2020 23:13:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591658197;
-        bh=OK2NHAg48HW6FBRqhKzU70isoJaQpL16CRC437CTNJ0=;
+        s=default; t=1591658018;
+        bh=eQL/+0ePE1H1rx1MzZmNKPOckAY08l+N/zU64kPQEBc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AZE7ufmSPo4bmnctMUxwghaIQ1PdCWmkZ2ik1q1tXmwcZRnraHRE/Hsq04x7p5rhV
-         Br62OCY4SwBPLKa1xW+WSP/RtfLCveDAkJ3ouzBWUoqtCGkiX7Oky0hhjTweEChEzQ
-         pFlZUjk25yn3/72It/+jKZgsDVeGaGWDfkFRN4pI=
+        b=MOWsZUlglupL7r1XrSwkAFWcOcdcTd/CpexrCDHc/j3RA+lOXAsR/NZqueRDUlc7p
+         L1vPoM1nIT0wZNN74PaxIBPO8Qal+ySmOmIExF3gHD8nXEgXkFlQrS8ReXph6YilUN
+         INcZJFPAKie5aneB5jC71Ex7wxCKQ0jMTDFnRVGc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Moshe Shemesh <moshe@mellanox.com>,
-        Eran Ben Elisha <eranbe@mellanox.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 217/606] net/mlx5: Add command entry handling completion
-Date:   Mon,  8 Jun 2020 19:05:42 -0400
-Message-Id: <20200608231211.3363633-217-sashal@kernel.org>
+        linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.6 072/606] RDMA/uverbs: Move IB_EVENT_DEVICE_FATAL to destroy_uobj
+Date:   Mon,  8 Jun 2020 19:03:17 -0400
+Message-Id: <20200608231211.3363633-72-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
 References: <20200608231211.3363633-1-sashal@kernel.org>
@@ -60,101 +60,89 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Moshe Shemesh <moshe@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 17d00e839d3b592da9659c1977d45f85b77f986a ]
+commit ccfdbaa5cf4601b9b71601893029dcc9245c002b upstream.
 
-When FW response to commands is very slow and all command entries in
-use are waiting for completion we can have a race where commands can get
-timeout before they get out of the queue and handled. Timeout
-completion on uninitialized command will cause releasing command's
-buffers before accessing it for initialization and then we will get NULL
-pointer exception while trying access it. It may also cause releasing
-buffers of another command since we may have timeout completion before
-even allocating entry index for this command.
-Add entry handling completion to avoid this race.
+When multiple async FDs were allowed to exist the idea was for all
+broadcast events to be delivered to all async FDs, however
+IB_EVENT_DEVICE_FATAL was missed.
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
-Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Instead of having ib_uverbs_free_hw_resources() special case the global
+async_fd, have it cause the event during the uobject destruction. Every
+async fd is now a uobject so simply generate the IB_EVENT_DEVICE_FATAL
+while destroying the async fd uobject. This ensures every async FD gets a
+copy of the event.
+
+Fixes: d680e88e2013 ("RDMA/core: Add UVERBS_METHOD_ASYNC_EVENT_ALLOC")
+Link: https://lore.kernel.org/r/20200507063348.98713-3-leon@kernel.org
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 14 ++++++++++++++
- include/linux/mlx5/driver.h                   |  1 +
- 2 files changed, 15 insertions(+)
+ drivers/infiniband/core/uverbs.h                    |  3 +++
+ drivers/infiniband/core/uverbs_main.c               | 10 +++-------
+ drivers/infiniband/core/uverbs_std_types_async_fd.c |  4 ++++
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index cede5bdfd598..d695b75bc0af 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -861,6 +861,7 @@ static void cmd_work_handler(struct work_struct *work)
- 	int alloc_ret;
- 	int cmd_mode;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 2673cb1cd655..3d189c7ee59e 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -228,6 +228,9 @@ void ib_uverbs_release_ucq(struct ib_uverbs_completion_event_file *ev_file,
+ 			   struct ib_ucq_object *uobj);
+ void ib_uverbs_release_uevent(struct ib_uevent_object *uobj);
+ void ib_uverbs_release_file(struct kref *ref);
++void ib_uverbs_async_handler(struct ib_uverbs_async_event_file *async_file,
++			     __u64 element, __u64 event,
++			     struct list_head *obj_list, u32 *counter);
  
-+	complete(&ent->handling);
- 	sem = ent->page_queue ? &cmd->pages_sem : &cmd->sem;
- 	down(sem);
- 	if (!ent->page_queue) {
-@@ -978,6 +979,11 @@ static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
- 	struct mlx5_cmd *cmd = &dev->cmd;
- 	int err;
+ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context);
+ void ib_uverbs_cq_event_handler(struct ib_event *event, void *context_ptr);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index cb5b59123d8f..1bab8de14757 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -386,10 +386,9 @@ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context)
+ 	kill_fasync(&ev_queue->async_queue, SIGIO, POLL_IN);
+ }
  
-+	if (!wait_for_completion_timeout(&ent->handling, timeout) &&
-+	    cancel_work_sync(&ent->work)) {
-+		ent->ret = -ECANCELED;
-+		goto out_err;
-+	}
- 	if (cmd->mode == CMD_MODE_POLLING || ent->polling) {
- 		wait_for_completion(&ent->done);
- 	} else if (!wait_for_completion_timeout(&ent->done, timeout)) {
-@@ -985,12 +991,17 @@ static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
- 		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
- 	}
+-static void
+-ib_uverbs_async_handler(struct ib_uverbs_async_event_file *async_file,
+-			__u64 element, __u64 event, struct list_head *obj_list,
+-			u32 *counter)
++void ib_uverbs_async_handler(struct ib_uverbs_async_event_file *async_file,
++			     __u64 element, __u64 event,
++			     struct list_head *obj_list, u32 *counter)
+ {
+ 	struct ib_uverbs_event *entry;
+ 	unsigned long flags;
+@@ -1187,9 +1186,6 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 		 */
+ 		mutex_unlock(&uverbs_dev->lists_mutex);
  
-+out_err:
- 	err = ent->ret;
+-		ib_uverbs_async_handler(READ_ONCE(file->async_file), 0,
+-					IB_EVENT_DEVICE_FATAL, NULL, NULL);
+-
+ 		uverbs_destroy_ufile_hw(file, RDMA_REMOVE_DRIVER_REMOVE);
+ 		kref_put(&file->ref, ib_uverbs_release_file);
  
- 	if (err == -ETIMEDOUT) {
- 		mlx5_core_warn(dev, "%s(0x%x) timeout. Will cause a leak of a command resource\n",
- 			       mlx5_command_str(msg_to_opcode(ent->in)),
- 			       msg_to_opcode(ent->in));
-+	} else if (err == -ECANCELED) {
-+		mlx5_core_warn(dev, "%s(0x%x) canceled on out of queue timeout.\n",
-+			       mlx5_command_str(msg_to_opcode(ent->in)),
-+			       msg_to_opcode(ent->in));
- 	}
- 	mlx5_core_dbg(dev, "err %d, delivery status %s(%d)\n",
- 		      err, deliv_status_to_str(ent->status), ent->status);
-@@ -1026,6 +1037,7 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
- 	ent->token = token;
- 	ent->polling = force_polling;
+diff --git a/drivers/infiniband/core/uverbs_std_types_async_fd.c b/drivers/infiniband/core/uverbs_std_types_async_fd.c
+index 462deb506b16..61899eaf1f91 100644
+--- a/drivers/infiniband/core/uverbs_std_types_async_fd.c
++++ b/drivers/infiniband/core/uverbs_std_types_async_fd.c
+@@ -26,6 +26,10 @@ static int uverbs_async_event_destroy_uobj(struct ib_uobject *uobj,
+ 		container_of(uobj, struct ib_uverbs_async_event_file, uobj);
  
-+	init_completion(&ent->handling);
- 	if (!callback)
- 		init_completion(&ent->done);
+ 	ib_unregister_event_handler(&event_file->event_handler);
++
++	if (why == RDMA_REMOVE_DRIVER_REMOVE)
++		ib_uverbs_async_handler(event_file, 0, IB_EVENT_DEVICE_FATAL,
++					NULL, NULL);
+ 	return 0;
+ }
  
-@@ -1045,6 +1057,8 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
- 	err = wait_func(dev, ent);
- 	if (err == -ETIMEDOUT)
- 		goto out;
-+	if (err == -ECANCELED)
-+		goto out_free;
- 
- 	ds = ent->ts2 - ent->ts1;
- 	op = MLX5_GET(mbox_in, in->first.data, opcode);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 277a51d3ec40..b596353a3a12 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -761,6 +761,7 @@ struct mlx5_cmd_work_ent {
- 	struct delayed_work	cb_timeout_work;
- 	void		       *context;
- 	int			idx;
-+	struct completion	handling;
- 	struct completion	done;
- 	struct mlx5_cmd        *cmd;
- 	struct work_struct	work;
 -- 
 2.25.1
 
