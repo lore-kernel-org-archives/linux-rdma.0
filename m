@@ -1,43 +1,43 @@
-Return-Path: <SRS0=tC3Z=7V=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=N7RC=7W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE8EAC433E1
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jun 2020 23:54:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B494DC433E2
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89DB120737
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Jun 2020 23:54:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 933412074B
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591660461;
-	bh=nXchnZb0VQVMifgHuWErdeP223POR9zgseAnk9BTKs8=;
+	s=default; t=1591661089;
+	bh=2ved1gwBbFnsvB8In8AxS051g4Ygu+m7vTx5SAx02eg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=r7sp+b/LG5k/7a76atJ8R4UzMaF/SGyNrFwueP9q+IbQ0Kxm4z3sRUfw76uZiu4nI
-	 egWcy7m0JHiU+mxGo0+1RAK+EESIvXWYVAPT2i7FWW3f5WrUztS7ARSz/ROPipYhEy
-	 fIsEEj0K6ytQC+fG3f76sxZOOTxTMWdurkSxVwrY=
+	b=usZDWZuHScfi4Jqr5s188uul5TNMwlFtS+8CoYpQCo05MKaGXDVq/FMQoRo+Xu0iS
+	 kpy1NmdWKmdo8wvn+xwZC2CJn8umZEqxHaGpCq6Dgx3gwBeZVzfiE2SITjNpHcJwA2
+	 4Vcze/vRnXdbWc5pDrdF55B+QQcpAxPik/Rx/bsQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732157AbgFHXyD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jun 2020 19:54:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50254 "EHLO mail.kernel.org"
+        id S1731181AbgFHXVh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jun 2020 19:21:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387503AbgFHXYS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:24:18 -0400
+        id S1729163AbgFHXVe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:21:34 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3FE9620C56;
-        Mon,  8 Jun 2020 23:24:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 785F120B80;
+        Mon,  8 Jun 2020 23:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591658658;
-        bh=nXchnZb0VQVMifgHuWErdeP223POR9zgseAnk9BTKs8=;
+        s=default; t=1591658494;
+        bh=2ved1gwBbFnsvB8In8AxS051g4Ygu+m7vTx5SAx02eg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=D2U7mW06FVe6UmYNcnx9rEndibkhVc+CC+c8l07TvjEBMtFyUpCURunBYYVT5f8Ox
-         AXYuWf6BZAj7+LlDqbd1ekBYW1AKh4VYcEL70Vk/xyoxfdHEl0F0fn9ii5nOPLiRjl
-         IL8ePWBQVgkmqiyX2vjlBuzMevMImtagYQSvPzhc=
+        b=VE5zVnWUAwZ9H6CP2lZjdqNb/Q9iqlj059LGaT/kbfYgHg/42xpOqJ3LNPGbm7Cxa
+         WmdaUlkG6NSSpapP/TC1BixY2q+xVv9JpM/v+/rpiQ6zHss6ZrEII/ZahPxmtqx3bm
+         x1rPwhpjizl/vgcZYxd5UBvx6ABF0fJmq8SpsanM=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Erez Shitrit <erezsh@mellanox.com>,
@@ -45,12 +45,12 @@ Cc:     Erez Shitrit <erezsh@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 075/106] net/mlx5e: IPoIB, Drop multicast packets that this interface sent
-Date:   Mon,  8 Jun 2020 19:22:07 -0400
-Message-Id: <20200608232238.3368589-75-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 127/175] net/mlx5e: IPoIB, Drop multicast packets that this interface sent
+Date:   Mon,  8 Jun 2020 19:18:00 -0400
+Message-Id: <20200608231848.3366970-127-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200608232238.3368589-1-sashal@kernel.org>
-References: <20200608232238.3368589-1-sashal@kernel.org>
+In-Reply-To: <20200608231848.3366970-1-sashal@kernel.org>
+References: <20200608231848.3366970-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 044687a1f27c..9d86e49a7f44 100644
+index c4eed5bbcd45..066bada4ccd1 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -1314,6 +1314,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+@@ -1428,6 +1428,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
  
  #ifdef CONFIG_MLX5_CORE_IPOIB
  
@@ -89,7 +89,7 @@ index 044687a1f27c..9d86e49a7f44 100644
  #define MLX5_IB_GRH_DGID_OFFSET 24
  #define MLX5_GID_SIZE           16
  
-@@ -1327,6 +1328,7 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
+@@ -1441,6 +1442,7 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
  	struct net_device *netdev;
  	struct mlx5e_priv *priv;
  	char *pseudo_header;
@@ -97,9 +97,9 @@ index 044687a1f27c..9d86e49a7f44 100644
  	u32 qpn;
  	u8 *dgid;
  	u8 g;
-@@ -1347,7 +1349,8 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
- 	priv = mlx5i_epriv(netdev);
+@@ -1462,7 +1464,8 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
  	tstamp = &priv->tstamp;
+ 	stats = &priv->channel_stats[rq->ix].rq;
  
 -	g = (be32_to_cpu(cqe->flags_rqpn) >> 28) & 3;
 +	flags_rqpn = be32_to_cpu(cqe->flags_rqpn);
@@ -107,7 +107,7 @@ index 044687a1f27c..9d86e49a7f44 100644
  	dgid = skb->data + MLX5_IB_GRH_DGID_OFFSET;
  	if ((!g) || dgid[0] != 0xff)
  		skb->pkt_type = PACKET_HOST;
-@@ -1356,9 +1359,15 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
+@@ -1471,9 +1474,15 @@ static inline void mlx5i_complete_rx_cqe(struct mlx5e_rq *rq,
  	else
  		skb->pkt_type = PACKET_MULTICAST;
  
