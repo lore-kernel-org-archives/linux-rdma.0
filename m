@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DFCBC433E1
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:25:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5375BC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:25:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2D1E20810
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:25:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F13C207ED
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:25:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591662333;
-	bh=Fq08WiGXR6FwbLRZUz7UkKFRbZajXaHYhJA5CPalye4=;
+	s=default; t=1591662353;
+	bh=gLF5uCXPjoIpUHk9Bdl4KupUF7xVSv7T6/M91PSrJpQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=m/84L0PnzlPtKAL7S4G7h40zF4gZeKH6Oct5lQDI5QnttuEXVWRhrYyld3CpdPM/u
-	 qwGDyGi/VPRG6/WZIBI9ryFx4djjXInSzxdEFp9fnPSIn8RWA7wOcfUPhFoT/NbG0Q
-	 2Rr/41zxnUJ8/LYAhHhmvjHO2BN1tgKsbm8fYnnA=
+	b=UVyT/R8F2FUsWQG4OPow1N5hXpi8Ud0JWCgIFum1WDpKJUnA3milQBzRm9zJXzGj/
+	 3WV8cexKx+benAqIZOkdags21+QZrALLlV/YC2j9DJxQFNT+rLEPfd22DcaWz+HILG
+	 BCEqq8yBtyyVg4wB9dOuy4nWLl77Tz1QRXEmsakM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731356AbgFIAZb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:25:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38350 "EHLO mail.kernel.org"
+        id S1730537AbgFIAZo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Jun 2020 20:25:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730368AbgFHXQ4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:16:56 -0400
+        id S1730359AbgFHXQz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:16:55 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9166B2086A;
-        Mon,  8 Jun 2020 23:16:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 55AF320775;
+        Mon,  8 Jun 2020 23:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591658216;
-        bh=Fq08WiGXR6FwbLRZUz7UkKFRbZajXaHYhJA5CPalye4=;
+        s=default; t=1591658215;
+        bh=gLF5uCXPjoIpUHk9Bdl4KupUF7xVSv7T6/M91PSrJpQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QOZi2ymahb+IfL4B35bBNUnYcCh737K8CxPG9B9tAfi7JSK2Bj2W9ly+a+62g67aQ
-         roJ3f0VJNDicKFwkAfXskQyyGyAWpgdMSzOR46C5Re4cVFOdcQOPT1f0NkHu10QuAg
-         Gm9YzoRKOZjikeJar4b5R5Xa2qw6pY35tuI2DwvM=
+        b=AOPqZIaFkzgvnLFnv5oSKnxFsRqVYQSw8y5rXmcybfbf//IRhQ1UGoKCH0iVBKgaA
+         ejEKKZVW0la5YKNPwPCJHJShy9LVD9BGHDarBSS7HNOH2ZsonzAtLRkqkyaCRvOsHl
+         GoCnNppVtSO9W0MfgKQG9/gXgG4vUjBUtJM8IeiI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Moshe Shemesh <moshe@mellanox.com>,
@@ -45,9 +45,9 @@ Cc:     Moshe Shemesh <moshe@mellanox.com>,
         Saeed Mahameed <saeedm@mellanox.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 232/606] net/mlx5e: Update netdev txq on completions during closure
-Date:   Mon,  8 Jun 2020 19:05:57 -0400
-Message-Id: <20200608231211.3363633-232-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.6 231/606] net/mlx5: Fix memory leak in mlx5_events_init
+Date:   Mon,  8 Jun 2020 19:05:56 -0400
+Message-Id: <20200608231211.3363633-231-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
 References: <20200608231211.3363633-1-sashal@kernel.org>
@@ -62,55 +62,37 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Moshe Shemesh <moshe@mellanox.com>
 
-[ Upstream commit 5e911e2c06bd8c17df29147a5e2d4b17fafda024 ]
+[ Upstream commit df14ad1eccb04a4a28c90389214dbacab085b244 ]
 
-On sq closure when we free its descriptors, we should also update netdev
-txq on completions which would not arrive. Otherwise if we reopen sqs
-and attach them back, for example on fw fatal recovery flow, we may get
-tx timeout.
+Fix memory leak in mlx5_events_init(), in case
+create_single_thread_workqueue() fails, events
+struct should be freed.
 
-Fixes: 29429f3300a3 ("net/mlx5e: Timeout if SQ doesn't flush during close")
+Fixes: 5d3c537f9070 ("net/mlx5: Handle event of power detection in the PCIE slot")
 Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
 Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/events.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-index ee60383adc5b..c2b801b435cf 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -538,10 +538,9 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
- void mlx5e_free_txqsq_descs(struct mlx5e_txqsq *sq)
- {
- 	struct mlx5e_tx_wqe_info *wi;
-+	u32 dma_fifo_cc, nbytes = 0;
-+	u16 ci, sqcc, npkts = 0;
- 	struct sk_buff *skb;
--	u32 dma_fifo_cc;
--	u16 sqcc;
--	u16 ci;
- 	int i;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+index 8bcf3426b9c6..3ce17c3d7a00 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+@@ -346,8 +346,10 @@ int mlx5_events_init(struct mlx5_core_dev *dev)
+ 	events->dev = dev;
+ 	dev->priv.events = events;
+ 	events->wq = create_singlethread_workqueue("mlx5_events");
+-	if (!events->wq)
++	if (!events->wq) {
++		kfree(events);
+ 		return -ENOMEM;
++	}
+ 	INIT_WORK(&events->pcie_core_work, mlx5_pcie_event);
  
- 	sqcc = sq->cc;
-@@ -566,11 +565,15 @@ void mlx5e_free_txqsq_descs(struct mlx5e_txqsq *sq)
- 		}
- 
- 		dev_kfree_skb_any(skb);
-+		npkts++;
-+		nbytes += wi->num_bytes;
- 		sqcc += wi->num_wqebbs;
- 	}
- 
- 	sq->dma_fifo_cc = dma_fifo_cc;
- 	sq->cc = sqcc;
-+
-+	netdev_tx_completed_queue(sq->txq, npkts, nbytes);
- }
- 
- #ifdef CONFIG_MLX5_CORE_IPOIB
+ 	return 0;
 -- 
 2.25.1
 
