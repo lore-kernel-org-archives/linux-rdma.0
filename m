@@ -2,130 +2,112 @@ Return-Path: <SRS0=N7RC=7W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92316C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 12:48:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B787FC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 12:55:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FA8020823
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 12:48:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C1DD206A4
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 12:55:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="EOdFenfd"
+	dkim=pass (1024-bit key) header.d=yadro.com header.i=@yadro.com header.b="YwVoaZgj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727831AbgFIMqV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 9 Jun 2020 08:46:21 -0400
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54132 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727005AbgFIMqU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Jun 2020 08:46:20 -0400
-Received: from Q.local (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 69A37291;
-        Tue,  9 Jun 2020 14:46:15 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1591706776;
-        bh=e3OIMaowMErPAcp8NkPKang2PFc5JcVtp2mzp1SGQas=;
-        h=From:To:Cc:Subject:Date:From;
-        b=EOdFenfdoWi99kjLMHynj4J1fzXhK70x9pvPJKGRwe+u9s7ClkH6rqbqST2T0r5e5
-         rd2CXOXDlipTFhHia9lb8Zg7V4PjvCiyTFMXq9uTY1o2DVNqSQeMO1a0klpHPm0VND
-         3avMiOPNyTukk9rgiob/Q4qsq6cY/3qW7k1hOjx8=
-From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc:     linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, ath10k@lists.infradead.org,
-        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org
-Subject: [PATCH 00/17] spelling.txt: /decriptors/descriptors/
-Date:   Tue,  9 Jun 2020 13:45:53 +0100
-Message-Id: <20200609124610.3445662-1-kieran.bingham+renesas@ideasonboard.com>
-X-Mailer: git-send-email 2.25.1
+        id S1727920AbgFIMzh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 9 Jun 2020 08:55:37 -0400
+Received: from mta-02.yadro.com ([89.207.88.252]:56324 "EHLO mta-01.yadro.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726903AbgFIMzh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 9 Jun 2020 08:55:37 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by mta-01.yadro.com (Postfix) with ESMTP id 4D1554C855
+        for <linux-rdma@vger.kernel.org>; Tue,  9 Jun 2020 12:55:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=yadro.com; h=
+        content-type:content-type:content-transfer-encoding:mime-version
+        :x-mailer:message-id:date:date:subject:subject:from:from
+        :received:received:received; s=mta-01; t=1591707334; x=
+        1593521735; bh=bu9LcH/TQyTsicUZ+Cd6YZb+Z6fz71eQ+9kt7bQ/CUw=; b=Y
+        wVoaZgjaRxBvdxWfmyBbbfU9hAcZlZo48YfgRZsit0s4U+Ck/XzrTTXTrETsXeZ/
+        P/sO46QLmqXV1Da/WZU9n1tnIZxJn7+/SqhktIWrfNhje0a47xV0majyARe6b+Lt
+        QVbFzKuyvaRLjU3cmnCuB5FDGR9+rS2FGiuOke/jsc=
+X-Virus-Scanned: amavisd-new at yadro.com
+Received: from mta-01.yadro.com ([127.0.0.1])
+        by localhost (mta-01.yadro.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id Df4DdE-TvmLA for <linux-rdma@vger.kernel.org>;
+        Tue,  9 Jun 2020 15:55:34 +0300 (MSK)
+Received: from T-EXCH-02.corp.yadro.com (t-exch-02.corp.yadro.com [172.17.10.102])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mta-01.yadro.com (Postfix) with ESMTPS id 51402412C9
+        for <linux-rdma@vger.kernel.org>; Tue,  9 Jun 2020 15:55:34 +0300 (MSK)
+Received: from localhost.localdomain (10.199.2.62) by T-EXCH-02.corp.yadro.com
+ (172.17.10.102) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P384) id 15.1.669.32; Tue, 9 Jun
+ 2020 15:55:33 +0300
+From:   <m.malygin@yadro.com>
+To:     <linux-rdma@vger.kernel.org>
+CC:     <s.kojushev@yadro.com>, <linux@yadro.com>,
+        Mikhail Malygin <m.malygin@yadro.com>
+Subject: [PATCH] rdma_rxe: Prevent access to wr->next ptr afrer wr is posted to send queue
+Date:   Tue, 9 Jun 2020 15:54:12 +0300
+Message-ID: <20200609125411.13268-1-m.malygin@yadro.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.199.2.62]
+X-ClientProxiedBy: T-EXCH-01.corp.yadro.com (172.17.10.101) To
+ T-EXCH-02.corp.yadro.com (172.17.10.102)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-I wouldn't normally go through spelling fixes, but I caught sight of
-this typo twice, and then foolishly grepped the tree for it, and saw how
-pervasive it was.
+From: Mikhail Malygin <m.malygin@yadro.com>
 
-so here I am ... fixing a typo globally... but with an addition in
-scripts/spelling.txt so it shouldn't re-appear ;-)
+rxe_post_send_kernel() iterates over linked list of wr's, until the wr->next ptr is NULL.
+However it we've got an interrupt after last wr is posted, control may be returned
+to the code after send completion callback is executed and wr memory is freed.
+As a result, wr->next pointer may contain incorrect value leading to panic.
 
-Cc: linux-arm-kernel@lists.infradead.org (moderated list:TI DAVINCI MACHINE SUPPORT)
-Cc: linux-kernel@vger.kernel.org (open list)
-Cc: linux-pm@vger.kernel.org (open list:DEVICE FREQUENCY EVENT (DEVFREQ-EVENT))
-Cc: linux-gpio@vger.kernel.org (open list:GPIO SUBSYSTEM)
-Cc: dri-devel@lists.freedesktop.org (open list:DRM DRIVERS)
-Cc: linux-rdma@vger.kernel.org (open list:HFI1 DRIVER)
-Cc: linux-input@vger.kernel.org (open list:INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHSCREEN)...)
-Cc: linux-mtd@lists.infradead.org (open list:NAND FLASH SUBSYSTEM)
-Cc: netdev@vger.kernel.org (open list:NETWORKING DRIVERS)
-Cc: ath10k@lists.infradead.org (open list:QUALCOMM ATHEROS ATH10K WIRELESS DRIVER)
-Cc: linux-wireless@vger.kernel.org (open list:NETWORKING DRIVERS (WIRELESS))
-Cc: linux-scsi@vger.kernel.org (open list:IBM Power Virtual FC Device Drivers)
-Cc: linuxppc-dev@lists.ozlabs.org (open list:LINUX FOR POWERPC (32-BIT AND 64-BIT))
-Cc: linux-usb@vger.kernel.org (open list:USB SUBSYSTEM)
-Cc: virtualization@lists.linux-foundation.org (open list:VIRTIO CORE AND NET DRIVERS)
-Cc: linux-mm@kvack.org (open list:MEMORY MANAGEMENT)
+Signed-off-by: Mikhail Malygin <m.malygin@yadro.com>
+Signed-off-by: Sergey Kojushev <s.kojushev@yadro.com>
+---
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-
-Kieran Bingham (17):
-  arch: arm: mach-davinci: Fix trivial spelling
-  drivers: infiniband: Fix trivial spelling
-  drivers: gpio: Fix trivial spelling
-  drivers: mtd: nand: raw: Fix trivial spelling
-  drivers: net: Fix trivial spelling
-  drivers: scsi: Fix trivial spelling
-  drivers: usb: Fix trivial spelling
-  drivers: gpu: drm: Fix trivial spelling
-  drivers: regulator: Fix trivial spelling
-  drivers: input: joystick: Fix trivial spelling
-  drivers: infiniband: Fix trivial spelling
-  drivers: devfreq: Fix trivial spelling
-  include: dynamic_debug.h: Fix trivial spelling
-  kernel: trace: Fix trivial spelling
-  mm: Fix trivial spelling
-  regulator: gpio: Fix trivial spelling
-  scripts/spelling.txt: Add descriptors correction
-
- arch/arm/mach-davinci/board-da830-evm.c  | 2 +-
- drivers/devfreq/devfreq-event.c          | 4 ++--
- drivers/gpio/TODO                        | 2 +-
- drivers/gpu/drm/drm_dp_helper.c          | 2 +-
- drivers/infiniband/hw/hfi1/iowait.h      | 2 +-
- drivers/infiniband/hw/hfi1/ipoib_tx.c    | 2 +-
- drivers/infiniband/hw/hfi1/verbs_txreq.h | 2 +-
- drivers/input/joystick/spaceball.c       | 2 +-
- drivers/mtd/nand/raw/mxc_nand.c          | 2 +-
- drivers/mtd/nand/raw/nand_bbt.c          | 2 +-
- drivers/net/wan/lmc/lmc_main.c           | 2 +-
- drivers/net/wireless/ath/ath10k/usb.c    | 2 +-
- drivers/net/wireless/ath/ath6kl/usb.c    | 2 +-
- drivers/net/wireless/cisco/airo.c        | 2 +-
- drivers/regulator/fixed.c                | 2 +-
- drivers/regulator/gpio-regulator.c       | 2 +-
- drivers/scsi/ibmvscsi/ibmvfc.c           | 2 +-
- drivers/scsi/ibmvscsi/ibmvscsi.c         | 2 +-
- drivers/scsi/qla2xxx/qla_inline.h        | 2 +-
- drivers/scsi/qla2xxx/qla_iocb.c          | 6 +++---
- drivers/usb/core/of.c                    | 2 +-
- include/drm/drm_dp_helper.h              | 2 +-
- include/linux/dynamic_debug.h            | 2 +-
- kernel/trace/trace_events.c              | 2 +-
- mm/balloon_compaction.c                  | 4 ++--
- scripts/spelling.txt                     | 1 +
- 26 files changed, 30 insertions(+), 29 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index b8a22af724e8..a539b11b4f9b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -684,6 +684,7 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, const struct ib_send_wr *wr,
+ 	unsigned int mask;
+ 	unsigned int length = 0;
+ 	int i;
++	struct ib_send_wr *next;
+ 
+ 	while (wr) {
+ 		mask = wr_opcode_mask(wr->opcode, qp);
+@@ -700,6 +701,8 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, const struct ib_send_wr *wr,
+ 			break;
+ 		}
+ 
++		next = READ_ONCE(wr->next);
++
+ 		length = 0;
+ 		for (i = 0; i < wr->num_sge; i++)
+ 			length += wr->sg_list[i].length;
+@@ -710,7 +713,7 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, const struct ib_send_wr *wr,
+ 			*bad_wr = wr;
+ 			break;
+ 		}
+-		wr = wr->next;
++		wr = next;
+ 	}
+ 
+ 	rxe_run_task(&qp->req.task, 1);
 -- 
-2.25.1
+2.21.0
 
