@@ -2,95 +2,203 @@ Return-Path: <SRS0=N7RC=7W=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2220C433E1
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:57:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FBBC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 07:00:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73B7F20737
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 00:57:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78B132074B
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Jun 2020 07:00:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591664278;
-	bh=oFIdwIPcbSh6WjyfTNz2t9h1mlmA98OxWyFA46v78Jg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=lf1cq2sMGMV3jums/ofS11eC9ujSjH1JzIL6wi7GTqD4rL8wkmvnYgUTSUPOEjoem
-	 NGsXkHGxCCys9ajZwJ3T1ue3Tz+L4jwrfh0mLEhnscIp9S/waTlU9kGnQ+OYo0e0mX
-	 nUV0E56VpO7yPbQyGUl4pRBP6iCTzvu1cXIXRw4k=
+	s=default; t=1591686035;
+	bh=rDOJUa2MoL+6PLdRJL8VEpQrMjWt4yMozKrDvxEuIZc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=KmluAq6wQMMCZBbhocpROhtOalDfqLr50VRmUzTBCw2JnNrWqI1HgL+GBNUl9zI17
+	 e1vKE6DuDn1udSOgLgUwtgNx6IRrDEMi56+DnjqFb/RsiOXHkwfuggAhAGqZfdOFb5
+	 suoJSzfsE774pHT5Na3gIaVr0oIjzIPIUQAgZFW0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728605AbgFIA5c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 8 Jun 2020 20:57:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54406 "EHLO mail.kernel.org"
+        id S1726917AbgFIHAe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 9 Jun 2020 03:00:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728265AbgFHXIv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:08:51 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        id S1725770AbgFIHAb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 9 Jun 2020 03:00:31 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1CF4E21475;
-        Mon,  8 Jun 2020 23:08:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 76FD12074B;
+        Tue,  9 Jun 2020 07:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1591657731;
-        bh=oFIdwIPcbSh6WjyfTNz2t9h1mlmA98OxWyFA46v78Jg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AYe+7FSqRXpY6YsctQaifpSRtMogA1eMZzVPVqMl1GwL9W28tucxa26OlXgyLdM8G
-         7glcAxO5Ncom+3iuS1M5R+FTVqtoia1cG/FCLh9Grw/SqcRZk5FKJzi5VnluMT58jG
-         y21DT7En6uE8V6iGoyELbo1tAgnznFkbpbX+eg3c=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zou Wei <zou_wei@huawei.com>, Hulk Robot <hulkci@huawei.com>,
-        Saeed Mahameed <saeedm@mellanox.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.7 122/274] net/mlx4_core: Add missing iounmap() in error path
-Date:   Mon,  8 Jun 2020 19:03:35 -0400
-Message-Id: <20200608230607.3361041-122-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200608230607.3361041-1-sashal@kernel.org>
-References: <20200608230607.3361041-1-sashal@kernel.org>
+        s=default; t=1591686030;
+        bh=rDOJUa2MoL+6PLdRJL8VEpQrMjWt4yMozKrDvxEuIZc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=bAT2V+oSYqNg8tbwqBijILYHYjvYEkUB99JK/68GpsNOK2DP+OjFdWhTDC6lGHgsi
+         n75902sDGcKIVE+Ax1OZcwhe3/cyvsbxrUk+U8pqq1ZhSkNzK6sNtyqPM36Pch82Xk
+         j2WKfiGOVlqA+JcEQu3R5ymxGZ9j5y7F4tqCKOe8=
+Date:   Tue, 9 Jun 2020 10:00:26 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Divya Indi <divya.indi@oracle.com>
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Kaike Wan <kaike.wan@intel.com>,
+        Gerd Rausch <gerd.rausch@oracle.com>,
+        =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>,
+        Srinivas Eeda <srinivas.eeda@oracle.com>,
+        Rama Nichanamatlu <rama.nichanamatlu@oracle.com>,
+        Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v3] IB/sa: Resolving use-after-free in ib_nl_send_msg
+Message-ID: <20200609070026.GJ164174@unreal>
+References: <1591627576-920-1-git-send-email-divya.indi@oracle.com>
+ <1591627576-920-2-git-send-email-divya.indi@oracle.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1591627576-920-2-git-send-email-divya.indi@oracle.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zou Wei <zou_wei@huawei.com>
+On Mon, Jun 08, 2020 at 07:46:16AM -0700, Divya Indi wrote:
+> Commit 3ebd2fd0d011 ("IB/sa: Put netlink request into the request list before sending")'
+> -
+> 1. Adds the query to the request list before ib_nl_snd_msg.
+> 2. Removes ib_nl_send_msg from within the spinlock which also makes it
+> possible to allocate memory with GFP_KERNEL.
+>
+> However, if there is a delay in sending out the request (For
+> eg: Delay due to low memory situation) the timer to handle request timeout
+> might kick in before the request is sent out to ibacm via netlink.
+> ib_nl_request_timeout may release the query causing a use after free situation
+> while accessing the query in ib_nl_send_msg.
+>
+> Call Trace for the above race:
+>
+> [<ffffffffa02f43cb>] ? ib_pack+0x17b/0x240 [ib_core]
+> [<ffffffffa032aef1>] ib_sa_path_rec_get+0x181/0x200 [ib_sa]
+> [<ffffffffa0379db0>] rdma_resolve_route+0x3c0/0x8d0 [rdma_cm]
+> [<ffffffffa0374450>] ? cma_bind_port+0xa0/0xa0 [rdma_cm]
+> [<ffffffffa040f850>] ? rds_rdma_cm_event_handler_cmn+0x850/0x850
+> [rds_rdma]
+> [<ffffffffa040f22c>] rds_rdma_cm_event_handler_cmn+0x22c/0x850
+> [rds_rdma]
+> [<ffffffffa040f860>] rds_rdma_cm_event_handler+0x10/0x20 [rds_rdma]
+> [<ffffffffa037778e>] addr_handler+0x9e/0x140 [rdma_cm]
+> [<ffffffffa026cdb4>] process_req+0x134/0x190 [ib_addr]
+> [<ffffffff810a02f9>] process_one_work+0x169/0x4a0
+> [<ffffffff810a0b2b>] worker_thread+0x5b/0x560
+> [<ffffffff810a0ad0>] ? flush_delayed_work+0x50/0x50
+> [<ffffffff810a68fb>] kthread+0xcb/0xf0
+> [<ffffffff816ec49a>] ? __schedule+0x24a/0x810
+> [<ffffffff816ec49a>] ? __schedule+0x24a/0x810
+> [<ffffffff810a6830>] ? kthread_create_on_node+0x180/0x180
+> [<ffffffff816f25a7>] ret_from_fork+0x47/0x90
+> [<ffffffff810a6830>] ? kthread_create_on_node+0x180/0x180
+> ....
+> RIP  [<ffffffffa03296cd>] send_mad+0x33d/0x5d0 [ib_sa]
+>
+> To resolve the above issue -
+> 1. Add the req to the request list only after the request has been sent out.
+> 2. To handle the race where response comes in before adding request to
+> the request list, send(rdma_nl_multicast) and add to list while holding the
+> spinlock - request_lock.
+> 3. Use GFP_NOWAIT for rdma_nl_multicast since it is called while holding
+> a spinlock. In case of memory allocation failure, request will go out to SA.
+>
+> Signed-off-by: Divya Indi <divya.indi@oracle.com>
+> Fixes: 3ebd2fd0d011 ("IB/sa: Put netlink request into the request list
+> before sending")
 
-[ Upstream commit c90af587a9eee697e2d89683113707cada70116a ]
+Author SOB should be after "Fixes" line.
 
-This fixes the following coccicheck warning:
+> ---
+>  drivers/infiniband/core/sa_query.c | 34 +++++++++++++++++-----------------
+>  1 file changed, 17 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index 74e0058..042c99b 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -836,6 +836,9 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
+>  	void *data;
+>  	struct ib_sa_mad *mad;
+>  	int len;
+> +	unsigned long flags;
+> +	unsigned long delay;
+> +	int ret;
+>
+>  	mad = query->mad_buf->mad;
+>  	len = ib_nl_get_path_rec_attrs_len(mad->sa_hdr.comp_mask);
+> @@ -860,35 +863,32 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
+>  	/* Repair the nlmsg header length */
+>  	nlmsg_end(skb, nlh);
+>
+> -	return rdma_nl_multicast(&init_net, skb, RDMA_NL_GROUP_LS, gfp_mask);
+> +	spin_lock_irqsave(&ib_nl_request_lock, flags);
+> +	ret =  rdma_nl_multicast(&init_net, skb, RDMA_NL_GROUP_LS, GFP_NOWAIT);
 
-drivers/net/ethernet/mellanox/mlx4/crdump.c:200:2-8: ERROR: missing iounmap;
-ioremap on line 190 and execution via conditional on line 198
+It is hard to be convinced that this is correct solution. The mix of
+gfp_flags and GFP_NOWAIT at the same time and usage of
+ib_nl_request_lock to protect lists and suddenly rdma_nl_multicast() too
+makes this code unreadable/non-maintainable.
 
-Fixes: 7ef19d3b1d5e ("devlink: report error once U32_MAX snapshot ids have been used")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Zou Wei <zou_wei@huawei.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx4/crdump.c | 1 +
- 1 file changed, 1 insertion(+)
+> +	if (!ret) {
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/crdump.c b/drivers/net/ethernet/mellanox/mlx4/crdump.c
-index 73eae80e1cb7..ac5468b77488 100644
---- a/drivers/net/ethernet/mellanox/mlx4/crdump.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/crdump.c
-@@ -197,6 +197,7 @@ int mlx4_crdump_collect(struct mlx4_dev *dev)
- 	err = devlink_region_snapshot_id_get(devlink, &id);
- 	if (err) {
- 		mlx4_err(dev, "crdump: devlink get snapshot id err %d\n", err);
-+		iounmap(cr_space);
- 		return err;
- 	}
- 
--- 
-2.25.1
+Please use kernel coding style.
 
+if (ret) {
+  spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+  return ret;
+  }
+
+ ....
+
+> +		/* Put the request on the list.*/
+> +		delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
+> +		query->timeout = delay + jiffies;
+> +		list_add_tail(&query->list, &ib_nl_request_list);
+> +		/* Start the timeout if this is the only request */
+> +		if (ib_nl_request_list.next == &query->list)
+> +			queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+> +	}
+> +	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+> +
+> +	return ret;
+>  }
+>
+>  static int ib_nl_make_request(struct ib_sa_query *query, gfp_t gfp_mask)
+>  {
+> -	unsigned long flags;
+> -	unsigned long delay;
+>  	int ret;
+>
+>  	INIT_LIST_HEAD(&query->list);
+>  	query->seq = (u32)atomic_inc_return(&ib_nl_sa_request_seq);
+>
+> -	/* Put the request on the list first.*/
+> -	spin_lock_irqsave(&ib_nl_request_lock, flags);
+> -	delay = msecs_to_jiffies(sa_local_svc_timeout_ms);
+> -	query->timeout = delay + jiffies;
+> -	list_add_tail(&query->list, &ib_nl_request_list);
+> -	/* Start the timeout if this is the only request */
+> -	if (ib_nl_request_list.next == &query->list)
+> -		queue_delayed_work(ib_nl_wq, &ib_nl_timed_work, delay);
+> -	spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+> -
+>  	ret = ib_nl_send_msg(query, gfp_mask);
+>  	if (ret) {
+>  		ret = -EIO;
+> -		/* Remove the request */
+> -		spin_lock_irqsave(&ib_nl_request_lock, flags);
+> -		list_del(&query->list);
+> -		spin_unlock_irqrestore(&ib_nl_request_lock, flags);
+>  	}
+
+Brackets should be removed too.
+>
+>  	return ret;
+> --
+> 1.8.3.1
+>
