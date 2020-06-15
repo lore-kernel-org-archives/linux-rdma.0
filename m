@@ -2,83 +2,78 @@ Return-Path: <SRS0=LdXM=74=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A39D8C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 08:32:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E855DC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 08:32:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7DE0920714
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 08:32:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C53F920714
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 08:32:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QtOkR5jf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aWZbMGLU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728180AbgFOIcM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 Jun 2020 04:32:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39116 "EHLO
+        id S1729125AbgFOIc1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 Jun 2020 04:32:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728162AbgFOIcM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 Jun 2020 04:32:12 -0400
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F3B2C061A0E;
-        Mon, 15 Jun 2020 01:32:12 -0700 (PDT)
-Received: by mail-wr1-x443.google.com with SMTP id j10so16123714wrw.8;
-        Mon, 15 Jun 2020 01:32:11 -0700 (PDT)
+        with ESMTP id S1729120AbgFOIc0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 Jun 2020 04:32:26 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 408AAC061A0E;
+        Mon, 15 Jun 2020 01:32:26 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id l10so16111718wrr.10;
+        Mon, 15 Jun 2020 01:32:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=9KYL3/QNGdUfmk+FO2Zw/YosA4y8k6PjID3Uf7sVNdc=;
-        b=QtOkR5jfF7lmmFdPdljqkdC04VnCGOnahNDsT9a2uCWPfLVGqPGebsOQohqZdJmAvO
-         Q9kerB0b+T23muU/+2Yiydhh1mVDK5jhtS+tyjRqZlsLxmrPjIJOM01J96eIryeRw3nd
-         HrsdmS5De7fOFhuWQNR80hKHSC0jWry8ZtylyDvAKaoglk7CLsNrmf8vGjGn6y6BEuUZ
-         TCF59RiuSsjizZdHIMC3UqT6ThWx8GgWALJXvI9zMYNkRTAJsji+c1Js19VKRUJKuGHh
-         4Dtn9I7UI/WUhNNY7JUZzJ4mgyOTLNMtDgEWW/KBcp4EbsVrQe9+ab2yD4mtTQmFIT/7
-         qEfg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=d3aQ/PgWjHRbwdP69pQYwDMstdmD8+pp4wlXRjxHodA=;
+        b=aWZbMGLUyNSKzVZstBGG6z7eZvsz5piuZ/f5umAvnUxKhZ6nIDYzliFDXW/+/OTPeI
+         2M3ceHFBb6iwy4Sy6pX/0g9ulNbfXBurcKzZnP2EzOdN1Dn/M0gl05Jwr4kfI3J+2N2k
+         deCpdOEVmzl1DNjiIVxxMtdJ/kW+mTuwyMAV4FOueKp6VcLLqdPksLhluyTT/s+/LZsw
+         kIRVCtVMPiyev+RINHxAAsDQn19VURIjwvOTVHxJDIEqGWHjIWUAMFigBMy37F7RtNHO
+         jWhOzopPPl5yj/BSsC+uj1YQCvrEpgc9GztXPO4j48eCM5ZGmcxcUVtCZgmu6y4QQZd2
+         eIdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=9KYL3/QNGdUfmk+FO2Zw/YosA4y8k6PjID3Uf7sVNdc=;
-        b=uHr9qGJNEOGO9zak3KydO4LhcXVxtaspA4i0E1XCIum4pWR478zw1ISswd92PujOFT
-         j4aSVdstlfDL2f0o5wxnvmVRzkQV+JgkKH5r5WRB5eV4ecks/lCTETdG67TbsbB6Q0k1
-         nUN3txmb5em/UYyHD4WRPhfqhRVQ/bftvXkJG8Jc2d2pfPToWjt383LzQp0u1QQ6v1Cx
-         i45L+TGV8JDpQPO1MmOmmEl/RF/n1IBFcaSIRnmU+qKKhsocXdroe3qcfgB1JEmZf8xU
-         9d2M2aSL0yge45AEiJm8jH+yFk55eiF3wY1Ea0JSwfWFKFe6wG+xPBSOSp03LAzANZm7
-         9hSg==
-X-Gm-Message-State: AOAM5311LLKGeF8fMCvHlrBA6uR8332qLumU24ZRWb0qqhYrdQLyNdlJ
-        MeFSav1uDugAKpCRj6uticY=
-X-Google-Smtp-Source: ABdhPJxLXnD+PnWZMq7OsnU4Mxg6o2Ccm3rgVEepbhXZzGk1RDZts5KG01u8CP0K7rsYZGJjSKF1qg==
-X-Received: by 2002:a5d:428e:: with SMTP id k14mr27402732wrq.21.1592209930738;
-        Mon, 15 Jun 2020 01:32:10 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=d3aQ/PgWjHRbwdP69pQYwDMstdmD8+pp4wlXRjxHodA=;
+        b=icuYWSnmJI5MhiCLUPk2ZYMJpdXQLBS+iWb/w/iuJrv/BSOqyShEK5q4LTuS6cpftl
+         KYXr3J/J2+guEnOxl7UIzDB9TfX7xOREmgxM6XPBg1haa4cLu/nPxm/Zucbyw5VJi0W3
+         XK8UfY7M6Z29Qx0GZ/P2+txOA3QV5MHivxPM8js544TtJ5IzBl5mMuYHCIA/kJPU7ohC
+         4Lk3jTLFDh7GAOi/O7OV3B4Qoddc0hdMCisvnsbxbQhnPm6wEtWhdw7GeNtqZz0921Nt
+         +HLADuo4cdk2XGHoEheIfNgeCZg7eR5l/hBslLlu869JAgFmpz3MyVpXMSFIFosiL6N7
+         Le1g==
+X-Gm-Message-State: AOAM532L8M/62CQNn+Ja1ua1OnSEuM0Jz8tGnhzZxMyeINftUByilZMK
+        ADcy7TiGlsCtSBOoFfxqbrY=
+X-Google-Smtp-Source: ABdhPJw3IaYVJt7P8aT+wywoWLCu1BN+hwGNrjLmTa8ClloFJ7Il32qviKwMUw1SM4b7jQFKmJZSzw==
+X-Received: by 2002:adf:fec3:: with SMTP id q3mr27238053wrs.123.1592209945027;
+        Mon, 15 Jun 2020 01:32:25 -0700 (PDT)
 Received: from net.saheed (54006BB0.dsl.pool.telekom.hu. [84.0.107.176])
-        by smtp.gmail.com with ESMTPSA id z206sm21954745wmg.30.2020.06.15.01.32.08
+        by smtp.gmail.com with ESMTPSA id z206sm21954745wmg.30.2020.06.15.01.32.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jun 2020 01:32:10 -0700 (PDT)
+        Mon, 15 Jun 2020 01:32:24 -0700 (PDT)
 From:   refactormyself@gmail.com
 To:     helgaas@kernel.org
 Cc:     Bolarinwa Olayemi Saheed <refactormyself@gmail.com>,
-        bjorn@helgaas.com, skhan@linuxfoundation.org,
-        linux-pci@vger.kernel.org, Vinod Koul <vkoul@kernel.org>,
-        dmaengine@vger.kernel.org,
+        bjorn@helgaas.com, linux-pci@vger.kernel.org,
+        skhan@linuxfoundation.org,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Dennis Dalessandro <dennis.dalessandro@intel.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-        Don Brace <don.brace@microsemi.com>,
-        "James E.J. Bottomley" <jejb@linux.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org,
-        Russell Currey <ruscur@russell.cc>,
-        Sam Bobroff <sbobroff@linux.ibm.com>,
-        "Oliver O'Halloran" <oohall@gmail.com>,
-        linuxppc-dev@lists.ozlabs.org,
         linux-kernel-mentees@lists.linuxfoundation.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 0/8 v2] PCI: Align return values of PCIe capability and PCI accessors
-Date:   Mon, 15 Jun 2020 09:32:17 +0200
-Message-Id: <20200615073225.24061-1-refactormyself@gmail.com>
+Subject: [PATCH v2 3/8] IB/hfi1: Convert PCIBIOS_* errors to generic -E* errors
+Date:   Mon, 15 Jun 2020 09:32:20 +0200
+Message-Id: <20200615073225.24061-4-refactormyself@gmail.com>
 X-Mailer: git-send-email 2.18.2
+In-Reply-To: <20200615073225.24061-1-refactormyself@gmail.com>
+References: <20200615073225.24061-1-refactormyself@gmail.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -86,55 +81,75 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Bolarinwa Olayemi Saheed <refactormyself@gmail.com>
 
+restore_pci_variables() and save_pci_variables() return PCIBIOS_ error
+codes from PCIe capability accessors.
 
-PATCH 1/8 to 7/8:
-PCIBIOS_ error codes have positive values and they are passed down the
-call heirarchy from accessors. For functions which are meant to return
-only a negative value on failure, passing on this value is a bug.
-To mitigate this, call pcibios_err_to_errno() before passing on return
-value from PCIe capability accessors call heirarchy. This function
-converts any positive PCIBIOS_ error codes to negative generic error
-values.
+PCIBIOS_ error codes have positive values. Passing on these values is
+inconsistent with functions which return only a negative value on failure.
 
-PATCH 8/8:
-The PCIe capability accessors can return 0, -EINVAL, or any PCIBIOS_ error
-code. The pci accessor on the other hand can only return 0 or any PCIBIOS_
-error code.This inconsistency among these accessor makes it harder for
-callers to check for errors.
-Return PCIBIOS_BAD_REGISTER_NUMBER instead of -EINVAL in all PCIe
-capability accessors.
+Before passing on the return value of PCIe capability accessors, call
+pcibios_err_to_errno() to convert any positive PCIBIOS_ error codes to
+negative generic error values.
 
-MERGING:
-These may all be merged via the PCI tree, since it is a collection of
-similar fixes. This way they all get merged at once.
+Fix redundant initialisation.
 
-Version 2:
-* cc to maintainers and mailing lists
-* Edit the Subject to conform with previous style
-* reorder "Signed by" and "Suggested by"
-* made spelling corrections
-* fixed redundant initialisation in PATCH 3/8
-* include missing call to pcibios_err_to_errno() in PATCH 6/8 and 7/8
+Suggested-by: Bjorn Helgaas <bjorn@helgaas.com>
+Signed-off-by: Bolarinwa Olayemi Saheed <refactormyself@gmail.com>
+---
+ drivers/infiniband/hw/hfi1/pcie.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-
-Bolarinwa Olayemi Saheed (8):
-  dmaengine: ioatdma: Convert PCIBIOS_* errors to generic -E* errors
-  IB/hfi1: Convert PCIBIOS_* errors to generic -E* errors
-  IB/hfi1: Convert PCIBIOS_* errors to generic -E* errors
-  PCI: Convert PCIBIOS_* errors to generic -E* errors
-  scsi: smartpqi: Convert PCIBIOS_* errors to generic -E* errors
-  PCI/AER: Convert PCIBIOS_* errors to generic -E* errors
-  PCI/AER: Convert PCIBIOS_* errors to generic -E* errors
-  PCI: Align return values of PCIe capability and PCI accessorss
-
- drivers/dma/ioat/init.c               |  4 ++--
- drivers/infiniband/hw/hfi1/pcie.c     | 18 +++++++++++++-----
- drivers/pci/access.c                  |  8 ++++----
- drivers/pci/pci.c                     | 10 ++++++++--
- drivers/pci/pcie/aer.c                | 12 ++++++++++--
- drivers/scsi/smartpqi/smartpqi_init.c |  6 +++++-
- 6 files changed, 42 insertions(+), 16 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 1a6268d61977..2a45f34ac6c8 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -334,10 +334,14 @@ int pcie_speeds(struct hfi1_devdata *dd)
+ 	return 0;
+ }
+ 
+-/* restore command and BARs after a reset has wiped them out */
++/**
++ * Restore command and BARs after a reset has wiped them out
++ *
++ * Returns 0 on success, otherwise a negative error value
++ */
+ int restore_pci_variables(struct hfi1_devdata *dd)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	ret = pci_write_config_word(dd->pcidev, PCI_COMMAND, dd->pci_command);
+ 	if (ret)
+@@ -386,13 +390,17 @@ int restore_pci_variables(struct hfi1_devdata *dd)
+ 
+ error:
+ 	dd_dev_err(dd, "Unable to write to PCI config\n");
+-	return ret;
++	return pcibios_err_to_errno(ret);
+ }
+ 
+-/* Save BARs and command to rewrite after device reset */
++/**
++ * Save BARs and command to rewrite after device reset
++ *
++ * Returns 0 on success, otherwise a negative error value
++ */
+ int save_pci_variables(struct hfi1_devdata *dd)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	ret = pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
+ 				    &dd->pcibar0);
+@@ -441,7 +449,7 @@ int save_pci_variables(struct hfi1_devdata *dd)
+ 
+ error:
+ 	dd_dev_err(dd, "Unable to read from PCI config\n");
+-	return ret;
++	return pcibios_err_to_errno(ret);
+ }
+ 
+ /*
 -- 
 2.18.2
 
