@@ -2,76 +2,102 @@ Return-Path: <SRS0=LdXM=74=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9539C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 09:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D162BC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 13:20:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD1E32068E
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 09:09:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2366207BB
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 13:20:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AfUQqtTz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729297AbgFOJJF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 Jun 2020 05:09:05 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5891 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728411AbgFOJJE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 15 Jun 2020 05:09:04 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id E0CBB22AA912C8934AB8;
-        Mon, 15 Jun 2020 17:09:01 +0800 (CST)
-Received: from localhost.localdomain.localdomain (10.175.113.25) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 15 Jun 2020 17:08:53 +0800
-From:   Jing Xiangfeng <jingxiangfeng@huawei.com>
-To:     <bvanassche@acm.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, <target-devel@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
-        <jingxiangfeng@huawei.com>
-Subject: [PATCH] IB/srpt: Fix a potential null pointer dereference
-Date:   Mon, 15 Jun 2020 17:12:20 +0800
-Message-ID: <20200615091220.6439-1-jingxiangfeng@huawei.com>
-X-Mailer: git-send-email 2.20.1
+        id S1730141AbgFONUt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 Jun 2020 09:20:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55494 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729916AbgFONUs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 Jun 2020 09:20:48 -0400
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C7ACC061A0E;
+        Mon, 15 Jun 2020 06:20:48 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id t9so17752385ioj.13;
+        Mon, 15 Jun 2020 06:20:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:cc:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=+SAKf2PrrgGkANxHrsuAJ5/9n8tv9Ilw1WTjGnmrFtQ=;
+        b=AfUQqtTzf8AbLw08e/Zkqh4XuzAjIPTRFXwyB5RQ3WavBhWPClrROj0tNvOl4hBWML
+         ypE56S5E+05lo15ZmUHaDEsIPwL5AucJgq1Yp28eIVwUsBTJBH4fXw9dbMQBfHM3ZrrU
+         pI/jcemudz7bS0vfqZu1+7cZxKw+0ZxWgrTEMernKfqEzF9lBrfMq3d8hd9G+9BR1yTm
+         XdIe73G9Y6FIXiaFfcGT9pZdnbfruE4VhAKnzQ6BILViNqhsxS/E6GCRqkwoookV8aHz
+         6MCKNXjBHlK9rJtp1RHG7bQnjSxXG3TcF89InFPPxPTSxabcDP89AunNrsJHsYgb1H0a
+         bp7Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=+SAKf2PrrgGkANxHrsuAJ5/9n8tv9Ilw1WTjGnmrFtQ=;
+        b=QpPBqI7meyfeBuBJFgUXB9cWoeLS1O1d6L3wWuf4fPYW7qNaTIyQcpjv3kAGazONlg
+         JEZvg1rXsBpl1N7fBhnCySQDPx3/bpbWLil8yGIDTTsn5YHdbqrM2D1ej3Oo3p1Ym3Fs
+         etB8zWaOx+Iab7cygKP0sKrlG8jswNX0cXDoaKPJSkJXTiJD8ldQO17cV3/dEJd9viO+
+         o++sKRbyGSQiosrBrt2t5XOFOWL83mLBmJ1F4AL6i20eHnp4ycAKkuEx1thWMVXcLIO/
+         kzcfiOqyCb4MOocKs9dFF1uN6QkGAL//hFVGns3RsO9gpPqHiTuxsVzVTEIrJTRM94/Z
+         L7Cg==
+X-Gm-Message-State: AOAM530ZpQMqXN6w85UJbTBRlPsguT1puyzGwSpIVeITk6JV/ZKLma8U
+        rijBFId4+PDWaM56RomzR++kXRsQ
+X-Google-Smtp-Source: ABdhPJyR24dRzmG5RECjhQHL8VqQNBPs2e4tyNUnMmgdqMtPoVmZY9YiRSAyH/tiR8eW3rHdFNIJ7w==
+X-Received: by 2002:a02:cc96:: with SMTP id s22mr20776862jap.102.1592227248127;
+        Mon, 15 Jun 2020 06:20:48 -0700 (PDT)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id y3sm7990789ioy.40.2020.06.15.06.20.47
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jun 2020 06:20:47 -0700 (PDT)
+Received: from manet.1015granger.net (manet.1015granger.net [192.168.1.51])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 05FDKkpD018429;
+        Mon, 15 Jun 2020 13:20:46 GMT
+Subject: [PATCH v1 0/5] RPC/RDMA client fixes
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     anna.schumaker@netapp.com
+Cc:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Mon, 15 Jun 2020 09:20:46 -0400
+Message-ID: <20200615131642.11800.27486.stgit@manet.1015granger.net>
+User-Agent: StGit/0.22-38-gfb18
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.113.25]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In srpt_cm_req_recv(), it is possible that sdev is NULL,
-so we should test sdev before using it.
+Hi Anna-
 
-Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
+This short series attempts to address a crasher (also seen recently
+by Olga), prevent races during disconnect, and fix incorrect client
+behavior when the server responds with ERR_CHUNK.
+
+Please consider these for v5.8-rc. Thanks!
+
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 98552749d71c..72053254bf84 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2143,7 +2143,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 			    const struct srp_login_req *req,
- 			    const char *src_addr)
- {
--	struct srpt_port *sport = &sdev->port[port_num - 1];
-+	struct srpt_port *sport;
- 	struct srpt_nexus *nexus;
- 	struct srp_login_rsp *rsp = NULL;
- 	struct srp_login_rej *rej = NULL;
-@@ -2162,6 +2162,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 	if (WARN_ON(!sdev || !req))
- 		return -EINVAL;
- 
-+	sport = &sdev->port[port_num - 1];
- 	it_iu_len = be32_to_cpu(req->req_it_iu_len);
- 
- 	pr_info("Received SRP_LOGIN_REQ with i_port_id %pI6, t_port_id %pI6 and it_iu_len %d on port %d (guid=%pI6); pkey %#04x\n",
--- 
-2.17.1
+Chuck Lever (5):
+      xprtrdma: Prevent dereferencing r_xprt->rx_ep after it is freed
+      xprtrdma: Use re_connect_status safely in rpcrdma_xprt_connect()
+      xprtrdma: Clean up synopsis of rpcrdma_flush_disconnect()
+      xprtrdma: Clean up disconnect
+      xprtrdma: Fix handling of RDMA_ERROR replies
 
+
+ net/sunrpc/xprtrdma/frwr_ops.c  |  8 +++----
+ net/sunrpc/xprtrdma/rpc_rdma.c  |  9 +++-----
+ net/sunrpc/xprtrdma/transport.c |  2 +-
+ net/sunrpc/xprtrdma/verbs.c     | 38 ++++++++++++++++-----------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |  3 ++-
+ 5 files changed, 29 insertions(+), 31 deletions(-)
+
+--
+Chuck Lever
