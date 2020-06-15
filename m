@@ -2,89 +2,65 @@ Return-Path: <SRS0=LdXM=74=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D823C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 18:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8297BC433E3
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 23:41:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E937520656
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 18:58:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="B79KaIJ0"
+	by mail.kernel.org (Postfix) with ESMTP id 650E120714
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 Jun 2020 23:41:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1592264493;
+	bh=4B3zxx0t4t/cAMnTcb1CgWAE+WyO6z4UCRqXbi4xzFg=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject:List-ID:From;
+	b=HR8sFpoG6LaxWTKjZNUaBQbZbzu4DwrJUnS6P5/+pUjdWfg0lwZfbDOwNnTiH//Sv
+	 GxpIujnesMVN6SaX6niyQgTk6Z/Bor3+gHydgDze3W/e+aPZTHR1vM9L1H35New41K
+	 uVC2Iat0uS4M8PEsPX/87/JkrAY2zaXY1syKOcEQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731409AbgFOS6b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 Jun 2020 14:58:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51380 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731384AbgFOS60 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 Jun 2020 14:58:26 -0400
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD46BC08C5C4
-        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2020 11:58:24 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id c14so16756314qka.11
-        for <linux-rdma@vger.kernel.org>; Mon, 15 Jun 2020 11:58:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=ogzWVexVKpi+yf06GApbiQKLooA3A6vya/Qu53dz5sI=;
-        b=B79KaIJ0c/ww8HMtAlyFH2XjxV7yynKBJIWwJHZ+zW3YLHuCCz9Bbiwsd2WzFuQLPj
-         AFf5Hg0Lqd/XvxHRpc9Uh/4vnlvXaITDgihFpq8wunarv4UVftdSwWHlY7Zs6O9gurGh
-         IE5GaopbWKe7DlaPUx/EPeh0He+mTIL/wqUz367myp2ljsairUj+5vVlWMjYvyLYdFxp
-         yylSrzx5rdvX7s5Lrdyjcy+vzWB+YunSNoTcuzE3AgfFM4I5Skeao2I26rxVl1af8CRx
-         y19r67M7mx7zcJG+Kyz2nHe2SegGgVU7ADSwtl1Rh91OJTnONTAEuipSUQQypIEpgb9A
-         T36g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=ogzWVexVKpi+yf06GApbiQKLooA3A6vya/Qu53dz5sI=;
-        b=BFZNh9NpWnB80JtR68GWLA3YteLufEej0r8Lfe064Xl1MvSLv5RTn7N0HH7rGMUi4a
-         mjIf29NFHByPEJcEj2ER1Iw8aIVI3JPolBDWXRTDe5xjyzKXyjpzKWuuY9VZXZZ8fj2g
-         1dIYnH1yxfEaGHQSePAUcy5V1hweNBBfxC+DxgVADiuEHTFT89pIbdDK3q4lSasW3ED8
-         h2cdqZ3E6cUK+wikYLIfVx4FL9dYhJPDfTzrx1Y4iSh9h5CynNIu/BJVPbi16B+ObZBp
-         njJUJ5v3t4GZ8gHCuwuyxC5U2HHxBFMARUWk/2qcYvTH8M3wgsEslHDQ+oQ9Y0sO+dsQ
-         tUHw==
-X-Gm-Message-State: AOAM533qbkDG2caQKRI1f9zQIjpJLDBuBgZ6atsCFZ22aLe+NpT2pZjH
-        ylTdzgFpEEzP6aD1Zfs6uzT/XA==
-X-Google-Smtp-Source: ABdhPJygSobk4Dm93WtmDBaO2t3cPn7PZD+tDnBnapk86ninzx0O9WOhG6qnekVgX9A+5fj3vrdD7Q==
-X-Received: by 2002:a37:812:: with SMTP id 18mr17402635qki.296.1592247503264;
-        Mon, 15 Jun 2020 11:58:23 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id m13sm13228785qta.90.2020.06.15.11.58.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 15 Jun 2020 11:58:22 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jkuJK-008kGo-AN; Mon, 15 Jun 2020 15:58:22 -0300
-Date:   Mon, 15 Jun 2020 15:58:22 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc:     Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-gpio@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-mtd@lists.infradead.org,
-        netdev@vger.kernel.org, ath10k@lists.infradead.org,
-        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org
-Subject: Re: [PATCH 00/17] spelling.txt: /decriptors/descriptors/
-Message-ID: <20200615185822.GA2084429@ziepe.ca>
-References: <20200609124610.3445662-1-kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        id S1727047AbgFOXlS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 Jun 2020 19:41:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54060 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725960AbgFOXlR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 15 Jun 2020 19:41:17 -0400
+Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9B32D20714;
+        Mon, 15 Jun 2020 23:41:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1592264477;
+        bh=4B3zxx0t4t/cAMnTcb1CgWAE+WyO6z4UCRqXbi4xzFg=;
+        h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
+        b=AxBMUE88327gyD7AWPGhve+Wh8ybmWBfw1Vr5OWesrVIVG7NxKRQswpbnAXtofFbO
+         sLu3+N4jgXfA/ewD0/dj0zcDJeqxyFwsdjQymufuXtNvL6JVXHeVeKRAOTHmv+8yXX
+         grzN41FYi/g6IrCDmey/eZzzF6h2ijQ5jvrYbNpA=
+Date:   Tue, 16 Jun 2020 00:41:15 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc:     linux-gpio@vger.kernel.org, ath10k@lists.infradead.org,
+        linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-usb@vger.kernel.org, netdev@vger.kernel.org,
+        linux-scsi@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org
 In-Reply-To: <20200609124610.3445662-1-kieran.bingham+renesas@ideasonboard.com>
+References: <20200609124610.3445662-1-kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH 00/17] spelling.txt: /decriptors/descriptors/
+Message-Id: <159226447507.27673.16785893373246037922.b4-ty@kernel.org>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jun 09, 2020 at 01:45:53PM +0100, Kieran Bingham wrote:
+On Tue, 9 Jun 2020 13:45:53 +0100, Kieran Bingham wrote:
 > I wouldn't normally go through spelling fixes, but I caught sight of
 > this typo twice, and then foolishly grepped the tree for it, and saw how
 > pervasive it was.
@@ -92,29 +68,34 @@ On Tue, Jun 09, 2020 at 01:45:53PM +0100, Kieran Bingham wrote:
 > so here I am ... fixing a typo globally... but with an addition in
 > scripts/spelling.txt so it shouldn't re-appear ;-)
 > 
-> Cc: linux-arm-kernel@lists.infradead.org (moderated list:TI DAVINCI MACHINE SUPPORT)
-> Cc: linux-kernel@vger.kernel.org (open list)
-> Cc: linux-pm@vger.kernel.org (open list:DEVICE FREQUENCY EVENT (DEVFREQ-EVENT))
-> Cc: linux-gpio@vger.kernel.org (open list:GPIO SUBSYSTEM)
-> Cc: dri-devel@lists.freedesktop.org (open list:DRM DRIVERS)
-> Cc: linux-rdma@vger.kernel.org (open list:HFI1 DRIVER)
-> Cc: linux-input@vger.kernel.org (open list:INPUT (KEYBOARD, MOUSE, JOYSTICK, TOUCHSCREEN)...)
-> Cc: linux-mtd@lists.infradead.org (open list:NAND FLASH SUBSYSTEM)
-> Cc: netdev@vger.kernel.org (open list:NETWORKING DRIVERS)
-> Cc: ath10k@lists.infradead.org (open list:QUALCOMM ATHEROS ATH10K WIRELESS DRIVER)
-> Cc: linux-wireless@vger.kernel.org (open list:NETWORKING DRIVERS (WIRELESS))
-> Cc: linux-scsi@vger.kernel.org (open list:IBM Power Virtual FC Device Drivers)
-> Cc: linuxppc-dev@lists.ozlabs.org (open list:LINUX FOR POWERPC (32-BIT AND 64-BIT))
-> Cc: linux-usb@vger.kernel.org (open list:USB SUBSYSTEM)
-> Cc: virtualization@lists.linux-foundation.org (open list:VIRTIO CORE AND NET DRIVERS)
-> Cc: linux-mm@kvack.org (open list:MEMORY MANAGEMENT)
-> 
-> 
-> Kieran Bingham (17):
->   arch: arm: mach-davinci: Fix trivial spelling
->   drivers: infiniband: Fix trivial spelling
->   drivers: infiniband: Fix trivial spelling
+> [...]
 
-I took these two RDMA patches and merged them, thanks
+Applied to
 
-Jason
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-next
+
+Thanks!
+
+[1/2] regulator: Fix trivial spelling
+      commit: d3f3723387f97118c337689fc73e4199fb4331ce
+[2/2] regulator: gpio: Fix trivial spelling
+      commit: 1f0b740004f09d2f1b716fd6c2fdca81004ded05
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
