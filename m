@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B64C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 10:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEC55C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 10:46:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6FFA920767
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 10:46:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC7D220767
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 10:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592304392;
-	bh=sic7/FYFapc2qvpuSOyNna9wmAzHTunNfgVEhbFCCBw=;
+	s=default; t=1592304394;
+	bh=WakVDEaER0f08Uony9tmw1P06AdpB6xM7Z7SMIdcLWY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=2s8cGP5fnMb+KpjkdfJNUSgQCB4o7qvBlj9aNcGWL3M4jVrf/IEeoLOv+6zf2clRi
-	 oFC6ux7QyU6BavjC1lmyZBzBkeL1wMDHYirLFpdmLV5ZtI1XOgJ7itRe3D3PKpwz8z
-	 bNPMSPPdkkH19dFONDWo50DzjpWsYDeOl9Fv/Bbw=
+	b=zohSb4m2VfRn4uHdQRCCxCkQipqkrVL6X27tYw9tn553VEByreShwyLNkJ59HbC1d
+	 qAm0niBE8dVuo2lc3fkzkPPZoxoeG3uN9OzWTW2M+elV+QrYre+0JO6jZ4LEp5OKZ3
+	 EiVN2J2QUiBDd9XzWhvTBtQjNMD8HjjEhXKuvDLU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728271AbgFPKqa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Jun 2020 06:46:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59902 "EHLO mail.kernel.org"
+        id S1728326AbgFPKqd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 16 Jun 2020 06:46:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725775AbgFPKqa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 16 Jun 2020 06:46:30 -0400
+        id S1725775AbgFPKqd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 16 Jun 2020 06:46:33 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E72C520767;
-        Tue, 16 Jun 2020 10:46:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3242020734;
+        Tue, 16 Jun 2020 10:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592304389;
-        bh=sic7/FYFapc2qvpuSOyNna9wmAzHTunNfgVEhbFCCBw=;
+        s=default; t=1592304392;
+        bh=WakVDEaER0f08Uony9tmw1P06AdpB6xM7Z7SMIdcLWY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sQF1zAzMSVuZ7A0ttGwf3sJkdcOYno2iwc7L0+o2cSHC6tGd39i/zq7UDGEIDmUwD
-         pb77ZaqaUPxPt/fJeVgd6OswLlQSyrRbPKUAlfNCSgwMGpsMULpYf++IRnanbiv2lk
-         6p3nadyl8EJPyBxHa6UkxrA9Y67LNlJhlGVIm02M=
+        b=riayTZzcdfizetGCId5+3qnC7BEfdr2NWG3vb6fmahXKl/u9QOsaGgJWNiMx1/kis
+         3IgApwxUXrRnATwakb43pHXbJCbu3uY580ZQ+hJCGdXOVzXhsIxdTQG7UnlLK27KbS
+         Of16Tg+i9mpKDNFyHq4e2I7hK1stM+WqfWYxNTfg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 10/11] RDMA/mlx5: Add support to get CQ resource in RAW format
-Date:   Tue, 16 Jun 2020 13:40:05 +0300
-Message-Id: <20200616104006.2425549-11-leon@kernel.org>
+Subject: [PATCH rdma-next v2 11/11] RDMA/mlx5: Add support to get MR resource in RAW format
+Date:   Tue, 16 Jun 2020 13:40:06 +0300
+Message-Id: <20200616104006.2425549-12-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200616104006.2425549-1-leon@kernel.org>
 References: <20200616104006.2425549-1-leon@kernel.org>
@@ -57,7 +57,7 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-Add support to get CQ resource dump in RAW format.
+Add support to get MR (mkey) resource dump in RAW format.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
@@ -68,48 +68,48 @@ Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
  3 files changed, 10 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 7ac75935d3c2..30e0645ca3ba 100644
+index 30e0645ca3ba..9dbc87c540e4 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6598,6 +6598,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
- 	.drain_rq = mlx5_ib_drain_rq,
- 	.drain_sq = mlx5_ib_drain_sq,
+@@ -6600,6 +6600,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
  	.enable_driver = mlx5_ib_enable_driver,
-+	.fill_res_cq_entry_raw = mlx5_ib_fill_res_cq_entry_raw,
+ 	.fill_res_cq_entry_raw = mlx5_ib_fill_res_cq_entry_raw,
  	.fill_res_mr_entry = mlx5_ib_fill_res_mr_entry,
++	.fill_res_mr_entry_raw = mlx5_ib_fill_res_mr_entry_raw,
  	.fill_res_qp_entry_raw = mlx5_ib_fill_res_qp_entry_raw,
  	.fill_stat_mr_entry = mlx5_ib_fill_stat_mr_entry,
+ 	.get_dev_fw_str = get_dev_fw_str,
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 7285c00e474d..c6b2102a5a09 100644
+index c6b2102a5a09..2fd199c07dda 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1377,6 +1377,7 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
+@@ -1376,6 +1376,7 @@ struct mlx5_core_dev *mlx5_ib_get_native_port_mdev(struct mlx5_ib_dev *dev,
+ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
  				  u8 port_num);
  int mlx5_ib_fill_res_mr_entry(struct sk_buff *msg, struct ib_mr *ib_mr);
++int mlx5_ib_fill_res_mr_entry_raw(struct sk_buff *msg, struct ib_mr *ib_mr);
  int mlx5_ib_fill_res_qp_entry_raw(struct sk_buff *msg, struct ib_qp *ibqp);
-+int mlx5_ib_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ibcq);
+ int mlx5_ib_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ibcq);
  int mlx5_ib_fill_stat_mr_entry(struct sk_buff *msg, struct ib_mr *ib_mr);
- 
- extern const struct uapi_definition mlx5_ib_devx_defs[];
 diff --git a/drivers/infiniband/hw/mlx5/restrack.c b/drivers/infiniband/hw/mlx5/restrack.c
-index c8b91d8e0f42..7db49650a2b6 100644
+index 7db49650a2b6..224a63975822 100644
 --- a/drivers/infiniband/hw/mlx5/restrack.c
 +++ b/drivers/infiniband/hw/mlx5/restrack.c
-@@ -138,6 +138,14 @@ int mlx5_ib_fill_res_mr_entry(struct sk_buff *msg,
+@@ -109,6 +109,14 @@ int mlx5_ib_fill_stat_mr_entry(struct sk_buff *msg,
  	return -EMSGSIZE;
  }
  
-+int mlx5_ib_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ibcq)
++int mlx5_ib_fill_res_mr_entry_raw(struct sk_buff *msg, struct ib_mr *ibmr)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(ibcq->device);
-+	struct mlx5_ib_cq *cq = to_mcq(ibcq);
++	struct mlx5_ib_mr *mr = to_mmr(ibmr);
 +
-+	return fill_res_raw(msg, dev, MLX5_SGMT_TYPE_PRM_QUERY_CQ, cq->mcq.cqn);
++	return fill_res_raw(msg, mr->dev, MLX5_SGMT_TYPE_PRM_QUERY_MKEY,
++			    mlx5_mkey_to_idx(mr->mmkey.key));
 +}
 +
- int mlx5_ib_fill_res_qp_entry_raw(struct sk_buff *msg, struct ib_qp *ibqp)
+ int mlx5_ib_fill_res_mr_entry(struct sk_buff *msg,
+ 			      struct ib_mr *ibmr)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
 -- 
 2.26.2
 
