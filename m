@@ -2,110 +2,114 @@ Return-Path: <SRS0=8Neo=75=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12581C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 19:21:22 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEE90208C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E95E4C433DF
 	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 19:21:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="FeY0n1Hs"
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id CA7C120776
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 19:21:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730912AbgFPTVU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1730769AbgFPTVU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 16 Jun 2020 15:21:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51472 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730651AbgFPTU4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Jun 2020 15:20:56 -0400
-Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com [IPv6:2607:f8b0:4864:20::743])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECAB4C061573
-        for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2020 12:20:55 -0700 (PDT)
-Received: by mail-qk1-x743.google.com with SMTP id q2so1155163qkb.2
-        for <linux-rdma@vger.kernel.org>; Tue, 16 Jun 2020 12:20:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=sy4Vk3XIq+g3R+EaE80k0CE3FKg1J6tytjvtAtDVzoc=;
-        b=FeY0n1Hsl13QQlJqeeuEKvewYecj8I5zja2busongYGdPXwJ16G+02wos3Icqn6dK0
-         GbVsDl4899r3NfKrXKC7rf5wfdYjXoirR2PxJWkv4ytuTS6EZDJmhv6vrsa07yJmh4Zv
-         PKwLNxsD3LFuziL8LQZ87NF2qmltx9ivGSbvlOlqPlq252eMqu/Xy/75KjcboI9Z8UoA
-         4G8MGnoMwas6DS/Xz2rpapPpka0GpxlroMvmlsaZvbdn2548RHidKbZDNQ8Jf82ceCNI
-         t1NjyqcVCmv3bLrD/spJqBhdLX+SBgk6ATOZziEw42wqx7Lk4fQkSovaj+1rvjXOKEmv
-         Ed1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=sy4Vk3XIq+g3R+EaE80k0CE3FKg1J6tytjvtAtDVzoc=;
-        b=kBVYdmkaXp6tOaLXP7+AuuXk5w9rlNX/NLHyRqXb4TTCoawLNfcGHifsqqFtfXLWse
-         tMy9xUmJ2gAxicXlILWaK4qYcEoNsQ5LXxK1UeqIwA4MXr5YXtrV7A3cXgDQFNH0Rc2W
-         hWT49w3qTzlpNvBQNbcuQb4xOe3AJLsifCBsVJQDX3fZ9V135xzFnNOHhZia+mJP5MyD
-         FrL7eCkuJ6sue7HD4ylbQoiuJ0SYjds9zycOFpTZp5ACSh8lK0EZSfQa91rivJ6vI8XS
-         k257jz4zKOGtlHmJv9CiAQUlQeqUiFvMEvksKZBWcLZF7Nptd0/ckB01qnnkjLytB+L8
-         C4nA==
-X-Gm-Message-State: AOAM530LnW+77AdpYbEmOkuSqx4esK4uQkkVAHciAhtaBsv3wgX1atPj
-        Q83qsol8wNfulnSWmEYF2qYkIg==
-X-Google-Smtp-Source: ABdhPJyOu4ElVhV4T+kIAm8Da9sSC7z+IFVy3wnYQPdsWfxscc3QZL1mhVieEr5QyhhtfqIhm0w65Q==
-X-Received: by 2002:a37:9b0d:: with SMTP id d13mr22446855qke.351.1592335255177;
-        Tue, 16 Jun 2020 12:20:55 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id 126sm15165657qkj.89.2020.06.16.12.20.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 Jun 2020 12:20:54 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jlH8g-009Ehz-5h; Tue, 16 Jun 2020 16:20:54 -0300
-Date:   Tue, 16 Jun 2020 16:20:54 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        linux-rdma@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>
-Subject: Re: [PATCH rdma-rc] RDMA/core: Check that type_attrs is not NULL
- prior access
-Message-ID: <20200616192054.GE6578@ziepe.ca>
-References: <20200616105813.2428412-1-leon@kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:48335 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730912AbgFPTVO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 16 Jun 2020 15:21:14 -0400
+IronPort-SDR: I6xGTpNG4Mc/4hu03OPJxGvEHsLIEXf3Herrcm5gvfQtgLDlw7KV+JYUBSSM1tYsGX7/SnlesZ
+ WYF750xtUIMg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2020 12:21:13 -0700
+IronPort-SDR: 3CJ5OXf22s4yTbLUhBA5yMIbBUnhteCeDMN0dE1dio89g2IGIhYCSELGvXk8y1T/vrIewTXub/
+ aJuCGccSVQWA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,519,1583222400"; 
+   d="scan'208";a="476552122"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
+  by fmsmga006.fm.intel.com with ESMTP; 16 Jun 2020 12:21:13 -0700
+Date:   Tue, 16 Jun 2020 12:21:13 -0700
+From:   Ira Weiny <ira.weiny@intel.com>
+To:     Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, dledford@redhat.com,
+        linux-rdma@vger.kernel.org,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Sadanand Warrier <sadanand.warrier@intel.com>,
+        Kaike Wan <kaike.wan@intel.com>
+Subject: Re: [PATCH v3 for-next 07/16] IB/ipoib: Increase ipoib Datagram mode
+ MTU's upper limit
+Message-ID: <20200616192112.GG4160762@iweiny-DESK2.sc.intel.com>
+References: <20200511155337.173205.77558.stgit@awfm-01.aw.intel.com>
+ <20200511160618.173205.23053.stgit@awfm-01.aw.intel.com>
+ <20200527040350.GA3118979@ubuntu-s3-xlarge-x86>
+ <9e9147ad-6d7c-9381-72f3-dc2f3d0723fd@intel.com>
+ <20200601135722.GE4872@ziepe.ca>
+ <20200616005650.GA1347657@ubuntu-n2-xlarge-x86>
+ <20200616062534.GB2141420@unreal>
+ <53f86386-780d-4b06-9848-f8a6eede57ee@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200616105813.2428412-1-leon@kernel.org>
+In-Reply-To: <53f86386-780d-4b06-9848-f8a6eede57ee@intel.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jun 16, 2020 at 01:58:13PM +0300, Leon Romanovsky wrote:
-> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-> index 38de4942c682..16b86635d752 100644
-> +++ b/drivers/infiniband/core/rdma_core.c
-> @@ -470,40 +470,41 @@ static struct ib_uobject *
->  alloc_begin_fd_uobject(const struct uverbs_api_object *obj,
->  		       struct uverbs_attr_bundle *attrs)
->  {
-> -	const struct uverbs_obj_fd_type *fd_type =
-> -		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
-> +	const struct uverbs_obj_fd_type *fd_type;
->  	int new_fd;
->  	struct ib_uobject *uobj;
->  	struct file *filp;
+On Tue, Jun 16, 2020 at 03:14:51PM -0400, Dennis Dalessandro wrote:
+> On 6/16/2020 2:25 AM, Leon Romanovsky wrote:
+> > On Mon, Jun 15, 2020 at 05:56:50PM -0700, Nathan Chancellor wrote:
+> > > On Mon, Jun 01, 2020 at 10:57:22AM -0300, Jason Gunthorpe wrote:
+> > > > On Mon, Jun 01, 2020 at 09:48:47AM -0400, Dennis Dalessandro wrote:
+> > > > 
+> > > > > They should probably all be in "enum ib_mtu". Jason any issues with us donig
+> > > > > that? I can't for certain recall the real reason they were kept separate in
+> > > > > the first place.
+> > > > 
+> > > > It is probably OK
+> > > > 
+> > > > Jason
+> > > 
+> > > I don't mind taking a wack at this if you guys are too busy (I'm rather
+> > > tired of seeing the warning across all of my builds). However, I am
+> > > wondering how far should this be unwound? Should 'enum opa_mtu' be
+> > > collapsed into 'enum ib_mtu' and then all of the opa conversion
+> > > functions be eliminated in favor of the ib ones? It looks like
+> > > OPA_MTU_8192 and OPA_MTU_10240 are used in a few places within
+> > > drivers/infiniband/hw/hfi1, should all of those instances be converted
+> > > over to IB_MTU_* and the defines at the top of
+> > > drivers/infiniband/hw/hfi1/hfi.h be eliminated?
 > 
-> +	uobj = alloc_uobj(attrs, obj);
-> +	if (IS_ERR(uobj))
-> +		return uobj;
-> +
-> +	fd_type =
-> +		container_of(obj->type_attrs, struct uverbs_obj_fd_type, type);
->  	if (WARN_ON(fd_type->fops->release != &uverbs_uobject_fd_release &&
-> -		    fd_type->fops->release != &uverbs_async_event_release))
-> +		    fd_type->fops->release != &uverbs_async_event_release)) {
-> +		uverbs_uobject_put(uobj);
->  		return ERR_PTR(-EINVAL);
-> +	}
+> My opinion is yes.
+> 
+> > We rather keep separation due to logic separation.
+> 
+> To be fair, "you" rather. Not we. I'd like some others to weigh in here.
+> Increasing the available MTUs an an enum just makes sense. Why does it
+> matter if IB doesn't need them right now. Maybe someday.
+> 
+> > While ib_* defines come from IBTA and interoperable across different
+> > devices and vendors, opa_* definitions are Intel proprietary ones used
+> > for the product that was canceled.
+> 
+> But does it hurt to have more potentially available? Can you please explain
+> the technical reason here?
 
-I feel like this is a bit cleaner with a goto unwind ?
+The problem is that the IBTA _may_ define those enums to mean something
+different in the future.  Hopefully, the Intel representatives within the IBTA
+would try to make them compatible but I don't know that 10K 'fits' with the
+IBTA's future.  8K seems like a reasonable extension for the IBTA but again we
+as Linux developers can't say that will happen for sure.  We just don't control
+what the IBTA does in that regard.
 
-Jason
+Ira
+
+> 
+> -Denny
+> 
