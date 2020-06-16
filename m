@@ -2,101 +2,132 @@ Return-Path: <SRS0=8Neo=75=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FE2BC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 08:53:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C015DC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 09:41:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 094042074D
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 08:53:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 999942074D
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Jun 2020 09:41:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="E1gEPh7U"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="YKLZMMYD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726112AbgFPIx2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Jun 2020 04:53:28 -0400
-Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:29886 "EHLO
-        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726064AbgFPIx2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Jun 2020 04:53:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1592297608; x=1623833608;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=9k/S37mQcLkwcJqroMlWZpRbvQs+IFwYaNsdcYsBvM0=;
-  b=E1gEPh7UiH3+s1GIkUwBFUoeMEj4cXoIRfajV7KxiMkkXpDLR7p02kO7
-   UOO6a72rrDz8a2EibyjMN5Twg1PbVp2K93nSiV9w1wShX4nrhmgddOe4g
-   1NaKwGbEnG3Frl9B34Yw2jXAPz8qAXlp4ztfNb3IwBcjjFHdmCNuLIGoT
-   M=;
-IronPort-SDR: tbR2jULcTn8DJuTNS7gcOK+rt64nIaVIF59Rlj+MJPpcFc7n8nkJVsPjK73ImezFXh81B8Iswb
- Ha+QfyO/W1cQ==
-X-IronPort-AV: E=Sophos;i="5.73,518,1583193600"; 
-   d="scan'208";a="52583261"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-22cc717f.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 16 Jun 2020 08:53:22 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
-        by email-inbound-relay-2a-22cc717f.us-west-2.amazon.com (Postfix) with ESMTPS id 3349AA1ED5;
-        Tue, 16 Jun 2020 08:53:21 +0000 (UTC)
-Received: from EX13D19EUB001.ant.amazon.com (10.43.166.229) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 16 Jun 2020 08:53:20 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.43.162.53) by
- EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 16 Jun 2020 08:53:16 +0000
-Subject: Re: [PATCH for-next] RDMA/efa: Move provider specific attributes to
- ucontext allocation response
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        "Firas JahJah" <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-References: <20200615075920.58936-1-galpress@amazon.com>
- <20200616063045.GC2141420@unreal>
-From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <cba7128b-c427-bc26-5f43-69a22463debc@amazon.com>
-Date:   Tue, 16 Jun 2020 11:53:11 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
- Gecko/20100101 Thunderbird/68.8.1
+        id S1726261AbgFPJlS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 16 Jun 2020 05:41:18 -0400
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:47870 "EHLO
+        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728114AbgFPJlR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 16 Jun 2020 05:41:17 -0400
+Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05G9dwoH000858;
+        Tue, 16 Jun 2020 02:41:15 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-type; s=pfpt0818;
+ bh=gH+ZTDtiXgOA/7szRYfmSpILjgf7GQrBJ8O9hR0N5Yw=;
+ b=YKLZMMYDC6KX7zXwXJXGMBtm0Bbnsym4FcA21Gk6FgEZ7157DSMj6FlWo6rNA6ziOdux
+ LZYk1RQFmFfBOjEYhJJyyM7Wbbzt/1bOD6NzpOhAUPYJx1t+aXRfGecfTkqtisxGdkxh
+ RQ9ERPPJdF+llpE90+/QhlXv13N9U8b480GoZJbSlskbdbJ2JRC0LQnLpg2ZduP/WqJc
+ SKBurZhdm1gLGzCgLxhUrg1S34kdIChjI9bLfp8+kilSV6BYPn+z4L8AXkQ4U3u2knUg
+ 1zmoWxWH/HiPwyT9jk3uJ6Y6bMDuOTHHfNSkrefomIHlwMco6fJjS9XAZ07I+QsSWxdP 1g== 
+Received: from sc-exch01.marvell.com ([199.233.58.181])
+        by mx0a-0016f401.pphosted.com with ESMTP id 31mv5qjdmt-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
+        Tue, 16 Jun 2020 02:41:15 -0700
+Received: from DC5-EXCH02.marvell.com (10.69.176.39) by SC-EXCH01.marvell.com
+ (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Tue, 16 Jun
+ 2020 02:41:14 -0700
+Received: from DC5-EXCH01.marvell.com (10.69.176.38) by DC5-EXCH02.marvell.com
+ (10.69.176.39) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Tue, 16 Jun
+ 2020 02:41:14 -0700
+Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH01.marvell.com
+ (10.69.176.38) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Tue, 16 Jun 2020 02:41:14 -0700
+Received: from lb-tlvb-michal.il.qlogic.org (unknown [10.5.220.215])
+        by maili.marvell.com (Postfix) with ESMTP id A7D393F703F;
+        Tue, 16 Jun 2020 02:41:12 -0700 (PDT)
+From:   Michal Kalderon <michal.kalderon@marvell.com>
+To:     <jgg@ziepe.ca>, <dledford@redhat.com>, <ariel.elior@marvell.com>,
+        <michal.kalderon@marvell.com>
+CC:     <linux-rdma@vger.kernel.org>
+Subject: [PATCH rdma] RDMA/qedr: Fix KASAN: use-after-free in ucma_event_handler+0x532
+Date:   Tue, 16 Jun 2020 12:34:08 +0300
+Message-ID: <20200616093408.17827-1-michal.kalderon@marvell.com>
+X-Mailer: git-send-email 2.14.5
 MIME-Version: 1.0
-In-Reply-To: <20200616063045.GC2141420@unreal>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.162.53]
-X-ClientProxiedBy: EX13D35UWB002.ant.amazon.com (10.43.161.154) To
- EX13D19EUB001.ant.amazon.com (10.43.166.229)
+Content-Type: text/plain
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
+ definitions=2020-06-16_03:2020-06-15,2020-06-16 signatures=0
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 16/06/2020 9:30, Leon Romanovsky wrote:
-> On Mon, Jun 15, 2020 at 10:59:20AM +0300, Gal Pressman wrote:
->> Provider specific attributes which are necessary for the userspace
->> functionality should be part of the alloc ucontext response, not query
->> device. This way a userspace provider could work without issuing a query
->> device verb call. However, the fields will remain in the query device
->> ABI in order to maintain backwards compatibility.
-> 
-> I don't really understand why "should be ..."? Device properties exposed
-> here are per-device and will be equal to all ucontexts, so instead of
-> doing one very fast system call, you are "punishing" every ucontext
-> call.
+Private data passed to iwarp_cm_handler is copied for
+connection request / response, but ignored otherwise.
+If junk is passed, it is stored in the event and used later
+in the event processing.
+Driver passed old junk pointer during connection close
+which lead to a use-after-free on event processing.
+Set private data to NULL for events that don 't have private
+data.
 
-I talked about it with Jason in the past, the query device verb is intended to
-follow the IBA verb, alloc ucontext should return driver specific data that's
-required to operate the user space provider.
-A query device call should not be mandatory to load the provider.
+BUG: KASAN: use-after-free in ucma_event_handler+0x532/0x560 [rdma_ucm]
+kernel: Read of size 4 at addr ffff8886caa71200 by task kworker/u128:1/5250
+kernel:
+kernel: Workqueue: iw_cm_wq cm_work_handler [iw_cm]
+kernel: Call Trace:
+kernel: dump_stack+0x8c/0xc0
+kernel: print_address_description.constprop.0+0x1b/0x210
+kernel: ? ucma_event_handler+0x532/0x560 [rdma_ucm]
+kernel: ? ucma_event_handler+0x532/0x560 [rdma_ucm]
+kernel: __kasan_report.cold+0x1a/0x33
+kernel: ? ucma_event_handler+0x532/0x560 [rdma_ucm]
+kernel: kasan_report+0xe/0x20
+kernel: check_memory_region+0x130/0x1a0
+kernel: memcpy+0x20/0x50
+kernel: ucma_event_handler+0x532/0x560 [rdma_ucm]
+kernel: ? __rpc_execute+0x608/0x620 [sunrpc]
+kernel: cma_iw_handler+0x212/0x330 [rdma_cm]
+kernel: ? iw_conn_req_handler+0x6e0/0x6e0 [rdma_cm]
+kernel: ? enqueue_timer+0x86/0x140
+kernel: ? _raw_write_lock_irq+0xd0/0xd0
+kernel: cm_work_handler+0xd3d/0x1070 [iw_cm]
 
-Whether it's done through query device/ucontext response, both happen for each
-new context call. With this patch, we gather all needed data in one system call
-instead of two.
+Fixes: e411e0587e0d ("RDMA/qedr: Add iWARP connection management functions")
+Signed-off-by: Ariel Elior <ariel.elior@marvell.com>
+Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
+---
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-> What is wrong with calling one query_device before allocating any
-> ucontext? What are you trying to achieve and what will it give?
+diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+index 792eecd206b6..97fc7dd353b0 100644
+--- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+@@ -150,8 +150,17 @@ qedr_iw_issue_event(void *context,
+ 	if (params->cm_info) {
+ 		event.ird = params->cm_info->ird;
+ 		event.ord = params->cm_info->ord;
+-		event.private_data_len = params->cm_info->private_data_len;
+-		event.private_data = (void *)params->cm_info->private_data;
++		/* Only connect_request and reply have valid private data
++		 * the rest of the events this may be left overs from
++		 * connection establishment. CONNECT_REQUEST is issued via
++		 * qedr_iw_mpa_request
++		 */
++		if (event_type == IW_CM_EVENT_CONNECT_REPLY) {
++			event.private_data_len =
++				params->cm_info->private_data_len;
++			event.private_data =
++				(void *)params->cm_info->private_data;
++		}
+ 	}
+ 
+ 	if (ep->cm_id)
+-- 
+2.14.5
 
-How can you call query device without allocating a context?
