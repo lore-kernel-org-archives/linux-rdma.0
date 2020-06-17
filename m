@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58A85C433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B8EC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42BAA21475
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90206208D5
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726329AbgFQHqh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726282AbgFQHqh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 17 Jun 2020 03:46:37 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37739 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37757 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726331AbgFQHqg (ORCPT
+        with ESMTP id S1726605AbgFQHqg (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Jun 2020 03:46:36 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with SMTP; 17 Jun 2020 10:46:29 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kT0h017650;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTO9017663;
         Wed, 17 Jun 2020 10:46:29 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTDD007191;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTU3007210;
         Wed, 17 Jun 2020 10:46:29 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 05H7kTvG007189;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 05H7kT50007209;
         Wed, 17 Jun 2020 10:46:29 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
-Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH rdma-core 08/13] mlx5: Implement the import/unimport PD verbs
-Date:   Wed, 17 Jun 2020 10:45:51 +0300
-Message-Id: <1592379956-7043-9-git-send-email-yishaih@mellanox.com>
+Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
+        Edward Srouji <edwards@mellanox.com>
+Subject: [PATCH rdma-core 12/13] Documentation: Add usage example for verbs import
+Date:   Wed, 17 Jun 2020 10:45:55 +0300
+Message-Id: <1592379956-7043-13-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
 References: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
@@ -44,143 +45,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement the import/unimport PD verbs based on their definition as
-described in the man page.
+From: Edward Srouji <edwards@mellanox.com>
 
-It uses the query PD KABI to retrieve the original PD properties based
-on its given handle.
+Add a documentation for shared PD and verbs import usage in Pyverbs.
+This includes a code snippet to demonstrate a usage example.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Ido Kalir <idok@mellanox.com>
+Signed-off-by: Edward Srouji <edwards@mellanox.com>
 ---
- providers/mlx5/mlx5.c  |  2 ++
- providers/mlx5/mlx5.h  |  3 +++
- providers/mlx5/verbs.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 57 insertions(+), 2 deletions(-)
+ Documentation/pyverbs.md | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index dbd86c0..4067204 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -148,6 +148,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.destroy_wq = mlx5_destroy_wq,
- 	.free_dm = mlx5_free_dm,
- 	.get_srq_num = mlx5_get_srq_num,
-+	.import_pd = mlx5_import_pd,
- 	.modify_cq = mlx5_modify_cq,
- 	.modify_flow_action_esp = mlx5_modify_flow_action_esp,
- 	.modify_qp_rate_limit = mlx5_modify_qp_rate_limit,
-@@ -159,6 +160,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.query_rt_values = mlx5_query_rt_values,
- 	.read_counters = mlx5_read_counters,
- 	.reg_dm_mr = mlx5_reg_dm_mr,
-+	.unimport_pd = mlx5_unimport_pd,
- 	.alloc_null_mr = mlx5_alloc_null_mr,
- 	.free_context = mlx5_free_context,
- };
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index bce8aa2..f2344c5 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -1023,6 +1023,9 @@ int mlx5_advise_mr(struct ibv_pd *pd,
- 		   uint32_t flags,
- 		   struct ibv_sge *sg_list,
- 		   uint32_t num_sges);
-+struct ibv_pd *mlx5_import_pd(struct ibv_context *context,
-+			      uint32_t pd_handle);
-+void mlx5_unimport_pd(struct ibv_pd *pd);
- int mlx5_qp_fill_wr_pfns(struct mlx5_qp *mqp,
- 			 const struct ibv_qp_init_attr_ex *attr,
- 			 const struct mlx5dv_qp_init_attr *mlx5_attr);
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 0bdb34f..b2c54ba 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -556,26 +556,39 @@ static int mlx5_dealloc_parent_domain(struct mlx5_parent_domain *mparent_domain)
- 	return 0;
- }
- 
--int mlx5_free_pd(struct ibv_pd *pd)
-+static int _mlx5_free_pd(struct ibv_pd *pd, bool unimport)
- {
- 	int ret;
- 	struct mlx5_parent_domain *mparent_domain = to_mparent_domain(pd);
- 	struct mlx5_pd *mpd = to_mpd(pd);
- 
--	if (mparent_domain)
-+	if (mparent_domain) {
-+		if (unimport)
-+			return EINVAL;
+diff --git a/Documentation/pyverbs.md b/Documentation/pyverbs.md
+index 77a5406..2516b10 100755
+--- a/Documentation/pyverbs.md
++++ b/Documentation/pyverbs.md
+@@ -626,3 +626,43 @@ ctx = Context(name='rocep0s8f0')
+ uar = Mlx5UAR(ctx)
+ uar.close()
+ ```
 +
- 		return mlx5_dealloc_parent_domain(mparent_domain);
-+	}
- 
- 	if (atomic_load(&mpd->refcount) > 1)
- 		return EBUSY;
- 
-+	if (unimport)
-+		goto end;
++##### Import device, PD and MR
++Importing a device, PD and MR enables processes to share their context and then
++share PDs and MRs that is associated with.
++A process creates a device and then uses some of the Linux systems calls to dup
++its 'cmd_fd' member which lets other process to obtain ownership.
++Once other process obtains the 'cmd_fd' it can import the device, then PD(s) and
++MR(s) to share these objects.
++Like in C, Pyverbs users are responsible for unimporting the imported objects
++(which will also close the Pyverbs instance in our case) after they finish using
++them, and they have to sync between the different processes in order to
++coordinate the closure of the objects.
++Unlike in C, closing the underlying objects is currently supported only via the
++"original" object (meaning only by the process that creates them) and not via
++the imported object. This limitation is made because currently there's no
++reference or relation between different Pyverbs objects in different processes.
++But it's doable and might be added in the future.
++Here is a demonstration of importing a device, PD and MR in one process.
++```python
++from pyverbs.device import Context
++from pyverbs.pd import PD
++from pyverbs.mr import MR
++import pyverbs.enums as e
++import os
 +
- 	ret = ibv_cmd_dealloc_pd(pd);
- 	if (ret)
- 		return ret;
- 
-+end:
- 	free(mpd);
- 	return 0;
- }
- 
-+int mlx5_free_pd(struct ibv_pd *pd)
-+{
-+	return _mlx5_free_pd(pd, false);
-+}
-+
- struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   uint64_t hca_va, int acc)
- {
-@@ -706,6 +719,43 @@ int mlx5_advise_mr(struct ibv_pd *pd,
- 	return ibv_cmd_advise_mr(pd, advice, flags, sg_list, num_sge);
- }
- 
-+struct ibv_pd *mlx5_import_pd(struct ibv_context *context,
-+			      uint32_t pd_handle)
-+{
-+	DECLARE_COMMAND_BUFFER(cmd,
-+			       UVERBS_OBJECT_PD,
-+			       MLX5_IB_METHOD_PD_QUERY,
-+			       2);
-+
-+	struct mlx5_pd *pd;
-+	int ret;
-+
-+	pd = calloc(1, sizeof *pd);
-+	if (!pd)
-+		return NULL;
-+
-+	fill_attr_in_obj(cmd, MLX5_IB_ATTR_QUERY_PD_HANDLE, pd_handle);
-+	fill_attr_out_ptr(cmd, MLX5_IB_ATTR_QUERY_PD_RESP_PDN, &pd->pdn);
-+
-+	ret = execute_ioctl(context, cmd);
-+	if (ret) {
-+		free(pd);
-+		return NULL;
-+	}
-+
-+	pd->ibv_pd.context = context;
-+	pd->ibv_pd.handle = pd_handle;
-+	atomic_init(&pd->refcount, 1);
-+
-+	return &pd->ibv_pd;
-+}
-+
-+void mlx5_unimport_pd(struct ibv_pd *pd)
-+{
-+	if (_mlx5_free_pd(pd, true))
-+		assert(false);
-+}
-+
- struct ibv_mw *mlx5_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type)
- {
- 	struct ibv_mw *mw;
++ctx = Context(name='ibp0s8f0')
++pd = PD(ctx)
++mr = MR(pd, 100, e.IBV_ACCESS_LOCAL_WRITE)
++cmd_fd_dup = os.dup(ctx.cmd_fd)
++improted_ctx = Context(cmd_fd=cmd_fd_dup)
++imported_pd = PD(improted_ctx, handle=pd.handle)
++imported_mr = MR(imported_pd, handle=mr.handle)
++# MRs can be created as usual on the imported PD
++secondary_mr = MR(imported_pd, 100, e.IBV_ACCESS_REMOTE_READ)
++# Must manually unimport the imported objects (which close the object and frees
++# other resources that use them) before closing the "original" objects.
++# This prevents unexpected behaviours caused by the GC.
++imported_mr.unimport()
++imported_pd.unimport()
++```
 -- 
 1.8.3.1
 
