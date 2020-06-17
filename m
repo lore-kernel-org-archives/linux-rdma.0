@@ -2,209 +2,166 @@ Return-Path: <SRS0=Ytdr=76=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45929C433E5
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6314EC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:58:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30BCC208D5
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3791921475
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:58:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="Rnq7BerE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726331AbgFQHqi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jun 2020 03:46:38 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37747 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726542AbgFQHqg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Jun 2020 03:46:36 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with SMTP; 17 Jun 2020 10:46:29 +0300
-Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTwU017656;
-        Wed, 17 Jun 2020 10:46:29 +0300
-Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTew007199;
-        Wed, 17 Jun 2020 10:46:29 +0300
-Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 05H7kTTJ007198;
-        Wed, 17 Jun 2020 10:46:29 +0300
-From:   Yishai Hadas <yishaih@mellanox.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH rdma-core 10/13] mlx5: Implement the import/unimport MR verbs
-Date:   Wed, 17 Jun 2020 10:45:53 +0300
-Message-Id: <1592379956-7043-11-git-send-email-yishaih@mellanox.com>
-X-Mailer: git-send-email 1.8.2.3
-In-Reply-To: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
-References: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
+        id S1726583AbgFQH6H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jun 2020 03:58:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54920 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725773AbgFQH6G (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Jun 2020 03:58:06 -0400
+Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B0CC061573
+        for <linux-rdma@vger.kernel.org>; Wed, 17 Jun 2020 00:58:06 -0700 (PDT)
+Received: by mail-oi1-x242.google.com with SMTP id s21so981314oic.9
+        for <linux-rdma@vger.kernel.org>; Wed, 17 Jun 2020 00:58:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=X+Qtu+2ZAyZXkh/oo1Lz6E9/PFmVPHRpkYwfH9QQzoY=;
+        b=Rnq7BerEC1NJ+s3KJhsfuws9Kg+j4pWFkQJLmI518tzrC8znQHM1y1XOVL+e9QQvGC
+         mOcEQIpeKlQI3Ch0XEzDajgEy3Ss5YB513C5XhgrGC29v//2jcdDFh59xMl7mJC4egNc
+         wZOOJ+JmjjXVx9gZJsvcArI7aR28zLTWFwR6Q=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=X+Qtu+2ZAyZXkh/oo1Lz6E9/PFmVPHRpkYwfH9QQzoY=;
+        b=d+WPSaqr9akYb+gde1cQ+SLBbGzx65qM7u6DEoe99Qm1ZDASygtmHjagy0JnmUjAJq
+         Ghppvfli10GzgEWcf/fY8eEdus1h3PzHoMRU9LLJKq1JSjnQivCKYybbyHmAbkoWa3cS
+         zpZ5F5x+vrqU9jfptrklsyik3vGOGjT3K7VXbwbRy/+22K/Sh7R/JBUOlBXP9ZJBx+SV
+         4YME6147YN5BHSHqYaIDIPTbf+Vo1bA+eC4R2vY6KjmEQNa13LojWzNCisPxqrxYv8Pm
+         t/bwhwSdGKDpbLTYGX53mhHuGIJudlCv1Omz/62gdKuplO4rKmm50sQQx34EJhM8UV8t
+         dGBA==
+X-Gm-Message-State: AOAM5301qD76vgwT+Gk6WeALuB31p6nyS4zp05vnlF5ELaECIzKkwb5/
+        lrocZgT3xHqVS/24qoisQvPEuYd5K3rjTOOJTe2uWQ==
+X-Google-Smtp-Source: ABdhPJyg/qc6FJuRZYZqNNd5IMYVmnKGSrITOouFVSzC2Mh6TfEGJcQ4YwgOLOvW4cWrgZZvjXq69o3dCj+ez8idqyo=
+X-Received: by 2002:aca:ed42:: with SMTP id l63mr6006514oih.101.1592380685425;
+ Wed, 17 Jun 2020 00:58:05 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200604081224.863494-1-daniel.vetter@ffwll.ch>
+ <20200604081224.863494-5-daniel.vetter@ffwll.ch> <b11c2140-1b9c-9013-d9bb-9eb2c1906710@shipmail.org>
+ <20200611083430.GD20149@phenom.ffwll.local> <20200611141515.GW6578@ziepe.ca>
+ <20200616120719.GL20149@phenom.ffwll.local> <20200616145312.GC6578@ziepe.ca>
+In-Reply-To: <20200616145312.GC6578@ziepe.ca>
+From:   Daniel Vetter <daniel@ffwll.ch>
+Date:   Wed, 17 Jun 2020 09:57:54 +0200
+Message-ID: <CAKMK7uER6ax1zr14xYLKqDfDZp+ycBsY9Yx7JaVkKQ849VfSPg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 04/18] dma-fence: prime lockdep annotations
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     =?UTF-8?Q?Thomas_Hellstr=C3=B6m_=28Intel=29?= 
+        <thomas_os@shipmail.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        Thomas Hellstrom <thomas.hellstrom@intel.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement the import/unimport MR verbs based on their definition as
-described in the man page.
+On Wed, Jun 17, 2020 at 9:27 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Tue, Jun 16, 2020 at 02:07:19PM +0200, Daniel Vetter wrote:
+> > > > I've pinged a bunch of armsoc gpu driver people and ask them how much this
+> > > > hurts, so that we have a clear answer. On x86 I don't think we have much
+> > > > of a choice on this, with userptr in amd and i915 and hmm work in nouveau
+> > > > (but nouveau I think doesn't use dma_fence in there).
+> > >
+> > > Right, nor will RDMA ODP.
+> >
+> > Hm, what's the context here? I thought RDMA side you really don't want
+> > dma_fence in mmu_notifiers, so not clear to me what you're agreeing on
+> > here.
+>
+> rdma does not use dma_fence at all, and though it is hard to tell, I
+> didn't notice a dma_fence in the nouveau invalidation call path.
 
-It uses the query MR KABI to retrieve the original MR properties based
-on its given handle.
+Nouveau for compute has hw page faults. It doesn't have hw page faults
+for non-compute fixed function blocks afaik, so there's a hybrid model
+going on. But nouveau also doesn't support userspace memory (instead
+of driver-allocated buffer objects) for these fixed function blocks,
+so no need to have a dma_fence_wait in there.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
----
- libibverbs/cmd_mr.c          | 35 +++++++++++++++++++++++++++++++++++
- libibverbs/driver.h          |  3 +++
- libibverbs/libibverbs.map.in |  1 +
- providers/mlx5/mlx5.c        |  2 ++
- providers/mlx5/mlx5.h        |  3 +++
- providers/mlx5/verbs.c       | 24 ++++++++++++++++++++++++
- 6 files changed, 68 insertions(+)
+> At the very least I think there should be some big warning that
+> dma_fence in notifiers should be avoided.
 
-diff --git a/libibverbs/cmd_mr.c b/libibverbs/cmd_mr.c
-index cb729b6..6984948 100644
---- a/libibverbs/cmd_mr.c
-+++ b/libibverbs/cmd_mr.c
-@@ -85,3 +85,38 @@ int ibv_cmd_dereg_mr(struct verbs_mr *vmr)
- 		return ret;
- 	return 0;
- }
-+
-+int ibv_cmd_query_mr(struct ibv_pd *pd, struct verbs_mr *vmr,
-+		     uint32_t mr_handle)
-+{
-+	DECLARE_FBCMD_BUFFER(cmd, UVERBS_OBJECT_MR,
-+			     UVERBS_METHOD_QUERY_MR,
-+			     5, NULL);
-+	struct ibv_mr *mr = &vmr->ibv_mr;
-+	uint64_t iova;
-+	int ret;
-+
-+	fill_attr_in_obj(cmd, UVERBS_ATTR_QUERY_MR_HANDLE, mr_handle);
-+	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_MR_RESP_LKEY,
-+			  &mr->lkey);
-+	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_MR_RESP_RKEY,
-+			  &mr->rkey);
-+	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_MR_RESP_LENGTH,
-+			  &mr->length);
-+	/* The iova may be used down the road, let's have it ready from kernel */
-+	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_MR_RESP_IOVA,
-+			  &iova);
-+
-+	ret = execute_ioctl(pd->context, cmd);
-+	if (ret)
-+		return ret;
-+
-+	mr->handle  = mr_handle;
-+	mr->context = pd->context;
-+	mr->pd = pd;
-+	mr->addr = NULL;
-+
-+	vmr->mr_type = IBV_MR_TYPE_IMPORTED_MR;
-+	return 0;
-+}
-+
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 0edff0b..094891d 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -80,6 +80,7 @@ enum ibv_gid_type {
- enum ibv_mr_type {
- 	IBV_MR_TYPE_MR,
- 	IBV_MR_TYPE_NULL_MR,
-+	IBV_MR_TYPE_IMPORTED_MR,
- };
- 
- struct verbs_mr {
-@@ -476,6 +477,8 @@ int ibv_cmd_rereg_mr(struct verbs_mr *vmr, uint32_t flags, void *addr,
- 		     size_t cmd_sz, struct ib_uverbs_rereg_mr_resp *resp,
- 		     size_t resp_sz);
- int ibv_cmd_dereg_mr(struct verbs_mr *vmr);
-+int ibv_cmd_query_mr(struct ibv_pd *pd, struct verbs_mr *vmr,
-+		     uint32_t mr_handle);
- int ibv_cmd_advise_mr(struct ibv_pd *pd,
- 		      enum ibv_advise_mr_advice advice,
- 		      uint32_t flags,
-diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
-index 5f52a9e..0d4f820 100644
---- a/libibverbs/libibverbs.map.in
-+++ b/libibverbs/libibverbs.map.in
-@@ -197,6 +197,7 @@ IBVERBS_PRIVATE_@IBVERBS_PABI_VERSION@ {
- 		ibv_cmd_query_context;
- 		ibv_cmd_query_device;
- 		ibv_cmd_query_device_ex;
-+		ibv_cmd_query_mr;
- 		ibv_cmd_query_port;
- 		ibv_cmd_query_qp;
- 		ibv_cmd_query_srq;
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 4067204..2413387 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -148,6 +148,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.destroy_wq = mlx5_destroy_wq,
- 	.free_dm = mlx5_free_dm,
- 	.get_srq_num = mlx5_get_srq_num,
-+	.import_mr = mlx5_import_mr,
- 	.import_pd = mlx5_import_pd,
- 	.modify_cq = mlx5_modify_cq,
- 	.modify_flow_action_esp = mlx5_modify_flow_action_esp,
-@@ -160,6 +161,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.query_rt_values = mlx5_query_rt_values,
- 	.read_counters = mlx5_read_counters,
- 	.reg_dm_mr = mlx5_reg_dm_mr,
-+	.unimport_mr = mlx5_unimport_mr,
- 	.unimport_pd = mlx5_unimport_pd,
- 	.alloc_null_mr = mlx5_alloc_null_mr,
- 	.free_context = mlx5_free_context,
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index f2344c5..654c164 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -1023,6 +1023,9 @@ int mlx5_advise_mr(struct ibv_pd *pd,
- 		   uint32_t flags,
- 		   struct ibv_sge *sg_list,
- 		   uint32_t num_sges);
-+struct ibv_mr *mlx5_import_mr(struct ibv_pd *pd,
-+			      uint32_t mr_handle);
-+void mlx5_unimport_mr(struct ibv_mr *mr);
- struct ibv_pd *mlx5_import_pd(struct ibv_context *context,
- 			      uint32_t pd_handle);
- void mlx5_unimport_pd(struct ibv_pd *pd);
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index b2c54ba..972b783 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -756,6 +756,30 @@ void mlx5_unimport_pd(struct ibv_pd *pd)
- 		assert(false);
- }
- 
-+struct ibv_mr *mlx5_import_mr(struct ibv_pd *pd,
-+			      uint32_t mr_handle)
-+{
-+	struct mlx5_mr *mr;
-+	int ret;
-+
-+	mr = calloc(1, sizeof *mr);
-+	if (!mr)
-+		return NULL;
-+
-+	ret = ibv_cmd_query_mr(pd, &mr->vmr, mr_handle);
-+	if (ret) {
-+		free(mr);
-+		return NULL;
-+	}
-+
-+	return &mr->vmr.ibv_mr;
-+}
-+
-+void mlx5_unimport_mr(struct ibv_mr *ibmr)
-+{
-+	free(to_mmr(ibmr));
-+}
-+
- struct ibv_mw *mlx5_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type)
- {
- 	struct ibv_mw *mw;
+Yeah I'm working on documentation, and also the notifiers here
+hopefully make it clear it's massive pain. I think we could even make
+a hard rule that dma_fence in mmu notifier outside of drivers/gpu is a
+bug/misfeature.
+
+Might be a good idea to add a MAINTAINERS entry with a K: regex
+pattern, so that you can catch such modifiers. We do already have such
+a pattern for dma-fence, to catch abuse. So if you want I could type
+up a documentation patch for this, get your and others acks and the
+dri-devel folks would enforce that the dma_fence_wait madness doesn't
+leak beyond drivers/gpu
+
+> Ie it is strange that the new totally-not-a-gpu drivers use dma_fence,
+> they surely don't have the same constraints as the existing GPU world,
+> and it would be annoying to see dma_fence notifiers spring up in them
+
+If you mean drivers/misc/habanalabs, that's going to get taken care of:
+
+
+commit ed65bfd9fd86dec3772570b0320ca85b9fb69f2e
+Author: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Mon May 11 11:11:42 2020 +0200
+
+    habanalabs: don't set default fence_ops->wait
+
+    It's the default.
+
+    Also so much for "we're not going to tell the graphics people how to
+    review their code", dma_fence is a pretty core piece of gpu driver
+    infrastructure. And it's very much uapi relevant, including piles of
+    corresponding userspace protocols and libraries for how to pass these
+    around.
+
+    Would be great if habanalabs would not use this (from a quick look
+    it's not needed at all), since open source the userspace and playing
+    by the usual rules isn't on the table. If that's not possible (because
+    it's actually using the uapi part of dma_fence to interact with gpu
+    drivers) then we have exactly what everyone promised we'd want to
+    avoid.
+
+    Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+    Reviewed-by: Oded Gabbay <oded.gabbay@gmail.com>
+    Signed-off-by: Oded Gabbay <oded.gabbay@gmail.com>
+
+Oded has agreed to remove the dma-fence usage, since they really don't
+need it (and all the baggage that comes with it), plain old completion
+is enough for their use. This use is also why I added the regex to
+MAINTAINERS, so that in the future we can catch people who try to use
+dma_fence because it looks cute and useful, and are completely
+oblivious to all the pain and headaches involved.
+
+Cheers, Daniel
 -- 
-1.8.3.1
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
