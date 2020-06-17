@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D4D8C433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE64C433E4
 	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED1A721501
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59602208D5
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Jun 2020 07:46:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726275AbgFQHqg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jun 2020 03:46:36 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37738 "EHLO
+        id S1726044AbgFQHqh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jun 2020 03:46:37 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:37765 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726282AbgFQHqg (ORCPT
+        with ESMTP id S1726634AbgFQHqg (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Jun 2020 03:46:36 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with SMTP; 17 Jun 2020 10:46:29 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kT0n017647;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTHI017666;
         Wed, 17 Jun 2020 10:46:29 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kTmH007185;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 05H7kT9j007216;
         Wed, 17 Jun 2020 10:46:29 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 05H7kTEv007184;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 05H7kTTQ007214;
         Wed, 17 Jun 2020 10:46:29 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
-Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH rdma-core 07/13] verbs: Introduce ibv_import/unimport_pd() verbs
-Date:   Wed, 17 Jun 2020 10:45:50 +0300
-Message-Id: <1592379956-7043-8-git-send-email-yishaih@mellanox.com>
+Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
+        Edward Srouji <edwards@mellanox.com>
+Subject: [PATCH rdma-core 13/13] tests: Add a shared PD Pyverbs test
+Date:   Wed, 17 Jun 2020 10:45:56 +0300
+Message-Id: <1592379956-7043-14-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
 References: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
@@ -44,271 +45,157 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Introduce ibv_import/unimport_pd() verbs, this enables an application
-who previously imported a device to import a PD from that context and
-use this shared object for its needs.
+From: Edward Srouji <edwards@mellanox.com>
 
-A detailed man page as part of this patch describes the expected usage
-and flow.
+The test creates a client and server sides of RC resources.  Then the
+server resources are imported and used for RDMA write traffic.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Ido Kalir <idok@mellanox.com>
+Signed-off-by: Edward Srouji <edwards@mellanox.com>
 ---
- debian/libibverbs1.symbols        |  2 ++
- libibverbs/driver.h               |  3 +++
- libibverbs/dummy_ops.c            | 15 +++++++++++
- libibverbs/libibverbs.map.in      |  2 ++
- libibverbs/man/CMakeLists.txt     |  2 ++
- libibverbs/man/ibv_import_pd.3.md | 57 +++++++++++++++++++++++++++++++++++++++
- libibverbs/verbs.c                | 14 ++++++++++
- libibverbs/verbs.h                | 11 ++++++++
- 8 files changed, 106 insertions(+)
- create mode 100644 libibverbs/man/ibv_import_pd.3.md
+ tests/CMakeLists.txt    |  1 +
+ tests/base.py           | 11 ++++--
+ tests/test_shared_pd.py | 95 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 105 insertions(+), 2 deletions(-)
+ create mode 100644 tests/test_shared_pd.py
 
-diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
-index e636c1d..ee32bf4 100644
---- a/debian/libibverbs1.symbols
-+++ b/debian/libibverbs1.symbols
-@@ -68,6 +68,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
-  ibv_get_pkey_index@IBVERBS_1.5 20
-  ibv_get_sysfs_path@IBVERBS_1.0 1.1.6
-  ibv_import_device@IBVERBS_1.10 31
-+ ibv_import_pd@IBVERBS_1.10 31
-  ibv_init_ah_from_wc@IBVERBS_1.1 1.1.6
-  ibv_modify_qp@IBVERBS_1.0 1.1.6
-  ibv_modify_qp@IBVERBS_1.1 1.1.6
-@@ -102,6 +103,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
-  ibv_resize_cq@IBVERBS_1.0 1.1.6
-  ibv_resize_cq@IBVERBS_1.1 1.1.6
-  ibv_resolve_eth_l2_from_gid@IBVERBS_1.1 1.2.0
-+ ibv_unimport_pd@IBVERBS_1.10 31
-  ibv_wc_status_str@IBVERBS_1.1 1.1.6
-  mbps_to_ibv_rate@IBVERBS_1.1 1.1.8
-  mult_to_ibv_rate@IBVERBS_1.0 1.1.6
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 1883df3..fbf63f3 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -311,6 +311,8 @@ struct verbs_context_ops {
- 	void (*free_context)(struct ibv_context *context);
- 	int (*free_dm)(struct ibv_dm *dm);
- 	int (*get_srq_num)(struct ibv_srq *srq, uint32_t *srq_num);
-+	struct ibv_pd *(*import_pd)(struct ibv_context *context,
-+				    uint32_t pd_handle);
- 	int (*modify_cq)(struct ibv_cq *cq, struct ibv_modify_cq_attr *attr);
- 	int (*modify_flow_action_esp)(struct ibv_flow_action *action,
- 				      struct ibv_flow_action_esp_attr *attr);
-@@ -361,6 +363,7 @@ struct verbs_context_ops {
- 	int (*rereg_mr)(struct verbs_mr *vmr, int flags, struct ibv_pd *pd,
- 			void *addr, size_t length, int access);
- 	int (*resize_cq)(struct ibv_cq *cq, int cqe);
-+	void (*unimport_pd)(struct ibv_pd *pd);
- };
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 1708fb9..33ffc78 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -25,6 +25,7 @@ rdma_python_test(tests
+   test_qpex.py
+   test_rdmacm.py
+   test_relaxed_ordering.py
++  test_shared_pd.py
+   utils.py
+   )
  
- static inline struct verbs_device *
-diff --git a/libibverbs/dummy_ops.c b/libibverbs/dummy_ops.c
-index 32fec71..9d6d2af 100644
---- a/libibverbs/dummy_ops.c
-+++ b/libibverbs/dummy_ops.c
-@@ -287,6 +287,13 @@ static int get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
- 	return EOPNOTSUPP;
- }
- 
-+static  struct ibv_pd *import_pd(struct ibv_context *context,
-+				 uint32_t pd_handle)
-+{
-+	errno = EOPNOTSUPP;
-+	return NULL;
-+}
+diff --git a/tests/base.py b/tests/base.py
+index 5a98d7f..db9a6ec 100755
+--- a/tests/base.py
++++ b/tests/base.py
+@@ -244,10 +244,17 @@ class BaseResources(object):
+         :param ib_port: IB port of the device to use (default: 1)
+         :param gid_index: Which GID index to use (default: 0)
+         """
+-        self.ctx = Context(name=dev_name)
++        self.dev_name = dev_name
+         self.gid_index = gid_index
+-        self.pd = PD(self.ctx)
+         self.ib_port = ib_port
++        self.create_context()
++        self.create_pd()
 +
- static int modify_cq(struct ibv_cq *cq, struct ibv_modify_cq_attr *attr)
- {
- 	return EOPNOTSUPP;
-@@ -450,6 +457,10 @@ static int resize_cq(struct ibv_cq *cq, int cqe)
- 	return EOPNOTSUPP;
- }
- 
-+static void unimport_pd(struct ibv_pd *pd)
-+{
-+}
++    def create_context(self):
++        self.ctx = Context(name=self.dev_name)
 +
- /*
-  * Ops in verbs_dummy_ops simply return an EOPNOTSUPP error code when called, or
-  * do nothing. They are placed in the ops structures if the provider does not
-@@ -504,6 +515,7 @@ const struct verbs_context_ops verbs_dummy_ops = {
- 	free_context,
- 	free_dm,
- 	get_srq_num,
-+	import_pd,
- 	modify_cq,
- 	modify_flow_action_esp,
- 	modify_qp,
-@@ -529,6 +541,7 @@ const struct verbs_context_ops verbs_dummy_ops = {
- 	req_notify_cq,
- 	rereg_mr,
- 	resize_cq,
-+	unimport_pd,
- };
++    def create_pd(self):
++        self.pd = PD(self.ctx)
  
- /*
-@@ -620,6 +633,7 @@ void verbs_set_ops(struct verbs_context *vctx,
- 	SET_PRIV_OP_IC(ctx, free_context);
- 	SET_OP(vctx, free_dm);
- 	SET_OP(vctx, get_srq_num);
-+	SET_PRIV_OP_IC(vctx, import_pd);
- 	SET_OP(vctx, modify_cq);
- 	SET_OP(vctx, modify_flow_action_esp);
- 	SET_PRIV_OP(ctx, modify_qp);
-@@ -645,6 +659,7 @@ void verbs_set_ops(struct verbs_context *vctx,
- 	SET_OP(ctx, req_notify_cq);
- 	SET_PRIV_OP(ctx, rereg_mr);
- 	SET_PRIV_OP(ctx, resize_cq);
-+	SET_PRIV_OP_IC(vctx, unimport_pd);
  
- #undef SET_OP
- #undef SET_OP2
-diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
-index a17e6ad..d356e63 100644
---- a/libibverbs/libibverbs.map.in
-+++ b/libibverbs/libibverbs.map.in
-@@ -134,6 +134,8 @@ IBVERBS_1.9 {
- IBVERBS_1.10 {
- 	global:
- 		ibv_import_device;
-+		ibv_import_pd;
-+		ibv_unimport_pd;
- } IBVERBS_1.9;
- 
- /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
-diff --git a/libibverbs/man/CMakeLists.txt b/libibverbs/man/CMakeLists.txt
-index 58ad832..422d6fd 100644
---- a/libibverbs/man/CMakeLists.txt
-+++ b/libibverbs/man/CMakeLists.txt
-@@ -38,6 +38,7 @@ rdma_man_pages(
-   ibv_get_pkey_index.3.md
-   ibv_get_srq_num.3.md
-   ibv_import_device.3.md
-+  ibv_import_pd.3.md
-   ibv_inc_rkey.3.md
-   ibv_modify_qp.3
-   ibv_modify_qp_rate_limit.3
-@@ -99,6 +100,7 @@ rdma_alias_man_pages(
-   ibv_get_async_event.3 ibv_ack_async_event.3
-   ibv_get_cq_event.3 ibv_ack_cq_events.3
-   ibv_get_device_list.3 ibv_free_device_list.3
-+  ibv_import_pd.3 ibv_unimport_pd.3
-   ibv_open_device.3 ibv_close_device.3
-   ibv_open_xrcd.3 ibv_close_xrcd.3
-   ibv_rate_to_mbps.3 mbps_to_ibv_rate.3
-diff --git a/libibverbs/man/ibv_import_pd.3.md b/libibverbs/man/ibv_import_pd.3.md
+ class TrafficResources(BaseResources):
+diff --git a/tests/test_shared_pd.py b/tests/test_shared_pd.py
 new file mode 100644
-index 0000000..39ad0dc
+index 0000000..e533074
 --- /dev/null
-+++ b/libibverbs/man/ibv_import_pd.3.md
-@@ -0,0 +1,57 @@
-+---
-+date: 2020-5-3
-+footer: libibverbs
-+header: "Libibverbs Programmer's Manual"
-+layout: page
-+license: 'Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md'
-+section: 3
-+title: ibv_import_pd, ibv_unimport_pd
-+---
++++ b/tests/test_shared_pd.py
+@@ -0,0 +1,95 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2020 Mellanox Technologies, Inc. All rights reserved. See COPYING file
++"""
++Test module for Shared PD.
++"""
++import unittest
++import errno
++import os
 +
-+# NAME
-+
-+ibv_import_pd - import a PD from a given ibv_context
-+
-+ibv_unimport_pd - unimport a PD
-+
-+# SYNOPSIS
-+
-+```c
-+#include <infiniband/verbs.h>
-+
-+struct ibv_pd *ibv_import_pd(struct ibv_context *context, uint32_t pd_handle);
-+void ibv_unimport_pd(struct ibv_pd *pd)
-+
-+```
++from tests.test_qpex import QpExRCRDMAWrite
++from tests.base import RDMATestCase
++from pyverbs.device import Context
++from pyverbs.pd import PD
++from pyverbs.mr import MR
++import pyverbs.enums as e
++import tests.utils as u
 +
 +
-+# DESCRIPTION
++def get_import_res_class(base_class):
++    """
++    This function creates a class that inherits base_class of any BaseResources
++    type. Its purpose is to behave exactly as base_class does, except for the
++    objects creation, which instead of creating context, PD and MR, it imports
++    them. Hence the returned class must be initialized with (cmd_fd, pd_handle,
++    mr_handle, mr_addr, **kwargs), while kwargs are the arguments needed
++    (if any) for base_class. In addition it has unimport_resources() method
++    which unimprot all the resources and closes the imported PD object.
++    :param base_class: The base resources class to inherit from
++    :return: ImportResources(cmd_fd, pd_handle, mr_handle, mr_addr, **kwargs)
++             class
++    """
++    class ImportResources(base_class):
++        def __init__(self, cmd_fd, pd_handle, mr_handle, mr_addr=None, **kwargs):
++            self.cmd_fd = cmd_fd
++            self.pd_handle = pd_handle
++            self.mr_handle = mr_handle
++            self.mr_addr = mr_addr
++            super(ImportResources, self).__init__(**kwargs)
 +
-+**ibv_import_pd()** returns a protection domain (PD) that is associated with the given
-+*pd_handle* in the given *context*.
++        def create_context(self):
++            try:
++                self.ctx = Context(cmd_fd=self.cmd_fd)
++            except u.PyverbsRDMAError as ex:
++                if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                    raise unittest.SkipTest('Importing a device is not supported')
++                raise ex
 +
-+The input *pd_handle* value must be a valid kernel handle for a PD object in the given *context*.
-+The returned *ibv_pd* can be used in all verbs that get a protection domain.
++        def create_pd(self):
++            self.pd = PD(self.ctx, handle=self.pd_handle)
 +
-+**ibv_unimport_pd()** unimport the PD.
-+Once the PD usage has been ended ibv_dealloc_pd() or ibv_unimport_pd() should be called.
-+The first one will go to the kernel to destroy the object once the second one way cleanup what
-+ever is needed/opposite of the import without calling the kernel.
++        def create_mr(self):
++            self.mr = MR(self.pd, handle=self.mr_handle, address=self.mr_addr)
 +
-+This is the responsibility of the application to coordinate between all ibv_context(s) that use this PD.
-+Once destroy is done no other process can touch the object except for unimport. All users of the context must
-+collaborate to ensure this.
++        def unimport_resources(self):
++            self.mr.unimport()
++            self.pd.unimport()
++            self.pd.close()
 +
-+# RETURN VALUE
-+
-+**ibv_import_pd()** returns a pointer to the allocated PD, or NULL if the request fails.
-+
-+# SEE ALSO
-+
-+**ibv_alloc_pd**(3),
-+**ibv_dealloc_pd**(3),
-+
-+# AUTHOR
-+
-+Yishai Hadas <yishaih@mellanox.com>
-+
-diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
-index f380036..9380146 100644
---- a/libibverbs/verbs.c
-+++ b/libibverbs/verbs.c
-@@ -352,6 +352,20 @@ struct ibv_mr *ibv_reg_mr_iova2(struct ibv_pd *pd, void *addr, size_t length,
- 	return ibv_reg_mr_iova(pd, addr, length, iova, access);
- }
- 
-+
-+struct ibv_pd *ibv_import_pd(struct ibv_context *context,
-+			     uint32_t pd_handle)
-+{
-+	return get_ops(context)->import_pd(context, pd_handle);
-+}
++    return ImportResources
 +
 +
-+void ibv_unimport_pd(struct ibv_pd *pd)
-+{
-+	get_ops(pd->context)->unimport_pd(pd);
-+}
++class SharedPDTestCase(RDMATestCase):
++    def setUp(self):
++        super().setUp()
++        self.iters = 10
++        self.server_res = None
++        self.imported_res = []
 +
++    def tearDown(self):
++        for res in self.imported_res:
++            res.unimport_resources()
++        super().tearDown()
 +
- LATEST_SYMVER_FUNC(ibv_rereg_mr, 1_1, "IBVERBS_1.1",
- 		   int,
- 		   struct ibv_mr *mr, int flags,
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 67ec946..632ddb9 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -2232,6 +2232,17 @@ int ibv_close_device(struct ibv_context *context);
- struct ibv_context *ibv_import_device(int cmd_fd);
- 
- /**
-+ * ibv_import_pd - Import a protetion domain
-+ */
-+struct ibv_pd *ibv_import_pd(struct ibv_context *context,
-+			     uint32_t pd_handle);
-+
-+/**
-+ * ibv_unimport_pd - Unimport a protetion domain
-+ */
-+void ibv_unimport_pd(struct ibv_pd *pd);
-+
-+/**
-  * ibv_get_async_event - Get next async event
-  * @event: Pointer to use to return async event
-  *
++    def test_imported_rc_ex_rdma_write(self):
++        setup_params = {'dev_name': self.dev_name, 'ib_port': self.ib_port,
++                        'gid_index': self.gid_index}
++        self.server_res = QpExRCRDMAWrite(**setup_params)
++        cmd_fd_dup = os.dup(self.server_res.ctx.cmd_fd)
++        import_cls = get_import_res_class(QpExRCRDMAWrite)
++        server_import = import_cls(
++            cmd_fd_dup, self.server_res.pd.handle, self.server_res.mr.handle,
++            # The imported MR's address is NULL, so using the address of the
++            # "main" MR object to be able to validate the message
++            self.server_res.mr.buf,
++            **setup_params)
++        self.imported_res.append(server_import)
++        client = QpExRCRDMAWrite(**setup_params)
++        client.pre_run(server_import.psn, server_import.qpn)
++        server_import.pre_run(client.psn, client.qpn)
++        client.rkey = server_import.mr.rkey
++        server_import.rkey = client.mr.rkey
++        client.raddr = server_import.mr.buf
++        server_import.raddr = client.mr.buf
++        u.rdma_traffic(client, server_import, self.iters, self.gid_index,
++                       self.ib_port, send_op=e.IBV_QP_EX_WITH_RDMA_WRITE)
 -- 
 1.8.3.1
 
