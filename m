@@ -4,52 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 798CBC433E1
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:24:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9451CC433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:41:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4853E221E8
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:24:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AC3822208
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592443485;
-	bh=7HysoUvvnjrekgBIfABm8V2+Cp33UZFNl1DjisTWGGg=;
+	s=default; t=1592444514;
+	bh=+WmCIF3VxlS2I8+aCIjGy0D50UA5BFOXev6Mxel4t0s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EPTzukBK/63h63HLkmyj0/lYB4dKptTSxjuxo2oUX7Z6HNNf8b1La2excG1WYB787
-	 BkU1MdRONvrR7UCYUyzuqwIyKJiKH6hxGbb7OH6atdtEOxcYRfTpWeKvBYUbEDN0EE
-	 ABNLeF1zD/eHS5YNv/vLr3mywIfSDSIkf0oySy3Q=
+	b=AqcKiqhhlz16S9JSjT2mcL75x4K6EclNx0L+d0Du0pTFaNlfln63fCjRlsKgigRcN
+	 DuaNqKtnTGaqIFRmsDRfhI/dAErmG9r3zF66NnZVeqPYbgvLETMiz1+DPfD6MyBFfE
+	 Pxo2qzD58Xlpc7deEWRgCnKfQX889sUtw/5XgW9A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731263AbgFRBYm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jun 2020 21:24:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59290 "EHLO mail.kernel.org"
+        id S1732326AbgFRB3e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jun 2020 21:29:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731260AbgFRBYl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:24:41 -0400
+        id S1732321AbgFRB3e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:29:34 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1E8D7214DB;
-        Thu, 18 Jun 2020 01:24:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DA75922249;
+        Thu, 18 Jun 2020 01:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443480;
-        bh=7HysoUvvnjrekgBIfABm8V2+Cp33UZFNl1DjisTWGGg=;
+        s=default; t=1592443773;
+        bh=+WmCIF3VxlS2I8+aCIjGy0D50UA5BFOXev6Mxel4t0s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dpC8CHr8z7Biq3NHvmNOF0EaG1h3HNUey5WArRpcUt90473A69X0fIPBs9Z3wPPXt
-         uM7fTfJ6QQFX1m6EbOvfUMtdRZoUzFdb/WI/XmkN5f4neb7MLAz4J86QvkJKHOVu01
-         X8b/qyNUDMAIt33KN0waaD6Eeno0k9ReLenjT4xg=
+        b=aRdIgVsk2v0prW3uSzgDuE9WvS4qUOUpeF92d6v7hanpNCHacqdW/xdKqVUxe2Ffb
+         dGBb8M3kdZsZ17caBJUHRLn3LxamEmApcSoSq0DK3JnCf3VVbwSUSuTXhcNbBS4iPr
+         2HGsGFdSfXVuxkTFgTnLMYGO3EzHoA2syQoolWUI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Maor Gottlieb <maorg@mellanox.com>,
         Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 110/172] IB/cma: Fix ports memory leak in cma_configfs
-Date:   Wed, 17 Jun 2020 21:21:16 -0400
-Message-Id: <20200618012218.607130-110-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 57/80] IB/cma: Fix ports memory leak in cma_configfs
+Date:   Wed, 17 Jun 2020 21:27:56 -0400
+Message-Id: <20200618012819.609778-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618012218.607130-1-sashal@kernel.org>
-References: <20200618012218.607130-1-sashal@kernel.org>
+In-Reply-To: <20200618012819.609778-1-sashal@kernel.org>
+References: <20200618012819.609778-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -80,10 +80,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 13 insertions(+)
 
 diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index eee38b40be99..ce183d054785 100644
+index 41573df1d9fc..692fc42255c9 100644
 --- a/drivers/infiniband/core/cma_configfs.c
 +++ b/drivers/infiniband/core/cma_configfs.c
-@@ -319,8 +319,21 @@ static struct config_group *make_cma_dev(struct config_group *group,
+@@ -277,8 +277,21 @@ static struct config_group *make_cma_dev(struct config_group *group,
  	return ERR_PTR(err);
  }
  
@@ -104,7 +104,7 @@ index eee38b40be99..ce183d054785 100644
 +	.drop_item	= drop_cma_dev,
  };
  
- static const struct config_item_type cma_subsys_type = {
+ static struct config_item_type cma_subsys_type = {
 -- 
 2.25.1
 
