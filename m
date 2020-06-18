@@ -2,53 +2,53 @@ Return-Path: <SRS0=pTjR=77=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92AF2C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 11:25:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9059FC433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 11:25:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 693F320663
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 11:25:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B9B8206C3
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 11:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592479516;
-	bh=v+3qkCNUmeD4W+ixW+zyvDBa9CjK4FXA5E6URvp6jkU=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=PvKYl8yGkCGXCu3z3DqOLxvu5el/c9SD0AV718LcFno9vL2xRwIFb5mPwaSvy5Ugt
-	 6kIhqc3hEqzyyN/5nYdsUFPYBTYA2p7k0r+Acc4yuLV3vMfRtxzBXLV3CAY2UIUtKp
-	 rKqUrmVPCCm/3UDx7lrJP2DK+idTdDIsJeDrlALs=
+	s=default; t=1592479521;
+	bh=tCDTu2P1wn6W8lV3v0IlQX0mONxE1iRUsFx1GiNZCpI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=2c5e+Uw68OaNnQdceRa/av4OeKTbRD+rafB0TOn9l78jTL4ZJfY84Ob1HtfP4u86Y
+	 zKYS5oZxzJf9eq+24qifFJcC9muNPUehRUnP2gvlOcTuo5/asvzgDwNM26BkdSjLIs
+	 3hYRmtcjjM8J88DRoBdo1o8JxDQUjWvkb2XQPWjE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728885AbgFRLZP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Jun 2020 07:25:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38174 "EHLO mail.kernel.org"
+        id S1729476AbgFRLZU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Jun 2020 07:25:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728048AbgFRLZO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Jun 2020 07:25:14 -0400
+        id S1728048AbgFRLZS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 18 Jun 2020 07:25:18 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5D34120773;
-        Thu, 18 Jun 2020 11:25:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2A22E20663;
+        Thu, 18 Jun 2020 11:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592479514;
-        bh=v+3qkCNUmeD4W+ixW+zyvDBa9CjK4FXA5E6URvp6jkU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=nJWBlibMXCJuBDg8cPBENgeH68sWeg2oykqvpr5gmlLzwTemkfNAAHrClDMS4gBoF
-         6hdJ9xrAuCSUDZpF4LdAjRhO1YmK0BbTqxdozWdUv750++msOwVB7cLtnr2UVo5KUF
-         s4+5OLXNghtazdb9pQ5XyjRFiyp6RxCG22wxMgCU=
+        s=default; t=1592479517;
+        bh=tCDTu2P1wn6W8lV3v0IlQX0mONxE1iRUsFx1GiNZCpI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=qZ7e//Wpmus5ZcJFnI3rMlLZtFfkK0Vmls9GPbqBi7ahpd91LFpjHQAK9UZjX+Qmy
+         d+PifOfkJMvi4lCeuIONax0EeYTnKMgRLGEscx5+CTk7oNQvXtxsjC0UAKwv4SZUNx
+         Ax9y+0X3Gk3Zvv3+ZyhR/tYF1G8jCPdZHH7M+gmk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Mark Zhang <markz@mellanox.com>
-Subject: [PATCH rdma-rc 0/2] Two small fixes to the mlx5_ib
-Date:   Thu, 18 Jun 2020 14:25:05 +0300
-Message-Id: <20200618112507.3453496-1-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/2] RDMA/mlx5: Remove ECE limitation from the RAW_PACKET QPs
+Date:   Thu, 18 Jun 2020 14:25:06 +0300
+Message-Id: <20200618112507.3453496-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200618112507.3453496-1-leon@kernel.org>
+References: <20200618112507.3453496-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -58,25 +58,44 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Hi,
+Like any other QP type, rely on FW for the RAW_PACKET QPs to decide
+if ECE is supported or not. This fixes an inability to create RAW_PACKET
+QPs with latest rdma-core with the ECE support.
 
-The following two fixes are user-visible one. The first patch is needed
-to continue to use RAW_PACKET QPs after PR [1] is merged and new FW will
-be released. The second patch fixes wrongly reported GID.
+Fixes: e383085c2425 ("RDMA/mlx5: Set ECE options during QP create")
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-Thanks
-
-[1] https://github.com/linux-rdma/rdma-core/pull/745
-
-Leon Romanovsky (1):
-  RDMA/mlx5: Remove ECE limitation from the RAW_PACKET QPs
-
-Maor Gottlieb (1):
-  RDMA/mlx5: Fix remote gid value in query QP
-
- drivers/infiniband/hw/mlx5/qp.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index dbe82cdb8d2c..0e42c50373d9 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2873,7 +2873,6 @@ static int mlx5_ib_destroy_dct(struct mlx5_ib_qp *mqp)
+ static int check_ucmd_data(struct mlx5_ib_dev *dev,
+ 			   struct mlx5_create_qp_params *params)
+ {
+-	struct ib_qp_init_attr *attr = params->attr;
+ 	struct ib_udata *udata = params->udata;
+ 	size_t size, last;
+ 	int ret;
+@@ -2885,14 +2884,7 @@ static int check_ucmd_data(struct mlx5_ib_dev *dev,
+ 		 */
+ 		last = sizeof(struct mlx5_ib_create_qp_rss);
+ 	else
+-		/* IB_QPT_RAW_PACKET doesn't have ECE data */
+-		switch (attr->qp_type) {
+-		case IB_QPT_RAW_PACKET:
+-			last = offsetof(struct mlx5_ib_create_qp, ece_options);
+-			break;
+-		default:
+-			last = offsetof(struct mlx5_ib_create_qp, reserved);
+-		}
++		last = offsetof(struct mlx5_ib_create_qp, reserved);
+ 
+ 	if (udata->inlen <= last)
+ 		return 0;
+-- 
 2.26.2
 
