@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9D53C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:58:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1677AC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:04:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB97122247
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 01:58:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBC182220B
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:04:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592445520;
-	bh=I6xtW/C29jKr+Sxh28IcwGqum2+CjTHubDmIj/WsSI8=;
+	s=default; t=1592445890;
+	bh=f3IrhpYIO11PWkZc3xRDXXaFzg5TqWFtpqCE+5k93P0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=T6awsyZSbCdyBi1Zk+EmRa1pwHyA6W9+u0H+fa9Ge+iylZNLeZ05VpVF74a3aVgTy
-	 b8j8TRQQEnUEPzVwlfimCONyqTb/30/2Z1jj1f/zLaSbiRtlh+mbEvrtUgIiZL8O3H
-	 PbUHApcuwxz+dj+G2ltS8MatW8s//0n3yI4uxby4=
+	b=JebdNskA+VpuATeixp1UvFEA1ozvOciZtajNdHG7gYVLPNYwtEcRV9s/TJzHjE56u
+	 gV0yB1JVr1QiviG09sumc5V/D8iSCQvFQxpAuT5At8tcspQSx5CIbso3b9j/KI4l0w
+	 dHzrykJC8FF8/VfURO79d498vixZiKYE/f+dGEr0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730718AbgFRB6i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jun 2020 21:58:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59592 "EHLO mail.kernel.org"
+        id S1729253AbgFRCEl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jun 2020 22:04:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729068AbgFRBYt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:24:49 -0400
+        id S1730882AbgFRBW5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:22:57 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DAFBB21927;
-        Thu, 18 Jun 2020 01:24:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 649C120CC7;
+        Thu, 18 Jun 2020 01:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443489;
-        bh=I6xtW/C29jKr+Sxh28IcwGqum2+CjTHubDmIj/WsSI8=;
+        s=default; t=1592443377;
+        bh=f3IrhpYIO11PWkZc3xRDXXaFzg5TqWFtpqCE+5k93P0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZB0ypnytsOEQyofV6448IC1CaH3QYybRZS6K2uEre+xdSW1geaQK9ucRqCBvhlTAD
-         cNS8i5yeaFux2z/47V629b3TRZCdeBeYNEG/8HMZSz0C4pME8Te7AzwpsUH2eyJJCq
-         fhSj2XcujHnOVoBg8PT6W+ketoknRehVeZepcSbs=
+        b=XEeELnDE+GjaJdVAHGAz+LKvR7h+GnwmYzm1KYJbPWvOFUpUSmNQv/myAg8gIgV9e
+         qAl8vg6G7T/gF4PDRk10qAtCsgwT8e+LRvEP1ZoUOvtTseL08nDBQcAAvR0yyGigyx
+         mADR3+TjZp17VhlsnHSrHlDa0VBCeXwuxEUHrLcI=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Potnuri Bharat Teja <bharat@chelsio.com>,
+Cc:     Aharon Landau <aharonl@mellanox.com>,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 117/172] RDMA/iw_cxgb4: cleanup device debugfs entries on ULD remove
-Date:   Wed, 17 Jun 2020 21:21:23 -0400
-Message-Id: <20200618012218.607130-117-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 029/172] RDMA/mlx5: Add init2init as a modify command
+Date:   Wed, 17 Jun 2020 21:19:55 -0400
+Message-Id: <20200618012218.607130-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200618012218.607130-1-sashal@kernel.org>
 References: <20200618012218.607130-1-sashal@kernel.org>
@@ -58,33 +60,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Potnuri Bharat Teja <bharat@chelsio.com>
+From: Aharon Landau <aharonl@mellanox.com>
 
-[ Upstream commit 49ea0c036ede81f126f1a9389d377999fdf5c5a1 ]
+[ Upstream commit 819f7427bafd494ef7ca4942ec6322db20722d7b ]
 
-Remove device specific debugfs entries immediately if LLD detaches a
-particular ULD device in case of fatal PCI errors.
+Missing INIT2INIT entry in the list of modify commands caused DEVX
+applications to be unable to modify_qp for this transition state. Add the
+MLX5_CMD_OP_INIT2INIT_QP opcode to the list of allowed DEVX opcodes.
 
-Link: https://lore.kernel.org/r/20200524190814.17599-1-bharat@chelsio.com
-Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
+Fixes: e662e14d801b ("IB/mlx5: Add DEVX support for modify and query commands")
+Link: https://lore.kernel.org/r/20200513095550.211345-1-leon@kernel.org
+Signed-off-by: Aharon Landau <aharonl@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/device.c | 1 +
+ drivers/infiniband/hw/mlx5/devx.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index c13c0ba30f63..af974a257086 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -945,6 +945,7 @@ void c4iw_dealloc(struct uld_ctx *ctx)
- static void c4iw_remove(struct uld_ctx *ctx)
- {
- 	pr_debug("c4iw_dev %p\n", ctx->dev);
-+	debugfs_remove_recursive(ctx->dev->debugfs_root);
- 	c4iw_unregister_device(ctx->dev);
- 	c4iw_dealloc(ctx);
- }
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 02f36ab72ad4..4c90a007e09d 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -328,6 +328,7 @@ static bool devx_is_obj_modify_cmd(const void *in)
+ 	case MLX5_CMD_OP_SET_L2_TABLE_ENTRY:
+ 	case MLX5_CMD_OP_RST2INIT_QP:
+ 	case MLX5_CMD_OP_INIT2RTR_QP:
++	case MLX5_CMD_OP_INIT2INIT_QP:
+ 	case MLX5_CMD_OP_RTR2RTS_QP:
+ 	case MLX5_CMD_OP_RTS2RTS_QP:
+ 	case MLX5_CMD_OP_SQERR2RTS_QP:
 -- 
 2.25.1
 
