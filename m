@@ -4,53 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C77C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF4BC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:32:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A4D7214DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:24:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53DF7206E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Jun 2020 02:32:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592447080;
-	bh=VBuOm0mYioZ/oPmB+op4PwP9fnF2/CigkbE2kWwy4gw=;
+	s=default; t=1592447573;
+	bh=8dWe8dNHmHjFruy6tr76/ZHDAnAMRcZD/e9OgpgnMeI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LCNzQqJ3LMuyLR0dArMt1WTb5cYvx0/ZPrLzEZgBXVG6oYjGfDaToLPFM2HQa6tch
-	 U6Jv9Kf/sGDg4JL0e5OAArtLmgp0gNzHZYqVpcDGeCozPrZJUmO2IJ6Hk0w8nfbpVW
-	 FAI5lxMCa6Cn4myIC/z0tlJm0+QLJxSruiupWjsQ=
+	b=SN4/olFcd22Q4oE1HIFFP7969wkQ4HVHVoUomd1UUub07AQtQcRbg0RpxXyqQ4YEW
+	 F2wExgIzfgAvt3lGPE+gQOdhwmDCzuDFJuko3k/qnKZHYQ+DIhzhw16rSRXxZeBYRM
+	 PzJekFH2Rjrhpz99uizbHvHECQARDVV6AtCUdgWA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730154AbgFRCYh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Jun 2020 22:24:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48788 "EHLO mail.kernel.org"
+        id S1729518AbgFRCcj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Jun 2020 22:32:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729805AbgFRBRh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:17:37 -0400
+        id S1729442AbgFRBPJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:15:09 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B0DE621D82;
-        Thu, 18 Jun 2020 01:17:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 880F8221EB;
+        Thu, 18 Jun 2020 01:15:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592443056;
-        bh=VBuOm0mYioZ/oPmB+op4PwP9fnF2/CigkbE2kWwy4gw=;
+        s=default; t=1592442909;
+        bh=8dWe8dNHmHjFruy6tr76/ZHDAnAMRcZD/e9OgpgnMeI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KdO1dWQRVi9ZrDikbfh4MIwc5sqVRtVgsu9uXjTxBsfobH69pyfYja5y+XSi7gINJ
-         dUvmSwtnEJgDQJWYceCFWfCTnkdrbJ00W5eP03LhBF1DGprPQ7UsG7hfEt1w46gthh
-         0yb26HAme7mI8EPS5GVZCwIsucaij1oAsvWLH+aI=
+        b=PoFdzrhR+ZS7JKtwQW+pROHz69+WHZnOQhWT+HMqMs+vCXXegeI3NiuiCYOOzgLfV
+         YXaz0QaKa+ncxckr3qKX8wZr2PW5DblR0EiQngSh4HjpseQEMiDCfu1wjS3yAArR1y
+         mWRnKV1x/qxZWT3yvvwdMOH+85Sxh3N6MBtXsgqE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Aharon Landau <aharonl@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Ka-Cheong Poon <ka-cheong.poon@oracle.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 048/266] RDMA/mlx5: Add init2init as a modify command
-Date:   Wed, 17 Jun 2020 21:12:53 -0400
-Message-Id: <20200618011631.604574-48-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.7 328/388] RDMA/cm: Spurious WARNING triggered in cm_destroy_id()
+Date:   Wed, 17 Jun 2020 21:07:05 -0400
+Message-Id: <20200618010805.600873-328-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200618011631.604574-1-sashal@kernel.org>
-References: <20200618011631.604574-1-sashal@kernel.org>
+In-Reply-To: <20200618010805.600873-1-sashal@kernel.org>
+References: <20200618010805.600873-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -60,37 +58,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@mellanox.com>
+From: Ka-Cheong Poon <ka-cheong.poon@oracle.com>
 
-[ Upstream commit 819f7427bafd494ef7ca4942ec6322db20722d7b ]
+[ Upstream commit fba97dc7fc76b2c9a909fa0b3786d30a9899f5cf ]
 
-Missing INIT2INIT entry in the list of modify commands caused DEVX
-applications to be unable to modify_qp for this transition state. Add the
-MLX5_CMD_OP_INIT2INIT_QP opcode to the list of allowed DEVX opcodes.
+If the cm_id state is IB_CM_REP_SENT when cm_destroy_id() is called, it
+calls cm_send_rej_locked().
 
-Fixes: e662e14d801b ("IB/mlx5: Add DEVX support for modify and query commands")
-Link: https://lore.kernel.org/r/20200513095550.211345-1-leon@kernel.org
-Signed-off-by: Aharon Landau <aharonl@mellanox.com>
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+In cm_send_rej_locked(), it calls cm_enter_timewait() and the state is
+changed to IB_CM_TIMEWAIT.
+
+Now back to cm_destroy_id(), it breaks from the switch statement, and the
+next call is WARN_ON(cm_id->state != IB_CM_IDLE).
+
+This triggers a spurious warning. Instead, the code should goto retest
+after returning from cm_send_rej_locked() to move the state to IDLE.
+
+Fixes: 67b3c8dceac6 ("RDMA/cm: Make sure the cm_id is in the IB_CM_IDLE state in destroy")
+Link: https://lore.kernel.org/r/1591191218-9446-1-git-send-email-ka-cheong.poon@oracle.com
+Signed-off-by: Ka-Cheong Poon <ka-cheong.poon@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx5/devx.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/cm.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index d609f4659afb..bba7ab078430 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -814,6 +814,7 @@ static bool devx_is_obj_modify_cmd(const void *in)
- 	case MLX5_CMD_OP_SET_L2_TABLE_ENTRY:
- 	case MLX5_CMD_OP_RST2INIT_QP:
- 	case MLX5_CMD_OP_INIT2RTR_QP:
-+	case MLX5_CMD_OP_INIT2INIT_QP:
- 	case MLX5_CMD_OP_RTR2RTS_QP:
- 	case MLX5_CMD_OP_RTS2RTS_QP:
- 	case MLX5_CMD_OP_SQERR2RTS_QP:
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 17f14e0eafe4..1c2bf18cda9f 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1076,7 +1076,9 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
+ 	case IB_CM_REP_SENT:
+ 	case IB_CM_MRA_REP_RCVD:
+ 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+-		/* Fall through */
++		cm_send_rej_locked(cm_id_priv, IB_CM_REJ_CONSUMER_DEFINED, NULL,
++				   0, NULL, 0);
++		goto retest;
+ 	case IB_CM_MRA_REQ_SENT:
+ 	case IB_CM_REP_RCVD:
+ 	case IB_CM_MRA_REP_SENT:
 -- 
 2.25.1
 
