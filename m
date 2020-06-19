@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0B29C433DF
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:57:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C84DC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE07A22210
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:57:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24F9A22210
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="WZIOlNEQ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="mU9KnbzY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728333AbgFSV5N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jun 2020 17:57:13 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:4433 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728256AbgFSV5I (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jun 2020 17:57:08 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5eed34800004>; Fri, 19 Jun 2020 14:56:16 -0700
+        id S1728502AbgFSV57 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jun 2020 17:57:59 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:8527 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728307AbgFSV5L (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jun 2020 17:57:11 -0400
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5eed344e0001>; Fri, 19 Jun 2020 14:55:26 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
+  by hqpgpgate102.nvidia.com (PGP Universal service);
   Fri, 19 Jun 2020 14:57:07 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Fri, 19 Jun 2020 14:57:07 -0700
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 19 Jun
+        by hqpgpgate102.nvidia.com on Fri, 19 Jun 2020 14:57:07 -0700
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 19 Jun
  2020 21:56:59 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Fri, 19 Jun 2020 21:56:59 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5eed34ab000a>; Fri, 19 Jun 2020 14:56:59 -0700
+        id <B5eed34ab0002>; Fri, 19 Jun 2020 14:56:59 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <nouveau@lists.freedesktop.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, <linux-kselftest@vger.kernel.org>,
@@ -48,9 +48,9 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Shuah Khan <shuah@kernel.org>,
         Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH 09/16] mm/hmm: add output flag for compound page mapping
-Date:   Fri, 19 Jun 2020 14:56:42 -0700
-Message-ID: <20200619215649.32297-10-rcampbell@nvidia.com>
+Subject: [PATCH 03/16] nouveau: fix mixed normal and device private page migration
+Date:   Fri, 19 Jun 2020 14:56:36 -0700
+Message-ID: <20200619215649.32297-4-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200619215649.32297-1-rcampbell@nvidia.com>
 References: <20200619215649.32297-1-rcampbell@nvidia.com>
@@ -59,98 +59,71 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1592603776; bh=JPgQkHIpNzBsyjWBqEqB+kAjfFMrODd+Eb4Y45RUY/w=;
+        t=1592603726; bh=ZfcMxwlEjaJ9jud4ZrslX8wzG6hxoVtsjt+UlX695yk=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=WZIOlNEQWncuTcywertFlHcnMuAxg3zWmP9O70STDKDcbRFB57tRuceh7ta4wz9k+
-         CYHdRm/RmK+LnY1pOz8UdaLCLoSkZdQU03Dd0ug+WIvbJsqCszfEPEL/wm9zWiJw0y
-         fuB5hh+gv1MgU01BmnKjpRl7s9OP//5ILxDijPEYJPbOEv45V1iJhr+WxJzkQOUaoo
-         h3+tQ48LakW8p5M8A9IS6dKTTaQ17xHmqaluKWc6r3+3sVj49DjmsIfhronpIaSRtG
-         i8Mr5Uuaxm1HIyAb8v5POXXV9Bkeec4QfJ8I97rzH0SpDXZpnNnJlA2W+Tx7ZWROLW
-         vy88FBsN/ROJA==
+        b=mU9KnbzYIJxSfATGWHX9y6ZjjtDaywPixJ52o6MZeR6UGLlSiA1jlzu0XdSndhmPX
+         iLpZb5OIKOq2tiNtGx2SA7+0C6IXXZAD9shfBEEKghxsY2VL2xNOEJ0jqCewxzd/9X
+         BCEh4wzqf0r0kmc30QRvHFpcqe5YieRlMbBU1FpfSHDcf4CPVruyHz5ekH/aWtYHjS
+         D/qYlmwKed8ltDQ+TmlI6p5lpb94ZcowbE7lH9kwSfM6QNDrxbl2lT9YB+2ea0oUMj
+         nb1L/Bp2dHaJvaVln1/zPWYM1OSW5yuZj8HHjh3QHpnBLEgFzBA9f4B8q0OfmY9P5f
+         T2eg4bo3r5Umg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-hmm_range_fault() returns an array of page frame numbers and flags for
-how the pages are mapped in the requested process' page tables. The PFN
-can be used to get the struct page with hmm_pfn_to_page() and the page size
-order can be determined with compound_order(page) but if the page is larger
-than order 0 (PAGE_SIZE), there is no indication that the page is mapped
-using a larger page size. To be fully general, hmm_range_fault() would need
-to return the mapping size to handle cases like a 1GB compound page being
-mapped with 2MB PMD entries. However, the most common case is the mapping
-size is the same as the underlying compound page size.
-Add a new output flag to indicate this so that callers know it is safe to
-use a large device page table mapping if one is available.
+The OpenCL function clEnqueueSVMMigrateMem(), without any flags, will
+migrate memory in the given address range to device private memory. The
+source pages might already have been migrated to device private memory.
+In that case, the source struct page is not checked to see if it is
+a device private page and incorrectly computes the GPU's physical
+address of local memory leading to data corruption.
+Fix this by checking the source struct page and computing the correct
+physical address.
 
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
 ---
- include/linux/hmm.h |  4 +++-
- mm/hmm.c            | 10 +++++++---
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_dmem.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index f4a09ed223ac..d0db78025baa 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -41,12 +41,14 @@ enum hmm_pfn_flags {
- 	HMM_PFN_VALID =3D 1UL << (BITS_PER_LONG - 1),
- 	HMM_PFN_WRITE =3D 1UL << (BITS_PER_LONG - 2),
- 	HMM_PFN_ERROR =3D 1UL << (BITS_PER_LONG - 3),
-+	HMM_PFN_COMPOUND =3D 1UL << (BITS_PER_LONG - 4),
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouve=
+au/nouveau_dmem.c
+index cc9993837508..f6a806ba3caa 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -540,6 +540,12 @@ static unsigned long nouveau_dmem_migrate_copy_one(str=
+uct nouveau_drm *drm,
+ 	if (!(src & MIGRATE_PFN_MIGRATE))
+ 		goto out;
 =20
- 	/* Input flags */
- 	HMM_PFN_REQ_FAULT =3D HMM_PFN_VALID,
- 	HMM_PFN_REQ_WRITE =3D HMM_PFN_WRITE,
++	if (spage && is_device_private_page(spage)) {
++		paddr =3D nouveau_dmem_page_addr(spage);
++		*dma_addr =3D DMA_MAPPING_ERROR;
++		goto done;
++	}
++
+ 	dpage =3D nouveau_dmem_page_alloc_locked(drm);
+ 	if (!dpage)
+ 		goto out;
+@@ -560,6 +566,7 @@ static unsigned long nouveau_dmem_migrate_copy_one(stru=
+ct nouveau_drm *drm,
+ 			goto out_free_page;
+ 	}
 =20
--	HMM_PFN_FLAGS =3D HMM_PFN_VALID | HMM_PFN_WRITE | HMM_PFN_ERROR,
-+	HMM_PFN_FLAGS =3D HMM_PFN_VALID | HMM_PFN_WRITE | HMM_PFN_ERROR |
-+			HMM_PFN_COMPOUND,
- };
-=20
- /*
-diff --git a/mm/hmm.c b/mm/hmm.c
-index e9a545751108..d145d44256df 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -170,7 +170,9 @@ static inline unsigned long pmd_to_hmm_pfn_flags(struct=
- hmm_range *range,
- {
- 	if (pmd_protnone(pmd))
- 		return 0;
--	return pmd_write(pmd) ? (HMM_PFN_VALID | HMM_PFN_WRITE) : HMM_PFN_VALID;
-+	return pmd_write(pmd) ?
-+			(HMM_PFN_VALID | HMM_PFN_COMPOUND | HMM_PFN_WRITE) :
-+			(HMM_PFN_VALID | HMM_PFN_COMPOUND);
- }
-=20
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -389,7 +391,9 @@ static inline unsigned long pud_to_hmm_pfn_flags(struct=
- hmm_range *range,
- {
- 	if (!pud_present(pud))
- 		return 0;
--	return pud_write(pud) ? (HMM_PFN_VALID | HMM_PFN_WRITE) : HMM_PFN_VALID;
-+	return pud_write(pud) ?
-+			(HMM_PFN_VALID | HMM_PFN_COMPOUND | HMM_PFN_WRITE) :
-+			(HMM_PFN_VALID | HMM_PFN_COMPOUND);
- }
-=20
- static int hmm_vma_walk_pud(pud_t *pudp, unsigned long start, unsigned lon=
-g end,
-@@ -484,7 +488,7 @@ static int hmm_vma_walk_hugetlb_entry(pte_t *pte, unsig=
-ned long hmask,
-=20
- 	pfn =3D pte_pfn(entry) + ((start & ~hmask) >> PAGE_SHIFT);
- 	for (; addr < end; addr +=3D PAGE_SIZE, i++, pfn++)
--		range->hmm_pfns[i] =3D pfn | cpu_flags;
-+		range->hmm_pfns[i] =3D pfn | cpu_flags | HMM_PFN_COMPOUND;
-=20
- 	spin_unlock(ptl);
- 	return 0;
++done:
+ 	*pfn =3D NVIF_VMM_PFNMAP_V0_V | NVIF_VMM_PFNMAP_V0_VRAM |
+ 		((paddr >> PAGE_SHIFT) << NVIF_VMM_PFNMAP_V0_ADDR_SHIFT);
+ 	if (src & MIGRATE_PFN_WRITE)
+@@ -615,6 +622,7 @@ nouveau_dmem_migrate_vma(struct nouveau_drm *drm,
+ 	struct migrate_vma args =3D {
+ 		.vma		=3D vma,
+ 		.start		=3D start,
++		.src_owner	=3D drm->dev,
+ 	};
+ 	unsigned long i;
+ 	u64 *pfns;
 --=20
 2.20.1
 
