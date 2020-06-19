@@ -2,40 +2,40 @@ Return-Path: <SRS0=hqMI=AA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE1E3C433E0
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1319DC433E1
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBFAB22225
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8BC32224A
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:58:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="h9Ue237V"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="JoBibeym"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728556AbgFSV6F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jun 2020 17:58:05 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:4459 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728287AbgFSV5K (ORCPT
+        id S1728545AbgFSV6D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jun 2020 17:58:03 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:2238 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726220AbgFSV5K (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jun 2020 17:57:10 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5eed34800007>; Fri, 19 Jun 2020 14:56:16 -0700
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5eed34a60006>; Fri, 19 Jun 2020 14:56:54 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
   Fri, 19 Jun 2020 14:57:07 -0700
 X-PGP-Universal: processed;
         by hqpgpgate101.nvidia.com on Fri, 19 Jun 2020 14:57:07 -0700
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 19 Jun
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 19 Jun
  2020 21:56:59 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 19 Jun 2020 21:56:59 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Fri, 19 Jun 2020 21:57:00 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5eed34aa0003>; Fri, 19 Jun 2020 14:56:58 -0700
+        id <B5eed34ab000c>; Fri, 19 Jun 2020 14:56:59 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <nouveau@lists.freedesktop.org>, <linux-rdma@vger.kernel.org>,
         <linux-mm@kvack.org>, <linux-kselftest@vger.kernel.org>,
@@ -48,80 +48,165 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Shuah Khan <shuah@kernel.org>,
         Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH 00/16] mm/hmm/nouveau: THP mapping and migration
-Date:   Fri, 19 Jun 2020 14:56:33 -0700
-Message-ID: <20200619215649.32297-1-rcampbell@nvidia.com>
+Subject: [PATCH 11/16] hmm: add tests for HMM_PFN_COMPOUND flag
+Date:   Fri, 19 Jun 2020 14:56:44 -0700
+Message-ID: <20200619215649.32297-12-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200619215649.32297-1-rcampbell@nvidia.com>
+References: <20200619215649.32297-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1592603776; bh=cY2z0OG1pUaoe5jBUN9mz4n6ug8KS7Y4KUbr8HDt6lM=;
+        t=1592603814; bh=k7QoIugfRNYaJpI159ZReC8oMyxhpBcMD+UOjK/st/s=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
-         Content-Type;
-        b=h9Ue237VUS0DYlx4+ZPf7DBfdsfGNigyNS8eyYLe4mqxhix4iw4hCoiwj2ACeJcIP
-         cOTmq6M+LU527F7YEWJ/54n1+Y5dEeKouADPnbmr/KPkjT3o7tPCziz0MoMr3pTyp8
-         A1HW3B5f4n7FfjOHYCOtmc7IWlH5MRslPGnMBkrylKMFrXZnTHcKMnGmyTWhiSDiR3
-         HOTG6yr7LJLQEWip29sWfhQOotCaV5PlNKnifKnVuKEFYI9228oqDmbwJnbmLHiKu7
-         8L0xm1X2SJ5LKTbMoZamhFqZdsFKD5qaniMTzm5doSBLxYF69Hm2lMaHC1hEA3Rdja
-         a/eQhOsyz/uLA==
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=JoBibeymQXzrPrKebaE3+SEvRBN/askNVO/KJ6GszN1rte9sfO/OIeA9ZTJZwAdFt
+         ywT8sec2lhJ4LUowpPuiTxX6BBK15xgalYDGhkTXe9P+xvvwWhymp6D1qv8ZnekmDd
+         ZXp3zLyVZMS0FjVdckWgiZAQVTqqGRMmDAEQ6lrv47ItPu0Q37kFgT3Tw2NCOyiHQZ
+         hceJe14NhYeaHM90a0E0IslsUDCoIeV3iXmaFlLYhbzebCzefgDtT9UHOu2OdT1Gbj
+         kgRRLiO2LgQhxHPOdsA8s6Y5vqsTDKtdG7eDScN40tCe4whjSgu+hN7q1Lejf+riOv
+         CBgfviawcsIeg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-These patches apply to linux-5.8.0-rc1. Patches 1-3 should probably go
-into 5.8, the others can be queued for 5.9. Patches 4-6 improve the HMM
-self tests. Patch 7-8 prepare nouveau for the meat of this series which
-adds support and testing for compound page mapping of system memory
-(patches 9-11) and compound page migration to device private memory
-(patches 12-16). Since these changes are split across mm core, nouveau,
-and testing, I'm guessing Jason Gunthorpe's HMM tree would be appropriate.
+Add some sanity tests for hmm_range_fault() returning the HMM_PFN_COMPOUND
+flag.
 
-Ralph Campbell (16):
-  mm: fix migrate_vma_setup() src_owner and normal pages
-  nouveau: fix migrate page regression
-  nouveau: fix mixed normal and device private page migration
-  mm/hmm: fix test timeout on slower machines
-  mm/hmm/test: remove redundant page table invalidate
-  mm/hmm: test mixed normal and device private migrations
-  nouveau: make nvkm_vmm_ctor() and nvkm_mmu_ptp_get() static
-  nouveau/hmm: fault one page at a time
-  mm/hmm: add output flag for compound page mapping
-  nouveau/hmm: support mapping large sysmem pages
-  hmm: add tests for HMM_PFN_COMPOUND flag
-  mm/hmm: optimize migrate_vma_setup() for holes
-  mm: support THP migration to device private memory
-  mm/thp: add THP allocation helper
-  mm/hmm/test: add self tests for THP migration
-  nouveau: support THP migration to private memory
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
+ lib/test_hmm.c                         |  2 +
+ lib/test_hmm_uapi.h                    |  2 +
+ tools/testing/selftests/vm/hmm-tests.c | 76 ++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+)
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c        | 177 +++++---
- drivers/gpu/drm/nouveau/nouveau_svm.c         | 241 +++++------
- drivers/gpu/drm/nouveau/nouveau_svm.h         |   3 +-
- .../gpu/drm/nouveau/nvkm/subdev/mmu/base.c    |   6 +-
- .../gpu/drm/nouveau/nvkm/subdev/mmu/priv.h    |   2 +
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c |  10 +-
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.h |   3 -
- .../drm/nouveau/nvkm/subdev/mmu/vmmgp100.c    |  29 +-
- include/linux/gfp.h                           |  10 +
- include/linux/hmm.h                           |   4 +-
- include/linux/migrate.h                       |   1 +
- include/linux/mm.h                            |   1 +
- lib/test_hmm.c                                | 359 ++++++++++++----
- lib/test_hmm_uapi.h                           |   2 +
- mm/hmm.c                                      |  10 +-
- mm/huge_memory.c                              |  46 ++-
- mm/internal.h                                 |   1 -
- mm/memory.c                                   |  10 +-
- mm/memremap.c                                 |   9 +-
- mm/migrate.c                                  | 236 +++++++++--
- mm/page_alloc.c                               |   1 +
- tools/testing/selftests/vm/hmm-tests.c        | 388 +++++++++++++++++-
- 22 files changed, 1203 insertions(+), 346 deletions(-)
-
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index 50bdf041770a..db5d2e8d7420 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -779,6 +779,8 @@ static void dmirror_mkentry(struct dmirror *dmirror, st=
+ruct hmm_range *range,
+ 		*perm |=3D HMM_DMIRROR_PROT_WRITE;
+ 	else
+ 		*perm |=3D HMM_DMIRROR_PROT_READ;
++	if (entry & HMM_PFN_COMPOUND)
++		*perm |=3D HMM_DMIRROR_PROT_COMPOUND;
+ }
+=20
+ static bool dmirror_snapshot_invalidate(struct mmu_interval_notifier *mni,
+diff --git a/lib/test_hmm_uapi.h b/lib/test_hmm_uapi.h
+index 67b3b2e6ff5d..21cf4da6f020 100644
+--- a/lib/test_hmm_uapi.h
++++ b/lib/test_hmm_uapi.h
+@@ -40,6 +40,7 @@ struct hmm_dmirror_cmd {
+  * HMM_DMIRROR_PROT_NONE: unpopulated PTE or PTE with no access
+  * HMM_DMIRROR_PROT_READ: read-only PTE
+  * HMM_DMIRROR_PROT_WRITE: read/write PTE
++ * HMM_DMIRROR_PROT_COMPOUND: compound page is fully mapped by same permis=
+sions
+  * HMM_DMIRROR_PROT_ZERO: special read-only zero page
+  * HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL: Migrated device private page on the
+  *					device the ioctl() is made
+@@ -51,6 +52,7 @@ enum {
+ 	HMM_DMIRROR_PROT_NONE			=3D 0x00,
+ 	HMM_DMIRROR_PROT_READ			=3D 0x01,
+ 	HMM_DMIRROR_PROT_WRITE			=3D 0x02,
++	HMM_DMIRROR_PROT_COMPOUND		=3D 0x04,
+ 	HMM_DMIRROR_PROT_ZERO			=3D 0x10,
+ 	HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL	=3D 0x20,
+ 	HMM_DMIRROR_PROT_DEV_PRIVATE_REMOTE	=3D 0x30,
+diff --git a/tools/testing/selftests/vm/hmm-tests.c b/tools/testing/selftes=
+ts/vm/hmm-tests.c
+index e2a36783e99d..e0fa864d03fa 100644
+--- a/tools/testing/selftests/vm/hmm-tests.c
++++ b/tools/testing/selftests/vm/hmm-tests.c
+@@ -1301,6 +1301,82 @@ TEST_F(hmm2, snapshot)
+ 	hmm_buffer_free(buffer);
+ }
+=20
++/*
++ * Test the hmm_range_fault() HMM_PFN_COMPOUND flag for large pages that
++ * should be mapped by a large page table entry.
++ */
++TEST_F(hmm, compound)
++{
++	struct hmm_buffer *buffer;
++	unsigned long npages;
++	unsigned long size;
++	int *ptr;
++	unsigned char *m;
++	int ret;
++	long pagesizes[4];
++	int n, idx;
++	unsigned long i;
++
++	/* Skip test if we can't allocate a hugetlbfs page. */
++
++	n =3D gethugepagesizes(pagesizes, 4);
++	if (n <=3D 0)
++		return;
++	for (idx =3D 0; --n > 0; ) {
++		if (pagesizes[n] < pagesizes[idx])
++			idx =3D n;
++	}
++	size =3D ALIGN(TWOMEG, pagesizes[idx]);
++	npages =3D size >> self->page_shift;
++
++	buffer =3D malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->ptr =3D get_hugepage_region(size, GHR_STRICT);
++	if (buffer->ptr =3D=3D NULL) {
++		free(buffer);
++		return;
++	}
++
++	buffer->size =3D size;
++	buffer->mirror =3D malloc(npages);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	/* Initialize the pages the device will snapshot in buffer->ptr. */
++	for (i =3D 0, ptr =3D buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] =3D i;
++
++	/* Simulate a device snapshotting CPU pagetables. */
++	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device saw. */
++	m =3D buffer->mirror;
++	for (i =3D 0; i < npages; ++i)
++		ASSERT_EQ(m[i], HMM_DMIRROR_PROT_WRITE |
++				HMM_DMIRROR_PROT_COMPOUND);
++
++	/* Make the region read-only. */
++	ret =3D mprotect(buffer->ptr, size, PROT_READ);
++	ASSERT_EQ(ret, 0);
++
++	/* Simulate a device snapshotting CPU pagetables. */
++	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device saw. */
++	m =3D buffer->mirror;
++	for (i =3D 0; i < npages; ++i)
++		ASSERT_EQ(m[i], HMM_DMIRROR_PROT_READ |
++				HMM_DMIRROR_PROT_COMPOUND);
++
++	free_hugepage_region(buffer->ptr);
++	buffer->ptr =3D NULL;
++	hmm_buffer_free(buffer);
++}
++
+ /*
+  * Test two devices reading the same memory (double mapped).
+  */
 --=20
 2.20.1
 
