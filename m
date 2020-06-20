@@ -1,125 +1,116 @@
-Return-Path: <SRS0=hqMI=AA=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=n2PU=AB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19CB2C433DF
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:59:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B697C433E0
+	for <linux-rdma@archiver.kernel.org>; Sat, 20 Jun 2020 00:43:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4F9922243
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Jun 2020 21:59:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DDB422AB0
+	for <linux-rdma@archiver.kernel.org>; Sat, 20 Jun 2020 00:43:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="I7rwRv4j"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="r8Q8AOnV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728164AbgFSV7E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Jun 2020 17:59:04 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:2193 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728242AbgFSV5H (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jun 2020 17:57:07 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5eed34a50002>; Fri, 19 Jun 2020 14:56:53 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Fri, 19 Jun 2020 14:57:06 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Fri, 19 Jun 2020 14:57:06 -0700
-Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 19 Jun
- 2020 21:56:59 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 19 Jun 2020 21:56:59 +0000
-Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5eed34ab0004>; Fri, 19 Jun 2020 14:56:59 -0700
-From:   Ralph Campbell <rcampbell@nvidia.com>
-To:     <nouveau@lists.freedesktop.org>, <linux-rdma@vger.kernel.org>,
-        <linux-mm@kvack.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        "Ben Skeggs" <bskeggs@redhat.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH 05/16] mm/hmm/test: remove redundant page table invalidate
-Date:   Fri, 19 Jun 2020 14:56:38 -0700
-Message-ID: <20200619215649.32297-6-rcampbell@nvidia.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200619215649.32297-1-rcampbell@nvidia.com>
-References: <20200619215649.32297-1-rcampbell@nvidia.com>
+        id S1730997AbgFTAnZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Jun 2020 20:43:25 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:50886 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730293AbgFTAnY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Jun 2020 20:43:24 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05K0YvUD133598;
+        Sat, 20 Jun 2020 00:43:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=Zm4HMhoS8Kg8i91BJJp7jpLN4Zdhc+Xt1j6881tEgRY=;
+ b=r8Q8AOnV2/tnZPJ0X9ElaDuVS1EAjCp+uNG38yCwPNVG0BSGQbRcgAKBSwRkfMIx9mj6
+ uAuvyjZs7XAz0yfjn3DEGnknhrhEyLMzzRmv6yh2/nDZccgfneUemeaaj1CszaL8006U
+ LCidNp1RBdS5qx3MI8nEtdljik8lQqx2zC92fBISDhAyx8VSH2Og0I2DN5WNEmK05fGr
+ CeOpsoH+ZVq8DFuLtV/9z6xbtIbUVEykUGCNj3wkXmN+1q10drxjk17E1m5h5c5Nhmz3
+ 5fDrP92akQJ3oHKANpRntdaxGQwVaITkjRd2GVK+CPwjYMWT+DJrQ4040f5ul/EXiSqI Tw== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by aserp2120.oracle.com with ESMTP id 31qecm7rr1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Sat, 20 Jun 2020 00:43:19 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05K0SqYU058298;
+        Sat, 20 Jun 2020 00:43:18 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3030.oracle.com with ESMTP id 31s7jq9hvd-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Sat, 20 Jun 2020 00:43:18 +0000
+Received: from abhmp0006.oracle.com (abhmp0006.oracle.com [141.146.116.12])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 05K0hGTr003731;
+        Sat, 20 Jun 2020 00:43:16 GMT
+Received: from dhcp-10-159-227-251.vpn.oracle.com (/10.159.227.251)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Sat, 20 Jun 2020 00:43:16 +0000
+Subject: Re: [PATCH v3] IB/sa: Resolving use-after-free in ib_nl_send_msg
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Leon Romanovsky <leon@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>,
+        Gerd Rausch <gerd.rausch@oracle.com>,
+        =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>,
+        Srinivas Eeda <srinivas.eeda@oracle.com>,
+        Rama Nichanamatlu <rama.nichanamatlu@oracle.com>,
+        Doug Ledford <dledford@redhat.com>
+References: <1591627576-920-1-git-send-email-divya.indi@oracle.com>
+ <1591627576-920-2-git-send-email-divya.indi@oracle.com>
+ <20200609070026.GJ164174@unreal>
+ <ee7139ff-465e-6c43-1b55-eab502044e0f@oracle.com>
+ <20200614064156.GB2132762@unreal>
+ <09bbe749-7eb2-7caa-71a9-3ead4e51e5ed@oracle.com>
+ <20200617182410.GK6578@ziepe.ca>
+From:   Divya Indi <divya.indi@oracle.com>
+Message-ID: <3770b85e-c684-f534-d6d5-84cf0874e485@oracle.com>
+Date:   Fri, 19 Jun 2020 17:43:14 -0700
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
+ Gecko/20100101 Thunderbird/68.8.1
 MIME-Version: 1.0
-X-NVConfidentiality: public
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1592603813; bh=/sU0fsdcnEwURrqlxGb1H/zsI5qpcxe39CKQwEfKf7w=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=I7rwRv4jtx0PGmvB9STFPnybf36OQ/oYAAEEfTxoK6JTZPjO9M24eLKi1nRSwaZ5n
-         15aqTCY0n/5hRAi4O0IZZfy+U9KY5r/HBVKepmXUMf5o6FkYtz5XRLXd/hfXb0nvwa
-         4s6c9wgBjqd2tvbOEyTQyyyFRKww5AcjKlMSzAn/Q8+W99JQoCyZhOJ9QSaF8cYZp7
-         Dd2Ku+wjYpqSA/fHUxPD30JaFCboOViegswfhiOmnNGWr1lQFy3sMkZWXJhCGoN3jg
-         L/l4NTUss+RttcS4JNW06KSPhAT7GmXTyzdXmxYQRmJO+wiW4vi4pvxJzedEk/BrfU
-         mKSzmLt5kU+Ag==
+In-Reply-To: <20200617182410.GK6578@ziepe.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9657 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 adultscore=0 mlxscore=0
+ mlxlogscore=844 phishscore=0 bulkscore=0 malwarescore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2006200000
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9657 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 cotscore=-2147483648 malwarescore=0
+ clxscore=1015 adultscore=0 suspectscore=3 spamscore=0 lowpriorityscore=0
+ mlxlogscore=862 priorityscore=1501 bulkscore=0 phishscore=0 mlxscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2004280000 definitions=main-2006200000
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When migrating pages to or from device private memory, the device's
-page tables will be invalidated as part of migrate_vma_setup() locking
-and isolating the pages. The HMM self test driver doesn't need to
-invalidate the page table a second time after migrating pages to system
-memory so remove that bit of extra code.
+Hi Jason,
 
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
----
- lib/test_hmm.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+Thanks for taking the time to review!
 
-diff --git a/lib/test_hmm.c b/lib/test_hmm.c
-index 28528285942c..f7c2b51a7a9d 100644
---- a/lib/test_hmm.c
-+++ b/lib/test_hmm.c
-@@ -1018,15 +1018,6 @@ static vm_fault_t dmirror_devmem_fault_alloc_and_cop=
-y(struct migrate_vma *args,
- 	return 0;
- }
-=20
--static void dmirror_devmem_fault_finalize_and_map(struct migrate_vma *args=
-,
--						  struct dmirror *dmirror)
--{
--	/* Invalidate the device's page table mapping. */
--	mutex_lock(&dmirror->mutex);
--	dmirror_do_update(dmirror, args->start, args->end);
--	mutex_unlock(&dmirror->mutex);
--}
--
- static vm_fault_t dmirror_devmem_fault(struct vm_fault *vmf)
- {
- 	struct migrate_vma args;
-@@ -1059,7 +1050,10 @@ static vm_fault_t dmirror_devmem_fault(struct vm_fau=
-lt *vmf)
- 	if (ret)
- 		return ret;
- 	migrate_vma_pages(&args);
--	dmirror_devmem_fault_finalize_and_map(&args, dmirror);
-+	/*
-+	 * No device finalize step is needed since migrate_vma_setup() will
-+	 * have already invalidated the device page table.
-+	 */
- 	migrate_vma_finalize(&args);
- 	return 0;
- }
---=20
-2.20.1
+On 6/17/20 11:24 AM, Jason Gunthorpe wrote:
+> On Tue, Jun 16, 2020 at 10:56:53AM -0700, Divya Indi wrote:
+>> The other option might be to use GFP_NOWAIT conditionally ie
+>> (only use GFP_NOWAIT when GFP_ATOMIC is not specified in gfp_mask else
+>> use GFP_ATOMIC). Eventual goal being to not have a blocking memory allocation.
+> This is probably safest for now, unless you can audit all callers and
+> see if they can switch to GFP_NOWAIT as well
 
+At present the callers with GFP_ATOMIC appear to be ipoib. Might not be
+feasible to change them all to GFP_NOWAIT. 
+
+Will incorporate the review comments and send out v3 early next week.
+
+Thanks,
+Divya
+
+>
+> Jason
