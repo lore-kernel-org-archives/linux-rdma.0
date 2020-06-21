@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B93D2C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B14AC433E0
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 11:00:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93380248CF
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20CAB2489D
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 11:00:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592736478;
-	bh=fMi3QJmf/R4TUvHvzpCeIJq/KhbU/lAZXJTsQzHsSz4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rA55J+vEGS/hlgtlmMSYYjMPzPEhvqiCrjhNMkwdIlaMzE/6VdTnAtFEyHb1gci93
-	 bOOFIkdV73lTz+iledK/KUuC4CnJhE7+mz2oEgkwCoHCxPeWdZjF6JVZPccZHeJZcN
-	 n4hNCirEijTK5Q/Zk59Sa4kzmvRWlU39ZBo8m5fQ=
+	s=default; t=1592737212;
+	bh=/YoThEFbqMBqdZ/ikVibUm5/aQUvKkYD2KZVRY0byEw=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=vybrN6jKX79J6P445cROnmrKoSJF96ZxSmsYMnljLhe93gUbWjUa7Iak0F5Hj7gGR
+	 RbnLIoPHucXtr6JoE7XFTbs4Q8KRRBZVV5rV47aj04NjDa8Hoiawuw8W+bH6noFBm0
+	 jpgyM+FA0EaJXqj8E4o/HvwkDKlYoEcs/uAJB0RY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729855AbgFUKr6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Jun 2020 06:47:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50730 "EHLO mail.kernel.org"
+        id S1729848AbgFULAL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Jun 2020 07:00:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729732AbgFUKr5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 21 Jun 2020 06:47:57 -0400
+        id S1729732AbgFULAG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 21 Jun 2020 07:00:06 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3D1CD248CA;
-        Sun, 21 Jun 2020 10:47:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5DD192489D;
+        Sun, 21 Jun 2020 11:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592736477;
-        bh=fMi3QJmf/R4TUvHvzpCeIJq/KhbU/lAZXJTsQzHsSz4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SSIHNiTtMtNsiPFZ2AZCDMRdAp3ApaAcVS/Y3ESXdnlWgDDXQy5ohCh3V0RCDm7C/
-         JWJ2JMm3HxZ5VEn2uVpYz8ICEOfQEcDQuiV86mTxeh8q6bY2yfhuTUjiUphwR5LlT7
-         QBXfXMf4NBSofaTILH2+JhBuN2Ut6JgGhdXY0eg0=
+        s=default; t=1592737206;
+        bh=/YoThEFbqMBqdZ/ikVibUm5/aQUvKkYD2KZVRY0byEw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=X+gbXxxfSJoeMi3amn/D6i8vBDTaaVj+5Nbi2u9qFb80sG47FeuMGwb0KId02Oe0A
+         YsIssYFNwsmZeHUBROtOD9S7OPfBv/LqLgxbbp8ZEUYbbr4vKq3Yh5kVDFqNJzqJpK
+         QoPmf3AxaY/ZJWUe/qYKS92yKOJ7E5awfQd4HCfc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Shay Drory <shayd@mellanox.com>, linux-rdma@vger.kernel.org,
+Cc:     Mark Zhang <markz@mellanox.com>, linux-rdma@vger.kernel.org,
+        Majd Dibbiny <majd@mellanox.com>,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 2/4] IB/mad: Issue complete whenever decrements agent refcount
-Date:   Sun, 21 Jun 2020 13:47:36 +0300
-Message-Id: <20200621104738.54850-3-leon@kernel.org>
+Subject: [PATCH rdma-rc] RDMA/counter: Query a counter before release
+Date:   Sun, 21 Jun 2020 14:00:00 +0300
+Message-Id: <20200621110000.56059-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200621104738.54850-1-leon@kernel.org>
-References: <20200621104738.54850-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,85 +55,42 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shay Drory <shayd@mellanox.com>
+From: Mark Zhang <markz@mellanox.com>
 
-Replace calls of atomic_dec to mad_agent_priv->refcount with calls
-to deref_mad_agent in order to issue complete.
+Query a dynamically-allocated counter before release it, to update it's
+hwcounters and log all of them into history data. Otherwise all values
+of these hwcounters will be lost.
 
-Signed-off-by: Shay Drory <shayd@mellanox.com>
+Fixes: f34a55e497e8 ("RDMA/core: Get sum value of all counters when perform a sysfs stat read")
+Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/mad.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/counters.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 2da889f9b6b3..46f36acb6a44 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1148,7 +1148,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
- 			spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 			list_del(&mad_send_wr->agent_list);
- 			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
--			atomic_dec(&mad_agent_priv->refcount);
-+			deref_mad_agent(mad_agent_priv);
- 			goto error;
- 		}
- 	}
-@@ -1831,7 +1831,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 				mad_agent_priv->agent.recv_handler(
- 						&mad_agent_priv->agent, NULL,
- 						mad_recv_wc);
--				atomic_dec(&mad_agent_priv->refcount);
-+				deref_mad_agent(mad_agent_priv);
- 			} else {
- 				/* not user rmpp, revert to normal behavior and
- 				 * drop the mad */
-@@ -1848,7 +1848,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 					&mad_agent_priv->agent,
- 					&mad_send_wr->send_buf,
- 					mad_recv_wc);
--			atomic_dec(&mad_agent_priv->refcount);
-+			deref_mad_agent(mad_agent_priv);
-
- 			mad_send_wc.status = IB_WC_SUCCESS;
- 			mad_send_wc.vendor_err = 0;
-@@ -2438,7 +2438,7 @@ static void cancel_mads(struct ib_mad_agent_private *mad_agent_priv)
- 		list_del(&mad_send_wr->agent_list);
- 		mad_agent_priv->agent.send_handler(&mad_agent_priv->agent,
- 						   &mad_send_wc);
--		atomic_dec(&mad_agent_priv->refcount);
-+		deref_mad_agent(mad_agent_priv);
- 	}
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index 2257d7f7810f..738d1faf4bba 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -202,7 +202,7 @@ static int __rdma_counter_unbind_qp(struct ib_qp *qp)
+ 	return ret;
  }
-
-@@ -2572,7 +2572,7 @@ static void local_completions(struct work_struct *work)
- 						&local->mad_send_wr->send_buf,
- 						&local->mad_priv->header.recv_wc);
- 			spin_lock_irqsave(&recv_mad_agent->lock, flags);
--			atomic_dec(&recv_mad_agent->refcount);
-+			deref_mad_agent(recv_mad_agent);
- 			spin_unlock_irqrestore(&recv_mad_agent->lock, flags);
- 		}
-
-@@ -2585,7 +2585,7 @@ static void local_completions(struct work_struct *work)
- 						   &mad_send_wc);
-
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
--		atomic_dec(&mad_agent_priv->refcount);
-+		deref_mad_agent(mad_agent_priv);
- 		if (free_mad)
- 			kfree(local->mad_priv);
- 		kfree(local);
-@@ -2671,7 +2671,7 @@ static void timeout_sends(struct work_struct *work)
- 		mad_agent_priv->agent.send_handler(&mad_agent_priv->agent,
- 						   &mad_send_wc);
-
--		atomic_dec(&mad_agent_priv->refcount);
-+		deref_mad_agent(mad_agent_priv);
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 	}
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
---
+ 
+-static void counter_history_stat_update(const struct rdma_counter *counter)
++static void counter_history_stat_update(struct rdma_counter *counter)
+ {
+ 	struct ib_device *dev = counter->device;
+ 	struct rdma_port_counter *port_counter;
+@@ -212,6 +212,8 @@ static void counter_history_stat_update(const struct rdma_counter *counter)
+ 	if (!port_counter->hstats)
+ 		return;
+ 
++	rdma_counter_query_stats(counter);
++
+ 	for (i = 0; i < counter->stats->num_counters; i++)
+ 		port_counter->hstats->value[i] += counter->stats->value[i];
+ }
+-- 
 2.26.2
 
