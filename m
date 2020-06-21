@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BCAFC433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B93D2C433DF
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE2F6248CE
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93380248CF
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592736474;
-	bh=2a9c8SJdlx0QHaIQyjcRpcfi42a01HiHLspJy+ptzrw=;
+	s=default; t=1592736478;
+	bh=fMi3QJmf/R4TUvHvzpCeIJq/KhbU/lAZXJTsQzHsSz4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CIQRcOPIdwV0rNcl2MmGZawlri7ZmFrAwmLfp5aKX2u33AYvsjHu7XlAvP0AE7oTM
-	 xgKbYWG2Rw70QU9e3Cn8e8GT0BfODAcsmM4RpLPnKHHVtCIYI2cBhGLxvQmi+kd6FG
-	 Ffl6FHYtThyhc9ns/quJYAXe6jJwe5yZeeWfMNDI=
+	b=rA55J+vEGS/hlgtlmMSYYjMPzPEhvqiCrjhNMkwdIlaMzE/6VdTnAtFEyHb1gci93
+	 bOOFIkdV73lTz+iledK/KUuC4CnJhE7+mz2oEgkwCoHCxPeWdZjF6JVZPccZHeJZcN
+	 n4hNCirEijTK5Q/Zk59Sa4kzmvRWlU39ZBo8m5fQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729877AbgFUKry (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Jun 2020 06:47:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50692 "EHLO mail.kernel.org"
+        id S1729855AbgFUKr6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Jun 2020 06:47:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729732AbgFUKry (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 21 Jun 2020 06:47:54 -0400
+        id S1729732AbgFUKr5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 21 Jun 2020 06:47:57 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AAEFC248CA;
-        Sun, 21 Jun 2020 10:47:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3D1CD248CA;
+        Sun, 21 Jun 2020 10:47:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592736473;
-        bh=2a9c8SJdlx0QHaIQyjcRpcfi42a01HiHLspJy+ptzrw=;
+        s=default; t=1592736477;
+        bh=fMi3QJmf/R4TUvHvzpCeIJq/KhbU/lAZXJTsQzHsSz4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ygIR1e5QeVs81wYcBHznND17G+dCetCWGjJqoyWmkDqIHRxXmaUU6+qk1hyDQUYeR
-         E2hnGrkZ1rrJ/KT5e4hn0Sy2d0KsbcsfPNxy5vXYqNhoZB8LLzw+oPpLLME9YfIbGh
-         VUDIZrjiKv0YczggK+x50iozgySrg4JmaQiOqges=
+        b=SSIHNiTtMtNsiPFZ2AZCDMRdAp3ApaAcVS/Y3ESXdnlWgDDXQy5ohCh3V0RCDm7C/
+         JWJ2JMm3HxZ5VEn2uVpYz8ICEOfQEcDQuiV86mTxeh8q6bY2yfhuTUjiUphwR5LlT7
+         QBXfXMf4NBSofaTILH2+JhBuN2Ut6JgGhdXY0eg0=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Shay Drory <shayd@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 4/4] IB/mad: Delete RMPP_STATE_CANCELING state
-Date:   Sun, 21 Jun 2020 13:47:38 +0300
-Message-Id: <20200621104738.54850-5-leon@kernel.org>
+Cc:     Shay Drory <shayd@mellanox.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next 2/4] IB/mad: Issue complete whenever decrements agent refcount
+Date:   Sun, 21 Jun 2020 13:47:36 +0300
+Message-Id: <20200621104738.54850-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200621104738.54850-1-leon@kernel.org>
 References: <20200621104738.54850-1-leon@kernel.org>
@@ -57,67 +58,83 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Shay Drory <shayd@mellanox.com>
 
-The cancel_delayed_work can be called under lock since it doesn't sleep.
-This makes the RMPP_STATE_CANCELING state is not needed anymore.
+Replace calls of atomic_dec to mad_agent_priv->refcount with calls
+to deref_mad_agent in order to issue complete.
 
 Signed-off-by: Shay Drory <shayd@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/mad_rmpp.c | 17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/mad.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad_rmpp.c b/drivers/infiniband/core/mad_rmpp.c
-index 1bc9dfecae70..e0573e4d0404 100644
---- a/drivers/infiniband/core/mad_rmpp.c
-+++ b/drivers/infiniband/core/mad_rmpp.c
-@@ -40,8 +40,7 @@
- enum rmpp_state {
- 	RMPP_STATE_ACTIVE,
- 	RMPP_STATE_TIMEOUT,
--	RMPP_STATE_COMPLETE,
--	RMPP_STATE_CANCELING
-+	RMPP_STATE_COMPLETE
- };
- 
- struct mad_rmpp_recv {
-@@ -91,23 +90,19 @@ void ib_cancel_rmpp_recvs(struct ib_mad_agent_private *agent)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&agent->lock, flags);
--	list_for_each_entry(rmpp_recv, &agent->rmpp_list, list) {
--		if (rmpp_recv->state != RMPP_STATE_COMPLETE)
--			ib_free_recv_mad(rmpp_recv->rmpp_wc);
--		rmpp_recv->state = RMPP_STATE_CANCELING;
--	}
--	spin_unlock_irqrestore(&agent->lock, flags);
--
- 	list_for_each_entry(rmpp_recv, &agent->rmpp_list, list) {
- 		cancel_delayed_work(&rmpp_recv->timeout_work);
- 		cancel_delayed_work(&rmpp_recv->cleanup_work);
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 2da889f9b6b3..46f36acb6a44 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1148,7 +1148,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+ 			spin_lock_irqsave(&mad_agent_priv->lock, flags);
+ 			list_del(&mad_send_wr->agent_list);
+ 			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+-			atomic_dec(&mad_agent_priv->refcount);
++			deref_mad_agent(mad_agent_priv);
+ 			goto error;
+ 		}
  	}
-+	spin_unlock_irqrestore(&agent->lock, flags);
- 
- 	flush_workqueue(agent->qp_info->port_priv->wq);
- 
- 	list_for_each_entry_safe(rmpp_recv, temp_rmpp_recv,
- 				 &agent->rmpp_list, list) {
- 		list_del(&rmpp_recv->list);
-+		if (rmpp_recv->state != RMPP_STATE_COMPLETE)
-+			ib_free_recv_mad(rmpp_recv->rmpp_wc);
- 		destroy_rmpp_recv(rmpp_recv);
+@@ -1831,7 +1831,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 				mad_agent_priv->agent.recv_handler(
+ 						&mad_agent_priv->agent, NULL,
+ 						mad_recv_wc);
+-				atomic_dec(&mad_agent_priv->refcount);
++				deref_mad_agent(mad_agent_priv);
+ 			} else {
+ 				/* not user rmpp, revert to normal behavior and
+ 				 * drop the mad */
+@@ -1848,7 +1848,7 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 					&mad_agent_priv->agent,
+ 					&mad_send_wr->send_buf,
+ 					mad_recv_wc);
+-			atomic_dec(&mad_agent_priv->refcount);
++			deref_mad_agent(mad_agent_priv);
+
+ 			mad_send_wc.status = IB_WC_SUCCESS;
+ 			mad_send_wc.vendor_err = 0;
+@@ -2438,7 +2438,7 @@ static void cancel_mads(struct ib_mad_agent_private *mad_agent_priv)
+ 		list_del(&mad_send_wr->agent_list);
+ 		mad_agent_priv->agent.send_handler(&mad_agent_priv->agent,
+ 						   &mad_send_wc);
+-		atomic_dec(&mad_agent_priv->refcount);
++		deref_mad_agent(mad_agent_priv);
  	}
  }
-@@ -272,10 +267,6 @@ static void recv_cleanup_handler(struct work_struct *work)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&rmpp_recv->agent->lock, flags);
--	if (rmpp_recv->state == RMPP_STATE_CANCELING) {
--		spin_unlock_irqrestore(&rmpp_recv->agent->lock, flags);
--		return;
--	}
- 	list_del(&rmpp_recv->list);
- 	spin_unlock_irqrestore(&rmpp_recv->agent->lock, flags);
- 	destroy_rmpp_recv(rmpp_recv);
--- 
+
+@@ -2572,7 +2572,7 @@ static void local_completions(struct work_struct *work)
+ 						&local->mad_send_wr->send_buf,
+ 						&local->mad_priv->header.recv_wc);
+ 			spin_lock_irqsave(&recv_mad_agent->lock, flags);
+-			atomic_dec(&recv_mad_agent->refcount);
++			deref_mad_agent(recv_mad_agent);
+ 			spin_unlock_irqrestore(&recv_mad_agent->lock, flags);
+ 		}
+
+@@ -2585,7 +2585,7 @@ static void local_completions(struct work_struct *work)
+ 						   &mad_send_wc);
+
+ 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+-		atomic_dec(&mad_agent_priv->refcount);
++		deref_mad_agent(mad_agent_priv);
+ 		if (free_mad)
+ 			kfree(local->mad_priv);
+ 		kfree(local);
+@@ -2671,7 +2671,7 @@ static void timeout_sends(struct work_struct *work)
+ 		mad_agent_priv->agent.send_handler(&mad_agent_priv->agent,
+ 						   &mad_send_wc);
+
+-		atomic_dec(&mad_agent_priv->refcount);
++		deref_mad_agent(mad_agent_priv);
+ 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+ 	}
+ 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+--
 2.26.2
 
