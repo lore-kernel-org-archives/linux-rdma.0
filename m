@@ -2,54 +2,55 @@ Return-Path: <SRS0=qlRK=AC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A196C433E0
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA54C433DF
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33229248CE
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A88AA248CA
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Jun 2020 10:47:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592736464;
-	bh=FfQduBlD0OBzrt9hxsHRl2mmRwsowXdcvSsPszx+CM8=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=xw6vp1vVcUUcx7EukbWuEhTbl+QCCTq4dbIOOWgEILJf8HNjNXwMWwnove0QWGS8c
-	 vSPMuwYfyXdBgxzt3wBGIv3mjRQ/jwfWSQj2PAj403sNLvPXmRrtelAG3Gjiql915p
-	 JqwW29cG9oGj9Hq/DXxV/E18ATHa4invJToDoAjs=
+	s=default; t=1592736468;
+	bh=QZFdchRRc5hRswuHU70PN6GMXeSVBiKsoJidlfZoPDM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=y6FZPJjqs3YekIbzHHhEB0xauYtesvLKYfT/t1TAOkldHTjOwyP2WRaEbCh4rtH7k
+	 UGuxaAXYDeMzGC6aJwFtVtUAlf4kD0jY/U0z+hemia7K5ongSH3grlFl6WNdFxRwjA
+	 f1xDfJOtv6GVf56+1M3wzsjdNvTQcCFk+01iRoDM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729797AbgFUKrn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Jun 2020 06:47:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50478 "EHLO mail.kernel.org"
+        id S1729875AbgFUKrr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Jun 2020 06:47:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50534 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729732AbgFUKrn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 21 Jun 2020 06:47:43 -0400
+        id S1729732AbgFUKrq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 21 Jun 2020 06:47:46 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2DBCA248CA;
-        Sun, 21 Jun 2020 10:47:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A3ACE248CE;
+        Sun, 21 Jun 2020 10:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592736462;
-        bh=FfQduBlD0OBzrt9hxsHRl2mmRwsowXdcvSsPszx+CM8=;
-        h=From:To:Cc:Subject:Date:From;
-        b=qI17qkhJmoculqv9X+fWXHpDdSfzVnphKAnwqrwp2iS/TLjR1+0IiWyba8szmi/WV
-         lrdeVGAhrE03DbfJeCMJOqyKivOItkY3G3mTInX3TDBJFVw1i95fYIvdlxntcHNn1Q
-         SoWlGO8J4hFYjSxASsIFy052dDrm2VUE0ERCoYHI=
+        s=default; t=1592736466;
+        bh=QZFdchRRc5hRswuHU70PN6GMXeSVBiKsoJidlfZoPDM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=rYxufeC3yCnHeD/YrNAkp/up6f8CaghUrTtnmC9utrz0OTtRDL3vOr+vlZoG5V4hE
+         Zx2zDHjg02XCtiY2ouKVChcBffWeUj2C04tPUB4z6KHGRhvgTggpQPXnkwPkmAGN3w
+         VieSg8K7qVIuLQAQC0uMcAssSWD0Rnl/h66YnFzg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
+Cc:     Shay Drory <shayd@mellanox.com>,
         Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Shay Drory <shayd@mellanox.com>,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
         "willy@infradead.org" <willy@infradead.org>
-Subject: [PATCH rdma-next 0/4] Bag of fixes and refactoring in MAD layer
-Date:   Sun, 21 Jun 2020 13:47:34 +0300
-Message-Id: <20200621104738.54850-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/4] IB/mad: Fix use after free when destroying MAD agent
+Date:   Sun, 21 Jun 2020 13:47:35 +0300
+Message-Id: <20200621104738.54850-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200621104738.54850-1-leon@kernel.org>
+References: <20200621104738.54850-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,27 +58,57 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Shay Drory <shayd@mellanox.com>
 
-Hi,
+Currently, when RMPP MADs are processed while the MAD agent is
+destroyed, it could result in use after free of rmpp_recv, as
+decribed below:
 
-This is combination of fixes and refactoring in MAD layer. Because
-everything here is "old", I'm sending it to rdma-next and not "wasting"
-our time in attempt to separate fix patches from refactoring ones.
+	cpu-0						cpu-1
+	-----						-----
+ib_mad_recv_done()
+ ib_mad_complete_recv()
+  ib_process_rmpp_recv_wc()
+						unregister_mad_agent()
+						 ib_cancel_rmpp_recvs()
+						  cancel_delayed_work()
+   process_rmpp_data()
+    start_rmpp()
+     queue_delayed_work(rmpp_recv->cleanup_work)
+						  destroy_rmpp_recv()
+						   free_rmpp_recv()
+     cleanup_work()[1]
+      spin_lock_irqsave(&rmpp_recv->agent->lock)->use after free
 
-Thanks
+[1] cleanup_work() == recv_cleanup_handler
 
-Shay Drory (4):
-  IB/mad: Fix use after free when destroying MAD agent
-  IB/mad: Issue complete whenever decrements agent refcount
-  IB/mad: Refactor atomics API to refcount API
-  IB/mad: Delete RMPP_STATE_CANCELING state
+Fix it by waiting for the MAD agent reference count becoming zero before
+calling to ib_cancel_rmpp_recvs().
 
- drivers/infiniband/core/mad.c      | 32 +++++++++++++++---------------
- drivers/infiniband/core/mad_priv.h |  2 +-
- drivers/infiniband/core/mad_rmpp.c | 27 +++++++++----------------
- 3 files changed, 26 insertions(+), 35 deletions(-)
+Fixes: 9a41e38a467c ("IB/mad: Use IDR for agent IDs")
+Signed-off-by: Shay Drory <shayd@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/mad.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 186e0d652e8b..2da889f9b6b3 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -509,10 +509,10 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
+ 	xa_erase(&ib_mad_clients, mad_agent_priv->agent.hi_tid);
+ 
+ 	flush_workqueue(port_priv->wq);
+-	ib_cancel_rmpp_recvs(mad_agent_priv);
+ 
+ 	deref_mad_agent(mad_agent_priv);
+ 	wait_for_completion(&mad_agent_priv->comp);
++	ib_cancel_rmpp_recvs(mad_agent_priv);
+ 
+ 	ib_mad_agent_security_cleanup(&mad_agent_priv->agent);
+ 
+-- 
 2.26.2
 
