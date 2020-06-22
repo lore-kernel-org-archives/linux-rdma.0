@@ -2,94 +2,119 @@ Return-Path: <SRS0=exED=AD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 464ACC433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jun 2020 15:00:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95BF1C433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jun 2020 16:59:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE8ED20708
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jun 2020 15:00:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D42420767
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Jun 2020 16:59:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="YL0a1NQJ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="rwo9R4gF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729485AbgFVPAU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Jun 2020 11:00:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33584 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729484AbgFVPAU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Jun 2020 11:00:20 -0400
-Received: from mail-qv1-xf36.google.com (mail-qv1-xf36.google.com [IPv6:2607:f8b0:4864:20::f36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3842C061573
-        for <linux-rdma@vger.kernel.org>; Mon, 22 Jun 2020 08:00:19 -0700 (PDT)
-Received: by mail-qv1-xf36.google.com with SMTP id p15so8052339qvr.9
-        for <linux-rdma@vger.kernel.org>; Mon, 22 Jun 2020 08:00:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=7qWHsC1j+rzytW5kRDQGFmoYRD1aIZmL/Kv0s0SNR6w=;
-        b=YL0a1NQJXLrRL8yKCfMAe/47DWKGBphODWARq7MM9OXVK0o513cDS7pcD9Z8EgCj8E
-         1zGC3nL8BsvIqH7SP1O8W2TZOZNS1GCfMZric6FfsR8YJy3ZfT/bEodq61fYAKzXpcdI
-         wZx+G57vC5bYmceE+gieKZFsu5ccOXAjpzC/mDEI7K37tRPDLzVqJewIGq4Ej+InPEtP
-         Jov68nuKluJUF8J/N56fmAKQz/1KOMUWQeBXZhLVVRDVPMms44j2gLYBJouGg2uzZZZB
-         KGtOOsZueJTo7Mbpf6PV/9V5y3wo90um6XcTxw1MzNdL1z5jr32zWO7Hea2nRHWwkQUp
-         UCRw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=7qWHsC1j+rzytW5kRDQGFmoYRD1aIZmL/Kv0s0SNR6w=;
-        b=X0EMN2TwsP9rxwV5AKloVhL2X22AEMJbz8Ox1B6kIBXfWKjV/lSOcxQrNfC3hf1Uu2
-         ZPjEIrKntr0mkc62nEW1wcik9mAnFExjM9W3aVY3r1icZj2ETBR4Kno/cSUuouAiE3EO
-         iXy9ZDBROhi8qHjXWAJfHppFMsqvtWppQJ1gT4GcjUddY8bkH+jMiiq+k6KwGU3QYKyH
-         CtiCw4xPF0eAIXA9kLtGJvbmpNS12HviW8IKFx8ncoEXbglQ1C0caSC4mHKHUmOt8/ss
-         XfpxbgNVEQK40n2VS+Hc4LYqhuXGglC/a/dIxC3vIvPmYUs3dtkFbR8Dk2Zq3kfRLcc4
-         t/Kw==
-X-Gm-Message-State: AOAM531pqWpPNTSC4Nc9IyMbCSiW7gjjccaBRypCty5u86iaqvf4JkPL
-        TWdv/TTYaxhabIWEIN+YIRYdXg==
-X-Google-Smtp-Source: ABdhPJyTNT72NG7ud9VRMg9gCZT0idzwPQsN5KAs4LjYU1Hf66xUwDITX+WFZ3FF7LTT5B6lw80/Gw==
-X-Received: by 2002:ad4:4763:: with SMTP id d3mr22435258qvx.232.1592838019158;
-        Mon, 22 Jun 2020 08:00:19 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id l19sm14069098qtq.13.2020.06.22.08.00.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Jun 2020 08:00:18 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jnNvm-00BxjT-6E; Mon, 22 Jun 2020 12:00:18 -0300
-Date:   Mon, 22 Jun 2020 12:00:18 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Colton Lewis <colton.w.lewis@protonmail.com>
-Cc:     linux-rdma@vger.kernel.org, dledford@redhat.com
-Subject: Re: Fwd: [PATCH] infiniband: correct trivial kernel-doc
- inconsistencies
-Message-ID: <20200622150018.GV6578@ziepe.ca>
-References: <5373936.DvuYhMxLoT@laptop.coltonlewis.name>
+        id S1729603AbgFVQ7B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Jun 2020 12:59:01 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:3554 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729563AbgFVQ7B (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Jun 2020 12:59:01 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5ef0e3480000>; Mon, 22 Jun 2020 09:58:48 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Mon, 22 Jun 2020 09:59:01 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Mon, 22 Jun 2020 09:59:01 -0700
+Received: from rcampbell-dev.nvidia.com (10.124.1.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 22 Jun
+ 2020 16:58:54 +0000
+Subject: Re: [PATCH 00/16] mm/hmm/nouveau: THP mapping and migration
+To:     Jason Gunthorpe <jgg@mellanox.com>
+CC:     <nouveau@lists.freedesktop.org>, <linux-rdma@vger.kernel.org>,
+        <linux-mm@kvack.org>, <linux-kselftest@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>,
+        "John Hubbard" <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Shuah Khan <shuah@kernel.org>
+References: <20200619215649.32297-1-rcampbell@nvidia.com>
+ <20200622123947.GC2590509@mellanox.com>
+X-Nvconfidentiality: public
+From:   Ralph Campbell <rcampbell@nvidia.com>
+Message-ID: <05bcdcd7-d17b-9092-1a9c-759fb0eab728@nvidia.com>
+Date:   Mon, 22 Jun 2020 09:58:54 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5373936.DvuYhMxLoT@laptop.coltonlewis.name>
+In-Reply-To: <20200622123947.GC2590509@mellanox.com>
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1592845128; bh=17rmJOZx2NuUvyVDIKMt8wguy1oUyTRKNcnhF9ewJgU=;
+        h=X-PGP-Universal:Subject:To:CC:References:X-Nvconfidentiality:From:
+         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
+         Content-Transfer-Encoding;
+        b=rwo9R4gFj7zEIuYXLuR8sMIDq669bABVnTdSwAYO0cdeo2tW8lCTawdU2ufryO5gF
+         TihfxNdj7WV0NLbF2cwCoY+9bQwqoKgpyRQZbZDBnr8oRJto2vtsDB8nq3YKnbCXjK
+         S/uT/aAPAzmPVQU3ymyYvZSxHqUFtJxS3GDJvYhevPLnQs68Nm7fcnzgheqizzkEKG
+         6aC/rTKNMF2zZNlj8LJaUFNmhRIkIEe5FrlRhUYZ+1anzI+NOgdtFQf5t2jPzzFcOB
+         R1Z68hKNEXvJIC2clDRCVFbEeB2PSf95gbtf8ZlCxVHaGZSk2HTN7djCwV/nWvvK6u
+         W8sju/hNTpTkQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jun 21, 2020 at 02:07:38AM +0000, Colton Lewis wrote:
-> Can someone please accept or comment on this patch?
+
+On 6/22/20 5:39 AM, Jason Gunthorpe wrote:
+> On Fri, Jun 19, 2020 at 02:56:33PM -0700, Ralph Campbell wrote:
+>> These patches apply to linux-5.8.0-rc1. Patches 1-3 should probably go
+>> into 5.8, the others can be queued for 5.9. Patches 4-6 improve the HMM
+>> self tests. Patch 7-8 prepare nouveau for the meat of this series which
+>> adds support and testing for compound page mapping of system memory
+>> (patches 9-11) and compound page migration to device private memory
+>> (patches 12-16). Since these changes are split across mm core, nouveau,
+>> and testing, I'm guessing Jason Gunthorpe's HMM tree would be appropriate.
 > 
+> You need to break this up into parts that go where they need to
+> go. Nouveau rc changes should go to DRM or some series needs to
+> explain the linkage
 > 
-> Subject: [PATCH] infiniband: correct trivial kernel-doc inconsistencies
-> Date: Thursday, June 11, 2020, 1:45:06 AM CDT
-> From: Colton Lewis <colton.w.lewis@protonmail.com>
-> To: dledford@redhat.com
-> CC: trivial@kernel.org, Colton Lewis <colton.w.lewis@protonmail.com>
+>> Ralph Campbell (16):
+>>    mm: fix migrate_vma_setup() src_owner and normal pages
+>>    nouveau: fix migrate page regression
+>>    nouveau: fix mixed normal and device private page migration
+>>    mm/hmm: fix test timeout on slower machines
+>>    mm/hmm/test: remove redundant page table invalidate
+>>    mm/hmm: test mixed normal and device private migrations
+>>    nouveau: make nvkm_vmm_ctor() and nvkm_mmu_ptp_get() static
+>>    nouveau/hmm: fault one page at a time
+>>    mm/hmm: add output flag for compound page mapping
+>>    nouveau/hmm: support mapping large sysmem pages
+>>    hmm: add tests for HMM_PFN_COMPOUND flag
+>>    mm/hmm: optimize migrate_vma_setup() for holes
+> 
+> Order things so it is hmm, test, noeveau
+> 
+>>    mm: support THP migration to device private memory
+>>    mm/thp: add THP allocation helper
+>>    mm/hmm/test: add self tests for THP migration
+>>    nouveau: support THP migration to private memory
+> 
+> This is another series, you should split it even if it has to go
+> through the hmm tree
+> 
+> Jason
 
-Patches that are not sent to linux-rdma@vger.kernel.org won't get
-applied..
+Thanks. I thought there was probably a better way to submit this but
+I posted everything so people could see how it all fit together.
 
-Applied to rmda for-next
-
-Thanks,
-Jason
