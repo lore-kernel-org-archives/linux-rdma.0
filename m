@@ -2,96 +2,132 @@ Return-Path: <SRS0=OzSu=AE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4674FC433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 12:17:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18976C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 13:06:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D6832072E
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 12:17:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E095320716
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 13:06:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="RcxTddjf"
+	dkim=pass (2048-bit key) header.d=dev-mellanox-co-il.20150623.gappssmtp.com header.i=@dev-mellanox-co-il.20150623.gappssmtp.com header.b="hJzM25c6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732572AbgFWMRY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jun 2020 08:17:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34096 "EHLO
+        id S1732580AbgFWNG1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jun 2020 09:06:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732564AbgFWMRX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jun 2020 08:17:23 -0400
-Received: from mail-qt1-x842.google.com (mail-qt1-x842.google.com [IPv6:2607:f8b0:4864:20::842])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B863AC061755
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 05:17:23 -0700 (PDT)
-Received: by mail-qt1-x842.google.com with SMTP id o38so6468929qtf.6
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 05:17:23 -0700 (PDT)
+        with ESMTP id S1729504AbgFWNG0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jun 2020 09:06:26 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EF59C061573
+        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 06:06:26 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id w6so10221857ejq.6
+        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 06:06:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=JQks5GACh6h541Q4/8Hm5GmMAEZUeSD84PZv2UopM/E=;
-        b=RcxTddjfivtvB0c2KkiouO8M3/NGfoDAq3NPrsye30sgY8dXjoA1iY3Pahy3rz+yxl
-         /FaqkWMOaH2mLilfoiOpON9yMjHZP9qMpEspz72HPCQ9Fsy5GpXESQjDwcSJmYyA3G8z
-         fdRxhBOZIQqYUOCBsa+bMK1w788G9i1vnJ+fLDaT6y4K/K56hAypHtluBzexm6z3Xwf3
-         NGRsQ0G+sgodVXs4liklYhgpQfbS1txItvV/KdRicsvDf5YA1rgkeb2WY3pX5JmFvhSI
-         BRpiK0LAGVtkvRxYXL1J1wTyVhBr6zaOiTOSPl5GryNECC9LjrmInXYRr+C48n1GfoAr
-         cwLA==
+        d=dev-mellanox-co-il.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=DTlohK0P9ei8yfc5ynEDewUn/lCRNbi/T6DFbF2JE7U=;
+        b=hJzM25c6nWZin96o6gSaViI+ZUcOSX2glyNJcyvLY8Yo2OfmnwqGeWCwvLZ1i4OHNd
+         ZUXPC/UCPFI+wxlm8TO2XoJzawa1SgzZu33sQqHzjLU+YszhrQucYhfuOwtj0dGeFqcN
+         rkUaGsVBhcFCoK/bGrexiSKIYzNj8Xnod3+nXCcs3z/wUV7/hK6wXqE3HvmnEgOyle4u
+         mF1zrHVZDpdj8hfzOu4k1146cOLDRQo/mgHts8aiaqgwynC3/RzdRZ28p2cyvLPQ/MUk
+         u8Y5XlRL5tZitbsSdY6oIuu2SqcdUHfHrDL4oe8OVxtE6OT9uHrD9LwtUmV8bluwmBE4
+         +oZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=JQks5GACh6h541Q4/8Hm5GmMAEZUeSD84PZv2UopM/E=;
-        b=tyDLIH/CMloOtWbN9ZTD7IyxsMh5AhyqwVLU3FLnQdprtFDVnZLsyLdWr5ZR2cd1mI
-         1Uw1kfZRSWD2c+CXCl7DvPvQvyhrhMCbpgJtxAaUCMIJKS8wXaGyadUhZW/R1iPsdLNF
-         1ENoZ32US+clyDjoe4GI5Fs9OCTBROzR47CYGKGmlsBc+3bP1Mwk0HD0o94RvkAFzobX
-         qXYjGLHOyBV3zWfPZimOynZ9wqwVFORabjejVzAQ4EjkXbO6Fv4kAwW5SIhom0pp6KCJ
-         s4Tkaf1p2L0Pd0suF3iKJfuGt1aqR4NxLdtnDgoYl6VnJIcDcDdEPkC9cDkmbL+PVASJ
-         unMQ==
-X-Gm-Message-State: AOAM5337U4UKpoPFQTqUfjg4djSKg0i3YkIkzlCscHrHHZ5gnv4wsOBc
-        XiXt1f7jMCoihnhxb7kJSF8X7w==
-X-Google-Smtp-Source: ABdhPJxpvHZg05zq1sHVCRcAfBK2AS4+Yo42wJ5elF26d9x1yYHzPS6gha1KxMvEO9Vc8ehpziFWoQ==
-X-Received: by 2002:ac8:7182:: with SMTP id w2mr21482791qto.115.1592914643025;
-        Tue, 23 Jun 2020 05:17:23 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id v45sm437419qtv.47.2020.06.23.05.17.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 23 Jun 2020 05:17:21 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jnhrd-00CUHe-5g; Tue, 23 Jun 2020 09:17:21 -0300
-Date:   Tue, 23 Jun 2020 09:17:21 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Haris Iqbal <haris.iqbal@cloud.ionos.com>
-Cc:     Leon Romanovsky <leon@kernel.org>, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Jinpu Wang <jinpu.wang@cloud.ionos.com>, dledford@redhat.com,
-        kernel test robot <rong.a.chen@intel.com>
-Subject: Re: [PATCH] Delay the initialization of rnbd_server module to
- late_initcall level
-Message-ID: <20200623121721.GZ6578@ziepe.ca>
-References: <20200617103732.10356-1-haris.iqbal@cloud.ionos.com>
- <20200617112811.GL2383158@unreal>
- <20200617182046.GI6578@ziepe.ca>
- <20200617190756.GA2721989@unreal>
- <20200617192642.GL6578@ziepe.ca>
- <CAJpMwygeJ7uaNUKxhsF-bx=ufchkx7M6G0E237=-0C7GwJ3yog@mail.gmail.com>
- <CAJpMwyjJSu4exkTAoFLhY-ubzNQLp6nWqq83k6vWn1Uw3eaK_Q@mail.gmail.com>
- <CAJpMwygqz20=H7ovSL0nSWLbVpMv-KLOgYO=nRCLv==OC8sgHw@mail.gmail.com>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=DTlohK0P9ei8yfc5ynEDewUn/lCRNbi/T6DFbF2JE7U=;
+        b=KWchavsSOYhabFv/gE//BCpTM9FW5SERbQUIGCX1vaxRxTHgXBy18WYfB714oHgRO1
+         kwue193dYZ6O6zuvHq4+Bm8GepzzW2SpIM1oR0G97x7tuaY2m8EBFZMRg9QZs3JKniyw
+         xO/o/QPnV8vvDpDgTeGGvemTRazNzRHMnS/2GC9FJV7kMFHmwBZdAaEJM/KhetEVD680
+         DBEhjZUPD//tuiJhgs3C6QDc+B/wFgIx2WAbPeAjiO/84nbGRbs2oWL//2k110u41Acg
+         3C+DJkUiMnluWbyljrUQvE/Q5VMe2SR78pf4+qojyvNgBjoT+uvkU3TqI3wgOCBIX+0f
+         2b7w==
+X-Gm-Message-State: AOAM532iDkH+2sMlU7Sv4wjFgC5v4YYD5stCfIwftR0JXa8GNLrQR5Dl
+        kMVfBgQXH5Nbkn4XN3Tis6YJg4sKBMw=
+X-Google-Smtp-Source: ABdhPJw/dYG+umE54XsKIUS1h7PLeP+tqnItCl0/RYfZXnwF3jUFyhWKaJZK+YyHoIhvaqvpGM8KWQ==
+X-Received: by 2002:a17:906:4155:: with SMTP id l21mr13619085ejk.438.1592917585195;
+        Tue, 23 Jun 2020 06:06:25 -0700 (PDT)
+Received: from [10.0.0.57] ([5.22.133.189])
+        by smtp.googlemail.com with ESMTPSA id a9sm14484440edr.23.2020.06.23.06.06.23
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 23 Jun 2020 06:06:23 -0700 (PDT)
+Subject: Re: [PATCH rdma-core 03/13] verbs: Introduce ibv_import_device() verb
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
+        maorg@mellanox.com
+References: <1592379956-7043-1-git-send-email-yishaih@mellanox.com>
+ <1592379956-7043-4-git-send-email-yishaih@mellanox.com>
+ <20200619122928.GT65026@mellanox.com>
+ <5a71a881-6232-e7fb-6f20-10fc973778b2@dev.mellanox.co.il>
+ <20200622125256.GD2590509@mellanox.com>
+From:   Yishai Hadas <yishaih@dev.mellanox.co.il>
+Message-ID: <aab99bf5-992c-56e4-d844-b50b1560e485@dev.mellanox.co.il>
+Date:   Tue, 23 Jun 2020 16:06:22 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJpMwygqz20=H7ovSL0nSWLbVpMv-KLOgYO=nRCLv==OC8sgHw@mail.gmail.com>
+In-Reply-To: <20200622125256.GD2590509@mellanox.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jun 23, 2020 at 03:20:27PM +0530, Haris Iqbal wrote:
-> Hi Jason and Leon,
+On 6/22/2020 3:52 PM, Jason Gunthorpe wrote:
+> On Sun, Jun 21, 2020 at 10:01:24AM +0300, Yishai Hadas wrote:
+>> On 6/19/2020 3:29 PM, Jason Gunthorpe wrote:
+>>> On Wed, Jun 17, 2020 at 10:45:46AM +0300, Yishai Hadas wrote:
+>>>> +static struct ibv_context *verbs_import_device(int cmd_fd)
+>>>> +{
+>>>> +	struct verbs_device *verbs_device = NULL;
+>>>> +	struct verbs_context *context_ex;
+>>>> +	struct ibv_device **dev_list;
+>>>> +	struct ibv_context *ctx = NULL;
+>>>> +	struct stat st;
+>>>> +	int i;
+>>>> +
+>>>> +	if (fstat(cmd_fd, &st) || !S_ISCHR(st.st_mode)) {
+>>>> +		errno = EINVAL;
+>>>> +		return NULL;
+>>>> +	}
+>>>> +
+>>>> +	dev_list = ibv_get_device_list(NULL);
+>>>> +	if (!dev_list) {
+>>>> +		errno = ENODEV;
+>>>> +		return NULL;
+>>>> +	}
+>>>> +
+>>>> +	for (i = 0; dev_list[i]; ++i) {
+>>>> +		if (verbs_get_device(dev_list[i])->sysfs->sysfs_cdev ==
+>>>> +					st.st_rdev) {
+>>>> +			verbs_device = verbs_get_device(dev_list[i]);
+>>>> +			break;
+>>>> +		}
+>>>> +	}
+>>>
+>>> Unfortunately it looks like there is a small race here, the struct
+>>> ib_uverbs_file can exist beyond the lifetime of the cdev number - the
+>>> uverbs_ida is freed in ib_uverbs_remove_one() and files can still be
+>>> open past that point.
+>>>
+>>
+>> Are you referring to the option that we might end up with importing a device
+>> that was already dissociated ?  the below call to ops->import_context() will
+>> just fail with -EIO upon calling on this FD to the query_context method, so
+>> I believe that we should be fine here.
 > 
-> Did you get a chance to look into my previous email?
+> Okay, lets have a comment then, it is tricky
+> 
 
-Was there a question?
+Sure, I have updated the PR accordingly.
+It includes also fixes to other notes that you already pointed on, thanks.
 
-Jason
+Yishai
