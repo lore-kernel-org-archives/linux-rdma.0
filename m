@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-4.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CAFBC433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F771C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F22062072E
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54C9E2072E
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730708AbgFWGtT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jun 2020 02:49:19 -0400
-Received: from mga01.intel.com ([192.55.52.88]:52474 "EHLO mga01.intel.com"
+        id S1730583AbgFWGtX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jun 2020 02:49:23 -0400
+Received: from mga03.intel.com ([134.134.136.65]:25225 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730583AbgFWGtS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Jun 2020 02:49:18 -0400
-IronPort-SDR: yQyKvJkDEcsnGQaJf7Sg9s5p79xLVhmWiUEAWAdagNKwvPjC0A3jLJJYR9ywTmgCAUDgbykzX9
- 8R0DX03GnmHg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9660"; a="162058358"
+        id S1730688AbgFWGtX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jun 2020 02:49:23 -0400
+IronPort-SDR: d3fTZOEKeVgBoJajQylaML+Yffdx/CQSM03XbWjYfX4ia50Tf8eSUi4vM/QMKKn2PdpJJ0e8rJ
+ exfg7vxpKE+A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9660"; a="143974197"
 X-IronPort-AV: E=Sophos;i="5.75,270,1589266800"; 
-   d="scan'208";a="162058358"
+   d="scan'208";a="143974197"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2020 23:49:14 -0700
-IronPort-SDR: yk4HUJX9h39Lx7TTnOsShllA2dybMwCRKY9ZOnBRJm1bEoyLjIugJSjlP2y/PSUeHX+Khg8s/Y
- S5iBWPv3wFgg==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2020 23:49:19 -0700
+IronPort-SDR: IaoUHVbnJ+wkg3Sqhx8bkkJB+/C3tTFjCZ312ONExvjVETZ2y6gxVtMAHyKBseclBJwa6A6EyB
+ dLPBKw62hnDA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.75,270,1589266800"; 
-   d="scan'208";a="275248901"
+   d="scan'208";a="284488364"
 Received: from lkp-server01.sh.intel.com (HELO f484c95e4fd1) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 22 Jun 2020 23:49:12 -0700
+  by orsmga007.jf.intel.com with ESMTP; 22 Jun 2020 23:49:17 -0700
 Received: from kbuild by f484c95e4fd1 with local (Exim 4.92)
         (envelope-from <lkp@intel.com>)
-        id 1jnck3-0000eW-Mf; Tue, 23 Jun 2020 06:49:11 +0000
-Date:   Tue, 23 Jun 2020 14:49:04 +0800
+        id 1jnck8-0000ec-HV; Tue, 23 Jun 2020 06:49:16 +0000
+Date:   Tue, 23 Jun 2020 14:49:02 +0800
 From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
- 116a1b9f1cb769b83e5adff323f977a62b1dcb2e
-Message-ID: <5ef1a5e0.388Fnuw6Jl0xD5u/%lkp@intel.com>
+Subject: [rdma:for-rc] BUILD SUCCESS
+ a17f4bed811c60712d8131883cdba11a105d0161
+Message-ID: <5ef1a5de.Sh4reo1tVZx9YBJR%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -53,13 +53,13 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-rc
-branch HEAD: 116a1b9f1cb769b83e5adff323f977a62b1dcb2e  IB/mad: Fix use after free when destroying MAD agent
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-rc
+branch HEAD: a17f4bed811c60712d8131883cdba11a105d0161  RDMA/mad: Fix possible memory leak in ib_mad_post_receive_mads()
 
-elapsed time: 726m
+elapsed time: 811m
 
-configs tested: 151
-configs skipped: 9
+configs tested: 138
+configs skipped: 6
 
 The following configs have been built successfully.
 More configs may be tested in the coming days.
@@ -80,9 +80,6 @@ mips                malta_kvm_guest_defconfig
 arm                         s3c6400_defconfig
 xtensa                           alldefconfig
 sh                  sh7785lcr_32bit_defconfig
-arm                           h3600_defconfig
-sh                          sdk7780_defconfig
-x86_64                              defconfig
 parisc                           alldefconfig
 mips                malta_qemu_32r6_defconfig
 arc                    vdk_hs38_smp_defconfig
@@ -93,24 +90,11 @@ arm                        keystone_defconfig
 arm                       versatile_defconfig
 m68k                            mac_defconfig
 sh                           sh2007_defconfig
-mips                        omega2p_defconfig
-powerpc                          g5_defconfig
-c6x                         dsk6455_defconfig
-arm                          tango4_defconfig
-powerpc                      ppc44x_defconfig
-m68k                             allyesconfig
 arm                           efm32_defconfig
 m68k                             alldefconfig
 m68k                         apollo_defconfig
 powerpc                     pseries_defconfig
 sh                        sh7785lcr_defconfig
-sh                          rsk7264_defconfig
-mips                          malta_defconfig
-sparc64                             defconfig
-mips                    maltaup_xpa_defconfig
-alpha                               defconfig
-mips                       bmips_be_defconfig
-ia64                            zx1_defconfig
 i386                              allnoconfig
 i386                             allyesconfig
 i386                                defconfig
@@ -123,6 +107,7 @@ m68k                             allmodconfig
 m68k                              allnoconfig
 m68k                           sun3_defconfig
 m68k                                defconfig
+m68k                             allyesconfig
 nios2                               defconfig
 nios2                            allyesconfig
 openrisc                            defconfig
@@ -133,6 +118,7 @@ nds32                               defconfig
 nds32                             allnoconfig
 csky                             allyesconfig
 csky                                defconfig
+alpha                               defconfig
 alpha                            allyesconfig
 h8300                            allyesconfig
 h8300                            allmodconfig
@@ -200,6 +186,7 @@ s390                             allmodconfig
 s390                                defconfig
 sparc                            allyesconfig
 sparc                               defconfig
+sparc64                             defconfig
 sparc64                           allnoconfig
 sparc64                          allyesconfig
 sparc64                          allmodconfig
