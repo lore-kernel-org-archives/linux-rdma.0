@@ -2,52 +2,56 @@ Return-Path: <SRS0=OzSu=AE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28443C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 11:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1D56C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 11:30:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E2C9820768
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 11:15:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACF582072E
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 11:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1592910953;
-	bh=L3+TNAxhcq0YD8JTau2bvmbtDlufD54N8yJoPrNtlj0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=TGT2eytTki4eq0kCYAaVH/tfqS0B4Zm/+1FqswZVwWTZ8CNZo+vJj3zI8FVmpdNyy
-	 0wiBOakWfexhaadQIL5NUfp89dTOdXzREkXr0+jD0nx80FjlZ2LK74wmv9smrauiih
-	 Q/rqDi8I8jeEdcG59grWpRkbKwZvofgo1T95dJm0=
+	s=default; t=1592911851;
+	bh=8/vjl5AC/yKs/tlckxNmIkt9dH63zMIT6hMHVnBEvfA=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=GNngFNpGlzWtyW176duTxjIXHSvPhEzcyVM7vQgNaEI/1TMJ5mpZQSQT3PRET2S1c
+	 1Ou+nlXoggRujwnITV/4J6eYFXLZTjsBsEszRZ2zdZnuEW6iTw9xUyHjkcDQU2SRhz
+	 Il59Q7c7xtLMO3cNdcXRpKY26ln0PLDEAhcJvRB0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732445AbgFWLPv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jun 2020 07:15:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57242 "EHLO mail.kernel.org"
+        id S1732393AbgFWLav (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jun 2020 07:30:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732491AbgFWLPs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Jun 2020 07:15:48 -0400
+        id S1732374AbgFWLat (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jun 2020 07:30:49 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 993E72078A;
-        Tue, 23 Jun 2020 11:15:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8ECDE20702;
+        Tue, 23 Jun 2020 11:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1592910947;
-        bh=L3+TNAxhcq0YD8JTau2bvmbtDlufD54N8yJoPrNtlj0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=K4VVDGpe7M9ZmT6JpEtYvV1NjuTUD4QODKfMfhwayy0jF5L+pYEzKpqTR5FlvqLz6
-         qSIb+u/c0eZO9Y/lhCkYFTPHg964ZGBJk12FKf1VdaKTWTzrjiPsy2mkuuUTrWhj3e
-         EJ9ZHC7pBlC6r4OqZzdr6dH/4Yhes03q+Mb2k0lU=
+        s=default; t=1592911849;
+        bh=8/vjl5AC/yKs/tlckxNmIkt9dH63zMIT6hMHVnBEvfA=;
+        h=From:To:Cc:Subject:Date:From;
+        b=zHiGxKWMOmTB0sEvb2NhmJpux28jXWnXJy9fUpuo5Jnr+JKjcwXXJFoP3+23yuGBJ
+         mFdrr0CSI5HDP1HLdzOJjd2lckgarWHCrjIW9+KIGgoMUnH4hiwmXdnTB+F+HgO1/h
+         so9L/xkcOMd460D86De4zzT3g74xESsvvNFsw9I4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 1/2] RDMA: Clean ib_alloc_xrcd() and reuse it to allocate XRC domain
-Date:   Tue, 23 Jun 2020 14:15:30 +0300
-Message-Id: <20200623111531.1227013-2-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Lijun Ou <oulijun@huawei.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Weihang Li <liweihang@huawei.com>,
+        "Wei Hu(Xavier)" <huwei87@hisilicon.com>
+Subject: [PATCH rdma-next v3 00/11] RAW format dumps through RDMAtool
+Date:   Tue, 23 Jun 2020 14:30:32 +0300
+Message-Id: <20200623113043.1228482-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200623111531.1227013-1-leon@kernel.org>
-References: <20200623111531.1227013-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,218 +59,66 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-ib_alloc_xrcd already does the required initialization, so move
-the mlx5 driver and uverbs to call it and save some code duplication,
-while cleaning the function argument lists of that function.
+Changelog:
+v3:
+ * Rewrote query interface in patch "RDMA: Add support to dump resource
+   tracker in RAW format"
+v2:
+https://lore.kernel.org/linux-rdma/20200616104006.2425549-1-leon@kernel.org
+ * Converted to specific nldev ops for RAW.
+ * Rebased on top of v5.8-rc1.
+v1:
+https://lore.kernel.org/linux-rdma/20200527135408.480878-1-leon@kernel.org
+ * Maor dropped controversial change to dummy interface.
+v0:
+https://lore.kernel.org/linux-rdma/20200513095034.208385-1-leon@kernel.org
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/uverbs_cmd.c | 12 +++---------
- drivers/infiniband/core/verbs.c      | 19 +++++++++++++------
- drivers/infiniband/hw/mlx5/main.c    | 24 ++++++++----------------
- include/rdma/ib_verbs.h              | 22 ++++++++++++----------
- 4 files changed, 36 insertions(+), 41 deletions(-)
+------------------------------------------------------------------------------
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 557644dcc923..68c9a0210220 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -614,17 +614,11 @@ static int ib_uverbs_open_xrcd(struct uverbs_attr_bundle *attrs)
- 	}
- 
- 	if (!xrcd) {
--		xrcd = ib_dev->ops.alloc_xrcd(ib_dev, &attrs->driver_udata);
-+		xrcd = ib_alloc_xrcd_user(ib_dev, inode, &attrs->driver_udata);
- 		if (IS_ERR(xrcd)) {
- 			ret = PTR_ERR(xrcd);
- 			goto err;
- 		}
--
--		xrcd->inode   = inode;
--		xrcd->device  = ib_dev;
--		atomic_set(&xrcd->usecnt, 0);
--		mutex_init(&xrcd->tgt_qp_mutex);
--		INIT_LIST_HEAD(&xrcd->tgt_qp_list);
- 		new_xrcd = 1;
- 	}
- 
-@@ -663,7 +657,7 @@ static int ib_uverbs_open_xrcd(struct uverbs_attr_bundle *attrs)
- 	}
- 
- err_dealloc_xrcd:
--	ib_dealloc_xrcd(xrcd, uverbs_get_cleared_udata(attrs));
-+	ib_dealloc_xrcd_user(xrcd, uverbs_get_cleared_udata(attrs));
- 
- err:
- 	uobj_alloc_abort(&obj->uobject, attrs);
-@@ -701,7 +695,7 @@ int ib_uverbs_dealloc_xrcd(struct ib_uobject *uobject, struct ib_xrcd *xrcd,
- 	if (inode && !atomic_dec_and_test(&xrcd->usecnt))
- 		return 0;
- 
--	ret = ib_dealloc_xrcd(xrcd, &attrs->driver_udata);
-+	ret = ib_dealloc_xrcd_user(xrcd, &attrs->driver_udata);
- 
- 	if (ib_is_destroy_retryable(ret, why, uobject)) {
- 		atomic_inc(&xrcd->usecnt);
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index d70771caf534..d66a0ad62077 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2289,17 +2289,24 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
- }
- EXPORT_SYMBOL(ib_detach_mcast);
- 
--struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
-+/**
-+ * ib_alloc_xrcd_user - Allocates an XRC domain.
-+ * @device: The device on which to allocate the XRC domain.
-+ * @inode: inode to connect XRCD
-+ * @udata: Valid user data or NULL for kernel object
-+ */
-+struct ib_xrcd *ib_alloc_xrcd_user(struct ib_device *device,
-+				   struct inode *inode, struct ib_udata *udata)
- {
- 	struct ib_xrcd *xrcd;
- 
- 	if (!device->ops.alloc_xrcd)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
--	xrcd = device->ops.alloc_xrcd(device, NULL);
-+	xrcd = device->ops.alloc_xrcd(device, udata);
- 	if (!IS_ERR(xrcd)) {
- 		xrcd->device = device;
--		xrcd->inode = NULL;
-+		xrcd->inode = inode;
- 		atomic_set(&xrcd->usecnt, 0);
- 		mutex_init(&xrcd->tgt_qp_mutex);
- 		INIT_LIST_HEAD(&xrcd->tgt_qp_list);
-@@ -2307,9 +2314,9 @@ struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller)
- 
- 	return xrcd;
- }
--EXPORT_SYMBOL(__ib_alloc_xrcd);
-+EXPORT_SYMBOL(ib_alloc_xrcd_user);
- 
--int ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
-+int ib_dealloc_xrcd_user(struct ib_xrcd *xrcd, struct ib_udata *udata)
- {
- 	struct ib_qp *qp;
- 	int ret;
-@@ -2327,7 +2334,7 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
- 
- 	return xrcd->device->ops.dealloc_xrcd(xrcd, udata);
- }
--EXPORT_SYMBOL(ib_dealloc_xrcd);
-+EXPORT_SYMBOL(ib_dealloc_xrcd_user);
- 
- /**
-  * ib_create_wq - Creates a WQ associated with the specified protection
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 47a0c091eea5..46c596a855e7 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5043,27 +5043,17 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
- 	if (ret)
- 		goto err_create_cq;
- 
--	devr->x0 = mlx5_ib_alloc_xrcd(&dev->ib_dev, NULL);
-+	devr->x0 = ib_alloc_xrcd(&dev->ib_dev);
- 	if (IS_ERR(devr->x0)) {
- 		ret = PTR_ERR(devr->x0);
- 		goto error2;
- 	}
--	devr->x0->device = &dev->ib_dev;
--	devr->x0->inode = NULL;
--	atomic_set(&devr->x0->usecnt, 0);
--	mutex_init(&devr->x0->tgt_qp_mutex);
--	INIT_LIST_HEAD(&devr->x0->tgt_qp_list);
- 
--	devr->x1 = mlx5_ib_alloc_xrcd(&dev->ib_dev, NULL);
-+	devr->x1 = ib_alloc_xrcd(&dev->ib_dev);
- 	if (IS_ERR(devr->x1)) {
- 		ret = PTR_ERR(devr->x1);
- 		goto error3;
- 	}
--	devr->x1->device = &dev->ib_dev;
--	devr->x1->inode = NULL;
--	atomic_set(&devr->x1->usecnt, 0);
--	mutex_init(&devr->x1->tgt_qp_mutex);
--	INIT_LIST_HEAD(&devr->x1->tgt_qp_list);
- 
- 	memset(&attr, 0, sizeof(attr));
- 	attr.attr.max_sge = 1;
-@@ -5125,13 +5115,14 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
- error6:
- 	kfree(devr->s1);
- error5:
-+	atomic_dec(&devr->s0->ext.xrc.xrcd->usecnt);
- 	mlx5_ib_destroy_srq(devr->s0, NULL);
- err_create:
- 	kfree(devr->s0);
- error4:
--	mlx5_ib_dealloc_xrcd(devr->x1, NULL);
-+	ib_dealloc_xrcd(devr->x1);
- error3:
--	mlx5_ib_dealloc_xrcd(devr->x0, NULL);
-+	ib_dealloc_xrcd(devr->x0);
- error2:
- 	mlx5_ib_destroy_cq(devr->c0, NULL);
- err_create_cq:
-@@ -5149,10 +5140,11 @@ static void destroy_dev_resources(struct mlx5_ib_resources *devr)
- 
- 	mlx5_ib_destroy_srq(devr->s1, NULL);
- 	kfree(devr->s1);
-+	atomic_dec(&devr->s0->ext.xrc.xrcd->usecnt);
- 	mlx5_ib_destroy_srq(devr->s0, NULL);
- 	kfree(devr->s0);
--	mlx5_ib_dealloc_xrcd(devr->x0, NULL);
--	mlx5_ib_dealloc_xrcd(devr->x1, NULL);
-+	ib_dealloc_xrcd(devr->x0);
-+	ib_dealloc_xrcd(devr->x1);
- 	mlx5_ib_destroy_cq(devr->c0, NULL);
- 	kfree(devr->c0);
- 	mlx5_ib_dealloc_pd(devr->p0, NULL);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f1e8afe1dd75..f785a4f1e58b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -4331,21 +4331,23 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
-  */
- int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
- 
--/**
-- * ib_alloc_xrcd - Allocates an XRC domain.
-- * @device: The device on which to allocate the XRC domain.
-- * @caller: Module name for kernel consumers
-- */
--struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller);
--#define ib_alloc_xrcd(device) \
--	__ib_alloc_xrcd((device), KBUILD_MODNAME)
-+struct ib_xrcd *ib_alloc_xrcd_user(struct ib_device *device,
-+				   struct inode *inode, struct ib_udata *udata);
-+static inline struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
-+{
-+	return ib_alloc_xrcd_user(device, NULL, NULL);
-+}
- 
- /**
-- * ib_dealloc_xrcd - Deallocates an XRC domain.
-+ * ib_dealloc_xrcd_user - Deallocates an XRC domain.
-  * @xrcd: The XRC domain to deallocate.
-  * @udata: Valid user data or NULL for kernel object
-  */
--int ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
-+int ib_dealloc_xrcd_user(struct ib_xrcd *xrcd, struct ib_udata *udata);
-+static inline int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
-+{
-+	return ib_dealloc_xrcd_user(xrcd, NULL);
-+}
- 
- static inline int ib_check_mr_access(int flags)
- {
--- 
+Hi,
+
+The following series adds support to get the RDMA resource data in RAW
+format. The main motivation for doing this is to enable vendors to return
+the entire QP/CQ/MR data without a need from the vendor to set each
+field separately.
+
+Thanks
+
+
+Maor Gottlieb (11):
+  net/mlx5: Export resource dump interface
+  net/mlx5: Add support in query QP, CQ and MKEY segments
+  RDMA/core: Don't call fill_res_entry for PD
+  RDMA: Add dedicated MR resource tracker function
+  RDMA: Add a dedicated CQ resource tracker function
+  RDMA: Add dedicated QP resource tracker function
+  RDMA: Add dedicated CM_ID resource tracker function
+  RDMA: Add support to dump resource tracker in RAW format
+  RDMA/mlx5: Add support to get QP resource in RAW format
+  RDMA/mlx5: Add support to get CQ resource in RAW format
+  RDMA/mlx5: Add support to get MR resource in RAW format
+
+ drivers/infiniband/core/device.c              |  10 +-
+ drivers/infiniband/core/nldev.c               | 214 ++++++++++--------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |   7 +-
+ drivers/infiniband/hw/cxgb4/provider.c        |  11 +-
+ drivers/infiniband/hw/cxgb4/restrack.c        |  24 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h   |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c     |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_restrack.c |  14 +-
+ drivers/infiniband/hw/mlx5/main.c             |   7 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   9 +-
+ drivers/infiniband/hw/mlx5/restrack.c         | 105 +++++++--
+ .../mellanox/mlx5/core/diag/rsc_dump.c        |   6 +
+ .../mellanox/mlx5/core/diag/rsc_dump.h        |  33 +--
+ .../diag => include/linux/mlx5}/rsc_dump.h    |  25 +-
+ include/rdma/ib_verbs.h                       |  13 +-
+ include/uapi/rdma/rdma_netlink.h              |   8 +
+ 16 files changed, 279 insertions(+), 213 deletions(-)
+ copy {drivers/net/ethernet/mellanox/mlx5/core/diag => include/linux/mlx5}/rsc_dump.h (68%)
+
+--
 2.26.2
 
