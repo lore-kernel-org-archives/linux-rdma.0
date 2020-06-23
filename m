@@ -6,44 +6,44 @@ X-Spam-Status: No, score=-4.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC53C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CAFBC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BC972072E
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F22062072E
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 06:49:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730684AbgFWGtN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jun 2020 02:49:13 -0400
-Received: from mga07.intel.com ([134.134.136.100]:50204 "EHLO mga07.intel.com"
+        id S1730708AbgFWGtT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jun 2020 02:49:19 -0400
+Received: from mga01.intel.com ([192.55.52.88]:52474 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730583AbgFWGtM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Jun 2020 02:49:12 -0400
-IronPort-SDR: OAcu6YBK+nOYtLwgRZoW3AVb5MNHU/ZWhTFwT9fBrUbd3y3fmzwuDqdmI421MNJqiWd1U6vUyI
- OEZ/5cW41SQA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9660"; a="209182446"
+        id S1730583AbgFWGtS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jun 2020 02:49:18 -0400
+IronPort-SDR: yQyKvJkDEcsnGQaJf7Sg9s5p79xLVhmWiUEAWAdagNKwvPjC0A3jLJJYR9ywTmgCAUDgbykzX9
+ 8R0DX03GnmHg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9660"; a="162058358"
 X-IronPort-AV: E=Sophos;i="5.75,270,1589266800"; 
-   d="scan'208";a="209182446"
+   d="scan'208";a="162058358"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2020 23:49:11 -0700
-IronPort-SDR: tEdHb3OiF0X0SHmue7E3psdlZmsuykOCe5Yb2ECLU1aY85S3rqSvwgbDqJGUOfy4rqKZz+Kkc6
- ZQxI1Huyb41Q==
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2020 23:49:14 -0700
+IronPort-SDR: yk4HUJX9h39Lx7TTnOsShllA2dybMwCRKY9ZOnBRJm1bEoyLjIugJSjlP2y/PSUeHX+Khg8s/Y
+ S5iBWPv3wFgg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.75,270,1589266800"; 
-   d="scan'208";a="301104902"
+   d="scan'208";a="275248901"
 Received: from lkp-server01.sh.intel.com (HELO f484c95e4fd1) ([10.239.97.150])
-  by fmsmga004.fm.intel.com with ESMTP; 22 Jun 2020 23:49:10 -0700
+  by orsmga003.jf.intel.com with ESMTP; 22 Jun 2020 23:49:12 -0700
 Received: from kbuild by f484c95e4fd1 with local (Exim 4.92)
         (envelope-from <lkp@intel.com>)
-        id 1jnck1-0000eT-Dl; Tue, 23 Jun 2020 06:49:09 +0000
-Date:   Tue, 23 Jun 2020 14:48:57 +0800
+        id 1jnck3-0000eW-Mf; Tue, 23 Jun 2020 06:49:11 +0000
+Date:   Tue, 23 Jun 2020 14:49:04 +0800
 From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@mellanox.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 11708142bc3689d98a959e5da927d002c590be7b
-Message-ID: <5ef1a5d9.onzvHvQZvz4Cd4p2%lkp@intel.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ 116a1b9f1cb769b83e5adff323f977a62b1dcb2e
+Message-ID: <5ef1a5e0.388Fnuw6Jl0xD5u/%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -53,13 +53,13 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-next
-branch HEAD: 11708142bc3689d98a959e5da927d002c590be7b  RDMA: Correct trivial kernel-doc inconsistencies
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-rc
+branch HEAD: 116a1b9f1cb769b83e5adff323f977a62b1dcb2e  IB/mad: Fix use after free when destroying MAD agent
 
-elapsed time: 811m
+elapsed time: 726m
 
-configs tested: 154
-configs skipped: 11
+configs tested: 151
+configs skipped: 9
 
 The following configs have been built successfully.
 More configs may be tested in the coming days.
@@ -99,10 +99,6 @@ c6x                         dsk6455_defconfig
 arm                          tango4_defconfig
 powerpc                      ppc44x_defconfig
 m68k                             allyesconfig
-arm                          gemini_defconfig
-powerpc                 mpc8272_ads_defconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
 arm                           efm32_defconfig
 m68k                             alldefconfig
 m68k                         apollo_defconfig
@@ -196,6 +192,7 @@ x86_64               randconfig-a001-20200622
 x86_64               randconfig-a006-20200622
 riscv                            allyesconfig
 riscv                             allnoconfig
+riscv                               defconfig
 riscv                            allmodconfig
 s390                             allyesconfig
 s390                              allnoconfig
