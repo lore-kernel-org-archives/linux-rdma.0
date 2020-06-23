@@ -2,201 +2,146 @@ Return-Path: <SRS0=OzSu=AE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7954BC433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 16:18:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15BC4C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 17:04:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48A4820780
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 16:18:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E150620774
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Jun 2020 17:04:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=lca.pw header.i=@lca.pw header.b="q5PXizvo"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="eeU6cLhH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733003AbgFWQSE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Jun 2020 12:18:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43142 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732981AbgFWQSD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Jun 2020 12:18:03 -0400
-Received: from mail-qt1-x842.google.com (mail-qt1-x842.google.com [IPv6:2607:f8b0:4864:20::842])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFC8AC061573
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 09:18:02 -0700 (PDT)
-Received: by mail-qt1-x842.google.com with SMTP id i16so15814969qtr.7
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Jun 2020 09:18:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=lca.pw; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=SowX6r/DrbyMyIPo7bbmN6dCO4WOaZBpx8lXkNiYwRQ=;
-        b=q5PXizvouRcfNA2W9Djqc/Z84L8gq+5xyPGe7rkAVVUXYo0XRUHAEI4yVuKgTSfgc9
-         RoYCG4UkEgCC9vVO+IYyrz7JORXpNUWmlzMkIni2Vfw9kxBsp2K+YgamdfZElTJuJZTW
-         bbafUUDUQEhd51JcrBKUA9xHz8S+ZvnGFC/bx4j/zd/tIY4JT4nqabnA6jtnfro4Yx69
-         YevfddRvEKhgwHMyV0hQh6x3L1BXH3reCRQkEUr6zmcuCWOBikrw37RohUhW9xkrCqv7
-         nLIezDVzEaNlXEnFqrM5wDtOVHCyOyKL9todYtNNNUOatrNgrkdDPEXpNyPANNjAfT9T
-         s5yg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=SowX6r/DrbyMyIPo7bbmN6dCO4WOaZBpx8lXkNiYwRQ=;
-        b=iD8WewKoOp7YRSrRX34qDlrZO3m4cYckkhQPr1uL58C8a9KNu2a2jj0jSng/sx9rkd
-         4QmhUVON+mnfAlSPvIFamBOEPXIQKn/B4X3gNdos8N5G/EcEerMbhiWNL2hPd8pXAqB7
-         ezXN2HtfrrEI7QmVLlAjKgQMa6BzuhjhWJdxrjLjjbUGqBM+qUEXYKudSnugei6GMOr+
-         gG6Dx0KFX4ZX0bAa4JPEjAe3bfqslGvCz9eoTzmv1oImjg1xUnixzW3smwXD1MplYv94
-         SPLa1XopGuMKe93WXPCchKUzRkNfsex8PlHbvSbR9LpU2cgshHU83/fHKuBRA78yHPwX
-         ZX4A==
-X-Gm-Message-State: AOAM530hSsyll91+UebRYTkkIc6y3A3Ra0lN9FBVF6SHuphe+1ge/JyX
-        gSy9y9vRXwekvGnDxtCwyWGRDw==
-X-Google-Smtp-Source: ABdhPJy2/MUFYS3DJu96XPGFYPvGEfp9/cvT3JQEnV1SM172gUGWrPZ+0/Xawft3xZIbg4oUrttvEg==
-X-Received: by 2002:ac8:4448:: with SMTP id m8mr22935603qtn.4.1592929081912;
-        Tue, 23 Jun 2020 09:18:01 -0700 (PDT)
-Received: from lca.pw (pool-71-184-117-43.bstnma.fios.verizon.net. [71.184.117.43])
-        by smtp.gmail.com with ESMTPSA id d140sm966654qkc.22.2020.06.23.09.18.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 23 Jun 2020 09:18:01 -0700 (PDT)
-Date:   Tue, 23 Jun 2020 12:17:54 -0400
-From:   Qian Cai <cai@lca.pw>
-To:     Daniel Vetter <daniel@ffwll.ch>
-Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas_os@shipmail.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Linux MM <linux-mm@kvack.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-xfs@vger.kernel.org
-Subject: Re: [PATCH] mm: Track mmu notifiers in fs_reclaim_acquire/release
-Message-ID: <20200623161754.GA1140@lca.pw>
-References: <20200604081224.863494-2-daniel.vetter@ffwll.ch>
- <20200610194101.1668038-1-daniel.vetter@ffwll.ch>
- <20200621174205.GB1398@lca.pw>
- <CAKMK7uFZAFVmceoYvqPovOifGw_Y8Ey-OMy6wioMjwPWhu9dDg@mail.gmail.com>
- <20200621200103.GV20149@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+        id S1728916AbgFWRE1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Jun 2020 13:04:27 -0400
+Received: from mail-eopbgr20054.outbound.protection.outlook.com ([40.107.2.54]:13189
+        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1733043AbgFWREW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Jun 2020 13:04:22 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ism7TNWVI4Bo7tv1Fo4uqLAOprJgTu5gZtBGoiDUP7/i21eYY+2GlwiP5buPR8tFwH5IyzJARQQW987evMcjAm/5QxTCtICY4aqEI/AST9OP/q+3gTCRaGLZckWWBkqXiSMYAU4lRnNFrtvBDZImjmR3GjTcIuttEx8ewU3gE/0OK7DnFVX3v+yc6bYI/Mc3M7yERXwO462JbbpFlaPiJKCAN+seoIv4HRgzkOr9Cne/4+Od5c7yKgUN3Fhdr3hhM9L/OxzRaweGOXpcuEQVIW8dZOTZKxY7zPbDoupQ3KIHDJioXD3T2h2Fng+n6zm9HlywY58yUXCt+Ypga3Zl0w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=nmL5LUrvGNv+E+YzcrkzJ9/zwWMeTn3ON9VMJEaHw7U=;
+ b=G0iP0vhTfHb5EjK5FpdxJZaYAQAgmyvolEH/hraPbskudDX3jQhhEDQledWHhyw2c95/QpW20uMHY2u1JolW2advVxiNg2cgUf53PiraE+J4swWdcHusi5yR6vTm5uf0j6YW+EYnbwyGRPAc1yPg+aAeYZrg3spwDzdrVRTQvNcd3COjnrap43lWoiDaZlE5jv4kBzYvX0l29dYGqw3q9immy4iO1NyS7PxwaycUienrWPuwrGJYtB8XIwekMUFIvBh8NtVXnzbhXZUIHcDuJYVQlmBoYtOfyqnELy/Ubel/RIuW4o436XFXNyvdSldK79UOBC7bQfcFefWLDv64oA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=nmL5LUrvGNv+E+YzcrkzJ9/zwWMeTn3ON9VMJEaHw7U=;
+ b=eeU6cLhHg23/d/f/3AY18DjaQMZ57ZcUd4YKhnpcUpEx7HMY7lJbzdMsxcMR6KpqQ6PZ2oBoyj6Ivh0eNcZwNkLN/VbAbZVL6KGzj+rOrGN35eUrLG22wZx9fjHSa+ySxj4r0d0EWgzE7LfTeWRVxjY1/sEcK7OuqcCklXerjX4=
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=mellanox.com;
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com (2603:10a6:803:44::15)
+ by VI1PR05MB4783.eurprd05.prod.outlook.com (2603:10a6:802:5b::30) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3109.23; Tue, 23 Jun
+ 2020 17:04:17 +0000
+Received: from VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::848b:fcd0:efe3:189e]) by VI1PR05MB4141.eurprd05.prod.outlook.com
+ ([fe80::848b:fcd0:efe3:189e%7]) with mapi id 15.20.3131.020; Tue, 23 Jun 2020
+ 17:04:17 +0000
+Date:   Tue, 23 Jun 2020 14:04:10 -0300
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Lijun Ou <oulijun@huawei.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Saeed Mahameed <saeedm@mellanox.com>,
+        Weihang Li <liweihang@huawei.com>,
+        "Wei Hu(Xavier)" <huwei87@hisilicon.com>
+Subject: Re: [PATCH rdma-next v3 00/11] RAW format dumps through RDMAtool
+Message-ID: <20200623170410.GI2874652@mellanox.com>
+References: <20200623113043.1228482-1-leon@kernel.org>
+ <20200623141957.GG2874652@mellanox.com>
+ <20200623142727.GB184720@unreal>
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200621200103.GV20149@phenom.ffwll.local>
+In-Reply-To: <20200623142727.GB184720@unreal>
+X-ClientProxiedBy: BL0PR01CA0020.prod.exchangelabs.com (2603:10b6:208:71::33)
+ To VI1PR05MB4141.eurprd05.prod.outlook.com (2603:10a6:803:44::15)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (193.47.165.251) by BL0PR01CA0020.prod.exchangelabs.com (2603:10b6:208:71::33) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3109.22 via Frontend Transport; Tue, 23 Jun 2020 17:04:17 +0000
+Received: from jgg by mlx with local (Exim 4.93)        (envelope-from <jgg@mellanox.com>)      id 1jnmLC-00CxEv-L4; Tue, 23 Jun 2020 14:04:10 -0300
+X-Originating-IP: [193.47.165.251]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: e2d614cb-c1f3-4ff8-3281-08d8179776c9
+X-MS-TrafficTypeDiagnostic: VI1PR05MB4783:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <VI1PR05MB47831EC3CA44BB748A2AE3CACF940@VI1PR05MB4783.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:820;
+X-Forefront-PRVS: 04433051BF
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: fY685WE4JUX4qJ5DjnhUtTBfbjEpwNA/rcS1+6fGIOsvd9atpj1cUNOEEBFJK46XEmWjs0OPP5zic0iFmBHHVDhDKgOCWZHqbyGmJZHY4QsEJmp5icXOO5bMDI5dMYd93m7e7IfRRNsu2yg/E0Y5YElxNEqDKi2iQCtKIiXNZnQ07i0EhqmFTj6lICTosX+DgPBbXfMarrYyaShgQpTdgDYbggEKcyKd8MEplKPaLhX9OwRgzwY1Zxi/UPmsr9iWX3NmOebDDERXJ0eMAZ1eJiPa07IoeQin5709foFHDg459Rxf26Z0T2HAvV+YpBbZVQ0KWEYfdHa3uAlKanvJZ5b9gu4yfsr7Oxe6yDqVxL6sLALXHwGQO4tmie2dMYJ60MgobgyPfKLe9rvUvqun6g==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1PR05MB4141.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39850400004)(136003)(346002)(396003)(376002)(366004)(316002)(26005)(33656002)(54906003)(66556008)(66476007)(66946007)(86362001)(5660300002)(426003)(4326008)(966005)(478600001)(186003)(6916009)(1076003)(2906002)(2616005)(9746002)(9786002)(8676002)(36756003)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: XxS354DRTz65+C9xvsPakQnR5cYP8pNF+zH2zb+XdIkuCFCdcpk7M1LWbKqIH0d/MdeqhxQO1JvClDD2t3OftrDZQkdUFG6UXBDzebd2WC0d6Y6ZpCG+zijHQkqpVUbM1QS0EjIn5+Y87TOshDSEaRJrdf8tTqsLAt4UjhhEbhm6/tlP0Bf5DRjsaP1crblYZpJMIZ7Xo9SXZ/Hx0c7CV86amVrhwsMjTKt5RBdBZngteJK5E/zxsHmmCrUZi9QX218mHR8ms2+vzCsLmHn3jo8sRuKJ6EhEj+Ly0BFUQPyi+mapg5l8UVjznd1LcpOEMzxhQ8boU38KD4jEQLE0mGg2KTIlpTI9Wylrn4s5nQaxZAOd6eepyM1BJBeXK2SmP9+HMs3DcdIud3L3XOVTzeBzf9flA6s1/qAEefYz5FZ6c7YqzU6jAUI7fHoejvBGF3U0Y6I/Pn+vI84enh2yw/oC5lR2G0x6JomFqtivRk4kl7rKG2170dwwu1EeXhat
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e2d614cb-c1f3-4ff8-3281-08d8179776c9
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jun 2020 17:04:17.5011
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Rs5dK6/ivAS8kTfPfABdV6i+DkkR81/0hcgtOxe2ZObTJnCdj5E2N6W8ewt8ieA0oRhCal4Nh4HM6xouphKKFg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB4783
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jun 21, 2020 at 10:01:03PM +0200, Daniel Vetter wrote:
-> On Sun, Jun 21, 2020 at 08:07:08PM +0200, Daniel Vetter wrote:
-> > On Sun, Jun 21, 2020 at 7:42 PM Qian Cai <cai@lca.pw> wrote:
+On Tue, Jun 23, 2020 at 05:27:27PM +0300, Leon Romanovsky wrote:
+> On Tue, Jun 23, 2020 at 11:19:57AM -0300, Jason Gunthorpe wrote:
+> > On Tue, Jun 23, 2020 at 02:30:32PM +0300, Leon Romanovsky wrote:
+> > > From: Leon Romanovsky <leonro@mellanox.com>
 > > >
-> > > On Wed, Jun 10, 2020 at 09:41:01PM +0200, Daniel Vetter wrote:
-> > > > fs_reclaim_acquire/release nicely catch recursion issues when
-> > > > allocating GFP_KERNEL memory against shrinkers (which gpu drivers tend
-> > > > to use to keep the excessive caches in check). For mmu notifier
-> > > > recursions we do have lockdep annotations since 23b68395c7c7
-> > > > ("mm/mmu_notifiers: add a lockdep map for invalidate_range_start/end").
-> > > >
-> > > > But these only fire if a path actually results in some pte
-> > > > invalidation - for most small allocations that's very rarely the case.
-> > > > The other trouble is that pte invalidation can happen any time when
-> > > > __GFP_RECLAIM is set. Which means only really GFP_ATOMIC is a safe
-> > > > choice, GFP_NOIO isn't good enough to avoid potential mmu notifier
-> > > > recursion.
-> > > >
-> > > > I was pondering whether we should just do the general annotation, but
-> > > > there's always the risk for false positives. Plus I'm assuming that
-> > > > the core fs and io code is a lot better reviewed and tested than
-> > > > random mmu notifier code in drivers. Hence why I decide to only
-> > > > annotate for that specific case.
-> > > >
-> > > > Furthermore even if we'd create a lockdep map for direct reclaim, we'd
-> > > > still need to explicit pull in the mmu notifier map - there's a lot
-> > > > more places that do pte invalidation than just direct reclaim, these
-> > > > two contexts arent the same.
-> > > >
-> > > > Note that the mmu notifiers needing their own independent lockdep map
-> > > > is also the reason we can't hold them from fs_reclaim_acquire to
-> > > > fs_reclaim_release - it would nest with the acquistion in the pte
-> > > > invalidation code, causing a lockdep splat. And we can't remove the
-> > > > annotations from pte invalidation and all the other places since
-> > > > they're called from many other places than page reclaim. Hence we can
-> > > > only do the equivalent of might_lock, but on the raw lockdep map.
-> > > >
-> > > > With this we can also remove the lockdep priming added in 66204f1d2d1b
-> > > > ("mm/mmu_notifiers: prime lockdep") since the new annotations are
-> > > > strictly more powerful.
-> > > >
-> > > > v2: Review from Thomas Hellstrom:
-> > > > - unbotch the fs_reclaim context check, I accidentally inverted it,
-> > > >   but it didn't blow up because I inverted it immediately
-> > > > - fix compiling for !CONFIG_MMU_NOTIFIER
-> > > >
-> > > > Cc: Thomas Hellström (Intel) <thomas_os@shipmail.org>
-> > > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > > Cc: Jason Gunthorpe <jgg@mellanox.com>
-> > > > Cc: linux-mm@kvack.org
-> > > > Cc: linux-rdma@vger.kernel.org
-> > > > Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-> > > > Cc: Christian König <christian.koenig@amd.com>
-> > > > Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> > > Changelog:
+> > > v3:
+> > >  * Rewrote query interface in patch "RDMA: Add support to dump resource
+> > >    tracker in RAW format"
+> > > v2:
+> > > https://lore.kernel.org/linux-rdma/20200616104006.2425549-1-leon@kernel.org
+> > >  * Converted to specific nldev ops for RAW.
+> > >  * Rebased on top of v5.8-rc1.
+> > > v1:
+> > > https://lore.kernel.org/linux-rdma/20200527135408.480878-1-leon@kernel.org
+> > >  * Maor dropped controversial change to dummy interface.
+> > > v0:
+> > > https://lore.kernel.org/linux-rdma/20200513095034.208385-1-leon@kernel.org
 > > >
-> > > Replying the right patch here...
 > > >
-> > > Reverting this commit [1] fixed the lockdep warning below while applying
-> > > some memory pressure.
+> > > Hi,
 > > >
-> > > [1] linux-next cbf7c9d86d75 ("mm: track mmu notifiers in fs_reclaim_acquire/release")
-> > 
-> > Hm, then I'm confused because
-> > - there's not mmut notifier lockdep map in the splat at a..
-> > - the patch is supposed to not change anything for fs_reclaim (but the
-> > interim version got that wrong)
-> > - looking at the paths it's kmalloc vs kswapd, both places I totally
-> > expect fs_reflaim to be used.
-> > 
-> > But you're claiming reverting this prevents the lockdep splat. If
-> > that's right, then my reasoning above is broken somewhere. Someone
-> > less blind than me having an idea?
-> > 
-> > Aside this is the first email I've typed, until I realized the first
-> > report was against the broken patch and that looked like a much more
-> > reasonable explanation (but didn't quite match up with the code
-> > paths).
+> > > The following series adds support to get the RDMA resource data in RAW
+> > > format. The main motivation for doing this is to enable vendors to return
+> > > the entire QP/CQ/MR data without a need from the vendor to set each
+> > > field separately.
+> > >
+> > > Thanks
+> > >
+> > >
+> > > Maor Gottlieb (11):
+> > >   net/mlx5: Export resource dump interface
+> > >   net/mlx5: Add support in query QP, CQ and MKEY segments
+> >
+> > It looks OK can you apply these too the shared branch?
 > 
-> Below diff should undo the functional change in my patch. Can you pls test
-> whether the lockdep splat is really gone with that? Might need a lot of
-> testing and memory pressure to be sure, since all these reclaim paths
-> aren't very deterministic.
-
-No, this patch does not help but reverting the whole patch still fixed
-the splat.
-
-> -Daniel
+> Thanks, applied.
 > 
-> ---
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index d807587c9ae6..27ea763c6155 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -4191,11 +4191,6 @@ void fs_reclaim_acquire(gfp_t gfp_mask)
->  		if (gfp_mask & __GFP_FS)
->  			__fs_reclaim_acquire();
->  
-> -#ifdef CONFIG_MMU_NOTIFIER
-> -		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-> -		lock_map_release(&__mmu_notifier_invalidate_range_start_map);
-> -#endif
-> -
->  	}
->  }
->  EXPORT_SYMBOL_GPL(fs_reclaim_acquire);
-> -- 
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
+> 608ca553c9a2 net/mlx5: Add support in query QP, CQ and MKEY segments
+> d63cc24933c7 net/mlx5: Export resource dump interface
+
+Applied to for-next, thanks
+
+Jason
