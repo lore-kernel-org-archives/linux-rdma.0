@@ -6,99 +6,104 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21A83C433E0
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Jun 2020 20:52:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B2B6C433E0
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Jun 2020 22:25:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9A182070A
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Jun 2020 20:52:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EF90206C3
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Jun 2020 22:25:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="UPTggNCd"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ALBY/7Ow"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725806AbgF0UwJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 27 Jun 2020 16:52:09 -0400
-Received: from mail-eopbgr150072.outbound.protection.outlook.com ([40.107.15.72]:43399
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725792AbgF0UwJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 27 Jun 2020 16:52:09 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=UGi+27MTIXFBnvYW/48EFU7FNYuXMY/jEHC194hE+J6BmX87yEqiiHqJ++XV8H0KlcGJ3xSt0OtAnOOAxaNtXAqZUckK9dLDKBSy8pNIdOQ2/6p26UC1KgEtaqkEuzYBd4XAoyeDpwtfC2f1D+4Plg4fbGx42pmmsdt1rm7WhqZqHwhiVHKWewh2HCx6aPD0uo5YY9bmrbwLB4p2EFxASDS/IF3eBG2K629vcqXMp2pYrKVZnH0IQMgZ5pzztQbZQcgCzmFoQgsf/btbGwYGq3iKf1VoffkQ+FWVINf26i7v4Seg21LmTZFqQcmX1k3IGoybpyw6LK9fO/U06AGANQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mBBMtOM8jo76WxsiLpzFNYQ33b1SiT0KbF5pMbKBkls=;
- b=Y4l6wZAv+jDQmSGxP2I4PcfWk1n8Iw2qEFiuKofzYeUTwbfKH26/2ad1ydWFiB50oUHqU1OaSgb11+cNIZLljDHeqmpXuoAZ2fQ0i3UzN0h2fFbN8wRMUqowvsPYLoL9E1MuANguAypbLarNLpXDYtnh5f5pV4EHdszyJ6xp6cZ3ZbcUHsH2s1/28Okgn/dxbej2GNe0maM2ZiUcgsA5aRh7i3MIznkshy2o12oPb6r8jgUjdhJ7PCKg217DCL1Gxwh7imIVh5v7y+7cO2zkwQElZRKagBjgjOpkf6fU371rd4wqPAsgr2qVx72atGUwwtyc/CjZpOEd9JL7kHq+mg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mBBMtOM8jo76WxsiLpzFNYQ33b1SiT0KbF5pMbKBkls=;
- b=UPTggNCdv5AZgPjnplNXPJrxz1WB175lp4kVAYkOrk/suIECMF76EYhgOaPUaBrsMKwYA6xLrANC8zrnwgVSiRMrNqVlhdC21ugJkpNDn4aHBYikEius1v9g9RAz6PZsewcre3Ur0tToy7eKcjFmuVNP8m4kt6KRIQOJBIkh96Y=
-Received: from VI1PR05MB5102.eurprd05.prod.outlook.com (2603:10a6:803:5e::23)
- by VI1PR05MB6591.eurprd05.prod.outlook.com (2603:10a6:803:102::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3131.25; Sat, 27 Jun
- 2020 20:52:04 +0000
-Received: from VI1PR05MB5102.eurprd05.prod.outlook.com
- ([fe80::2405:4594:97a:13c]) by VI1PR05MB5102.eurprd05.prod.outlook.com
- ([fe80::2405:4594:97a:13c%2]) with mapi id 15.20.3131.026; Sat, 27 Jun 2020
- 20:52:04 +0000
-From:   Saeed Mahameed <saeedm@mellanox.com>
-To:     Leon Romanovsky <leonro@mellanox.com>
-CC:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH mlx5-next 0/3] mlx5 next updates 2020-06-25
-Thread-Topic: [PATCH mlx5-next 0/3] mlx5 next updates 2020-06-25
-Thread-Index: AQHWS36eExRjwuaSM0K0EJH/t44pMajs8p+A
-Date:   Sat, 27 Jun 2020 20:52:03 +0000
-Message-ID: <6ac1d135036c439a2f862be54808d937808ea3f8.camel@mellanox.com>
-References: <20200626055612.99645-1-saeedm@mellanox.com>
-In-Reply-To: <20200626055612.99645-1-saeedm@mellanox.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.36.3 (3.36.3-1.fc32) 
-authentication-results: mellanox.com; dkim=none (message not signed)
- header.d=none;mellanox.com; dmarc=none action=none header.from=mellanox.com;
-x-originating-ip: [73.15.39.150]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-ht: Tenant
-x-ms-office365-filtering-correlation-id: 834aaf28-2688-43a4-a5f8-08d81adbf280
-x-ms-traffictypediagnostic: VI1PR05MB6591:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <VI1PR05MB65912B56DBEFB8A5090E5962BE900@VI1PR05MB6591.eurprd05.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:4714;
-x-forefront-prvs: 0447DB1C71
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: IWdUkzlu7OiKe1eslUhPW5XmfNrrUopMnEvl63UvOxpwNdHdCnpgy6RZ35A6LdUsy1Qj19w0zzhedl5u4O3jzzgb5NRbp45OZEeaZt//wIexYXXOggd5xHGYUjgqGjRfxmSFxauLz84FZsyOCKNutipHEmHX5jn5zGftH8cESDEI5trUXdxsoUXpe4PQJOGp4qRRqhMOB9nehwhQw9Ls4D6ZxmxkUZR3oKVyzaGvQ0bnbn4smGifbp3UjFicVPSChwvWyp24uUvl1Vt2jDd369fORe5rA9Pdp4keuiHerRD5ELSWz9AWtYchAguwlocEv5DmWH0gHp4TF5fM3rVvuQ==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1PR05MB5102.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(396003)(39850400004)(346002)(136003)(366004)(376002)(66446008)(64756008)(66556008)(6862004)(71200400001)(6512007)(86362001)(6506007)(37006003)(8676002)(558084003)(478600001)(5660300002)(91956017)(36756003)(66476007)(8936002)(76116006)(66946007)(4326008)(186003)(450100002)(2616005)(26005)(54906003)(2906002)(6636002)(6486002)(316002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata: 9OYI1HUWgtTRppq1cvN6ZFhf0wI8sEZurUhpKF0k6lQjlPh7fP0+zxcCd1tGXXO49gBfDfvskDgyfWmfjFcNkgv9zHJD3zFHJLgSoVtbEdEd6VnPpZJZbkW3xJu7A5/G583ZRvi7mXPOo9ICmhBdFpd1iY1YTEzZHNvSystPaD+M2uRZIug+uSwVvp3UfOvt9a2C+q5NaifI0JeXBpF7wMDsXDLRzcPhP6mJff/Ix42Y2vUdLQe1DZdK1Gwj8BqlXdd+9b3BZQooS5otZ020jnFUM9dUXGIP0USMruRsA4d6Nslk4RkGoNgj7ywLoBMUl/iBG4QPOfo52P17U2BucclG7b+OgZQqmhDCzSepJvtaYL8GTSf1StO122WB/JfNsPuEHOMhBo4lN+nWxTBvv1YRuQTWDU4VOS+hln/4LAD3FHQEVXoaLmx3r7M1fy95zkzQJoP1Peez/EAfyiwT3q8kp7Cd0wbUxtyLQsQtTbs=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <5A06DE71B2173F4D90FFD7AEF28B4C0A@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        id S1725932AbgF0WZa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 27 Jun 2020 18:25:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54214 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725912AbgF0WZa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 27 Jun 2020 18:25:30 -0400
+Received: from mail-qv1-xf41.google.com (mail-qv1-xf41.google.com [IPv6:2607:f8b0:4864:20::f41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBCFCC03E979
+        for <linux-rdma@vger.kernel.org>; Sat, 27 Jun 2020 15:25:29 -0700 (PDT)
+Received: by mail-qv1-xf41.google.com with SMTP id u8so6072970qvj.12
+        for <linux-rdma@vger.kernel.org>; Sat, 27 Jun 2020 15:25:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=B7GpCtb/sR/TjCdWqWZIsoVoP3af+VvPEeIrSBxtNwQ=;
+        b=ALBY/7OwEiOqs4GU7y1mMMiUAO7d8R/zMkOaYa2sunQGk6iCtyuYONJshXcxOblkeS
+         ke3ez/h975geKvV03lXJdffAbEq86yU6xL4sprCC9UROXEg6951nNjyLK2CWUOa6IiAT
+         Nk8mhHzaY3Z9LI1hO4V2kpsHJtqSuc8mKGy29vA5ghe7uJrf8Jj6ILMQLPQTts5WLgsl
+         HFJkR/MokZhuFeZNeeg5qzOBWUzgeCVOx/lwgb4MVis3LKwqUK1Jedy74CUw26JDcAVR
+         7Mi2uoaGqNfImIjzSkLJQZ8Gn6lE/Eprr2FLOXvCr/KIcFU0ehlv7WzkRjH2eAZgBJHC
+         h8oQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=B7GpCtb/sR/TjCdWqWZIsoVoP3af+VvPEeIrSBxtNwQ=;
+        b=qoZhs5c1NIPBC+UKe0aFx4/tGGiOKPho+bJixzZK7PQbo6d4+JTSbeHB2UySYo//JR
+         13nRQE1o+n/2yqwZNS0ZJ7etIhA5ygY3fdb9Mhi8TMnYlBmUc0002cBuR+XELKPAEopf
+         DaOnTLk8fZLGN191PdCvOtCqtoEYA6mLhbGqjQcliEyj5staGGVDkcEuImpTq0Vmv7b1
+         6oJseh+OZP/XItVYEtBsE672BRVhUPMhGdmkjsNsPhXfZq1/cEPU7g0IJ0tOncW7Lb/D
+         QodCrZrLRnMbAQP/r2eFoVa5uFG/557fE3kzTrxs7OqO5IDC0rqJ7QsdUWy3zsWzcQMi
+         KAjQ==
+X-Gm-Message-State: AOAM53032PLzF9BUYWEynSHTVgx1dFlg2Gsc1oo5yQqdhKiQONueOHkF
+        Q/MQld+RGWaDDuCzeFs7DOXY8w==
+X-Google-Smtp-Source: ABdhPJxlXMh1W9yDUlNTSm+3IU2P2JTP2cJj/PP3kid1a5TVpbuIyOC5ajObbm4cht3FuYpwxRv6kQ==
+X-Received: by 2002:a0c:f281:: with SMTP id k1mr3159188qvl.219.1593296728910;
+        Sat, 27 Jun 2020 15:25:28 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id 125sm3067882qkg.88.2020.06.27.15.25.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 27 Jun 2020 15:25:28 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.93)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jpJGJ-000iUW-Gu; Sat, 27 Jun 2020 19:25:27 -0300
+Date:   Sat, 27 Jun 2020 19:25:27 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Hillf Danton <hdanton@sina.com>
+Cc:     syzbot <syzbot+a929647172775e335941@syzkaller.appspotmail.com>,
+        chuck.lever@oracle.com, dledford@redhat.com, leon@kernel.org,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        parav@mellanox.com, Markus Elfring <Markus.Elfring@web.de>,
+        syzkaller-bugs@googlegroups.com
+Subject: Re: KASAN: use-after-free Read in addr_handler (2)
+Message-ID: <20200627222527.GC25301@ziepe.ca>
+References: <000000000000107b4605a7bdce7d@google.com>
+ <20200614085321.8740-1-hdanton@sina.com>
+ <20200627130205.16900-1-hdanton@sina.com>
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: VI1PR05MB5102.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 834aaf28-2688-43a4-a5f8-08d81adbf280
-X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Jun 2020 20:52:03.8894
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: EKlcgbGjwilofREJaeup7fiDcVDKseDpuxKt7pEfByAl5Z/HEsUzb5/jgTl4bf4/FrWZQ55jPiad5Hag4ig/IA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR05MB6591
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200627130205.16900-1-hdanton@sina.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDIwLTA2LTI1IGF0IDIyOjU2IC0wNzAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
-Cj4gVGhpcyBzbWFsbCBwYXRjaHNldCBpbmNsdWRlcyAzIHBhdGNoZXMgdG8gbWx4NS1uZXh0IGJy
-YW5jaC4NCj4gDQo+IDEpIEluY2x1ZGUgZGlyZWN0aXZlcyBjbGVhbnVwIGZyb20gUGFyYXYuDQo+
-IDIpIFRMUyBIYXJkd2FyZSBsYXlvdXRzIGltcHJvdmVtZW50cyBmcm9tIFRhcmlxLg0KPiANCj4g
-VGhhbmtzLA0KPiBTYWVlZC4NCj4gDQoNClNlcmllcyBhcHBsaWVkIA0K
+On Sat, Jun 27, 2020 at 09:02:05PM +0800, Hillf Danton wrote:
+> > So, to hit this syzkaller one of these must have happened:
+> >  1) rdma_addr_cancel() didn't work and the process_one_work() is still
+> >     runnable/running
+> 
+> What syzbot reported indicates that the kworker did survive not only
+> canceling work but the handler_mutex, despite it's a sync cancel that
+> waits for the work to complete.
+
+The syzbot report doesn't confirm that the cancel work was actaully
+called.
+
+The most likely situation is that it was skipped because of the state
+mangling the patch fixes..
+
+> >  2) The state changed away from RDMA_CM_ADDR_QUERY without doing
+> >     rdma_addr_cancel()
+> 
+> The cancel does cover the query state in the reported case, and have
+> difficult time working out what's in the patch below preventing the
+> work from going across the line the sync cancel draws. That's the
+> question we can revisit once there is a reproducer available.
+
+rdma-cm never seems to get reproducers from syzkaller
+
+Jason
