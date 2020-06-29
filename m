@@ -4,195 +4,99 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE08C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 19:43:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D90AC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 19:43:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3D0420842
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 19:43:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A8E120842
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 19:43:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U9y8P0Pj"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n+Vq4WmF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733156AbgF2Tm5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Jun 2020 15:42:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48510 "EHLO
+        id S1733272AbgF2TnL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Jun 2020 15:43:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387989AbgF2Tmo (ORCPT
+        with ESMTP id S2387987AbgF2Tmo (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Jun 2020 15:42:44 -0400
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F314C02F022;
-        Mon, 29 Jun 2020 07:53:51 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id 145so12980309qke.9;
-        Mon, 29 Jun 2020 07:53:51 -0700 (PDT)
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66DAAC02F01E;
+        Mon, 29 Jun 2020 07:53:35 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id h23so13078965qtr.0;
+        Mon, 29 Jun 2020 07:53:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=sender:subject:from:to:date:message-id:in-reply-to:references
          :user-agent:mime-version:content-transfer-encoding;
-        bh=9W486G6MOwvs86RPa64GieAuupAr7TMSvF/6Xm7uZYA=;
-        b=U9y8P0PjrZHvDrF+SYvNX6bN96B+EmQOrR70qQ5Xigjcot7zfeS831aUnHZgQfcNZN
-         Ge2+oGujuptj2ok4rtPfYFRxR73L9HWpQCmJz2ysQ0YGguhWfZutWM1yc7KGsSDc1Pyh
-         UdzeKcy3NOmtcB5mNPiAZlBLtTO53NIoTKvIuDOdYo02rAGxOcD14290SQGu4HJNAqha
-         t+h43W7ERQm4X2WSwwUxwVO6scMoXDH0KkUH4ieX1KkV5z22bAQd4IYM1cy6f8+RfjTz
-         h6q7L3CQq/pLriZH/hM/FvD0BtYjscnD+1kDyQMvz9WSprkoWMgqog+bluWTrWlOPc46
-         cOhA==
+        bh=wFVwyNCgjV5GfknDobkswqyylZf/i/Wgt7cXVz0sdAs=;
+        b=n+Vq4WmF5masHdlZJDHwcKXKjE6AQcb+ozsTWP4EUyO0xXvRcDdpG+SwWxWaXpbGxX
+         dCCe8sIwBEnV5//tmUzL1d297DYvgVrGnGdE2RJe1/VjONBJJmMiBqEeQrFmnZthUwyF
+         yY4+hcyOpE1IDG+n2G+f+s7yHj1sZ/S9GrfAuE3XCmH33ZB0SFVyySwUlXM2AP/WLsw6
+         fXtmEMEEcRR7v/HpeqoMpaBKJEweQWi8JuLYRM8tiHVIQDmMqwlQaHp50pTvnReRHlcL
+         Pqy102iTqNaR/VaEs5i1TkDadVu7gM6eCRuVp7xlPaMyl+7e8AiMUDtn2r5pUcV17A3S
+         PTFw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:sender:subject:from:to:date:message-id
          :in-reply-to:references:user-agent:mime-version
          :content-transfer-encoding;
-        bh=9W486G6MOwvs86RPa64GieAuupAr7TMSvF/6Xm7uZYA=;
-        b=XImRoI6PyKX7xcRJMJYrv246XY/I+bnf328VfnWdUS8KE4zGmBDWLQESePax88JftR
-         Ymom+6fPrlLgApzsHCJEOh4ow/OMTgiTyS+Ftrn5JYtXb3ENzFGQqZdahobZ704iUT7g
-         WXL0gGp7t5nkBqeWlaIAb2eiFJVzcOB9ABBYt2I7sI13NiSJV8wRHaTJuhfTRvH6Hv4N
-         Zw5iDFn1WfiTPnc9Gg/E5N9oCu7ComHh3ebEoUtzmWJdLUo/n5eQtxQum/J+zYg7YDc0
-         UbWj7YqOW1wPLiZ/+lpgbVRP+wl3nYph/5LJtbEVO+/W34zu6Axx76C42CShIIb0Bldf
-         Wm6g==
-X-Gm-Message-State: AOAM5323T7r57sajrWz7o7dLlqzqfvRdQKiLhUDAaooQ4XgrBeK0wVLC
-        Z1M7k+4jIBXAdRUWqkcu6Nqi1htz
-X-Google-Smtp-Source: ABdhPJxFOcS6VDNYCR874AYGDql/V7/z5f77C2UK3XVXpBngZQomXj9/wyTdqKhgUHMJ+Dwcks5uLA==
-X-Received: by 2002:ae9:e8c7:: with SMTP id a190mr15348499qkg.94.1593442430346;
-        Mon, 29 Jun 2020 07:53:50 -0700 (PDT)
+        bh=wFVwyNCgjV5GfknDobkswqyylZf/i/Wgt7cXVz0sdAs=;
+        b=KvaYTSdcgooBgz+AJ0A9JwmaqPhvYudsKf5i0QBTmFLUInKUmfG4S+stT97e9V8DSc
+         XNuEem4Rcsgf44c6owtQ3QeU+yfx5/y+yX9dtTa7+VJHSY1Bs9VXNESaJdn0z0boxpNh
+         AFBaAGacVYjknLLn3P8Aqmw32JxkaU6pNKXwPcbvGnxM6Jizd/IIceI9BZfdYi/rB5gf
+         YSuFcWX1sGUhvSX0WL70brkwrhgsjzLKVtGZA5ghsxuZ5fkkpVVlwfcUVSA4wwaKjiPR
+         En5XQTDAKHnYBbPSCg9c0+pPo++iI19zbq54fG9ZpCuYE/23BhD0htPkjFXoJHFHqPP9
+         SHKg==
+X-Gm-Message-State: AOAM532xTtZQQHzLpG3KJuVSahBTB2IvUhds0jLrYdhiF2DiQKqMzgCK
+        dt/Pc3zPrLad21MnRPmydFJjsCzO
+X-Google-Smtp-Source: ABdhPJxaiXFOg39RYKPyGgnyqHtpd8BZQZr8J5+b5H2gVbeA2ATl/3ln2xLALo/m6rzT+U1S5Hr1Yg==
+X-Received: by 2002:aed:2b82:: with SMTP id e2mr16209605qtd.143.1593442414504;
+        Mon, 29 Jun 2020 07:53:34 -0700 (PDT)
 Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
-        by smtp.gmail.com with ESMTPSA id 73sm53346qkk.38.2020.06.29.07.53.49
+        by smtp.gmail.com with ESMTPSA id q18sm51232qkq.20.2020.06.29.07.53.33
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 29 Jun 2020 07:53:50 -0700 (PDT)
+        Mon, 29 Jun 2020 07:53:34 -0700 (PDT)
 Received: from klimt.1015granger.net (klimt.1015granger.net [192.168.1.55])
-        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 05TErnZi006233;
-        Mon, 29 Jun 2020 14:53:49 GMT
-Subject: [PATCH v1 4/4] svcrdma: Add common XDR encoders for RDMA and Read
- segments
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 05TErXN0006224;
+        Mon, 29 Jun 2020 14:53:33 GMT
+Subject: [PATCH v1 1/4] svcrdma: Remove declarations for functions long
+ removed
 From:   Chuck Lever <chuck.lever@oracle.com>
 To:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
-Date:   Mon, 29 Jun 2020 10:53:49 -0400
-Message-ID: <20200629145349.15063.39304.stgit@klimt.1015granger.net>
+Date:   Mon, 29 Jun 2020 10:53:33 -0400
+Message-ID: <20200629145333.15063.42265.stgit@klimt.1015granger.net>
 In-Reply-To: <20200629145150.15063.29447.stgit@klimt.1015granger.net>
 References: <20200629145150.15063.29447.stgit@klimt.1015granger.net>
 User-Agent: StGit/0.22-31-g4b47
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Clean up: De-duplicate some code.
+Pavane pour une infante défunte.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- include/linux/sunrpc/rpc_rdma.h       |   37 +++++++++++++++++++++++++++++++++
- net/sunrpc/xprtrdma/rpc_rdma.c        |   14 +++---------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |    4 +---
- 3 files changed, 41 insertions(+), 14 deletions(-)
+ include/linux/sunrpc/svc_rdma.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index db50380f64f4..4af31bbc8802 100644
---- a/include/linux/sunrpc/rpc_rdma.h
-+++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -124,6 +124,43 @@ rpcrdma_decode_buffer_size(u8 val)
- 	return ((unsigned int)val + 1) << 10;
- }
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index 1579f7a14ab4..d28ca1b6f2eb 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -204,10 +204,6 @@ extern int svc_rdma_read_payload(struct svc_rqst *rqstp, unsigned int offset,
+ 				 unsigned int length);
  
-+/**
-+ * xdr_encode_rdma_segment - Encode contents of an RDMA segment
-+ * @p: Pointer into a send buffer
-+ * @handle: The RDMA handle to encode
-+ * @length: The RDMA length to encode
-+ * @offset: The RDMA offset to encode
-+ *
-+ * Return value:
-+ *   Pointer to the XDR position that follows the encoded RDMA segment
-+ */
-+static inline __be32 *xdr_encode_rdma_segment(__be32 *p, u32 handle,
-+					      u32 length, u64 offset)
-+{
-+	*p++ = cpu_to_be32(handle);
-+	*p++ = cpu_to_be32(length);
-+	return xdr_encode_hyper(p, offset);
-+}
-+
-+/**
-+ * xdr_encode_read_segment - Encode contents of a Read segment
-+ * @p: Pointer into a send buffer
-+ * @position: The position to encode
-+ * @handle: The RDMA handle to encode
-+ * @length: The RDMA length to encode
-+ * @offset: The RDMA offset to encode
-+ *
-+ * Return value:
-+ *   Pointer to the XDR position that follows the encoded Read segment
-+ */
-+static inline __be32 *xdr_encode_read_segment(__be32 *p, u32 position,
-+					      u32 handle, u32 length,
-+					      u64 offset)
-+{
-+	*p++ = cpu_to_be32(position);
-+	return xdr_encode_rdma_segment(p, handle, length, offset);
-+}
-+
- /**
-  * xdr_decode_rdma_segment - Decode contents of an RDMA segment
-  * @p: Pointer to the undecoded RDMA segment
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 5461f01eeca6..73ed51893175 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -275,14 +275,6 @@ rpcrdma_convert_iovs(struct rpcrdma_xprt *r_xprt, struct xdr_buf *xdrbuf,
- 	return n;
- }
- 
--static void
--xdr_encode_rdma_segment(__be32 *iptr, struct rpcrdma_mr *mr)
--{
--	*iptr++ = cpu_to_be32(mr->mr_handle);
--	*iptr++ = cpu_to_be32(mr->mr_length);
--	xdr_encode_hyper(iptr, mr->mr_offset);
--}
+ /* svc_rdma_transport.c */
+-extern int svc_rdma_create_listen(struct svc_serv *, int, struct sockaddr *);
+-extern void svc_sq_reap(struct svcxprt_rdma *);
+-extern void svc_rq_reap(struct svcxprt_rdma *);
 -
- static int
- encode_rdma_segment(struct xdr_stream *xdr, struct rpcrdma_mr *mr)
- {
-@@ -292,7 +284,7 @@ encode_rdma_segment(struct xdr_stream *xdr, struct rpcrdma_mr *mr)
- 	if (unlikely(!p))
- 		return -EMSGSIZE;
- 
--	xdr_encode_rdma_segment(p, mr);
-+	xdr_encode_rdma_segment(p, mr->mr_handle, mr->mr_length, mr->mr_offset);
- 	return 0;
- }
- 
-@@ -307,8 +299,8 @@ encode_read_segment(struct xdr_stream *xdr, struct rpcrdma_mr *mr,
- 		return -EMSGSIZE;
- 
- 	*p++ = xdr_one;			/* Item present */
--	*p++ = cpu_to_be32(position);
--	xdr_encode_rdma_segment(p, mr);
-+	xdr_encode_read_segment(p, position, mr->mr_handle, mr->mr_length,
-+				mr->mr_offset);
- 	return 0;
- }
- 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index a78f1d22e9bb..38d8f0ee35ec 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -376,7 +376,6 @@ static ssize_t svc_rdma_encode_write_segment(__be32 *src,
- 
- 	xdr_decode_rdma_segment(src, &handle, &length, &offset);
- 
--	*p++ = cpu_to_be32(handle);
- 	if (*remaining < length) {
- 		/* segment only partly filled */
- 		length = *remaining;
-@@ -385,8 +384,7 @@ static ssize_t svc_rdma_encode_write_segment(__be32 *src,
- 		/* entire segment was consumed */
- 		*remaining -= length;
- 	}
--	*p++ = cpu_to_be32(length);
--	xdr_encode_hyper(p, offset);
-+	xdr_encode_rdma_segment(p, handle, length, offset);
- 
- 	trace_svcrdma_encode_wseg(handle, length, offset);
- 	return len;
+ extern struct svc_xprt_class svc_rdma_class;
+ #ifdef CONFIG_SUNRPC_BACKCHANNEL
+ extern struct svc_xprt_class svc_rdma_bc_class;
 
