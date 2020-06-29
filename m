@@ -2,303 +2,143 @@ Return-Path: <SRS0=Zpop=AK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AED93C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 21:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4087DC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 21:15:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C2FB206A1
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 21:14:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AB2120702
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Jun 2020 21:15:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593465328;
+	bh=bWJRO7VROarsbzIEdYe3ZaRVSdYkd4d5+Dp5iklbJlw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=2N7pYkjmbcKmuNqLnopY6n1/6ontkLG4iG73uNS7o2S1s/2+HHqPn/enDt7qbaYmO
+	 3CuPfxhj8jNnews9MAWrnlF29LXnMzlY/aaDbTMBHrnRVC9448h+GNtrst8/qAhfrE
+	 aX8Bd2bIOf/5wVmWD8oAMZgS4aWjV4wlBs3D/lcU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726399AbgF2S5l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Jun 2020 14:57:41 -0400
-Received: from mga05.intel.com ([192.55.52.43]:57281 "EHLO mga05.intel.com"
+        id S1729309AbgF2VP1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Jun 2020 17:15:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42452 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729917AbgF2S5e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 29 Jun 2020 14:57:34 -0400
-IronPort-SDR: RSkgSFiOC35YaC2bSGBw6mIGlHhmu2ekTYfLq/NP0185Ov/oc3SLxa9nya+Eyc8gbWyrWpZTPb
- kZj3ISNXZGEQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9666"; a="230844128"
-X-IronPort-AV: E=Sophos;i="5.75,295,1589266800"; 
-   d="scan'208";a="230844128"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2020 10:19:56 -0700
-IronPort-SDR: 54PT3ZBf7U6fycc0nNYb2H7icgZDYyzkP32TpGbG4Esfy5x2WwKNTkm2nSfBPVMarOyMIf9PG7
- WZSkdup8B71g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,295,1589266800"; 
-   d="scan'208";a="320698658"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by FMSMGA003.fm.intel.com with ESMTP; 29 Jun 2020 10:19:56 -0700
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [RFC PATCH v2 1/3] RDMA/umem: Support importing dma-buf as user memory region
-Date:   Mon, 29 Jun 2020 10:31:41 -0700
-Message-Id: <1593451903-30959-2-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1593451903-30959-1-git-send-email-jianxin.xiong@intel.com>
-References: <1593451903-30959-1-git-send-email-jianxin.xiong@intel.com>
+        id S1729953AbgF2SzQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 29 Jun 2020 14:55:16 -0400
+Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 59626255C8;
+        Mon, 29 Jun 2020 17:36:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1593452193;
+        bh=bWJRO7VROarsbzIEdYe3ZaRVSdYkd4d5+Dp5iklbJlw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tg9YTjAG507INbPsKm6jB6kqMt8V3M1ljicQAwq+y0dhluhX9uL2Rox8md0ICLzW7
+         dbby3Qn8OeUDvzy6CApyAcLrEL7QXIMZ5aT0g0OBz8Oo5SgSU9Xd5hDQSpKRTMwti+
+         t9wV7Zk154mmLAy+BXIFY2m2fJtrqSKkc8rRH/rk=
+Date:   Mon, 29 Jun 2020 18:36:31 +0100
+From:   Mark Brown <broonie@kernel.org>
+To:     Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc:     davem@davemloft.net, gregkh@linuxfoundation.org,
+        Ranjani Sridharan <ranjani.sridharan@linux.intel.com>,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        nhorman@redhat.com, sassmann@redhat.com, jgg@ziepe.ca,
+        pierre-louis.bossart@linux.intel.com,
+        Fred Oh <fred.oh@linux.intel.com>
+Subject: Re: [net-next v4 10/12] ASoC: SOF: Introduce descriptors for SOF
+ client
+Message-ID: <20200629173630.GH5499@sirena.org.uk>
+References: <20200520070227.3392100-1-jeffrey.t.kirsher@intel.com>
+ <20200520070227.3392100-11-jeffrey.t.kirsher@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="jaoouwwPWoQSJZYp"
+Content-Disposition: inline
+In-Reply-To: <20200520070227.3392100-11-jeffrey.t.kirsher@intel.com>
+X-Cookie: Real programs don't eat cache.
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dma-buf is a standard cross-driver buffer sharing mechanism that can be
-used to support peer-to-peer access from RDMA devices.
 
-Device memory exported via dma-buf can be associated with a file
-descriptor. This is passed to the user space as a property associated
-with the buffer allocation. When the buffer is registered as a memory
-region, the file descriptor is passed to the RDMA driver along with
-other parameters.
+--jaoouwwPWoQSJZYp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Implement the common code for importing dma-buf object, and pinning and
-mapping dma-buf pages.
+On Wed, May 20, 2020 at 12:02:25AM -0700, Jeff Kirsher wrote:
+> From: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+>=20
+> A client in the SOF (Sound Open Firmware) context is a
+> device that needs to communicate with the DSP via IPC
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-Reviewed-by: Sean Hefty <sean.hefty@intel.com>
-Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
----
- drivers/infiniband/core/Makefile      |   2 +-
- drivers/infiniband/core/umem.c        |   4 ++
- drivers/infiniband/core/umem_dmabuf.c | 105 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/umem_dmabuf.h |  11 ++++
- include/rdma/ib_umem.h                |  14 ++++-
- 5 files changed, 134 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/core/umem_dmabuf.c
- create mode 100644 drivers/infiniband/core/umem_dmabuf.h
+As please send patches to the maintainers for the code you would like to
+change.  :(
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index d1b14887..0d4efa0 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -37,5 +37,5 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
- 				uverbs_std_types_mr.o uverbs_std_types_counters.o \
- 				uverbs_uapi.o uverbs_std_types_device.o \
- 				uverbs_std_types_async_fd.o
--ib_uverbs-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
-+ib_uverbs-$(CONFIG_INFINIBAND_USER_MEM) += umem.o umem_dmabuf.o
- ib_uverbs-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 82455a1..bf1a6c1 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2005 Topspin Communications.  All rights reserved.
-  * Copyright (c) 2005 Cisco Systems.  All rights reserved.
-  * Copyright (c) 2005 Mellanox Technologies. All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -42,6 +43,7 @@
- #include <rdma/ib_umem_odp.h>
- 
- #include "uverbs.h"
-+#include "umem_dmabuf.h"
- 
- static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
- {
-@@ -317,6 +319,8 @@ void ib_umem_release(struct ib_umem *umem)
- {
- 	if (!umem)
- 		return;
-+	if (umem->is_dmabuf)
-+		return ib_umem_dmabuf_release(umem);
- 	if (umem->is_odp)
- 		return ib_umem_odp_release(to_ib_umem_odp(umem));
- 
-diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
-new file mode 100644
-index 0000000..406ca64
---- /dev/null
-+++ b/drivers/infiniband/core/umem_dmabuf.c
-@@ -0,0 +1,105 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
-+/*
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-+ */
-+
-+#include <linux/dma-buf.h>
-+#include <linux/dma-mapping.h>
-+
-+#include "uverbs.h"
-+
-+struct ib_umem_dmabuf {
-+	struct ib_umem	umem;
-+	struct dma_buf	*dmabuf;
-+	struct dma_buf_attachment *attach;
-+	struct sg_table *sgt;
-+};
-+
-+static inline struct ib_umem_dmabuf *to_ib_umem_dmabuf(struct ib_umem *umem)
-+{
-+	return container_of(umem, struct ib_umem_dmabuf, umem);
-+}
-+
-+struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+				   unsigned long addr, size_t size,
-+				   int dmabuf_fd, int access)
-+{
-+	struct ib_umem_dmabuf *umem_dmabuf;
-+	struct sg_table *sgt;
-+	enum dma_data_direction dir;
-+	long ret;
-+	unsigned long end;
-+
-+	if (check_add_overflow(addr, size, &end))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (unlikely(PAGE_ALIGN(end) < PAGE_SIZE))
-+		return ERR_PTR(-EINVAL);
-+
-+	if (access & IB_ACCESS_ON_DEMAND)
-+		return ERR_PTR(-EOPNOTSUPP);
-+
-+	umem_dmabuf = kzalloc(sizeof(*umem_dmabuf), GFP_KERNEL);
-+	if (!umem_dmabuf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	umem_dmabuf->umem.ibdev = device;
-+	umem_dmabuf->umem.length = size;
-+	umem_dmabuf->umem.address = addr;
-+	umem_dmabuf->umem.writable = ib_access_writable(access);
-+	umem_dmabuf->umem.is_dmabuf = 1;
-+
-+	umem_dmabuf->dmabuf = dma_buf_get(dmabuf_fd);
-+	if (IS_ERR(umem_dmabuf->dmabuf)) {
-+		ret = PTR_ERR(umem_dmabuf->dmabuf);
-+		goto out_free_umem;
-+	}
-+
-+	umem_dmabuf->attach = dma_buf_attach(umem_dmabuf->dmabuf,
-+					     device->dma_device);
-+	if (IS_ERR(umem_dmabuf->attach)) {
-+		ret = PTR_ERR(umem_dmabuf->attach);
-+		goto out_release_dmabuf;
-+	}
-+
-+	dir = umem_dmabuf->umem.writable ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
-+	sgt = dma_buf_map_attachment(umem_dmabuf->attach, dir);
-+	if (IS_ERR(sgt)) {
-+		ret = PTR_ERR(sgt);
-+		goto out_detach_dmabuf;
-+	}
-+
-+	umem_dmabuf->sgt = sgt;
-+	umem_dmabuf->umem.sg_head = *sgt;
-+	umem_dmabuf->umem.nmap = sgt->nents;
-+	return &umem_dmabuf->umem;
-+
-+out_detach_dmabuf:
-+	dma_buf_detach(umem_dmabuf->dmabuf, umem_dmabuf->attach);
-+
-+out_release_dmabuf:
-+	dma_buf_put(umem_dmabuf->dmabuf);
-+
-+out_free_umem:
-+	kfree(umem_dmabuf);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(ib_umem_dmabuf_get);
-+
-+void ib_umem_dmabuf_release(struct ib_umem *umem)
-+{
-+	enum dma_data_direction dir;
-+	struct ib_umem_dmabuf *umem_dmabuf = to_ib_umem_dmabuf(umem);
-+
-+	dir = umem_dmabuf->umem.writable ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
-+
-+	/*
-+	 * Only use the original sgt returned from dma_buf_map_attachment(),
-+	 * otherwise the scatterlist may be freed twice due to the map caching
-+	 * mechanism.
-+	 */
-+	dma_buf_unmap_attachment(umem_dmabuf->attach, umem_dmabuf->sgt, dir);
-+	dma_buf_detach(umem_dmabuf->dmabuf, umem_dmabuf->attach);
-+	dma_buf_put(umem_dmabuf->dmabuf);
-+	kfree(umem_dmabuf);
-+}
-diff --git a/drivers/infiniband/core/umem_dmabuf.h b/drivers/infiniband/core/umem_dmabuf.h
-new file mode 100644
-index 0000000..485f653
---- /dev/null
-+++ b/drivers/infiniband/core/umem_dmabuf.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
-+/*
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-+ */
-+
-+#ifndef UMEM_DMABUF_H
-+#define UMEM_DMABUF_H
-+
-+void ib_umem_dmabuf_release(struct ib_umem *umem);
-+
-+#endif /* UMEM_DMABUF_H */
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index e3518fd..78331ce 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2007 Cisco Systems.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -40,6 +41,7 @@
- 
- struct ib_ucontext;
- struct ib_umem_odp;
-+struct ib_umem_dmabuf;
- 
- struct ib_umem {
- 	struct ib_device       *ibdev;
-@@ -48,6 +50,7 @@ struct ib_umem {
- 	unsigned long		address;
- 	u32 writable : 1;
- 	u32 is_odp : 1;
-+	u32 is_dmabuf : 1;
- 	struct work_struct	work;
- 	struct sg_table sg_head;
- 	int             nmap;
-@@ -78,6 +81,9 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
- unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
- 				     unsigned long pgsz_bitmap,
- 				     unsigned long virt);
-+struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+				   unsigned long addr, size_t size,
-+				   int dmabuf_fd, int access);
- 
- #else /* CONFIG_INFINIBAND_USER_MEM */
- 
-@@ -100,7 +106,13 @@ static inline int ib_umem_find_best_pgsz(struct ib_umem *umem,
- 					 unsigned long virt) {
- 	return -EINVAL;
- }
-+static inline struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-+						 unsigned long addr,
-+						 size_t size, int dmabuf_fd,
-+						 int access)
-+{
-+	return ERR_PTR(-EINVAL);
-+}
- 
- #endif /* CONFIG_INFINIBAND_USER_MEM */
--
- #endif /* IB_UMEM_H */
--- 
-1.8.3.1
+> +config SND_SOC_SOF_CLIENT
+> +	tristate
+> +	select VIRTUAL_BUS
+> +	help
+> +	  This option is not user-selectable but automagically handled by
+> +	  'select' statements at a higher level
 
+VIRTUAL_BUS is both user visible and selected here (not that the select
+will do much since this option is not user visible) - which is it?
+
+> +config SND_SOC_SOF_CLIENT_SUPPORT
+> +	bool "SOF enable clients"
+> +	depends on SND_SOC_SOF
+> +	help
+> +	  This adds support for client support with Sound Open Firmware.
+> +	  The SOF driver adds the capability to separate out the debug
+> +	  functionality for IPC tests, probes etc. into separate client
+> +	  devices. This option would also allow adding client devices
+> +	  based on DSP FW capabilities and ACPI/OF device information.
+> +	  Say Y if you want to enable clients with SOF.
+> +	  If unsure select "N".
+
+I'm not sure that's going to mean much to users, nor can I see why you'd
+ever have a SOF system without this enabled?
+
+> +	/*
+> +	 * Register virtbus device for the client.
+> +	 * The error path in virtbus_register_device() calls put_device(),
+> +	 * which will free cdev in the release callback.
+> +	 */
+> +	ret =3D virtbus_register_device(vdev);
+> +	if (ret < 0)
+> +		return ret;
+
+> +	/* make sure the probe is complete before updating client list */
+> +	timeout =3D msecs_to_jiffies(SOF_CLIENT_PROBE_TIMEOUT_MS);
+> +	time =3D wait_for_completion_timeout(&cdev->probe_complete, timeout);
+> +	if (!time) {
+> +		dev_err(sdev->dev, "error: probe of virtbus dev %s timed out\n",
+> +			name);
+> +		virtbus_unregister_device(vdev);
+> +		return -ETIMEDOUT;
+> +	}
+
+This seems wrong - what happens if the driver isn't loaded yet for
+example?  Why does the device registration care what's going on with
+driver binding at all?
+
+--jaoouwwPWoQSJZYp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl76Jp0ACgkQJNaLcl1U
+h9BmNgf7BKyEqiTNUiS2NIoh+r+M/U2mS8LUeDVAeUCxV6Yo7cU6bPfrLi842ngq
+s4HP6OEnyKukfQTfh2uLGoFpkCS7Oc6B9Ns3BMKaIM3jf7/KbmxdshEYom/D+FOw
+Njdr0GphPU7GNgamCpQXZxhZ+KCpQz5qUX2mYAJwlM+pknBncu7IsjrIa81mxP/S
+XRoM5zhcoyiN77W5+fjKhYZuOQd2tTky8SOVfmXFefsGJOjptkAtX+lF0pCqMmJb
+1oYB/+k3dm3GSqH+68rY5ktrPEkimNYENEnefYDOw60rH+eZebvwXALg3hPPrpH0
+ZlESvTILFc4HUSjR/eNoK0nRGGrJQA==
+=+klT
+-----END PGP SIGNATURE-----
+
+--jaoouwwPWoQSJZYp--
