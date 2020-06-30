@@ -2,41 +2,40 @@ Return-Path: <SRS0=Yo+y=AL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23FAFC433E4
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 995B1C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFE0C20768
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 700AB20768
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ohnBt61L"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="IP4I+Usi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728956AbgF3T6W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 15:58:22 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:17415 "EHLO
+        id S1728963AbgF3T6X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 15:58:23 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:17403 "EHLO
         hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728926AbgF3T6S (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 15:58:18 -0400
+        with ESMTP id S1728888AbgF3T6R (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 15:58:17 -0400
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5efb99270000>; Tue, 30 Jun 2020 12:57:27 -0700
+        id <B5efb99260003>; Tue, 30 Jun 2020 12:57:26 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 30 Jun 2020 12:58:17 -0700
+  Tue, 30 Jun 2020 12:58:16 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 30 Jun 2020 12:58:17 -0700
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 30 Jun
- 2020 19:58:07 +0000
+        by hqpgpgate101.nvidia.com on Tue, 30 Jun 2020 12:58:16 -0700
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 30 Jun
+ 2020 19:58:08 +0000
 Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 30 Jun 2020 19:58:07 +0000
+ Transport; Tue, 30 Jun 2020 19:58:08 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5efb994f0004>; Tue, 30 Jun 2020 12:58:07 -0700
+        id <B5efb994f0006>; Tue, 30 Jun 2020 12:58:07 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
         <nouveau@lists.freedesktop.org>, <linux-kselftest@vger.kernel.org>,
@@ -49,9 +48,9 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         Shuah Khan <shuah@kernel.org>,
         "Ben Skeggs" <bskeggs@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH v2 3/5] nouveau: fix mapping 2MB sysmem pages
-Date:   Tue, 30 Jun 2020 12:57:35 -0700
-Message-ID: <20200630195737.8667-4-rcampbell@nvidia.com>
+Subject: [PATCH v2 5/5] hmm: add tests for HMM_PFN_PMD flag
+Date:   Tue, 30 Jun 2020 12:57:37 -0700
+Message-ID: <20200630195737.8667-6-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200630195737.8667-1-rcampbell@nvidia.com>
 References: <20200630195737.8667-1-rcampbell@nvidia.com>
@@ -60,158 +59,159 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1593547047; bh=LJGpDBN6OLESv1BK8GJcMMzgaimKKBD7JI7EOfFUHn4=;
+        t=1593547046; bh=xuRfNJ36q0LnGXZex5ovQdfiNn+iM2/aFxAzu26EyNY=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=ohnBt61Lexu+xAcW3rzKxIWjcD4P/hkqJ8ocfj1iwR57KaLjTuECBXOIJz8MQn9l0
-         J0WkKwU0iCZ8TN1lp4XjCS1qkOrfhXD6M5kt+zhroEdurZ6qOfPXJ3ZSnqE/mkMvSP
-         59PWrUCOG0bUabM84SVYWdeZdPzAJ4wab0TcBs0EXCsMjl+sesidIfqrkhivf9/jBx
-         d//G+1pfRcnSxGXTG6dpOeCGfoT2dRSzi7DNQT3OXVcf6Mbn0QbnFeCidYjL9l1ZDc
-         mcHub9tSAAJpjs1f8A8Uhi7csCUEqQtlfA/wDXUzkmMx0TU6c2sR4rxTSmKdXuAw1M
-         NpZFWdpdBtlXg==
+        b=IP4I+UsioFZBLvnRoozRSTgj3AkNCNg7sQ19NgqKnBZ7E02H2ArJ8qhpeblyEPs1k
+         N5QwP8OqGmCC3q+YgmfXEKkLY2Au0Mn9iRv2V0ovRKQKIMKWUvAfMoAPk3Y5/gra4F
+         DKrR5XJWn5XNp8nNBFYQ0seQWW1KWLih0lKov6AOkk4EUlsJ5XlJxUBvTJP4oVaUcJ
+         Kv9xeaZSH/wQ47mzGbAKhnMcR2Jxi5Qt3e6RUYz1Mq+qudm/B+keCu88HL89AjvUmw
+         xYKuFWr6iyl8mAKIjyHFnQoqJ2u4k8kul9ODB88dk5V6NrYXUdcR5TsgW4hVv/eKHP
+         cw8q9U8O/zN7Q==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The nvif_object_ioctl() method NVIF_VMM_V0_PFNMAP wasn't correctly
-setting the hardware specific GPU page table entries for 2MB sized
-pages. Fix this by adding functions to set and clear PD0 GPU page
-table entries.
+Add a sanity test for hmm_range_fault() returning the HMM_PFN_PMD
+flag.
 
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
 ---
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c |  5 +-
- .../drm/nouveau/nvkm/subdev/mmu/vmmgp100.c    | 82 +++++++++++++++++++
- 2 files changed, 84 insertions(+), 3 deletions(-)
+ lib/test_hmm.c                         |  4 ++
+ lib/test_hmm_uapi.h                    |  4 ++
+ tools/testing/selftests/vm/hmm-tests.c | 76 ++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+)
 
-diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c b/drivers/gpu/dr=
-m/nouveau/nvkm/subdev/mmu/vmm.c
-index 199f94e15c5f..19a6804e3989 100644
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
-+++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
-@@ -1204,7 +1204,6 @@ nvkm_vmm_pfn_unmap(struct nvkm_vmm *vmm, u64 addr, u6=
-4 size)
- /*TODO:
-  * - Avoid PT readback (for dma_unmap etc), this might end up being dealt
-  *   with inside HMM, which would be a lot nicer for us to deal with.
-- * - Multiple page sizes (particularly for huge page support).
-  * - Support for systems without a 4KiB page size.
-  */
- int
-@@ -1220,8 +1219,8 @@ nvkm_vmm_pfn_map(struct nvkm_vmm *vmm, u8 shift, u64 =
-addr, u64 size, u64 *pfn)
- 	/* Only support mapping where the page size of the incoming page
- 	 * array matches a page size available for direct mapping.
- 	 */
--	while (page->shift && page->shift !=3D shift &&
--	       page->desc->func->pfn =3D=3D NULL)
-+	while (page->shift && (page->shift !=3D shift ||
-+	       page->desc->func->pfn =3D=3D NULL))
- 		page++;
-=20
- 	if (!page->shift || !IS_ALIGNED(addr, 1ULL << shift) ||
-diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c b/drivers/g=
-pu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
-index d86287565542..ed37fddd063f 100644
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
-+++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
-@@ -258,12 +258,94 @@ gp100_vmm_pd0_unmap(struct nvkm_vmm *vmm,
- 	VMM_FO128(pt, vmm, pdei * 0x10, 0ULL, 0ULL, pdes);
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index a2a82262b97b..a0c081641f78 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -766,6 +766,10 @@ static void dmirror_mkentry(struct dmirror *dmirror, s=
+truct hmm_range *range,
+ 		*perm |=3D HMM_DMIRROR_PROT_WRITE;
+ 	else
+ 		*perm |=3D HMM_DMIRROR_PROT_READ;
++	if (entry & HMM_PFN_PMD)
++		*perm |=3D HMM_DMIRROR_PROT_PMD;
++	if (entry & HMM_PFN_PUD)
++		*perm |=3D HMM_DMIRROR_PROT_PUD;
  }
 =20
-+static void
-+gp100_vmm_pd0_pfn_unmap(struct nvkm_vmm *vmm,
-+			struct nvkm_mmu_pt *pt, u32 ptei, u32 ptes)
-+{
-+	struct device *dev =3D vmm->mmu->subdev.device->dev;
-+	dma_addr_t addr;
-+
-+	nvkm_kmap(pt->memory);
-+	while (ptes--) {
-+		u32 datalo =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 0);
-+		u32 datahi =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 4);
-+		u64 data   =3D (u64)datahi << 32 | datalo;
-+
-+		if ((data & (3ULL << 1)) !=3D 0) {
-+			addr =3D (data >> 8) << 12;
-+			dma_unmap_page(dev, addr, 1UL << 21, DMA_BIDIRECTIONAL);
-+		}
-+		ptei++;
-+	}
-+	nvkm_done(pt->memory);
-+}
-+
-+static bool
-+gp100_vmm_pd0_pfn_clear(struct nvkm_vmm *vmm,
-+			struct nvkm_mmu_pt *pt, u32 ptei, u32 ptes)
-+{
-+	bool dma =3D false;
-+
-+	nvkm_kmap(pt->memory);
-+	while (ptes--) {
-+		u32 datalo =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 0);
-+		u32 datahi =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 4);
-+		u64 data   =3D (u64)datahi << 32 | datalo;
-+
-+		if ((data & BIT_ULL(0)) && (data & (3ULL << 1)) !=3D 0) {
-+			VMM_WO064(pt, vmm, ptei * 16, data & ~BIT_ULL(0));
-+			dma =3D true;
-+		}
-+		ptei++;
-+	}
-+	nvkm_done(pt->memory);
-+	return dma;
-+}
-+
-+static void
-+gp100_vmm_pd0_pfn(struct nvkm_vmm *vmm, struct nvkm_mmu_pt *pt,
-+		  u32 ptei, u32 ptes, struct nvkm_vmm_map *map)
-+{
-+	struct device *dev =3D vmm->mmu->subdev.device->dev;
-+	dma_addr_t addr;
-+
-+	nvkm_kmap(pt->memory);
-+	while (ptes--) {
-+		u64 data =3D 0;
-+
-+		if (!(*map->pfn & NVKM_VMM_PFN_W))
-+			data |=3D BIT_ULL(6); /* RO. */
-+
-+		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
-+			addr =3D *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
-+			addr =3D dma_map_page(dev, pfn_to_page(addr), 0,
-+					    1UL << 21, DMA_BIDIRECTIONAL);
-+			if (!WARN_ON(dma_mapping_error(dev, addr))) {
-+				data |=3D addr >> 4;
-+				data |=3D 2ULL << 1; /* SYSTEM_COHERENT_MEMORY. */
-+				data |=3D BIT_ULL(3); /* VOL. */
-+				data |=3D BIT_ULL(0); /* VALID. */
-+			}
-+		} else {
-+			data |=3D (*map->pfn & NVKM_VMM_PFN_ADDR) >> 4;
-+			data |=3D BIT_ULL(0); /* VALID. */
-+		}
-+
-+		VMM_WO064(pt, vmm, ptei++ * 16, data);
-+		map->pfn++;
-+	}
-+	nvkm_done(pt->memory);
-+}
-+
- static const struct nvkm_vmm_desc_func
- gp100_vmm_desc_pd0 =3D {
- 	.unmap =3D gp100_vmm_pd0_unmap,
- 	.sparse =3D gp100_vmm_pd0_sparse,
- 	.pde =3D gp100_vmm_pd0_pde,
- 	.mem =3D gp100_vmm_pd0_mem,
-+	.pfn =3D gp100_vmm_pd0_pfn,
-+	.pfn_clear =3D gp100_vmm_pd0_pfn_clear,
-+	.pfn_unmap =3D gp100_vmm_pd0_pfn_unmap,
- };
+ static bool dmirror_snapshot_invalidate(struct mmu_interval_notifier *mni,
+diff --git a/lib/test_hmm_uapi.h b/lib/test_hmm_uapi.h
+index 67b3b2e6ff5d..670b4ef2a5b6 100644
+--- a/lib/test_hmm_uapi.h
++++ b/lib/test_hmm_uapi.h
+@@ -40,6 +40,8 @@ struct hmm_dmirror_cmd {
+  * HMM_DMIRROR_PROT_NONE: unpopulated PTE or PTE with no access
+  * HMM_DMIRROR_PROT_READ: read-only PTE
+  * HMM_DMIRROR_PROT_WRITE: read/write PTE
++ * HMM_DMIRROR_PROT_PMD: PMD sized page is fully mapped by same permission=
+s
++ * HMM_DMIRROR_PROT_PUD: PUD sized page is fully mapped by same permission=
+s
+  * HMM_DMIRROR_PROT_ZERO: special read-only zero page
+  * HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL: Migrated device private page on the
+  *					device the ioctl() is made
+@@ -51,6 +53,8 @@ enum {
+ 	HMM_DMIRROR_PROT_NONE			=3D 0x00,
+ 	HMM_DMIRROR_PROT_READ			=3D 0x01,
+ 	HMM_DMIRROR_PROT_WRITE			=3D 0x02,
++	HMM_DMIRROR_PROT_PMD			=3D 0x04,
++	HMM_DMIRROR_PROT_PUD			=3D 0x08,
+ 	HMM_DMIRROR_PROT_ZERO			=3D 0x10,
+ 	HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL	=3D 0x20,
+ 	HMM_DMIRROR_PROT_DEV_PRIVATE_REMOTE	=3D 0x30,
+diff --git a/tools/testing/selftests/vm/hmm-tests.c b/tools/testing/selftes=
+ts/vm/hmm-tests.c
+index 79db22604019..b533dd08da1d 100644
+--- a/tools/testing/selftests/vm/hmm-tests.c
++++ b/tools/testing/selftests/vm/hmm-tests.c
+@@ -1291,6 +1291,82 @@ TEST_F(hmm2, snapshot)
+ 	hmm_buffer_free(buffer);
+ }
 =20
- static void
++/*
++ * Test the hmm_range_fault() HMM_PFN_PMD flag for large pages that
++ * should be mapped by a large page table entry.
++ */
++TEST_F(hmm, compound)
++{
++	struct hmm_buffer *buffer;
++	unsigned long npages;
++	unsigned long size;
++	int *ptr;
++	unsigned char *m;
++	int ret;
++	long pagesizes[4];
++	int n, idx;
++	unsigned long i;
++
++	/* Skip test if we can't allocate a hugetlbfs page. */
++
++	n =3D gethugepagesizes(pagesizes, 4);
++	if (n <=3D 0)
++		return;
++	for (idx =3D 0; --n > 0; ) {
++		if (pagesizes[n] < pagesizes[idx])
++			idx =3D n;
++	}
++	size =3D ALIGN(TWOMEG, pagesizes[idx]);
++	npages =3D size >> self->page_shift;
++
++	buffer =3D malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->ptr =3D get_hugepage_region(size, GHR_STRICT);
++	if (buffer->ptr =3D=3D NULL) {
++		free(buffer);
++		return;
++	}
++
++	buffer->size =3D size;
++	buffer->mirror =3D malloc(npages);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	/* Initialize the pages the device will snapshot in buffer->ptr. */
++	for (i =3D 0, ptr =3D buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] =3D i;
++
++	/* Simulate a device snapshotting CPU pagetables. */
++	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device saw. */
++	m =3D buffer->mirror;
++	for (i =3D 0; i < npages; ++i)
++		ASSERT_EQ(m[i], HMM_DMIRROR_PROT_WRITE |
++				HMM_DMIRROR_PROT_PMD);
++
++	/* Make the region read-only. */
++	ret =3D mprotect(buffer->ptr, size, PROT_READ);
++	ASSERT_EQ(ret, 0);
++
++	/* Simulate a device snapshotting CPU pagetables. */
++	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device saw. */
++	m =3D buffer->mirror;
++	for (i =3D 0; i < npages; ++i)
++		ASSERT_EQ(m[i], HMM_DMIRROR_PROT_READ |
++				HMM_DMIRROR_PROT_PMD);
++
++	free_hugepage_region(buffer->ptr);
++	buffer->ptr =3D NULL;
++	hmm_buffer_free(buffer);
++}
++
+ /*
+  * Test two devices reading the same memory (double mapped).
+  */
 --=20
 2.20.1
 
