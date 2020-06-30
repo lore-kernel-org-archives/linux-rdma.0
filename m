@@ -2,63 +2,115 @@ Return-Path: <SRS0=Yo+y=AL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5458BC433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 20:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB0AC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 21:05:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D521206B6
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 20:39:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8179220772
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 21:05:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ll1q8Q6N"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729606AbgF3UjA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 16:39:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54160 "EHLO
+        id S1728597AbgF3VF4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 17:05:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729341AbgF3Ui7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 16:38:59 -0400
-Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3957C061755;
-        Tue, 30 Jun 2020 13:38:59 -0700 (PDT)
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        (using TLSv1 with cipher AES256-SHA (256/256 bits))
-        (Client did not present a certificate)
-        (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id 571841277F862;
-        Tue, 30 Jun 2020 13:38:59 -0700 (PDT)
-Date:   Tue, 30 Jun 2020 13:38:58 -0700 (PDT)
-Message-Id: <20200630.133858.836154523537769936.davem@davemloft.net>
-To:     colin.king@canonical.com
-Cc:     borisp@mellanox.com, saeedm@mellanox.com, leon@kernel.org,
-        kuba@kernel.org, tariqt@mellanox.com, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][next] net/mlx5e: fix memory leak of tls
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200630151646.517757-1-colin.king@canonical.com>
-References: <20200630151646.517757-1-colin.king@canonical.com>
-X-Mailer: Mew version 6.8 on Emacs 26.3
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [149.20.54.216]); Tue, 30 Jun 2020 13:38:59 -0700 (PDT)
+        with ESMTP id S1726084AbgF3VF4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 17:05:56 -0400
+Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39903C061755;
+        Tue, 30 Jun 2020 14:05:56 -0700 (PDT)
+Received: by mail-pj1-x1041.google.com with SMTP id gc9so3522805pjb.2;
+        Tue, 30 Jun 2020 14:05:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=7YJzM68xF5+T7oFwixHoGmxrMD80y0Idtu8GDH5eoGs=;
+        b=Ll1q8Q6NPvtJ9gux80N+4epUWpVp2kVuyAmSUrOnAccbgOaadBM1J1JxWdB8LnXk3L
+         xBDAb/6LnxpFIoTJ3Xmmxx/gIIKMZV/REgqy7Aljk1jeGpL8i9h95WanWPhLo/Dya49b
+         xxei+axxgXCcBJ11NXuf3fcgD0t/sEWCowtnvD+x6sPJJjAh0FwFvN7gGocoUaeE+bgv
+         TL8SM8OdEs/5Q20aVXsWF6IPCoi2kZa4UhBrGu/qKhTxTxqZvc7tFpzV9F1l5RuRcpoR
+         0AI7iw/EzbjU53mPOjAVYnTLxIWdd846zHX9vK1Wl2Z8bLB5daSfY8hdOmClHP7G5zj7
+         LU+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=7YJzM68xF5+T7oFwixHoGmxrMD80y0Idtu8GDH5eoGs=;
+        b=dwBVzjy3ymMaco+OSIDpLbN4mDTGHxNjOrsYL6k1TLnQTsEM3GbulNIeUojgZWg2nZ
+         CZi6pLnsi9XjOaCrqxklWYZ0NIpdJmEswwqUrAUzaMFquJJHolAnkz7fqghhVI2uiK1k
+         6y3aUf35Xq93lFslqXeXf38K8OeyN1E+k9rnKVgmrTUTEcMJDgf3NIOuQHch5bFlzoWT
+         GowX6+eCmqm9YTecwwRO9YihO7oEaWPz+aBTyk07UgyaS+8iO8+UMug5Nu9DAVHIkk2+
+         34bJCoVERbG+Uc0Zbm/aPp3UYSKv3pKDkDK9N1KPW/aTCRG4PJUNJqinsEG007Kn5P2F
+         zYEA==
+X-Gm-Message-State: AOAM533B+9eCJQ1YtJ0yFQ9V7VpsOvvECjVVs96ZbVgQFSRd17KYlKLF
+        1TSC+fazyTFn4JR0tXqOrcM=
+X-Google-Smtp-Source: ABdhPJxeLJp0yfbLRrAt4jASBtFaw2qen6+OCgR/gSCl/omhdWgXqt/uF6uRIbULcUTrjMLFU8/qnQ==
+X-Received: by 2002:a17:90a:d709:: with SMTP id y9mr24500675pju.30.1593551155767;
+        Tue, 30 Jun 2020 14:05:55 -0700 (PDT)
+Received: from ubuntu-s3-xlarge-x86 ([2604:1380:1000:7a00::1])
+        by smtp.gmail.com with ESMTPSA id w1sm3615703pfq.53.2020.06.30.14.05.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Jun 2020 14:05:55 -0700 (PDT)
+Date:   Tue, 30 Jun 2020 14:05:53 -0700
+From:   Nathan Chancellor <natechancellor@gmail.com>
+To:     Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, clang-built-linux@googlegroups.com
+Subject: Re: [PATCH] IB/hfi1: Add explicit cast OPA_MTU_8192 to 'enum ib_mtu'
+Message-ID: <20200630210553.GB3710423@ubuntu-s3-xlarge-x86>
+References: <20200623005224.492239-1-natechancellor@gmail.com>
+ <5f98c547-1bac-bb05-1c75-cefb8616964a@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5f98c547-1bac-bb05-1c75-cefb8616964a@intel.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Colin King <colin.king@canonical.com>
-Date: Tue, 30 Jun 2020 16:16:46 +0100
-
-> From: Colin Ian King <colin.king@canonical.com>
+On Wed, Jun 24, 2020 at 02:22:08PM -0400, Dennis Dalessandro wrote:
+> On 6/22/2020 8:52 PM, Nathan Chancellor wrote:
+> > Clang warns:
+> > 
+> > drivers/infiniband/hw/hfi1/qp.c:198:9: warning: implicit conversion from
+> > enumeration type 'enum opa_mtu' to different enumeration type 'enum
+> > ib_mtu' [-Wenum-conversion]
+> >                  mtu = OPA_MTU_8192;
+> >                      ~ ^~~~~~~~~~~~
+> > 1 warning generated.
+> > 
+> > enum opa_mtu extends enum ib_mtu. There are typically two ways to deal
+> > with this:
+> > 
+> > * Remove the expected types and just use 'int' for all parameters and
+> >    types.
+> > 
+> > * Explicitly cast the enums between each other.
+> > 
+> > This driver chooses to do the later so do the same thing here.
+> > 
+> > Fixes: 6d72344cf6c4 ("IB/ipoib: Increase ipoib Datagram mode MTU's upper limit")
+> > Link: https://github.com/ClangBuiltLinux/linux/issues/1062
+> > Link: https://lore.kernel.org/linux-rdma/20200527040350.GA3118979@ubuntu-s3-xlarge-x86/
+> > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> > ---
 > 
-> The error return path when create_singlethread_workqueue fails currently
-> does not kfree tls and leads to a memory leak. Fix this by kfree'ing
-> tls before returning -ENOMEM.
+> Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 > 
-> Addresses-Coverity: ("Resource leak")
-> Fixes: 1182f3659357 ("net/mlx5e: kTLS, Add kTLS RX HW offload support")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Applied, thanks.
+Thanks! Who should pick up this patch? This warning is in mainline now,
+it would be nice if this could go via an -rc branch but if it is too
+late for that, I understand.
+
+Cheers,
+Nathan
