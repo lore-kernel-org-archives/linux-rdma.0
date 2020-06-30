@@ -2,40 +2,41 @@ Return-Path: <SRS0=Yo+y=AL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C968C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23FAFC433E4
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6066F206A1
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFE0C20768
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="hrPV+ZVB"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ohnBt61L"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728885AbgF3T6Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 15:58:16 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:19054 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728842AbgF3T6Q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 15:58:16 -0400
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5efb994a0001>; Tue, 30 Jun 2020 12:58:02 -0700
+        id S1728956AbgF3T6W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 15:58:22 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:17415 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728926AbgF3T6S (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 15:58:18 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5efb99270000>; Tue, 30 Jun 2020 12:57:27 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Tue, 30 Jun 2020 12:58:15 -0700
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 30 Jun 2020 12:58:17 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Tue, 30 Jun 2020 12:58:15 -0700
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 30 Jun
+        by hqpgpgate101.nvidia.com on Tue, 30 Jun 2020 12:58:17 -0700
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 30 Jun
  2020 19:58:07 +0000
 Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
  (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Tue, 30 Jun 2020 19:58:07 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5efb994f0001>; Tue, 30 Jun 2020 12:58:07 -0700
+        id <B5efb994f0004>; Tue, 30 Jun 2020 12:58:07 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
         <nouveau@lists.freedesktop.org>, <linux-kselftest@vger.kernel.org>,
@@ -48,67 +49,169 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         Shuah Khan <shuah@kernel.org>,
         "Ben Skeggs" <bskeggs@redhat.com>,
         Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH v2 0/5] mm/hmm/nouveau: add PMD system memory mapping
-Date:   Tue, 30 Jun 2020 12:57:32 -0700
-Message-ID: <20200630195737.8667-1-rcampbell@nvidia.com>
+Subject: [PATCH v2 3/5] nouveau: fix mapping 2MB sysmem pages
+Date:   Tue, 30 Jun 2020 12:57:35 -0700
+Message-ID: <20200630195737.8667-4-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200630195737.8667-1-rcampbell@nvidia.com>
+References: <20200630195737.8667-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1593547082; bh=98oQk6P7sljyBfLagdhiCZSymARD8p0G5MvhlqPtOuI=;
+        t=1593547047; bh=LJGpDBN6OLESv1BK8GJcMMzgaimKKBD7JI7EOfFUHn4=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
-         Content-Type;
-        b=hrPV+ZVB0MZZj74Ygk9F8iCc0v3Ioc8Uq7yJvHmvkGMSxfeHrott/ebMNWV4E7Klo
-         nLVevppXcSr0gOa5ghpgHjZ8BJU4dDL3JwmCywTJnxCxOMybTJGN0SeL8TgySRz8ul
-         nehOkehgeVx8Vuk9OiHHmgSVrnjZAMyAtj22W2kYZqu5vs3MD5ul5+gjpsOzhsSsP2
-         gEATZDFV1CIoaMm4QkC+mpxV7nJ8AfWtL7W4ZvPMzIxL5erMUDv7XSpU3DjbKz8MaI
-         UGOphT1of9WD75YdGWOGdl7PvAelFIGQULYku2dA5/navSm3JyRTpJqQydqajcILqm
-         3HihpKmAGLvdw==
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=ohnBt61Lexu+xAcW3rzKxIWjcD4P/hkqJ8ocfj1iwR57KaLjTuECBXOIJz8MQn9l0
+         J0WkKwU0iCZ8TN1lp4XjCS1qkOrfhXD6M5kt+zhroEdurZ6qOfPXJ3ZSnqE/mkMvSP
+         59PWrUCOG0bUabM84SVYWdeZdPzAJ4wab0TcBs0EXCsMjl+sesidIfqrkhivf9/jBx
+         d//G+1pfRcnSxGXTG6dpOeCGfoT2dRSzi7DNQT3OXVcf6Mbn0QbnFeCidYjL9l1ZDc
+         mcHub9tSAAJpjs1f8A8Uhi7csCUEqQtlfA/wDXUzkmMx0TU6c2sR4rxTSmKdXuAw1M
+         NpZFWdpdBtlXg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The goal for this series is to introduce the hmm_range_fault() output
-array flags HMM_PFN_PMD and HMM_PFN_PUD. This allows a device driver to
-know that a given 4K PFN is actually mapped by the CPU using either a
-PMD sized or PUD sized CPU page table entry and therefore the device
-driver can safely map system memory using larger device MMU PTEs.
-The series is based on 5.8.0-rc3 and is intended for Jason Gunthorpe's
-hmm tree. These were originally part of a larger series:
-https://lore.kernel.org/linux-mm/20200619215649.32297-1-rcampbell@nvidia.co=
-m/
+The nvif_object_ioctl() method NVIF_VMM_V0_PFNMAP wasn't correctly
+setting the hardware specific GPU page table entries for 2MB sized
+pages. Fix this by adding functions to set and clear PD0 GPU page
+table entries.
 
-Changes in v2:
-Make the hmm_range_fault() API changes into a separate series and add
-  two output flags for PMD/PUD instead of a single compund page flag as
-  suggested by Jason Gunthorpe.
-Make the nouveau page table changes a separate patch as suggested by
-  Ben Skeggs.
-Only add support for 2MB nouveau mappings initially since changing the
-1:1 CPU/GPU page table size assumptions requires a bigger set of changes.
-Rebase to 5.8.0-rc3.
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
+ drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c |  5 +-
+ .../drm/nouveau/nvkm/subdev/mmu/vmmgp100.c    | 82 +++++++++++++++++++
+ 2 files changed, 84 insertions(+), 3 deletions(-)
 
-Ralph Campbell (5):
-  nouveau/hmm: fault one page at a time
-  mm/hmm: add output flags for PMD/PUD page mapping
-  nouveau: fix mapping 2MB sysmem pages
-  nouveau/hmm: support mapping large sysmem pages
-  hmm: add tests for HMM_PFN_PMD flag
-
- drivers/gpu/drm/nouveau/nouveau_svm.c         | 238 ++++++++----------
- drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c |   5 +-
- .../drm/nouveau/nvkm/subdev/mmu/vmmgp100.c    |  82 ++++++
- include/linux/hmm.h                           |  11 +-
- lib/test_hmm.c                                |   4 +
- lib/test_hmm_uapi.h                           |   4 +
- mm/hmm.c                                      |  13 +-
- tools/testing/selftests/vm/hmm-tests.c        |  76 ++++++
- 8 files changed, 290 insertions(+), 143 deletions(-)
-
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c b/drivers/gpu/dr=
+m/nouveau/nvkm/subdev/mmu/vmm.c
+index 199f94e15c5f..19a6804e3989 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmm.c
+@@ -1204,7 +1204,6 @@ nvkm_vmm_pfn_unmap(struct nvkm_vmm *vmm, u64 addr, u6=
+4 size)
+ /*TODO:
+  * - Avoid PT readback (for dma_unmap etc), this might end up being dealt
+  *   with inside HMM, which would be a lot nicer for us to deal with.
+- * - Multiple page sizes (particularly for huge page support).
+  * - Support for systems without a 4KiB page size.
+  */
+ int
+@@ -1220,8 +1219,8 @@ nvkm_vmm_pfn_map(struct nvkm_vmm *vmm, u8 shift, u64 =
+addr, u64 size, u64 *pfn)
+ 	/* Only support mapping where the page size of the incoming page
+ 	 * array matches a page size available for direct mapping.
+ 	 */
+-	while (page->shift && page->shift !=3D shift &&
+-	       page->desc->func->pfn =3D=3D NULL)
++	while (page->shift && (page->shift !=3D shift ||
++	       page->desc->func->pfn =3D=3D NULL))
+ 		page++;
+=20
+ 	if (!page->shift || !IS_ALIGNED(addr, 1ULL << shift) ||
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c b/drivers/g=
+pu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
+index d86287565542..ed37fddd063f 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/mmu/vmmgp100.c
+@@ -258,12 +258,94 @@ gp100_vmm_pd0_unmap(struct nvkm_vmm *vmm,
+ 	VMM_FO128(pt, vmm, pdei * 0x10, 0ULL, 0ULL, pdes);
+ }
+=20
++static void
++gp100_vmm_pd0_pfn_unmap(struct nvkm_vmm *vmm,
++			struct nvkm_mmu_pt *pt, u32 ptei, u32 ptes)
++{
++	struct device *dev =3D vmm->mmu->subdev.device->dev;
++	dma_addr_t addr;
++
++	nvkm_kmap(pt->memory);
++	while (ptes--) {
++		u32 datalo =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 0);
++		u32 datahi =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 4);
++		u64 data   =3D (u64)datahi << 32 | datalo;
++
++		if ((data & (3ULL << 1)) !=3D 0) {
++			addr =3D (data >> 8) << 12;
++			dma_unmap_page(dev, addr, 1UL << 21, DMA_BIDIRECTIONAL);
++		}
++		ptei++;
++	}
++	nvkm_done(pt->memory);
++}
++
++static bool
++gp100_vmm_pd0_pfn_clear(struct nvkm_vmm *vmm,
++			struct nvkm_mmu_pt *pt, u32 ptei, u32 ptes)
++{
++	bool dma =3D false;
++
++	nvkm_kmap(pt->memory);
++	while (ptes--) {
++		u32 datalo =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 0);
++		u32 datahi =3D nvkm_ro32(pt->memory, pt->base + ptei * 16 + 4);
++		u64 data   =3D (u64)datahi << 32 | datalo;
++
++		if ((data & BIT_ULL(0)) && (data & (3ULL << 1)) !=3D 0) {
++			VMM_WO064(pt, vmm, ptei * 16, data & ~BIT_ULL(0));
++			dma =3D true;
++		}
++		ptei++;
++	}
++	nvkm_done(pt->memory);
++	return dma;
++}
++
++static void
++gp100_vmm_pd0_pfn(struct nvkm_vmm *vmm, struct nvkm_mmu_pt *pt,
++		  u32 ptei, u32 ptes, struct nvkm_vmm_map *map)
++{
++	struct device *dev =3D vmm->mmu->subdev.device->dev;
++	dma_addr_t addr;
++
++	nvkm_kmap(pt->memory);
++	while (ptes--) {
++		u64 data =3D 0;
++
++		if (!(*map->pfn & NVKM_VMM_PFN_W))
++			data |=3D BIT_ULL(6); /* RO. */
++
++		if (!(*map->pfn & NVKM_VMM_PFN_VRAM)) {
++			addr =3D *map->pfn >> NVKM_VMM_PFN_ADDR_SHIFT;
++			addr =3D dma_map_page(dev, pfn_to_page(addr), 0,
++					    1UL << 21, DMA_BIDIRECTIONAL);
++			if (!WARN_ON(dma_mapping_error(dev, addr))) {
++				data |=3D addr >> 4;
++				data |=3D 2ULL << 1; /* SYSTEM_COHERENT_MEMORY. */
++				data |=3D BIT_ULL(3); /* VOL. */
++				data |=3D BIT_ULL(0); /* VALID. */
++			}
++		} else {
++			data |=3D (*map->pfn & NVKM_VMM_PFN_ADDR) >> 4;
++			data |=3D BIT_ULL(0); /* VALID. */
++		}
++
++		VMM_WO064(pt, vmm, ptei++ * 16, data);
++		map->pfn++;
++	}
++	nvkm_done(pt->memory);
++}
++
+ static const struct nvkm_vmm_desc_func
+ gp100_vmm_desc_pd0 =3D {
+ 	.unmap =3D gp100_vmm_pd0_unmap,
+ 	.sparse =3D gp100_vmm_pd0_sparse,
+ 	.pde =3D gp100_vmm_pd0_pde,
+ 	.mem =3D gp100_vmm_pd0_mem,
++	.pfn =3D gp100_vmm_pd0_pfn,
++	.pfn_clear =3D gp100_vmm_pd0_pfn_clear,
++	.pfn_unmap =3D gp100_vmm_pd0_pfn_unmap,
+ };
+=20
+ static void
 --=20
 2.20.1
 
