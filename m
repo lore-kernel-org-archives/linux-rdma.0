@@ -2,376 +2,215 @@ Return-Path: <SRS0=Yo+y=AL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0DE8C433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F5CC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 20:08:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 926C320768
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 19:58:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AA7A20772
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 20:08:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="r0AhEB3u"
+	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="dlwhrsfQ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728901AbgF3T6Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 15:58:16 -0400
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4434 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728327AbgF3T6Q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Jun 2020 15:58:16 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5efb98f40000>; Tue, 30 Jun 2020 12:56:36 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 30 Jun 2020 12:58:15 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 30 Jun 2020 12:58:15 -0700
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 30 Jun
- 2020 19:58:07 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 30 Jun 2020 19:58:07 +0000
-Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5efb994f0002>; Tue, 30 Jun 2020 12:58:07 -0700
-From:   Ralph Campbell <rcampbell@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        <nouveau@lists.freedesktop.org>, <linux-kselftest@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>,
-        "Ben Skeggs" <bskeggs@redhat.com>,
-        Ralph Campbell <rcampbell@nvidia.com>
-Subject: [PATCH v2 1/5] nouveau/hmm: fault one page at a time
-Date:   Tue, 30 Jun 2020 12:57:33 -0700
-Message-ID: <20200630195737.8667-2-rcampbell@nvidia.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200630195737.8667-1-rcampbell@nvidia.com>
-References: <20200630195737.8667-1-rcampbell@nvidia.com>
-MIME-Version: 1.0
-X-NVConfidentiality: public
+        id S1729096AbgF3UI4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 16:08:56 -0400
+Received: from mga18.intel.com ([134.134.136.126]:26661 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726642AbgF3UIz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jun 2020 16:08:55 -0400
+IronPort-SDR: ZTzdRDFjdhDAdbFpG2WjIQB6BzT5mWyeImuzBPZEStDN6XVA6BvbI6Ygs/iG9/47SD8LqVLzyS
+ 9yMKa1/PkU8g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9668"; a="133824799"
+X-IronPort-AV: E=Sophos;i="5.75,298,1589266800"; 
+   d="scan'208";a="133824799"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2020 13:08:53 -0700
+IronPort-SDR: Z09R2WEjP+pQ+umDTqvA1TFHI6skQzEOQvdgmfQcBpwOksHlrsGgTiMXoM5IxWCtPW0HtxsvXJ
+ ZjylQO6gJ2mw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,298,1589266800"; 
+   d="scan'208";a="355880623"
+Received: from orsmsx108.amr.corp.intel.com ([10.22.240.6])
+  by orsmga001.jf.intel.com with ESMTP; 30 Jun 2020 13:08:53 -0700
+Received: from orsmsx604.amr.corp.intel.com (10.22.229.17) by
+ ORSMSX108.amr.corp.intel.com (10.22.240.6) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 30 Jun 2020 13:08:53 -0700
+Received: from orsmsx604.amr.corp.intel.com (10.22.229.17) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 30 Jun 2020 13:08:52 -0700
+Received: from ORSEDG002.ED.cps.intel.com (10.7.248.5) by
+ orsmsx604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.1713.5
+ via Frontend Transport; Tue, 30 Jun 2020 13:08:52 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.105)
+ by edgegateway.intel.com (134.134.137.101) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 30 Jun 2020 13:08:50 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ibeFoc3eERfXirbi+R8XN4WnO2C0nAKlHqYqEga9UOBM/9BqtERcxhctG8y9CCHk0lF7w0ramiPvhKdzkmw52xi94OZfkE8CVkb7I9tvDTsL9kez0ZCrx/+hg+qDPVKkaVKGuRuLt/9TTlmNpTjuQQ/CKH1S8ig9u3pYEb1X0r5TVN3Bbmr8+wqxpFmNZK/OE0XiEBrFvxdSfFOW444NvQJJn1iLxS0YaIREe+N6+MsJFTmxTGL9jqvOTeiuuMZtZYHpapHQS0DYIqigF+brXyIISsGs4sj1zYCoRqsYX6XEK0pwp70/b1kPsrPH2snJGwe5in8K7GRAdVI9EQiWXQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8KG/74OqfhKkJgqJDTxALbGpa9FztQThvmjNIx6EsCU=;
+ b=YkWa+q0L31k+509nl5q/TJe1nQnpExRzma2/WQEACE3uz2Y5+WN5uOiUAm3CJMN2keUUgTzx91VDeNZD0eMV7Ax3ApKiMpYWWfITf+JfQgc1Ox63q9nqHLObIqhVhWlqlTDAfiLyM/qWXCYkTxfL354omefNjAsxEepALVoqj+SswqV6/KWN3LOpwDnAgJvYAOcj3hlIe9/IfuMELY2HSV7DZiSRzfsNC8LBkIsdx08v06ePCXeeNwx17hjLf8ERaVlcvn6Gdu1TkXnWVmariCeleTndRDqKU8sP61dULtSugVc5lP9qjtvNNxDxbuHXBP0jy4qxRndM6MEDEzuvjg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8KG/74OqfhKkJgqJDTxALbGpa9FztQThvmjNIx6EsCU=;
+ b=dlwhrsfQlSjS9JxRjjqMEaV3Geh8yERNRBPxF1HqDo9GABJKFnTWU0G20xFwiB9iI2ArQ5jTS0DuWy/dZ+ZnIqOYLEPBSOkkUaKoapRCakDTxGS0l+8GleIuZKeJ+irU36vQopsW9RUfy1kKXREEZKsL0O9PFRwQ6GAgtEI+a1c=
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com (2603:10b6:303:2e::24)
+ by MWHPR11MB1310.namprd11.prod.outlook.com (2603:10b6:300:28::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.20; Tue, 30 Jun
+ 2020 20:08:46 +0000
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::ed68:a00b:2bb0:21cf]) by MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::ed68:a00b:2bb0:21cf%8]) with mapi id 15.20.3131.027; Tue, 30 Jun 2020
+ 20:08:46 +0000
+From:   "Xiong, Jianxin" <jianxin.xiong@intel.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "Leon Romanovsky" <leon@kernel.org>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>,
+        Christian Koenig <christian.koenig@amd.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Subject: RE: [RFC PATCH v2 0/3] RDMA: add dma-buf support
+Thread-Topic: [RFC PATCH v2 0/3] RDMA: add dma-buf support
+Thread-Index: AQHWTjmKZPnzyjUH+EiOzVuDukOX/Kjv8EEAgAFgqNCAABwVgIAACtwwgAARwQCAAAePEA==
+Date:   Tue, 30 Jun 2020 20:08:46 +0000
+Message-ID: <MW3PR11MB4555223B6D3C6E4829795798E56F0@MW3PR11MB4555.namprd11.prod.outlook.com>
+References: <1593451903-30959-1-git-send-email-jianxin.xiong@intel.com>
+ <20200629185152.GD25301@ziepe.ca>
+ <MW3PR11MB4555A99038FA0CFC3ED80D3DE56F0@MW3PR11MB4555.namprd11.prod.outlook.com>
+ <20200630173435.GK25301@ziepe.ca>
+ <MW3PR11MB45553FA6D144BF1053571D98E56F0@MW3PR11MB4555.namprd11.prod.outlook.com>
+ <20200630191700.GL25301@ziepe.ca>
+In-Reply-To: <20200630191700.GL25301@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.2.0.6
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+authentication-results: ziepe.ca; dkim=none (message not signed)
+ header.d=none;ziepe.ca; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [134.134.136.195]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 4329e27c-c962-4718-a827-08d81d316579
+x-ms-traffictypediagnostic: MWHPR11MB1310:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <MWHPR11MB13103632EFAC27A8C04D70B6E56F0@MWHPR11MB1310.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-forefront-prvs: 0450A714CB
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 58K1WtKMYAmo6EuIv/fhkJaWJA8owqPebHOeaDtZ+SgMkjLb6/UvPE4qAe/rIQWVuIzEdgWF8qH6AdtOsVsjewGwbNG3SqByOikFqqIuVFU4QIna1sWXBrY/e/c6DFJeTsxW76T/4gWqHp9jvUi7vis8YbSNBHZxiSHAY27NEmeJ6ROTCSxgKe/9DEZ3ByiynaYSTPWOqx6ALhDbqbeQgnE7brB7HO0x1E3hXV/HXn1BhOs7LtNKt4DjRXAy4yNDyrSKiYuqpxblnqZAyDw77sPkOsJLZGiK2Wb2ztIVtdDQ2gO3Vr2ZZMvzZNRGgnoCCmN7vlXDkQDKf0eq4WEmug==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW3PR11MB4555.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(346002)(39860400002)(396003)(136003)(376002)(55016002)(7696005)(9686003)(53546011)(6506007)(478600001)(71200400001)(86362001)(316002)(54906003)(83380400001)(4326008)(186003)(52536014)(8676002)(5660300002)(76116006)(66946007)(66446008)(64756008)(66556008)(66476007)(33656002)(2906002)(26005)(8936002)(6916009);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: bdTj1G6lFjN2tICCqgdZ9sK4WcTYtqugcom3VxNyY5SdH0hk2BCPfRirDb/GVubTvwEmWHPb++1AojGN3whKHO5AXNoNGQd0Y3e/MAEBLo1moj8z/M8IJDbA+siuEg7M2wurqTdEzSBK93F1NT0MZoZ88CkDGfAvLA5U1ENoQEFRMR0M12Fp8kX6XHMBiqVhoXe2O1FSXmNyf7c6CedkTrZQzr5z6hE9zuDkEsra/ElkETzHSa9x4zF6ih9ML7biEr/5l5L4QlaVLCBE6ae6R5ogFzGXBhXC+9cBtVf7FT8q5pO6swkJ/QuDRbC9p1jLQuVqgox79jB0YEUTRLKWJwpjQqlI7ig4p4hVtJrnLCazYvWZCEOVBoAQnwLHzoJqIDseZaIoHohkhEbmsHPk+Bdqmp6rdZJwjUh7+BoXLq0QCYhuGkTWuS04e9hWVr9aSwNML+oll+U4V3Iw6ZLEtEhfi1oxyUNcLGiZtpVzx7n7/hOEh7CAdSnWp5bErvsr
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1593546996; bh=2WyHYZcAAd5j4j8YMKEb9Xnebvu/ReeLnPA7IJpaPHY=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=r0AhEB3uF+5wNNtM0mmIB01SZmgLqLlmHnepBFQmHzf4tRP0UTxTQs9DPBBRuI0FP
-         zqjRwmgP1abIaPUC7nsZvRET4KZmg+f9mjYRi59+5CTjpP8xRc37YbBvC94qcxixKo
-         GMJGXam43JhMVk8m5Yr87K0qbRDzfBHuBQrOSeE8UpsCAWiClRlr/h4Ic38BqYsWk2
-         YONZNtzbM1atRj0HZuCSqgCkGm/atkoVDj66ClPR00F8p/EFuu3Fr0O4ndlzdir4wp
-         3mFRc3Xa3s/yv1B7CTJDLEX2naf8jt7Yni2zry2JH1TX5u4ZVOUlejHE8/he4/MtPP
-         o+cnDyb/dc/XQ==
+MIME-Version: 1.0
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MW3PR11MB4555.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4329e27c-c962-4718-a827-08d81d316579
+X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Jun 2020 20:08:46.4924
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Uyv/Isdl4WXin+pjwEXwBTXkPbFnwkYCcQu8Tv+2PHVGJr3XZkjA31hAyKurv2LUT2ttJyEo0viHSolcWBQPPA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB1310
+X-OriginatorOrg: intel.com
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The SVM page fault handler groups faults into a range of contiguous
-virtual addresses and requests hmm_range_fault() to populate and
-return the page frame number of system memory mapped by the CPU.
-In preparation for supporting large pages to be mapped by the GPU,
-process faults one page at a time. In addition, use the hmm_range
-default_flags to fix a corner case where the input hmm_pfns array
-is not reinitialized after hmm_range_fault() returns -EBUSY and must
-be called again.
+> -----Original Message-----
+> From: Jason Gunthorpe <jgg@ziepe.ca>
+> Sent: Tuesday, June 30, 2020 12:17 PM
+> To: Xiong, Jianxin <jianxin.xiong@intel.com>
+> Cc: linux-rdma@vger.kernel.org; Doug Ledford <dledford@redhat.com>; Sumit=
+ Semwal <sumit.semwal@linaro.org>; Leon Romanovsky
+> <leon@kernel.org>; Vetter, Daniel <daniel.vetter@intel.com>; Christian Ko=
+enig <christian.koenig@amd.com>; dri-
+> devel@lists.freedesktop.org
+> Subject: Re: [RFC PATCH v2 0/3] RDMA: add dma-buf support
+>=20
+> > >
+> > > On Tue, Jun 30, 2020 at 05:21:33PM +0000, Xiong, Jianxin wrote:
+> > > > > > Heterogeneous Memory Management (HMM) utilizes
+> > > > > > mmu_interval_notifier and ZONE_DEVICE to support shared
+> > > > > > virtual address space and page migration between system memory
+> > > > > > and device memory. HMM doesn't support pinning device memory
+> > > > > > because pages located on device must be able to migrate to
+> > > > > > system memory when accessed by CPU. Peer-to-peer access is
+> > > > > > possible if the peer can handle page fault. For RDMA, that mean=
+s the NIC must support on-demand paging.
+> > > > >
+> > > > > peer-peer access is currently not possible with hmm_range_fault()=
+.
+> > > >
+> > > > Currently hmm_range_fault() always sets the cpu access flag and
+> > > > device private pages are migrated to the system RAM in the fault ha=
+ndler.
+> > > > However, it's possible to have a modified code flow to keep the
+> > > > device private page info for use with peer to peer access.
+> > >
+> > > Sort of, but only within the same device, RDMA or anything else gener=
+ic can't reach inside a DEVICE_PRIVATE and extract anything
+> useful.
+> >
+> > But pfn is supposed to be all that is needed.
+>=20
+> Needed for what? The PFN of the DEVICE_PRIVATE pages is useless for anyth=
+ing.
 
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
----
- drivers/gpu/drm/nouveau/nouveau_svm.c | 199 +++++++++-----------------
- 1 file changed, 66 insertions(+), 133 deletions(-)
+Hmm. I thought the pfn corresponds to the address in the BAR range. I could=
+ be
+wrong here.=20
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouvea=
-u/nouveau_svm.c
-index ba9f9359c30e..665dede69bd1 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -516,7 +516,7 @@ static const struct mmu_interval_notifier_ops nouveau_s=
-vm_mni_ops =3D {
- static void nouveau_hmm_convert_pfn(struct nouveau_drm *drm,
- 				    struct hmm_range *range, u64 *ioctl_addr)
- {
--	unsigned long i, npages;
-+	struct page *page;
-=20
- 	/*
- 	 * The ioctl_addr prepared here is passed through nvif_object_ioctl()
-@@ -525,42 +525,38 @@ static void nouveau_hmm_convert_pfn(struct nouveau_dr=
-m *drm,
- 	 * This is all just encoding the internal hmm representation into a
- 	 * different nouveau internal representation.
- 	 */
--	npages =3D (range->end - range->start) >> PAGE_SHIFT;
--	for (i =3D 0; i < npages; ++i) {
--		struct page *page;
--
--		if (!(range->hmm_pfns[i] & HMM_PFN_VALID)) {
--			ioctl_addr[i] =3D 0;
--			continue;
--		}
--
--		page =3D hmm_pfn_to_page(range->hmm_pfns[i]);
--		if (is_device_private_page(page))
--			ioctl_addr[i] =3D nouveau_dmem_page_addr(page) |
--					NVIF_VMM_PFNMAP_V0_V |
--					NVIF_VMM_PFNMAP_V0_VRAM;
--		else
--			ioctl_addr[i] =3D page_to_phys(page) |
--					NVIF_VMM_PFNMAP_V0_V |
--					NVIF_VMM_PFNMAP_V0_HOST;
--		if (range->hmm_pfns[i] & HMM_PFN_WRITE)
--			ioctl_addr[i] |=3D NVIF_VMM_PFNMAP_V0_W;
-+	if (!(range->hmm_pfns[0] & HMM_PFN_VALID)) {
-+		ioctl_addr[0] =3D 0;
-+		return;
- 	}
-+
-+	page =3D hmm_pfn_to_page(range->hmm_pfns[0]);
-+	if (is_device_private_page(page))
-+		ioctl_addr[0] =3D nouveau_dmem_page_addr(page) |
-+				NVIF_VMM_PFNMAP_V0_V |
-+				NVIF_VMM_PFNMAP_V0_VRAM;
-+	else
-+		ioctl_addr[0] =3D page_to_phys(page) |
-+				NVIF_VMM_PFNMAP_V0_V |
-+				NVIF_VMM_PFNMAP_V0_HOST;
-+	if (range->hmm_pfns[0] & HMM_PFN_WRITE)
-+		ioctl_addr[0] |=3D NVIF_VMM_PFNMAP_V0_W;
- }
-=20
- static int nouveau_range_fault(struct nouveau_svmm *svmm,
- 			       struct nouveau_drm *drm, void *data, u32 size,
--			       unsigned long hmm_pfns[], u64 *ioctl_addr,
-+			       u64 *ioctl_addr, unsigned long hmm_flags,
- 			       struct svm_notifier *notifier)
- {
- 	unsigned long timeout =3D
- 		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	/* Have HMM fault pages within the fault window to the GPU. */
-+	unsigned long hmm_pfns[1];
- 	struct hmm_range range =3D {
- 		.notifier =3D &notifier->notifier,
- 		.start =3D notifier->notifier.interval_tree.start,
- 		.end =3D notifier->notifier.interval_tree.last + 1,
--		.pfn_flags_mask =3D HMM_PFN_REQ_FAULT | HMM_PFN_REQ_WRITE,
-+		.default_flags =3D hmm_flags,
- 		.hmm_pfns =3D hmm_pfns,
- 	};
- 	struct mm_struct *mm =3D notifier->notifier.mm;
-@@ -575,11 +571,6 @@ static int nouveau_range_fault(struct nouveau_svmm *sv=
-mm,
- 		ret =3D hmm_range_fault(&range);
- 		mmap_read_unlock(mm);
- 		if (ret) {
--			/*
--			 * FIXME: the input PFN_REQ flags are destroyed on
--			 * -EBUSY, we need to regenerate them, also for the
--			 * other continue below
--			 */
- 			if (ret =3D=3D -EBUSY)
- 				continue;
- 			return ret;
-@@ -614,17 +605,12 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 	struct nvif_object *device =3D &svm->drm->client.device.object;
- 	struct nouveau_svmm *svmm;
- 	struct {
--		struct {
--			struct nvif_ioctl_v0 i;
--			struct nvif_ioctl_mthd_v0 m;
--			struct nvif_vmm_pfnmap_v0 p;
--		} i;
--		u64 phys[16];
-+		struct nouveau_pfnmap_args i;
-+		u64 phys[1];
- 	} args;
--	unsigned long hmm_pfns[ARRAY_SIZE(args.phys)];
--	struct vm_area_struct *vma;
-+	unsigned long hmm_flags;
- 	u64 inst, start, limit;
--	int fi, fn, pi, fill;
-+	int fi, fn;
- 	int replay =3D 0, ret;
-=20
- 	/* Parse available fault buffer entries into a cache, and update
-@@ -691,66 +677,53 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		 * window into a single update.
- 		 */
- 		start =3D buffer->fault[fi]->addr;
--		limit =3D start + (ARRAY_SIZE(args.phys) << PAGE_SHIFT);
-+		limit =3D start + PAGE_SIZE;
- 		if (start < svmm->unmanaged.limit)
- 			limit =3D min_t(u64, limit, svmm->unmanaged.start);
--		SVMM_DBG(svmm, "wndw %016llx-%016llx", start, limit);
-=20
--		mm =3D svmm->notifier.mm;
--		if (!mmget_not_zero(mm)) {
--			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
--			continue;
--		}
--
--		/* Intersect fault window with the CPU VMA, cancelling
--		 * the fault if the address is invalid.
-+		/*
-+		 * Prepare the GPU-side update of all pages within the
-+		 * fault window, determining required pages and access
-+		 * permissions based on pending faults.
- 		 */
--		mmap_read_lock(mm);
--		vma =3D find_vma_intersection(mm, start, limit);
--		if (!vma) {
--			SVMM_ERR(svmm, "wndw %016llx-%016llx", start, limit);
--			mmap_read_unlock(mm);
--			mmput(mm);
--			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
--			continue;
-+		args.i.p.addr =3D start;
-+		args.i.p.page =3D PAGE_SHIFT;
-+		args.i.p.size =3D PAGE_SIZE;
-+		/*
-+		 * Determine required permissions based on GPU fault
-+		 * access flags.
-+		 * XXX: atomic?
-+		 */
-+		switch (buffer->fault[fi]->access) {
-+		case 0: /* READ. */
-+			hmm_flags =3D HMM_PFN_REQ_FAULT;
-+			break;
-+		case 3: /* PREFETCH. */
-+			hmm_flags =3D 0;
-+			break;
-+		default:
-+			hmm_flags =3D HMM_PFN_REQ_FAULT | HMM_PFN_REQ_WRITE;
-+			break;
- 		}
--		start =3D max_t(u64, start, vma->vm_start);
--		limit =3D min_t(u64, limit, vma->vm_end);
--		mmap_read_unlock(mm);
--		SVMM_DBG(svmm, "wndw %016llx-%016llx", start, limit);
-=20
--		if (buffer->fault[fi]->addr !=3D start) {
--			SVMM_ERR(svmm, "addr %016llx", buffer->fault[fi]->addr);
--			mmput(mm);
-+		mm =3D svmm->notifier.mm;
-+		if (!mmget_not_zero(mm)) {
- 			nouveau_svm_fault_cancel_fault(svm, buffer->fault[fi]);
- 			continue;
- 		}
-=20
--		/* Prepare the GPU-side update of all pages within the
--		 * fault window, determining required pages and access
--		 * permissions based on pending faults.
--		 */
--		args.i.p.page =3D PAGE_SHIFT;
--		args.i.p.addr =3D start;
--		for (fn =3D fi, pi =3D 0;;) {
--			/* Determine required permissions based on GPU fault
--			 * access flags.
--			 *XXX: atomic?
--			 */
--			switch (buffer->fault[fn]->access) {
--			case 0: /* READ. */
--				hmm_pfns[pi++] =3D HMM_PFN_REQ_FAULT;
--				break;
--			case 3: /* PREFETCH. */
--				hmm_pfns[pi++] =3D 0;
--				break;
--			default:
--				hmm_pfns[pi++] =3D HMM_PFN_REQ_FAULT |
--						 HMM_PFN_REQ_WRITE;
--				break;
--			}
--			args.i.p.size =3D pi << PAGE_SHIFT;
-+		notifier.svmm =3D svmm;
-+		ret =3D mmu_interval_notifier_insert(&notifier.notifier, mm,
-+						   args.i.p.addr, args.i.p.size,
-+						   &nouveau_svm_mni_ops);
-+		if (!ret) {
-+			ret =3D nouveau_range_fault(svmm, svm->drm, &args,
-+				sizeof(args), args.phys, hmm_flags, &notifier);
-+			mmu_interval_notifier_remove(&notifier.notifier);
-+		}
-+		mmput(mm);
-=20
-+		for (fn =3D fi; ++fn < buffer->fault_nr; ) {
- 			/* It's okay to skip over duplicate addresses from the
- 			 * same SVMM as faults are ordered by access type such
- 			 * that only the first one needs to be handled.
-@@ -758,61 +731,21 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 			 * ie. WRITE faults appear first, thus any handling of
- 			 * pending READ faults will already be satisfied.
- 			 */
--			while (++fn < buffer->fault_nr &&
--			       buffer->fault[fn]->svmm =3D=3D svmm &&
--			       buffer->fault[fn    ]->addr =3D=3D
--			       buffer->fault[fn - 1]->addr);
--
--			/* If the next fault is outside the window, or all GPU
--			 * faults have been dealt with, we're done here.
--			 */
--			if (fn >=3D buffer->fault_nr ||
--			    buffer->fault[fn]->svmm !=3D svmm ||
-+			if (buffer->fault[fn]->svmm !=3D svmm ||
- 			    buffer->fault[fn]->addr >=3D limit)
- 				break;
--
--			/* Fill in the gap between this fault and the next. */
--			fill =3D (buffer->fault[fn    ]->addr -
--				buffer->fault[fn - 1]->addr) >> PAGE_SHIFT;
--			while (--fill)
--				hmm_pfns[pi++] =3D 0;
- 		}
-=20
--		SVMM_DBG(svmm, "wndw %016llx-%016llx covering %d fault(s)",
--			 args.i.p.addr,
--			 args.i.p.addr + args.i.p.size, fn - fi);
--
--		notifier.svmm =3D svmm;
--		ret =3D mmu_interval_notifier_insert(&notifier.notifier,
--						   svmm->notifier.mm,
--						   args.i.p.addr, args.i.p.size,
--						   &nouveau_svm_mni_ops);
--		if (!ret) {
--			ret =3D nouveau_range_fault(
--				svmm, svm->drm, &args,
--				sizeof(args.i) + pi * sizeof(args.phys[0]),
--				hmm_pfns, args.phys, &notifier);
--			mmu_interval_notifier_remove(&notifier.notifier);
--		}
--		mmput(mm);
-+		/* If handling failed completely, cancel all faults. */
-+		if (ret) {
-+			while (fi < fn) {
-+				struct nouveau_svm_fault *fault =3D
-+					buffer->fault[fi++];
-=20
--		/* Cancel any faults in the window whose pages didn't manage
--		 * to keep their valid bit, or stay writeable when required.
--		 *
--		 * If handling failed completely, cancel all faults.
--		 */
--		while (fi < fn) {
--			struct nouveau_svm_fault *fault =3D buffer->fault[fi++];
--			pi =3D (fault->addr - args.i.p.addr) >> PAGE_SHIFT;
--			if (ret ||
--			     !(args.phys[pi] & NVIF_VMM_PFNMAP_V0_V) ||
--			    (!(args.phys[pi] & NVIF_VMM_PFNMAP_V0_W) &&
--			     fault->access !=3D 0 && fault->access !=3D 3)) {
- 				nouveau_svm_fault_cancel_fault(svm, fault);
--				continue;
- 			}
-+		} else
- 			replay++;
--		}
- 	}
-=20
- 	/* Issue fault replay to the GPU. */
---=20
-2.20.1
+>=20
+> > > Well, what do you want to happen here? The RDMA parts are
+> > > reasonable, but I don't want to add new functionality without a
+> > > purpose - the other parts need to be settled out first.
+> >
+> > At the RDMA side, we mainly want to check if the changes are
+> > acceptable. For example, the part about adding 'fd' to the device ops
+> > and the ioctl interface. All the previous comments are very helpful
+> > for us to refine the patch so that we can be ready when GPU side
+> > support becomes available.
+>=20
+> Well, I'm not totally happy with the way the umem and the fd is handled s=
+o roughly and incompletely..
 
+Yes, this feedback is very helpful. Will work on improving the code.
+
+>=20
+> > > Hum. This is not actually so hard to do. The whole dma buf proposal
+> > > would make a lot more sense if the 'dma buf MR' had to be the
+> > > dynamic kind and the driver had to provide the faulting. It would
+> > > not be so hard to change mlx5 to be able to work like this, perhaps.
+> > > (the locking might be a bit tricky though)
+> >
+> > The main issue is that not all NICs support ODP.
+>=20
+> Sure, but there is lots of infrastructure work here to be done on dma buf=
+, having a correct consumer in the form of ODP might be helpful to
+> advance it.
+
+Good point. Thanks.
+
+>=20
+> Jason
