@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 472D5C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 09:39:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C417C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 09:39:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24EF62077D
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 09:39:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 797A820775
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 09:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593509977;
-	bh=tWqsgKO8qkEARP9YxEV7Z0xYcoULDGAMWo4bpFFb4Jo=;
+	s=default; t=1593509980;
+	bh=a0A75i8CqznVgTY2KjPmWzUv06m9027ipUqUMxCXItk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CZQfaB8+SXybV8Va0Gt/M/T1OQSpnF4jAlezAKPuOyTUkywH60rrXG/d6OvQdDpVo
-	 cpiYeb/t1u7dXYOajiff8acgNv3Tr1E3nPIj/kDs4PQkS8T0uvtFsDWtik5CTx6vH5
-	 df65bV4rdWISPhURgfDwKbkDszd5l46AQnZnSc8M=
+	b=Fn95h8M0d9qHaSHUH4QnExVjRWTqYSx7iMATyK5sRpFUpgMxh51ue7R4+P5ZoVNfV
+	 WlvJVQkG7YNGFg1hJd9zvN24lLr3gBkkg311nnBNvvfbfe2mtlwC6C13D1yyEnKQ5b
+	 AgHwDtIv9LBTvKILNWCILSjEEigSNuPgbaWjjinY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731616AbgF3Jjg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 05:39:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39304 "EHLO mail.kernel.org"
+        id S1732052AbgF3Jjj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 05:39:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732049AbgF3Jjg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jun 2020 05:39:36 -0400
+        id S1732049AbgF3Jjj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jun 2020 05:39:39 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CAABB20775;
-        Tue, 30 Jun 2020 09:39:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 43E11206A1;
+        Tue, 30 Jun 2020 09:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593509975;
-        bh=tWqsgKO8qkEARP9YxEV7Z0xYcoULDGAMWo4bpFFb4Jo=;
+        s=default; t=1593509979;
+        bh=a0A75i8CqznVgTY2KjPmWzUv06m9027ipUqUMxCXItk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=n2Lra1JLHKFkpiLlQcHtwF9qp9yy5OF5WmkXMI6zBxf9DBCTrMOxH9M/f0axDMhKe
-         M2YMgQRNfQJ2ZHBHHzlAvdFQp+Vdqqv7zDgkCnMrPlp0JAytaYGW0yc7RDKl+s8sbE
-         GKA7H180hNB8HI83/JvRH+GXEyxT/dKAvdStXc6U=
+        b=tAEGj/20mnqISPnkvlmOSwiGToFOSHTz96ySR5GWkmDvAVQbH87L5qlNa+2A8PJtU
+         NM5KG62f+zf/uIQSE3xyYYzNF60ONKPS4UuGTMa8af/0N2f46hBP5LH7fuqPaRLKPM
+         NO3+fucZmpWi2L3BJUJim3JoCnnVjwzjKQaExNPw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 5/7] RDMA/mlx5: Implement the query ucontext functionality
-Date:   Tue, 30 Jun 2020 12:39:14 +0300
-Message-Id: <20200630093916.332097-6-leon@kernel.org>
+Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Steve Wise <larrystevenwise@gmail.com>
+Subject: [PATCH rdma-next v1 2/7] IB/uverbs: Set IOVA on IB MR in uverbs layer
+Date:   Tue, 30 Jun 2020 12:39:11 +0300
+Message-Id: <20200630093916.332097-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200630093916.332097-1-leon@kernel.org>
 References: <20200630093916.332097-1-leon@kernel.org>
@@ -57,112 +59,66 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Implement the query ucontext functionality by returning the original
-ucontext data as part of an extra mlx5 attribute that holds the driver
-UAPI response.
+Set IOVA on IB MR in uverbs layer to let all drivers have it, this
+includes both reg/rereg MR flows.
+As part of this change cleaned-up this setting from the drivers that
+already did it by themselves in their user flows.
 
+Fixes: e6f0330106f4 ("mlx4_ib: set user mr attributes in struct ib_mr")
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_ioctl.c   |  1 +
- drivers/infiniband/hw/mlx5/main.c        | 35 ++++++++++++++++++++++++
- include/uapi/rdma/mlx5_user_ioctl_cmds.h |  4 +++
- 3 files changed, 40 insertions(+)
+ drivers/infiniband/core/uverbs_cmd.c | 4 ++++
+ drivers/infiniband/hw/cxgb4/mem.c    | 1 -
+ drivers/infiniband/hw/mlx4/mr.c      | 1 -
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 2d882c02387c..ef04a261097f 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -790,6 +790,7 @@ int uverbs_copy_to_struct_or_zero(const struct uverbs_attr_bundle *bundle,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index b48b3f6e632d..557644dcc923 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -770,6 +770,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
+ 	mr->uobject = uobj;
+ 	atomic_inc(&pd->usecnt);
+ 	mr->res.type = RDMA_RESTRACK_MR;
++	mr->iova = cmd.hca_va;
+ 	rdma_restrack_uadd(&mr->res);
+ 
+ 	uobj->object = mr;
+@@ -861,6 +862,9 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
+ 		atomic_dec(&old_pd->usecnt);
  	}
- 	return uverbs_copy_to(bundle, idx, from, size);
- }
-+EXPORT_SYMBOL(uverbs_copy_to_struct_or_zero);
  
- /* Once called an abort will call through to the type's destroy_hw() */
- void uverbs_finalize_uobj_create(const struct uverbs_attr_bundle *bundle,
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 1c1f1bfb83f1..79cd7db4d32a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1990,6 +1990,29 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
- 	return err;
- }
++	if (cmd.flags & IB_MR_REREG_TRANS)
++		mr->iova = cmd.hca_va;
++
+ 	memset(&resp, 0, sizeof(resp));
+ 	resp.lkey      = mr->lkey;
+ 	resp.rkey      = mr->rkey;
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 962dc97a8ff2..1e4f4e525598 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -399,7 +399,6 @@ static int finish_mem_reg(struct c4iw_mr *mhp, u32 stag)
+ 	mmid = stag >> 8;
+ 	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
+ 	mhp->ibmr.length = mhp->attr.len;
+-	mhp->ibmr.iova = mhp->attr.va_fbo;
+ 	mhp->ibmr.page_size = 1U << (mhp->attr.page_size + 12);
+ 	pr_debug("mmid 0x%x mhp %p\n", mmid, mhp);
+ 	return xa_insert_irq(&mhp->rhp->mrs, mmid, mhp, GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index 7e0b205c05eb..d7c78f841d2f 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -439,7 +439,6 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
  
-+static int mlx5_ib_query_ucontext(struct ib_ucontext *ibcontext,
-+				  struct uverbs_attr_bundle *attrs)
-+{
-+	struct mlx5_ib_alloc_ucontext_resp uctx_resp = {};
-+	int ret;
-+
-+	ret = set_ucontext_resp(ibcontext, &uctx_resp);
-+	if (ret)
-+		return ret;
-+
-+	uctx_resp.response_length =
-+		min_t(size_t,
-+		      uverbs_attr_get_len(attrs,
-+				MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX),
-+		      sizeof(uctx_resp));
-+
-+	ret = uverbs_copy_to_struct_or_zero(attrs,
-+					MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX,
-+					&uctx_resp,
-+					sizeof(uctx_resp));
-+	return ret;
-+}
-+
- static void mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- {
- 	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
-@@ -6375,6 +6398,16 @@ ADD_UVERBS_ATTRIBUTES_SIMPLE(
- 	UVERBS_ATTR_FLAGS_IN(MLX5_IB_ATTR_CREATE_FLOW_ACTION_FLAGS,
- 			     enum mlx5_ib_uapi_flow_action_flags));
+ 	mr->ibmr.rkey = mr->ibmr.lkey = mr->mmr.key;
+ 	mr->ibmr.length = length;
+-	mr->ibmr.iova = virt_addr;
+ 	mr->ibmr.page_size = 1U << shift;
  
-+ADD_UVERBS_ATTRIBUTES_SIMPLE(
-+	mlx5_ib_query_context,
-+	UVERBS_OBJECT_DEVICE,
-+	UVERBS_METHOD_QUERY_CONTEXT,
-+	UVERBS_ATTR_PTR_OUT(
-+		MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX,
-+		UVERBS_ATTR_STRUCT(struct mlx5_ib_alloc_ucontext_resp,
-+				   dump_fill_mkey),
-+		UA_MANDATORY));
-+
- static const struct uapi_definition mlx5_ib_defs[] = {
- 	UAPI_DEF_CHAIN(mlx5_ib_devx_defs),
- 	UAPI_DEF_CHAIN(mlx5_ib_flow_defs),
-@@ -6383,6 +6416,7 @@ static const struct uapi_definition mlx5_ib_defs[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_FLOW_ACTION,
- 				&mlx5_ib_flow_action),
- 	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_DM, &mlx5_ib_dm),
-+	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_DEVICE, &mlx5_ib_query_context),
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(MLX5_IB_OBJECT_VAR,
- 				UAPI_DEF_IS_OBJ_SUPPORTED(var_is_supported)),
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(MLX5_IB_OBJECT_UAR),
-@@ -6616,6 +6650,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
- 	.query_pkey = mlx5_ib_query_pkey,
- 	.query_qp = mlx5_ib_query_qp,
- 	.query_srq = mlx5_ib_query_srq,
-+	.query_ucontext = mlx5_ib_query_ucontext,
- 	.read_counters = mlx5_ib_read_counters,
- 	.reg_user_mr = mlx5_ib_reg_user_mr,
- 	.req_notify_cq = mlx5_ib_arm_cq,
-diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 8e316ef896b5..496309e8a856 100644
---- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -228,6 +228,10 @@ enum mlx5_ib_flow_matcher_methods {
- 	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
- };
- 
-+enum mlx5_ib_device_query_context_attrs {
-+	MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX = (1U << UVERBS_ID_NS_SHIFT),
-+};
-+
- #define MLX5_IB_DW_MATCH_PARAM 0x80
- 
- struct mlx5_ib_match_params {
+ 	return &mr->ibmr;
 -- 
 2.26.2
 
