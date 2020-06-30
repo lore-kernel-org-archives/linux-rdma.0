@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE894C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 10:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87588C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 10:19:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD05420780
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 10:19:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A68E20780
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Jun 2020 10:19:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593512354;
-	bh=Pj8/5vgVuPKAXjpjWXzleSa3FcTFVo5Ikryzv1qw/lY=;
+	s=default; t=1593512357;
+	bh=l7Q9lw8WUHkgsPXmi1EsrSy8TnXNVouYXaZaE0xUjCk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=H2Iulct3a+8fHrBF9gPZFm5AOm4dhk2P6x6hVrVXHSGqM8mrqpmnrsAMnjtzl3C57
-	 NU8qgwpmURWUAffZUFZrHvgNmM3TH6trT8e6cgeyaNFlEN8RAzwPVX8XO4nJXUmAyt
-	 BCrdgY51hBOlK8Ra4s0XJcJfUll9XADUJ855HYDA=
+	b=TAw/mfJ8H4wt1bANoIc8BbBrgksuIIrnv0E+l1WOI+eD/G+vRqT54SChJre9mwPy0
+	 0f5p1dfMDfhF9PbDApUUf1AjjOdToau2lhlwnDO8onKp1El68XuP7HFyA7bT0BAmFv
+	 IrinaKWE3UaLDRZuaWjeHRM0iXGw5U6RTa8OFiAA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732332AbgF3KTN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Jun 2020 06:19:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48756 "EHLO mail.kernel.org"
+        id S1732417AbgF3KTO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Jun 2020 06:19:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732424AbgF3KTF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Jun 2020 06:19:05 -0400
+        id S1732432AbgF3KTL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Jun 2020 06:19:11 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 62A5E20760;
-        Tue, 30 Jun 2020 10:19:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E7BC32073E;
+        Tue, 30 Jun 2020 10:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593512345;
-        bh=Pj8/5vgVuPKAXjpjWXzleSa3FcTFVo5Ikryzv1qw/lY=;
+        s=default; t=1593512348;
+        bh=l7Q9lw8WUHkgsPXmi1EsrSy8TnXNVouYXaZaE0xUjCk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=a0iBEyrgQRJ1mV2S6C0NYnyaWwVM3Juk21x9vWnSV8ECkOBx0jVN0x+pmJ7pMUjFY
-         XaMgV0Joy29GJkIGIFpmMJDAb60QyhQealtrjiNhUQPMH7kRWrLf2IhzoZywcn5pJM
-         aO3sbcjlekFilQEDOzu0Bsz2Qk4+yP/XIYlWmdhE=
+        b=Crcuh9Iqu+kSRNd+CKwsDu2LL/wVG8YkN3hnHcUQIR552U1lA+gs1NPPau2yla1Qx
+         t4I+SpMC1KyjIUXprMtqzcDFTftKScVRSsbi6aw4JUBIv9uZvoTC0G+gU2nkcDwAI/
+         I0seEP819rnxMD4bnMgGtGhzxAIdoX3tDbcqHGL4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 1/4] RDMA/core: Create and destroy counters in the ib_core
-Date:   Tue, 30 Jun 2020 13:18:52 +0300
-Message-Id: <20200630101855.368895-2-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: [PATCH rdma-next v1 3/4] RDMA: Move XRCD to be under ib_core responsibility
+Date:   Tue, 30 Jun 2020 13:18:54 +0300
+Message-Id: <20200630101855.368895-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200630101855.368895-1-leon@kernel.org>
 References: <20200630101855.368895-1-leon@kernel.org>
@@ -57,145 +58,275 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Move allocation and destruction of counters under ib_core responsibility
+Update the code to allocate and free ib_xrcd structure in the
+ib_core instead of inside drivers.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/device.c              |  1 +
- .../core/uverbs_std_types_counters.c          | 17 ++++++++--------
- drivers/infiniband/hw/mlx5/main.c             | 20 ++++++-------------
- include/rdma/ib_verbs.h                       |  7 ++++---
- 4 files changed, 20 insertions(+), 25 deletions(-)
+ drivers/infiniband/core/device.c     |  1 +
+ drivers/infiniband/core/verbs.c      | 28 ++++++++++++++-------
+ drivers/infiniband/hw/mlx4/main.c    | 37 +++++++++++-----------------
+ drivers/infiniband/hw/mlx5/main.c    |  2 ++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  5 ++--
+ drivers/infiniband/hw/mlx5/qp.c      | 34 +++++++------------------
+ include/rdma/ib_verbs.h              |  6 ++---
+ 7 files changed, 51 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 1da1b0731f25..088559d72d57 100644
+index 257e8a667977..b15fa3fa09ac 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -2682,6 +2682,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, set_vf_link_state);
- 
- 	SET_OBJ_SIZE(dev_ops, ib_ah);
-+	SET_OBJ_SIZE(dev_ops, ib_counters);
- 	SET_OBJ_SIZE(dev_ops, ib_cq);
+@@ -2688,6 +2688,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
  	SET_OBJ_SIZE(dev_ops, ib_pd);
  	SET_OBJ_SIZE(dev_ops, ib_srq);
-diff --git a/drivers/infiniband/core/uverbs_std_types_counters.c b/drivers/infiniband/core/uverbs_std_types_counters.c
-index 9f013304e677..c7e7438752bc 100644
---- a/drivers/infiniband/core/uverbs_std_types_counters.c
-+++ b/drivers/infiniband/core/uverbs_std_types_counters.c
-@@ -46,7 +46,9 @@ static int uverbs_free_counters(struct ib_uobject *uobject,
- 	if (ret)
- 		return ret;
+ 	SET_OBJ_SIZE(dev_ops, ib_ucontext);
++	SET_OBJ_SIZE(dev_ops, ib_xrcd);
+ }
+ EXPORT_SYMBOL(ib_set_device_ops);
  
--	return counters->device->ops.destroy_counters(counters);
-+	counters->device->ops.destroy_counters(counters);
-+	kfree(counters);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 8f320c1a2a9d..c41e3fdef5d6 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2294,20 +2294,28 @@ struct ib_xrcd *ib_alloc_xrcd_user(struct ib_device *device,
+ 				   struct inode *inode, struct ib_udata *udata)
+ {
+ 	struct ib_xrcd *xrcd;
++	int ret;
+ 
+ 	if (!device->ops.alloc_xrcd)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+-	xrcd = device->ops.alloc_xrcd(device, udata);
+-	if (!IS_ERR(xrcd)) {
+-		xrcd->device = device;
+-		xrcd->inode = inode;
+-		atomic_set(&xrcd->usecnt, 0);
+-		init_rwsem(&xrcd->tgt_qps_rwsem);
+-		xa_init(&xrcd->tgt_qps);
+-	}
++	xrcd = rdma_zalloc_drv_obj(device, ib_xrcd);
++	if (!xrcd)
++		return ERR_PTR(-ENOMEM);
+ 
++	xrcd->device = device;
++	xrcd->inode = inode;
++	atomic_set(&xrcd->usecnt, 0);
++	init_rwsem(&xrcd->tgt_qps_rwsem);
++	xa_init(&xrcd->tgt_qps);
++
++	ret = device->ops.alloc_xrcd(xrcd, udata);
++	if (ret)
++		goto err;
+ 	return xrcd;
++err:
++	kfree(xrcd);
++	return ERR_PTR(ret);
+ }
+ EXPORT_SYMBOL(ib_alloc_xrcd_user);
+ 
+@@ -2317,7 +2325,9 @@ int ib_dealloc_xrcd_user(struct ib_xrcd *xrcd, struct ib_udata *udata)
+ 		return -EBUSY;
+ 
+ 	WARN_ON(!xa_empty(&xrcd->tgt_qps));
+-	return xrcd->device->ops.dealloc_xrcd(xrcd, udata);
++	xrcd->device->ops.dealloc_xrcd(xrcd, udata);
++	kfree(xrcd);
 +	return 0;
  }
+ EXPORT_SYMBOL(ib_dealloc_xrcd_user);
  
- static int UVERBS_HANDLER(UVERBS_METHOD_COUNTERS_CREATE)(
-@@ -66,20 +68,19 @@ static int UVERBS_HANDLER(UVERBS_METHOD_COUNTERS_CREATE)(
- 	if (!ib_dev->ops.create_counters)
- 		return -EOPNOTSUPP;
- 
--	counters = ib_dev->ops.create_counters(ib_dev, attrs);
--	if (IS_ERR(counters)) {
--		ret = PTR_ERR(counters);
--		goto err_create_counters;
--	}
-+	counters = rdma_zalloc_drv_obj(ib_dev, ib_counters);
-+	if (!counters)
-+		return -ENOMEM;
- 
- 	counters->device = ib_dev;
- 	counters->uobject = uobj;
- 	uobj->object = counters;
- 	atomic_set(&counters->usecnt, 0);
- 
--	return 0;
-+	ret = ib_dev->ops.create_counters(counters, attrs);
-+	if (ret)
-+		kfree(counters);
- 
--err_create_counters:
- 	return ret;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 6471f47bd365..0ad584a3b8d6 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1219,56 +1219,47 @@ static void mlx4_ib_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata)
+ 	mlx4_pd_free(to_mdev(pd->device)->dev, to_mpd(pd)->pdn);
  }
  
+-static struct ib_xrcd *mlx4_ib_alloc_xrcd(struct ib_device *ibdev,
+-					  struct ib_udata *udata)
++static int mlx4_ib_alloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
+ {
+-	struct mlx4_ib_xrcd *xrcd;
++	struct mlx4_ib_dev *dev = to_mdev(ibxrcd->device);
++	struct mlx4_ib_xrcd *xrcd = to_mxrcd(ibxrcd);
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	int err;
+ 
+-	if (!(to_mdev(ibdev)->dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC))
+-		return ERR_PTR(-ENOSYS);
+-
+-	xrcd = kmalloc(sizeof *xrcd, GFP_KERNEL);
+-	if (!xrcd)
+-		return ERR_PTR(-ENOMEM);
++	if (!(dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC))
++		return -EOPNOTSUPP;
+ 
+-	err = mlx4_xrcd_alloc(to_mdev(ibdev)->dev, &xrcd->xrcdn);
++	err = mlx4_xrcd_alloc(dev->dev, &xrcd->xrcdn);
+ 	if (err)
+-		goto err1;
++		return err;
+ 
+-	xrcd->pd = ib_alloc_pd(ibdev, 0);
++	xrcd->pd = ib_alloc_pd(ibxrcd->device, 0);
+ 	if (IS_ERR(xrcd->pd)) {
+ 		err = PTR_ERR(xrcd->pd);
+ 		goto err2;
+ 	}
+ 
+ 	cq_attr.cqe = 1;
+-	xrcd->cq = ib_create_cq(ibdev, NULL, NULL, xrcd, &cq_attr);
++	xrcd->cq = ib_create_cq(ibxrcd->device, NULL, NULL, xrcd, &cq_attr);
+ 	if (IS_ERR(xrcd->cq)) {
+ 		err = PTR_ERR(xrcd->cq);
+ 		goto err3;
+ 	}
+ 
+-	return &xrcd->ibxrcd;
++	return 0;
+ 
+ err3:
+ 	ib_dealloc_pd(xrcd->pd);
+ err2:
+-	mlx4_xrcd_free(to_mdev(ibdev)->dev, xrcd->xrcdn);
+-err1:
+-	kfree(xrcd);
+-	return ERR_PTR(err);
++	mlx4_xrcd_free(dev->dev, xrcd->xrcdn);
++	return err;
+ }
+ 
+-static int mlx4_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
++static void mlx4_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
+ {
+ 	ib_destroy_cq(to_mxrcd(xrcd)->cq);
+ 	ib_dealloc_pd(to_mxrcd(xrcd)->pd);
+ 	mlx4_xrcd_free(to_mdev(xrcd->device)->dev, to_mxrcd(xrcd)->xrcdn);
+-	kfree(xrcd);
+-
+-	return 0;
+ }
+ 
+ static int add_gid_entry(struct ib_qp *ibqp, union ib_gid *gid)
+@@ -2609,6 +2600,8 @@ static const struct ib_device_ops mlx4_ib_dev_mw_ops = {
+ static const struct ib_device_ops mlx4_ib_dev_xrc_ops = {
+ 	.alloc_xrcd = mlx4_ib_alloc_xrcd,
+ 	.dealloc_xrcd = mlx4_ib_dealloc_xrcd,
++
++	INIT_RDMA_OBJ_SIZE(ib_xrcd, mlx4_ib_xrcd, ibxrcd),
+ };
+ 
+ static const struct ib_device_ops mlx4_ib_dev_fs_ops = {
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 46c596a855e7..ca35394a181a 100644
+index 8b0b1f95af2f..a6d5c35a2845 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6458,7 +6458,7 @@ static int mlx5_ib_read_counters(struct ib_counters *counters,
- 	return ret;
+@@ -6676,6 +6676,8 @@ static const struct ib_device_ops mlx5_ib_dev_mw_ops = {
+ static const struct ib_device_ops mlx5_ib_dev_xrc_ops = {
+ 	.alloc_xrcd = mlx5_ib_alloc_xrcd,
+ 	.dealloc_xrcd = mlx5_ib_dealloc_xrcd,
++
++	INIT_RDMA_OBJ_SIZE(ib_xrcd, mlx5_ib_xrcd, ibxrcd),
+ };
+ 
+ static const struct ib_device_ops mlx5_ib_dev_dm_ops = {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d84f56517caa..726386fe4440 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1223,9 +1223,8 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+ 			const struct ib_mad *in, struct ib_mad *out,
+ 			size_t *out_mad_size, u16 *out_mad_pkey_index);
+-struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+-				   struct ib_udata *udata);
+-int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
++int mlx5_ib_alloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
++void mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
+ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset);
+ int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port);
+ int mlx5_query_mad_ifc_smp_attr_node_info(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index f939c9b769f0..0ae73f4e28a3 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4700,41 +4700,25 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	return err;
  }
  
--static int mlx5_ib_destroy_counters(struct ib_counters *counters)
-+static void mlx5_ib_destroy_counters(struct ib_counters *counters)
+-struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+-				   struct ib_udata *udata)
++int mlx5_ib_alloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
  {
- 	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
+-	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+-	struct mlx5_ib_xrcd *xrcd;
+-	int err;
++	struct mlx5_ib_dev *dev = to_mdev(ibxrcd->device);
++	struct mlx5_ib_xrcd *xrcd = to_mxrcd(ibxrcd);
++	int ret;
  
-@@ -6466,24 +6466,15 @@ static int mlx5_ib_destroy_counters(struct ib_counters *counters)
- 	if (mcounters->hw_cntrs_hndl)
- 		mlx5_fc_destroy(to_mdev(counters->device)->mdev,
- 				mcounters->hw_cntrs_hndl);
+ 	if (!MLX5_CAP_GEN(dev->mdev, xrc))
+-		return ERR_PTR(-ENOSYS);
 -
--	kfree(mcounters);
--
--	return 0;
- }
- 
--static struct ib_counters *mlx5_ib_create_counters(struct ib_device *device,
--						   struct uverbs_attr_bundle *attrs)
-+static int mlx5_ib_create_counters(struct ib_counters *counters,
-+				   struct uverbs_attr_bundle *attrs)
- {
--	struct mlx5_ib_mcounters *mcounters;
--
--	mcounters = kzalloc(sizeof(*mcounters), GFP_KERNEL);
--	if (!mcounters)
+-	xrcd = kmalloc(sizeof(*xrcd), GFP_KERNEL);
+-	if (!xrcd)
 -		return ERR_PTR(-ENOMEM);
-+	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
- 
- 	mutex_init(&mcounters->mcntrs_mutex);
 -
--	return &mcounters->ibcntrs;
-+	return 0;
+-	err = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, 0);
+-	if (err) {
+-		kfree(xrcd);
+-		return ERR_PTR(-ENOMEM);
+-	}
++		return -EOPNOTSUPP;
+ 
+-	return &xrcd->ibxrcd;
++	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, 0);
++	return ret;
  }
  
- static void mlx5_ib_stage_init_cleanup(struct mlx5_ib_dev *dev)
-@@ -6651,6 +6642,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
- 	.resize_cq = mlx5_ib_resize_cq,
+-int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
++void mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(xrcd->device);
+ 	u32 xrcdn = to_mxrcd(xrcd)->xrcdn;
+-	int err;
  
- 	INIT_RDMA_OBJ_SIZE(ib_ah, mlx5_ib_ah, ibah),
-+	INIT_RDMA_OBJ_SIZE(ib_counters, mlx5_ib_mcounters, ibcntrs),
- 	INIT_RDMA_OBJ_SIZE(ib_cq, mlx5_ib_cq, ibcq),
- 	INIT_RDMA_OBJ_SIZE(ib_pd, mlx5_ib_pd, ibpd),
- 	INIT_RDMA_OBJ_SIZE(ib_srq, mlx5_ib_srq, ibsrq),
+-	err = mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, 0);
+-	if (err)
+-		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
+-
+-	kfree(xrcd);
+-	return 0;
++	mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, 0);
+ }
+ 
+ static void mlx5_ib_wq_event(struct mlx5_core_qp *core_qp, int type)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 55762f0458a6..9b69bc0a53cf 100644
+index 5241a32193db..6e2cb69fe90b 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2541,9 +2541,9 @@ struct ib_device_ops {
- 	struct ib_mr *(*reg_dm_mr)(struct ib_pd *pd, struct ib_dm *dm,
- 				   struct ib_dm_mr_attr *attr,
- 				   struct uverbs_attr_bundle *attrs);
--	struct ib_counters *(*create_counters)(
--		struct ib_device *device, struct uverbs_attr_bundle *attrs);
--	int (*destroy_counters)(struct ib_counters *counters);
-+	int (*create_counters)(struct ib_counters *counters,
-+			       struct uverbs_attr_bundle *attrs);
-+	void (*destroy_counters)(struct ib_counters *counters);
- 	int (*read_counters)(struct ib_counters *counters,
- 			     struct ib_counters_read_attr *counters_read_attr,
- 			     struct uverbs_attr_bundle *attrs);
-@@ -2651,6 +2651,7 @@ struct ib_device_ops {
- 			      struct uverbs_attr_bundle *attrs);
- 
- 	DECLARE_RDMA_OBJ_SIZE(ib_ah);
-+	DECLARE_RDMA_OBJ_SIZE(ib_counters);
- 	DECLARE_RDMA_OBJ_SIZE(ib_cq);
+@@ -2494,9 +2494,8 @@ struct ib_device_ops {
+ 	void (*dealloc_mw)(struct ib_mw *mw);
+ 	int (*attach_mcast)(struct ib_qp *qp, union ib_gid *gid, u16 lid);
+ 	int (*detach_mcast)(struct ib_qp *qp, union ib_gid *gid, u16 lid);
+-	struct ib_xrcd *(*alloc_xrcd)(struct ib_device *device,
+-				      struct ib_udata *udata);
+-	int (*dealloc_xrcd)(struct ib_xrcd *xrcd, struct ib_udata *udata);
++	int (*alloc_xrcd)(struct ib_xrcd *xrcd, struct ib_udata *udata);
++	void (*dealloc_xrcd)(struct ib_xrcd *xrcd, struct ib_udata *udata);
+ 	struct ib_flow *(*create_flow)(struct ib_qp *qp,
+ 				       struct ib_flow_attr *flow_attr,
+ 				       int domain, struct ib_udata *udata);
+@@ -2656,6 +2655,7 @@ struct ib_device_ops {
  	DECLARE_RDMA_OBJ_SIZE(ib_pd);
  	DECLARE_RDMA_OBJ_SIZE(ib_srq);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_ucontext);
++	DECLARE_RDMA_OBJ_SIZE(ib_xrcd);
+ };
+ 
+ struct ib_core_device {
 -- 
 2.26.2
 
