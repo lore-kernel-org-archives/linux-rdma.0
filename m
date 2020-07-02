@@ -2,51 +2,53 @@ Return-Path: <SRS0=kzXy=AN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E81DAC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FBC9C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:18:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B34D320772
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:18:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23A9A20772
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:18:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593677895;
-	bh=2dOO5kQOu2YXuUzo51sbC8QuexLQG37+CB+Iz14e9SA=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=P0VoYY4eEUamhz8TVWsr0/FyADHZ2KSMRZcaCg4dNs39nRWgVDYLSGF9WDd/BwXzZ
-	 g7MGUSxdXNTUtx4cNYLS16b8Zj8eAVM6t/d+OPQoWSvj/Nic6Jr+Gd0YJWZ3wutSmn
-	 qVaftU3R7W53cye7EFjwjIFzwMztEbCPGot3VxFM=
+	s=default; t=1593677900;
+	bh=/R8TiUgXmzfZqVVqJYrQ7g+Xwq2SigIoJNCqxFBNVz8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=kjEpfpAXwNsP1ZGqsan/YPKRR9QwFbVZ0YMRPplWzxsH1k/LLqKvF3e15Zjvn/YxG
+	 3bS8CVyeEbez5rnyV/gFLMdWstSg6VcjcCbMfCaNqs1wBk+34VjhZljm/wlSCpnBLc
+	 PGHjUf1v7ABjc69/XooNM7tQnRqEmUtmPZWuOtGk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726445AbgGBISP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Jul 2020 04:18:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46244 "EHLO mail.kernel.org"
+        id S1726795AbgGBIST (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Jul 2020 04:18:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726042AbgGBISO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 2 Jul 2020 04:18:14 -0400
+        id S1726042AbgGBISS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 2 Jul 2020 04:18:18 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8EE6D20720;
-        Thu,  2 Jul 2020 08:18:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4A6F420720;
+        Thu,  2 Jul 2020 08:18:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593677894;
-        bh=2dOO5kQOu2YXuUzo51sbC8QuexLQG37+CB+Iz14e9SA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Ey1aQpYxoNOTb3Yq3n1wkmMCa+xlzZrdYnYZkI7mWQ8Qd+B8Uls0BoczPWIfBCDyJ
-         1xKdnetMiJ+Hx+ao8P2el6LpNOQ09t7ntAkHe0CWxDFvb/cTwqhA0OY/MQmSWZcP2a
-         CltTgvV/S9FS4E0k+vnHLyJhkJ970JhO7kueyF3c=
+        s=default; t=1593677898;
+        bh=/R8TiUgXmzfZqVVqJYrQ7g+Xwq2SigIoJNCqxFBNVz8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Wqd0ygNtCq8y/KG2OFU2uMpw/ZFziYyl1Ln6oBAH8bG4hzWP+t3U2tktu6Dp90twr
+         rSzmwhEaOInIMDsvjK53AIcNPVU40nG3TFcOuQB5Y1hcr0UJL8SKiOOK+uzCabMMX7
+         BRoz1DoSFbsV3Mbqk4XeBIj9S5udVfB9x5/QXHJI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
         Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 0/6] Cleanup mlx5_ib main file
-Date:   Thu,  2 Jul 2020 11:18:03 +0300
-Message-Id: <20200702081809.423482-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/6] RDMA/mlx5: Limit the scope of mlx5_ib_enable_driver function
+Date:   Thu,  2 Jul 2020 11:18:04 +0300
+Message-Id: <20200702081809.423482-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200702081809.423482-1-leon@kernel.org>
+References: <20200702081809.423482-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,51 +58,71 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Over the years, the main.c file grew above all imagination and was >8K
-LOC of the code. This caused to a huge burden while I started to work on
-ib_flow allocation patches.
+The mlx5_ib_enable_driver() is local function and doesn't need to be
+shared in mlx5_ib, so change it's signature to have static keyword in
+it.
 
-This series implements long standing "internal" wish to move flow logic
-from the main to separate file.
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/main.c    | 24 ++++++++++++------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
+ 2 files changed, 12 insertions(+), 13 deletions(-)
 
-Based on
-https://lore.kernel.org/linux-rdma/20200630101855.368895-4-leon@kernel.org
-
-Thanks
-
-Leon Romanovsky (6):
-  RDMA/mlx5: Limit the scope of mlx5_ib_enable_driver function
-  RDMA/mlx5: Separate restrack callbacks initialization from main.c
-  RDMA/mlx5: Separate counters from main.c
-  RDMA/mlx5: Separate flow steering logic from main.c
-  RDMA/mlx5: Cleanup DEVX initialization flow
-  RDMA/mlx5: Delete one-time used functions
-
- drivers/infiniband/hw/mlx5/Makefile   |    3 +-
- drivers/infiniband/hw/mlx5/cmd.c      |   12 -
- drivers/infiniband/hw/mlx5/cmd.h      |    1 -
- drivers/infiniband/hw/mlx5/counters.c |  709 +++++
- drivers/infiniband/hw/mlx5/counters.h |   17 +
- drivers/infiniband/hw/mlx5/devx.c     |  102 +-
- drivers/infiniband/hw/mlx5/devx.h     |   45 +
- drivers/infiniband/hw/mlx5/flow.c     |  765 -----
- drivers/infiniband/hw/mlx5/fs.c       | 2514 +++++++++++++++
- drivers/infiniband/hw/mlx5/fs.h       |   29 +
- drivers/infiniband/hw/mlx5/main.c     | 4112 +++++--------------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |   76 +-
- drivers/infiniband/hw/mlx5/qp.c       |    1 +
- drivers/infiniband/hw/mlx5/qp.h       |    1 +
- drivers/infiniband/hw/mlx5/restrack.c |   29 +-
- drivers/infiniband/hw/mlx5/restrack.h |   13 +
- 16 files changed, 4184 insertions(+), 4245 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/counters.c
- create mode 100644 drivers/infiniband/hw/mlx5/counters.h
- create mode 100644 drivers/infiniband/hw/mlx5/devx.h
- delete mode 100644 drivers/infiniband/hw/mlx5/flow.c
- create mode 100644 drivers/infiniband/hw/mlx5/fs.c
- create mode 100644 drivers/infiniband/hw/mlx5/fs.h
- create mode 100644 drivers/infiniband/hw/mlx5/restrack.h
-
---
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index a6d5c35a2845..4154fc2dd250 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6572,6 +6572,18 @@ static void mlx5_ib_stage_flow_db_cleanup(struct mlx5_ib_dev *dev)
+ 	kfree(dev->flow_db);
+ }
+ 
++static int mlx5_ib_enable_driver(struct ib_device *dev)
++{
++	struct mlx5_ib_dev *mdev = to_mdev(dev);
++	int ret;
++
++	ret = mlx5_ib_test_wc(mdev);
++	mlx5_ib_dbg(mdev, "Write-Combining %s",
++		    mdev->wc_support ? "supported" : "not supported");
++
++	return ret;
++}
++
+ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.owner = THIS_MODULE,
+ 	.driver_id = RDMA_DRIVER_MLX5,
+@@ -7097,18 +7109,6 @@ static void mlx5_ib_stage_devx_cleanup(struct mlx5_ib_dev *dev)
+ 	}
+ }
+ 
+-int mlx5_ib_enable_driver(struct ib_device *dev)
+-{
+-	struct mlx5_ib_dev *mdev = to_mdev(dev);
+-	int ret;
+-
+-	ret = mlx5_ib_test_wc(mdev);
+-	mlx5_ib_dbg(mdev, "Write-Combining %s",
+-		    mdev->wc_support ? "supported" : "not supported");
+-
+-	return ret;
+-}
+-
+ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+ 		      const struct mlx5_ib_profile *profile,
+ 		      int stage)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 726386fe4440..6d48f91a492c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1541,7 +1541,6 @@ static inline bool mlx5_ib_can_use_umr(struct mlx5_ib_dev *dev,
+ 	return true;
+ }
+ 
+-int mlx5_ib_enable_driver(struct ib_device *dev);
+ int mlx5_ib_test_wc(struct mlx5_ib_dev *dev);
+ 
+ static inline bool mlx5_ib_lag_should_assign_affinity(struct mlx5_ib_dev *dev)
+-- 
 2.26.2
 
