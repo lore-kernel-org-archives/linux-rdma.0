@@ -2,169 +2,92 @@ Return-Path: <SRS0=kzXy=AN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E58A9C433E1
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:29:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 660F5C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 09:09:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4A0E20720
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 08:29:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593678590;
-	bh=0GgkFvh9+fnSaV3Rm4coE9s7YPSP1L3DxbZAY0hchow=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=04Vop/VFf0KCyDaqJlP6LqPB72YijuSpZqRDc4y6cFut7cZeAvjfu/WgHn/YHPjPT
-	 Xmuq7xO0EVgMYEHcHRzTjL5a2MGPQE2iNd2ocYm4yzYyCvOwugL4K4OF1sCDNisaWC
-	 4eZfa2LufAZAv1FUYKhDftviPuaSZkr7VoApUUrM=
+	by mail.kernel.org (Postfix) with ESMTP id 3FA34206BE
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Jul 2020 09:09:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726980AbgGBI3u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Jul 2020 04:29:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54726 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgGBI3t (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 2 Jul 2020 04:29:49 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6A188206A1;
-        Thu,  2 Jul 2020 08:29:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593678589;
-        bh=0GgkFvh9+fnSaV3Rm4coE9s7YPSP1L3DxbZAY0hchow=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PGqWl1bMUqZcxeoed7/xp3tzmQeQ0EixHy+VY/JzxehiSC85BnsMXT+8Uvzsa6V12
-         UeEMa72j6TRYGKK4Z9y0TLPyrZndp5mTN9+M88zo3KQi3kuWEdDjbNT+WelMDrPvBT
-         a52GkXrRVB5rUeM3pFwwBxZPEC26ku4RN+Ua0Lpw=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Mark Zhang <markz@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 1/3] RDMA/counter: Add PID category support in auto mode
-Date:   Thu,  2 Jul 2020 11:29:31 +0300
-Message-Id: <20200702082933.424537-2-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200702082933.424537-1-leon@kernel.org>
-References: <20200702082933.424537-1-leon@kernel.org>
+        id S1726362AbgGBJJl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Jul 2020 05:09:41 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:6805 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726089AbgGBJJl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 2 Jul 2020 05:09:41 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
+        by Forcepoint Email with ESMTP id 261584EB6E99CFD40B6F;
+        Thu,  2 Jul 2020 17:09:40 +0800 (CST)
+Received: from kernelci-master.huawei.com (10.175.101.6) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.487.0; Thu, 2 Jul 2020 17:09:32 +0800
+From:   Wei Yongjun <weiyongjun1@huawei.com>
+To:     Hulk Robot <hulkci@huawei.com>, Tariq Toukan <tariqt@mellanox.com>,
+        "Jakub Kicinski" <kuba@kernel.org>,
+        Vaibhav Gupta <vaibhavgupta40@gmail.com>
+CC:     Wei Yongjun <weiyongjun1@huawei.com>, <netdev@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>
+Subject: [PATCH net-next] mlx4: Mark PM functions as __maybe_unused
+Date:   Thu, 2 Jul 2020 17:19:46 +0800
+Message-ID: <20200702091946.5144-1-weiyongjun1@huawei.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.175.101.6]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+In certain configurations without power management support, the
+following warnings happen:
 
-With the "PID" category QPs have same PID will be bound to same counter;
-If this category is not set then QPs have different PIDs will be bound
-to same counter.
+drivers/net/ethernet/mellanox/mlx4/main.c:4388:12:
+ warning: 'mlx4_resume' defined but not used [-Wunused-function]
+ 4388 | static int mlx4_resume(struct device *dev_d)
+      |            ^~~~~~~~~~~
+drivers/net/ethernet/mellanox/mlx4/main.c:4373:12: warning:
+ 'mlx4_suspend' defined but not used [-Wunused-function]
+ 4373 | static int mlx4_suspend(struct device *dev_d)
+      |            ^~~~~~~~~~~~
+      
+Mark these functions as __maybe_unused to make it clear to the
+compiler that this is going to happen based on the configuration,
+which is the standard for these types of functions.
 
-This is implemented for 2 reasons:
-1. The counter is a limited resource, while there may be dozens of
-   applications, each of which creates several types of QPs, which means
-   it may doesn't have enough counter.
-2. The system administrator needs all QPs created by all applications
-   with same type bound to one counter.
-
-The counter name and PID is only make sense when "PID" category are
-configured.
-
-This category can also be used in combine with others, e.g. QP type.
-
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 0e3e206a3e12 ("mlx4: use generic power management")
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
- drivers/infiniband/core/counters.c | 20 +++++---------------
- drivers/infiniband/core/nldev.c    |  8 ++++++--
- include/uapi/rdma/rdma_netlink.h   |  1 +
- 3 files changed, 12 insertions(+), 17 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index 738d1faf4bba..9ec8631c3970 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -8,7 +8,7 @@
- #include "core_priv.h"
- #include "restrack.h"
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 4cae7db8d49c..954c22c79f6b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -4370,7 +4370,7 @@ static const struct pci_error_handlers mlx4_err_handler = {
+ 	.resume		= mlx4_pci_resume,
+ };
  
--#define ALL_AUTO_MODE_MASKS (RDMA_COUNTER_MASK_QP_TYPE)
-+#define ALL_AUTO_MODE_MASKS (RDMA_COUNTER_MASK_QP_TYPE | RDMA_COUNTER_MASK_PID)
- 
- static int __counter_set_mode(struct rdma_counter_mode *curr,
- 			      enum rdma_nl_counter_mode new_mode,
-@@ -149,23 +149,13 @@ static bool auto_mode_match(struct ib_qp *qp, struct rdma_counter *counter,
- 	struct auto_mode_param *param = &counter->mode.param;
- 	bool match = true;
- 
--	/*
--	 * Ensure that counter belongs to the right PID.  This operation can
--	 * race with user space which kills the process and leaves QP and
--	 * counters orphans.
--	 *
--	 * It is not a big deal because exitted task will leave both QP and
--	 * counter in the same bucket of zombie process. Just ensure that
--	 * process is still alive before procedding.
--	 *
--	 */
--	if (task_pid_nr(counter->res.task) != task_pid_nr(qp->res.task) ||
--	    !task_pid_nr(qp->res.task))
--		return false;
--
- 	if (auto_mask & RDMA_COUNTER_MASK_QP_TYPE)
- 		match &= (param->qp_type == qp->qp_type);
- 
-+	if (auto_mask & RDMA_COUNTER_MASK_PID)
-+		match &= (task_pid_nr(counter->res.task) ==
-+			  task_pid_nr(qp->res.task));
-+
- 	return match;
- }
- 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 1051b5622b62..76af7ea2875d 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -711,11 +711,16 @@ static int fill_stat_counter_mode(struct sk_buff *msg,
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_MODE, m->mode))
- 		return -EMSGSIZE;
- 
--	if (m->mode == RDMA_COUNTER_MODE_AUTO)
-+	if (m->mode == RDMA_COUNTER_MODE_AUTO) {
- 		if ((m->mask & RDMA_COUNTER_MASK_QP_TYPE) &&
- 		    nla_put_u8(msg, RDMA_NLDEV_ATTR_RES_TYPE, m->param.qp_type))
- 			return -EMSGSIZE;
- 
-+		if ((m->mask & RDMA_COUNTER_MASK_PID) &&
-+		    fill_res_name_pid(msg, &counter->res))
-+			return -EMSGSIZE;
-+	}
-+
+-static int mlx4_suspend(struct device *dev_d)
++static int __maybe_unused mlx4_suspend(struct device *dev_d)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(dev_d);
+ 	struct mlx4_dev_persistent *persist = pci_get_drvdata(pdev);
+@@ -4385,7 +4385,7 @@ static int mlx4_suspend(struct device *dev_d)
  	return 0;
  }
  
-@@ -855,7 +860,6 @@ static int fill_res_counter_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, counter->port) ||
- 	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_COUNTER_ID, counter->id) ||
--	    fill_res_name_pid(msg, &counter->res) ||
- 	    fill_stat_counter_mode(msg, counter) ||
- 	    fill_stat_counter_qps(msg, counter) ||
- 	    fill_stat_counter_hwcounters(msg, counter))
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 3826143d420d..d2f5b8396243 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -569,5 +569,6 @@ enum rdma_nl_counter_mode {
-  */
- enum rdma_nl_counter_mask {
- 	RDMA_COUNTER_MASK_QP_TYPE = 1,
-+	RDMA_COUNTER_MASK_PID = 1 << 1,
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
--- 
-2.26.2
+-static int mlx4_resume(struct device *dev_d)
++static int __maybe_unused mlx4_resume(struct device *dev_d)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(dev_d);
+ 	struct mlx4_dev_persistent *persist = pci_get_drvdata(pdev);
 
