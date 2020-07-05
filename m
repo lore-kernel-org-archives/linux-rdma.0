@@ -2,103 +2,210 @@ Return-Path: <SRS0=uC3E=AQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4850C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 07:46:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA2C1C433E0
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AAC76206E2
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 07:46:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1593935169;
-	bh=OcVOa8WuzJRVdavjz0+UcCPdjDWaQpI8SH+WClSUFak=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=bCpNzkyHK0EUP1tOLkQsKMOzjD3JxldvmAFX1jsP1G3OyJ/pKSUFulU+ds0Ov7kNi
-	 KzmlIGU/mfBQo2iHYyGUso8njO/rl8T4GkRQw4ATSOrVyEiViTq2dl4SxCt0cGIFfM
-	 nbI7j7DZSoSEPpl1UxFAxQ7nabTgMW/1jTnQTca0=
+	by mail.kernel.org (Postfix) with ESMTP id 82E54206BE
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725901AbgGEHqI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 5 Jul 2020 03:46:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49790 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725894AbgGEHqH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 5 Jul 2020 03:46:07 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 823A6206BE;
-        Sun,  5 Jul 2020 07:46:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1593935167;
-        bh=OcVOa8WuzJRVdavjz0+UcCPdjDWaQpI8SH+WClSUFak=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=P75/VSVY3iNzsR/tPYfRQMs7MMiUKVBt/lwu4pEevlMayN3lL3Xorr/51v8TSPo5Q
-         kRFZWYccCzounHbKvcqNc1AfMikE+ASd9pmCVHJ3Ahd3qGibcB0tNl0/EL0xYIAMjb
-         Odc0BbRCdOw98hEbcoFkickUb8V/39ECO8bdhdeE=
-Date:   Sun, 5 Jul 2020 10:46:03 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc:     Kamal Heib <kamalheib1@gmail.com>, linux-rdma@vger.kernel.org,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Zhu Yanjun <yanjunz@mellanox.com>
-Subject: Re: [PATCH for-next 4/4] RDMA/rxe: Remove rxe_link_layer()
-Message-ID: <20200705074603.GB5149@unreal>
-References: <20200703153428.173758-1-kamalheib1@gmail.com>
- <20200703153428.173758-5-kamalheib1@gmail.com>
- <CAD=hENe33xJ+WEj3q7DpVB17Cn+Yu9Sz6at=oZKhDdz_PR9bKw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAD=hENe33xJ+WEj3q7DpVB17Cn+Yu9Sz6at=oZKhDdz_PR9bKw@mail.gmail.com>
+        id S1726625AbgGEIUM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 5 Jul 2020 04:20:12 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33112 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726495AbgGEIUL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Jul 2020 04:20:11 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
+        with SMTP; 5 Jul 2020 11:20:05 +0300
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5S7001694;
+        Sun, 5 Jul 2020 11:20:05 +0300
+Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K50N009296;
+        Sun, 5 Jul 2020 11:20:05 +0300
+Received: (from yishaih@localhost)
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K5u6009295;
+        Sun, 5 Jul 2020 11:20:05 +0300
+From:   Yishai Hadas <yishaih@mellanox.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
+Subject: [PATCH V1 rdma-core 06/13] mlx5: Implement the import device functionality
+Date:   Sun,  5 Jul 2020 11:19:42 +0300
+Message-Id: <1593937189-8744-7-git-send-email-yishaih@mellanox.com>
+X-Mailer: git-send-email 1.8.2.3
+In-Reply-To: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
+References: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jul 05, 2020 at 09:49:31AM +0800, Zhu Yanjun wrote:
-> On Fri, Jul 3, 2020 at 11:35 PM Kamal Heib <kamalheib1@gmail.com> wrote:
-> >
-> > Instead of return IB_LINK_LAYER_ETHERNET from rxe_link_layer return it
-> > directly from get_link_layer callback and remove rxe_link_layer().
-> >
-> > Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe_loc.h   | 1 -
-> >  drivers/infiniband/sw/rxe/rxe_net.c   | 5 -----
-> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 4 +---
-> >  3 files changed, 1 insertion(+), 9 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> > index 0688928cf2b1..39dc3bfa5d5d 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_loc.h
-> > +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> > @@ -142,7 +142,6 @@ int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb);
-> >  struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-> >                                 int paylen, struct rxe_pkt_info *pkt);
-> >  int rxe_prepare(struct rxe_pkt_info *pkt, struct sk_buff *skb, u32 *crc);
-> > -enum rdma_link_layer rxe_link_layer(struct rxe_dev *rxe, unsigned int port_num);
-> >  const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num);
-> >  struct device *rxe_dma_device(struct rxe_dev *rxe);
-> >  int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid);
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> > index 312c2fc961c0..0c3808611f95 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> > @@ -520,11 +520,6 @@ const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num)
-> >         return rxe->ndev->name;
-> >  }
-> >
-> > -enum rdma_link_layer rxe_link_layer(struct rxe_dev *rxe, unsigned int port_num)
-> > -{
-> > -       return IB_LINK_LAYER_ETHERNET;
-> > -}
->
-> This is a wrapper function.
+Implement the import device functionality by using the query context
+ioctl command to retrieve the original user context properties.
 
-What does one-time used/one-line wrapper function give us?
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+---
+ libibverbs/cmd_device.c      | 27 ++++++++++++++++++++++++++
+ libibverbs/driver.h          |  2 ++
+ libibverbs/libibverbs.map.in |  1 +
+ providers/mlx5/mlx5.c        | 45 ++++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 73 insertions(+), 2 deletions(-)
 
-Thanks
+diff --git a/libibverbs/cmd_device.c b/libibverbs/cmd_device.c
+index 648cc0b..a55fb10 100644
+--- a/libibverbs/cmd_device.c
++++ b/libibverbs/cmd_device.c
+@@ -175,3 +175,30 @@ int ibv_cmd_get_context(struct verbs_context *context_ex,
+ 
+ 	return cmd_get_context(context_ex, cmdb);
+ }
++
++int ibv_cmd_query_context(struct ibv_context *context,
++			  struct ibv_command_buffer *driver)
++{
++	DECLARE_COMMAND_BUFFER_LINK(cmd, UVERBS_OBJECT_DEVICE,
++				    UVERBS_METHOD_QUERY_CONTEXT,
++				    2,
++				    driver);
++
++	struct verbs_device *verbs_device;
++	uint64_t core_support;
++	int ret;
++
++	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_CONTEXT_NUM_COMP_VECTORS,
++			  &context->num_comp_vectors);
++	fill_attr_out_ptr(cmd, UVERBS_ATTR_QUERY_CONTEXT_CORE_SUPPORT,
++			  &core_support);
++
++	ret = execute_ioctl(context, cmd);
++	if (ret)
++		return ret;
++
++	verbs_device = verbs_get_device(context->device);
++	verbs_device->core_support = core_support;
++
++	return 0;
++}
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 48eace4..710886c 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -433,6 +433,8 @@ struct ibv_context *verbs_open_device(struct ibv_device *device,
+ int ibv_cmd_get_context(struct verbs_context *context,
+ 			struct ibv_get_context *cmd, size_t cmd_size,
+ 			struct ib_uverbs_get_context_resp *resp, size_t resp_size);
++int ibv_cmd_query_context(struct ibv_context *ctx,
++			  struct ibv_command_buffer *driver);
+ int ibv_cmd_query_device(struct ibv_context *context,
+ 			 struct ibv_device_attr *device_attr,
+ 			 uint64_t *raw_fw_ver,
+diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
+index be75717..6da6504 100644
+--- a/libibverbs/libibverbs.map.in
++++ b/libibverbs/libibverbs.map.in
+@@ -192,6 +192,7 @@ IBVERBS_PRIVATE_@IBVERBS_PABI_VERSION@ {
+ 		ibv_cmd_post_recv;
+ 		ibv_cmd_post_send;
+ 		ibv_cmd_post_srq_recv;
++		ibv_cmd_query_context;
+ 		ibv_cmd_query_device;
+ 		ibv_cmd_query_device_ex;
+ 		ibv_cmd_query_port;
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index cb9ed60..648e220 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -43,6 +43,7 @@
+ #include <sys/param.h>
+ 
+ #include <util/symver.h>
++#include <rdma/mlx5_user_ioctl_cmds.h>
+ 
+ #include "mlx5.h"
+ #include "mlx5-abi.h"
+@@ -1367,7 +1368,8 @@ static struct mlx5_context *mlx5_init_context(struct ibv_device *ibdev,
+ }
+ 
+ static int mlx5_set_context(struct mlx5_context *context,
+-			    struct mlx5_ib_alloc_ucontext_resp *resp)
++			    struct mlx5_ib_alloc_ucontext_resp *resp,
++			    bool is_import)
+ {
+ 	struct verbs_context *v_ctx = &context->ibv_ctx;
+ 	struct ibv_port_attr port_attr = {};
+@@ -1441,6 +1443,10 @@ static int mlx5_set_context(struct mlx5_context *context,
+ 	context->shut_up_bf = get_shut_up_bf();
+ 
+ 	if (resp->tot_bfregs) {
++		if (is_import) {
++			errno = EINVAL;
++			return EINVAL;
++		}
+ 		context->tot_uuars = resp->tot_bfregs;
+ 		gross_uuars = context->tot_uuars / MLX5_NUM_NON_FP_BFREGS_PER_UAR * NUM_BFREGS_PER_UAR;
+ 		context->bfs = calloc(gross_uuars, sizeof(*context->bfs));
+@@ -1594,7 +1600,7 @@ retry_open:
+ 		}
+ 	}
+ 
+-	ret = mlx5_set_context(context, &resp.drv_payload);
++	ret = mlx5_set_context(context, &resp.drv_payload, false);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1605,6 +1611,40 @@ err:
+ 	return NULL;
+ }
+ 
++static struct verbs_context *mlx5_import_context(struct ibv_device *ibdev,
++						int cmd_fd)
++
++{
++	struct mlx5_ib_alloc_ucontext_resp resp = {};
++	DECLARE_COMMAND_BUFFER_LINK(driver_attr, UVERBS_OBJECT_DEVICE,
++				    UVERBS_METHOD_QUERY_CONTEXT, 1,
++				    NULL);
++	struct ibv_context *context;
++	struct mlx5_context *mctx;
++	int ret;
++
++	mctx = mlx5_init_context(ibdev, cmd_fd, NULL);
++	if (!mctx)
++		return NULL;
++
++	context = &mctx->ibv_ctx.context;
++
++	fill_attr_out_ptr(driver_attr, MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX, &resp);
++	ret = ibv_cmd_query_context(context, driver_attr);
++	if (ret)
++		goto err;
++
++	ret = mlx5_set_context(mctx, &resp, true);
++	if (ret)
++		goto err;
++
++	return &mctx->ibv_ctx;
++
++err:
++	mlx5_uninit_context(mctx);
++	return NULL;
++}
++
+ static void mlx5_free_context(struct ibv_context *ibctx)
+ {
+ 	struct mlx5_context *context = to_mctx(ibctx);
+@@ -1657,6 +1697,7 @@ static const struct verbs_device_ops mlx5_dev_ops = {
+ 	.alloc_device = mlx5_device_alloc,
+ 	.uninit_device = mlx5_uninit_device,
+ 	.alloc_context = mlx5_alloc_context,
++	.import_context = mlx5_import_context,
+ };
+ 
+ bool is_mlx5_dev(struct ibv_device *device)
+-- 
+1.8.3.1
+
