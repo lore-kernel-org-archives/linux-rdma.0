@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70CCFC433EA
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5F8CC433E7
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51CAB206B6
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B504820708
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726565AbgGEIUQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 5 Jul 2020 04:20:16 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33123 "EHLO
+        id S1726480AbgGEIUP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 5 Jul 2020 04:20:15 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33111 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726572AbgGEIUM (ORCPT
+        with ESMTP id S1726491AbgGEIUM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Jul 2020 04:20:12 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
-        with SMTP; 5 Jul 2020 11:20:06 +0300
+        with SMTP; 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K6W9001735;
-        Sun, 5 Jul 2020 11:20:06 +0300
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5D1001673;
+        Sun, 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5qK009336;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5QD009278;
         Sun, 5 Jul 2020 11:20:05 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K5D0009335;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K52f009276;
         Sun, 5 Jul 2020 11:20:05 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
-Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com,
-        Edward Srouji <edwards@mellanox.com>
-Subject: [PATCH V1 rdma-core 13/13] tests: Add a shared PD Pyverbs test
-Date:   Sun,  5 Jul 2020 11:19:49 +0300
-Message-Id: <1593937189-8744-14-git-send-email-yishaih@mellanox.com>
+Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
+Subject: [PATCH V1 rdma-core 03/13] verbs: Enhance async FD usage
+Date:   Sun,  5 Jul 2020 11:19:39 +0300
+Message-Id: <1593937189-8744-4-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
 References: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
@@ -45,157 +44,210 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Edward Srouji <edwards@mellanox.com>
+Enhance async FD usage by adding an option to enforce it be a mandatory
+attribute in a given device once the applicable objects are created
+(e.g.QP, CQ, etc.).
 
-The test creates a client and server sides of RC resources.  Then the
-server resources are imported and used for RDMA write traffic.
+This is some preparation step before introducing in the next patch the
+ibv_import_device() verb which must use its own async FD to be able to
+get events on its private created objects.
 
-Reviewed-by: Ido Kalir <idok@mellanox.com>
-Signed-off-by: Edward Srouji <edwards@mellanox.com>
+In addition, we moved ibv_cmd_alloc_async_fd() to be called as part of
+ibv_open_device() in case wasn't allocated yet (i.e. ioctl flow), this
+will be aligned with the import device flow that will be introduced.
+
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 ---
- tests/CMakeLists.txt    |  1 +
- tests/base.py           | 11 ++++--
- tests/test_shared_pd.py | 95 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 105 insertions(+), 2 deletions(-)
- create mode 100644 tests/test_shared_pd.py
+ libibverbs/cmd_cq.c     | 9 +++++++--
+ libibverbs/cmd_device.c | 5 +----
+ libibverbs/cmd_qp.c     | 4 ++++
+ libibverbs/cmd_srq.c    | 4 ++++
+ libibverbs/cmd_wq.c     | 4 ++++
+ libibverbs/device.c     | 8 ++++++++
+ libibverbs/driver.h     | 1 +
+ libibverbs/ibverbs.h    | 1 +
+ 8 files changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
-index 1708fb9..33ffc78 100644
---- a/tests/CMakeLists.txt
-+++ b/tests/CMakeLists.txt
-@@ -25,6 +25,7 @@ rdma_python_test(tests
-   test_qpex.py
-   test_rdmacm.py
-   test_relaxed_ordering.py
-+  test_shared_pd.py
-   utils.py
-   )
+diff --git a/libibverbs/cmd_cq.c b/libibverbs/cmd_cq.c
+index ec6f0e6..e8113d4 100644
+--- a/libibverbs/cmd_cq.c
++++ b/libibverbs/cmd_cq.c
+@@ -31,6 +31,7 @@
+  */
  
-diff --git a/tests/base.py b/tests/base.py
-index 2824ca2..4311362 100755
---- a/tests/base.py
-+++ b/tests/base.py
-@@ -247,10 +247,17 @@ class BaseResources(object):
-         :param ib_port: IB port of the device to use (default: 1)
-         :param gid_index: Which GID index to use (default: 0)
-         """
--        self.ctx = Context(name=dev_name)
-+        self.dev_name = dev_name
-         self.gid_index = gid_index
--        self.pd = PD(self.ctx)
-         self.ib_port = ib_port
-+        self.create_context()
-+        self.create_pd()
-+
-+    def create_context(self):
-+        self.ctx = Context(name=self.dev_name)
-+
-+    def create_pd(self):
-+        self.pd = PD(self.ctx)
+ #include <infiniband/cmd_write.h>
++#include "ibverbs.h"
  
+ static int ibv_icmd_create_cq(struct ibv_context *context, int cqe,
+ 			      struct ibv_comp_channel *channel, int comp_vector,
+@@ -38,6 +39,7 @@ static int ibv_icmd_create_cq(struct ibv_context *context, int cqe,
+ 			      struct ibv_command_buffer *link)
+ {
+ 	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_CQ, UVERBS_METHOD_CQ_CREATE, 8, link);
++	struct verbs_ex_private *priv = get_priv(context);
+ 	struct ib_uverbs_attr *handle;
+ 	struct ib_uverbs_attr *async_fd_attr;
+ 	uint32_t resp_cqe;
+@@ -54,8 +56,11 @@ static int ibv_icmd_create_cq(struct ibv_context *context, int cqe,
+ 		fill_attr_in_fd(cmdb, UVERBS_ATTR_CREATE_CQ_COMP_CHANNEL, channel->fd);
+ 	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_CQ_COMP_VECTOR, comp_vector);
+ 	async_fd_attr = fill_attr_in_fd(cmdb, UVERBS_ATTR_CREATE_CQ_EVENT_FD, context->async_fd);
+-	/* Prevent fallback to the 'write' mode if kernel doesn't support it */
+-	attr_optional(async_fd_attr);
++	if (priv->imported)
++		fallback_require_ioctl(cmdb);
++	else
++		/* Prevent fallback to the 'write' mode if kernel doesn't support it */
++		attr_optional(async_fd_attr);
  
- class TrafficResources(BaseResources):
-diff --git a/tests/test_shared_pd.py b/tests/test_shared_pd.py
-new file mode 100644
-index 0000000..e533074
---- /dev/null
-+++ b/tests/test_shared_pd.py
-@@ -0,0 +1,95 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2020 Mellanox Technologies, Inc. All rights reserved. See COPYING file
-+"""
-+Test module for Shared PD.
-+"""
-+import unittest
-+import errno
-+import os
+ 	if (flags) {
+ 		fallback_require_ex(cmdb);
+diff --git a/libibverbs/cmd_device.c b/libibverbs/cmd_device.c
+index 4de59c0..648cc0b 100644
+--- a/libibverbs/cmd_device.c
++++ b/libibverbs/cmd_device.c
+@@ -99,7 +99,7 @@ int ibv_cmd_query_port(struct ibv_context *context, uint8_t port_num,
+ 	return 0;
+ }
+ 
+-static int cmd_alloc_async_fd(struct ibv_context *context)
++int ibv_cmd_alloc_async_fd(struct ibv_context *context)
+ {
+ 	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_ASYNC_EVENT,
+ 			       UVERBS_METHOD_ASYNC_EVENT_ALLOC, 1);
+@@ -153,9 +153,6 @@ static int cmd_get_context(struct verbs_context *context_ex,
+ 		return 0;
+ 	}
+ 	case SUCCESS:
+-		ret = cmd_alloc_async_fd(context);
+-		if (ret)
+-			return ret;
+ 		break;
+ 	default:
+ 		return ret;
+diff --git a/libibverbs/cmd_qp.c b/libibverbs/cmd_qp.c
+index a11bb98..567984d 100644
+--- a/libibverbs/cmd_qp.c
++++ b/libibverbs/cmd_qp.c
+@@ -76,6 +76,7 @@ static int ibv_icmd_create_qp(struct ibv_context *context,
+ 			      struct ibv_command_buffer *link)
+ {
+ 	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_QP, UVERBS_METHOD_QP_CREATE, 15, link);
++	struct verbs_ex_private *priv = get_priv(context);
+ 	struct ib_uverbs_attr *handle;
+ 	uint32_t qp_num;
+ 	uint32_t pd_handle;
+@@ -172,6 +173,9 @@ static int ibv_icmd_create_qp(struct ibv_context *context,
+ 	fill_attr_in_ptr(cmdb, UVERBS_ATTR_CREATE_QP_CAP, &attr_ex->cap);
+ 	fill_attr_in_fd(cmdb, UVERBS_ATTR_CREATE_QP_EVENT_FD, context->async_fd);
+ 
++	if (priv->imported)
++		fallback_require_ioctl(cmdb);
 +
-+from tests.test_qpex import QpExRCRDMAWrite
-+from tests.base import RDMATestCase
-+from pyverbs.device import Context
-+from pyverbs.pd import PD
-+from pyverbs.mr import MR
-+import pyverbs.enums as e
-+import tests.utils as u
+ 	if (attr_ex->sq_sig_all)
+ 		create_flags |= IB_UVERBS_QP_CREATE_SQ_SIG_ALL;
+ 
+diff --git a/libibverbs/cmd_srq.c b/libibverbs/cmd_srq.c
+index 4e63046..dfaaa6a 100644
+--- a/libibverbs/cmd_srq.c
++++ b/libibverbs/cmd_srq.c
+@@ -53,6 +53,7 @@ static int ibv_icmd_create_srq(struct ibv_pd *pd, struct verbs_srq *vsrq,
+ 			       struct ibv_command_buffer *link)
+ {
+ 	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_SRQ, UVERBS_METHOD_SRQ_CREATE, 13, link);
++	struct verbs_ex_private *priv = get_priv(pd->context);
+ 	struct ib_uverbs_attr *handle;
+ 	uint32_t max_wr;
+ 	uint32_t max_sge;
+@@ -107,6 +108,9 @@ static int ibv_icmd_create_srq(struct ibv_pd *pd, struct verbs_srq *vsrq,
+ 	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_SRQ_RESP_MAX_WR, &max_wr);
+ 	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_SRQ_RESP_MAX_SGE, &max_sge);
+ 
++	if (priv->imported)
++		fallback_require_ioctl(cmdb);
 +
-+
-+def get_import_res_class(base_class):
-+    """
-+    This function creates a class that inherits base_class of any BaseResources
-+    type. Its purpose is to behave exactly as base_class does, except for the
-+    objects creation, which instead of creating context, PD and MR, it imports
-+    them. Hence the returned class must be initialized with (cmd_fd, pd_handle,
-+    mr_handle, mr_addr, **kwargs), while kwargs are the arguments needed
-+    (if any) for base_class. In addition it has unimport_resources() method
-+    which unimprot all the resources and closes the imported PD object.
-+    :param base_class: The base resources class to inherit from
-+    :return: ImportResources(cmd_fd, pd_handle, mr_handle, mr_addr, **kwargs)
-+             class
-+    """
-+    class ImportResources(base_class):
-+        def __init__(self, cmd_fd, pd_handle, mr_handle, mr_addr=None, **kwargs):
-+            self.cmd_fd = cmd_fd
-+            self.pd_handle = pd_handle
-+            self.mr_handle = mr_handle
-+            self.mr_addr = mr_addr
-+            super(ImportResources, self).__init__(**kwargs)
-+
-+        def create_context(self):
-+            try:
-+                self.ctx = Context(cmd_fd=self.cmd_fd)
-+            except u.PyverbsRDMAError as ex:
-+                if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
-+                    raise unittest.SkipTest('Importing a device is not supported')
-+                raise ex
-+
-+        def create_pd(self):
-+            self.pd = PD(self.ctx, handle=self.pd_handle)
-+
-+        def create_mr(self):
-+            self.mr = MR(self.pd, handle=self.mr_handle, address=self.mr_addr)
-+
-+        def unimport_resources(self):
-+            self.mr.unimport()
-+            self.pd.unimport()
-+            self.pd.close()
-+
-+    return ImportResources
-+
-+
-+class SharedPDTestCase(RDMATestCase):
-+    def setUp(self):
-+        super().setUp()
-+        self.iters = 10
-+        self.server_res = None
-+        self.imported_res = []
-+
-+    def tearDown(self):
-+        for res in self.imported_res:
-+            res.unimport_resources()
-+        super().tearDown()
-+
-+    def test_imported_rc_ex_rdma_write(self):
-+        setup_params = {'dev_name': self.dev_name, 'ib_port': self.ib_port,
-+                        'gid_index': self.gid_index}
-+        self.server_res = QpExRCRDMAWrite(**setup_params)
-+        cmd_fd_dup = os.dup(self.server_res.ctx.cmd_fd)
-+        import_cls = get_import_res_class(QpExRCRDMAWrite)
-+        server_import = import_cls(
-+            cmd_fd_dup, self.server_res.pd.handle, self.server_res.mr.handle,
-+            # The imported MR's address is NULL, so using the address of the
-+            # "main" MR object to be able to validate the message
-+            self.server_res.mr.buf,
-+            **setup_params)
-+        self.imported_res.append(server_import)
-+        client = QpExRCRDMAWrite(**setup_params)
-+        client.pre_run(server_import.psn, server_import.qpn)
-+        server_import.pre_run(client.psn, client.qpn)
-+        client.rkey = server_import.mr.rkey
-+        server_import.rkey = client.mr.rkey
-+        client.raddr = server_import.mr.buf
-+        server_import.raddr = client.mr.buf
-+        u.rdma_traffic(client, server_import, self.iters, self.gid_index,
-+                       self.ib_port, send_op=e.IBV_QP_EX_WITH_RDMA_WRITE)
+ 	switch (execute_ioctl_fallback(srq->context, create_srq, cmdb, &ret)) {
+ 	case TRY_WRITE: {
+ 		if (attr_ex->srq_type == IBV_SRQT_BASIC && abi_ver > 5) {
+diff --git a/libibverbs/cmd_wq.c b/libibverbs/cmd_wq.c
+index d233c3a..855fc04 100644
+--- a/libibverbs/cmd_wq.c
++++ b/libibverbs/cmd_wq.c
+@@ -31,6 +31,7 @@
+  */
+ 
+ #include <infiniband/cmd_write.h>
++#include "ibverbs.h"
+ 
+ static int ibv_icmd_create_wq(struct ibv_context *context,
+ 			      struct ibv_wq_init_attr *wq_init_attr,
+@@ -38,6 +39,7 @@ static int ibv_icmd_create_wq(struct ibv_context *context,
+ 			      struct ibv_command_buffer *link)
+ {
+ 	DECLARE_FBCMD_BUFFER(cmdb, UVERBS_OBJECT_WQ, UVERBS_METHOD_WQ_CREATE, 13, link);
++	struct verbs_ex_private *priv = get_priv(context);
+ 	struct ib_uverbs_attr *handle;
+ 	uint32_t max_wr;
+ 	uint32_t max_sge;
+@@ -62,6 +64,8 @@ static int ibv_icmd_create_wq(struct ibv_context *context,
+ 	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_WQ_RESP_MAX_SGE, &max_sge);
+ 	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_WQ_RESP_WQ_NUM, &wq_num);
+ 
++	if (priv->imported)
++		fallback_require_ioctl(cmdb);
+ 	fallback_require_ex(cmdb);
+ 
+ 	switch (execute_ioctl_fallback(context, create_wq, cmdb, &ret)) {
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index 629832e..4ef2a6a 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -344,6 +344,7 @@ struct ibv_context *verbs_open_device(struct ibv_device *device, void *private_d
+ 	struct verbs_device *verbs_device = verbs_get_device(device);
+ 	int cmd_fd;
+ 	struct verbs_context *context_ex;
++	int ret;
+ 
+ 	/*
+ 	 * We'll only be doing writes, but we need O_RDWR in case the
+@@ -363,6 +364,13 @@ struct ibv_context *verbs_open_device(struct ibv_device *device, void *private_d
+ 		return NULL;
+ 
+ 	set_lib_ops(context_ex);
++	if (context_ex->context.async_fd == -1) {
++		ret = ibv_cmd_alloc_async_fd(&context_ex->context);
++		if (ret) {
++			ibv_close_device(&context_ex->context);
++			return NULL;
++		}
++	}
+ 
+ 	return &context_ex->context;
+ }
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 9f9933d..a1b241b 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -453,6 +453,7 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ int ibv_cmd_query_port(struct ibv_context *context, uint8_t port_num,
+ 		       struct ibv_port_attr *port_attr,
+ 		       struct ibv_query_port *cmd, size_t cmd_size);
++int ibv_cmd_alloc_async_fd(struct ibv_context *context);
+ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
+ 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
+ 		     struct ib_uverbs_alloc_pd_resp *resp, size_t resp_size);
+diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
+index 4b9b88f..6703c10 100644
+--- a/libibverbs/ibverbs.h
++++ b/libibverbs/ibverbs.h
+@@ -74,6 +74,7 @@ struct verbs_ex_private {
+ 	uint32_t driver_id;
+ 	bool use_ioctl_write;
+ 	struct verbs_context_ops ops;
++	bool imported;
+ };
+ 
+ static inline struct verbs_ex_private *get_priv(struct ibv_context *ctx)
 -- 
 1.8.3.1
 
