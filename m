@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5875C433EB
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F3DAC433DF
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:21:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 999DE206B6
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DCF3206B6
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:21:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726491AbgGEIUQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 5 Jul 2020 04:20:16 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33107 "EHLO
+        id S1726280AbgGEIVR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 5 Jul 2020 04:21:17 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33109 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726565AbgGEIUM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Jul 2020 04:20:12 -0400
+        with ESMTP id S1726582AbgGEIVR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Jul 2020 04:21:17 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with SMTP; 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5hs001700;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5bW001688;
         Sun, 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5QL009306;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K53m009291;
         Sun, 5 Jul 2020 11:20:05 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K5Q0009305;
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K5UC009288;
         Sun, 5 Jul 2020 11:20:05 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH V1 rdma-core 08/13] mlx5: Implement the import/unimport PD verbs
-Date:   Sun,  5 Jul 2020 11:19:44 +0300
-Message-Id: <1593937189-8744-9-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 05/13] mlx5: Refactor mlx5_alloc_context()
+Date:   Sun,  5 Jul 2020 11:19:41 +0300
+Message-Id: <1593937189-8744-6-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
 In-Reply-To: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
 References: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
@@ -44,143 +44,415 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement the import/unimport PD verbs based on their definition as
-described in the man page.
+This patch refactors mlx5_alloc_context() by splitting its functionality
+to few parts, init context, get context command, set context, uninit
+context.
 
-It uses the query PD ioctl command to retrieve the original PD
-properties based on its given handle.
+As part of splitting, cleaned up some redundant outlen checks.
+
+The above is some preparation step to enable implementing
+mlx5_import_context() by sharing the applicable parts.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 ---
- providers/mlx5/mlx5.c  |  2 ++
- providers/mlx5/mlx5.h  |  3 +++
- providers/mlx5/verbs.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 57 insertions(+), 2 deletions(-)
+ providers/mlx5/mlx5.c | 274 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 154 insertions(+), 120 deletions(-)
 
 diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 648e220..ea55e0f 100644
+index 805be2c..cb9ed60 100644
 --- a/providers/mlx5/mlx5.c
 +++ b/providers/mlx5/mlx5.c
-@@ -144,6 +144,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.destroy_wq = mlx5_destroy_wq,
- 	.free_dm = mlx5_free_dm,
- 	.get_srq_num = mlx5_get_srq_num,
-+	.import_pd = mlx5_import_pd,
- 	.modify_cq = mlx5_modify_cq,
- 	.modify_flow_action_esp = mlx5_modify_flow_action_esp,
- 	.modify_qp_rate_limit = mlx5_modify_qp_rate_limit,
-@@ -159,6 +160,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.alloc_null_mr = mlx5_alloc_null_mr,
- 	.free_context = mlx5_free_context,
- 	.set_ece = mlx5_set_ece,
-+	.unimport_pd = mlx5_unimport_pd,
- };
+@@ -1268,17 +1268,17 @@ repeat:
  
- static const struct verbs_context_ops mlx5_ctx_cqev1_ops = {
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index b57ba25..3c129d7 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -1040,6 +1040,9 @@ int mlx5_advise_mr(struct ibv_pd *pd,
- 		   uint32_t flags,
- 		   struct ibv_sge *sg_list,
- 		   uint32_t num_sges);
-+struct ibv_pd *mlx5_import_pd(struct ibv_context *context,
-+			      uint32_t pd_handle);
-+void mlx5_unimport_pd(struct ibv_pd *pd);
- int mlx5_qp_fill_wr_pfns(struct mlx5_qp *mqp,
- 			 const struct ibv_qp_init_attr_ex *attr,
- 			 const struct mlx5dv_qp_init_attr *mlx5_attr);
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 5643ecc..81e1ed9 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -556,26 +556,39 @@ static int mlx5_dealloc_parent_domain(struct mlx5_parent_domain *mparent_domain)
- 	return 0;
- }
- 
--int mlx5_free_pd(struct ibv_pd *pd)
-+static int _mlx5_free_pd(struct ibv_pd *pd, bool unimport)
+ static void adjust_uar_info(struct mlx5_device *mdev,
+ 			    struct mlx5_context *context,
+-			    struct mlx5_alloc_ucontext_resp resp)
++			    struct mlx5_ib_alloc_ucontext_resp *resp)
  {
- 	int ret;
- 	struct mlx5_parent_domain *mparent_domain = to_mparent_domain(pd);
- 	struct mlx5_pd *mpd = to_mpd(pd);
+-	if (!resp.log_uar_size && !resp.num_uars_per_page) {
++	if (!resp->log_uar_size && !resp->num_uars_per_page) {
+ 		/* old kernel */
+ 		context->uar_size = mdev->page_size;
+ 		context->num_uars_per_page = 1;
+ 		return;
+ 	}
  
--	if (mparent_domain)
-+	if (mparent_domain) {
-+		if (unimport)
-+			return EINVAL;
-+
- 		return mlx5_dealloc_parent_domain(mparent_domain);
-+	}
- 
- 	if (atomic_load(&mpd->refcount) > 1)
- 		return EBUSY;
- 
-+	if (unimport)
-+		goto end;
-+
- 	ret = ibv_cmd_dealloc_pd(pd);
- 	if (ret)
- 		return ret;
- 
-+end:
- 	free(mpd);
- 	return 0;
+-	context->uar_size = 1 << resp.log_uar_size;
+-	context->num_uars_per_page = resp.num_uars_per_page;
++	context->uar_size = 1 << resp->log_uar_size;
++	context->num_uars_per_page = resp->num_uars_per_page;
  }
  
-+int mlx5_free_pd(struct ibv_pd *pd)
+ bool mlx5dv_is_supported(struct ibv_device *device)
+@@ -1297,120 +1297,108 @@ mlx5dv_open_device(struct ibv_device *device, struct mlx5dv_context_attr *attr)
+ 	return verbs_open_device(device, attr);
+ }
+ 
+-static struct verbs_context *mlx5_alloc_context(struct ibv_device *ibdev,
++static int get_uar_info(struct mlx5_device *mdev,
++			int *tot_uuars, int *low_lat_uuars)
 +{
-+	return _mlx5_free_pd(pd, false);
++	*tot_uuars = get_total_uuars(mdev->page_size);
++	if (*tot_uuars < 0) {
++		errno = -*tot_uuars;
++		return -1;
++	}
++
++	*low_lat_uuars = get_num_low_lat_uuars(*tot_uuars);
++	if (*low_lat_uuars < 0) {
++		errno = -*low_lat_uuars;
++		return -1;
++	}
++
++	if (*low_lat_uuars > *tot_uuars - 1) {
++		errno = ENOMEM;
++		return -1;
++	}
++
++	return 0;
 +}
 +
- struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   uint64_t hca_va, int acc)
- {
-@@ -706,6 +719,43 @@ int mlx5_advise_mr(struct ibv_pd *pd,
- 	return ibv_cmd_advise_mr(pd, advice, flags, sg_list, num_sge);
- }
- 
-+struct ibv_pd *mlx5_import_pd(struct ibv_context *context,
-+			      uint32_t pd_handle)
++static void mlx5_uninit_context(struct mlx5_context *context)
 +{
-+	DECLARE_COMMAND_BUFFER(cmd,
-+			       UVERBS_OBJECT_PD,
-+			       MLX5_IB_METHOD_PD_QUERY,
-+			       2);
++	close_debug_file(context);
 +
-+	struct mlx5_pd *pd;
++	verbs_uninit_context(&context->ibv_ctx);
++	free(context);
++}
++
++static struct mlx5_context *mlx5_init_context(struct ibv_device *ibdev,
+ 						int cmd_fd,
+ 						void *private_data)
+ {
+-	struct mlx5_context	       *context;
+-	struct mlx5_alloc_ucontext	req;
+-	struct mlx5_alloc_ucontext_resp resp;
+-	int				i;
+-	int				page_size;
+-	int				tot_uuars;
+-	int				low_lat_uuars;
+-	int				gross_uuars;
+-	int				j;
+-	struct mlx5_device	       *mdev = to_mdev(ibdev);
+-	struct verbs_context	       *v_ctx;
+-	struct ibv_port_attr		port_attr;
+-	struct ibv_device_attr_ex	device_attr;
+-	int				k;
+-	int				bfi;
+-	int				num_sys_page_map;
+-	struct mlx5dv_context_attr      *ctx_attr = private_data;
+-	bool				always_devx = false;
++	struct mlx5dv_context_attr *ctx_attr = private_data;
++	struct mlx5_device *mdev = to_mdev(ibdev);
++	struct mlx5_context *context;
++	int low_lat_uuars;
++	int tot_uuars;
++	int ret;
+ 
+ 	if (ctx_attr && ctx_attr->comp_mask) {
+ 		errno = EINVAL;
+ 		return NULL;
+ 	}
+ 
++	ret = get_uar_info(mdev, &tot_uuars, &low_lat_uuars);
++	if (ret)
++		return NULL;
++
+ 	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
+ 					       RDMA_DRIVER_MLX5);
+ 	if (!context)
+ 		return NULL;
+ 
+-	v_ctx = &context->ibv_ctx;
+-	page_size = mdev->page_size;
+-	mlx5_single_threaded = single_threaded_app();
+-
+ 	open_debug_file(context);
+ 	set_debug_mask();
+ 	set_freeze_on_error();
+ 	if (gethostname(context->hostname, sizeof(context->hostname)))
+ 		strcpy(context->hostname, "host_unknown");
+ 
+-	tot_uuars = get_total_uuars(page_size);
+-	if (tot_uuars < 0) {
+-		errno = -tot_uuars;
+-		goto err_free;
+-	}
+-
+-	low_lat_uuars = get_num_low_lat_uuars(tot_uuars);
+-	if (low_lat_uuars < 0) {
+-		errno = -low_lat_uuars;
+-		goto err_free;
+-	}
+-
+-	if (low_lat_uuars > tot_uuars - 1) {
+-		errno = ENOMEM;
+-		goto err_free;
+-	}
+-
+-	memset(&req, 0, sizeof(req));
+-	memset(&resp, 0, sizeof(resp));
+-
+-	req.total_num_bfregs = tot_uuars;
+-	req.num_low_latency_bfregs = low_lat_uuars;
+-	req.max_cqe_version = MLX5_CQE_VERSION_V1;
+-	req.lib_caps |= (MLX5_LIB_CAP_4K_UAR | MLX5_LIB_CAP_DYN_UAR);
+-	if (ctx_attr && ctx_attr->flags) {
+-
+-		if (!check_comp_mask(ctx_attr->flags,
+-				     MLX5DV_CONTEXT_FLAGS_DEVX)) {
+-			errno = EINVAL;
+-			goto err_free;
+-		}
+-
+-		req.flags = MLX5_IB_ALLOC_UCTX_DEVX;
+-	} else {
+-		req.flags = MLX5_IB_ALLOC_UCTX_DEVX;
+-		always_devx = true;
+-	}
++	mlx5_single_threaded = single_threaded_app();
++	context->tot_uuars = tot_uuars;
++	context->low_lat_uuars = low_lat_uuars;
+ 
+-retry_open:
+-	if (mlx5_cmd_get_context(context, &req, sizeof(req), &resp,
+-				 sizeof(resp))) {
+-		if (always_devx) {
+-			req.flags &= ~MLX5_IB_ALLOC_UCTX_DEVX;
+-			always_devx = false;
+-			memset(&resp, 0, sizeof(resp));
+-			goto retry_open;
+-		} else {
+-			goto err_free;
+-		}
+-	}
++	return context;
++}
+ 
+-	context->max_num_qps		= resp.qp_tab_size;
+-	context->bf_reg_size		= resp.bf_reg_size;
+-	context->tot_uuars		= resp.tot_bfregs;
+-	context->low_lat_uuars		= low_lat_uuars;
+-	context->cache_line_size	= resp.cache_line_size;
+-	context->max_sq_desc_sz = resp.max_sq_desc_sz;
+-	context->max_rq_desc_sz = resp.max_rq_desc_sz;
+-	context->max_send_wqebb	= resp.max_send_wqebb;
+-	context->num_ports	= resp.num_ports;
+-	context->max_recv_wr	= resp.max_recv_wr;
+-	context->max_srq_recv_wr = resp.max_srq_recv_wr;
+-	context->num_dyn_bfregs = resp.num_dyn_bfregs;
+-
+-	if (resp.comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_ECE)
++static int mlx5_set_context(struct mlx5_context *context,
++			    struct mlx5_ib_alloc_ucontext_resp *resp)
++{
++	struct verbs_context *v_ctx = &context->ibv_ctx;
++	struct ibv_port_attr port_attr = {};
++	struct ibv_device_attr_ex device_attr = {};
++	int cmd_fd = v_ctx->context.cmd_fd;
++	struct mlx5_device *mdev = to_mdev(v_ctx->context.device);
++	struct ibv_device *ibdev = v_ctx->context.device;
++	int page_size = mdev->page_size;
++	int num_sys_page_map;
++	int gross_uuars;
++	int bfi;
++	int i, k, j;
++
++	context->max_num_qps = resp->qp_tab_size;
++	context->bf_reg_size = resp->bf_reg_size;
++	context->cache_line_size = resp->cache_line_size;
++	context->max_sq_desc_sz = resp->max_sq_desc_sz;
++	context->max_rq_desc_sz = resp->max_rq_desc_sz;
++	context->max_send_wqebb	= resp->max_send_wqebb;
++	context->num_ports = resp->num_ports;
++	context->max_recv_wr = resp->max_recv_wr;
++	context->max_srq_recv_wr = resp->max_srq_recv_wr;
++	context->num_dyn_bfregs = resp->num_dyn_bfregs;
++
++	if (resp->comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_ECE)
+ 		context->flags |= MLX5_CTX_FLAGS_ECE_SUPPORTED;
+ 
+-	if (resp.comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_DUMP_FILL_MKEY) {
+-		context->dump_fill_mkey = resp.dump_fill_mkey;
++	if (resp->comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_DUMP_FILL_MKEY) {
++		context->dump_fill_mkey = resp->dump_fill_mkey;
+ 		/* Have the BE value ready to be used in data path */
+-		context->dump_fill_mkey_be = htobe32(resp.dump_fill_mkey);
++		context->dump_fill_mkey_be = htobe32(resp->dump_fill_mkey);
+ 	} else {
+ 		/* kernel driver will never return MLX5_INVALID_LKEY for
+ 		 * dump_fill_mkey
+@@ -1419,19 +1407,18 @@ retry_open:
+ 		context->dump_fill_mkey_be = htobe32(MLX5_INVALID_LKEY);
+ 	}
+ 
+-	context->cqe_version = resp.cqe_version;
+-
++	context->cqe_version = resp->cqe_version;
+ 	adjust_uar_info(mdev, context, resp);
+ 
+-	context->cmds_supp_uhw = resp.cmds_supp_uhw;
++	context->cmds_supp_uhw = resp->cmds_supp_uhw;
+ 	context->vendor_cap_flags = 0;
+ 	list_head_init(&context->dyn_uar_bf_list);
+ 	list_head_init(&context->dyn_uar_nc_list);
+ 	list_head_init(&context->dyn_uar_qp_shared_list);
+ 	list_head_init(&context->dyn_uar_qp_dedicated_list);
+ 
+-	if (resp.eth_min_inline)
+-		context->eth_min_inline_size = (resp.eth_min_inline == MLX5_USER_INLINE_MODE_NONE) ?
++	if (resp->eth_min_inline)
++		context->eth_min_inline_size = (resp->eth_min_inline == MLX5_USER_INLINE_MODE_NONE) ?
+ 						0 : MLX5_ETH_L2_INLINE_HEADER_SIZE;
+ 	else
+ 		context->eth_min_inline_size = MLX5_ETH_L2_INLINE_HEADER_SIZE;
+@@ -1453,7 +1440,8 @@ retry_open:
+ 	context->prefer_bf = get_always_bf();
+ 	context->shut_up_bf = get_shut_up_bf();
+ 
+-	if (context->tot_uuars) {
++	if (resp->tot_bfregs) {
++		context->tot_uuars = resp->tot_bfregs;
+ 		gross_uuars = context->tot_uuars / MLX5_NUM_NON_FP_BFREGS_PER_UAR * NUM_BFREGS_PER_UAR;
+ 		context->bfs = calloc(gross_uuars, sizeof(*context->bfs));
+ 		if (!context->bfs) {
+@@ -1462,8 +1450,8 @@ retry_open:
+ 		}
+ 		context->flags |= MLX5_CTX_FLAGS_NO_KERN_DYN_UAR;
+ 	} else {
+-		context->qp_max_dedicated_uuars = low_lat_uuars;
+-		context->qp_max_shared_uuars = tot_uuars - low_lat_uuars;
++		context->qp_max_dedicated_uuars = context->low_lat_uuars;
++		context->qp_max_shared_uuars = context->tot_uuars - context->low_lat_uuars;
+ 		goto bf_done;
+ 	}
+ 
+@@ -1491,9 +1479,9 @@ retry_open:
+ 				if (bfi)
+ 					context->bfs[bfi].buf_size = context->bf_reg_size / 2;
+ 				context->bfs[bfi].uuarn = bfi;
+-				context->bfs[bfi].uar_mmap_offset = get_uar_mmap_offset(i,
+-											page_size,
+-											uar_type_to_cmd(context->uar[i].type));
++				context->bfs[bfi].uar_mmap_offset =
++					get_uar_mmap_offset(i, page_size,
++							uar_type_to_cmd(context->uar[i].type));
+ 			}
+ 		}
+ 	}
+@@ -1501,23 +1489,16 @@ retry_open:
+ bf_done:
+ 
+ 	context->hca_core_clock = NULL;
+-	if (resp.response_length + sizeof(resp.ibv_resp) >=
+-	    offsetof(struct mlx5_alloc_ucontext_resp, hca_core_clock_offset) +
+-	    sizeof(resp.hca_core_clock_offset) &&
+-	    resp.comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET) {
+-		context->core_clock.offset = resp.hca_core_clock_offset;
++	if (resp->comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET) {
++		context->core_clock.offset = resp->hca_core_clock_offset;
+ 		mlx5_map_internal_clock(mdev, &v_ctx->context);
+ 	}
+ 
+ 	context->clock_info_page = NULL;
+-	if (resp.response_length + sizeof(resp.ibv_resp) >=
+-	    offsetof(struct mlx5_alloc_ucontext_resp, clock_info_versions) +
+-	    sizeof(resp.clock_info_versions) &&
+-	    (resp.clock_info_versions & (1 << MLX5_IB_CLOCK_INFO_V1))) {
++	if ((resp->clock_info_versions & (1 << MLX5_IB_CLOCK_INFO_V1)))
+ 		mlx5_map_clock_info(mdev, &v_ctx->context);
+-	}
+ 
+-	context->flow_action_flags = resp.flow_action_flags;
++	context->flow_action_flags = resp->flow_action_flags;
+ 
+ 	mlx5_read_env(ibdev, context);
+ 
+@@ -1532,7 +1513,6 @@ bf_done:
+ 			goto err_free;
+ 	}
+ 
+-	memset(&device_attr, 0, sizeof(device_attr));
+ 	if (!mlx5_query_device_ex(&v_ctx->context, NULL, &device_attr,
+ 				  sizeof(struct ibv_device_attr_ex))) {
+ 		context->cached_device_cap_flags =
+@@ -1554,7 +1534,7 @@ bf_done:
+ 						    MLX5_IB_UAPI_UAR_ALLOC_TYPE_NC);
+ 	context->cq_uar_reg = context->cq_uar ? context->cq_uar->uar : context->uar[0].reg;
+ 
+-	return v_ctx;
++	return 0;
+ 
+ err_free_bf:
+ 	free(context->bfs);
+@@ -1564,10 +1544,64 @@ err_free:
+ 		if (context->uar[i].reg)
+ 			munmap(context->uar[i].reg, page_size);
+ 	}
+-	close_debug_file(context);
+ 
+-	verbs_uninit_context(&context->ibv_ctx);
+-	free(context);
++	return -1;
++}
++
++static struct verbs_context *mlx5_alloc_context(struct ibv_device *ibdev,
++						int cmd_fd,
++						void *private_data)
++{
++	struct mlx5_context	       *context;
++	struct mlx5_alloc_ucontext	req = {};
++	struct mlx5_alloc_ucontext_resp resp = {};
++	struct mlx5dv_context_attr      *ctx_attr = private_data;
++	bool				always_devx = false;
 +	int ret;
 +
-+	pd = calloc(1, sizeof *pd);
-+	if (!pd)
++	context = mlx5_init_context(ibdev, cmd_fd, NULL);
++	if (!context)
 +		return NULL;
 +
-+	fill_attr_in_obj(cmd, MLX5_IB_ATTR_QUERY_PD_HANDLE, pd_handle);
-+	fill_attr_out_ptr(cmd, MLX5_IB_ATTR_QUERY_PD_RESP_PDN, &pd->pdn);
++	req.total_num_bfregs = context->tot_uuars;
++	req.num_low_latency_bfregs = context->low_lat_uuars;
++	req.max_cqe_version = MLX5_CQE_VERSION_V1;
++	req.lib_caps |= (MLX5_LIB_CAP_4K_UAR | MLX5_LIB_CAP_DYN_UAR);
++	if (ctx_attr && ctx_attr->flags) {
 +
-+	ret = execute_ioctl(context, cmd);
-+	if (ret) {
-+		free(pd);
-+		return NULL;
++		if (!check_comp_mask(ctx_attr->flags,
++				     MLX5DV_CONTEXT_FLAGS_DEVX)) {
++			errno = EINVAL;
++			goto err;
++		}
++
++		req.flags = MLX5_IB_ALLOC_UCTX_DEVX;
++	} else {
++		req.flags = MLX5_IB_ALLOC_UCTX_DEVX;
++		always_devx = true;
 +	}
 +
-+	pd->ibv_pd.context = context;
-+	pd->ibv_pd.handle = pd_handle;
-+	atomic_init(&pd->refcount, 1);
++retry_open:
++	if (mlx5_cmd_get_context(context, &req, sizeof(req), &resp,
++				 sizeof(resp))) {
++		if (always_devx) {
++			req.flags &= ~MLX5_IB_ALLOC_UCTX_DEVX;
++			always_devx = false;
++			memset(&resp, 0, sizeof(resp));
++			goto retry_open;
++		} else {
++			goto err;
++		}
++	}
 +
-+	return &pd->ibv_pd;
-+}
++	ret = mlx5_set_context(context, &resp.drv_payload);
++	if (ret)
++		goto err;
 +
-+void mlx5_unimport_pd(struct ibv_pd *pd)
-+{
-+	if (_mlx5_free_pd(pd, true))
-+		assert(false);
-+}
++	return &context->ibv_ctx;
 +
- struct ibv_mw *mlx5_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type)
- {
- 	struct ibv_mw *mw;
++err:
++	mlx5_uninit_context(context);
+ 	return NULL;
+ }
+ 
 -- 
 1.8.3.1
 
