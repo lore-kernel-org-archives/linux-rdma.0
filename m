@@ -2,265 +2,140 @@ Return-Path: <SRS0=uC3E=AQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
 	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32A77C433E5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2038EC433E6
 	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 195AA20708
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F16ED206B6
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 08:20:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726519AbgGEIUO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726303AbgGEIUO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Sun, 5 Jul 2020 04:20:14 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33105 "EHLO
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:33106 "EHLO
         mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726303AbgGEIUN (ORCPT
+        with ESMTP id S1726480AbgGEIUN (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Jul 2020 04:20:13 -0400
 Received: from Internal Mail-Server by MTLPINE1 (envelope-from yishaih@mellanox.com)
         with SMTP; 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [10.7.2.17])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5xD001675;
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5I0001664;
         Sun, 5 Jul 2020 11:20:05 +0300
 Received: from vnc17.mtl.labs.mlnx (vnc17.mtl.labs.mlnx [127.0.0.1])
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K5ri009283;
-        Sun, 5 Jul 2020 11:20:05 +0300
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8) with ESMTP id 0658K4hX009262;
+        Sun, 5 Jul 2020 11:20:04 +0300
 Received: (from yishaih@localhost)
-        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K5EM009282;
-        Sun, 5 Jul 2020 11:20:05 +0300
+        by vnc17.mtl.labs.mlnx (8.13.8/8.13.8/Submit) id 0658K4ns009257;
+        Sun, 5 Jul 2020 11:20:04 +0300
 From:   Yishai Hadas <yishaih@mellanox.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     jgg@mellanox.com, yishaih@mellanox.com, maorg@mellanox.com
-Subject: [PATCH V1 rdma-core 04/13] verbs: Introduce ibv_import_device() verb
-Date:   Sun,  5 Jul 2020 11:19:40 +0300
-Message-Id: <1593937189-8744-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 00/13] verbs: Introduce import verbs for device, PD, MR
+Date:   Sun,  5 Jul 2020 11:19:36 +0300
+Message-Id: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
 X-Mailer: git-send-email 1.8.2.3
-In-Reply-To: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
-References: <1593937189-8744-1-git-send-email-yishaih@mellanox.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Introduce ibv_import_device(), it enable a process to get an ibv_context
-that is associated with a given command FD that it owns.
+This series Introduces import verbs for device, PD, MR which enables processes
+to share their ibv_context and then share PD(s) and MR(s) that are associated
+with.
 
-A process is creating a device and then uses some of the Linux systems
-calls to dup its 'cmd_fd' member and lets other process to obtain owning
-on.
+This functionality enables utilizing and optimizing some application flows, few
+examples below.
 
-Once other process obtains the 'cmd_fd' it can call ibv_import_device()
-which returns an ibv_contxet on the original RDMA device.
+Any solution which is a single business logic based on multi-process design
+needs this. Example include NGINX, with TCP load balancing, sharing the RSS
+indirection table with RQ per process. HPC frameworks with multi-rank (process)
+solution on single hosts. UCX can share IB resources using the shared PD and
+can help dispatch data to multiple processes/MR's in single RDMA operation.
+Also, there are use cases when a primary processes registered a large shared
+memory range, and each worker process spawned will create a private QP on the
+shared PD, and use the shared MR to save the registration time per-process.
 
-A detailed man page as part of this patch describes the expected usage
-and flow.
+As part of this series was added also some pyverbs stuff to support and
+demonstrate some usage of the APIs.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
----
- debian/libibverbs1.symbols            |  1 +
- libibverbs/device.c                   | 62 +++++++++++++++++++++++++++++++++++
- libibverbs/driver.h                   |  2 ++
- libibverbs/libibverbs.map.in          |  1 +
- libibverbs/man/CMakeLists.txt         |  1 +
- libibverbs/man/ibv_import_device.3.md | 48 +++++++++++++++++++++++++++
- libibverbs/verbs.h                    |  5 +++
- 7 files changed, 120 insertions(+)
+The verbs APIs were introduced in the mailing list by the below RFC [1], the
+matching kernel series was sent to rdma-next,
+
+PR: https://github.com/linux-rdma/rdma-core/pull/776
+[1] https://patchwork.kernel.org/patch/11540665/
+
+Changes from V0:
+- Replace ordering of patches #3 and #4 to prevent incomplete functionality.
+- Added some note as part of ibv_import_device() to explain why it's safe
+  for dissociated flow.
+- Improve man pages in some places.
+- Drop the IOVA attribute setting which was not really in use.
+- Fix some style notes.
+- Refer in commit messages to ioctl command instead of KABI.
+
+Yishai
+
+Edward Srouji (3):
+  pyverbs: Support verbs import APIs
+  Documentation: Add usage example for verbs import
+  tests: Add a shared PD Pyverbs test
+
+Yishai Hadas (10):
+  Update kernel headers
+  verbs: Close async_fd only when it was previously created
+  verbs: Enhance async FD usage
+  verbs: Introduce ibv_import_device() verb
+  mlx5: Refactor mlx5_alloc_context()
+  mlx5: Implement the import device functionality
+  verbs: Introduce ibv_import/unimport_pd() verbs
+  mlx5: Implement the import/unimport PD verbs
+  verbs: Introduce ibv_import/unimport_mr() verbs
+  mlx5: Implement the import/unimport MR verbs
+
+ Documentation/pyverbs.md                   |  40 ++++
+ debian/libibverbs1.symbols                 |   5 +
+ kernel-headers/rdma/ib_user_ioctl_cmds.h   |  15 ++
+ kernel-headers/rdma/mlx5_user_ioctl_cmds.h |  14 ++
+ kernel-headers/rdma/rdma_netlink.h         |   8 +
+ kernel-headers/rdma/rdma_user_ioctl_cmds.h |   2 +-
+ libibverbs/cmd_cq.c                        |   9 +-
+ libibverbs/cmd_device.c                    |  32 ++-
+ libibverbs/cmd_mr.c                        |  31 +++
+ libibverbs/cmd_qp.c                        |   4 +
+ libibverbs/cmd_srq.c                       |   4 +
+ libibverbs/cmd_wq.c                        |   4 +
+ libibverbs/device.c                        |  73 ++++++-
+ libibverbs/driver.h                        |  14 ++
+ libibverbs/dummy_ops.c                     |  30 +++
+ libibverbs/ibverbs.h                       |   1 +
+ libibverbs/libibverbs.map.in               |   7 +
+ libibverbs/man/CMakeLists.txt              |   5 +
+ libibverbs/man/ibv_import_device.3.md      |  48 +++++
+ libibverbs/man/ibv_import_mr.3.md          |  64 ++++++
+ libibverbs/man/ibv_import_pd.3.md          |  59 ++++++
+ libibverbs/verbs.c                         |  30 +++
+ libibverbs/verbs.h                         |  26 +++
+ providers/mlx5/mlx5.c                      | 319 ++++++++++++++++++-----------
+ providers/mlx5/mlx5.h                      |   6 +
+ providers/mlx5/verbs.c                     |  78 ++++++-
+ pyverbs/device.pyx                         |  12 +-
+ pyverbs/libibverbs.pxd                     |   5 +
+ pyverbs/mr.pxd                             |   1 +
+ pyverbs/mr.pyx                             |  60 +++++-
+ pyverbs/pd.pxd                             |   1 +
+ pyverbs/pd.pyx                             |  37 +++-
+ tests/CMakeLists.txt                       |   1 +
+ tests/base.py                              |  11 +-
+ tests/test_shared_pd.py                    |  95 +++++++++
+ 35 files changed, 999 insertions(+), 152 deletions(-)
  create mode 100644 libibverbs/man/ibv_import_device.3.md
+ create mode 100644 libibverbs/man/ibv_import_mr.3.md
+ create mode 100644 libibverbs/man/ibv_import_pd.3.md
+ create mode 100644 tests/test_shared_pd.py
 
-diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
-index bb7eac9..1ba5453 100644
---- a/debian/libibverbs1.symbols
-+++ b/debian/libibverbs1.symbols
-@@ -67,6 +67,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
-  ibv_get_device_name@IBVERBS_1.1 1.1.6
-  ibv_get_pkey_index@IBVERBS_1.5 20
-  ibv_get_sysfs_path@IBVERBS_1.0 1.1.6
-+ ibv_import_device@IBVERBS_1.10 31
-  ibv_init_ah_from_wc@IBVERBS_1.1 1.1.6
-  ibv_modify_qp@IBVERBS_1.0 1.1.6
-  ibv_modify_qp@IBVERBS_1.1 1.1.6
-diff --git a/libibverbs/device.c b/libibverbs/device.c
-index 4ef2a6a..e9c429a 100644
---- a/libibverbs/device.c
-+++ b/libibverbs/device.c
-@@ -382,6 +382,68 @@ LATEST_SYMVER_FUNC(ibv_open_device, 1_1, "IBVERBS_1.1",
- 	return verbs_open_device(device, NULL);
- }
- 
-+struct ibv_context *ibv_import_device(int cmd_fd)
-+{
-+	struct verbs_device *verbs_device = NULL;
-+	struct verbs_context *context_ex;
-+	struct ibv_device **dev_list;
-+	struct ibv_context *ctx = NULL;
-+	struct stat st;
-+	int ret;
-+	int i;
-+
-+	if (fstat(cmd_fd, &st) || !S_ISCHR(st.st_mode)) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	dev_list = ibv_get_device_list(NULL);
-+	if (!dev_list) {
-+		errno = ENODEV;
-+		return NULL;
-+	}
-+
-+	for (i = 0; dev_list[i]; ++i) {
-+		if (verbs_get_device(dev_list[i])->sysfs->sysfs_cdev ==
-+					st.st_rdev) {
-+			verbs_device = verbs_get_device(dev_list[i]);
-+			break;
-+		}
-+	}
-+
-+	if (!verbs_device) {
-+		errno = ENODEV;
-+		goto out;
-+	}
-+
-+	if (!verbs_device->ops->import_context) {
-+		errno = EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	/* In case the underlay cdev number was assigned in the meantime to
-+	 * other device as of some disassociate flow, the next call on the
-+	 * FD will end up with EIO (i.e. query_context command) and we should
-+	 * be safe from using the wrong device.
-+	 */
-+	context_ex = verbs_device->ops->import_context(&verbs_device->device, cmd_fd);
-+	if (!context_ex)
-+		goto out;
-+
-+	set_lib_ops(context_ex);
-+
-+	context_ex->priv->imported = true;
-+	ctx = &context_ex->context;
-+	ret = ibv_cmd_alloc_async_fd(ctx);
-+	if (ret) {
-+		ibv_close_device(ctx);
-+		ctx = NULL;
-+	}
-+out:
-+	ibv_free_device_list(dev_list);
-+	return ctx;
-+}
-+
- void verbs_uninit_context(struct verbs_context *context_ex)
- {
- 	free(context_ex->priv);
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index a1b241b..48eace4 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -216,6 +216,8 @@ struct verbs_device_ops {
- 	struct verbs_context *(*alloc_context)(struct ibv_device *device,
- 					       int cmd_fd,
- 					       void *private_data);
-+	struct verbs_context *(*import_context)(struct ibv_device *device,
-+						int cmd_fd);
- 
- 	struct verbs_device *(*alloc_device)(struct verbs_sysfs_dev *sysfs_dev);
- 	void (*uninit_device)(struct verbs_device *device);
-diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
-index 61b6a80..be75717 100644
---- a/libibverbs/libibverbs.map.in
-+++ b/libibverbs/libibverbs.map.in
-@@ -133,6 +133,7 @@ IBVERBS_1.9 {
- 
- IBVERBS_1.10 {
- 	global:
-+		ibv_import_device;
- 		ibv_query_ece;
- 		ibv_set_ece;
- } IBVERBS_1.9;
-diff --git a/libibverbs/man/CMakeLists.txt b/libibverbs/man/CMakeLists.txt
-index a9cf61e..06b5b49 100644
---- a/libibverbs/man/CMakeLists.txt
-+++ b/libibverbs/man/CMakeLists.txt
-@@ -37,6 +37,7 @@ rdma_man_pages(
-   ibv_get_device_name.3.md
-   ibv_get_pkey_index.3.md
-   ibv_get_srq_num.3.md
-+  ibv_import_device.3.md
-   ibv_inc_rkey.3.md
-   ibv_modify_qp.3
-   ibv_modify_qp_rate_limit.3
-diff --git a/libibverbs/man/ibv_import_device.3.md b/libibverbs/man/ibv_import_device.3.md
-new file mode 100644
-index 0000000..601b50a
---- /dev/null
-+++ b/libibverbs/man/ibv_import_device.3.md
-@@ -0,0 +1,48 @@
-+---
-+date: 2020-5-3
-+footer: libibverbs
-+header: "Libibverbs Programmer's Manual"
-+layout: page
-+license: 'Licensed under the OpenIB.org BSD license (FreeBSD Variant) - See COPYING.md'
-+section: 3
-+title: ibv_import_device
-+---
-+
-+# NAME
-+
-+ibv_import_device - import a device from a given comamnd FD
-+
-+# SYNOPSIS
-+
-+```c
-+#include <infiniband/verbs.h>
-+
-+struct ibv_context *ibv_import_device(int cmd_fd);
-+
-+```
-+
-+
-+# DESCRIPTION
-+
-+**ibv_import_device()** returns an *ibv_context* pointer that is associated with the given
-+*cmd_fd*.
-+
-+The *cmd_fd* is obtained from the ibv_context cmd_fd member, which must be dup'd (eg by dup(), SCM_RIGHTS, etc)
-+before being passed to ibv_import_device().
-+
-+Once the *ibv_context* usage has been ended *ibv_close_device()* should be called.
-+This call may cleanup whatever is needed/opposite of the import including closing the command FD.
-+
-+# RETURN VALUE
-+
-+**ibv_import_device()** returns a pointer to the allocated RDMA context, or NULL if the request fails.
-+
-+# SEE ALSO
-+
-+**ibv_open_device**(3),
-+**ibv_close_device**(3),
-+
-+# AUTHOR
-+
-+Yishai Hadas <yishaih@mellanox.com>
-+
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index f72c1ab..e1247b8 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -2242,6 +2242,11 @@ struct ibv_context *ibv_open_device(struct ibv_device *device);
- int ibv_close_device(struct ibv_context *context);
- 
- /**
-+ * ibv_import_device - Import device
-+ */
-+struct ibv_context *ibv_import_device(int cmd_fd);
-+
-+/**
-  * ibv_get_async_event - Get next async event
-  * @event: Pointer to use to return async event
-  *
 -- 
 1.8.3.1
 
