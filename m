@@ -1,64 +1,64 @@
-Return-Path: <SRS0=gmR2=AP=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=uC3E=AQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4B4C433DF
-	for <linux-rdma@archiver.kernel.org>; Sat,  4 Jul 2020 04:18:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B370AC433DF
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 01:49:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 646FB20899
-	for <linux-rdma@archiver.kernel.org>; Sat,  4 Jul 2020 04:18:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 963C420826
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Jul 2020 01:49:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UGlBRUfY"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lKQFD1Vv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725849AbgGDESt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 4 Jul 2020 00:18:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57644 "EHLO
+        id S1728039AbgGEBtn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 4 Jul 2020 21:49:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725710AbgGDESt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 4 Jul 2020 00:18:49 -0400
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 262FDC061794
-        for <linux-rdma@vger.kernel.org>; Fri,  3 Jul 2020 21:18:49 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id k22so16669258oib.0
-        for <linux-rdma@vger.kernel.org>; Fri, 03 Jul 2020 21:18:49 -0700 (PDT)
+        with ESMTP id S1728004AbgGEBtn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 4 Jul 2020 21:49:43 -0400
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42E2BC061794
+        for <linux-rdma@vger.kernel.org>; Sat,  4 Jul 2020 18:49:43 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id e4so21306376oib.1
+        for <linux-rdma@vger.kernel.org>; Sat, 04 Jul 2020 18:49:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=ITDoUL+45ihEP40EjfKo4ZSQMgUg6E+/sz33XQMAeEo=;
-        b=UGlBRUfYyUy+n9S54Dr4D2U+Wncdw0QhMSOjnYv6gk/Gnr8xZQXJt6bM0HOZAK1toE
-         ofcuwI+nPgM21srcZa164TEfX4Uvf/pFNJ4s0sV01IgTN0TIL5jETBwvo5MQ89Oyd8sI
-         impkviM65veoh/fachJfsixTZp2ZZMGY+ZYjF/91PdDytjHlvi6vW0gKqtDEcIt7ZGb0
-         bRzClbi9OuS3Qm+f9VHCel7v2Rtt1iYeN+csYhZJJ+CE7gcViNT7WykD6RL0+siY/UQ7
-         kJrLgJVtKV3QAI+5hXr/CXLmyxsEaJKAdVivVBgRKzpqjAc40tduwZSpDH1EDEfLt2Nv
-         bReg==
+        bh=uuLf45TfFV1e2cMv2Ne8lPE15KA5g59tL9bBTw0d3ho=;
+        b=lKQFD1VvDBuQZk6UOTLfRRnMUFDYNUlLu4S821Gx1P7Q9m667mpiUKfhcDjXoikhSw
+         cJg2ICBdPXiXk4kwoMQvfpPRD5icqQlybj3t5DeacgLkjg1t0XL0OsJwvMzg29eT0EFT
+         otOZgCy9gc4Rrr0j5hO9lB1Dqmm467g1AIgSDPesqtBVfF7T+XnxiGBx1QbK+VOCW6Ju
+         edmXzQ/dwe3JZrHl/gsm+VYxpczG2J0AeKga/3NvqX/ZM7o17AQaKyNvYM4IDg7UtYxQ
+         kh8PhTWX6iABT+IpZGChz4HhP6fgVlWPP8frTXmICio/QiuROGY0e8vt5LQ//Cz/o35Y
+         mVRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=ITDoUL+45ihEP40EjfKo4ZSQMgUg6E+/sz33XQMAeEo=;
-        b=gGQnbVxJ5nrvvBNcM6I34TnrBMOnxMVoRlSwmDmb3rRMXNjjLyL/AOia2PNug3CMV/
-         IlgRzmknogLIGYZ+6a020of0+wYIfYfKxrl/IRXUGPT90ljEnB+eR/BIp3A7q8PBjrkt
-         zZ59sQt+E5mM3Zq+nXsCDD/K7GLpz90RjHJSTsYcpM0b5U5kKEnrzNpG8H34TqYLj9zT
-         msz93RUeA4sT9oC0nRjfQWdoEZPFYC+aKW1SbeI/MN5mA2m4SNLci3qC2CZl3GghME0j
-         xJ19gRxMw1pD830cejo2/I721Cwaslnt+S7SmH3qTrqb3eQ5BV/P1hhs0donXvq3yDCR
-         6kkQ==
-X-Gm-Message-State: AOAM531w1nVsPxTJKW6IUQyryDMqY+ytTY9LxpE6mAZVLIEOJI/enbaW
-        uqbX9V259DGVREVhElnbJ4lK18Cki/pXVEfMpiXESg==
-X-Google-Smtp-Source: ABdhPJwjpNqTP54bOGGs3NNyw3/0kc1UBeeyMQHQOAaYHQ8ziS9FSSaWo0Gl4iHW137eCH7MbHxcnJDCfFZ2xb/JkNs=
-X-Received: by 2002:aca:bed5:: with SMTP id o204mr8084640oif.169.1593836327538;
- Fri, 03 Jul 2020 21:18:47 -0700 (PDT)
+        bh=uuLf45TfFV1e2cMv2Ne8lPE15KA5g59tL9bBTw0d3ho=;
+        b=JEoFhY/DEdOg9AkciZ7NHs8W5SlFHtVidYOxQ/Fq+53Mxd63CXiOiM2geHxRT1sdWx
+         c+7OJn20kIfQ59Yu0gJhCvmV62TIouIFRCNIRbkTndb6bmknMZPVP66Rng2NzOeLtArG
+         59W04Gi+TENW84DgYYqSbCU/Tw0oZoyRMPVIUpCri33fUCsObNelD1hZis7ZMeBVsKfR
+         zFn13tDBdBU7P8WwmEyf3Hs/i5QGsLx5l3OjrjYfe2X1shiiqeIFci/BJbevWHgvcjxY
+         ON+dpZTEuceACoAM4nrCYQVREfW5rZIPaJjXSRTx0Hq4YW8W2+HTJfYMdETIAdrXE7Gs
+         xlnQ==
+X-Gm-Message-State: AOAM532RIVkiy8ejUAnOYbi6tdYIrwsDROAv1y9IXJZpPStbX3JBP5sL
+        tVXLPYTbyOBF0Fx3uHa4T+Be57K66x0t5rlByns=
+X-Google-Smtp-Source: ABdhPJzJQJgBPMtaqzh1I8Y2chIWeleJYUq/CgNgMav+qfjvX0mpmuNhZlQ3SURaMuaJB5w/xaa8ab4wWMDHnpPUYQI=
+X-Received: by 2002:aca:bed5:: with SMTP id o204mr10408173oif.169.1593913782694;
+ Sat, 04 Jul 2020 18:49:42 -0700 (PDT)
 MIME-Version: 1.0
 References: <20200703153428.173758-1-kamalheib1@gmail.com> <20200703153428.173758-5-kamalheib1@gmail.com>
 In-Reply-To: <20200703153428.173758-5-kamalheib1@gmail.com>
 From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Sat, 4 Jul 2020 12:18:36 +0800
-Message-ID: <CAD=hENe8ZDWRVXzhm6u_fB0c=BQP4+uSWBW4cBdgKkMQidKnUw@mail.gmail.com>
+Date:   Sun, 5 Jul 2020 09:49:31 +0800
+Message-ID: <CAD=hENe33xJ+WEj3q7DpVB17Cn+Yu9Sz6at=oZKhDdz_PR9bKw@mail.gmail.com>
 Subject: Re: [PATCH for-next 4/4] RDMA/rxe: Remove rxe_link_layer()
 To:     Kamal Heib <kamalheib1@gmail.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
@@ -72,13 +72,7 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 On Fri, Jul 3, 2020 at 11:35 PM Kamal Heib <kamalheib1@gmail.com> wrote:
 >
-> Instead of
-
-return
-
-returning?
-
- IB_LINK_LAYER_ETHERNET from rxe_link_layer return it
+> Instead of return IB_LINK_LAYER_ETHERNET from rxe_link_layer return it
 > directly from get_link_layer callback and remove rxe_link_layer().
 >
 > Fixes: 8700e3e7c485 ("Soft RoCE driver")
@@ -113,6 +107,10 @@ returning?
 > -{
 > -       return IB_LINK_LAYER_ETHERNET;
 > -}
+
+This is a wrapper function.
+
+Zhu Yanjun
 > -
 >  int rxe_net_add(const char *ibdev_name, struct net_device *ndev)
 >  {
