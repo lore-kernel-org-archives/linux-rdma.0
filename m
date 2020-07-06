@@ -2,175 +2,280 @@ Return-Path: <SRS0=/LwQ=AR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E11F1C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 066C4C433DF
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:24:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC8FF20739
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:13:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="L1HbRw6T"
+	by mail.kernel.org (Postfix) with ESMTP id D146020771
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:24:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1594038291;
+	bh=Sx1HDT/E1wkqP+QiJnkLiO2omyqZPoQ2w7H/R0W+FkE=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=LtYLKgF6p8u2I35HVztk69Nd1guCs9Xlnu+14QC1dVLGaHNUx9kjZKY/Bk8onUNCj
+	 VOFUfqoFFD4Z/a3eWmUFRWDR0JhaBPVLGNmicNQUESz6wo7/a06kw+PCQIV8RKA8J+
+	 MZTWQK9Insp7GUFotg9vEvhTYQe1biPy5Wboo03A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729066AbgGFMNu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Jul 2020 08:13:50 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:15196 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727896AbgGFMNu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jul 2020 08:13:50 -0400
-Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 066C6QrS010544;
-        Mon, 6 Jul 2020 05:13:47 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-type; s=pfpt0818;
- bh=5TP/tubfFp3zO7rxzv4CzmJz3VlQpDquZ9NurPQvnGk=;
- b=L1HbRw6TUrb0pv0TQ41lpLhZyzu/RWlFEerMNpg9lmr91ZzOX7rhNSUxaX5+HNtSXuYp
- uwoGGs6JDj7YFmPG2cRKCPWIm8AuTVeFv8BsbX1j4JstR/821FkhHxMUr3kQmXHvKIA8
- Y9rIZpmJQLqVLAJAr7t5DehbviE1v4ruRZ873hqX1p5WLziR08sR0cSC1VKN5934QkmT
- qxMCkRzMLbYuPeQzBokdl8cNY42CdYQN0LzzIU0AeDxGVhqQB3Ze9dO2X13DmIbSC5TB
- qKy0jbZKs7Y8pKzg/7oLi0Z3B5Z7lgK6PBhn6UsSJwpzUgc9gcKKE9XJnfFnim/TRMLy FA== 
-Received: from sc-exch02.marvell.com ([199.233.58.182])
-        by mx0b-0016f401.pphosted.com with ESMTP id 322s9n68xs-3
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Mon, 06 Jul 2020 05:13:47 -0700
-Received: from DC5-EXCH02.marvell.com (10.69.176.39) by SC-EXCH02.marvell.com
- (10.93.176.82) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 6 Jul
- 2020 05:13:43 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH02.marvell.com
- (10.69.176.39) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Mon, 6 Jul 2020 05:13:43 -0700
-Received: from lb-tlvb-ybason.il.qlogic.org (unknown [10.5.221.176])
-        by maili.marvell.com (Postfix) with ESMTP id DE5D03F703F;
-        Mon,  6 Jul 2020 05:13:41 -0700 (PDT)
-From:   Yuval Basson <ybason@marvell.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, Yuval Basson <ybason@marvell.com>,
-        "Michal Kalderon" <mkalderon@marvell.com>
-Subject: [PATCH rdma-next] RDMA/qedr: SRQ's bug fixes
-Date:   Mon, 6 Jul 2020 14:13:52 +0300
-Message-ID: <20200706111352.21667-1-ybason@marvell.com>
-X-Mailer: git-send-email 2.14.5
+        id S1729013AbgGFMYv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Jul 2020 08:24:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54610 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729015AbgGFMYv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 6 Jul 2020 08:24:51 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4104F206E6;
+        Mon,  6 Jul 2020 12:24:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1594038289;
+        bh=Sx1HDT/E1wkqP+QiJnkLiO2omyqZPoQ2w7H/R0W+FkE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=GkCzr9THPwjHWXXHKNiAaGIm5Y/R9pq1DaC/rAQzu0/ov5NAz7zf+sJxHYdt1HGaF
+         42LpkP0Bg9fowaE7ew/3sj1CHZ+6HsNQnSy+1V1D85bJI91qufe2HPsi4jXZnrXXBd
+         dfCAQVWeqdxSTuCRHGVZEjG2MMv+psdcjDdujBl0=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next] RDMA: Move ib_dm allocation to be under ib_core responsibility
+Date:   Mon,  6 Jul 2020 15:24:44 +0300
+Message-Id: <20200706122444.646892-1-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-07-06_09:2020-07-06,2020-07-06 signatures=0
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-QP's with the same SRQ, working on different CQs and running in parallel
-on different CPUs could lead to a race when maintaining the SRQ consumer
-count, and leads to FW running out of SRQs. Update the consumer atomically.
-Make sure the wqe_prod is updated after the sge_prod due to FW
-requirements.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Fixes: 3491c9e799fb9 ("RDMA/qedr: Add support for kernel mode SRQ's")
-Signed-off-by: Michal Kalderon <mkalderon@marvell.com>
-Signed-off-by: Yuval Basson <ybason@marvell.com>
+Convert struct ib_dm to general allocation/release scheme.
+
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/qedr/qedr.h  |  4 ++--
- drivers/infiniband/hw/qedr/verbs.c | 23 ++++++++++++-----------
- 2 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/device.c              |  1 +
+ drivers/infiniband/core/uverbs_std_types_dm.c | 11 ++--
+ drivers/infiniband/hw/mlx5/main.c             | 59 +++++++------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  9 ++-
+ include/rdma/ib_verbs.h                       | 10 ++--
+ 5 files changed, 37 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index fdf90ec..aa33202 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -344,10 +344,10 @@ struct qedr_srq_hwq_info {
- 	u32 wqe_prod;
- 	u32 sge_prod;
- 	u32 wr_prod_cnt;
--	u32 wr_cons_cnt;
-+	atomic_t wr_cons_cnt;
- 	u32 num_elems;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index cb61542af03f..5685acfd55fc 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2689,6 +2689,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_OBJ_SIZE(dev_ops, ib_ah);
+ 	SET_OBJ_SIZE(dev_ops, ib_counters);
+ 	SET_OBJ_SIZE(dev_ops, ib_cq);
++	SET_OBJ_SIZE(dev_ops, ib_dm);
+ 	SET_OBJ_SIZE(dev_ops, ib_mw);
+ 	SET_OBJ_SIZE(dev_ops, ib_pd);
+ 	SET_OBJ_SIZE(dev_ops, ib_srq);
+diff --git a/drivers/infiniband/core/uverbs_std_types_dm.c b/drivers/infiniband/core/uverbs_std_types_dm.c
+index d5a1de33c2c9..e73c9ac3d138 100644
+--- a/drivers/infiniband/core/uverbs_std_types_dm.c
++++ b/drivers/infiniband/core/uverbs_std_types_dm.c
+@@ -45,7 +45,8 @@ static int uverbs_free_dm(struct ib_uobject *uobject,
+ 	if (ret)
+ 		return ret;
  
--	u32 *virt_prod_pair_addr;
-+	struct rdma_srq_producers *virt_prod_pair_addr;
- 	dma_addr_t phy_prod_pair_addr;
+-	return dm->device->ops.dealloc_dm(dm, attrs);
++	dm->device->ops.dealloc_dm(dm, attrs);
++	return 0;
+ }
+ 
+ static int UVERBS_HANDLER(UVERBS_METHOD_DM_ALLOC)(
+@@ -72,9 +73,9 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_ALLOC)(
+ 	if (ret)
+ 		return ret;
+ 
+-	dm = ib_dev->ops.alloc_dm(ib_dev, attrs->context, &attr, attrs);
+-	if (IS_ERR(dm))
+-		return PTR_ERR(dm);
++	dm = rdma_zalloc_drv_obj(ib_dev, ib_dm);
++	if (!dm)
++		return -ENOMEM;
+ 
+ 	dm->device  = ib_dev;
+ 	dm->length  = attr.length;
+@@ -83,7 +84,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_ALLOC)(
+ 
+ 	uobj->object = dm;
+ 
+-	return 0;
++	return ib_dev->ops.alloc_dm(dm, attrs->context, &attr, attrs);
+ }
+ 
+ DECLARE_UVERBS_NAMED_METHOD(
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 988b5f5bd6e0..28704560f66d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2447,12 +2447,11 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
+ 	return err;
+ }
+ 
+-struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+-			       struct ib_ucontext *context,
+-			       struct ib_dm_alloc_attr *attr,
+-			       struct uverbs_attr_bundle *attrs)
++int mlx5_ib_alloc_dm(struct ib_dm *ibdm, struct ib_ucontext *context,
++		     struct ib_dm_alloc_attr *attr,
++		     struct uverbs_attr_bundle *attrs)
+ {
+-	struct mlx5_ib_dm *dm;
++	struct mlx5_ib_dm *dm = to_mdm(ibdm);
+ 	enum mlx5_ib_uapi_dm_type type;
+ 	int err;
+ 
+@@ -2460,18 +2459,16 @@ struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+ 				       MLX5_IB_ATTR_ALLOC_DM_REQ_TYPE,
+ 				       MLX5_IB_UAPI_DM_TYPE_MEMIC);
+ 	if (err)
+-		return ERR_PTR(err);
++		return err;
+ 
+-	mlx5_ib_dbg(to_mdev(ibdev), "alloc_dm req: dm_type=%d user_length=0x%llx log_alignment=%d\n",
+-		    type, attr->length, attr->alignment);
++	mlx5_ib_dbg(
++		to_mdev(ibdm->device),
++		"alloc_dm req: dm_type=%d user_length=0x%llx log_alignment=%d\n",
++		type, attr->length, attr->alignment);
+ 
+-	err = check_dm_type_support(to_mdev(ibdev), type);
++	err = check_dm_type_support(to_mdev(ibdm->device), type);
+ 	if (err)
+-		return ERR_PTR(err);
+-
+-	dm = kzalloc(sizeof(*dm), GFP_KERNEL);
+-	if (!dm)
+-		return ERR_PTR(-ENOMEM);
++		return err;
+ 
+ 	dm->type = type;
+ 
+@@ -2495,49 +2492,33 @@ struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+ 		err = -EOPNOTSUPP;
+ 	}
+ 
+-	if (err)
+-		goto err_free;
+-
+-	return &dm->ibdm;
+-
+-err_free:
+-	kfree(dm);
+-	return ERR_PTR(err);
++	return err;
+ }
+ 
+-int mlx5_ib_dealloc_dm(struct ib_dm *ibdm, struct uverbs_attr_bundle *attrs)
++void mlx5_ib_dealloc_dm(struct ib_dm *ibdm, struct uverbs_attr_bundle *attrs)
+ {
+ 	struct mlx5_ib_ucontext *ctx = rdma_udata_to_drv_context(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	struct mlx5_core_dev *dev = to_mdev(ibdm->device)->mdev;
+ 	struct mlx5_ib_dm *dm = to_mdm(ibdm);
+-	int ret;
+ 
+ 	switch (dm->type) {
+ 	case MLX5_IB_UAPI_DM_TYPE_MEMIC:
+ 		rdma_user_mmap_entry_remove(&dm->mentry.rdma_entry);
+-		return 0;
++		return;
+ 	case MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM:
+-		ret = mlx5_dm_sw_icm_dealloc(dev, MLX5_SW_ICM_TYPE_STEERING,
++		mlx5_dm_sw_icm_dealloc(dev, MLX5_SW_ICM_TYPE_STEERING,
+ 					     dm->size, ctx->devx_uid, dm->dev_addr,
+ 					     dm->icm_dm.obj_id);
+-		if (ret)
+-			return ret;
+-		break;
++		return;
+ 	case MLX5_IB_UAPI_DM_TYPE_HEADER_MODIFY_SW_ICM:
+-		ret = mlx5_dm_sw_icm_dealloc(dev, MLX5_SW_ICM_TYPE_HEADER_MODIFY,
++		mlx5_dm_sw_icm_dealloc(dev, MLX5_SW_ICM_TYPE_HEADER_MODIFY,
+ 					     dm->size, ctx->devx_uid, dm->dev_addr,
+ 					     dm->icm_dm.obj_id);
+-		if (ret)
+-			return ret;
+-		break;
++		return;
+ 	default:
+-		return -EOPNOTSUPP;
++		return;
+ 	}
+-
+-	kfree(dm);
+-
+-	return 0;
+ }
+ 
+ static int mlx5_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+@@ -4116,6 +4097,8 @@ static const struct ib_device_ops mlx5_ib_dev_dm_ops = {
+ 	.alloc_dm = mlx5_ib_alloc_dm,
+ 	.dealloc_dm = mlx5_ib_dealloc_dm,
+ 	.reg_dm_mr = mlx5_ib_reg_dm_mr,
++
++	INIT_RDMA_OBJ_SIZE(ib_dm, mlx5_ib_dm, ibdm),
  };
  
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 9b9e802..394adbd 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1510,6 +1510,7 @@ int qedr_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init_attr,
- 	srq->dev = dev;
- 	hw_srq = &srq->hw_srq;
- 	spin_lock_init(&srq->lock);
-+	atomic_set(&hw_srq->wr_cons_cnt, 0);
- 
- 	hw_srq->max_wr = init_attr->attr.max_wr;
- 	hw_srq->max_sges = init_attr->attr.max_sge;
-@@ -3686,7 +3687,7 @@ static u32 qedr_srq_elem_left(struct qedr_srq_hwq_info *hw_srq)
- 	 * count and consumer count and subtract it from max
- 	 * work request supported so that we get elements left.
- 	 */
--	used = hw_srq->wr_prod_cnt - hw_srq->wr_cons_cnt;
-+	used = hw_srq->wr_prod_cnt - (u32)atomic_read(&hw_srq->wr_cons_cnt);
- 
- 	return hw_srq->max_wr - used;
- }
-@@ -3701,7 +3702,6 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 	unsigned long flags;
- 	int status = 0;
- 	u32 num_sge;
--	u32 offset;
- 
- 	spin_lock_irqsave(&srq->lock, flags);
- 
-@@ -3714,7 +3714,8 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 		if (!qedr_srq_elem_left(hw_srq) ||
- 		    wr->num_sge > srq->hw_srq.max_sges) {
- 			DP_ERR(dev, "Can't post WR  (%d,%d) || (%d > %d)\n",
--			       hw_srq->wr_prod_cnt, hw_srq->wr_cons_cnt,
-+			       hw_srq->wr_prod_cnt,
-+			       atomic_read(&hw_srq->wr_cons_cnt),
- 			       wr->num_sge, srq->hw_srq.max_sges);
- 			status = -ENOMEM;
- 			*bad_wr = wr;
-@@ -3748,22 +3749,22 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 			hw_srq->sge_prod++;
- 		}
- 
--		/* Flush WQE and SGE information before
-+		/* Update WQE and SGE information before
- 		 * updating producer.
- 		 */
--		wmb();
-+		dma_wmb();
- 
- 		/* SRQ producer is 8 bytes. Need to update SGE producer index
- 		 * in first 4 bytes and need to update WQE producer in
- 		 * next 4 bytes.
- 		 */
--		*srq->hw_srq.virt_prod_pair_addr = hw_srq->sge_prod;
--		offset = offsetof(struct rdma_srq_producers, wqe_prod);
--		*((u8 *)srq->hw_srq.virt_prod_pair_addr + offset) =
--			hw_srq->wqe_prod;
-+		srq->hw_srq.virt_prod_pair_addr->sge_prod = hw_srq->sge_prod;
-+		/* Make sure sge producer is updated first */
-+		barrier();
-+		srq->hw_srq.virt_prod_pair_addr->wqe_prod = hw_srq->wqe_prod;
- 
- 		/* Flush producer after updating it. */
--		wmb();
-+		dma_wmb();
- 		wr = wr->next;
- 	}
- 
-@@ -4182,7 +4183,7 @@ static int process_resp_one_srq(struct qedr_dev *dev, struct qedr_qp *qp,
- 	} else {
- 		__process_resp_one(dev, qp, cq, wc, resp, wr_id);
- 	}
--	srq->hw_srq.wr_cons_cnt++;
-+	atomic_inc(&srq->hw_srq.wr_cons_cnt);
- 
- 	return 1;
- }
+ static int mlx5_ib_init_var_table(struct mlx5_ib_dev *dev)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 3e8116544c47..8f2ea4d196ba 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1249,11 +1249,10 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
+ 						      struct ib_rwq_ind_table_init_attr *init_attr,
+ 						      struct ib_udata *udata);
+ int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+-struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+-			       struct ib_ucontext *context,
+-			       struct ib_dm_alloc_attr *attr,
+-			       struct uverbs_attr_bundle *attrs);
+-int mlx5_ib_dealloc_dm(struct ib_dm *ibdm, struct uverbs_attr_bundle *attrs);
++int mlx5_ib_alloc_dm(struct ib_dm *dm, struct ib_ucontext *context,
++		     struct ib_dm_alloc_attr *attr,
++		     struct uverbs_attr_bundle *attrs);
++void mlx5_ib_dealloc_dm(struct ib_dm *ibdm, struct uverbs_attr_bundle *attrs);
+ struct ib_mr *mlx5_ib_reg_dm_mr(struct ib_pd *pd, struct ib_dm *dm,
+ 				struct ib_dm_mr_attr *attr,
+ 				struct uverbs_attr_bundle *attrs);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a7f68e005fde..6e83353eb60b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2531,11 +2531,10 @@ struct ib_device_ops {
+ 		struct ib_rwq_ind_table_init_attr *init_attr,
+ 		struct ib_udata *udata);
+ 	int (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
+-	struct ib_dm *(*alloc_dm)(struct ib_device *device,
+-				  struct ib_ucontext *context,
+-				  struct ib_dm_alloc_attr *attr,
+-				  struct uverbs_attr_bundle *attrs);
+-	int (*dealloc_dm)(struct ib_dm *dm, struct uverbs_attr_bundle *attrs);
++	int (*alloc_dm)(struct ib_dm *ib_dm, struct ib_ucontext *context,
++			struct ib_dm_alloc_attr *attr,
++			struct uverbs_attr_bundle *attrs);
++	void (*dealloc_dm)(struct ib_dm *dm, struct uverbs_attr_bundle *attrs);
+ 	struct ib_mr *(*reg_dm_mr)(struct ib_pd *pd, struct ib_dm *dm,
+ 				   struct ib_dm_mr_attr *attr,
+ 				   struct uverbs_attr_bundle *attrs);
+@@ -2651,6 +2650,7 @@ struct ib_device_ops {
+ 	DECLARE_RDMA_OBJ_SIZE(ib_ah);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_counters);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_cq);
++	DECLARE_RDMA_OBJ_SIZE(ib_dm);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_mw);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_pd);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_srq);
 -- 
-1.8.3.1
+2.26.2
 
