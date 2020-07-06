@@ -2,40 +2,40 @@ Return-Path: <SRS0=/LwQ=AR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43BD0C433E4
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 22:24:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B49BC433E1
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 22:24:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F2AA2075B
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 22:24:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2984920723
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 22:24:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="A4cYU68t"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="gkERmIj7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727055AbgGFWYK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Jul 2020 18:24:10 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:1764 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727792AbgGFWYI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jul 2020 18:24:08 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f03a4530001>; Mon, 06 Jul 2020 15:23:15 -0700
+        id S1727059AbgGFWYE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Jul 2020 18:24:04 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:17948 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726765AbgGFWYE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jul 2020 18:24:04 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f03a41a0001>; Mon, 06 Jul 2020 15:22:18 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 06 Jul 2020 15:24:08 -0700
+  Mon, 06 Jul 2020 15:24:03 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 06 Jul 2020 15:24:08 -0700
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 6 Jul
+        by hqpgpgate101.nvidia.com on Mon, 06 Jul 2020 15:24:03 -0700
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 6 Jul
  2020 22:23:58 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Mon, 6 Jul 2020 22:23:58 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5f03a47e0008>; Mon, 06 Jul 2020 15:23:58 -0700
+        id <B5f03a47e0000>; Mon, 06 Jul 2020 15:23:58 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
         <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
@@ -49,142 +49,73 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         "Ben Skeggs" <bskeggs@redhat.com>,
         Bharata B Rao <bharata@linux.ibm.com>,
         "Ralph Campbell" <rcampbell@nvidia.com>
-Subject: [PATCH 4/5] nouveau/svm: use the new migration invalidation
-Date:   Mon, 6 Jul 2020 15:23:46 -0700
-Message-ID: <20200706222347.32290-5-rcampbell@nvidia.com>
+Subject: [PATCH 0/5] mm/migrate: avoid device private invalidations
+Date:   Mon, 6 Jul 2020 15:23:42 -0700
+Message-ID: <20200706222347.32290-1-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200706222347.32290-1-rcampbell@nvidia.com>
-References: <20200706222347.32290-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
 X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1594074195; bh=iaM6sudUhAUpNdNddMlsrhr8kWBzj2BvfiHo5A6Dc4Q=;
+        t=1594074138; bh=L1q+tY8XtVCJVAfZQvRMNXjLijJuUT/RKi3sLXZmr28=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=A4cYU68tJWFfl779pQdrEIptI4O3j/yP8A2QlUFrGYazWm/XKfO37Xyf+HkkKBJem
-         ZhiXwY8eYt9T5rbSH2VFF+dGY/ODT0QLGBckNlUc1pExQeJD88JceR7DeEvU1vtGT1
-         7gZyoJf2dpJOQomNjd7nloUeursYRjdkrBrARRZumwzT4FAdX9a8XBh9Tv5OrGrZzq
-         8B2Biie2WkHGsvNcP0f2CYkbg6L4JdvqMWVuUqWk/V2VlOv2tghqMy4GakG+oelCpk
-         G3ZYxIdBQ7MlUfOYxFX8LhbS6SIE0bHNIBFnQNUs/24gbDgf3xIq789iPz7Uty8Cau
-         Zd+f9lV5rTN4A==
+         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
+         Content-Type;
+        b=gkERmIj7sPNRqUTDSXWmzecTz0WtFK0U3kvh9q3hMeDHLm/Owv8u5sQcfDjbbRTz/
+         +TgRzZRSMSZwtWLEi6CRcKCkUSasti32p/o8/XZ0mZzXiV34vDAdpZx/le+SAO8x0Q
+         QLY/XEOfpmLryYdmMy62yrhZWa2bouIBs6hkQ/GsQZ7UlzXM1MR60Dt/TXPH3tUwV4
+         OkmmZLR01IbgEZbiFd7QwnQl70JEualApo09S4soxZBIhCPDS8u02MIFDANsmL6Qx4
+         8oVXc2Pps8U4J/YR2/KnPSmUqjfOXI5qq9o7B1Zu8N8mCMvGGrbsu1QshOx8Y/iaZi
+         ZMd1XohWj+O7w==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use the new MMU_NOTIFY_MIGRATE event to skip GPU MMU invalidations of
-device private memory and handle the invalidation in the driver as part
-of migrating device private memory.
+The goal for this series is to avoid device private memory TLB
+invalidations when migrating a range of addresses from system
+memory to device private memory and some of those pages have already
+been migrated. The approach taken is to introduce a new mmu notifier
+invalidation event type and use that in the device driver to skip
+invalidation callbacks from migrate_vma_setup(). The device driver is
+also then expected to handle device MMU invalidations as part of the
+migrate_vma_setup(), migrate_vma_pages(), migrate_vma_finalize() process.
+Note that this is opt-in. A device driver can simply invalidate its MMU
+in the mmu notifier callback and not handle MMU invalidations in the
+migration sequence.
 
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
----
- drivers/gpu/drm/nouveau/nouveau_dmem.c | 11 ++++++++---
- drivers/gpu/drm/nouveau/nouveau_svm.c  | 10 +++++++++-
- drivers/gpu/drm/nouveau/nouveau_svm.h  |  1 +
- 3 files changed, 18 insertions(+), 4 deletions(-)
+This series is based on linux-5.8.0-rc4 and the patches I sent for
+("mm/hmm/nouveau: add PMD system memory mapping")
+https://lore.kernel.org/linux-mm/20200701225352.9649-1-rcampbell@nvidia.com
+There are no logical dependencies, but there would be merge conflicts
+which could be resolved if this were to be applied before the other
+series.
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouve=
-au/nouveau_dmem.c
-index 762e0168bc8d..da793e301c0c 100644
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -154,6 +154,8 @@ static vm_fault_t nouveau_dmem_fault_copy_one(struct no=
-uveau_drm *drm,
- 	if (dma_mapping_error(dev, *dma_addr))
- 		goto error_free_page;
-=20
-+	nouveau_svmm_invalidate(spage->zone_device_data, args->start,
-+				args->end);
- 	if (drm->dmem->migrate.copy_func(drm, 1, NOUVEAU_APER_HOST, *dma_addr,
- 			NOUVEAU_APER_VRAM, nouveau_dmem_page_addr(spage)))
- 		goto error_dma_unmap;
-@@ -531,7 +533,8 @@ nouveau_dmem_init(struct nouveau_drm *drm)
- }
-=20
- static unsigned long nouveau_dmem_migrate_copy_one(struct nouveau_drm *drm=
-,
--		unsigned long src, dma_addr_t *dma_addr, u64 *pfn)
-+		struct nouveau_svmm *svmm, unsigned long src,
-+		dma_addr_t *dma_addr, u64 *pfn)
- {
- 	struct device *dev =3D drm->dev->dev;
- 	struct page *dpage, *spage;
-@@ -561,6 +564,7 @@ static unsigned long nouveau_dmem_migrate_copy_one(stru=
-ct nouveau_drm *drm,
- 			goto out_free_page;
- 	}
-=20
-+	dpage->zone_device_data =3D svmm;
- 	*pfn =3D NVIF_VMM_PFNMAP_V0_V | NVIF_VMM_PFNMAP_V0_VRAM |
- 		((paddr >> PAGE_SHIFT) << NVIF_VMM_PFNMAP_V0_ADDR_SHIFT);
- 	if (src & MIGRATE_PFN_WRITE)
-@@ -584,8 +588,8 @@ static void nouveau_dmem_migrate_chunk(struct nouveau_d=
-rm *drm,
- 	unsigned long addr =3D args->start, nr_dma =3D 0, i;
-=20
- 	for (i =3D 0; addr < args->end; i++) {
--		args->dst[i] =3D nouveau_dmem_migrate_copy_one(drm, args->src[i],
--				dma_addrs + nr_dma, pfns + i);
-+		args->dst[i] =3D nouveau_dmem_migrate_copy_one(drm, svmm,
-+				args->src[i], dma_addrs + nr_dma, pfns + i);
- 		if (!dma_mapping_error(drm->dev->dev, dma_addrs[nr_dma]))
- 			nr_dma++;
- 		addr +=3D PAGE_SIZE;
-@@ -616,6 +620,7 @@ nouveau_dmem_migrate_vma(struct nouveau_drm *drm,
- 	struct migrate_vma args =3D {
- 		.vma		=3D vma,
- 		.start		=3D start,
-+		.src_owner	=3D drm->dev,
- 		.dir		=3D MIGRATE_VMA_FROM_SYSTEM,
- 	};
- 	unsigned long i;
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouvea=
-u/nouveau_svm.c
-index 9dd296d3c378..ccfd4304d737 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -246,7 +246,7 @@ nouveau_svmm_join(struct nouveau_svmm *svmm, u64 inst)
- }
-=20
- /* Invalidate SVMM address-range on GPU. */
--static void
-+void
- nouveau_svmm_invalidate(struct nouveau_svmm *svmm, u64 start, u64 limit)
- {
- 	if (limit > start) {
-@@ -279,6 +279,14 @@ nouveau_svmm_invalidate_range_start(struct mmu_notifie=
-r *mn,
- 	if (unlikely(!svmm->vmm))
- 		goto out;
-=20
-+	/*
-+	 * Ignore invalidation callbacks for device private pages since
-+	 * the invalidation is handled as part of the migration process.
-+	 */
-+	if (update->event =3D=3D MMU_NOTIFY_MIGRATE &&
-+	    update->data =3D=3D svmm->vmm->cli->drm->dev)
-+		goto out;
-+
- 	if (limit > svmm->unmanaged.start && start < svmm->unmanaged.limit) {
- 		if (start < svmm->unmanaged.start) {
- 			nouveau_svmm_invalidate(svmm, start,
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.h b/drivers/gpu/drm/nouvea=
-u/nouveau_svm.h
-index f0fcd1b72e8b..bb2d56e50e0c 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.h
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.h
-@@ -19,6 +19,7 @@ int nouveau_svmm_join(struct nouveau_svmm *, u64 inst);
- void nouveau_svmm_part(struct nouveau_svmm *, u64 inst);
- int nouveau_svmm_bind(struct drm_device *, void *, struct drm_file *);
-=20
-+void nouveau_svmm_invalidate(struct nouveau_svmm *svmm, u64 start, u64 lim=
-it);
- u64 *nouveau_pfns_alloc(unsigned long npages);
- void nouveau_pfns_free(u64 *pfns);
- void nouveau_pfns_map(struct nouveau_svmm *svmm, struct mm_struct *mm,
+Also, this replaces the need for the following two patches I sent:
+("mm: fix migrate_vma_setup() src_owner and normal pages")
+https://lore.kernel.org/linux-mm/20200622222008.9971-1-rcampbell@nvidia.com
+("nouveau: fix mixed normal and device private page migration")
+https://lore.kernel.org/lkml/20200622233854.10889-3-rcampbell@nvidia.com
+
+Ralph Campbell (5):
+  nouveau: fix storing invalid ptes
+  mm/migrate: add a direction parameter to migrate_vma
+  mm/notifier: add migration invalidation type
+  nouveau/svm: use the new migration invalidation
+  mm/hmm/test: use the new migration invalidation
+
+ arch/powerpc/kvm/book3s_hv_uvmem.c            |  2 ++
+ drivers/gpu/drm/nouveau/nouveau_dmem.c        | 13 ++++++--
+ drivers/gpu/drm/nouveau/nouveau_svm.c         | 10 +++++-
+ drivers/gpu/drm/nouveau/nouveau_svm.h         |  1 +
+ .../drm/nouveau/nvkm/subdev/mmu/vmmgp100.c    | 13 +++++---
+ include/linux/migrate.h                       | 12 +++++--
+ include/linux/mmu_notifier.h                  |  7 ++++
+ lib/test_hmm.c                                | 33 +++++++++++--------
+ mm/migrate.c                                  | 13 ++++++--
+ 9 files changed, 77 insertions(+), 27 deletions(-)
+
 --=20
 2.20.1
 
