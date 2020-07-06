@@ -2,103 +2,124 @@ Return-Path: <SRS0=/LwQ=AR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BBACC433E1
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 09:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1ECBC433E0
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:04:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16F2E206F5
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 09:11:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAA7720720
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jul 2020 12:04:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dk4m6D5d"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="dSNkjQnE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728639AbgGFJLg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Jul 2020 05:11:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34834 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728024AbgGFJLg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jul 2020 05:11:36 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA340C061794
-        for <linux-rdma@vger.kernel.org>; Mon,  6 Jul 2020 02:11:35 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id s10so39922014wrw.12
-        for <linux-rdma@vger.kernel.org>; Mon, 06 Jul 2020 02:11:35 -0700 (PDT)
+        id S1728892AbgGFMEW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Jul 2020 08:04:22 -0400
+Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:52998 "EHLO
+        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728264AbgGFMEV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jul 2020 08:04:21 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=nFhKU1c8QJZQ3rQsIyMuD/WuH/oGWV1Tm3foNGD2v2k=;
-        b=dk4m6D5dq8TXcn/MnNq0jhs7WqCMyjXmpwEgMw5FhkkfGi6NwUmr1i1x5n84gtPz6W
-         dz6x6MRkG3l9ZlNtLber8+jeWcCSYDwEnfQ6rp2nlnluTuejTmcokda9745yj7qSTxG4
-         Jt+ckIiNXEjhNLEpf4lcXQ+Kge/lXsQKIlgA8DXAom1GmKowP2Dt6cXjVgoBY4l3X5Y0
-         fbQP0ij6yVqfbY0WSIJJToHD/0a2b8pPNgLnEzRIYaRcm+7sig/Bepr9ZNyX0El8ZvrM
-         xGrpGCVyeCdRZev3P+GOM3vTap6UFoZ6O43kRtx47uZoxtW7I3QJA0oB/NbsjJqTuOJJ
-         sB3g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=nFhKU1c8QJZQ3rQsIyMuD/WuH/oGWV1Tm3foNGD2v2k=;
-        b=LhKzNBMpLP0pBcPM5okpuFJl02AHPP1XzuqUcxvpDRkohnu5JU4zkIAZJdmcGs41F+
-         cUWlvnbMzR9WMqcxaWPVY9i5uHc2QDXbElFotKhGUZdB4T3Ug2UJcyvKMkOy/V62Gr2t
-         l9URos4/P//JgfRbt6yueI23xhRnLhpgzA06tSIr+AAgYULqaxyZtq89HcR8tjducxiB
-         vS1E4C8cimdYM8R/fwbGzMiDq67MIA7QyEzsgo5rnf8ZsP1X0Fz0VIt1m2LZIizO7Wfj
-         i/YA1RZ9i1QKj0orIgMU6A+gTcLzPaMAhPCFUMrZREElQGdQapLE5QejhHljMN9+bwkn
-         ixEw==
-X-Gm-Message-State: AOAM531Ck07n+jqr7KhOXMAwzphkIUIW3baud+8zB7FJAeYRagOOM5xl
-        ZRtkc2leESlZnGtP7t1/oFOJrlnnfpI=
-X-Google-Smtp-Source: ABdhPJyRBazbbY3nGnmSjg6KoyPH7AiUIyJhO795Hcik5c72FzzMR5OfEj+zcHnpmDWopCPdDwE52Q==
-X-Received: by 2002:a5d:4a01:: with SMTP id m1mr47094331wrq.250.1594026694548;
-        Mon, 06 Jul 2020 02:11:34 -0700 (PDT)
-Received: from kheib-workstation.redhat.com ([37.142.6.100])
-        by smtp.gmail.com with ESMTPSA id j4sm18826867wrp.51.2020.07.06.02.11.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2020 02:11:34 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>,
-        Kamal Heib <kamalheib1@gmail.com>,
-        Christian Benvenuti <benve@cisco.com>
-Subject: [PATCH for-rc v1 4/4] RDMA/usnic: Fix reported max_pkeys attribute
-Date:   Mon,  6 Jul 2020 12:11:19 +0300
-Message-Id: <20200706091119.367697-5-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.25.4
-In-Reply-To: <20200706091119.367697-1-kamalheib1@gmail.com>
-References: <20200706091119.367697-1-kamalheib1@gmail.com>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1594037061; x=1625573061;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Y/PIIs/vC+z/31HpfEFQfy8mSRAqh8hnzcN+FHFqxjs=;
+  b=dSNkjQnEtwnEt2zz+5Il+1zHCyt1LCdbegT1uVlOmfaC+KwBjO6fBluy
+   KUhJTtFyXvk+f7gY9DfWOjLQqFzjyyZs/NfP80RNQHoFD98ITqpJGpXvE
+   hAVcCk6oQbaxcIT7MtTeRe1LaA3gEA8xgfmapieZ3NxqgIGtGXuUGSkbx
+   0=;
+IronPort-SDR: XlT3uPjBaFGOdcqZuesWvDE1OeCEYVi6zjk1vvwqfr109QFMiTy4dl66A7eSDwe/WQHFQs/wUx
+ E0YjykOEoWNA==
+X-IronPort-AV: E=Sophos;i="5.75,318,1589241600"; 
+   d="scan'208";a="56360705"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2c-2225282c.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 06 Jul 2020 12:04:19 +0000
+Received: from EX13MTAUWC001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
+        by email-inbound-relay-2c-2225282c.us-west-2.amazon.com (Postfix) with ESMTPS id 92274A2350;
+        Mon,  6 Jul 2020 12:04:17 +0000 (UTC)
+Received: from EX13D40UWC004.ant.amazon.com (10.43.162.175) by
+ EX13MTAUWC001.ant.amazon.com (10.43.162.135) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 6 Jul 2020 12:04:17 +0000
+Received: from EX13MTAUWC001.ant.amazon.com (10.43.162.135) by
+ EX13D40UWC004.ant.amazon.com (10.43.162.175) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 6 Jul 2020 12:04:17 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.1.213.24) by
+ mail-relay.amazon.com (10.43.162.232) with Microsoft SMTP Server id
+ 15.0.1497.2 via Frontend Transport; Mon, 6 Jul 2020 12:04:09 +0000
+From:   Gal Pressman <galpress@amazon.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
+CC:     <linux-rdma@vger.kernel.org>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        Somnath Kotur <somnath.kotur@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Lijun Ou <oulijun@huawei.com>,
+        Weihang Li <liweihang@huawei.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        "Leon Romanovsky" <leon@kernel.org>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        "Ariel Elior" <aelior@marvell.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        "VMware PV-Drivers" <pv-drivers@vmware.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Zhu Yanjun <yanjunz@mellanox.com>,
+        "Bernard Metzler" <bmt@zurich.ibm.com>,
+        Gal Pressman <galpress@amazon.com>
+Subject: [PATCH for-next 0/3] Allocate MR cleanups
+Date:   Mon, 6 Jul 2020 15:03:40 +0300
+Message-ID: <20200706120343.10816-1-galpress@amazon.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Make sure to report the right max_pkeys attribute value to indicate the
-maximum number of partitions supported by the usnic device.
+The allocate MR functionality is limited to kernel users, there is no
+reason to pass a redundant udata parameter.
+In addition, a small cleanup was added to the MR allocation function to
+keep the main flow unindented.
 
-Fixes: e3cf00d0a87f ("IB/usnic: Add Cisco VIC low-level hardware driver")
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-Cc: Christian Benvenuti <benve@cisco.com>
----
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Gal Pressman (3):
+  RDMA/core: Check for error instead of success in alloc MR function
+  RDMA/core: Remove ib_alloc_mr_user function
+  RDMA: Remove the udata parameter from alloc_mr callback
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index b8a77ce11590..0cb2a73d46ee 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -309,7 +309,7 @@ int usnic_ib_query_device(struct ib_device *ibdev,
- 	props->max_pd = USNIC_UIOM_MAX_PD_CNT;
- 	props->max_mr = USNIC_UIOM_MAX_MR_CNT;
- 	props->local_ca_ack_delay = 0;
--	props->max_pkeys = 0;
-+	props->max_pkeys = 1;
- 	props->atomic_cap = IB_ATOMIC_NONE;
- 	props->masked_atomic_cap = props->atomic_cap;
- 	props->max_qp_rd_atom = 0;
+ drivers/infiniband/core/verbs.c               | 36 +++++++++----------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c      |  2 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h      |  2 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |  2 +-
+ drivers/infiniband/hw/cxgb4/mem.c             |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h   |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c       |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c     |  3 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h          |  2 +-
+ drivers/infiniband/hw/mlx4/mr.c               |  2 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  2 +-
+ drivers/infiniband/hw/mlx5/mr.c               |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h   |  2 +-
+ drivers/infiniband/hw/qedr/verbs.c            |  2 +-
+ drivers/infiniband/hw/qedr/verbs.h            |  2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_mr.c  |  2 +-
+ .../infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   |  2 +-
+ drivers/infiniband/sw/rdmavt/mr.c             |  2 +-
+ drivers/infiniband/sw/rdmavt/mr.h             |  2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |  2 +-
+ drivers/infiniband/sw/siw/siw_verbs.c         |  2 +-
+ drivers/infiniband/sw/siw/siw_verbs.h         |  2 +-
+ include/rdma/ib_verbs.h                       | 12 ++-----
+ 24 files changed, 43 insertions(+), 50 deletions(-)
+
 -- 
-2.25.4
+2.27.0
 
