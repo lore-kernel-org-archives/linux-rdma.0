@@ -4,152 +4,120 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3D4AC43462
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57207C433F2
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:12:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9419820720
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37B2120720
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:12:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="GL5GXtMw"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="iQObijhN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728507AbgGGUNI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jul 2020 16:13:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49606 "EHLO
+        id S1728303AbgGGUMw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jul 2020 16:12:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728714AbgGGUNI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:13:08 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CAEBC08C5DC
-        for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2020 13:13:06 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id z13so46596801wrw.5
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2020 13:13:06 -0700 (PDT)
+        with ESMTP id S1728594AbgGGUMv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:12:51 -0400
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47B7EC061755
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2020 13:12:51 -0700 (PDT)
+Received: by mail-wr1-x441.google.com with SMTP id z15so35313645wrl.8
+        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2020 13:12:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=eTmW8GfMFV/TYGpBlf3/1N9LBDvcZT77sRHKHDyMv2U=;
-        b=GL5GXtMw+oGEYvMEGD0ynq2bKINBxOKzvUDWYVHTriILNZ4e2LMTYBOLfRSdtqri/0
-         8fVfJVJOm+WP7NTwU9gLBFBMCRU8A2MmLw38gaCMariAj60judwyB1sDCPok8/lVFlnY
-         Pb7gt9prSymFTaCQVjSvH2HJvNNSjmu81x9wY=
+        bh=+FSVZqSJcwRWybnSndKNbUfNNvpPl3BY3d6N/f/GeKA=;
+        b=iQObijhNDZgQfMrr/kbpnXa9ZxoNeRb2jWrZDoJ8+CmPgTcWOx7Oz/V39ElFnc9h0F
+         /r/CH4Lk1gXB3G+CDC+rvEZ/5KcWxG1Dv4lmt8HzclLQw7g2PegkLyWqc4+xDNtWsy0q
+         WUhAjilaUBigQh9yDg9wUfTrZt/8nwZttfUvQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=eTmW8GfMFV/TYGpBlf3/1N9LBDvcZT77sRHKHDyMv2U=;
-        b=X/yEUT8OiFa2El9aD62fAJHuq57WfW6bEeuyY7VwFDVKE4Xkmu1BikYQJD9Tx2Ts6q
-         WW4GTrXHbio5y5uj2mikFxS34Pb/iMVqcvM8Fi3ZBydB1iHGUeoajE50/TaKVMW8J8vB
-         Ohh03tqvSyALaHlzDcLhiVF3m0oyiGKJqa5jLD9IkHllel4nTQj8Q2QO15sqt+n+t1o9
-         laeRmx4JQgOPMA9v4jwOV2TYcYqQWo9YUeMl4kLTirN8cO4i9vJr3roKdnygPRd0yoar
-         2Jql5ocDSDVWkCukelS4QNCsIKOFmt0bEEoPPySTigyf/Vigp48POJ0AxUzoFZDkcqtG
-         WbzA==
-X-Gm-Message-State: AOAM531mxNi8nWdXFD3bhivYm3X6Ev9p3UBw/0wn5beJSSlKzKq3oN40
-        uFlgYz7+yFGdI+3AiYOY+JOObw==
-X-Google-Smtp-Source: ABdhPJwmWTeCyTx0bBgTDG/B9PdUMguU6YzowcNba5ee/pIgTrKGFZT6kx1B6bzPcnRvbe3254x7bw==
-X-Received: by 2002:adf:ff90:: with SMTP id j16mr36581036wrr.364.1594152785392;
-        Tue, 07 Jul 2020 13:13:05 -0700 (PDT)
+        bh=+FSVZqSJcwRWybnSndKNbUfNNvpPl3BY3d6N/f/GeKA=;
+        b=EQPq5+dmhmr5enCEUDKY3K4SSb7IVfbqImE//iMBXdFd7mgNYSDOjHN5sCxjSILnvh
+         UhV/P6vpnvFwIPIkYbgNurVSARwR0JiovnETvclfq4izc1R838UrRBi+feC5SdhVoBn2
+         shIJDundJ76ReO6sJXuZuEkEVRGEUNcML82vmMAoiNsDzbIYkUmbVGXvU2zMZwuhAU6U
+         EEtuozoW2uNZGNWxiN6D72tpTfzXEfoKDSG34NoyPATcymRq6o8WEZ5cM0XZBUbWg8U0
+         UCpOzpfMk7r3tsp2yYpLSv+DfFw30rJItPXQKIlNnOARskVQpf0wJDNJSSPrCcdPzTLI
+         NdaQ==
+X-Gm-Message-State: AOAM5308KRKKXdjsenGeCVAX/eJBzvcjYosuPQyG3hZWylBRbfDWGvOu
+        nVBCqUQnsTt5Uu2XGd0BFtnZCA==
+X-Google-Smtp-Source: ABdhPJzFLolELbzMXu1omVdH3bnFD0mMnve//+cNMLXSBH/icZkkoks9YpeuTOOcWag3OhUrUnRozg==
+X-Received: by 2002:adf:ce85:: with SMTP id r5mr61242906wrn.157.1594152770054;
+        Tue, 07 Jul 2020 13:12:50 -0700 (PDT)
 Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id q7sm2515262wra.56.2020.07.07.13.13.04
+        by smtp.gmail.com with ESMTPSA id q7sm2515262wra.56.2020.07.07.13.12.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Jul 2020 13:13:04 -0700 (PDT)
+        Tue, 07 Jul 2020 13:12:49 -0700 (PDT)
 From:   Daniel Vetter <daniel.vetter@ffwll.ch>
 To:     DRI Development <dri-devel@lists.freedesktop.org>
 Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
         linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        amd-gfx@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        "James (Qian) Wang" <james.qian.wang@arm.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Mihail Atanassov <mihail.atanassov@arm.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH 20/25] drm/amdgpu: DC also loves to allocate stuff where it shouldn't
-Date:   Tue,  7 Jul 2020 22:12:24 +0200
-Message-Id: <20200707201229.472834-21-daniel.vetter@ffwll.ch>
+Subject: [PATCH 07/25] drm/komdea: Annotate dma-fence critical section in commit path
+Date:   Tue,  7 Jul 2020 22:12:11 +0200
+Message-Id: <20200707201229.472834-8-daniel.vetter@ffwll.ch>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
 References: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Not going to bother with a complete&pretty commit message, just
-offending backtrace:
+Like the helpers, nothing special. Well except not, because we the
+critical section extends until after hw_done(), since that's the last
+thing which could hold up a subsequent atomic commit. That means the
+wait_for_flip_done is included, but that's not a problem, we're
+allowed to call dma_fence_wait() from signalling critical sections.
+Even on our own fence (which this does), it's just a bit confusing.
+But in a way those last 2 function calls are already part of the fence
+signalling critical section for the next atomic commit.
 
-        kvmalloc_node+0x47/0x80
-        dc_create_state+0x1f/0x60 [amdgpu]
-        dc_commit_state+0xcb/0x9b0 [amdgpu]
-        amdgpu_dm_atomic_commit_tail+0xd31/0x2010 [amdgpu]
-        commit_tail+0xa4/0x140 [drm_kms_helper]
-        drm_atomic_helper_commit+0x152/0x180 [drm_kms_helper]
-        drm_client_modeset_commit_atomic+0x1ea/0x250 [drm]
-        drm_client_modeset_commit_locked+0x55/0x190 [drm]
-        drm_client_modeset_commit+0x24/0x40 [drm]
+Reading this I'm wondering why komeda waits for flip_done() before
+calling hw_done(), which is a bit backwards (but hey hw can be
+special). Might be good to throw a comment in there that explains why,
+because the original commit that added this just doesn't.
 
-v2: Found more in DC code, I'm just going to pile them all up.
-
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: linux-rdma@vger.kernel.org
-Cc: amd-gfx@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
+Cc: "James (Qian) Wang" <james.qian.wang@arm.com>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Mihail Atanassov <mihail.atanassov@arm.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
 ---
- drivers/gpu/drm/amd/amdgpu/atom.c                 | 2 +-
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 2 +-
- drivers/gpu/drm/amd/display/dc/core/dc.c          | 4 +++-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/arm/display/komeda/komeda_kms.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/atom.c b/drivers/gpu/drm/amd/amdgpu/atom.c
-index 4cfc786699c7..1b0c674fab25 100644
---- a/drivers/gpu/drm/amd/amdgpu/atom.c
-+++ b/drivers/gpu/drm/amd/amdgpu/atom.c
-@@ -1226,7 +1226,7 @@ static int amdgpu_atom_execute_table_locked(struct atom_context *ctx, int index,
- 	ectx.abort = false;
- 	ectx.last_jump = 0;
- 	if (ws)
--		ectx.ws = kcalloc(4, ws, GFP_KERNEL);
-+		ectx.ws = kcalloc(4, ws, GFP_ATOMIC);
- 	else
- 		ectx.ws = NULL;
- 
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 6afcc33ff846..3d41eddc7908 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6872,7 +6872,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
- 		struct dc_stream_update stream_update;
- 	} *bundle;
- 
--	bundle = kzalloc(sizeof(*bundle), GFP_KERNEL);
-+	bundle = kzalloc(sizeof(*bundle), GFP_ATOMIC);
- 
- 	if (!bundle) {
- 		dm_error("Failed to allocate update bundle\n");
-diff --git a/drivers/gpu/drm/amd/display/dc/core/dc.c b/drivers/gpu/drm/amd/display/dc/core/dc.c
-index 942ceb0f6383..f9a58509efb2 100644
---- a/drivers/gpu/drm/amd/display/dc/core/dc.c
-+++ b/drivers/gpu/drm/amd/display/dc/core/dc.c
-@@ -1475,8 +1475,10 @@ bool dc_post_update_surfaces_to_stream(struct dc *dc)
- 
- struct dc_state *dc_create_state(struct dc *dc)
+diff --git a/drivers/gpu/drm/arm/display/komeda/komeda_kms.c b/drivers/gpu/drm/arm/display/komeda/komeda_kms.c
+index 1f6682032ca4..cc5b5915bc5e 100644
+--- a/drivers/gpu/drm/arm/display/komeda/komeda_kms.c
++++ b/drivers/gpu/drm/arm/display/komeda/komeda_kms.c
+@@ -73,6 +73,7 @@ static struct drm_driver komeda_kms_driver = {
+ static void komeda_kms_commit_tail(struct drm_atomic_state *old_state)
  {
-+	/* No you really cant allocate random crap here this late in
-+	 * atomic_commit_tail. */
- 	struct dc_state *context = kvzalloc(sizeof(struct dc_state),
--					    GFP_KERNEL);
-+					    GFP_ATOMIC);
+ 	struct drm_device *dev = old_state->dev;
++	bool fence_cookie = dma_fence_begin_signalling();
  
- 	if (!context)
- 		return NULL;
+ 	drm_atomic_helper_commit_modeset_disables(dev, old_state);
+ 
+@@ -85,6 +86,8 @@ static void komeda_kms_commit_tail(struct drm_atomic_state *old_state)
+ 
+ 	drm_atomic_helper_commit_hw_done(old_state);
+ 
++	dma_fence_end_signalling(fence_cookie);
++
+ 	drm_atomic_helper_cleanup_planes(dev, old_state);
+ }
+ 
 -- 
 2.27.0
 
