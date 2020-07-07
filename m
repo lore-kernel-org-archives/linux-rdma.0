@@ -2,222 +2,237 @@ Return-Path: <SRS0=ppJa=AS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DE80C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F0B8C433E1
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:37:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16CA1206BE
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="bJf1I1L+"
+	by mail.kernel.org (Postfix) with ESMTP id 43B26206F6
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:37:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728762AbgGGUNO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jul 2020 16:13:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49634 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728417AbgGGUNN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:13:13 -0400
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D35A7C08C5E1
-        for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2020 13:13:11 -0700 (PDT)
-Received: by mail-wm1-x344.google.com with SMTP id 17so474228wmo.1
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2020 13:13:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=Bx4rDZogC1BiesvVAl0csmMxLWG9gJRV/a92JN7vGQM=;
-        b=bJf1I1L+LMb4JywkuIwVxGfbgP0t0pwYIMyTShYBIQx9CqaCxuzQtn66oYI7dwJ8UY
-         ReIprZw5a1E66OdmMyyL1kbAVVVcl9iPnFMie6takpZaW8GSR98l+rPH48fyiB1Mnb7v
-         IW2XbZ0mCKuiQuhba0ryUsrarW6spkUBB55Ns=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=Bx4rDZogC1BiesvVAl0csmMxLWG9gJRV/a92JN7vGQM=;
-        b=FblwNC29SOpRclal6wj4WOEUR9rFuNf8e4vM4BS+FZsNbaN4p9/oNSzTPQCv7LGiri
-         MpGnTA+5Ao4+EY53KlWV3H17CC8Z/bLE59eou8AVAWlxR8saTDvZeL0pH2F3w0yNxTCn
-         Gz+6MriSrInUMrIC/EGV4mrgIQwXOSgLrDNtzGI/66dlA2IG4nVZx9mF0K360Mkq//Wc
-         dZ6zkT9RGOvTg+lr5sY9bd5DE2He6eyKoL/nFxfwtnv8t7xHS/1Qfz92v3pvYn9OpynE
-         wOwT6VyKhZS1bp1JL1a1Qddz+6XVcHcRKSm8uWGE2RBfmxMtnss3+MQSlwVSUaTjTR6J
-         ZIQA==
-X-Gm-Message-State: AOAM533OIQ1R6ZgC2siTXAt/YJOZUd7IRnbsOK8cNJkCcd4tp9jDDPmz
-        wZmti2zdK2k7yfT6M3yFFau1pA==
-X-Google-Smtp-Source: ABdhPJwXeAlwXkHmWCQYSxqV/QPdl+NS9hGpqzKkknV5bjYv2G6QyVcB1RCa1CWqqOsalvaX9zh2MQ==
-X-Received: by 2002:a1c:1bc6:: with SMTP id b189mr5583866wmb.166.1594152790509;
-        Tue, 07 Jul 2020 13:13:10 -0700 (PDT)
-Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id q7sm2515262wra.56.2020.07.07.13.13.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Jul 2020 13:13:09 -0700 (PDT)
-From:   Daniel Vetter <daniel.vetter@ffwll.ch>
-To:     DRI Development <dri-devel@lists.freedesktop.org>
-Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        amd-gfx@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH 24/25] Revert "drm/amdgpu: add fbdev suspend/resume on gpu reset"
-Date:   Tue,  7 Jul 2020 22:12:28 +0200
-Message-Id: <20200707201229.472834-25-daniel.vetter@ffwll.ch>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
+        id S1728934AbgGGUhX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jul 2020 16:37:23 -0400
+Received: from asavdk3.altibox.net ([109.247.116.14]:47316 "EHLO
+        asavdk3.altibox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727995AbgGGUhX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:37:23 -0400
+Received: from ravnborg.org (unknown [188.228.123.71])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by asavdk3.altibox.net (Postfix) with ESMTPS id DF91E2001E;
+        Tue,  7 Jul 2020 22:37:16 +0200 (CEST)
+Date:   Tue, 7 Jul 2020 22:37:15 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc:     DRI Development <dri-devel@lists.freedesktop.org>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Boris Brezillon <bbrezillon@kernel.org>,
+        linux-rdma@vger.kernel.org,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 09/25] drm/atmel: Use drm_atomic_helper_commit
+Message-ID: <20200707203715.GB23150@ravnborg.org>
 References: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
+ <20200707201229.472834-10-daniel.vetter@ffwll.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200707201229.472834-10-daniel.vetter@ffwll.ch>
+X-CMAE-Score: 0
+X-CMAE-Analysis: v=2.3 cv=f+hm+t6M c=1 sm=1 tr=0
+        a=S6zTFyMACwkrwXSdXUNehg==:117 a=S6zTFyMACwkrwXSdXUNehg==:17
+        a=kj9zAlcOel0A:10 a=QyXUC8HyAAAA:8 a=7gkXJVJtAAAA:8 a=VwQbUJbxAAAA:8
+        a=XYAwZIGsAAAA:8 a=P-IC7800AAAA:8 a=JfrnYn6hAAAA:8 a=e5mUnYsNAAAA:8
+        a=HGsDnoEkBQlTwEb6aYUA:9 a=CjuIK1q_8ugA:10 a=E9Po1WZjFZOl8hwRPBS3:22
+        a=AjGcO6oz07-iQ99wixmX:22 a=E8ToXWR_bxluHZ7gmE-Z:22
+        a=d3PnA9EDa4IxuAV0gXij:22 a=1CNFftbPRP8L7MoqJWF3:22
+        a=Vxmtnl_E_bksehYqCbjh:22
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is one from the department of "maybe play lottery if you hit
-this, karma compensation might work". Or at least lockdep ftw!
+Hi Daniel.
 
-This reverts commit 565d1941557756a584ac357d945bc374d5fcd1d0.
+On Tue, Jul 07, 2020 at 10:12:13PM +0200, Daniel Vetter wrote:
+> One of these drivers that predates the nonblocking support in helpers,
+> and hand-rolled its own thing. Entirely not anything specific here, we
+> can just delete it all and replace it with the helper version.
+> 
+> Could also perhaps use the drm_mode_config_helper_suspend/resume
+> stuff, for another few lines deleted. But I'm not looking at that
+> stuff, I'm just going through all the atomic commit functions and make
+> sure they have properly annotated dma-fence critical sections
+> everywhere.
+> 
+> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> Cc: Sam Ravnborg <sam@ravnborg.org>
+> Cc: Boris Brezillon <bbrezillon@kernel.org>
+> Cc: Nicolas Ferre <nicolas.ferre@microchip.com>
+> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
+> Cc: Ludovic Desroches <ludovic.desroches@microchip.com>
+> Cc: linux-arm-kernel@lists.infradead.org
 
-It's not quite as low-risk as the commit message claims, because this
-grabs console_lock, which might be held when we allocate memory, which
-might never happen because the dma_fence_wait() is stuck waiting on
-our gpu reset:
+Looks good, nice to see all this code deleted!
 
-[  136.763714] ======================================================
-[  136.763714] WARNING: possible circular locking dependency detected
-[  136.763715] 5.7.0-rc3+ #346 Tainted: G        W
-[  136.763716] ------------------------------------------------------
-[  136.763716] kworker/2:3/682 is trying to acquire lock:
-[  136.763716] ffffffff8226f140 (console_lock){+.+.}-{0:0}, at: drm_fb_helper_set_suspend_unlocked+0x7b/0xa0 [drm_kms_helper]
-[  136.763723]
-               but task is already holding lock:
-[  136.763724] ffffffff82318c80 (dma_fence_map){++++}-{0:0}, at: drm_sched_job_timedout+0x25/0xf0 [gpu_sched]
-[  136.763726]
-               which lock already depends on the new lock.
+This more or less matches what I had concluded.
+But..
 
-[  136.763726]
-               the existing dependency chain (in reverse order) is:
-[  136.763727]
-               -> #2 (dma_fence_map){++++}-{0:0}:
-[  136.763730]        __dma_fence_might_wait+0x41/0xb0
-[  136.763732]        dma_resv_lockdep+0x171/0x202
-[  136.763734]        do_one_initcall+0x5d/0x2f0
-[  136.763736]        kernel_init_freeable+0x20d/0x26d
-[  136.763738]        kernel_init+0xa/0xfb
-[  136.763740]        ret_from_fork+0x27/0x50
-[  136.763740]
-               -> #1 (fs_reclaim){+.+.}-{0:0}:
-[  136.763743]        fs_reclaim_acquire.part.0+0x25/0x30
-[  136.763745]        kmem_cache_alloc_trace+0x2e/0x6e0
-[  136.763747]        device_create_groups_vargs+0x52/0xf0
-[  136.763747]        device_create+0x49/0x60
-[  136.763749]        fb_console_init+0x25/0x145
-[  136.763750]        fbmem_init+0xcc/0xe2
-[  136.763750]        do_one_initcall+0x5d/0x2f0
-[  136.763751]        kernel_init_freeable+0x20d/0x26d
-[  136.763752]        kernel_init+0xa/0xfb
-[  136.763753]        ret_from_fork+0x27/0x50
-[  136.763753]
-               -> #0 (console_lock){+.+.}-{0:0}:
-[  136.763755]        __lock_acquire+0x1241/0x23f0
-[  136.763756]        lock_acquire+0xad/0x370
-[  136.763757]        console_lock+0x47/0x70
-[  136.763761]        drm_fb_helper_set_suspend_unlocked+0x7b/0xa0 [drm_kms_helper]
-[  136.763809]        amdgpu_device_gpu_recover.cold+0x21e/0xe7b [amdgpu]
-[  136.763850]        amdgpu_job_timedout+0xfb/0x150 [amdgpu]
-[  136.763851]        drm_sched_job_timedout+0x8a/0xf0 [gpu_sched]
-[  136.763852]        process_one_work+0x23c/0x580
-[  136.763853]        worker_thread+0x50/0x3b0
-[  136.763854]        kthread+0x12e/0x150
-[  136.763855]        ret_from_fork+0x27/0x50
-[  136.763855]
-               other info that might help us debug this:
+    atmel_hlcdc_dc.wq is no longer used - so can also be deleted.
 
-[  136.763856] Chain exists of:
-                 console_lock --> fs_reclaim --> dma_fence_map
+This will delete even more code - good.
 
-[  136.763857]  Possible unsafe locking scenario:
+I will try to test the patch in the weekend.
+Will get back if I suceed doing so.
 
-[  136.763857]        CPU0                    CPU1
-[  136.763857]        ----                    ----
-[  136.763857]   lock(dma_fence_map);
-[  136.763858]                                lock(fs_reclaim);
-[  136.763858]                                lock(dma_fence_map);
-[  136.763858]   lock(console_lock);
-[  136.763859]
-                *** DEADLOCK ***
+	Sam
 
-[  136.763860] 4 locks held by kworker/2:3/682:
-[  136.763860]  #0: ffff8887fb81c938 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x1bc/0x580
-[  136.763862]  #1: ffffc90000cafe58 ((work_completion)(&(&sched->work_tdr)->work)){+.+.}-{0:0}, at: process_one_work+0x1bc/0x580
-[  136.763863]  #2: ffffffff82318c80 (dma_fence_map){++++}-{0:0}, at: drm_sched_job_timedout+0x25/0xf0 [gpu_sched]
-[  136.763865]  #3: ffff8887ab621748 (&adev->lock_reset){+.+.}-{3:3}, at: amdgpu_device_gpu_recover.cold+0x5ab/0xe7b [amdgpu]
-[  136.763914]
-               stack backtrace:
-[  136.763915] CPU: 2 PID: 682 Comm: kworker/2:3 Tainted: G        W         5.7.0-rc3+ #346
-[  136.763916] Hardware name: System manufacturer System Product Name/PRIME X370-PRO, BIOS 4011 04/19/2018
-[  136.763918] Workqueue: events drm_sched_job_timedout [gpu_sched]
-[  136.763919] Call Trace:
-[  136.763922]  dump_stack+0x8f/0xd0
-[  136.763924]  check_noncircular+0x162/0x180
-[  136.763926]  __lock_acquire+0x1241/0x23f0
-[  136.763927]  lock_acquire+0xad/0x370
-[  136.763932]  ? drm_fb_helper_set_suspend_unlocked+0x7b/0xa0 [drm_kms_helper]
-[  136.763933]  ? mark_held_locks+0x2d/0x80
-[  136.763934]  ? _raw_spin_unlock_irqrestore+0x46/0x60
-[  136.763936]  console_lock+0x47/0x70
-[  136.763940]  ? drm_fb_helper_set_suspend_unlocked+0x7b/0xa0 [drm_kms_helper]
-[  136.763944]  drm_fb_helper_set_suspend_unlocked+0x7b/0xa0 [drm_kms_helper]
-[  136.763993]  amdgpu_device_gpu_recover.cold+0x21e/0xe7b [amdgpu]
-[  136.764036]  amdgpu_job_timedout+0xfb/0x150 [amdgpu]
-[  136.764038]  drm_sched_job_timedout+0x8a/0xf0 [gpu_sched]
-[  136.764040]  process_one_work+0x23c/0x580
-[  136.764041]  worker_thread+0x50/0x3b0
-[  136.764042]  ? process_one_work+0x580/0x580
-[  136.764044]  kthread+0x12e/0x150
-[  136.764045]  ? kthread_create_worker_on_cpu+0x70/0x70
-[  136.764046]  ret_from_fork+0x27/0x50
-
-Cc: linux-media@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: linux-rdma@vger.kernel.org
-Cc: amd-gfx@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-index 3a3bccd7f1c7..44b321eecc3d 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
-@@ -4109,8 +4109,6 @@ static int amdgpu_do_asic_reset(struct amdgpu_hive_info *hive,
- 				if (r)
- 					goto out;
- 
--				amdgpu_fbdev_set_suspend(tmp_adev, 0);
--
- 				/* must succeed. */
- 				amdgpu_ras_resume(tmp_adev);
- 
-@@ -4351,8 +4349,6 @@ int amdgpu_device_gpu_recover(struct amdgpu_device *adev,
- 		 */
- 		amdgpu_unregister_gpu_instance(tmp_adev);
- 
--		amdgpu_fbdev_set_suspend(tmp_adev, 1);
--
- 		/* disable ras on ALL IPs */
- 		if (!(in_ras_intr && !use_baco) &&
- 		      amdgpu_device_ip_need_full_reset(tmp_adev))
--- 
-2.27.0
-
+> ---
+>  drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c | 96 +-------------------
+>  drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.h |  4 -
+>  2 files changed, 1 insertion(+), 99 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+> index 871293d1aeeb..9ec156e98f06 100644
+> --- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+> +++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+> @@ -557,103 +557,10 @@ static irqreturn_t atmel_hlcdc_dc_irq_handler(int irq, void *data)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -struct atmel_hlcdc_dc_commit {
+> -	struct work_struct work;
+> -	struct drm_device *dev;
+> -	struct drm_atomic_state *state;
+> -};
+> -
+> -static void
+> -atmel_hlcdc_dc_atomic_complete(struct atmel_hlcdc_dc_commit *commit)
+> -{
+> -	struct drm_device *dev = commit->dev;
+> -	struct atmel_hlcdc_dc *dc = dev->dev_private;
+> -	struct drm_atomic_state *old_state = commit->state;
+> -
+> -	/* Apply the atomic update. */
+> -	drm_atomic_helper_commit_modeset_disables(dev, old_state);
+> -	drm_atomic_helper_commit_planes(dev, old_state, 0);
+> -	drm_atomic_helper_commit_modeset_enables(dev, old_state);
+> -
+> -	drm_atomic_helper_wait_for_vblanks(dev, old_state);
+> -
+> -	drm_atomic_helper_cleanup_planes(dev, old_state);
+> -
+> -	drm_atomic_state_put(old_state);
+> -
+> -	/* Complete the commit, wake up any waiter. */
+> -	spin_lock(&dc->commit.wait.lock);
+> -	dc->commit.pending = false;
+> -	wake_up_all_locked(&dc->commit.wait);
+> -	spin_unlock(&dc->commit.wait.lock);
+> -
+> -	kfree(commit);
+> -}
+> -
+> -static void atmel_hlcdc_dc_atomic_work(struct work_struct *work)
+> -{
+> -	struct atmel_hlcdc_dc_commit *commit =
+> -		container_of(work, struct atmel_hlcdc_dc_commit, work);
+> -
+> -	atmel_hlcdc_dc_atomic_complete(commit);
+> -}
+> -
+> -static int atmel_hlcdc_dc_atomic_commit(struct drm_device *dev,
+> -					struct drm_atomic_state *state,
+> -					bool async)
+> -{
+> -	struct atmel_hlcdc_dc *dc = dev->dev_private;
+> -	struct atmel_hlcdc_dc_commit *commit;
+> -	int ret;
+> -
+> -	ret = drm_atomic_helper_prepare_planes(dev, state);
+> -	if (ret)
+> -		return ret;
+> -
+> -	/* Allocate the commit object. */
+> -	commit = kzalloc(sizeof(*commit), GFP_KERNEL);
+> -	if (!commit) {
+> -		ret = -ENOMEM;
+> -		goto error;
+> -	}
+> -
+> -	INIT_WORK(&commit->work, atmel_hlcdc_dc_atomic_work);
+> -	commit->dev = dev;
+> -	commit->state = state;
+> -
+> -	spin_lock(&dc->commit.wait.lock);
+> -	ret = wait_event_interruptible_locked(dc->commit.wait,
+> -					      !dc->commit.pending);
+> -	if (ret == 0)
+> -		dc->commit.pending = true;
+> -	spin_unlock(&dc->commit.wait.lock);
+> -
+> -	if (ret)
+> -		goto err_free;
+> -
+> -	/* We have our own synchronization through the commit lock. */
+> -	BUG_ON(drm_atomic_helper_swap_state(state, false) < 0);
+> -
+> -	/* Swap state succeeded, this is the point of no return. */
+> -	drm_atomic_state_get(state);
+> -	if (async)
+> -		queue_work(dc->wq, &commit->work);
+> -	else
+> -		atmel_hlcdc_dc_atomic_complete(commit);
+> -
+> -	return 0;
+> -
+> -err_free:
+> -	kfree(commit);
+> -error:
+> -	drm_atomic_helper_cleanup_planes(dev, state);
+> -	return ret;
+> -}
+> -
+>  static const struct drm_mode_config_funcs mode_config_funcs = {
+>  	.fb_create = drm_gem_fb_create,
+>  	.atomic_check = drm_atomic_helper_check,
+> -	.atomic_commit = atmel_hlcdc_dc_atomic_commit,
+> +	.atomic_commit = drm_atomic_helper_commit,
+>  };
+>  
+>  static int atmel_hlcdc_dc_modeset_init(struct drm_device *dev)
+> @@ -716,7 +623,6 @@ static int atmel_hlcdc_dc_load(struct drm_device *dev)
+>  	if (!dc->wq)
+>  		return -ENOMEM;
+>  
+> -	init_waitqueue_head(&dc->commit.wait);
+>  	dc->desc = match->data;
+>  	dc->hlcdc = dev_get_drvdata(dev->dev->parent);
+>  	dev->dev_private = dc;
+> diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.h b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.h
+> index 469d4507e576..9367a3747a3a 100644
+> --- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.h
+> +++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.h
+> @@ -346,10 +346,6 @@ struct atmel_hlcdc_dc {
+>  		u32 imr;
+>  		struct drm_atomic_state *state;
+>  	} suspend;
+> -	struct {
+> -		wait_queue_head_t wait;
+> -		bool pending;
+> -	} commit;
+>  };
+>  
+>  extern struct atmel_hlcdc_formats atmel_hlcdc_plane_rgb_formats;
+> -- 
+> 2.27.0
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
