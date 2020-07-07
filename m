@@ -4,56 +4,56 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B19C43467
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D3AC433E1
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7115E206BE
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97F2B2075B
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 20:13:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="h/9rvaxm"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="I+82JJmu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728748AbgGGUNK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jul 2020 16:13:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49620 "EHLO
+        id S1728733AbgGGUNH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jul 2020 16:13:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728730AbgGGUNJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:13:09 -0400
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58659C061755
-        for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2020 13:13:09 -0700 (PDT)
-Received: by mail-wm1-x344.google.com with SMTP id 22so479313wmg.1
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2020 13:13:09 -0700 (PDT)
+        with ESMTP id S1728714AbgGGUNG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 16:13:06 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78B73C08C5E1
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Jul 2020 13:13:05 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id g75so453581wme.5
+        for <linux-rdma@vger.kernel.org>; Tue, 07 Jul 2020 13:13:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=J/s3MmMboTlzjq+8NZ+kuHYErla2b65vDUsaQSqJLtQ=;
-        b=h/9rvaxmqOgZnk0yzbidQ1mSiN2f8H+tTzjFdhGdFOWlNwkDo4JJi3I20FJiVQ64++
-         9VJT4q9VDm5n5KWBq+/qF0XamCRdfGRwp7BYVYCjbzT/qAAc5KAW0TvQWvcGnmu5uO6S
-         M3uCxlfFkcBpdt/fJ0q8qkf07KDjc8MnphevQ=
+        bh=v6mLNvmwV0mXXFCJp1CZ5e+LEhcYSNx/dxx3MEMckRw=;
+        b=I+82JJmua6H54T91fmYUr8DAr6NrwnR+mkHvBYi78d5aDPpW3+51mLiZmLWpatmsVZ
+         7UZkmP80kTFgcoEpPk4rtMeZpVJWOIuNxSW1ZScEeiy2ttA5BTAFxF1utpsJipJarIxb
+         cjMyFkg21+NB7V8zjtGNczY53Qq7GLqyckRu4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=J/s3MmMboTlzjq+8NZ+kuHYErla2b65vDUsaQSqJLtQ=;
-        b=QM3cSYmFFTmsu/U1uTntJ9CsFhGr00BE2WHyDDQhGSkxSeZqr6GvnsGVh1wPXKBUv4
-         VN0l8VRs2l4Hy4p3T/IXrwh7MNnAEQAy5y49FULouE59zhEK8z1x7mza3AJhEmcEJPoS
-         ZmtdCy6CLSQR5VM7vLwtH3LMeYCAQV4vFX38qvAa0KIESHDrCqvmxQWQj2/kN1wHybcd
-         yUcBe7R7q7Zj+cr5YJRZh0OFR0CpULJk1jJqZhTVsoRFK209+An5Pti04vLLNpgLHwjU
-         3lVEN2kgSGovsvK6JsOqwi0/lvemo4Q4EgBVyNSuIw2ZPXOdENwha+nG33WTTwkhK+Fm
-         g5mg==
-X-Gm-Message-State: AOAM530kekGDQeknowopW+Ue2nOKMp4wzqpTR1qeP5d/DFcJIxZIP8Po
-        uGhKouC2fVmQfRRqIgNFjR8rJw==
-X-Google-Smtp-Source: ABdhPJxlP5xpy/2lURkIV3PTnLCHYkUbyRh4w5Xrsscd+z01BMadEva1i1SCumwZqijjHCScWIcFig==
-X-Received: by 2002:a1c:96c5:: with SMTP id y188mr6024472wmd.71.1594152788077;
-        Tue, 07 Jul 2020 13:13:08 -0700 (PDT)
+        bh=v6mLNvmwV0mXXFCJp1CZ5e+LEhcYSNx/dxx3MEMckRw=;
+        b=nDEKDIspPKqJvwhJ+bIJu0JXR+MZYL6uLXAZ5Tjus0sNULbcNOD7pRLfiD4EQDFr4h
+         8h/XI0mN3vVrUCU3Oyp7EThyukqWw5to+ADpF6pqe+b3QcK3D4Q0/2MCIMtlIGQSaiWp
+         bLC/w6u31XLKgGzKexSYcoka8xMSeU3pjKtNMQVs/uNffK2sp9MGE1OuSUIOJGxR6qNG
+         LbhtQzWpkEeDzqQDuoXVtjqsL+X/bd9QEumQ7BM6+yicAxoNArPB9izmOPQ1tHlVmeHY
+         5qH7Twk28p5LOLJn6eIQqqIimEhhXlly3+rHi8IKjhN0mcqBv9NnnXsCHpGlJ4SDjBrg
+         GreA==
+X-Gm-Message-State: AOAM533YWBJn7WZ+ml/Ojv5dZ5UjIp8TFQ4OaCZ5Kt7/mbFIfN5Y1nL7
+        6M4vnuEDQiZzUkFRNupSbPdB9VfwlzY=
+X-Google-Smtp-Source: ABdhPJwb8lrdzNzimlB7WFs1FDrPYBlKDSPiN4WBOCVQt3QuE500w5Nk7OIYzGADJypoV3zm1LNAIA==
+X-Received: by 2002:a1c:44e:: with SMTP id 75mr5900441wme.139.1594152784201;
+        Tue, 07 Jul 2020 13:13:04 -0700 (PDT)
 Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id q7sm2515262wra.56.2020.07.07.13.13.06
+        by smtp.gmail.com with ESMTPSA id q7sm2515262wra.56.2020.07.07.13.13.02
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Jul 2020 13:13:07 -0700 (PDT)
+        Tue, 07 Jul 2020 13:13:03 -0700 (PDT)
 From:   Daniel Vetter <daniel.vetter@ffwll.ch>
 To:     DRI Development <dri-devel@lists.freedesktop.org>
 Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
@@ -64,9 +64,9 @@ Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
         =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH 22/25] drm/scheduler: use dma-fence annotations in tdr work
-Date:   Tue,  7 Jul 2020 22:12:26 +0200
-Message-Id: <20200707201229.472834-23-daniel.vetter@ffwll.ch>
+Subject: [PATCH 19/25] drm/amdgpu: s/GFP_KERNEL/GFP_ATOMIC in scheduler code
+Date:   Tue,  7 Jul 2020 22:12:23 +0200
+Message-Id: <20200707201229.472834-20-daniel.vetter@ffwll.ch>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
 References: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
@@ -78,75 +78,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In the face of unpriviledged userspace being able to submit bogus gpu
-workloads the kernel needs gpu timeout and reset (tdr) to guarantee
-that dma_fences actually complete. Annotate this worker to make sure
-we don't have any accidental locking inversions or other problems
-lurking.
+My dma-fence lockdep annotations caught an inversion because we
+allocate memory where we really shouldn't:
 
-Originally this was part of the overall scheduler annotation patch.
-But amdgpu has some glorious inversions here:
+	kmem_cache_alloc+0x2b/0x6d0
+	amdgpu_fence_emit+0x30/0x330 [amdgpu]
+	amdgpu_ib_schedule+0x306/0x550 [amdgpu]
+	amdgpu_job_run+0x10f/0x260 [amdgpu]
+	drm_sched_main+0x1b9/0x490 [gpu_sched]
+	kthread+0x12e/0x150
 
-- grabs console_lock
-- does a full modeset, which grabs all kinds of locks
-  (drm_modeset_lock, dma_resv_lock) which can deadlock with
-  dma_fence_wait held inside them.
-- almost minor at that point, but the modeset code also allocates
-  memory
+Trouble right now is that lockdep only validates against GFP_FS, which
+would be good enough for shrinkers. But for mmu_notifiers we actually
+need !GFP_ATOMIC, since they can be called from any page laundering,
+even if GFP_NOFS or GFP_NOIO are set.
 
-These all look like they'll be very hard to fix properly, the hardware
-seems to require a full display reset with any gpu recovery.
+I guess we should improve the lockdep annotations for
+fs_reclaim_acquire/release.
 
-Hence split out as a seperate patch.
+Ofc real fix is to properly preallocate this fence and stuff it into
+the amdgpu job structure. But GFP_ATOMIC gets the lockdep splat out of
+the way.
 
-Since amdgpu isn't the only hardware driver that needs to reset the
-display (at least gen2/3 on intel have the same problem) we need a
-generic solution for this. There's two tricks we could still from
-drm/i915 and lift to dma-fence:
+v2: Two more allocations in scheduler paths.
 
-- The big whack, aka force-complete all fences. i915 does this for all
-  pending jobs if the reset is somehow stuck. Trouble is we'd need to
-  do this for all fences in the entire system, and just the
-  book-keeping for that will be fun. Plus lots of drivers use fences
-  for all kinds of internal stuff like memory management, so
-  unconditionally resetting all of them doesn't work.
+Frist one:
 
-  I'm also hoping that with these fence annotations we could enlist
-  lockdep in finding the last offenders causing deadlocks, and we
-  could remove this get-out-of-jail trick.
+	__kmalloc+0x58/0x720
+	amdgpu_vmid_grab+0x100/0xca0 [amdgpu]
+	amdgpu_job_dependency+0xf9/0x120 [amdgpu]
+	drm_sched_entity_pop_job+0x3f/0x440 [gpu_sched]
+	drm_sched_main+0xf9/0x490 [gpu_sched]
 
-- The more feasible approach (across drivers at least as part of the
-  dma_fence contract) is what drm/i915 does for gen2/3: When we need
-  to reset the display we wake up all dma_fence_wait_interruptible
-  calls, or well at least the equivalent of those in i915 internally.
+Second one:
 
-  Relying on ioctl restart we force all other threads to release their
-  locks, which means the tdr thread is guaranteed to be able to get
-  them. I think we could implement this at the dma_fence level,
-  including proper lockdep annotations.
-
-  dma_fence_begin_tdr():
-  - must be nested within a dma_fence_begin/end_signalling section
-  - will wake up all interruptible (but not the non-interruptible)
-    dma_fence_wait() calls and force them to complete with a
-    -ERESTARTSYS errno code. All new interrupitble calls to
-    dma_fence_wait() will immeidately fail with the same error code.
-
-  dma_fence_end_trdr():
-  - this will convert dma_fence_wait() calls back to normal.
-
-  Of course interrupting dma_fence_wait is only ok if the caller
-  specified that, which means we need to split the annotations into
-  interruptible and non-interruptible version. If we then make sure
-  that we only use interruptible dma_fence_wait() calls while holding
-  drm_modeset_lock we can grab them in tdr code, and allow display
-  resets. Doing the same for dma_resv_lock might be a lot harder, so
-  buffer updates must be avoided.
-
-  What's worse, we're not going to be able to make the dma_fence_wait
-  calls in mmu-notifiers interruptible, that doesn't work. So
-  allocating memory still wont' be allowed, even in tdr sections. Plus
-  obviously we can use this trick only in tdr, it is rather intrusive.
+	kmem_cache_alloc+0x2b/0x6d0
+	amdgpu_sync_fence+0x7e/0x110 [amdgpu]
+	amdgpu_vmid_grab+0x86b/0xca0 [amdgpu]
+	amdgpu_job_dependency+0xf9/0x120 [amdgpu]
+	drm_sched_entity_pop_job+0x3f/0x440 [gpu_sched]
+	drm_sched_main+0xf9/0x490 [gpu_sched]
 
 Cc: linux-media@vger.kernel.org
 Cc: linaro-mm-sig@lists.linaro.org
@@ -158,35 +129,50 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Christian König <christian.koenig@amd.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
 ---
- drivers/gpu/drm/scheduler/sched_main.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c | 2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c   | 2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
-index 52f1ab4bc922..a1c091e11ffd 100644
---- a/drivers/gpu/drm/scheduler/sched_main.c
-+++ b/drivers/gpu/drm/scheduler/sched_main.c
-@@ -281,9 +281,12 @@ static void drm_sched_job_timedout(struct work_struct *work)
- {
- 	struct drm_gpu_scheduler *sched;
- 	struct drm_sched_job *job;
-+	bool fence_cookie;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c
+index 8d84975885cd..a089a827fdfe 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c
+@@ -143,7 +143,7 @@ int amdgpu_fence_emit(struct amdgpu_ring *ring, struct dma_fence **f,
+ 	uint32_t seq;
+ 	int r;
  
- 	sched = container_of(work, struct drm_gpu_scheduler, work_tdr.work);
+-	fence = kmem_cache_alloc(amdgpu_fence_slab, GFP_KERNEL);
++	fence = kmem_cache_alloc(amdgpu_fence_slab, GFP_ATOMIC);
+ 	if (fence == NULL)
+ 		return -ENOMEM;
  
-+	fence_cookie = dma_fence_begin_signalling();
-+
- 	/* Protects against concurrent deletion in drm_sched_get_cleanup_job */
- 	spin_lock(&sched->job_list_lock);
- 	job = list_first_entry_or_null(&sched->ring_mirror_list,
-@@ -315,6 +318,8 @@ static void drm_sched_job_timedout(struct work_struct *work)
- 	spin_lock(&sched->job_list_lock);
- 	drm_sched_start_timeout(sched);
- 	spin_unlock(&sched->job_list_lock);
-+
-+	dma_fence_end_signalling(fence_cookie);
- }
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
+index 267fa45ddb66..a333ca2d4ddd 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
+@@ -208,7 +208,7 @@ static int amdgpu_vmid_grab_idle(struct amdgpu_vm *vm,
+ 	if (ring->vmid_wait && !dma_fence_is_signaled(ring->vmid_wait))
+ 		return amdgpu_sync_fence(sync, ring->vmid_wait);
  
-  /**
+-	fences = kmalloc_array(sizeof(void *), id_mgr->num_ids, GFP_KERNEL);
++	fences = kmalloc_array(sizeof(void *), id_mgr->num_ids, GFP_ATOMIC);
+ 	if (!fences)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c
+index 8ea6c49529e7..af22b526cec9 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c
+@@ -160,7 +160,7 @@ int amdgpu_sync_fence(struct amdgpu_sync *sync, struct dma_fence *f)
+ 	if (amdgpu_sync_add_later(sync, f))
+ 		return 0;
+ 
+-	e = kmem_cache_alloc(amdgpu_sync_slab, GFP_KERNEL);
++	e = kmem_cache_alloc(amdgpu_sync_slab, GFP_ATOMIC);
+ 	if (!e)
+ 		return -ENOMEM;
+ 
 -- 
 2.27.0
 
