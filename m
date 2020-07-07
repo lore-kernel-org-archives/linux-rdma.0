@@ -2,178 +2,338 @@ Return-Path: <SRS0=ppJa=AS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CD1C433E1
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 18:18:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F16BC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 18:53:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D241206CD
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 18:18:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0619020720
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jul 2020 18:53:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="CyDXbzpZ"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="j8zFoEjH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728284AbgGGSSl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jul 2020 14:18:41 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:63326 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728029AbgGGSSl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jul 2020 14:18:41 -0400
-Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 067IBKqq015266;
-        Tue, 7 Jul 2020 11:18:39 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-type; s=pfpt0818;
- bh=w/0XgIbkfHZzJn0FI8Qowu4uSIGhaHoY6UwMvkDC2Qo=;
- b=CyDXbzpZC7DsdtQn6PA5h/ZbA/y93q9i/epGN7CxhoHBfniNF0M/L+L7W0vb4WkC38QH
- ++PvN1dwKDtUncGNsvYNPUtvvFM4Hs8D2LuEZIF5302xNUMyaTINmwgjIL7rn/IS6ypD
- 34Yv8Nmj63BizSkznphbHtlN7ytEvZfUCABt2vzdETJxGlOcflM2ipyHRuG56IU9eo7p
- Y9uwVfxhLJWI9DAPW1hh1I9KcxVudY466xVh6RghqqTNKU2ZC1QUC19zKMVcRsKNTyTz
- tAyuQHH8flXWxYAIVof33O+UXY7G+gk/Q+73OSnv97cpvkXPKLuC3NVr9FfSBENc7AsV AA== 
-Received: from sc-exch01.marvell.com ([199.233.58.181])
-        by mx0b-0016f401.pphosted.com with ESMTP id 322s9ncbpn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Tue, 07 Jul 2020 11:18:39 -0700
-Received: from DC5-EXCH01.marvell.com (10.69.176.38) by SC-EXCH01.marvell.com
- (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Tue, 7 Jul
- 2020 11:18:37 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH01.marvell.com
- (10.69.176.38) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Tue, 7 Jul 2020 11:18:37 -0700
-Received: from lb-tlvb-ybason.il.qlogic.org (unknown [10.5.221.176])
-        by maili.marvell.com (Postfix) with ESMTP id 517A23F703F;
-        Tue,  7 Jul 2020 11:18:36 -0700 (PDT)
-From:   Yuval Basson <ybason@marvell.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>, Yuval Basson <ybason@marvell.com>,
-        "Michal Kalderon" <mkalderon@marvell.com>
-Subject: [PATCH v2 rdma-next] RDMA/qedr: SRQ's bug fixes
-Date:   Tue, 7 Jul 2020 20:18:47 +0300
-Message-ID: <20200707171847.29352-1-ybason@marvell.com>
-X-Mailer: git-send-email 2.14.5
+        id S1728149AbgGGSxY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jul 2020 14:53:24 -0400
+Received: from mail-eopbgr80048.outbound.protection.outlook.com ([40.107.8.48]:12932
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728067AbgGGSxY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 7 Jul 2020 14:53:24 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ndu4n26W+UIq8A28UyChLBMC2MfMTvytJVJ9p7atJ9XE2aLtt2onvyIvB3GCCFhlt21eq75dbw7FijbuRRLFXHUV1bk/JzIXCuLb1MEEKyKa0sOZmkFnj2eMad5l138EtbEj2iX8Hm6ckXkyAnqi4h/wGQWpVFZkxveXYzyARUrmVeVlD3LxJlQ4gK1Fh05VBaMRsnmyM32kHJRMaGR+PxyNlaOk/3IaA5v8WZ5UtiPpVhiW0GOxNdhBPLL3ImxcmAujcKyMLLbMA+riD08cacFx22bVCMjhhSDKZx0Rn3gFQN+IeBLIUtu+yVutTh+IioRvYvOcaFrHfKoEqdJgrg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0u8k3MQhX6MEWBA8JuWgoEQCHx/FaOMR78HE/QLETQc=;
+ b=YnMUqaIck5SGSdaOIxBgUoYiCiDmbJj1Uk3+NIZgVGfetKjpWxYSTx4olAHYRee5y1vPOpoFjSUD3OHrpAmX6/WG66+gEgKAQlFyVdRe3C8YkEtQh1HfrcBpUGysytu9wPQlmW7dVSj8eyjuczvCE7fb1bgUrYBCyhwcVwDZNoQFC9aXto8JQ6uxPaJzZLTOY1M75dqWcdXONXGKWPQ3LvgUxxGfAUJPqMkBxdkHJ1rdQWkiJMw3/hgUjI6eF4WNido5SLEl1FUgKVbP/U65GJIwTWtvvtrEncTQgngsEBeCvCTb7VKbf3egVVTzgJalOFXzmV61vxN762LnNO24Ew==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0u8k3MQhX6MEWBA8JuWgoEQCHx/FaOMR78HE/QLETQc=;
+ b=j8zFoEjHDZFqQL/j90QvqQewI9YNOsr8YAXK20cOOyVkxiYsWNJSXoKN+7BAuN2xR8hX0vnX4H44UCwc37sLsW5Fdf0J+PF2fTV7IPov6S0wbv7BESMSxL+LaiyMtHgrULqTkVEeQN1ZhRnYP7BbvcT1XoQpkuR26UYseE/KxT8=
+Authentication-Results: chelsio.com; dkim=none (message not signed)
+ header.d=none;chelsio.com; dmarc=none action=none header.from=mellanox.com;
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
+ by AM0PR0502MB4049.eurprd05.prod.outlook.com (2603:10a6:208:12::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.24; Tue, 7 Jul
+ 2020 18:53:19 +0000
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::d05d:35af:3f2f:9110]) by AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::d05d:35af:3f2f:9110%5]) with mapi id 15.20.3153.029; Tue, 7 Jul 2020
+ 18:53:19 +0000
+Subject: Re: iSERT SQ overflow with single target and multi luns
+To:     Krishnamraju Eraparaju <krishna2@chelsio.com>
+Cc:     Sagi Grimberg <sagi@grimberg.me>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Nirranjan Kirubaharan <nirranjan@chelsio.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>
+References: <20200707123641.GA22620@chelsio.com>
+ <58258370-dcb2-4745-ec87-8a65b594075d@mellanox.com>
+ <20200707171627.GA2352@chelsio.com>
+From:   Max Gurtovoy <maxg@mellanox.com>
+Message-ID: <3db0b668-fd0d-c31a-0db7-9adb46c7a0a1@mellanox.com>
+Date:   Tue, 7 Jul 2020 21:53:11 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
+In-Reply-To: <20200707171627.GA2352@chelsio.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-ClientProxiedBy: AM3PR05CA0109.eurprd05.prod.outlook.com
+ (2603:10a6:207:2::11) To AM0PR05MB5810.eurprd05.prod.outlook.com
+ (2603:10a6:208:11f::18)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-07-07_10:2020-07-07,2020-07-07 signatures=0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [10.0.0.10] (46.116.90.232) by AM3PR05CA0109.eurprd05.prod.outlook.com (2603:10a6:207:2::11) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.23 via Frontend Transport; Tue, 7 Jul 2020 18:53:18 +0000
+X-Originating-IP: [46.116.90.232]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: c2e099c4-2512-4a0e-0cca-08d822a703c5
+X-MS-TrafficTypeDiagnostic: AM0PR0502MB4049:
+X-Microsoft-Antispam-PRVS: <AM0PR0502MB404916DC41535B122134EBDEB6660@AM0PR0502MB4049.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
+X-Forefront-PRVS: 0457F11EAF
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ul7slo/JMVO/7JI2+bRkTHujv5C4CJLcjOScmJ9roanF/aQzqDb6R4XjNO7mbM9gnnF5j6vjt5ARJJv9a2C43S06AY9z70QbGtCU1KKBgrswiLVaz0Fy4NTwcbhDL4i6ufHExC2e2SWSvus9AsncU5kctQqAXb7eLZ5cZbFWexGBNxtKsNbl2OrmY+0T5g7CL+oYts8h4FWbOkiMhxrjYMNmUHeOlM3O/jD0iibJh27erWhtd9VXIwz/4l8qjwkBBeCd0TrwFCtA5y2BFLdOKNK4ueRxGkAu749VsXpPs7Y0Sqplia3sJWqyH75RWDF5wxpEKUDUtBFGWT3GL9qDPa3SX+Ybq17M39I1y/eotu/7aFH+mUtgqEX3eadr25gK
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB5810.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(366004)(39850400004)(346002)(376002)(136003)(396003)(6666004)(83380400001)(26005)(316002)(16576012)(31686004)(66946007)(8676002)(66556008)(66476007)(478600001)(52116002)(36756003)(4326008)(53546011)(5660300002)(6486002)(31696002)(86362001)(6916009)(8936002)(2906002)(54906003)(956004)(186003)(16526019)(2616005)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: 8tb3BL84vuiciG+UNicY4CgsriNUlHeCcpMJqYa2reQUu9dLW5ZQsU3BzaI0bivKBmvP1aDi6sFwTDl/ZmVsngosZXPTGhaWutRMnXKZbDtdftOmmlrlZbQDG3yGsji+Q2y2koYWslU7KVAANhOaPc2lqtiRY/QytJ/Pa/GrOBo/LOJG5eMsOzqXg0svLkJ1nn25vctucI08Z9lGDTz6R8VL+wkNjlcCnU8w8CRb2Ntr91zhSq9rvzM0pZwWfEv65BQiyVEkjK147gT1Ry/BSHuOcaQWLDOJsxW3lm9cwISkfnpIwzyiGTxCexeO4u7A0buuPIsupD2g0SVBzE3k5pnWNeTl2+9m6FUT+9F+/kpZtIPpu0DtWGJj0PyE89pcFtMT7088+KtgPKNqz40KDPooPLDxO1dREamA/i+awloj18Sq/lAFHbVradDewMQGmdLIM7FG6h3FaWF6m7aRBjk37RtwVN7NlUuaRj8WThUDF3n3+rtvMw2+H/wJI6vq
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c2e099c4-2512-4a0e-0cca-08d822a703c5
+X-MS-Exchange-CrossTenant-AuthSource: AM0PR05MB5810.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Jul 2020 18:53:19.4091
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: yw/8O69CCG033hoWicjXHzMsl5XPF0sZcUhyBC5NnruMriogchkm1fbx7vxjbj0JOhDqx7QDhLkyUt3DO29uBw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0502MB4049
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-QP's with the same SRQ, working on different CQs and running in parallel
-on different CPUs could lead to a race when maintaining the SRQ consumer
-count, and leads to FW running out of SRQs. Update the consumer atomically.
-Make sure the wqe_prod is updated after the sge_prod due to FW
-requirements.
+great news.
 
-Fixes: 3491c9e799fb9 ("RDMA/qedr: Add support for kernel mode SRQ's")
-Signed-off-by: Michal Kalderon <mkalderon@marvell.com>
-Signed-off-by: Yuval Basson <ybason@marvell.com>
+Sagi,
 
-Changes in v2:
- Replace barrier() with dma_wmb()
- Remove redundant dma_wmb()
----
- drivers/infiniband/hw/qedr/qedr.h  |  4 ++--
- drivers/infiniband/hw/qedr/verbs.c | 23 +++++++++++------------
- 2 files changed, 13 insertions(+), 14 deletions(-)
+can you review the below before I send the formal patch ?
 
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index fdf90ec..aa33202 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -344,10 +344,10 @@ struct qedr_srq_hwq_info {
- 	u32 wqe_prod;
- 	u32 sge_prod;
- 	u32 wr_prod_cnt;
--	u32 wr_cons_cnt;
-+	atomic_t wr_cons_cnt;
- 	u32 num_elems;
- 
--	u32 *virt_prod_pair_addr;
-+	struct rdma_srq_producers *virt_prod_pair_addr;
- 	dma_addr_t phy_prod_pair_addr;
- };
- 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 9b9e802..444537b 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1510,6 +1510,7 @@ int qedr_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init_attr,
- 	srq->dev = dev;
- 	hw_srq = &srq->hw_srq;
- 	spin_lock_init(&srq->lock);
-+	atomic_set(&hw_srq->wr_cons_cnt, 0);
- 
- 	hw_srq->max_wr = init_attr->attr.max_wr;
- 	hw_srq->max_sges = init_attr->attr.max_sge;
-@@ -3686,7 +3687,7 @@ static u32 qedr_srq_elem_left(struct qedr_srq_hwq_info *hw_srq)
- 	 * count and consumer count and subtract it from max
- 	 * work request supported so that we get elements left.
- 	 */
--	used = hw_srq->wr_prod_cnt - hw_srq->wr_cons_cnt;
-+	used = hw_srq->wr_prod_cnt - (u32)atomic_read(&hw_srq->wr_cons_cnt);
- 
- 	return hw_srq->max_wr - used;
- }
-@@ -3701,7 +3702,6 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 	unsigned long flags;
- 	int status = 0;
- 	u32 num_sge;
--	u32 offset;
- 
- 	spin_lock_irqsave(&srq->lock, flags);
- 
-@@ -3714,7 +3714,8 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 		if (!qedr_srq_elem_left(hw_srq) ||
- 		    wr->num_sge > srq->hw_srq.max_sges) {
- 			DP_ERR(dev, "Can't post WR  (%d,%d) || (%d > %d)\n",
--			       hw_srq->wr_prod_cnt, hw_srq->wr_cons_cnt,
-+			       hw_srq->wr_prod_cnt,
-+			       atomic_read(&hw_srq->wr_cons_cnt),
- 			       wr->num_sge, srq->hw_srq.max_sges);
- 			status = -ENOMEM;
- 			*bad_wr = wr;
-@@ -3748,22 +3749,20 @@ int qedr_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 			hw_srq->sge_prod++;
- 		}
- 
--		/* Flush WQE and SGE information before
-+		/* Update WQE and SGE information before
- 		 * updating producer.
- 		 */
--		wmb();
-+		dma_wmb();
- 
- 		/* SRQ producer is 8 bytes. Need to update SGE producer index
- 		 * in first 4 bytes and need to update WQE producer in
- 		 * next 4 bytes.
- 		 */
--		*srq->hw_srq.virt_prod_pair_addr = hw_srq->sge_prod;
--		offset = offsetof(struct rdma_srq_producers, wqe_prod);
--		*((u8 *)srq->hw_srq.virt_prod_pair_addr + offset) =
--			hw_srq->wqe_prod;
-+		srq->hw_srq.virt_prod_pair_addr->sge_prod = hw_srq->sge_prod;
-+		/* Make sure sge producer is updated first */
-+		dma_wmb();
-+		srq->hw_srq.virt_prod_pair_addr->wqe_prod = hw_srq->wqe_prod;
- 
--		/* Flush producer after updating it. */
--		wmb();
- 		wr = wr->next;
- 	}
- 
-@@ -4182,7 +4181,7 @@ static int process_resp_one_srq(struct qedr_dev *dev, struct qedr_qp *qp,
- 	} else {
- 		__process_resp_one(dev, qp, cq, wc, resp, wr_id);
- 	}
--	srq->hw_srq.wr_cons_cnt++;
-+	atomic_inc(&srq->hw_srq.wr_cons_cnt);
- 
- 	return 1;
- }
--- 
-1.8.3.1
+BTW, we solved a similar issue with NVMf/RDMA target recently..
 
+On 7/7/2020 8:16 PM, Krishnamraju Eraparaju wrote:
+> Hi Max,
+>
+> Thanks for the quick response!
+>
+> I just tested your patch, it's working without any issue.
+>
+>
+> Just for reference, here is what I observed with Chelsio iWARP adapter,
+> after applying your patch:
+>
+> attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS:138 +1 + (rdma_ctxs:4096 *
+> factor:3) = 12427
+>
+>
+> rdma_ctxs:4096 comes from  ==>
+> rdma_rw_mr_factor(ISCSI_ISER_MAX_SG_TABLESIZE:4096)=32 *
+> ISCSI_DEF_XMIT_CMDS_MAX:128     where mr_pages is 128
+>
+>
+> Finally, 12427 size got capped to 8190 due to "dev->attrs.max_qp_wr" in
+> rdma_rw_init_qp().
+>
+> So final value of attr.cap.max_send_wr is 8190 for Chelsio adapters.
+>
+>
+>
+> Thanks,
+> Krishna.
+> On Tuesday, July 07/07/20, 2020 at 16:23:30 +0300, Max Gurtovoy wrote:
+>> Hi Krishna,
+>>
+>> thanks for debugging this.
+>>
+>> please try the following untested patch:
+>>
+>>
+>> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c
+>> b/drivers/infiniband/ulp/isert/ib_isert.c
+>> index b7df38e..49f5f05 100644
+>> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+>> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+>> @@ -119,7 +119,7 @@
+>>   {
+>>          struct isert_device *device = isert_conn->device;
+>>          struct ib_qp_init_attr attr;
+>> -       int ret;
+>> +       int ret, factor;
+>>
+>>          memset(&attr, 0, sizeof(struct ib_qp_init_attr));
+>>          attr.event_handler = isert_qp_event_callback;
+>> @@ -128,7 +128,9 @@
+>>          attr.recv_cq = comp->cq;
+>>          attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
+>>          attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
+>> -       attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX;
+>> +       factor = rdma_rw_mr_factor(device->ib_device, cma_id->port_num,
+>> +                                  ISCSI_ISER_MAX_SG_TABLESIZE);
+>> +       attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX * factor;
+>>          attr.cap.max_send_sge = device->ib_device->attrs.max_send_sge;
+>>          attr.cap.max_recv_sge = 1;
+>>          attr.sq_sig_type = IB_SIGNAL_REQ_WR;
+>> diff --git a/drivers/infiniband/ulp/isert/ib_isert.h
+>> b/drivers/infiniband/ulp/isert/ib_isert.h
+>> index 3b296ba..c9ccf1d 100644
+>> --- a/drivers/infiniband/ulp/isert/ib_isert.h
+>> +++ b/drivers/infiniband/ulp/isert/ib_isert.h
+>> @@ -63,7 +63,8 @@
+>>                  (ISER_RX_PAYLOAD_SIZE + sizeof(u64) + sizeof(struct
+>> ib_sge) + \
+>>                   sizeof(struct ib_cqe) + sizeof(bool)))
+>>
+>> -#define ISCSI_ISER_SG_TABLESIZE                256
+>> +/* Maximum support is 16MB I/O size */
+>> +#define ISCSI_ISER_MAX_SG_TABLESIZE    4096
+>>
+>>   enum isert_desc_type {
+>>          ISCSI_TX_CONTROL,
+>>
+>>
+>> On 7/7/2020 3:36 PM, Krishnamraju Eraparaju wrote:
+>>> Looks like the commit 07173c3e(block: enable multipage bvecs) has
+>>> uncovered iSER SQ sizing issue.
+>>>
+>>> Here is how I hit the issue:
+>>> Created two luns under single target, then run the below script on each
+>>> lun(parallelly).
+>>>
+>>>    while [ 1 ]
+>>>    do
+>>>    iozone -i 0 -i 1 -I -+d -s 100000 -r 16384 -w
+>>>    done
+>>>
+>>>
+>>> Then failures like below are logged in dmesg output, due to iw_cxgb4 SQ
+>>> getting full at iSER target.
+>>>     "isert: isert_rdma_rw_ctx_post: Cmd: 00000000cb75342a failed to post
+>>> RDMA res"
+>>>
+>>>
+>>> This issue won't occur if luns are created on seperate targets.
+>>> Also, the issue won't occur if I revert the multipage bvecs(07173c3e)
+>>> changes at initator.
+>>>
+>>>
+>>> Currently SQ is being sized this way:
+>>> attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS:138 +1 +
+>>> (ISCSI_DEF_XMIT_CMDS_MAX:128 * factor:3) = 523.
+>>> I tried increaseing the SQ size and observed that the issue is not
+>>> occuring when attr.cap.max_send_wr is 562.
+>>>
+>>>
+>>> Looks like the avg length of RDMA READ/WRITE operations has increased
+>>> after "multipage bvecs" changes.
+>>> Queueing many large sized RDMA READ/WRITE WRs may cause backpressure and
+>>> increases the chances of SQ getting full at provider driver.
+>>> Notice the length(0x7f000 & 0x2000) of each RDMA READ operation below,
+>>> for Before and After case.
+>>>
+>>> Before "multipage bvecs" RDMA READ:
+>>> [  +0.001903] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x78]
+>>> [  +0.000007] iser: iser_fast_reg_mr: lkey=0x8a41 rkey=0x8a41
+>>> addr=0x446166000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:120 READ tags
+>>> RKEY:0X8A41 VA:0X446166000
+>>> [  +0.000007] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x6f]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x13b51 rkey=0x13b51
+>>> addr=0x443b25000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:111 READ tags
+>>> RKEY:0X13B51 VA:0X443B25000
+>>> [  +0.000022] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0xe]
+>>> [  +0.000001] iser: iser_fast_reg_mr: lkey=0xa371 rkey=0xa371
+>>> addr=0x4461a4000 length=0x2000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:14 READ tags
+>>> RKEY:0XA371 VA:0X4461A4000
+>>> [  +0.000004] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x79]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x12f4f rkey=0x12f4f
+>>> addr=0x4461a9000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:121 READ tags
+>>> RKEY:0X12F4F VA:0X4461A9000
+>>> [  +0.000005] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7d]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0xe040 rkey=0xe040
+>>> addr=0x447e67000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:125 READ tags
+>>> RKEY:0XE040 VA:0X447E67000
+>>> [  +0.000021] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7b]
+>>> [  +0.000001] iser: iser_fast_reg_mr: lkey=0xb149 rkey=0xb149
+>>> addr=0x3d0366000 length=0x2000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:123 READ tags
+>>> RKEY:0XB149 VA:0X3D0366000
+>>> [  +0.000004] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0xb]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x1014c rkey=0x1014c
+>>> addr=0x3d0368000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:11 READ tags
+>>> RKEY:0X1014C VA:0X3D0368000
+>>> [  +0.000007] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x62]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x7c3b rkey=0x7c3b
+>>> addr=0x3d03e7000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:98 READ tags
+>>> RKEY:0X7C3B VA:0X3D03E7000
+>>> [  +0.000021] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x11]
+>>> [  +0.000001] iser: iser_fast_reg_mr: lkey=0x11752 rkey=0x11752
+>>> addr=0x3d6de6000 length=0x2000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:17 READ tags
+>>> RKEY:0X11752 VA:0X3D6DE6000
+>>> [  +0.000004] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x77]
+>>>
+>>>
+>>> After "multipage bvecs" RDMA READ:
+>>> [  +0.002455] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7d]
+>>> [  +0.000006] iser: iser_fast_reg_mr: lkey=0x7991 rkey=0x7991
+>>> addr=0x3d2819000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:125 READ tags
+>>> RKEY:0X7991 VA:0X3D2819000
+>>> [  +0.000005] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7e]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x8c9b rkey=0x8c9b
+>>> addr=0x3d2898000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:126 READ tags
+>>> RKEY:0X8C9B VA:0X3D2898000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7f]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x856d rkey=0x856d
+>>> addr=0x3d2917000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:127 READ tags
+>>> RKEY:0X856D VA:0X3D2917000
+>>> [  +0.000004] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x1]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0x9b55 rkey=0x9b55
+>>> addr=0x3d2999000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:1 READ tags
+>>> RKEY:0X9B55 VA:0X3D2999000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x2]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0x86cf rkey=0x86cf
+>>> addr=0x3d2018000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:2 READ tags
+>>> RKEY:0X86CF VA:0X3D2018000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x3]
+>>> [  +0.000003] iser: iser_fast_reg_mr: lkey=0x8062 rkey=0x8062
+>>> addr=0x3d2097000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:3 READ tags
+>>> RKEY:0X8062 VA:0X3D2097000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x4]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0xc34b rkey=0xc34b
+>>> addr=0x3d2116000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:4 READ tags
+>>> RKEY:0XC34B VA:0X3D2116000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x5]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0x8b6d rkey=0x8b6d
+>>> addr=0x3d2195000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:5 READ tags
+>>> RKEY:0X8B6D VA:0X3D2195000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x6]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0xce56 rkey=0xce56
+>>> addr=0x3d0e14000 length=0x7f000
+>>> [  +0.000000] iser: iser_prepare_read_cmd: Cmd itt:6 READ tags
+>>> RKEY:0XCE56 VA:0X3D0E14000
+>>> [  +0.000003] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x7]
+>>> [  +0.000002] iser: iser_fast_reg_mr: lkey=0xba45 rkey=0xba45
+>>> addr=0x3d0e93000 length=0x7f000
+>>> [  +0.000001] iser: iser_prepare_read_cmd: Cmd itt:7 READ tags
+>>> RKEY:0XBA45 VA:0X3D0E93000
+>>> [  +0.000002] iser: iscsi_iser_task_xmit: ctask xmit [cid 0 itt 0x8]
+>>>
+>>> Hence, I feel iSER target SQ is undersized and needs to be sized
+>>> properly to hold max possible entries. I might be wrong.
+>>>
+>>> Please take a look.
+>>>
+>>> Thanks,
+>>> Krishna.
