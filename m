@@ -2,150 +2,79 @@ Return-Path: <SRS0=5lGU=AT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F4DC433E1
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jul 2020 11:06:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 326A2C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jul 2020 12:20:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8148B206F6
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jul 2020 11:06:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DABA20720
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jul 2020 12:20:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594206367;
-	bh=T8XGCoY+FN8EJPVOnsmPM6BLa0DsbgcQ3XrzgoTz+xI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=QCC8ZhVNzbw/IIP2gQCpMYNW2yLenwengRDsbhHjWuUxF5CM64RadPuIYnyBOZNZE
-	 njdB4hai7TQs1096AVlc008gLLXvpnk7gCUn/Wbjdmoc9hDvy3xMYhMjW/U8YXrCNT
-	 5cO5rlVbFBDB7yqc50a2DiB4NVWsehSGZ0B8hIQQ=
+	s=default; t=1594210819;
+	bh=w5O1gxE3kPuxvSJR+0ciwom9gNRGsB+ORlstXqlL1LA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=TNg8w0BUvsv6AvPrtIcr0zEjGcdi91ivM6n1mJwHct4gLPk1XZ7xopBYxKUOrZY4j
+	 dY3i/DA7oCv89zAsVjjxXp56l9FI6iuIxO9sxSxnsMGtGc3eAB+KFTGIQhABWceWdU
+	 zcLif4ToSfmV5CDcefEAAHQqnM+4o7CRJ/JilHUQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728773AbgGHLGH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jul 2020 07:06:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43208 "EHLO mail.kernel.org"
+        id S1728996AbgGHMUS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jul 2020 08:20:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728385AbgGHLGG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 8 Jul 2020 07:06:06 -0400
+        id S1728640AbgGHMUS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 8 Jul 2020 08:20:18 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3835220786;
-        Wed,  8 Jul 2020 11:06:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3CE4E20672;
+        Wed,  8 Jul 2020 12:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594206365;
-        bh=T8XGCoY+FN8EJPVOnsmPM6BLa0DsbgcQ3XrzgoTz+xI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VX3nOOkG+JwNbVQ2cO8zKbuPLy8XvvsQUHYpsqofbgKTFdaNPBR8hMG+Om0Kz6Jqc
-         Dm2lP2xEKYusWsVHXmfaQEq32k5sSp99SQGeydGlGe7clW2YLyPl7tA9P+PjJvnZ+8
-         wUbvI/tMD2XUO2U9KGHoUqSd5J21U3HvRvXChO48=
+        s=default; t=1594210817;
+        bh=w5O1gxE3kPuxvSJR+0ciwom9gNRGsB+ORlstXqlL1LA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=A1qWp7RHEzUwDzw91eBi30m/Ouq6lFK2KIECP/Y0otqAx9d5RhmEMcR9sukCJWS/M
+         ITpPLSHtlhrfvoUcN8udzxkxxS/WXJuR8n9/3WB994d3CzlGZ8YuPmAXgw1+NxulEu
+         wrQ/3vmMeEMRtW6rSmvXB4kHjyI3nS3P5O8vdWoA=
+Date:   Wed, 8 Jul 2020 15:20:13 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/2] RDMA/core: Align abort/commit object scheme for write() and ioctl() paths
-Date:   Wed,  8 Jul 2020 14:05:53 +0300
-Message-Id: <20200708110554.1270613-2-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200708110554.1270613-1-leon@kernel.org>
-References: <20200708110554.1270613-1-leon@kernel.org>
+To:     liweihang <liweihang@huawei.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: Question about IB_QP_CUR_STATE
+Message-ID: <20200708122013.GX207186@unreal>
+References: <876ca1eb8667461a9d2e0effb8ee3934@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <876ca1eb8667461a9d2e0effb8ee3934@huawei.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Wed, Jul 08, 2020 at 09:41:26AM +0000, liweihang wrote:
+> Hi all,
+>
+> I'm a little confused about the role of IB_QP_CUR_STATE in the enumeration
+> ib_qp_attr_mask.
+>
+> In manual page of ibv_modify_qp(), comments of cur_qp_state is "Assume this
+> is the current QP state". Why we need to get current qp state from users
+> instead of drivers?
+>
+> For example, why the users are allowed to modify qp from RTR to RTS again
+> even if the qp's state in driver and hardware has already been RTS.
+>
+> I would be appretiate it if someone can help with this.
 
-Create same logic flow for write() interface as we have for ioctl()
-path by making sure that object is committed or aborted automatically
-after HW object creation.
+See, IBTA section "11.2.5.2 MODIFY QUEUE PAIR", table 96. "Current QP
+state" is valid optional attribute in modify_qp() while transition to RTS.
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/uverbs_main.c             |  4 ++++
- drivers/infiniband/core/uverbs_std_types_device.c |  7 ++++++-
- include/rdma/uverbs_ioctl.h                       |  1 +
- include/rdma/uverbs_std_types.h                   | 14 ++++++++++++++
- 4 files changed, 25 insertions(+), 1 deletion(-)
+I guess that the reason is to sync QP states seen by SW with HW.
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 706c972ea3a1..682a799f412e 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -599,6 +599,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	memset(bundle.attr_present, 0, sizeof(bundle.attr_present));
- 	bundle.ufile = file;
- 	bundle.context = NULL; /* only valid if bundle has uobject */
-+	bundle.uobject = NULL;
- 	if (!method_elm->is_ex) {
- 		size_t in_len = hdr.in_words * 4 - sizeof(hdr);
- 		size_t out_len = hdr.out_words * 4;
-@@ -662,6 +663,9 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	}
- 
- 	ret = method_elm->handler(&bundle);
-+	if (bundle.uobject)
-+		uverbs_finalize_object(bundle.uobject, UVERBS_ACCESS_NEW, true,
-+				       !ret, &bundle);
- out_unlock:
- 	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
- 	return (ret) ? : count;
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index 8e58605a17be..75df2094a010 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -38,7 +38,12 @@ static int UVERBS_HANDLER(UVERBS_METHOD_INVOKE_WRITE)(
- 	    attrs->ucore.outlen < method_elm->resp_size)
- 		return -ENOSPC;
- 
--	return method_elm->handler(attrs);
-+	attrs->uobject = NULL;
-+	rc = method_elm->handler(attrs);
-+	if (attrs->uobject)
-+		uverbs_finalize_object(attrs->uobject, UVERBS_ACCESS_NEW, true,
-+				       !rc, attrs);
-+	return rc;
- }
- 
- DECLARE_UVERBS_NAMED_METHOD(UVERBS_METHOD_INVOKE_WRITE,
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 86de10ea30af..db419c8dbd10 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -652,6 +652,7 @@ struct uverbs_attr_bundle {
- 	struct ib_udata ucore;
- 	struct ib_uverbs_file *ufile;
- 	struct ib_ucontext *context;
-+	struct ib_uobject *uobject;
- 	DECLARE_BITMAP(attr_present, UVERBS_API_ATTR_BKEY_LEN);
- 	struct uverbs_attr attrs[];
- };
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
-index bf0392ae15eb..8451b19103ee 100644
---- a/include/rdma/uverbs_std_types.h
-+++ b/include/rdma/uverbs_std_types.h
-@@ -110,6 +110,20 @@ static inline void uobj_alloc_abort(struct ib_uobject *uobj,
- 	rdma_alloc_abort_uobject(uobj, attrs, false);
- }
- 
-+static inline void uobj_finalize_uobj_create(struct ib_uobject *uobj,
-+					     struct uverbs_attr_bundle *attrs)
-+{
-+	/*
-+	 * Tell the core code that the write() handler has completed
-+	 * initializing the object and that the core should commit or
-+	 * abort this object based upon the return code from the write()
-+	 * method. Similar to what uverbs_finalize_uobj_create() does for
-+	 * ioctl()
-+	 */
-+	WARN_ON(attrs->uobject);
-+	attrs->uobject = uobj;
-+}
-+
- static inline struct ib_uobject *
- __uobj_alloc(const struct uverbs_api_object *obj,
- 	     struct uverbs_attr_bundle *attrs, struct ib_device **ib_dev)
--- 
-2.26.2
+Thanks
 
+>
+> Weihang
