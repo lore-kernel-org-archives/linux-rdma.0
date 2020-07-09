@@ -2,152 +2,131 @@ Return-Path: <SRS0=baGF=AU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 759A3C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jul 2020 12:31:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E24C433E4
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jul 2020 12:33:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5093C2074B
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jul 2020 12:31:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10DF420708
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Jul 2020 12:33:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="hvfEgjek"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="dcBagqjP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726932AbgGIMbv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Jul 2020 08:31:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56626 "EHLO
+        id S1726347AbgGIMdy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Jul 2020 08:33:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726921AbgGIMbv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jul 2020 08:31:51 -0400
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2771FC061A0B
-        for <linux-rdma@vger.kernel.org>; Thu,  9 Jul 2020 05:31:51 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id r8so1727834oij.5
-        for <linux-rdma@vger.kernel.org>; Thu, 09 Jul 2020 05:31:51 -0700 (PDT)
+        with ESMTP id S1726327AbgGIMdx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Jul 2020 08:33:53 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52AC9C061A0B
+        for <linux-rdma@vger.kernel.org>; Thu,  9 Jul 2020 05:33:53 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id o2so1626847wmh.2
+        for <linux-rdma@vger.kernel.org>; Thu, 09 Jul 2020 05:33:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KiDJy6GOzF4hs3a4674ttNieH4VUalBdDZ/NwtwQZfA=;
-        b=hvfEgjektFUBLSyqNgVq58lvaqS8oXwNqH7adCVDeFOG1FihOfDKIk82d6Al7lPH+z
-         FU6TNlodJuCQP8ZaqS8KwOZ/4iZAYz0ym2tgiLvm14hq3iDakbejFKFdAsWHxPEM+3mz
-         ReXmbWjUtPlLLIQhYjyUgm8Ql7hNnMAWBp+Ps=
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=3e+2hfQAEno550QSTUaHwqumwSkwkBzuWx2HdwXt2vk=;
+        b=dcBagqjPL5oaA17pl8tDkIKyeu12QXbFJrtQGGLySAvLDY4xiergC2IYR6E1fpmf4p
+         1WACZV3CMOEQku9V/ZRJ4sZLASuV3NVXphsb30Q+GUjzDBa8TFvBnMO71pd02lVOROXU
+         YPnb5OTAQoA0wAe6EW+/BDiI3Gr7pzCuT6Vuk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KiDJy6GOzF4hs3a4674ttNieH4VUalBdDZ/NwtwQZfA=;
-        b=iLW7AtYq2K8Bs+LARLDAIC1boQx4ib6Y8K657w2+sZOIskRhroPBePdNcnJOxgPIU/
-         +Lvryn23g74HdKjkXNdeGIeRUc2k86RYosNpGpPbzR7ngaRGWm3nphJdmPfYvQm2kRCG
-         CbZXL3QU/4xyYD5MaglhyWoqr6U0BZ5k9yCMuBB2OPj7smtcPr91JeyLJPJmJqFKjtyj
-         A7qc0EDyUF8l6Xc28C6CzzXs9z/mkqfIBSCgs5hJyQwk50JmwkBuHYj9x2u0p0a0FU+2
-         NTGSknX9awawYdJFlLOpmt6NPNebAOk7+Kmzdmb6x9dhDXEgS/KweOH173Qc0FmWq7LV
-         183g==
-X-Gm-Message-State: AOAM530OzNaQYTMHlDScImWz+w/kdXeumaMF3wNADoG704cqJS3bDmOK
-        EPdwuJyfFfHA/cVNDivYfQ7EvGP27MiHmkrkXn986A==
-X-Google-Smtp-Source: ABdhPJyI8E36+f5KGCTBz5yAx5csIil50BdgW5wTbo9ROaoMlgEYYqX4Zh0y84Cd5mvEYHzda2RKPPkUVIvSpgCpuaU=
-X-Received: by 2002:aca:da03:: with SMTP id r3mr11062166oig.14.1594297910510;
- Thu, 09 Jul 2020 05:31:50 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
- <20200707201229.472834-4-daniel.vetter@ffwll.ch> <CAPj87rO4mm-+sQbP07cgM8-=b6Q8Jbh5G0FsV8rwYx2hnEzPkA@mail.gmail.com>
- <20200709080458.GO3278063@phenom.ffwll.local> <CAPj87rPtD04099=sBzL2jKN6NNFNnM-hH3qfOLL10nPoF==VbA@mail.gmail.com>
-In-Reply-To: <CAPj87rPtD04099=sBzL2jKN6NNFNnM-hH3qfOLL10nPoF==VbA@mail.gmail.com>
-From:   Daniel Vetter <daniel@ffwll.ch>
-Date:   Thu, 9 Jul 2020 14:31:39 +0200
-Message-ID: <CAKMK7uG6T+86+11CKpRpEY8v6_Xrm=hWv01tzPPLHq_H7p-AuA@mail.gmail.com>
-Subject: Re: [Intel-gfx] [PATCH 03/25] dma-buf.rst: Document why idenfinite
- fences are a bad idea
-To:     Daniel Stone <daniel@fooishbar.org>
-Cc:     DRI Development <dri-devel@lists.freedesktop.org>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>,
-        Steve Pronovost <spronovo@microsoft.com>,
-        Jesse Natalie <jenatali@microsoft.com>,
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=3e+2hfQAEno550QSTUaHwqumwSkwkBzuWx2HdwXt2vk=;
+        b=WTMlpZKlyIWTjR3sEaNpiC4sT/9V7Bu+6ijFH2OWq/5+2sn/RXotdoJ9tk464Hf7qK
+         GiFogKUMIA1M2nBHLVFptmkLjfNlgHaCUITAnqEyYC8ZzyJHSACrBk9wqPTyrMFyGSHH
+         pezS+Pixw02fP2VgQ8lZ/s2Ku0cX6a7K+PE5bX8CbSOenupm7HkPq25b/gcZnHD7rFRh
+         ZxYwO6+5gIQSrl0VXv+d2JEszOt5ZxeN2cnsDz666N3hny1RgwRRm15WRla8cuXB5qLr
+         fTIh585ojYqgSPXH1FwV6IyY21jpxtHikyDrp8unI9PgZQHYz4c9DCrxCQ7tot6Z8Kwi
+         D0Zw==
+X-Gm-Message-State: AOAM533J+ck7S2i1Mbzb8Aqd8/LTk6qOXXNJZBNicw32SkXKhhhhNcxo
+        IlZ5g17dlMX3Chmnp/gx+2bsaw==
+X-Google-Smtp-Source: ABdhPJz0m548k8vvU6TSo8mQCX1rasisxK2aa1KJaJsuIt1AObEfDAw51itB4tLFY3QZ8k7xMQcj5w==
+X-Received: by 2002:a7b:cb98:: with SMTP id m24mr13930700wmi.98.1594298032057;
+        Thu, 09 Jul 2020 05:33:52 -0700 (PDT)
+Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
+        by smtp.gmail.com with ESMTPSA id o205sm4925347wme.24.2020.07.09.05.33.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Jul 2020 05:33:51 -0700 (PDT)
+From:   Daniel Vetter <daniel.vetter@ffwll.ch>
+To:     DRI Development <dri-devel@lists.freedesktop.org>
+Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        Thomas Hellstrom <thomas.hellstrom@intel.com>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" 
-        <linux-media@vger.kernel.org>,
-        Felix Kuehling <Felix.Kuehling@amd.com>,
-        Mika Kuoppala <mika.kuoppala@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        David Airlie <airlied@linux.ie>,
+        Gerd Hoffmann <kraxel@redhat.com>,
+        virtualization@lists.linux-foundation.org
+Subject: [PATCH 2/2] drm/virtio: Remove open-coded commit-tail function
+Date:   Thu,  9 Jul 2020 14:33:39 +0200
+Message-Id: <20200709123339.547390-2-daniel.vetter@ffwll.ch>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200709123339.547390-1-daniel.vetter@ffwll.ch>
+References: <20200707201229.472834-4-daniel.vetter@ffwll.ch>
+ <20200709123339.547390-1-daniel.vetter@ffwll.ch>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jul 9, 2020 at 2:11 PM Daniel Stone <daniel@fooishbar.org> wrote:
->
-> On Thu, 9 Jul 2020 at 09:05, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Thu, Jul 09, 2020 at 08:36:43AM +0100, Daniel Stone wrote:
-> > > On Tue, 7 Jul 2020 at 21:13, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> > > > Comes up every few years, gets somewhat tedious to discuss, let's
-> > > > write this down once and for all.
-> > >
-> > > Thanks for writing this up! I wonder if any of the notes from my reply
-> > > to the previous-version thread would be helpful to more explicitly
-> > > encode the carrot of dma-fence's positive guarantees, rather than just
-> > > the stick of 'don't do this'. ;) Either way, this is:
-> >
-> > I think the carrot should go into the intro section for dma-fence, this
-> > section here is very much just the "don't do this" part. The previous
-> > patches have an attempt at encoding this a bit, maybe see whether there's
-> > a place for your reply (or parts of it) to fit?
->
-> Sounds good to me.
->
-> > > Acked-by: Daniel Stone <daniels@collabora.com>
-> > >
-> > > > What I'm not sure about is whether the text should be more explicit in
-> > > > flat out mandating the amdkfd eviction fences for long running compute
-> > > > workloads or workloads where userspace fencing is allowed.
-> > >
-> > > ... or whether we just say that you can never use dma-fence in
-> > > conjunction with userptr.
-> >
-> > Uh userptr is entirely different thing. That one is ok. It's userpsace
-> > fences or gpu futexes or future fences or whatever we want to call them.
-> > Or is there some other confusion here?.
->
-> I mean generating a dma_fence from a batch which will try to page in
-> userptr. Given that userptr could be backed by absolutely anything at
-> all, it doesn't seem smart to allow fences to rely on a pointer to an
-> mmap'ed NFS file. So it seems like batches should be mutually
-> exclusive between arbitrary SVM userptr and generating a dma-fence?
+Exactly matches the one in the helpers.
 
-Locking is Tricky (tm) but essentially what at least amdgpu does is
-pull in the backing storage before we publish any dma-fence. And then
-some serious locking magic to make sure that doesn't race with a core
-mm invalidation event. So for your case here the cs ioctl just blocks
-until the nfs pages are pulled in.
+This avoids me having to roll out dma-fence critical section
+annotations to this copy.
 
-Once we've committed for the dma-fence it's only the other way round,
-i.e. core mm will stall on the dma-fence if it wants to throw out
-these pages again. More or less at least. That way we never have a
-dma-fence depending upon any core mm operations. The only pain here is
-that this severely limits what you can do in the critical path towards
-signalling a dma-fence, because the tldr is "no interacting with core
-mm at all allowed".
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: virtualization@lists.linux-foundation.org
+---
+ drivers/gpu/drm/virtio/virtgpu_display.c | 20 --------------------
+ 1 file changed, 20 deletions(-)
 
-> Speaking of entirely different things ... the virtio-gpu bit really
-> doesn't belong in this patch.
-
-Oops, dunno where I lost that as a sparate patch. Will split out again :-(
--Daniel
-
->
-> Cheers,
-> Daniel
-
-
-
+diff --git a/drivers/gpu/drm/virtio/virtgpu_display.c b/drivers/gpu/drm/virtio/virtgpu_display.c
+index f3ce49c5a34c..af55b334be2f 100644
+--- a/drivers/gpu/drm/virtio/virtgpu_display.c
++++ b/drivers/gpu/drm/virtio/virtgpu_display.c
+@@ -314,25 +314,6 @@ virtio_gpu_user_framebuffer_create(struct drm_device *dev,
+ 	return &virtio_gpu_fb->base;
+ }
+ 
+-static void vgdev_atomic_commit_tail(struct drm_atomic_state *state)
+-{
+-	struct drm_device *dev = state->dev;
+-
+-	drm_atomic_helper_commit_modeset_disables(dev, state);
+-	drm_atomic_helper_commit_modeset_enables(dev, state);
+-	drm_atomic_helper_commit_planes(dev, state, 0);
+-
+-	drm_atomic_helper_fake_vblank(state);
+-	drm_atomic_helper_commit_hw_done(state);
+-
+-	drm_atomic_helper_wait_for_vblanks(dev, state);
+-	drm_atomic_helper_cleanup_planes(dev, state);
+-}
+-
+-static const struct drm_mode_config_helper_funcs virtio_mode_config_helpers = {
+-	.atomic_commit_tail = vgdev_atomic_commit_tail,
+-};
+-
+ static const struct drm_mode_config_funcs virtio_gpu_mode_funcs = {
+ 	.fb_create = virtio_gpu_user_framebuffer_create,
+ 	.atomic_check = drm_atomic_helper_check,
+@@ -346,7 +327,6 @@ void virtio_gpu_modeset_init(struct virtio_gpu_device *vgdev)
+ 	drm_mode_config_init(vgdev->ddev);
+ 	vgdev->ddev->mode_config.quirk_addfb_prefer_host_byte_order = true;
+ 	vgdev->ddev->mode_config.funcs = &virtio_gpu_mode_funcs;
+-	vgdev->ddev->mode_config.helper_private = &virtio_mode_config_helpers;
+ 
+ 	/* modes will be validated against the framebuffer size */
+ 	vgdev->ddev->mode_config.min_width = XRES_MIN;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.27.0
+
