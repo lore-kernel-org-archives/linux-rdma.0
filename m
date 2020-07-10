@@ -2,139 +2,67 @@ Return-Path: <SRS0=thi4=AV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4119CC433E3
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 20:17:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C744C433E4
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 22:10:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 184572077D
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 20:17:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="IeX73XrM"
+	by mail.kernel.org (Postfix) with ESMTP id D62152068F
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 22:10:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1594419008;
+	bh=YLKBsl+YyIPqB0lKX+8U9O4T9ChNs+b3L9bmtEuPbr8=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:List-ID:From;
+	b=x9nUdYQe7zzuQEBDIGPbB6W5Ton+7lLEnO47fhsm8uB14osOW8C62FhQZJOFF/qI9
+	 izUEcSwX/xPJJjdvTUwXQ+Xhj4EqZanOT7R5IC+lQV/eRULdjWMr0vTwaSqd9BkunV
+	 ww7isPKGk2oPCNVLurIT94FjUMI9HvEvARzP9+kI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727990AbgGJURw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 10 Jul 2020 16:17:52 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:11248 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726832AbgGJURv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Jul 2020 16:17:51 -0400
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f08ccb80000>; Fri, 10 Jul 2020 13:16:56 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Fri, 10 Jul 2020 13:17:51 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate102.nvidia.com on Fri, 10 Jul 2020 13:17:51 -0700
-Received: from rcampbell-dev.nvidia.com (172.20.13.39) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 10 Jul
- 2020 20:17:51 +0000
-Subject: Re: [PATCH 3/5] mm/notifier: add migration invalidation type
+        id S1726407AbgGJWKH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 10 Jul 2020 18:10:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37716 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726319AbgGJWKE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 10 Jul 2020 18:10:04 -0400
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1594419004;
+        bh=YLKBsl+YyIPqB0lKX+8U9O4T9ChNs+b3L9bmtEuPbr8=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=mCmjPb0JPm3Jx9nCeHsv+QW2YWiNMy0PuXEGFM8iClDtO9DKZLXgouUFldVASux89
+         mQTqrTSVSOrG7MQjr2FHSGAlXAidTYbqtiefcPsB1O1mIbpA8TMobtY5nmXKFqvRqW
+         WxyBa6GANK89yFRBku9eE0uXwDHm/q3ZOhBuK5FY=
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20200710175806.GA2067493@nvidia.com>
+References: <20200710175806.GA2067493@nvidia.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20200710175806.GA2067493@nvidia.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+X-PR-Tracked-Commit-Id: 0a03715068794e4b524f66ebbf412ab1f2933f3f
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: aa0c9086b40c17a7ad94425b3b70dd1fdd7497bf
+Message-Id: <159441900404.20268.10288707904594934995.pr-tracker-bot@kernel.org>
+Date:   Fri, 10 Jul 2020 22:10:04 +0000
 To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        "Jerome Glisse" <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        "Christoph Hellwig" <hch@lst.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>, Ben Skeggs <bskeggs@redhat.com>,
-        Bharata B Rao <bharata@linux.ibm.com>
-References: <20200706222347.32290-1-rcampbell@nvidia.com>
- <20200706222347.32290-4-rcampbell@nvidia.com>
- <20200710193939.GA2129070@nvidia.com>
-X-Nvconfidentiality: public
-From:   Ralph Campbell <rcampbell@nvidia.com>
-Message-ID: <9364c81b-10a1-1fe4-b2c2-f48a73d2e04a@nvidia.com>
-Date:   Fri, 10 Jul 2020 13:17:50 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
-MIME-Version: 1.0
-In-Reply-To: <20200710193939.GA2129070@nvidia.com>
-X-Originating-IP: [172.20.13.39]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1594412216; bh=rUDxEVDDXg2ewE0+kszxB/UwPBy9zLM3dlTpNaw+dUU=;
-        h=X-PGP-Universal:Subject:To:CC:References:X-Nvconfidentiality:From:
-         Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-         X-Originating-IP:X-ClientProxiedBy:Content-Type:Content-Language:
-         Content-Transfer-Encoding;
-        b=IeX73XrMpdnEzMR3GU6vvGaowi1ON8mbtbHE8oD4o0cC8C8T17muOcgvoL3nje3j9
-         H+nq23dn58RFQrzvqy5KHLpfXdOSIdwT32OUCRjroCnbkBRsA1SemDH7JyDZkVBvWH
-         D6Q3iTflCh0zMowlVcbuClrA7FkfIRqV17397yMqNWQQTQiuYVbAdysB4Lv7MqpXMB
-         N+8fNe30DS2jEVW3jw0s00eVM8AtnLIbv9aEu4S9JEHW3SsMs/5XYPT4GkgHvPCkuB
-         RIjrMcZyZOndBWT61zU2V9kVMTzzC/PFf0x3p5WXjCwpBqbcs4a1ixNVYGmkzmdWa+
-         nQOVi6u+my9XQ==
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+The pull request you sent on Fri, 10 Jul 2020 14:58:06 -0300:
 
-On 7/10/20 12:39 PM, Jason Gunthorpe wrote:
-> On Mon, Jul 06, 2020 at 03:23:45PM -0700, Ralph Campbell wrote:
->> Currently migrate_vma_setup() calls mmu_notifier_invalidate_range_start()
->> which flushes all device private page mappings whether or not a page
->> is being migrated to/from device private memory. In order to not disrupt
->> device mappings that are not being migrated, shift the responsibility
->> for clearing device private mappings to the device driver and leave
->> CPU page table unmapping handled by migrate_vma_setup(). To support
->> this, the caller of migrate_vma_setup() should always set struct
->> migrate_vma::src_owner to a non NULL value that matches the device
->> private page->pgmap->owner. This value is then passed to the struct
->> mmu_notifier_range with a new event type which the driver's invalidation
->> function can use to avoid device MMU invalidations.
->>
->> Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
->>   include/linux/mmu_notifier.h | 7 +++++++
->>   mm/migrate.c                 | 8 +++++++-
->>   2 files changed, 14 insertions(+), 1 deletion(-)
->>
->> diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
->> index fc68f3570e19..bd0b34dbe4de 100644
->> +++ b/include/linux/mmu_notifier.h
->> @@ -38,6 +38,10 @@ struct mmu_interval_notifier;
->>    *
->>    * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to signal
->>    * that the mm refcount is zero and the range is no longer accessible.
->> + *
->> + * @MMU_NOTIFY_MIGRATE: used during migrate_vma_collect() invalidate to signal
->> + * a device driver to possibly ignore the invalidation if the src_own
->> + * field matches.
->>    */
->>   enum mmu_notifier_event {
->>   	MMU_NOTIFY_UNMAP = 0,
->> @@ -46,6 +50,7 @@ enum mmu_notifier_event {
->>   	MMU_NOTIFY_PROTECTION_PAGE,
->>   	MMU_NOTIFY_SOFT_DIRTY,
->>   	MMU_NOTIFY_RELEASE,
->> +	MMU_NOTIFY_MIGRATE,
->>   };
->>   
->>   #define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
->> @@ -264,6 +269,7 @@ struct mmu_notifier_range {
->>   	unsigned long end;
->>   	unsigned flags;
->>   	enum mmu_notifier_event event;
->> +	void *data;
->>   };
-> 
-> This generic member usually ends up a bit ugly, can we do a tagged
-> union instead?
-> 
-> union
-> {
->       void *migrate_pgmap_owner;
-> };
-> 
-> and probably drop the union until we actually need two things here.
-> 
-> Jason
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-OK, I'll send a v2 with this change.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/aa0c9086b40c17a7ad94425b3b70dd1fdd7497bf
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
