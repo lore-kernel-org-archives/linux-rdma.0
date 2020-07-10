@@ -2,195 +2,130 @@ Return-Path: <SRS0=thi4=AV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B16E8C4345E
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 19:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C825C433DF
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 20:02:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85EBC20748
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 19:46:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F10CD2078B
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Jul 2020 20:02:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="k2XWTDeT"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="SqNPnTQb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728652AbgGJTqx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 10 Jul 2020 15:46:53 -0400
-Received: from nat-hk.nvidia.com ([203.18.50.4]:21890 "EHLO nat-hk.nvidia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728374AbgGJTqw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 10 Jul 2020 15:46:52 -0400
-Received: from hkpgpgate101.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f08c5a90001>; Sat, 11 Jul 2020 03:46:49 +0800
-Received: from HKMAIL103.nvidia.com ([10.18.16.12])
-  by hkpgpgate101.nvidia.com (PGP Universal service);
-  Fri, 10 Jul 2020 12:46:49 -0700
-X-PGP-Universal: processed;
-        by hkpgpgate101.nvidia.com on Fri, 10 Jul 2020 12:46:49 -0700
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL103.nvidia.com
- (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 10 Jul
- 2020 19:46:49 +0000
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.107)
- by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Fri, 10 Jul 2020 19:46:49 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WhtFuL/eDFdu539TWWzQXczpvdqh1d5USJRaHEpCaRQjGGYTloN633WXjL6IMEI4CMw4pOmEzlBJnefDZkkksfFjSBAwZo1tHs+IiAM0hdv8lWMUCqwxf6MDjLbaQGMZFl5HD+j/eBUbkaAmwli/YYaASj6hzmrLR1FUycQRXaGpeOzrY5KmsH7m3iI+b0PV2+dPd8XxtvuHFdIZBR1FcchGE7UNXsabV1taWGpmbDHVjdKElvLYHGe2Rm+ahvlJtCUlhCpGiXqjtHmQ13ijD2KrutJSGQQkO8HerrsG5iYge34mkJ6oQX438qsSRef7XZy1S0oJYKeKx3Bc6tbBpA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gucwkIyCDXSu0JYyH7fyHyQvwX/jC87Co5KXwFQFprQ=;
- b=fQNGRjcxdTghhLaZ2HG/2VxIfDTWur1PnY2+KIwtB53Hg5OxVQO9lHsiA19/2p73IItRWedQeH7ASJgaklycmIQ0yESqgmqJ7ghKXXelTm1JeK5EtQqzXbQQylrDy1/2njeHhpEJP8xQa9Eyks9EgoePiXqmfXsA7pVsf+ep1PMlAP2B1O1Xc5x0jQ5MrYoAOVHrR/DmLAnrq1DiUahIKVqDndyyf1pwqS9CmZrnICf/+06mWBGqG4rrkGSQQrJQl2OWcj7jCRNLkguVnpvZ7n9P/pL0iFy6i6NFuTLRj8OJaRI+zUcrH7QzEbNymndNljLcwxaIw5px5Z3Gzw2cWw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Authentication-Results: nvidia.com; dkim=none (message not signed)
- header.d=none;nvidia.com; dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3513.namprd12.prod.outlook.com (2603:10b6:5:18a::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.28; Fri, 10 Jul
- 2020 19:46:46 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1d53:7cb4:c3d7:2b54]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1d53:7cb4:c3d7:2b54%6]) with mapi id 15.20.3174.023; Fri, 10 Jul 2020
- 19:46:46 +0000
-Date:   Fri, 10 Jul 2020 16:39:39 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Ralph Campbell <rcampbell@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>, Ben Skeggs <bskeggs@redhat.com>,
-        Bharata B Rao <bharata@linux.ibm.com>
-Subject: Re: [PATCH 3/5] mm/notifier: add migration invalidation type
-Message-ID: <20200710193939.GA2129070@nvidia.com>
-References: <20200706222347.32290-1-rcampbell@nvidia.com>
- <20200706222347.32290-4-rcampbell@nvidia.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20200706222347.32290-4-rcampbell@nvidia.com>
-X-ClientProxiedBy: MN2PR01CA0050.prod.exchangelabs.com (2603:10b6:208:23f::19)
- To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+        id S1728397AbgGJUCd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 10 Jul 2020 16:02:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38902 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727810AbgGJUCc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Jul 2020 16:02:32 -0400
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C7E3C08C5DC
+        for <linux-rdma@vger.kernel.org>; Fri, 10 Jul 2020 13:02:32 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id t198so5762915oie.7
+        for <linux-rdma@vger.kernel.org>; Fri, 10 Jul 2020 13:02:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=hlzdQKgtPmO74k0pNR7vHuIZBrt/Pc63RtVTndWe5dA=;
+        b=SqNPnTQbjsymEOAYWvf7HTkD0FI+HW6j/e6KRe6XGJh3lSuGZ0C7kP/iBUFjVJ03M5
+         t8w6HTmvlfEqaW7ZR4/WDh2zFfGdT+tuiUcDAyD+AEP04wFuCMGfRQQM26yq17Soms89
+         nnpW0b1zmvAznK5+R6nx5wurVKlahUyCP/oLY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=hlzdQKgtPmO74k0pNR7vHuIZBrt/Pc63RtVTndWe5dA=;
+        b=H+jBDvEgkCX4tmiM3rElPeZqRgVa2NUj/cokgAg6Cq4es3ZwoZL1BOfUpVwIa8vcs2
+         k4oSiz4lz+iLpvpS9TM2UnhFfkzzZm1Vqyd8UasB4CmrBrbJM2jnYiwvYc3LMEyuFRZW
+         B2fAAtOkDar2gmRAHLLMtGgJ8Q/gHW54Vq4dh6KsJlPjnujGhCt2rCo/9Wj8jIlzNImg
+         l7cTTwgiAEf2qHD1dpuJaieEDPYG4dk97+5XjikKQIHqMzHF6IZi+Sh/ERuIYS54qqeh
+         P8ZBFavwOm1cq0gCnrZ50yScwoh75FxurUTWAWg4HYniab4pel8z9metpC52nNEl17aj
+         0Lcg==
+X-Gm-Message-State: AOAM5300QX6zh0/SN0yZ/PeAO1INlfEc+8xXZUMQbanwwQRVSTjwuIs1
+        +V2l9c9cMVu/GHLG1eAf50dCRFS8nltXU7bd3y2ijg==
+X-Google-Smtp-Source: ABdhPJyXe/UuJLRx5f5TlPpv/BPhnkWHORX2InNLi0AlJObIla3gh+GkiBljOI27Z+bfXCvGSQK4tsearkrRp5oifn8=
+X-Received: by 2002:aca:da03:: with SMTP id r3mr5553679oig.14.1594411351996;
+ Fri, 10 Jul 2020 13:02:31 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR01CA0050.prod.exchangelabs.com (2603:10b6:208:23f::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.21 via Frontend Transport; Fri, 10 Jul 2020 19:46:46 +0000
-Received: from jgg by mlx with local (Exim 4.93)        (envelope-from <jgg@nvidia.com>)        id 1jtyrz-008w3l-9i; Fri, 10 Jul 2020 16:39:39 -0300
-X-Originating-IP: [156.34.48.30]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 447da61e-e281-45e4-795c-08d82509fa80
-X-MS-TrafficTypeDiagnostic: DM6PR12MB3513:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <DM6PR12MB3513D79D91250B7BF05F574CC2650@DM6PR12MB3513.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4714;
-X-Forefront-PRVS: 046060344D
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 72DVomoZXYAFEx9df9CWCBMiQUGi+zQYLI6Oz1gY3UFMHDspyLHJXvvk46dCiQrz3EBEQ90PQpvXCgO3Urdcq8VG0PhrXj9CkIIRsraNLJfb3rz3DFqRUweyL7WWdBF6wwBksaQQ2NuWXCUM2M+UnU93oLWSNQgbvxPhyF9/tUxNYVAhWQnbssQtu4noyzmG2QYel1JmdYlKYKiLtxJRN4/5l16ReLviBVIH7UwJGPe7QR82jlAS1BW5CZYEcBGeOfoZKeQcH2lPbjXfIKy8+m37hOvy4z13qvfX/8p6bizoO4Rqf+NmmOVGElDroS6UzxiFRbU57MCuYoFft2b32A==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(376002)(39860400002)(396003)(346002)(136003)(366004)(83380400001)(2906002)(4326008)(1076003)(33656002)(316002)(66556008)(66476007)(54906003)(66946007)(5660300002)(37006003)(186003)(6862004)(26005)(9786002)(9746002)(478600001)(7416002)(8936002)(8676002)(36756003)(2616005)(426003)(6636002)(86362001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: QRKCsBNsZB/WaEPiyRj/hLbOxKlruZ0Ln+l9TvVj2Zid8qcDmDUH0mmEJht1fBu0iUbHkFoIAJJXyIhshzLjtm6+P9o4H9ofq5HfowDHDp4Spo0q/oHdPTDgZzRNYvPicjQf+yFrBlDy3IPnP607v71bR9Sj0xRK4ggMk9JkUW3i8C9CCGLjy0ednDFctetjGLsm0TvR+PY2xomL6FQ3XHGpp7M53q8ngrX3ATMZUKCxorEZytIO+hVuYbAyR7CoqF5NGZ4isSkhz6hF0SDeJQvPagH2nlqm5fgIzlQSwn5JYRc9KsbGw+DoYKcP86P+nwIEbsBw0vMD+msq5W2u12FuCDiSXvpeZ+9NBXS0p/IJsqr6bfZAvLFBbVyuEgjxWLa2dgmUefcIAL4b3PqRiyzLbjtsqAPFy75PfgIM4yvxxHo42qcqoOK8chi8QNyU5yX8EAMbh3QuBX0FvT37hFDG7YqD87vpzVutOCqkxIc=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 447da61e-e281-45e4-795c-08d82509fa80
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2020 19:46:46.3160
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: HqLHHSB48fwLvB+on+tdn+7acp53ZJdwQ5wzP7iHOBfnZeXUFGV1bHxUJ+EGKgZl
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB3513
-X-OriginatorOrg: Nvidia.com
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1594410409; bh=gucwkIyCDXSu0JYyH7fyHyQvwX/jC87Co5KXwFQFprQ=;
-        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
-         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
-         Subject:Message-ID:References:Content-Type:Content-Disposition:
-         In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
-         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
-         X-MS-TrafficTypeDiagnostic:X-MS-Exchange-Transport-Forked:
-         X-Microsoft-Antispam-PRVS:X-MS-Oob-TLC-OOBClassifiers:
-         X-Forefront-PRVS:X-MS-Exchange-SenderADCheck:X-Microsoft-Antispam:
-         X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-         X-MS-Exchange-AntiSpam-MessageData:
-         X-MS-Exchange-CrossTenant-Network-Message-Id:
-         X-MS-Exchange-CrossTenant-AuthSource:
-         X-MS-Exchange-CrossTenant-AuthAs:
-         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-         X-MS-Exchange-CrossTenant-FromEntityHeader:
-         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-         X-MS-Exchange-CrossTenant-UserPrincipalName:
-         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-        b=k2XWTDeT0LOaHg9fhgse4ppB2GkIgdGak5lf6v00KqGegXT5WQmuwo4gf4UWPeF0f
-         N8ppOPHMePputfzjOqGblonB+e6r0myoyBMYRg5+fi6owMiCWeRT4RH0pv5448XkQ0
-         nUnRV606oddNuu3LjCN0Q2MMXD7WiuvXJ3y7au7dhG3OfCwbh0cg+68RF155CuHnTN
-         ZMtNc71M43S7cULQaJoDw+RDhbacpdvgWVdWguCsp71yLUgfylkCLQl8SeKySNBxuZ
-         qtC7YYdVexCadRNL0Q1/4EO+DyA6Pyb+xYlp3xMkkE0j2YcBvlXZUuwZQJZUK30LTZ
-         e2JXr3Bn1fC0w==
+References: <20200707201229.472834-1-daniel.vetter@ffwll.ch>
+ <20200707201229.472834-3-daniel.vetter@ffwll.ch> <20200709080911.GP3278063@phenom.ffwll.local>
+ <20200710124357.GB23821@mellanox.com> <5c163d74-4a28-1d74-be86-099b4729a2e0@amd.com>
+ <20200710125453.GC23821@mellanox.com> <4f4a2cf7-f505-8494-1461-bd467870481e@amd.com>
+ <20200710134826.GD23821@mellanox.com> <CAKMK7uGSUULTmL=bDXty6U4e37dzLHzu7wgUyOxo2CvR9KvXGg@mail.gmail.com>
+ <20200710142347.GE23821@mellanox.com>
+In-Reply-To: <20200710142347.GE23821@mellanox.com>
+From:   Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Fri, 10 Jul 2020 22:02:20 +0200
+Message-ID: <CAKMK7uFK6Os5ALHEBr7tqCMtmHS1FpuDeOvqs40GVMv2kqJ90g@mail.gmail.com>
+Subject: Re: [PATCH 02/25] dma-fence: prime lockdep annotations
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        kernel test robot <lkp@intel.com>,
+        =?UTF-8?Q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@intel.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jul 06, 2020 at 03:23:45PM -0700, Ralph Campbell wrote:
-> Currently migrate_vma_setup() calls mmu_notifier_invalidate_range_start()
-> which flushes all device private page mappings whether or not a page
-> is being migrated to/from device private memory. In order to not disrupt
-> device mappings that are not being migrated, shift the responsibility
-> for clearing device private mappings to the device driver and leave
-> CPU page table unmapping handled by migrate_vma_setup(). To support
-> this, the caller of migrate_vma_setup() should always set struct
-> migrate_vma::src_owner to a non NULL value that matches the device
-> private page->pgmap->owner. This value is then passed to the struct
-> mmu_notifier_range with a new event type which the driver's invalidation
-> function can use to avoid device MMU invalidations.
-> 
-> Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
->  include/linux/mmu_notifier.h | 7 +++++++
->  mm/migrate.c                 | 8 +++++++-
->  2 files changed, 14 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-> index fc68f3570e19..bd0b34dbe4de 100644
-> +++ b/include/linux/mmu_notifier.h
-> @@ -38,6 +38,10 @@ struct mmu_interval_notifier;
->   *
->   * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to signal
->   * that the mm refcount is zero and the range is no longer accessible.
-> + *
-> + * @MMU_NOTIFY_MIGRATE: used during migrate_vma_collect() invalidate to signal
-> + * a device driver to possibly ignore the invalidation if the src_own
-> + * field matches.
->   */
->  enum mmu_notifier_event {
->  	MMU_NOTIFY_UNMAP = 0,
-> @@ -46,6 +50,7 @@ enum mmu_notifier_event {
->  	MMU_NOTIFY_PROTECTION_PAGE,
->  	MMU_NOTIFY_SOFT_DIRTY,
->  	MMU_NOTIFY_RELEASE,
-> +	MMU_NOTIFY_MIGRATE,
->  };
->  
->  #define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
-> @@ -264,6 +269,7 @@ struct mmu_notifier_range {
->  	unsigned long end;
->  	unsigned flags;
->  	enum mmu_notifier_event event;
-> +	void *data;
->  };
+On Fri, Jul 10, 2020 at 4:23 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
+>
+> On Fri, Jul 10, 2020 at 04:02:35PM +0200, Daniel Vetter wrote:
+>
+> > > dma_fence only possibly makes some sense if you intend to expose the
+> > > completion outside a single driver.
+> > >
+> > > The prefered kernel design pattern for this is to connect things with
+> > > a function callback.
+> > >
+> > > So the actual use case of dma_fence is quite narrow and tightly linked
+> > > to DRM.
+> > >
+> > > I don't think we should spread this beyond DRM, I can't see a reason.
+> >
+> > Yeah v4l has a legit reason to use dma_fence, android wants that
+> > there.
+>
+> 'legit' in the sense the v4l is supposed to trigger stuff in DRM when
+> V4L DMA completes? I would still see that as part of DRM
 
-This generic member usually ends up a bit ugly, can we do a tagged
-union instead?
+Yes, and also the other way around. But thus far it didn't land.
+-Daniel
 
-union
-{
-     void *migrate_pgmap_owner;
-};
+> Or is it building a parallel DRM like DMA completion graph?
+>
+> > > Trying to improve performance of limited HW by using sketchy
+> > > techniques at the cost of general system stability should be a NAK.
+> >
+> > Well that's pretty much gpu drivers, all the horrors for a bit more speed :-)
+> >
+> > On the text itself, should I upgrade to "must not" instead of "should
+> > not"? Or more needed?
+>
+> Fundamentally having some unknowable graph of dependencies where parts
+> of the graph can be placed in critical regions like notifiers is a
+> complete maintenance nightmare.
+>
+> I think building systems like this should be discouraged :\
 
-and probably drop the union until we actually need two things here.
-
-Jason
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
