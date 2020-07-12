@@ -6,82 +6,72 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 622BDC433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jul 2020 17:41:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D677BC433E2
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jul 2020 17:44:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38E0F206F4
-	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jul 2020 17:41:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD08F2070B
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jul 2020 17:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594575712;
-	bh=S++BkTob+ttQM5Y7QuHWopUrRLTDf/kvLAJ3ywexFg8=;
+	s=default; t=1594575864;
+	bh=i26qvcGDndSnMi7hMFopLNXVGhJDifEC8I851KD130U=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=Y+AG3wiCpvFzfab3Gc0ZxtedtQUntfPccTdshCc0PIW0pkBg1a8NWDTdfj+lGMDlu
-	 /JtHkHN6mK8s/5/8mSvxID2lE9k2WjvsPpOmBmkfSDE5EVRwFwN3Vhrc4RTChdJy13
-	 lCecVDH7cRN4XIyPFyXpc5VLSe5isG2pfO294jJs=
+	b=UCmtxuMTNb+iQtlzQJqqhwdwjGwA6JQ7dIVMnzYVYMatkun3zjeuSqbPD5sQGwu3p
+	 ciJ5dqef4YqB8G27T950DTrR2VXoIAgM648prNj2YHE9f9kUky6yAn96YcwMPO4WDe
+	 NeubpT6Jm64uGtntXpoCU68g4JC2YTTlwTlWDNr8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729303AbgGLRlv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Jul 2020 13:41:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41430 "EHLO mail.kernel.org"
+        id S1729303AbgGLRoX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Jul 2020 13:44:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41888 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728882AbgGLRlv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 12 Jul 2020 13:41:51 -0400
+        id S1728882AbgGLRoX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 12 Jul 2020 13:44:23 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 70CBF2063A;
-        Sun, 12 Jul 2020 17:41:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B1ED82063A;
+        Sun, 12 Jul 2020 17:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594575711;
-        bh=S++BkTob+ttQM5Y7QuHWopUrRLTDf/kvLAJ3ywexFg8=;
+        s=default; t=1594575863;
+        bh=i26qvcGDndSnMi7hMFopLNXVGhJDifEC8I851KD130U=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lipNxcWYyFYNcwC4+SDD61u5aHtBhBjD82OcxX9oAJxyxDOOlrHu0W2aIiyQNhKem
-         wmU8JLFdcP2qu7xm7eVFBGrxTH1yog+YrXhlnaqupoWdpi0cxydX8RO2OLGAAn7ypQ
-         OLgUw7HljFHI8wom4rksZY2068KdoBXCpZhdSzUU=
-Date:   Sun, 12 Jul 2020 20:41:47 +0300
+        b=lUK1wib1a4nCWtq+DQRo4MFc2dJcI1sfUwsfAlUnxpN62ag81H0ljqLqdBmkrLb0h
+         qHpiA/FY3YeDQzEOs4XvB+jZbLPBKLwwPVFw16hz4qT6gwFS4rUfMcg2Sm1hlWQMM0
+         6OwOMnYzGYlWfkPf9PeZdlql2wQQRwATtd7yRU2k=
+Date:   Sun, 12 Jul 2020 20:44:20 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-rc v2] RDMA/mlx5: Use xa_lock_irq when access to SRQ
- table
-Message-ID: <20200712174147.GD7287@unreal>
-References: <20200712102641.15210-1-leon@kernel.org>
- <20200712143306.GT12769@casper.infradead.org>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2][next] IB/hfi1: Remove unnecessary fall-through
+ markings
+Message-ID: <20200712174420.GE7287@unreal>
+References: <20200709235250.GA26678@embeddedor>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200712143306.GT12769@casper.infradead.org>
+In-Reply-To: <20200709235250.GA26678@embeddedor>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jul 12, 2020 at 03:33:06PM +0100, Matthew Wilcox wrote:
-> On Sun, Jul 12, 2020 at 01:26:41PM +0300, Leon Romanovsky wrote:
-> > Fixes: b02a29eb8841 ("mlx5: Convert mlx5_srq_table to XArray")
-> > Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> > v2:
-> >  * Dropped wrong hunk
-> > v1:
-> > https://lore.kernel.org/linux-rdma/20200707131551.1153207-1-leon@kernel.org
-> >  * I left Fixes as before to make sure that it is taken properly to stable@.
-> >  * xa_lock_irqsave -> xa_lock_irq
+On Thu, Jul 09, 2020 at 06:52:50PM -0500, Gustavo A. R. Silva wrote:
+> Reorganize the code a bit in a more standard way[1] and remove
+> unnecessary fall-through markings.
 >
-> But it won't be taken properly to stable.  It's true that that's the
-> earliest version that this applies to, but as far as I can tell the
-> underlying bug is there a lot earlier.  It doesn't appear to be there
-> in e126ba97dba9edeb6fafa3665b5f8497fc9cdf8c as the cq->lock is taken
-> irqsafe in mlx5_ib_poll_cq() before calling mlx5_poll_one() which calls
-> handle_responder() which calls mlx5_core_get_srq(), but it was there
-> before b02a29eb8841.  I think it's up to you to figure out which version
-> this bug was introduced in, because stable still cares about trees before
-> 5.2 (which is when b02a29eb8841 was introduced).  You'll also have to
-> produce a patch for those earlier kernels.
+> [1] https://lore.kernel.org/lkml/20200708054703.GR207186@unreal/
+>
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> ---
+> Changes in v2:
+>  - Remove additional overlooked fall-through markings.
+>
+>  drivers/infiniband/hw/hfi1/chip.c | 27 ++++++++++++++-------------
+>  1 file changed, 14 insertions(+), 13 deletions(-)
+>
 
-Of course, but first I would like to be sure that Sasha's autosel will
-work out-of-box.
-
-Thanks
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
