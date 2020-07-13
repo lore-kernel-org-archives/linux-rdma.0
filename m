@@ -2,133 +2,162 @@ Return-Path: <SRS0=nNSQ=AY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 436F5C433E1
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jul 2020 17:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D07C433F1
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jul 2020 17:22:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DC74206F0
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jul 2020 17:09:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C1DE20773
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Jul 2020 17:22:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="P6ue5J2Q"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="kOtLcclg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730267AbgGMRJn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Jul 2020 13:09:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54526 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729933AbgGMRJn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jul 2020 13:09:43 -0400
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com [IPv6:2607:f8b0:4864:20::741])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B41C061794
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2020 10:09:42 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id q198so12938252qka.2
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Jul 2020 10:09:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=AjfD32HKP9GelxZOkg41v9V6Gzjw1JRj8RlOK03pams=;
-        b=P6ue5J2QVyGR013c2UC25Q9bEjmGLQLJlmEuA1j5UoaACPlwGsRU5oPQydR4VgHRAQ
-         L1LLo1DsbWsmVVz1JJH+XrYRnbQxNVDp0Tbzha5dqUAB1U3rVrK0ZuloeI02R3+Ohmck
-         nIhcHDRdSQZbeXNk1VGmdTIpJpVNzm4aXapDBvkADLvm+N6wGsC0Vuj5SRCjoLtTpbM6
-         3YNMYd60otly0jlZeIyCvHepWSBprUXUrUnc1mbSIi5+zMPYtY/xp7pglqsia5XJhfiB
-         F8DgDcnW27IcL2XuD2u0H8FjQS8bqlDG91XFUgIbJjfpl7taOGEyt92W8DFNPIX8mT3F
-         fvkw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=AjfD32HKP9GelxZOkg41v9V6Gzjw1JRj8RlOK03pams=;
-        b=r/1f1XrfXzZ6eX+XsLCnK0hi2fBPzlX/xEkvxxV93cqFulnwOUO/bToU9wYDe0v+/C
-         rb2KpO4fz2Yoa+W35ENO3BFgf0yuVWLxCkZ0qidXC7/LIUS0sIZtkUQYCfipJM/GqXfY
-         LUBTZqqLkgChkIgCl7mAmKHaO9ELCurD2TNS7hyauFJ2MlFVGq8Nu7YsuXo92cnUFVO3
-         dMIZUNsmXHF19YCkumhxFX9+PR//UCxEnkcBBYXYFOpSQMHcl2J7t4hgKvHYdSl0NQe2
-         oVlgJ8ZKJiIpYm8YS9HylFgdrwjeh/lOG/wh4ZKjR8Gj+018FR9/8+iaNgNxT7rYHyIz
-         ANdQ==
-X-Gm-Message-State: AOAM5337KQBYhIgObvhd1HFCx+S6x+UcKK0Doj+3dwMa3TDM3E++Nh1Y
-        JMbtHeLQrfQaxYeMMTcaGQz2wA==
-X-Google-Smtp-Source: ABdhPJzvbBBh0WGnYFjQ6KDKcJ34oSp591S6VrK9/KQzdFPP1pwlEgvCtv/HHrr6bK2VB24/hylh7Q==
-X-Received: by 2002:a37:5bc4:: with SMTP id p187mr661575qkb.166.1594660182115;
-        Mon, 13 Jul 2020 10:09:42 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id i35sm19119142qtd.96.2020.07.13.10.09.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jul 2020 10:09:41 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.93)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1jv1xV-009lWJ-4g; Mon, 13 Jul 2020 14:09:41 -0300
-Date:   Mon, 13 Jul 2020 14:09:41 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     "Saheed O. Bolarinwa" <refactormyself@gmail.com>
-Cc:     skhan@linuxfoundation.org, linux-rdma@vger.kernel.org,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/14 v3] IB/hfi1: Check the return value of
- pcie_capability_read_*()
-Message-ID: <20200713170941.GB25301@ziepe.ca>
-References: <20200713175529.29715-1-refactormyself@gmail.com>
+        id S1729644AbgGMRWL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Jul 2020 13:22:11 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:3772 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730454AbgGMRWL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Jul 2020 13:22:11 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f0c97d20000>; Mon, 13 Jul 2020 10:20:18 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Mon, 13 Jul 2020 10:22:10 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Mon, 13 Jul 2020 10:22:10 -0700
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 13 Jul
+ 2020 17:22:00 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Mon, 13 Jul 2020 17:22:00 +0000
+Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5f0c98370005>; Mon, 13 Jul 2020 10:22:00 -0700
+From:   Ralph Campbell <rcampbell@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
+        <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
+        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     Jerome Glisse <jglisse@redhat.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "Ben Skeggs" <bskeggs@redhat.com>,
+        Bharata B Rao <bharata@linux.ibm.com>,
+        "Ralph Campbell" <rcampbell@nvidia.com>
+Subject: [PATCH v2 3/5] mm/notifier: add migration invalidation type
+Date:   Mon, 13 Jul 2020 10:21:47 -0700
+Message-ID: <20200713172149.2310-4-rcampbell@nvidia.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200713172149.2310-1-rcampbell@nvidia.com>
+References: <20200713172149.2310-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200713175529.29715-1-refactormyself@gmail.com>
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1594660818; bh=U/xcm6Lo9aADndFIpE59fzJXl6/Z/hJZ8D48vc+tKDk=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=kOtLcclgt4z3D8y5W3+84XQjgX8HH893PgCInOGLot5P09WWKK4bZRwlnl0y9Bm/4
+         s3yatnp1LZ13Wl32s+hv8/jwao5hwk07rHMNqyRWpYgaohBlqJMYWCGW7gCkqPhm+q
+         0OrJ0Qd6ogB0k6uJuTbCR15n29aej9QDDWZir2Pf1WWx/yAdlfu2eJaFJMhSJzqfG4
+         CS66JzcI1332DdQRruGHxrOQqEu/EYdAQaNYKvnPLWtTFQ9FHmNaymMBuwnd5FViut
+         842hB1Ipm1bDIZl6SS9C2JIDC3ZxFuPWyTtNQLVXNUMfckbmJV3XdTDjeDCGYzz7zA
+         XYAlTzgCdHp4g==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jul 13, 2020 at 07:55:25PM +0200, Saheed O. Bolarinwa wrote:
-> From: Bolarinwa Olayemi Saheed <refactormyself@gmail.com>
-> 
-> On failure pcie_capability_read_dword() sets it's last parameter,
-> val to 0. In this case dn and up will be 0, so aspm_hw_l1_supported()
-> will return false.
-> However, with Patch 14/14, it is possible that val is set to ~0 on
-> failure. This would introduce a bug because (x & x) == (~0 & x). So with
-> dn and up being 0x02, a true value is return when the read has actually
-> failed.
-> 
-> This bug can be avoided if the return value of pcie_capability_read_dword
-> is checked to confirm success. The behaviour of the function remains
-> intact.
-> 
-> Check the return value of pcie_capability_read_dword() to ensure success.
-> 
-> Suggested-by: Bjorn Helgaas <bjorn@helgaas.com>
-> Signed-off-by: Bolarinwa Olayemi Saheed <refactormyself@gmail.com>
->  drivers/infiniband/hw/hfi1/aspm.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/aspm.c b/drivers/infiniband/hw/hfi1/aspm.c
-> index a3c53be4072c..80d0b3edd983 100644
-> +++ b/drivers/infiniband/hw/hfi1/aspm.c
-> @@ -24,6 +24,7 @@ static bool aspm_hw_l1_supported(struct hfi1_devdata *dd)
->  {
->  	struct pci_dev *parent = dd->pcidev->bus->self;
->  	u32 up, dn;
-> +	int ret_up, ret_dn;
->  
->  	/*
->  	 * If the driver does not have access to the upstream component,
-> @@ -32,14 +33,14 @@ static bool aspm_hw_l1_supported(struct hfi1_devdata *dd)
->  	if (!parent)
->  		return false;
->  
-> -	pcie_capability_read_dword(dd->pcidev, PCI_EXP_LNKCAP, &dn);
-> +	ret_dn = pcie_capability_read_dword(dd->pcidev, PCI_EXP_LNKCAP, &dn);
->  	dn = ASPM_L1_SUPPORTED(dn);
->  
-> -	pcie_capability_read_dword(parent, PCI_EXP_LNKCAP, &up);
-> +	ret_up = pcie_capability_read_dword(parent, PCI_EXP_LNKCAP, &up);
->  	up = ASPM_L1_SUPPORTED(up);
->  
->  	/* ASPM works on A-step but is reported as not supported */
-> -	return (!!dn || is_ax(dd)) && !!up;
-> +	return !!ret_dn && !!ret_up && (!!dn || is_ax(dd)) && !!up;
->  }
+Currently migrate_vma_setup() calls mmu_notifier_invalidate_range_start()
+which flushes all device private page mappings whether or not a page
+is being migrated to/from device private memory. In order to not disrupt
+device mappings that are not being migrated, shift the responsibility
+for clearing device private mappings to the device driver and leave
+CPU page table unmapping handled by migrate_vma_setup(). To support
+this, the caller of migrate_vma_setup() should always set struct
+migrate_vma::src_owner to a non NULL value that matches the device
+private page->pgmap->owner. This value is then passed to the struct
+mmu_notifier_range with a new event type which the driver's invalidation
+function can use to avoid device MMU invalidations.
 
-what is all the !! for? boolean contexts already coerce to boolean
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
+ include/linux/mmu_notifier.h | 7 +++++++
+ mm/migrate.c                 | 8 +++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-Jason
+diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
+index fc68f3570e19..1921fcf6be5b 100644
+--- a/include/linux/mmu_notifier.h
++++ b/include/linux/mmu_notifier.h
+@@ -38,6 +38,10 @@ struct mmu_interval_notifier;
+  *
+  * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to si=
+gnal
+  * that the mm refcount is zero and the range is no longer accessible.
++ *
++ * @MMU_NOTIFY_MIGRATE: used during migrate_vma_collect() invalidate to si=
+gnal
++ * a device driver to possibly ignore the invalidation if the
++ * migrate_pgmap_owner field matches the driver's device private pgmap own=
+er.
+  */
+ enum mmu_notifier_event {
+ 	MMU_NOTIFY_UNMAP =3D 0,
+@@ -46,6 +50,7 @@ enum mmu_notifier_event {
+ 	MMU_NOTIFY_PROTECTION_PAGE,
+ 	MMU_NOTIFY_SOFT_DIRTY,
+ 	MMU_NOTIFY_RELEASE,
++	MMU_NOTIFY_MIGRATE,
+ };
+=20
+ #define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
+@@ -264,6 +269,7 @@ struct mmu_notifier_range {
+ 	unsigned long end;
+ 	unsigned flags;
+ 	enum mmu_notifier_event event;
++	void *migrate_pgmap_owner;
+ };
+=20
+ static inline int mm_has_notifiers(struct mm_struct *mm)
+@@ -513,6 +519,7 @@ static inline void mmu_notifier_range_init(struct mmu_n=
+otifier_range *range,
+ 	range->start =3D start;
+ 	range->end =3D end;
+ 	range->flags =3D flags;
++	range->migrate_pgmap_owner =3D NULL;
+ }
+=20
+ #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 2bbc5c4c672e..9b3dcb81be5f 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -2391,8 +2391,14 @@ static void migrate_vma_collect(struct migrate_vma *=
+migrate)
+ {
+ 	struct mmu_notifier_range range;
+=20
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, NULL,
++	/*
++	 * Note that the src_owner is passed to the mmu notifier callback so
++	 * that the registered device driver can skip invalidating device
++	 * private page mappings that won't be migrated.
++	 */
++	mmu_notifier_range_init(&range, MMU_NOTIFY_MIGRATE, 0, migrate->vma,
+ 			migrate->vma->vm_mm, migrate->start, migrate->end);
++	range.migrate_pgmap_owner =3D migrate->src_owner;
+ 	mmu_notifier_invalidate_range_start(&range);
+=20
+ 	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
+--=20
+2.20.1
+
