@@ -2,108 +2,255 @@ Return-Path: <SRS0=LoKS=AZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8207BC433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C8A2C433E3
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:32:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B482217D8
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74C8921BE5
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:32:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k+TyF8tS"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="YkjNuJN4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725833AbgGNIKv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 04:10:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51856 "EHLO
+        id S1726729AbgGNIc0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 04:32:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725820AbgGNIKv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:10:51 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B134EC061755
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:50 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id q5so20215475wru.6
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:50 -0700 (PDT)
+        with ESMTP id S1726456AbgGNIc0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:32:26 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E240AC061755
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:32:25 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id c80so1288348wme.0
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:32:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vvLV11o002k6lwnLUwZHmglOAmUCRXCOV1xsKs+vcjk=;
-        b=k+TyF8tS3Gi3IYxRBY1qwBdmMHBtRS1T/MPgGXBchBEhhEHgp+L/rN1gzhvk9PYJH3
-         dQpsHlEIObQtyY4rl0Fv4MNna0Tji9PrprJbyOwMR1xMTnIFBI87PXTqwffolAgMma0J
-         RSgn9JzzddIuUutQeo2UkJcWNd4B4OuAfzhDg4K314I9QXcTOMCjn7420az0+LrR/Hfr
-         nqk8o2gsSoemTN9GNJ4+0sgDgxlK5B9EbnRBf0o7fenGhBt4xqiMZGdpNhUGmzs5y+Ge
-         JLGotVcWJEu4t4OtM+azdHXMXT3d8qy26aoNIiDSFo2zOkIZsayVF0dmB6Pd0grryh2t
-         K2bQ==
+        d=ffwll.ch; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=0HN0dxzFpYm4Rka7NmVSrpxEeor/j/vcVp/Uq2Ve5d8=;
+        b=YkjNuJN47VltLx1lhEkQLaPsCee/6d2xVibMw2vuA+P5Kc8I4jXeriQ764iOzkURhw
+         jjCwLo7ifsdRxD7mnomlGAb5EZ/gTnjJ+JFPscKxv9VyjFpYEQ2T71wduBufP3+s3scy
+         09WCqrrsffIFqLnZdRz+312hsyCv8VWWcBG7s=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=vvLV11o002k6lwnLUwZHmglOAmUCRXCOV1xsKs+vcjk=;
-        b=FQhjPqZzQDr7G/JVYwe3mVL5lncJ4URc+0mH/T19pNm+mGIoeyRmHBKGE2v+0JSmo3
-         AdLvMuuI5LtBIcmjXnqTOIbrfGDtuPzqAmc5QnxZrO1u3TB1QUcCOssZ1SUkh8Dp7dCL
-         ieB90mlN5PV7vmklAVl+Jx2C991tHZeOFtW0kxH2g/HNO/3tO6rfS8R2kavE3BcF70yn
-         FtQEEBQl2dtwmGkoQbmEWJPtalF4f6SMbm7HusAAiwXb/xhtoTCvI6ZODpbRQ6YDNnbz
-         Un5hFpZsKrz8VZAKksMMdljxlJ+NwqdcK1Qq/4NAugzsx6H3WNAhUA8eMP+MQMhrIUel
-         FNyw==
-X-Gm-Message-State: AOAM532nKUkczMGX5s2shEmUvKxQDRyRfmSkZ2+zTAHpGmbuq3QaNOBB
-        PxMQaD2TdGWB1sW8cEmPL80MG1xZLIY=
-X-Google-Smtp-Source: ABdhPJyYx33nRoNXk0Dc+zUEF2pEObINlI5FxUH1aBJrXIWgxcxQgumcd/Fse66N6z1J5AYU4gONMw==
-X-Received: by 2002:a5d:404e:: with SMTP id w14mr3700790wrp.268.1594714249140;
-        Tue, 14 Jul 2020 01:10:49 -0700 (PDT)
-Received: from kheib-workstation.redhat.com (bzq-79-176-63-152.red.bezeqint.net. [79.176.63.152])
-        by smtp.gmail.com with ESMTPSA id f197sm3403891wme.33.2020.07.14.01.10.47
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=0HN0dxzFpYm4Rka7NmVSrpxEeor/j/vcVp/Uq2Ve5d8=;
+        b=AFmpVVLae6Duip/V5DAkyYgokSNNcH/2P0+1C/hynAwGpTr0AbXbKjd4o4JFNz5mPk
+         L9wOjIAj5lReE23wbdOHJ2dPSTtbcg1cyiyMPhxmHWAgEqGuzgqt3aMHUzbdRT2JPyDK
+         xfYCAq1HIvlB0Eth6tUxQc4RPBDGU+200CSSechgFau3TeWQW9W6+IfYoSsQ43RZS8xO
+         5/TCjJLt/zzuHtAZFIePfDju/hBw1NVDC6asWemVAV3jUkhzJc9tfJHGUCsA2pJSzr17
+         rjz607C0HpFMB2ud0hA2/G73Elzf7Muo0k6OmKL5k7PjNrpwagxzbEwKaF5GM15HDmvJ
+         1hdw==
+X-Gm-Message-State: AOAM5335fWriW+hUDVmnrZRQAGw0xKaEbhtEpFdinQ2PniHzFO+1fIzR
+        dbE/ZlNQH0HSBXvEbuVNNjP015BdNQg=
+X-Google-Smtp-Source: ABdhPJwKKcprJsUui8VrRe6dH8//cpcVyZL/UXJFkqUizSHqQAGJUmV4To7vgKryIGOILfcMxjzuxg==
+X-Received: by 2002:a1c:1b90:: with SMTP id b138mr3164033wmb.21.1594715544585;
+        Tue, 14 Jul 2020 01:32:24 -0700 (PDT)
+Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
+        by smtp.gmail.com with ESMTPSA id a4sm29863857wrg.80.2020.07.14.01.32.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Jul 2020 01:10:48 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next 0/7] RDMA: Remove query_pkey from iwarp providers
-Date:   Tue, 14 Jul 2020 11:10:31 +0300
-Message-Id: <20200714081038.13131-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.25.4
+        Tue, 14 Jul 2020 01:32:23 -0700 (PDT)
+Date:   Tue, 14 Jul 2020 10:32:21 +0200
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     Jyri Sarha <jsarha@ti.com>
+Cc:     Daniel Vetter <daniel.vetter@ffwll.ch>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        linux-rdma@vger.kernel.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] drm/tilcdc: Use standard drm_atomic_helper_commit
+Message-ID: <20200714083221.GT3278063@phenom.ffwll.local>
+References: <20200707201229.472834-16-daniel.vetter@ffwll.ch>
+ <20200708142050.530240-1-daniel.vetter@ffwll.ch>
+ <ae71125b-6496-a0e7-3424-9fe69cc3734f@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ae71125b-6496-a0e7-3424-9fe69cc3734f@ti.com>
+X-Operating-System: Linux phenom 5.6.0-1-amd64 
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch set does the following:
-1- Avoid exposing the pkeys sysfs entries for iwarp providers.
-2- Avoid allocating the pkey cache for iwarp providers.
-3- Remove the requirement by RDMA core to implement query_pkey
-   by all providers.
-4- Remove the implementation of query_pkey callback from iwarp providers.
+On Fri, Jul 10, 2020 at 02:16:50PM +0300, Jyri Sarha wrote:
+> Thank you Daniel,
+> Now this works perfectly, all while I was on vacation.
+> 
+> On 08/07/2020 17:20, Daniel Vetter wrote:
+> > Gives us proper nonblocking support for free, and a pile of other
+> > things. The tilcdc code is simply old enough that it was never
+> > converted over, but was stuck forever with the copypasta from when it
+> > was initially merged.
+> > 
+> > The riskiest thing with this conversion is maybe that there's an issue
+> > with the vblank handling or vblank event handling, which will upset
+> > the modern commit support in atomic helpers. But from a cursory review
+> > drm_crtc_vblank_on/off is called in the right places, and the event
+> > handling also seems to exist (albeit with much hand-rolling and
+> > probably some races, could perhaps be converted over to
+> > drm_crtc_arm_vblank_event without any real loss).
+> > 
+> > Motivated by me not having to hand-roll the dma-fence annotations for
+> > this.
+> > 
+> > v2: Clear out crtc_state->event when we're handling the event, to
+> > avoid upsetting the helpers (reported by Jyri).
+> > 
+> > v3: Also send out even whent the crtc is getting disabled. Tilcdc looks a
+> > bit like conversion to simple display helpers would work out really
+> > nice.
+> > 
+> 
+> Probably. Should take a closer looks some day when I have time.
+> 
+> > Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> > Cc: Jyri Sarha <jsarha@ti.com>
+> > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> 
+> Tested-by: Jyri Sarha <jsarha@ti.com>
+> Reviewed-by: Jyri Sarha <jsarha@ti.com>
 
-Kamal Heib (7):
-  RDMA/core: Expose pkeys sysfs files only if pkey_tbl_len is set
-  RDMA/core: Allocate the pkey cache only if the pkey_tbl_len is set
-  RDMA/core: Remove query_pkey from the mandatory ops
-  RDMA/siw: Remove the query_pkey callback
-  RDMA/cxgb4: Remove the query_pkey callback
-  RDMA/i40iw: Remove the query_pkey callback
-  RDMA/qedr: Remove the query_pkey callback
+Thanks for testing and reviewing, patch pushed to drm-misc-next.
+-Daniel
 
- drivers/infiniband/core/cache.c           | 45 ++++++++++------
- drivers/infiniband/core/device.c          |  4 +-
- drivers/infiniband/core/sysfs.c           | 64 ++++++++++++++++-------
- drivers/infiniband/hw/cxgb4/provider.c    | 11 ----
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 19 -------
- drivers/infiniband/hw/qedr/main.c         |  3 +-
- drivers/infiniband/hw/qedr/verbs.c        |  1 -
- drivers/infiniband/sw/siw/siw_main.c      |  1 -
- drivers/infiniband/sw/siw/siw_verbs.c     |  9 ----
- drivers/infiniband/sw/siw/siw_verbs.h     |  1 -
- 10 files changed, 77 insertions(+), 81 deletions(-)
+> 
+> > --
+> > From logs looks like we're not stuck when disabling the display, so I
+> > hacked in a bit of code for that too. Like mentioned above, tilcdc
+> > looks like a perfect candidate for simple display helpers, I think
+> > that would simplify a _lot_ of code here.
+> > -Daniel
+> > ---
+> >  drivers/gpu/drm/tilcdc/tilcdc_crtc.c  | 13 ++++++++
+> >  drivers/gpu/drm/tilcdc/tilcdc_drv.c   | 47 +--------------------------
+> >  drivers/gpu/drm/tilcdc/tilcdc_plane.c |  8 +++--
+> >  3 files changed, 19 insertions(+), 49 deletions(-)
+> > 
+> > diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+> > index e9dd5e5cb4e7..1856962411c7 100644
+> > --- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+> > +++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+> > @@ -537,6 +537,18 @@ static void tilcdc_crtc_atomic_disable(struct drm_crtc *crtc,
+> >  	tilcdc_crtc_disable(crtc);
+> >  }
+> >  
+> > +static void tilcdc_crtc_atomic_flush(struct drm_crtc *crtc,
+> > +				     struct drm_crtc_state *old_state)
+> > +{
+> > +	if (!crtc->state->event)
+> > +		return;
+> > +
+> > +	spin_lock_irq(&crtc->dev->event_lock);
+> > +	drm_crtc_send_vblank_event(crtc, crtc->state->event);
+> > +	crtc->state->event = NULL;
+> > +	spin_unlock_irq(&crtc->dev->event_lock);
+> > +}
+> > +
+> >  void tilcdc_crtc_shutdown(struct drm_crtc *crtc)
+> >  {
+> >  	tilcdc_crtc_off(crtc, true);
+> > @@ -822,6 +834,7 @@ static const struct drm_crtc_helper_funcs tilcdc_crtc_helper_funcs = {
+> >  	.atomic_check	= tilcdc_crtc_atomic_check,
+> >  	.atomic_enable	= tilcdc_crtc_atomic_enable,
+> >  	.atomic_disable	= tilcdc_crtc_atomic_disable,
+> > +	.atomic_flush	= tilcdc_crtc_atomic_flush,
+> >  };
+> >  
+> >  void tilcdc_crtc_set_panel_info(struct drm_crtc *crtc,
+> > diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> > index 0d74a6443263..4f5fc3e87383 100644
+> > --- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> > +++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> > @@ -87,55 +87,10 @@ static int tilcdc_atomic_check(struct drm_device *dev,
+> >  	return ret;
+> >  }
+> >  
+> > -static int tilcdc_commit(struct drm_device *dev,
+> > -		  struct drm_atomic_state *state,
+> > -		  bool async)
+> > -{
+> > -	int ret;
+> > -
+> > -	ret = drm_atomic_helper_prepare_planes(dev, state);
+> > -	if (ret)
+> > -		return ret;
+> > -
+> > -	ret = drm_atomic_helper_swap_state(state, true);
+> > -	if (ret) {
+> > -		drm_atomic_helper_cleanup_planes(dev, state);
+> > -		return ret;
+> > -	}
+> > -
+> > -	/*
+> > -	 * Everything below can be run asynchronously without the need to grab
+> > -	 * any modeset locks at all under one condition: It must be guaranteed
+> > -	 * that the asynchronous work has either been cancelled (if the driver
+> > -	 * supports it, which at least requires that the framebuffers get
+> > -	 * cleaned up with drm_atomic_helper_cleanup_planes()) or completed
+> > -	 * before the new state gets committed on the software side with
+> > -	 * drm_atomic_helper_swap_state().
+> > -	 *
+> > -	 * This scheme allows new atomic state updates to be prepared and
+> > -	 * checked in parallel to the asynchronous completion of the previous
+> > -	 * update. Which is important since compositors need to figure out the
+> > -	 * composition of the next frame right after having submitted the
+> > -	 * current layout.
+> > -	 */
+> > -
+> > -	drm_atomic_helper_commit_modeset_disables(dev, state);
+> > -
+> > -	drm_atomic_helper_commit_planes(dev, state, 0);
+> > -
+> > -	drm_atomic_helper_commit_modeset_enables(dev, state);
+> > -
+> > -	drm_atomic_helper_wait_for_vblanks(dev, state);
+> > -
+> > -	drm_atomic_helper_cleanup_planes(dev, state);
+> > -
+> > -	return 0;
+> > -}
+> > -
+> >  static const struct drm_mode_config_funcs mode_config_funcs = {
+> >  	.fb_create = drm_gem_fb_create,
+> >  	.atomic_check = tilcdc_atomic_check,
+> > -	.atomic_commit = tilcdc_commit,
+> > +	.atomic_commit = drm_atomic_helper_commit,
+> >  };
+> >  
+> >  static void modeset_init(struct drm_device *dev)
+> > diff --git a/drivers/gpu/drm/tilcdc/tilcdc_plane.c b/drivers/gpu/drm/tilcdc/tilcdc_plane.c
+> > index 0d09b31ae759..2f681a713815 100644
+> > --- a/drivers/gpu/drm/tilcdc/tilcdc_plane.c
+> > +++ b/drivers/gpu/drm/tilcdc/tilcdc_plane.c
+> > @@ -83,9 +83,11 @@ static void tilcdc_plane_atomic_update(struct drm_plane *plane,
+> >  	if (WARN_ON(!state->fb || !state->crtc->state))
+> >  		return;
+> >  
+> > -	tilcdc_crtc_update_fb(state->crtc,
+> > -			      state->fb,
+> > -			      state->crtc->state->event);
+> > +	if (tilcdc_crtc_update_fb(state->crtc,
+> > +				  state->fb,
+> > +				  state->crtc->state->event) == 0) {
+> > +		state->crtc->state->event = NULL;
+> > +	}
+> >  }
+> >  
+> >  static const struct drm_plane_helper_funcs plane_helper_funcs = {
+> > 
+> 
+> 
+> -- 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 -- 
-2.25.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
