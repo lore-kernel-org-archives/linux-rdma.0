@@ -2,150 +2,120 @@ Return-Path: <SRS0=LoKS=AZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C90C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 19:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 749D3C433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 19:56:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 321C622AB9
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 19:36:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B14222BED
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 19:56:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GDsvb0Sn"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="bE2IKh8s"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729397AbgGNTgP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 15:36:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46102 "EHLO
+        id S1728591AbgGNT4J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 15:56:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728768AbgGNTgP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 15:36:15 -0400
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E497CC061755
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 12:36:14 -0700 (PDT)
-Received: by mail-wm1-x344.google.com with SMTP id g10so2173799wmc.1
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 12:36:14 -0700 (PDT)
+        with ESMTP id S1726634AbgGNT4I (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 15:56:08 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD150C061755
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 12:56:08 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id q3so15267860ilt.8
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 12:56:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=mYq0lLfoChjF6fyT3Yv4jD48nMVUJnRN3eRJAiDbrDU=;
-        b=GDsvb0Sns0yslIjkyrD+GopNAbDG9fJi90G9U/ytN8SsVJ3C8zDmpQ97myDxX5NstP
-         yhIXq+kB8ljA7lLI46pwCJR2mkeScHZqPHDiy+4l6fotFGVrQVa7eskKeUSku94Nd3J/
-         YG6M698ELg7IeiwbRGbhzolUUicSeBQsOdKFX8W9egaE1uzDbDSavxwUoxGDTpPKDacc
-         0w/gEk3u4t6rtNK+ByY1l/EkkLZFjT/N3nHAS0sQ4TvUUbSGh3a3pWclS+jBF5rNImHn
-         bpiAujfJpgs6F3zOruISDGNoycUb7n1ZhwzEFrSO2ijACJQABLak52cdDNIFdFVyL4+R
-         sHkQ==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=XJYp41wiroyh+xRMpnsGR4ro938m5OeCIjTvbqr40tA=;
+        b=bE2IKh8sfv2dGh6SxOeh51Lox7xvEmw6cE2OjgTaB/mSWvGqr1Affm4sJT+be+TCV7
+         xyMku9I+BHTSpbMNVjMcd94I/aECtEEw1fF95yGOx3bHfZ0uGJhmsL6azTIBNP0sCLtq
+         UUaIS+djyVoP7CB0a0DIj0o3GkGmRAwG4J5GNg75FReWBcq5iervY38MiLtF/g8hsRkr
+         QLDZ/uLnz3T0nWtm7240ekzDI4FWfwGZXnEZZUpJA5d87QSh8+S6rH/PMm3UmGvf0TSp
+         wqxghKyWs29XfXLeOQSIGcSCVAe0MCRyCZx6+NEVYpjopjv+Do5+V6ctP8iWFYjGze0q
+         dDFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=mYq0lLfoChjF6fyT3Yv4jD48nMVUJnRN3eRJAiDbrDU=;
-        b=GyjQkXaUqcWKAm6lyQbvSCv9CitJQmWaXirTyjy8WMggXc+Cqgw9+QzFLYxhmpnEYB
-         ILH2CTMWD2KOyXFV2RMshynEdee8D+swq13fFVgD30iYTcPxn8yDRtY7ZM2uYh7x5tcA
-         pFsTFgu4GxtNWp5O5IzJCCLsqtcMGDNfU69G+QAAClo54udrG/PH53Znaa4qABpgbeU9
-         Ck+JOkL+DocrwHrPuapNsouDR9GN/gYhEI80mc9AaTZtuQ45QPAPvmOQyHUCKjNQuWxi
-         erfhgwtj9lGPQJn6uVCLyvlrONjba92wG3KmCxUtOfmz0aNmJZyjBU7NHMNdWbZvjJpW
-         rsog==
-X-Gm-Message-State: AOAM532j7ZxO25StsNfS//G56pbhoSXH0lq+XX0GarbRfL48bTu6IwbT
-        L1IMRfnePpR0CJOd9rrE/MJ1wnK39EQ=
-X-Google-Smtp-Source: ABdhPJx21p9siKC0/+nDl+3Exqye+PQNXRLo8vsSwxZmNrBPal0IWViaQFnxazo5x9KeCWetIdQfIA==
-X-Received: by 2002:a1c:5a41:: with SMTP id o62mr5275197wmb.16.1594751681422;
-        Tue, 14 Jul 2020 11:34:41 -0700 (PDT)
-Received: from kheib-workstation.redhat.com ([37.142.6.100])
-        by smtp.gmail.com with ESMTPSA id 190sm5728982wmb.15.2020.07.14.11.34.39
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=XJYp41wiroyh+xRMpnsGR4ro938m5OeCIjTvbqr40tA=;
+        b=SQcVitBTOUtuZ0yeDsHW8I6aftKHo80HjQyj44xi/g1YlpbS7IN6r7Dh4Hu2jPDCE3
+         q6wQ7vKS5vhyR9QtSSsPXgakXsDfGECB/lnESfIfxIAPsxCWBMaoi10IQVYekOPYHNof
+         FTqenCFFbUdd0fMzr5Bqhq//lD98qKFa2AZT1GYzRrCEJkLXV0DZ041AlXDReG+6YG6L
+         VVtycR8MBDRK95+V3B6Qqrq6T+RhYqG/scSTMtNgcV2vnBqs1nYEVpUiUv5i1eIiqxQ5
+         bEmEHwRT16USM0MWrzJShBN3/Efwd79buP7ns1Ei9+aIe3+J3dAs2lAL0CV3p94Ve63A
+         ucpw==
+X-Gm-Message-State: AOAM532EqQfEUy/PwCe6w5xqvA3e2NwRS92YPnqGYoqVt64hEz0IX2QN
+        VO2RkS+XekKqMGfeOmhPRAJ2kQ==
+X-Google-Smtp-Source: ABdhPJxxPeJDXmY4eIoIS6+Zq99Qa3a5gQAI4QAJNMoWAajXc6uykWb2eaE6hdAyvICeVL9ygpZ6SQ==
+X-Received: by 2002:a92:c689:: with SMTP id o9mr6448593ilg.302.1594756568259;
+        Tue, 14 Jul 2020 12:56:08 -0700 (PDT)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id f18sm10361320ilj.15.2020.07.14.12.56.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Jul 2020 11:34:40 -0700 (PDT)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next v1 4/7] RDMA/siw: Remove the query_pkey callback
-Date:   Tue, 14 Jul 2020 21:34:11 +0300
-Message-Id: <20200714183414.61069-5-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.25.4
-In-Reply-To: <20200714183414.61069-1-kamalheib1@gmail.com>
-References: <20200714183414.61069-1-kamalheib1@gmail.com>
+        Tue, 14 Jul 2020 12:56:07 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.93)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jvR26-00ANrc-GD; Tue, 14 Jul 2020 16:56:06 -0300
+Date:   Tue, 14 Jul 2020 16:56:06 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Kamal Heib <kamalheib1@gmail.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Zhu Yanjun <yanjunz@mellanox.com>
+Subject: Re: [PATCH for-next v1 0/4] RDMA/rxe: Cleanups and improvements
+Message-ID: <20200714195606.GE25301@ziepe.ca>
+References: <20200705104313.283034-1-kamalheib1@gmail.com>
+ <20200714081433.GA13271@kheib-workstation>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200714081433.GA13271@kheib-workstation>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Now that the query_pkey() isn't mandatory by the RDMA core for iwarp
-providers, this callback can be removed.
+On Tue, Jul 14, 2020 at 11:14:33AM +0300, Kamal Heib wrote:
+> On Sun, Jul 05, 2020 at 01:43:09PM +0300, Kamal Heib wrote:
+> > These series include few cleanup patches to the rxe driver.
+> > 
+> > V1:
+> > - patch #4: Fix commit message.
+> > 
+> > Kamal Heib (4):
+> >   RDMA/rxe: Drop pointless checks in rxe_init_ports
+> >   RDMA/rxe: Return void from rxe_init_port_param()
+> >   RDMA/rxe: Return void from rxe_mem_init_dma()
+> >   RDMA/rxe: Remove rxe_link_layer()
+> > 
+> >  drivers/infiniband/sw/rxe/rxe.c       |  7 +------
+> >  drivers/infiniband/sw/rxe/rxe_loc.h   |  5 ++---
+> >  drivers/infiniband/sw/rxe/rxe_mr.c    |  6 ++----
+> >  drivers/infiniband/sw/rxe/rxe_net.c   |  5 -----
+> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 24 ++++--------------------
+> >  5 files changed, 9 insertions(+), 38 deletions(-)
+> > 
+> >
+> 
+> Hi Jason,
+> 
+> Could you please tell me if there is something blocking this patch set from
+> getting merged?
 
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
----
- drivers/infiniband/sw/siw/siw_main.c  | 1 -
- drivers/infiniband/sw/siw/siw_verbs.c | 9 ---------
- drivers/infiniband/sw/siw/siw_verbs.h | 1 -
- 3 files changed, 11 deletions(-)
+Just hasn't reached the bottom of the patchworks yet, follow along
+here:
 
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-index a0b8cc643c5c..18c08259157f 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -288,7 +288,6 @@ static const struct ib_device_ops siw_device_ops = {
- 	.post_srq_recv = siw_post_srq_recv,
- 	.query_device = siw_query_device,
- 	.query_gid = siw_query_gid,
--	.query_pkey = siw_query_pkey,
- 	.query_port = siw_query_port,
- 	.query_qp = siw_query_qp,
- 	.query_srq = siw_query_srq,
-diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
-index 0d509f7a10a6..adafa1b8bebe 100644
---- a/drivers/infiniband/sw/siw/siw_verbs.c
-+++ b/drivers/infiniband/sw/siw/siw_verbs.c
-@@ -176,7 +176,6 @@ int siw_query_port(struct ib_device *base_dev, u8 port,
- 	attr->active_mtu = ib_mtu_int_to_enum(sdev->netdev->mtu);
- 	attr->phys_state = sdev->state == IB_PORT_ACTIVE ?
- 		IB_PORT_PHYS_STATE_LINK_UP : IB_PORT_PHYS_STATE_DISABLED;
--	attr->pkey_tbl_len = 1;
- 	attr->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_DEVICE_MGMT_SUP;
- 	attr->state = sdev->state;
- 	/*
-@@ -204,20 +203,12 @@ int siw_get_port_immutable(struct ib_device *base_dev, u8 port,
- 	if (rv)
- 		return rv;
- 
--	port_immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	port_immutable->gid_tbl_len = attr.gid_tbl_len;
- 	port_immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
- 
- 	return 0;
- }
- 
--int siw_query_pkey(struct ib_device *base_dev, u8 port, u16 idx, u16 *pkey)
--{
--	/* Report the default pkey */
--	*pkey = 0xffff;
--	return 0;
--}
--
- int siw_query_gid(struct ib_device *base_dev, u8 port, int idx,
- 		  union ib_gid *gid)
- {
-diff --git a/drivers/infiniband/sw/siw/siw_verbs.h b/drivers/infiniband/sw/siw/siw_verbs.h
-index 9335c48c01de..d9572275a6b6 100644
---- a/drivers/infiniband/sw/siw/siw_verbs.h
-+++ b/drivers/infiniband/sw/siw/siw_verbs.h
-@@ -46,7 +46,6 @@ int siw_create_cq(struct ib_cq *base_cq, const struct ib_cq_init_attr *attr,
- 		  struct ib_udata *udata);
- int siw_query_port(struct ib_device *base_dev, u8 port,
- 		   struct ib_port_attr *attr);
--int siw_query_pkey(struct ib_device *base_dev, u8 port, u16 idx, u16 *pkey);
- int siw_query_gid(struct ib_device *base_dev, u8 port, int idx,
- 		  union ib_gid *gid);
- int siw_alloc_pd(struct ib_pd *base_pd, struct ib_udata *udata);
--- 
-2.25.4
+https://patchwork.kernel.org/project/linux-rdma/list/
 
+Mostly stuff goes bottom up except for trivial, rc and resend of
+things I already reviewed..
+
+So for instance you could answer Zhu here:
+
+https://patchwork.kernel.org/patch/11585485/#23417655
+
+To clear out that patch..
+
+Jason
