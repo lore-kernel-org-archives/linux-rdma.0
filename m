@@ -2,125 +2,234 @@ Return-Path: <SRS0=LoKS=AZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CCB4C433EA
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 15:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B3A0C433E3
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 17:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E809522464
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 15:49:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594741790;
-	bh=Ulz6kftsIf17MgM1f0YQJELfS5NjvEeQg+27bJIWgUA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:List-ID:From;
-	b=ufAnfHHP6PadbGSwi8iRbAWNMaHzKH/Y4oZ0JJrnwY9+gNJ4M403RDz69vu5VSCTI
-	 kQQ5Px8PujBY27eXtm/a1PtAqdm8FNAGo8WkARrkBB93Cy1Izx7ph2UDS234xpp9fZ
-	 vVqMnnVJOeVO8kdUxaTdH/veFP01wdmCr/sbLPXQ=
+	by mail.kernel.org (Postfix) with ESMTP id 78257225A9
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 17:46:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=jlekstrand-net.20150623.gappssmtp.com header.i=@jlekstrand-net.20150623.gappssmtp.com header.b="bSqLibna"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727080AbgGNPtp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 11:49:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56108 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725876AbgGNPtp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 14 Jul 2020 11:49:45 -0400
-Received: from localhost (mobile-166-175-191-139.mycingular.net [166.175.191.139])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C781122464;
-        Tue, 14 Jul 2020 15:49:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594741784;
-        bh=Ulz6kftsIf17MgM1f0YQJELfS5NjvEeQg+27bJIWgUA=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=EaQlvs/TC2yUjHJK6smf4ynxhvgNy5wlI9WFj7L3BfuTU4CDzmYYc6S17Kw23RlD1
-         ane48ARw0DttiT5GA+ADF+3szgTdBi3G/NGuj6uqbXK7TbOGD28k/kXcKTsDcmnQ/H
-         L4Vbv6eXEAxcd1xgmuHjECuy9pqpSHzJy0jUhojw=
-Date:   Tue, 14 Jul 2020 10:49:41 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Saheed Olayemi Bolarinwa <refactormyself@gmail.com>
-Cc:     bjorn@helgaas.com, skhan@linuxfoundation.org,
-        linux-pci@vger.kernel.org,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        linux-kernel@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 0/14 v4] PCI: Remove '*val = 0' from
- pcie_capability_read_*()
-Message-ID: <20200714154941.GA396741@bjorn-Precision-5520>
+        id S1726169AbgGNRqu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 13:46:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56670 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728733AbgGNRqu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 13:46:50 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACE9BC061794
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 10:46:49 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id rk21so23471405ejb.2
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 10:46:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=jlekstrand-net.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=NB5nytNOxsJJioGL1Jixv5ej+NnEMHWRKbTcnkeqcug=;
+        b=bSqLibnaW/T58mL9feuhhYVqPsWXPihE0fwbIoqc39uqy6e+2BiUPZkGhVblD9R7Au
+         akO6EH8cfrhK7Yf9kbjdwsNm/6+fhjEZ3TpbUP5BDyMVe2hVLNAK+Py5VsTtpjhiRqXo
+         ghR+N/exkc4TPT4gAJesMOByGNpGxPZIDqXuQtW22DePJpZrEUFaDJWQNwfKaTT1ZgpI
+         kyFzzeT1Vdif9Pe+iniC0KvvcPEJ8tLHRT3UovOz0N1Lfoe1dkguuagsdB3lgAtjM0cO
+         SOxzOeMDOR+S7GSg8nxtewQSGNLBtatjVg9+jrdz2gjSMDz1GJxtFthbxYF5QEAXZJJS
+         fZ/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=NB5nytNOxsJJioGL1Jixv5ej+NnEMHWRKbTcnkeqcug=;
+        b=FOB07j6+TUeRC/YVSUqOCzQs0K179Pmn8Q1eANQf5IusARrf8I605pGx7bLAl5xtAC
+         QXVGzdcrilnP2GQcj1Ya5IB4L7w9VyVvawWFY/FNEjcQr3jVwCglnCCjLl7MTQ09W680
+         sfQKzQjSdZc2sbBcthfvSWtrZjjJanHeEeRbj6ZwzHWKXbBSbMHA7upkzsFUXm5b36Si
+         MvyJyVNuZTiC9mJqXpLYiU9DmnMIjDwWAttUt4WBpHvgigZ8jwcNeJ6H+vt0pNK2xasH
+         MfeDGydYZJOgmwh5LMXxtloxUSEwl+2IUt3xWm3Jdht4CDM6EMcw/3orgrTkIVemgq2a
+         JoAQ==
+X-Gm-Message-State: AOAM5311qhOvSrg0rvYi00OG2oXzejnY+XM18kof3QbAG34Jxu7BLTP/
+        aIFW8VxoKkLC7QYBzSkZeytX/xuNNKFIWmzxOsivEg==
+X-Google-Smtp-Source: ABdhPJx0c4bCwqzJhlZQg26rtFZ2ogbu3hjGv1Go+aM7VrNiOmfc9AqYjZOFezTtwnrBkWcWaFJT4975ZoMq1Diy5+w=
+X-Received: by 2002:a17:906:26c3:: with SMTP id u3mr5380567ejc.483.1594748808337;
+ Tue, 14 Jul 2020 10:46:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200714110445.32605-1-refactormyself@gmail.com>
+References: <20200707201229.472834-4-daniel.vetter@ffwll.ch> <20200709123339.547390-1-daniel.vetter@ffwll.ch>
+In-Reply-To: <20200709123339.547390-1-daniel.vetter@ffwll.ch>
+From:   Jason Ekstrand <jason@jlekstrand.net>
+Date:   Tue, 14 Jul 2020 12:46:37 -0500
+Message-ID: <CAOFGe95aevRvreikoUPksZ83GskdOzuzVMkyKmbQPNiHzbjjhg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] dma-buf.rst: Document why indefinite fences are a bad idea
+To:     Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc:     DRI Development <dri-devel@lists.freedesktop.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        linux-rdma@vger.kernel.org,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Daniel Stone <daniels@collabora.com>,
+        Jesse Natalie <jenatali@microsoft.com>,
+        Steve Pronovost <spronovo@microsoft.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>,
+        Thomas Hellstrom <thomas.hellstrom@intel.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>, linaro-mm-sig@lists.linaro.org,
+        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 14, 2020 at 01:04:42PM +0200, Saheed Olayemi Bolarinwa wrote:
-> From: Bolarinwa Olayemi Saheed <refactormyself@gmail.com>
-> ...
+This matches my understanding for what it's worth.  In my little bit
+of synchronization work in drm, I've gone out of my way to ensure we
+can maintain this constraint.
 
-> Bolarinwa Olayemi Saheed (14):
->   IB/hfi1: Check the return value of pcie_capability_read_*()
->   misc: rtsx: Check the return value of pcie_capability_read_*()
->   ath9k: Check the return value of pcie_capability_read_*()
->   iwlegacy: Check the return value of pcie_capability_read_*()
->   PCI: pciehp: Check the return value of pcie_capability_read_*()
->   PCI: pciehp: Make "Power On" the default 
->   PCI: pciehp: Check the return value of pcie_capability_read_*()
->   PCI/ACPI: Check the return value of pcie_capability_read_*()
->   PCI: pciehp: Check the return value of pcie_capability_read_*()
->   PCI: Check the return value of pcie_capability_read_*()
->   PCI/PM: Check return value of pcie_capability_read_*()
->   PCI/AER: Check the return value of pcie_capability_read_*()
->   PCI/ASPM: Check the return value of pcie_capability_read_*()
->   PCI: Remove '*val = 0' from pcie_capability_read_*()
+Acked-by: Jason Ekstrand <jason@jlekstrand.net>
 
-1) Let's slow down on posting patches.  We need time to think and have
-a conversation about where we're going, and waking up to dozens of new
-patches every day doesn't help.
-
-2) This series claims to have 14 patches, but only 3 made it to the
-list.  I don't know if the others were rejected for too many folks in
-the cc: list or what.  If you only updated these 3, we will still want
-the full set of 14 posted because it's too hard to collect 11 things
-from v3 and 3 things from v4, etc.
-
-  $ b4 am -om/ 20200714110445.32605-1-refactormyself@gmail.com
-  Looking up https://lore.kernel.org/r/20200714110445.32605-1-refactormyself%40gmail.com
-  Grabbing thread from lore.kernel.org/linux-kernel-mentees
-  Analyzing 4 messages in the thread
-  ---
-  Thread incomplete, attempting to backfill
-  Grabbing thread from lore.kernel.org/linux-rdma
-  Grabbing thread from lore.kernel.org/lkml
-  Grabbing thread from lore.kernel.org/linux-pci
-  ---
-  Writing m/v4_20200714_refactormyself_pci_remove_val_0_from_pcie_capability_read.mbx
-    [PATCH 1/14 v4] IB/hfi1: Check the return value of pcie_capability_read_*()
-    ERROR: missing [2/14]!
-    ERROR: missing [3/14]!
-    ERROR: missing [4/14]!
-    ERROR: missing [5/14]!
-    ERROR: missing [6/14]!
-    ERROR: missing [7/14]!
-    ERROR: missing [8/14]!
-    ERROR: missing [9/14]!
-    [PATCH 10/14 v4] PCI: Check return value of pcie_capability_read_*()
-    [PATCH 11/14 v4] PCI/PM: Check return value of pcie_capability_read_*()
-    ERROR: missing [12/14]!
-    ERROR: missing [13/14]!
-    ERROR: missing [14/14]!
-  ---
-  Total patches: 3
-  ---
-  WARNING: Thread incomplete!
-  Cover: m/v4_20200714_refactormyself_pci_remove_val_0_from_pcie_capability_read.cover
-   Link: https://lore.kernel.org/r/20200714110445.32605-1-refactormyself@gmail.com
-   Base: not found
-	 git am m/v4_20200714_refactormyself_pci_remove_val_0_from_pcie_capability_read.mbx
-
+On Thu, Jul 9, 2020 at 7:33 AM Daniel Vetter <daniel.vetter@ffwll.ch> wrote=
+:
+>
+> Comes up every few years, gets somewhat tedious to discuss, let's
+> write this down once and for all.
+>
+> What I'm not sure about is whether the text should be more explicit in
+> flat out mandating the amdkfd eviction fences for long running compute
+> workloads or workloads where userspace fencing is allowed.
+>
+> v2: Now with dot graph!
+>
+> v3: Typo (Dave Airlie)
+>
+> Acked-by: Christian K=C3=B6nig <christian.koenig@amd.com>
+> Acked-by: Daniel Stone <daniels@collabora.com>
+> Cc: Jesse Natalie <jenatali@microsoft.com>
+> Cc: Steve Pronovost <spronovo@microsoft.com>
+> Cc: Jason Ekstrand <jason@jlekstrand.net>
+> Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+> Cc: Mika Kuoppala <mika.kuoppala@intel.com>
+> Cc: Thomas Hellstrom <thomas.hellstrom@intel.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: amd-gfx@lists.freedesktop.org
+> Cc: intel-gfx@lists.freedesktop.org
+> Cc: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+> Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> ---
+>  Documentation/driver-api/dma-buf.rst | 70 ++++++++++++++++++++++++++++
+>  1 file changed, 70 insertions(+)
+>
+> diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-=
+api/dma-buf.rst
+> index f8f6decde359..100bfd227265 100644
+> --- a/Documentation/driver-api/dma-buf.rst
+> +++ b/Documentation/driver-api/dma-buf.rst
+> @@ -178,3 +178,73 @@ DMA Fence uABI/Sync File
+>  .. kernel-doc:: include/linux/sync_file.h
+>     :internal:
+>
+> +Indefinite DMA Fences
+> +~~~~~~~~~~~~~~~~~~~~
+> +
+> +At various times &dma_fence with an indefinite time until dma_fence_wait=
+()
+> +finishes have been proposed. Examples include:
+> +
+> +* Future fences, used in HWC1 to signal when a buffer isn't used by the =
+display
+> +  any longer, and created with the screen update that makes the buffer v=
+isible.
+> +  The time this fence completes is entirely under userspace's control.
+> +
+> +* Proxy fences, proposed to handle &drm_syncobj for which the fence has =
+not yet
+> +  been set. Used to asynchronously delay command submission.
+> +
+> +* Userspace fences or gpu futexes, fine-grained locking within a command=
+ buffer
+> +  that userspace uses for synchronization across engines or with the CPU=
+, which
+> +  are then imported as a DMA fence for integration into existing winsys
+> +  protocols.
+> +
+> +* Long-running compute command buffers, while still using traditional en=
+d of
+> +  batch DMA fences for memory management instead of context preemption D=
+MA
+> +  fences which get reattached when the compute job is rescheduled.
+> +
+> +Common to all these schemes is that userspace controls the dependencies =
+of these
+> +fences and controls when they fire. Mixing indefinite fences with normal
+> +in-kernel DMA fences does not work, even when a fallback timeout is incl=
+uded to
+> +protect against malicious userspace:
+> +
+> +* Only the kernel knows about all DMA fence dependencies, userspace is n=
+ot aware
+> +  of dependencies injected due to memory management or scheduler decisio=
+ns.
+> +
+> +* Only userspace knows about all dependencies in indefinite fences and w=
+hen
+> +  exactly they will complete, the kernel has no visibility.
+> +
+> +Furthermore the kernel has to be able to hold up userspace command submi=
+ssion
+> +for memory management needs, which means we must support indefinite fenc=
+es being
+> +dependent upon DMA fences. If the kernel also support indefinite fences =
+in the
+> +kernel like a DMA fence, like any of the above proposal would, there is =
+the
+> +potential for deadlocks.
+> +
+> +.. kernel-render:: DOT
+> +   :alt: Indefinite Fencing Dependency Cycle
+> +   :caption: Indefinite Fencing Dependency Cycle
+> +
+> +   digraph "Fencing Cycle" {
+> +      node [shape=3Dbox bgcolor=3Dgrey style=3Dfilled]
+> +      kernel [label=3D"Kernel DMA Fences"]
+> +      userspace [label=3D"userspace controlled fences"]
+> +      kernel -> userspace [label=3D"memory management"]
+> +      userspace -> kernel [label=3D"Future fence, fence proxy, ..."]
+> +
+> +      { rank=3Dsame; kernel userspace }
+> +   }
+> +
+> +This means that the kernel might accidentally create deadlocks
+> +through memory management dependencies which userspace is unaware of, wh=
+ich
+> +randomly hangs workloads until the timeout kicks in. Workloads, which fr=
+om
+> +userspace's perspective, do not contain a deadlock.  In such a mixed fen=
+cing
+> +architecture there is no single entity with knowledge of all dependencie=
+s.
+> +Thefore preventing such deadlocks from within the kernel is not possible=
+.
+> +
+> +The only solution to avoid dependencies loops is by not allowing indefin=
+ite
+> +fences in the kernel. This means:
+> +
+> +* No future fences, proxy fences or userspace fences imported as DMA fen=
+ces,
+> +  with or without a timeout.
+> +
+> +* No DMA fences that signal end of batchbuffer for command submission wh=
+ere
+> +  userspace is allowed to use userspace fencing or long running compute
+> +  workloads. This also means no implicit fencing for shared buffers in t=
+hese
+> +  cases.
+> --
+> 2.27.0
+>
