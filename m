@@ -8,56 +8,56 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5896BC433E2
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC058C433E5
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:11:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32E25217D8
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3AB0217D8
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:11:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C1ugTTVL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V1PYzISA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726670AbgGNIK4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 04:10:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51874 "EHLO
+        id S1726817AbgGNILA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 04:11:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725820AbgGNIKz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:10:55 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3184CC061755
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:55 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id a6so20190403wrm.4
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:55 -0700 (PDT)
+        with ESMTP id S1725820AbgGNIK7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:10:59 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45875C061755
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:59 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id q5so20215933wru.6
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=L0zVNNuC9gPKJDZ51KIhZtCKujT98xSSIIXlx1rNfiA=;
-        b=C1ugTTVLHogPttpzrDpybgqgVwvXeM+/eMYd/Vef7+WU0JCWV3HebsA9qh2TxIW2gR
-         Or6L5jSmTGej1z/AJfenPkKIUAIU9r+abxW4zRJB49cGd2Tk0BC/upMgX1KMWwV70/4V
-         FLRSu6A5EK3mdmhjXmUFbxSYQ5/zKVQFnhiz9hgkrdU/5qqpGAURW/bt+BKR8wp7JZnv
-         Lr4WXT6RGoh9HcOkGgVn1q2vzIThYt4+va6aGTl6BkuBMYUN6EhxjX5OZOcnLspBEZUq
-         dJVMJBXdFjRQSVQ0SFfi9LcMTNlkbv8Qz+UMmkKtEOAKqNHk8HOmvTR/UQ88iN1R5ZNq
-         4IQg==
+        bh=F52xxdHJpk+aUYTGQsIRXXmLKYtmUocjdywU/DRMnjo=;
+        b=V1PYzISAfY/rGKv6vMIse7LK0WCVUYrN0+1Z4Nn9uaFUeDFsIrpFL7i753mxeJ0uyd
+         Cz70UAqdw1uPYUwk2NFM51kBnJLJZs2F1uvj4KmuT9Wo7HF0Csl0t2ZVCT0z6/SzI2pS
+         9ZsEdfKHVXcZFX5F18REYHduJlrJYynZ4tyY9MXKPlEqmWGp6KPluAPlCDfSrcnwnxZE
+         bem0MYAOGQeyM0UToJK/tfNHfaFcAn1eUb17oeOUMCqgJAOeCXk8b2PrWQyQX2NS9fA1
+         YzMdXXqFFTQQzBCg1AX+/2lQd7sTlNJGFa2fcqm0Zl2Sahs0mer5ueEBuxFH69Mdm+U7
+         nb0g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=L0zVNNuC9gPKJDZ51KIhZtCKujT98xSSIIXlx1rNfiA=;
-        b=m0xmij2GLEJrYtzQun8tcLb4LESSRgDFYvItUCH/MfL9qq1j2ahlh8Vcgj+ZDu7l1i
-         f+rGziAuOFmuGXVFi2Js9vmK4K+E7TRl968XTDyzNL8bAquPNoK+oCk/FIEz302ELRgc
-         UGqwTF3NUbDh9jJ6nglrZJVaywnZZgriOO/tTOIzpUzZhOYywubPm6CnQbCL7FEg95ZH
-         dJHp3xzjGaMdsQwDn+M01uzgB+6xGmftGAdqrybLfAC5/NIC12n8Jhma5Ad752VWARa1
-         QMWf2702YsvbK31i/0uuMtzMoYwtjSCYsKUWNorp1mFBsexbs6bFv03+ftG7uyamLd/L
-         ku/Q==
-X-Gm-Message-State: AOAM530QTSPXwEzIgi09VNOiRw6M/VvpZr2F8dcwm/mK/zNGgiQVPbjx
-        9bPwgXJtPU+6rWsMIwx6p8p/QI28/1A=
-X-Google-Smtp-Source: ABdhPJwyFYzKPTqd37+a466d1UwzmAgSz+IFL58nUYg5Q0XlM9ukEO4MnQHxcCTECQp7aenx9PJ7dA==
-X-Received: by 2002:a5d:688d:: with SMTP id h13mr3621864wru.303.1594714253797;
-        Tue, 14 Jul 2020 01:10:53 -0700 (PDT)
+        bh=F52xxdHJpk+aUYTGQsIRXXmLKYtmUocjdywU/DRMnjo=;
+        b=eN+L0V/Sx8AwIF/1EGp2mGshjkxQo6R4Qvv4Wm6jSDxmA5jBu2hE8aJpmRE9j/fGvH
+         UV164HYe8e1znsE/52fF6pQIYbHGSjUWJhOez7/ZQMrsV9TkPUmGvoW2FHPhbGhg1niq
+         vmzYilCutXVtEIIJNgqtZ8bG3JvqMfgIoKjh72tM+ayPC/ZtWZbENb09xzQQPeDJTCyk
+         XvRuGl+QnlXBHIN9MYwm3Sux6KEVjRuxpWY1iBRmRsL4o2IeNd1flsDBL6p3UfHd4q/u
+         086FH3uRjAN0As8LwRffWU7GCRzUtFhM5deGLg+ra8XTQ4KMn5ExGqsSOB6cLIQJz8gd
+         Gx8w==
+X-Gm-Message-State: AOAM530BNhhaelcJfeoZkQe9VeMEjyTvwoDr6qoWy45dTxwJkl8vEsNn
+        kYVKXRJmYG6dM+C5IybC9LadFaceZnA=
+X-Google-Smtp-Source: ABdhPJyoocTC3TM7SrHPaiYzGz1o//mTiFLISQ1fZisIpFXuKbWjsWIMToReQ6DYJB8+RPqfV/kv2w==
+X-Received: by 2002:a5d:69c8:: with SMTP id s8mr3658768wrw.405.1594714257838;
+        Tue, 14 Jul 2020 01:10:57 -0700 (PDT)
 Received: from kheib-workstation.redhat.com (bzq-79-176-63-152.red.bezeqint.net. [79.176.63.152])
-        by smtp.gmail.com with ESMTPSA id f197sm3403891wme.33.2020.07.14.01.10.52
+        by smtp.gmail.com with ESMTPSA id f197sm3403891wme.33.2020.07.14.01.10.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Jul 2020 01:10:53 -0700 (PDT)
+        Tue, 14 Jul 2020 01:10:57 -0700 (PDT)
 From:   Kamal Heib <kamalheib1@gmail.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
@@ -66,9 +66,9 @@ Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Bernard Metzler <bmt@zurich.ibm.com>,
         Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next 3/7] RDMA/core: Remove query_pkey from the mandatory ops
-Date:   Tue, 14 Jul 2020 11:10:34 +0300
-Message-Id: <20200714081038.13131-4-kamalheib1@gmail.com>
+Subject: [PATCH for-next 6/7] RDMA/i40iw: Remove the query_pkey callback
+Date:   Tue, 14 Jul 2020 11:10:37 +0300
+Message-Id: <20200714081038.13131-7-kamalheib1@gmail.com>
 X-Mailer: git-send-email 2.25.4
 In-Reply-To: <20200714081038.13131-1-kamalheib1@gmail.com>
 References: <20200714081038.13131-1-kamalheib1@gmail.com>
@@ -79,36 +79,65 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The query_pkey() isn't mandatory for the iwarp providers, so remove
-this requirement from the RDMA core.
+Now that the query_pkey() isn't mandatory by the RDMA core for iwarp
+providers, this callback can be removed.
 
 Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
 ---
- drivers/infiniband/core/device.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 19 -------------------
+ 1 file changed, 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index b2d617e599a1..d293b826acbc 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -272,7 +272,6 @@ static void ib_device_check_mandatory(struct ib_device *device)
- 	} mandatory_table[] = {
- 		IB_MANDATORY_FUNC(query_device),
- 		IB_MANDATORY_FUNC(query_port),
--		IB_MANDATORY_FUNC(query_pkey),
- 		IB_MANDATORY_FUNC(alloc_pd),
- 		IB_MANDATORY_FUNC(dealloc_pd),
- 		IB_MANDATORY_FUNC(create_qp),
-@@ -2362,6 +2361,9 @@ int ib_query_pkey(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index f9ef3ac2f4cd..6957e4f3404b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -101,7 +101,6 @@ static int i40iw_query_port(struct ib_device *ibdev,
+ 	props->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_REINIT_SUP |
+ 		IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
+ 	props->gid_tbl_len = 1;
+-	props->pkey_tbl_len = 1;
+ 	props->active_width = IB_WIDTH_4X;
+ 	props->active_speed = 1;
+ 	props->max_msg_sz = I40IW_MAX_OUTBOUND_MESSAGE_SIZE;
+@@ -2459,7 +2458,6 @@ static int i40iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	if (err)
+ 		return err;
  
-+	if (!device->ops.query_pkey)
-+		return -EOPNOTSUPP;
-+
- 	return device->ops.query_pkey(device, port_num, index, pkey);
+-	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+ 	immutable->gid_tbl_len = attr.gid_tbl_len;
+ 
+ 	return 0;
+@@ -2615,22 +2613,6 @@ static int i40iw_query_gid(struct ib_device *ibdev,
+ 	return 0;
  }
- EXPORT_SYMBOL(ib_query_pkey);
+ 
+-/**
+- * i40iw_query_pkey - Query partition key
+- * @ibdev: device pointer from stack
+- * @port: port number
+- * @index: index of pkey
+- * @pkey: pointer to store the pkey
+- */
+-static int i40iw_query_pkey(struct ib_device *ibdev,
+-			    u8 port,
+-			    u16 index,
+-			    u16 *pkey)
+-{
+-	*pkey = 0;
+-	return 0;
+-}
+-
+ static const struct ib_device_ops i40iw_dev_ops = {
+ 	.owner = THIS_MODULE,
+ 	.driver_id = RDMA_DRIVER_I40IW,
+@@ -2670,7 +2652,6 @@ static const struct ib_device_ops i40iw_dev_ops = {
+ 	.post_send = i40iw_post_send,
+ 	.query_device = i40iw_query_device,
+ 	.query_gid = i40iw_query_gid,
+-	.query_pkey = i40iw_query_pkey,
+ 	.query_port = i40iw_query_port,
+ 	.query_qp = i40iw_query_qp,
+ 	.reg_user_mr = i40iw_reg_user_mr,
 -- 
 2.25.4
 
