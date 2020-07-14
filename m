@@ -5,59 +5,59 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F4166C433E3
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 18:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA9DBC433E5
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 18:34:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D404620890
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 18:34:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8AB3C21835
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 18:34:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="q5SYHakP"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="em/9xBX6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729091AbgGNSek (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 14:34:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36510 "EHLO
+        id S1729257AbgGNSet (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 14:34:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726817AbgGNSej (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 14:34:39 -0400
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83F2EC061755
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 11:34:39 -0700 (PDT)
-Received: by mail-wr1-x441.google.com with SMTP id b6so23987394wrs.11
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 11:34:39 -0700 (PDT)
+        with ESMTP id S1726817AbgGNSes (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 14:34:48 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4012DC061755
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 11:34:48 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id z13so23978007wrw.5
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 11:34:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+xwtCoElLLo1FXG9Vaq9b+0G1RX76SWaOSLyZ61U0N8=;
-        b=q5SYHakPgoW937h4DMo9t7FSkZMAg4Xy5/v6GK3/EUIHvzlHYuviDLL4hOG/JE2/Qb
-         +UsYn/npY8QjzeKXovcjJYkPHHiiyQN+YXPuabeXgU4Un67mk/G9KgqD9s7mpbaqhk78
-         /h6AFG1ooy7LkJILtanQCVIUtyNld0kKT4lJ9xwB+KNxex8yGNIlB8lEeOFf9pv8GOXF
-         5zoZv1wE4lUfsfv6CPOeDUaGGzpCYhrxgf3aJG+z/ElIhVAy0ksJuyupjtE3WTv127MA
-         6tx8bRgqNdKEKCUwhjXcRw76DIv/DBSdAC/XGlRiIiepl2azpkWX1Rkg5GkYIoaL+F5E
-         juqg==
+        bh=p3yzgToC0gntlXge9ApCI/vT94bnlN6utlTzUkNXB2s=;
+        b=em/9xBX69eZbRc+KcjacIriJ4jPD1T6rjxlPoa31E51Xz7i5hRbt5JT8H73saCeW2V
+         Ouatp7e/7UDOAblANk+j8Y4O954CoFSfSE7PkfBlQ35ea1JUE2sp+zlbB8r3wsTIMvW0
+         rRIjkCVjSNJfxMg6SwP0JqITdoCwW0DpMtoUD5rINpEBumRPdKAQ5KFXBRwq3Wrb138N
+         91eQ0xxJSGNjEYD56MCN7ytvWLr7tWKi93YQalA5U1JBE2YvSf2tWWNUhJsp9a8w03z3
+         g26CMwko+fvTegGCH/Ljnz8M1N8u1HjA1OekXqUltLrXsJGwAiaBS8iayQfN1YvT3b9N
+         HvtQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+xwtCoElLLo1FXG9Vaq9b+0G1RX76SWaOSLyZ61U0N8=;
-        b=UEcqsb6bW2oduFkseNRAuZBv2LLSGM4hUL5dPQQ2ZCboJHWuZXsFNvEoh71FYQ3l28
-         g8QLQI47/jSBUrzC5AZ+XSv5fTkn902R4q+B3gAPoViz7olVbGW0vIB73s3UbOBc9RuO
-         RAJuqOVRKpjB3D09X71fgNsI1nqcTgZW6YV2GMxbmuDlmmPzEa+Z58W9sRVo8BupAPO5
-         12UFwoxJRLjnC1YtoGGQjLP6q3sbg6uB9DLKeLvxNrxW/6mg+bnNhoLHRjxw9oFvr+pt
-         em7yTdxZgyRPFXAsOZvkK4AnU17jGB2L7hQhfToD9GMXXsWvHm3aeC8htILkLXp09ofy
-         md4Q==
-X-Gm-Message-State: AOAM530xJO/5cKbzacNkLMXs54S9rL5YTgZJpWueVWu+71PsOIqLRMA1
-        R7DFkdKEuZLsBHDBfxa9S5JEFODi2cA=
-X-Google-Smtp-Source: ABdhPJybQ4SgQu1ky7nNUYT5cq8HnPD/2a8OsyEndUXgP16bPMeZ9328tYNpzacIr5Bots7FNsHKSA==
-X-Received: by 2002:a5d:40ca:: with SMTP id b10mr7969642wrq.56.1594751678040;
-        Tue, 14 Jul 2020 11:34:38 -0700 (PDT)
+        bh=p3yzgToC0gntlXge9ApCI/vT94bnlN6utlTzUkNXB2s=;
+        b=NuhPNz/N3zkgJmlOPszmqdLna/O9/wxa6+RqK+V4emrRksN3+0L6g5zpiWUZZMt0SK
+         2j7zgXztv1X3UPnMPrzSFHkev3w73YN57qYQKE3CM7qhAFtwpT/JcpOrBzfXDVbgH1/F
+         qtFb+qjJcK6fgK68e14UpsBWiMnHtOa7EGBa++pcRmic3OZJFeiJVDkevHfOS5hYI583
+         XYob1gOS3TM6KEx2xlnwjrmexzexoQX181yMA+y2Ubi+Cuc7e3EIfb2E4yRFbU/QEtp/
+         8uoO5SpsVzsINEslNJhUMrPJInhWUxhICUll00j5L6WZQ49QkSbO5tSDeA71t6GGlncv
+         sM9Q==
+X-Gm-Message-State: AOAM532RcWAh2MiSv91GBmpsbnE4FrbMpxr7656p0CvkQEzvouppSHhu
+        dtLLUOO+Zi5i5fRupcThRtLdL/DJxBU=
+X-Google-Smtp-Source: ABdhPJwPqjcgkHj5aRdXFWN4wPVeqMBf5lsgMOd76GGeDdm5jIzHjMSU/WOeToWsSM9GPcpbtVXZkw==
+X-Received: by 2002:a5d:6749:: with SMTP id l9mr7200112wrw.63.1594751686776;
+        Tue, 14 Jul 2020 11:34:46 -0700 (PDT)
 Received: from kheib-workstation.redhat.com ([37.142.6.100])
-        by smtp.gmail.com with ESMTPSA id 190sm5728982wmb.15.2020.07.14.11.34.36
+        by smtp.gmail.com with ESMTPSA id 190sm5728982wmb.15.2020.07.14.11.34.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Jul 2020 11:34:37 -0700 (PDT)
+        Tue, 14 Jul 2020 11:34:46 -0700 (PDT)
 From:   Kamal Heib <kamalheib1@gmail.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
@@ -65,10 +65,11 @@ Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
         Potnuri Bharat Teja <bharat@chelsio.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Bernard Metzler <bmt@zurich.ibm.com>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next v1 2/7] RDMA/core: Allocate the pkey cache only if the pkey_tbl_len is set
-Date:   Tue, 14 Jul 2020 21:34:09 +0300
-Message-Id: <20200714183414.61069-3-kamalheib1@gmail.com>
+        Kamal Heib <kamalheib1@gmail.com>,
+        Michal Kalderon <michal.kalderon@marvell.com>
+Subject: [PATCH for-next v1 7/7] RDMA/qedr: Remove the query_pkey callback
+Date:   Tue, 14 Jul 2020 21:34:14 +0300
+Message-Id: <20200714183414.61069-8-kamalheib1@gmail.com>
 X-Mailer: git-send-email 2.25.4
 In-Reply-To: <20200714183414.61069-1-kamalheib1@gmail.com>
 References: <20200714183414.61069-1-kamalheib1@gmail.com>
@@ -79,108 +80,57 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Allocate the pkey cache only if the pkey_tbl_len is set by the provider,
-also add checks to avoid accessing the pkey cache when it not
-initialized.
+Now that the query_pkey() isn't mandatory by the RDMA core for iwarp
+providers, this callback can be removed from the common ops and moved to
+the RoCE only ops within the qedr driver.
 
 Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+Acked-by: Michal Kalderon <michal.kalderon@marvell.com>
 ---
- drivers/infiniband/core/cache.c | 45 +++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/qedr/main.c  | 3 +--
+ drivers/infiniband/hw/qedr/verbs.c | 1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index a670209bbce6..ffad73bb40ff 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1054,7 +1054,7 @@ int ib_get_cached_pkey(struct ib_device *device,
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index ccaedfd53e49..c9eeed25c662 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -110,7 +110,6 @@ static int qedr_iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	if (err)
+ 		return err;
  
- 	cache = device->port_data[port_num].cache.pkey;
+-	immutable->pkey_tbl_len = 1;
+ 	immutable->gid_tbl_len = 1;
+ 	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+ 	immutable->max_mad_size = 0;
+@@ -179,6 +178,7 @@ static int qedr_iw_register_device(struct qedr_dev *dev)
  
--	if (index < 0 || index >= cache->table_len)
-+	if (!cache || index < 0 || index >= cache->table_len)
- 		ret = -EINVAL;
- 	else
- 		*pkey = cache->table[index];
-@@ -1099,6 +1099,10 @@ int ib_find_cached_pkey(struct ib_device *device,
- 	read_lock_irqsave(&device->cache_lock, flags);
+ static const struct ib_device_ops qedr_roce_dev_ops = {
+ 	.get_port_immutable = qedr_roce_port_immutable,
++	.query_pkey = qedr_query_pkey,
+ };
  
- 	cache = device->port_data[port_num].cache.pkey;
-+	if (!cache) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
- 
- 	*index = -1;
- 
-@@ -1117,6 +1121,7 @@ int ib_find_cached_pkey(struct ib_device *device,
- 		ret = 0;
- 	}
- 
-+err:
- 	read_unlock_irqrestore(&device->cache_lock, flags);
- 
- 	return ret;
-@@ -1139,6 +1144,10 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
- 	read_lock_irqsave(&device->cache_lock, flags);
- 
- 	cache = device->port_data[port_num].cache.pkey;
-+	if (!cache) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
- 
- 	*index = -1;
- 
-@@ -1149,6 +1158,7 @@ int ib_find_exact_cached_pkey(struct ib_device *device,
- 			break;
- 		}
- 
-+err:
- 	read_unlock_irqrestore(&device->cache_lock, flags);
- 
- 	return ret;
-@@ -1425,23 +1435,26 @@ ib_cache_update(struct ib_device *device, u8 port, bool enforce_security)
- 			goto err;
- 	}
- 
--	pkey_cache = kmalloc(struct_size(pkey_cache, table,
--					 tprops->pkey_tbl_len),
--			     GFP_KERNEL);
--	if (!pkey_cache) {
--		ret = -ENOMEM;
--		goto err;
--	}
-+	if (tprops->pkey_tbl_len) {
-+		pkey_cache = kmalloc(struct_size(pkey_cache, table,
-+						 tprops->pkey_tbl_len),
-+				     GFP_KERNEL);
-+		if (!pkey_cache) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
- 
--	pkey_cache->table_len = tprops->pkey_tbl_len;
-+		pkey_cache->table_len = tprops->pkey_tbl_len;
- 
--	for (i = 0; i < pkey_cache->table_len; ++i) {
--		ret = ib_query_pkey(device, port, i, pkey_cache->table + i);
--		if (ret) {
--			dev_warn(&device->dev,
--				 "ib_query_pkey failed (%d) for index %d\n",
--				 ret, i);
--			goto err;
-+		for (i = 0; i < pkey_cache->table_len; ++i) {
-+			ret = ib_query_pkey(device, port, i,
-+					    pkey_cache->table + i);
-+			if (ret) {
-+				dev_warn(&device->dev,
-+					 "ib_query_pkey failed (%d) for index %d\n",
-+					 ret, i);
-+				goto err;
-+			}
- 		}
- 	}
- 
+ static void qedr_roce_register_device(struct qedr_dev *dev)
+@@ -221,7 +221,6 @@ static const struct ib_device_ops qedr_dev_ops = {
+ 	.post_srq_recv = qedr_post_srq_recv,
+ 	.process_mad = qedr_process_mad,
+ 	.query_device = qedr_query_device,
+-	.query_pkey = qedr_query_pkey,
+ 	.query_port = qedr_query_port,
+ 	.query_qp = qedr_query_qp,
+ 	.query_srq = qedr_query_srq,
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 3d7d5617818f..63eb935a1596 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -239,7 +239,6 @@ int qedr_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr *attr)
+ 	attr->ip_gids = true;
+ 	if (rdma_protocol_iwarp(&dev->ibdev, 1)) {
+ 		attr->gid_tbl_len = 1;
+-		attr->pkey_tbl_len = 1;
+ 	} else {
+ 		attr->gid_tbl_len = QEDR_MAX_SGID;
+ 		attr->pkey_tbl_len = QEDR_ROCE_PKEY_TABLE_LEN;
 -- 
 2.25.4
 
