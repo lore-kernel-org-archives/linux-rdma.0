@@ -2,105 +2,108 @@ Return-Path: <SRS0=LoKS=AZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C413CC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8207BC433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A667217D8
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:14:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B482217D8
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Jul 2020 08:10:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SnoefJUI"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k+TyF8tS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726599AbgGNIOi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Jul 2020 04:14:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52440 "EHLO
+        id S1725833AbgGNIKv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Jul 2020 04:10:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725816AbgGNIOh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:14:37 -0400
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56011C061755
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:14:37 -0700 (PDT)
-Received: by mail-wm1-x342.google.com with SMTP id c80so1200417wme.0
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:14:37 -0700 (PDT)
+        with ESMTP id S1725820AbgGNIKv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Jul 2020 04:10:51 -0400
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B134EC061755
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:50 -0700 (PDT)
+Received: by mail-wr1-x444.google.com with SMTP id q5so20215475wru.6
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Jul 2020 01:10:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=eEDxR1KcK0gtx81r/VDHcPfsw1SaTdQb3yyB3j2nTDU=;
-        b=SnoefJUIqVnyBDP1AmqHl/jl4WttuLT2JEEd3PJELjuWSU1q5q3CWBcZZEGXnmD5G6
-         LaYwmehzrJn5Ty4MxvbF+JNnx/uHtPg2kGhTUA2To4bJjWeKkrm1zqnwFiJZw4VRHbaX
-         q2AqFkkyE495A/DkqgvNvDGu4VjmDicd1fPz89Eu7tBpwshFWCqk8awAuucZWB77EAeq
-         W9kbUSvJGNFztL5e3QwcErViooFkeP0c7LxNSqnwhEYGyFMvnLQbpGP+4C29hsYO09kO
-         jCKoxoKLgkMGxoh3XxDkoB2I85v2uY+zbreFIGyCniEIzmimXu5CrL37wrcMkf9mj4fT
-         dnjw==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vvLV11o002k6lwnLUwZHmglOAmUCRXCOV1xsKs+vcjk=;
+        b=k+TyF8tS3Gi3IYxRBY1qwBdmMHBtRS1T/MPgGXBchBEhhEHgp+L/rN1gzhvk9PYJH3
+         dQpsHlEIObQtyY4rl0Fv4MNna0Tji9PrprJbyOwMR1xMTnIFBI87PXTqwffolAgMma0J
+         RSgn9JzzddIuUutQeo2UkJcWNd4B4OuAfzhDg4K314I9QXcTOMCjn7420az0+LrR/Hfr
+         nqk8o2gsSoemTN9GNJ4+0sgDgxlK5B9EbnRBf0o7fenGhBt4xqiMZGdpNhUGmzs5y+Ge
+         JLGotVcWJEu4t4OtM+azdHXMXT3d8qy26aoNIiDSFo2zOkIZsayVF0dmB6Pd0grryh2t
+         K2bQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=eEDxR1KcK0gtx81r/VDHcPfsw1SaTdQb3yyB3j2nTDU=;
-        b=dux7QzWZ+c16MsQ6NlwUf6HSN0i7G+VfLoWwrcwuannx7gNQteQ1Ja24efrbz7PMxu
-         6PNoC1eBmxGRezoX3sfzHBWcpNH9p6wR5qiIdbrdYzFwiwrGSRbKQxY24ubrFJpbukfj
-         Fgnd4ItfR3p1yk5ak5IsW1Sm1jmsBJC3ypq+sYEjSZPz7QZ8RFOyRs6Fd6v/wVBrqJpE
-         oSLG5VijVSs+/NZudJ33Me/Ous72cxLQCmdZv5QzucX3hVfl8iRX7c9Qq5IEE4f24Hml
-         P1MLMal2AQJzZd3iGtM+8gijkDwpxlXS1lJy0vIpdDp0pKI3+cMA23rMa/tVYsoAj+5s
-         /u2A==
-X-Gm-Message-State: AOAM533TXv3JdKITZjepTzdYMPE55h6fkQzobGdCrbJhT5hS5fGQCReu
-        auK4ffEyn0/FbLyXZ6e4aYC8CIiCcfk=
-X-Google-Smtp-Source: ABdhPJxsdkOzfqiytro537GPj2T934fOrpiBVAfR/8fzWDlxBsaMt8KwPmqVROj8qAiNjdGLpW4XoQ==
-X-Received: by 2002:a05:600c:2241:: with SMTP id a1mr3036285wmm.168.1594714475782;
-        Tue, 14 Jul 2020 01:14:35 -0700 (PDT)
-Received: from kheib-workstation (bzq-79-176-63-152.red.bezeqint.net. [79.176.63.152])
-        by smtp.gmail.com with ESMTPSA id e23sm3126145wme.35.2020.07.14.01.14.34
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vvLV11o002k6lwnLUwZHmglOAmUCRXCOV1xsKs+vcjk=;
+        b=FQhjPqZzQDr7G/JVYwe3mVL5lncJ4URc+0mH/T19pNm+mGIoeyRmHBKGE2v+0JSmo3
+         AdLvMuuI5LtBIcmjXnqTOIbrfGDtuPzqAmc5QnxZrO1u3TB1QUcCOssZ1SUkh8Dp7dCL
+         ieB90mlN5PV7vmklAVl+Jx2C991tHZeOFtW0kxH2g/HNO/3tO6rfS8R2kavE3BcF70yn
+         FtQEEBQl2dtwmGkoQbmEWJPtalF4f6SMbm7HusAAiwXb/xhtoTCvI6ZODpbRQ6YDNnbz
+         Un5hFpZsKrz8VZAKksMMdljxlJ+NwqdcK1Qq/4NAugzsx6H3WNAhUA8eMP+MQMhrIUel
+         FNyw==
+X-Gm-Message-State: AOAM532nKUkczMGX5s2shEmUvKxQDRyRfmSkZ2+zTAHpGmbuq3QaNOBB
+        PxMQaD2TdGWB1sW8cEmPL80MG1xZLIY=
+X-Google-Smtp-Source: ABdhPJyYx33nRoNXk0Dc+zUEF2pEObINlI5FxUH1aBJrXIWgxcxQgumcd/Fse66N6z1J5AYU4gONMw==
+X-Received: by 2002:a5d:404e:: with SMTP id w14mr3700790wrp.268.1594714249140;
+        Tue, 14 Jul 2020 01:10:49 -0700 (PDT)
+Received: from kheib-workstation.redhat.com (bzq-79-176-63-152.red.bezeqint.net. [79.176.63.152])
+        by smtp.gmail.com with ESMTPSA id f197sm3403891wme.33.2020.07.14.01.10.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Jul 2020 01:14:35 -0700 (PDT)
-Date:   Tue, 14 Jul 2020 11:14:33 +0300
+        Tue, 14 Jul 2020 01:10:48 -0700 (PDT)
 From:   Kamal Heib <kamalheib1@gmail.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Zhu Yanjun <yanjunz@mellanox.com>
-Subject: Re: [PATCH for-next v1 0/4] RDMA/rxe: Cleanups and improvements
-Message-ID: <20200714081433.GA13271@kheib-workstation>
-References: <20200705104313.283034-1-kamalheib1@gmail.com>
+        Michal Kalderon <mkalderon@marvell.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Kamal Heib <kamalheib1@gmail.com>
+Subject: [PATCH for-next 0/7] RDMA: Remove query_pkey from iwarp providers
+Date:   Tue, 14 Jul 2020 11:10:31 +0300
+Message-Id: <20200714081038.13131-1-kamalheib1@gmail.com>
+X-Mailer: git-send-email 2.25.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200705104313.283034-1-kamalheib1@gmail.com>
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jul 05, 2020 at 01:43:09PM +0300, Kamal Heib wrote:
-> These series include few cleanup patches to the rxe driver.
-> 
-> V1:
-> - patch #4: Fix commit message.
-> 
-> Kamal Heib (4):
->   RDMA/rxe: Drop pointless checks in rxe_init_ports
->   RDMA/rxe: Return void from rxe_init_port_param()
->   RDMA/rxe: Return void from rxe_mem_init_dma()
->   RDMA/rxe: Remove rxe_link_layer()
-> 
->  drivers/infiniband/sw/rxe/rxe.c       |  7 +------
->  drivers/infiniband/sw/rxe/rxe_loc.h   |  5 ++---
->  drivers/infiniband/sw/rxe/rxe_mr.c    |  6 ++----
->  drivers/infiniband/sw/rxe/rxe_net.c   |  5 -----
->  drivers/infiniband/sw/rxe/rxe_verbs.c | 24 ++++--------------------
->  5 files changed, 9 insertions(+), 38 deletions(-)
-> 
-> -- 
-> 2.25.4
->
+This patch set does the following:
+1- Avoid exposing the pkeys sysfs entries for iwarp providers.
+2- Avoid allocating the pkey cache for iwarp providers.
+3- Remove the requirement by RDMA core to implement query_pkey
+   by all providers.
+4- Remove the implementation of query_pkey callback from iwarp providers.
 
-Hi Jason,
+Kamal Heib (7):
+  RDMA/core: Expose pkeys sysfs files only if pkey_tbl_len is set
+  RDMA/core: Allocate the pkey cache only if the pkey_tbl_len is set
+  RDMA/core: Remove query_pkey from the mandatory ops
+  RDMA/siw: Remove the query_pkey callback
+  RDMA/cxgb4: Remove the query_pkey callback
+  RDMA/i40iw: Remove the query_pkey callback
+  RDMA/qedr: Remove the query_pkey callback
 
-Could you please tell me if there is something blocking this patch set from
-getting merged?
+ drivers/infiniband/core/cache.c           | 45 ++++++++++------
+ drivers/infiniband/core/device.c          |  4 +-
+ drivers/infiniband/core/sysfs.c           | 64 ++++++++++++++++-------
+ drivers/infiniband/hw/cxgb4/provider.c    | 11 ----
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 19 -------
+ drivers/infiniband/hw/qedr/main.c         |  3 +-
+ drivers/infiniband/hw/qedr/verbs.c        |  1 -
+ drivers/infiniband/sw/siw/siw_main.c      |  1 -
+ drivers/infiniband/sw/siw/siw_verbs.c     |  9 ----
+ drivers/infiniband/sw/siw/siw_verbs.h     |  1 -
+ 10 files changed, 77 insertions(+), 81 deletions(-)
 
-Thanks,
-Kamal
+-- 
+2.25.4
+
