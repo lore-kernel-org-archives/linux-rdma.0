@@ -2,153 +2,83 @@ Return-Path: <SRS0=EJNO=A2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA9C8C433E7
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jul 2020 14:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C87C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jul 2020 14:46:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 842722065D
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jul 2020 14:17:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="cJTLItsa"
+	by mail.kernel.org (Postfix) with ESMTP id E59A72065E
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jul 2020 14:46:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1594824415;
+	bh=FHvPoY/h34S9+tvWXn9+thNKrWQKiJ8xGlfKBAGAI2g=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=DZnsKMszu/mB+P8yH8oAigfvfBk0QQ57zFLWo1san96R9Nof5eNKFzlHqBh0j7uHI
+	 4hXjwXkZk/a0ai+JnCZN1NOQic9wJiuGDWhour+APgcnUw/6WgqIvoF3lMXAn4Uhd2
+	 4futg7QhdA6Bl+F6XPFLObkTdqJ6FjQNQwmHCn5Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727927AbgGOORV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jul 2020 10:17:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49478 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726834AbgGOORU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jul 2020 10:17:20 -0400
-Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91179C061755
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Jul 2020 07:17:20 -0700 (PDT)
-Received: by mail-pf1-x429.google.com with SMTP id s26so2155831pfm.4
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Jul 2020 07:17:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=B1BezVWUnbAdhVulFlwwfpsWBQxSAXXUvw++74lWHuk=;
-        b=cJTLItsaHqEuIz4+AetLcR3B3o02CW1ZV5Jv+nur5Tn56ddH1ODBcUf3W4fhDBy87s
-         haVFszCnT7cZ9ldhkdIQhrV45C3R/2LXpN5p+S7naQMfjhQiYNxjA6uSX942egg7sUzn
-         DtnEQdRGJYBZ8kePyF3EWqCGGxfCLZQMm1tkI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=B1BezVWUnbAdhVulFlwwfpsWBQxSAXXUvw++74lWHuk=;
-        b=rc+AOGw9hmK2voKEU0+kBdBPYqkgmoJzNccln7SvnsUl4EdQ7mDIjtiQFa2c9ijy2P
-         wGfn79A7wYeRJhof9xfiaCknr7kE2U6WVpKpyZl7k9i5xmuhgQh2gXXbY5wlg/9CVvll
-         tt8/Rhqdoqo3YXWo/6PXg4vg+JydJXb2QRqx0bXgcBYUpSsio0xwit7lrJ/2REmRvvM5
-         Csli++cO9m/hDVSPLDlhDzqnLW9aPdWCLmKIig7zl4Xammtwlsa0TA8YBt5xzNoF22/6
-         1oKvfPjxOJ93B+2w4YdIYMFK9ARoMmO9TVLnVU8ctchIiNxtDMDJVsHOv/s68CmFPywo
-         tVSw==
-X-Gm-Message-State: AOAM5302Tl/ldPTEMR6jWKnpMnk8TUfvNhJjI/mc9k1L3TyRPsVo85gG
-        KRQnDkBExY2lrSeCdmUvJ+IecskPggZ4x7V79faM4P22I9mpZH9Uq3hQ4cAf3OZqMs+XOM28enV
-        Wb7NgZXy8E3ug5DuOE2LXbEVLhRRka62npV9lnG5/U+3LZGWpY1jqfEyRduoP0NuHwdQIX8LgjU
-        6Nmh8=
-X-Google-Smtp-Source: ABdhPJwd5r7Ds5nsGfB75CMn/YYpPQoW8h7rP05Sh19ioIZzLGi1Pvkq8bWGQekEe4tBM72KiTsHJQ==
-X-Received: by 2002:a62:7790:: with SMTP id s138mr8662110pfc.65.1594822639636;
-        Wed, 15 Jul 2020 07:17:19 -0700 (PDT)
-Received: from neo00-el73.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id k92sm2399254pje.30.2020.07.15.07.17.17
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 15 Jul 2020 07:17:19 -0700 (PDT)
-From:   Devesh Sharma <devesh.sharma@broadcom.com>
-To:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
-Cc:     devesh.sharma@broadcom.com, leon@kernel.org
-Subject: [PATCH V2 for-next 4/6] RDMA/bnxt_re: Add helper data structures
-Date:   Wed, 15 Jul 2020 10:16:57 -0400
-Message-Id: <1594822619-4098-5-git-send-email-devesh.sharma@broadcom.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1594822619-4098-1-git-send-email-devesh.sharma@broadcom.com>
+        id S1728855AbgGOOqy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jul 2020 10:46:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42606 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728767AbgGOOqy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Jul 2020 10:46:54 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 188C32065D;
+        Wed, 15 Jul 2020 14:46:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1594824413;
+        bh=FHvPoY/h34S9+tvWXn9+thNKrWQKiJ8xGlfKBAGAI2g=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=YzQJ2M84y5LB0NOkatKG3qA0jAGZ/w8VT59DOHjXt323Ue1hrsa+Ulz1VWkbMOy0W
+         QCjbJ9+7FyoZCd49TzbgsOl5cgLRG/bPyhsrj4ng9k2G8yHYDz+OvAFGXJw8wSc3Iq
+         wt/P1JUDB9Kr3A0SPmjfnxiKKzC+C4q0NNb7kA20=
+Date:   Wed, 15 Jul 2020 17:46:49 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Devesh Sharma <devesh.sharma@broadcom.com>
+Cc:     linux-rdma@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com
+Subject: Re: [PATCH V2 for-next 6/6] RDMA/bnxt_re: Update maintainers for
+ Broadcom rdma driver
+Message-ID: <20200715144649.GD813631@unreal>
 References: <1594822619-4098-1-git-send-email-devesh.sharma@broadcom.com>
+ <1594822619-4098-7-git-send-email-devesh.sharma@broadcom.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1594822619-4098-7-git-send-email-devesh.sharma@broadcom.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Adding few helper data structure which are useful
-to initialize hardware send wqe in variable wqe mode.
+On Wed, Jul 15, 2020 at 10:16:59AM -0400, Devesh Sharma wrote:
+> Adding a new co-maintainer for Broadcom's RDMA driver.
+>
+> Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 7b5ffd6..96d6405 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3582,6 +3582,7 @@ M:	Selvin Xavier <selvin.xavier@broadcom.com>
+>  M:	Devesh Sharma <devesh.sharma@broadcom.com>
+>  M:	Somnath Kotur <somnath.kotur@broadcom.com>
+>  M:	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+> +M:	Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
 
-Adding a qp flag in HSI to indicate variable wqe is
-enabled for this qp.
+Are other three still relevant?
 
-Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/qplib_fp.h | 45 ++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/roce_hsi.h |  1 +
- 2 files changed, 46 insertions(+)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-index 50e4f79..bf96a74 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-@@ -39,6 +39,51 @@
- #ifndef __BNXT_QPLIB_FP_H__
- #define __BNXT_QPLIB_FP_H__
- 
-+/* Few helper structures temporarily defined here
-+ * should get rid of these when roce_hsi.h is updated
-+ * in original code base
-+ */
-+struct sq_ud_ext_hdr {
-+	__le32 dst_qp;
-+	__le32 avid;
-+	__le64 rsvd;
-+};
-+
-+struct sq_raw_ext_hdr {
-+	__le32 cfa_meta;
-+	__le32 rsvd0;
-+	__le64 rsvd1;
-+};
-+
-+struct sq_rdma_ext_hdr {
-+	__le64 remote_va;
-+	__le32 remote_key;
-+	__le32 rsvd;
-+};
-+
-+struct sq_atomic_ext_hdr {
-+	__le64 swap_data;
-+	__le64 cmp_data;
-+};
-+
-+struct sq_fr_pmr_ext_hdr {
-+	__le64 pblptr;
-+	__le64 va;
-+};
-+
-+struct sq_bind_ext_hdr {
-+	__le64 va;
-+	__le32 length_lo;
-+	__le32 length_hi;
-+};
-+
-+struct rq_ext_hdr {
-+	__le64 rsvd1;
-+	__le64 rsvd2;
-+};
-+
-+/* Helper structures end */
-+
- struct bnxt_qplib_srq {
- 	struct bnxt_qplib_pd		*pd;
- 	struct bnxt_qplib_dpi		*dpi;
-diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index 6f00f07..3e40e0d 100644
---- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-+++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -1126,6 +1126,7 @@ struct cmdq_create_qp {
- 	#define CMDQ_CREATE_QP_QP_FLAGS_FORCE_COMPLETION	   0x2UL
- 	#define CMDQ_CREATE_QP_QP_FLAGS_RESERVED_LKEY_ENABLE      0x4UL
- 	#define CMDQ_CREATE_QP_QP_FLAGS_FR_PMR_ENABLED		   0x8UL
-+	#define CMDQ_CREATE_QP_QP_FLAGS_VARIABLE_SIZED_WQE_ENABLED 0x10UL
- 	u8 type;
- 	#define CMDQ_CREATE_QP_TYPE_RC				   0x2UL
- 	#define CMDQ_CREATE_QP_TYPE_UD				   0x4UL
--- 
-1.8.3.1
-
+>  L:	linux-rdma@vger.kernel.org
+>  S:	Supported
+>  W:	http://www.broadcom.com
+> --
+> 1.8.3.1
+>
