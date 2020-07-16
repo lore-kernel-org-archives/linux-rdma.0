@@ -2,160 +2,146 @@ Return-Path: <SRS0=hCPH=A3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B73C433E2
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 19:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2976FC433E3
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 19:17:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D40C2065F
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 19:13:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EED16207CB
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 19:17:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="k5lh+koQ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="fVzK1iSG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729266AbgGPTN7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jul 2020 15:13:59 -0400
-Received: from gateway20.websitewelcome.com ([192.185.68.24]:41843 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728374AbgGPTN6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jul 2020 15:13:58 -0400
-X-Greylist: delayed 1574 seconds by postgrey-1.27 at vger.kernel.org; Thu, 16 Jul 2020 15:13:58 EDT
-Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id 846C74021FC24
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Jul 2020 12:26:06 -0500 (CDT)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id w8v0jkbKUQyTQw8v0jZyFw; Thu, 16 Jul 2020 13:47:42 -0500
-X-Authority-Reason: nr=8
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=8IqV0d4ijCF3CnpKsDzE8OB4Fr535nEtPrtd0jJ2VMM=; b=k5lh+koQpZm8gML9fuAcogiRxm
-        kclV+0LZ0HqyMmujjipydBYf4syibz2bB/ilLi0GY8LOE/8MjBeJGPUKV7AMkYS0r9of+qAhw3OVd
-        RcEtSBiXYuI5GyXYvisFdPrd5W7fhHCnhU/vNrqkmijzqbBqvm1cJQvT4HSOSLi8CnCYvz48LN7gg
-        KSZIqUiPtwugg4r1f0/DgRFiHlL+R9cMJN5/0lgjC0RvnDfQTeTbjiSR0CG7VvRTlv2o6F29KveLY
-        SUziJSxGvuqHcoHFYMif4yvjCvOcPnTRnYvwbgjBWikhIbPEXV0TyTC1BaDMCFppRR38CjyQN0gLs
-        4F96Qo5A==;
-Received: from [201.162.240.161] (port=18888 helo=[192.168.43.132])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1jw8uz-0013aH-Of; Thu, 16 Jul 2020 13:47:41 -0500
-Subject: Re: [PATCH v2][next] IB/hfi1: Remove unnecessary fall-through
- markings
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20200709235250.GA26678@embeddedor>
- <20200716184141.GA2660905@nvidia.com>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Autocrypt: addr=gustavo@embeddedor.com; keydata=
- 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
- AP7RWS474w==
-Message-ID: <5a6bbb8d-fe45-26d9-a602-74094f843310@embeddedor.com>
-Date:   Thu, 16 Jul 2020 13:53:04 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+        id S1729341AbgGPTRT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jul 2020 15:17:19 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:11272 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728541AbgGPTRS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jul 2020 15:17:18 -0400
+Received: from hkpgpgate101.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f10a7bc0000>; Fri, 17 Jul 2020 03:17:16 +0800
+Received: from HKMAIL103.nvidia.com ([10.18.16.12])
+  by hkpgpgate101.nvidia.com (PGP Universal service);
+  Thu, 16 Jul 2020 12:17:16 -0700
+X-PGP-Universal: processed;
+        by hkpgpgate101.nvidia.com on Thu, 16 Jul 2020 12:17:16 -0700
+Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL103.nvidia.com
+ (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 16 Jul
+ 2020 19:17:16 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.177)
+ by HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 16 Jul 2020 19:17:16 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ZLKqUr3P5lJjWWvkX0PEvgTg8SouxjFZezrHKf6TkPbkzdvEw65d40bMLwDLcH+E+P+OSVo2Zer8snUY/T/Rj2FncdDxQkYSBG1d4Ovc7rOmARD4/N1pHWkW2E4Ln8Z7DeYSOdTPEnNAFMQdA2yj/4JSSrbAdo+kpEqKyaJS0HAXe45nrD7IadPLhgcuqIVlz6ku9PUm/c99sTLSSCYGaPio67RT/Bjr78EZ7vit/gkNOQQKi5KZ1I1nGvulLJ0tWblePqD0oM9SLlI0Id0t2DCkCnCA0AYz0kvB4t99K4x4vHCq4ikFxWtm51OLIAS85s1b/fWmHkyCBmkeXKBUhg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aMUGpRrznbe73UXR8ImmaXLu5JVEaY8aHOvmQowRDL4=;
+ b=UlOCdyGcdfNl8QeBMJjmG4s5qcETZZFu2raGmVE64D8bSSnTQSsOVpaOOALXGxYCy5nqclueSuPdMC5qwCR0EPZOAJxZe/RWCw142DQa2mdp4xhHjUV7fGBbYmLT2CyQLPs+z5HA/sTJiVqpfd8+gUk+pUcYF8pROp9qkrkkhW8BzEtsNsYiSLT7+0+miUfbPMCAMMs5a74EsL7OEhatxcD3o+COTpXjd3hbvzmYD5FwkaoZwX9MxIop7TBtuBbOdtEH8qZf6AlcWiw1X//f3u+M4kP8GVPIrUjnWq2AAw5dHrjISztjNfDBl7GO1jwNSRUBLmLa9zzY9rNsHHptWg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: yadro.com; dkim=none (message not signed)
+ header.d=none;yadro.com; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM5PR12MB2438.namprd12.prod.outlook.com (2603:10b6:4:b5::25) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3195.17; Thu, 16 Jul
+ 2020 19:17:14 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1d53:7cb4:c3d7:2b54]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1d53:7cb4:c3d7:2b54%6]) with mapi id 15.20.3174.026; Thu, 16 Jul 2020
+ 19:17:14 +0000
+Date:   Thu, 16 Jul 2020 16:17:12 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     <m.malygin@yadro.com>
+CC:     <linux-rdma@vger.kernel.org>, <linux@yadro.com>,
+        Sergey Kojushev <s.kojushev@yadro.com>
+Subject: Re: [PATCH v2] rdma_rxe: Prevent access to wr->next ptr afrer wr is
+ posted to send queue
+Message-ID: <20200716191712.GA2687753@nvidia.com>
+References: <20200609125411.13268-1-m.malygin@yadro.com>
+ <20200716190340.23453-1-m.malygin@yadro.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20200716190340.23453-1-m.malygin@yadro.com>
+X-ClientProxiedBy: MN2PR05CA0060.namprd05.prod.outlook.com
+ (2603:10b6:208:236::29) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-In-Reply-To: <20200716184141.GA2660905@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 201.162.240.161
-X-Source-L: No
-X-Exim-ID: 1jw8uz-0013aH-Of
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.43.132]) [201.162.240.161]:18888
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 7
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR05CA0060.namprd05.prod.outlook.com (2603:10b6:208:236::29) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3195.10 via Frontend Transport; Thu, 16 Jul 2020 19:17:13 +0000
+Received: from jgg by mlx with local (Exim 4.93)        (envelope-from <jgg@nvidia.com>)        id 1jw9NY-00BHEX-Ft; Thu, 16 Jul 2020 16:17:12 -0300
+X-Originating-IP: [156.34.48.30]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: cc6cfbcc-e9ea-4269-8fbb-08d829bcd8be
+X-MS-TrafficTypeDiagnostic: DM5PR12MB2438:
+X-Microsoft-Antispam-PRVS: <DM5PR12MB243830419D30914453F21A00C27F0@DM5PR12MB2438.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:6790;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 92rzlrgp1RJBelW1jO+89Wl7lF/UyNHRR3TFKT7ZZu37OJ54Qce/sFS8j1P7hbvT7MX9h3vowC1LRQ9r53iWKhDMS74K8HPM3ARoDIsnhjKh345ufENpjeC3MzNSUH/RXBQOSvOVWOqI/V63ut41xdZ9PfjtGztPjNrVRRNfKO0w0AVe7WPdQiySH2USQ673l24L9F1/Fqd/mFxMEeesN3VGFRUN6RgmiZPIn0A/N+r7kp1MuqDlLfx9EtHVTT45cAi94ePyCWM0E3CPcL8Gqagy9S9FqGxsZmjM832wx5SIz4cvh78sgWtQO0RxBVKc1ogmT11/Tg2ZoReAE8b0/w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(376002)(366004)(136003)(396003)(346002)(9746002)(316002)(36756003)(478600001)(4744005)(426003)(9786002)(33656002)(4326008)(86362001)(2906002)(2616005)(1076003)(8676002)(8936002)(186003)(26005)(83380400001)(66476007)(6916009)(66946007)(5660300002)(66556008);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: Ud+4hPv4RKyp2p4Ct9j8TKkf+H0J8tIrHU3hJoGYg+nDx1gssJDXgS8wABBkaVWHx6NWg5F8HbRM9VJr89HBp+jBVKLQXuDIY0WI4vvY7/uIk8SRMIPfjRhD0ZXsiHm0OCbDexQHBnXPE7Oo5OhHAnnrmCwBqpqR3JNZBF9Qmn++AhwpfeI6cjj9ughScZL6G+WM2sEcrN9tzV7hZM/0Te0cQElSMNRWQ56eXIjxISBa9JYbhlnPrD3zyzKYEOI8kvwR66/VLIC7FX2LkIcsGmxykjo0HuejP9I66IBEiQZB9uqDqpXD4r9hJUCpY7wDo1y/E/n/qkARLgNrpGfTmwcprVfauZ+FmNXS4vGHI8pbrerV0Nzj9vPPMU0AQkms3Xis3CXC83Ohc6p6h5hPK4u62IdkjHdOw+Z0M0lqN8c7mAd9wEFjoO9kGaYAeK5pW1VS7ha+FYMdInyI16pLyyrpC8+xLlVinOfx6y+KwpY=
+X-MS-Exchange-CrossTenant-Network-Message-Id: cc6cfbcc-e9ea-4269-8fbb-08d829bcd8be
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2020 19:17:14.1342
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: o2zA1FG8T2eCD+PfsnIFruRKsBfO+FvGZEhnWBzaOAZKhkM829q/UhnjVPHPdx4k
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB2438
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1594927036; bh=aMUGpRrznbe73UXR8ImmaXLu5JVEaY8aHOvmQowRDL4=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
+         Subject:Message-ID:References:Content-Type:Content-Disposition:
+         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
+         X-MS-Oob-TLC-OOBClassifiers:X-MS-Exchange-SenderADCheck:
+         X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+         X-Forefront-Antispam-Report:X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=fVzK1iSGMaOBL0+znKeJmLmTyLCZusA+RSzpuT/SnN9gBveJJSd7FKfvV/sdf3bUn
+         /Nq0vidubrY1xXLkWh4aBK9F8zc2UdxVbBkuaEfXKTL2TJgoNmPzX67UtDjq4WQwT9
+         MzxPY8ec2g3D6Gce6Tnx6ECBMB0F1zotQRmLFvOW4LsXLUnHUPLbyzHujSi9zc+KAE
+         CufbA75U83EuMrzdx9x1qndZunvrWJC3RrlHfwXd8/garZ60uIh1YA0neZItU3QCgO
+         OWk1eJ8DzDLXcT265PzUolm/TtgPom32yxrB/oZOi8vM5d4JoP+JnNalCxDJIf20rM
+         kB5p3i/aQ6mNg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-On 7/16/20 13:41, Jason Gunthorpe wrote:
-> On Thu, Jul 09, 2020 at 06:52:50PM -0500, Gustavo A. R. Silva wrote:
->> Reorganize the code a bit in a more standard way[1] and remove
->> unnecessary fall-through markings.
->>
->> [1] https://lore.kernel.org/lkml/20200708054703.GR207186@unreal/
->>
->> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
->> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
->> ---
->> Changes in v2:
->>  - Remove additional overlooked fall-through markings.
->>
->>  drivers/infiniband/hw/hfi1/chip.c | 27 ++++++++++++++-------------
->>  1 file changed, 14 insertions(+), 13 deletions(-)
+On Thu, Jul 16, 2020 at 10:03:41PM +0300, m.malygin@yadro.com wrote:
+> From: Mikhail Malygin <m.malygin@yadro.com>
 > 
-> Applied to for-next, thanks
+> rxe_post_send_kernel() iterates over linked list of wr's, until the wr->next ptr is NULL.
+> However it we've got an interrupt after last wr is posted, control may be returned
+> to the code after send completion callback is executed and wr memory is freed.
+> As a result, wr->next pointer may contain incorrect value leading to panic.
 > 
+> Signed-off-by: Mikhail Malygin <m.malygin@yadro.com>
+> Signed-off-by: Sergey Kojushev <s.kojushev@yadro.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_verbs.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks, Jason.
+Applied to for-next, thanks
 
---
-Gustavo
+Jason
