@@ -2,52 +2,53 @@ Return-Path: <SRS0=hCPH=A3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CDD1C433E4
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 10:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0955BC433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 10:53:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64A782074B
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 10:52:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C94EB20775
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jul 2020 10:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594896775;
-	bh=i8x0d0qFhwM0yrlYZM3d9qIGgmWtCCc2Z4JJVituq7w=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=iTRG9k6XOKe/CX3FTEsPRH3Ghs1h59SdIcxLx1kDHeIg2xvC0F3RfiL8qp0wuar7W
-	 18EHcUus8QP8ujypVwjWFjVPyK12jzDNZP5pzsBylQQgWEWVz1zjIbqpGsc/+KgzGM
-	 uN4eIGSyTYDQ03+vBFaDjUJ7ebk338qw9zOPxMB4=
+	s=default; t=1594896779;
+	bh=lh90Dzau8uqKI0WZyEBA+NT1hd/3pudO72xG6M4zfHA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=y499neD0C7ytvS+b8ioxGUoSHYKiDGtggm/CWwArnhxzw7ZmMZQTdYPMaFZdduj1M
+	 Z7VULuijjKY6sv9vt5z4U8VXiJCbapvI7j/ENeAtZ2j7CKL99gr1X9vuF4mVppbB3O
+	 6M25EzgX/32DQHKlzRPhAmZCyjAkIA5nNIQhlP7g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727062AbgGPKwy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Jul 2020 06:52:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54062 "EHLO mail.kernel.org"
+        id S1727851AbgGPKw7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Jul 2020 06:52:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54098 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726907AbgGPKwy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Jul 2020 06:52:54 -0400
+        id S1726907AbgGPKw7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Jul 2020 06:52:59 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 890C7206C1;
-        Thu, 16 Jul 2020 10:52:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EF6CD206C1;
+        Thu, 16 Jul 2020 10:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594896774;
-        bh=i8x0d0qFhwM0yrlYZM3d9qIGgmWtCCc2Z4JJVituq7w=;
-        h=From:To:Cc:Subject:Date:From;
-        b=XbLHcR8tHCSBPZsAyPpVPIrJ71wRlQfH7x9TLi79qNwXM3KhGyAZ/IsWxSwL1yvir
-         RJsiTRt20tRTafShQPIrH50epMN31auE3LAWSAWiNS8u86qcp+OFE8fJ7tnpWVlcYe
-         /caGpNqIZ08yOX9kGnCyEYqRhZSed3BAQY944UGM=
+        s=default; t=1594896778;
+        bh=lh90Dzau8uqKI0WZyEBA+NT1hd/3pudO72xG6M4zfHA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=fGhrpvwjMtOv/jEd6VirCbz1Klut4ys6G4eQQfRfz9jr0Lqdotj8jexez3SFXAmuB
+         k1o9yy+2VPfXJ7UPrNWrVRR1xU0cZ4KcB+ZXqBCo8WRmG5FChAefTVG4pi0ZatsUrO
+         aZzPeiWyUCSghNGuHIew0xzlbNINPz9MSK5FzOIg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Meir Lichtinger <meirl@mellanox.com>,
-        Michael Guralnik <michaelgur@mellanox.com>,
+Cc:     Meir Lichtinger <meirl@mellanox.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next 0/3] Create UMR with relaxed ordering
-Date:   Thu, 16 Jul 2020 13:52:45 +0300
-Message-Id: <20200716105248.1423452-1-leon@kernel.org>
+Subject: [PATCH mlx5-next 1/3] RDMA/mlx5: ConnectX-7 new capabilities to set relaxed ordering by UMR
+Date:   Thu, 16 Jul 2020 13:52:46 +0300
+Message-Id: <20200716105248.1423452-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200716105248.1423452-1-leon@kernel.org>
+References: <20200716105248.1423452-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,27 +56,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Meir Lichtinger <meirl@mellanox.com>
 
-Hi,
+Up to ConnectX-7 setting mkey relaxed ordering read/write attributes
+by UMR is not supported. ConnectX-7 supports this option, which is
+indicated by two new HCA capabilities - relaxed_ordering_write_umr
+and relaxed_ordering_read_umr.
 
-ConnectX-7 supports setting relaxed ordering read/write mkey attribute by UMR,
-indicated by new HCA capabilities, so extend mlx5_ib driver to configure
-UMR control segment based on those capabilities.
+Signed-off-by: Meir Lichtinger <meirl@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+Not based on latest mlx5-next.
+---
+ include/linux/mlx5/mlx5_ifc.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index d22b3ff99b7a..2999a026938a 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1216,7 +1216,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
 
-Meir Lichtinger (3):
-  RDMA/mlx5: ConnectX-7 new capabilities to set relaxed ordering by UMR
-  RDMA/mlx5: Use MLX5_SET macro instead of local structure
-  RDMA/mlx5: Set mkey relaxed ordering by UMR with ConnectX-7
+ 	u8         max_sgl_for_optimized_performance[0x8];
+ 	u8         log_max_cq_sz[0x8];
+-	u8         reserved_at_d0[0xb];
++	u8         relaxed_ordering_write_umr[0x1];
++	u8         relaxed_ordering_read_umr[0x1];
++	u8         reserved_at_d2[0x9];
+ 	u8         log_max_cq[0x5];
 
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 18 +++-----
- drivers/infiniband/hw/mlx5/wr.c      | 68 ++++++++++++++++++++--------
- include/linux/mlx5/device.h          |  5 +-
- include/linux/mlx5/mlx5_ifc.h        |  4 +-
- 4 files changed, 63 insertions(+), 32 deletions(-)
-
+ 	u8         log_max_eq_sz[0x8];
 --
 2.26.2
 
