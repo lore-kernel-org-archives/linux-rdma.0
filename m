@@ -2,50 +2,52 @@ Return-Path: <SRS0=0Liq=A6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF53C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 00:32:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8868C433E3
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 05:22:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA261208B3
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 00:32:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ildwkEbs"
+	by mail.kernel.org (Postfix) with ESMTP id C6A4A207DA
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 05:22:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1595136159;
+	bh=O6fSxLX/t3ehh+AuoPSNj36uKFckmymhXwCyF+wQMso=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Jlm7br1oZYBHvBWsmweqeQU0pJ1SgBCOOn/JEprbbtFmKJXtXk3MAe1xH1HCVTwVp
+	 WWutxC1eJvFC/j9VnJaQeT8abctEHNWwUBb6TJS54+o+iVHJ7AdYMOugTFph9n1tpn
+	 ik6nUP9E5rNzNkXtkIXxP7JmACAvtBw2u1Hym2LA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726655AbgGSAc2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 18 Jul 2020 20:32:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46528 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726633AbgGSAc1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 18 Jul 2020 20:32:27 -0400
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62FA1C0619D2;
-        Sat, 18 Jul 2020 17:32:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:In-Reply-To:References;
-        bh=fNkUg1z2dXWsVKhXv4tD3045EmSTq2gFU0A9CPcMrMg=; b=ildwkEbs+SXz3SlMAZVmjZ/b55
-        DbW7ul+pFEkBxfIRdlhoPDKnuGrJ11uiJOPqo70c/I/O8+LxjGuUbTCsR89eJW2SM3Nh6eZIsgn0c
-        Wn4i0//7/q3z1Tk7kw7waCsohtie8Y+gVTPMZI9y2wk2sVbwpgUMu4oBZH04+g98loP/QDcAoCAvq
-        VZeplYHPsY+2oEcHuqzwdXmhnEMhj34iRGsKsK75yEevU3c71N/na9iL1NrOHnqC6/rwO724o+OD5
-        vrye0qqtTj2xo0dK/k+DJs8UxgPbh69W2xfV5bmMu4+0cpMqvgOyo0+LGSqgQ0D11OIzUZWu4EaEk
-        scIZ99mw==;
-Received: from [2601:1c0:6280:3f0::19c2] (helo=smtpauth.infradead.org)
-        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1jwxFg-00032L-Pw; Sun, 19 Jul 2020 00:32:25 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH] RDMA: rdma_user_ioctl.h: fix a duplicated word + clarify
-Date:   Sat, 18 Jul 2020 17:32:20 -0700
-Message-Id: <20200719003220.21250-1-rdunlap@infradead.org>
+        id S1726177AbgGSFWj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Jul 2020 01:22:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43794 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725355AbgGSFWi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 19 Jul 2020 01:22:38 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 664242073E;
+        Sun, 19 Jul 2020 05:22:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1595136158;
+        bh=O6fSxLX/t3ehh+AuoPSNj36uKFckmymhXwCyF+wQMso=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=wClGNctUqKZNRjbwahqEKyPBgLqYq7xQeefsRIICjR8JlT3ucIeIQ6ZjSl6EjrEqF
+         W2WWEU8+C5zG0pw6KUBgM47/aoI8JS9frzrq3IOXWMVA7hcdG7kaVHuTUw3hmD+cvB
+         lBqQh+0FwsxS2orcr3WSyA71ZvbQziK7v2jLHvN4=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v2 1/2] RDMA/core: Align abort/commit object scheme for write() and ioctl() paths
+Date:   Sun, 19 Jul 2020 08:22:22 +0300
+Message-Id: <20200719052223.75245-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200719052223.75245-1-leon@kernel.org>
+References: <20200719052223.75245-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -53,25 +55,97 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Change the repeated word "it" in a comment to "it to".
-Also insert a dash in the sentence to add clarity.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org
+Create same logic flow for write() interface as we have for ioctl()
+path by making sure that object is committed or aborted automatically
+after HW object creation.
+
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/uapi/rdma/rdma_user_ioctl.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_main.c             |  4 ++++
+ drivers/infiniband/core/uverbs_std_types_device.c |  7 ++++++-
+ include/rdma/uverbs_ioctl.h                       |  1 +
+ include/rdma/uverbs_std_types.h                   | 14 ++++++++++++++
+ 4 files changed, 25 insertions(+), 1 deletion(-)
 
---- linux-next-20200717.orig/include/uapi/rdma/rdma_user_ioctl.h
-+++ linux-next-20200717/include/uapi/rdma/rdma_user_ioctl.h
-@@ -43,7 +43,7 @@
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 69e4755cc04b..37794d88b1f3 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -601,6 +601,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	memset(bundle.attr_present, 0, sizeof(bundle.attr_present));
+ 	bundle.ufile = file;
+ 	bundle.context = NULL; /* only valid if bundle has uobject */
++	bundle.uobject = NULL;
+ 	if (!method_elm->is_ex) {
+ 		size_t in_len = hdr.in_words * 4 - sizeof(hdr);
+ 		size_t out_len = hdr.out_words * 4;
+@@ -664,6 +665,9 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	}
  
- /*
-  * General blocks assignments
-- * It is closed on purpose do not expose it it user space
-+ * It is closed on purpose - do not expose it to user space
-  * #define MAD_CMD_BASE		0x00
-  * #define HFI1_CMD_BAS		0xE0
-  */
+ 	ret = method_elm->handler(&bundle);
++	if (bundle.uobject)
++		uverbs_finalize_object(bundle.uobject, UVERBS_ACCESS_NEW, true,
++				       !ret, &bundle);
+ out_unlock:
+ 	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
+ 	return (ret) ? : count;
+diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
+index 8e58605a17be..75df2094a010 100644
+--- a/drivers/infiniband/core/uverbs_std_types_device.c
++++ b/drivers/infiniband/core/uverbs_std_types_device.c
+@@ -38,7 +38,12 @@ static int UVERBS_HANDLER(UVERBS_METHOD_INVOKE_WRITE)(
+ 	    attrs->ucore.outlen < method_elm->resp_size)
+ 		return -ENOSPC;
+ 
+-	return method_elm->handler(attrs);
++	attrs->uobject = NULL;
++	rc = method_elm->handler(attrs);
++	if (attrs->uobject)
++		uverbs_finalize_object(attrs->uobject, UVERBS_ACCESS_NEW, true,
++				       !rc, attrs);
++	return rc;
+ }
+ 
+ DECLARE_UVERBS_NAMED_METHOD(UVERBS_METHOD_INVOKE_WRITE,
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index 86de10ea30af..db419c8dbd10 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -652,6 +652,7 @@ struct uverbs_attr_bundle {
+ 	struct ib_udata ucore;
+ 	struct ib_uverbs_file *ufile;
+ 	struct ib_ucontext *context;
++	struct ib_uobject *uobject;
+ 	DECLARE_BITMAP(attr_present, UVERBS_API_ATTR_BKEY_LEN);
+ 	struct uverbs_attr attrs[];
+ };
+diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
+index bf0392ae15eb..8451b19103ee 100644
+--- a/include/rdma/uverbs_std_types.h
++++ b/include/rdma/uverbs_std_types.h
+@@ -110,6 +110,20 @@ static inline void uobj_alloc_abort(struct ib_uobject *uobj,
+ 	rdma_alloc_abort_uobject(uobj, attrs, false);
+ }
+ 
++static inline void uobj_finalize_uobj_create(struct ib_uobject *uobj,
++					     struct uverbs_attr_bundle *attrs)
++{
++	/*
++	 * Tell the core code that the write() handler has completed
++	 * initializing the object and that the core should commit or
++	 * abort this object based upon the return code from the write()
++	 * method. Similar to what uverbs_finalize_uobj_create() does for
++	 * ioctl()
++	 */
++	WARN_ON(attrs->uobject);
++	attrs->uobject = uobj;
++}
++
+ static inline struct ib_uobject *
+ __uobj_alloc(const struct uverbs_api_object *obj,
+ 	     struct uverbs_attr_bundle *attrs, struct ib_device **ib_dev)
+-- 
+2.26.2
+
