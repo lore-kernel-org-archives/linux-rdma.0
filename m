@@ -6,45 +6,46 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C027C433E0
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 05:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B2D1C433E0
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 06:03:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E83C207DA
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 05:22:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FCCD207DA
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Jul 2020 06:03:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595136152;
-	bh=IaoFfp0CVX6q3zmBZngpRxM+Awj+hBYH2gsSFPT8Ul4=;
+	s=default; t=1595138607;
+	bh=5r4ndYrrAdlYXN5OgGxy/O51eiQUBWMK9MagzRG85us=;
 	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=yp1ZNgkvZBCqOVZhIzhlW5v+JLH/hppnFKaiEfdV47iIfVcxVEpXaOqe6BotEdJ1V
-	 16cylblyTRo+efXSfF7P+cxNvoSItk0hbTAgWcc4LIt6drF1hVPdY92MyOO4Bu0sun
-	 0pWUBy4/yHzVvmYnzee1MuE7cK1FEmCvaOxL7gsE=
+	b=D6nKh/fnLJz75f+ZCYTlttXhJGkKnEARCaFUL9AIiIhWfRCP0zN+M4Vq8cpyBbpis
+	 wcpiwNym3WTdPh6v/QRKJxjwxhHehnGWlyC2I1y6CyX50phf8znhGHgGusH44m0L34
+	 V9KprFG5CzOnuWeoX2PwazYpr5KMQc1SceUUCQL0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726067AbgGSFWb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Jul 2020 01:22:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43668 "EHLO mail.kernel.org"
+        id S1726097AbgGSGD0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Jul 2020 02:03:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725355AbgGSFWb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 19 Jul 2020 01:22:31 -0400
+        id S1725355AbgGSGD0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 19 Jul 2020 02:03:26 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27F6D2073A;
-        Sun, 19 Jul 2020 05:22:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 18D0120738;
+        Sun, 19 Jul 2020 06:03:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595136150;
-        bh=IaoFfp0CVX6q3zmBZngpRxM+Awj+hBYH2gsSFPT8Ul4=;
+        s=default; t=1595138605;
+        bh=5r4ndYrrAdlYXN5OgGxy/O51eiQUBWMK9MagzRG85us=;
         h=From:To:Cc:Subject:Date:From;
-        b=HmL2PMahAt2696yxN53RCkePZrMbf13lxeBih60BMCxOhwcIDSnrVcrQOMJuhsTRf
-         mr0sYhSxINpfVQjkdFgRaUo7g02irpwZmnxq6Yy2RkdIwThlxad5IGBPNVWTdqqg7E
-         pDL6i+ChK8gEomLISia76lLYka+Xc4f6bXxe63pI=
+        b=RQVKSv9XLAP1sRQ12O2hEesTqr8AKRt8sE8Vy8IwBNC/VPaTDIxbXdEHsF1pbUuP7
+         iQmdTrf9ji2pEzWEsByjwl2JJ7vy+H3pEX+4PDgm83NY0V+8saa0SJsA1itSfD75im
+         3MkVywp4d1UwxowLJGCWfmE9wOSYk6sribUSqzBA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        kernel test robot <lkp@intel.com>,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 0/2] Align write() and ioctl() paths
-Date:   Sun, 19 Jul 2020 08:22:21 +0300
-Message-Id: <20200719052223.75245-1-leon@kernel.org>
+Subject: [PATCH rdma-next 0/2] Fix warnings reported by kbuild
+Date:   Sun, 19 Jul 2020 09:03:17 +0300
+Message-Id: <20200719060319.77603-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -55,42 +56,19 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
-v2:
- * Fixed warning reported by kbuild where I wrote same assignment twice.
-v1:
-https://lore.kernel.org/lkml/20200716103956.1422139-1-leon@kernel.org
- * v0 revealed old bug
- * https://lore.kernel.org/linux-rdma/20200716102059.1420681-1-leon@kernel.org
-  that took a while to find.
- * create_cq() was rewritten to make sure that uobj is properly
- * initialized.
-v0:
-https://lore.kernel.org/lkml/20200708110554.1270613-1-leon@kernel.org
-
-----------------------------------------------------
 Hi,
 
-The discussion about RWQ table patch revealed incosistency with use of
-usecnt, complex unwind flows without any reason and difference between
-write() and ioctl() paths.
-
-This series extends infrastructure to be consistent, reliable and
-predicable in regards of commit/desotry uobject.
+There are two change as were reported by kbuild. They are not important
+enough to have Fixes line.
 
 Thanks
 
 Leon Romanovsky (2):
-  RDMA/core: Align abort/commit object scheme for write() and ioctl()
-    paths
-  RDMA/core: Update write interface to use automatic object lifetime
+  RDMA/uverbs: Remove redundant assignments
+  RDMA/uverbs: Silence shiftTooManyBitsSigned warning
 
- drivers/infiniband/core/uverbs_cmd.c          | 312 ++++++------------
- drivers/infiniband/core/uverbs_main.c         |   4 +
- .../infiniband/core/uverbs_std_types_device.c |   7 +-
- include/rdma/uverbs_ioctl.h                   |   1 +
- include/rdma/uverbs_std_types.h               |  14 +
- 5 files changed, 118 insertions(+), 220 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 --
 2.26.2
