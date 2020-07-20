@@ -2,128 +2,170 @@ Return-Path: <SRS0=DhTo=A7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 557D2C433E4
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jul 2020 04:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82D7CC433E1
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jul 2020 08:01:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3284C208E4
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jul 2020 04:56:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595220997;
-	bh=WpIzzTN6scE+2UyxOf2po3oTZMeSCPUMdXbQ6YleutA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=wKFfeE03Nl6m4BOPfibY+W0R/fN+36U5n63qqttTPCgO2JHdv8vLa0N07JEQrdF8H
-	 TyuhtDLiZelyDjDuK6xQSRcsxdw/7DayQ/e3Z5cjLP+VwPXZG+Ph9qoeOAM6DZCA3R
-	 iI6YysQglA8dEBLfuclffUUQcx0S36QH3U1KKz9s=
+	by mail.kernel.org (Postfix) with ESMTP id 5D69C20702
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Jul 2020 08:01:41 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="m9u6UVIL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725872AbgGTE4c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Jul 2020 00:56:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38982 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgGTE4c (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 20 Jul 2020 00:56:32 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C620D20758;
-        Mon, 20 Jul 2020 04:56:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595220991;
-        bh=WpIzzTN6scE+2UyxOf2po3oTZMeSCPUMdXbQ6YleutA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ceHbdgk5deba4gxNstdXo0DOLPpRIEt5yb2TkzfUCzLpZcuJJi26TLNNeZ6O1+g7i
-         SVybg+YC7wjkXApW0jXI/mVdHMUTNjj5XCAooiwVJDzIEFyx+jqZ1G4or2+4EzrOT5
-         0bvkNyBGQhjqX7yfB3Km7pW2/V1DmlYJmw5jDBCI=
-Date:   Mon, 20 Jul 2020 07:56:26 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Cc:     santosh.shilimkar@oracle.com, davem@davemloft.net, kuba@kernel.org,
-        corbet@lwn.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH for v5.9] RDS: Replace HTTP links with HTTPS ones
-Message-ID: <20200720045626.GF127306@unreal>
-References: <20200719155845.59947-1-grandmaster@al2klimov.de>
+        id S1726666AbgGTIBk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Jul 2020 04:01:40 -0400
+Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:14369 "EHLO
+        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726015AbgGTIBk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Jul 2020 04:01:40 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1595232099; x=1626768099;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=WCD+SaI/Zc2qPh/Zx+uAq6cQgp/p2lIgcDYvudjBgMg=;
+  b=m9u6UVIL1znCDFhNYjS55AoiTlFqHKUaXa3wUHtp4KQpuMxKLw1f+t9H
+   dMQj1cHS/2+D7FqpJa+E4rX/xM5h9vtYzooYMUN6KZxkZpdPy/KdSIfg5
+   nHHw2lPqpn4BGfSV+BXGwSwQQp85Zw+CHBrE+24xoJEYlkddbGkAWRYzz
+   E=;
+IronPort-SDR: EV60Mwb6qaQHOV5zBFSz1RgZe6j/ZqrPqknWk8TGgqs/+IpoQaAti8iIQMS/yjmspjpB1gwmMy
+ UgUMUmyGA32w==
+X-IronPort-AV: E=Sophos;i="5.75,374,1589241600"; 
+   d="scan'208";a="42881973"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 20 Jul 2020 08:01:38 +0000
+Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
+        by email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com (Postfix) with ESMTPS id BBF6DC0597;
+        Mon, 20 Jul 2020 08:01:36 +0000 (UTC)
+Received: from EX13D19EUB002.ant.amazon.com (10.43.166.78) by
+ EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 20 Jul 2020 08:01:36 +0000
+Received: from EX13MTAUWB001.ant.amazon.com (10.43.161.207) by
+ EX13D19EUB002.ant.amazon.com (10.43.166.78) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 20 Jul 2020 08:01:34 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.1.212.12) by
+ mail-relay.amazon.com (10.43.161.249) with Microsoft SMTP Server id
+ 15.0.1497.2 via Frontend Transport; Mon, 20 Jul 2020 08:01:31 +0000
+From:   Gal Pressman <galpress@amazon.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
+CC:     <linux-rdma@vger.kernel.org>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Daniel Kranzdorf <dkkranzd@amazon.com>,
+        Firas JahJah <firasj@amazon.com>
+Subject: [PATCH for-next v2 1/4] RDMA/efa: Expose maximum TX doorbell batch
+Date:   Mon, 20 Jul 2020 11:01:10 +0300
+Message-ID: <20200720080113.13055-2-galpress@amazon.com>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200720080113.13055-1-galpress@amazon.com>
+References: <20200720080113.13055-1-galpress@amazon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20200719155845.59947-1-grandmaster@al2klimov.de>
+Content-Type: text/plain
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Jul 19, 2020 at 05:58:45PM +0200, Alexander A. Klimov wrote:
-> Rationale:
-> Reduces attack surface on kernel devs opening the links for MITM
-> as HTTPS traffic is much harder to manipulate.
->
-> Deterministic algorithm:
-> For each file:
->   If not .svg:
->     For each line:
->       If doesn't contain `\bxmlns\b`:
->         For each link, `\bhttp://[^# \t\r\n]*(?:\w|/)`:
-> 	  If neither `\bgnu\.org/license`, nor `\bmozilla\.org/MPL\b`:
->             If both the HTTP and HTTPS versions
->             return 200 OK and serve the same content:
->               Replace HTTP with HTTPS.
->
-> Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
-> ---
->  Continuing my work started at 93431e0607e5.
->  See also: git log --oneline '--author=Alexander A. Klimov <grandmaster@al2klimov.de>' v5.7..master
->  (Actually letting a shell for loop submit all this stuff for me.)
->
->  If there are any URLs to be removed completely
->  or at least not (just) HTTPSified:
->  Just clearly say so and I'll *undo my change*.
->  See also: https://lkml.org/lkml/2020/6/27/64
->
->  If there are any valid, but yet not changed URLs:
->  See: https://lkml.org/lkml/2020/6/26/837
->
->  If you apply the patch, please let me know.
->
->  Sorry again to all maintainers who complained about subject lines.
->  Now I realized that you want an actually perfect prefixes,
->  not just subsystem ones.
->  I tried my best...
->  And yes, *I could* (at least half-)automate it.
->  Impossible is nothing! :)
->
->
->  Documentation/networking/rds.rst | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+The device reports the maximum number of bytes to be written before
+ringing the doorbell (zero means unlimited).
 
-Why can't it be done in one mega-patch?
-It is insane to see patch for every file/link.
+This patch queries the max batch size and reports it back to the
+userspace library.
 
-We have more than 4k files with http:// in it.
+Reviewed-by: Daniel Kranzdorf <dkkranzd@amazon.com>
+Reviewed-by: Firas JahJah <firasj@amazon.com>
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 11 +++++++++++
+ drivers/infiniband/hw/efa/efa_com_cmd.c         |  1 +
+ drivers/infiniband/hw/efa/efa_com_cmd.h         |  1 +
+ drivers/infiniband/hw/efa/efa_verbs.c           |  1 +
+ include/uapi/rdma/efa-abi.h                     |  4 +++-
+ 5 files changed, 17 insertions(+), 1 deletion(-)
 
-➜  kernel git:(m/hw-cleanup) git grep -c http: | tr -d ':[:digit:]' | sort | uniq |wc -l
-4292
+diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+index bef2bd291054..03e7388af06e 100644
+--- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
++++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+@@ -632,6 +632,17 @@ struct efa_admin_feature_queue_attr_desc {
+ 
+ 	/* Maximum number of SGEs for a single RDMA read WQE */
+ 	u16 max_wr_rdma_sges;
++
++	/*
++	 * Maximum number of bytes that can be written to SQ between two
++	 * consecutive doorbells (in units of 64B). Driver must ensure that only
++	 * complete WQEs are written to queue before issuing a doorbell.
++	 * Examples: max_tx_batch=16 and WQE size = 64B, means up to 16 WQEs can
++	 * be written to SQ between two consecutive doorbells. max_tx_batch=11
++	 * and WQE size = 128B, means up to 5 WQEs can be written to SQ between
++	 * two consecutive doorbells. Zero means unlimited.
++	 */
++	u16 max_tx_batch;
+ };
+ 
+ struct efa_admin_feature_aenq_desc {
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
+index fabd8df2e78f..53cfde5c43d8 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.c
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
+@@ -480,6 +480,7 @@ int efa_com_get_device_attr(struct efa_com_dev *edev,
+ 	result->max_llq_size = resp.u.queue_attr.max_llq_size;
+ 	result->sub_cqs_per_cq = resp.u.queue_attr.sub_cqs_per_cq;
+ 	result->max_wr_rdma_sge = resp.u.queue_attr.max_wr_rdma_sges;
++	result->max_tx_batch = resp.u.queue_attr.max_tx_batch;
+ 
+ 	err = efa_com_get_feature(edev, &resp, EFA_ADMIN_NETWORK_ATTR);
+ 	if (err) {
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
+index 41ce4a476ee6..8df2a26d57d4 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.h
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
+@@ -127,6 +127,7 @@ struct efa_com_get_device_attr_result {
+ 	u16 max_sq_sge;
+ 	u16 max_rq_sge;
+ 	u16 max_wr_rdma_sge;
++	u16 max_tx_batch;
+ 	u8 db_bar;
+ };
+ 
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index 08313f7c73bc..f49d14cebe4a 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -1525,6 +1525,7 @@ int efa_alloc_ucontext(struct ib_ucontext *ibucontext, struct ib_udata *udata)
+ 	resp.sub_cqs_per_cq = dev->dev_attr.sub_cqs_per_cq;
+ 	resp.inline_buf_size = dev->dev_attr.inline_buf_size;
+ 	resp.max_llq_size = dev->dev_attr.max_llq_size;
++	resp.max_tx_batch = dev->dev_attr.max_tx_batch;
+ 
+ 	if (udata && udata->outlen) {
+ 		err = ib_copy_to_udata(udata, &resp,
+diff --git a/include/uapi/rdma/efa-abi.h b/include/uapi/rdma/efa-abi.h
+index 53b6e2036a9b..10781763da37 100644
+--- a/include/uapi/rdma/efa-abi.h
++++ b/include/uapi/rdma/efa-abi.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
+ /*
+- * Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All rights reserved.
++ * Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All rights reserved.
+  */
+ 
+ #ifndef EFA_ABI_USER_H
+@@ -31,6 +31,8 @@ struct efa_ibv_alloc_ucontext_resp {
+ 	__u16 sub_cqs_per_cq;
+ 	__u16 inline_buf_size;
+ 	__u32 max_llq_size; /* bytes */
++	__u16 max_tx_batch; /* units of 64 bytes */
++	__u8 reserved_90[6];
+ };
+ 
+ struct efa_ibv_alloc_pd_resp {
+-- 
+2.27.0
 
-
->
-> diff --git a/Documentation/networking/rds.rst b/Documentation/networking/rds.rst
-> index 44936c27ab3a..c80d832509e2 100644
-> --- a/Documentation/networking/rds.rst
-> +++ b/Documentation/networking/rds.rst
-> @@ -11,7 +11,7 @@ This readme tries to provide some background on the hows and whys of RDS,
->  and will hopefully help you find your way around the code.
->
->  In addition, please see this email about RDS origins:
-> -http://oss.oracle.com/pipermail/rds-devel/2007-November/000228.html
-> +https://oss.oracle.com/pipermail/rds-devel/2007-November/000228.html
->
->  RDS Architecture
->  ================
-> --
-> 2.27.0
->
