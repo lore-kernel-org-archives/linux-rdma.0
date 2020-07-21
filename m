@@ -2,111 +2,108 @@ Return-Path: <SRS0=0o3f=BA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 828CAC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 06:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05933C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 06:43:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5284120B1F
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 06:05:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595311539;
-	bh=Ra92RBB3T38uwC1+6cbzwLA+6S/AMaal5zhfkxgir7E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=JYbnFaNMRscV7ZGsj2kyFH5Y9uz2R6MIQEjxOfuoo1kjVK5k6jmy1FPkdt4YSfbES
-	 mz38dOYyPs6wG3ypKZa1UUCOEGdfz8ZNxGcC9bb1/krDrUZlZmUUKV2NNSeGzV+VvB
-	 tFDhhkB61RMuvI6uBjaQt8f9L6KwQvQgzbjQPHIE=
+	by mail.kernel.org (Postfix) with ESMTP id D5F1620658
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 06:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726971AbgGUGFe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Jul 2020 02:05:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47158 "EHLO mail.kernel.org"
+        id S1726127AbgGUGnH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Jul 2020 02:43:07 -0400
+Received: from smtp.al2klimov.de ([78.46.175.9]:59272 "EHLO smtp.al2klimov.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726022AbgGUGFd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 21 Jul 2020 02:05:33 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 708A020B1F;
-        Tue, 21 Jul 2020 06:05:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595311533;
-        bh=Ra92RBB3T38uwC1+6cbzwLA+6S/AMaal5zhfkxgir7E=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=jMdvwTi/DHOu6AYO8xa6iUDENtXODDjGitfqBLML4pZMtOispbr5XQAiVVct6+4C0
-         L3VPP+EjTfz8diJgN6efReI+NnnF5kmAo1tB+AHWkmk7BPenwHwXLgALiyc0ftuMWa
-         YTywA8Zv6ZOfNkOOkns10IBZqdUAA32Mm+SYfjm0=
-Date:   Tue, 21 Jul 2020 09:05:29 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "Alexander A. Klimov" <grandmaster@al2klimov.de>
+        id S1726053AbgGUGnH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 21 Jul 2020 02:43:07 -0400
+Received: from authenticated-user (PRIMARY_HOSTNAME [PUBLIC_IP])
+        by smtp.al2klimov.de (Postfix) with ESMTPA id D8097BC1B7;
+        Tue, 21 Jul 2020 06:43:01 +0000 (UTC)
+Subject: Re: [PATCH for v5.9] RDS: Replace HTTP links with HTTPS ones
+To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Jonathan Corbet <corbet@lwn.net>, santosh.shilimkar@oracle.com,
         davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH for v5.9] RDS: Replace HTTP links with HTTPS ones
-Message-ID: <20200721060529.GF1080481@unreal>
 References: <20200719155845.59947-1-grandmaster@al2klimov.de>
- <20200720045626.GF127306@unreal>
- <20200720075848.26bc3dfe@lwn.net>
- <20200720140716.GB1080481@unreal>
- <20200720083635.3e7880ce@lwn.net>
+ <20200720045626.GF127306@unreal> <20200720075848.26bc3dfe@lwn.net>
+ <20200720140716.GB1080481@unreal> <20200720083635.3e7880ce@lwn.net>
  <20200720164827.GC1080481@unreal>
  <c78d0958-c4ef-9754-c189-ffc507ca1340@al2klimov.de>
+ <20200721060529.GF1080481@unreal>
+From:   "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Message-ID: <f1df7901-35ef-af8a-b852-e5e89ababf01@al2klimov.de>
+Date:   Tue, 21 Jul 2020 08:43:00 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c78d0958-c4ef-9754-c189-ffc507ca1340@al2klimov.de>
+In-Reply-To: <20200721060529.GF1080481@unreal>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+Authentication-Results: smtp.al2klimov.de;
+        auth=pass smtp.auth=aklimov@al2klimov.de smtp.mailfrom=grandmaster@al2klimov.de
+X-Spamd-Bar: /
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jul 20, 2020 at 11:34:00PM +0200, Alexander A. Klimov wrote:
->
->
-> Am 20.07.20 um 18:48 schrieb Leon Romanovsky:
-> > On Mon, Jul 20, 2020 at 08:36:35AM -0600, Jonathan Corbet wrote:
-> > > On Mon, 20 Jul 2020 17:07:16 +0300
-> > > Leon Romanovsky <leon@kernel.org> wrote:
-> > >
-> > > > > Do *you* want to review that megapatch?  The number of issues that have
-> This question is... interesting.
-> And no, I would not.
 
-You are EXPECTED to review your work prior sending to the mailing list.
 
->
-> > > > > come up make it clear that these patches do, indeed, need review...
-> > > >
-> > > > Can you point me to the issues?
-> > > > What can go wrong with such a simple replacement?
-> > >
-> > > Some bits of the conversation:
-> > >
-> > >    https://lore.kernel.org/lkml/20200626110219.7ae21265@lwn.net/
-> > >    https://lore.kernel.org/lkml/20200626110706.7b5d4a38@lwn.net/
-> > >    https://lore.kernel.org/lkml/20200705142506.1f26a7e0@lwn.net/
-> > >    https://lore.kernel.org/lkml/20200713114321.783f0ae6@lwn.net/
-> > >    https://lore.kernel.org/lkml/202007081531.085533FC5@keescook/
-> > >
-> > > etc.
-> >
-> > After reading your links and especially this one.
-> > https://lore.kernel.org/lkml/20200713114321.783f0ae6@lwn.net/
-> > I don't understand why are we still seeing these patches?
-> >
-> > I gave to the author comments too, which were ignored.
-> > https://patchwork.kernel.org/patch/11644683/#23466547
-> I've added SPDXing (the automated way of course ;) ) to my todo list.
+Am 21.07.20 um 08:05 schrieb Leon Romanovsky:
+> On Mon, Jul 20, 2020 at 11:34:00PM +0200, Alexander A. Klimov wrote:
+>>
+>>
+>> Am 20.07.20 um 18:48 schrieb Leon Romanovsky:
+>>> On Mon, Jul 20, 2020 at 08:36:35AM -0600, Jonathan Corbet wrote:
+>>>> On Mon, 20 Jul 2020 17:07:16 +0300
+>>>> Leon Romanovsky <leon@kernel.org> wrote:
+>>>>
+>>>>>> Do *you* want to review that megapatch?  The number of issues that have
+>> This question is... interesting.
+>> And no, I would not.
+> 
+> You are EXPECTED to review your work prior sending to the mailing list.
+I meant I wouldn't review *one big* patch.
+I didn't mean my actually sent smaller ones.
 
-OMG, why don't you listen? We don't want your automatic patches.
+> 
+>>
+>>>>>> come up make it clear that these patches do, indeed, need review...
+>>>>>
+>>>>> Can you point me to the issues?
+>>>>> What can go wrong with such a simple replacement?
+>>>>
+>>>> Some bits of the conversation:
+>>>>
+>>>>     https://lore.kernel.org/lkml/20200626110219.7ae21265@lwn.net/
+>>>>     https://lore.kernel.org/lkml/20200626110706.7b5d4a38@lwn.net/
+>>>>     https://lore.kernel.org/lkml/20200705142506.1f26a7e0@lwn.net/
+>>>>     https://lore.kernel.org/lkml/20200713114321.783f0ae6@lwn.net/
+>>>>     https://lore.kernel.org/lkml/202007081531.085533FC5@keescook/
+>>>>
+>>>> etc.
+>>>
+>>> After reading your links and especially this one.
+>>> https://lore.kernel.org/lkml/20200713114321.783f0ae6@lwn.net/
+>>> I don't understand why are we still seeing these patches?
+>>>
+>>> I gave to the author comments too, which were ignored.
+>>> https://patchwork.kernel.org/patch/11644683/#23466547
+>> I've added SPDXing (the automated way of course ;) ) to my todo list.
+> 
+> OMG, why don't you listen? We don't want your automatic patches.
+Wrong.
+*Some of you* don't want my automatic patches.
+And *some others* already applied them and said thanks.
 
-Thanks
-
->
-> >
-> > Thanks
-> >
-> > >
-> > > jon
+> 
+> Thanks
+> 
+>>
+>>>
+>>> Thanks
+>>>
+>>>>
+>>>> jon
