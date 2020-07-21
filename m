@@ -8,35 +8,35 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D48C9C433ED
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:31:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E6A9C433E2
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:32:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B03D720729
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:31:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4478120729
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:32:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="pfje3ZGP"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="J7DgT51E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731317AbgGUVbm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Jul 2020 17:31:42 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12490 "EHLO
+        id S1731350AbgGUVcU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Jul 2020 17:32:20 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12485 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731293AbgGUVbg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 17:31:36 -0400
+        with ESMTP id S1731292AbgGUVbf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 17:31:35 -0400
 Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f175eaa0005>; Tue, 21 Jul 2020 14:31:22 -0700
+        id <B5f175eaa0004>; Tue, 21 Jul 2020 14:31:22 -0700
 Received: from hqmail.nvidia.com ([172.20.161.6])
   by hqpgpgate101.nvidia.com (PGP Universal service);
   Tue, 21 Jul 2020 14:31:35 -0700
 X-PGP-Universal: processed;
         by hqpgpgate101.nvidia.com on Tue, 21 Jul 2020 14:31:35 -0700
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL105.nvidia.com
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
  (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 21 Jul
  2020 21:31:25 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
  Transport; Tue, 21 Jul 2020 21:31:26 +0000
 Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5f175ead0006>; Tue, 21 Jul 2020 14:31:26 -0700
+        id <B5f175ead0003>; Tue, 21 Jul 2020 14:31:25 -0700
 From:   Ralph Campbell <rcampbell@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
         <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
@@ -50,9 +50,9 @@ CC:     Jerome Glisse <jglisse@redhat.com>,
         "Ben Skeggs" <bskeggs@redhat.com>,
         Bharata B Rao <bharata@linux.ibm.com>,
         "Ralph Campbell" <rcampbell@nvidia.com>
-Subject: [PATCH v3 5/5] mm/hmm/test: use the new migration invalidation
-Date:   Tue, 21 Jul 2020 14:31:19 -0700
-Message-ID: <20200721213119.32344-6-rcampbell@nvidia.com>
+Subject: [PATCH v3 2/5] mm/migrate: add a flags parameter to migrate_vma
+Date:   Tue, 21 Jul 2020 14:31:16 -0700
+Message-ID: <20200721213119.32344-3-rcampbell@nvidia.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20200721213119.32344-1-rcampbell@nvidia.com>
 References: <20200721213119.32344-1-rcampbell@nvidia.com>
@@ -61,156 +61,169 @@ X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1595367082; bh=dV0F2IGIbSa3UBr9FPynu9ekSSnn2qKSM3AxyUbNMFQ=;
+        t=1595367082; bh=/rTL1SELeyzjCutSqs4XUcVe6mFBaH/jwq6ZNlytm7Q=;
         h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
          In-Reply-To:References:MIME-Version:X-NVConfidentiality:
          Content-Transfer-Encoding:Content-Type;
-        b=pfje3ZGPKvbmEuIpiYR54C1oU2sba42jUTPeyo9lQu3WTQThk65+loh+eB+wSoEIh
-         N07/umNUYu7CbxQyOsKkfIkuQhuTXVARUPAXP+AmWW92zLGD8Yj3rc+yr2w6p3swkV
-         CWx4hst7sJBQwRB81WTcTZmo23MopnU8P+1kXcLN/yuD9FSrdZXgY806Mk3Z330tqb
-         YAUeJBuMz9nBMYsSk4hzsmTcWI+tJVwHt5mz/8+8z/c+oDor9rN4dcDuBZhdLA/F8+
-         wvOTagUh7sDm0G12wWTYCR1I9bHTmBGmrp+S/GtDZua+EN3PWrsUg3kQZVGsanCUNd
-         +iuPWhcB5EhCw==
+        b=J7DgT51EjZ8nD9G6/JU1O1XbZURFtSDXnymf1K4W8e042QHgmAKYphQil9q3H85d2
+         8bC2QjPCdvKncLvQlAe7kbnk6Ys/6P2i3tQZsrYPA5ZSya+mbeGbIwebGoD5uMc3Y4
+         GgBjI9CDZ0dtv3fWXAFGVwd9wsj1u7ARp6KiAV7Egxp3eTKPS9hl8SqwKnaMLrbm18
+         NcDSwMwZ5mzPfP0e22a45zn9ZOh68N6LAw7F9lPwXfcnxV/3fZoHYN7k2Y1DNqdnpN
+         LH2SPBKvokJDsXs/bX+v4SSRUvhlgs09ie3yN+CDmany+kpLCJeXSYdDO18hM7xPYX
+         jOKH9+KQ0OGDA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use the new MMU_NOTIFY_MIGRATE event to skip MMU invalidations of device
-private memory and handle the invalidation in the driver as part of
-migrating device private memory.
+The src_owner field in struct migrate_vma is being used for two purposes,
+it acts as a selection filter for which types of pages are to be migrated
+and it identifies device private pages owned by the caller. Split this
+into separate parameters so the src_owner field can be used just to
+identify device private pages owned by the caller of migrate_vma_setup().
+Rename the src_owner field to pgmap_owner to reflect it is now used only
+to identify which device private pages to migrate.
 
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
 ---
- lib/test_hmm.c                         | 30 +++++++++++++++-----------
- tools/testing/selftests/vm/hmm-tests.c | 18 ++++++++++++----
- 2 files changed, 31 insertions(+), 17 deletions(-)
+ arch/powerpc/kvm/book3s_hv_uvmem.c     |  4 +++-
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |  4 +++-
+ include/linux/migrate.h                | 13 +++++++++----
+ lib/test_hmm.c                         |  6 ++++--
+ mm/migrate.c                           |  6 ++++--
+ 5 files changed, 23 insertions(+), 10 deletions(-)
 
+diff --git a/arch/powerpc/kvm/book3s_hv_uvmem.c b/arch/powerpc/kvm/book3s_h=
+v_uvmem.c
+index 09d8119024db..6850bd04bcb9 100644
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c
++++ b/arch/powerpc/kvm/book3s_hv_uvmem.c
+@@ -400,6 +400,7 @@ kvmppc_svm_page_in(struct vm_area_struct *vma, unsigned=
+ long start,
+ 	mig.end =3D end;
+ 	mig.src =3D &src_pfn;
+ 	mig.dst =3D &dst_pfn;
++	mig.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
+=20
+ 	/*
+ 	 * We come here with mmap_lock write lock held just for
+@@ -577,7 +578,8 @@ kvmppc_svm_page_out(struct vm_area_struct *vma, unsigne=
+d long start,
+ 	mig.end =3D end;
+ 	mig.src =3D &src_pfn;
+ 	mig.dst =3D &dst_pfn;
+-	mig.src_owner =3D &kvmppc_uvmem_pgmap;
++	mig.pgmap_owner =3D &kvmppc_uvmem_pgmap;
++	mig.flags =3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE;
+=20
+ 	mutex_lock(&kvm->arch.uvmem_lock);
+ 	/* The requested page is already paged-out, nothing to do */
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouve=
+au/nouveau_dmem.c
+index e5c230d9ae24..78b9e3c2a5b3 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -182,7 +182,8 @@ static vm_fault_t nouveau_dmem_migrate_to_ram(struct vm=
+_fault *vmf)
+ 		.end		=3D vmf->address + PAGE_SIZE,
+ 		.src		=3D &src,
+ 		.dst		=3D &dst,
+-		.src_owner	=3D drm->dev,
++		.pgmap_owner	=3D drm->dev,
++		.flags		=3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE,
+ 	};
+=20
+ 	/*
+@@ -615,6 +616,7 @@ nouveau_dmem_migrate_vma(struct nouveau_drm *drm,
+ 	struct migrate_vma args =3D {
+ 		.vma		=3D vma,
+ 		.start		=3D start,
++		.flags		=3D MIGRATE_VMA_SELECT_SYSTEM,
+ 	};
+ 	unsigned long i;
+ 	u64 *pfns;
+diff --git a/include/linux/migrate.h b/include/linux/migrate.h
+index 3e546cbf03dd..aafec0ca7b41 100644
+--- a/include/linux/migrate.h
++++ b/include/linux/migrate.h
+@@ -180,6 +180,11 @@ static inline unsigned long migrate_pfn(unsigned long =
+pfn)
+ 	return (pfn << MIGRATE_PFN_SHIFT) | MIGRATE_PFN_VALID;
+ }
+=20
++enum migrate_vma_direction {
++	MIGRATE_VMA_SELECT_SYSTEM         =3D (1UL << 0),
++	MIGRATE_VMA_SELECT_DEVICE_PRIVATE =3D (1UL << 1),
++};
++
+ struct migrate_vma {
+ 	struct vm_area_struct	*vma;
+ 	/*
+@@ -199,11 +204,11 @@ struct migrate_vma {
+=20
+ 	/*
+ 	 * Set to the owner value also stored in page->pgmap->owner for
+-	 * migrating out of device private memory.  If set only device
+-	 * private pages with this owner are migrated.  If not set
+-	 * device private pages are not migrated at all.
++	 * migrating out of device private memory. The flags also need to
++	 * be set to MIGRATE_VMA_SELECT_DEVICE_PRIVATE.
+ 	 */
+-	void			*src_owner;
++	void			*pgmap_owner;
++	unsigned long		flags;
+ };
+=20
+ int migrate_vma_setup(struct migrate_vma *args);
 diff --git a/lib/test_hmm.c b/lib/test_hmm.c
-index 74c6ee66ef15..9abc9ad3140f 100644
+index 9aa577afc269..74c6ee66ef15 100644
 --- a/lib/test_hmm.c
 +++ b/lib/test_hmm.c
-@@ -214,6 +214,14 @@ static bool dmirror_interval_invalidate(struct mmu_int=
-erval_notifier *mni,
- {
- 	struct dmirror *dmirror =3D container_of(mni, struct dmirror, notifier);
-=20
-+	/*
-+	 * Ignore invalidation callbacks for device private pages since
-+	 * the invalidation is handled as part of the migration process.
-+	 */
-+	if (range->event =3D=3D MMU_NOTIFY_MIGRATE &&
-+	    range->migrate_pgmap_owner =3D=3D dmirror->mdevice)
-+		return true;
-+
- 	if (mmu_notifier_range_blockable(range))
- 		mutex_lock(&dmirror->mutex);
- 	else if (!mutex_trylock(&dmirror->mutex))
-@@ -702,7 +710,7 @@ static int dmirror_migrate(struct dmirror *dmirror,
+@@ -702,7 +702,8 @@ static int dmirror_migrate(struct dmirror *dmirror,
  		args.dst =3D dst_pfns;
  		args.start =3D addr;
  		args.end =3D next;
--		args.pgmap_owner =3D NULL;
-+		args.pgmap_owner =3D dmirror->mdevice;
- 		args.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
+-		args.src_owner =3D NULL;
++		args.pgmap_owner =3D NULL;
++		args.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
  		ret =3D migrate_vma_setup(&args);
  		if (ret)
-@@ -992,7 +1000,7 @@ static void dmirror_devmem_free(struct page *page)
- }
+ 			goto out;
+@@ -1053,7 +1054,8 @@ static vm_fault_t dmirror_devmem_fault(struct vm_faul=
+t *vmf)
+ 	args.end =3D args.start + PAGE_SIZE;
+ 	args.src =3D &src_pfns;
+ 	args.dst =3D &dst_pfns;
+-	args.src_owner =3D dmirror->mdevice;
++	args.pgmap_owner =3D dmirror->mdevice;
++	args.flags =3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE;
 =20
- static vm_fault_t dmirror_devmem_fault_alloc_and_copy(struct migrate_vma *=
-args,
--						struct dmirror_device *mdevice)
-+						      struct dmirror *dmirror)
- {
- 	const unsigned long *src =3D args->src;
- 	unsigned long *dst =3D args->dst;
-@@ -1014,6 +1022,7 @@ static vm_fault_t dmirror_devmem_fault_alloc_and_copy=
-(struct migrate_vma *args,
- 			continue;
-=20
- 		lock_page(dpage);
-+		xa_erase(&dmirror->pt, addr >> PAGE_SHIFT);
- 		copy_highpage(dpage, spage);
- 		*dst =3D migrate_pfn(page_to_pfn(dpage)) | MIGRATE_PFN_LOCKED;
- 		if (*src & MIGRATE_PFN_WRITE)
-@@ -1022,15 +1031,6 @@ static vm_fault_t dmirror_devmem_fault_alloc_and_cop=
-y(struct migrate_vma *args,
- 	return 0;
- }
-=20
--static void dmirror_devmem_fault_finalize_and_map(struct migrate_vma *args=
-,
--						  struct dmirror *dmirror)
--{
--	/* Invalidate the device's page table mapping. */
--	mutex_lock(&dmirror->mutex);
--	dmirror_do_update(dmirror, args->start, args->end);
--	mutex_unlock(&dmirror->mutex);
--}
--
- static vm_fault_t dmirror_devmem_fault(struct vm_fault *vmf)
- {
- 	struct migrate_vma args;
-@@ -1060,11 +1060,15 @@ static vm_fault_t dmirror_devmem_fault(struct vm_fa=
-ult *vmf)
  	if (migrate_vma_setup(&args))
  		return VM_FAULT_SIGBUS;
+diff --git a/mm/migrate.c b/mm/migrate.c
+index f37729673558..e3ea68e3a08b 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -2287,7 +2287,9 @@ static int migrate_vma_collect_pmd(pmd_t *pmdp,
+ 				goto next;
 =20
--	ret =3D dmirror_devmem_fault_alloc_and_copy(&args, dmirror->mdevice);
-+	ret =3D dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
- 	if (ret)
- 		return ret;
- 	migrate_vma_pages(&args);
--	dmirror_devmem_fault_finalize_and_map(&args, dmirror);
-+	/*
-+	 * No device finalize step is needed since
-+	 * dmirror_devmem_fault_alloc_and_copy() will have already
-+	 * invalidated the device page table.
-+	 */
- 	migrate_vma_finalize(&args);
- 	return 0;
- }
-diff --git a/tools/testing/selftests/vm/hmm-tests.c b/tools/testing/selftes=
-ts/vm/hmm-tests.c
-index b533dd08da1d..91d38a29956b 100644
---- a/tools/testing/selftests/vm/hmm-tests.c
-+++ b/tools/testing/selftests/vm/hmm-tests.c
-@@ -881,8 +881,9 @@ TEST_F(hmm, migrate)
- }
+ 			page =3D device_private_entry_to_page(entry);
+-			if (page->pgmap->owner !=3D migrate->src_owner)
++			if (!(migrate->flags &
++				MIGRATE_VMA_SELECT_DEVICE_PRIVATE) ||
++			    page->pgmap->owner !=3D migrate->pgmap_owner)
+ 				goto next;
 =20
- /*
-- * Migrate anonymous memory to device private memory and fault it back to =
-system
-- * memory.
-+ * Migrate anonymous memory to device private memory and fault some of it =
-back
-+ * to system memory, then try migrating the resulting mix of system and de=
-vice
-+ * private memory to the device.
-  */
- TEST_F(hmm, migrate_fault)
- {
-@@ -924,8 +925,17 @@ TEST_F(hmm, migrate_fault)
- 	for (i =3D 0, ptr =3D buffer->mirror; i < size / sizeof(*ptr); ++i)
- 		ASSERT_EQ(ptr[i], i);
-=20
--	/* Fault pages back to system memory and check them. */
--	for (i =3D 0, ptr =3D buffer->ptr; i < size / sizeof(*ptr); ++i)
-+	/* Fault half the pages back to system memory and check them. */
-+	for (i =3D 0, ptr =3D buffer->ptr; i < size / (2 * sizeof(*ptr)); ++i)
-+		ASSERT_EQ(ptr[i], i);
-+
-+	/* Migrate memory to the device again. */
-+	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i =3D 0, ptr =3D buffer->mirror; i < size / sizeof(*ptr); ++i)
- 		ASSERT_EQ(ptr[i], i);
-=20
- 	hmm_buffer_free(buffer);
+ 			mpfn =3D migrate_pfn(page_to_pfn(page)) |
+@@ -2295,7 +2297,7 @@ static int migrate_vma_collect_pmd(pmd_t *pmdp,
+ 			if (is_write_device_private_entry(entry))
+ 				mpfn |=3D MIGRATE_PFN_WRITE;
+ 		} else {
+-			if (migrate->src_owner)
++			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
+ 				goto next;
+ 			pfn =3D pte_pfn(pte);
+ 			if (is_zero_pfn(pfn)) {
 --=20
 2.20.1
 
