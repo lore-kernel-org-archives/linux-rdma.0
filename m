@@ -2,62 +2,66 @@ Return-Path: <SRS0=0o3f=BA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A001C433E3
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 13:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 313F1C433E8
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 13:31:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 026E3206E9
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 13:31:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05F05207DD
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 13:31:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="vFpgNKGu"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="UwRuUQz8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727844AbgGUNbU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Jul 2020 09:31:20 -0400
-Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:59424 "EHLO
-        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726192AbgGUNbU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 09:31:20 -0400
+        id S1727860AbgGUNb1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Jul 2020 09:31:27 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:57976 "EHLO
+        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726598AbgGUNb1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 09:31:27 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1595338280; x=1626874280;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=m8VS41Y1hVbmtgcBUUDiF3YmhyRZM/CsrGMXl88qWrM=;
-  b=vFpgNKGuseM84gRdGzDejsmS8EWAl8whgt6dZdJdWijzU9JovxE/adBB
-   bPClEq5eoSq6SH3av9QUcm11ssfEe3244IMhWaNHw7OrSNYBqHcxfNU64
-   DVZUFzHYsbXpspSpHP/KL9oJZCsz7e//E8IMzrFBK6qrzNtWOXBNcSLZq
-   A=;
-IronPort-SDR: HJ9nxVp9Jj8dm2Z4d+pnGSqiyN4ZVAbQMpSOl3xIJ3gedfrQ39tyDjif0rLGCAICgX3+2heLmK
- HWtrbrFopBKg==
+  t=1595338287; x=1626874287;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=EXBkKvxEbJsQ96m+qS4fije8AJ7HuRS1Zj4zUOqcY00=;
+  b=UwRuUQz83hBoz/bndkkzRD29U1yeKmOPTa1KFyMy9jSzSF3fcu1+PMLR
+   eiXXvsTRGqi4rlQh8qqRtrm1GKGNSRHxc+tL5oAz9Pk0B72gTqe5xUIP3
+   2+iyJtNA1o8FBhONklGL4qiepYBWuL7k5ypVKYD/wnL3eCxBxMCHwu394
+   M=;
+IronPort-SDR: LYou7jTWIkIy8w2xqHADWo62w4j/kQbYD1c79rCl/Ce4ed/0bG5W7Xn5wnQzfyxtI4vOZIQxev
+ ed/PAHYSqE4A==
 X-IronPort-AV: E=Sophos;i="5.75,378,1589241600"; 
-   d="scan'208";a="53364008"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-69849ee2.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 21 Jul 2020 13:31:17 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2a-69849ee2.us-west-2.amazon.com (Postfix) with ESMTPS id 105CAA49C0;
-        Tue, 21 Jul 2020 13:31:16 +0000 (UTC)
-Received: from EX13D02EUC003.ant.amazon.com (10.43.164.10) by
+   d="scan'208";a="61579251"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-60ce1996.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 21 Jul 2020 13:31:26 +0000
+Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
+        by email-inbound-relay-2a-60ce1996.us-west-2.amazon.com (Postfix) with ESMTPS id 69E90A3430;
+        Tue, 21 Jul 2020 13:31:25 +0000 (UTC)
+Received: from EX13D22EUB003.ant.amazon.com (10.43.166.142) by
  EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 21 Jul 2020 13:31:16 +0000
+ id 15.0.1497.2; Tue, 21 Jul 2020 13:31:24 +0000
 Received: from EX13MTAUWA001.ant.amazon.com (10.43.160.58) by
- EX13D02EUC003.ant.amazon.com (10.43.164.10) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 21 Jul 2020 13:31:07 +0000
+ EX13D22EUB003.ant.amazon.com (10.43.166.142) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Tue, 21 Jul 2020 13:31:23 +0000
 Received: from 8c85908914bf.ant.amazon.com (10.1.213.11) by
  mail-relay.amazon.com (10.43.160.118) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Tue, 21 Jul 2020 13:31:03 +0000
+ 15.0.1497.2 via Frontend Transport; Tue, 21 Jul 2020 13:31:20 +0000
 From:   Gal Pressman <galpress@amazon.com>
 To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
 CC:     <linux-rdma@vger.kernel.org>,
         Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>
-Subject: [PATCH for-next v3 0/4] Add support for 0xefa1 device
-Date:   Tue, 21 Jul 2020 16:30:45 +0300
-Message-ID: <20200721133049.74349-1-galpress@amazon.com>
+        Gal Pressman <galpress@amazon.com>,
+        Shadi Ammouri <sammouri@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>
+Subject: [PATCH for-next v3 4/4] RDMA/efa: Add EFA 0xefa1 PCI ID
+Date:   Tue, 21 Jul 2020 16:30:49 +0300
+Message-ID: <20200721133049.74349-5-galpress@amazon.com>
 X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200721133049.74349-1-galpress@amazon.com>
+References: <20200721133049.74349-1-galpress@amazon.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -66,40 +70,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi all,
+Add support for 0xefa1 devices.
 
-The following submission adds the needed functionality in order to
-support 0xefa1 devices, and adds it to the driver pci table.
+Reviewed-by: Shadi Ammouri <sammouri@amazon.com>
+Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa_main.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/789
-
-Changelog -
-v2->v3: https://lore.kernel.org/linux-rdma/20200720080113.13055-1-galpress@amazon.com/
-* Remove gcc specific stuff to fix clang compilation.
-v1->v2: https://lore.kernel.org/linux-rdma/20200709083630.21377-1-galpress@amazon.com/
-* Add handshake with userspace provider to verify required features
-  support.
-
-Regards,
-Gal
-
-Gal Pressman (4):
-  RDMA/efa: Expose maximum TX doorbell batch
-  RDMA/efa: Expose minimum SQ size
-  RDMA/efa: User/kernel compatibility handshake mechanism
-  RDMA/efa: Add EFA 0xefa1 PCI ID
-
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 15 +++++-
- drivers/infiniband/hw/efa/efa_com_cmd.c       |  2 +
- drivers/infiniband/hw/efa/efa_com_cmd.h       |  2 +
- drivers/infiniband/hw/efa/efa_main.c          |  6 ++-
- drivers/infiniband/hw/efa/efa_verbs.c         | 51 +++++++++++++++++++
- include/uapi/rdma/efa-abi.h                   | 15 +++++-
- 6 files changed, 86 insertions(+), 5 deletions(-)
-
-
-base-commit: 5f0b2a6093a4d9aab093964c65083fe801ef1e58
+diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
+index 82145574c928..92d701146320 100644
+--- a/drivers/infiniband/hw/efa/efa_main.c
++++ b/drivers/infiniband/hw/efa/efa_main.c
+@@ -12,10 +12,12 @@
+ 
+ #include "efa.h"
+ 
+-#define PCI_DEV_ID_EFA_VF 0xefa0
++#define PCI_DEV_ID_EFA0_VF 0xefa0
++#define PCI_DEV_ID_EFA1_VF 0xefa1
+ 
+ static const struct pci_device_id efa_pci_tbl[] = {
+-	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA_VF) },
++	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA0_VF) },
++	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA1_VF) },
+ 	{ }
+ };
+ 
 -- 
 2.27.0
 
