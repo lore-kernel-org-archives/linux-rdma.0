@@ -2,228 +2,123 @@ Return-Path: <SRS0=0o3f=BA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E6A9C433E2
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:32:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 822DEC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:42:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4478120729
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:32:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B3552072E
+	for <linux-rdma@archiver.kernel.org>; Tue, 21 Jul 2020 21:42:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="J7DgT51E"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vfHhkUH7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731350AbgGUVcU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Jul 2020 17:32:20 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12485 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731292AbgGUVbf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 17:31:35 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f175eaa0004>; Tue, 21 Jul 2020 14:31:22 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 21 Jul 2020 14:31:35 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 21 Jul 2020 14:31:35 -0700
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 21 Jul
- 2020 21:31:25 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Tue, 21 Jul 2020 21:31:26 +0000
-Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-        id <B5f175ead0003>; Tue, 21 Jul 2020 14:31:25 -0700
-From:   Ralph Campbell <rcampbell@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
-        <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
-        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     Jerome Glisse <jglisse@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        Shuah Khan <shuah@kernel.org>,
-        "Ben Skeggs" <bskeggs@redhat.com>,
-        Bharata B Rao <bharata@linux.ibm.com>,
-        "Ralph Campbell" <rcampbell@nvidia.com>
-Subject: [PATCH v3 2/5] mm/migrate: add a flags parameter to migrate_vma
-Date:   Tue, 21 Jul 2020 14:31:16 -0700
-Message-ID: <20200721213119.32344-3-rcampbell@nvidia.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200721213119.32344-1-rcampbell@nvidia.com>
-References: <20200721213119.32344-1-rcampbell@nvidia.com>
+        id S1731283AbgGUVmm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Jul 2020 17:42:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37480 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731129AbgGUVmm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 17:42:42 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F017AC0619DB;
+        Tue, 21 Jul 2020 14:42:41 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id ga4so2864ejb.11;
+        Tue, 21 Jul 2020 14:42:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Dyi1MVLFGf/8/KPaE1swyyeNErOrv2bGUWjTcVj8gxM=;
+        b=vfHhkUH7uUqVuea2i7a2v8nm3GlQGvrejsVXk1dY+oTV5cGgIufTlcUh4U03yDRrO3
+         3ZXPq4Kz7VxluI/vXrEjn4UOxXyeDw18jZS0yQLfsEyCCAiuGS09yjqLzQvJBo0gJjzD
+         o9IFYUnweCqxm0XNV81CpeVFmCF1svsGMBkarpkK70EJKgJ1ohZtqMuFAyeMgNrM6j8L
+         MY+Xde+v4jUiVgl27SGT20e/o7328q9sF+n94T5QfWFwKyoHltzu6agpEi5hm1pXHnph
+         vAUoYRh2zp5yOEmbJdevHeUN0BLFZQLxBK1amF/HNbgoFB/AnU6n3ixeTu2aYpGx1bbJ
+         scIw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=Dyi1MVLFGf/8/KPaE1swyyeNErOrv2bGUWjTcVj8gxM=;
+        b=ghvNLM8t/FBtnlEstWsHby1urjV87BTriviTS0HtSU9wXl9VIyLw1yrWpBzAKC7r+Y
+         N4yPsp0o5nehC6h83hxMTE/E9pxOp+TF08/wJdDnE/R4b6Oci6PFlKCOETgNsJeoeIQi
+         GxiJEZ1h1TJF9HtOF1rfji+UR/hy2J6zdkH+CKw/7b9py+Cg9Q0nHyDg2+SK4eOjfvHN
+         7EpOGlqheiywUmSgc44nPOSgggNdU1YiTIayNBkg2JoXSlwry2X9YVxVireu0W5ATBBW
+         Ivc1OjRCt8QuEAJxd9bFHF6PIXwaobVlV8LYsC3mKjvgPXKTcWSQ64v1eVZiqCBvosIt
+         vQww==
+X-Gm-Message-State: AOAM532Fa0YsQ1BJWSeMTIR8tmfhXto+j8CrP6KnxrIc1uvUMTMf1SUX
+        yVWkSFnT3yqw4vsmDsz4OpH1CkdivxjnAyIO3u8=
+X-Google-Smtp-Source: ABdhPJwxE240DtGwFEuhHkKMPvfhlukuGNteVSI0paUJJOmdu+Jb46VZVXI0n2iDUJjFfIzHzYH2PLSYSUaSvNNdruQ=
+X-Received: by 2002:a17:906:f88a:: with SMTP id lg10mr26295104ejb.317.1595367760653;
+ Tue, 21 Jul 2020 14:42:40 -0700 (PDT)
 MIME-Version: 1.0
-X-NVConfidentiality: public
+References: <20200707201229.472834-4-daniel.vetter@ffwll.ch>
+ <20200709123339.547390-1-daniel.vetter@ffwll.ch> <93b673b7-bb48-96eb-dc2c-bd4f9304000e@shipmail.org>
+ <20200721074157.GB3278063@phenom.ffwll.local> <3603bb71-318b-eb53-0532-9daab62dce86@amd.com>
+ <57a5eb9d-b74f-8ce4-7199-94e911d9b68b@shipmail.org> <2ca2c004-1e11-87f5-4bd8-761e1b44d21f@amd.com>
+ <74727f17-b3a5-ca12-6db6-e47543797b72@shipmail.org> <CAKMK7uFfMi5M5EkCeG6=tjuDANH4=gDLnFpxCYU-E-xyrxwYUg@mail.gmail.com>
+ <ae4e4188-39e6-ec41-c11d-91e9211b4d3a@shipmail.org> <f8f73b9f-ce8d-ea02-7caa-d50b75b72809@amd.com>
+In-Reply-To: <f8f73b9f-ce8d-ea02-7caa-d50b75b72809@amd.com>
+From:   Dave Airlie <airlied@gmail.com>
+Date:   Wed, 22 Jul 2020 07:42:28 +1000
+Message-ID: <CAPM=9tw7CBu7zm-N5JpjK_P49Td1E9REbBn=1KrK2nAVuX=xxg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/2] dma-buf.rst: Document why indefinite
+ fences are a bad idea
+To:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Cc:     =?UTF-8?Q?Thomas_Hellstr=C3=B6m_=28Intel=29?= 
+        <thomas_os@shipmail.org>, Daniel Vetter <daniel@ffwll.ch>,
+        Daniel Stone <daniels@collabora.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        Steve Pronovost <spronovo@microsoft.com>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        Jesse Natalie <jenatali@microsoft.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Thomas Hellstrom <thomas.hellstrom@intel.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1595367082; bh=/rTL1SELeyzjCutSqs4XUcVe6mFBaH/jwq6ZNlytm7Q=;
-        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-         Content-Transfer-Encoding:Content-Type;
-        b=J7DgT51EjZ8nD9G6/JU1O1XbZURFtSDXnymf1K4W8e042QHgmAKYphQil9q3H85d2
-         8bC2QjPCdvKncLvQlAe7kbnk6Ys/6P2i3tQZsrYPA5ZSya+mbeGbIwebGoD5uMc3Y4
-         GgBjI9CDZ0dtv3fWXAFGVwd9wsj1u7ARp6KiAV7Egxp3eTKPS9hl8SqwKnaMLrbm18
-         NcDSwMwZ5mzPfP0e22a45zn9ZOh68N6LAw7F9lPwXfcnxV/3fZoHYN7k2Y1DNqdnpN
-         LH2SPBKvokJDsXs/bX+v4SSRUvhlgs09ie3yN+CDmany+kpLCJeXSYdDO18hM7xPYX
-         jOKH9+KQ0OGDA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The src_owner field in struct migrate_vma is being used for two purposes,
-it acts as a selection filter for which types of pages are to be migrated
-and it identifies device private pages owned by the caller. Split this
-into separate parameters so the src_owner field can be used just to
-identify device private pages owned by the caller of migrate_vma_setup().
-Rename the src_owner field to pgmap_owner to reflect it is now used only
-to identify which device private pages to migrate.
+>
+> >> That's also why I'm not positive on the "no hw preemption, only
+> >> scheduler" case: You still have a dma_fence for the batch itself,
+> >> which means still no userspace controlled synchronization or other
+> >> form of indefinite batches allowed. So not getting us any closer to
+> >> enabling the compute use cases people want.
+>
+> What compute use case are you talking about? I'm only aware about the
+> wait before signal case from Vulkan, the page fault case and the KFD
+> preemption fence case.
 
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
----
- arch/powerpc/kvm/book3s_hv_uvmem.c     |  4 +++-
- drivers/gpu/drm/nouveau/nouveau_dmem.c |  4 +++-
- include/linux/migrate.h                | 13 +++++++++----
- lib/test_hmm.c                         |  6 ++++--
- mm/migrate.c                           |  6 ++++--
- 5 files changed, 23 insertions(+), 10 deletions(-)
+So slight aside, but it does appear as if Intel's Level 0 API exposes
+some of the same problems as vulkan.
 
-diff --git a/arch/powerpc/kvm/book3s_hv_uvmem.c b/arch/powerpc/kvm/book3s_h=
-v_uvmem.c
-index 09d8119024db..6850bd04bcb9 100644
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c
-+++ b/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -400,6 +400,7 @@ kvmppc_svm_page_in(struct vm_area_struct *vma, unsigned=
- long start,
- 	mig.end =3D end;
- 	mig.src =3D &src_pfn;
- 	mig.dst =3D &dst_pfn;
-+	mig.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
-=20
- 	/*
- 	 * We come here with mmap_lock write lock held just for
-@@ -577,7 +578,8 @@ kvmppc_svm_page_out(struct vm_area_struct *vma, unsigne=
-d long start,
- 	mig.end =3D end;
- 	mig.src =3D &src_pfn;
- 	mig.dst =3D &dst_pfn;
--	mig.src_owner =3D &kvmppc_uvmem_pgmap;
-+	mig.pgmap_owner =3D &kvmppc_uvmem_pgmap;
-+	mig.flags =3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE;
-=20
- 	mutex_lock(&kvm->arch.uvmem_lock);
- 	/* The requested page is already paged-out, nothing to do */
-diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouve=
-au/nouveau_dmem.c
-index e5c230d9ae24..78b9e3c2a5b3 100644
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -182,7 +182,8 @@ static vm_fault_t nouveau_dmem_migrate_to_ram(struct vm=
-_fault *vmf)
- 		.end		=3D vmf->address + PAGE_SIZE,
- 		.src		=3D &src,
- 		.dst		=3D &dst,
--		.src_owner	=3D drm->dev,
-+		.pgmap_owner	=3D drm->dev,
-+		.flags		=3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE,
- 	};
-=20
- 	/*
-@@ -615,6 +616,7 @@ nouveau_dmem_migrate_vma(struct nouveau_drm *drm,
- 	struct migrate_vma args =3D {
- 		.vma		=3D vma,
- 		.start		=3D start,
-+		.flags		=3D MIGRATE_VMA_SELECT_SYSTEM,
- 	};
- 	unsigned long i;
- 	u64 *pfns;
-diff --git a/include/linux/migrate.h b/include/linux/migrate.h
-index 3e546cbf03dd..aafec0ca7b41 100644
---- a/include/linux/migrate.h
-+++ b/include/linux/migrate.h
-@@ -180,6 +180,11 @@ static inline unsigned long migrate_pfn(unsigned long =
-pfn)
- 	return (pfn << MIGRATE_PFN_SHIFT) | MIGRATE_PFN_VALID;
- }
-=20
-+enum migrate_vma_direction {
-+	MIGRATE_VMA_SELECT_SYSTEM         =3D (1UL << 0),
-+	MIGRATE_VMA_SELECT_DEVICE_PRIVATE =3D (1UL << 1),
-+};
-+
- struct migrate_vma {
- 	struct vm_area_struct	*vma;
- 	/*
-@@ -199,11 +204,11 @@ struct migrate_vma {
-=20
- 	/*
- 	 * Set to the owner value also stored in page->pgmap->owner for
--	 * migrating out of device private memory.  If set only device
--	 * private pages with this owner are migrated.  If not set
--	 * device private pages are not migrated at all.
-+	 * migrating out of device private memory. The flags also need to
-+	 * be set to MIGRATE_VMA_SELECT_DEVICE_PRIVATE.
- 	 */
--	void			*src_owner;
-+	void			*pgmap_owner;
-+	unsigned long		flags;
- };
-=20
- int migrate_vma_setup(struct migrate_vma *args);
-diff --git a/lib/test_hmm.c b/lib/test_hmm.c
-index 9aa577afc269..74c6ee66ef15 100644
---- a/lib/test_hmm.c
-+++ b/lib/test_hmm.c
-@@ -702,7 +702,8 @@ static int dmirror_migrate(struct dmirror *dmirror,
- 		args.dst =3D dst_pfns;
- 		args.start =3D addr;
- 		args.end =3D next;
--		args.src_owner =3D NULL;
-+		args.pgmap_owner =3D NULL;
-+		args.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
- 		ret =3D migrate_vma_setup(&args);
- 		if (ret)
- 			goto out;
-@@ -1053,7 +1054,8 @@ static vm_fault_t dmirror_devmem_fault(struct vm_faul=
-t *vmf)
- 	args.end =3D args.start + PAGE_SIZE;
- 	args.src =3D &src_pfns;
- 	args.dst =3D &dst_pfns;
--	args.src_owner =3D dmirror->mdevice;
-+	args.pgmap_owner =3D dmirror->mdevice;
-+	args.flags =3D MIGRATE_VMA_SELECT_DEVICE_PRIVATE;
-=20
- 	if (migrate_vma_setup(&args))
- 		return VM_FAULT_SIGBUS;
-diff --git a/mm/migrate.c b/mm/migrate.c
-index f37729673558..e3ea68e3a08b 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -2287,7 +2287,9 @@ static int migrate_vma_collect_pmd(pmd_t *pmdp,
- 				goto next;
-=20
- 			page =3D device_private_entry_to_page(entry);
--			if (page->pgmap->owner !=3D migrate->src_owner)
-+			if (!(migrate->flags &
-+				MIGRATE_VMA_SELECT_DEVICE_PRIVATE) ||
-+			    page->pgmap->owner !=3D migrate->pgmap_owner)
- 				goto next;
-=20
- 			mpfn =3D migrate_pfn(page_to_pfn(page)) |
-@@ -2295,7 +2297,7 @@ static int migrate_vma_collect_pmd(pmd_t *pmdp,
- 			if (is_write_device_private_entry(entry))
- 				mpfn |=3D MIGRATE_PFN_WRITE;
- 		} else {
--			if (migrate->src_owner)
-+			if (!(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
- 				goto next;
- 			pfn =3D pte_pfn(pte);
- 			if (is_zero_pfn(pfn)) {
---=20
-2.20.1
+They have fences:
+"A fence cannot be shared across processes."
 
+They have events (userspace fences) like Vulkan but specify:
+"Signaled from the host, and waited upon from within a device=E2=80=99s com=
+mand list."
+
+"There are no protections against events causing deadlocks, such as
+circular waits scenarios.
+
+These problems are left to the application to avoid."
+
+https://spec.oneapi.com/level-zero/latest/core/PROG.html#synchronization-pr=
+imitives
+
+Dave.
