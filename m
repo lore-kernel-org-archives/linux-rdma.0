@@ -2,120 +2,119 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEDC9C433E7
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 05:53:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8AE4C433E1
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 06:35:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3E1220771
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 05:53:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B18B20787
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 06:35:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="Mo9GD3xK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728524AbgGVFxe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 01:53:34 -0400
-Received: from mail-io1-f69.google.com ([209.85.166.69]:34446 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726696AbgGVFxU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 01:53:20 -0400
-Received: by mail-io1-f69.google.com with SMTP id 127so1134172iou.1
-        for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2020 22:53:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=vMI+b0QwNKlbP0/ucj1u+tlneVHkQXvpxz2P0D6PK8s=;
-        b=TlqGQ2MqIIHU7ppYZiCoTobMKlP5EGdMHtmnUHFQPCeryN53Q5VD0Ps+vc1NF73nn6
-         ym7gcGukLAseXy5CvsynMoUxhBfNRUZLx4ec7Isqg4RXUgdgO0IETPzXk2E/4M0zDjo4
-         GaOVMBuQTjb0Zxa8z+bex4JWs0OBXqrjD25zHbO7s5wmj2CNZf8eY+xnJG7KM6lN9HCU
-         /adZuZkMwlrc7n5M99ucNsKBiFUqV1+35Sob+M64lzqLmDUm0DxSRtBqfgRftrsD1uOb
-         b/H5RXaXjH9Q6GZgr39QqIGZQeAjp2It9SlbaDWJgS4WdN9QkagWjbKWDmsuYy/DLhCK
-         mptw==
-X-Gm-Message-State: AOAM530opfF4Ew3kT2CNn+wl28Y5HRHKjBKnqu02sjdiUpT1d/qoIHC1
-        uPS3gIQTDT3y6R0kr0PoMQZC73aH+80NBsvpn4H0XTsHZdXc
-X-Google-Smtp-Source: ABdhPJw35bTKefxEro2HR8zMrQL+kwCYSOF3wnVLtRlBV7cZn8JvkcKXN8Tk+aXwpnMZnpwBNCMdMKNProUSNTiikyw1qYRmmEsG
+        id S1727096AbgGVGfh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 02:35:37 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:25592 "EHLO
+        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726736AbgGVGfg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 02:35:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1595399736; x=1626935736;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=sMxTKggyWW8akj3924gWlhwqkiklVYYmiv4urtdv+wo=;
+  b=Mo9GD3xK9XOkDcUk1zROnhCuVXaenbOTdO9+3LRGeTQvFV7gH0a6OGUg
+   XPvdtIKBep315+9/kfkRcqV8d0DYmAZKk0QI6VwE+H4hiyXo2SOCAnF7U
+   OadLKCiGNmPcWwvbPFXO0pRSLYClhgkXZ6AidZ15G3MJMAeQ9SqfD7Z0Y
+   E=;
+IronPort-SDR: Pt9iILhiR4vjuxu9uONwgxjswT3NHnjg1zJClWspXQIkcHyNJ/13+39orUBIarRsw63n5M5dLy
+ MK2/JhIu82WQ==
+X-IronPort-AV: E=Sophos;i="5.75,381,1589241600"; 
+   d="scan'208";a="61810427"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-1d-f273de60.us-east-1.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-9102.sea19.amazon.com with ESMTP; 22 Jul 2020 06:35:29 +0000
+Received: from EX13MTAUEA002.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
+        by email-inbound-relay-1d-f273de60.us-east-1.amazon.com (Postfix) with ESMTPS id 74DA4A23F5;
+        Wed, 22 Jul 2020 06:35:26 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Wed, 22 Jul 2020 06:35:25 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.156) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Wed, 22 Jul 2020 06:35:19 +0000
+Subject: Re: [PATCH for-next v2 3/4] RDMA/efa: User/kernel compatibility
+ handshake mechanism
+To:     Nick Desaulniers <ndesaulniers@google.com>
+CC:     kernel test robot <lkp@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        "Doug Ledford" <dledford@redhat.com>, <kbuild-all@lists.01.org>,
+        clang-built-linux <clang-built-linux@googlegroups.com>,
+        <linux-rdma@vger.kernel.org>,
+        "Alexander Matushevsky" <matua@amazon.com>,
+        Shadi Ammouri <sammouri@amazon.com>,
+        "Yossi Leybovich" <sleybo@amazon.com>
+References: <20200720080113.13055-4-galpress@amazon.com>
+ <202007210118.fF0Xv5Jy%lkp@intel.com>
+ <99314564-cb73-5a25-3583-1afda323d2b3@amazon.com>
+ <CAKwvOdns6+LVqLO_aZgXOYi33xskO860=BEU-=Q7c3nGYkHs2A@mail.gmail.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <2567f2dc-90e7-a0ca-e322-f585bda08e42@amazon.com>
+Date:   Wed, 22 Jul 2020 09:35:14 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
+ Gecko/20100101 Thunderbird/68.10.0
 MIME-Version: 1.0
-X-Received: by 2002:a02:95ca:: with SMTP id b68mr36860918jai.0.1595397199619;
- Tue, 21 Jul 2020 22:53:19 -0700 (PDT)
-Date:   Tue, 21 Jul 2020 22:53:19 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000005be99c05ab015bd0@google.com>
-Subject: KMSAN: uninit-value in xa_load
-From:   syzbot <syzbot+086ab5ca9eafd2379aa6@syzkaller.appspotmail.com>
-To:     dledford@redhat.com, glider@google.com, jgg@ziepe.ca,
-        leon@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAKwvOdns6+LVqLO_aZgXOYi33xskO860=BEU-=Q7c3nGYkHs2A@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.156]
+X-ClientProxiedBy: EX13D39UWB003.ant.amazon.com (10.43.161.215) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello,
+On 21/07/2020 20:10, Nick Desaulniers wrote:
+> On Tue, Jul 21, 2020 at 4:27 AM 'Gal Pressman' via Clang Built Linux
+> <clang-built-linux@googlegroups.com> wrote:
+>>
+>> On 20/07/2020 20:08, kernel test robot wrote:
+>>> Hi Gal,
+>>>
+>>> I love your patch! Yet something to improve:
+>>>
+>>> [auto build test ERROR on 5f0b2a6093a4d9aab093964c65083fe801ef1e58]
+>>>
+>>> url:    https://github.com/0day-ci/linux/commits/Gal-Pressman/Add-support-for-0xefa1-device/20200720-160419
+>>> base:    5f0b2a6093a4d9aab093964c65083fe801ef1e58
+>>> config: x86_64-allyesconfig (attached as .config)
+>>> compiler: clang version 12.0.0 (https://github.com/llvm/llvm-project cf1105069648446d58adfb7a6cc590013d6886ba)
+>>
+>> Uh, looks like I use some gcc specific stuff here.. I guess it's time to start
+>> checking clang compilation as well :).
+>>
+>> Will fix and resubmit.
+> 
+>>> drivers/infiniband/hw/efa/efa_verbs.c:1539:18: error: invalid application of 'sizeof' to an incomplete type 'struct (anonymous struct at drivers/infiniband/hw/efa/efa_verbs.c:1529:2) []'
+>            for (i = 0; i < ARRAY_SIZE(user_comp_handshakes); i++) {
+>                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> is user_comp_handshakes forward declared but not defined for an allyesconfig?
+> 
 
-syzbot found the following issue on:
+I don't think that's the issue here, the real problem is the first error:
 
-HEAD commit:    14525656 compiler.h: reinstate missing KMSAN_INIT
-git tree:       https://github.com/google/kmsan.git master
-console output: https://syzkaller.appspot.com/x/log.txt?x=105d7320900000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c534a9fad6323722
-dashboard link: https://syzkaller.appspot.com/bug?extid=086ab5ca9eafd2379aa6
-compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1303736f100000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12096087100000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+086ab5ca9eafd2379aa6@syzkaller.appspotmail.com
-
-=====================================================
-BUG: KMSAN: uninit-value in xas_start lib/xarray.c:190 [inline]
-BUG: KMSAN: uninit-value in xas_load lib/xarray.c:233 [inline]
-BUG: KMSAN: uninit-value in xa_load+0x83b/0x8a0 lib/xarray.c:1305
-CPU: 0 PID: 8440 Comm: syz-executor560 Not tainted 5.8.0-rc5-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x1df/0x240 lib/dump_stack.c:118
- kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
- __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
- xas_start lib/xarray.c:190 [inline]
- xas_load lib/xarray.c:233 [inline]
- xa_load+0x83b/0x8a0 lib/xarray.c:1305
- _ucma_find_context drivers/infiniband/core/ucma.c:139 [inline]
- ucma_get_ctx+0x7f/0x310 drivers/infiniband/core/ucma.c:152
- ucma_get_ctx_dev drivers/infiniband/core/ucma.c:175 [inline]
- ucma_accept+0x259/0xc90 drivers/infiniband/core/ucma.c:1148
- ucma_write+0x5c5/0x630 drivers/infiniband/core/ucma.c:1764
- do_loop_readv_writev fs/read_write.c:737 [inline]
- do_iter_write+0x710/0xdc0 fs/read_write.c:1020
- vfs_writev fs/read_write.c:1091 [inline]
- do_writev+0x42d/0x8f0 fs/read_write.c:1134
- __do_sys_writev fs/read_write.c:1207 [inline]
- __se_sys_writev+0x9b/0xb0 fs/read_write.c:1204
- __x64_sys_writev+0x4a/0x70 fs/read_write.c:1204
- do_syscall_64+0xb0/0x150 arch/x86/entry/common.c:386
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x4402e9
-Code: Bad RIP value.
-RSP: 002b:00007fffa058a4f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004402e9
-RDX: 0000000000000001 RSI: 00000000200000c0 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401af0
-R13: 0000000000401b80 R14: 0000000000000000 R15: 0000000000000000
-
-Local variable ----cmd@ucma_accept created at:
- ucma_accept+0x95/0xc90 drivers/infiniband/core/ucma.c:1137
- ucma_accept+0x95/0xc90 drivers/infiniband/core/ucma.c:1137
-=====================================================
+>> drivers/infiniband/hw/efa/efa_verbs.c:1533:3: error: function definition is not allowed here
+                   DEFINE_COMP_HANDSHAKE(max_tx_batch, EFA_ALLOC_UCONTEXT_CMD_COMP_TX_BATCH),
+                   ^
+   drivers/infiniband/hw/efa/efa_verbs.c:1520:4: note: expanded from macro 'DEFINE_COMP_HANDSHAKE'
+                           DEFINE_GET_DEV_ATTR_FUNC(_attr)                        \
+                           ^
+   drivers/infiniband/hw/efa/efa_verbs.c:1506:2: note: expanded from macro 'DEFINE_GET_DEV_ATTR_FUNC'
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Apparently the braced group (is that how its called?) is supported by gcc, but not clang.
