@@ -2,379 +2,160 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 760DDC433E4
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F22D3C433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:07:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53D132071A
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:56:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D075020709
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:07:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="SITU1kgF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727867AbgGVN4f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 09:56:35 -0400
-Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:39370 "EHLO
-        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1732429AbgGVN4f (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 09:56:35 -0400
-Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
-        with SMTP; 22 Jul 2020 16:56:30 +0300
-Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
-        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 06MDuTPn026773;
-        Wed, 22 Jul 2020 16:56:30 +0300
-From:   Max Gurtovoy <maxg@mellanox.com>
-To:     sagi@grimberg.me, yaminf@mellanox.com, dledford@redhat.com,
-        linux-rdma@vger.kernel.org, leon@kernel.org, bvanassche@acm.org
-Cc:     israelr@mellanox.com, oren@mellanox.com, jgg@mellanox.com,
-        idanb@mellanox.com, Max Gurtovoy <maxg@mellanox.com>
-Subject: [PATCH 2/3] IB/isert: use new shared CQ mechanism
-Date:   Wed, 22 Jul 2020 16:56:28 +0300
-Message-Id: <20200722135629.49467-2-maxg@mellanox.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20200722135629.49467-1-maxg@mellanox.com>
-References: <20200722135629.49467-1-maxg@mellanox.com>
+        id S1729126AbgGVOHw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 10:07:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48124 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729766AbgGVOHv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 10:07:51 -0400
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72850C0619DE
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2020 07:07:51 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id t4so1952666oij.9
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2020 07:07:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=yAHV/rpaUbGt0q99VF6bHWxElygJ/Z2JZXz353VfAMQ=;
+        b=SITU1kgFHOpxrGfAvN/xsy6y/SqUaSONdNDH3tOAGvk0gA4uhHJweALhI0Dxw7n0Y/
+         w0T54rjK6YJq44cbIqPDTyG7Y3ioXKYTGAPQ+Af2WyK7pWiq7s4i7JHD2KwgwimcxbZb
+         ra+ouxUIDC6ClGXL8ZIqULwe0ZZzNG8n+cYmU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=yAHV/rpaUbGt0q99VF6bHWxElygJ/Z2JZXz353VfAMQ=;
+        b=QbNjXb9xCMCSut0Z7OGkv8vBhVPoyWl0KJx3s/cFApm5vGV6BPVoePclsUOdOVw9pY
+         Sx/wIWBcpKnrtmLMOGP/CqKI+s67I5QtqMRDY6xKaijFnvEZxn24nZN5sKARa+th/enz
+         cLG38WfYoluLP/c/yUYJVia4I1xDURKFXrNVbhCm3aT/gShhoYynOAaZnw56UTSXi4xM
+         9DVkcL2vwPVurjpQu3lamaSyeoBgPLfFRjjjGYB0sXNcpa1nvhvnN3beTuS4wQj3eFAb
+         OTdN9xweb/RQO0mx8R+D0aPvgllJbsFR6js/UOQRdpPMdwlstinxZt3mvuhGx1FoTztm
+         INOg==
+X-Gm-Message-State: AOAM531K50hYHd6IYLKfaHXKN/lXwqLhX4099blq0bQurUnF3ectgDrB
+        k4K/wUNCN6+bBt4iH//lZ8ob5MCMMXhJJNEni4EqdA==
+X-Google-Smtp-Source: ABdhPJxsmP01VwUh+xqO5FIOiyXHA61FZ3yhIgmjFOUSqLR+0KcXAPEhRCCAl08pk9WqF5Dcre5YesNtfI3JuxHSNWo=
+X-Received: by 2002:aca:cc8e:: with SMTP id c136mr7273449oig.128.1595426870693;
+ Wed, 22 Jul 2020 07:07:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20200707201229.472834-4-daniel.vetter@ffwll.ch>
+ <20200709123339.547390-1-daniel.vetter@ffwll.ch> <93b673b7-bb48-96eb-dc2c-bd4f9304000e@shipmail.org>
+ <20200721074157.GB3278063@phenom.ffwll.local> <3603bb71-318b-eb53-0532-9daab62dce86@amd.com>
+ <57a5eb9d-b74f-8ce4-7199-94e911d9b68b@shipmail.org> <CAPM=9twUWeenf-26GEvkuKo3wHgS3BCyrva=sNaWo6+=A5qdoQ@mail.gmail.com>
+ <805c49b7-f0b3-45dc-5fe3-b352f0971527@shipmail.org> <CAKMK7uHhhxBC2MvnNnU9FjxJaWkEcP3m5m7AN3yzfw=wxFsckA@mail.gmail.com>
+ <92393d26-d863-aac6-6d27-53cad6854e13@shipmail.org> <CAKMK7uF8jpyuCF8uUbEeJUedErxqRGa8JY+RuURg7H1XXWXzkw@mail.gmail.com>
+ <8fd999f2-cbf6-813c-6ad4-131948fb5cc5@shipmail.org> <CAKMK7uH0rcyepP2hDpNB-yuvNyjee1tPmxWUyefS5j7i-N6Pfw@mail.gmail.com>
+ <df5414f5-ac5c-d212-500c-b05c7c78ce84@shipmail.org> <CAKMK7uF27SifuvMatuP2kJPTf+LVmVbG098cE2cqorYYo7UHkw@mail.gmail.com>
+ <697d1b5e-5d1c-1655-23f8-7a3f652606f3@shipmail.org>
+In-Reply-To: <697d1b5e-5d1c-1655-23f8-7a3f652606f3@shipmail.org>
+From:   Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Wed, 22 Jul 2020 16:07:39 +0200
+Message-ID: <CAKMK7uGSkgdJyyvGe8SF_vWfgyaCWn5p0GvZZdLvkxmrS6tYbQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/2] dma-buf.rst: Document why indefinite
+ fences are a bad idea
+To:     =?UTF-8?Q?Thomas_Hellstr=C3=B6m_=28Intel=29?= 
+        <thomas_os@shipmail.org>
+Cc:     Dave Airlie <airlied@gmail.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Daniel Stone <daniels@collabora.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        Steve Pronovost <spronovo@microsoft.com>,
+        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        Jesse Natalie <jenatali@microsoft.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Thomas Hellstrom <thomas.hellstrom@intel.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>,
+        Felix Kuehling <Felix.Kuehling@amd.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yamin Friedman <yaminf@mellanox.com>
+On Wed, Jul 22, 2020 at 3:12 PM Thomas Hellstr=C3=B6m (Intel)
+<thomas_os@shipmail.org> wrote:
+> On 2020-07-22 14:41, Daniel Vetter wrote:
+> > Ah I think I misunderstood which options you want to compare here. I'm
+> > not sure how much pain fixing up "dma-fence as memory fence" really
+> > is. That's kinda why I want a lot more testing on my annotation
+> > patches, to figure that out. Not much feedback aside from amdgpu and
+> > intel, and those two drivers pretty much need to sort out their memory
+> > fence issues anyway (because of userptr and stuff like that).
+> >
+> > The only other issues outside of these two drivers I'm aware of:
+> > - various scheduler drivers doing allocations in the drm/scheduler
+> > critical section. Since all arm-soc drivers have a mildly shoddy
+> > memory model of "we just pin everything" they don't really have to
+> > deal with this. So we might just declare arm as a platform broken and
+> > not taint the dma-fence critical sections with fs_reclaim. Otoh we
+> > need to fix this for drm/scheduler anyway, I think best option would
+> > be to have a mempool for hw fences in the scheduler itself, and at
+> > that point fixing the other drivers shouldn't be too onerous.
+> >
+> > - vmwgfx doing a dma_resv in the atomic commit tail. Entirely
+> > orthogonal to the entire memory fence discussion.
+>
+> With vmwgfx there is another issue that is hit when the gpu signals an
+> error. At that point the batch might be restarted with a new meta
+> command buffer that needs to be allocated out of a dma pool. in the
+> fence critical section. That's probably a bit nasty to fix, but not
+> impossible.
 
-Has the driver use shared CQs provided by the rdma core driver.
-Because this provides similar functionality to iser_comp it has been
-removed. Now there is no reason to allocate very large CQs when the driver
-is loaded while gaining the advantage of shared CQs. Previously when a
-single connection was opened a CQ was opened for every core with enough
-space for eight connections, this is a very large overhead that in most
-cases will not be utilized.
+Yeah reset is fun. From what I've seen this isn't any worse than the
+hw allocation issue for drm/scheduler drivers, they just allocate
+another hw fence with all that drags along. So the same mempool should
+be sufficient.
 
-Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 169 ++++++--------------------------
- drivers/infiniband/ulp/isert/ib_isert.h |  18 +---
- 2 files changed, 34 insertions(+), 153 deletions(-)
+The really nasty thing around reset is display interactions, because
+you just can't take drm_modeset_lock. amdgpu fixed that now (at least
+the modeset_lock side, not yet the memory allocations that brings
+along). i915 has the same problem for gen2/3 (so really old stuff),
+and we've solved that by breaking&restarting all i915 fence waits, but
+that predates multi-gpu and wont work for shared fences ofc. But it's
+so old and predates all multi-gpu laptops that I think wontfix is the
+right take.
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index b7df38e..4e9307b 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -24,13 +24,6 @@
- 
- #include "ib_isert.h"
- 
--#define	ISERT_MAX_CONN		8
--#define ISER_MAX_RX_CQ_LEN	(ISERT_QP_MAX_RECV_DTOS * ISERT_MAX_CONN)
--#define ISER_MAX_TX_CQ_LEN \
--	((ISERT_QP_MAX_REQ_DTOS + ISCSI_DEF_XMIT_CMDS_MAX) * ISERT_MAX_CONN)
--#define ISER_MAX_CQ_LEN		(ISER_MAX_RX_CQ_LEN + ISER_MAX_TX_CQ_LEN + \
--				 ISERT_MAX_CONN)
--
- static int isert_debug_level;
- module_param_named(debug_level, isert_debug_level, int, 0644);
- MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0 (default:0)");
-@@ -82,50 +75,29 @@
- 	}
- }
- 
--static struct isert_comp *
--isert_comp_get(struct isert_conn *isert_conn)
--{
--	struct isert_device *device = isert_conn->device;
--	struct isert_comp *comp;
--	int i, min = 0;
--
--	mutex_lock(&device_list_mutex);
--	for (i = 0; i < device->comps_used; i++)
--		if (device->comps[i].active_qps <
--		    device->comps[min].active_qps)
--			min = i;
--	comp = &device->comps[min];
--	comp->active_qps++;
--	mutex_unlock(&device_list_mutex);
--
--	isert_info("conn %p, using comp %p min_index: %d\n",
--		   isert_conn, comp, min);
--
--	return comp;
--}
--
--static void
--isert_comp_put(struct isert_comp *comp)
--{
--	mutex_lock(&device_list_mutex);
--	comp->active_qps--;
--	mutex_unlock(&device_list_mutex);
--}
--
- static struct ib_qp *
- isert_create_qp(struct isert_conn *isert_conn,
--		struct isert_comp *comp,
- 		struct rdma_cm_id *cma_id)
- {
-+	u32 cq_size = ISERT_QP_MAX_REQ_DTOS + ISERT_QP_MAX_RECV_DTOS + 2;
- 	struct isert_device *device = isert_conn->device;
-+	struct ib_device *ib_dev = device->ib_device;
- 	struct ib_qp_init_attr attr;
- 	int ret;
- 
-+	isert_conn->cq = ib_cq_pool_get(ib_dev, cq_size, -1, IB_POLL_WORKQUEUE);
-+	if (IS_ERR(isert_conn->cq)) {
-+		isert_err("Unable to allocate cq\n");
-+		ret = PTR_ERR(isert_conn->cq);
-+		return ERR_PTR(ret);
-+	}
-+	isert_conn->cq_size = cq_size;
-+
- 	memset(&attr, 0, sizeof(struct ib_qp_init_attr));
- 	attr.event_handler = isert_qp_event_callback;
- 	attr.qp_context = isert_conn;
--	attr.send_cq = comp->cq;
--	attr.recv_cq = comp->cq;
-+	attr.send_cq = isert_conn->cq;
-+	attr.recv_cq = isert_conn->cq;
- 	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
- 	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX;
-@@ -139,6 +111,8 @@
- 	ret = rdma_create_qp(cma_id, device->pd, &attr);
- 	if (ret) {
- 		isert_err("rdma_create_qp failed for cma_id %d\n", ret);
-+		ib_cq_pool_put(isert_conn->cq, isert_conn->cq_size);
-+
- 		return ERR_PTR(ret);
- 	}
- 
-@@ -146,25 +120,6 @@
- }
- 
- static int
--isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
--{
--	struct isert_comp *comp;
--	int ret;
--
--	comp = isert_comp_get(isert_conn);
--	isert_conn->qp = isert_create_qp(isert_conn, comp, cma_id);
--	if (IS_ERR(isert_conn->qp)) {
--		ret = PTR_ERR(isert_conn->qp);
--		goto err;
--	}
--
--	return 0;
--err:
--	isert_comp_put(comp);
--	return ret;
--}
--
--static int
- isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
- {
- 	struct isert_device *device = isert_conn->device;
-@@ -231,61 +186,6 @@
- 	isert_conn->rx_descs = NULL;
- }
- 
--static void
--isert_free_comps(struct isert_device *device)
--{
--	int i;
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct isert_comp *comp = &device->comps[i];
--
--		if (comp->cq)
--			ib_free_cq(comp->cq);
--	}
--	kfree(device->comps);
--}
--
--static int
--isert_alloc_comps(struct isert_device *device)
--{
--	int i, max_cqe, ret = 0;
--
--	device->comps_used = min(ISERT_MAX_CQ, min_t(int, num_online_cpus(),
--				 device->ib_device->num_comp_vectors));
--
--	isert_info("Using %d CQs, %s supports %d vectors support "
--		   "pi_capable %d\n",
--		   device->comps_used, dev_name(&device->ib_device->dev),
--		   device->ib_device->num_comp_vectors,
--		   device->pi_capable);
--
--	device->comps = kcalloc(device->comps_used, sizeof(struct isert_comp),
--				GFP_KERNEL);
--	if (!device->comps)
--		return -ENOMEM;
--
--	max_cqe = min(ISER_MAX_CQ_LEN, device->ib_device->attrs.max_cqe);
--
--	for (i = 0; i < device->comps_used; i++) {
--		struct isert_comp *comp = &device->comps[i];
--
--		comp->device = device;
--		comp->cq = ib_alloc_cq(device->ib_device, comp, max_cqe, i,
--				IB_POLL_WORKQUEUE);
--		if (IS_ERR(comp->cq)) {
--			isert_err("Unable to allocate cq\n");
--			ret = PTR_ERR(comp->cq);
--			comp->cq = NULL;
--			goto out_cq;
--		}
--	}
--
--	return 0;
--out_cq:
--	isert_free_comps(device);
--	return ret;
--}
--
- static int
- isert_create_device_ib_res(struct isert_device *device)
- {
-@@ -296,16 +196,12 @@
- 		  ib_dev->attrs.max_send_sge, ib_dev->attrs.max_recv_sge);
- 	isert_dbg("devattr->max_sge_rd: %d\n", ib_dev->attrs.max_sge_rd);
- 
--	ret = isert_alloc_comps(device);
--	if (ret)
--		goto out;
--
- 	device->pd = ib_alloc_pd(ib_dev, 0);
- 	if (IS_ERR(device->pd)) {
- 		ret = PTR_ERR(device->pd);
- 		isert_err("failed to allocate pd, device %p, ret=%d\n",
- 			  device, ret);
--		goto out_cq;
-+		return ret;
- 	}
- 
- 	/* Check signature cap */
-@@ -313,13 +209,6 @@
- 			     IB_DEVICE_INTEGRITY_HANDOVER ? true : false;
- 
- 	return 0;
--
--out_cq:
--	isert_free_comps(device);
--out:
--	if (ret > 0)
--		ret = -EINVAL;
--	return ret;
- }
- 
- static void
-@@ -328,7 +217,6 @@
- 	isert_info("device %p\n", device);
- 
- 	ib_dealloc_pd(device->pd);
--	isert_free_comps(device);
- }
- 
- static void
-@@ -490,6 +378,13 @@
- 	}
- }
- 
-+static void
-+isert_destroy_qp(struct isert_conn *isert_conn)
-+{
-+	ib_destroy_qp(isert_conn->qp);
-+	ib_cq_pool_put(isert_conn->cq, isert_conn->cq_size);
-+}
-+
- static int
- isert_connect_request(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- {
-@@ -530,17 +425,19 @@
- 
- 	isert_set_nego_params(isert_conn, &event->param.conn);
- 
--	ret = isert_conn_setup_qp(isert_conn, cma_id);
--	if (ret)
-+	isert_conn->qp = isert_create_qp(isert_conn, cma_id);
-+	if (IS_ERR(isert_conn->qp)) {
-+		ret = PTR_ERR(isert_conn->qp);
- 		goto out_conn_dev;
-+	}
- 
- 	ret = isert_login_post_recv(isert_conn);
- 	if (ret)
--		goto out_conn_dev;
-+		goto out_destroy_qp;
- 
- 	ret = isert_rdma_accept(isert_conn);
- 	if (ret)
--		goto out_conn_dev;
-+		goto out_destroy_qp;
- 
- 	mutex_lock(&isert_np->mutex);
- 	list_add_tail(&isert_conn->node, &isert_np->accepted);
-@@ -548,6 +445,8 @@
- 
- 	return 0;
- 
-+out_destroy_qp:
-+	isert_destroy_qp(isert_conn);
- out_conn_dev:
- 	isert_device_put(device);
- out_rsp_dma_map:
-@@ -572,12 +471,8 @@
- 	    !isert_conn->dev_removed)
- 		rdma_destroy_id(isert_conn->cm_id);
- 
--	if (isert_conn->qp) {
--		struct isert_comp *comp = isert_conn->qp->recv_cq->cq_context;
--
--		isert_comp_put(comp);
--		ib_destroy_qp(isert_conn->qp);
--	}
-+	if (isert_conn->qp)
-+		isert_destroy_qp(isert_conn);
- 
- 	if (isert_conn->login_req_buf)
- 		isert_free_login_buf(isert_conn);
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 3b296ba..efe755f 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -155,6 +155,8 @@ struct isert_conn {
- 	struct iser_tx_desc	login_tx_desc;
- 	struct rdma_cm_id	*cm_id;
- 	struct ib_qp		*qp;
-+	struct ib_cq		*cq;
-+	u32			cq_size;
- 	struct isert_device	*device;
- 	struct mutex		mutex;
- 	struct kref		kref;
-@@ -165,22 +167,6 @@ struct isert_conn {
- 	bool			dev_removed;
- };
- 
--#define ISERT_MAX_CQ 64
--
--/**
-- * struct isert_comp - iSER completion context
-- *
-- * @device:     pointer to device handle
-- * @cq:         completion queue
-- * @active_qps: Number of active QPs attached
-- *              to completion context
-- */
--struct isert_comp {
--	struct isert_device     *device;
--	struct ib_cq		*cq;
--	int                      active_qps;
--};
--
- struct isert_device {
- 	bool			pi_capable;
- 	int			refcount;
--- 
-1.8.3.1
+Other drm/scheduler drivers don't have that problem since they're all
+render-only, so no display driver interaction.
 
+> > I'm pretty sure there's more bugs, I just haven't heard from them yet.
+> > Also due to the opt-in nature of dma-fence we can limit the scope of
+> > what we fix fairly naturally, just don't put them where no one cares
+> > :-) Of course that also hides general locking issues in dma_fence
+> > signalling code, but well *shrug*.
+> Hmm, yes. Another potential big problem would be drivers that want to
+> use gpu page faults in the dma-fence critical sections with the
+> batch-based programming model.
+
+Yeah that's a massive can of worms. But luckily there's no such driver
+merged in upstream, so hopefully we can think about all the
+constraints and how to best annotate&enforce this before we land any
+code and have big regrets.
+-Daniel
+
+
+
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
