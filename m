@@ -2,308 +2,112 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AFE8C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 02:09:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 440DCC433E6
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 05:53:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 03074206F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 02:09:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SfPU86oE"
+	by mail.kernel.org (Postfix) with ESMTP id 2A75C20771
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 05:53:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731614AbgGVCJS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Jul 2020 22:09:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50216 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731590AbgGVCJQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Jul 2020 22:09:16 -0400
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD575C061794
-        for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2020 19:09:16 -0700 (PDT)
-Received: by mail-ot1-x343.google.com with SMTP id h1so643624otq.12
-        for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2020 19:09:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=04lIRsqsFARASfmCDoW2xsRKUgD3QJ1Cx2IMB5O92BA=;
-        b=SfPU86oEo92lhuvAOf+dBoNILvp5tWKj9KYf9WZDetv0sJ3kARBE74Oo1g97RRSdK7
-         GMMID2y+ti+xmZnksQdjvcFCSFOp4Dh1hWXpjXj7/qlcS3V2HjPXxsGOZXd3B1f19IRM
-         R03w92j9qCLSXYl1qtMh3lYbPXT6pGhrXdSAuyGEAeQT8+1yGwbJ5WTximhac/V64gDo
-         CdkG3W63g7nEiW/O/lZVWGEAAsjBc+6XWP0AWw6JV5NlU8wbyEqz5NJrrWJJLdrOKa6j
-         IRyJSsrUr56gSbcnO7f3EzTKuvo4T662Fe7ITQ0bc94mMCz+WXfQtUSJD7i7Khajanee
-         ru/Q==
+        id S1727929AbgGVFxa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 01:53:30 -0400
+Received: from mail-il1-f200.google.com ([209.85.166.200]:53918 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728318AbgGVFxV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 01:53:21 -0400
+Received: by mail-il1-f200.google.com with SMTP id r4so289900ilq.20
+        for <linux-rdma@vger.kernel.org>; Tue, 21 Jul 2020 22:53:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=04lIRsqsFARASfmCDoW2xsRKUgD3QJ1Cx2IMB5O92BA=;
-        b=m87LE3yF55sAv8VAhwT3k56/T4u8EyQ8lAHbpZjv5Ejetz+wkF2lYSrHn/W6IaKBki
-         BuASaMzhXqB56btZUewJRSSLqy67FihubOE3H6RvIOTrTCPDMqRqjLfB4IJCqtLCuYiC
-         YNMj9tdvTDeFwXMC+tdQImAZbcrXWUOuNI6FZPYiv/ylJED87vjciQfNfo0Fi69k3zEE
-         XynNbb9z74oCmHKNjFl+m8s9srBlYRJofo/8ctWpRnic/ayJv2fqHgN/i7aF02zikMRV
-         wVIPmkV4oeJhFK/HPPBoj7F5315FcMEqWSXb6kV+xLX0fGqJTMS7nLIJhQN5P05+BHyY
-         7ohw==
-X-Gm-Message-State: AOAM532AGe9jIuWRyQCn/RSHr4wq13mb2ilYuD7QOvej08yRr8w/EmCi
-        jzwTFIU7n7JEAVsKNH0dHokQyhbLRYKE3EK/PdE=
-X-Google-Smtp-Source: ABdhPJxnWplzjUJrijjX7ErQabjY/0dG0C2Uqz79nAq8VvJ8evcUBtym0T0Ha7AkpHCDoECo5ylMIE35FdBxk6/Cx0k=
-X-Received: by 2002:a05:6830:1083:: with SMTP id y3mr26021728oto.59.1595383755703;
- Tue, 21 Jul 2020 19:09:15 -0700 (PDT)
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=ceHAZ8fGtIOXmoQZi1GN0tX61tjs26U0Fk+wKnXOpRo=;
+        b=QAK6fzVVUHll1rRNeT/WSLlGQZ0k10Gn+Inew+z6I/4aMcA7u8tChMfHsx7huBH/c8
+         0sBteAahUDDH9nqkVQu/pN/+h/Htgccu8cjXMPWdVB3m7Rt1RjdE7wLDAeJprBYFLpUg
+         EABunJl1Fz5zNbOa6+Gpswj5iZIGFdKtaaLnvO6vTcfvNuULVwWVsxwWr68kTbIi7Wl0
+         TeDV1zEIFFRef8t+0C+Egl4L+qJfw6zLvcqDUdvgjvigGKXKINsGd5TZakSXXCzZnkmI
+         2B6Dlc2VVs76Ti4ZLSDhwaGy8QZ/NBXEc6il8CxzxtKP2eHrEneJY3VGJEkVxQmlox/+
+         +cWQ==
+X-Gm-Message-State: AOAM533dGiOrNzsjYaMN7xowQy1fnIhhv67WDKqjsWaphkq4ol1QkuvS
+        VdKI5XSY7X0oe/rzfIuWYAvbCyTccEN3STgbRWt3d00qHW6P
+X-Google-Smtp-Source: ABdhPJw1gZlt3PeSpaXF6147x/nyTTUyGOCs5tXCi+GZ/KY+fW2xTNTIYZrrOBKXhPtNLGkYsoFW4Cck1xqNM3erTWni5t2rf7uZ
 MIME-Version: 1.0
-References: <20200721101618.686110-1-kamalheib1@gmail.com> <AM6PR05MB6263CFB337190B1740CDF4B7D8780@AM6PR05MB6263.eurprd05.prod.outlook.com>
-In-Reply-To: <AM6PR05MB6263CFB337190B1740CDF4B7D8780@AM6PR05MB6263.eurprd05.prod.outlook.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Wed, 22 Jul 2020 10:09:04 +0800
-Message-ID: <CAD=hENePPVzfaC_YtCL1izsFSi+U_T=0m18MujARznsWbj=q5g@mail.gmail.com>
-Subject: Re: FW: [PATCH for-next] RDMA/rxe: Remove pkey table
-To:     Yanjun Zhu <yanjunz@mellanox.com>, linux-rdma@vger.kernel.org,
-        Doug Ledford <dledford@redhat.com>,
-        Kamal Heib <kamalheib1@gmail.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>
+X-Received: by 2002:a92:58d6:: with SMTP id z83mr31177380ilf.186.1595397200184;
+ Tue, 21 Jul 2020 22:53:20 -0700 (PDT)
+Date:   Tue, 21 Jul 2020 22:53:20 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000648aca05ab015bd3@google.com>
+Subject: KMSAN: uninit-value in ucma_connect
+From:   syzbot <syzbot+7446526858b83c8828b2@syzkaller.appspotmail.com>
+To:     dledford@redhat.com, glider@google.com, jgg@ziepe.ca,
+        leon@kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 21, 2020 at 7:28 PM Yanjun Zhu <yanjunz@mellanox.com> wrote:
->
->
->
-> -----Original Message-----
-> From: Kamal Heib <kamalheib1@gmail.com>
-> Sent: Tuesday, July 21, 2020 6:16 PM
-> To: linux-rdma@vger.kernel.org
-> Cc: Yanjun Zhu <yanjunz@mellanox.com>; Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>; Kamal Heib <kamalheib1@gmail.com>
-> Subject: [PATCH for-next] RDMA/rxe: Remove pkey table
->
-> The RoCE spec require from RoCE devices to support only the defualt pkey, While the rxe driver maintain a 64 enties pkey table and use only the first entry. With that said remove the maintaing of the pkey table and used the default pkey when needed.
->
+Hello,
 
-Hi Kamal
+syzbot found the following issue on:
 
-After this patch is applied, do you make tests with SoftRoCE and mlx hardware?
+HEAD commit:    14525656 compiler.h: reinstate missing KMSAN_INIT
+git tree:       https://github.com/google/kmsan.git master
+console output: https://syzkaller.appspot.com/x/log.txt?x=124a0817100000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=c534a9fad6323722
+dashboard link: https://syzkaller.appspot.com/bug?extid=7446526858b83c8828b2
+compiler:       clang version 10.0.0 (https://github.com/llvm/llvm-project/ c2443155a0fb245c8f17f2c1c72b6ea391e86e81)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13db936f100000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16c18d7d100000
 
-The SoftRoCE should work well with the mlx hardware.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+7446526858b83c8828b2@syzkaller.appspotmail.com
 
-Zhu Yanjun
+=====================================================
+BUG: KMSAN: uninit-value in ucma_connect+0x2aa/0xab0 drivers/infiniband/core/ucma.c:1091
+CPU: 0 PID: 8457 Comm: syz-executor069 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1df/0x240 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ ucma_connect+0x2aa/0xab0 drivers/infiniband/core/ucma.c:1091
+ ucma_write+0x5c5/0x630 drivers/infiniband/core/ucma.c:1764
+ do_loop_readv_writev fs/read_write.c:737 [inline]
+ do_iter_write+0x710/0xdc0 fs/read_write.c:1020
+ vfs_writev fs/read_write.c:1091 [inline]
+ do_writev+0x42d/0x8f0 fs/read_write.c:1134
+ __do_sys_writev fs/read_write.c:1207 [inline]
+ __se_sys_writev+0x9b/0xb0 fs/read_write.c:1204
+ __x64_sys_writev+0x4a/0x70 fs/read_write.c:1204
+ do_syscall_64+0xb0/0x150 arch/x86/entry/common.c:386
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4402a9
+Code: Bad RIP value.
+RSP: 002b:00007ffd6e4541e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004402a9
+RDX: 0000000000000001 RSI: 00000000200000c0 RDI: 0000000000000005
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401ab0
+R13: 0000000000401b40 R14: 0000000000000000 R15: 0000000000000000
 
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe.c       | 34 +++------------------------
->  drivers/infiniband/sw/rxe/rxe_param.h |  4 ++--  drivers/infiniband/sw/rxe/rxe_recv.c  | 29 ++++-------------------
->  drivers/infiniband/sw/rxe/rxe_req.c   |  5 +---
->  drivers/infiniband/sw/rxe/rxe_verbs.c | 17 +++-----------  drivers/infiniband/sw/rxe/rxe_verbs.h |  1 -
->  6 files changed, 13 insertions(+), 77 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c index efcb72c92be6..907203afbd99 100644
-> --- a/drivers/infiniband/sw/rxe/rxe.c
-> +++ b/drivers/infiniband/sw/rxe/rxe.c
-> @@ -40,14 +40,6 @@ MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");  MODULE_DESCRIPTION("Soft RDMA transport");  MODULE_LICENSE("Dual BSD/GPL");
->
-> -/* free resources for all ports on a device */ -static void rxe_cleanup_ports(struct rxe_dev *rxe) -{
-> -       kfree(rxe->port.pkey_tbl);
-> -       rxe->port.pkey_tbl = NULL;
-> -
-> -}
-> -
->  /* free resources for a rxe device all objects created for this device must
->   * have been destroyed
->   */
-> @@ -66,8 +58,6 @@ void rxe_dealloc(struct ib_device *ib_dev)
->         rxe_pool_cleanup(&rxe->mc_grp_pool);
->         rxe_pool_cleanup(&rxe->mc_elem_pool);
->
-> -       rxe_cleanup_ports(rxe);
-> -
->         if (rxe->tfm)
->                 crypto_free_shash(rxe->tfm);
->  }
-> @@ -139,25 +129,14 @@ static void rxe_init_port_param(struct rxe_port *port)
->  /* initialize port state, note IB convention that HCA ports are always
->   * numbered from 1
->   */
-> -static int rxe_init_ports(struct rxe_dev *rxe)
-> +static void rxe_init_ports(struct rxe_dev *rxe)
->  {
->         struct rxe_port *port = &rxe->port;
->
->         rxe_init_port_param(port);
-> -
-> -       port->pkey_tbl = kcalloc(port->attr.pkey_tbl_len,
-> -                       sizeof(*port->pkey_tbl), GFP_KERNEL);
-> -
-> -       if (!port->pkey_tbl)
-> -               return -ENOMEM;
-> -
-> -       port->pkey_tbl[0] = 0xffff;
->         addrconf_addr_eui48((unsigned char *)&port->port_guid,
->                             rxe->ndev->dev_addr);
-> -
->         spin_lock_init(&port->port_lock);
-> -
-> -       return 0;
->  }
->
->  /* init pools of managed objects */
-> @@ -247,13 +226,11 @@ static int rxe_init(struct rxe_dev *rxe)
->         /* init default device parameters */
->         rxe_init_device_param(rxe);
->
-> -       err = rxe_init_ports(rxe);
-> -       if (err)
-> -               goto err1;
-> +       rxe_init_ports(rxe);
->
->         err = rxe_init_pools(rxe);
->         if (err)
-> -               goto err2;
-> +               return err;
->
->         /* init pending mmap list */
->         spin_lock_init(&rxe->mmap_offset_lock);
-> @@ -263,11 +240,6 @@ static int rxe_init(struct rxe_dev *rxe)
->         mutex_init(&rxe->usdev_lock);
->
->         return 0;
-> -
-> -err2:
-> -       rxe_cleanup_ports(rxe);
-> -err1:
-> -       return err;
->  }
->
->  void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu) diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-> index 99e9d8ba9767..2f381aeafcb5 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_param.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_param.h
-> @@ -100,7 +100,7 @@ enum rxe_device_param {
->         RXE_MAX_SRQ_SGE                 = 27,
->         RXE_MIN_SRQ_SGE                 = 1,
->         RXE_MAX_FMR_PAGE_LIST_LEN       = 512,
-> -       RXE_MAX_PKEYS                   = 64,
-> +       RXE_MAX_PKEYS                   = 1,
->         RXE_LOCAL_CA_ACK_DELAY          = 15,
->
->         RXE_MAX_UCONTEXT                = 512,
-> @@ -148,7 +148,7 @@ enum rxe_port_param {
->         RXE_PORT_INIT_TYPE_REPLY        = 0,
->         RXE_PORT_ACTIVE_WIDTH           = IB_WIDTH_1X,
->         RXE_PORT_ACTIVE_SPEED           = 1,
-> -       RXE_PORT_PKEY_TBL_LEN           = 64,
-> +       RXE_PORT_PKEY_TBL_LEN           = 1,
->         RXE_PORT_PHYS_STATE             = IB_PORT_PHYS_STATE_POLLING,
->         RXE_PORT_SUBNET_PREFIX          = 0xfe80000000000000ULL,
->  };
-> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-> index 46e111c218fd..7e123d3c4d09 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-> @@ -101,36 +101,15 @@ static void set_qkey_viol_cntr(struct rxe_port *port)  static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->                       u32 qpn, struct rxe_qp *qp)
->  {
-> -       int i;
-> -       int found_pkey = 0;
->         struct rxe_port *port = &rxe->port;
->         u16 pkey = bth_pkey(pkt);
->
->         pkt->pkey_index = 0;
->
-> -       if (qpn == 1) {
-> -               for (i = 0; i < port->attr.pkey_tbl_len; i++) {
-> -                       if (pkey_match(pkey, port->pkey_tbl[i])) {
-> -                               pkt->pkey_index = i;
-> -                               found_pkey = 1;
-> -                               break;
-> -                       }
-> -               }
-> -
-> -               if (!found_pkey) {
-> -                       pr_warn_ratelimited("bad pkey = 0x%x\n", pkey);
-> -                       set_bad_pkey_cntr(port);
-> -                       goto err1;
-> -               }
-> -       } else {
-> -               if (unlikely(!pkey_match(pkey,
-> -                                        port->pkey_tbl[qp->attr.pkey_index]
-> -                                       ))) {
-> -                       pr_warn_ratelimited("bad pkey = 0x%0x\n", pkey);
-> -                       set_bad_pkey_cntr(port);
-> -                       goto err1;
-> -               }
-> -               pkt->pkey_index = qp->attr.pkey_index;
-> +       if (!pkey_match(pkey, IB_DEFAULT_PKEY_FULL)) {
-> +               pr_warn_ratelimited("bad pkey = 0x%x\n", pkey);
-> +               set_bad_pkey_cntr(port);
-> +               goto err1;
->         }
->
->         if ((qp_type(qp) == IB_QPT_UD || qp_type(qp) == IB_QPT_GSI) && diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index e5031172c019..34df2b55e650 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -381,7 +381,6 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
->                                        struct rxe_pkt_info *pkt)
->  {
->         struct rxe_dev          *rxe = to_rdev(qp->ibqp.device);
-> -       struct rxe_port         *port = &rxe->port;
->         struct sk_buff          *skb;
->         struct rxe_send_wr      *ibwr = &wqe->wr;
->         struct rxe_av           *av;
-> @@ -419,9 +418,7 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
->                         (pkt->mask & (RXE_WRITE_MASK | RXE_IMMDT_MASK)) ==
->                         (RXE_WRITE_MASK | RXE_IMMDT_MASK));
->
-> -       pkey = (qp_type(qp) == IB_QPT_GSI) ?
-> -                port->pkey_tbl[ibwr->wr.ud.pkey_index] :
-> -                port->pkey_tbl[qp->attr.pkey_index];
-> +       pkey = IB_DEFAULT_PKEY_FULL;
->
->         qp_num = (pkt->mask & RXE_DETH_MASK) ? ibwr->wr.ud.remote_qpn :
->                                          qp->attr.dest_qp_num;
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 74f071003690..779458ddd422 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -83,22 +83,11 @@ static int rxe_query_port(struct ib_device *dev,  static int rxe_query_pkey(struct ib_device *device,
->                           u8 port_num, u16 index, u16 *pkey)  {
-> -       struct rxe_dev *rxe = to_rdev(device);
-> -       struct rxe_port *port;
-> -
-> -       port = &rxe->port;
-> -
-> -       if (unlikely(index >= port->attr.pkey_tbl_len)) {
-> -               dev_warn(device->dev.parent, "invalid index = %d\n",
-> -                        index);
-> -               goto err1;
-> -       }
-> +       if (index > 0)
-> +               return -EINVAL;
->
-> -       *pkey = port->pkey_tbl[index];
-> +       *pkey = IB_DEFAULT_PKEY_FULL;
->         return 0;
-> -
-> -err1:
-> -       return -EINVAL;
->  }
->
->  static int rxe_modify_device(struct ib_device *dev, diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> index 92de39c4a7c1..c664c7f36ab5 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> @@ -371,7 +371,6 @@ struct rxe_mc_elem {
->
->  struct rxe_port {
->         struct ib_port_attr     attr;
-> -       u16                     *pkey_tbl;
->         __be64                  port_guid;
->         __be64                  subnet_prefix;
->         spinlock_t              port_lock; /* guard port */
-> --
-> 2.25.4
->
+Local variable ----cmd@ucma_connect created at:
+ ucma_connect+0xe1/0xab0 drivers/infiniband/core/ucma.c:1082
+ ucma_connect+0xe1/0xab0 drivers/infiniband/core/ucma.c:1082
+=====================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
