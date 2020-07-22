@@ -2,102 +2,156 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F340C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D727EC433E1
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:23:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D5E420709
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:14:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 984AE20729
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 14:23:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="uQJqpCM7"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="awDiXnCA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729126AbgGVOOX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 10:14:23 -0400
-Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:50656 "EHLO
-        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726003AbgGVOOW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 10:14:22 -0400
+        id S1729642AbgGVOXs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 10:23:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50606 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728351AbgGVOXs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 10:23:48 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 230C7C0619DC;
+        Wed, 22 Jul 2020 07:23:48 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id o18so2395950eje.7;
+        Wed, 22 Jul 2020 07:23:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1595427262; x=1626963262;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=EXBkKvxEbJsQ96m+qS4fije8AJ7HuRS1Zj4zUOqcY00=;
-  b=uQJqpCM72oXyaRk4twlZS9egNaVPsC/kR0swRTi7mqiPBmYhEwHbxsTx
-   /M1roTYgK7uYY+GTz9t9/i9y6ZQK910FKq0stUqX240Am5ufwd75CTJ+J
-   rUo0eSVa7L5se06tQ4FHJ9PpXKGGBVO1GxtcWkGhywgUEaz2K1HE3kVep
-   I=;
-IronPort-SDR: BVui8p+ofrfE+OJdVYVtU+yobgnyiwIMGWLuM/6LroQpSHh948kp0PY2Qty+2xJhx2guPi9aFp
- y4QTfB3k3SyA==
-X-IronPort-AV: E=Sophos;i="5.75,383,1589241600"; 
-   d="scan'208";a="53748704"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-6e2fc477.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 22 Jul 2020 14:07:43 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2a-6e2fc477.us-west-2.amazon.com (Postfix) with ESMTPS id E4C0DA2A91;
-        Wed, 22 Jul 2020 14:03:42 +0000 (UTC)
-Received: from EX13D19EUB002.ant.amazon.com (10.43.166.78) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 22 Jul 2020 14:03:42 +0000
-Received: from EX13MTAUWB001.ant.amazon.com (10.43.161.207) by
- EX13D19EUB002.ant.amazon.com (10.43.166.78) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 22 Jul 2020 14:03:41 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.95.83.32) by
- mail-relay.amazon.com (10.43.161.249) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Wed, 22 Jul 2020 14:03:37 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
-CC:     <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Shadi Ammouri <sammouri@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-Subject: [PATCH for-next v4 4/4] RDMA/efa: Add EFA 0xefa1 PCI ID
-Date:   Wed, 22 Jul 2020 17:03:12 +0300
-Message-ID: <20200722140312.3651-5-galpress@amazon.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20200722140312.3651-1-galpress@amazon.com>
-References: <20200722140312.3651-1-galpress@amazon.com>
+        d=gmail.com; s=20161025;
+        h=reply-to:subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=4eDGMiirBr/9wj0aV+FWFSQ39qot6+wnOp4Iy5F1qKw=;
+        b=awDiXnCAOzBfXEM7w8PJ3tM3M1ix7xTsKONg8BwDAqtB/5SooWmpeYqhsBclY3dz1T
+         8UxHDsup2Iw2w0nR4a/Af6J2xG8/DkpECOZs2nPn1p5ESnv/FFdQ4jXOer0Nvdc+Z1QL
+         lPKaVIHuvz/eakMsfVLRj+gUUe/Nu7XfFTwheAZdGUHeQzTkD2ZeFkdZ6S0AqZUc/a8u
+         Ef8PCJqmOrOtOIPZKl/U7LO1q/QY3WR1M0whWlEyt1JbQefsCYzAg0GTz8K4YmjRdEbs
+         VoJ0oYhlIzs3BeTpU6By8xlkTXpzgEWGtGWjGXwdeYU9JW9EySZIpKX4nwKGeGpux0V4
+         9Qkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-transfer-encoding:content-language;
+        bh=4eDGMiirBr/9wj0aV+FWFSQ39qot6+wnOp4Iy5F1qKw=;
+        b=V596jw5zhQtvu9A0H4g9DjMzAPIm8za3MD3OyR6EnjPsVIRaaCsCr59U1T569XpoVm
+         LiBI9rjHquwJQAW66Cqm9IvJafhWvs7okMnw9Yg+5TpMeDCCA1LhRXEiaCFJTghxyaYX
+         vZb7MmAEOkAqd/hA2IeOBZEjbAA6JW3AupxVINtY9DAPUmGYFiz0tjRIhc0SqY5fRhFY
+         18mNZhh4bs33gyCn4NTsWxoURwKZ2zDBoDtlvsRTW8IAChKiGKNZxxxUwk0UMvaGY4Ar
+         Qsy6CHr00bRslYGtjRJ8nt8CKspJTvk4mlKbD9XQ/ZZF6G1k/gBZ8VdTqPrN894EQj68
+         swcg==
+X-Gm-Message-State: AOAM533n1QT1RrmBoYDNVGUNzIdxgoFgAs1oJjPJimLiJz1YCyswcJiA
+        2V9x33hei+MPp8N1xSvOvBE=
+X-Google-Smtp-Source: ABdhPJweXE+1WURAaIs/HR95z4aF6xhhUwmufaRJKgZqDHvsKPtNi9tuWkQG2Tj3wIdhocnD1H/YYA==
+X-Received: by 2002:a17:906:4f16:: with SMTP id t22mr29680343eju.179.1595427826873;
+        Wed, 22 Jul 2020 07:23:46 -0700 (PDT)
+Received: from ?IPv6:2a02:908:1252:fb60:be8a:bd56:1f94:86e7? ([2a02:908:1252:fb60:be8a:bd56:1f94:86e7])
+        by smtp.gmail.com with ESMTPSA id g21sm17224edr.45.2020.07.22.07.23.45
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 22 Jul 2020 07:23:46 -0700 (PDT)
+Reply-To: christian.koenig@amd.com
+Subject: Re: [Linaro-mm-sig] [PATCH 1/2] dma-buf.rst: Document why indefinite
+ fences are a bad idea
+To:     Daniel Vetter <daniel.vetter@ffwll.ch>,
+        =?UTF-8?Q?Thomas_Hellstr=c3=b6m_=28Intel=29?= 
+        <thomas_os@shipmail.org>
+Cc:     Felix Kuehling <Felix.Kuehling@amd.com>,
+        Daniel Stone <daniels@collabora.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>,
+        Steve Pronovost <spronovo@microsoft.com>,
+        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        Jesse Natalie <jenatali@microsoft.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Thomas Hellstrom <thomas.hellstrom@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Dave Airlie <airlied@gmail.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Mika Kuoppala <mika.kuoppala@intel.com>
+References: <20200707201229.472834-4-daniel.vetter@ffwll.ch>
+ <20200709123339.547390-1-daniel.vetter@ffwll.ch>
+ <93b673b7-bb48-96eb-dc2c-bd4f9304000e@shipmail.org>
+ <20200721074157.GB3278063@phenom.ffwll.local>
+ <3603bb71-318b-eb53-0532-9daab62dce86@amd.com>
+ <57a5eb9d-b74f-8ce4-7199-94e911d9b68b@shipmail.org>
+ <CAPM=9twUWeenf-26GEvkuKo3wHgS3BCyrva=sNaWo6+=A5qdoQ@mail.gmail.com>
+ <805c49b7-f0b3-45dc-5fe3-b352f0971527@shipmail.org>
+ <CAKMK7uHhhxBC2MvnNnU9FjxJaWkEcP3m5m7AN3yzfw=wxFsckA@mail.gmail.com>
+ <92393d26-d863-aac6-6d27-53cad6854e13@shipmail.org>
+ <CAKMK7uF8jpyuCF8uUbEeJUedErxqRGa8JY+RuURg7H1XXWXzkw@mail.gmail.com>
+ <8fd999f2-cbf6-813c-6ad4-131948fb5cc5@shipmail.org>
+ <CAKMK7uH0rcyepP2hDpNB-yuvNyjee1tPmxWUyefS5j7i-N6Pfw@mail.gmail.com>
+ <df5414f5-ac5c-d212-500c-b05c7c78ce84@shipmail.org>
+ <CAKMK7uF27SifuvMatuP2kJPTf+LVmVbG098cE2cqorYYo7UHkw@mail.gmail.com>
+ <697d1b5e-5d1c-1655-23f8-7a3f652606f3@shipmail.org>
+ <CAKMK7uGSkgdJyyvGe8SF_vWfgyaCWn5p0GvZZdLvkxmrS6tYbQ@mail.gmail.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <c742c557-f48f-1591-1d1d-a5181b408a67@gmail.com>
+Date:   Wed, 22 Jul 2020 16:23:44 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.9.0
 MIME-Version: 1.0
+In-Reply-To: <CAKMK7uGSkgdJyyvGe8SF_vWfgyaCWn5p0GvZZdLvkxmrS6tYbQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Language: en-US
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add support for 0xefa1 devices.
+Am 22.07.20 um 16:07 schrieb Daniel Vetter:
+> On Wed, Jul 22, 2020 at 3:12 PM Thomas Hellström (Intel)
+> <thomas_os@shipmail.org> wrote:
+>> On 2020-07-22 14:41, Daniel Vetter wrote:
+>>> I'm pretty sure there's more bugs, I just haven't heard from them yet.
+>>> Also due to the opt-in nature of dma-fence we can limit the scope of
+>>> what we fix fairly naturally, just don't put them where no one cares
+>>> :-) Of course that also hides general locking issues in dma_fence
+>>> signalling code, but well *shrug*.
+>> Hmm, yes. Another potential big problem would be drivers that want to
+>> use gpu page faults in the dma-fence critical sections with the
+>> batch-based programming model.
+> Yeah that's a massive can of worms. But luckily there's no such driver
+> merged in upstream, so hopefully we can think about all the
+> constraints and how to best annotate&enforce this before we land any
+> code and have big regrets.
 
-Reviewed-by: Shadi Ammouri <sammouri@amazon.com>
-Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
-Signed-off-by: Gal Pressman <galpress@amazon.com>
----
- drivers/infiniband/hw/efa/efa_main.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Do you want a bad news? I once made a prototype for that when Vega10 
+came out.
 
-diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
-index 82145574c928..92d701146320 100644
---- a/drivers/infiniband/hw/efa/efa_main.c
-+++ b/drivers/infiniband/hw/efa/efa_main.c
-@@ -12,10 +12,12 @@
- 
- #include "efa.h"
- 
--#define PCI_DEV_ID_EFA_VF 0xefa0
-+#define PCI_DEV_ID_EFA0_VF 0xefa0
-+#define PCI_DEV_ID_EFA1_VF 0xefa1
- 
- static const struct pci_device_id efa_pci_tbl[] = {
--	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA_VF) },
-+	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA0_VF) },
-+	{ PCI_VDEVICE(AMAZON, PCI_DEV_ID_EFA1_VF) },
- 	{ }
- };
- 
--- 
-2.27.0
+But we abandoned this approach for the the batch based approach because 
+of the horrible performance.
+
+KFD is going to see that, but this is only with user queues and no 
+dma_fence involved whatsoever.
+
+Christian.
+
+> -Daniel
+>
+>
+>
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> http://blog.ffwll.ch
+> _______________________________________________
+> amd-gfx mailing list
+> amd-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/amd-gfx
 
