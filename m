@@ -2,137 +2,137 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B88ACC433F1
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:14:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B03C433E3
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:33:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9432E20825
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:14:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B044A2071A
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:33:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="nwLk46lX"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="M+VGBvQ+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733057AbgGVWL1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 18:11:27 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:27186 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726642AbgGVWLY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Jul 2020 18:11:24 -0400
-Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06MM6v1c019879;
-        Wed, 22 Jul 2020 15:11:08 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=pfpt0818; bh=Il19awlAmG29fp9AVrUyzNFznr1q+S/tbnyiY1K3Rwk=;
- b=nwLk46lXISSnTe9yw+UAqUc7uD/CJThoXOo/FChbbniLP1icXDoqKgs6fZIKJDFdze+P
- j3CMQbdS49rJVh+9g5unHPQ8JwzNzX9/sCGs4SFx73jHQFQPuvSWDRLF1/Uh9xzf87z2
- vO7aJqIc1eauq9sCU7guCsRICMRwI91YjfScFiQiLyROjN9TU/4RWanxBDANjLQfcnl5
- pXFgZlUdhZ5qXTtfka1YyYebvVrS+31q6lipv0Y0Bb854eDFCj9Bfd3qNXmybzVCIVbt
- oUz7vACq81+r8Ih+TtlmQUIpYhFoR/JYqRBLY/jopgSZOKwKbQy5yPwUTs1FjQ8W56Tj tA== 
-Received: from sc-exch01.marvell.com ([199.233.58.181])
-        by mx0b-0016f401.pphosted.com with ESMTP id 32c0kkt0hw-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Wed, 22 Jul 2020 15:11:08 -0700
-Received: from DC5-EXCH01.marvell.com (10.69.176.38) by SC-EXCH01.marvell.com
- (10.93.176.81) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 22 Jul
- 2020 15:11:05 -0700
-Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH01.marvell.com
- (10.69.176.38) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Wed, 22 Jul 2020 15:11:05 -0700
-Received: from NN-LT0049.marvell.com (NN-LT0049.marvell.com [10.193.54.6])
-        by maili.marvell.com (Postfix) with ESMTP id C997E3F703F;
-        Wed, 22 Jul 2020 15:10:57 -0700 (PDT)
-From:   Alexander Lobakin <alobakin@marvell.com>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-CC:     Alexander Lobakin <alobakin@marvell.com>,
+        id S1733031AbgGVWdQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 18:33:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42554 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726525AbgGVWdP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 18:33:15 -0400
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com [IPv6:2607:f8b0:4864:20::843])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AC3DC0619E2
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2020 15:33:15 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id w9so3094061qts.6
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Jul 2020 15:33:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=FNTzG6qcBQuW0UnSYe8/jDfHi5XObGtNTg45FW0KfjY=;
+        b=M+VGBvQ+eQKQBCSLRfLaL/v6FZSuwRdtyTJX6r07YtUqLEva+Fz5S4iJyShRBpQ119
+         bcDKHcMIoRzgHSuqq0/fMI96YHvIv+USJdZ5Z6+uZY9nQhSww6xl0ywoebu+4WX87wgk
+         FF74hwwPU7XWFybe3w/4/PoWIoFlevi/87tc6OYP+b/KplY9Ui4oHj/etquSuVuLtS7S
+         PQgWA9ASEwCJbPzsByGq2exdZIQcyh7VpC6bICadwajduRf+C4LaAYeu3xjIt2Vtr2D5
+         8m3ZKcpYylNX3Iuhze4CR60MHFC0Sz8yAyDmL+CS9XASuzDeI+sEqvhr2rXkaOMQdaJ3
+         omyA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=FNTzG6qcBQuW0UnSYe8/jDfHi5XObGtNTg45FW0KfjY=;
+        b=XGR1npu+siAzlF0KXbTqxwnVUJOGd4nfZBzEPw+s9LQXSldqDm4WJZlBK/cNDCTsPh
+         ivqgRVRP8SI998Pczs2FUMdipYkZ+pjrFfZ1LPtIhlBsG2vNybvYMD0Pq20awoutCiwc
+         hfkJD+253CznanyXyo4C6LvieBNG4CVAiTkDQNnO+gO42VrRFixloSQfx0p6yS4oK/HZ
+         A7Kw+u/QA6XMCXfMUQKDIJDkejIh4jGq/xO/mMYcnTCHtaCCUpyN+Dud7bVeD+rnUv9Y
+         LNKEs/OpAOl6ELP8RcEfkXu/ohx5xKO5u0Bx6ZB7v5FZtsmZ7uPQ3pdESHZ6deWMkAob
+         RvbA==
+X-Gm-Message-State: AOAM5303HszG1oPL4gRJfmvLYRjOAScifEygSbERQVzv4tCXb/tLyTMv
+        kMBZGZDJf4fcGHBAJij7cvBDsw==
+X-Google-Smtp-Source: ABdhPJxiKbn56anOP6nT+bAbNNtR/OqTNAMF/G7Mw2zuA7Od619cKlMkiA82MbBqicSsEqw9RJOhMA==
+X-Received: by 2002:ac8:7454:: with SMTP id h20mr1587073qtr.84.1595457194224;
+        Wed, 22 Jul 2020 15:33:14 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id x36sm990975qtk.36.2020.07.22.15.33.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Jul 2020 15:33:13 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1jyNIV-00E6RQ-L9; Wed, 22 Jul 2020 19:33:11 -0300
+Date:   Wed, 22 Jul 2020 19:33:11 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Alexander Lobakin <alobakin@marvell.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
         Igor Russkikh <irusskikh@marvell.com>,
         Michal Kalderon <michal.kalderon@marvell.com>,
-        "Ariel Elior" <aelior@marvell.com>,
+        Ariel Elior <aelior@marvell.com>,
         Denis Bolotin <denis.bolotin@marvell.com>,
-        "Doug Ledford" <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "Alexei Starovoitov" <ast@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
-        "Jesper Dangaard Brouer" <hawk@kernel.org>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
         John Fastabend <john.fastabend@gmail.com>,
         Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, "Yonghong Song" <yhs@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
         Andrii Nakryiko <andriin@fb.com>,
         KP Singh <kpsingh@chromium.org>,
-        <GR-everest-linux-l2@marvell.com>, <netdev@vger.kernel.org>,
-        <bpf@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2 net-next 00/15] qed, qede: improve chain API and add XDP_REDIRECT support
-Date:   Thu, 23 Jul 2020 01:10:30 +0300
-Message-ID: <20200722221045.5436-1-alobakin@marvell.com>
-X-Mailer: git-send-email 2.25.1
+        GR-everest-linux-l2@marvell.com, netdev@vger.kernel.org,
+        bpf@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 net-next 01/15] qed: reformat "qed_chain.h" a bit
+Message-ID: <20200722223311.GK25301@ziepe.ca>
+References: <20200722221045.5436-1-alobakin@marvell.com>
+ <20200722221045.5436-2-alobakin@marvell.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-07-22_16:2020-07-22,2020-07-22 signatures=0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200722221045.5436-2-alobakin@marvell.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series adds missing XDP_REDIRECT case handling in QLogic Everest
-Ethernet driver with all necessary prerequisites and ops.
-QEDE Tx relies heavily on chain API, so make sure it is in its best
-at first.
+On Thu, Jul 23, 2020 at 01:10:31AM +0300, Alexander Lobakin wrote:
+> Reformat structs and macros definitions a bit prior to making functional
+> changes.
+> 
+> Signed-off-by: Alexander Lobakin <alobakin@marvell.com>
+> Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+> Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
+>  include/linux/qed/qed_chain.h | 126 ++++++++++++++++++----------------
+>  1 file changed, 66 insertions(+), 60 deletions(-)
+> 
+> diff --git a/include/linux/qed/qed_chain.h b/include/linux/qed/qed_chain.h
+> index 7071dc92b4e2..087073517c09 100644
+> +++ b/include/linux/qed/qed_chain.h
+> @@ -26,9 +26,9 @@ enum qed_chain_mode {
+>  };
+>  
+>  enum qed_chain_use_mode {
+> -	QED_CHAIN_USE_TO_PRODUCE,		/* Chain starts empty */
+> -	QED_CHAIN_USE_TO_CONSUME,		/* Chain starts full */
+> -	QED_CHAIN_USE_TO_CONSUME_PRODUCE,	/* Chain starts empty */
+> +	QED_CHAIN_USE_TO_PRODUCE,			/* Chain starts empty */
+> +	QED_CHAIN_USE_TO_CONSUME,			/* Chain starts full */
+> +	QED_CHAIN_USE_TO_CONSUME_PRODUCE,		/* Chain starts empty */
+>  };
+>  
+>  enum qed_chain_cnt_type {
+> @@ -40,84 +40,86 @@ enum qed_chain_cnt_type {
+>  };
+>  
+>  struct qed_chain_next {
+> -	struct regpair	next_phys;
+> -	void		*next_virt;
+> +	struct regpair					next_phys;
+> +	void						*next_virt;
+>  };
 
-v2 (from [1]):
- - add missing includes to #003 to pass the build on Alpha;
- - no functional changes.
+I'm surprised this is considered an improvement??
 
-[1] https://lore.kernel.org/netdev/20200722155349.747-1-alobakin@marvell.com/
+I've been encouring people to go the other way, maintaining vertical alignment is
+harmful to backporting..
 
-Alexander Lobakin (15):
-  qed: reformat "qed_chain.h" a bit
-  qed: reformat Makefile
-  qed: move chain methods to a separate file
-  qed: prevent possible double-frees of the chains
-  qed: sanitize PBL chains allocation
-  qed: move chain initialization inlines next to allocation functions
-  qed: simplify initialization of the chains with an external PBL
-  qed: simplify chain allocation with init params struct
-  qed: add support for different page sizes for chains
-  qed: optimize common chain accessors
-  qed: introduce qed_chain_get_elem_used{,u32}()
-  qede: reformat several structures in "qede.h"
-  qede: reformat net_device_ops declarations
-  qede: refactor XDP Tx processing
-  qede: add .ndo_xdp_xmit() and XDP_REDIRECT support
-
- drivers/infiniband/hw/qedr/main.c             |  20 +-
- drivers/infiniband/hw/qedr/verbs.c            |  97 ++---
- drivers/net/ethernet/qlogic/qed/Makefile      |  37 +-
- drivers/net/ethernet/qlogic/qed/qed_chain.c   | 369 ++++++++++++++++++
- drivers/net/ethernet/qlogic/qed/qed_dev.c     | 273 -------------
- drivers/net/ethernet/qlogic/qed/qed_dev_api.h |  32 +-
- drivers/net/ethernet/qlogic/qed/qed_iscsi.c   |  39 +-
- drivers/net/ethernet/qlogic/qed/qed_ll2.c     |  44 ++-
- .../net/ethernet/qlogic/qed/qed_sp_commands.c |   4 +-
- drivers/net/ethernet/qlogic/qed/qed_spq.c     |  90 +++--
- drivers/net/ethernet/qlogic/qede/qede.h       | 175 +++++----
- drivers/net/ethernet/qlogic/qede/qede_fp.c    | 174 ++++++---
- drivers/net/ethernet/qlogic/qede/qede_main.c  | 185 +++++----
- include/linux/qed/qed_chain.h                 | 328 ++++++----------
- include/linux/qed/qed_if.h                    |   9 +-
- 15 files changed, 1018 insertions(+), 858 deletions(-)
- create mode 100644 drivers/net/ethernet/qlogic/qed/qed_chain.c
-
---
-
-Netdev folks, could you please take the entire series through your tree
-after the necessary acks and reviews? Patches 8-9 also touch qedr driver
-under rdma tree, but these changes can't be separated as it would break
-incremental buildability and bisecting.
-
--- 
-2.25.1
-
+Jason
