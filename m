@@ -2,139 +2,153 @@ Return-Path: <SRS0=GoAn=BB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4F18C433E3
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF6FCC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:56:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B36FF20717
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:12:13 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=shipmail.org header.i=@shipmail.org header.b="m8x/rX9A"
+	by mail.kernel.org (Postfix) with ESMTP id ADF8120787
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 13:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726003AbgGVNMN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 09:12:13 -0400
-Received: from ste-pvt-msa1.bahnhof.se ([213.80.101.70]:35822 "EHLO
-        ste-pvt-msa1.bahnhof.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725878AbgGVNMM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 09:12:12 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTP id D70B13F634;
-        Wed, 22 Jul 2020 15:12:09 +0200 (CEST)
-Authentication-Results: ste-pvt-msa1.bahnhof.se;
-        dkim=pass (1024-bit key; unprotected) header.d=shipmail.org header.i=@shipmail.org header.b=m8x/rX9A;
-        dkim-atps=neutral
-X-Virus-Scanned: Debian amavisd-new at bahnhof.se
-Received: from ste-pvt-msa1.bahnhof.se ([127.0.0.1])
-        by localhost (ste-pvt-msa1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id LpwrYAHQP3Iq; Wed, 22 Jul 2020 15:12:09 +0200 (CEST)
-Received: from mail1.shipmail.org (h-205-35.A357.priv.bahnhof.se [155.4.205.35])
-        (Authenticated sender: mb878879)
-        by ste-pvt-msa1.bahnhof.se (Postfix) with ESMTPA id 420893F29E;
-        Wed, 22 Jul 2020 15:12:05 +0200 (CEST)
-Received: from [192.168.0.100] (h-205-35.A357.priv.bahnhof.se [155.4.205.35])
-        by mail1.shipmail.org (Postfix) with ESMTPSA id 7831D362551;
-        Wed, 22 Jul 2020 15:12:05 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=shipmail.org; s=mail;
-        t=1595423525; bh=BkLRqDnF6XeEiFgBNy2htn8KfcdCEjHm5mJt4RvFSnY=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=m8x/rX9A/5dWwW9deLLc6aLIe4nKw3T+GjV3Mey9FdcHPjjgoDT8c+S8HtNfUdSry
-         hyK2SRYBZv+xlR+pd8m2hEh+pGKmkJMiDw0KlyvoimmBHTzNHUQfUUCgDwzI4bxZ8g
-         QuFArKmKCeFm9S1vgSmn0RJWQHG/kF/iJyd5XVgo=
-Subject: Re: [Linaro-mm-sig] [PATCH 1/2] dma-buf.rst: Document why indefinite
- fences are a bad idea
-To:     Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc:     Dave Airlie <airlied@gmail.com>,
-        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Daniel Stone <daniels@collabora.com>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>,
-        Steve Pronovost <spronovo@microsoft.com>,
-        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
-        Jason Ekstrand <jason@jlekstrand.net>,
-        Jesse Natalie <jenatali@microsoft.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Thomas Hellstrom <thomas.hellstrom@intel.com>,
-        Mika Kuoppala <mika.kuoppala@intel.com>,
-        Felix Kuehling <Felix.Kuehling@amd.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20200707201229.472834-4-daniel.vetter@ffwll.ch>
- <20200709123339.547390-1-daniel.vetter@ffwll.ch>
- <93b673b7-bb48-96eb-dc2c-bd4f9304000e@shipmail.org>
- <20200721074157.GB3278063@phenom.ffwll.local>
- <3603bb71-318b-eb53-0532-9daab62dce86@amd.com>
- <57a5eb9d-b74f-8ce4-7199-94e911d9b68b@shipmail.org>
- <CAPM=9twUWeenf-26GEvkuKo3wHgS3BCyrva=sNaWo6+=A5qdoQ@mail.gmail.com>
- <805c49b7-f0b3-45dc-5fe3-b352f0971527@shipmail.org>
- <CAKMK7uHhhxBC2MvnNnU9FjxJaWkEcP3m5m7AN3yzfw=wxFsckA@mail.gmail.com>
- <92393d26-d863-aac6-6d27-53cad6854e13@shipmail.org>
- <CAKMK7uF8jpyuCF8uUbEeJUedErxqRGa8JY+RuURg7H1XXWXzkw@mail.gmail.com>
- <8fd999f2-cbf6-813c-6ad4-131948fb5cc5@shipmail.org>
- <CAKMK7uH0rcyepP2hDpNB-yuvNyjee1tPmxWUyefS5j7i-N6Pfw@mail.gmail.com>
- <df5414f5-ac5c-d212-500c-b05c7c78ce84@shipmail.org>
- <CAKMK7uF27SifuvMatuP2kJPTf+LVmVbG098cE2cqorYYo7UHkw@mail.gmail.com>
-From:   =?UTF-8?Q?Thomas_Hellstr=c3=b6m_=28Intel=29?= 
-        <thomas_os@shipmail.org>
-Message-ID: <697d1b5e-5d1c-1655-23f8-7a3f652606f3@shipmail.org>
-Date:   Wed, 22 Jul 2020 15:12:05 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1732481AbgGVN4d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 09:56:33 -0400
+Received: from mail-il-dmz.mellanox.com ([193.47.165.129]:39371 "EHLO
+        mellanox.co.il" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726425AbgGVN4c (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Jul 2020 09:56:32 -0400
+Received: from Internal Mail-Server by MTLPINE1 (envelope-from maxg@mellanox.com)
+        with SMTP; 22 Jul 2020 16:56:30 +0300
+Received: from mtr-vdi-031.wap.labs.mlnx. (mtr-vdi-031.wap.labs.mlnx [10.209.102.136])
+        by labmailer.mlnx (8.13.8/8.13.8) with ESMTP id 06MDuTPo026773;
+        Wed, 22 Jul 2020 16:56:30 +0300
+From:   Max Gurtovoy <maxg@mellanox.com>
+To:     sagi@grimberg.me, yaminf@mellanox.com, dledford@redhat.com,
+        linux-rdma@vger.kernel.org, leon@kernel.org, bvanassche@acm.org
+Cc:     israelr@mellanox.com, oren@mellanox.com, jgg@mellanox.com,
+        idanb@mellanox.com, Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH 3/3] IB/srpt: use new shared CQ mechanism
+Date:   Wed, 22 Jul 2020 16:56:29 +0300
+Message-Id: <20200722135629.49467-3-maxg@mellanox.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20200722135629.49467-1-maxg@mellanox.com>
+References: <20200722135629.49467-1-maxg@mellanox.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uF27SifuvMatuP2kJPTf+LVmVbG098cE2cqorYYo7UHkw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Yamin Friedman <yaminf@mellanox.com>
 
-On 2020-07-22 14:41, Daniel Vetter wrote:
->
-> Ah I think I misunderstood which options you want to compare here. I'm
-> not sure how much pain fixing up "dma-fence as memory fence" really
-> is. That's kinda why I want a lot more testing on my annotation
-> patches, to figure that out. Not much feedback aside from amdgpu and
-> intel, and those two drivers pretty much need to sort out their memory
-> fence issues anyway (because of userptr and stuff like that).
->
-> The only other issues outside of these two drivers I'm aware of:
-> - various scheduler drivers doing allocations in the drm/scheduler
-> critical section. Since all arm-soc drivers have a mildly shoddy
-> memory model of "we just pin everything" they don't really have to
-> deal with this. So we might just declare arm as a platform broken and
-> not taint the dma-fence critical sections with fs_reclaim. Otoh we
-> need to fix this for drm/scheduler anyway, I think best option would
-> be to have a mempool for hw fences in the scheduler itself, and at
-> that point fixing the other drivers shouldn't be too onerous.
->
-> - vmwgfx doing a dma_resv in the atomic commit tail. Entirely
-> orthogonal to the entire memory fence discussion.
+Has the driver use shared CQs provided by the rdma core driver.
+This provides an advantage of improved efficiency handling interrupts.
 
-With vmwgfx there is another issue that is hit when the gpu signals an 
-error. At that point the batch might be restarted with a new meta 
-command buffer that needs to be allocated out of a dma pool. in the 
-fence critical section. That's probably a bit nasty to fix, but not 
-impossible.
+Signed-off-by: Yamin Friedman <yaminf@mellanox.com>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 17 +++++++++--------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  1 +
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
->
-> I'm pretty sure there's more bugs, I just haven't heard from them yet.
-> Also due to the opt-in nature of dma-fence we can limit the scope of
-> what we fix fairly naturally, just don't put them where no one cares
-> :-) Of course that also hides general locking issues in dma_fence
-> signalling code, but well *shrug*.
-Hmm, yes. Another potential big problem would be drivers that want to 
-use gpu page faults in the dma-fence critical sections with the 
-batch-based programming model.
-
-/Thomas
-
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index ef7fcd3..7a4884c 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -869,7 +869,7 @@ static int srpt_zerolength_write(struct srpt_rdma_ch *ch)
+ 
+ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 
+ 	pr_debug("%s-%d wc->status %d\n", ch->sess_name, ch->qp->qp_num,
+ 		 wc->status);
+@@ -1322,7 +1322,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+  */
+ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_send_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ 
+@@ -1683,7 +1683,7 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
+ 
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_recv_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_recv_ioctx, ioctx.cqe);
+ 
+@@ -1744,7 +1744,7 @@ static void srpt_process_wait_list(struct srpt_rdma_ch *ch)
+  */
+ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct srpt_rdma_ch *ch = cq->cq_context;
++	struct srpt_rdma_ch *ch = wc->qp->qp_context;
+ 	struct srpt_send_ioctx *ioctx =
+ 		container_of(wc->wr_cqe, struct srpt_send_ioctx, ioctx.cqe);
+ 	enum srpt_command_state state;
+@@ -1791,7 +1791,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		goto out;
+ 
+ retry:
+-	ch->cq = ib_alloc_cq_any(sdev->device, ch, ch->rq_size + sq_size,
++	ch->cq = ib_cq_pool_get(sdev->device, ch->rq_size + sq_size, -1,
+ 				 IB_POLL_WORKQUEUE);
+ 	if (IS_ERR(ch->cq)) {
+ 		ret = PTR_ERR(ch->cq);
+@@ -1799,6 +1799,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		       ch->rq_size + sq_size, ret);
+ 		goto out;
+ 	}
++	ch->cq_size = ch->rq_size + sq_size;
+ 
+ 	qp_init->qp_context = (void *)ch;
+ 	qp_init->event_handler
+@@ -1843,7 +1844,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 		if (retry) {
+ 			pr_debug("failed to create queue pair with sq_size = %d (%d) - retrying\n",
+ 				 sq_size, ret);
+-			ib_free_cq(ch->cq);
++			ib_cq_pool_put(ch->cq, ch->cq_size);
+ 			sq_size = max(sq_size / 2, MIN_SRPT_SQ_SIZE);
+ 			goto retry;
+ 		} else {
+@@ -1869,14 +1870,14 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 
+ err_destroy_cq:
+ 	ch->qp = NULL;
+-	ib_free_cq(ch->cq);
++	ib_cq_pool_put(ch->cq, ch->cq_size);
+ 	goto out;
+ }
+ 
+ static void srpt_destroy_ch_ib(struct srpt_rdma_ch *ch)
+ {
+ 	ib_destroy_qp(ch->qp);
+-	ib_free_cq(ch->cq);
++	ib_cq_pool_put(ch->cq, ch->cq_size);
+ }
+ 
+ /**
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index f31c349..41435a6 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -300,6 +300,7 @@ struct srpt_rdma_ch {
+ 		} rdma_cm;
+ 	};
+ 	struct ib_cq		*cq;
++	u32			cq_size;
+ 	struct ib_cqe		zw_cqe;
+ 	struct rcu_head		rcu;
+ 	struct kref		kref;
+-- 
+1.8.3.1
 
