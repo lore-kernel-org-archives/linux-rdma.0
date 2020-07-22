@@ -7,46 +7,49 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42732C433EC
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:13:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC2FC43457
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:13:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AB2322B3F
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:13:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8925F22B45
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Jul 2020 22:13:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="v+GXP0At"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=marvell.com header.i=@marvell.com header.b="GEOJAg5Y"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387522AbgGVWNI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Jul 2020 18:13:08 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:24102 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1733156AbgGVWNF (ORCPT
+        id S2387477AbgGVWMv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Jul 2020 18:12:51 -0400
+Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:10194 "EHLO
+        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1732822AbgGVWMq (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Jul 2020 18:13:05 -0400
-Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06MM6g1e019807;
-        Wed, 22 Jul 2020 15:12:49 -0700
+        Wed, 22 Jul 2020 18:12:46 -0400
+Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
+        by mx0a-0016f401.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06MM6OQ6027398;
+        Wed, 22 Jul 2020 15:12:29 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding : content-type; s=pfpt0818;
- bh=3Po8RfnWucc3DJIq3LC7D4FFGro0yJZkEt/sSt+5JX0=;
- b=v+GXP0Atde+Wjibsls1dw+2qF1jqIG3gaKaFI5hZh3Hyw38KP9n6aJNTOyUGMXgGCXJF
- mdtw53Tmanx9fm4r7Hblv5WV4tM0L19IZWvSQkxGDhbrhjz6I8LvEKpcUZerytthV8qz
- izOzqx5nwWY8qGJjTwV6QqSgR1Xd2LD8m2KmjIf+AMhA1TZJDeNYt1HajTxTpKnEl3Mr
- LDVyhGy288aRzYK2cum9WFjHrmB/vvhai2/4C6wGqUclQP8FEr2c2ptIB0UlhJ4hHhPx
- BDfGsquD403XWQTTKU+LICPvDx1/3IMMSRvqo//lIDEzi8z9v8/ZcdWM48VR/GFBQqX+ kQ== 
-Received: from sc-exch03.marvell.com ([199.233.58.183])
-        by mx0b-0016f401.pphosted.com with ESMTP id 32c0kkt0q5-1
+ bh=jo7zq49EmldMSHyr0Cgl+awUK69ydVsJpsPNWv3pVX0=;
+ b=GEOJAg5YopPfRQLgYK9fdZndFpkfI0v3VwGIGftNTF4CBTEVIoLHT8N4NXL5x+x5CMCm
+ tLMs0LOjgJOLh26mww6rWZV29QLdQ0c7bRUPkUxO8Kfh4HD466Y1uS+NgPprGb3h09Gk
+ UhZlPPHliGtRVTOQ5m6tFXSVWUhLogyXs2nNzk79cw34bhelp3W3Ew20PeD07Y+GqIYQ
+ 9iAShbZacWBQYWxcRUdpeKJIGMvw1nC6Fadc8MG6B+4HiOKow36mq6Id3MVdQgF7E/Ub
+ i/1RDPm5vvBgpEd2wXGzpase26SmlG4xLNd0/lyFnVgDH5bb90pGXZ9wR21gOXkh5o02 0g== 
+Received: from sc-exch02.marvell.com ([199.233.58.182])
+        by mx0a-0016f401.pphosted.com with ESMTP id 32bxentxa3-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Wed, 22 Jul 2020 15:12:49 -0700
-Received: from DC5-EXCH01.marvell.com (10.69.176.38) by SC-EXCH03.marvell.com
- (10.93.176.83) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 22 Jul
- 2020 15:12:47 -0700
+        Wed, 22 Jul 2020 15:12:29 -0700
+Received: from DC5-EXCH02.marvell.com (10.69.176.39) by SC-EXCH02.marvell.com
+ (10.93.176.82) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 22 Jul
+ 2020 15:12:28 -0700
+Received: from DC5-EXCH01.marvell.com (10.69.176.38) by DC5-EXCH02.marvell.com
+ (10.69.176.39) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 22 Jul
+ 2020 15:12:27 -0700
 Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH01.marvell.com
  (10.69.176.38) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Wed, 22 Jul 2020 15:12:47 -0700
+ Transport; Wed, 22 Jul 2020 15:12:27 -0700
 Received: from NN-LT0049.marvell.com (NN-LT0049.marvell.com [10.193.54.6])
-        by maili.marvell.com (Postfix) with ESMTP id 6F3A13F703F;
-        Wed, 22 Jul 2020 15:12:41 -0700 (PDT)
+        by maili.marvell.com (Postfix) with ESMTP id 2678A3F703F;
+        Wed, 22 Jul 2020 15:12:20 -0700 (PDT)
 From:   Alexander Lobakin <alobakin@marvell.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -68,9 +71,9 @@ CC:     Alexander Lobakin <alobakin@marvell.com>,
         <GR-everest-linux-l2@marvell.com>, <netdev@vger.kernel.org>,
         <bpf@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2 net-next 15/15] qede: add .ndo_xdp_xmit() and XDP_REDIRECT support
-Date:   Thu, 23 Jul 2020 01:10:45 +0300
-Message-ID: <20200722221045.5436-16-alobakin@marvell.com>
+Subject: [PATCH v2 net-next 12/15] qede: reformat several structures in "qede.h"
+Date:   Thu, 23 Jul 2020 01:10:42 +0300
+Message-ID: <20200722221045.5436-13-alobakin@marvell.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200722221045.5436-1-alobakin@marvell.com>
 References: <20200722221045.5436-1-alobakin@marvell.com>
@@ -84,288 +87,267 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add XDP_REDIRECT case handling and the corresponding NDO to support
-redirecting XDP frames. This also includes registering driver memory
-model (currently order-0 page mode) in BPF subsystem.
-The total number of XDP queues is usually 1:1 with Rx ones.
+Make the file more readable and easier for adding new fields.
+
+Misc: use IFNAMSIZ and netdev_name() instead of sizeof_field()
+and direct net_device::name dereferencing.
 
 Signed-off-by: Alexander Lobakin <alobakin@marvell.com>
 Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
 Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
 ---
- drivers/net/ethernet/qlogic/qede/qede.h      |  8 ++
- drivers/net/ethernet/qlogic/qede/qede_fp.c   | 97 +++++++++++++++++++-
- drivers/net/ethernet/qlogic/qede/qede_main.c | 18 ++++
- 3 files changed, 118 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/qlogic/qede/qede.h | 166 +++++++++++++-----------
+ 1 file changed, 89 insertions(+), 77 deletions(-)
 
 diff --git a/drivers/net/ethernet/qlogic/qede/qede.h b/drivers/net/ethernet/qlogic/qede/qede.h
-index 308c66a5f98f..803c1fcca8ad 100644
+index f1d7f73de902..e8ed0bb94ee0 100644
 --- a/drivers/net/ethernet/qlogic/qede/qede.h
 +++ b/drivers/net/ethernet/qlogic/qede/qede.h
-@@ -199,6 +199,7 @@ struct qede_dev {
+@@ -176,16 +176,17 @@ struct qede_dev {
+ 	u32				dp_module;
+ 	u8				dp_level;
+ 
+-	unsigned long flags;
+-#define IS_VF(edev)	(test_bit(QEDE_FLAGS_IS_VF, &(edev)->flags))
++	unsigned long			flags;
++#define IS_VF(edev)			test_bit(QEDE_FLAGS_IS_VF, \
++						 &(edev)->flags)
+ 
+ 	const struct qed_eth_ops	*ops;
+ 	struct qede_ptp			*ptp;
+ 	u64				ptp_skip_txts;
+ 
+-	struct qed_dev_eth_info dev_info;
+-#define QEDE_MAX_RSS_CNT(edev)	((edev)->dev_info.num_queues)
+-#define QEDE_MAX_TSS_CNT(edev)	((edev)->dev_info.num_queues)
++	struct qed_dev_eth_info		dev_info;
++#define QEDE_MAX_RSS_CNT(edev)		((edev)->dev_info.num_queues)
++#define QEDE_MAX_TSS_CNT(edev)		((edev)->dev_info.num_queues)
+ #define QEDE_IS_BB(edev) \
+ 	((edev)->dev_info.common.dev_type == QED_DEV_TYPE_BB)
+ #define QEDE_IS_AH(edev) \
+@@ -198,14 +199,15 @@ struct qede_dev {
  	u8				fp_num_rx;
  	u16				req_queues;
  	u16				num_queues;
-+	u16				total_xdp_queues;
+-#define QEDE_QUEUE_CNT(edev)	((edev)->num_queues)
+-#define QEDE_RSS_COUNT(edev)	((edev)->num_queues - (edev)->fp_num_tx)
++
++#define QEDE_QUEUE_CNT(edev)		((edev)->num_queues)
++#define QEDE_RSS_COUNT(edev)		((edev)->num_queues - (edev)->fp_num_tx)
+ #define QEDE_RX_QUEUE_IDX(edev, i)	(i)
+-#define QEDE_TSS_COUNT(edev)	((edev)->num_queues - (edev)->fp_num_rx)
++#define QEDE_TSS_COUNT(edev)		((edev)->num_queues - (edev)->fp_num_rx)
  
- #define QEDE_QUEUE_CNT(edev)		((edev)->num_queues)
- #define QEDE_RSS_COUNT(edev)		((edev)->num_queues - (edev)->fp_num_tx)
-@@ -381,6 +382,7 @@ struct sw_tx_bd {
+ 	struct qed_int_info		int_info;
+ 
+-	/* Smaller private varaiant of the RTNL lock */
++	/* Smaller private variant of the RTNL lock */
+ 	struct mutex			qede_lock;
+ 	u32				state; /* Protected by qede_lock */
+ 	u16				rx_buf_size;
+@@ -226,22 +228,28 @@ struct qede_dev {
+ 	      SKB_DATA_ALIGN(sizeof(struct skb_shared_info)))
+ 
+ 	struct qede_stats		stats;
+-#define QEDE_RSS_INDIR_INITED	BIT(0)
+-#define QEDE_RSS_KEY_INITED	BIT(1)
+-#define QEDE_RSS_CAPS_INITED	BIT(2)
+-	u32 rss_params_inited; /* bit-field to track initialized rss params */
+-	u16 rss_ind_table[128];
+-	u32 rss_key[10];
+-	u8 rss_caps;
+-
+-	u16			q_num_rx_buffers; /* Must be a power of two */
+-	u16			q_num_tx_buffers; /* Must be a power of two */
+-
+-	bool gro_disable;
+-	struct list_head vlan_list;
+-	u16 configured_vlans;
+-	u16 non_configured_vlans;
+-	bool accept_any_vlan;
++
++	/* Bitfield to track initialized RSS params */
++	u32				rss_params_inited;
++#define QEDE_RSS_INDIR_INITED		BIT(0)
++#define QEDE_RSS_KEY_INITED		BIT(1)
++#define QEDE_RSS_CAPS_INITED		BIT(2)
++
++	u16				rss_ind_table[128];
++	u32				rss_key[10];
++	u8				rss_caps;
++
++	/* Both must be a power of two */
++	u16				q_num_rx_buffers;
++	u16				q_num_tx_buffers;
++
++	bool				gro_disable;
++
++	struct list_head		vlan_list;
++	u16				configured_vlans;
++	u16				non_configured_vlans;
++	bool				accept_any_vlan;
++
+ 	struct delayed_work		sp_task;
+ 	unsigned long			sp_flags;
+ 	u16				vxlan_dst_port;
+@@ -252,14 +260,14 @@ struct qede_dev {
+ 
+ 	struct qede_rdma_dev		rdma_info;
+ 
+-	struct bpf_prog *xdp_prog;
++	struct bpf_prog			*xdp_prog;
+ 
+-	unsigned long err_flags;
+-#define QEDE_ERR_IS_HANDLED	31
+-#define QEDE_ERR_ATTN_CLR_EN	0
+-#define QEDE_ERR_GET_DBG_INFO	1
+-#define QEDE_ERR_IS_RECOVERABLE	2
+-#define QEDE_ERR_WARN		3
++	unsigned long			err_flags;
++#define QEDE_ERR_IS_HANDLED		31
++#define QEDE_ERR_ATTN_CLR_EN		0
++#define QEDE_ERR_GET_DBG_INFO		1
++#define QEDE_ERR_IS_RECOVERABLE		2
++#define QEDE_ERR_WARN			3
+ 
+ 	struct qede_dump_info		dump_info;
+ };
+@@ -372,29 +380,30 @@ struct sw_tx_bd {
+ };
  
  struct sw_tx_xdp {
- 	struct page			*page;
-+	struct xdp_frame		*xdpf;
- 	dma_addr_t			mapping;
+-	struct page *page;
+-	dma_addr_t mapping;
++	struct page			*page;
++	dma_addr_t			mapping;
  };
  
-@@ -403,6 +405,9 @@ struct qede_tx_queue {
- 	void __iomem			*doorbell_addr;
- 	union db_prod			tx_db;
+ struct qede_tx_queue {
+-	u8 is_xdp;
+-	bool is_legacy;
+-	u16 sw_tx_cons;
+-	u16 sw_tx_prod;
+-	u16 num_tx_buffers; /* Slowpath only */
++	u8				is_xdp;
++	bool				is_legacy;
++	u16				sw_tx_cons;
++	u16				sw_tx_prod;
++	u16				num_tx_buffers; /* Slowpath only */
  
-+	/* Spinlock for XDP queues in case of XDP_REDIRECT */
-+	spinlock_t			xdp_tx_lock;
+-	u64 xmit_pkts;
+-	u64 stopped_cnt;
+-	u64 tx_mem_alloc_err;
++	u64				xmit_pkts;
++	u64				stopped_cnt;
++	u64				tx_mem_alloc_err;
+ 
+-	__le16 *hw_cons_ptr;
++	__le16				*hw_cons_ptr;
+ 
+ 	/* Needed for the mapping of packets */
+-	struct device *dev;
++	struct device			*dev;
 +
- 	int				index; /* Slowpath only */
++	void __iomem			*doorbell_addr;
++	union db_prod			tx_db;
+ 
+-	void __iomem *doorbell_addr;
+-	union db_prod tx_db;
+-	int index; /* Slowpath only */
++	int				index; /* Slowpath only */
  #define QEDE_TXQ_XDP_TO_IDX(edev, txq)	((txq)->index - \
  					 QEDE_MAX_TSS_CNT(edev))
-@@ -456,6 +461,7 @@ struct qede_fastpath {
+ #define QEDE_TXQ_IDX_TO_XDP(edev, idx)	((idx) + QEDE_MAX_TSS_CNT(edev))
+@@ -406,22 +415,22 @@ struct qede_tx_queue {
+ #define QEDE_NDEV_TXQ_ID_TO_TXQ(edev, idx)	\
+ 	(&((edev)->fp_array[QEDE_NDEV_TXQ_ID_TO_FP_ID(edev, idx)].txq \
+ 	[QEDE_NDEV_TXQ_ID_TO_TXQ_COS(edev, idx)]))
+-#define QEDE_FP_TC0_TXQ(fp)	(&((fp)->txq[0]))
++#define QEDE_FP_TC0_TXQ(fp)		(&((fp)->txq[0]))
  
- 	u8				xdp_xmit;
- #define QEDE_XDP_TX			BIT(0)
-+#define QEDE_XDP_REDIRECT		BIT(1)
+ 	/* Regular Tx requires skb + metadata for release purpose,
+ 	 * while XDP requires the pages and the mapped address.
+ 	 */
+ 	union {
+-		struct sw_tx_bd *skbs;
+-		struct sw_tx_xdp *xdp;
+-	} sw_tx_ring;
++		struct sw_tx_bd		*skbs;
++		struct sw_tx_xdp	*xdp;
++	}				sw_tx_ring;
  
- 	struct napi_struct		napi;
- 	struct qed_sb_info		*sb_info;
-@@ -516,6 +522,8 @@ struct qede_reload_args {
+-	struct qed_chain tx_pbl;
++	struct qed_chain		tx_pbl;
  
- /* Datapath functions definition */
- netdev_tx_t qede_start_xmit(struct sk_buff *skb, struct net_device *ndev);
-+int qede_xdp_transmit(struct net_device *dev, int n_frames,
-+		      struct xdp_frame **frames, u32 flags);
- u16 qede_select_queue(struct net_device *dev, struct sk_buff *skb,
- 		      struct net_device *sb_dev);
- netdev_features_t qede_features_check(struct sk_buff *skb,
-diff --git a/drivers/net/ethernet/qlogic/qede/qede_fp.c b/drivers/net/ethernet/qlogic/qede/qede_fp.c
-index c80bf6d37b89..a2494bf85007 100644
---- a/drivers/net/ethernet/qlogic/qede/qede_fp.c
-+++ b/drivers/net/ethernet/qlogic/qede/qede_fp.c
-@@ -303,7 +303,7 @@ static inline void qede_update_tx_producer(struct qede_tx_queue *txq)
- }
- 
- static int qede_xdp_xmit(struct qede_tx_queue *txq, dma_addr_t dma, u16 pad,
--			 u16 len, struct page *page)
-+			 u16 len, struct page *page, struct xdp_frame *xdpf)
- {
- 	struct eth_tx_1st_bd *bd;
- 	struct sw_tx_xdp *xdp;
-@@ -330,12 +330,66 @@ static int qede_xdp_xmit(struct qede_tx_queue *txq, dma_addr_t dma, u16 pad,
- 	xdp = txq->sw_tx_ring.xdp + txq->sw_tx_prod;
- 	xdp->mapping = dma;
- 	xdp->page = page;
-+	xdp->xdpf = xdpf;
- 
- 	txq->sw_tx_prod = (txq->sw_tx_prod + 1) % txq->num_tx_buffers;
- 
- 	return 0;
- }
- 
-+int qede_xdp_transmit(struct net_device *dev, int n_frames,
-+		      struct xdp_frame **frames, u32 flags)
-+{
-+	struct qede_dev *edev = netdev_priv(dev);
-+	struct device *dmadev = &edev->pdev->dev;
-+	struct qede_tx_queue *xdp_tx;
-+	struct xdp_frame *xdpf;
-+	dma_addr_t mapping;
-+	int i, drops = 0;
-+	u16 xdp_prod;
-+
-+	if (unlikely(flags & ~XDP_XMIT_FLAGS_MASK))
-+		return -EINVAL;
-+
-+	if (unlikely(!netif_running(dev)))
-+		return -ENETDOWN;
-+
-+	i = smp_processor_id() % edev->total_xdp_queues;
-+	xdp_tx = edev->fp_array[i].xdp_tx;
-+
-+	spin_lock(&xdp_tx->xdp_tx_lock);
-+
-+	for (i = 0; i < n_frames; i++) {
-+		xdpf = frames[i];
-+
-+		mapping = dma_map_single(dmadev, xdpf->data, xdpf->len,
-+					 DMA_TO_DEVICE);
-+		if (unlikely(dma_mapping_error(dmadev, mapping))) {
-+			xdp_return_frame_rx_napi(xdpf);
-+			drops++;
-+
-+			continue;
-+		}
-+
-+		if (unlikely(qede_xdp_xmit(xdp_tx, mapping, 0, xdpf->len,
-+					   NULL, xdpf))) {
-+			xdp_return_frame_rx_napi(xdpf);
-+			drops++;
-+		}
-+	}
-+
-+	if (flags & XDP_XMIT_FLUSH) {
-+		xdp_prod = qed_chain_get_prod_idx(&xdp_tx->tx_pbl);
-+
-+		xdp_tx->tx_db.data.bd_prod = cpu_to_le16(xdp_prod);
-+		qede_update_tx_producer(xdp_tx);
-+	}
-+
-+	spin_unlock(&xdp_tx->xdp_tx_lock);
-+
-+	return n_frames - drops;
-+}
-+
- int qede_txq_has_work(struct qede_tx_queue *txq)
- {
- 	u16 hw_bd_cons;
-@@ -353,6 +407,7 @@ static void qede_xdp_tx_int(struct qede_dev *edev, struct qede_tx_queue *txq)
- {
- 	struct sw_tx_xdp *xdp_info, *xdp_arr = txq->sw_tx_ring.xdp;
- 	struct device *dev = &edev->pdev->dev;
-+	struct xdp_frame *xdpf;
- 	u16 hw_bd_cons;
- 
- 	hw_bd_cons = le16_to_cpu(*txq->hw_cons_ptr);
-@@ -360,10 +415,19 @@ static void qede_xdp_tx_int(struct qede_dev *edev, struct qede_tx_queue *txq)
- 
- 	while (hw_bd_cons != qed_chain_get_cons_idx(&txq->tx_pbl)) {
- 		xdp_info = xdp_arr + txq->sw_tx_cons;
-+		xdpf = xdp_info->xdpf;
-+
-+		if (xdpf) {
-+			dma_unmap_single(dev, xdp_info->mapping, xdpf->len,
-+					 DMA_TO_DEVICE);
-+			xdp_return_frame(xdpf);
- 
--		dma_unmap_page(dev, xdp_info->mapping, PAGE_SIZE,
--			       DMA_BIDIRECTIONAL);
--		__free_page(xdp_info->page);
-+			xdp_info->xdpf = NULL;
-+		} else {
-+			dma_unmap_page(dev, xdp_info->mapping, PAGE_SIZE,
-+				       DMA_BIDIRECTIONAL);
-+			__free_page(xdp_info->page);
-+		}
- 
- 		qed_chain_consume(&txq->tx_pbl);
- 		txq->sw_tx_cons = (txq->sw_tx_cons + 1) % txq->num_tx_buffers;
-@@ -1065,7 +1129,8 @@ static bool qede_rx_xdp(struct qede_dev *edev,
- 		 * throw current buffer, as replacement was already allocated.
- 		 */
- 		if (unlikely(qede_xdp_xmit(fp->xdp_tx, bd->mapping,
--					   *data_offset, *len, bd->data))) {
-+					   *data_offset, *len, bd->data,
-+					   NULL))) {
- 			dma_unmap_page(rxq->dev, bd->mapping, PAGE_SIZE,
- 				       rxq->data_direction);
- 			__free_page(bd->data);
-@@ -1079,6 +1144,25 @@ static bool qede_rx_xdp(struct qede_dev *edev,
- 		}
- 
- 		/* Regardless, we've consumed an Rx BD */
-+		qede_rx_bd_ring_consume(rxq);
-+		break;
-+	case XDP_REDIRECT:
-+		/* We need the replacement buffer before transmit. */
-+		if (unlikely(qede_alloc_rx_buffer(rxq, true))) {
-+			qede_recycle_rx_bd_ring(rxq, 1);
-+
-+			trace_xdp_exception(edev->ndev, prog, act);
-+			break;
-+		}
-+
-+		dma_unmap_page(rxq->dev, bd->mapping, PAGE_SIZE,
-+			       rxq->data_direction);
-+
-+		if (unlikely(xdp_do_redirect(edev->ndev, &xdp, prog)))
-+			DP_NOTICE(edev, "Failed to redirect the packet\n");
-+		else
-+			fp->xdp_xmit |= QEDE_XDP_REDIRECT;
-+
- 		qede_rx_bd_ring_consume(rxq);
- 		break;
- 	default:
-@@ -1387,6 +1471,9 @@ int qede_poll(struct napi_struct *napi, int budget)
- 		qede_update_tx_producer(fp->xdp_tx);
- 	}
- 
-+	if (fp->xdp_xmit & QEDE_XDP_REDIRECT)
-+		xdp_do_flush_map();
-+
- 	return rx_work_done;
- }
- 
-diff --git a/drivers/net/ethernet/qlogic/qede/qede_main.c b/drivers/net/ethernet/qlogic/qede/qede_main.c
-index 92bcdfa27961..1aaae3203f5a 100644
---- a/drivers/net/ethernet/qlogic/qede/qede_main.c
-+++ b/drivers/net/ethernet/qlogic/qede/qede_main.c
-@@ -672,6 +672,7 @@ static const struct net_device_ops qede_netdev_ops = {
- #ifdef CONFIG_RFS_ACCEL
- 	.ndo_rx_flow_steer	= qede_rx_flow_steer,
- #endif
-+	.ndo_xdp_xmit		= qede_xdp_transmit,
- 	.ndo_setup_tc		= qede_setup_tc_offload,
+ 	/* Slowpath; Should be kept in end [unless missing padding] */
+-	void *handle;
+-	u16 cos;
+-	u16 ndev_txq_id;
++	void				*handle;
++	u16				cos;
++	u16				ndev_txq_id;
  };
  
-@@ -712,6 +713,7 @@ static const struct net_device_ops qede_netdev_vf_xdp_ops = {
- 	.ndo_udp_tunnel_del	= udp_tunnel_nic_del_port,
- 	.ndo_features_check	= qede_features_check,
- 	.ndo_bpf		= qede_xdp,
-+	.ndo_xdp_xmit		= qede_xdp_transmit,
+ #define BD_UNMAP_ADDR(bd)		HILO_U64(le32_to_cpu((bd)->addr.hi), \
+@@ -435,32 +444,35 @@ struct qede_tx_queue {
+ #define BD_UNMAP_LEN(bd)		(le16_to_cpu((bd)->nbytes))
+ 
+ struct qede_fastpath {
+-	struct qede_dev	*edev;
+-#define QEDE_FASTPATH_TX	BIT(0)
+-#define QEDE_FASTPATH_RX	BIT(1)
+-#define QEDE_FASTPATH_XDP	BIT(2)
+-#define QEDE_FASTPATH_COMBINED	(QEDE_FASTPATH_TX | QEDE_FASTPATH_RX)
+-	u8			type;
+-	u8			id;
+-	u8			xdp_xmit;
+-	struct napi_struct	napi;
+-	struct qed_sb_info	*sb_info;
+-	struct qede_rx_queue	*rxq;
+-	struct qede_tx_queue	*txq;
+-	struct qede_tx_queue	*xdp_tx;
+-
+-#define VEC_NAME_SIZE  (sizeof_field(struct net_device, name) + 8)
+-	char	name[VEC_NAME_SIZE];
++	struct qede_dev			*edev;
++
++	u8				type;
++#define QEDE_FASTPATH_TX		BIT(0)
++#define QEDE_FASTPATH_RX		BIT(1)
++#define QEDE_FASTPATH_XDP		BIT(2)
++#define QEDE_FASTPATH_COMBINED		(QEDE_FASTPATH_TX | QEDE_FASTPATH_RX)
++
++	u8				id;
++
++	u8				xdp_xmit;
++
++	struct napi_struct		napi;
++	struct qed_sb_info		*sb_info;
++	struct qede_rx_queue		*rxq;
++	struct qede_tx_queue		*txq;
++	struct qede_tx_queue		*xdp_tx;
++
++	char				name[IFNAMSIZ + 8];
  };
  
- /* -------------------------------------------------------------------------
-@@ -1712,6 +1714,7 @@ static void qede_init_fp(struct qede_dev *edev)
- {
- 	int queue_id, rxq_index = 0, txq_index = 0;
- 	struct qede_fastpath *fp;
-+	bool init_xdp = false;
+ /* Debug print definitions */
+-#define DP_NAME(edev) ((edev)->ndev->name)
++#define DP_NAME(edev)			netdev_name((edev)->ndev)
  
- 	for_each_queue(queue_id) {
- 		fp = &edev->fp_array[queue_id];
-@@ -1723,6 +1726,9 @@ static void qede_init_fp(struct qede_dev *edev)
- 			fp->xdp_tx->index = QEDE_TXQ_IDX_TO_XDP(edev,
- 								rxq_index);
- 			fp->xdp_tx->is_xdp = 1;
-+
-+			spin_lock_init(&fp->xdp_tx->xdp_tx_lock);
-+			init_xdp = true;
- 		}
+-#define XMIT_PLAIN		0
+-#define XMIT_L4_CSUM		BIT(0)
+-#define XMIT_LSO		BIT(1)
+-#define XMIT_ENC		BIT(2)
+-#define XMIT_ENC_GSO_L4_CSUM	BIT(3)
++#define XMIT_PLAIN			0
++#define XMIT_L4_CSUM			BIT(0)
++#define XMIT_LSO			BIT(1)
++#define XMIT_ENC			BIT(2)
++#define XMIT_ENC_GSO_L4_CSUM		BIT(3)
  
- 		if (fp->type & QEDE_FASTPATH_RX) {
-@@ -1738,6 +1744,13 @@ static void qede_init_fp(struct qede_dev *edev)
- 			/* Driver have no error path from here */
- 			WARN_ON(xdp_rxq_info_reg(&fp->rxq->xdp_rxq, edev->ndev,
- 						 fp->rxq->rxq_id) < 0);
-+
-+			if (xdp_rxq_info_reg_mem_model(&fp->rxq->xdp_rxq,
-+						       MEM_TYPE_PAGE_ORDER0,
-+						       NULL)) {
-+				DP_NOTICE(edev,
-+					  "Failed to register XDP memory model\n");
-+			}
- 		}
- 
- 		if (fp->type & QEDE_FASTPATH_TX) {
-@@ -1763,6 +1776,11 @@ static void qede_init_fp(struct qede_dev *edev)
- 		snprintf(fp->name, sizeof(fp->name), "%s-fp-%d",
- 			 edev->ndev->name, queue_id);
- 	}
-+
-+	if (init_xdp) {
-+		edev->total_xdp_queues = QEDE_RSS_COUNT(edev);
-+		DP_INFO(edev, "Total XDP queues: %u\n", edev->total_xdp_queues);
-+	}
- }
- 
- static int qede_set_real_num_queues(struct qede_dev *edev)
+ #define QEDE_CSUM_ERROR			BIT(0)
+ #define QEDE_CSUM_UNNECESSARY		BIT(1)
 -- 
 2.25.1
 
