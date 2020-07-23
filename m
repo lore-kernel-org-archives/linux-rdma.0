@@ -2,121 +2,215 @@ Return-Path: <SRS0=2hsX=BC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C4ABC433E8
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 15:43:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF576C433E4
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 22:30:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17983206D8
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 15:43:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B75822B3F
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 22:30:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hkLgkD00"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="c5NVsizi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728134AbgGWPnK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Jul 2020 11:43:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60708 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727108AbgGWPnK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Jul 2020 11:43:10 -0400
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129D9C0619DC
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2020 08:43:10 -0700 (PDT)
-Received: by mail-oi1-x243.google.com with SMTP id y22so5362461oie.8
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Jul 2020 08:43:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=uA0NQ6InLul4YoY9vYTzqFsW0bXKKj9fR6iGQjupKqM=;
-        b=hkLgkD00lL9N/sjxCuMTWhUdyvXjCRUqmzBs3vLfH1U/Belb024xIP90ahp+6mdUez
-         xVp1AJTKfKqttL2h4+i9LjsxPpZX3jflKRwnMGSS7XJ4ffcv+5ub0WRLQAtRwcgWXBhz
-         9nwfVa96yvNIkrkBWdAYyOMOELFEsuDTEkN4iPrrtcoDr1iGLeasDVGOcONY2q9FahP5
-         LEemhWiq3hoO0e8A+UWJs4sWKYP7uTPaZ6tigcnGHI07oM51/W+nXbW1lvHdmot8hx5J
-         8rYtSK+BxtQmhHeIF/BmfnEDgN4mC5M6y2+9iNqZgRrCkdR2DiRNWeqnoyg6ofl2zMhb
-         iHLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=uA0NQ6InLul4YoY9vYTzqFsW0bXKKj9fR6iGQjupKqM=;
-        b=lci7RRmIve4idIr4y/w81xRC1NVUTPRG4JZIzWi+2ashGI9UIj0J5nhZRUXTN08sWO
-         woCe47c/i0TuR0agZHj8DKoyLRXCqa/MKu1cy8j1RVzXzZgJDl7xMCifkvZJJ3UK49ZO
-         SYySSt/Sealb4ABscpKpHZfYYIwI3bnajUFMMfejzgh5SjeqU8R/pyusdBdEtFeAsYAx
-         j8YVbo0c9he3d54lSetz4VTQH2XbLf6RIv4W09JMwPsdtWeLjg0ZXweTLa8h6po/xZGG
-         lNY+ej674tbD9WZAWTTHMnKW4oMLwRrzWW9/t/dlNXpp/nhETBjtahplecBJtc7iK//U
-         aMjg==
-X-Gm-Message-State: AOAM533gxoRlD6X4iGcehegINDHayC2wvk8QC46g6rFQNWU3D6e7/0V9
-        Cc6VBQ/GAm0Q7WVFo+9C+JOjB+R/M4KFduUqP5c=
-X-Google-Smtp-Source: ABdhPJw4Iwa91XMBiSPQ5eDxPVeRZFEl7fmRUlbSRoBYcrgX6RDomzEvWGunxSUSzZmPIp4PZEBoT9WQx9s2U4eD6Wc=
-X-Received: by 2002:aca:bed5:: with SMTP id o204mr4051350oif.169.1595518987961;
- Thu, 23 Jul 2020 08:43:07 -0700 (PDT)
+        id S1727897AbgGWWaw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Jul 2020 18:30:52 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:13862 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727861AbgGWWav (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Jul 2020 18:30:51 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f1a0f200000>; Thu, 23 Jul 2020 15:28:48 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Thu, 23 Jul 2020 15:30:50 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Thu, 23 Jul 2020 15:30:50 -0700
+Received: from HQMAIL105.nvidia.com (172.20.187.12) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 23 Jul
+ 2020 22:30:42 +0000
+Received: from rnnvemgw01.nvidia.com (10.128.109.123) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Thu, 23 Jul 2020 22:30:42 +0000
+Received: from rcampbell-dev.nvidia.com (Not Verified[10.110.48.66]) by rnnvemgw01.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5f1a0f910002>; Thu, 23 Jul 2020 15:30:41 -0700
+From:   Ralph Campbell <rcampbell@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>,
+        <nouveau@lists.freedesktop.org>, <kvm-ppc@vger.kernel.org>,
+        <linux-kselftest@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     Jerome Glisse <jglisse@redhat.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        "Andrew Morton" <akpm@linux-foundation.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "Ben Skeggs" <bskeggs@redhat.com>,
+        Bharata B Rao <bharata@linux.ibm.com>,
+        "Ralph Campbell" <rcampbell@nvidia.com>
+Subject: [PATCH v4 5/6] mm/hmm/test: use the new migration invalidation
+Date:   Thu, 23 Jul 2020 15:30:03 -0700
+Message-ID: <20200723223004.9586-6-rcampbell@nvidia.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20200723223004.9586-1-rcampbell@nvidia.com>
+References: <20200723223004.9586-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
-References: <D1A472F9-6618-41A2-9CA8-B5231BD03D63@bytedance.com>
-In-Reply-To: <D1A472F9-6618-41A2-9CA8-B5231BD03D63@bytedance.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Thu, 23 Jul 2020 23:42:56 +0800
-Message-ID: <CAD=hENdG_0hdcRQk+sH6HyuOROM-U9_n2QahipgmOdESQDso3g@mail.gmail.com>
-Subject: Re: [PATCH] RDMA/rxe: fix retry forever when rnr_retry >= 7
-To:     Fan Yang <yangfan.fan@bytedance.com>
-Cc:     Zhu Yanjun <yanjunz@mellanox.com>, linux-rdma@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+X-NVConfidentiality: public
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1595543328; bh=BeVUOTJgQepW+LMWyDGWqpRY0jrU7O9ftBuhCh+HHBg=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         In-Reply-To:References:MIME-Version:X-NVConfidentiality:
+         Content-Transfer-Encoding:Content-Type;
+        b=c5NVsiziP4cirzdcWC6K4LcVP4KSZN9WPHjiDB+wb369XeSgW+x0ffbg5/GsZEdHZ
+         VNlqkYRVXriPkI7ArKZLO64O9s9bii6xIeiWVSn4lGPyTmw4PRgI+Gtqh+QLzLZuZj
+         YWQRDbCiFOqf/ouBw74NnHOkciuxCGS3m1CrofSqd3zATJF3aqCFPcZZXNR6CqiIZz
+         KekhEI0xT5i1MApDLFN41+rGbDo1hdbh0//Zubm+a3DuFfV5TO6Xv8RGAzhZEjAhEO
+         j5W7XxfbfN+/isxrdbiUbqx1idn5RUo2XnM3MonM0s/2zPxlLTN2gpqZZau7Ejo0tO
+         MGzZ+BIT5US8A==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jul 23, 2020 at 9:28 PM Fan Yang <yangfan.fan@bytedance.com> wrote:
->
-> Currently when an error occurs and the completion state becomes
-> COMPST_RNR_RETRY, qp->comp.rnr_retry is only decreased when
-> qp->comp.rnr_retry !=3D 7.
->
-> If the user happens to config the rnr retry count to be >=3D 7, the
-> driver will retry forever, instead of exposing IB_WC_RNR_RETRY_EXC_ERR.
+Use the new MMU_NOTIFY_MIGRATE event to skip MMU invalidations of device
+private memory and handle the invalidation in the driver as part of
+migrating device private memory.
 
-Please read the following from IB specification
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+---
+ lib/test_hmm.c                         | 30 +++++++++++++++-----------
+ tools/testing/selftests/vm/hmm-tests.c | 18 ++++++++++++----
+ 2 files changed, 31 insertions(+), 17 deletions(-)
 
-"
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index e78a1414f58e..e7dc3de355b7 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -214,6 +214,14 @@ static bool dmirror_interval_invalidate(struct mmu_int=
+erval_notifier *mni,
+ {
+ 	struct dmirror *dmirror =3D container_of(mni, struct dmirror, notifier);
+=20
++	/*
++	 * Ignore invalidation callbacks for device private pages since
++	 * the invalidation is handled as part of the migration process.
++	 */
++	if (range->event =3D=3D MMU_NOTIFY_MIGRATE &&
++	    range->migrate_pgmap_owner =3D=3D dmirror->mdevice)
++		return true;
++
+ 	if (mmu_notifier_range_blockable(range))
+ 		mutex_lock(&dmirror->mutex);
+ 	else if (!mutex_trylock(&dmirror->mutex))
+@@ -693,7 +701,7 @@ static int dmirror_migrate(struct dmirror *dmirror,
+ 		args.dst =3D dst_pfns;
+ 		args.start =3D addr;
+ 		args.end =3D next;
+-		args.pgmap_owner =3D NULL;
++		args.pgmap_owner =3D dmirror->mdevice;
+ 		args.flags =3D MIGRATE_VMA_SELECT_SYSTEM;
+ 		ret =3D migrate_vma_setup(&args);
+ 		if (ret)
+@@ -983,7 +991,7 @@ static void dmirror_devmem_free(struct page *page)
+ }
+=20
+ static vm_fault_t dmirror_devmem_fault_alloc_and_copy(struct migrate_vma *=
+args,
+-						struct dmirror_device *mdevice)
++						      struct dmirror *dmirror)
+ {
+ 	const unsigned long *src =3D args->src;
+ 	unsigned long *dst =3D args->dst;
+@@ -1005,6 +1013,7 @@ static vm_fault_t dmirror_devmem_fault_alloc_and_copy=
+(struct migrate_vma *args,
+ 			continue;
+=20
+ 		lock_page(dpage);
++		xa_erase(&dmirror->pt, addr >> PAGE_SHIFT);
+ 		copy_highpage(dpage, spage);
+ 		*dst =3D migrate_pfn(page_to_pfn(dpage)) | MIGRATE_PFN_LOCKED;
+ 		if (*src & MIGRATE_PFN_WRITE)
+@@ -1013,15 +1022,6 @@ static vm_fault_t dmirror_devmem_fault_alloc_and_cop=
+y(struct migrate_vma *args,
+ 	return 0;
+ }
+=20
+-static void dmirror_devmem_fault_finalize_and_map(struct migrate_vma *args=
+,
+-						  struct dmirror *dmirror)
+-{
+-	/* Invalidate the device's page table mapping. */
+-	mutex_lock(&dmirror->mutex);
+-	dmirror_do_update(dmirror, args->start, args->end);
+-	mutex_unlock(&dmirror->mutex);
+-}
+-
+ static vm_fault_t dmirror_devmem_fault(struct vm_fault *vmf)
+ {
+ 	struct migrate_vma args;
+@@ -1051,11 +1051,15 @@ static vm_fault_t dmirror_devmem_fault(struct vm_fa=
+ult *vmf)
+ 	if (migrate_vma_setup(&args))
+ 		return VM_FAULT_SIGBUS;
+=20
+-	ret =3D dmirror_devmem_fault_alloc_and_copy(&args, dmirror->mdevice);
++	ret =3D dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
+ 	if (ret)
+ 		return ret;
+ 	migrate_vma_pages(&args);
+-	dmirror_devmem_fault_finalize_and_map(&args, dmirror);
++	/*
++	 * No device finalize step is needed since
++	 * dmirror_devmem_fault_alloc_and_copy() will have already
++	 * invalidated the device page table.
++	 */
+ 	migrate_vma_finalize(&args);
+ 	return 0;
+ }
+diff --git a/tools/testing/selftests/vm/hmm-tests.c b/tools/testing/selftes=
+ts/vm/hmm-tests.c
+index b533dd08da1d..91d38a29956b 100644
+--- a/tools/testing/selftests/vm/hmm-tests.c
++++ b/tools/testing/selftests/vm/hmm-tests.c
+@@ -881,8 +881,9 @@ TEST_F(hmm, migrate)
+ }
+=20
+ /*
+- * Migrate anonymous memory to device private memory and fault it back to =
+system
+- * memory.
++ * Migrate anonymous memory to device private memory and fault some of it =
+back
++ * to system memory, then try migrating the resulting mix of system and de=
+vice
++ * private memory to the device.
+  */
+ TEST_F(hmm, migrate_fault)
+ {
+@@ -924,8 +925,17 @@ TEST_F(hmm, migrate_fault)
+ 	for (i =3D 0, ptr =3D buffer->mirror; i < size / sizeof(*ptr); ++i)
+ 		ASSERT_EQ(ptr[i], i);
+=20
+-	/* Fault pages back to system memory and check them. */
+-	for (i =3D 0, ptr =3D buffer->ptr; i < size / sizeof(*ptr); ++i)
++	/* Fault half the pages back to system memory and check them. */
++	for (i =3D 0, ptr =3D buffer->ptr; i < size / (2 * sizeof(*ptr)); ++i)
++		ASSERT_EQ(ptr[i], i);
++
++	/* Migrate memory to the device again. */
++	ret =3D hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device read. */
++	for (i =3D 0, ptr =3D buffer->mirror; i < size / sizeof(*ptr); ++i)
+ 		ASSERT_EQ(ptr[i], i);
+=20
+ 	hmm_buffer_free(buffer);
+--=20
+2.20.1
 
-The RNR NAK retry counter is decremented each time the responder returns
-
-an RNR NAK. If the requester=E2=80=99s RNR NAK retry counter is zero, and
-an RNR NAK packet is received, an RNR NAK retry error occurs. Each
-time an RNR NAK is cleared (i.e., an acknowledge message other than
-an RNR NAK is returned), the retry counter is reloaded. An exception to
-the following is if the RNR NAK retry counter is set to 7. This value indic=
-ates
-
-infinite retry and the counter is not decremented.
-
-"
-
-
->
-> ---
->  drivers/infiniband/sw/rxe/rxe_comp.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw=
-/rxe/rxe_comp.c
-> index 4bc88708b355..16c1870b6482 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-> @@ -745,8 +745,7 @@ int rxe_completer(void *arg)
->
->                 case COMPST_RNR_RETRY:
->                         if (qp->comp.rnr_retry > 0) {
-> -                               if (qp->comp.rnr_retry !=3D 7)
-> -                                       qp->comp.rnr_retry--;
-> +                               qp->comp.rnr_retry--;
->
->                                 qp->req.need_retry =3D 1;
->                                 pr_debug("qp#%d set rnr nak timer\n",
-> --
-> 2.27.0
->
->
