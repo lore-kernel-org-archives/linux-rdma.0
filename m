@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0405C433E5
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 07:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3950FC433E8
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 07:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71CBE20825
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 07:07:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1579D206E3
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Jul 2020 07:07:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595488040;
-	bh=zc4+qE6T4KVtI5Cfww+UM8J6ijLvA3Aa4ebKVBB2SDM=;
+	s=default; t=1595488048;
+	bh=MMZWzEaOVS0kfUfYEy0yYw+8cIJ+qsA//CTaWC/ewW4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=rVSv/GBeAOUKWl0MYr1zZHBZ1E/t2R2PxE8f2CaXh1V30ZzUmhU6NDmXtvV4WzAFr
-	 ywc/oP/iXTg+tHL5R1CJNdy5g7s08A9lUKobSDoscu5A9qtBV2mbGVkf0T85suR+Ga
-	 4MbFmfTGGS7KUjriSr8LhIB19uLKKdjnXOuZejz8=
+	b=nt8nKFBPMLlBltKS2+TXYBs9vmUU7eXQp+8g1Nw90pKZURQxAtVvduzRUqevfDyT5
+	 DtIMNTQtf0B7H1frc/O6SEOMSk8pjFadGnvqojVeXzaa1LScX4bWriMk3/ANdL3sFm
+	 42LnO19Iz8xlYVCX8sZpxH6+bzpzT25TNkX8Va+c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726500AbgGWHHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Jul 2020 03:07:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43174 "EHLO mail.kernel.org"
+        id S1726559AbgGWHH1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Jul 2020 03:07:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725774AbgGWHHT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 23 Jul 2020 03:07:19 -0400
+        id S1725774AbgGWHH1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 23 Jul 2020 03:07:27 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CFB84206E3;
-        Thu, 23 Jul 2020 07:07:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC12D20888;
+        Thu, 23 Jul 2020 07:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595488039;
-        bh=zc4+qE6T4KVtI5Cfww+UM8J6ijLvA3Aa4ebKVBB2SDM=;
+        s=default; t=1595488046;
+        bh=MMZWzEaOVS0kfUfYEy0yYw+8cIJ+qsA//CTaWC/ewW4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TcwEH9Qw6sDfpv6W94D9tHiTPmG0CfHtJh8RKT9ZVmJ7+VdV2K4UI6GWXHsNhpWuD
-         RS9Y+2iIb9dfDyzasbtYF96rlpmCv81aITTQUyvwzBIRw+xR09gzmafHGjbfaqDjoP
-         2NvtFfxMWfJb6hhssS+KDStvGf4grr2VjukkVWt4=
+        b=lj/7LoCueHYM5VMbdLI+t8UpX4lFOn72MRKOu3hl0u3FpRCeV5ySm2HjQRmLS0QK0
+         6FkxI81MgFDnqjk/TL6Yx0RMwqbcvxNuF+0FHl6houMZNXkSoa/x6gc3IVRRi57WJz
+         NrMqmw1URvJRGj5HOmGOisPRgUCwiU2luTefVa8M=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
 Cc:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/4] RDMA/cma: Simplify DEVICE_REMOVAL for internal_id
-Date:   Thu, 23 Jul 2020 10:07:04 +0300
-Message-Id: <20200723070707.1771101-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/4] RDMA/cma: Remove unneeded locking for req paths
+Date:   Thu, 23 Jul 2020 10:07:06 +0300
+Message-Id: <20200723070707.1771101-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200723070707.1771101-1-leon@kernel.org>
 References: <20200723070707.1771101-1-leon@kernel.org>
@@ -57,47 +57,115 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-cma_process_remove() triggers an unconditional rdma_destroy_id() for
-internal_id's and skips the event deliver and transition through
-RDMA_CM_DEVICE_REMOVAL.
+The REQ flows are concerned that once the handler is called on the new
+cm_id the ULP can choose to trigger a rdma_destroy_id() concurrently at
+any time.
 
-This is confusing and unnecessary. internal_id always has
-cma_listen_handler() as the handler, have it catch the
-RDMA_CM_DEVICE_REMOVAL event and directly consume it and signal removal.
+However, this is not true, while the ULP can call rdma_destroy_id(), it
+immediately blocks on the handler_mutex which prevents anything harmful
+from running concurrently.
 
-This way the FSM sequence never skips the DEVICE_REMOVAL case and the
-logic in this hard to test area is simplified.
+Remove the confusing extra locking and refcounts and make the
+handler_mutex protecting state during destroy more clear.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/cma.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 31 ++++++-------------------------
+ 1 file changed, 6 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index c30cf5307ce3..537eeebde5f4 100644
+index 04151c301e85..11f43204fee7 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2482,6 +2482,10 @@ static int cma_listen_handler(struct rdma_cm_id *id,
+@@ -1831,21 +1831,21 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
+ 
+ void rdma_destroy_id(struct rdma_cm_id *id)
  {
- 	struct rdma_id_private *id_priv = id->context;
+-	struct rdma_id_private *id_priv;
++	struct rdma_id_private *id_priv =
++		container_of(id, struct rdma_id_private, id);
+ 	enum rdma_cm_state state;
  
-+	/* Listening IDs are always destroyed on removal */
-+	if (event->event == RDMA_CM_EVENT_DEVICE_REMOVAL)
-+		return -1;
+-	id_priv = container_of(id, struct rdma_id_private, id);
+-	trace_cm_id_destroy(id_priv);
+-	state = cma_exch(id_priv, RDMA_CM_DESTROYING);
+-	cma_cancel_operation(id_priv, state);
+-
+ 	/*
+ 	 * Wait for any active callback to finish.  New callbacks will find
+ 	 * the id_priv state set to destroying and abort.
+ 	 */
+ 	mutex_lock(&id_priv->handler_mutex);
++	trace_cm_id_destroy(id_priv);
++	state = cma_exch(id_priv, RDMA_CM_DESTROYING);
+ 	mutex_unlock(&id_priv->handler_mutex);
+ 
++	cma_cancel_operation(id_priv, state);
 +
- 	id->context = id_priv->id.context;
- 	id->event_handler = id_priv->id.event_handler;
- 	trace_cm_event_handler(id_priv, event);
-@@ -4829,7 +4833,7 @@ static void cma_process_remove(struct cma_device *cma_dev)
- 		cma_id_get(id_priv);
- 		mutex_unlock(&lock);
+ 	rdma_restrack_del(&id_priv->res);
+ 	if (id_priv->cma_dev) {
+ 		if (rdma_cap_ib_cm(id_priv->id.device, 1)) {
+@@ -2205,19 +2205,9 @@ static int cma_ib_req_handler(struct ib_cm_id *cm_id,
+ 	cm_id->context = conn_id;
+ 	cm_id->cm_handler = cma_ib_handler;
  
--		ret = id_priv->internal_id ? 1 : cma_remove_id_dev(id_priv);
-+		ret = cma_remove_id_dev(id_priv);
- 		cma_id_put(id_priv);
- 		if (ret)
- 			rdma_destroy_id(&id_priv->id);
+-	/*
+-	 * Protect against the user destroying conn_id from another thread
+-	 * until we're done accessing it.
+-	 */
+-	cma_id_get(conn_id);
+ 	ret = cma_cm_event_handler(conn_id, &event);
+ 	if (ret)
+ 		goto err3;
+-	/*
+-	 * Acquire mutex to prevent user executing rdma_destroy_id()
+-	 * while we're accessing the cm_id.
+-	 */
+-	mutex_lock(&lock);
+ 	if (cma_comp(conn_id, RDMA_CM_CONNECT) &&
+ 	    (conn_id->id.qp_type != IB_QPT_UD)) {
+ 		trace_cm_send_mra(cm_id->context);
+@@ -2226,13 +2216,11 @@ static int cma_ib_req_handler(struct ib_cm_id *cm_id,
+ 	mutex_unlock(&lock);
+ 	mutex_unlock(&conn_id->handler_mutex);
+ 	mutex_unlock(&listen_id->handler_mutex);
+-	cma_id_put(conn_id);
+ 	if (net_dev)
+ 		dev_put(net_dev);
+ 	return 0;
+ 
+ err3:
+-	cma_id_put(conn_id);
+ 	/* Destroy the CM ID by returning a non-zero value. */
+ 	conn_id->cm_id.ib = NULL;
+ err2:
+@@ -2409,11 +2397,6 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+ 	memcpy(cma_src_addr(conn_id), laddr, rdma_addr_size(laddr));
+ 	memcpy(cma_dst_addr(conn_id), raddr, rdma_addr_size(raddr));
+ 
+-	/*
+-	 * Protect against the user destroying conn_id from another thread
+-	 * until we're done accessing it.
+-	 */
+-	cma_id_get(conn_id);
+ 	ret = cma_cm_event_handler(conn_id, &event);
+ 	if (ret) {
+ 		/* User wants to destroy the CM ID */
+@@ -2421,13 +2404,11 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+ 		cma_exch(conn_id, RDMA_CM_DESTROYING);
+ 		mutex_unlock(&conn_id->handler_mutex);
+ 		mutex_unlock(&listen_id->handler_mutex);
+-		cma_id_put(conn_id);
+ 		rdma_destroy_id(&conn_id->id);
+ 		return ret;
+ 	}
+ 
+ 	mutex_unlock(&conn_id->handler_mutex);
+-	cma_id_put(conn_id);
+ 
+ out:
+ 	mutex_unlock(&listen_id->handler_mutex);
 -- 
 2.26.2
 
