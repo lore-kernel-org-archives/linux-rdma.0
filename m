@@ -2,106 +2,90 @@ Return-Path: <SRS0=g0/n=BF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84BF3C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 07:06:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98F8EC433E3
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:20:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F54820663
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 07:06:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="oK99XAwp"
+	by mail.kernel.org (Postfix) with ESMTP id 6E5EC20714
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:20:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1595762423;
+	bh=EGEVcZJz8TEJ1iOibvqzpe04pfAUDkgdNqV/JheeLNg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=NOo6r8Qw+bFfV6CiZCpFP4Irqzr3r6gxn/QovFdgYBtrKpqo2iJO8WL8mzDwPuj8K
+	 v5BdcSTcZssW+ct+v1c6QcziE8S0QZXPwsuwhaYKwKxESHSpIBu5qx2MDS8kz/zqTC
+	 Kl3XUcecNrnp2ZM4KHb+Da8C4EgOrOwvTZXJ/vf0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725937AbgGZHGJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Jul 2020 03:06:09 -0400
-Received: from smtp-fw-9101.amazon.com ([207.171.184.25]:47844 "EHLO
-        smtp-fw-9101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725789AbgGZHGJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Jul 2020 03:06:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1595747168; x=1627283168;
-  h=subject:from:to:cc:references:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=nyPvtnoqG/ac2Sfk59iGyiEkM2LglkoGM9+F0XvBF98=;
-  b=oK99XAwptu+BKmy9M+OBF8FNnnxOiC1aczTn5Lggc1YpAppclzzn4/ON
-   f2RYWTY6aSKiDiET8n1slXnhUGfVNePLl+X5uAOIcxfQAZD1n5j9iQPHR
-   os1l8jOxRtCPfvUOX8FNFSCFCX+bfKmWHkahC5isED0nV/Lsx8C9k+0EX
-   o=;
-IronPort-SDR: aO7XOm2wX4HyYO5KZdi1DLlVLub7sXzKDM5/76TAem0FzklYhQ5GUub5Bn1DiajogUKl9/cap1
- P6x6SI1+w5PQ==
-X-IronPort-AV: E=Sophos;i="5.75,397,1589241600"; 
-   d="scan'208";a="54662248"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-e7be2041.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-9101.sea19.amazon.com with ESMTP; 26 Jul 2020 07:06:08 +0000
-Received: from EX13MTAUEA002.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2a-e7be2041.us-west-2.amazon.com (Postfix) with ESMTPS id F1F46A1C7C;
-        Sun, 26 Jul 2020 07:06:07 +0000 (UTC)
-Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
- EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Sun, 26 Jul 2020 07:06:07 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.43.160.156) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Sun, 26 Jul 2020 07:06:04 +0000
-Subject: Re: Can't build rdma-core's azp image
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-CC:     <linux-rdma@vger.kernel.org>
-References: <05382c9f-a58d-ba5a-02cd-c25aa3604e52@amazon.com>
- <98b72450-1422-39ec-2f31-52a7dbaa57ea@amazon.com>
- <20200526192335.GO744@ziepe.ca>
- <9f697fea-30e0-2a1f-3c9c-a2ae0100a8df@amazon.com>
-Message-ID: <221cbc21-f027-3312-5043-7622c7e854d3@amazon.com>
-Date:   Sun, 26 Jul 2020 10:05:59 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
- Gecko/20100101 Thunderbird/68.10.0
+        id S1727861AbgGZLUW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Jul 2020 07:20:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46884 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725794AbgGZLUW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 26 Jul 2020 07:20:22 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D38720663;
+        Sun, 26 Jul 2020 11:20:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1595762422;
+        bh=EGEVcZJz8TEJ1iOibvqzpe04pfAUDkgdNqV/JheeLNg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=1IaZe0RO0K+Rg52yzV1TxAvHFDm5wFDxs+NepuDqSrdqe03sQoMErPMzqgjH5iLCe
+         r5PPXdIhhp5EbCRTLoTu9gIpd7HT0LkE6nIzGujm48DYltLM0dOwH6yabS9sYG1lud
+         K3ZubSdrvNg0jkb3/75E+KnN2S1trOsOOQtvDsZM=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     David Ahern <dsahern@gmail.com>
+Cc:     Mark Zhang <markz@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Ido Kalir <idok@mellanox.com>,
+        Jason Gunthorpe <jgg@mellanox.com>,
+        linux-netdev <netdev@vger.kernel.org>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: [RFC PATCH iproute2-next 1/3] rdma: update uapi headers
+Date:   Sun, 26 Jul 2020 14:20:09 +0300
+Message-Id: <20200726112011.75905-2-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200726112011.75905-1-leon@kernel.org>
+References: <20200726112011.75905-1-leon@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <9f697fea-30e0-2a1f-3c9c-a2ae0100a8df@amazon.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.160.156]
-X-ClientProxiedBy: EX13D41UWC004.ant.amazon.com (10.43.162.31) To
- EX13D19EUB003.ant.amazon.com (10.43.166.69)
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 27/05/2020 10:35, Gal Pressman wrote:
-> On 26/05/2020 22:23, Jason Gunthorpe wrote:
->> On Tue, May 26, 2020 at 09:25:30AM +0300, Gal Pressman wrote:
->>> On 07/04/2020 18:47, Gal Pressman wrote:
->>>> I'm trying to build the azp image and it fails with the following error [1].
->>>> Anyone has an idea what went wrong?
->>>
->>> azp build broke again :(.
->>>
->>> The last step
->>> Step 4/4 : RUN apt-get update && apt-get install -y --no-install-recommends libgcc-s1:i386 libgcc-s1:ppc64el && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends abi-compliance-checker abi-dumper ca-certificates clang-10 cmake cython3 debhelper dh-python dh-systemd dpkg-dev fakeroot gcc-10 gcc-9-aarch64-linux-gnu gcc-9-powerpc64le-linux-gnu git libc6-dev libc6-dev:arm64 libc6-dev:i386 libc6-dev:ppc64el libgcc-10-dev:i386 libgcc-9-dev:arm64 libgcc-9-dev:ppc64el libnl-3-dev libnl-3-dev:arm64 libnl-3-dev:i386 libnl-3-dev:ppc64el libnl-route-3-dev libnl-route-3-dev:arm64 libnl-route-3-dev:i386 libnl-route-3-dev:ppc64el libsystemd-dev libsystemd-dev:arm64 libsystemd-dev:i386 libsystemd-dev:ppc64el libudev-dev libudev-dev:arm64 libudev-dev:i386 libudev-dev:ppc64el lintian make ninja-build pandoc pkg-config python3 python3-dev python3-docutils python3-yaml sparse valgrind && apt-get clean && rm -rf /usr/share/doc/ /usr/lib/debug /var/lib/apt/lists/
->>>
->>> Fails with
->>> W: https://apt.llvm.org/focal/pool/main/l/llvm-toolchain-10/libllvm10_10.0.1~++20200519100828+f79cd71e145-1~exp1~20200519201452.38_amd64.deb: No system certificates available. Try installing ca-certificates.
->>> E: Could not configure 'libc6:arm64'.
->>> E: Could not perform immediate configuration on 'libgcc-s1:arm64'. Please see man 5 apt.conf under APT::Immediate-Configure for details. (2)
->>
->> couldn't reproduce
-> 
-> Maybe you have a cached image or something?
-> I just set up a clean instance and it reproduces immediately.
+From: Mark Zhang <markz@mellanox.com>
 
-It was fixed at some point, and now it's back again:
+Update rdma_netlink.h file upto kernel commit 7c97f3aded10
+("RDMA/counter: Add PID category support in auto mode")
 
-Step 4/4 : RUN apt-get update && apt-get install -y --no-install-recommends libgcc-s1:i386 libgcc-s1:ppc64el && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends abi-compliance-checker abi-dumper ca-certificates clang-10 cmake cython3 debhelper dh-python dh-systemd dpkg-dev fakeroot gcc-10 gcc-9-aarch64-linux-gnu gcc-9-powerpc64le-linux-gnu git libc6-dev libc6-dev:arm64 libc6-dev:i386 libc6-dev:ppc64el libgcc-10-dev:i386 libgcc-9-dev:arm64 libgcc-9-dev:ppc64el libnl-3-dev libnl-3-dev:arm64 libnl-3-dev:i386 libnl-3-dev:ppc64el libnl-route-3-dev libnl-route-3-dev:arm64 libnl-route-3-dev:i386 libnl-route-3-dev:ppc64el libsystemd-dev libsystemd-dev:arm64 libsystemd-dev:i386 libsystemd-dev:ppc64el libudev-dev libudev-dev:arm64 libudev-dev:i386 libudev-dev:ppc64el lintian make ninja-build pandoc pkg-config python3 python3-dev python3-docutils python3-yaml sparse valgrind && apt-get clean && rm -rf /usr/share/doc/ /usr/lib/debug /var/lib/apt/lists/
+Signed-off-by: Mark Zhang <markz@mellanox.com>
+Reviewed-by: Ido Kalir <idok@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ rdma/include/uapi/rdma/rdma_netlink.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[...]
+diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
+index fe127b88..5fbf395b 100644
+--- a/rdma/include/uapi/rdma/rdma_netlink.h
++++ b/rdma/include/uapi/rdma/rdma_netlink.h
+@@ -565,9 +565,9 @@ enum rdma_nl_counter_mode {
 
-W: https://apt.llvm.org/focal/pool/main/l/llvm-toolchain-10/libllvm10_10.0.1~++20200708122807+ef32c611aa2-1~exp1~20200707223407.61_amd64.deb: No system certificates available. Try installing ca-certificates.
-W: https://apt.llvm.org/focal/pool/main/l/llvm-toolchain-10/libclang1-10_10.0.1~++20200708122807+ef32c611aa2-1~exp1~20200707223407.61_amd64.deb: No system certificates available. Try installing ca-certificates.
-E: Could not configure 'libc6:arm64'.
-E: Could not perform immediate configuration on 'libgcc-s1:arm64'. Please see man 5 apt.conf under APT::Immediate-Configure for details. (2)
+ /*
+  * Supported criteria in counter auto mode.
+- * Currently only "qp type" is supported
+  */
+ enum rdma_nl_counter_mask {
+ 	RDMA_COUNTER_MASK_QP_TYPE = 1,
++	RDMA_COUNTER_MASK_PID = 1 << 1,
+ };
+ #endif /* _RDMA_NETLINK_H */
+--
+2.26.2
 
-Maybe it's an issue with the llvm repo?
