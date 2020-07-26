@@ -2,86 +2,180 @@ Return-Path: <SRS0=g0/n=BF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6B5C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2C80C433DF
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:39:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A56E20715
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:20:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595762419;
-	bh=SpK+RWnuX1BgtAT8pog5D+UaCp/NbMNuFQruSCBTcIQ=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=ZgjfQu6Iw33UZvOGXozI36U93/9mfuqOcM/R5YVDXQOsJUCZE/+ogvc5SX8mpeb+P
-	 yLN6Ovfkw9sTw/+nEZEp9IJbPGKB4TuyKvizYmyr7H8aGSQRMpkerdoEi59WiFujD0
-	 e6Zdnl8P78B0l+/ftFsLGKnB1/wpYINIHHa56i70=
+	by mail.kernel.org (Postfix) with ESMTP id 7564D20714
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Jul 2020 11:39:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726042AbgGZLUS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Jul 2020 07:20:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46792 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725794AbgGZLUR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 26 Jul 2020 07:20:17 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F17A220663;
-        Sun, 26 Jul 2020 11:20:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595762417;
-        bh=SpK+RWnuX1BgtAT8pog5D+UaCp/NbMNuFQruSCBTcIQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=zTQ3v2sPAs5z1h8+W2y+vauFuLkVT7HZuJdWF7dbJEtrKUVxPgaozVS3Vpu3u+j3g
-         tnvzXYcjxvePAHltrxTUD3B8x6ztRMv6z/CObXTuGGQoRn0TNsAka77W756B7y3bRm
-         kxqwDMDvwbJvdhXafcSx7tR+DM9jR3JAttf87Xgg=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     David Ahern <dsahern@gmail.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Ido Kalir <idok@mellanox.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        linux-netdev <netdev@vger.kernel.org>,
-        Mark Zhang <markz@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [RFC PATCH iproute2-next 0/3] Global per-type support for QP counters
-Date:   Sun, 26 Jul 2020 14:20:08 +0300
-Message-Id: <20200726112011.75905-1-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1726042AbgGZLju (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Jul 2020 07:39:50 -0400
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:32814
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725794AbgGZLju (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 26 Jul 2020 07:39:50 -0400
+X-IronPort-AV: E=Sophos;i="5.75,398,1589234400"; 
+   d="scan'208";a="355309542"
+Received: from palace.rsr.lip6.fr (HELO palace.lip6.fr) ([132.227.105.202])
+  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/AES256-SHA256; 26 Jul 2020 13:39:47 +0200
+From:   Julia Lawall <Julia.Lawall@inria.fr>
+To:     linux-rdma@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-media@vger.kernel.org, linux-wireless@vger.kernel.org
+Subject: [PATCH 0/7] drop unnecessary list_empty
+Date:   Sun, 26 Jul 2020 12:58:25 +0200
+Message-Id: <1595761112-11003-1-git-send-email-Julia.Lawall@inria.fr>
+X-Mailer: git-send-email 1.9.1
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+The various list iterators are able to handle an empty list.
+The only effect of avoiding the loop is not initializing some
+index variables.
+Drop list_empty tests in cases where these variables are not
+used.
 
-Hi,
+The semantic patch that makes these changes is as follows:
+(http://coccinelle.lip6.fr/)
 
-This is complimentary part of kernel series [1] that extends netlink
-interface to allow automatic binding of QP counters based on their type,
-in very similar manner to already existing per-PID ability.
+<smpl>
+@@
+expression x,e;
+iterator name list_for_each_entry;
+statement S;
+identifier i;
+@@
 
-Thanks
+-if (!(list_empty(x))) {
+   list_for_each_entry(i,x,...) S
+- }
+ ... when != i
+? i = e
 
-[1] https://lore.kernel.org/lkml/20200702082933.424537-1-leon@kernel.org
+@@
+expression x,e;
+iterator name list_for_each_entry_safe;
+statement S;
+identifier i,j;
+@@
 
-Mark Zhang (3):
-  rdma: update uapi headers
-  rdma: Add "PID" criteria support for statistic counter auto mode
-  rdma: Document the new "pid" criteria for auto mode
+-if (!(list_empty(x))) {
+   list_for_each_entry_safe(i,j,x,...) S
+- }
+ ... when != i
+     when != j
+(
+  i = e;
+|
+? j = e;
+)
 
- man/man8/rdma-statistic.8             | 23 +++++--
- rdma/include/uapi/rdma/rdma_netlink.h |  2 +-
- rdma/res-cmid.c                       |  6 --
- rdma/res.c                            |  6 ++
- rdma/res.h                            |  2 +-
- rdma/stat.c                           | 95 ++++++++++++++++++++-------
- 6 files changed, 98 insertions(+), 36 deletions(-)
+@@
+expression x,e;
+iterator name list_for_each;
+statement S;
+identifier i;
+@@
 
---
-2.26.2
+-if (!(list_empty(x))) {
+   list_for_each(i,x) S
+- }
+ ... when != i
+? i = e
 
+@@
+expression x,e;
+iterator name list_for_each_safe;
+statement S;
+identifier i,j;
+@@
+
+-if (!(list_empty(x))) {
+   list_for_each_safe(i,j,x) S
+- }
+ ... when != i
+     when != j
+(
+  i = e;
+|
+? j = e;
+)
+
+// -------------------
+
+@@
+expression x,e;
+statement S;
+identifier i;
+@@
+
+-if (!(list_empty(x)))
+   list_for_each_entry(i,x,...) S
+ ... when != i
+? i = e
+
+@@
+expression x,e;
+statement S;
+identifier i,j;
+@@
+
+-if (!(list_empty(x)))
+   list_for_each_entry_safe(i,j,x,...) S
+ ... when != i
+     when != j
+(
+  i = e;
+|
+? j = e;
+)
+
+@@
+expression x,e;
+statement S;
+identifier i;
+@@
+
+-if (!(list_empty(x)))
+   list_for_each(i,x) S
+ ... when != i
+? i = e
+
+@@
+expression x,e;
+statement S;
+identifier i,j;
+@@
+
+-if (!(list_empty(x)))
+   list_for_each_safe(i,j,x) S
+ ... when != i
+     when != j
+(
+  i = e;
+|
+? j = e;
+)
+</smpl>
+
+---
+
+ drivers/media/pci/saa7134/saa7134-core.c                      |   14 ++---
+ drivers/media/usb/cx231xx/cx231xx-core.c                      |   16 ++----
+ drivers/media/usb/tm6000/tm6000-core.c                        |   24 +++-------
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c |   13 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c    |    5 --
+ drivers/net/ethernet/sfc/ptp.c                                |   20 +++-----
+ drivers/net/wireless/ath/dfs_pattern_detector.c               |   15 ++----
+ sound/soc/intel/atom/sst/sst_loader.c                         |   10 +---
+ sound/soc/intel/skylake/skl-pcm.c                             |    8 +--
+ sound/soc/intel/skylake/skl-topology.c                        |    5 --
+ 10 files changed, 53 insertions(+), 77 deletions(-)
