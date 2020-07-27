@@ -4,34 +4,34 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C194C433EC
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53E0DC433F1
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53C9B2074F
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CFE420738
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726862AbgG0ILw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jul 2020 04:11:52 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:43754 "EHLO huawei.com"
+        id S1726897AbgG0ILx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jul 2020 04:11:53 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:43750 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726897AbgG0ILw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726853AbgG0ILw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 27 Jul 2020 04:11:52 -0400
 Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 8FFB98D6B39AA97E445C;
+        by Forcepoint Email with ESMTP id 79FC4A8A39B98FA24A2E;
         Mon, 27 Jul 2020 16:11:47 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 27 Jul 2020 16:11:37 +0800
+ 14.3.487.0; Mon, 27 Jul 2020 16:11:38 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 1/7] RDMA/hns: Remove redundant hardware opcode definitions
-Date:   Mon, 27 Jul 2020 16:10:43 +0800
-Message-ID: <1595837449-29193-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 3/7] RDMA/hns: Remove support for HIP08A
+Date:   Mon, 27 Jul 2020 16:10:45 +0800
+Message-ID: <1595837449-29193-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1595837449-29193-1-git-send-email-liweihang@huawei.com>
 References: <1595837449-29193-1-git-send-email-liweihang@huawei.com>
@@ -46,119 +46,188 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-HNS_ROCE_SQ_OPCODE_XXXs and HNS_ROCE_V2_WQE_OP_XXXs have same values, so
-remove a set of redundant definitions. In addition, remove the suffix of
-HNS_ROCE_V2_WQE_OP_BIND_MW_TYPE.
+HIP08_A is an engineering sample, and all of them have been already
+replaced by HIP08_B. So remove the relevant code.
 
 Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 26 +++++++++++++-------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 18 +-----------------
- 2 files changed, 14 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 97 ++++++++++++++----------------
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 10 ---
+ 2 files changed, 45 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2b0b676..35d46b7 100644
+index 0eab92a..f5f0862 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3169,51 +3169,51 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		/* SQ corresponding to CQE */
- 		switch (roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_OPCODE_M,
- 				       V2_CQE_BYTE_4_OPCODE_S) & 0x1f) {
--		case HNS_ROCE_SQ_OPCODE_SEND:
-+		case HNS_ROCE_V2_WQE_OP_SEND:
- 			wc->opcode = IB_WC_SEND;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_SEND_WITH_INV:
-+		case HNS_ROCE_V2_WQE_OP_SEND_WITH_INV:
- 			wc->opcode = IB_WC_SEND;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_SEND_WITH_IMM:
-+		case HNS_ROCE_V2_WQE_OP_SEND_WITH_IMM:
- 			wc->opcode = IB_WC_SEND;
- 			wc->wc_flags |= IB_WC_WITH_IMM;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_READ:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_READ:
- 			wc->opcode = IB_WC_RDMA_READ;
- 			wc->byte_len = le32_to_cpu(cqe->byte_cnt);
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_WRITE:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_WRITE:
- 			wc->opcode = IB_WC_RDMA_WRITE;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_WRITE_WITH_IMM:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_WRITE_WITH_IMM:
- 			wc->opcode = IB_WC_RDMA_WRITE;
- 			wc->wc_flags |= IB_WC_WITH_IMM;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_LOCAL_INV:
-+		case HNS_ROCE_V2_WQE_OP_LOCAL_INV:
- 			wc->opcode = IB_WC_LOCAL_INV;
- 			wc->wc_flags |= IB_WC_WITH_INVALIDATE;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_COMP_AND_SWAP:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP:
- 			wc->opcode = IB_WC_COMP_SWAP;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_FETCH_AND_ADD:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_FETCH_AND_ADD:
- 			wc->opcode = IB_WC_FETCH_ADD;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_COMP_AND_SWAP:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP:
- 			wc->opcode = IB_WC_MASKED_COMP_SWAP;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_FETCH_AND_ADD:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD:
- 			wc->opcode = IB_WC_MASKED_FETCH_ADD;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_FAST_REG_WR:
-+		case HNS_ROCE_V2_WQE_OP_FAST_REG_PMR:
- 			wc->opcode = IB_WC_REG_MR;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_BIND_MW:
-+		case HNS_ROCE_V2_WQE_OP_BIND_MW:
- 			wc->opcode = IB_WC_REG_MR;
- 			break;
- 		default:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index e176b0a..53c26f3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -179,27 +179,11 @@ enum {
- 	HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD	= 0x9,
- 	HNS_ROCE_V2_WQE_OP_FAST_REG_PMR			= 0xa,
- 	HNS_ROCE_V2_WQE_OP_LOCAL_INV			= 0xb,
--	HNS_ROCE_V2_WQE_OP_BIND_MW_TYPE			= 0xc,
-+	HNS_ROCE_V2_WQE_OP_BIND_MW			= 0xc,
- 	HNS_ROCE_V2_WQE_OP_MASK				= 0x1f,
- };
+@@ -1744,27 +1744,25 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
+ 	caps->max_srq_wrs	= HNS_ROCE_V2_MAX_SRQ_WR;
+ 	caps->max_srq_sges	= HNS_ROCE_V2_MAX_SRQ_SGE;
  
- enum {
--	HNS_ROCE_SQ_OPCODE_SEND = 0x0,
--	HNS_ROCE_SQ_OPCODE_SEND_WITH_INV = 0x1,
--	HNS_ROCE_SQ_OPCODE_SEND_WITH_IMM = 0x2,
--	HNS_ROCE_SQ_OPCODE_RDMA_WRITE = 0x3,
--	HNS_ROCE_SQ_OPCODE_RDMA_WRITE_WITH_IMM = 0x4,
--	HNS_ROCE_SQ_OPCODE_RDMA_READ = 0x5,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_COMP_AND_SWAP = 0x6,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_FETCH_AND_ADD = 0x7,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_COMP_AND_SWAP = 0x8,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_FETCH_AND_ADD = 0x9,
--	HNS_ROCE_SQ_OPCODE_FAST_REG_WR = 0xa,
--	HNS_ROCE_SQ_OPCODE_LOCAL_INV = 0xb,
--	HNS_ROCE_SQ_OPCODE_BIND_MW = 0xc,
--};
+-	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP08_B) {
+-		caps->flags |= HNS_ROCE_CAP_FLAG_ATOMIC | HNS_ROCE_CAP_FLAG_MW |
+-			       HNS_ROCE_CAP_FLAG_SRQ | HNS_ROCE_CAP_FLAG_FRMR |
+-			       HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL;
 -
--enum {
- 	/* rq operations */
- 	HNS_ROCE_V2_OPCODE_RDMA_WRITE_IMM = 0x0,
- 	HNS_ROCE_V2_OPCODE_SEND = 0x1,
+-		caps->num_qpc_timer	  = HNS_ROCE_V2_MAX_QPC_TIMER_NUM;
+-		caps->qpc_timer_entry_sz  = HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ;
+-		caps->qpc_timer_ba_pg_sz  = 0;
+-		caps->qpc_timer_buf_pg_sz = 0;
+-		caps->qpc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
+-		caps->num_cqc_timer	  = HNS_ROCE_V2_MAX_CQC_TIMER_NUM;
+-		caps->cqc_timer_entry_sz  = HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ;
+-		caps->cqc_timer_ba_pg_sz  = 0;
+-		caps->cqc_timer_buf_pg_sz = 0;
+-		caps->cqc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
+-
+-		caps->sccc_entry_sz	  = HNS_ROCE_V2_SCCC_ENTRY_SZ;
+-		caps->sccc_ba_pg_sz	  = 0;
+-		caps->sccc_buf_pg_sz	  = 0;
+-		caps->sccc_hop_num	  = HNS_ROCE_SCCC_HOP_NUM;
+-	}
++	caps->flags |= HNS_ROCE_CAP_FLAG_ATOMIC | HNS_ROCE_CAP_FLAG_MW |
++		       HNS_ROCE_CAP_FLAG_SRQ | HNS_ROCE_CAP_FLAG_FRMR |
++		       HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL;
++
++	caps->num_qpc_timer	  = HNS_ROCE_V2_MAX_QPC_TIMER_NUM;
++	caps->qpc_timer_entry_sz  = HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ;
++	caps->qpc_timer_ba_pg_sz  = 0;
++	caps->qpc_timer_buf_pg_sz = 0;
++	caps->qpc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
++	caps->num_cqc_timer	  = HNS_ROCE_V2_MAX_CQC_TIMER_NUM;
++	caps->cqc_timer_entry_sz  = HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ;
++	caps->cqc_timer_ba_pg_sz  = 0;
++	caps->cqc_timer_buf_pg_sz = 0;
++	caps->cqc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
++
++	caps->sccc_entry_sz	  = HNS_ROCE_V2_SCCC_ENTRY_SZ;
++	caps->sccc_ba_pg_sz	  = 0;
++	caps->sccc_buf_pg_sz	  = 0;
++	caps->sccc_hop_num	  = HNS_ROCE_SCCC_HOP_NUM;
+ }
+ 
+ static void calc_pg_sz(int obj_num, int obj_size, int hop_num, int ctx_bt_num,
+@@ -1995,20 +1993,18 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 		   caps->srqc_bt_num, &caps->srqc_buf_pg_sz,
+ 		   &caps->srqc_ba_pg_sz, HEM_TYPE_SRQC);
+ 
+-	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP08_B) {
+-		caps->sccc_hop_num = ctx_hop_num;
+-		caps->qpc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+-		caps->cqc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
++	caps->sccc_hop_num = ctx_hop_num;
++	caps->qpc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
++	caps->cqc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+ 
+-		calc_pg_sz(caps->num_qps, caps->sccc_entry_sz,
+-			   caps->sccc_hop_num, caps->sccc_bt_num,
+-			   &caps->sccc_buf_pg_sz, &caps->sccc_ba_pg_sz,
+-			   HEM_TYPE_SCCC);
+-		calc_pg_sz(caps->num_cqc_timer, caps->cqc_timer_entry_sz,
+-			   caps->cqc_timer_hop_num, caps->cqc_timer_bt_num,
+-			   &caps->cqc_timer_buf_pg_sz,
+-			   &caps->cqc_timer_ba_pg_sz, HEM_TYPE_CQC_TIMER);
+-	}
++	calc_pg_sz(caps->num_qps, caps->sccc_entry_sz,
++		   caps->sccc_hop_num, caps->sccc_bt_num,
++		   &caps->sccc_buf_pg_sz, &caps->sccc_ba_pg_sz,
++		   HEM_TYPE_SCCC);
++	calc_pg_sz(caps->num_cqc_timer, caps->cqc_timer_entry_sz,
++		   caps->cqc_timer_hop_num, caps->cqc_timer_bt_num,
++		   &caps->cqc_timer_buf_pg_sz,
++		   &caps->cqc_timer_ba_pg_sz, HEM_TYPE_CQC_TIMER);
+ 
+ 	calc_pg_sz(caps->num_cqe_segs, caps->mtt_entry_sz, caps->cqe_hop_num,
+ 		   1, &caps->cqe_buf_pg_sz, &caps->cqe_ba_pg_sz, HEM_TYPE_CQE);
+@@ -2055,22 +2051,19 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
+ 		return ret;
+ 	}
+ 
+-	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP08_B) {
+-		ret = hns_roce_query_pf_timer_resource(hr_dev);
+-		if (ret) {
+-			dev_err(hr_dev->dev,
+-				"Query pf timer resource fail, ret = %d.\n",
+-				ret);
+-			return ret;
+-		}
++	ret = hns_roce_query_pf_timer_resource(hr_dev);
++	if (ret) {
++		dev_err(hr_dev->dev,
++			"failed to query pf timer resource, ret = %d.\n", ret);
++		return ret;
++	}
+ 
+-		ret = hns_roce_set_vf_switch_param(hr_dev, 0);
+-		if (ret) {
+-			dev_err(hr_dev->dev,
+-				"Set function switch param fail, ret = %d.\n",
+-				ret);
+-			return ret;
+-		}
++	ret = hns_roce_set_vf_switch_param(hr_dev, 0);
++	if (ret) {
++		dev_err(hr_dev->dev,
++			"failed to set function switch param, ret = %d.\n",
++			ret);
++		return ret;
+ 	}
+ 
+ 	hr_dev->vendor_part_id = hr_dev->pci_dev->device;
+@@ -2336,8 +2329,7 @@ static void hns_roce_v2_exit(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+ 
+-	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP08_B)
+-		hns_roce_function_clear(hr_dev);
++	hns_roce_function_clear(hr_dev);
+ 
+ 	hns_roce_free_link_table(hr_dev, &priv->tpq);
+ 	hns_roce_free_link_table(hr_dev, &priv->tsq);
+@@ -4231,12 +4223,13 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_HOP_LIMIT_M,
+ 		       V2_QPC_BYTE_24_HOP_LIMIT_S, 0);
+ 
+-	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP08_B && is_udp)
++	if (is_udp)
+ 		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
+ 			       V2_QPC_BYTE_24_TC_S, grh->traffic_class >> 2);
+ 	else
+ 		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
+ 			       V2_QPC_BYTE_24_TC_S, grh->traffic_class);
++
+ 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
+ 		       V2_QPC_BYTE_24_TC_S, 0);
+ 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_FL_M,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index a0a47bd..e94ca13 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -411,7 +411,6 @@ static int set_extend_sge_param(struct hns_roce_dev *hr_dev, u32 sq_wqe_cnt,
+ 				struct hns_roce_qp *hr_qp,
+ 				struct ib_qp_cap *cap)
+ {
+-	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	u32 cnt;
+ 
+ 	cnt = max(1U, cap->max_send_sge);
+@@ -431,15 +430,6 @@ static int set_extend_sge_param(struct hns_roce_dev *hr_dev, u32 sq_wqe_cnt,
+ 	} else if (hr_qp->sq.max_gs > HNS_ROCE_SGE_IN_WQE) {
+ 		cnt = roundup_pow_of_two(sq_wqe_cnt *
+ 				     (hr_qp->sq.max_gs - HNS_ROCE_SGE_IN_WQE));
+-
+-		if (hr_dev->pci_dev->revision == PCI_REVISION_ID_HIP08_A) {
+-			if (cnt > hr_dev->caps.max_extend_sg) {
+-				ibdev_err(ibdev,
+-					  "failed to check exSGE num, exSGE num = %d.\n",
+-					  cnt);
+-				return -EINVAL;
+-			}
+-		}
+ 	} else {
+ 		cnt = 0;
+ 	}
 -- 
 2.8.1
 
