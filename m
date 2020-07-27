@@ -2,147 +2,97 @@ Return-Path: <SRS0=6I5V=BG=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C2FEC433EB
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A2F3C433E3
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 09:57:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 158032074F
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 08:11:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56DED20786
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jul 2020 09:57:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1595843838;
+	bh=C+LgWBhn6Kuqs8rTdsG6YhEg8KnvL3JldX9Tt+LmbKc=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=WeLGupn4TNGuzHp7GCYW9njeskPeymtliss9I/QFflS//pSTcGNiGC2J34+1SL1Zn
+	 F0OgisFmRURlkc3/Yb1UA1FWtwsw7BjowzMuUHirUI6v6xwsUup/dyQVY7vQL1RRuJ
+	 lXXo9QkFwD3vb2YdSBAjG/EDVOuRxp4KwZw/NW84=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726794AbgG0ILw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jul 2020 04:11:52 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:43684 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726862AbgG0ILw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Jul 2020 04:11:52 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 6B81991F61F373B2C8FB;
-        Mon, 27 Jul 2020 16:11:47 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 27 Jul 2020 16:11:38 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/7] RDMA/hns: Refactor hns_roce_v2_set_hem()
-Date:   Mon, 27 Jul 2020 16:10:44 +0800
-Message-ID: <1595837449-29193-3-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1595837449-29193-1-git-send-email-liweihang@huawei.com>
-References: <1595837449-29193-1-git-send-email-liweihang@huawei.com>
+        id S1726315AbgG0J5R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jul 2020 05:57:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38732 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726139AbgG0J5R (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 27 Jul 2020 05:57:17 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id C0A782075D;
+        Mon, 27 Jul 2020 09:57:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1595843837;
+        bh=C+LgWBhn6Kuqs8rTdsG6YhEg8KnvL3JldX9Tt+LmbKc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=fBln0a4xmTqqdnVQdFcOymP6KBU+TNYN0rKAzCnz+nSgHzz8H0DrUBnZd9HappPrd
+         fhLUu/pA05Gb9Qt3PudFW9+qIxdEhlfWs4NYUF7+15I8TvKSSnAr/XsexTwS86l+7/
+         Ov0I9Ju4+S1hYJVtwOJOKiaqakt2HBfQl5JA9ToU=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@mellanox.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        Artemy Kovalyov <artemyko@mellanox.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc] RDMA/mlx5: Fix prefetch memory leak if get_prefetchable_mr fails
+Date:   Mon, 27 Jul 2020 12:57:12 +0300
+Message-Id: <20200727095712.495652-1-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The parts about preparing and sending mailbox to hardware is not strongly
-related to other codes in hns_roce_v2_set_hem(), and can be encapsulated
-into a separate function.
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+destroy_prefetch_work() must always be called if the work is not going
+to be queued. The num_sge also should have been set to i, not i-1
+which avoids the condition where it shouldn't have been called in the
+first place.
+
+Cc: stable@vger.kernel.org
+Fixes: fb985e278a30 ("RDMA/mlx5: Use SRCU properly in ODP prefetch")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 45 +++++++++++++++++-------------
- 1 file changed, 26 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 35d46b7..0eab92a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3373,11 +3373,33 @@ static int get_op_for_set_hem(struct hns_roce_dev *hr_dev, u32 type,
- 	return op + step_idx;
- }
- 
-+static int set_hem_to_hw(struct hns_roce_dev *hr_dev, int obj, u64 bt_ba,
-+			 u32 hem_type, int step_idx)
-+{
-+	struct hns_roce_cmd_mailbox *mailbox;
-+	int ret;
-+	int op;
-+
-+	op = get_op_for_set_hem(hr_dev, hem_type, step_idx);
-+	if (op == -EINVAL)
-+		return 0;
-+
-+	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
-+	if (IS_ERR(mailbox))
-+		return PTR_ERR(mailbox);
-+
-+	ret = hns_roce_cmd_mbox(hr_dev, bt_ba, mailbox->dma, obj,
-+				0, op, HNS_ROCE_CMD_TIMEOUT_MSECS);
-+
-+	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
-+
-+	return ret;
-+}
-+
- static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_hem_table *table, int obj,
- 			       int step_idx)
- {
--	struct hns_roce_cmd_mailbox *mailbox;
- 	struct hns_roce_hem_iter iter;
- 	struct hns_roce_hem_mhop mhop;
- 	struct hns_roce_hem *hem;
-@@ -3389,7 +3411,6 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 	u64 bt_ba = 0;
- 	u32 chunk_ba_num;
- 	u32 hop_num;
--	int op;
- 
- 	if (!hns_roce_check_whether_mhop(hr_dev, table->type))
- 		return 0;
-@@ -3411,14 +3432,6 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 		hem_idx = i;
- 	}
- 
--	op = get_op_for_set_hem(hr_dev, table->type, step_idx);
--	if (op == -EINVAL)
--		return 0;
--
--	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
--	if (IS_ERR(mailbox))
--		return PTR_ERR(mailbox);
--
- 	if (table->type == HEM_TYPE_SCCC)
- 		obj = mhop.l0_idx;
- 
-@@ -3427,11 +3440,8 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 		for (hns_roce_hem_first(hem, &iter);
- 		     !hns_roce_hem_last(&iter); hns_roce_hem_next(&iter)) {
- 			bt_ba = hns_roce_hem_addr(&iter);
--
--			/* configure the ba, tag, and op */
--			ret = hns_roce_cmd_mbox(hr_dev, bt_ba, mailbox->dma,
--						obj, 0, op,
--						HNS_ROCE_CMD_TIMEOUT_MSECS);
-+			ret = set_hem_to_hw(hr_dev, obj, bt_ba, table->type,
-+					    step_idx);
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 4f1e46733830..cfd7efab114e 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -1806,9 +1806,7 @@ static bool init_prefetch_work(struct ib_pd *pd,
+ 		work->frags[i].mr =
+ 			get_prefetchable_mr(pd, advice, sg_list[i].lkey);
+ 		if (!work->frags[i].mr) {
+-			work->num_sge = i - 1;
+-			if (i)
+-				destroy_prefetch_work(work);
++			work->num_sge = i;
+ 			return false;
  		}
- 	} else {
- 		if (step_idx == 0)
-@@ -3439,12 +3449,9 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 		else if (step_idx == 1 && hop_num == 2)
- 			bt_ba = table->bt_l1_dma_addr[l1_idx];
- 
--		/* configure the ba, tag, and op */
--		ret = hns_roce_cmd_mbox(hr_dev, bt_ba, mailbox->dma, obj,
--					0, op, HNS_ROCE_CMD_TIMEOUT_MSECS);
-+		ret = set_hem_to_hw(hr_dev, obj, bt_ba, table->type, step_idx);
+
+@@ -1875,6 +1873,7 @@ int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
+ 	srcu_key = srcu_read_lock(&dev->odp_srcu);
+ 	if (!init_prefetch_work(pd, advice, pf_flags, work, sg_list, num_sge)) {
+ 		srcu_read_unlock(&dev->odp_srcu, srcu_key);
++		destroy_prefetch_work(work);
+ 		return -EINVAL;
  	}
- 
--	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
- 	return ret;
- }
- 
--- 
-2.8.1
+ 	queue_work(system_unbound_wq, &work->work);
+--
+2.26.2
 
