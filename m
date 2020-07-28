@@ -2,163 +2,126 @@ Return-Path: <SRS0=BxIS=BH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12635C433E3
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jul 2020 10:43:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C302CC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jul 2020 11:50:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDCE0207E8
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jul 2020 10:43:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97CFE206D7
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jul 2020 11:50:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="G/yCWPWA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728698AbgG1KnT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Jul 2020 06:43:19 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8841 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728566AbgG1KnS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 28 Jul 2020 06:43:18 -0400
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 84EC296C144F4F400486;
-        Tue, 28 Jul 2020 18:43:16 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 28 Jul 2020 18:43:09 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 1/7] RDMA/hns: Remove redundant hardware opcode definitions
-Date:   Tue, 28 Jul 2020 18:42:15 +0800
-Message-ID: <1595932941-40613-2-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1595932941-40613-1-git-send-email-liweihang@huawei.com>
-References: <1595932941-40613-1-git-send-email-liweihang@huawei.com>
+        id S1729081AbgG1Luc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Jul 2020 07:50:32 -0400
+Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:51812 "EHLO
+        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729036AbgG1Lub (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jul 2020 07:50:31 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1595937031; x=1627473031;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=w2VazeQFh+Bwsj8mjcpuPT1Eb2J7hZ/26Ei0Nu6XEio=;
+  b=G/yCWPWA9/62wN46cFA2kXZn2bt+6TLJ9Igunxunx+ayOevy0ePkciaT
+   wn1GkWh0TAtkSg2CN2o3CuM7Ka4AUT16pexIOE2LsxpPehqLXAYQKbtV6
+   LgaQEs3bECOj837VK5aN5H0I8sxOGkeofFJFgJbJWiznOknmI1sWcNbOi
+   w=;
+IronPort-SDR: y559Otk63xTqggDHpLqEeNdf9ZUHI24Xabmq9CVKgAiJ5BV2/dT9GuHDGSnka8j3y2s4bPoymX
+ ZVx/EXPhsV/A==
+X-IronPort-AV: E=Sophos;i="5.75,406,1589241600"; 
+   d="scan'208";a="44526273"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1d-5dd976cd.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-6002.iad6.amazon.com with ESMTP; 28 Jul 2020 11:50:30 +0000
+Received: from EX13MTAUEA002.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan2.iad.amazon.com [10.40.159.162])
+        by email-inbound-relay-1d-5dd976cd.us-east-1.amazon.com (Postfix) with ESMTPS id CB58EA2618;
+        Tue, 28 Jul 2020 11:50:28 +0000 (UTC)
+Received: from EX13D19EUB003.ant.amazon.com (10.43.166.69) by
+ EX13MTAUEA002.ant.amazon.com (10.43.61.77) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Tue, 28 Jul 2020 11:50:27 +0000
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.100) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Tue, 28 Jul 2020 11:50:23 +0000
+Subject: Re: [PATCH for-next v4 3/4] RDMA/efa: User/kernel compatibility
+ handshake mechanism
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Shadi Ammouri <sammouri@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>
+References: <20200722140312.3651-1-galpress@amazon.com>
+ <20200722140312.3651-4-galpress@amazon.com>
+ <20200727185633.GA70218@nvidia.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <1efd7d21-2e4d-46b8-fbdf-47c4bb5553fe@amazon.com>
+Date:   Tue, 28 Jul 2020 14:50:18 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
+ Gecko/20100101 Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <20200727185633.GA70218@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.100]
+X-ClientProxiedBy: EX13D38UWC003.ant.amazon.com (10.43.162.23) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On 27/07/2020 21:56, Jason Gunthorpe wrote:
+> On Wed, Jul 22, 2020 at 05:03:11PM +0300, Gal Pressman wrote:
+>> Introduce a mechanism that performs an handshake between the userspace
+>> provider and kernel driver which verifies that the user supports all
+>> required features in order to operate correctly.
+>>
+>> The handshake verifies the needed functionality by comparing the
+>> reported device caps and the provider caps. If the device reports a
+>> non-zero capability the appropriate comp mask is required from the
+>> userspace provider in order to allocate the context.
+>>
+>> Reviewed-by: Shadi Ammouri <sammouri@amazon.com>
+>> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+>> Signed-off-by: Gal Pressman <galpress@amazon.com>
+>>  drivers/infiniband/hw/efa/efa_verbs.c | 40 +++++++++++++++++++++++++++
+>>  include/uapi/rdma/efa-abi.h           | 10 +++++++
+>>  2 files changed, 50 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+>> index 26102ab333b2..fda175836fb6 100644
+>> +++ b/drivers/infiniband/hw/efa/efa_verbs.c
+>> @@ -1501,11 +1501,39 @@ static int efa_dealloc_uar(struct efa_dev *dev, u16 uarn)
+>>  	return efa_com_dealloc_uar(&dev->edev, &params);
+>>  }
+>>  
+>> +#define EFA_CHECK_USER_COMP(_dev, _comp_mask, _attr, _mask, _attr_str) \
+>> +	(_attr_str = (!(_dev)->dev_attr._attr || ((_comp_mask) & (_mask))) ? \
+>> +		     NULL : #_attr)
+>> +
+>> +static int efa_user_comp_handshake(const struct ib_ucontext *ibucontext,
+>> +				   const struct efa_ibv_alloc_ucontext_cmd *cmd)
+>> +{
+>> +	struct efa_dev *dev = to_edev(ibucontext->device);
+>> +	char *attr_str;
+>> +
+>> +	if (EFA_CHECK_USER_COMP(dev, cmd->comp_mask, max_tx_batch,
+>> +				EFA_ALLOC_UCONTEXT_CMD_COMP_TX_BATCH, attr_str))
+>> +		goto err;
+>> +
+>> +	if (EFA_CHECK_USER_COMP(dev, cmd->comp_mask, min_sq_depth,
+>> +				EFA_ALLOC_UCONTEXT_CMD_COMP_MIN_SQ_WR,
+>> +				attr_str))
+>> +		goto err;
+> 
+> But this patch should be first, the kernel should never return a
+> non-zero value unless these input bits are set
 
-HNS_ROCE_SQ_OPCODE_XXXs and HNS_ROCE_V2_WQE_OP_XXXs have same values, so
-remove a set of redundant definitions. In addition, remove the suffix of
-HNS_ROCE_V2_WQE_OP_BIND_MW_TYPE.
+But that's exactly what this patch does, it can only fail in case
+max_tx_batch/min_sq_depth is turned on by the device.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 26 +++++++++++++-------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 18 +-----------------
- 2 files changed, 14 insertions(+), 30 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2b0b676..35d46b7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3169,51 +3169,51 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		/* SQ corresponding to CQE */
- 		switch (roce_get_field(cqe->byte_4, V2_CQE_BYTE_4_OPCODE_M,
- 				       V2_CQE_BYTE_4_OPCODE_S) & 0x1f) {
--		case HNS_ROCE_SQ_OPCODE_SEND:
-+		case HNS_ROCE_V2_WQE_OP_SEND:
- 			wc->opcode = IB_WC_SEND;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_SEND_WITH_INV:
-+		case HNS_ROCE_V2_WQE_OP_SEND_WITH_INV:
- 			wc->opcode = IB_WC_SEND;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_SEND_WITH_IMM:
-+		case HNS_ROCE_V2_WQE_OP_SEND_WITH_IMM:
- 			wc->opcode = IB_WC_SEND;
- 			wc->wc_flags |= IB_WC_WITH_IMM;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_READ:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_READ:
- 			wc->opcode = IB_WC_RDMA_READ;
- 			wc->byte_len = le32_to_cpu(cqe->byte_cnt);
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_WRITE:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_WRITE:
- 			wc->opcode = IB_WC_RDMA_WRITE;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_RDMA_WRITE_WITH_IMM:
-+		case HNS_ROCE_V2_WQE_OP_RDMA_WRITE_WITH_IMM:
- 			wc->opcode = IB_WC_RDMA_WRITE;
- 			wc->wc_flags |= IB_WC_WITH_IMM;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_LOCAL_INV:
-+		case HNS_ROCE_V2_WQE_OP_LOCAL_INV:
- 			wc->opcode = IB_WC_LOCAL_INV;
- 			wc->wc_flags |= IB_WC_WITH_INVALIDATE;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_COMP_AND_SWAP:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP:
- 			wc->opcode = IB_WC_COMP_SWAP;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_FETCH_AND_ADD:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_FETCH_AND_ADD:
- 			wc->opcode = IB_WC_FETCH_ADD;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_COMP_AND_SWAP:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP:
- 			wc->opcode = IB_WC_MASKED_COMP_SWAP;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_FETCH_AND_ADD:
-+		case HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD:
- 			wc->opcode = IB_WC_MASKED_FETCH_ADD;
- 			wc->byte_len  = 8;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_FAST_REG_WR:
-+		case HNS_ROCE_V2_WQE_OP_FAST_REG_PMR:
- 			wc->opcode = IB_WC_REG_MR;
- 			break;
--		case HNS_ROCE_SQ_OPCODE_BIND_MW:
-+		case HNS_ROCE_V2_WQE_OP_BIND_MW:
- 			wc->opcode = IB_WC_REG_MR;
- 			break;
- 		default:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index e176b0a..53c26f3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -179,27 +179,11 @@ enum {
- 	HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD	= 0x9,
- 	HNS_ROCE_V2_WQE_OP_FAST_REG_PMR			= 0xa,
- 	HNS_ROCE_V2_WQE_OP_LOCAL_INV			= 0xb,
--	HNS_ROCE_V2_WQE_OP_BIND_MW_TYPE			= 0xc,
-+	HNS_ROCE_V2_WQE_OP_BIND_MW			= 0xc,
- 	HNS_ROCE_V2_WQE_OP_MASK				= 0x1f,
- };
- 
- enum {
--	HNS_ROCE_SQ_OPCODE_SEND = 0x0,
--	HNS_ROCE_SQ_OPCODE_SEND_WITH_INV = 0x1,
--	HNS_ROCE_SQ_OPCODE_SEND_WITH_IMM = 0x2,
--	HNS_ROCE_SQ_OPCODE_RDMA_WRITE = 0x3,
--	HNS_ROCE_SQ_OPCODE_RDMA_WRITE_WITH_IMM = 0x4,
--	HNS_ROCE_SQ_OPCODE_RDMA_READ = 0x5,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_COMP_AND_SWAP = 0x6,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_FETCH_AND_ADD = 0x7,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_COMP_AND_SWAP = 0x8,
--	HNS_ROCE_SQ_OPCODE_ATOMIC_MASK_FETCH_AND_ADD = 0x9,
--	HNS_ROCE_SQ_OPCODE_FAST_REG_WR = 0xa,
--	HNS_ROCE_SQ_OPCODE_LOCAL_INV = 0xb,
--	HNS_ROCE_SQ_OPCODE_BIND_MW = 0xc,
--};
--
--enum {
- 	/* rq operations */
- 	HNS_ROCE_V2_OPCODE_RDMA_WRITE_IMM = 0x0,
- 	HNS_ROCE_V2_OPCODE_SEND = 0x1,
--- 
-2.8.1
-
+Anyway, the order doesn't matter as long as the pciid patch is last.
