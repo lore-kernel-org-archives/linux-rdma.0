@@ -2,52 +2,52 @@ Return-Path: <SRS0=c33x=BJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7628C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jul 2020 08:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2C17C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jul 2020 08:14:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9AB92075F
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jul 2020 08:14:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81D0D2074B
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Jul 2020 08:14:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596096853;
-	bh=5jpW/+KCCtax0kmTbanxYPDvGqG93hqKSwfddIHcapM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=nxbgwN+wpgx+VXdNvt44U5uEHo4nbjwCXifR0b1sopap/D3g1xwIsOVAuyi86ftct
-	 izkKxIUIlIqzF562WHYXEDVt2mNrOCOJ6SuHEqpdtCeavvX+5mQ2Rj7hum4sgHueh7
-	 Ig4HFrvJzIHKyh+UxwnwrLcgA2fXCkZgemIFDk/Q=
+	s=default; t=1596096874;
+	bh=cmEqU1bGUNPQcUFL7GEjx1L5i4iXsnrWVDSfgB4pOsc=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=dL57u214mi95JMwBzx9vCLMCrFyPchhZa9IUnF4RnGGqwjgzfmeG/PHcCBxETdE9J
+	 FHDC9MKiq1MhOyGeFTZY95fIGwL6xU2z6CS+p4B5XzJenpVE8xXTe4XyCiGC+GSKzd
+	 fKgcAJan/xg5bFd7REBIkovwnAz687WjERww+mk4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729875AbgG3IOL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Jul 2020 04:14:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52196 "EHLO mail.kernel.org"
+        id S1730085AbgG3IOS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Jul 2020 04:14:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730085AbgG3IMu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 30 Jul 2020 04:12:50 -0400
+        id S1729462AbgG3IMl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 30 Jul 2020 04:12:41 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C39E52074B;
-        Thu, 30 Jul 2020 08:12:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4C93A2070B;
+        Thu, 30 Jul 2020 08:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596096769;
-        bh=5jpW/+KCCtax0kmTbanxYPDvGqG93hqKSwfddIHcapM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MVX+vcoq7scOyFBkscvGxDyVfgkJ+H8EYqZ/LR4mLFoj3y+qNxDaQXVGfatp7oIHV
-         /BRjrYiU/mAE+Gc1SIBNOIZnJjjH+PXTRLVf9GxzRWDirLKsY8MTT9TUJEvmV348OK
-         llZtBB68eeVNOii9n17DEm0RiXirmXZnDiFu5wX4=
+        s=default; t=1596096761;
+        bh=cmEqU1bGUNPQcUFL7GEjx1L5i4iXsnrWVDSfgB4pOsc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Hty62YjefzOMEoCIPSpXhoFygO0SlCJRJ320vM8i79KeRtMdms5i+MKoBG6OyIKxr
+         EiqaX2asONCp3crKFSSsdRtD7PNzc3WKNT9lrx7WlXmEBsP8Gdb1UX22Zy/UGFTIUN
+         lzlAVoj8FAkDYiqqMq7YJAnXj8kCQEDLvT17x0Wc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 2/3] RDMA/mlx5: Replace open-coded offsetofend() macro
-Date:   Thu, 30 Jul 2020 11:12:34 +0300
-Message-Id: <20200730081235.1581127-3-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Yishai Hadas <yishaih@mellanox.com>
+Subject: [PATCH rdma-next 0/3] Cleanups to flow creation paths
+Date:   Thu, 30 Jul 2020 11:12:32 +0300
+Message-Id: <20200730081235.1581127-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200730081235.1581127-1-leon@kernel.org>
-References: <20200730081235.1581127-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -57,142 +57,24 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Clean mlx5_ib from open-coded implementations of offsetofend.
+Very straightforward cleanup.
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/ah.c |  4 ++--
- drivers/infiniband/hw/mlx5/fs.c | 12 ++++--------
- drivers/infiniband/hw/mlx5/mr.c |  4 ++--
- drivers/infiniband/hw/mlx5/qp.c | 20 +++++++++++---------
- 4 files changed, 19 insertions(+), 21 deletions(-)
+Thanks
 
-diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
-index 59e5ec39b447..4a60e693a04d 100644
---- a/drivers/infiniband/hw/mlx5/ah.c
-+++ b/drivers/infiniband/hw/mlx5/ah.c
-@@ -106,8 +106,8 @@ int mlx5_ib_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 	if (ah_type == RDMA_AH_ATTR_TYPE_ROCE && udata) {
- 		int err;
- 		struct mlx5_ib_create_ah_resp resp = {};
--		u32 min_resp_len = offsetof(typeof(resp), dmac) +
--				   sizeof(resp.dmac);
-+		u32 min_resp_len =
-+			offsetofend(struct mlx5_ib_create_ah_resp, dmac);
- 
- 		if (udata->outlen < min_resp_len)
- 			return -EINVAL;
-diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
-index 922037b55393..4182c1ab81cc 100644
---- a/drivers/infiniband/hw/mlx5/fs.c
-+++ b/drivers/infiniband/hw/mlx5/fs.c
-@@ -136,12 +136,9 @@ static int check_mpls_supp_fields(u32 field_support, const __be32 *set_mask)
- #define LAST_COUNTERS_FIELD counters
- 
- /* Field is the last supported field */
--#define FIELDS_NOT_SUPPORTED(filter, field)\
--	memchr_inv((void *)&filter.field  +\
--		   sizeof(filter.field), 0,\
--		   sizeof(filter) -\
--		   offsetof(typeof(filter), field) -\
--		   sizeof(filter.field))
-+#define FIELDS_NOT_SUPPORTED(filter, field)                                    \
-+	memchr_inv((void *)&filter.field + sizeof(filter.field), 0,            \
-+		   sizeof(filter) - offsetofend(typeof(filter), field))
- 
- int parse_flow_flow_action(struct mlx5_ib_flow_action *maction,
- 			   bool is_egress,
-@@ -1165,8 +1162,7 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 	int underlay_qpn;
- 
- 	if (udata && udata->inlen) {
--		min_ucmd_sz = offsetof(typeof(ucmd_hdr), reserved) +
--				sizeof(ucmd_hdr.reserved);
-+		min_ucmd_sz = offsetofend(struct mlx5_ib_create_flow, reserved);
- 		if (udata->inlen < min_ucmd_sz)
- 			return ERR_PTR(-EOPNOTSUPP);
- 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 1e9f38305093..fde8fc2b6b5b 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -2047,8 +2047,8 @@ struct ib_mw *mlx5_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
- 	mw->ibmw.rkey = mw->mmkey.key;
- 	mw->ndescs = ndescs;
- 
--	resp.response_length = min(offsetof(typeof(resp), response_length) +
--				   sizeof(resp.response_length), udata->outlen);
-+	resp.response_length =
-+		min(offsetofend(typeof(resp), response_length), udata->outlen);
- 	if (resp.response_length) {
- 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 		if (err) {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 433557774ddd..aefafce17c3c 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -4953,8 +4953,8 @@ static int prepare_user_rq(struct ib_pd *pd,
- 	int err;
- 	size_t required_cmd_sz;
- 
--	required_cmd_sz = offsetof(typeof(ucmd), single_stride_log_num_of_bytes)
--		+ sizeof(ucmd.single_stride_log_num_of_bytes);
-+	required_cmd_sz = offsetofend(struct mlx5_ib_create_wq,
-+				      single_stride_log_num_of_bytes);
- 	if (udata->inlen < required_cmd_sz) {
- 		mlx5_ib_dbg(dev, "invalid inlen\n");
- 		return -EINVAL;
-@@ -5038,7 +5038,7 @@ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
- 	if (!udata)
- 		return ERR_PTR(-ENOSYS);
- 
--	min_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
-+	min_resp_len = offsetofend(struct mlx5_ib_create_wq_resp, reserved);
- 	if (udata->outlen && udata->outlen < min_resp_len)
- 		return ERR_PTR(-EINVAL);
- 
-@@ -5068,8 +5068,8 @@ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
- 	rwq->ibwq.wq_num = rwq->core_qp.qpn;
- 	rwq->ibwq.state = IB_WQS_RESET;
- 	if (udata->outlen) {
--		resp.response_length = offsetof(typeof(resp), response_length) +
--				sizeof(resp.response_length);
-+		resp.response_length = offsetofend(
-+			struct mlx5_ib_create_wq_resp, response_length);
- 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 		if (err)
- 			goto err_copy;
-@@ -5126,7 +5126,8 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 		return ERR_PTR(-EINVAL);
- 	}
- 
--	min_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
-+	min_resp_len =
-+		offsetofend(struct mlx5_ib_create_rwq_ind_tbl_resp, reserved);
- 	if (udata->outlen && udata->outlen < min_resp_len)
- 		return ERR_PTR(-EINVAL);
- 
-@@ -5160,8 +5161,9 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 
- 	rwq_ind_tbl->ib_rwq_ind_tbl.ind_tbl_num = rwq_ind_tbl->rqtn;
- 	if (udata->outlen) {
--		resp.response_length = offsetof(typeof(resp), response_length) +
--					sizeof(resp.response_length);
-+		resp.response_length =
-+			offsetofend(struct mlx5_ib_create_rwq_ind_tbl_resp,
-+				    response_length);
- 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 		if (err)
- 			goto err_copy;
-@@ -5201,7 +5203,7 @@ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- 	void *rqc;
- 	void *in;
- 
--	required_cmd_sz = offsetof(typeof(ucmd), reserved) + sizeof(ucmd.reserved);
-+	required_cmd_sz = offsetofend(struct mlx5_ib_modify_wq, reserved);
- 	if (udata->inlen < required_cmd_sz)
- 		return -EINVAL;
- 
--- 
+Leon Romanovsky (3):
+  RDMA/mlx5: Simplify multiple else-if cases with switch keyword
+  RDMA/mlx5: Replace open-coded offsetofend() macro
+  RDMA: Remove constant domain argument from flow creation call
+
+ drivers/infiniband/core/uverbs_cmd.c |   4 +-
+ drivers/infiniband/hw/mlx4/main.c    |  31 ++----
+ drivers/infiniband/hw/mlx5/ah.c      |   4 +-
+ drivers/infiniband/hw/mlx5/fs.c      | 145 +++++++++++++++------------
+ drivers/infiniband/hw/mlx5/mr.c      |   4 +-
+ drivers/infiniband/hw/mlx5/qp.c      |  20 ++--
+ include/rdma/ib_verbs.h              |  13 +--
+ 7 files changed, 108 insertions(+), 113 deletions(-)
+
+--
 2.26.2
 
