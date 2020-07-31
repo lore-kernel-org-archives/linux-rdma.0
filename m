@@ -2,120 +2,136 @@ Return-Path: <SRS0=cwSi=BK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB308C433DF
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 07:05:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F92EC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 09:07:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1DA520829
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 07:05:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ezV+1aQE"
+	by mail.kernel.org (Postfix) with ESMTP id E7BB820838
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 09:07:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731490AbgGaHFW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 31 Jul 2020 03:05:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38802 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731367AbgGaHFV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jul 2020 03:05:21 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD44AC061574;
-        Fri, 31 Jul 2020 00:05:21 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id kr4so4601885pjb.2;
-        Fri, 31 Jul 2020 00:05:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qogj519tDPhVlnDqSFd2ylWvoTNUxXYt6MySeSAH02Y=;
-        b=ezV+1aQEE0vLmyIrgfs9Ek7f9T/rdKwJX3gvyxvcHlPhb55VqDcZriBnN0dwMUezvv
-         rAPivnjvWGXESDbmG1LVXge38S1Gyb8JnR6EDyZ3ySbyxSDVMAXhx19pp10cuFf8yoso
-         smE1Tc6s40ZDl8L3VpsYdkc22N/ngBltadWX5chTgSExJYNzUw7vT7c2JV9CeXrfaPbs
-         zyImDtHW002NC5bxRI3bfS7UXYmS1rK+BecEBKe+oTq6FTKeu56a4CJnaTzMPm943ydU
-         8gJ2S8yC4L/JWoMYdlDiTnk870FTDVcTKairNMMxAkbqT/5wqbWaIX42xfGnAuoo57Kq
-         H6ag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qogj519tDPhVlnDqSFd2ylWvoTNUxXYt6MySeSAH02Y=;
-        b=ZEOhrQ5tKLAOj+jOYFZqh9ApCrhfk5T4ng1APL4EjEDjpm08d4keNEmbYYFd+nxkoY
-         XoiOEYbs4FIgHGuW1S4o5/yXQU2Y1UOo4McdVHUqtbr14PzYsoKGK6Nc06hpfZhI0vKG
-         JHB7S5NTt6YtnEaf0cBd55eT4Nlq49mF0z3BAbRZBsGC4q40ZL0foly3yn344vM1jLBa
-         LFlcb4osgGXED0w66zB0mPALEisuUbPYufFB2abCOnJL0UEddv3mq4lwkXoszBAgTDT5
-         PnYDoRlNiFp//TlrP29IJF6RbdpB6qz9nHaWNMIjEhPhav+2AAs72SvfeY2oEIoJcIoP
-         29hQ==
-X-Gm-Message-State: AOAM531Yua79+sVgtt7j689Dmo7BCXUv5VmbIDsw5mX/KRxEbYGwCO54
-        QcrGYhWboEVgiBIRAXMkEB8FuH0zsnfABsYsYOs=
-X-Google-Smtp-Source: ABdhPJw1K163hzWxoBsht0vngIzFQCrYy5PEp+QmbL3aRf0LXPKrg5RaismRTGmWXn2tmXlJSpxv02caa/DIGUcnu+o=
-X-Received: by 2002:a62:158e:: with SMTP id 136mr2542352pfv.36.1596179121242;
- Fri, 31 Jul 2020 00:05:21 -0700 (PDT)
+        id S1731848AbgGaJHP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 31 Jul 2020 05:07:15 -0400
+Received: from mga09.intel.com ([134.134.136.24]:31756 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726915AbgGaJHP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 31 Jul 2020 05:07:15 -0400
+IronPort-SDR: HXPbKZVkTYv7kRP5+9jrXaSHz/PqZwKwP8FXN2sXl+/RD+fcZLFSdT9agbqj1bEh9p9Hf0s50b
+ tHAn4rlXxvlA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9698"; a="152959526"
+X-IronPort-AV: E=Sophos;i="5.75,417,1589266800"; 
+   d="scan'208";a="152959526"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2020 02:07:14 -0700
+IronPort-SDR: 8CWZOhhA0eW4Wfjq2eejbdoaDZo5J/BvOeV6/HDKXK9S/9coF++sVymy7KjmUxn/zsnIm+wE+w
+ Kzse+3V1ymUA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,417,1589266800"; 
+   d="scan'208";a="287126084"
+Received: from lkp-server02.sh.intel.com (HELO d4d86dd808e0) ([10.239.97.151])
+  by orsmga003.jf.intel.com with ESMTP; 31 Jul 2020 02:07:12 -0700
+Received: from kbuild by d4d86dd808e0 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1k1R0S-0000VE-4Z; Fri, 31 Jul 2020 09:07:12 +0000
+Date:   Fri, 31 Jul 2020 17:06:25 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:for-rc] BUILD SUCCESS
+ fb448ce87a4a9482b084e67faf804aec79ed9b43
+Message-ID: <5f23df11.FzoaDpcgEloZ5MPL%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-References: <20200730192026.110246-1-yepeilin.cs@gmail.com>
- <20200731045301.GI75549@unreal> <20200731053306.GA466103@kroah.com>
- <20200731053333.GB466103@kroah.com> <CAHp75Vdr2HC_ogNhBCxxGut9=Z6pQMFiA0w-268OQv+5unYOTg@mail.gmail.com>
- <20200731070030.GJ75549@unreal>
-In-Reply-To: <20200731070030.GJ75549@unreal>
-From:   Andy Shevchenko <andy.shevchenko@gmail.com>
-Date:   Fri, 31 Jul 2020 10:05:04 +0300
-Message-ID: <CAHp75VfZj4L6PJBbWi6wwMF2nucaxGjRLVvi-fTPSWxWvFE0TA@mail.gmail.com>
-Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
- in rds_notify_queue_get()
-To:     Leon Romanovsky <leon@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Peilin Ye <yepeilin.cs@gmail.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "linux-kernel-mentees@lists.linuxfoundation.org" 
-        <linux-kernel-mentees@lists.linuxfoundation.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Sakari, JFYI. I remember during some reviews we have a discussion
-about {0} vs {} and surprisingly they are not an equivalent.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-rc
+branch HEAD: fb448ce87a4a9482b084e67faf804aec79ed9b43  RDMA/core: Free DIM memory in error unwind
 
-On Fri, Jul 31, 2020 at 10:00 AM Leon Romanovsky <leon@kernel.org> wrote:
-> On Fri, Jul 31, 2020 at 09:29:27AM +0300, Andy Shevchenko wrote:
-> > On Friday, July 31, 2020, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > wrote:
-> > > On Fri, Jul 31, 2020 at 07:33:06AM +0200, Greg Kroah-Hartman wrote:
-> > > > On Fri, Jul 31, 2020 at 07:53:01AM +0300, Leon Romanovsky wrote:
-> > > > > On Thu, Jul 30, 2020 at 03:20:26PM -0400, Peilin Ye wrote:
+elapsed time: 725m
 
-...
+configs tested: 66
+configs skipped: 1
 
-> > > > > Of course, this is the difference between "{ 0 }" and "{}"
-> > > initializations.
-> > > >
-> > > > Really?  Neither will handle structures with holes in it, try it and
-> > > > see.
-> >
-> >
-> > {} is a GCC extension, but I never thought it works differently.
->
-> Yes, this is GCC extension and kernel relies on them very heavily.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-I guess simple people who contribute to the kernel just haven't
-realized (yet) that it's an extension and that's why we have plenty of
-{} and {0} in the kernel.
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                             defconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a005-20200731
+i386                 randconfig-a004-20200731
+i386                 randconfig-a006-20200731
+i386                 randconfig-a002-20200731
+i386                 randconfig-a001-20200731
+i386                 randconfig-a003-20200731
+x86_64               randconfig-a015-20200731
+x86_64               randconfig-a014-20200731
+x86_64               randconfig-a016-20200731
+x86_64               randconfig-a012-20200731
+x86_64               randconfig-a013-20200731
+x86_64               randconfig-a011-20200731
+i386                 randconfig-a016-20200731
+i386                 randconfig-a012-20200731
+i386                 randconfig-a014-20200731
+i386                 randconfig-a015-20200731
+i386                 randconfig-a011-20200731
+i386                 randconfig-a013-20200731
+riscv                            allyesconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
 
-> > > And if true, where in the C spec does it say that?
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
