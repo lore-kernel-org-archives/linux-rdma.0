@@ -2,66 +2,44 @@ Return-Path: <SRS0=cwSi=BK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61CADC433DF
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 14:04:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8AF9C433E1
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 14:22:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FED42083B
-	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 14:04:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Q6DR3qA2"
+	by mail.kernel.org (Postfix) with ESMTP id C3B6C208E4
+	for <linux-rdma@archiver.kernel.org>; Fri, 31 Jul 2020 14:22:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1596205328;
+	bh=xOTUdTDtgFUE4tg3a96EHIpYVqLyrjXL2vfmrZmnmXk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=ZXUyPnMINtgEvP25fDINhwWTeBP+fvFIJh+S4Q6Dn1E+DufInbcAEhos8fjToyOIx
+	 cVaqUqMbTOP192cj/E75j/kJiotVleaV2BBc1YrBIKhQgpwcYjUcmv+eOE4RAYRWjZ
+	 PKgmYpt6xGPBahVVQQ6vKXG7KW1syjju3byp0kX0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732419AbgGaOEz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 31 Jul 2020 10:04:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46920 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730170AbgGaOEy (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 31 Jul 2020 10:04:54 -0400
-Received: from mail-qt1-x842.google.com (mail-qt1-x842.google.com [IPv6:2607:f8b0:4864:20::842])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58EA1C061574
-        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2020 07:04:54 -0700 (PDT)
-Received: by mail-qt1-x842.google.com with SMTP id b25so22982226qto.2
-        for <linux-rdma@vger.kernel.org>; Fri, 31 Jul 2020 07:04:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=781IgXX02TRDkWHahRceQKsFXQSmPskr3l/EDT57Vi4=;
-        b=Q6DR3qA2s07ap18NgbhUz2I65CJAcbZd0GqAm8NJxwCYrMe7KPboFzZXDRIW5lebPB
-         oPAHJk7XUdYIt6eLnbwRK5OsrvSiHbJroVQmKedNKll7+oQTEicW2nHi4Rn6BWyBvJmc
-         lEcbaN7HrczmvO3LYz4q8LcxNGlBJ3tUKlHS8B68jhZ9zFDhvmhI9wnD5QNOETP1shOL
-         79KgAqq62WlRj0VUpG9xstUqwVILBIlJ7fRjPbuyu2hRjsy7UxqmSM7o55hhWvcbtFih
-         IJ29FiOq3N/1C3oFhp4V5OwU8vwRHkhlq6ImCk398H1tIuyiht+hq6GxBMWm63ZYSugB
-         yLJg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=781IgXX02TRDkWHahRceQKsFXQSmPskr3l/EDT57Vi4=;
-        b=hx4SpSPRvy0wbrl2FlXXaWw3V08KZmNZgABGTh5r3IyVZgY2fOdpuhcRvR0BnbBJV7
-         vmZHpwSvBihTntJDVfwVEuLhf74UjYZkhOOiqSwlVmi2pNse42uhI8dboj72PRfzAF8r
-         b1a2n6PpHkiHXxlrgLuoyNgzaM+4tixV+cnZpur7FZQQOBWSJhlIij85ItK64gl/Rg7D
-         9zv0rpi/mnKEpNwmqHB5lmnix+/fMkDnJ1BDwqMRF/98/8YAeenhhamBfuMYTnhvj82W
-         MMC6cdeKyVVCx83EsMXxaTzPZrBLh7+716jVyqIuYVTYJo/T01zU5nQpM+jggBLOt0br
-         fBWg==
-X-Gm-Message-State: AOAM530G4u28LoJBENVVLxoK/aueHFUebBNauyiYcRrwBqPQrCFrzfQt
-        09GuQ0QaaCqttmzpwnkAvkTM/w==
-X-Google-Smtp-Source: ABdhPJy1g859VdHLa7g09AW4SpHkI8nxyECHbw18XD+WYQwl6Uwee6XxVPfUS5+iBrmKK+EwP4CFMA==
-X-Received: by 2002:ac8:7383:: with SMTP id t3mr3755232qtp.160.1596204293590;
-        Fri, 31 Jul 2020 07:04:53 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id w27sm8432660qtv.68.2020.07.31.07.04.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 31 Jul 2020 07:04:52 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1k1VeW-001u9f-23; Fri, 31 Jul 2020 11:04:52 -0300
-Date:   Fri, 31 Jul 2020 11:04:52 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+        id S1728713AbgGaOWD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 31 Jul 2020 10:22:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33314 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728697AbgGaOWD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 31 Jul 2020 10:22:03 -0400
+Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id DF1D2208E4;
+        Fri, 31 Jul 2020 14:22:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1596205322;
+        bh=xOTUdTDtgFUE4tg3a96EHIpYVqLyrjXL2vfmrZmnmXk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=A4AXijssIn9cJbmiigc2HnNHygj6LDX7SwRcO35y32gJ28dLyviyTLEowdbRQMFJH
+         BICWi9NGqq7lv+plJy4BfbNlrvKnXbC3cv6D8jG5Iz7ArVn3YkA56UJKbZaespigHT
+         izydEL7WKrOkda8awf2v5WwNko1uMTUmGdcPFhDk=
+Date:   Fri, 31 Jul 2020 16:21:48 +0200
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Leon Romanovsky <leon@kernel.org>,
         Peilin Ye <yepeilin.cs@gmail.com>,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>,
@@ -74,56 +52,72 @@ Cc:     Leon Romanovsky <leon@kernel.org>,
         rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
  in rds_notify_queue_get()
-Message-ID: <20200731140452.GE24045@ziepe.ca>
+Message-ID: <20200731142148.GA1718799@kroah.com>
 References: <20200730192026.110246-1-yepeilin.cs@gmail.com>
  <20200731045301.GI75549@unreal>
  <20200731053306.GA466103@kroah.com>
  <20200731053333.GB466103@kroah.com>
+ <20200731140452.GE24045@ziepe.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200731053333.GB466103@kroah.com>
+In-Reply-To: <20200731140452.GE24045@ziepe.ca>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jul 31, 2020 at 07:33:33AM +0200, Greg Kroah-Hartman wrote:
-> On Fri, Jul 31, 2020 at 07:33:06AM +0200, Greg Kroah-Hartman wrote:
-> > On Fri, Jul 31, 2020 at 07:53:01AM +0300, Leon Romanovsky wrote:
-> > > On Thu, Jul 30, 2020 at 03:20:26PM -0400, Peilin Ye wrote:
-> > > > rds_notify_queue_get() is potentially copying uninitialized kernel stack
-> > > > memory to userspace since the compiler may leave a 4-byte hole at the end
-> > > > of `cmsg`.
-> > > >
-> > > > In 2016 we tried to fix this issue by doing `= { 0 };` on `cmsg`, which
-> > > > unfortunately does not always initialize that 4-byte hole. Fix it by using
-> > > > memset() instead.
+On Fri, Jul 31, 2020 at 11:04:52AM -0300, Jason Gunthorpe wrote:
+> On Fri, Jul 31, 2020 at 07:33:33AM +0200, Greg Kroah-Hartman wrote:
+> > On Fri, Jul 31, 2020 at 07:33:06AM +0200, Greg Kroah-Hartman wrote:
+> > > On Fri, Jul 31, 2020 at 07:53:01AM +0300, Leon Romanovsky wrote:
+> > > > On Thu, Jul 30, 2020 at 03:20:26PM -0400, Peilin Ye wrote:
+> > > > > rds_notify_queue_get() is potentially copying uninitialized kernel stack
+> > > > > memory to userspace since the compiler may leave a 4-byte hole at the end
+> > > > > of `cmsg`.
+> > > > >
+> > > > > In 2016 we tried to fix this issue by doing `= { 0 };` on `cmsg`, which
+> > > > > unfortunately does not always initialize that 4-byte hole. Fix it by using
+> > > > > memset() instead.
+> > > > 
+> > > > Of course, this is the difference between "{ 0 }" and "{}" initializations.
 > > > 
-> > > Of course, this is the difference between "{ 0 }" and "{}" initializations.
+> > > Really?  Neither will handle structures with holes in it, try it and
+> > > see.
 > > 
-> > Really?  Neither will handle structures with holes in it, try it and
-> > see.
+> > And if true, where in the C spec does it say that?
 > 
-> And if true, where in the C spec does it say that?
+> The spec was updated in C11 to require zero'ing padding when doing
+> partial initialization of aggregates (eg = {})
+> 
+> """if it is an aggregate, every member is initialized (recursively)
+> according to these rules, and any padding is initialized to zero
+> bits;"""
 
-The spec was updated in C11 to require zero'ing padding when doing
-partial initialization of aggregates (eg = {})
+But then why does the compilers not do this?
 
-"""if it is an aggregate, every member is initialized (recursively)
-according to these rules, and any padding is initialized to zero
-bits;"""
+> The difference between {0} and the {} extension is only that {}
+> reliably triggers partial initialization for all kinds of aggregates,
+> while {0} has a number of edge cases where it can fail to compile.
+> 
+> IIRC gcc has cleared the padding during aggregate initialization for a
+> long time.
 
-The difference between {0} and the {} extension is only that {}
-reliably triggers partial initialization for all kinds of aggregates,
-while {0} has a number of edge cases where it can fail to compile.
+Huh?  Last we checked a few months ago, no, it did not do that.
 
-IIRC gcc has cleared the padding during aggregate initialization for a
-long time. Considering we have thousands of aggregate initializers it
-seems likely to me Linux also requires a compiler with this C11
-behavior to operate correctly.
+> Considering we have thousands of aggregate initializers it
+> seems likely to me Linux also requires a compiler with this C11
+> behavior to operate correctly.
 
-Does this patch actually fix anything? My compiler generates identical
-assembly code in either case.
+Note that this is not an "operate correctly" thing, it is a "zero out
+stale data in structure paddings so that data will not leak to
+userspace" thing.
 
-Jason
+> Does this patch actually fix anything? My compiler generates identical
+> assembly code in either case.
+
+What compiler version?
+
+thanks,
+
+greg k-h
