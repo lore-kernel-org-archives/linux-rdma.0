@@ -2,161 +2,237 @@ Return-Path: <SRS0=0u3j=BL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FE6AC433DF
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Aug 2020 08:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35CFFC433E1
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Aug 2020 12:25:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02A9F20725
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Aug 2020 08:01:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13AF72076A
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Aug 2020 12:25:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="v/0FkYbV"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TPXE0MeF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728266AbgHAIA7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 1 Aug 2020 04:00:59 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:58748 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725283AbgHAIA6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 1 Aug 2020 04:00:58 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0717wTFw026356;
-        Sat, 1 Aug 2020 08:00:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=JcmYWttSgHbw7qmGDRTSvtOA/0p07IlseUnTuNrFNjc=;
- b=v/0FkYbVaBTZHtmsPt81t2LxiXsh0E24AS2oPVkso964b5B5DXK85h8T1RZCzpD+qI4x
- eK9e51amSGeWeddjOl6FYD30GRjrEfH3oyckeRbi/Le+mL7HZOH1vklRd3uE6MPEZJSJ
- I1Y3dP/wa6iWOT/WEovib+rDatLM37z+SX+vBI1AnY1prLuE95IqNcuZ78qyvw9/0+pZ
- nBtFb3BJrp5Tq0ZK2nh/QYZsvPKoWo79Wb9N1TOsSpjjOlp4gFM0o6R36cD9GGzbOMhe
- W2vkOivca/j4VnEy+QUlcMzxX25lLqb4n8/Xo0b01bJKNHepm88iQp43QEsJEpLlZwwg gA== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2120.oracle.com with ESMTP id 32n0bkrcrc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sat, 01 Aug 2020 08:00:43 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0717wlk5023636;
-        Sat, 1 Aug 2020 08:00:43 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by userp3020.oracle.com with ESMTP id 32myqgqq4q-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Sat, 01 Aug 2020 08:00:43 +0000
-Received: from userp3020.oracle.com (userp3020.oracle.com [127.0.0.1])
-        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 07180g11028919;
-        Sat, 1 Aug 2020 08:00:42 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by userp3020.oracle.com with ESMTP id 32myqgqq41-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 01 Aug 2020 08:00:42 +0000
-Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 07180c7b019130;
-        Sat, 1 Aug 2020 08:00:38 GMT
-Received: from kadam (/41.57.98.10)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Sat, 01 Aug 2020 01:00:37 -0700
-Date:   Sat, 1 Aug 2020 11:00:26 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        Peilin Ye <yepeilin.cs@gmail.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
+        id S1728680AbgHAMZJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 1 Aug 2020 08:25:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54246 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728505AbgHAMYo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 1 Aug 2020 08:24:44 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA247C06179E;
+        Sat,  1 Aug 2020 05:24:43 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id c16so13635623ejx.12;
+        Sat, 01 Aug 2020 05:24:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=SrhDN2Qf8+lE/P1EU/TJXEXFld12zPt7dPQFf412LUk=;
+        b=TPXE0MeFmNEeYfTarS0h6lEu6T0txCu1b9KgvIqoPjxSgbUjX4ba/CalHwh+XNV9EE
+         zlXi4oKFUnZZ5zVHu3WsUdEEvPp6L05on/HWX3VkVM77SKuj2FlpD86dH5NZ0QEzjtTg
+         K6Nhr9ENw+lKNFgRQijLjk+mW5c0pk5ZeQxpTHze7A4BQdrPzxltjjv/Vjb6Z0Aox8Ed
+         VEDJwMbimBqhxR0PWwCryl7i42bAF/Lj23OoFongQc7qaNfxcZ19cdJVnPclf3scGhyn
+         SuPxs1q4uD+8x4GNtXQxh8OWpVwFNMLSH/5l5QbhWZdIK8bLxs9GcQ3rDUmnwv4+7V1h
+         dxZg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=SrhDN2Qf8+lE/P1EU/TJXEXFld12zPt7dPQFf412LUk=;
+        b=B568GJ76mBI7AaPi6AiwVC4s176YHNnwnHUjQD6HvaBRnTpC3wTJK7/c7hkD2WOecy
+         mbEDrGEnW5grXQuMAEpA0Plwsymfi0+bRE+Poc9ggYyqf26N0sXAjJcJtiIvgmBEILl/
+         gaFxOWLK9kIpPzrMEU7FeC14bSGpdxkH5oPb4S3sz8sJuxgo860UfhUSFuGJLxf3FDbM
+         5YBUPkiqY2nrNCsryhFJioiPCOlkdkRvnkH76GiUTAnQ9bwVpbJoAwTD/yX1z4eBLv7b
+         9EMJFQ+UrGJTPe0zqR5S2Zl4bNqerwlHq3TetrT6+p2tWCtVUtE7QllIHF6lr1pIm/wz
+         24jA==
+X-Gm-Message-State: AOAM530fqa3GVkqrzmmwwox6mX9wVLxjdLtv1VDC2rZTvhMct9/CVDyI
+        8frxfd8F9BM8vmszEUdH/Pk=
+X-Google-Smtp-Source: ABdhPJwCqcTSSFI7x9YZQM/IwvnR14OpHVv8jfwf8XU/U7ZA+HW+nlMkfVJ1UJTfn+AVXi9rMi5gOw==
+X-Received: by 2002:a17:906:3616:: with SMTP id q22mr8872560ejb.79.1596284682629;
+        Sat, 01 Aug 2020 05:24:42 -0700 (PDT)
+Received: from net.saheed (95C84E0A.dsl.pool.telekom.hu. [149.200.78.10])
+        by smtp.gmail.com with ESMTPSA id a101sm12083131edf.76.2020.08.01.05.24.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 01 Aug 2020 05:24:42 -0700 (PDT)
+From:   "Saheed O. Bolarinwa" <refactormyself@gmail.com>
+To:     helgaas@kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     "Saheed O. Bolarinwa" <refactormyself@gmail.com>,
+        bjorn@helgaas.com, skhan@linuxfoundation.org,
         linux-kernel-mentees@lists.linuxfoundation.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
- in rds_notify_queue_get()
-Message-ID: <20200801080026.GJ5493@kadam>
-References: <20200730192026.110246-1-yepeilin.cs@gmail.com>
- <20200731045301.GI75549@unreal>
- <20200731053306.GA466103@kroah.com>
- <20200731053333.GB466103@kroah.com>
- <20200731140452.GE24045@ziepe.ca>
- <20200731142148.GA1718799@kroah.com>
- <20200731143604.GF24045@ziepe.ca>
- <20200731171924.GA2014207@kroah.com>
- <20200731182712.GI24045@ziepe.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200731182712.GI24045@ziepe.ca>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9699 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 spamscore=0 mlxscore=0
- clxscore=1011 phishscore=0 impostorscore=0 adultscore=0 suspectscore=0
- priorityscore=1501 malwarescore=0 mlxlogscore=999 lowpriorityscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2008010062
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [RFC PATCH 14/17] IB: Drop uses of pci_read_config_*() return value
+Date:   Sat,  1 Aug 2020 13:24:43 +0200
+Message-Id: <20200801112446.149549-15-refactormyself@gmail.com>
+X-Mailer: git-send-email 2.18.4
+In-Reply-To: <20200801112446.149549-1-refactormyself@gmail.com>
+References: <20200801112446.149549-1-refactormyself@gmail.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jul 31, 2020 at 03:27:12PM -0300, Jason Gunthorpe wrote:
-> On Fri, Jul 31, 2020 at 07:19:24PM +0200, Greg Kroah-Hartman wrote:
-> 
-> > > I tried for a bit and didn't find a way to get even old gcc 4.4 to not
-> > > initialize the holes.
-> > 
-> > Odd, so it is just the "= {0};" that does not zero out the holes?
-> 
-> Nope, it seems to work fine too. I tried a number of situations and I
-> could not get the compiler to not zero holes, even back to gcc 4.4
-> 
-> It is not just accidental either, take this:
-> 
-> 	struct rds_rdma_notify {
-> 		unsigned long user_token;
-> 		unsigned char status;
-> 		unsigned long user_token1 __attribute__((aligned(32)));
-> 	} foo = {0};
-> 
-> Which has quite a big hole, clang generates:
-> 
-> 	movq	$0, 56(%rdi)
-> 	movq	$0, 48(%rdi)
-> 	movq	$0, 40(%rdi)
-> 	movq	$0, 32(%rdi)
-> 	movq	$0, 24(%rdi)
-> 	movq	$0, 16(%rdi)
-> 	movq	$0, 8(%rdi)
-> 	movq	$0, (%rdi)
-> 
-> Deliberate extra instructions to fill both holes. gcc 10 does the
-> same, older gcc's do create a rep stosq over the whole thing.
-> 
-> Some fiddling with godbolt shows quite a variety of output, but I
-> didn't see anything that looks like a compiler not filling
-> padding. Even godbolt's gcc 4.1 filled the padding, which is super old.
-> 
-> In several cases it seems the aggregate initializer produced better
-> code than memset, in other cases it didn't
-> 
-> Without an actual example where this doesn't work right it is hard to
-> say anything more..
+The return value of pci_read_config_*() may not indicate a device error.
+However, the value read by these functions is more likely to indicate
+this kind of error. This presents two overlapping ways of reporting
+errors and complicates error checking.
 
-Here is the example that set off the recent patches:
+It is possible to move to one single way of checking for error if the
+dependency on the return value of these functions is removed, then it
+can later be made to return void.
 
-https://lkml.org/lkml/2020/7/27/199
+Remove all uses of the return value of pci_read_config_*().
+Check the actual value read for ~0. In this case, ~0 is an invalid
+value thus it indicates some kind of error.
 
-Another example is commit 5ff223e86f5a ("net: Zeroing the structure
-ethtool_wolinfo in ethtool_get_wol()").  I tested this one with GCC 7.4
-at the time and it was a real life bug.
+Suggested-by: Bjorn Helgaas <bjorn@helgaas.com>
+Signed-off-by: Saheed O. Bolarinwa <refactormyself@gmail.com>
+---
+ drivers/infiniband/hw/hfi1/pcie.c         | 38 +++++++++++------------
+ drivers/infiniband/hw/mthca/mthca_reset.c | 19 ++++++------
+ 2 files changed, 29 insertions(+), 28 deletions(-)
 
-The rest of these patches were based on static analysis from Smatch.
-They're all "theoretical" bugs based on the C standard but it's
-impossible to know if and when they'll turn into real life bugs.
-
-It's not a super long list of code that's affected because we've known
-that the bug was possible for a few years.  It was only last year when
-I saw that it had become a real life bug.
-
-regards,
-dan carpenter
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 1a6268d61977..11cf7dde873d 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -392,24 +392,24 @@ int restore_pci_variables(struct hfi1_devdata *dd)
+ /* Save BARs and command to rewrite after device reset */
+ int save_pci_variables(struct hfi1_devdata *dd)
+ {
+-	int ret = 0;
++	int ret = -ENODEV;
+ 
+-	ret = pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
++	pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
+ 				    &dd->pcibar0);
+-	if (ret)
++	if (dd->pcibar0 == (u32)~0)
+ 		goto error;
+ 
+-	ret = pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1,
++	pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1,
+ 				    &dd->pcibar1);
+-	if (ret)
++	if (dd->pcibar1 == (u32)~0)
+ 		goto error;
+ 
+-	ret = pci_read_config_dword(dd->pcidev, PCI_ROM_ADDRESS, &dd->pci_rom);
+-	if (ret)
++	pci_read_config_dword(dd->pcidev, PCI_ROM_ADDRESS, &dd->pci_rom);
++	if (dd->pci_rom == (u32)~0)
+ 		goto error;
+ 
+-	ret = pci_read_config_word(dd->pcidev, PCI_COMMAND, &dd->pci_command);
+-	if (ret)
++	pci_read_config_word(dd->pcidev, PCI_COMMAND, &dd->pci_command);
++	if (dd->pci_command == (u16)~0)
+ 		goto error;
+ 
+ 	ret = pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL,
+@@ -427,14 +427,14 @@ int save_pci_variables(struct hfi1_devdata *dd)
+ 	if (ret)
+ 		goto error;
+ 
+-	ret = pci_read_config_dword(dd->pcidev, PCI_CFG_MSIX0, &dd->pci_msix0);
+-	if (ret)
++	pci_read_config_dword(dd->pcidev, PCI_CFG_MSIX0, &dd->pci_msix0);
++	if (dd->pci_command == (u32)~0)
+ 		goto error;
+ 
+ 	if (pci_find_ext_capability(dd->pcidev, PCI_EXT_CAP_ID_TPH)) {
+-		ret = pci_read_config_dword(dd->pcidev, PCIE_CFG_TPH2,
++		pci_read_config_dword(dd->pcidev, PCIE_CFG_TPH2,
+ 					    &dd->pci_tph2);
+-		if (ret)
++		if (dd->pci_tph2 == (u32)~0)
+ 			goto error;
+ 	}
+ 	return 0;
+@@ -783,9 +783,9 @@ static int load_eq_table(struct hfi1_devdata *dd, const u8 eq[11][3], u8 fs,
+ 		pci_write_config_dword(pdev, PCIE_CFG_REG_PL102,
+ 				       eq_value(c_minus1, c0, c_plus1));
+ 		/* check if these coefficients violate EQ rules */
+-		ret = pci_read_config_dword(dd->pcidev,
++		pci_read_config_dword(dd->pcidev,
+ 					    PCIE_CFG_REG_PL105, &violation);
+-		if (ret) {
++		if (violation == (32)~0) {
+ 			dd_dev_err(dd, "Unable to read from PCI config\n");
+ 			hit_error = 1;
+ 			break;
+@@ -1322,8 +1322,8 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	/* step 10: decide what to do next */
+ 
+ 	/* check if we can read PCI space */
+-	ret = pci_read_config_word(dd->pcidev, PCI_VENDOR_ID, &vendor);
+-	if (ret) {
++	pci_read_config_word(dd->pcidev, PCI_VENDOR_ID, &vendor);
++	if (vendor == (u16)~0) {
+ 		dd_dev_info(dd,
+ 			    "%s: read of VendorID failed after SBR, err %d\n",
+ 			    __func__, ret);
+@@ -1376,8 +1376,8 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	setextled(dd, 0);
+ 
+ 	/* check for any per-lane errors */
+-	ret = pci_read_config_dword(dd->pcidev, PCIE_CFG_SPCIE2, &reg32);
+-	if (ret) {
++	pci_read_config_dword(dd->pcidev, PCIE_CFG_SPCIE2, &reg32);
++	if (reg32 == (u32)~0) {
+ 		dd_dev_err(dd, "Unable to read from PCI config\n");
+ 		return_error = 1;
+ 		goto done;
+diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
+index 2a6979e4ae1c..5f09d5312472 100644
+--- a/drivers/infiniband/hw/mthca/mthca_reset.c
++++ b/drivers/infiniband/hw/mthca/mthca_reset.c
+@@ -102,7 +102,10 @@ int mthca_reset(struct mthca_dev *mdev)
+ 	for (i = 0; i < 64; ++i) {
+ 		if (i == 22 || i == 23)
+ 			continue;
+-		if (pci_read_config_dword(mdev->pdev, i * 4, hca_header + i)) {
++
++		pci_read_config_dword(mdev->pdev, i * 4,
++						hca_header + i);
++		if (*(hca_header + i) == (u32)~0) {
+ 			err = -ENODEV;
+ 			mthca_err(mdev, "Couldn't save HCA "
+ 				  "PCI header, aborting.\n");
+@@ -123,7 +126,10 @@ int mthca_reset(struct mthca_dev *mdev)
+ 		for (i = 0; i < 64; ++i) {
+ 			if (i == 22 || i == 23)
+ 				continue;
+-			if (pci_read_config_dword(bridge, i * 4, bridge_header + i)) {
++
++			pci_read_config_dword(bridge, i * 4,
++							bridge_header + i);
++			if (*(bridge_header + i) == (u32)~0) {
+ 				err = -ENODEV;
+ 				mthca_err(mdev, "Couldn't save HCA bridge "
+ 					  "PCI header, aborting.\n");
+@@ -164,13 +170,8 @@ int mthca_reset(struct mthca_dev *mdev)
+ 		int c = 0;
+ 
+ 		for (c = 0; c < 100; ++c) {
+-			if (pci_read_config_dword(bridge ? bridge : mdev->pdev, 0, &v)) {
+-				err = -ENODEV;
+-				mthca_err(mdev, "Couldn't access HCA after reset, "
+-					  "aborting.\n");
+-				goto free_bh;
+-			}
+-
++			pci_read_config_dword(bridge ? bridge : mdev->pdev, 0,
++									&v);
+ 			if (v != 0xffffffff)
+ 				goto good;
+ 
+-- 
+2.18.4
 
