@@ -2,68 +2,42 @@ Return-Path: <SRS0=CapX=BM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 799ACC433E0
-	for <linux-rdma@archiver.kernel.org>; Sun,  2 Aug 2020 22:28:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C317BC433DF
+	for <linux-rdma@archiver.kernel.org>; Sun,  2 Aug 2020 22:33:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63505206F6
-	for <linux-rdma@archiver.kernel.org>; Sun,  2 Aug 2020 22:28:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="lIf6/YNu"
+	by mail.kernel.org (Postfix) with ESMTP id AB3D1206F6
+	for <linux-rdma@archiver.kernel.org>; Sun,  2 Aug 2020 22:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727850AbgHBW2q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 2 Aug 2020 18:28:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54750 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727781AbgHBW2q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 2 Aug 2020 18:28:46 -0400
-Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com [IPv6:2607:f8b0:4864:20::742])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD926C061757
-        for <linux-rdma@vger.kernel.org>; Sun,  2 Aug 2020 15:28:45 -0700 (PDT)
-Received: by mail-qk1-x742.google.com with SMTP id l23so33718287qkk.0
-        for <linux-rdma@vger.kernel.org>; Sun, 02 Aug 2020 15:28:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=X2bYgTX4K3EZYIeQDAN4hcSO5LdesUSG+q6mG9kn4ys=;
-        b=lIf6/YNuL/fGjujaZaoNWqjOsE+V2SxqHpXstZJx+0q2hXtLpUFUTz5JX8XdrjIX84
-         nHNBhu4B25HP4PjS2WRfH/wBVJnp15ux7/z2PJT4SEWunVT30EfxZztzctwXk7QW0gTo
-         9Nl0wqW9uhY/cOlHKkY2bAxXtZ8oU22wXRgsHJkYugvcXjiHns5QhPw+INH4KWhRatZ0
-         Zb9IgHQCzuejMB4jCfe0cnBMXT0o2vTT+BoP48ROWLDHm99aMCb15cx9yTnjG0xA+izp
-         1a2shGvPVx/c3qIncZKuA2cCSdiHnxQ4E8gu8ODnEPo0jl+X8CW+q5BGj0a6F6cDfN43
-         G5CA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=X2bYgTX4K3EZYIeQDAN4hcSO5LdesUSG+q6mG9kn4ys=;
-        b=dlXIfFEAF/cpTQjAPSANxs3ndk4BdsETduvMZN5taqLNhtK7i4AlaXkGhNiPXBlzEJ
-         Vs9v6LtbRjijP6zl0PdzPOp81nSGF2CZzrCNRYMfIMqeDQvSqH3efWE1n6mIZ94ETerq
-         vbb1Kl42disiRSe2DJ/vcwSM/M3dnJryurZNJyHZRPdzWNQy0RZXkulwP8ZTCuMAut0G
-         uOaNWjVUHVYMb8Olarn6vY7lMfS4XaPJgqAN/331XueOxjAYCzROeIZGwhxGdIr8DFtM
-         qSN9fy3ROv919+ecOVRX2/b2neVQviWXMcM518gfnuYEPDQqbDWZaA8ZafXFXdVr8OJy
-         Bo7Q==
-X-Gm-Message-State: AOAM533sL0jmo9lB7YnufINCqcw9UmZ/jiqLiQkO2bXO8bhGf9u5fnwe
-        U3VcCmrjsO7eu9SfSJOHemeaNQ==
-X-Google-Smtp-Source: ABdhPJy4eXa0DseBVUfptK+ZJ5ECzRMJW3DLsqYCv1XNOKBUDhbP4IqCmIWvuu9UONvVig+CWSFdDQ==
-X-Received: by 2002:a37:4c9:: with SMTP id 192mr13359614qke.125.1596407324789;
-        Sun, 02 Aug 2020 15:28:44 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id p33sm18333547qtp.49.2020.08.02.15.28.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 02 Aug 2020 15:28:44 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1k2MTD-002q9U-LB; Sun, 02 Aug 2020 19:28:43 -0300
-Date:   Sun, 2 Aug 2020 19:28:43 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Joe Perches <joe@perches.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        id S1726364AbgHBWdS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 2 Aug 2020 18:33:18 -0400
+Received: from smtprelay0184.hostedemail.com ([216.40.44.184]:34536 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726257AbgHBWdS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 2 Aug 2020 18:33:18 -0400
+X-Greylist: delayed 555 seconds by postgrey-1.27 at vger.kernel.org; Sun, 02 Aug 2020 18:33:17 EDT
+Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
+        by smtpgrave05.hostedemail.com (Postfix) with ESMTP id BB6B51828A42E
+        for <linux-rdma@vger.kernel.org>; Sun,  2 Aug 2020 22:24:02 +0000 (UTC)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id 6B8211730850;
+        Sun,  2 Aug 2020 22:24:01 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: taste53_3b1265f26f98
+X-Filterd-Recvd-Size: 1940
+Received: from XPS-9350.home (unknown [47.151.133.149])
+        (Authenticated sender: joe@perches.com)
+        by omf01.hostedemail.com (Postfix) with ESMTPA;
+        Sun,  2 Aug 2020 22:23:59 +0000 (UTC)
+Message-ID: <fb7ec4d4ed78e6ae7fa6c04abb24d1c00dc2b0f7.camel@perches.com>
+Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
+ in rds_notify_queue_get()
+From:   Joe Perches <joe@perches.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Peilin Ye <yepeilin.cs@gmail.com>,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -73,40 +47,32 @@ Cc:     Leon Romanovsky <leon@kernel.org>,
         linux-kernel-mentees@lists.linuxfoundation.org,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
- in rds_notify_queue_get()
-Message-ID: <20200802222843.GP24045@ziepe.ca>
-References: <20200731045301.GI75549@unreal>
- <20200731053306.GA466103@kroah.com>
- <20200731053333.GB466103@kroah.com>
- <20200731140452.GE24045@ziepe.ca>
- <20200731142148.GA1718799@kroah.com>
- <20200731143604.GF24045@ziepe.ca>
- <20200731171924.GA2014207@kroah.com>
- <20200801053833.GK75549@unreal>
- <20200802221020.GN24045@ziepe.ca>
- <fb7ec4d4ed78e6ae7fa6c04abb24d1c00dc2b0f7.camel@perches.com>
+Date:   Sun, 02 Aug 2020 15:23:58 -0700
+In-Reply-To: <20200802221020.GN24045@ziepe.ca>
+References: <20200730192026.110246-1-yepeilin.cs@gmail.com>
+         <20200731045301.GI75549@unreal> <20200731053306.GA466103@kroah.com>
+         <20200731053333.GB466103@kroah.com> <20200731140452.GE24045@ziepe.ca>
+         <20200731142148.GA1718799@kroah.com> <20200731143604.GF24045@ziepe.ca>
+         <20200731171924.GA2014207@kroah.com> <20200801053833.GK75549@unreal>
+         <20200802221020.GN24045@ziepe.ca>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.36.3-0ubuntu1 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fb7ec4d4ed78e6ae7fa6c04abb24d1c00dc2b0f7.camel@perches.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Aug 02, 2020 at 03:23:58PM -0700, Joe Perches wrote:
-> On Sun, 2020-08-02 at 19:10 -0300, Jason Gunthorpe wrote:
-> > On Sat, Aug 01, 2020 at 08:38:33AM +0300, Leon Romanovsky wrote:
-> > 
-> > > I'm using {} instead of {0} because of this GCC bug.
-> > > https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
-> > 
-> > This is why the {} extension exists..
+On Sun, 2020-08-02 at 19:10 -0300, Jason Gunthorpe wrote:
+> On Sat, Aug 01, 2020 at 08:38:33AM +0300, Leon Romanovsky wrote:
 > 
-> There is no guarantee that the gcc struct initialization {}
-> extension also zeros padding.
+> > I'm using {} instead of {0} because of this GCC bug.
+> > https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
+> 
+> This is why the {} extension exists..
 
-We just went over this. Yes there is, C11 requires it.
+There is no guarantee that the gcc struct initialization {}
+extension also zeros padding.
 
-Jason
+
