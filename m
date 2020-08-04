@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71DAAC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:49:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C44C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:49:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E6022076E
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:49:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 261E62076E
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596530961;
-	bh=iPTzB/0FNkkPyFs1J2zI+iatblLznCorgEfaNkNxKPo=;
+	s=default; t=1596530966;
+	bh=wh+3TwBOK1o2Vk+lCmU6y6QIvoOEds+ttEJv+0CIeas=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=CmyU7pm3+YC6EgQb9Io9BQcT7J9acxJkkOFchc+R2pXZa03+2HvyYg1ZBlF9lnXT0
-	 GQL1wxGCNnCWe5XcLqsR0BZZ+yQ289F7rzPADUGakms2gFOv+bNHjrrG/oc4WIEn/2
-	 5Bpc5sPqGsouym32429Z6VMXeH9Tw8YfYm1uSDas=
+	b=SpCx64u+U5K5gSDjq8FOfI/VaS4B0IqLDaKHK/TRPEg/YNPOGtOJ7MefEWCmaGM8W
+	 D7OvCk3KIdZYxn3QfLuHduoGWQQHGnp5N0ph29i5vtnH0H+PRPkMUWE9HZyIMSQ9gZ
+	 RnYNp/58OszjQBLHYO74d6h9TS3VsCXwr/59esLs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729390AbgHDItU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 4 Aug 2020 04:49:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51948 "EHLO mail.kernel.org"
+        id S1729990AbgHDItZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 4 Aug 2020 04:49:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726233AbgHDItU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 4 Aug 2020 04:49:20 -0400
+        id S1726233AbgHDItZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 4 Aug 2020 04:49:25 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 748E12075D;
-        Tue,  4 Aug 2020 08:49:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2832322CA1;
+        Tue,  4 Aug 2020 08:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596530960;
-        bh=iPTzB/0FNkkPyFs1J2zI+iatblLznCorgEfaNkNxKPo=;
+        s=default; t=1596530964;
+        bh=wh+3TwBOK1o2Vk+lCmU6y6QIvoOEds+ttEJv+0CIeas=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DbX+0jUStqGvXt1X0RWH9aTfloGVNhN+PXkc7u0zS9q8nt9PX3zaviJ//0yLjaUbM
-         j1DGV7kHR2Dh0LpMsEEGVeytGfVpO/XoprKG5KdFn+jD9avrpjUeMNlhmnhnrfZDgj
-         eHjPkY+45kSG0wkwXiFpnC4t9wdmPeVbkJzbPdk0=
+        b=RgXfTFZIiiDR+8x+bx2sFsUiWUepouue0D2lCy3zdkio4D8nBxov/GKCw5OQxxq9F
+         5TMQjLXqOIRaysLnqczGwUgzeAj3C2VWiPOb2ho8svabNPfzShVlsDHJRy1U/5z758
+         PUGU3anv3N6NdFwlWdDqZV8wUxOFlZWri79ddLI4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     David Ahern <dsahern@gmail.com>
 Cc:     Mark Zhang <markz@mellanox.com>,
@@ -46,9 +46,9 @@ Cc:     Mark Zhang <markz@mellanox.com>,
         Jason Gunthorpe <jgg@mellanox.com>,
         linux-netdev <netdev@vger.kernel.org>,
         RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH iproute2-next 1/3] rdma: update uapi headers
-Date:   Tue,  4 Aug 2020 11:49:07 +0300
-Message-Id: <20200804084909.604846-2-leon@kernel.org>
+Subject: [PATCH iproute2-next 3/3] rdma: Document the new "pid" criteria for auto mode
+Date:   Tue,  4 Aug 2020 11:49:09 +0300
+Message-Id: <20200804084909.604846-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200804084909.604846-1-leon@kernel.org>
 References: <20200804084909.604846-1-leon@kernel.org>
@@ -61,51 +61,75 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Update rdma_netlink.h file upto kernel commit 76251e15ea73
-("RDMA/counter: Add PID category support in auto mode")
+Document the new supported criteria of auto mode. Examples:
+$ rdma statistic qp set link mlx5_2/1 auto pid on
+$ rdma statistic qp set link mlx5_2/1 auto pid,type on
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Ido Kalir <idok@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ man/man8/rdma-statistic.8 | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index fe127b88..4aef76ae 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -287,11 +287,11 @@ enum rdma_nldev_command {
+diff --git a/man/man8/rdma-statistic.8 b/man/man8/rdma-statistic.8
+index 7de495c9..7160bcdf 100644
+--- a/man/man8/rdma-statistic.8
++++ b/man/man8/rdma-statistic.8
+@@ -68,11 +68,11 @@ rdma-statistic \- RDMA statistic counter configuration
  
- 	RDMA_NLDEV_CMD_STAT_DEL,
+ .ti -8
+ .IR CRITERIA " := "
+-.RB "{ " type " }"
++.RB "{ " type " | " pid " }"
  
--	RDMA_NLDEV_CMD_RES_QP_GET_RAW, /* can dump */
-+	RDMA_NLDEV_CMD_RES_QP_GET_RAW,
+ .ti -8
+ .IR FILTER_NAME " := "
+-.RB "{ " cntn " | " lqpn " | " pid " }"
++.RB "{ " cntn " | " lqpn " | " pid " | " qp-type " }"
  
--	RDMA_NLDEV_CMD_RES_CQ_GET_RAW, /* can dump */
-+	RDMA_NLDEV_CMD_RES_CQ_GET_RAW,
+ .SH "DESCRIPTION"
+ .SS rdma statistic [object] show - Queries the specified RDMA device for RDMA and driver-specific statistics. Show the default hw counters if object is not specified
+@@ -88,7 +88,7 @@ rdma-statistic \- RDMA statistic counter configuration
+ - specifies a filter to show only the results matching it.
  
--	RDMA_NLDEV_CMD_RES_MR_GET_RAW, /* can dump */
-+	RDMA_NLDEV_CMD_RES_MR_GET_RAW,
+ .SS rdma statistic <object> set - configure counter statistic auto-mode for a specific device/port
+-In auto mode all objects belong to one category are bind automatically to a single counter set. Not applicable for MR's.
++In auto mode all objects belong to one category are bind automatically to a single counter set. The "off" is global for all auto modes together. Not applicable for MR's.
  
- 	RDMA_NLDEV_NUM_OPS
- };
-@@ -531,7 +531,7 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_DEV_DIM,                /* u8 */
- 
--	RDMA_NLDEV_ATTR_RES_RAW,                /* binary */
-+	RDMA_NLDEV_ATTR_RES_RAW,	/* binary */
- 
- 	/*
- 	 * Always the end
-@@ -569,5 +569,6 @@ enum rdma_nl_counter_mode {
-  */
- enum rdma_nl_counter_mask {
- 	RDMA_COUNTER_MASK_QP_TYPE = 1,
-+	RDMA_COUNTER_MASK_PID = 1 << 1,
- };
- #endif /* _RDMA_NETLINK_H */
+ .SS rdma statistic <object> bind - manually bind an object (e.g., a qp) with a counter
+ When bound the statistics of this object are available in this counter. Not applicable for MR's.
+@@ -127,6 +127,11 @@ rdma statistic qp show link mlx5_2 pid 30489
+ Shows the state of all qp counters of specified RDMA port and belonging to pid 30489
+ .RE
+ .PP
++rdma statistic qp show link mlx5_2 qp-type UD
++.RS 4
++Shows the state of all qp counters of specified RDMA port and with QP type UD
++.RE
++.PP
+ rdma statistic qp mode
+ .RS 4
+ List current counter mode on all devices
+@@ -139,7 +144,17 @@ List current counter mode of device mlx5_2 port 1
+ .PP
+ rdma statistic qp set link mlx5_2/1 auto type on
+ .RS 4
+-On device mlx5_2 port 1, for each new QP bind it with a counter automatically. Per counter for QPs with same qp type in each process. Currently only "type" is supported.
++On device mlx5_2 port 1, for each new user QP bind it with a counter automatically. Per counter for QPs with same qp type.
++.RE
++.PP
++rdma statistic qp set link mlx5_2/1 auto pid on
++.RS 4
++On device mlx5_2 port 1, for each new user QP bind it with a counter automatically. Per counter for QPs with same pid.
++.RE
++.PP
++rdma statistic qp set link mlx5_2/1 auto pid,type on
++.RS 4
++On device mlx5_2 port 1, for each new user QP bind it with a counter automatically. Per counter for QPs with same pid and same type.
+ .RE
+ .PP
+ rdma statistic qp set link mlx5_2/1 auto off
 -- 
 2.26.2
 
