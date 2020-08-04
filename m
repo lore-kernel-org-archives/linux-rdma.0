@@ -1,123 +1,163 @@
-Return-Path: <SRS0=lM3/=BN=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=jDSv=BO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7A97C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 Aug 2020 23:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FA0AC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:45:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC46F20781
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 Aug 2020 23:06:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF75C206D8
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Aug 2020 08:45:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="aQPbnrju"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=hospedajeydominios.com header.i=@hospedajeydominios.com header.b="Q0+XclXD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726805AbgHCXGa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 3 Aug 2020 19:06:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56422 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728545AbgHCXGa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 Aug 2020 19:06:30 -0400
-Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com [IPv6:2607:f8b0:4864:20::744])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27F7BC061756
-        for <linux-rdma@vger.kernel.org>; Mon,  3 Aug 2020 16:06:30 -0700 (PDT)
-Received: by mail-qk1-x744.google.com with SMTP id m7so4651381qki.12
-        for <linux-rdma@vger.kernel.org>; Mon, 03 Aug 2020 16:06:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=wAUE6jUn5mAwPKG/Q4g9vNtYtEutYsrwV5EW4m6aKOU=;
-        b=aQPbnrjunrUlMKPJZCkOu9GiuwLThf4AAYXaSayDvpYZIe0S0J5kWgrEUjiDBH9If6
-         Nk9QNCh3nxu8CXdo+xB/HLA8CehJ2h3vX8mFXWeKtG4Ehnv/lG4XUFRHkTOmDmx2Gu+t
-         isoDrdskWg1Yq4JaJ2gyFOMQASXHDC3AOHQFV8jXqTkjjMH9OISCb5l703LpOA/etz3n
-         Odi5KMRaQBfXsQRPGtsPxY+h2Mu3CS08N6pHNkSCakHEE7/ei6ZPcuVPeLMgC98An320
-         u+suEZDSIIjWB+8Yuby/tpgOMJBQQty/fmvjkfvWZZTaQmoN4l3AusKGnGnuiBnLxtgp
-         mMmQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=wAUE6jUn5mAwPKG/Q4g9vNtYtEutYsrwV5EW4m6aKOU=;
-        b=OR0vTVfOKkuhPBRcKlRneaUvG/LJgRD4YkLDtfsVYAy1xQ9sHSIS53oxpB5OAJgjVQ
-         jQl7MUtClY2Istz06YGNFafbbhPUFawkTtKpkLhTzcva/LIwYp6c+wC/oFYupx7edXCG
-         NV5MPX1+AW0VwU6ozYrTLAeBOMKTLa35y5fRw8E6HGxwJ9GxjlvACvC6x+x64uGc8UeX
-         XYvSNLJIb/w84uEAZ9XEPaN3p+y+KtJkOwJ6dpEivzdE7yf5gHjTOFJvhjcD4hs6oAXN
-         B3tbR2PMoVXoUz6GeBM/U4WzoX9abdrY7SIpVbKlPwWXRVim5YGlZqKSv6s8Rn8q6f6b
-         z8XQ==
-X-Gm-Message-State: AOAM530Xa30GNkPu7jQMLaijiD2VbfeCP4FqOP6Ga6F/JHfAdNcN1pAj
-        aemtyEIUEZjp8vVLgY6rz1C1dw==
-X-Google-Smtp-Source: ABdhPJyd0Tryhkzt206/Jh2HMiFEcuAT06LpeX3boAviXZIf/eRMRzhVp8FyjqPcmsR8tNjqSdSpPA==
-X-Received: by 2002:a37:649:: with SMTP id 70mr18613154qkg.318.1596495988988;
-        Mon, 03 Aug 2020 16:06:28 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id 9sm22473777qtg.4.2020.08.03.16.06.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Aug 2020 16:06:27 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1k2jXH-0039ha-72; Mon, 03 Aug 2020 20:06:27 -0300
-Date:   Mon, 3 Aug 2020 20:06:27 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Joe Perches <joe@perches.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Peilin Ye <yepeilin.cs@gmail.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        linux-kernel-mentees@lists.linuxfoundation.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
-Subject: Re: [Linux-kernel-mentees] [PATCH net] rds: Prevent kernel-infoleak
- in rds_notify_queue_get()
-Message-ID: <20200803230627.GQ24045@ziepe.ca>
-References: <20200731053333.GB466103@kroah.com>
- <20200731140452.GE24045@ziepe.ca>
- <20200731142148.GA1718799@kroah.com>
- <20200731143604.GF24045@ziepe.ca>
- <20200731171924.GA2014207@kroah.com>
- <20200801053833.GK75549@unreal>
- <20200802221020.GN24045@ziepe.ca>
- <fb7ec4d4ed78e6ae7fa6c04abb24d1c00dc2b0f7.camel@perches.com>
- <20200802222843.GP24045@ziepe.ca>
- <60584f4c0303106b42463ddcfb108ec4a1f0b705.camel@perches.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <60584f4c0303106b42463ddcfb108ec4a1f0b705.camel@perches.com>
+        id S1729853AbgHDIp0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 4 Aug 2020 04:45:26 -0400
+Received: from mailhost.hospedajeydominios.com ([46.29.49.5]:56470 "EHLO
+        mailhost.hospedajeydominios.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729390AbgHDIpZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 4 Aug 2020 04:45:25 -0400
+X-Greylist: delayed 1185 seconds by postgrey-1.27 at vger.kernel.org; Tue, 04 Aug 2020 04:45:24 EDT
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=hospedajeydominios.com; s=x; h=To:Date:Message-Id:Subject:Mime-Version:
+        Content-Transfer-Encoding:Content-Type:From:Sender:Reply-To:Cc:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=X7kCDvQ/Sp9SQLuqsw7tuZ5bEvdh+IQDiaZeoB3k8tg=; b=Q0+XclXDVgxrIR2kHsxizmvKWe
+        Doda/j+IaJGPYavsqN+Mxat+3m8Zv8+3sBzo3Ksr2Zo59zgHmpfLaLTmKoy1jKqgyPumzdfyo7fft
+        BygczF4PpCBlEjRQ7VJ7hPfMsczVFXtZlVLDepyDf6mEjZ1O9TRwJuqUvg7yYl5D+iNU=;
+Received: from [46.29.48.84] (helo=[192.168.255.14])
+        by mailhost.hospedajeydominios.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93.0.4)
+        (envelope-from <h.morala@hospedajeydominios.com>)
+        id 1k2sGQ-0006ox-9Q
+        for linux-rdma@vger.kernel.org; Tue, 04 Aug 2020 10:25:38 +0200
+From:   "H. Morala (HyD)" <h.morala@hospedajeydominios.com>
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.80.23.2.2\))
+Subject: mdadm: Insufficient head-space for reshape on /dev/sda2
+Message-Id: <74E2E33D-9082-4547-8E4B-C9528DEDB49A@hospedajeydominios.com>
+Date:   Tue, 4 Aug 2020 10:25:37 +0200
+To:     linux-rdma@vger.kernel.org
+X-Mailer: Apple Mail (2.3608.80.23.2.2)
+X-Authenticated-Id: h.morala@hospedajeydominios.com
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Aug 02, 2020 at 03:45:40PM -0700, Joe Perches wrote:
-> On Sun, 2020-08-02 at 19:28 -0300, Jason Gunthorpe wrote:
-> > On Sun, Aug 02, 2020 at 03:23:58PM -0700, Joe Perches wrote:
-> > > On Sun, 2020-08-02 at 19:10 -0300, Jason Gunthorpe wrote:
-> > > > On Sat, Aug 01, 2020 at 08:38:33AM +0300, Leon Romanovsky wrote:
-> > > > 
-> > > > > I'm using {} instead of {0} because of this GCC bug.
-> > > > > https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53119
-> > > > 
-> > > > This is why the {} extension exists..
-> > > 
-> > > There is no guarantee that the gcc struct initialization {}
-> > > extension also zeros padding.
-> >
-> > We just went over this. Yes there is, C11 requires it.
-> 
-> c11 is not c90.  The kernel uses c90.
+Hello,
 
-The kernel already relies on a lot of C11/C99 features and
-behaviors. For instance Linus just bumped the minimum compiler version
-so that C11's _Generic is usable.
+We tried to do:
 
-Why do you think this particular part of C11 shouldn't be relied on?
+ 	mdadm --grow /dev/md126 --raid-devices=3D4=20
 
-Jason
+and we get:
+
+	mdadm: Insufficient head-space for reshape on /dev/sda2
+
+
+This is the present  configuration:
+
+# mdadm --misc --detail /dev/md126
+/dev/md126:
+           Version : 1.0
+     Creation Time : Fri May 27 12:40:54 2016
+        Raid Level : raid10
+        Array Size : 512960 (500.94 MiB 525.27 MB)
+     Used Dev Size : 512960 (500.94 MiB 525.27 MB)
+      Raid Devices : 2
+     Total Devices : 4
+       Persistence : Superblock is persistent
+
+       Update Time : Mon Aug  3 17:33:04 2020
+             State : clean=20
+    Active Devices : 2
+   Working Devices : 4
+    Failed Devices : 0
+     Spare Devices : 2
+
+            Layout : near=3D2
+        Chunk Size : 64K
+
+Consistency Policy : resync
+
+              Name : boot
+              UUID : 5fc23b3c:93ecd502:0fbf3b82:adc7ad2d
+            Events : 746
+
+    Number   Major   Minor   RaidDevice State
+       0       8        2        0      active sync set-A   /dev/sda2
+       4       8       50        1      active sync set-B   /dev/sdd2
+
+       2       8       18        -      spare   /dev/sdb2
+       3       8       34        -      spare   /dev/sdc2
+
+
+
+# cat /etc/mdadm.conf=20
+ARRAY /dev/md/boot_0 metadata=3D1.0 spares=3D2 name=3Dboot =
+UUID=3D5fc23b3c:93ecd502:0fbf3b82:adc7ad2d
+
+# cat /proc/mdstat=20
+Personalities : [raid1] [raid10] [raid0]=20
+md126 : active raid10 sdd2[4] sdc2[3](S) sdb2[2](S) sda2[0]
+      512960 blocks super 1.0 2 near-copies [2/2] [UU]
+
+# fdisk /dev/sda
+
+The device presents a logical sector size that is smaller than
+the physical sector size. Aligning to a physical sector (or optimal
+I/O) size boundary is recommended, or performance may be impacted.
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Orden (m para obtener ayuda): p
+
+Disk /dev/sda: 500.1 GB, 500107862016 bytes, 976773168 sectors
+Units =3D sectors of 1 * 512 =3D 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+I/O size (minimum/optimal): 4096 bytes / 4096 bytes
+Disk label type: dos
+Identificador del disco: 0x0005ff1f
+
+Disposit. Inicio    Comienzo      Fin      Bloques  Id  Sistema
+/dev/sda1            2048     8265727     4131840   8e  Linux LVM
+/dev/sda2   *     8265728     9291775      513024   fd  Linux raid =
+autodetect
+/dev/sda3         9291776   974243839   482476032   fd  Linux raid =
+autodetect
+
+
+# parted /dev/sda
+GNU Parted 3.1
+Usando /dev/sda
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+(parted) print free
+Model: ATA Crucial_CT500MX2 (scsi)
+Disk /dev/sda: 500GB
+Sector size (logical/physical): 512B/4096B
+Partition Table: msdos
+Disk Flags:=20
+
+Numero  Inicio  Fin     Tama=C3=B1o  Typo     Sistema de ficheros  =
+Banderas
+        32,3kB  1049kB  1016kB           Free Space
+ 1      1049kB  4232MB  4231MB  primary                       lvm
+ 2      4232MB  4757MB  525MB   primary  xfs                  arranque, =
+raid
+ 3      4757MB  499GB   494GB   primary                       raid
+        499GB   500GB   1295MB           Free Space
+
+
+
+
