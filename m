@@ -2,136 +2,246 @@ Return-Path: <SRS0=TZef=BP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 370F0C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCA3C433DF
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF9FB2075D
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:23:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DCAA206D4
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:24:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="LzfGfqS+"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Ob2yb+iT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728768AbgHETWr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 5 Aug 2020 15:22:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55424 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728865AbgHERlo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Aug 2020 13:41:44 -0400
-Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on20627.outbound.protection.outlook.com [IPv6:2a01:111:f400:7d00::627])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20F67C0D9419
-        for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2020 08:14:27 -0700 (PDT)
+        id S1728652AbgHETYM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 5 Aug 2020 15:24:12 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:7172 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728827AbgHER31 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 5 Aug 2020 13:29:27 -0400
+Received: from hkpgpgate102.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f2aec580000>; Thu, 06 Aug 2020 01:28:56 +0800
+Received: from HKMAIL102.nvidia.com ([10.18.16.11])
+  by hkpgpgate102.nvidia.com (PGP Universal service);
+  Wed, 05 Aug 2020 10:28:56 -0700
+X-PGP-Universal: processed;
+        by hkpgpgate102.nvidia.com on Wed, 05 Aug 2020 10:28:56 -0700
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL102.nvidia.com
+ (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 5 Aug
+ 2020 17:28:56 +0000
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.168)
+ by HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 5 Aug 2020 17:28:55 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=m+nJlV1O/GmqKaNwW0iLkSfT4PftOUNePzFDh8oXwKty8scyfQ/HcXZv46Y8H6Fq3JImob5fEVUe6RdUckJxFW/zbtr+VRLRuF1fr4ypndsgOe8bmXKnhYjaZytFuSgOHP5boJKvEYT8/XW3ygQSr2QDf2S+81cjo21MNjGctDQFtWknvK7nLK1fl//uLiQw5ToayFvV4TEMhHYDVe2RagMQzUAyAUn6myErCIUGyElEEqUdXR7rs1KlzNHqp8mBiz+RNZSm1Dbi+7Bn3WntKJUhtpXa+s/Zd/CE5PxdVodSNwerxkqHCVVB9YavxlO2ISbCJcivDFzmN+yxuR2NCw==
+ b=ksVMVCZHIx79diS8qmaEid3Xod8fV2OE/ABikCM6BZmrPKY+pOPkq90iUml8Qq0/RxJxPVK0r18SyYWCpz0IuS4FyOjBtqsYF3PcVx+DtRs72heq7mCP4Tyov0El30eaXxbtMj97RBYSGrw3O1wZBbhAG1NhhY9EhM7xRg9/PdUnWt1CbdcyiUc0u4uJ3jx3cj338cE5UoQypMjxc7efpfIhiii3z0bparYpJdOSBZn8HVmXFIyoJWGxu8LmCQnxy08jiA9gxy8CFKl/7ZjlVPmvl7wMDGdp8o2V5zrDYKpBMWeIa3zSCYvm/mZzJAW9TQ/dQT07xanzfabpxZASGw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tcrqmIymWFs//nBYk5ARltpQrpV7hH1JHQBjr5uPa9o=;
- b=SCKDgV83+MGPAm7cVlqPfmD6HmJJXvHdTqWZGmk5Drkl285eoOOc7KTKWOczC98qzKgKdSydBwLOjKBMdgSLytYbGnXYho60dQ+rAGQLVJj2S1rl8DwIbpW6VOojI4Z7hETVEL3RXr3O+6y8ypgBFZyBWdj+FFWgDeO818v2ZwemWaPjLg0qIqJj6xyQJRay1dVpaqplxTuEgVMkrp5/v1IfS7d/0Bp0YWAIWctRcHBLRxLHqKKg27+K/cRu1CmIzkCla4HvlRYxjjAiWcHcOmx6znxSXwRUCpUTbccksa59x0I+8oWROxpOYjSkSXa6L261zwAR7mTd0eTem6xnOA==
+ bh=xYQhsIGCv80+t3/+yS0IghJzwwGcKn99VF3v2kBo8fg=;
+ b=CGySBpsJQvHv+U26YQPh7ARXt5Dkn2b7P361Vrc7tLwoYDQiDt29u0HJpw5sbL8nHoSVOeXNGBmbN1EZZHrsM2io3Gj0+kXCAxT8hrmjAv1viaKs7XO6WFHwj/AJtn0fUMikIyVf9I9T7x5d+oUXsmomjwr6aQE2Om+KSnLa/DYfrD3cmMaAH+9ZEEHqOBvQi+96nJ54jwYELP0tMOYkhzfOiBsWbQAyV1p4gRT6InQ61wB5+toS4dPi3w5tPCt/i4jcdCn6ntNCiV1wb4ImUBn4vdgcnwwOkBrd7RX0EbprQabbd3KBnH0dazcJr2/AOlFfC4dbH1AdV+wMma+Ojw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
- dkim=pass header.d=mellanox.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tcrqmIymWFs//nBYk5ARltpQrpV7hH1JHQBjr5uPa9o=;
- b=LzfGfqS+YvOlM+86DtWAXYVuIhDJI0+fvA6o9I4nQzThlgUagtFEf8siWuVI8rlhy/lThLy3lTNSbNd5m5R6/w8njrenNLYtAYbdMlLQlryvpASsl6NI1AM+nrmkVfttAAvT/DojV03klGH02PSQqSM2nrmVcSu5v5i5Pw5+Jms=
-Authentication-Results: mellanox.com; dkim=none (message not signed)
- header.d=none;mellanox.com; dmarc=none action=none header.from=mellanox.com;
-Received: from AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
- by AM0PR0502MB4051.eurprd05.prod.outlook.com (2603:10a6:208:2::33) with
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM5PR12MB2486.namprd12.prod.outlook.com (2603:10b6:4:b2::32) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.18; Wed, 5 Aug
- 2020 15:14:20 +0000
-Received: from AM0PR05MB5810.eurprd05.prod.outlook.com
- ([fe80::95b6:b863:de2a:c8e0]) by AM0PR05MB5810.eurprd05.prod.outlook.com
- ([fe80::95b6:b863:de2a:c8e0%7]) with mapi id 15.20.3261.017; Wed, 5 Aug 2020
- 15:14:20 +0000
-Subject: Re: [PATCH 1/2] IB/isert: use unlikely macro in the fast path
-To:     Leon Romanovsky <leonro@mellanox.com>
-Cc:     sagi@grimberg.me, linux-rdma@vger.kernel.org, jgg@nvidia.com,
-        jgg@mellanox.com, dledford@redhat.com, oren@mellanox.com
-References: <20200805121231.166162-1-maxg@mellanox.com>
- <20200805131644.GJ4432@unreal>
-From:   Max Gurtovoy <maxg@mellanox.com>
-Message-ID: <3777c9d9-1d36-f8e0-624f-aa633fd517ab@mellanox.com>
-Date:   Wed, 5 Aug 2020 18:14:16 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
-In-Reply-To: <20200805131644.GJ4432@unreal>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-ClientProxiedBy: AM0PR03CA0059.eurprd03.prod.outlook.com (2603:10a6:208::36)
- To AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.17; Wed, 5 Aug
+ 2020 17:28:53 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3239.022; Wed, 5 Aug 2020
+ 17:28:53 +0000
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>
+Subject: [PATCH] RDMA/cm: Remove unused cm_class
+Date:   Wed, 5 Aug 2020 14:28:52 -0300
+Message-ID: <0-v1-90096a98c476+205-remove_cm_leftovers_jgg@nvidia.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: MN2PR19CA0003.namprd19.prod.outlook.com
+ (2603:10b6:208:178::16) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [10.0.0.3] (89.138.179.55) by AM0PR03CA0059.eurprd03.prod.outlook.com (2603:10a6:208::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.17 via Frontend Transport; Wed, 5 Aug 2020 15:14:18 +0000
-X-Originating-IP: [89.138.179.55]
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR19CA0003.namprd19.prod.outlook.com (2603:10b6:208:178::16) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3261.15 via Frontend Transport; Wed, 5 Aug 2020 17:28:53 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1k3NDg-003td8-C0     for linux-rdma@vger.kernel.org; Wed, 05 Aug 2020 14:28:52 -0300
+X-Originating-IP: [156.34.48.30]
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 3959e0a0-c5e7-4bba-5482-08d839523a11
-X-MS-TrafficTypeDiagnostic: AM0PR0502MB4051:
-X-LD-Processed: a652971c-7d2e-4d9b-a6a4-d149256f461b,ExtAddr
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM0PR0502MB405132F2D01C448FE5F6463FB64B0@AM0PR0502MB4051.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
+X-MS-Office365-Filtering-Correlation-Id: b9e1aa36-2217-4621-a9bf-08d83965065f
+X-MS-TrafficTypeDiagnostic: DM5PR12MB2486:
+X-Microsoft-Antispam-PRVS: <DM5PR12MB2486653B4EC93B3EE41CABE6C24B0@DM5PR12MB2486.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:252;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 5bWwg0l9QgxA74VIM1HNGNrDe2lzP2sl4xrKD/E3LrZEcTbiMuoINEPaAz9uH0DeQu8bRbxDLSXFoiOXlCDDNvn+HLPcuNlxHW5gbkl0P/2AwENaIrqBZKPw4JwU1/k+eYg6DsWXfIHDpzH91SDzzo6EyptuRaxhH3p8kPKoT18yXzI7GxENqemPVnViGYZZowXZFO0L/bNG42BmgimIVuTZlnd68ZY/fMKITAJndulJmfIyjtDt2kwFBGY9PUWtA+xBDqTOLxRgZIcMKiJ0Cmqada5XlYFdEdsJZMrK2T59NOjnuS8BS0kwHwcKVIw/u4l1B+G2AFiniah+3Alfm1Pc/OLJ9zAIxHz+GocSgU3MXwT7yEm+YXMmyTyUOwvN
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB5810.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(376002)(39860400002)(346002)(366004)(136003)(396003)(5660300002)(53546011)(37006003)(186003)(83380400001)(26005)(86362001)(66946007)(36756003)(6636002)(6486002)(52116002)(16526019)(31696002)(478600001)(66556008)(8936002)(956004)(2616005)(316002)(8676002)(66476007)(2906002)(6862004)(107886003)(4326008)(16576012)(31686004)(43740500002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: 8jdfNDFRCDjDI3K0VuE6Y93L+QAD4RZLXgeWLk/S7qH1mnB6LF6RBP0kQm6YryR/QzUW6U9joMksdHB4fFcKKNzElyHy9wNBKfDMiT4vHlQ9FMaW/0VDKV3YO4Hn2+NahvLBAl0MeGtUPYtFLDXEcEQFmQVTpp/r3HiDh55Lc7BKpNj9Jir61VKQCE9Ybwfqp6UQcgOCwlowxaOFnU31eWtBGeuaQ8FmWtuB5oo/YRh5Ehg/I0YHGU1RolnuNsIPxzgBvHl2m7LFDgdJhJ3JG0m8ENX3w/ukuByZWm6JPb+ZKtt/EDxyq5LqDTIrP+YO6kk4qZ8aH08yzVuRBOB+G4hXxN4rdtRy129v1F1P7RN1r90PtJ8TK3c64Hi6SjAPxeAS3XjHBktGIZZPh44RS8vCt+oz/xG0Dbbt4Un2/KpGAKD9mThUHqpw//ItGdluv2TjV8lqMIWMIzUW6ahlPgs786LquUjz+Hn1wWtdFvlFeVToJhgPenUJxhdkT6lFnl9SCCsCcurF9MncEG+jsIvJYvPIIu4dikbBWWhF53XgSWUPUk/iKHVu2v91zMSz615EO4tUfVvUKm1Y+bZ22G5Awatq3Vqc7+RF+L11nsUiB5Qye+p977pksADHToh0lLlrU9y+SQvXJaszTDXBRQ==
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3959e0a0-c5e7-4bba-5482-08d839523a11
-X-MS-Exchange-CrossTenant-AuthSource: AM0PR05MB5810.eurprd05.prod.outlook.com
+X-Microsoft-Antispam-Message-Info: AXkHWHxxvmv/aincIFL865HsRzoAEYSzafHcMMVkfkkV1PLP7Tykm8uRfJcAhrBCbfVneb/RJ8EcjdOzpmtj0gK/1MGosyWhlxFFMdGp+y02P/bt+DhXQmuVPQkK5wfsizUM4UOPGUPwbn3WDf07MZnvR6s3fKuf302wt4thOzgf3h8t28Il0LdvsZi7Zjm/VBPukhoZsDtNRxzN35Xo1shr3IZTYUDliRFDI5AWxN8XLTwpN/wvGsqnzlFglIvxi3ygL9ngpgH9pONDGep5SKtBddXzqzvG9YOMX/jjm5i3vD2BC+9PAzYNNLhn/zYGsPjsOtDQPu6v3hScSSMuBjenRdF0BUJs9Lj4z8qljEm/urW4FDmUkSMkL/OoQ+Yl
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(136003)(39860400002)(376002)(346002)(396003)(366004)(316002)(66476007)(66946007)(66556008)(8936002)(186003)(478600001)(9786002)(36756003)(6916009)(2616005)(9746002)(83380400001)(8676002)(5660300002)(26005)(86362001)(2906002)(426003)(4216001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: hhZVEQBvwz4DvNC6akw/srSCajUicTimxK3ms5u/XiG1cPqGskQJGvh/7nrVc3DS2umIxWGL/6K6Ra/6NN09dTi7c1Q8XBC6GPPZgI17NUMdBNPhaUuQpu4Gr85gvlUT93iAyTPdT8pivF+O7euJ8DaHS9yIPfxeV3UPQb+F+SsKYLM+BrMoQvD6/CxOqIHFZbtGTuySh2VkIt5KG3LWgfkHC4GPC+DzhctgsHQm6zqaLH65lJMeCaH48vWMcEUfWo6AKbuIh9p3l3YVhR88/VNwEr/OPjz8wUm1pduLm88jyKuOS28v1DysY+Nn+kC6rWh2W6aKOI4sB0rpgpzckAuuZgw3bE6Qrh/OQqMCvYOWClEZQGt3H7PInxWJlfl+pSyFYqkIpFOKRDQdoqomoDDqjdJyV7UIamIO3BjOe5MsH7tDo9s7OQLTfSMPtaC82jfid187JhbaTJIDZTSAZvFLjaqPuDmvzUTO23TCqkZjnIdCntUuNUMmOIeS2OjVdkqOluXg6wDaIWjvynSugZjPvM92CG50Zl36gt30qXkjx0a8rKzdDOYzsBG/ban6XQ0azh5j4Ny8JtkPYmGHi4zQHK9UcusamEvAUL1DtGlw4lv1MWAKKmSnRJBWfRGo7iecpTRlUmRDaBlyAa2Ntg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: b9e1aa36-2217-4621-a9bf-08d83965065f
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2020 15:14:19.9299
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2020 17:28:53.6196
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: HlKm+OHuhURK91FQuO4IMVHOM/YPooRBLEf4iY5Egk8Wez6gjih+8zTY174wwhRytkQvlv4k+vt9dIa9Eb7EpA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0502MB4051
+X-MS-Exchange-CrossTenant-UserPrincipalName: L2aR9qR+rCG2Z3TM5eJGDzpQucjxhEyB6Vj1PaqTUHqfrdlh1VHHo6Np3b6nWwep
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB2486
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1596648536; bh=wDDzKLxDgk31597Z6kTby43EYXDPTrRESQt73l9zYec=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:From:To:Subject:
+         Date:Message-ID:Content-Transfer-Encoding:Content-Type:
+         X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
+         X-MS-Oob-TLC-OOBClassifiers:X-MS-Exchange-SenderADCheck:
+         X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+         X-Forefront-Antispam-Report:X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=Ob2yb+iTC0OiSjXKp8u7lhhvPWpp1oTPl26wEg3jAPmA4kpZSk5fxhxLrhM9t0GzT
+         sZkw5ydrgplNfjCdxRD/cOagZ2R7OwE5lCrLvvDXz/OcXoLISo3I0/2RTrq4sGqbet
+         mRELzJ1xAyCvpd/C2KQWclA46BXFrLvuxObvq5Rce8oSy0dWlZn9jPMlAXSG701E5l
+         yz5LO9ruAKHU4orAw3a7w31sPFeH6kB8FZvOONVfXydA0+kVLNVgOPikhWp41w5y01
+         PpWzuMDxB8e+qXiirr/PY7GhsREbGLiekdnxu7uZ7TkxRNBR6oI58ZroLt5KpLuXTY
+         yShTj5/rD9vng==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Previous commits removed all references to the /sys/class/infiniband_cm/
+directory represented by the cm_class symbol. Remove the directory and
+cm_class.
 
-On 8/5/2020 4:16 PM, Leon Romanovsky wrote:
-> On Wed, Aug 05, 2020 at 03:12:30PM +0300, Max Gurtovoy wrote:
->> Add performance optimization that might slightly improve small IO sizes
->> benchmarks.
->>
->> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
->> ---
->>   drivers/infiniband/ulp/isert/ib_isert.c | 4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
-> I find the expectation from "unlikely/likely" keywords to be overrated.
->
-> When we introduced dissagregate post send verbs in rdma-core, we
-> benchmarked likely/unlikely and didn't find any significant difference
-> for code with and without such keywords.
->
-> Thanks
+Fixes: a1a8e4a85cf7 ("rdma: Delete the ib_ucm module")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ .../ABI/stable/sysfs-class-infiniband         | 17 -------------
+ drivers/infiniband/core/cm.c                  | 24 -------------------
+ include/rdma/ib_cm.h                          |  3 ---
+ 3 files changed, 44 deletions(-)
 
-Leon,
-
-We are using these small optimizations in all our ULPs and we saw 
-benefit in large scale and high loads (we did the same in NVMf/RDMA).
-
-These kind of optimizations might not be seen immediately but are 
-accumulated.
-
-I don't know why do you compare user-space benchmarks to storage drivers.
-
-Can you please review the code ?
-
-Sagi,
-
-Can you send your comments as well ?
-
+diff --git a/Documentation/ABI/stable/sysfs-class-infiniband b/Documentatio=
+n/ABI/stable/sysfs-class-infiniband
+index 96dfe1926b76e8..87b11f91b42568 100644
+--- a/Documentation/ABI/stable/sysfs-class-infiniband
++++ b/Documentation/ABI/stable/sysfs-class-infiniband
+@@ -258,23 +258,6 @@ Description:
+ 		userspace ABI compatibility of umad & issm devices.
+=20
+=20
+-What:		/sys/class/infiniband_cm/ucmN/ibdev
+-Date:		Oct, 2005
+-KernelVersion:	v2.6.14
+-Contact:	linux-rdma@vger.kernel.org
+-Description:
+-		(RO) Display Infiniband (IB) device name
+-
+-
+-What:		/sys/class/infiniband_cm/abi_version
+-Date:		Oct, 2005
+-KernelVersion:	v2.6.14
+-Contact:	linux-rdma@vger.kernel.org
+-Description:
+-		(RO) Value is incremented if any changes are made that break
+-		userspace ABI compatibility of ucm devices.
+-
+-
+ What:		/sys/class/infiniband_verbs/uverbsN/ibdev
+ What:		/sys/class/infiniband_verbs/uverbsN/abi_version
+ Date:		Sept, 2005
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 9ce787e37e22a6..42e9e6b4d706d4 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -201,7 +201,6 @@ static struct attribute *cm_counter_default_attrs[] =3D=
+ {
+ struct cm_port {
+ 	struct cm_device *cm_dev;
+ 	struct ib_mad_agent *mad_agent;
+-	struct kobject port_obj;
+ 	u8 port_num;
+ 	struct list_head cm_priv_prim_list;
+ 	struct list_head cm_priv_altr_list;
+@@ -4292,20 +4291,6 @@ static struct kobj_type cm_counter_obj_type =3D {
+ 	.default_attrs =3D cm_counter_default_attrs
+ };
+=20
+-static char *cm_devnode(struct device *dev, umode_t *mode)
+-{
+-	if (mode)
+-		*mode =3D 0666;
+-	return kasprintf(GFP_KERNEL, "infiniband/%s", dev_name(dev));
+-}
+-
+-struct class cm_class =3D {
+-	.owner   =3D THIS_MODULE,
+-	.name    =3D "infiniband_cm",
+-	.devnode =3D cm_devnode,
+-};
+-EXPORT_SYMBOL(cm_class);
+-
+ static int cm_create_port_fs(struct cm_port *port)
+ {
+ 	int i, ret;
+@@ -4508,12 +4493,6 @@ static int __init ib_cm_init(void)
+ 	get_random_bytes(&cm.random_id_operand, sizeof cm.random_id_operand);
+ 	INIT_LIST_HEAD(&cm.timewait_list);
+=20
+-	ret =3D class_register(&cm_class);
+-	if (ret) {
+-		ret =3D -ENOMEM;
+-		goto error1;
+-	}
+-
+ 	cm.wq =3D alloc_workqueue("ib_cm", 0, 1);
+ 	if (!cm.wq) {
+ 		ret =3D -ENOMEM;
+@@ -4528,8 +4507,6 @@ static int __init ib_cm_init(void)
+ error3:
+ 	destroy_workqueue(cm.wq);
+ error2:
+-	class_unregister(&cm_class);
+-error1:
+ 	return ret;
+ }
+=20
+@@ -4550,7 +4527,6 @@ static void __exit ib_cm_cleanup(void)
+ 		kfree(timewait_info);
+ 	}
+=20
+-	class_unregister(&cm_class);
+ 	WARN_ON(!xa_empty(&cm.local_id_table));
+ }
+=20
+diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
+index 382427add67743..e23eb357b7613a 100644
+--- a/include/rdma/ib_cm.h
++++ b/include/rdma/ib_cm.h
+@@ -14,9 +14,6 @@
+ #include <rdma/ib_sa.h>
+ #include <rdma/rdma_cm.h>
+=20
+-/* ib_cm and ib_user_cm modules share /sys/class/infiniband_cm */
+-extern struct class cm_class;
+-
+ enum ib_cm_state {
+ 	IB_CM_IDLE,
+ 	IB_CM_LISTEN,
+--=20
+2.27.0
 
