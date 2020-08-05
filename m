@@ -4,147 +4,159 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C778DC433E0
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 20:00:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90A05C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 20:03:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F83E2076E
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 20:00:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DD342076E
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 20:03:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="ScNGCLIX"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="jecRdBuT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729842AbgHEUAB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 5 Aug 2020 16:00:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45426 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727790AbgHEQkH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Aug 2020 12:40:07 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 850CBC061A1C
-        for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2020 04:18:17 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id a15so40300169wrh.10
-        for <linux-rdma@vger.kernel.org>; Wed, 05 Aug 2020 04:18:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=a8Xl0N8gpF1FNzq/1cGal4TNsCzxDEF1alNaagcJBMM=;
-        b=ScNGCLIXi4vxWRwJCaCnKcGcfbOn6phz0aCjR43BcVgwmh5u0tKCM7pVc3kw/F6tw1
-         B11ZbX7UX+aiqII/YinvosNgTlS/pPzy8+tlt7XV2U7tRNVmx2YQUp91CnFQQlb5Rod0
-         //R6rE0geCvvED3Dajif8QscN7LoP52Lwkuf2kMgl2vzQ7L/DJTeOcLAq1mMK5mmu40h
-         JlKHTGkBf99YExVReGdK3dePaguoBmGNgAwUHysFo0PoOohdhVHDl30sPbgrJ7c2KFrB
-         OnplxOCyw7j2nkd5Ww1t08BLdtSuEp7TkJAUe2jMiECJZWwIGEf9hkVzDEbaw9i3fvro
-         92GQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=a8Xl0N8gpF1FNzq/1cGal4TNsCzxDEF1alNaagcJBMM=;
-        b=J6XYjjUi5hoxObarpbdJPQoJrVCPzMkYm/OMJ2nVtItFLboA3Vs9VAp8TsGLMQimZa
-         HKVvnmgMrBbUKDyV+WzOckrOeNB30ZdddlLaezqFr/JkX/f+I15sWqltm0yzCcRPXHNy
-         wwYGCSS+LQgDtz1t38k7VUihDCMR7IURsH406jJcQ787oTVHiR7DB3Ia/6Kne9qU+Fly
-         2Phel41FXPjiWussFMczP/pVNx9KsCufT0CPgu/9T6MMypGcT7sHJioj16f/hG++DpHU
-         G0WaA4H0atJ4yTMMpe7ednSchUu5ntrcPmmDIyT80UmzoqJcaEJGFW1pPsuGlzO/6Qr7
-         GdEw==
-X-Gm-Message-State: AOAM5339Brhwrz7ImDDne63HEMDaeSDGcBTXK5rPryT/RsqlV+pcvRva
-        hSCMixl2GgrUvpXbPui0p1ZxtdKtYn/iQebTxWpjHd9D6g==
-X-Google-Smtp-Source: ABdhPJxZOz12gUZnEl+W3F9ixkvxJC6CFJe1macjUpVC9uYhpCqed6sjOWZF9XRfzhLnAnRJXRq3iZzK+l38cfk2BLA=
-X-Received: by 2002:a5d:43c4:: with SMTP id v4mr2465855wrr.426.1596626296001;
- Wed, 05 Aug 2020 04:18:16 -0700 (PDT)
+        id S1727874AbgHEUDZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 5 Aug 2020 16:03:25 -0400
+Received: from mail-db8eur05on2084.outbound.protection.outlook.com ([40.107.20.84]:65096
+        "EHLO EUR05-DB8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727864AbgHEQhp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 5 Aug 2020 12:37:45 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KREiv9Cge5hQAiFzvDa49f62o59BfXUu1r6ulRIhY+RBq3TLWH9pjaK4kU2GCJLiK+Rnxd0X1KHfTIDWjapJQCFKv4boJvwQk1ItDJFYBjDoWr91t3lKrum6fffo2DJ5AgmBT2DfZ8MK37oDX/gm4UcrPlS8sIioSBDgZYXXuoI6dSICOAob3ut9MlAKIbVgNTDO6bZXr16dCpHxyA41PLsYPJLgYK60wKvq3rABR25UXSCIwIofTD3Wcd2s4Fh4oasXc/j0kpy7h9DGVBLC5WCBM1cxGFKg9z9nVECE5yog99xKaTVrcIySLCwVZSh2s7iUCIySF2kHuhg6zzGVOg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=X1RTfqZ+JLecbKaaCssu126NIUlEvjEbYJzC1gmHhGU=;
+ b=Ggqix+FsJiFbLYvvSivNQM4YFpcHYpSbJXxrqHTAvQwd4LiDQLzO4DLuwZgTE3YcLxmrC8lolgTPt4J2uXtIMFilrUyfRDos55e5oKwn4ugiTBoSCjjvb3O/Asaj3YEnpoQKEY5V9qJcl4D9TRbt7jTGoUID0EnyVyzaf+2gPj8aJOMdxwvY22CQzfqeHIpSMaFLS4LZHTYjjczK0MBRH41xJ03htEDCHWYClWvhhxqkgnpC9eYx73/miYNuk5cIA3xzVBPwO5LuhaJlj9X81bDiYlZz5tWhrplAKAVCAvbWKy6QojzjCzXKc1O7XSgxrcSuiVFNJPLzRFb4ZYZNeg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=X1RTfqZ+JLecbKaaCssu126NIUlEvjEbYJzC1gmHhGU=;
+ b=jecRdBuTFNZ7HQilEKWNYfGDiMcJ3fW216CW/YxebZQD4Bpk1+lDcPx2GwwSfE0+4nkycXjcOkmpBxpBbCy60WXmG3AvyDBbKC22q3YiLjp2R5u1NCenuMtZDphE7M8NzDF4GaxxSKxBVTGVx4DiAm+POcprwXITW8A/94BPR9c=
+Authentication-Results: mellanox.com; dkim=none (message not signed)
+ header.d=none;mellanox.com; dmarc=none action=none header.from=mellanox.com;
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com (2603:10a6:20b:b8::23)
+ by AM5PR0502MB2883.eurprd05.prod.outlook.com (2603:10a6:203:9e::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3261.16; Wed, 5 Aug
+ 2020 16:37:42 +0000
+Received: from AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::15f4:b130:d907:ce72]) by AM6PR05MB6408.eurprd05.prod.outlook.com
+ ([fe80::15f4:b130:d907:ce72%6]) with mapi id 15.20.3239.022; Wed, 5 Aug 2020
+ 16:37:42 +0000
+Date:   Wed, 5 Aug 2020 19:37:38 +0300
+From:   Leon Romanovsky <leonro@mellanox.com>
+To:     Max Gurtovoy <maxg@mellanox.com>
+Cc:     sagi@grimberg.me, linux-rdma@vger.kernel.org, jgg@nvidia.com,
+        jgg@mellanox.com, dledford@redhat.com, oren@mellanox.com
+Subject: Re: [PATCH 1/2] IB/isert: use unlikely macro in the fast path
+Message-ID: <20200805163738.GM4432@unreal>
+References: <20200805121231.166162-1-maxg@mellanox.com>
+ <20200805131644.GJ4432@unreal>
+ <3777c9d9-1d36-f8e0-624f-aa633fd517ab@mellanox.com>
+ <20200805160601.GL4432@unreal>
+ <6cd8d78e-3017-696b-508c-73c3c8b92802@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6cd8d78e-3017-696b-508c-73c3c8b92802@mellanox.com>
+X-ClientProxiedBy: AM0PR03CA0043.eurprd03.prod.outlook.com (2603:10a6:208::20)
+ To AM6PR05MB6408.eurprd05.prod.outlook.com (2603:10a6:20b:b8::23)
 MIME-Version: 1.0
-References: <20200623172321.GC6578@ziepe.ca> <20200804133759.377950-1-haris.iqbal@cloud.ionos.com>
- <20200805055712.GE4432@unreal> <CAHg0HuzmfrKqy_SfwEqRh33Ymx8j6DhkLC0=11T7Djrc7z-SWQ@mail.gmail.com>
- <20200805091644.GG4432@unreal>
-In-Reply-To: <20200805091644.GG4432@unreal>
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Date:   Wed, 5 Aug 2020 13:18:05 +0200
-Message-ID: <CAHg0Huy-xXopLpdU1Bx1een2vuDv6o27YZz+x-zN_enChESsQw@mail.gmail.com>
-Subject: Re: [PATCH v2] RDMA/rtrs-srv: Incorporate ib_register_client into
- rtrs server init
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
-        Jinpu Wang <jinpu.wang@cloud.ionos.com>,
-        linux-rdma@vger.kernel.org, linux-block@vger.kernel.org,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "Chen, Rong A" <rong.a.chen@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from localhost (213.57.247.131) by AM0PR03CA0043.eurprd03.prod.outlook.com (2603:10a6:208::20) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.17 via Frontend Transport; Wed, 5 Aug 2020 16:37:42 +0000
+X-Originating-IP: [213.57.247.131]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: e45c9fcb-8ee7-4489-2373-08d8395ddfc7
+X-MS-TrafficTypeDiagnostic: AM5PR0502MB2883:
+X-LD-Processed: a652971c-7d2e-4d9b-a6a4-d149256f461b,ExtAddr
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM5PR0502MB2883DC32CB7274FDF5057270B04B0@AM5PR0502MB2883.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: lNQl3sJARlJItUCzCLGIRJ/u8qUqlXpFWnP21NKdBsOxupSo/lfDcPpQXXU7NT9xRazqdBnUfU4ShQ3HI+sN7yhNTfnKw+0WH9TLIZOT2Cl4AnFowKq1H4XBdh6HXW7GkX7QhCWCTNBZnxLHgHBp3+mCqZsDap0MggGuR49fX6NWrVUGDsvY8J4SBJys+2wr1y/1ZMevDxD5dxHsxvELcUse2YKPv8ykZgzefZmXjsWFkldDGySgxegNVSYIdc/SvRRuiMkGhLNyLmojzZnsCELTnI3uarWGeBuRtlTA4AZCgLoPjYK4fTwqJP/YMLKIJkzDoT09HbVk9teMZRsyqw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR05MB6408.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(7916004)(4636009)(366004)(346002)(376002)(396003)(136003)(39860400002)(6862004)(83380400001)(6666004)(8676002)(1076003)(4326008)(26005)(186003)(9686003)(16526019)(8936002)(316002)(33656002)(478600001)(33716001)(86362001)(53546011)(2906002)(6486002)(6496006)(107886003)(5660300002)(6636002)(66476007)(66946007)(52116002)(956004)(66556008);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: Nzv747SLnyCa2u2/snvZyVjyGbHOUBJd3JWyfudauFmTgl5H3RppYqzcq3clxB9YTIJRwQQWbVEE4IULh8aQpy87d1OdzUv4P09Re/8cHXXLHzx45U3Tnb/MOAXE0PDiB8izDZqOor1Ftqgffl118QrEPlUtgOoqsNjRsKkN9qj7pBqylpZ0fYgyAO+8LGiRi6+5A9jeTobVqbTTU2Y+Rc1FUq77sn3gJTf7/yQQMVujQmu/0TZsJ5EQLOtT5j2KErKl+gaUsSompNP+tnuMBjokoDPvXBrce/tpVDbbuM1n1HNUaGEF7WbWsy9px3CVGyZnB042ha0dkmwUslOoeANN3io29B83ZCruTxGdMdUDN7rS24ol41XenukQZ1qI4HE0HVV7wJwrysLddoSh7xvbY4T1ZmnG2GAGz6o+6OT+iZFWyqriyTDDi64Cb4jX6yAzogOWgy2Ip1MflbggTXUkK7nL1rE0nPSmhTEssOw7a+gishBK7tu8jALwZNfeIu2i8P8yyvQJlayei83S+lOFaV/cddYCQELlAmgsnqiVZjNNaGuBK3Uy0frgdIMM6y/lOjdGylIEmF/XXm0Ob5dQnh7P0obPZP3Lp7Y8vE5shw6uB1yln0OjEIOSr2Baz6J4vYFSL6/DUAWrCj+iJw==
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e45c9fcb-8ee7-4489-2373-08d8395ddfc7
+X-MS-Exchange-CrossTenant-AuthSource: AM6PR05MB6408.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2020 16:37:42.3885
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Gr1SxjQB/kBxdREFaZmKM0lZFZYnTAZHp4HLjtSNg3pfIfx/yFu72zcmZr/XxKMEsxM0PLXiUnnanKKF6CX2+Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM5PR0502MB2883
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Aug 5, 2020 at 11:16 AM Leon Romanovsky <leon@kernel.org> wrote:
+On Wed, Aug 05, 2020 at 07:28:50PM +0300, Max Gurtovoy wrote:
 >
-> On Wed, Aug 05, 2020 at 11:09:00AM +0200, Danil Kipnis wrote:
-> > Hi Leon,
-> >
-> > On Wed, Aug 5, 2020 at 7:57 AM Leon Romanovsky <leon@kernel.org> wrote:
+> On 8/5/2020 7:06 PM, Leon Romanovsky wrote:
+> > On Wed, Aug 05, 2020 at 06:14:16PM +0300, Max Gurtovoy wrote:
+> > > On 8/5/2020 4:16 PM, Leon Romanovsky wrote:
+> > > > On Wed, Aug 05, 2020 at 03:12:30PM +0300, Max Gurtovoy wrote:
+> > > > > Add performance optimization that might slightly improve small IO sizes
+> > > > > benchmarks.
+> > > > >
+> > > > > Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+> > > > > ---
+> > > > >    drivers/infiniband/ulp/isert/ib_isert.c | 4 ++--
+> > > > >    1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > I find the expectation from "unlikely/likely" keywords to be overrated.
+> > > >
+> > > > When we introduced dissagregate post send verbs in rdma-core, we
+> > > > benchmarked likely/unlikely and didn't find any significant difference
+> > > > for code with and without such keywords.
+> > > >
+> > > > Thanks
+> > > Leon,
 > > >
-> > > On Tue, Aug 04, 2020 at 07:07:58PM +0530, Md Haris Iqbal wrote:
-> > > > The rnbd_server module's communication manager (cm) initialization depends
-> > > > on the registration of the "network namespace subsystem" of the RDMA CM
-> > > > agent module. As such, when the kernel is configured to load the
-> > > > rnbd_server and the RDMA cma module during initialization; and if the
-> > > > rnbd_server module is initialized before RDMA cma module, a null ptr
-> > > > dereference occurs during the RDMA bind operation.
-> > > >
-> > > > Call trace below,
-> > > >
-> > > > [    1.904782] Call Trace:
-> > > > [    1.904782]  ? xas_load+0xd/0x80
-> > > > [    1.904782]  xa_load+0x47/0x80
-> > > > [    1.904782]  cma_ps_find+0x44/0x70
-> > > > [    1.904782]  rdma_bind_addr+0x782/0x8b0
-> > > > [    1.904782]  ? get_random_bytes+0x35/0x40
-> > > > [    1.904782]  rtrs_srv_cm_init+0x50/0x80
-> > > > [    1.904782]  rtrs_srv_open+0x102/0x180
-> > > > [    1.904782]  ? rnbd_client_init+0x6e/0x6e
-> > > > [    1.904782]  rnbd_srv_init_module+0x34/0x84
-> > > > [    1.904782]  ? rnbd_client_init+0x6e/0x6e
-> > > > [    1.904782]  do_one_initcall+0x4a/0x200
-> > > > [    1.904782]  kernel_init_freeable+0x1f1/0x26e
-> > > > [    1.904782]  ? rest_init+0xb0/0xb0
-> > > > [    1.904782]  kernel_init+0xe/0x100
-> > > > [    1.904782]  ret_from_fork+0x22/0x30
-> > > > [    1.904782] Modules linked in:
-> > > > [    1.904782] CR2: 0000000000000015
-> > > > [    1.904782] ---[ end trace c42df88d6c7b0a48 ]---
-> > > >
-> > > > All this happens cause the cm init is in the call chain of the module init,
-> > > > which is not a preferred practice.
-> > > >
-> > > > So remove the call to rdma_create_id() from the module init call chain.
-> > > > Instead register rtrs-srv as an ib client, which makes sure that the
-> > > > rdma_create_id() is called only when an ib device is added.
-> > > >
-> > > > Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
-> > > > Reported-by: kernel test robot <rong.a.chen@intel.com>
-> > > > Signed-off-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-> > > > ---
-> > > >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 77 +++++++++++++++++++++++++-
-> > > >  drivers/infiniband/ulp/rtrs/rtrs-srv.h |  7 +++
-> > > >  2 files changed, 81 insertions(+), 3 deletions(-)
+> > > We are using these small optimizations in all our ULPs and we saw benefit in
+> > > large scale and high loads (we did the same in NVMf/RDMA).
 > > >
-> > > Please don't send vX patches as reply-to in "git send-email" command.
+> > > These kind of optimizations might not be seen immediately but are
+> > > accumulated.
+> > >
+> > > I don't know why do you compare user-space benchmarks to storage drivers.
+> > Why not? It produces same asm code and both have same performance
+> > characteristic.
 > >
-> > I thought vX + in-reply-to makes it clear that a new version of a
-> > patch is proposed in response to a mail reporting a problem in the
-> > first version. Why is that a bad idea?
+> > > Can you please review the code ?
+> > There is nothing to review here, the patch is straightforward, I just
+> > don't believe in it.
 >
-> It looks very messy in e-mail client. It is hard to follow and requires
-> multiple iterations to understand if the reply is on previous variant or
-> on new one.
+> Its ok.
 >
-> See attached print screen or see it in lore, where thread view is used.
-> https://lore.kernel.org/linux-rdma/20200623172321.GC6578@ziepe.ca/T/#t
+> Just ignore it if you don't want to review it.
 
-I see, thanks. Just a related question: In this particular case the
-commit message changed in the second version of the patch. Should one
-still use v2 in that case, or should the second version be submitted
-without the vX tag at all?
+OK, just because you asked.
+
+I reviewed this patch and didn't find any justification for performance
+claim, can you please provide us numbers before/after so we will be able
+to decide based on reliable data? It will help us to review our drivers
+and improve them even more.
 
 >
-> Thanks
+> The maintainers of iser target will review and decide if they believe in it
+> or not.
+
+Sure, I don't care who will provide numbers.
+
+Thanks
+
+>
+>
+> > > Sagi,
+> > >
+> > > Can you send your comments as well ?
+> > >
+> > >
