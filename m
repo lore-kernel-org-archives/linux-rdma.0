@@ -2,114 +2,136 @@ Return-Path: <SRS0=TZef=BP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B89C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 370F0C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:23:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2F6D206D4
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:22:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF9FB2075D
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Aug 2020 19:23:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="otlfnujf"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="LzfGfqS+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729038AbgHETWb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 5 Aug 2020 15:22:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55434 "EHLO
+        id S1728768AbgHETWr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 5 Aug 2020 15:22:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728402AbgHERlp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Aug 2020 13:41:45 -0400
-Received: from EUR02-VE1-obe.outbound.protection.outlook.com (mail-ve1eur02on0600.outbound.protection.outlook.com [IPv6:2a01:111:f400:fe06::600])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6A74C008690
-        for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2020 07:32:42 -0700 (PDT)
+        with ESMTP id S1728865AbgHERlo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Aug 2020 13:41:44 -0400
+Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on20627.outbound.protection.outlook.com [IPv6:2a01:111:f400:7d00::627])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20F67C0D9419
+        for <linux-rdma@vger.kernel.org>; Wed,  5 Aug 2020 08:14:27 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=dEBVyW0s6kiwBud6uWvZpM7Dehsn2Yq8cEV1HTLX4Y82gVGT1KEYWymMRNAH3lezsRZFVoAzN4LRe8GSyTY75FcZj6LIvMqZPQ1bXxtT754Q6Q/9DKJ8Lo79w3rp4Yd+jWUD8266Tzy/fD9AyD36TFls/OmryUW8Klh1+Rca4XNuDBXFDayUZn4rXDlUpjqzpMKAvtU+bJmjVIeBZTWGJhz9aKmiCXZoi6faV8R1/+M5NcWNupkBBjlEArZx7V2ErBVwVj1dcHbrsFPpFd0P7eQ+lydvfIo/n6wqRQGA3JRp8JazIci6EPcmE2PPG3dY8V7DNQnUrhvBujAFJ9A2Gw==
+ b=m+nJlV1O/GmqKaNwW0iLkSfT4PftOUNePzFDh8oXwKty8scyfQ/HcXZv46Y8H6Fq3JImob5fEVUe6RdUckJxFW/zbtr+VRLRuF1fr4ypndsgOe8bmXKnhYjaZytFuSgOHP5boJKvEYT8/XW3ygQSr2QDf2S+81cjo21MNjGctDQFtWknvK7nLK1fl//uLiQw5ToayFvV4TEMhHYDVe2RagMQzUAyAUn6myErCIUGyElEEqUdXR7rs1KlzNHqp8mBiz+RNZSm1Dbi+7Bn3WntKJUhtpXa+s/Zd/CE5PxdVodSNwerxkqHCVVB9YavxlO2ISbCJcivDFzmN+yxuR2NCw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TwidUOz2pltPPaTWAIimDN6ZSZzyX11vTAUJeKqkKDQ=;
- b=kOaWFR9TF8F3Lac3rXBx4D5h/EHAQPsejWRXYoiNteOgQTV3vD694+4OZnhElGqmNjXIXBuR+6R76Rq5odSTncJyJr6F2bwZjtz3hyrK47y0eDQtHH8mrG8pm9SeShre/Zh01PWhrJIvk2kbEJfdypyWow2VtGLP5PL3gs+vpGDHyluR9P0rI+gBYNzIohGpGfEaLvCud1npOEDPWE51HIrqENdImvMqhO1CdSkNsiI5U3ggTfJrudFc45So+0lm2hCFw3dnEEcwiVufB0BXrB4KilQURnS65bnxq4Kz72Nczz5mZvSLelWpD+qRKM1C2VTHu1aeNG504OYpnMZhcg==
+ bh=tcrqmIymWFs//nBYk5ARltpQrpV7hH1JHQBjr5uPa9o=;
+ b=SCKDgV83+MGPAm7cVlqPfmD6HmJJXvHdTqWZGmk5Drkl285eoOOc7KTKWOczC98qzKgKdSydBwLOjKBMdgSLytYbGnXYho60dQ+rAGQLVJj2S1rl8DwIbpW6VOojI4Z7hETVEL3RXr3O+6y8ypgBFZyBWdj+FFWgDeO818v2ZwemWaPjLg0qIqJj6xyQJRay1dVpaqplxTuEgVMkrp5/v1IfS7d/0Bp0YWAIWctRcHBLRxLHqKKg27+K/cRu1CmIzkCla4HvlRYxjjAiWcHcOmx6znxSXwRUCpUTbccksa59x0I+8oWROxpOYjSkSXa6L261zwAR7mTd0eTem6xnOA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
  dkim=pass header.d=mellanox.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TwidUOz2pltPPaTWAIimDN6ZSZzyX11vTAUJeKqkKDQ=;
- b=otlfnujf4Ub1Wky7JvOWRvuGf97cYkfYMc6vnO99zSs9cRwiWbOvzB5WBt2Kf7m1Cg75jDPpoe2yXKnkP0CEuF9AQOgc7lSYVKySisB4u9PthXUKjEC8I+ET84ldmeYBF0ZAWkrCye0bpMSpI9mWOQWi3cWqlGJuecfVZ00LHh4=
+ bh=tcrqmIymWFs//nBYk5ARltpQrpV7hH1JHQBjr5uPa9o=;
+ b=LzfGfqS+YvOlM+86DtWAXYVuIhDJI0+fvA6o9I4nQzThlgUagtFEf8siWuVI8rlhy/lThLy3lTNSbNd5m5R6/w8njrenNLYtAYbdMlLQlryvpASsl6NI1AM+nrmkVfttAAvT/DojV03klGH02PSQqSM2nrmVcSu5v5i5Pw5+Jms=
 Authentication-Results: mellanox.com; dkim=none (message not signed)
  header.d=none;mellanox.com; dmarc=none action=none header.from=mellanox.com;
-Received: from AM6PR05MB6408.eurprd05.prod.outlook.com (2603:10a6:20b:b8::23)
- by AM6PR05MB6470.eurprd05.prod.outlook.com (2603:10a6:20b:b7::23) with
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
+ by AM0PR0502MB4051.eurprd05.prod.outlook.com (2603:10a6:208:2::33) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3261.17; Wed, 5 Aug
- 2020 13:16:51 +0000
-Received: from AM6PR05MB6408.eurprd05.prod.outlook.com
- ([fe80::15f4:b130:d907:ce72]) by AM6PR05MB6408.eurprd05.prod.outlook.com
- ([fe80::15f4:b130:d907:ce72%6]) with mapi id 15.20.3239.022; Wed, 5 Aug 2020
- 13:16:51 +0000
-Date:   Wed, 5 Aug 2020 16:16:44 +0300
-From:   Leon Romanovsky <leonro@mellanox.com>
-To:     Max Gurtovoy <maxg@mellanox.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.18; Wed, 5 Aug
+ 2020 15:14:20 +0000
+Received: from AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::95b6:b863:de2a:c8e0]) by AM0PR05MB5810.eurprd05.prod.outlook.com
+ ([fe80::95b6:b863:de2a:c8e0%7]) with mapi id 15.20.3261.017; Wed, 5 Aug 2020
+ 15:14:20 +0000
+Subject: Re: [PATCH 1/2] IB/isert: use unlikely macro in the fast path
+To:     Leon Romanovsky <leonro@mellanox.com>
 Cc:     sagi@grimberg.me, linux-rdma@vger.kernel.org, jgg@nvidia.com,
         jgg@mellanox.com, dledford@redhat.com, oren@mellanox.com
-Subject: Re: [PATCH 1/2] IB/isert: use unlikely macro in the fast path
-Message-ID: <20200805131644.GJ4432@unreal>
 References: <20200805121231.166162-1-maxg@mellanox.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200805121231.166162-1-maxg@mellanox.com>
-X-ClientProxiedBy: AM4P190CA0024.EURP190.PROD.OUTLOOK.COM
- (2603:10a6:200:56::34) To AM6PR05MB6408.eurprd05.prod.outlook.com
- (2603:10a6:20b:b8::23)
+ <20200805131644.GJ4432@unreal>
+From:   Max Gurtovoy <maxg@mellanox.com>
+Message-ID: <3777c9d9-1d36-f8e0-624f-aa633fd517ab@mellanox.com>
+Date:   Wed, 5 Aug 2020 18:14:16 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.11.0
+In-Reply-To: <20200805131644.GJ4432@unreal>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: AM0PR03CA0059.eurprd03.prod.outlook.com (2603:10a6:208::36)
+ To AM0PR05MB5810.eurprd05.prod.outlook.com (2603:10a6:208:11f::18)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from localhost (213.57.247.131) by AM4P190CA0024.EURP190.PROD.OUTLOOK.COM (2603:10a6:200:56::34) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3261.15 via Frontend Transport; Wed, 5 Aug 2020 13:16:50 +0000
-X-Originating-IP: [213.57.247.131]
+Received: from [10.0.0.3] (89.138.179.55) by AM0PR03CA0059.eurprd03.prod.outlook.com (2603:10a6:208::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3239.17 via Frontend Transport; Wed, 5 Aug 2020 15:14:18 +0000
+X-Originating-IP: [89.138.179.55]
 X-MS-PublicTrafficType: Email
 X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 4087375b-f6fc-4723-d7bd-08d83941d0a7
-X-MS-TrafficTypeDiagnostic: AM6PR05MB6470:
+X-MS-Office365-Filtering-Correlation-Id: 3959e0a0-c5e7-4bba-5482-08d839523a11
+X-MS-TrafficTypeDiagnostic: AM0PR0502MB4051:
 X-LD-Processed: a652971c-7d2e-4d9b-a6a4-d149256f461b,ExtAddr
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <AM6PR05MB64702A68FA6AA2A811DEDEEBB04B0@AM6PR05MB6470.eurprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-Microsoft-Antispam-PRVS: <AM0PR0502MB405132F2D01C448FE5F6463FB64B0@AM0PR0502MB4051.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: muIXJs4r5SgZNB3S5BcwyxegX3wnrlTvnoQ627Rb+Qig3jxp7jVkgAew5RTERswcEb4FIwhZR4AiP4EXxiXIcBV7KhSaGqCeM2sZ31fPNUh4mpGvGaQ9sk0pbMYBMc8uO/mZefrlZ5FCfedxzudrdLtjaot3Hhr/QLHzDmN1N8mY2m73xew3YdnhCWaqzbmnuSTKWmztTPAFrbMrS0ztV3ZCatYqa78zu0mKjLMlb3cn9k/+RflUdMiCK8aWrJXucChjzZL26R3B+A3pajZbiCleCdUDgi3Xqp7wfQL9iOFkbRiEiQyKKKd1mjYbqrleMGRNnOfSkwLVLM8sTKNHIw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR05MB6408.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(7916004)(4636009)(39860400002)(396003)(136003)(366004)(346002)(376002)(8936002)(6862004)(478600001)(956004)(33656002)(316002)(2906002)(52116002)(4326008)(83380400001)(66556008)(107886003)(186003)(66476007)(4744005)(9686003)(66946007)(6486002)(8676002)(6666004)(1076003)(16526019)(86362001)(5660300002)(33716001)(6636002)(26005)(6496006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: 4+od+T4U96odSsek9gtMemqHISV6gfH+Lc02Rgmvl2YNm6oie3XqOeMjNAoC4oFZg0D0qayY5w53o0XDUUBJKgn5f8AGwHvaLB6Dz49HQhLkmO/ozyJWNKQ+/GSypM2wE3H0dKak/pmL//EOXE92qtRmWluLvys+YedKIAjSQlWrzK1SdYlGNieLvQRkF9rijsYb+CDny9rj9fFLWEk7Hj7WLzdgTD27MbmwbUwn27HIY63JTconUENaabrSyZAGDG7SBwmFj9UFmLGKmBHZO5kc9NWMWyxDeFDUV45D8LdI6lkalx8EaonCririfBoQOqEUY+bVuKCtgZhUmm89Wx/CEAydC3FRhGG1lpJ2UerA4M3sXdYXUKovzbh8tpFg4uKikINxXKoGlFm52mIjqj/uJB5Qz4da7GUMF5Vt6Jho/LJOaWEjR64CSR5BSAH3VIKgtB1BCnOFX/bL6FXvQ0IZGBaMOuvGMNGvihwXG03yMHpSDkNmog2ehA5m3IWHMss68kgXpH7cqjaK2TcGsDg7Sfn3eKZBg7yesCTOYd9OvaHouiwWf7quj6W1zIjtfCoBvhpuCEgpt6vAXTx5kQfS1qTSwKciq7ze35HRBwRA+jvgIE8MFVnjS1ed+GebQPhp5zGIaJNFjNkowljq/Q==
+X-Microsoft-Antispam-Message-Info: 5bWwg0l9QgxA74VIM1HNGNrDe2lzP2sl4xrKD/E3LrZEcTbiMuoINEPaAz9uH0DeQu8bRbxDLSXFoiOXlCDDNvn+HLPcuNlxHW5gbkl0P/2AwENaIrqBZKPw4JwU1/k+eYg6DsWXfIHDpzH91SDzzo6EyptuRaxhH3p8kPKoT18yXzI7GxENqemPVnViGYZZowXZFO0L/bNG42BmgimIVuTZlnd68ZY/fMKITAJndulJmfIyjtDt2kwFBGY9PUWtA+xBDqTOLxRgZIcMKiJ0Cmqada5XlYFdEdsJZMrK2T59NOjnuS8BS0kwHwcKVIw/u4l1B+G2AFiniah+3Alfm1Pc/OLJ9zAIxHz+GocSgU3MXwT7yEm+YXMmyTyUOwvN
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB5810.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(376002)(39860400002)(346002)(366004)(136003)(396003)(5660300002)(53546011)(37006003)(186003)(83380400001)(26005)(86362001)(66946007)(36756003)(6636002)(6486002)(52116002)(16526019)(31696002)(478600001)(66556008)(8936002)(956004)(2616005)(316002)(8676002)(66476007)(2906002)(6862004)(107886003)(4326008)(16576012)(31686004)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: 8jdfNDFRCDjDI3K0VuE6Y93L+QAD4RZLXgeWLk/S7qH1mnB6LF6RBP0kQm6YryR/QzUW6U9joMksdHB4fFcKKNzElyHy9wNBKfDMiT4vHlQ9FMaW/0VDKV3YO4Hn2+NahvLBAl0MeGtUPYtFLDXEcEQFmQVTpp/r3HiDh55Lc7BKpNj9Jir61VKQCE9Ybwfqp6UQcgOCwlowxaOFnU31eWtBGeuaQ8FmWtuB5oo/YRh5Ehg/I0YHGU1RolnuNsIPxzgBvHl2m7LFDgdJhJ3JG0m8ENX3w/ukuByZWm6JPb+ZKtt/EDxyq5LqDTIrP+YO6kk4qZ8aH08yzVuRBOB+G4hXxN4rdtRy129v1F1P7RN1r90PtJ8TK3c64Hi6SjAPxeAS3XjHBktGIZZPh44RS8vCt+oz/xG0Dbbt4Un2/KpGAKD9mThUHqpw//ItGdluv2TjV8lqMIWMIzUW6ahlPgs786LquUjz+Hn1wWtdFvlFeVToJhgPenUJxhdkT6lFnl9SCCsCcurF9MncEG+jsIvJYvPIIu4dikbBWWhF53XgSWUPUk/iKHVu2v91zMSz615EO4tUfVvUKm1Y+bZ22G5Awatq3Vqc7+RF+L11nsUiB5Qye+p977pksADHToh0lLlrU9y+SQvXJaszTDXBRQ==
 X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4087375b-f6fc-4723-d7bd-08d83941d0a7
-X-MS-Exchange-CrossTenant-AuthSource: AM6PR05MB6408.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3959e0a0-c5e7-4bba-5482-08d839523a11
+X-MS-Exchange-CrossTenant-AuthSource: AM0PR05MB5810.eurprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2020 13:16:51.2551
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Aug 2020 15:14:19.9299
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: XU+hUnt92T0m13zXEmDk9m3NUDU7SdTGpYsh/pQgCigXvIy6Sw3CqQZna115dYMMszuzcihqD6Bpl4ZEiioFYQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR05MB6470
+X-MS-Exchange-CrossTenant-UserPrincipalName: HlKm+OHuhURK91FQuO4IMVHOM/YPooRBLEf4iY5Egk8Wez6gjih+8zTY174wwhRytkQvlv4k+vt9dIa9Eb7EpA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR0502MB4051
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Aug 05, 2020 at 03:12:30PM +0300, Max Gurtovoy wrote:
-> Add performance optimization that might slightly improve small IO sizes
-> benchmarks.
+
+On 8/5/2020 4:16 PM, Leon Romanovsky wrote:
+> On Wed, Aug 05, 2020 at 03:12:30PM +0300, Max Gurtovoy wrote:
+>> Add performance optimization that might slightly improve small IO sizes
+>> benchmarks.
+>>
+>> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+>> ---
+>>   drivers/infiniband/ulp/isert/ib_isert.c | 4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+> I find the expectation from "unlikely/likely" keywords to be overrated.
 >
-> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-> ---
->  drivers/infiniband/ulp/isert/ib_isert.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> When we introduced dissagregate post send verbs in rdma-core, we
+> benchmarked likely/unlikely and didn't find any significant difference
+> for code with and without such keywords.
+>
+> Thanks
 
-I find the expectation from "unlikely/likely" keywords to be overrated.
+Leon,
 
-When we introduced dissagregate post send verbs in rdma-core, we
-benchmarked likely/unlikely and didn't find any significant difference
-for code with and without such keywords.
+We are using these small optimizations in all our ULPs and we saw 
+benefit in large scale and high loads (we did the same in NVMf/RDMA).
 
-Thanks
+These kind of optimizations might not be seen immediately but are 
+accumulated.
+
+I don't know why do you compare user-space benchmarks to storage drivers.
+
+Can you please review the code ?
+
+Sagi,
+
+Can you send your comments as well ?
+
+
