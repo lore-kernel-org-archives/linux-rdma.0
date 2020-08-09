@@ -5,67 +5,67 @@ X-Spam-Level:
 X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DECBC433DF
-	for <linux-rdma@archiver.kernel.org>; Sun,  9 Aug 2020 07:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADCC0C433DF
+	for <linux-rdma@archiver.kernel.org>; Sun,  9 Aug 2020 07:45:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DCCA2070B
-	for <linux-rdma@archiver.kernel.org>; Sun,  9 Aug 2020 07:33:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83A8D206A2
+	for <linux-rdma@archiver.kernel.org>; Sun,  9 Aug 2020 07:45:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g3xjq6WD"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xd0h+wS8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726207AbgHIHdr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 9 Aug 2020 03:33:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54862 "EHLO
+        id S1726361AbgHIHpb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 9 Aug 2020 03:45:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726097AbgHIHdr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 9 Aug 2020 03:33:47 -0400
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28588C061756;
-        Sun,  9 Aug 2020 00:33:47 -0700 (PDT)
-Received: by mail-pf1-x441.google.com with SMTP id u20so3497474pfn.0;
-        Sun, 09 Aug 2020 00:33:47 -0700 (PDT)
+        with ESMTP id S1725710AbgHIHpb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 9 Aug 2020 03:45:31 -0400
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7C73C061756;
+        Sun,  9 Aug 2020 00:45:30 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id x25so134116pff.4;
+        Sun, 09 Aug 2020 00:45:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=WZOtmEvxCn7v3WdQf7nTtkGqxqBfHwfePf0SShmSnEs=;
-        b=g3xjq6WDE2JHOHG8sn+Dug1jZhh1k+4Vl8O7mn4+vVnAxIbENpH+xsHH4kcKfjD726
-         dCt/8BVyjrjNbDVyrue4B3m91i742Scq+ZT77Ey5pqerxKpyEzfEx8YqAp8VUZ9sF5Fr
-         xOcRe8ZP2d+y2VqhUJCOn+lb1lBuzY84Ku2szgOWPekTE3Rn0KfqNYMpdmJfn7Ivl8lo
-         uywKHLjnoBeEZHSlMcOGOslm4EPRsC12i6pUQSqkBIcbFzrPTosaGgmTZ5DEm/R9T6ZA
-         /11lfVOLWXMAlSjqZYwdukKjCteraEYHZ9dMCuN6Lqt+oepGxoE6WbNkHbx1JWFZde9S
-         EgMA==
+        bh=99KLVxoGYktpAH84WHol6L1wVNytU8WR1EzojQK+pz8=;
+        b=Xd0h+wS84C7743+jiJu6F/MDNB44b8vDRcmzyzHrSa3zikoSElfyGdicdY/QObsqVq
+         JXB3M8Yo7WFdtPZzOvbbAPiW5P47PVYST0u1HLpazfzVyL9O8q2hjh/VRuujCbqydfsU
+         LwQIEE5FsiYwwi//yXXqCbdDfYpPo8HMj0pYfpZ628WM0LffgW8laRFCc1jW1hP4tAoX
+         dGDOgrmHTwdDyz68fEkWsgXGW43z4CwpsndwvT2rJOSuk9dq73X9Zn38oHizhpuPJ98p
+         pZQfkL+7IGukWJc1kkGw89dwl6veFPYUp8Z3pYa5im+skuH2IlnyGj7xD5y62BEVhYlw
+         DoOA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=WZOtmEvxCn7v3WdQf7nTtkGqxqBfHwfePf0SShmSnEs=;
-        b=TfdC8s9K1gI5aPcZXHgMK1qbDDfy8768uLw/Ww2zKYe67mtob/3nb/uCc+ytjS68gq
-         Vw5EEKRMQXxhYiclDgzyqaILfcSyegLAD0Z6WDuIBPpXfs6Te4TMYZaMH2CaTAg3UGrk
-         h32wIZCvRdyumU82fmIC6ZbJqP5s0PhI2WlDtnRmXczDpvj3z1qBRQ+2r1M1UjZJmNzp
-         xbwT/c7Ggk8SllnNuSL9/kOu61qQ+soVWRUIRNC3P/Ns04gk1sdTkyl3W1Z7yWs4+KNy
-         FN3XZ6DkszItBMkmn8i13XWxt7AxhWnHo1y+uWNjLmehH206FrtnYOE8UlAtxJKhou6D
-         3Yug==
-X-Gm-Message-State: AOAM532jiqR4oHI7hJPosY6ozJhPQky+lESChvaMdrnhUFkSJGmKgpMS
-        VKAapT8uASbOCLe0E/5md9w=
-X-Google-Smtp-Source: ABdhPJzT9snL3ubyfewamf+zN8YRVQffeAGJ3brjFc/lUodTbxdZO0mAzv29Ik947iqOHeadlh3ddA==
-X-Received: by 2002:a62:7794:: with SMTP id s142mr19260524pfc.99.1596958426667;
-        Sun, 09 Aug 2020 00:33:46 -0700 (PDT)
+        bh=99KLVxoGYktpAH84WHol6L1wVNytU8WR1EzojQK+pz8=;
+        b=OOMQx6bRQIMYXcGA7wVw47gmIBZkjXLUabnTIjDWcRelR4cvwrqt1OA7GP5EAR+9Gs
+         yLyn2m65khlPIrglT4nK8GG2Be0fqQrFTiVl0GdqnsSoj4eZdwo329FRugRY3KnUC5QS
+         8gl+AqpLOJfKnSblmKRHETx9Fhazrj6UbbEQDepZBeVXdYXnhwOKbVgLl0tK8F062biP
+         7rjzwFxexfKgHcQ+/6pVmPKTGr41/7yF+oETeSqXxFdNCCiZTV2g2QnTG9K8aIUoX3qv
+         dM85ZZ/7mNbr+BH6eJhE6WWzhLgLTJOqfp/I6KcYUyP/vVRHKBZxmnPUgi3gzXCIVHlg
+         aMPA==
+X-Gm-Message-State: AOAM532JLOv+u+46RU5Z8POiz9jGeToNOgbr5AA+iAePpegpOLA3s3et
+        I7IKdDJZR17dQBYxyHgrheM=
+X-Google-Smtp-Source: ABdhPJzsoCfxEnjao2KRuJ3zQCm54AGcQIDsaAojukQtP1HlpPxerMu0nntSsKFFpS0BGPEcKWSK3A==
+X-Received: by 2002:a63:5b65:: with SMTP id l37mr17172064pgm.72.1596959130108;
+        Sun, 09 Aug 2020 00:45:30 -0700 (PDT)
 Received: from blackclown ([103.88.82.9])
-        by smtp.gmail.com with ESMTPSA id p20sm15773023pjz.49.2020.08.09.00.33.43
+        by smtp.gmail.com with ESMTPSA id b18sm5559113pgj.12.2020.08.09.00.45.26
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Sun, 09 Aug 2020 00:33:46 -0700 (PDT)
-Date:   Sun, 9 Aug 2020 13:03:33 +0530
+        Sun, 09 Aug 2020 00:45:29 -0700 (PDT)
+Date:   Sun, 9 Aug 2020 13:15:17 +0530
 From:   Suraj Upadhyay <usuraj35@gmail.com>
-To:     dledford@redhat.com, jgg@ziepe.ca, aditr@vmware.com,
-        pv-drivers@vmware.com
+To:     dledford@redhat.com, jgg@ziepe.ca, galpress@amazon.com,
+        sleybo@amazon.com
 Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         kernel-janitors@vger.kernel.org
-Subject: [PATCH 4/4] RDMA/pvrdma: Remove pci-dma-compat wrapper APIs
-Message-ID: <57d345ca9a34f2b75b8b3a46bf473772194a0681.1596957073.git.usuraj35@gmail.com>
+Subject: [PATCH 5/4] RDMA/efa : Remove pci-dma-compat wrapper APIs
+Message-ID: <20200809074517.GA4419@blackclown>
 References: <cover.1596957073.git.usuraj35@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -168,32 +168,29 @@ and compile-tested.
 
 Signed-off-by: Suraj Upadhyay <usuraj35@gmail.com>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/efa/efa_main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 780fd2dfc07e..3c7802f7e298 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -839,15 +839,15 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
- 	}
- 
- 	/* Enable 64-Bit DMA */
--	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) == 0) {
--		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-+	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) == 0) {
-+		ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
- 		if (ret != 0) {
- 			dev_err(&pdev->dev,
- 				"pci_set_consistent_dma_mask failed\n");
- 			goto err_free_resource;
- 		}
- 	} else {
--		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-+		ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
- 		if (ret != 0) {
- 			dev_err(&pdev->dev,
- 				"pci_set_dma_mask failed\n");
+diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
+index 92d701146320..bcc931ad71b0 100644
+--- a/drivers/infiniband/hw/efa/efa_main.c
++++ b/drivers/infiniband/hw/efa/efa_main.c
+@@ -405,13 +405,13 @@ static int efa_device_init(struct efa_com_dev *edev, struct pci_dev *pdev)
+                return err;
+        }
+
+-       err = pci_set_dma_mask(pdev, DMA_BIT_MASK(dma_width));
++       err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(dma_width));
+        if (err) {
+                dev_err(&pdev->dev, "pci_set_dma_mask failed %d\n", err);
+                return err;
+        }
+
+-       err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(dma_width));
++       err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(dma_width));
+        if (err) {
+                dev_err(&pdev->dev,
+                        "err_pci_set_consistent_dma_mask failed %d\n",
 -- 
 2.17.1
 
