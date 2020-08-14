@@ -1,189 +1,150 @@
-Return-Path: <SRS0=HnU4=BX=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=1AYo=BY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A4DBC433E1
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Aug 2020 16:13:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B453CC433DF
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Aug 2020 15:13:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20B012078D
-	for <linux-rdma@archiver.kernel.org>; Thu, 13 Aug 2020 16:13:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89CFA20768
+	for <linux-rdma@archiver.kernel.org>; Fri, 14 Aug 2020 15:13:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="va3kPVrA"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="R07sK+1f"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726597AbgHMQNr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 Aug 2020 12:13:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58512 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726167AbgHMQNp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 13 Aug 2020 12:13:45 -0400
-Received: from mail-pl1-x641.google.com (mail-pl1-x641.google.com [IPv6:2607:f8b0:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3EECC061757
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2020 09:13:45 -0700 (PDT)
-Received: by mail-pl1-x641.google.com with SMTP id f5so2825054plr.9
-        for <linux-rdma@vger.kernel.org>; Thu, 13 Aug 2020 09:13:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=cs8gh9ya9FYSHDVRwCkzYIU3yDO5ozRzK+mhfLwio9s=;
-        b=va3kPVrAuHnChVIJIvRSX/yRKdxlHMlortljgRAMGyj3VgNe73uOOMPVILHByZvtvZ
-         4zc49uBrk1OXxvRrumHuFKLViNzjs5KU6rNXCccE9MkQJRIJR1P0j/OpRl+QRCEV5f19
-         sjy3GXciZm3sIG3q8MEmb2i/opg7/3baurNulYRf6oIMHn5S62gnGpBnM8Snp32Z7DGS
-         eD/EzJ4xcx3ZVfvg1cOnM8VwBJZk2j1miA0bW3q/o3l4tYVW76ArM86/gvscKg74GHM0
-         BPLLMqM/RDeoYX63KvAUojRcxFM7kGcIppwPCRWqEFf6lB7BDN8R6ivhVsKyGuqZLWMj
-         3zlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=cs8gh9ya9FYSHDVRwCkzYIU3yDO5ozRzK+mhfLwio9s=;
-        b=ahq1TaAX2AOqBrfZJdYa2sYGCXnB1TG1VAU3oclqlEiYMCMMhN0TuuCjpjBILG6/QB
-         UaNAKqEv2iwuR2sNCRlNDFPY3YOXJwYjVP7G6Iuj/4eD/mnO53qUAa4fOPAwiBhnkd/X
-         x+prISBuv2VLijJtbHHuh/OS4Cs1ZxqIwbNeqyfiPpv+q9Dex3BFiYJof/uU/OO3dZkP
-         icGop0SsEwHNGTgOEZDyT6kYEAA1PpoQNNcu4cvy8h/ac2XjI7cKjuGQCCsiWIteVK5S
-         NByWM7cHuUCRHkWM019n7FkA9ccRQ16B2a8m8uimxL1q/TQ3tvu7vwpeawZwXmkLTdoV
-         WclQ==
-X-Gm-Message-State: AOAM532qq74klKqbtntEG4cHkYlCETg3X0O9vi3eqU6iamGqnRwP2s1J
-        Knh4bsnpf8xSVkaDQGrqYzM=
-X-Google-Smtp-Source: ABdhPJw+lWXkhfVKb/3yxGGkHEVRsOUxoljBMGhQa5UMjxi58ZOvmzzaziWlzLR1N/Kb/fCi3ADk+Q==
-X-Received: by 2002:a17:902:714c:: with SMTP id u12mr4632385plm.290.1597335225289;
-        Thu, 13 Aug 2020 09:13:45 -0700 (PDT)
-Received: from [10.75.201.17] ([118.201.220.138])
-        by smtp.gmail.com with ESMTPSA id 196sm6657701pfc.178.2020.08.13.09.13.42
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 13 Aug 2020 09:13:44 -0700 (PDT)
-Subject: Re: [PATCH] RDMA/rxe: prevent rxe creation on top of vlan interface
-To:     mohammad <goody698@gmail.com>, linux-rdma@vger.kernel.org
-Cc:     dledford@redhat.com, jgg@ziepe.ca, kamalheib1@gmail.com,
-        leon@kernel.org
-References: <20200811150415.3693-1-goody698@gmail.com>
- <72e827bd-2934-8947-15e5-3692ab7409ae@gmail.com>
- <bf68fa99-3300-0e63-9b72-3bf143b74a3d@gmail.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Message-ID: <0fe502ec-ca24-78b2-85a8-557c5b3ac9ae@gmail.com>
-Date:   Fri, 14 Aug 2020 00:13:41 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.1.1
+        id S1726444AbgHNPNh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 14 Aug 2020 11:13:37 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:19329 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726297AbgHNPNg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Aug 2020 11:13:36 -0400
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f36a9b30000>; Fri, 14 Aug 2020 08:11:47 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Fri, 14 Aug 2020 08:13:36 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate102.nvidia.com on Fri, 14 Aug 2020 08:13:36 -0700
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 14 Aug
+ 2020 15:13:36 +0000
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.173)
+ by HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 14 Aug 2020 15:13:35 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Kvr3rLphr4Z2dDUo47sazdwQE8c/yAGwvgtXSJAH42XD1+BQDfgOpxt3BRf9oc0ifvVlA16NKG2/CqYuz44pqwzsWxdFDlM9bDiaxcIs0GVcmiGddxnK9LswUEBMcBD3mf+RskA08yWH13E77pNFon5Sgn9o/bCmxqzj9TcM47DtFmjbMBpkeTXPE6IlMV1Jh3KpKJYpP4rSZWE0FelNVtK5+vd7O65jnl9A820txlJrozQM/2RocXfkjnQdbvnBIdwrCbs1yUBffgbdy4UBTiigEczz56WjDwxOFxOoGUvHCyrmU59D1Wlc4xcuo/Ukc1u8JjqRIP6oaNFvKvrl9Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZXgiqcw5aotrx/A03NJLGEHTifggk4Cx4X30QIsej34=;
+ b=haorxKZgJuYdCbD+H4iHPTi5dh2DoPeCQfdPRbFA9oNw4cFHvWTnzJxRj81V7J15wGhkw97l99Aq9nBvyFAdhEzaErXqHsh0xafIl1+zmcvf/AER2VC4tiIexaOeK5o3Z25mkiqJC4qSbMr9fpHrNS3nQtcGd5ZVlXdJ3s+Yzn3v/hdjHP06I7VOtTXe7wgmPmhfNFQN/r20mVTyeG7WoaiIaLPo+ARqnAOBItAf2JOWJTm0EquNq1AHKLbfoPtq96jQ3p0rB5DQ3oIgCqegfHBDtWSmLNbROYNBNWoDezns+gwj3BtVL9DjMlus2FuNjwJkF0KyBK/KeJigAFRlGA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM5PR12MB2487.namprd12.prod.outlook.com (2603:10b6:4:af::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3283.16; Fri, 14 Aug
+ 2020 15:13:34 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3283.022; Fri, 14 Aug 2020
+ 15:13:34 +0000
+Date:   Fri, 14 Aug 2020 12:13:32 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Bob Pearson <rpearsonhpe@gmail.com>, <linux-rdma@vger.kernel.org>,
+        Bob Pearson <rpearson@hpe.com>
+Subject: Re: [PATCH 1/1] Address an issue with hardened user copy
+Message-ID: <20200814151332.GM1152540@nvidia.com>
+References: <20200811191457.6309-1-rpearson@hpe.com>
+ <20200812055255.GI634816@unreal>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20200812055255.GI634816@unreal>
+X-ClientProxiedBy: MN2PR13CA0007.namprd13.prod.outlook.com
+ (2603:10b6:208:160::20) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-In-Reply-To: <bf68fa99-3300-0e63-9b72-3bf143b74a3d@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR13CA0007.namprd13.prod.outlook.com (2603:10b6:208:160::20) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3305.10 via Frontend Transport; Fri, 14 Aug 2020 15:13:33 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1k6bOe-006ieM-O8; Fri, 14 Aug 2020 12:13:32 -0300
+X-Originating-IP: [156.34.48.30]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: a88ac3a4-996f-444f-4cee-08d840649c7c
+X-MS-TrafficTypeDiagnostic: DM5PR12MB2487:
+X-Microsoft-Antispam-PRVS: <DM5PR12MB248760326D217B85302107CCC2400@DM5PR12MB2487.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:6108;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 158Y4CvuhPHysVEBxp6d/SKYRtIoktlKAgzvXeHoTsTM26J9zBmQvV6m6rT2TgjGsIENIaD1whSuL8iixhwvNeETBHApgvF/PqWNzBHkSmF7+KG1nnzAjsAeSowpPwDTiXbMhiUCPckJDHqZ2mxACSEY76rIC4Hf785Q8c2w2Rpyp/D0NMaWf2egJlw3ucX2qfSphCzzF7nAGZXkpXcu3uCp/fVGlFMj3V2T2yeryGRBRq/T6dYC8JpiCsI+PE10Dwpnf4XMYOnDonfuLuNp6GMqTYQ+yPCOfAxRSlFUw/dsNcGQPepOG8dwrtjuTWU/Joaosr0ffp9Qe153BC1lxjfOQDAyWdSU5MLqxFvwh5yW40hTlgKlQHnIJ1dhWRMA
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(136003)(39860400002)(376002)(346002)(366004)(83380400001)(33656002)(316002)(4326008)(478600001)(2616005)(426003)(36756003)(86362001)(54906003)(6916009)(4744005)(5660300002)(9746002)(8676002)(66946007)(2906002)(66556008)(9786002)(66476007)(8936002)(1076003)(186003)(26005)(21314003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: 7sazem3aThBB2ujfRFjZRAgNZ5hut4vBWIwNO9/t5wqWdgbYm35exunLzPrgwtk8QgD8xsb4Sg+1xhY+XaX5lsjuwGjihNGYi4r/IUsQiZJDFDYgur0fVc/V/ZC5y3y4tM8VgXm+b+TmlGATdb0hUVeP1PzOwPFVO0wUKZQOxi0VX6UHH0vCz16inunJK/wpwEwt+D9PLiugwOQaMLJAKKZzYX2l1jKEMMAZVm2/mqFQ4RD9Jag/IN/3klMDO7R9UjF87nTXVB7VbY5p9qPxTA79ySkIe7RwW16NatRdOPYh/tgixhVaxFvna5Nj0/v4C2nxpbQMBzJGNSORNxq7sIp6x/lvvr9/mWQTZlseG5v6s0IhVqZo0la6J82rpSy50CDktERS+wBj/DyuVRvwdUpQnccsoq7xI25h+bnK4RkdzM0zqEG34QuaGM4Qdd342VOIcnxqZSSW76tH/MVQeB8nDrPb/SNeyW57pKEJc0+Jrr5wzMBQoHu2X68di6ojytVK61NYC7S+VkFvs+g5HSE2cuUBXm9jlEluVcIlhhuSUEe93/GakGRx5gX0QBUUYCuurFFQ1tnArDyvx0SS+qXiM4XOQR6xKCKxKKXU6roDnnE+eBGEgysI6uUH2pX6IS+kJU8ICnp1j5DV6s6hIg==
+X-MS-Exchange-CrossTenant-Network-Message-Id: a88ac3a4-996f-444f-4cee-08d840649c7c
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Aug 2020 15:13:34.2072
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: a9mcSW1De4kjhLefoyJyVvVVyZsWRjxpx9QBcDvbcbefDKlmg79ZXCgZGk3y1uSH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB2487
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1597417907; bh=ZXgiqcw5aotrx/A03NJLGEHTifggk4Cx4X30QIsej34=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
+         Subject:Message-ID:References:Content-Type:Content-Disposition:
+         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
+         X-MS-Oob-TLC-OOBClassifiers:X-MS-Exchange-SenderADCheck:
+         X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+         X-Forefront-Antispam-Report:X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=R07sK+1fB2zyzL3AaDaMvEzbEwYbOx3MOluGT42YrsyBfoG8R69sPgxmnT0c0FTkO
+         9lEnXyTZo9denjnb4OOKR3UIvDUv07cYZ+/A9GFCvJ4gLiKpKb1IsGaCKtJUAU30hh
+         70t6JMvUo5XChiD5uDFl38a4btxaiQQDTy6Ul21/flcTCnYn+rDrMPMn6tHJEYz3d+
+         rE8GxjKddxkMOPxKxhjHD+LAJArIRhBAKWmu/AD9tee7Y5NBWKTlgx7PStgCoisPgV
+         N3rSaE8sv0dujcV5ZMX4SR2b4JWjQ3dDKw0U/aUSrqDn+e498bDC0MvsuM3PtY3JVV
+         FCEEiGrp0QbJg==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 8/13/2020 5:52 PM, mohammad wrote:
->
-> On 8/13/20 6:16 AM, Zhu Yanjun wrote:
->> On 8/11/2020 11:04 PM, Mohammad Heib wrote:
->>> Creating rxe device on top of vlan interface will create a 
->>> non-functional device
->>> that has an empty gids table and can't be used for rdma cm 
->>> communication.
->>
->> Can we fix this empty gids table?
->
-> I'm not sure if that can be done in the rxe only, since the IP's of 
-> the netdev enrolls into
->
-> the gids table by the ibcore in the device registration 
-> stage(gid_table_setup_one) and that requires making changes in the 
-> ibcore.
->
->
-> we can enroll those IP's into the device gids table after the rxe 
-> device registration but still
->
-> we have to expose some ibcore functions (add_netdev_ips) and track the 
-> address change events of the
->
-> vlan interface and update the gids table accordingly to those IP's 
-> changes.
+On Wed, Aug 12, 2020 at 08:52:55AM +0300, Leon Romanovsky wrote:
+> On Tue, Aug 11, 2020 at 02:14:57PM -0500, Bob Pearson wrote:
+> > by copying to user space from the stack instead of slab cache.
+> > This affects the rdma_rxe driver causing a warning once per boot.
+> > The alternative is to ifigure out how to whitelist the xxx_qp struct
+> 
+> ifigure -> figure
+> 
+> > but this seems simple and clean.
+> 
+> 
+> We have multiple cases like this in the code, what is the error exactly?
+> And what is "hardened user copy"?
+> 
+> >
+> 
+> Signed-off-by is missing.
 
-Thanks a lot for your explanations.
+Can't take any patches without signed-off-by
 
-Not sure if a patch containing the above is better than just preventing 
-rxe creation on top of vlan interface.
-
-Zhu Yanjun
-
->
->>
->> So this gids table can be used for rdma cm communication.
->>
->> Zhu Yanjun
->>
->>>
->>> This is caused by the logic in 
->>> enum_all_gids_of_dev_cb()/is_eth_port_of_netdev(),
->>> which only considers networks connected to "upper devices" of the 
->>> configured
->>> network device, resulting in an empty set of gids for a vlan interface,
->>> and attempts to connect via this rdma device fail in 
->>> cm_init_av_for_response
->>> because no gids can be resolved.
->>>
->>> apparently, this behavior was implemented to fit the HW-RoCE devices 
->>> that create
->>> RoCE device per port, therefore RXE must behave the same like 
->>> HW-RoCE devices
->>> and create rxe device per real device only.
->>>
->>> In order to communicate via a vlan interface, the user must use the 
->>> gid index of
->>> the vlan address instead of creating rxe over vlan.
->>>
->>> Signed-off-by: Mohammad Heib <goody698@gmail.com>
->>> ---
->>>   drivers/infiniband/sw/rxe/rxe.c       | 6 ++++++
->>>   drivers/infiniband/sw/rxe/rxe_sysfs.c | 6 ++++++
->>>   2 files changed, 12 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/sw/rxe/rxe.c 
->>> b/drivers/infiniband/sw/rxe/rxe.c
->>> index 5642eefb4ba1..d2076aa7a732 100644
->>> --- a/drivers/infiniband/sw/rxe/rxe.c
->>> +++ b/drivers/infiniband/sw/rxe/rxe.c
->>> @@ -310,6 +310,12 @@ static int rxe_newlink(const char *ibdev_name, 
->>> struct net_device *ndev)
->>>       struct rxe_dev *exists;
->>>       int err = 0;
->>>   +    if (is_vlan_dev(ndev)) {
->>> +        pr_err("rxe creation allowed on top of a real device only\n");
->>> +        err = -EPERM;
->>> +        goto err;
->>> +    }
->>> +
->>>       exists = rxe_get_dev_from_net(ndev);
->>>       if (exists) {
->>>           ib_device_put(&exists->ib_dev);
->>> diff --git a/drivers/infiniband/sw/rxe/rxe_sysfs.c 
->>> b/drivers/infiniband/sw/rxe/rxe_sysfs.c
->>> index ccda5f5a3bc0..0a083c3d900a 100644
->>> --- a/drivers/infiniband/sw/rxe/rxe_sysfs.c
->>> +++ b/drivers/infiniband/sw/rxe/rxe_sysfs.c
->>> @@ -73,6 +73,12 @@ static int rxe_param_set_add(const char *val, 
->>> const struct kernel_param *kp)
->>>           return -EINVAL;
->>>       }
->>>   +    if (is_vlan_dev(ndev)) {
->>> +        pr_err("rxe creation allowed on top of a real device only\n");
->>> +        err = -EPERM;
->>> +        goto err;
->>> +    }
->>> +
->>>       exists = rxe_get_dev_from_net(ndev);
->>>       if (exists) {
->>>           ib_device_put(&exists->ib_dev);
->>
->>
-
+Jason
