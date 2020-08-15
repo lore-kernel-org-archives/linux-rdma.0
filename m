@@ -2,113 +2,337 @@ Return-Path: <SRS0=W1Yx=BZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,FSL_HELO_FAKE,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0806C433E1
-	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:54:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F6AC433E5
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:54:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 997672053B
-	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:54:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22450204FD
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:54:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernelim-com.20150623.gappssmtp.com header.i=@kernelim-com.20150623.gappssmtp.com header.b="MHKoo7DC"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tspgzCQj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729121AbgHOVyU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 15 Aug 2020 17:54:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45650 "EHLO
+        id S1729117AbgHOVyV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 15 Aug 2020 17:54:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729117AbgHOVwg (ORCPT
+        with ESMTP id S1729111AbgHOVwg (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 15 Aug 2020 17:52:36 -0400
-Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com [IPv6:2a00:1450:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18ADDC061235
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:45:40 -0700 (PDT)
-Received: by mail-wr1-x441.google.com with SMTP id a5so10071924wrm.6
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:45:40 -0700 (PDT)
+Received: from mail-oo1-xc42.google.com (mail-oo1-xc42.google.com [IPv6:2607:f8b0:4864:20::c42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FCABC0612A8
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:00:03 -0700 (PDT)
+Received: by mail-oo1-xc42.google.com with SMTP id y30so2348820ooj.3
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:00:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernelim-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=+/aQPgBdctfCPkN2hsKPsv6boSaHaEN13UyN4xwV5wE=;
-        b=MHKoo7DCs5fHWAvtff6EIY7D/hJHp24zHtuKEc/vJMN5VcYuVv8I/1uMI8uaPgjtcw
-         bBMbE8FexiGLLFxMU7gOq3y+TzLhYeKQU0RsSqJ0xGmOPlQgtDQX/SvzAWzAK68DyCgD
-         i/LaqykKOWNw/pCN/UKF5fN6RuyVV0EfACgAOo9gWlHvY69yeqM7nS+0xzsj1W2jLWEX
-         8D75pzQraiu+kBy3x7UdpxjNZR49v2k02eTvFJABr6SdEyW6/DsZik92iDUbl0I1hLPs
-         JXp3stppcDVkPvzNq+DHjsWDvRLsT5CuFzi1/hRMn+BiPC6N4gEpObmDBgKdt2qLhM/r
-         yDXg==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=F8ZzdTqBaA6hLa0ubKxz+8bLIrVTULNlByYnBjQyRg0=;
+        b=tspgzCQjDE0lvZZChKO/Xko38qBhhIcQJjYKC+RE4ZBeVlUwkGn4T34OBeev8C8UNy
+         6t28w3kxKn+ItdWaJcHMl7wIPLbfv2ZvOaaretFTP2kOhHi3RTCK+NEG+P+Tz7anDNad
+         WrOrDRoCFdaelaXyzEqA3qiM+H7Zd5q45rzahtzlTCtkxf+0zZk68a7edHyUMYUvBspO
+         AuSb8+1CCTEnreaIT34PpPh/1KsWHIJ8m59pCBYdM7HfO/njbpr4rHLOzRsCRF1IUnu5
+         m+rfQTp1rrrbLi363cbkt/Riz5kl8Yt6yBnRmUr/qdN+LSpW7OednhEHih1n/Fmik6on
+         HRQw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=+/aQPgBdctfCPkN2hsKPsv6boSaHaEN13UyN4xwV5wE=;
-        b=BxjfFrqs4G8PX0bS3+j/okTSosQUlnAIMZ6t8/Mn22opwclsYkdHt/2A24VdQoNZ9j
-         AxaUjhIY/m1hJJ0NDH9pQ/qu/bYh1Gq/y7OjiMsJSQah/qENpl+xe0HkR82/BwQrNQX1
-         OJOlFbyTx470hXITOrJLo4h0yjz//FWB9XRkm9OeiLDQU97HkPFr5X5OWaIWM8EHdSUf
-         M9e7zfheCytDXNAd5pneZ3bF+o4d5Ikasw+zNBricsEwoVNKxHtzHuCrlTCSyrdj0iUm
-         sK6lswD7eMEKQzzrD/kZcpsgaPf9Hamaj8meiBOHZNVMMWHB1bzXmWyrtWSqgjS7DkyT
-         NzVw==
-X-Gm-Message-State: AOAM5312QoqE2vmK4dMun89RfHCF3jPT5L986iEenUwHRYSs6P+cucfs
-        e13Bl4G5g74Og9QPC+6siWKDEA==
-X-Google-Smtp-Source: ABdhPJy1Ks7m4wNqY3xj2Br282e4/ffX4B8ONEyjVpIaYR5PrTlOIMUPByiKuibHFE+Oy7oMmgjPgg==
-X-Received: by 2002:adf:ca06:: with SMTP id o6mr5285330wrh.181.1597470339433;
-        Fri, 14 Aug 2020 22:45:39 -0700 (PDT)
-Received: from gmail.com ([141.226.169.176])
-        by smtp.gmail.com with ESMTPSA id f124sm19635765wmf.7.2020.08.14.22.45.37
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=F8ZzdTqBaA6hLa0ubKxz+8bLIrVTULNlByYnBjQyRg0=;
+        b=J6UKjghlmlAWaPBxa/n8rQl1ig8d7Pu21nFr8PFryCfa38U5SOadgUp0VJkZ6/OxPb
+         l8SDsM4qc/0exwWiuALV9argb/ozsAT65BpuXHmGdNShC5jjlKmrQHdXJiZ+/rypmQ39
+         f2vKQlfkrWL9Eon7fwSwTYW4n+/JDuVHvph8l+Xs8MgHKNx2780vEs3za5sJCzYfqtXs
+         iA85VmQfJN5woLOTuDbvm+UGyfKcrlpKb10IjjA5ThKU5/JmFjSOFFVwmq7B7IzeSsqy
+         4UA6xWTRCXoE1CSLUdhp/NSQaXvl+7Ks5cjCME3InZePRQMCNnAYzCbKgipz/UWSV1oU
+         h5EQ==
+X-Gm-Message-State: AOAM530M+xQUf4GX1KGiaMYjYlrtH/RKmBuoE6cFJSJqaF3GTsrcjzu3
+        HP6KHZshodepI4nCpdhC3ELwwHlzLVeX6A==
+X-Google-Smtp-Source: ABdhPJzOOphD+EfQrmuXIQhGnKcggrgjt2HbQh3iju8pIfmo8AIQTJ30xIdUwrEGrwzY6YQ6u+s8rw==
+X-Received: by 2002:a4a:3443:: with SMTP id n3mr4137494oof.30.1597467602299;
+        Fri, 14 Aug 2020 22:00:02 -0700 (PDT)
+Received: from localhost ([2605:6000:8b03:f000:b453:c5f2:2895:a54c])
+        by smtp.gmail.com with ESMTPSA id r124sm2207636oib.22.2020.08.14.22.00.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Aug 2020 22:45:38 -0700 (PDT)
-Date:   Sat, 15 Aug 2020 08:45:35 +0300
-From:   Dan Aloni <dan@kernelim.com>
-To:     Chuck Lever <chuck.lever@oracle.com>
-Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
-Subject: Re: [PATCH] xprtrdma: make sure MRs are unmapped before freeing them
-Message-ID: <20200815054535.GA3337941@gmail.com>
-References: <20200814173734.3271600-1-dan@kernelim.com>
- <5B87C3B5-B73D-40FD-A813-B3929CDF7583@oracle.com>
- <20200814191056.GA3277556@gmail.com>
- <DA35C71E-101D-45F6-A5BE-23493F7119C0@oracle.com>
+        Fri, 14 Aug 2020 22:00:01 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH 10/20] Extended pools to support both keys and indices
+Date:   Fri, 14 Aug 2020 23:58:34 -0500
+Message-Id: <20200815045912.8626-11-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200815045912.8626-1-rpearson@hpe.com>
+References: <20200815045912.8626-1-rpearson@hpe.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DA35C71E-101D-45F6-A5BE-23493F7119C0@oracle.com>
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Aug 14, 2020 at 04:21:54PM -0400, Chuck Lever wrote:
-> 
-> 
-> > On Aug 14, 2020, at 3:10 PM, Dan Aloni <dan@kernelim.com> wrote:
-> > 
-> > On Fri, Aug 14, 2020 at 02:12:48PM -0400, Chuck Lever wrote:
-> >> Hi Dan-
-> >> 
-> >>> On Aug 14, 2020, at 1:37 PM, Dan Aloni <dan@kernelim.com> wrote:
-> >>> 
-> >>> It was observed that on disconnections, these unmaps don't occur. The
-> >>> relevant path is rpcrdma_mrs_destroy(), being called from
-> >>> rpcrdma_xprt_disconnect().
-> >> 
-> >> MRs are supposed to be unmapped right after they are used, so
-> >> during disconnect they should all be unmapped already. How often
-> >> do you see a DMA mapped MR in this code path? Do you have a
-> >> reproducer I can try?
-> > 
-> > These are not graceful disconnections but abnormal ones, where many large
-> > IOs are still in flight, while the remote server suddenly breaks the
-> > connection, the remote IP is still reachable but refusing to accept new
-> > connections only for a few seconds.
-> 
-> Ideally that's not supposed to matter. I'll see if I can reproduce
-> with my usual tricks.
-> 
-> Why is your server behaving this way?
+Allowed both indices and keys to exist for objects in the pools.
+Previously you were limited to one or the other. This will support
+allowing the keys on MWs to change.
 
-It's a dedicated storage cluster under a specific testing scenario,
-implementing floating IPs.  Haven't tried, but maybe the same scenario
-can be reproduced with a standard single Linux NFSv3 server by fiddling
-with nfsd open ports.
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_pool.c | 73 ++++++++++++++--------------
+ drivers/infiniband/sw/rxe/rxe_pool.h | 32 +++++++-----
+ 2 files changed, 58 insertions(+), 47 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 32b86a9979e6..e157bf945175 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -177,18 +177,18 @@ static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
+ 		goto out;
+ 	}
+ 
+-	pool->max_index = max;
+-	pool->min_index = min;
++	pool->index.max_index = max;
++	pool->index.min_index = min;
+ 
+ 	size = BITS_TO_LONGS(max - min + 1) * sizeof(long);
+-	pool->table = kmalloc(size, GFP_KERNEL);
+-	if (!pool->table) {
++	pool->index.table = kmalloc(size, GFP_KERNEL);
++	if (!pool->index.table) {
+ 		err = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+-	pool->table_size = size;
+-	bitmap_zero(pool->table, max - min + 1);
++	pool->index.table_size = size;
++	bitmap_zero(pool->index.table, max - min + 1);
+ 
+ out:
+ 	return err;
+@@ -210,7 +210,8 @@ int rxe_pool_init(
+ 	pool->max_elem		= max_elem;
+ 	pool->elem_size		= ALIGN(size, RXE_POOL_ALIGN);
+ 	pool->flags		= rxe_type_info[type].flags;
+-	pool->tree		= RB_ROOT;
++	pool->index.tree	= RB_ROOT;
++	pool->key.tree		= RB_ROOT;
+ 	pool->cleanup		= rxe_type_info[type].cleanup;
+ 
+ 	atomic_set(&pool->num_elem, 0);
+@@ -228,8 +229,8 @@ int rxe_pool_init(
+ 	}
+ 
+ 	if (rxe_type_info[type].flags & RXE_POOL_KEY) {
+-		pool->key_offset = rxe_type_info[type].key_offset;
+-		pool->key_size = rxe_type_info[type].key_size;
++		pool->key.key_offset = rxe_type_info[type].key_offset;
++		pool->key.key_size = rxe_type_info[type].key_size;
+ 	}
+ 
+ 	pool->state = RXE_POOL_STATE_VALID;
+@@ -243,7 +244,7 @@ static void rxe_pool_release(struct kref *kref)
+ 	struct rxe_pool *pool = container_of(kref, struct rxe_pool, ref_cnt);
+ 
+ 	pool->state = RXE_POOL_STATE_INVALID;
+-	kfree(pool->table);
++	kfree(pool->index.table);
+ }
+ 
+ static void rxe_pool_put(struct rxe_pool *pool)
+@@ -268,27 +269,27 @@ void rxe_pool_cleanup(struct rxe_pool *pool)
+ static u32 alloc_index(struct rxe_pool *pool)
+ {
+ 	u32 index;
+-	u32 range = pool->max_index - pool->min_index + 1;
++	u32 range = pool->index.max_index - pool->index.min_index + 1;
+ 
+-	index = find_next_zero_bit(pool->table, range, pool->last);
++	index = find_next_zero_bit(pool->index.table, range, pool->index.last);
+ 	if (index >= range)
+-		index = find_first_zero_bit(pool->table, range);
++		index = find_first_zero_bit(pool->index.table, range);
+ 
+ 	WARN_ON_ONCE(index >= range);
+-	set_bit(index, pool->table);
+-	pool->last = index;
+-	return index + pool->min_index;
++	set_bit(index, pool->index.table);
++	pool->index.last = index;
++	return index + pool->index.min_index;
+ }
+ 
+ static void insert_index(struct rxe_pool *pool, struct rxe_pool_entry *new)
+ {
+-	struct rb_node **link = &pool->tree.rb_node;
++	struct rb_node **link = &pool->index.tree.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct rxe_pool_entry *elem;
+ 
+ 	while (*link) {
+ 		parent = *link;
+-		elem = rb_entry(parent, struct rxe_pool_entry, node);
++		elem = rb_entry(parent, struct rxe_pool_entry, index_node);
+ 
+ 		if (elem->index == new->index) {
+ 			pr_warn("element already exists!\n");
+@@ -301,25 +302,25 @@ static void insert_index(struct rxe_pool *pool, struct rxe_pool_entry *new)
+ 			link = &(*link)->rb_right;
+ 	}
+ 
+-	rb_link_node(&new->node, parent, link);
+-	rb_insert_color(&new->node, &pool->tree);
++	rb_link_node(&new->index_node, parent, link);
++	rb_insert_color(&new->index_node, &pool->index.tree);
+ out:
+ 	return;
+ }
+ 
+ static void insert_key(struct rxe_pool *pool, struct rxe_pool_entry *new)
+ {
+-	struct rb_node **link = &pool->tree.rb_node;
++	struct rb_node **link = &pool->key.tree.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct rxe_pool_entry *elem;
+ 	int cmp;
+ 
+ 	while (*link) {
+ 		parent = *link;
+-		elem = rb_entry(parent, struct rxe_pool_entry, node);
++		elem = rb_entry(parent, struct rxe_pool_entry, key_node);
+ 
+-		cmp = memcmp((u8 *)elem + pool->key_offset,
+-			     (u8 *)new + pool->key_offset, pool->key_size);
++		cmp = memcmp((u8 *)elem + pool->key.key_offset,
++			     (u8 *)new + pool->key.key_offset, pool->key.key_size);
+ 
+ 		if (cmp == 0) {
+ 			pr_warn("key already exists!\n");
+@@ -332,8 +333,8 @@ static void insert_key(struct rxe_pool *pool, struct rxe_pool_entry *new)
+ 			link = &(*link)->rb_right;
+ 	}
+ 
+-	rb_link_node(&new->node, parent, link);
+-	rb_insert_color(&new->node, &pool->tree);
++	rb_link_node(&new->key_node, parent, link);
++	rb_insert_color(&new->key_node, &pool->key.tree);
+ out:
+ 	return;
+ }
+@@ -345,7 +346,7 @@ void rxe_add_key(void *arg, void *key)
+ 	unsigned long flags;
+ 
+ 	write_lock_irqsave(&pool->pool_lock, flags);
+-	memcpy((u8 *)elem + pool->key_offset, key, pool->key_size);
++	memcpy((u8 *)elem + pool->key.key_offset, key, pool->key.key_size);
+ 	insert_key(pool, elem);
+ 	write_unlock_irqrestore(&pool->pool_lock, flags);
+ }
+@@ -357,7 +358,7 @@ void rxe_drop_key(void *arg)
+ 	unsigned long flags;
+ 
+ 	write_lock_irqsave(&pool->pool_lock, flags);
+-	rb_erase(&elem->node, &pool->tree);
++	rb_erase(&elem->key_node, &pool->key.tree);
+ 	write_unlock_irqrestore(&pool->pool_lock, flags);
+ }
+ 
+@@ -380,8 +381,8 @@ void rxe_drop_index(void *arg)
+ 	unsigned long flags;
+ 
+ 	write_lock_irqsave(&pool->pool_lock, flags);
+-	clear_bit(elem->index - pool->min_index, pool->table);
+-	rb_erase(&elem->node, &pool->tree);
++	clear_bit(elem->index - pool->index.min_index, pool->index.table);
++	rb_erase(&elem->index_node, &pool->index.tree);
+ 	write_unlock_irqrestore(&pool->pool_lock, flags);
+ }
+ 
+@@ -485,10 +486,10 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+ 	if (pool->state != RXE_POOL_STATE_VALID)
+ 		goto out;
+ 
+-	node = pool->tree.rb_node;
++	node = pool->index.tree.rb_node;
+ 
+ 	while (node) {
+-		elem = rb_entry(node, struct rxe_pool_entry, node);
++		elem = rb_entry(node, struct rxe_pool_entry, index_node);
+ 
+ 		if (elem->index > index)
+ 			node = node->rb_left;
+@@ -517,13 +518,13 @@ void *rxe_pool_get_key(struct rxe_pool *pool, void *key)
+ 	if (pool->state != RXE_POOL_STATE_VALID)
+ 		goto out;
+ 
+-	node = pool->tree.rb_node;
++	node = pool->key.tree.rb_node;
+ 
+ 	while (node) {
+-		elem = rb_entry(node, struct rxe_pool_entry, node);
++		elem = rb_entry(node, struct rxe_pool_entry, key_node);
+ 
+-		cmp = memcmp((u8 *)elem + pool->key_offset,
+-			     key, pool->key_size);
++		cmp = memcmp((u8 *)elem + pool->key.key_offset,
++			     key, pool->key.key_size);
+ 
+ 		if (cmp > 0)
+ 			node = node->rb_left;
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 2f2cff1cbe43..bd684df6d847 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -84,8 +84,11 @@ struct rxe_pool_entry {
+ 	struct kref		ref_cnt;
+ 	struct list_head	list;
+ 
+-	/* only used if indexed or keyed */
+-	struct rb_node		node;
++	/* only used if keyed */
++	struct rb_node		key_node;
++
++	/* only used if indexed */
++	struct rb_node		index_node;
+ 	u32			index;
+ };
+ 
+@@ -102,15 +105,22 @@ struct rxe_pool {
+ 	unsigned int		max_elem;
+ 	atomic_t		num_elem;
+ 
+-	/* only used if indexed or keyed */
+-	struct rb_root		tree;
+-	unsigned long		*table;
+-	size_t			table_size;
+-	u32			max_index;
+-	u32			min_index;
+-	u32			last;
+-	size_t			key_offset;
+-	size_t			key_size;
++	/* only used if indexed */
++	struct {
++		struct rb_root		tree;
++		unsigned long		*table;
++		size_t			table_size;
++		u32			last;
++		u32			max_index;
++		u32			min_index;
++	} index;
++
++	/* only used if keyed */
++	struct {
++		struct rb_root		tree;
++		size_t			key_offset;
++		size_t			key_size;
++	} key;
+ };
+ 
+ /* initialize slab caches for managed objects */
 -- 
-Dan Aloni
+2.25.1
+
