@@ -1,123 +1,113 @@
-Return-Path: <SRS0=1AYo=BY=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=W1Yx=BZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D902CC433DF
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Aug 2020 20:22:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E94C433DF
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:51:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF29C20768
-	for <linux-rdma@archiver.kernel.org>; Fri, 14 Aug 2020 20:22:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CADD204FD
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Aug 2020 21:51:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="tzHUdvpL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BU8x6KkN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727946AbgHNUWA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Aug 2020 16:22:00 -0400
-Received: from aserp2120.oracle.com ([141.146.126.78]:42786 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726241AbgHNUV7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Aug 2020 16:21:59 -0400
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 07EKHLbV130254;
-        Fri, 14 Aug 2020 20:21:57 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
- mime-version : subject : from : in-reply-to : date : cc :
- content-transfer-encoding : message-id : references : to;
- s=corp-2020-01-29; bh=DjWlbfsGkk4PZ5YJPYHUHaVDHzhnIr8SzeFiFx6WQXU=;
- b=tzHUdvpLkbV8OrTLgt9W7aeu1ODKd24f8zrgC7nVkMCd2/qeYUfSi+uVtWqtRalar4xl
- AcZpZjaXKbkQxkLyg5rTZ75gUidf/vA1BNwByuNovLtT04igHfdvj6Otemb/VgxPi8Xj
- tNsygHM+LXdP7RP4EoaE3Y3rXCKl4EPG5JivxTgJRohKiyC2aRPOQLS3RAd97MWGXHr3
- aFnaLbQC4vZ+/ZSqWalw1JmPvWnUjzzdvUudvn3Zl7CaePPR88Mh7mVZcfX+rwUmVlUx
- J6PoJHks3nueCAsjnIv4M2Pxjw1QSJqE34/O9Qc4KaXSjbWDO5lEPbbWxoRjbFSAmcQ1 9Q== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by aserp2120.oracle.com with ESMTP id 32wvp11hv0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Fri, 14 Aug 2020 20:21:57 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 07EKHxl6115081;
-        Fri, 14 Aug 2020 20:21:57 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-        by aserp3030.oracle.com with ESMTP id 32wvqjjrfk-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 14 Aug 2020 20:21:56 +0000
-Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
-        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 07EKLu4p017443;
-        Fri, 14 Aug 2020 20:21:56 GMT
-Received: from anon-dhcp-152.1015granger.net (/68.61.232.219)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Fri, 14 Aug 2020 20:21:55 +0000
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.80.23.2.2\))
-Subject: Re: [PATCH] xprtrdma: make sure MRs are unmapped before freeing them
-From:   Chuck Lever <chuck.lever@oracle.com>
-In-Reply-To: <20200814191056.GA3277556@gmail.com>
-Date:   Fri, 14 Aug 2020 16:21:54 -0400
-Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
-Content-Transfer-Encoding: 7bit
-Message-Id: <DA35C71E-101D-45F6-A5BE-23493F7119C0@oracle.com>
-References: <20200814173734.3271600-1-dan@kernelim.com>
- <5B87C3B5-B73D-40FD-A813-B3929CDF7583@oracle.com>
- <20200814191056.GA3277556@gmail.com>
-To:     Dan Aloni <dan@kernelim.com>
-X-Mailer: Apple Mail (2.3608.80.23.2.2)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9713 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
- malwarescore=0 mlxscore=0 adultscore=0 suspectscore=0 spamscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008140149
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9713 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
- impostorscore=0 adultscore=0 priorityscore=1501 spamscore=0
- mlxlogscore=999 clxscore=1015 lowpriorityscore=0 bulkscore=0 phishscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008140149
+        id S1728758AbgHOVvZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 15 Aug 2020 17:51:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45638 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728706AbgHOVvW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 15 Aug 2020 17:51:22 -0400
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E7DDC0612B1
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:00:06 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id h16so9263931oti.7
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Aug 2020 22:00:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=9ayZBf+VDszLARBRcSdBoT4Z20ZJ+0ZRAbW3EEZQYw4=;
+        b=BU8x6KkNDaowY6cbAnVEsnCyMyLT9/G8wa36pVfqyVmrLDBCDnQUE/hJRv/Y9fY49j
+         7HcmVDNBhGlFegyqmW1qzsFujoRqgtM1Q9G5vf4o/0yYBha3y2ihE3TqATP1cDASFgEc
+         gqUQE2zRVeiEFcCzdnzavVgAVZDNTYLuKs1mpZtE/Ie3+jZkh9fasObySFz070NsHsl2
+         9CTubjeIxoCDeTTIxMnDx3J9FQ1gx1bcU4XwpsF89JqkcUzA8oTkkrBspXL/Uv3JgZ/V
+         os4McXzUuiNaBQKDD1EW1GFAZSxisa0NUj3CNTBbEc9gDPm5VgStyF8DgWqDQCLCya2b
+         ZjmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=9ayZBf+VDszLARBRcSdBoT4Z20ZJ+0ZRAbW3EEZQYw4=;
+        b=PVwJJ83E3C1au0gphQdtuQE4sooIh9+wRB3PWLnO+EIJo5FN0IIwreHjrgKXrkQUsK
+         rIqzt+gDlCvchXzWMTyHjpv7DHiMOEKplRLmTYVxDPozx9xz/cJs18hCzxvwYpboMH8o
+         QOYBpv4X/5Y1537qiVok+2CV4/B/N0Ircn6HhSb0wrFP/44rOGpAG73U9z49Bue7XBeN
+         cRDLyZCqSANsAERWKnjcd8XY9R45jkdfBipC0MZHGKbhzhEG6K6JQu4cksOrJATcm8ZQ
+         yQBRD6NDgQkbHtIfpIhmkWn0kqI9c3m2gOA3xVCSug+bWnP5d+nBIcUBp1Ya0ZWRIeVR
+         iWxg==
+X-Gm-Message-State: AOAM531CN0tehaFiOZ+jfbb6IhqaSZ7Iq0qtskg/o1jLk8dqP64zh4m2
+        +dFbqym527Kjxl+ugVadVTFZmdZJPz8FuQ==
+X-Google-Smtp-Source: ABdhPJznVVUeb5czsQMypc2sil6PNz+Rx+s/TWjrM0tGUF59WnArDAdQ/vA9i8Q+sGGBS1TIynbisw==
+X-Received: by 2002:a9d:7f89:: with SMTP id t9mr4399095otp.278.1597467605392;
+        Fri, 14 Aug 2020 22:00:05 -0700 (PDT)
+Received: from localhost ([2605:6000:8b03:f000:b453:c5f2:2895:a54c])
+        by smtp.gmail.com with ESMTPSA id m8sm2195715oim.23.2020.08.14.22.00.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 14 Aug 2020 22:00:05 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH 14/20] Addresses an issue with hardened user copy
+Date:   Fri, 14 Aug 2020 23:58:38 -0500
+Message-Id: <20200815045912.8626-15-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20200815045912.8626-1-rpearson@hpe.com>
+References: <20200815045912.8626-1-rpearson@hpe.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Copying to user space from the stack instead of slab cache cured
+a kernel oops that was toubling me.A
 
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/core/uverbs_std_types_qp.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-> On Aug 14, 2020, at 3:10 PM, Dan Aloni <dan@kernelim.com> wrote:
-> 
-> On Fri, Aug 14, 2020 at 02:12:48PM -0400, Chuck Lever wrote:
->> Hi Dan-
->> 
->>> On Aug 14, 2020, at 1:37 PM, Dan Aloni <dan@kernelim.com> wrote:
->>> 
->>> It was observed that on disconnections, these unmaps don't occur. The
->>> relevant path is rpcrdma_mrs_destroy(), being called from
->>> rpcrdma_xprt_disconnect().
->> 
->> MRs are supposed to be unmapped right after they are used, so
->> during disconnect they should all be unmapped already. How often
->> do you see a DMA mapped MR in this code path? Do you have a
->> reproducer I can try?
-> 
-> These are not graceful disconnections but abnormal ones, where many large
-> IOs are still in flight, while the remote server suddenly breaks the
-> connection, the remote IP is still reachable but refusing to accept new
-> connections only for a few seconds.
-
-Ideally that's not supposed to matter. I'll see if I can reproduce
-with my usual tricks.
-
-Why is your server behaving this way?
-
-
-> We may also need reconnection attempts in the background trying to
-> recover the xprt, so that with short reconnect timeouts it may be enough
-> for xprt_rdma_close() to be triggered from xprt_rdma_connect_worker(),
-> leading up to rpcrdma_xprt_disconnect().
-
---
-Chuck Lever
-
-
+diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
+index 3bf8dcdfe7eb..2f8b14003b95 100644
+--- a/drivers/infiniband/core/uverbs_std_types_qp.c
++++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+@@ -98,6 +98,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
+ 	struct ib_device *device;
+ 	u64 user_handle;
+ 	int ret;
++	int qp_num;
+ 
+ 	ret = uverbs_copy_from_or_zero(&cap, attrs,
+ 			       UVERBS_ATTR_CREATE_QP_CAP);
+@@ -293,9 +294,10 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
+ 	if (ret)
+ 		return ret;
+ 
++	/* copy from stack to avoid whitelisting issues */
++	qp_num = qp->qp_num;
+ 	ret = uverbs_copy_to(attrs, UVERBS_ATTR_CREATE_QP_RESP_QP_NUM,
+-			     &qp->qp_num,
+-			     sizeof(qp->qp_num));
++			     &qp_num, sizeof(qp_num));
+ 
+ 	return ret;
+ err_put:
+-- 
+2.25.1
 
