@@ -2,72 +2,119 @@ Return-Path: <SRS0=BtTd=B2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEC72C433E1
-	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 08:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF0EC433E1
+	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 22:04:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B593F2067C
-	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 08:11:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597565503;
-	bh=qR6bXbhqJAxMOnDvTEU8dcP0bKQliVVdnV9L5TbvwnA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=WmA1KgSY8cdIjcZZmPzgn39wWejm4yWdXHBRezngNh8ZGS2fylMX3m5HYADQldAuw
-	 iBUKp3pu9sZtThBmb0Xl/VLqRJ5D0p8BU/YpLt+ocP3tfDMWPuqbrNubW/5akYXZgD
-	 MRT/QkXDNFNCduCiL4XAvocC2AQNpMmVTMMrXeT4=
+	by mail.kernel.org (Postfix) with ESMTP id 81FAA2078D
+	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 22:04:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YA0oAo1V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726985AbgHPILl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 16 Aug 2020 04:11:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38454 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725986AbgHPILj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 16 Aug 2020 04:11:39 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5FED72065C;
-        Sun, 16 Aug 2020 08:11:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597565499;
-        bh=qR6bXbhqJAxMOnDvTEU8dcP0bKQliVVdnV9L5TbvwnA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=EmuYEeBWmyDRQIZBqtgUacqebNk4cbRj3Qtf3RBFwADs4dlKOFf3ntMYhjXVhKa++
-         sebXMlGQpEGNi8jdXPND/vFwr0/HufIuUzZHL4VjgNka80mjNI1VTxayUEaHsfhXCU
-         B84qDMcj1Lp+j0vbD5ibjIyJWYW0yMuNMo1Z1AQs=
-Date:   Sun, 16 Aug 2020 11:11:35 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Dinghao Liu <dinghao.liu@zju.edu.cn>
-Cc:     kjlu@umn.edu, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] IB/mlx5: Fix memleak in subscribe_event_xa_alloc
-Message-ID: <20200816081135.GG7555@unreal>
-References: <20200815034537.9867-1-dinghao.liu@zju.edu.cn>
+        id S1726904AbgHPWEq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 16 Aug 2020 18:04:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42020 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726114AbgHPWEp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 16 Aug 2020 18:04:45 -0400
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3673DC061786
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2020 15:04:45 -0700 (PDT)
+Received: by mail-wm1-x344.google.com with SMTP id 9so11773635wmj.5
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Aug 2020 15:04:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=EK59YeNweTnOCzZsjEDake2xeFN5dYABW/jYJ1/liXs=;
+        b=YA0oAo1VWal5Tb3eEe7QXmMHEp6z2k+gGz7Kw/Adk3aiiU4zD63T7k9z3xSyqIEoKj
+         cXPtMIJnCTw34wlhboByQkBaMD1xhJ+3t+l+y0PIN/+pUenvRE34hsco4JWWnBqCTaM9
+         MfG+yEnxHghtz73BxDvXQD7oj9zG+ekrcsodWFuIXvEmyNbceEekjxRi+HSUfLjJ71vH
+         jMSp0+KIRVe6Y7CzRwbazqtWbwnTovrKNtf28YWAkatMrOuMy/sYBczBmA+7cejpeOrn
+         7GX9z8rUnQSQ4p6dtFyNd0W3IE7U4fRF+1Vh4iJsqsIGE2CGM4BOrl5cMCdowoi6wPzi
+         FZ5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=EK59YeNweTnOCzZsjEDake2xeFN5dYABW/jYJ1/liXs=;
+        b=rnYC6mXyBpfabR+zKO041ILLpkV1KmGbY4d/s87abrazjbxs3K3evjUBens3tGFj1p
+         w/WsRRR5OGZYO3PpbSoCSXamifgpO0eXbCLCHLqbmbiN56M5Vzue/GsC/QwjaLaG3lEI
+         NWW33PX40xZImI0UHEuGSL5VSKeG0bgrHwIxod3E+t6FRjBno4KhThuuls0GKkLbdEiI
+         gVGdmlmjLaVjTmVUQnlIHLGzR/mb1NFzOloenurq85LMHUEN/jhRHd3aOiqbIUeQxO+V
+         JBw/JhDQORgU6+zSE4HsM1qprh6Q0NX8Kn0Tu6nVgpsZhxa/97EETK9fCnPqOUWZkS/n
+         bGLQ==
+X-Gm-Message-State: AOAM533EmWsEQgKzaJqLZWbtdPb1htVng/GNzsALKoFx9pA2mVk5IaId
+        2mchyXnXPO0zNL8MESz/28rNDT/Xl9Cpkw==
+X-Google-Smtp-Source: ABdhPJxhxZfzdoRp9QnxJ9BuI4SCkJgXZ7yoKqdHG/aEFdDq4Di8cGDjZaAWXItkOzItLMt5goL2AA==
+X-Received: by 2002:a1c:e008:: with SMTP id x8mr11928752wmg.75.1597615483734;
+        Sun, 16 Aug 2020 15:04:43 -0700 (PDT)
+Received: from kheib-workstation ([77.137.118.46])
+        by smtp.gmail.com with ESMTPSA id b123sm28084737wme.20.2020.08.16.15.04.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 16 Aug 2020 15:04:43 -0700 (PDT)
+Date:   Mon, 17 Aug 2020 01:04:40 +0300
+From:   Kamal Heib <kamalheib1@gmail.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+        Christian Benvenuti <benve@cisco.com>
+Subject: Re: [PATCH for-rc] RDMA/usnic: Fix reported max_pkeys attribute
+Message-ID: <20200816220440.GA820535@kheib-workstation>
+References: <20200805210051.800859-1-kamalheib1@gmail.com>
+ <20200805221742.GS24045@ziepe.ca>
+ <20200810201918.GA443976@kheib-workstation>
+ <20200814165408.GU24045@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200815034537.9867-1-dinghao.liu@zju.edu.cn>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200814165408.GU24045@ziepe.ca>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Aug 15, 2020 at 11:45:37AM +0800, Dinghao Liu wrote:
-> When xa_insert() fails, obj_event needs to be freed
-> just like what we have done to event when xa_insert()
-> fails. However, current code is returning directly
-> and ends up leaking memory.
->
-> Fixes: 7597385371425 ("IB/mlx5: Enable subscription for device events over DEVX")
-> Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
-> ---
->  drivers/infiniband/hw/mlx5/devx.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
+On Fri, Aug 14, 2020 at 01:54:08PM -0300, Jason Gunthorpe wrote:
+> On Mon, Aug 10, 2020 at 11:19:18PM +0300, Kamal Heib wrote:
+> > On Wed, Aug 05, 2020 at 07:17:42PM -0300, Jason Gunthorpe wrote:
+> > > On Thu, Aug 06, 2020 at 12:00:51AM +0300, Kamal Heib wrote:
+> > > > Make sure to report the right max_pkeys attribute value to indicate the
+> > > > maximum number of partitions supported by the usnic device.
+> > > 
+> > > Why does usnic support pkeys? This needs more explanation
+> > > 
+> > > Jason
+> > 
+> > Looks like the usnic provider is acting like the RoCE providers by returning
+> > the default pkey when calling the query_pkey() callback, Do you think that
+> > this needs to removed like what was done for iWarp providers?
+> > 
+> > int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+> >                                 u16 *pkey)
+> > {
+> >         if (index > 0)
+> >                 return -EINVAL;
+> > 
+> >         *pkey = 0xffff;
+> >         return 0;
+> > }
+> 
+> You'd have to check the libfabric provider to see if it cares or not
+> 
+> Jason
+
+Looks like the usnic provider under libfabric doesn't care about
+pkey/query_pkey, I'll prepare a patch that will remove the query_pkey()
+callback.
+
+ kheib   master  ~  git  upstream  libfabric  git grep -n query_pkey prov/usnic/
+ kheib   master  ~  git  upstream  libfabric  git grep -n pkey prov/usnic/
+ kheib   master  ~  git  upstream  libfabric 
 
 Thanks,
-Acked-by: Leon Romanovsky <leonro@nvidia.com>
+Kamal 
