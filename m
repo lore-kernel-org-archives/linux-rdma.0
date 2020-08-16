@@ -2,74 +2,72 @@ Return-Path: <SRS0=BtTd=B2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8F33C433DF
-	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 07:58:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEC72C433E1
+	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 08:11:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBDE4206DA
-	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 07:58:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B593F2067C
+	for <linux-rdma@archiver.kernel.org>; Sun, 16 Aug 2020 08:11:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1597565503;
+	bh=qR6bXbhqJAxMOnDvTEU8dcP0bKQliVVdnV9L5TbvwnA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=WmA1KgSY8cdIjcZZmPzgn39wWejm4yWdXHBRezngNh8ZGS2fylMX3m5HYADQldAuw
+	 iBUKp3pu9sZtThBmb0Xl/VLqRJ5D0p8BU/YpLt+ocP3tfDMWPuqbrNubW/5akYXZgD
+	 MRT/QkXDNFNCduCiL4XAvocC2AQNpMmVTMMrXeT4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726560AbgHPH6H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 16 Aug 2020 03:58:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59130 "EHLO mail.kernel.org"
+        id S1726985AbgHPILl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 16 Aug 2020 04:11:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725986AbgHPH6H (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 16 Aug 2020 03:58:07 -0400
+        id S1725986AbgHPILj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 16 Aug 2020 04:11:39 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 020002065C;
-        Sun, 16 Aug 2020 07:58:05 +0000 (UTC)
-Date:   Sun, 16 Aug 2020 10:58:03 +0300
-From:   Leon Romanovsky <leonro@nvidia.com>
-To:     Stephen Hemminger <stephen@networkplumber.org>,
-        David Ahern <dsahern@gmail.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        linux-netdev <netdev@vger.kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH iproute2-rc v1 0/2] Fix rdmatool JSON conversion
-Message-ID: <20200816075803.GF7555@unreal>
-References: <20200811073201.663398-1-leon@kernel.org>
+        by mail.kernel.org (Postfix) with ESMTPSA id 5FED72065C;
+        Sun, 16 Aug 2020 08:11:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1597565499;
+        bh=qR6bXbhqJAxMOnDvTEU8dcP0bKQliVVdnV9L5TbvwnA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=EmuYEeBWmyDRQIZBqtgUacqebNk4cbRj3Qtf3RBFwADs4dlKOFf3ntMYhjXVhKa++
+         sebXMlGQpEGNi8jdXPND/vFwr0/HufIuUzZHL4VjgNka80mjNI1VTxayUEaHsfhXCU
+         B84qDMcj1Lp+j0vbD5ibjIyJWYW0yMuNMo1Z1AQs=
+Date:   Sun, 16 Aug 2020 11:11:35 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Dinghao Liu <dinghao.liu@zju.edu.cn>
+Cc:     kjlu@umn.edu, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] IB/mlx5: Fix memleak in subscribe_event_xa_alloc
+Message-ID: <20200816081135.GG7555@unreal>
+References: <20200815034537.9867-1-dinghao.liu@zju.edu.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200811073201.663398-1-leon@kernel.org>
+In-Reply-To: <20200815034537.9867-1-dinghao.liu@zju.edu.cn>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Aug 11, 2020 at 10:31:59AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
+On Sat, Aug 15, 2020 at 11:45:37AM +0800, Dinghao Liu wrote:
+> When xa_insert() fails, obj_event needs to be freed
+> just like what we have done to event when xa_insert()
+> fails. However, current code is returning directly
+> and ends up leaking memory.
 >
-> Changelog:
-> v1:
->  * Added extra patch
->  * Don't print [] in owner name in JSON output
-> v0:
-> https://lore.kernel.org/linux-rdma/20200811063304.581395-1-leon@kernel.org
-> ---------------------------------------------------------------------------
+> Fixes: 7597385371425 ("IB/mlx5: Enable subscription for device events over DEVX")
+> Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+> ---
+>  drivers/infiniband/hw/mlx5/devx.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
-> Two fixes to RDMAtool JSON/CLI prints.
->
-> Leon Romanovsky (2):
->   rdma: Fix owner name for the kernel resources
->   rdma: Properly print device and link names in CLI output
->
->  rdma/res.c | 24 +++++++++++++++++-------
->  1 file changed, 17 insertions(+), 7 deletions(-)
 
-Stephen, David
-
-Is anything expected from me before merging the fixes?
-
-Thanks
-
->
-> --
-> 2.26.2
->
+Thanks,
+Acked-by: Leon Romanovsky <leonro@nvidia.com>
