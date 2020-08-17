@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DBE6C433E1
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73721C433E3
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 372D920658
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EFDB20658
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hG2G6TIw"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LBLxHBYX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728328AbgHQIZ4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:25:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52638 "EHLO
+        id S1728412AbgHQI0X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:26:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728023AbgHQIZx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:25:53 -0400
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A74A1C061388;
-        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id d19so7755380pgl.10;
-        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
+        with ESMTP id S1728404AbgHQI0S (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:26:18 -0400
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 809D8C061388;
+        Mon, 17 Aug 2020 01:26:18 -0700 (PDT)
+Received: by mail-pl1-x644.google.com with SMTP id s14so1164890plp.4;
+        Mon, 17 Aug 2020 01:26:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=iIAfZhwD4u3KlLMECiacU1MTufzkqZbS33SY7LcQr7A=;
-        b=hG2G6TIwKMJXy2HRahBQraJOgltWGzLG9JNMpZ4RSRhs60XANefCGvnE5soeTXpm4f
-         8W7Y1YPZgS9l2UmuOoypi4PZ1qdPVFJ7QEteda3ogrOSn5313M/EE7BZgy5sZrFHhrui
-         KdAhYg0gLgoy5pBrKOtjZKJGxtOE+4FM1rRssMpDabVK+1mj2agBXV7RnGvo3Sx7vvv/
-         0qRK+BXn24CXmouDGXQ2sXFDJUTEkNWdlyk/l+2QSR8ANbeQbj1pMPLjbCHHoaPzPyjG
-         PaFqIMtn8VpzTLw8Vd06NvM257eWA0mBFfDHBaMuUka7/3j5nCdVQi91g8S89hQuYSye
-         dqZw==
+        bh=NGc9GivMW4Gl2PZYS1sshtdVeD119m/l6GvQX46weos=;
+        b=LBLxHBYXHHShApS1V6EqhqlERMx39IJoGg9XyyNS0xxKKPf7wzJlvUp7OZH7MsJNbk
+         Hhy8KpiRMnmdXLU49x03cAV9Hb30GjB3mLnkNXIVN7t7SxDQ0pzRJNjp101YiuBGrc6h
+         +OaSLNfkE2xI7g79vNgCQ+sgLmy75Y0bBKtNhkfSvXuudjABMDUQL5Enx7nI0chgO32d
+         t5Vq04PRATxJxYQ15CIpAo/xswWJNmoEItx+gz7uWetOIqMKbHGTpI5tFRruhMbNCxzv
+         d36pjAk2F3GLgsY9HZ1tEBwdbzTGHHfWhsaWugChVMUm6Bu0PrSMhwW9pPUh7m5In5hF
+         8d0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=iIAfZhwD4u3KlLMECiacU1MTufzkqZbS33SY7LcQr7A=;
-        b=dO9onWG2PDjPteApDsRRrlbaP3SELq1IlLkkWQh9jSDO2ii6zy3xiTmV5ni32Tuh/0
-         77zZaIIwAiqJTtzW+CC74F1/waQYmOqNrq0K8h95tN2LUXtymWvbpv1leikfhvRWSHaV
-         94UICcPFicCtg3oYS8YAKOhTi/sd8pHTtNY/SvPXlo4Wm5C/r4oyaJJdbyNywVrfkdGZ
-         xVYgRDYYOsdFuJXtdGe3Jg1g2I9q7ahoiEZQQ+X9HbgMjWmSuG7JqDPUVazBOZdUwLSj
-         YDipVV4wWIxP7G4LI92XBgXBz+tkA5MxB9hW6cBrNwOsI2WdAwt2yhYzdkIOtqi+1KEG
-         evOg==
-X-Gm-Message-State: AOAM530bXA2HpAwNnzOLNGZRR9cMZgN29kcyXHsenLVIzXBuSS9PjfE5
-        p7xE44otWogc720J6ovTOqI=
-X-Google-Smtp-Source: ABdhPJyHdid6AeC6n0Zvp88ugK0l2FhFHXTm5Bvo/3+IlJzMqY2dzIOg8iBwBCBZqkwkbk4eX5A4Ng==
-X-Received: by 2002:aa7:80d6:: with SMTP id a22mr10784840pfn.275.1597652753273;
-        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
+        bh=NGc9GivMW4Gl2PZYS1sshtdVeD119m/l6GvQX46weos=;
+        b=WbehfnymTJS+u/d4NtI1QlPz8bVfbZnnukB/8Dmkm7zzrQDKwUv0uSpi1YFNI6+sxs
+         yZ72oSii+Ayeg7m7c0V4MpeGJfyTQirk8cpW/AUeQuzHSxY95hz9CROweSEgOcat4Pcf
+         ByfCHyJK8Nyjhd6mRDLsJOFXNh414yJRztuZAtb6/DsiKFV1/YoeoBz8sg+nNyjZNH2i
+         05hDaw7kmrQrryG26Tide2RvnV3vwev+aOK7Y76i+QouvBae/sNh4FYXkXjc471vL7dD
+         55aGbE8n6mFr7vunfROoFAiul2hxEcqg6jzAm1ei6uh/bbl5gLQ0EW0xm1uJGUxXWniw
+         TTtw==
+X-Gm-Message-State: AOAM531tIP2JDNXu3V/jpXaJVFJ0H5/xd8YK4tt2KCoYPmN3N7d97v4T
+        xcPcmcWDcIrKk8NEGgEKgG0=
+X-Google-Smtp-Source: ABdhPJwRCnCkq0qh6UezjQA0oYu6vWfa6QDQxH8Q19OL3Crbp/QUQGdhIqlSJxXrujdjDsmyU1xEDw==
+X-Received: by 2002:a17:90b:208:: with SMTP id fy8mr11168449pjb.131.1597652778097;
+        Mon, 17 Aug 2020 01:26:18 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.25.47
+        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.26.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:25:52 -0700 (PDT)
+        Mon, 17 Aug 2020 01:26:17 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     jes@trained-monkey.org, davem@davemloft.net, kuba@kernel.org,
         kda@linux-powerpc.org, dougmill@linux.ibm.com,
@@ -67,9 +67,9 @@ Cc:     keescook@chromium.org, linux-acenic@sunsite.dk,
         linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
         oss-drivers@netronome.com, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 10/20] ethernet: ibmvnic: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 13:54:24 +0530
-Message-Id: <20200817082434.21176-12-allen.lkml@gmail.com>
+Subject: [PATCH 14/20] ethernet: micrel: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 13:54:28 +0530
+Message-Id: <20200817082434.21176-16-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817082434.21176-1-allen.lkml@gmail.com>
 References: <20200817082434.21176-1-allen.lkml@gmail.com>
@@ -86,35 +86,104 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/net/ethernet/ibm/ibmvnic.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/micrel/ks8842.c  | 19 ++++++++++---------
+ drivers/net/ethernet/micrel/ksz884x.c | 14 ++++++--------
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/net/ethernet/ibm/ibmvnic.c b/drivers/net/ethernet/ibm/ibmvnic.c
-index 5afb3c9c52d2..7c565e167521 100644
---- a/drivers/net/ethernet/ibm/ibmvnic.c
-+++ b/drivers/net/ethernet/ibm/ibmvnic.c
-@@ -4797,9 +4797,9 @@ static irqreturn_t ibmvnic_interrupt(int irq, void *instance)
- 	return IRQ_HANDLED;
+diff --git a/drivers/net/ethernet/micrel/ks8842.c b/drivers/net/ethernet/micrel/ks8842.c
+index f3f6dfe3eddc..8fd32f98c494 100644
+--- a/drivers/net/ethernet/micrel/ks8842.c
++++ b/drivers/net/ethernet/micrel/ks8842.c
+@@ -587,10 +587,11 @@ static int __ks8842_start_new_rx_dma(struct net_device *netdev)
+ 	return err;
  }
  
--static void ibmvnic_tasklet(void *data)
-+static void ibmvnic_tasklet(struct tasklet_struct *t)
+-static void ks8842_rx_frame_dma_tasklet(unsigned long arg)
++static void ks8842_rx_frame_dma_tasklet(struct tasklet_struct *t)
  {
--	struct ibmvnic_adapter *adapter = data;
-+	struct ibmvnic_adapter *adapter = from_tasklet(adapter, t, tasklet);
- 	struct ibmvnic_crq_queue *queue = &adapter->crq;
- 	union ibmvnic_crq *crq;
+-	struct net_device *netdev = (struct net_device *)arg;
+-	struct ks8842_adapter *adapter = netdev_priv(netdev);
++	struct ks8842_adapter *adapter = from_tasklet(adapter, t, dma_rx.tasklet);
++	struct net_device *netdev = (struct net_device *)((char *)adapter -
++				ALIGN(sizeof(struct net_device), NETDEV_ALIGN));
+ 	struct ks8842_rx_dma_ctl *ctl = &adapter->dma_rx;
+ 	struct sk_buff *skb = ctl->skb;
+ 	dma_addr_t addr = sg_dma_address(&ctl->sg);
+@@ -720,10 +721,11 @@ static void ks8842_handle_rx_overrun(struct net_device *netdev,
+ 	netdev->stats.rx_fifo_errors++;
+ }
+ 
+-static void ks8842_tasklet(unsigned long arg)
++static void ks8842_tasklet(struct tasklet_struct *t)
+ {
+-	struct net_device *netdev = (struct net_device *)arg;
+-	struct ks8842_adapter *adapter = netdev_priv(netdev);
++	struct ks8842_adapter *adapter = from_tasklet(adapter, t, tasklet);
++	struct net_device *netdev = (struct net_device *)((char *)adapter -
++				ALIGN(sizeof(struct net_device), NETDEV_ALIGN));
+ 	u16 isr;
  	unsigned long flags;
-@@ -4934,8 +4934,7 @@ static int init_crq_queue(struct ibmvnic_adapter *adapter)
+ 	u16 entry_bank;
+@@ -953,8 +955,7 @@ static int ks8842_alloc_dma_bufs(struct net_device *netdev)
+ 		goto err;
+ 	}
  
- 	retrc = 0;
+-	tasklet_init(&rx_ctl->tasklet, ks8842_rx_frame_dma_tasklet,
+-		(unsigned long)netdev);
++	tasklet_setup(&rx_ctl->tasklet, ks8842_rx_frame_dma_tasklet);
  
--	tasklet_init(&adapter->tasklet, (void *)ibmvnic_tasklet,
--		     (unsigned long)adapter);
-+	tasklet_setup(&adapter->tasklet, (void *)ibmvnic_tasklet);
+ 	return 0;
+ err:
+@@ -1173,7 +1174,7 @@ static int ks8842_probe(struct platform_device *pdev)
+ 		adapter->dma_tx.channel = -1;
+ 	}
  
- 	netdev_dbg(adapter->netdev, "registering irq 0x%x\n", vdev->irq);
- 	snprintf(crq->name, sizeof(crq->name), "ibmvnic-%x",
+-	tasklet_init(&adapter->tasklet, ks8842_tasklet, (unsigned long)netdev);
++	tasklet_setup(&adapter->tasklet, ks8842_tasklet);
+ 	spin_lock_init(&adapter->lock);
+ 
+ 	netdev->netdev_ops = &ks8842_netdev_ops;
+diff --git a/drivers/net/ethernet/micrel/ksz884x.c b/drivers/net/ethernet/micrel/ksz884x.c
+index bb646b65cc95..5130507bbf54 100644
+--- a/drivers/net/ethernet/micrel/ksz884x.c
++++ b/drivers/net/ethernet/micrel/ksz884x.c
+@@ -5159,9 +5159,9 @@ static int dev_rcv_special(struct dev_info *hw_priv)
+ 	return received;
+ }
+ 
+-static void rx_proc_task(unsigned long data)
++static void rx_proc_task(struct tasklet_struct *t)
+ {
+-	struct dev_info *hw_priv = (struct dev_info *) data;
++	struct dev_info *hw_priv = from_tasklet(hw_priv, t, rx_tasklet);
+ 	struct ksz_hw *hw = &hw_priv->hw;
+ 
+ 	if (!hw->enabled)
+@@ -5181,9 +5181,9 @@ static void rx_proc_task(unsigned long data)
+ 	}
+ }
+ 
+-static void tx_proc_task(unsigned long data)
++static void tx_proc_task(struct tasklet_struct *t)
+ {
+-	struct dev_info *hw_priv = (struct dev_info *) data;
++	struct dev_info *hw_priv = from_tasklet(hw_priv, t, tx_tasklet);
+ 	struct ksz_hw *hw = &hw_priv->hw;
+ 
+ 	hw_ack_intr(hw, KS884X_INT_TX_MASK);
+@@ -5436,10 +5436,8 @@ static int prepare_hardware(struct net_device *dev)
+ 	rc = request_irq(dev->irq, netdev_intr, IRQF_SHARED, dev->name, dev);
+ 	if (rc)
+ 		return rc;
+-	tasklet_init(&hw_priv->rx_tasklet, rx_proc_task,
+-		     (unsigned long) hw_priv);
+-	tasklet_init(&hw_priv->tx_tasklet, tx_proc_task,
+-		     (unsigned long) hw_priv);
++	tasklet_setup(&hw_priv->rx_tasklet, rx_proc_task);
++	tasklet_setup(&hw_priv->tx_tasklet, tx_proc_task);
+ 
+ 	hw->promiscuous = 0;
+ 	hw->all_multi = 0;
 -- 
 2.17.1
 
