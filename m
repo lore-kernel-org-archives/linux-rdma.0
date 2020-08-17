@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB0CC433E3
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:52:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94750C433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:53:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C9422067C
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:52:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 751862067C
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:53:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZvtBicJ4"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CoGj2d/h"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728532AbgHQIw0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:52:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56884 "EHLO
+        id S1728360AbgHQIwK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:52:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728496AbgHQIwS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:52:18 -0400
-Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B1F6C061388;
-        Mon, 17 Aug 2020 01:52:18 -0700 (PDT)
-Received: by mail-pj1-x1042.google.com with SMTP id ha11so7377044pjb.1;
-        Mon, 17 Aug 2020 01:52:18 -0700 (PDT)
+        with ESMTP id S1727007AbgHQIwD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:52:03 -0400
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B373C061388;
+        Mon, 17 Aug 2020 01:52:03 -0700 (PDT)
+Received: by mail-pl1-x644.google.com with SMTP id y10so5603974plr.11;
+        Mon, 17 Aug 2020 01:52:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=vizVhQpfl/P3IK7pdHhXwQuZJfxeoLTLAQwlgNJNWDQ=;
-        b=ZvtBicJ4SHYCH+T9jknNOHbGL5ebXQExMrnEngS40FAumeB0nrQtJxh7WcMySXmaDQ
-         ak4WnkwOWVjRV315tOGdLCe/Mi10sI68E212P2cU9T8Qid/O9SKl6e3rgVQ7Z4acf2Vy
-         AQ8w50xgaBk9idsZ8zZ8KX0FwdxK4fJCtxz8BYhpe7JR/qgUxVyVhym4Sq5oyI0/rOxh
-         Sl1irBBzjVytyAvys0zlbu6OnAfAXtD8Apvp1JBzm96pAHcbc3TYOmCfwUp0W/HbIgCa
-         ynXCtwGrz+hWLI63HITzVI8MA7NdK67qI012GX4nO76plWswzvHbiCu/5SVyLIYBylY1
-         OqRA==
+        bh=/Dwv0Cic7T6kz8Rts1cgLM7pEUoAzAWE8onSffb/CRY=;
+        b=CoGj2d/h+8Kc9CWQDDtSzGXdf08Gnkjryfx4wKEKQ2hzvLKCAnNWJCx1nm0ddyU8YK
+         V6c2cURPPd2WUu91ps+wgkH4s0FZLalYBMI/7HH7gnSRgxdIAUSBxGeiVdRrHzdisAaB
+         rfCXlOTlJIi3uwTXOLf+1FVEWCdjiq/Tq6a8GctK+hotTmNXK33F2ugGf7510Nodjdxo
+         JHMVle1h6yzBVPKVVGK4ZyYyOGM55FRqalHY7jOFE/Te9peW80xoOAA5rblb8aCQ37hO
+         gUNUlxMp+YJz2piUpHaXcpautwjevnR8wGPezLBo0pAOFc36kB+Q/KtJ2p6+z2KxBQUU
+         46zg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=vizVhQpfl/P3IK7pdHhXwQuZJfxeoLTLAQwlgNJNWDQ=;
-        b=q6I8yskDflkAqDdTrroS1yqVqCSwR7NMTkYy6JipIAnlK00/Gw21hmOHIwLA2fbHHQ
-         fmfSwA1tkTIVyNBJOW1IIeRIqHGE7n7C4Lu6BqRakjbnh6gWjgxKIoLakayveoead+d2
-         fUpPsHdSFSXbSxdZlOMM/8r3RQV8FeSyNbZHOb02qxIm8RH/zJq5FfvCnMr1WwzVRzWo
-         fnyLRjoebQPuqnRvgCfl4IL2+9m05vyNJzKo0vr6xQyI4VRYpgQ4bmBizsRFhiHSXo8Z
-         3vrVdPXOMCFSQBDfWW/kCCVNJfTOqPaM0laKjG9naqq+DcrI5mVlQlt1qUDfb4g9Rngk
-         rFPA==
-X-Gm-Message-State: AOAM533VcswTlYfpwGTr/vqWNcc3ZBD5VWgvY9bIpMNlJAc58aYy/ML4
-        kGw63gU1LFcKsEchNJb05ss=
-X-Google-Smtp-Source: ABdhPJz0JVPD+0NkPV6g7YT8ZnT0v2Chrhm2dyQYkE8uYkF0hl+N5WY8lwYvVona5wPQ+g0GAcnB7w==
-X-Received: by 2002:a17:902:8b8b:: with SMTP id ay11mr10720345plb.241.1597654337917;
-        Mon, 17 Aug 2020 01:52:17 -0700 (PDT)
+        bh=/Dwv0Cic7T6kz8Rts1cgLM7pEUoAzAWE8onSffb/CRY=;
+        b=ijTnR+3O3fgn9rruujy9kWYwQr2fBgy5MN3+VtP6QtS6lqhcddPr/L+2HUG4DCElS2
+         GFQRpVGQ8rZRuKiWvinDB9MTFjrw0wF0hdVpBpj168s1ZxgrcR4Ne8ncVfB4G/TEG8iv
+         B4niU98zTgEK/nQupBKBKWl9OlCRAKYELSTgeGO44FL+xXwEsdMIUYMmANw8Udxch4/u
+         N127IfQMv3Mk3bBobW67Cx309szwMm2VEs9B7TkMImKfLRbzwlMhYMDEi6m3PBzOSNnA
+         KF5zXgPvvdj69fghHQO8cwuTPPZwZpy1j3bFizRz1McauEBTGuFJlAzQMwNzrBJjcZmJ
+         7YKA==
+X-Gm-Message-State: AOAM531inZ5xRzD5ULvwMb3G7XzgOEkhC8Fr+aIpcTaJsaSHZ1s47qjb
+        EeWb8GbSg4/7vg7Kwsdn+Ec=
+X-Google-Smtp-Source: ABdhPJytBX5O91tG68f9TX19wYBPt+IKOmYp94gCzm4N16NATR0r2Ef8mF3P33JY9+mj9FNO5dwIvw==
+X-Received: by 2002:a17:90a:ea91:: with SMTP id h17mr11482982pjz.36.1597654322795;
+        Mon, 17 Aug 2020 01:52:02 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id b185sm18554863pfg.71.2020.08.17.01.52.11
+        by smtp.gmail.com with ESMTPSA id b185sm18554863pfg.71.2020.08.17.01.51.55
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:52:17 -0700 (PDT)
+        Mon, 17 Aug 2020 01:52:02 -0700 (PDT)
 From:   Allen Pais <allen.cryptic@gmail.com>
 To:     gerrit@erg.abdn.ac.uk, davem@davemloft.net, kuba@kernel.org,
         edumazet@google.com, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
@@ -68,9 +68,9 @@ Cc:     keescook@chromium.org, netdev@vger.kernel.org,
         linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-s390@vger.kernel.org, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 6/8] net: sched: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 14:21:18 +0530
-Message-Id: <20200817085120.24894-6-allen.cryptic@gmail.com>
+Subject: [PATCH 4/8] net: mac802154: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 14:21:16 +0530
+Message-Id: <20200817085120.24894-4-allen.cryptic@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817085120.24894-1-allen.cryptic@gmail.com>
 References: <20200817085120.24894-1-allen.cryptic@gmail.com>
@@ -89,36 +89,35 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- net/sched/sch_atm.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ net/mac802154/main.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/net/sched/sch_atm.c b/net/sched/sch_atm.c
-index 1c281cc81f57..0a4452178d5d 100644
---- a/net/sched/sch_atm.c
-+++ b/net/sched/sch_atm.c
-@@ -466,10 +466,11 @@ drop: __maybe_unused
-  * non-ATM interfaces.
-  */
+diff --git a/net/mac802154/main.c b/net/mac802154/main.c
+index 06ea0f8bfd5c..520cedc594e1 100644
+--- a/net/mac802154/main.c
++++ b/net/mac802154/main.c
+@@ -20,9 +20,9 @@
+ #include "ieee802154_i.h"
+ #include "cfg.h"
  
--static void sch_atm_dequeue(unsigned long data)
-+static void sch_atm_dequeue(struct tasklet_struct *t)
+-static void ieee802154_tasklet_handler(unsigned long data)
++static void ieee802154_tasklet_handler(struct tasklet_struct *t)
  {
--	struct Qdisc *sch = (struct Qdisc *)data;
--	struct atm_qdisc_data *p = qdisc_priv(sch);
-+	struct atm_qdisc_data *p = from_tasklet(p, t, task);
-+	struct Qdisc *sch = (struct Qdisc *)((char *) p -
-+					     QDISC_ALIGN(sizeof(struct Qdisc)));
- 	struct atm_flow_data *flow;
+-	struct ieee802154_local *local = (struct ieee802154_local *)data;
++	struct ieee802154_local *local = from_tasklet(local, t, tasklet);
  	struct sk_buff *skb;
  
-@@ -563,7 +564,7 @@ static int atm_tc_init(struct Qdisc *sch, struct nlattr *opt,
- 	if (err)
- 		return err;
+ 	while ((skb = skb_dequeue(&local->skb_queue))) {
+@@ -91,9 +91,7 @@ ieee802154_alloc_hw(size_t priv_data_len, const struct ieee802154_ops *ops)
+ 	INIT_LIST_HEAD(&local->interfaces);
+ 	mutex_init(&local->iflist_mtx);
  
--	tasklet_init(&p->task, sch_atm_dequeue, (unsigned long)sch);
-+	tasklet_setup(&p->task, sch_atm_dequeue);
- 	return 0;
- }
+-	tasklet_init(&local->tasklet,
+-		     ieee802154_tasklet_handler,
+-		     (unsigned long)local);
++	tasklet_setup(&local->tasklet, ieee802154_tasklet_handler);
+ 
+ 	skb_queue_head_init(&local->skb_queue);
  
 -- 
 2.17.1
