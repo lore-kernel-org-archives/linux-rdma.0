@@ -2,77 +2,109 @@ Return-Path: <SRS0=H3r4=B3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC2CC433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 19:29:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BEAC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 19:50:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF1DA204EC
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 19:29:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597692568;
-	bh=2c4Yh95xvolsVljCfBjOgUgBnpWZevsxHtYN4hwUUuQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=xPtD3A+0ixi8xyHeEaGieyVYRxVlY415DGmMlgSCMdeOoS7eV9OamU2O8eADdm+YX
-	 6njXjVIuRG1C2TdKj3fyIuyD0+ng5ERgTHWLErmJ7LSqk7NUKIWgjVoNeZXynSlfNd
-	 9/hmb0kv2/2d4q5iRXdDcpV9g9dzKZS5FoZef0lc=
+	by mail.kernel.org (Postfix) with ESMTP id 71F5F20758
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 19:50:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fHLgGOcN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732060AbgHQT3Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 15:29:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59370 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730315AbgHQPcT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 17 Aug 2020 11:32:19 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.7])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AC03B207FF;
-        Mon, 17 Aug 2020 15:32:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597678339;
-        bh=2c4Yh95xvolsVljCfBjOgUgBnpWZevsxHtYN4hwUUuQ=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=PqJ4AUhNCRXS/VC9OkD2uAmeo4aNAyZFhtAwYnKIWQMQg4HzuxJiPNeQAvPUunzxL
-         vszsyooQh67yVwKcN2epBRLBbjuWuZCRBZX1do/00btQNQEi18MWMihYss83LaZXfH
-         JZrLi1BvTDV+8rUaibFK/+EgCNKN/gzQ0u1Bd7vo=
-Date:   Mon, 17 Aug 2020 08:32:16 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Allen Pais <allen.lkml@gmail.com>
-Cc:     jes@trained-monkey.org, davem@davemloft.net, kda@linux-powerpc.org,
-        dougmill@linux.ibm.com, cooldavid@cooldavid.org,
-        mlindner@marvell.com, borisp@mellanox.com, keescook@chromium.org,
-        linux-acenic@sunsite.dk, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
-        oss-drivers@netronome.com, Romain Perier <romain.perier@gmail.com>
-Subject: Re: [PATCH 06/20] ethernet: chelsio: convert tasklets to use new
- tasklet_setup() API
-Message-ID: <20200817083216.5367f56a@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200817082434.21176-8-allen.lkml@gmail.com>
-References: <20200817082434.21176-1-allen.lkml@gmail.com>
-        <20200817082434.21176-8-allen.lkml@gmail.com>
+        id S1729320AbgHQTuP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 15:50:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60496 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729230AbgHQPTd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 11:19:33 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 555E8C061389;
+        Mon, 17 Aug 2020 08:19:32 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id a5so17870352ioa.13;
+        Mon, 17 Aug 2020 08:19:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:subject:from:to:cc:date:message-id:user-agent:mime-version
+         :content-transfer-encoding;
+        bh=8BH4RpVFeN8HQQw+sm8fZ6BSx4qaDJ2dPNkdDHJsfsg=;
+        b=fHLgGOcNsijUKicuPTFAQrCAQz3n3tk5iF/XFx9O+G+knGxJjfNWbvh2Y7oBevCbws
+         caewExV0Gzyc+c29bVF4yUBi0R9b97WxKk2Y8GzAY4GeN/nKAUZk7Q6JVfIMQrICk5yq
+         n1TqxBh3pLlx6H5O1aAUSAD6sMiNDmQeFpkJok87tyw1tqy17z4aFoF3BP+b6HhrrRZs
+         ABgV8a2F+Z+WL3VA1qyt3q64btRjstbJbygPt+2KvwtYWfsrXvd1JHeXLfxYQRl8XTUa
+         PgZBxgMuT/uXdNsMN/TxQpFr2zVX1cGkbATj0R19DXLuCniLFKHLfAb96Ms825pCD6si
+         uMTA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:subject:from:to:cc:date:message-id
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=8BH4RpVFeN8HQQw+sm8fZ6BSx4qaDJ2dPNkdDHJsfsg=;
+        b=jm/XAdSRBn+CEBlQ4i6affIbWehuwE8QYhb9ZXi6HSlJDGFnN6DuNKg/5VThoEc0/j
+         lfp2cz03kOFwrk72EPyidTnZPtc/oLSEpFXssXikdi4eYulcGDru4YUtIoOZ9LPXYzFy
+         hQXE5R4LYPSN2lTETLyT3ZgMMz6tP8IXnAa9aOzNjnVcioGL2DPFy1CjINcrdRTu4/Eb
+         zsgKLKqCNEhnSQLLQrjJL8/cZlwS6dypuWnJfeHEt0fHlmaExRnsrQ3q3DGsXDa9lpxV
+         ru4bkvbYOOjJr8hyDADgfeIGrHbadHE08X7eEQ1BipLN3IjSZBYgRGgw3xumo31BIudV
+         tnYw==
+X-Gm-Message-State: AOAM533GQsPqWhtKeQXQCu0EAVgFpcVHTsdVJPnfY34u9u6Q/i9pqwwD
+        WRURuyXpEiW8YnwZ6a4n0gtXO3c9yFN1UA==
+X-Google-Smtp-Source: ABdhPJwgFPXtwXsesZlIrxRT7QtiIii1KMjENrl88rCLm2HCEgZ3JlQ6uwDBy8p+4guv9bqvl193Mg==
+X-Received: by 2002:a6b:3bcf:: with SMTP id i198mr12965996ioa.194.1597677569534;
+        Mon, 17 Aug 2020 08:19:29 -0700 (PDT)
+Received: from gateway.1015granger.net (c-68-61-232-219.hsd1.mi.comcast.net. [68.61.232.219])
+        by smtp.gmail.com with ESMTPSA id t14sm9205736ios.18.2020.08.17.08.19.28
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 17 Aug 2020 08:19:28 -0700 (PDT)
+Received: from manet.1015granger.net (manet.1015granger.net [192.168.1.51])
+        by gateway.1015granger.net (8.14.7/8.14.7) with ESMTP id 07HFJQcR004835;
+        Mon, 17 Aug 2020 15:19:27 GMT
+Subject: [PATCH RFC] xprtrdma: Release in-flight MRs on disconnect
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     dan@kernelim.com
+Cc:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Mon, 17 Aug 2020 11:19:26 -0400
+Message-ID: <159767751439.190071.13659900216337230912.stgit@manet.1015granger.net>
+User-Agent: StGit/0.23
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, 17 Aug 2020 13:54:20 +0530 Allen Pais wrote:
-> In preparation for unconditionally passing the
-> struct tasklet_struct pointer to all tasklet
-> callbacks, switch to using the new tasklet_setup()
-> and from_tasklet() to pass the tasklet pointer explicitly.
-> 
-> Signed-off-by: Romain Perier <romain.perier@gmail.com>
-> Signed-off-by: Allen Pais <allen.lkml@gmail.com>
+Dan Aloni reports that when a server disconnects abruptly, a few
+memory regions are left DMA mapped. Over time this leak could pin
+enough I/O resources to slow or even deadlock an NFS/RDMA client.
 
-You need to adjust kdoc when you change functions:
+I found that if a transport disconnects before pending Send and
+FastReg WRs can be posted, the to-be-registered MRs are stranded on
+the req's rl_registered list and never released -- since they
+weren't posted, there's no Send completion to DMA unmap them.
 
-drivers/net/ethernet/chelsio/cxgb4/sge.c:2664: warning: Function parameter or member 't' not described in 'restart_ctrlq'
-drivers/net/ethernet/chelsio/cxgb4/sge.c:2664: warning: Excess function parameter 'data' description in 'restart_ctrlq'
-drivers/net/ethernet/chelsio/cxgb4/sge.c:2965: warning: Function parameter or member 't' not described in 'restart_ofldq'
-drivers/net/ethernet/chelsio/cxgb4/sge.c:2965: warning: Excess function parameter 'data' description in 'restart_ofldq'
+Reported-by: Dan Aloni <dan@kernelim.com>
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+---
+ net/sunrpc/xprtrdma/verbs.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Hi Dan, does this help?
+
+
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 95c66a339e34..53962e41896d 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -936,6 +936,8 @@ static void rpcrdma_req_reset(struct rpcrdma_req *req)
+ 
+ 	rpcrdma_regbuf_dma_unmap(req->rl_sendbuf);
+ 	rpcrdma_regbuf_dma_unmap(req->rl_recvbuf);
++
++	frwr_reset(req);
+ }
+ 
+ /* ASSUMPTION: the rb_allreqs list is stable for the duration,
+
+
