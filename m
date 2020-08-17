@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80A03C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C50DC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FDDF2063A
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECCCF2063A
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XNx3Kz/k"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FPU+w3ND"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726361AbgHQI1T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:27:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52734 "EHLO
+        id S1728270AbgHQI0R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:26:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728250AbgHQI0Z (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:26:25 -0400
-Received: from mail-pj1-x1044.google.com (mail-pj1-x1044.google.com [IPv6:2607:f8b0:4864:20::1044])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9861AC061388;
-        Mon, 17 Aug 2020 01:26:25 -0700 (PDT)
-Received: by mail-pj1-x1044.google.com with SMTP id t6so7348674pjr.0;
-        Mon, 17 Aug 2020 01:26:25 -0700 (PDT)
+        with ESMTP id S1726777AbgHQI0G (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:26:06 -0400
+Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22EF5C061388;
+        Mon, 17 Aug 2020 01:26:05 -0700 (PDT)
+Received: by mail-pj1-x1043.google.com with SMTP id d4so7338233pjx.5;
+        Mon, 17 Aug 2020 01:26:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Df7yxK//cmVxvAkf6cXduXiAsh32H2X5cVsb6K8GHGM=;
-        b=XNx3Kz/kSLSRc7VTJus4z7RYdORZ86+CFl9HXiWO+FTTDyVpTDjj3setW6Q8pT38mh
-         NmOs1/ct0cRXsbBeRTwvx4W1afRcRX6p+G7YG0U9cG5hRYgnLqPpAHCICNeXp8/3MONy
-         Xb3t+Azgude6qcZ6sxW9JZsKZzsk9pUn+LymdgQuENerjmXXr6xtfYbelZuiw41dEIdz
-         P0wXQ2PtBLxCES+dmV6SBamPReFvL3SyU1HWQp3U4mxHPklRPF+So6pXcy8/wvv8Fb3R
-         /UdfL3Ca2orJ4GrTPiExKanCPWj2W3yP+gt/KsqbHMJLz7Lpae2Pp5SYue11557317bf
-         LDcw==
+        bh=cL9JEmBEHVr7j+h/t21HJyCd1D6huw3HDaRf1+0pC7c=;
+        b=FPU+w3NDPol567vC+h/ZbTlRf2kz8vO1fFt9hvJys9Ppxj1YeH8QP1vbGeucslM6P0
+         Im1necIo+mxJGaKwhjo+ScTY3KUflAYspI4/wzqj1sWuvWLhM6e9CoyKQjR3vWs1ikX2
+         PJ3SFrUqKBN7RrjeFJC5ScMlVN4+/BGn0dqN80T1Cm4XmoQT/wlra+F7rGPNWJAiesRI
+         ArrrkVKF8Uu38hcYnKkiFG0HM1hqETjnLfmDrVnENXPGFquqETDot1namxUVLPK7p2Dj
+         0l319BCnw7iS/FBOzZeUsQrgv1jRKBX8OLhkOu5HWCW7yfhayCha6zoXqXzv0eMxW7Fo
+         m8EQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Df7yxK//cmVxvAkf6cXduXiAsh32H2X5cVsb6K8GHGM=;
-        b=faxjoWPYRJnQEW9g98fuS9hx49aen021prBJqSg+9Eq/93V1rFw0xg0bRDsrbHPoDE
-         dt2u2T9TYOmkYd7J7Bdg4GeKEiiHXr4UI/jmtZqPzKLucFAEXYUrwPj+LAREWqHgBSaq
-         kvi11bji5LD5HyzGc06BgriiTl8l62lRGykiDmgdP8y2AL4nObVTUk4TJzKoSMroXPYU
-         PLfNwyqo3LeQhtm0XllrLlxCyGQkvTO68x/Co1lhb9GxmdeGYLyVPcPmss67+Iwv69L2
-         lmfLgvffNhLOADkg14adjiJaTrF98VyFp2hjZ0BklXPhY+lD2BdEKiOfpFSg0omM/bas
-         GlGQ==
-X-Gm-Message-State: AOAM532Fa1R2v7yLmI/uSomPL2OeHpS2LYcXNFnovMASPy3yBIlnALHL
-        te9GO2oPmUimVnqQKKQt26g=
-X-Google-Smtp-Source: ABdhPJy25qZkwLdPxae9MaYOKgL9LadrOvMoVqZOA4GCkZihBoxS6mmIhsQz13i9lJFXT11QTvGjjQ==
-X-Received: by 2002:a17:902:264:: with SMTP id 91mr10638591plc.88.1597652785215;
-        Mon, 17 Aug 2020 01:26:25 -0700 (PDT)
+        bh=cL9JEmBEHVr7j+h/t21HJyCd1D6huw3HDaRf1+0pC7c=;
+        b=iwmD+PIuEo1aQITUyQ5odq+UtZby8yrZLOqvOwp9lpldt7MMLy4ArgxW2S6eMuGj0u
+         uHfgpf9//zX2yNcV647ZB33PJBBMDSem4/etxegLjD5CRJcVXwQKGL/GNuLGYZFymYXT
+         HO8Mlztm2LXVs7Amz0bXwbkm2A9tSgwuswoi2PmtEhN6bEH4HKybLMqzTERb8V51gS6M
+         yUCicmnUDkCK/CoWvHzznXgA+uAHor9eIgpgKAHIQ6ksVWLP7F3xtkApoN71u/PWs2x6
+         2i3HWfXlSv0818kjrhYAy9juhjvBGDQ3zt6Y2iNomabGjBZDE6iWw4aTyys5LgKDO49k
+         4g6Q==
+X-Gm-Message-State: AOAM530qLkXtLAlheIv+33TJoHVVu3mH07B/kEAsPt3q6iZoKJrTT4LQ
+        2jCgUZ4fWnpn/5pWvJOxebA=
+X-Google-Smtp-Source: ABdhPJwIeOMMqSxIZ7onJbrSMiRju8pATc7y+zI7a+Unpdh2nCA4eorIzXR73r8269HMrnvzGnz7Cg==
+X-Received: by 2002:a17:90a:8589:: with SMTP id m9mr11878650pjn.109.1597652764728;
+        Mon, 17 Aug 2020 01:26:04 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.26.18
+        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.25.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:26:24 -0700 (PDT)
+        Mon, 17 Aug 2020 01:26:04 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     jes@trained-monkey.org, davem@davemloft.net, kuba@kernel.org,
         kda@linux-powerpc.org, dougmill@linux.ibm.com,
@@ -67,9 +67,9 @@ Cc:     keescook@chromium.org, linux-acenic@sunsite.dk,
         linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
         oss-drivers@netronome.com, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 15/20] ethernet: natsemi: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 13:54:29 +0530
-Message-Id: <20200817082434.21176-17-allen.lkml@gmail.com>
+Subject: [PATCH 12/20] ethernet: marvell: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 13:54:26 +0530
+Message-Id: <20200817082434.21176-14-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817082434.21176-1-allen.lkml@gmail.com>
 References: <20200817082434.21176-1-allen.lkml@gmail.com>
@@ -86,36 +86,34 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/net/ethernet/natsemi/ns83820.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/marvell/skge.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/natsemi/ns83820.c b/drivers/net/ethernet/natsemi/ns83820.c
-index 8e24c7acf79b..9157c1bffc79 100644
---- a/drivers/net/ethernet/natsemi/ns83820.c
-+++ b/drivers/net/ethernet/natsemi/ns83820.c
-@@ -923,10 +923,10 @@ static void rx_irq(struct net_device *ndev)
- 	spin_unlock_irqrestore(&info->lock, flags);
- }
- 
--static void rx_action(unsigned long _dev)
-+static void rx_action(struct tasklet_struct *t)
+diff --git a/drivers/net/ethernet/marvell/skge.c b/drivers/net/ethernet/marvell/skge.c
+index b792f6306a64..55fe901d3562 100644
+--- a/drivers/net/ethernet/marvell/skge.c
++++ b/drivers/net/ethernet/marvell/skge.c
+@@ -3338,9 +3338,9 @@ static void skge_error_irq(struct skge_hw *hw)
+  * because accessing phy registers requires spin wait which might
+  * cause excess interrupt latency.
+  */
+-static void skge_extirq(unsigned long arg)
++static void skge_extirq(struct tasklet_struct *t)
  {
--	struct net_device *ndev = (void *)_dev;
--	struct ns83820 *dev = PRIV(ndev);
-+	struct ns83820 *dev = from_tasklet(dev, t, rx_tasklet);
-+	struct net_device *ndev = dev->ndev;
- 	rx_irq(ndev);
- 	writel(ihr, dev->base + IHR);
+-	struct skge_hw *hw = (struct skge_hw *) arg;
++	struct skge_hw *hw = from_tasklet(hw, t, phy_task);
+ 	int port;
  
-@@ -1927,7 +1927,7 @@ static int ns83820_init_one(struct pci_dev *pci_dev,
- 	SET_NETDEV_DEV(ndev, &pci_dev->dev);
+ 	for (port = 0; port < hw->ports; port++) {
+@@ -3927,7 +3927,7 @@ static int skge_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	hw->pdev = pdev;
+ 	spin_lock_init(&hw->hw_lock);
+ 	spin_lock_init(&hw->phy_lock);
+-	tasklet_init(&hw->phy_task, skge_extirq, (unsigned long) hw);
++	tasklet_setup(&hw->phy_task, skge_extirq);
  
- 	INIT_WORK(&dev->tq_refill, queue_refill);
--	tasklet_init(&dev->rx_tasklet, rx_action, (unsigned long)ndev);
-+	tasklet_setup(&dev->rx_tasklet, rx_action);
- 
- 	err = pci_enable_device(pci_dev);
- 	if (err) {
+ 	hw->regs = ioremap(pci_resource_start(pdev, 0), 0x4000);
+ 	if (!hw->regs) {
 -- 
 2.17.1
 
