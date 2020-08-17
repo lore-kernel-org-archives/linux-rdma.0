@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B44C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D491C433E1
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:29:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E06572063A
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:29:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00AB320658
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:29:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hiDC4kHB"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SNWSPMws"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728537AbgHQI3J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:29:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53158 "EHLO
+        id S1728357AbgHQI3T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:29:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728476AbgHQI3B (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:29:01 -0400
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88047C061388;
-        Mon, 17 Aug 2020 01:29:01 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id v15so7767268pgh.6;
-        Mon, 17 Aug 2020 01:29:01 -0700 (PDT)
+        with ESMTP id S1728230AbgHQI3O (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:29:14 -0400
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9510C06138A;
+        Mon, 17 Aug 2020 01:29:13 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id g15so3241986plj.6;
+        Mon, 17 Aug 2020 01:29:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=XENeoBCKyWTtiUl0dpWZasQXBk+ronARsAja9/yaUcY=;
-        b=hiDC4kHBdr9sGRb0O49pn7dK1h1n/1aohypTOAdIhkxy+HaIoti9xyh+c0fQwri9Hh
-         0i5ea2wAD6wJ1xki3DyGHyOt0GObl6K7/smyA04qbHyj2Uzd7BSAEkkgg7qi/bOTN2fY
-         rnZlw8+ywWhYRGdn9qQ1n9wkZvTLpsUpsjPX6qf7JX6Uk9os1RJgZ7iNVIKr0pq+3pAQ
-         dwyL5AzSAD4VMesHn2rCWgE+po3gUZgrS5oFvgPz5An23jEVAKspUGCCJ6JU+PyT2D+H
-         FGJeMYH3nESiSaZ/aW0IDnmhW0Lwhnm009Wk5iU3Zxhx/iLK8agDlMQBfP9SoIXFE/qy
-         Pxpw==
+        bh=mpTvLV2skT2BsbjdvmvS7WbpiU8WJnm3QiU8cdWEdZ4=;
+        b=SNWSPMwsXxcDYbomSRcnWgDAgrZhmhBy8lduJbQaXMy+E9NVBYG03V3AkFcWRmPMvl
+         3YRVv+7y+pwFpXYmXN/FA9JNpbFfc15APZ0olb5+4LfFYvYkI2ULJPYTtbJw4zpBR7Xb
+         zRu2Fo+vvj/P2ySD7JB2GzVdKKNri4936It09heU52HVUE2NjTL74SZmLUH/qLjUPZp0
+         Tra4yxkqiRvg30v9O+rxuRiz6/cO4nQCL7FBR+LPi5yJ0NBFm2uLriS0r0vslsbYNcmi
+         N2qL+Z1uEq2ami3M/o0u1zjiFGE7w1IMzyfDoJJW8doGP26pfIfxiiB3+677/1Rwcna1
+         kFHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=XENeoBCKyWTtiUl0dpWZasQXBk+ronARsAja9/yaUcY=;
-        b=kW4W6Psm37muVadEjawKS9qCjZeW1u0a+5OXZ1PHCBnNtbtDKoCg/iXAeMDoRi3yj3
-         XdhDrW1zG5qSFABuqtFoXnU96X0q+Vv44CI1dDZQ1b+8VxOnqHcZPAzLWhVTv+8y075R
-         eZLRZPtHg8ilZP9a20UUMH9Dx8IXxmp9cj0Yt++9sgp4EZXmlZfFLeBixrcAqYblpFoz
-         Gq2ZIUW8bv/O352NdadK+yse9BIBO/3AjDavNz3vJwR1sm1ThYl49ayfvGrxCkUw6FXa
-         7/0ImF3tdrK3iNEetItEvUvG/F34K8ERrh4zqSsqvaQxjyUWIJBW3xJ+HxHNDW/Ie/wm
-         umXw==
-X-Gm-Message-State: AOAM530rptWADfvF9hAabeBN8wlsSfKa4t+1WyZmMBwefEyQ/cqGOYPo
-        F8Z6OZIVL8UE4Ja6e/FYAeY=
-X-Google-Smtp-Source: ABdhPJwDlt4tay3WDgrh7aIeyF6ut8/vBFV4jzLg2Yi/J2EtXODMALsepndnffA7lYPYM2qANeRmjw==
-X-Received: by 2002:a65:4786:: with SMTP id e6mr9186339pgs.258.1597652940902;
-        Mon, 17 Aug 2020 01:29:00 -0700 (PDT)
+        bh=mpTvLV2skT2BsbjdvmvS7WbpiU8WJnm3QiU8cdWEdZ4=;
+        b=VF7KeOV//SixubgXnDzLRcMSR3/vtOcvPmsmoJxt68jSL6loK9E1k5j3bz1AvXjpL+
+         R/xvICq4GI0dx1WJaC+VncNbiATFwV4JcCtMF+JjF16XeiMjQy/1PXOgH99o9MPU/+5+
+         e9v9e/0tw4x3ppAybDDGsbvulSDoSPlo0g1sDYN4+rIJhJMozck2kbaActPMHRpnhDqS
+         N3FnqIFgVSRpSB+lvDS5jFAiX1kC3LBaJqtwktUL5xn7aGaL8Z5fNUMhk3oQsZKkSK34
+         wsx/jB/43w5HNXLdh/Z1vEckUGeWzCw8nj8Z4MPOuNHCol7DY2xnTJJnYWA4wIdOKpD9
+         hbsg==
+X-Gm-Message-State: AOAM532Nq5Fq5t8JvbEhsy1y+63P4vxsKJVNhOBNwrB1RXK3OmAZWGUC
+        Z0CSrr51FHo7ILwLov3odSo=
+X-Google-Smtp-Source: ABdhPJzJfA4xlE8UeGwJ9+bgNisAJobpuTK3w/8/kC6OJBAqNyzXiJgEaqpAI3iSlFmnqryEyLwp/Q==
+X-Received: by 2002:a17:902:c151:: with SMTP id 17mr9914837plj.228.1597652953478;
+        Mon, 17 Aug 2020 01:29:13 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id r7sm18948102pfl.186.2020.08.17.01.28.57
+        by smtp.gmail.com with ESMTPSA id r7sm18948102pfl.186.2020.08.17.01.29.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:29:00 -0700 (PDT)
+        Mon, 17 Aug 2020 01:29:13 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     selvin.xavier@broadcom.com, devesh.sharma@broadcom.com,
         somnath.kotur@broadcom.com, sriharsha.basavapatna@broadcom.com,
@@ -64,9 +64,9 @@ To:     selvin.xavier@broadcom.com, devesh.sharma@broadcom.com,
 Cc:     keescook@chromium.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 1/5] infiniband: bnxt_re: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 13:58:40 +0530
-Message-Id: <20200817082844.21700-2-allen.lkml@gmail.com>
+Subject: [PATCH 4/5] infiniband: qib: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 13:58:43 +0530
+Message-Id: <20200817082844.21700-5-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817082844.21700-1-allen.lkml@gmail.com>
 References: <20200817082844.21700-1-allen.lkml@gmail.com>
@@ -83,82 +83,72 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_fp.c   |  7 +++----
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 13 ++++++-------
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/qib/qib_iba7322.c |  7 +++----
+ drivers/infiniband/hw/qib/qib_sdma.c    | 10 +++++-----
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 117b42349a28..62b01582aa1c 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -295,9 +295,9 @@ static void __wait_for_all_nqes(struct bnxt_qplib_cq *cq, u16 cnq_events)
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 8bcbc884e5b6..0f6f021e0562 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -1733,9 +1733,9 @@ static noinline void handle_7322_errors(struct qib_devdata *dd)
+ 	return;
+ }
+ 
+-static void qib_error_tasklet(unsigned long data)
++static void qib_error_tasklet(struct tasklet_struct *t)
+ {
+-	struct qib_devdata *dd = (struct qib_devdata *)data;
++	struct qib_devdata *dd = from_tasklet(dd, t, error_tasklet);
+ 
+ 	handle_7322_errors(dd);
+ 	qib_write_kreg(dd, kr_errmask, dd->cspec->errormask);
+@@ -3537,8 +3537,7 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 	for (i = 0; i < ARRAY_SIZE(redirect); i++)
+ 		qib_write_kreg(dd, kr_intredirect + i, redirect[i]);
+ 	dd->cspec->main_int_mask = mask;
+-	tasklet_init(&dd->error_tasklet, qib_error_tasklet,
+-		(unsigned long)dd);
++	tasklet_setup(&dd->error_tasklet, qib_error_tasklet);
+ }
+ 
+ /**
+diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+index 99e11c347130..eece0d4ce6c7 100644
+--- a/drivers/infiniband/hw/qib/qib_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_sdma.c
+@@ -62,7 +62,7 @@ static void sdma_get(struct qib_sdma_state *);
+ static void sdma_put(struct qib_sdma_state *);
+ static void sdma_set_state(struct qib_pportdata *, enum qib_sdma_states);
+ static void sdma_start_sw_clean_up(struct qib_pportdata *);
+-static void sdma_sw_clean_up_task(unsigned long);
++static void sdma_sw_clean_up_task(struct tasklet_struct *);
+ static void unmap_desc(struct qib_pportdata *, unsigned);
+ 
+ static void sdma_get(struct qib_sdma_state *ss)
+@@ -119,9 +119,10 @@ static void clear_sdma_activelist(struct qib_pportdata *ppd)
  	}
  }
  
--static void bnxt_qplib_service_nq(unsigned long data)
-+static void bnxt_qplib_service_nq(struct tasklet_struct *t)
+-static void sdma_sw_clean_up_task(unsigned long opaque)
++static void sdma_sw_clean_up_task(struct tasklet_struct *t)
  {
--	struct bnxt_qplib_nq *nq = (struct bnxt_qplib_nq *)data;
-+	struct bnxt_qplib_nq *nq = from_tasklet(nq, t, nq_tasklet);
- 	struct bnxt_qplib_hwq *hwq = &nq->hwq;
- 	int num_srqne_processed = 0;
- 	int num_cqne_processed = 0;
-@@ -448,8 +448,7 @@ int bnxt_qplib_nq_start_irq(struct bnxt_qplib_nq *nq, int nq_indx,
+-	struct qib_pportdata *ppd = (struct qib_pportdata *) opaque;
++	struct qib_pportdata *ppd = from_tasklet(ppd, t,
++						 sdma_sw_clean_up_task);
+ 	unsigned long flags;
  
- 	nq->msix_vec = msix_vector;
- 	if (need_init)
--		tasklet_init(&nq->nq_tasklet, bnxt_qplib_service_nq,
--			     (unsigned long)nq);
-+		tasklet_setup(&nq->nq_tasklet, bnxt_qplib_service_nq);
- 	else
- 		tasklet_enable(&nq->nq_tasklet);
+ 	spin_lock_irqsave(&ppd->sdma_lock, flags);
+@@ -436,8 +437,7 @@ int qib_setup_sdma(struct qib_pportdata *ppd)
  
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index 4e211162acee..7261be29fb09 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -50,7 +50,7 @@
- #include "qplib_sp.h"
- #include "qplib_fp.h"
+ 	INIT_LIST_HEAD(&ppd->sdma_activelist);
  
--static void bnxt_qplib_service_creq(unsigned long data);
-+static void bnxt_qplib_service_creq(struct tasklet_struct *t);
+-	tasklet_init(&ppd->sdma_sw_clean_up_task, sdma_sw_clean_up_task,
+-		(unsigned long)ppd);
++	tasklet_setup(&ppd->sdma_sw_clean_up_task, sdma_sw_clean_up_task);
  
- /* Hardware communication channel */
- static int __wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
-@@ -79,7 +79,7 @@ static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
- 		goto done;
- 	do {
- 		mdelay(1); /* 1m sec */
--		bnxt_qplib_service_creq((unsigned long)rcfw);
-+		bnxt_qplib_service_creq(&rcfw->creq.creq_tasklet);
- 	} while (test_bit(cbit, cmdq->cmdq_bitmap) && --count);
- done:
- 	return count ? 0 : -ETIMEDOUT;
-@@ -369,10 +369,10 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
- }
- 
- /* SP - CREQ Completion handlers */
--static void bnxt_qplib_service_creq(unsigned long data)
-+static void bnxt_qplib_service_creq(struct tasklet_struct *t)
- {
--	struct bnxt_qplib_rcfw *rcfw = (struct bnxt_qplib_rcfw *)data;
--	struct bnxt_qplib_creq_ctx *creq = &rcfw->creq;
-+	struct bnxt_qplib_creq_ctx *creq = from_tasklet(creq, t, creq_tasklet);
-+	struct bnxt_qplib_rcfw *rcfw = container_of(creq, typeof(*rcfw), creq);
- 	u32 type, budget = CREQ_ENTRY_POLL_BUDGET;
- 	struct bnxt_qplib_hwq *hwq = &creq->hwq;
- 	struct creq_base *creqe;
-@@ -685,8 +685,7 @@ int bnxt_qplib_rcfw_start_irq(struct bnxt_qplib_rcfw *rcfw, int msix_vector,
- 
- 	creq->msix_vec = msix_vector;
- 	if (need_init)
--		tasklet_init(&creq->creq_tasklet,
--			     bnxt_qplib_service_creq, (unsigned long)rcfw);
-+		tasklet_setup(&creq->creq_tasklet, bnxt_qplib_service_creq);
- 	else
- 		tasklet_enable(&creq->creq_tasklet);
- 	rc = request_irq(creq->msix_vec, bnxt_qplib_creq_irq, 0,
+ 	ret = dd->f_init_sdma_regs(ppd);
+ 	if (ret)
 -- 
 2.17.1
 
