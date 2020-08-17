@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 661ECC433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:25:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DBE6C433E1
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40AD720758
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:25:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 372D920658
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k6TcpdBk"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hG2G6TIw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728072AbgHQIZT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:25:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52520 "EHLO
+        id S1728328AbgHQIZ4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:25:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728101AbgHQIZM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:25:12 -0400
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2F13C061388;
-        Mon, 17 Aug 2020 01:25:12 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id t11so7142780plr.5;
-        Mon, 17 Aug 2020 01:25:12 -0700 (PDT)
+        with ESMTP id S1728023AbgHQIZx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:25:53 -0400
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A74A1C061388;
+        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
+Received: by mail-pg1-x543.google.com with SMTP id d19so7755380pgl.10;
+        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=//0cU4D4ygspSBbtP32AytW3V0GobkPQnAIy8h5tGFQ=;
-        b=k6TcpdBke/4ra4r69REycQPL5SXj2DVcOiJbAczGGHueHEcC8s5DLSbYPyZ3sBEAgM
-         y6n6KwEZ10tmEj0hJyZj+ZUYnx2AAO4FbQErR1urJcgd6CwQtt6SUK4oX2t4DMNH7AsB
-         CbLz39wd3i6EDj07z5/nx5rmHJuQwPjPQk57LqcXNWR3qPmQS0mrSt7tkH4nUSiaCar6
-         uQ3FOaahy6No3eSkYQb2q3/4/YKj5hjwFbI9jF8Y5y2lw0Yt0rBl2yXZu9X7QBz0+5P/
-         EQ8vunq+SiqEyr6McmwaZ4SuG+5AViw8t5/1ME+LzUe74E8+sPcNl06lzsn77sRGjBd5
-         t40A==
+        bh=iIAfZhwD4u3KlLMECiacU1MTufzkqZbS33SY7LcQr7A=;
+        b=hG2G6TIwKMJXy2HRahBQraJOgltWGzLG9JNMpZ4RSRhs60XANefCGvnE5soeTXpm4f
+         8W7Y1YPZgS9l2UmuOoypi4PZ1qdPVFJ7QEteda3ogrOSn5313M/EE7BZgy5sZrFHhrui
+         KdAhYg0gLgoy5pBrKOtjZKJGxtOE+4FM1rRssMpDabVK+1mj2agBXV7RnGvo3Sx7vvv/
+         0qRK+BXn24CXmouDGXQ2sXFDJUTEkNWdlyk/l+2QSR8ANbeQbj1pMPLjbCHHoaPzPyjG
+         PaFqIMtn8VpzTLw8Vd06NvM257eWA0mBFfDHBaMuUka7/3j5nCdVQi91g8S89hQuYSye
+         dqZw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=//0cU4D4ygspSBbtP32AytW3V0GobkPQnAIy8h5tGFQ=;
-        b=CpNELGuDfUNz7ckuNA9UcLTkIFeMWgED1MNml+MChaR+1KhmgxloeU93aXOEkm22hi
-         gBtxljRCu/FQtKhw+hB0YYdvNOqQvH5duGM+K0tJ+1D3nF+KkohIun7flhwtTuGAx6Ti
-         tzUbeEnjFf7q2PQS34m1wety6VFeQ6p9VwE6gU5sA2zHqjlf9rPNB03HNRV/s+XAVoXf
-         rluVN2qJFIz2Cn4bZDgFFr/7yYyehNQmy2wXmlIeHqCLf8yk+3A5MObspiKL5TYocpYT
-         WeMYatLBw348f8IklCXrlfOV4EIGJU+vzdylK6yGvSzKHuNL3bDM/kjBNYdDIDeZjQ0S
-         Ahog==
-X-Gm-Message-State: AOAM533YNfX7wN3cIknoAKJR0rzYMJb1aoSgcHVwYP7OA+KrJYFuoU0N
-        5ALGfJWf2104pu85mCtTwaE=
-X-Google-Smtp-Source: ABdhPJy/kN3PQGQOz7LcO/GIU86/ehe4vLYAl+7eOVcgh49ZDG6UFRQWvhti77fCOLiIhfqDvSIvsw==
-X-Received: by 2002:a17:902:5997:: with SMTP id p23mr10460861pli.277.1597652712379;
-        Mon, 17 Aug 2020 01:25:12 -0700 (PDT)
+        bh=iIAfZhwD4u3KlLMECiacU1MTufzkqZbS33SY7LcQr7A=;
+        b=dO9onWG2PDjPteApDsRRrlbaP3SELq1IlLkkWQh9jSDO2ii6zy3xiTmV5ni32Tuh/0
+         77zZaIIwAiqJTtzW+CC74F1/waQYmOqNrq0K8h95tN2LUXtymWvbpv1leikfhvRWSHaV
+         94UICcPFicCtg3oYS8YAKOhTi/sd8pHTtNY/SvPXlo4Wm5C/r4oyaJJdbyNywVrfkdGZ
+         xVYgRDYYOsdFuJXtdGe3Jg1g2I9q7ahoiEZQQ+X9HbgMjWmSuG7JqDPUVazBOZdUwLSj
+         YDipVV4wWIxP7G4LI92XBgXBz+tkA5MxB9hW6cBrNwOsI2WdAwt2yhYzdkIOtqi+1KEG
+         evOg==
+X-Gm-Message-State: AOAM530bXA2HpAwNnzOLNGZRR9cMZgN29kcyXHsenLVIzXBuSS9PjfE5
+        p7xE44otWogc720J6ovTOqI=
+X-Google-Smtp-Source: ABdhPJyHdid6AeC6n0Zvp88ugK0l2FhFHXTm5Bvo/3+IlJzMqY2dzIOg8iBwBCBZqkwkbk4eX5A4Ng==
+X-Received: by 2002:aa7:80d6:: with SMTP id a22mr10784840pfn.275.1597652753273;
+        Mon, 17 Aug 2020 01:25:53 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.25.06
+        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.25.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:25:11 -0700 (PDT)
+        Mon, 17 Aug 2020 01:25:52 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     jes@trained-monkey.org, davem@davemloft.net, kuba@kernel.org,
         kda@linux-powerpc.org, dougmill@linux.ibm.com,
@@ -67,9 +67,9 @@ Cc:     keescook@chromium.org, linux-acenic@sunsite.dk,
         linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
         oss-drivers@netronome.com, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 03/20] broadcom: cnic: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 13:54:17 +0530
-Message-Id: <20200817082434.21176-5-allen.lkml@gmail.com>
+Subject: [PATCH 10/20] ethernet: ibmvnic: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 13:54:24 +0530
+Message-Id: <20200817082434.21176-12-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817082434.21176-1-allen.lkml@gmail.com>
 References: <20200817082434.21176-1-allen.lkml@gmail.com>
@@ -86,61 +86,35 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/net/ethernet/broadcom/cnic.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/ibm/ibmvnic.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/cnic.c b/drivers/net/ethernet/broadcom/cnic.c
-index c5cca63b8571..e1e8c012d501 100644
---- a/drivers/net/ethernet/broadcom/cnic.c
-+++ b/drivers/net/ethernet/broadcom/cnic.c
-@@ -3009,10 +3009,10 @@ static int cnic_service_bnx2(void *data, void *status_blk)
- 	return cnic_service_bnx2_queues(dev);
+diff --git a/drivers/net/ethernet/ibm/ibmvnic.c b/drivers/net/ethernet/ibm/ibmvnic.c
+index 5afb3c9c52d2..7c565e167521 100644
+--- a/drivers/net/ethernet/ibm/ibmvnic.c
++++ b/drivers/net/ethernet/ibm/ibmvnic.c
+@@ -4797,9 +4797,9 @@ static irqreturn_t ibmvnic_interrupt(int irq, void *instance)
+ 	return IRQ_HANDLED;
  }
  
--static void cnic_service_bnx2_msix(unsigned long data)
-+static void cnic_service_bnx2_msix(struct tasklet_struct *t)
+-static void ibmvnic_tasklet(void *data)
++static void ibmvnic_tasklet(struct tasklet_struct *t)
  {
--	struct cnic_dev *dev = (struct cnic_dev *) data;
--	struct cnic_local *cp = dev->cnic_priv;
-+	struct cnic_local *cp = from_tasklet(cp, t, cnic_irq_task);
-+	struct cnic_dev *dev = cp->dev;
+-	struct ibmvnic_adapter *adapter = data;
++	struct ibmvnic_adapter *adapter = from_tasklet(adapter, t, tasklet);
+ 	struct ibmvnic_crq_queue *queue = &adapter->crq;
+ 	union ibmvnic_crq *crq;
+ 	unsigned long flags;
+@@ -4934,8 +4934,7 @@ static int init_crq_queue(struct ibmvnic_adapter *adapter)
  
- 	cp->last_status_idx = cnic_service_bnx2_queues(dev);
+ 	retrc = 0;
  
-@@ -3134,10 +3134,10 @@ static u32 cnic_service_bnx2x_kcq(struct cnic_dev *dev, struct kcq_info *info)
- 	return last_status;
- }
+-	tasklet_init(&adapter->tasklet, (void *)ibmvnic_tasklet,
+-		     (unsigned long)adapter);
++	tasklet_setup(&adapter->tasklet, (void *)ibmvnic_tasklet);
  
--static void cnic_service_bnx2x_bh(unsigned long data)
-+static void cnic_service_bnx2x_bh(struct tasklet_struct *t)
- {
--	struct cnic_dev *dev = (struct cnic_dev *) data;
--	struct cnic_local *cp = dev->cnic_priv;
-+	struct cnic_local *cp = from_tasklet(cp, t, cnic_irq_task);
-+	struct cnic_dev *dev = cp->dev;
- 	struct bnx2x *bp = netdev_priv(dev->netdev);
- 	u32 status_idx, new_status_idx;
- 
-@@ -4458,8 +4458,7 @@ static int cnic_init_bnx2_irq(struct cnic_dev *dev)
- 		CNIC_WR(dev, base + BNX2_HC_CMD_TICKS_OFF, (64 << 16) | 220);
- 
- 		cp->last_status_idx = cp->status_blk.bnx2->status_idx;
--		tasklet_init(&cp->cnic_irq_task, cnic_service_bnx2_msix,
--			     (unsigned long) dev);
-+		tasklet_setup(&cp->cnic_irq_task, cnic_service_bnx2_msix);
- 		err = cnic_request_irq(dev);
- 		if (err)
- 			return err;
-@@ -4868,8 +4867,7 @@ static int cnic_init_bnx2x_irq(struct cnic_dev *dev)
- 	struct cnic_eth_dev *ethdev = cp->ethdev;
- 	int err = 0;
- 
--	tasklet_init(&cp->cnic_irq_task, cnic_service_bnx2x_bh,
--		     (unsigned long) dev);
-+	tasklet_setup(&cp->cnic_irq_task, cnic_service_bnx2x_bh);
- 	if (ethdev->drv_state & CNIC_DRV_STATE_USING_MSIX)
- 		err = cnic_request_irq(dev);
- 
+ 	netdev_dbg(adapter->netdev, "registering irq 0x%x\n", vdev->irq);
+ 	snprintf(crq->name, sizeof(crq->name), "ibmvnic-%x",
 -- 
 2.17.1
 
