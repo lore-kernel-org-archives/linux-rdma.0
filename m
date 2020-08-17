@@ -5,58 +5,58 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58232C433E1
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BAFC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3042A2063A
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:26:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 460212063A
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:27:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="q2oQHhau"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tdpwarCY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728355AbgHQI0t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:26:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52786 "EHLO
+        id S1727961AbgHQI1A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:27:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726361AbgHQI0o (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:26:44 -0400
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com [IPv6:2607:f8b0:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF612C061388;
-        Mon, 17 Aug 2020 01:26:43 -0700 (PDT)
-Received: by mail-pf1-x444.google.com with SMTP id x25so7879036pff.4;
-        Mon, 17 Aug 2020 01:26:43 -0700 (PDT)
+        with ESMTP id S1726361AbgHQI04 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:26:56 -0400
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A99A7C061388;
+        Mon, 17 Aug 2020 01:26:55 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id u128so7871609pfb.6;
+        Mon, 17 Aug 2020 01:26:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=6qyozdS/HY6iP3pJn34oXGwxmex8vXqKSC7ndq5S0+E=;
-        b=q2oQHhau5wkJr9NInhJu5fE2VdKCd1EkLjYux32PbZTXlQngJzWocDupZm/kBW2Kiz
-         dFj+fxNqeU9gSpwMAnm5ifUK/UvC7G6Gz7w+dO+f67FuU68h3NHlc/QIBv4tkgmBOEd7
-         gC5PgRXq4foSSBUP8Ab+lUlYTcA38ELa9LmZo3Pl1jS7EK0eSdBng6Z+p87nMU2Ge9kG
-         fSao/+V4n2LBre36fqGn0jExgpz6kiLkzkE4jBQAahoM4dG5hAZRh3jcvIFSO+xF2o5J
-         JrrQaglNJraJ/mK529ZCW8IYLwkEjfJ2NlNWIC5/DZoaoNel88Kv0sDoOCkUFsyN4dH1
-         cwGA==
+        bh=lVv9KH9OHYQxfiTtM7sr/yrxc3VHJHaRO2GRJfzHnA0=;
+        b=tdpwarCYYV8gEQ5ZksyKAt24uXKiAXb9mffYCIfGOHo6XRdKn3E/4d0a7jNVUxQglq
+         SV6/7fuATPb///IcuEDDTQy3TJ09Q1W87uRD8n3gBQVMDEY+AhZVua01ADz8gmMn4X6i
+         nfm9It6IQbwseLhnOfwPJUrm1lyCdalOqlvSZVMv0KDkIDIe3qq850RJhPZX578LBRk3
+         JOWeQLhC13jRH9ekm9SPnhrPyqSRYvPEVa8c8KfC1fyiaQebuzhJeeCTmaDDyw7hnXW7
+         3sd06wpWx4FeZO9QIEMGU9dvOliR2qloKLNMr/vJ1TEZEJxwBBUuWHb/5Cro85mZTxbd
+         o4Vg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=6qyozdS/HY6iP3pJn34oXGwxmex8vXqKSC7ndq5S0+E=;
-        b=ipvCIJMIQZPMxf0XNt+36Z89Z/bDD6hxO1LWthGJlxDsFF4WGeVJwy31x0Tukd6WeS
-         D8feK+fdTcGDv1ZGOLGqrhNFHobNeL3xvHGT5OPzGxX2NP3BlJ5hAQx/LlSPW/dHrULv
-         VzNo9qQLtfQkCRpcfEzV4i6X2XHPIlJ1y362pvsf9SnkY6lZnUhTJ+kl3e76alCUyRiG
-         +EW+z+iZiH1I7Law9sDnWKOk2X8kcGsy571bwbXdqyAdFhogFjnnA8bO+wbwVdQR2kb6
-         DS7XieDekh+Fk3dxc70OHnUACHeHRPrOuGxRv9PInTcv767aI57L6hNaDWW4zNzsPkuE
-         ECmw==
-X-Gm-Message-State: AOAM530ohIw8Py5seFmZ/BuhcRH4ypXIwC0MDF+zaWB4i1W8sOfyLnCv
-        8xvrnq9e3q4nOFYt9GIfoT4=
-X-Google-Smtp-Source: ABdhPJwI0phYYxx8YzI2dUOWNrvQuNzl0QthOzgIy2DqMXnDA6ActFZPLcCUpF3zts7NRwPiPvawcQ==
-X-Received: by 2002:aa7:9e4e:: with SMTP id z14mr10775659pfq.60.1597652803372;
-        Mon, 17 Aug 2020 01:26:43 -0700 (PDT)
+        bh=lVv9KH9OHYQxfiTtM7sr/yrxc3VHJHaRO2GRJfzHnA0=;
+        b=tN0Izqryc8O/LRMyDMffTokJAp367WEnE2twMKsNrxaf6F1gsZVnvKX45kFh14bf/H
+         ATPmqigs4CpkEYQhdMLagHT3a/ZniIxgKFJfHXQ9BtirmUZkHPd2g88B4F2pH8b522/U
+         xbus5LILGkDdEuGM15ng1srXAJx13R4Uki6gbVjGz1g2XMYM2+L20JfQSSAO/VW3Q2C0
+         yIRPg4jfabaeVoc6LxfRsob73z7yEaGu4po5H0XqgMajSEYb7rFjdGvg404JiH0QrOwH
+         BdGapTHwqvr071zhQW8Tj4/7o++ru1N1syLvO/+gA6kQ2wNowYTVLe0B6olA+n+90Jfg
+         spVQ==
+X-Gm-Message-State: AOAM532WZwOKN8HMLdymEsnT/STxspUGxKI8X9iUac0dk4Fd3tq15sYK
+        RcOZSCg23dytQ/mk3QCjBjQ=
+X-Google-Smtp-Source: ABdhPJwxI7njVddj/NNf3D82oUgJzonLqIGa7AYU/tTYlx3E4MoM1tP++tr/dbSigeWK25H0FtOm/g==
+X-Received: by 2002:a63:ee12:: with SMTP id e18mr8908728pgi.1.1597652814950;
+        Mon, 17 Aug 2020 01:26:54 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.26.37
+        by smtp.gmail.com with ESMTPSA id r186sm19928482pfr.162.2020.08.17.01.26.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:26:42 -0700 (PDT)
+        Mon, 17 Aug 2020 01:26:54 -0700 (PDT)
 From:   Allen Pais <allen.lkml@gmail.com>
 To:     jes@trained-monkey.org, davem@davemloft.net, kuba@kernel.org,
         kda@linux-powerpc.org, dougmill@linux.ibm.com,
@@ -67,9 +67,9 @@ Cc:     keescook@chromium.org, linux-acenic@sunsite.dk,
         linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
         oss-drivers@netronome.com, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 18/20] ethernet: qlogic: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 13:54:32 +0530
-Message-Id: <20200817082434.21176-20-allen.lkml@gmail.com>
+Subject: [PATCH 20/20] ethernet: smsc: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 13:54:34 +0530
+Message-Id: <20200817082434.21176-22-allen.lkml@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817082434.21176-1-allen.lkml@gmail.com>
 References: <20200817082434.21176-1-allen.lkml@gmail.com>
@@ -86,154 +86,45 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- drivers/net/ethernet/qlogic/qed/qed.h      |  2 +-
- drivers/net/ethernet/qlogic/qed/qed_int.c  | 27 +++-------------------
- drivers/net/ethernet/qlogic/qed/qed_int.h  |  2 +-
- drivers/net/ethernet/qlogic/qed/qed_main.c | 14 +++++------
- 4 files changed, 12 insertions(+), 33 deletions(-)
+ drivers/net/ethernet/smsc/smc91x.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed.h b/drivers/net/ethernet/qlogic/qed/qed.h
-index b2a7b53ee760..22bc4ec7859a 100644
---- a/drivers/net/ethernet/qlogic/qed/qed.h
-+++ b/drivers/net/ethernet/qlogic/qed/qed.h
-@@ -572,7 +572,7 @@ struct qed_hwfn {
- 	struct qed_consq		*p_consq;
- 
- 	/* Slow-Path definitions */
--	struct tasklet_struct		*sp_dpc;
-+	struct tasklet_struct		sp_dpc;
- 	bool				b_sp_dpc_enabled;
- 
- 	struct qed_ptt			*p_main_ptt;
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_int.c b/drivers/net/ethernet/qlogic/qed/qed_int.c
-index f8c5a864812d..578935f643b8 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_int.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_int.c
-@@ -1216,9 +1216,9 @@ static void qed_sb_ack_attn(struct qed_hwfn *p_hwfn,
- 	barrier();
- }
- 
--void qed_int_sp_dpc(unsigned long hwfn_cookie)
-+void qed_int_sp_dpc(struct tasklet_struct *t)
- {
--	struct qed_hwfn *p_hwfn = (struct qed_hwfn *)hwfn_cookie;
-+	struct qed_hwfn *p_hwfn = from_tasklet(p_hwfn, t, sp_dpc);
- 	struct qed_pi_info *pi_info = NULL;
- 	struct qed_sb_attn_info *sb_attn;
- 	struct qed_sb_info *sb_info;
-@@ -2285,34 +2285,14 @@ u64 qed_int_igu_read_sisr_reg(struct qed_hwfn *p_hwfn)
- 
- static void qed_int_sp_dpc_setup(struct qed_hwfn *p_hwfn)
- {
--	tasklet_init(p_hwfn->sp_dpc,
--		     qed_int_sp_dpc, (unsigned long)p_hwfn);
-+	tasklet_setup(&p_hwfn->sp_dpc, qed_int_sp_dpc);
- 	p_hwfn->b_sp_dpc_enabled = true;
- }
- 
--static int qed_int_sp_dpc_alloc(struct qed_hwfn *p_hwfn)
--{
--	p_hwfn->sp_dpc = kmalloc(sizeof(*p_hwfn->sp_dpc), GFP_KERNEL);
--	if (!p_hwfn->sp_dpc)
--		return -ENOMEM;
--
--	return 0;
--}
--
--static void qed_int_sp_dpc_free(struct qed_hwfn *p_hwfn)
--{
--	kfree(p_hwfn->sp_dpc);
--	p_hwfn->sp_dpc = NULL;
--}
--
- int qed_int_alloc(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
- {
- 	int rc = 0;
- 
--	rc = qed_int_sp_dpc_alloc(p_hwfn);
--	if (rc)
--		return rc;
--
- 	rc = qed_int_sp_sb_alloc(p_hwfn, p_ptt);
- 	if (rc)
- 		return rc;
-@@ -2326,7 +2306,6 @@ void qed_int_free(struct qed_hwfn *p_hwfn)
- {
- 	qed_int_sp_sb_free(p_hwfn);
- 	qed_int_sb_attn_free(p_hwfn);
--	qed_int_sp_dpc_free(p_hwfn);
- }
- 
- void qed_int_setup(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt)
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_int.h b/drivers/net/ethernet/qlogic/qed/qed_int.h
-index 86809d7bc2de..c5550e96bbe1 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_int.h
-+++ b/drivers/net/ethernet/qlogic/qed/qed_int.h
-@@ -140,7 +140,7 @@ int qed_int_sb_release(struct qed_hwfn *p_hwfn,
-  * @param p_hwfn - pointer to hwfn
-  *
+diff --git a/drivers/net/ethernet/smsc/smc91x.c b/drivers/net/ethernet/smsc/smc91x.c
+index 1c4fea9c3ec4..7e585aa3031c 100644
+--- a/drivers/net/ethernet/smsc/smc91x.c
++++ b/drivers/net/ethernet/smsc/smc91x.c
+@@ -535,10 +535,10 @@ static inline void  smc_rcv(struct net_device *dev)
+ /*
+  * This is called to actually send a packet to the chip.
   */
--void qed_int_sp_dpc(unsigned long hwfn_cookie);
-+void qed_int_sp_dpc(struct tasklet_struct *t);
- 
- /**
-  * @brief qed_int_get_num_sbs - get the number of status
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_main.c b/drivers/net/ethernet/qlogic/qed/qed_main.c
-index 2558cb680db3..4c4dd4e88fb1 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_main.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_main.c
-@@ -841,7 +841,7 @@ static irqreturn_t qed_single_int(int irq, void *dev_instance)
- 
- 		/* Slowpath interrupt */
- 		if (unlikely(status & 0x1)) {
--			tasklet_schedule(hwfn->sp_dpc);
-+			tasklet_schedule(&hwfn->sp_dpc);
- 			status &= ~0x1;
- 			rc = IRQ_HANDLED;
- 		}
-@@ -887,7 +887,7 @@ int qed_slowpath_irq_req(struct qed_hwfn *hwfn)
- 			 id, cdev->pdev->bus->number,
- 			 PCI_SLOT(cdev->pdev->devfn), hwfn->abs_pf_id);
- 		rc = request_irq(cdev->int_params.msix_table[id].vector,
--				 qed_msix_sp_int, 0, hwfn->name, hwfn->sp_dpc);
-+				 qed_msix_sp_int, 0, hwfn->name, &hwfn->sp_dpc);
- 	} else {
- 		unsigned long flags = 0;
- 
-@@ -919,8 +919,8 @@ static void qed_slowpath_tasklet_flush(struct qed_hwfn *p_hwfn)
- 	 * enable function makes this sequence a flush-like operation.
- 	 */
- 	if (p_hwfn->b_sp_dpc_enabled) {
--		tasklet_disable(p_hwfn->sp_dpc);
--		tasklet_enable(p_hwfn->sp_dpc);
-+		tasklet_disable(&p_hwfn->sp_dpc);
-+		tasklet_enable(&p_hwfn->sp_dpc);
- 	}
- }
- 
-@@ -949,7 +949,7 @@ static void qed_slowpath_irq_free(struct qed_dev *cdev)
- 				break;
- 			synchronize_irq(cdev->int_params.msix_table[i].vector);
- 			free_irq(cdev->int_params.msix_table[i].vector,
--				 cdev->hwfns[i].sp_dpc);
-+				 &cdev->hwfns[i].sp_dpc);
- 		}
- 	} else {
- 		if (QED_LEADING_HWFN(cdev)->b_int_requested)
-@@ -968,11 +968,11 @@ static int qed_nic_stop(struct qed_dev *cdev)
- 		struct qed_hwfn *p_hwfn = &cdev->hwfns[i];
- 
- 		if (p_hwfn->b_sp_dpc_enabled) {
--			tasklet_disable(p_hwfn->sp_dpc);
-+			tasklet_disable(&p_hwfn->sp_dpc);
- 			p_hwfn->b_sp_dpc_enabled = false;
- 			DP_VERBOSE(cdev, NETIF_MSG_IFDOWN,
- 				   "Disabled sp tasklet [hwfn %d] at %p\n",
--				   i, p_hwfn->sp_dpc);
-+				   i, &p_hwfn->sp_dpc);
- 		}
+-static void smc_hardware_send_pkt(unsigned long data)
++static void smc_hardware_send_pkt(struct tasklet_struct *t)
+ {
+-	struct net_device *dev = (struct net_device *)data;
+-	struct smc_local *lp = netdev_priv(dev);
++	struct smc_local *lp = from_tasklet(lp, t, tx_task);
++	struct net_device *dev = lp->dev;
+ 	void __iomem *ioaddr = lp->base;
+ 	struct sk_buff *skb;
+ 	unsigned int packet_no, len;
+@@ -688,7 +688,7 @@ smc_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 		 * Allocation succeeded: push packet to the chip's own memory
+ 		 * immediately.
+ 		 */
+-		smc_hardware_send_pkt((unsigned long)dev);
++		smc_hardware_send_pkt(&lp->tx_task);
  	}
  
+ 	return NETDEV_TX_OK;
+@@ -1965,7 +1965,7 @@ static int smc_probe(struct net_device *dev, void __iomem *ioaddr,
+ 	dev->netdev_ops = &smc_netdev_ops;
+ 	dev->ethtool_ops = &smc_ethtool_ops;
+ 
+-	tasklet_init(&lp->tx_task, smc_hardware_send_pkt, (unsigned long)dev);
++	tasklet_setup(&lp->tx_task, smc_hardware_send_pkt);
+ 	INIT_WORK(&lp->phy_configure, smc_phy_configure);
+ 	lp->dev = dev;
+ 	lp->mii.phy_id_mask = 0x1f;
 -- 
 2.17.1
 
