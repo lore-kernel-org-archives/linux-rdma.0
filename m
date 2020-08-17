@@ -8,55 +8,55 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94750C433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:53:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 366BAC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:54:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 751862067C
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:53:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E07220758
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Aug 2020 08:54:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CoGj2d/h"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pdRLg8iR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728360AbgHQIwK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Aug 2020 04:52:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56840 "EHLO
+        id S1726810AbgHQIyI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Aug 2020 04:54:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727007AbgHQIwD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:52:03 -0400
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B373C061388;
-        Mon, 17 Aug 2020 01:52:03 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id y10so5603974plr.11;
-        Mon, 17 Aug 2020 01:52:03 -0700 (PDT)
+        with ESMTP id S1728542AbgHQIw0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Aug 2020 04:52:26 -0400
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D3ABC061389;
+        Mon, 17 Aug 2020 01:52:26 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id u20so7906181pfn.0;
+        Mon, 17 Aug 2020 01:52:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=/Dwv0Cic7T6kz8Rts1cgLM7pEUoAzAWE8onSffb/CRY=;
-        b=CoGj2d/h+8Kc9CWQDDtSzGXdf08Gnkjryfx4wKEKQ2hzvLKCAnNWJCx1nm0ddyU8YK
-         V6c2cURPPd2WUu91ps+wgkH4s0FZLalYBMI/7HH7gnSRgxdIAUSBxGeiVdRrHzdisAaB
-         rfCXlOTlJIi3uwTXOLf+1FVEWCdjiq/Tq6a8GctK+hotTmNXK33F2ugGf7510Nodjdxo
-         JHMVle1h6yzBVPKVVGK4ZyYyOGM55FRqalHY7jOFE/Te9peW80xoOAA5rblb8aCQ37hO
-         gUNUlxMp+YJz2piUpHaXcpautwjevnR8wGPezLBo0pAOFc36kB+Q/KtJ2p6+z2KxBQUU
-         46zg==
+        bh=f+E4SgVdMO+b7ElHO75sW6+6/fY3ssvuHvraNgGnP/E=;
+        b=pdRLg8iRDGDLF30BBijqm3rf6TfVm30mEuP7Iz9gToAPk1OPgfqiJoh4Mk9Fexv+80
+         h5SCcbAwDLziu+LzPv126UhenrAgryUk7MXlFL1cDavMyJwVczwUe4YgLo6v9GEa8edk
+         k3+wRQL9PkY2ZPTbV+Sj5P7M7jwvf9quuFJYfH+FVo/mS6R66yjxcsWUQQExDGI3DHJD
+         OAnbriN4Lih1WA4rll1rPo03ExSl2RFZNnedruxuI0RuA+7u53BS/BclJNXk72fVqIxL
+         sPOHU4zdirVM3zIKPNuu8SWis+ODPrWDtLHtKT4LpbzIMMUTQd74weBV7s2GFuixTfzv
+         YX5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=/Dwv0Cic7T6kz8Rts1cgLM7pEUoAzAWE8onSffb/CRY=;
-        b=ijTnR+3O3fgn9rruujy9kWYwQr2fBgy5MN3+VtP6QtS6lqhcddPr/L+2HUG4DCElS2
-         GFQRpVGQ8rZRuKiWvinDB9MTFjrw0wF0hdVpBpj168s1ZxgrcR4Ne8ncVfB4G/TEG8iv
-         B4niU98zTgEK/nQupBKBKWl9OlCRAKYELSTgeGO44FL+xXwEsdMIUYMmANw8Udxch4/u
-         N127IfQMv3Mk3bBobW67Cx309szwMm2VEs9B7TkMImKfLRbzwlMhYMDEi6m3PBzOSNnA
-         KF5zXgPvvdj69fghHQO8cwuTPPZwZpy1j3bFizRz1McauEBTGuFJlAzQMwNzrBJjcZmJ
-         7YKA==
-X-Gm-Message-State: AOAM531inZ5xRzD5ULvwMb3G7XzgOEkhC8Fr+aIpcTaJsaSHZ1s47qjb
-        EeWb8GbSg4/7vg7Kwsdn+Ec=
-X-Google-Smtp-Source: ABdhPJytBX5O91tG68f9TX19wYBPt+IKOmYp94gCzm4N16NATR0r2Ef8mF3P33JY9+mj9FNO5dwIvw==
-X-Received: by 2002:a17:90a:ea91:: with SMTP id h17mr11482982pjz.36.1597654322795;
-        Mon, 17 Aug 2020 01:52:02 -0700 (PDT)
+        bh=f+E4SgVdMO+b7ElHO75sW6+6/fY3ssvuHvraNgGnP/E=;
+        b=SNxKxnxoSnh1knkTOJiA7jaf+P+TjYiWevrRITNcQrPkq4R0bom1b8gJC+/zYhfVxV
+         W5/q1bkS0MeAgUfFRZgdSNciWHXywGd/1e/yTWAz639Rfj7UQnUeCM5GCfAY6jUnxHF+
+         sEhzFaDjrN3pYwLlE4X7dbbG+jdQNQ6wihbg3FomqghGN+AcXABiAFS+hf1WW0itKW8i
+         6kdtC0CtsKIOFynEf7sNBA2IkwZl59jGA49Ak/1/XZats2ZEKuT7icTYHCuGKsIPIe9D
+         Xo+oCqBwd1xrd+FozGxDVakSg5qgPZY/uKbcar84LwQvceD9AykCLu5ZkWtV9uTAnxvf
+         0uqw==
+X-Gm-Message-State: AOAM533VgHvNZP7RT/+9Jjw8h0b0rsWbbJOHc8/BfvmU/kvo/WggaZUD
+        16lzCK7RQvgECwNQdJ48JfE=
+X-Google-Smtp-Source: ABdhPJzX80hEbA1rN26FtQEDQBz2kq/iAKdArrH+iwXPU05gdzLr4uc1KCMX+/YvoDlYfeJ1iPpalQ==
+X-Received: by 2002:aa7:989e:: with SMTP id r30mr10475433pfl.205.1597654345610;
+        Mon, 17 Aug 2020 01:52:25 -0700 (PDT)
 Received: from localhost.localdomain ([49.207.202.98])
-        by smtp.gmail.com with ESMTPSA id b185sm18554863pfg.71.2020.08.17.01.51.55
+        by smtp.gmail.com with ESMTPSA id b185sm18554863pfg.71.2020.08.17.01.52.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Aug 2020 01:52:02 -0700 (PDT)
+        Mon, 17 Aug 2020 01:52:25 -0700 (PDT)
 From:   Allen Pais <allen.cryptic@gmail.com>
 To:     gerrit@erg.abdn.ac.uk, davem@davemloft.net, kuba@kernel.org,
         edumazet@google.com, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
@@ -68,9 +68,9 @@ Cc:     keescook@chromium.org, netdev@vger.kernel.org,
         linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-s390@vger.kernel.org, Allen Pais <allen.lkml@gmail.com>,
         Romain Perier <romain.perier@gmail.com>
-Subject: [PATCH 4/8] net: mac802154: convert tasklets to use new tasklet_setup() API
-Date:   Mon, 17 Aug 2020 14:21:16 +0530
-Message-Id: <20200817085120.24894-4-allen.cryptic@gmail.com>
+Subject: [PATCH 7/8] net: smc: convert tasklets to use new tasklet_setup() API
+Date:   Mon, 17 Aug 2020 14:21:19 +0530
+Message-Id: <20200817085120.24894-7-allen.cryptic@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200817085120.24894-1-allen.cryptic@gmail.com>
 References: <20200817085120.24894-1-allen.cryptic@gmail.com>
@@ -89,36 +89,76 @@ and from_tasklet() to pass the tasklet pointer explicitly.
 Signed-off-by: Romain Perier <romain.perier@gmail.com>
 Signed-off-by: Allen Pais <allen.lkml@gmail.com>
 ---
- net/mac802154/main.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ net/smc/smc_cdc.c |  6 +++---
+ net/smc/smc_wr.c  | 14 ++++++--------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/net/mac802154/main.c b/net/mac802154/main.c
-index 06ea0f8bfd5c..520cedc594e1 100644
---- a/net/mac802154/main.c
-+++ b/net/mac802154/main.c
-@@ -20,9 +20,9 @@
- #include "ieee802154_i.h"
- #include "cfg.h"
- 
--static void ieee802154_tasklet_handler(unsigned long data)
-+static void ieee802154_tasklet_handler(struct tasklet_struct *t)
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index ce468ff62a19..5db2166197d3 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -389,9 +389,9 @@ static void smc_cdc_msg_recv(struct smc_sock *smc, struct smc_cdc_msg *cdc)
+  * Context:
+  * - tasklet context
+  */
+-static void smcd_cdc_rx_tsklet(unsigned long data)
++static void smcd_cdc_rx_tsklet(struct tasklet_struct *t)
  {
--	struct ieee802154_local *local = (struct ieee802154_local *)data;
-+	struct ieee802154_local *local = from_tasklet(local, t, tasklet);
- 	struct sk_buff *skb;
+-	struct smc_connection *conn = (struct smc_connection *)data;
++	struct smc_connection *conn = from_tasklet(conn, t, rx_tsklet);
+ 	struct smcd_cdc_msg *data_cdc;
+ 	struct smcd_cdc_msg cdc;
+ 	struct smc_sock *smc;
+@@ -411,7 +411,7 @@ static void smcd_cdc_rx_tsklet(unsigned long data)
+  */
+ void smcd_cdc_rx_init(struct smc_connection *conn)
+ {
+-	tasklet_init(&conn->rx_tsklet, smcd_cdc_rx_tsklet, (unsigned long)conn);
++	tasklet_setup(&conn->rx_tsklet, smcd_cdc_rx_tsklet);
+ }
  
- 	while ((skb = skb_dequeue(&local->skb_queue))) {
-@@ -91,9 +91,7 @@ ieee802154_alloc_hw(size_t priv_data_len, const struct ieee802154_ops *ops)
- 	INIT_LIST_HEAD(&local->interfaces);
- 	mutex_init(&local->iflist_mtx);
+ /***************************** init, exit, misc ******************************/
+diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
+index 1e23cdd41eb1..cbc73a7e4d59 100644
+--- a/net/smc/smc_wr.c
++++ b/net/smc/smc_wr.c
+@@ -131,9 +131,9 @@ static inline void smc_wr_tx_process_cqe(struct ib_wc *wc)
+ 	wake_up(&link->wr_tx_wait);
+ }
  
--	tasklet_init(&local->tasklet,
--		     ieee802154_tasklet_handler,
--		     (unsigned long)local);
-+	tasklet_setup(&local->tasklet, ieee802154_tasklet_handler);
+-static void smc_wr_tx_tasklet_fn(unsigned long data)
++static void smc_wr_tx_tasklet_fn(struct tasklet_struct *t)
+ {
+-	struct smc_ib_device *dev = (struct smc_ib_device *)data;
++	struct smc_ib_device *dev = from_tasklet(dev, t, send_tasklet);
+ 	struct ib_wc wc[SMC_WR_MAX_POLL_CQE];
+ 	int i = 0, rc;
+ 	int polled = 0;
+@@ -435,9 +435,9 @@ static inline void smc_wr_rx_process_cqes(struct ib_wc wc[], int num)
+ 	}
+ }
  
- 	skb_queue_head_init(&local->skb_queue);
+-static void smc_wr_rx_tasklet_fn(unsigned long data)
++static void smc_wr_rx_tasklet_fn(struct tasklet_struct *t)
+ {
+-	struct smc_ib_device *dev = (struct smc_ib_device *)data;
++	struct smc_ib_device *dev = from_tasklet(dev, t, recv_tasklet);
+ 	struct ib_wc wc[SMC_WR_MAX_POLL_CQE];
+ 	int polled = 0;
+ 	int rc;
+@@ -698,10 +698,8 @@ void smc_wr_remove_dev(struct smc_ib_device *smcibdev)
  
+ void smc_wr_add_dev(struct smc_ib_device *smcibdev)
+ {
+-	tasklet_init(&smcibdev->recv_tasklet, smc_wr_rx_tasklet_fn,
+-		     (unsigned long)smcibdev);
+-	tasklet_init(&smcibdev->send_tasklet, smc_wr_tx_tasklet_fn,
+-		     (unsigned long)smcibdev);
++	tasklet_setup(&smcibdev->recv_tasklet, smc_wr_rx_tasklet_fn);
++	tasklet_setup(&smcibdev->send_tasklet, smc_wr_tx_tasklet_fn);
+ }
+ 
+ int smc_wr_create_link(struct smc_link *lnk)
 -- 
 2.17.1
 
