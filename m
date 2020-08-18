@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0471C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03DBDC433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:05:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D70E204EA
+	by mail.kernel.org (Postfix) with ESMTP id DA348207DA
 	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:05:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597752342;
-	bh=HZwW0RbYZNYIbSeERFmaA5TS6W/lmYnndJUjLuE13dA=;
+	bh=L0TluEF/0ar6TCJ/+Q+KwpTItJoHKrJctXbUdoLUf3c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=OB0DocFKwZkqTPfogD4XlYC1tYU4QvL1ntuUP0yt3FeJvrl9vJR9aRCV+puuRBhck
-	 I/UKAbm0CnKrUHXKS0mQiP/6cffUEsK0lqIQdQbo8gQkZ9itUdysK8bZp2HruukcPK
-	 6XplNMKPt3mdDDXoTEbexHAx3AIzTM+1lRAAFIdI=
+	b=JSAez/NvOFSU4c4g40353CdBz00Tii9ztgvU0LU/c8bGmXIAfatKda3+kVr/yhi60
+	 g9MsuwebEe0qPTaQIHByYVZczNE7jQXrkQdj+Z5vkyJQ9sc1yOnwM6MxiSRdMFxsZx
+	 lruIYML6fAs6dUIBIuP/YhfpcnOPB6rKJemHcrPc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726482AbgHRMFl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726145AbgHRMFl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 18 Aug 2020 08:05:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60978 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726145AbgHRMFf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 18 Aug 2020 08:05:35 -0400
+        id S1726480AbgHRMFj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 18 Aug 2020 08:05:39 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8569D204EA;
-        Tue, 18 Aug 2020 12:05:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2F70220786;
+        Tue, 18 Aug 2020 12:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597752335;
-        bh=HZwW0RbYZNYIbSeERFmaA5TS6W/lmYnndJUjLuE13dA=;
+        s=default; t=1597752338;
+        bh=L0TluEF/0ar6TCJ/+Q+KwpTItJoHKrJctXbUdoLUf3c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TMGun8L3C2eXPJsSrKzck1IEHhdHIOqs8orzw3KTu45eSWElAvfO5LZdtrHbNkzWQ
-         bzOLvQAeu45DUD4ZuDmT5fR/CsApAeHP0nwFFbV8MnQsciWfm5ASQZCPw/TsIY9xY/
-         IxY8UMiVmqsERdpzIFinQzC9AHLdf7NHP2iOjnXc=
+        b=MmwpbJ4ynDUhmt9kgWtXBwhfcRV44pPUz7gkfQwmUbbMNNcz+gOUNEi2QEguEMRJb
+         fOkuRvdLWgEXfudggjavxfoKSNKq+TxcNK/4R/XDiPxhIWLH0CYnj8KMM3ZAtDlWmW
+         aGzteC4EbirMy5ydR9+5vCWphsNn98UiChHtYqYw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 01/14] RDMA/ucma: Fix refcount 0 incr in ucma_get_ctx()
-Date:   Tue, 18 Aug 2020 15:05:13 +0300
-Message-Id: <20200818120526.702120-2-leon@kernel.org>
+Subject: [PATCH rdma-next 03/14] RDMA/ucma: Consolidate the two destroy flows
+Date:   Tue, 18 Aug 2020 15:05:15 +0300
+Message-Id: <20200818120526.702120-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200818120526.702120-1-leon@kernel.org>
 References: <20200818120526.702120-1-leon@kernel.org>
@@ -57,34 +57,104 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-Both ucma_destroy_id() and ucma_close_id() (triggered from an event via a
-wq) can drive the refcount to zero. ucma_get_ctx() was wrongly assuming
-that the refcount can only go to zero from ucma_destroy_id() which also
-removes it from the xarray.
-
-Use refcount_inc_not_zero() instead.
+ucma_close() is open coding the tail end of ucma_destroy_id(), consolidate
+this duplicated code into a function.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/ucma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/ucma.c | 64 ++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 42 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index d03dacaef788..625168563443 100644
+index 9b019f31743d..878cbb94065f 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -153,8 +153,8 @@ static struct ucma_context *ucma_get_ctx(struct ucma_file *file, int id)
- 	if (!IS_ERR(ctx)) {
- 		if (ctx->closing)
- 			ctx = ERR_PTR(-EIO);
--		else
--			refcount_inc(&ctx->ref);
-+		else if (!refcount_inc_not_zero(&ctx->ref))
-+			ctx = ERR_PTR(-ENXIO);
+@@ -601,6 +601,26 @@ static int ucma_free_ctx(struct ucma_context *ctx)
+ 	return events_reported;
+ }
+ 
++static int __destroy_id(struct ucma_context *ctx)
++{
++	mutex_lock(&ctx->file->mut);
++	ctx->destroying = 1;
++	mutex_unlock(&ctx->file->mut);
++
++	flush_workqueue(ctx->file->close_wq);
++	/* At this point it's guaranteed that there is no inflight closing task */
++	xa_lock(&ctx_table);
++	if (!ctx->closing) {
++		xa_unlock(&ctx_table);
++		ucma_put_ctx(ctx);
++		wait_for_completion(&ctx->comp);
++		rdma_destroy_id(ctx->cm_id);
++	} else {
++		xa_unlock(&ctx_table);
++	}
++	return ucma_free_ctx(ctx);
++}
++
+ static ssize_t ucma_destroy_id(struct ucma_file *file, const char __user *inbuf,
+ 			       int in_len, int out_len)
+ {
+@@ -624,24 +644,7 @@ static ssize_t ucma_destroy_id(struct ucma_file *file, const char __user *inbuf,
+ 	if (IS_ERR(ctx))
+ 		return PTR_ERR(ctx);
+ 
+-	mutex_lock(&ctx->file->mut);
+-	ctx->destroying = 1;
+-	mutex_unlock(&ctx->file->mut);
+-
+-	flush_workqueue(ctx->file->close_wq);
+-	/* At this point it's guaranteed that there is no inflight
+-	 * closing task */
+-	xa_lock(&ctx_table);
+-	if (!ctx->closing) {
+-		xa_unlock(&ctx_table);
+-		ucma_put_ctx(ctx);
+-		wait_for_completion(&ctx->comp);
+-		rdma_destroy_id(ctx->cm_id);
+-	} else {
+-		xa_unlock(&ctx_table);
+-	}
+-
+-	resp.events_reported = ucma_free_ctx(ctx);
++	resp.events_reported = __destroy_id(ctx);
+ 	if (copy_to_user(u64_to_user_ptr(cmd.response),
+ 			 &resp, sizeof(resp)))
+ 		ret = -EFAULT;
+@@ -1830,30 +1833,7 @@ static int ucma_close(struct inode *inode, struct file *filp)
+ 	 */
+ 	list_for_each_entry_safe(ctx, tmp, &file->ctx_list, list) {
+ 		xa_erase(&ctx_table, ctx->id);
+-
+-		mutex_lock(&file->mut);
+-		ctx->destroying = 1;
+-		mutex_unlock(&file->mut);
+-
+-		flush_workqueue(file->close_wq);
+-		/* At that step once ctx was marked as destroying and workqueue
+-		 * was flushed we are safe from any inflights handlers that
+-		 * might put other closing task.
+-		 */
+-		xa_lock(&ctx_table);
+-		if (!ctx->closing) {
+-			xa_unlock(&ctx_table);
+-			ucma_put_ctx(ctx);
+-			wait_for_completion(&ctx->comp);
+-			/* rdma_destroy_id ensures that no event handlers are
+-			 * inflight for that id before releasing it.
+-			 */
+-			rdma_destroy_id(ctx->cm_id);
+-		} else {
+-			xa_unlock(&ctx_table);
+-		}
+-
+-		ucma_free_ctx(ctx);
++		__destroy_id(ctx);
  	}
- 	xa_unlock(&ctx_table);
- 	return ctx;
+ 	destroy_workqueue(file->close_wq);
+ 	kfree(file);
 -- 
 2.26.2
 
