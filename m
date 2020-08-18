@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51CE9C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:06:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 195FDC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:06:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DD2D204EA
-	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:06:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC1E4204EA
+	for <linux-rdma@archiver.kernel.org>; Tue, 18 Aug 2020 12:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597752388;
-	bh=vmmcNKLEUsG6Hv4Rq4+sXgVow8uqpOAGRzcOacOTd2U=;
+	s=default; t=1597752392;
+	bh=zHOHiUIxNYpf5WrkCJQrvEi7r97s010Z3j2jbJ3EXkc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=uAj3O9j9ONnejrhSGSN/jwi3jeVbaw1b8dK9k4h1fYPYN+MJKl+adxW2eqHruep+K
-	 ur2CwquwjVh2vu9HE7/u/QWOYhSkdobGmlIIuuqc93sJmXdq2gLcx1/u04PZyCHNnm
-	 nXeF/Jf/cmQydvl+yNh9o8kcgZqgpZxzaZ0GiEjk=
+	b=JmHbdjsg/7f8LI/FYKGYpAX8VU5kHdqwkqEOm0sEVS0RfLWfr2C9a/JG6ng8qXTMV
+	 EQiGog8xggJBlI3DGQP4xDpv10D7B61GMrGKfShIvoQANaVX0pZYxt1dj2YxxHoMC9
+	 Uxg//hm1seSOAcUAUrgYRdwpgz5QsojFvYl70yWg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726632AbgHRMG1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 18 Aug 2020 08:06:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33144 "EHLO mail.kernel.org"
+        id S1726598AbgHRMGa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 18 Aug 2020 08:06:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726598AbgHRMGY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 18 Aug 2020 08:06:24 -0400
+        id S1726568AbgHRMG3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 18 Aug 2020 08:06:29 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1925B204EA;
-        Tue, 18 Aug 2020 12:06:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 493E9207DA;
+        Tue, 18 Aug 2020 12:06:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597752383;
-        bh=vmmcNKLEUsG6Hv4Rq4+sXgVow8uqpOAGRzcOacOTd2U=;
+        s=default; t=1597752388;
+        bh=zHOHiUIxNYpf5WrkCJQrvEi7r97s010Z3j2jbJ3EXkc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=wrloCdTWPDN+6MV7RfCmxqnzxGRuHZcRx2I34vvus8Us0cnjEn60C2YLTc+oDOc7k
-         N4hIB8bPIZmUewFCPLphjhgubYwXtq/iEmaWTWGy7dmWP/6wo1xWZfmemoNYAWU2q8
-         UMzb6HZI77itaRMRyOJVvQeZc8S2SBnzfYJdLNyA=
+        b=kHcAXPDg7nOl4asSXUsG1lyquYSI5Y/KUA29LMU/GbJ6rVMjuQAs7UWqZYPyWxre8
+         XNtHGC5PrD4EFLV+ttOS6g9sZn/xu65NXB03Apwb5EhW+OctBmH1X9M/cADTI4b5Sk
+         deWtKbeB0TCesDyTcUixwdyfS0W7CiWmy/wKicTE=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 10/14] RDMA/ucma: Add missing locking around rdma_leave_multicast()
-Date:   Tue, 18 Aug 2020 15:05:22 +0300
-Message-Id: <20200818120526.702120-11-leon@kernel.org>
+Subject: [PATCH rdma-next 14/14] RDMA/ucma: Remove closing and the close_wq
+Date:   Tue, 18 Aug 2020 15:05:26 +0300
+Message-Id: <20200818120526.702120-15-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200818120526.702120-1-leon@kernel.org>
 References: <20200818120526.702120-1-leon@kernel.org>
@@ -57,30 +57,127 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-All entry points to the rdma_cm from a ULP must be single threaded,
-even this error unwinds. Add the missing locking.
+Use cancel_work_sync() to ensure that the wq is not running and simply
+assign NULL to ctx->cm_id to indicate if the work ran or not. Delete the
+close_wq since flush_workqueue() is no longer needed.
 
-Fixes: 7c11910783a1 ("RDMA/ucma: Put a lock around every call to the rdma_cm layer")
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/ucma.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/core/ucma.c | 49 +++++++++++-----------------------
+ 1 file changed, 15 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index ca5c44cac48c..ad78b05de656 100644
+index 40539c9625d6..46d37e470e98 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -1535,7 +1535,9 @@ static ssize_t ucma_process_join(struct ucma_file *file,
- 	return 0;
+@@ -80,7 +80,6 @@ struct ucma_file {
+ 	struct list_head	ctx_list;
+ 	struct list_head	event_list;
+ 	wait_queue_head_t	poll_wait;
+-	struct workqueue_struct	*close_wq;
+ };
  
- err3:
-+	mutex_lock(&ctx->mutex);
- 	rdma_leave_multicast(ctx->cm_id, (struct sockaddr *) &mc->addr);
-+	mutex_unlock(&ctx->mutex);
- 	ucma_cleanup_mc_events(mc);
- err2:
- 	xa_erase(&multicast_table, mc->id);
+ struct ucma_context {
+@@ -96,10 +95,6 @@ struct ucma_context {
+ 	u64			uid;
+ 
+ 	struct list_head	list;
+-	/* mark that device is in process of destroying the internal HW
+-	 * resources, protected by the ctx_table lock
+-	 */
+-	int			closing;
+ 	/* sync between removal event and id destroy, protected by file mut */
+ 	int			destroying;
+ 	struct work_struct	close_work;
+@@ -148,12 +143,9 @@ static struct ucma_context *ucma_get_ctx(struct ucma_file *file, int id)
+ 
+ 	xa_lock(&ctx_table);
+ 	ctx = _ucma_find_context(id, file);
+-	if (!IS_ERR(ctx)) {
+-		if (ctx->closing)
+-			ctx = ERR_PTR(-EIO);
+-		else if (!refcount_inc_not_zero(&ctx->ref))
++	if (!IS_ERR(ctx))
++		if (!refcount_inc_not_zero(&ctx->ref))
+ 			ctx = ERR_PTR(-ENXIO);
+-	}
+ 	xa_unlock(&ctx_table);
+ 	return ctx;
+ }
+@@ -193,6 +185,14 @@ static void ucma_close_id(struct work_struct *work)
+ 	wait_for_completion(&ctx->comp);
+ 	/* No new events will be generated after destroying the id. */
+ 	rdma_destroy_id(ctx->cm_id);
++
++	/*
++	 * At this point ctx->ref is zero so the only place the ctx can be is in
++	 * a uevent or in __destroy_id(). Since the former doesn't touch
++	 * ctx->cm_id and the latter sync cancels this, there is no races with
++	 * this store.
++	 */
++	ctx->cm_id = NULL;
+ }
+ 
+ static struct ucma_context *ucma_alloc_ctx(struct ucma_file *file)
+@@ -356,12 +356,8 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
+ 		wake_up_interruptible(&ctx->file->poll_wait);
+ 	}
+ 
+-	if (event->event == RDMA_CM_EVENT_DEVICE_REMOVAL && !ctx->destroying) {
+-		xa_lock(&ctx_table);
+-		ctx->closing = 1;
+-		xa_unlock(&ctx_table);
+-		queue_work(ctx->file->close_wq, &ctx->close_work);
+-	}
++	if (event->event == RDMA_CM_EVENT_DEVICE_REMOVAL && !ctx->destroying)
++		queue_work(system_unbound_wq, &ctx->close_work);
+ 	return 0;
+ }
+ 
+@@ -577,17 +573,10 @@ static int __destroy_id(struct ucma_context *ctx)
+ 		ucma_put_ctx(ctx);
+ 	}
+ 
+-	flush_workqueue(ctx->file->close_wq);
++	cancel_work_sync(&ctx->close_work);
+ 	/* At this point it's guaranteed that there is no inflight closing task */
+-	xa_lock(&ctx_table);
+-	if (!ctx->closing) {
+-		xa_unlock(&ctx_table);
+-		ucma_put_ctx(ctx);
+-		wait_for_completion(&ctx->comp);
+-		rdma_destroy_id(ctx->cm_id);
+-	} else {
+-		xa_unlock(&ctx_table);
+-	}
++	if (ctx->cm_id)
++		ucma_close_id(&ctx->close_work);
+ 	return ucma_free_ctx(ctx);
+ }
+ 
+@@ -1788,13 +1777,6 @@ static int ucma_open(struct inode *inode, struct file *filp)
+ 	if (!file)
+ 		return -ENOMEM;
+ 
+-	file->close_wq = alloc_ordered_workqueue("ucma_close_id",
+-						 WQ_MEM_RECLAIM);
+-	if (!file->close_wq) {
+-		kfree(file);
+-		return -ENOMEM;
+-	}
+-
+ 	INIT_LIST_HEAD(&file->event_list);
+ 	INIT_LIST_HEAD(&file->ctx_list);
+ 	init_waitqueue_head(&file->poll_wait);
+@@ -1825,7 +1807,6 @@ static int ucma_close(struct inode *inode, struct file *filp)
+ 		xa_erase(&ctx_table, ctx->id);
+ 		__destroy_id(ctx);
+ 	}
+-	destroy_workqueue(file->close_wq);
+ 	kfree(file);
+ 	return 0;
+ }
 -- 
 2.26.2
 
