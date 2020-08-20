@@ -5,66 +5,66 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A4DEC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Aug 2020 22:47:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F631C433E3
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Aug 2020 22:47:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14967207DA
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 Aug 2020 22:47:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7037C207DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 Aug 2020 22:47:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jxSPMpDu"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L58lgSLT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728573AbgHTWrY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 20 Aug 2020 18:47:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39224 "EHLO
+        id S1728589AbgHTWr1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 20 Aug 2020 18:47:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728502AbgHTWrV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 20 Aug 2020 18:47:21 -0400
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92580C061387
-        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2020 15:47:19 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id t7so176088otp.0
-        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2020 15:47:19 -0700 (PDT)
+        with ESMTP id S1728423AbgHTWrX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 20 Aug 2020 18:47:23 -0400
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2F6BC061388
+        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2020 15:47:20 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id h22so132003otq.11
+        for <linux-rdma@vger.kernel.org>; Thu, 20 Aug 2020 15:47:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=429me9TE7Vhzd2q6YVBMVKKbtkPoL3HxIm0ExCPvfUs=;
-        b=jxSPMpDu+xrCvBdfLTT++CzZTn3qlusA27+uUxdkrQEPte7zSqP016rdJvaX1gV/IN
-         pknT1FnO+r+Rn663hX5GzI89GBudhoAJkS1/OyS8FyaCMJoQ+FlRZGcORcK3F46rnDA3
-         GbrBOvaeMRfDNet+6PI2XnHKZZ/S9AU0OqEsFvMkYPDhBxh+r7UUy1Iol0uYekUzCodd
-         MwsWYzHySjvu2Q2FkCLOlX+H05zjUUBIgDW/v5QQsyfX59CJ7oNHhBo8QGfqMP1rbbtJ
-         87wcrCvNX2RDhKpahV9ewTXOT88nd/sc9xcag1DvCzEosv1iKOKaPTPOzqkdB97tPiHk
-         JCDg==
+        bh=+ukgpbblYz7Y1bTcYeNcegeBSN5CRt6pKn1YDnVhuGA=;
+        b=L58lgSLTPwFT8N7wgD9mpsTT01KJN9hcnsxYqBX0apMhfjFlYvdQUexZMyHhUcouoh
+         eU8OsljWaL3QENM1FdJh4fbLiBI2UGnTKU1cDi4Ta0h8d76nWzTIDngTjtrhiuy+Lpi6
+         NoykUzjmnR7yR2sNGYZfy89qiyGiEYRy8TRPsCGnHlLnnUWprvb3BS2D2+c2qNeAoK+Y
+         GgVfIhmCO0LMRQGYzEAhXMLdNh93TPg2/A+wkI6jk2kt166x9zirj0hInGmRrUymmSiE
+         3MHSojZ4UsbmxLnRsMvk5B6bof/ZUmX7UtanzPixhgYqLcYSdY9AweD/q8v63zgaQG0R
+         xDoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=429me9TE7Vhzd2q6YVBMVKKbtkPoL3HxIm0ExCPvfUs=;
-        b=NfO/FLBQo+daATozzPZZsmxJ3ZRq+PKVxxPX6EyjCze+dbHbrU42Lg3NfcMtw9sCiY
-         5w9Wg9ov49h4ebLBj3QhFCPvIAdPNxdcbFHe2F539bqC7pxAku6XvT65MsCkjFeg0Jna
-         v+HOJwsQ2U/4VfBGwWH6kepPB/dM2Ud03G26q/DPNRl14Vfwsj5ipRu/JdMnH3VoTbwD
-         EtWM/zh3KeAltea08STeSGkflxI64f1IW7U4ibTRkLhNXVAm4Py36HqlzZcPsFt2DgzW
-         aozNgnJxwd02GCM0X3Z3Apl4calmAR1Cv5pklGwocN8h8tkIjJwOekQLhNcivEI6uCfa
-         L7xg==
-X-Gm-Message-State: AOAM531ucewfjTDL7l2OF6rU88WqSAxnxx2JT+8cM/pu5+X7/pnn+mGU
-        20sB1JgUumUlC5AVUh3eSrWiPru1/yhSJA==
-X-Google-Smtp-Source: ABdhPJw60sVQCpGXeaqhBAuLCzDFMmc4G9+xHlsPKGhOBkpNjJEPKnTIp3ZSkGW/ll7A3q6Y0ar4HQ==
-X-Received: by 2002:a05:6830:1ad7:: with SMTP id r23mr99010otc.96.1597963636271;
-        Thu, 20 Aug 2020 15:47:16 -0700 (PDT)
+        bh=+ukgpbblYz7Y1bTcYeNcegeBSN5CRt6pKn1YDnVhuGA=;
+        b=hy2lJ0EkJ7U2h/CBOxCh3dkxX7AYJAG84Dqih3ssn6jL5TyLxUFz6YVZBmJMIJpqcu
+         4ocdCWh9idb0hgaRDlil/GheYbw+oqBuyfVsc8HHxGC2ECMlGU1/2WhvyJDXMuTpXUsf
+         y/cN0uStJ/Cukrc8+KEgLwz521cqfRtcJuuVTljAPRmFrQ/oBZXvwO7DUgGipi4NDUcs
+         yj82jumIAqadvCqZxR+HVhAuzBwNmLcOpCQfh3c84ZB5+633xbrZBWQ+Csx3IbjT7eIW
+         jay/fI1e/4ZsKYM+4OBKEaqYswkE17t7sHSFTYhT3Q1ABxsft89Yy9G2Be+mGyFTJoU/
+         1OWA==
+X-Gm-Message-State: AOAM5336/KpJ1NzhD7ItImQJn3H5PD6w7f+ceBscDfjK7ZEWV5k4K2mi
+        KMumQ94YBonOIAgRFTQKtqbh60yr5ZgG0w==
+X-Google-Smtp-Source: ABdhPJyYLfgaO3tjbRk3XcK/tQhYsG7WBsoY3I9paQ/aGzlUCHLpa7cb5rfHlsb+f/mUYkOlwyIwMQ==
+X-Received: by 2002:a9d:2f23:: with SMTP id h32mr8461otb.334.1597963637776;
+        Thu, 20 Aug 2020 15:47:17 -0700 (PDT)
 Received: from localhost ([2605:6000:8b03:f000:e2a0:5228:a0c3:36eb])
-        by smtp.gmail.com with ESMTPSA id r10sm752160otd.65.2020.08.20.15.47.15
+        by smtp.gmail.com with ESMTPSA id w9sm684646oih.31.2020.08.20.15.47.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Aug 2020 15:47:15 -0700 (PDT)
+        Thu, 20 Aug 2020 15:47:17 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
 To:     linux-rdma@vger.kernel.org, zyjzyj2000@gmail.com
 Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH v3 04/17] ib_verbs.h: Added missing IB_WR_BIND_MW opcode
-Date:   Thu, 20 Aug 2020 17:46:25 -0500
-Message-Id: <20200820224638.3212-5-rpearson@hpe.com>
+Subject: [PATCH v3 06/17] rdma_rxe: Added stubs for alloc_mw and dealloc_mw verbs
+Date:   Thu, 20 Aug 2020 17:46:27 -0500
+Message-Id: <20200820224638.3212-7-rpearson@hpe.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200820224638.3212-1-rpearson@hpe.com>
 References: <20200820224638.3212-1-rpearson@hpe.com>
@@ -75,49 +75,97 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Also assigned the IB_WC_XXX to the IB_UVERBS_WC_XXX where they
-are defined. This follows the same pattern as the IB_WR_XXX opcodes.
-This fixes an incorrect value for LSO that had crept in but was not used.
+Added a new file focused on memory windows, rxe_mw.c and adds stubbed
+out kernel verbs API for alloc_mw and dealloc_mw. These functions are added
+to the context ops struct and bits added to the supported APIs mask.
 
 Signed-off-by: Bob Pearson <rpearson@hpe.com>
 ---
- include/rdma/ib_verbs.h | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rxe/Makefile    |  1 +
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  5 +++++
+ drivers/infiniband/sw/rxe/rxe_mw.c    | 22 ++++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_verbs.c |  4 ++++
+ 4 files changed, 32 insertions(+)
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_mw.c
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index c0b2fa7e9b95..05362947322b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -952,13 +952,14 @@ enum ib_wc_status {
- const char *__attribute_const__ ib_wc_status_msg(enum ib_wc_status status);
+diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
+index 66af72dca759..1e24673e9318 100644
+--- a/drivers/infiniband/sw/rxe/Makefile
++++ b/drivers/infiniband/sw/rxe/Makefile
+@@ -15,6 +15,7 @@ rdma_rxe-y := \
+ 	rxe_qp.o \
+ 	rxe_cq.o \
+ 	rxe_mr.o \
++	rxe_mw.o \
+ 	rxe_opcode.o \
+ 	rxe_mmap.o \
+ 	rxe_icrc.o \
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 47d1730f43dd..9ab5f2c34def 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -111,6 +111,11 @@ void rxe_mem_cleanup(struct rxe_pool_entry *arg);
  
- enum ib_wc_opcode {
--	IB_WC_SEND,
--	IB_WC_RDMA_WRITE,
--	IB_WC_RDMA_READ,
--	IB_WC_COMP_SWAP,
--	IB_WC_FETCH_ADD,
--	IB_WC_LSO,
--	IB_WC_LOCAL_INV,
-+	IB_WC_SEND = IB_UVERBS_WC_SEND,
-+	IB_WC_RDMA_WRITE = IB_UVERBS_WC_RDMA_WRITE,
-+	IB_WC_RDMA_READ = IB_UVERBS_WC_RDMA_READ,
-+	IB_WC_COMP_SWAP = IB_UVERBS_WC_COMP_SWAP,
-+	IB_WC_FETCH_ADD = IB_UVERBS_WC_FETCH_ADD,
-+	IB_WC_BIND_MW = IB_UVERBS_WC_BIND_MW,
-+	IB_WC_LOCAL_INV = IB_UVERBS_WC_LOCAL_INV,
-+	IB_WC_LSO = IB_UVERBS_WC_TSO,
- 	IB_WC_REG_MR,
- 	IB_WC_MASKED_COMP_SWAP,
- 	IB_WC_MASKED_FETCH_ADD,
-@@ -1291,6 +1292,7 @@ enum ib_wr_opcode {
- 	IB_WR_RDMA_READ = IB_UVERBS_WR_RDMA_READ,
- 	IB_WR_ATOMIC_CMP_AND_SWP = IB_UVERBS_WR_ATOMIC_CMP_AND_SWP,
- 	IB_WR_ATOMIC_FETCH_AND_ADD = IB_UVERBS_WR_ATOMIC_FETCH_AND_ADD,
-+	IB_WR_BIND_MW = IB_UVERBS_WR_BIND_MW,
- 	IB_WR_LSO = IB_UVERBS_WR_TSO,
- 	IB_WR_SEND_WITH_INV = IB_UVERBS_WR_SEND_WITH_INV,
- 	IB_WR_RDMA_READ_WITH_INV = IB_UVERBS_WR_RDMA_READ_WITH_INV,
+ int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
+ 
++/* rxe_mw.c */
++struct ib_mw *rxe_alloc_mw(struct ib_pd *ibpd, enum ib_mw_type type,
++			   struct ib_udata *udata);
++int rxe_dealloc_mw(struct ib_mw *ibmw);
++
+ /* rxe_net.c */
+ void rxe_loopback(struct sk_buff *skb);
+ int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb);
+diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
+new file mode 100644
+index 000000000000..f5df5e0b714f
+--- /dev/null
++++ b/drivers/infiniband/sw/rxe/rxe_mw.c
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * linux/drivers/infiniband/sw/rxe/rxe_mw.c
++ *
++ * Copyright (c) 2020 Hewlett Packard Enterprise, Inc. All rights reserved.
++ */
++
++#include "rxe.h"
++#include "rxe_loc.h"
++
++struct ib_mw *rxe_alloc_mw(struct ib_pd *ibpd, enum ib_mw_type type,
++			   struct ib_udata *udata)
++{
++	pr_err_once("%s: not implemented\n", __func__);
++	return ERR_PTR(-EINVAL);
++}
++
++int rxe_dealloc_mw(struct ib_mw *ibmw)
++{
++	pr_err_once("%s: not implemented\n", __func__);
++	return -EINVAL;
++}
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index c2d09998b778..dcd8693f8ce6 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1106,6 +1106,8 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.reg_user_mr = rxe_reg_user_mr,
+ 	.req_notify_cq = rxe_req_notify_cq,
+ 	.resize_cq = rxe_resize_cq,
++	.alloc_mw = rxe_alloc_mw,
++	.dealloc_mw = rxe_dealloc_mw,
+ 
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, rxe_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, rxe_cq, ibcq),
+@@ -1167,6 +1169,8 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
+ 	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_AH)
+ 	    | BIT_ULL(IB_USER_VERBS_CMD_ATTACH_MCAST)
+ 	    | BIT_ULL(IB_USER_VERBS_CMD_DETACH_MCAST)
++	    | BIT_ULL(IB_USER_VERBS_CMD_ALLOC_MW)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DEALLOC_MW)
+ 	    ;
+ 
+ 	ib_set_device_ops(dev, &rxe_dev_ops);
 -- 
 2.25.1
 
