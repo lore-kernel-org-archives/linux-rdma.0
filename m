@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C47BAC433E1
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:44:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBA6AC433E1
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:44:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F3FA2075B
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:44:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A797E2075B
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:44:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598265883;
-	bh=EzqJ7VUWwmXig0zSu7HibRzW6Vq4SKBW7qep/hsQ4RE=;
+	s=default; t=1598265886;
+	bh=45QZEKve0Ai8B9HTiLXRFf1nsLtNfPeYH7DDoNQnoTk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=EyNsqcfkYPT0bBBstxDzuE+EZl9GQv3bcLK5PZLhKf15u2rHMYZIvrO+jcBlvivqX
-	 E6g+BzvqjrqBKWMH3/LCPR0B+m3JJ/Uo/RArnKoK0Ltm+gs5ga6Zds/S3LOkDvlPMm
-	 IzZ+t47eWRi44HL0p1WrIWZixY6V1TVWoJlb1nZw=
+	b=hfWWoke0Ktzlq/IFn6mE2MCTKZecFFvJgUDHBIi/8qUW512DOu2WbJItytJtb3fn0
+	 SEdfI18pQu6pgeK7EywvkuVvH1msv25nhsHyzul2S4x0D1aUq0jrfeGmajEqjzW0E1
+	 JZnk5kOLx0He5CAZTUVPCsfb3uBssgw9UltQMm8g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbgHXKob (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Aug 2020 06:44:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35070 "EHLO mail.kernel.org"
+        id S1727122AbgHXKon (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Aug 2020 06:44:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726750AbgHXKo2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 24 Aug 2020 06:44:28 -0400
+        id S1725976AbgHXKob (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 24 Aug 2020 06:44:31 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2E179206B5;
-        Mon, 24 Aug 2020 10:44:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B5CEE206B5;
+        Mon, 24 Aug 2020 10:44:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598265867;
-        bh=EzqJ7VUWwmXig0zSu7HibRzW6Vq4SKBW7qep/hsQ4RE=;
+        s=default; t=1598265871;
+        bh=45QZEKve0Ai8B9HTiLXRFf1nsLtNfPeYH7DDoNQnoTk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Ubjp4Z399qYoGghHokFD+o9sJn53xxMa/JAoRgzfH5Y2EgEbmZW8+iqI25s+PPIDa
-         y2WWZg96GLpIvi4J2KmWbPPlCLuTNlRrCZ/ZSxetqRIGljbONBScPxr4Qj2gPkfcdR
-         L78Hud3RIHjIVQYQt1lAwytAvRRdQCqTQcQ25j6w=
+        b=yc7a2VDSwV/jmwJPMDhsa7mAjElFTtPC6oYkH2CWsam953/JLaEiMHaUAZOwHs4Rq
+         GmFvt71f6oFvUsmMmA485DUyFP5BO4OiudV6lENojHaSx3v6TQpPR93jKZXdBe0Lis
+         x6fYfvj36PnLKE7MY06j8B6rz4oZFbOGtIvUphw4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Mark Zhang <markz@nvidia.com>
-Subject: [PATCH rdma-next 03/14] RDMA/mlx5: Don't call to restrack recursively
-Date:   Mon, 24 Aug 2020 13:44:04 +0300
-Message-Id: <20200824104415.1090901-4-leon@kernel.org>
+Cc:     Maor Gottlieb <maorg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 01/14] RDMA/verbs: Assign port number of special QPs
+Date:   Mon, 24 Aug 2020 13:44:02 +0300
+Message-Id: <20200824104415.1090901-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200824104415.1090901-1-leon@kernel.org>
 References: <20200824104415.1090901-1-leon@kernel.org>
@@ -56,61 +57,31 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Maor Gottlieb <maorg@mellanox.com>
 
-The restrack is going to manage memory of all IB objects and must be
-called before object is created. GSI QP in the mlx5_ib separated between
-creating dummy interface and HW object beneath. This was achieved by
-double call to ib_create_qp().
+Special QPs deliver the port number when they are created.
+Keep the value in the ib_qp struct.
 
-In order to skip such reentry call to internal driver create_qp code.
-
-Reviewed-by: Mark Zhang <markz@nvidia.com>
+Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/gsi.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/verbs.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index 40d418153891..d9f300f78a82 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -182,13 +182,25 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- 		hw_init_attr.cap.max_send_sge = 0;
- 		hw_init_attr.cap.max_inline_data = 0;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index bab99f326cce..50042bf753f2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1241,6 +1241,9 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		return xrc_qp;
  	}
--	gsi->rx_qp = ib_create_qp(pd, &hw_init_attr);
-+
-+	gsi->rx_qp = mlx5_ib_create_qp(pd, &hw_init_attr, NULL);
- 	if (IS_ERR(gsi->rx_qp)) {
- 		mlx5_ib_warn(dev, "unable to create hardware GSI QP. error %ld\n",
- 			     PTR_ERR(gsi->rx_qp));
- 		ret = PTR_ERR(gsi->rx_qp);
- 		goto err_destroy_cq;
- 	}
-+	gsi->rx_qp->device = pd->device;
-+	gsi->rx_qp->pd = pd;
-+	gsi->rx_qp->real_qp = gsi->rx_qp;
-+
-+	gsi->rx_qp->qp_type = hw_init_attr.qp_type;
-+	gsi->rx_qp->send_cq = hw_init_attr.send_cq;
-+	gsi->rx_qp->recv_cq = hw_init_attr.recv_cq;
-+	gsi->rx_qp->event_handler = hw_init_attr.event_handler;
-+	spin_lock_init(&gsi->rx_qp->mr_lock);
-+	INIT_LIST_HEAD(&gsi->rx_qp->rdma_mrs);
-+	INIT_LIST_HEAD(&gsi->rx_qp->sig_mrs);
  
- 	dev->devr.ports[init_attr->port_num - 1].gsi = gsi;
- 
-@@ -219,7 +231,7 @@ int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp)
- 	mlx5_ib_dbg(dev, "destroying GSI QP\n");
- 
- 	mutex_lock(&dev->devr.mutex);
--	ret = ib_destroy_qp(gsi->rx_qp);
-+	ret = mlx5_ib_destroy_qp(gsi->rx_qp, NULL);
- 	if (ret) {
- 		mlx5_ib_warn(dev, "unable to destroy hardware GSI QP. error %d\n",
- 			     ret);
++	if (qp_init_attr->qp_type == IB_QPT_SMI ||
++	    qp_init_attr->qp_type == IB_QPT_GSI)
++		qp->port = qp_init_attr->port_num;
+ 	qp->event_handler = qp_init_attr->event_handler;
+ 	qp->qp_context = qp_init_attr->qp_context;
+ 	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
 -- 
 2.26.2
 
