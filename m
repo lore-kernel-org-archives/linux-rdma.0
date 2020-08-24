@@ -4,54 +4,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34C81C433E1
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:59:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE17C433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 11:02:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0311E20738
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 10:59:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AC64207DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Aug 2020 11:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598266748;
-	bh=HmPiFzrcZnO3c+9y7h83ny8JHIMR8Q/mRHaYnY+InBo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=r8AubaZfMXO/zkt4d4D5a4gRbn6mwH384vOPkAywtsU6ktoJ3r1GKznmM3vOpFe01
-	 Gw76SZpzFZQGJL4ipOJuJM1nN/n70g7dEcnGRg8ENmykn9hXPLAPlyrCBbPH3iry8Q
-	 fL5fNtFlvncDuUlQKih7WVMyY9uEKPBhPgp/oUag=
+	s=default; t=1598266956;
+	bh=0oenFxZulSNc+bX1cTIr3mQ/9Mg1MqJ5FbwLuXpGMl0=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=qGbO7p13Pc5ltFMh7R9NIn7h2GPBReqveDaRreBQZgUj9Ky0xFZ8fG/wW4KVIsaHm
+	 LFUZ/FtSoj2TCn5/GB7HmRwgNdEeXsK5k5r84kw/GpaurekmhtavJDo/joS7ce8GK7
+	 wtallUe+aXbxoQeuO5B9NnZoSsdLZsdPw9GQw3hM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727104AbgHXK6t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Aug 2020 06:58:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48808 "EHLO mail.kernel.org"
+        id S1726473AbgHXLCf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Aug 2020 07:02:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727079AbgHXK6o (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 24 Aug 2020 06:58:44 -0400
+        id S1726354AbgHXLCe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 24 Aug 2020 07:02:34 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8595020738;
-        Mon, 24 Aug 2020 10:58:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 01994206B5;
+        Mon, 24 Aug 2020 11:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598266723;
-        bh=HmPiFzrcZnO3c+9y7h83ny8JHIMR8Q/mRHaYnY+InBo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=c/Z2Rm9WgvA09ZLrISnoAYAf/3rR9Cebx1CcCbkSmKCdqm14HPzS12P2ky82heVda
-         mBcinhHWQ/hwIFxLd3qw/kPG/jlHIz7XXOP405IKZs4yHLftOTpDHRncr9wNR0hc7B
-         yfIv+lzbHaQY7THAtOIyqE4aXjh24tNIDIImJuwQ=
+        s=default; t=1598266953;
+        bh=0oenFxZulSNc+bX1cTIr3mQ/9Mg1MqJ5FbwLuXpGMl0=;
+        h=From:To:Cc:Subject:Date:From;
+        b=AtgxWip4/V+4oBvcoqFO7YkQKf08nimELvlQEF15phLBAZ90CXJzeyENvygYCKzYn
+         8KN0/QEiDlyPKkGvYpL61IhEdXPJUuGaSGvM7Y1KR59CUadBvtVWV797DekbsU/FaX
+         vLyRXd8OOvvswAT4SnKHZZf1pGvUNWRNCYVABcOM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@mellanox.com>,
-        Achiad Shochat <achiad@mellanox.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Refactor query port speed functions
-Date:   Mon, 24 Aug 2020 13:58:24 +0300
-Message-Id: <20200824105826.1093613-2-leon@kernel.org>
+Cc:     Mark Bloch <markb@mellanox.com>, Eli Cohen <eli@mellanox.co.il>,
+        Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
+        Roland Dreier <rolandd@cisco.com>,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-rc v1] RDMA/mlx4: Read pkey table length instead of hardcoded value
+Date:   Mon, 24 Aug 2020 14:02:29 +0300
+Message-Id: <20200824110229.1094376-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200824105826.1093613-1-leon@kernel.org>
-References: <20200824105826.1093613-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -59,219 +57,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@mellanox.com>
+From: Mark Bloch <markb@mellanox.com>
 
-The functions mlx5_query_port_link_width_oper and
-mlx5_query_port_ib_proto_oper are always called together, so combine them
-to a new function called mlx5_query_port_oper to avoid duplication.
+If the pkey_table is not available (which is the case when RoCE is not
+supported), the cited commit caused a regression where mlx4_devices
+without RoCE are not created.
 
-And while the mlx5i_get_port_settings is the same as
-mlx5_query_port_oper therefore let's remove it.
+Fix this by returning a pkey table length of zero in procedure
+eth_link_query_port() if the pkey-table length reported by the device
+is zero.
 
-According to the IB spec link_width_oper and ib_proto_oper should be u16
-and not as written u8, so perform casting as a preparation to cross-RDMA
-patch which will fix that type for all drivers in the RDMA subsystem.
-
-Fixes: ada68c31ba9c ("net/mlx5: Introduce a new header file for physical port functions")
-Signed-off-by: Aharon Landau <aharonl@mellanox.com>
-Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+Cc: <stable@vger.kernel.org>
+Cc: Long Li <longli@microsoft.com>
+Fixes: 1901b91f9982 ("IB/core: Fix potential NULL pointer dereference in pkey cache")
+Fixes: fa417f7b520e ("IB/mlx4: Add support for IBoE")
+Signed-off-by: Mark Bloch <markb@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c             | 23 ++++++++-----------
- .../mellanox/mlx5/core/ipoib/ethtool.c        | 23 ++++---------------
- .../net/ethernet/mellanox/mlx5/core/port.c    | 23 ++++---------------
- include/linux/mlx5/port.h                     |  7 +++---
- 4 files changed, 21 insertions(+), 55 deletions(-)
+Changelog:
+v1: Used commit message suggested by Jack
+v0:
+https://lore.kernel.org/linux-rdma/20200823061754.573919-1-leon@kernel.org
+---
+ drivers/infiniband/hw/mlx4/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4960e3b31c94..55d3631b64f9 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -326,8 +326,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *ibdev, u8 port_num)
- 	spin_unlock(&port->mp.mpi_lock);
- }
- 
--static int translate_eth_legacy_proto_oper(u32 eth_proto_oper, u8 *active_speed,
--					   u8 *active_width)
-+static int translate_eth_legacy_proto_oper(u32 eth_proto_oper,
-+					   u16 *active_speed, u8 *active_width)
- {
- 	switch (eth_proto_oper) {
- 	case MLX5E_PROT_MASK(MLX5E_1000BASE_CX_SGMII):
-@@ -384,7 +384,7 @@ static int translate_eth_legacy_proto_oper(u32 eth_proto_oper, u8 *active_speed,
- 	return 0;
- }
- 
--static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u8 *active_speed,
-+static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u16 *active_speed,
- 					u8 *active_width)
- {
- 	switch (eth_proto_oper) {
-@@ -436,7 +436,7 @@ static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u8 *active_speed,
- 	return 0;
- }
- 
--static int translate_eth_proto_oper(u32 eth_proto_oper, u8 *active_speed,
-+static int translate_eth_proto_oper(u32 eth_proto_oper, u16 *active_speed,
- 				    u8 *active_width, bool ext)
- {
- 	return ext ?
-@@ -490,7 +490,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	props->active_width     = IB_WIDTH_4X;
- 	props->active_speed     = IB_SPEED_QDR;
- 
--	translate_eth_proto_oper(eth_prot_oper, &props->active_speed,
-+	translate_eth_proto_oper(eth_prot_oper, (u16 *)&props->active_speed,
- 				 &props->active_width, ext);
- 
- 	props->port_cap_flags |= IB_PORT_CM_SUP;
-@@ -1183,8 +1183,8 @@ enum mlx5_ib_width {
- 	MLX5_IB_WIDTH_12X	= 1 << 4
- };
- 
--static void translate_active_width(struct ib_device *ibdev, u8 active_width,
--				  u8 *ib_width)
-+static void translate_active_width(struct ib_device *ibdev, u16 active_width,
-+				   u8 *ib_width)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 
-@@ -1277,7 +1277,7 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
- 	u16 max_mtu;
- 	u16 oper_mtu;
- 	int err;
--	u8 ib_link_width_oper;
-+	u16 ib_link_width_oper;
- 	u8 vl_hw_cap;
- 
- 	rep = kzalloc(sizeof(*rep), GFP_KERNEL);
-@@ -1310,16 +1310,13 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
- 	if (props->port_cap_flags & IB_PORT_CAP_MASK2_SUP)
- 		props->port_cap_flags2 = rep->cap_mask2;
- 
--	err = mlx5_query_port_link_width_oper(mdev, &ib_link_width_oper, port);
-+	err = mlx5_query_ib_port_oper(mdev, &ib_link_width_oper,
-+				      (u16 *)&props->active_speed, port);
- 	if (err)
- 		goto out;
- 
- 	translate_active_width(ibdev, ib_link_width_oper, &props->active_width);
- 
--	err = mlx5_query_port_ib_proto_oper(mdev, &props->active_speed, port);
--	if (err)
--		goto out;
--
- 	mlx5_query_port_max_mtu(mdev, &max_mtu, port);
- 
- 	props->max_mtu = mlx5_mtu_to_ib_mtu(max_mtu);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-index 1eef66ee849e..17f5be801d2f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
-@@ -174,24 +174,6 @@ static inline int mlx5_ptys_rate_enum_to_int(enum mlx5_ptys_rate rate)
- 	}
- }
- 
--static int mlx5i_get_port_settings(struct net_device *netdev,
--				   u16 *ib_link_width_oper, u16 *ib_proto_oper)
--{
--	struct mlx5e_priv *priv    = mlx5i_epriv(netdev);
--	struct mlx5_core_dev *mdev = priv->mdev;
--	u32 out[MLX5_ST_SZ_DW(ptys_reg)] = {0};
--	int ret;
--
--	ret = mlx5_query_port_ptys(mdev, out, sizeof(out), MLX5_PTYS_IB, 1);
--	if (ret)
--		return ret;
--
--	*ib_link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
--	*ib_proto_oper      = MLX5_GET(ptys_reg, out, ib_proto_oper);
--
--	return 0;
--}
--
- static int mlx5i_get_speed_settings(u16 ib_link_width_oper, u16 ib_proto_oper)
- {
- 	int rate, width;
-@@ -209,11 +191,14 @@ static int mlx5i_get_speed_settings(u16 ib_link_width_oper, u16 ib_proto_oper)
- static int mlx5i_get_link_ksettings(struct net_device *netdev,
- 				    struct ethtool_link_ksettings *link_ksettings)
- {
-+	struct mlx5e_priv *priv = mlx5i_epriv(netdev);
-+	struct mlx5_core_dev *mdev = priv->mdev;
- 	u16 ib_link_width_oper;
- 	u16 ib_proto_oper;
- 	int speed, ret;
- 
--	ret = mlx5i_get_port_settings(netdev, &ib_link_width_oper, &ib_proto_oper);
-+	ret = mlx5_query_ib_port_oper(mdev, &ib_link_width_oper, &ib_proto_oper,
-+				      1);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-index e4186e84b3ff..4bb219565c58 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -154,24 +154,8 @@ int mlx5_set_port_beacon(struct mlx5_core_dev *dev, u16 beacon_duration)
- 				    sizeof(out), MLX5_REG_MLCR, 0, 1);
- }
- 
--int mlx5_query_port_link_width_oper(struct mlx5_core_dev *dev,
--				    u8 *link_width_oper, u8 local_port)
--{
--	u32 out[MLX5_ST_SZ_DW(ptys_reg)];
--	int err;
--
--	err = mlx5_query_port_ptys(dev, out, sizeof(out), MLX5_PTYS_IB, local_port);
--	if (err)
--		return err;
--
--	*link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(mlx5_query_port_link_width_oper);
--
--int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
--				  u8 *proto_oper, u8 local_port)
-+int mlx5_query_ib_port_oper(struct mlx5_core_dev *dev, u16 *link_width_oper,
-+			    u16 *proto_oper, u8 local_port)
- {
- 	u32 out[MLX5_ST_SZ_DW(ptys_reg)];
- 	int err;
-@@ -181,11 +165,12 @@ int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
- 	if (err)
- 		return err;
- 
-+	*link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
- 	*proto_oper = MLX5_GET(ptys_reg, out, ib_proto_oper);
- 
- 	return 0;
- }
--EXPORT_SYMBOL(mlx5_query_port_ib_proto_oper);
-+EXPORT_SYMBOL(mlx5_query_ib_port_oper);
- 
- /* This function should be used after setting a port register only */
- void mlx5_toggle_port_link(struct mlx5_core_dev *dev)
-diff --git a/include/linux/mlx5/port.h b/include/linux/mlx5/port.h
-index 2d45a6af52a4..4d33ae0c2d97 100644
---- a/include/linux/mlx5/port.h
-+++ b/include/linux/mlx5/port.h
-@@ -133,10 +133,9 @@ enum mlx5e_connector_type {
- int mlx5_set_port_caps(struct mlx5_core_dev *dev, u8 port_num, u32 caps);
- int mlx5_query_port_ptys(struct mlx5_core_dev *dev, u32 *ptys,
- 			 int ptys_size, int proto_mask, u8 local_port);
--int mlx5_query_port_link_width_oper(struct mlx5_core_dev *dev,
--				    u8 *link_width_oper, u8 local_port);
--int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
--				  u8 *proto_oper, u8 local_port);
-+
-+int mlx5_query_ib_port_oper(struct mlx5_core_dev *dev, u16 *link_width_oper,
-+			    u16 *proto_oper, u8 local_port);
- void mlx5_toggle_port_link(struct mlx5_core_dev *dev);
- int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
- 			       enum mlx5_port_status status);
--- 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 5e7910a517da..bd4f975e7f9a 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -784,7 +784,8 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	props->ip_gids = true;
+ 	props->gid_tbl_len	= mdev->dev->caps.gid_table_len[port];
+ 	props->max_msg_sz	= mdev->dev->caps.max_msg_sz;
+-	props->pkey_tbl_len	= 1;
++	if (mdev->dev->caps.pkey_table_len[port])
++		props->pkey_tbl_len = 1;
+ 	props->max_mtu		= IB_MTU_4096;
+ 	props->max_vl_num	= 2;
+ 	props->state		= IB_PORT_DOWN;
+--
 2.26.2
 
