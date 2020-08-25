@@ -2,153 +2,88 @@ Return-Path: <SRS0=RHPu=CD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4198CC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:37:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50429C433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:37:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A6CE207F7
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:37:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2430D207F7
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:37:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=embeddedor.com header.i=@embeddedor.com header.b="NBH/ZiIH"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aVRyKu8T"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726222AbgHYQhb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 Aug 2020 12:37:31 -0400
-Received: from gateway34.websitewelcome.com ([192.185.149.13]:11349 "EHLO
-        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725947AbgHYQha (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 25 Aug 2020 12:37:30 -0400
-X-Greylist: delayed 1449 seconds by postgrey-1.27 at vger.kernel.org; Tue, 25 Aug 2020 12:37:30 EDT
-Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
-        by gateway34.websitewelcome.com (Postfix) with ESMTP id DE4851D9CA
-        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 11:13:19 -0500 (CDT)
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with SMTP
-        id AbZXk3WHsLFNkAbZXkXunB; Tue, 25 Aug 2020 11:13:19 -0500
-X-Authority-Reason: nr=8
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:Subject:From:References:Cc:To:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=zRcUZk0FbZItivluILvSCwbMxqJLNDQ9MNKks1E4NzY=; b=NBH/ZiIHLzDLxAIWa68ddoB+08
-        r9yYXlJWKF4E0JX+xfwq0H7lc5kizf4Mx+GByP0UgXAP9S1OaGbKzdfrd3Pjd5ND1VLo9MK06tMyb
-        Bt1Mp2ANuN2WEpMnNZiF7Grw8+zMgH4M5OF71/dVoTHysAGoPANlX6MaatGnbeCuaLKFk2DeNMvSx
-        78+tWXW5pm7CID70jzgIkmgjfR+RqwHCEXMorjG35qzzR5gRFbBPl2QzUEFGkoLwI0AFzhmVfS6YP
-        CZLaToIKV996ZTZXqGVLNIKQoIggW/vcdh3Gl+K2Vo/FdOcbx1F809Va44DfFpYkzZg8uBmADybFj
-        mxth+kcQ==;
-Received: from 187-162-31-110.static.axtel.net ([187.162.31.110]:57972 helo=[192.168.15.8])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1kAbZX-000dj8-FM; Tue, 25 Aug 2020 11:13:19 -0500
-To:     Alex Dewar <alex.dewar90@gmail.com>
-Cc:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Roland Dreier <roland@purestorage.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20200825155142.349651-1-alex.dewar90@gmail.com>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Autocrypt: addr=gustavo@embeddedor.com; keydata=
- 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
- AP7RWS474w==
-Subject: Re: [PATCH] IB/qib: remove superfluous fallthrough statements
-Message-ID: <4877c3a5-365e-4500-43c0-4a4361e2cda3@embeddedor.com>
-Date:   Tue, 25 Aug 2020 11:19:18 -0500
+        id S1725947AbgHYQhz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Aug 2020 12:37:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53550 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725805AbgHYQhy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Aug 2020 12:37:54 -0400
+Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com [IPv6:2607:f8b0:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FEFDC061574
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 09:37:54 -0700 (PDT)
+Received: by mail-ot1-x32c.google.com with SMTP id r8so1394103ota.6
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 09:37:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=jxTwDlhT4RdlsKfkyZgB6au+lj91bcjVeupOiRuBhY0=;
+        b=aVRyKu8T8SnqBWoGJTb+lJ7bicPz/Aqb2pM1CjJ19pOvstb1n0zQuKOulcQABHvWZC
+         Q9Fnyx6ZaGRFbx6hueX41gQ4PmepqeOPZUOLOXom4ozSmKo4MT9pPR23SNC7TCsFT0W+
+         /vh3a+3WjCFLbre3oKEByZzGKLTw7Ib3ZR5WuYo+skh0u07+0mpHXUvE8bQVYrAo7aPz
+         /mFCU0i8t1PYAnmYf4VoatpOtrRp7TXca7D7Y4aXkGCxh3A0yHeALQ0oX+MhHXKgG5Is
+         lnlnSYYiWKZkfcpzgwGgGmbC88tLrPgcy3D8izqNI/DmNZ+SNUL13AwyXboldiKmu5W+
+         AhAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=jxTwDlhT4RdlsKfkyZgB6au+lj91bcjVeupOiRuBhY0=;
+        b=plVh9LvcHITCJn/LAFdKs2ea+BigUJqWQMbQORqwTRQJCH7qKgR0HEuPHptE3o3kRz
+         78wUdIkathVda7uYvCMh7JmITAb+D/kOdkBWLcSYAYjPi8pxjbffW4mEjM8n6OKIMeci
+         riHHmVxKngqlpJ+mMIbS0g460TKS5OLPJo4MgG+vT54Kppqjc0BfbcDwyNvTm7+mc4ti
+         npdXdMD9Aj6nMvuq4IqeMo8vVsATKmBPZb1plw6XvsOTB61mhqkyM5OquqAqhsQorj1i
+         zqbj0qgiPlJjdxp2Li+zUiGVnBf44VC4JT9AL/DPOTKusTHuXynkrdU+3m+CW+VSyAaE
+         kv+g==
+X-Gm-Message-State: AOAM530b08ElEwH3EA+3NWELxzCoJlf6GPolBJ/8EwU7m0LkbbJskWyo
+        YovAH1BM4XtYP7+dA1ABYLrk7XTjAZPPeQ==
+X-Google-Smtp-Source: ABdhPJz0etUy+iNpxWuX6aSXo5FU74+TyajIk+SJXG7dfQ+WbuRiRQv28FXT9jt9tqrOZxZBziq8vQ==
+X-Received: by 2002:a9d:48d:: with SMTP id 13mr7895693otm.9.1598373473504;
+        Tue, 25 Aug 2020 09:37:53 -0700 (PDT)
+Received: from ?IPv6:2605:6000:8b03:f000:d277:9c63:7fd2:8e07? ([2605:6000:8b03:f000:d277:9c63:7fd2:8e07])
+        by smtp.gmail.com with ESMTPSA id a10sm2740444oto.76.2020.08.25.09.37.53
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 25 Aug 2020 09:37:53 -0700 (PDT)
+To:     Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+Subject: Re another alternative to resolve hardened user copy warnings
+Message-ID: <42b0da37-898f-2ca1-ffcb-444b65c9c48d@gmail.com>
+Date:   Tue, 25 Aug 2020 11:37:52 -0500
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <20200825155142.349651-1-alex.dewar90@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 187.162.31.110
-X-Source-L: No
-X-Exim-ID: 1kAbZX-000dj8-FM
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: 187-162-31-110.static.axtel.net ([192.168.15.8]) [187.162.31.110]:57972
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 7
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Currently only the rxe driver is exhibiting the issue of kernel warnings during qp create caused by recent kernel changes looking for potential information leaks to user space. The test which triggers this warning is very specific. It occurs when a portion of a kernel object stored in a slab cache is copied to user space and the copied area has not been 'whitelisted' by setting useroffset and usersize parameters for the kmem cache. As already discussed there are two ways to mitigate this
 
+	- copy the data, in this case an int, out of the kmem cache object then copy that to user space
+	- play by the rules and set useroffset and usersize using kmem_cache_create_usercopy()
 
-On 8/25/20 10:51, Alex Dewar wrote:
-> Commit 36a8f01cd24b ("IB/qib: Add congestion control agent implementation")
-> erroneously marked a couple of switch cases as /* FALLTHROUGH */, which
-> were later converted to fallthrough statements by commit df561f6688fe
-> ("treewide: Use fallthrough pseudo-keyword"). This triggered a Coverity
-> warning about unreachable code.
-> 
-> Remove the fallthrough statements and replace the mass of gotos with
-> simple return statements to make the code terser and less bug-prone.
-> 
+Additionally, as you have mentioned, we could move the allocation to the core (like AH, CQ, PD, etc.). But this only works for a different reason. If you use kmalloc or kzalloc then the warning is not triggered either and core uses these to allocate objects.
 
-This should be split up into two separate patches: one to address the
-fallthrough markings, and another one for the gotos.
+Allocating memory from kmalloc or kzalloc is effectively the same as kmem cache except that the pre-allocated sizes are typically powers of 2 so there is some wastage of memory and you have the potential to pre initialize all the objects in the kmem cache (e.g. locks, constants, etc) saving some time. Currently rxe does not take advantage of this second feature because resource allocation is not on the performance path for RDMA. Given this we have a third alternative which is
 
-Thanks
---
-Gustavo
+	- get rid of the kmem caches and use kzalloc to allocate storage for objects in the pools.
 
+This is a simple change to rxe_pool.c, easy to understand, little or no change to the rest of the driver. This does not prevent moving other object allocations into the core but will resolve the warning issue.
+
+Bob
