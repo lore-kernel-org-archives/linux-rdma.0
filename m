@@ -2,68 +2,120 @@ Return-Path: <SRS0=RHPu=CD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B619C433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 13:24:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9582C433E1
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 13:26:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3033320639
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 13:24:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B22FA20639
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 13:26:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WomfYjGJ"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="AmRu38Ic"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726045AbgHYNYE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 Aug 2020 09:24:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51280 "EHLO
+        id S1726095AbgHYN0B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Aug 2020 09:26:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725792AbgHYNYD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Aug 2020 09:24:03 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE737C061574
-        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 06:24:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=Emvrfxr3qkITgvdWBr+gDboVnyDPc1woat3HEGegVKo=; b=WomfYjGJAXRPAM6+8BlZhfV61I
-        uMQYmf3piXZ1LBHao9NsoxAKYkFmSQlHbrFwctt5B9IQxpG3uFCikCdQXss7QZuIySk6tfJeA2s27
-        9wxvtrpKLEHULBE7nOveW3cjBbwq7QhPG6UrWE/hHVzZDjG8ZyxusYHEZyf8QTlCkpFc6jYRjwZgJ
-        RofoLuZF2YYcaO5dXUp6SWyGfgffKtehbOnXEDbbcXXvrR+yw57qVyMa3W1Etem4977pwQ6Wdz/RK
-        eHMpXqQQerOyWCR3dP+LHMc2gNeYg6/OWN2mJPzq9W7EUUaaEhDOMXTyo+EzKbqKFl5RZxxXWsccC
-        +sBy3FWA==;
-Received: from hch by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kAYvh-0006ph-B6; Tue, 25 Aug 2020 13:24:01 +0000
-Date:   Tue, 25 Aug 2020 14:24:01 +0100
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Chris Worley <worleys@gmail.com>
-Cc:     OFED mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: NVME module won't load ("nvme: disagrees about version of symbol
- nvme_uninit_ctrl")
-Message-ID: <20200825132401.GA26089@infradead.org>
-References: <CANWz5fhKJ=MbXdQo8gjAvioGj4V+V0wKZrU90OnCc+Nn0KkBLg@mail.gmail.com>
+        with ESMTP id S1725792AbgHYN0A (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Aug 2020 09:26:00 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED033C061574
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 06:25:59 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id v2so10371977ilq.4
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 06:25:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=vGFZ1GigmB4VbPvA/eLO+saugx0ctCKcTrNRsaN1JH8=;
+        b=AmRu38IcGj40Sih7BnddB6/1gHoBIJX100LTOCBt82AQKDu33IB1WynsjLIfRLSnc5
+         DazchNPaUgyGwU2tNypeF96FSj6D12HZEgBMEGXv5vJ9NYQUSJ7yWyIqQbdd9IwDp1UV
+         O04AM3cX3ASwNeUaCaGvbNNsJLI+QYsStxKMLTVy5PJmTNn64BhzGFXPJ7Ixe7LVdfQp
+         O7az0TyGOhlEV0Q+Gh0UUYGXPH1Ps5rarB0EKVVGZjbNr8YvJXkJFFvwBja/SyZeItGh
+         S4Z7tCx4hPYcQcwDu4LKxzQhI2tJVh4FqeH957QpN+x/Ie5Z/2GmpX2eh+YhZz1tyQNH
+         5jUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=vGFZ1GigmB4VbPvA/eLO+saugx0ctCKcTrNRsaN1JH8=;
+        b=kqFq+h4wMJPsgNYQ0J9fCoEJ4jRmIb1+LOaNHa7M3mk7oyyr0ZBZY25DBCDDmMw1Ul
+         sq1zMbh15XqdGR7nl4g94kriCofuMCtW9f2zkFtY8C2py9uQuWWv5OgyL1PYrDuoS5/x
+         A0bawARCQCVL7vC1qfgkQxLf0ZNQW+RiMi97dVyAkb6bExXIyGt2KaH82Omx8Bx8w6FS
+         Mo9hCf6MS07EaBnnCSt9KRZ+fL7rLxQoYGn4uWpbVg9I6kU0FcPSWKrQPdKDYtjI3rTo
+         sauHOEimAPsna3STiagAIgVpUOHLGlqvJcZgzP0rEhWx/lA5zI2L8gVSKU1XrDxpFyBC
+         4n/g==
+X-Gm-Message-State: AOAM531t8nFgf4X0fZUjgJVYZJRU0/Yjy2t4QAqCNjt+l4toLg2lYRwd
+        kCYCIO9SBb0l/38uUGSfCnm33XLiDUFtng==
+X-Google-Smtp-Source: ABdhPJzp0Mbv17c6WYoSdkGJMu9wawQRLM1oPX6r79Iiy+1Attc9Hp5LZBHGB6oKtKAzcZwTbUuXUg==
+X-Received: by 2002:a92:d306:: with SMTP id x6mr9713355ila.229.1598361959278;
+        Tue, 25 Aug 2020 06:25:59 -0700 (PDT)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id 3sm9355310ily.31.2020.08.25.06.25.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Aug 2020 06:25:58 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kAYxZ-00EYNV-3U; Tue, 25 Aug 2020 10:25:57 -0300
+Date:   Tue, 25 Aug 2020 10:25:57 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Kamal Heib <kamalheib1@gmail.com>
+Cc:     Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org,
+        Doug Ledford <dledford@redhat.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>
+Subject: Re: [PATCH v3 for-rc] RDMA/rxe: Fix panic when calling
+ kmem_cache_create()
+Message-ID: <20200825132557.GH24045@ziepe.ca>
+References: <20200824155220.153854-1-kamalheib1@gmail.com>
+ <ee809280-48d2-a5cc-c1a1-521ba58636b1@acm.org>
+ <20200824165111.GE24045@ziepe.ca>
+ <20200825093624.GB194958@kheib-workstation>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CANWz5fhKJ=MbXdQo8gjAvioGj4V+V0wKZrU90OnCc+Nn0KkBLg@mail.gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20200825093624.GB194958@kheib-workstation>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 24, 2020 at 03:39:29PM -1000, Chris Worley wrote:
-> Running MLNX_OFED_LINUX-5.0-2.1.8.0-rhel8.2-x86_6 on ConnectX-3 cards,
-> attempting to run NVME-over-fabrics.
-> 
-> OFED installed with: "./mlnxofedinstall --add-kernel-support
-> --with-nvmf --force"
-> 
-> The OFED install did indicate it couldn't load the firmware (although
-> these are Mellanox cards) and said: "Note: In order to load the new
-> nvme-rdma and nvmet-rdma modules, the nvme module must be reloaded."
-> ... but the nvme driver doesn't even load.
+On Tue, Aug 25, 2020 at 12:36:24PM +0300, Kamal Heib wrote:
+> On Mon, Aug 24, 2020 at 01:51:11PM -0300, Jason Gunthorpe wrote:
+> > On Mon, Aug 24, 2020 at 09:41:14AM -0700, Bart Van Assche wrote:
+> > > On 8/24/20 8:52 AM, Kamal Heib wrote:
+> > > > +bool rxe_is_loaded;
+> > > 
+> > > The name of this variable seems wrong to me. My understanding is that rxe_module_init() is
+> > > called whether or not rxe has been built as a module. Consider renaming this variable into
+> > > e.g. "rxe_initialized".
+> > > 
+> > > > diff --git a/drivers/infiniband/sw/rxe/rxe_sysfs.c b/drivers/infiniband/sw/rxe/rxe_sysfs.c
+> > > > index ccda5f5a3bc0..12c7ca0764d5 100644
+> > > > +++ b/drivers/infiniband/sw/rxe/rxe_sysfs.c
+> > > > @@ -61,6 +61,11 @@ static int rxe_param_set_add(const char *val, const struct kernel_param *kp)
+> > > >   	struct net_device *ndev;
+> > > >   	struct rxe_dev *exists;
+> > > > +	if (!rxe_is_loaded) {
+> > > > +		pr_err("Please make sure to load the rdma_rxe module first\n");
+> > > > +		return -EINVAL;
+> > > > +	}
+> > > > +
+> > > >   	len = sanitize_arg(val, intf, sizeof(intf));
+> > > >   	if (!len) {
+> > > >   		pr_err("add: invalid interface name\n");
+> > > 
+> > > The above message is misleading. Consider changing it into e.g. the following:
+> > > 
+> > >     Please wait until initialization of the rdma_rxe module has finished.
+> > 
+> > How about "Module parameters are not supported, use rdma link add"
+>
+> I don't think so, This patch is targeted to for-rc (stable) and the
+> support of "rdma link add" is not part of all the stable versions.
 
-That's what you get for using a completely broken out of tree version
-of the RDMA code.  Don't do that.
+then add "or rxe_cfg"
+
+Jason
