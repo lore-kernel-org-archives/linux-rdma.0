@@ -2,86 +2,93 @@ Return-Path: <SRS0=RHPu=CD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1157CC433E1
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5B6C433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:53:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE48A20782
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:47:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 308C92074D
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 16:53:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="DdAgV91j"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726187AbgHYQr6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 Aug 2020 12:47:58 -0400
-Received: from smtprelay0188.hostedemail.com ([216.40.44.188]:41284 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725805AbgHYQr5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 25 Aug 2020 12:47:57 -0400
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay03.hostedemail.com (Postfix) with ESMTP id EE3E8837F24D;
-        Tue, 25 Aug 2020 16:47:55 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: form08_42108202705d
-X-Filterd-Recvd-Size: 2494
-Received: from XPS-9350 (unknown [172.58.35.126])
-        (Authenticated sender: joe@perches.com)
-        by omf10.hostedemail.com (Postfix) with ESMTPA;
-        Tue, 25 Aug 2020 16:47:53 +0000 (UTC)
-Message-ID: <777e01f8dc9bd35e8b7bdf1b5181d0d13b86d8b9.camel@perches.com>
-Subject: Re: [PATCH] IB/qib: remove superfluous fallthrough statements
-From:   Joe Perches <joe@perches.com>
-To:     "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Alex Dewar <alex.dewar90@gmail.com>
-Cc:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Roland Dreier <roland@purestorage.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Tue, 25 Aug 2020 09:47:50 -0700
-In-Reply-To: <da65ca20-49cb-2940-76d6-7e341687a9e2@embeddedor.com>
-References: <20200825155142.349651-1-alex.dewar90@gmail.com>
-         <4877c3a5-365e-4500-43c0-4a4361e2cda3@embeddedor.com>
-         <086ee29ef75f657dcf45e92d4ebfdf2b3f4fcab8.camel@perches.com>
-         <da65ca20-49cb-2940-76d6-7e341687a9e2@embeddedor.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.36.4-0ubuntu1 
+        id S1726798AbgHYQxN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Aug 2020 12:53:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55926 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726790AbgHYQxK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Aug 2020 12:53:10 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93BB8C061574
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 09:53:10 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id 77so11015316ilc.5
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Aug 2020 09:53:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=KedSMyS/GsxCpM9zHmual0N4QYs290Pqahi8Eh0yaWQ=;
+        b=DdAgV91j0mtn+d8PTDmQXEjOQ/k/vxTIfi8kH1dUrGh7i96Y+6ZiEpL2octXLIuPfD
+         /tZIAiqlPq2EQFvLkPFJGhfYg/UK59dpj/aXZ8h3uM6ibOOnxb3d37WdI3SCMTLEMcwG
+         fRFWB26BKrLfhpS/p7OZ/FZYRLvzKJYhuOIwkEWoBFbBn8ZLPcQRW3YCUF1cIl/vwfHV
+         jB32HIANNB1fTG5eTCz1SZnEbztpc78ag65qcHAZryX3gMuljbUduQdJ3sN1dubZbGVe
+         ruv/y7SR2AQY/dRMqQRB+Wq/NVrK9sE9FdHmQiiMVjWBqyrcDt0g7xU7PlhEk17kgy0x
+         Mplw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=KedSMyS/GsxCpM9zHmual0N4QYs290Pqahi8Eh0yaWQ=;
+        b=rGC2lcYhji51zSs/EYMIWIMKLvx9HOe+pWFXHQjIwUbmKbAtMW6MZUs6C2WSuTfF/i
+         G2tr+ToTnSzOIVwyFfHw0yBRz02odGaSm/AFidszdeuk2u15gAxjIBu7aYH4YgeRtUa7
+         dTSamGDP+V5X+6En4s6FDcyUG3MfRk9ggPleyEdTnBjWEWMKBlorvuFRvgk4skUh/C/8
+         al2c8BcDHcqRmbf7WurzHaA1RLFlT5cJTzBeO6IBugIMrn9haHxGtyjj0TAa3iS0u+rA
+         7s/qCH8EpRuEST6ed76zBiTK5wx6w9Fq1Q4Nz7BUbRaJt4eX5jHEtnoBlKGbI0fhTzRV
+         QE6A==
+X-Gm-Message-State: AOAM532hC4zShIvG7Wp+4ndaGCFQK7O5D/tUxL+tk9C9UTRmRIDJOyhU
+        urfgt2kusvcNztZlDFi3rQ1gSQ==
+X-Google-Smtp-Source: ABdhPJzkTV5SrvQAIZZFJwYlnADYBdMQj8I+tyeBQt+nbPlOF/1+R6rEP+QpjOCwyDc3jSsPoukJ6Q==
+X-Received: by 2002:a92:cd0a:: with SMTP id z10mr9480627iln.128.1598374389776;
+        Tue, 25 Aug 2020 09:53:09 -0700 (PDT)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id n12sm2719050ion.13.2020.08.25.09.53.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Aug 2020 09:53:09 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kAcC3-00EiFh-Pl; Tue, 25 Aug 2020 13:53:07 -0300
+Date:   Tue, 25 Aug 2020 13:53:07 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+Cc:     Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+Subject: Re: Re another alternative to resolve hardened user copy warnings
+Message-ID: <20200825165307.GI24045@ziepe.ca>
+References: <42b0da37-898f-2ca1-ffcb-444b65c9c48d@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42b0da37-898f-2ca1-ffcb-444b65c9c48d@gmail.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2020-08-25 at 11:49 -0500, Gustavo A. R. Silva wrote:
-> 
-> On 8/25/20 11:26, Joe Perches wrote:
-> > On Tue, 2020-08-25 at 11:19 -0500, Gustavo A. R. Silva wrote:
-> > > On 8/25/20 10:51, Alex Dewar wrote:
-> > > > Commit 36a8f01cd24b ("IB/qib: Add congestion control agent implementation")
-> > > > erroneously marked a couple of switch cases as /* FALLTHROUGH */, which
-> > > > were later converted to fallthrough statements by commit df561f6688fe
-> > > > ("treewide: Use fallthrough pseudo-keyword"). This triggered a Coverity
-> > > > warning about unreachable code.
-> > > > 
-> > > > Remove the fallthrough statements and replace the mass of gotos with
-> > > > simple return statements to make the code terser and less bug-prone.
-> > > > 
-> > > 
-> > > This should be split up into two separate patches: one to address the
-> > > fallthrough markings, and another one for the gotos.
-> > 
-> > I don't think it's necessary to break this into multiple patches.
-> > Logical changes in a single patch are just fine, micro patches
-> > aren't that useful.
-> > 
-> 
-> There is a reason for this. Read the changelog text and review the patch.
+On Tue, Aug 25, 2020 at 11:37:52AM -0500, Bob Pearson wrote:
 
-What makes you think I didn't already do that?
+> Currently only the rxe driver is exhibiting the issue of kernel
+> warnings during qp create caused by recent kernel changes looking
+> for potential information leaks to user space. The test which
+> triggers this warning is very specific. It occurs when a portion of
+> a kernel object stored in a slab cache is copied to user space and
+> the copied area has not been 'whitelisted' by setting useroffset and
+> usersize parameters for the kmem cache. As already discussed there
+> are two ways to mitigate this
 
-I think your desire for micropatches is unnecessary.
+I think we should just add a uverbs_copy_to() for integers, much like
+netlink does.
 
+We already have various getters for integers..
 
+Jason
