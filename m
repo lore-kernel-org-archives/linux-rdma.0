@@ -2,117 +2,72 @@ Return-Path: <SRS0=RHPu=CD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0709DC433DF
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 19:27:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1636DC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 20:55:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE8BA2075E
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 19:27:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598383652;
-	bh=qj5E9gVeNqZwo1UaXkKAeBCLaXdu7GM/ujbqTkU1D/s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=UV3adeK47P9gsynv1l8GCsw00TLbfCe5Hg1Ho8bwj0KF67+OZG7NhsrAr/EGU9YeM
-	 /Y7L8O9r6Jy8YRWDZ4DQB4Uf7Iv46KGn6yg8+YM1/ehVaE90y4iW9YsfsBhs4H6EiY
-	 cB9qF8ql4oTg0rGedUkY64kB9+X663lnvQGm235M=
+	by mail.kernel.org (Postfix) with ESMTP id D1DDA206EB
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Aug 2020 20:55:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726066AbgHYT1b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 Aug 2020 15:27:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59148 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726336AbgHYT1b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 25 Aug 2020 15:27:31 -0400
-Received: from embeddedor (187-162-31-110.static.axtel.net [187.162.31.110])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BF6722072D;
-        Tue, 25 Aug 2020 19:27:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598383650;
-        bh=qj5E9gVeNqZwo1UaXkKAeBCLaXdu7GM/ujbqTkU1D/s=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=wIRXa+uAEhm5RpBSamKhPxY4NYOrwu2aji8PDXqaPQdjPpdVdpkzKt8M/nCz71qgi
-         8Ei7TwqE0o0s6j5gb7LJ7D37YfjV6nPYdThFdzGQpx1UZvBe5dbpSIbmwgBLEmeUCy
-         A2pq47mrNAL0b8/9/KDRL5kRrUM9RyxGHNcTwtU0=
-Date:   Tue, 25 Aug 2020 14:33:27 -0500
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Alex Dewar <alex.dewar90@gmail.com>
-Cc:     dennis.dalessandro@intel.com, dledford@redhat.com,
-        gustavo@embeddedor.com, jgg@ziepe.ca, joe@perches.com,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        mike.marciniszyn@intel.com, roland@purestorage.com
-Subject: Re: [PATCH v2 1/2] IB/qib: remove superfluous fallthrough statements
-Message-ID: <20200825193327.GA5504@embeddedor>
-References: <64d7e1c9-9c6a-93f3-ce0a-c24b1c236071@gmail.com>
- <20200825171242.448447-1-alex.dewar90@gmail.com>
+        id S1726303AbgHYUzc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Aug 2020 16:55:32 -0400
+Received: from smtprelay0134.hostedemail.com ([216.40.44.134]:37306 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726149AbgHYUzc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 25 Aug 2020 16:55:32 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay04.hostedemail.com (Postfix) with ESMTP id CDB9318019153;
+        Tue, 25 Aug 2020 20:55:30 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: dock12_4708a5a2705e
+X-Filterd-Recvd-Size: 1702
+Received: from XPS-9350 (unknown [172.58.43.20])
+        (Authenticated sender: joe@perches.com)
+        by omf05.hostedemail.com (Postfix) with ESMTPA;
+        Tue, 25 Aug 2020 20:55:28 +0000 (UTC)
+Message-ID: <1e9f4efd420c7ff516097050f1f50d0299a1e180.camel@perches.com>
+Subject: Re: [PATCH] IB/qib: remove superfluous fallthrough statements
+From:   Joe Perches <joe@perches.com>
+To:     "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Alex Dewar <alex.dewar90@gmail.com>
+Cc:     Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Roland Dreier <roland@purestorage.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Tue, 25 Aug 2020 13:55:23 -0700
+In-Reply-To: <36066d75-899e-c9ca-835e-0040659c914b@embeddedor.com>
+References: <20200825155142.349651-1-alex.dewar90@gmail.com>
+         <4877c3a5-365e-4500-43c0-4a4361e2cda3@embeddedor.com>
+         <086ee29ef75f657dcf45e92d4ebfdf2b3f4fcab8.camel@perches.com>
+         <da65ca20-49cb-2940-76d6-7e341687a9e2@embeddedor.com>
+         <777e01f8dc9bd35e8b7bdf1b5181d0d13b86d8b9.camel@perches.com>
+         <36066d75-899e-c9ca-835e-0040659c914b@embeddedor.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.36.4-0ubuntu1 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200825171242.448447-1-alex.dewar90@gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Aug 25, 2020 at 06:12:42PM +0100, Alex Dewar wrote:
-> Commit 36a8f01cd24b ("IB/qib: Add congestion control agent implementation")
-> erroneously marked a couple of switch cases as /* FALLTHROUGH */, which
-> were later converted to fallthrough statements by commit df561f6688fe
-> ("treewide: Use fallthrough pseudo-keyword"). This triggered a Coverity
-> warning about unreachable code.
->
+On Tue, 2020-08-25 at 12:01 -0500, Gustavo A. R. Silva wrote:
+> On 8/25/20 11:47, Joe Perches wrote
+[]
+> You would have noticed this should be two patches.
 
-It's worth mentioning that this warning is triggered only by compilers
-that don't support __attribute__((__fallthrough__)), which has been
-supported since GCC 7.1.
+That's interpretational.
 
-> Remove the fallthrough statements.
-> 
-> Addresses-Coverity: ("Unreachable code")
-> Fixes: 36a8f01cd24b ("IB/qib: Add congestion control agent implementation")
-> Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
+> > I think your desire for micropatches is unnecessary.
+> > 
+> You might be generalizing. My 'desire' here is justified and specific.
 
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+And to date undescribed.
 
-> ---
-> v2: Do refactoring in a separate patch (Gustavo)
-> ---
 
- ^^^
-These dashes are not needed.
-
-Thanks
---
-Gustavo
-
->  drivers/infiniband/hw/qib/qib_mad.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-> index e7789e724f56..f972e559a8a7 100644
-> --- a/drivers/infiniband/hw/qib/qib_mad.c
-> +++ b/drivers/infiniband/hw/qib/qib_mad.c
-> @@ -2322,7 +2322,6 @@ static int process_cc(struct ib_device *ibdev, int mad_flags,
->  			ret = cc_get_congestion_control_table(ccp, ibdev, port);
->  			goto bail;
->  
-> -			fallthrough;
->  		default:
->  			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
->  			ret = reply((struct ib_smp *) ccp);
-> @@ -2339,7 +2338,6 @@ static int process_cc(struct ib_device *ibdev, int mad_flags,
->  			ret = cc_set_congestion_control_table(ccp, ibdev, port);
->  			goto bail;
->  
-> -			fallthrough;
->  		default:
->  			ccp->status |= IB_SMP_UNSUP_METH_ATTR;
->  			ret = reply((struct ib_smp *) ccp);
-> -- 
-> 2.28.0
-> 
