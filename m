@@ -2,96 +2,158 @@ Return-Path: <SRS0=dVsF=CE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CA8FC433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Aug 2020 06:15:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F63C433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Aug 2020 06:34:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CECD02076C
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Aug 2020 06:15:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="povnARlp"
+	by mail.kernel.org (Postfix) with ESMTP id E5E2C20825
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Aug 2020 06:34:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1598423658;
+	bh=UCDUyoLoBgehZLq+AB3aZZHCgNH0fv8iaV86IWgCKuo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=r4qJDt/VYXeao8znsrN4OYKLjGbnBEHlxccdsUylK14/yK/CEGYa+CubElfwlxa4M
+	 pGAWEz7mWno/anb+cvGkwdT9b/AyIeJ6i1GlV0By/EUydmOFjxJkhg/nbET5Li6KMs
+	 ZNlyZC2T9AvUPXJ7ESYo41M3jbjMvVB/mhlWduTo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725880AbgHZGPl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Aug 2020 02:15:41 -0400
-Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:45088 "EHLO
-        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725786AbgHZGPl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Aug 2020 02:15:41 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1598422541; x=1629958541;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=zBCVL0NQDyARdnqYpsf3WdENLUjBRXiAIJrZ5wNsRxE=;
-  b=povnARlp34XpdXFiO2v1G5OnN2rMMV+h06HmATGL4Uore1a6C5DaD5OU
-   W0BOlI1hJCAnr9fecRurufopRPxMY0PR616ucDzz52ga4oF57UcTL9Eue
-   l08GltEm9InfWvL2y+Vl3b853oX2S4d4GLo4YV5INCSZ89FjrZwfr47hf
-   E=;
-X-IronPort-AV: E=Sophos;i="5.76,354,1592870400"; 
-   d="scan'208";a="51484405"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-2c-6f38efd9.us-west-2.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 26 Aug 2020 06:15:38 +0000
-Received: from EX13D19EUB001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan3.pdx.amazon.com [10.170.41.166])
-        by email-inbound-relay-2c-6f38efd9.us-west-2.amazon.com (Postfix) with ESMTPS id 54A13A3089;
-        Wed, 26 Aug 2020 06:15:36 +0000 (UTC)
-Received: from 8c85908914bf.ant.amazon.com (10.43.160.6) by
- EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 26 Aug 2020 06:15:32 +0000
-Subject: Re: [PATCH] RDMA/umem: Fix signature of stub ib_umem_find_best_pgsz()
-To:     Jason Gunthorpe <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>
-CC:     Shiraz Saleem <shiraz.saleem@intel.com>
-References: <0-v1-982a13cc5c6d+501ae-fix_best_pgsz_stub_jgg@nvidia.com>
-From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <201bad07-2efc-9712-17d1-86c75c53e187@amazon.com>
-Date:   Wed, 26 Aug 2020 09:15:27 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
- Gecko/20100101 Thunderbird/68.11.0
+        id S1726034AbgHZGeS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Aug 2020 02:34:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54260 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725786AbgHZGeQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 26 Aug 2020 02:34:16 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id DDD8220707;
+        Wed, 26 Aug 2020 06:34:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1598423655;
+        bh=UCDUyoLoBgehZLq+AB3aZZHCgNH0fv8iaV86IWgCKuo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=YHgAaGcw16EJ2SNZOB7RICmJbZPCIr3Sn8I1iGMLZx6gNWTWyS9JVJ9tQIPMN8Q+x
+         6cLCxrlQXJ8lKjyQBhOF2ZCz0lj2FqC+BsKF8i/QMn0LLIPCBgQ+yMh1mhf5Qcukm4
+         odwwuTZKMJlJDzTZ5+rNbWY8D3JzE/3GApCySzfM=
+Date:   Wed, 26 Aug 2020 09:34:11 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     Gal Pressman <galpress@amazon.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        "Dalessandro, Dennis" <dennis.dalessandro@intel.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        "Latif, Faisal" <faisal.latif@intel.com>,
+        Lijun Ou <oulijun@huawei.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        "Marciniszyn, Mike" <mike.marciniszyn@intel.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        Nelson Escobar <neescoba@cisco.com>,
+        Parvi Kaustubhi <pkaustub@cisco.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Somnath Kotur <somnath.kotur@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>,
+        Weihang Li <liweihang@huawei.com>,
+        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>
+Subject: Re: [PATCH rdma-next 01/10] RDMA: Restore ability to fail on PD
+ deallocate
+Message-ID: <20200826063411.GF1362631@unreal>
+References: <20200824103247.1088464-1-leon@kernel.org>
+ <20200824103247.1088464-2-leon@kernel.org>
+ <10111f1b-ea06-dce5-a8be-d18e70962547@amazon.com>
+ <20200825115246.GP1152540@nvidia.com>
+ <110cc351-f8f1-8f88-3912-c4dae711b393@amazon.com>
+ <20200825130736.GQ1152540@nvidia.com>
+ <74f893e8-694a-17f0-dc49-05061a214558@amazon.com>
+ <20200825134428.GR1152540@nvidia.com>
+ <5f4f67b1-ca3c-fd11-a835-db7906cad148@amazon.com>
+ <9DD61F30A802C4429A01CA4200E302A70106634FB5@fmsmsx124.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <0-v1-982a13cc5c6d+501ae-fix_best_pgsz_stub_jgg@nvidia.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.160.6]
-X-ClientProxiedBy: EX13D44UWC003.ant.amazon.com (10.43.162.138) To
- EX13D19EUB001.ant.amazon.com (10.43.166.229)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A70106634FB5@fmsmsx124.amr.corp.intel.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 25/08/2020 21:17, Jason Gunthorpe wrote:
-> The original function returns unsigned long and 0 on failure.
-> 
-> Fixes: 4a35339958f1 ("RDMA/umem: Add API to find best driver supported page size in an MR")
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> ---
->  include/rdma/ib_umem.h | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-> index 71f573a418bf06..07a764eb692eed 100644
-> --- a/include/rdma/ib_umem.h
-> +++ b/include/rdma/ib_umem.h
-> @@ -68,10 +68,11 @@ static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offs
->  		      		    size_t length) {
->  	return -EINVAL;
->  }
-> -static inline int ib_umem_find_best_pgsz(struct ib_umem *umem,
-> -					 unsigned long pgsz_bitmap,
-> -					 unsigned long virt) {
-> -	return -EINVAL;
-> +static inline unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
-> +						   unsigned long pgsz_bitmap,
-> +						   unsigned long virt)
-> +{
-> +	return 0;
->  }
->  
->  #endif /* CONFIG_INFINIBAND_USER_MEM */
-> 
+On Wed, Aug 26, 2020 at 12:49:03AM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [PATCH rdma-next 01/10] RDMA: Restore ability to fail on PD
+> > deallocate
+> >
+> > On 25/08/2020 16:44, Jason Gunthorpe wrote:
+> > > On Tue, Aug 25, 2020 at 04:32:57PM +0300, Gal Pressman wrote:
+> > >>> For uverbs it will go into an infinite loop in
+> > >>> uverbs_destroy_ufile_hw() if destroy doesn't eventually succeed.
+> > >>
+> > >> The code breaks the loop in such cases, why infinite loop?
+> > >
+> > > Oh, that is a bug, it should WARN_ON when that happens, because the
+> > > driver has triggered a permanent memory leak.
+> >
+> > Well, a WARN_ON won't do much good if you're stuck in an infinite loop :), the
+> > break is definitely needed there.
+> >
+> > >>> For kernel it will trigger WARN_ON's and then a permanent memory leak.
+> > >>>
+> > >>>> I agree that drivers shouldn't fail destroy commands, but you
+> > >>>> know.. bugs/errors happen (especially when dealing with hardware),
+> > >>>> and we have a way to propagate them, why do it for only some of the
+> > drivers?
+> > >>>
+> > >>> There is no way to propogate them.
+> > >>>
+> > >>> All destroy must eventually succeed.
+> > >>
+> > >> There is no way to propagate them on process cleanup, but the destroy
+> > >> verbs have a return code all the way back to libibverbs, which we can
+> > >> use for error propagation.
+> > >
+> > > It is sort of OK for a driver to fail during RDMA_REMOVE_DESTROY.
+> > >
+> > > All other reason codes must eventually succeed.
+> > >
+> > >> The cleanup flow can either ignore the return value, or we can add
+> > >> another parameter that explicitly means the call shouldn't fail and
+> > >> all allocated memory/state should be freed.
+> > >
+> > > I don't really see the value to return the error code to userspace, it
+> > > would require churning all the drivers and all the destroy functions
+> > > to pass the existing reason in.
+> > >
+> > > Since all the details of the FW failure reason are lost to some EINVAL
+> > > (or already logged to dmesg) I don't see much point.
+> >
+> > Right, as always, the error code would probably not contain much information, but
+> > there's a big difference between returning error code X/Y vs returning success
+> > instead of an error. To me that just feels wrong, at least in cases where we can
+> > prevent that.
+> >
+>
+> The API is quite confusing now. If drivers are not expected to fail the destroy
+> and there is no way to propagate the device failures, then the return type should be a void.
+>
+> Do we really want to have mixed/ambiguous definition of the API to support the quirks of one type of device?
 
-Reviewed-by: Gal Pressman <galpress@amazon.com>
+This is in-kernel API and it can be imperfect, because we are not
+bounded to not-break-userspace rule.
+
+I don't like the current situation either, just don't know how to
+solve it differently.
+
+Thanks
+
+>
+> Shiraz
+>
