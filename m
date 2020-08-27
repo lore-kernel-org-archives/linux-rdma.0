@@ -2,151 +2,104 @@ Return-Path: <SRS0=7qKe=CF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B57FC433E1
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:57:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2092EC433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:59:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 052ED2177B
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:57:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E461B22CAE
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:59:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="XdgGUAAv"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="jdEPUhn0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728964AbgH0M46 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Aug 2020 08:56:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43348 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726853AbgH0M4O (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 08:56:14 -0400
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48156C061264
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 05:56:14 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id e5so4399211qth.5
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 05:56:14 -0700 (PDT)
+        id S1727860AbgH0M7N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Aug 2020 08:59:13 -0400
+Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:28025 "EHLO
+        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726952AbgH0M7B (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 08:59:01 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=G00UKA0nZlMPRLquxYhlcniBG/78wjyIKcUP65vesAY=;
-        b=XdgGUAAvOvDLmPv7uVIMNJpXox61bP+7DJoMaNBo4eovjFXrDeWRVVdoDFmC4VmVif
-         aWz6jCVMnZU+fA4NQ/XxwHmi0t+JChDo7wLQHbdXe8Zk3oDdca7y9gDAr/ix+10cwPFh
-         3wUmMKr5DrP92mOBWCGvg3FcSF74k+Fln3D+g6zcoWvCa6lGWfOFWa8y8zXlhiBCj2VG
-         ul0Qqv+NVF/xxvGlwH1CIQsBZTmR08HXYAOzRPqAfV2CBYdzBmYs0zjGbDym5rhDtJCv
-         +mPDQt3qq31WisiZ7OiAZm5VmScIIHOWI+ZUf/YT98SpnNim6zrrhoSyJHLI1D55UnR5
-         p28g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=G00UKA0nZlMPRLquxYhlcniBG/78wjyIKcUP65vesAY=;
-        b=MzrTWy20NkHMmmMAs90R2jVKltYPb8SW/JN3FuOUqjvgXVRSNPYmpUiQ2BkrUNx/de
-         GiDlWnCvix2ddlXhL8QxQrpc/XFf3QVyF0qchoMCI6JqUVL/dizaxeUbUL1kLbL63AhG
-         /1nRdhb8NkeB1pIqkVY8R5ZYhBJWhilJk3z/GHR5KvGhIuRKUg/XaW4KIsD2Oyx+W7Ay
-         V5jzqQMOZQxSaQvROakj5//+SZ9MQEWAOmnPjnFDgLemDlZqSg8cdqKo/h7mtsaJ9wUM
-         ZngX7EAFcvz1Kp1GEHFMeg0IyYxKOHOp6qiBmHcGsj1jgmxMhw8joyRt9m1iGGl+a/Eo
-         bcog==
-X-Gm-Message-State: AOAM531UQ53KSqqkUWWCX88vIjsKMyEhd+3D+9VW0St+hhowcf/vY1Ly
-        MWJol1f6wyjJeDZCoK9YO++EhQ==
-X-Google-Smtp-Source: ABdhPJyoHMVCvwZzIqL790KEHKDSXJczj5ZnhZ0ZxWdjbuR+10HE8TCPicP66Lga4f+FeXtOy6zBeA==
-X-Received: by 2002:ac8:6f44:: with SMTP id n4mr19208480qtv.336.1598532973563;
-        Thu, 27 Aug 2020 05:56:13 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id c24sm1633944qkk.89.2020.08.27.05.56.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Aug 2020 05:56:13 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kBHRs-00GtDb-Fb; Thu, 27 Aug 2020 09:56:12 -0300
-Date:   Thu, 27 Aug 2020 09:56:12 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     linux-rdma@vger.kernel.org, zyjzyj2000@gmail.com,
-        Bob Pearson <rpearson@hpe.com>
-Subject: Re: [PATCH v3 06/17] rdma_rxe: Added stubs for alloc_mw and
- dealloc_mw verbs
-Message-ID: <20200827125612.GP24045@ziepe.ca>
-References: <20200820224638.3212-1-rpearson@hpe.com>
- <20200820224638.3212-7-rpearson@hpe.com>
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1598533142; x=1630069142;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=pvCCIFjp4UZElJPc6NhKvHuFdMnK/fGdnUBy32iK3xA=;
+  b=jdEPUhn0sCpBzx6xJPsdRkLVRFkB4bmsltFkHY+bYxTX/ZW5xopc4bre
+   QJhIGB+TQnIeVVZfItQ2dZwB7gHynKpMi7IZ8fl9347F/eEzC1Q0c9bSl
+   ioYaD5EXFBVGitUItTB2+VU+yIKblZJqMx71kzdmWQVxdR/b5YRAxhwzA
+   0=;
+X-IronPort-AV: E=Sophos;i="5.76,359,1592870400"; 
+   d="scan'208";a="50329860"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1a-715bee71.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-6002.iad6.amazon.com with ESMTP; 27 Aug 2020 12:58:35 +0000
+Received: from EX13D19EUB001.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
+        by email-inbound-relay-1a-715bee71.us-east-1.amazon.com (Postfix) with ESMTPS id 31FD0A1903;
+        Thu, 27 Aug 2020 12:58:32 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.183) by
+ EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Thu, 27 Aug 2020 12:58:28 +0000
+Subject: Re: [PATCH for-next] RDMA/usnic: Remove the query_pkey callback
+To:     =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+CC:     Kamal Heib <kamalheib1@gmail.com>,
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Christian Benvenuti <benve@cisco.com>
+References: <20200820125346.111902-1-kamalheib1@gmail.com>
+ <efb8ce2b-fb37-2950-36fd-fb45b845632a@amazon.com>
+ <20200820135338.GA114615@kheib-workstation>
+ <20200827075356.GA394866@kheib-workstation>
+ <4be87aa7-bc3c-d8f1-05e2-9276125cacc2@amazon.com>
+ <20200827120139.GL24045@ziepe.ca>
+ <ACEC991F-E03B-49F5-95D0-42C78CC2B78E@oracle.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <0f1aa022-3271-bec3-146d-eb3daa518447@amazon.com>
+Date:   Thu, 27 Aug 2020 15:58:23 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
+ Gecko/20100101 Thunderbird/68.11.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200820224638.3212-7-rpearson@hpe.com>
+In-Reply-To: <ACEC991F-E03B-49F5-95D0-42C78CC2B78E@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.43.160.183]
+X-ClientProxiedBy: EX13D30UWB002.ant.amazon.com (10.43.161.110) To
+ EX13D19EUB001.ant.amazon.com (10.43.166.229)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 20, 2020 at 05:46:27PM -0500, Bob Pearson wrote:
-> Added a new file focused on memory windows, rxe_mw.c and adds stubbed
-> out kernel verbs API for alloc_mw and dealloc_mw. These functions are added
-> to the context ops struct and bits added to the supported APIs mask.
+On 27/08/2020 15:20, Håkon Bugge wrote:
+>> On 27 Aug 2020, at 14:01, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>> On Thu, Aug 27, 2020 at 11:20:16AM +0300, Gal Pressman wrote:
+>>> On 27/08/2020 10:53, Kamal Heib wrote:
+>>>> On Thu, Aug 20, 2020 at 04:53:38PM +0300, Kamal Heib wrote:
+>>>>> On Thu, Aug 20, 2020 at 04:11:23PM +0300, Gal Pressman wrote:
+>>>>>> On 20/08/2020 15:53, Kamal Heib wrote:
+>>>>>>> Now that the query_pkey() isn't mandatory by the RDMA core, this
+>>>>>>> callback can be removed from the usnic provider.
+>>>>>>
+>>>>>> Not directly related to this patch, but pyverbs has a test which verifies that
+>>>>>> max_pkeys > 0, maybe this check should be removed.
+>>>>>
+>>>>> Or changed to work only for node_type == e.IBV_NODE_CA?
+>>>>>
+>>>>> Thanks,
+>>>>> Kamal
+>>>>
+>>>> BTW, do the efa care about pkey?
+>>>
+>>> Depends.. We only support the default pkey so it doesn't do much in terms of
+>>> functionality, but we still need to support it as part of the QP state machine
+>>> for modify QP.
+>>
+>> Does the pkey appear on the wire, or is it just some cruft for API sake?
 > 
-> Signed-off-by: Bob Pearson <rpearson@hpe.com>
->  drivers/infiniband/sw/rxe/Makefile    |  1 +
->  drivers/infiniband/sw/rxe/rxe_loc.h   |  5 +++++
->  drivers/infiniband/sw/rxe/rxe_mw.c    | 22 ++++++++++++++++++++++
->  drivers/infiniband/sw/rxe/rxe_verbs.c |  4 ++++
->  4 files changed, 32 insertions(+)
->  create mode 100644 drivers/infiniband/sw/rxe/rxe_mw.c
-> 
-> diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
-> index 66af72dca759..1e24673e9318 100644
-> +++ b/drivers/infiniband/sw/rxe/Makefile
-> @@ -15,6 +15,7 @@ rdma_rxe-y := \
->  	rxe_qp.o \
->  	rxe_cq.o \
->  	rxe_mr.o \
-> +	rxe_mw.o \
->  	rxe_opcode.o \
->  	rxe_mmap.o \
->  	rxe_icrc.o \
-> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> index 47d1730f43dd..9ab5f2c34def 100644
-> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> @@ -111,6 +111,11 @@ void rxe_mem_cleanup(struct rxe_pool_entry *arg);
->  
->  int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
->  
-> +/* rxe_mw.c */
-> +struct ib_mw *rxe_alloc_mw(struct ib_pd *ibpd, enum ib_mw_type type,
-> +			   struct ib_udata *udata);
-> +int rxe_dealloc_mw(struct ib_mw *ibmw);
-> +
->  /* rxe_net.c */
->  void rxe_loopback(struct sk_buff *skb);
->  int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb);
-> diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
-> new file mode 100644
-> index 000000000000..f5df5e0b714f
-> +++ b/drivers/infiniband/sw/rxe/rxe_mw.c
-> @@ -0,0 +1,22 @@
-> +// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-> +/*
-> + * linux/drivers/infiniband/sw/rxe/rxe_mw.c
-> + *
-> + * Copyright (c) 2020 Hewlett Packard Enterprise, Inc. All rights reserved.
-> + */
-> +
-> +#include "rxe.h"
-> +#include "rxe_loc.h"
-> +
-> +struct ib_mw *rxe_alloc_mw(struct ib_pd *ibpd, enum ib_mw_type type,
-> +			   struct ib_udata *udata)
-> +{
-> +	pr_err_once("%s: not implemented\n", __func__);
-> +	return ERR_PTR(-EINVAL);
-> +}
-> +
-> +int rxe_dealloc_mw(struct ib_mw *ibmw)
-> +{
-> +	pr_err_once("%s: not implemented\n", __func__);
-> +	return -EINVAL;
-> +}
+> On the wire. Included in the BTH (Base Transfer Header).
 
-The patches should be ordered to avoid things like this, just add the
-final implemetnation as the last patch
-
-Jason
+He was probably asking specifically about EFA.
+I can't share any details about the wire protocol, does it matter?
