@@ -2,125 +2,152 @@ Return-Path: <SRS0=7qKe=CF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,RCVD_ILLEGAL_IP,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F006C433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:54:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E664C433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:55:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C0C92054F
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:54:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 769312054F
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:55:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Je/sywxo"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UclbhnZZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726009AbgH0OyY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Aug 2020 10:54:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45738 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726250AbgH0NLt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 09:11:49 -0400
-Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com [IPv6:2607:f8b0:4864:20::841])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C97DCC061264
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 06:02:00 -0700 (PDT)
-Received: by mail-qt1-x841.google.com with SMTP id e5so4414014qth.5
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 06:02:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=78rf7AgA30q6Y54D6yAfg2L/fW+SQqq3MiYZR2F/3/c=;
-        b=Je/sywxoScHevZF/mIVvxhpSkZqsRGrAlvFiknREaSsV5SapTrrhWV43lr+GmEYr79
-         P3F4PhUjvpmxpSgOoOtRDu89bIuhfBbphOHF4VRJpjG4rFCxLClKplswhfK0E1fka9aR
-         27PDQbeyE7600IiCf7YJPq73k1s4EsrA2qeDaWIJYsYSKFGw/bkINHv8TpVioApFIO9g
-         5Z7sNG5cfCs5dCZMKUezPaxsJxwLmKuUp2/7ST3gQSJsx8CUDa2H9vhVG8gHmXTcAc8x
-         wNFIKTM4u2g7MjAI4lByvEmXU8qAiDKuccbLJBYKy265hzRHc7P9oA2+i1ORXgwiE3/+
-         QrKg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=78rf7AgA30q6Y54D6yAfg2L/fW+SQqq3MiYZR2F/3/c=;
-        b=YhGoybbt1JvW3+ff0F/TftLOmv3YL1ATZWY/koE3xqQ0TN4L800A7peOlGb9PSKF7N
-         3OE7z2tKqHoYc+d1x6g4mUPsKudbKIrSvQFd3RT3rP03Bc+Gy/SzJL8t9CkI2MCrVZwJ
-         vb52QXUdeAVjlPi2eKsjyzZ49M1jzGLEcF3YEiON2gUxASPPBXBa8iC2fQtbiS1kBidQ
-         hGacs5UfgZevxYYG8s2fozI5YkT/YDvW0qIYgGa/LLiLNLP8/2UILyP/ySFdf8ZlWhbM
-         rzz1kZOU148/BA85I2tlWicTW72M5TuMWC/KYsLkruUiJFp/X5UNTPGn+D8yCAsCx7DD
-         U3hQ==
-X-Gm-Message-State: AOAM53075cuPnQQWeeyQUhFvhPyGM+sfS2NNJHPwTdCPziNcrqO97gZd
-        mvoxHh1RYtq/ArYqruOxhUMPdg==
-X-Google-Smtp-Source: ABdhPJw5f6jRg3nvl659wdmrgyTg6EKf4Nbw8DFzOl0qrdoC4BNQB6y6qgCk0FsNa1TM5q/ym/or0g==
-X-Received: by 2002:ac8:104:: with SMTP id e4mr18674326qtg.47.1598533320024;
-        Thu, 27 Aug 2020 06:02:00 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id a67sm1715447qkd.40.2020.08.27.06.01.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Aug 2020 06:01:59 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kBHXS-00GuHF-Qq; Thu, 27 Aug 2020 10:01:58 -0300
-Date:   Thu, 27 Aug 2020 10:01:58 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Gal Pressman <galpress@amazon.com>
-Cc:     =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>,
-        Kamal Heib <kamalheib1@gmail.com>,
-        OFED mailing list <linux-rdma@vger.kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Christian Benvenuti <benve@cisco.com>
-Subject: Re: [PATCH for-next] RDMA/usnic: Remove the query_pkey callback
-Message-ID: <20200827130158.GS24045@ziepe.ca>
-References: <20200820125346.111902-1-kamalheib1@gmail.com>
- <efb8ce2b-fb37-2950-36fd-fb45b845632a@amazon.com>
- <20200820135338.GA114615@kheib-workstation>
- <20200827075356.GA394866@kheib-workstation>
- <4be87aa7-bc3c-d8f1-05e2-9276125cacc2@amazon.com>
- <20200827120139.GL24045@ziepe.ca>
- <ACEC991F-E03B-49F5-95D0-42C78CC2B78E@oracle.com>
- <0f1aa022-3271-bec3-146d-eb3daa518447@amazon.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+        id S1726876AbgH0OzD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Aug 2020 10:55:03 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:59223 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727941AbgH0OzA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 Aug 2020 10:55:00 -0400
+Received: from hkpgpgate101.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f47c93f0000>; Thu, 27 Aug 2020 22:54:55 +0800
+Received: from HKMAIL101.nvidia.com ([10.18.16.10])
+  by hkpgpgate101.nvidia.com (PGP Universal service);
+  Thu, 27 Aug 2020 07:54:55 -0700
+X-PGP-Universal: processed;
+        by hkpgpgate101.nvidia.com on Thu, 27 Aug 2020 07:54:55 -0700
+Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL101.nvidia.com
+ (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 27 Aug
+ 2020 14:54:54 +0000
+Received: from NAM04-SN1-obe.outbound.protection.outlook.com (104.47.44.51) by
+ HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 27 Aug 2020 14:54:54 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=dh5u2eTut4VTmijM5ta9c7MONC5IoPbSjk9POlaWDHFe9qbiv+YfBTqhfDZ2l6y4ymYH0PACBnwyFhE7Ck6HmBFkJ2mzDLdkRmbzfw9eL14cAvkIgMucbma5GRrdAvzYcOgqnMOJjFdvy5w0eYG8yMs24GWjJx4Twqw+mCyj2vsWeApUJpHM/sNQbP549RqZMBpZAwy0j3foR7iaf3z0M0pDwMV5yaXTvddajJUkRxDaAqlPQtdE1fkPFXSspG+v09AVMe9AQzLXCF/RoJt1lOlRr+tN+EsS4hq1WzR8B3M0EFlJZEW9c0nGAOk8HLi0iDxYzevlhX3+h659/oNgrw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=GRymTOG5d1/2C2HzYNCfm42dEb5GdnNhSaOI2/jjPJg=;
+ b=W7cq+YJdxJJF4rtY253HUz2IlqMJbqT/7S+bRlRhSC0zwH5qEiA583YFbIjYlb34uKiJSZE+gQ4qkFCPFscr0BrYxkXUc7A86S+WxPGVGR/X0TjoflQeG32HtHhswe2+MmFFXh7k5UEDYj5hP0mOFJHXYjlMeOeLJtpDQVi0eLiRmL/JK5ESxQvVPVHffWX2CmCdSghpnWd2UcwRVtLBWBZRAIORiShz4eZ+SaMTy94qVR0Qz+tseWBBzMCDUrYIjTAVxaIUeVgp1rFSoqvqKa86tN9Rr6oXTlmH4uG9nEDYo6W1OxqzmFeecCsrB+Rq8YGKRQUrWevBvjmDfK+8Mw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: gmail.com; dkim=none (message not signed)
+ header.d=none;gmail.com; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4009.namprd12.prod.outlook.com (2603:10b6:5:1cd::25) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.19; Thu, 27 Aug
+ 2020 14:54:52 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3305.032; Thu, 27 Aug 2020
+ 14:54:52 +0000
+Date:   Thu, 27 Aug 2020 11:54:50 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Kamal Heib <kamalheib1@gmail.com>
+CC:     <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>
+Subject: Re: [PATCH v4 for-rc] RDMA/rxe: Fix panic when calling
+ kmem_cache_create()
+Message-ID: <20200827145450.GK1152540@nvidia.com>
+References: <20200825151725.254046-1-kamalheib1@gmail.com>
+ <20200827121822.GA4014126@nvidia.com>
+ <20200827142955.GA406793@kheib-workstation>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0f1aa022-3271-bec3-146d-eb3daa518447@amazon.com>
+In-Reply-To: <20200827142955.GA406793@kheib-workstation>
+X-ClientProxiedBy: BL0PR02CA0009.namprd02.prod.outlook.com
+ (2603:10b6:207:3c::22) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from 255.255.255.255 (255.255.255.255) by BL0PR02CA0009.namprd02.prod.outlook.com (2603:10b6:207:3c::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.19 via Frontend Transport; Thu, 27 Aug 2020 14:54:51 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kBJIg-00H4YG-9v; Thu, 27 Aug 2020 11:54:50 -0300
+X-Originating-IP: [156.34.48.30]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 6f651678-3fd0-4485-75c6-08d84a992718
+X-MS-TrafficTypeDiagnostic: DM6PR12MB4009:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DM6PR12MB4009155AEB9F7C03B0E5FEE2C2550@DM6PR12MB4009.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:418;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 1Xgj9sNOwfu9Pwu6L6cbBIEAJnTEVPTa3N6kSFexsImZawOly+43G+0++ROrYakjgNFqdehxSIZkB9ybPIrVX9m2lj4RM6HCePKryoIY0zO4xsxvzsMTyfodm7h/SRbFD/lHmTLW+T/ShiYD5lEHVSml33UCM4scaEwfpt9j13gkx9QCswvTQ0hdMPPWSKtKADfZzF0Pjk7hrJyEpdd0bkPKL0eSj9Lnd7ch3pk6GQzDy8QD8ySiiLbgdh3AY0TzPaS7uvmDt2cfmErJhzicVDV/XzqNdQyy7CnTQ9tVZ9sP/qgslIJaMSwLp7IHz4hQOkNKB6gzgFb0JmuuqW+Jnw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(136003)(376002)(346002)(396003)(39860400002)(6916009)(426003)(186003)(8936002)(26005)(36756003)(316002)(33656002)(5660300002)(66476007)(66556008)(66946007)(478600001)(9786002)(9746002)(54906003)(2616005)(2906002)(4326008)(107886003)(86362001)(83380400001)(1076003)(8676002)(4744005);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: LaZmPqfs1wRb66TklBqnpC3JGyiLE8ygRy/LpDHqWAwbKc9fHyYWUSJJqztWJj9y4890kDHPJTye6ovps+gmHSsYwh5edfGSRhf0E6VgLO+ZGpNMhUytjdPHgeemt2L5de1XcA7kEIjfp6mV05hTrUSkX2gVQorlqW7OvanoecAu83hRy/732pIQVPAzJjVUfEFWmxxj6K5TxREbZhb4ZsgdHNmVbq3Q74hDheYtvOeD0HkrcvvEqhYCGMwnKaXRpDJdVChN0vJCeXnnRa1n+avtycIGtd2LHtdC091U2+xV+VvDTAja0PtIwsyU+5Nhtzz2F8MSviixB8F6oLjonpuix+M7tLC1oheu8pzgv/H9JbioMrdc+92ajyjLr9dYRXMvmzRoPrZlvyqNJ1d9WF7loigGzwPQWJU1GGihRIhdnlW7iJgUHDXZFGD70IvMiuP8Z9e2uLmJK3LrqLo9Ihfy6M54jbKdV3SJ6moOtlSG8sHKLcRafJhOEUh/0mwO95lteZpUUEfcrO5pqSfDOKxyfzOc+7NHPx6Ax+R2b1fmYdLeYPdE1S9l6OuppI/uxFLCYRlm5+foVMh5LZ0il7G6PPY2l0Jx7urCKcGkyE9N5zz1NItezh6EI9U+mPb+xxHEM6Xs2WO4HYfKYWdXyw==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6f651678-3fd0-4485-75c6-08d84a992718
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Aug 2020 14:54:52.1510
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: hrgziGHEZruFuZ0Do3E4uOWBczCmjA3GXNc8vOEJSXVm6z69xNoBtVFkqSagCp6J
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4009
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1598540095; bh=GRymTOG5d1/2C2HzYNCfm42dEb5GdnNhSaOI2/jjPJg=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
+         Subject:Message-ID:References:Content-Type:Content-Disposition:
+         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-MS-Exchange-Transport-Forked:
+         X-Microsoft-Antispam-PRVS:X-MS-Oob-TLC-OOBClassifiers:
+         X-MS-Exchange-SenderADCheck:X-Microsoft-Antispam:
+         X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+         X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=UclbhnZZ5Lw5P8EDVoJoY0K7WR92J1CdS2M5DCr/200M9ZLwbNkA9O4etE7ZzNCdp
+         sQH57JY2Izuy9YS2rfQ/rFfieuTl32LyFZoMbtiwT+ulphEJMKpo24Z8jql63swGP1
+         TrSPAWgkroLXPcpfsDJXe9KLCXbhpUdamKX45jCWc5DR6b+A5rAxSFR0MYqdjdu2iH
+         ahXIe1kbhSUgdJeecGrIRc6XliwFd8LXa2NFz6Xb/d+H648nciynoBbnjhsIvWv1VZ
+         4ELOy8MS7OygRy8HidxZFmNpDG+PetOWAhE9Vtmh0OQJlPX9U71HCQHaGq8I5mumTI
+         L7A+uYu0I82lA==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 27, 2020 at 03:58:23PM +0300, Gal Pressman wrote:
-> On 27/08/2020 15:20, Håkon Bugge wrote:
-> >> On 27 Aug 2020, at 14:01, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >> On Thu, Aug 27, 2020 at 11:20:16AM +0300, Gal Pressman wrote:
-> >>> On 27/08/2020 10:53, Kamal Heib wrote:
-> >>>> On Thu, Aug 20, 2020 at 04:53:38PM +0300, Kamal Heib wrote:
-> >>>>> On Thu, Aug 20, 2020 at 04:11:23PM +0300, Gal Pressman wrote:
-> >>>>>> On 20/08/2020 15:53, Kamal Heib wrote:
-> >>>>>>> Now that the query_pkey() isn't mandatory by the RDMA core, this
-> >>>>>>> callback can be removed from the usnic provider.
-> >>>>>>
-> >>>>>> Not directly related to this patch, but pyverbs has a test which verifies that
-> >>>>>> max_pkeys > 0, maybe this check should be removed.
-> >>>>>
-> >>>>> Or changed to work only for node_type == e.IBV_NODE_CA?
-> >>>>>
-> >>>>> Thanks,
-> >>>>> Kamal
-> >>>>
-> >>>> BTW, do the efa care about pkey?
-> >>>
-> >>> Depends.. We only support the default pkey so it doesn't do much in terms of
-> >>> functionality, but we still need to support it as part of the QP state machine
-> >>> for modify QP.
-> >>
-> >> Does the pkey appear on the wire, or is it just some cruft for API sake?
-> > 
-> > On the wire. Included in the BTH (Base Transfer Header).
+On Thu, Aug 27, 2020 at 05:29:55PM +0300, Kamal Heib wrote:
+> > Can you send a PR to rdma-core to delete rxe_cfg as well? In
+> > preperation to remove the module parameters
+> >
 > 
-> He was probably asking specifically about EFA.
-> I can't share any details about the wire protocol, does it matter?
+> Someone already did that :-)
+> 
+> commit 0d2ff0e1502ebc63346bc9ffd37deb3c4fd0dbc9
+> Author: Jason Gunthorpe <jgg@ziepe.ca>
+> Date:   Tue Jan 28 15:53:07 2020 -0400
+> 
+>     rxe: Remove rxe_cfg
+> 
+>     This is obsoleted by iproute2's 'rdma link add' command.
+> 
+>     Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 
-If it isn't actually used for anything then the driver shouldn't
-expose PKEY at all, if you do use it then leave it.
+Oh! Lets drop the kernel side of this in Jan 2021 then?
 
 Jason
