@@ -2,104 +2,88 @@ Return-Path: <SRS0=7qKe=CF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2092EC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF406C433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 13:00:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E461B22CAE
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 12:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9DF9207CD
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 13:00:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="jdEPUhn0"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="cU/J7hH0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727860AbgH0M7N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Aug 2020 08:59:13 -0400
-Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:28025 "EHLO
-        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726952AbgH0M7B (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 08:59:01 -0400
+        id S1726952AbgH0NAf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Aug 2020 09:00:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44004 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726998AbgH0NA0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 09:00:26 -0400
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com [IPv6:2607:f8b0:4864:20::843])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34532C061232
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 06:00:25 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id n18so4429791qtw.0
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 06:00:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1598533142; x=1630069142;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=pvCCIFjp4UZElJPc6NhKvHuFdMnK/fGdnUBy32iK3xA=;
-  b=jdEPUhn0sCpBzx6xJPsdRkLVRFkB4bmsltFkHY+bYxTX/ZW5xopc4bre
-   QJhIGB+TQnIeVVZfItQ2dZwB7gHynKpMi7IZ8fl9347F/eEzC1Q0c9bSl
-   ioYaD5EXFBVGitUItTB2+VU+yIKblZJqMx71kzdmWQVxdR/b5YRAxhwzA
-   0=;
-X-IronPort-AV: E=Sophos;i="5.76,359,1592870400"; 
-   d="scan'208";a="50329860"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1a-715bee71.us-east-1.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-out-6002.iad6.amazon.com with ESMTP; 27 Aug 2020 12:58:35 +0000
-Received: from EX13D19EUB001.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
-        by email-inbound-relay-1a-715bee71.us-east-1.amazon.com (Postfix) with ESMTPS id 31FD0A1903;
-        Thu, 27 Aug 2020 12:58:32 +0000 (UTC)
-Received: from 8c85908914bf.ant.amazon.com (10.43.160.183) by
- EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Thu, 27 Aug 2020 12:58:28 +0000
-Subject: Re: [PATCH for-next] RDMA/usnic: Remove the query_pkey callback
-To:     =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>
-CC:     Kamal Heib <kamalheib1@gmail.com>,
-        OFED mailing list <linux-rdma@vger.kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Christian Benvenuti <benve@cisco.com>
-References: <20200820125346.111902-1-kamalheib1@gmail.com>
- <efb8ce2b-fb37-2950-36fd-fb45b845632a@amazon.com>
- <20200820135338.GA114615@kheib-workstation>
- <20200827075356.GA394866@kheib-workstation>
- <4be87aa7-bc3c-d8f1-05e2-9276125cacc2@amazon.com>
- <20200827120139.GL24045@ziepe.ca>
- <ACEC991F-E03B-49F5-95D0-42C78CC2B78E@oracle.com>
-From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <0f1aa022-3271-bec3-146d-eb3daa518447@amazon.com>
-Date:   Thu, 27 Aug 2020 15:58:23 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0)
- Gecko/20100101 Thunderbird/68.11.0
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=vWEIxr1yyDaXyO/h8L1exQZ5P2hNn96DwFYGGcqMcI0=;
+        b=cU/J7hH0qgLxkl7sMjwL7YO8RR/nLz+Agy4owvpBRLz35u3Fr0USS2Sap5hr+ml5LS
+         i35URqkvmzKa6CU2ksvny/ogz1LZLsG2C9XG6GDM5Y7dft8qrQJ9ePZOjBRlUJYRxnPW
+         qeqVyh5MR6IC91nebW1b5cLd9kKm2JSizLxV6mS6dBHZ6LpIYSjk66os2wei2+fRx4tf
+         JVyxwBXmxAbx6yBbVFRr4yi04DiLyhCfzaTgzUpJF+ZXSxjiqJbwA9mYZc450prEOLgc
+         U2d1L3H1cp/OVO2z5W7ZTxCVcN3QelV2zd91rsfgkFh9CoHdK9DyMiL90dVLvktpYO3X
+         Q2Pw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=vWEIxr1yyDaXyO/h8L1exQZ5P2hNn96DwFYGGcqMcI0=;
+        b=LD/W/6PIdLTjeosgEuDpazGBtOeVaEzqnE69wxRjp/eeZx0LqhDR4inNUJ/rVHWKMz
+         9k69TavOUoYPiznxDexW5ZNhmQYgMba1IuGpR0bSL6k5qMjk/azTV7TiMKMHI0j4EVbQ
+         r41E8HTimjlamGp1xbE/9NGda3uW7vKYSlLvxK1g5mx8MyalhKscIxpCqg93TClRnDX1
+         jFog2AffNQPsDMyyQZWrsNUAFI8WBK8ieg/Xdoq2KPwYykKXiEha6VsPRWTPMBoOiZ8Y
+         6nLb6wTFtt3BK2NFtO23La2iIch0carFnIaeOQMNeIWHXLAHGxv2bPgpl7VIBC/0sJp2
+         mhtg==
+X-Gm-Message-State: AOAM5314mSZcgz/hUY18M1Lbtk2ZorD1H3bgb1iMj0/MA1No42D2YCep
+        UhpnZUH+1mdOeD1mkRjGrljt+A==
+X-Google-Smtp-Source: ABdhPJyP0TWivawcDZLwmWe4xj46gozl2tGqmnve3nw2pFU6KSe6gOEOBPxxqHdMRJMTvndmFoOhOg==
+X-Received: by 2002:aed:2041:: with SMTP id 59mr19205050qta.225.1598533224488;
+        Thu, 27 Aug 2020 06:00:24 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id u41sm1755264qth.42.2020.08.27.06.00.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Aug 2020 06:00:23 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kBHVv-00GtIo-7z; Thu, 27 Aug 2020 10:00:23 -0300
+Date:   Thu, 27 Aug 2020 10:00:23 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+Cc:     linux-rdma@vger.kernel.org, zyjzyj2000@gmail.com,
+        Bob Pearson <rpearson@hpe.com>
+Subject: Re: [PATCH v3 17/17] rdma_rxe: minor cleanups
+Message-ID: <20200827130023.GR24045@ziepe.ca>
+References: <20200820224638.3212-1-rpearson@hpe.com>
+ <20200820224638.3212-18-rpearson@hpe.com>
 MIME-Version: 1.0
-In-Reply-To: <ACEC991F-E03B-49F5-95D0-42C78CC2B78E@oracle.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.43.160.183]
-X-ClientProxiedBy: EX13D30UWB002.ant.amazon.com (10.43.161.110) To
- EX13D19EUB001.ant.amazon.com (10.43.166.229)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200820224638.3212-18-rpearson@hpe.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 27/08/2020 15:20, Håkon Bugge wrote:
->> On 27 Aug 2020, at 14:01, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->> On Thu, Aug 27, 2020 at 11:20:16AM +0300, Gal Pressman wrote:
->>> On 27/08/2020 10:53, Kamal Heib wrote:
->>>> On Thu, Aug 20, 2020 at 04:53:38PM +0300, Kamal Heib wrote:
->>>>> On Thu, Aug 20, 2020 at 04:11:23PM +0300, Gal Pressman wrote:
->>>>>> On 20/08/2020 15:53, Kamal Heib wrote:
->>>>>>> Now that the query_pkey() isn't mandatory by the RDMA core, this
->>>>>>> callback can be removed from the usnic provider.
->>>>>>
->>>>>> Not directly related to this patch, but pyverbs has a test which verifies that
->>>>>> max_pkeys > 0, maybe this check should be removed.
->>>>>
->>>>> Or changed to work only for node_type == e.IBV_NODE_CA?
->>>>>
->>>>> Thanks,
->>>>> Kamal
->>>>
->>>> BTW, do the efa care about pkey?
->>>
->>> Depends.. We only support the default pkey so it doesn't do much in terms of
->>> functionality, but we still need to support it as part of the QP state machine
->>> for modify QP.
->>
->> Does the pkey appear on the wire, or is it just some cruft for API sake?
-> 
-> On the wire. Included in the BTH (Base Transfer Header).
+On Thu, Aug 20, 2020 at 05:46:38PM -0500, Bob Pearson wrote:
+> Added vendor_part_id
+> Fixed bug in rxe_resp.c at RKEY_VIOLATION: failed to ack bad rkeys
+> Fixed failure to init mr in rxe_resp.c at check_rkey
+> Fixed failure to allow invalidation of invalid MWs
 
-He was probably asking specifically about EFA.
-I can't share any details about the wire protocol, does it matter?
+Split this up as appropriate and send it independently if your MW
+series, same with the SPDX, etc
+
+Jason
