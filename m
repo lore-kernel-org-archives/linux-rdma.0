@@ -2,155 +2,114 @@ Return-Path: <SRS0=7qKe=CF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FB94C433E1
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F4ACC433DF
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:31:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 189342087D
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:30:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 655E620707
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Aug 2020 14:31:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TOfH5Bij"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bdyHoA7T"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728048AbgH0OaK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Aug 2020 10:30:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58104 "EHLO
+        id S1728037AbgH0Obk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Aug 2020 10:31:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726217AbgH0OaA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 10:30:00 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09F11C06121B
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 07:29:59 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id y3so5597604wrl.4
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 07:29:59 -0700 (PDT)
+        with ESMTP id S1727969AbgH0O0p (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Aug 2020 10:26:45 -0400
+Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E4CBC061235
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 07:17:59 -0700 (PDT)
+Received: by mail-wm1-x343.google.com with SMTP id y8so3835125wma.0
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Aug 2020 07:17:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=KMR6gPKx4Iusd775broNtcC5EoDFrRdaHB14KOj+7Q4=;
-        b=TOfH5BijQEVvcWtU0GoVnKbJmwIyg6N5WBw53XWdIE6WZ7thpzMqpE/MwsdjfACVbY
-         XqEerat/XMmBJCsPttDenNqB51a56KnoY6NpoCnP74MQBOowVJL04+Dg8/HyhT7ItV1r
-         66SgaHPr6ExHkgAs3/DFZP98gU/kkSpNX9xxcBNahn1Ferpx4JE9qBFMQ79uTckK1Lq+
-         L+kU4tttS02csI8Qpg6KVQA7RBL73O/1SGm0JMAeVwaKidtdvAvIjfUhVjtiAHPyPplU
-         vWZfZA2prmfqnz8ZjVn/Za/HAUocFopZYHvD/nvXrzuqwf5FmkoT6ATohXTDnUA9KU9g
-         mEtQ==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=h2iQKSRyr52ny+0GoSuNEe/jexENn4wzJDRi/sR1iaQ=;
+        b=bdyHoA7TbcKDQ5SaZFWz27l1FitaEDZ7MtkmP5aZjv/IZl3lHdY0XsDi5lzur+FFMb
+         /GGAJ8yC98UHmrORUpYj1gTYhr4z/JvX1ptO+V5TxCTYS6XDAUlHZlg4GkTLqle8xFG8
+         b0FvdGY1aYTfUD5hzZFeEL7M9Z6He8Vhn+DlYhEl6gXFzMjZmVvTopyov5sNi+z8FqIq
+         nv1/Antsa3QhnI0ji31eiBIOf8eLrYqR3xXAOqzEW9UBzT3i9AEAaPEF23qUNNigXjWt
+         C2kXVAa3qfvcpiGiW7ujdUiK3VO/C7hmLbZGJaxEVagZqw458VSOX+5KSefKpCE+DrH0
+         uinw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=KMR6gPKx4Iusd775broNtcC5EoDFrRdaHB14KOj+7Q4=;
-        b=RE8kFu815tR70EcIxSrJd/1pfn+TPg2A/rwapi05OJ+g54KxtbGLx2JGK1R0ZGpEdu
-         D5H6VaHwoxuJWcYjnB3q/9v6tgLA07IM3A1Gcq91FU54GwX7w8hS7+7c4IC7iWC3mQMu
-         YyijGapHi/WfikcFwbAr7hou5u285XGHt0W5HpjE28ZqmTvwFoTnSC6Tw+ujy3pjBeWo
-         zuV3do1XpY9RyGu9DruAA1Vw+VXtwV8w5XQfpoeC6zjhIpelp8Pd7TCFPW0IBsWXMIWo
-         kWEb0ARtpdUlW/PuUv7hyp+R4LBu0eCqSPHybcYcG2k7l7CRcX/DcCiXwCCH6DOkuDbs
-         THpQ==
-X-Gm-Message-State: AOAM53056pGYZUXXmI9aarP5LVAVAt7JxOKGHd9FIf4SoMmCn7vEXB1I
-        jMOPKCZsaYixOgnxpAj5JNy46XsCkvs=
-X-Google-Smtp-Source: ABdhPJyhmq8ru/r1ixoAajw00UasH53/lREHKOcOLwlm/a9mhxIHOZiR/yDuQHBix6rvGeg6PDE2wQ==
-X-Received: by 2002:adf:e30e:: with SMTP id b14mr20080041wrj.215.1598538598554;
-        Thu, 27 Aug 2020 07:29:58 -0700 (PDT)
-Received: from kheib-workstation ([37.142.0.228])
-        by smtp.gmail.com with ESMTPSA id n18sm6112940wrp.58.2020.08.27.07.29.57
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=h2iQKSRyr52ny+0GoSuNEe/jexENn4wzJDRi/sR1iaQ=;
+        b=DEYrN+3Vv38x4BqTBmeMEjVqbMmRMI7onXJNGiZOWroEc+kd8vFoxg5151silBOz9L
+         x9zRPdPWE+PSIiW5ax4s0a4uVVcAt1gHt7KiXuMZjN22DcIiT/ZzyuVc9ib3tnvp4ma5
+         Uxw9rQL0P700xOxjnJaV5ZuOYObAZLSrsl4TXjfaL0GuQz9kbLG+D+sBwfu8OgdjahS8
+         v8I6TIvHHE1vXYUoN4WoCNI4kvFy6mJ9MZ75fhKCVIsNNJwKwhyGBUTQTCH7JgJZYuOW
+         kOYmPz32LfXcIyu3J5lAFv5QeK52BWEoaiYQPU5ejjoMhydbVV/pUYfX3UcFQmCbEGT5
+         QppQ==
+X-Gm-Message-State: AOAM531+05uSlJ0QqIZEEh/TZ3DI/Cr5ycljZk2sBsAyDi65fXkO0exT
+        BPMKoKGyJm5SHEu9F0uHIhFOFl/QtEo=
+X-Google-Smtp-Source: ABdhPJw1LH91H8OCHdi+o7a3WwNz1fYIiGN8S4KYT/d6NCUAoQ6AaYqjSlfhQg2kRAYNEcBwahnsOQ==
+X-Received: by 2002:a1c:f605:: with SMTP id w5mr11808866wmc.26.1598537878071;
+        Thu, 27 Aug 2020 07:17:58 -0700 (PDT)
+Received: from kheib-workstation.redhat.com ([37.142.0.228])
+        by smtp.gmail.com with ESMTPSA id t25sm5314500wmj.18.2020.08.27.07.17.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Aug 2020 07:29:57 -0700 (PDT)
-Date:   Thu, 27 Aug 2020 17:29:55 +0300
+        Thu, 27 Aug 2020 07:17:57 -0700 (PDT)
 From:   Kamal Heib <kamalheib1@gmail.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>
-Subject: Re: [PATCH v4 for-rc] RDMA/rxe: Fix panic when calling
- kmem_cache_create()
-Message-ID: <20200827142955.GA406793@kheib-workstation>
-References: <20200825151725.254046-1-kamalheib1@gmail.com>
- <20200827121822.GA4014126@nvidia.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Kamal Heib <kamalheib1@gmail.com>
+Subject: [PATCH for-next] RDMA/qedr: Fix reported max_pkeys
+Date:   Thu, 27 Aug 2020 17:16:55 +0300
+Message-Id: <20200827141655.406185-1-kamalheib1@gmail.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200827121822.GA4014126@nvidia.com>
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 27, 2020 at 09:18:22AM -0300, Jason Gunthorpe wrote:
-> On Tue, Aug 25, 2020 at 06:17:25PM +0300, Kamal Heib wrote:
-> > To avoid the following kernel panic when calling kmem_cache_create()
-> > with a NULL pointer from pool_cache(), Block the rxe_param_set_add()
-> > from running if the rdma_rxe module is not initialized.
-> > 
-> >  BUG: unable to handle kernel NULL pointer dereference at 000000000000000b
-> >  PGD 0 P4D 0
-> >  Oops: 0000 [#1] SMP NOPTI
-> >  CPU: 4 PID: 8512 Comm: modprobe Kdump: loaded Not tainted 4.18.0-231.el8.x86_64 #1
-> >  Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 10/02/2018
-> >  RIP: 0010:kmem_cache_alloc+0xd1/0x1b0
-> >  Code: 8b 57 18 45 8b 77 1c 48 8b 5c 24 30 0f 1f 44 00 00 5b 48 89 e8 5d 41 5c 41 5d 41 5e 41 5f c3 81 e3 00 00 10 00 75 0e 4d 89 fe <41> f6 47 0b 04 0f 84 6c ff ff ff 4c 89 ff e8 cc da 01 00 49 89 c6
-> >  RSP: 0018:ffffa2b8c773f9d0 EFLAGS: 00010246
-> >  RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000005
-> >  RDX: 0000000000000004 RSI: 00000000006080c0 RDI: 0000000000000000
-> >  RBP: ffff8ea0a8634fd0 R08: ffffa2b8c773f988 R09: 00000000006000c0
-> >  R10: 0000000000000000 R11: 0000000000000230 R12: 00000000006080c0
-> >  R13: ffffffffc0a97fc8 R14: 0000000000000000 R15: 0000000000000000
-> >  FS:  00007f9138ed9740(0000) GS:ffff8ea4ae800000(0000) knlGS:0000000000000000
-> >  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> >  CR2: 000000000000000b CR3: 000000046d59a000 CR4: 00000000003406e0
-> >  Call Trace:
-> >   rxe_alloc+0xc8/0x160 [rdma_rxe]
-> >   rxe_get_dma_mr+0x25/0xb0 [rdma_rxe]
-> >   __ib_alloc_pd+0xcb/0x160 [ib_core]
-> >   ib_mad_init_device+0x296/0x8b0 [ib_core]
-> >   add_client_context+0x11a/0x160 [ib_core]
-> >   enable_device_and_get+0xdc/0x1d0 [ib_core]
-> >   ib_register_device+0x572/0x6b0 [ib_core]
-> >   ? crypto_create_tfm+0x32/0xe0
-> >   ? crypto_create_tfm+0x7a/0xe0
-> >   ? crypto_alloc_tfm+0x58/0xf0
-> >   rxe_register_device+0x19d/0x1c0 [rdma_rxe]
-> >   rxe_net_add+0x3d/0x70 [rdma_rxe]
-> >   ? dev_get_by_name_rcu+0x73/0x90
-> >   rxe_param_set_add+0xaf/0xc0 [rdma_rxe]
-> >   parse_args+0x179/0x370
-> >   ? ref_module+0x1b0/0x1b0
-> >   load_module+0x135e/0x17e0
-> >   ? ref_module+0x1b0/0x1b0
-> >   ? __do_sys_init_module+0x13b/0x180
-> >   __do_sys_init_module+0x13b/0x180
-> >   do_syscall_64+0x5b/0x1a0
-> >   entry_SYSCALL_64_after_hwframe+0x65/0xca
-> >  RIP: 0033:0x7f9137ed296e
-> > 
-> > Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe.c       | 4 ++++
-> >  drivers/infiniband/sw/rxe/rxe.h       | 2 ++
-> >  drivers/infiniband/sw/rxe/rxe_sysfs.c | 5 +++++
-> >  3 files changed, 11 insertions(+)
-> 
-> Can you send a PR to rdma-core to delete rxe_cfg as well? In
-> preperation to remove the module parameters
->
+As qedr driver supports both RoCE and iWarp, make sure to set the
+max_pkeys only when running in RoCE mode.
 
-Someone already did that :-)
+Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+---
+ drivers/infiniband/hw/qedr/verbs.c         | 2 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-commit 0d2ff0e1502ebc63346bc9ffd37deb3c4fd0dbc9
-Author: Jason Gunthorpe <jgg@ziepe.ca>
-Date:   Tue Jan 28 15:53:07 2020 -0400
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 4ce4e2eef6cc..1d1d5628bfc7 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -157,7 +157,7 @@ int qedr_query_device(struct ib_device *ibdev,
+ 
+ 	attr->local_ca_ack_delay = qattr->dev_ack_delay;
+ 	attr->max_fast_reg_page_list_len = qattr->max_mr / 8;
+-	attr->max_pkeys = QEDR_ROCE_PKEY_MAX;
++	attr->max_pkeys = qattr->max_pkey;
+ 	attr->max_ah = qattr->max_ah;
+ 
+ 	return 0;
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_rdma.c b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
+index a4bcde522cdf..03894584415d 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_rdma.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_rdma.c
+@@ -504,7 +504,8 @@ static void qed_rdma_init_devinfo(struct qed_hwfn *p_hwfn,
+ 	dev->max_mw = 0;
+ 	dev->max_mr_mw_fmr_pbl = (PAGE_SIZE / 8) * (PAGE_SIZE / 8);
+ 	dev->max_mr_mw_fmr_size = dev->max_mr_mw_fmr_pbl * PAGE_SIZE;
+-	dev->max_pkey = QED_RDMA_MAX_P_KEY;
++	if (QED_IS_ROCE_PERSONALITY(p_hwfn))
++		dev->max_pkey = QED_RDMA_MAX_P_KEY;
+ 
+ 	dev->max_srq = p_hwfn->p_rdma_info->num_srqs;
+ 	dev->max_srq_wr = QED_RDMA_MAX_SRQ_WQE_ELEM;
+-- 
+2.26.2
 
-    rxe: Remove rxe_cfg
-
-    This is obsoleted by iproute2's 'rdma link add' command.
-
-    Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-
-Thanks,
-Kamal
-
-> Applied to for-rc
-> 
-> Thanks,
-> Jason
