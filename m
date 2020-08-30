@@ -7,48 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7EA4C2BB56
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D17BC43461
 	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86CE920720
+	by mail.kernel.org (Postfix) with ESMTP id 3B52620714
 	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1598776859;
-	bh=/Ok6EOxBXX5c0FyexeUKSuc+06fEIwUImbMlHxP1/18=;
+	bh=5v90RaTqfsCtqCvy57ElA1QnTxroKj893eTVe/b14tY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=LWZREiMcuy1F/5wbTH+WwZxw/OfNSBGydhy8eG9vB1QG95zwLcqeYMs/ivwmq9fm3
-	 Ia8jF7pqhwZeSxxKMhN1Z2nUbJO+quQMv2hGpkj/m6QlbRwif2EHrjCCWayQDP9Fk6
-	 PMsmYR6DL0JKaEPXjsgWI4G6IEtmYBaCMkVb/w3A=
+	b=dUgExpHN+o+3E4/oEq6WPbxBFUgRqQU5cpq+LDCXIOsngL3Avs0L9Ri7QqZ3hFwtH
+	 CEwXz99+vCk2FKG6k38b3hciDKap2BMd8urIrs2EdYNFr1lggZ1Q25t4R/BVOwcyAc
+	 iZ1kLnwl675RbPXNsHJH+6JTp/qAJWHQ34WZKrTg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728645AbgH3Ik6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 30 Aug 2020 04:40:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44852 "EHLO mail.kernel.org"
+        id S1728693AbgH3Ik5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 30 Aug 2020 04:40:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728653AbgH3Ikl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 30 Aug 2020 04:40:41 -0400
+        id S1728645AbgH3Ikm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 30 Aug 2020 04:40:42 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C4962145D;
-        Sun, 30 Aug 2020 08:40:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8FB5C20714;
+        Sun, 30 Aug 2020 08:40:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598776840;
-        bh=/Ok6EOxBXX5c0FyexeUKSuc+06fEIwUImbMlHxP1/18=;
+        s=default; t=1598776837;
+        bh=5v90RaTqfsCtqCvy57ElA1QnTxroKj893eTVe/b14tY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=J3CIpVQim5ByBXbwyEUwXipj4emVlwvDbgUwXPchO1j1L5l20xtrCwKesEnTmMiux
-         co7dz3z44s2gTC2TxpNl1AEbP4fmFBMdgDuoBXvMcX9n3L8hxi5OaQcqTWwTwOFPAn
-         9Tnph8jIciHguUxVy0oDhSPBvvzYll70MoAKetJU=
+        b=nrEi77RtcMaU0A0QnRj4HmvGXWIEg5hQfBHiakWpYG1hgaUYxHDPWHBbKT+itSNxH
+         HKYIwKcsoFQareeuoqzyLaDEH+cnC4CUK9Mu4JOmTybd9z/Igu/j2oUN2zGG0Jk5H5
+         kKZ60qnL6Bm5QQmTtE+HX66Qg/wif6yrY9H6vRBc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Eli Cohen <eli@mellanox.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>,
-        Roland Dreier <roland@purestorage.com>
-Subject: [PATCH rdma-next v1 04/10] RDMA/mlx5: Fix potential race between destroy and CQE poll
-Date:   Sun, 30 Aug 2020 11:40:04 +0300
-Message-Id: <20200830084010.102381-5-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1 06/10] RDMA/core: Delete function indirection for alloc/free kernel CQ
+Date:   Sun, 30 Aug 2020 11:40:06 +0300
+Message-Id: <20200830084010.102381-7-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200830084010.102381-1-leon@kernel.org>
 References: <20200830084010.102381-1-leon@kernel.org>
@@ -61,38 +57,194 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-The SRQ can be destroyed right before mlx5_cmd_get_srq is called.
-In such case the latter will return NULL instead of expected SRQ.
+The ib_alloc_cq*() and ib_free_cq*() are solely kernel verbs to manage
+CQs and doesn't need extra indirection just to call same functions with
+constant parameter NULL as udata.
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cq.c | 33 ++++++++-----------
+ include/rdma/ib_verbs.h      | 62 ++++--------------------------------
+ 2 files changed, 20 insertions(+), 75 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 34c2cd57d994..2bac246b9fef 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -168,7 +168,7 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- {
- 	enum rdma_link_layer ll = rdma_port_get_link_layer(qp->ibqp.device, 1);
- 	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
--	struct mlx5_ib_srq *srq;
-+	struct mlx5_ib_srq *srq = NULL;
- 	struct mlx5_ib_wq *wq;
- 	u16 wqe_ctr;
- 	u8  roce_packet_type;
-@@ -180,7 +180,8 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 513825e424bf..49c2d71e309a 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -197,24 +197,22 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
+ }
  
- 		if (qp->ibqp.xrcd) {
- 			msrq = mlx5_cmd_get_srq(dev, be32_to_cpu(cqe->srqn));
--			srq = to_mibsrq(msrq);
-+			if (msrq)
-+				srq = to_mibsrq(msrq);
- 		} else {
- 			srq = to_msrq(qp->ibqp.srq);
- 		}
+ /**
+- * __ib_alloc_cq_user - allocate a completion queue
++ * __ib_alloc_cq        allocate a completion queue
+  * @dev:		device to allocate the CQ for
+  * @private:		driver private data, accessible from cq->cq_context
+  * @nr_cqe:		number of CQEs to allocate
+  * @comp_vector:	HCA completion vectors for this CQ
+  * @poll_ctx:		context to poll the CQ from.
+  * @caller:		module owner name.
+- * @udata:		Valid user data or NULL for kernel object
+  *
+  * This is the proper interface to allocate a CQ for in-kernel users. A
+  * CQ allocated with this interface will automatically be polled from the
+  * specified context. The ULP must use wr->wr_cqe instead of wr->wr_id
+  * to use this CQ abstraction.
+  */
+-struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+-				 int nr_cqe, int comp_vector,
+-				 enum ib_poll_context poll_ctx,
+-				 const char *caller, struct ib_udata *udata)
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private, int nr_cqe,
++			    int comp_vector, enum ib_poll_context poll_ctx,
++			    const char *caller)
+ {
+ 	struct ib_cq_init_attr cq_attr = {
+ 		.cqe		= nr_cqe,
+@@ -277,7 +275,7 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ out_destroy_cq:
+ 	rdma_dim_destroy(cq);
+ 	rdma_restrack_del(&cq->res);
+-	cq->device->ops.destroy_cq(cq, udata);
++	cq->device->ops.destroy_cq(cq, NULL);
+ out_free_wc:
+ 	kfree(cq->wc);
+ out_free_cq:
+@@ -285,7 +283,7 @@ struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+ 	trace_cq_alloc_error(nr_cqe, comp_vector, poll_ctx, ret);
+ 	return ERR_PTR(ret);
+ }
+-EXPORT_SYMBOL(__ib_alloc_cq_user);
++EXPORT_SYMBOL(__ib_alloc_cq);
+ 
+ /**
+  * __ib_alloc_cq_any - allocate a completion queue
+@@ -310,22 +308,19 @@ struct ib_cq *__ib_alloc_cq_any(struct ib_device *dev, void *private,
+ 			atomic_inc_return(&counter) %
+ 			min_t(int, dev->num_comp_vectors, num_online_cpus());
+ 
+-	return __ib_alloc_cq_user(dev, private, nr_cqe, comp_vector, poll_ctx,
+-				  caller, NULL);
++	return __ib_alloc_cq(dev, private, nr_cqe, comp_vector, poll_ctx,
++			     caller);
+ }
+ EXPORT_SYMBOL(__ib_alloc_cq_any);
+ 
+ /**
+- * ib_free_cq_user - free a completion queue
++ * ib_free_cq - free a completion queue
+  * @cq:		completion queue to free.
+- * @udata:	User data or NULL for kernel object
+  */
+-void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
++void ib_free_cq(struct ib_cq *cq)
+ {
+-	if (WARN_ON_ONCE(atomic_read(&cq->usecnt)))
+-		return;
+-	if (WARN_ON_ONCE(cq->cqe_used))
+-		return;
++	WARN_ON_ONCE(atomic_read(&cq->usecnt));
++	WARN_ON_ONCE(cq->cqe_used);
+ 
+ 	switch (cq->poll_ctx) {
+ 	case IB_POLL_DIRECT:
+@@ -344,11 +339,11 @@ void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+ 	rdma_dim_destroy(cq);
+ 	trace_cq_free(cq);
+ 	rdma_restrack_del(&cq->res);
+-	cq->device->ops.destroy_cq(cq, udata);
++	cq->device->ops.destroy_cq(cq, NULL);
+ 	kfree(cq->wc);
+ 	kfree(cq);
+ }
+-EXPORT_SYMBOL(ib_free_cq_user);
++EXPORT_SYMBOL(ib_free_cq);
+ 
+ void ib_cq_pool_init(struct ib_device *dev)
+ {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2ea278b0494a..a3eb363674df 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3808,46 +3808,15 @@ static inline int ib_post_recv(struct ib_qp *qp,
+ 	return qp->device->ops.post_recv(qp, recv_wr, bad_recv_wr ? : &dummy);
+ }
+ 
+-struct ib_cq *__ib_alloc_cq_user(struct ib_device *dev, void *private,
+-				 int nr_cqe, int comp_vector,
+-				 enum ib_poll_context poll_ctx,
+-				 const char *caller, struct ib_udata *udata);
+-
+-/**
+- * ib_alloc_cq_user: Allocate kernel/user CQ
+- * @dev: The IB device
+- * @private: Private data attached to the CQE
+- * @nr_cqe: Number of CQEs in the CQ
+- * @comp_vector: Completion vector used for the IRQs
+- * @poll_ctx: Context used for polling the CQ
+- * @udata: Valid user data or NULL for kernel objects
+- */
+-static inline struct ib_cq *ib_alloc_cq_user(struct ib_device *dev,
+-					     void *private, int nr_cqe,
+-					     int comp_vector,
+-					     enum ib_poll_context poll_ctx,
+-					     struct ib_udata *udata)
+-{
+-	return __ib_alloc_cq_user(dev, private, nr_cqe, comp_vector, poll_ctx,
+-				  KBUILD_MODNAME, udata);
+-}
+-
+-/**
+- * ib_alloc_cq: Allocate kernel CQ
+- * @dev: The IB device
+- * @private: Private data attached to the CQE
+- * @nr_cqe: Number of CQEs in the CQ
+- * @comp_vector: Completion vector used for the IRQs
+- * @poll_ctx: Context used for polling the CQ
+- *
+- * NOTE: for user cq use ib_alloc_cq_user with valid udata!
+- */
++struct ib_cq *__ib_alloc_cq(struct ib_device *dev, void *private, int nr_cqe,
++			    int comp_vector, enum ib_poll_context poll_ctx,
++			    const char *caller);
+ static inline struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
+ 					int nr_cqe, int comp_vector,
+ 					enum ib_poll_context poll_ctx)
+ {
+-	return ib_alloc_cq_user(dev, private, nr_cqe, comp_vector, poll_ctx,
+-				NULL);
++	return __ib_alloc_cq(dev, private, nr_cqe, comp_vector, poll_ctx,
++			     KBUILD_MODNAME);
+ }
+ 
+ struct ib_cq *__ib_alloc_cq_any(struct ib_device *dev, void *private,
+@@ -3869,26 +3838,7 @@ static inline struct ib_cq *ib_alloc_cq_any(struct ib_device *dev,
+ 				 KBUILD_MODNAME);
+ }
+ 
+-/**
+- * ib_free_cq_user - Free kernel/user CQ
+- * @cq: The CQ to free
+- * @udata: Valid user data or NULL for kernel objects
+- *
+- * NOTE: This function shouldn't be called on shared CQs.
+- */
+-void ib_free_cq_user(struct ib_cq *cq, struct ib_udata *udata);
+-
+-/**
+- * ib_free_cq - Free kernel CQ
+- * @cq: The CQ to free
+- *
+- * NOTE: for user cq use ib_free_cq_user with valid udata!
+- */
+-static inline void ib_free_cq(struct ib_cq *cq)
+-{
+-	ib_free_cq_user(cq, NULL);
+-}
+-
++void ib_free_cq(struct ib_cq *cq);
+ int ib_process_cq_direct(struct ib_cq *cq, int budget);
+ 
+ /**
 -- 
 2.26.2
 
