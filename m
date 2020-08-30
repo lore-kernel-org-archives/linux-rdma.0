@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD25AC433E7
-	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7EA4C2BB56
+	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4C9020714
-	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86CE920720
+	for <linux-rdma@archiver.kernel.org>; Sun, 30 Aug 2020 08:40:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1598776858;
-	bh=HS+imsWbVbKh/+4LKWHGaCeQ+XS7hTlf3nLb0bWXfxg=;
+	s=default; t=1598776859;
+	bh=/Ok6EOxBXX5c0FyexeUKSuc+06fEIwUImbMlHxP1/18=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KzckEzVaObEdVxw6MZ4i91jwQMA27glH5nnIOepZ/giHyr5YUbAoqT+RZYTWir7ku
-	 uJ2W/3U9HNQ4WfYoHAWnptaxgQPhjUL+6rqojsINdv4sLkljFAOXMOumbpxcgCDzs/
-	 qDAXwN6yz7M53v7bdNq/+F4bjICK/LCb5CvoK2gA=
+	b=LWZREiMcuy1F/5wbTH+WwZxw/OfNSBGydhy8eG9vB1QG95zwLcqeYMs/ivwmq9fm3
+	 Ia8jF7pqhwZeSxxKMhN1Z2nUbJO+quQMv2hGpkj/m6QlbRwif2EHrjCCWayQDP9Fk6
+	 PMsmYR6DL0JKaEPXjsgWI4G6IEtmYBaCMkVb/w3A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728674AbgH3Ik4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 30 Aug 2020 04:40:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44960 "EHLO mail.kernel.org"
+        id S1728645AbgH3Ik6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 30 Aug 2020 04:40:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728693AbgH3Iks (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 30 Aug 2020 04:40:48 -0400
+        id S1728653AbgH3Ikl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 30 Aug 2020 04:40:41 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1B7C22098B;
-        Sun, 30 Aug 2020 08:40:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2C4962145D;
+        Sun, 30 Aug 2020 08:40:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1598776847;
-        bh=HS+imsWbVbKh/+4LKWHGaCeQ+XS7hTlf3nLb0bWXfxg=;
+        s=default; t=1598776840;
+        bh=/Ok6EOxBXX5c0FyexeUKSuc+06fEIwUImbMlHxP1/18=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0igaO0C30pnWtnnBc2cFF3mlWv3ZOVT5s9uAFSx+vQ6DLY4FdUU1CoOeEBLB3WYES
-         f5Z3rBIGip6ec+X3d7X4e7BvcoFDuBeWUs/CwSUZub2+3YvndB5zf/f8XnSekQAu2q
-         LqCNAv1blqmbmgsUroUp+VxwmGX9zyURcGwZX3gE=
+        b=J3CIpVQim5ByBXbwyEUwXipj4emVlwvDbgUwXPchO1j1L5l20xtrCwKesEnTmMiux
+         co7dz3z44s2gTC2TxpNl1AEbP4fmFBMdgDuoBXvMcX9n3L8hxi5OaQcqTWwTwOFPAn
+         9Tnph8jIciHguUxVy0oDhSPBvvzYll70MoAKetJU=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Yishai Hadas <yishaih@nvidia.com>,
-        Yuval Shaia <yuval.shaia@oracle.com>
-Subject: [PATCH rdma-next v1 09/10] RDMA: Restore ability to return error for destroy WQ
-Date:   Sun, 30 Aug 2020 11:40:09 +0300
-Message-Id: <20200830084010.102381-10-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Eli Cohen <eli@mellanox.com>,
+        Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>,
+        Roland Dreier <roland@purestorage.com>
+Subject: [PATCH rdma-next v1 04/10] RDMA/mlx5: Fix potential race between destroy and CQE poll
+Date:   Sun, 30 Aug 2020 11:40:04 +0300
+Message-Id: <20200830084010.102381-5-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200830084010.102381-1-leon@kernel.org>
 References: <20200830084010.102381-1-leon@kernel.org>
@@ -59,202 +61,38 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Make this interface symmetrical to other destroy paths.
+The SRQ can be destroyed right before mlx5_cmd_get_srq is called.
+In such case the latter will return NULL instead of expected SRQ.
 
-Fixes: a49b1dc7ae44 ("RDMA: Convert destroy_wq to be void")
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_std_types_wq.c |  2 +-
- drivers/infiniband/core/verbs.c               | 15 +++++++++------
- drivers/infiniband/hw/mlx4/mlx4_ib.h          |  2 +-
- drivers/infiniband/hw/mlx4/qp.c               |  3 ++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  2 +-
- drivers/infiniband/hw/mlx5/qp.c               |  8 ++++++--
- drivers/infiniband/hw/mlx5/qp.h               |  4 ++--
- drivers/infiniband/hw/mlx5/qpc.c              |  5 +++--
- include/rdma/ib_verbs.h                       |  4 ++--
- 9 files changed, 27 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_wq.c b/drivers/infiniband/core/uverbs_std_types_wq.c
-index cad842ede077..f2e6a625724a 100644
---- a/drivers/infiniband/core/uverbs_std_types_wq.c
-+++ b/drivers/infiniband/core/uverbs_std_types_wq.c
-@@ -16,7 +16,7 @@ static int uverbs_free_wq(struct ib_uobject *uobject,
- 		container_of(uobject, struct ib_uwq_object, uevent.uobject);
- 	int ret;
- 
--	ret = ib_destroy_wq(wq, &attrs->driver_udata);
-+	ret = ib_destroy_wq_user(wq, &attrs->driver_udata);
- 	if (ib_is_destroy_retryable(ret, why, uobject))
- 		return ret;
- 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 0dec1c8d6744..bab99f326cce 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2399,25 +2399,28 @@ struct ib_wq *ib_create_wq(struct ib_pd *pd,
- EXPORT_SYMBOL(ib_create_wq);
- 
- /**
-- * ib_destroy_wq - Destroys the specified user WQ.
-+ * ib_destroy_wq_user - Destroys the specified user WQ.
-  * @wq: The WQ to destroy.
-  * @udata: Valid user data
-  */
--int ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata)
-+int ib_destroy_wq_user(struct ib_wq *wq, struct ib_udata *udata)
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 34c2cd57d994..2bac246b9fef 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -168,7 +168,7 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
  {
- 	struct ib_cq *cq = wq->cq;
- 	struct ib_pd *pd = wq->pd;
-+	int ret;
+ 	enum rdma_link_layer ll = rdma_port_get_link_layer(qp->ibqp.device, 1);
+ 	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
+-	struct mlx5_ib_srq *srq;
++	struct mlx5_ib_srq *srq = NULL;
+ 	struct mlx5_ib_wq *wq;
+ 	u16 wqe_ctr;
+ 	u8  roce_packet_type;
+@@ -180,7 +180,8 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
  
- 	if (atomic_read(&wq->usecnt))
- 		return -EBUSY;
- 
--	wq->device->ops.destroy_wq(wq, udata);
-+	ret = wq->device->ops.destroy_wq(wq, udata);
-+	if (ret && udata)
-+		return ret;
-+
- 	atomic_dec(&pd->usecnt);
- 	atomic_dec(&cq->usecnt);
--
--	return 0;
-+	return ret;
- }
--EXPORT_SYMBOL(ib_destroy_wq);
-+EXPORT_SYMBOL(ib_destroy_wq_user);
- 
- /**
-  * ib_modify_wq - Modifies the specified WQ.
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 32a024f765ea..8f5467c2309a 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -899,7 +899,7 @@ void mlx4_ib_sl2vl_update(struct mlx4_ib_dev *mdev, int port);
- struct ib_wq *mlx4_ib_create_wq(struct ib_pd *pd,
- 				struct ib_wq_init_attr *init_attr,
- 				struct ib_udata *udata);
--void mlx4_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata);
-+int mlx4_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata);
- int mlx4_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- 		      u32 wq_attr_mask, struct ib_udata *udata);
- 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index f9ca6e000a81..1db1e25a436b 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -4327,7 +4327,7 @@ int mlx4_ib_modify_wq(struct ib_wq *ibwq, struct ib_wq_attr *wq_attr,
- 	return err;
- }
- 
--void mlx4_ib_destroy_wq(struct ib_wq *ibwq, struct ib_udata *udata)
-+int mlx4_ib_destroy_wq(struct ib_wq *ibwq, struct ib_udata *udata)
- {
- 	struct mlx4_ib_dev *dev = to_mdev(ibwq->device);
- 	struct mlx4_ib_qp *qp = to_mqp((struct ib_qp *)ibwq);
-@@ -4338,6 +4338,7 @@ void mlx4_ib_destroy_wq(struct ib_wq *ibwq, struct ib_udata *udata)
- 	destroy_qp_common(dev, qp, MLX4_IB_RWQ_SRC, udata);
- 
- 	kfree(qp);
-+	return 0;
- }
- 
- struct ib_rwq_ind_table
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 041f9d1d696b..0a3681463a62 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1241,7 +1241,7 @@ int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
- struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
- 				struct ib_wq_init_attr *init_attr,
- 				struct ib_udata *udata);
--void mlx5_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata);
-+int mlx5_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata);
- int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- 		      u32 wq_attr_mask, struct ib_udata *udata);
- struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index fea837cb2ec4..74d3f4c39dc5 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -5085,14 +5085,18 @@ struct ib_wq *mlx5_ib_create_wq(struct ib_pd *pd,
- 	return ERR_PTR(err);
- }
- 
--void mlx5_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata)
-+int mlx5_ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(wq->device);
- 	struct mlx5_ib_rwq *rwq = to_mrwq(wq);
-+	int ret;
- 
--	mlx5_core_destroy_rq_tracked(dev, &rwq->core_qp);
-+	ret = mlx5_core_destroy_rq_tracked(dev, &rwq->core_qp);
-+	if (ret && udata)
-+		return ret;
- 	destroy_user_rq(dev, wq->pd, rwq, udata);
- 	kfree(rwq);
-+	return ret;
- }
- 
- struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
-diff --git a/drivers/infiniband/hw/mlx5/qp.h b/drivers/infiniband/hw/mlx5/qp.h
-index ba899df44c5b..5d4e140db99c 100644
---- a/drivers/infiniband/hw/mlx5/qp.h
-+++ b/drivers/infiniband/hw/mlx5/qp.h
-@@ -26,8 +26,8 @@ int mlx5_core_dct_query(struct mlx5_ib_dev *dev, struct mlx5_core_dct *dct,
- 
- int mlx5_core_set_delay_drop(struct mlx5_ib_dev *dev, u32 timeout_usec);
- 
--void mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
--				  struct mlx5_core_qp *rq);
-+int mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
-+				 struct mlx5_core_qp *rq);
- int mlx5_core_create_sq_tracked(struct mlx5_ib_dev *dev, u32 *in, int inlen,
- 				struct mlx5_core_qp *sq);
- void mlx5_core_destroy_sq_tracked(struct mlx5_ib_dev *dev,
-diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index 7c3968ef9cd1..c683d7000168 100644
---- a/drivers/infiniband/hw/mlx5/qpc.c
-+++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -576,11 +576,12 @@ int mlx5_core_create_rq_tracked(struct mlx5_ib_dev *dev, u32 *in, int inlen,
- 	return err;
- }
- 
--void mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
--				  struct mlx5_core_qp *rq)
-+int mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
-+				 struct mlx5_core_qp *rq)
- {
- 	destroy_resource_common(dev, rq);
- 	destroy_rq_tracked(dev, rq->qpn, rq->uid);
-+	return 0;
- }
- 
- static void destroy_sq_tracked(struct mlx5_ib_dev *dev, u32 sqn, u16 uid)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1161e18d948a..58fdaaf4f67b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2486,7 +2486,7 @@ struct ib_device_ops {
- 	struct ib_wq *(*create_wq)(struct ib_pd *pd,
- 				   struct ib_wq_init_attr *init_attr,
- 				   struct ib_udata *udata);
--	void (*destroy_wq)(struct ib_wq *wq, struct ib_udata *udata);
-+	int (*destroy_wq)(struct ib_wq *wq, struct ib_udata *udata);
- 	int (*modify_wq)(struct ib_wq *wq, struct ib_wq_attr *attr,
- 			 u32 wq_attr_mask, struct ib_udata *udata);
- 	struct ib_rwq_ind_table *(*create_rwq_ind_table)(
-@@ -4322,7 +4322,7 @@ struct net_device *ib_device_netdev(struct ib_device *dev, u8 port);
- 
- struct ib_wq *ib_create_wq(struct ib_pd *pd,
- 			   struct ib_wq_init_attr *init_attr);
--int ib_destroy_wq(struct ib_wq *wq, struct ib_udata *udata);
-+int ib_destroy_wq_user(struct ib_wq *wq, struct ib_udata *udata);
- int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
- 		 u32 wq_attr_mask);
- int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+ 		if (qp->ibqp.xrcd) {
+ 			msrq = mlx5_cmd_get_srq(dev, be32_to_cpu(cqe->srqn));
+-			srq = to_mibsrq(msrq);
++			if (msrq)
++				srq = to_mibsrq(msrq);
+ 		} else {
+ 			srq = to_msrq(qp->ibqp.srq);
+ 		}
 -- 
 2.26.2
 
