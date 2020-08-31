@@ -2,91 +2,135 @@ Return-Path: <SRS0=+tDa=CJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5307BC433E6
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 Aug 2020 12:18:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EAAFC433E6
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 Aug 2020 14:38:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 202E7207DA
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 Aug 2020 12:18:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 219DB207EA
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 Aug 2020 14:38:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="icWVEEWc"
+	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="NyH3ZzQd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726249AbgHaMS1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 31 Aug 2020 08:18:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53510 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726167AbgHaMSY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 Aug 2020 08:18:24 -0400
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92997C061573
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Aug 2020 05:18:23 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id n10so1893126qtv.3
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Aug 2020 05:18:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=HGgAJuLRjvAN/s+HTfR79JjeJGaCnb377oN4qW7ybZA=;
-        b=icWVEEWccfxuw0VZCkGtYuStRcRaqysvZ5cBbvpMQIIDAQy4oEMBB47ufiHRb+j7Hv
-         iTONLAFO2wCuOki3m5haxTXqdhzz27W84C2SjTkedOgsQMghaY9sfBoLARY6EmehcJxH
-         +QEqpRn6lBE7nDbQFjuksaWcmo/k6SmwoAOSBrg5aISoollKQeoOyvbRQkM4HYTIojB9
-         oqrLHmW2plp+fETDWMO2Z0VFcJYnU7fV0epPtUdCcmivlnnP6qnEagNgWUqJnxVndfvX
-         InYtQQGR6QY74UXL5g13d296VsvJFWuFYXj26bK2/6JKSjw40HsJ62KKR7MI9JoIwwHa
-         ks0w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=HGgAJuLRjvAN/s+HTfR79JjeJGaCnb377oN4qW7ybZA=;
-        b=nqpWypAmNGNkyUsJAyVvKYNDyyRSW1nuF+I0zkdVOqMBk+BCSRn2E5COIU9K/u4VF3
-         u9Izwve3j9g9so88euerLP5SmG9jD9p++/AvsSx1ISAN8fAWK1gf6sY/b61yKSg4n8v5
-         s40cDv9QHoMXEeylee2a4dw0RZyH4hAhqfRTk5WTQ5IlvGgiBEfJP/agm30Wci1G/xu2
-         pcg6ib+kNXpgzBzw0eSzezUnL3DZbWZemuoZS23dLbwneVCyi3HVoraQmvo3o6RkgCSH
-         BDQ8QvKgcRHQcCAIE+cFUY2Ju6CUp9pEreNZ3QZKnmNaNsz1Fh9LLrdl4dPhqkij/PgG
-         Igmg==
-X-Gm-Message-State: AOAM531ToVwh5ZT9TqRf9wb6E3NR/JRMYlF59yXgrEv762iJuxYvM1b5
-        uTDPwyLkwQ+yKj+RvQy8pxS5IUKU+jwQXA==
-X-Google-Smtp-Source: ABdhPJxtEgNVYFDl8JH+4QW0uzKAfEWHs96+y4WYfJVd91DUHOLfCsPr8a0fJfBtjoKiGuwlkKjuNQ==
-X-Received: by 2002:ac8:6141:: with SMTP id d1mr949985qtm.170.1598876300247;
-        Mon, 31 Aug 2020 05:18:20 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id l1sm9819338qtp.96.2020.08.31.05.18.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Aug 2020 05:18:19 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kCilO-002N0P-IE; Mon, 31 Aug 2020 09:18:18 -0300
-Date:   Mon, 31 Aug 2020 09:18:18 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Sagi Grimberg <sagi@grimberg.me>
-Cc:     linux-rdma@vger.kernel.org, Max Gurtovoy <maxg@mellanox.com>,
-        Stephen Rust <srust@blockbridge.com>,
-        Doug Dumitru <doug@dumitru.com>
-Subject: Re: [PATCH] IB/isert: fix unaligned immediate-data handling
-Message-ID: <20200831121818.GZ24045@ziepe.ca>
-References: <20200830103209.378141-1-sagi@grimberg.me>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+        id S1727077AbgHaOiD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 31 Aug 2020 10:38:03 -0400
+Received: from de-smtp-delivery-102.mimecast.com ([62.140.7.102]:40669 "EHLO
+        de-smtp-delivery-102.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726942AbgHaOiA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 31 Aug 2020 10:38:00 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=mimecast20200619;
+        t=1598884676;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+        bh=LwWG8yVSld32sVSBN53trOEXo7Kzcc46dqFc2N17+r4=;
+        b=NyH3ZzQdr54u++TlS79UX9U0Thmy3MdlgjpZxDhAEQgl9nqmVb3MjFVCxzg6GgAvgT3bQy
+        lf1Ecuz4qBq5LOMQKOZdwom6Fdj3jANoyNRfdGoYzN2vAkhE2IIU239+4xs++dozMhJhEp
+        8MFDVMKTyNjrso1iZm1yHtDVIT/nw/Y=
+Received: from EUR05-AM6-obe.outbound.protection.outlook.com
+ (mail-am6eur05lp2106.outbound.protection.outlook.com [104.47.18.106])
+ (Using TLS) by relay.mimecast.com with ESMTP id
+ de-mta-16-feHQX6wdP6-F8c6bQTnydw-1; Mon, 31 Aug 2020 16:37:28 +0200
+X-MC-Unique: feHQX6wdP6-F8c6bQTnydw-1
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=hJn99N+o/+mxEN3IVk+PHqYZPoX4eGr6r2eYCUtShuDtwIhusbwsu3xjcnNTM9H6yhxUPGVhKZ4S8cI1NJ3KgHED7siHuepHj4+eSgcGYWcAoAnR3osnddSgG27SvnfhxyxdYHDKbz4kEo4DT/xowY3LG1CpVdakUI/z0Hh0NhQ62c6YDaMdF/zODJzNZ3VzAgzIj+DAWAkiMURZb3k4MslJMk3lN4JMQa7Q88atw5iuqQDqsu2QgpAx3GJZ8AvTdc9uPnnVnEsa08VNtzQ1botk+DfYtFWTBBRXUpzl5V7V1qxCzeV3O7DYMGa51alz6tw0oR8ySjq5JCsCpV+3ww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LwWG8yVSld32sVSBN53trOEXo7Kzcc46dqFc2N17+r4=;
+ b=cEIxr/g1qqW+ewcOauroTf5ehmHnEXNjNxu4w/MRwMP1V4L0bPdTZblNRGJc2OJSVuaxrYvCzWSGSn/Yy51cKcVvr0Qy1jogd+CV5G1ArzceRDuBXbUSqjn34JwY+JRzT27JVz4Vn24iW91urI4TiDPByZ33tU6ftsWjoUVWewAn9YMmE+qUyZ4w14R63QA3D/DnVoEBEG/6tYTWY4t0vm7MCg9vxlO2CzXZF6MSnTYMsj2ydHzs0x2FVScV0dFD8UyfxjepYxDJ93GeYvpo2dFNBJGtXp3DqwySvvmGgAvezSGn1w7Zar7V1WWlnW9lLvkq7PVPxxox1XgYTnNTeg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
+ dkim=pass header.d=suse.com; arc=none
+Authentication-Results: davemloft.net; dkim=none (message not signed)
+ header.d=none;davemloft.net; dmarc=none action=none header.from=suse.com;
+Received: from DB7PR04MB5177.eurprd04.prod.outlook.com (2603:10a6:10:20::21)
+ by DB7PR04MB4139.eurprd04.prod.outlook.com (2603:10a6:5:26::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.19; Mon, 31 Aug
+ 2020 14:37:27 +0000
+Received: from DB7PR04MB5177.eurprd04.prod.outlook.com
+ ([fe80::78ee:1d1e:bc6b:d970]) by DB7PR04MB5177.eurprd04.prod.outlook.com
+ ([fe80::78ee:1d1e:bc6b:d970%7]) with mapi id 15.20.3326.025; Mon, 31 Aug 2020
+ 14:37:27 +0000
+Date:   Mon, 31 Aug 2020 22:37:09 +0800
+From:   Shung-Hsi Yu <shung-hsi.yu@suse.com>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH net] net: ethernet: mlx4: Fix memory allocation in
+ mlx4_buddy_init()
+Message-ID: <20200831143709.GA12996@syu-laptop>
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20200830103209.378141-1-sagi@grimberg.me>
+X-ClientProxiedBy: HK2PR02CA0173.apcprd02.prod.outlook.com
+ (2603:1096:201:1f::33) To DB7PR04MB5177.eurprd04.prod.outlook.com
+ (2603:10a6:10:20::21)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from syu-laptop (27.242.32.233) by HK2PR02CA0173.apcprd02.prod.outlook.com (2603:1096:201:1f::33) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.19 via Frontend Transport; Mon, 31 Aug 2020 14:37:23 +0000
+X-Originating-IP: [27.242.32.233]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 96a6b613-c12b-4e86-aad1-08d84dbb61f9
+X-MS-TrafficTypeDiagnostic: DB7PR04MB4139:
+X-Microsoft-Antispam-PRVS: <DB7PR04MB4139E7C5B383AAA72ECD4D09BF510@DB7PR04MB4139.eurprd04.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:949;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: lmGsbyXLvgcIlJiEvka8CLJQhdY4pIULkQm7ebwtXMl9jM8K73eMT8usla5iusRdcHzBvFErIq8F1gYaeKYiIv/Yx79oYvpaJdDZtXjlMnCqKhCdz2ZE2YCcGM0p94TSWtlmF8h+nJgJFOD/5UF8OXg1BGBQ9LyHTIkF9htTpkhmtx+WurJMWBGKjxkM8dFm+GN3vumJxC1WJlYQt0zL+M7CP2TaH4fLu3A59L2UPeCojj7QtZ5YAlh+6P7DsrXOBn1H8Rbmy5pvra/S/4GOIge+rMc/u4vTIOimjZojMeMCTXeI0CJewdJbSB4mboTiOcuFaMJXeGhJeYAh3d4XHg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB7PR04MB5177.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(366004)(346002)(136003)(39860400002)(376002)(1076003)(9686003)(110136005)(6666004)(956004)(52116002)(55016002)(4326008)(5660300002)(6496006)(33656002)(186003)(66946007)(83380400001)(8676002)(478600001)(26005)(33716001)(16526019)(66556008)(66476007)(86362001)(8936002)(316002)(2906002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: +wFj+oOtQQTSnkO6a1CI/QIzqu4pQ7UwW61wRio//jRFfSOZbJWSHwhUU1SaVidkSu47RX6FNJUb4RZSDEr+jLzUqlEXj3Rsj3QogMtYHho0X4XG+5a515jLVl1dTyPcoNeJ1bWTtggi0UxD4ruoDfWWAQcrJ7DflpbdPFB3IAc5lqC6YPIqcicSWGPpdI8ymtbSL4ML2Ir/YQDjEM7s2YepHIn0yjqU1BFDVB1zFr70ZQ09gOJ+IW6PfDpRErN2qjcQsWw9MAk7oXYVUKlDqecv5/dV8AcVK/Df5U5NuuqPxc3MBMSLp1627Q5na8ONzTHXvIGleeZLS3hRl+Rze2kwNAIPldikwaQA4nFfKBFsW+dB8EmqaAa2sVqmlK0s5a/F6/T6s8A2LI7nY3cPO+BmmZPn2tmkhXhO0OBYU4iiFOh287HB9/eSSFYcdYj1gGT2vrRvQt8v1iIVc4+sPox7mdkQMyjqPnoOwy4ab6hmYiDA2U4KKpega3mBTj1xRYL8aOAHhiApuDXZhPs/ZmKKGLOpbBt//6kLewzb/Y+6YqRNYPDhJWu1q0PuyuCcnsKKxqWWVX/NYFXur/VjO7/NYVljiJoPQsZJa4GVUVlrEvyoxWFgfRBk2lv6kzH3eaWDLEfCMecnlxIs6EAPUA==
+X-OriginatorOrg: suse.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 96a6b613-c12b-4e86-aad1-08d84dbb61f9
+X-MS-Exchange-CrossTenant-AuthSource: DB7PR04MB5177.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Aug 2020 14:37:27.2039
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Aoa2OjiDj5HPVnrUeVDK0rfw8/3RD5H7j22bRCcKXLMOasgX9fwJE4vKxhf/FnOcIl2XOq8JXbxlwYM7yKPc3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB7PR04MB4139
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Aug 30, 2020 at 03:32:09AM -0700, Sagi Grimberg wrote:
-> Currently we allocate rx buffers in a single contiguous buffers
-> for headers (iser and iscsi) and data trailer. This means
-> that most likely the data starting offset is aligned to 76
-> bytes (size of both headers).
-> 
-> This worked fine for years, but at some point this broke.
-> To fix this, we should avoid passing unaligned buffers for
-> I/O.
+On machines with much memory (> 2 TByte) and log_mtts_per_seg == 0, a
+max_order of 31 will be passed to mlx_buddy_init(), which results in
+s = BITS_TO_LONGS(1 << 31) becoming a negative value, leading to
+kvmalloc_array() failure when it is converted to size_t.
 
-That is a bit vauge - what suddenly broke it?
+  mlx4_core 0000:b1:00.0: Failed to initialize memory region table, aborting
+  mlx4_core: probe of 0000:b1:00.0 failed with error -12
 
-Jason
+Fix this issue by changing the left shifting operand from a signed literal to
+an unsigned one.
+
+Fixes: 225c7b1feef1 ("IB/mlx4: Add a driver Mellanox ConnectX InfiniBand adapters")
+Signed-off-by: Shung-Hsi Yu <shung-hsi.yu@suse.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/mr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
+index d2986f1f2db0..d7444782bfdd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
+@@ -114,7 +114,7 @@ static int mlx4_buddy_init(struct mlx4_buddy *buddy, int max_order)
+ 		goto err_out;
+ 
+ 	for (i = 0; i <= buddy->max_order; ++i) {
+-		s = BITS_TO_LONGS(1 << (buddy->max_order - i));
++		s = BITS_TO_LONGS(1UL << (buddy->max_order - i));
+ 		buddy->bits[i] = kvmalloc_array(s, sizeof(long), GFP_KERNEL | __GFP_ZERO);
+ 		if (!buddy->bits[i])
+ 			goto err_out_free;
+-- 
+2.28.0
+
