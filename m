@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B328C433E6
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE06EC433E7
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 03B3E2087C
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9F9C2084C
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599034307;
-	bh=1ZSyhTuTDYHvQ+Y7pyF7+o4SsP2l73YssbFYud/RUGk=;
+	s=default; t=1599034310;
+	bh=Bwn/4/bZweb60S/YGxJ9z6KwR4SHKHgl/efkISgH0ZM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=KGunyHIUHMk15m/Trlh1zp+4fgAVE8HqnK93quHciCAKZnUAR9ZqUNSAPUWHZEk0z
-	 T/Y1yXtwXh/8bEoNFGXOPwTRBUZzhENg7TZHLBOE7Kn1MmuyM/rnwR15mae3TCyd94
-	 XPUVRaqphOzqq/MJ1roM+9iXPIaKSLgNCU2hQJIc=
+	b=1y7vYJ++ebJSBGhVnaiTJkC7Jx1jyszUAxiKKidl8zm/CrGGLDjNrqCJpHZoNy0eO
+	 jy7Q36Dd/oz3JQtBwMduJE6p8RG0zUf2vX5/X8/nhrAucEhU+tFV8W5uOZxBGBIMgG
+	 hNhVODAgcrr1/7ItKFOi4/76rDbmNe7jBV0ujtVA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726293AbgIBILq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Sep 2020 04:11:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34466 "EHLO mail.kernel.org"
+        id S1726377AbgIBILu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Sep 2020 04:11:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34532 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726292AbgIBILp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Sep 2020 04:11:45 -0400
+        id S1726292AbgIBILs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Sep 2020 04:11:48 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 497A12087E;
-        Wed,  2 Sep 2020 08:11:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D005C2084C;
+        Wed,  2 Sep 2020 08:11:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599034305;
-        bh=1ZSyhTuTDYHvQ+Y7pyF7+o4SsP2l73YssbFYud/RUGk=;
+        s=default; t=1599034308;
+        bh=Bwn/4/bZweb60S/YGxJ9z6KwR4SHKHgl/efkISgH0ZM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=P/MqXpEXO4IifuD+QJNU1A08SZCtt+mkU+fSgwPHTf/CyM3f/hTP6ZJTS/WrDQs2c
-         +UdJs3HXHiW9EYDyXfJtKp1d5sk+HxXh0IkPqQzwHvg7+80Zzh4cZ5iI509l99GXoG
-         BTXZiVun3Ri4e77fdfThTCyUUt5+dE83CuxZlXTI=
+        b=z3ntI87b0XLFvT2N4qcPzIQFLNbApBfycWEhOEmu+nVPExuTAoC8bcCVLb0VRSLvf
+         ozbibbAl2BY1DOLlevf8sJxOrt4eazme2be3qorwHTutfoqF/MAMPywo52bTD/IrG4
+         NSe2n4y8Fwg1ZpJSQL9DgtXELGNh2rj3Y5RcQozA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 6/8] RDMA/cma: Remove dead code for kernel rdmacm multicast
-Date:   Wed,  2 Sep 2020 11:11:20 +0300
-Message-Id: <20200902081122.745412-7-leon@kernel.org>
+Subject: [PATCH rdma-next 4/8] RDMA/cma: Remove cma_comp()
+Date:   Wed,  2 Sep 2020 11:11:18 +0300
+Message-Id: <20200902081122.745412-5-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200902081122.745412-1-leon@kernel.org>
 References: <20200902081122.745412-1-leon@kernel.org>
@@ -57,61 +57,77 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-There is no kernel user of RDMA CM multicast so this code managing the
-multicast subscription of the kernel-only internal QP is dead. Remove it.
+The only place that still uses it is rdma_join_multicast() which is only
+doing a sanity check that the caller hasn't done something wrong and
+doesn't need the spinlock.
 
-This makes the bug fixes in the next patches much simpler.
+At least in the case of rdma_join_multicast() the information it needs
+will remain until the ID is destroyed once it enters these
+states. Similarly there is no reason to check for these specific states in
+the handler callback, instead use the usual check for a destroyed id under
+the handler_mutex.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cma.c | 19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/cma.c | 27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 088981db10f7..b9d794ba9f6a 100644
+index 1ab779e63762..1d5781f507e9 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -4366,16 +4366,6 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
- 	else
- 		pr_debug_ratelimited("RDMA CM: MULTICAST_ERROR: failed to join multicast. status %d\n",
- 				     status);
--	mutex_lock(&id_priv->qp_mutex);
--	if (!status && id_priv->id.qp) {
--		status = ib_attach_mcast(id_priv->id.qp, &multicast->rec.mgid,
--					 be16_to_cpu(multicast->rec.mlid));
--		if (status)
--			pr_debug_ratelimited("RDMA CM: MULTICAST_ERROR: failed to attach QP. status %d\n",
--					     status);
--	}
--	mutex_unlock(&id_priv->qp_mutex);
+@@ -404,17 +404,6 @@ struct cma_req_info {
+ 	u16 pkey;
+ };
+ 
+-static int cma_comp(struct rdma_id_private *id_priv, enum rdma_cm_state comp)
+-{
+-	unsigned long flags;
+-	int ret;
 -
- 	event.status = status;
- 	event.param.ud.private_data = mc->context;
- 	if (!status) {
-@@ -4629,6 +4619,10 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
+-	spin_lock_irqsave(&id_priv->lock, flags);
+-	ret = (id_priv->state == comp);
+-	spin_unlock_irqrestore(&id_priv->lock, flags);
+-	return ret;
+-}
+-
+ static int cma_comp_exch(struct rdma_id_private *id_priv,
+ 			 enum rdma_cm_state comp, enum rdma_cm_state exch)
+ {
+@@ -4392,8 +4381,8 @@ static int cma_ib_mc_handler(int status, struct ib_sa_multicast *multicast)
+ 
+ 	id_priv = mc->id_priv;
+ 	mutex_lock(&id_priv->handler_mutex);
+-	if (id_priv->state != RDMA_CM_ADDR_BOUND &&
+-	    id_priv->state != RDMA_CM_ADDR_RESOLVED)
++	if (READ_ONCE(id_priv->state) == RDMA_CM_DEVICE_REMOVAL ||
++	    READ_ONCE(id_priv->state) == RDMA_CM_DESTROYING)
+ 		goto out;
+ 
+ 	if (!status)
+@@ -4659,16 +4648,14 @@ static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
+ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
+ 			u8 join_state, void *context)
+ {
+-	struct rdma_id_private *id_priv;
++	struct rdma_id_private *id_priv =
++		container_of(id, struct rdma_id_private, id);
  	struct cma_multicast *mc;
  	int ret;
  
-+	/* Not supported for kernel QPs */
-+	if (WARN_ON(id->qp))
-+		return -EINVAL;
-+
- 	/* ULP is calling this wrong. */
- 	if (!id->device || (READ_ONCE(id_priv->state) != RDMA_CM_ADDR_BOUND &&
- 			    READ_ONCE(id_priv->state) != RDMA_CM_ADDR_RESOLVED))
-@@ -4680,11 +4674,6 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 			list_del(&mc->list);
- 			spin_unlock_irq(&id_priv->lock);
- 
--			if (id->qp)
--				ib_detach_mcast(id->qp,
--						&mc->multicast.ib->rec.mgid,
--						be16_to_cpu(mc->multicast.ib->rec.mlid));
+-	if (!id->device)
+-		return -EINVAL;
 -
- 			BUG_ON(id_priv->cma_dev->device != id->device);
+-	id_priv = container_of(id, struct rdma_id_private, id);
+-	if (!cma_comp(id_priv, RDMA_CM_ADDR_BOUND) &&
+-	    !cma_comp(id_priv, RDMA_CM_ADDR_RESOLVED))
++	/* ULP is calling this wrong. */
++	if (!id->device || (READ_ONCE(id_priv->state) != RDMA_CM_ADDR_BOUND &&
++			    READ_ONCE(id_priv->state) != RDMA_CM_ADDR_RESOLVED))
+ 		return -EINVAL;
  
- 			if (rdma_cap_ib_mcast(id->device, id->port_num)) {
+ 	mc = kmalloc(sizeof *mc, GFP_KERNEL);
 -- 
 2.26.2
 
