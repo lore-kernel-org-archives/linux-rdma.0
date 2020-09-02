@@ -4,47 +4,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB29C433E7
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A740C433E2
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18D012087C
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 352192087D
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 08:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599034300;
-	bh=QVXrkytbyrpcq7hudaWALE5s9Sy6LPUcopzOGLyxnJI=;
+	s=default; t=1599034304;
+	bh=02rC8BVDX5stCPNWHlSzlH+l+Z8JNZkDFCGOqCoDwUU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yZ5PdgbKx0p2nqhkPzNNd3vKl48+8F7xZlO1w+DJJiZo2qDpJ1AU483+hO8e/5VjY
-	 QIIkTFAUtuW7d3xH08/gmczuCy1I4+5Q9CNTrB9kOEpPMqe1+bv0/UhmkZpd4QWvBo
-	 2F+0Xmz8XHyaikvAA2qlEkve4t0Sq/QDjPseLUuI=
+	b=klxRwYmh5mOgeQQZ6FmdDbAK35BfiuVNnDj1Tb6F6aqIlwoH1ZEExVALfV8hsLSo9
+	 jNjd6yiqAd5j1ZhaCWkvfe52snjmNT032ZvOcHqZSNM2p5lI06InyLnz9OaG5N/UNM
+	 idaq2E7+de8Szzo8Zr9H9k15OShSJwMe0TkiTbKE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726967AbgIBILj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Sep 2020 04:11:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34326 "EHLO mail.kernel.org"
+        id S1726686AbgIBILn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Sep 2020 04:11:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726293AbgIBILi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Sep 2020 04:11:38 -0400
+        id S1726293AbgIBILm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Sep 2020 04:11:42 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 49FFD2084C;
-        Wed,  2 Sep 2020 08:11:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D4D132087C;
+        Wed,  2 Sep 2020 08:11:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599034298;
-        bh=QVXrkytbyrpcq7hudaWALE5s9Sy6LPUcopzOGLyxnJI=;
+        s=default; t=1599034301;
+        bh=02rC8BVDX5stCPNWHlSzlH+l+Z8JNZkDFCGOqCoDwUU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Lv+j3Txk4QSVxAalZVs9ZHoeP+C0gpiZAcjbmCWZHF3qz5X/N8XQP9Gxn21pRU1JS
-         0e6r3r8TNUCN21ZvvkZ/z2x3747HVeImApF/CajCAzQ4dKUjOpsUELE8Bcs1HTC84f
-         YOdTEAUs1CLDSwgREvfO/Owk2dZuCgOXsGCTrojA=
+        b=qwA4j/WvqQVqLqZBSW39NvqtmMKse68i34ZtLj6fHMz0Q6IUignFa9qYQmPIOvppw
+         TRSK9Ns9Q5e15IBdJgObs2M9SKrcilmxV0NuTqQxW9IoJ3su6yZEaV3wq2V0oUiD8P
+         exmd3B9Nq8w1fsmUeaWtj/Fm2xScLdZ+1DE6PzGc=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 3/8] RDMA/cma: Fix locking for the RDMA_CM_LISTEN state
-Date:   Wed,  2 Sep 2020 11:11:17 +0300
-Message-Id: <20200902081122.745412-4-leon@kernel.org>
+Subject: [PATCH rdma-next 5/8] RDMA/cma: Combine cma_ndev_work with cma_work
+Date:   Wed,  2 Sep 2020 11:11:19 +0300
+Message-Id: <20200902081122.745412-6-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200902081122.745412-1-leon@kernel.org>
 References: <20200902081122.745412-1-leon@kernel.org>
@@ -57,114 +57,92 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-There is a strange unlocked read of the ID state when checking for
-reuseaddr. This is because an ID cannot be reusable once it becomes a
-listening ID. Instead of using the state to exclude reuse, just clear it
-as part of rdma_listen()'s flow to convert reusable into not reusable.
+These are the same thing, except that cma_ndev_work doesn't have a state
+transition. Signal no state transition by setting old_state and new_state
+== 0.
 
-Once a ID goes to listen there is no way back out, and the only use of
-reusable is on the bind_list check.
-
-Finally, update the checks under handler_mutex to use READ_ONCE and audit
-that once RDMA_CM_LISTEN is observed in a req callback it is stable under
-the handler_mutex.
+In all cases the handler function should not be called once
+rdma_destroy_id() has progressed passed setting the state.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cma.c | 36 +++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/cma.c | 38 +++++++----------------------------
+ 1 file changed, 7 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 901d1bd35603..1ab779e63762 100644
+index 1d5781f507e9..088981db10f7 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2215,7 +2215,7 @@ static int cma_ib_req_handler(struct ib_cm_id *cm_id,
- 	}
+@@ -363,12 +363,6 @@ struct cma_work {
+ 	struct rdma_cm_event	event;
+ };
  
- 	mutex_lock(&listen_id->handler_mutex);
--	if (listen_id->state != RDMA_CM_LISTEN) {
-+	if (READ_ONCE(listen_id->state) != RDMA_CM_LISTEN) {
- 		ret = -ECONNABORTED;
- 		goto err_unlock;
- 	}
-@@ -2393,7 +2393,7 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 	listen_id = cm_id->context;
- 
- 	mutex_lock(&listen_id->handler_mutex);
--	if (listen_id->state != RDMA_CM_LISTEN)
-+	if (READ_ONCE(listen_id->state) != RDMA_CM_LISTEN)
- 		goto out;
- 
- 	/* Create a new RDMA id for the new IW CM ID */
-@@ -3357,7 +3357,8 @@ int rdma_set_reuseaddr(struct rdma_cm_id *id, int reuse)
- 
- 	id_priv = container_of(id, struct rdma_id_private, id);
- 	spin_lock_irqsave(&id_priv->lock, flags);
--	if (reuse || id_priv->state == RDMA_CM_IDLE) {
-+	if ((reuse && id_priv->state != RDMA_CM_LISTEN) ||
-+	    id_priv->state == RDMA_CM_IDLE) {
- 		id_priv->reuseaddr = reuse;
- 		ret = 0;
- 	} else {
-@@ -3551,8 +3552,7 @@ static int cma_check_port(struct rdma_bind_list *bind_list,
- 		if (id_priv == cur_id)
- 			continue;
- 
--		if ((cur_id->state != RDMA_CM_LISTEN) && reuseaddr &&
--		    cur_id->reuseaddr)
-+		if (reuseaddr && cur_id->reuseaddr)
- 			continue;
- 
- 		cur_addr = cma_src_addr(cur_id);
-@@ -3593,18 +3593,6 @@ static int cma_use_port(enum rdma_ucm_port_space ps,
- 	return ret;
- }
- 
--static int cma_bind_listen(struct rdma_id_private *id_priv)
--{
--	struct rdma_bind_list *bind_list = id_priv->bind_list;
--	int ret = 0;
+-struct cma_ndev_work {
+-	struct work_struct	work;
+-	struct rdma_id_private	*id;
+-	struct rdma_cm_event	event;
+-};
 -
--	mutex_lock(&lock);
--	if (bind_list->owners.first->next)
--		ret = cma_check_port(bind_list, id_priv, 0);
--	mutex_unlock(&lock);
--	return ret;
+ struct iboe_mcast_work {
+ 	struct work_struct	 work;
+ 	struct rdma_id_private	*id;
+@@ -2675,32 +2669,14 @@ static void cma_work_handler(struct work_struct *_work)
+ 	struct rdma_id_private *id_priv = work->id;
+ 
+ 	mutex_lock(&id_priv->handler_mutex);
+-	if (!cma_comp_exch(id_priv, work->old_state, work->new_state))
++	if (READ_ONCE(id_priv->state) == RDMA_CM_DESTROYING ||
++	    READ_ONCE(id_priv->state) == RDMA_CM_DEVICE_REMOVAL)
+ 		goto out_unlock;
+-
+-	if (cma_cm_event_handler(id_priv, &work->event)) {
+-		cma_id_put(id_priv);
+-		destroy_id_handler_unlock(id_priv);
+-		goto out_free;
++	if (work->old_state != 0 || work->new_state != 0) {
++		if (!cma_comp_exch(id_priv, work->old_state, work->new_state))
++			goto out_unlock;
+ 	}
+ 
+-out_unlock:
+-	mutex_unlock(&id_priv->handler_mutex);
+-	cma_id_put(id_priv);
+-out_free:
+-	kfree(work);
 -}
 -
- static enum rdma_ucm_port_space
- cma_select_inet_ps(struct rdma_id_private *id_priv)
+-static void cma_ndev_work_handler(struct work_struct *_work)
+-{
+-	struct cma_ndev_work *work = container_of(_work, struct cma_ndev_work, work);
+-	struct rdma_id_private *id_priv = work->id;
+-
+-	mutex_lock(&id_priv->handler_mutex);
+-	if (id_priv->state == RDMA_CM_DESTROYING ||
+-	    id_priv->state == RDMA_CM_DEVICE_REMOVAL)
+-		goto out_unlock;
+-
+ 	if (cma_cm_event_handler(id_priv, &work->event)) {
+ 		cma_id_put(id_priv);
+ 		destroy_id_handler_unlock(id_priv);
+@@ -4727,7 +4703,7 @@ EXPORT_SYMBOL(rdma_leave_multicast);
+ static int cma_netdev_change(struct net_device *ndev, struct rdma_id_private *id_priv)
  {
-@@ -3713,8 +3701,16 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
- 			return -EINVAL;
- 	}
+ 	struct rdma_dev_addr *dev_addr;
+-	struct cma_ndev_work *work;
++	struct cma_work *work;
  
-+	/*
-+	 * Once the ID reaches RDMA_CM_LISTEN it is not allowed to be reusable
-+	 * any more, and has to be unique in the bind list.
-+	 */
- 	if (id_priv->reuseaddr) {
--		ret = cma_bind_listen(id_priv);
-+		mutex_lock(&lock);
-+		ret = cma_check_port(id_priv->bind_list, id_priv, 0);
-+		if (!ret)
-+			id_priv->reuseaddr = 0;
-+		mutex_unlock(&lock);
- 		if (ret)
- 			goto err;
- 	}
-@@ -3739,6 +3735,10 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
- 	return 0;
- err:
- 	id_priv->backlog = 0;
-+	/*
-+	 * All the failure paths that lead here will not allow the req_handler's
-+	 * to have run.
-+	 */
- 	cma_comp_exch(id_priv, RDMA_CM_LISTEN, RDMA_CM_ADDR_BOUND);
- 	return ret;
- }
+ 	dev_addr = &id_priv->id.route.addr.dev_addr;
+ 
+@@ -4740,7 +4716,7 @@ static int cma_netdev_change(struct net_device *ndev, struct rdma_id_private *id
+ 		if (!work)
+ 			return -ENOMEM;
+ 
+-		INIT_WORK(&work->work, cma_ndev_work_handler);
++		INIT_WORK(&work->work, cma_work_handler);
+ 		work->id = id_priv;
+ 		work->event.event = RDMA_CM_EVENT_ADDR_CHANGE;
+ 		cma_id_get(id_priv);
 -- 
 2.26.2
 
