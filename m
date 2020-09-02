@@ -2,72 +2,77 @@ Return-Path: <SRS0=RpEd=CL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 874F7C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 09:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3EE8C433E2
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 09:07:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53BCC2087D
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 09:03:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599037410;
-	bh=bfO9wCuw+Eh9xeDv1yXorY5yhggM67D8s0J74GOKDgQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=L/Gbx2nZKF18Q8YaEeGw+e1Y0f18Tv8eIc+BP362CqliMaevhFWHlmEa6jTWBQPoA
-	 QZLtvBhKxCBULiaIdWHQoKwMPUEhRAOP+QmEI3gGEsCgStQnXmEcm8YMJcKoSVrpbU
-	 nj7SZ10aVD74+hWdJL/RiMiDIzBsFauBcAmTXS6Q=
+	by mail.kernel.org (Postfix) with ESMTP id A959D20709
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Sep 2020 09:07:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="SaNYgeDZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726140AbgIBJD3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Sep 2020 05:03:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40218 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726124AbgIBJD2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Sep 2020 05:03:28 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 99A0F20709;
-        Wed,  2 Sep 2020 09:03:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599037408;
-        bh=bfO9wCuw+Eh9xeDv1yXorY5yhggM67D8s0J74GOKDgQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=U2ekdiUC150UFqQQk4z9g5zUnK03MRqYroxIcjwi8ZfHW256FHduePnaWT9spydm8
-         y6J9mZJgA2HCvLpAMBMIPQiiuvp1svhC2EGdYTc1WJQMTZw8/ZcokM5JDmqBxAKUNV
-         HZHmPCUYva0NwENmptRlmW4kqNRDL15veWgNizng=
-Date:   Wed, 2 Sep 2020 12:03:25 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Tong Zhang <ztong0001@gmail.com>
-Cc:     selvin.xavier@broadcom.com, devesh.sharma@broadcom.com,
-        dledford@redhat.com, jgg@ziepe.ca, kamalheib1@gmail.com,
-        maxg@mellanox.com, monis@mellanox.com, gustavoars@kernel.org,
-        galpress@amazon.com, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Bernard Metzler <bmt@zurich.ibm.com>
-Subject: Re: [PATCH] RDMA: error code handling
-Message-ID: <20200902090325.GF59010@unreal>
-References: <20200824234422.1261394-1-ztong0001@gmail.com>
+        id S1726177AbgIBJHj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Sep 2020 05:07:39 -0400
+Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:28019 "EHLO
+        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726140AbgIBJHi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Sep 2020 05:07:38 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1599037658; x=1630573658;
+  h=subject:to:references:from:message-id:date:mime-version:
+   in-reply-to:content-transfer-encoding;
+  bh=DwdsQL93JnGG9v3TJ2epvvrH6/QE6GykfHTmVGH34kg=;
+  b=SaNYgeDZun8aZ7GGup1NtCBFaJQz3J7g5m8g6RQwTlyjC4PsC2AbcOpG
+   QHrlPay0uPMjKnJ/t0KtDYBDlVw9fpDe5Hptg4Y/QOCDRyJTEAJJyfx55
+   6eTektrouqxI2WfnzGHlQ8/0TkPiPS9hl+ZwxDPe8dWxGnn7jsGR9hof4
+   c=;
+X-IronPort-AV: E=Sophos;i="5.76,381,1592870400"; 
+   d="scan'208";a="71709914"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2a-e7be2041.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 02 Sep 2020 09:07:36 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
+        by email-inbound-relay-2a-e7be2041.us-west-2.amazon.com (Postfix) with ESMTPS id B00A6A062A;
+        Wed,  2 Sep 2020 09:07:35 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.183) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Wed, 2 Sep 2020 09:07:31 +0000
+Subject: Re: [PATCH 13/14] RDMA/mlx5: Use ib_umem_num_dma_blocks()
+To:     Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@nvidia.com>
+References: <13-v1-00f59ce24f1f+19f50-umem_1_jgg@nvidia.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <3e8db4b5-86ac-fb59-dd74-fe8f42c170a8@amazon.com>
+Date:   Wed, 2 Sep 2020 12:07:26 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200824234422.1261394-1-ztong0001@gmail.com>
+In-Reply-To: <13-v1-00f59ce24f1f+19f50-umem_1_jgg@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.183]
+X-ClientProxiedBy: EX13D22UWC001.ant.amazon.com (10.43.162.192) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 24, 2020 at 07:44:21PM -0400, Tong Zhang wrote:
-> ocrdma_qp_state_change() returns 1 when new and old state are the same,
-> however caller is checking using <0
->
-> Signed-off-by: Tong Zhang <ztong0001@gmail.com>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+On 02/09/2020 3:43, Jason Gunthorpe wrote:
+> For the calls linked to mlx4_ib_umem_calc_optimal_mtt_size() compute the
+> number of DMA pages directly based on the returned page_shift. This was
+> just being used as a weird default if the algorithm hits the lower limit.
+> 
+> All other places are just using it with PAGE_SIZE.
+> 
+> As this is the last call site, remove ib_umem_num_pages().
+> 
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
-Fixes: 057729cb2347 ("RDMA/ocrdma: Remove driver QP state machine")
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+The subject line should be fixed to mlx4.
