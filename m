@@ -2,152 +2,274 @@ Return-Path: <SRS0=kLQv=CM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,RCVD_ILLEGAL_IP,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7DE0C2BD0F
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:07:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 716ABC433E9
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:12:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC3CF20716
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:07:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="SLwSRlH9"
+	by mail.kernel.org (Postfix) with ESMTP id 3B6E220786
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:12:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599145944;
+	bh=5tR9/jXDc3DUFXp2sFmOEg1HyE6RFBcOc3si0NIQTnI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=Km5K6TR7EmWXHohcaS8g1Jf+jS6lreaMxEm5Y4M8t5Nx2jV5oegL5/Z2o4BSXsxOF
+	 6nkvTtcurhufy0yAQog5dQackjF+htQ848ODOVoGw0wpe2qA2pHX8jocf8JTis17nU
+	 SJ3YdorR2znFSDHoaw3i8QNSHnlag+O1kMY589Nc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729062AbgICPHc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Sep 2020 11:07:32 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:18459 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729478AbgICPFh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Sep 2020 11:05:37 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f50f2990000>; Thu, 03 Sep 2020 06:41:45 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Thu, 03 Sep 2020 06:42:33 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Thu, 03 Sep 2020 06:42:33 -0700
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 3 Sep
- 2020 13:42:32 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.174)
- by HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 3 Sep 2020 13:42:32 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ROALkc5O615wSuyaQwSor3gyBfK+YfMC3F4TICkfZhisMFHxZZ7Y549L1Yoj4e8/wXcUy7poMsJTDiH9ykjBfY8ne7awdGoSRELww4WmgyfwO6ShfdTtUh1J8zP1S8MudFqEGhJckZz/Ya6ZVgNp4orCDUcKCPpw+EGGyfMHoDQC1MOy0BoEpfSgqoLlFb8L0DcJhVjhtY+7lB5ACrNdrQ1CJKmboOG5xyn7kTQETDMoCKzqDDXbJSDEzZpCSo6KJ60JQpvHSe8YMVz66h42I7imXD/tsXchcwashtiAb3Lq4PhPB8e0+U+LuHjXwjIoU2qw/FEdB6WlskKJg8/jCg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tugTEMAaUkoKbnwNRZyadqfK3FJPMMX8u+6/ehQvjZ8=;
- b=CfX0lZc3/7aMf/UdPhlioB2oGVlW8O/i7EBMQ+22cQ6Vlj/aAdAzEENSyyQt++j/lQTPrywjEaMzVQiMqvbmNq796C2j42j3KtcuA1gIa7KYxl3g/Dvl2dP3zeL9u4X/PsGcVg1xlMH91fQMnk4JJVSCR2HyfdiACeEY1hYcY5PWIyMe1sjrTKsRrJGAr9h4RFu3K19KPJnhAH2h/4KBxgaSNVhxWS0Vm6h0qtl55sdu1uLSXkMeZhumMSSHQJmpXdBDq+v4b4JAMpEnGL8fdFucYrxLLXNzIY4xBgCnknfxG1Loit4BW/Yoe34FaXgtM51qzvr0+vnNg6MXwpRCSQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Authentication-Results: kernel.org; dkim=none (message not signed)
- header.d=none;kernel.org; dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB1147.namprd12.prod.outlook.com (2603:10b6:3:79::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.16; Thu, 3 Sep
- 2020 13:42:31 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3326.025; Thu, 3 Sep 2020
- 13:42:31 +0000
-Date:   Thu, 3 Sep 2020 10:42:29 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        Eli Cohen <eli@mellanox.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>,
-        Roland Dreier <roland@purestorage.com>
-Subject: Re: [PATCH rdma-next v1 04/10] RDMA/mlx5: Fix potential race between
- destroy and CQE poll
-Message-ID: <20200903134229.GA1550019@nvidia.com>
-References: <20200830084010.102381-1-leon@kernel.org>
- <20200830084010.102381-5-leon@kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20200830084010.102381-5-leon@kernel.org>
-X-ClientProxiedBy: MN2PR07CA0001.namprd07.prod.outlook.com
- (2603:10b6:208:1a0::11) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1729491AbgICPMW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Sep 2020 11:12:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44612 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726292AbgICMTI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 3 Sep 2020 08:19:08 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5B59620775;
+        Thu,  3 Sep 2020 12:19:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599135547;
+        bh=5tR9/jXDc3DUFXp2sFmOEg1HyE6RFBcOc3si0NIQTnI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=KFr9zVjRNbJpFYx9gkAYaV2R/gY8f6t2ueF/v8PDP76zYWfaYXJt2iVxsdXAd+Nx1
+         1Z30/AbtuMRfOIopNMKot8bnN99PlTEeSdXm+cZ86KOIREDxUcgH1JmattMs5wqMC1
+         4yMASStP6ZFV5iVQpNOUNAl9dNUwG8aMIWmXViXQ=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 2/4] lib/scatterlist: Add support in dynamically allocation of SG entries
+Date:   Thu,  3 Sep 2020 15:18:51 +0300
+Message-Id: <20200903121853.1145976-3-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200903121853.1145976-1-leon@kernel.org>
+References: <20200903121853.1145976-1-leon@kernel.org>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from 255.255.255.255 (255.255.255.255) by MN2PR07CA0001.namprd07.prod.outlook.com (2603:10b6:208:1a0::11) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.16 via Frontend Transport; Thu, 3 Sep 2020 13:42:31 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kDpVV-006VFC-Lc; Thu, 03 Sep 2020 10:42:29 -0300
-X-Originating-IP: [156.34.48.30]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: aaffdb00-90f4-424f-3c80-08d8500f34a3
-X-MS-TrafficTypeDiagnostic: DM5PR12MB1147:
-X-Microsoft-Antispam-PRVS: <DM5PR12MB1147E81E7FC8C356941BD4ADC22C0@DM5PR12MB1147.namprd12.prod.outlook.com>
-X-MS-Exchange-Transport-Forked: True
-X-MS-Oob-TLC-OOBClassifiers: OLM:3631;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 4mgtFwFhlR7CyKnVDkFCzRFUObVoLDU5ic/JLiahvo25hVRKZnDKM8EALYVaBB2+yT/rGyf8EBA8KJLq6r9pqLhBQrgYGkyHfmpW6ft8n4PCaRmK+Yq/lcuZOoWf+e2GZIx73JqKVyV+2hMZQkBfUOrrEOhZSVS2TOX3/35rTSJStRo7T2CZoxHVD/xlxVM9JRW8IXuiH4EGMtco55OMP4mFvlnfo1HY/5w6527Bh7l0g00qvKq6lKitOgCzOl/rcdVRNcffiAKsC1OGFMg9Py1dJKCLL/DXG/Rk1Ngrusv6YYgKMq2/qprmBhxamN6m
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(396003)(39860400002)(136003)(366004)(186003)(316002)(26005)(8676002)(83380400001)(4326008)(5660300002)(4744005)(8936002)(6916009)(478600001)(2616005)(1076003)(9746002)(86362001)(54906003)(2906002)(9786002)(33656002)(36756003)(426003)(66476007)(66556008)(66946007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: OVy23FpX4yculkXW+Ao8cJFEEH6g+JKAF8+RQfKrRotwrPTxcTZyGOj3w6s22epPqTeyaqiAEw3G3plf9s8QbD9HMcXSzU+bzOSJVEIAobNq7ya16JykVvG9WcTcCxqNI5V3ryXKtyTwNFvz5BJ21E28t0nGhIfFy2RUA7vq60oC7Jdm/rfsCYB0wKcv/XunAkeWm1PL0oU3nhpexvhZpZVpT8gsdbms5X5W8b1gC3n1X5dwhLzlfAZleh5X1g3b451YNRN6UiPmuTVwBIe1ppSyKCzph2IGEvpT03jGEdnXZ9teFauEy9jBoNK8x9UWpkubNo9ZrkP2DnLmTkZZZbNyOaaXSSiJluJHT/nkTqPn7G8stKJm/BYrJknsDod1664B1t0M1VdCJiEnu+paTC7X7klN5ZX8YuvO351RMqvSTQruczMfxCDarX46RKYaLImE9wJYIYJJVjQO5uyALafB8EU1zyu84yc3gy9KnAIicYeP/H78NqFXMtVzrXiglo5jx4crjhY6MXdp+wVD3/CdergjJnvsmIY5DF+nFXS8/X6KCDsNHNw7ws38ps0nLOk/VMS/Sz4MvMA72ZcmBnjgEh0OdXKf0fN0E0C+UwAg3CSpYLxlBKJGgpm1IAf6V0aH6ju1NtKhybORxS5eTg==
-X-MS-Exchange-CrossTenant-Network-Message-Id: aaffdb00-90f4-424f-3c80-08d8500f34a3
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2020 13:42:31.6056
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: YlZbbXD4si2ofqvKH5c+J417H5brrHuxT5sNO0S6rGIK+7SAxSiXt82ehMXQRN2V
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB1147
-X-OriginatorOrg: Nvidia.com
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1599140505; bh=tugTEMAaUkoKbnwNRZyadqfK3FJPMMX8u+6/ehQvjZ8=;
-        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
-         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
-         Subject:Message-ID:References:Content-Type:Content-Disposition:
-         In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
-         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
-         X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
-         X-MS-Exchange-Transport-Forked:X-MS-Oob-TLC-OOBClassifiers:
-         X-MS-Exchange-SenderADCheck:X-Microsoft-Antispam:
-         X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-         X-MS-Exchange-AntiSpam-MessageData:
-         X-MS-Exchange-CrossTenant-Network-Message-Id:
-         X-MS-Exchange-CrossTenant-AuthSource:
-         X-MS-Exchange-CrossTenant-AuthAs:
-         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-         X-MS-Exchange-CrossTenant-FromEntityHeader:
-         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-         X-MS-Exchange-CrossTenant-UserPrincipalName:
-         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-        b=SLwSRlH9gQTjkH8GT0P4kAmNUYqTiseg0IjjcZ0dK6TTwmM1WPXaaeizfw4S8/U/0
-         M1McdZWiA3Li7t5AOGXwVsbqH9MOsBKL+s9BrQ5bzngjpz/wuLkv0p1b4l8RdjiWyV
-         832IhOwavIasO6ZswMXEQmwl7Wvd0BVILKrnFAEqEWsPbEH1XbNnRzBFhySg2dUtCc
-         VHeKg0OoHtUEmUa97dFRIxbYXfvLQtmvmpqcoAFP+eLtY9EdNfEGEtNw8/TU7H+prR
-         B1np2X0vsAVMExTZ3hXv7S+NrPqt82S3l7zT1deou4b4K4/AZnNtJjNtZZzUSRhbfA
-         zL4+t+pR3xwag==
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Aug 30, 2020 at 11:40:04AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> The SRQ can be destroyed right before mlx5_cmd_get_srq is called.
-> In such case the latter will return NULL instead of expected SRQ.
-> 
-> Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/cq.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+From: Maor Gottlieb <maorg@nvidia.com>
 
-Applied to for-next
+In order to support dynamic allocation of SG table, this patch
+introduces sg_alloc_next. This function should be called to add more
+entries to the table. In order to share the code, we will do the
+following:
+ * Extract the allocation code from __sg_alloc_table to sg_alloc.
+ * Add a function to chain SGE to the next page.
 
-Thanks,
-Jason
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/linux/scatterlist.h |  29 ++++++----
+ lib/scatterlist.c           | 110 ++++++++++++++++++++++++------------
+ 2 files changed, 91 insertions(+), 48 deletions(-)
+
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 45cf7b69d852..877d6e160b06 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -165,6 +165,22 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ #define for_each_sgtable_dma_sg(sgt, sg, i)	\
+ 	for_each_sg((sgt)->sgl, sg, (sgt)->nents, i)
+
++static inline void _sg_chain(struct scatterlist *chain_sg,
++			     struct scatterlist *sgl)
++{
++	/*
++	 * offset and length are unused for chain entry. Clear them.
++	 */
++	chain_sg->offset = 0;
++	chain_sg->length = 0;
++
++	/*
++	 * Set lowest bit to indicate a link pointer, and make sure to clear
++	 * the termination bit if it happens to be set.
++	 */
++	chain_sg->page_link = ((unsigned long) sgl | SG_CHAIN) & ~SG_END;
++}
++
+ /**
+  * sg_chain - Chain two sglists together
+  * @prv:	First scatterlist
+@@ -178,18 +194,7 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 			    struct scatterlist *sgl)
+ {
+-	/*
+-	 * offset and length are unused for chain entry.  Clear them.
+-	 */
+-	prv[prv_nents - 1].offset = 0;
+-	prv[prv_nents - 1].length = 0;
+-
+-	/*
+-	 * Set lowest bit to indicate a link pointer, and make sure to clear
+-	 * the termination bit if it happens to be set.
+-	 */
+-	prv[prv_nents - 1].page_link = ((unsigned long) sgl | SG_CHAIN)
+-					& ~SG_END;
++	_sg_chain(&prv[prv_nents - 1], sgl);
+ }
+
+ /**
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 292e785d21ee..669bd6e6d16a 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -242,38 +242,15 @@ void sg_free_table(struct sg_table *table)
+ }
+ EXPORT_SYMBOL(sg_free_table);
+
+-/**
+- * __sg_alloc_table - Allocate and initialize an sg table with given allocator
+- * @table:	The sg table header to use
+- * @nents:	Number of entries in sg list
+- * @max_ents:	The maximum number of entries the allocator returns per call
+- * @nents_first_chunk: Number of entries int the (preallocated) first
+- * 	scatterlist chunk, 0 means no such preallocated chunk provided by user
+- * @gfp_mask:	GFP allocation mask
+- * @alloc_fn:	Allocator to use
+- *
+- * Description:
+- *   This function returns a @table @nents long. The allocator is
+- *   defined to return scatterlist chunks of maximum size @max_ents.
+- *   Thus if @nents is bigger than @max_ents, the scatterlists will be
+- *   chained in units of @max_ents.
+- *
+- * Notes:
+- *   If this function returns non-0 (eg failure), the caller must call
+- *   __sg_free_table() to cleanup any leftover allocations.
+- *
+- **/
+-int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+-		     unsigned int max_ents, struct scatterlist *first_chunk,
+-		     unsigned int nents_first_chunk, gfp_t gfp_mask,
+-		     sg_alloc_fn *alloc_fn)
++static int sg_alloc(struct sg_table *table, struct scatterlist *prv,
++		    unsigned int nents, unsigned int max_ents,
++		    struct scatterlist *first_chunk,
++		    unsigned int nents_first_chunk,
++		    gfp_t gfp_mask, sg_alloc_fn *alloc_fn)
+ {
+-	struct scatterlist *sg, *prv;
+-	unsigned int left;
+-	unsigned curr_max_ents = nents_first_chunk ?: max_ents;
+-	unsigned prv_max_ents;
+-
+-	memset(table, 0, sizeof(*table));
++	unsigned int curr_max_ents = nents_first_chunk ?: max_ents;
++	unsigned int left, prv_max_ents = 0;
++	struct scatterlist *sg;
+
+ 	if (nents == 0)
+ 		return -EINVAL;
+@@ -283,7 +260,6 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ #endif
+
+ 	left = nents;
+-	prv = NULL;
+ 	do {
+ 		unsigned int sg_size, alloc_size = left;
+
+@@ -308,7 +284,7 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ 			 * linkage.  Without this, sg_kfree() may get
+ 			 * confused.
+ 			 */
+-			if (prv)
++			if (prv_max_ents)
+ 				table->nents = ++table->orig_nents;
+
+ 			return -ENOMEM;
+@@ -321,10 +297,17 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ 		 * If this is the first mapping, assign the sg table header.
+ 		 * If this is not the first mapping, chain previous part.
+ 		 */
+-		if (prv)
+-			sg_chain(prv, prv_max_ents, sg);
+-		else
++		if (!prv)
+ 			table->sgl = sg;
++		else if (prv_max_ents)
++			sg_chain(prv, prv_max_ents, sg);
++		else {
++			_sg_chain(prv, sg);
++			/* We decrease one since the prvious last sge in used to
++			 * chainning.
++			 */
++			table->nents = table->orig_nents -= 1;
++		}
+
+ 		/*
+ 		 * If no more entries after this one, mark the end
+@@ -339,6 +322,61 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+
+ 	return 0;
+ }
++
++/**
++ * sg_alloc_next - Allocate and initialize new entries in the sg table
++ * @table:	The sg table header to use
++ * @last:	The last scatter list entry in the table
++ * @nents:	Number of entries in sg list
++ * @max_ents:	The maximum number of entries the allocator returns per call
++ * @gfp_mask:	GFP allocation mask
++ * @alloc_fn:	Allocator to use
++ *
++ * Description:
++ *   This function extend @table with @nents long. The allocator is
++ *   defined to return scatterlist chunks of maximum size @max_ents.
++ *   Thus if @nents is bigger than @max_ents, the scatterlists will be
++ *   chained in units of @max_ents.
++ *
++ **/
++static int sg_alloc_next(struct sg_table *table, struct scatterlist *last,
++			 unsigned int nents, unsigned int max_ents,
++			 gfp_t gfp_mask)
++{
++	return sg_alloc(table, last, nents, max_ents, NULL, 0, gfp_mask,
++			sg_kmalloc);
++}
++
++/**
++ * __sg_alloc_table - Allocate and initialize an sg table with given allocator
++ * @table:	The sg table header to use
++ * @nents:	Number of entries in sg list
++ * @max_ents:	The maximum number of entries the allocator returns per call
++ * @nents_first_chunk: Number of entries int the (preallocated) first
++ * scatterlist chunk, 0 means no such preallocated chunk provided by user
++ * @gfp_mask:	GFP allocation mask
++ * @alloc_fn:	Allocator to use
++ *
++ * Description:
++ *   This function returns a @table @nents long. The allocator is
++ *   defined to return scatterlist chunks of maximum size @max_ents.
++ *   Thus if @nents is bigger than @max_ents, the scatterlists will be
++ *   chained in units of @max_ents.
++ *
++ * Notes:
++ *   If this function returns non-0 (eg failure), the caller must call
++ *   __sg_free_table() to cleanup any leftover allocations.
++ *
++ **/
++int __sg_alloc_table(struct sg_table *table, unsigned int nents,
++		     unsigned int max_ents, struct scatterlist *first_chunk,
++		     unsigned int nents_first_chunk, gfp_t gfp_mask,
++		     sg_alloc_fn *alloc_fn)
++{
++	memset(table, 0, sizeof(*table));
++	return sg_alloc(table, NULL, nents, max_ents, first_chunk,
++			nents_first_chunk, gfp_mask, alloc_fn);
++}
+ EXPORT_SYMBOL(__sg_alloc_table);
+
+ /**
+--
+2.26.2
+
