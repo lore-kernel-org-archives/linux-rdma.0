@@ -2,338 +2,152 @@ Return-Path: <SRS0=kLQv=CM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,RCVD_ILLEGAL_IP,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7015AC433E9
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 14:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D52C433E2
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:06:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FD782065F
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 14:58:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9AC720722
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Sep 2020 15:06:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Wrqg4lCm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729131AbgICO6m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Sep 2020 10:58:42 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:60908 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729052AbgICOIq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 3 Sep 2020 10:08:46 -0400
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id C83DD60B6C43B76E5FCE;
-        Thu,  3 Sep 2020 21:17:20 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 3 Sep 2020 21:17:10 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 2/4] RDMA/hns: Add support for CQE in size of 64 Bytes
-Date:   Thu, 3 Sep 2020 21:16:05 +0800
-Message-ID: <1599138967-17621-3-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1599138967-17621-1-git-send-email-liweihang@huawei.com>
-References: <1599138967-17621-1-git-send-email-liweihang@huawei.com>
+        id S1728887AbgICPGi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Sep 2020 11:06:38 -0400
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:6598 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729108AbgICPGa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Sep 2020 11:06:30 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f5105ed0000>; Thu, 03 Sep 2020 08:04:13 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Thu, 03 Sep 2020 08:06:22 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Thu, 03 Sep 2020 08:06:22 -0700
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 3 Sep
+ 2020 15:06:12 +0000
+Received: from NAM02-CY1-obe.outbound.protection.outlook.com (104.47.37.53) by
+ HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 3 Sep 2020 15:06:12 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=hLlrDs78VGa5XI/6AGED2D207AiYn6+lPTL3ksI4gdkS9f8hzE9qf8cKyTqvpRgeVpxfS4OAr7h3ncRKtQQp3Jsj+olXqG+TGLFqcuv0Ajk2fkcAieOomSL5EUmW5MvHmNdWPsz9QFImDNbNPr23K0o0GOvQG46TjsmwetMtiITlU1upZAHVl2UtZl/UvOfuuCtrF96yGHnWjhcj62JT/aenFt0j7bIw7/JTz6Tn5Ni2RzuCvePS9gEQ+riGXaRVjDoNycvvX6Y8tCfJVn7nuXRX9hmA/zwo+IsOUhM3k5YEeKr/4sQwF3IpJkhuewSaQwIjGplsXOQaRWs5yvWVuQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=wfGdJIZE9NKa073Y4/D08dm29GcpZoqHIdfQnXD/slA=;
+ b=ehiLxC0dx8GkhZ28HkL1+gqkCZ0x2a8Vxpw7Wkoe0tIjRLbGtXU69CUM8brn/pKjzhOhV+bWNYxosaFdBwHEuPQAYdnROJpdFDgAi1B4rjnnM5z3Bf4OIG/MDhnooWD5bBjiyINo65RAU0lxxmLuThujaIwalYZUIojS3YsQTbgF5JnKM/AnluKdJxmyMXRhS8WAFYBSLHkYwr+HQek9pPozpK4Z50j8MP8tSMa9gpD4HhnKg88sHH0QGRHHoiz2kFM3wpwENTIC9wDsi/GwqKy0nLHP9fw7TmFNMcQGoJZJsb+oXh51Pi+GxY5bcWqvADCcyfst+pntvxw8dHJ0ww==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: gmail.com; dkim=none (message not signed)
+ header.d=none;gmail.com; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM5PR1201MB0106.namprd12.prod.outlook.com (2603:10b6:4:4f::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.23; Thu, 3 Sep
+ 2020 15:06:10 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3326.025; Thu, 3 Sep 2020
+ 15:06:10 +0000
+Date:   Thu, 3 Sep 2020 12:06:09 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Allen Pais <allen.lkml@gmail.com>
+CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
+        <selvin.xavier@broadcom.com>, <devesh.sharma@broadcom.com>,
+        <somnath.kotur@broadcom.com>, <sriharsha.basavapatna@broadcom.com>,
+        <nareshkumar.pbs@broadcom.com>, <mike.marciniszyn@intel.com>,
+        <dennis.dalessandro@intel.com>, <faisal.latif@intel.com>,
+        <shiraz.saleem@intel.com>
+Subject: Re: [PATCH v2 0/5] RDMA: convert tasklets to use new
+Message-ID: <20200903150609.GA1569719@nvidia.com>
+References: <20200903060637.424458-1-allen.lkml@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20200903060637.424458-1-allen.lkml@gmail.com>
+X-ClientProxiedBy: MN2PR06CA0008.namprd06.prod.outlook.com
+ (2603:10b6:208:23d::13) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from 255.255.255.255 (255.255.255.255) by MN2PR06CA0008.namprd06.prod.outlook.com (2603:10b6:208:23d::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.15 via Frontend Transport; Thu, 3 Sep 2020 15:06:10 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kDqoT-006aMx-8O; Thu, 03 Sep 2020 12:06:09 -0300
+X-Originating-IP: [156.34.48.30]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 5a50fb9e-7260-41ce-a584-08d8501ae43d
+X-MS-TrafficTypeDiagnostic: DM5PR1201MB0106:
+X-Microsoft-Antispam-PRVS: <DM5PR1201MB0106142DFB5F03A8ED345AADC22C0@DM5PR1201MB0106.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:369;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: BFqgnqhKt5DuOC/mVIkXgjJSYaN+Af8JKS7S+kJrx/3QQqSy/Zd59jylbdo/SJV0+FvcXWsP8mh4sOn5+jU585FmdSYxOupgKaFl5tsFLb6EgqNyI1AhI8lrJ7eb00vSzLyoqbmuesropmWLpfYbktdLuT+p3cFIK+4RXhM/fKwy39wwzvepSHvkCd6jWQSRXz6DWJcMlO0XKlZU2mwNX1x+eVWELX9muhDwtYCJCSwwQdKRmPLQbGmLjhkqRyW79JLXr7+QEhqQ55mHU7D7l2LJFdoX8Hp+IzXqdIt8R+A6d3O0OLY2xWLpOgU+rAp8TZw6+3vpv1PulbBbnT5EnQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(136003)(396003)(39860400002)(346002)(376002)(2906002)(9746002)(426003)(4744005)(9786002)(478600001)(33656002)(8676002)(7416002)(36756003)(86362001)(8936002)(66946007)(2616005)(5660300002)(66476007)(186003)(316002)(6916009)(4326008)(66556008)(1076003)(26005);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: +cPWHGDgn9wbd8HCFUzAjZlfaEfPDRXRDOWfWLCO+i2mm5f7jsRuhegeNOB5dWr0KZbUArhjpV+h6HpFkBKvKS1CxBIC5Js4ed7IDGEqPMEvTwYk+q4E5SskYpUS8OapT8AV774SNilxv3DAzw2toZ5LTyjCQJPXjy3ZWB1ktM8IqUwrgcO0U3Limf2dVeqQ83YqHhjfWm7Ha2O3zXLfZaY1W0SDRwqZXRk0vFCTCYRqJv+bCWUxgHOddjOj5v0x3SAWeo99tAMGD0Jz4ETSs5z+euw53I5zkphwYBAowo17/EvF0TEGc6hF7ixyhGhavbMFZGypFwvigjPaT6x/GnKs/+EAbkEPYztLOtwKa2nqGJ7EAU/eKv+eKjPOX7+1y3YQ8RSz/GEDs7Oo6F40pWpDU1tPARxcEbVYayE3bJPfpXYLpf8/p3elgdpEmJek8qro5Zk/ZN++5YNjOYpUc5dgzTOh1q0RWblAeh5bQhrOvnPdLVqj9knA5DdCP2XKrIsynM+2tlZAx5qXylDari/NCPBH71nH9jsZxXnKfjM4+INKtg3WRiz/PjttRA1BS8sZHZ/AWTO2eSD+2Wg774VL8D8XCsEsy/X2oenjgcRaKRMURLTeIvxDw6NB7pAIKYYg3uaynPg1sIEdM7bmoQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5a50fb9e-7260-41ce-a584-08d8501ae43d
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Sep 2020 15:06:10.5540
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: UVuBKCchb6mRgEWS7/6nPzG63oKPpF+nYdxkLuE5KWVtY4EDZwgcg9VXoEJHu8h2
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR1201MB0106
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1599145453; bh=wfGdJIZE9NKa073Y4/D08dm29GcpZoqHIdfQnXD/slA=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
+         Subject:Message-ID:References:Content-Type:Content-Disposition:
+         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
+         X-MS-Oob-TLC-OOBClassifiers:X-MS-Exchange-SenderADCheck:
+         X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+         X-Forefront-Antispam-Report:X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=Wrqg4lCmlNBG8R4g8NKfgYs2/JB3fXOklI2IXQ1jIUPyd2mDnGPUqLtRymz/1RrMO
+         gF2TspMsDnKIPt2qPY8M10CinZYvvl/Y/9pB821nC384vX8cSOxsh6YAO++Ua9Fplk
+         JFXxy0VUWSxLDTbvIIslOfjrBVfD7XddkmgH5DCkUCFIgeO/58SH0dhNbU3mqNuX7G
+         PC1C2/cNmmV/fLREMV/kEBuCpVYXQsaly+Gs36Sdnruo95OK1xQYYqcCcRfh/BSd4d
+         OzdDWPUR9MCfDAlxL2Cc8ECEDbO47UPF710ZPLTlLJM6KKjcm+4aeQQil3KQmcaTql
+         MJAdOyTv8B0Aw==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+On Thu, Sep 03, 2020 at 11:36:32AM +0530, Allen Pais wrote:
+> commit 12cc923f1ccc ("tasklet: Introduce new initialization API")'
+> introduced a new tasklet initialization API. This series converts
+> all the infiniband drivers to use the new tasklet_setup() API
+> 
+> The series is based on 5.9-rc3
+> 
+> v2:
+>  Fixed bnxt_re driver. Suggested by Jason.
+>  Fixed subject line.
+> 
+> Allen Pais (5):
+>   RDMA/bnxt_re: convert tasklets to use new tasklet_setup() API
+>   IB/hfi1: convert tasklets to use new tasklet_setup() API
+>   RDMA/i40iw: convert tasklets to use new tasklet_setup() API
+>   RDMA/qib: convert tasklets to use new tasklet_setup() API
+>   RDMA/rxe: convert tasklets to use new tasklet_setup() API
 
-The new version of RoCEE supports using CQE in size of 32B or 64B. The
-performance of bus can be improved by using larger size of CQE.
+Applied to for-next, thanks
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 19 ++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 +++++-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  5 ++---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 20 +++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  7 +++++--
- drivers/infiniband/hw/hns/hns_roce_main.c   |  2 ++
- include/uapi/rdma/hns-abi.h                 |  4 +++-
- 8 files changed, 49 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index e87d616..9a2f745 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -150,7 +150,7 @@ static int alloc_cq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- 	int err;
- 
- 	buf_attr.page_shift = hr_dev->caps.cqe_buf_pg_sz + HNS_HW_PAGE_SHIFT;
--	buf_attr.region[0].size = hr_cq->cq_depth * hr_dev->caps.cq_entry_sz;
-+	buf_attr.region[0].size = hr_cq->cq_depth * hr_cq->cqe_size;
- 	buf_attr.region[0].hopnum = hr_dev->caps.cqe_hop_num;
- 	buf_attr.region_count = 1;
- 	buf_attr.fixed_page = true;
-@@ -224,6 +224,21 @@ static void free_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- 	}
- }
- 
-+static void set_cqe_size(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
-+			 struct hns_roce_ib_create_cq *ucmd)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(hr_cq->ib_cq.device);
-+
-+	if (udata) {
-+		if (udata->inlen >= offsetofend(typeof(*ucmd), cqe_size))
-+			hr_cq->cqe_size = ucmd->cqe_size;
-+		else
-+			hr_cq->cqe_size = HNS_ROCE_V2_CQE_SIZE;
-+	} else {
-+		hr_cq->cqe_size = hr_dev->caps.cqe_sz;
-+	}
-+}
-+
- int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 		       struct ib_udata *udata)
- {
-@@ -266,6 +281,8 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 		}
- 	}
- 
-+	set_cqe_size(hr_cq, udata, &ucmd);
-+
- 	ret = alloc_cq_buf(hr_dev, hr_cq, udata, ucmd.buf_addr);
- 	if (ret) {
- 		ibdev_err(ibdev, "Failed to alloc CQ buf, err %d\n", ret);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index cbf3478..2e4f6b1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -81,6 +81,9 @@
- 
- #define HNS_ROCE_V3_EQE_SIZE 0x40
- 
-+#define HNS_ROCE_V2_CQE_SIZE 32
-+#define HNS_ROCE_V3_CQE_SIZE 64
-+
- #define HNS_ROCE_SL_SHIFT			28
- #define HNS_ROCE_TCLASS_SHIFT			20
- #define HNS_ROCE_FLOW_LABEL_MASK		0xfffff
-@@ -469,6 +472,7 @@ struct hns_roce_cq {
- 	void __iomem			*cq_db_l;
- 	u16				*tptr_addr;
- 	int				arm_sn;
-+	int				cqe_size;
- 	unsigned long			cqn;
- 	u32				vector;
- 	atomic_t			refcount;
-@@ -796,7 +800,7 @@ struct hns_roce_caps {
- 	int		num_pds;
- 	int		reserved_pds;
- 	u32		mtt_entry_sz;
--	u32		cq_entry_sz;
-+	u32		cqe_sz;
- 	u32		page_size_cap;
- 	u32		reserved_lkey;
- 	int		mtpt_entry_sz;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 83c07c2..f2fcea0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1476,7 +1476,7 @@ static int hns_roce_v1_profile(struct hns_roce_dev *hr_dev)
- 	caps->cqc_entry_sz	= HNS_ROCE_V1_CQC_ENTRY_SIZE;
- 	caps->mtpt_entry_sz	= HNS_ROCE_V1_MTPT_ENTRY_SIZE;
- 	caps->mtt_entry_sz	= HNS_ROCE_V1_MTT_ENTRY_SIZE;
--	caps->cq_entry_sz	= HNS_ROCE_V1_CQE_ENTRY_SIZE;
-+	caps->cqe_sz		= HNS_ROCE_V1_CQE_SIZE;
- 	caps->page_size_cap	= HNS_ROCE_V1_PAGE_SIZE_SUPPORT;
- 	caps->reserved_lkey	= 0;
- 	caps->reserved_pds	= 0;
-@@ -1897,8 +1897,7 @@ static int hns_roce_v1_write_mtpt(struct hns_roce_dev *hr_dev, void *mb_buf,
- 
- static void *get_cqe(struct hns_roce_cq *hr_cq, int n)
- {
--	return hns_roce_buf_offset(hr_cq->mtr.kmem,
--				   n * HNS_ROCE_V1_CQE_ENTRY_SIZE);
-+	return hns_roce_buf_offset(hr_cq->mtr.kmem, n * HNS_ROCE_V1_CQE_SIZE);
- }
- 
- static void *get_sw_cqe(struct hns_roce_cq *hr_cq, int n)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index 52307b2..5996892 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -74,7 +74,7 @@
- #define HNS_ROCE_V1_MTPT_ENTRY_SIZE			64
- #define HNS_ROCE_V1_MTT_ENTRY_SIZE			64
- 
--#define HNS_ROCE_V1_CQE_ENTRY_SIZE			32
-+#define HNS_ROCE_V1_CQE_SIZE				32
- #define HNS_ROCE_V1_PAGE_SIZE_SUPPORT			0xFFFFF000
- 
- #define HNS_ROCE_V1_TABLE_CHUNK_SIZE			(1 << 17)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 71eee67..8f7e85d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1690,7 +1690,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
- 	caps->mtpt_entry_sz	= HNS_ROCE_V2_MTPT_ENTRY_SZ;
- 	caps->mtt_entry_sz	= HNS_ROCE_V2_MTT_ENTRY_SZ;
- 	caps->idx_entry_sz	= HNS_ROCE_V2_IDX_ENTRY_SZ;
--	caps->cq_entry_sz	= HNS_ROCE_V2_CQE_ENTRY_SIZE;
-+	caps->cqe_sz		= HNS_ROCE_V2_CQE_SIZE;
- 	caps->page_size_cap	= HNS_ROCE_V2_PAGE_SIZE_SUPPORTED;
- 	caps->reserved_lkey	= 0;
- 	caps->reserved_pds	= 0;
-@@ -1770,6 +1770,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
- 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
- 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
-+		caps->cqe_sz = HNS_ROCE_V3_CQE_SIZE;
- 	}
- }
- 
-@@ -1862,7 +1863,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 	caps->max_sq_desc_sz	     = resp_a->max_sq_desc_sz;
- 	caps->max_rq_desc_sz	     = resp_a->max_rq_desc_sz;
- 	caps->max_srq_desc_sz	     = resp_a->max_srq_desc_sz;
--	caps->cq_entry_sz	     = resp_a->cq_entry_sz;
-+	caps->cqe_sz		     = HNS_ROCE_V2_CQE_SIZE;
- 
- 	caps->mtpt_entry_sz	     = resp_b->mtpt_entry_sz;
- 	caps->irrl_entry_sz	     = resp_b->irrl_entry_sz;
-@@ -1993,6 +1994,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
- 		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
-+		caps->cqe_sz = HNS_ROCE_V3_CQE_SIZE;
- 	}
- 
- 	calc_pg_sz(caps->num_qps, caps->qpc_entry_sz, caps->qpc_hop_num,
-@@ -2771,8 +2773,7 @@ static int hns_roce_v2_mw_write_mtpt(void *mb_buf, struct hns_roce_mw *mw)
- 
- static void *get_cqe_v2(struct hns_roce_cq *hr_cq, int n)
- {
--	return hns_roce_buf_offset(hr_cq->mtr.kmem,
--				   n * HNS_ROCE_V2_CQE_ENTRY_SIZE);
-+	return hns_roce_buf_offset(hr_cq->mtr.kmem, n * hr_cq->cqe_size);
- }
- 
- static void *get_sw_cqe_v2(struct hns_roce_cq *hr_cq, int n)
-@@ -2872,6 +2873,10 @@ static void hns_roce_v2_write_cqc(struct hns_roce_dev *hr_dev,
- 	roce_set_field(cq_context->byte_8_cqn, V2_CQC_BYTE_8_CQN_M,
- 		       V2_CQC_BYTE_8_CQN_S, hr_cq->cqn);
- 
-+	roce_set_field(cq_context->byte_8_cqn, V2_CQC_BYTE_8_CQE_SIZE_M,
-+		       V2_CQC_BYTE_8_CQE_SIZE_S, hr_cq->cqe_size ==
-+		       HNS_ROCE_V3_CQE_SIZE ? 1 : 0);
-+
- 	cq_context->cqe_cur_blk_addr = cpu_to_le32(to_hr_hw_page_addr(mtts[0]));
- 
- 	roce_set_field(cq_context->byte_16_hop_addr,
-@@ -3039,7 +3044,8 @@ static int hns_roce_v2_sw_poll_cq(struct hns_roce_cq *hr_cq, int num_entries,
- }
- 
- static void get_cqe_status(struct hns_roce_dev *hr_dev, struct hns_roce_qp *qp,
--			   struct hns_roce_v2_cqe *cqe, struct ib_wc *wc)
-+			   struct hns_roce_cq *cq, struct hns_roce_v2_cqe *cqe,
-+			   struct ib_wc *wc)
- {
- 	static const struct {
- 		u32 cqe_status;
-@@ -3080,7 +3086,7 @@ static void get_cqe_status(struct hns_roce_dev *hr_dev, struct hns_roce_qp *qp,
- 
- 	ibdev_err(&hr_dev->ib_dev, "error cqe status 0x%x:\n", cqe_status);
- 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_NONE, 16, 4, cqe,
--		       sizeof(*cqe), false);
-+		       cq->cqe_size, false);
- 
- 	/*
- 	 * For hns ROCEE, GENERAL_ERR is an error type that is not defined in
-@@ -3177,7 +3183,7 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *hr_cq,
- 		++wq->tail;
- 	}
- 
--	get_cqe_status(hr_dev, *cur_qp, cqe, wc);
-+	get_cqe_status(hr_dev, *cur_qp, hr_cq, cqe, wc);
- 	if (unlikely(wc->status != IB_WC_SUCCESS))
- 		return 0;
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index f98c55a..ca6b055 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -86,7 +86,6 @@
- #define HNS_ROCE_V2_MTPT_ENTRY_SZ		64
- #define HNS_ROCE_V2_MTT_ENTRY_SZ		64
- #define HNS_ROCE_V2_IDX_ENTRY_SZ		4
--#define HNS_ROCE_V2_CQE_ENTRY_SIZE		32
- #define HNS_ROCE_V2_SCCC_ENTRY_SZ		32
- #define HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ		PAGE_SIZE
- #define HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ		PAGE_SIZE
-@@ -309,6 +308,9 @@ struct hns_roce_v2_cq_context {
- #define	V2_CQC_BYTE_8_CQN_S 0
- #define V2_CQC_BYTE_8_CQN_M GENMASK(23, 0)
- 
-+#define V2_CQC_BYTE_8_CQE_SIZE_S 27
-+#define V2_CQC_BYTE_8_CQE_SIZE_M GENMASK(28, 27)
-+
- #define	V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_S 0
- #define V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_M GENMASK(19, 0)
- 
-@@ -896,6 +898,7 @@ struct hns_roce_v2_cqe {
- 	u8	smac[4];
- 	__le32	byte_28;
- 	__le32	byte_32;
-+	__le32	rsv[8];
- };
- 
- #define	V2_CQE_BYTE_4_OPCODE_S 0
-@@ -1571,7 +1574,7 @@ struct hns_roce_query_pf_caps_a {
- 	u8 max_sq_desc_sz;
- 	u8 max_rq_desc_sz;
- 	u8 max_srq_desc_sz;
--	u8 cq_entry_sz;
-+	u8 cqe_sz;
- };
- 
- struct hns_roce_query_pf_caps_b {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 5907cfd..73bdec7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -323,6 +323,8 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
- 		mutex_init(&context->page_mutex);
- 	}
- 
-+	resp.cqe_size = hr_dev->caps.cqe_sz;
-+
- 	ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
- 	if (ret)
- 		goto error_fail_copy_to_udata;
-diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-index eb76b38..9ec85f7 100644
---- a/include/uapi/rdma/hns-abi.h
-+++ b/include/uapi/rdma/hns-abi.h
-@@ -39,6 +39,8 @@
- struct hns_roce_ib_create_cq {
- 	__aligned_u64 buf_addr;
- 	__aligned_u64 db_addr;
-+	__u32 cqe_size;
-+	__u32 reserved;
- };
- 
- struct hns_roce_ib_create_cq_resp {
-@@ -73,7 +75,7 @@ struct hns_roce_ib_create_qp_resp {
- 
- struct hns_roce_ib_alloc_ucontext_resp {
- 	__u32	qp_tab_size;
--	__u32	reserved;
-+	__u32	cqe_size;
- };
- 
- struct hns_roce_ib_alloc_pd_resp {
--- 
-2.8.1
-
+Jason
