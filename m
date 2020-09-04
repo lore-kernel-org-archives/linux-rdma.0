@@ -2,110 +2,103 @@ Return-Path: <SRS0=ARbL=CN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7C9BC43461
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 22:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 029BEC43461
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 22:42:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D6362083B
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 22:33:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A892D2083B
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 22:42:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="N74kHk71"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="kfwdm7bZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728120AbgIDWdB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Sep 2020 18:33:01 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:18179 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728076AbgIDWdB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Sep 2020 18:33:01 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f52c08e0000>; Fri, 04 Sep 2020 15:32:46 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Fri, 04 Sep 2020 15:33:00 -0700
+        id S1728141AbgIDWmJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Sep 2020 18:42:09 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:65190 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728098AbgIDWmH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 4 Sep 2020 18:42:07 -0400
+Received: from hkpgpgate101.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f52c2bc0000>; Sat, 05 Sep 2020 06:42:04 +0800
+Received: from HKMAIL104.nvidia.com ([10.18.16.13])
+  by hkpgpgate101.nvidia.com (PGP Universal service);
+  Fri, 04 Sep 2020 15:42:04 -0700
 X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Fri, 04 Sep 2020 15:33:00 -0700
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 4 Sep
- 2020 22:33:00 +0000
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.44) by
- HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Fri, 4 Sep 2020 22:33:00 +0000
+        by hkpgpgate101.nvidia.com on Fri, 04 Sep 2020 15:42:04 -0700
+Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL104.nvidia.com
+ (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 4 Sep
+ 2020 22:42:04 +0000
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.107)
+ by HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 4 Sep 2020 22:42:04 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QE9MYAmNOJWd2KUPe/Icjdvt4ARjh1tcj9ahcVibZEipjfFMdkxNkG6gGsj3GvSjjXuUgp5hTNJhWBONBn+33atZQr9a19m1MzOEWZ1l7Gp7OiepfBE9/LIL8t2qxGgwffxojzrn4syqDbQwfUadi1CBjN0S9VOTTFHMQX84zzQct4ODw5x+AcR7ATi3WmW8triUfrD8r9VrLOl3vj8yeZUuHKUQ1XDXAuQpUFt+vUa3CcvgsslnV/Vv4MyDn+7mNSWI8mNH9oG1sd2eJGvnp2Mz5CupD6cjRm0/VaXHO9ivEPBxIe5VAUPYoHOiYN1QDXj49Y7iBi3O64ygrhQzxg==
+ b=APzj8n3k9m/betCMe1k5K2jlMik3FSPZDyPm0eB6hSdVAUUNjAOfjCXF3QhsDQWco7fDZqDELdSJ9VT9I8LxnWWlIdxSuh/UIcnD2yaQ+INVJ/K14mew2oG3Eg+YOBvuSci8cvI4fWeNvCyBl2Of+K3c+qaEz4UvP/t4rfn1T87mynamnU5Z7uTU/CRQF6ScBMr9hRIgWGvBFZLUKt1h3+xQtSB5901FYuI7iRmipkqeFxYx2cQEt/Su5xxqk7BSoH/qOA5iy/vHeJnE8Jc1Nf3NtKk6ympIneXyptRjAJbwXoudGLKYh9XtNZYNeDFgusT65guwpvhErVqE6FV0WA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KvCuK5US/98XMQR5kpvg5hC0iI91xNec5A1rEXhXlbI=;
- b=j2OjbKG0KmUnBqGK06oronvxuj8mKd9UhoG4j46yCTEOqgbNWvkNFepWDBir1U3IST0f6PuEOh/wg4JWYcvqL1mNpM4M+mWaQaNxe9dNi7zmzV3Nb9n0qKA+Z5yFvtX0N5gk3C2wNBrJCbw5ocEg+LjhJta64ef8T8riBu8ZjCObLmfv4cxLSJ3K2cpAdao4Xl4rSm+jkkgdhs8lRA9ORVe6E16cF8lWxtFDCsoDUpMi9yL123fzFiyBgs5N81UGkEj+F/LUdXNyQOiqHpNqHXiJHqpUGu3APbdJpdC5vEr25oto1PW2IRUPJAkzpaTLn1tVjHoFj5af44nSePVweQ==
+ bh=53zrpZr+2Bp1LtMts7gstfGPV5t4KE1YTqVw+rH3p3E=;
+ b=ShQdki5z0M9QMF3mxYnxxC0DC0+LNbOvg4V7GOp5NKxN3JFWtHV9o82UhI72jhVGFJuu5/8VXoS4zfE7y8qM3emopDk0kHMXHLh77gPFy7PxdmgJ4J/PnV+pSBHkubRu1sO5u8K9vEZ0LkUu1jVR7N5KMl7YIyCNRRYwk/kfJLYFtnAnO+Bk67yv3/COlUWkD9sFCx9W3cYDmvFOBoy9TpmjyOnY0DIXXsAo9t/tXM/uAhorau5VEd0Gd45XvrokAZOCjWBI0B41so6V+kclOMhE+tIR9W2sORLPAcj4qQnO/t756WueLZqo3XwqtpB69EISpwFZ/v4fT4LKPBfusg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
-Authentication-Results: vmware.com; dkim=none (message not signed)
- header.d=none;vmware.com; dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB1243.namprd12.prod.outlook.com (2603:10b6:3:74::22) with
+Authentication-Results: redhat.com; dkim=none (message not signed)
+ header.d=none;redhat.com; dmarc=none action=none header.from=nvidia.com;
+Received: from BY5PR12MB3827.namprd12.prod.outlook.com (2603:10b6:a03:1ab::16)
+ by BYAPR12MB2806.namprd12.prod.outlook.com (2603:10b6:a03:70::20) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.15; Fri, 4 Sep
- 2020 22:32:59 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::2d79:7f96:6406:6c76]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::2d79:7f96:6406:6c76%3]) with mapi id 15.20.3326.025; Fri, 4 Sep 2020
- 22:32:58 +0000
-Date:   Fri, 4 Sep 2020 19:32:56 -0300
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.22; Fri, 4 Sep
+ 2020 22:42:02 +0000
+Received: from BY5PR12MB3827.namprd12.prod.outlook.com
+ ([fe80::445b:111e:a091:66f9]) by BY5PR12MB3827.namprd12.prod.outlook.com
+ ([fe80::445b:111e:a091:66f9%6]) with mapi id 15.20.3326.025; Fri, 4 Sep 2020
+ 22:42:02 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Adit Ranadive <aditr@vmware.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>,
-        VMware PV-Drivers <pv-drivers@vmware.com>
-Subject: Re: [PATCH 06/14] RDMA/umem: Split ib_umem_num_pages() into
- ib_umem_num_dma_blocks()
-Message-ID: <20200904223256.GA455005@nvidia.com>
-References: <0-v1-00f59ce24f1f+19f50-umem_1_jgg@nvidia.com>
- <6-v1-00f59ce24f1f+19f50-umem_1_jgg@nvidia.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <6-v1-00f59ce24f1f+19f50-umem_1_jgg@nvidia.com>
-X-ClientProxiedBy: MN2PR20CA0039.namprd20.prod.outlook.com
- (2603:10b6:208:235::8) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+To:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>
+Subject: [PATCH v2 03/17] RDMA/umem: Use simpler logic for ib_umem_find_best_pgsz()
+Date:   Fri, 4 Sep 2020 19:41:44 -0300
+Message-ID: <3-v2-270386b7e60b+28f4-umem_1_jgg@nvidia.com>
+In-Reply-To: <0-v2-270386b7e60b+28f4-umem_1_jgg@nvidia.com>
+References: 
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: MN2PR17CA0011.namprd17.prod.outlook.com
+ (2603:10b6:208:15e::24) To BY5PR12MB3827.namprd12.prod.outlook.com
+ (2603:10b6:a03:1ab::16)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR20CA0039.namprd20.prod.outlook.com (2603:10b6:208:235::8) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.15 via Frontend Transport; Fri, 4 Sep 2020 22:32:58 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kEKGO-001uOn-Sh; Fri, 04 Sep 2020 19:32:56 -0300
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR17CA0011.namprd17.prod.outlook.com (2603:10b6:208:15e::24) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.16 via Frontend Transport; Fri, 4 Sep 2020 22:42:00 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kEKP8-001vC7-Rs; Fri, 04 Sep 2020 19:41:58 -0300
 X-Originating-IP: [156.34.48.30]
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 0081f9a7-bc9d-4e0a-4064-08d85122799c
-X-MS-TrafficTypeDiagnostic: DM5PR12MB1243:
-X-Microsoft-Antispam-PRVS: <DM5PR12MB1243BB3D251F899981842F51C22D0@DM5PR12MB1243.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:6430;
+X-MS-Office365-Filtering-Correlation-Id: 37e65c17-f280-44ba-a18b-08d85123bc97
+X-MS-TrafficTypeDiagnostic: BYAPR12MB2806:
+X-Microsoft-Antispam-PRVS: <BYAPR12MB2806E8A2A86A6CF24C95AE9BC22D0@BYAPR12MB2806.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:5797;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: Dif5vg9AErHdC+ZEVEcp/j4uPu3TEMqmSh+CTAkvxSe73Uq9dz57Gon1UMI10i5GyOG57vEThtprtWARvANxfIYkoW7B4NvqXHzrgJPn/IbOAfY8G/QftXfKhuMPU0oyP7g5cn7R5jmA4qLBe8ZP1b2FP/DK8+lv2hjc/Fs9fZC30hsAo8uAy5zQiNjdzHI0nyfGwh6qfImjUyi41w9bLUQ8PGmyuTV/2i90PhSuj/gYZ8qWdQg/DaHd2QA4WRR4py1uQwPjwaCtAIGZvPD+UBZb1xL1pdhZgvTdrzjDQmsyFicBSMpDH3H65vEKR1cE0Ws6ZO12D+GNfOk8X7EPduhntBwy7T9gpgTVvAmXm3FrdOgk0r4rA4t1TqYK1vBW
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(366004)(376002)(346002)(136003)(396003)(8676002)(33656002)(2616005)(8936002)(110136005)(83380400001)(2906002)(66946007)(1076003)(9786002)(478600001)(86362001)(9746002)(36756003)(66556008)(426003)(5660300002)(66476007)(316002)(4744005)(186003)(26005)(27376004);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: 6ggrmTfdPJkGUotDEDs3qdcldqtd8CXtLN23g+RDX3Cpu3aVA8KoSt6Zz8tPd7Z8GnQB7UHf9i5GSNUUz6pydUOFGiVxxhn2SQ0lwTZTpfym5dZfWpV+UxzSQkrOgFiL/BucpS1B+3vUuS1nrWR1ZnqhRhRDllFrJDMH33gtruHwWJBQtMtailaZgd0gQT47VaMlW601hyBdCCBaSr08M+3O9y/EMwwxesY9TAtUezDUw9d1TStLBy6u3+iHRuJbyiZNZjdkjyG0rMZmynaXcUm6xRkfMibeWsiYejTpj/t1wDOEAZJ9atxxRiSUOiumXcld6pUBPD3ILEmXr3eoHWn/NiENlvMW3Xm79X3banRlh3V/TYzc6kYlIdq8V3qH9EyXcQoaKhBv7m5GADukpIZK4ZZ2x7q75/vRbNg2IUCtD6htke2spZLY82rudYrbm069+orGGJpXiDoYdNlbAHMruicv2mmcq7cJjrg4d9uM0NXXT+Ae+SP8XHl862Azn4YRGpfYc2sphh/llbhgawYFmn2z4rJPZrXPbRcmFVepCt3lkVRmVnuBWHkBiIHo1VLWTUadmD0Gzcs38f9IHcUN60Jla1BNYlHs2OMgeKIMpFpxMk43U3coGPP5wBWFIzbDyRJLN4+DuSQzZ0Bq1g==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0081f9a7-bc9d-4e0a-4064-08d85122799c
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-Microsoft-Antispam-Message-Info: 6zAfP7FpjyMHmqJhVNJiOfzeRdyy1yWDX25ZzFbZ4R0C9sOiDula/W0+yF5mUle0nJeH0tO0Vji/yq0S3EMsWwhPhnlV8v0+OlmE/EIOTOUiWbXAZiZqwwej7YpXndym1Ygym7WJnpVbGsVt2izakyfC6K8U+T7NwHR3JdMwSeHOedvyBXWmdx5dk4E7bucpGh7A2Wf+w7RbZrOzv14A5R4CYwG423kRpe9dJPd5UkXTi85ukNz+XVjgR9I7BzcxGc/B7VAsZCNbEQU1aCFtOrPF/THybz/YLh2SNjJVDOvfLJcQgunl9DFtUxJv2PED7QqcAsmqFBem3ClTuSblQD4xQikM3mwcQiyXf//zeFDkefPGFMC4gHd7zriEp7af
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB3827.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(376002)(39860400002)(396003)(136003)(346002)(66556008)(26005)(66476007)(6666004)(8676002)(186003)(316002)(83380400001)(426003)(2616005)(9786002)(478600001)(36756003)(9746002)(86362001)(8936002)(5660300002)(2906002)(66946007)(4216001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: /Yx6V/I1RX6vX/RZQwyUejzblCjHskDiyP49AAp17NxXQTzV8rEJJF6oggNdWFCpChPUV14f2Mo6dGkkiPlT0d0lomvRaWSm3Q3gabUh+yw/BuYCu5Q8E3zKjSY5roZ4vXwMiydRe5DJDsG9eM3C3ajR6RiEI6+uBu7WkgWqdgppjVzXTH5ZEdehbXTgLAxv2ovS8Kuc8/KqXPAmiH1AR2Fzy6NufGeCmcRewNtpPrPUl0YR6xbH1dTKvUHZa4z2/HbUTBx+mD8YxV1UWHEJP4fICeTs1BrokzIw462FbXJAfqA9uPvs9LtZNhQxQEytBdJQ9qMloRzw4k8vdVqnZ5r1VpVt6+qJuslTxHE0FPcVK9dBQT+jaNEvg6WQ7MR6L5a4daVMEFik1RoAXf/VejVrvo0LccwIEBP6kk7LzZB7zcHmMCx70ZKWMM+4QDn6EsYeHFK5NkqnieZRvVhsdV6nA8zYcKRlMMmAnXStkEuHCszlNS1Cmuhct1maNaIASkDvtLfTlp/F7wro+mj7Nyf4LnKqiMZVT4K5Xs9jj3MXUMsRJxyYCTJRKzfYV89u8nPS8sd3OBw4wY7YdHL4mzC4jQDefd1qAJYHOqBv5nq0kL7h6GmW5EVnDAeh92DKKSRWwzA2u9277PYvSj47pw==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 37e65c17-f280-44ba-a18b-08d85123bc97
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB3827.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2020 22:32:58.8283
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2020 22:42:01.0759
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Ss9ZO3LsTdWPB8f4eRlvt4uB2uChYAWqqsxDzjmDds21AxMaA2oiD2rJ1JNcCS6A
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB1243
+X-MS-Exchange-CrossTenant-UserPrincipalName: aJEPai8R+jgBs5E8LSWlxaLTsRlB6mglMMMlPVURDKeM2F4aijjPXU4RntS8nOHL
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB2806
 X-OriginatorOrg: Nvidia.com
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1599258766; bh=KvCuK5US/98XMQR5kpvg5hC0iI91xNec5A1rEXhXlbI=;
+        t=1599259324; bh=1/TQv4WtqZ9tyx1b3Au+IIG4Xx6F+j09BTSiG0txYxw=;
         h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
-         ARC-Authentication-Results:Authentication-Results:Date:From:To:
-         Subject:Message-ID:References:Content-Type:Content-Disposition:
-         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         ARC-Authentication-Results:Authentication-Results:From:To:Subject:
+         Date:Message-ID:In-Reply-To:References:Content-Transfer-Encoding:
+         Content-Type:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
          X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
          X-MS-TrafficTypeDiagnostic:X-Microsoft-Antispam-PRVS:
@@ -120,41 +113,104 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
          X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
          X-MS-Exchange-CrossTenant-UserPrincipalName:
          X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-        b=N74kHk71ZoKx4NzP6LyYl/WRkSRcpiOjAQn1v/E5r7t3Gh1t5OHehPOis5RnLyMvZ
-         Zy6cpwz9pMzxK8fmH1dS9R7lrpg8GvtP+dcRub2vd1K2J0KCFbxN217Zt+50kzbtRB
-         ljEYwilSpWHluWWMmG00mv5jCW1YnejzGnSuDqeFTLpNyRXKM/4M0L7+rkS5I50ZNb
-         11Cchiq+Yk1RNuSKY3osILJdRnK8K5+BdgCfShHZqi+yDyTRw/JuexawwJXJ+BxA5G
-         ddSEILjlHir1dSy1VNvK+StcfFhdA1fLTTLJuXeZCznWxdOR6kkAFXZFthjqhpPixb
-         wzhwzyde8+FqA==
+        b=kfwdm7bZhAlgc+FYJrVFj2MyfQVo0ebbiPA5DJt2U7KvqvUHbP4+LKg6JCEFP5uxK
+         F1Jwti4+IkDWjlIwpH5o7Jdo2v2rBpTeUTaAzNl7mzfiZXEcx4cn1HixjMjA6Pfa8S
+         IDUs6TdSA0CqVm3dthzoVN598j5eoxnMM59hRBxMTKk/A9JBo/UjaJYUKhgGn9kHYN
+         qfgNqsMJc/Tq0N39gjMiymgNGj8kEnflK19oXkNa0IXsEATmj0cJC3ZdlQ6Y1zlp/9
+         8ySlcAEbRZND72WyNz+2axtIlLgbHjmyXniymIYz7sCOvMGqFdX7sxRqxkU14+vSj8
+         GWBl925lEfZlQ==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Sep 01, 2020 at 09:43:34PM -0300, Jason Gunthorpe wrote:
-> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-> index b880512ba95f16..ba3b9be0d8c56a 100644
-> +++ b/include/rdma/ib_umem.h
-> @@ -33,11 +33,17 @@ static inline int ib_umem_offset(struct ib_umem *umem)
->  	return umem->address & ~PAGE_MASK;
->  }
->  
-> +static inline size_t ib_umem_num_dma_blocks(struct ib_umem *umem,
-> +					    unsigned long pgsz)
-> +{
-> +	return (ALIGN(umem->address + umem->length, pgsz) -
-> +		ALIGN_DOWN(umem->address, pgsz)) /
-> +	       pgsz;
-> +}
+The calculation in rdma_find_pg_bit() is fairly complicated, and the
+function is never called anywhere else. Inline a simpler version into
+ib_umem_find_best_pgsz()
 
-Like the other places, this is wrong as well. The IOVA needs to be
-used here or it can be +-1 page away from what
-rdma_umem_for_each_dma_block() returns.
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ drivers/infiniband/core/umem.c | 11 ++++++++---
+ include/rdma/ib_verbs.h        | 24 ------------------------
+ 2 files changed, 8 insertions(+), 27 deletions(-)
 
-However, it does work if pgsz is PAGE_SIZE, or for the very common
-cases where umem->address == IOVA... 
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.=
+c
+index 1d0599997d0fb5..fb7630e7aac3a7 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -39,6 +39,7 @@
+ #include <linux/export.h>
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include <linux/count_zeros.h>
+ #include <rdma/ib_umem_odp.h>
+=20
+ #include "uverbs.h"
+@@ -146,7 +147,6 @@ unsigned long ib_umem_find_best_pgsz(struct ib_umem *um=
+em,
+ 				     unsigned long virt)
+ {
+ 	struct scatterlist *sg;
+-	unsigned int best_pg_bit;
+ 	unsigned long va, pgoff;
+ 	dma_addr_t mask;
+ 	int i;
+@@ -186,9 +186,14 @@ unsigned long ib_umem_find_best_pgsz(struct ib_umem *u=
+mem,
+ 			mask |=3D va;
+ 		pgoff =3D 0;
+ 	}
+-	best_pg_bit =3D rdma_find_pg_bit(mask, pgsz_bitmap);
+=20
+-	return BIT_ULL(best_pg_bit);
++	/* The mask accumulates 1's in each position where the VA and physical
++	 * address differ, thus the length of trailing 0 is the largest page
++	 * size that can pass the VA through to the physical.
++	 */
++	if (mask)
++		pgsz_bitmap &=3D GENMASK(count_trailing_zeros(mask), 0);
++	return rounddown_pow_of_two(pgsz_bitmap);
+ }
+ EXPORT_SYMBOL(ib_umem_find_best_pgsz);
+=20
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c868609a4ffaed..5dcbbb77cadb4f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3340,30 +3340,6 @@ static inline bool rdma_cap_read_inv(struct ib_devic=
+e *dev, u32 port_num)
+ 	return rdma_protocol_iwarp(dev, port_num);
+ }
+=20
+-/**
+- * rdma_find_pg_bit - Find page bit given address and HW supported page si=
+zes
+- *
+- * @addr: address
+- * @pgsz_bitmap: bitmap of HW supported page sizes
+- */
+-static inline unsigned int rdma_find_pg_bit(unsigned long addr,
+-					    unsigned long pgsz_bitmap)
+-{
+-	unsigned long align;
+-	unsigned long pgsz;
+-
+-	align =3D addr & -addr;
+-
+-	/* Find page bit such that addr is aligned to the highest supported
+-	 * HW page size
+-	 */
+-	pgsz =3D pgsz_bitmap & ~(-align << 1);
+-	if (!pgsz)
+-		return __ffs(pgsz_bitmap);
+-
+-	return __fls(pgsz);
+-}
+-
+ /**
+  * rdma_core_cap_opa_port - Return whether the RDMA Port is OPA or not.
+  * @device: Device
+--=20
+2.28.0
 
-Which, I suppose, is why nobody noticed this until now, as I found
-several drivers open coding the above.
-
-Jason
