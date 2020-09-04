@@ -2,112 +2,130 @@ Return-Path: <SRS0=ARbL=CN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25EEEC43461
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 11:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A624C433E2
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 14:04:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0010A2073B
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 11:36:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 083992074D
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Sep 2020 14:04:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="fgxVF/Ky"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Ye3pbd71"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730072AbgIDLgY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Sep 2020 07:36:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33372 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729930AbgIDLf2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Sep 2020 07:35:28 -0400
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA0CEC061246
-        for <linux-rdma@vger.kernel.org>; Fri,  4 Sep 2020 04:35:27 -0700 (PDT)
-Received: by mail-wm1-x344.google.com with SMTP id e17so5782415wme.0
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Sep 2020 04:35:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=7vXeg97tthpHn3OO05TYv6MMMBFwUPr9qFdp5Cy/4dA=;
-        b=fgxVF/KyrZotODBO6md3qVlmfLr1Yswld4L6UNDdmY8Kz2X24HlOcy5vpRpL4rQ530
-         gSMb7ay6j29f8JitxNubbM84Y0Vy2awUgC9aVsr/VWAgZAPTtFx707gjGuJedrngffk/
-         2rHELETgWgk8HSS6N24wNbk7FnfcXbSluqeNpyXRjqYcdFg0+4vKoB9DJVsSlHdCZKqe
-         qGh43iCNHUEh5ck+UDqey9145ghDrCdoyWzi6zglY0HshYc6vAYNqqkE2hIPYMZsex/H
-         toDwou6nj8xFEiZje4JFCGJNZZXBe5HqIEG4juqJhLHBAg/FxrEvzRxp3YxxOwxCN5Xi
-         DWYQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=7vXeg97tthpHn3OO05TYv6MMMBFwUPr9qFdp5Cy/4dA=;
-        b=HySQxjhLDgZpCMD6OqqS4Ym9Jnnt/WYXPPc3oNQvY1TB4uJc4a1C42hPuzoKgcYxXW
-         TsEDILi5Ou1fpA0/Rxoj0K3ISbM3RbYGFyF5FxgBfr5iPE/PgsYdIdJRVqZkloFPr4iK
-         LLuSKJRHmoHHdvbPTw2FDStr6ZLMGYJqQv4QrbaFxKwBg9pB4xZPy6q/3ZYS0mSS5lAE
-         LAp/aigcqOyodBDKt9Jv3pGhV5zv8SatZDHF6oZzxeIEa4Vf6pvfBM72af1x5REY9k/i
-         qYg7KPln7iOFo3vYCrTvVnEVsUMezP5w/i5OfFua4r+XXCSFxuQJgmdc645rCmQwPfXc
-         gK3A==
-X-Gm-Message-State: AOAM530x3/LbsImBebQwtdKwuZV4i//MxJHxYjrjtwvz6IdOjy6mADTj
-        YyugFiEHbugAc9pJwNlpCen+8L/3kfb33XmAreVH
-X-Google-Smtp-Source: ABdhPJw5wZGimxTw9n7szYlZ3p5Z+QDtX17dFoRAYKAcnXU2PfEgN70bforC8WZ9Bl4pCtP+K+rlOuQza/laTYmHQ/U=
-X-Received: by 2002:a7b:c7cd:: with SMTP id z13mr7196762wmk.160.1599219326253;
- Fri, 04 Sep 2020 04:35:26 -0700 (PDT)
+        id S1730547AbgIDOEY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Sep 2020 10:04:24 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:45386 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730496AbgIDOEW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Sep 2020 10:04:22 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 084E4FRh079032;
+        Fri, 4 Sep 2020 14:04:15 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=o+Knbr3aSaiJzMkSTH2PN7Lrt4gyqRKlMIJELwp82jg=;
+ b=Ye3pbd71XHD3oUJc2A9RxKTOghozikUVamYgqlrjUrFoqmA0EBq+dtMLYbH/i9bQsMhB
+ Fd6DzPyncIsSoNx38x2Eykf0Qs3Fn3PWTyk4qnk//7wOcabhb3r+mDq6/w0GH1WErgWr
+ DtzXiDbInCWDgQgRG+3qznjagUeuXtTH3igv8AInHbUKqhEwpJPacDm/C/R7ySPkv1QF
+ arAeqivwmdXvuIGahEDElhLzoUgJy5tK1Gs7tKBWdzN9quOk2lOuhtXOs/b5NUAItz5y
+ 4pzekurL8goXGU6CTAxox07ZM00iybQ7tMbxeQuL/BXZk/aeWhcp3e3dEjM7mln716qJ 8g== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by aserp2120.oracle.com with ESMTP id 337eympkr2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 04 Sep 2020 14:04:15 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 084E1CmD053673;
+        Fri, 4 Sep 2020 14:02:14 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+        by userp3020.oracle.com with ESMTP id 33bhs4g662-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 04 Sep 2020 14:02:14 +0000
+Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 084E2DKU017447;
+        Fri, 4 Sep 2020 14:02:13 GMT
+Received: from [10.159.211.29] (/10.159.211.29)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 04 Sep 2020 07:02:12 -0700
+Subject: Re: Finding the namespace of a struct ib_device
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org
+References: <5fa7f367-49df-fb1d-22d0-9f1dd1b76915@oracle.com>
+ <20200903173910.GO24045@ziepe.ca>
+ <a5899aa9-4553-1307-0688-f07f3a919ce8@oracle.com>
+ <20200904113244.GP24045@ziepe.ca>
+From:   Ka-Cheong Poon <ka-cheong.poon@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <be812cb4-4b80-5ee5-4ed8-9d44f0a06edd@oracle.com>
+Date:   Fri, 4 Sep 2020 22:02:10 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-References: <CAHg0Huzvhg7ZizbCGQyyVNdnAWmQCsypRWvdBzm0GWwPzXD0dw@mail.gmail.com>
- <3b2f6267-e7a0-4266-867d-b0109d5a7cb4@acm.org>
-In-Reply-To: <3b2f6267-e7a0-4266-867d-b0109d5a7cb4@acm.org>
-From:   Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Date:   Fri, 4 Sep 2020 13:35:15 +0200
-Message-ID: <CAHg0HuyGr8BfgBvXUG7N5WYyXKEzyh3i7eA=2XZxbW3zyXLTsA@mail.gmail.com>
-Subject: Re: [RFC] Reliable Multicast on top of RTRS
-To:     Bart Van Assche <bvanassche@acm.org>
-Cc:     linux-rdma@vger.kernel.org, linux-block@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20200904113244.GP24045@ziepe.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9733 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 mlxscore=0 bulkscore=0
+ mlxlogscore=999 spamscore=0 adultscore=0 suspectscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2009040128
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9733 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 adultscore=0
+ priorityscore=1501 phishscore=0 mlxlogscore=999 mlxscore=0
+ lowpriorityscore=0 clxscore=1015 spamscore=0 bulkscore=0 impostorscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2009040129
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 3, 2020 at 1:07 AM Bart Van Assche <bvanassche@acm.org> wrote:
->
-> On 2020-09-02 01:04, Danil Kipnis wrote:
-> > RTRS allows for reliable transmission of sg lists between two hosts
-> > over rdma. It is optimised for block io. One can implement a client
-> > and a server module on top of RTRS which would allow for reliable
-> > transmission to a group of hosts.
-> >
-> > In the networking world this is called reliable multicast. I think one
-> > can say that reliable multicast is an equivalent to what is called
-> > "mirror" in the storage world. There is something called XoR network
-> > coding which seems to be an equivalent of raid5. There is also Reed
-> > Solomon network coding.
-> >
-> > Having a reliable multicast with coding rdma-based transport layer
-> > would allow for very flexible and scalable designs of distributed
-> > replication solutions based on different in-kernel transport, block
-> > and replication drivers.
-> >
-> > What do you think?
->
-> How will the resulting software differ from DRBD (other than that it
-> uses RDMA)?
+On 9/4/20 7:32 PM, Jason Gunthorpe wrote:
+> On Fri, Sep 04, 2020 at 12:01:12PM +0800, Ka-Cheong Poon wrote:
+>> On 9/4/20 1:39 AM, Jason Gunthorpe wrote:
+>>> On Thu, Sep 03, 2020 at 10:02:01PM +0800, Ka-Cheong Poon wrote:
+>>>> When a struct ib_client's add() function is called. is there a
+>>>> supported method to find out the namespace of the passed in
+>>>> struct ib_device?  There is rdma_dev_access_netns() but it does
+>>>> not return the namespace.  It seems that it needs to have
+>>>> something like the following.
+>>>>
+>>>> struct net *rdma_dev_to_netns(struct ib_device *ib_dev)
+>>>> {
+>>>>          return read_pnet(&ib_dev->coredev.rdma_net);
+>>>> }
+>>>>
+>>>> Comments?
+>>>
+>>> I suppose, but why would something need this?
+>>
+>>
+>> If the client needs to allocate stuff for the namespace
+>> related to that device, it needs to know the namespace of
+>> that device.  Then when that namespace is deleted, the
+>> client can clean up those related stuff as the client's
+>> namespace exit function can be called before the remove()
+>> function is triggered in rdma_dev_exit_net().  Without
+>> knowing the namespace of that device, coordination cannot
+>> be done.
+> 
+> Since each device can only be in one namespace, why would a client
+> ever need to allocate at a level more granular than a device?
 
-DRBD replicates disks (a local one with a remote one). The idea here
-would be to replicate on the level of hosts, i.e. to support
-replication inside the transport layer. A reliable mc on top of rtrs
-would be more similar to a stack where an md-raid<x> sits on a client
-on top of two or more imported srp/nvmeof/rnbd devices, but with an
-ability to resync between remote machines directly.
 
-> How will it be guaranteed that the resulting software does
-> not suffer from the problems that have been solved by the introduction
-> of the DRBD activity log
-> (https://www.linbit.com/drbd-user-guide/users-guide-drbd-8-4/#s-activity-log)?
+A client wants to have namespace specific info.  If the
+device belongs to a namespace, it wants to associate those
+info with that device.  When a namespace is deleted, the
+info will need to be deleted.  You can consider the info
+as associated with both a namespace and a device.
 
-The above would require some kind of activity log also, I'm afraid.
 
->
-> Thanks,
->
-> Bart.
+-- 
+K. Poon
+ka-cheong.poon@oracle.com
+
+
