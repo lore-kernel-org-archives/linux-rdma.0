@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5916C433E2
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63416C433E2
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:55:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B53CE2078E
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:55:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3106721473
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:55:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729594AbgIGNzZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Sep 2020 09:55:25 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:10830 "EHLO huawei.com"
+        id S1729694AbgIGNzf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Sep 2020 09:55:35 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11244 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729715AbgIGNzK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 7 Sep 2020 09:55:10 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 01F47F6A6FD8EF6DEB72;
-        Mon,  7 Sep 2020 21:38:07 +0800 (CST)
+        id S1729659AbgIGNzN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 7 Sep 2020 09:55:13 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 05EC4266751AC0597168;
+        Mon,  7 Sep 2020 21:38:02 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 7 Sep 2020 21:37:56 +0800
+ 14.3.487.0; Mon, 7 Sep 2020 21:37:54 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 9/9] RDMA/hns: Fix missing sq_sig_type when querying QP
-Date:   Mon, 7 Sep 2020 21:36:48 +0800
-Message-ID: <1599485808-29940-10-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 4/9] RDMA/hns: Correct typo of hns_roce_create_cq()
+Date:   Mon, 7 Sep 2020 21:36:43 +0800
+Message-ID: <1599485808-29940-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
 References: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
@@ -44,27 +44,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The sq_sig_type field should be filled when querying QP, or the users may
-get a wrong value.
+From: Lang Cheng <chenglang@huawei.com>
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Change "initialze" to "initialize".
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/hns/hns_roce_cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index f324a6b..0bc67e3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4831,6 +4831,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 	}
- 
- 	qp_init_attr->cap = qp_attr->cap;
-+	qp_init_attr->sq_sig_type = hr_qp->sq_signal_bits;
- 
- out:
- 	mutex_unlock(&hr_qp->mutex);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index e87d616..4f4f54f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -287,7 +287,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 	/*
+ 	 * For the QP created by kernel space, tptr value should be initialized
+ 	 * to zero; For the QP created by user space, it will cause synchronous
+-	 * problems if tptr is set to zero here, so we initialze it in user
++	 * problems if tptr is set to zero here, so we initialize it in user
+ 	 * space.
+ 	 */
+ 	if (!udata && hr_cq->tptr_addr)
 -- 
 2.8.1
 
