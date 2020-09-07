@@ -2,87 +2,76 @@ Return-Path: <SRS0=uoZ+=CQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B0DC43461
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 16:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 071C1C433E2
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D56F2080A
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 16:58:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599497886;
-	bh=uuUO6kHcVDNnH/wIg6TTJneR+OJeQf6S+KS0dfYWZg4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=x+u/8Q3zSXPv5RpND0spXASVXnwNqXjiHI2maLl2iAGWIJgIPrOFgCEoeY77PbI6t
-	 e5r4nvtP8hA01qZwoVy/G4QsQwDdUIzFqgutPuW1KnNdcfIKEba/J2nCXRM3aimvb2
-	 ZYqPPCVnrnweKgsvUZAnTAh2A+Y/VQ6M9yvHf6Go=
+	by mail.kernel.org (Postfix) with ESMTP id D36C7206B8
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 17:19:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730737AbgIGQ5y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Sep 2020 12:57:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48038 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730616AbgIGQeG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 7 Sep 2020 12:34:06 -0400
-Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.7])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BA0AD21D79;
-        Mon,  7 Sep 2020 16:34:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599496443;
-        bh=uuUO6kHcVDNnH/wIg6TTJneR+OJeQf6S+KS0dfYWZg4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=l3AP9kkfMZPza+CT7MMGseWtaia9gWdxCjq8GzyUIQ2dUF+NRkeX3QVnNL4Zub7Pe
-         aBHvkt52suoBfF2NK9BDhLA46veiltLcIBcZmVS0uXs6RsqqwUqXOTFOHmAuJ00dT/
-         P9tAukcGBYn8QKVVLZG/54Bd/8NR1qXrZWD+VIcA=
-Date:   Mon, 7 Sep 2020 09:34:01 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Jiri Pirko <jiri@resnulli.us>
-Cc:     Leon Romanovsky <leon@kernel.org>, davem@davemloft.net,
-        netdev@vger.kernel.org, kernel-team@fb.com, tariqt@mellanox.com,
-        yishaih@mellanox.com, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next] mlx4: make sure to always set the port type
-Message-ID: <20200907093401.547ae9b8@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20200907071939.GK2997@nanopsycho.orion>
-References: <20200904200621.2407839-1-kuba@kernel.org>
-        <20200906072759.GC55261@unreal>
-        <20200906093305.5c901cc5@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <20200907062135.GJ2997@nanopsycho.orion>
-        <20200907064830.GK55261@unreal>
-        <20200907071939.GK2997@nanopsycho.orion>
+        id S1729725AbgIGNzz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Sep 2020 09:55:55 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11245 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729720AbgIGNzN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 7 Sep 2020 09:55:13 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 09CF8DC3685404B99047;
+        Mon,  7 Sep 2020 21:38:02 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 7 Sep 2020 21:37:54 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next 3/9] RDMA/hns: Add interception for resizing SRQs
+Date:   Mon, 7 Sep 2020 21:36:42 +0800
+Message-ID: <1599485808-29940-4-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
+References: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, 7 Sep 2020 09:19:39 +0200 Jiri Pirko wrote:
-> >The port type is being set to IB or ETH without relation to net_device,
-> >fixing it will require very major code rewrite for the stable driver
-> >that in maintenance mode.  
-> 
-> Because the eth driver is not loaded, I see. The purpose of the
-> WARN in devlink_port_type_eth_set is to prevent drivers from registering
-> particular port without netdev/ibdev. That is what was repeatedly
-> happening in the past as the driver developers didn't know they need to
-> do it or were just lazy to do so.
-> 
-> I wonder if there is any possibility to do both...
+From: Yangyang Li <liyangyang20@huawei.com>
 
-I think we have two options in this case:
- - set type to eth without the netdev
- - selectively mute the warning
+HIP08 doesn't support modifying the maximum number of outstanding WR in an
+SRQ. However, the driver does not return a failure message, and users may
+mistakenly think that the resizing is executed successfully. So the driver
+needs to intercept this operation.
 
-I think the former is better, because we still want to see what the
-port type is. Perhaps we should add a:
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-  dev_warn("devlink port type set without software interface
-            reference, device type not supported by the kernel?");
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 9a9639b..4a88d41 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5044,6 +5044,10 @@ static int hns_roce_v2_modify_srq(struct ib_srq *ibsrq,
+ 	struct hns_roce_cmd_mailbox *mailbox;
+ 	int ret;
+ 
++	/* Resizing SRQs is not supported yet */
++	if (srq_attr_mask & IB_SRQ_MAX_WR)
++		return -EINVAL;
++
+ 	if (srq_attr_mask & IB_SRQ_LIMIT) {
+ 		if (srq_attr->srq_limit >= srq->wqe_cnt)
+ 			return -EINVAL;
+-- 
+2.8.1
 
-That way people won't just pass NULL out of laziness, hopefully.
-
-WDYT?
