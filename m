@@ -2,49 +2,49 @@ Return-Path: <SRS0=uoZ+=CQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1802BC433E2
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2418C433E2
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:29:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5C77206E6
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:28:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CC7D206E6
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:29:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599481737;
-	bh=e4eL9b682zXfm7H+m7ux/nNq+FhO4i6kzoFaXg5CC9Q=;
+	s=default; t=1599481760;
+	bh=agq9VYVOE0+XOxarwaoEIw9kNnG4uYmxpWJc/1PbH9U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=zTd7ZvcF0F63LWigm1m8e8JeRggl/FUE/FLIMWyW/n7y3KWaOG8C5u1JXnh+YR8VM
-	 iWutP2cJaFnXCM6yCvKOah/CBMjknL5VO+dLS440CKz9auUGTXBjruoxdH5YYSKE4F
-	 tDwlkVZIwP0c+K+pQGq/LRLh9z82YoWT7ul67YO0=
+	b=M5mhR9lVqdiW4Jf3EWpbNgCGj60LvXfFdtuwnU0tXfXW6IeYZ1WQftER4ZeyxC4uU
+	 b7b1MdWIMlqYLS4Zn3FPeJ1yfsQdXwzgJy/iT05bXe2L8OeI2sZX4VvTadV5olz5XQ
+	 /eWhjNn38/mYd7ZsppoYUo2RBICU5iz5V2FtoY60=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729003AbgIGM15 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Sep 2020 08:27:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41426 "EHLO mail.kernel.org"
+        id S1729049AbgIGM26 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Sep 2020 08:28:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729329AbgIGMWa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1729301AbgIGMWa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 7 Sep 2020 08:22:30 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BD6382075A;
-        Mon,  7 Sep 2020 12:22:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DDA59216C4;
+        Mon,  7 Sep 2020 12:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599481349;
-        bh=e4eL9b682zXfm7H+m7ux/nNq+FhO4i6kzoFaXg5CC9Q=;
+        s=default; t=1599481342;
+        bh=agq9VYVOE0+XOxarwaoEIw9kNnG4uYmxpWJc/1PbH9U=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=LNilu0lGkF8qEU6NEYgPBbFP6mi9HRBhhBk7M3e7DlTy3t+HUUQhsSwCeaxe1WfJ7
-         1QUxE9vcV9OsbI9RzLKeCtwY9LwZpbkVPGxUAoCS0Uimca5sxI9ObFH/QqPgdNLOIg
-         KMnYh13wakDDSJYvKG2wKLaalVtHnbCyt0vfZ5zc=
+        b=Q+dI9Jp/kfbmi5ggfTyyNeU3plaiNnU1tAjyyZovvkLKvnYwDqsvQ5XIYawRQ9qD3
+         PJjGxJns+WA7pkSS+bTWF4aKqGCRCefH8qYdrciB0ocOaBAclwmJ5s6ZstFZkh0zlm
+         qFV5SRGodxrcchYEx6+Vy4avqo0agQJ5qk22RK4E=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 09/14] RDMA/counter: Combine allocation and bind logic
-Date:   Mon,  7 Sep 2020 15:21:51 +0300
-Message-Id: <20200907122156.478360-10-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v2 07/14] RDMA/cma: Be strict with attaching to CMA device
+Date:   Mon,  7 Sep 2020 15:21:49 +0300
+Message-Id: <20200907122156.478360-8-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200907122156.478360-1-leon@kernel.org>
 References: <20200907122156.478360-1-leon@kernel.org>
@@ -55,238 +55,337 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-RDMA counters are allocated and bounded to QP immediately after that.
-Only after this two step process they are really usable. By combining
-the logic, we are ensuring that once counter is returned to the caller,
-it will have everything set.
+The RDMA-CM code wasn't consistent in flows that attached to cma_dev,
+this caused to situations where failure during attach to listen on such
+device leave RDMA-CM in non-consistent state.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Update the listen/attach flow to correctly deal with failures.
+
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/counters.c | 130 +++++++++++++----------------
- 1 file changed, 58 insertions(+), 72 deletions(-)
+ drivers/infiniband/core/cma.c | 197 ++++++++++++++++++++--------------
+ 1 file changed, 114 insertions(+), 83 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index fa1a4a318fd7..e208cc6d3cb0 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -64,8 +64,40 @@ int rdma_counter_set_auto_mode(struct ib_device *dev, u8 port,
- 	return ret;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 3fc3c821743d..ab1f8b707a5b 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -458,8 +458,8 @@ static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
+ 	return (in_dev) ? 0 : -ENODEV;
  }
  
--static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
--					       enum rdma_nl_counter_mode mode)
-+static void auto_mode_init_counter(struct rdma_counter *counter,
-+				   const struct ib_qp *qp,
-+				   enum rdma_nl_counter_mask new_mask)
-+{
-+	struct auto_mode_param *param = &counter->mode.param;
-+
-+	counter->mode.mode = RDMA_COUNTER_MODE_AUTO;
-+	counter->mode.mask = new_mask;
-+
-+	if (new_mask & RDMA_COUNTER_MASK_QP_TYPE)
-+		param->qp_type = qp->qp_type;
-+}
-+
-+static int __rdma_counter_bind_qp(struct rdma_counter *counter,
-+				  struct ib_qp *qp)
-+{
+-static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
+-			       struct cma_device *cma_dev)
++static int _cma_attach_to_dev(struct rdma_id_private *id_priv,
++			      struct cma_device *cma_dev)
+ {
+ 	cma_dev_get(cma_dev);
+ 	id_priv->cma_dev = cma_dev;
+@@ -475,15 +475,22 @@ static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 	rdma_restrack_add(&id_priv->res);
+ 
+ 	trace_cm_id_attach(id_priv, cma_dev->device);
++	return 0;
+ }
+ 
+-static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+-			      struct cma_device *cma_dev)
++static int cma_attach_to_dev(struct rdma_id_private *id_priv,
++			     struct cma_device *cma_dev)
+ {
+-	_cma_attach_to_dev(id_priv, cma_dev);
 +	int ret;
 +
-+	if (qp->counter)
-+		return -EINVAL;
++	ret = _cma_attach_to_dev(id_priv, cma_dev);
++	if (ret)
++		return ret;
 +
-+	if (!qp->device->ops.counter_bind_qp)
-+		return -EOPNOTSUPP;
+ 	id_priv->gid_type =
+ 		cma_dev->default_gid_type[id_priv->id.port_num -
+ 					  rdma_start_port(cma_dev->device)];
++	return 0;
+ }
+ 
+ static inline void release_mc(struct kref *kref)
+@@ -656,8 +663,7 @@ static int cma_acquire_dev_by_src_ip(struct rdma_id_private *id_priv)
+ 			if (!IS_ERR(sgid_attr)) {
+ 				id_priv->id.port_num = port;
+ 				cma_bind_sgid_attr(id_priv, sgid_attr);
+-				cma_attach_to_dev(id_priv, cma_dev);
+-				ret = 0;
++				ret = cma_attach_to_dev(id_priv, cma_dev);
+ 				goto out;
+ 			}
+ 		}
+@@ -686,6 +692,7 @@ static int cma_ib_acquire_dev(struct rdma_id_private *id_priv,
+ 	const struct ib_gid_attr *sgid_attr;
+ 	enum ib_gid_type gid_type;
+ 	union ib_gid gid;
++	int ret;
+ 
+ 	if (dev_addr->dev_type != ARPHRD_INFINIBAND &&
+ 	    id_priv->id.ps == RDMA_PS_IPOIB)
+@@ -711,9 +718,9 @@ static int cma_ib_acquire_dev(struct rdma_id_private *id_priv,
+ 	 * cma_process_remove().
+ 	 */
+ 	mutex_lock(&lock);
+-	cma_attach_to_dev(id_priv, listen_id_priv->cma_dev);
++	ret = cma_attach_to_dev(id_priv, listen_id_priv->cma_dev);
+ 	mutex_unlock(&lock);
+-	return 0;
++	return ret;
+ }
+ 
+ static int cma_iw_acquire_dev(struct rdma_id_private *id_priv,
+@@ -768,7 +775,7 @@ static int cma_iw_acquire_dev(struct rdma_id_private *id_priv,
+ 
+ out:
+ 	if (!ret)
+-		cma_attach_to_dev(id_priv, cma_dev);
++		ret = cma_attach_to_dev(id_priv, cma_dev);
+ 
+ 	mutex_unlock(&lock);
+ 	return ret;
+@@ -785,7 +792,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	unsigned int p;
+ 	u16 pkey, index;
+ 	enum ib_port_state port_state;
+-	int i;
++	int i, ret;
+ 
+ 	cma_dev = NULL;
+ 	addr = (struct sockaddr_ib *) cma_dst_addr(id_priv);
+@@ -828,8 +835,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	return -ENODEV;
+ 
+ found:
+-	cma_attach_to_dev(id_priv, cma_dev);
++	ret = cma_attach_to_dev(id_priv, cma_dev);
+ 	mutex_unlock(&lock);
++	if (ret)
++		return ret;
+ 	addr = (struct sockaddr_ib *)cma_src_addr(id_priv);
+ 	memcpy(&addr->sib_addr, &sgid, sizeof(sgid));
+ 	cma_translate_ib(addr, &id_priv->id.route.addr.dev_addr);
+@@ -2480,8 +2489,8 @@ static int cma_listen_handler(struct rdma_cm_id *id,
+ 	return id_priv->id.event_handler(id, event);
+ }
+ 
+-static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+-			      struct cma_device *cma_dev)
++static int cma_listen_on_dev(struct rdma_id_private *id_priv,
++			     struct cma_device *cma_dev)
+ {
+ 	struct rdma_id_private *dev_id_priv;
+ 	struct rdma_cm_id *id;
+@@ -2491,12 +2500,12 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	lockdep_assert_held(&lock);
+ 
+ 	if (cma_family(id_priv) == AF_IB && !rdma_cap_ib_cm(cma_dev->device, 1))
+-		return;
++		return 0;
+ 
+ 	id = __rdma_create_id(net, cma_listen_handler, id_priv, id_priv->id.ps,
+ 			      id_priv->id.qp_type, id_priv->res.kern_name);
+ 	if (IS_ERR(id))
+-		return;
++		return PTR_ERR(id);
+ 
+ 	dev_id_priv = container_of(id, struct rdma_id_private, id);
+ 
+@@ -2504,7 +2513,9 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	memcpy(cma_src_addr(dev_id_priv), cma_src_addr(id_priv),
+ 	       rdma_addr_size(cma_src_addr(id_priv)));
+ 
+-	_cma_attach_to_dev(dev_id_priv, cma_dev);
++	ret = _cma_attach_to_dev(dev_id_priv, cma_dev);
++	if (ret)
++		goto err_attach;
+ 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
+ 	cma_id_get(id_priv);
+ 	dev_id_priv->internal_id = 1;
+@@ -2514,8 +2525,14 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 
+ 	ret = rdma_listen(id, id_priv->backlog);
+ 	if (ret)
+-		dev_warn(&cma_dev->device->dev,
+-			 "RDMA CMA: cma_listen_on_dev, error %d\n", ret);
++		goto err_listen;
++	return 0;
++err_listen:
++	list_del(&id_priv->listen_list);
++err_attach:
++	dev_warn(&cma_dev->device->dev, "RDMA CMA: %s, error %d\n", __func__, ret);
++	rdma_destroy_id(id);
++	return ret;
+ }
+ 
+ static void cma_listen_on_all(struct rdma_id_private *id_priv)
+@@ -3113,7 +3130,9 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
+ 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
+ 	id_priv->id.port_num = p;
+-	cma_attach_to_dev(id_priv, cma_dev);
++	ret = cma_attach_to_dev(id_priv, cma_dev);
++	if (ret)
++		goto out;
+ 	cma_set_loopback(cma_src_addr(id_priv));
+ out:
+ 	mutex_unlock(&lock);
+@@ -4729,69 +4748,6 @@ static struct notifier_block cma_nb = {
+ 	.notifier_call = cma_netdev_callback
+ };
+ 
+-static int cma_add_one(struct ib_device *device)
+-{
+-	struct cma_device *cma_dev;
+-	struct rdma_id_private *id_priv;
+-	unsigned int i;
+-	unsigned long supported_gids = 0;
+-	int ret;
+-
+-	cma_dev = kmalloc(sizeof *cma_dev, GFP_KERNEL);
+-	if (!cma_dev)
+-		return -ENOMEM;
+-
+-	cma_dev->device = device;
+-	cma_dev->default_gid_type = kcalloc(device->phys_port_cnt,
+-					    sizeof(*cma_dev->default_gid_type),
+-					    GFP_KERNEL);
+-	if (!cma_dev->default_gid_type) {
+-		ret = -ENOMEM;
+-		goto free_cma_dev;
+-	}
+-
+-	cma_dev->default_roce_tos = kcalloc(device->phys_port_cnt,
+-					    sizeof(*cma_dev->default_roce_tos),
+-					    GFP_KERNEL);
+-	if (!cma_dev->default_roce_tos) {
+-		ret = -ENOMEM;
+-		goto free_gid_type;
+-	}
+-
+-	rdma_for_each_port (device, i) {
+-		supported_gids = roce_gid_type_mask_support(device, i);
+-		WARN_ON(!supported_gids);
+-		if (supported_gids & (1 << CMA_PREFERRED_ROCE_GID_TYPE))
+-			cma_dev->default_gid_type[i - rdma_start_port(device)] =
+-				CMA_PREFERRED_ROCE_GID_TYPE;
+-		else
+-			cma_dev->default_gid_type[i - rdma_start_port(device)] =
+-				find_first_bit(&supported_gids, BITS_PER_LONG);
+-		cma_dev->default_roce_tos[i - rdma_start_port(device)] = 0;
+-	}
+-
+-	init_completion(&cma_dev->comp);
+-	refcount_set(&cma_dev->refcount, 1);
+-	INIT_LIST_HEAD(&cma_dev->id_list);
+-	ib_set_client_data(device, &cma_client, cma_dev);
+-
+-	mutex_lock(&lock);
+-	list_add_tail(&cma_dev->list, &dev_list);
+-	list_for_each_entry(id_priv, &listen_any_list, list)
+-		cma_listen_on_dev(id_priv, cma_dev);
+-	mutex_unlock(&lock);
+-
+-	trace_cm_add_one(device);
+-	return 0;
+-
+-free_gid_type:
+-	kfree(cma_dev->default_gid_type);
+-
+-free_cma_dev:
+-	kfree(cma_dev);
+-	return ret;
+-}
+-
+ static void cma_send_device_removal_put(struct rdma_id_private *id_priv)
+ {
+ 	struct rdma_cm_event event = { .event = RDMA_CM_EVENT_DEVICE_REMOVAL };
+@@ -4854,6 +4810,81 @@ static void cma_process_remove(struct cma_device *cma_dev)
+ 	wait_for_completion(&cma_dev->comp);
+ }
+ 
++static int cma_add_one(struct ib_device *device)
++{
++	struct cma_device *cma_dev;
++	struct rdma_id_private *id_priv;
++	unsigned int i;
++	unsigned long supported_gids = 0;
++	int ret;
 +
-+	mutex_lock(&counter->lock);
-+	ret = qp->device->ops.counter_bind_qp(counter, qp);
-+	mutex_unlock(&counter->lock);
++	cma_dev = kmalloc(sizeof(*cma_dev), GFP_KERNEL);
++	if (!cma_dev)
++		return -ENOMEM;
 +
++	cma_dev->device = device;
++	cma_dev->default_gid_type = kcalloc(device->phys_port_cnt,
++					    sizeof(*cma_dev->default_gid_type),
++					    GFP_KERNEL);
++	if (!cma_dev->default_gid_type) {
++		ret = -ENOMEM;
++		goto free_cma_dev;
++	}
++
++	cma_dev->default_roce_tos = kcalloc(device->phys_port_cnt,
++					    sizeof(*cma_dev->default_roce_tos),
++					    GFP_KERNEL);
++	if (!cma_dev->default_roce_tos) {
++		ret = -ENOMEM;
++		goto free_gid_type;
++	}
++
++	rdma_for_each_port (device, i) {
++		supported_gids = roce_gid_type_mask_support(device, i);
++		WARN_ON(!supported_gids);
++		if (supported_gids & (1 << CMA_PREFERRED_ROCE_GID_TYPE))
++			cma_dev->default_gid_type[i - rdma_start_port(device)] =
++				CMA_PREFERRED_ROCE_GID_TYPE;
++		else
++			cma_dev->default_gid_type[i - rdma_start_port(device)] =
++				find_first_bit(&supported_gids, BITS_PER_LONG);
++		cma_dev->default_roce_tos[i - rdma_start_port(device)] = 0;
++	}
++
++	init_completion(&cma_dev->comp);
++	refcount_set(&cma_dev->refcount, 1);
++	INIT_LIST_HEAD(&cma_dev->id_list);
++	ib_set_client_data(device, &cma_client, cma_dev);
++
++	mutex_lock(&lock);
++	list_add_tail(&cma_dev->list, &dev_list);
++	list_for_each_entry(id_priv, &listen_any_list, list) {
++		ret = cma_listen_on_dev(id_priv, cma_dev);
++		if (ret) {
++			mutex_unlock(&lock);
++			goto free_listen;
++		}
++	}
++	mutex_unlock(&lock);
++
++	trace_cm_add_one(device);
++	return 0;
++
++free_listen:
++	mutex_lock(&lock);
++	list_del(&cma_dev->list);
++	mutex_unlock(&lock);
++
++	cma_process_remove(cma_dev);
++	kfree(cma_dev->default_roce_tos);
++free_gid_type:
++	kfree(cma_dev->default_gid_type);
++
++free_cma_dev:
++	kfree(cma_dev);
 +	return ret;
 +}
 +
-+static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u8 port,
-+					   struct ib_qp *qp,
-+					   enum rdma_nl_counter_mode mode)
+ static void cma_remove_one(struct ib_device *device, void *client_data)
  {
- 	struct rdma_port_counter *port_counter;
- 	struct rdma_counter *counter;
-@@ -88,11 +120,19 @@ static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
- 
- 	port_counter = &dev->port_data[port].port_counter;
- 	mutex_lock(&port_counter->lock);
--	if (mode == RDMA_COUNTER_MODE_MANUAL) {
-+	switch (mode) {
-+	case RDMA_COUNTER_MODE_MANUAL:
- 		ret = __counter_set_mode(&port_counter->mode,
- 					 RDMA_COUNTER_MODE_MANUAL, 0);
- 		if (ret)
- 			goto err_mode;
-+		break;
-+	case RDMA_COUNTER_MODE_AUTO:
-+		auto_mode_init_counter(counter, qp, port_counter->mode.mask);
-+		break;
-+	default:
-+		ret = -EOPNOTSUPP;
-+		goto err_mode;
- 	}
- 
- 	port_counter->num_counters++;
-@@ -102,6 +142,12 @@ static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
- 	kref_init(&counter->kref);
- 	mutex_init(&counter->lock);
- 
-+	ret = __rdma_counter_bind_qp(counter, qp);
-+	if (ret)
-+		goto err_mode;
-+
-+	rdma_restrack_parent_name(&counter->res, &qp->res);
-+	rdma_restrack_add(&counter->res);
- 	return counter;
- 
- err_mode:
-@@ -132,19 +178,6 @@ static void rdma_counter_free(struct rdma_counter *counter)
- 	kfree(counter);
- }
- 
--static void auto_mode_init_counter(struct rdma_counter *counter,
--				   const struct ib_qp *qp,
--				   enum rdma_nl_counter_mask new_mask)
--{
--	struct auto_mode_param *param = &counter->mode.param;
--
--	counter->mode.mode = RDMA_COUNTER_MODE_AUTO;
--	counter->mode.mask = new_mask;
--
--	if (new_mask & RDMA_COUNTER_MASK_QP_TYPE)
--		param->qp_type = qp->qp_type;
--}
--
- static bool auto_mode_match(struct ib_qp *qp, struct rdma_counter *counter,
- 			    enum rdma_nl_counter_mask auto_mask)
- {
-@@ -161,24 +194,6 @@ static bool auto_mode_match(struct ib_qp *qp, struct rdma_counter *counter,
- 	return match;
- }
- 
--static int __rdma_counter_bind_qp(struct rdma_counter *counter,
--				  struct ib_qp *qp)
--{
--	int ret;
--
--	if (qp->counter)
--		return -EINVAL;
--
--	if (!qp->device->ops.counter_bind_qp)
--		return -EOPNOTSUPP;
--
--	mutex_lock(&counter->lock);
--	ret = qp->device->ops.counter_bind_qp(counter, qp);
--	mutex_unlock(&counter->lock);
--
--	return ret;
--}
--
- static int __rdma_counter_unbind_qp(struct ib_qp *qp)
- {
- 	struct rdma_counter *counter = qp->counter;
-@@ -247,13 +262,6 @@ static struct rdma_counter *rdma_get_counter_auto_mode(struct ib_qp *qp,
- 	return counter;
- }
- 
--static void rdma_counter_res_add(struct rdma_counter *counter,
--				 struct ib_qp *qp)
--{
--	rdma_restrack_parent_name(&counter->res, &qp->res);
--	rdma_restrack_add(&counter->res);
--}
--
- static void counter_release(struct kref *kref)
- {
- 	struct rdma_counter *counter;
-@@ -293,19 +301,9 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
- 			return ret;
- 		}
- 	} else {
--		counter = rdma_counter_alloc(dev, port, RDMA_COUNTER_MODE_AUTO);
-+		counter = alloc_and_bind(dev, port, qp, RDMA_COUNTER_MODE_AUTO);
- 		if (!counter)
- 			return -ENOMEM;
--
--		auto_mode_init_counter(counter, qp, port_counter->mode.mask);
--
--		ret = __rdma_counter_bind_qp(counter, qp);
--		if (ret) {
--			rdma_counter_free(counter);
--			return ret;
--		}
--
--		rdma_counter_res_add(counter, qp);
- 	}
- 
- 	return 0;
-@@ -419,15 +417,6 @@ static struct ib_qp *rdma_counter_get_qp(struct ib_device *dev, u32 qp_num)
- 	return NULL;
- }
- 
--static int rdma_counter_bind_qp_manual(struct rdma_counter *counter,
--				       struct ib_qp *qp)
--{
--	if ((counter->device != qp->device) || (counter->port != qp->port))
--		return -EINVAL;
--
--	return __rdma_counter_bind_qp(counter, qp);
--}
--
- static struct rdma_counter *rdma_get_counter_by_id(struct ib_device *dev,
- 						   u32 counter_id)
- {
-@@ -475,7 +464,12 @@ int rdma_counter_bind_qpn(struct ib_device *dev, u8 port,
- 		goto err_task;
- 	}
- 
--	ret = rdma_counter_bind_qp_manual(counter, qp);
-+	if ((counter->device != qp->device) || (counter->port != qp->port)) {
-+		ret = -EINVAL;
-+		goto err_task;
-+	}
-+
-+	ret = __rdma_counter_bind_qp(counter, qp);
- 	if (ret)
- 		goto err_task;
- 
-@@ -520,26 +514,18 @@ int rdma_counter_bind_qpn_alloc(struct ib_device *dev, u8 port,
- 		goto err;
- 	}
- 
--	counter = rdma_counter_alloc(dev, port, RDMA_COUNTER_MODE_MANUAL);
-+	counter = alloc_and_bind(dev, port, qp, RDMA_COUNTER_MODE_MANUAL);
- 	if (!counter) {
- 		ret = -ENOMEM;
- 		goto err;
- 	}
- 
--	ret = rdma_counter_bind_qp_manual(counter, qp);
--	if (ret)
--		goto err_bind;
--
- 	if (counter_id)
- 		*counter_id = counter->id;
- 
--	rdma_counter_res_add(counter, qp);
--
- 	rdma_restrack_put(&qp->res);
--	return ret;
-+	return 0;
- 
--err_bind:
--	rdma_counter_free(counter);
- err:
- 	rdma_restrack_put(&qp->res);
- 	return ret;
+ 	struct cma_device *cma_dev = client_data;
 -- 
 2.26.2
 
