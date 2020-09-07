@@ -2,121 +2,106 @@ Return-Path: <SRS0=uoZ+=CQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD3AC433E2
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B185C43461
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:54:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F0A5C21473
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 12:44:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="T9kSV4Vx"
+	by mail.kernel.org (Postfix) with ESMTP id 5B9862078E
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Sep 2020 13:54:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728952AbgIGMou (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Sep 2020 08:44:50 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:11897 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729262AbgIGMor (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Sep 2020 08:44:47 -0400
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5f562b1a0000>; Mon, 07 Sep 2020 05:44:10 -0700
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Mon, 07 Sep 2020 05:44:24 -0700
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Mon, 07 Sep 2020 05:44:24 -0700
-Received: from [172.27.12.170] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 7 Sep
- 2020 12:44:16 +0000
-Subject: Re: [PATCH rdma-next 3/4] lib/scatterlist: Add support in dynamic
- allocation of SG table from pages
-To:     Christoph Hellwig <hch@lst.de>, Leon Romanovsky <leon@kernel.org>
-CC:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-References: <20200903121853.1145976-1-leon@kernel.org>
- <20200903121853.1145976-4-leon@kernel.org> <20200907072921.GC19875@lst.de>
-From:   Maor Gottlieb <maorg@nvidia.com>
-Message-ID: <15552707-c9ae-b76b-f6ff-7fedd5b02aed@nvidia.com>
-Date:   Mon, 7 Sep 2020 15:44:08 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.2.1
+        id S1729690AbgIGNyY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Sep 2020 09:54:24 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11241 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729714AbgIGNyT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 7 Sep 2020 09:54:19 -0400
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id EDF76C169A5847C8F6FB;
+        Mon,  7 Sep 2020 21:38:01 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 7 Sep 2020 21:37:56 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next 8/9] RDMA/hns: Fix configuration of ack_req_freq in QPC
+Date:   Mon, 7 Sep 2020 21:36:47 +0800
+Message-ID: <1599485808-29940-9-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
+References: <1599485808-29940-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20200907072921.GC19875@lst.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1599482650; bh=Do+ITTDxBPQkRwNINDAMtH/xddQo5kNkcXGmE8sqjYI=;
-        h=X-PGP-Universal:Subject:To:CC:References:From:Message-ID:Date:
-         User-Agent:MIME-Version:In-Reply-To:Content-Type:
-         Content-Transfer-Encoding:Content-Language:X-Originating-IP:
-         X-ClientProxiedBy;
-        b=T9kSV4Vx3B5KdRjaa2H9jq5hfVpsWyHmHeZo8m9GE/J0ZZnId6jCB8TZmVUpK8Ice
-         FV6Q7vvKlIoIuvv0HhR0I2SMC97KcKbT4TI63pJpKiB1YfbRTYLQ1Mlhsz2Smjy4lj
-         LkqbVDtLtM3sei34IQX41ndOdcRECr7Vx914sJh6x8OpEANC5k86qo5fWtfZ3mvQc1
-         eWChnZH+yxHmxM2GjSNaZX+7qAiro30JXqv1CyceB+zEXkcWgriINYAPv7OmYI4uiy
-         RAgR1SzsTGGy1pc8SbuSPb5ylRguuYh23V/1+FXIHRXry/GACHeAYnOuah/aiE+e+R
-         Y/q5m1lubwfpw==
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+The hardware will add AckReq flag in BTH header according to the value of
+ack_req_freq to request ACK from responder for the packets with this flag.
+It should be greater than or equal to lp_pktn_ini instead of using a fixed
+value.
 
-On 9/7/2020 10:29 AM, Christoph Hellwig wrote:
-> On Thu, Sep 03, 2020 at 03:18:52PM +0300, Leon Romanovsky wrote:
->> +struct sg_append {
->> +	struct scatterlist *prv; /* Previous entry to append */
->> +	unsigned int left_pages; /* Left pages to add to table */
->> +};
-> I don't really see the point in this structure.   Either pass it as
-> two separate arguments, or switch sg_alloc_table_append and the
-> internal helper to pass all arguments as a struct.
+Fixes: 7b9bd73ed13d ("RDMA/hns: Fix wrong assignment of lp_pktn_ini in QPC")
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-I did it to avoid more than 8 arguments of this function, will change it 
-to be 9 if it's fine for you.
->
->> + *    A user may provide an offset at a start and a size of valid data in a buffer
->> + *    specified by the page array. A user may provide @append to chain pages to
-> This adds a few pointles > 80 char lines.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 47722c3..f324a6b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3672,9 +3672,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 			     V2_QPC_BYTE_76_SRQ_EN_S, 1);
+ 	}
+ 
+-	roce_set_field(context->byte_172_sq_psn, V2_QPC_BYTE_172_ACK_REQ_FREQ_M,
+-		       V2_QPC_BYTE_172_ACK_REQ_FREQ_S, 4);
+-
+ 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
+ 
+ 	hr_qp->access_flags = attr->qp_access_flags;
+@@ -3985,6 +3982,7 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	dma_addr_t trrl_ba;
+ 	dma_addr_t irrl_ba;
+ 	enum ib_mtu mtu;
++	u8 lp_pktn_ini;
+ 	u8 port_num;
+ 	u64 *mtts;
+ 	u8 *dmac;
+@@ -4092,13 +4090,21 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	}
+ 
+ #define MAX_LP_MSG_LEN 65536
+-	/* MTU*(2^LP_PKTN_INI) shouldn't be bigger than 64kb */
++	/* MTU * (2 ^ LP_PKTN_INI) shouldn't be bigger than 64KB */
++	lp_pktn_ini = ilog2(MAX_LP_MSG_LEN / ib_mtu_enum_to_int(mtu));
++
+ 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_LP_PKTN_INI_M,
+-		       V2_QPC_BYTE_56_LP_PKTN_INI_S,
+-		       ilog2(MAX_LP_MSG_LEN / ib_mtu_enum_to_int(mtu)));
++		       V2_QPC_BYTE_56_LP_PKTN_INI_S, lp_pktn_ini);
+ 	roce_set_field(qpc_mask->byte_56_dqpn_err, V2_QPC_BYTE_56_LP_PKTN_INI_M,
+ 		       V2_QPC_BYTE_56_LP_PKTN_INI_S, 0);
+ 
++	/* ACK_REQ_FREQ should be larger than or equal to LP_PKTN_INI */
++	roce_set_field(context->byte_172_sq_psn, V2_QPC_BYTE_172_ACK_REQ_FREQ_M,
++		       V2_QPC_BYTE_172_ACK_REQ_FREQ_S, lp_pktn_ini);
++	roce_set_field(qpc_mask->byte_172_sq_psn,
++		       V2_QPC_BYTE_172_ACK_REQ_FREQ_M,
++		       V2_QPC_BYTE_172_ACK_REQ_FREQ_S, 0);
++
+ 	roce_set_bit(qpc_mask->byte_108_rx_reqepsn,
+ 		     V2_QPC_BYTE_108_RX_REQ_PSN_ERR_S, 0);
+ 	roce_set_field(qpc_mask->byte_96_rx_reqmsn, V2_QPC_BYTE_96_RX_REQ_MSN_M,
+-- 
+2.8.1
 
-Will fix.
->
->> +struct scatterlist *
->> +sg_alloc_table_append(struct sg_table *sgt, struct page **pages,
->> +		      unsigned int n_pages, unsigned int offset,
->> +		      unsigned long size, unsigned int max_segment,
->> +		      gfp_t gfp_mask, struct sg_append *append)
->> +{
->> +#ifdef CONFIG_ARCH_NO_SG_CHAIN
->> +	if (append->left_pages)
->> +		return ERR_PTR(-EOPNOTSUPP);
->> +#endif
-> Which makes this API entirely useless for !CONFIG_ARCH_NO_SG_CHAIN,
-> doesn't it?  Wouldn't it make more sense to not provide it for that
-> case and add an explicitl dependency in the callers?
-
-Current implementation allow us to support small memory registration 
-which not require chaining. I am not aware which archs has the SG_CHAIN 
-support and I don't want to break it so I can't add it to as dependency 
-to the Kconfig. Another option is to do the logic in the caller, but it 
-isn't clean.
-
->
->> +	return alloc_from_pages_common(sgt, pages, n_pages, offset, size,
->> +				       max_segment, gfp_mask, append);
-> And if we somehow manage to sort that out we can merge
-> sg_alloc_table_append and alloc_from_pages_common, reducing the amount
-> of wrappers that just make it too hard to follow the code.
->
->> +EXPORT_SYMBOL(sg_alloc_table_append);
-> EXPORT_SYMBOL_GPL, please.
-
-Sure
