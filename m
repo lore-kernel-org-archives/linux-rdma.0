@@ -2,79 +2,189 @@ Return-Path: <SRS0=hINg=CR=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97B90C2BC11
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Sep 2020 19:34:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA26FC43461
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Sep 2020 19:38:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 586142137B
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Sep 2020 19:34:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FCEF2137B
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Sep 2020 19:38:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FSeEJm3J"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="hgdf7Gcn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731528AbgIHTeR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Sep 2020 15:34:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59878 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731926AbgIHTeN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Sep 2020 15:34:13 -0400
-Received: from mail-oi1-x22c.google.com (mail-oi1-x22c.google.com [IPv6:2607:f8b0:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE859C061573
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Sep 2020 12:34:12 -0700 (PDT)
-Received: by mail-oi1-x22c.google.com with SMTP id i17so17549749oig.10
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Sep 2020 12:34:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=to:from:subject:message-id:date:user-agent:mime-version
-         :content-language:content-transfer-encoding;
-        bh=Fy5ymBjjWnfEAeyjKphSyewH/is6WKQ7xMzptSFI3WA=;
-        b=FSeEJm3JNjA5bjWqkbG5tllrfEz0HXXEU+evZIASdgurVMDc88oftYxSdj4l4plNpd
-         XKiuDjQrEubJvst5I0miVJU+MncllhmIhYYCgu0L/1NvM9rYEs+PUWi+Hcfoh3R4X0IF
-         ffMvhAcJGUD6EKnNXD+G3uBZYuqnyGMyJAWRw5yg/X8LaDoEUo0FonCj1Z/6SaC/YzX6
-         tvwnJHi7KfKoWVQHg2OhY3dewONv87EaoLBBiGhlwNumdIGN4Vus7Im6UVsh7iJHys3E
-         MciGG/UrFGT/+h3CNEnbDvOjh7YtznZd/dRSgSx0UIACsNRzf8zRoQRuBDcKCJnW0yK+
-         YWRA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
-         :mime-version:content-language:content-transfer-encoding;
-        bh=Fy5ymBjjWnfEAeyjKphSyewH/is6WKQ7xMzptSFI3WA=;
-        b=C0susZsq6ku3DYXjc1ygJX48a8FI0ZKXNHALuOLJxlOdQaYOWYIiAl0UxgVh/6uQ0j
-         CL/qMChsWnn7TrJvQVgoO65L5pQBr1zb0gllWkpZ1okU2OSmYmm2yaJu7p5ud6zP9nTh
-         hbbdQstwu0RJ9ZWAiX7PKLTLZYGmuemF1d1cqi4ws2ohyII4/xNQUaMy64KiFiNgzIVQ
-         XMH/6MGjXIDJ/O2u5ZLYHIMAMfmoP8iI3SOrccn8e7yjIawmWgirpOeJYBglySTgjYzR
-         rjlRC7veNzdZ5jw8ZJQI2X3loKdYjiPPLC9heajs8Y5ZjREnipfv27SPdjjfumKdn2KJ
-         e1jg==
-X-Gm-Message-State: AOAM532WiTorKBOi4ccGjNv9Yv2eOLqxr8gg/ZhN0ZTl/82448YvjmoM
-        8Jydu68ufRXlsktp8ODRavuSvpAa3x4=
-X-Google-Smtp-Source: ABdhPJzpYv76dpeazGJl/epuw7cxf7aTHAs+UOcrnDxhdno9CBrH1I7EKf3tLP3ksinUo9m/SB7NrA==
-X-Received: by 2002:a05:6808:3d6:: with SMTP id o22mr349378oie.150.1599593649986;
-        Tue, 08 Sep 2020 12:34:09 -0700 (PDT)
-Received: from ?IPv6:2605:6000:8b03:f000:9815:7696:31ff:cdb4? ([2605:6000:8b03:f000:9815:7696:31ff:cdb4])
-        by smtp.gmail.com with ESMTPSA id z16sm26153oth.43.2020.09.08.12.34.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Sep 2020 12:34:09 -0700 (PDT)
-To:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-Subject: mcast bugs
-Message-ID: <10c076fe-3a45-d42e-7e33-218ccc635b7e@gmail.com>
-Date:   Tue, 8 Sep 2020 14:34:09 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1732144AbgIHTiW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Sep 2020 15:38:22 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:5581 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730761AbgIHPzo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Sep 2020 11:55:44 -0400
+Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f5794c90000>; Tue, 08 Sep 2020 07:27:21 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate102.nvidia.com (PGP Universal service);
+  Tue, 08 Sep 2020 07:28:11 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate102.nvidia.com on Tue, 08 Sep 2020 07:28:11 -0700
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 8 Sep
+ 2020 14:28:00 +0000
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
+ by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Tue, 8 Sep 2020 14:28:00 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=anqLbhypsaJ8s0Cf4kU54TMoCPRYg0FEI81wmJkiAfiBgYOOmG4FDilwSU2wmGdRIhXuCXwUaD0Wr7PArlasltWtXuajTjzwEAohq143YgGlRA+xgBWFYZo/CfuLvKB9yQM0PqrZcHLFUfvodr3yXvr+sSh2/HOUR/oCc8IU5Etxp9gdMxrGeaPAlxObPDtosxJl7yExHsOC/92Wb6SjSmPoyz7EqrFvP7PKtzPofKWQbtrRGQSf8VC7FhfzfoiEBfnOiDsCMqIg/VsnEBehyhtrVa0gIqTML4ATn6udDdzIsOF1cFsS2BzcxzbK4ZOKslOYcEfxeqEdWrwezxlHww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TR6hFxoROnR2xJO8bJ5pp3aj5Q7yY/gQRMEdOB8+K1A=;
+ b=ZPOfUEx2ueDW8Du2ZU5Ih2E8zvuqwcb4+wBQvVKhJhwdUwaIzRAYmWGYstrSBxgyEYMaGkEEFKrZm7oosRWXZ9SUcX/D1GxHor2h0jCHyWiVcvfIiFLMZhvA8zu5gj0bDwLowUYf7KABW9zvW2qTE4LgkUUmX8o4O2DasZIAwlnvhsbVLsJ/nFM2fvOpSxz1IWJOfN0txRwgWV/Vppo99bs57DHdX2za9vIq572VwEeAGYLWEKKtA5Qg/IgnCAKfZrP3aBm1W6ufjklBh/w1T0SSiicbyIwiuYewrNH8C+lecB+l/m9c8RGZ5zepD/KVWmgGHp2FqAw+DrCzSQXxCg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=nvidia.com;
+Received: from BY5PR12MB3827.namprd12.prod.outlook.com (2603:10b6:a03:1ab::16)
+ by BYAPR12MB3303.namprd12.prod.outlook.com (2603:10b6:a03:131::28) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.15; Tue, 8 Sep
+ 2020 14:27:58 +0000
+Received: from BY5PR12MB3827.namprd12.prod.outlook.com
+ ([fe80::445b:111e:a091:66f9]) by BY5PR12MB3827.namprd12.prod.outlook.com
+ ([fe80::445b:111e:a091:66f9%6]) with mapi id 15.20.3348.019; Tue, 8 Sep 2020
+ 14:27:58 +0000
+Date:   Tue, 8 Sep 2020 11:27:56 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Aharon Landau <aharonl@mellanox.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        Ariel Elior <aelior@marvell.com>,
+        "Dennis Dalessandro" <dennis.dalessandro@intel.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        <linux-rdma@vger.kernel.org>,
+        Michael Guralnik <michaelgur@nvidia.com>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        "Mike Marciniszyn" <mike.marciniszyn@intel.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Somnath Kotur <somnath.kotur@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>
+Subject: Re: [PATCH rdma-next v1 3/3] RDMA: Fix link active_speed size
+Message-ID: <20200908142756.GH9166@nvidia.com>
+References: <20200902074503.743310-1-leon@kernel.org>
+ <20200902074503.743310-4-leon@kernel.org> <20200908141924.GG9166@nvidia.com>
+ <20200908142651.GE421756@unreal>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20200908142651.GE421756@unreal>
+X-ClientProxiedBy: MN2PR05CA0059.namprd05.prod.outlook.com
+ (2603:10b6:208:236::28) To BY5PR12MB3827.namprd12.prod.outlook.com
+ (2603:10b6:a03:1ab::16)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR05CA0059.namprd05.prod.outlook.com (2603:10b6:208:236::28) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3370.11 via Frontend Transport; Tue, 8 Sep 2020 14:27:58 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kFebE-0030co-Fs; Tue, 08 Sep 2020 11:27:56 -0300
+X-Originating-IP: [156.34.48.30]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 3d0d6c4f-2459-44d8-f09b-08d854036236
+X-MS-TrafficTypeDiagnostic: BYAPR12MB3303:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <BYAPR12MB3303A6FC54A550852A395462C2290@BYAPR12MB3303.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4714;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: oKDOraCPha/AJj4zJgEVchKBqVYv/8fO8aZ82+emKMvKABkEI4xA3b5pTvO9xymbJIyiEVMAmzmMxH0TQgUehn8yLBRyZH2TpNOgpZrn06Y9I8VsaeGrOGLgXBF2uPj0fhmsPw3YzEuK14KMPs2z/g6MreLjd6c2csP9NHh+serjQA6PD6hOe9N8HVcRv3CKxQLy44PZnPWEPtySmPZAHTfzTW+c5YVWdj7hJ1CJgCP1qf+tfFxFynL/MUeotxjaT7BvqaELI5Jgrjzv+JWhmCTyYzWKeTzb3xRpSjUT7zsPIfbL9YTobp1RyhQ38eR2
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB3827.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(39860400002)(396003)(136003)(376002)(346002)(316002)(478600001)(66946007)(83380400001)(9746002)(9786002)(1076003)(54906003)(86362001)(4326008)(186003)(26005)(33656002)(426003)(66556008)(7416002)(66476007)(2616005)(8676002)(36756003)(2906002)(6916009)(5660300002)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: 201XP53659jp1WoTzORVzAbFGhlkQ+rQ0ifPMLrdHN2M1+2riiEbK+J2hKztOXzdrg39hIz6antsdrNM096geRLSP2V00PpVHpALnz1hmowjLogRIHccFg0JhE1xPpnY7Zc/HGMf5/1AZ+4YdgUEOX0l/xpZo7yMS9kAEMX45vCaha352KTGaSACg4AV5nE/0oH/xVEwtUmruvNweytfxLZjoVgXBeWe0ace7sMsFPByH399x6Mfw7tsdThr/UKgVXdAgXcDeTu2dPnNBaDY7mQKsCLJ3JsSimMGfVRgOGCBew10d6KHjN7nolGfEwJ4qtg53IQ/qlVonPCPV6q2SIfsmgbjQ9u2f9vHv1oQOH+0QiCTs3+sEXtp9VlEx8N5NOG+Vf8k/W+THatbZ3oZKfrUUOLTsNg7Uc5ffvVR4S2cxtwmKf/0qH7JD+OWUCoawG0SFt1d1ev3p9JDXoDOYPQ2VN/V4rn25huY6BYfXSKT0EwvGogtBY0r48Cau/pRBmV9YMoJz1oxtiPDptyKvKa71cOjqDCxZ1t5X9EaPS9ZPezWDMXajvLU6J49DfAHS5/GQEs2oh4kEImZoAoNyGdnFJd3jQ/3uTwCbdgt0BQNBe2Qby7qwX0VH4U59/FAf6zvSOfpG1REmXKRIfG8ig==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3d0d6c4f-2459-44d8-f09b-08d854036236
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB3827.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2020 14:27:58.4516
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: eP5Qx+PtvAxtvYNkiW98Bw2vhiICYhQTKIWClj8rfHBigRLrWysPV272zNpCGRyf
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3303
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1599575241; bh=TR6hFxoROnR2xJO8bJ5pp3aj5Q7yY/gQRMEdOB8+K1A=;
+        h=X-PGP-Universal:ARC-Seal:ARC-Message-Signature:
+         ARC-Authentication-Results:Authentication-Results:Date:From:To:CC:
+         Subject:Message-ID:References:Content-Type:Content-Disposition:
+         In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Originating-IP:
+         X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id:
+         X-MS-TrafficTypeDiagnostic:X-MS-Exchange-Transport-Forked:
+         X-Microsoft-Antispam-PRVS:X-MS-Oob-TLC-OOBClassifiers:
+         X-MS-Exchange-SenderADCheck:X-Microsoft-Antispam:
+         X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+         X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=hgdf7GcnhpE3ZPlIqATUHd4O7KkdE/Uq5YIsR8l1FCpi52vAfbK1lSEaE0uKECTP/
+         YUvDHzAdkdDB94WSruq844lIMmyxlf1mUnZe9IYOmjfnOPvtE3rLN5b4YMRMb+F3yF
+         h+L1sUIRcxymT+4oAnYl7rQdbmRFDqSciGdNMd2wxqyKMkIwtZwJq89KlQW5SQmhvv
+         VD8Dx6KthrETkj68uin51e9RqPLhxZk0wEI4UDljXqbAHr7z03yf040jRH9QtPIJdk
+         aC+Sm7XNfC71XH2HAZAfJxae6Lcq2EPRzV/losY3uWFzrT4ITAWngYRp9p0mFDyGiS
+         dDht1yJGk1qBw==
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Jason,
+On Tue, Sep 08, 2020 at 05:26:51PM +0300, Leon Romanovsky wrote:
+> On Tue, Sep 08, 2020 at 11:19:24AM -0300, Jason Gunthorpe wrote:
+> > On Wed, Sep 02, 2020 at 10:45:03AM +0300, Leon Romanovsky wrote:
+> > > From: Aharon Landau <aharonl@mellanox.com>
+> > >
+> > > According to the IB spec active_speed size should be u16 and not u8 as
+> > > before. Changing it to allow further extensions in offered speeds.
+> > >
+> > > Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> > > Signed-off-by: Aharon Landau <aharonl@mellanox.com>
+> > > Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+> > > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> > >  drivers/infiniband/core/uverbs_std_types_device.c | 3 ++-
+> > >  drivers/infiniband/core/verbs.c                   | 2 +-
+> > >  drivers/infiniband/hw/bnxt_re/bnxt_re.h           | 2 +-
+> > >  drivers/infiniband/hw/hfi1/verbs.c                | 2 +-
+> > >  drivers/infiniband/hw/mlx5/main.c                 | 8 ++------
+> > >  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c       | 2 +-
+> > >  drivers/infiniband/hw/qedr/verbs.c                | 2 +-
+> > >  drivers/infiniband/hw/qib/qib.h                   | 6 +++---
+> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   | 2 +-
+> > >  include/rdma/ib_verbs.h                           | 4 ++--
+> > >  10 files changed, 15 insertions(+), 18 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
+> > > index 75df2094a010..7b03446b6936 100644
+> > > +++ b/drivers/infiniband/core/uverbs_std_types_device.c
+> > > @@ -165,7 +165,8 @@ void copy_port_attr_to_resp(struct ib_port_attr *attr,
+> > >  	resp->subnet_timeout = attr->subnet_timeout;
+> > >  	resp->init_type_reply = attr->init_type_reply;
+> > >  	resp->active_width = attr->active_width;
+> > > -	resp->active_speed = attr->active_speed;
+> > > +	WARN_ON(attr->active_speed & ~0xFF);
+> >
+> > ?? This doesn't seem like a warn on situation..
+> 
+> Why? We are returning u8 to the user, so need to catch overflow.
 
-I have fixed the multicast bugs in the rxe driver. Aside from what we discussed last week there were some issues in the pools code. This work is done on top of the memory windows work which also changed the pools code. My preference is to wait until you accept the rest of the MW patches and then submit the extended API work (which is done) and then the multicast work but I don't know when or if all that will happen. The current status is that rxe no longer fails any of the pyverbs tests and only skips 31 of them (DMR, XRC, and a few others.)
+We need to have actual backwards compat here, not just throw a warning
+at the syscall boundary
 
-Bob
+Why can't it just be truncated?
+
+Jason
