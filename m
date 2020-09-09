@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63FBDC43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BC8BC2D0E1
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:59:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DF21218AC
+	by mail.kernel.org (Postfix) with ESMTP id 41D8221919
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730154AbgIII66 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Sep 2020 04:58:58 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11285 "EHLO huawei.com"
+        id S1730140AbgIII65 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Sep 2020 04:58:57 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11284 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726726AbgIII6y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 9 Sep 2020 04:58:54 -0400
+        id S1730154AbgIII6z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 9 Sep 2020 04:58:55 -0400
 Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id AC36B5CBB5947B061025;
+        by Forcepoint Email with ESMTP id 9FA4682AA7264ABF66AA;
         Wed,  9 Sep 2020 16:58:53 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 9 Sep 2020 16:58:43 +0800
+ 14.3.487.0; Wed, 9 Sep 2020 16:58:42 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 9/9] RDMA/hns: Fix missing sq_sig_type when querying QP
-Date:   Wed, 9 Sep 2020 16:57:34 +0800
-Message-ID: <1599641854-23160-10-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 7/9] RDMA/hns: Fix the wrong value of rnr_retry when querying qp
+Date:   Wed, 9 Sep 2020 16:57:32 +0800
+Message-ID: <1599641854-23160-8-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1599641854-23160-1-git-send-email-liweihang@huawei.com>
 References: <1599641854-23160-1-git-send-email-liweihang@huawei.com>
@@ -44,27 +44,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The sq_sig_type field should be filled when querying QP, or the users may
-get a wrong value.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+The rnr_retry returned to the user is not correct, it should be got from
+another fields in QPC.
+
+Fixes: bfe860351e31 ("RDMA/hns: Fix cast from or to restricted __le32 for driver")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index fe11c9a..8d30b74 100644
+index af2dea1..fdbc6b0 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4834,6 +4834,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 	}
+@@ -4810,7 +4810,9 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	qp_attr->retry_cnt = roce_get_field(context.byte_212_lsn,
+ 					    V2_QPC_BYTE_212_RETRY_CNT_M,
+ 					    V2_QPC_BYTE_212_RETRY_CNT_S);
+-	qp_attr->rnr_retry = le32_to_cpu(context.rq_rnr_timer);
++	qp_attr->rnr_retry = roce_get_field(context.byte_244_rnr_rxack,
++					    V2_QPC_BYTE_244_RNR_CNT_M,
++					    V2_QPC_BYTE_244_RNR_CNT_S);
  
- 	qp_init_attr->cap = qp_attr->cap;
-+	qp_init_attr->sq_sig_type = hr_qp->sq_signal_bits;
- 
- out:
- 	mutex_unlock(&hr_qp->mutex);
+ done:
+ 	qp_attr->cur_qp_state = qp_attr->qp_state;
 -- 
 2.8.1
 
