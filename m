@@ -2,83 +2,71 @@ Return-Path: <SRS0=lJT2=CS=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E767DC433E2
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB7EC433E2
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:58:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2AD82087C
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:19:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="u6XnoI6Y"
+	by mail.kernel.org (Postfix) with ESMTP id 83C8621D7E
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Sep 2020 08:58:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726036AbgIIITJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Sep 2020 04:19:09 -0400
-Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:52582 "EHLO
-        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725826AbgIIITI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Sep 2020 04:19:08 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1599639548; x=1631175548;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=45BC4yv5wtqiUn4+pxh9kj3t1j8pD0yFkt5hA7y3I8M=;
-  b=u6XnoI6Y6AqoY6dWOx66z/HJaGCTngo/kyNsiPlGC70rzTzOzweUs8he
-   oNJJMEfmi15SIip6JOfqHFvdkryLb/wT8CmiqK2bxaThHoirDuO2aykWE
-   AlU4pFTE/SYYtJLKSewD+JhXcrr6kT7oX4+eyBo206eqbZ41wWaO2xWgY
-   4=;
-X-IronPort-AV: E=Sophos;i="5.76,409,1592870400"; 
-   d="scan'208";a="73496428"
-Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2b-baacba05.us-west-2.amazon.com) ([10.47.23.38])
-  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 09 Sep 2020 08:19:01 +0000
-Received: from EX13D19EUB001.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2b-baacba05.us-west-2.amazon.com (Postfix) with ESMTPS id 230C3A0647;
-        Wed,  9 Sep 2020 08:19:00 +0000 (UTC)
-Received: from 8c85908914bf.ant.amazon.com (10.43.162.167) by
- EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 9 Sep 2020 08:18:54 +0000
-Subject: Re: [PATCH v2 07/17] RDMA/efa: Use ib_umem_num_dma_pages()
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>,
-        Firas JahJah <firasj@amazon.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-References: <7-v2-270386b7e60b+28f4-umem_1_jgg@nvidia.com>
- <d9cb7f02-86d0-25d6-1314-cc048fd1ebae@amazon.com>
- <20200908134852.GE9166@nvidia.com>
-From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <b1b96707-59f8-5c5d-d529-6f6d9ed16d9f@amazon.com>
-Date:   Wed, 9 Sep 2020 11:18:49 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
- Gecko/20100101 Thunderbird/68.12.0
+        id S1730150AbgIII6v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Sep 2020 04:58:51 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:11278 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1730128AbgIII6u (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 9 Sep 2020 04:58:50 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 8ED765EA1F8E53A32899;
+        Wed,  9 Sep 2020 16:58:48 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.487.0; Wed, 9 Sep 2020 16:58:41 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 4/9] RDMA/hns: Correct typo of hns_roce_create_cq()
+Date:   Wed, 9 Sep 2020 16:57:29 +0800
+Message-ID: <1599641854-23160-5-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1599641854-23160-1-git-send-email-liweihang@huawei.com>
+References: <1599641854-23160-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20200908134852.GE9166@nvidia.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.162.167]
-X-ClientProxiedBy: EX13D34UWA003.ant.amazon.com (10.43.160.69) To
- EX13D19EUB001.ant.amazon.com (10.43.166.229)
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 08/09/2020 16:48, Jason Gunthorpe wrote:
-> On Mon, Sep 07, 2020 at 03:19:54PM +0300, Gal Pressman wrote:
->> On 05/09/2020 1:41, Jason Gunthorpe wrote:
->>> If ib_umem_find_best_pgsz() returns > PAGE_SIZE then the equation here is
->>> not correct. 'start' should be 'virt'. Change it to use the core code for
->>> page_num and the canonical calculation of page_shift.
->>
->> Should I submit a fix for stable changing start to virt?
-> 
-> I suspect EFA users never use ibv_reg_mr_iova() so won't have an
-> actual bug?
+From: Lang Cheng <chenglang@huawei.com>
 
-That's still a driver bug though, regardless of the userspace so I'd rather fix it.
-Should I submit a patch to for-rc? It would conflict with the for-next one.
+Change "initialze" to "initialize".
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index e87d616..4f4f54f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -287,7 +287,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 	/*
+ 	 * For the QP created by kernel space, tptr value should be initialized
+ 	 * to zero; For the QP created by user space, it will cause synchronous
+-	 * problems if tptr is set to zero here, so we initialze it in user
++	 * problems if tptr is set to zero here, so we initialize it in user
+ 	 * space.
+ 	 */
+ 	if (!udata && hr_cq->tptr_addr)
+-- 
+2.8.1
+
