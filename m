@@ -2,231 +2,94 @@ Return-Path: <SRS0=jqE+=CT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1524AC43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 14:19:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B3C4C433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 14:35:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C18D220708
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 14:19:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599747590;
-	bh=NC59gY6gDpF4St8Avgs63Ch9l94JS70uezB7Z0FXG/A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=w+zoLOv9TZLLQoL8hnxduF87n9H5QWeGOLiNSlmIxlAtB7BzlRCWGO5sOCexMX9NT
-	 FiI3HVfcQIrE0JKr0GUcQ1mJodBKPI86PMAVfnVmuG2BbAB0MprJ2ZF5iXzgJ49XcY
-	 S0on19nqtA6F4k5UjTXqcxdbxba1cyI6wiamTN8o=
+	by mail.kernel.org (Postfix) with ESMTP id 5A9D820BED
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 14:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731025AbgIJOSj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 10:18:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42948 "EHLO mail.kernel.org"
+        id S1730469AbgIJOew convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 10:34:52 -0400
+Received: from mga18.intel.com ([134.134.136.126]:59601 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731113AbgIJOKa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 10:10:30 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D0DC72087C;
-        Thu, 10 Sep 2020 14:00:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599746454;
-        bh=NC59gY6gDpF4St8Avgs63Ch9l94JS70uezB7Z0FXG/A=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aeMTXt5fAyip/Cqe9ohDXHEszhnsl/Vz3OQkzcgdX6LSm+GGVUlfLLX+V3YL/1nO0
-         y5cWEKvvP/yZEa6tggAoHf5lnY2SflWNilw3Rs+3nRO1nB7hbf7u3K6vzaLXiPU6AK
-         XSFhlUeqC/k3X6bq30s59fbBjf1BZK6SIY8Aw5W0=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
+        id S1731019AbgIJObP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 10:31:15 -0400
+IronPort-SDR: OTPpc1VBKeg+hBetJ7RYEPbP3Vro45/ZPgv35emsCgO4azJ4DVWFzlOpdKHnh+wRgUXb3sDBGm
+ OO2kDCi4+J+Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9739"; a="146261918"
+X-IronPort-AV: E=Sophos;i="5.76,413,1592895600"; 
+   d="scan'208";a="146261918"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2020 07:31:13 -0700
+IronPort-SDR: YwD3ByGVX2uxV95cYEAQntsgJLm67BJBFzAljvyGvsfCYhteodr05Ku2oi3KvgEqmKFgYTRBZv
+ ky+mowGfI1RA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.76,413,1592895600"; 
+   d="scan'208";a="300569708"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by orsmga003.jf.intel.com with ESMTP; 10 Sep 2020 07:31:12 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Thu, 10 Sep 2020 07:30:44 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Thu, 10 Sep 2020 07:30:43 -0700
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.1713.004;
+ Thu, 10 Sep 2020 07:30:43 -0700
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 01/10] RDMA/mlx5: Embed GSI QP into general mlx5_ib QP
-Date:   Thu, 10 Sep 2020 17:00:37 +0300
-Message-Id: <20200910140046.1306341-2-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200910140046.1306341-1-leon@kernel.org>
+CC:     Leon Romanovsky <leonro@nvidia.com>,
+        "Latif, Faisal" <faisal.latif@intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: [PATCH rdma-next 10/10] RDMA/i40iw: Remove intermediate pointer
+ that points to the same struct
+Thread-Topic: [PATCH rdma-next 10/10] RDMA/i40iw: Remove intermediate pointer
+ that points to the same struct
+Thread-Index: AQHWh3rfsYJ+XjDqSE65y7ubBuANialh7rRg
+Date:   Thu, 10 Sep 2020 14:30:42 +0000
+Message-ID: <0b8aa47177d247acbfa7e9c901db1b4c@intel.com>
 References: <20200910140046.1306341-1-leon@kernel.org>
+ <20200910140046.1306341-11-leon@kernel.org>
+In-Reply-To: <20200910140046.1306341-11-leon@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+x-originating-ip: [10.22.254.132]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+> Subject: [PATCH rdma-next 10/10] RDMA/i40iw: Remove intermediate pointer that
+> points to the same struct
+> 
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> There is no real need to have an intermediate pointer for the same struct, remove it,
+> and use struct directly.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
 
-The GSI QPs have different create flow from the regular QPs, but it is
-not really needed. Update the code to use mlx5_ib_qp as a storage class
-for all outside of GSI calls.
+Looks good. Thanks!
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/gsi.c     | 38 +++++++---------------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 25 +++++++++++++++---
- drivers/infiniband/hw/mlx5/qp.c      |  2 +-
- 3 files changed, 32 insertions(+), 33 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index d9f300f78a82..0b18558ba7b0 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -39,26 +39,6 @@ struct mlx5_ib_gsi_wr {
- 	bool completed:1;
- };
- 
--struct mlx5_ib_gsi_qp {
--	struct ib_qp ibqp;
--	struct ib_qp *rx_qp;
--	u8 port_num;
--	struct ib_qp_cap cap;
--	enum ib_sig_type sq_sig_type;
--	/* Serialize qp state modifications */
--	struct mutex mutex;
--	struct ib_cq *cq;
--	struct mlx5_ib_gsi_wr *outstanding_wrs;
--	u32 outstanding_pi, outstanding_ci;
--	int num_qps;
--	/* Protects access to the tx_qps. Post send operations synchronize
--	 * with tx_qp creation in setup_qp(). Also protects the
--	 * outstanding_wrs array and indices.
--	 */
--	spinlock_t lock;
--	struct ib_qp **tx_qps;
--};
--
- static struct mlx5_ib_gsi_qp *gsi_qp(struct ib_qp *qp)
- {
- 	return container_of(qp, struct mlx5_ib_gsi_qp, ibqp);
-@@ -116,6 +96,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- 				    struct ib_qp_init_attr *init_attr)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
-+	struct mlx5_ib_qp *mqp;
- 	struct mlx5_ib_gsi_qp *gsi;
- 	struct ib_qp_init_attr hw_init_attr = *init_attr;
- 	const u8 port_num = init_attr->port_num;
-@@ -130,10 +111,11 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- 			num_qps = MLX5_MAX_PORTS;
- 	}
- 
--	gsi = kzalloc(sizeof(*gsi), GFP_KERNEL);
--	if (!gsi)
-+	mqp = kzalloc(sizeof(struct mlx5_ib_qp), GFP_KERNEL);
-+	if (!mqp)
- 		return ERR_PTR(-ENOMEM);
- 
-+	gsi = &mqp->gsi;
- 	gsi->tx_qps = kcalloc(num_qps, sizeof(*gsi->tx_qps), GFP_KERNEL);
- 	if (!gsi->tx_qps) {
- 		ret = -ENOMEM;
-@@ -216,20 +198,18 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- err_free_tx:
- 	kfree(gsi->tx_qps);
- err_free:
--	kfree(gsi);
-+	kfree(mqp);
- 	return ERR_PTR(ret);
- }
- 
--int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp)
-+int mlx5_ib_destroy_gsi(struct mlx5_ib_qp *mqp)
- {
--	struct mlx5_ib_dev *dev = to_mdev(qp->device);
--	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
-+	struct mlx5_ib_dev *dev = to_mdev(mqp->ibqp.device);
-+	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
- 	const int port_num = gsi->port_num;
- 	int qp_index;
- 	int ret;
- 
--	mlx5_ib_dbg(dev, "destroying GSI QP\n");
--
- 	mutex_lock(&dev->devr.mutex);
- 	ret = mlx5_ib_destroy_qp(gsi->rx_qp, NULL);
- 	if (ret) {
-@@ -253,7 +233,7 @@ int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp)
- 
- 	kfree(gsi->outstanding_wrs);
- 	kfree(gsi->tx_qps);
--	kfree(gsi);
-+	kfree(mqp);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 184abd5f493c..7e0eb815724b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -384,6 +384,26 @@ struct mlx5_ib_dct {
- 	u32                     *in;
- };
- 
-+struct mlx5_ib_gsi_qp {
-+	struct ib_qp ibqp;
-+	struct ib_qp *rx_qp;
-+	u8 port_num;
-+	struct ib_qp_cap cap;
-+	enum ib_sig_type sq_sig_type;
-+	/* Serialize qp state modifications */
-+	struct mutex mutex;
-+	struct ib_cq *cq;
-+	struct mlx5_ib_gsi_wr *outstanding_wrs;
-+	u32 outstanding_pi, outstanding_ci;
-+	int num_qps;
-+	/* Protects access to the tx_qps. Post send operations synchronize
-+	 * with tx_qp creation in setup_qp(). Also protects the
-+	 * outstanding_wrs array and indices.
-+	 */
-+	spinlock_t lock;
-+	struct ib_qp **tx_qps;
-+};
-+
- struct mlx5_ib_qp {
- 	struct ib_qp		ibqp;
- 	union {
-@@ -391,6 +411,7 @@ struct mlx5_ib_qp {
- 		struct mlx5_ib_raw_packet_qp raw_packet_qp;
- 		struct mlx5_ib_rss_qp rss_qp;
- 		struct mlx5_ib_dct dct;
-+		struct mlx5_ib_gsi_qp gsi;
- 	};
- 	struct mlx5_frag_buf	buf;
- 
-@@ -693,8 +714,6 @@ struct mlx5_mr_cache {
- 	unsigned long		last_add;
- };
- 
--struct mlx5_ib_gsi_qp;
--
- struct mlx5_ib_port_resources {
- 	struct mlx5_ib_resources *devr;
- 	struct mlx5_ib_gsi_qp *gsi;
-@@ -1322,7 +1341,7 @@ void mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
- /* GSI QP helper functions */
- struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
- 				    struct ib_qp_init_attr *init_attr);
--int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp);
-+int mlx5_ib_destroy_gsi(struct mlx5_ib_qp *mqp);
- int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 			  int attr_mask);
- int mlx5_ib_gsi_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index e8dd32d6a7ab..92dda0e50f5d 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3037,7 +3037,7 @@ int mlx5_ib_destroy_qp(struct ib_qp *qp, struct ib_udata *udata)
- 	struct mlx5_ib_qp *mqp = to_mqp(qp);
- 
- 	if (unlikely(qp->qp_type == IB_QPT_GSI))
--		return mlx5_ib_gsi_destroy_qp(qp);
-+		return mlx5_ib_destroy_gsi(mqp);
- 
- 	if (mqp->type == MLX5_IB_QPT_DCT)
- 		return mlx5_ib_destroy_dct(mqp);
--- 
-2.26.2
-
+Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
