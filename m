@@ -2,61 +2,53 @@ Return-Path: <SRS0=jqE+=CT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B022EC43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60419C2D0A7
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78FC6221E3
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15A1E221E3
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599773416;
-	bh=NuAQLLVniMTiSvD3NX63hR8Ps+um5HbA+yYGRbERCBs=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=r0MukmBaT+/7RPAsDZRwSWDybgPwgju0J6ndolZA00g/LM9Gj9J0XWmBqXteb8Gtx
-	 e7n0z/404xstIoVIE+jGFGeS/5Of2F5UB8s0uKTTdu9dXdd+WdjO0sCHLnlVMuDji4
-	 AzgjpKHWmczWcHNh3py0pxLNxrfwwUZpwz+komks=
+	s=default; t=1599773420;
+	bh=EuJ3DDnGxpn1b4NJ5S6T6I2j3DNthhmZ0w0Bvk1ZIuM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=pcdRfTWtBpJbi+PRp4Z1thbpqnLfOqdM59aEOoVA2N5yXZURphcFM5IZ/s+prt8FH
+	 HB3p21WIrLc5pAW+bdqfjBN7Mj/+j2E5psZLZbUYlP6vsj3wbJmB99dYstOaClLnlF
+	 ByybUH+/S2gwfit3T1YPD4dE10nBUcQM/N0TbwvE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727952AbgIJVaM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 17:30:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36896 "EHLO mail.kernel.org"
+        id S1728048AbgIJVaS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:30:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730368AbgIJOCp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1730978AbgIJOCp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 10 Sep 2020 10:02:45 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 53784206BE;
-        Thu, 10 Sep 2020 14:00:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 298B921D6C;
+        Thu, 10 Sep 2020 14:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599746451;
-        bh=NuAQLLVniMTiSvD3NX63hR8Ps+um5HbA+yYGRbERCBs=;
-        h=From:To:Cc:Subject:Date:From;
-        b=yEH2terUPqcySCZBBnx0Y3G3VIqdcs4YJwkjozcORo2pbdBF+K5w1y21JQDosuyP/
-         QrQN4hg/IYGip/gdhoH/ctYL6c2c9p4nXXbZ94MEaczBUdlrXwsCHHN80KDpU8jeyN
-         dH4Ubyx3F5KI623tIiGNT0mJ0TLEe3G3NxjZmASs=
+        s=default; t=1599746461;
+        bh=EuJ3DDnGxpn1b4NJ5S6T6I2j3DNthhmZ0w0Bvk1ZIuM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=trbn/V5M89FcZbeUc2z/ahpOw7YUTnfvYbzVt83Odi3eAN5C+ecznzHAYpdMQUFD2
+         FEuOuMw1KNkU+4sba3vs3s9OifGmx44m1uArdts5BTZyqjGCV3g5Mob25hEn2TOyI7
+         Zay6kD9f9wXlLOelhgxM024RFDfEHpAh6Ooh9RIU=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Ariel Elior <aelior@marvell.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Lijun Ou <oulijun@huawei.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Weihang Li <liweihang@huawei.com>,
-        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 00/10] Prepare drivers to move QP allocation to ib_core
-Date:   Thu, 10 Sep 2020 17:00:36 +0300
-Message-Id: <20200910140046.1306341-1-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next 04/10] RDMA/mlx5: Delete not needed GSI QP signature QP type
+Date:   Thu, 10 Sep 2020 17:00:40 +0300
+Message-Id: <20200910140046.1306341-5-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200910140046.1306341-1-leon@kernel.org>
+References: <20200910140046.1306341-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -66,45 +58,69 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Hi,
+GSI QP doesn't need signature QP type because it is initialized
+statically to zero, which is IB_SIGNAL_ALL_WR also wr->send_flags isn't
+set too. This means that the GSI QP signature QP type can be removed.
 
-This series mainly changes mlx4, mlx5, and mthca drivers to future
-change of QP allocation scheme.
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/gsi.c     | 8 +-------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 -
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-The rdmavt driver will be sent separately.
-
-Thanks
-
-Leon Romanovsky (10):
-  RDMA/mlx5: Embed GSI QP into general mlx5_ib QP
-  RDMA/mlx5: Reuse existing fields in parent QP storage object
-  RDMA/mlx5: Change GSI QP to have same creation flow like other QPs
-  RDMA/mlx5: Delete not needed GSI QP signature QP type
-  RDMA/mlx4: Embed GSI QP into general mlx4_ib QP
-  RDMA/mlx4: Prepare QP allocation to remove from the driver
-  RDMA/core: Align write and ioctl checks of QP types
-  RDMA/drivers: Remove udata check from special QP
-  RDMA/mthca: Combine special QP struct with mthca QP
-  RDMA/i40iw: Remove intermediate pointer that points to the same struct
-
- drivers/infiniband/core/uverbs_cmd.c         |  17 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c      |  57 ++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    |   9 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   1 -
- drivers/infiniband/hw/mlx4/mlx4_ib.h         |  25 +-
- drivers/infiniband/hw/mlx4/qp.c              | 285 ++++++++-----------
- drivers/infiniband/hw/mlx5/gsi.c             | 138 +++------
- drivers/infiniband/hw/mlx5/main.c            |   6 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |  28 +-
- drivers/infiniband/hw/mlx5/qp.c              |  50 ++--
- drivers/infiniband/hw/mthca/mthca_dev.h      |   2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |  17 +-
- drivers/infiniband/hw/mthca/mthca_provider.h |  27 +-
- drivers/infiniband/hw/mthca/mthca_qp.c       |  75 +++--
- drivers/infiniband/hw/qedr/verbs.c           |   8 -
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |   3 +-
- 16 files changed, 329 insertions(+), 419 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
+index f5aa1167cb9c..7fcad9135276 100644
+--- a/drivers/infiniband/hw/mlx5/gsi.c
++++ b/drivers/infiniband/hw/mlx5/gsi.c
+@@ -35,7 +35,6 @@
+ struct mlx5_ib_gsi_wr {
+ 	struct ib_cqe cqe;
+ 	struct ib_wc wc;
+-	int send_flags;
+ 	bool completed:1;
+ };
+ 
+@@ -59,10 +58,7 @@ static void generate_completions(struct mlx5_ib_qp *mqp)
+ 		if (!wr->completed)
+ 			break;
+ 
+-		if (gsi->sq_sig_type == IB_SIGNAL_ALL_WR ||
+-		    wr->send_flags & IB_SEND_SIGNALED)
+-			WARN_ON_ONCE(mlx5_ib_generate_wc(gsi_cq, &wr->wc));
+-
++		WARN_ON_ONCE(mlx5_ib_generate_wc(gsi_cq, &wr->wc));
+ 		wr->completed = false;
+ 	}
+ 
+@@ -132,7 +128,6 @@ int mlx5_ib_create_gsi(struct ib_pd *pd, struct mlx5_ib_qp *mqp,
+ 	spin_lock_init(&gsi->lock);
+ 
+ 	gsi->cap = attr->cap;
+-	gsi->sq_sig_type = attr->sq_sig_type;
+ 	gsi->port_num = port_num;
+ 
+ 	gsi->cq = ib_alloc_cq(pd->device, gsi, attr->cap.max_send_wr, 0,
+@@ -236,7 +231,6 @@ static struct ib_qp *create_gsi_ud_qp(struct mlx5_ib_gsi_qp *gsi)
+ 			.max_send_sge = gsi->cap.max_send_sge,
+ 			.max_inline_data = gsi->cap.max_inline_data,
+ 		},
+-		.sq_sig_type = gsi->sq_sig_type,
+ 		.qp_type = IB_QPT_UD,
+ 		.create_flags = MLX5_IB_QP_CREATE_SQPN_QP1,
+ 	};
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 1cea4940991f..4921701b666a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -388,7 +388,6 @@ struct mlx5_ib_gsi_qp {
+ 	struct ib_qp *rx_qp;
+ 	u8 port_num;
+ 	struct ib_qp_cap cap;
+-	enum ib_sig_type sq_sig_type;
+ 	struct ib_cq *cq;
+ 	struct mlx5_ib_gsi_wr *outstanding_wrs;
+ 	u32 outstanding_pi, outstanding_ci;
+-- 
 2.26.2
 
