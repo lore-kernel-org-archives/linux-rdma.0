@@ -7,47 +7,56 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 711ADC2D0A7
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:26:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7746AC43461
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FFA421D92
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:26:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C13821D92
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599773191;
-	bh=7cSBis6ieClEk+sEqsxJSISWCI6GmvYwiBg/oxz8Jws=;
+	s=default; t=1599773305;
+	bh=CE5Om7Xs96ETIkCh6b7+Br5rmEoOB+MDMjYPBYfvVVo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=nDv1hoT+ul56ZOuTdKqVtngHv+c4sXStrEPqR1ey3g1fQa8YpOy25ILkgbW4O1oPH
-	 GhcAoFS2rgczb5V0tn6BLAkIg8rFRa6jip89pSxldWq3ia1HQrTj0GV169aJYlw/zx
-	 RChNXuWhMKKGlyHcqi/xXTytwmsfUTbdNsOc8v+E=
+	b=YQYDIxNArWF/GuyU6Id6KOScCPmNXuYLl0z+t21uf38DitzbyvkPci3ZgsQr026im
+	 wnZomFH95qlKYjVY+sRCZd4XZhZVRxejrav004C2f9qdICmplrLD6cIVGQdcEt/9F2
+	 GlEUlk4dWLBS+mZteDPrh0xnFiNRuEHfWZZdtXpI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727983AbgIJV03 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 17:26:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46030 "EHLO mail.kernel.org"
+        id S1728312AbgIJV2W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:28:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730740AbgIJOXG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 10:23:06 -0400
+        id S1731047AbgIJODt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 10:03:49 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4306520C09;
-        Thu, 10 Sep 2020 14:22:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D04E2221EB;
+        Thu, 10 Sep 2020 14:01:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599747733;
-        bh=7cSBis6ieClEk+sEqsxJSISWCI6GmvYwiBg/oxz8Jws=;
+        s=default; t=1599746486;
+        bh=CE5Om7Xs96ETIkCh6b7+Br5rmEoOB+MDMjYPBYfvVVo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VCGf0saAAeeCkEmSYZET82P7NxVDy1hswdS8SfqmPYAIK5uDQitNg860oOl+AWqRr
-         M1+7GUHWVHzeXI+CXL6z5wg6eetKw/xfT0ifC0RFqGrbNuNCdv9Kty1dcCuUNVzClD
-         bNklfJgJJ8/rg5RBHsGPjZSUDK7LVhzJ1oyIOKyc=
+        b=Lcqmk3deSJSFoEJvVYwf0pslCTYRPOiIsPV8qr4401Iu6VKDBrzAYtmhxbdnt0faJ
+         SJHJYNDTvsJfbTkiClio3/b86PmPQfNJoZZrIpM45w1YLDAQrWjcFzRbLupwxC5N2b
+         B8HvtOipy9z4ihCOPVm7lV+V3e0Azp2/mmuOiXLk=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/4] RDMA/core: Change rdma_get_gid_attr returned error code
-Date:   Thu, 10 Sep 2020 17:22:01 +0300
-Message-Id: <20200910142204.1309061-2-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Lijun Ou <oulijun@huawei.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>,
+        Weihang Li <liweihang@huawei.com>,
+        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-next 08/10] RDMA/drivers: Remove udata check from special QP
+Date:   Thu, 10 Sep 2020 17:00:44 +0300
+Message-Id: <20200910140046.1306341-9-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200910142204.1309061-1-leon@kernel.org>
-References: <20200910142204.1309061-1-leon@kernel.org>
+In-Reply-To: <20200910140046.1306341-1-leon@kernel.org>
+References: <20200910140046.1306341-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,51 +64,183 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Avihai Horon <avihaih@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Change the error code returned from rdma_get_gid_attr when the GID entry
-is invalid but the GID index is in the gid table size range to -ENODATA
-instead of -EINVAL.
+GSI QP can't be created from the user space, hence the udata check is
+always true (udata == NULL). Remove that check and simplify the flow.
 
-This change is done in order to provide a more accurate error reporting
-to be used by the new GID query API in user space. Nevertheless, -EINVAL
-is still returned from sysfs in the aforementioned case to maintain
-compatibility with user space that expects -EINVAL.
-
-Signed-off-by: Avihai Horon <avihaih@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cache.c | 2 +-
- drivers/infiniband/core/sysfs.c | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c      | 57 +++++++-------------
+ drivers/infiniband/hw/mlx4/qp.c              |  3 --
+ drivers/infiniband/hw/mlx5/qp.c              | 12 -----
+ drivers/infiniband/hw/mthca/mthca_provider.c |  4 --
+ drivers/infiniband/hw/qedr/verbs.c           |  8 ---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |  3 +-
+ 6 files changed, 19 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index ffad73bb40ff..6079f1f7e678 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1220,7 +1220,7 @@ EXPORT_SYMBOL(ib_get_cached_port_state);
- const struct ib_gid_attr *
- rdma_get_gid_attr(struct ib_device *device, u8 port_num, int index)
- {
--	const struct ib_gid_attr *attr = ERR_PTR(-EINVAL);
-+	const struct ib_gid_attr *attr = ERR_PTR(-ENODATA);
- 	struct ib_gid_table *table;
- 	unsigned long flags;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 975281f03468..7aafbccb5787 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1014,53 +1014,32 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 	int ret;
  
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 01d85da00187..1a5507b79437 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -391,7 +391,8 @@ static ssize_t _show_port_gid_attr(
+ 	switch (init_attr->qp_type) {
+-	case IB_QPT_RC: {
+-		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
+-		if (!hr_qp)
+-			return ERR_PTR(-ENOMEM);
+-
+-		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
+-						hr_qp);
+-		if (ret) {
+-			ibdev_err(ibdev, "Create QP 0x%06lx failed(%d)\n",
+-				  hr_qp->qpn, ret);
+-			kfree(hr_qp);
+-			return ERR_PTR(ret);
+-		}
+-
++	case IB_QPT_RC:
++	case IB_QPT_GSI:
+ 		break;
++	default:
++		ibdev_err(ibdev, "not support QP type %d\n",
++			  init_attr->qp_type);
++		return ERR_PTR(-EOPNOTSUPP);
+ 	}
+-	case IB_QPT_GSI: {
+-		/* Userspace is not allowed to create special QPs: */
+-		if (udata) {
+-			ibdev_err(ibdev, "not support usr space GSI\n");
+-			return ERR_PTR(-EINVAL);
+-		}
  
- 	gid_attr = rdma_get_gid_attr(p->ibdev, p->port_num, tab_attr->index);
- 	if (IS_ERR(gid_attr))
--		return PTR_ERR(gid_attr);
-+		/* -EINVAL is returned for user space compatibility reasons. */
-+		return -EINVAL;
+-		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
+-		if (!hr_qp)
+-			return ERR_PTR(-ENOMEM);
++	hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
++	if (!hr_qp)
++		return ERR_PTR(-ENOMEM);
  
- 	ret = print(gid_attr, buf);
- 	rdma_put_gid_attr(gid_attr);
++	if (init_attr->qp_type == IB_QPT_GSI) {
+ 		hr_qp->port = init_attr->port_num - 1;
+ 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
+-
+-		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
+-						hr_qp);
+-		if (ret) {
+-			ibdev_err(ibdev, "Create GSI QP failed!\n");
+-			kfree(hr_qp);
+-			return ERR_PTR(ret);
+-		}
+-
+-		break;
+-	}
+-	default:{
+-		ibdev_err(ibdev, "not support QP type %d\n",
+-			  init_attr->qp_type);
+-		return ERR_PTR(-EOPNOTSUPP);
+-	}
+ 	}
+ 
++	ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, hr_qp);
++	if (ret) {
++		ibdev_err(ibdev, "Create QP type 0x%x failed(%d)\n",
++			  init_attr->qp_type, ret);
++		ibdev_err(ibdev, "Create GSI QP failed!\n");
++		kfree(hr_qp);
++		return ERR_PTR(ret);
++	}
+ 	return &hr_qp->ibqp;
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 39c52c311dad..7f0290112db7 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1547,9 +1547,6 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struct mlx4_ib_qp *qp,
+ 	{
+ 		int sqpn;
+ 
+-		/* Userspace is not allowed to create special QPs: */
+-		if (udata)
+-			return -EINVAL;
+ 		if (init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI) {
+ 			int res = mlx4_qp_reserve_range(to_mdev(pd->device)->dev,
+ 							1, 1, &sqpn, 0,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 7e9bf75c33e4..22f678ba1a68 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2511,18 +2511,6 @@ static int check_valid_flow(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		return -EINVAL;
+ 	}
+ 
+-	switch (attr->qp_type) {
+-	case IB_QPT_SMI:
+-	case MLX5_IB_QPT_HW_GSI:
+-	case MLX5_IB_QPT_REG_UMR:
+-	case IB_QPT_GSI:
+-		mlx5_ib_dbg(dev, "Kernel doesn't support QP type %d\n",
+-			    attr->qp_type);
+-		return -EINVAL;
+-	default:
+-		break;
+-	}
+-
+ 	/*
+ 	 * We don't need to see this warning, it means that kernel code
+ 	 * missing ib_pd. Placed here to catch developer's mistakes.
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 82ee252fe5aa..5dbddf8faf99 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -535,10 +535,6 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	case IB_QPT_SMI:
+ 	case IB_QPT_GSI:
+ 	{
+-		/* Don't allow userspace to create special QPs */
+-		if (udata)
+-			return ERR_PTR(-EINVAL);
+-
+ 		qp = kzalloc(sizeof(struct mthca_sqp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 208d89495ad6..3337d4b6a841 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -1213,14 +1213,6 @@ static int qedr_check_qp_attrs(struct ib_pd *ibpd, struct qedr_dev *dev,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Unprivileged user space cannot create special QP */
+-	if (udata && attrs->qp_type == IB_QPT_GSI) {
+-		DP_ERR(dev,
+-		       "create qp: userspace can't create special QPs of type=0x%x\n",
+-		       attrs->qp_type);
+-		return -EINVAL;
+-	}
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+index 8a385acf6f0c..428256c55065 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+@@ -232,8 +232,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_GSI:
+ 		if (init_attr->port_num == 0 ||
+-		    init_attr->port_num > pd->device->phys_port_cnt ||
+-		    udata) {
++		    init_attr->port_num > pd->device->phys_port_cnt) {
+ 			dev_warn(&dev->pdev->dev, "invalid queuepair attrs\n");
+ 			ret = -EINVAL;
+ 			goto err_qp;
 -- 
 2.26.2
 
