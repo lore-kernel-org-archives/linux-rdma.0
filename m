@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60419C2D0A7
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF7BDC43461
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:33:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15A1E221E3
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:30:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 802D4208E4
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:33:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599773420;
-	bh=EuJ3DDnGxpn1b4NJ5S6T6I2j3DNthhmZ0w0Bvk1ZIuM=;
+	s=default; t=1599773618;
+	bh=8lYbDqhfIjJmzqVHEQLm+4G/p+IEHQ+tWYCpjoxjols=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=pcdRfTWtBpJbi+PRp4Z1thbpqnLfOqdM59aEOoVA2N5yXZURphcFM5IZ/s+prt8FH
-	 HB3p21WIrLc5pAW+bdqfjBN7Mj/+j2E5psZLZbUYlP6vsj3wbJmB99dYstOaClLnlF
-	 ByybUH+/S2gwfit3T1YPD4dE10nBUcQM/N0TbwvE=
+	b=UKt96h9Ham+S2bgDGSqPZVcy3JyUtjUxNhYml6yzUECcZyZTPAhkJ8ekPHOfP6FG9
+	 ogyebX8TkXZCaz+xiuFDMJWrkm8k2lXLj37yQPvy/LDVogzsGyb54mS4LPT/2H5aQ8
+	 A77+k2v8B/0FJsOmzVtzQD01q6MgA781zYwvDw3I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728048AbgIJVaS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 17:30:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38570 "EHLO mail.kernel.org"
+        id S1725876AbgIJVde (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:33:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730978AbgIJOCp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 10:02:45 -0400
+        id S1730973AbgIJNuh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 09:50:37 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 298B921D6C;
-        Thu, 10 Sep 2020 14:01:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E8DB1208E4;
+        Thu, 10 Sep 2020 13:43:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599746461;
-        bh=EuJ3DDnGxpn1b4NJ5S6T6I2j3DNthhmZ0w0Bvk1ZIuM=;
+        s=default; t=1599745392;
+        bh=8lYbDqhfIjJmzqVHEQLm+4G/p+IEHQ+tWYCpjoxjols=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=trbn/V5M89FcZbeUc2z/ahpOw7YUTnfvYbzVt83Odi3eAN5C+ecznzHAYpdMQUFD2
-         FEuOuMw1KNkU+4sba3vs3s9OifGmx44m1uArdts5BTZyqjGCV3g5Mob25hEn2TOyI7
-         Zay6kD9f9wXlLOelhgxM024RFDfEHpAh6Ooh9RIU=
+        b=aXfUuRA6cQR3j5LcMGRGkCiNbLQ9GvJues6DwJ9eSMbEdQryHZqBieJmsJai7l3ab
+         Bt3gT/yDo/nxLOmbdqQNSsvyUBbiOOrCH07rtmH6MrbdhLN2YH6HpOmptisnaTtL3A
+         8md4SgxjN5MYda6qSZcAdMrdBvUha1065oaqODuI=
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
+To:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>
-Subject: [PATCH rdma-next 04/10] RDMA/mlx5: Delete not needed GSI QP signature QP type
-Date:   Thu, 10 Sep 2020 17:00:40 +0300
-Message-Id: <20200910140046.1306341-5-leon@kernel.org>
+Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1 2/4] lib/scatterlist: Add support in dynamically allocation of SG entries
+Date:   Thu, 10 Sep 2020 16:42:57 +0300
+Message-Id: <20200910134259.1304543-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200910140046.1306341-1-leon@kernel.org>
-References: <20200910140046.1306341-1-leon@kernel.org>
+In-Reply-To: <20200910134259.1304543-1-leon@kernel.org>
+References: <20200910134259.1304543-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,71 +56,220 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Maor Gottlieb <maorg@nvidia.com>
 
-GSI QP doesn't need signature QP type because it is initialized
-statically to zero, which is IB_SIGNAL_ALL_WR also wr->send_flags isn't
-set too. This means that the GSI QP signature QP type can be removed.
+In order to support dynamic allocation of SG table, this patch
+introduces sg_alloc_next. This function should be called to add more
+entries to the table. In order to share the code, we will do the
+following:
+ * Extract the allocation code from __sg_alloc_table to sg_alloc.
+ * Add a function to chain SGE to the next page.
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/gsi.c     | 8 +-------
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 -
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ include/linux/scatterlist.h |  29 ++++++----
+ lib/scatterlist.c           | 110 ++++++++++++++++++++++++------------
+ 2 files changed, 91 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index f5aa1167cb9c..7fcad9135276 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -35,7 +35,6 @@
- struct mlx5_ib_gsi_wr {
- 	struct ib_cqe cqe;
- 	struct ib_wc wc;
--	int send_flags;
- 	bool completed:1;
- };
- 
-@@ -59,10 +58,7 @@ static void generate_completions(struct mlx5_ib_qp *mqp)
- 		if (!wr->completed)
- 			break;
- 
--		if (gsi->sq_sig_type == IB_SIGNAL_ALL_WR ||
--		    wr->send_flags & IB_SEND_SIGNALED)
--			WARN_ON_ONCE(mlx5_ib_generate_wc(gsi_cq, &wr->wc));
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 45cf7b69d852..9d13004334aa 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -165,6 +165,22 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ #define for_each_sgtable_dma_sg(sgt, sg, i)	\
+ 	for_each_sg((sgt)->sgl, sg, (sgt)->nents, i)
+
++static inline void __sg_chain(struct scatterlist *chain_sg,
++			      struct scatterlist *sgl)
++{
++	/*
++	 * offset and length are unused for chain entry. Clear them.
++	 */
++	chain_sg->offset = 0;
++	chain_sg->length = 0;
++
++	/*
++	 * Set lowest bit to indicate a link pointer, and make sure to clear
++	 * the termination bit if it happens to be set.
++	 */
++	chain_sg->page_link = ((unsigned long) sgl | SG_CHAIN) & ~SG_END;
++}
++
+ /**
+  * sg_chain - Chain two sglists together
+  * @prv:	First scatterlist
+@@ -178,18 +194,7 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 			    struct scatterlist *sgl)
+ {
+-	/*
+-	 * offset and length are unused for chain entry.  Clear them.
+-	 */
+-	prv[prv_nents - 1].offset = 0;
+-	prv[prv_nents - 1].length = 0;
 -
-+		WARN_ON_ONCE(mlx5_ib_generate_wc(gsi_cq, &wr->wc));
- 		wr->completed = false;
- 	}
- 
-@@ -132,7 +128,6 @@ int mlx5_ib_create_gsi(struct ib_pd *pd, struct mlx5_ib_qp *mqp,
- 	spin_lock_init(&gsi->lock);
- 
- 	gsi->cap = attr->cap;
--	gsi->sq_sig_type = attr->sq_sig_type;
- 	gsi->port_num = port_num;
- 
- 	gsi->cq = ib_alloc_cq(pd->device, gsi, attr->cap.max_send_wr, 0,
-@@ -236,7 +231,6 @@ static struct ib_qp *create_gsi_ud_qp(struct mlx5_ib_gsi_qp *gsi)
- 			.max_send_sge = gsi->cap.max_send_sge,
- 			.max_inline_data = gsi->cap.max_inline_data,
- 		},
--		.sq_sig_type = gsi->sq_sig_type,
- 		.qp_type = IB_QPT_UD,
- 		.create_flags = MLX5_IB_QP_CREATE_SQPN_QP1,
- 	};
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 1cea4940991f..4921701b666a 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -388,7 +388,6 @@ struct mlx5_ib_gsi_qp {
- 	struct ib_qp *rx_qp;
- 	u8 port_num;
- 	struct ib_qp_cap cap;
--	enum ib_sig_type sq_sig_type;
- 	struct ib_cq *cq;
- 	struct mlx5_ib_gsi_wr *outstanding_wrs;
- 	u32 outstanding_pi, outstanding_ci;
--- 
+-	/*
+-	 * Set lowest bit to indicate a link pointer, and make sure to clear
+-	 * the termination bit if it happens to be set.
+-	 */
+-	prv[prv_nents - 1].page_link = ((unsigned long) sgl | SG_CHAIN)
+-					& ~SG_END;
++	__sg_chain(&prv[prv_nents - 1], sgl);
+ }
+
+ /**
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 292e785d21ee..ade5c4a6fbf9 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -242,38 +242,15 @@ void sg_free_table(struct sg_table *table)
+ }
+ EXPORT_SYMBOL(sg_free_table);
+
+-/**
+- * __sg_alloc_table - Allocate and initialize an sg table with given allocator
+- * @table:	The sg table header to use
+- * @nents:	Number of entries in sg list
+- * @max_ents:	The maximum number of entries the allocator returns per call
+- * @nents_first_chunk: Number of entries int the (preallocated) first
+- * 	scatterlist chunk, 0 means no such preallocated chunk provided by user
+- * @gfp_mask:	GFP allocation mask
+- * @alloc_fn:	Allocator to use
+- *
+- * Description:
+- *   This function returns a @table @nents long. The allocator is
+- *   defined to return scatterlist chunks of maximum size @max_ents.
+- *   Thus if @nents is bigger than @max_ents, the scatterlists will be
+- *   chained in units of @max_ents.
+- *
+- * Notes:
+- *   If this function returns non-0 (eg failure), the caller must call
+- *   __sg_free_table() to cleanup any leftover allocations.
+- *
+- **/
+-int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+-		     unsigned int max_ents, struct scatterlist *first_chunk,
+-		     unsigned int nents_first_chunk, gfp_t gfp_mask,
+-		     sg_alloc_fn *alloc_fn)
++static int sg_alloc(struct sg_table *table, struct scatterlist *prv,
++		    unsigned int nents, unsigned int max_ents,
++		    struct scatterlist *first_chunk,
++		    unsigned int nents_first_chunk,
++		    gfp_t gfp_mask, sg_alloc_fn *alloc_fn)
+ {
+-	struct scatterlist *sg, *prv;
+-	unsigned int left;
+-	unsigned curr_max_ents = nents_first_chunk ?: max_ents;
+-	unsigned prv_max_ents;
+-
+-	memset(table, 0, sizeof(*table));
++	unsigned int curr_max_ents = nents_first_chunk ?: max_ents;
++	unsigned int left, prv_max_ents = 0;
++	struct scatterlist *sg;
+
+ 	if (nents == 0)
+ 		return -EINVAL;
+@@ -283,7 +260,6 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ #endif
+
+ 	left = nents;
+-	prv = NULL;
+ 	do {
+ 		unsigned int sg_size, alloc_size = left;
+
+@@ -308,7 +284,7 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ 			 * linkage.  Without this, sg_kfree() may get
+ 			 * confused.
+ 			 */
+-			if (prv)
++			if (prv_max_ents)
+ 				table->nents = ++table->orig_nents;
+
+ 			return -ENOMEM;
+@@ -321,10 +297,17 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+ 		 * If this is the first mapping, assign the sg table header.
+ 		 * If this is not the first mapping, chain previous part.
+ 		 */
+-		if (prv)
+-			sg_chain(prv, prv_max_ents, sg);
+-		else
++		if (!prv)
+ 			table->sgl = sg;
++		else if (prv_max_ents)
++			sg_chain(prv, prv_max_ents, sg);
++		else {
++			__sg_chain(prv, sg);
++			/* We decrease one since the prvious last sge in used to
++			 * chainning.
++			 */
++			table->nents = table->orig_nents -= 1;
++		}
+
+ 		/*
+ 		 * If no more entries after this one, mark the end
+@@ -339,6 +322,61 @@ int __sg_alloc_table(struct sg_table *table, unsigned int nents,
+
+ 	return 0;
+ }
++
++/**
++ * sg_alloc_next - Allocate and initialize new entries in the sg table
++ * @table:	The sg table header to use
++ * @last:	The last scatter list entry in the table
++ * @nents:	Number of entries in sg list
++ * @max_ents:	The maximum number of entries the allocator returns per call
++ * @gfp_mask:	GFP allocation mask
++ * @alloc_fn:	Allocator to use
++ *
++ * Description:
++ *   This function extend @table with @nents long. The allocator is
++ *   defined to return scatterlist chunks of maximum size @max_ents.
++ *   Thus if @nents is bigger than @max_ents, the scatterlists will be
++ *   chained in units of @max_ents.
++ *
++ **/
++static int sg_alloc_next(struct sg_table *table, struct scatterlist *last,
++			 unsigned int nents, unsigned int max_ents,
++			 gfp_t gfp_mask)
++{
++	return sg_alloc(table, last, nents, max_ents, NULL, 0, gfp_mask,
++			sg_kmalloc);
++}
++
++/**
++ * __sg_alloc_table - Allocate and initialize an sg table with given allocator
++ * @table:	The sg table header to use
++ * @nents:	Number of entries in sg list
++ * @max_ents:	The maximum number of entries the allocator returns per call
++ * @nents_first_chunk: Number of entries int the (preallocated) first
++ * scatterlist chunk, 0 means no such preallocated chunk provided by user
++ * @gfp_mask:	GFP allocation mask
++ * @alloc_fn:	Allocator to use
++ *
++ * Description:
++ *   This function returns a @table @nents long. The allocator is
++ *   defined to return scatterlist chunks of maximum size @max_ents.
++ *   Thus if @nents is bigger than @max_ents, the scatterlists will be
++ *   chained in units of @max_ents.
++ *
++ * Notes:
++ *   If this function returns non-0 (eg failure), the caller must call
++ *   __sg_free_table() to cleanup any leftover allocations.
++ *
++ **/
++int __sg_alloc_table(struct sg_table *table, unsigned int nents,
++		     unsigned int max_ents, struct scatterlist *first_chunk,
++		     unsigned int nents_first_chunk, gfp_t gfp_mask,
++		     sg_alloc_fn *alloc_fn)
++{
++	memset(table, 0, sizeof(*table));
++	return sg_alloc(table, NULL, nents, max_ents, first_chunk,
++			nents_first_chunk, gfp_mask, alloc_fn);
++}
+ EXPORT_SYMBOL(__sg_alloc_table);
+
+ /**
+--
 2.26.2
 
