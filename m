@@ -2,214 +2,119 @@ Return-Path: <SRS0=jqE+=CT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF72C43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 270D3C433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:25:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B883821D92
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:21:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599772892;
-	bh=Ma8tFkJnwwKpSb80i0zKFhoRPfTwdBSmbd+Igv8cEV0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=f2pQXe6dayIOB3fNoAIKQIp92yDavmcEvegR8BB80OOsny718iOepcWYARXIzS8gz
-	 uwDEr0sgylk3fSejR5sTh3/QZqpE03MBQkp99Qwgp0wS8t/S7VNB5qKSmgKqu6zAkR
-	 QFCi7EWy7FEwmJsMdPHnGYAy0aDOwcTAXkUp/iuw=
+	by mail.kernel.org (Postfix) with ESMTP id DDDF3221E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726642AbgIJVVU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 17:21:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46632 "EHLO mail.kernel.org"
+        id S1728223AbgIJVYi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:24:38 -0400
+Received: from foss.arm.com ([217.140.110.172]:37282 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730260AbgIJOYc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 10:24:32 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 32ACE21D81;
-        Thu, 10 Sep 2020 14:22:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599747743;
-        bh=Ma8tFkJnwwKpSb80i0zKFhoRPfTwdBSmbd+Igv8cEV0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JZTmV5sK47IUF6OfOtJYtkxULDz0S7ga2Bet8W3l6ZQJVv/hrW4lrLTWKJ8/j1zZv
-         PPy1aZ8X7Op7GpRQKp32688xZEY8Fl2PWrTDNRILAySQWSMkilGwSNncfQmkpTWlSZ
-         9JcCUagh39Krn6upCPHkGtA4fjjuPc42uVRbXkUY=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 3/4] RDMA/core: Introduce new GID table query API
-Date:   Thu, 10 Sep 2020 17:22:03 +0300
-Message-Id: <20200910142204.1309061-4-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200910142204.1309061-1-leon@kernel.org>
-References: <20200910142204.1309061-1-leon@kernel.org>
+        id S1731004AbgIJOXM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 10:23:12 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E3BEB11B3;
+        Thu, 10 Sep 2020 07:21:17 -0700 (PDT)
+Received: from [10.57.40.122] (unknown [10.57.40.122])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1B4783F66E;
+        Thu, 10 Sep 2020 07:21:08 -0700 (PDT)
+Subject: Re: [trivial PATCH] treewide: Convert switch/case fallthrough; to
+ break;
+To:     Joe Perches <joe@perches.com>, LKML <linux-kernel@vger.kernel.org>,
+        Jiri Kosina <trivial@kernel.org>
+Cc:     linux-wireless@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        oss-drivers@netronome.com, nouveau@lists.freedesktop.org,
+        alsa-devel <alsa-devel@alsa-project.org>,
+        dri-devel@lists.freedesktop.org, linux-ide@vger.kernel.org,
+        dm-devel@redhat.com, linux-mtd@lists.infradead.org,
+        linux-i2c@vger.kernel.org, sparclinux@vger.kernel.org,
+        kvmarm@lists.cs.columbia.edu, linux-rtc@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+        dccp@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net,
+        linux-afs@lists.infradead.org, coreteam@netfilter.org,
+        intel-wired-lan@lists.osuosl.org, linux-serial@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-mmc@vger.kernel.org,
+        Kees Cook <kees.cook@canonical.com>,
+        linux-media@vger.kernel.org, linux-pm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, linux-sctp@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-nvme@lists.infradead.org,
+        storagedev@microchip.com, ceph-devel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-parisc@vger.kernel.org, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        linux-mips@vger.kernel.org, iommu@lists.linux-foundation.org,
+        netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        Will Deacon <will@kernel.org>
+References: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
+From:   Robin Murphy <robin.murphy@arm.com>
+Message-ID: <9372456a-8dcf-2735-57a4-e126aa5df3a6@arm.com>
+Date:   Thu, 10 Sep 2020 15:21:05 +0100
+User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <e6387578c75736d61b2fe70d9783d91329a97eb4.camel@perches.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Avihai Horon <avihaih@nvidia.com>
+On 2020-09-09 21:06, Joe Perches wrote:
+> fallthrough to a separate case/default label break; isn't very readable.
+> 
+> Convert pseudo-keyword fallthrough; statements to a simple break; when
+> the next label is case or default and the only statement in the next
+> label block is break;
+> 
+> Found using:
+> 
+> $ grep-2.5.4 -rP --include=*.[ch] -n "fallthrough;(\s*(case\s+\w+|default)\s*:\s*){1,7}break;" *
+> 
+> Miscellanea:
+> 
+> o Move or coalesce a couple label blocks above a default: block.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+> 
+> Compiled allyesconfig x86-64 only.
+> A few files for other arches were not compiled.
+> 
 
-Introduce rdma_query_gid_table which enables querying all the GID tables
-of a given device and copying the attributes of all valid GID entries to
-a provided buffer.
+[...]
+> diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> index c192544e874b..743db1abec40 100644
+> --- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+> @@ -3777,7 +3777,7 @@ static int arm_smmu_device_hw_probe(struct arm_smmu_device *smmu)
+>   	switch (FIELD_GET(IDR0_TTF, reg)) {
+>   	case IDR0_TTF_AARCH32_64:
+>   		smmu->ias = 40;
+> -		fallthrough;
+> +		break;
+>   	case IDR0_TTF_AARCH64:
+>   		break;
+>   	default:
 
-This API provides a faster way to query a GID table using single call and
-will be used in libibverbs to improve current approach that requires
-multiple calls to open, close and read multiple sysfs files for a single
-GID table entry.
+I have to say I don't really agree with the readability argument for 
+this one - a fallthrough is semantically correct here, since the first 
+case is a superset of the second. It just happens that anything we would 
+do for the common subset is implicitly assumed (there are other 
+potential cases we simply haven't added support for at the moment), thus 
+the second case is currently empty.
 
-Signed-off-by: Avihai Horon <avihaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/cache.c         | 93 +++++++++++++++++++++++++
- include/rdma/ib_cache.h                 |  5 ++
- include/uapi/rdma/ib_user_ioctl_verbs.h |  8 +++
- 3 files changed, 106 insertions(+)
+This change actively obfuscates that distinction.
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index cf49ac0b0aa6..175e229eccd3 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1247,6 +1247,99 @@ rdma_get_gid_attr(struct ib_device *device, u8 port_num, int index)
- }
- EXPORT_SYMBOL(rdma_get_gid_attr);
- 
-+/**
-+ * rdma_get_ndev_ifindex - Reads ndev ifindex of the given gid attr.
-+ * @gid_attr: Pointer to the GID attribute.
-+ * @ndev_ifindex: Pointer through which the ndev ifindex is returned.
-+ *
-+ * Returns 0 on success or appropriate error code. The netdevice must be in UP
-+ * state.
-+ */
-+int rdma_get_ndev_ifindex(const struct ib_gid_attr *gid_attr, u32 *ndev_ifindex)
-+{
-+	struct net_device *ndev;
-+	int ret = 0;
-+
-+	if (rdma_protocol_ib(gid_attr->device, gid_attr->port_num)) {
-+		*ndev_ifindex = 0;
-+		return 0;
-+	}
-+
-+	rcu_read_lock();
-+	ndev = rcu_dereference(gid_attr->ndev);
-+	if (!ndev || (READ_ONCE(ndev->flags) & IFF_UP) == 0) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	*ndev_ifindex = ndev->ifindex;
-+out:
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL(rdma_get_ndev_ifindex);
-+
-+/**
-+ * rdma_query_gid_table - Reads GID table entries of all the ports of a device up to max_entries.
-+ * @device: The device to query.
-+ * @entries: Entries where GID entries are returned.
-+ * @max_entries: Maximum number of entries that can be returned.
-+ * Entries array must be allocated to hold max_entries number of entries.
-+ * @num_entries: Updated to the number of entries that were successfully read.
-+ *
-+ * Returns 0 on success or appropriate error code.
-+ */
-+int rdma_query_gid_table(struct ib_device *device,
-+			 struct ib_uverbs_gid_entry *entries,
-+			 size_t max_entries, size_t *num_entries)
-+{
-+	const struct ib_gid_attr *gid_attr;
-+	struct ib_gid_table *table;
-+	unsigned int port_num;
-+	unsigned long flags;
-+	int ret;
-+	int i;
-+
-+	*num_entries = 0;
-+	rdma_for_each_port(device, port_num) {
-+		if (!rdma_ib_or_roce(device, port_num))
-+			continue;
-+
-+		table = rdma_gid_table(device, port_num);
-+		read_lock_irqsave(&table->rwlock, flags);
-+		for (i = 0; i < table->sz; i++) {
-+			if (!is_gid_entry_valid(table->data_vec[i]))
-+				continue;
-+			if (*num_entries >= max_entries) {
-+				ret = -EINVAL;
-+				goto err;
-+			}
-+
-+			gid_attr = &table->data_vec[i]->attr;
-+
-+			memcpy(&entries->gid, &gid_attr->gid,
-+			       sizeof(gid_attr->gid));
-+			entries->gid_index = gid_attr->index;
-+			entries->port_num = gid_attr->port_num;
-+			entries->gid_type = gid_attr->gid_type;
-+			ret = rdma_get_ndev_ifindex(gid_attr,
-+						    &entries->netdev_ifindex);
-+			if (ret)
-+				goto err;
-+
-+			(*num_entries)++;
-+			entries++;
-+		}
-+		read_unlock_irqrestore(&table->rwlock, flags);
-+	}
-+
-+	return 0;
-+err:
-+	read_unlock_irqrestore(&table->rwlock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL(rdma_query_gid_table);
-+
- /**
-  * rdma_put_gid_attr - Release reference to the GID attribute
-  * @attr:		Pointer to the GID attribute whose reference
-diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
-index 66a8f369a2fa..94e4f729f8e4 100644
---- a/include/rdma/ib_cache.h
-+++ b/include/rdma/ib_cache.h
-@@ -110,5 +110,10 @@ const struct ib_gid_attr *rdma_get_gid_attr(struct ib_device *device,
- 					    u8 port_num, int index);
- void rdma_put_gid_attr(const struct ib_gid_attr *attr);
- void rdma_hold_gid_attr(const struct ib_gid_attr *attr);
-+int rdma_get_ndev_ifindex(const struct ib_gid_attr *gid_attr,
-+			  u32 *ndev_ifindex);
-+int rdma_query_gid_table(struct ib_device *device,
-+			 struct ib_uverbs_gid_entry *entries,
-+			 size_t max_entries, size_t *num_entries);
- 
- #endif /* _IB_CACHE_H */
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 5debab45ebcb..d5ac65ae2557 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -250,4 +250,12 @@ enum rdma_driver_id {
- 	RDMA_DRIVER_SIW,
- };
- 
-+struct ib_uverbs_gid_entry {
-+	__aligned_u64 gid[2];
-+	__u32 gid_index;
-+	__u32 port_num;
-+	__u32 gid_type;
-+	__u32 netdev_ifindex; /* It is 0 if there is no netdev associated with it */
-+};
-+
- #endif
--- 
-2.26.2
-
+Robin.
