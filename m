@@ -7,53 +7,46 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7746AC43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 508ADC433E2
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C13821D92
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 165C821D92
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1599773305;
-	bh=CE5Om7Xs96ETIkCh6b7+Br5rmEoOB+MDMjYPBYfvVVo=;
+	s=default; t=1599773307;
+	bh=QXwpAIdH1NaWXAWXUrDKGsXbnTJJMdEHmlLl7efnBxs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=YQYDIxNArWF/GuyU6Id6KOScCPmNXuYLl0z+t21uf38DitzbyvkPci3ZgsQr026im
-	 wnZomFH95qlKYjVY+sRCZd4XZhZVRxejrav004C2f9qdICmplrLD6cIVGQdcEt/9F2
-	 GlEUlk4dWLBS+mZteDPrh0xnFiNRuEHfWZZdtXpI=
+	b=n4V+0vcQmJSeEiH9CvboTC3iegUVtKOmSPDoGf/1L1esVaaatds1aA+Tq6eyPcvkn
+	 BpFl8z9cTUYNc08SIXePpTUG3t17yJO0sbt/qEtsC9hLIQw6BlSirJZuw6L1HYOrWc
+	 UlTlW5w15ICfRiRR036ssP9k1yKctyZ5bBLouoCQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728312AbgIJV2W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 17:28:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40536 "EHLO mail.kernel.org"
+        id S1728315AbgIJV2Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:28:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731047AbgIJODt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 10:03:49 -0400
+        id S1731044AbgIJODs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 10:03:48 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D04E2221EB;
-        Thu, 10 Sep 2020 14:01:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C0666221E8;
+        Thu, 10 Sep 2020 14:01:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1599746486;
-        bh=CE5Om7Xs96ETIkCh6b7+Br5rmEoOB+MDMjYPBYfvVVo=;
+        s=default; t=1599746482;
+        bh=QXwpAIdH1NaWXAWXUrDKGsXbnTJJMdEHmlLl7efnBxs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Lcqmk3deSJSFoEJvVYwf0pslCTYRPOiIsPV8qr4401Iu6VKDBrzAYtmhxbdnt0faJ
-         SJHJYNDTvsJfbTkiClio3/b86PmPQfNJoZZrIpM45w1YLDAQrWjcFzRbLupwxC5N2b
-         B8HvtOipy9z4ihCOPVm7lV+V3e0Azp2/mmuOiXLk=
+        b=WesnVXCSvEPzKGWk8rtfrBcMQrkjDC5lC4/ysJxUjQ+3gBklEm4RXvaGr1UBnxVdX
+         cafxq+tCcOr6Bc4l6Scr/87mfciC1fjvzsky9CnucuznOsE16QLc7eJZzkWfO5CLFf
+         I/TlAJQ+wlEM1M+PflgnEbj1k8inLTTubSGs3MVw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Ariel Elior <aelior@marvell.com>,
-        Lijun Ou <oulijun@huawei.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Weihang Li <liweihang@huawei.com>,
-        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 08/10] RDMA/drivers: Remove udata check from special QP
-Date:   Thu, 10 Sep 2020 17:00:44 +0300
-Message-Id: <20200910140046.1306341-9-leon@kernel.org>
+        Faisal Latif <faisal.latif@intel.com>,
+        linux-rdma@vger.kernel.org, Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH rdma-next 10/10] RDMA/i40iw: Remove intermediate pointer that points to the same struct
+Date:   Thu, 10 Sep 2020 17:00:46 +0300
+Message-Id: <20200910140046.1306341-11-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200910140046.1306341-1-leon@kernel.org>
 References: <20200910140046.1306341-1-leon@kernel.org>
@@ -66,181 +59,63 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-GSI QP can't be created from the user space, hence the udata check is
-always true (udata == NULL). Remove that check and simplify the flow.
+There is no real need to have an intermediate pointer for the same
+struct, remove it, and use struct directly.
 
-Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c      | 57 +++++++-------------
- drivers/infiniband/hw/mlx4/qp.c              |  3 --
- drivers/infiniband/hw/mlx5/qp.c              | 12 -----
- drivers/infiniband/hw/mthca/mthca_provider.c |  4 --
- drivers/infiniband/hw/qedr/verbs.c           |  8 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |  3 +-
- 6 files changed, 19 insertions(+), 68 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 9 +++------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h | 1 -
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 975281f03468..7aafbccb5787 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1014,53 +1014,32 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 	int ret;
- 
- 	switch (init_attr->qp_type) {
--	case IB_QPT_RC: {
--		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
--		if (!hr_qp)
--			return ERR_PTR(-ENOMEM);
--
--		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
--						hr_qp);
--		if (ret) {
--			ibdev_err(ibdev, "Create QP 0x%06lx failed(%d)\n",
--				  hr_qp->qpn, ret);
--			kfree(hr_qp);
--			return ERR_PTR(ret);
--		}
--
-+	case IB_QPT_RC:
-+	case IB_QPT_GSI:
- 		break;
-+	default:
-+		ibdev_err(ibdev, "not support QP type %d\n",
-+			  init_attr->qp_type);
-+		return ERR_PTR(-EOPNOTSUPP);
- 	}
--	case IB_QPT_GSI: {
--		/* Userspace is not allowed to create special QPs: */
--		if (udata) {
--			ibdev_err(ibdev, "not support usr space GSI\n");
--			return ERR_PTR(-EINVAL);
--		}
- 
--		hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
--		if (!hr_qp)
--			return ERR_PTR(-ENOMEM);
-+	hr_qp = kzalloc(sizeof(*hr_qp), GFP_KERNEL);
-+	if (!hr_qp)
-+		return ERR_PTR(-ENOMEM);
- 
-+	if (init_attr->qp_type == IB_QPT_GSI) {
- 		hr_qp->port = init_attr->port_num - 1;
- 		hr_qp->phy_port = hr_dev->iboe.phy_port[hr_qp->port];
--
--		ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata,
--						hr_qp);
--		if (ret) {
--			ibdev_err(ibdev, "Create GSI QP failed!\n");
--			kfree(hr_qp);
--			return ERR_PTR(ret);
--		}
--
--		break;
--	}
--	default:{
--		ibdev_err(ibdev, "not support QP type %d\n",
--			  init_attr->qp_type);
--		return ERR_PTR(-EOPNOTSUPP);
--	}
- 	}
- 
-+	ret = hns_roce_create_qp_common(hr_dev, pd, init_attr, udata, hr_qp);
-+	if (ret) {
-+		ibdev_err(ibdev, "Create QP type 0x%x failed(%d)\n",
-+			  init_attr->qp_type, ret);
-+		ibdev_err(ibdev, "Create GSI QP failed!\n");
-+		kfree(hr_qp);
-+		return ERR_PTR(ret);
-+	}
- 	return &hr_qp->ibqp;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 4511e175c498..f5d54cb46f78 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -380,7 +380,7 @@ void i40iw_free_qp_resources(struct i40iw_device *iwdev,
+ 	i40iw_free_dma_mem(iwdev->sc_dev.hw, &iwqp->kqp.dma_mem);
+ 	kfree(iwqp->kqp.wrid_mem);
+ 	iwqp->kqp.wrid_mem = NULL;
+-	kfree(iwqp->allocated_buffer);
++	kfree(iwqp);
  }
  
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 39c52c311dad..7f0290112db7 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1547,9 +1547,6 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struct mlx4_ib_qp *qp,
- 	{
- 		int sqpn;
+ /**
+@@ -525,7 +525,6 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 	struct i40iw_create_qp_req req;
+ 	struct i40iw_create_qp_resp uresp;
+ 	u32 qp_num = 0;
+-	void *mem;
+ 	enum i40iw_status_code ret;
+ 	int err_code;
+ 	int sq_size;
+@@ -567,12 +566,10 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 	init_info.qp_uk_init_info.max_rq_frag_cnt = init_attr->cap.max_recv_sge;
+ 	init_info.qp_uk_init_info.max_inline_data = init_attr->cap.max_inline_data;
  
--		/* Userspace is not allowed to create special QPs: */
--		if (udata)
--			return -EINVAL;
- 		if (init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI) {
- 			int res = mlx4_qp_reserve_range(to_mdev(pd->device)->dev,
- 							1, 1, &sqpn, 0,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 7e9bf75c33e4..22f678ba1a68 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2511,18 +2511,6 @@ static int check_valid_flow(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		return -EINVAL;
- 	}
+-	mem = kzalloc(sizeof(*iwqp), GFP_KERNEL);
+-	if (!mem)
++	iwqp = kzalloc(sizeof(*iwqp), GFP_KERNEL);
++	if (!iwqp)
+ 		return ERR_PTR(-ENOMEM);
  
--	switch (attr->qp_type) {
--	case IB_QPT_SMI:
--	case MLX5_IB_QPT_HW_GSI:
--	case MLX5_IB_QPT_REG_UMR:
--	case IB_QPT_GSI:
--		mlx5_ib_dbg(dev, "Kernel doesn't support QP type %d\n",
--			    attr->qp_type);
--		return -EINVAL;
--	default:
--		break;
--	}
--
- 	/*
- 	 * We don't need to see this warning, it means that kernel code
- 	 * missing ib_pd. Placed here to catch developer's mistakes.
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 82ee252fe5aa..5dbddf8faf99 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -535,10 +535,6 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
- 	case IB_QPT_SMI:
- 	case IB_QPT_GSI:
- 	{
--		/* Don't allow userspace to create special QPs */
--		if (udata)
--			return ERR_PTR(-EINVAL);
--
- 		qp = kzalloc(sizeof(struct mthca_sqp), GFP_KERNEL);
- 		if (!qp)
- 			return ERR_PTR(-ENOMEM);
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 208d89495ad6..3337d4b6a841 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1213,14 +1213,6 @@ static int qedr_check_qp_attrs(struct ib_pd *ibpd, struct qedr_dev *dev,
- 		return -EINVAL;
- 	}
- 
--	/* Unprivileged user space cannot create special QP */
--	if (udata && attrs->qp_type == IB_QPT_GSI) {
--		DP_ERR(dev,
--		       "create qp: userspace can't create special QPs of type=0x%x\n",
--		       attrs->qp_type);
--		return -EINVAL;
--	}
--
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-index 8a385acf6f0c..428256c55065 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -232,8 +232,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
- 	switch (init_attr->qp_type) {
- 	case IB_QPT_GSI:
- 		if (init_attr->port_num == 0 ||
--		    init_attr->port_num > pd->device->phys_port_cnt ||
--		    udata) {
-+		    init_attr->port_num > pd->device->phys_port_cnt) {
- 			dev_warn(&dev->pdev->dev, "invalid queuepair attrs\n");
- 			ret = -EINVAL;
- 			goto err_qp;
+-	iwqp = (struct i40iw_qp *)mem;
+-	iwqp->allocated_buffer = mem;
+ 	qp = &iwqp->sc_qp;
+ 	qp->back_qp = (void *)iwqp;
+ 	qp->push_idx = I40IW_INVALID_PUSH_PAGE_INDEX;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+index 331bc21cbcc7..1bd790575bd4 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+@@ -138,7 +138,6 @@ struct i40iw_qp {
+ 	struct i40iw_pd *iwpd;
+ 	struct i40iw_qp_host_ctx_info ctx_info;
+ 	struct i40iwarp_offload_info iwarp_info;
+-	void *allocated_buffer;
+ 	atomic_t refcount;
+ 	struct iw_cm_id *cm_id;
+ 	void *cm_node;
 -- 
 2.26.2
 
