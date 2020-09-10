@@ -2,136 +2,214 @@ Return-Path: <SRS0=jqE+=CT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D87AC433E2
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 19:16:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF72C43461
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C6A620C09
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 19:16:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chelsious.onmicrosoft.com header.i=@chelsious.onmicrosoft.com header.b="Jxm7XUlJ"
+	by mail.kernel.org (Postfix) with ESMTP id B883821D92
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Sep 2020 21:21:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599772892;
+	bh=Ma8tFkJnwwKpSb80i0zKFhoRPfTwdBSmbd+Igv8cEV0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=f2pQXe6dayIOB3fNoAIKQIp92yDavmcEvegR8BB80OOsny718iOepcWYARXIzS8gz
+	 uwDEr0sgylk3fSejR5sTh3/QZqpE03MBQkp99Qwgp0wS8t/S7VNB5qKSmgKqu6zAkR
+	 QFCi7EWy7FEwmJsMdPHnGYAy0aDOwcTAXkUp/iuw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726821AbgIJTP5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Sep 2020 15:15:57 -0400
-Received: from mail-mw2nam10on2130.outbound.protection.outlook.com ([40.107.94.130]:30689
-        "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727085AbgIJTOx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Sep 2020 15:14:53 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=SUSUgXGsXsePcX7Sn6FTvl6aSo1Dd+hVaa8AWcJRghqbBiQqOWEtqoq0CPeo4UyGfFdoGdSChp8KrGrMT0RjzJJqd9lCalqbkqUQXu5WtI1TKjNn9kheppcbcVnhV9fe2CFITlChdHB1bYk33m4WVeuvlHEsP7BkIh74/zf8YyVJmOjlciKB34C2RemzsZyphb/2g/NjzgXT9ED4aX7/hO6oTGo8ZIsANAY8OJGpsXK8UPj8g0P4Ql7iuI6BbPlm+bZXi0EF3mBgS1Ca2xynBoUiCJmQliRJuRvNWooynO9Y7EwZBfrOhw+V4Mmov5IYJFOlxXbwci0x6vdu3ECTJw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aSFYAhpBSpRo1xM4FMzF2o9wxzGXLXgHJr0qSme1s4k=;
- b=HpB7a+5ZY7+ALUd77CkJvxSq5eI8DWa5svNhSCxIEFdZmDRS2RRZ45BD6vZJbWQRdnCjsLkL5LL6A4ZNeTkRTHGxHdt81ezCIRV8SDIdOOaa3aGp7fHCRz7Uph5ku+m6h4Azr8Qkiuds4N+Rq8aNkqPHf6PkraeSbHs55ak12sfgzWmDkq+YYAQBuEYltRJWG2uKlV2DFyyyU8YnyFN1Hm8s8IUwxJZI3dFFESSwVz4c8DlJF6iUEVOU9YGqIIYYsO8kS8alr19ZqUIA+2YARgm1eWK6R6NbgBGnRVlTpchp5SsVWasXNZ1iYoXIoZT8oMWLTtu+s1+S+5mKo+yQKw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=chelsio.com; dmarc=pass action=none header.from=chelsio.com;
- dkim=pass header.d=chelsio.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=chelsious.onmicrosoft.com; s=selector2-chelsious-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aSFYAhpBSpRo1xM4FMzF2o9wxzGXLXgHJr0qSme1s4k=;
- b=Jxm7XUlJ5E1r9iwG5cvAVcIO7LLzfU7CFfQnL03qr8uZJ0ixbODvLXVM9hSebtYeaBPmpLMqn1TsNG73jrYEhgGEkcYCww6yP75B1Jql44tJxllXm8VEX+Uwxhj8unnhx0uQiZEvBKFthVu8DEYrokPtoBYiqpOW8brR7uap+YM=
-Received: from CY4PR1201MB0232.namprd12.prod.outlook.com
- (2603:10b6:910:21::21) by CY4PR1201MB0231.namprd12.prod.outlook.com
- (2603:10b6:910:24::11) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3348.15; Thu, 10 Sep
- 2020 19:14:50 +0000
-Received: from CY4PR1201MB0232.namprd12.prod.outlook.com
- ([fe80::f969:46ca:793:4300]) by CY4PR1201MB0232.namprd12.prod.outlook.com
- ([fe80::f969:46ca:793:4300%6]) with mapi id 15.20.3348.019; Thu, 10 Sep 2020
- 19:14:50 +0000
-From:   Potnuri Bharat Teja <bharat@chelsio.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [PATCH] RDMA/iw_cxgb4: disable delayed ack by default
-Thread-Topic: [PATCH] RDMA/iw_cxgb4: disable delayed ack by default
-Thread-Index: AQHWhq/HJkpDy+3//UGG2qQaNwmNy6lgbiqAgAFgAYCAAHBAgA==
-Date:   Thu, 10 Sep 2020 19:14:50 +0000
-Message-ID: <CY4PR1201MB0232802345D9A7BC05F1B88DCE270@CY4PR1201MB0232.namprd12.prod.outlook.com>
-References: <20200909134726.10348-1-bharat@chelsio.com>
- <CY4PR1201MB02327F3093F7DD29E08CCF32CE260@CY4PR1201MB0232.namprd12.prod.outlook.com>
- <20200910122739.GJ421756@unreal>
-In-Reply-To: <20200910122739.GJ421756@unreal>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: kernel.org; dkim=none (message not signed)
- header.d=none;kernel.org; dmarc=none action=none header.from=chelsio.com;
-x-originating-ip: [2409:4070:2100:d9ee:3c35:5057:f28a:6d30]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 9b777ff7-4041-4ee1-0f83-08d855bdca69
-x-ms-traffictypediagnostic: CY4PR1201MB0231:
-x-microsoft-antispam-prvs: <CY4PR1201MB0231E074CAF1C146E97DEEA9CE270@CY4PR1201MB0231.namprd12.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:2399;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: DSaBgY379hq3G/dIZoYfgs6oO1uXrum0Y2OkPGu5KDCdQ9bBK2Wyse8++03F7auWOb59VptWzXX1EM4AEh4osGERIE9+57g94a4klh3jv+jXnf2kYC8cJYLGBYg58qnKbnGqfyRFz/yClXX2iolvKUZ2Vf/9kJ4MQdfY0HT3KMXUjJlrty5GP1CkZH2NOdRaiTVPdFxl/fKlfsOzv+Swk9IhAFmHbRANZay+n4/C8q2Ek+oIwpUNDgVKbD2PSz7aaL73oGCb0mPI8/w/+a5/Jw12zbGY3pKmG2WKTFGzpqczoOTCJuLrwexszoZkWF+jkSYWbfZYl1hg5aqlLkclWA==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CY4PR1201MB0232.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(39830400003)(366004)(136003)(376002)(346002)(478600001)(52536014)(2906002)(66556008)(5660300002)(66446008)(186003)(7696005)(64756008)(55016002)(86362001)(316002)(54906003)(66476007)(9686003)(6916009)(76116006)(33656002)(71200400001)(4326008)(83380400001)(6506007)(66946007)(8936002)(8676002);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: pFxzC7GPbOesjiCCr4VkQDvTbF398ZDPIEhbVcwvmSOWO2KD9LCGiOIKugbKLgngrJS99HAyD+POjZvkC0umnksltIdmk8xT1zwe/XiNxfklXpgYye2zVkKqaHLOfXxrBvdC41sv+QJQMkYnVE8znuBkmnzmL61xMO2W+Xg/LRiUwDM+TJGVSy+0CcHxvtf0825eUK/Kk/JLo8NXO7vzoZQpkpQZ8PObKVHVonCEqSwkQ1RBN14CevAVTpivU2uhwrahDmlEGMDOTJm+P/dMrrgLZjoRPuDL4vGtXLguIA7TyXLziuR55v1ca8VQXBpZKO5JqA2fcZkAaPPqcgEUQiofGXtzaUXz1o35IFCieY36I6okM6YjEMsBOUSy0uKnOzV+jRLLElMv9Z6Ck6EaKKHpzdW0HzWxiEZUqcfNJdVPZEnzhv75yvllvP/Mtug7GHqdB7x/23Ul0FGAxjdnp2DukI98sJMNNjEJF9rmBMqzt0dlgIwxZynm66Z/9AakWplpjQEVyKHPnkDb1dN7jeQcKR3HwNhKVhdeRNSHOlhsBeb4tPEDTdhNMgb6FOsMjcYgIPHYYDdb11BSoH5K2g0jVOxsunX6EbKHvXq4MZpMkprkLfYm8wWlQlwYf5glLXiINyzzLQDpXfImqdXWCagcWiamwfiIL7VcvR8Cti+AIj2my0joZ7EpyoVrjbVKaJflUV1gJQNcK9YmKhZ39w==
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S1726642AbgIJVVU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Sep 2020 17:21:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46632 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730260AbgIJOYc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 10 Sep 2020 10:24:32 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 32ACE21D81;
+        Thu, 10 Sep 2020 14:22:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1599747743;
+        bh=Ma8tFkJnwwKpSb80i0zKFhoRPfTwdBSmbd+Igv8cEV0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=JZTmV5sK47IUF6OfOtJYtkxULDz0S7ga2Bet8W3l6ZQJVv/hrW4lrLTWKJ8/j1zZv
+         PPy1aZ8X7Op7GpRQKp32688xZEY8Fl2PWrTDNRILAySQWSMkilGwSNncfQmkpTWlSZ
+         9JcCUagh39Krn6upCPHkGtA4fjjuPc42uVRbXkUY=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 3/4] RDMA/core: Introduce new GID table query API
+Date:   Thu, 10 Sep 2020 17:22:03 +0300
+Message-Id: <20200910142204.1309061-4-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200910142204.1309061-1-leon@kernel.org>
+References: <20200910142204.1309061-1-leon@kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: chelsio.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: CY4PR1201MB0232.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9b777ff7-4041-4ee1-0f83-08d855bdca69
-X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Sep 2020 19:14:50.4578
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 065db76d-a7ae-4c60-b78a-501e8fc17095
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: A4EKynjAbk7KKtL51IgZvO+L7QGhpKlxOmNldNl6ZNsV16O85tw0lRStQi43eIgUbQ9rytC6ZflS77JOKybhiE/r2rJW5F+M52jn2jmnuis=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR1201MB0231
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
->> Subject: [PATCH] RDMA/iw_cxgb4: disable delayed ack by default
->>
->> Receive side delayed ack mode is needed only for certain area networks/ =
-connections. Therefore disable it by default.
->>
->> Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
->> ---
->>  drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cx=
-gb4/cm.c
->> index 1f288c73ccfc..8769e7aa097f 100644
->> --- a/drivers/infiniband/hw/cxgb4/cm.c
->> +++ b/drivers/infiniband/hw/cxgb4/cm.c
->> @@ -77,9 +77,9 @@ static int enable_ecn;  module_param(enable_ecn, int, =
-0644);  MODULE_PARM_DESC(enable_ecn, "Enable ECN (default=3D0/disabled)");
->>
->> -static int dack_mode =3D 1;
->> +static int dack_mode;
->>  module_param(dack_mode, int, 0644);
->> -MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=3D1)");
->> +MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=3D0)");
->
->Are you sure that this doesn't break user scripts?
-Yes, I am sure. This does not interfere with user/kernel RDMA functionaliti=
-es.
+From: Avihai Horon <avihaih@nvidia.com>
 
-Thanks,
-Bharat.
->
->Thanks
->
->>
->>  uint c4iw_max_read_depth =3D 32;
->>  module_param(c4iw_max_read_depth, int, 0644);
->> --
->> 2.24.0
+Introduce rdma_query_gid_table which enables querying all the GID tables
+of a given device and copying the attributes of all valid GID entries to
+a provided buffer.
+
+This API provides a faster way to query a GID table using single call and
+will be used in libibverbs to improve current approach that requires
+multiple calls to open, close and read multiple sysfs files for a single
+GID table entry.
+
+Signed-off-by: Avihai Horon <avihaih@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/cache.c         | 93 +++++++++++++++++++++++++
+ include/rdma/ib_cache.h                 |  5 ++
+ include/uapi/rdma/ib_user_ioctl_verbs.h |  8 +++
+ 3 files changed, 106 insertions(+)
+
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index cf49ac0b0aa6..175e229eccd3 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -1247,6 +1247,99 @@ rdma_get_gid_attr(struct ib_device *device, u8 port_num, int index)
+ }
+ EXPORT_SYMBOL(rdma_get_gid_attr);
+ 
++/**
++ * rdma_get_ndev_ifindex - Reads ndev ifindex of the given gid attr.
++ * @gid_attr: Pointer to the GID attribute.
++ * @ndev_ifindex: Pointer through which the ndev ifindex is returned.
++ *
++ * Returns 0 on success or appropriate error code. The netdevice must be in UP
++ * state.
++ */
++int rdma_get_ndev_ifindex(const struct ib_gid_attr *gid_attr, u32 *ndev_ifindex)
++{
++	struct net_device *ndev;
++	int ret = 0;
++
++	if (rdma_protocol_ib(gid_attr->device, gid_attr->port_num)) {
++		*ndev_ifindex = 0;
++		return 0;
++	}
++
++	rcu_read_lock();
++	ndev = rcu_dereference(gid_attr->ndev);
++	if (!ndev || (READ_ONCE(ndev->flags) & IFF_UP) == 0) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	*ndev_ifindex = ndev->ifindex;
++out:
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL(rdma_get_ndev_ifindex);
++
++/**
++ * rdma_query_gid_table - Reads GID table entries of all the ports of a device up to max_entries.
++ * @device: The device to query.
++ * @entries: Entries where GID entries are returned.
++ * @max_entries: Maximum number of entries that can be returned.
++ * Entries array must be allocated to hold max_entries number of entries.
++ * @num_entries: Updated to the number of entries that were successfully read.
++ *
++ * Returns 0 on success or appropriate error code.
++ */
++int rdma_query_gid_table(struct ib_device *device,
++			 struct ib_uverbs_gid_entry *entries,
++			 size_t max_entries, size_t *num_entries)
++{
++	const struct ib_gid_attr *gid_attr;
++	struct ib_gid_table *table;
++	unsigned int port_num;
++	unsigned long flags;
++	int ret;
++	int i;
++
++	*num_entries = 0;
++	rdma_for_each_port(device, port_num) {
++		if (!rdma_ib_or_roce(device, port_num))
++			continue;
++
++		table = rdma_gid_table(device, port_num);
++		read_lock_irqsave(&table->rwlock, flags);
++		for (i = 0; i < table->sz; i++) {
++			if (!is_gid_entry_valid(table->data_vec[i]))
++				continue;
++			if (*num_entries >= max_entries) {
++				ret = -EINVAL;
++				goto err;
++			}
++
++			gid_attr = &table->data_vec[i]->attr;
++
++			memcpy(&entries->gid, &gid_attr->gid,
++			       sizeof(gid_attr->gid));
++			entries->gid_index = gid_attr->index;
++			entries->port_num = gid_attr->port_num;
++			entries->gid_type = gid_attr->gid_type;
++			ret = rdma_get_ndev_ifindex(gid_attr,
++						    &entries->netdev_ifindex);
++			if (ret)
++				goto err;
++
++			(*num_entries)++;
++			entries++;
++		}
++		read_unlock_irqrestore(&table->rwlock, flags);
++	}
++
++	return 0;
++err:
++	read_unlock_irqrestore(&table->rwlock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_query_gid_table);
++
+ /**
+  * rdma_put_gid_attr - Release reference to the GID attribute
+  * @attr:		Pointer to the GID attribute whose reference
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index 66a8f369a2fa..94e4f729f8e4 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -110,5 +110,10 @@ const struct ib_gid_attr *rdma_get_gid_attr(struct ib_device *device,
+ 					    u8 port_num, int index);
+ void rdma_put_gid_attr(const struct ib_gid_attr *attr);
+ void rdma_hold_gid_attr(const struct ib_gid_attr *attr);
++int rdma_get_ndev_ifindex(const struct ib_gid_attr *gid_attr,
++			  u32 *ndev_ifindex);
++int rdma_query_gid_table(struct ib_device *device,
++			 struct ib_uverbs_gid_entry *entries,
++			 size_t max_entries, size_t *num_entries);
+ 
+ #endif /* _IB_CACHE_H */
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 5debab45ebcb..d5ac65ae2557 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -250,4 +250,12 @@ enum rdma_driver_id {
+ 	RDMA_DRIVER_SIW,
+ };
+ 
++struct ib_uverbs_gid_entry {
++	__aligned_u64 gid[2];
++	__u32 gid_index;
++	__u32 port_num;
++	__u32 gid_type;
++	__u32 netdev_ifindex; /* It is 0 if there is no netdev associated with it */
++};
++
+ #endif
+-- 
+2.26.2
+
