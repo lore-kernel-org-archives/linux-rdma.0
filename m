@@ -2,99 +2,97 @@ Return-Path: <SRS0=TzmY=CU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E6A2C433E2
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:37:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A01E0C43461
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 18:19:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9F2E221E7
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:37:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6098E208E4
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 18:19:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=sslab.ics.keio.ac.jp header.i=@sslab.ics.keio.ac.jp header.b="ZhF6FLOx"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="f0d5uzHe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726023AbgIKRhH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Sep 2020 13:37:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37430 "EHLO
+        id S1725861AbgIKSTr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Sep 2020 14:19:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725930AbgIKMuA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 08:50:00 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0470C061757
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 05:49:59 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id m6so11404018wrn.0
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 05:49:59 -0700 (PDT)
+        with ESMTP id S1725730AbgIKSTl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 14:19:41 -0400
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com [IPv6:2607:f8b0:4864:20::843])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92B81C061573
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 11:19:41 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id r8so8558909qtp.13
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 11:19:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sslab.ics.keio.ac.jp; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=nWbc4yMI9H7bl97CVcSxQv/EwnVj0ipCdrn8uq6XpTE=;
-        b=ZhF6FLOxM6x7I7r0tgZIcmqTW3FgLmQpAWreu6Oijs+tt1JDiTN4xtO7gS09FKoB6s
-         EEYVj7HbEIGTUtbiNnMv+MJFArYQN2vqI69IYqhzMjQCcikIpz3g7KdgI4fJ7czvczEa
-         Z23sitHp3PUt/TfvriiI8vSjX1VBgfLlnLZ9A=
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=NUMNzPsZluP4A9WQF3+FT2V5kMfREvpaBzqUi2M9exA=;
+        b=f0d5uzHehvTubKW5AXkQ2iZH08u25QqbA/58BP45d70peWpRrVpLscvQY1zhzKAmUw
+         45ZKs3r42JDdoIQn0cvdIlCOMhaayxsFCQveuu3nLZstLXVH2b4lAaKGNSIQQeQpwJA4
+         pYi1Axr/BkTlSVQ4CoS1y8RMKLS2H0ZPxppK2IRRDvWzp9TbacaI938kTyO6qRHuEeNW
+         OFYXPFlHZkY9iTCZPN+tDq1W09Cr2s7mc3MpxCcJn/TV0kwGOJYjymH2w4FQWWxKkUIb
+         kpXpZgjmRVS7yStq3JIQo9BjcDbSgSGNJTo2J7c5eaQYshJkfiWeifqR19eWxdItlQPe
+         xUUg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=nWbc4yMI9H7bl97CVcSxQv/EwnVj0ipCdrn8uq6XpTE=;
-        b=EOAr63EmebTjgw7kvdIwZknyEb2GoUkjDCJQP2MOGgK0kpZJPK68eG/SxmhVcKv5Pz
-         eGyssdIy3myns2IGmJPtUrB8UjtLDnUQMyENkGQdYurk3VBx57imVCNFU1djKYZabNQp
-         +cq4iRAGdaGSiTdS+FQd+TCq1v4a1iCAyLq+DXVAO7zaji+95LSRJFf/Y3gC72zY9gf5
-         Fy9XrpXNsPS/q+h/OpDpGPxnj8YxkMpJ8DXinuT5eysL+D6PB+UbfQWW8S+8fFai4WQw
-         X5VNu0HdEiji70m4u6/aWdZIhEYChfWMXSu1F8EGTGdPbdAtCOGch70R6vRRNDO0x44k
-         Fn+Q==
-X-Gm-Message-State: AOAM532ZqVulA0YWXl+MT4RxlD3HpDWxr06RNZtZknQwS13L82EqoeYf
-        /qHVo4u+p8gReGjI+Kdcjl3dGkr6mZUR6i+Kf5B9Wg==
-X-Google-Smtp-Source: ABdhPJzU5HHpYZ8aksLleECyLkPPJqWQEXktBFbiMMFXDO29AEh31KF19A1HSjNHai2b4blpPhdazL9YED11Fp9K+Y0=
-X-Received: by 2002:a5d:4bcf:: with SMTP id l15mr1918848wrt.384.1599828598125;
- Fri, 11 Sep 2020 05:49:58 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=NUMNzPsZluP4A9WQF3+FT2V5kMfREvpaBzqUi2M9exA=;
+        b=WckuYKGn39hugxpJujw2yGO6+cDS6SXU0ntUYW33zerfxg5CMSmKaNqHOpY3Fud4lF
+         97ttz5pdSxtbb24Ls6yubH2w5KX0DPnVeqyyj9mF+59oC+bM8RxV3pCOigm0Y8HgVr5x
+         IrJczt6TGBc8o3m9Uz6WD4D88bZirNrYok9b/fWHwbLuQOa14nuPaRbC+Cc7DMWQQGCi
+         MPZYMeb668XR+eJ0kN95/mncfHG6oc72YHboDnJarykrQrcxmMDB9RoFM1IrmyXCAto+
+         G+CrLtBFl/ZWwB6xD50uJ0t7vhuI/Gok2+M619atfHFHwKFaY/3Qm05ORCMxvL6eVT8p
+         8wnw==
+X-Gm-Message-State: AOAM532dzMXSW/603NFs/u+lROzfmbgaJQws3sWGkKevGS7W+wQFww+m
+        zxLyIe91T1dfAvUnSwIm8gCdWA==
+X-Google-Smtp-Source: ABdhPJxS51I8TpA7FH4QtwdoDh+RDwMsZ9DP69EVU43/gBXCUgmLXBu9VYXTwQB46rX9P7hTHh9pig==
+X-Received: by 2002:aed:2d62:: with SMTP id h89mr3154762qtd.193.1599848380859;
+        Fri, 11 Sep 2020 11:19:40 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id y73sm3716420qkb.23.2020.09.11.11.19.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Sep 2020 11:19:40 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kGne7-0057v5-GC; Fri, 11 Sep 2020 15:19:39 -0300
+Date:   Fri, 11 Sep 2020 15:19:39 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     syzbot <syzbot+cc6fc752b3819e082d0c@syzkaller.appspotmail.com>
+Cc:     dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
+Subject: Re: KASAN: use-after-free Read in ucma_close (2)
+Message-ID: <20200911181939.GA1221970@ziepe.ca>
+References: <0000000000008e7c8f05aef61d8d@google.com>
 MIME-Version: 1.0
-References: <f79159af-4408-dc2f-6efa-45c5b45cf2d9@web.de> <CAEYrHj=pfGB7OuHt90t2aaawr31W9XZCHeHJurt3o0rK44jZ+A@mail.gmail.com>
- <59440849-23b1-9c69-ecf6-78f8a0b82c7a@web.de>
-In-Reply-To: <59440849-23b1-9c69-ecf6-78f8a0b82c7a@web.de>
-From:   Keita Suzuki <keitasuzuki.park@sslab.ics.keio.ac.jp>
-Date:   Fri, 11 Sep 2020 21:49:46 +0900
-Message-ID: <CAEYrHjmsd4Sp2R54y55pVL3CXr1KXedoBnTEczCBkpE9+SsFNg@mail.gmail.com>
-Subject: Re: [PATCH] qedr: fix resource leak in qedr_create_qp
-To:     Markus Elfring <Markus.Elfring@web.de>
-Cc:     linux-rdma@vger.kernel.org,
-        open list <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org, Ariel Elior <aelior@marvell.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Takafumi Kubota <takafumi@sslab.ics.keio.ac.jp>,
-        Yuval Bason <yuval.bason@cavium.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0000000000008e7c8f05aef61d8d@google.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
-thank you for the comment.
-I will fix the line break and re-post the patch
+On Thu, Sep 10, 2020 at 07:09:24AM -0700, syzbot wrote:
+> Hello,
+> 
+> syzbot found the following issue on:
+> 
+> HEAD commit:    34d4ddd3 Merge tag 'linux-kselftest-5.9-rc5' of git://git...
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=1002ea2d900000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=a9075b36a6ae26c9
+> dashboard link: https://syzkaller.appspot.com/bug?extid=cc6fc752b3819e082d0c
+> compiler:       gcc (GCC) 10.1.0-syz 20200507
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1600e053900000
+> 
+> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+cc6fc752b3819e082d0c@syzkaller.appspotmail.com
 
-Thanks,
-Keita
+#syz test: https://github.com/jgunthorpe/linux ucma_migrate_fix
 
-2020=E5=B9=B49=E6=9C=8811=E6=97=A5(=E9=87=91) 4:48 Markus Elfring <Markus.E=
-lfring@web.de>:
->
-> > I will re-label the goto statements and post the patch as version 2.
->
-> Thanks for such a positive feedback.
->
->
-> Another suggestion:
->
-> > > Fixes: 1212767e23bb ("qedr: Add wrapping generic structure for qpidr =
-and
-> > > adjust idr routines.")
->
-> Please omit a line break for this tag.
->
-> Regards,
-> Markus
+Jason
