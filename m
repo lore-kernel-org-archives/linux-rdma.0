@@ -2,98 +2,145 @@ Return-Path: <SRS0=TzmY=CU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF927C433E2
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 16:10:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0300DC433E2
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:03:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7054206CA
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 16:10:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A69B22075A
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:03:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ETjF5S+F"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726580AbgIKQKH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Sep 2020 12:10:07 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:58450 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726546AbgIKQKF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 12:10:05 -0400
-Received: from localhost ([10.193.186.242])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id 08BG9vsl019190;
-        Fri, 11 Sep 2020 09:09:58 -0700
-Date:   Fri, 11 Sep 2020 21:39:57 +0530
-From:   Potnuri Bharat Teja <bharat@chelsio.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/iw_cxgb4: disable delayed ack by default
-Message-ID: <20200911160951.GA20264@chelsio.com>
-References: <20200909134726.10348-1-bharat@chelsio.com>
- <CY4PR1201MB02327F3093F7DD29E08CCF32CE260@CY4PR1201MB0232.namprd12.prod.outlook.com>
- <20200910122739.GJ421756@unreal>
- <CY4PR1201MB0232802345D9A7BC05F1B88DCE270@CY4PR1201MB0232.namprd12.prod.outlook.com>
- <20200911131152.GM421756@unreal>
+        id S1725786AbgIKRDI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Sep 2020 13:03:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48696 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726241AbgIKRBm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 13:01:42 -0400
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FCBC061757
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 10:01:42 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id n10so8418779qtv.3
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 10:01:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=hQC5h4tmhJe0o6/7GihSPzVFpGRqbcoLdlsbFYRWvJE=;
+        b=ETjF5S+F6vyqp8xD14BBvlkWN5J7Mj7/bzBIomrefzra9O0UN4PLiDy/6jiIWkc3UV
+         IZnBe1TTqBxLJhRT8jUduG/qvencO3jGWqpNvpfHOAMRk04CrifkwkbcWhRYZp6HUHq1
+         0lGbYdNO9hfYQts6HpAWSNRV1UapBFS96xOOJV8XmunIDBQYDnUDyTsf7McyIT+NR8Wq
+         H6mjJo6cZD89+EkgBoubbpiLrOCMKvqoEB8q2IsRAkumaei7M6avUNmXai9uU43701/P
+         LK6MgJBKCnG+H2p1muMmUiAejSwiQSq/66nLA7p8i+IjI8YQ6pVDBo7P+TRfo921lN/L
+         bkjQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=hQC5h4tmhJe0o6/7GihSPzVFpGRqbcoLdlsbFYRWvJE=;
+        b=qzZLDaY0xUEHUeaz+cvG1ngFg4dz2Ss+euhJcqX1Dq5AQZnCPEHgUi42UTAOUfaEmX
+         J2SGwPEEOo+w4EBpvYjM5cNbrFMxfF79Qjy2JqD/w150JeI0A7DnutGSTjJ8izE02Zk5
+         apCoDDyKNYcw39JJSLn+3eM4EkfAleeVHjrudwrOedxy4gW4ODRBVO/HneQxOwgMFGuU
+         OmhXFvTWy8eCxxSYCuXDu2fSgow0A4rB3SJjI88q4O/UX3Yh5oBCSTKR+9LWg72Z8g1S
+         mYO1CbM8lPUrQuZRs7DDy9T5G4zdI2YPVSLHvHK+l0kLRP8VocD+UzXMExTSXj7bzU68
+         LQJA==
+X-Gm-Message-State: AOAM530lY9DwVlpWqctFS/oRnJWKGGWssJF7zucF0Iqg7/a4+0Qel0g3
+        QB/YhdPOYaSFGYE4gYSmuNi1EQ==
+X-Google-Smtp-Source: ABdhPJyCFCumfnLKani2CUL3oiVZh0W4ll9EBQ13YKmcxlm9eCZAWXiL7vqQ0sINhFhnX0HMCgsfPw==
+X-Received: by 2002:ac8:5341:: with SMTP id d1mr2849701qto.176.1599843701359;
+        Fri, 11 Sep 2020 10:01:41 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id u15sm3456866qtj.3.2020.09.11.10.01.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Sep 2020 10:01:40 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kGmQd-0050vl-Nk; Fri, 11 Sep 2020 14:01:39 -0300
+Date:   Fri, 11 Sep 2020 14:01:39 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Hillf Danton <hdanton@sina.com>
+Cc:     syzbot <syzbot+cc6fc752b3819e082d0c@syzkaller.appspotmail.com>,
+        dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
+Subject: Re: KASAN: use-after-free Read in ucma_close (2)
+Message-ID: <20200911170139.GU87483@ziepe.ca>
+References: <0000000000008e7c8f05aef61d8d@google.com>
+ <20200911041640.20652-1-hdanton@sina.com>
+ <20200911152017.18644-1-hdanton@sina.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200911131152.GM421756@unreal>
-User-Agent: Mutt/1.5.24 (2015-08-30)
+In-Reply-To: <20200911152017.18644-1-hdanton@sina.com>
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Friday, September 09/11/20, 2020 at 18:41:52 +0530, Leon Romanovsky wrote:
-> On Thu, Sep 10, 2020 at 07:14:50PM +0000, Potnuri Bharat Teja wrote:
-> > >> Subject: [PATCH] RDMA/iw_cxgb4: disable delayed ack by default
-> > >>
-> > >> Receive side delayed ack mode is needed only for certain area networks/ connections. Therefore disable it by default.
-> > >>
-> > >> Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
-> > >> ---
-> > >>  drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
-> > >>  1 file changed, 2 insertions(+), 2 deletions(-)
-> > >>
-> > >> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> > >> index 1f288c73ccfc..8769e7aa097f 100644
-> > >> --- a/drivers/infiniband/hw/cxgb4/cm.c
-> > >> +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> > >> @@ -77,9 +77,9 @@ static int enable_ecn;  module_param(enable_ecn, int, 0644);  MODULE_PARM_DESC(enable_ecn, "Enable ECN (default=0/disabled)");
-> > >>
-> > >> -static int dack_mode = 1;
-> > >> +static int dack_mode;
-> > >>  module_param(dack_mode, int, 0644);
-> > >> -MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=1)");
-> > >> +MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=0)");
-> > >
-> > >Are you sure that this doesn't break user scripts?
-> > Yes, I am sure. This does not interfere with user/kernel RDMA functionalities.
+On Fri, Sep 11, 2020 at 11:20:17PM +0800, Hillf Danton wrote:
 > 
-> How is it possible?
-> Before this change user that did "modprobe iw_cxgb4" had delayed mode
-> enabled, after this he will need to issue "modprobe iw_cxgb4 dack_mode=1"
->
-Sorry I didnt get it right earlier. Yes now if user wants delayed ack mode, 
-user can issue "modprobe iw_cxgb4 dack_mode=1" or change it dynamically via 
-/sys/module/<>/paramters.
-Chelsio adapters for better performance in most cases needs delayed ack mode to 
-be disabled. This change somehow got missed upstream all this while.
-In fewer explicit cases, user can enable delayed ack mode where it is needed.
-  
-> https://github.com/linux-rdma/rdma-core/blob/master/kernel-boot/rdma-hw-modules.rules#L12
+> On Fri, 11 Sep 2020 08:57:50 -0300 Jason Gunthorpe wrote:
+> > On Fri, Sep 11, 2020 at 12:16:40PM +0800, Hillf Danton wrote:
+> > > Detect race destroying ctx in order to avoid UAF.
+> > > 
+> > > +++ b/drivers/infiniband/core/ucma.c
+> > > @@ -625,6 +625,10 @@ static ssize_t ucma_destroy_id(struct uc
+> > >  		return PTR_ERR(ctx);
+> > >  
+> > >  	mutex_lock(&ctx->file->mut);
+> > > +	if (ctx->destroying == 1) {
+> > > +		mutex_unlock(&ctx->file->mut);
+> > > +		return -ENXIO;
+> > > +	}
+> > >  	ctx->destroying = 1;
+> > >  	mutex_unlock(&ctx->file->mut);
+> > >  
+> > > @@ -1826,6 +1830,8 @@ static int ucma_close(struct inode *inod
+> > >  
+> > >  	mutex_lock(&file->mut);
+> > >  	list_for_each_entry_safe(ctx, tmp, &file->ctx_list, list) {
+> > > +		if (ctx->destroying == 1)
+> > > +			continue;
+> > >  		ctx->destroying = 1;
+> > >  		mutex_unlock(&file->mut);
+> > >  
+> > 
+> > ucma_destroy_id() is called from write() and ucma_close is release(),
+> > so there is no way these can race?
 > 
-> Thanks
-> 
-> >
-> > Thanks,
-> > Bharat.
-> > >
-> > >Thanks
-> > >
-> > >>
-> > >>  uint c4iw_max_read_depth = 32;
-> > >>  module_param(c4iw_max_read_depth, int, 0644);
-> > >> --
-> > >> 2.24.0
+> Sound good but what's reported is uaf in the close path, which is
+> impossible without another thread releasing the ctx a step ahead
+> the closer.
+> Can we call it a race if that's true?
+
+Migrate is the cause, very tricky:
+
+		CPU0                      CPU1
+	ucma_destroy_id()
+				  ucma_migrate_id()
+				       ucma_get_ctx()
+	xa_lock()
+	 _ucma_find_context()
+	 xa_erase()
+				       xa_lock()
+					ctx->file = new_file
+					list_move()
+				       xa_unlock()
+				      ucma_put_ctx
+				   ucma_close()
+				      _destroy_id()
+
+	_destroy_id()
+	  wait_for_completion()
+	  // boom
+
+
+ie the destrory_id() on the initial FD captures the ctx right before
+migrate moves it, then the new FD closes calling destroy while the
+other destroy is still running.
+
+Sigh, I will rewrite migrate too..
+
+Jason
