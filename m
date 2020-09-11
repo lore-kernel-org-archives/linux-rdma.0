@@ -2,145 +2,180 @@ Return-Path: <SRS0=TzmY=CU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0300DC433E2
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E757FC43461
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:36:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A69B22075A
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:03:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88311221E7
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Sep 2020 17:36:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="ETjF5S+F"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=sslab.ics.keio.ac.jp header.i=@sslab.ics.keio.ac.jp header.b="NhAveaOX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725786AbgIKRDI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Sep 2020 13:03:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48696 "EHLO
+        id S1726000AbgIKMxw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Sep 2020 08:53:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726241AbgIKRBm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 13:01:42 -0400
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27FCBC061757
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 10:01:42 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id n10so8418779qtv.3
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 10:01:42 -0700 (PDT)
+        with ESMTP id S1726028AbgIKMwR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Sep 2020 08:52:17 -0400
+Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E4D6C061757
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 05:52:17 -0700 (PDT)
+Received: by mail-pj1-x1042.google.com with SMTP id md22so2617144pjb.0
+        for <linux-rdma@vger.kernel.org>; Fri, 11 Sep 2020 05:52:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=hQC5h4tmhJe0o6/7GihSPzVFpGRqbcoLdlsbFYRWvJE=;
-        b=ETjF5S+F6vyqp8xD14BBvlkWN5J7Mj7/bzBIomrefzra9O0UN4PLiDy/6jiIWkc3UV
-         IZnBe1TTqBxLJhRT8jUduG/qvencO3jGWqpNvpfHOAMRk04CrifkwkbcWhRYZp6HUHq1
-         0lGbYdNO9hfYQts6HpAWSNRV1UapBFS96xOOJV8XmunIDBQYDnUDyTsf7McyIT+NR8Wq
-         H6mjJo6cZD89+EkgBoubbpiLrOCMKvqoEB8q2IsRAkumaei7M6avUNmXai9uU43701/P
-         LK6MgJBKCnG+H2p1muMmUiAejSwiQSq/66nLA7p8i+IjI8YQ6pVDBo7P+TRfo921lN/L
-         bkjQ==
+        d=sslab.ics.keio.ac.jp; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=JBjfpNNCcSR2lMWRcTwj2x61e5MJUnNyTU2oRJeCo1g=;
+        b=NhAveaOXGgERFl5ZKAud73NbmDI+dThozoPKNkxWvHQ5bB9w4oQAsCV7WHF56spxyM
+         r3yo0OOfZZUURq8/cDZCSBXjtQ3F4SxJhmLHkGyyKTrZWw+GNFPKr3XJuxFS/PGI6o0U
+         iBPVkclSUf3GeXFWPTRuc8PE8xvyULPLxbrYk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=hQC5h4tmhJe0o6/7GihSPzVFpGRqbcoLdlsbFYRWvJE=;
-        b=qzZLDaY0xUEHUeaz+cvG1ngFg4dz2Ss+euhJcqX1Dq5AQZnCPEHgUi42UTAOUfaEmX
-         J2SGwPEEOo+w4EBpvYjM5cNbrFMxfF79Qjy2JqD/w150JeI0A7DnutGSTjJ8izE02Zk5
-         apCoDDyKNYcw39JJSLn+3eM4EkfAleeVHjrudwrOedxy4gW4ODRBVO/HneQxOwgMFGuU
-         OmhXFvTWy8eCxxSYCuXDu2fSgow0A4rB3SJjI88q4O/UX3Yh5oBCSTKR+9LWg72Z8g1S
-         mYO1CbM8lPUrQuZRs7DDy9T5G4zdI2YPVSLHvHK+l0kLRP8VocD+UzXMExTSXj7bzU68
-         LQJA==
-X-Gm-Message-State: AOAM530lY9DwVlpWqctFS/oRnJWKGGWssJF7zucF0Iqg7/a4+0Qel0g3
-        QB/YhdPOYaSFGYE4gYSmuNi1EQ==
-X-Google-Smtp-Source: ABdhPJyCFCumfnLKani2CUL3oiVZh0W4ll9EBQ13YKmcxlm9eCZAWXiL7vqQ0sINhFhnX0HMCgsfPw==
-X-Received: by 2002:ac8:5341:: with SMTP id d1mr2849701qto.176.1599843701359;
-        Fri, 11 Sep 2020 10:01:41 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id u15sm3456866qtj.3.2020.09.11.10.01.40
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=JBjfpNNCcSR2lMWRcTwj2x61e5MJUnNyTU2oRJeCo1g=;
+        b=aPE6r0QJdjCiakaqn1rdPlzVb3CRcmlGIc+KnxLPOY3MKv/y8uEWsii+l0U0BJr4T1
+         ySN6NeK98FSaNiAzIll7bhCdOcOqaY20Hq1pXb7+EfLoBJ8oSlomz8iIoqLtTWRTdm/l
+         HIdCknP07rVICKzM6QyiQgA7NLc7dd4kWNeRsh4FPbW4jK8KvQrKB83v5AajJGT07gOd
+         Y5zoVcQhCDK2w73sznAZ6E4sA9p4MyCZe0hyIL2pGeEiQuj+wNTfzB8mGj8UY0Hk5Vfh
+         x5hvrpb5PMpcNZweEiClhJx4gqcpKKHTsPx9UAZ28Tm8qzu4fWmcZ9qGvuebhUXr16cb
+         fZEQ==
+X-Gm-Message-State: AOAM532pi7cjXLYtL6nrFxJtMXkaF3F0+LBrgPjc2E/Aa3Pom/vEr7Gg
+        dWrXGk77qC3SKnQ1Hy93Zep0TA==
+X-Google-Smtp-Source: ABdhPJyxE06IXjEiMlIdvqyFhkPPd6AGf7OYQAxMt+Shm1MLO4D2RnAX3Pg5Tyn7r0RrhY1jVdobag==
+X-Received: by 2002:a17:90b:d90:: with SMTP id bg16mr2084477pjb.199.1599828736809;
+        Fri, 11 Sep 2020 05:52:16 -0700 (PDT)
+Received: from brooklyn.i.sslab.ics.keio.ac.jp (sslab-relay.ics.keio.ac.jp. [131.113.126.173])
+        by smtp.googlemail.com with ESMTPSA id gg13sm1239543pjb.3.2020.09.11.05.52.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Sep 2020 10:01:40 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kGmQd-0050vl-Nk; Fri, 11 Sep 2020 14:01:39 -0300
-Date:   Fri, 11 Sep 2020 14:01:39 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Hillf Danton <hdanton@sina.com>
-Cc:     syzbot <syzbot+cc6fc752b3819e082d0c@syzkaller.appspotmail.com>,
-        dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Subject: Re: KASAN: use-after-free Read in ucma_close (2)
-Message-ID: <20200911170139.GU87483@ziepe.ca>
-References: <0000000000008e7c8f05aef61d8d@google.com>
- <20200911041640.20652-1-hdanton@sina.com>
- <20200911152017.18644-1-hdanton@sina.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200911152017.18644-1-hdanton@sina.com>
+        Fri, 11 Sep 2020 05:52:16 -0700 (PDT)
+From:   Keita Suzuki <keitasuzuki.park@sslab.ics.keio.ac.jp>
+Cc:     keitasuzuki.park@sslab.ics.keio.ac.jp,
+        takafumi@sslab.ics.keio.ac.jp,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Yuval Bason <yuval.bason@cavium.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3] qedr: fix resource leak in qedr_create_qp
+Date:   Fri, 11 Sep 2020 12:51:59 +0000
+Message-Id: <20200911125159.4577-1-keitasuzuki.park@sslab.ics.keio.ac.jp>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <AEYrHjmsd4Sp2R54y55pVL3CXr1KXedoBnTEczCBkpE9+SsFNg@mail.gmail.com>
+References: <AEYrHjmsd4Sp2R54y55pVL3CXr1KXedoBnTEczCBkpE9+SsFNg@mail.gmail.com>
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Sep 11, 2020 at 11:20:17PM +0800, Hillf Danton wrote:
-> 
-> On Fri, 11 Sep 2020 08:57:50 -0300 Jason Gunthorpe wrote:
-> > On Fri, Sep 11, 2020 at 12:16:40PM +0800, Hillf Danton wrote:
-> > > Detect race destroying ctx in order to avoid UAF.
-> > > 
-> > > +++ b/drivers/infiniband/core/ucma.c
-> > > @@ -625,6 +625,10 @@ static ssize_t ucma_destroy_id(struct uc
-> > >  		return PTR_ERR(ctx);
-> > >  
-> > >  	mutex_lock(&ctx->file->mut);
-> > > +	if (ctx->destroying == 1) {
-> > > +		mutex_unlock(&ctx->file->mut);
-> > > +		return -ENXIO;
-> > > +	}
-> > >  	ctx->destroying = 1;
-> > >  	mutex_unlock(&ctx->file->mut);
-> > >  
-> > > @@ -1826,6 +1830,8 @@ static int ucma_close(struct inode *inod
-> > >  
-> > >  	mutex_lock(&file->mut);
-> > >  	list_for_each_entry_safe(ctx, tmp, &file->ctx_list, list) {
-> > > +		if (ctx->destroying == 1)
-> > > +			continue;
-> > >  		ctx->destroying = 1;
-> > >  		mutex_unlock(&file->mut);
-> > >  
-> > 
-> > ucma_destroy_id() is called from write() and ucma_close is release(),
-> > so there is no way these can race?
-> 
-> Sound good but what's reported is uaf in the close path, which is
-> impossible without another thread releasing the ctx a step ahead
-> the closer.
-> Can we call it a race if that's true?
+When xa_insert() fails, the acquired resource in qedr_create_qp should
+also be freed. However, current implementation does not handle the
+error.
 
-Migrate is the cause, very tricky:
+Fix this by adding a new goto label that calls qedr_free_qp_resources.
 
-		CPU0                      CPU1
-	ucma_destroy_id()
-				  ucma_migrate_id()
-				       ucma_get_ctx()
-	xa_lock()
-	 _ucma_find_context()
-	 xa_erase()
-				       xa_lock()
-					ctx->file = new_file
-					list_move()
-				       xa_unlock()
-				      ucma_put_ctx
-				   ucma_close()
-				      _destroy_id()
+Fixes: 1212767e23bb ("qedr: Add wrapping generic structure for qpidr and adjust idr routines.")
+Signed-off-by: Keita Suzuki <keitasuzuki.park@sslab.ics.keio.ac.jp>
+---
+changelog(v3): Fix linebreak of the fix tag
+changelog(v2): Change numbered labels to descriptive labels
 
-	_destroy_id()
-	  wait_for_completion()
-	  // boom
+ drivers/infiniband/hw/qedr/verbs.c | 52 ++++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 25 deletions(-)
 
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index b49bef94637e..3b4c84f67023 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -2112,6 +2112,28 @@ static int qedr_create_kernel_qp(struct qedr_dev *dev,
+ 	return rc;
+ }
+ 
++static int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp,
++				  struct ib_udata *udata)
++{
++	struct qedr_ucontext *ctx =
++		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
++					  ibucontext);
++	int rc;
++
++	if (qp->qp_type != IB_QPT_GSI) {
++		rc = dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
++		if (rc)
++			return rc;
++	}
++
++	if (qp->create_type == QEDR_QP_CREATE_USER)
++		qedr_cleanup_user(dev, ctx, qp);
++	else
++		qedr_cleanup_kernel(dev, qp);
++
++	return 0;
++}
++
+ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
+ 			     struct ib_qp_init_attr *attrs,
+ 			     struct ib_udata *udata)
+@@ -2158,19 +2180,21 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
+ 		rc = qedr_create_kernel_qp(dev, qp, ibpd, attrs);
+ 
+ 	if (rc)
+-		goto err;
++		goto out_free_qp;
+ 
+ 	qp->ibqp.qp_num = qp->qp_id;
+ 
+ 	if (rdma_protocol_iwarp(&dev->ibdev, 1)) {
+ 		rc = xa_insert(&dev->qps, qp->qp_id, qp, GFP_KERNEL);
+ 		if (rc)
+-			goto err;
++			goto out_free_qp_resources;
+ 	}
+ 
+ 	return &qp->ibqp;
+ 
+-err:
++out_free_qp_resources:
++	qedr_free_qp_resources(dev, qp, udata);
++out_free_qp:
+ 	kfree(qp);
+ 
+ 	return ERR_PTR(-EFAULT);
+@@ -2671,28 +2695,6 @@ int qedr_query_qp(struct ib_qp *ibqp,
+ 	return rc;
+ }
+ 
+-static int qedr_free_qp_resources(struct qedr_dev *dev, struct qedr_qp *qp,
+-				  struct ib_udata *udata)
+-{
+-	struct qedr_ucontext *ctx =
+-		rdma_udata_to_drv_context(udata, struct qedr_ucontext,
+-					  ibucontext);
+-	int rc;
+-
+-	if (qp->qp_type != IB_QPT_GSI) {
+-		rc = dev->ops->rdma_destroy_qp(dev->rdma_ctx, qp->qed_qp);
+-		if (rc)
+-			return rc;
+-	}
+-
+-	if (qp->create_type == QEDR_QP_CREATE_USER)
+-		qedr_cleanup_user(dev, ctx, qp);
+-	else
+-		qedr_cleanup_kernel(dev, qp);
+-
+-	return 0;
+-}
+-
+ int qedr_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ {
+ 	struct qedr_qp *qp = get_qedr_qp(ibqp);
+-- 
+2.17.1
 
-ie the destrory_id() on the initial FD captures the ctx right before
-migrate moves it, then the new FD closes calling destroy while the
-other destroy is still running.
-
-Sigh, I will rewrite migrate too..
-
-Jason
