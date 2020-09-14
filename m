@@ -2,53 +2,52 @@ Return-Path: <SRS0=anP4=CX=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4765BC43461
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 17:51:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB1EC433E2
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 17:52:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9B36214F1
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 17:51:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B15B9214F1
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 17:52:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600105914;
-	bh=njTD/4eDrE5KS0pb+XkMlaM+vhP7afImNLL0FaUBSZo=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=B47j+NLa6S6LfvhCRRtEpmBZg5YJ7goBzSsFNM/DKf1xTGwt+cS6L17wcwFG8aXG3
-	 HUVV5PnHoPp949wfJQX12x65+PIvOtxD8m3MbZ3Oo+bcZUTIyW4hxu03oo743uonk7
-	 YyvfRDp6pcSYnFOJHC8vazHYGtnSmEXs2ODyOIVM=
+	s=default; t=1600105922;
+	bh=BmuHmhGhGepfE3o2F1iMhe93hNrOJgfv15hcQoThuOM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=LzJlZcF97C30G5UEnhWZcoyO6xAvCW/tNPxPcRQUDDQ5rXdeik2H8epMBGPaxnijE
+	 /FSzBNUgUCBX71Y4Ucm3luqiuGQ22vDhp1ykOQCtTcFC88mp0l8ulLyIrpd3i28azA
+	 xlTrhl7SuhDO1s+TjwMufzLg1H/bMqnRgVlITs+Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726071AbgINL1Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Sep 2020 07:27:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48806 "EHLO mail.kernel.org"
+        id S1725987AbgINRv6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Sep 2020 13:51:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726084AbgINL06 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Sep 2020 07:26:58 -0400
+        id S1726085AbgINL1B (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Sep 2020 07:27:01 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5BD3C216C4;
-        Mon, 14 Sep 2020 11:26:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E226B208DB;
+        Mon, 14 Sep 2020 11:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600082818;
-        bh=njTD/4eDrE5KS0pb+XkMlaM+vhP7afImNLL0FaUBSZo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ij45fDyAexKQROkxT7mQeyOK4XIc85GsQga+UrjAlkC1uRdGLwBpxOwCT9td2aTw+
-         2fQfNGe4BqtqXAChcbZRxn0iswhSwEgfz2kNo68cbtHljYp0mGUFiya72j+Pz5jSf9
-         OsYd9SVH6fSmjqCoSMFTtUocSrwLDzmUjmtKM6Ng=
+        s=default; t=1600082821;
+        bh=BmuHmhGhGepfE3o2F1iMhe93hNrOJgfv15hcQoThuOM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=R3be7D/z/HZ9xCp1RfWWFiEiL8TNKISEUju4o/pRQGHhWtWNLptsPVkHR3k7A9uuE
+         vq9/XB5c7F8uJS4s+JsYI3Sv5/s1uHzg99TI5PLcAwHiQeVL9QHPqGL5Mr6eaAT25/
+         Db+dsika7/qy/MxrJls2qH+whSL2eH1ygBuKP74I=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Artemy Kovalyov <artemyko@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Moni Shoua <monis@mellanox.com>,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next 0/5] Reorganize mlx5 UMR creation flow
-Date:   Mon, 14 Sep 2020 14:26:48 +0300
-Message-Id: <20200914112653.345244-1-leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 1/5] RDMA/mlx5: Remove dead check for EAGAIN after alloc_mr_from_cache()
+Date:   Mon, 14 Sep 2020 14:26:49 +0300
+Message-Id: <20200914112653.345244-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200914112653.345244-1-leon@kernel.org>
+References: <20200914112653.345244-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -56,31 +55,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-This flow has become crufty and confusing. Revise it so that the rules
-on how UMR is used with MRs is much clearer and more correct.
+alloc_mr_from_cache() no longer returns EAGAIN, this is just dead code
+now.
 
-Fixes a few minor bugs in ODP and rereg_mr where disallowed things were
-not properly blocked.
+Fixes: aad719dcf379 ("RDMA/mlx5: Allow MRs to be created in the cache synchronously")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/mr.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Thanks
-
-Jason Gunthorpe (5):
-  RDMA/mlx5: Remove dead check for EAGAIN after alloc_mr_from_cache()
-  RDMA/mlx5: Use set_mkc_access_pd_addr_fields() in reg_create()
-  RDMA/mlx5: Make mkeys always owned by the kernel's PD when not enabled
-  RDMA/mlx5: Disable IB_DEVICE_MEM_MGT_EXTENSIONS if IB_WR_REG_MR can't
-    work
-  RDMA/mlx5: Clarify what the UMR is for when creating MRs
-
- drivers/infiniband/hw/mlx5/main.c    |   4 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  45 +++++++--
- drivers/infiniband/hw/mlx5/mr.c      | 133 ++++++++++++++-------------
- drivers/infiniband/hw/mlx5/odp.c     |   9 +-
- drivers/infiniband/hw/mlx5/wr.c      |  27 +++---
- 5 files changed, 127 insertions(+), 91 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 4cedcb8c3b31..6e63c0b36872 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1402,10 +1402,8 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	if (order <= mr_cache_max_order(dev) && use_umr) {
+ 		mr = alloc_mr_from_cache(pd, umem, virt_addr, length, ncont,
+ 					 page_shift, order, access_flags);
+-		if (PTR_ERR(mr) == -EAGAIN) {
+-			mlx5_ib_dbg(dev, "cache empty for order %d\n", order);
++		if (IS_ERR(mr))
+ 			mr = NULL;
+-		}
+ 	} else if (!MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset)) {
+ 		if (access_flags & IB_ACCESS_ON_DEMAND) {
+ 			err = -EINVAL;
+-- 
 2.26.2
 
