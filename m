@@ -2,169 +2,204 @@ Return-Path: <SRS0=anP4=CX=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC06EC43461
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D595C433E2
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:38:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A70B207BB
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600084966;
-	bh=vKBxjVsv+qR5zK4HC1GJy5PWCIjchN468EjYE05DDB0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=OGNx72caLy/Nn4TbbkXNJSfM8SHl81WpxHNB2++WkC3U+KSAyCy7JeMS3jshYkVwf
-	 ywQBp3efd+dqsEp7QZN1I/L4YGpAtDiutIS2iPLLxQ4DpIDH19809KVWDEwubn+dnf
-	 7g7TawqMzndHb1xNpin4P38iARNopM3+MURwqKCo=
+	by mail.kernel.org (Postfix) with ESMTP id 27CED20759
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:38:57 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="C3weNuMH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726068AbgINMCc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Sep 2020 08:02:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51246 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726135AbgINLkp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Sep 2020 07:40:45 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CD2BE21973;
-        Mon, 14 Sep 2020 11:39:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600083598;
-        bh=vKBxjVsv+qR5zK4HC1GJy5PWCIjchN468EjYE05DDB0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=n6M9pL0q9WzFIySHbtDyGrHWtwxHS4lYks1/goQyhRrDw3y3mLHWJPXOlAk+quh76
-         ydw6Y6HxFm4XDY3OavigvRbDjgrnroOqscREdgZ57mJFQhZecrM4UD5WKZwjXop8bJ
-         3Kt9hbX6ES5bkLL8mckIsDaZ2jGZJqgrZrkX94Gw=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 2/4] IB/core: Enable ODP sync without faulting
-Date:   Mon, 14 Sep 2020 14:39:47 +0300
-Message-Id: <20200914113949.346562-3-leon@kernel.org>
+        id S1726183AbgINMiX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Sep 2020 08:38:23 -0400
+Received: from mail-eopbgr80047.outbound.protection.outlook.com ([40.107.8.47]:51073
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726525AbgINMf4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Sep 2020 08:35:56 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=mSBszNWQlCBF4uFb9veziGuwxBarW4dGU2nLdBMV4YvJ0xVhu0cM2Tokza6aWw4OpmRQPLG1umhgttnEFJRQy/BZJxcvQv6ZE3od0KvsVFD8CLO5TRpqJ64uhhCQSfIWI5HjDL/8hRdHr8zPvkBNBZLK6r5G++0mzr5a/kpgeTpXoRolQ2jGSdZzhnp7hTO+Sm6qOSoe4/gwNJWWGJFUd4XJ4soWXCniRLuj15OXvfu87w0lJHlN0jUjUoeNfwiohqZR0RNFDt+rgNlLf1/NFhR7HS1UtG8PXK0TMB0xNY5ZLFiysdddELfMQQilub7lukkeBAd9DdqS7GndZ1omJg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lfou24vZ6gVq+Obnf6Wc7AmhFVetLmCd1rmDAHdhi1E=;
+ b=SuaxW0SJj0ydhoNX93Dm/W2mVYjXja7NM48uGRcEVjIghasSdnRiR7+Gprz1A8rZPIqCtXYVHUr6i1sDZA7mUBkrXMtGi8G0skRT+PqpKO4b/RaPpuI8ZVAXIdovwIalnpMKhjZxDMNOrHH7kvuEhnAT03hln7lILRX96/Y2G4vtZHD1LUCMFw/8vdT740IJMVAQuZdOkNBqiLCgfNlIcEqtT3N7pdWU7u43hbaQvu/w5OFDH6HnFw7uj0IeMnFXvkLxu8ZkVhBe5s6Irbq5lIQPg6Muggzf4NcsVUWLecPLo5Pzo4XIZGp9D6i9RLiIKI7SXYgTL/wj8K0HZMXvHw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lfou24vZ6gVq+Obnf6Wc7AmhFVetLmCd1rmDAHdhi1E=;
+ b=C3weNuMHdLoB1BOzpOMkxf8Mb8I3AccTrYjIi/N/zBOvbhBX6Z+beKiv1+nJAmtPqryv+bQqpAskEkujM0zkcM92lVOAw1Ck9yIylr+6HdPD3tKIGvuE8rBEDUH91q/Z/R5BHuG8Yk10N2ZZaSKw08UAWMH8nIrOBlYV2g+fblQ=
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=mellanox.com;
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com (2603:10a6:208:c0::32)
+ by AM8PR05MB7201.eurprd05.prod.outlook.com (2603:10a6:20b:1d4::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3370.17; Mon, 14 Sep
+ 2020 12:35:53 +0000
+Received: from AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::349f:cbf4:ddcf:ce18]) by AM0PR05MB4866.eurprd05.prod.outlook.com
+ ([fe80::349f:cbf4:ddcf:ce18%3]) with mapi id 15.20.3370.019; Mon, 14 Sep 2020
+ 12:35:53 +0000
+From:   Parav Pandit <parav@mellanox.com>
+To:     faisal.latif@intel.com, shiraz.saleem@intel.com,
+        dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+Cc:     Parav Pandit <parav@nvidia.com>
+Subject: [PATCH rdma-next] IB/i40iw: Avoid typecast from void to pci_dev
+Date:   Mon, 14 Sep 2020 15:35:28 +0300
+Message-Id: <20200914123528.270382-1-parav@mellanox.com>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200914113949.346562-1-leon@kernel.org>
-References: <20200914113949.346562-1-leon@kernel.org>
-MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: DM3PR14CA0141.namprd14.prod.outlook.com
+ (2603:10b6:0:53::25) To AM0PR05MB4866.eurprd05.prod.outlook.com
+ (2603:10a6:208:c0::32)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from sw-mtx-036.mtx.labs.mlnx (208.176.44.194) by DM3PR14CA0141.namprd14.prod.outlook.com (2603:10b6:0:53::25) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3370.16 via Frontend Transport; Mon, 14 Sep 2020 12:35:51 +0000
+X-Mailer: git-send-email 2.26.2
+X-Originating-IP: [208.176.44.194]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-HT: Tenant
+X-MS-Office365-Filtering-Correlation-Id: 2580c563-d9ba-4b44-f635-08d858aab800
+X-MS-TrafficTypeDiagnostic: AM8PR05MB7201:
+X-LD-Processed: a652971c-7d2e-4d9b-a6a4-d149256f461b,ExtAddr
+X-Microsoft-Antispam-PRVS: <AM8PR05MB72019AC2B1E3235A72414987D1230@AM8PR05MB7201.eurprd05.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:644;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: MbE58Yy6XKa9R46gXyZWQW9OmeXqriUxGsKMuPX24XEPyrnUhAqdH8P/RJ8kYVBfvc/c3Vm7w2hq/b+j10jiV2ofsPvJeV8TzG9Y0VEQHJ9kZhsJBIHbKPAJhVvTZq3DyylBJqFZZjkQxJya2+hAHzkLirO3awtoaQFLDR3Aom5we14ptvYQeew/X8B4oYO9I4ius48kDBTSBqyu3S4W4QMGDbbkObcBywaj4QxGAW5arQNYV6zfkzgOAHY2ka3F0JlL/Ip8eC3aL+RvCDjKbD13iISrsnUa8cVSqeEj7RMR2Bhzm+EiGRE4P9alkmnk9cnavT+uei+fdlCwNdBESQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR05MB4866.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(346002)(39860400002)(366004)(136003)(376002)(316002)(2616005)(66946007)(8676002)(86362001)(66476007)(66556008)(1076003)(8936002)(956004)(2906002)(16526019)(186003)(26005)(4326008)(6666004)(6506007)(52116002)(5660300002)(83380400001)(36756003)(478600001)(6486002)(6512007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: IqJgFk3rSMnh2T2Su6sr6q2cbP8RMd1DTATAlxkUqawNTqoTTwMENnjWEscgWkxlZYBI+dw2qRqvd4e7PmL3Lc8m+ub4Ft1rObi0L7BgTv8TJ+0c/vx4uCIYZb6cFZFVAcmAkDYiKEZh1YgMXsDLGlsB0yaHW12/IFfASZZSyqiP3d4XTW3o/FW9XnuFyD5PcVjN9bT2S4QGUYkegd5Q7JeA2z0j0aLrR49eKHdrGs0Mp1qcYpVsXw+vgayc0bbI+HL4l0c/4uUuUlkgcOseaS2v1o0MCCNPWQIXgA2GFUhKDGwLxE9HJ3BGoqFQPmoC1yx6jh20C0KT6kb1FBRN6Ac4VdK5GohjtVjuKaoITjvtv9R6EEw3CquTpE0LKGp+rjSt5HevvbhT3oS+ji0UUX2sWBqyxu2j6Y/B+ArvllhVnxJ5p2TIcH4Uh73jauAqrIsNDekzKGYLxJ+P6P2J1Bniksh6XOIMC9rjWPV78iHOKRYJFGcPQXa6JRITxg6/DyhbeOUmEZsGAVau9iVeCEvpoFUKAlpmtueqU6gRcxBs3YUYXkC6gOKaIZOULrRJw02mAPWtdOqpnsztIlA0XSOZcda2758+9DMY89wDmW/Y8UrbGwLx3wjCTh2eyxyutnFGwMvRgoh8Lbbc+O99cg==
+X-MS-Exchange-Transport-Forked: True
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2580c563-d9ba-4b44-f635-08d858aab800
+X-MS-Exchange-CrossTenant-AuthSource: AM0PR05MB4866.eurprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2020 12:35:53.1118
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: unAnaYATunHikY/LdEKe4/z50lo1RPMjHPnw+fx5fTKkUKQGTTw5TtdpdcXoAvtID1fVdN19qQA/IUbEeaLyrw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM8PR05MB7201
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+From: Parav Pandit <parav@nvidia.com>
 
-Enable ODP sync without faulting, this improves performance by reducing
-the number of page faults in the system.
+hw_context stores pci device pointer. Use the pci_dev pointer instead of
+void * and avoid typecasts.
 
-The gain from this option is that the device page table can be aligned
-with the presented pages in the CPU page table without causing page
-faults.
-
-As of that, the overhead on data path from hardware point of view to
-trigger a fault which end-up by calling the driver to bring the pages
-will be dropped.
-
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Parav Pandit <parav@nvidia.com>
 ---
- drivers/infiniband/core/umem_odp.c | 35 +++++++++++++++++++++---------
- drivers/infiniband/hw/mlx5/odp.c   |  2 +-
- include/rdma/ib_umem_odp.h         |  2 +-
- 3 files changed, 27 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_main.c  | 2 +-
+ drivers/infiniband/hw/i40iw/i40iw_pble.c  | 4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_type.h  | 3 ++-
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 4 ++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 +-
+ 5 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 8db3e78eb087..e47ccb196516 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -343,9 +343,10 @@ static int ib_umem_odp_map_dma_single_page(
-  *        the return value.
-  * @access_mask: bit mask of the requested access permissions for the given
-  *               range.
-+ * @fault: is faulting required for the given range
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index c0cdb25440bf..2408b279e4c2 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1573,7 +1573,7 @@ static enum i40iw_status_code i40iw_setup_init_state(struct i40iw_handler *hdl,
+ 	status = i40iw_save_msix_info(iwdev, ldev);
+ 	if (status)
+ 		return status;
+-	iwdev->hw.dev_context = (void *)ldev->pcidev;
++	iwdev->hw.pcidev = ldev->pcidev;
+ 	iwdev->hw.hw_addr = ldev->hw_addr;
+ 	status = i40iw_allocate_dma_mem(&iwdev->hw,
+ 					&iwdev->obj_mem, 8192, 4096);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_pble.c b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+index 540aab5e502d..5f97643e22e5 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_pble.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+@@ -167,7 +167,7 @@ static enum i40iw_status_code add_sd_direct(struct i40iw_sc_dev *dev,
   */
- int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
--				 u64 bcnt, u64 access_mask)
-+				 u64 bcnt, u64 access_mask, bool fault)
- 			__acquires(&umem_odp->umem_mutex)
+ static void i40iw_free_vmalloc_mem(struct i40iw_hw *hw, struct i40iw_chunk *chunk)
  {
- 	struct task_struct *owning_process  = NULL;
-@@ -381,10 +382,12 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
- 	range.end = ALIGN(user_virt + bcnt, 1UL << page_shift);
- 	pfn_start_idx = (range.start - ib_umem_start(umem_odp)) >> PAGE_SHIFT;
- 	num_pfns = (range.end - range.start) >> PAGE_SHIFT;
--	range.default_flags = HMM_PFN_REQ_FAULT;
-+	if (fault) {
-+		range.default_flags = HMM_PFN_REQ_FAULT;
+-	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
++	struct pci_dev *pcidev = hw->pcidev;
+ 	int i;
  
--	if (access_mask & ODP_WRITE_ALLOWED_BIT)
--		range.default_flags |= HMM_PFN_REQ_WRITE;
-+		if (access_mask & ODP_WRITE_ALLOWED_BIT)
-+			range.default_flags |= HMM_PFN_REQ_WRITE;
-+	}
+ 	if (!chunk->pg_cnt)
+@@ -193,7 +193,7 @@ static enum i40iw_status_code i40iw_get_vmalloc_mem(struct i40iw_hw *hw,
+ 						    struct i40iw_chunk *chunk,
+ 						    int pg_cnt)
+ {
+-	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
++	struct pci_dev *pcidev = hw->pcidev;
+ 	struct page *page;
+ 	u8 *addr;
+ 	u32 size;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 54c323c40d96..c3babf3cbb8e 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -73,6 +73,7 @@ struct i40iw_pd_ops;
+ struct i40iw_priv_qp_ops;
+ struct i40iw_priv_cq_ops;
+ struct i40iw_hmc_ops;
++struct pci_dev;
  
- 	range.hmm_pfns = &(umem_odp->pfn_list[pfn_start_idx]);
- 	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-@@ -413,12 +416,24 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+ enum i40iw_page_size {
+ 	I40IW_PAGE_SIZE_4K,
+@@ -261,7 +262,7 @@ struct i40iw_vsi_pestat {
  
- 	for (pfn_index = 0; pfn_index < num_pfns;
- 		pfn_index += 1 << (page_shift - PAGE_SHIFT), dma_index++) {
--		/*
--		 * Since we asked for hmm_range_fault() to populate pages,
--		 * it shouldn't return an error entry on success.
--		 */
--		WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
--		WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
-+
-+		if (fault) {
-+			/*
-+			 * Since we asked for hmm_range_fault() to populate pages,
-+			 * it shouldn't return an error entry on success.
-+			 */
-+			WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
-+			WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
-+		} else {
-+			if (!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID)) {
-+				WARN_ON(umem_odp->dma_list[dma_index]);
-+				continue;
-+			}
-+			access_mask = (range.hmm_pfns[pfn_index] & HMM_PFN_WRITE) ?
-+				(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_BIT) :
-+				 ODP_READ_ALLOWED_BIT;
-+		}
-+
- 		hmm_order = hmm_pfn_to_map_order(range.hmm_pfns[pfn_index]);
- 		/* If a hugepage was detected and ODP wasn't set for, the umem
- 		 * page_shift will be used, the opposite case is an error.
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 962ee36abc7b..133d54b6f447 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -681,7 +681,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	if (odp->umem.writable && !downgrade)
- 		access_mask |= ODP_WRITE_ALLOWED_BIT;
+ struct i40iw_hw {
+ 	u8 __iomem *hw_addr;
+-	void *dev_context;
++	struct pci_dev *pcidev;
+ 	struct i40iw_hmc_info hmc;
+ };
  
--	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask);
-+	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
- 	if (np < 0)
- 		return np;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index e07fb37af086..4ab8e0dcfd4c 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -751,7 +751,7 @@ enum i40iw_status_code i40iw_allocate_dma_mem(struct i40iw_hw *hw,
+ 					      u64 size,
+ 					      u32 alignment)
+ {
+-	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
++	struct pci_dev *pcidev = hw->pcidev;
  
-diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-index a53b62ac8a9d..0844c1d05ac6 100644
---- a/include/rdma/ib_umem_odp.h
-+++ b/include/rdma/ib_umem_odp.h
-@@ -94,7 +94,7 @@ ib_umem_odp_alloc_child(struct ib_umem_odp *root_umem, unsigned long addr,
- void ib_umem_odp_release(struct ib_umem_odp *umem_odp);
+ 	if (!mem)
+ 		return I40IW_ERR_PARAM;
+@@ -770,7 +770,7 @@ enum i40iw_status_code i40iw_allocate_dma_mem(struct i40iw_hw *hw,
+  */
+ void i40iw_free_dma_mem(struct i40iw_hw *hw, struct i40iw_dma_mem *mem)
+ {
+-	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
++	struct pci_dev *pcidev = hw->pcidev;
  
- int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 start_offset,
--				 u64 bcnt, u64 access_mask);
-+				 u64 bcnt, u64 access_mask, bool fault);
+ 	if (!mem || !mem->va)
+ 		return;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index b51339328a51..90baa4c7f208 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -2668,7 +2668,7 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
+ {
+ 	struct i40iw_ib_device *iwibdev;
+ 	struct net_device *netdev = iwdev->netdev;
+-	struct pci_dev *pcidev = (struct pci_dev *)iwdev->hw.dev_context;
++	struct pci_dev *pcidev = iwdev->hw.pcidev;
  
- void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp, u64 start_offset,
- 				 u64 bound);
+ 	iwibdev = ib_alloc_device(i40iw_ib_device, ibdev);
+ 	if (!iwibdev) {
 -- 
 2.26.2
 
