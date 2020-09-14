@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-14.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3350C43461
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F5B9C43461
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9A98208DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCDA3208DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600081994;
-	bh=ykW/fEHPP+LN76MrgB4/6lGra+vywqiBBw5xgU47FIc=;
+	s=default; t=1600082005;
+	bh=Dnw2PHJI6nGr+aifYSsDTfvIb0SXr6gSjXCbO8soM24=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=IBanMcpsp2g3UT3m3p0KOxgdIrb2NXw2l0JJCLLv0gacUqgdwZy73QloqBYClAAud
-	 owpY7VC+cDc+h8CTyNhTwFBSTaP7j0870oT2lxCDPx+wTcZWorJUWtuG6JCDV5zM5j
-	 BJ5mSgG4KM4M9w7B6mr+Pg0SNunsj6NXzmnj1X0E=
+	b=MS6yCW06OT2m0Sht4EcZSAcOXEeBO52HwSYe0QgZdjYJU9/0XLcBo3Gc9pGy0qJyY
+	 oFaz+j3POXT7C38Zd9T+N8TiOs7MtNX71laNwnJ2050pNUOKSNHes4ADVW518RuTLy
+	 xeo1GIVsrZw8jVsMeoEoCQmO1S3SZ40Lqh+cvQnc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725953AbgINLNL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Sep 2020 07:13:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42418 "EHLO mail.kernel.org"
+        id S1726007AbgINLNG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Sep 2020 07:13:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725964AbgINLLr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Sep 2020 07:11:47 -0400
+        id S1725951AbgINLLk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Sep 2020 07:11:40 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D061D21973;
-        Mon, 14 Sep 2020 11:11:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 27391216C4;
+        Mon, 14 Sep 2020 11:11:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600081906;
-        bh=ykW/fEHPP+LN76MrgB4/6lGra+vywqiBBw5xgU47FIc=;
+        s=default; t=1600081899;
+        bh=Dnw2PHJI6nGr+aifYSsDTfvIb0SXr6gSjXCbO8soM24=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ex8YkAdzwKtD0RZ7KATuvWOgfCaaxz2Z2pBtJgokoEQ1xGWbwfj6NY5Dm4wzOWCiA
-         7TREYXvRQ0/eddPzo/XkGyB+GCJxTOUdowjRPu3OvG9HNouybNLCvhFl3sRWEj/w9q
-         RUCL32RrKXjEJfFBkSMu7KQ6ftvHMijQiagDMIeA=
+        b=Ty5R85CvQ1NXx5ASN8bfm+GsrgXhJGayqgJVex+yojrn33YfQrPm5KtL5w9vsLWpW
+         eanCyTH5WEWtqx3BzOuyO0Farkft/WDXWIO5Fc2gO7QbCtKReLDvhu5agD9Dpamr81
+         jiMsQ1CjtG7SNQNCVYsnD9nVMdzJ6OXrN5sZ+DSA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 4/4] RDMA/uverbs: Expose the new GID query API to user space
-Date:   Mon, 14 Sep 2020 14:11:29 +0300
-Message-Id: <20200914111129.343651-5-leon@kernel.org>
+Cc:     Avihai Horon <avihaih@nvidia.com>,
+        Ariel Elior <aelior@marvell.com>, linux-rdma@vger.kernel.org,
+        Michal Kalderon <mkalderon@marvell.com>
+Subject: [PATCH rdma-next v1 2/4] RDMA/core: Modify enum ib_gid_type and enum rdma_network_type
+Date:   Mon, 14 Sep 2020 14:11:27 +0300
+Message-Id: <20200914111129.343651-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200914111129.343651-1-leon@kernel.org>
 References: <20200914111129.343651-1-leon@kernel.org>
@@ -57,306 +59,204 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Avihai Horon <avihaih@nvidia.com>
 
-Expose the query GID table and entry API to user space by adding
-two new methods and method handlers to the device object.
+Separate IB_GID_TYPE_IB and IB_GID_TYPE_ROCE to two different values,
+so enum ib_gid_type will match the gid types of the new query GID table
+API which will be introduced in the following patches.
 
-This API provides a faster way to query a GID table using single call and
-will be used in libibverbs to improve current approach that requires
-multiple calls to open, close and read multiple sysfs files for a single
-GID table entry.
+This change in enum ib_gid_type requires to change also enum
+rdma_network_type by separating RDMA_NETWORK_IB and RDMA_NETWORK_ROCE_V1
+values.
 
 Signed-off-by: Avihai Horon <avihaih@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- .../infiniband/core/uverbs_std_types_device.c | 182 +++++++++++++++++-
- include/rdma/ib_verbs.h                       |   6 +-
- include/uapi/rdma/ib_user_ioctl_cmds.h        |  16 ++
- include/uapi/rdma/ib_user_ioctl_verbs.h       |   6 +
- 4 files changed, 206 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/cache.c        |  4 ++++
+ drivers/infiniband/core/cma.c          |  4 ++++
+ drivers/infiniband/core/cma_configfs.c |  9 +++++----
+ drivers/infiniband/core/verbs.c        |  2 +-
+ drivers/infiniband/hw/mlx5/cq.c        |  2 +-
+ drivers/infiniband/hw/mlx5/main.c      |  4 ++--
+ drivers/infiniband/hw/qedr/verbs.c     |  4 +++-
+ include/rdma/ib_verbs.h                | 17 ++++++++++-------
+ 8 files changed, 30 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index 7b03446b6936..b0aa00d8586e 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -3,11 +3,13 @@
-  * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-  */
- 
-+#include <linux/overflow.h>
- #include <rdma/uverbs_std_types.h>
- #include "rdma_core.h"
- #include "uverbs.h"
- #include <rdma/uverbs_ioctl.h>
- #include <rdma/opa_addr.h>
-+#include <rdma/ib_cache.h>
- 
- /*
-  * This ioctl method allows calling any defined write or write_ex
-@@ -266,6 +268,158 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_CONTEXT)(
- 	return ucontext->device->ops.query_ucontext(ucontext, attrs);
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 6079f1f7e678..cf49ac0b0aa6 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -133,7 +133,11 @@ static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
  }
  
-+static int copy_gid_entries_to_user(struct uverbs_attr_bundle *attrs,
-+				    struct ib_uverbs_gid_entry *entries,
-+				    size_t num_entries, size_t user_entry_size)
-+{
-+	const struct uverbs_attr *attr;
-+	void __user *user_entries;
-+	size_t copy_len;
-+	int ret;
-+	int i;
-+
-+	if (user_entry_size == sizeof(*entries)) {
-+		ret = uverbs_copy_to(attrs,
-+				     UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES,
-+				     entries, sizeof(*entries) * num_entries);
-+		return ret;
-+	}
-+
-+	copy_len = min_t(size_t, user_entry_size, sizeof(*entries));
-+	attr = uverbs_attr_get(attrs, UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES);
-+	if (IS_ERR(attr))
-+		return PTR_ERR(attr);
-+
-+	user_entries = u64_to_user_ptr(attr->ptr_attr.data);
-+	for (i = 0; i < num_entries; i++) {
-+		if (copy_to_user(user_entries, entries, copy_len))
-+			return -EFAULT;
-+
-+		if (user_entry_size > sizeof(*entries)) {
-+			if (clear_user(user_entries + sizeof(*entries),
-+				       user_entry_size - sizeof(*entries)))
-+				return -EFAULT;
-+		}
-+
-+		entries++;
-+		user_entries += user_entry_size;
-+	}
-+
-+	return uverbs_output_written(attrs,
-+				     UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES);
-+}
-+
-+static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_GID_TABLE)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uverbs_gid_entry *entries;
-+	struct ib_ucontext *ucontext;
-+	struct ib_device *ib_dev;
-+	size_t user_entry_size;
-+	ssize_t num_entries;
-+	size_t max_entries;
-+	size_t num_bytes;
-+	u32 flags;
-+	int ret;
-+
-+	ret = uverbs_get_flags32(&flags, attrs,
-+				 UVERBS_ATTR_QUERY_GID_TABLE_FLAGS, 0);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_get_const(&user_entry_size, attrs,
-+			       UVERBS_ATTR_QUERY_GID_TABLE_ENTRY_SIZE);
-+	if (ret)
-+		return ret;
-+
-+	max_entries = uverbs_attr_ptr_get_array_size(
-+		attrs, UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES,
-+		user_entry_size);
-+	if (max_entries <= 0)
-+		return -EINVAL;
-+
-+	ucontext = ib_uverbs_get_ucontext(attrs);
-+	if (IS_ERR(ucontext))
-+		return PTR_ERR(ucontext);
-+	ib_dev = ucontext->device;
-+
-+	if (check_mul_overflow(max_entries, sizeof(*entries), &num_bytes))
-+		return -EINVAL;
-+
-+	entries = uverbs_zalloc(attrs, num_bytes);
-+	if (!entries)
-+		return -ENOMEM;
-+
-+	num_entries = rdma_query_gid_table(ib_dev, entries, max_entries);
-+	if (num_entries < 0)
-+		return -EINVAL;
-+
-+	ret = copy_gid_entries_to_user(attrs, entries, num_entries,
-+				       user_entry_size);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_to(attrs,
-+			     UVERBS_ATTR_QUERY_GID_TABLE_RESP_NUM_ENTRIES,
-+			     &num_entries, sizeof(num_entries));
-+	return ret;
-+}
-+
-+static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_GID_ENTRY)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	const struct ib_gid_attr *gid_attr;
-+	struct ib_uverbs_gid_entry entry;
-+	struct ib_ucontext *ucontext;
-+	struct ib_device *ib_dev;
-+	u32 gid_index;
-+	u32 port_num;
-+	u32 flags;
-+	int ret;
-+
-+	ret = uverbs_get_flags32(&flags, attrs,
-+				 UVERBS_ATTR_QUERY_GID_ENTRY_FLAGS, 0);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_get_const(&port_num, attrs,
-+			       UVERBS_ATTR_QUERY_GID_ENTRY_PORT);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_get_const(&gid_index, attrs,
-+			       UVERBS_ATTR_QUERY_GID_ENTRY_GID_INDEX);
-+	if (ret)
-+		return ret;
-+
-+	ucontext = ib_uverbs_get_ucontext(attrs);
-+	if (IS_ERR(ucontext))
-+		return PTR_ERR(ucontext);
-+	ib_dev = ucontext->device;
-+
-+	if (!rdma_ib_or_roce(ib_dev, port_num))
-+		return -EINVAL;
-+
-+	gid_attr = rdma_get_gid_attr(ib_dev, port_num, gid_index);
-+	if (IS_ERR(gid_attr))
-+		return PTR_ERR(gid_attr);
-+
-+	memcpy(&entry.gid, &gid_attr->gid, sizeof(gid_attr->gid));
-+	entry.gid_index = gid_attr->index;
-+	entry.port_num = gid_attr->port_num;
-+	entry.gid_type = gid_attr->gid_type;
-+	ret = rdma_get_ndev_ifindex(gid_attr, &entry.netdev_ifindex);
-+	if (ret)
-+		goto out;
-+
-+	ret = uverbs_copy_to_struct_or_zero(
-+		attrs, UVERBS_ATTR_QUERY_GID_ENTRY_RESP_ENTRY, &entry,
-+		sizeof(entry));
-+out:
-+	rdma_put_gid_attr(gid_attr);
-+	return ret;
-+}
-+
- DECLARE_UVERBS_NAMED_METHOD(
- 	UVERBS_METHOD_GET_CONTEXT,
- 	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
-@@ -300,12 +454,38 @@ DECLARE_UVERBS_NAMED_METHOD(
- 				   reserved),
- 		UA_MANDATORY));
+ static const char * const gid_type_str[] = {
++	/* IB/RoCE v1 value is set for IB_GID_TYPE_IB and IB_GID_TYPE_ROCE for
++	 * user space compatibility reasons.
++	 */
+ 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
++	[IB_GID_TYPE_ROCE]	= "IB/RoCE v1",
+ 	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
+ };
  
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_QUERY_GID_TABLE,
-+	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_QUERY_GID_TABLE_ENTRY_SIZE, u64,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_QUERY_GID_TABLE_FLAGS, u32,
-+			     UA_OPTIONAL),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES,
-+			    UVERBS_ATTR_MIN_SIZE(0), UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_GID_TABLE_RESP_NUM_ENTRIES,
-+			    UVERBS_ATTR_TYPE(u64), UA_MANDATORY));
-+
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_QUERY_GID_ENTRY,
-+	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_QUERY_GID_ENTRY_PORT, u32,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_CONST_IN(UVERBS_ATTR_QUERY_GID_ENTRY_GID_INDEX, u32,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_QUERY_GID_ENTRY_FLAGS, u32,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_QUERY_GID_ENTRY_RESP_ENTRY,
-+			    UVERBS_ATTR_STRUCT(struct ib_uverbs_gid_entry,
-+					       netdev_ifindex),
-+			    UA_MANDATORY));
-+
- DECLARE_UVERBS_GLOBAL_METHODS(UVERBS_OBJECT_DEVICE,
- 			      &UVERBS_METHOD(UVERBS_METHOD_GET_CONTEXT),
- 			      &UVERBS_METHOD(UVERBS_METHOD_INVOKE_WRITE),
- 			      &UVERBS_METHOD(UVERBS_METHOD_INFO_HANDLES),
- 			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_PORT),
--			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_CONTEXT));
-+			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_CONTEXT),
-+			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_TABLE),
-+			      &UVERBS_METHOD(UVERBS_METHOD_QUERY_GID_ENTRY));
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 82338099ba09..0de5dff13dad 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -304,6 +304,10 @@ int cma_set_default_gid_type(struct cma_device *cma_dev,
+ 	if (!rdma_is_port_valid(cma_dev->device, port))
+ 		return -EINVAL;
  
- const struct uapi_definition uverbs_def_obj_device[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_DEVICE),
++	if (default_gid_type == IB_GID_TYPE_IB &&
++	    rdma_protocol_roce_eth_encap(cma_dev->device, port))
++		default_gid_type = IB_GID_TYPE_ROCE;
++
+ 	supported_gids = roce_gid_type_mask_support(cma_dev->device, port);
+ 
+ 	if (!(supported_gids & 1 << default_gid_type))
+diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
+index 3c1e2ca564fe..7ec4af2ed87a 100644
+--- a/drivers/infiniband/core/cma_configfs.c
++++ b/drivers/infiniband/core/cma_configfs.c
+@@ -123,16 +123,17 @@ static ssize_t default_roce_mode_store(struct config_item *item,
+ {
+ 	struct cma_device *cma_dev;
+ 	struct cma_dev_port_group *group;
+-	int gid_type = ib_cache_gid_parse_type_str(buf);
++	int gid_type;
+ 	ssize_t ret;
+ 
+-	if (gid_type < 0)
+-		return -EINVAL;
+-
+ 	ret = cma_configfs_params_get(item, &cma_dev, &group);
+ 	if (ret)
+ 		return ret;
+ 
++	gid_type = ib_cache_gid_parse_type_str(buf);
++	if (gid_type < 0)
++		return -EINVAL;
++
+ 	ret = cma_set_default_gid_type(cma_dev, group->port_num, gid_type);
+ 
+ 	cma_configfs_params_put(cma_dev);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 6e02f26a30a0..ac4b02f5ae68 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -740,7 +740,7 @@ int ib_get_gids_from_rdma_hdr(const union rdma_network_hdr *hdr,
+ 				       (struct in6_addr *)dgid);
+ 		return 0;
+ 	} else if (net_type == RDMA_NETWORK_IPV6 ||
+-		   net_type == RDMA_NETWORK_IB) {
++		   net_type == RDMA_NETWORK_IB || RDMA_NETWORK_ROCE_V1) {
+ 		*dgid = hdr->ibgrh.dgid;
+ 		*sgid = hdr->ibgrh.sgid;
+ 		return 0;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 0748a5daa2dd..3d4e02ae6628 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -255,7 +255,7 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
+ 
+ 	switch (roce_packet_type) {
+ 	case MLX5_CQE_ROCE_L3_HEADER_TYPE_GRH:
+-		wc->network_hdr_type = RDMA_NETWORK_IB;
++		wc->network_hdr_type = RDMA_NETWORK_ROCE_V1;
+ 		break;
+ 	case MLX5_CQE_ROCE_L3_HEADER_TYPE_IPV6:
+ 		wc->network_hdr_type = RDMA_NETWORK_IPV6;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 8696ad50d8fb..5cf5266936de 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -546,7 +546,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
+ 			 unsigned int index, const union ib_gid *gid,
+ 			 const struct ib_gid_attr *attr)
+ {
+-	enum ib_gid_type gid_type = IB_GID_TYPE_IB;
++	enum ib_gid_type gid_type = IB_GID_TYPE_ROCE;
+ 	u16 vlan_id = 0xffff;
+ 	u8 roce_version = 0;
+ 	u8 roce_l3_type = 0;
+@@ -561,7 +561,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
+ 	}
+ 
+ 	switch (gid_type) {
+-	case IB_GID_TYPE_IB:
++	case IB_GID_TYPE_ROCE:
+ 		roce_version = MLX5_ROCE_VERSION_1;
+ 		break;
+ 	case IB_GID_TYPE_ROCE_UDP_ENCAP:
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 3337d4b6a841..0395523958da 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -1138,7 +1138,7 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ 		SET_FIELD(qp_params->modify_flags,
+ 			  QED_ROCE_MODIFY_QP_VALID_ROCE_MODE, 1);
+ 		break;
+-	case RDMA_NETWORK_IB:
++	case RDMA_NETWORK_ROCE_V1:
+ 		memcpy(&qp_params->sgid.bytes[0], &gid_attr->gid.raw[0],
+ 		       sizeof(qp_params->sgid));
+ 		memcpy(&qp_params->dgid.bytes[0],
+@@ -1158,6 +1158,8 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ 			  QED_ROCE_MODIFY_QP_VALID_ROCE_MODE, 1);
+ 		qp_params->roce_mode = ROCE_V2_IPV4;
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	for (i = 0; i < 4; i++) {
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 80cc0f5de5c3..1e170e09afb0 100644
+index bde17507f3ea..80cc0f5de5c3 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -138,9 +138,9 @@ union ib_gid {
+@@ -138,10 +138,9 @@ union ib_gid {
  extern union ib_gid zgid;
  
  enum ib_gid_type {
--	IB_GID_TYPE_IB        = 0,
--	IB_GID_TYPE_ROCE      = 1,
--	IB_GID_TYPE_ROCE_UDP_ENCAP = 2,
-+	IB_GID_TYPE_IB = IB_UVERBS_GID_TYPE_IB,
-+	IB_GID_TYPE_ROCE = IB_UVERBS_GID_TYPE_ROCE_V1,
-+	IB_GID_TYPE_ROCE_UDP_ENCAP = IB_UVERBS_GID_TYPE_ROCE_V2,
+-	/* If link layer is Ethernet, this is RoCE V1 */
+ 	IB_GID_TYPE_IB        = 0,
+-	IB_GID_TYPE_ROCE      = 0,
+-	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
++	IB_GID_TYPE_ROCE      = 1,
++	IB_GID_TYPE_ROCE_UDP_ENCAP = 2,
  	IB_GID_TYPE_SIZE
  };
  
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 99dcabf61a71..7968a1845355 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -70,6 +70,8 @@ enum uverbs_methods_device {
- 	UVERBS_METHOD_QUERY_PORT,
- 	UVERBS_METHOD_GET_CONTEXT,
- 	UVERBS_METHOD_QUERY_CONTEXT,
-+	UVERBS_METHOD_QUERY_GID_TABLE,
-+	UVERBS_METHOD_QUERY_GID_ENTRY,
- };
+@@ -180,7 +179,7 @@ rdma_node_get_transport(unsigned int node_type);
  
- enum uverbs_attrs_invoke_write_cmd_attr_ids {
-@@ -352,4 +354,18 @@ enum uverbs_attrs_async_event_create {
- 	UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE,
+ enum rdma_network_type {
+ 	RDMA_NETWORK_IB,
+-	RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
++	RDMA_NETWORK_ROCE_V1,
+ 	RDMA_NETWORK_IPV4,
+ 	RDMA_NETWORK_IPV6
  };
+@@ -190,9 +189,10 @@ static inline enum ib_gid_type ib_network_to_gid_type(enum rdma_network_type net
+ 	if (network_type == RDMA_NETWORK_IPV4 ||
+ 	    network_type == RDMA_NETWORK_IPV6)
+ 		return IB_GID_TYPE_ROCE_UDP_ENCAP;
+-
+-	/* IB_GID_TYPE_IB same as RDMA_NETWORK_ROCE_V1 */
+-	return IB_GID_TYPE_IB;
++	else if (network_type == RDMA_NETWORK_ROCE_V1)
++		return IB_GID_TYPE_ROCE;
++	else
++		return IB_GID_TYPE_IB;
+ }
  
-+enum uverbs_attrs_query_gid_table_cmd_attr_ids {
-+	UVERBS_ATTR_QUERY_GID_TABLE_ENTRY_SIZE,
-+	UVERBS_ATTR_QUERY_GID_TABLE_FLAGS,
-+	UVERBS_ATTR_QUERY_GID_TABLE_RESP_ENTRIES,
-+	UVERBS_ATTR_QUERY_GID_TABLE_RESP_NUM_ENTRIES,
-+};
-+
-+enum uverbs_attrs_query_gid_entry_cmd_attr_ids {
-+	UVERBS_ATTR_QUERY_GID_ENTRY_PORT,
-+	UVERBS_ATTR_QUERY_GID_ENTRY_GID_INDEX,
-+	UVERBS_ATTR_QUERY_GID_ENTRY_FLAGS,
-+	UVERBS_ATTR_QUERY_GID_ENTRY_RESP_ENTRY,
-+};
-+
- #endif
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index d5ac65ae2557..cfea82acfe57 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -250,6 +250,12 @@ enum rdma_driver_id {
- 	RDMA_DRIVER_SIW,
- };
+ static inline enum rdma_network_type
+@@ -201,6 +201,9 @@ rdma_gid_attr_network_type(const struct ib_gid_attr *attr)
+ 	if (attr->gid_type == IB_GID_TYPE_IB)
+ 		return RDMA_NETWORK_IB;
  
-+enum ib_uverbs_gid_type {
-+	IB_UVERBS_GID_TYPE_IB,
-+	IB_UVERBS_GID_TYPE_ROCE_V1,
-+	IB_UVERBS_GID_TYPE_ROCE_V2,
-+};
++	if (attr->gid_type == IB_GID_TYPE_ROCE)
++		return RDMA_NETWORK_ROCE_V1;
 +
- struct ib_uverbs_gid_entry {
- 	__aligned_u64 gid[2];
- 	__u32 gid_index;
+ 	if (ipv6_addr_v4mapped((struct in6_addr *)&attr->gid))
+ 		return RDMA_NETWORK_IPV4;
+ 	else
 -- 
 2.26.2
 
