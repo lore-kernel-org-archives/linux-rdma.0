@@ -4,50 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-14.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7390EC433E2
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE8AC43461
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:19:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D422208DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:13:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 151DE21D24
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 11:19:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600082014;
-	bh=73OoPP5FPeuvl68OR4SJuTFTIQqP9of8VvOUt1/AWoQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=iTF/PRbUvXwCJteG/YqCnRnSwwqXx0ys3Iky5SI9Q0pWz2vXjOKqhBVn968srDmNe
-	 LsgWKnFtiqptJHgoFoetDHkFhbY8vniQWl5wcL7Y8qVdmnku8m4y7TkbUgabJjqn4K
-	 BBFcdldw1YtwOFfHM61B21jEv0hezKCBqu3nncws=
+	s=default; t=1600082361;
+	bh=E83cmqT1XoXi97Nmmvk4Ry1wo9DttE4g+t4FA6GLXIE=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=uVCZXkns1C16B9lk/JG1JizvZvzY2sQKnmY5S8rTknB6CnaOyssyaVf8xZcnE2G00
+	 DYiodfRqOFjAMveRGpg+jh8xaGsizaR9nAYdnFbJ1nmM1mLJv70K5tje1eGcHelDjR
+	 90Ef63YkkzI/6qCoM5nKyG5kgkhpihlZ8LvgsGG4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726043AbgINLN2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Sep 2020 07:13:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42454 "EHLO mail.kernel.org"
+        id S1726003AbgINLTS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Sep 2020 07:19:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725980AbgINLMW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Sep 2020 07:12:22 -0400
+        id S1725964AbgINLTD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Sep 2020 07:19:03 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 58C8821D1A;
-        Mon, 14 Sep 2020 11:11:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1C6D821D24;
+        Mon, 14 Sep 2020 11:19:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600081910;
-        bh=73OoPP5FPeuvl68OR4SJuTFTIQqP9of8VvOUt1/AWoQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Oh+fpWfiQBNwtjvRqQiWH1u87V89ghN3J5EUSWNkWBjJFPS+7KOkxfgZigVbmulCX
-         HbGM370YE4D167gSZTI/SeoaI6anN8UVF1IvatSNNlKvN34V9XgX5mLG3XCjjlNX0v
-         gqPyUdYka6apamb61Xy1WFJNc4QX5IUj6WwoOrHQ=
+        s=default; t=1600082342;
+        bh=E83cmqT1XoXi97Nmmvk4Ry1wo9DttE4g+t4FA6GLXIE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=KTHlKriNCO+ZVH3Y1XXTrDvmEe/ozOxU4AiRatM9+p1VZ0h4lztPX+WrWSA4noQnp
+         l8ETJV3YGFrgQfbaW4aFia2/EDaJCysEOdY9jwqLkpSn31gxf7ptDsQijsj+Cxrkvx
+         DxnclBY2hNjL4KZV2BYHCN/bE//e+1DcvwbTbccg=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 1/4] RDMA/core: Change rdma_get_gid_attr returned error code
-Date:   Mon, 14 Sep 2020 14:11:26 +0300
-Message-Id: <20200914111129.343651-2-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-next v3] RDMA/mlx4: Provide port number for special QPs
+Date:   Mon, 14 Sep 2020 14:18:57 +0300
+Message-Id: <20200914111857.344434-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200914111129.343651-1-leon@kernel.org>
-References: <20200914111129.343651-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
@@ -55,51 +54,77 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Avihai Horon <avihaih@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Change the error code returned from rdma_get_gid_attr when the GID entry
-is invalid but the GID index is in the gid table size range to -ENODATA
-instead of -EINVAL.
+Special QPs created by mlx4 have same QP port borrowed from
+the context, while they are expected to have different ones.
 
-This change is done in order to provide a more accurate error reporting
-to be used by the new GID query API in user space. Nevertheless, -EINVAL
-is still returned from sysfs in the aforementioned case to maintain
-compatibility with user space that expects -EINVAL.
+Fix it by using HW physical port instead.
 
-Signed-off-by: Avihai Horon <avihaih@nvidia.com>
+It fixes the following error during driver init:
+[   12.074150] mlx4_core 0000:05:00.0: mlx4_ib: initializing demux service for 128 qp1 clients
+[   12.084036] <mlx4_ib> create_pv_sqp: Couldn't create special QP (-16)
+[   12.085123] <mlx4_ib> create_pv_resources: Couldn't create  QP1 (-16)
+[   12.088300] mlx4_en: Mellanox ConnectX HCA Ethernet driver v4.0-0
+
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cache.c | 2 +-
- drivers/infiniband/core/sysfs.c | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ Changelog:
+v3: mlx4 devices create 2 special QPs in SRIOV mode, separate them by
+port number and special bit. The mlx4 is limited to two ports and not
+going to be extended, and the port_num is not forwarded to FW too, so
+it is safe.
+v2: https://lore.kernel.org/linux-rdma/20200907122156.478360-4-leon@kernel.org/#r
+---
+ drivers/infiniband/hw/mlx4/mad.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index ffad73bb40ff..6079f1f7e678 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1220,7 +1220,7 @@ EXPORT_SYMBOL(ib_get_cached_port_state);
- const struct ib_gid_attr *
- rdma_get_gid_attr(struct ib_device *device, u8 port_num, int index)
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 8bd16474708f..4b565640ba85 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -1792,7 +1792,7 @@ static void pv_qp_event_handler(struct ib_event *event, void *qp_context)
+ }
+
+ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
+-			    enum ib_qp_type qp_type, int create_tun)
++			 enum ib_qp_type qp_type, int port, int create_tun)
  {
--	const struct ib_gid_attr *attr = ERR_PTR(-EINVAL);
-+	const struct ib_gid_attr *attr = ERR_PTR(-ENODATA);
- 	struct ib_gid_table *table;
- 	unsigned long flags;
+ 	int i, ret;
+ 	struct mlx4_ib_demux_pv_qp *tun_qp;
+@@ -1822,12 +1822,13 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
+ 		qp_init_attr.proxy_qp_type = qp_type;
+ 		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX |
+ 			   IB_QP_QKEY | IB_QP_PORT;
++		qp_init_attr.init_attr.port_num = ctx->port;
+ 	} else {
+ 		qp_init_attr.init_attr.qp_type = qp_type;
+ 		qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
+ 		qp_attr_mask_INIT = IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_QKEY;
++		qp_init_attr.init_attr.port_num = port | 1 << 7;
+ 	}
+-	qp_init_attr.init_attr.port_num = ctx->port;
+ 	qp_init_attr.init_attr.qp_context = ctx;
+ 	qp_init_attr.init_attr.event_handler = pv_qp_event_handler;
+ 	tun_qp->qp = ib_create_qp(ctx->pd, &qp_init_attr.init_attr);
+@@ -2026,7 +2027,7 @@ static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
+ 	}
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 01d85da00187..1a5507b79437 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -391,7 +391,8 @@ static ssize_t _show_port_gid_attr(
+ 	if (ctx->has_smi) {
+-		ret = create_pv_sqp(ctx, IB_QPT_SMI, create_tun);
++		ret = create_pv_sqp(ctx, IB_QPT_SMI, port, create_tun);
+ 		if (ret) {
+ 			pr_err("Couldn't create %s QP0 (%d)\n",
+ 			       create_tun ? "tunnel for" : "",  ret);
+@@ -2034,7 +2035,7 @@ static int create_pv_resources(struct ib_device *ibdev, int slave, int port,
+ 		}
+ 	}
 
- 	gid_attr = rdma_get_gid_attr(p->ibdev, p->port_num, tab_attr->index);
- 	if (IS_ERR(gid_attr))
--		return PTR_ERR(gid_attr);
-+		/* -EINVAL is returned for user space compatibility reasons. */
-+		return -EINVAL;
-
- 	ret = print(gid_attr, buf);
- 	rdma_put_gid_attr(gid_attr);
+-	ret = create_pv_sqp(ctx, IB_QPT_GSI, create_tun);
++	ret = create_pv_sqp(ctx, IB_QPT_GSI, port, create_tun);
+ 	if (ret) {
+ 		pr_err("Couldn't create %s QP1 (%d)\n",
+ 		       create_tun ? "tunnel for" : "",  ret);
 --
 2.26.2
 
