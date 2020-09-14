@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-14.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C64A8C43461
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC06EC43461
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F4DB207BB
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A70B207BB
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Sep 2020 12:02:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600084963;
-	bh=uVQen7gjGriryo8Trih3a/7b8Kl2bU765I8n+GQhiHw=;
+	s=default; t=1600084966;
+	bh=vKBxjVsv+qR5zK4HC1GJy5PWCIjchN468EjYE05DDB0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ugCUwghC/pMDjJy6Jhs/dvhFsNsoS7sizmCHMC+YqF1zMk07kWfUtC5K0Zw1dc3K+
-	 2p+xpwoHFblxDzrFKQEte6b4tt9kpuhIFfs5yqN06J0iUuyx+4ZDYb13FBatq40O0K
-	 qIlHCI0Gv/R7iVSXgtFY0fa0YV64/bwXxG7mbFcY=
+	b=OGNx72caLy/Nn4TbbkXNJSfM8SHl81WpxHNB2++WkC3U+KSAyCy7JeMS3jshYkVwf
+	 ywQBp3efd+dqsEp7QZN1I/L4YGpAtDiutIS2iPLLxQ4DpIDH19809KVWDEwubn+dnf
+	 7g7TawqMzndHb1xNpin4P38iARNopM3+MURwqKCo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726025AbgINMCh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Sep 2020 08:02:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51270 "EHLO mail.kernel.org"
+        id S1726068AbgINMCc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Sep 2020 08:02:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726137AbgINLkp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726135AbgINLkp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 14 Sep 2020 07:40:45 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 69EAF21BE5;
-        Mon, 14 Sep 2020 11:40:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CD2BE21973;
+        Mon, 14 Sep 2020 11:39:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600083602;
-        bh=uVQen7gjGriryo8Trih3a/7b8Kl2bU765I8n+GQhiHw=;
+        s=default; t=1600083598;
+        bh=vKBxjVsv+qR5zK4HC1GJy5PWCIjchN468EjYE05DDB0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CKoJBpPt9m8UkT6XyPY9GHVYn8Zx5SmV3P2rcnJIeWYe+5UNteHx0ebnyg4lWvLrH
-         svPccchHEBu93q1IuYoisgOEYvqLJ8vB37paAVYZsT3rYHIy4s2jdg4rt4EjDVidqD
-         zClBFHxkKUn451qNY/N91tw0P179pH6aHeL1kgd4=
+        b=n6M9pL0q9WzFIySHbtDyGrHWtwxHS4lYks1/goQyhRrDw3y3mLHWJPXOlAk+quh76
+         ydw6Y6HxFm4XDY3OavigvRbDjgrnroOqscREdgZ57mJFQhZecrM4UD5WKZwjXop8bJ
+         3Kt9hbX6ES5bkLL8mckIsDaZ2jGZJqgrZrkX94Gw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 3/4] RDMA/mlx5: Extend advice MR to support non faulting mode
-Date:   Mon, 14 Sep 2020 14:39:48 +0300
-Message-Id: <20200914113949.346562-4-leon@kernel.org>
+Subject: [PATCH rdma-next 2/4] IB/core: Enable ODP sync without faulting
+Date:   Mon, 14 Sep 2020 14:39:47 +0300
+Message-Id: <20200914113949.346562-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200914113949.346562-1-leon@kernel.org>
 References: <20200914113949.346562-1-leon@kernel.org>
@@ -57,82 +57,114 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Extend advice MR to support non faulting mode, this improves performance
-by eliminating page faults and bring only the existing CPU pages.
+Enable ODP sync without faulting, this improves performance by reducing
+the number of page faults in the system.
+
+The gain from this option is that the device page table can be aligned
+with the presented pages in the CPU page table without causing page
+faults.
+
+As of that, the overhead on data path from hardware point of view to
+trigger a fault which end-up by calling the driver to bring the pages
+will be dropped.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c         | 3 ++-
- drivers/infiniband/hw/mlx5/odp.c        | 7 ++++++-
- include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/umem_odp.c | 35 +++++++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/odp.c   |  2 +-
+ include/rdma/ib_umem_odp.h         |  2 +-
+ 3 files changed, 27 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6b0d6109afc6..dea65e511a3e 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1321,7 +1321,8 @@ int mlx5_ib_advise_mr(struct ib_pd *pd,
- 		      struct uverbs_attr_bundle *attrs)
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 8db3e78eb087..e47ccb196516 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -343,9 +343,10 @@ static int ib_umem_odp_map_dma_single_page(
+  *        the return value.
+  * @access_mask: bit mask of the requested access permissions for the given
+  *               range.
++ * @fault: is faulting required for the given range
+  */
+ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+-				 u64 bcnt, u64 access_mask)
++				 u64 bcnt, u64 access_mask, bool fault)
+ 			__acquires(&umem_odp->umem_mutex)
  {
- 	if (advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH &&
--	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE)
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
- 		return -EOPNOTSUPP;
+ 	struct task_struct *owning_process  = NULL;
+@@ -381,10 +382,12 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 	range.end = ALIGN(user_virt + bcnt, 1UL << page_shift);
+ 	pfn_start_idx = (range.start - ib_umem_start(umem_odp)) >> PAGE_SHIFT;
+ 	num_pfns = (range.end - range.start) >> PAGE_SHIFT;
+-	range.default_flags = HMM_PFN_REQ_FAULT;
++	if (fault) {
++		range.default_flags = HMM_PFN_REQ_FAULT;
  
- 	return mlx5_ib_advise_mr_prefetch(pd, advice, flags,
+-	if (access_mask & ODP_WRITE_ALLOWED_BIT)
+-		range.default_flags |= HMM_PFN_REQ_WRITE;
++		if (access_mask & ODP_WRITE_ALLOWED_BIT)
++			range.default_flags |= HMM_PFN_REQ_WRITE;
++	}
+ 
+ 	range.hmm_pfns = &(umem_odp->pfn_list[pfn_start_idx]);
+ 	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
+@@ -413,12 +416,24 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 
+ 	for (pfn_index = 0; pfn_index < num_pfns;
+ 		pfn_index += 1 << (page_shift - PAGE_SHIFT), dma_index++) {
+-		/*
+-		 * Since we asked for hmm_range_fault() to populate pages,
+-		 * it shouldn't return an error entry on success.
+-		 */
+-		WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
+-		WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
++
++		if (fault) {
++			/*
++			 * Since we asked for hmm_range_fault() to populate pages,
++			 * it shouldn't return an error entry on success.
++			 */
++			WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
++			WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
++		} else {
++			if (!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID)) {
++				WARN_ON(umem_odp->dma_list[dma_index]);
++				continue;
++			}
++			access_mask = (range.hmm_pfns[pfn_index] & HMM_PFN_WRITE) ?
++				(ODP_READ_ALLOWED_BIT | ODP_WRITE_ALLOWED_BIT) :
++				 ODP_READ_ALLOWED_BIT;
++		}
++
+ 		hmm_order = hmm_pfn_to_map_order(range.hmm_pfns[pfn_index]);
+ 		/* If a hugepage was detected and ODP wasn't set for, the umem
+ 		 * page_shift will be used, the opposite case is an error.
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 133d54b6f447..adfb926a7906 100644
+index 962ee36abc7b..133d54b6f447 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -665,6 +665,7 @@ void mlx5_ib_fence_odp_mr(struct mlx5_ib_mr *mr)
- }
- 
- #define MLX5_PF_FLAGS_DOWNGRADE BIT(1)
-+#define MLX5_PF_FLAGS_SNAPSHOT BIT(2)
- static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 			     u64 user_va, size_t bcnt, u32 *bytes_mapped,
- 			     u32 flags)
-@@ -673,6 +674,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	bool downgrade = flags & MLX5_PF_FLAGS_DOWNGRADE;
- 	u64 access_mask;
- 	u64 start_idx;
-+	bool fault = !(flags & MLX5_PF_FLAGS_SNAPSHOT);
- 
- 	page_shift = odp->page_shift;
- 	start_idx = (user_va - ib_umem_start(odp)) >> page_shift;
-@@ -681,7 +683,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
+@@ -681,7 +681,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
  	if (odp->umem.writable && !downgrade)
  		access_mask |= ODP_WRITE_ALLOWED_BIT;
  
--	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
-+	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, fault);
+-	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask);
++	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
  	if (np < 0)
  		return np;
  
-@@ -1852,6 +1854,9 @@ int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
- 	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH)
- 		pf_flags |= MLX5_PF_FLAGS_DOWNGRADE;
+diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+index a53b62ac8a9d..0844c1d05ac6 100644
+--- a/include/rdma/ib_umem_odp.h
++++ b/include/rdma/ib_umem_odp.h
+@@ -94,7 +94,7 @@ ib_umem_odp_alloc_child(struct ib_umem_odp *root_umem, unsigned long addr,
+ void ib_umem_odp_release(struct ib_umem_odp *umem_odp);
  
-+	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
-+		pf_flags |= MLX5_PF_FLAGS_SNAPSHOT;
-+
- 	if (flags & IB_UVERBS_ADVISE_MR_FLAG_FLUSH)
- 		return mlx5_ib_prefetch_sg_list(pd, advice, pf_flags, sg_list,
- 						num_sge);
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index cfea82acfe57..22483799cd07 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -208,6 +208,7 @@ enum ib_uverbs_read_counters_flags {
- enum ib_uverbs_advise_mr_advice {
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH,
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE,
-+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT,
- };
+ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 start_offset,
+-				 u64 bcnt, u64 access_mask);
++				 u64 bcnt, u64 access_mask, bool fault);
  
- enum ib_uverbs_advise_mr_flag {
+ void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp, u64 start_offset,
+ 				 u64 bound);
 -- 
 2.26.2
 
