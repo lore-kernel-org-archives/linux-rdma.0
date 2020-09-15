@@ -2,104 +2,122 @@ Return-Path: <SRS0=Nq8O=CY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE007C433E2
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 12:46:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B46BC433E2
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 16:25:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A68E208E4
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 12:46:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U5TrWgn8"
+	by mail.kernel.org (Postfix) with ESMTP id 2220F20708
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 16:25:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726242AbgIOMpy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Sep 2020 08:45:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46176 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726485AbgIOMpb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Sep 2020 08:45:31 -0400
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0D13C06178B;
-        Tue, 15 Sep 2020 05:45:24 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id z19so1854512pfn.8;
-        Tue, 15 Sep 2020 05:45:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=XLvKC1QgKkHaTyoOvehGhV+Ht6Yp+maIHFDFeeVXq8M=;
-        b=U5TrWgn8lEBzlVwpiipMur62Lm5Vpbnbt1ijTULCsAAOrzIK9+Qm69Aggok2xEYHxb
-         /vCWXARkKZO26GJYPXyLmoK7V+Gz7n0GF2xhC2pveIV9XLUAihKLvURt28xed3TWUynR
-         7QxCO3GYgw1aG+Cu9NDkBPJ91F40lhlwdlFghCore2RpK8gnmCKyfr8LIy0gaFdG8xHQ
-         /mzbSYdzlu3860JCuALGlyHW0n5PJBNnUCoTEQ8OnVFyVSbcgd4HIHr6A4Zao0TR049m
-         eipWdvq3ZfrurEIRpiWgmsWIL5Tnd9Ha7KTwwh0ffyclogguk8QELt3fSpxMQzoE09TR
-         0QWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=XLvKC1QgKkHaTyoOvehGhV+Ht6Yp+maIHFDFeeVXq8M=;
-        b=iIgWKC2Cvc/At6hkgdYzWAy/TmZCMDBNW5s7nuEGKtGzJtdwoNNmyCiOc+QqyZ4t3l
-         KqUZbzVekPMNKfFSJgrEERCc5x6dOZw0MbAA01N4erRcA1tsKeXwjXXTSDQBkAlsRbq3
-         lX3DxYwIK6N9CpiTtZmtAhtyepjKcqQa3QPiLnxf4RM/2Kfz+9YJP5+W+NXOMO694k/h
-         YaUz2KcVZUn10Oevlg/6dn2+KGzsSzD0VgxVYDKsZbkj2gbuGvT8mN0GrOsLjnaqmYjI
-         ZtOAC/xaOaWcBCjuU7RMjASzgApqCgOYy6+BLyi7GsbEgEDkSX+7ojTcDXHBP608/era
-         zd3g==
-X-Gm-Message-State: AOAM533YOuf84krH6e7XDYnQoM289hX+raGsYRXtNGqVRIDLd40celLZ
-        rmsc9rN6sC7jLg1ZbqeQXRsDIv6aff3KK6J7OeI=
-X-Google-Smtp-Source: ABdhPJwGJUPVEVWbhzPPDlRLJ7w8+OtzA3zxmhxY9wEbd9cZp9qKfZZDo8HrD5NKHnTBl9DAZ+5l7JvG+cRpReQFtFE=
-X-Received: by 2002:aa7:9e43:0:b029:142:2501:34e3 with SMTP id
- z3-20020aa79e430000b0290142250134e3mr1632591pfq.60.1600173924139; Tue, 15 Sep
- 2020 05:45:24 -0700 (PDT)
+        id S1727679AbgIOQZV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Sep 2020 12:25:21 -0400
+Received: from verein.lst.de ([213.95.11.211]:48397 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727666AbgIOQXn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Sep 2020 12:23:43 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id ABD1568AFE; Tue, 15 Sep 2020 18:23:39 +0200 (CEST)
+Date:   Tue, 15 Sep 2020 18:23:39 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Maor Gottlieb <maorg@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-next v1 3/4] lib/scatterlist: Add support in
+ dynamic allocation of SG table from pages
+Message-ID: <20200915162339.GC24320@lst.de>
+References: <20200910134259.1304543-1-leon@kernel.org> <20200910134259.1304543-4-leon@kernel.org>
 MIME-Version: 1.0
-References: <20200915101559.33292-1-fazilyildiran@gmail.com> <20200915112341.GU904879@nvidia.com>
-In-Reply-To: <20200915112341.GU904879@nvidia.com>
-From:   =?UTF-8?B?TmVjaXAgRi4gWcSxbGTEsXJhbg==?= <fazilyildiran@gmail.com>
-Date:   Tue, 15 Sep 2020 15:45:13 +0300
-Message-ID: <CAODUWC5j9VZYedQ620RvunxHO4AnaQokhGniT4FgPyjE=Vzgjg@mail.gmail.com>
-Subject: Re: [PATCH] IB/rxe: fix kconfig dependency warning for RDMA_RXE
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     dledford@redhat.com, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, paul@pgazz.com, jeho@cs.utexas.edu
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200910134259.1304543-4-leon@kernel.org>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Steps to reproduce this for v5.9-rc4 on x86 machine (using make.cross [1]
-to cross compile for arm64):
-1. make.cross ARCH=arm64 allnoconfig
-2. make.cross ARCH=arm64 menuconfig
-  a. Enable NET
-  b. Enable INET
-  c. Enable PCI
-  d. Enable INFINIBAND
-  e. Enable RDMA_RXE
-3. make.cross ARCH=arm64 olddefconfig # WARNING: unmet direct
-dependencies detected for CRYPTO_CRC32
+> +#ifndef CONFIG_ARCH_NO_SG_CHAIN
+> +struct scatterlist *sg_alloc_table_append(
+> +	struct sg_table *sgt, struct page **pages, unsigned int n_pages,
+> +	unsigned int offset, unsigned long size, unsigned int max_segment,
+> +	gfp_t gfp_mask, struct scatterlist *prv, unsigned int left_pages);
+> +#endif
 
-[1] https://github.com/fengguang/lkp-tests/blob/master/sbin/make.cross
+Odd indentation here, we either do two tabs (my preference) or aligned
+to the opening brace (what you seem to be doing elsewhere in the series).
 
-Thanks
-Necip
+> +	/* Check if last entry should be keeped for chainning */
+> +	next_sg = sg_next(prv);
+> +	if (!sg_is_last(next_sg) || left_npages == 1)
+> +		return next_sg;
+> +
+> +	ret = sg_alloc_next(table, next_sg,
+> +			    min_t(unsigned long, left_npages,
+> +				  SG_MAX_SINGLE_ALLOC),
+> +			    SG_MAX_SINGLE_ALLOC, gfp_mask);
 
-On Tue, Sep 15, 2020 at 2:23 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
->
-> On Tue, Sep 15, 2020 at 01:16:00PM +0300, Necip Fazil Yildiran wrote:
-> > When RDMA_RXE is enabled and CRYPTO is disabled, it results in the
-> > following Kbuild warning:
-> >
-> > WARNING: unmet direct dependencies detected for CRYPTO_CRC32
-> >   Depends on [n]: CRYPTO [=n]
-> >   Selected by [y]:
-> >   - RDMA_RXE [=y] && (INFINIBAND_USER_ACCESS [=y] || !INFINIBAND_USER_ACCESS [=y]) && INET [=y] && PCI [=y] && INFINIBAND [=y] && (!64BIT || ARCH_DMA_ADDR_T_64BIT [=n])
->
-> ?? how did you get here? I thought the kconfig front ends were
-> supposed to prevent this.
->
-> Jason
+Do we even need the sg_alloc_next helper added in the last patch,
+given that this fairly simple function is the only caller?
+
+> +static struct scatterlist *alloc_from_pages_common(
+> +	struct sg_table *sgt, struct page **pages, unsigned int n_pages,
+> +	unsigned int offset, unsigned long size, unsigned int max_segment,
+> +	gfp_t gfp_mask, struct scatterlist *prv, unsigned int left_pages)
+
+Same strange one tab indent as above.
+
+> +#ifndef CONFIG_ARCH_NO_SG_CHAIN
+> +/**
+> + * sg_alloc_table_append - Allocate and initialize an sg table from
+> + *                         an array of pages
+> + * @sgt:	 The sg table header to use
+> + * @pages:	 Pointer to an array of page pointers
+> + * @n_pages:	 Number of pages in the pages array
+> + * @offset:      Offset from start of the first page to the start of a buffer
+> + * @size:        Number of valid bytes in the buffer (after offset)
+> + * @max_segment: Maximum size of a scatterlist node in bytes (page aligned)
+> + * @gfp_mask:	 GFP allocation mask
+> + * @prv:	 Last populated sge in sgt
+> + * @left_pages:  Left pages caller have to set after this call
+> + *
+> + *  Description:
+> + *    If @prv is NULL, it allocates and initialize an sg table from a list of
+> + *    pages. Contiguous ranges of the pages are squashed into a single
+> + *    scatterlist node up to the maximum size specified in @max_segment. A user
+> + *    may provide an offset at a start and a size of valid data in a buffer
+> + *    specified by the page array. A user may provide @append to chain pages
+> + *    to last entry in sgt. The returned sg table is released by sg_free_table.
+> + *
+> + * Returns:
+> + *   Last SGE in sgt on success, negative error on failure.
+> + *
+> + * Notes:
+> + *   If this function returns non-0 (eg failure), the caller must call
+> + *   sg_free_table() to cleanup any leftover allocations.
+> + */
+> +struct scatterlist *sg_alloc_table_append(
+> +	struct sg_table *sgt, struct page **pages, unsigned int n_pages,
+> +	unsigned int offset, unsigned long size, unsigned int max_segment,
+> +	gfp_t gfp_mask, struct scatterlist *prv, unsigned int left_pages)
+
+One-tab indent again.
+
+> +{
+> +	return alloc_from_pages_common(sgt, pages, n_pages, offset, size,
+> +				       max_segment, gfp_mask, prv, left_pages);
+> +}
+> +EXPORT_SYMBOL_GPL(sg_alloc_table_append);
+> +#endif
+
+So there reason I suggested to not provide sg_alloc_table_append
+if CONFIG_ARCH_NO_SG_CHAIN was set was to avoid the extra
+alloc_from_pages_common helper.  It might be better to move to your
+run-time check and just make it conditіtional on a non-NULL prv pointer,
+which would allow us to merge alloc_from_pages_common into
+sg_alloc_table_append.  Sorry for leading you down this path.
