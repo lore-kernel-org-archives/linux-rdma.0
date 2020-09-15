@@ -3,61 +3,57 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DF37C43461
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 22:36:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C91CCC43461
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 22:36:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1686520770
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 22:36:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9400C206BE
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Sep 2020 22:36:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727750AbgIOWgQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Sep 2020 18:36:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54074 "EHLO
+        id S1727677AbgIOWgP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Sep 2020 18:36:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727589AbgIOWgK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Sep 2020 18:36:10 -0400
+        with ESMTP id S1727794AbgIOWf4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Sep 2020 18:35:56 -0400
 Received: from shards.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36822C061788;
-        Tue, 15 Sep 2020 15:36:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4C3AC06174A;
+        Tue, 15 Sep 2020 15:35:55 -0700 (PDT)
 Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
         (using TLSv1 with cipher AES256-SHA (256/256 bits))
         (Client did not present a certificate)
         (Authenticated sender: davem-davemloft)
-        by shards.monkeyblade.net (Postfix) with ESMTPSA id A81F713757C20;
-        Tue, 15 Sep 2020 15:19:22 -0700 (PDT)
-Date:   Tue, 15 Sep 2020 15:36:09 -0700 (PDT)
-Message-Id: <20200915.153609.180837989360811070.davem@davemloft.net>
-To:     andrew@lunn.ch
-Cc:     oded.gabbay@gmail.com, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        SW_Drivers@habana.ai, gregkh@linuxfoundation.org,
-        f.fainelli@gmail.com, linux-rdma@vger.kernel.org
+        by shards.monkeyblade.net (Postfix) with ESMTPSA id AE9BD13757C1F;
+        Tue, 15 Sep 2020 15:19:07 -0700 (PDT)
+Date:   Tue, 15 Sep 2020 15:35:53 -0700 (PDT)
+Message-Id: <20200915.153553.450322847326627010.davem@davemloft.net>
+To:     oded.gabbay@gmail.com
+Cc:     andrew@lunn.ch, kuba@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, SW_Drivers@habana.ai,
+        gregkh@linuxfoundation.org, f.fainelli@gmail.com,
+        linux-rdma@vger.kernel.org
 Subject: Re: [PATCH v3 00/14] Adding GAUDI NIC code to habanalabs driver
 From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20200915213735.GG3526428@lunn.ch>
-References: <20200915140418.4afbc1eb@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <CAFCwf10+_hQOSH4Ot+keE9Tc+ybupvp5JyUhFbvfoy6HseVyZg@mail.gmail.com>
+In-Reply-To: <CAFCwf13RHWmpAXpWLRtsxjvKPK=7ZChDPD9E6KEgbamLbg09OA@mail.gmail.com>
+References: <CAFCwf10+_hQOSH4Ot+keE9Tc+ybupvp5JyUhFbvfoy6HseVyZg@mail.gmail.com>
         <20200915213735.GG3526428@lunn.ch>
+        <CAFCwf13RHWmpAXpWLRtsxjvKPK=7ZChDPD9E6KEgbamLbg09OA@mail.gmail.com>
 X-Mailer: Mew version 6.8 on Emacs 27.1
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [2620:137:e000::1:9]); Tue, 15 Sep 2020 15:19:23 -0700 (PDT)
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.5.12 (shards.monkeyblade.net [2620:137:e000::1:9]); Tue, 15 Sep 2020 15:19:08 -0700 (PDT)
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Andrew Lunn <andrew@lunn.ch>
-Date: Tue, 15 Sep 2020 23:37:35 +0200
+From: Oded Gabbay <oded.gabbay@gmail.com>
+Date: Wed, 16 Sep 2020 00:43:00 +0300
 
->> I understand your point of view but If my H/W doesn't support the
->> basic requirements of the RDMA infrastructure and interfaces, then
->> really there is nothing I can do about it. I can't use them.
-> 
-> It is up to the RDMA people to say that. They might see how the RDMA
-> core can be made to work for your hardware.
+> I honestly don't know and I admit we didn't look at the dates of when
+> these drivers were introduced.
 
-+1
+Please do research when you make claims in the future, thank you.
