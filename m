@@ -2,90 +2,134 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95CD0C2D0F6
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 00:25:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C80BC433E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 02:29:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46ED42064E
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 00:25:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="Qm82T3f3"
+	by mail.kernel.org (Postfix) with ESMTP id 3EDC22087D
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 02:29:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726906AbgIPAZx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Sep 2020 20:25:53 -0400
-Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:63284 "EHLO
-        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726833AbgIOOPx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Sep 2020 10:15:53 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1600179354; x=1631715354;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=RnJ46rws02ePvTbcTRdlemACM1FhbC+bbXlsPleekyw=;
-  b=Qm82T3f3CTt3RvC0pEznk8D8Cq/FsQE6CySWNyXLS6O085TTnBszxMbX
-   bhV/Jyby1q4rIpUjk2xVaiiB/lLJc6ta2r4xbKE3GuBlKGsxD2adRZRvS
-   y3ZsCaOJouB/kybOXvsFMZxiIR0FpclkjWOTScSeNolgoXFpobW5HQbj4
-   I=;
-X-IronPort-AV: E=Sophos;i="5.76,430,1592870400"; 
-   d="scan'208";a="54138568"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-2b-859fe132.us-west-2.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 15 Sep 2020 14:14:58 +0000
-Received: from EX13D19EUB003.ant.amazon.com (pdx4-ws-svc-p6-lb7-vlan2.pdx.amazon.com [10.170.41.162])
-        by email-inbound-relay-2b-859fe132.us-west-2.amazon.com (Postfix) with ESMTPS id 44109221B5F;
-        Tue, 15 Sep 2020 14:14:56 +0000 (UTC)
-Received: from EX13MTAUEA001.ant.amazon.com (10.43.61.82) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 15 Sep 2020 14:14:54 +0000
-Received: from 8c85908914bf.ant.amazon.com.com (10.85.91.6) by
- mail-relay.amazon.com (10.43.61.243) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Tue, 15 Sep 2020 14:14:52 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
-CC:     <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>
-Subject: [PATCH for-next 0/2] EFA messages & RDMA read statistics
-Date:   Tue, 15 Sep 2020 17:14:47 +0300
-Message-ID: <20200915141449.8428-1-galpress@amazon.com>
-X-Mailer: git-send-email 2.28.0
+        id S1726534AbgIPC3R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Sep 2020 22:29:17 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:57816 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726394AbgIPC14 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Sep 2020 22:27:56 -0400
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 75EA3D67445B38ACBA36;
+        Wed, 16 Sep 2020 10:27:54 +0800 (CST)
+Received: from huawei.com (10.175.113.32) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.487.0; Wed, 16 Sep 2020
+ 10:27:46 +0800
+From:   Liu Shixin <liushixin2@huawei.com>
+To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Liu Shixin <liushixin2@huawei.com>
+Subject: [PATCH -next] infiniband: ipoib: convert to use DEFINE_SEQ_ATTRIBUTE macro
+Date:   Wed, 16 Sep 2020 10:50:22 +0800
+Message-ID: <20200916025022.3992627-1-liushixin2@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.113.32]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi all,
+Use DEFINE_SEQ_ATTRIBUTE macro to simplify the code.
 
-This small series contains a small cleanup to the way we store our
-statistics and exposes a new set of counters.
-The new exposed counters report send/receive work requests counters and
-RDMA read work requests counters.
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c | 50 ++-----------------------
+ 1 file changed, 4 insertions(+), 46 deletions(-)
 
-Regards,
-Gal
-
-Daniel Kranzdorf (1):
-  RDMA/efa: Add messages and RDMA read work requests HW stats
-
-Gal Pressman (1):
-  RDMA/efa: Group keep alive received counter with other SW stats
-
- drivers/infiniband/hw/efa/efa.h               |  8 +--
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 30 ++++++++-
- drivers/infiniband/hw/efa/efa_com_cmd.c       | 26 ++++++--
- drivers/infiniband/hw/efa/efa_com_cmd.h       | 16 +++++
- drivers/infiniband/hw/efa/efa_verbs.c         | 65 ++++++++++++++-----
- 5 files changed, 117 insertions(+), 28 deletions(-)
-
-
-base-commit: 9e054b13b2f747868c28539b3eb28256e237755f
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_fs.c b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+index 64c19f6fa931..12ba7a0fe0b5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+@@ -124,35 +124,14 @@ static int ipoib_mcg_seq_show(struct seq_file *file, void *iter_ptr)
+ 	return 0;
+ }
+ 
+-static const struct seq_operations ipoib_mcg_seq_ops = {
++static const struct seq_operations ipoib_mcg_sops = {
+ 	.start = ipoib_mcg_seq_start,
+ 	.next  = ipoib_mcg_seq_next,
+ 	.stop  = ipoib_mcg_seq_stop,
+ 	.show  = ipoib_mcg_seq_show,
+ };
+ 
+-static int ipoib_mcg_open(struct inode *inode, struct file *file)
+-{
+-	struct seq_file *seq;
+-	int ret;
+-
+-	ret = seq_open(file, &ipoib_mcg_seq_ops);
+-	if (ret)
+-		return ret;
+-
+-	seq = file->private_data;
+-	seq->private = inode->i_private;
+-
+-	return 0;
+-}
+-
+-static const struct file_operations ipoib_mcg_fops = {
+-	.owner   = THIS_MODULE,
+-	.open    = ipoib_mcg_open,
+-	.read    = seq_read,
+-	.llseek  = seq_lseek,
+-	.release = seq_release
+-};
++DEFINE_SEQ_ATTRIBUTE(ipoib_mcg);
+ 
+ static void *ipoib_path_seq_start(struct seq_file *file, loff_t *pos)
+ {
+@@ -229,35 +208,14 @@ static int ipoib_path_seq_show(struct seq_file *file, void *iter_ptr)
+ 	return 0;
+ }
+ 
+-static const struct seq_operations ipoib_path_seq_ops = {
++static const struct seq_operations ipoib_path_sops = {
+ 	.start = ipoib_path_seq_start,
+ 	.next  = ipoib_path_seq_next,
+ 	.stop  = ipoib_path_seq_stop,
+ 	.show  = ipoib_path_seq_show,
+ };
+ 
+-static int ipoib_path_open(struct inode *inode, struct file *file)
+-{
+-	struct seq_file *seq;
+-	int ret;
+-
+-	ret = seq_open(file, &ipoib_path_seq_ops);
+-	if (ret)
+-		return ret;
+-
+-	seq = file->private_data;
+-	seq->private = inode->i_private;
+-
+-	return 0;
+-}
+-
+-static const struct file_operations ipoib_path_fops = {
+-	.owner   = THIS_MODULE,
+-	.open    = ipoib_path_open,
+-	.read    = seq_read,
+-	.llseek  = seq_lseek,
+-	.release = seq_release
+-};
++DEFINE_SEQ_ATTRIBUTE(ipoib_path);
+ 
+ void ipoib_create_debug_files(struct net_device *dev)
+ {
 -- 
-2.28.0
+2.25.1
 
