@@ -2,174 +2,216 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32960C43461
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 18:56:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FEE1C433E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:06:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D64AB20732
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 18:56:34 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="FIKMPLuI"
+	by mail.kernel.org (Postfix) with ESMTP id D34AE206DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:06:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600283160;
+	bh=5s/MaNFFRHPJk+rKebZaMyTwXEnMoByh3O9LF6ssmms=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=RzdDYZbPUgyzDzwonkdrw4c1c/DTlwb8AvVwyLvri4gVCFKRNuQ8bsbFRrkYblsXH
+	 vTRlG4cDggq8PrDNnEFXQeZNuHKIvwWTViuja3mS0ug0620r6US39w3i9Edp852U1k
+	 9MPETIBDRdohUQ+3RWxlVqXbkG/ni1OIgrVQ9Vsk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727664AbgIPS4d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 14:56:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36530 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727657AbgIPRyS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Sep 2020 13:54:18 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE278C0A8894
-        for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2020 09:45:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=3CHtfZDaxWEuMcO840xucd5DgR0D556QzSuFJuencHE=; b=FIKMPLuIc6fA0ZUm9AZML6Zu65
-        V1Od54y58JmMoa2ySTXN0Me/Qy2FIknxX0MvNHfGHWGiAUdP4YVp4HCV7so44/gbB7PmG6hY6lLy5
-        /kxBcDUAoykzaMz5sSc1bwhRmIWRh4s5DGtNQEcLJ3jnsntU3vFiNjBFU77kV6QX4ptEbnkXkUoCm
-        B0hgyzhNUx7/tk8eXpDUH+vuXgPQ3K0g0qbaU+mSpcHmlJtlyC8NNspYngWm3EU3wCj6U4P1gQh1s
-        AbBTzVnzu8J4RpCa34fgpMQheB39JNNDf/GAauQe0DctZeHbNWGaWDPffbM0r8lRcbV5x+YKLSxgD
-        g8uFg2Pg==;
-Received: from hch by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kIaYW-00046Z-Hk; Wed, 16 Sep 2020 16:45:16 +0000
-Date:   Wed, 16 Sep 2020 17:45:16 +0100
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next 1/4] IB/core: Improve ODP to use
- hmm_range_fault()
-Message-ID: <20200916164516.GA11582@infradead.org>
-References: <20200914113949.346562-1-leon@kernel.org>
- <20200914113949.346562-2-leon@kernel.org>
+        id S1727559AbgIPTFn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 15:05:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37584 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727428AbgIPRqT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Sep 2020 13:46:19 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 37C15223C6;
+        Wed, 16 Sep 2020 14:07:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1600265258;
+        bh=5s/MaNFFRHPJk+rKebZaMyTwXEnMoByh3O9LF6ssmms=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ziIGaP51PrGgprqarMAFSnJguDt+14MqW3HAPpFZwEKU9peJtATQNATmqr6TlvJfW
+         X4jCKtTFRfqPZRNyLX3VmVBPnoQkJrrbVYL/pxy+U6bJR/ucKi3ngL2lT6rL5FjtdR
+         Xsb/B/NRiEd1lmJtkvGZXSVn1/9R6n3I3q4eQnnE=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v2 2/2] RDMA/umem: Move to allocate SG table from pages
+Date:   Wed, 16 Sep 2020 17:07:26 +0300
+Message-Id: <20200916140726.839377-3-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200916140726.839377-1-leon@kernel.org>
+References: <20200916140726.839377-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200914113949.346562-2-leon@kernel.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> In addition,
-> Moving to use the HMM enables to reduce page faults in the system as it
-> exposes the snapshot mode, this will be introduced in next patches from
-> this series.
-> 
-> As part of this cleanup some flows and use the required data structures
-> to work with HMM.
+From: Maor Gottlieb <maorg@nvidia.com>
 
-Just saying HMM here seems weird.  The function is hmm_range_fault.
-And it really needs to grow a better name eventually..
+Remove the implementation of ib_umem_add_sg_table and instead
+call to sg_alloc_table_append which already has the logic to
+merge contiguous pages.
 
->  		unsigned long start;
->  		unsigned long end;
-> -		size_t pages;
-> +		size_t ndmas, npfns;
->  
->  		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
->  		if (check_add_overflow(umem_odp->umem.address,
-> @@ -71,20 +72,21 @@ static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
->  		if (unlikely(end < page_size))
->  			return -EOVERFLOW;
->  
-> -		pages = (end - start) >> umem_odp->page_shift;
-> -		if (!pages)
-> +		ndmas = (end - start) >> umem_odp->page_shift;
-> +		if (!ndmas)
->  			return -EINVAL;
->  
-> -		umem_odp->page_list = kvcalloc(
-> -			pages, sizeof(*umem_odp->page_list), GFP_KERNEL);
-> -		if (!umem_odp->page_list)
-> +		npfns = (end - start) >> PAGE_SHIFT;
-> +		umem_odp->pfn_list = kvcalloc(
-> +			npfns, sizeof(*umem_odp->pfn_list), GFP_KERNEL);
-> +		if (!umem_odp->pfn_list)
->  			return -ENOMEM;
->  
->  		umem_odp->dma_list = kvcalloc(
-> -			pages, sizeof(*umem_odp->dma_list), GFP_KERNEL);
-> +			ndmas, sizeof(*umem_odp->dma_list), GFP_KERNEL);
->  		if (!umem_odp->dma_list) {
->  			ret = -ENOMEM;
-> -			goto out_page_list;
-> +			goto out_pfn_list;
+Besides that it removes duplicated functionality, it reduces the
+memory consumption of the SG table significantly. Prior to this
+patch, the SG table was allocated in advance regardless consideration
+of contiguous pages.
 
-Why do you rename these variables?  We're still mapping pages.
+In huge pages system of 2MB page size, without this change, the SG table
+would contain x512 SG entries.
+E.g. for 100GB memory registration:
 
->  static int ib_umem_odp_map_dma_single_page(
->  		struct ib_umem_odp *umem_odp,
-> +		unsigned int dma_index,
->  		struct page *page,
-> +		u64 access_mask)
->  {
->  	struct ib_device *dev = umem_odp->umem.ibdev;
->  	dma_addr_t dma_addr;
->  
-> +	if (umem_odp->dma_list[dma_index]) {
+	 Number of entries	Size
+Before 	      26214400          600.0MB
+After            51200		  1.2MB
 
-Note that 0 is a valid DMA address.  I think due the access bit this
-works, but it is a little subtle..
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/umem.c | 90 +++++-----------------------------
+ 1 file changed, 11 insertions(+), 79 deletions(-)
 
-> +		umem_odp->dma_list[dma_index] &= ODP_DMA_ADDR_MASK;
-> +		umem_odp->dma_list[dma_index] |= access_mask;
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 01b680b62846..690c303bcc8c 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -63,73 +63,6 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 	sg_free_table(&umem->sg_head);
+ }
 
-This looks a little weird.  Instead of &= ODP_DMA_ADDR_MASK I'd do a
-&= ~ACCESS_MASK as that makes the code a lot more logical.
+-/* ib_umem_add_sg_table - Add N contiguous pages to scatter table
+- *
+- * sg: current scatterlist entry
+- * page_list: array of npage struct page pointers
+- * npages: number of pages in page_list
+- * max_seg_sz: maximum segment size in bytes
+- * nents: [out] number of entries in the scatterlist
+- *
+- * Return new end of scatterlist
+- */
+-static struct scatterlist *ib_umem_add_sg_table(struct scatterlist *sg,
+-						struct page **page_list,
+-						unsigned long npages,
+-						unsigned int max_seg_sz,
+-						int *nents)
+-{
+-	unsigned long first_pfn;
+-	unsigned long i = 0;
+-	bool update_cur_sg = false;
+-	bool first = !sg_page(sg);
+-
+-	/* Check if new page_list is contiguous with end of previous page_list.
+-	 * sg->length here is a multiple of PAGE_SIZE and sg->offset is 0.
+-	 */
+-	if (!first && (page_to_pfn(sg_page(sg)) + (sg->length >> PAGE_SHIFT) ==
+-		       page_to_pfn(page_list[0])))
+-		update_cur_sg = true;
+-
+-	while (i != npages) {
+-		unsigned long len;
+-		struct page *first_page = page_list[i];
+-
+-		first_pfn = page_to_pfn(first_page);
+-
+-		/* Compute the number of contiguous pages we have starting
+-		 * at i
+-		 */
+-		for (len = 0; i != npages &&
+-			      first_pfn + len == page_to_pfn(page_list[i]) &&
+-			      len < (max_seg_sz >> PAGE_SHIFT);
+-		     len++)
+-			i++;
+-
+-		/* Squash N contiguous pages from page_list into current sge */
+-		if (update_cur_sg) {
+-			if ((max_seg_sz - sg->length) >= (len << PAGE_SHIFT)) {
+-				sg_set_page(sg, sg_page(sg),
+-					    sg->length + (len << PAGE_SHIFT),
+-					    0);
+-				update_cur_sg = false;
+-				continue;
+-			}
+-			update_cur_sg = false;
+-		}
+-
+-		/* Squash N contiguous pages into next sge or first sge */
+-		if (!first)
+-			sg = sg_next(sg);
+-
+-		(*nents)++;
+-		sg_set_page(sg, first_page, len << PAGE_SHIFT, 0);
+-		first = false;
+-	}
+-
+-	return sg;
+-}
+-
+ /**
+  * ib_umem_find_best_pgsz - Find best HW page size to use for this MR
+  *
+@@ -221,7 +154,7 @@ static struct ib_umem *__ib_umem_get(struct ib_device *device,
+ 	struct mm_struct *mm;
+ 	unsigned long npages;
+ 	int ret;
+-	struct scatterlist *sg;
++	struct scatterlist *sg = NULL;
+ 	unsigned int gup_flags = FOLL_WRITE;
 
-But more importantly except for (dma_addr_t)-1 (DMA_MAPPING_ERROR)
-all dma_addr_t values are valid, so taking more than a single bit
-from a dma_addr_t is not strictly speaking correct.
+ 	/*
+@@ -276,15 +209,9 @@ static struct ib_umem *__ib_umem_get(struct ib_device *device,
 
-> +		return 0;
->  	}
->  
-> +	dma_addr =
-> +		ib_dma_map_page(dev, page, 0, BIT(umem_odp->page_shift),
-> +				DMA_BIDIRECTIONAL);
+ 	cur_base = addr & PAGE_MASK;
 
-The use of the BIT macro which is already obsfucating in its intended
-place is really out of place here.
+-	ret = sg_alloc_table(&umem->sg_head, npages, GFP_KERNEL);
+-	if (ret)
+-		goto vma;
+-
+ 	if (!umem->writable)
+ 		gup_flags |= FOLL_FORCE;
 
-> +	if (ib_dma_mapping_error(dev, dma_addr))
-> +		return -EFAULT;
-> +
-> +	umem_odp->dma_list[dma_index] = dma_addr | access_mask;
-> +	umem_odp->npages++;
-> +	return 0;
+-	sg = umem->sg_head.sgl;
+-
+ 	while (npages) {
+ 		cond_resched();
+ 		ret = pin_user_pages_fast(cur_base,
+@@ -297,10 +224,16 @@ static struct ib_umem *__ib_umem_get(struct ib_device *device,
 
-I'd change the calling conventions and write the whole thing as:
+ 		cur_base += ret * PAGE_SIZE;
+ 		npages   -= ret;
+-
+-		sg = ib_umem_add_sg_table(sg, page_list, ret,
+-			dma_get_max_seg_size(device->dma_device),
+-			&umem->sg_nents);
++		sg = sg_alloc_table_append(&umem->sg_head, page_list, ret, 0,
++					   ret << PAGE_SHIFT,
++					   dma_get_max_seg_size(device->dma_device),
++					   GFP_KERNEL, sg, npages);
++		umem->sg_nents = umem->sg_head.nents;
++		if (IS_ERR(sg)) {
++			unpin_user_pages_dirty_lock(page_list, ret, 0);
++			ret = PTR_ERR(sg);
++			goto umem_release;
++		}
+ 	}
 
-static int ib_umem_odp_map_dma_single_page(struct ib_umem_odp *umem_odp
-		unsigned int dma_index, struct page *page, u64 access_mask)
-{
- 	struct ib_device *dev = umem_odp->umem.ibdev;
-	dma_addr_t *dma_addr = &umem_odp->dma_list[dma_index];
+ 	sg_mark_end(sg);
+@@ -322,7 +255,6 @@ static struct ib_umem *__ib_umem_get(struct ib_device *device,
 
-	if (!dma_addr) {
-		*dma_addr = ib_dma_map_page(dev, page, 0,
-				1 << umem_odp->page_shift,
-				DMA_BIDIRECTIONAL);
-		if (ib_dma_mapping_error(dev, *dma_addr))
-			return -EFAULT;
-		umem_odp->npages++;
-	}
-	*dma_addr &= ~ODP_ACCESS_MASK;
-	*dma_addr |= access_mask;
-	return 0;
-}
+ umem_release:
+ 	__ib_umem_release(device, umem, 0);
+-vma:
+ 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
+ out:
+ 	free_page((unsigned long) page_list);
+--
+2.26.2
 
-> +	/*
-> +	 * No need to check whether the MTTs really belong to
-> +	 * this MR, since ib_umem_odp_map_dma_and_lock already
-> +	 * checks this.
-> +	 */
-
-You could easily squeeze the three lines into two while still staying
-under 80 characters for each line.
