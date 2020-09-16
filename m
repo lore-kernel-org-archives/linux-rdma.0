@@ -2,341 +2,109 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39659C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02784C433E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:58:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D3C120872
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5C6A2087D
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:58:43 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="upLP4VVg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726392AbgIPIo4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 04:44:56 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:42494 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726381AbgIPIow (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Sep 2020 04:44:52 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
-        by Forcepoint Email with ESMTP id 32CDF513321418FF99FC;
-        Wed, 16 Sep 2020 16:44:46 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 16 Sep 2020 16:44:35 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v4 for-next 3/4] RDMA/hns: Add support for QPC in size of 512 Bytes
-Date:   Wed, 16 Sep 2020 16:43:25 +0800
-Message-ID: <1600245806-56321-4-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1600245806-56321-1-git-send-email-liweihang@huawei.com>
-References: <1600245806-56321-1-git-send-email-liweihang@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+        id S1726381AbgIPI6m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 04:58:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37234 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726243AbgIPI6m (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Sep 2020 04:58:42 -0400
+Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com [IPv6:2a00:1450:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68B7CC06174A;
+        Wed, 16 Sep 2020 01:58:41 -0700 (PDT)
+Received: by mail-wm1-x344.google.com with SMTP id z9so2130879wmk.1;
+        Wed, 16 Sep 2020 01:58:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=2KTok6gVmhkLo7YM284bMYXzQlRqMVhC5bg8YBdyf6w=;
+        b=upLP4VVgaeRWkY+1e0SALXRsKRhXSqfUDb6gjc3DHWn4pE5QGrTX8Y+iTwM7Z+m/c6
+         sNdQMjxSGUCdcy649Fg7Cs5e51lHf4Xz5/GCyagvc9RN+2ZwZ8Z7KlljbNLZ92nBQldK
+         fXn+Owq11zO4udSkOm+ptRwazSpZlYlVRvHRwmb16jKhS1AvCUPiOFVM43cc5SVZ75gN
+         C9m1o/FDZTKT7hvRhtLCnbHQRmtxx+WxA83TYQNxGKmFE+vgkPqA7gor4NaogJ4MKWTx
+         cKaBcAeu7SWyME2OH+tSfqUk54v4SC45vRl+YPz2rwUCog5Wfv2Y8KbV2RCuyu5Ec9aw
+         LF4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=2KTok6gVmhkLo7YM284bMYXzQlRqMVhC5bg8YBdyf6w=;
+        b=O0f3YuudCnwz/rIo/Bls19dv8+m7QK/yGU01nL0Npd046oy5TNOX0Qt+B3PJ3/hkxw
+         isJCxyUhEWchfTxsjtV21vRbIUYKzn0ZV/VQ79bbSqMBD6e8gqUGW4RJJz8aoAkrQdie
+         b/8xxQ9E47LHXZQZdYe8Y92fISLR9Bz0RBNffhS44WZd5Ewfndig8At9bYdtniPWetC6
+         kJQYXGERXjOnS1Zy9LYzIaomTMgOsbVzqI40SMDODNI0IdQ8ykkXqDrrjTSl/oGAPO/9
+         NGxa5Hm3z5Ra53HGcNdOBdQIFvR27lmCmdgpiH59tE849QyLXBRqsvWlYJtsVECkHQgz
+         oaBw==
+X-Gm-Message-State: AOAM530enCSaF+2a8WyubTXcNaDVwB3ddtw70RRSDUWidsRb6l9n+bNq
+        b+7ulHZQk7bvyMa/d/rr5gw=
+X-Google-Smtp-Source: ABdhPJzVp+dN7D8wyCUv0heKGyY7kzaAEe3/quQpOKtdISAesnL2qExlTI9Zb1djSYjXVn511GPp/Q==
+X-Received: by 2002:a1c:a949:: with SMTP id s70mr2386736wme.42.1600246719990;
+        Wed, 16 Sep 2020 01:58:39 -0700 (PDT)
+Received: from felia.fritz.box ([2001:16b8:2dec:c500:15b1:3554:3841:68b])
+        by smtp.gmail.com with ESMTPSA id f14sm4184965wme.22.2020.09.16.01.58.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Sep 2020 01:58:39 -0700 (PDT)
+From:   Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-spdx@vger.kernel.org
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Boris Pismenny <borisp@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Tariq Toukan <tariqt@mellanox.com>,
+        Raed Salem <raeds@mellanox.com>,
+        Huy Nguyen <huyn@mellanox.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: [PATCH] net/mlx5: IPsec: make spdxcheck.py happy
+Date:   Wed, 16 Sep 2020 10:58:24 +0200
+Message-Id: <20200916085824.30731-1-lukas.bulwahn@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+Commit 2d64663cd559 ("net/mlx5: IPsec: Add HW crypto offload support")
+provided a proper SPDX license expression, but slipped in a typo.
 
-The new version of RoCEE supports using QPC in size of 256B or 512B, so
-that HIP09 can supports new congestion control algorithms by using QPC in
-larger size.
+Fortunately, ./scripts/spdxcheck.py warns:
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+  drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c: 1:39 \
+  Invalid License ID: Linux-OpenIBt
+
+Remove the typo and make spdxcheck.py happy.
+
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 66 +++++++++++++++++++++++------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 16 ++++++-
- drivers/infiniband/hw/hns/hns_roce_main.c   |  2 +-
- 6 files changed, 75 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index ad341f7..ef17499 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -84,6 +84,9 @@
- #define HNS_ROCE_V2_CQE_SIZE 32
- #define HNS_ROCE_V3_CQE_SIZE 64
+Greg, please pick this minor non-urgent patch into your spdx tree.
+
+ drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c b/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c
+index 2f13a250aab3..d6667d38e1de 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIBt
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+ /* Copyright (c) 2020, Mellanox Technologies inc. All rights reserved. */
  
-+#define HNS_ROCE_V2_QPC_SZ 256
-+#define HNS_ROCE_V3_QPC_SZ 512
-+
- #define HNS_ROCE_SL_SHIFT			28
- #define HNS_ROCE_TCLASS_SHIFT			20
- #define HNS_ROCE_FLOW_LABEL_MASK		0xfffff
-@@ -804,7 +807,7 @@ struct hns_roce_caps {
- 	u32		page_size_cap;
- 	u32		reserved_lkey;
- 	int		mtpt_entry_sz;
--	int		qpc_entry_sz;
-+	int		qpc_sz;
- 	int		irrl_entry_sz;
- 	int		trrl_entry_sz;
- 	int		cqc_entry_sz;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index eb463de..093ff52 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1471,7 +1471,7 @@ static int hns_roce_v1_profile(struct hns_roce_dev *hr_dev)
- 	caps->max_qp_dest_rdma	= HNS_ROCE_V1_MAX_QP_DEST_RDMA;
- 	caps->max_sq_desc_sz	= HNS_ROCE_V1_MAX_SQ_DESC_SZ;
- 	caps->max_rq_desc_sz	= HNS_ROCE_V1_MAX_RQ_DESC_SZ;
--	caps->qpc_entry_sz	= HNS_ROCE_V1_QPC_ENTRY_SIZE;
-+	caps->qpc_sz		= HNS_ROCE_V1_QPC_SIZE;
- 	caps->irrl_entry_sz	= HNS_ROCE_V1_IRRL_ENTRY_SIZE;
- 	caps->cqc_entry_sz	= HNS_ROCE_V1_CQC_ENTRY_SIZE;
- 	caps->mtpt_entry_sz	= HNS_ROCE_V1_MTPT_ENTRY_SIZE;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index 5996892..ffd0156 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -68,7 +68,7 @@
- #define HNS_ROCE_V1_COMP_EQE_NUM			0x8000
- #define HNS_ROCE_V1_ASYNC_EQE_NUM			0x400
- 
--#define HNS_ROCE_V1_QPC_ENTRY_SIZE			256
-+#define HNS_ROCE_V1_QPC_SIZE				256
- #define HNS_ROCE_V1_IRRL_ENTRY_SIZE			8
- #define HNS_ROCE_V1_CQC_ENTRY_SIZE			64
- #define HNS_ROCE_V1_MTPT_ENTRY_SIZE			64
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 835fbd7..170bb6c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1682,7 +1682,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
- 	caps->max_sq_desc_sz	= HNS_ROCE_V2_MAX_SQ_DESC_SZ;
- 	caps->max_rq_desc_sz	= HNS_ROCE_V2_MAX_RQ_DESC_SZ;
- 	caps->max_srq_desc_sz	= HNS_ROCE_V2_MAX_SRQ_DESC_SZ;
--	caps->qpc_entry_sz	= HNS_ROCE_V2_QPC_ENTRY_SZ;
-+	caps->qpc_sz		= HNS_ROCE_V2_QPC_SZ;
- 	caps->irrl_entry_sz	= HNS_ROCE_V2_IRRL_ENTRY_SZ;
- 	caps->trrl_entry_sz	= HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ;
- 	caps->cqc_entry_sz	= HNS_ROCE_V2_CQC_ENTRY_SZ;
-@@ -1771,6 +1771,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
- 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->cqe_sz = HNS_ROCE_V3_CQE_SIZE;
-+		caps->qpc_sz = HNS_ROCE_V3_QPC_SZ;
- 	}
- }
- 
-@@ -1873,7 +1874,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 	caps->idx_entry_sz	     = resp_b->idx_entry_sz;
- 	caps->sccc_entry_sz	     = resp_b->scc_ctx_entry_sz;
- 	caps->max_mtu		     = resp_b->max_mtu;
--	caps->qpc_entry_sz	     = le16_to_cpu(resp_b->qpc_entry_sz);
-+	caps->qpc_sz		     = HNS_ROCE_V2_QPC_SZ;
- 	caps->min_cqes		     = resp_b->min_cqes;
- 	caps->min_wqes		     = resp_b->min_wqes;
- 	caps->page_size_cap	     = le32_to_cpu(resp_b->page_size_cap);
-@@ -1995,9 +1996,10 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
- 		caps->cqe_sz = HNS_ROCE_V3_CQE_SIZE;
-+		caps->qpc_sz = HNS_ROCE_V3_QPC_SZ;
- 	}
- 
--	calc_pg_sz(caps->num_qps, caps->qpc_entry_sz, caps->qpc_hop_num,
-+	calc_pg_sz(caps->num_qps, caps->qpc_sz, caps->qpc_hop_num,
- 		   caps->qpc_bt_num, &caps->qpc_buf_pg_sz, &caps->qpc_ba_pg_sz,
- 		   HEM_TYPE_QPC);
- 	calc_pg_sz(caps->num_mtpts, caps->mtpt_entry_sz, caps->mpt_hop_num,
-@@ -2034,6 +2036,35 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 	return 0;
- }
- 
-+static int hns_roce_config_qpc_size(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_cmq_desc desc;
-+	struct hns_roce_cfg_entry_size *cfg_size =
-+				  (struct hns_roce_cfg_entry_size *)desc.data;
-+
-+	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_CFG_ENTRY_SIZE,
-+				      false);
-+
-+	cfg_size->type = cpu_to_le32(HNS_ROCE_CFG_QPC_SIZE);
-+	cfg_size->size = cpu_to_le32(hr_dev->caps.qpc_sz);
-+
-+	return hns_roce_cmq_send(hr_dev, &desc, 1);
-+}
-+
-+static int hns_roce_config_entry_size(struct hns_roce_dev *hr_dev)
-+{
-+	int ret;
-+
-+	if (hr_dev->pci_dev->revision < PCI_REVISION_ID_HIP09)
-+		return 0;
-+
-+	ret = hns_roce_config_qpc_size(hr_dev);
-+	if (ret)
-+		dev_err(hr_dev->dev, "failed to cfg qpc sz, ret = %d.\n", ret);
-+
-+	return ret;
-+}
-+
- static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_caps *caps = &hr_dev->caps;
-@@ -2106,9 +2137,14 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	}
- 
- 	ret = hns_roce_v2_set_bt(hr_dev);
--	if (ret)
--		dev_err(hr_dev->dev, "Configure bt attribute fail, ret = %d.\n",
--			ret);
-+	if (ret) {
-+		dev_err(hr_dev->dev,
-+			"Configure bt attribute fail, ret = %d.\n", ret);
-+		return ret;
-+	}
-+
-+	/* Configure the size of QPC, SCCC, etc. */
-+	ret = hns_roce_config_entry_size(hr_dev);
- 
- 	return ret;
- }
-@@ -3534,16 +3570,21 @@ static int hns_roce_v2_clear_hem(struct hns_roce_dev *hr_dev,
- 
- static int hns_roce_v2_qp_modify(struct hns_roce_dev *hr_dev,
- 				 struct hns_roce_v2_qp_context *context,
-+				 struct hns_roce_v2_qp_context *qpc_mask,
- 				 struct hns_roce_qp *hr_qp)
- {
- 	struct hns_roce_cmd_mailbox *mailbox;
-+	int qpc_size;
- 	int ret;
- 
- 	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
- 	if (IS_ERR(mailbox))
- 		return PTR_ERR(mailbox);
- 
--	memcpy(mailbox->buf, context, sizeof(*context) * 2);
-+	/* The qpc size of HIP08 is only 256B, which is half of HIP09 */
-+	qpc_size = hr_dev->caps.qpc_sz;
-+	memcpy(mailbox->buf, context, qpc_size);
-+	memcpy(mailbox->buf + qpc_size, qpc_mask, qpc_size);
- 
- 	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_qp->qpn, 0,
- 				HNS_ROCE_CMD_MODIFY_QPC,
-@@ -4338,7 +4379,7 @@ static int hns_roce_v2_set_abs_fields(struct ib_qp *ibqp,
- 	}
- 
- 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
--		memset(qpc_mask, 0, sizeof(*qpc_mask));
-+		memset(qpc_mask, 0, hr_dev->caps.qpc_sz);
- 		modify_qp_reset_to_init(ibqp, attr, attr_mask, context,
- 					qpc_mask);
- 	} else if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
-@@ -4561,8 +4602,9 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 	 * we should set all bits of the relevant fields in context mask to
- 	 * 0 at the same time, else set them to 0x1.
- 	 */
--	memset(context, 0, sizeof(*context));
--	memset(qpc_mask, 0xff, sizeof(*qpc_mask));
-+	memset(context, 0, hr_dev->caps.qpc_sz);
-+	memset(qpc_mask, 0xff, hr_dev->caps.qpc_sz);
-+
- 	ret = hns_roce_v2_set_abs_fields(ibqp, attr, attr_mask, cur_state,
- 					 new_state, context, qpc_mask);
- 	if (ret)
-@@ -4612,7 +4654,7 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 		       V2_QPC_BYTE_60_QP_ST_S, 0);
- 
- 	/* SW pass context to HW */
--	ret = hns_roce_v2_qp_modify(hr_dev, ctx, hr_qp);
-+	ret = hns_roce_v2_qp_modify(hr_dev, context, qpc_mask, hr_qp);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to modify QP, ret = %d\n", ret);
- 		goto out;
-@@ -4675,7 +4717,7 @@ static int hns_roce_v2_query_qpc(struct hns_roce_dev *hr_dev,
- 	if (ret)
- 		goto out;
- 
--	memcpy(hr_context, mailbox->buf, sizeof(*hr_context));
-+	memcpy(hr_context, mailbox->buf, hr_dev->caps.qpc_sz);
- 
- out:
- 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index ca6b055..32c5ddc 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -77,7 +77,6 @@
- #define HNS_ROCE_V2_MAX_SQ_DESC_SZ		64
- #define HNS_ROCE_V2_MAX_RQ_DESC_SZ		16
- #define HNS_ROCE_V2_MAX_SRQ_DESC_SZ		64
--#define HNS_ROCE_V2_QPC_ENTRY_SZ		256
- #define HNS_ROCE_V2_IRRL_ENTRY_SZ		64
- #define HNS_ROCE_V2_TRRL_ENTRY_SZ		48
- #define HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ	100
-@@ -228,6 +227,7 @@ enum hns_roce_opcode_type {
- 	HNS_ROCE_OPC_CFG_TMOUT_LLM			= 0x8404,
- 	HNS_ROCE_OPC_QUERY_PF_TIMER_RES			= 0x8406,
- 	HNS_ROCE_OPC_QUERY_PF_CAPS_NUM                  = 0x8408,
-+	HNS_ROCE_OPC_CFG_ENTRY_SIZE			= 0x8409,
- 	HNS_ROCE_OPC_CFG_SGID_TB			= 0x8500,
- 	HNS_ROCE_OPC_CFG_SMAC_TB			= 0x8501,
- 	HNS_ROCE_OPC_POST_MB				= 0x8504,
-@@ -514,6 +514,7 @@ struct hns_roce_v2_qp_context {
- 	__le32	byte_248_ack_psn;
- 	__le32	byte_252_err_txcqn;
- 	__le32	byte_256_sqflush_rqcqe;
-+	__le32	ext[64];
- };
- 
- #define	V2_QPC_BYTE_4_TST_S 0
-@@ -1540,6 +1541,17 @@ struct hns_roce_cfg_sgid_tb {
- 	__le32	vf_sgid_h;
- 	__le32	vf_sgid_type_rsv;
- };
-+
-+enum {
-+	HNS_ROCE_CFG_QPC_SIZE = BIT(0),
-+};
-+
-+struct hns_roce_cfg_entry_size {
-+	__le32	type;
-+	__le32	rsv[4];
-+	__le32	size;
-+};
-+
- #define CFG_SGID_TB_TABLE_IDX_S 0
- #define CFG_SGID_TB_TABLE_IDX_M GENMASK(7, 0)
- 
-@@ -1586,7 +1598,7 @@ struct hns_roce_query_pf_caps_b {
- 	u8 idx_entry_sz;
- 	u8 scc_ctx_entry_sz;
- 	u8 max_mtu;
--	__le16 qpc_entry_sz;
-+	__le16 qpc_sz;
- 	__le16 qpc_timer_entry_sz;
- 	__le16 cqc_timer_entry_sz;
- 	u8 min_cqes;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 7d90ec5..6f9715a0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -589,7 +589,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- 	}
- 
- 	ret = hns_roce_init_hem_table(hr_dev, &hr_dev->qp_table.qp_table,
--				      HEM_TYPE_QPC, hr_dev->caps.qpc_entry_sz,
-+				      HEM_TYPE_QPC, hr_dev->caps.qpc_sz,
- 				      hr_dev->caps.num_qps, 1);
- 	if (ret) {
- 		dev_err(dev, "Failed to init QP context memory, aborting.\n");
+ #include "mlx5_core.h"
 -- 
-2.8.1
+2.17.1
 
