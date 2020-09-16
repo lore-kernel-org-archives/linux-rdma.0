@@ -2,160 +2,132 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AE8C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F724C433E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:10:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93CF3206DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:06:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600283179;
-	bh=PgEI8vS0nsgv3iH8i8L4GHDU7WPQh7ep9t9JCYDYbR0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=jU5C6mQuOAlI/XW1GOLc3YuEu1dRZcWAdiiWhtvBu9f1kd52/VgKJIC9Enoh/nUPb
-	 +aYOiet21PCQjKkyRA5qGdGVhP1Q/Mgy3A68j8SJ/qPqrneB/3wPsMsETMvSw1Ncls
-	 xf4aCKrsmk9WwUC8SzhHV8ZP7qGi+ip+QWTucYe4=
+	by mail.kernel.org (Postfix) with ESMTP id D434520715
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:10:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="dBLBTUPb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727300AbgIPTGR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 15:06:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36640 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727402AbgIPRpm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Sep 2020 13:45:42 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1DF2C2074B;
-        Wed, 16 Sep 2020 10:37:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600252633;
-        bh=PgEI8vS0nsgv3iH8i8L4GHDU7WPQh7ep9t9JCYDYbR0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=UIYuDS4T0OS4B4+s3Dxa5sOMPGrVIVSWZ3chUXWQvj34S0/SZ9dU1WR/GX3k3Kpzl
-         +rX0iiyy+kxMS0v+LH4n4jtE4QnZD2rN+HXUp2Fdpl7BjGEPBw9nz55OYgL+JLYnxl
-         o7t5j1dyHBdo9e5njhSvORAsvbv6FkX0NYwO0pEE=
-Date:   Wed, 16 Sep 2020 13:37:10 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next 4/4] RDMA/uverbs: Expose the new GID query API
- to user space
-Message-ID: <20200916103710.GH486552@unreal>
-References: <20200910142204.1309061-1-leon@kernel.org>
- <20200910142204.1309061-5-leon@kernel.org>
- <20200911195918.GT904879@nvidia.com>
- <20200913091302.GF35718@unreal>
- <20200914155550.GF904879@nvidia.com>
- <20200915114704.GB486552@unreal>
- <20200915190614.GE1573713@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200915190614.GE1573713@nvidia.com>
+        id S1727655AbgIPTKG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 15:10:06 -0400
+Received: from userp2130.oracle.com ([156.151.31.86]:49730 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727304AbgIPTJx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Sep 2020 15:09:53 -0400
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 08GJ4BM8030758;
+        Wed, 16 Sep 2020 19:09:52 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id; s=corp-2020-01-29;
+ bh=qyKbWfoXqEDMlA9j1xjcPrM4x9W/VoaoccGRj6OqD2g=;
+ b=dBLBTUPbSkon/18vX5bIG8yLCqIRSe8emCN/R4FYEdA2FBWeHx6dbTQ5PvNrzSUwVUIO
+ 2niyUIZcc58ytpF7I6XCc/e6JWVG7VAg8alYljFBwFSP1xDCV3cdAwNGIB6ADUCv6eXW
+ T9PayQU4cmCivgW7propmTsGCKubblLkwg65ZsDBcx++G1rfHSjolcTmq+4D48hFcezq
+ PtgUwBkuVZQ8vfLsy29UzD0sKkWNpl/XDavFQaqj+3MCEnyP9Qun7r6EvNTsbQ+vdtco
+ B7IE/R8cHq810rmPyc+CLtJP+JQJRLCMHQ/nJEBpzKVod75y7Iv/W18ACYETIqWfvysN Tg== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+        by userp2130.oracle.com with ESMTP id 33gnrr521q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Wed, 16 Sep 2020 19:09:52 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+        by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 08GJ4m9E132346;
+        Wed, 16 Sep 2020 19:09:52 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by userp3030.oracle.com with ESMTP id 33h89287a9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 16 Sep 2020 19:09:52 +0000
+Received: from abhmp0001.oracle.com (abhmp0001.oracle.com [141.146.116.7])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 08GJ9p2C024180;
+        Wed, 16 Sep 2020 19:09:51 GMT
+Received: from mbpatil.us.oracle.com (/10.211.44.53)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Wed, 16 Sep 2020 19:09:51 +0000
+From:   Manjunath Patil <manjunath.b.patil@oracle.com>
+To:     santosh.shilimkar@oracle.com
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        aruna.ramakrishna@oracle.com, rama.nichanamatlu@oracle.com
+Subject: [PATCH 1/1] net/rds: suppress page allocation failure error in recv buffer refill
+Date:   Wed, 16 Sep 2020 12:08:46 -0700
+Message-Id: <1600283326-30323-1-git-send-email-manjunath.b.patil@oracle.com>
+X-Mailer: git-send-email 1.7.1
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9746 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 spamscore=0 adultscore=0
+ suspectscore=1 mlxscore=0 bulkscore=0 mlxlogscore=999 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2009160134
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9746 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 spamscore=0
+ lowpriorityscore=0 malwarescore=0 mlxscore=0 bulkscore=0 suspectscore=1
+ clxscore=1011 mlxlogscore=999 adultscore=0 priorityscore=1501
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2009160134
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 04:06:14PM -0300, Jason Gunthorpe wrote:
-> On Tue, Sep 15, 2020 at 02:47:04PM +0300, Leon Romanovsky wrote:
-> > On Mon, Sep 14, 2020 at 12:55:50PM -0300, Jason Gunthorpe wrote:
-> > > On Sun, Sep 13, 2020 at 12:13:02PM +0300, Leon Romanovsky wrote:
-> > > > > > +static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_GID_ENTRY)(
-> > > > > > +	struct uverbs_attr_bundle *attrs)
-> > > > > > +{
-> > > > > > +	const struct ib_gid_attr *gid_attr;
-> > > > > > +	struct ib_uverbs_gid_entry entry;
-> > > > > > +	struct ib_ucontext *ucontext;
-> > > > > > +	struct ib_device *ib_dev;
-> > > > > > +	u32 gid_index;
-> > > > > > +	u32 port_num;
-> > > > > > +	u32 flags;
-> > > > > > +	int ret;
-> > > > > > +
-> > > > > > +	ret = uverbs_get_flags32(&flags, attrs,
-> > > > > > +				 UVERBS_ATTR_QUERY_GID_ENTRY_FLAGS, 0);
-> > > > > > +	if (ret)
-> > > > > > +		return ret;
-> > > > > > +
-> > > > > > +	ret = uverbs_get_const(&port_num, attrs,
-> > > > > > +			       UVERBS_ATTR_QUERY_GID_ENTRY_PORT);
-> > > > > > +	if (ret)
-> > > > > > +		return ret;
-> > > > > > +
-> > > > > > +	ret = uverbs_get_const(&gid_index, attrs,
-> > > > > > +			       UVERBS_ATTR_QUERY_GID_ENTRY_GID_INDEX);
-> > > > > > +	if (ret)
-> > > > > > +		return ret;
-> > > > > > +
-> > > > > > +	ucontext = ib_uverbs_get_ucontext(attrs);
-> > > > > > +	if (IS_ERR(ucontext))
-> > > > > > +		return PTR_ERR(ucontext);
-> > > > > > +	ib_dev = ucontext->device;
-> > > > >
-> > > > > > +	if (!rdma_is_port_valid(ib_dev, port_num))
-> > > > > > +		return -EINVAL;
-> > > > > > +
-> > > > > > +	if (!rdma_ib_or_roce(ib_dev, port_num))
-> > > > > > +		return -EINVAL;
-> > > > >
-> > > > > Why these two tests? I would expect rdma_get_gid_attr() to do them
-> > > >
-> > > > First check is not needed, but the second check doesn't exist in
-> > > > rdma_get_gid_attr(). We don't check that table returned from
-> > > > rdma_gid_table() call exists.
-> > >
-> > > Oh that is a bit exciting, maybe it should be checked...
-> > >
-> > > Ideally we should also block this uapi entirely if the device doesn't
-> > > have a gid table, so this should be -EOPNOTSUP and moved up to the
-> > > top so it can be moved once we figure it out.
-> >
-> > It is already in earliest possible stage, right after we get ib_device.
->
-> I usually put it before the uverbs_get_XX.. but doesn't matter
->
-> > @@ -408,9 +409,17 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_GID_ENTRY)(
-> >  	entry.gid_index = gid_attr->index;
-> >  	entry.port_num = gid_attr->port_num;
-> >  	entry.gid_type = gid_attr->gid_type;
-> > -	ret = rdma_get_ndev_ifindex(gid_attr, &entry.netdev_ifindex);
-> > -	if (ret)
-> > -		goto out;
-> > +
-> > +	if (rdma_protocol_roce(ib_dev, port_num)) {
->
-> Not sure this is needed? non-roce still has gid table entries, and the
-> attr->ndev should be null so it will do the ENODEV naturally.
+RDS/IB tries to refill the recv buffer in softirq context using
+GFP_NOWAIT flag. However alloc failure is handled by queueing a work to
+refill the recv buffer with GFP_KERNEL flag. This means failure to
+allocate with GFP_NOWAIT isn't fatal. Do not print the PAF warnings if
+softirq context fails to refill the recv buffer, instead print a one
+line warning once a day.
 
-It depends on how you want to treat errors from rdma_read_gid_attr_ndev_rcu().
-Current check allows us to ensure that any error returned by this call is
-handled.
+Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
+Reviewed-by: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+---
+ net/rds/ib_recv.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-Otherwise we will find ourselves with something like this:
-ndev = rdma_read_gid_attr_ndev_rcu(gid_attr);
-if (IS_ERR(ndev)) {
-	if (rdma_protocol_roce())
-		goto error;
-	if (ERR_PTR(ndev) != -ENODEV)
-	        goto error;
-}
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index 694d411dc72f..38d2894f6bb2 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -310,8 +310,8 @@ static int rds_ib_recv_refill_one(struct rds_connection *conn,
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 	struct ib_sge *sge;
+ 	int ret = -ENOMEM;
+-	gfp_t slab_mask = GFP_NOWAIT;
+-	gfp_t page_mask = GFP_NOWAIT;
++	gfp_t slab_mask = gfp;
++	gfp_t page_mask = gfp;
+ 
+ 	if (gfp & __GFP_DIRECT_RECLAIM) {
+ 		slab_mask = GFP_KERNEL;
+@@ -406,6 +406,16 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
+ 		recv = &ic->i_recvs[pos];
+ 		ret = rds_ib_recv_refill_one(conn, recv, gfp);
+ 		if (ret) {
++			static unsigned long warn_time;
++			/* warn max once per day. This should be enough to
++			 * warn users about low mem situation.
++			 */
++			if (printk_timed_ratelimit(&warn_time,
++						   24 * 60 * 60 * 1000))
++				pr_warn("RDS/IB: failed to refill recv buffer for <%pI6c,%pI6c,%d>, waking worker\n",
++					&conn->c_laddr, &conn->c_faddr,
++					conn->c_tos);
++
+ 			must_wake = true;
+ 			break;
+ 		}
+@@ -1020,7 +1030,7 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
+ 		rds_ib_stats_inc(s_ib_rx_ring_empty);
+ 
+ 	if (rds_ib_ring_low(&ic->i_recv_ring)) {
+-		rds_ib_recv_refill(conn, 0, GFP_NOWAIT);
++		rds_ib_recv_refill(conn, 0, GFP_NOWAIT | __GFP_NOWARN);
+ 		rds_ib_stats_inc(s_ib_rx_refill_from_cq);
+ 	}
+ }
+-- 
+2.27.0.112.g101b320
 
->
-> > +		rcu_read_lock();
-> > +		ndev = rdma_read_gid_attr_ndev_rcu(gid_attr);
-> > +		if (IS_ERR(ndev)) {
-> > +		       rcu_read_unlock();
-> > +		       goto out;
-> > +		}
-> > +		entry.netdev_ifindex = ndev->ifindex;
-> > +		rcu_read_unlock();
-> > +	}
->
-> This is better than what is in rdma_get_ndev_ifindex()
->
-> Jason
