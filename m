@@ -2,96 +2,81 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CF7C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:55:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3DB5C35257
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 20:12:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15399206DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 19:55:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600286157;
-	bh=u3fzYRznUihHRjmh0c6MetS/Kbvnp5ksgQYlzz5G6wo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=NGRQwHukdGaRxvZbmPjDPTORfjxvAFguALh4MMpFNVnxA+SaIGENwUGSfuQWTe/ve
-	 eFNNgmQqpWnVNTz/tGv3s5l4L+JMgsrbVP5+BW3DxyJds89NraE9q6RvxgHRS3GpNk
-	 vHiGX25zIRW+bLP6vJmCPE/jN22X5S/VWVy+Q0CU=
+	by mail.kernel.org (Postfix) with ESMTP id 6F4A921973
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 20:12:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="tNoZZEb1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728197AbgIPTyE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 15:54:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48190 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727216AbgIPRgT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Sep 2020 13:36:19 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 41EEB22266;
-        Wed, 16 Sep 2020 12:44:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600260273;
-        bh=u3fzYRznUihHRjmh0c6MetS/Kbvnp5ksgQYlzz5G6wo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=LDicXfxI2xkzfD9uqrytbXkxSS7y3JZJdNo44kotNXFfsWqFuC+ueMWUYCfmtbzyk
-         fRSPyUXtYwYxPZaiwzKhJIVIiu5OfRRfTixHMogaIQEuxlURdtHSk+BWOwGHwa6Fzk
-         yn3jdiTV1G2r/q0EVpURZME4hnmM0wsZWsy4i2cQ=
-Date:   Wed, 16 Sep 2020 15:44:29 +0300
-From:   Leon Romanovsky <leon@kernel.org>
+        id S1727176AbgIPUMr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 16:12:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33290 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727137AbgIPRdP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Sep 2020 13:33:15 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 224FEC0611BC
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Sep 2020 10:22:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=4wznqW8sJC/0q9lNoQI6hGqPXPHTmstMHUvp3dMrl48=; b=tNoZZEb1XI4HML39d9ImdTqXlb
+        ODlAukzqQWZIsSSo0Vz7o/9gZcpICOsTMCXOvFMhj/jA4P25r4MzpdomQRUS3VebGQzYAokNkMBwT
+        gcStugy6Purmfrp7qj1x7g9rF86FEfBccGMgjqQBg+cmdZRE0U9S3NB7bDjAUu1Bi8468Fxw9gyyi
+        H+T+3PNoDqrqp38/OhV2xUTrzBLdzH7mRohneiG7DS0Wr9hGlnlgvTfWmy0aoVfMs28HUiBQDdKRh
+        OzWoWtKCygID9EPdYw2c8hVcppyx1PzgmZ6EHfTBnMeEuMOouV0kUlPvpVyBXLj4gawbCX16MWI48
+        bJVSpGjw==;
+Received: from hch by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kIb8k-0006HN-3X; Wed, 16 Sep 2020 17:22:42 +0000
+Date:   Wed, 16 Sep 2020 18:22:42 +0100
+From:   Christoph Hellwig <hch@infradead.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Avihai Horon <avihaih@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next 4/4] RDMA/uverbs: Expose the new GID query API
- to user space
-Message-ID: <20200916124429.GI486552@unreal>
-References: <20200910142204.1309061-1-leon@kernel.org>
- <20200910142204.1309061-5-leon@kernel.org>
- <20200911195918.GT904879@nvidia.com>
- <20200913091302.GF35718@unreal>
- <20200914155550.GF904879@nvidia.com>
- <20200915114704.GB486552@unreal>
- <20200915190614.GE1573713@nvidia.com>
- <20200916103710.GH486552@unreal>
- <20200916120440.GL1573713@nvidia.com>
+Cc:     Christoph Hellwig <hch@infradead.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-next 1/4] IB/core: Improve ODP to use
+ hmm_range_fault()
+Message-ID: <20200916172242.GA24005@infradead.org>
+References: <20200914113949.346562-1-leon@kernel.org>
+ <20200914113949.346562-2-leon@kernel.org>
+ <20200916164516.GA11582@infradead.org>
+ <20200916172100.GE3699@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200916120440.GL1573713@nvidia.com>
+In-Reply-To: <20200916172100.GE3699@nvidia.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Sep 16, 2020 at 09:04:40AM -0300, Jason Gunthorpe wrote:
-> On Wed, Sep 16, 2020 at 01:37:10PM +0300, Leon Romanovsky wrote:
-> > It depends on how you want to treat errors from rdma_read_gid_attr_ndev_rcu().
-> > Current check allows us to ensure that any error returned by this call is
-> > handled.
-> >
-> > Otherwise we will find ourselves with something like this:
-> > ndev = rdma_read_gid_attr_ndev_rcu(gid_attr);
-> > if (IS_ERR(ndev)) {
-> > 	if (rdma_protocol_roce())
-> > 		goto error;
-> > 	if (ERR_PTR(ndev) != -ENODEV)
-> > 	        goto error;
-> > }
->
-> Isn't it just
->
-> if (IS_ERR(ndev)) {
->    if (ERR_PTR(ndev) != -ENODEV)
->         goto error;
->    index = -1;
-> }
->
-> Which seems fine and clear enough
+On Wed, Sep 16, 2020 at 02:21:00PM -0300, Jason Gunthorpe wrote:
+> +               dma_addr = dma & ODP_DMA_ADDR_MASK;
+> +               if (dma_addr) {
+> 
+> > But more importantly except for (dma_addr_t)-1 (DMA_MAPPING_ERROR)
+> > all dma_addr_t values are valid, so taking more than a single bit
+> > from a dma_addr_t is not strictly speaking correct.
+> 
+> This is the result of dma_map_page(). The HW requires that
+> dma_map_page(page_size) returns a DMA address that is page_size
+> aligned, even for huge pages.
+> 
+> So at least the last 12 bits of the DMA address are always 0, they can
+> be used for flags. This is also the HW representation in the page
+> table.
+> 
+> Last time you pointed at this code you agreed this alignment was met,
+> is it still OK?
 
-It is a problem if roce device returned -ENODEV.
-I don't want to paper-out this case by setting index = 0.
-
-Thanks
-
->
-> Jason
+True, the alignment actually makes this work.  I'd still suggest to
+throw in a comment about the actual usage.
