@@ -2,26 +2,26 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77E4CC433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC12FC43461
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D5FB21973
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8514820872
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726161AbgIPIos (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 04:44:48 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:45972 "EHLO huawei.com"
+        id S1726408AbgIPIox (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 04:44:53 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:42502 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726068AbgIPIoo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Sep 2020 04:44:44 -0400
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id 47F37B66BC9A861D6034;
-        Wed, 16 Sep 2020 16:44:41 +0800 (CST)
+        id S1726068AbgIPIov (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Sep 2020 04:44:51 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 386BCEBB139C79543746;
+        Wed, 16 Sep 2020 16:44:46 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
  14.3.487.0; Wed, 16 Sep 2020 16:44:35 +0800
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v4 for-next 1/4] RDMA/hns: Add support for EQE in size of 64 Bytes
-Date:   Wed, 16 Sep 2020 16:43:23 +0800
-Message-ID: <1600245806-56321-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v4 for-next 4/4] RDMA/hns: Add support for SCCC in size of 64 Bytes
+Date:   Wed, 16 Sep 2020 16:43:26 +0800
+Message-ID: <1600245806-56321-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1600245806-56321-1-git-send-email-liweihang@huawei.com>
 References: <1600245806-56321-1-git-send-email-liweihang@huawei.com>
@@ -44,246 +44,199 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Yangyang Li <liyangyang20@huawei.com>
 
-The new version of RoCEE supports using CEQE in size of 4B or 64B, AEQE in
-size of 16B or 64B. The performance of bus can be improved by using larger
-size of EQE.
+For HIP09, size of SCCC (Soft Congestion Control Context) is increased to
+64 Bytes from 32 Bytes. The hardware will get the configuration of SCCC
+from driver instead of using a fixed value.
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h | 14 ++++++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 10 ++++-----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 33 ++++++++++++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  7 ++++--
- 4 files changed, 44 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 30 +++++++++++++++++++++++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  8 ++++++--
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  2 +-
+ 6 files changed, 38 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 30290a7..9e7d9e9 100644
+index ef17499..16b5864 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -37,8 +37,8 @@
- 
- #define DRV_NAME "hns_roce"
- 
--/* hip08 is a pci device */
- #define PCI_REVISION_ID_HIP08			0x21
-+#define PCI_REVISION_ID_HIP09			0x30
- 
- #define HNS_ROCE_HW_VER1	('h' << 24 | 'i' << 16 | '0' << 8 | '6')
- 
-@@ -76,8 +76,10 @@
- #define HNS_ROCE_CEQ				0
- #define HNS_ROCE_AEQ				1
- 
--#define HNS_ROCE_CEQ_ENTRY_SIZE			0x4
--#define HNS_ROCE_AEQ_ENTRY_SIZE			0x10
-+#define HNS_ROCE_CEQE_SIZE 0x4
-+#define HNS_ROCE_AEQE_SIZE 0x10
-+
-+#define HNS_ROCE_V3_EQE_SIZE 0x40
- 
- #define HNS_ROCE_SL_SHIFT			28
- #define HNS_ROCE_TCLASS_SHIFT			20
-@@ -679,7 +681,8 @@ enum {
- };
- 
- struct hns_roce_ceqe {
--	__le32			comp;
-+	__le32	comp;
-+	__le32	rsv[15];
- };
- 
- struct hns_roce_aeqe {
-@@ -716,6 +719,7 @@ struct hns_roce_aeqe {
- 			u8	rsv0;
- 		} __packed cmd;
- 	 } event;
-+	__le32 rsv[12];
- };
- 
- struct hns_roce_eq {
-@@ -810,6 +814,8 @@ struct hns_roce_caps {
- 	u32		pbl_hop_num;
- 	int		aeqe_depth;
- 	int		ceqe_depth;
-+	u32		aeqe_size;
-+	u32		ceqe_size;
- 	enum ib_mtu	max_mtu;
- 	u32		qpc_bt_num;
- 	u32		qpc_timer_bt_num;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 96c14e5..cba3e27 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3776,8 +3776,7 @@ static void hns_roce_v1_db_overflow_handle(struct hns_roce_dev *hr_dev,
- 
- static struct hns_roce_aeqe *get_aeqe_v1(struct hns_roce_eq *eq, u32 entry)
- {
--	unsigned long off = (entry & (eq->entries - 1)) *
--			     HNS_ROCE_AEQ_ENTRY_SIZE;
-+	unsigned long off = (entry & (eq->entries - 1)) * HNS_ROCE_AEQE_SIZE;
- 
- 	return (struct hns_roce_aeqe *)((u8 *)
- 		(eq->buf_list[off / HNS_ROCE_BA_SIZE].buf) +
-@@ -3882,8 +3881,7 @@ static int hns_roce_v1_aeq_int(struct hns_roce_dev *hr_dev,
- 
- static struct hns_roce_ceqe *get_ceqe_v1(struct hns_roce_eq *eq, u32 entry)
- {
--	unsigned long off = (entry & (eq->entries - 1)) *
--			     HNS_ROCE_CEQ_ENTRY_SIZE;
-+	unsigned long off = (entry & (eq->entries - 1)) * HNS_ROCE_CEQE_SIZE;
- 
- 	return (struct hns_roce_ceqe *)((u8 *)
- 			(eq->buf_list[off / HNS_ROCE_BA_SIZE].buf) +
-@@ -4254,7 +4252,7 @@ static int hns_roce_v1_init_eq_table(struct hns_roce_dev *hr_dev)
- 				       CEQ_REG_OFFSET * i;
- 			eq->entries = hr_dev->caps.ceqe_depth;
- 			eq->log_entries = ilog2(eq->entries);
--			eq->eqe_size = HNS_ROCE_CEQ_ENTRY_SIZE;
-+			eq->eqe_size = HNS_ROCE_CEQE_SIZE;
- 		} else {
- 			/* AEQ */
- 			eq_table->eqc_base[i] = hr_dev->reg_base +
-@@ -4264,7 +4262,7 @@ static int hns_roce_v1_init_eq_table(struct hns_roce_dev *hr_dev)
- 				       ROCEE_CAEP_AEQE_CONS_IDX_REG;
- 			eq->entries = hr_dev->caps.aeqe_depth;
- 			eq->log_entries = ilog2(eq->entries);
--			eq->eqe_size = HNS_ROCE_AEQ_ENTRY_SIZE;
-+			eq->eqe_size = HNS_ROCE_AEQE_SIZE;
- 		}
- 	}
- 
+@@ -811,7 +811,7 @@ struct hns_roce_caps {
+ 	int		irrl_entry_sz;
+ 	int		trrl_entry_sz;
+ 	int		cqc_entry_sz;
+-	int		sccc_entry_sz;
++	int		sccc_sz;
+ 	int		qpc_timer_entry_sz;
+ 	int		cqc_timer_entry_sz;
+ 	int		srqc_entry_sz;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 0336282..7487cf3 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1027,7 +1027,7 @@ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->caps.cqc_timer_entry_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->cqc_timer_table);
+-	if (hr_dev->caps.sccc_entry_sz)
++	if (hr_dev->caps.sccc_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ 	if (hr_dev->caps.trrl_entry_sz)
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 3966262..fe43c15 100644
+index 170bb6c..fe0e6b1 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1739,6 +1739,8 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
- 	caps->gid_table_len[0]	= HNS_ROCE_V2_GID_INDEX_NUM;
- 	caps->ceqe_depth	= HNS_ROCE_V2_COMP_EQE_NUM;
- 	caps->aeqe_depth	= HNS_ROCE_V2_ASYNC_EQE_NUM;
-+	caps->aeqe_size		= HNS_ROCE_AEQE_SIZE;
-+	caps->ceqe_size		= HNS_ROCE_CEQE_SIZE;
- 	caps->local_ca_ack_delay = 0;
- 	caps->max_mtu = IB_MTU_4096;
+@@ -1762,7 +1762,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
+ 	caps->cqc_timer_buf_pg_sz = 0;
+ 	caps->cqc_timer_hop_num   = HNS_ROCE_HOP_NUM_0;
  
-@@ -1764,6 +1766,11 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
+-	caps->sccc_entry_sz	  = HNS_ROCE_V2_SCCC_ENTRY_SZ;
++	caps->sccc_sz = HNS_ROCE_V2_SCCC_SZ;
  	caps->sccc_ba_pg_sz	  = 0;
  	caps->sccc_buf_pg_sz	  = 0;
  	caps->sccc_hop_num	  = HNS_ROCE_SCCC_HOP_NUM;
+@@ -1872,7 +1872,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	caps->cqc_entry_sz	     = resp_b->cqc_entry_sz;
+ 	caps->srqc_entry_sz	     = resp_b->srqc_entry_sz;
+ 	caps->idx_entry_sz	     = resp_b->idx_entry_sz;
+-	caps->sccc_entry_sz	     = resp_b->scc_ctx_entry_sz;
++	caps->sccc_sz		     = resp_b->sccc_sz;
+ 	caps->max_mtu		     = resp_b->max_mtu;
+ 	caps->qpc_sz		     = HNS_ROCE_V2_QPC_SZ;
+ 	caps->min_cqes		     = resp_b->min_cqes;
+@@ -1997,6 +1997,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
+ 		caps->cqe_sz = HNS_ROCE_V3_CQE_SIZE;
+ 		caps->qpc_sz = HNS_ROCE_V3_QPC_SZ;
++		caps->sccc_sz = HNS_ROCE_V3_SCCC_SZ;
+ 	}
+ 
+ 	calc_pg_sz(caps->num_qps, caps->qpc_sz, caps->qpc_hop_num,
+@@ -2016,7 +2017,7 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	caps->qpc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+ 	caps->cqc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+ 
+-	calc_pg_sz(caps->num_qps, caps->sccc_entry_sz,
++	calc_pg_sz(caps->num_qps, caps->sccc_sz,
+ 		   caps->sccc_hop_num, caps->sccc_bt_num,
+ 		   &caps->sccc_buf_pg_sz, &caps->sccc_ba_pg_sz,
+ 		   HEM_TYPE_SCCC);
+@@ -2051,6 +2052,21 @@ static int hns_roce_config_qpc_size(struct hns_roce_dev *hr_dev)
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
+ }
+ 
++static int hns_roce_config_sccc_size(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_cmq_desc desc;
++	struct hns_roce_cfg_entry_size *cfg_size =
++				  (struct hns_roce_cfg_entry_size *)desc.data;
 +
-+	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
-+		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
-+		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
++	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_CFG_ENTRY_SIZE,
++				      false);
++
++	cfg_size->type = cpu_to_le32(HNS_ROCE_CFG_SCCC_SIZE);
++	cfg_size->size = cpu_to_le32(hr_dev->caps.sccc_sz);
++
++	return hns_roce_cmq_send(hr_dev, &desc, 1);
++}
++
+ static int hns_roce_config_entry_size(struct hns_roce_dev *hr_dev)
+ {
+ 	int ret;
+@@ -2059,8 +2075,14 @@ static int hns_roce_config_entry_size(struct hns_roce_dev *hr_dev)
+ 		return 0;
+ 
+ 	ret = hns_roce_config_qpc_size(hr_dev);
+-	if (ret)
++	if (ret) {
+ 		dev_err(hr_dev->dev, "failed to cfg qpc sz, ret = %d.\n", ret);
++		return ret;
 +	}
- }
- 
- static void calc_pg_sz(int obj_num, int obj_size, int hop_num, int ctx_bt_num,
-@@ -1958,6 +1965,8 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 	caps->cqc_timer_entry_sz = HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ;
- 	caps->mtt_entry_sz = HNS_ROCE_V2_MTT_ENTRY_SZ;
- 	caps->num_mtt_segs = HNS_ROCE_V2_MAX_MTT_SEGS;
-+	caps->ceqe_size = HNS_ROCE_CEQE_SIZE;
-+	caps->aeqe_size = HNS_ROCE_AEQE_SIZE;
- 	caps->mtt_ba_pg_sz = 0;
- 	caps->num_cqe_segs = HNS_ROCE_V2_MAX_CQE_SEGS;
- 	caps->num_srqwqe_segs = HNS_ROCE_V2_MAX_SRQWQE_SEGS;
-@@ -1981,6 +1990,11 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
- 					  V2_QUERY_PF_CAPS_D_RQWQE_HOP_NUM_M,
- 					  V2_QUERY_PF_CAPS_D_RQWQE_HOP_NUM_S);
- 
-+	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
-+		caps->ceqe_size = HNS_ROCE_V3_EQE_SIZE;
-+		caps->aeqe_size = HNS_ROCE_V3_EQE_SIZE;
-+	}
 +
- 	calc_pg_sz(caps->num_qps, caps->qpc_entry_sz, caps->qpc_hop_num,
- 		   caps->qpc_bt_num, &caps->qpc_buf_pg_sz, &caps->qpc_ba_pg_sz,
- 		   HEM_TYPE_QPC);
-@@ -5242,7 +5256,7 @@ static struct hns_roce_aeqe *next_aeqe_sw_v2(struct hns_roce_eq *eq)
++	ret = hns_roce_config_sccc_size(hr_dev);
++	if (ret)
++		dev_err(hr_dev->dev, "failed to cfg sccc sz, ret = %d.\n", ret);
  
- 	aeqe = hns_roce_buf_offset(eq->mtr.kmem,
- 				   (eq->cons_index & (eq->entries - 1)) *
--				   HNS_ROCE_AEQ_ENTRY_SIZE);
-+				   eq->eqe_size);
- 
- 	return (roce_get_bit(aeqe->asyn, HNS_ROCE_V2_AEQ_AEQE_OWNER_S) ^
- 		!!(eq->cons_index & eq->entries)) ? aeqe : NULL;
-@@ -5342,7 +5356,8 @@ static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
- 
- 	ceqe = hns_roce_buf_offset(eq->mtr.kmem,
- 				   (eq->cons_index & (eq->entries - 1)) *
--				   HNS_ROCE_CEQ_ENTRY_SIZE);
-+				   eq->eqe_size);
-+
- 	return (!!(roce_get_bit(ceqe->comp, HNS_ROCE_V2_CEQ_CEQE_OWNER_S))) ^
- 		(!!(eq->cons_index & eq->entries)) ? ceqe : NULL;
+ 	return ret;
  }
-@@ -5618,14 +5633,16 @@ static int config_eqc(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq,
- 	roce_set_field(eqc->byte_36, HNS_ROCE_EQC_CONS_INDX_M,
- 		       HNS_ROCE_EQC_CONS_INDX_S, HNS_ROCE_EQ_INIT_CONS_IDX);
- 
--	/* set nex_eqe_ba[43:12] */
--	roce_set_field(eqc->nxt_eqe_ba0, HNS_ROCE_EQC_NXT_EQE_BA_L_M,
-+	roce_set_field(eqc->byte_40, HNS_ROCE_EQC_NXT_EQE_BA_L_M,
- 		       HNS_ROCE_EQC_NXT_EQE_BA_L_S, eqe_ba[1] >> 12);
- 
--	/* set nex_eqe_ba[63:44] */
--	roce_set_field(eqc->nxt_eqe_ba1, HNS_ROCE_EQC_NXT_EQE_BA_H_M,
-+	roce_set_field(eqc->byte_44, HNS_ROCE_EQC_NXT_EQE_BA_H_M,
- 		       HNS_ROCE_EQC_NXT_EQE_BA_H_S, eqe_ba[1] >> 44);
- 
-+	roce_set_field(eqc->byte_44, HNS_ROCE_EQC_EQE_SIZE_M,
-+		       HNS_ROCE_EQC_EQE_SIZE_S,
-+		       eq->eqe_size == HNS_ROCE_V3_EQE_SIZE ? 1 : 0);
-+
- 	return 0;
- }
- 
-@@ -5816,7 +5833,7 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
- 			eq_cmd = HNS_ROCE_CMD_CREATE_CEQC;
- 			eq->type_flag = HNS_ROCE_CEQ;
- 			eq->entries = hr_dev->caps.ceqe_depth;
--			eq->eqe_size = HNS_ROCE_CEQ_ENTRY_SIZE;
-+			eq->eqe_size = hr_dev->caps.ceqe_size;
- 			eq->irq = hr_dev->irq[i + other_num + aeq_num];
- 			eq->eq_max_cnt = HNS_ROCE_CEQ_DEFAULT_BURST_NUM;
- 			eq->eq_period = HNS_ROCE_CEQ_DEFAULT_INTERVAL;
-@@ -5825,7 +5842,7 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
- 			eq_cmd = HNS_ROCE_CMD_CREATE_AEQC;
- 			eq->type_flag = HNS_ROCE_AEQ;
- 			eq->entries = hr_dev->caps.aeqe_depth;
--			eq->eqe_size = HNS_ROCE_AEQ_ENTRY_SIZE;
-+			eq->eqe_size = hr_dev->caps.aeqe_size;
- 			eq->irq = hr_dev->irq[i - comp_num + other_num];
- 			eq->eq_max_cnt = HNS_ROCE_AEQ_DEFAULT_BURST_NUM;
- 			eq->eq_period = HNS_ROCE_AEQ_DEFAULT_INTERVAL;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index ac29be4..f98c55a 100644
+index 32c5ddc..a964d04 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -1777,8 +1777,8 @@ struct hns_roce_eq_context {
- 	__le32	byte_28;
- 	__le32	byte_32;
- 	__le32	byte_36;
--	__le32	nxt_eqe_ba0;
--	__le32	nxt_eqe_ba1;
-+	__le32	byte_40;
-+	__le32	byte_44;
- 	__le32	rsv[5];
+@@ -85,7 +85,10 @@
+ #define HNS_ROCE_V2_MTPT_ENTRY_SZ		64
+ #define HNS_ROCE_V2_MTT_ENTRY_SZ		64
+ #define HNS_ROCE_V2_IDX_ENTRY_SZ		4
+-#define HNS_ROCE_V2_SCCC_ENTRY_SZ		32
++
++#define HNS_ROCE_V2_SCCC_SZ			32
++#define HNS_ROCE_V3_SCCC_SZ			64
++
+ #define HNS_ROCE_V2_QPC_TIMER_ENTRY_SZ		PAGE_SIZE
+ #define HNS_ROCE_V2_CQC_TIMER_ENTRY_SZ		PAGE_SIZE
+ #define HNS_ROCE_V2_PAGE_SIZE_SUPPORTED		0xFFFFF000
+@@ -1544,6 +1547,7 @@ struct hns_roce_cfg_sgid_tb {
+ 
+ enum {
+ 	HNS_ROCE_CFG_QPC_SIZE = BIT(0),
++	HNS_ROCE_CFG_SCCC_SIZE = BIT(1),
  };
  
-@@ -1920,6 +1920,9 @@ struct hns_roce_eq_context {
- #define HNS_ROCE_EQC_NXT_EQE_BA_H_S 0
- #define HNS_ROCE_EQC_NXT_EQE_BA_H_M GENMASK(19, 0)
+ struct hns_roce_cfg_entry_size {
+@@ -1596,7 +1600,7 @@ struct hns_roce_query_pf_caps_b {
+ 	u8 cqc_entry_sz;
+ 	u8 srqc_entry_sz;
+ 	u8 idx_entry_sz;
+-	u8 scc_ctx_entry_sz;
++	u8 sccc_sz;
+ 	u8 max_mtu;
+ 	__le16 qpc_sz;
+ 	__le16 qpc_timer_entry_sz;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 6f9715a0..4aa56c5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -640,11 +640,11 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		}
+ 	}
  
-+#define HNS_ROCE_EQC_EQE_SIZE_S 20
-+#define HNS_ROCE_EQC_EQE_SIZE_M GENMASK(21, 20)
-+
- #define HNS_ROCE_V2_CEQE_COMP_CQN_S 0
- #define HNS_ROCE_V2_CEQE_COMP_CQN_M GENMASK(23, 0)
+-	if (hr_dev->caps.sccc_entry_sz) {
++	if (hr_dev->caps.sccc_sz) {
+ 		ret = hns_roce_init_hem_table(hr_dev,
+ 					      &hr_dev->qp_table.sccc_table,
+ 					      HEM_TYPE_SCCC,
+-					      hr_dev->caps.sccc_entry_sz,
++					      hr_dev->caps.sccc_sz,
+ 					      hr_dev->caps.num_qps, 1);
+ 		if (ret) {
+ 			dev_err(dev,
+@@ -684,7 +684,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->qpc_timer_table);
  
+ err_unmap_ctx:
+-	if (hr_dev->caps.sccc_entry_sz)
++	if (hr_dev->caps.sccc_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ err_unmap_srq:
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 975281f..a343930 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -288,7 +288,7 @@ static int alloc_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		}
+ 	}
+ 
+-	if (hr_dev->caps.sccc_entry_sz) {
++	if (hr_dev->caps.sccc_sz) {
+ 		/* Alloc memory for SCC CTX */
+ 		ret = hns_roce_table_get(hr_dev, &qp_table->sccc_table,
+ 					 hr_qp->qpn);
 -- 
 2.8.1
 
