@@ -2,74 +2,92 @@ Return-Path: <SRS0=XmsV=CZ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38799C433E2
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 07:20:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B1CCC43461
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1D592076C
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 07:19:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600240799;
-	bh=1cO8EafAQxQunyA9UiqbTCmb83XT1maBwoQrVcurDH4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=c/UI64L4xK3xWGigK9M9ZPRV3U8xc/6W4mhlMo9qse561DbBFwHslrULLY0QyKq4K
-	 c5AGaANYOEcQGXWe0lZ7YQ2Pj/jL27/2rkoy8a/dW08eBDO82tQa99mSNWRFLri1/y
-	 RS6N3JudIONrIA0TyHB8qMIpMth4E5nAjYvuNH28=
+	by mail.kernel.org (Postfix) with ESMTP id D43A421973
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Sep 2020 08:44:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726210AbgIPHT4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Sep 2020 03:19:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47164 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726149AbgIPHT4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Sep 2020 03:19:56 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 02DDF2076C;
-        Wed, 16 Sep 2020 07:19:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600240795;
-        bh=1cO8EafAQxQunyA9UiqbTCmb83XT1maBwoQrVcurDH4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=v11iDr4MbBKq2VXWUTA25KH22HIPIvMLCVzVBvObQqIjnidcXSj0mgJ99pieAaf7a
-         ReqDuTCRMhjDLmqQNi0wQ8t4WjjfrppY/ze/Kfn9UbgQjdk+LgVWq8zhEY2gnXhYeZ
-         gCIUwejqk8QEVZcRWEiGtQwOkrKXaruVZ9PPSnvc=
-Date:   Wed, 16 Sep 2020 10:19:51 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Maor Gottlieb <maorg@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next v1 3/4] lib/scatterlist: Add support in dynamic
- allocation of SG table from pages
-Message-ID: <20200916071951.GE486552@unreal>
-References: <20200910134259.1304543-1-leon@kernel.org>
- <20200910134259.1304543-4-leon@kernel.org>
- <20200915162339.GC24320@lst.de>
+        id S1726243AbgIPIos (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Sep 2020 04:44:48 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:45970 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726161AbgIPIon (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Sep 2020 04:44:43 -0400
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 43B3BC9CE1D2AA1BF2CC;
+        Wed, 16 Sep 2020 16:44:41 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.487.0; Wed, 16 Sep 2020 16:44:34 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v4 for-next 0/4] RDMA/hns: Extend some capabilities for HIP09
+Date:   Wed, 16 Sep 2020 16:43:22 +0800
+Message-ID: <1600245806-56321-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200915162339.GC24320@lst.de>
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Sender: linux-rdma-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Sep 15, 2020 at 06:23:39PM +0200, Christoph Hellwig wrote:
-> > +#ifndef CONFIG_ARCH_NO_SG_CHAIN
-> > +struct scatterlist *sg_alloc_table_append(
-> > +	struct sg_table *sgt, struct page **pages, unsigned int n_pages,
-> > +	unsigned int offset, unsigned long size, unsigned int max_segment,
-> > +	gfp_t gfp_mask, struct scatterlist *prv, unsigned int left_pages);
-> > +#endif
->
-> Odd indentation here, we either do two tabs (my preference) or aligned
-> to the opening brace (what you seem to be doing elsewhere in the series).
+HIP09 supports larger entries/contexts to improve the performance of bus or
+exchange more information with the hardware. The capbilities changes from
+HIP08 to HIP09 is as follows:
+- CEQE: 4B -> 64B
+- AEQE: 16B -> 64B
+- CQE: 32B -> 64B
+- QPC: 256B -> 512B
+- SCCC: 32B -> 64B
 
-All indentation came from clang-formatter, we will change.
+Previous discussions can be found at:
+v3: https://patchwork.kernel.org/cover/11753687/
+v2: https://patchwork.kernel.org/cover/11726269/
+v1: https://patchwork.kernel.org/cover/11718143/
 
-Thanks
+Changes since v3:
+- Fix comments from Jason in #2 about the length of buffer to copy.
+
+Changes since v2:
+- Fix comments from Jason about passing cap_flags to the userspace and drop
+  #1 from this series.
+- Add a new patch to support SCCC in size of 64 Bytes.
+
+Changes since v1:
+- Fix comments from Lang Cheng about redundant comments and type of
+  reserved fields in structure of eqe.
+- Rename some variables.
+
+Wenpeng Liang (3):
+  RDMA/hns: Add support for EQE in size of 64 Bytes
+  RDMA/hns: Add support for CQE in size of 64 Bytes
+  RDMA/hns: Add support for QPC in size of 512 Bytes
+
+Yangyang Li (1):
+  RDMA/hns: Add support for SCCC in size of 64 Bytes
+
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  22 ++++-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  27 +++--
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  17 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 147 ++++++++++++++++++++++------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  38 +++++--
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  10 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |   2 +-
+ include/uapi/rdma/hns-abi.h                 |   4 +-
+ 10 files changed, 207 insertions(+), 66 deletions(-)
+
+-- 
+2.8.1
+
