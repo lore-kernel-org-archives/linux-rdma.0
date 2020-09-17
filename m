@@ -2,112 +2,155 @@ Return-Path: <SRS0=cNdp=C2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E30F1C433E2
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 454E8C43461
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85A2F20795
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A8DF20795
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600333351;
-	bh=uObNOBKy1NqJePr2mqJ9xVb7ssBbEU3eil62g617ILk=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=x+sUmXVCBcCsiBpoEEERoubTwLCv4rZ4gr1zRZI2r6ks1gItkaaHDmrbjsCinMzmY
-	 BJDxJs4bzhTKAyrnXltPcH10IHhilVOL4ZJwZTlo6P6nOK6cFO3hu2zrvCZ0E0LiXn
-	 uJ4DsSlfAvrBuUay6+PnprX8/sgAFo17u5/mRfqs=
+	s=default; t=1600333360;
+	bh=GIgXMYtPxyeF+td39Ayw/a+MKlrS9lFGK5YHMg0vgRM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=rViwCRYDm/ouzkA8JUoY06r2kjy7IyMlZKQz4/MfSjikU21h47CQyIaI0wM/Cd9dG
+	 /1xfgqzuLDeBhyi11gOMjaqXR9gm7fHWheal7RpXI6GTehMs27YOwaWXPJON1yKcd0
+	 4LRwKre+HGBv8nyf1peqc/BWj3vQY8z2FaS0wWVo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726171AbgIQJCa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 05:02:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47128 "EHLO mail.kernel.org"
+        id S1726344AbgIQJCi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 05:02:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726185AbgIQJCa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 05:02:30 -0400
+        id S1726185AbgIQJCf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 05:02:35 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A7BC62076D;
-        Thu, 17 Sep 2020 09:02:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 483A620795;
+        Thu, 17 Sep 2020 09:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600333349;
-        bh=uObNOBKy1NqJePr2mqJ9xVb7ssBbEU3eil62g617ILk=;
-        h=From:To:Cc:Subject:Date:From;
-        b=1A5BTxhh4eexfkFU7ZSEci59kLWUuCTqIZ8H77lt4GimVk7etNJv0/2hL4mZAzZyt
-         XFkupcH1aBSvxpCVN7WYIJ5PfRSfuvz2fpHFeH9XDkNcZeBmqmGGAoiE/NRdwWE1UT
-         fdwKG2j2eau422nydni9wNUDDeq7bejHffENNyuA=
+        s=default; t=1600333354;
+        bh=GIgXMYtPxyeF+td39Ayw/a+MKlrS9lFGK5YHMg0vgRM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=1LjGdzLHCsba0eQmhDHWStGul0PHPKy5LADRAg0HGnqeCE7BYk0sCrzNmFZYrj+XF
+         nOzJnMxBPbDJf5Pda2r74bt+AGVExVq4OtIpEfWkWyBL1eJAXzyzHcRKl/6fH0bz6B
+         6X3Hz8V6IHTezy726SrpOaFgM6qadZghuknpBwpw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Achiad Shochat <achiad@mellanox.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Aharon Landau <aharonl@mellanox.com>,
-        Ariel Elior <aelior@marvell.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Devesh Sharma <devesh.sharma@broadcom.com>,
+Cc:     Aharon Landau <aharonl@mellanox.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
         Michael Guralnik <michaelgur@nvidia.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>
-Subject: [PATCH rdma-next v2 0/3] Fix in-kernel active_speed type
-Date:   Thu, 17 Sep 2020 12:02:20 +0300
-Message-Id: <20200917090223.1018224-1-leon@kernel.org>
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH mlx5-next v2 2/3] RDMA/mlx5: Delete duplicated mlx5_ptys_width enum
+Date:   Thu, 17 Sep 2020 12:02:22 +0300
+Message-Id: <20200917090223.1018224-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200917090223.1018224-1-leon@kernel.org>
+References: <20200917090223.1018224-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Aharon Landau <aharonl@mellanox.com>
 
-Changelog:
-v2:
- * Changed WARN_ON casting to be saturated value instead while returning active_speed
-   to the user.
-v1: https://lore.kernel.org/linux-rdma/20200902074503.743310-1-leon@kernel.org
- * Changed patch #1 to fix memory corruption to help with bisect. No
-   change in series, because the added code is changed anyway in patch
-   #3.
-v0:
- * https://lore.kernel.org/linux-rdma/20200824105826.1093613-1-leon@kernel.org
+Combine two same enums to avoid duplication.
 
-----------------------------------------------------------------------------------------
+Signed-off-by: Aharon Landau <aharonl@mellanox.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/main.c             | 20 ++++++-------------
+ .../mellanox/mlx5/core/ipoib/ethtool.c        |  8 --------
+ include/linux/mlx5/port.h                     |  8 ++++++++
+ 3 files changed, 14 insertions(+), 22 deletions(-)
 
-IBTA declares speed as 16 bits, but kernel stores it in u8. This series
-fixes in-kernel declaration while keeping external interface intact.
-
-Thanks
-
-Aharon Landau (3):
-  net/mlx5: Refactor query port speed functions
-  RDMA/mlx5: Delete duplicated mlx5_ptys_width enum
-  RDMA: Fix link active_speed size
-
- .../infiniband/core/uverbs_std_types_device.c |  3 +-
- drivers/infiniband/core/verbs.c               |  2 +-
- drivers/infiniband/hw/bnxt_re/bnxt_re.h       |  2 +-
- drivers/infiniband/hw/hfi1/verbs.c            |  2 +-
- drivers/infiniband/hw/mlx5/main.c             | 41 +++++++------------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c   |  2 +-
- drivers/infiniband/hw/qedr/verbs.c            |  2 +-
- drivers/infiniband/hw/qib/qib.h               |  6 +--
- .../infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   |  2 +-
- .../mellanox/mlx5/core/ipoib/ethtool.c        | 31 ++------------
- .../net/ethernet/mellanox/mlx5/core/port.c    | 23 ++---------
- include/linux/mlx5/port.h                     | 15 +++++--
- include/rdma/ib_verbs.h                       |  4 +-
- 13 files changed, 47 insertions(+), 88 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index ca33ff4b1d5e..545f23d27660 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1179,32 +1179,24 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	return 0;
+ }
+ 
+-enum mlx5_ib_width {
+-	MLX5_IB_WIDTH_1X	= 1 << 0,
+-	MLX5_IB_WIDTH_2X	= 1 << 1,
+-	MLX5_IB_WIDTH_4X	= 1 << 2,
+-	MLX5_IB_WIDTH_8X	= 1 << 3,
+-	MLX5_IB_WIDTH_12X	= 1 << 4
+-};
+-
+ static void translate_active_width(struct ib_device *ibdev, u16 active_width,
+ 				   u8 *ib_width)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 
+-	if (active_width & MLX5_IB_WIDTH_1X)
++	if (active_width & MLX5_PTYS_WIDTH_1X)
+ 		*ib_width = IB_WIDTH_1X;
+-	else if (active_width & MLX5_IB_WIDTH_2X)
++	else if (active_width & MLX5_PTYS_WIDTH_2X)
+ 		*ib_width = IB_WIDTH_2X;
+-	else if (active_width & MLX5_IB_WIDTH_4X)
++	else if (active_width & MLX5_PTYS_WIDTH_4X)
+ 		*ib_width = IB_WIDTH_4X;
+-	else if (active_width & MLX5_IB_WIDTH_8X)
++	else if (active_width & MLX5_PTYS_WIDTH_8X)
+ 		*ib_width = IB_WIDTH_8X;
+-	else if (active_width & MLX5_IB_WIDTH_12X)
++	else if (active_width & MLX5_PTYS_WIDTH_12X)
+ 		*ib_width = IB_WIDTH_12X;
+ 	else {
+ 		mlx5_ib_dbg(dev, "Invalid active_width %d, setting width to default value: 4x\n",
+-			    (int)active_width);
++			    active_width);
+ 		*ib_width = IB_WIDTH_4X;
+ 	}
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+index 17f5be801d2f..cac8f085b16d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+@@ -130,14 +130,6 @@ static int mlx5i_flash_device(struct net_device *netdev,
+ 	return mlx5e_ethtool_flash_device(priv, flash);
+ }
+ 
+-enum mlx5_ptys_width {
+-	MLX5_PTYS_WIDTH_1X	= 1 << 0,
+-	MLX5_PTYS_WIDTH_2X	= 1 << 1,
+-	MLX5_PTYS_WIDTH_4X	= 1 << 2,
+-	MLX5_PTYS_WIDTH_8X	= 1 << 3,
+-	MLX5_PTYS_WIDTH_12X	= 1 << 4,
+-};
+-
+ static inline int mlx5_ptys_width_enum_to_int(enum mlx5_ptys_width width)
+ {
+ 	switch (width) {
+diff --git a/include/linux/mlx5/port.h b/include/linux/mlx5/port.h
+index 4d33ae0c2d97..23edd2db4803 100644
+--- a/include/linux/mlx5/port.h
++++ b/include/linux/mlx5/port.h
+@@ -125,6 +125,14 @@ enum mlx5e_connector_type {
+ 	MLX5E_CONNECTOR_TYPE_NUMBER,
+ };
+ 
++enum mlx5_ptys_width {
++	MLX5_PTYS_WIDTH_1X	= 1 << 0,
++	MLX5_PTYS_WIDTH_2X	= 1 << 1,
++	MLX5_PTYS_WIDTH_4X	= 1 << 2,
++	MLX5_PTYS_WIDTH_8X	= 1 << 3,
++	MLX5_PTYS_WIDTH_12X	= 1 << 4,
++};
++
+ #define MLX5E_PROT_MASK(link_mode) (1 << link_mode)
+ #define MLX5_GET_ETH_PROTO(reg, out, ext, field)	\
+ 	(ext ? MLX5_GET(reg, out, ext_##field) :	\
+-- 
 2.26.2
 
