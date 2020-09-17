@@ -2,225 +2,76 @@ Return-Path: <SRS0=cNdp=C2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1983EC433E2
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 05:03:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA59C2BBD1
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 08:07:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B94852078D
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 05:03:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C67421D90
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 08:07:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726109AbgIQFDV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 01:03:21 -0400
-Received: from mga09.intel.com ([134.134.136.24]:5697 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726106AbgIQFDV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 01:03:21 -0400
-X-Greylist: delayed 428 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Sep 2020 01:03:20 EDT
-IronPort-SDR: Dl8eqegBpO1QMXX3eedUg2p7ed9V2KuxqbyqNmA2h1yN6hr2mwq6DherATeYFJgtmdTQTfkJs1
- 2oHNWWVksf0A==
-X-IronPort-AV: E=McAfee;i="6000,8403,9746"; a="160554002"
-X-IronPort-AV: E=Sophos;i="5.76,435,1592895600"; 
-   d="scan'208";a="160554002"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2020 21:56:12 -0700
-IronPort-SDR: 3nPNHkZCIeQ8IB9as/Ngx98nqR6ikviZf++fHt6Wj311qrhOvZ7CL4i29jfpgR0Uv/HKa1yaQ/
- Tt+HKDlfIpew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,435,1592895600"; 
-   d="scan'208";a="409786197"
-Received: from lkp-server02.sh.intel.com (HELO bdcb92cf8b4e) ([10.239.97.151])
-  by fmsmga001.fm.intel.com with ESMTP; 16 Sep 2020 21:56:10 -0700
-Received: from kbuild by bdcb92cf8b4e with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1kIlxq-0000QL-92; Thu, 17 Sep 2020 04:56:10 +0000
-Date:   Thu, 17 Sep 2020 12:56:06 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 3cc30e8dfcb625ba4bd62a75aba475581c967639
-Message-ID: <5f62ec66.VWDsgGVRKRaLk+BL%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1726486AbgIQIHa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 04:07:30 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:13223 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726457AbgIQIH2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 04:07:28 -0400
+X-Greylist: delayed 938 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Sep 2020 04:07:27 EDT
+Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
+        by Forcepoint Email with ESMTP id 3F2F88CBBAD0360DC0BF;
+        Thu, 17 Sep 2020 15:51:29 +0800 (CST)
+Received: from huawei.com (10.175.113.32) by DGGEMS405-HUB.china.huawei.com
+ (10.3.19.205) with Microsoft SMTP Server id 14.3.487.0; Thu, 17 Sep 2020
+ 15:51:21 +0800
+From:   Liu Shixin <liushixin2@huawei.com>
+To:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Liu Shixin <liushixin2@huawei.com>
+Subject: [PATCH -next] RDMA/mlx5: fix type warning of sizeof in __mlx5_ib_alloc_counters()
+Date:   Thu, 17 Sep 2020 16:13:54 +0800
+Message-ID: <20200917081354.2083293-1-liushixin2@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.113.32]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
-branch HEAD: 3cc30e8dfcb625ba4bd62a75aba475581c967639  RDMA/ipoib: Convert to use DEFINE_SEQ_ATTRIBUTE macro
+sizeof() when applied to a pointer typed expression should gives the
+size of the pointed data, even if the data is a pointer.
 
-elapsed time: 726m
-
-configs tested: 152
-configs skipped: 2
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm                    vt8500_v6_v7_defconfig
-arm                       omap2plus_defconfig
-arc                     haps_hs_smp_defconfig
-sparc                               defconfig
-m68k                        mvme16x_defconfig
-sh                             espt_defconfig
-powerpc                     redwood_defconfig
-xtensa                    xip_kc705_defconfig
-mips                 pnx8335_stb225_defconfig
-mips                        qi_lb60_defconfig
-parisc                generic-32bit_defconfig
-c6x                        evmc6472_defconfig
-sh                  sh7785lcr_32bit_defconfig
-powerpc64                        alldefconfig
-arm                        oxnas_v6_defconfig
-mips                           ip22_defconfig
-arm                         axm55xx_defconfig
-sh                           se7722_defconfig
-powerpc                      pasemi_defconfig
-sh                        apsh4ad0a_defconfig
-arm                         ebsa110_defconfig
-openrisc                         alldefconfig
-arm                      tct_hammer_defconfig
-openrisc                 simple_smp_defconfig
-arm                      jornada720_defconfig
-arm                           corgi_defconfig
-powerpc                 mpc8272_ads_defconfig
-nios2                         10m50_defconfig
-arm                        spear3xx_defconfig
-mips                     decstation_defconfig
-mips                      malta_kvm_defconfig
-sh                        sh7763rdp_defconfig
-arm                          pcm027_defconfig
-powerpc                  storcenter_defconfig
-mips                         cobalt_defconfig
-mips                          rm200_defconfig
-m68k                        stmark2_defconfig
-riscv                            alldefconfig
-sh                   secureedge5410_defconfig
-sh                            shmin_defconfig
-arm                  colibri_pxa300_defconfig
-arm                        clps711x_defconfig
-sh                           se7724_defconfig
-powerpc                 mpc8315_rdb_defconfig
-powerpc                  mpc885_ads_defconfig
-sh                          kfr2r09_defconfig
-c6x                        evmc6678_defconfig
-c6x                                 defconfig
-arm                           stm32_defconfig
-mips                           ci20_defconfig
-powerpc                    sam440ep_defconfig
-arm                         at91_dt_defconfig
-powerpc                     kilauea_defconfig
-arm                          imote2_defconfig
-parisc                           allyesconfig
-nios2                            allyesconfig
-arm                           sama5_defconfig
-sh                ecovec24-romimage_defconfig
-arm                           efm32_defconfig
-mips                         tb0287_defconfig
-mips                         db1xxx_defconfig
-arc                             nps_defconfig
-arm                        trizeps4_defconfig
-powerpc                 mpc836x_mds_defconfig
-mips                         rt305x_defconfig
-powerpc                  mpc866_ads_defconfig
-alpha                            alldefconfig
-m68k                         apollo_defconfig
-alpha                               defconfig
-arc                      axs103_smp_defconfig
-powerpc                   lite5200b_defconfig
-sh                           se7343_defconfig
-powerpc                 mpc85xx_cds_defconfig
-arc                 nsimosci_hs_smp_defconfig
-powerpc                    klondike_defconfig
-arc                        nsimosci_defconfig
-sh                         apsh4a3a_defconfig
-powerpc                       eiger_defconfig
-powerpc                mpc7448_hpc2_defconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-c6x                              allyesconfig
-nds32                               defconfig
-csky                                defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a006-20200916
-x86_64               randconfig-a004-20200916
-x86_64               randconfig-a003-20200916
-x86_64               randconfig-a002-20200916
-x86_64               randconfig-a001-20200916
-x86_64               randconfig-a005-20200916
-i386                 randconfig-a004-20200916
-i386                 randconfig-a006-20200916
-i386                 randconfig-a003-20200916
-i386                 randconfig-a001-20200916
-i386                 randconfig-a002-20200916
-i386                 randconfig-a005-20200916
-i386                 randconfig-a015-20200916
-i386                 randconfig-a014-20200916
-i386                 randconfig-a011-20200916
-i386                 randconfig-a013-20200916
-i386                 randconfig-a016-20200916
-i386                 randconfig-a012-20200916
-i386                 randconfig-a015-20200917
-i386                 randconfig-a014-20200917
-i386                 randconfig-a011-20200917
-i386                 randconfig-a013-20200917
-i386                 randconfig-a016-20200917
-i386                 randconfig-a012-20200917
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                            allmodconfig
-x86_64                                   rhel
-x86_64                           allyesconfig
-x86_64                    rhel-7.6-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a014-20200916
-x86_64               randconfig-a011-20200916
-x86_64               randconfig-a016-20200916
-x86_64               randconfig-a012-20200916
-x86_64               randconfig-a015-20200916
-x86_64               randconfig-a013-20200916
-
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/infiniband/hw/mlx5/counters.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
+index 145f3cb40ccb..aeeb14ecb3ee 100644
+--- a/drivers/infiniband/hw/mlx5/counters.c
++++ b/drivers/infiniband/hw/mlx5/counters.c
+@@ -456,12 +456,12 @@ static int __mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev,
+ 		cnts->num_ext_ppcnt_counters = ARRAY_SIZE(ext_ppcnt_cnts);
+ 		num_counters += ARRAY_SIZE(ext_ppcnt_cnts);
+ 	}
+-	cnts->names = kcalloc(num_counters, sizeof(cnts->names), GFP_KERNEL);
++	cnts->names = kcalloc(num_counters, sizeof(*cnts->names), GFP_KERNEL);
+ 	if (!cnts->names)
+ 		return -ENOMEM;
+ 
+ 	cnts->offsets = kcalloc(num_counters,
+-				sizeof(cnts->offsets), GFP_KERNEL);
++				sizeof(*cnts->offsets), GFP_KERNEL);
+ 	if (!cnts->offsets)
+ 		goto err_names;
+ 
+-- 
+2.25.1
+
