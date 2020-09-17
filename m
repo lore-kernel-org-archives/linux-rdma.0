@@ -7,57 +7,48 @@ X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE636C43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC00C2BBD1
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 677DD2076D
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B9BE2076D
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 09:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600333367;
-	bh=vtivPk4InUAG8SxcH/GBfyfJ+n+KBcqcVgL6I1Nv5B4=;
+	s=default; t=1600333368;
+	bh=kX89PHdoE8Yh3sfXO09ljZ6/XBPfAXN/toWSwST6gHA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=dZrC/0nNmUF1GrKJIg0Jb32MJFtGhOIWOyUiOzx+w+foRL/U3hE3D3SgnBDPg47L2
-	 RTBRpQBbNo0nlF8IueTWdIK2FzQVsMbxIYTlcyEgx1rzlNUbvnYM7UJYSs/hoNCMfM
-	 jyh4rZ2jWMzm/x3SbTSnsW04n3ORSnWp4BCvQw9U=
+	b=IBfiYBoDnTKP3xGF8eBduRNN9dUc07wuff4i+W+DaPf26Wvf/DD2OjIaihCi+rHwl
+	 kkKG38IbMLZSm2Pxg0lCNvqNfOyNwRJoYgEHfaZOrnOLltQ5wJ+vj16JAOCob2BB4p
+	 Zvn/HHAr8WURYYSyEJlFDA3r2vnUQ2a0HJgPukUI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726185AbgIQJCl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 05:02:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47324 "EHLO mail.kernel.org"
+        id S1726180AbgIQJCq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 05:02:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726333AbgIQJCj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 05:02:39 -0400
+        id S1726420AbgIQJCn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 05:02:43 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 921F82087D;
-        Thu, 17 Sep 2020 09:02:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4CDCE20795;
+        Thu, 17 Sep 2020 09:02:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600333358;
-        bh=vtivPk4InUAG8SxcH/GBfyfJ+n+KBcqcVgL6I1Nv5B4=;
+        s=default; t=1600333362;
+        bh=kX89PHdoE8Yh3sfXO09ljZ6/XBPfAXN/toWSwST6gHA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dKXFmloOcZL3WFRkD2cKCGUZ+XCvtPrdWRVV9GhR48Oc3aUV4vpFUg3depFT56Soj
-         jUyM94OE4bll6opURG4ZHmZAcl/Oai5B6NkC/okfZzanHT0Y0yTIVS+BtoCrcueP7t
-         qj72WGV8TXzWCQxNpNpOt1T8hl0ZqVR/ahuExJY8=
+        b=MNqHI1M4GjCM4J45SFdtnak60HZWXmgIzbQAto1LvBxK3d3mANYs0/ThrusBXcOaM
+         vuDI7c5LabpMm7ukMEdJ14in1EI3UxpAP20jbef3SJZrQggxlwjdmsOgokeSRR2BCK
+         Op7FaQ//f2ZX0uxj0N+KdeX4m80XiWEmI7lX9zEM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Aharon Landau <aharonl@mellanox.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Ariel Elior <aelior@marvell.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Devesh Sharma <devesh.sharma@broadcom.com>,
-        linux-rdma@vger.kernel.org,
+        Achiad Shochat <achiad@mellanox.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
         Michael Guralnik <michaelgur@nvidia.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>
-Subject: [PATCH rdma-next v2 3/3] RDMA: Fix link active_speed size
-Date:   Thu, 17 Sep 2020 12:02:23 +0300
-Message-Id: <20200917090223.1018224-4-leon@kernel.org>
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH mlx5-next v2 1/3] net/mlx5: Refactor query port speed functions
+Date:   Thu, 17 Sep 2020 12:02:21 +0300
+Message-Id: <20200917090223.1018224-2-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200917090223.1018224-1-leon@kernel.org>
 References: <20200917090223.1018224-1-leon@kernel.org>
@@ -69,194 +60,230 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@mellanox.com>
 
-According to the IB spec active_speed size should be u16 and not u8 as
-before. Changing it to allow further extensions in offered speeds.
+The functions mlx5_query_port_link_width_oper and
+mlx5_query_port_ib_proto_oper are always called together, so combine them
+to a new function called mlx5_query_port_oper to avoid duplication.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+And while the mlx5i_get_port_settings is the same as
+mlx5_query_port_oper therefore let's remove it.
+
+According to the IB spec link_width_oper and ib_proto_oper should be u16
+and not as written u8, so perform casting as a preparation to cross-RDMA
+patch which will fix that type for all drivers in the RDMA subsystem.
+
+Fixes: ada68c31ba9c ("net/mlx5: Introduce a new header file for physical port functions")
 Signed-off-by: Aharon Landau <aharonl@mellanox.com>
 Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/uverbs_std_types_device.c | 3 ++-
- drivers/infiniband/core/verbs.c                   | 2 +-
- drivers/infiniband/hw/bnxt_re/bnxt_re.h           | 2 +-
- drivers/infiniband/hw/hfi1/verbs.c                | 2 +-
- drivers/infiniband/hw/mlx5/main.c                 | 8 ++------
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c       | 2 +-
- drivers/infiniband/hw/qedr/verbs.c                | 2 +-
- drivers/infiniband/hw/qib/qib.h                   | 6 +++---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h   | 2 +-
- include/rdma/ib_verbs.h                           | 4 ++--
- 10 files changed, 15 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c             | 27 ++++++++++---------
+ .../mellanox/mlx5/core/ipoib/ethtool.c        | 23 +++-------------
+ .../net/ethernet/mellanox/mlx5/core/port.c    | 23 +++-------------
+ include/linux/mlx5/port.h                     |  7 +++--
+ 4 files changed, 25 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index 75df2094a010..9f43c0161a8e 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -165,7 +165,8 @@ void copy_port_attr_to_resp(struct ib_port_attr *attr,
- 	resp->subnet_timeout = attr->subnet_timeout;
- 	resp->init_type_reply = attr->init_type_reply;
- 	resp->active_width = attr->active_width;
--	resp->active_speed = attr->active_speed;
-+	/* This ABI needs to be extended to provide any speed more than IB_SPEED_NDR */
-+	resp->active_speed = min_t(u16, attr->active_speed, IB_SPEED_NDR);
- 	resp->phys_state = attr->phys_state;
- 	resp->link_layer = rdma_port_get_link_layer(ib_dev, port_num);
- }
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index b3b1805c2e84..c60bb308bf44 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1802,7 +1802,7 @@ int ib_modify_qp_with_udata(struct ib_qp *ib_qp, struct ib_qp_attr *attr,
- }
- EXPORT_SYMBOL(ib_modify_qp_with_udata);
- 
--int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8 *width)
-+int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u16 *speed, u8 *width)
- {
- 	int rc;
- 	u32 netdev_speed;
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index a300588634c5..b930ea3dab7a 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -150,7 +150,7 @@ struct bnxt_re_dev {
- 
- 	struct delayed_work		worker;
- 	u8				cur_prio_map;
--	u8				active_speed;
-+	u16				active_speed;
- 	u8				active_width;
- 
- 	/* FP Notification Queue (CQ & SRQ) */
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 30865635b449..3591923abebb 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1424,7 +1424,7 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
- 	props->gid_tbl_len = HFI1_GUIDS_PER_PORT;
- 	props->active_width = (u8)opa_width_to_ib(ppd->link_width_active);
- 	/* see rate_show() in ib core/sysfs.c */
--	props->active_speed = (u8)opa_speed_to_ib(ppd->link_speed_active);
-+	props->active_speed = opa_speed_to_ib(ppd->link_speed_active);
- 	props->max_vl_num = ppd->vls_supported;
- 
- 	/* Once we are a "first class" citizen and have added the OPA MTUs to
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 545f23d27660..790b874fffe2 100644
+index bfa8b6b3c681..ca33ff4b1d5e 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -457,7 +457,6 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	bool put_mdev = true;
- 	u16 qkey_viol_cntr;
- 	u32 eth_prot_oper;
--	u16 active_speed;
- 	u8 mdev_port_num;
- 	bool ext;
- 	int err;
-@@ -491,12 +490,9 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
- 	props->active_width     = IB_WIDTH_4X;
- 	props->active_speed     = IB_SPEED_QDR;
- 
--	translate_eth_proto_oper(eth_prot_oper, &active_speed,
-+	translate_eth_proto_oper(eth_prot_oper, &props->active_speed,
- 				 &props->active_width, ext);
- 
--	WARN_ON_ONCE(active_speed & ~0xFF);
--	props->active_speed = (u8)active_speed;
--
- 	props->port_cap_flags |= IB_PORT_CM_SUP;
- 	props->ip_gids = true;
- 
-@@ -1307,7 +1303,7 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
- 		props->port_cap_flags2 = rep->cap_mask2;
- 
- 	err = mlx5_query_ib_port_oper(mdev, &ib_link_width_oper,
--				      (u16 *)&props->active_speed, port);
-+				      &props->active_speed, port);
- 	if (err)
- 		goto out;
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 6f9c763d5b79..7350fe16f164 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -112,7 +112,7 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
+@@ -326,8 +326,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *ibdev, u8 port_num)
+ 	spin_unlock(&port->mp.mpi_lock);
  }
  
- static inline void get_link_speed_and_width(struct ocrdma_dev *dev,
--					    u8 *ib_speed, u8 *ib_width)
-+					    u16 *ib_speed, u8 *ib_width)
+-static int translate_eth_legacy_proto_oper(u32 eth_proto_oper, u8 *active_speed,
+-					   u8 *active_width)
++static int translate_eth_legacy_proto_oper(u32 eth_proto_oper,
++					   u16 *active_speed, u8 *active_width)
  {
- 	int status;
- 	u8 speed;
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 1b241fee4605..ba8626847cf6 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -165,7 +165,7 @@ int qedr_query_device(struct ib_device *ibdev,
+ 	switch (eth_proto_oper) {
+ 	case MLX5E_PROT_MASK(MLX5E_1000BASE_CX_SGMII):
+@@ -384,7 +384,7 @@ static int translate_eth_legacy_proto_oper(u32 eth_proto_oper, u8 *active_speed,
  	return 0;
  }
  
--static inline void get_link_speed_and_width(int speed, u8 *ib_speed,
-+static inline void get_link_speed_and_width(int speed, u16 *ib_speed,
- 					    u8 *ib_width)
+-static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u8 *active_speed,
++static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u16 *active_speed,
+ 					u8 *active_width)
  {
- 	switch (speed) {
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 432d6d0fd7f4..ee211423058a 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -619,11 +619,11 @@ struct qib_pportdata {
- 	/* LID mask control */
- 	u8 lmc;
- 	u8 link_width_supported;
--	u8 link_speed_supported;
-+	u16 link_speed_supported;
- 	u8 link_width_enabled;
--	u8 link_speed_enabled;
-+	u16 link_speed_enabled;
- 	u8 link_width_active;
--	u8 link_speed_active;
-+	u16 link_speed_active;
- 	u8 vls_supported;
- 	u8 vls_operational;
- 	/* Rx Polarity inversion (compensate for ~tx on partner) */
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-index 97ed8f952f6e..f0e5ffba2d51 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-@@ -176,7 +176,7 @@ struct pvrdma_port_attr {
- 	u8			subnet_timeout;
- 	u8			init_type_reply;
- 	u8			active_width;
--	u8			active_speed;
-+	u16			active_speed;
- 	u8			phys_state;
- 	u8			reserved[2];
- };
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0cd2dba331ee..3f8a743e99a7 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -670,7 +670,7 @@ struct ib_port_attr {
- 	u8			subnet_timeout;
- 	u8			init_type_reply;
- 	u8			active_width;
--	u8			active_speed;
-+	u16			active_speed;
- 	u8                      phys_state;
- 	u16			port_cap_flags2;
- };
-@@ -4332,7 +4332,7 @@ void ib_drain_rq(struct ib_qp *qp);
- void ib_drain_sq(struct ib_qp *qp);
- void ib_drain_qp(struct ib_qp *qp);
+ 	switch (eth_proto_oper) {
+@@ -436,7 +436,7 @@ static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u8 *active_speed,
+ 	return 0;
+ }
  
--int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8 *width);
-+int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u16 *speed, u8 *width);
- 
- static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
+-static int translate_eth_proto_oper(u32 eth_proto_oper, u8 *active_speed,
++static int translate_eth_proto_oper(u32 eth_proto_oper, u16 *active_speed,
+ 				    u8 *active_width, bool ext)
  {
+ 	return ext ?
+@@ -457,6 +457,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	bool put_mdev = true;
+ 	u16 qkey_viol_cntr;
+ 	u32 eth_prot_oper;
++	u16 active_speed;
+ 	u8 mdev_port_num;
+ 	bool ext;
+ 	int err;
+@@ -490,9 +491,12 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	props->active_width     = IB_WIDTH_4X;
+ 	props->active_speed     = IB_SPEED_QDR;
+ 
+-	translate_eth_proto_oper(eth_prot_oper, &props->active_speed,
++	translate_eth_proto_oper(eth_prot_oper, &active_speed,
+ 				 &props->active_width, ext);
+ 
++	WARN_ON_ONCE(active_speed & ~0xFF);
++	props->active_speed = (u8)active_speed;
++
+ 	props->port_cap_flags |= IB_PORT_CM_SUP;
+ 	props->ip_gids = true;
+ 
+@@ -1183,8 +1187,8 @@ enum mlx5_ib_width {
+ 	MLX5_IB_WIDTH_12X	= 1 << 4
+ };
+ 
+-static void translate_active_width(struct ib_device *ibdev, u8 active_width,
+-				  u8 *ib_width)
++static void translate_active_width(struct ib_device *ibdev, u16 active_width,
++				   u8 *ib_width)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 
+@@ -1277,7 +1281,7 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
+ 	u16 max_mtu;
+ 	u16 oper_mtu;
+ 	int err;
+-	u8 ib_link_width_oper;
++	u16 ib_link_width_oper;
+ 	u8 vl_hw_cap;
+ 
+ 	rep = kzalloc(sizeof(*rep), GFP_KERNEL);
+@@ -1310,16 +1314,13 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
+ 	if (props->port_cap_flags & IB_PORT_CAP_MASK2_SUP)
+ 		props->port_cap_flags2 = rep->cap_mask2;
+ 
+-	err = mlx5_query_port_link_width_oper(mdev, &ib_link_width_oper, port);
++	err = mlx5_query_ib_port_oper(mdev, &ib_link_width_oper,
++				      (u16 *)&props->active_speed, port);
+ 	if (err)
+ 		goto out;
+ 
+ 	translate_active_width(ibdev, ib_link_width_oper, &props->active_width);
+ 
+-	err = mlx5_query_port_ib_proto_oper(mdev, &props->active_speed, port);
+-	if (err)
+-		goto out;
+-
+ 	mlx5_query_port_max_mtu(mdev, &max_mtu, port);
+ 
+ 	props->max_mtu = mlx5_mtu_to_ib_mtu(max_mtu);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+index 1eef66ee849e..17f5be801d2f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+@@ -174,24 +174,6 @@ static inline int mlx5_ptys_rate_enum_to_int(enum mlx5_ptys_rate rate)
+ 	}
+ }
+ 
+-static int mlx5i_get_port_settings(struct net_device *netdev,
+-				   u16 *ib_link_width_oper, u16 *ib_proto_oper)
+-{
+-	struct mlx5e_priv *priv    = mlx5i_epriv(netdev);
+-	struct mlx5_core_dev *mdev = priv->mdev;
+-	u32 out[MLX5_ST_SZ_DW(ptys_reg)] = {0};
+-	int ret;
+-
+-	ret = mlx5_query_port_ptys(mdev, out, sizeof(out), MLX5_PTYS_IB, 1);
+-	if (ret)
+-		return ret;
+-
+-	*ib_link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
+-	*ib_proto_oper      = MLX5_GET(ptys_reg, out, ib_proto_oper);
+-
+-	return 0;
+-}
+-
+ static int mlx5i_get_speed_settings(u16 ib_link_width_oper, u16 ib_proto_oper)
+ {
+ 	int rate, width;
+@@ -209,11 +191,14 @@ static int mlx5i_get_speed_settings(u16 ib_link_width_oper, u16 ib_proto_oper)
+ static int mlx5i_get_link_ksettings(struct net_device *netdev,
+ 				    struct ethtool_link_ksettings *link_ksettings)
+ {
++	struct mlx5e_priv *priv = mlx5i_epriv(netdev);
++	struct mlx5_core_dev *mdev = priv->mdev;
+ 	u16 ib_link_width_oper;
+ 	u16 ib_proto_oper;
+ 	int speed, ret;
+ 
+-	ret = mlx5i_get_port_settings(netdev, &ib_link_width_oper, &ib_proto_oper);
++	ret = mlx5_query_ib_port_oper(mdev, &ib_link_width_oper, &ib_proto_oper,
++				      1);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
+index e4186e84b3ff..4bb219565c58 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
+@@ -154,24 +154,8 @@ int mlx5_set_port_beacon(struct mlx5_core_dev *dev, u16 beacon_duration)
+ 				    sizeof(out), MLX5_REG_MLCR, 0, 1);
+ }
+ 
+-int mlx5_query_port_link_width_oper(struct mlx5_core_dev *dev,
+-				    u8 *link_width_oper, u8 local_port)
+-{
+-	u32 out[MLX5_ST_SZ_DW(ptys_reg)];
+-	int err;
+-
+-	err = mlx5_query_port_ptys(dev, out, sizeof(out), MLX5_PTYS_IB, local_port);
+-	if (err)
+-		return err;
+-
+-	*link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(mlx5_query_port_link_width_oper);
+-
+-int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
+-				  u8 *proto_oper, u8 local_port)
++int mlx5_query_ib_port_oper(struct mlx5_core_dev *dev, u16 *link_width_oper,
++			    u16 *proto_oper, u8 local_port)
+ {
+ 	u32 out[MLX5_ST_SZ_DW(ptys_reg)];
+ 	int err;
+@@ -181,11 +165,12 @@ int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
+ 	if (err)
+ 		return err;
+ 
++	*link_width_oper = MLX5_GET(ptys_reg, out, ib_link_width_oper);
+ 	*proto_oper = MLX5_GET(ptys_reg, out, ib_proto_oper);
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(mlx5_query_port_ib_proto_oper);
++EXPORT_SYMBOL(mlx5_query_ib_port_oper);
+ 
+ /* This function should be used after setting a port register only */
+ void mlx5_toggle_port_link(struct mlx5_core_dev *dev)
+diff --git a/include/linux/mlx5/port.h b/include/linux/mlx5/port.h
+index 2d45a6af52a4..4d33ae0c2d97 100644
+--- a/include/linux/mlx5/port.h
++++ b/include/linux/mlx5/port.h
+@@ -133,10 +133,9 @@ enum mlx5e_connector_type {
+ int mlx5_set_port_caps(struct mlx5_core_dev *dev, u8 port_num, u32 caps);
+ int mlx5_query_port_ptys(struct mlx5_core_dev *dev, u32 *ptys,
+ 			 int ptys_size, int proto_mask, u8 local_port);
+-int mlx5_query_port_link_width_oper(struct mlx5_core_dev *dev,
+-				    u8 *link_width_oper, u8 local_port);
+-int mlx5_query_port_ib_proto_oper(struct mlx5_core_dev *dev,
+-				  u8 *proto_oper, u8 local_port);
++
++int mlx5_query_ib_port_oper(struct mlx5_core_dev *dev, u16 *link_width_oper,
++			    u16 *proto_oper, u8 local_port);
+ void mlx5_toggle_port_link(struct mlx5_core_dev *dev);
+ int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
+ 			       enum mlx5_port_status status);
 -- 
 2.26.2
 
