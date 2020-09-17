@@ -2,111 +2,169 @@ Return-Path: <SRS0=cNdp=C2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BCCDC433E2
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 11:22:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EE16C2BBD1
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 11:22:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AB5B208DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 11:22:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D081F208DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 11:22:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600341759;
-	bh=3rj72kJf5hO9EeWfjCycl+jg4WIVJRtvHyhsNiwRvKc=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=JYkBnoavjdHTbj+LwriPmGLur8JhflSpea0rJp5w/4dz/lr77UdfT+4ZkWPYzUUxA
-	 ZyR+1T8fNl8IPh6mH8zX8USHQCSC2kaIYvY8vWCp5chkcWl/ZbTbZ7kb98hEsow9Vs
-	 0jv+o0ds7WVHH99JjTQURG9y38vT+xW+kXuPyvqY=
+	s=default; t=1600341765;
+	bh=iIo/IYh8FlR2GKP24ap+k8mQZvD6y6VaaMdf+PQfaOQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=cPCU2fhHF+OD4jL+MxMagjRcZQnHHfhL3AxurwmZmUzjcvzoq7LCLGagP/lpS5Acv
+	 QKXlhA+se1ZxfWBOEb8MShGNKRNmh+RhArXpQUKleTtdjC6D48p0HJ9sPASEPKDmlg
+	 VsXIpu1S6+ysU5j2YfoMFpXC4gJ6dtl5gphN3dkQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726744AbgIQLWa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 07:22:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45786 "EHLO mail.kernel.org"
+        id S1726740AbgIQLW2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 07:22:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726552AbgIQLWG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 07:22:06 -0400
+        id S1726744AbgIQLWH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 07:22:07 -0400
 Received: from localhost (unknown [193.47.165.251])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D31DF208DB;
-        Thu, 17 Sep 2020 11:21:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2111321974;
+        Thu, 17 Sep 2020 11:22:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600341717;
-        bh=3rj72kJf5hO9EeWfjCycl+jg4WIVJRtvHyhsNiwRvKc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Veur1pKhAbAZfPoG+c17pkFsMSLORR+y53c8kAE/8hpguw23ofPvbjJAlPpR8kDlD
-         eQ0hwRA2YY8pBuS4DoYPRnTjm2ljVlEQrLYlo8IEy9d4XJROztlT8fieoWuKDjcUGm
-         g7IxG2Cb1EyzBjMkvVkp9hThIGSZPIP3Anb9qk54=
+        s=default; t=1600341725;
+        bh=iIo/IYh8FlR2GKP24ap+k8mQZvD6y6VaaMdf+PQfaOQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ZpwM8ZeywpmkfujmO515g7a2y9SHOyriN1P/ihpKtPjC3PS4dhh7FA6KL9ufnA7T/
+         31nksQZRsE/EXUreCnCt98QZsG6cuN2iuNFiZ89+eKKeSc7USI7QMrzolwruQR51ks
+         w2s+GoHccKn9+3zKS0ZOkMpzJnHKzHGzv8D02jUw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Yishai Hadas <yishaih@nvida.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
+Cc:     Yishai Hadas <yishaih@nvidia.com>, linux-rdma@vger.kernel.org,
         Christoph Hellwig <hch@infradead.org>
-Subject: [PATCH rdma-next v1 0/4] Improve ODP by using HMM API
-Date:   Thu, 17 Sep 2020 14:21:48 +0300
-Message-Id: <20200917112152.1075974-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 2/4] IB/core: Enable ODP sync without faulting
+Date:   Thu, 17 Sep 2020 14:21:50 +0300
+Message-Id: <20200917112152.1075974-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200917112152.1075974-1-leon@kernel.org>
+References: <20200917112152.1075974-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Yishai Hadas <yishaih@nvidia.com>
 
-Changelog:
-v1:
- * Cleaned code.
- * Support a potential valid dma_address of NULL by flags detection,
-   note was added to clarify things as was asked.
- * Fix 80 character lines in few places.
-v0: https://lore.kernel.org/lkml/20200914113949.346562-1-leon@kernel.org
+Enable ODP sync without faulting, this improves performance by reducing
+the number of page faults in the system.
 
-Based on:
-https://lore.kernel.org/lkml/20200914112653.345244-1-leon@kernel.org/
+The gain from this option is that the device page table can be aligned
+with the presented pages in the CPU page table without causing page
+faults.
 
----------------------------------------------------------------------------------------
-From Yishai:
+As of that, the overhead on data path from hardware point of view to
+trigger a fault which end-up by calling the driver to bring the pages
+will be dropped.
 
-This series improves ODP performance by moving to use the HMM API as of below.
+Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/umem_odp.c | 35 +++++++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/odp.c   |  2 +-
+ include/rdma/ib_umem_odp.h         |  2 +-
+ 3 files changed, 27 insertions(+), 12 deletions(-)
 
-The get_user_pages_remote() functionality was replaced by HMM:
-- No need anymore to allocate and free memory to hold its output per call.
-- No need anymore to use the put_page() to unpin the pages.
-- The logic to detect contiguous pages is done based on the returned order
-  from HMM, no need to run per page, and evaluate.
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 3d702aa66d6d..2ba1b46b4c7d 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -340,9 +340,10 @@ static int ib_umem_odp_map_dma_single_page(
+  *        the return value.
+  * @access_mask: bit mask of the requested access permissions for the given
+  *               range.
++ * @fault: is faulting required for the given range
+  */
+ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+-				 u64 bcnt, u64 access_mask)
++				 u64 bcnt, u64 access_mask, bool fault)
+ 			__acquires(&umem_odp->umem_mutex)
+ {
+ 	struct task_struct *owning_process  = NULL;
+@@ -378,10 +379,12 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 	range.end = ALIGN(user_virt + bcnt, 1UL << page_shift);
+ 	pfn_start_idx = (range.start - ib_umem_start(umem_odp)) >> PAGE_SHIFT;
+ 	num_pfns = (range.end - range.start) >> PAGE_SHIFT;
+-	range.default_flags = HMM_PFN_REQ_FAULT;
++	if (fault) {
++		range.default_flags = HMM_PFN_REQ_FAULT;
 
-Moving to use the HMM enables to reduce page faults in the system by using the
-snapshot mode. This mode allows existing pages in the CPU to become presented
-to the device without faulting.
+-	if (access_mask & ODP_WRITE_ALLOWED_BIT)
+-		range.default_flags |= HMM_PFN_REQ_WRITE;
++		if (access_mask & ODP_WRITE_ALLOWED_BIT)
++			range.default_flags |= HMM_PFN_REQ_WRITE;
++	}
 
-This non-faulting mode may be used explicitly by an application with some new
-option of advice MR (i.e. PREFETCH_NO_FAULT) and is used upon ODP MR
-registration internally as part of initiating the device page table.
+ 	range.hmm_pfns = &(umem_odp->pfn_list[pfn_start_idx]);
+ 	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
+@@ -410,12 +413,24 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
 
-To achieve the above, internal changes in the ODP data structures were done
-and some flows were cleaned-up/adapted accordingly.
+ 	for (pfn_index = 0; pfn_index < num_pfns;
+ 		pfn_index += 1 << (page_shift - PAGE_SHIFT), dma_index++) {
+-		/*
+-		 * Since we asked for hmm_range_fault() to populate pages,
+-		 * it shouldn't return an error entry on success.
+-		 */
+-		WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
+-		WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
++
++		if (fault) {
++			/*
++			 * Since we asked for hmm_range_fault() to populate
++			 * pages it shouldn't return an error entry on success.
++			 */
++			WARN_ON(range.hmm_pfns[pfn_index] & HMM_PFN_ERROR);
++			WARN_ON(!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID));
++		} else {
++			if (!(range.hmm_pfns[pfn_index] & HMM_PFN_VALID)) {
++				WARN_ON(umem_odp->dma_list[dma_index]);
++				continue;
++			}
++			access_mask = ODP_READ_ALLOWED_BIT;
++			if (range.hmm_pfns[pfn_index] & HMM_PFN_WRITE)
++				access_mask |= ODP_WRITE_ALLOWED_BIT;
++		}
++
+ 		hmm_order = hmm_pfn_to_map_order(range.hmm_pfns[pfn_index]);
+ 		/* If a hugepage was detected and ODP wasn't set for, the umem
+ 		 * page_shift will be used, the opposite case is an error.
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 0f203141a6ad..5bd5e19d76a2 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -681,7 +681,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
+ 	if (odp->umem.writable && !downgrade)
+ 		access_mask |= ODP_WRITE_ALLOWED_BIT;
 
-Thanks
+-	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask);
++	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
+ 	if (np < 0)
+ 		return np;
 
-Yishai Hadas (4):
-  IB/core: Improve ODP to use hmm_range_fault()
-  IB/core: Enable ODP sync without faulting
-  RDMA/mlx5: Extend advice MR to support non faulting mode
-  RDMA/mlx5: Sync device with CPU pages upon ODP MR registration
+diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+index a53b62ac8a9d..0844c1d05ac6 100644
+--- a/include/rdma/ib_umem_odp.h
++++ b/include/rdma/ib_umem_odp.h
+@@ -94,7 +94,7 @@ ib_umem_odp_alloc_child(struct ib_umem_odp *root_umem, unsigned long addr,
+ void ib_umem_odp_release(struct ib_umem_odp *umem_odp);
 
- drivers/infiniband/Kconfig              |   1 +
- drivers/infiniband/core/umem_odp.c      | 286 ++++++++++--------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h    |   6 +
- drivers/infiniband/hw/mlx5/mr.c         |  14 +-
- drivers/infiniband/hw/mlx5/odp.c        |  49 ++--
- include/rdma/ib_umem_odp.h              |  21 +-
- include/uapi/rdma/ib_user_ioctl_verbs.h |   1 +
- 7 files changed, 176 insertions(+), 202 deletions(-)
+ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 start_offset,
+-				 u64 bcnt, u64 access_mask);
++				 u64 bcnt, u64 access_mask, bool fault);
 
+ void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp, u64 start_offset,
+ 				 u64 bound);
 --
 2.26.2
 
