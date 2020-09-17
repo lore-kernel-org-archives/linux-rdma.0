@@ -2,108 +2,96 @@ Return-Path: <SRS0=cNdp=C2=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 811EAC43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 18:55:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23574C2D0E3
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 19:54:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A445221E3
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 18:55:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DF17A235F8
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Sep 2020 19:54:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600368903;
-	bh=gYe5DyvwAgt5wykW+r3mFKkfVURkDP3rpA0dZzlhz2I=;
+	s=default; t=1600372468;
+	bh=+pZGwjzGn0R4Zltt6vq/zFFvVOaCNw6VNqg2LAnxxwM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=WiYzl3v4d7GxSiNTmH1TOSZBdE1QChpEDz1lUQtNH1s43BSIdokLYOhv7dOIwFVRa
-	 xl98JpXfWU6abj0VG5dNA2478tUeU4URVyX50RtTu4km1Li6Vl+PIERDjkfv+U25aD
-	 8vxCq45Clff5D3gOvlD+y4reYlA4tSTnUQV5o3xI=
+	b=HsgBb2nUMdmdYkix7Z0larphIluX8rhUHVg6wJqDjAqg+8Ax57fK+MD0xlKZAm9au
+	 OoJHgSOX7FyOF0hGoPwZdGOxHumS8ocDbyThTcnt/MzsRLN5rB6fr35BndmdrcCmPp
+	 H8WnF70Wl41S/Sx3yyjFw+gyJIXVTQ7xZqBxxZpc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728433AbgIQQU3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 12:20:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36812 "EHLO mail.kernel.org"
+        id S1726475AbgIQTy0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 15:54:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728415AbgIQQUQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 12:20:16 -0400
+        id S1728088AbgIQQM3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 12:12:29 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 761492137B;
-        Thu, 17 Sep 2020 16:19:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 377EF21D7F;
+        Thu, 17 Sep 2020 16:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600359595;
-        bh=gYe5DyvwAgt5wykW+r3mFKkfVURkDP3rpA0dZzlhz2I=;
+        s=default; t=1600359038;
+        bh=+pZGwjzGn0R4Zltt6vq/zFFvVOaCNw6VNqg2LAnxxwM=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=JSx7ArgPxMWw7Xapjiatmgqc45fZS6AhLmgLT2nmVupO0wF6xKwSphMaJONULzMco
-         2x573l26ZEF1EArpsB/enRqB2xQkowhE7mApmeNzXqBHzln7r/tfPdz13JCSTZx2fP
-         K63iq1j6bASABzWOZE3Aqzw6z0Y1rr3LyeRrr9OE=
-Date:   Thu, 17 Sep 2020 19:19:50 +0300
+        b=HljD6qmTOCaO2yeHv3RxbmT2KnA7zMAGFzBsv8/XPxbnlPNkZr2V+J4RSBh0JUHwO
+         8m66T+cYFwE0ha49/SntA5ANgpny5sInRHh5BxAnRmhF6n5aJOSwqhj+luYH1z+Gjc
+         Zn8QxF8zip3cfg90Aw4nQx6KmaaNF49Cud+7zvv0=
+Date:   Thu, 17 Sep 2020 19:10:34 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next v2 01/14] RDMA/cma: Delete from restrack DB
- after successful destroy
-Message-ID: <20200917161950.GF869610@unreal>
-References: <20200907122156.478360-1-leon@kernel.org>
- <20200907122156.478360-2-leon@kernel.org>
- <20200917120636.GA103244@nvidia.com>
+Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: Re: [PATCH rdma-next v3] RDMA/mlx4: Provide port number for special
+ QPs
+Message-ID: <20200917161034.GE869610@unreal>
+References: <20200914111857.344434-1-leon@kernel.org>
+ <20200917150813.GN3699@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200917120636.GA103244@nvidia.com>
+In-Reply-To: <20200917150813.GN3699@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 17, 2020 at 09:06:36AM -0300, Jason Gunthorpe wrote:
-> On Mon, Sep 07, 2020 at 03:21:43PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
+On Thu, Sep 17, 2020 at 12:08:13PM -0300, Jason Gunthorpe wrote:
+> On Mon, Sep 14, 2020 at 02:18:57PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
 > >
-> > Update the code to have similar destroy pattern like other IB objects.
+> > Special QPs created by mlx4 have same QP port borrowed from
+> > the context, while they are expected to have different ones.
 > >
-> > This change create asymmetry to the rdma_id_private create flow to make
-> > sure that memory is managed by restrack.
+> > Fix it by using HW physical port instead.
 > >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/infiniband/core/cma.c | 3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > It fixes the following error during driver init:
+> > [   12.074150] mlx4_core 0000:05:00.0: mlx4_ib: initializing demux service for 128 qp1 clients
+> > [   12.084036] <mlx4_ib> create_pv_sqp: Couldn't create special QP (-16)
+> > [   12.085123] <mlx4_ib> create_pv_resources: Couldn't create  QP1 (-16)
+> > [   12.088300] mlx4_en: Mellanox ConnectX HCA Ethernet driver v4.0-0
 > >
-> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> > index f9ff8b7f05e7..24e09416de4f 100644
-> > +++ b/drivers/infiniband/core/cma.c
-> > @@ -1821,7 +1821,6 @@ static void _destroy_id(struct rdma_id_private *id_priv,
-> >  {
-> >  	cma_cancel_operation(id_priv, state);
-> >
-> > -	rdma_restrack_del(&id_priv->res);
-> >  	if (id_priv->cma_dev) {
-> >  		if (rdma_cap_ib_cm(id_priv->id.device, 1)) {
-> >  			if (id_priv->cm_id.ib)
-> > @@ -1847,6 +1846,7 @@ static void _destroy_id(struct rdma_id_private *id_priv,
-> >  		rdma_put_gid_attr(id_priv->id.route.addr.dev_addr.sgid_attr);
-> >
-> >  	put_net(id_priv->id.route.addr.dev_addr.net);
-> > +	rdma_restrack_del(&id_priv->res);
-> >  	kfree(id_priv);
-> >  }
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> > ---
+> >  Changelog:
+> > v3: mlx4 devices create 2 special QPs in SRIOV mode, separate them by
+> > port number and special bit. The mlx4 is limited to two ports and not
+> > going to be extended, and the port_num is not forwarded to FW too, so
+> > it is safe.
+> > v2: https://lore.kernel.org/linux-rdma/20200907122156.478360-4-leon@kernel.org/#r
+> > ---
+> >  drivers/infiniband/hw/mlx4/mad.c | 9 +++++----
+> >  1 file changed, 5 insertions(+), 4 deletions(-)
 >
-> This is wrong, rdma_restrack_del() has to be called before
-> ib_destroy_cm_id() because restrack reaches into the cm_id and touches
-> that memory:
->
-> 	case RDMA_RESTRACK_CM_ID:
-> 		return container_of(res, struct rdma_id_private,
-> 				    res)->id.device;
->
-> Which will now be freed after this change.
+> I didn't understand why this was in the restrack series, and the
+> commit doesn't say when the error can be hit
 
-We access "id" which is struct rdma_cm_id, while ib_destroy_cm_id()
-releases something different struct ib_cm_id cm_id.ib.
-
-"id" is embedded into id_priv released later in _destroy_id() function.
+restrack changes revealed it when I added these special QPs to the DB.
+It is not fix in traditional sense, so no Fixes line.
 
 Thanks
 
+>
+> No fixes line?
 >
 > Jason
