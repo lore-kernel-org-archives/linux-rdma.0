@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02140C43463
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:50:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32687C43465
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:50:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF5D421707
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:50:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E045920771
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600397438;
-	bh=4qTkj4l9xYshPGVL1jFCPD5HFJvEoHurIlP2Z06u938=;
+	s=default; t=1600397451;
+	bh=gQj01qDyAwAaQcwZQ5/a6f6D4fUtuinq65dyj/G7YxA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=hO6PBrnZ3fRVSzYc/23ELGvsuxOMaSyE3Pan406MkOdxW9ukSUGUSA/2c4YWp28iu
-	 dhwLfqxYaHGj9mhAjwNc15ntgvQ7ntOiXA8ZRvk3j7MBVoOybIw+gjjutmLSFGPeex
-	 5AjekSoNd1vf2NfUVO7BN1h01Lo9Bl7TEEoCuvCA=
+	b=Tf8ifNjP/59v7rSUktTs8hdyhg+VRQ0aqksLsBvkAr00jzkyaS9IfMQvAMthQnlcq
+	 jcALwphHaOAl+WtRqhbBq2zTtXhVq90Q1RE+Br3H3l5fDH4h2CB7KoR9smC/DvkiCA
+	 FG+g/f4B60yX8xFJytFiFl3RQgJSRNbUTzH7Bm6I=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728127AbgIRCIl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 22:08:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60176 "EHLO mail.kernel.org"
+        id S1728308AbgIRCup (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 22:50:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728121AbgIRCIk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:08:40 -0400
+        id S1728104AbgIRCIh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 22:08:37 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9DE872388E;
-        Fri, 18 Sep 2020 02:08:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 806E22388E;
+        Fri, 18 Sep 2020 02:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600394920;
-        bh=4qTkj4l9xYshPGVL1jFCPD5HFJvEoHurIlP2Z06u938=;
+        s=default; t=1600394917;
+        bh=gQj01qDyAwAaQcwZQ5/a6f6D4fUtuinq65dyj/G7YxA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=tMLUAxyvB/zXtFIY96sB+gxk0hBrhZ5Xe06fNfQ8pHUiMJ4r8u4ExNHb9YlGYSLgj
-         GjNaxOY1sqaRcMFAqMvGufXig5Xyw7yJHmtkBRgT7lMB1RbTjNF9cLXWLg92IE8MX0
-         L6sBfDAFVndAkq7xVxpGkNL0p1mvbcOw0DZSjGgA=
+        b=gxBsT2pTO9Nj1fscHyXmcgLjcax8xaX1oaumf0ikXXdjO7FVqwhjM9n9SThDxgQhC
+         93Q8pMX/wH7XDVAI6GHrasrRq3BELVKhyLiClATIyi2fLTkZwRsPDxV7uRI1tvRhow
+         fy1/FyK/gk/1vyOsvoFHbNub7RIHe7PGetscqwoE=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Pan Bian <bianpan2016@163.com>, Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 032/206] RDMA/iw_cgxb4: Fix an error handling path in 'c4iw_connect()'
-Date:   Thu, 17 Sep 2020 22:05:08 -0400
-Message-Id: <20200918020802.2065198-32-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 029/206] RDMA/i40iw: Fix potential use after free
+Date:   Thu, 17 Sep 2020 22:05:05 -0400
+Message-Id: <20200918020802.2065198-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200918020802.2065198-1-sashal@kernel.org>
 References: <20200918020802.2065198-1-sashal@kernel.org>
@@ -57,42 +56,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+From: Pan Bian <bianpan2016@163.com>
 
-[ Upstream commit 9067f2f0b41d7e817fc8c5259bab1f17512b0147 ]
+[ Upstream commit da046d5f895fca18d63b15ac8faebd5bf784e23a ]
 
-We should jump to fail3 in order to undo the 'xa_insert_irq()' call.
+Release variable dst after logging dst->error to avoid possible use after
+free.
 
-Link: https://lore.kernel.org/r/20190923190746.10964-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Link: https://lore.kernel.org/r/1573022651-37171-1-git-send-email-bianpan2016@163.com
+Signed-off-by: Pan Bian <bianpan2016@163.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 16145b0a14583..3fd3dfa3478b7 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3293,7 +3293,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		if (raddr->sin_addr.s_addr == htonl(INADDR_ANY)) {
- 			err = pick_local_ipaddrs(dev, cm_id);
- 			if (err)
--				goto fail2;
-+				goto fail3;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 4321b9e3dbb4b..0273d0404e740 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -2071,9 +2071,9 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
+ 	dst = i40iw_get_dst_ipv6(&src_addr, &dst_addr);
+ 	if (!dst || dst->error) {
+ 		if (dst) {
+-			dst_release(dst);
+ 			i40iw_pr_err("ip6_route_output returned dst->error = %d\n",
+ 				     dst->error);
++			dst_release(dst);
  		}
- 
- 		/* find a route */
-@@ -3315,7 +3315,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		if (ipv6_addr_type(&raddr6->sin6_addr) == IPV6_ADDR_ANY) {
- 			err = pick_local_ip6addrs(dev, cm_id);
- 			if (err)
--				goto fail2;
-+				goto fail3;
- 		}
- 
- 		/* find a route */
+ 		return rc;
+ 	}
 -- 
 2.25.1
 
