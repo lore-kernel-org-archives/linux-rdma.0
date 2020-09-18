@@ -5,47 +5,46 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6209C43464
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:29:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C336C43463
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:29:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B8BB23600
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:29:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEEA9235F7
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:29:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600396141;
-	bh=xB7KT/ft9wakZlyOVcIe5drmrM2B9Ds+PijXGktQiqQ=;
+	s=default; t=1600396149;
+	bh=IMqgfg1I+JZ+Db7k4qTX1k8eQKQ+wMBHtVjAinua6Mw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=DUcExhAO9tmlBPjEeqPSfxQhII3XdM95A6Y+0KYkCXeoDLlnROFb6GMYwgnsAI8sZ
-	 OjwSzoJKOWNZ/DcDqA375ybV+dlpsBHW1ErDA7X510x/5Hbc62XXu0HYf/7yp+Rdx/
-	 gg6dvPQK6M7ImFyAinIR77g2KyStR5QaDHuNlKQc=
+	b=EDnfM9/4vcgnBh1mkE3yqi/YFDD8a4c/nzXiRqIivgB3bbscj2V072AIakTYFq0lu
+	 ebXomnQi+JLyrNBV4qLYrnSauRRJSGimDBQjZYUk4TS4j2qo48AU938iAqVsuDuHvl
+	 DKBl6D12zvkQ9YHH+3qzhTEqd6ViOGZQGnKgYDos=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728611AbgIRC26 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 22:28:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43872 "EHLO mail.kernel.org"
+        id S1727759AbgIRC3J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 22:29:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729198AbgIRCPM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:15:12 -0400
+        id S1729188AbgIRCPK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 22:15:10 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6DE362395C;
-        Fri, 18 Sep 2020 02:15:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5AD32238E6;
+        Fri, 18 Sep 2020 02:15:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600395312;
-        bh=xB7KT/ft9wakZlyOVcIe5drmrM2B9Ds+PijXGktQiqQ=;
+        s=default; t=1600395310;
+        bh=IMqgfg1I+JZ+Db7k4qTX1k8eQKQ+wMBHtVjAinua6Mw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uqc5YvIpMF+pO4haROkNfZw7Qbwfat2Xs+uUxbP5nemapWuhCL4/gLlrNG8QzV+FA
-         dQfQm/SuZk9n/1ARZocvGAmLfFdvNRzkuFCfCy+CHNv7VYaIlBUd7Ms7L0Fo9P60SD
-         5jMpkg1JwX6AlUhbtuhvtjLEqO3E3Uvn3n/JlyDs=
+        b=JbezRxYsp4g2h/gVn7C7nQ4+/1FySTx8t2y4ZY9ximV2X5Cyj1eCfy/ahdaKhJcnG
+         0BqydnAmbWRhxUQovWp98An4d4ad/K9oPJMvSB6mLE+BQ3g4UWtZLrecYj/O+YjVX3
+         5ju0XK5XB3a/0mI/QS1paTJ2IFIr2hBYYMFfHd0k=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Pan Bian <bianpan2016@163.com>, Jason Gunthorpe <jgg@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 14/90] RDMA/iw_cgxb4: Fix an error handling path in 'c4iw_connect()'
-Date:   Thu, 17 Sep 2020 22:13:39 -0400
-Message-Id: <20200918021455.2067301-14-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 12/90] RDMA/i40iw: Fix potential use after free
+Date:   Thu, 17 Sep 2020 22:13:37 -0400
+Message-Id: <20200918021455.2067301-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200918021455.2067301-1-sashal@kernel.org>
 References: <20200918021455.2067301-1-sashal@kernel.org>
@@ -57,42 +56,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+From: Pan Bian <bianpan2016@163.com>
 
-[ Upstream commit 9067f2f0b41d7e817fc8c5259bab1f17512b0147 ]
+[ Upstream commit da046d5f895fca18d63b15ac8faebd5bf784e23a ]
 
-We should jump to fail3 in order to undo the 'xa_insert_irq()' call.
+Release variable dst after logging dst->error to avoid possible use after
+free.
 
-Link: https://lore.kernel.org/r/20190923190746.10964-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Link: https://lore.kernel.org/r/1573022651-37171-1-git-send-email-bianpan2016@163.com
+Signed-off-by: Pan Bian <bianpan2016@163.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index a04a53acb24ff..a60e1c1b4b5e8 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -3245,7 +3245,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		if (raddr->sin_addr.s_addr == htonl(INADDR_ANY)) {
- 			err = pick_local_ipaddrs(dev, cm_id);
- 			if (err)
--				goto fail2;
-+				goto fail3;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 282a726351c81..ce1a4817ab923 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -2036,9 +2036,9 @@ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
+ 	dst = i40iw_get_dst_ipv6(&src_addr, &dst_addr);
+ 	if (!dst || dst->error) {
+ 		if (dst) {
+-			dst_release(dst);
+ 			i40iw_pr_err("ip6_route_output returned dst->error = %d\n",
+ 				     dst->error);
++			dst_release(dst);
  		}
- 
- 		/* find a route */
-@@ -3267,7 +3267,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		if (ipv6_addr_type(&raddr6->sin6_addr) == IPV6_ADDR_ANY) {
- 			err = pick_local_ip6addrs(dev, cm_id);
- 			if (err)
--				goto fail2;
-+				goto fail3;
- 		}
- 
- 		/* find a route */
+ 		return rc;
+ 	}
 -- 
 2.25.1
 
