@@ -2,96 +2,86 @@ Return-Path: <SRS0=aLju=C3=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9109C43465
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:12:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72D4DC43464
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:23:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6186F21582
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:12:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600398749;
-	bh=IG69orGZizecW30f5Fn2mdLJYq0+6DQXjUuszz2XqGg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=huLn4iUHjHcA941bZOsSgHjVsmC6HShjZaWUav7hg3RijJNShNqPnoC9fgbfd1KYi
-	 3R10iy0cEXYC3EfUOinFNq0GcP8cOic9RrI2grae6oNJ05J+UDtX/IIQCixkVb9u8l
-	 U3S0fHmklFR4ZMI6W9rx6N/fTNF5laiC1riZfcHE=
+	by mail.kernel.org (Postfix) with ESMTP id 28F1B23718
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:23:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727879AbgIRDM1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 23:12:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47096 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726660AbgIRCCJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:02:09 -0400
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 060E523119;
-        Fri, 18 Sep 2020 02:02:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600394528;
-        bh=IG69orGZizecW30f5Fn2mdLJYq0+6DQXjUuszz2XqGg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=R6BZVghQlTeGsAZS2PRT7TiwEgNtMv/ls4UKYMzsMR+RTyda1Y2I5UWkhzUxIYsrs
-         7dqD6Rb22xVIyJvyiOXqJJeTQrKuY0pfq6trUST7znIZp6L7NzoeyNt30XdPiSfeTL
-         QqFUPiVq7iwmnKbwYz46eTcNKPC22HMT7cc8cRiY=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pan Bian <bianpan2016@163.com>,
-        =?UTF-8?q?Michal=20Kalderon=C2=A0?= <michal.kalderon@marvell.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 048/330] RDMA/qedr: Fix potential use after free
-Date:   Thu, 17 Sep 2020 21:56:28 -0400
-Message-Id: <20200918020110.2063155-48-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200918020110.2063155-1-sashal@kernel.org>
-References: <20200918020110.2063155-1-sashal@kernel.org>
+        id S1726139AbgIRDXY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 23:23:24 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:40604 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726121AbgIRDXY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 23:23:24 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id 65EED8DBBF3B60304858;
+        Fri, 18 Sep 2020 11:23:22 +0800 (CST)
+Received: from [10.174.177.116] (10.174.177.116) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 18 Sep 2020 11:23:19 +0800
+Subject: Re: [PATCH -next] RDMA/mlx5: fix type warning of sizeof in
+ __mlx5_ib_alloc_counters()
+To:     Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
+References: <20200917082926.GA869610@unreal>
+ <20200917091008.2309158-1-liushixin2@huawei.com>
+ <20200917090810.GB869610@unreal> <20200917123806.GA114613@nvidia.com>
+ <20200917170511.GI869610@unreal> <20200917172451.GK8409@ziepe.ca>
+ <20200917173346.GK869610@unreal>
+CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From:   Liu Shixin <liushixin2@huawei.com>
+Message-ID: <59dfb43f-04a7-b02a-1619-81d92ca69278@huawei.com>
+Date:   Fri, 18 Sep 2020 11:23:18 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200917173346.GK869610@unreal>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.177.116]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Pan Bian <bianpan2016@163.com>
-
-[ Upstream commit 960657b732e1ce21b07be5ab48a7ad3913d72ba4 ]
-
-Move the release operation after error log to avoid possible use after
-free.
-
-Link: https://lore.kernel.org/r/1573021434-18768-1-git-send-email-bianpan2016@163.com
-Signed-off-by: Pan Bian <bianpan2016@163.com>
-Acked-by: Michal Kalderon <michal.kalderon@marvell.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/qedr/qedr_iw_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-index a7a926b7b5628..6dea49e11f5f0 100644
---- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-@@ -490,10 +490,10 @@ qedr_addr6_resolve(struct qedr_dev *dev,
- 
- 	if ((!dst) || dst->error) {
- 		if (dst) {
--			dst_release(dst);
- 			DP_ERR(dev,
- 			       "ip6_route_output returned dst->error = %d\n",
- 			       dst->error);
-+			dst_release(dst);
- 		}
- 		return -EINVAL;
- 	}
--- 
-2.25.1
+On 2020/9/18 1:33, Leon Romanovsky wrote:
+> On Thu, Sep 17, 2020 at 02:24:51PM -0300, Jason Gunthorpe wrote:
+>> On Thu, Sep 17, 2020 at 08:05:11PM +0300, Leon Romanovsky wrote:
+>>> On Thu, Sep 17, 2020 at 09:38:06AM -0300, Jason Gunthorpe wrote:
+>>>> On Thu, Sep 17, 2020 at 12:08:10PM +0300, Leon Romanovsky wrote:
+>>>>> On Thu, Sep 17, 2020 at 05:10:08PM +0800, Liu Shixin wrote:
+>>>>>> sizeof() when applied to a pointer typed expression should give the
+>>>>>> size of the pointed data, even if the data is a pointer.
+>>>>>>
+>>>>>> Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+>>>> Needs a fixes line
+>>>>
+>>>>>>  	if (!cnts->names)
+>>>>>>  		return -ENOMEM;
+>>>>>>
+>>>>>>  	cnts->offsets = kcalloc(num_counters,
+>>>>>> -				sizeof(cnts->offsets), GFP_KERNEL);
+>>>>>> +				sizeof(*cnts->offsets), GFP_KERNEL);
+>>>>> This is not.
+>>>> Why not?
+>>> cnts->offsets is array of pointers that we will set later.
+>>> The "sizeof(*cnts->offsets)" will return the size of size_t, while we
+>>> need to get "size_t *".
+>> Then why isn't a pointer to size **?
+>>
+>> Something is rotten here
+> No problem, I'll check.
+I think cnts->offsets is an array pointer whose element is size_t rathen than pointer,
+so the patch description does not correspond.
+And I think it should be modified to sizeof(*cnts->offsets) with other description.
+>
+>> Jason
+> .
+>
 
