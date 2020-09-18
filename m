@@ -7,51 +7,49 @@ X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEB01C43464
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:51:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE6BC43463
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:03:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90EC02078B
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 02:51:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DECBE2083B
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Sep 2020 03:03:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600397466;
-	bh=Jrjz1w+nRAnz2QLcyTOmt09nTzFZzNmf2WOi96S4Bjw=;
+	s=default; t=1600398225;
+	bh=a8TAtyVBLWhSc13/EqI2FOiHMoVAkw2IHfHbUIO1nmo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=O9qKz4NvJ61T3bauu4uZlAXU3IAN1ykCsNelauQuwhF0ZBeTUeBUHvdg/ykq2O6cW
-	 yWyRg9U56LMyJAIx1cMQT7SeJZDQ135KRHUFYV7ewIwA5FIJ5EplMb+M4x6glP8L0y
-	 QI+BHE70THn1mLtbKze+Brn83duBsIn46SFuhnuU=
+	b=Z5y0/UngsrTGj5eruvawaHsEXj64pwJvRr8YcAB9Cy/zWK+aKT0/+AU6WoLetJDP+
+	 60ihYxnYpfKGRP+J/4Og70IyZdaJ9wKNVcSEi6IF8tdiAteZtnaCeyaO7KT6HYRmy2
+	 vpm1u2f7oenrb6cDtCcxvoZ+d1vwLmtXsretRVig=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729998AbgIRCux (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Sep 2020 22:50:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60066 "EHLO mail.kernel.org"
+        id S1726507AbgIRCE6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Sep 2020 22:04:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728091AbgIRCIg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 17 Sep 2020 22:08:36 -0400
+        id S1726564AbgIRCEu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 17 Sep 2020 22:04:50 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 649202399C;
-        Fri, 18 Sep 2020 02:08:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D031023718;
+        Fri, 18 Sep 2020 02:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600394916;
-        bh=Jrjz1w+nRAnz2QLcyTOmt09nTzFZzNmf2WOi96S4Bjw=;
+        s=default; t=1600394689;
+        bh=a8TAtyVBLWhSc13/EqI2FOiHMoVAkw2IHfHbUIO1nmo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DF7rMuqOHtcrV+HVzL4G9hCKduSl5VBcACGIBNoqRjI1qVs18MswXtdY4pb2rUAD8
-         WdYgBHf3zv66zMKdgh89ed8O4rsnPwLMFHvkYsrnOb4iCgET1coKQeOpPLGzctvchk
-         /CPVhwsNIqhLjE495otpO+uOVnPVa+TXJ6Rdv8RI=
+        b=h3k+MDF29JQXsNUvGFaf1HtgZA21bsjYzNY9hmVk7bmMi00AypZ7NEOd6ddY86RM8
+         6SNR2M6G8tPSK/GNVhlT/mfmzDm4LqUg6EK6FQTuI2bQ+S/HOc+N4Zwa4WkG4LPCqH
+         fMJHPta4i7RlBADAp0Vq2HUqKmDtE6XBE9EGp13Y=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Pan Bian <bianpan2016@163.com>,
-        =?UTF-8?q?Michal=20Kalderon=C2=A0?= <michal.kalderon@marvell.com>,
-        Jason Gunthorpe <jgg@mellanox.com>,
+Cc:     Jason Gunthorpe <jgg@mellanox.com>,
+        Leon Romanovsky <leonro@mellanox.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 028/206] RDMA/qedr: Fix potential use after free
-Date:   Thu, 17 Sep 2020 22:05:04 -0400
-Message-Id: <20200918020802.2065198-28-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 178/330] RDMA/cm: Remove a race freeing timewait_info
+Date:   Thu, 17 Sep 2020 21:58:38 -0400
+Message-Id: <20200918020110.2063155-178-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200918020802.2065198-1-sashal@kernel.org>
-References: <20200918020802.2065198-1-sashal@kernel.org>
+In-Reply-To: <20200918020110.2063155-1-sashal@kernel.org>
+References: <20200918020110.2063155-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -59,39 +57,144 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Pan Bian <bianpan2016@163.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-[ Upstream commit 960657b732e1ce21b07be5ab48a7ad3913d72ba4 ]
+[ Upstream commit bede86a39d9dc3387ac00dcb8e1ac221676b2f25 ]
 
-Move the release operation after error log to avoid possible use after
-free.
+When creating a cm_id during REQ the id immediately becomes visible to the
+other MAD handlers, and shortly after the state is moved to IB_CM_REQ_RCVD
 
-Link: https://lore.kernel.org/r/1573021434-18768-1-git-send-email-bianpan2016@163.com
-Signed-off-by: Pan Bian <bianpan2016@163.com>
-Acked-by: Michal Kalderon <michal.kalderon@marvell.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+This allows cm_rej_handler() to run concurrently and free the work:
+
+        CPU 0                                CPU1
+ cm_req_handler()
+  ib_create_cm_id()
+  cm_match_req()
+    id_priv->state = IB_CM_REQ_RCVD
+                                       cm_rej_handler()
+                                         cm_acquire_id()
+                                         spin_lock(&id_priv->lock)
+                                         switch (id_priv->state)
+  					   case IB_CM_REQ_RCVD:
+                                            cm_reset_to_idle()
+                                             kfree(id_priv->timewait_info);
+   goto destroy
+  destroy:
+    kfree(id_priv->timewait_info);
+                                             id_priv->timewait_info = NULL
+
+Causing a double free or worse.
+
+Do not free the timewait_info without also holding the
+id_priv->lock. Simplify this entire flow by making the free unconditional
+during cm_destroy_id() and removing the confusing special case error
+unwind during creation of the timewait_info.
+
+This also fixes a leak of the timewait if cm_destroy_id() is called in
+IB_CM_ESTABLISHED with an XRC TGT QP. The state machine will be left in
+ESTABLISHED while it needed to transition through IB_CM_TIMEWAIT to
+release the timewait pointer.
+
+Also fix a leak of the timewait_info if the caller mis-uses the API and
+does ib_send_cm_reqs().
+
+Fixes: a977049dacde ("[PATCH] IB: Add the kernel CM implementation")
+Link: https://lore.kernel.org/r/20200310092545.251365-4-leon@kernel.org
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/qedr/qedr_iw_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cm.c | 25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-index 2566715773675..e908dfbaa1378 100644
---- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-@@ -460,10 +460,10 @@ qedr_addr6_resolve(struct qedr_dev *dev,
- 
- 	if ((!dst) || dst->error) {
- 		if (dst) {
--			dst_release(dst);
- 			DP_ERR(dev,
- 			       "ip6_route_output returned dst->error = %d\n",
- 			       dst->error);
-+			dst_release(dst);
- 		}
- 		return -EINVAL;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 09af96ec41dd6..c1d6a068f50fe 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1092,14 +1092,22 @@ retest:
+ 		break;
  	}
+ 
+-	spin_lock_irq(&cm.lock);
++	spin_lock_irq(&cm_id_priv->lock);
++	spin_lock(&cm.lock);
++	/* Required for cleanup paths related cm_req_handler() */
++	if (cm_id_priv->timewait_info) {
++		cm_cleanup_timewait(cm_id_priv->timewait_info);
++		kfree(cm_id_priv->timewait_info);
++		cm_id_priv->timewait_info = NULL;
++	}
+ 	if (!list_empty(&cm_id_priv->altr_list) &&
+ 	    (!cm_id_priv->altr_send_port_not_ready))
+ 		list_del(&cm_id_priv->altr_list);
+ 	if (!list_empty(&cm_id_priv->prim_list) &&
+ 	    (!cm_id_priv->prim_send_port_not_ready))
+ 		list_del(&cm_id_priv->prim_list);
+-	spin_unlock_irq(&cm.lock);
++	spin_unlock(&cm.lock);
++	spin_unlock_irq(&cm_id_priv->lock);
+ 
+ 	cm_free_id(cm_id->local_id);
+ 	cm_deref_id(cm_id_priv);
+@@ -1416,7 +1424,7 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 	/* Verify that we're not in timewait. */
+ 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
+ 	spin_lock_irqsave(&cm_id_priv->lock, flags);
+-	if (cm_id->state != IB_CM_IDLE) {
++	if (cm_id->state != IB_CM_IDLE || WARN_ON(cm_id_priv->timewait_info)) {
+ 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -1434,12 +1442,12 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 				 param->ppath_sgid_attr, &cm_id_priv->av,
+ 				 cm_id_priv);
+ 	if (ret)
+-		goto error1;
++		goto out;
+ 	if (param->alternate_path) {
+ 		ret = cm_init_av_by_path(param->alternate_path, NULL,
+ 					 &cm_id_priv->alt_av, cm_id_priv);
+ 		if (ret)
+-			goto error1;
++			goto out;
+ 	}
+ 	cm_id->service_id = param->service_id;
+ 	cm_id->service_mask = ~cpu_to_be64(0);
+@@ -1457,7 +1465,7 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 
+ 	ret = cm_alloc_msg(cm_id_priv, &cm_id_priv->msg);
+ 	if (ret)
+-		goto error1;
++		goto out;
+ 
+ 	req_msg = (struct cm_req_msg *) cm_id_priv->msg->mad;
+ 	cm_format_req(req_msg, cm_id_priv, param);
+@@ -1480,7 +1488,6 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 	return 0;
+ 
+ error2:	cm_free_msg(cm_id_priv->msg);
+-error1:	kfree(cm_id_priv->timewait_info);
+ out:	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_req);
+@@ -1965,7 +1972,7 @@ static int cm_req_handler(struct cm_work *work)
+ 		pr_debug("%s: local_id %d, no listen_cm_id_priv\n", __func__,
+ 			 be32_to_cpu(cm_id->local_id));
+ 		ret = -EINVAL;
+-		goto free_timeinfo;
++		goto destroy;
+ 	}
+ 
+ 	cm_id_priv->id.cm_handler = listen_cm_id_priv->id.cm_handler;
+@@ -2050,8 +2057,6 @@ static int cm_req_handler(struct cm_work *work)
+ rejected:
+ 	atomic_dec(&cm_id_priv->refcount);
+ 	cm_deref_id(listen_cm_id_priv);
+-free_timeinfo:
+-	kfree(cm_id_priv->timewait_info);
+ destroy:
+ 	ib_destroy_cm_id(cm_id);
+ 	return ret;
 -- 
 2.25.1
 
