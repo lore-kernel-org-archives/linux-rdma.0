@@ -2,132 +2,76 @@ Return-Path: <SRS0=5wWz=C4=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A9E5C43464
-	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 09:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E2FC43464
+	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 10:04:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC9E720723
-	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 09:25:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2964B21D43
+	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 10:04:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726216AbgISJZn convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 19 Sep 2020 05:25:43 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:3552 "EHLO huawei.com"
+        id S1726247AbgISKEo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 19 Sep 2020 06:04:44 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:13725 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726201AbgISJZn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 19 Sep 2020 05:25:43 -0400
-Received: from DGGEMM402-HUB.china.huawei.com (unknown [172.30.72.56])
-        by Forcepoint Email with ESMTP id 64C798531C50D49317DC;
-        Sat, 19 Sep 2020 17:25:39 +0800 (CST)
-Received: from dggema752-chm.china.huawei.com (10.1.198.194) by
- DGGEMM402-HUB.china.huawei.com (10.3.20.210) with Microsoft SMTP Server (TLS)
- id 14.3.487.0; Sat, 19 Sep 2020 17:25:39 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema752-chm.china.huawei.com (10.1.198.194) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1913.5; Sat, 19 Sep 2020 17:25:38 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.1913.007;
- Sat, 19 Sep 2020 17:25:38 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH for-next] RDMA/hns: Create QP/CQ with selected QPN/CQN for
- bank load balance
-Thread-Topic: [PATCH for-next] RDMA/hns: Create QP/CQ with selected QPN/CQN
- for bank load balance
-Thread-Index: AQHWjceX3aRvAeQKjEuzXmMmmBepcA==
-Date:   Sat, 19 Sep 2020 09:25:38 +0000
-Message-ID: <5050c67e33754c6ca390b0203a979858@huawei.com>
-References: <1599642563-10264-1-git-send-email-liweihang@huawei.com>
- <20200918142525.GA306144@nvidia.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1726041AbgISKEo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 19 Sep 2020 06:04:44 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id B3606931FF623F377A0D;
+        Sat, 19 Sep 2020 18:04:40 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
+ 14.3.487.0; Sat, 19 Sep 2020 18:04:33 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v3 for-next 2/8] RDMA/hns: Add interception for resizing SRQs
+Date:   Sat, 19 Sep 2020 18:03:16 +0800
+Message-ID: <1600509802-44382-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1600509802-44382-1-git-send-email-liweihang@huawei.com>
+References: <1600509802-44382-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/9/18 22:25, Jason Gunthorpe wrote:
-> On Wed, Sep 09, 2020 at 05:09:23PM +0800, Weihang Li wrote:
->> From: Yangyang Li <liyangyang20@huawei.com>
->>
->> In order to improve performance by balancing the load between different
->> banks of cache, the QPC cache is desigend to choose one of 8 banks
->> according to lower 3 bits of QPN, and the CQC cache uses the lower 2 bits
->> to choose one from 4 banks. The hns driver needs to count the number of
->> QP/CQ on each bank and then assigns the QP/CQ being created to the bank
->> with the minimum load first.
->>
->> Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->>  drivers/infiniband/hw/hns/hns_roce_alloc.c  | 46 +++++++++++++++++++++++++++++
->>  drivers/infiniband/hw/hns/hns_roce_cq.c     | 38 +++++++++++++++++++++++-
->>  drivers/infiniband/hw/hns/hns_roce_device.h |  8 +++++
->>  drivers/infiniband/hw/hns/hns_roce_qp.c     | 39 ++++++++++++++++++++++--
->>  4 files changed, 128 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
->> index a522cb2..cbe955c 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
->> @@ -36,6 +36,52 @@
->>  #include "hns_roce_device.h"
->>  #include <rdma/ib_umem.h>
->>  
->> +static int get_bit(struct hns_roce_bitmap *bitmap, u8 bankid,
->> +		   u8 mod, unsigned long *obj)
->> +{
->> +	unsigned long offset_bak = bitmap->last;
->> +	bool one_circle_flag = false;
->> +
->> +	do {
->> +		*obj = find_next_zero_bit(bitmap->table, bitmap->max,
->> +					  bitmap->last);
->> +		if (*obj >= bitmap->max) {
->> +			*obj = find_first_zero_bit(bitmap->table, bitmap->max);
->> +			one_circle_flag = true;
->> +		}
->> +
->> +		bitmap->last = (*obj + 1);
->> +		if (bitmap->last == bitmap->max) {
->> +			bitmap->last = 0;
->> +			one_circle_flag = true;
->> +		}
->> +
->> +		/* Not found after a round of search */
->> +		if (bitmap->last >= offset_bak && one_circle_flag)
->> +			return -EINVAL;
->> +
->> +	} while (*obj % mod != bankid);
->> +
->> +	return 0;
->> +}
-> 
-> This looks like an ida, is there a reason it has to be open coded?
-> 
-> Jason
-> 
+From: Yangyang Li <liyangyang20@huawei.com>
 
-Hi Jason,
+HIP08 doesn't support modifying the maximum number of outstanding WR in an
+SRQ. However, the driver does not return a failure message, and users may
+mistakenly think that the resizing is executed successfully. So the driver
+needs to intercept this operation.
 
-Do you mean that the function get_bit() may be replaced by the ida
-interfaces?
+Fixes: ffb1308b88b6 ("RDMA/hns: Move SRQ code to the reasonable place")
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks for your reminder, we didn't notice these interfaces before.
-We'll look at them to see if they can meet our needs. If not, we will
-explain in more detail about why we implement this function.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 6a217f9..715e0b9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5036,6 +5036,10 @@ static int hns_roce_v2_modify_srq(struct ib_srq *ibsrq,
+ 	struct hns_roce_cmd_mailbox *mailbox;
+ 	int ret;
+ 
++	/* Resizing SRQs is not supported yet */
++	if (srq_attr_mask & IB_SRQ_MAX_WR)
++		return -EINVAL;
++
+ 	if (srq_attr_mask & IB_SRQ_LIMIT) {
+ 		if (srq_attr->srq_limit >= srq->wqe_cnt)
+ 			return -EINVAL;
+-- 
+2.8.1
 
-Weihang
