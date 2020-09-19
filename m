@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B23D9C43463
-	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 10:04:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E57FC43466
+	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 10:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8018A23447
+	by mail.kernel.org (Postfix) with ESMTP id E0F1B21D43
 	for <linux-rdma@archiver.kernel.org>; Sat, 19 Sep 2020 10:04:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726267AbgISKEr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 19 Sep 2020 06:04:47 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:45360 "EHLO huawei.com"
+        id S1726255AbgISKEs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 19 Sep 2020 06:04:48 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:45380 "EHLO huawei.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726255AbgISKEr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 19 Sep 2020 06:04:47 -0400
+        id S1726256AbgISKEs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 19 Sep 2020 06:04:48 -0400
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
-        by Forcepoint Email with ESMTP id 95E14F4338A65F3B5122;
+        by Forcepoint Email with ESMTP id 9F28E5AA6A966116F450;
         Sat, 19 Sep 2020 18:04:45 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 6/8] RDMA/hns: Fix the wrong value of rnr_retry when querying qp
-Date:   Sat, 19 Sep 2020 18:03:20 +0800
-Message-ID: <1600509802-44382-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 5/8] RDMA/hns: Solve the overflow of the calc_pg_sz()
+Date:   Sat, 19 Sep 2020 18:03:19 +0800
+Message-ID: <1600509802-44382-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1600509802-44382-1-git-send-email-liweihang@huawei.com>
 References: <1600509802-44382-1-git-send-email-liweihang@huawei.com>
@@ -43,33 +43,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Jiaran Zhang <zhangjiaran@huawei.com>
 
-The rnr_retry returned to the user is not correct, it should be got from
-another fields in QPC.
+calc_pg_sz() may gets a data calculation overflow if the PAGE_SIZE is 64 KB
+and hop_num is 2. It is because that all variables involved in calculation
+are defined in type of int. So change the type of bt_chunk_size,
+buf_chunk_size and obj_per_chunk_default to u64.
 
-Fixes: bfe860351e31 ("RDMA/hns: Fix cast from or to restricted __le32 for driver")
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Fixes: ba6bb7e97421 ("RDMA/hns: Add interfaces to get pf capabilities from firmware")
+Signed-off-by: Jiaran Zhang <zhangjiaran@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 1cc4abe..316cdb6 100644
+index 761d8c6..1cc4abe 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4799,7 +4799,9 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 	qp_attr->retry_cnt = roce_get_field(context.byte_212_lsn,
- 					    V2_QPC_BYTE_212_RETRY_CNT_M,
- 					    V2_QPC_BYTE_212_RETRY_CNT_S);
--	qp_attr->rnr_retry = le32_to_cpu(context.rq_rnr_timer);
-+	qp_attr->rnr_retry = roce_get_field(context.byte_244_rnr_rxack,
-+					    V2_QPC_BYTE_244_RNR_CNT_M,
-+					    V2_QPC_BYTE_244_RNR_CNT_S);
+@@ -1793,9 +1793,9 @@ static void calc_pg_sz(int obj_num, int obj_size, int hop_num, int ctx_bt_num,
+ 		       int *buf_page_size, int *bt_page_size, u32 hem_type)
+ {
+ 	u64 obj_per_chunk;
+-	int bt_chunk_size = 1 << PAGE_SHIFT;
+-	int buf_chunk_size = 1 << PAGE_SHIFT;
+-	int obj_per_chunk_default = buf_chunk_size / obj_size;
++	u64 bt_chunk_size = PAGE_SIZE;
++	u64 buf_chunk_size = PAGE_SIZE;
++	u64 obj_per_chunk_default = buf_chunk_size / obj_size;
  
- done:
- 	qp_attr->cur_qp_state = qp_attr->qp_state;
+ 	*buf_page_size = 0;
+ 	*bt_page_size = 0;
 -- 
 2.8.1
 
