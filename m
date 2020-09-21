@@ -2,90 +2,108 @@ Return-Path: <SRS0=5Yt0=C6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A751C43465
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Sep 2020 16:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ADD3C43465
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Sep 2020 17:05:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B01F20C09
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Sep 2020 16:59:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600707575;
-	bh=ilYPXYXOrK02dbgWO785dFtleHl2+7nPjk6K0R/PBvw=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject:List-ID:From;
-	b=aGXolbwHyYT6pjpF6IbfJaYNdwiybp+T51nUgNwPIt3llgVJ8WKKrj8KiZC8+1vEo
-	 nkmhi6C01UJm1qcro9RB1KfnHQJImzf4/FsIJaskXXnbRKaCC+8Ie6uKqD+0/CXxzy
-	 7hpH5HtdZGEYJDDd3N59UHtDkBVtpztu0LHnCU+Y=
+	by mail.kernel.org (Postfix) with ESMTP id D34782073A
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Sep 2020 17:05:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="BEQSsxCA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729416AbgIUQ70 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Sep 2020 12:59:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40096 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730308AbgIUQ7O (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 21 Sep 2020 12:59:14 -0400
-Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4CAA5235FD;
-        Mon, 21 Sep 2020 16:59:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600707553;
-        bh=ilYPXYXOrK02dbgWO785dFtleHl2+7nPjk6K0R/PBvw=;
-        h=Date:From:To:Cc:In-Reply-To:References:Subject:From;
-        b=yyPOpwzx1pKltzf4H+v0LidZoBubumrt/74zHAY5TzeAVoIQ8re/YX4A1pDxLKPo6
-         Vv1/tJnpF8BhoP6or7Ck079oNkAaG4N9D7DU/T8PUoATLp0KQqEJ2DLkYD20jr0P0O
-         GwH9D2LvhnnnkrNBzbXQKA7gy9dil44xEFwmKaEQ=
-Date:   Mon, 21 Sep 2020 17:58:21 +0100
-From:   Mark Brown <broonie@kernel.org>
-To:     linux-spi@vger.kernel.org, Julia Lawall <Julia.Lawall@inria.fr>
-Cc:     linux-serial@vger.kernel.org, linux-scsi@vger.kernel.org,
-        target-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-block@vger.kernel.org,
-        Yossi Leybovich <sleybo@amazon.com>,
-        linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-pci@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        rds-devel@oss.oracle.com
-In-Reply-To: <1600601186-7420-1-git-send-email-Julia.Lawall@inria.fr>
-References: <1600601186-7420-1-git-send-email-Julia.Lawall@inria.fr>
-Subject: Re: [PATCH 00/14] drop double zeroing
-Message-Id: <160070750168.56292.17961674601916397869.b4-ty@kernel.org>
+        id S1728397AbgIURFX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Sep 2020 13:05:23 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:12537 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729610AbgIUREt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Sep 2020 13:04:49 -0400
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f68dd020003>; Mon, 21 Sep 2020 10:04:02 -0700
+Received: from [172.27.13.124] (172.20.13.39) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 21 Sep
+ 2020 17:04:46 +0000
+Subject: Re: [PATCH rdma-next v1 4/4] RDMA/mlx5: Sync device with CPU pages
+ upon ODP MR registration
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@nvida.com>,
+        "Christoph Hellwig" <hch@infradead.org>
+References: <20200917112152.1075974-1-leon@kernel.org>
+ <20200917112152.1075974-5-leon@kernel.org> <20200921142543.GU3699@nvidia.com>
+From:   Yishai Hadas <yishaih@nvidia.com>
+Message-ID: <cf4516e4-f5f3-295f-d4ef-f0411765c9e8@nvidia.com>
+Date:   Mon, 21 Sep 2020 20:04:43 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
+MIME-Version: 1.0
+In-Reply-To: <20200921142543.GU3699@nvidia.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Originating-IP: [172.20.13.39]
+X-ClientProxiedBy: HQMAIL109.nvidia.com (172.20.187.15) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1600707842; bh=fvygQ7BbaIhKtExmYQ54LSzltnyZO0NL4d7pJFJFVGc=;
+        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+         MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+         Content-Language:X-Originating-IP:X-ClientProxiedBy;
+        b=BEQSsxCAqMA6qC2t0IZNgeMVL4Pj8gLXxUrQKrRNUmk9VXujlFuylCPWAhJCxfXtd
+         F/uwkt741EOXxtp2x02zG0x94tYaYAlgWs4EimHh4pHzj8BimmpIxVow8GyTepBKaz
+         0Y1hKyzSGCAJw0ppvn0VyLVuMTBPtr82wPoUDfusN6sfB1o+V6+aZb+4c6gr9VAjfB
+         w7gxX/zalIqMKOWYY5cMQePs0OTlPRn8S3SgdSE+arIvaW9+0AQ65JuPLPmvU0nmZk
+         HHDV3efDdNRHL161p+C3YRFoUqpI2lzB0Wgg/NKiLNHvMrda3VihFFxC0ZOaEw4ORI
+         9J8DYFMeU0dqA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, 20 Sep 2020 13:26:12 +0200, Julia Lawall wrote:
-> sg_init_table zeroes its first argument, so the allocation of that argument
-> doesn't have to.
+On 9/21/2020 5:25 PM, Jason Gunthorpe wrote:
+> On Thu, Sep 17, 2020 at 02:21:52PM +0300, Leon Romanovsky wrote:
+>
+>> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+>> index dea65e511a3e..234a5d25a072 100644
+>> +++ b/drivers/infiniband/hw/mlx5/mr.c
+>> @@ -1431,7 +1431,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+>>   	mr->umem = umem;
+>>   	set_mr_fields(dev, mr, npages, length, access_flags);
+>>
+>> -	if (xlt_with_umr) {
+>> +	if (xlt_with_umr && !(access_flags & IB_ACCESS_ON_DEMAND)) {
+>>   		/*
+>>   		 * If the MR was created with reg_create then it will be
+>>   		 * configured properly but left disabled. It is safe to go ahead
+>> @@ -1439,9 +1439,6 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+>>   		 */
+>>   		int update_xlt_flags = MLX5_IB_UPD_XLT_ENABLE;
+>>
+>> -		if (access_flags & IB_ACCESS_ON_DEMAND)
+>> -			update_xlt_flags |= MLX5_IB_UPD_XLT_ZAP;
+>> -
+>>   		err = mlx5_ib_update_xlt(mr, 0, ncont, page_shift,
+>>   					 update_xlt_flags);
+>>   		if (err) {
+>> @@ -1467,6 +1464,12 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+>>   			dereg_mr(dev, mr);
+>>   			return ERR_PTR(err);
+>>   		}
+>> +
+>> +		err = mlx5_ib_init_odp_mr(mr, start, length, xlt_with_umr);
+> No reason to pass start/length, that is already in the mr
+>
+> Jason
 
-Applied to
+The start / iova is set on 'ib_mr' in the uverbs layer post returning 
+from reg_user_mr for all drivers [1], so the function just got both.
+Makes sense ?
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-next
+[1] 
+https://elixir.bootlin.com/linux/v5.9-rc6/source/drivers/infiniband/core/uverbs_cmd.c#L746
 
-Thanks!
+Yishai
 
-[1/1] spi/topcliff-pch: drop double zeroing
-      commit: ca03dba30f2b8ff45a2972c6691e4c96d8c52b3b
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
