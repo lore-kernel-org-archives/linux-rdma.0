@@ -2,137 +2,135 @@ Return-Path: <SRS0=X6vG=C7=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25431C2D0E2
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Sep 2020 08:21:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC5AC2D0E2
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Sep 2020 08:26:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE3ED23A1B
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Sep 2020 08:21:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A66A23A1B
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Sep 2020 08:26:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600762886;
-	bh=KE0bGv2UrzNkmo83UWfkusvIinBbauoDx1YdasPozxQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=y1nUuDX0RTNO5/ASL/QxMSrlXFDVsZZ7dVUMeqTfNTQikTYw271S9WC+gxfSiu3zm
-	 e0IqTvaveQNPQd9byreLB5yMWV1CA1AcsTDvEsvqA/ootY0UJTSf30xpsYSRP8KYxX
-	 OE2x3dNRLv2luKWFbTr5BLGTwY5AtOoV6Jq0G19g=
+	s=default; t=1600763208;
+	bh=+wLGhuvBipQJDc5R24NSR7JgfQiCe86ceunbt34Awi4=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=bNRfyrCG2IsdDH/lkSAGcYJHrcD4uu5bM75JRlfCHPMMY1hPOJwA0DTN9n0ibdxOE
+	 jAI39bc2IOAz/ir7g+l7NNuIfJXQLRzr+Iu5wkZi0srlQnlROUdj4+TaJn0XwGL7Oc
+	 OukYtT28aOa8f8MxtC+Ti+tLZbDdxYyziosI6ExM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726719AbgIVIV0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Sep 2020 04:21:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35978 "EHLO mail.kernel.org"
+        id S1726673AbgIVI0r (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Sep 2020 04:26:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37256 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726649AbgIVIV0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 22 Sep 2020 04:21:26 -0400
+        id S1726486AbgIVI0r (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 22 Sep 2020 04:26:47 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 63A50239E5;
-        Tue, 22 Sep 2020 08:21:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A17F7239E5;
+        Tue, 22 Sep 2020 08:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600762885;
-        bh=KE0bGv2UrzNkmo83UWfkusvIinBbauoDx1YdasPozxQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hVgB+7B/4QPy+94zM+ioU+35qUcMAxhQEB9Xs07n1WC45xkOHtLM0hB0MVCk20PG1
-         MGfN5j4u4WsA6r0reM9TI6cQDMD4qhwxIpB2eMr66z+YKY2PXhBXrR9Wj+zvT38f72
-         epZKyzH1n5gLDgAqjt5DtkoO2jkYtwFs4s5Vnzek=
+        s=default; t=1600763206;
+        bh=+wLGhuvBipQJDc5R24NSR7JgfQiCe86ceunbt34Awi4=;
+        h=From:To:Cc:Subject:Date:From;
+        b=u3ihSVvhoihD45AS6xIW4tHGqrkE46WNYMoLUnolnrT47IFeLuCRt4GTm8e1E6kC/
+         5QDAy1dhu3XHoYsev2HNdx2bFtBMGjhSFEeC7gMoC3buMI5Xhi9H/UhWEVnVl+jTCz
+         ZPNPXb+K8Qr/9mX+Vzj/Is/OVVCCDq0rosJdUvFI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Yishai Hadas <yishaih@nvidia.com>, linux-rdma@vger.kernel.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: [PATCH rdma-next v2 3/4] RDMA/mlx5: Extend advice MR to support non faulting mode
-Date:   Tue, 22 Sep 2020 11:21:03 +0300
-Message-Id: <20200922082104.2148873-4-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Avihai Horon <avihaih@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Michal Kalderon <mkalderon@marvell.com>
+Subject: [PATCH rdma-next v2 0/4] Query GID table API
+Date:   Tue, 22 Sep 2020 11:26:37 +0300
+Message-Id: <20200922082641.2149549-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200922082104.2148873-1-leon@kernel.org>
-References: <20200922082104.2148873-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Extend advice MR to support non faulting mode, this improves performance
-by eliminating page faults and bring only the existing CPU pages.
+Changelog:
+v2:
+ * Embedded RoCE protocol type into rdma_read_gid_attr_ndev_rcu
+v1: https://lore.kernel.org/lkml/20200914111129.343651-1-leon@kernel.org
+ * Moved git_type logic to cma_set_default_gid_type - Patch #2
+ * Changed signature of rdma_query_gid_table - Patch #3
+ * Changed i to be unsigned - Patch #3
+ * Fixed multiplication overflow - Patch #4
+v0: https://lore.kernel.org/lkml/20200910142204.1309061-1-leon@kernel.org
 
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mr.c         | 3 ++-
- drivers/infiniband/hw/mlx5/odp.c        | 7 ++++++-
- include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
- 3 files changed, 9 insertions(+), 2 deletions(-)
+------------------------------------------------------------------------------
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6b0d6109afc6..dea65e511a3e 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1321,7 +1321,8 @@ int mlx5_ib_advise_mr(struct ib_pd *pd,
- 		      struct uverbs_attr_bundle *attrs)
- {
- 	if (advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH &&
--	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE)
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
- 		return -EOPNOTSUPP;
+From Avihai,
 
- 	return mlx5_ib_advise_mr_prefetch(pd, advice, flags,
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 5bd5e19d76a2..28b7227d31bf 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -665,6 +665,7 @@ void mlx5_ib_fence_odp_mr(struct mlx5_ib_mr *mr)
- }
+When an application is not using RDMA CM and if it is using multiple RDMA
+devices with one or more RoCE ports, finding the right GID table entry is
+a long process.
 
- #define MLX5_PF_FLAGS_DOWNGRADE BIT(1)
-+#define MLX5_PF_FLAGS_SNAPSHOT BIT(2)
- static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 			     u64 user_va, size_t bcnt, u32 *bytes_mapped,
- 			     u32 flags)
-@@ -673,6 +674,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	bool downgrade = flags & MLX5_PF_FLAGS_DOWNGRADE;
- 	u64 access_mask;
- 	u64 start_idx;
-+	bool fault = !(flags & MLX5_PF_FLAGS_SNAPSHOT);
+For example, with two RoCE dual-port devices in a system, when IP
+failover is used between two RoCE ports, searching a suitable GID
+entry for a given source IP, matching netdevice of given RoCEv1/v2 type
+requires iterating over all 4 ports * 256 entry GID table.
 
- 	page_shift = odp->page_shift;
- 	start_idx = (user_va - ib_umem_start(odp)) >> page_shift;
-@@ -681,7 +683,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	if (odp->umem.writable && !downgrade)
- 		access_mask |= ODP_WRITE_ALLOWED_BIT;
+Even though the best first match GID table for given criteria is used,
+when the matching entry is on the 4th port, it requires reading
+3 ports * 256 entries * 3 files (GID, netdev, type) = 2304 files.
 
--	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
-+	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, fault);
- 	if (np < 0)
- 		return np;
+The GID table needs to be referred on every QP creation during IP
+failover on other netdevice of an RDMA device.
 
-@@ -1851,6 +1853,9 @@ int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
- 	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH)
- 		pf_flags |= MLX5_PF_FLAGS_DOWNGRADE;
+In an alternative approach, a GID cache may be maintained and updated on
+GID change event was reported by the kernel. However, it comes with below
+two limitations:
+(a) Maintain a thread per application process instance to listen and update
+ the cache.
+(b) Without the thread, on cache miss event, query the GID table. Even in
+ this approach, if multiple processes are used, a GID cache needs to be
+ maintained on a per-process basis. With a large number of processes,
+ this method doesn't scale.
 
-+	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
-+		pf_flags |= MLX5_PF_FLAGS_SNAPSHOT;
-+
- 	if (flags & IB_UVERBS_ADVISE_MR_FLAG_FLUSH)
- 		return mlx5_ib_prefetch_sg_list(pd, advice, pf_flags, sg_list,
- 						num_sge);
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index cfea82acfe57..22483799cd07 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -208,6 +208,7 @@ enum ib_uverbs_read_counters_flags {
- enum ib_uverbs_advise_mr_advice {
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH,
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE,
-+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT,
- };
+Hence, we introduce this series of patches, which introduces an API to
+query the complete GID tables of an RDMA device, that returns all valid
+GID table entries.
 
- enum ib_uverbs_advise_mr_flag {
+This is done through single ioctl, eliminating 2304 read, 2304 open and
+2304 close system calls to just a total of 2 calls (one for each device).
+
+While at it, we also introduce an API to query an individual GID entry
+over ioctl interface, which provides all GID attributes information.
+
+Thanks
+
+Avihai Horon (4):
+  RDMA/core: Change rdma_get_gid_attr returned error code
+  RDMA/core: Modify enum ib_gid_type and enum rdma_network_type
+  RDMA/core: Introduce new GID table query API
+  RDMA/uverbs: Expose the new GID query API to user space
+
+ drivers/infiniband/core/cache.c               |  81 +++++++-
+ drivers/infiniband/core/cma.c                 |   4 +
+ drivers/infiniband/core/cma_configfs.c        |   9 +-
+ drivers/infiniband/core/sysfs.c               |   3 +-
+ .../infiniband/core/uverbs_std_types_device.c | 193 +++++++++++++++++-
+ drivers/infiniband/core/verbs.c               |   2 +-
+ drivers/infiniband/hw/mlx5/cq.c               |   2 +-
+ drivers/infiniband/hw/mlx5/main.c             |   4 +-
+ drivers/infiniband/hw/qedr/verbs.c            |   4 +-
+ include/rdma/ib_cache.h                       |   3 +
+ include/rdma/ib_verbs.h                       |  19 +-
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  16 ++
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |  14 ++
+ 13 files changed, 331 insertions(+), 23 deletions(-)
+
 --
 2.26.2
 
