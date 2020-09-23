@@ -2,260 +2,215 @@ Return-Path: <SRS0=cPpa=DA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A83FFC2D0A8
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 16:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF36CC4741F
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 18:34:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60C1520BED
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 16:50:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600879837;
-	bh=dD13u81hHtLKul0kx89OTsGcfQmcCEmvQR8x0PtmPuE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=HViEca9wqRO1fpRHnijFYe9GTMij6hf5tSQr6aCjroJa/4QHXEhAiNKyjVeMj278c
-	 IB2/potl99FxISsgJAUrgTZ0VcACiqC191l0FCuKzwJKcMDZfwHWWKD1ac1wpZAuS5
-	 TkD0skeL3XWB0CUZQqo14n5l3CEuKYjHh1WBzmUw=
+	by mail.kernel.org (Postfix) with ESMTP id 557B72193E
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 18:34:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="qSD08Yzv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726460AbgIWQug (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Sep 2020 12:50:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58684 "EHLO mail.kernel.org"
+        id S1726460AbgIWSes (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Sep 2020 14:34:48 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:10040 "EHLO nat-hk.nvidia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726381AbgIWQug (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 23 Sep 2020 12:50:36 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 353A520672;
-        Wed, 23 Sep 2020 16:50:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1600879835;
-        bh=dD13u81hHtLKul0kx89OTsGcfQmcCEmvQR8x0PtmPuE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JNM1mm2dXoLZef5sPpxyg+X7wHTMzmz403e5Wu/cJkWei6JG4rWa5U6G/JDPJjAgN
-         fHYU4dGP8ogDf7d8m2YW5bvgBn/JLufgx/CKw71z6ZFY+Dq1WiHd9EuAosOqej+q9U
-         CXPaskAgIUJfMB0g60dNV7En1U+u5bv2gi3HG0CU=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>,
-        Ariel Elior <aelior@marvell.com>, linux-rdma@vger.kernel.org,
-        Michal Kalderon <mkalderon@marvell.com>
-Subject: [PATCH rdma-next v3 2/4] RDMA/core: Modify enum ib_gid_type and enum rdma_network_type
-Date:   Wed, 23 Sep 2020 19:50:13 +0300
-Message-Id: <20200923165015.2491894-3-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200923165015.2491894-1-leon@kernel.org>
-References: <20200923165015.2491894-1-leon@kernel.org>
+        id S1726332AbgIWSeq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 23 Sep 2020 14:34:46 -0400
+Received: from HKMAIL103.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f6b95430000>; Thu, 24 Sep 2020 02:34:43 +0800
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL103.nvidia.com
+ (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 23 Sep
+ 2020 18:34:19 +0000
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.103)
+ by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 23 Sep 2020 18:34:19 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=mowqNedM7jZwf1T7I3IFvQNdLSvAQsQgk721E+QB9AXofhDsMYskniMR54GfiGbZnpIV4LPKPxsVAYcWDcfZRTBsw96ciPHkcbw6jlCMZifKy6u494sGbL2fA7DEqWWnPp/DvWMYrNlYQbyEn/G3gSvKFY3Diqj8t0+ENH8J1DaEfVfit1CCW1VPSrsENaxkGrkss1owsi60sZtZvLxsIpZkczWzJrdNuSvZajP3vleB65Vraj0+O1CeW9W0uvVjbEndRmM0jU4Gr9E6rL4e2aBESidz+Xnk9CqVigOVbJqM1vM5T3NxSmcvnHhf15QycJsg6ATSRDg2mcTdBWu0SQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1Mn0xyIlBFeWV1K7ty8godwy+x8+7EIicroz8BXWc/0=;
+ b=HcVY7wikRZ+jqbWDOxvgTG0VFY7fwbVNeeXqnRQbksZ5EReCnWbNdcla72t6LSfjLGznHqU2wph9bPjyZSU6R87qeB1f9i6BRXLHE7h5vQUoz2+p0qcZ0Jv0tlzUKB8mU5mmd0Q/adceylnNoXzFmMPjHaICFIA3VzjR0AOHqQq2OFB/mUQRvI0HlNxlElRbaJ66hUDeULqZensb3AQ8rz7j61vB2L6wQmeAeXIAYBO74EHpOvO1tazI3wso6xRjXxB14cjlYPz1ilQpcdG4zODqDkUyBb8G7nH7rT1cY/34GhUQq/Bj1mcweOMAMnM782Cdja5ZfZqTamGN8gGKtw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Authentication-Results: infradead.org; dkim=none (message not signed)
+ header.d=none;infradead.org; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3114.namprd12.prod.outlook.com (2603:10b6:5:11e::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3391.19; Wed, 23 Sep
+ 2020 18:34:10 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3412.020; Wed, 23 Sep 2020
+ 18:34:10 +0000
+Date:   Wed, 23 Sep 2020 15:34:09 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Christoph Hellwig <hch@infradead.org>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Adit Ranadive <aditr@vmware.com>,
+        Ariel Elior <aelior@marvell.com>,
+        "Bernard Metzler" <bmt@zurich.ibm.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        "Dennis Dalessandro" <dennis.dalessandro@intel.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        "Gal Pressman" <galpress@amazon.com>,
+        Lijun Ou <oulijun@huawei.com>, <linux-rdma@vger.kernel.org>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        "Mike Marciniszyn" <mike.marciniszyn@intel.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        Nelson Escobar <neescoba@cisco.com>,
+        "Parav Pandit" <parav@nvidia.com>,
+        Parvi Kaustubhi <pkaustub@cisco.com>,
+        "Potnuri Bharat Teja" <bharat@chelsio.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Somnath Kotur <somnath.kotur@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>,
+        Weihang Li <liweihang@huawei.com>,
+        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>
+Subject: Re: [PATCH rdma-next] RDMA: Explicitly pass in the dma_device to
+ ib_register_device
+Message-ID: <20200923183409.GA9475@nvidia.com>
+References: <20200922082745.2149973-1-leon@kernel.org>
+ <20200923053840.GA4809@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20200923053840.GA4809@infradead.org>
+X-Originating-IP: [156.34.48.30]
+X-ClientProxiedBy: MN2PR15CA0048.namprd15.prod.outlook.com
+ (2603:10b6:208:237::17) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR15CA0048.namprd15.prod.outlook.com (2603:10b6:208:237::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20 via Frontend Transport; Wed, 23 Sep 2020 18:34:10 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kL9aj-0007WX-7p; Wed, 23 Sep 2020 15:34:09 -0300
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: eff38d3b-b318-41f6-861d-08d85fef4344
+X-MS-TrafficTypeDiagnostic: DM6PR12MB3114:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <DM6PR12MB3114F56D959A21F9F36723F5C2380@DM6PR12MB3114.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: nYj9+waQwzEr2O/Zui86icggFsE3zpflrkQE0MOOFXGArYvJ8TWDcvBJB6n5kepvn7ew3p/VToYvruucfUD4NYgXKVTuV/Kvzmi4nfk/C7P5cPdbTrnSaa7/m+UrIkgkiUEzZNXKy2KjvqvY99Swb7uaXRfFOBilYnFNXu3NWnPSsNXXccJyeMfObgst2Z4i4TYLyCV649C5cj5Z7qlvKv11nrc0XdKdmxKIBqr1cHjVnpYjpX4i45zECD58Ss4W5Hob4kjZVtj4uFoYSPEjtqpjmERmeGn0g1sv9nxTccJR4TGhOObYLkT3W9Wu3arLa9se6dVUiKOSCpqeFk/ugg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(346002)(39860400002)(366004)(396003)(136003)(478600001)(7416002)(83380400001)(33656002)(54906003)(36756003)(86362001)(26005)(8676002)(186003)(9746002)(426003)(2906002)(107886003)(66476007)(4326008)(9786002)(66946007)(2616005)(1076003)(66556008)(5660300002)(6916009)(316002)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: QWgBGxUGhC3X5+YL9QHg79/MpPr2+CMMsnrZiptgVhuotGKEHvKwKHKe6lVgTbESbvPT514gC9+J7cKW5y7sx5II8bWuN2EuXuLv3Amvhmv23fmeVmgOLfVjhmMjg/CGF83Rkj62o+OU9pSRNWrjjTVrOBqN+oEeYtpyJe+kwlsty3lnTSMwRuFkP1pm1DRBovkrFe7MxbR9pyjfnnEPj5/q6YF2oaxUVW/lgXieoChIJCELNUjM73C7HPvP5+VCr/jpFWlV9KziOYRvobdsToDzEmfay6MudAGqYEkz3PoceCXKEFzUg3vhzvPTbEPxQMd9R/3rfRwyehR0QRoCtUy1UkwJNZI4xUBpE33MaPfAn6UM44MdJgxgTHzCv1GM8JPp+J3r+wdfjZHWZ6JTL+Cx5sQuUMQwIv2/YzEIOpaPJKNmZrYOcyBEglyY+ALti1dG1eFNDW8OSmmhWoE2TbGf892mHRVdlmhRZKfEcSR1ZNocUt/ZiYAG9bFCNXkv3Qlil14hzlAHhhQVIzsOakZtofyL/2qDNuCrb8dt79KzoCrdIKFlWgEUte8ythRvieLfOFxWbzuDo+YSTi69zi5Rg805X+7nGqb+n0FvtP2MRz/Nhl6TWu6rQVegQ8DYuMBJwgfqL/AfOih4xo6dfQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: eff38d3b-b318-41f6-861d-08d85fef4344
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Sep 2020 18:34:10.6460
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HLiIaqxIrVeTLookEGvLxABUXUzRiMgTi8Te/Oed7nIbG96/yO/zZj1xjnd7wpWH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB3114
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1600886083; bh=1Mn0xyIlBFeWV1K7ty8godwy+x8+7EIicroz8BXWc/0=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:
+         Authentication-Results:Date:From:To:CC:Subject:Message-ID:
+         References:Content-Type:Content-Disposition:In-Reply-To:
+         X-Originating-IP:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-MS-PublicTrafficType:
+         X-MS-Office365-Filtering-Correlation-Id:X-MS-TrafficTypeDiagnostic:
+         X-MS-Exchange-Transport-Forked:X-Microsoft-Antispam-PRVS:
+         X-MS-Oob-TLC-OOBClassifiers:X-MS-Exchange-SenderADCheck:
+         X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+         X-Forefront-Antispam-Report:X-MS-Exchange-AntiSpam-MessageData:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+         X-MS-Exchange-CrossTenant-FromEntityHeader:
+         X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+         X-MS-Exchange-CrossTenant-UserPrincipalName:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=qSD08YzvemME/gatlrER0TFgVD+u6fpe4TgJb2NLSg2/+D472Xd9hyyhq0PVmbLrP
+         jMtLbGboQBZvefxEnyRI2lkiFX7k/BHZQSzGZ44mOYbmaujwaOwJGBLSgcWmsyIxpW
+         aIupApe6BTASGw9tHj7h23667+bETdA5RGX8w6a/e9ml2Q1phdsGYKYbOsrmsBKaHo
+         3GbZrz5Jib0lXouuUAr9d7IJqc5iB9quLcyhhz1wpZSo8jkblFCrFY+qpQWqEHT25S
+         sdpiHAY6Ul19B1SOZ+0UK46xn1LH4wXTGZqcCpFSstQgzWYUeESCIUWzM8UhLN4DJl
+         N8G3dSW5akCZA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Avihai Horon <avihaih@nvidia.com>
+On Wed, Sep 23, 2020 at 06:38:40AM +0100, Christoph Hellwig wrote:
+> > +static void setup_dma_device(struct ib_device *device,
+> > +			     struct device *dma_device)
+> >  {
+> > +	if (!dma_device) {
+> >  		/*
+> > +		 * If the caller does not provide a DMA capable device then the
+> > +		 * IB device will be used. In this case the caller should fully
+> > +		 * setup the ibdev for DMA. This usually means using
+> > +		 * dma_virt_ops.
+> >  		 */
+> > +#ifdef CONFIG_DMA_OPS
+> > +		if (WARN_ON(!device->dev.dma_ops))
+> > +			return;
+> > +#endif
+> 
+> dma ops are entirely optiona and NULL for the most common case
+> (direct mapping without an IOMMU).
 
-Separate IB_GID_TYPE_IB and IB_GID_TYPE_ROCE to two different values,
-so enum ib_gid_type will match the gid types of the new query GID table
-API which will be introduced in the following patches.
+This is the case where:
 
-This change in enum ib_gid_type requires to change also enum
-rdma_network_type by separating RDMA_NETWORK_IB and RDMA_NETWORK_ROCE_V1
-values.
+ +		dma_device = &device->dev;
 
-Signed-off-by: Avihai Horon <avihaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/cache.c        |  4 ++++
- drivers/infiniband/core/cma.c          |  4 ++++
- drivers/infiniband/core/cma_configfs.c |  9 +++++----
- drivers/infiniband/core/verbs.c        |  2 +-
- drivers/infiniband/hw/mlx5/cq.c        |  2 +-
- drivers/infiniband/hw/mlx5/main.c      |  4 ++--
- drivers/infiniband/hw/qedr/verbs.c     |  4 +++-
- include/rdma/ib_verbs.h                | 17 ++++++++++-------
- 8 files changed, 30 insertions(+), 16 deletions(-)
+device == struct ib_device we just allocated
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 6079f1f7e678..cf49ac0b0aa6 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -133,7 +133,11 @@ static void dispatch_gid_change_event(struct ib_device *ib_dev, u8 port)
- }
- 
- static const char * const gid_type_str[] = {
-+	/* IB/RoCE v1 value is set for IB_GID_TYPE_IB and IB_GID_TYPE_ROCE for
-+	 * user space compatibility reasons.
-+	 */
- 	[IB_GID_TYPE_IB]	= "IB/RoCE v1",
-+	[IB_GID_TYPE_ROCE]	= "IB/RoCE v1",
- 	[IB_GID_TYPE_ROCE_UDP_ENCAP]	= "RoCE v2",
- };
- 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index a3c97b875389..404bd6ea0908 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -304,6 +304,10 @@ int cma_set_default_gid_type(struct cma_device *cma_dev,
- 	if (!rdma_is_port_valid(cma_dev->device, port))
- 		return -EINVAL;
- 
-+	if (default_gid_type == IB_GID_TYPE_IB &&
-+	    rdma_protocol_roce_eth_encap(cma_dev->device, port))
-+		default_gid_type = IB_GID_TYPE_ROCE;
-+
- 	supported_gids = roce_gid_type_mask_support(cma_dev->device, port);
- 
- 	if (!(supported_gids & 1 << default_gid_type))
-diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-index 3c1e2ca564fe..7ec4af2ed87a 100644
---- a/drivers/infiniband/core/cma_configfs.c
-+++ b/drivers/infiniband/core/cma_configfs.c
-@@ -123,16 +123,17 @@ static ssize_t default_roce_mode_store(struct config_item *item,
- {
- 	struct cma_device *cma_dev;
- 	struct cma_dev_port_group *group;
--	int gid_type = ib_cache_gid_parse_type_str(buf);
-+	int gid_type;
- 	ssize_t ret;
- 
--	if (gid_type < 0)
--		return -EINVAL;
--
- 	ret = cma_configfs_params_get(item, &cma_dev, &group);
- 	if (ret)
- 		return ret;
- 
-+	gid_type = ib_cache_gid_parse_type_str(buf);
-+	if (gid_type < 0)
-+		return -EINVAL;
-+
- 	ret = cma_set_default_gid_type(cma_dev, group->port_num, gid_type);
- 
- 	cma_configfs_params_put(cma_dev);
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index f21353f3957d..9fe04bc15e5c 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -740,7 +740,7 @@ int ib_get_gids_from_rdma_hdr(const union rdma_network_hdr *hdr,
- 				       (struct in6_addr *)dgid);
- 		return 0;
- 	} else if (net_type == RDMA_NETWORK_IPV6 ||
--		   net_type == RDMA_NETWORK_IB) {
-+		   net_type == RDMA_NETWORK_IB || RDMA_NETWORK_ROCE_V1) {
- 		*dgid = hdr->ibgrh.dgid;
- 		*sgid = hdr->ibgrh.sgid;
- 		return 0;
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 0748a5daa2dd..3d4e02ae6628 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -255,7 +255,7 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 
- 	switch (roce_packet_type) {
- 	case MLX5_CQE_ROCE_L3_HEADER_TYPE_GRH:
--		wc->network_hdr_type = RDMA_NETWORK_IB;
-+		wc->network_hdr_type = RDMA_NETWORK_ROCE_V1;
- 		break;
- 	case MLX5_CQE_ROCE_L3_HEADER_TYPE_IPV6:
- 		wc->network_hdr_type = RDMA_NETWORK_IPV6;
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f81040a6626f..3ae681a6ae3b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -546,7 +546,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
- 			 unsigned int index, const union ib_gid *gid,
- 			 const struct ib_gid_attr *attr)
- {
--	enum ib_gid_type gid_type = IB_GID_TYPE_IB;
-+	enum ib_gid_type gid_type = IB_GID_TYPE_ROCE;
- 	u16 vlan_id = 0xffff;
- 	u8 roce_version = 0;
- 	u8 roce_l3_type = 0;
-@@ -561,7 +561,7 @@ static int set_roce_addr(struct mlx5_ib_dev *dev, u8 port_num,
- 	}
- 
- 	switch (gid_type) {
--	case IB_GID_TYPE_IB:
-+	case IB_GID_TYPE_ROCE:
- 		roce_version = MLX5_ROCE_VERSION_1;
- 		break;
- 	case IB_GID_TYPE_ROCE_UDP_ENCAP:
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 23559f1fe96e..a5d9215a0dc0 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1157,7 +1157,7 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
- 		SET_FIELD(qp_params->modify_flags,
- 			  QED_ROCE_MODIFY_QP_VALID_ROCE_MODE, 1);
- 		break;
--	case RDMA_NETWORK_IB:
-+	case RDMA_NETWORK_ROCE_V1:
- 		memcpy(&qp_params->sgid.bytes[0], &gid_attr->gid.raw[0],
- 		       sizeof(qp_params->sgid));
- 		memcpy(&qp_params->dgid.bytes[0],
-@@ -1177,6 +1177,8 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
- 			  QED_ROCE_MODIFY_QP_VALID_ROCE_MODE, 1);
- 		qp_params->roce_mode = ROCE_V2_IPV4;
- 		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	for (i = 0; i < 4; i++) {
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0396c6b979a1..ab104bc2b8e5 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -138,10 +138,9 @@ union ib_gid {
- extern union ib_gid zgid;
- 
- enum ib_gid_type {
--	/* If link layer is Ethernet, this is RoCE V1 */
- 	IB_GID_TYPE_IB        = 0,
--	IB_GID_TYPE_ROCE      = 0,
--	IB_GID_TYPE_ROCE_UDP_ENCAP = 1,
-+	IB_GID_TYPE_ROCE      = 1,
-+	IB_GID_TYPE_ROCE_UDP_ENCAP = 2,
- 	IB_GID_TYPE_SIZE
- };
- 
-@@ -180,7 +179,7 @@ rdma_node_get_transport(unsigned int node_type);
- 
- enum rdma_network_type {
- 	RDMA_NETWORK_IB,
--	RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
-+	RDMA_NETWORK_ROCE_V1,
- 	RDMA_NETWORK_IPV4,
- 	RDMA_NETWORK_IPV6
- };
-@@ -190,9 +189,10 @@ static inline enum ib_gid_type ib_network_to_gid_type(enum rdma_network_type net
- 	if (network_type == RDMA_NETWORK_IPV4 ||
- 	    network_type == RDMA_NETWORK_IPV6)
- 		return IB_GID_TYPE_ROCE_UDP_ENCAP;
--
--	/* IB_GID_TYPE_IB same as RDMA_NETWORK_ROCE_V1 */
--	return IB_GID_TYPE_IB;
-+	else if (network_type == RDMA_NETWORK_ROCE_V1)
-+		return IB_GID_TYPE_ROCE;
-+	else
-+		return IB_GID_TYPE_IB;
- }
- 
- static inline enum rdma_network_type
-@@ -201,6 +201,9 @@ rdma_gid_attr_network_type(const struct ib_gid_attr *attr)
- 	if (attr->gid_type == IB_GID_TYPE_IB)
- 		return RDMA_NETWORK_IB;
- 
-+	if (attr->gid_type == IB_GID_TYPE_ROCE)
-+		return RDMA_NETWORK_ROCE_V1;
-+
- 	if (ipv6_addr_v4mapped((struct in6_addr *)&attr->gid))
- 		return RDMA_NETWORK_IPV4;
- 	else
--- 
-2.26.2
+The only use of this configuration is to override the dma ops with
+dma_virt_ops, so drivers that don't do that are buggy. A ib_device
+itself cannot do DMA otherwise. This should probably be clarified to
+just fail if !CONIFG_DMA_OPS
 
+All other cases should point dma_device at some kind of DMA capable
+struct device like a pci_device, which can have a NULL ops.
+
+> > +	} else {
+> > +		device->dev.dma_parms = dma_device->dma_parms;
+> >  		/*
+> > +		 * Auto setup the segment size if a DMA device was passed in.
+> > +		 * The PCI core sets the maximum segment size to 64 KB. Increase
+> > +		 * this parameter to 2 GB.
+> >  		 */
+> > +		dma_set_max_seg_size(dma_device, SZ_2G);
+> 
+> You can't just inherity DMA properties like this this.  Please
+> fix all code that looks at the seg size to look at the DMA device.
+
+Inherit? This is overriding the PCI default of 64K to be 2G for RDMA
+devices.
+
+The closest thing RDMA has to segment size is the length of a IB
+scatter/gather WR element in verbs. This is 32 bits by spec.
+
+Even if a SGL > 32 bits was required the ULP should switch to use RDMA
+MRs instead of inline IB SG.
+
+So really there is no segment size limitation and the intention here
+is to just disable segment size at IOMMU layer.
+
+Since this is universal, by spec, not HW specific, it doesn't make
+much sense to put in the drivers.
+
+> Btw, where does the magic 2G come from?
+
+2G is the largest power of two that will fit in a struct
+scatterlist->length or the ib_sge->length.
+
+Jason
