@@ -2,113 +2,143 @@ Return-Path: <SRS0=cPpa=DA=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFDE7C4741F
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 15:22:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7465DC2D0A8
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 16:50:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AEE7023787
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 15:22:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=reintjes.nrw header.i=@reintjes.nrw header.b="mKq3yxzI"
+	by mail.kernel.org (Postfix) with ESMTP id 2E78520936
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Sep 2020 16:50:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600879822;
+	bh=6oFT3yqIM60YSBBhabwUJUzil0O8kbU7HRqvsfoe77A=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=ToDUnO9+500Lo4u3G4uk9LkPJZ7QJHjfVOPsEYZOCgtUWX/A57bip34BKawLFxcq5
+	 skD3ff/7IJtSjd0A54nXDfVXgeBRsOaCrFWCvMfWehqCORejkyc5xCKhvIZKJXuLVC
+	 yBD9ZitGLwKJ1z6OXefLCZOmyogFP6lIMS+IKjI4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726882AbgIWPWn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Sep 2020 11:22:43 -0400
-Received: from mo4-p01-ob.smtp.rzone.de ([85.215.255.54]:34512 "EHLO
-        mo4-p01-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726687AbgIWPWm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Sep 2020 11:22:42 -0400
-X-Greylist: delayed 713 seconds by postgrey-1.27 at vger.kernel.org; Wed, 23 Sep 2020 11:22:39 EDT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1600874558;
-        s=strato-dkim-0002; d=reintjes.nrw;
-        h=In-Reply-To:Date:Message-ID:From:References:Cc:To:Subject:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=R7hI6d/NmZuNcg1vUXN4expafaD5dS9k1NOlJgVsfQ0=;
-        b=mKq3yxzIBoK6eXKDjSaCRr3BwBIqpDKeJr75f5YQmPBPRRn9qdkRISKeudlw+eJUaN
-        i9j0YoD7Nd07ieGLh8UqSmYZ1Ccml4PGsZ2Mglopdz9Hz5rLCJkN670J1l7AKyk9w16x
-        a5x5cVcgZWQk6FXpa0G8mlW7WSJEKPFpozzrnE9Mqlay09jPyJDrOXyUKIYtt6nlhpnO
-        Iws66XTKRoaWIH3voDt0xHa2loKeKKkr2KuI9gRfjll43rW7LApn0Q1chdN5eLyO3daW
-        Z1KVrRhdU65Y8/6yfAJtnadI1+vhAkdCKhH0qGquacG5znElBXtRT3qPa76R5ygpIUbq
-        FhJQ==
-X-RZG-AUTH: ":IGUXYVP6Ne1lB7nQNv+YSUx4qaxF0YAcTeeZr8criwvl+4OoAsy1YB7b8FzONHo5ckdw3KGGkZZ/Zu8="
-X-RZG-CLASS-ID: mo00
-Received: from [192.168.0.198]
-        by smtp.strato.de (RZmta 46.10.7 DYNA|AUTH)
-        with ESMTPSA id Y04b60w8NFAYy22
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
-        (Client did not present a certificate);
-        Wed, 23 Sep 2020 17:10:34 +0200 (CEST)
-Subject: Re: [PATCH 00/14] drop double zeroing
-To:     Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-        Julia Lawall <Julia.Lawall@inria.fr>
-Cc:     linux-serial@vger.kernel.org, linux-scsi@vger.kernel.org,
-        target-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-block@vger.kernel.org,
-        Yossi Leybovich <sleybo@amazon.com>,
-        linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-pci@vger.kernel.org,
-        netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        rds-devel@oss.oracle.com
-References: <1600601186-7420-1-git-send-email-Julia.Lawall@inria.fr>
- <160070750168.56292.17961674601916397869.b4-ty@kernel.org>
-From:   Rolf Reintjes <lists2.rolf@reintjes.nrw>
-Message-ID: <c3b33526-936d-ffa4-c301-4d0485822be1@reintjes.nrw>
-Date:   Wed, 23 Sep 2020 17:10:33 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+        id S1726405AbgIWQuV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Sep 2020 12:50:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58512 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726381AbgIWQuV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 23 Sep 2020 12:50:21 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5484B20791;
+        Wed, 23 Sep 2020 16:50:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1600879821;
+        bh=6oFT3yqIM60YSBBhabwUJUzil0O8kbU7HRqvsfoe77A=;
+        h=From:To:Cc:Subject:Date:From;
+        b=GzLiAOdW+TC8+HJUOkIgC5MQTpVuykABH5awlJlFWoqSCOKLSCtm8T0AysZLEECrx
+         BgEZkfmqi8U2usBIqFrvhPtx0u45AZGrlD3rA/7ne7NNyGvbaYBN1h5ZUMi/swYLm2
+         suebdb4cqquJbQ27CnLjGXoKz7pUX03eVarFb8Mo=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Avihai Horon <avihaih@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Michal Kalderon <mkalderon@marvell.com>
+Subject: [PATCH rdma-next v3 0/4] Query GID table API
+Date:   Wed, 23 Sep 2020 19:50:11 +0300
+Message-Id: <20200923165015.2491894-1-leon@kernel.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-In-Reply-To: <160070750168.56292.17961674601916397869.b4-ty@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello Mark,
+From: Leon Romanovsky <leonro@nvidia.com>
 
-On 21.09.20 18:58, Mark Brown wrote:
-> On Sun, 20 Sep 2020 13:26:12 +0200, Julia Lawall wrote:
->> sg_init_table zeroes its first argument, so the allocation of that argument
->> doesn't have to.
-> 
-> Applied to
-> 
->     https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-next
-> 
-> Thanks!
+Changelog:
+v3:
+ * Returned back port validity check, because we are using port number
+ to check protocol type.
+ * Removed check that interface is up from rdma_read_gid_attr_ndev_rcu(),
+ without it, this API behaved differently from sysfs by not showing GIDs
+ for interfaces that in DOWN state. We will send followup patch in next
+ cycle to nullify GID in netdev_unregister event (not critical but better
+ to have).
+v2: https://lore.kernel.org/lkml/20200922082641.2149549-1-leon@kernel.org
+ * Embedded RoCE protocol type into rdma_read_gid_attr_ndev_rcu
+v1: https://lore.kernel.org/lkml/20200914111129.343651-1-leon@kernel.org
+ * Moved git_type logic to cma_set_default_gid_type - Patch #2
+ * Changed signature of rdma_query_gid_table - Patch #3
+ * Changed i to be unsigned - Patch #3
+ * Fixed multiplication overflow - Patch #4
+v0: https://lore.kernel.org/lkml/20200910142204.1309061-1-leon@kernel.org
 
-I do not understand which of the 14 patches you applied. Your mail 
-responds to the 00/14 mail.
+------------------------------------------------------------------------------
 
-Rolf
+From Avihai,
 
-> 
-> [1/1] spi/topcliff-pch: drop double zeroing
->        commit: ca03dba30f2b8ff45a2972c6691e4c96d8c52b3b
-> 
-> All being well this means that it will be integrated into the linux-next
-> tree (usually sometime in the next 24 hours) and sent to Linus during
-> the next merge window (or sooner if it is a bug fix), however if
-> problems are discovered then the patch may be dropped or reverted.
-> 
-> You may get further e-mails resulting from automated or manual testing
-> and review of the tree, please engage with people reporting problems and
-> send followup patches addressing any issues that are reported if needed.
-> 
-> If any updates are required or you are submitting further changes they
-> should be sent as incremental updates against current git, existing
-> patches will not be replaced.
-> 
-> Please add any relevant lists and maintainers to the CCs when replying
-> to this mail.
-> 
-> Thanks,
-> Mark
-> 
+When an application is not using RDMA CM and if it is using multiple RDMA
+devices with one or more RoCE ports, finding the right GID table entry is
+a long process.
+
+For example, with two RoCE dual-port devices in a system, when IP
+failover is used between two RoCE ports, searching a suitable GID
+entry for a given source IP, matching netdevice of given RoCEv1/v2 type
+requires iterating over all 4 ports * 256 entry GID table.
+
+Even though the best first match GID table for given criteria is used,
+when the matching entry is on the 4th port, it requires reading
+3 ports * 256 entries * 3 files (GID, netdev, type) = 2304 files.
+
+The GID table needs to be referred on every QP creation during IP
+failover on other netdevice of an RDMA device.
+
+In an alternative approach, a GID cache may be maintained and updated on
+GID change event was reported by the kernel. However, it comes with below
+two limitations:
+(a) Maintain a thread per application process instance to listen and update
+ the cache.
+(b) Without the thread, on cache miss event, query the GID table. Even in
+ this approach, if multiple processes are used, a GID cache needs to be
+ maintained on a per-process basis. With a large number of processes,
+ this method doesn't scale.
+
+Hence, we introduce this series of patches, which introduces an API to
+query the complete GID tables of an RDMA device, that returns all valid
+GID table entries.
+
+This is done through single ioctl, eliminating 2304 read, 2304 open and
+2304 close system calls to just a total of 2 calls (one for each device).
+
+While at it, we also introduce an API to query an individual GID entry
+over ioctl interface, which provides all GID attributes information.
+
+Thanks
+
+Avihai Horon (4):
+  RDMA/core: Change rdma_get_gid_attr returned error code
+  RDMA/core: Modify enum ib_gid_type and enum rdma_network_type
+  RDMA/core: Introduce new GID table query API
+  RDMA/uverbs: Expose the new GID query API to user space
+
+ drivers/infiniband/core/cache.c               |  79 ++++++-
+ drivers/infiniband/core/cma.c                 |   4 +
+ drivers/infiniband/core/cma_configfs.c        |   9 +-
+ drivers/infiniband/core/sysfs.c               |   3 +-
+ .../infiniband/core/uverbs_std_types_device.c | 196 +++++++++++++++++-
+ drivers/infiniband/core/verbs.c               |   2 +-
+ drivers/infiniband/hw/mlx5/cq.c               |   2 +-
+ drivers/infiniband/hw/mlx5/main.c             |   4 +-
+ drivers/infiniband/hw/qedr/verbs.c            |   4 +-
+ include/rdma/ib_cache.h                       |   3 +
+ include/rdma/ib_verbs.h                       |  19 +-
+ include/uapi/rdma/ib_user_ioctl_cmds.h        |  16 ++
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |  14 ++
+ 13 files changed, 332 insertions(+), 23 deletions(-)
+
+--
+2.26.2
 
