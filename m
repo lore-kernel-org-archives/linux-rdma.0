@@ -2,142 +2,108 @@ Return-Path: <SRS0=psLl=DC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 679B2C4363D
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Sep 2020 14:07:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06BE6C4727D
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Sep 2020 16:43:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3680E208A9
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Sep 2020 14:07:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B144E22B2D
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Sep 2020 16:43:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1601052223;
+	bh=vCavm+41tX+dRSaZvXie4KfHuLanChjfGVl1TGFbDho=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=R16dI7r1mzQBOYCKVz3cgGGWBlTol59gd+T4b/p23I8P+ZlAvpwOMLoZzTTwy17My
+	 2ts8xDWn8TL4ExVTQZz1m3EeJEeTU6eS5pOr9qZQriZIUa4Gt9Ha9sYVUdzW5TzqX3
+	 CTyDKBjkgbck+1AtGWKlfPRncRN3sbqj3HzuZ5tM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728753AbgIYOHv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Sep 2020 10:07:51 -0400
-Received: from mga11.intel.com ([192.55.52.93]:6570 "EHLO mga11.intel.com"
+        id S1729492AbgIYQnn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Sep 2020 12:43:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726990AbgIYOHu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 25 Sep 2020 10:07:50 -0400
-IronPort-SDR: fI89OUCxyn3dSZLCZkzWu8Pm72wtzZthr5BKvi/caeRd4/PJ0zNwOxrt28Ro00kZgswSSL8nZT
- 6kCh+kJJVzew==
-X-IronPort-AV: E=McAfee;i="6000,8403,9754"; a="158879207"
-X-IronPort-AV: E=Sophos;i="5.77,302,1596524400"; 
-   d="scan'208";a="158879207"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2020 06:54:45 -0700
-IronPort-SDR: dk03fEEi9qPyhqM7EwMAHy0s+gOrBDoBRLjKg62nh1DCt22erA2Hjz2fGiIdaCN+F1Vla5tS05
- r4RnbuAL/0xQ==
-X-IronPort-AV: E=Sophos;i="5.77,302,1596524400"; 
-   d="scan'208";a="455841547"
-Received: from mlevy2-mobl.ger.corp.intel.com (HELO [10.251.176.131]) ([10.251.176.131])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2020 06:54:41 -0700
-Subject: Re: [Intel-gfx] [PATCH rdma-next v3 1/2] lib/scatterlist: Add support
- in dynamic allocation of SG table from pages
-To:     Maor Gottlieb <maorg@nvidia.com>, Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>
-Cc:     Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>,
-        linux-rdma@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        Roland Scheidegger <sroland@vmware.com>,
-        dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>,
-        Maor Gottlieb <maorg@mellanox.com>
-References: <20200922083958.2150803-1-leon@kernel.org>
- <20200922083958.2150803-2-leon@kernel.org>
- <118a03ef-d160-e202-81cc-16c9c39359fc@linux.intel.com>
- <20200925071330.GA2280698@unreal> <20200925115544.GY9475@nvidia.com>
- <65ca566b-7a5e-620f-13a4-c59eb836345a@nvidia.com>
- <33942b10-8eef-9180-44c5-b7379b92b824@linux.intel.com>
- <9d69d68d-7868-609b-c703-dfe9fec93a0f@nvidia.com>
-From:   Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Organization: Intel Corporation UK Plc
-Message-ID: <45919218-9a73-e3e3-cc03-5255a227f341@linux.intel.com>
-Date:   Fri, 25 Sep 2020 14:54:38 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1729110AbgIYQnn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 25 Sep 2020 12:43:43 -0400
+Received: from embeddedor (187-162-31-110.static.axtel.net [187.162.31.110])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5867B2075F;
+        Fri, 25 Sep 2020 16:43:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1601052222;
+        bh=vCavm+41tX+dRSaZvXie4KfHuLanChjfGVl1TGFbDho=;
+        h=Date:From:To:Cc:Subject:From;
+        b=Zs81yYRt72eFESB9GdL18cG5D5L3wZXGBJm8A/A5BIWV6hFX9ROv9Ki/nHNuEdyMK
+         9MuMXSfaNoZxtRSkgdBYpUjDEWCQmttoWBmmpQP6H3oZElrY0YTD1cUpVFl4cCyZSx
+         Y1YoqSv1lcxMGntcYYbFALXaoxpQNvtZDQra9yhY=
+Date:   Fri, 25 Sep 2020 11:49:13 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Roi Dayan <roid@mellanox.com>, Vlad Buslov <vladbu@nvidia.com>,
+        Ariel Levkovich <lariel@mellanox.com>
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: [PATCH][next] net/mlx5e: Fix potential null pointer dereference
+Message-ID: <20200925164913.GA18472@embeddedor>
 MIME-Version: 1.0
-In-Reply-To: <9d69d68d-7868-609b-c703-dfe9fec93a0f@nvidia.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Calls to kzalloc() and kvzalloc() should be null-checked
+in order to avoid any potential failures. In this case,
+a potential null pointer dereference.
 
-On 25/09/2020 14:39, Maor Gottlieb wrote:
-> 
-> On 9/25/2020 3:33 PM, Tvrtko Ursulin wrote:
->>
->> On 25/09/2020 13:18, Maor Gottlieb wrote:
->>> On 9/25/2020 2:55 PM, Jason Gunthorpe wrote:
->>>> On Fri, Sep 25, 2020 at 10:13:30AM +0300, Leon Romanovsky wrote:
->>>>>>> diff --git a/tools/testing/scatterlist/main.c 
->>>>>>> b/tools/testing/scatterlist/main.c
->>>>>>> index 0a1464181226..4899359a31ac 100644
->>>>>>> +++ b/tools/testing/scatterlist/main.c
->>>>>>> @@ -55,14 +55,13 @@ int main(void)
->>>>>>>        for (i = 0, test = tests; test->expected_segments; test++, 
->>>>>>> i++) {
->>>>>>>            struct page *pages[MAX_PAGES];
->>>>>>>            struct sg_table st;
->>>>>>> -        int ret;
->>>>>>> +        struct scatterlist *sg;
->>>>>>>
->>>>>>>            set_pages(pages, test->pfn, test->num_pages);
->>>>>>>
->>>>>>> -        ret = __sg_alloc_table_from_pages(&st, pages, 
->>>>>>> test->num_pages,
->>>>>>> -                          0, test->size, test->max_seg,
->>>>>>> -                          GFP_KERNEL);
->>>>>>> -        assert(ret == test->alloc_ret);
->>>>>>> +        sg = __sg_alloc_table_from_pages(&st, pages, 
->>>>>>> test->num_pages, 0,
->>>>>>> +                test->size, test->max_seg, NULL, 0, GFP_KERNEL);
->>>>>>> +        assert(PTR_ERR_OR_ZERO(sg) == test->alloc_ret);
->>>>>> Some test coverage for relatively complex code would be very 
->>>>>> welcomed. Since
->>>>>> the testing framework is already there, even if it bit-rotted a 
->>>>>> bit, but
->>>>>> shouldn't be hard to fix.
->>>>>>
->>>>>> A few tests to check append/grow works as expected, in terms of 
->>>>>> how the end
->>>>>> table looks like given the initial state and some different page 
->>>>>> patterns
->>>>>> added to it. And both crossing and not crossing into sg chaining 
->>>>>> scenarios.
->>>>> This function is basic for all RDMA devices and we are pretty 
->>>>> confident
->>>>> that the old and new flows are tested thoroughly.
->>>> Well, since 0-day is reporting that __i915_gem_userptr_alloc_pages is
->>>> crashing on this, it probably does need some tests :\
->>>>
->>>> Jason
->>>
->>> It is crashing in the regular old flow which already tested.
->>> However, I will add more tests.
->>
->> Do you want to take some of the commits from 
->> git://people.freedesktop.org/~tursulin/drm-intel sgtest? It would be 
->> fine by me. I can clean up the commit messages if you want.
-> 
-> I will very appreciate it. Thanks
+Fix this by adding null checks for _parse_attr_ and _flow_
+right after allocation.
 
-I've pushed a branch with tidied commit messages and a bit re-ordered to 
-the same location. You can pull and include in your series:
+Addresses-Coverity-ID: 1497154 ("Dereference before null check")
+Fixes: c620b772152b ("net/mlx5: Refactor tc flow attributes structure")
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-  tools/testing/scatterlist: Rejuvenate bit-rotten test
-  tools/testing/scatterlist: Show errors in human readable form
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index f815b0c60a6c..fb27154bfddb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -4534,20 +4534,22 @@ mlx5e_alloc_flow(struct mlx5e_priv *priv, int attr_size,
+ 	struct mlx5e_tc_flow_parse_attr *parse_attr;
+ 	struct mlx5_flow_attr *attr;
+ 	struct mlx5e_tc_flow *flow;
+-	int out_index, err;
++	int err = -ENOMEM;
++	int out_index;
+ 
+ 	flow = kzalloc(sizeof(*flow), GFP_KERNEL);
+ 	parse_attr = kvzalloc(sizeof(*parse_attr), GFP_KERNEL);
++	if (!parse_attr || !flow)
++		goto err_free;
+ 
+ 	flow->flags = flow_flags;
+ 	flow->cookie = f->cookie;
+ 	flow->priv = priv;
+ 
+ 	attr = mlx5_alloc_flow_attr(get_flow_name_space(flow));
+-	if (!parse_attr || !flow || !attr) {
+-		err = -ENOMEM;
++	if (!attr)
+ 		goto err_free;
+-	}
++
+ 	flow->attr = attr;
+ 
+ 	for (out_index = 0; out_index < MLX5_MAX_FLOW_FWD_VPORTS; out_index++)
+-- 
+2.27.0
 
-And "test fixes for sg append" you can squash (minus the sg_table 
-zeroing) into your patch.
-
-If this plan does not work for you, I can send two of my patches to lkml 
-independently. What ever you prefer.
-
-Regards,
-
-Tvrtko
