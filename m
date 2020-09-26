@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BED3C2D0A8
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:20:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 179AEC2D0A8
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:20:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56874238E6
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:20:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D091B238E5
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:20:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601115603;
-	bh=e4eL9b682zXfm7H+m7ux/nNq+FhO4i6kzoFaXg5CC9Q=;
+	s=default; t=1601115606;
+	bh=PL2xp8X6X5lO1lQkIFOO3xqnGtw2N0eu/nq2CXmIl1Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=df5HMst21GhIQ3U1mn5k+63vbWaxERdIRstxCiFqQFFiperAu6ut3QR+hgte5XYv+
-	 Xu0dLz8KuzW4ryW/ljIrqkA/G+6sn1lQD7ZVOUnyHGXSNHubeU2mReP4llg4tDurXc
-	 hgt21uy0S4Q07iRUtXi7QyR3TT5jowrWeHSf1ruE=
+	b=YWtYDDacymXOLsCcbewgsyKXhRZkJq1gi1h0F0tjkvjxs7gp0Kg7qrXn51jyvZzBb
+	 nrp91UOob3Z8zmAPzwqsB+w9Z1SmPOxjybZ9J94hH7qKptwwczDIJdqQ8za+Cskt7e
+	 jl7O8L3rlyTBe/IiMThF9+zDiwJuU06wdh2+sUEI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726963AbgIZKUC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Sep 2020 06:20:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36328 "EHLO mail.kernel.org"
+        id S1726668AbgIZKUG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Sep 2020 06:20:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725208AbgIZKUC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 26 Sep 2020 06:20:02 -0400
+        id S1725208AbgIZKUG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 26 Sep 2020 06:20:06 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2342B238E5;
-        Sat, 26 Sep 2020 10:20:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AE8CB238E2;
+        Sat, 26 Sep 2020 10:20:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601115601;
-        bh=e4eL9b682zXfm7H+m7ux/nNq+FhO4i6kzoFaXg5CC9Q=;
+        s=default; t=1601115605;
+        bh=PL2xp8X6X5lO1lQkIFOO3xqnGtw2N0eu/nq2CXmIl1Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1OcHxi4uWrLrR4aI40x0e11NIExLDkxqymkvhg0aF4PUxPJxpvTaRYVf7ejgM0mcY
-         MVRytDajFHkMKHEIWJhjIDfo5GoKa3q96C2ISyrHZbC+rwHheElOs/RNGe1ukuVLbp
-         mdEcSKukdYiH/Pvhk1bL0gaCuVxRaGz2PqwVfd1s=
+        b=SV3ZnOu7v9qJhwaxlFiwJ/oPoIOzrlZrJsbU4R43sIrvYGT/9MomtrVwYwzpsGTJD
+         68vYEqjQOOnxD9EOefr0LQuWQ0eKFifmvDV/zbL5Gnfhe2pAOfLCb+egtZMY/Nze0S
+         /iB/wvg/vD8sT0eyIwNRzzI3eR/WUWx/WfYK5ceA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v3 2/9] RDMA/counter: Combine allocation and bind logic
-Date:   Sat, 26 Sep 2020 13:19:31 +0300
-Message-Id: <20200926101938.2964394-3-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
+        Mark Zhang <markz@nvidia.com>
+Subject: [PATCH rdma-next v3 7/9] RDMA/restrack: Support all QP types
+Date:   Sat, 26 Sep 2020 13:19:36 +0300
+Message-Id: <20200926101938.2964394-8-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200926101938.2964394-1-leon@kernel.org>
 References: <20200926101938.2964394-1-leon@kernel.org>
@@ -54,238 +55,181 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-RDMA counters are allocated and bounded to QP immediately after that.
-Only after this two step process they are really usable. By combining
-the logic, we are ensuring that once counter is returned to the caller,
-it will have everything set.
+The latest changes in restrack name handling allowed to simplify
+the QP creation code to support all types of QPs.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+For example XRC QP are presented with inbox rdmatool.
+
+[leonro@vm ~]$ ibv_xsrq_pingpong &
+[leonro@vm ~]$ rdma res show qp
+link ibp0s9/1 lqpn 0 type SMI state RTS sq-psn 0 comm [ib_core]
+link ibp0s9/1 lqpn 1 type GSI state RTS sq-psn 0 comm [ib_core]
+link ibp0s9/1 lqpn 7 type UD state RTS sq-psn 0 comm [mlx5_ib]
+link ibp0s9/1 lqpn 42 type XRC_TGT state INIT sq-psn 0 path-mig-state MIGRATED comm [ib_uverbs]
+link ibp0s9/1 lqpn 43 type XRC_INI state INIT sq-psn 0 path-mig-state MIGRATED pdn 197 pid 419 comm ibv_xsrq_pingpong
+
+Reviewed-by: Mark Zhang <markz@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/counters.c | 130 +++++++++++++----------------
- 1 file changed, 58 insertions(+), 72 deletions(-)
+ drivers/infiniband/core/core_priv.h           | 29 ++++++-------------
+ drivers/infiniband/core/uverbs_cmd.c          |  4 +--
+ drivers/infiniband/core/uverbs_std_types_qp.c |  4 +--
+ drivers/infiniband/core/verbs.c               | 11 +++----
+ include/rdma/ib_verbs.h                       | 10 +++++--
+ 5 files changed, 27 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index fa1a4a318fd7..e208cc6d3cb0 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -64,8 +64,40 @@ int rdma_counter_set_auto_mode(struct ib_device *dev, u8 port,
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 7f4bb09efab8..3962a54f9178 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -318,15 +318,12 @@ struct ib_device *ib_device_get_by_index(const struct net *net, u32 index);
+ void nldev_init(void);
+ void nldev_exit(void);
  
--static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
--					       enum rdma_nl_counter_mode mode)
-+static void auto_mode_init_counter(struct rdma_counter *counter,
-+				   const struct ib_qp *qp,
-+				   enum rdma_nl_counter_mask new_mask)
-+{
-+	struct auto_mode_param *param = &counter->mode.param;
-+
-+	counter->mode.mode = RDMA_COUNTER_MODE_AUTO;
-+	counter->mode.mask = new_mask;
-+
-+	if (new_mask & RDMA_COUNTER_MASK_QP_TYPE)
-+		param->qp_type = qp->qp_type;
-+}
-+
-+static int __rdma_counter_bind_qp(struct rdma_counter *counter,
-+				  struct ib_qp *qp)
-+{
-+	int ret;
-+
-+	if (qp->counter)
-+		return -EINVAL;
-+
-+	if (!qp->device->ops.counter_bind_qp)
-+		return -EOPNOTSUPP;
-+
-+	mutex_lock(&counter->lock);
-+	ret = qp->device->ops.counter_bind_qp(counter, qp);
-+	mutex_unlock(&counter->lock);
-+
-+	return ret;
-+}
-+
-+static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u8 port,
-+					   struct ib_qp *qp,
-+					   enum rdma_nl_counter_mode mode)
+-static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
+-					  struct ib_pd *pd,
+-					  struct ib_qp_init_attr *attr,
+-					  struct ib_udata *udata,
+-					  struct ib_uqp_object *uobj)
++static inline struct ib_qp *
++_ib_create_qp(struct ib_device *dev, struct ib_pd *pd,
++	      struct ib_qp_init_attr *attr, struct ib_udata *udata,
++	      struct ib_uqp_object *uobj, const char *caller)
  {
- 	struct rdma_port_counter *port_counter;
- 	struct rdma_counter *counter;
-@@ -88,11 +120,19 @@ static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
+-	enum ib_qp_type qp_type = attr->qp_type;
+ 	struct ib_qp *qp;
+-	bool is_xrc;
+ 	int ret;
  
- 	port_counter = &dev->port_data[port].port_counter;
- 	mutex_lock(&port_counter->lock);
--	if (mode == RDMA_COUNTER_MODE_MANUAL) {
-+	switch (mode) {
-+	case RDMA_COUNTER_MODE_MANUAL:
- 		ret = __counter_set_mode(&port_counter->mode,
- 					 RDMA_COUNTER_MODE_MANUAL, 0);
- 		if (ret)
- 			goto err_mode;
-+		break;
-+	case RDMA_COUNTER_MODE_AUTO:
-+		auto_mode_init_counter(counter, qp, port_counter->mode.mask);
-+		break;
-+	default:
-+		ret = -EOPNOTSUPP;
-+		goto err_mode;
- 	}
+ 	if (!dev->ops.create_qp)
+@@ -348,7 +345,6 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
+ 	qp->srq = attr->srq;
+ 	qp->rwq_ind_tbl = attr->rwq_ind_tbl;
+ 	qp->event_handler = attr->event_handler;
+-	qp->qp_type = attr->qp_type;
+ 	qp->port = attr->port_num;
  
- 	port_counter->num_counters++;
-@@ -102,6 +142,12 @@ static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
- 	kref_init(&counter->kref);
- 	mutex_init(&counter->lock);
+ 	atomic_set(&qp->usecnt, 0);
+@@ -357,18 +353,11 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
+ 	INIT_LIST_HEAD(&qp->sig_mrs);
  
-+	ret = __rdma_counter_bind_qp(counter, qp);
+ 	rdma_restrack_new(&qp->res, RDMA_RESTRACK_QP);
+-	/*
+-	 * We don't track XRC QPs for now, because they don't have PD
+-	 * and more importantly they are created internaly by driver,
+-	 * see mlx5 create_dev_resources() as an example.
+-	 */
+-	is_xrc = qp_type == IB_QPT_XRC_INI || qp_type == IB_QPT_XRC_TGT;
+-	if ((qp_type < IB_QPT_MAX && !is_xrc) || qp_type == IB_QPT_DRIVER) {
+-		rdma_restrack_parent_name(&qp->res, &pd->res);
+-		ret = rdma_restrack_add(&qp->res);
+-		if (ret)
+-			goto err;
+-	}
++	WARN_ONCE(!udata && !caller, "Missing kernel QP owner");
++	rdma_restrack_set_name(&qp->res, udata ? NULL : caller);
++	ret = rdma_restrack_add(&qp->res);
 +	if (ret)
-+		goto err_mode;
-+
-+	rdma_restrack_parent_name(&counter->res, &qp->res);
-+	rdma_restrack_add(&counter->res);
- 	return counter;
- 
- err_mode:
-@@ -132,19 +178,6 @@ static void rdma_counter_free(struct rdma_counter *counter)
- 	kfree(counter);
- }
- 
--static void auto_mode_init_counter(struct rdma_counter *counter,
--				   const struct ib_qp *qp,
--				   enum rdma_nl_counter_mask new_mask)
--{
--	struct auto_mode_param *param = &counter->mode.param;
--
--	counter->mode.mode = RDMA_COUNTER_MODE_AUTO;
--	counter->mode.mask = new_mask;
--
--	if (new_mask & RDMA_COUNTER_MASK_QP_TYPE)
--		param->qp_type = qp->qp_type;
--}
--
- static bool auto_mode_match(struct ib_qp *qp, struct rdma_counter *counter,
- 			    enum rdma_nl_counter_mask auto_mask)
- {
-@@ -161,24 +194,6 @@ static bool auto_mode_match(struct ib_qp *qp, struct rdma_counter *counter,
- 	return match;
- }
- 
--static int __rdma_counter_bind_qp(struct rdma_counter *counter,
--				  struct ib_qp *qp)
--{
--	int ret;
--
--	if (qp->counter)
--		return -EINVAL;
--
--	if (!qp->device->ops.counter_bind_qp)
--		return -EOPNOTSUPP;
--
--	mutex_lock(&counter->lock);
--	ret = qp->device->ops.counter_bind_qp(counter, qp);
--	mutex_unlock(&counter->lock);
--
--	return ret;
--}
--
- static int __rdma_counter_unbind_qp(struct ib_qp *qp)
- {
- 	struct rdma_counter *counter = qp->counter;
-@@ -247,13 +262,6 @@ static struct rdma_counter *rdma_get_counter_auto_mode(struct ib_qp *qp,
- 	return counter;
- }
- 
--static void rdma_counter_res_add(struct rdma_counter *counter,
--				 struct ib_qp *qp)
--{
--	rdma_restrack_parent_name(&counter->res, &qp->res);
--	rdma_restrack_add(&counter->res);
--}
--
- static void counter_release(struct kref *kref)
- {
- 	struct rdma_counter *counter;
-@@ -293,19 +301,9 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
- 			return ret;
- 		}
- 	} else {
--		counter = rdma_counter_alloc(dev, port, RDMA_COUNTER_MODE_AUTO);
-+		counter = alloc_and_bind(dev, port, qp, RDMA_COUNTER_MODE_AUTO);
- 		if (!counter)
- 			return -ENOMEM;
--
--		auto_mode_init_counter(counter, qp, port_counter->mode.mask);
--
--		ret = __rdma_counter_bind_qp(counter, qp);
--		if (ret) {
--			rdma_counter_free(counter);
--			return ret;
--		}
--
--		rdma_counter_res_add(counter, qp);
- 	}
- 
- 	return 0;
-@@ -419,15 +417,6 @@ static struct ib_qp *rdma_counter_get_qp(struct ib_device *dev, u32 qp_num)
- 	return NULL;
- }
- 
--static int rdma_counter_bind_qp_manual(struct rdma_counter *counter,
--				       struct ib_qp *qp)
--{
--	if ((counter->device != qp->device) || (counter->port != qp->port))
--		return -EINVAL;
--
--	return __rdma_counter_bind_qp(counter, qp);
--}
--
- static struct rdma_counter *rdma_get_counter_by_id(struct ib_device *dev,
- 						   u32 counter_id)
- {
-@@ -475,7 +464,12 @@ int rdma_counter_bind_qpn(struct ib_device *dev, u8 port,
- 		goto err_task;
- 	}
- 
--	ret = rdma_counter_bind_qp_manual(counter, qp);
-+	if ((counter->device != qp->device) || (counter->port != qp->port)) {
-+		ret = -EINVAL;
-+		goto err_task;
-+	}
-+
-+	ret = __rdma_counter_bind_qp(counter, qp);
- 	if (ret)
- 		goto err_task;
- 
-@@ -520,26 +514,18 @@ int rdma_counter_bind_qpn_alloc(struct ib_device *dev, u8 port,
- 		goto err;
- 	}
- 
--	counter = rdma_counter_alloc(dev, port, RDMA_COUNTER_MODE_MANUAL);
-+	counter = alloc_and_bind(dev, port, qp, RDMA_COUNTER_MODE_MANUAL);
- 	if (!counter) {
- 		ret = -ENOMEM;
- 		goto err;
- 	}
- 
--	ret = rdma_counter_bind_qp_manual(counter, qp);
--	if (ret)
--		goto err_bind;
--
- 	if (counter_id)
- 		*counter_id = counter->id;
- 
--	rdma_counter_res_add(counter, qp);
--
- 	rdma_restrack_put(&qp->res);
--	return ret;
-+	return 0;
- 
--err_bind:
--	rdma_counter_free(counter);
++		goto err;
+ 	return qp;
  err:
  	rdma_restrack_put(&qp->res);
- 	return ret;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 1ba961034514..408a1a4b67f6 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1407,8 +1407,8 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
+ 	if (cmd->qp_type == IB_QPT_XRC_TGT)
+ 		qp = ib_create_qp(pd, &attr);
+ 	else
+-		qp = _ib_create_qp(device, pd, &attr, &attrs->driver_udata,
+-				   obj);
++		qp = _ib_create_qp(device, pd, &attr, &attrs->driver_udata, obj,
++				   NULL);
+ 
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
+index 3bf8dcdfe7eb..198c3cd6f8b9 100644
+--- a/drivers/infiniband/core/uverbs_std_types_qp.c
++++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+@@ -251,8 +251,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
+ 	if (attr.qp_type == IB_QPT_XRC_TGT)
+ 		qp = ib_create_qp(pd, &attr);
+ 	else
+-		qp = _ib_create_qp(device, pd, &attr, &attrs->driver_udata,
+-				   obj);
++		qp = _ib_create_qp(device, pd, &attr, &attrs->driver_udata, obj,
++				   NULL);
+ 
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 3b9003941e59..f21353f3957d 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1195,7 +1195,7 @@ static struct ib_qp *create_xrc_qp_user(struct ib_qp *qp,
+ }
+ 
+ /**
+- * ib_create_qp - Creates a kernel QP associated with the specified protection
++ * ib_create_named_qp - Creates a kernel QP associated with the specified protection
+  *   domain.
+  * @pd: The protection domain associated with the QP.
+  * @qp_init_attr: A list of initial attributes required to create the
+@@ -1204,8 +1204,9 @@ static struct ib_qp *create_xrc_qp_user(struct ib_qp *qp,
+  *
+  * NOTE: for user qp use ib_create_qp_user with valid udata!
+  */
+-struct ib_qp *ib_create_qp(struct ib_pd *pd,
+-			   struct ib_qp_init_attr *qp_init_attr)
++struct ib_qp *ib_create_named_qp(struct ib_pd *pd,
++				 struct ib_qp_init_attr *qp_init_attr,
++				 const char *caller)
+ {
+ 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	struct ib_qp *qp;
+@@ -1230,7 +1231,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	if (qp_init_attr->cap.max_rdma_ctxs)
+ 		rdma_rw_init_qp(device, qp_init_attr);
+ 
+-	qp = _ib_create_qp(device, pd, qp_init_attr, NULL, NULL);
++	qp = _ib_create_qp(device, pd, qp_init_attr, NULL, NULL, caller);
+ 	if (IS_ERR(qp))
+ 		return qp;
+ 
+@@ -1296,7 +1297,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	return ERR_PTR(ret);
+ 
+ }
+-EXPORT_SYMBOL(ib_create_qp);
++EXPORT_SYMBOL(ib_create_named_qp);
+ 
+ static const struct {
+ 	int			valid;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index f18502984e6f..0396c6b979a1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3657,8 +3657,14 @@ static inline int ib_post_srq_recv(struct ib_srq *srq,
+ 					      bad_recv_wr ? : &dummy);
+ }
+ 
+-struct ib_qp *ib_create_qp(struct ib_pd *pd,
+-			   struct ib_qp_init_attr *qp_init_attr);
++struct ib_qp *ib_create_named_qp(struct ib_pd *pd,
++				 struct ib_qp_init_attr *qp_init_attr,
++				 const char *caller);
++static inline struct ib_qp *ib_create_qp(struct ib_pd *pd,
++					 struct ib_qp_init_attr *init_attr)
++{
++	return ib_create_named_qp(pd, init_attr, KBUILD_MODNAME);
++}
+ 
+ /**
+  * ib_modify_qp_with_udata - Modifies the attributes for the specified QP.
 -- 
 2.26.2
 
