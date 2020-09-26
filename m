@@ -2,61 +2,53 @@ Return-Path: <SRS0=WHZh=DD=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8984DC4741F
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:24:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 161D9C2D0A8
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:25:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47B33238E5
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:24:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB3942395C
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Sep 2020 10:25:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601115897;
-	bh=KYXM1fu+/JLJFhTLi6HBtGnx/721FDXBXemH/oBHzYU=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=DbHuvXylEK5ds2hp1g8ywUTYIhPsym5UxExBM5vjkO6Me7/fw3PnVQzi94gek6igg
-	 hZ11i1y9pL8GHU2AV9vhhW9ElbXEExMu8bGONWu9PxkIO0MCPDbQ3CX0YWHcCCEUIQ
-	 qz1MMraZLNG8smGn7ugp552UGlJV4yyH69993/oY=
+	s=default; t=1601115901;
+	bh=AI+HhxDNN92Y1ejtZm12K+fetv3G6EjzZwKxHeWickA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=QNfEjHzHpJxUVKL4hGMXZtCkBmtf+WY1bZiBzbhR68Ds5m5Q87uLiov/1j+VsfcNn
+	 m3meGI51GcCUuRGug6wtg1/rZ+s8pGI8dZh7KQ00F1egPcaPV4N+H5jTHcCLlQGqw1
+	 MSzC+61V4eFToYNMP04z5B6v0uVdOwlHUyBUCR0A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726183AbgIZKY4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Sep 2020 06:24:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39808 "EHLO mail.kernel.org"
+        id S1726412AbgIZKZA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Sep 2020 06:25:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725208AbgIZKY4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 26 Sep 2020 06:24:56 -0400
+        id S1727303AbgIZKZA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 26 Sep 2020 06:25:00 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 50A08238E2;
-        Sat, 26 Sep 2020 10:24:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 04EF0238E6;
+        Sat, 26 Sep 2020 10:24:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601115896;
-        bh=KYXM1fu+/JLJFhTLi6HBtGnx/721FDXBXemH/oBHzYU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=aEFH4OTBYJ93BNMNW/tidwxcG7g3zg5EwESREUg3gXbdYWcBMicHkCTAyMsS8LlPN
-         wpjtcER52xi3NiN0QdhEtwt+78qMuRYEip+k7KUR07y6DbvygYNFCWDXhqGwmIkYN3
-         MOhKf712k8YaV42ZB6oFIg3eDPaqds7y8Nvxwqp8=
+        s=default; t=1601115899;
+        bh=AI+HhxDNN92Y1ejtZm12K+fetv3G6EjzZwKxHeWickA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=dJv0oSRHRMZujONlTYVHBzaGFTlmq7m1ebhpl75gNDlk+Xub5dYYkTR0ySHwWHMX2
+         W17XIUjFTBGq7WvzQuF51N25z1F3C8VOElW1/E9lj2dLO0fIx0qJcPJEDbCPpRcXbQ
+         hbjjdzGi1IOqWpaUl26O3n251dxoUu4tVnbyQ36k=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        Ariel Elior <aelior@marvell.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Lijun Ou <oulijun@huawei.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Weihang Li <liweihang@huawei.com>,
-        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next v1 00/10] Prepare drivers to move QP allocation to ib_core
-Date:   Sat, 26 Sep 2020 13:24:40 +0300
-Message-Id: <20200926102450.2966017-1-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@mellanox.com>
+Subject: [PATCH rdma-next v1 02/10] RDMA/mlx5: Reuse existing fields in parent QP storage object
+Date:   Sat, 26 Sep 2020 13:24:42 +0300
+Message-Id: <20200926102450.2966017-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200926102450.2966017-1-leon@kernel.org>
+References: <20200926102450.2966017-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -65,52 +57,286 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Changelog:
-v1:
- * Rebased
- * Fixed commit messages.
- * Changed "fallthrough" to be "break".
-v0: https://lore.kernel.org/lkml/20200910140046.1306341-1-leon@kernel.org
--------------------------------------------------------------------------
+Remove duplication of mlx5_ib_qp and mlx5_ib_gsi_qp fields.
+This change returns the memory footprint of mlx5_ib QP to be
+as it was before embedding GSI QP.
 
-Hi,
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/gsi.c     | 66 +++++++++++++---------------
+ drivers/infiniband/hw/mlx5/main.c    |  6 +--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  4 --
+ 3 files changed, 31 insertions(+), 45 deletions(-)
 
-This series mainly changes mlx4, mlx5, and mthca drivers to future
-change of QP allocation scheme.
-
-The rdmavt driver will be sent separately.
-
-Thanks
-
-Leon Romanovsky (10):
-  RDMA/mlx5: Embed GSI QP into general mlx5_ib QP
-  RDMA/mlx5: Reuse existing fields in parent QP storage object
-  RDMA/mlx5: Change GSI QP to have same creation flow like other QPs
-  RDMA/mlx5: Delete not needed GSI QP signal QP type
-  RDMA/mlx4: Embed GSI QP into general mlx4_ib QP
-  RDMA/mlx4: Prepare QP allocation to remove from the driver
-  RDMA/core: Align write and ioctl checks of QP types
-  RDMA/drivers: Remove udata check from special QP
-  RDMA/mthca: Combine special QP struct with mthca QP
-  RDMA/i40iw: Remove intermediate pointer that points to the same struct
-
- drivers/infiniband/core/uverbs_cmd.c         |  17 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c      |  57 ++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    |   9 +-
- drivers/infiniband/hw/mlx4/mlx4_ib.h         |  25 +-
- drivers/infiniband/hw/mlx4/qp.c              | 299 ++++++++-----------
- drivers/infiniband/hw/mlx5/gsi.c             | 138 +++------
- drivers/infiniband/hw/mlx5/main.c            |   6 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |  28 +-
- drivers/infiniband/hw/mlx5/qp.c              |  50 ++--
- drivers/infiniband/hw/mthca/mthca_dev.h      |   2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |  17 +-
- drivers/infiniband/hw/mthca/mthca_provider.h |  27 +-
- drivers/infiniband/hw/mthca/mthca_qp.c       |  75 +++--
- drivers/infiniband/hw/qedr/verbs.c           |   8 -
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |   3 +-
- 15 files changed, 336 insertions(+), 425 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
+index 0b18558ba7b0..53c2b8a8c0fb 100644
+--- a/drivers/infiniband/hw/mlx5/gsi.c
++++ b/drivers/infiniband/hw/mlx5/gsi.c
+@@ -39,20 +39,16 @@ struct mlx5_ib_gsi_wr {
+ 	bool completed:1;
+ };
+ 
+-static struct mlx5_ib_gsi_qp *gsi_qp(struct ib_qp *qp)
+-{
+-	return container_of(qp, struct mlx5_ib_gsi_qp, ibqp);
+-}
+-
+ static bool mlx5_ib_deth_sqpn_cap(struct mlx5_ib_dev *dev)
+ {
+ 	return MLX5_CAP_GEN(dev->mdev, set_deth_sqpn);
+ }
+ 
+ /* Call with gsi->lock locked */
+-static void generate_completions(struct mlx5_ib_gsi_qp *gsi)
++static void generate_completions(struct mlx5_ib_qp *mqp)
+ {
+-	struct ib_cq *gsi_cq = gsi->ibqp.send_cq;
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
++	struct ib_cq *gsi_cq = mqp->ibqp.send_cq;
+ 	struct mlx5_ib_gsi_wr *wr;
+ 	u32 index;
+ 
+@@ -78,6 +74,7 @@ static void handle_single_completion(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct mlx5_ib_gsi_qp *gsi = cq->cq_context;
+ 	struct mlx5_ib_gsi_wr *wr =
+ 		container_of(wc->wr_cqe, struct mlx5_ib_gsi_wr, cqe);
++	struct mlx5_ib_qp *mqp = container_of(gsi, struct mlx5_ib_qp, gsi);
+ 	u64 wr_id;
+ 	unsigned long flags;
+ 
+@@ -86,9 +83,9 @@ static void handle_single_completion(struct ib_cq *cq, struct ib_wc *wc)
+ 	wr_id = wr->wc.wr_id;
+ 	wr->wc = *wc;
+ 	wr->wc.wr_id = wr_id;
+-	wr->wc.qp = &gsi->ibqp;
++	wr->wc.qp = &mqp->ibqp;
+ 
+-	generate_completions(gsi);
++	generate_completions(mqp);
+ 	spin_unlock_irqrestore(&gsi->lock, flags);
+ }
+ 
+@@ -130,7 +127,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+ 		goto err_free_tx;
+ 	}
+ 
+-	mutex_init(&gsi->mutex);
++	mutex_init(&mqp->mutex);
+ 
+ 	mutex_lock(&dev->devr.mutex);
+ 
+@@ -145,7 +142,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+ 
+ 	gsi->cap = init_attr->cap;
+ 	gsi->sq_sig_type = init_attr->sq_sig_type;
+-	gsi->ibqp.qp_num = 1;
++	mqp->ibqp.qp_num = 1;
+ 	gsi->port_num = port_num;
+ 
+ 	gsi->cq = ib_alloc_cq(pd->device, gsi, init_attr->cap.max_send_wr, 0,
+@@ -188,7 +185,7 @@ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+ 
+ 	mutex_unlock(&dev->devr.mutex);
+ 
+-	return &gsi->ibqp;
++	return &mqp->ibqp;
+ 
+ err_destroy_cq:
+ 	ib_free_cq(gsi->cq);
+@@ -362,56 +359,54 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
+ 
+ static void setup_qps(struct mlx5_ib_gsi_qp *gsi)
+ {
++	struct mlx5_ib_dev *dev = to_mdev(gsi->rx_qp->device);
+ 	u16 qp_index;
+ 
++	mutex_lock(&dev->devr.mutex);
+ 	for (qp_index = 0; qp_index < gsi->num_qps; ++qp_index)
+ 		setup_qp(gsi, qp_index);
++	mutex_unlock(&dev->devr.mutex);
+ }
+ 
+ int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
+ 			  int attr_mask)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
+-	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
+ 	int ret;
+ 
+ 	mlx5_ib_dbg(dev, "modifying GSI QP to state %d\n", attr->qp_state);
+ 
+-	mutex_lock(&gsi->mutex);
+ 	ret = ib_modify_qp(gsi->rx_qp, attr, attr_mask);
+ 	if (ret) {
+ 		mlx5_ib_warn(dev, "unable to modify GSI rx QP: %d\n", ret);
+-		goto unlock;
++		return ret;
+ 	}
+ 
+ 	if (to_mqp(gsi->rx_qp)->state == IB_QPS_RTS)
+ 		setup_qps(gsi);
+-
+-unlock:
+-	mutex_unlock(&gsi->mutex);
+-
+-	return ret;
++	return 0;
+ }
+ 
+ int mlx5_ib_gsi_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
+ 			 int qp_attr_mask,
+ 			 struct ib_qp_init_attr *qp_init_attr)
+ {
+-	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
+ 	int ret;
+ 
+-	mutex_lock(&gsi->mutex);
+ 	ret = ib_query_qp(gsi->rx_qp, qp_attr, qp_attr_mask, qp_init_attr);
+ 	qp_init_attr->cap = gsi->cap;
+-	mutex_unlock(&gsi->mutex);
+-
+ 	return ret;
+ }
+ 
+ /* Call with gsi->lock locked */
+-static int mlx5_ib_add_outstanding_wr(struct mlx5_ib_gsi_qp *gsi,
++static int mlx5_ib_add_outstanding_wr(struct mlx5_ib_qp *mqp,
+ 				      struct ib_ud_wr *wr, struct ib_wc *wc)
+ {
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
+ 	struct mlx5_ib_dev *dev = to_mdev(gsi->rx_qp->device);
+ 	struct mlx5_ib_gsi_wr *gsi_wr;
+ 
+@@ -440,22 +435,21 @@ static int mlx5_ib_add_outstanding_wr(struct mlx5_ib_gsi_qp *gsi,
+ }
+ 
+ /* Call with gsi->lock locked */
+-static int mlx5_ib_gsi_silent_drop(struct mlx5_ib_gsi_qp *gsi,
+-				    struct ib_ud_wr *wr)
++static int mlx5_ib_gsi_silent_drop(struct mlx5_ib_qp *mqp, struct ib_ud_wr *wr)
+ {
+ 	struct ib_wc wc = {
+ 		{ .wr_id = wr->wr.wr_id },
+ 		.status = IB_WC_SUCCESS,
+ 		.opcode = IB_WC_SEND,
+-		.qp = &gsi->ibqp,
++		.qp = &mqp->ibqp,
+ 	};
+ 	int ret;
+ 
+-	ret = mlx5_ib_add_outstanding_wr(gsi, wr, &wc);
++	ret = mlx5_ib_add_outstanding_wr(mqp, wr, &wc);
+ 	if (ret)
+ 		return ret;
+ 
+-	generate_completions(gsi);
++	generate_completions(mqp);
+ 
+ 	return 0;
+ }
+@@ -482,7 +476,8 @@ static struct ib_qp *get_tx_qp(struct mlx5_ib_gsi_qp *gsi, struct ib_ud_wr *wr)
+ int mlx5_ib_gsi_post_send(struct ib_qp *qp, const struct ib_send_wr *wr,
+ 			  const struct ib_send_wr **bad_wr)
+ {
+-	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
+ 	struct ib_qp *tx_qp;
+ 	unsigned long flags;
+ 	int ret;
+@@ -495,14 +490,14 @@ int mlx5_ib_gsi_post_send(struct ib_qp *qp, const struct ib_send_wr *wr,
+ 		spin_lock_irqsave(&gsi->lock, flags);
+ 		tx_qp = get_tx_qp(gsi, &cur_wr);
+ 		if (!tx_qp) {
+-			ret = mlx5_ib_gsi_silent_drop(gsi, &cur_wr);
++			ret = mlx5_ib_gsi_silent_drop(mqp, &cur_wr);
+ 			if (ret)
+ 				goto err;
+ 			spin_unlock_irqrestore(&gsi->lock, flags);
+ 			continue;
+ 		}
+ 
+-		ret = mlx5_ib_add_outstanding_wr(gsi, &cur_wr, NULL);
++		ret = mlx5_ib_add_outstanding_wr(mqp, &cur_wr, NULL);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -526,7 +521,8 @@ int mlx5_ib_gsi_post_send(struct ib_qp *qp, const struct ib_send_wr *wr,
+ int mlx5_ib_gsi_post_recv(struct ib_qp *qp, const struct ib_recv_wr *wr,
+ 			  const struct ib_recv_wr **bad_wr)
+ {
+-	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
+ 
+ 	return ib_post_recv(gsi->rx_qp, wr, bad_wr);
+ }
+@@ -536,7 +532,5 @@ void mlx5_ib_gsi_pkey_change(struct mlx5_ib_gsi_qp *gsi)
+ 	if (!gsi)
+ 		return;
+ 
+-	mutex_lock(&gsi->mutex);
+ 	setup_qps(gsi);
+-	mutex_unlock(&gsi->mutex);
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c4f1152962e9..f81040a6626f 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2716,9 +2716,7 @@ static void pkey_change_handler(struct work_struct *work)
+ 		container_of(work, struct mlx5_ib_port_resources,
+ 			     pkey_change_work);
+ 
+-	mutex_lock(&ports->devr->mutex);
+ 	mlx5_ib_gsi_pkey_change(ports->gsi);
+-	mutex_unlock(&ports->devr->mutex);
+ }
+ 
+ static void mlx5_ib_handle_internal_error(struct mlx5_ib_dev *ibdev)
+@@ -3144,11 +3142,9 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+ 	atomic_inc(&devr->p0->usecnt);
+ 	atomic_set(&devr->s1->usecnt, 0);
+ 
+-	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port) {
++	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
+ 		INIT_WORK(&devr->ports[port].pkey_change_work,
+ 			  pkey_change_handler);
+-		devr->ports[port].devr = devr;
+-	}
+ 
+ 	return 0;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 384590d8402c..a70cc4a24b7c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -385,13 +385,10 @@ struct mlx5_ib_dct {
+ };
+ 
+ struct mlx5_ib_gsi_qp {
+-	struct ib_qp ibqp;
+ 	struct ib_qp *rx_qp;
+ 	u8 port_num;
+ 	struct ib_qp_cap cap;
+ 	enum ib_sig_type sq_sig_type;
+-	/* Serialize qp state modifications */
+-	struct mutex mutex;
+ 	struct ib_cq *cq;
+ 	struct mlx5_ib_gsi_wr *outstanding_wrs;
+ 	u32 outstanding_pi, outstanding_ci;
+@@ -715,7 +712,6 @@ struct mlx5_mr_cache {
+ };
+ 
+ struct mlx5_ib_port_resources {
+-	struct mlx5_ib_resources *devr;
+ 	struct mlx5_ib_gsi_qp *gsi;
+ 	struct work_struct pkey_change_work;
+ };
+-- 
 2.26.2
 
