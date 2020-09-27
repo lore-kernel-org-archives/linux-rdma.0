@@ -8,56 +8,56 @@ X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E57C4741F
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 11:33:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A57EC4346E
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 11:33:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B3ED23977
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 11:33:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C906221EC
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 11:33:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nW546U5D"
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GNTMvVNI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726376AbgI0LdT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Sep 2020 07:33:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45694 "EHLO
+        id S1726445AbgI0Ld0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Sep 2020 07:33:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726196AbgI0LdO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 27 Sep 2020 07:33:14 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA934C0613CE;
-        Sun, 27 Sep 2020 04:33:13 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id e11so2484403wme.0;
-        Sun, 27 Sep 2020 04:33:13 -0700 (PDT)
+        with ESMTP id S1726440AbgI0LdX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 27 Sep 2020 07:33:23 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A08CC0613D3;
+        Sun, 27 Sep 2020 04:33:23 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id x14so8567593wrl.12;
+        Sun, 27 Sep 2020 04:33:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=U6g2ZpAIrDanv/8riCJB/j/6qbsRd6ES2Pscw/yj6fg=;
-        b=nW546U5DnV7NuzRNb+NJAvl90TJLXZXZtRNHJhblKbnHceA+P5kFpHQUOwW+LeTgA+
-         +jocm3T5ZdgFYEyEum8PrhaVtMjTADnYXEbGBh2bdN6gXruujYPYRS5GCgzufYtXZiCU
-         hpIMCwAT8qKviYSLuJKTT/3zxDXnagYvVBn9T0ZEZlivNWJ/+Z8Y8mqmPZ4c+p47kd6Q
-         ewXHyWBFEEhHUHUxY5dOPZ/HU4pMRX0YgKaVt8fNGKhjDNSLt6zHfI3bilZE1yQEXE37
-         cgvnnUsjw8Z8GPfLLYRI6Dvfz79GsNqh88+rgDqxYJmhrPv+Z7kUrOxlohMkU5dhCYLF
-         6qqA==
+        bh=0SaoC8kG8C3/x0IiW1U1E/6eFnvfrg3HY2k89yqprS0=;
+        b=GNTMvVNIIJGVkMvMl8sdVQ+i0xAZayQussBef54oU8jeNjR7ls9MXmCis8muScpmhq
+         Y0Z2y4/CjRjQK6pIPWFs/2PQLM2rcWc/Hi8gNiwUrAvBiQwkkimL+i6wFe+kuJRTGmg6
+         4U6vujGH/IEBJL6CS/FnW7QA3DJ2XOiPS7dVZmxTzGkGRO0leoyC/UI7f8N6l4KTHCN6
+         yrkSZYU5OUTe1HDJ8p5ZKb2OYLP4qLTomlsbI6ZNUsjWl6BfwZiACJlPXu8yDYk+ipcF
+         dvg/NKDxIrIZIp9OufmasO4FCKKYC1VfBgI2tCyPvTsryVJm/6QwIyDRrO+V58u2/bVm
+         lFMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=U6g2ZpAIrDanv/8riCJB/j/6qbsRd6ES2Pscw/yj6fg=;
-        b=C33NdYtcCgSmdkQKoLXbcUVa8+13bZeYDONifG9+qeejFLc+6yzM//8ON+2qJ+LXws
-         oIfRhKSlkKW2cpD+ppCupYJ0yjA9fJAEApjpMueMHMdf36WxpQD2KKbSPuDguDDufBmp
-         o8LN+5HPlKivJcb5FYA6MLZhdq2cO3vAt5gbBdKv1VpZ9yVTcXrxzpQz/3E37wyz3wNg
-         fSfAShGGmOMTj4F2QBVUk5A/8mYpyV64p8HfR1neWhzZsfNeF0ZaOogTfUnDZuSj+BuW
-         EUhihJVYyczbsUEU7XrcfKebCrlmOpgMDUmRdUQRRyyoKPcvis57us2rkqriorYkUH+2
-         t3iA==
-X-Gm-Message-State: AOAM530lGZhHAufbyF2ME5CjbbVdZp4W9yn3s7GR76A6KkHCVvr8ZsKY
-        URE7tlkDZGBS4E1MQhSJlTU=
-X-Google-Smtp-Source: ABdhPJypDSYyT31lI6wdsV+KduxXbPlof26ggCkPYgvAtZ8pp2O0GuiGieJQ0ng0whwWsI6NNDlsSg==
-X-Received: by 2002:a05:600c:210c:: with SMTP id u12mr7121692wml.185.1601206392580;
-        Sun, 27 Sep 2020 04:33:12 -0700 (PDT)
+        bh=0SaoC8kG8C3/x0IiW1U1E/6eFnvfrg3HY2k89yqprS0=;
+        b=D6KhVa57J8WVv1gInEQkSS3z4JHYVpJFTyUxzADUtOKObYBPnv8WLS04IvUdqH3xpR
+         Vh8gTg8nNQoN00bXW3AO9hSQvOM+d87YGCFyXzZO2+KWwDELB+55FBpM1GtQH8XCIQKm
+         13pKS56axlQ1qPbiDQ635Ugb1Ei5KyOqges6qsb9nRUEPMqQCLFc531Ed7DqczeQmv8o
+         eSFfNcME1TU0ko0guURH2JdMQDegu77Z5cLRYo3nwOgHbqs4WW4Blh3pWu43NpEkF4lb
+         FPU4jsW5oKldl256pStQ2hMqOBZ+yzkQXx5iVcJND/P2r/2Ms8th8FpC6PZvZy1vr1LT
+         GMNg==
+X-Gm-Message-State: AOAM530boEZOZ3G7FKiSGwLU92NbfKoxvEpvnA5G2tFMrFbdFV3hSIpu
+        d2gXdfjSKS8fu0uD+AtaHuE=
+X-Google-Smtp-Source: ABdhPJyi7ecSTXBvW2qpOwmSJeg3xZWDMWJ0EgIQZNtnvvLKzklASMrH8x44OfKNosYNIlHpNLFkDg==
+X-Received: by 2002:adf:f78c:: with SMTP id q12mr13868290wrp.6.1601206401830;
+        Sun, 27 Sep 2020 04:33:21 -0700 (PDT)
 Received: from localhost.localdomain (cpc83661-brig20-2-0-cust443.3-3.cable.virginm.net. [82.28.105.188])
-        by smtp.gmail.com with ESMTPSA id d83sm5671565wmf.23.2020.09.27.04.33.11
+        by smtp.gmail.com with ESMTPSA id d83sm5671565wmf.23.2020.09.27.04.33.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Sep 2020 04:33:12 -0700 (PDT)
+        Sun, 27 Sep 2020 04:33:21 -0700 (PDT)
 From:   Alex Dewar <alex.dewar90@gmail.com>
 Cc:     Alex Dewar <alex.dewar90@gmail.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
@@ -65,9 +65,9 @@ Cc:     Alex Dewar <alex.dewar90@gmail.com>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] net/mlx5e: Clean up error handling in mlx5e_alloc_flow()
-Date:   Sun, 27 Sep 2020 12:32:52 +0100
-Message-Id: <20200927113254.362480-2-alex.dewar90@gmail.com>
+Subject: [PATCH 1/3] net/mlx5e: Fix possible null pointer dereference
+Date:   Sun, 27 Sep 2020 12:32:54 +0100
+Message-Id: <20200927113254.362480-4-alex.dewar90@gmail.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20200927113254.362480-1-alex.dewar90@gmail.com>
 References: <20200927113254.362480-1-alex.dewar90@gmail.com>
@@ -78,65 +78,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The variable flow is used after being allocated but before being
-null-checked, which will cause a null pointer dereference if the
-allocation failed. Fix this and tidy up the error-checking logic in this
-function.
+In mlx5e_tc_unoffload_from_slow_path() a null check is performed for the
+variable slow_attr and a warning is issued if it is null. However,
+slow_attr is used later on in the function regardless. Fix this by
+returning if slow_attr is null.
 
-Addresses-Coverity: CID 1497154: Null pointer dereferences (REVERSE_INULL)
+Addresses-Coverity: CID 1497163: Null pointer dereferences (FORWARD_NULL)
 Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/en_tc.c   | 20 ++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index b3c57b984a2a..ed308407be6f 100644
+index f815b0c60a6c..b3c57b984a2a 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -4536,20 +4536,22 @@ mlx5e_alloc_flow(struct mlx5e_priv *priv, int attr_size,
- 	struct mlx5e_tc_flow_parse_attr *parse_attr;
- 	struct mlx5_flow_attr *attr;
- 	struct mlx5e_tc_flow *flow;
--	int out_index, err;
-+	int out_index;
+@@ -1238,8 +1238,10 @@ mlx5e_tc_unoffload_from_slow_path(struct mlx5_eswitch *esw,
+ 	struct mlx5_flow_attr *slow_attr;
  
- 	flow = kzalloc(sizeof(*flow), GFP_KERNEL);
-+	if (!flow)
-+		return -ENOMEM;
- 	parse_attr = kvzalloc(sizeof(*parse_attr), GFP_KERNEL);
-+	if (!parse_attr)
-+		goto err_free_flow;
+ 	slow_attr = mlx5_alloc_flow_attr(MLX5_FLOW_NAMESPACE_FDB);
+-	if (!slow_attr)
++	if (!slow_attr) {
+ 		mlx5_core_warn(flow->priv->mdev, "Unable to unoffload slow path rule\n");
++		return;
++	}
  
- 	flow->flags = flow_flags;
- 	flow->cookie = f->cookie;
- 	flow->priv = priv;
- 
- 	attr = mlx5_alloc_flow_attr(get_flow_name_space(flow));
--	if (!parse_attr || !flow || !attr) {
--		err = -ENOMEM;
--		goto err_free;
--	}
-+	if (!attr)
-+		goto err_free_parse_attr;
- 	flow->attr = attr;
- 
- 	for (out_index = 0; out_index < MLX5_MAX_FLOW_FWD_VPORTS; out_index++)
-@@ -4564,11 +4566,11 @@ mlx5e_alloc_flow(struct mlx5e_priv *priv, int attr_size,
- 
- 	return 0;
- 
--err_free:
--	kfree(flow);
-+err_free_parse_attr:
- 	kvfree(parse_attr);
--	kfree(attr);
--	return err;
-+err_free_flow:
-+	kfree(flow);
-+	return -ENOMEM;
- }
- 
- static void
+ 	memcpy(slow_attr, flow->attr, ESW_FLOW_ATTR_SZ);
+ 	slow_attr->action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
 -- 
 2.28.0
 
