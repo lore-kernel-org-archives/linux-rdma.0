@@ -2,153 +2,112 @@ Return-Path: <SRS0=8YF6=DE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B9C8C4727F
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 06:47:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83665C4727F
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 09:33:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4AD86239EB
-	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 06:47:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601189234;
-	bh=m2a9Oz2DB63lwgxQQj+FGgp6ecAxvfnEpmZRjOKwjzo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=yTq8HfgAjScR6/sfhXCP3fo8o9N1HhVYnPAxz4yp93gTgJNA7i11BzIyiCDl4ir6P
-	 M37f2Yx/hCSkH/SZcM0kcWBpDe5zMgYZ8l0QfXrO2S/zKv10svAGvNnAF4Vve15NvV
-	 yPoGDdxK/uyOxiHrEt0PLsmlSEQga7YyWDbfs0QI=
+	by mail.kernel.org (Postfix) with ESMTP id 4F92823998
+	for <linux-rdma@archiver.kernel.org>; Sun, 27 Sep 2020 09:33:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730433AbgI0GrK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 27 Sep 2020 02:47:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38816 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730425AbgI0GrH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 27 Sep 2020 02:47:07 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 41E7F23A51;
-        Sun, 27 Sep 2020 06:47:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601189227;
-        bh=m2a9Oz2DB63lwgxQQj+FGgp6ecAxvfnEpmZRjOKwjzo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nVGrLlOZntNclCIAhTNx9fGbNC5GNHwLw0vsJ3pyWAOXJ5yl6VMNyH/yknQgbJ3vM
-         ju+3ChxnMHuEEqqHFg0Ec7IlyLPXiCkmMeknkQRe3eRITITMOQYKPH82iy/Qs41MR7
-         dcMILQqHsJCYv5AagArelmJcAJph2HRuIfbF3jVk=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@linux.ie>,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Roland Scheidegger <sroland@vmware.com>,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>
-Subject: [PATCH rdma-next v4 3/4] tools/testing/scatterlist: Show errors in human readable form
-Date:   Sun, 27 Sep 2020 09:46:46 +0300
-Message-Id: <20200927064647.3106737-4-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200927064647.3106737-1-leon@kernel.org>
-References: <20200927064647.3106737-1-leon@kernel.org>
+        id S1726252AbgI0JdM convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 27 Sep 2020 05:33:12 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3561 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726244AbgI0JdM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 27 Sep 2020 05:33:12 -0400
+Received: from DGGEMM403-HUB.china.huawei.com (unknown [172.30.72.55])
+        by Forcepoint Email with ESMTP id 2B7D9EF20CFBC88351D4;
+        Sun, 27 Sep 2020 17:33:10 +0800 (CST)
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ DGGEMM403-HUB.china.huawei.com (10.3.20.211) with Microsoft SMTP Server (TLS)
+ id 14.3.487.0; Sun, 27 Sep 2020 17:33:09 +0800
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.1913.5; Sun, 27 Sep 2020 17:33:09 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.1913.007;
+ Sun, 27 Sep 2020 17:33:09 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH for-next] RDMA/hns: Support owner mode doorbell
+Thread-Topic: [PATCH for-next] RDMA/hns: Support owner mode doorbell
+Thread-Index: AQHWkxVgpY7CzIZB4EWLV6O1KLIoKA==
+Date:   Sun, 27 Sep 2020 09:33:09 +0000
+Message-ID: <3dba4d0d025144bfbe2fc7a67705f49b@huawei.com>
+References: <1601022214-56412-1-git-send-email-liweihang@huawei.com>
+ <20200927063004.GG2280698@unreal>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+On 2020/9/27 14:30, Leon Romanovsky wrote:
+> On Fri, Sep 25, 2020 at 04:23:34PM +0800, Weihang Li wrote:
+>> From: Lang Cheng <chenglang@huawei.com>
+>>
+>> The doorbell needs to store PI information into QPC, so the RoCEE should
+>> wait for the results of storing, that is, it needs two bus operations to
+>> complete a doorbell. When ROCEE is in SDI mode, multiple doorbells may be
+>> interlocked because the RoCEE can only handle bus operations serially. So a
+>> flag to mark if HIP09 is working in SDI mode is added. When the SDI flag is
+>> set, the ROCEE will ignore the PI information of the doorbell, continue to
+>> fetch wqe and verify its validity by it's owner_bit.
+>>
+>> Signed-off-by: Lang Cheng <chenglang@huawei.com>
+>> Signed-off-by: Weihang Li <liweihang@huawei.com>
+>> ---
+>>  drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++++-
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 28 ++++++++++++++++++++++------
+>>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  3 +++
+>>  3 files changed, 29 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> index a8183ef..517c127 100644
+>> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> @@ -137,9 +137,10 @@ enum {
+>>  	SERV_TYPE_UD,
+>>  };
+>>
+>> -enum {
+>> +enum hns_roce_qp_caps {
+>>  	HNS_ROCE_QP_CAP_RQ_RECORD_DB = BIT(0),
+>>  	HNS_ROCE_QP_CAP_SQ_RECORD_DB = BIT(1),
+>> +	HNS_ROCE_QP_CAP_OWNER_DB = BIT(2),
+>>  };
+>>
+>>  enum hns_roce_cq_flags {
+>> @@ -229,6 +230,8 @@ enum {
+>>  	HNS_ROCE_CAP_FLAG_FRMR                  = BIT(8),
+>>  	HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL		= BIT(9),
+>>  	HNS_ROCE_CAP_FLAG_ATOMIC		= BIT(10),
+>> +	HNS_ROCE_CAP_FLAG_SDI_MODE		= BIT(14),
+>> +	HNS_ROCE_CAP_FLAG_MAX			= BIT(28)
+> 
+> This enum is not used.
+> 
+> Thanks
+> 
 
-Instead of just asserting dump some more useful info about what the test
-saw versus what it expected to see.
+Thank you, the enum is not used in this patch. I will remove it
+and add it back when needed later.
 
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- tools/testing/scatterlist/main.c | 44 ++++++++++++++++++++++++--------
- 1 file changed, 34 insertions(+), 10 deletions(-)
-
-diff --git a/tools/testing/scatterlist/main.c b/tools/testing/scatterlist/main.c
-index 4899359a31ac..b2c7e9f7b8d3 100644
---- a/tools/testing/scatterlist/main.c
-+++ b/tools/testing/scatterlist/main.c
-@@ -5,6 +5,15 @@
-
- #define MAX_PAGES (64)
-
-+struct test {
-+	int alloc_ret;
-+	unsigned num_pages;
-+	unsigned *pfn;
-+	unsigned size;
-+	unsigned int max_seg;
-+	unsigned int expected_segments;
-+};
-+
- static void set_pages(struct page **pages, const unsigned *array, unsigned num)
- {
- 	unsigned int i;
-@@ -17,17 +26,32 @@ static void set_pages(struct page **pages, const unsigned *array, unsigned num)
-
- #define pfn(...) (unsigned []){ __VA_ARGS__ }
-
-+static void fail(struct test *test, struct sg_table *st, const char *cond)
-+{
-+	unsigned int i;
-+
-+	fprintf(stderr, "Failed on '%s'!\n\n", cond);
-+
-+	printf("size = %u, max segment = %u, expected nents = %u\nst->nents = %u, st->orig_nents= %u\n",
-+	       test->size, test->max_seg, test->expected_segments, st->nents,
-+	       st->orig_nents);
-+
-+	printf("%u input PFNs:", test->num_pages);
-+	for (i = 0; i < test->num_pages; i++)
-+		printf(" %x", test->pfn[i]);
-+	printf("\n");
-+
-+	exit(1);
-+}
-+
-+#define VALIDATE(cond, st, test) \
-+	if (!(cond)) \
-+		fail((test), (st), #cond);
-+
- int main(void)
- {
- 	const unsigned int sgmax = SCATTERLIST_MAX_SEGMENT;
--	struct test {
--		int alloc_ret;
--		unsigned num_pages;
--		unsigned *pfn;
--		unsigned size;
--		unsigned int max_seg;
--		unsigned int expected_segments;
--	} *test, tests[] = {
-+	struct test *test, tests[] = {
- 		{ -EINVAL, 1, pfn(0), PAGE_SIZE, PAGE_SIZE + 1, 1 },
- 		{ -EINVAL, 1, pfn(0), PAGE_SIZE, 0, 1 },
- 		{ -EINVAL, 1, pfn(0), PAGE_SIZE, sgmax + 1, 1 },
-@@ -66,8 +90,8 @@ int main(void)
- 		if (test->alloc_ret)
- 			continue;
-
--		assert(st.nents == test->expected_segments);
--		assert(st.orig_nents == test->expected_segments);
-+		VALIDATE(st.nents == test->expected_segments, &st, test);
-+		VALIDATE(st.orig_nents == test->expected_segments, &st, test);
-
- 		sg_free_table(&st);
- 	}
---
-2.26.2
-
+Weihang
