@@ -2,201 +2,112 @@ Return-Path: <SRS0=QnZA=DG=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27469C4346E
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:14:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81755C4346E
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:33:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC56820897
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:14:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601370871;
-	bh=c31YQhSpeUNEH1BOqMoLj2kg6Yzsbp16GK3iXhaWezI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=OUr9Wap4j1/PLcBisHr38gnubHJlXXxvMOGDWzFRv0NfKiqu931SptbyvesPlCCrK
-	 cKGjrW18uRDjM0kydcBD9DGSTnG7ge03BAYupMu8sijox4BeGFpN/QzgUUKcC0k5AX
-	 B2tPVJWss+f+XUlW8NmDqLGSOxfNKvuNWHBAzFE4=
+	by mail.kernel.org (Postfix) with ESMTP id 2197D20848
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:33:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727766AbgI2JO1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Sep 2020 05:14:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36418 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727907AbgI2JOO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 29 Sep 2020 05:14:14 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B2749207F7;
-        Tue, 29 Sep 2020 09:14:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601370853;
-        bh=c31YQhSpeUNEH1BOqMoLj2kg6Yzsbp16GK3iXhaWezI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=X1gqP1Vza2HrhKjA2wxhggz/O9ENbPqOUhObsxrg9VUQfiOBjUFnuPI9tKc4ECBO2
-         X6kFRdh6ExIOYPB2GVMkOYrPjUyfKpEwvFYnx+RdECRTFzu2rx8FOPJIYQiXjKsum+
-         JAEBakk8ANvkpqKE0l+s9U0302+qazI1OT8JWeDI=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>, Jens Axboe <axboe@kernel.dk>,
-        Keith Busch <kbusch@kernel.org>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>, linux-block@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
-        linux-rdma@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>
-Subject: [PATCH blk-next 1/2] blk-mq-rdma: Delete not-used multi-queue RDMA map queue code
-Date:   Tue, 29 Sep 2020 12:13:57 +0300
-Message-Id: <20200929091358.421086-2-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200929091358.421086-1-leon@kernel.org>
-References: <20200929091358.421086-1-leon@kernel.org>
+        id S1727605AbgI2Jdj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Sep 2020 05:33:39 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14769 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725786AbgI2Jdj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 29 Sep 2020 05:33:39 -0400
+Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id EF21B20ECEA0AAC0CA12;
+        Tue, 29 Sep 2020 17:33:36 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 29 Sep 2020 17:33:30 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next] RDMA/hns: Remove unused variables and definitions
+Date:   Tue, 29 Sep 2020 17:32:14 +0800
+Message-ID: <1601371934-40003-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-The RDMA vector affinity code is not backed up by any driver and always
-returns NULL to every ib_get_vector_affinity() call.
+Some code was removed but the variables were still there, and some
+parameters have been changed to be queried from firmware. So the
+definitions of them are no longer needed.
 
-This means that blk_mq_rdma_map_queues() always takes fallback path.
-
-Fixes: 9afc97c29b03 ("mlx5: remove support for ib_get_vector_affinity")
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Fixes: 2a3d923f8730 ("RDMA/hns: Replace magic numbers with #defines")
+Fixes: 82e620d9c3a0 ("RDMA/hns: Modify the data structure of hns_roce_av")
+Fixes: 82547469782a ("IB/hns: Implement the add_gid/del_gid and optimize the GIDs management")
+Fixes: 21b97f538765 ("RDMA/hns: Fixup qp release bug")
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- block/Kconfig               |  5 -----
- block/Makefile              |  1 -
- block/blk-mq-rdma.c         | 44 -------------------------------------
- drivers/nvme/host/rdma.c    |  7 ++----
- include/linux/blk-mq-rdma.h | 11 ----------
- 5 files changed, 2 insertions(+), 66 deletions(-)
- delete mode 100644 block/blk-mq-rdma.c
- delete mode 100644 include/linux/blk-mq-rdma.h
+Changes since v1 (https://patchwork.kernel.org/patch/11802025/):
+- Add fixes tag for related patches.
 
-diff --git a/block/Kconfig b/block/Kconfig
-index bbad5e8bbffe..8ede308a1343 100644
---- a/block/Kconfig
-+++ b/block/Kconfig
-@@ -227,11 +227,6 @@ config BLK_MQ_VIRTIO
- 	depends on BLOCK && VIRTIO
- 	default y
+ drivers/infiniband/hw/hns/hns_roce_device.h | 8 --------
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 2 --
+ 2 files changed, 10 deletions(-)
 
--config BLK_MQ_RDMA
--	bool
--	depends on BLOCK && INFINIBAND
--	default y
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index a8183ef..6d2acff 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -57,7 +57,6 @@
+ /* Hardware specification only for v1 engine */
+ #define HNS_ROCE_MAX_INNER_MTPT_NUM		0x7
+ #define HNS_ROCE_MAX_MTPT_PBL_NUM		0x100000
+-#define HNS_ROCE_MAX_SGE_NUM			2
+ 
+ #define HNS_ROCE_EACH_FREE_CQ_WAIT_MSECS	20
+ #define HNS_ROCE_MAX_FREE_CQ_WAIT_CNT	\
+@@ -87,12 +86,7 @@
+ #define HNS_ROCE_V2_QPC_SZ 256
+ #define HNS_ROCE_V3_QPC_SZ 512
+ 
+-#define HNS_ROCE_SL_SHIFT			28
+-#define HNS_ROCE_TCLASS_SHIFT			20
+-#define HNS_ROCE_FLOW_LABEL_MASK		0xfffff
 -
- config BLK_PM
- 	def_bool BLOCK && PM
-
-diff --git a/block/Makefile b/block/Makefile
-index 8d841f5f986f..bbdc3e82308a 100644
---- a/block/Makefile
-+++ b/block/Makefile
-@@ -29,7 +29,6 @@ obj-$(CONFIG_BLK_DEV_INTEGRITY) += bio-integrity.o blk-integrity.o
- obj-$(CONFIG_BLK_DEV_INTEGRITY_T10)	+= t10-pi.o
- obj-$(CONFIG_BLK_MQ_PCI)	+= blk-mq-pci.o
- obj-$(CONFIG_BLK_MQ_VIRTIO)	+= blk-mq-virtio.o
--obj-$(CONFIG_BLK_MQ_RDMA)	+= blk-mq-rdma.o
- obj-$(CONFIG_BLK_DEV_ZONED)	+= blk-zoned.o
- obj-$(CONFIG_BLK_WBT)		+= blk-wbt.o
- obj-$(CONFIG_BLK_DEBUG_FS)	+= blk-mq-debugfs.o
-diff --git a/block/blk-mq-rdma.c b/block/blk-mq-rdma.c
-deleted file mode 100644
-index 14f968e58b8f..000000000000
---- a/block/blk-mq-rdma.c
-+++ /dev/null
-@@ -1,44 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Copyright (c) 2017 Sagi Grimberg.
-- */
--#include <linux/blk-mq.h>
--#include <linux/blk-mq-rdma.h>
--#include <rdma/ib_verbs.h>
+ #define HNS_ROCE_MAX_PORTS			6
+-#define HNS_ROCE_MAX_GID_NUM			16
+ #define HNS_ROCE_GID_SIZE			16
+ #define HNS_ROCE_SGE_SIZE			16
+ 
+@@ -120,8 +114,6 @@
+ #define PAGES_SHIFT_24				24
+ #define PAGES_SHIFT_32				32
+ 
+-#define HNS_ROCE_PCI_BAR_NUM			2
 -
--/**
-- * blk_mq_rdma_map_queues - provide a default queue mapping for rdma device
-- * @map:	CPU to hardware queue map.
-- * @dev:	rdma device to provide a mapping for.
-- * @first_vec:	first interrupt vectors to use for queues (usually 0)
-- *
-- * This function assumes the rdma device @dev has at least as many available
-- * interrupt vetors as @set has queues.  It will then query it's affinity mask
-- * and built queue mapping that maps a queue to the CPUs that have irq affinity
-- * for the corresponding vector.
-- *
-- * In case either the driver passed a @dev with less vectors than
-- * @set->nr_hw_queues, or @dev does not provide an affinity mask for a
-- * vector, we fallback to the naive mapping.
-- */
--int blk_mq_rdma_map_queues(struct blk_mq_queue_map *map,
--		struct ib_device *dev, int first_vec)
--{
--	const struct cpumask *mask;
--	unsigned int queue, cpu;
+ #define HNS_ROCE_IDX_QUE_ENTRY_SZ		4
+ #define SRQ_DB_REG				0x230
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 7c3b548..d08e575 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -41,8 +41,6 @@
+ #include "hns_roce_hem.h"
+ #include <rdma/hns-abi.h>
+ 
+-#define SQP_NUM				(2 * HNS_ROCE_MAX_PORTS)
 -
--	for (queue = 0; queue < map->nr_queues; queue++) {
--		mask = ib_get_vector_affinity(dev, first_vec + queue);
--		if (!mask)
--			goto fallback;
--
--		for_each_cpu(cpu, mask)
--			map->mq_map[cpu] = map->queue_offset + queue;
--	}
--
--	return 0;
--
--fallback:
--	return blk_mq_map_queues(map);
--}
--EXPORT_SYMBOL_GPL(blk_mq_rdma_map_queues);
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 9e378d0a0c01..5989d4e35ef3 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -12,7 +12,6 @@
- #include <linux/string.h>
- #include <linux/atomic.h>
- #include <linux/blk-mq.h>
--#include <linux/blk-mq-rdma.h>
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-@@ -2171,10 +2170,8 @@ static int nvme_rdma_map_queues(struct blk_mq_tag_set *set)
- 			ctrl->io_queues[HCTX_TYPE_DEFAULT];
- 		set->map[HCTX_TYPE_READ].queue_offset = 0;
- 	}
--	blk_mq_rdma_map_queues(&set->map[HCTX_TYPE_DEFAULT],
--			ctrl->device->dev, 0);
--	blk_mq_rdma_map_queues(&set->map[HCTX_TYPE_READ],
--			ctrl->device->dev, 0);
-+	blk_mq_map_queues(&set->map[HCTX_TYPE_DEFAULT]);
-+	blk_mq_map_queues(&set->map[HCTX_TYPE_READ]);
-
- 	if (opts->nr_poll_queues && ctrl->io_queues[HCTX_TYPE_POLL]) {
- 		/* map dedicated poll queues only if we have queues left */
-diff --git a/include/linux/blk-mq-rdma.h b/include/linux/blk-mq-rdma.h
-deleted file mode 100644
-index 5cc5f0f36218..000000000000
---- a/include/linux/blk-mq-rdma.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _LINUX_BLK_MQ_RDMA_H
--#define _LINUX_BLK_MQ_RDMA_H
--
--struct blk_mq_tag_set;
--struct ib_device;
--
--int blk_mq_rdma_map_queues(struct blk_mq_queue_map *map,
--		struct ib_device *dev, int first_vec);
--
--#endif /* _LINUX_BLK_MQ_RDMA_H */
---
-2.26.2
+ static void flush_work_handle(struct work_struct *work)
+ {
+ 	struct hns_roce_work *flush_work = container_of(work,
+-- 
+2.8.1
 
