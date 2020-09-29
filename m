@@ -2,112 +2,58 @@ Return-Path: <SRS0=QnZA=DG=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81755C4346E
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:33:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC4EDC4346E
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 10:20:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2197D20848
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 09:33:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E5182158C
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 10:20:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727605AbgI2Jdj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Sep 2020 05:33:39 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14769 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725786AbgI2Jdj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 29 Sep 2020 05:33:39 -0400
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by Forcepoint Email with ESMTP id EF21B20ECEA0AAC0CA12;
-        Tue, 29 Sep 2020 17:33:36 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 29 Sep 2020 17:33:30 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next] RDMA/hns: Remove unused variables and definitions
-Date:   Tue, 29 Sep 2020 17:32:14 +0800
-Message-ID: <1601371934-40003-1-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
+        id S1725776AbgI2KUt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Sep 2020 06:20:49 -0400
+Received: from verein.lst.de ([213.95.11.211]:39117 "EHLO verein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725372AbgI2KUt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 29 Sep 2020 06:20:49 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 35FB667373; Tue, 29 Sep 2020 12:20:46 +0200 (CEST)
+Date:   Tue, 29 Sep 2020 12:20:46 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>, Jens Axboe <axboe@kernel.dk>,
+        Keith Busch <kbusch@kernel.org>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>, linux-block@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org,
+        linux-rdma@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH blk-next 1/2] blk-mq-rdma: Delete not-used multi-queue
+ RDMA map queue code
+Message-ID: <20200929102046.GA14445@lst.de>
+References: <20200929091358.421086-1-leon@kernel.org> <20200929091358.421086-2-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20200929091358.421086-2-leon@kernel.org>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On Tue, Sep 29, 2020 at 12:13:57PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> The RDMA vector affinity code is not backed up by any driver and always
+> returns NULL to every ib_get_vector_affinity() call.
+> 
+> This means that blk_mq_rdma_map_queues() always takes fallback path.
+> 
+> Fixes: 9afc97c29b03 ("mlx5: remove support for ib_get_vector_affinity")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 
-Some code was removed but the variables were still there, and some
-parameters have been changed to be queried from firmware. So the
-definitions of them are no longer needed.
-
-Fixes: 2a3d923f8730 ("RDMA/hns: Replace magic numbers with #defines")
-Fixes: 82e620d9c3a0 ("RDMA/hns: Modify the data structure of hns_roce_av")
-Fixes: 82547469782a ("IB/hns: Implement the add_gid/del_gid and optimize the GIDs management")
-Fixes: 21b97f538765 ("RDMA/hns: Fixup qp release bug")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
-Changes since v1 (https://patchwork.kernel.org/patch/11802025/):
-- Add fixes tag for related patches.
-
- drivers/infiniband/hw/hns/hns_roce_device.h | 8 --------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 2 --
- 2 files changed, 10 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index a8183ef..6d2acff 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -57,7 +57,6 @@
- /* Hardware specification only for v1 engine */
- #define HNS_ROCE_MAX_INNER_MTPT_NUM		0x7
- #define HNS_ROCE_MAX_MTPT_PBL_NUM		0x100000
--#define HNS_ROCE_MAX_SGE_NUM			2
- 
- #define HNS_ROCE_EACH_FREE_CQ_WAIT_MSECS	20
- #define HNS_ROCE_MAX_FREE_CQ_WAIT_CNT	\
-@@ -87,12 +86,7 @@
- #define HNS_ROCE_V2_QPC_SZ 256
- #define HNS_ROCE_V3_QPC_SZ 512
- 
--#define HNS_ROCE_SL_SHIFT			28
--#define HNS_ROCE_TCLASS_SHIFT			20
--#define HNS_ROCE_FLOW_LABEL_MASK		0xfffff
--
- #define HNS_ROCE_MAX_PORTS			6
--#define HNS_ROCE_MAX_GID_NUM			16
- #define HNS_ROCE_GID_SIZE			16
- #define HNS_ROCE_SGE_SIZE			16
- 
-@@ -120,8 +114,6 @@
- #define PAGES_SHIFT_24				24
- #define PAGES_SHIFT_32				32
- 
--#define HNS_ROCE_PCI_BAR_NUM			2
--
- #define HNS_ROCE_IDX_QUE_ENTRY_SZ		4
- #define SRQ_DB_REG				0x230
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 7c3b548..d08e575 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -41,8 +41,6 @@
- #include "hns_roce_hem.h"
- #include <rdma/hns-abi.h>
- 
--#define SQP_NUM				(2 * HNS_ROCE_MAX_PORTS)
--
- static void flush_work_handle(struct work_struct *work)
- {
- 	struct hns_roce_work *flush_work = container_of(work,
--- 
-2.8.1
-
+So you guys totally broken the nvme queue assignment without even
+telling anyone?  Great job!
