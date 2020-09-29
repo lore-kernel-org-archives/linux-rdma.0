@@ -2,74 +2,82 @@ Return-Path: <SRS0=QnZA=DG=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-9.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4615EC4741F
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 12:48:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47BAEC4727F
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 13:08:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC5092083B
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 12:48:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E549A20848
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Sep 2020 13:08:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1601384899;
+	bh=3tjkPJUHk0vIdiTXJbTZpw9XJLLtbUTpZ9AOyj/v2Hw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=dGk++TT3pqxZhmVqOwKEsOB/0FCSogfaULMp++vLOAMk4kQoBjt8EkNz209nncRiE
+	 1zG8nnEguIgs6mXaMY34Fks3q0DKwXSoXlLaPHmsHeptBU854kDwV0MEa2gDuEfUlJ
+	 NG4Iu6cvUnCx+c6K6LzX+L3Z+qpUOFXW/90zT5ms=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387614AbgI2MsJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Sep 2020 08:48:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57064 "EHLO mail.kernel.org"
+        id S1728842AbgI2NIS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Sep 2020 09:08:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725497AbgI2Mrf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 29 Sep 2020 08:47:35 -0400
-Received: from localhost (unknown [213.57.247.131])
+        id S1728346AbgI2NIS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 29 Sep 2020 09:08:18 -0400
+Received: from embeddedor (187-162-31-110.static.axtel.net [187.162.31.110])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B94F208FE;
-        Tue, 29 Sep 2020 12:47:34 +0000 (UTC)
-Date:   Tue, 29 Sep 2020 15:47:31 +0300
-From:   Leon Romanovsky <leonro@nvidia.com>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@mellanox.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH rdma-next v1 06/10] RDMA/mlx4: Prepare QP allocation to
- remove from the driver
-Message-ID: <20200929124731.GH3094@unreal>
-References: <20200926102450.2966017-1-leon@kernel.org>
- <20200926102450.2966017-7-leon@kernel.org>
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F5E3207F7;
+        Tue, 29 Sep 2020 13:08:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1601384897;
+        bh=3tjkPJUHk0vIdiTXJbTZpw9XJLLtbUTpZ9AOyj/v2Hw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ue+pIGoAM5E6ivb80pRUpU1lHpqEqJGsps+RQhYHJR0xfmpJSVG7hQOuNUklrIwm+
+         xTwteuQf8cRm4sC56cKU+9YqnLOrjUSHhp8tOcSeniHRMisssHSFvC+7sWLQZMlY0m
+         1Nd+E8wTjDTZ7X2lzu2CuG65IVmUh2l8r7ICQGgI=
+Date:   Tue, 29 Sep 2020 08:13:57 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Saeed Mahameed <saeed@kernel.org>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Roi Dayan <roid@mellanox.com>, Vlad Buslov <vladbu@nvidia.com>,
+        Ariel Levkovich <lariel@mellanox.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH][next] net/mlx5e: Fix potential null pointer dereference
+Message-ID: <20200929131357.GA28922@embeddedor>
+References: <20200925164913.GA18472@embeddedor>
+ <25336478fe5bca68b6c7d2c37766a9f98f6c7ad1.camel@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20200926102450.2966017-7-leon@kernel.org>
+In-Reply-To: <25336478fe5bca68b6c7d2c37766a9f98f6c7ad1.camel@kernel.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Sep 26, 2020 at 01:24:46PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
->
-> Since all mlx4 QP have same storage type, move the QP allocation to be
-> in one place. This change is preparation to removal of such allocation
-> from the driver.
->
-> Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  drivers/infiniband/hw/mlx4/qp.c | 156 +++++++++++++-------------------
->  1 file changed, 63 insertions(+), 93 deletions(-)
+On Mon, Sep 28, 2020 at 04:22:33PM -0700, Saeed Mahameed wrote:
+> On Fri, 2020-09-25 at 11:49 -0500, Gustavo A. R. Silva wrote:
+> > Calls to kzalloc() and kvzalloc() should be null-checked
+> > in order to avoid any potential failures. In this case,
+> > a potential null pointer dereference.
+> > 
+> > Fix this by adding null checks for _parse_attr_ and _flow_
+> > right after allocation.
+> > 
+> > Addresses-Coverity-ID: 1497154 ("Dereference before null check")
+> > Fixes: c620b772152b ("net/mlx5: Refactor tc flow attributes
+> > structure")
+> > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> > ---
+> > 
+> 
+> Applied to net-next-mlx5.
 
-Unfortunately, this patch needs small fixup.
-
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index ef52dd21acd9..c32af16e2564 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1354,7 +1354,6 @@ static void destroy_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
- 	mlx4_qp_free(dev->dev, &qp->mqp);
- 	mlx4_qp_release_range(dev->dev, qp->mqp.qpn, 1);
- 	del_gid_entries(qp);
--	kfree(qp->rss_ctx);
- }
-
- static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
+Thank you both. :)
 --
-2.26.2
-
+Gustavo
