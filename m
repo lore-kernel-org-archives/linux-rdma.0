@@ -2,137 +2,95 @@ Return-Path: <SRS0=0+5s=DH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55BE7C4727C
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Sep 2020 16:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AC89C4727C
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Sep 2020 16:51:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BADA207FB
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Sep 2020 16:38:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F66C2076B
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Sep 2020 16:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601483937;
-	bh=DrdZPN67M82xB6Wo8T1lwktrs3GxnMI+Kok8tbl2l6U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=vJ6ql5WPuLclO1oN7Fa35X19A8gnNugDESy0bG8oXFfQxOfYPLVHM4kKSoFOnvr6Q
-	 0b/JMFg1HHw0NSehC/lv+U99qk4BqJJGflvdMhw9ftyZHvWdlkx/8K+hVvNTGUNZ7q
-	 ZSqsGwF4I6sblAj2NWw/fCYhMxdK8gvwqBI+H7NU=
+	s=default; t=1601484708;
+	bh=MwdJW4mqrWOrBCkHeReFHIvPIJHWwvzq0/1WZ3thz34=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=yhsw22732KmBcXdojygpn//wED2eWwqJ1Br94znf2gCLBhMckAjkkPgbaf6QeitpU
+	 oK5efARpKMHItBBW5YdbF5l2F1sHzompyTMBtRMmkKSgL7LzXggH4OEjHhz3S4dfX3
+	 sRnmDXZioTAQ6tv/bjIMi5QZE1jmRqOfTnE//9ho=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725823AbgI3Qi4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 30 Sep 2020 12:38:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39744 "EHLO mail.kernel.org"
+        id S1729940AbgI3Qvr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 30 Sep 2020 12:51:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731310AbgI3Qiu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 30 Sep 2020 12:38:50 -0400
+        id S1725355AbgI3Qvr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 30 Sep 2020 12:51:47 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4365A207FB;
-        Wed, 30 Sep 2020 16:38:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1FD65206C9;
+        Wed, 30 Sep 2020 16:51:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601483929;
-        bh=DrdZPN67M82xB6Wo8T1lwktrs3GxnMI+Kok8tbl2l6U=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=waQbYhviZNCEnTzNKJ6XRcT3lMS7scny/drTmmktNSvXFgn9FdvwiqdNsJjm5EZwI
-         FMJ6nO6zoX2I/cdy3vCm/V2w9enUSP2xOYyQQlFik93u25xPtpKvDYsLa+/H8cYdM2
-         gEhD5kKKDGwG8z+qpaxs87tERLEW5i9gaoWvnWlI=
+        s=default; t=1601484706;
+        bh=MwdJW4mqrWOrBCkHeReFHIvPIJHWwvzq0/1WZ3thz34=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=0QiwqGrru7E0hnFByyf199zgzY5HfiHmMto2K2DP2GQaRpF+SQylW3LD64x0jYywQ
+         GcH0r71FBZ2SrN2dwCGbIV3fjNBJqBLpm/gW0SCLI6mvVwTGAH152XfnjfVFnYbu9N
+         wSMSXIznFZBAd5pNwXWXfAuppEMtLhJPcm6C38Ms=
+Date:   Wed, 30 Sep 2020 19:51:42 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Yishai Hadas <yishaih@nvidia.com>, linux-rdma@vger.kernel.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: [PATCH rdma-next v3 3/4] RDMA/mlx5: Extend advice MR to support non faulting mode
-Date:   Wed, 30 Sep 2020 19:38:27 +0300
-Message-Id: <20200930163828.1336747-4-leon@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200930163828.1336747-1-leon@kernel.org>
-References: <20200930163828.1336747-1-leon@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Maor Gottlieb <maorg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        David Airlie <airlied@linux.ie>,
+        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Roland Scheidegger <sroland@vmware.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
+        VMware Graphics <linux-graphics-maintainer@vmware.com>
+Subject: Re: [PATCH rdma-next v4 4/4] RDMA/umem: Move to allocate SG table
+ from pages
+Message-ID: <20200930165142.GS3094@unreal>
+References: <20200927064647.3106737-1-leon@kernel.org>
+ <20200927064647.3106737-5-leon@kernel.org>
+ <20200929195929.GA803555@nvidia.com>
+ <20200930095321.GL3094@unreal>
+ <20200930114527.GE816047@nvidia.com>
+ <80c49ff1-52c7-638f-553f-9de8130b188d@nvidia.com>
+ <20200930115837.GF816047@nvidia.com>
+ <7e09167f-c57a-cdfe-a842-c920e9421e53@nvidia.com>
+ <20200930151406.GM816047@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20200930151406.GM816047@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@nvidia.com>
+On Wed, Sep 30, 2020 at 12:14:06PM -0300, Jason Gunthorpe wrote:
+> On Wed, Sep 30, 2020 at 06:05:15PM +0300, Maor Gottlieb wrote:
+> > This is right only for the last iteration. E.g. in the first iteration in
+> > case that there are more pages (left_pages), then we allocate
+> > SG_MAX_SINGLE_ALLOC.  We don't know how many pages from the second iteration
+> > will be squashed to the SGE from the first iteration.
+>
+> Well, it is 0 or 1 SGE's. Check if the first page is mergable and
+> subtract one from the required length?
+>
+> I dislike this sg_mark_end() it is something that should be internal,
+> IMHO.
 
-Extend advice MR to support non faulting mode, this improves performance
-by eliminating page faults and bring only the existing CPU pages.
+I don't think so, but Maor provided possible solution.
+Can you take the patches?
 
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mr.c         | 3 ++-
- drivers/infiniband/hw/mlx5/odp.c        | 7 ++++++-
- include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
- 3 files changed, 9 insertions(+), 2 deletions(-)
+Thanks
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index eac869340158..1a82a57fc415 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1312,7 +1312,8 @@ int mlx5_ib_advise_mr(struct ib_pd *pd,
- 		      struct uverbs_attr_bundle *attrs)
- {
- 	if (advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH &&
--	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE)
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
-+	    advice != IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
- 		return -EOPNOTSUPP;
-
- 	return mlx5_ib_advise_mr_prefetch(pd, advice, flags,
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 5bd5e19d76a2..28b7227d31bf 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -665,6 +665,7 @@ void mlx5_ib_fence_odp_mr(struct mlx5_ib_mr *mr)
- }
-
- #define MLX5_PF_FLAGS_DOWNGRADE BIT(1)
-+#define MLX5_PF_FLAGS_SNAPSHOT BIT(2)
- static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 			     u64 user_va, size_t bcnt, u32 *bytes_mapped,
- 			     u32 flags)
-@@ -673,6 +674,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	bool downgrade = flags & MLX5_PF_FLAGS_DOWNGRADE;
- 	u64 access_mask;
- 	u64 start_idx;
-+	bool fault = !(flags & MLX5_PF_FLAGS_SNAPSHOT);
-
- 	page_shift = odp->page_shift;
- 	start_idx = (user_va - ib_umem_start(odp)) >> page_shift;
-@@ -681,7 +683,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	if (odp->umem.writable && !downgrade)
- 		access_mask |= ODP_WRITE_ALLOWED_BIT;
-
--	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, true);
-+	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, fault);
- 	if (np < 0)
- 		return np;
-
-@@ -1851,6 +1853,9 @@ int mlx5_ib_advise_mr_prefetch(struct ib_pd *pd,
- 	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH)
- 		pf_flags |= MLX5_PF_FLAGS_DOWNGRADE;
-
-+	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT)
-+		pf_flags |= MLX5_PF_FLAGS_SNAPSHOT;
-+
- 	if (flags & IB_UVERBS_ADVISE_MR_FLAG_FLUSH)
- 		return mlx5_ib_prefetch_sg_list(pd, advice, pf_flags, sg_list,
- 						num_sge);
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index cfea82acfe57..22483799cd07 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -208,6 +208,7 @@ enum ib_uverbs_read_counters_flags {
- enum ib_uverbs_advise_mr_advice {
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH,
- 	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE,
-+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT,
- };
-
- enum ib_uverbs_advise_mr_flag {
---
-2.26.2
-
+>
+> Jason
