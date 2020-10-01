@@ -2,195 +2,383 @@ Return-Path: <SRS0=wKnc=DI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 922E7C47425
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BB2C47427
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 618CF2184D
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 804A6221E7
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725929AbgJAFGa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Oct 2020 01:06:30 -0400
-Received: from mga14.intel.com ([192.55.52.115]:21949 "EHLO mga14.intel.com"
+        id S1725878AbgJAFGb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Oct 2020 01:06:31 -0400
+Received: from mga14.intel.com ([192.55.52.115]:21948 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725912AbgJAFGa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1725925AbgJAFGa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 1 Oct 2020 01:06:30 -0400
-IronPort-SDR: lzu6IAwXeexYQOs7JMfSP4JdZbMh+akYNG+srB5sAbRamWjlZfDP9HnkOgnu9HC5vQM7uVTm43
- AOYBL5oDH9Ww==
-X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="161876190"
+IronPort-SDR: QNlAM5XjE1q89eZT9pfrazqEg8OgEA5Ud9bHGl60oUipFxQdU5r0Bl1ssz2vRNcWQoLgZkyjSo
+ coh/laBai1BQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="161876197"
 X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="161876190"
+   d="scan'208";a="161876197"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:27 -0700
-IronPort-SDR: SpP/KCbE81v1gjDd2LHyl5Pe9t0sibTf1+NaN/G6LjltDPQa50yWwnuOE1yBd/MwDWSwR11JoL
- 5DGj5m4P4vVg==
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:28 -0700
+IronPort-SDR: VavgDIZ1Vz6WuqjPBbzfmhPH0WDBfAp1X4/qg37GdvalLkaKUZk1jfWMngMf6/6q93ZuvDL9nh
+ d0gOyIQWVbpA==
 X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="501563190"
+   d="scan'208";a="501563220"
 Received: from dmert-dev.jf.intel.com ([10.166.241.5])
   by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:27 -0700
 From:   Dave Ertman <david.m.ertman@intel.com>
 To:     linux-rdma@vger.kernel.org
-Subject: [PATCH 0/6] Ancillary bus implementation and SOF multi-client support
-Date:   Wed, 30 Sep 2020 22:05:28 -0700
-Message-Id: <20201001050534.890666-1-david.m.ertman@intel.com>
+Subject: [PATCH 6/6] ASoC: SOF: debug: Remove IPC flood test support in SOF core
+Date:   Wed, 30 Sep 2020 22:05:34 -0700
+Message-Id: <20201001050534.890666-7-david.m.ertman@intel.com>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201001050534.890666-1-david.m.ertman@intel.com>
+References: <20201001050534.890666-1-david.m.ertman@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Brief history of Ancillary Bus 
-==============================
-The ancillary bus code was originally submitted upstream as virtual 
-bus, and was submitted through the netdev tree.  This process generated 
-up to v4.  This discussion can be found here: 
- https://lore.kernel.org/netdev/0200520070227.3392100-2-jeffrey.t.kirsher@intel.com/T/#u 
+From: Fred Oh <fred.oh@linux.intel.com>
 
-At this point, GregKH requested that we take the review and revision 
-process to an internal mailing list and garner the buy-in of a respected 
-kernel contributor. 
+Remove the IPC flood test support in the SOF core as it is
+now added in the IPC flood test client.
 
-The ancillary bus (then known as virtual bus) was originally submitted
-along with implementation code for the ice driver and irdma drive,
-causing the complication of also having dependencies in the rdma tree.
-This new submission is utilizing an ancillary bus consumer in only the
-sound driver tree to create the initial implementation and a single
-user. 
+Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
+Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+---
+ sound/soc/sof/Kconfig    |   8 --
+ sound/soc/sof/debug.c    | 230 ---------------------------------------
+ sound/soc/sof/sof-priv.h |   6 +-
+ 3 files changed, 1 insertion(+), 243 deletions(-)
 
-Since implementation work has started on this patch set, there have been
-multiple inquiries about the time frame of its completion.  It appears
-that there will be numerous consumers of this functionality. 
-
-The process of internal review and implementation using the sound
-drivers generated 19 internal versions.  The changes, including the name
-change from virtual bus to ancillary bus, from these versions can be
-summarized as the following: 
-
-- Fixed compilation and checkpatch errors 
-- Improved documentation to address the motivation for virtual bus. 
-- Renamed virtual bus to ancillary bus 
-- increased maximum device name size 
-- Correct order in Kconfig and Makefile 
-- removed the mid-layer adev->release layer for device unregister 
-- pushed adev->id management to parent driver 
-- all error paths out of ancillary_device_register return error code 
-- all error paths out of ancillary_device_register use put_device 
-- added adev->name element 
-- modname in register cannot be NULL 
-- added KBUILD_MODNAME as prefix for match_name 
-- push adev->id responsibility to registering driver 
-- uevent now parses adev->dev name 
-- match_id function now parses adev->dev name 
-- changed drivers probe function to also take an ancillary_device_id param 
-- split ancillary_device_register into device_initialize and device_add 
-- adjusted what is done in device_initialize and device_add 
-- change adev to ancildev and adrv to ancildrv 
-- change adev to ancildev in documentation 
-
-This submission is the first time that this patch set will be sent to
-the alsa-devel mailing list, so it is currently being submitted as
-version 1.
-
-==========================
-
-Introduces the ancillary bus implementation along with the example usage
-in the Sound Open Firmware(SOF) audio driver.
-
-In some subsystems, the functionality of the core device
-(PCI/ACPI/other) may be too complex for a single device to be managed as
-a monolithic block or a part of the functionality might need to be
-exposed to a different subsystem.  Splitting the functionality into
-smaller orthogonal devices makes it easier to manage data, power
-management and domain-specific communication with the hardware.  Also,
-common ancillary_device functionality across primary devices can be
-handled by a common ancillary_device. A key requirement for such a split
-is that there is no dependency on a physical bus, device, register
-accesses or regmap support. These individual devices split from the core
-cannot live on the platform bus as they are not physical devices that
-are controlled by DT/ACPI. The same argument applies for not using MFD
-in this scenario as it relies on individual function devices being
-physical devices that are DT enumerated.
-
-An example for this kind of requirement is the audio subsystem where a
-single IP handles multiple entities such as HDMI, Soundwire, local
-devices such as mics/speakers etc. The split for the core's
-functionality can be arbitrary or be defined by the DSP firmware
-topology and include hooks for test/debug. This allows for the audio
-core device to be minimal and tightly coupled with handling the
-hardware-specific logic and communication.
-
-The ancillary bus is intended to be minimal, generic and avoid
-domain-specific assumptions. Each ancillary bus device represents a part
-of its parent functionality. The generic behavior can be extended and
-specialized as needed by encapsulating an ancillary bus device within
-other domain-specific structures and the use of .ops callbacks.
-
-The SOF driver adopts the ancillary bus for implementing the
-multi-client support. A client in the context of the SOF driver
-represents a part of the core device's functionality. It is not a
-physical device but rather an ancillary device that needs to communicate
-with the DSP via IPCs. With multi-client support,the sound card can be
-separated into multiple orthogonal ancillary devices for local devices
-(mic/speakers etc), HDMI, sensing, probes, debug etc.  In this series,
-we demonstrate the usage of the ancillary bus with the help of the IPC
-test client which is used for testing the serialization of IPCs when
-multiple clients talk to the DSP at the same time.
-
-Dave Ertman (1):
-  Add ancillary bus support
-
-Fred Oh (1):
-  ASoC: SOF: debug: Remove IPC flood test support in SOF core
-
-Ranjani Sridharan (4):
-  ASoC: SOF: Introduce descriptors for SOF client
-  ASoC: SOF: Create client driver for IPC test
-  ASoC: SOF: ops: Add ops for client registration
-  ASoC: SOF: Intel: Define ops for client registration
-
- Documentation/driver-api/ancillary_bus.rst | 230 +++++++++++++++
- Documentation/driver-api/index.rst         |   1 +
- drivers/bus/Kconfig                        |   3 +
- drivers/bus/Makefile                       |   3 +
- drivers/bus/ancillary.c                    | 191 +++++++++++++
- include/linux/ancillary_bus.h              |  58 ++++
- include/linux/mod_devicetable.h            |   8 +
- scripts/mod/devicetable-offsets.c          |   3 +
- scripts/mod/file2alias.c                   |   8 +
- sound/soc/sof/Kconfig                      |  29 +-
- sound/soc/sof/Makefile                     |   7 +
- sound/soc/sof/core.c                       |  12 +
- sound/soc/sof/debug.c                      | 230 ---------------
- sound/soc/sof/intel/Kconfig                |   9 +
- sound/soc/sof/intel/Makefile               |   3 +
- sound/soc/sof/intel/apl.c                  |  18 ++
- sound/soc/sof/intel/bdw.c                  |  18 ++
- sound/soc/sof/intel/byt.c                  |  22 ++
- sound/soc/sof/intel/cnl.c                  |  18 ++
- sound/soc/sof/intel/intel-client.c         |  49 ++++
- sound/soc/sof/intel/intel-client.h         |  26 ++
- sound/soc/sof/ops.h                        |  14 +
- sound/soc/sof/sof-client.c                 | 117 ++++++++
- sound/soc/sof/sof-client.h                 |  65 +++++
- sound/soc/sof/sof-ipc-test-client.c        | 314 +++++++++++++++++++++
- sound/soc/sof/sof-priv.h                   |  16 +-
- 26 files changed, 1233 insertions(+), 239 deletions(-)
- create mode 100644 Documentation/driver-api/ancillary_bus.rst
- create mode 100644 drivers/bus/ancillary.c
- create mode 100644 include/linux/ancillary_bus.h
- create mode 100644 sound/soc/sof/intel/intel-client.c
- create mode 100644 sound/soc/sof/intel/intel-client.h
- create mode 100644 sound/soc/sof/sof-client.c
- create mode 100644 sound/soc/sof/sof-client.h
- create mode 100644 sound/soc/sof/sof-ipc-test-client.c
-
+diff --git a/sound/soc/sof/Kconfig b/sound/soc/sof/Kconfig
+index 55a2a20c3ec9..4046e96eed92 100644
+--- a/sound/soc/sof/Kconfig
++++ b/sound/soc/sof/Kconfig
+@@ -182,14 +182,6 @@ config SND_SOC_SOF_DEBUG_ENABLE_FIRMWARE_TRACE
+ 	  module parameter (similar to dynamic debug)
+ 	  If unsure, select "N".
+ 
+-config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST
+-	bool "SOF enable IPC flood test"
+-	help
+-	  This option enables the IPC flood test which can be used to flood
+-	  the DSP with test IPCs and gather stats about response times.
+-	  Say Y if you want to enable IPC flood test.
+-	  If unsure, select "N".
+-
+ config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST_CLIENT
+ 	tristate "SOF enable IPC flood test client"
+ 	depends on SND_SOC_SOF_CLIENT
+diff --git a/sound/soc/sof/debug.c b/sound/soc/sof/debug.c
+index 8e15f105d1d5..d224641768da 100644
+--- a/sound/soc/sof/debug.c
++++ b/sound/soc/sof/debug.c
+@@ -232,120 +232,10 @@ static int snd_sof_debugfs_probe_item(struct snd_sof_dev *sdev,
+ }
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-#define MAX_IPC_FLOOD_DURATION_MS 1000
+-#define MAX_IPC_FLOOD_COUNT 10000
+-#define IPC_FLOOD_TEST_RESULT_LEN 512
+-
+-static int sof_debug_ipc_flood_test(struct snd_sof_dev *sdev,
+-				    struct snd_sof_dfsentry *dfse,
+-				    bool flood_duration_test,
+-				    unsigned long ipc_duration_ms,
+-				    unsigned long ipc_count)
+-{
+-	struct sof_ipc_cmd_hdr hdr;
+-	struct sof_ipc_reply reply;
+-	u64 min_response_time = U64_MAX;
+-	ktime_t start, end, test_end;
+-	u64 avg_response_time = 0;
+-	u64 max_response_time = 0;
+-	u64 ipc_response_time;
+-	int i = 0;
+-	int ret;
+-
+-	/* configure test IPC */
+-	hdr.cmd = SOF_IPC_GLB_TEST_MSG | SOF_IPC_TEST_IPC_FLOOD;
+-	hdr.size = sizeof(hdr);
+-
+-	/* set test end time for duration flood test */
+-	if (flood_duration_test)
+-		test_end = ktime_get_ns() + ipc_duration_ms * NSEC_PER_MSEC;
+-
+-	/* send test IPC's */
+-	while (1) {
+-		start = ktime_get();
+-		ret = sof_ipc_tx_message(sdev->ipc, hdr.cmd, &hdr, hdr.size,
+-					 &reply, sizeof(reply));
+-		end = ktime_get();
+-
+-		if (ret < 0)
+-			break;
+-
+-		/* compute min and max response times */
+-		ipc_response_time = ktime_to_ns(ktime_sub(end, start));
+-		min_response_time = min(min_response_time, ipc_response_time);
+-		max_response_time = max(max_response_time, ipc_response_time);
+-
+-		/* sum up response times */
+-		avg_response_time += ipc_response_time;
+-		i++;
+-
+-		/* test complete? */
+-		if (flood_duration_test) {
+-			if (ktime_to_ns(end) >= test_end)
+-				break;
+-		} else {
+-			if (i == ipc_count)
+-				break;
+-		}
+-	}
+-
+-	if (ret < 0)
+-		dev_err(sdev->dev,
+-			"error: ipc flood test failed at %d iterations\n", i);
+-
+-	/* return if the first IPC fails */
+-	if (!i)
+-		return ret;
+-
+-	/* compute average response time */
+-	do_div(avg_response_time, i);
+-
+-	/* clear previous test output */
+-	memset(dfse->cache_buf, 0, IPC_FLOOD_TEST_RESULT_LEN);
+-
+-	if (flood_duration_test) {
+-		dev_dbg(sdev->dev, "IPC Flood test duration: %lums\n",
+-			ipc_duration_ms);
+-		snprintf(dfse->cache_buf, IPC_FLOOD_TEST_RESULT_LEN,
+-			 "IPC Flood test duration: %lums\n", ipc_duration_ms);
+-	}
+-
+-	dev_dbg(sdev->dev,
+-		"IPC Flood count: %d, Avg response time: %lluns\n",
+-		i, avg_response_time);
+-	dev_dbg(sdev->dev, "Max response time: %lluns\n",
+-		max_response_time);
+-	dev_dbg(sdev->dev, "Min response time: %lluns\n",
+-		min_response_time);
+-
+-	/* format output string */
+-	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
+-		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
+-		 "IPC Flood count: %d\nAvg response time: %lluns\n",
+-		 i, avg_response_time);
+-
+-	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
+-		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
+-		 "Max response time: %lluns\nMin response time: %lluns\n",
+-		 max_response_time, min_response_time);
+-
+-	return ret;
+-}
+-#endif
+ 
+ static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *ppos)
+ {
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-	struct snd_sof_dfsentry *dfse = file->private_data;
+-	struct snd_sof_dev *sdev = dfse->sdev;
+-	unsigned long ipc_duration_ms = 0;
+-	bool flood_duration_test = false;
+-	unsigned long ipc_count = 0;
+-	struct dentry *dentry;
+-	int err;
+-#endif
+ 	size_t size;
+ 	char *string;
+ 	int ret;
+@@ -357,78 +247,6 @@ static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
+ 	size = simple_write_to_buffer(string, count, ppos, buffer, count);
+ 	ret = size;
+ 
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-	/*
+-	 * write op is only supported for ipc_flood_count or
+-	 * ipc_flood_duration_ms debugfs entries atm.
+-	 * ipc_flood_count floods the DSP with the number of IPC's specified.
+-	 * ipc_duration_ms test floods the DSP for the time specified
+-	 * in the debugfs entry.
+-	 */
+-	dentry = file->f_path.dentry;
+-	if (strcmp(dentry->d_name.name, "ipc_flood_count") &&
+-	    strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+-	if (!strcmp(dentry->d_name.name, "ipc_flood_duration_ms"))
+-		flood_duration_test = true;
+-
+-	/* test completion criterion */
+-	if (flood_duration_test)
+-		ret = kstrtoul(string, 0, &ipc_duration_ms);
+-	else
+-		ret = kstrtoul(string, 0, &ipc_count);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* limit max duration/ipc count for flood test */
+-	if (flood_duration_test) {
+-		if (!ipc_duration_ms) {
+-			ret = size;
+-			goto out;
+-		}
+-
+-		/* find the minimum. min() is not used to avoid warnings */
+-		if (ipc_duration_ms > MAX_IPC_FLOOD_DURATION_MS)
+-			ipc_duration_ms = MAX_IPC_FLOOD_DURATION_MS;
+-	} else {
+-		if (!ipc_count) {
+-			ret = size;
+-			goto out;
+-		}
+-
+-		/* find the minimum. min() is not used to avoid warnings */
+-		if (ipc_count > MAX_IPC_FLOOD_COUNT)
+-			ipc_count = MAX_IPC_FLOOD_COUNT;
+-	}
+-
+-	ret = pm_runtime_get_sync(sdev->dev);
+-	if (ret < 0) {
+-		dev_err_ratelimited(sdev->dev,
+-				    "error: debugfs write failed to resume %d\n",
+-				    ret);
+-		pm_runtime_put_noidle(sdev->dev);
+-		goto out;
+-	}
+-
+-	/* flood test */
+-	ret = sof_debug_ipc_flood_test(sdev, dfse, flood_duration_test,
+-				       ipc_duration_ms, ipc_count);
+-
+-	pm_runtime_mark_last_busy(sdev->dev);
+-	err = pm_runtime_put_autosuspend(sdev->dev);
+-	if (err < 0)
+-		dev_err_ratelimited(sdev->dev,
+-				    "error: debugfs write failed to idle %d\n",
+-				    err);
+-
+-	/* return size if test is successful */
+-	if (ret >= 0)
+-		ret = size;
+-out:
+-#endif
+ 	kfree(string);
+ 	return ret;
+ }
+@@ -444,25 +262,6 @@ static ssize_t sof_dfsentry_read(struct file *file, char __user *buffer,
+ 	int size;
+ 	u8 *buf;
+ 
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-	struct dentry *dentry;
+-
+-	dentry = file->f_path.dentry;
+-	if ((!strcmp(dentry->d_name.name, "ipc_flood_count") ||
+-	     !strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) &&
+-	    dfse->cache_buf) {
+-		if (*ppos)
+-			return 0;
+-
+-		count = strlen(dfse->cache_buf);
+-		size_ret = copy_to_user(buffer, dfse->cache_buf, count);
+-		if (size_ret)
+-			return -EFAULT;
+-
+-		*ppos += count;
+-		return count;
+-	}
+-#endif
+ 	size = dfse->size;
+ 
+ 	/* validate position & count */
+@@ -606,17 +405,6 @@ int snd_sof_debugfs_buf_item(struct snd_sof_dev *sdev,
+ 	dfse->size = size;
+ 	dfse->sdev = sdev;
+ 
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-	/*
+-	 * cache_buf is unused for SOF_DFSENTRY_TYPE_BUF debugfs entries.
+-	 * So, use it to save the results of the last IPC flood test.
+-	 */
+-	dfse->cache_buf = devm_kzalloc(sdev->dev, IPC_FLOOD_TEST_RESULT_LEN,
+-				       GFP_KERNEL);
+-	if (!dfse->cache_buf)
+-		return -ENOMEM;
+-#endif
+-
+ 	debugfs_create_file(name, mode, sdev->debugfs_root, dfse,
+ 			    &sof_dfs_fops);
+ 	/* add to dfsentry list */
+@@ -662,24 +450,6 @@ int snd_sof_dbg_init(struct snd_sof_dev *sdev)
+ 		return err;
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
+-	/* create read-write ipc_flood_count debugfs entry */
+-	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
+-				       "ipc_flood_count", 0666);
+-
+-	/* errors are only due to memory allocation, not debugfs */
+-	if (err < 0)
+-		return err;
+-
+-	/* create read-write ipc_flood_duration_ms debugfs entry */
+-	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
+-				       "ipc_flood_duration_ms", 0666);
+-
+-	/* errors are only due to memory allocation, not debugfs */
+-	if (err < 0)
+-		return err;
+-#endif
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(snd_sof_dbg_init);
+diff --git a/sound/soc/sof/sof-priv.h b/sound/soc/sof/sof-priv.h
+index 151614224f47..ece5fce97460 100644
+--- a/sound/soc/sof/sof-priv.h
++++ b/sound/soc/sof/sof-priv.h
+@@ -50,10 +50,6 @@ extern int sof_core_debug;
+ #define SOF_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
+ 	SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_FLOAT)
+ 
+-#define ENABLE_DEBUGFS_CACHEBUF \
+-	(IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE) || \
+-	 IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST))
+-
+ /* DSP power state */
+ enum sof_dsp_power_states {
+ 	SOF_DSP_PM_D0,
+@@ -298,7 +294,7 @@ struct snd_sof_dfsentry {
+ 	 * or if it is accessible only when the DSP is in D0.
+ 	 */
+ 	enum sof_debugfs_access_type access_type;
+-#if ENABLE_DEBUGFS_CACHEBUF
++#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE)
+ 	char *cache_buf; /* buffer to cache the contents of debugfs memory */
+ #endif
+ 	struct snd_sof_dev *sdev;
 -- 
 2.26.2
 
