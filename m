@@ -2,106 +2,211 @@ Return-Path: <SRS0=wKnc=DI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67564C47425
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 169EBC4727C
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:56:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E5C421531
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:27:28 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="CoF9K8jn"
+	by mail.kernel.org (Postfix) with ESMTP id DA2252145D
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:56:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730357AbgJAH10 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Oct 2020 03:27:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49270 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731106AbgJAH1H (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Oct 2020 03:27:07 -0400
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77521C0613D0
-        for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2020 00:27:07 -0700 (PDT)
-Received: by mail-ed1-x542.google.com with SMTP id g3so224630edu.6
-        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2020 00:27:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=V0OWQkdQ23g4BsaoKLtAWNrzzIwJHuREo+msXMwV6ps=;
-        b=CoF9K8jnsLrYEQxtFaaK/kVWDXSev8UhkbXyoSoq3+aQmdZ9rWd5OvgVyXnM9zY0+W
-         /2gwZ2MewRHpAs7SbqxK0Etxy4xfqBBjqTL2bRr4A3PTza9WAoBBpwFmCX0Qd2pbyhRk
-         cgiztyIjl99xFczNpz8jXz5Sxp4xamCVQFA2lSuncjI40Fg+l+IQmEpfOjQvd/WLhMXt
-         quk3I9H/akcKiaHXU9duIGIym+M35gQOIItKj9l5EMLfjm+QdFgaoMDUg6FlsYMG0ZVO
-         c2EUf36lif1e8SfWi8GDyWVFlEt5RK395iij5bWr4Bq7QSH4kVaNcSl1CV+oAK2ZwnBW
-         bXFg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=V0OWQkdQ23g4BsaoKLtAWNrzzIwJHuREo+msXMwV6ps=;
-        b=OM+OJD/eO0dM3xbxdy9A6Tz1+wfjvLPqxfNBj7v9HIotfX2xaFZaqGLWhLJl+sGYnx
-         7zWoOWxaDcYRBtsKSYJJavVdCm+30lnZaHvtieE3QeGFvHrdysSQgvg8kNU1uOrdLked
-         rtdurnLnqYcCkoGEH+DJg5d9YiNKAGRpBeypfTB+Fj3lGsmOJgQipsjNRaF/WViDYZHU
-         UIzRlxLpLvJkhBaUf6/axN8SpaXPBFZwC3PiJ7QyBUzAw8wvlQAlaBkgpUR4hnkFlq82
-         oN4OjKjZlq88MB3iCrObUV9piTh09iiPQsDQ0pBTQ4hnBf8l6AuXIjI7XKY2rT2cQnk1
-         ehpw==
-X-Gm-Message-State: AOAM532nBVSsjci0s3EozDsfFGjkDItn+z1lwNR+sp0g7kKUSFTL9Plc
-        doAWIjYtuYSt/YdalcMQueUGj8qkGj66Eg==
-X-Google-Smtp-Source: ABdhPJwQVt7yCdMmkj+vHBZGkI4/Ulj+oPSNtq7/mJiQoyzRmIU5iFG36knXAtn/EoQ2FFQfhf8o2Q==
-X-Received: by 2002:aa7:d8d8:: with SMTP id k24mr6667944eds.97.1601537226102;
-        Thu, 01 Oct 2020 00:27:06 -0700 (PDT)
-Received: from gkim-laptop.pb.local ([2001:1438:4010:2558:4cea:8c37:1548:493c])
-        by smtp.googlemail.com with ESMTPSA id p25sm3420920edm.60.2020.10.01.00.27.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2020 00:27:05 -0700 (PDT)
-From:   Gioh Kim <gi-oh.kim@cloud.ionos.com>
-X-Google-Original-From: Gioh Kim <gi-oh.kim@clous.ionos.com>
-To:     danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Subject: [PATCH 2/2] RDMA/rtrs: check before free
-Date:   Thu,  1 Oct 2020 09:27:03 +0200
-Message-Id: <20201001072703.16256-1-gi-oh.kim@clous.ionos.com>
-X-Mailer: git-send-email 2.20.1
+        id S1725894AbgJAH4Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Oct 2020 03:56:25 -0400
+Received: from mga07.intel.com ([134.134.136.100]:32946 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725938AbgJAH4Z (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Oct 2020 03:56:25 -0400
+IronPort-SDR: bcv0QtL3HUCOMMW/PmjcNGxylj51wR8a6N5GC6dVShK41vFNVVs4DztFyXg4ZbP+2mx/ZOK0/R
+ xNT6LiW7eXnw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="226782361"
+X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
+   d="scan'208";a="226782361"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2020 00:56:23 -0700
+IronPort-SDR: pNu9sJkwz+5IMYJ+NZfW2ks4GDDc7yNzlQ4qpGXu+Jb5ornPgntwtPdwlyBEjS8cJN1BYfPczI
+ J6sZnSRLMdLg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
+   d="scan'208";a="502239539"
+Received: from lkp-server02.sh.intel.com (HELO de448af6ea1b) ([10.239.97.151])
+  by orsmga005.jf.intel.com with ESMTP; 01 Oct 2020 00:56:21 -0700
+Received: from kbuild by de448af6ea1b with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kNtRt-0000Ys-6c; Thu, 01 Oct 2020 07:56:21 +0000
+Date:   Thu, 01 Oct 2020 15:55:49 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e
+Message-ID: <5f758b85.FQ1yjG9CPk3Bhqaz%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
+branch HEAD: 2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e  RDMA/addr: Fix race with netevent_callback()/rdma_addr_cancel()
 
-If rtrs_iu_alloc failed to allocate buffer or map dma,
-there are some allocated addresses and some NULL addresses
-in the array. rtrs_iu_free should check data before free.
+elapsed time: 721m
 
-Signed-off-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+configs tested: 139
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+h8300                            allyesconfig
+arm                         shannon_defconfig
+arm                  colibri_pxa300_defconfig
+mips                          ath25_defconfig
+sh                        edosk7705_defconfig
+powerpc                 mpc8540_ads_defconfig
+powerpc                 linkstation_defconfig
+c6x                         dsk6455_defconfig
+powerpc64                        alldefconfig
+m68k                             allmodconfig
+powerpc                 canyonlands_defconfig
+mips                          ath79_defconfig
+alpha                               defconfig
+nds32                            alldefconfig
+nios2                         10m50_defconfig
+powerpc                     rainier_defconfig
+xtensa                       common_defconfig
+sh                           sh2007_defconfig
+powerpc                  iss476-smp_defconfig
+powerpc                 mpc832x_rdb_defconfig
+arm                          simpad_defconfig
+microblaze                    nommu_defconfig
+sparc                            allyesconfig
+powerpc                   motionpro_defconfig
+arm                          gemini_defconfig
+powerpc                 mpc837x_mds_defconfig
+xtensa                           alldefconfig
+arm                         nhk8815_defconfig
+arm                         bcm2835_defconfig
+powerpc                      mgcoge_defconfig
+powerpc                  storcenter_defconfig
+microblaze                      mmu_defconfig
+m68k                             allyesconfig
+powerpc                    mvme5100_defconfig
+arc                            hsdk_defconfig
+m68k                           sun3_defconfig
+arm                          pxa910_defconfig
+sh                     magicpanelr2_defconfig
+powerpc                    sam440ep_defconfig
+sh                          sdk7786_defconfig
+xtensa                          iss_defconfig
+powerpc                      ppc44x_defconfig
+sh                           se7750_defconfig
+m68k                            q40_defconfig
+arm                        multi_v5_defconfig
+arm                          lpd270_defconfig
+arm                        trizeps4_defconfig
+powerpc                      chrp32_defconfig
+arm                           stm32_defconfig
+x86_64                              defconfig
+mips                      loongson3_defconfig
+powerpc                      makalu_defconfig
+arm                       imx_v6_v7_defconfig
+arc                    vdk_hs38_smp_defconfig
+mips                        bcm47xx_defconfig
+arm                             pxa_defconfig
+mips                           ip28_defconfig
+arm                         hackkit_defconfig
+sh                          rsk7269_defconfig
+m68k                         apollo_defconfig
+arm                              zx_defconfig
+sh                           se7343_defconfig
+arm                            dove_defconfig
+mips                        nlm_xlr_defconfig
+mips                        jmr3927_defconfig
+powerpc                      katmai_defconfig
+powerpc                           allnoconfig
+sh                          rsk7203_defconfig
+sh                   sh7724_generic_defconfig
+sh                             espt_defconfig
+csky                                defconfig
+arm                          iop32x_defconfig
+powerpc                 mpc837x_rdb_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                                defconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+i386                 randconfig-a003-20200930
+i386                 randconfig-a002-20200930
+i386                 randconfig-a006-20200930
+i386                 randconfig-a005-20200930
+i386                 randconfig-a004-20200930
+i386                 randconfig-a001-20200930
+x86_64               randconfig-a015-20200930
+x86_64               randconfig-a013-20200930
+x86_64               randconfig-a012-20200930
+x86_64               randconfig-a016-20200930
+x86_64               randconfig-a014-20200930
+x86_64               randconfig-a011-20200930
+i386                 randconfig-a011-20200930
+i386                 randconfig-a015-20200930
+i386                 randconfig-a012-20200930
+i386                 randconfig-a014-20200930
+i386                 randconfig-a016-20200930
+i386                 randconfig-a013-20200930
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a001-20200930
+x86_64               randconfig-a005-20200930
+x86_64               randconfig-a003-20200930
+x86_64               randconfig-a004-20200930
+x86_64               randconfig-a002-20200930
+x86_64               randconfig-a006-20200930
+
 ---
- drivers/infiniband/ulp/rtrs/rtrs.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
-index 5163e662f86f..ca2d2d3e4192 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.c
-@@ -61,8 +61,12 @@ void rtrs_iu_free(struct rtrs_iu *ius, struct ib_device *ibdev, u32 queue_size)
- 
- 	for (i = 0; i < queue_size; i++) {
- 		iu = &ius[i];
--		ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, iu->direction);
--		kfree(iu->buf);
-+		if (iu->dma_addr) {
-+			ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, iu->direction);
-+		}
-+		if (iu->buf) {
-+			kfree(iu->buf);
-+		}
- 	}
- 	kfree(ius);
- }
--- 
-2.20.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
