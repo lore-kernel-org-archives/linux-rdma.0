@@ -8,63 +8,63 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D195C47423
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 17:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C046C47428
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 17:49:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C3C2520848
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 17:49:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 549E220759
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 17:49:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JdJeV2FC"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wz5Rkhw+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733012AbgJARtL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Oct 2020 13:49:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60564 "EHLO
+        id S1732958AbgJARtM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Oct 2020 13:49:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732956AbgJARtH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Oct 2020 13:49:07 -0400
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBEE2C0613E5
-        for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2020 10:49:06 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id x14so6476186oic.9
-        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2020 10:49:06 -0700 (PDT)
+        with ESMTP id S1733007AbgJARtK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Oct 2020 13:49:10 -0400
+Received: from mail-oo1-xc30.google.com (mail-oo1-xc30.google.com [IPv6:2607:f8b0:4864:20::c30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 031E8C0613E9
+        for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2020 10:49:10 -0700 (PDT)
+Received: by mail-oo1-xc30.google.com with SMTP id y25so1701269oog.4
+        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2020 10:49:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=q/EVf/acTWOTeXlExnzmqEgiMNsr5DangUbYAmxCMVM=;
-        b=JdJeV2FCKs8be345iDNAgWKbm7vq7HOfRnoGBXA++/UphYiB/LPhw9vYCFQV3jbE1y
-         g7jDzqTmiEICtYoSB6f/BriReeE6G/W/plTnveXsGqzhXDd+IFJ5ksFwREbYx959pNGz
-         EX4HVjdcRtJqrXOO/nwslvbcygEFTQepeqWuj0cSoqNssu3NPrGytJvP6el85OaTvxMi
-         5iTJvFjyegFSnwiHWLQV0S8P0euE08ftecB5pbis/WO2XYVy/KvYUoEgOTjDjqc5eFQq
-         B/oOnZAvv9o6UloJLrO3u+wTrRN1R8WdUbUaZ5gDlUvgt02t5pEOnD5uyCWQj0RVEKNO
-         fKtA==
+        bh=nY3c0i5sSwIiPTOZv8oxbrrUu6cJ8Pc0aLiiNAKAzRk=;
+        b=Wz5Rkhw+FMvBi8arQbMveOy5RZ7E55W4G/xJDvG/oKd+HGfmSyyZ+WCfglpZVT/p5/
+         7C7dYmNyhR17KTlzZ8yb1Kpnjuct0GNaBHv+SvMgn1ClZumEorzzdKj/a13sKpJUqjd6
+         dwMIhST42iHWuF1uOAjGi89Yf9y27zoAPYc5Bxm/YkZsMSzpBBwhqMq4U0H1Hgm9Neqk
+         IXiZH1c0VY75z6mYaBnlL3kWPVlMQFDH7Y34mABgD6npUg1Q6g72DK+IUOeL1he3Wb8V
+         +2ZCTNmJPQ1wWefdpSgQroatvwwQt+LcFGcjlfJddXtK1TFYYio1r2lix3DZvZwDJfXq
+         4GkA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=q/EVf/acTWOTeXlExnzmqEgiMNsr5DangUbYAmxCMVM=;
-        b=kphEZ5wg1nV4od13zya/G8ZYvvQaXsg9rYEirhEzCkzpgtrYJmmk6AiApYToNnj7C7
-         F8+lTyuZpxJmxprsif7TuVlYJNO7qzqUhktb8NgeDm2Ifvpgn7qBd9dHON+mVeBZE1Tv
-         QVgCv4A5zliI6r3lX1AZfqISTZBhOZ+Zhxhk69e0IVw6UIxAVqBJoTOQhyVOO7ABw0Uq
-         vayXwZOPKxrRi3MoRCBULSPRTAeB3jqJWI+hLqUOat7YztMaUg9oZnLrYvtUYiGIGa+7
-         YYHg0Iem3L8gOcU+EI2QHPRIwK/J8wAkyxG+lBHcdO/J7ET6T6viO1Us0hLAZbejwTIX
-         kPsQ==
-X-Gm-Message-State: AOAM531UchODLP5oTv+jeZqVrwFtTXwMoW0ZWpY0S/7ybDLPwijdlewd
-        sqUwjSRIR/vUwv232TCpnS8=
-X-Google-Smtp-Source: ABdhPJzsdGIjC7NAKQmGmOhLJK0ltXlNSyyzq4MTPF4rADxxa+v22AO5bSzvkWUx3Cg/EQ2Vz2q7bA==
-X-Received: by 2002:aca:abc7:: with SMTP id u190mr679098oie.146.1601574546192;
-        Thu, 01 Oct 2020 10:49:06 -0700 (PDT)
+        bh=nY3c0i5sSwIiPTOZv8oxbrrUu6cJ8Pc0aLiiNAKAzRk=;
+        b=XjkpHYiqdUQXmBNUlPe+PDiwevKY/B5PRhbkoKK3urFlL5ILHvQsYRSn1P/CYkswaA
+         NZBUepNUYsDE58rT9GbF5YxgAql1sl1n2cK9zFnjRuAolqUDTMdxLLZDXtEawWxUbiwq
+         8OEKi55/PhukrVXCqEO6p9+wPJL3ZpdeRDVUAjsuP1VZPzkZDLuT/5B1HdgGpoO4bPX6
+         1pp87HTNRhFsIhAuScNuEMvy/xkohe94cMP0ptvz+l8RKceYPufiDRSfMm0WtOJrgLI0
+         6K9dywJhbfNkxmKbiF/wOMMXkawu9P+2o2CLBhtKZgzW8aMSaJynwHyC9Rw19HvJbNaK
+         9j4g==
+X-Gm-Message-State: AOAM530qMbxN2PzynkhjW5awpua+TU+yM4YbxrilYjaV/aKW8uhsU87D
+        Jfsk55V73H/fOxKczZD06b4=
+X-Google-Smtp-Source: ABdhPJyk3igjrzCaCPqK4/wfrj6YBX6xshv5H1Kw7SV6UtaO2XhnUhMOO3feS0h6FKgRl/V2wyVpQg==
+X-Received: by 2002:a4a:9b01:: with SMTP id a1mr6537406ook.51.1601574549442;
+        Thu, 01 Oct 2020 10:49:09 -0700 (PDT)
 Received: from localhost ([2605:6000:8b03:f000:d01f:9a3e:d22f:7a6])
-        by smtp.gmail.com with ESMTPSA id q184sm1492910ooq.40.2020.10.01.10.49.05
+        by smtp.gmail.com with ESMTPSA id p1sm1361299otq.7.2020.10.01.10.49.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2020 10:49:05 -0700 (PDT)
+        Thu, 01 Oct 2020 10:49:09 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH for-next v7 14/19] rdma_rxe: Fix bugs in the multicast receive path
-Date:   Thu,  1 Oct 2020 12:48:42 -0500
-Message-Id: <20201001174847.4268-15-rpearson@hpe.com>
+Subject: [PATCH for-next v7 18/19] rdma_rxe: add rkey validation checks for MR and MW
+Date:   Thu,  1 Oct 2020 12:48:46 -0500
+Message-Id: <20201001174847.4268-19-rpearson@hpe.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201001174847.4268-1-rpearson@hpe.com>
 References: <20201001174847.4268-1-rpearson@hpe.com>
@@ -74,133 +74,100 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch does the following
-  - Fix a bug in rxe_rcv.
-    The current code calls rxe_match_dgid which checks to see if the
-    destination ip address (dgid) matches one of the addresses in
-    the gid table. This is ok for unicast adfdresses but not mcast
-    addresses. Because of this all mcast packets were previously
-    dropped.
-  - Fix a bug in rxe_rcv_mcast_pkt.
-    The current code is just wrong. It assumed that it could pass
-    the same skb to rxe_rcv_pkt changing the qp pointer as it went
-    when multiple QPs were attached to the same mcast address. In
-    fact each QP needs a separate clone of the skb which it will
-    delete later.
+Added checks from 9.4.1.1.3 r_key validation for remote memory
+invalidate to MR and MW invalidate routines.
 
 Signed-off-by: Bob Pearson <rpearson@hpe.com>
 ---
- drivers/infiniband/sw/rxe/rxe_recv.c | 61 ++++++++++++++++------------
- 1 file changed, 36 insertions(+), 25 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c | 49 ++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_mw.c | 10 +++++-
+ 2 files changed, 58 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index e14cb20c4596..dbb623ec5eaa 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -233,6 +233,8 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 	struct rxe_mc_elem *mce;
- 	struct rxe_qp *qp;
- 	union ib_gid dgid;
-+	struct sk_buff *per_qp_skb;
-+	struct rxe_pkt_info *per_qp_pkt;
- 	int err;
- 
- 	if (skb->protocol == htons(ETH_P_IP))
-@@ -261,42 +263,36 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 		if (err)
- 			continue;
- 
--		/* if *not* the last qp in the list
--		 * increase the users of the skb then post to the next qp
-+		/* for all but the last qp create a new clone of the
-+		 * skb and pass to the qp.
-+		 * This effectively reverts an earlier change
-+		 * which did not work. The pkt struct is contained
-+		 * in the skb so each time you changed pkt you also
-+		 * changed all the earlier pkts as well. Caused a mess.
- 		 */
- 		if (mce->qp_list.next != &mcg->qp_list)
--			skb_get(skb);
-+			per_qp_skb = skb_clone(skb, GFP_ATOMIC);
-+		else
-+			per_qp_skb = skb;
- 
--		pkt->qp = qp;
-+		per_qp_pkt = SKB_TO_PKT(per_qp_skb);
-+		per_qp_pkt->qp = qp;
- 		rxe_add_ref(qp);
--		rxe_rcv_pkt(pkt, skb);
-+		rxe_rcv_pkt(per_qp_pkt, per_qp_skb);
- 	}
- 
- 	spin_unlock_bh(&mcg->mcg_lock);
--
--	rxe_drop_ref(mcg);	/* drop ref from rxe_get_key. */
-+	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
-+	return;
- 
- err1:
- 	kfree_skb(skb);
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 1901f388c747..2cc3487d3f77 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -522,8 +522,57 @@ int advance_dma_data(struct rxe_dma_info *dma, unsigned int length)
+ 	return 0;
  }
  
--static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
-+static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb,
-+			  union ib_gid *pdgid)
- {
--	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
- 	const struct ib_gid_attr *gid_attr;
--	union ib_gid dgid;
--	union ib_gid *pdgid;
--
--	if (pkt->mask & RXE_LOOPBACK_MASK)
--		return 0;
--
--	if (skb->protocol == htons(ETH_P_IP)) {
--		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
--				       (struct in6_addr *)&dgid);
--		pdgid = &dgid;
--	} else {
--		pdgid = (union ib_gid *)&ipv6_hdr(skb)->daddr;
--	}
- 
- 	gid_attr = rdma_find_gid_by_port(&rxe->ib_dev, pdgid,
- 					 IB_GID_TYPE_ROCE_UDP_ENCAP,
-@@ -314,17 +310,32 @@ void rxe_rcv(struct sk_buff *skb)
- 	int err;
- 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
- 	struct rxe_dev *rxe = pkt->rxe;
-+	union ib_gid dgid;
-+	union ib_gid *pdgid;
- 	__be32 *icrcp;
- 	u32 calc_icrc, pack_icrc;
-+	int is_mc;
- 
- 	pkt->offset = 0;
- 
- 	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
- 		goto drop;
- 
--	if (rxe_match_dgid(rxe, skb) < 0) {
--		pr_warn_ratelimited("failed matching dgid\n");
--		goto drop;
-+	if (skb->protocol == htons(ETH_P_IP)) {
-+		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
-+				       (struct in6_addr *)&dgid);
-+		pdgid = &dgid;
-+	} else {
-+		pdgid = (union ib_gid *)&ipv6_hdr(skb)->daddr;
++static int check_invalidate_mr(struct rxe_qp *qp, struct rxe_mr *mr)
++{
++	int type = mr->ibmr.type;
++	int qpt = qp_type(qp);
++
++	if (unlikely(type > IB_MR_TYPE_INTEGRITY)) {
++		pr_err("invalidate: MR of unknown type = %d\n",
++			mr->ibmr.type);
++		return -EINVAL;
 +	}
 +
-+	is_mc = rdma_is_multicast_addr((struct in6_addr *)pdgid);
++	/* o10-37.2.13 */
++	if (unlikely(type == IB_MR_TYPE_MEM_REG ||
++	    type == IB_MR_TYPE_USER)) {
++		pr_err("invalidate: MR created by reg_mr or user_reg_mr\n");
++		return -EINVAL;
++	}
 +
-+	if (!(pkt->mask & RXE_LOOPBACK_MASK) && !is_mc) {
-+		if (rxe_match_dgid(rxe, skb, pdgid) < 0) {
-+			pr_warn_ratelimited("failed matching dgid\n");
-+			goto drop;
-+		}
++	/* o10-37.2.17 */
++	if (unlikely(atomic_read(&mr->num_mw))) {
++		pr_err("invalidate: MR with bound MWs\n");
++		return -EINVAL;
++	}
++
++	if (unlikely(!((qpt == IB_QPT_RC) || (qpt == IB_QPT_UC) ||
++		(qpt == IB_QPT_XRC_INI) || (qpt == IB_QPT_XRC_TGT)))) {
++		pr_err("invalidate: MR with invalid QP type\n");
++		return -EINVAL;
++	}
++
++	if (unlikely(qp->ibqp.pd != mr->ibmr.pd)) {
++		pr_err("invalidate: MR and QP have different PDs\n");
++		return -EINVAL;
++	}
++
++	if (unlikely(mr->state == RXE_MEM_STATE_INVALID)) {
++		pr_err("invalidate: MR in invalid state\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ int rxe_invalidate_mr(struct rxe_qp *qp, struct rxe_mr *mr)
+ {
++	int ret;
++
++	ret = check_invalidate_mr(qp, mr);
++	if (ret)
++		return ret;
++
+ 	/* TODO there are API rules being ignored here
+ 	 * cleanup later. Current project is not trying
+ 	 * to fix MR
+diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
+index d2d09502a28d..ecda634ab7f0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mw.c
++++ b/drivers/infiniband/sw/rxe/rxe_mw.c
+@@ -316,9 +316,17 @@ int rxe_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 
+ static int check_invalidate_mw(struct rxe_qp *qp, struct rxe_mw *mw)
+ {
++	int qpt = qp_type(qp);
++
+ 	/* o10-37.2.26 */
+ 	if (unlikely(mw->ibmw.type == IB_MW_TYPE_1)) {
+-		pr_err_once("attempt to invalidate a type 1 MW\n");
++		pr_err_once("invalidate a type 1 MW\n");
++		return -EINVAL;
++	}
++
++	if (unlikely(!((qpt == IB_QPT_RC) || (qpt == IB_QPT_UC) ||
++		(qpt == IB_QPT_XRC_INI) || (qpt == IB_QPT_XRC_TGT)))) {
++		pr_err("invalidate Mw with invalid QP type\n");
+ 		return -EINVAL;
  	}
  
- 	pkt->opcode = bth_opcode(pkt);
 -- 
 2.25.1
 
