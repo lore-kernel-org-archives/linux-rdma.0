@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BB2C47427
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6907C47426
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 804A6221E7
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81B31221E8
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725878AbgJAFGb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Oct 2020 01:06:31 -0400
+        id S1725912AbgJAFGa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Oct 2020 01:06:30 -0400
 Received: from mga14.intel.com ([192.55.52.115]:21948 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725925AbgJAFGa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1725883AbgJAFGa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 1 Oct 2020 01:06:30 -0400
-IronPort-SDR: QNlAM5XjE1q89eZT9pfrazqEg8OgEA5Ud9bHGl60oUipFxQdU5r0Bl1ssz2vRNcWQoLgZkyjSo
- coh/laBai1BQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="161876197"
+IronPort-SDR: UTuvzgHX6v0OqA3BDRIKGZKruN9roqq8y0lp1SY4mCa22glNUSNMh3PSANpzDCR7twktO4Wm5r
+ A+YkNUtlZn9w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="161876191"
 X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="161876197"
+   d="scan'208";a="161876191"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:28 -0700
-IronPort-SDR: VavgDIZ1Vz6WuqjPBbzfmhPH0WDBfAp1X4/qg37GdvalLkaKUZk1jfWMngMf6/6q93ZuvDL9nh
- d0gOyIQWVbpA==
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:27 -0700
+IronPort-SDR: GQrWfp5TjcTOtM3hsOnUt82xeXGfoYx5t+fb89+F+n4g2A/LQlledzumIwPreMywy3rsjuY8h4
+ A6+JkkU4g3sg==
 X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="501563220"
+   d="scan'208";a="501563193"
 Received: from dmert-dev.jf.intel.com ([10.166.241.5])
   by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:27 -0700
 From:   Dave Ertman <david.m.ertman@intel.com>
 To:     linux-rdma@vger.kernel.org
-Subject: [PATCH 6/6] ASoC: SOF: debug: Remove IPC flood test support in SOF core
-Date:   Wed, 30 Sep 2020 22:05:34 -0700
-Message-Id: <20201001050534.890666-7-david.m.ertman@intel.com>
+Subject: [PATCH 1/6] Add ancillary bus support
+Date:   Wed, 30 Sep 2020 22:05:29 -0700
+Message-Id: <20201001050534.890666-2-david.m.ertman@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201001050534.890666-1-david.m.ertman@intel.com>
 References: <20201001050534.890666-1-david.m.ertman@intel.com>
@@ -48,337 +48,633 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Fred Oh <fred.oh@linux.intel.com>
+Add support for the Ancillary Bus, ancillary_device and ancillary_driver.
+It enables drivers to create an ancillary_device and bind an
+ancillary_driver to it.
 
-Remove the IPC flood test support in the SOF core as it is
-now added in the IPC flood test client.
+The bus supports probe/remove shutdown and suspend/resume callbacks.
+Each ancillary_device has a unique string based id; driver binds to
+an ancillary_device based on this id through the bus.
 
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
+Co-developed-by: Kiran Patil <kiran.patil@intel.com>
+Signed-off-by: Kiran Patil <kiran.patil@intel.com>
+Co-developed-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
 Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+Co-developed-by: Fred Oh <fred.oh@linux.intel.com>
+Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
+Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Reviewed-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
 ---
- sound/soc/sof/Kconfig    |   8 --
- sound/soc/sof/debug.c    | 230 ---------------------------------------
- sound/soc/sof/sof-priv.h |   6 +-
- 3 files changed, 1 insertion(+), 243 deletions(-)
+ Documentation/driver-api/ancillary_bus.rst | 230 +++++++++++++++++++++
+ Documentation/driver-api/index.rst         |   1 +
+ drivers/bus/Kconfig                        |   3 +
+ drivers/bus/Makefile                       |   3 +
+ drivers/bus/ancillary.c                    | 191 +++++++++++++++++
+ include/linux/ancillary_bus.h              |  58 ++++++
+ include/linux/mod_devicetable.h            |   8 +
+ scripts/mod/devicetable-offsets.c          |   3 +
+ scripts/mod/file2alias.c                   |   8 +
+ 9 files changed, 505 insertions(+)
+ create mode 100644 Documentation/driver-api/ancillary_bus.rst
+ create mode 100644 drivers/bus/ancillary.c
+ create mode 100644 include/linux/ancillary_bus.h
 
-diff --git a/sound/soc/sof/Kconfig b/sound/soc/sof/Kconfig
-index 55a2a20c3ec9..4046e96eed92 100644
---- a/sound/soc/sof/Kconfig
-+++ b/sound/soc/sof/Kconfig
-@@ -182,14 +182,6 @@ config SND_SOC_SOF_DEBUG_ENABLE_FIRMWARE_TRACE
- 	  module parameter (similar to dynamic debug)
- 	  If unsure, select "N".
+diff --git a/Documentation/driver-api/ancillary_bus.rst b/Documentation/driver-api/ancillary_bus.rst
+new file mode 100644
+index 000000000000..0a11979aa927
+--- /dev/null
++++ b/Documentation/driver-api/ancillary_bus.rst
+@@ -0,0 +1,230 @@
++.. SPDX-License-Identifier: GPL-2.0-only
++
++=============
++Ancillary Bus
++=============
++
++In some subsystems, the functionality of the core device (PCI/ACPI/other) is
++too complex for a single device to be managed as a monolithic block or a part of
++the functionality needs to be exposed to a different subsystem.  Splitting the
++functionality into smaller orthogonal devices would make it easier to manage
++data, power management and domain-specific interaction with the hardware. A key
++requirement for such a split is that there is no dependency on a physical bus,
++device, register accesses or regmap support. These individual devices split from
++the core cannot live on the platform bus as they are not physical devices that
++are controlled by DT/ACPI. The same argument applies for not using MFD in this
++scenario as MFD relies on individual function devices being physical devices
++that are DT enumerated.
++
++An example for this kind of requirement is the audio subsystem where a single
++IP is handling multiple entities such as HDMI, Soundwire, local devices such as
++mics/speakers etc. The split for the core's functionality can be arbitrary or
++be defined by the DSP firmware topology and include hooks for test/debug. This
++allows for the audio core device to be minimal and focused on hardware-specific
++control and communication.
++
++The ancillary bus is intended to be minimal, generic and avoid domain-specific
++assumptions. Each ancillary_device represents a part of its parent
++functionality. The generic behavior can be extended and specialized as needed
++by encapsulating an ancillary_device within other domain-specific structures and
++the use of .ops callbacks. Devices on the ancillary bus do not share any
++structures and the use of a communication channel with the parent is
++domain-specific.
++
++When Should the Ancillary Bus Be Used
++=====================================
++
++The ancillary bus is to be used when a driver and one or more kernel modules,
++who share a common header file with the driver, need a mechanism to connect and
++provide access to a shared object allocated by the ancillary_device's
++registering driver.  The registering driver for the ancillary_device(s) and the
++kernel module(s) registering ancillary_drivers can be from the same subsystem,
++or from multiple subsystems.
++
++The emphasis here is on a common generic interface that keeps subsystem
++customization out of the bus infrastructure.
++
++One example could be a multi-port PCI network device that is rdma-capable and
++needs to export this functionality and attach to an rdma driver in another
++subsystem.  The PCI driver will allocate and register an ancillary_device for
++each physical function on the NIC.  The rdma driver will register an
++ancillary_driver that will be matched with and probed for each of these
++ancillary_devices.  This will give the rdma driver access to the shared data/ops
++in the PCI drivers shared object to establish a connection with the PCI driver.
++
++Another use case is for the a PCI device to be split out into multiple sub
++functions.  For each sub function an ancillary_device will be created.  A PCI
++sub function driver will bind to such devices that will create its own one or
++more class devices.  A PCI sub function ancillary device will likely be
++contained in a struct with additional attributes such as user defined sub
++function number and optional attributes such as resources and a link to the
++parent device.  These attributes could be used by systemd/udev; and hence should
++be initialized before a driver binds to an ancillary_device.
++
++Ancillary Device
++================
++
++An ancillary_device is created and registered to represent a part of its parent
++device's functionality. It is given a name that, combined with the registering
++drivers KBUILD_MODNAME, creates a match_name that is used for driver binding,
++and an id that combined with the match_name provide a unique name to register
++with the bus subsystem.
++
++Registering an ancillary_device is a two-step process.  First you must call
++ancillary_device_initialize(), which will check several aspects of the
++ancillary_device struct and perform a device_initialize().  After this step
++completes, any error state must have a call to put_device() in its resolution
++path.  The second step in registering an ancillary_device is to perform a call
++to ancillary_device_add(), which will set the name of the device and add the
++device to the bus.
++
++To unregister an ancillary_device, just a call to ancillary_device_unregister()
++is used.  This will perform both a device_del() and a put_device().
++
++.. code-block:: c
++
++	struct ancillary_device {
++		struct device dev;
++                const char *name;
++		u32 id;
++	};
++
++If two ancillary_devices both with a match_name "mod.foo" are registered onto
++the bus, they must have unique id values (e.g. "x" and "y") so that the
++registered devices names will be "mod.foo.x" and "mod.foo.y".  If match_name +
++id are not unique, then the device_add will fail and generate an error message.
++
++The ancillary_device.dev.type.release or ancillary_device.dev.release must be
++populated with a non-NULL pointer to successfully register the ancillary_device.
++
++The ancillary_device.dev.parent must also be populated.
++
++Ancillary Device Memory Model and Lifespan
++------------------------------------------
++
++When a kernel driver registers an ancillary_device on the ancillary bus, we will
++use the nomenclature to refer to this kernel driver as a registering driver.  It
++is the entity that will allocate memory for the ancillary_device and register it
++on the ancillary bus.  It is important to note that, as opposed to the platform
++bus, the registering driver is wholly responsible for the management for the
++memory used for the driver object.
++
++A parent object, defined in the shared header file, will contain the
++ancillary_device.  It will also contain a pointer to the shared object(s), which
++will also be defined in the shared header.  Both the parent object and the
++shared object(s) will be allocated by the registering driver.  This layout
++allows the ancillary_driver's registering module to perform a container_of()
++call to go from the pointer to the ancillary_device, that is passed during the
++call to the ancillary_driver's probe function, up to the parent object, and then
++have access to the shared object(s).
++
++The memory for the ancillary_device will be freed only in its release()
++callback flow as defined by its registering driver.
++
++The memory for the shared object(s) must have a lifespan equal to, or greater
++than, the lifespan of the memory for the ancillary_device.  The ancillary_driver
++should only consider that this shared object is valid as long as the
++ancillary_device is still registered on the ancillary bus.  It is up to the
++registering driver to manage (e.g. free or keep available) the memory for the
++shared object beyond the life of the ancillary_device.
++
++Registering driver must unregister all ancillary devices before its registering
++parent device's remove() is completed.
++
++Ancillary Drivers
++=================
++
++Ancillary drivers follow the standard driver model convention, where
++discovery/enumeration is handled by the core, and drivers
++provide probe() and remove() methods. They support power management
++and shutdown notifications using the standard conventions.
++
++.. code-block:: c
++
++	struct ancillary_driver {
++		int (*probe)(struct ancillary_device *,
++                             const struct ancillary_device_id *id);
++		int (*remove)(struct ancillary_device *);
++		void (*shutdown)(struct ancillary_device *);
++		int (*suspend)(struct ancillary_device *, pm_message_t);
++		int (*resume)(struct ancillary_device *);
++		struct device_driver driver;
++		const struct ancillary_device_id *id_table;
++	};
++
++Ancillary drivers register themselves with the bus by calling
++ancillary_driver_register(). The id_table contains the match_names of ancillary
++devices that a driver can bind with.
++
++Example Usage
++=============
++
++Ancillary devices are created and registered by a subsystem-level core device
++that needs to break up its functionality into smaller fragments. One way to
++extend the scope of an ancillary_device would be to encapsulate it within a
++domain-specific structure defined by the parent device. This structure contains
++the ancillary_device and any associated shared data/callbacks needed to
++establish the connection with the parent.
++
++An example would be:
++
++.. code-block:: c
++
++        struct foo {
++		struct ancillary_device ancildev;
++		void (*connect)(struct ancillary_device *ancildev);
++		void (*disconnect)(struct ancillary_device *ancildev);
++		void *data;
++        };
++
++The parent device would then register the ancillary_device by calling
++ancillary_device_initialize(), and then ancillary_device_add(), with the pointer
++to the ancildev member of the above structure. The parent would provide a name
++for the ancillary_device that, combined with the parent's KBUILD_MODNAME, will
++create a match_name that will be used for matching and binding with a driver.
++
++Whenever an ancillary_driver is registered, based on the match_name, the
++ancillary_driver's probe() is invoked for the matching devices.  The
++ancillary_driver can also be encapsulated inside custom drivers that make the
++core device's functionality extensible by adding additional domain-specific ops
++as follows:
++
++.. code-block:: c
++
++	struct my_ops {
++		void (*send)(struct ancillary_device *ancildev);
++		void (*receive)(struct ancillary_device *ancildev);
++	};
++
++
++	struct my_driver {
++		struct ancillary_driver ancillary_drv;
++		const struct my_ops ops;
++	};
++
++An example of this type of usage would be:
++
++.. code-block:: c
++
++	const struct ancillary_device_id my_ancillary_id_table[] = {
++		{ .name = "foo_mod.foo_dev" },
++		{ },
++	};
++
++	const struct my_ops my_custom_ops = {
++		.send = my_tx,
++		.receive = my_rx,
++	};
++
++	const struct my_driver my_drv = {
++		.ancillary_drv = {
++			.driver = {
++				.name = "myancillarydrv",
++			},
++			.id_table = my_ancillary_id_table,
++			.probe = my_probe,
++			.remove = my_remove,
++			.shutdown = my_shutdown,
++		},
++		.ops = my_custom_ops,
++	};
+diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
+index 5ef2cfe3a16b..9584ac2ed1f5 100644
+--- a/Documentation/driver-api/index.rst
++++ b/Documentation/driver-api/index.rst
+@@ -74,6 +74,7 @@ available subsections can be seen below.
+    thermal/index
+    fpga/index
+    acpi/index
++   ancillary_bus
+    backlight/lp855x-driver.rst
+    connector
+    console
+diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+index 0c262c2aeaf2..ba82a045b847 100644
+--- a/drivers/bus/Kconfig
++++ b/drivers/bus/Kconfig
+@@ -5,6 +5,9 @@
  
--config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST
--	bool "SOF enable IPC flood test"
--	help
--	  This option enables the IPC flood test which can be used to flood
--	  the DSP with test IPCs and gather stats about response times.
--	  Say Y if you want to enable IPC flood test.
--	  If unsure, select "N".
--
- config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST_CLIENT
- 	tristate "SOF enable IPC flood test client"
- 	depends on SND_SOC_SOF_CLIENT
-diff --git a/sound/soc/sof/debug.c b/sound/soc/sof/debug.c
-index 8e15f105d1d5..d224641768da 100644
---- a/sound/soc/sof/debug.c
-+++ b/sound/soc/sof/debug.c
-@@ -232,120 +232,10 @@ static int snd_sof_debugfs_probe_item(struct snd_sof_dev *sdev,
- }
- #endif
+ menu "Bus devices"
  
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--#define MAX_IPC_FLOOD_DURATION_MS 1000
--#define MAX_IPC_FLOOD_COUNT 10000
--#define IPC_FLOOD_TEST_RESULT_LEN 512
--
--static int sof_debug_ipc_flood_test(struct snd_sof_dev *sdev,
--				    struct snd_sof_dfsentry *dfse,
--				    bool flood_duration_test,
--				    unsigned long ipc_duration_ms,
--				    unsigned long ipc_count)
--{
--	struct sof_ipc_cmd_hdr hdr;
--	struct sof_ipc_reply reply;
--	u64 min_response_time = U64_MAX;
--	ktime_t start, end, test_end;
--	u64 avg_response_time = 0;
--	u64 max_response_time = 0;
--	u64 ipc_response_time;
--	int i = 0;
--	int ret;
--
--	/* configure test IPC */
--	hdr.cmd = SOF_IPC_GLB_TEST_MSG | SOF_IPC_TEST_IPC_FLOOD;
--	hdr.size = sizeof(hdr);
--
--	/* set test end time for duration flood test */
--	if (flood_duration_test)
--		test_end = ktime_get_ns() + ipc_duration_ms * NSEC_PER_MSEC;
--
--	/* send test IPC's */
--	while (1) {
--		start = ktime_get();
--		ret = sof_ipc_tx_message(sdev->ipc, hdr.cmd, &hdr, hdr.size,
--					 &reply, sizeof(reply));
--		end = ktime_get();
--
--		if (ret < 0)
--			break;
--
--		/* compute min and max response times */
--		ipc_response_time = ktime_to_ns(ktime_sub(end, start));
--		min_response_time = min(min_response_time, ipc_response_time);
--		max_response_time = max(max_response_time, ipc_response_time);
--
--		/* sum up response times */
--		avg_response_time += ipc_response_time;
--		i++;
--
--		/* test complete? */
--		if (flood_duration_test) {
--			if (ktime_to_ns(end) >= test_end)
--				break;
--		} else {
--			if (i == ipc_count)
--				break;
--		}
--	}
--
--	if (ret < 0)
--		dev_err(sdev->dev,
--			"error: ipc flood test failed at %d iterations\n", i);
--
--	/* return if the first IPC fails */
--	if (!i)
--		return ret;
--
--	/* compute average response time */
--	do_div(avg_response_time, i);
--
--	/* clear previous test output */
--	memset(dfse->cache_buf, 0, IPC_FLOOD_TEST_RESULT_LEN);
--
--	if (flood_duration_test) {
--		dev_dbg(sdev->dev, "IPC Flood test duration: %lums\n",
--			ipc_duration_ms);
--		snprintf(dfse->cache_buf, IPC_FLOOD_TEST_RESULT_LEN,
--			 "IPC Flood test duration: %lums\n", ipc_duration_ms);
--	}
--
--	dev_dbg(sdev->dev,
--		"IPC Flood count: %d, Avg response time: %lluns\n",
--		i, avg_response_time);
--	dev_dbg(sdev->dev, "Max response time: %lluns\n",
--		max_response_time);
--	dev_dbg(sdev->dev, "Min response time: %lluns\n",
--		min_response_time);
--
--	/* format output string */
--	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
--		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
--		 "IPC Flood count: %d\nAvg response time: %lluns\n",
--		 i, avg_response_time);
--
--	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
--		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
--		 "Max response time: %lluns\nMin response time: %lluns\n",
--		 max_response_time, min_response_time);
--
--	return ret;
--}
--#endif
++config ANCILLARY_BUS
++       tristate
++
+ config ARM_CCI
+ 	bool
  
- static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
- 				  size_t count, loff_t *ppos)
- {
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	struct snd_sof_dfsentry *dfse = file->private_data;
--	struct snd_sof_dev *sdev = dfse->sdev;
--	unsigned long ipc_duration_ms = 0;
--	bool flood_duration_test = false;
--	unsigned long ipc_count = 0;
--	struct dentry *dentry;
--	int err;
--#endif
- 	size_t size;
- 	char *string;
- 	int ret;
-@@ -357,78 +247,6 @@ static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
- 	size = simple_write_to_buffer(string, count, ppos, buffer, count);
- 	ret = size;
+diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
+index 397e35392bff..1fd238094543 100644
+--- a/drivers/bus/Makefile
++++ b/drivers/bus/Makefile
+@@ -3,6 +3,9 @@
+ # Makefile for the bus drivers.
+ #
  
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/*
--	 * write op is only supported for ipc_flood_count or
--	 * ipc_flood_duration_ms debugfs entries atm.
--	 * ipc_flood_count floods the DSP with the number of IPC's specified.
--	 * ipc_duration_ms test floods the DSP for the time specified
--	 * in the debugfs entry.
--	 */
--	dentry = file->f_path.dentry;
--	if (strcmp(dentry->d_name.name, "ipc_flood_count") &&
--	    strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	if (!strcmp(dentry->d_name.name, "ipc_flood_duration_ms"))
--		flood_duration_test = true;
--
--	/* test completion criterion */
--	if (flood_duration_test)
--		ret = kstrtoul(string, 0, &ipc_duration_ms);
--	else
--		ret = kstrtoul(string, 0, &ipc_count);
--	if (ret < 0)
--		goto out;
--
--	/* limit max duration/ipc count for flood test */
--	if (flood_duration_test) {
--		if (!ipc_duration_ms) {
--			ret = size;
--			goto out;
--		}
--
--		/* find the minimum. min() is not used to avoid warnings */
--		if (ipc_duration_ms > MAX_IPC_FLOOD_DURATION_MS)
--			ipc_duration_ms = MAX_IPC_FLOOD_DURATION_MS;
--	} else {
--		if (!ipc_count) {
--			ret = size;
--			goto out;
--		}
--
--		/* find the minimum. min() is not used to avoid warnings */
--		if (ipc_count > MAX_IPC_FLOOD_COUNT)
--			ipc_count = MAX_IPC_FLOOD_COUNT;
--	}
--
--	ret = pm_runtime_get_sync(sdev->dev);
--	if (ret < 0) {
--		dev_err_ratelimited(sdev->dev,
--				    "error: debugfs write failed to resume %d\n",
--				    ret);
--		pm_runtime_put_noidle(sdev->dev);
--		goto out;
--	}
--
--	/* flood test */
--	ret = sof_debug_ipc_flood_test(sdev, dfse, flood_duration_test,
--				       ipc_duration_ms, ipc_count);
--
--	pm_runtime_mark_last_busy(sdev->dev);
--	err = pm_runtime_put_autosuspend(sdev->dev);
--	if (err < 0)
--		dev_err_ratelimited(sdev->dev,
--				    "error: debugfs write failed to idle %d\n",
--				    err);
--
--	/* return size if test is successful */
--	if (ret >= 0)
--		ret = size;
--out:
--#endif
- 	kfree(string);
- 	return ret;
- }
-@@ -444,25 +262,6 @@ static ssize_t sof_dfsentry_read(struct file *file, char __user *buffer,
- 	int size;
- 	u8 *buf;
++#Ancillary bus driver
++obj-$(CONFIG_ANCILLARY_BUS)	+= ancillary.o
++
+ # Interconnect bus drivers for ARM platforms
+ obj-$(CONFIG_ARM_CCI)		+= arm-cci.o
+ obj-$(CONFIG_ARM_INTEGRATOR_LM)	+= arm-integrator-lm.o
+diff --git a/drivers/bus/ancillary.c b/drivers/bus/ancillary.c
+new file mode 100644
+index 000000000000..2d940fe5717a
+--- /dev/null
++++ b/drivers/bus/ancillary.c
+@@ -0,0 +1,191 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Software based bus for Ancillary devices
++ *
++ * Copyright (c) 2019-2020 Intel Corporation
++ *
++ * Please see Documentation/driver-api/ancillary_bus.rst for more information.
++ */
++
++#include <linux/device.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/pm_domain.h>
++#include <linux/pm_runtime.h>
++#include <linux/string.h>
++#include <linux/ancillary_bus.h>
++
++static const struct ancillary_device_id *ancillary_match_id(const struct ancillary_device_id *id,
++							    const struct ancillary_device *ancildev)
++{
++
++	while (id->name[0]) {
++		const char *p = strrchr(dev_name(&ancildev->dev), '.');
++		int match_size;
++
++		if (!p)
++			continue;
++		match_size = p - dev_name(&ancildev->dev);
++
++		/* use dev_name(&ancildev->dev) prefix before last '.' char to match to */
++		if (!strncmp(dev_name(&ancildev->dev), id->name, match_size))
++			return id;
++		id++;
++	}
++	return NULL;
++}
++
++static int ancillary_match(struct device *dev, struct device_driver *drv)
++{
++	struct ancillary_device *ancildev = to_ancillary_dev(dev);
++	struct ancillary_driver *ancildrv = to_ancillary_drv(drv);
++
++	return !!ancillary_match_id(ancildrv->id_table, ancildev);
++}
++
++static int ancillary_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	const char *name, *p;
++
++	name = dev_name(dev);
++	p = strrchr(name, '.');
++
++	return add_uevent_var(env, "MODALIAS=%s%.*s", ANCILLARY_MODULE_PREFIX, (int)(p - name),
++			      name);
++}
++
++static const struct dev_pm_ops ancillary_dev_pm_ops = {
++	SET_RUNTIME_PM_OPS(pm_generic_runtime_suspend, pm_generic_runtime_resume, NULL)
++	SET_SYSTEM_SLEEP_PM_OPS(pm_generic_suspend, pm_generic_resume)
++};
++
++struct bus_type ancillary_bus_type = {
++	.name = "ancillary",
++	.match = ancillary_match,
++	.uevent = ancillary_uevent,
++	.pm = &ancillary_dev_pm_ops,
++};
++
++/**
++ * ancillary_device_initialize - check ancillary_device and initialize
++ * @ancildev: ancillary device struct
++ */
++int ancillary_device_initialize(struct ancillary_device *ancildev)
++{
++	struct device *dev = &ancildev->dev;
++
++	dev->bus = &ancillary_bus_type;
++
++	if (WARN_ON(!dev->parent) || WARN_ON(!ancildev->name) ||
++	    WARN_ON(!(dev->type && dev->type->release) && !dev->release))
++		return -EINVAL;
++
++	device_initialize(&ancildev->dev);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ancillary_device_initialize);
++
++/**
++ * __ancillary_device_add - add an ancillary bus device
++ * @ancildev: ancillary bus device to add to the bus
++ * @modname: name of the parent device's driver module
++ */
++int __ancillary_device_add(struct ancillary_device *ancildev, const char *modname)
++{
++	struct device *dev = &ancildev->dev;
++	int ret;
++
++	if (WARN_ON(!modname))
++		return -EINVAL;
++
++	ret = dev_set_name(dev, "%s.%s.%d", modname, ancildev->name, ancildev->id);
++	if (ret) {
++		dev_err(dev->parent, "dev_set_name failed for device: %d\n", ret);
++		return ret;
++	}
++
++	ret = device_add(dev);
++	if (ret)
++		dev_err(dev, "adding device failed!: %d\n", ret);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__ancillary_device_add);
++
++static int ancillary_probe_driver(struct device *dev)
++{
++	struct ancillary_driver *ancildrv = to_ancillary_drv(dev->driver);
++	struct ancillary_device *ancildev = to_ancillary_dev(dev);
++	int ret;
++
++	ret = dev_pm_domain_attach(dev, true);
++	if (ret) {
++		dev_warn(&ancildev->dev, "Failed to attach to PM Domain : %d\n", ret);
++		return ret;
++	}
++
++	ret = ancildrv->probe(ancildev, ancillary_match_id(ancildrv->id_table, ancildev));
++	if (ret)
++		dev_pm_domain_detach(dev, true);
++
++	return ret;
++}
++
++static int ancillary_remove_driver(struct device *dev)
++{
++	struct ancillary_driver *ancildrv = to_ancillary_drv(dev->driver);
++	struct ancillary_device *ancildev = to_ancillary_dev(dev);
++	int ret;
++
++	ret = ancildrv->remove(ancildev);
++	dev_pm_domain_detach(dev, true);
++
++	return ret;
++}
++
++static void ancillary_shutdown_driver(struct device *dev)
++{
++	struct ancillary_driver *ancildrv = to_ancillary_drv(dev->driver);
++	struct ancillary_device *ancildev = to_ancillary_dev(dev);
++
++	ancildrv->shutdown(ancildev);
++}
++
++/**
++ * __ancillary_driver_register - register a driver for ancillary bus devices
++ * @ancildrv: ancillary_driver structure
++ * @owner: owning module/driver
++ */
++int __ancillary_driver_register(struct ancillary_driver *ancildrv, struct module *owner)
++{
++	if (WARN_ON(!ancildrv->probe) || WARN_ON(!ancildrv->remove) ||
++	    WARN_ON(!ancildrv->shutdown) || WARN_ON(!ancildrv->id_table))
++		return -EINVAL;
++
++	ancildrv->driver.owner = owner;
++	ancildrv->driver.bus = &ancillary_bus_type;
++	ancildrv->driver.probe = ancillary_probe_driver;
++	ancildrv->driver.remove = ancillary_remove_driver;
++	ancildrv->driver.shutdown = ancillary_shutdown_driver;
++
++	return driver_register(&ancildrv->driver);
++}
++EXPORT_SYMBOL_GPL(__ancillary_driver_register);
++
++static int __init ancillary_bus_init(void)
++{
++	return bus_register(&ancillary_bus_type);
++}
++
++static void __exit ancillary_bus_exit(void)
++{
++	bus_unregister(&ancillary_bus_type);
++}
++
++module_init(ancillary_bus_init);
++module_exit(ancillary_bus_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("Ancillary Bus");
++MODULE_AUTHOR("David Ertman <david.m.ertman@intel.com>");
++MODULE_AUTHOR("Kiran Patil <kiran.patil@intel.com>");
+diff --git a/include/linux/ancillary_bus.h b/include/linux/ancillary_bus.h
+new file mode 100644
+index 000000000000..73b13b56403d
+--- /dev/null
++++ b/include/linux/ancillary_bus.h
+@@ -0,0 +1,58 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (c) 2019-2020 Intel Corporation
++ *
++ * Please see Documentation/driver-api/ancillary_bus.rst for more information.
++ */
++
++#ifndef _ANCILLARY_BUS_H_
++#define _ANCILLARY_BUS_H_
++
++#include <linux/device.h>
++#include <linux/mod_devicetable.h>
++#include <linux/slab.h>
++
++struct ancillary_device {
++	struct device dev;
++	const char *name;
++	u32 id;
++};
++
++struct ancillary_driver {
++	int (*probe)(struct ancillary_device *ancildev, const struct ancillary_device_id *id);
++	int (*remove)(struct ancillary_device *ancildev);
++	void (*shutdown)(struct ancillary_device *ancildev);
++	int (*suspend)(struct ancillary_device *ancildev, pm_message_t state);
++	int (*resume)(struct ancillary_device *ancildev);
++	struct device_driver driver;
++	const struct ancillary_device_id *id_table;
++};
++
++static inline struct ancillary_device *to_ancillary_dev(struct device *dev)
++{
++	return container_of(dev, struct ancillary_device, dev);
++}
++
++static inline struct ancillary_driver *to_ancillary_drv(struct device_driver *drv)
++{
++	return container_of(drv, struct ancillary_driver, driver);
++}
++
++int ancillary_device_initialize(struct ancillary_device *ancildev);
++int __ancillary_device_add(struct ancillary_device *ancildev, const char *modname);
++#define ancillary_device_add(ancildev) __ancillary_device_add(ancildev, KBUILD_MODNAME)
++
++static inline void ancillary_device_unregister(struct ancillary_device *ancildev)
++{
++	device_unregister(&ancildev->dev);
++}
++
++int __ancillary_driver_register(struct ancillary_driver *ancildrv, struct module *owner);
++#define ancillary_driver_register(ancildrv) __ancillary_driver_register(ancildrv, THIS_MODULE)
++
++static inline void ancillary_driver_unregister(struct ancillary_driver *ancildrv)
++{
++	driver_unregister(&ancildrv->driver);
++}
++
++#endif /* _ANCILLARY_BUS_H_ */
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index 5b08a473cdba..7d596dc30833 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -838,4 +838,12 @@ struct mhi_device_id {
+ 	kernel_ulong_t driver_data;
+ };
  
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	struct dentry *dentry;
--
--	dentry = file->f_path.dentry;
--	if ((!strcmp(dentry->d_name.name, "ipc_flood_count") ||
--	     !strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) &&
--	    dfse->cache_buf) {
--		if (*ppos)
--			return 0;
--
--		count = strlen(dfse->cache_buf);
--		size_ret = copy_to_user(buffer, dfse->cache_buf, count);
--		if (size_ret)
--			return -EFAULT;
--
--		*ppos += count;
--		return count;
--	}
--#endif
- 	size = dfse->size;
++#define ANCILLARY_NAME_SIZE 32
++#define ANCILLARY_MODULE_PREFIX "ancillary:"
++
++struct ancillary_device_id {
++	char name[ANCILLARY_NAME_SIZE];
++	kernel_ulong_t driver_data;
++};
++
+ #endif /* LINUX_MOD_DEVICETABLE_H */
+diff --git a/scripts/mod/devicetable-offsets.c b/scripts/mod/devicetable-offsets.c
+index 27007c18e754..79e37c4c25b3 100644
+--- a/scripts/mod/devicetable-offsets.c
++++ b/scripts/mod/devicetable-offsets.c
+@@ -243,5 +243,8 @@ int main(void)
+ 	DEVID(mhi_device_id);
+ 	DEVID_FIELD(mhi_device_id, chan);
  
- 	/* validate position & count */
-@@ -606,17 +405,6 @@ int snd_sof_debugfs_buf_item(struct snd_sof_dev *sdev,
- 	dfse->size = size;
- 	dfse->sdev = sdev;
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/*
--	 * cache_buf is unused for SOF_DFSENTRY_TYPE_BUF debugfs entries.
--	 * So, use it to save the results of the last IPC flood test.
--	 */
--	dfse->cache_buf = devm_kzalloc(sdev->dev, IPC_FLOOD_TEST_RESULT_LEN,
--				       GFP_KERNEL);
--	if (!dfse->cache_buf)
--		return -ENOMEM;
--#endif
--
- 	debugfs_create_file(name, mode, sdev->debugfs_root, dfse,
- 			    &sof_dfs_fops);
- 	/* add to dfsentry list */
-@@ -662,24 +450,6 @@ int snd_sof_dbg_init(struct snd_sof_dev *sdev)
- 		return err;
- #endif
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/* create read-write ipc_flood_count debugfs entry */
--	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
--				       "ipc_flood_count", 0666);
--
--	/* errors are only due to memory allocation, not debugfs */
--	if (err < 0)
--		return err;
--
--	/* create read-write ipc_flood_duration_ms debugfs entry */
--	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
--				       "ipc_flood_duration_ms", 0666);
--
--	/* errors are only due to memory allocation, not debugfs */
--	if (err < 0)
--		return err;
--#endif
--
++	DEVID(ancillary_device_id);
++	DEVID_FIELD(ancillary_device_id, name);
++
  	return 0;
  }
- EXPORT_SYMBOL_GPL(snd_sof_dbg_init);
-diff --git a/sound/soc/sof/sof-priv.h b/sound/soc/sof/sof-priv.h
-index 151614224f47..ece5fce97460 100644
---- a/sound/soc/sof/sof-priv.h
-+++ b/sound/soc/sof/sof-priv.h
-@@ -50,10 +50,6 @@ extern int sof_core_debug;
- #define SOF_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
- 	SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_FLOAT)
+diff --git a/scripts/mod/file2alias.c b/scripts/mod/file2alias.c
+index 2417dd1dee33..99c4fcd82bf3 100644
+--- a/scripts/mod/file2alias.c
++++ b/scripts/mod/file2alias.c
+@@ -1364,6 +1364,13 @@ static int do_mhi_entry(const char *filename, void *symval, char *alias)
+ {
+ 	DEF_FIELD_ADDR(symval, mhi_device_id, chan);
+ 	sprintf(alias, MHI_DEVICE_MODALIAS_FMT, *chan);
++	return 1;
++}
++
++static int do_ancillary_entry(const char *filename, void *symval, char *alias)
++{
++	DEF_FIELD_ADDR(symval, ancillary_device_id, name);
++	sprintf(alias, ANCILLARY_MODULE_PREFIX "%s", *name);
  
--#define ENABLE_DEBUGFS_CACHEBUF \
--	(IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE) || \
--	 IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST))
--
- /* DSP power state */
- enum sof_dsp_power_states {
- 	SOF_DSP_PM_D0,
-@@ -298,7 +294,7 @@ struct snd_sof_dfsentry {
- 	 * or if it is accessible only when the DSP is in D0.
- 	 */
- 	enum sof_debugfs_access_type access_type;
--#if ENABLE_DEBUGFS_CACHEBUF
-+#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE)
- 	char *cache_buf; /* buffer to cache the contents of debugfs memory */
- #endif
- 	struct snd_sof_dev *sdev;
+ 	return 1;
+ }
+@@ -1442,6 +1449,7 @@ static const struct devtable devtable[] = {
+ 	{"tee", SIZE_tee_client_device_id, do_tee_entry},
+ 	{"wmi", SIZE_wmi_device_id, do_wmi_entry},
+ 	{"mhi", SIZE_mhi_device_id, do_mhi_entry},
++	{"ancillary", SIZE_ancillary_device_id, do_ancillary_entry},
+ };
+ 
+ /* Create MODULE_ALIAS() statements.
 -- 
 2.26.2
 
