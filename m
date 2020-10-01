@@ -2,438 +2,258 @@ Return-Path: <SRS0=wKnc=DI=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FAB1C47428
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B73CBC47420
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:26:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EA222184D
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 05:06:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AEDC21481
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Oct 2020 07:26:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="HMB3bWup"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725883AbgJAFGa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Oct 2020 01:06:30 -0400
-Received: from mga14.intel.com ([192.55.52.115]:21949 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725878AbgJAFGa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Oct 2020 01:06:30 -0400
-IronPort-SDR: XrV2h5KDta2Eo6KrOJNgxd325yPsm3fsiW9AvjM8UCveRvzZJUvarZHw3c8Hg3iMQH2haoc1uZ
- 17iYja4nChGg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9760"; a="161876196"
-X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="161876196"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:28 -0700
-IronPort-SDR: dP0MiWYiWSbMlqO0A9zqqEzGEApoFkue6hjix6LDdza/09VQIELmNpt5BMeUW7KS0JbiyvT4qG
- uoUELxE1z6QA==
-X-IronPort-AV: E=Sophos;i="5.77,323,1596524400"; 
-   d="scan'208";a="501563208"
-Received: from dmert-dev.jf.intel.com ([10.166.241.5])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2020 22:06:27 -0700
-From:   Dave Ertman <david.m.ertman@intel.com>
-To:     linux-rdma@vger.kernel.org
-Subject: [PATCH 5/6] ASoC: SOF: Intel: Define ops for client registration
-Date:   Wed, 30 Sep 2020 22:05:33 -0700
-Message-Id: <20201001050534.890666-6-david.m.ertman@intel.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201001050534.890666-1-david.m.ertman@intel.com>
-References: <20201001050534.890666-1-david.m.ertman@intel.com>
+        id S1731248AbgJAH0n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Oct 2020 03:26:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49204 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725878AbgJAH0m (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Oct 2020 03:26:42 -0400
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA3ABC0613E2
+        for <linux-rdma@vger.kernel.org>; Thu,  1 Oct 2020 00:26:40 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id g3so223575edu.6
+        for <linux-rdma@vger.kernel.org>; Thu, 01 Oct 2020 00:26:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+ZKtKXKnlI9OQcR2INMab6gGaMD1rqgWs4v7ImAsS28=;
+        b=HMB3bWupFtyFqFrornu8LUPR+eKE69dlVbICTJOY/SqNpN9xiYB9o2yv7Dyv2mTPG7
+         i+x+eA1ISs5n2Kdg19TcVbecjGO9xtOPQ8mB4bKmOs/2TxZHCw+qb5n+nX3i9uAkUOsz
+         wRHKepAKszXXpvWU1Unj958sPuv9hyUurzV+6qvDxRzUqNXezxDbGZbAsuV+fQdmCU9g
+         NEHtqSC0fZ/OwZy9spmtR8K616SlJdzqB8CdnfjFXVF1ovF6AlB1EdmQgOfDfvg9F9PG
+         ZMfTszWQeX9dv7DxB8cwt+4HlnepN6xH9pH8X25lr/koji5cJVuKRKPshDcrZgL/FHBh
+         u0bw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+ZKtKXKnlI9OQcR2INMab6gGaMD1rqgWs4v7ImAsS28=;
+        b=U0GnaKciXCb2NE7KfmkmYk5nR3CEj3EW7ZnFJZhzXhpMZBgPE+uyQu6BzKzwgmPQ5m
+         93bqDnQ1iHkpn5s1/Q7aMPZnav+cpJ6yRkCct8MrujwiDtif7DksgnF7Pkpw1ScxfZxt
+         Rp/lvNILYJjbdkSQHR1AErzonJYU4kpSYz+aHxFUly9vZSiE9zgd8mH5QONQ7K5EGOlX
+         QUorqeS9/Z5X4Ns3X8AXFSw+UTnl7W0ZXz0K25AThwhSclGTlrWIUYPPirSjCSAA4XDW
+         jowIxdHiQMC5AVVqjNtmLZQuhd+AWeFO25C5/d9Br+7U3FI5R/NFYlJFd7zoaI3sJTdX
+         LPyg==
+X-Gm-Message-State: AOAM533vjYolorvEKMb7YNYGfq8ynp/FamX28M+70s64Ueb5ivGDZEe3
+        8vlxCo7r7dAd7gye1kBvohcpvr6kEclXCg==
+X-Google-Smtp-Source: ABdhPJxyKpDexrlR5gMm/WeckDH1ZOsNlTfR/gExRTc2c1FoTc2vsFAzyR5/OatKyVjOnxHleBRPuw==
+X-Received: by 2002:a50:ee10:: with SMTP id g16mr7114902eds.258.1601537199589;
+        Thu, 01 Oct 2020 00:26:39 -0700 (PDT)
+Received: from gkim-laptop.pb.local ([2001:1438:4010:2558:4cea:8c37:1548:493c])
+        by smtp.googlemail.com with ESMTPSA id jr9sm3436230ejb.87.2020.10.01.00.26.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 01 Oct 2020 00:26:39 -0700 (PDT)
+From:   Gioh Kim <gi-oh.kim@cloud.ionos.com>
+X-Google-Original-From: Gioh Kim <gi-oh.kim@clous.ionos.com>
+To:     danil.kipnis@cloud.ionos.com, jinpu.wang@cloud.ionos.com
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Gioh Kim <gi-oh.kim@cloud.ionos.com>
+Subject: [PATCH 1/2] RDMA/rtrs: remove unnecessary argument dir of rtrs_iu_free
+Date:   Thu,  1 Oct 2020 09:26:37 +0200
+Message-Id: <20201001072637.16121-1-gi-oh.kim@clous.ionos.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 
-Define client ops for Intel platforms. For now, we only add
-2 IPC test clients that will be used for run tandem IPC flood
-tests for.
+The direction of DMA operation is already in the rtrs_iu.
 
-For ACPI platforms, change the Kconfig to select
-SND_SOC_SOF_PROBE_WORK_QUEUE to allow the ancillary driver
-to probe when the client is registered.
-
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-Co-developed-by: Fred Oh <fred.oh@linux.intel.com>
-Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 ---
- sound/soc/sof/intel/Kconfig        |  9 ++++++
- sound/soc/sof/intel/Makefile       |  3 ++
- sound/soc/sof/intel/apl.c          | 18 +++++++++++
- sound/soc/sof/intel/bdw.c          | 18 +++++++++++
- sound/soc/sof/intel/byt.c          | 22 ++++++++++++++
- sound/soc/sof/intel/cnl.c          | 18 +++++++++++
- sound/soc/sof/intel/intel-client.c | 49 ++++++++++++++++++++++++++++++
- sound/soc/sof/intel/intel-client.h | 26 ++++++++++++++++
- 8 files changed, 163 insertions(+)
- create mode 100644 sound/soc/sof/intel/intel-client.c
- create mode 100644 sound/soc/sof/intel/intel-client.h
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 14 ++++++--------
+ drivers/infiniband/ulp/rtrs/rtrs-pri.h |  3 +--
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 14 ++++++--------
+ drivers/infiniband/ulp/rtrs/rtrs.c     | 10 +++++-----
+ 4 files changed, 18 insertions(+), 23 deletions(-)
 
-diff --git a/sound/soc/sof/intel/Kconfig b/sound/soc/sof/intel/Kconfig
-index 3aaf25e4f766..28aba42f4658 100644
---- a/sound/soc/sof/intel/Kconfig
-+++ b/sound/soc/sof/intel/Kconfig
-@@ -13,6 +13,8 @@ config SND_SOC_SOF_INTEL_ACPI
- 	def_tristate SND_SOC_SOF_ACPI
- 	select SND_SOC_SOF_BAYTRAIL  if SND_SOC_SOF_BAYTRAIL_SUPPORT
- 	select SND_SOC_SOF_BROADWELL if SND_SOC_SOF_BROADWELL_SUPPORT
-+	select SND_SOC_SOF_PROBE_WORK_QUEUE if SND_SOC_SOF_CLIENT
-+	select SND_SOC_SOF_INTEL_CLIENT if SND_SOC_SOF_CLIENT
- 	help
- 	  This option is not user-selectable but automagically handled by
- 	  'select' statements at a higher level
-@@ -29,6 +31,7 @@ config SND_SOC_SOF_INTEL_PCI
- 	select SND_SOC_SOF_TIGERLAKE   if SND_SOC_SOF_TIGERLAKE_SUPPORT
- 	select SND_SOC_SOF_ELKHARTLAKE if SND_SOC_SOF_ELKHARTLAKE_SUPPORT
- 	select SND_SOC_SOF_JASPERLAKE  if SND_SOC_SOF_JASPERLAKE_SUPPORT
-+	select SND_SOC_SOF_INTEL_CLIENT if SND_SOC_SOF_CLIENT
- 	help
- 	  This option is not user-selectable but automagically handled by
- 	  'select' statements at a higher level
-@@ -57,6 +60,12 @@ config SND_SOC_SOF_INTEL_COMMON
- 	  This option is not user-selectable but automagically handled by
- 	  'select' statements at a higher level
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 776e89231c52..7af5f1559451 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1236,8 +1236,7 @@ static void free_sess_reqs(struct rtrs_clt_sess *sess)
+ 		if (req->mr)
+ 			ib_dereg_mr(req->mr);
+ 		kfree(req->sge);
+-		rtrs_iu_free(req->iu, DMA_TO_DEVICE,
+-			      sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(req->iu, sess->s.dev->ib_dev, 1);
+ 	}
+ 	kfree(sess->reqs);
+ 	sess->reqs = NULL;
+@@ -1605,8 +1604,7 @@ static void destroy_con_cq_qp(struct rtrs_clt_con *con)
  
-+config SND_SOC_SOF_INTEL_CLIENT
-+	tristate
-+	help
-+	  This option is not user-selectable but automagically handled by
-+	  'select' statements at a higher level
-+
- if SND_SOC_SOF_INTEL_ACPI
+ 	rtrs_cq_qp_destroy(&con->c);
+ 	if (con->rsp_ius) {
+-		rtrs_iu_free(con->rsp_ius, DMA_FROM_DEVICE,
+-			      sess->s.dev->ib_dev, con->queue_size);
++		rtrs_iu_free(con->rsp_ius, sess->s.dev->ib_dev, con->queue_size);
+ 		con->rsp_ius = NULL;
+ 		con->queue_size = 0;
+ 	}
+@@ -2245,7 +2243,7 @@ static void rtrs_clt_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct rtrs_iu *iu;
  
- config SND_SOC_SOF_BAYTRAIL_SUPPORT
-diff --git a/sound/soc/sof/intel/Makefile b/sound/soc/sof/intel/Makefile
-index f7e9358f1f06..50e40caaa787 100644
---- a/sound/soc/sof/intel/Makefile
-+++ b/sound/soc/sof/intel/Makefile
-@@ -5,6 +5,8 @@ snd-sof-intel-bdw-objs := bdw.o
+ 	iu = container_of(wc->wr_cqe, struct rtrs_iu, cqe);
+-	rtrs_iu_free(iu, DMA_TO_DEVICE, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
  
- snd-sof-intel-ipc-objs := intel-ipc.o
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		rtrs_err(sess->clt, "Sess info request send failed: %s\n",
+@@ -2374,7 +2372,7 @@ static void rtrs_clt_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
  
-+snd-sof-intel-client-objs := intel-client.o
-+
- snd-sof-intel-hda-common-objs := hda.o hda-loader.o hda-stream.o hda-trace.o \
- 				 hda-dsp.o hda-ipc.o hda-ctrl.o hda-pcm.o \
- 				 hda-dai.o hda-bus.o \
-@@ -18,3 +20,4 @@ obj-$(CONFIG_SND_SOC_SOF_BROADWELL) += snd-sof-intel-bdw.o
- obj-$(CONFIG_SND_SOC_SOF_INTEL_HIFI_EP_IPC) += snd-sof-intel-ipc.o
- obj-$(CONFIG_SND_SOC_SOF_HDA_COMMON) += snd-sof-intel-hda-common.o
- obj-$(CONFIG_SND_SOC_SOF_HDA) += snd-sof-intel-hda.o
-+obj-$(CONFIG_SND_SOC_SOF_INTEL_CLIENT) += snd-sof-intel-client.o
-diff --git a/sound/soc/sof/intel/apl.c b/sound/soc/sof/intel/apl.c
-index 9e29d4fd393a..b31353b1a3ea 100644
---- a/sound/soc/sof/intel/apl.c
-+++ b/sound/soc/sof/intel/apl.c
-@@ -15,9 +15,12 @@
-  * Hardware interface for audio DSP on Apollolake and GeminiLake
-  */
- 
-+#include <linux/list.h>
- #include "../sof-priv.h"
- #include "hda.h"
- #include "../sof-audio.h"
-+#include "../sof-client.h"
-+#include "intel-client.h"
- 
- static const struct snd_sof_debugfs_map apl_dsp_debugfs[] = {
- 	{"hda", HDA_DSP_HDA_BAR, 0, 0x4000, SOF_DEBUGFS_ACCESS_ALWAYS},
-@@ -25,6 +28,16 @@ static const struct snd_sof_debugfs_map apl_dsp_debugfs[] = {
- 	{"dsp", HDA_DSP_BAR,  0, 0x10000, SOF_DEBUGFS_ACCESS_ALWAYS},
- };
- 
-+static int apl_register_clients(struct snd_sof_dev *sdev)
-+{
-+	return intel_register_ipc_test_clients(sdev);
-+}
-+
-+static void apl_unregister_clients(struct snd_sof_dev *sdev)
-+{
-+	intel_unregister_ipc_test_clients(sdev);
-+}
-+
- /* apollolake ops */
- const struct snd_sof_dsp_ops sof_apl_ops = {
- 	/* probe and remove */
-@@ -101,6 +114,10 @@ const struct snd_sof_dsp_ops sof_apl_ops = {
- 	.trace_release = hda_dsp_trace_release,
- 	.trace_trigger = hda_dsp_trace_trigger,
- 
-+	/* client ops */
-+	.register_clients = apl_register_clients,
-+	.unregister_clients = apl_unregister_clients,
-+
- 	/* DAI drivers */
- 	.drv		= skl_dai,
- 	.num_drv	= SOF_SKL_NUM_DAIS,
-@@ -140,3 +157,4 @@ const struct sof_intel_dsp_desc apl_chip_info = {
- 	.ssp_base_offset = APL_SSP_BASE_OFFSET,
- };
- EXPORT_SYMBOL_NS(apl_chip_info, SND_SOC_SOF_INTEL_HDA_COMMON);
-+MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_CLIENT);
-diff --git a/sound/soc/sof/intel/bdw.c b/sound/soc/sof/intel/bdw.c
-index 99fd0bd7276e..b14026c5fa97 100644
---- a/sound/soc/sof/intel/bdw.c
-+++ b/sound/soc/sof/intel/bdw.c
-@@ -12,12 +12,15 @@
-  * Hardware interface for audio DSP on Broadwell
-  */
- 
-+#include <linux/list.h>
- #include <linux/module.h>
- #include <sound/sof.h>
- #include <sound/sof/xtensa.h>
- #include "../ops.h"
- #include "shim.h"
- #include "../sof-audio.h"
-+#include "../sof-client.h"
-+#include "intel-client.h"
- 
- /* BARs */
- #define BDW_DSP_BAR 0
-@@ -563,6 +566,16 @@ static void bdw_set_mach_params(const struct snd_soc_acpi_mach *mach,
- 	mach_params->platform = dev_name(dev);
+ out:
+ 	rtrs_clt_update_wc_stats(con);
+-	rtrs_iu_free(iu, DMA_FROM_DEVICE, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
+ 	rtrs_clt_change_state(sess, state);
  }
  
-+static int bdw_register_clients(struct snd_sof_dev *sdev)
-+{
-+	return intel_register_ipc_test_clients(sdev);
-+}
+@@ -2436,9 +2434,9 @@ static int rtrs_send_sess_info(struct rtrs_clt_sess *sess)
+ 
+ out:
+ 	if (tx_iu)
+-		rtrs_iu_free(tx_iu, DMA_TO_DEVICE, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(tx_iu, sess->s.dev->ib_dev, 1);
+ 	if (rx_iu)
+-		rtrs_iu_free(rx_iu, DMA_FROM_DEVICE, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(rx_iu, sess->s.dev->ib_dev, 1);
+ 	if (unlikely(err))
+ 		/* If we've never taken async path because of malloc problems */
+ 		rtrs_clt_change_state(sess, RTRS_CLT_CONNECTING_ERR);
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-pri.h b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
+index 0a93c87ef92b..63b128c6eb04 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-pri.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
+@@ -288,8 +288,7 @@ struct rtrs_msg_rdma_hdr {
+ struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t t,
+ 			      struct ib_device *dev, enum dma_data_direction,
+ 			      void (*done)(struct ib_cq *cq, struct ib_wc *wc));
+-void rtrs_iu_free(struct rtrs_iu *iu, enum dma_data_direction dir,
+-		  struct ib_device *dev, u32 queue_size);
++void rtrs_iu_free(struct rtrs_iu *iu, struct ib_device *dev, u32 queue_size);
+ int rtrs_iu_post_recv(struct rtrs_con *con, struct rtrs_iu *iu);
+ int rtrs_iu_post_send(struct rtrs_con *con, struct rtrs_iu *iu, size_t size,
+ 		      struct ib_send_wr *head);
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index a219bd1bdbc2..b8763fe9152f 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -575,8 +575,7 @@ static void unmap_cont_bufs(struct rtrs_srv_sess *sess)
+ 		struct rtrs_srv_mr *srv_mr;
+ 
+ 		srv_mr = &sess->mrs[i];
+-		rtrs_iu_free(srv_mr->iu, DMA_TO_DEVICE,
+-			      sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(srv_mr->iu, sess->s.dev->ib_dev, 1);
+ 		ib_dereg_mr(srv_mr->mr);
+ 		ib_dma_unmap_sg(sess->s.dev->ib_dev, srv_mr->sgt.sgl,
+ 				srv_mr->sgt.nents, DMA_BIDIRECTIONAL);
+@@ -680,8 +679,7 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 			sgt = &srv_mr->sgt;
+ 			mr = srv_mr->mr;
+ free_iu:
+-			rtrs_iu_free(srv_mr->iu, DMA_TO_DEVICE,
+-				      sess->s.dev->ib_dev, 1);
++			rtrs_iu_free(srv_mr->iu, sess->s.dev->ib_dev, 1);
+ dereg_mr:
+ 			ib_dereg_mr(mr);
+ unmap_sg:
+@@ -733,7 +731,7 @@ static void rtrs_srv_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct rtrs_iu *iu;
+ 
+ 	iu = container_of(wc->wr_cqe, struct rtrs_iu, cqe);
+-	rtrs_iu_free(iu, DMA_TO_DEVICE, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		rtrs_err(s, "Sess info response send failed: %s\n",
+@@ -859,7 +857,7 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 	if (unlikely(err)) {
+ 		rtrs_err(s, "rtrs_iu_post_send(), err: %d\n", err);
+ iu_free:
+-		rtrs_iu_free(tx_iu, DMA_TO_DEVICE, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(tx_iu, sess->s.dev->ib_dev, 1);
+ 	}
+ rwr_free:
+ 	kfree(rwr);
+@@ -904,7 +902,7 @@ static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		goto close;
+ 
+ out:
+-	rtrs_iu_free(iu, DMA_FROM_DEVICE, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
+ 	return;
+ close:
+ 	close_sess(sess);
+@@ -927,7 +925,7 @@ static int post_recv_info_req(struct rtrs_srv_con *con)
+ 	err = rtrs_iu_post_recv(&con->c, rx_iu);
+ 	if (unlikely(err)) {
+ 		rtrs_err(s, "rtrs_iu_post_recv(), err: %d\n", err);
+-		rtrs_iu_free(rx_iu, DMA_FROM_DEVICE, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(rx_iu, sess->s.dev->ib_dev, 1);
+ 		return err;
+ 	}
+ 
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
+index ff1093d6e4bc..5163e662f86f 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs.c
+@@ -31,6 +31,8 @@ struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t gfp_mask,
+ 		return NULL;
+ 	for (i = 0; i < queue_size; i++) {
+ 		iu = &ius[i];
++		iu->direction = dir;
 +
-+static void bdw_unregister_clients(struct snd_sof_dev *sdev)
-+{
-+	intel_unregister_ipc_test_clients(sdev);
-+}
-+
- /* Broadwell DAIs */
- static struct snd_soc_dai_driver bdw_dai[] = {
+ 		iu->buf = kzalloc(size, gfp_mask);
+ 		if (!iu->buf)
+ 			goto err;
+@@ -41,17 +43,15 @@ struct rtrs_iu *rtrs_iu_alloc(u32 queue_size, size_t size, gfp_t gfp_mask,
+ 
+ 		iu->cqe.done  = done;
+ 		iu->size      = size;
+-		iu->direction = dir;
+ 	}
+ 	return ius;
+ err:
+-	rtrs_iu_free(ius, dir, dma_dev, i);
++	rtrs_iu_free(ius, dma_dev, i);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(rtrs_iu_alloc);
+ 
+-void rtrs_iu_free(struct rtrs_iu *ius, enum dma_data_direction dir,
+-		   struct ib_device *ibdev, u32 queue_size)
++void rtrs_iu_free(struct rtrs_iu *ius, struct ib_device *ibdev, u32 queue_size)
  {
-@@ -638,6 +651,10 @@ const struct snd_sof_dsp_ops sof_bdw_ops = {
- 	/*Firmware loading */
- 	.load_firmware	= snd_sof_load_firmware_memcpy,
+ 	struct rtrs_iu *iu;
+ 	int i;
+@@ -61,7 +61,7 @@ void rtrs_iu_free(struct rtrs_iu *ius, enum dma_data_direction dir,
  
-+	/* client ops */
-+	.register_clients = bdw_register_clients,
-+	.unregister_clients = bdw_unregister_clients,
-+
- 	/* DAI drivers */
- 	.drv = bdw_dai,
- 	.num_drv = ARRAY_SIZE(bdw_dai),
-@@ -662,3 +679,4 @@ EXPORT_SYMBOL_NS(bdw_chip_info, SND_SOC_SOF_BROADWELL);
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_HIFI_EP_IPC);
- MODULE_IMPORT_NS(SND_SOC_SOF_XTENSA);
-+MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_CLIENT);
-diff --git a/sound/soc/sof/intel/byt.c b/sound/soc/sof/intel/byt.c
-index 49f67f1b94e0..8951f756d078 100644
---- a/sound/soc/sof/intel/byt.c
-+++ b/sound/soc/sof/intel/byt.c
-@@ -12,13 +12,16 @@
-  * Hardware interface for audio DSP on Baytrail, Braswell and Cherrytrail.
-  */
- 
-+#include <linux/list.h>
- #include <linux/module.h>
- #include <sound/sof.h>
- #include <sound/sof/xtensa.h>
- #include "../ops.h"
- #include "shim.h"
- #include "../sof-audio.h"
-+#include "../sof-client.h"
- #include "../../intel/common/soc-intel-quirks.h"
-+#include "intel-client.h"
- 
- /* DSP memories */
- #define IRAM_OFFSET		0x0C0000
-@@ -821,6 +824,16 @@ static int byt_acpi_probe(struct snd_sof_dev *sdev)
- 	return ret;
- }
- 
-+static int byt_register_clients(struct snd_sof_dev *sdev)
-+{
-+	return intel_register_ipc_test_clients(sdev);
-+}
-+
-+static void byt_unregister_clients(struct snd_sof_dev *sdev)
-+{
-+	intel_unregister_ipc_test_clients(sdev);
-+}
-+
- /* baytrail ops */
- const struct snd_sof_dsp_ops sof_byt_ops = {
- 	/* device init */
-@@ -879,6 +892,10 @@ const struct snd_sof_dsp_ops sof_byt_ops = {
- 	.suspend = byt_suspend,
- 	.resume = byt_resume,
- 
-+	/* client ops */
-+	.register_clients = byt_register_clients,
-+	.unregister_clients = byt_unregister_clients,
-+
- 	/* DAI drivers */
- 	.drv = byt_dai,
- 	.num_drv = 3, /* we have only 3 SSPs on byt*/
-@@ -958,6 +975,10 @@ const struct snd_sof_dsp_ops sof_cht_ops = {
- 	.suspend = byt_suspend,
- 	.resume = byt_resume,
- 
-+	/* client ops */
-+	.register_clients = byt_register_clients,
-+	.unregister_clients = byt_unregister_clients,
-+
- 	/* DAI drivers */
- 	.drv = byt_dai,
- 	/* all 6 SSPs may be available for cherrytrail */
-@@ -985,3 +1006,4 @@ EXPORT_SYMBOL_NS(cht_chip_info, SND_SOC_SOF_BAYTRAIL);
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_HIFI_EP_IPC);
- MODULE_IMPORT_NS(SND_SOC_SOF_XTENSA);
-+MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_CLIENT);
-diff --git a/sound/soc/sof/intel/cnl.c b/sound/soc/sof/intel/cnl.c
-index 16db0f50d139..5d7c2a667798 100644
---- a/sound/soc/sof/intel/cnl.c
-+++ b/sound/soc/sof/intel/cnl.c
-@@ -15,10 +15,13 @@
-  * Hardware interface for audio DSP on Cannonlake.
-  */
- 
-+#include <linux/list.h>
- #include "../ops.h"
- #include "hda.h"
- #include "hda-ipc.h"
- #include "../sof-audio.h"
-+#include "../sof-client.h"
-+#include "intel-client.h"
- 
- static const struct snd_sof_debugfs_map cnl_dsp_debugfs[] = {
- 	{"hda", HDA_DSP_HDA_BAR, 0, 0x4000, SOF_DEBUGFS_ACCESS_ALWAYS},
-@@ -231,6 +234,16 @@ static void cnl_ipc_dump(struct snd_sof_dev *sdev)
- 		hipcida, hipctdr, hipcctl);
- }
- 
-+static int cnl_register_clients(struct snd_sof_dev *sdev)
-+{
-+	return intel_register_ipc_test_clients(sdev);
-+}
-+
-+static void cnl_unregister_clients(struct snd_sof_dev *sdev)
-+{
-+	intel_unregister_ipc_test_clients(sdev);
-+}
-+
- /* cannonlake ops */
- const struct snd_sof_dsp_ops sof_cnl_ops = {
- 	/* probe and remove */
-@@ -307,6 +320,10 @@ const struct snd_sof_dsp_ops sof_cnl_ops = {
- 	.trace_release = hda_dsp_trace_release,
- 	.trace_trigger = hda_dsp_trace_trigger,
- 
-+	/* client ops */
-+	.register_clients = cnl_register_clients,
-+	.unregister_clients = cnl_unregister_clients,
-+
- 	/* DAI drivers */
- 	.drv		= skl_dai,
- 	.num_drv	= SOF_SKL_NUM_DAIS,
-@@ -417,3 +434,4 @@ const struct sof_intel_dsp_desc jsl_chip_info = {
- 	.ssp_base_offset = CNL_SSP_BASE_OFFSET,
- };
- EXPORT_SYMBOL_NS(jsl_chip_info, SND_SOC_SOF_INTEL_HDA_COMMON);
-+MODULE_IMPORT_NS(SND_SOC_SOF_INTEL_CLIENT);
-diff --git a/sound/soc/sof/intel/intel-client.c b/sound/soc/sof/intel/intel-client.c
-new file mode 100644
-index 000000000000..76811fcf65a9
---- /dev/null
-+++ b/sound/soc/sof/intel/intel-client.c
-@@ -0,0 +1,49 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+//
-+// Copyright(c) 2020 Intel Corporation. All rights reserved.
-+//
-+// Author: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-+//
-+
-+#include <linux/module.h>
-+#include "../sof-priv.h"
-+#include "../sof-client.h"
-+#include "intel-client.h"
-+
-+#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST_CLIENT)
-+DEFINE_IDA(sof_ipc_test_client_ida);
-+
-+int intel_register_ipc_test_clients(struct snd_sof_dev *sdev)
-+{
-+	int ret;
-+
-+	/*
-+	 * Register 2 IPC clients to facilitate tandem flood test. The device name below is
-+	 * appended with the device ID assigned automatically when the ancillary device is
-+	 * registered making them unique.
-+	 */
-+	ret = sof_client_dev_register(sdev, "ipc_test", &sof_ipc_test_client_ida);
-+	if (ret < 0)
-+		return ret;
-+
-+	return sof_client_dev_register(sdev, "ipc_test", &sof_ipc_test_client_ida);
-+}
-+EXPORT_SYMBOL_NS_GPL(intel_register_ipc_test_clients, SND_SOC_SOF_INTEL_CLIENT);
-+
-+void intel_unregister_ipc_test_clients(struct snd_sof_dev *sdev)
-+{
-+	struct sof_client_dev *cdev, *_cdev;
-+
-+	/* unregister ipc_test clients */
-+	list_for_each_entry_safe(cdev, _cdev, &sdev->client_list, list) {
-+		if (!strcmp(cdev->ancildev.name, "ipc_test"))
-+			sof_client_dev_unregister(cdev);
-+	}
-+
-+	ida_destroy(&sof_ipc_test_client_ida);
-+}
-+EXPORT_SYMBOL_NS_GPL(intel_unregister_ipc_test_clients, SND_SOC_SOF_INTEL_CLIENT);
-+#endif
-+
-+MODULE_LICENSE("GPL");
-+MODULE_IMPORT_NS(SND_SOC_SOF_CLIENT);
-diff --git a/sound/soc/sof/intel/intel-client.h b/sound/soc/sof/intel/intel-client.h
-new file mode 100644
-index 000000000000..49b2c6c0dcc4
---- /dev/null
-+++ b/sound/soc/sof/intel/intel-client.h
-@@ -0,0 +1,26 @@
-+/* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
-+/*
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * Copyright(c) 2020 Intel Corporation. All rights reserved.
-+ *
-+ * Author: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-+ */
-+
-+#ifndef __INTEL_CLIENT_H
-+#define __INTEL_CLIENT_H
-+
-+#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST_CLIENT)
-+int intel_register_ipc_test_clients(struct snd_sof_dev *sdev);
-+void intel_unregister_ipc_test_clients(struct snd_sof_dev *sdev);
-+#else
-+static inline int intel_register_ipc_test_clients(struct snd_sof_dev *sdev)
-+{
-+	return 0;
-+}
-+
-+static void intel_unregister_ipc_test_clients(struct snd_sof_dev *sdev) {}
-+#endif
-+
-+#endif
+ 	for (i = 0; i < queue_size; i++) {
+ 		iu = &ius[i];
+-		ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, dir);
++		ib_dma_unmap_single(ibdev, iu->dma_addr, iu->size, iu->direction);
+ 		kfree(iu->buf);
+ 	}
+ 	kfree(ius);
 -- 
-2.26.2
+2.20.1
 
