@@ -2,104 +2,125 @@ Return-Path: <SRS0=xA/t=DJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8EBCC4363D
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 19:33:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BC88C46466
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 20:07:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E8BF20758
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 19:33:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AFCF206E3
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 20:07:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernelim-com.20150623.gappssmtp.com header.i=@kernelim-com.20150623.gappssmtp.com header.b="XsircEln"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="tm5/BsF2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387688AbgJBTd4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Oct 2020 15:33:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45454 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726224AbgJBTd4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Oct 2020 15:33:56 -0400
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E512FC0613E2
-        for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2020 12:33:55 -0700 (PDT)
-Received: by mail-wr1-x443.google.com with SMTP id t10so2999342wrv.1
-        for <linux-rdma@vger.kernel.org>; Fri, 02 Oct 2020 12:33:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernelim-com.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=iksoBoH+3pzvXPCLx1TL5IJgj6hyPQZIk0NOriAFycU=;
-        b=XsircElnlp498Mtoj1OEx59eX01es418Gupi/Tksk7JogbpzTfL0EYUsvS+HIUlXyt
-         vQMPVuIYV/90mE5GsXPyz3uunNVuufEN6hG7LAxkHpDNxoT41vCRf58o0J7H0D1EFjqt
-         AOtUFSUKISXUuI6tML4mbAeITZXgUJQTozgJElxP/uCibKv+zZTPF8QSulBvm9wU7MPZ
-         APmmgCQqyaZ/VNyDWFqj+Hso6I/YCDeXJLvJiUy2/HrNGxH8j+8Sa+2raW15LyF0kwKz
-         cRawEyhivBnM9B0b3agmO8O2VIh/5bPmM4CpsrtD2KHg+HWQLhHZSMftcx0dpEOK353Z
-         zKcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=iksoBoH+3pzvXPCLx1TL5IJgj6hyPQZIk0NOriAFycU=;
-        b=h7Qd0qyDl/DSPAWxA9d6ftERnFEyKoxS0tAvYJMvoYii1KAl4/+p+ddoMyw/qWEFZI
-         YHK7I5LENiPcMbejS6l/qc8iC1pusHwzNUiJFgMctdMPautfbA0vCY/ohFP5UjnT6TsT
-         +KSBrv42BMl28cmioEYa3J48PeYcm+TJe8jCUmxRu5EIPU4gUhCewERArYL4LoHln35L
-         vIC5sFCCjSLfC9my9yTmQXXuJIWikHG4w2W1txV2Mo1ZP3pH2SG0E0XmrpNj9dKjxnO0
-         3vO+JcinAkaUMbn7Se1DX5e7OtN11uo5N4JfFYcY3lGMCMwBwiHYidUuN8axQGC+Rd8n
-         lx1w==
-X-Gm-Message-State: AOAM531uWP3vCNObk5g9STBWA5/0wJIzsW/h3ajil0h1OssKI/TdqI9d
-        HCZM6o1DvUjq6prK5hWWkdzIEJKrh9pxlw==
-X-Google-Smtp-Source: ABdhPJxcvfHwEA0XU2grgSurc1Aqrf5Pb46g0CdAcx4vRdIkDaF4RPTm882RuvnFZBG2BhqWGD/qGA==
-X-Received: by 2002:adf:d0cb:: with SMTP id z11mr4530366wrh.192.1601667234557;
-        Fri, 02 Oct 2020 12:33:54 -0700 (PDT)
-Received: from jupiter.home.aloni.org ([77.126.36.146])
-        by smtp.gmail.com with ESMTPSA id i16sm2857039wrq.73.2020.10.02.12.33.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Oct 2020 12:33:53 -0700 (PDT)
-From:   Dan Aloni <dan@kernelim.com>
-To:     Chuck Lever <chuck.lever@oracle.com>
-Cc:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
-Subject: [PATCH v2] svcrdma: fix bounce buffers for unaligned offsets and multiple pages
-Date:   Fri,  2 Oct 2020 22:33:43 +0300
-Message-Id: <20201002193343.1040351-1-dan@kernelim.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <58FBC94E-3F7D-4C23-A720-6588B0B22E86@oracle.com>
-References: <58FBC94E-3F7D-4C23-A720-6588B0B22E86@oracle.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1725446AbgJBUHB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 2 Oct 2020 16:07:01 -0400
+Received: from userp2120.oracle.com ([156.151.31.85]:51038 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725801AbgJBUHB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Oct 2020 16:07:01 -0400
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 092K6dqf186823;
+        Fri, 2 Oct 2020 20:07:00 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id; s=corp-2020-01-29;
+ bh=+oN1Sr5m1kZN7D7Y817gY2aCh9P8d/pDYhAHHqikyg4=;
+ b=tm5/BsF2d2972/toGa0fTqCqpQYFby7ZCWQXOuYSmNkYduFLPsYdKYH+N8/US3McwJYh
+ 0FfFdqCnEFRZ/CrEDDJ0DzBTYCzZOhmntdODWz4SqOnqK5Yl2PAnuTUkD+kXybS0L2yV
+ LxlJH0BApv1pVV0ClkkyP/qUG7GSp9aNmznIeMx75LBie7nY0JtIaPkjE+ARqAzxqD3G
+ q2XWBgWjDty5k9fbBCzoyfVC5kA5f7kYoB+UjMzRUltOYNOhaVFlh5RfTCATRiovC6cn
+ tZF1VouAF/K4R+D4r08smyoxfLeMYci6tH3lZAMF0+UiSgk/Yf7MIdHOL6DTjSkUrvG6 WA== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by userp2120.oracle.com with ESMTP id 33sx9nmp7h-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 02 Oct 2020 20:07:00 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 092K4pRp100703;
+        Fri, 2 Oct 2020 20:06:59 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 33tfj3h4xx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 02 Oct 2020 20:06:59 +0000
+Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 092K6wX6025391;
+        Fri, 2 Oct 2020 20:06:58 GMT
+Received: from mbpatil.us.oracle.com (/10.211.44.53)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 02 Oct 2020 13:06:57 -0700
+From:   Manjunath Patil <manjunath.b.patil@oracle.com>
+To:     santosh.shilimkar@oracle.com
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        aruna.ramakrishna@oracle.com, rama.nichanamatlu@oracle.com,
+        manjunath.b.patil@oracle.com
+Subject: [PATCH 1/1] net/rds: suppress page allocation failure error in recv buffer refill
+Date:   Fri,  2 Oct 2020 13:05:45 -0700
+Message-Id: <1601669145-13604-1-git-send-email-manjunath.b.patil@oracle.com>
+X-Mailer: git-send-email 1.7.1
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9762 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxlogscore=999 bulkscore=0
+ phishscore=0 malwarescore=0 adultscore=0 suspectscore=1 mlxscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2010020145
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9762 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 suspectscore=1
+ phishscore=0 mlxscore=0 lowpriorityscore=0 adultscore=0 clxscore=1015
+ spamscore=0 impostorscore=0 malwarescore=0 bulkscore=0 priorityscore=1501
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2010020145
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This was discovered using O_DIRECT at the client side, with small
-unaligned file offsets or IOs that span multiple file pages.
+RDS/IB tries to refill the recv buffer in softirq context using
+GFP_NOWAIT flag. However alloc failure is handled by queueing a work to
+refill the recv buffer with GFP_KERNEL flag. This means failure to
+allocate with GFP_NOWAIT isn't fatal. Do not print the PAF warnings if
+softirq context fails to refill the recv buffer, instead print rate
+limited warnings.
 
-Fixes: e248aa7be86 ("svcrdma: Remove max_sge check at connect time")
-Signed-off-by: Dan Aloni <dan@kernelim.com>
+Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
+Reviewed-by: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 ---
- net/sunrpc/xprtrdma/svc_rdma_sendto.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/rds/ib_recv.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Extended testing found another issue with the loop.
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 7b94d971feb3..c3d588b149aa 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -638,10 +638,11 @@ static int svc_rdma_pull_up_reply_msg(struct svcxprt_rdma *rdma,
- 		while (remaining) {
- 			len = min_t(u32, PAGE_SIZE - pageoff, remaining);
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index 694d411dc72f..b4ed421acc7b 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -310,8 +310,8 @@ static int rds_ib_recv_refill_one(struct rds_connection *conn,
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 	struct ib_sge *sge;
+ 	int ret = -ENOMEM;
+-	gfp_t slab_mask = GFP_NOWAIT;
+-	gfp_t page_mask = GFP_NOWAIT;
++	gfp_t slab_mask = gfp;
++	gfp_t page_mask = gfp;
  
--			memcpy(dst, page_address(*ppages), len);
-+			memcpy(dst, page_address(*ppages) + pageoff, len);
- 			remaining -= len;
- 			dst += len;
- 			pageoff = 0;
-+			ppages++;
+ 	if (gfp & __GFP_DIRECT_RECLAIM) {
+ 		slab_mask = GFP_KERNEL;
+@@ -406,6 +406,9 @@ void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
+ 		recv = &ic->i_recvs[pos];
+ 		ret = rds_ib_recv_refill_one(conn, recv, gfp);
+ 		if (ret) {
++			pr_warn_ratelimited("RDS/IB: failed to refill recv buffer for <%pI6c,%pI6c,%d>, waking worker\n",
++					    &conn->c_laddr, &conn->c_faddr,
++					    conn->c_tos);
+ 			must_wake = true;
+ 			break;
  		}
- 	}
+@@ -1020,7 +1023,7 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
+ 		rds_ib_stats_inc(s_ib_rx_ring_empty);
  
+ 	if (rds_ib_ring_low(&ic->i_recv_ring)) {
+-		rds_ib_recv_refill(conn, 0, GFP_NOWAIT);
++		rds_ib_recv_refill(conn, 0, GFP_NOWAIT | __GFP_NOWARN);
+ 		rds_ib_stats_inc(s_ib_rx_refill_from_cq);
+ 	}
+ }
 -- 
-2.26.2
+2.27.0.112.g101b320
 
