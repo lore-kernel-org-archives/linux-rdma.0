@@ -2,111 +2,101 @@ Return-Path: <SRS0=xA/t=DJ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D24C5C4363D
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 20:29:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0674C4363D
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 21:34:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9582A20719
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 20:29:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 941E3206DB
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Oct 2020 21:34:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RkZkmklm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725772AbgJBU3d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Oct 2020 16:29:33 -0400
-Received: from mail-pj1-f52.google.com ([209.85.216.52]:54969 "EHLO
-        mail-pj1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725601AbgJBU3c (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Oct 2020 16:29:32 -0400
-Received: by mail-pj1-f52.google.com with SMTP id j19so1641760pjl.4
-        for <linux-rdma@vger.kernel.org>; Fri, 02 Oct 2020 13:29:32 -0700 (PDT)
+        id S1725379AbgJBVeZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 2 Oct 2020 17:34:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35908 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725355AbgJBVeY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Oct 2020 17:34:24 -0400
+Received: from mail-ot1-x333.google.com (mail-ot1-x333.google.com [IPv6:2607:f8b0:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B32F8C0613D0
+        for <linux-rdma@vger.kernel.org>; Fri,  2 Oct 2020 14:34:24 -0700 (PDT)
+Received: by mail-ot1-x333.google.com with SMTP id a2so2811956otr.11
+        for <linux-rdma@vger.kernel.org>; Fri, 02 Oct 2020 14:34:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=NRExhTZbgeBLj7a+OLqwqC3KddTzhzOSyzJyb5aSV/M=;
+        b=RkZkmklmEjfFf4mNKbrCo8JLOD6UUWx8cLKjpoYM0V4zu0VUJ4BHUB6DmUlwrode8I
+         pwXYx438uIa6LqWoP3/ZDLjagRJuMCHUCvkj19NC9iUege55vwsBGpYAEhL9SxQWbfnX
+         q6OzQtMsYHK7dCTCcFH1HAhv/BadYqKu7aMMhNpX20SidLBN/TvqAz+w1F8Y2nr4W1MJ
+         2cjP7yGYlQYgUvJF+FjVW77mgsoRs3Mq/0/qDN/2mFWNZQ7uYVKt4KlfZnr7dneGt1aR
+         pfP8ZSTh6GdJ9xtcELkECC5YZPKVU9/Hdu+VmpxPPUiwnAG3ZYDw+YIYehFMJuZA7yEm
+         GBpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=IGRa6OA2iv8Tc9y/ynX5HahmE2AZXUkXwDakrJcjRUI=;
-        b=ozXQzPBVMskFbK6SzXxWRD35aNTUS4ERcKrIaxGE4fPcs4dOXHJj5qwQJIjGIlkQ0h
-         AK61keHmCG22O/Tah//0TLQcUyO+k9Lyg9DzCQ1o79CZLmUOYcw9AVca4JXvGdJKNQNc
-         9JtkoT88QtmGlo3Ufxzsxqw2BXbQ9BhkFEOJDAGF+tTG3t4Hu/TfI8a0CAZ+MViiCU01
-         I15md5YAHGg4rGrdckFLDyKCWMaXa/2qItmUeKubsVHAr2V9Jea0rp0cCaogkSgji2Mz
-         ZKRhBJra094dPiVWRtFeE3moPPM5tX8lUKucG0Pwp3QaAjp2+oQG7XOtJsUu1plAdQew
-         FaHg==
-X-Gm-Message-State: AOAM533GMvweD+zUe19tYWtVj01X5iAqhezqcqgwv42q3A/muJR+YTLf
-        fTnK6DxNRBFynt6L+TGJOYU=
-X-Google-Smtp-Source: ABdhPJzjjC5QuL8rB5FE33cLFk/yClCIMTtBwVWjZFRSz8vCIb1PaW8HMEejMWOsRTZP+HR4o1y3Gw==
-X-Received: by 2002:a17:90b:3409:: with SMTP id kg9mr4750089pjb.122.1601670572136;
-        Fri, 02 Oct 2020 13:29:32 -0700 (PDT)
-Received: from ?IPv6:2601:647:4802:9070:1be2:3dfb:f0b7:cc27? ([2601:647:4802:9070:1be2:3dfb:f0b7:cc27])
-        by smtp.gmail.com with ESMTPSA id n128sm2558409pga.37.2020.10.02.13.29.30
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=NRExhTZbgeBLj7a+OLqwqC3KddTzhzOSyzJyb5aSV/M=;
+        b=b9pDwD4dhNDm4kSe7Wr4/W0H57eu7y//zw6Ml+l6EYNCAM06Mf9wrxJwUIOu3BZUBR
+         6abT21AdRTMfpVLWeBhBfxRIykmqUk9bSYGmpPFKA50tA2HZXhpueWdqNlT3mmm+NAEL
+         3NyWurFl13aTNno02MVUe+UajRXHMPhVklKOLMXmJUa4FCfNL6dcG7GhV5YOGKmhQ332
+         GWa1XD3Yi95EnaGtBylLq3ZFBlcVnuOxL7RQB5SS+tKsyH+PXMaZm0xCnkl2summMxP/
+         DIwvJqFewxwBpQaZQFZ82p+CO0PheOmsr1ScPf+yJafekW8k8OVOlL06W5gMQsCncepl
+         DJxw==
+X-Gm-Message-State: AOAM533N6LDNoZv35xf6KKIl20FNOpH2XcTXHc3Nie07saosNzBQMp4+
+        qr1puLvT/gkkMjyhyrlvZQM=
+X-Google-Smtp-Source: ABdhPJwRwyWLG9gL/Rm4nr4lsuGmGqhYUlg7SoHuv6zNim/15w3NnRt1mhV3U8pgpkFYYc8kp4KE2Q==
+X-Received: by 2002:a9d:6349:: with SMTP id y9mr3030699otk.246.1601674463662;
+        Fri, 02 Oct 2020 14:34:23 -0700 (PDT)
+Received: from ?IPv6:2605:6000:8b03:f000:854e:2d13:6043:4f5a? ([2605:6000:8b03:f000:854e:2d13:6043:4f5a])
+        by smtp.gmail.com with ESMTPSA id h14sm672974otr.21.2020.10.02.14.34.22
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 02 Oct 2020 13:29:31 -0700 (PDT)
-Subject: Re: reduce iSERT Max IO size
-To:     Krishnamraju Eraparaju <krishna2@chelsio.com>,
-        Max Gurtovoy <mgurtovoy@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>
-References: <20200922104424.GA18887@chelsio.com>
- <07e53835-8389-3e07-6976-505edbd94f2a@grimberg.me>
- <20201002171007.GA16636@chelsio.com>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <4d0b1a3f-2980-c7ed-ef9a-0ed6a9c87a69@grimberg.me>
-Date:   Fri, 2 Oct 2020 13:29:30 -0700
+        Fri, 02 Oct 2020 14:34:23 -0700 (PDT)
+To:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
+        Leon Romanovsky <leon@kernel.org>
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+Subject: py verbs tests
+Message-ID: <1c6511ba-e92e-c285-e00d-f2dba04a6747@gmail.com>
+Date:   Fri, 2 Oct 2020 16:34:22 -0500
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <20201002171007.GA16636@chelsio.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+I am currently trying to figure out why one of the pyverbs tests is failing.
 
-> Hi Sagi & Max,
-> 
-> Any update on this?
-> Please change the max IO size to 1MiB(256 pages).
+I added a check implementing C9-205 (p 419) of the IBA spec. I requires that a responder receiving a packet longer
+than the receive buffer or the PMTU shall be silently dropped. I.e. a class D error.
 
-I think that the reason why this was changed to handle the worst case
-was in case there are different capabilities on the initiator and the
-target with respect to number of pages per MR. There is no handshake
-that aligns expectations.
+    C9-205: Before executing the request, the responder shall validate the
+    Packet Length field of the LRH and the PadCnt of the BTH as described
+    in 9.8.3.2.2: Responder - Length Validation.
+    The following characteristics shall be validated:
+    • The Length fields shall be checked to confirm that there is sufficient
+    space available in the receive buffer specified by the receive WQE.
+    • The packet payload length must be between zero and PMTU bytes
+    inclusive in size.
+    If a packet is detected with an invalid length, the request shall be an invalid
+    request and it shall be silently dropped by the responder as specified in
+    Section 9.9.3 Responder Side Behavior on page 435. The responder then
+    waits for a new request packet.
 
-If we revert that it would restore the issue that you reported in the
-first place:
+tests/test_cq_events.py passes PATH_MTU = 1024 in the modify QPs verb for RC and XRC but not UD.
+This should be a required parameter as part of the primary destination address but is not getting
+set for UD. The test then proceeds to send a 1024 byte payload to the destination and for UD hangs
+waiting for the completion.
 
---
-IB/isert: allocate RW ctxs according to max IO size
+I don't want to mess with these tests because I am a poor python coder. Is there some reason why it is
+OK to not set the PMTU for UD QPs?
 
-Current iSER target code allocates MR pool budget based on queue size.
-Since there is no handshake between iSER initiator and target on max IO
-size, we'll set the iSER target to support upto 16MiB IO operations and
-allocate the correct number of RDMA ctxs according to the factor of MR's
-per IO operation. This would guaranty sufficient size of the MR pool for
-the required IO queue depth and IO size.
-
-Reported-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-Tested-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
---
-
-> 
-> 
-> Thanks,
-> Krishnam Raju.
-> On Wednesday, September 09/23/20, 2020 at 01:57:47 -0700, Sagi Grimberg wrote:
->>
->>> Hi,
->>>
->>> Please reduce the Max IO size to 1MiB(256 pages), at iSER Target.
->>> The PBL memory consumption has increased significantly after increasing
->>> the Max IO size to 16MiB(with commit:317000b926b07c).
->>> Due to the large MR pool, the max no.of iSER connections(On one variant
->>> of Chelsio cards) came down to 9, before it was 250.
->>> NVMe-RDMA target also uses 1MiB max IO size.
->>
->> Max, remind me what was the point to support 16M? Did this resolve
->> an issue?
+Bob
