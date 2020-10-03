@@ -8,35 +8,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8886BC41604
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 23:20:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78826C4727D
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 23:20:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49B09206B6
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 23:20:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B28F2068D
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 23:20:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HJFzVjV3"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="g0mn/9Y1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726083AbgJCXUp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Oct 2020 19:20:45 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14606 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726077AbgJCXUp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 3 Oct 2020 19:20:45 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f7907390000>; Sat, 03 Oct 2020 16:20:25 -0700
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 3 Oct
- 2020 23:20:16 +0000
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.54) by
- HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Sat, 3 Oct 2020 23:20:16 +0000
+        id S1726077AbgJCXUq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Oct 2020 19:20:46 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:24986 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726062AbgJCXUq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 3 Oct 2020 19:20:46 -0400
+Received: from HKMAIL102.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f7907480000>; Sun, 04 Oct 2020 07:20:41 +0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL102.nvidia.com
+ (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 3 Oct
+ 2020 23:20:20 +0000
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.50) by
+ HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Sat, 3 Oct 2020 23:20:20 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TDWGN6NTuct+nKRI8DXVHbQ6Kru/SSD081ZzUTtC84Df3MqEw/nHIo8wq/BtY05JnhEqQwx6edG8byAtMwzAHQcEA2rsK9XOORqo5WMRvGXzuOiyiUr9Gquk20SuOMsb3pjmtXE54ONmNCAXWKdgo0L+k+vm+vS8RbseHZ/b9bNiXnUhjiFE+ebW9XoeUB9QbpegHMqygUsHlZmvTSUd9xXzDW9weWPD+66f6LV+iy1CSur0aLmfqrdzn7E/Fc0ZtqsK9/3jR0XWCJNxTPBdXc8pbJhoTg8e6a6sPC+ewMMUKGqCAF6Bj9KLEF9oB6SVBdRvtSI/DhC5YmGXjaXgTw==
+ b=I2UgdwUwDnfowi81n6f/eSW1wW22xS1tl+4gBVln2/rfGUHjB4+992D+t2jdD7pYXomCQnd1HPNjkgp4vgtKe0JFmZQRakrOouYGL6OQmuppjtSs9tc9+202QI3sa/jVLs8Lb9wBf9JA5PZIS6dnywkB69Cw0aK84jZOgOaoLuPkRdr4DGo8tr2d+dWGLYCdwi10CGaRCCJhfPSKUwTvZ3IKK0Ie77lk0Dtuje2BxVov8uGIuBtALKc9jitDKrIar+fwk1CWt9TBdZpRB9GLd/hLFPwxuWzcu/BpLmlXiPnHy8XXsubZCuFhurqGcV1QKDKd6AV8+3ESLybY+rIiFA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=zEEXUJoCwq57g0RF4TekfHwhguU8pI9SHCwbl5QxEQE=;
- b=AUW83BnD7BOemkNKi7ZVTaex0C3196yZcMLZU3k/XCCAyhn15npDIqXk/cbjoBlk9asPr5w1sUZD0U0K1/4K7Dxy5TMMjKntpTMppjlxck+x8MULOso7Z4C5ppe49XVEOoQXLVgBz3C6cFRXAYcZVfTknTlPVBea7kHFnB1PCPXlytzUEHFGx+peb85nNutERWuNC1U4CiA1iH3jv4K9qmInSsHXKX4bRB5hMSUOAh1NrF/XaZbqO0bynpiHig7dbLXWaa+dP52AvgYXN2gANWr9mAQJJoGl46SloHKJh5IGAjBuS/1Z1VY4HrfW9AnyvFXIvbv2IScQjfSsVGDpEw==
+ bh=SWdGcMN9KNGZNWYyui31Hf1CuFWw+nxd3RGSJ2HIsKA=;
+ b=LBmBbSqFSioYA1z4l6ERSIrkMSQYZlnaWbKBMDXeB3YiOKW/6yUEMmCyksQNsq80pJwiZ67uOu47SxBW/3iF1B+fe5BQUosCWxOeodTm9PYxRHyNrxCmxPeio0y12RuKisWw42DXKWOVND/cNTkQff+yfRdTPfuHByo62aUxKiacKyCrC3l7HqCZ+P6PX8rJYDb0bbJTIEoMpMjnSsy0i3xVELptvkELIw6oz6FQYOdS/OJ+ntJvbnHg0HpfzISO8fUQjKPpCCVtP7enmgFD5ayuGt1khTH7Zfy7E2mkPgKu/seHOq6HFDeuckpImmP0Vcs7ZpFiN2y5toLFjmHPeg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
@@ -44,11 +44,11 @@ Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM5PR12MB2582.namprd12.prod.outlook.com (2603:10b6:4:b5::37) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.32; Sat, 3 Oct
- 2020 23:20:14 +0000
+ 2020 23:20:16 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3433.038; Sat, 3 Oct 2020
- 23:20:14 +0000
+ 23:20:16 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     Adit Ranadive <aditr@vmware.com>, Ariel Elior <aelior@marvell.com>,
         Christian Benvenuti <benve@cisco.com>,
@@ -57,522 +57,370 @@ To:     Adit Ranadive <aditr@vmware.com>, Ariel Elior <aelior@marvell.com>,
         "Dennis Dalessandro" <dennis.dalessandro@intel.com>,
         Devesh Sharma <devesh.sharma@broadcom.com>,
         Doug Ledford <dledford@redhat.com>,
+        "Faisal Latif" <faisal.latif@intel.com>,
         "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
         Leon Romanovsky <leon@kernel.org>,
         <linux-rdma@vger.kernel.org>, Weihang Li <liweihang@huawei.com>,
-        "Mike Marciniszyn" <mike.marciniszyn@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Michal Kalderon <mkalderon@marvell.com>,
         Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
         Nelson Escobar <neescoba@cisco.com>,
         Lijun Ou <oulijun@huawei.com>,
-        "Parvi Kaustubhi" <pkaustub@cisco.com>,
+        Parvi Kaustubhi <pkaustub@cisco.com>,
         VMware PV-Drivers <pv-drivers@vmware.com>,
         Bob Pearson <rpearsonhpe@gmail.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
         Somnath Kotur <somnath.kotur@broadcom.com>,
         Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
         Zhu Yanjun <yanjunz@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH 04/11] RDMA: Move more uverbs_cmd_mask settings to the core
-Date:   Sat, 3 Oct 2020 20:20:04 -0300
-Message-ID: <4-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
+Subject: [PATCH 08/11] RDMA: Check create_flags during create_qp
+Date:   Sat, 3 Oct 2020 20:20:08 -0300
+Message-ID: <8-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
 In-Reply-To: <0-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR15CA0029.namprd15.prod.outlook.com
- (2603:10b6:208:1b4::42) To DM6PR12MB3834.namprd12.prod.outlook.com
+X-ClientProxiedBy: MN2PR20CA0036.namprd20.prod.outlook.com
+ (2603:10b6:208:e8::49) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR15CA0029.namprd15.prod.outlook.com (2603:10b6:208:1b4::42) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.35 via Frontend Transport; Sat, 3 Oct 2020 23:20:12 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kOqp1-0075cQ-Lk; Sat, 03 Oct 2020 20:20:11 -0300
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR20CA0036.namprd20.prod.outlook.com (2603:10b6:208:e8::49) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.36 via Frontend Transport; Sat, 3 Oct 2020 23:20:13 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kOqp1-0075ch-Tx; Sat, 03 Oct 2020 20:20:11 -0300
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1601767225; bh=qfCgPl7K6tOsy2RDdq34XngQgvKTe4QHtmH9c1qUMIM=;
+        t=1601767241; bh=SQuGnuHcdBTH6Fk1Y67JtB3rHMCX7satBoVF850MDdQ=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
          Subject:Date:Message-ID:In-Reply-To:References:
          Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:
          MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
-        b=HJFzVjV3yY4zyWja0DvqPDqFmJz6qrqlWXEDwNSdhKoBHRSoynhEBfQr7Yr/NYuzL
-         pjn1DU8H7AXIaSJaJWGCw8SNggUWFD28EKcuQMuuNXtDqVn0AYNiXYWJUxptrRXCF4
-         cVlA+jBDl3nJdDN2+ubyJ7myx2BAtbHDfAbd0ZCSD8TAwkBqPWl5qh8kSjo7EI4T7v
-         AY4zoIBZglOd+L6GCcqpBRnaSzP5BpqScDkb0tCekmuo3mMgALLOTCguIwOUttIDOE
-         JNWhVKk3e96UypulyaqKX2JJvMqhm02ngSitlaZNb7SmPKrThmq80nldO5qtnFTMfg
-         VfoVLrtZMT9xA==
+        b=g0mn/9Y1tv3KVYvfE98Zyez6Re6P+MICcvOXKWmu6f5XbEbwV2kRnkBGUiM/IpUTW
+         9xskh7QA9Okzr78boy9wVC/RrxkXxvyXEyxsKNZ8uRZrrW97fgixZ+RdlPJbpRgvMF
+         UzKoI4IPyvyz457hcGWm1RI3wEnEWX2P7CodNsNSC1M4TAYh+jYzUBezqruq/hlH1Q
+         tPZ/Ji4HSIDA+W04kP/9tlNkUxT98+sH76eC1xnB+8HJOcaVPslm/uOJKu7cnexOn5
+         gSyxD/ZfNbA6Owa3Po4/2alrdFj0xab+pbynqEy4ggUArt8wl3fyqopXdHMhnFY6Au
+         Xcuq6Daloz7XQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-These functions all depend on the driver providing a specific op:
+Each driver should check that the QP attrs create_flags is supported.
+Unfortuantely when create_flags was added to the QP attrs the drivers were
+not updated. uverbs_ex_cmd_mask was used to block it - even though kernel
+drivers use these flags too.
 
-- REREG_MR is rereg_user_mr(). bnxt_re set this without providing the op
-- ATTACH/DEATCH_MCAST is attach_mcast()/detach_mcast(). usnic set this
-  without providing the op
-- OPEN_QP doesn't involve the driver but requires a XRCD. qedr provides
-  xrcd but forgot to set it, usnic doesn't provide XRCD but set it anyhow.
-- OPEN/CLOSE_XRCD are the ops alloc_xrcd()/dealloc_xrcd()
-- CREATE_SRQ/DESTROY_SRQ are the ops create_srq()/destroy_srq()
-- QUERY/MODIFY_SRQ is op query_srq()/modify_srq(). hns sets this but
-  sometimes supplies a NULL op.
-- RESIZE_CQ is op resize_cq(). bnxt_re sets this boes doesn't supply an op
-- ALLOC/DEALLOC_MW is alloc_mw()/dealloc_mw(). cxgb4 provided an
-  (now deleted) implementation but no userspace
-
-All drivers were checked that no drivers provide the op without also
-setting uverbs_cmd_mask so this should have no functional change.
+Check that flags is zero in all drivers that don't use it, remove
+IB_USER_VERBS_EX_CMD_CREATE_QP from uverbs_ex_cmd_mask. Fix the error code
+to be EOPNOTSUPP.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/core/device.c              | 16 ++++++++++++-
- drivers/infiniband/core/uverbs_cmd.c          |  8 +++----
- drivers/infiniband/hw/bnxt_re/main.c          |  6 -----
- drivers/infiniband/hw/cxgb4/provider.c        |  5 +---
- drivers/infiniband/hw/hns/hns_roce_main.c     | 14 ++---------
- drivers/infiniband/hw/mlx4/main.c             | 20 ++--------------
- drivers/infiniband/hw/mlx5/main.c             | 23 +++----------------
- drivers/infiniband/hw/mthca/mthca_provider.c  | 10 --------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c    |  5 ----
- drivers/infiniband/hw/qedr/main.c             |  8 +------
- drivers/infiniband/hw/usnic/usnic_ib_main.c   |  5 ----
- .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  4 ----
- drivers/infiniband/sw/rdmavt/vt.c             |  7 ------
- drivers/infiniband/sw/rxe/rxe_verbs.c         |  9 +-------
- drivers/infiniband/sw/siw/siw_main.c          |  6 +----
- 15 files changed, 30 insertions(+), 116 deletions(-)
+ drivers/infiniband/core/device.c             |  1 +
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c     |  4 +++-
+ drivers/infiniband/hw/cxgb4/qp.c             |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c      | 14 +++-----------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    |  2 +-
+ drivers/infiniband/hw/mlx4/main.c            |  2 --
+ drivers/infiniband/hw/mlx4/qp.c              |  2 +-
+ drivers/infiniband/hw/mlx5/main.c            |  2 --
+ drivers/infiniband/hw/mlx5/qp.c              |  7 ++++---
+ drivers/infiniband/hw/mthca/mthca_provider.c |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  3 +++
+ drivers/infiniband/hw/qedr/verbs.c           |  3 +++
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |  2 +-
+ drivers/infiniband/sw/rdmavt/qp.c            |  7 ++++---
+ drivers/infiniband/sw/rxe/rxe_verbs.c        |  3 +++
+ drivers/infiniband/sw/siw/siw_verbs.c        |  3 +++
+ 17 files changed, 33 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/dev=
 ice.c
-index 4b29c6b7aa6e7f..7d70ecdc32cc2e 100644
+index 0a888574674281..4b808827ffcae5 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -284,6 +284,7 @@ static void ib_device_check_mandatory(struct ib_device =
-*device)
- 		IB_MANDATORY_FUNC(poll_cq),
- 		IB_MANDATORY_FUNC(req_notify_cq),
- 		IB_MANDATORY_FUNC(get_dma_mr),
-+		IB_MANDATORY_FUNC(reg_user_mr),
- 		IB_MANDATORY_FUNC(dereg_mr),
- 		IB_MANDATORY_FUNC(get_port_immutable)
- 	};
-@@ -601,20 +602,33 @@ struct ib_device *_ib_alloc_device(size_t size)
- 	INIT_WORK(&device->unregistration_work, ib_unregister_work);
-=20
- 	device->uverbs_cmd_mask =3D
-+		BIT_ULL(IB_USER_VERBS_CMD_ALLOC_MW) |
- 		BIT_ULL(IB_USER_VERBS_CMD_ALLOC_PD) |
-+		BIT_ULL(IB_USER_VERBS_CMD_ATTACH_MCAST) |
-+		BIT_ULL(IB_USER_VERBS_CMD_CLOSE_XRCD) |
- 		BIT_ULL(IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
- 		BIT_ULL(IB_USER_VERBS_CMD_CREATE_CQ) |
- 		BIT_ULL(IB_USER_VERBS_CMD_CREATE_QP) |
-+		BIT_ULL(IB_USER_VERBS_CMD_CREATE_SRQ) |
-+		BIT_ULL(IB_USER_VERBS_CMD_DEALLOC_MW) |
- 		BIT_ULL(IB_USER_VERBS_CMD_DEALLOC_PD) |
- 		BIT_ULL(IB_USER_VERBS_CMD_DEREG_MR) |
- 		BIT_ULL(IB_USER_VERBS_CMD_DESTROY_CQ) |
- 		BIT_ULL(IB_USER_VERBS_CMD_DESTROY_QP) |
-+		BIT_ULL(IB_USER_VERBS_CMD_DESTROY_SRQ) |
-+		BIT_ULL(IB_USER_VERBS_CMD_DETACH_MCAST) |
- 		BIT_ULL(IB_USER_VERBS_CMD_GET_CONTEXT) |
- 		BIT_ULL(IB_USER_VERBS_CMD_MODIFY_QP) |
-+		BIT_ULL(IB_USER_VERBS_CMD_MODIFY_SRQ) |
-+		BIT_ULL(IB_USER_VERBS_CMD_OPEN_QP) |
-+		BIT_ULL(IB_USER_VERBS_CMD_OPEN_XRCD) |
- 		BIT_ULL(IB_USER_VERBS_CMD_QUERY_DEVICE) |
- 		BIT_ULL(IB_USER_VERBS_CMD_QUERY_PORT) |
- 		BIT_ULL(IB_USER_VERBS_CMD_QUERY_QP) |
--		BIT_ULL(IB_USER_VERBS_CMD_REG_MR);
-+		BIT_ULL(IB_USER_VERBS_CMD_QUERY_SRQ) |
-+		BIT_ULL(IB_USER_VERBS_CMD_REG_MR) |
-+		BIT_ULL(IB_USER_VERBS_CMD_REREG_MR) |
-+		BIT_ULL(IB_USER_VERBS_CMD_RESIZE_CQ);
-=20
+@@ -634,6 +634,7 @@ struct ib_device *_ib_alloc_device(size_t size)
  	device->uverbs_ex_cmd_mask =3D
+ 		BIT_ULL(IB_USER_VERBS_EX_CMD_CREATE_CQ) |
  		BIT_ULL(IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core=
-/uverbs_cmd.c
-index 2f3f9b87922e92..f85a6117577296 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3999,8 +3999,7 @@ const struct uapi_definition uverbs_def_write_intf[] =
-=3D {
- 		DECLARE_UVERBS_WRITE(
- 			IB_USER_VERBS_CMD_CLOSE_XRCD,
- 			ib_uverbs_close_xrcd,
--			UAPI_DEF_WRITE_I(struct ib_uverbs_close_xrcd),
--			UAPI_DEF_METHOD_NEEDS_FN(dealloc_xrcd)),
-+			UAPI_DEF_WRITE_I(struct ib_uverbs_close_xrcd)),
- 		DECLARE_UVERBS_WRITE(IB_USER_VERBS_CMD_OPEN_QP,
- 				     ib_uverbs_open_qp,
- 				     UAPI_DEF_WRITE_UDATA_IO(
-@@ -4010,8 +4009,9 @@ const struct uapi_definition uverbs_def_write_intf[] =
-=3D {
- 				     ib_uverbs_open_xrcd,
- 				     UAPI_DEF_WRITE_UDATA_IO(
- 					     struct ib_uverbs_open_xrcd,
--					     struct ib_uverbs_open_xrcd_resp),
--				     UAPI_DEF_METHOD_NEEDS_FN(alloc_xrcd))),
-+					     struct ib_uverbs_open_xrcd_resp)),
-+		UAPI_DEF_OBJ_NEEDS_FN(alloc_xrcd),
-+		UAPI_DEF_OBJ_NEEDS_FN(dealloc_xrcd)),
++		BIT_ULL(IB_USER_VERBS_EX_CMD_CREATE_QP) |
+ 		BIT_ULL(IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
+ 		BIT_ULL(IB_USER_VERBS_EX_CMD_CREATE_WQ) |
+ 		BIT_ULL(IB_USER_VERBS_EX_CMD_DESTROY_FLOW) |
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/=
+hw/bnxt_re/ib_verbs.c
+index 6263885ff61d57..335ba485cd3be7 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -1276,10 +1276,12 @@ static int bnxt_re_init_qp_attr(struct bnxt_re_qp *=
+qp, struct bnxt_re_pd *pd,
+ 	}
+ 	qplqp->mtu =3D ib_mtu_enum_to_int(iboe_get_mtu(rdev->netdev->mtu));
+ 	qplqp->dpi =3D &rdev->dpi_privileged; /* Doorbell page */
+-	if (init_attr->create_flags)
++	if (init_attr->create_flags) {
+ 		ibdev_dbg(&rdev->ibdev,
+ 			  "QP create flags 0x%x not supported",
+ 			  init_attr->create_flags);
++		return -EOPNOTSUPP;
++	}
 =20
- 	{},
- };
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/b=
-nxt_re/main.c
-index 6bb524102832e6..2bee4ca6dcf5fe 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -703,12 +703,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rde=
-v)
+ 	/* Setup CQs */
+ 	if (init_attr->send_cq) {
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4=
+/qp.c
+index 79e69d449b0748..a7401398cb344a 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -2126,7 +2126,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct=
+ ib_qp_init_attr *attrs,
 =20
- 	/* User space */
- 	ibdev->uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
--			(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)		|
--			(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
- 			(1ull << IB_USER_VERBS_CMD_CREATE_AH)		|
- 			(1ull << IB_USER_VERBS_CMD_MODIFY_AH)		|
- 			(1ull << IB_USER_VERBS_CMD_QUERY_AH)		|
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw=
-/cxgb4/provider.c
-index 58b578d40bf63c..d3a84fdd2396f3 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -535,10 +535,7 @@ void c4iw_register_device(struct work_struct *work)
- 	    (1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
- 	    (1ull << IB_USER_VERBS_CMD_POLL_CQ) |
- 	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
--	    (1ull << IB_USER_VERBS_CMD_POST_RECV) |
--	    (1ull << IB_USER_VERBS_CMD_CREATE_SRQ) |
--	    (1ull << IB_USER_VERBS_CMD_MODIFY_SRQ) |
--	    (1ull << IB_USER_VERBS_CMD_DESTROY_SRQ);
-+	    (1ull << IB_USER_VERBS_CMD_POST_RECV);
- 	dev->ibdev.node_type =3D RDMA_NODE_RNIC;
- 	BUILD_BUG_ON(sizeof(C4IW_NODE_DESC) > IB_DEVICE_NODE_DESC_MAX);
- 	memcpy(dev->ibdev.node_desc, C4IW_NODE_DESC, sizeof(C4IW_NODE_DESC));
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband=
-/hw/hns/hns_roce_main.c
-index d8083b320cf5a8..a75c09564447b3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -492,18 +492,12 @@ static int hns_roce_register_device(struct hns_roce_d=
-ev *hr_dev)
- 	ib_dev->local_dma_lkey =3D hr_dev->caps.reserved_lkey;
- 	ib_dev->num_comp_vectors =3D hr_dev->caps.num_comp_vectors;
+ 	pr_debug("ib_pd %p\n", pd);
 =20
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_REREG_MR) {
--		ib_dev->uverbs_cmd_mask |=3D (1ULL << IB_USER_VERBS_CMD_REREG_MR);
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_REREG_MR)
- 		ib_set_device_ops(ib_dev, &hns_roce_dev_mr_ops);
--	}
+-	if (attrs->qp_type !=3D IB_QPT_RC)
++	if (attrs->qp_type !=3D IB_QPT_RC || attrs->create_flags)
+ 		return ERR_PTR(-EOPNOTSUPP);
 =20
- 	/* MW */
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_MW) {
--		ib_dev->uverbs_cmd_mask |=3D
--					(1ULL << IB_USER_VERBS_CMD_ALLOC_MW) |
--					(1ULL << IB_USER_VERBS_CMD_DEALLOC_MW);
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_MW)
- 		ib_set_device_ops(ib_dev, &hns_roce_dev_mw_ops);
--	}
+ 	php =3D to_c4iw_pd(pd);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/h=
+w/hns/hns_roce_qp.c
+index 6c081dd985fc94..04a70681bea1bd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -869,17 +869,6 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, s=
+truct hns_roce_qp *hr_qp,
+ 		if (ret)
+ 			ibdev_err(ibdev, "Failed to set user SQ size\n");
+ 	} else {
+-		if (init_attr->create_flags &
+-		    IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+-			ibdev_err(ibdev, "Failed to check multicast loopback\n");
+-			return -EINVAL;
+-		}
+-
+-		if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO) {
+-			ibdev_err(ibdev, "Failed to check ipoib ud lso\n");
+-			return -EINVAL;
+-		}
+-
+ 		ret =3D set_kernel_sq_size(hr_dev, &init_attr->cap, hr_qp);
+ 		if (ret)
+ 			ibdev_err(ibdev, "Failed to set kernel SQ size\n");
+@@ -906,6 +895,9 @@ static int hns_roce_create_qp_common(struct hns_roce_de=
+v *hr_dev,
+ 	hr_qp->state =3D IB_QPS_RESET;
+ 	hr_qp->flush_flag =3D 0;
 =20
- 	/* FRMR */
- 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_FRMR)
-@@ -512,10 +506,6 @@ static int hns_roce_register_device(struct hns_roce_de=
-v *hr_dev)
- 	/* SRQ */
- 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
- 		ib_dev->uverbs_cmd_mask |=3D
--				(1ULL << IB_USER_VERBS_CMD_CREATE_SRQ) |
--				(1ULL << IB_USER_VERBS_CMD_MODIFY_SRQ) |
--				(1ULL << IB_USER_VERBS_CMD_QUERY_SRQ) |
--				(1ULL << IB_USER_VERBS_CMD_DESTROY_SRQ) |
- 				(1ULL << IB_USER_VERBS_CMD_POST_SRQ_RECV);
- 		ib_set_device_ops(ib_dev, &hns_roce_dev_srq_ops);
- 		ib_set_device_ops(ib_dev, hr_dev->hw->hns_roce_dev_srq_ops);
++	if (init_attr->create_flags)
++		return -EOPNOTSUPP;
++
+ 	ret =3D set_qp_param(hr_dev, hr_qp, init_attr, udata, &ucmd);
+ 	if (ret) {
+ 		ibdev_err(ibdev, "Failed to set QP param\n");
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband=
+/hw/i40iw/i40iw_verbs.c
+index 4aade66ad2aea8..65c9e010d4d5b1 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -556,7 +556,7 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd=
+,
+ 		return ERR_PTR(-ENODEV);
+=20
+ 	if (init_attr->create_flags)
+-		return ERR_PTR(-EINVAL);
++		return ERR_PTR(-EOPNOTSUPP);
+ 	if (init_attr->cap.max_inline_data > I40IW_MAX_INLINE_DATA_SIZE)
+ 		init_attr->cap.max_inline_data =3D I40IW_MAX_INLINE_DATA_SIZE;
+=20
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4=
 /main.c
-index 429f3c9b914c89..f251a57478f3e7 100644
+index a6ae21721b124a..15508036c83b18 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2658,16 +2658,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+@@ -2658,8 +2658,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
  	ibdev->ib_dev.dev.parent	=3D &dev->persist->pdev->dev;
 =20
- 	ibdev->ib_dev.uverbs_cmd_mask |=3D
--		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
--		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)		|
--		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)	|
--		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST)	|
--		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
--		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
-+		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ);
-=20
  	ib_set_device_ops(&ibdev->ib_dev, &mlx4_ib_dev_ops);
- 	ibdev->ib_dev.uverbs_ex_cmd_mask |=3D
-@@ -2682,17 +2673,10 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		ib_set_device_ops(&ibdev->ib_dev, &mlx4_ib_dev_wq_ops);
+-	ibdev->ib_dev.uverbs_ex_cmd_mask |=3D
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
 =20
- 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
--	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN) {
--		ibdev->ib_dev.uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_ALLOC_MW) |
--			(1ull << IB_USER_VERBS_CMD_DEALLOC_MW);
-+	    dev->caps.bmme_flags & MLX4_BMME_FLAG_TYPE_2_WIN)
- 		ib_set_device_ops(&ibdev->ib_dev, &mlx4_ib_dev_mw_ops);
--	}
+ 	if ((dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
+ 	    ((mlx4_ib_port_link_layer(&ibdev->ib_dev, 1) =3D=3D
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/q=
+p.c
+index 8834629615bc6d..47b9ed5599b396 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1493,7 +1493,7 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struc=
+t mlx4_ib_qp *qp,
+ 					MLX4_IB_SRIOV_SQP |
+ 					MLX4_IB_QP_NETIF |
+ 					MLX4_IB_QP_CREATE_ROCE_V2_GSI))
+-		return -EINVAL;
++		return -EOPNOTSUPP;
 =20
- 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_XRC) {
--		ibdev->ib_dev.uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_OPEN_XRCD) |
--			(1ull << IB_USER_VERBS_CMD_CLOSE_XRCD);
- 		ib_set_device_ops(&ibdev->ib_dev, &mlx4_ib_dev_xrc_ops);
- 	}
-=20
+ 	if (init_attr->create_flags & IB_QP_CREATE_NETIF_QP) {
+ 		if (init_attr->qp_type !=3D IB_QPT_UD)
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5=
 /main.c
-index bcd6802e7eea54..83434d080023a8 100644
+index 9e2f6a7967a61b..9cdc87fd99618c 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4142,16 +4142,7 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_de=
-v *dev)
+@@ -4142,8 +4142,6 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_dev=
+ *dev)
  	dev->ib_dev.uverbs_cmd_mask |=3D
  		(1ull << IB_USER_VERBS_CMD_CREATE_AH)		|
- 		(1ull << IB_USER_VERBS_CMD_DESTROY_AH)		|
--		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
--		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)		|
--		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)	|
--		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST)	|
--		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ)		|
--		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
-+		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ);
- 	dev->ib_dev.uverbs_ex_cmd_mask |=3D
- 		(1ull << IB_USER_VERBS_EX_CMD_CREATE_CQ)	|
- 		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP)	|
-@@ -4167,19 +4158,11 @@ static int mlx5_ib_stage_caps_init(struct mlx5_ib_d=
-ev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_DESTROY_AH);
+-	dev->ib_dev.uverbs_ex_cmd_mask |=3D
+-		(1ull << IB_USER_VERBS_EX_CMD_CREATE_QP);
 =20
- 	dev->umr_fence =3D mlx5_get_umr_fence(MLX5_CAP_GEN(mdev, umr_fence));
+ 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads) &&
+ 	    IS_ENABLED(CONFIG_MLX5_CORE_IPOIB))
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/q=
+p.c
+index 19361132336cb9..251421dd6f1d5e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2712,11 +2712,12 @@ static int process_create_flags(struct mlx5_ib_dev =
+*dev, struct mlx5_ib_qp *qp,
+ 	process_create_flag(dev, &create_flags, MLX5_IB_QP_CREATE_SQPN_QP1,
+ 			    true, qp);
 =20
--	if (MLX5_CAP_GEN(mdev, imaicl)) {
--		dev->ib_dev.uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_ALLOC_MW)	|
--			(1ull << IB_USER_VERBS_CMD_DEALLOC_MW);
-+	if (MLX5_CAP_GEN(mdev, imaicl))
- 		ib_set_device_ops(&dev->ib_dev, &mlx5_ib_dev_mw_ops);
--	}
-=20
--	if (MLX5_CAP_GEN(mdev, xrc)) {
--		dev->ib_dev.uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_OPEN_XRCD) |
--			(1ull << IB_USER_VERBS_CMD_CLOSE_XRCD);
-+	if (MLX5_CAP_GEN(mdev, xrc))
- 		ib_set_device_ops(&dev->ib_dev, &mlx5_ib_dev_xrc_ops);
--	}
-=20
- 	if (MLX5_CAP_DEV_MEM(mdev, memic) ||
- 	    MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infinib=
-and/hw/mthca/mthca_provider.c
-index ae03bc4afbc814..a01898ac99e224 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1158,22 +1158,12 @@ int mthca_register_device(struct mthca_dev *dev)
- 	if (ret)
- 		return ret;
-=20
--	dev->ib_dev.uverbs_cmd_mask |=3D
--		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)		|
--		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)	|
--		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST);
- 	dev->ib_dev.node_type            =3D RDMA_NODE_IB_CA;
- 	dev->ib_dev.phys_port_cnt        =3D dev->limits.num_ports;
- 	dev->ib_dev.num_comp_vectors     =3D 1;
- 	dev->ib_dev.dev.parent           =3D &dev->pdev->dev;
-=20
- 	if (dev->mthca_flags & MTHCA_FLAG_SRQ) {
--		dev->ib_dev.uverbs_cmd_mask	|=3D
--			(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
--			(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ);
+-	if (create_flags)
++	if (create_flags) {
+ 		mlx5_ib_dbg(dev, "Create QP has unsupported flags 0x%X\n",
+ 			    create_flags);
 -
- 		if (mthca_is_memfree(dev))
- 			ib_set_device_ops(&dev->ib_dev,
- 					  &mthca_dev_arbel_srq_ops);
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniban=
-d/hw/ocrdma/ocrdma_main.c
-index c9549ff1b24bc7..40ed7a42f1e1ca 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -205,7 +205,6 @@ static int ocrdma_register_device(struct ocrdma_dev *de=
-v)
- 	memcpy(dev->ibdev.node_desc, OCRDMA_NODE_DESC,
- 	       sizeof(OCRDMA_NODE_DESC));
- 	dev->ibdev.uverbs_cmd_mask |=3D
--	    OCRDMA_UVERBS(RESIZE_CQ) |
- 	    OCRDMA_UVERBS(REQ_NOTIFY_CQ) |
- 	    OCRDMA_UVERBS(POLL_CQ) |
- 	    OCRDMA_UVERBS(POST_SEND) |
-@@ -228,10 +227,6 @@ static int ocrdma_register_device(struct ocrdma_dev *d=
-ev)
-=20
- 	if (ocrdma_get_asic_type(dev) =3D=3D OCRDMA_ASIC_GEN_SKH_R) {
- 		dev->ibdev.uverbs_cmd_mask |=3D
--		     OCRDMA_UVERBS(CREATE_SRQ) |
--		     OCRDMA_UVERBS(MODIFY_SRQ) |
--		     OCRDMA_UVERBS(QUERY_SRQ) |
--		     OCRDMA_UVERBS(DESTROY_SRQ) |
- 		     OCRDMA_UVERBS(POST_SRQ_RECV);
-=20
- 		ib_set_device_ops(&dev->ibdev, &ocrdma_dev_srq_ops);
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr=
-/main.c
-index f4afd6473eca4a..81d7d64fabc98f 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -189,8 +189,7 @@ static void qedr_roce_register_device(struct qedr_dev *=
-dev)
-=20
- 	ib_set_device_ops(&dev->ibdev, &qedr_roce_dev_ops);
-=20
--	dev->ibdev.uverbs_cmd_mask |=3D QEDR_UVERBS(OPEN_XRCD) |
--		QEDR_UVERBS(CLOSE_XRCD) |
-+	dev->ibdev.uverbs_cmd_mask |=3D
- 		QEDR_UVERBS(CREATE_XSRQ);
+-	return (create_flags) ? -EINVAL : 0;
++		return -EOPNOTSUPP;
++	}
++	return 0;
  }
 =20
-@@ -250,12 +249,7 @@ static int qedr_register_device(struct qedr_dev *dev)
- 	memcpy(dev->ibdev.node_desc, QEDR_NODE_DESC, sizeof(QEDR_NODE_DESC));
+ static int process_udata_size(struct mlx5_ib_dev *dev,
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infinib=
+and/hw/mthca/mthca_provider.c
+index 5e798a6f75d715..a4a0ac3a25a06a 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -470,7 +470,7 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	int err;
 =20
- 	dev->ibdev.uverbs_cmd_mask |=3D
--				     QEDR_UVERBS(RESIZE_CQ) |
- 				     QEDR_UVERBS(REQ_NOTIFY_CQ) |
--				     QEDR_UVERBS(CREATE_SRQ) |
--				     QEDR_UVERBS(DESTROY_SRQ) |
--				     QEDR_UVERBS(QUERY_SRQ) |
--				     QEDR_UVERBS(MODIFY_SRQ) |
- 				     QEDR_UVERBS(POST_SRQ_RECV) |
- 				     QEDR_UVERBS(POLL_CQ) |
- 				     QEDR_UVERBS(POST_SEND) |
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniba=
-nd/hw/usnic/usnic_ib_main.c
-index 5a75113af7ed80..4b820a0eefeac5 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -398,11 +398,6 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	us_ibdev->ib_dev.num_comp_vectors =3D USNIC_IB_NUM_COMP_VECTORS;
- 	us_ibdev->ib_dev.dev.parent =3D &dev->dev;
+ 	if (init_attr->create_flags)
+-		return ERR_PTR(-EINVAL);
++		return ERR_PTR(-EOPNOTSUPP);
 =20
--	us_ibdev->ib_dev.uverbs_cmd_mask |=3D
--		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST) |
--		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST) |
--		(1ull << IB_USER_VERBS_CMD_OPEN_QP);
--
- 	ib_set_device_ops(&us_ibdev->ib_dev, &usnic_dev_ops);
+ 	switch (init_attr->qp_type) {
+ 	case IB_QPT_RC:
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniba=
+nd/hw/ocrdma/ocrdma_verbs.c
+index 29ec0a808a19d8..bc98bd950d99fa 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -1299,6 +1299,9 @@ struct ib_qp *ocrdma_create_qp(struct ib_pd *ibpd,
+ 	struct ocrdma_create_qp_ureq ureq;
+ 	u16 dpp_credit_lmt, dpp_offset;
 =20
- 	rdma_set_device_sysfs_group(&us_ibdev->ib_dev, &usnic_attr_group);
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infin=
-iband/hw/vmw_pvrdma/pvrdma_main.c
-index eeb96fe95b4d93..41836811a71d55 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -236,10 +236,6 @@ static int pvrdma_register_device(struct pvrdma_dev *d=
-ev)
- 	/* Check if SRQ is supported by backend */
- 	if (dev->dsr->caps.max_srq) {
- 		dev->ib_dev.uverbs_cmd_mask |=3D
--			(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)	|
--			(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)	|
--			(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)	|
--			(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)	|
- 			(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
++	if (attrs->create_flags)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	status =3D ocrdma_check_qp_params(ibpd, dev, attrs, udata);
+ 	if (status)
+ 		goto gen_err;
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qed=
+r/verbs.c
+index 80373170ce51f5..2e85bb5104cb68 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -2239,6 +2239,9 @@ struct ib_qp *qedr_create_qp(struct ib_pd *ibpd,
+ 	struct ib_qp *ibqp;
+ 	int rc =3D 0;
 =20
- 		ib_set_device_ops(&dev->ib_dev, &pvrdma_dev_srq_ops);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdma=
-vt/vt.c
-index b6706125ec6610..a0cb567cfc512b 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -598,17 +598,10 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 		(1ull << IB_USER_VERBS_CMD_MODIFY_AH)           |
- 		(1ull << IB_USER_VERBS_CMD_QUERY_AH)            |
- 		(1ull << IB_USER_VERBS_CMD_DESTROY_AH)          |
--		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)           |
- 		(1ull << IB_USER_VERBS_CMD_POLL_CQ)             |
- 		(1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ)       |
- 		(1ull << IB_USER_VERBS_CMD_POST_SEND)           |
- 		(1ull << IB_USER_VERBS_CMD_POST_RECV)           |
--		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)        |
--		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST)        |
--		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)          |
--		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)          |
--		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)           |
--		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)         |
- 		(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
- 	rdi->ibdev.node_type =3D RDMA_NODE_IB_CA;
- 	if (!rdi->ibdev.num_comp_vectors)
++	if (attrs->create_flags)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	if (attrs->qp_type =3D=3D IB_QPT_XRC_TGT) {
+ 		xrcd =3D get_qedr_xrcd(attrs->xrcd);
+ 		dev =3D get_qedr_dev(xrcd->ibxrcd.device);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infinib=
+and/hw/usnic/usnic_ib_verbs.c
+index d6708d1db73af2..38a37770c01627 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -474,7 +474,7 @@ struct ib_qp *usnic_ib_create_qp(struct ib_pd *pd,
+ 	us_ibdev =3D to_usdev(pd->device);
+=20
+ 	if (init_attr->create_flags)
+-		return ERR_PTR(-EINVAL);
++		return ERR_PTR(-EOPNOTSUPP);
+=20
+ 	err =3D ib_copy_from_udata(&cmd, udata, sizeof(cmd));
+ 	if (err) {
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infinib=
+and/hw/vmw_pvrdma/pvrdma_qp.c
+index 9fdec5b9553c4e..1d3bdd7bb51d96 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
+@@ -209,7 +209,7 @@ struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
+ 		dev_warn(&dev->pdev->dev,
+ 			 "invalid create queuepair flags %#x\n",
+ 			 init_attr->create_flags);
+-		return ERR_PTR(-EINVAL);
++		return ERR_PTR(-EOPNOTSUPP);
+ 	}
+=20
+ 	if (init_attr->qp_type !=3D IB_QPT_RC &&
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdma=
+vt/qp.c
+index 7b93e7bb0072a2..e9db6bf106186f 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1083,10 +1083,11 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 	if (!rdi)
+ 		return ERR_PTR(-EINVAL);
+=20
++	if (init_attr->create_flags & ~IB_QP_CREATE_NETDEV_USE)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	if (init_attr->cap.max_send_sge > rdi->dparms.props.max_send_sge ||
+-	    init_attr->cap.max_send_wr > rdi->dparms.props.max_qp_wr ||
+-	    (init_attr->create_flags &&
+-	     init_attr->create_flags !=3D IB_QP_CREATE_NETDEV_USE))
++	    init_attr->cap.max_send_wr > rdi->dparms.props.max_qp_wr)
+ 		return ERR_PTR(-EINVAL);
+=20
+ 	/* Check receive queue parameters if no SRQ is specified. */
 diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/=
 rxe/rxe_verbs.c
-index 3aa83f4c47772b..5f47f21c2958d3 100644
+index 7baa8f5cba813e..9100a39f9cb9fe 100644
 --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
 +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1136,14 +1136,9 @@ int rxe_register_device(struct rxe_dev *rxe, const c=
-har *ibdev_name)
- 				     dma_get_required_mask(&dev->dev));
+@@ -395,6 +395,9 @@ static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
+ 		uresp =3D udata->outbuf;
+ 	}
 =20
- 	dev->uverbs_cmd_mask |=3D
--	    BIT_ULL(IB_USER_VERBS_CMD_CREATE_SRQ)
--	    | BIT_ULL(IB_USER_VERBS_CMD_MODIFY_SRQ)
--	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_SRQ)
--	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_SRQ)
--	    | BIT_ULL(IB_USER_VERBS_CMD_POST_SRQ_RECV)
-+	    BIT_ULL(IB_USER_VERBS_CMD_POST_SRQ_RECV)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_POST_SEND)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_POST_RECV)
--	    | BIT_ULL(IB_USER_VERBS_CMD_RESIZE_CQ)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_POLL_CQ)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_PEEK_CQ)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_REQ_NOTIFY_CQ)
-@@ -1151,8 +1146,6 @@ int rxe_register_device(struct rxe_dev *rxe, const ch=
-ar *ibdev_name)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_MODIFY_AH)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_AH)
- 	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_AH)
--	    | BIT_ULL(IB_USER_VERBS_CMD_ATTACH_MCAST)
--	    | BIT_ULL(IB_USER_VERBS_CMD_DETACH_MCAST)
- 	    ;
++	if (init->create_flags)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	err =3D rxe_qp_chk_init(rxe, init);
+ 	if (err)
+ 		goto err1;
+diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/=
+siw/siw_verbs.c
+index bcea5c5ace2b6b..68fd053fc7748a 100644
+--- a/drivers/infiniband/sw/siw/siw_verbs.c
++++ b/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -307,6 +307,9 @@ struct ib_qp *siw_create_qp(struct ib_pd *pd,
 =20
- 	ib_set_device_ops(dev, &rxe_dev_ops);
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/s=
-iw/siw_main.c
-index cf472118cb5364..faef91ba031ca7 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -351,11 +351,7 @@ static struct siw_device *siw_device_create(struct net=
-_device *netdev)
- 		(1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
- 		(1ull << IB_USER_VERBS_CMD_POST_SEND) |
- 		(1ull << IB_USER_VERBS_CMD_POST_RECV) |
--		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ) |
--		(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV) |
--		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ) |
--		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ) |
--		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ);
-+		(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
+ 	siw_dbg(base_dev, "create new QP\n");
 =20
- 	base_dev->node_type =3D RDMA_NODE_RNIC;
- 	memcpy(base_dev->node_desc, SIW_NODE_DESC_COMMON,
++	if (attrs->create_flags)
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	if (atomic_inc_return(&sdev->num_qp) > SIW_MAX_QP) {
+ 		siw_dbg(base_dev, "too many QP's\n");
+ 		rv =3D -ENOMEM;
 --=20
 2.28.0
 
