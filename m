@@ -2,74 +2,84 @@ Return-Path: <SRS0=xZ4g=DK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA148C4363D
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 09:10:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 421E5C41604
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 09:24:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DBDE206DB
-	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 09:10:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04A21206DB
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Oct 2020 09:24:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1601716243;
-	bh=lhSyJeU5dA2r3+7jjybpLd3bRjEFbAjirEVHfxlVGOw=;
+	s=default; t=1601717053;
+	bh=kL1oT9jESZhdHr78QJxp6JYT0/KTUQ2i0XtO3OHsZp0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=xboDGltsrWF/warpByUEtQqH5KIAcjqL6AUHvByi3oqAXOMvXPCQWNQp8ZyNm9XJH
-	 zdalO1SUAa2+VzukPJBAxLt+NP6rwITs79jNUe48SyfjpgkBSNpI/UzVMLrhPgzeS5
-	 exTtpiBjDPXl1q5qWfdivezE4Hg+yZ6oZMblVz+M=
+	b=aX38x24wIPOM3i1dkMRI43SXGmIgS1RjBnB+kE/nW/p73ZuRg9x2RlMGP3JNuQovb
+	 i5wLjKFV5+Of5v4TrY/fm7FaAPM9/b6FXa8LYkQMtJt4+7+oNQzrVRbNesjHV4oOJC
+	 JZNCB1FKknyjlACUJrnGDWa/vSapQdE26DeFgN84=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725770AbgJCJKm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 3 Oct 2020 05:10:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44872 "EHLO mail.kernel.org"
+        id S1725767AbgJCJYM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Oct 2020 05:24:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725767AbgJCJKm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 3 Oct 2020 05:10:42 -0400
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        id S1725730AbgJCJYM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 3 Oct 2020 05:24:12 -0400
+Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EE625206CA;
-        Sat,  3 Oct 2020 09:10:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 48E5F206CA;
+        Sat,  3 Oct 2020 09:24:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1601716240;
-        bh=lhSyJeU5dA2r3+7jjybpLd3bRjEFbAjirEVHfxlVGOw=;
+        s=default; t=1601717052;
+        bh=kL1oT9jESZhdHr78QJxp6JYT0/KTUQ2i0XtO3OHsZp0=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=kf4098oB2XrDnGB+eroawQrNOeHsqe6zx8xCx9n/YdSWacCydKawY4sDW3bHRJZi1
-         AdP6LvZQf9RV42mXlstTHSxoKfLZQOOJd1A1gPp6dQ18nkWEoOy9fKXiZNB/yZnZlQ
-         X/nT19Kqn/X2m2pAqKhudhlf1pdPQMdluMUVZtrY=
-Date:   Sat, 3 Oct 2020 11:10:36 +0200
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Leon Romanovsky <leon@kernel.org>
+        b=a2pJ7ORPNftPezUtGNDEo3IdF+22iGYUbdI48c71wE2Bl7X3PX2d1E2Lf8SWD5kjT
+         d3m5SeRIm/MbiiobKPxgT9GQmXlTtncOpRjQRHQueXRMYvo5ZfW9tt7Q85qCa8zDeZ
+         sv/wTeiiprt2oRHGkiHuF4E+6OZX2Tt5QacDkr3A=
+Date:   Sat, 3 Oct 2020 12:24:07 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Greg KH <gregkh@linuxfoundation.org>
 Cc:     Dave Ertman <david.m.ertman@intel.com>, linux-rdma@vger.kernel.org,
         linux-netdev <netdev@vger.kernel.org>,
         alsa-devel@alsa-project.org
 Subject: Re: [PATCH 0/6] Ancillary bus implementation and SOF multi-client
  support
-Message-ID: <20201003091036.GA118157@kroah.com>
+Message-ID: <20201003092407.GG3094@unreal>
 References: <20201001050534.890666-1-david.m.ertman@intel.com>
  <20201003090452.GF3094@unreal>
+ <20201003091036.GA118157@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201003090452.GF3094@unreal>
+In-Reply-To: <20201003091036.GA118157@kroah.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Oct 03, 2020 at 12:04:52PM +0300, Leon Romanovsky wrote:
-> Hi Dave,
-> 
-> I don't know why did you send this series separately to every mailing
-> list, but it is not correct thing to do.
-> 
-> RDMA ML and discussion:
-> https://lore.kernel.org/linux-rdma/20201001050534.890666-1-david.m.ertman@intel.com/T/#t
-> Netdev ML (completely separated):
-> https://lore.kernel.org/netdev/20201001050851.890722-1-david.m.ertman@intel.com/
-> Alsa ML (separated too):
-> https://lore.kernel.org/alsa-devel/20200930225051.889607-1-david.m.ertman@intel.com/
+On Sat, Oct 03, 2020 at 11:10:36AM +0200, Greg KH wrote:
+> On Sat, Oct 03, 2020 at 12:04:52PM +0300, Leon Romanovsky wrote:
+> > Hi Dave,
+> >
+> > I don't know why did you send this series separately to every mailing
+> > list, but it is not correct thing to do.
+> >
+> > RDMA ML and discussion:
+> > https://lore.kernel.org/linux-rdma/20201001050534.890666-1-david.m.ertman@intel.com/T/#t
+> > Netdev ML (completely separated):
+> > https://lore.kernel.org/netdev/20201001050851.890722-1-david.m.ertman@intel.com/
+> > Alsa ML (separated too):
+> > https://lore.kernel.org/alsa-devel/20200930225051.889607-1-david.m.ertman@intel.com/
+>
+> Seems like the goal was to spread it around to different places so that
+> no one could strongly object or review it :(
 
-Seems like the goal was to spread it around to different places so that
-no one could strongly object or review it :(
+It took me time to realize why I was alone expressing my thoughts :).
 
-greg k-h
+BTW, I'm looking on ALSA thread and happy to see that people didn't like
+"ancillary" name. It is far from intuitive name for any non-English speaker.
+
+Thanks
+
+>
+> greg k-h
