@@ -7,108 +7,121 @@ X-Spam-Status: No, score=-7.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4051C4363A
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA40C4363A
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FFEB206DD
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8CF47206DD
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="TzrxlGJ/"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="auIiY3dZ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727264AbgJEQVB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Oct 2020 12:21:01 -0400
-Received: from nat-hk.nvidia.com ([203.18.50.4]:9850 "EHLO nat-hk.nvidia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726638AbgJEQU6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 5 Oct 2020 12:20:58 -0400
-Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f7b47e80000>; Tue, 06 Oct 2020 00:20:56 +0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL104.nvidia.com
- (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 5 Oct
- 2020 16:20:54 +0000
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.174)
- by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 5 Oct 2020 16:20:53 +0000
+        id S1727422AbgJEQVJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Oct 2020 12:21:09 -0400
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:2190 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726638AbgJEQVJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Oct 2020 12:21:09 -0400
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f7b47be0006>; Mon, 05 Oct 2020 09:20:14 -0700
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 5 Oct
+ 2020 16:19:09 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.170)
+ by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 5 Oct 2020 16:19:09 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fJWRLxG4/lVa68HibcE1Og7DRQFYs3i82+cWEU1X2WCaHc+cmhWlURByWK2MczYIFsoRPtHGkfNe/ttdiB7AiVyZcqmIvY/yhvix4b/VhVkeIec+NOn40l7ENoRzC+NE24uSGnorTU1pgt9VJ00qpcIrTo1PD5qi9Wrgqja502jwzJ4L/IGXrtjqOLR3U8J3BNmQlceFN0ZNLRFGLwy71Wa3R+Bn7mX/FZ3aGb7A7s5Z6docoT+DQZm4NQt6TB/E7XJJnoL72n65LDq6CR37Q+EP7fSMruini/43/GBUThhkpA4fkVB0ZN7uRZsGcImDQZPdtkFkAqTHbSCWhWs8iQ==
+ b=W+dRdE9b2Z6SGzgL7WM1UDxLsPJnXMrEzV8Go2PoPNvfGXGur8qXyURUwp0joTRfXK9/5P5jKrEeBI6g9A8aELFpPf9HiRSjYwXqdeEw3MGuRMPd5gVxss+PRN2rnbpApdkLCbBNSygY8i5wiBHkJJ7NrcOAdtB1EKk8M1dD2iyF/A4r5Q3umY4E7BDiVG1kU/Pgw+ZYNubzSu57v9VcmHs8a7Q9QUlTaMYOltMWY9CcHR7sPowgUIG+7ZCijVSy04nX5/T0sP1fu0oCT8zAKYp/cw6qVZkTlzy2EANl5KK/RxAUmBE1PzYezaw2OBwZ48zEkYdqWhv9amX2Zdo00w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Qzy8TD6m1sdCwFgDLTAiNlSZrnxxome2e3qtgoDC3rE=;
- b=BTZgoPGbYvBwqHQyjhPujf86OycN9SqciCRODME0p1BZinugraiV0x7bj5UpBMPmRS259Tde5FCRIDDIXXeEa5DtgGWqwBnm+Nl9fcVHZ1k5pNSsvTvnipCghJP07DlCFsxm1PJz0rRnKVAfJa35EIa7r/iGRpZY44ei12Xz+9dz7Rb5/By+8bJxt/NBn1j5p0T9cQSlteBF1ItWIJdfkNuclHxivnah9LW0VFI3gGtDQDMDSjo4MeCQMzheRNGr+ZBrGhimdD6Q+4PsXb0SdV18IijMLCllI5dvn0dn5BUYtjf3XK+y4pu1C4ZhsJKjShf+TLKboFrFnDQcdUsDBw==
+ bh=X8FPyXzEl5Tm8JT9pYI9dD/XDnWy3oUo9YxmoQwb03U=;
+ b=Yx8j6vMUOtSDMBjs6vdphzQLPGlSCJOCXK7wgjyG0xLbIskjqd6df6ml9I/1o5ayTo9PZyuq4v+wTKOk8OGCD4otn0D8CTqiKCBriKD8pc6CsAIP5t2Ku6fOnT+xNbfbwtSXqHOzamwXBBu/T8jaxN2UUf1KgiAqAabnLhrro6IIZhQ6rNZu0TpJQ/q7HvxdtAP5xwWZbmDhEnBZMGh9xla49RXFYQ3Kv7EffTS9VgSlwo+P2rc/gfxeqQxQTSnXNFlWWvBJBvJO1N06M2GuIg1Ma2u4GPhy8P0r5IjUe8UBj0WSPw+nxe9mJx+ofpSyouQJDLs7HQnKMAUby23gqw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB1243.namprd12.prod.outlook.com (2603:10b6:3:74::22) with
+ by DM5PR12MB1146.namprd12.prod.outlook.com (2603:10b6:3:73::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.35; Mon, 5 Oct
- 2020 16:20:51 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.32; Mon, 5 Oct
+ 2020 16:19:07 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3433.044; Mon, 5 Oct 2020
- 16:20:51 +0000
-Date:   Mon, 5 Oct 2020 13:20:49 -0300
+ 16:19:07 +0000
+Date:   Mon, 5 Oct 2020 13:19:05 -0300
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     Gal Pressman <galpress@amazon.com>
-CC:     Doug Ledford <dledford@redhat.com>,
+CC:     Adit Ranadive <aditr@vmware.com>, Ariel Elior <aelior@marvell.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        "Dennis Dalessandro" <dennis.dalessandro@intel.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        Doug Ledford <dledford@redhat.com>,
+        "Faisal Latif" <faisal.latif@intel.com>,
         "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
         Leon Romanovsky <leon@kernel.org>,
         <linux-rdma@vger.kernel.org>, Weihang Li <liweihang@huawei.com>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        Nelson Escobar <neescoba@cisco.com>,
         Lijun Ou <oulijun@huawei.com>,
+        Parvi Kaustubhi <pkaustub@cisco.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>,
         Bob Pearson <rpearsonhpe@gmail.com>,
-        Yossi Leybovich <sleybo@amazon.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        "Yossi Leybovich" <sleybo@amazon.com>,
+        Somnath Kotur <somnath.kotur@broadcom.com>,
+        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH 02/11] RDMA: Remove uverbs_ex_cmd_mask values that are
- linked to functions
-Message-ID: <20201005162049.GZ816047@nvidia.com>
-References: <2-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
- <52566b00-efd8-f797-abe8-2bdd11626213@amazon.com>
+Subject: Re: [PATCH 06/11] RDMA: Check attr_mask during modify_qp
+Message-ID: <20201005161905.GY816047@nvidia.com>
+References: <6-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
+ <06064431-fd1b-463d-c022-31f035b697bf@amazon.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <52566b00-efd8-f797-abe8-2bdd11626213@amazon.com>
-X-ClientProxiedBy: BL0PR0102CA0007.prod.exchangelabs.com
- (2603:10b6:207:18::20) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <06064431-fd1b-463d-c022-31f035b697bf@amazon.com>
+X-ClientProxiedBy: MN2PR12CA0019.namprd12.prod.outlook.com
+ (2603:10b6:208:a8::32) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by BL0PR0102CA0007.prod.exchangelabs.com (2603:10b6:207:18::20) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.32 via Frontend Transport; Mon, 5 Oct 2020 16:20:51 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kPTEH-007h70-VS; Mon, 05 Oct 2020 13:20:49 -0300
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR12CA0019.namprd12.prod.outlook.com (2603:10b6:208:a8::32) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.34 via Frontend Transport; Mon, 5 Oct 2020 16:19:06 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kPTCb-007h52-OL; Mon, 05 Oct 2020 13:19:05 -0300
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1601914856; bh=Qzy8TD6m1sdCwFgDLTAiNlSZrnxxome2e3qtgoDC3rE=;
+        t=1601914814; bh=X8FPyXzEl5Tm8JT9pYI9dD/XDnWy3oUo9YxmoQwb03U=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=TzrxlGJ/ktl+egCNmLFzGHHw9fWXsW70MRwWtk+QwEaY8H0J+gGs+H3Hn7Rry33R8
-         PF4p0kMujF0DC3eugCsfjOvXqaVJylqtbTxPBfiBll/p7Fv1xOwD/D2LT3XyOP7W4Z
-         d0E066rOSiDvnduN/XUILMUNKtsvsceNGKEGymLQbLqUhdyxU9fVpB17RySux2ycIY
-         9yXhvqI+cPlizRE/B/1ygBkF91vC+GCRjJmfcfVgjBNKuimMFqOLs5/IpbzaeXoRrK
-         AFlGs6D9xT2rM8zqd0mnTFzMXGQDYfdWgY3RiM9Dxv79ksbxHK2G42bmYEtdUxbKDE
-         2zv46buBqr8Yw==
+        b=auIiY3dZnOvLtowsEB7gCiACWm1SR6kRgVhWkNsuezUCjTdW/+KHEuJ9rOl+g5BgG
+         8Ifftq5FobYv++JGywCNQb7fTg3LrV57KqvziVTm0Dl1YeiesvpFNZjBXFdy+fR7vT
+         PDccKCF3m9h02+4VIrMvksDq4xk95MxUP/vLGxsrunuDHj+f7l9eYUH9MWs40f8EA/
+         fzYatoqR5OohOXDXRCwL9W/RDP6oEoqDVTazZOk26eyfX+6uKPHo1o2/s8mUSmK+RN
+         TiKbbjmUZHE1D9UWnsqNgtaxMLxdYhWHfFxp7h1FRJK99SQqhOlgeThlxptsN74iTo
+         hk1Ui4Z/7ZhSw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Oct 04, 2020 at 02:04:17PM +0300, Gal Pressman wrote:
+On Sun, Oct 04, 2020 at 02:02:52PM +0300, Gal Pressman wrote:
 > On 04/10/2020 2:20, Jason Gunthorpe wrote:
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> > index 418d133a8fb080..2f3f9b87922e92 100644
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -3753,7 +3753,7 @@ const struct uapi_definition uverbs_def_write_intf[] = {
-> >  			IB_USER_VERBS_EX_CMD_MODIFY_CQ,
-> >  			ib_uverbs_ex_modify_cq,
-> >  			UAPI_DEF_WRITE_I(struct ib_uverbs_ex_modify_cq),
-> > -			UAPI_DEF_METHOD_NEEDS_FN(create_cq))),
-> > +			UAPI_DEF_METHOD_NEEDS_FN(modify_cq))),
+> > diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+> > index 191e0843f090c8..e3d9a5a5f4d992 100644
+> > +++ b/drivers/infiniband/hw/efa/efa_verbs.c
+> > @@ -917,6 +917,9 @@ int efa_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+> >  	enum ib_qp_state new_state;
+> >  	int err;
+> >  
+> > +	if (qp_attr_mask & ~IB_QP_ATTR_STANDARD_BITS)
+> > +		return -EOPNOTSUPP;
 > 
-> Good catch, but is it related to this patch?
+> This is kinda redundant, we have a more strict check in efa_modify_qp_validate.
 
-Yes, previously the uverbs_ex_cmd_mask of
-IB_USER_VERBS_EX_CMD_MODIFY_CQ prevented this typo from mattering as
-no driver set both the bit and a null ops.
+Okay
 
-This patch has drivers setting null ops with the bit set, so it must
-be fixed now.
-
+Thanks,
 Jason
