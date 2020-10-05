@@ -2,126 +2,154 @@ Return-Path: <SRS0=dHgr=DM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA40C4363A
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 845B7C4363A
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:33:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CF47206DD
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:21:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 361C220756
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Oct 2020 16:33:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="auIiY3dZ"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="E7OZ8A12"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727422AbgJEQVJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Oct 2020 12:21:09 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:2190 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726638AbgJEQVJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Oct 2020 12:21:09 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f7b47be0006>; Mon, 05 Oct 2020 09:20:14 -0700
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 5 Oct
- 2020 16:19:09 +0000
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.170)
- by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 5 Oct 2020 16:19:09 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=W+dRdE9b2Z6SGzgL7WM1UDxLsPJnXMrEzV8Go2PoPNvfGXGur8qXyURUwp0joTRfXK9/5P5jKrEeBI6g9A8aELFpPf9HiRSjYwXqdeEw3MGuRMPd5gVxss+PRN2rnbpApdkLCbBNSygY8i5wiBHkJJ7NrcOAdtB1EKk8M1dD2iyF/A4r5Q3umY4E7BDiVG1kU/Pgw+ZYNubzSu57v9VcmHs8a7Q9QUlTaMYOltMWY9CcHR7sPowgUIG+7ZCijVSy04nX5/T0sP1fu0oCT8zAKYp/cw6qVZkTlzy2EANl5KK/RxAUmBE1PzYezaw2OBwZ48zEkYdqWhv9amX2Zdo00w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=X8FPyXzEl5Tm8JT9pYI9dD/XDnWy3oUo9YxmoQwb03U=;
- b=Yx8j6vMUOtSDMBjs6vdphzQLPGlSCJOCXK7wgjyG0xLbIskjqd6df6ml9I/1o5ayTo9PZyuq4v+wTKOk8OGCD4otn0D8CTqiKCBriKD8pc6CsAIP5t2Ku6fOnT+xNbfbwtSXqHOzamwXBBu/T8jaxN2UUf1KgiAqAabnLhrro6IIZhQ6rNZu0TpJQ/q7HvxdtAP5xwWZbmDhEnBZMGh9xla49RXFYQ3Kv7EffTS9VgSlwo+P2rc/gfxeqQxQTSnXNFlWWvBJBvJO1N06M2GuIg1Ma2u4GPhy8P0r5IjUe8UBj0WSPw+nxe9mJx+ofpSyouQJDLs7HQnKMAUby23gqw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB1146.namprd12.prod.outlook.com (2603:10b6:3:73::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.32; Mon, 5 Oct
- 2020 16:19:07 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3433.044; Mon, 5 Oct 2020
- 16:19:07 +0000
-Date:   Mon, 5 Oct 2020 13:19:05 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Gal Pressman <galpress@amazon.com>
-CC:     Adit Ranadive <aditr@vmware.com>, Ariel Elior <aelior@marvell.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        "Dennis Dalessandro" <dennis.dalessandro@intel.com>,
-        Devesh Sharma <devesh.sharma@broadcom.com>,
+        id S1728561AbgJEQdH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Oct 2020 12:33:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58752 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726747AbgJEQdH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Oct 2020 12:33:07 -0400
+Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com [IPv6:2607:f8b0:4864:20::744])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F25EC0613CE
+        for <linux-rdma@vger.kernel.org>; Mon,  5 Oct 2020 09:33:06 -0700 (PDT)
+Received: by mail-qk1-x744.google.com with SMTP id 188so1822168qkk.12
+        for <linux-rdma@vger.kernel.org>; Mon, 05 Oct 2020 09:33:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=oowVlRsJEVJv/f1qJEWY252mRzVr4hWBivZL8HEemGQ=;
+        b=E7OZ8A12leLVSPQCAg4P/fH9v44f/WulkCMZ1GeDadTvyFnBgaop9eYQJkYeA4zapj
+         6pmtUIN5fmaOQpH0hvQpNBN/B8ueQW91k/wu2smlIcbGE2lkZ0Wasrk7Or81hICwjQmr
+         q3fNUIoiHWQjdAuln4MIHRqsIIPq1mv7mYmTRO04q3+c2yq2SaQqAQupOobOs5gIHQUe
+         RXkNfNyfWs/I2GjGhp+qlmIgjG9kNMoE469ml2BOgBt6aD6D25gk9QcQmfv0Wyc40/f0
+         h7+6onewNO00cie1zOyk1EmLc6iLItw/pZ6xOCknQAjUVOlNEGvBRdEWWeaBR/tbALhR
+         cTNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=oowVlRsJEVJv/f1qJEWY252mRzVr4hWBivZL8HEemGQ=;
+        b=DQHcj9mKv/j3Crl+yVtjyN2pDiQJSgTLwH/j2q8y+11Cbb+R1gveFiqxR8IwLPrQAr
+         cT+2djpIEUmsRH2dZMlOKWEYF7XiaE4cu91YQV7It70CQcPFJOsFpaVUB8parJKzE+dd
+         EHHe/Z02tTFxMjyRmYzN+xklUMbiN95lGBn+0Ry/idv/V1fJO/094yj7jCashkMSneeY
+         8Vu7V9BDAWKJyOBlEGLh51h8QU7ZoHXdVoNKqVG4mysW4m6eYKgAmkpNcEQL3SLIPGwS
+         JDnlByQqR8Q4HNt1O3OJgXCCPFiwHaKl0zwdb9oYz9ogNKmwQESq+06dyOT2gue3BTXe
+         13Iw==
+X-Gm-Message-State: AOAM533jFE0Ik8iQRQP2LiqN4BxCJFY9PjCoip6d+e1Jt4Vg89sG5Yqo
+        ZktVlrdRRUoQdTIk0f5faoEUF3BHSWsQ5qdg
+X-Google-Smtp-Source: ABdhPJwrjwCYaioBhB9E/E5gO1HdGMgQDw1J+wcB40v1oo3zqYQL7kSaQI1BktuawKxECOFpRQw+rw==
+X-Received: by 2002:a37:5904:: with SMTP id n4mr835887qkb.364.1601915585764;
+        Mon, 05 Oct 2020 09:33:05 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id m6sm361832qkh.106.2020.10.05.09.33.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Oct 2020 09:33:04 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kPTQ8-007hcI-Bv; Mon, 05 Oct 2020 13:33:04 -0300
+Date:   Mon, 5 Oct 2020 13:33:04 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "Xiong, Jianxin" <jianxin.xiong@intel.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
         Doug Ledford <dledford@redhat.com>,
-        "Faisal Latif" <faisal.latif@intel.com>,
-        "Wei Hu(Xavier)" <huwei87@hisilicon.com>,
         Leon Romanovsky <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>, Weihang Li <liweihang@huawei.com>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        Nelson Escobar <neescoba@cisco.com>,
-        Lijun Ou <oulijun@huawei.com>,
-        Parvi Kaustubhi <pkaustub@cisco.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Bob Pearson <rpearsonhpe@gmail.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        "Yossi Leybovich" <sleybo@amazon.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH 06/11] RDMA: Check attr_mask during modify_qp
-Message-ID: <20201005161905.GY816047@nvidia.com>
-References: <6-v1-caa70ba3d1ab+1436e-ucmd_mask_jgg@nvidia.com>
- <06064431-fd1b-463d-c022-31f035b697bf@amazon.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <06064431-fd1b-463d-c022-31f035b697bf@amazon.com>
-X-ClientProxiedBy: MN2PR12CA0019.namprd12.prod.outlook.com
- (2603:10b6:208:a8::32) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>
+Subject: Re: [RFC PATCH v3 1/4] RDMA/umem: Support importing dma-buf as user
+ memory region
+Message-ID: <20201005163304.GU9916@ziepe.ca>
+References: <1601838751-148544-1-git-send-email-jianxin.xiong@intel.com>
+ <1601838751-148544-2-git-send-email-jianxin.xiong@intel.com>
+ <20201005131302.GQ9916@ziepe.ca>
+ <MW3PR11MB455572267489B3F6B1C5F8C5E50C0@MW3PR11MB4555.namprd11.prod.outlook.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR12CA0019.namprd12.prod.outlook.com (2603:10b6:208:a8::32) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.34 via Frontend Transport; Mon, 5 Oct 2020 16:19:06 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kPTCb-007h52-OL; Mon, 05 Oct 2020 13:19:05 -0300
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1601914814; bh=X8FPyXzEl5Tm8JT9pYI9dD/XDnWy3oUo9YxmoQwb03U=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=auIiY3dZnOvLtowsEB7gCiACWm1SR6kRgVhWkNsuezUCjTdW/+KHEuJ9rOl+g5BgG
-         8Ifftq5FobYv++JGywCNQb7fTg3LrV57KqvziVTm0Dl1YeiesvpFNZjBXFdy+fR7vT
-         PDccKCF3m9h02+4VIrMvksDq4xk95MxUP/vLGxsrunuDHj+f7l9eYUH9MWs40f8EA/
-         fzYatoqR5OohOXDXRCwL9W/RDP6oEoqDVTazZOk26eyfX+6uKPHo1o2/s8mUSmK+RN
-         TiKbbjmUZHE1D9UWnsqNgtaxMLxdYhWHfFxp7h1FRJK99SQqhOlgeThlxptsN74iTo
-         hk1Ui4Z/7ZhSw==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <MW3PR11MB455572267489B3F6B1C5F8C5E50C0@MW3PR11MB4555.namprd11.prod.outlook.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Oct 04, 2020 at 02:02:52PM +0300, Gal Pressman wrote:
-> On 04/10/2020 2:20, Jason Gunthorpe wrote:
-> > diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-> > index 191e0843f090c8..e3d9a5a5f4d992 100644
-> > +++ b/drivers/infiniband/hw/efa/efa_verbs.c
-> > @@ -917,6 +917,9 @@ int efa_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-> >  	enum ib_qp_state new_state;
-> >  	int err;
-> >  
-> > +	if (qp_attr_mask & ~IB_QP_ATTR_STANDARD_BITS)
-> > +		return -EOPNOTSUPP;
+On Mon, Oct 05, 2020 at 04:18:11PM +0000, Xiong, Jianxin wrote:
+
+> > The implementation in mlx5 will be much more understandable, it would just do dma_buf_dynamic_attach() and program the XLT exactly
+> > the same as a normal umem.
+> > 
+> > The move_notify() simply zap's the XLT and triggers a work to reload it after the move. Locking is provided by the dma_resv_lock. Only a
+> > small disruption to the page fault handler is needed.
 > 
-> This is kinda redundant, we have a more strict check in efa_modify_qp_validate.
+> We considered such scheme but didn't go that way due to the lack of
+> notification when the move is done and thus the work wouldn't know
+> when it can reload.
 
-Okay
+Well, the work would block on the reservation lock and that indicates
+the move is done
 
-Thanks,
+It would be nicer if the dma_buf could provide an op that things are
+ready to go though
+
+> Now I think it again, we could probably signal the reload in the page fault handler. 
+
+This also works, with a performance cost
+
+> > > +	dma_resv_lock(umem_dmabuf->attach->dmabuf->resv, NULL);
+> > > +	sgt = dma_buf_map_attachment(umem_dmabuf->attach,
+> > > +				     DMA_BIDIRECTIONAL);
+> > > +	dma_resv_unlock(umem_dmabuf->attach->dmabuf->resv);
+> > 
+> > This doesn't look right, this lock has to be held up until the HW is programmed
+> 
+> The mapping remains valid until being invalidated again. There is a
+> sequence number checking before programming the HW.
+
+It races, we could immediately trigger invalidation and then
+re-program the HW with this stale data.
+ 
+> > The use of atomic looks probably wrong as well.
+> 
+> Do you mean umem_dmabuf->notifier_seq? Could you elaborate the concern?
+
+It only increments once per invalidation, that usually is racy.
+
+> > > +	total_pages = ib_umem_odp_num_pages(umem_odp);
+> > > +	for_each_sg(umem->sg_head.sgl, sg, umem->sg_head.nents, j) {
+> > > +		addr = sg_dma_address(sg);
+> > > +		pages = sg_dma_len(sg) >> page_shift;
+> > > +		while (pages > 0 && k < total_pages) {
+> > > +			umem_odp->dma_list[k++] = addr | access_mask;
+> > > +			umem_odp->npages++;
+> > > +			addr += page_size;
+> > > +			pages--;
+> > 
+> > This isn't fragmenting the sg into a page list properly, won't work for unaligned things
+> 
+> I thought the addresses are aligned, but will add explicit alignment here.
+
+I have no idea what comes out of dma_buf, I wouldn't make too many
+assumptions since it does have to pass through the IOMMU layer too
+
+> > And really we don't need the dma_list for this case, with a fixed
+> > whole mapping DMA SGL a normal umem sgl is OK and the normal umem
+> > XLT programming in mlx5 is fine.
+> 
+> The dma_list is used by both "polulate_mtt()" and
+> "mlx5_ib_invalidate_range", which are used for XLT programming and
+> invalidating (zapping), respectively.
+
+Don't use those functions for the dma_buf flow.
+
 Jason
