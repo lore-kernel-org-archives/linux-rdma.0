@@ -2,245 +2,166 @@ Return-Path: <SRS0=c5Ux=DO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DBE0C4363C
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 18:10:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 128C8C4363C
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 18:56:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCC2D2168B
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 18:10:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D2DE21707
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 18:56:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="F89nKzkh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728656AbgJGSKw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Oct 2020 14:10:52 -0400
-Received: from smtprelay0185.hostedemail.com ([216.40.44.185]:44102 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728788AbgJGSKw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 14:10:52 -0400
-X-Greylist: delayed 365 seconds by postgrey-1.27 at vger.kernel.org; Wed, 07 Oct 2020 14:10:50 EDT
-Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
-        by smtpgrave02.hostedemail.com (Postfix) with ESMTP id 7DAE9180054C1
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2020 18:04:47 +0000 (UTC)
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay03.hostedemail.com (Postfix) with ESMTP id 9CEBD837F24A;
-        Wed,  7 Oct 2020 18:04:44 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: bread98_2507b7a271d1
-X-Filterd-Recvd-Size: 13413
-Received: from XPS-9350.home (unknown [47.151.133.149])
-        (Authenticated sender: joe@perches.com)
-        by omf05.hostedemail.com (Postfix) with ESMTPA;
-        Wed,  7 Oct 2020 18:04:43 +0000 (UTC)
-Message-ID: <a334b30e7b617eb6b0ea22f2bf00e0f188c4ae42.camel@perches.com>
-Subject: Re: [PATCH -next] mm: Use sysfs_emit functions not sprintf
-From:   Joe Perches <joe@perches.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Date:   Wed, 07 Oct 2020 11:04:42 -0700
-In-Reply-To: <20201007125330.GO5177@ziepe.ca>
-References: <8a0d4fc9a4e372b125249b186689f247312d4387.camel@perches.com>
-         <202010070014.76AA763CE@keescook> <20201007125330.GO5177@ziepe.ca>
-Content-Type: multipart/mixed; boundary="=-mi8zbEP98B9wkzS2GwtS"
-User-Agent: Evolution 3.36.4-0ubuntu1 
+        id S1727033AbgJGS4H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Oct 2020 14:56:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45080 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726312AbgJGS4H (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 14:56:07 -0400
+Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C7D4C0613D2
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Oct 2020 11:56:07 -0700 (PDT)
+Received: by mail-ej1-x643.google.com with SMTP id p15so4486746ejm.7
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2020 11:56:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=yfiJ5nD/cUmyiqlzNZewJWZjW4mmc4Boj3zx3Rxdevw=;
+        b=F89nKzkhVw+pwSxd4I+Ro29bXc2Yy4aOTB0aRdedpGp4Xf5mIKcUUeC4WmcHJUQJhT
+         UmyJ5u0llCJiofg5m/aBddvUXcqKgw19yZWf2cFnhojQASzzrRtifWjlVLdkVTE2uFt0
+         f3r2Gr1CFfl4iERMNNQNTk+RiZo68CSSTSeHrj3xhWY6hGPtSy+eN0gPGg9at54tggYn
+         Xxd1PwlQsNUZMa5HsqCTBWAfgRGNsYKdj9jkf+QR8E28eeYFJZRGgn2VW/7oY5PJ/sjZ
+         vAb5jAvQBmIVvqj93TjfKNqcJNJ2OOqcgAgufr6IGab7ZF182lxt3MbvDJknrgJcxDId
+         ZXAg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=yfiJ5nD/cUmyiqlzNZewJWZjW4mmc4Boj3zx3Rxdevw=;
+        b=MEeUAk9463OU5/o2n7mgemamZs0NWwB1I54VMuCGQMUsDIM6fbGWLP5drajmWVkw0r
+         kDVZhYu6mY8U7YqMC8YFXV5JJNvc9cPnkBngakSGra+3EtFkRjwygRMwY/sBkyUD71Tu
+         NtgIyqpm4OBK+2x+rojOrn7qlpz9YmbIlVAMoUSMo6+xa7F3piTaR4DOPjvGGBtTXMuv
+         sWm6iqLbCiz/NtzLXjeVT+hHdRlwYKcred4br3DOBMrvyz5BSB/W+x6eXbG1n5qqXE5p
+         irL5VKGkhXZUGS4ELNhkmLqnSEvLeXGI/avse/D5d3HolIafG8nzId1bTqqUlYWx6FSs
+         ezYg==
+X-Gm-Message-State: AOAM532obvDZAjMXgCo6fdkL/Q9RQ79Y90A5X+JBUslCVKuWgbukOKlM
+        jPfA7/88rf7Jd2gKmb8yG180CUf6Yb9Aj6MODRa+uQ==
+X-Google-Smtp-Source: ABdhPJyNpzrYFZKJNGR3LOKY++IvBFmX8qfeS5JqUyOBjoxQwDjRp/d7m0uUE6VIQpOeEI+tD7+gLGvhR+0lRO7kp6k=
+X-Received: by 2002:a17:906:1a0b:: with SMTP id i11mr4831823ejf.472.1602096965738;
+ Wed, 07 Oct 2020 11:56:05 -0700 (PDT)
 MIME-Version: 1.0
+References: <20201005182446.977325-2-david.m.ertman@intel.com>
+ <20201006071821.GI1874917@unreal> <b4f6b5d1-2cf4-ae7a-3e57-b66230a58453@linux.intel.com>
+ <20201006170241.GM1874917@unreal> <BY5PR12MB43228E8DAA0B56BCF43AF3EFDC0D0@BY5PR12MB4322.namprd12.prod.outlook.com>
+ <20201006172650.GO1874917@unreal> <3ff1445d86564ef3aae28d1d1a9a19ea@intel.com>
+ <20201006192036.GQ1874917@unreal> <CAPcyv4iC_KGOx7Jwax-GWxFJbfUM-2+ymSuf4zkCxG=Yob5KnQ@mail.gmail.com>
+ <cd80aad674ee48faaaedc8698c9b23e2@intel.com> <20201007133633.GB3964015@unreal>
+In-Reply-To: <20201007133633.GB3964015@unreal>
+From:   Dan Williams <dan.j.williams@intel.com>
+Date:   Wed, 7 Oct 2020 11:55:53 -0700
+Message-ID: <CAPcyv4j1VrPkX_=61S7pdCPdDGy+xFGMkHHNnR-FT+TXXvbOWA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] Add ancillary bus support
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        Parav Pandit <parav@nvidia.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+        "parav@mellanox.com" <parav@mellanox.com>,
+        "tiwai@suse.de" <tiwai@suse.de>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "ranjani.sridharan@linux.intel.com" 
+        <ranjani.sridharan@linux.intel.com>,
+        "fred.oh@linux.intel.com" <fred.oh@linux.intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "broonie@kernel.org" <broonie@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "Patil, Kiran" <kiran.patil@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Wed, Oct 7, 2020 at 6:37 AM Leon Romanovsky <leon@kernel.org> wrote:
+>
+> On Wed, Oct 07, 2020 at 01:09:55PM +0000, Saleem, Shiraz wrote:
+> > > Subject: Re: [PATCH v2 1/6] Add ancillary bus support
+> > >
+> > > On Tue, Oct 6, 2020 at 12:21 PM Leon Romanovsky <leon@kernel.org> wrote:
+> > > >
+> > > > On Tue, Oct 06, 2020 at 05:41:00PM +0000, Saleem, Shiraz wrote:
+> > > > > > Subject: Re: [PATCH v2 1/6] Add ancillary bus support
+> > > > > >
+> > > > > > On Tue, Oct 06, 2020 at 05:09:09PM +0000, Parav Pandit wrote:
+> > > > > > >
+> > > > > > > > From: Leon Romanovsky <leon@kernel.org>
+> > > > > > > > Sent: Tuesday, October 6, 2020 10:33 PM
+> > > > > > > >
+> > > > > > > > On Tue, Oct 06, 2020 at 10:18:07AM -0500, Pierre-Louis Bossart wrote:
+> > > > > > > > > Thanks for the review Leon.
+> > > > > > > > >
+> > > > > > > > > > > Add support for the Ancillary Bus, ancillary_device and
+> > > ancillary_driver.
+> > > > > > > > > > > It enables drivers to create an ancillary_device and
+> > > > > > > > > > > bind an ancillary_driver to it.
+> > > > > > > > > >
+> > > > > > > > > > I was under impression that this name is going to be changed.
+> > > > > > > > >
+> > > > > > > > > It's part of the opens stated in the cover letter.
+> > > > > > > >
+> > > > > > > > ok, so what are the variants?
+> > > > > > > > system bus (sysbus), sbsystem bus (subbus), crossbus ?
+> > > > > > > Since the intended use of this bus is to
+> > > > > > > (a) create sub devices that represent 'functional separation'
+> > > > > > > and
+> > > > > > > (b) second use case for subfunctions from a pci device,
+> > > > > > >
+> > > > > > > I proposed below names in v1 of this patchset.
+> > > > > >
+> > > > > > > (a) subdev_bus
+> > > > > >
+> > > > > > It sounds good, just can we avoid "_" in the name and call it subdev?
+> > > > > >
+> > > > >
+> > > > > What is wrong with naming the bus 'ancillary bus'? I feel it's a fitting name.
+> > > > > An ancillary software bus for ancillary devices carved off a parent device
+> > > registered on a primary bus.
+> > > >
+> > > > Greg summarized it very well, every internal conversation about this
+> > > > patch with my colleagues (non-english speakers) starts with the question:
+> > > > "What does ancillary mean?"
+> > > > https://lore.kernel.org/alsa-devel/20201001071403.GC31191@kroah.com/
+> > > >
+> > > > "For non-native english speakers this is going to be rough, given that
+> > > > I as a native english speaker had to go look up the word in a
+> > > > dictionary to fully understand what you are trying to do with that
+> > > > name."
+> > >
+> > > I suggested "auxiliary" in another splintered thread on this question.
+> > > In terms of what the kernel is already using:
+> > >
+> > > $ git grep auxiliary | wc -l
+> > > 507
+> > > $ git grep ancillary | wc -l
+> > > 153
+> > >
+> > > Empirically, "auxiliary" is more common and closely matches the intended function
+> > > of these devices relative to their parent device.
+> >
+> > auxiliary bus is a befitting name as well.
+>
+> Let's share all options and decide later.
+> I don't want to find us bikeshedding about it.
 
---=-mi8zbEP98B9wkzS2GwtS
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Too late we are deep into bikeshedding at this point... it continued
+over here [1] for a bit, but let's try to bring the discussion back to
+this thread.
 
-On Wed, 2020-10-07 at 09:53 -0300, Jason Gunthorpe wrote:
-> On Wed, Oct 07, 2020 at 12:16:01AM -0700, Kees Cook wrote:
-> > On Tue, Oct 06, 2020 at 09:28:17AM -0700, Joe Perches wrote:
-> > > Convert the various uses of sprintf/snprintf/scnprintf to
-> > > format sysfs output to sysfs_emit and sysfs_emit_at to make
-> > > clear the output is sysfs related and to avoid any possible
-> > > buffer overrun of the PAGE_SIZE buffer.
-> > > 
-> > > Done with cocci scripts and some typing.
-> > 
-> > Can you include the cocci script in the commit log? It might be nicer to
-> > split the "manual" changes from the cocci changes, as that makes review
-> > much easier too.
-> > 
-> > Regardless, yes, I'm a fan of switching these all around to
-> > sysfs_emit*(). :)
-> 
-> Yah, +1, I'd welcome patches for drivers/infiniband as well next cycle
-
-The script to change <foo>_show(struct device *, ...)
-function uses of
-sprintf to sysfs_emit is attached.
-
-The cocci script is coarse and doesn't find nor change all
-the possible variants of the sprintf uses in these functions.
-
-It could be run using:
-
-$ spatch --in-place -sp-file sysfs_emit.cocci drivers/infiniband/
-
-Against next-20201007 it produces:
-
-$ git diff --shortstat drivers/infiniband
- 25 files changed, 322 insertions(+), 303 deletions(-)
-
-Because it touches a lot of drivers, the 'cc' list is
-pretty large for the diff.
-
-Given the size of the cc list, unless there's a single
-acceptable patch, I will not submit individual patches as
-I really dislike the back and forth of this sub-maintainer
-will but this sub-maintainer will not apply a patch.
-
-Doug Ledford <dledford@redhat.com> (supporter:INFINIBAND SUBSYSTEM)
-Jason Gunthorpe <jgg@ziepe.ca> (supporter:INFINIBAND SUBSYSTEM)
-Selvin Xavier <selvin.xavier@broadcom.com> (supporter:BROADCOM NETXTREME-E ROCE DRIVER)
-Devesh Sharma <devesh.sharma@broadcom.com> (supporter:BROADCOM NETXTREME-E ROCE DRIVER)
-Somnath Kotur <somnath.kotur@broadcom.com> (supporter:BROADCOM NETXTREME-E ROCE DRIVER)
-Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com> (supporter:BROADCOM NETXTREME-E ROCE DRIVER)
-Naresh Kumar PBS <nareshkumar.pbs@broadcom.com> (supporter:BROADCOM NETXTREME-E ROCE DRIVER)
-Potnuri Bharat Teja <bharat@chelsio.com> (supporter:CXGB4 IWARP RNIC DRIVER (IW_CXGB4))
-Mike Marciniszyn <mike.marciniszyn@intel.com> (supporter:HFI1 DRIVER)
-Dennis Dalessandro <dennis.dalessandro@intel.com> (supporter:HFI1 DRIVER)
-Faisal Latif <faisal.latif@intel.com> (supporter:INTEL RDMA RNIC DRIVER)
-Shiraz Saleem <shiraz.saleem@intel.com> (supporter:INTEL RDMA RNIC DRIVER)
-Yishai Hadas <yishaih@nvidia.com> (supporter:MELLANOX MLX4 IB driver)
-Leon Romanovsky <leon@kernel.org> (supporter:MELLANOX MLX5 IB driver)
-Michal Kalderon <mkalderon@marvell.com> (supporter:QLOGIC QL4xxx RDMA DRIVER)
-Ariel Elior <aelior@marvell.com> (supporter:QLOGIC QL4xxx RDMA DRIVER)
-Christian Benvenuti <benve@cisco.com> (supporter:CISCO VIC LOW LATENCY NIC DRIVER)
-Nelson Escobar <neescoba@cisco.com> (supporter:CISCO VIC LOW LATENCY NIC DRIVER)
-Parvi Kaustubhi <pkaustub@cisco.com> (supporter:CISCO VIC LOW LATENCY NIC DRIVER)
-Adit Ranadive <aditr@vmware.com> (maintainer:VMWARE PVRDMA DRIVER)
-VMware PV-Drivers <pv-drivers@vmware.com> (maintainer:VMWARE PVRDMA DRIVER)
-Zhu Yanjun <yanjunz@nvidia.com> (supporter:SOFT-ROCE DRIVER (rxe))
-Danil Kipnis <danil.kipnis@cloud.ionos.com> (maintainer:RTRS TRANSPORT DRIVERS)
-Jack Wang <jinpu.wang@cloud.ionos.com> (maintainer:RTRS TRANSPORT DRIVERS)
-Bart Van Assche <bvanassche@acm.org> (supporter:SCSI RDMA PROTOCOL (SRP) INITIATOR)
-linux-rdma@vger.kernel.org (open list:INFINIBAND SUBSYSTEM)
-linux-kernel@vger.kernel.org (open list)
-
-
---=-mi8zbEP98B9wkzS2GwtS
-Content-Disposition: attachment; filename="sysfs_emit.cocci"
-Content-Type: text/plain; name="sysfs_emit.cocci"; charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
-
-QEAKLy9pZGVudGlmaWVyIGRfc2hvdyA9fiAiXi4qc2hvdy4qJCI7CmlkZW50aWZpZXIgZF9zaG93
-OwppZGVudGlmaWVyIGFyZzEsIGFyZzIsIGFyZzM7CkBACnNzaXplX3QgZF9zaG93KHN0cnVjdCBk
-ZXZpY2UgKgotCWFyZzEKKwlkZXYKCSwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKgotCWFyZzIK
-KwlhdHRyCgksIGNoYXIgKgotCWFyZzMKKwlidWYKCSkKewoJPC4uLgooCi0JYXJnMQorCWRldgp8
-Ci0JYXJnMgorCWF0dHIKfAotCWFyZzMKKwlidWYKKQoJLi4uPgp9CgpAQAovL2lkZW50aWZpZXIg
-ZF9zaG93ID1+ICJeLipzaG93LiokIjsKaWRlbnRpZmllciBkX3Nob3c7CmlkZW50aWZpZXIgZGV2
-LCBhdHRyLCBidWY7CkBACgpzc2l6ZV90IGRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
-dCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCnsKCTwuLi4KCXJldHVybgotCXNw
-cmludGYoYnVmLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KfQoKQEAKLy9pZGVudGlm
-aWVyIGRfc2hvdyA9fiAiXi4qc2hvdy4qJCI7CmlkZW50aWZpZXIgZF9zaG93OwppZGVudGlmaWVy
-IGRldiwgYXR0ciwgYnVmOwpAQAoKc3NpemVfdCBkX3Nob3coc3RydWN0IGRldmljZSAqZGV2LCBz
-dHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQp7Cgk8Li4uCglyZXR1cm4K
-LQlzbnByaW50ZihidWYsIFBBR0VfU0laRSwKKwlzeXNmc19lbWl0KGJ1ZiwKCS4uLik7CgkuLi4+
-Cn0KCkBACi8vaWRlbnRpZmllciBkX3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVyIGRf
-c2hvdzsKaWRlbnRpZmllciBkZXYsIGF0dHIsIGJ1ZjsKQEAKCnNzaXplX3QgZF9zaG93KHN0cnVj
-dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikK
-ewoJPC4uLgoJcmV0dXJuCi0Jc2NucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFLAorCXN5c2ZzX2VtaXQo
-YnVmLAoJLi4uKTsKCS4uLj4KfQoKQEAKLy9pZGVudGlmaWVyIGRfc2hvdyA9fiAiXi4qc2hvdy4q
-JCI7CmlkZW50aWZpZXIgZF9zaG93OwppZGVudGlmaWVyIGRldiwgYXR0ciwgYnVmOwpleHByZXNz
-aW9uIGNocjsKQEAKCnNzaXplX3QgZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKewoJPC4uLgoJcmV0dXJuCi0Jc3RyY3B5
-KGJ1ZiwgY2hyKTsKKwlzeXNmc19lbWl0KGJ1ZiwgY2hyKTsKCS4uLj4KfQoKQEAKLy9pZGVudGlm
-aWVyIGRfc2hvdyA9fiAiXi4qc2hvdy4qJCI7CmlkZW50aWZpZXIgZF9zaG93OwppZGVudGlmaWVy
-IGRldiwgYXR0ciwgYnVmOwppZGVudGlmaWVyIGxlbjsKQEAKCnNzaXplX3QgZF9zaG93KHN0cnVj
-dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikK
-ewoJPC4uLgoJbGVuID0KLQlzcHJpbnRmKGJ1ZiwKKwlzeXNmc19lbWl0KGJ1ZiwKCS4uLik7Cgku
-Li4+CglyZXR1cm4gbGVuOwp9CgpAQAovL2lkZW50aWZpZXIgZF9zaG93ID1+ICJeLipzaG93Liok
-IjsKaWRlbnRpZmllciBkX3Nob3c7CmlkZW50aWZpZXIgZGV2LCBhdHRyLCBidWY7CmlkZW50aWZp
-ZXIgbGVuOwpAQAoKc3NpemVfdCBkX3Nob3coc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2
-aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQp7Cgk8Li4uCglsZW4gPQotCXNucHJpbnRm
-KGJ1ZiwgUEFHRV9TSVpFLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KCXJldHVybiBs
-ZW47Cn0KCkBACi8vaWRlbnRpZmllciBkX3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVy
-IGRfc2hvdzsKaWRlbnRpZmllciBkZXYsIGF0dHIsIGJ1ZjsKaWRlbnRpZmllciBsZW47CkBACgpz
-c2l6ZV90IGRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRl
-ICphdHRyLCBjaGFyICpidWYpCnsKCTwuLi4KCWxlbiA9Ci0Jc2NucHJpbnRmKGJ1ZiwgUEFHRV9T
-SVpFLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KCXJldHVybiBsZW47Cn0KCkBACi8v
-aWRlbnRpZmllciBkX3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVyIGRfc2hvdzsKaWRl
-bnRpZmllciBkZXYsIGF0dHIsIGJ1ZjsKaWRlbnRpZmllciBsZW47CkBACgpzc2l6ZV90IGRfc2hv
-dyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFy
-ICpidWYpCnsKCTwuLi4KLQlsZW4gKz0gc2NucHJpbnRmKGJ1ZiArIGxlbiwgUEFHRV9TSVpFIC0g
-bGVuLAorCWxlbiArPSBzeXNmc19lbWl0X2F0KGJ1ZiwgbGVuLAoJLi4uKTsKCS4uLj4KCXJldHVy
-biBsZW47Cn0KCkBACi8vaWRlbnRpZmllciBkX3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlm
-aWVyIGRfc2hvdzsKaWRlbnRpZmllciBkZXYsIGF0dHIsIGJ1ZjsKZXhwcmVzc2lvbiBjaHI7CkBA
-Cgpzc2l6ZV90IGRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmli
-dXRlICphdHRyLCBjaGFyICpidWYpCnsKLQlzdHJjcHkoYnVmLCBjaHIpOwotCXJldHVybiBzdHJs
-ZW4oYnVmKTsKKwlyZXR1cm4gc3lzZnNfZW1pdChidWYsIGNocik7Cn0KCkBACmlkZW50aWZpZXIg
-a19zaG93ID1+ICJeLipzaG93LiokIjsKaWRlbnRpZmllciBhcmcxLCBhcmcyLCBhcmczOwpAQApz
-c2l6ZV90IGtfc2hvdyhzdHJ1Y3Qga29iamVjdCAqCi0JYXJnMQorCWtvYmoKCSwgc3RydWN0IGtv
-YmpfYXR0cmlidXRlICoKLQlhcmcyCisJYXR0cgoJLCBjaGFyICoKLQlhcmczCisJYnVmCgkpCnsK
-CS4uLgooCi0JYXJnMQorCWtvYmoKfAotCWFyZzIKKwlhdHRyCnwKLQlhcmczCisJYnVmCikKCS4u
-Lgp9CgpAQAppZGVudGlmaWVyIGtfc2hvdyA9fiAiXi4qc2hvdy4qJCI7CmlkZW50aWZpZXIga29i
-aiwgYXR0ciwgYnVmOwpAQAoKc3NpemVfdCBrX3Nob3coc3RydWN0IGtvYmplY3QgKmtvYmosIHN0
-cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQp7Cgk8Li4uCglyZXR1cm4KLQlz
-cHJpbnRmKGJ1ZiwKKwlzeXNmc19lbWl0KGJ1ZiwKCS4uLik7CgkuLi4+Cn0KCkBACmlkZW50aWZp
-ZXIga19zaG93ID1+ICJeLipzaG93LiokIjsKaWRlbnRpZmllciBrb2JqLCBhdHRyLCBidWY7CkBA
-Cgpzc2l6ZV90IGtfc2hvdyhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3RydWN0IGtvYmpfYXR0cmli
-dXRlICphdHRyLCBjaGFyICpidWYpCnsKCTwuLi4KCXJldHVybgotCXNucHJpbnRmKGJ1ZiwgUEFH
-RV9TSVpFLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KfQoKQEAKaWRlbnRpZmllciBr
-X3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVyIGtvYmosIGF0dHIsIGJ1ZjsKQEAKCnNz
-aXplX3Qga19zaG93KHN0cnVjdCBrb2JqZWN0ICprb2JqLCBzdHJ1Y3Qga29ial9hdHRyaWJ1dGUg
-KmF0dHIsIGNoYXIgKmJ1ZikKewoJPC4uLgoJcmV0dXJuCi0Jc2NucHJpbnRmKGJ1ZiwgUEFHRV9T
-SVpFLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KfQoKQEAKaWRlbnRpZmllciBrX3No
-b3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVyIGtvYmosIGF0dHIsIGJ1ZjsKZXhwcmVzc2lv
-biBjaHI7CkBACgpzc2l6ZV90IGtfc2hvdyhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3RydWN0IGtv
-YmpfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCnsKCTwuLi4KCXJldHVybgotCXN0cmNweShi
-dWYsIGNocik7CisJc3lzZnNfZW1pdChidWYsIGNocik7CgkuLi4+Cn0KCkBACmlkZW50aWZpZXIg
-a19zaG93ID1+ICJeLipzaG93LiokIjsKaWRlbnRpZmllciBrb2JqLCBhdHRyLCBidWY7CmlkZW50
-aWZpZXIgbGVuOwpAQAoKc3NpemVfdCBrX3Nob3coc3RydWN0IGtvYmplY3QgKmtvYmosIHN0cnVj
-dCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQp7Cgk8Li4uCglsZW4gPQotCXNwcmlu
-dGYoYnVmLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsKCS4uLj4KCXJldHVybiBsZW47Cn0KCkBA
-CmlkZW50aWZpZXIga19zaG93ID1+ICJeLipzaG93LiokIjsKaWRlbnRpZmllciBrb2JqLCBhdHRy
-LCBidWY7CmlkZW50aWZpZXIgbGVuOwpAQAoKc3NpemVfdCBrX3Nob3coc3RydWN0IGtvYmplY3Qg
-KmtvYmosIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnVmKQp7Cgk8Li4uCgls
-ZW4gPQotCXNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFLAorCXN5c2ZzX2VtaXQoYnVmLAoJLi4uKTsK
-CS4uLj4KCXJldHVybiBsZW47Cn0KCkBACmlkZW50aWZpZXIga19zaG93ID1+ICJeLipzaG93Liok
-IjsKaWRlbnRpZmllciBrb2JqLCBhdHRyLCBidWY7CmlkZW50aWZpZXIgbGVuOwpAQAoKc3NpemVf
-dCBrX3Nob3coc3RydWN0IGtvYmplY3QgKmtvYmosIHN0cnVjdCBrb2JqX2F0dHJpYnV0ZSAqYXR0
-ciwgY2hhciAqYnVmKQp7Cgk8Li4uCglsZW4gPQotCXNjbnByaW50ZihidWYsIFBBR0VfU0laRSwK
-KwlzeXNmc19lbWl0KGJ1ZiwKCS4uLik7CgkuLi4+CglyZXR1cm4gbGVuOwp9CgpAQAppZGVudGlm
-aWVyIGtfc2hvdyA9fiAiXi4qc2hvdy4qJCI7CmlkZW50aWZpZXIga29iaiwgYXR0ciwgYnVmOwpp
-ZGVudGlmaWVyIGxlbjsKQEAKCnNzaXplX3Qga19zaG93KHN0cnVjdCBrb2JqZWN0ICprb2JqLCBz
-dHJ1Y3Qga29ial9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKewoJPC4uLgotCWxlbiArPSBz
-Y25wcmludGYoYnVmICsgbGVuLCBQQUdFX1NJWkUgLSBsZW4sCisJbGVuICs9IHN5c2ZzX2VtaXRf
-YXQoYnVmLCBsZW4sCgkuLi4pOwoJLi4uPgoJcmV0dXJuIGxlbjsKfQoKQEAKaWRlbnRpZmllciBr
-X3Nob3cgPX4gIl4uKnNob3cuKiQiOwppZGVudGlmaWVyIGtvYmosIGF0dHIsIGJ1ZjsKZXhwcmVz
-c2lvbiBjaHI7CkBACgpzc2l6ZV90IGtfc2hvdyhzdHJ1Y3Qga29iamVjdCAqa29iaiwgc3RydWN0
-IGtvYmpfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCnsKLQlzdHJjcHkoYnVmLCBjaHIpOwot
-CXJldHVybiBzdHJsZW4oYnVmKTsKKwlyZXR1cm4gc3lzZnNfZW1pdChidWYsIGNocik7Cn0KCi8v
-IFJlbmFtZSB0aGUgc3lzZnNfZW1pdCBhc3NpZ25lZCB2YXJpYWJsZXMgbm90IG5hbWVkIGxlbiBh
-bmQgbm90IGFscmVhZHkgaW50Ci8vIGFuZCBzZXQgdGhlIG5hbWUgdG8gbGVuIGFuZCB0eXBlIHRv
-IGludAoKQG5vdF9pbnRfbm90X2xlbiBleGlzdHNACnR5cGUgVCAhPSBpbnQ7CmlkZW50aWZpZXIg
-eCAhPSBsZW47CnBvc2l0aW9uIHA7CmlkZW50aWZpZXIgc3lzZnMgPX4gIl5zeXNmc19lbWl0Liok
-IjsKYXNzaWdubWVudCBvcGVyYXRvciBhb3A7CkBACgpUIHhAcDsKLi4uCnggYW9wIHN5c2ZzKC4u
-LikKLi4uCgpAQAp0eXBlIG5vdF9pbnRfbm90X2xlbi5UOwppZGVudGlmaWVyIG5vdF9pbnRfbm90
-X2xlbi54Owpwb3NpdGlvbiBub3RfaW50X25vdF9sZW4ucDsKQEAKCi0gVCB4QHA7CisgaW50IGxl
-bjsKICA8Li4uCi0geAorIGxlbgogIC4uLj4KCi8vIFJlbmFtZSB0aGUgYWxyZWFkeSBpbnQgc3lz
-ZnNfZW1pdCBhc3NpZ25lZCB2YXJpYWJsZXMgbm90IG5hbWVkIGxlbgovLyBhbmQgc2V0IHRoZSBu
-YW1lIHRvIGxlbgoKQGludF9ub3RfbGVuIGV4aXN0c0AKdHlwZSBUID0gaW50OwppZGVudGlmaWVy
-IHggIT0gbGVuOwpwb3NpdGlvbiBwOwppZGVudGlmaWVyIHN5c2ZzID1+ICJec3lzZnNfZW1pdC4q
-JCI7CmFzc2lnbm1lbnQgb3BlcmF0b3IgYW9wOwpAQAoKVCB4QHA7Ci4uLgp4IGFvcCBzeXNmcygu
-Li4pCi4uLgoKQEAKdHlwZSBpbnRfbm90X2xlbi5UOwppZGVudGlmaWVyIGludF9ub3RfbGVuLng7
-CnBvc2l0aW9uIGludF9ub3RfbGVuLnA7CkBACgotIFQgeEBwOworIGludCBsZW47CiAgPC4uLgot
-IHgKKyBsZW4KICAuLi4+CgovLyBSZW5hbWUgdGhlIG5vbi1pbnQgaW50IHN5c2ZzX2VtaXQgYXNz
-aWduZWQgdmFyaWFibGVzIG5hbWVkIGxlbgovLyBhbmQgc2V0IHRoZSB0eXBlIHRvIGludAoKQG5v
-dF9pbnRfaGFzX2xlbiBleGlzdHNACnR5cGUgVCAhPSBpbnQ7CmlkZW50aWZpZXIgeCA9IGxlbjsK
-cG9zaXRpb24gcDsKaWRlbnRpZmllciBzeXNmcyA9fiAiXnN5c2ZzX2VtaXQuKiQiOwphc3NpZ25t
-ZW50IG9wZXJhdG9yIGFvcDsKQEAKClQgeEBwOwouLi4KeCBhb3Agc3lzZnMoLi4uKQouLi4KCkBA
-CnR5cGUgbm90X2ludF9oYXNfbGVuLlQ7CmlkZW50aWZpZXIgbm90X2ludF9oYXNfbGVuLng7CnBv
-c2l0aW9uIG5vdF9pbnRfaGFzX2xlbi5wOwpAQAoKLSBUIHhAcDsKKyBpbnQgbGVuOwo=
-
-
---=-mi8zbEP98B9wkzS2GwtS--
-
+[1]: http://lore.kernel.org/r/10048d4d-038c-c2b7-2ed7-fd4ca87d104a@linux.intel.com
