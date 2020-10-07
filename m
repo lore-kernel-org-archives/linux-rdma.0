@@ -2,118 +2,211 @@ Return-Path: <SRS0=c5Ux=DO=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 401FCC4363C
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 09:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B8EC4363C
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 11:04:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9A9A2083B
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 09:14:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GaFP92hQ"
+	by mail.kernel.org (Postfix) with ESMTP id 8269820870
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 11:04:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726605AbgJGJOL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Oct 2020 05:14:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39356 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726131AbgJGJOL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 05:14:11 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A42EC061755;
-        Wed,  7 Oct 2020 02:14:11 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id n15so1284990wrq.2;
-        Wed, 07 Oct 2020 02:14:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:date:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=uP41AxAirI5kgSSLv8bjqRlk/ljwQNpF8oZxpTbY8l0=;
-        b=GaFP92hQcXPefevT1rafT9Y2lzLCa0PU/iJdCs68CaNIMPfE8N/yUkE+HJeo83vI7b
-         3a8zEF1p3W83wYJcK6loECboG6Ctmy3z4MB1t44aMba4ApV1ZR+dFY/0qhidQRAjsR8n
-         4d76L4LqdSgk11UKPYJKUaC0UtWnuixf4EJgFF3VKT2JmbyC+2N+QiTuQODR4iphOs1H
-         w2U6W2f7/9NG+EPMlvctKkxJVHKMzTi3I1ai67XW+oLiGtdi4JlNw7Di5gJG1iXOJRoU
-         RueimpsH3igbboaavIuH8o/deFxWBNjRrwUSP4ZVMgnJWLIC080rwCHvxYeTM+7RiHiX
-         GmtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=uP41AxAirI5kgSSLv8bjqRlk/ljwQNpF8oZxpTbY8l0=;
-        b=GpF3iZfSJGJK3Jaog3WxV/OQzg+IoZ16g1m3xkbIKgXtZIVZwVlefXmwHkrdr5Kq6L
-         8SGsEMojpguAXQROW5EU343UUJgv45Jo/PJip3okm4rIwlmBGU9zkrHlAOHXY+vm8Bs8
-         4f5nFJ1cqDTXCcuaoQTfRFwPy1/FZ7UBlNj5njzW4U+aVHNbwmQwhUd1cNUgDWoIZQf3
-         GcCQw1JClH4RwGs+Io5uUcj83YJAiFeDI1xKyw6A1D3mtcYJWLeEkQhOJGUq7tJcCpWg
-         rf3f/Iqhjwbmill5RA1MBIk0U+nUvPUkt4omapOT6mgJIvkqUX27BFJCPJzqPyDjHr/+
-         Ms5g==
-X-Gm-Message-State: AOAM533JGUoQIGHtYb177HYtMHOcgWIVFnjxC+DGdq3UVciu2m05aRUW
-        42BQL3hSjy2JWhi+3s9qprG/wxvwRAXFyg==
-X-Google-Smtp-Source: ABdhPJyjLZyu5A8Xu/6Ic0iV8U8JZb8lba1JYrHJt2Gh/tJ4di648lnr+MDKWlEgxAFO0pNk0DN3sg==
-X-Received: by 2002:adf:dccd:: with SMTP id x13mr2531381wrm.403.1602062049745;
-        Wed, 07 Oct 2020 02:14:09 -0700 (PDT)
-Received: from medion (cpc83661-brig20-2-0-cust443.3-3.cable.virginm.net. [82.28.105.188])
-        by smtp.gmail.com with ESMTPSA id i126sm672754wmi.0.2020.10.07.02.14.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Oct 2020 02:14:09 -0700 (PDT)
-From:   Alex Dewar <alex.dewar90@gmail.com>
-X-Google-Original-From: Alex Dewar <alex.dewar@gmx.co.uk>
-Date:   Wed, 7 Oct 2020 10:13:49 +0100
-To:     Saeed Mahameed <saeed@kernel.org>
-Cc:     Alex Dewar <alex.dewar90@gmail.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net/mlx5e: Fix freeing of unassigned pointer
-Message-ID: <20201007091349.cceyuje3ktilygzv@medion>
-References: <20201003111050.25130-1-alex.dewar90@gmail.com>
- <80cb7391f0feb838cc61a608efe0c24dcef41115.camel@kernel.org>
+        id S1727811AbgJGLEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Oct 2020 07:04:14 -0400
+Received: from mga14.intel.com ([192.55.52.115]:4855 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726129AbgJGLEN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 7 Oct 2020 07:04:13 -0400
+IronPort-SDR: 6p3qP7t0KT9xj9mTX2TEeGR3eZNQ2wGnYepr84nhV+KOPZMaCM4fh/mS5SK68KepN4YPmdVx+e
+ jEAfMfwIX+ig==
+X-IronPort-AV: E=McAfee;i="6000,8403,9766"; a="164128066"
+X-IronPort-AV: E=Sophos;i="5.77,346,1596524400"; 
+   d="scan'208";a="164128066"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 04:04:03 -0700
+IronPort-SDR: ZC2xMNBShO6yCq+10FWjxx5h55PoVuTIw3aRXl8MTwtqDsOvp+4/GsdbFluxHfGfOjjgoG3I3U
+ oMvcXkOCDFwg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,346,1596524400"; 
+   d="scan'208";a="418650180"
+Received: from lkp-server02.sh.intel.com (HELO b5ae2f167493) ([10.239.97.151])
+  by fmsmga001.fm.intel.com with ESMTP; 07 Oct 2020 04:04:00 -0700
+Received: from kbuild by b5ae2f167493 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kQ7El-0001cb-Gu; Wed, 07 Oct 2020 11:03:59 +0000
+Date:   Wed, 07 Oct 2020 19:03:29 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 73c5265913b4b11a56d119396f745a57c7c272b7
+Message-ID: <5f7da081.KJJ7+9vFa4sFvibA%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <80cb7391f0feb838cc61a608efe0c24dcef41115.camel@kernel.org>
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 06, 2020 at 04:22:12PM -0700, Saeed Mahameed wrote:
-> On Sat, 2020-10-03 at 12:10 +0100, Alex Dewar wrote:
-> > Commit ff7ea04ad579 ("net/mlx5e: Fix potential null pointer
-> > dereference")
-> > added some missing null checks but the error handling in
-> > mlx5e_alloc_flow() was left broken: the variable attr is passed to
-> > kfree
-> > although it is never assigned to and never needs to be freed in this
-> > function. Fix this.
-> > 
-> > Addresses-Coverity-ID: 1497536 ("Memory - illegal accesses")
-> > Fixes: ff7ea04ad579 ("net/mlx5e: Fix potential null pointer
-> > dereference")
-> > Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
-> > ---
-> >  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 17 +++++++++----
-> > ----
-> >  1 file changed, 9 insertions(+), 8 deletions(-)
-> > 
-> 
-> Hi Alex, thanks for the patch, 
-> Colin submitted a one liner patch that I already picked up.
-> 
-> I hope you are ok with this.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
+branch HEAD: 73c5265913b4b11a56d119396f745a57c7c272b7  RDMA/bnxt_re: Fix sizeof mismatch for allocation of pbl_tbl.
 
-Hi Saeed,
+elapsed time: 735m
 
-Sure. As long as attr is no longer being freed then that should fix the
-problem.
+configs tested: 139
+configs skipped: 2
 
-Best,
-Alex
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-> 
-> Thanks,
-> Saeed.
-> 
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+mips                  cavium_octeon_defconfig
+arm                         hackkit_defconfig
+arm                         socfpga_defconfig
+sh                          r7780mp_defconfig
+sh                            migor_defconfig
+riscv                            allmodconfig
+mips                           ip28_defconfig
+mips                        omega2p_defconfig
+arc                             nps_defconfig
+mips                      pistachio_defconfig
+sh                           se7721_defconfig
+arm                       aspeed_g4_defconfig
+powerpc                      ep88xc_defconfig
+xtensa                    xip_kc705_defconfig
+powerpc                      arches_defconfig
+arm                         palmz72_defconfig
+powerpc                  mpc885_ads_defconfig
+openrisc                         alldefconfig
+arm                         at91_dt_defconfig
+arm                         s5pv210_defconfig
+sh                   sh7724_generic_defconfig
+arm64                            alldefconfig
+powerpc                          g5_defconfig
+arm                           sunxi_defconfig
+arm                       imx_v4_v5_defconfig
+powerpc                    adder875_defconfig
+m68k                       bvme6000_defconfig
+powerpc                        warp_defconfig
+microblaze                      mmu_defconfig
+arm                          pxa168_defconfig
+arm                          moxart_defconfig
+sh                          urquell_defconfig
+arm                            mmp2_defconfig
+m68k                         amcore_defconfig
+sparc64                          alldefconfig
+powerpc                 mpc8560_ads_defconfig
+arc                           tb10x_defconfig
+powerpc                         wii_defconfig
+h8300                            alldefconfig
+nios2                            alldefconfig
+m68k                       m5208evb_defconfig
+powerpc                       eiger_defconfig
+mips                         tb0226_defconfig
+mips                        nlm_xlr_defconfig
+powerpc                     redwood_defconfig
+sh                          rsk7269_defconfig
+arm                              alldefconfig
+powerpc                 xes_mpc85xx_defconfig
+sh                          sdk7786_defconfig
+mips                         mpc30x_defconfig
+powerpc                     mpc83xx_defconfig
+arm                           corgi_defconfig
+m68k                          amiga_defconfig
+mips                     cu1000-neo_defconfig
+alpha                            allyesconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a004-20201006
+x86_64               randconfig-a002-20201006
+x86_64               randconfig-a001-20201006
+x86_64               randconfig-a005-20201006
+x86_64               randconfig-a003-20201006
+x86_64               randconfig-a006-20201006
+i386                 randconfig-a006-20201005
+i386                 randconfig-a005-20201005
+i386                 randconfig-a001-20201005
+i386                 randconfig-a004-20201005
+i386                 randconfig-a003-20201005
+i386                 randconfig-a002-20201005
+x86_64               randconfig-a012-20201005
+x86_64               randconfig-a015-20201005
+x86_64               randconfig-a014-20201005
+x86_64               randconfig-a013-20201005
+x86_64               randconfig-a011-20201005
+x86_64               randconfig-a016-20201005
+x86_64               randconfig-a012-20201007
+x86_64               randconfig-a015-20201007
+x86_64               randconfig-a014-20201007
+x86_64               randconfig-a013-20201007
+x86_64               randconfig-a011-20201007
+x86_64               randconfig-a016-20201007
+i386                 randconfig-a014-20201005
+i386                 randconfig-a015-20201005
+i386                 randconfig-a013-20201005
+i386                 randconfig-a016-20201005
+i386                 randconfig-a011-20201005
+i386                 randconfig-a012-20201005
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a004-20201005
+x86_64               randconfig-a002-20201005
+x86_64               randconfig-a001-20201005
+x86_64               randconfig-a003-20201005
+x86_64               randconfig-a005-20201005
+x86_64               randconfig-a006-20201005
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
