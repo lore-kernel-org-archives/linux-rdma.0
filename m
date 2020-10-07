@@ -6,80 +6,80 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D65EC4363C
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 20:18:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 988EAC4363C
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 20:19:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42C01206F7
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 20:18:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AEFB2083B
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 20:19:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="as0y2r/B"
+	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="j8gOg1Lb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728237AbgJGUSx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Oct 2020 16:18:53 -0400
-Received: from mga14.intel.com ([192.55.52.115]:27880 "EHLO mga14.intel.com"
+        id S1728287AbgJGUTe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Oct 2020 16:19:34 -0400
+Received: from mga02.intel.com ([134.134.136.20]:52853 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726348AbgJGUSx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 7 Oct 2020 16:18:53 -0400
-IronPort-SDR: OSTn7+y7TM/bkPr1zhROkUEnsUorK+5Vd5h1Q+i2e1Jl0XH3L5J8Jfy2zbKNn7cR6enI/zfCuL
- iqFev/qH+iTw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9767"; a="164338595"
+        id S1726181AbgJGUTe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 7 Oct 2020 16:19:34 -0400
+IronPort-SDR: cktbuaWrZjOUHch70GroQKx6O+3/sQ+YCUkdePZU3HV7bQOGfE6t12ffc59WG615IDhuMM53sn
+ cDQoSmt4N/kg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9767"; a="152027377"
 X-IronPort-AV: E=Sophos;i="5.77,348,1596524400"; 
-   d="scan'208";a="164338595"
+   d="scan'208";a="152027377"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 13:18:53 -0700
-IronPort-SDR: 78vL1n9G2PZXIQDsnaHD/v+UZR5JjNY6fE7LkOkvAnCfuvHJ8FznChiBThHinF37tZ5rIgGu/i
- p1E+KIA8YFpw==
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2020 12:53:45 -0700
+IronPort-SDR: ITkeL7F5rNNEc5gEuNDxKKBZlwlpJ8kc4/aHWHaiqP0vXDPSVHt55uueZcEMZdtQUS+GR52gr7
+ VYfXcVOkBmOQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,348,1596524400"; 
-   d="scan'208";a="297648263"
+   d="scan'208";a="297743417"
 Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by fmsmga007.fm.intel.com with ESMTP; 07 Oct 2020 13:18:52 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 07 Oct 2020 12:53:45 -0700
 Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
  fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Wed, 7 Oct 2020 13:18:51 -0700
+ 15.1.1713.5; Wed, 7 Oct 2020 12:53:44 -0700
 Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
  fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Frontend Transport; Wed, 7 Oct 2020 13:18:51 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.174)
+ via Frontend Transport; Wed, 7 Oct 2020 12:53:44 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.106)
  by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.1713.5; Wed, 7 Oct 2020 13:18:50 -0700
+ 15.1.1713.5; Wed, 7 Oct 2020 12:53:44 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FLMlxmdQpWpVcXJPw+TXKpvAh5N4ZtjzdvK5S6TMxqLxz/c2LOQOhYLjwkCqsj4y0GSHp5jc65Qs0WzXm+WZWWLbDW0nY46USMP9/Y05qUz/HCH+sI6GNJZMJYjN2abcXId2er9henIeJxooUMHbuQSc1+TRhLFyuOBXn5pFbKURmE88fqesTnSkVYIbhTNVzjRtLjkF7RAFN5Xaye3QBOMn/dKQwNk/Ot3e+IRZ5SenFGaavx7AEGwL1Q2wtRMrRM0alx0PMnIbvU2OgHTpRYgp2qQiL1Wqjs/2hU8TXuWoeTN7zd0VSzCofJp4uVJEzrNQ4oIsNyfVivvh9BDNPg==
+ b=oe4hhcOTEmC4Qq4hrV/Rcr4oBbpjLaKXVLkueD5MxucHUb+zSpi3S52SWspWrjhJaFgSeKpgZNuodX5FoeuOMZqvG0kFAi0r2cYrLqJ2jJrAF71QbkcvccOVYVGLsRq+MWgGoUqJ/6QELZHhUkMKlfffu/vIUaYSinDAgg9asH3UfPGAXkrdZpKGnpFm9anCN8yPlsKZ4JdeRzPoU9KHRyfE5+3AiRX4LyQwaboRCQqKLVbVAGVHnq5xwV8ZR0eTNSBBx7WcNjk3nqrxd2nhBfGOCsQ7CISPJdJ5RN10tpz9JjNeA00IAygccYs+HP8OjgPWeRRcEAsrsK13fS4Wag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EcJE0gsbPVxC4KfBWRE7Tj63Mgrpgqehl3DRcKAGobE=;
- b=DHGjdnXaNJOUl6UZmKVJ8tlTB00pYGJo+l3Wke9DRMOc7E+Rmpk5a3kjS2kEmd0wuwpVn7g/BEgFDEjHsZsFucTu8YC8/DKc6Y9nW6uLl40/6STfXmT3Sh1S+uXj1oU8JLoyFkq4Oy+UTKNqL8bkwiDQUonHIKEEDPSihwYHgSatI9iGJ9QcooJej31sfF1WX4ycTw3j/eCQkJAM2t6ZRavM+sDjXwBmxZF1po7SB/NEwGT6jGMGzkidZna2ASDrMygYVoGDkhMy0zFYIb2QSX5IQwYvdGiEYda7wjF/kKTxo0Ka5GiBuUIpsdTvefYhrFCTNvFVQruE/nHVyq9F/Q==
+ bh=IxQaddQe4O29gUCjs3wyFIngyh46+moJUOwmP9out3A=;
+ b=ISf3/Z846wGSeMCkW9Fyx5uRM9fsygd+PtgCHNxG9lRUJZEfhXxNpsSR1YgUmzJ6Tzsk1bjdUBr90oPy+kXg/1AhkqIZEp7LFwIg57Qv3wuJ+JwHW2t+xWcNDBzqmr/w4A5Si6IfGV/5WeK1Q8TShW+D7h2whUl+6+vAOZfCHlzryhSFxXBc5JAJe7pqCMRcuialFIOqNq6CLHUy4uKc48vSRzC47qwojyw0+07QKlqA+eiXbDAt4JRJk5wOhjeXM2daxWMIgvYOGDogZoR2b4KJrThIMTLw9hqE9Hqkf4V317opBUGtgUeFfyeIqVwI1cxVk/pxTDGN59m7uiEK1w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
  s=selector2-intel-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EcJE0gsbPVxC4KfBWRE7Tj63Mgrpgqehl3DRcKAGobE=;
- b=as0y2r/BkSgR5MLBgbFTWinoM3GTpS7JzscZovMEZK9nvEXXdcKy9anqazYsnm7Ux9HWWnkZpeDNe15X2GnN5hRameNCtvJy1bl3+F/rnuIL0rY0K4QGm6PC5XbYTpoqRLSFESiXLDjy1vPPvVEu6OpEkAgVhumrkAIgfy4prb0=
+ bh=IxQaddQe4O29gUCjs3wyFIngyh46+moJUOwmP9out3A=;
+ b=j8gOg1LbB/oBCO9THaWEe7IKphTuWdxSSi5KW704uNLyi4M/3GqfXC7vvueVZj0gIyOf3xmooCnG2uw3DqmEN+f+SScIX8nGZVZIeckIHTDlaN0H3Xgyq8+Jtpay8wYUYz7/AyijDRlBafWqRfcWdBVKVCTBH/y8IJxGIUlXk4E=
 Received: from DM6PR11MB2841.namprd11.prod.outlook.com (2603:10b6:5:c8::32) by
- DM6PR11MB4660.namprd11.prod.outlook.com (2603:10b6:5:2ad::16) with Microsoft
+ DM6PR11MB2875.namprd11.prod.outlook.com (2603:10b6:5:cc::21) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3433.32; Wed, 7 Oct 2020 20:18:47 +0000
+ 15.20.3433.35; Wed, 7 Oct 2020 19:53:40 +0000
 Received: from DM6PR11MB2841.namprd11.prod.outlook.com
  ([fe80::6d8e:9b06:ef72:2a]) by DM6PR11MB2841.namprd11.prod.outlook.com
  ([fe80::6d8e:9b06:ef72:2a%5]) with mapi id 15.20.3433.044; Wed, 7 Oct 2020
- 20:18:47 +0000
+ 19:53:40 +0000
 From:   "Ertman, David M" <david.m.ertman@intel.com>
-To:     Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-        "Leon Romanovsky" <leon@kernel.org>
+To:     Leon Romanovsky <leon@kernel.org>
 CC:     "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
         "parav@mellanox.com" <parav@mellanox.com>,
         "tiwai@suse.de" <tiwai@suse.de>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "ranjani.sridharan@linux.intel.com" 
         <ranjani.sridharan@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
         "fred.oh@linux.intel.com" <fred.oh@linux.intel.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         "dledford@redhat.com" <dledford@redhat.com>,
@@ -93,14 +93,17 @@ CC:     "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
         "Patil, Kiran" <kiran.patil@intel.com>
 Subject: RE: [PATCH v2 1/6] Add ancillary bus support
 Thread-Topic: [PATCH v2 1/6] Add ancillary bus support
-Thread-Index: AQHWm06cVdQZOfJAqUq6P9wAQIqk66mKKyCAgACGDICAAeOhYA==
-Date:   Wed, 7 Oct 2020 20:18:47 +0000
-Message-ID: <DM6PR11MB2841D0D8CA291D94EFA4B701DD0A0@DM6PR11MB2841.namprd11.prod.outlook.com>
+Thread-Index: AQHWm06cVdQZOfJAqUq6P9wAQIqk66mKKyCAgACGDICAAB03gIABoskggAAXogCAAAc1oA==
+Date:   Wed, 7 Oct 2020 19:53:40 +0000
+Message-ID: <DM6PR11MB2841EBB5C27A947789F9DB73DD0A0@DM6PR11MB2841.namprd11.prod.outlook.com>
 References: <20201005182446.977325-1-david.m.ertman@intel.com>
  <20201005182446.977325-2-david.m.ertman@intel.com>
  <20201006071821.GI1874917@unreal>
  <b4f6b5d1-2cf4-ae7a-3e57-b66230a58453@linux.intel.com>
-In-Reply-To: <b4f6b5d1-2cf4-ae7a-3e57-b66230a58453@linux.intel.com>
+ <20201006170241.GM1874917@unreal>
+ <DM6PR11MB2841C531FC27DB41E078C52BDD0A0@DM6PR11MB2841.namprd11.prod.outlook.com>
+ <20201007192610.GD3964015@unreal>
+In-Reply-To: <20201007192610.GD3964015@unreal>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -108,73 +111,224 @@ X-MS-TNEF-Correlator:
 dlp-product: dlpe-windows
 dlp-reaction: no-action
 dlp-version: 11.5.1.3
-authentication-results: linux.intel.com; dkim=none (message not signed)
- header.d=none;linux.intel.com; dmarc=none action=none header.from=intel.com;
+authentication-results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=intel.com;
 x-originating-ip: [50.38.47.144]
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 8488502f-3aad-47fd-f298-08d86afe32aa
-x-ms-traffictypediagnostic: DM6PR11MB4660:
+x-ms-office365-filtering-correlation-id: 0e294902-304e-4390-2609-08d86afab06c
+x-ms-traffictypediagnostic: DM6PR11MB2875:
 x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
 x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <DM6PR11MB4660CAE2F89D788B51429EE5DD0A0@DM6PR11MB4660.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:6430;
+x-microsoft-antispam-prvs: <DM6PR11MB2875FA21BE67C0F1A7807EB3DD0A0@DM6PR11MB2875.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2449;
 x-ms-exchange-senderadcheck: 1
 x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: Le9b4d+zePwyPw/IgZa46l0YBqzPisQEWN3prpw3qHjpX10PH38PQG0zXa0WCrE0XSzLaI4pj+SlQQtPHRoEemoXnVUtuCE9FI6rg+FCYpgbv0mxbUGSMIIFiX58cI8y47PA/CWhiPpFQe5pPNcZ23TAnly85/r/B+av4MyvZmLIlAtcQP7mTz8KmfNg0cRPZ1ZxImvWTI7ddQ9ReeViGDITgeRfv5yFPVL1KsmLj2Oc3qYidO6aHbDD3Gfg9gzGwYq0ttK3qvhs63M82teJI+DmHbHx0SOFVCFaIuEGV3EStx7b/OwVGPDSLfz85ujyiYoPB4P7DnSlbsRwDVH42A==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR11MB2841.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(39860400002)(136003)(396003)(346002)(376002)(83380400001)(7696005)(66556008)(4326008)(52536014)(8676002)(66476007)(66446008)(66946007)(5660300002)(478600001)(86362001)(2906002)(76116006)(8936002)(33656002)(64756008)(71200400001)(110136005)(26005)(7416002)(186003)(316002)(54906003)(6506007)(55016002)(9686003)(53546011);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: 14BkKtTWvosjFPnwJ4l62CCnOqxRj8zzxPoGGEVWqkUwV6gaK1nj60QG4ph7RJ67z9tVGDtLgprJzgxqNVQeAshcsrI5u5Vv2hkrvLOc+X7hw2geNXfIbyToUGKhNuq/vJo4NnKkminPNm5LpMK8EoR5QllieCJO9pxhpyMtXkmN1fhx3WnfjIv8p5FROv24Txvbh1A+nqFtPWMCsr/M5rGFZ5/vYV5q1uj+GUxCaZAfh2jby2yEpuiQMuUyWBfpgmpitZ3KCH45hMxECbEbisvA8Gwk8M7rIVq3Cphm1Z030GvoPue5WsTIjmTQv3WB5vBEPyuuvxh2SBy9R+C7sKlZ/9mhFNGguDRzoecJ7TTBGBEjEsWgLfNOjtb3sWFcsQW/084phNq5FOkKtiMI6Ln0d5VvJPCpWQ2U7CASS2Y16aO2MI61NwbxiQVsYAahxgAVVZ9d7LWsmgeXxt/i74ho8PkQBqxpPt54SRxsERZHibnLuCdANaCrzVtWV902sLgJxBEUR1gwD99tnOcUmfDT26rWUeIP8Ibm+zWSQzfCsb/0VxVp3qYAEvD9wLM8GQ0YKzuJLTRnaEmYsJzrpnK4AAxavCTpUp5ak8HfYEnRmA60ZqaceSBuVMa4qp4RdMZtfPachr8VaQFUdxa0xw==
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+x-microsoft-antispam-message-info: Qh2OLsEB/Lszl/7I0MHdKwkoVtF61aRKXw0DgrdpU3K4qmZkIvDpweE66yML6KAVxBWo1Dv548X1oBXmiCutTz0pzLWi3fQESuS8wcHcJ2iAb1unC3zTtxY25VUayGdZXbhkzx0966BCF9wagb4GsdLlSTnuFsKGvdLePZDfX5CfwzijzxmWYtRm/Zx/hxyGhoN7DfLFWWBKuxueIOfu6dQWwB8i5QJctyU91XE67Y3cR53LM1MVqOztA9iR9flgoIviUE4SUfZLLi1Zs2BYx2OuOGDGf11Pk8ytf/L/Un3QtXUggc3FLR/rlgw+YNDa+6eQCkB6TbIOQXrUbEsyxQ==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR11MB2841.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(366004)(39860400002)(376002)(346002)(396003)(71200400001)(86362001)(9686003)(83380400001)(478600001)(33656002)(6916009)(7416002)(8676002)(8936002)(66946007)(7696005)(2906002)(186003)(53546011)(6506007)(55016002)(64756008)(52536014)(26005)(316002)(4326008)(5660300002)(76116006)(66446008)(66476007)(66556008)(54906003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: wvn1fG6eAqK0kEJ/V1SPEHAkcMXVXcbmmPykAFXqBsa5hFftdUnwwz7yarzyAneca1cm2EzaOKaZb84qExEiHQbbFQz5SGQUmtdPEntxbpSTOoYzfiKmZxcrkgpXAWlTX4gbWDr90cPPTsuOMBIPtPFOBjKfT++22fdulCkpsJYjCqodLPWqMG01e2RiDhyHJtstVrWraV6dcm/1HxyA82k5TMaMIT7Aci2QA4e/tjZ01JB36gMLIEIkXcAW4MmCyHDX9wiY8eexi1SXFFm/vzqleXVXFcMXVx2wjGHCcxqgLQJU7Yu0fov0LcVrUeYqQXh/ZaxLZ5sGfSKxirHLo4B/R5T0/X3iB3zC7Xxn3nfCgYU9pESFIOgp9441Fpj1VcQ+wwGDnEFQJjE/qVJOqo4Pb0RjHxWWy8w5UKAdm1B15Hw7RSAF9f49WHFzxLBapcqawTuqm269LjIzs9B40ojZGV7gz/GOelgIPcZ8CXsFCFv1FqRAJbunpjEGN3NrHfSDrPsAL9ZotU2GVai+DXkkbWMK1OyrZnfFQTfGnkhyrA9aNPPUHuQO4fPwgWVpVnJH8/cfffTyO0QPKycw3NYv23Lr4J7kiKtiPmfDPNglmiRBeC+buApkZ4VrwAZnErvaFmjDzacC9Nb0iWYfjw==
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-MS-Exchange-CrossTenant-AuthAs: Internal
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR11MB2841.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8488502f-3aad-47fd-f298-08d86afe32aa
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Oct 2020 20:18:47.6247
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0e294902-304e-4390-2609-08d86afab06c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Oct 2020 19:53:40.5851
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: N4jy8Y1+LZkCTPxGZ+UAO9ykDsoJw1EOqWnzp9XSrXonpwsT74uFXosCY+qrEVv6LPQxn8yo+Osg7qVPdHtrf/HdJE8mjXKb4uPv19wtDDE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4660
+X-MS-Exchange-CrossTenant-userprincipalname: x3AsSblxoPlU9cHDcyyLf4Au/f2fFh+8gtpZslrij4y18wAyfozuCe1J08vcL4NjWClWSMDPpE1F+VBU9rJJZFDf9o0ZqlnAkjTFx96lnlk=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB2875
 X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQaWVycmUtTG91aXMgQm9zc2Fy
-dCA8cGllcnJlLWxvdWlzLmJvc3NhcnRAbGludXguaW50ZWwuY29tPg0KPiBTZW50OiBUdWVzZGF5
-LCBPY3RvYmVyIDYsIDIwMjAgODoxOCBBTQ0KPiBUbzogTGVvbiBSb21hbm92c2t5IDxsZW9uQGtl
-cm5lbC5vcmc+OyBFcnRtYW4sIERhdmlkIE0NCj4gPGRhdmlkLm0uZXJ0bWFuQGludGVsLmNvbT4N
-Cj4gQ2M6IGFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZzsgcGFyYXZAbWVsbGFub3guY29tOyB0
-aXdhaUBzdXNlLmRlOw0KPiBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyByYW5qYW5pLnNyaWRoYXJh
-bkBsaW51eC5pbnRlbC5jb207DQo+IGZyZWQub2hAbGludXguaW50ZWwuY29tOyBsaW51eC1yZG1h
-QHZnZXIua2VybmVsLm9yZzsNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbTsgYnJvb25pZUBrZXJuZWwu
-b3JnOyBqZ2dAbnZpZGlhLmNvbTsNCj4gZ3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc7IGt1YmFA
-a2VybmVsLm9yZzsgV2lsbGlhbXMsIERhbiBKDQo+IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-OyBTYWxlZW0sIFNoaXJheiA8c2hpcmF6LnNhbGVlbUBpbnRlbC5jb20+Ow0KPiBkYXZlbUBkYXZl
-bWxvZnQubmV0OyBQYXRpbCwgS2lyYW4gPGtpcmFuLnBhdGlsQGludGVsLmNvbT4NCj4gU3ViamVj
-dDogUmU6IFtQQVRDSCB2MiAxLzZdIEFkZCBhbmNpbGxhcnkgYnVzIHN1cHBvcnQNCj4gDQo+IFRo
-YW5rcyBmb3IgdGhlIHJldmlldyBMZW9uLg0KPiANCj4gPj4gQWRkIHN1cHBvcnQgZm9yIHRoZSBB
-bmNpbGxhcnkgQnVzLCBhbmNpbGxhcnlfZGV2aWNlIGFuZCBhbmNpbGxhcnlfZHJpdmVyLg0KPiA+
-PiBJdCBlbmFibGVzIGRyaXZlcnMgdG8gY3JlYXRlIGFuIGFuY2lsbGFyeV9kZXZpY2UgYW5kIGJp
-bmQgYW4NCj4gPj4gYW5jaWxsYXJ5X2RyaXZlciB0byBpdC4NCj4gPg0KPiA+IEkgd2FzIHVuZGVy
-IGltcHJlc3Npb24gdGhhdCB0aGlzIG5hbWUgaXMgZ29pbmcgdG8gYmUgY2hhbmdlZC4NCj4gDQo+
-IEl0J3MgcGFydCBvZiB0aGUgb3BlbnMgc3RhdGVkIGluIHRoZSBjb3ZlciBsZXR0ZXIuDQo+IA0K
-PiBbLi4uXQ0KPiANCj4gPj4gKwljb25zdCBzdHJ1Y3QgbXlfZHJpdmVyIG15X2RydiA9IHsNCj4g
-Pj4gKwkJLmFuY2lsbGFyeV9kcnYgPSB7DQo+ID4+ICsJCQkuZHJpdmVyID0gew0KPiA+PiArCQkJ
-CS5uYW1lID0gIm15YW5jaWxsYXJ5ZHJ2IiwNCj4gPg0KPiA+IFdoeSBkbyB3ZSBuZWVkIHRvIGdp
-dmUgY29udHJvbCBvdmVyIGRyaXZlciBuYW1lIHRvIHRoZSBkcml2ZXIgYXV0aG9ycz8NCj4gPiBJ
-dCBjYW4gYmUgcHJvYmxlbWF0aWMgaWYgYXV0aG9yIHB1dHMgbmFtZSB0aGF0IGFscmVhZHkgZXhp
-c3RzLg0KPiANCj4gR29vZCBwb2ludC4gV2hlbiBJIHVzZWQgdGhlIGFuY2lsbGFyeV9kZXZpY2Vz
-IGZvciBteSBvd24gU291bmRXaXJlIHRlc3QsDQo+IHRoZSBkcml2ZXIgbmFtZSBkaWRuJ3Qgc2Vl
-bSBzcGVjaWZpY2FsbHkgbWVhbmluZ2Z1bCBidXQgbmVlZGVkIHRvIGJlIHNldA0KPiB0byBzb21l
-dGhpbmcsIHdoYXQgbWF0dGVyZWQgd2FzIHRoZSBpZF90YWJsZS4gSnVzdCB0aGlua2luZyBhbG91
-ZCwgbWF5YmUNCj4gd2UgY2FuIGFkZCBwcmVmaXhpbmcgd2l0aCBLTU9EX0JVSUxELCBhcyB3ZSd2
-ZSBkb25lIGFscmVhZHkgdG8gYXZvaWQNCj4gY29sbGlzaW9ucyBiZXR3ZWVuIGRldmljZSBuYW1l
-cz8NCj4gDQo+IFsuLi5dDQoNClNpbmNlIHdlIGhhdmUgZWxpbWluYXRlZCBhbGwgSURBIHR5cGUg
-dGhpbmdzIG91dCBvZiB0aGUgYnVzIGluZnJhc3RydWN0dXJlLA0KSSBsaWtlIHRoZSBpZGVhIG9m
-IHByZWZpeGluZyB0aGUgZHJpdmVyIG5hbWUgd2l0aCBLQlVJTERfTU9ETkFNRSB0aHJvdWdoDQph
-IG1hY3JvIGZyb250LiAgU2luY2UgYSBwYXJlbnQgZHJpdmVyIGNhbiByZWdpc3RlciBtb3JlIHRo
-YW4gb25lIGFuY2lsbGFyeSBkcml2ZXIsDQp0aGlzIGFsbG93IHRoZSBwYXJlbnQgdG8gaGF2ZSBh
-biBpbnRlcm5hbGx5IG1lYW5pbmdmdWwgbmFtZSB3aGlsZSBzdGlsbCBlbnN1cmluZw0KaXRzIHVu
-aXF1ZW5lc3MuDQoNCi1EYXZlRQ0K
+> -----Original Message-----
+> From: Alsa-devel <alsa-devel-bounces@alsa-project.org> On Behalf Of Leon
+> Romanovsky
+> Sent: Wednesday, October 7, 2020 12:26 PM
+> To: Ertman, David M <david.m.ertman@intel.com>
+> Cc: alsa-devel@alsa-project.org; parav@mellanox.com; tiwai@suse.de;
+> netdev@vger.kernel.org; ranjani.sridharan@linux.intel.com; Pierre-Louis
+> Bossart <pierre-louis.bossart@linux.intel.com>; fred.oh@linux.intel.com;
+> linux-rdma@vger.kernel.org; dledford@redhat.com; broonie@kernel.org;
+> jgg@nvidia.com; gregkh@linuxfoundation.org; kuba@kernel.org; Williams,
+> Dan J <dan.j.williams@intel.com>; Saleem, Shiraz
+> <shiraz.saleem@intel.com>; davem@davemloft.net; Patil, Kiran
+> <kiran.patil@intel.com>
+> Subject: Re: [PATCH v2 1/6] Add ancillary bus support
+>=20
+> On Wed, Oct 07, 2020 at 06:06:30PM +0000, Ertman, David M wrote:
+> > > -----Original Message-----
+> > > From: Leon Romanovsky <leon@kernel.org>
+> > > Sent: Tuesday, October 6, 2020 10:03 AM
+> > > To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+> > > Cc: Ertman, David M <david.m.ertman@intel.com>; alsa-devel@alsa-
+> > > project.org; parav@mellanox.com; tiwai@suse.de;
+> netdev@vger.kernel.org;
+> > > ranjani.sridharan@linux.intel.com; fred.oh@linux.intel.com; linux-
+> > > rdma@vger.kernel.org; dledford@redhat.com; broonie@kernel.org;
+> > > jgg@nvidia.com; gregkh@linuxfoundation.org; kuba@kernel.org;
+> Williams,
+> > > Dan J <dan.j.williams@intel.com>; Saleem, Shiraz
+> > > <shiraz.saleem@intel.com>; davem@davemloft.net; Patil, Kiran
+> > > <kiran.patil@intel.com>
+> > > Subject: Re: [PATCH v2 1/6] Add ancillary bus support
+> > >
+> > > On Tue, Oct 06, 2020 at 10:18:07AM -0500, Pierre-Louis Bossart wrote:
+> > > > Thanks for the review Leon.
+> > > >
+> > > > > > Add support for the Ancillary Bus, ancillary_device and
+> ancillary_driver.
+> > > > > > It enables drivers to create an ancillary_device and bind an
+> > > > > > ancillary_driver to it.
+> > > > >
+> > > > > I was under impression that this name is going to be changed.
+> > > >
+> > > > It's part of the opens stated in the cover letter.
+> > >
+> > > ok, so what are the variants?
+> > > system bus (sysbus), sbsystem bus (subbus), crossbus ?
+> > >
+> > > >
+> > > > [...]
+> > > >
+> > > > > > +	const struct my_driver my_drv =3D {
+> > > > > > +		.ancillary_drv =3D {
+> > > > > > +			.driver =3D {
+> > > > > > +				.name =3D "myancillarydrv",
+> > > > >
+> > > > > Why do we need to give control over driver name to the driver
+> authors?
+> > > > > It can be problematic if author puts name that already exists.
+> > > >
+> > > > Good point. When I used the ancillary_devices for my own SoundWire
+> test,
+> > > the
+> > > > driver name didn't seem specifically meaningful but needed to be se=
+t to
+> > > > something, what mattered was the id_table. Just thinking aloud, may=
+be
+> we
+> > > can
+> > > > add prefixing with KMOD_BUILD, as we've done already to avoid
+> collisions
+> > > > between device names?
+> > >
+> > > IMHO, it shouldn't be controlled by the drivers at all and need to ha=
+ve
+> > > kernel module name hardwired. Users will use it later for various
+> > > bind/unbind/autoprobe tricks and it will give predictability for them=
+.
+> > >
+> > > >
+> > > > [...]
+> > > >
+> > > > > > +int __ancillary_device_add(struct ancillary_device *ancildev, =
+const
+> > > char *modname)
+> > > > > > +{
+> > > > > > +	struct device *dev =3D &ancildev->dev;
+> > > > > > +	int ret;
+> > > > > > +
+> > > > > > +	if (!modname) {
+> > > > > > +		pr_err("ancillary device modname is NULL\n");
+> > > > > > +		return -EINVAL;
+> > > > > > +	}
+> > > > > > +
+> > > > > > +	ret =3D dev_set_name(dev, "%s.%s.%d", modname, ancildev-
+> >name,
+> > > ancildev->id);
+> > > > > > +	if (ret) {
+> > > > > > +		pr_err("ancillary device dev_set_name failed: %d\n",
+> ret);
+> > > > > > +		return ret;
+> > > > > > +	}
+> > > > > > +
+> > > > > > +	ret =3D device_add(dev);
+> > > > > > +	if (ret)
+> > > > > > +		dev_err(dev, "adding ancillary device failed!: %d\n",
+> ret);
+> > > > > > +
+> > > > > > +	return ret;
+> > > > > > +}
+> > > > >
+> > > > > Sorry, but this is very strange API that requires users to put
+> > > > > internal call to "dev" that is buried inside "struct ancillary_de=
+vice".
+> > > > >
+> > > > > For example in your next patch, you write this "put_device(&cdev-
+> > > >ancildev.dev);"
+> > > > >
+> > > > > I'm pretty sure that the amount of bugs in error unwind will be
+> > > > > astonishing, so if you are doing wrappers over core code, better =
+do
+> not
+> > > > > pass complexity to the users.
+> > > >
+> > > > In initial reviews, there was pushback on adding wrappers that don'=
+t do
+> > > > anything except for a pointer indirection.
+> > > >
+> > > > Others had concerns that the API wasn't balanced and blurring layer=
+s.
+> > >
+> > > Are you talking about internal review or public?
+> > > If it is public, can I get a link to it?
+> > >
+> > > >
+> > > > Both points have merits IMHO. Do we want wrappers for everything
+> and
+> > > > completely hide the low-level device?
+> > >
+> > > This API is partially obscures low level driver-core code and needs t=
+o
+> > > provide clear and proper abstractions without need to remember about
+> > > put_device. There is already _add() interface why don't you do
+> > > put_device() in it?
+> > >
+> >
+> > The pushback Pierre is referring to was during our mid-tier internal re=
+view.
+> It was
+> > primarily a concern of Parav as I recall, so he can speak to his reason=
+ing.
+> >
+> > What we originally had was a single API call (ancillary_device_register=
+) that
+> started
+> > with a call to device_initialize(), and every error path out of the fun=
+ction
+> performed
+> > a put_device().
+> >
+> > Is this the model you have in mind?
+>=20
+> I don't like this flow:
+> ancillary_device_initialize()
+> if (ancillary_ancillary_device_add()) {
+>   put_device(....)
+>   ancillary_device_unregister()
+>   return err;
+> }
+>=20
+> And prefer this flow:
+> ancillary_device_initialize()
+> if (ancillary_device_add()) {
+>   ancillary_device_unregister()
+>   return err;
+> }
+>=20
+> In this way, the ancillary users won't need to do non-intuitive put_devic=
+e();
+
+Isn't there a problem calling device_unregister() if device_add() fails?
+device_unregister() does a device_del() and if the device_add() failed ther=
+e is
+nothing to delete?
+
+-DaveE
+
+>=20
+> Thanks
