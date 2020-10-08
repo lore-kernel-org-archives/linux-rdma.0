@@ -2,174 +2,123 @@ Return-Path: <SRS0=E4jb=DP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9534C433E7
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E70F6C433E7
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:56:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56D77221FE
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:14:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AFC822227
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:56:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hAtkypIf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726792AbgJHTOs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Oct 2020 15:14:48 -0400
-Received: from stargate.chelsio.com ([12.32.117.8]:36257 "EHLO
-        stargate.chelsio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726469AbgJHTOs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Oct 2020 15:14:48 -0400
-Received: from localhost (pvp1.blr.asicdesigners.com [10.193.80.26])
-        by stargate.chelsio.com (8.13.8/8.13.8) with ESMTP id 098Ix6eR027138;
-        Thu, 8 Oct 2020 11:59:08 -0700
-Date:   Fri, 9 Oct 2020 00:29:06 +0530
-From:   Krishnamraju Eraparaju <krishna2@chelsio.com>
-To:     Bernard Metzler <BMT@zurich.ibm.com>
-Cc:     Max Gurtovoy <mgurtovoy@nvidia.com>,
-        Sagi Grimberg <sagi@grimberg.me>, linux-rdma@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: Re: reduce iSERT Max IO size
-Message-ID: <20201008185905.GA21229@chelsio.com>
-References: <20201007033619.GA11425@chelsio.com>
- <20200922104424.GA18887@chelsio.com>
- <07e53835-8389-3e07-6976-505edbd94f2a@grimberg.me>
- <20201002171007.GA16636@chelsio.com>
- <4d0b1a3f-2980-c7ed-ef9a-0ed6a9c87a69@grimberg.me>
- <20201003033644.GA19516@chelsio.com>
- <4391e240-5d6d-fb59-e6fb-e7818d1d0bd2@nvidia.com>
- <OF798A0BBE.E84F1C4A-ON002585FB.00486CB1-002585FB.004891F2@notes.na.collabserv.com>
+        id S1729274AbgJHT4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Oct 2020 15:56:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50938 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728891AbgJHT4U (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Oct 2020 15:56:20 -0400
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27D7FC0613D2
+        for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2020 12:56:20 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id n61so6708706ota.10
+        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2020 12:56:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=KdZ3LXYkHbAFMbBCNy5UZBfd554Je2Wzt24fMili7V4=;
+        b=hAtkypIf25dV0fNPZ8fJByJ1xJ2X2UQVSJEJ+FLuAruJi4+o/n42wAkejCRHaHLtq7
+         T4o5Qo1gLXApVAJVRLOEoELsIN+RDSH0EoHE3eABELTf41uTqMj3GawfErFFss+aiKC7
+         YRSmb+SmQm30N6qk7DsrcT8qsfZIuAVFL6gY1z7MnMYaQ7tWZGlmbxadHHvE3Pz+2P3u
+         azxUsVKdEO1d5biuUCbNMLIEQmo5CVNgf/mhYM7LVFtbWZ8Aj5FksdSDS3kqRAFy2N84
+         IPgA3zagXn4G0ycf7tManap7LFd/dW0WiMQavm9a64/xI6gopWUyg/MFHGcocd639n3O
+         mfmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=KdZ3LXYkHbAFMbBCNy5UZBfd554Je2Wzt24fMili7V4=;
+        b=T0mTms7r8c2sebAjX1S9/3/bbjsLaVEi2DobECQH5wVsbt8iboUNRHFkmSPpV90vdD
+         0qQ8xSJqNE2+JXsQYjqz8R+slO6G+AJ3p5Q9RMMTlz6pIouC4S67FaPFdiWvG+5tXGrE
+         Gfln+M9fUir10QJY6g0gpaYNjD5Q05d0niCTYmGEOrmRmsqTVfB9K12L3G7+O8uv36PR
+         gb/uI3V5uzBc7Y/ug8Vf+7bcjsYrvVns0jTbKDKQIHsuRpwtvm4M8EWyNmB8VKBRncNb
+         Hhv0Mi7ij2VBC+rNFIc708JMPEo6XH4wyyaqeS3ScULfjNeXNpoeuEOVOaaamu9mjV/F
+         WLuQ==
+X-Gm-Message-State: AOAM5332OoealeqwBuIF+3GSVDdXtXy1uxDbaVrEYdK25TLIUe6RSNfb
+        UlG8r6IEKIyt3M/RBQkxvB8=
+X-Google-Smtp-Source: ABdhPJwB26LZdWNmx9jW/p5Je2WkZNW7lbNY9eLdIYQxZK4Lv3hsPPECo0ewTsFqjo0hsVphfMJNwg==
+X-Received: by 2002:a05:6830:4b5:: with SMTP id l21mr6644851otd.334.1602186979572;
+        Thu, 08 Oct 2020 12:56:19 -0700 (PDT)
+Received: from localhost ([2605:6000:8b03:f000:b5fa:2b2f:81e9:e2a0])
+        by smtp.gmail.com with ESMTPSA id v11sm4873115otj.73.2020.10.08.12.56.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Oct 2020 12:56:19 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] rdma_rxe: fix bug rejecting multicast packets
+Date:   Thu,  8 Oct 2020 14:54:13 -0500
+Message-Id: <20201008195412.256485-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <OF798A0BBE.E84F1C4A-ON002585FB.00486CB1-002585FB.004891F2@notes.na.collabserv.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thursday, October 10/08/20, 2020 at 13:12:39 +0000, Bernard Metzler wrote:
-> -----"Krishnamraju Eraparaju" <krishna2@chelsio.com> wrote: -----
-> 
-> >To: "Max Gurtovoy" <mgurtovoy@nvidia.com>
-> >From: "Krishnamraju Eraparaju" <krishna2@chelsio.com>
-> >Date: 10/07/2020 05:36AM
-> >Cc: "Sagi Grimberg" <sagi@grimberg.me>, linux-rdma@vger.kernel.org,
-> >"Potnuri Bharat Teja" <bharat@chelsio.com>, "Max Gurtovoy"
-> ><maxg@mellanox.com>
-> >Subject: [EXTERNAL] Re: reduce iSERT Max IO size
-> >
-> >On Sunday, October 10/04/20, 2020 at 00:45:26 +0300, Max Gurtovoy
-> >wrote:
-> >> 
-> >> On 10/3/2020 6:36 AM, Krishnamraju Eraparaju wrote:
-> >> >On Friday, October 10/02/20, 2020 at 13:29:30 -0700, Sagi Grimberg
-> >wrote:
-> >> >>>Hi Sagi & Max,
-> >> >>>
-> >> >>>Any update on this?
-> >> >>>Please change the max IO size to 1MiB(256 pages).
-> >> >>I think that the reason why this was changed to handle the worst
-> >case
-> >> >>was in case there are different capabilities on the initiator and
-> >the
-> >> >>target with respect to number of pages per MR. There is no
-> >handshake
-> >> >>that aligns expectations.
-> >> >But, the max pages per MR supported by most adapters is around 256
-> >pages
-> >> >only.
-> >> >And I think only those iSER initiators, whose max pages per MR is
-> >4096,
-> >> >could send 16MiB sized IOs, am I correct?
-> >> 
-> >> If the initiator can send 16MiB, we must make sure the target is
-> >> capable to receive it.
-> >I think max IO size, at iSER initiator, depends on
-> >"max_fast_reg_page_list_len".
-> >currently, below are the supported "max_fast_reg_page_list_len" of
-> >various iwarp drivers:
-> >
-> >iw_cxgb4: 128 pages
-> >Softiwarp: 256 pages
-> >i40iw: 512 pages
-> >qedr: couldn't find.
-> >
-> 
-> For siw, this limit is not determined by resource constraints.
-> We could bump it up to 512, or higher. What is a reasonable
-> maximum, from iSER view?
+  - Fix a bug in rxe_rcv that causes all multicast packets to be
+    dropped. Currently rxe_match_dgid is called for each packet
+    to verify that the destination IP address matches one of the
+    entries in the port source GID table. This is incorrect for
+    IP multicast addresses since they do not appear in the GID table.
+  - Add code to detect multicast addresses.
+  - Change function name to rxe_chk_dgid which is clearer.
 
-If the most common IO sizes are 4K & 8K, then the reasonable max IO size of
-256 pages(1 MiB) would be appropriate, by default. currently, NVMet-rdma
-also limits max IO size to 1MiB.
-> 
-> 
-> >For iwarp case, if 512 is the max pages supported by all iwarp
-> >drivers,
-> >then provisioning a gigantic MR pool at target(to accommodate never
-> >used
-> >16MiB IO) wouldn't be a overkill?
-> >> 
-> >> >
-> >> >>If we revert that it would restore the issue that you reported in
-> >the
-> >> >>first place:
-> >> >>
-> >> >>--
-> >> >>IB/isert: allocate RW ctxs according to max IO size
-> >> >I don't see the reported issue after reducing the IO size to 256
-> >> >pages(keeping all other changes of this patch intact).
-> >> >That is, "attr.cap.max_rdma_ctxs" is now getting filled properly
-> >with
-> >> >"rdma_rw_mr_factor()" related changes, I think.
-> >> >
-> >> >Before this change "attr.cap.max_rdma_ctxs" was hardcoded with
-> >> >128(ISCSI_DEF_XMIT_CMDS_MAX) pages, which is very low for single
-> >target
-> >> >and muli-luns case.
-> >> >
-> >> >So reverting only ISCSI_ISER_MAX_SG_TABLESIZE macro to 256 doesn't
-> >cause the
-> >> >reported issue.
-> >> >
-> >> >Thanks,
-> >> >Krishnam Raju.
-> >> >>Current iSER target code allocates MR pool budget based on queue
-> >size.
-> >> >>Since there is no handshake between iSER initiator and target on
-> >max IO
-> >> >>size, we'll set the iSER target to support upto 16MiB IO
-> >operations and
-> >> >>allocate the correct number of RDMA ctxs according to the factor
-> >of MR's
-> >> >>per IO operation. This would guaranty sufficient size of the MR
-> >pool for
-> >> >>the required IO queue depth and IO size.
-> >> >>
-> >> >>Reported-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-> >> >>Tested-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-> >> >>Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-> >> >>--
-> >> >>
-> >> >>>
-> >> >>>Thanks,
-> >> >>>Krishnam Raju.
-> >> >>>On Wednesday, September 09/23/20, 2020 at 01:57:47 -0700, Sagi
-> >Grimberg wrote:
-> >> >>>>>Hi,
-> >> >>>>>
-> >> >>>>>Please reduce the Max IO size to 1MiB(256 pages), at iSER
-> >Target.
-> >> >>>>>The PBL memory consumption has increased significantly after
-> >increasing
-> >> >>>>>the Max IO size to 16MiB(with commit:317000b926b07c).
-> >> >>>>>Due to the large MR pool, the max no.of iSER connections(On
-> >one variant
-> >> >>>>>of Chelsio cards) came down to 9, before it was 250.
-> >> >>>>>NVMe-RDMA target also uses 1MiB max IO size.
-> >> >>>>Max, remind me what was the point to support 16M? Did this
-> >resolve
-> >> >>>>an issue?
-> >
-> 
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+Fixes: 8700e3e7c485 ("Soft RoCE (RXE) - The software RoCE driver")
+---
+ drivers/infiniband/sw/rxe/rxe_recv.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index a3eed4da1540..a9be4efba5f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -280,7 +280,17 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 	kfree_skb(skb);
+ }
+ 
+-static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
++/**
++ * rxe_chk_dgid - validate destination IP address
++ * @rxe: rxe device that received packet
++ * @skb: the received packet buffer
++ *
++ * Accept any loopback packets
++ * Extract IP address from packet and
++ * Accept if multicast packet
++ * Accept if matches an SGID table entry
++ */
++static int rxe_chk_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
+ {
+ 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
+ 	const struct ib_gid_attr *gid_attr;
+@@ -298,6 +308,9 @@ static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
+ 		pdgid = (union ib_gid *)&ipv6_hdr(skb)->daddr;
+ 	}
+ 
++	if (rdma_is_multicast_addr((struct in6_addr *)pdgid))
++		return 0;
++
+ 	gid_attr = rdma_find_gid_by_port(&rxe->ib_dev, pdgid,
+ 					 IB_GID_TYPE_ROCE_UDP_ENCAP,
+ 					 1, skb->dev);
+-- 
+2.25.1
+
