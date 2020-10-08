@@ -2,46 +2,45 @@ Return-Path: <SRS0=E4jb=DP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6757C43467
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 07:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4EEC04EBE
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 08:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E94821941
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 07:50:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D49021941
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 08:00:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1602143406;
-	bh=YBS+MwCavDsFdeUTd1WYUDdA6c+iqbiDUCr/7HtOI4Y=;
+	s=default; t=1602144017;
+	bh=AxG+Cu4gWXF9mzIpf5u5X66cZnQ7T2FI5kxlh5iSmvQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=p5zp/3/nDFfOlXmlaYhG33viFvWcIdgZ/dutQ+spZLYEF3E5xL70N5bsEpxxd7UdY
-	 1dymjDXmu5ZyfNOy46wOukuno1R5trHt4MrP8E+TSKqMRWEKwXEjCHOVy3gvw3qO1P
-	 vRmEGS9ztbYDPLZjsSrFNAxgB7Icxrst2FYji/kY=
+	b=Tb/uRwPOcMs0z/sfE93w25tYKaFkhlDaBKU1YLjFo1FaT9+nWKptChb9fa176LiwQ
+	 UbvCyasyxKN/AuS9JSBa9je2cLnAUUEwSx2rMVI2i5Qp3D/Lsy8lXH8Bd5qAv3Pofd
+	 UQR2zF4obNfzpgQWc/TMbJCBjZVvWdggWq+CqgyY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727887AbgJHHuF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Oct 2020 03:50:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36960 "EHLO mail.kernel.org"
+        id S1727550AbgJHIAQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Oct 2020 04:00:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727694AbgJHHuF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 8 Oct 2020 03:50:05 -0400
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        id S1727303AbgJHIAQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Oct 2020 04:00:16 -0400
+Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C90F42184D;
-        Thu,  8 Oct 2020 07:50:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7826821927;
+        Thu,  8 Oct 2020 08:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1602143404;
-        bh=YBS+MwCavDsFdeUTd1WYUDdA6c+iqbiDUCr/7HtOI4Y=;
+        s=default; t=1602144015;
+        bh=AxG+Cu4gWXF9mzIpf5u5X66cZnQ7T2FI5kxlh5iSmvQ=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=2Btk65BK/h0mFgXMRPEafb0pVYKBHvPk0aNd4i1Q2KDDX3kSYtxbJz9OgCU88iJjA
-         cfmxKkC+pMryZkFLP6N68WfcvKvmhuLOFZqqJwOqgLHi5w2WvVN1q/X8jxPY8tS30W
-         qnizCjT79GKXMA4zdH9kXuSDoaiTAU874K25I26o=
-Date:   Thu, 8 Oct 2020 09:50:48 +0200
-From:   "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+        b=NBhnMPiBUad0ixKEcTOR0tHjZ2et/rEx+Ql65v7he9OtBvKy0sJ8ppNqbuWH0oWKT
+         y/fZs3dFofIdhXxoV8c7pmshcuCeiW/YjzAYbPmdX/Q363EgA+uTfG7l6lTpzSM+t/
+         q2PMcHFwYwkoqav/CRLlYiuvbcrTOnq7nCEAn/Gk=
+Date:   Thu, 8 Oct 2020 11:00:10 +0300
+From:   Leon Romanovsky <leon@kernel.org>
 To:     Dan Williams <dan.j.williams@intel.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
+Cc:     "Ertman, David M" <david.m.ertman@intel.com>,
         Parav Pandit <parav@nvidia.com>,
         Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
         "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
@@ -55,12 +54,13 @@ Cc:     Leon Romanovsky <leon@kernel.org>,
         "dledford@redhat.com" <dledford@redhat.com>,
         "broonie@kernel.org" <broonie@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
         "kuba@kernel.org" <kuba@kernel.org>,
         "Saleem, Shiraz" <shiraz.saleem@intel.com>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "Patil, Kiran" <kiran.patil@intel.com>
 Subject: Re: [PATCH v2 1/6] Add ancillary bus support
-Message-ID: <20201008075048.GA254837@kroah.com>
+Message-ID: <20201008080010.GK13580@unreal>
 References: <b4f6b5d1-2cf4-ae7a-3e57-b66230a58453@linux.intel.com>
  <20201006170241.GM1874917@unreal>
  <DM6PR11MB2841C531FC27DB41E078C52BDD0A0@DM6PR11MB2841.namprd11.prod.outlook.com>
@@ -83,7 +83,7 @@ On Thu, Oct 08, 2020 at 12:38:00AM -0700, Dan Williams wrote:
 > On Thu, Oct 8, 2020 at 12:01 AM Leon Romanovsky <leon@kernel.org> wrote:
 > [..]
 > > All stated above is my opinion, it can be different from yours.
-> 
+>
 > Yes, but we need to converge to move this forward. Jason was involved
 > in the current organization for registration, Greg was angling for
 > this to be core functionality. I have use cases outside of RDMA and
@@ -96,18 +96,13 @@ On Thu, Oct 08, 2020 at 12:38:00AM -0700, Dan Williams wrote:
 > that the current organization is irretrievably broken or too obscure
 > to use.
 
-That's kind of because I tuned out of this thread a long time ago :)
+Can it be that I'm first one to use this bus for very large driver (>120K LOC)
+that has 5 different ->probe() flows?
 
-I do agree with Leon that I think the current patch is not the correct
-way to do this the easiest, but don't have a competing proposal to show
-what I mean.
+For example, this https://lore.kernel.org/linux-rdma/20201006172317.GN1874917@unreal/
+hints to me that this bus wasn't used with anything complex as it was initially intended.
 
-Yet.
+And regarding registration, I said many times that init()/add() scheme is ok, the inability
+to call to uninit() after add() failure is not ok from my point of view.
 
-Let's see what happens after 5.10-rc1 is out, it's too late now for any
-of this for this next merge window so we can not worry about it for a
-few weeks.
-
-thanks,
-
-greg k-h
+Thanks
