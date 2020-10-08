@@ -2,163 +2,130 @@ Return-Path: <SRS0=E4jb=DP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D7EBC433DF
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 18:56:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67688C433E7
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:07:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0A3E21789
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 18:56:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B838821789
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 19:07:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="JED6KFkg"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Gq3bS0nM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727181AbgJHS4V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Oct 2020 14:56:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725908AbgJHS4U (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Oct 2020 14:56:20 -0400
-Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com [IPv6:2607:f8b0:4864:20::843])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9BA0C061755
-        for <linux-rdma@vger.kernel.org>; Thu,  8 Oct 2020 11:56:20 -0700 (PDT)
-Received: by mail-qt1-x843.google.com with SMTP id z33so2145109qth.8
-        for <linux-rdma@vger.kernel.org>; Thu, 08 Oct 2020 11:56:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=GKuwdbdfDerO0oWysPpz0wBbV1H6nw7CdJXV5w2dnGw=;
-        b=JED6KFkgA9w2nyfQh62rVSqIP84AoywDDhTBWf0x/6DFP7kUTJN7hdxFNAd1KHxKiE
-         A5NJCFGlGzPXxGPj4tWlnVciECwt5iYh8+bi/YxJBJahr4V71tCjBt6ZiLY9GHLIIia4
-         KK0ugm8Iene+tcsSHVAxOZb2AON5ZvaRoneNdK3GxXSzkDJ+1tZEXtMqnu8lAb6uF0/1
-         lWVU+/IjyTu/YXLHVdikNwKJ40CvxdXQgRl+zxMfxvYhdCAfJpC3N2hO82mvaBdE3ko8
-         C4hcKZb0djH0gtxcVa1Et0Aq/q+tmhWEezWFSQfRK/Uo2li8x36kn/9uEMoO7TJpGy7C
-         iXXA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=GKuwdbdfDerO0oWysPpz0wBbV1H6nw7CdJXV5w2dnGw=;
-        b=FKsVpKxt1t7ZEi4apdYiqmNmsM2S+PMgGAnjhJNRpqJfEiFcywjuoZd3+GOCprMEh8
-         3xfq+3IrgQo8kgRCmG5SSRsgKBn/Wiwv3PT/Pqr8PiKHO90Q+YyngB6PJmGBh7JKsvMJ
-         PiiWy1mXXucK5MZoTA9WEehTJTW0LY88dddoOodiiox+p/SloL57rJyBOIY4aR0uHb5T
-         /CLwVTTkF7wkW50ME94loOfbXgmPOliG9QkcAIVKNQoRP9SY9ZIKL51LX3lxRwsZQEk1
-         FIsg6zWHkmsn5j0rzhEuxobvw2/5XceGz0T4/X8u7Fhv6nshgnw2oLMQy+uhuXbqJcBq
-         9xfg==
-X-Gm-Message-State: AOAM533lzEKaxkSlHZ3tFacsRAmjesuoeHuDUS9Q+gK2GWK7l5fBgPYt
-        Gv+23T/qhOe55HLYwABvpX7MxaU1Gv9OP1ug
-X-Google-Smtp-Source: ABdhPJyfqJ3aznb+6O1yRVdoCk4eSiVlT7WnVG/pWbkjgrH9G780oAWWvMN3iA2H6cEv+yam8cASRQ==
-X-Received: by 2002:aed:23fc:: with SMTP id k57mr9404963qtc.216.1602183379882;
-        Thu, 08 Oct 2020 11:56:19 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
-        by smtp.gmail.com with ESMTPSA id f8sm4519268qkb.123.2020.10.08.11.56.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Oct 2020 11:56:19 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kQb5O-001a1n-I8; Thu, 08 Oct 2020 15:56:18 -0300
-Date:   Thu, 8 Oct 2020 15:56:18 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc:     Yishai Hadas <yishaih@nvidia.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH for-next] IB/mlx4: Convert rej_tmout radix-tree to XArray
-Message-ID: <20201008185618.GK5177@ziepe.ca>
-References: <1601989634-4595-1-git-send-email-haakon.bugge@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+        id S1726115AbgJHTHa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Oct 2020 15:07:30 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:63556 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725887AbgJHTH3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 8 Oct 2020 15:07:29 -0400
+Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f7f636f0001>; Fri, 09 Oct 2020 03:07:27 +0800
+Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL104.nvidia.com
+ (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 8 Oct
+ 2020 19:07:27 +0000
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.109)
+ by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 8 Oct 2020 19:07:26 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KPbCeBcI9Gb2Lf1rSV9FWN1Vtcqh6FiI4rdvc3RMyCdIRRJWD+vME4DbTr8GnI4nAQlTa4/myVd9qkRG/ISrWr05nW9UfhkfCoI/XpSudmWXJnNW7pFshwCoi6LW4EEoZVlM2WlyQUc8aJMB4Qs879EcEUDojjFrNeTdwFsrXL9YUiKA3sn+iIJTgY5GU1we+nywpybxsplH+prFgscPSnHsdeI7tNwf7bw3R0ns0m/9EBju/9x9/j7QCDA/VCoFJZJJ3nKeosDCf72b/CZncTS9YqfOQ2To79uUryFPZTIynqFZDn4alHXhSsCr7XcpzSFQ+yAkVh8oFoTmMV8OLA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=u1Upcj3GMZhsS4m2LdFu3Un/zW3kIc0HudX/DBzy1Fg=;
+ b=kAatviEe6uymXC35g0QVKa7utzuVTFysecbATZ6CuYFigzaExyeCdbHUx+KLn1rAuX/N2cUuowF+Upw+9FOhKA6OMsy2MP00MrDjHaCbUQwoDP8dZqN474tZx+Uf30JSmiEmmiBlJZLvsUsBEXWbuOKr6VnRMgsKTe0nGu0aZMUs6X2mZTVYjhOf5K+SVzBCngMLfoa4+wT4v1Tm/WiRVdmK1wTFyRLMqGMeaIzjYJRSFxQ74ZeaN21YpuW2HPDml343jjO9uh+V46wMlB51kU9tK2DmOKBrC6ICth/Z7I8rQBXaOZ2C+TDqS/xq9CueTVyYbl8wqTPSIjKqjdpnoQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB2938.namprd12.prod.outlook.com (2603:10b6:5:18a::31) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.22; Thu, 8 Oct
+ 2020 19:07:11 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3433.046; Thu, 8 Oct 2020
+ 19:07:11 +0000
+Date:   Thu, 8 Oct 2020 16:07:08 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+CC:     <linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>,
+        Edward Srouji <edwards@mellanox.com>
+Subject: Re: py verbs tests
+Message-ID: <20201008190708.GF4734@nvidia.com>
+References: <1c6511ba-e92e-c285-e00d-f2dba04a6747@gmail.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1601989634-4595-1-git-send-email-haakon.bugge@oracle.com>
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1c6511ba-e92e-c285-e00d-f2dba04a6747@gmail.com>
+X-ClientProxiedBy: MN2PR07CA0012.namprd07.prod.outlook.com
+ (2603:10b6:208:1a0::22) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR07CA0012.namprd07.prod.outlook.com (2603:10b6:208:1a0::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.22 via Frontend Transport; Thu, 8 Oct 2020 19:07:10 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kQbFs-001aHM-T4; Thu, 08 Oct 2020 16:07:08 -0300
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1602184047; bh=rpQu7eUlyL1WOxgR3vV81wRUi2ZPYKY51+73pgRjiEY=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
+         X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=Gq3bS0nMT+vb+SBDqiiVSC29ho/z5XhlDJaysiiItu2X9NATXwug4aA9+QhCXhTW0
+         9QzgArZJ+c9hWm4P0UfaR2u6csVi8uJ78E/P/8/xPjX30q8JZt2eHp/aPDaneqsZxL
+         pD4xWmEh/83QyPuNqgy2PDTRX/2Or57zQ75XL4J8SzwmANGJhC5ZZVr1/kq3wPQfbm
+         L+60oYbSWfvkuA7BysR4pQVegtzLxXz/o0ONoPSAHo//dTBTzc/utBI0+Xz/zJ9lkV
+         dxk6MJT6T6A+bSQxw3S2Oyvc7XfF5poJg0XOOQVjgOvwV8erCvHkOxbZgwiTe0wGTZ
+         2dBhl9vX++2fg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 06, 2020 at 03:07:14PM +0200, Håkon Bugge wrote:
-> Fixes: b7d8e64fa9db ("IB/mlx4: Add support for REJ due to timeout")
-> 
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
->  drivers/infiniband/hw/mlx4/cm.c      | 73 +++++++++++++++---------------------
->  drivers/infiniband/hw/mlx4/mlx4_ib.h |  4 +-
->  2 files changed, 32 insertions(+), 45 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-> index 0ce4b5a..6c7986b 100644
-> +++ b/drivers/infiniband/hw/mlx4/cm.c
-> @@ -58,9 +58,7 @@ struct rej_tmout_entry {
->  	int slave;
->  	u32 rem_pv_cm_id;
->  	struct delayed_work timeout;
-> -	struct radix_tree_root *rej_tmout_root;
-> -	/* Points to the mutex protecting this radix-tree */
-> -	struct mutex *lock;
-> +	struct xarray *xa_rej_tmout;
->  };
->  
->  struct cm_generic_msg {
-> @@ -350,9 +348,7 @@ static void rej_tmout_timeout(struct work_struct *work)
->  	struct rej_tmout_entry *item = container_of(delay, struct rej_tmout_entry, timeout);
->  	struct rej_tmout_entry *deleted;
->  
-> -	mutex_lock(item->lock);
-> -	deleted = radix_tree_delete_item(item->rej_tmout_root, item->rem_pv_cm_id, NULL);
-> -	mutex_unlock(item->lock);
-> +	deleted = xa_cmpxchg(item->xa_rej_tmout, item->rem_pv_cm_id, item, NULL, 0);
->  
->  	if (deleted != item)
->  		pr_debug("deleted(%p) != item(%p)\n", deleted, item);
-> @@ -363,14 +359,13 @@ static void rej_tmout_timeout(struct work_struct *work)
->  static int alloc_rej_tmout(struct mlx4_ib_sriov *sriov, u32 rem_pv_cm_id, int slave)
->  {
->  	struct rej_tmout_entry *item;
-> -	int sts;
-> +	struct rej_tmout_entry *old;
-> +
-> +	item = xa_load(&sriov->xa_rej_tmout, (unsigned long)rem_pv_cm_id);
+On Fri, Oct 02, 2020 at 04:34:22PM -0500, Bob Pearson wrote:
+> I am currently trying to figure out why one of the pyverbs tests is faili=
+ng.
+>=20
+> I added a check implementing C9-205 (p 419) of the IBA spec. I requires t=
+hat a responder receiving a packet longer
+> than the receive buffer or the PMTU shall be silently dropped. I.e. a cla=
+ss D error.
+>=20
+>     C9-205: Before executing the request, the responder shall validate th=
+e
+>     Packet Length field of the LRH and the PadCnt of the BTH as described
+>     in 9.8.3.2.2: Responder - Length Validation.
+>     The following characteristics shall be validated:
+>     =E2=80=A2 The Length fields shall be checked to confirm that there is=
+ sufficient
+>     space available in the receive buffer specified by the receive WQE.
+>     =E2=80=A2 The packet payload length must be between zero and PMTU byt=
+es
+>     inclusive in size.
+>     If a packet is detected with an invalid length, the request shall be =
+an invalid
+>     request and it shall be silently dropped by the responder as specifie=
+d in
+>     Section 9.9.3 Responder Side Behavior on page 435. The responder then
+>     waits for a new request packet.
+>=20
+> tests/test_cq_events.py passes PATH_MTU =3D 1024 in the modify QPs verb f=
+or RC and XRC but not UD.
+> This should be a required parameter as part of the primary destination ad=
+dress but is not getting
+> set for UD. The test then proceeds to send a 1024 byte payload to the des=
+tination and for UD hangs
+> waiting for the completion.
+>=20
+> I don't want to mess with these tests because I am a poor python coder. I=
+s there some reason why it is
+> OK to not set the PMTU for UD QPs?
 
-The locking that was here looks wrong, rej_tmout_timeout() is a work
-that could run at any time and kfree(item), so some kind of lock must
-be held across every touch to item
+Edward is the person to ask about the tests..
 
-Holding the xa_lock until the mod_delayed_work is done would be ok?
-
->  static int lookup_rej_tmout_slave(struct mlx4_ib_sriov *sriov, u32 rem_pv_cm_id)
->  {
->  	struct rej_tmout_entry *item;
->  
-> -	mutex_lock(&sriov->rej_tmout_lock);
-> -	item = radix_tree_lookup(&sriov->rej_tmout_root, (unsigned long)rem_pv_cm_id);
-> -	mutex_unlock(&sriov->rej_tmout_lock);
-> +	item = xa_load(&sriov->xa_rej_tmout, (unsigned long)rem_pv_cm_id);
->  
-> -	if (!item || IS_ERR(item)) {
-> +	if (!item || xa_err(item)) {
->  		pr_debug("Could not find slave. rem_pv_cm_id 0x%x error: %d\n",
-> -			 rem_pv_cm_id, (int)PTR_ERR(item));
-> -		return !item ? -ENOENT : PTR_ERR(item);
-> +			 rem_pv_cm_id, xa_err(item));
-> +		return !item ? -ENOENT : xa_err(item);
->  	}
->  
->  	return item->slave;
-
-Here too
-
-> +	xa_lock(&sriov->xa_rej_tmout);
-> +	xa_for_each(&sriov->xa_rej_tmout, id, item) {
->  		if (slave < 0 || slave == item->slave) {
->  			mod_delayed_work(system_wq, &item->timeout, 0);
->  			flush_needed = true;
->  			++cnt;
->  		}
->  	}
-> -	mutex_unlock(&sriov->rej_tmout_lock);
-> +	xa_unlock(&sriov->xa_rej_tmout);
-
-This is OK
+It seems like you are right and it should be set for UD too, if it is
+not set what is the default?
 
 Jason
