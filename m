@@ -1,94 +1,105 @@
-Return-Path: <SRS0=c5Ux=DO=vger.kernel.org=linux-rdma-owner@kernel.org>
+Return-Path: <SRS0=E4jb=DP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51806C4363D
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 23:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25570C4363D
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEB8320679
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Oct 2020 23:50:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADA1620882
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727688AbgJGXug (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Oct 2020 19:50:36 -0400
-Received: from mail-wr1-f42.google.com ([209.85.221.42]:35153 "EHLO
-        mail-wr1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726671AbgJGXug (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 19:50:36 -0400
-Received: by mail-wr1-f42.google.com with SMTP id n15so4312630wrq.2
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Oct 2020 16:50:33 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=YzONL2Hb1OMpCFtgMmM5avS4gAVg4nzeCc187wyrH+I=;
-        b=g15BiiwC2WpIFmwayW5/F6gvkbRZENjbhqxAXRP1Jbj9eVLxf0DMHm78FLxweqUlqR
-         9Tw/IBe5oX/14aq4nRGa21hyD/WH5wn8++4kd6u3rcSDY9cd+zRQ5IcJeAxvS3d5R07P
-         B/Y37JOL5ZY5+DIz1AOhGCIdTTNbEwd20Aci6CSZ0tb4pnnhfpRr6AtweSXN1PVG2ikl
-         niaLeVzzrfCsDoHgBknI6bYROQi+HYxwwRM75R2moidX+3pXhSx3tpoKj0WYvcY0LmIy
-         e4xKLDdpNNr3daF0qDiMc6gfC+GbtagxGFjjbVr/QU0C+cnGRetYBVKVNGPB0s2qAsVJ
-         hFCA==
-X-Gm-Message-State: AOAM532MRu86BHf4lHWajyhh6R3cs8aiCzOqTYopEjDwoT0aYYqBGs/7
-        ftWGq5eKLWePtic9qrdlPCs=
-X-Google-Smtp-Source: ABdhPJwR5UWRSvia4CYBTWzvFA7vtOATWUZTLDKKiUueU9OqKsWaV2ZfL+oQJ+Rccx0dVb+CFW3shw==
-X-Received: by 2002:a5d:60cc:: with SMTP id x12mr3815759wrt.314.1602114632853;
-        Wed, 07 Oct 2020 16:50:32 -0700 (PDT)
-Received: from ?IPv6:2601:647:4802:9070:a6e2:a053:3c10:8bbd? ([2601:647:4802:9070:a6e2:a053:3c10:8bbd])
-        by smtp.gmail.com with ESMTPSA id p21sm4524960wmc.28.2020.10.07.16.50.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Oct 2020 16:50:32 -0700 (PDT)
-Subject: Re: reduce iSERT Max IO size
-To:     Max Gurtovoy <mgurtovoy@nvidia.com>,
-        Krishnamraju Eraparaju <krishna2@chelsio.com>
-Cc:     linux-rdma@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Max Gurtovoy <maxg@mellanox.com>
-References: <20200922104424.GA18887@chelsio.com>
- <07e53835-8389-3e07-6976-505edbd94f2a@grimberg.me>
- <20201002171007.GA16636@chelsio.com>
- <4d0b1a3f-2980-c7ed-ef9a-0ed6a9c87a69@grimberg.me>
- <20201003033644.GA19516@chelsio.com>
- <4391e240-5d6d-fb59-e6fb-e7818d1d0bd2@nvidia.com>
- <20201007033619.GA11425@chelsio.com>
- <1a034761-3723-3c70-8a44-25ef2cbf786e@nvidia.com>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <fe4ff8ac-fd0a-ed6f-312b-51be9a9fdcc6@grimberg.me>
-Date:   Wed, 7 Oct 2020 16:50:27 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1727707AbgJHCgh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Oct 2020 22:36:37 -0400
+Received: from smtprelay0085.hostedemail.com ([216.40.44.85]:51392 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726400AbgJHCgh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 22:36:37 -0400
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay07.hostedemail.com (Postfix) with ESMTP id 57877181D337B;
+        Thu,  8 Oct 2020 02:36:36 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: table34_1a085dd271d4
+X-Filterd-Recvd-Size: 3500
+Received: from joe-laptop.perches.com (unknown [47.151.133.149])
+        (Authenticated sender: joe@perches.com)
+        by omf08.hostedemail.com (Postfix) with ESMTPA;
+        Thu,  8 Oct 2020 02:36:35 +0000 (UTC)
+From:   Joe Perches <joe@perches.com>
+To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org
+Subject: [PATCH-next 0/4] RDMA: sprintf to sysfs_emit conversions
+Date:   Wed,  7 Oct 2020 19:36:23 -0700
+Message-Id: <cover.1602122879.git.joe@perches.com>
+X-Mailer: git-send-email 2.26.0
 MIME-Version: 1.0
-In-Reply-To: <1a034761-3723-3c70-8a44-25ef2cbf786e@nvidia.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+A recent commit added a sysfs_emit and sysfs_emit_at to allow various
+sysfs show functions to ensure that the PAGE_SIZE buffer argument is
+never overrun and always NUL terminated.
 
->> I think max IO size, at iSER initiator, depends on
->> "max_fast_reg_page_list_len".
->> currently, below are the supported "max_fast_reg_page_list_len" of
->> various iwarp drivers:
->>
->> iw_cxgb4: 128 pages
->> Softiwarp: 256 pages
->> i40iw: 512 pages
->> qedr: couldn't find.
->>
->> For iwarp case, if 512 is the max pages supported by all iwarp drivers,
->> then provisioning a gigantic MR pool at target(to accommodate never used
->> 16MiB IO) wouldn't be a overkill?
-> 
-> For RoCE/IB Mellanox HCAs we support 16MiB IO size and even more. We 
-> limited to 16MiB in iSER/iSERT.
-> 
-> Sagi,
-> 
-> what about adding a module parameter for this as we did in iSER initiator ?
+Convert the RDMA/InfiniBand subsystem to use these new functions.
 
-I don't think we have any other choice...
+The first 2 patches exclusively used coccinelle to convert uses.
+The third and fourth patches were done manually.
+
+Compiled allyesconfig and defconfig with all infiniband options selected
+no warnings, but untested, no hardward
+
+Overall object size is reduced
+
+total size: allyesconfig x86-64
+new: 8364003	1680968	 131520	10176491 9b47eb	(TOTALS)
+old: 8365883	1681032	 131520	10178435 9b4f83	(TOTALS)
+
+total size: defconfig x86-64 with all infiniband selected
+new; 1359153	 131228	   1910  1492291 16c543	(TOTALS)
+old: 1359422	 131228	   1910  1492560 16c650	(TOTALS)
+
+Joe Perches (4):
+  RDMA: Convert sysfs device * show functions to use sysfs_emit()
+  RDMA: Convert sysfs kobject * show functions to use sysfs_emit()
+  RDMA: manual changes for sysfs_emit and neatening
+  RDMA: Convert various random sprintf sysfs _show uses to sysfs_emit
+
+ drivers/infiniband/core/cm.c                  |   4 +-
+ drivers/infiniband/core/cma_configfs.c        |   4 +-
+ drivers/infiniband/core/sysfs.c               | 155 ++++++++++--------
+ drivers/infiniband/core/ucma.c                |   2 +-
+ drivers/infiniband/core/user_mad.c            |   6 +-
+ drivers/infiniband/core/uverbs_main.c         |   4 +-
+ drivers/infiniband/hw/bnxt_re/main.c          |   4 +-
+ drivers/infiniband/hw/cxgb4/provider.c        |  13 +-
+ drivers/infiniband/hw/hfi1/sysfs.c            |  62 ++++---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c     |   6 +-
+ drivers/infiniband/hw/mlx4/main.c             |   9 +-
+ drivers/infiniband/hw/mlx4/mcg.c              |  82 +++++----
+ drivers/infiniband/hw/mlx4/sysfs.c            |  70 ++++----
+ drivers/infiniband/hw/mlx5/main.c             |  13 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c  |  33 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c    |   4 +-
+ drivers/infiniband/hw/qedr/main.c             |  10 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c         |  91 +++++-----
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  | 104 +++++-------
+ .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    |   6 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c       |   4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c     |   7 +-
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c     |   2 +-
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c  |  60 +++----
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c  |  20 +--
+ drivers/infiniband/ulp/srp/ib_srp.c           |  49 +++---
+ drivers/infiniband/ulp/srpt/ib_srpt.c         |  14 +-
+ 28 files changed, 423 insertions(+), 417 deletions(-)
+
+-- 
+2.26.0
+
