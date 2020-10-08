@@ -7,57 +7,45 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CA75C4363D
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C05B3C433E7
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98DB62085B
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5873420882
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Oct 2020 02:36:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727698AbgJHCgs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Oct 2020 22:36:48 -0400
-Received: from smtprelay0206.hostedemail.com ([216.40.44.206]:47254 "EHLO
+        id S1726400AbgJHCgx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Oct 2020 22:36:53 -0400
+Received: from smtprelay0058.hostedemail.com ([216.40.44.58]:48316 "EHLO
         smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727663AbgJHCgr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 22:36:47 -0400
+        by vger.kernel.org with ESMTP id S1727663AbgJHCgx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Oct 2020 22:36:53 -0400
 Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay06.hostedemail.com (Postfix) with ESMTP id ECA2F1822408A;
-        Thu,  8 Oct 2020 02:36:43 +0000 (UTC)
+        by smtprelay04.hostedemail.com (Postfix) with ESMTP id 87DBD180A8127;
+        Thu,  8 Oct 2020 02:36:50 +0000 (UTC)
 X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: man69_1f090a1271d4
-X-Filterd-Recvd-Size: 45139
+X-HE-Tag: room46_2d0b235271d4
+X-Filterd-Recvd-Size: 30229
 Received: from joe-laptop.perches.com (unknown [47.151.133.149])
         (Authenticated sender: joe@perches.com)
         by omf08.hostedemail.com (Postfix) with ESMTPA;
-        Thu,  8 Oct 2020 02:36:39 +0000 (UTC)
+        Thu,  8 Oct 2020 02:36:47 +0000 (UTC)
 From:   Joe Perches <joe@perches.com>
 To:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Devesh Sharma <devesh.sharma@broadcom.com>,
-        Somnath Kotur <somnath.kotur@broadcom.com>,
-        Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
         Potnuri Bharat Teja <bharat@chelsio.com>,
         Mike Marciniszyn <mike.marciniszyn@intel.com>,
         Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Michal Kalderon <mkalderon@marvell.com>,
-        Ariel Elior <aelior@marvell.com>,
         Christian Benvenuti <benve@cisco.com>,
         Nelson Escobar <neescoba@cisco.com>,
         Parvi Kaustubhi <pkaustub@cisco.com>,
-        Adit Ranadive <aditr@vmware.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>,
         Danil Kipnis <danil.kipnis@cloud.ionos.com>,
         Jack Wang <jinpu.wang@cloud.ionos.com>,
         Bart Van Assche <bvanassche@acm.org>
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 1/4] RDMA: Convert sysfs device * show functions to use sysfs_emit()
-Date:   Wed,  7 Oct 2020 19:36:24 -0700
-Message-Id: <7f406fa8e3aa2552c022bec680f621e38d1fe414.1602122879.git.joe@perches.com>
+Subject: [PATCH 3/4] RDMA: manual changes for sysfs_emit and neatening
+Date:   Wed,  7 Oct 2020 19:36:26 -0700
+Message-Id: <f5c9e4c9d8dafca1b7b70bd597ee7f8f219c31c8.1602122880.git.joe@perches.com>
 X-Mailer: git-send-email 2.26.0
 In-Reply-To: <cover.1602122879.git.joe@perches.com>
 References: <cover.1602122879.git.joe@perches.com>
@@ -67,1175 +55,837 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Done with cocci script:
+Make changes to use sysfs_emit in the RDMA code as cocci scripts can not
+be written to handle _all_ the possible variants of various sprintf family
+uses in sysfs show functions.
 
-@@
-identifier d_show;
-identifier dev, attr, buf;
-@@
+While there, make the code more legible and update its style to be more
+like the typical kernel styles.
 
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	return
--	sprintf(buf,
-+	sysfs_emit(buf,
-	...);
-	...>
-}
+Miscellanea:
 
-@@
-identifier d_show;
-identifier dev, attr, buf;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	return
--	snprintf(buf, PAGE_SIZE,
-+	sysfs_emit(buf,
-	...);
-	...>
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	return
--	scnprintf(buf, PAGE_SIZE,
-+	sysfs_emit(buf,
-	...);
-	...>
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-expression chr;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	return
--	strcpy(buf, chr);
-+	sysfs_emit(buf, chr);
-	...>
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-identifier len;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	len =
--	sprintf(buf,
-+	sysfs_emit(buf,
-	...);
-	...>
-	return len;
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-identifier len;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	len =
--	snprintf(buf, PAGE_SIZE,
-+	sysfs_emit(buf,
-	...);
-	...>
-	return len;
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-identifier len;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
-	len =
--	scnprintf(buf, PAGE_SIZE,
-+	sysfs_emit(buf,
-	...);
-	...>
-	return len;
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-identifier len;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	<...
--	len += scnprintf(buf + len, PAGE_SIZE - len,
-+	len += sysfs_emit_at(buf, len,
-	...);
-	...>
-	return len;
-}
-
-@@
-identifier d_show;
-identifier dev, attr, buf;
-expression chr;
-@@
-
-ssize_t d_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	...
--	strcpy(buf, chr);
--	return strlen(buf);
-+	return sysfs_emit(buf, chr);
-}
+o Use intermediate pointers for dereferences
+o Add and use string lookup functions
+o return early when any intermediate call fails so normal return is
+  at the bottom of the function
+o mlx4/mcg.c:sysfs_show_group: use scnprintf to format intermediate strings
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/infiniband/core/sysfs.c               | 47 +++++++++++--------
- drivers/infiniband/core/ucma.c                |  2 +-
- drivers/infiniband/core/user_mad.c            |  4 +-
- drivers/infiniband/core/uverbs_main.c         |  4 +-
- drivers/infiniband/hw/bnxt_re/main.c          |  4 +-
- drivers/infiniband/hw/cxgb4/provider.c        | 10 ++--
- drivers/infiniband/hw/hfi1/sysfs.c            | 16 +++----
- drivers/infiniband/hw/i40iw/i40iw_verbs.c     |  6 +--
- drivers/infiniband/hw/mlx4/main.c             |  8 ++--
- drivers/infiniband/hw/mlx4/sysfs.c            | 30 ++++++------
- drivers/infiniband/hw/mlx5/main.c             | 13 ++---
- drivers/infiniband/hw/mthca/mthca_provider.c  | 14 +++---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c    |  4 +-
- drivers/infiniband/hw/qedr/main.c             | 10 ++--
- drivers/infiniband/hw/qib/qib_sysfs.c         | 30 ++++++------
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  | 16 +++----
- .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  6 +--
- drivers/infiniband/sw/rxe/rxe_verbs.c         |  2 +-
- drivers/infiniband/ulp/ipoib/ipoib_cm.c       |  4 +-
- drivers/infiniband/ulp/ipoib/ipoib_main.c     |  7 +--
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c     |  2 +-
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c  | 17 ++++---
- drivers/infiniband/ulp/srp/ib_srp.c           | 41 ++++++++--------
- 23 files changed, 156 insertions(+), 141 deletions(-)
+ drivers/infiniband/core/sysfs.c              | 60 +++++++-------
+ drivers/infiniband/hw/cxgb4/provider.c       |  5 +-
+ drivers/infiniband/hw/hfi1/sysfs.c           | 38 ++++-----
+ drivers/infiniband/hw/mlx4/main.c            |  5 +-
+ drivers/infiniband/hw/mlx4/mcg.c             | 82 +++++++++++---------
+ drivers/infiniband/hw/mlx4/sysfs.c           | 47 ++++++-----
+ drivers/infiniband/hw/mlx5/main.c            |  4 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c | 29 ++++---
+ drivers/infiniband/hw/qib/qib_sysfs.c        | 45 +++++------
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 66 +++++++---------
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 21 +++--
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c | 13 ++--
+ drivers/infiniband/ulp/srp/ib_srp.c          |  4 +
+ 13 files changed, 206 insertions(+), 213 deletions(-)
 
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 914cddea525d..79327200da70 100644
+index 79327200da70..cbc8326b935d 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -1230,14 +1230,23 @@ static ssize_t node_type_show(struct device *device,
- 	struct ib_device *dev = rdma_device_to_ibdev(device);
- 
- 	switch (dev->node_type) {
--	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
--	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
--	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
--	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
--	case RDMA_NODE_UNSPECIFIED: return sprintf(buf, "%d: unspecified\n", dev->node_type);
--	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
--	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
--	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
-+	case RDMA_NODE_IB_CA:	  return sysfs_emit(buf, "%d: CA\n",
-+							 dev->node_type);
-+	case RDMA_NODE_RNIC:	  return sysfs_emit(buf, "%d: RNIC\n",
-+							dev->node_type);
-+	case RDMA_NODE_USNIC:	  return sysfs_emit(buf, "%d: usNIC\n",
-+							 dev->node_type);
-+	case RDMA_NODE_USNIC_UDP: return sysfs_emit(buf, "%d: usNIC UDP\n",
-+						    dev->node_type);
-+	case RDMA_NODE_UNSPECIFIED: return sysfs_emit(buf,
-+						      "%d: unspecified\n",
-+						      dev->node_type);
-+	case RDMA_NODE_IB_SWITCH: return sysfs_emit(buf, "%d: switch\n",
-+						    dev->node_type);
-+	case RDMA_NODE_IB_ROUTER: return sysfs_emit(buf, "%d: router\n",
-+						    dev->node_type);
-+	default:		  return sysfs_emit(buf, "%d: <unknown>\n",
-+						    dev->node_type);
- 	}
+@@ -1224,30 +1224,27 @@ static int add_port(struct ib_core_device *coredev, int port_num)
+ 	return ret;
  }
- static DEVICE_ATTR_RO(node_type);
-@@ -1247,11 +1256,11 @@ static ssize_t sys_image_guid_show(struct device *device,
+ 
++static const char *node_type_string(int node_type)
++{
++	switch (node_type) {
++	case RDMA_NODE_IB_CA:		return "CA";
++	case RDMA_NODE_IB_SWITCH:	return "switch";
++	case RDMA_NODE_IB_ROUTER:	return "router";
++	case RDMA_NODE_RNIC:		return "RNIC";
++	case RDMA_NODE_USNIC:		return "usNIC";
++	case RDMA_NODE_USNIC_UDP:	return "usNIC UDP";
++	case RDMA_NODE_UNSPECIFIED:	return "unspecified";
++	}
++	return "<unknown>";
++}
++
+ static ssize_t node_type_show(struct device *device,
+ 			      struct device_attribute *attr, char *buf)
  {
  	struct ib_device *dev = rdma_device_to_ibdev(device);
  
--	return sprintf(buf, "%04x:%04x:%04x:%04x\n",
--		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[0]),
--		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[1]),
--		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[2]),
--		       be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[3]));
-+	return sysfs_emit(buf, "%04x:%04x:%04x:%04x\n",
-+			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[0]),
-+			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[1]),
-+			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[2]),
-+			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[3]));
+-	switch (dev->node_type) {
+-	case RDMA_NODE_IB_CA:	  return sysfs_emit(buf, "%d: CA\n",
+-							 dev->node_type);
+-	case RDMA_NODE_RNIC:	  return sysfs_emit(buf, "%d: RNIC\n",
+-							dev->node_type);
+-	case RDMA_NODE_USNIC:	  return sysfs_emit(buf, "%d: usNIC\n",
+-							 dev->node_type);
+-	case RDMA_NODE_USNIC_UDP: return sysfs_emit(buf, "%d: usNIC UDP\n",
+-						    dev->node_type);
+-	case RDMA_NODE_UNSPECIFIED: return sysfs_emit(buf,
+-						      "%d: unspecified\n",
+-						      dev->node_type);
+-	case RDMA_NODE_IB_SWITCH: return sysfs_emit(buf, "%d: switch\n",
+-						    dev->node_type);
+-	case RDMA_NODE_IB_ROUTER: return sysfs_emit(buf, "%d: router\n",
+-						    dev->node_type);
+-	default:		  return sysfs_emit(buf, "%d: <unknown>\n",
+-						    dev->node_type);
+-	}
++	return sysfs_emit(buf, "%d: %s\n",
++			  dev->node_type, node_type_string(dev->node_type));
+ }
+ static DEVICE_ATTR_RO(node_type);
+ 
+@@ -1255,12 +1252,13 @@ static ssize_t sys_image_guid_show(struct device *device,
+ 				   struct device_attribute *dev_attr, char *buf)
+ {
+ 	struct ib_device *dev = rdma_device_to_ibdev(device);
++	__be16 *guid = (__be16 *)&dev->attrs.sys_image_guid;
+ 
+ 	return sysfs_emit(buf, "%04x:%04x:%04x:%04x\n",
+-			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[0]),
+-			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[1]),
+-			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[2]),
+-			  be16_to_cpu(((__be16 *) &dev->attrs.sys_image_guid)[3]));
++			  be16_to_cpu(guid[0]),
++			  be16_to_cpu(guid[1]),
++			  be16_to_cpu(guid[2]),
++			  be16_to_cpu(guid[3]));
  }
  static DEVICE_ATTR_RO(sys_image_guid);
  
-@@ -1260,11 +1269,11 @@ static ssize_t node_guid_show(struct device *device,
+@@ -1268,12 +1266,13 @@ static ssize_t node_guid_show(struct device *device,
+ 			      struct device_attribute *attr, char *buf)
  {
  	struct ib_device *dev = rdma_device_to_ibdev(device);
++	__be16 *node_guid = (__be16 *)&dev->node_guid;
  
--	return sprintf(buf, "%04x:%04x:%04x:%04x\n",
--		       be16_to_cpu(((__be16 *) &dev->node_guid)[0]),
--		       be16_to_cpu(((__be16 *) &dev->node_guid)[1]),
--		       be16_to_cpu(((__be16 *) &dev->node_guid)[2]),
--		       be16_to_cpu(((__be16 *) &dev->node_guid)[3]));
-+	return sysfs_emit(buf, "%04x:%04x:%04x:%04x\n",
-+			  be16_to_cpu(((__be16 *) &dev->node_guid)[0]),
-+			  be16_to_cpu(((__be16 *) &dev->node_guid)[1]),
-+			  be16_to_cpu(((__be16 *) &dev->node_guid)[2]),
-+			  be16_to_cpu(((__be16 *) &dev->node_guid)[3]));
+ 	return sysfs_emit(buf, "%04x:%04x:%04x:%04x\n",
+-			  be16_to_cpu(((__be16 *) &dev->node_guid)[0]),
+-			  be16_to_cpu(((__be16 *) &dev->node_guid)[1]),
+-			  be16_to_cpu(((__be16 *) &dev->node_guid)[2]),
+-			  be16_to_cpu(((__be16 *) &dev->node_guid)[3]));
++			  be16_to_cpu(node_guid[0]),
++			  be16_to_cpu(node_guid[1]),
++			  be16_to_cpu(node_guid[2]),
++			  be16_to_cpu(node_guid[3]));
  }
  static DEVICE_ATTR_RO(node_guid);
  
-@@ -1273,7 +1282,7 @@ static ssize_t node_desc_show(struct device *device,
+@@ -1309,10 +1308,11 @@ static ssize_t fw_ver_show(struct device *device, struct device_attribute *attr,
+ 			   char *buf)
  {
  	struct ib_device *dev = rdma_device_to_ibdev(device);
++	char version[IB_FW_VERSION_NAME_MAX] = {};
++
++	ib_get_device_fw_str(dev, version);
  
--	return sprintf(buf, "%.64s\n", dev->node_desc);
-+	return sysfs_emit(buf, "%.64s\n", dev->node_desc);
+-	ib_get_device_fw_str(dev, buf);
+-	strlcat(buf, "\n", IB_FW_VERSION_NAME_MAX);
+-	return strlen(buf);
++	return sysfs_emit(buf, "%s\n", version);
  }
- 
- static ssize_t node_desc_store(struct device *device,
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 08a628246bd6..4368d4e4d6c3 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1824,7 +1824,7 @@ static ssize_t show_abi_version(struct device *dev,
- 				struct device_attribute *attr,
- 				char *buf)
- {
--	return sprintf(buf, "%d\n", RDMA_USER_CM_ABI_VERSION);
-+	return sysfs_emit(buf, "%d\n", RDMA_USER_CM_ABI_VERSION);
- }
- static DEVICE_ATTR(abi_version, S_IRUGO, show_abi_version, NULL);
- 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index b0d0b522cc76..7e759f5b2a75 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1191,7 +1191,7 @@ static ssize_t ibdev_show(struct device *dev, struct device_attribute *attr,
- 	if (!port)
- 		return -ENODEV;
- 
--	return sprintf(buf, "%s\n", dev_name(&port->ib_dev->dev));
-+	return sysfs_emit(buf, "%s\n", dev_name(&port->ib_dev->dev));
- }
- static DEVICE_ATTR_RO(ibdev);
- 
-@@ -1203,7 +1203,7 @@ static ssize_t port_show(struct device *dev, struct device_attribute *attr,
- 	if (!port)
- 		return -ENODEV;
- 
--	return sprintf(buf, "%d\n", port->port_num);
-+	return sysfs_emit(buf, "%d\n", port->port_num);
- }
- static DEVICE_ATTR_RO(port);
- 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 4bb7c642f80c..f173ecd102dc 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -1046,7 +1046,7 @@ static ssize_t ibdev_show(struct device *device, struct device_attribute *attr,
- 	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
- 	ib_dev = srcu_dereference(dev->ib_dev, &dev->disassociate_srcu);
- 	if (ib_dev)
--		ret = sprintf(buf, "%s\n", dev_name(&ib_dev->dev));
-+		ret = sysfs_emit(buf, "%s\n", dev_name(&ib_dev->dev));
- 	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
- 
- 	return ret;
-@@ -1065,7 +1065,7 @@ static ssize_t abi_version_show(struct device *device,
- 	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
- 	ib_dev = srcu_dereference(dev->ib_dev, &dev->disassociate_srcu);
- 	if (ib_dev)
--		ret = sprintf(buf, "%u\n", ib_dev->ops.uverbs_abi_ver);
-+		ret = sysfs_emit(buf, "%u\n", ib_dev->ops.uverbs_abi_ver);
- 	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
- 
- 	return ret;
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 53aee5a42ab8..202a0e229d44 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -608,7 +608,7 @@ static ssize_t hw_rev_show(struct device *device, struct device_attribute *attr,
- 	struct bnxt_re_dev *rdev =
- 		rdma_device_to_drv_device(device, struct bnxt_re_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "0x%x\n", rdev->en_dev->pdev->vendor);
-+	return sysfs_emit(buf, "0x%x\n", rdev->en_dev->pdev->vendor);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -618,7 +618,7 @@ static ssize_t hca_type_show(struct device *device,
- 	struct bnxt_re_dev *rdev =
- 		rdma_device_to_drv_device(device, struct bnxt_re_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "%s\n", rdev->ibdev.node_desc);
-+	return sysfs_emit(buf, "%s\n", rdev->ibdev.node_desc);
- }
- static DEVICE_ATTR_RO(hca_type);
+ static DEVICE_ATTR_RO(fw_ver);
  
 diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 4b76f2f3f4e4..b312a7ec40bf 100644
+index b312a7ec40bf..080f34625145 100644
 --- a/drivers/infiniband/hw/cxgb4/provider.c
 +++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -322,8 +322,8 @@ static ssize_t hw_rev_show(struct device *dev,
- 			rdma_device_to_drv_device(dev, struct c4iw_dev, ibdev);
- 
- 	pr_debug("dev 0x%p\n", dev);
--	return sprintf(buf, "%d\n",
--		       CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
-+	return sysfs_emit(buf, "%d\n",
-+			  CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -337,7 +337,7 @@ static ssize_t hca_type_show(struct device *dev,
+@@ -337,6 +337,7 @@ static ssize_t hca_type_show(struct device *dev,
  
  	pr_debug("dev 0x%p\n", dev);
  	lldev->ethtool_ops->get_drvinfo(lldev, &info);
--	return sprintf(buf, "%s\n", info.driver);
-+	return sysfs_emit(buf, "%s\n", info.driver);
++
+ 	return sysfs_emit(buf, "%s\n", info.driver);
  }
  static DEVICE_ATTR_RO(hca_type);
- 
-@@ -348,8 +348,8 @@ static ssize_t board_id_show(struct device *dev, struct device_attribute *attr,
+@@ -348,7 +349,9 @@ static ssize_t board_id_show(struct device *dev, struct device_attribute *attr,
  			rdma_device_to_drv_device(dev, struct c4iw_dev, ibdev);
  
  	pr_debug("dev 0x%p\n", dev);
--	return sprintf(buf, "%x.%x\n", c4iw_dev->rdev.lldi.pdev->vendor,
--		       c4iw_dev->rdev.lldi.pdev->device);
-+	return sysfs_emit(buf, "%x.%x\n", c4iw_dev->rdev.lldi.pdev->vendor,
-+			  c4iw_dev->rdev.lldi.pdev->device);
+-	return sysfs_emit(buf, "%x.%x\n", c4iw_dev->rdev.lldi.pdev->vendor,
++
++	return sysfs_emit(buf, "%x.%x\n",
++			  c4iw_dev->rdev.lldi.pdev->vendor,
+ 			  c4iw_dev->rdev.lldi.pdev->device);
  }
  static DEVICE_ATTR_RO(board_id);
- 
 diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
-index 074ec71772d2..e2a88f3cea7f 100644
+index e2a88f3cea7f..6b545f0f065f 100644
 --- a/drivers/infiniband/hw/hfi1/sysfs.c
 +++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -500,7 +500,7 @@ static ssize_t hw_rev_show(struct device *device, struct device_attribute *attr,
+@@ -510,13 +510,11 @@ static ssize_t board_id_show(struct device *device,
  	struct hfi1_ibdev *dev =
  		rdma_device_to_drv_device(device, struct hfi1_ibdev, rdi.ibdev);
+ 	struct hfi1_devdata *dd = dd_from_dev(dev);
+-	int ret;
  
--	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+	return sysfs_emit(buf, "%x\n", dd_from_dev(dev)->minrev);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -515,7 +515,7 @@ static ssize_t board_id_show(struct device *device,
  	if (!dd->boardname)
- 		ret = -EINVAL;
- 	else
--		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
-+		ret = sysfs_emit(buf, "%s\n", dd->boardname);
- 	return ret;
+-		ret = -EINVAL;
+-	else
+-		ret = sysfs_emit(buf, "%s\n", dd->boardname);
+-	return ret;
++		return -EINVAL;
++
++	return sysfs_emit(buf, "%s\n", dd->boardname);
  }
  static DEVICE_ATTR_RO(board_id);
-@@ -528,7 +528,7 @@ static ssize_t boardversion_show(struct device *device,
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
  
- 	/* The string printed here is already newline-terminated. */
--	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+	return sysfs_emit(buf, "%s", dd->boardversion);
- }
- static DEVICE_ATTR_RO(boardversion);
- 
-@@ -545,9 +545,9 @@ static ssize_t nctxts_show(struct device *device,
- 	 * and a receive context, so returning the smaller of the two counts
- 	 * give a more accurate picture of total contexts available.
- 	 */
--	return scnprintf(buf, PAGE_SIZE, "%u\n",
--			 min(dd->num_user_contexts,
--			     (u32)dd->sc_sizes[SC_USER].count));
-+	return sysfs_emit(buf, "%u\n",
-+			  min(dd->num_user_contexts,
-+			      (u32)dd->sc_sizes[SC_USER].count));
- }
- static DEVICE_ATTR_RO(nctxts);
- 
-@@ -559,7 +559,7 @@ static ssize_t nfreectxts_show(struct device *device,
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 
- 	/* Return the number of free user ports (contexts) available. */
--	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->freectxts);
-+	return sysfs_emit(buf, "%u\n", dd->freectxts);
- }
- static DEVICE_ATTR_RO(nfreectxts);
- 
-@@ -570,7 +570,7 @@ static ssize_t serial_show(struct device *device,
+@@ -570,6 +568,7 @@ static ssize_t serial_show(struct device *device,
  		rdma_device_to_drv_device(device, struct hfi1_ibdev, rdi.ibdev);
  	struct hfi1_devdata *dd = dd_from_dev(dev);
  
--	return scnprintf(buf, PAGE_SIZE, "%s", dd->serial);
-+	return sysfs_emit(buf, "%s", dd->serial);
++	/* dd->serial is already newline terminated in chip.c */
+ 	return sysfs_emit(buf, "%s", dd->serial);
  }
  static DEVICE_ATTR_RO(serial);
+@@ -598,9 +597,8 @@ static DEVICE_ATTR_WO(chip_reset);
+  * Convert the reported temperature from an integer (reported in
+  * units of 0.25C) to a floating point number.
+  */
+-#define temp2str(temp, buf, size, idx)					\
+-	scnprintf((buf) + (idx), (size) - (idx), "%u.%02u ",		\
+-			      ((temp) >> 2), ((temp) & 0x3) * 25)
++#define temp_d(t)	((t) >> 2)
++#define temp_f(t)	(((t) & 0x3) * 25u)
  
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 747b4de6faca..4f4c9f7097fe 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2056,7 +2056,7 @@ static ssize_t hw_rev_show(struct device *dev,
- 		rdma_device_to_drv_device(dev, struct i40iw_ib_device, ibdev);
- 	u32 hw_rev = iwibdev->iwdev->sc_dev.hw_rev;
+ /*
+  * Dump tempsense values, in decimal, to ease shell-scripts.
+@@ -615,19 +613,17 @@ static ssize_t tempsense_show(struct device *device,
+ 	int ret;
  
--	return sprintf(buf, "%x\n", hw_rev);
-+	return sysfs_emit(buf, "%x\n", hw_rev);
+ 	ret = hfi1_tempsense_rd(dd, &temp);
+-	if (!ret) {
+-		int idx = 0;
+-
+-		idx += temp2str(temp.curr, buf, PAGE_SIZE, idx);
+-		idx += temp2str(temp.lo_lim, buf, PAGE_SIZE, idx);
+-		idx += temp2str(temp.hi_lim, buf, PAGE_SIZE, idx);
+-		idx += temp2str(temp.crit_lim, buf, PAGE_SIZE, idx);
+-		idx += scnprintf(buf + idx, PAGE_SIZE - idx,
+-				"%u %u %u\n", temp.triggers & 0x1,
+-				temp.triggers & 0x2, temp.triggers & 0x4);
+-		ret = idx;
+-	}
+-	return ret;
++	if (ret)
++		return ret;
++
++	return sysfs_emit(buf, "%u.%02u %u.%02u %u.%02u %u.%02u %u %u %u\n",
++			  temp_d(temp.curr), temp_f(temp.curr),
++			  temp_d(temp.lo_lim), temp_f(temp.lo_lim),
++			  temp_d(temp.hi_lim), temp_f(temp.hi_lim),
++			  temp_d(temp.crit_lim), temp_f(temp.crit_lim),
++			  temp.triggers & 0x1,
++			  temp.triggers & 0x2,
++			  temp.triggers & 0x4);
  }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -2066,7 +2066,7 @@ static DEVICE_ATTR_RO(hw_rev);
- static ssize_t hca_type_show(struct device *dev,
- 			     struct device_attribute *attr, char *buf)
- {
--	return sprintf(buf, "I40IW\n");
-+	return sysfs_emit(buf, "I40IW\n");
- }
- static DEVICE_ATTR_RO(hca_type);
- 
-@@ -2076,7 +2076,7 @@ static DEVICE_ATTR_RO(hca_type);
- static ssize_t board_id_show(struct device *dev,
- 			     struct device_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%.*s\n", 32, "I40IW Board ID");
-+	return sysfs_emit(buf, "%.*s\n", 32, "I40IW Board ID");
- }
- static DEVICE_ATTR_RO(board_id);
+ static DEVICE_ATTR_RO(tempsense);
  
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 753c70402498..ad3c8f985921 100644
+index ad3c8f985921..ce4f8e263c58 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2024,7 +2024,7 @@ static ssize_t hca_type_show(struct device *device,
+@@ -2024,6 +2024,7 @@ static ssize_t hca_type_show(struct device *device,
  {
  	struct mlx4_ib_dev *dev =
  		rdma_device_to_drv_device(device, struct mlx4_ib_dev, ib_dev);
--	return sprintf(buf, "MT%d\n", dev->dev->persist->pdev->device);
-+	return sysfs_emit(buf, "MT%d\n", dev->dev->persist->pdev->device);
++
+ 	return sysfs_emit(buf, "MT%d\n", dev->dev->persist->pdev->device);
  }
  static DEVICE_ATTR_RO(hca_type);
- 
-@@ -2033,7 +2033,7 @@ static ssize_t hw_rev_show(struct device *device,
+@@ -2033,6 +2034,7 @@ static ssize_t hw_rev_show(struct device *device,
  {
  	struct mlx4_ib_dev *dev =
  		rdma_device_to_drv_device(device, struct mlx4_ib_dev, ib_dev);
--	return sprintf(buf, "%x\n", dev->dev->rev_id);
-+	return sysfs_emit(buf, "%x\n", dev->dev->rev_id);
++
+ 	return sysfs_emit(buf, "%x\n", dev->dev->rev_id);
  }
  static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -2043,8 +2043,8 @@ static ssize_t board_id_show(struct device *device,
+@@ -2043,8 +2045,7 @@ static ssize_t board_id_show(struct device *device,
  	struct mlx4_ib_dev *dev =
  		rdma_device_to_drv_device(device, struct mlx4_ib_dev, ib_dev);
  
--	return sprintf(buf, "%.*s\n", MLX4_BOARD_ID_LEN,
--		       dev->dev->board_id);
-+	return sysfs_emit(buf, "%.*s\n", MLX4_BOARD_ID_LEN,
-+			  dev->dev->board_id);
+-	return sysfs_emit(buf, "%.*s\n", MLX4_BOARD_ID_LEN,
+-			  dev->dev->board_id);
++	return sysfs_emit(buf, "%.*s\n", MLX4_BOARD_ID_LEN, dev->dev->board_id);
  }
  static DEVICE_ATTR_RO(board_id);
  
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index ea1f3a081b05..26c717a4911f 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -56,7 +56,7 @@ static ssize_t show_admin_alias_guid(struct device *dev,
- 					      mlx4_ib_iov_dentry->entry_num,
- 					      port->num);
- 
--	return sprintf(buf, "%llx\n", be64_to_cpu(sysadmin_ag_val));
-+	return sysfs_emit(buf, "%llx\n", be64_to_cpu(sysadmin_ag_val));
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index 5e4ec9786081..e4e480bffdfa 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -988,53 +988,63 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
  }
  
- /* store_admin_alias_guid stores the (new) administratively assigned value of that GUID.
-@@ -123,15 +123,15 @@ static ssize_t show_port_gid(struct device *dev,
+ static ssize_t sysfs_show_group(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++				struct device_attribute *attr, char *buf)
+ {
+ 	struct mcast_group *group =
+ 		container_of(attr, struct mcast_group, dentry);
+ 	struct mcast_req *req = NULL;
+-	char pending_str[40];
+ 	char state_str[40];
+-	ssize_t len = 0;
+-	int f;
++	char pending_str[40];
++	int len;
++	int i;
++	u32 hoplimit;
+ 
+ 	if (group->state == MCAST_IDLE)
+-		sprintf(state_str, "%s", get_state_string(group->state));
++		scnprintf(state_str, sizeof(state_str), "%s",
++			  get_state_string(group->state));
+ 	else
+-		sprintf(state_str, "%s(TID=0x%llx)",
+-				get_state_string(group->state),
+-				be64_to_cpu(group->last_req_tid));
++		scnprintf(state_str, sizeof(state_str), "%s(TID=0x%llx)",
++			  get_state_string(group->state),
++			  be64_to_cpu(group->last_req_tid));
++
+ 	if (list_empty(&group->pending_list)) {
+-		sprintf(pending_str, "No");
++		scnprintf(pending_str, sizeof(pending_str), "No");
+ 	} else {
+-		req = list_first_entry(&group->pending_list, struct mcast_req, group_list);
+-		sprintf(pending_str, "Yes(TID=0x%llx)",
+-				be64_to_cpu(req->sa_mad.mad_hdr.tid));
++		req = list_first_entry(&group->pending_list,
++				       struct mcast_req, group_list);
++		scnprintf(pending_str, sizeof(pending_str), "Yes(TID=0x%llx)",
++			  be64_to_cpu(req->sa_mad.mad_hdr.tid));
++	}
++
++	len = sysfs_emit(buf, "%1d [%02d,%02d,%02d] %4d %4s %5s     ",
++			 group->rec.scope_join_state & 0xf,
++			 group->members[2],
++			 group->members[1],
++			 group->members[0],
++			 atomic_read(&group->refcount),
++			 pending_str,
++			 state_str);
++
++	for (i = 0; i < MAX_VFS; i++) {
++		if (group->func[i].state == MCAST_MEMBER)
++			len += sysfs_emit_at(buf, len, "%d[%1x] ",
++					     i, group->func[i].join_state);
+ 	}
+-	len += sprintf(buf + len, "%1d [%02d,%02d,%02d] %4d %4s %5s     ",
+-			group->rec.scope_join_state & 0xf,
+-			group->members[2], group->members[1], group->members[0],
+-			atomic_read(&group->refcount),
+-			pending_str,
+-			state_str);
+-	for (f = 0; f < MAX_VFS; ++f)
+-		if (group->func[f].state == MCAST_MEMBER)
+-			len += sprintf(buf + len, "%d[%1x] ",
+-					f, group->func[f].join_state);
+-
+-	len += sprintf(buf + len, "\t\t(%4hx %4x %2x %2x %2x %2x %2x "
+-		"%4x %4x %2x %2x)\n",
+-		be16_to_cpu(group->rec.pkey),
+-		be32_to_cpu(group->rec.qkey),
+-		(group->rec.mtusel_mtu & 0xc0) >> 6,
+-		group->rec.mtusel_mtu & 0x3f,
+-		group->rec.tclass,
+-		(group->rec.ratesel_rate & 0xc0) >> 6,
+-		group->rec.ratesel_rate & 0x3f,
+-		(be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0xf0000000) >> 28,
+-		(be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0x0fffff00) >> 8,
+-		be32_to_cpu(group->rec.sl_flowlabel_hoplimit) & 0x000000ff,
+-		group->rec.proxy_join);
++
++	hoplimit = be32_to_cpu(group->rec.sl_flowlabel_hoplimit);
++	len += sysfs_emit_at(buf, len,
++			     "\t\t(%4hx %4x %2x %2x %2x %2x %2x %4x %4x %2x %2x)\n",
++			     be16_to_cpu(group->rec.pkey),
++			     be32_to_cpu(group->rec.qkey),
++			     (group->rec.mtusel_mtu & 0xc0) >> 6,
++			     (group->rec.mtusel_mtu & 0x3f),
++			     group->rec.tclass,
++			     (group->rec.ratesel_rate & 0xc0) >> 6,
++			     (group->rec.ratesel_rate & 0x3f),
++			     (hoplimit & 0xf0000000) >> 28,
++			     (hoplimit & 0x0fffff00) >> 8,
++			     (hoplimit & 0x000000ff),
++			     group->rec.proxy_join);
+ 
+ 	return len;
+ }
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+index 26c717a4911f..75d50383da89 100644
+--- a/drivers/infiniband/hw/mlx4/sysfs.c
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -117,22 +117,25 @@ static ssize_t show_port_gid(struct device *dev,
+ 	struct mlx4_ib_iov_port *port = mlx4_ib_iov_dentry->ctx;
+ 	struct mlx4_ib_dev *mdev = port->dev;
+ 	union ib_gid gid;
+-	ssize_t ret;
++	int ret;
++	__be16 *raw;
+ 
+ 	ret = __mlx4_ib_query_gid(&mdev->ib_dev, port->num,
  				  mlx4_ib_iov_dentry->entry_num, &gid, 1);
  	if (ret)
  		return ret;
--	ret = sprintf(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
--		      be16_to_cpu(((__be16 *) gid.raw)[0]),
--		      be16_to_cpu(((__be16 *) gid.raw)[1]),
--		      be16_to_cpu(((__be16 *) gid.raw)[2]),
--		      be16_to_cpu(((__be16 *) gid.raw)[3]),
--		      be16_to_cpu(((__be16 *) gid.raw)[4]),
--		      be16_to_cpu(((__be16 *) gid.raw)[5]),
--		      be16_to_cpu(((__be16 *) gid.raw)[6]),
--		      be16_to_cpu(((__be16 *) gid.raw)[7]));
-+	ret = sysfs_emit(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
-+			 be16_to_cpu(((__be16 *) gid.raw)[0]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[1]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[2]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[3]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[4]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[5]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[6]),
-+			 be16_to_cpu(((__be16 *) gid.raw)[7]));
- 	return ret;
+-	ret = sysfs_emit(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
+-			 be16_to_cpu(((__be16 *) gid.raw)[0]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[1]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[2]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[3]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[4]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[5]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[6]),
+-			 be16_to_cpu(((__be16 *) gid.raw)[7]));
+-	return ret;
++
++	raw = (__be16 *)gid.raw;
++
++	return sysfs_emit(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n",
++			  be16_to_cpu(raw[0]),
++			  be16_to_cpu(raw[1]),
++			  be16_to_cpu(raw[2]),
++			  be16_to_cpu(raw[3]),
++			  be16_to_cpu(raw[4]),
++			  be16_to_cpu(raw[5]),
++			  be16_to_cpu(raw[6]),
++			  be16_to_cpu(raw[7]));
  }
  
-@@ -151,7 +151,7 @@ static ssize_t show_phys_port_pkey(struct device *dev,
- 	if (ret)
- 		return ret;
+ static ssize_t show_phys_port_pkey(struct device *dev,
+@@ -542,14 +545,11 @@ static ssize_t sysfs_show_smi_enabled(struct device *dev,
+ {
+ 	struct mlx4_port *p =
+ 		container_of(attr, struct mlx4_port, smi_enabled);
+-	ssize_t len = 0;
  
--	return sprintf(buf, "0x%04x\n", pkey);
-+	return sysfs_emit(buf, "0x%04x\n", pkey);
+-	if (mlx4_vf_smi_enabled(p->dev->dev, p->slave, p->port_num))
+-		len = sysfs_emit(buf, "%d\n", 1);
+-	else
+-		len = sysfs_emit(buf, "%d\n", 0);
+-
+-	return len;
++	return sysfs_emit(buf, "%d\n",
++			  !!mlx4_vf_smi_enabled(p->dev->dev,
++						p->slave,
++						p->port_num));
  }
  
- #define DENTRY_REMOVE(_dentry)						\
-@@ -545,9 +545,9 @@ static ssize_t sysfs_show_smi_enabled(struct device *dev,
- 	ssize_t len = 0;
+ static ssize_t sysfs_show_enable_smi_admin(struct device *dev,
+@@ -558,14 +558,11 @@ static ssize_t sysfs_show_enable_smi_admin(struct device *dev,
+ {
+ 	struct mlx4_port *p =
+ 		container_of(attr, struct mlx4_port, enable_smi_admin);
+-	ssize_t len = 0;
+-
+-	if (mlx4_vf_get_enable_smi_admin(p->dev->dev, p->slave, p->port_num))
+-		len = sysfs_emit(buf, "%d\n", 1);
+-	else
+-		len = sysfs_emit(buf, "%d\n", 0);
  
- 	if (mlx4_vf_smi_enabled(p->dev->dev, p->slave, p->port_num))
--		len = sprintf(buf, "%d\n", 1);
-+		len = sysfs_emit(buf, "%d\n", 1);
- 	else
--		len = sprintf(buf, "%d\n", 0);
-+		len = sysfs_emit(buf, "%d\n", 0);
- 
- 	return len;
+-	return len;
++	return sysfs_emit(buf, "%d\n",
++			  !!mlx4_vf_get_enable_smi_admin(p->dev->dev,
++							 p->slave,
++							 p->port_num));
  }
-@@ -561,9 +561,9 @@ static ssize_t sysfs_show_enable_smi_admin(struct device *dev,
- 	ssize_t len = 0;
  
- 	if (mlx4_vf_get_enable_smi_admin(p->dev->dev, p->slave, p->port_num))
--		len = sprintf(buf, "%d\n", 1);
-+		len = sysfs_emit(buf, "%d\n", 1);
- 	else
--		len = sprintf(buf, "%d\n", 0);
-+		len = sysfs_emit(buf, "%d\n", 0);
- 
- 	return len;
- }
+ static ssize_t sysfs_store_enable_smi_admin(struct device *dev,
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 7082172b5b61..8b9f6f857120 100644
+index 8b9f6f857120..453eaf35dec7 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2628,7 +2628,7 @@ static ssize_t fw_pages_show(struct device *device,
+@@ -2669,8 +2669,8 @@ static ssize_t board_id_show(struct device *device,
  	struct mlx5_ib_dev *dev =
  		rdma_device_to_drv_device(device, struct mlx5_ib_dev, ib_dev);
  
--	return sprintf(buf, "%d\n", dev->mdev->priv.fw_pages);
-+	return sysfs_emit(buf, "%d\n", dev->mdev->priv.fw_pages);
- }
- static DEVICE_ATTR_RO(fw_pages);
- 
-@@ -2638,7 +2638,8 @@ static ssize_t reg_pages_show(struct device *device,
- 	struct mlx5_ib_dev *dev =
- 		rdma_device_to_drv_device(device, struct mlx5_ib_dev, ib_dev);
- 
--	return sprintf(buf, "%d\n", atomic_read(&dev->mdev->priv.reg_pages));
-+	return sysfs_emit(buf, "%d\n",
-+			  atomic_read(&dev->mdev->priv.reg_pages));
- }
- static DEVICE_ATTR_RO(reg_pages);
- 
-@@ -2648,7 +2649,7 @@ static ssize_t hca_type_show(struct device *device,
- 	struct mlx5_ib_dev *dev =
- 		rdma_device_to_drv_device(device, struct mlx5_ib_dev, ib_dev);
- 
--	return sprintf(buf, "MT%d\n", dev->mdev->pdev->device);
-+	return sysfs_emit(buf, "MT%d\n", dev->mdev->pdev->device);
- }
- static DEVICE_ATTR_RO(hca_type);
- 
-@@ -2658,7 +2659,7 @@ static ssize_t hw_rev_show(struct device *device,
- 	struct mlx5_ib_dev *dev =
- 		rdma_device_to_drv_device(device, struct mlx5_ib_dev, ib_dev);
- 
--	return sprintf(buf, "%x\n", dev->mdev->rev_id);
-+	return sysfs_emit(buf, "%x\n", dev->mdev->rev_id);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -2668,8 +2669,8 @@ static ssize_t board_id_show(struct device *device,
- 	struct mlx5_ib_dev *dev =
- 		rdma_device_to_drv_device(device, struct mlx5_ib_dev, ib_dev);
- 
--	return sprintf(buf, "%.*s\n", MLX5_BOARD_ID_LEN,
--		       dev->mdev->board_id);
-+	return sysfs_emit(buf, "%.*s\n", MLX5_BOARD_ID_LEN,
-+			  dev->mdev->board_id);
+-	return sysfs_emit(buf, "%.*s\n", MLX5_BOARD_ID_LEN,
+-			  dev->mdev->board_id);
++	return sysfs_emit(buf, "%.*s\n",
++			  MLX5_BOARD_ID_LEN, dev->mdev->board_id);
  }
  static DEVICE_ATTR_RO(board_id);
  
 diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 31b558ff8218..b6e4254e4558 100644
+index b6e4254e4558..fd5d4e1e5b8b 100644
 --- a/drivers/infiniband/hw/mthca/mthca_provider.c
 +++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -961,7 +961,7 @@ static ssize_t hw_rev_show(struct device *device,
- 	struct mthca_dev *dev =
- 		rdma_device_to_drv_device(device, struct mthca_dev, ib_dev);
- 
--	return sprintf(buf, "%x\n", dev->rev_id);
-+	return sysfs_emit(buf, "%x\n", dev->rev_id);
+@@ -965,25 +965,30 @@ static ssize_t hw_rev_show(struct device *device,
  }
  static DEVICE_ATTR_RO(hw_rev);
  
-@@ -973,16 +973,16 @@ static ssize_t hca_type_show(struct device *device,
- 
- 	switch (dev->pdev->device) {
+-static ssize_t hca_type_show(struct device *device,
+-			     struct device_attribute *attr, char *buf)
++static const char *hca_type_string(int hca_type)
+ {
+-	struct mthca_dev *dev =
+-		rdma_device_to_drv_device(device, struct mthca_dev, ib_dev);
+-
+-	switch (dev->pdev->device) {
++	switch (hca_type) {
  	case PCI_DEVICE_ID_MELLANOX_TAVOR:
--		return sprintf(buf, "MT23108\n");
-+		return sysfs_emit(buf, "MT23108\n");
+-		return sysfs_emit(buf, "MT23108\n");
++		return "MT23108";
  	case PCI_DEVICE_ID_MELLANOX_ARBEL_COMPAT:
--		return sprintf(buf, "MT25208 (MT23108 compat mode)\n");
-+		return sysfs_emit(buf, "MT25208 (MT23108 compat mode)\n");
+-		return sysfs_emit(buf, "MT25208 (MT23108 compat mode)\n");
++		return "MT25208 (MT23108 compat mode)";
  	case PCI_DEVICE_ID_MELLANOX_ARBEL:
--		return sprintf(buf, "MT25208\n");
-+		return sysfs_emit(buf, "MT25208\n");
+-		return sysfs_emit(buf, "MT25208\n");
++		return "MT25208";
  	case PCI_DEVICE_ID_MELLANOX_SINAI:
  	case PCI_DEVICE_ID_MELLANOX_SINAI_OLD:
--		return sprintf(buf, "MT25204\n");
-+		return sysfs_emit(buf, "MT25204\n");
- 	default:
--		return sprintf(buf, "unknown\n");
-+		return sysfs_emit(buf, "unknown\n");
+-		return sysfs_emit(buf, "MT25204\n");
+-	default:
+-		return sysfs_emit(buf, "unknown\n");
++		return "MT25204";
  	}
- }
- static DEVICE_ATTR_RO(hca_type);
-@@ -993,7 +993,7 @@ static ssize_t board_id_show(struct device *device,
- 	struct mthca_dev *dev =
- 		rdma_device_to_drv_device(device, struct mthca_dev, ib_dev);
- 
--	return sprintf(buf, "%.*s\n", MTHCA_BOARD_ID_LEN, dev->board_id);
-+	return sysfs_emit(buf, "%.*s\n", MTHCA_BOARD_ID_LEN, dev->board_id);
- }
- static DEVICE_ATTR_RO(board_id);
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index d8c47d24d6d6..e95641b26653 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -119,7 +119,7 @@ static ssize_t hw_rev_show(struct device *device,
- 	struct ocrdma_dev *dev =
- 		rdma_device_to_drv_device(device, struct ocrdma_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "0x%x\n", dev->nic_info.pdev->vendor);
-+	return sysfs_emit(buf, "0x%x\n", dev->nic_info.pdev->vendor);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -129,7 +129,7 @@ static ssize_t hca_type_show(struct device *device,
- 	struct ocrdma_dev *dev =
- 		rdma_device_to_drv_device(device, struct ocrdma_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "%s\n", &dev->model_number[0]);
-+	return sysfs_emit(buf, "%s\n", &dev->model_number[0]);
- }
- static DEVICE_ATTR_RO(hca_type);
- 
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 7c0aac3e635b..c1eaceac5016 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -124,7 +124,7 @@ static ssize_t hw_rev_show(struct device *device, struct device_attribute *attr,
- 	struct qedr_dev *dev =
- 		rdma_device_to_drv_device(device, struct qedr_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "0x%x\n", dev->attr.hw_ver);
-+	return sysfs_emit(buf, "0x%x\n", dev->attr.hw_ver);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -134,10 +134,10 @@ static ssize_t hca_type_show(struct device *device,
- 	struct qedr_dev *dev =
- 		rdma_device_to_drv_device(device, struct qedr_dev, ibdev);
- 
--	return scnprintf(buf, PAGE_SIZE, "FastLinQ QL%x %s\n",
--			 dev->pdev->device,
--			 rdma_protocol_iwarp(&dev->ibdev, 1) ?
--			 "iWARP" : "RoCE");
-+	return sysfs_emit(buf, "FastLinQ QL%x %s\n",
-+			  dev->pdev->device,
-+			  rdma_protocol_iwarp(&dev->ibdev, 1) ?
-+			  "iWARP" : "RoCE");
++
++	return "unknown";
++}
++
++static ssize_t hca_type_show(struct device *device,
++			     struct device_attribute *attr, char *buf)
++{
++	struct mthca_dev *dev =
++		rdma_device_to_drv_device(device, struct mthca_dev, ib_dev);
++
++	return sysfs_emit(buf, "%s\n", hca_type_string(dev->pdev->device));
  }
  static DEVICE_ATTR_RO(hca_type);
  
 diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
-index 021df0654ba7..2963915d0851 100644
+index 2963915d0851..02ad73ffcd5e 100644
 --- a/drivers/infiniband/hw/qib/qib_sysfs.c
 +++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -565,7 +565,7 @@ static ssize_t hw_rev_show(struct device *device, struct device_attribute *attr,
+@@ -575,13 +575,11 @@ static ssize_t hca_type_show(struct device *device,
  	struct qib_ibdev *dev =
  		rdma_device_to_drv_device(device, struct qib_ibdev, rdi.ibdev);
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+-	int ret;
  
--	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+	return sysfs_emit(buf, "%x\n", dd_from_dev(dev)->minrev);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
-@@ -580,7 +580,7 @@ static ssize_t hca_type_show(struct device *device,
  	if (!dd->boardname)
- 		ret = -EINVAL;
- 	else
--		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
-+		ret = sysfs_emit(buf, "%s\n", dd->boardname);
- 	return ret;
+-		ret = -EINVAL;
+-	else
+-		ret = sysfs_emit(buf, "%s\n", dd->boardname);
+-	return ret;
++		return -EINVAL;
++
++	return sysfs_emit(buf, "%s\n", dd->boardname);
  }
  static DEVICE_ATTR_RO(hca_type);
-@@ -590,7 +590,7 @@ static ssize_t version_show(struct device *device,
- 			    struct device_attribute *attr, char *buf)
- {
- 	/* The string printed here is already newline-terminated. */
--	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_qib_version);
-+	return sysfs_emit(buf, "%s", (char *)ib_qib_version);
- }
- static DEVICE_ATTR_RO(version);
- 
-@@ -602,7 +602,7 @@ static ssize_t boardversion_show(struct device *device,
+ static DEVICE_ATTR(board_id, 0444, hca_type_show, NULL);
+@@ -653,10 +651,7 @@ static ssize_t serial_show(struct device *device,
+ 		rdma_device_to_drv_device(device, struct qib_ibdev, rdi.ibdev);
  	struct qib_devdata *dd = dd_from_dev(dev);
  
- 	/* The string printed here is already newline-terminated. */
--	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+	return sysfs_emit(buf, "%s", dd->boardversion);
+-	buf[sizeof(dd->serial)] = '\0';
+-	memcpy(buf, dd->serial, sizeof(dd->serial));
+-	strcat(buf, "\n");
+-	return strlen(buf);
++	return sysfs_emit(buf, "%s\n", dd->serial);
  }
- static DEVICE_ATTR_RO(boardversion);
+ static DEVICE_ATTR_RO(serial);
  
-@@ -614,7 +614,7 @@ static ssize_t localbus_info_show(struct device *device,
+@@ -689,27 +684,27 @@ static ssize_t tempsense_show(struct device *device,
+ 	struct qib_ibdev *dev =
+ 		rdma_device_to_drv_device(device, struct qib_ibdev, rdi.ibdev);
  	struct qib_devdata *dd = dd_from_dev(dev);
+-	int ret;
+-	int idx;
++	int i;
+ 	u8 regvals[8];
  
- 	/* The string printed here is already newline-terminated. */
--	return scnprintf(buf, PAGE_SIZE, "%s", dd->lbus_info);
-+	return sysfs_emit(buf, "%s", dd->lbus_info);
- }
- static DEVICE_ATTR_RO(localbus_info);
- 
-@@ -628,9 +628,9 @@ static ssize_t nctxts_show(struct device *device,
- 	/* Return the number of user ports (contexts) available. */
- 	/* The calculation below deals with a special case where
- 	 * cfgctxts is set to 1 on a single-port board. */
--	return scnprintf(buf, PAGE_SIZE, "%u\n",
--			(dd->first_user_ctxt > dd->cfgctxts) ? 0 :
--			(dd->cfgctxts - dd->first_user_ctxt));
-+	return sysfs_emit(buf, "%u\n",
-+			  (dd->first_user_ctxt > dd->cfgctxts) ? 0 :
-+			  (dd->cfgctxts - dd->first_user_ctxt));
- }
- static DEVICE_ATTR_RO(nctxts);
- 
-@@ -642,7 +642,7 @@ static ssize_t nfreectxts_show(struct device *device,
- 	struct qib_devdata *dd = dd_from_dev(dev);
- 
- 	/* Return the number of free user ports (contexts) available. */
--	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->freectxts);
-+	return sysfs_emit(buf, "%u\n", dd->freectxts);
- }
- static DEVICE_ATTR_RO(nfreectxts);
- 
-@@ -703,12 +703,12 @@ static ssize_t tempsense_show(struct device *device,
- 		regvals[idx] = ret;
+-	ret = -ENXIO;
+-	for (idx = 0; idx < 8; ++idx) {
+-		if (idx == 6)
++	for (i = 0; i < 8; i++) {
++		int ret;
++
++		if (i == 6)
+ 			continue;
+-		ret = dd->f_tempsense_rd(dd, idx);
++		ret = dd->f_tempsense_rd(dd, i);
+ 		if (ret < 0)
+-			break;
+-		regvals[idx] = ret;
++			return ret;	/* return error on bad read */
++		regvals[i] = ret;
  	}
- 	if (idx == 8)
--		ret = scnprintf(buf, PAGE_SIZE, "%d %d %02X %02X %d %d\n",
--				*(signed char *)(regvals),
--				*(signed char *)(regvals + 1),
--				regvals[2], regvals[3],
--				*(signed char *)(regvals + 5),
--				*(signed char *)(regvals + 7));
-+		ret = sysfs_emit(buf, "%d %d %02X %02X %d %d\n",
-+				 *(signed char *)(regvals),
-+				 *(signed char *)(regvals + 1),
-+				 regvals[2], regvals[3],
-+				 *(signed char *)(regvals + 5),
-+				 *(signed char *)(regvals + 7));
- 	return ret;
+-	if (idx == 8)
+-		ret = sysfs_emit(buf, "%d %d %02X %02X %d %d\n",
+-				 *(signed char *)(regvals),
+-				 *(signed char *)(regvals + 1),
+-				 regvals[2], regvals[3],
+-				 *(signed char *)(regvals + 5),
+-				 *(signed char *)(regvals + 7));
+-	return ret;
++
++	return sysfs_emit(buf, "%d %d %02X %02X %d %d\n",
++			  (signed char)regvals[0],
++			  (signed char)regvals[1],
++			  regvals[2],
++			  regvals[3],
++			  (signed char)regvals[5],
++			  (signed char)regvals[7]);
  }
  static DEVICE_ATTR_RO(tempsense);
+ 
 diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-index c85d48ae7442..38da539c61e0 100644
+index 38da539c61e0..eddad4f0bd2d 100644
 --- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
 +++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
 @@ -57,7 +57,7 @@ static ssize_t board_id_show(struct device *device,
  	subsystem_device_id = us_ibdev->pdev->subsystem_device;
  	mutex_unlock(&us_ibdev->usdev_lock);
  
--	return scnprintf(buf, PAGE_SIZE, "%hu\n", subsystem_device_id);
-+	return sysfs_emit(buf, "%hu\n", subsystem_device_id);
+-	return sysfs_emit(buf, "%hu\n", subsystem_device_id);
++	return sysfs_emit(buf, "%u\n", subsystem_device_id);
  }
  static DEVICE_ATTR_RO(board_id);
  
-@@ -132,8 +132,8 @@ iface_show(struct device *device, struct device_attribute *attr, char *buf)
+@@ -69,19 +69,13 @@ config_show(struct device *device, struct device_attribute *attr, char *buf)
+ {
+ 	struct usnic_ib_dev *us_ibdev =
+ 		rdma_device_to_drv_device(device, struct usnic_ib_dev, ib_dev);
+-	char *ptr;
+-	unsigned left;
+-	unsigned n;
+ 	enum usnic_vnic_res_type res_type;
+-
+-	/* Buffer space limit is 1 page */
+-	ptr = buf;
+-	left = PAGE_SIZE;
++	int len;
+ 
+ 	mutex_lock(&us_ibdev->usdev_lock);
+ 	if (kref_read(&us_ibdev->vf_cnt) > 0) {
+ 		char *busname;
+-
++		char *sep = "";
+ 		/*
+ 		 * bus name seems to come with annoying prefix.
+ 		 * Remove it if it is predictable
+@@ -90,39 +84,36 @@ config_show(struct device *device, struct device_attribute *attr, char *buf)
+ 		if (strncmp(busname, "PCI Bus ", 8) == 0)
+ 			busname += 8;
+ 
+-		n = scnprintf(ptr, left,
+-			"%s: %s:%d.%d, %s, %pM, %u VFs\n Per VF:",
+-			dev_name(&us_ibdev->ib_dev.dev),
+-			busname,
+-			PCI_SLOT(us_ibdev->pdev->devfn),
+-			PCI_FUNC(us_ibdev->pdev->devfn),
+-			netdev_name(us_ibdev->netdev),
+-			us_ibdev->ufdev->mac,
+-			kref_read(&us_ibdev->vf_cnt));
+-		UPDATE_PTR_LEFT(n, ptr, left);
++		len = sysfs_emit(buf, "%s: %s:%d.%d, %s, %pM, %u VFs\n",
++				 dev_name(&us_ibdev->ib_dev.dev),
++				 busname,
++				 PCI_SLOT(us_ibdev->pdev->devfn),
++				 PCI_FUNC(us_ibdev->pdev->devfn),
++				 netdev_name(us_ibdev->netdev),
++				 us_ibdev->ufdev->mac,
++				 kref_read(&us_ibdev->vf_cnt));
+ 
++		len += sysfs_emit_at(buf, len, " Per VF:");
+ 		for (res_type = USNIC_VNIC_RES_TYPE_EOL;
+-				res_type < USNIC_VNIC_RES_TYPE_MAX;
+-				res_type++) {
++		     res_type < USNIC_VNIC_RES_TYPE_MAX;
++		     res_type++) {
+ 			if (us_ibdev->vf_res_cnt[res_type] == 0)
+ 				continue;
+-			n = scnprintf(ptr, left, " %d %s%s",
+-				us_ibdev->vf_res_cnt[res_type],
+-				usnic_vnic_res_type_to_str(res_type),
+-				(res_type < (USNIC_VNIC_RES_TYPE_MAX - 1)) ?
+-				 "," : "");
+-			UPDATE_PTR_LEFT(n, ptr, left);
++			len += sysfs_emit_at(buf, len, "%s %d %s",
++					     sep,
++					     us_ibdev->vf_res_cnt[res_type],
++					     usnic_vnic_res_type_to_str(res_type));
++			sep = ",";
+ 		}
+-		n = scnprintf(ptr, left, "\n");
+-		UPDATE_PTR_LEFT(n, ptr, left);
++		len += sysfs_emit_at(buf, len, "\n");
+ 	} else {
+-		n = scnprintf(ptr, left, "%s: no VFs\n",
+-				dev_name(&us_ibdev->ib_dev.dev));
+-		UPDATE_PTR_LEFT(n, ptr, left);
++		len = sysfs_emit(buf, "%s: no VFs\n",
++				 dev_name(&us_ibdev->ib_dev.dev));
+ 	}
++
+ 	mutex_unlock(&us_ibdev->usdev_lock);
+ 
+-	return ptr - buf;
++	return len;
+ }
+ static DEVICE_ATTR_RO(config);
+ 
+@@ -132,8 +123,7 @@ iface_show(struct device *device, struct device_attribute *attr, char *buf)
  	struct usnic_ib_dev *us_ibdev =
  		rdma_device_to_drv_device(device, struct usnic_ib_dev, ib_dev);
  
--	return scnprintf(buf, PAGE_SIZE, "%s\n",
--			netdev_name(us_ibdev->netdev));
-+	return sysfs_emit(buf, "%s\n",
-+			  netdev_name(us_ibdev->netdev));
+-	return sysfs_emit(buf, "%s\n",
+-			  netdev_name(us_ibdev->netdev));
++	return sysfs_emit(buf, "%s\n", netdev_name(us_ibdev->netdev));
  }
  static DEVICE_ATTR_RO(iface);
  
-@@ -143,8 +143,8 @@ max_vf_show(struct device *device, struct device_attribute *attr, char *buf)
+@@ -143,8 +133,7 @@ max_vf_show(struct device *device, struct device_attribute *attr, char *buf)
  	struct usnic_ib_dev *us_ibdev =
  		rdma_device_to_drv_device(device, struct usnic_ib_dev, ib_dev);
  
--	return scnprintf(buf, PAGE_SIZE, "%u\n",
--			kref_read(&us_ibdev->vf_cnt));
-+	return sysfs_emit(buf, "%u\n",
-+			  kref_read(&us_ibdev->vf_cnt));
+-	return sysfs_emit(buf, "%u\n",
+-			  kref_read(&us_ibdev->vf_cnt));
++	return sysfs_emit(buf, "%u\n", kref_read(&us_ibdev->vf_cnt));
  }
  static DEVICE_ATTR_RO(max_vf);
  
-@@ -158,7 +158,7 @@ qp_per_vf_show(struct device *device, struct device_attribute *attr, char *buf)
+@@ -158,8 +147,7 @@ qp_per_vf_show(struct device *device, struct device_attribute *attr, char *buf)
  	qp_per_vf = max(us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_WQ],
  			us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_RQ]);
  
--	return scnprintf(buf, PAGE_SIZE,
-+	return sysfs_emit(buf,
- 				"%d\n", qp_per_vf);
+-	return sysfs_emit(buf,
+-				"%d\n", qp_per_vf);
++	return sysfs_emit(buf, "%d\n", qp_per_vf);
  }
  static DEVICE_ATTR_RO(qp_per_vf);
-@@ -169,8 +169,8 @@ cq_per_vf_show(struct device *device, struct device_attribute *attr, char *buf)
- 	struct usnic_ib_dev *us_ibdev =
- 		rdma_device_to_drv_device(device, struct usnic_ib_dev, ib_dev);
- 
--	return scnprintf(buf, PAGE_SIZE, "%d\n",
--			us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_CQ]);
-+	return sysfs_emit(buf, "%d\n",
-+			  us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_CQ]);
- }
- static DEVICE_ATTR_RO(cq_per_vf);
- 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 780fd2dfc07e..f7fbe2044571 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -68,21 +68,21 @@ static int pvrdma_del_gid(const struct ib_gid_attr *attr, void **context);
- static ssize_t hca_type_show(struct device *device,
- 			     struct device_attribute *attr, char *buf)
- {
--	return sprintf(buf, "VMW_PVRDMA-%s\n", DRV_VERSION);
-+	return sysfs_emit(buf, "VMW_PVRDMA-%s\n", DRV_VERSION);
- }
- static DEVICE_ATTR_RO(hca_type);
- 
- static ssize_t hw_rev_show(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", PVRDMA_REV_ID);
-+	return sysfs_emit(buf, "%d\n", PVRDMA_REV_ID);
- }
- static DEVICE_ATTR_RO(hw_rev);
- 
- static ssize_t board_id_show(struct device *device,
- 			     struct device_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%d\n", PVRDMA_BOARD_ID);
-+	return sysfs_emit(buf, "%d\n", PVRDMA_BOARD_ID);
- }
- static DEVICE_ATTR_RO(board_id);
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index f368dc16281a..afa9674aa35c 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1033,7 +1033,7 @@ static ssize_t parent_show(struct device *device,
- 	struct rxe_dev *rxe =
- 		rdma_device_to_drv_device(device, struct rxe_dev, ib_dev);
- 
--	return scnprintf(buf, PAGE_SIZE, "%s\n", rxe_parent_name(rxe, 1));
-+	return sysfs_emit(buf, "%s\n", rxe_parent_name(rxe, 1));
- }
- 
- static DEVICE_ATTR_RO(parent);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 8f0b598a46ec..d5d592bdab35 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1514,9 +1514,9 @@ static ssize_t show_mode(struct device *d, struct device_attribute *attr,
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 
- 	if (test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags))
--		return sprintf(buf, "connected\n");
-+		return sysfs_emit(buf, "connected\n");
- 	else
--		return sprintf(buf, "datagram\n");
-+		return sysfs_emit(buf, "datagram\n");
- }
- 
- static ssize_t set_mode(struct device *d, struct device_attribute *attr,
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index abfab89423f4..a6f413491321 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2266,7 +2266,7 @@ static ssize_t show_pkey(struct device *dev,
- 	struct net_device *ndev = to_net_dev(dev);
- 	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
- 
--	return sprintf(buf, "0x%04x\n", priv->pkey);
-+	return sysfs_emit(buf, "0x%04x\n", priv->pkey);
- }
- static DEVICE_ATTR(pkey, S_IRUGO, show_pkey, NULL);
- 
-@@ -2276,7 +2276,8 @@ static ssize_t show_umcast(struct device *dev,
- 	struct net_device *ndev = to_net_dev(dev);
- 	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
- 
--	return sprintf(buf, "%d\n", test_bit(IPOIB_FLAG_UMCAST, &priv->flags));
-+	return sysfs_emit(buf, "%d\n",
-+			  test_bit(IPOIB_FLAG_UMCAST, &priv->flags));
- }
- 
- void ipoib_set_umcast(struct net_device *ndev, int umcast_val)
-@@ -2446,7 +2447,7 @@ static ssize_t dev_id_show(struct device *dev,
- 			"\"%s\" wants to know my dev_id. Should it look at dev_port instead? See Documentation/ABI/testing/sysfs-class-net for more info.\n",
- 			current->comm);
- 
--	return sprintf(buf, "%#x\n", ndev->dev_id);
-+	return sysfs_emit(buf, "%#x\n", ndev->dev_id);
- }
- static DEVICE_ATTR_RO(dev_id);
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index 4c50a87ed7cc..5958840dbeed 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -46,7 +46,7 @@ static ssize_t show_parent(struct device *d, struct device_attribute *attr,
- 	struct net_device *dev = to_net_dev(d);
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 
--	return sprintf(buf, "%s\n", priv->parent->name);
-+	return sysfs_emit(buf, "%s\n", priv->parent->name);
- }
- static DEVICE_ATTR(parent, S_IRUGO, show_parent, NULL);
  
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-index ac4c49cbf153..7f71f10126fc 100644
+index 0c767582286b..51ba82fc425c 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-@@ -52,7 +52,8 @@ static ssize_t max_reconnect_attempts_show(struct device *dev,
+@@ -196,11 +196,10 @@ static struct kobj_attribute rtrs_clt_state_attr =
+ 	__ATTR(state, 0444, rtrs_clt_state_show, NULL);
+ 
+ static ssize_t rtrs_clt_reconnect_show(struct kobject *kobj,
+-					struct kobj_attribute *attr,
+-					char *buf)
++				       struct kobj_attribute *attr,
++				       char *buf)
  {
- 	struct rtrs_clt *clt = container_of(dev, struct rtrs_clt, dev);
- 
--	return sprintf(page, "%d\n", rtrs_clt_get_max_reconnect_attempts(clt));
-+	return sysfs_emit(page, "%d\n",
-+			  rtrs_clt_get_max_reconnect_attempts(clt));
+-	return sysfs_emit(buf, "Usage: echo 1 > %s\n",
+-			  attr->attr.name);
++	return sysfs_emit(buf, "Usage: echo 1 > %s\n", attr->attr.name);
  }
  
- static ssize_t max_reconnect_attempts_store(struct device *dev,
-@@ -95,11 +96,13 @@ static ssize_t mpath_policy_show(struct device *dev,
+ static ssize_t rtrs_clt_reconnect_store(struct kobject *kobj,
+@@ -228,11 +227,10 @@ static struct kobj_attribute rtrs_clt_reconnect_attr =
+ 	       rtrs_clt_reconnect_store);
  
- 	switch (clt->mp_policy) {
- 	case MP_POLICY_RR:
--		return sprintf(page, "round-robin (RR: %d)\n", clt->mp_policy);
-+		return sysfs_emit(page, "round-robin (RR: %d)\n",
-+				  clt->mp_policy);
- 	case MP_POLICY_MIN_INFLIGHT:
--		return sprintf(page, "min-inflight (MI: %d)\n", clt->mp_policy);
-+		return sysfs_emit(page, "min-inflight (MI: %d)\n",
-+				  clt->mp_policy);
- 	default:
--		return sprintf(page, "Unknown (%d)\n", clt->mp_policy);
-+		return sysfs_emit(page, "Unknown (%d)\n", clt->mp_policy);
- 	}
- }
- 
-@@ -138,9 +141,9 @@ static DEVICE_ATTR_RW(mpath_policy);
- static ssize_t add_path_show(struct device *dev,
- 			     struct device_attribute *attr, char *page)
+ static ssize_t rtrs_clt_disconnect_show(struct kobject *kobj,
+-					 struct kobj_attribute *attr,
+-					 char *buf)
++					struct kobj_attribute *attr,
++					char *buf)
  {
--	return scnprintf(page, PAGE_SIZE,
--			 "Usage: echo [<source addr>@]<destination addr> > %s\n\n*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
--			 attr->attr.name);
-+	return sysfs_emit(page,
-+			  "Usage: echo [<source addr>@]<destination addr> > %s\n\n*addr ::= [ ip:<ipv4|ipv6> | gid:<gid> ]\n",
-+			  attr->attr.name);
+-	return sysfs_emit(buf, "Usage: echo 1 > %s\n",
+-			  attr->attr.name);
++	return sysfs_emit(buf, "Usage: echo 1 > %s\n", attr->attr.name);
  }
  
- static ssize_t add_path_store(struct device *dev,
+ static ssize_t rtrs_clt_disconnect_store(struct kobject *kobj,
+@@ -260,11 +258,10 @@ static struct kobj_attribute rtrs_clt_disconnect_attr =
+ 	       rtrs_clt_disconnect_store);
+ 
+ static ssize_t rtrs_clt_remove_path_show(struct kobject *kobj,
+-					  struct kobj_attribute *attr,
+-					  char *buf)
++					 struct kobj_attribute *attr,
++					 char *buf)
+ {
+-	return sysfs_emit(buf, "Usage: echo 1 > %s\n",
+-			  attr->attr.name);
++	return sysfs_emit(buf, "Usage: echo 1 > %s\n", attr->attr.name);
+ }
+ 
+ static ssize_t rtrs_clt_remove_path_store(struct kobject *kobj,
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+index 381a776ce404..6e7bebe4e064 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+@@ -27,11 +27,10 @@ static struct kobj_type ktype = {
+ };
+ 
+ static ssize_t rtrs_srv_disconnect_show(struct kobject *kobj,
+-					 struct kobj_attribute *attr,
+-					 char *buf)
++					struct kobj_attribute *attr,
++					char *buf)
+ {
+-	return sysfs_emit(buf, "Usage: echo 1 > %s\n",
+-			  attr->attr.name);
++	return sysfs_emit(buf, "Usage: echo 1 > %s\n", attr->attr.name);
+ }
+ 
+ static ssize_t rtrs_srv_disconnect_store(struct kobject *kobj,
+@@ -72,8 +71,7 @@ static ssize_t rtrs_srv_hca_port_show(struct kobject *kobj,
+ 	sess = container_of(kobj, typeof(*sess), kobj);
+ 	usr_con = sess->s.con[0];
+ 
+-	return sysfs_emit(page, "%u\n",
+-			  usr_con->cm_id->port_num);
++	return sysfs_emit(page, "%u\n", usr_con->cm_id->port_num);
+ }
+ 
+ static struct kobj_attribute rtrs_srv_hca_port_attr =
+@@ -87,8 +85,7 @@ static ssize_t rtrs_srv_hca_name_show(struct kobject *kobj,
+ 
+ 	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
+ 
+-	return sysfs_emit(page, "%s\n",
+-			  sess->s.dev->ib_dev->name);
++	return sysfs_emit(page, "%s\n", sess->s.dev->ib_dev->name);
+ }
+ 
+ static struct kobj_attribute rtrs_srv_hca_name_attr =
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index d8fcd21ab472..c9284f767ec1 100644
+index c9284f767ec1..4a5a4f522fd5 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2896,7 +2896,7 @@ static ssize_t show_id_ext(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "0x%016llx\n", be64_to_cpu(target->id_ext));
-+	return sysfs_emit(buf, "0x%016llx\n", be64_to_cpu(target->id_ext));
- }
- 
- static ssize_t show_ioc_guid(struct device *dev, struct device_attribute *attr,
-@@ -2904,7 +2904,7 @@ static ssize_t show_ioc_guid(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "0x%016llx\n", be64_to_cpu(target->ioc_guid));
-+	return sysfs_emit(buf, "0x%016llx\n", be64_to_cpu(target->ioc_guid));
- }
- 
- static ssize_t show_service_id(struct device *dev,
-@@ -2914,8 +2914,8 @@ static ssize_t show_service_id(struct device *dev,
+@@ -2925,6 +2925,7 @@ static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
  
  	if (target->using_rdma_cm)
  		return -ENOENT;
--	return sprintf(buf, "0x%016llx\n",
--		       be64_to_cpu(target->ib_cm.service_id));
-+	return sysfs_emit(buf, "0x%016llx\n",
-+			  be64_to_cpu(target->ib_cm.service_id));
++
+ 	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(target->ib_cm.pkey));
  }
  
- static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
-@@ -2925,7 +2925,7 @@ static ssize_t show_pkey(struct device *dev, struct device_attribute *attr,
+@@ -2944,6 +2945,7 @@ static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
  
  	if (target->using_rdma_cm)
  		return -ENOENT;
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(target->ib_cm.pkey));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(target->ib_cm.pkey));
++
+ 	return sysfs_emit(buf, "%pI6\n", ch->ib_cm.path.dgid.raw);
  }
  
- static ssize_t show_sgid(struct device *dev, struct device_attribute *attr,
-@@ -2933,7 +2933,7 @@ static ssize_t show_sgid(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%pI6\n", target->sgid.raw);
-+	return sysfs_emit(buf, "%pI6\n", target->sgid.raw);
- }
- 
- static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
-@@ -2944,7 +2944,7 @@ static ssize_t show_dgid(struct device *dev, struct device_attribute *attr,
+@@ -2954,6 +2956,7 @@ static ssize_t show_orig_dgid(struct device *dev,
  
  	if (target->using_rdma_cm)
  		return -ENOENT;
--	return sprintf(buf, "%pI6\n", ch->ib_cm.path.dgid.raw);
-+	return sysfs_emit(buf, "%pI6\n", ch->ib_cm.path.dgid.raw);
++
+ 	return sysfs_emit(buf, "%pI6\n", target->ib_cm.orig_dgid.raw);
  }
  
- static ssize_t show_orig_dgid(struct device *dev,
-@@ -2954,7 +2954,7 @@ static ssize_t show_orig_dgid(struct device *dev,
- 
- 	if (target->using_rdma_cm)
- 		return -ENOENT;
--	return sprintf(buf, "%pI6\n", target->ib_cm.orig_dgid.raw);
-+	return sysfs_emit(buf, "%pI6\n", target->ib_cm.orig_dgid.raw);
- }
- 
- static ssize_t show_req_lim(struct device *dev,
-@@ -2968,7 +2968,7 @@ static ssize_t show_req_lim(struct device *dev,
+@@ -2968,6 +2971,7 @@ static ssize_t show_req_lim(struct device *dev,
  		ch = &target->ch[i];
  		req_lim = min(req_lim, ch->req_lim);
  	}
--	return sprintf(buf, "%d\n", req_lim);
-+	return sysfs_emit(buf, "%d\n", req_lim);
++
+ 	return sysfs_emit(buf, "%d\n", req_lim);
  }
  
- static ssize_t show_zero_req_lim(struct device *dev,
-@@ -2976,7 +2976,7 @@ static ssize_t show_zero_req_lim(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%d\n", target->zero_req_lim);
-+	return sysfs_emit(buf, "%d\n", target->zero_req_lim);
- }
- 
- static ssize_t show_local_ib_port(struct device *dev,
-@@ -2984,7 +2984,7 @@ static ssize_t show_local_ib_port(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%d\n", target->srp_host->port);
-+	return sysfs_emit(buf, "%d\n", target->srp_host->port);
- }
- 
- static ssize_t show_local_ib_device(struct device *dev,
-@@ -2992,8 +2992,8 @@ static ssize_t show_local_ib_device(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%s\n",
--		       dev_name(&target->srp_host->srp_dev->dev->dev));
-+	return sysfs_emit(buf, "%s\n",
-+			  dev_name(&target->srp_host->srp_dev->dev->dev));
- }
- 
- static ssize_t show_ch_count(struct device *dev, struct device_attribute *attr,
-@@ -3001,7 +3001,7 @@ static ssize_t show_ch_count(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%d\n", target->ch_count);
-+	return sysfs_emit(buf, "%d\n", target->ch_count);
- }
- 
- static ssize_t show_comp_vector(struct device *dev,
-@@ -3009,7 +3009,7 @@ static ssize_t show_comp_vector(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%d\n", target->comp_vector);
-+	return sysfs_emit(buf, "%d\n", target->comp_vector);
- }
- 
- static ssize_t show_tl_retry_count(struct device *dev,
-@@ -3017,7 +3017,7 @@ static ssize_t show_tl_retry_count(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%d\n", target->tl_retry_count);
-+	return sysfs_emit(buf, "%d\n", target->tl_retry_count);
- }
- 
- static ssize_t show_cmd_sg_entries(struct device *dev,
-@@ -3025,7 +3025,7 @@ static ssize_t show_cmd_sg_entries(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%u\n", target->cmd_sg_cnt);
-+	return sysfs_emit(buf, "%u\n", target->cmd_sg_cnt);
- }
- 
- static ssize_t show_allow_ext_sg(struct device *dev,
-@@ -3033,7 +3033,8 @@ static ssize_t show_allow_ext_sg(struct device *dev,
- {
- 	struct srp_target_port *target = host_to_target(class_to_shost(dev));
- 
--	return sprintf(buf, "%s\n", target->allow_ext_sg ? "true" : "false");
-+	return sysfs_emit(buf, "%s\n",
-+			  target->allow_ext_sg ? "true" : "false");
- }
- 
- static DEVICE_ATTR(id_ext,	    S_IRUGO, show_id_ext,	   NULL);
-@@ -3893,7 +3894,7 @@ static ssize_t show_ibdev(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_host *host = container_of(dev, struct srp_host, dev);
- 
--	return sprintf(buf, "%s\n", dev_name(&host->srp_dev->dev->dev));
-+	return sysfs_emit(buf, "%s\n", dev_name(&host->srp_dev->dev->dev));
- }
- 
- static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
-@@ -3903,7 +3904,7 @@ static ssize_t show_port(struct device *dev, struct device_attribute *attr,
- {
- 	struct srp_host *host = container_of(dev, struct srp_host, dev);
- 
--	return sprintf(buf, "%d\n", host->port);
-+	return sysfs_emit(buf, "%d\n", host->port);
- }
- 
- static DEVICE_ATTR(port, S_IRUGO, show_port, NULL);
 -- 
 2.26.0
 
