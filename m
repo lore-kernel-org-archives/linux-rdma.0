@@ -2,99 +2,108 @@ Return-Path: <SRS0=zYoG=DQ=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3501EC433DF
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 16:25:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23D5EC433E7
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 16:52:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0667622277
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 16:25:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D56E12158C
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 16:52:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FfIR+SY0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389451AbgJIQZf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Oct 2020 12:25:35 -0400
-Received: from smtprelay0180.hostedemail.com ([216.40.44.180]:43442 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2389259AbgJIQZf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Oct 2020 12:25:35 -0400
-Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay08.hostedemail.com (Postfix) with ESMTP id 2A674182CF669;
-        Fri,  9 Oct 2020 16:25:34 +0000 (UTC)
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: run89_3b02ded271e2
-X-Filterd-Recvd-Size: 1862
-Received: from XPS-9350.home (unknown [47.151.133.149])
-        (Authenticated sender: joe@perches.com)
-        by omf11.hostedemail.com (Postfix) with ESMTPA;
-        Fri,  9 Oct 2020 16:25:33 +0000 (UTC)
-Message-ID: <16bbd7f0b23c8978f0c792739e7f77a7f7bd216a.camel@perches.com>
-Subject: Re: [PATCH 2/4] RDMA: Convert sysfs kobject * show functions to use
- sysfs_emit()
-From:   Joe Perches <joe@perches.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
-        Jack Wang <jinpu.wang@cloud.ionos.com>,
-        linux-rdma@vger.kernel.org
-Date:   Fri, 09 Oct 2020 09:25:31 -0700
-In-Reply-To: <20201009140938.GR5177@ziepe.ca>
-References: <cover.1602122879.git.joe@perches.com>
-         <7761c1efaebb96c432c85171d58405c25a824ccd.1602122880.git.joe@perches.com>
-         <20201009140938.GR5177@ziepe.ca>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.36.4-0ubuntu1 
+        id S2389734AbgJIQwt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Oct 2020 12:52:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47570 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389431AbgJIQwt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Oct 2020 12:52:49 -0400
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 041E6C0613D2
+        for <linux-rdma@vger.kernel.org>; Fri,  9 Oct 2020 09:52:48 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id i12so9608740ota.5
+        for <linux-rdma@vger.kernel.org>; Fri, 09 Oct 2020 09:52:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=/JtBANhH4Z/BdLlGjS0NlBGzyLw4E4xXrO1tS6ffJys=;
+        b=FfIR+SY0vgqv7nI3Dq+qv4YG7Ur2GMmNgASA6vdSbh7SQ0VWHoKOb5/l3Uo+9UlZQo
+         8XgbpCoa1nuMWvdYfnjImkTPFUud1Xn3GH+aPR1bVCuaeLjBXqOg72lELvLp5BzEeztK
+         koQupRq5/8QrsljA3KH9DTxa8Qn3+R+rJk3Z6T1a5g3eHDWadzBr/ir72EmPT1FZSwpY
+         CbAiJGvVqSkzghW6SOFvaXBnuJ7eey7D/1ykvnqyTwiDo6y8rQd45tMHCqU9jDrtyLiU
+         9BHjyMb6Hco6qo1AJEOAI2Z652ILN/ey3CVYv1OkbGugRA8rEaVNVe0+EQ/wLHDJBaqY
+         sjgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=/JtBANhH4Z/BdLlGjS0NlBGzyLw4E4xXrO1tS6ffJys=;
+        b=jEJ3VkOAXpuzqOLtYk7nGRAPUz7vGXN/qgcJ7BuDctC9NNyhNthGZjGA56T2Np4ipe
+         SE8bmfFlsA9/eQvP5rTfqaJdoE7mehdRyI4BDyiAFO3BN30q5gY3qAVEVw6dzYnCJ3h8
+         aL5bZgVb+i9KDCd+q/Yih4NkNdFlNVB/WVl+PwO62AEwbphrTOTmf0XOHKbxtOxKYGNl
+         +iOWdJaN33GxPW0VMelxPZ1mjMoMP/a9OQBtxOnyCdJsxfQiADgFd/Ie4HZR5crJ21gb
+         O9AKvdEbGVaxydbpFxyXceVW2vIHfwEBhepqgAOOmQkIGGc+Q1rI4ovFJxCerZ1eqb7E
+         aQlw==
+X-Gm-Message-State: AOAM532Dq1yuNW9NofLd9mFWv+HbOC9OnAbShLovG8Cs+ZuXvb35doTj
+        cQcwDjwTrkcClis/luEukEdAXxkrBkU=
+X-Google-Smtp-Source: ABdhPJxf1NiRmo3I3T8TCEjUcliFk25NI+iTgnXCW8N2Lb5lED2LuQLF7io0JqV1XM65/cPMn5mZUw==
+X-Received: by 2002:a9d:c03:: with SMTP id 3mr8039303otr.146.1602262368325;
+        Fri, 09 Oct 2020 09:52:48 -0700 (PDT)
+Received: from localhost ([2605:6000:8b03:f000:21af:60b5:ebc7:e8c6])
+        by smtp.gmail.com with ESMTPSA id y13sm6841073ote.45.2020.10.09.09.52.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Oct 2020 09:52:47 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] rdma_rxe: remove unused RXE_MR_TYPE_FMR
+Date:   Fri,  9 Oct 2020 11:51:13 -0500
+Message-Id: <20201009165112.271143-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, 2020-10-09 at 11:09 -0300, Jason Gunthorpe wrote:
-> On Wed, Oct 07, 2020 at 07:36:25PM -0700, Joe Perches wrote:
-> > Done with cocci script:
-> > 
-> > @@
-> > identifier k_show;
-> > identifier arg1, arg2, arg3;
-> > @@
-> > ssize_t k_show(struct kobject *
-> > -	arg1
-> > +	kobj
-> > 	, struct kobj_attribute *
-> > -	arg2
-> > +	attr
-> > 	, char *
-> > -	arg3
-> > +	buf
-> > 	)
-> > {
-> > 	...
-> > (
-> > -	arg1
-> > +	kobj
-> > -	arg2
-> > +	attr
-> > -	arg3
-> > +	buf
-> > )
-> > 	...
-> > }
-> 
-> This is nice
+This is a left over from the past. It is no longer used.
 
-The 1/4 patch for device * cannot do this as there are
-conflicts with dev/device naming within the functions.
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c    | 1 -
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 1 -
+ 2 files changed, 2 deletions(-)
 
-It'd be nice to do the conversions though.
-
-Maybe rename
-
-	dev->ibdev
-	device->dev
-
-so that all sysfs _show function are consistently
-
-ssize_t <foo>_show(struct device *dev, struct device_attribute *attr, char *buf);
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 47f737736961..390d8e6629ad 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -31,7 +31,6 @@ int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length)
+ 		return 0;
+ 
+ 	case RXE_MEM_TYPE_MR:
+-	case RXE_MEM_TYPE_FMR:
+ 		if (iova < mem->iova ||
+ 		    length > mem->length ||
+ 		    iova > mem->iova + mem->length - length)
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 560a610bb0aa..658b9b1ebc62 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -273,7 +273,6 @@ enum rxe_mem_type {
+ 	RXE_MEM_TYPE_NONE,
+ 	RXE_MEM_TYPE_DMA,
+ 	RXE_MEM_TYPE_MR,
+-	RXE_MEM_TYPE_FMR,
+ 	RXE_MEM_TYPE_MW,
+ };
+ 
+-- 
+2.25.1
 
