@@ -7,43 +7,41 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5CF7C43457
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B928DC433E7
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:07:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BBA82225B
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7ACF62053B
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:07:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391632AbgJIUG6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Oct 2020 16:06:58 -0400
-Received: from mga02.intel.com ([134.134.136.20]:57645 "EHLO mga02.intel.com"
+        id S2391730AbgJIUHp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Oct 2020 16:07:45 -0400
+Received: from mga06.intel.com ([134.134.136.31]:1621 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390898AbgJITwA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Oct 2020 15:52:00 -0400
-IronPort-SDR: 5+LUY2Awrr9j/tUQIAvjFtQA09wGVszIUmNQ5L2DFU9VGy9iI/QOZXZ6nS089EMR6yn+dOlt80
- BHiurkWZK9Mw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="152450896"
+        id S2403959AbgJITvm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Oct 2020 15:51:42 -0400
+IronPort-SDR: OvUdnTIo53H2AyyTnYh4FWnAgUT0vb6jIYBsFTvfZM4VsCqvxXdHL/PCZfQ+hdONhRPcaXWgsk
+ GWtbV+Ff7Znw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="227178845"
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="152450896"
+   d="scan'208";a="227178845"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:59 -0700
-IronPort-SDR: eWSKFRksQmWHvS1j4lFouXjU/VQ78asIZFlodYo3aryNHFOArT/TLAMBqja15iBonRYEaVT+Tm
- vvSyZvytK3gg==
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:39 -0700
+IronPort-SDR: 6nDyG/rNIU8VCp7PRxt8N7VM6Ts7FaR6Cq3BMAOPdzxAbIieQhQY1hWISzmf8TSYIGXE2cP/wS
+ 1DDas2UbMNkw==
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="462300719"
+   d="scan'208";a="345147432"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:57 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:37 -0700
 From:   ira.weiny@intel.com
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Andy Lutomirski <luto@kernel.org>,
         Peter Zijlstra <peterz@infradead.org>
-Cc:     Ira Weiny <ira.weiny@intel.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Richard Weinberger <richard@nod.at>, x86@kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
+Cc:     Ira Weiny <ira.weiny@intel.com>, Steve French <sfrench@samba.org>,
+        x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
@@ -68,9 +66,9 @@ Cc:     Ira Weiny <ira.weiny@intel.com>,
         drbd-dev@lists.linbit.com, linux-block@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-cachefs@redhat.com,
         samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
-Subject: [PATCH RFC PKS/PMEM 20/58] fs/jffs2: Utilize new kmap_thread()
-Date:   Fri,  9 Oct 2020 12:49:55 -0700
-Message-Id: <20201009195033.3208459-21-ira.weiny@intel.com>
+Subject: [PATCH RFC PKS/PMEM 14/58] fs/cifs: Utilize new kmap_thread()
+Date:   Fri,  9 Oct 2020 12:49:49 -0700
+Message-Id: <20201009195033.3208459-15-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201009195033.3208459-1-ira.weiny@intel.com>
 References: <20201009195033.3208459-1-ira.weiny@intel.com>
@@ -85,58 +83,125 @@ From: Ira Weiny <ira.weiny@intel.com>
 The kmap() calls in this FS are localized to a single thread.  To avoid
 the over head of global PKRS updates use the new kmap_thread() call.
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Richard Weinberger <richard@nod.at>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/jffs2/file.c | 4 ++--
- fs/jffs2/gc.c   | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/cifs/cifsencrypt.c |  6 +++---
+ fs/cifs/file.c        | 16 ++++++++--------
+ fs/cifs/smb2ops.c     |  8 ++++----
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/fs/jffs2/file.c b/fs/jffs2/file.c
-index f8fb89b10227..3e6d54f9b011 100644
---- a/fs/jffs2/file.c
-+++ b/fs/jffs2/file.c
-@@ -88,7 +88,7 @@ static int jffs2_do_readpage_nolock (struct inode *inode, struct page *pg)
+diff --git a/fs/cifs/cifsencrypt.c b/fs/cifs/cifsencrypt.c
+index 9daa256f69d4..2f8232d01a56 100644
+--- a/fs/cifs/cifsencrypt.c
++++ b/fs/cifs/cifsencrypt.c
+@@ -82,17 +82,17 @@ int __cifs_calc_signature(struct smb_rqst *rqst,
  
- 	BUG_ON(!PageLocked(pg));
+ 		rqst_page_get_length(rqst, i, &len, &offset);
  
--	pg_buf = kmap(pg);
-+	pg_buf = kmap_thread(pg);
- 	/* FIXME: Can kmap fail? */
+-		kaddr = (char *) kmap(rqst->rq_pages[i]) + offset;
++		kaddr = (char *) kmap_thread(rqst->rq_pages[i]) + offset;
  
- 	ret = jffs2_read_inode_range(c, f, pg_buf, pg->index << PAGE_SHIFT,
-@@ -103,7 +103,7 @@ static int jffs2_do_readpage_nolock (struct inode *inode, struct page *pg)
- 	}
- 
- 	flush_dcache_page(pg);
--	kunmap(pg);
-+	kunmap_thread(pg);
- 
- 	jffs2_dbg(2, "readpage finished\n");
- 	return ret;
-diff --git a/fs/jffs2/gc.c b/fs/jffs2/gc.c
-index 373b3b7c9f44..a7259783ab84 100644
---- a/fs/jffs2/gc.c
-+++ b/fs/jffs2/gc.c
-@@ -1335,7 +1335,7 @@ static int jffs2_garbage_collect_dnode(struct jffs2_sb_info *c, struct jffs2_era
- 		return PTR_ERR(page);
- 	}
- 
--	pg_ptr = kmap(page);
-+	pg_ptr = kmap_thread(page);
- 	mutex_lock(&f->sem);
- 
- 	offset = start;
-@@ -1400,7 +1400,7 @@ static int jffs2_garbage_collect_dnode(struct jffs2_sb_info *c, struct jffs2_era
+ 		rc = crypto_shash_update(shash, kaddr, len);
+ 		if (rc) {
+ 			cifs_dbg(VFS, "%s: Could not update with payload\n",
+ 				 __func__);
+-			kunmap(rqst->rq_pages[i]);
++			kunmap_thread(rqst->rq_pages[i]);
+ 			return rc;
  		}
+ 
+-		kunmap(rqst->rq_pages[i]);
++		kunmap_thread(rqst->rq_pages[i]);
+ 	}
+ 
+ 	rc = crypto_shash_final(shash, signature);
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index be46fab4c96d..6db2caab8852 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2145,17 +2145,17 @@ static int cifs_partialpagewrite(struct page *page, unsigned from, unsigned to)
+ 	inode = page->mapping->host;
+ 
+ 	offset += (loff_t)from;
+-	write_data = kmap(page);
++	write_data = kmap_thread(page);
+ 	write_data += from;
+ 
+ 	if ((to > PAGE_SIZE) || (from > to)) {
+-		kunmap(page);
++		kunmap_thread(page);
+ 		return -EIO;
+ 	}
+ 
+ 	/* racing with truncate? */
+ 	if (offset > mapping->host->i_size) {
+-		kunmap(page);
++		kunmap_thread(page);
+ 		return 0; /* don't care */
+ 	}
+ 
+@@ -2183,7 +2183,7 @@ static int cifs_partialpagewrite(struct page *page, unsigned from, unsigned to)
+ 			rc = -EIO;
  	}
  
 -	kunmap(page);
 +	kunmap_thread(page);
- 	put_page(page);
- 	return ret;
+ 	return rc;
  }
+ 
+@@ -2559,10 +2559,10 @@ static int cifs_write_end(struct file *file, struct address_space *mapping,
+ 		   known which we might as well	leverage */
+ 		/* BB check if anything else missing out of ppw
+ 		   such as updating last write time */
+-		page_data = kmap(page);
++		page_data = kmap_thread(page);
+ 		rc = cifs_write(cfile, pid, page_data + offset, copied, &pos);
+ 		/* if (rc < 0) should we set writebehind rc? */
+-		kunmap(page);
++		kunmap_thread(page);
+ 
+ 		free_xid(xid);
+ 	} else {
+@@ -4511,7 +4511,7 @@ static int cifs_readpage_worker(struct file *file, struct page *page,
+ 	if (rc == 0)
+ 		goto read_complete;
+ 
+-	read_data = kmap(page);
++	read_data = kmap_thread(page);
+ 	/* for reads over a certain size could initiate async read ahead */
+ 
+ 	rc = cifs_read(file, read_data, PAGE_SIZE, poffset);
+@@ -4540,7 +4540,7 @@ static int cifs_readpage_worker(struct file *file, struct page *page,
+ 	rc = 0;
+ 
+ io_error:
+-	kunmap(page);
++	kunmap_thread(page);
+ 	unlock_page(page);
+ 
+ read_complete:
+diff --git a/fs/cifs/smb2ops.c b/fs/cifs/smb2ops.c
+index 32f90dc82c84..a3e7ebab38b6 100644
+--- a/fs/cifs/smb2ops.c
++++ b/fs/cifs/smb2ops.c
+@@ -4068,12 +4068,12 @@ smb3_init_transform_rq(struct TCP_Server_Info *server, int num_rqst,
+ 
+ 			rqst_page_get_length(&new_rq[i], j, &len, &offset);
+ 
+-			dst = (char *) kmap(new_rq[i].rq_pages[j]) + offset;
+-			src = (char *) kmap(old_rq[i - 1].rq_pages[j]) + offset;
++			dst = (char *) kmap_thread(new_rq[i].rq_pages[j]) + offset;
++			src = (char *) kmap_thread(old_rq[i - 1].rq_pages[j]) + offset;
+ 
+ 			memcpy(dst, src, len);
+-			kunmap(new_rq[i].rq_pages[j]);
+-			kunmap(old_rq[i - 1].rq_pages[j]);
++			kunmap_thread(new_rq[i].rq_pages[j]);
++			kunmap_thread(old_rq[i - 1].rq_pages[j]);
+ 		}
+ 	}
+ 
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
