@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 430E4C433E7
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:08:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19CBBC4363A
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:09:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 068532053B
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:08:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7C4C2067D
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:09:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391718AbgJIUHn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Oct 2020 16:07:43 -0400
-Received: from mga09.intel.com ([134.134.136.24]:28486 "EHLO mga09.intel.com"
+        id S2391799AbgJIUJC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Oct 2020 16:09:02 -0400
+Received: from mga12.intel.com ([192.55.52.136]:29124 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403855AbgJITve (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Oct 2020 15:51:34 -0400
-IronPort-SDR: xxLTFcykYmc5KgZD1HbS1g7i4OYmICVIRRif8W7Jpite0DKStiZN2ggNBumfLr6hCgxjqqigjG
- UdsgKzTVcxow==
-X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="165642918"
+        id S2390851AbgJITvS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Oct 2020 15:51:18 -0400
+IronPort-SDR: BjVNbGWEsRp5ob82NyuDF9C0xKEegG65A+JRryG4Nh+TwGmSJ7KHpML9WJ4YeWqD9WoRDB2csA
+ ScUnXHy+dHGw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="144850649"
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="165642918"
+   d="scan'208";a="144850649"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:29 -0700
-IronPort-SDR: 0+lGONiHFSeyE/0kQGUe/v/Z0vqstKsQGCedA4TvP63fkNzDWGjPYFj9hsR1yECUQTFrwG697Z
- McTBAsxZaLwQ==
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:16 -0700
+IronPort-SDR: JrRKqLJV6Da/4fMbj+O46I413eP5nzJr39umbL7Y1s6mKMem5hJdGDAmJBrAS4XWsKikzHiU+3
+ eSwE6XBZdj5A==
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="298419323"
+   d="scan'208";a="518800998"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:28 -0700
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:51:15 -0700
 From:   ira.weiny@intel.com
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -41,7 +41,7 @@ To:     Andrew Morton <akpm@linux-foundation.org>,
         Andy Lutomirski <luto@kernel.org>,
         Peter Zijlstra <peterz@infradead.org>
 Cc:     Ira Weiny <ira.weiny@intel.com>,
-        David Howells <dhowells@redhat.com>, x86@kernel.org,
+        Luis Chamberlain <mcgrof@kernel.org>, x86@kernel.org,
         Dave Hansen <dave.hansen@linux.intel.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org,
@@ -67,9 +67,9 @@ Cc:     Ira Weiny <ira.weiny@intel.com>,
         drbd-dev@lists.linbit.com, linux-block@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-cachefs@redhat.com,
         samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
-Subject: [PATCH RFC PKS/PMEM 12/58] fs/afs: Utilize new kmap_thread()
-Date:   Fri,  9 Oct 2020 12:49:47 -0700
-Message-Id: <20201009195033.3208459-13-ira.weiny@intel.com>
+Subject: [PATCH RFC PKS/PMEM 08/58] drivers/firmware_loader: Utilize new kmap_thread()
+Date:   Fri,  9 Oct 2020 12:49:43 -0700
+Message-Id: <20201009195033.3208459-9-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201009195033.3208459-1-ira.weiny@intel.com>
 References: <20201009195033.3208459-1-ira.weiny@intel.com>
@@ -81,202 +81,56 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-The kmap() calls in this FS are localized to a single thread.  To
+The kmap() calls in this driver are localized to a single thread.  To
 avoid the over head of global PKRS updates use the new kmap_thread()
 call.
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/afs/dir.c      | 16 ++++++++--------
- fs/afs/dir_edit.c | 16 ++++++++--------
- fs/afs/mntpt.c    |  4 ++--
- fs/afs/write.c    |  4 ++--
- 4 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/base/firmware_loader/fallback.c | 4 ++--
+ drivers/base/firmware_loader/main.c     | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/fs/afs/dir.c b/fs/afs/dir.c
-index 1d2e61e0ab04..5d01cdb590de 100644
---- a/fs/afs/dir.c
-+++ b/fs/afs/dir.c
-@@ -127,14 +127,14 @@ static bool afs_dir_check_page(struct afs_vnode *dvnode, struct page *page,
- 	qty /= sizeof(union afs_xdr_dir_block);
+diff --git a/drivers/base/firmware_loader/fallback.c b/drivers/base/firmware_loader/fallback.c
+index 283ca2de76d4..22dea9ba7a37 100644
+--- a/drivers/base/firmware_loader/fallback.c
++++ b/drivers/base/firmware_loader/fallback.c
+@@ -322,14 +322,14 @@ static void firmware_rw(struct fw_priv *fw_priv, char *buffer,
+ 		int page_ofs = offset & (PAGE_SIZE-1);
+ 		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
  
- 	/* check them */
--	dbuf = kmap(page);
-+	dbuf = kmap_thread(page);
- 	for (tmp = 0; tmp < qty; tmp++) {
- 		if (dbuf->blocks[tmp].hdr.magic != AFS_DIR_MAGIC) {
- 			printk("kAFS: %s(%lx): bad magic %d/%d is %04hx\n",
- 			       __func__, dvnode->vfs_inode.i_ino, tmp, qty,
- 			       ntohs(dbuf->blocks[tmp].hdr.magic));
- 			trace_afs_dir_check_failed(dvnode, off, i_size);
--			kunmap(page);
-+			kunmap_thread(page);
- 			trace_afs_file_error(dvnode, -EIO, afs_file_error_dir_bad_magic);
- 			goto error;
- 		}
-@@ -146,7 +146,7 @@ static bool afs_dir_check_page(struct afs_vnode *dvnode, struct page *page,
- 		((u8 *)&dbuf->blocks[tmp])[AFS_DIR_BLOCK_SIZE - 1] = 0;
- 	}
+-		page_data = kmap(fw_priv->pages[page_nr]);
++		page_data = kmap_thread(fw_priv->pages[page_nr]);
  
--	kunmap(page);
-+	kunmap_thread(page);
+ 		if (read)
+ 			memcpy(buffer, page_data + page_ofs, page_cnt);
+ 		else
+ 			memcpy(page_data + page_ofs, buffer, page_cnt);
  
- checked:
- 	afs_stat_v(dvnode, n_read_dir);
-@@ -177,13 +177,13 @@ static bool afs_dir_check_pages(struct afs_vnode *dvnode, struct afs_read *req)
- 		req->pos, req->index, req->nr_pages, req->offset);
+-		kunmap(fw_priv->pages[page_nr]);
++		kunmap_thread(fw_priv->pages[page_nr]);
+ 		buffer += page_cnt;
+ 		offset += page_cnt;
+ 		count -= page_cnt;
+diff --git a/drivers/base/firmware_loader/main.c b/drivers/base/firmware_loader/main.c
+index 63b9714a0154..cc884c9f8742 100644
+--- a/drivers/base/firmware_loader/main.c
++++ b/drivers/base/firmware_loader/main.c
+@@ -409,11 +409,11 @@ static int fw_decompress_xz_pages(struct device *dev, struct fw_priv *fw_priv,
  
- 	for (i = 0; i < req->nr_pages; i++) {
--		dbuf = kmap(req->pages[i]);
-+		dbuf = kmap_thread(req->pages[i]);
- 		for (j = 0; j < qty; j++) {
- 			union afs_xdr_dir_block *block = &dbuf->blocks[j];
- 
- 			pr_warn("[%02x] %32phN\n", i * qty + j, block);
- 		}
--		kunmap(req->pages[i]);
-+		kunmap_thread(req->pages[i]);
- 	}
- 	return false;
- }
-@@ -481,7 +481,7 @@ static int afs_dir_iterate(struct inode *dir, struct dir_context *ctx,
- 
- 		limit = blkoff & ~(PAGE_SIZE - 1);
- 
--		dbuf = kmap(page);
-+		dbuf = kmap_thread(page);
- 
- 		/* deal with the individual blocks stashed on this page */
- 		do {
-@@ -489,7 +489,7 @@ static int afs_dir_iterate(struct inode *dir, struct dir_context *ctx,
- 					       sizeof(union afs_xdr_dir_block)];
- 			ret = afs_dir_iterate_block(dvnode, ctx, dblock, blkoff);
- 			if (ret != 1) {
--				kunmap(page);
-+				kunmap_thread(page);
- 				goto out;
- 			}
- 
-@@ -497,7 +497,7 @@ static int afs_dir_iterate(struct inode *dir, struct dir_context *ctx,
- 
- 		} while (ctx->pos < dir->i_size && blkoff < limit);
- 
+ 		/* decompress onto the new allocated page */
+ 		page = fw_priv->pages[fw_priv->nr_pages - 1];
+-		xz_buf.out = kmap(page);
++		xz_buf.out = kmap_thread(page);
+ 		xz_buf.out_pos = 0;
+ 		xz_buf.out_size = PAGE_SIZE;
+ 		xz_ret = xz_dec_run(xz_dec, &xz_buf);
 -		kunmap(page);
 +		kunmap_thread(page);
- 		ret = 0;
- 	}
- 
-diff --git a/fs/afs/dir_edit.c b/fs/afs/dir_edit.c
-index b108528bf010..35ed6828e205 100644
---- a/fs/afs/dir_edit.c
-+++ b/fs/afs/dir_edit.c
-@@ -218,7 +218,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 	need_slots = round_up(12 + name->len + 1 + 4, AFS_DIR_DIRENT_SIZE);
- 	need_slots /= AFS_DIR_DIRENT_SIZE;
- 
--	meta_page = kmap(page0);
-+	meta_page = kmap_thread(page0);
- 	meta = &meta_page->blocks[0];
- 	if (i_size == 0)
- 		goto new_directory;
-@@ -247,7 +247,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 				set_page_private(page, 1);
- 				SetPagePrivate(page);
- 			}
--			dir_page = kmap(page);
-+			dir_page = kmap_thread(page);
- 		}
- 
- 		/* Abandon the edit if we got a callback break. */
-@@ -284,7 +284,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 
- 		if (page != page0) {
- 			unlock_page(page);
--			kunmap(page);
-+			kunmap_thread(page);
- 			put_page(page);
- 		}
- 	}
-@@ -323,7 +323,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 	afs_set_contig_bits(block, slot, need_slots);
- 	if (page != page0) {
- 		unlock_page(page);
--		kunmap(page);
-+		kunmap_thread(page);
- 		put_page(page);
- 	}
- 
-@@ -337,7 +337,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 
- out_unmap:
- 	unlock_page(page0);
--	kunmap(page0);
-+	kunmap_thread(page0);
- 	put_page(page0);
- 	_leave("");
- 	return;
-@@ -346,7 +346,7 @@ void afs_edit_dir_add(struct afs_vnode *vnode,
- 	trace_afs_edit_dir(vnode, why, afs_edit_dir_create_inval, 0, 0, 0, 0, name->name);
- 	clear_bit(AFS_VNODE_DIR_VALID, &vnode->flags);
- 	if (page != page0) {
--		kunmap(page);
-+		kunmap_thread(page);
- 		put_page(page);
- 	}
- 	goto out_unmap;
-@@ -398,7 +398,7 @@ void afs_edit_dir_remove(struct afs_vnode *vnode,
- 	need_slots = round_up(12 + name->len + 1 + 4, AFS_DIR_DIRENT_SIZE);
- 	need_slots /= AFS_DIR_DIRENT_SIZE;
- 
--	meta_page = kmap(page0);
-+	meta_page = kmap_thread(page0);
- 	meta = &meta_page->blocks[0];
- 
- 	/* Find a page that has sufficient slots available.  Each VM page
-@@ -410,7 +410,7 @@ void afs_edit_dir_remove(struct afs_vnode *vnode,
- 			page = find_lock_page(vnode->vfs_inode.i_mapping, index);
- 			if (!page)
- 				goto error;
--			dir_page = kmap(page);
-+			dir_page = kmap_thread(page);
- 		} else {
- 			page = page0;
- 			dir_page = meta_page;
-diff --git a/fs/afs/mntpt.c b/fs/afs/mntpt.c
-index 79bc5f1338ed..562454e2fd5c 100644
---- a/fs/afs/mntpt.c
-+++ b/fs/afs/mntpt.c
-@@ -139,11 +139,11 @@ static int afs_mntpt_set_params(struct fs_context *fc, struct dentry *mntpt)
- 			return ret;
- 		}
- 
--		buf = kmap(page);
-+		buf = kmap_thread(page);
- 		ret = -EINVAL;
- 		if (buf[size - 1] == '.')
- 			ret = vfs_parse_fs_string(fc, "source", buf, size - 1);
--		kunmap(page);
-+		kunmap_thread(page);
- 		put_page(page);
- 		if (ret < 0)
- 			return ret;
-diff --git a/fs/afs/write.c b/fs/afs/write.c
-index 4b2265cb1891..c56e5b4db4ae 100644
---- a/fs/afs/write.c
-+++ b/fs/afs/write.c
-@@ -38,9 +38,9 @@ static int afs_fill_page(struct afs_vnode *vnode, struct key *key,
- 	if (pos >= vnode->vfs_inode.i_size) {
- 		p = pos & ~PAGE_MASK;
- 		ASSERTCMP(p + len, <=, PAGE_SIZE);
--		data = kmap(page);
-+		data = kmap_thread(page);
- 		memset(data + p, 0, len);
--		kunmap(page);
-+		kunmap_thread(page);
- 		return 0;
- 	}
- 
+ 		fw_priv->size += xz_buf.out_pos;
+ 		/* partial decompression means either end or error */
+ 		if (xz_buf.out_pos != PAGE_SIZE)
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
