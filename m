@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAB9EC43457
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:03:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3717CC433DF
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:03:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DF9320732
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:03:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE00820732
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:03:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390861AbgJIUDV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Oct 2020 16:03:21 -0400
-Received: from mga17.intel.com ([192.55.52.151]:34046 "EHLO mga17.intel.com"
+        id S2390049AbgJIUDo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Oct 2020 16:03:44 -0400
+Received: from mga07.intel.com ([134.134.136.100]:56781 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389118AbgJITwr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Oct 2020 15:52:47 -0400
-IronPort-SDR: HCJqdmCgpU6pXG1LsAwcTZbp9UGZICOvUpbuOIRNLSKkgIBl4bErNnLIrbSn24FVu1Q3zQC/2Q
- 2KazPDmPpjUQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="145397499"
+        id S2388726AbgJITwe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Oct 2020 15:52:34 -0400
+IronPort-SDR: k5n5dJgad3PH5z1nKWRCqhUQsH9CIT69v4l8qL7SJaW8QquVIZ7+Rkvin4YtVTXz0/2gWsqL9u
+ 0/qOsLBGzxnw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="229715221"
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="145397499"
+   d="scan'208";a="229715221"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:45 -0700
-IronPort-SDR: A7QVfEYpWd+zukvvJSzSDlmpc6UtcI1VTl49mnWle7o9+shZWHPb4ayBrZUheEhKcyM4kHv/QX
- ai2WmfcpOoFA==
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:30 -0700
+IronPort-SDR: R8dnd4Gi4VR6B2jqh++vX5H71gVtYpBk3ChyBwkq2ll0tg176OYljcvG78jHbXA7T9l0eBxuZS
+ YLX/odwmLDNw==
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="389237190"
+   d="scan'208";a="329006590"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:43 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:29 -0700
 From:   ira.weiny@intel.com
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Andy Lutomirski <luto@kernel.org>,
         Peter Zijlstra <peterz@infradead.org>
-Cc:     Ira Weiny <ira.weiny@intel.com>, Jeff Dike <jdike@addtoit.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>, x86@kernel.org,
+Cc:     Ira Weiny <ira.weiny@intel.com>,
+        David Howells <dhowells@redhat.com>, x86@kernel.org,
         Dave Hansen <dave.hansen@linux.intel.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org,
@@ -68,9 +67,9 @@ Cc:     Ira Weiny <ira.weiny@intel.com>, Jeff Dike <jdike@addtoit.com>,
         drbd-dev@lists.linbit.com, linux-block@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-cachefs@redhat.com,
         samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
-Subject: [PATCH RFC PKS/PMEM 32/58] fs/hostfs: Utilize new kmap_thread()
-Date:   Fri,  9 Oct 2020 12:50:07 -0700
-Message-Id: <20201009195033.3208459-33-ira.weiny@intel.com>
+Subject: [PATCH RFC PKS/PMEM 28/58] fs/cachefiles: Utilize new kmap_thread()
+Date:   Fri,  9 Oct 2020 12:50:03 -0700
+Message-Id: <20201009195033.3208459-29-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201009195033.3208459-1-ira.weiny@intel.com>
 References: <20201009195033.3208459-1-ira.weiny@intel.com>
@@ -85,66 +84,28 @@ From: Ira Weiny <ira.weiny@intel.com>
 The kmap() calls in this FS are localized to a single thread.  To avoid
 the over head of global PKRS updates use the new kmap_thread() call.
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/hostfs/hostfs_kern.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/cachefiles/rdwr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
-index c070c0d8e3e9..608efd0f83cb 100644
---- a/fs/hostfs/hostfs_kern.c
-+++ b/fs/hostfs/hostfs_kern.c
-@@ -409,7 +409,7 @@ static int hostfs_writepage(struct page *page, struct writeback_control *wbc)
- 	if (page->index >= end_index)
- 		count = inode->i_size & (PAGE_SIZE-1);
+diff --git a/fs/cachefiles/rdwr.c b/fs/cachefiles/rdwr.c
+index 3080cda9e824..2468e5c067ba 100644
+--- a/fs/cachefiles/rdwr.c
++++ b/fs/cachefiles/rdwr.c
+@@ -936,9 +936,9 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
+ 		}
+ 	}
  
--	buffer = kmap(page);
-+	buffer = kmap_thread(page);
- 
- 	err = write_file(HOSTFS_I(inode)->fd, &base, buffer, count);
- 	if (err != count) {
-@@ -425,7 +425,7 @@ static int hostfs_writepage(struct page *page, struct writeback_control *wbc)
- 	err = 0;
- 
-  out:
+-	data = kmap(page);
++	data = kmap_thread(page);
+ 	ret = kernel_write(file, data, len, &pos);
 -	kunmap(page);
 +	kunmap_thread(page);
- 
- 	unlock_page(page);
- 	return err;
-@@ -437,7 +437,7 @@ static int hostfs_readpage(struct file *file, struct page *page)
- 	loff_t start = page_offset(page);
- 	int bytes_read, ret = 0;
- 
--	buffer = kmap(page);
-+	buffer = kmap_thread(page);
- 	bytes_read = read_file(FILE_HOSTFS_I(file)->fd, &start, buffer,
- 			PAGE_SIZE);
- 	if (bytes_read < 0) {
-@@ -454,7 +454,7 @@ static int hostfs_readpage(struct file *file, struct page *page)
- 
-  out:
- 	flush_dcache_page(page);
--	kunmap(page);
-+	kunmap_thread(page);
- 	unlock_page(page);
- 	return ret;
- }
-@@ -480,9 +480,9 @@ static int hostfs_write_end(struct file *file, struct address_space *mapping,
- 	unsigned from = pos & (PAGE_SIZE - 1);
- 	int err;
- 
--	buffer = kmap(page);
-+	buffer = kmap_thread(page);
- 	err = write_file(FILE_HOSTFS_I(file)->fd, &pos, buffer + from, copied);
--	kunmap(page);
-+	kunmap_thread(page);
- 
- 	if (!PageUptodate(page) && err == PAGE_SIZE)
- 		SetPageUptodate(page);
+ 	fput(file);
+ 	if (ret != len)
+ 		goto error_eio;
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
