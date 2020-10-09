@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 417BEC388EC
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:00:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3495CC43457
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECE6022403
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:00:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB0EA22B48
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Oct 2020 20:01:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390576AbgJIUAU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Oct 2020 16:00:20 -0400
-Received: from mga11.intel.com ([192.55.52.93]:40547 "EHLO mga11.intel.com"
+        id S2390737AbgJIUBR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Oct 2020 16:01:17 -0400
+Received: from mga07.intel.com ([134.134.136.100]:56841 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388887AbgJITxV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 9 Oct 2020 15:53:21 -0400
-IronPort-SDR: zq5dvuFd6jXpbgXHXDd3kanr7kGVYAspkSVx4KqGtzBddQtGcPnRKRjJwx5QrQv4TFmaka5zeS
- Gu84SEdAGvPQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="162068063"
+        id S2391068AbgJITxS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 9 Oct 2020 15:53:18 -0400
+IronPort-SDR: xpv5XVGglX7lj+7qJJlZ+vbN22t/65YqrUKJKGSzG50o73yR62og6P7EuYB2tcanRlsrrnGTQV
+ S90HMVUYZhxg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="229715314"
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="162068063"
+   d="scan'208";a="229715314"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:53:06 -0700
-IronPort-SDR: +9tLMQNrOc9ZmtQe+NKSSXZyhjRooFfxfongQijBj4blQjg4c6+fJ/ZHkl3bUeAx7HZ0qDTuwd
- uW08H1SVCXkg==
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:53:16 -0700
+IronPort-SDR: tpdf2AjeaRc5H+9J2CTgDjuzQWeL2r1NHpqYA6zEYh1sueM+cncDhIB0ZXYbhrsfqtXGL/LVMU
+ w/znFNAZKmjw==
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400"; 
-   d="scan'208";a="343972363"
+   d="scan'208";a="518801571"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:53:05 -0700
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:53:15 -0700
 From:   ira.weiny@intel.com
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -66,9 +66,9 @@ Cc:     Ira Weiny <ira.weiny@intel.com>, x86@kernel.org,
         drbd-dev@lists.linbit.com, linux-block@vger.kernel.org,
         xen-devel@lists.xenproject.org, linux-cachefs@redhat.com,
         samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
-Subject: [PATCH RFC PKS/PMEM 38/58] fs/isofs: Utilize new kmap_thread()
-Date:   Fri,  9 Oct 2020 12:50:13 -0700
-Message-Id: <20201009195033.3208459-39-ira.weiny@intel.com>
+Subject: [PATCH RFC PKS/PMEM 41/58] drivers/target: Utilize new kmap_thread()
+Date:   Fri,  9 Oct 2020 12:50:16 -0700
+Message-Id: <20201009195033.3208459-42-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201009195033.3208459-1-ira.weiny@intel.com>
 References: <20201009195033.3208459-1-ira.weiny@intel.com>
@@ -80,36 +80,73 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-These kmap() calls are localized to a single thread.  To avoid the over head of
-global PKRS updates use the new kmap_thread() call.
+These kmap() calls in this driver are localized to a single thread.  To
+avoid the over head of global PKRS updates use the new kmap_thread()
+call.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/isofs/compress.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/target/target_core_iblock.c    | 4 ++--
+ drivers/target/target_core_rd.c        | 4 ++--
+ drivers/target/target_core_transport.c | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/isofs/compress.c b/fs/isofs/compress.c
-index bc12ac7e2312..ddd3fd99d2e1 100644
---- a/fs/isofs/compress.c
-+++ b/fs/isofs/compress.c
-@@ -344,7 +344,7 @@ static int zisofs_readpage(struct file *file, struct page *page)
- 			pages[i] = grab_cache_page_nowait(mapping, index);
- 		if (pages[i]) {
- 			ClearPageError(pages[i]);
--			kmap(pages[i]);
-+			kmap_thread(pages[i]);
- 		}
- 	}
+diff --git a/drivers/target/target_core_iblock.c b/drivers/target/target_core_iblock.c
+index 1c181d31f4c8..df7b1568edb3 100644
+--- a/drivers/target/target_core_iblock.c
++++ b/drivers/target/target_core_iblock.c
+@@ -415,7 +415,7 @@ iblock_execute_zero_out(struct block_device *bdev, struct se_cmd *cmd)
+ 	unsigned char *buf, *not_zero;
+ 	int ret;
  
-@@ -356,7 +356,7 @@ static int zisofs_readpage(struct file *file, struct page *page)
- 			flush_dcache_page(pages[i]);
- 			if (i == full_page && err)
- 				SetPageError(pages[i]);
--			kunmap(pages[i]);
-+			kunmap_thread(pages[i]);
- 			unlock_page(pages[i]);
- 			if (i != full_page)
- 				put_page(pages[i]);
+-	buf = kmap(sg_page(sg)) + sg->offset;
++	buf = kmap_thread(sg_page(sg)) + sg->offset;
+ 	if (!buf)
+ 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 	/*
+@@ -423,7 +423,7 @@ iblock_execute_zero_out(struct block_device *bdev, struct se_cmd *cmd)
+ 	 * incoming WRITE_SAME payload does not contain zeros.
+ 	 */
+ 	not_zero = memchr_inv(buf, 0x00, cmd->data_length);
+-	kunmap(sg_page(sg));
++	kunmap_thread(sg_page(sg));
+ 
+ 	if (not_zero)
+ 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+diff --git a/drivers/target/target_core_rd.c b/drivers/target/target_core_rd.c
+index 408bd975170b..dbbdd39c5bf9 100644
+--- a/drivers/target/target_core_rd.c
++++ b/drivers/target/target_core_rd.c
+@@ -159,9 +159,9 @@ static int rd_allocate_sgl_table(struct rd_dev *rd_dev, struct rd_dev_sg_table *
+ 			sg_assign_page(&sg[j], pg);
+ 			sg[j].length = PAGE_SIZE;
+ 
+-			p = kmap(pg);
++			p = kmap_thread(pg);
+ 			memset(p, init_payload, PAGE_SIZE);
+-			kunmap(pg);
++			kunmap_thread(pg);
+ 		}
+ 
+ 		page_offset += sg_per_table;
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index ff26ab0a5f60..8d0bae5a92e5 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -1692,11 +1692,11 @@ int target_submit_cmd_map_sgls(struct se_cmd *se_cmd, struct se_session *se_sess
+ 			unsigned char *buf = NULL;
+ 
+ 			if (sgl)
+-				buf = kmap(sg_page(sgl)) + sgl->offset;
++				buf = kmap_thread(sg_page(sgl)) + sgl->offset;
+ 
+ 			if (buf) {
+ 				memset(buf, 0, sgl->length);
+-				kunmap(sg_page(sgl));
++				kunmap_thread(sg_page(sgl));
+ 			}
+ 		}
+ 
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
