@@ -5,61 +5,61 @@ X-Spam-Level:
 X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF59C43457
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Oct 2020 19:44:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B60ABC43457
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Oct 2020 19:44:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B78B2145D
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Oct 2020 19:44:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C1762145D
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Oct 2020 19:44:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Q5lnieRy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HbRt6adG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726780AbgJKTog (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Oct 2020 15:44:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34890 "EHLO
+        id S1726874AbgJKToj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Oct 2020 15:44:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726363AbgJKToa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Oct 2020 15:44:30 -0400
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34CB8C0613CE;
-        Sun, 11 Oct 2020 12:44:30 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id g4so14768226edk.0;
-        Sun, 11 Oct 2020 12:44:30 -0700 (PDT)
+        with ESMTP id S1726840AbgJKToi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Oct 2020 15:44:38 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD1C3C0613CE;
+        Sun, 11 Oct 2020 12:44:37 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id c22so20364610ejx.0;
+        Sun, 11 Oct 2020 12:44:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=subject:from:to:cc:references:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=EZ+IbzJK89SwFCG1NFlS+aDcNGqO/ZCcv8sBQgOTnbQ=;
-        b=Q5lnieRyCQZ5zd2SF0Mk3WmIFGDyUVUssOdeCD8lc3yUbDMmQSfIceUIZDJD1ziTid
-         UpdveLcfluozFcho52hX0WGEcaEWmht89BDElLcj+INusCxDIn2Hi+5O6wD9d9+9TIP/
-         UHyu9yRinC5Drnjr6IXrCJs2aWVdbE25MyTxaf1Ix8mpwK+FWjqVyljpzTOnRIXq5fnm
-         6orjO3HjwdCHFmSUftqjvZ79fMoVK8qan/oR6kSI4oppGq6v+wOpTCceAL8xANG9k7sy
-         jr+R89DabS/rK67qjxd/DP7Oim1OIOLONfuTd9J0yeqRvpjAa1AfDnwSk1xYXZ6/R3WS
-         4CaQ==
+        bh=K5p6PQe9PHlb+DeFu3qCLN+dyNKfD6AR/iCNZWeTJCc=;
+        b=HbRt6adGAkstImkM+FvDPUdRIwYLplfIyHr6lQj8N62eXViV/hea+3jch0P7j1QSAB
+         XH0QnWYdoc68vK6BV4c2a/MGZmQhESAuaiw3nH6jaKZRtxReSo7CS4db24I/dCvBpJgx
+         oZlNuBNZ2nX9TCEHVyKXJ9X9aB05foRI21NPRbCNHx6TqX7JIcFFDRlwbdkxHn4/hjGD
+         npHaKOYfY4UL/Z0mRqf4t4/RPQ0n/iSlqNOx8vAXXwj8WPWYA8hK8o9AmRlXbHEVnL2l
+         3QmDQzkyFXpVlEMSLnXneAVyxrUcvFdZJG4gNH/1j/i31cFkBdsNYAUwx5CGGew38com
+         vupA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:references:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=EZ+IbzJK89SwFCG1NFlS+aDcNGqO/ZCcv8sBQgOTnbQ=;
-        b=aeiz70dD/PR3/eDzo2RSaDF45C+LAsIv/lz7qj3AuvyWdu4smkG6Zm6pUo3vknLWnr
-         AX7QAF5FpX/EtGILnmhWAbTwRjtQaTJBj8Zl6iTeUsQy6sGgK4UWnkzjf4Q0DW9/vGaM
-         83c8rH0Q++GbWvQDh8QcfxsCggUsDnlJqM2Vn+ZA2w6u5nOnnz9bZ36JlViovDJvT8BS
-         +4PB4CN6zdUWYB9a3faBRcHAmQkNcGP6s5UhJ7wADo0vXMkLnHkpkHT8tb2Q0VoLgSDZ
-         suy9pMFrZZR/v4bie1PjOxSrEolhhM6FNrYeBSasibXKxs5I1GiFcQgIlYUBWmdKkOF8
-         TU+A==
-X-Gm-Message-State: AOAM532/Cm6ZJi85TmSWhBZuhHrbNnx802T5mvX3J0y9OGOFS5AmtNK5
-        7h6L8p4CM9me5Z7C7yNsGQI=
-X-Google-Smtp-Source: ABdhPJywQ+R+H1rk9eh41GmJjhl4nVCXD+sXnrNDIy47ZFPHuQj6lo4yAA1QYX1bBk6TeUjRVsZwpg==
-X-Received: by 2002:aa7:c683:: with SMTP id n3mr10332705edq.146.1602445468817;
-        Sun, 11 Oct 2020 12:44:28 -0700 (PDT)
+        bh=K5p6PQe9PHlb+DeFu3qCLN+dyNKfD6AR/iCNZWeTJCc=;
+        b=IHh3A0PBAG2CaHrN61XMjol4PZyY7VUaco8PgLEKBb9+EIXJRgNc4bkUfYZnawF1P7
+         mIOqvNlJHANkmoOOhbYquFwJO/07ofX35AK5hNPNFJZG7uVAC3l2uFxJAa3Moq8Vu86E
+         Dov3B7oVXmu/DVw9PegGMQ9fC+pWr/+bNWVc7JBXRBo9zT5S3oac/W28F2nJcCAsp+/8
+         jVlM1vAmf3MiiqOKfOcJBOWSB8ZuF3IqqwKpq4QLUgWfayepHdqslAaBSVKehjaUGeXq
+         gaQG9Edk7bRTwpsMTQECioQqXxAYIO+nMm26xSwMYa6g0crnNCcl+RsbI5M9OwUV3EqH
+         IiPg==
+X-Gm-Message-State: AOAM531Tf35tPaDBa0SyZNU9okCcnLfTbD7HXLqRzrmMVyEcDjWWrhtC
+        xSmetIaedYUoSbzk+rB0+mM=
+X-Google-Smtp-Source: ABdhPJzZ5j1LdDWA5dmv+e3w9peo+dUGtcw1j3sEyVi1uLGsEplo4M1SATqelgZk1ZYsssDnPQiyAA==
+X-Received: by 2002:a17:906:1b15:: with SMTP id o21mr25308968ejg.19.1602445476379;
+        Sun, 11 Oct 2020 12:44:36 -0700 (PDT)
 Received: from ?IPv6:2003:ea:8f00:6a00:51b7:bf4f:604:7d3d? (p200300ea8f006a0051b7bf4f06047d3d.dip0.t-ipconnect.de. [2003:ea:8f00:6a00:51b7:bf4f:604:7d3d])
-        by smtp.googlemail.com with ESMTPSA id k18sm9421345ejk.42.2020.10.11.12.44.27
+        by smtp.googlemail.com with ESMTPSA id q27sm9766916ejd.74.2020.10.11.12.44.35
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 11 Oct 2020 12:44:28 -0700 (PDT)
-Subject: [PATCH net-next 02/12] IB/hfi1: use new function
+        Sun, 11 Oct 2020 12:44:36 -0700 (PDT)
+Subject: [PATCH net-next 07/12] net: bridge: use new function
  dev_fetch_sw_netstats
 From:   Heiner Kallweit <hkallweit1@gmail.com>
 To:     David Miller <davem@davemloft.net>,
@@ -87,8 +87,8 @@ Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         linux-wireless <linux-wireless@vger.kernel.org>,
         bridge@lists.linux-foundation.org
 References: <a46f539e-a54d-7e92-0372-cd96bb280729@gmail.com>
-Message-ID: <b87c6e8c-13f9-831f-a65b-0fc7707e658e@gmail.com>
-Date:   Sun, 11 Oct 2020 21:37:27 +0200
+Message-ID: <ce91ffd8-f17f-613b-5d25-955348cfd9a1@gmail.com>
+Date:   Sun, 11 Oct 2020 21:40:50 +0200
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
  Thunderbird/68.12.1
 MIME-Version: 1.0
@@ -104,56 +104,42 @@ Simplify the code by using new function dev_fetch_sw_netstats().
 
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/infiniband/hw/hfi1/ipoib_main.c | 34 +------------------------
- 1 file changed, 1 insertion(+), 33 deletions(-)
+ net/bridge/br_device.c | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_main.c b/drivers/infiniband/hw/hfi1/ipoib_main.c
-index 014351ebb..9f71b9d70 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_main.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_main.c
-@@ -97,41 +97,9 @@ static void hfi1_ipoib_dev_get_stats64(struct net_device *dev,
- 				       struct rtnl_link_stats64 *storage)
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 9a2fb4aa1..6f742fee8 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -206,27 +206,8 @@ static void br_get_stats64(struct net_device *dev,
+ 			   struct rtnl_link_stats64 *stats)
  {
- 	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
--	u64 rx_packets = 0ull;
--	u64 rx_bytes = 0ull;
--	u64 tx_packets = 0ull;
--	u64 tx_bytes = 0ull;
--	int i;
- 
- 	netdev_stats_to_stats64(storage, &dev->stats);
+ 	struct net_bridge *br = netdev_priv(dev);
+-	struct pcpu_sw_netstats tmp, sum = { 0 };
+-	unsigned int cpu;
 -
--	for_each_possible_cpu(i) {
--		const struct pcpu_sw_netstats *stats;
+-	for_each_possible_cpu(cpu) {
 -		unsigned int start;
--		u64 trx_packets;
--		u64 trx_bytes;
--		u64 ttx_packets;
--		u64 ttx_bytes;
--
--		stats = per_cpu_ptr(priv->netstats, i);
+-		const struct pcpu_sw_netstats *bstats
+-			= per_cpu_ptr(br->stats, cpu);
 -		do {
--			start = u64_stats_fetch_begin_irq(&stats->syncp);
--			trx_packets = stats->rx_packets;
--			trx_bytes = stats->rx_bytes;
--			ttx_packets = stats->tx_packets;
--			ttx_bytes = stats->tx_bytes;
--		} while (u64_stats_fetch_retry_irq(&stats->syncp, start));
--
--		rx_packets += trx_packets;
--		rx_bytes += trx_bytes;
--		tx_packets += ttx_packets;
--		tx_bytes += ttx_bytes;
+-			start = u64_stats_fetch_begin_irq(&bstats->syncp);
+-			memcpy(&tmp, bstats, sizeof(tmp));
+-		} while (u64_stats_fetch_retry_irq(&bstats->syncp, start));
+-		sum.tx_bytes   += tmp.tx_bytes;
+-		sum.tx_packets += tmp.tx_packets;
+-		sum.rx_bytes   += tmp.rx_bytes;
+-		sum.rx_packets += tmp.rx_packets;
 -	}
--
--	storage->rx_packets += rx_packets;
--	storage->rx_bytes += rx_bytes;
--	storage->tx_packets += tx_packets;
--	storage->tx_bytes += tx_bytes;
-+	dev_fetch_sw_netstats(storage, priv->netstats);
+ 
+-	stats->tx_bytes   = sum.tx_bytes;
+-	stats->tx_packets = sum.tx_packets;
+-	stats->rx_bytes   = sum.rx_bytes;
+-	stats->rx_packets = sum.rx_packets;
++	dev_fetch_sw_netstats(stats, br->stats);
  }
  
- static const struct net_device_ops hfi1_ipoib_netdev_ops = {
+ static int br_change_mtu(struct net_device *dev, int new_mtu)
 -- 
 2.28.0
 
