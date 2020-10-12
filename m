@@ -8,59 +8,59 @@ X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F4CC433DF
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:21:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DDABC433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:21:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C27E9208FE
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:21:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1F3F208FE
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:21:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LduJxkBQ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xmk4y4x5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726863AbgJLIVp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Oct 2020 04:21:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38262 "EHLO
+        id S1727260AbgJLIVu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Oct 2020 04:21:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726098AbgJLIVo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 04:21:44 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5461C0613CE;
-        Mon, 12 Oct 2020 01:21:42 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id lw21so21987481ejb.6;
-        Mon, 12 Oct 2020 01:21:42 -0700 (PDT)
+        with ESMTP id S1726098AbgJLIVq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 04:21:46 -0400
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32564C0613CE;
+        Mon, 12 Oct 2020 01:21:46 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id o18so16000578edq.4;
+        Mon, 12 Oct 2020 01:21:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=subject:from:to:cc:references:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=XLSw4kk01QDTlGyCDpjTbXYryNnPNFLUaBj1auxatEE=;
-        b=LduJxkBQrSrNHSKIi9bNM0SVbJKluwGhNNT2aFEdJAIcXQtnCSqfTLw3qowTIv7B0k
-         Y2sdAA3ItnlB0Eyk9/Y+cX69aGW3HCYVWUtXlTAPogCWeG65EVyUOxvhsxvbLSgI/FXL
-         1d2O6uk17pOmZozEIZASGi68BNeS0t94JAaVzmR0q7RaZTWdzRwxQ+2YVQ6SpOxOtYoa
-         ogNJ3+MSqbpHQTIjYuj1zw3TFiNd4cDtzgkCvs8x6LTP/Cq33YL4P3S5oSfgqYivBiif
-         gOykekdoeZpwX+yv2b5ceMCRDqgaPBLtKCCviCqQ/ZVVC+f568e5/iu/8ArkXLwT4h0I
-         CsTQ==
+        bh=KFsZNGzDx3aV9CBTy2OuwyFykIUFu3usYnhhVM1hRRA=;
+        b=Xmk4y4x522mXEH+Dhh4RrFypK4roS1v/xIOaX0lr0EZq27TaCNE5OZORYclY3v3o2r
+         eP3NMqn+4pUQLmpYKg7wehIGmg24sF+V8wC2AYunxZvEsdHiPwZgjNakCons7Yvfss53
+         NIxxAZ2kDrjvgpXioN4FIN/07nmPdNNRsCr5/fLGLNriL9DJvJaHtmHcDvpsyN6OCpF3
+         g3qvkvaYv+zFlMlI0+trdkTAyYVsOfNQsNYLpPStxXPd4IVqAyUOgOJQi4iACnIndZGZ
+         1EJ/k1a3TGNlZxxSlUmVxfqfwo03c6W4uDKplq+kdP0W6/DQ6qrzLOM3ljaQ62jwmr/S
+         W8Fg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:references:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=XLSw4kk01QDTlGyCDpjTbXYryNnPNFLUaBj1auxatEE=;
-        b=T7JyeEToPLM5G5iQLg64g39M/hgvhj/2HRminbH+G6f8NCO4i461NVwiNzDNYGa/ev
-         kge2cYnDNm4Tj5gwlKeCesNJZPe/BJeEzzDUO6U41MvE5eZZtA3cosDyNi5/O90lzjZU
-         DcR/iA0F63WAqV9Jk6MuSkVrm9e2RIS4pcsZlokRqtZk6Aw5aRqaeYW0eV7QkbwyWMvM
-         a6U1DOPa2OmwqfRvP8WPLQzgii3RY4q4v5kFzGPfDcOzIvdrfoiqFjTEdf2UG6cyLbc2
-         TDupCdpGpqHol6xqWfH1BgqPIGsZb4BOXhYzFIXev7RD50oYGIPMlhHGqj2yoloAPJXe
-         H8FQ==
-X-Gm-Message-State: AOAM531rKmmfWw+GYqIz+4/kKa+qrxBH+hEKl6qHhYQAIVJbcGG67Rww
-        xOxJjX6KLDWPLUqkDMVuUAs=
-X-Google-Smtp-Source: ABdhPJztw0xZvWbfVNUpz3P7tinaUOHzrkLOcdFj/n9SfGdrS0NBbEN2EP1ytjOc0wWKTJd8llR84Q==
-X-Received: by 2002:a17:906:4e16:: with SMTP id z22mr20699549eju.527.1602490901540;
-        Mon, 12 Oct 2020 01:21:41 -0700 (PDT)
+        bh=KFsZNGzDx3aV9CBTy2OuwyFykIUFu3usYnhhVM1hRRA=;
+        b=hB1nfURggvS65u4+qS+7kZTrlmBSjapDndW1xo1ig/LVmSeDT1s1br/MHodikFOK6E
+         Urhh954OrpwM0YukZ8dYCaIwyNIwClgTSBanoRi21YaMgjrNnTAcVsvFxWKMew5IVrBV
+         jVgQOZhsYp/N49C6+6LZmceAdXsMvjJ5zNi/yakZ9J9enObj7/6MPU4wMUyNf/4HaQu4
+         MHacgXVq+AFlnjPOc/b4asKTe9hThNHMM21ATwV7fW4df07EaVSOuiLLNrbZyf7KTUab
+         lC1R25kgdHGHxfbrRyt4d9eYq0jH3mteAPVQwPrTiK+oLIomRfc9mFB6JS9udasSiAiJ
+         X59A==
+X-Gm-Message-State: AOAM531TaV39MPjWhCOjGve9ch1VWrfXxY/JRJifB1D1Nxz7YBIhaFcR
+        PC+f7GahuCJZa8Eh58JXGkw=
+X-Google-Smtp-Source: ABdhPJykp+lxaaGcdX82HGw6i6U1SxsR+4RCLYM9xJ2P7D+cDQN9lVoCdoC8oc8SfhJ4/15Hw0r1ZQ==
+X-Received: by 2002:a50:88c6:: with SMTP id d64mr13155125edd.141.1602490904884;
+        Mon, 12 Oct 2020 01:21:44 -0700 (PDT)
 Received: from ?IPv6:2003:ea:8f00:6a00:f90c:2907:849f:701c? (p200300ea8f006a00f90c2907849f701c.dip0.t-ipconnect.de. [2003:ea:8f00:6a00:f90c:2907:849f:701c])
-        by smtp.googlemail.com with ESMTPSA id bu23sm10175810edb.69.2020.10.12.01.21.40
+        by smtp.googlemail.com with ESMTPSA id q3sm10177923edv.17.2020.10.12.01.21.43
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 12 Oct 2020 01:21:41 -0700 (PDT)
-Subject: [PATCH net-next v2 01/12] net: add function dev_fetch_sw_netstats for
- fetching pcpu_sw_netstats
+        Mon, 12 Oct 2020 01:21:44 -0700 (PDT)
+Subject: [PATCH net-next v2 03/12] net: macsec: use new function
+ dev_fetch_sw_netstats
 From:   Heiner Kallweit <hkallweit1@gmail.com>
 To:     David Miller <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -87,8 +87,8 @@ Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         linux-wireless <linux-wireless@vger.kernel.org>,
         bridge@lists.linux-foundation.org
 References: <d77b65de-1793-f808-66b5-aaa4e7c8a8f0@gmail.com>
-Message-ID: <6d16a338-52f5-df69-0020-6bc771a7d498@gmail.com>
-Date:   Mon, 12 Oct 2020 10:01:27 +0200
+Message-ID: <0d81e0f7-7784-42df-8e10-d0b77ca5b7ee@gmail.com>
+Date:   Mon, 12 Oct 2020 10:04:11 +0200
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
  Thunderbird/68.12.1
 MIME-Version: 1.0
@@ -100,79 +100,49 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In several places the same code is used to populate rtnl_link_stats64
-fields with data from pcpu_sw_netstats. Therefore factor out this code
-to a new function dev_fetch_sw_netstats().
-
-v2:
-- constify argument netstats
-- don't ignore netstats being NULL or an ERRPTR
-- switch to EXPORT_SYMBOL_GPL
+Simplify the code by using new function dev_fetch_sw_netstats().
 
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- include/linux/netdevice.h |  2 ++
- net/core/dev.c            | 34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+)
+ drivers/net/macsec.c | 22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index a0df43b13..fa1d8d624 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -4495,6 +4495,8 @@ struct rtnl_link_stats64 *dev_get_stats(struct net_device *dev,
- 					struct rtnl_link_stats64 *storage);
- void netdev_stats_to_stats64(struct rtnl_link_stats64 *stats64,
- 			     const struct net_device_stats *netdev_stats);
-+void dev_fetch_sw_netstats(struct rtnl_link_stats64 *s,
-+			   const struct pcpu_sw_netstats __percpu *netstats);
- 
- extern int		netdev_max_backlog;
- extern int		netdev_tstamp_prequeue;
-diff --git a/net/core/dev.c b/net/core/dev.c
-index a146bac84..26bc10dec 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -10319,6 +10319,40 @@ struct rtnl_link_stats64 *dev_get_stats(struct net_device *dev,
- }
- EXPORT_SYMBOL(dev_get_stats);
- 
-+/**
-+ *	dev_fetch_sw_netstats - get per-cpu network device statistics
-+ *	@s: place to store stats
-+ *	@netstats: per-cpu network stats to read from
-+ *
-+ *	Read per-cpu network statistics and populate the related fields in @s.
-+ */
-+void dev_fetch_sw_netstats(struct rtnl_link_stats64 *s,
-+			   const struct pcpu_sw_netstats __percpu *netstats)
-+{
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		const struct pcpu_sw_netstats *stats;
-+		struct pcpu_sw_netstats tmp;
-+		unsigned int start;
-+
-+		stats = per_cpu_ptr(netstats, cpu);
-+		do {
-+			start = u64_stats_fetch_begin_irq(&stats->syncp);
-+			tmp.rx_packets = stats->rx_packets;
-+			tmp.rx_bytes   = stats->rx_bytes;
-+			tmp.tx_packets = stats->tx_packets;
-+			tmp.tx_bytes   = stats->tx_bytes;
-+		} while (u64_stats_fetch_retry_irq(&stats->syncp, start));
-+
-+		s->rx_packets += tmp.rx_packets;
-+		s->rx_bytes   += tmp.rx_bytes;
-+		s->tx_packets += tmp.tx_packets;
-+		s->tx_bytes   += tmp.tx_bytes;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(dev_fetch_sw_netstats);
-+
- struct netdev_queue *dev_ingress_queue_create(struct net_device *dev)
+diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
+index 2b0c8f01d..11ca5fa90 100644
+--- a/drivers/net/macsec.c
++++ b/drivers/net/macsec.c
+@@ -3647,30 +3647,10 @@ static int macsec_change_mtu(struct net_device *dev, int new_mtu)
+ static void macsec_get_stats64(struct net_device *dev,
+ 			       struct rtnl_link_stats64 *s)
  {
- 	struct netdev_queue *queue = dev_ingress_queue(dev);
+-	int cpu;
+-
+ 	if (!dev->tstats)
+ 		return;
+ 
+-	for_each_possible_cpu(cpu) {
+-		struct pcpu_sw_netstats *stats;
+-		struct pcpu_sw_netstats tmp;
+-		int start;
+-
+-		stats = per_cpu_ptr(dev->tstats, cpu);
+-		do {
+-			start = u64_stats_fetch_begin_irq(&stats->syncp);
+-			tmp.rx_packets = stats->rx_packets;
+-			tmp.rx_bytes   = stats->rx_bytes;
+-			tmp.tx_packets = stats->tx_packets;
+-			tmp.tx_bytes   = stats->tx_bytes;
+-		} while (u64_stats_fetch_retry_irq(&stats->syncp, start));
+-
+-		s->rx_packets += tmp.rx_packets;
+-		s->rx_bytes   += tmp.rx_bytes;
+-		s->tx_packets += tmp.tx_packets;
+-		s->tx_bytes   += tmp.tx_bytes;
+-	}
++	dev_fetch_sw_netstats(s, dev->tstats);
+ 
+ 	s->rx_dropped = dev->stats.rx_dropped;
+ 	s->tx_dropped = dev->stats.tx_dropped;
 -- 
 2.28.0
 
