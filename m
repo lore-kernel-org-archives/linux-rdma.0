@@ -2,112 +2,107 @@ Return-Path: <SRS0=1OrF=DT=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6777EC433E7
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 13:18:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDA6BC43457
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 13:18:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 28A7A20714
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 13:18:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2EAB2078E
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 13:18:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="gr/+DNf6"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="gYJZWf+Q"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387906AbgJLNSS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Oct 2020 09:18:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55824 "EHLO
+        id S2387743AbgJLNSV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Oct 2020 09:18:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387743AbgJLNSS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 09:18:18 -0400
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFB5C0613D0
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2020 06:18:17 -0700 (PDT)
-Received: by mail-ed1-x52f.google.com with SMTP id i5so16888995edr.5
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2020 06:18:17 -0700 (PDT)
+        with ESMTP id S2388135AbgJLNSU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 09:18:20 -0400
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93DD0C0613D1
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2020 06:18:19 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id e22so23151393ejr.4
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Oct 2020 06:18:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=RvirsXnJVSAT6v2zbz7MZzJ59bABXt7Pd4zHTcU+YVo=;
-        b=gr/+DNf6iy25kgT/eVWuLGAWv10XgmQexRjz0wK8X8Rg6gE2L0EfL1c4TwdJf13yqj
-         mulcH6bBdK3LtnUJbXpg3DzC7ED0OqxAStD6lm7w+TC4abpMee1IsnDEWzp0rJbWu1iV
-         Aqydnvr2mPa0o1STbqhV47/u487te1DRNfy0oOrCP2Tv00VoXUZkjo4v1mTTSJPeO7am
-         lEUOC9aOC9QaLD+6wEF+XZnr/RFU1L3ZKcGQG4xIYS58uUzBqJh1CuAy4s0MiZhYjN9V
-         0KOvXNl5MR2wEaB9V57JWEq3OhtTTRfqyBwBS6Wi3eHTEcSf9PdXxeJ1WvkcdFCXhGJR
-         X6RQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=N/Dc0j/lR+ShoZDY6ICFHErbzY6Y5dDxRujilMQ1QA0=;
+        b=gYJZWf+Q5spXrfGtlPFs7Tg0SzygPVnf6C5ZYl8ScmiIAGbqaGu1r12eNDIuawd99A
+         c1KqKHJ6sftS5w2c2MWOjUSLml9ZMzHi9qsZXSt1GUkgPdExGDh0eIATZmmQijYQ45uV
+         F52TGsX7d1z1oM31HGL8+tmtUECRSoOp1rJ4YstIRVYs3locbnZWX7eqgCITfT6/wZK3
+         5SuR/QOPYMg2thTs/Z0I4S1PNl8xjnkqGtt3AQC4AE9blEjTGHJCpVXdl+XZx0vBoDoc
+         nTk5e9R4nPyQlUmFRAUajMxX8QN1g4nmE67lkU7nyGXgPxJXUvkKN/brTTFftmq3u0Wr
+         IvyA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=RvirsXnJVSAT6v2zbz7MZzJ59bABXt7Pd4zHTcU+YVo=;
-        b=hrdgzZp/qiv8TijjETDtdAOzm8JHrQRZ5YN1jYu7YujZkd4N7Y4Kyhdynk0p7VDaV1
-         DQWilYBVdtdgUHmatZOP4ZLjv7ii/9P17xqzbr8lTtQLVQVdrYLi9jI7k/1D0FMdczkK
-         m3hGfgOk91RQ6f6rUiUoCfiUZmdjsFKUdv/zkXriRICL5dBh+5r3q0qIvfmHoWOHgzLM
-         MaXnUmphOf2H3n4Bl7S0iLsTTrmdLlvZjowtlYDJiVY5vg9HChiVmd9OBc9mZdf5MHwO
-         A7064B3qBOS2HGNiZia6woBLmhVGjVELHMOz/hwJOBPNDF3iARThRpibQzclOO69djgj
-         lUWA==
-X-Gm-Message-State: AOAM532i1jVu044HU935CwJVtd0zOdgAvYPRe8K6jGn5/iM+uzev7gHK
-        8OGJLtTRtb9ErMeX1Msuub8tcb13oQi99w==
-X-Google-Smtp-Source: ABdhPJwfgpW4DiWJjBXQ2G6SkT7uXaMX8fZK0yRm+UlQgB89LN1OrUr/oaSFyFxggi2WERZY/WKLZA==
-X-Received: by 2002:aa7:d892:: with SMTP id u18mr14563667edq.305.1602508695768;
-        Mon, 12 Oct 2020 06:18:15 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=N/Dc0j/lR+ShoZDY6ICFHErbzY6Y5dDxRujilMQ1QA0=;
+        b=BnIBfvKK3O7FRwVvubBuIEKMjsze2SxDGqROUz4kQsPxO0I5AfuZKLYih0evN/N0Qc
+         ys3meX0h/a+60H+zLg60VZiE1lx/UlR1Xi7rHOD1AwLkM6JfhRwLJeksq68jChjrWOut
+         bZh36KHuPeuSN69WAcePma/hPcKYw/hFA6JECp0SkrtxZnqeBwhiyZp9ihIryPbM2mOE
+         gk3h/7g1H3Nbg22RPsrT1YRZzohPcyqxSAJ4YBUSUxvoQLtfl/NfNNVkCQ6dBapmvd4v
+         WePM+0anuotuMRu5Jryl/gmFkG9Y0Gi73othWQ3iY2NqX/Dh26Z++rBui9ZWuRlTLelK
+         SCNA==
+X-Gm-Message-State: AOAM533KPiYCXGU6dMfVEIPCteQpQXvhoK3c0vlo5UFcKynvgw31e0MM
+        UDB1HzD6krw3PVkTcvXom9CVJiXfCzZYZw==
+X-Google-Smtp-Source: ABdhPJyRedixULSJrm/+tLrM6LuLem8pI9PyUyH3sWmZOKIgJC6jfUM6cfqhFQd1juZqWOrBlL/Sxg==
+X-Received: by 2002:a17:906:8610:: with SMTP id o16mr27927018ejx.209.1602508698129;
+        Mon, 12 Oct 2020 06:18:18 -0700 (PDT)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4915:9700:86d:33e0:2141:a74a])
-        by smtp.gmail.com with ESMTPSA id o12sm10828252ejb.36.2020.10.12.06.18.14
+        by smtp.gmail.com with ESMTPSA id o12sm10828252ejb.36.2020.10.12.06.18.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Oct 2020 06:18:15 -0700 (PDT)
+        Mon, 12 Oct 2020 06:18:17 -0700 (PDT)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
-        jinpu.wang@cloud.ionos.com
-Subject: [PATCH for-next 00/13] rtrs: misc fix and cleanup 
-Date:   Mon, 12 Oct 2020 15:18:01 +0200
-Message-Id: <20201012131814.121096-1-jinpu.wang@cloud.ionos.com>
+        jinpu.wang@cloud.ionos.com, Gioh Kim <gioh.kim@cloud.ionos.com>
+Subject: [PATCH for-next 02/13] RDMA/rtrs-clt: remove outdated comment in create_con_cq_qp
+Date:   Mon, 12 Oct 2020 15:18:03 +0200
+Message-Id: <20201012131814.121096-3-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20201012131814.121096-1-jinpu.wang@cloud.ionos.com>
+References: <20201012131814.121096-1-jinpu.wang@cloud.ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason, hi Doug,
+As run destroy_con_cq_qp many times doesn't work, remove
+the comments.
 
-Please consider to include following changes to upstream.
+Suggested-by: Gioh Kim <gioh.kim@cloud.ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-
-Danil Kipnis (1):
-  RDMA/rtrs-clt: remove destroy_con_cq_qo in case route resolving failed
-
-Gioh Kim (6):
-  RDMA/rtrs-clt: remove unnecessary dev_ref of rtrs_sess
-  RDMA/rtrs: removed unused filed list of rtrs_iu
-  RDMA/rtrs: remove unnecessary argument dir of rtrs_iu_free
-  RDMA/rtrs-clt: remove duplicated switch-case handling for CM error
-    events
-  RDMA/ibtrs-clt: missing error from rtrs_rdma_conn_established
-  RDMA/rtrs-clt: remove duplicated code
-
-Guoqing Jiang (4):
-  RDMA/rtrs-srv: fix typo
-  RDMA/rtrs-srv: kill rtrs_srv_change_state_get_old
-  RDMA/rtrs: introduce rtrs_post_send
-  RDMA/rtrs-clt: remove 'addr' from rtrs_clt_add_path_to_arr
-
-Jack Wang (2):
-  RDMA/rtrs-clt: remove outdated comment in create_con_cq_qp
-  RDMA/rtrs-clt: avoid run destroy_con_cq_qp/create_con_cq_qp in
-    parallel
-
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 103 +++++++++++--------------
- drivers/infiniband/ulp/rtrs/rtrs-clt.h |   1 +
- drivers/infiniband/ulp/rtrs/rtrs-pri.h |   5 +-
- drivers/infiniband/ulp/rtrs/rtrs-srv.c |  33 +++-----
- drivers/infiniband/ulp/rtrs/rtrs-srv.h |   2 +-
- drivers/infiniband/ulp/rtrs/rtrs.c     |  61 ++++++---------
- 6 files changed, 82 insertions(+), 123 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 9980bb4a6f78..fb840b152b37 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1520,15 +1520,6 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ 	int err, cq_vector;
+ 	struct rtrs_msg_rkey_rsp *rsp;
+ 
+-	/*
+-	 * This function can fail, but still destroy_con_cq_qp() should
+-	 * be called, this is because create_con_cq_qp() is called on cm
+-	 * event path, thus caller/waiter never knows: have we failed before
+-	 * create_con_cq_qp() or after.  To solve this dilemma without
+-	 * creating any additional flags just allow destroy_con_cq_qp() be
+-	 * called many times.
+-	 */
+-
+ 	if (con->c.cid == 0) {
+ 		/*
+ 		 * One completion for each receive and two for each send
 -- 
 2.25.1
 
