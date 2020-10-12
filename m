@@ -5,61 +5,61 @@ X-Spam-Level:
 X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80375C43457
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22C19C433DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:22:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35D78208FE
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:22:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC06C208FE
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Oct 2020 08:22:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="smMjqkLU"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lDYtJfWe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727857AbgJLIWC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Oct 2020 04:22:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38292 "EHLO
+        id S1728491AbgJLIWQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Oct 2020 04:22:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727350AbgJLIVv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 04:21:51 -0400
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2914EC0613D0;
-        Mon, 12 Oct 2020 01:21:51 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id p15so21971920ejm.7;
-        Mon, 12 Oct 2020 01:21:51 -0700 (PDT)
+        with ESMTP id S1727121AbgJLIV5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Oct 2020 04:21:57 -0400
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8138AC0613D5;
+        Mon, 12 Oct 2020 01:21:57 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id t21so15989107eds.6;
+        Mon, 12 Oct 2020 01:21:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=subject:from:to:cc:references:message-id:date:user-agent
          :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=QgEFAZvIGUs9d79dSBvM16GKW6VzPnxLl+Fxh+U3V5E=;
-        b=smMjqkLUc83TdlNXcDcI3M3/ULwnTf55iu2dvwq3DZB3ijaghGEg1QucVM48Q59Xei
-         PhCJRKNkGb6mEr/MRzSqyVNV4fflsAxkglH2EZ7WsMPP0qYCAMMKkJfrlb0Te3v932Kj
-         u04qGb9yhQ1k2CE2QwduucTZPxyUTXc6f7vZLCvLmEUzn/FDxBGxmAIpH705hS2LrQ/+
-         +SOYOqNpqZrunAzwqopXYlPOD0/GDk4BgwqEYxQYMykZ+qxKMd/llLUBmr2yahu1s5mQ
-         T/ll3jwrsNZlgaP76L6IGirBg7GpdPamcuyboxa4oE4J03+nQ3j2KUDK6SR2oN8ZurC5
-         kFvA==
+        bh=m4bUmyI+LcL2kRpVckxE5LM+etyYjhNnBeXZhGHIk4E=;
+        b=lDYtJfWe8/DHmjC4qnf5MwRbdeN5hvaFN8hfqDPHJ+0ZfSsAgJJ/eXIwbH/bAiyviA
+         aryMIMTmub/a4wvpBSrINDW0mgGtW14oQkcmg7cHioMBNYxSeFVJEVppU4CZN/z3pgYi
+         yCFSGrnv7HyvCgvGS3/K6wNcJVNLfuuY8v8uzjSvqKU8yTWDfejU2Bd9+zFdG60zZczq
+         jBuK8KZCwLWlL18mrCzoRXzYxMqfYb9GBbaRMEFJXupAYO/QmQVPMGU2VtefsbCISeUd
+         mBdf8EcSNS2NDXdJN9FOMUgC0woGLf6i+BjyF8u1bEQoHHPT7PqN5ajYLcMBnPcAUc/e
+         zu1A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:subject:from:to:cc:references:message-id:date
          :user-agent:mime-version:in-reply-to:content-language
          :content-transfer-encoding;
-        bh=QgEFAZvIGUs9d79dSBvM16GKW6VzPnxLl+Fxh+U3V5E=;
-        b=jvsQO+bCRycEugMQ7gPDYNqZXlnjLP1T1TMwhWDwxWtKcTresq5f86KiL7BEjKijo8
-         LKmkiiQp903+aF08ZRqqWU435vsmqO3HEWBcminolpODrImgacWDz0qoDJi2ADMUSfrR
-         rd8PKjd+TkTMMrGm6W1SUOpLw69/8aIq9ThmvsxcrmtQdRFlE9XPMAZe/2NH5cZGgCa3
-         TJvCZrHsK8Op1z2kunkRG7yVG1dfF21j5MdrrI7GUDQWzON1gTDrA6KOOzHpdYPWp9mn
-         HVXFq4EaJtZBXuArXY0+MYYlgeAwHBlzuPgdXUyfcDY+otUQrrEZ471foCoqm6wJEQYE
-         er7w==
-X-Gm-Message-State: AOAM532/ALYxLVzAqhDtbErsXOcYNX4OJy4mrqHCbQd2fyJ3TyNvUw7n
-        gJw05run25BZA4l8bBB67lk=
-X-Google-Smtp-Source: ABdhPJyLRdlG9ykmhX1eEdrQT1Otm/9oE2nWPUWVssRBAX1UfhecwcY5LXaqbq8XeUhyDJxeQhtshg==
-X-Received: by 2002:a17:906:82d7:: with SMTP id a23mr27024407ejy.66.1602490909845;
-        Mon, 12 Oct 2020 01:21:49 -0700 (PDT)
+        bh=m4bUmyI+LcL2kRpVckxE5LM+etyYjhNnBeXZhGHIk4E=;
+        b=UTRTkAomygHoW5iGH9Vkd4NTYLYV1V/qtn02REzoV94KyPuyPwGxMEl5F0HiKPhCK8
+         jB9icw74/Mmb8K9v7ppg/L0ZuGDFxxXhhK/PYOxpb8Bjp/jOvv91BbrTtiRVMmCc1cBU
+         65uWztXjlIYlbg4s7/m/qFG1THfv17kAfh0yrqjsGKVn5KGWozO/AP54w17rESIJR2jG
+         Zz4eNvpW+MP5RoK5PP1ZpIjeusUbB6VW8lsA7v5nApV9kvyzT8LxJZBhi0+6ecxE+2EJ
+         DUcIBTW6PSx9TIFZAfO8I8bxwBaGnIDFIavIMOeAxPy/4MxuQcwLvNMZytheD1MEKbab
+         //pw==
+X-Gm-Message-State: AOAM530utoZPqvE81PtfuIH1o3svWQFjX77RNfbLmrMGTvLwJ9IrYMko
+        hhgvlgZ+5SFe5qPwPAI7CBA=
+X-Google-Smtp-Source: ABdhPJyxfMf7VORSSp5HyoFFzEneyPhPzS9WR/V/e17Yl+s28XgNVuSnVMDboRtDH0wsx5sophUXpw==
+X-Received: by 2002:a50:c05b:: with SMTP id u27mr12607356edd.290.1602490916179;
+        Mon, 12 Oct 2020 01:21:56 -0700 (PDT)
 Received: from ?IPv6:2003:ea:8f00:6a00:f90c:2907:849f:701c? (p200300ea8f006a00f90c2907849f701c.dip0.t-ipconnect.de. [2003:ea:8f00:6a00:f90c:2907:849f:701c])
-        by smtp.googlemail.com with ESMTPSA id v6sm10439545ejj.112.2020.10.12.01.21.48
+        by smtp.googlemail.com with ESMTPSA id j10sm10013041edy.97.2020.10.12.01.21.55
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 12 Oct 2020 01:21:49 -0700 (PDT)
-Subject: [PATCH net-next v2 06/12] qtnfmac: use new function
+        Mon, 12 Oct 2020 01:21:55 -0700 (PDT)
+Subject: [PATCH net-next v2 10/12] mac80211: use new function
  dev_fetch_sw_netstats
 From:   Heiner Kallweit <hkallweit1@gmail.com>
 To:     David Miller <davem@davemloft.net>,
@@ -87,8 +87,8 @@ Cc:     "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         linux-wireless <linux-wireless@vger.kernel.org>,
         bridge@lists.linux-foundation.org
 References: <d77b65de-1793-f808-66b5-aaa4e7c8a8f0@gmail.com>
-Message-ID: <166259f2-084c-45d7-e610-2de2a0bdae06@gmail.com>
-Date:   Mon, 12 Oct 2020 10:14:08 +0200
+Message-ID: <93dda477-70ae-0ccf-71b4-bfebb66c9beb@gmail.com>
+Date:   Mon, 12 Oct 2020 10:18:19 +0200
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
  Thunderbird/68.12.1
 MIME-Version: 1.0
@@ -103,51 +103,44 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 Simplify the code by using new function dev_fetch_sw_netstats().
 
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
 ---
- drivers/net/wireless/quantenna/qtnfmac/core.c | 23 +------------------
+ net/mac80211/iface.c | 23 +----------------------
  1 file changed, 1 insertion(+), 22 deletions(-)
 
-diff --git a/drivers/net/wireless/quantenna/qtnfmac/core.c b/drivers/net/wireless/quantenna/qtnfmac/core.c
-index 374074dc7..bf6dbeb61 100644
---- a/drivers/net/wireless/quantenna/qtnfmac/core.c
-+++ b/drivers/net/wireless/quantenna/qtnfmac/core.c
-@@ -139,34 +139,13 @@ static void qtnf_netdev_get_stats64(struct net_device *ndev,
- 				    struct rtnl_link_stats64 *stats)
+diff --git a/net/mac80211/iface.c b/net/mac80211/iface.c
+index 240862a74..1be775979 100644
+--- a/net/mac80211/iface.c
++++ b/net/mac80211/iface.c
+@@ -709,28 +709,7 @@ static u16 ieee80211_netdev_select_queue(struct net_device *dev,
+ static void
+ ieee80211_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
  {
- 	struct qtnf_vif *vif = qtnf_netdev_get_priv(ndev);
--	unsigned int start;
--	int cpu;
- 
- 	netdev_stats_to_stats64(stats, &ndev->stats);
- 
- 	if (!vif->stats64)
- 		return;
- 
--	for_each_possible_cpu(cpu) {
--		struct pcpu_sw_netstats *stats64;
--		u64 rx_packets, rx_bytes;
--		u64 tx_packets, tx_bytes;
+-	int i;
 -
--		stats64 = per_cpu_ptr(vif->stats64, cpu);
+-	for_each_possible_cpu(i) {
+-		const struct pcpu_sw_netstats *tstats;
+-		u64 rx_packets, rx_bytes, tx_packets, tx_bytes;
+-		unsigned int start;
+-
+-		tstats = per_cpu_ptr(dev->tstats, i);
 -
 -		do {
--			start = u64_stats_fetch_begin_irq(&stats64->syncp);
--			rx_packets = stats64->rx_packets;
--			rx_bytes = stats64->rx_bytes;
--			tx_packets = stats64->tx_packets;
--			tx_bytes = stats64->tx_bytes;
--		} while (u64_stats_fetch_retry_irq(&stats64->syncp, start));
+-			start = u64_stats_fetch_begin_irq(&tstats->syncp);
+-			rx_packets = tstats->rx_packets;
+-			tx_packets = tstats->tx_packets;
+-			rx_bytes = tstats->rx_bytes;
+-			tx_bytes = tstats->tx_bytes;
+-		} while (u64_stats_fetch_retry_irq(&tstats->syncp, start));
 -
 -		stats->rx_packets += rx_packets;
--		stats->rx_bytes += rx_bytes;
 -		stats->tx_packets += tx_packets;
--		stats->tx_bytes += tx_bytes;
+-		stats->rx_bytes   += rx_bytes;
+-		stats->tx_bytes   += tx_bytes;
 -	}
-+	dev_fetch_sw_netstats(stats, vif->stats64);
++	dev_fetch_sw_netstats(stats, dev->tstats);
  }
  
- /* Netdev handler for transmission timeout.
+ static const struct net_device_ops ieee80211_dataif_ops = {
 -- 
 2.28.0
 
