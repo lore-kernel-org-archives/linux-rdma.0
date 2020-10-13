@@ -2,155 +2,104 @@ Return-Path: <SRS0=67WZ=DU=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4095AC433E7
-	for <linux-rdma@archiver.kernel.org>; Tue, 13 Oct 2020 17:43:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1CBCC433DF
+	for <linux-rdma@archiver.kernel.org>; Tue, 13 Oct 2020 18:44:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C941625374
-	for <linux-rdma@archiver.kernel.org>; Tue, 13 Oct 2020 17:43:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64946208D5
+	for <linux-rdma@archiver.kernel.org>; Tue, 13 Oct 2020 18:44:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="FQ91MZ/S"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="upKJRRTI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726044AbgJMRnS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 13 Oct 2020 13:43:18 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:12829 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725899AbgJMRnR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Oct 2020 13:43:17 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f85e6f90001>; Tue, 13 Oct 2020 10:42:17 -0700
-Received: from [172.27.0.178] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 13 Oct
- 2020 17:43:06 +0000
-Subject: Re: [PATCH 1/1] IB/isert: add module param to set sg_tablesize for IO
- cmd
-From:   Max Gurtovoy <mgurtovoy@nvidia.com>
-To:     <sagi@grimberg.me>, <krishna2@chelsio.com>,
-        <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>,
-        <dledford@redhat.com>
-CC:     <oren@nvidia.com>, <maxg@mellanox.com>
-References: <20201011090608.159333-1-mgurtovoy@nvidia.com>
-Message-ID: <1d4f4c66-5c87-c2c2-c45b-6ab6a30481ea@nvidia.com>
-Date:   Tue, 13 Oct 2020 20:43:03 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.1
+        id S1727168AbgJMSo1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 13 Oct 2020 14:44:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47118 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726481AbgJMSo1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Oct 2020 14:44:27 -0400
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EF3FC0613D0
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 11:44:27 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id s66so1031413otb.2
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 11:44:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=M72y4iaxXxCmok+mi0fM8eCK0l9E0ggim4bo2F/kTcY=;
+        b=upKJRRTITnHsntTq0MQm7IwYVO0gcz6q0llrKdeB3ThHxyQvMHtuuL1q/qO/5u78kx
+         xspHgs7puEb6sABw8/5JOCA7hONRQAE/94x9+pZJCTqzxFAoxndC3ohqPHEW8t/C3LlV
+         w7qBuy3/3f0/YvpcI3Af7ZerWlIAaO8qamrxFtjnp+JbYCoQpsUmHKnAXpSyD9vH91sm
+         bXmgYQ8ZK5n/ACoVe/B4h6dKIL4sSXbOytiUNaFLCjO1Ag09o9ph0XY414cL/W33UTAK
+         ik0sqScC5mCYch+CgfCuXe/cw/auvyqPLolWxRiNVLVbQ7/yoEI+xSIXCrJaAUchbv1r
+         k84w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=M72y4iaxXxCmok+mi0fM8eCK0l9E0ggim4bo2F/kTcY=;
+        b=nr7CAJD/Br75zjXaPUh5DChm6V/O/o6P46+RUk6/qbua1PAVlBIe1xq7oTQtcRlRmH
+         3aaWXI8bFYL+4ZsMa1Vw0u/nC96Zh+5KaQz8f2q0+CQBmR8O1fuM3BKWogDdloyzHu3Z
+         0YSrkxZ6pYCztBauiE+mSvP2WQeaEB7wnkyRnrcc6sxEzWqW8bwm0ZB6vqMWifttokUB
+         DLBPe/KAMeesZ4qxAjFfI6CImnVPKV9zmlYM3FAkJkVgxQRCQOEuNhlFMBXNMzMLtxFd
+         7vmR4zy0hwiBgjLo7+sc+RZvLISf1mjYqPEe+HxsPeMfVyjtt8JaqkPofFT+LJ2W2p16
+         FScQ==
+X-Gm-Message-State: AOAM532uxBZRaZr+YeZ3aa9fk4rPsc+enPo++aSbinJ5GMXy9MyfnMWM
+        38nnb4Bm6MfxTam/ssuYrLo=
+X-Google-Smtp-Source: ABdhPJzOqblRy9uLgvkUOHu9DXyzHfLwSzJxS8zreyhZzeOAs8q3Ewh7FxNJ55QEky3rPIolO007gQ==
+X-Received: by 2002:a9d:8d4:: with SMTP id 78mr778650otf.65.1602614666961;
+        Tue, 13 Oct 2020 11:44:26 -0700 (PDT)
+Received: from localhost (2603-8081-140c-1a00-5ee5-86ef-4523-14d5.res6.spectrum.com. [2603:8081:140c:1a00:5ee5:86ef:4523:14d5])
+        by smtp.gmail.com with ESMTPSA id x15sm278443oor.33.2020.10.13.11.44.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Oct 2020 11:44:26 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, colin.king@canonical.com,
+        linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] RDMA/rxe - Respond to skb_clone failure in rxe_recv.c
+Date:   Tue, 13 Oct 2020 13:42:37 -0500
+Message-Id: <20201013184236.5231-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <20201011090608.159333-1-mgurtovoy@nvidia.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1602610937; bh=6vx46N7wL665Tjpk0ZYJfj+xh77D8BIsWmXCUYMsJuA=;
-        h=Subject:From:To:CC:References:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-         Content-Language:X-Originating-IP:X-ClientProxiedBy;
-        b=FQ91MZ/SFCo9Ss+J1wvD4e/sNUib/0lTfO7ydQmuiPLqBEHxxw/RaV2hWy+es0W1V
-         mkqiQZjDuuN1PL7hb88HYffmwMHqYO3iMhuxEdl4OPokh8lZDo0hLM6VQNYJwgYXgM
-         AZ0l7Mih59GxFTc33U3A19P7l5xNx1AJiSkqm4zBjIjMufX0Y5KLTMGHuOnMWchhnN
-         OQY1U6vecxvMdGjm3T72khr/IoSxN7V6sKc+0tqgjtdAzGpBBk3qJ77jXGk4TvQx46
-         MdPx/uhxWLIHkr8tW99PniLc8nAmY/Kolm26Xtqz7WmwRJDOt1xLMxWKYPzwHFFTrN
-         am2Bdd8fiulXw==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Krishna,
+If skb_clone is unable to allocate memory for a new
+sk_buff this is not detected by the current code.
 
-did this patch fix the issue you reported ?
+Check for a NULL return and continue. This is similar to
+other errors in this loop over QPs attached to the multicast address
+and consistent with the unreliable UD transport.
 
+Fixes: e7ec96fc7932f ("RDMA/rxe: Fix skb lifetime in rxe_rcv_mcast_pkt()")
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_recv.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-On 10/11/2020 12:06 PM, Max Gurtovoy wrote:
-> From: Max Gurtovoy <maxg@mellanox.com>
->
-> Currently, iser target support max IO size of 16MiB by default. For some
-> adapters, allocating this amount of resources might reduce the total
-> number of possible connections that can be created. For those adapters,
-> it's preferred to reduce the max IO size to be able to create more
-> connections. Since there is no handshake procedure for max IO size in
-> iser protocol, set the default max IO size to 1MiB and add a module
-> parameter for enabling the option to control it for suitable adapters.
->
-> Reported-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
-> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
-> ---
->   drivers/infiniband/ulp/isert/ib_isert.c | 27 ++++++++++++++++++++++++-
->   drivers/infiniband/ulp/isert/ib_isert.h |  6 ++++++
->   2 files changed, 32 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 695f701dc43d..5a47f1bbca96 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -28,6 +28,18 @@ static int isert_debug_level;
->   module_param_named(debug_level, isert_debug_level, int, 0644);
->   MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0 (default:0)");
->   
-> +static int isert_sg_tablesize_set(const char *val,
-> +				  const struct kernel_param *kp);
-> +static const struct kernel_param_ops sg_tablesize_ops = {
-> +	.set = isert_sg_tablesize_set,
-> +	.get = param_get_int,
-> +};
-> +
-> +static int isert_sg_tablesize = ISCSI_ISER_SG_TABLESIZE;
-> +module_param_cb(sg_tablesize, &sg_tablesize_ops, &isert_sg_tablesize, 0644);
-> +MODULE_PARM_DESC(sg_tablesize,
-> +		 "Number of gather/scatter entries in a single scsi command, should >= 128 (default: 256, max: 4096)");
-> +
->   static DEFINE_MUTEX(device_list_mutex);
->   static LIST_HEAD(device_list);
->   static struct workqueue_struct *isert_comp_wq;
-> @@ -47,6 +59,19 @@ static void isert_send_done(struct ib_cq *cq, struct ib_wc *wc);
->   static void isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc);
->   static void isert_login_send_done(struct ib_cq *cq, struct ib_wc *wc);
->   
-> +static int isert_sg_tablesize_set(const char *val, const struct kernel_param *kp)
-> +{
-> +	int n = 0, ret;
-> +
-> +	ret = kstrtoint(val, 10, &n);
-> +	if (ret != 0 || n < ISCSI_ISER_MIN_SG_TABLESIZE ||
-> +	    n > ISCSI_ISER_MAX_SG_TABLESIZE)
-> +		return -EINVAL;
-> +
-> +	return param_set_int(val, kp);
-> +}
-> +
-> +
->   static inline bool
->   isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
->   {
-> @@ -101,7 +126,7 @@ isert_create_qp(struct isert_conn *isert_conn,
->   	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
->   	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
->   	factor = rdma_rw_mr_factor(device->ib_device, cma_id->port_num,
-> -				   ISCSI_ISER_MAX_SG_TABLESIZE);
-> +				   isert_sg_tablesize);
->   	attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX * factor;
->   	attr.cap.max_send_sge = device->ib_device->attrs.max_send_sge;
->   	attr.cap.max_recv_sge = 1;
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-> index 7fee4a65e181..90ef215bf755 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.h
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.h
-> @@ -65,6 +65,12 @@
->    */
->   #define ISER_RX_SIZE		(ISCSI_DEF_MAX_RECV_SEG_LEN + 1024)
->   
-> +/* Default I/O size is 1MB */
-> +#define ISCSI_ISER_SG_TABLESIZE 256
-> +
-> +/* Minimum I/O size is 512KB */
-> +#define ISCSI_ISER_MIN_SG_TABLESIZE 128
-> +
->   /* Maximum support is 16MB I/O size */
->   #define ISCSI_ISER_MAX_SG_TABLESIZE	4096
->   
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index 11f3daf20768..c9984a28eecc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -271,6 +271,9 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 		else
+ 			per_qp_skb = skb;
+ 
++		if (unlikely(!per_qp_skb))
++			continue;
++
+ 		per_qp_pkt = SKB_TO_PKT(per_qp_skb);
+ 		per_qp_pkt->qp = qp;
+ 		rxe_add_ref(qp);
+-- 
+2.25.1
+
