@@ -2,108 +2,112 @@ Return-Path: <SRS0=VZhB=DV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B88C433E7
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98950C4363A
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:24:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3594206DD
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:23:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38280206F4
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:24:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IIea5AEL"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="daaW88ti"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728486AbgJNJXg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Oct 2020 05:23:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39944 "EHLO
+        id S1728827AbgJNJY2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 14 Oct 2020 05:24:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731249AbgJNJWz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Oct 2020 05:22:55 -0400
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF6CCC02524F
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 17:39:57 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id t77so1446798oie.4
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 17:39:57 -0700 (PDT)
+        with ESMTP id S1730819AbgJNJUL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Oct 2020 05:20:11 -0400
+Received: from mail-oo1-xc42.google.com (mail-oo1-xc42.google.com [IPv6:2607:f8b0:4864:20::c42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF675C00458B
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 18:35:18 -0700 (PDT)
+Received: by mail-oo1-xc42.google.com with SMTP id w25so376964oos.10
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Oct 2020 18:35:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DcUhqi1j/8T6qszOgS2y+lOtAlVETZnS+k14R+nuEbQ=;
-        b=IIea5AELF6NOshMrBPP2k9vr9mybIvxNO7+kV+oDJj+JbsDvlfPfC0cZLOSr+b2IZD
-         3ZUfq/2uBNLWpKDeHPtQI1BeLWvlXoh2Ss8JrZi8bv+GA4gKmS7lk0VX1Ujp7pLDsWow
-         u+kIamcIrsW2u21fM0AqJ8IaovUFR6YgvXkrYxcG5D8dtbr2qCD9XkxqF+5EwRaqcE2O
-         EU9s88h2ssCsax6qRuBnEj35C56ei+6RYoRxeNSa4DjBQtJ+9bL3ciIhxfi1CSdNDVMq
-         D4nr6PhEl1/RFaJem/puQxu6C+pv9qHmZFl8hWOTpJjoQCrRjOrtyFsHMoY9qxdvyfpn
-         FuvA==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=21oGAexv+KooXGYt4Wcrp9KOCSMG4QsemmYMz5bOURw=;
+        b=daaW88tihKNyAH5gi78rlD5ZwTyxt5ssQfG1tTAGu3EHWGpZ/qAJ5rM9Pw2KgmGtDe
+         cbrTcXwuLPHIIxi/wgd6ucrLsiT5kTRFyhHqMuxhCQ0RrwaNj3Te0dPdz8P061YVz3l8
+         7cvVMelZd0xaWL0S2H5K9TJhOurTC51CwE0jmHOk37AdQRezzC0ma3fOaB3emg/z+v7G
+         e9UzgW+5l1YylBEkfvAXvloTtmyCI/7JShfHrfMSl2sr73As6nKMQTGmSmXZ7cUokwXH
+         jkVC+EVWgqqeCAnMAM56np/iPKS7pHe0LkZyi2eCmCCph7iPif8h2y1Sq2DpO/WPWc0I
+         /Zgg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DcUhqi1j/8T6qszOgS2y+lOtAlVETZnS+k14R+nuEbQ=;
-        b=WrNbvprEZEcZGczNHbKpiv9rIvEQLNIsJHmCf4gykDiWrsEKfjOJ57Pdv7/OgkbcuZ
-         MLCwPzJy80JrZphC4DqGizpmPurqJjylJlcrpyUflDjG3h4GN+Qz+mIr6GuRYzbnVMK7
-         FVk4/eL1LCJVlutCe1sc4z/EBEIUJ0MrMtt08rHJ/dYC4VXkH9muvAkQspQF4tD4qfxz
-         1ytab89qoWaPv8RqujZTr2KYrcK1QqF+2g6zxpbuqwfoECEgq6yVdAMvKAC/fO7Fnryx
-         ki9Lgsp8/0krVhjFQ40gZkHNaWyvCMZ5H30KUMiqfTXzU+MHsuuQB/X0iG07/tSO1YNV
-         iGPQ==
-X-Gm-Message-State: AOAM530Ks6EbKZSPb3zh620qKWZef8GcpdBrvmtgn+G2dPOA2+NqbLVb
-        iMLq+cKCtnWRJA0UnhmfuvufaQPmAp6vPKuCBQs=
-X-Google-Smtp-Source: ABdhPJzcu/3qeIcwOZUWzr/EzEEE0oAtCmOEDtEUwbZKw42ok0LBzgTZ0fL2okyCEtTKNP3hxnIYCjLJ0Wj0dwC83R8=
-X-Received: by 2002:aca:fc89:: with SMTP id a131mr602083oii.163.1602635997197;
- Tue, 13 Oct 2020 17:39:57 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=21oGAexv+KooXGYt4Wcrp9KOCSMG4QsemmYMz5bOURw=;
+        b=g5TJYx6F+uWP6QHMaT38sjyfDVmZD9HBudtCzmkZdszgTIU+SDTZh7zaXL1ggs53c1
+         3SWw6f9Vkd92vdhIaXDOLf3Vf5qNwZP14hdLY5f3BrA7B9fdMdaVRmwPKx+d1u88AFUe
+         Scg5az77XEJb+NdGHqFwnVZvKzCbO8pRdTTvzxpw2ZmTe9eOlNY8R1EQuKmuRywrsj20
+         mjm3h+/4Tbj03u5xErBLnoweU547kMLjdeRRC2RyJWn3F3HZXloz3d6gj5/lpfINPWyZ
+         H6x3qRCMvE4VjzQ/OvM2rZQ99g6VB3X6HYTxh/W5WI4HKlasp+t85jGV3y00QtsCaoCX
+         Aggw==
+X-Gm-Message-State: AOAM533FSHmEiegfFDM/HFqrmPAmanHqlhwz6ka7PoGkkPZkoi7LRMgh
+        XK9c/lRVomGssV7Rnaynrfg=
+X-Google-Smtp-Source: ABdhPJwtV1bNXgNEGZqGOM9lRAkPD9m8Yv6KqfnqxYUO/tcy7XRjp7bukfEPZau5e/Zb9J30fhIhAg==
+X-Received: by 2002:a4a:4592:: with SMTP id y140mr1625023ooa.5.1602639318207;
+        Tue, 13 Oct 2020 18:35:18 -0700 (PDT)
+Received: from localhost (2603-8081-140c-1a00-97f4-eab9-6f0e-197f.res6.spectrum.com. [2603:8081:140c:1a00:97f4:eab9:6f0e:197f])
+        by smtp.gmail.com with ESMTPSA id l3sm661529oth.36.2020.10.13.18.35.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Oct 2020 18:35:17 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] RDMA/rxe: Set max_seg_size to a valid value
+Date:   Tue, 13 Oct 2020 20:33:42 -0500
+Message-Id: <20201014013341.3452-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20201013184236.5231-1-rpearson@hpe.com>
-In-Reply-To: <20201013184236.5231-1-rpearson@hpe.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Wed, 14 Oct 2020 08:39:46 +0800
-Message-ID: <CAD=hENfGR=nLqZNON0=whxDFooG5E+Eq-ggDjrvN+6M+3F7G7w@mail.gmail.com>
-Subject: Re: [PATCH for-next] RDMA/rxe - Respond to skb_clone failure in rxe_recv.c
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>, colin.king@canonical.com,
-        linux-rdma@vger.kernel.org, Bob Pearson <rpearson@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Oct 14, 2020 at 2:44 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->
-> If skb_clone is unable to allocate memory for a new
-> sk_buff this is not detected by the current code.
->
-> Check for a NULL return and continue. This is similar to
-> other errors in this loop over QPs attached to the multicast address
-> and consistent with the unreliable UD transport.
->
-> Fixes: e7ec96fc7932f ("RDMA/rxe: Fix skb lifetime in rxe_rcv_mcast_pkt()")
+With the recent change to __sg_alloc_table_from_page the old value
+for max_seg_size is no longer valid.
 
-Addresses-Coverity-ID: 1497804: Null pointer dereferences (NULL_RETURNS)
+Change to a new parameter RXE_MAX_SEG_SIZE wich is set to 1G.
 
-Thanks
-Zhu Yanjun
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_param.h | 1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-> Signed-off-by: Bob Pearson <rpearson@hpe.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_recv.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-> index 11f3daf20768..c9984a28eecc 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-> @@ -271,6 +271,9 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
->                 else
->                         per_qp_skb = skb;
->
-> +               if (unlikely(!per_qp_skb))
-> +                       continue;
-> +
->                 per_qp_pkt = SKB_TO_PKT(per_qp_skb);
->                 per_qp_pkt->qp = qp;
->                 rxe_add_ref(qp);
-> --
-> 2.25.1
->
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 25ab50d9b7c2..03893d5634c8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -36,6 +36,7 @@ static inline enum ib_mtu eth_mtu_int_to_enum(int mtu)
+ /* default/initial rxe device parameter settings */
+ enum rxe_device_param {
+ 	RXE_MAX_MR_SIZE			= -1ull,
++	RXE_MAX_SEG_SIZE		= SZ_1G,
+ 	RXE_PAGE_SIZE_CAP		= 0xfffff000,
+ 	RXE_MAX_QP			= 0x10000,
+ 	RXE_MAX_QP_WR			= 0x4000,
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index d487ccd7f8b9..0a7d7c55d8d6 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1129,7 +1129,7 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
+ 	addrconf_addr_eui48((unsigned char *)&dev->node_guid,
+ 			    rxe->ndev->dev_addr);
+ 	dev->dev.dma_parms = &rxe->dma_parms;
+-	dma_set_max_seg_size(&dev->dev, UINT_MAX);
++	dma_set_max_seg_size(&dev->dev, RXE_MAX_SEG_SIZE);
+ 	dma_set_coherent_mask(&dev->dev, dma_get_required_mask(&dev->dev));
+ 
+ 	dev->uverbs_cmd_mask = BIT_ULL(IB_USER_VERBS_CMD_GET_CONTEXT)
+-- 
+2.25.1
+
