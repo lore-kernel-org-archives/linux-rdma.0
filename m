@@ -2,133 +2,129 @@ Return-Path: <SRS0=VZhB=DV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8BA1C43457
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 08:39:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B3DFC43457
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:22:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F0A9221FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 08:39:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC6FF214D8
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 09:22:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ngUoDnD3"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nNOVJ3vN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729720AbgJNIjh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Oct 2020 04:39:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33574 "EHLO
+        id S1727151AbgJNJWE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 14 Oct 2020 05:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726269AbgJNIjh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Oct 2020 04:39:37 -0400
-Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 616DCC045871;
-        Tue, 13 Oct 2020 23:13:56 -0700 (PDT)
-Received: by mail-ej1-x642.google.com with SMTP id t25so3060082ejd.13;
-        Tue, 13 Oct 2020 23:13:56 -0700 (PDT)
+        with ESMTP id S1731157AbgJNJVz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Oct 2020 05:21:55 -0400
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7690AC02524C;
+        Tue, 13 Oct 2020 17:37:40 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id f10so1867741otb.6;
+        Tue, 13 Oct 2020 17:37:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=aeWyu0fhicZ35ndvB5G7CKdKzKpJv3Q8+/dMeny8r3E=;
-        b=ngUoDnD3ez3wPljEH7V6ZRJPxi6VyKPo3NxCEGkokrtq2QA/+s/lV/gHCbtL1ccOZM
-         y4RF2dEUkDYGhH4MNBxZg/1KDQafk1w8ITyco6/45YqH8gEgwjnp0z6zsFzKn4IOHj4s
-         SEgx35DPjNeiQzLyJktDf8AGW15iQC8AEp6CWP5YKxFjWBgY54Ck35nwJlqfo9PVt8+y
-         bOUQNnEc8FKh9al2GBvmeJd6AXmxiWSD5M3XIfYFKi7rr36blaxM8b/XEUh/rGL1Hk8R
-         zvF+ytnIvMGQMQUTRgQmPC6Nm15fiVz3SDDpT9DWCqkOjC2BvUYWeMwsgd6Mu48AXDAk
-         ln9Q==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=w+vug/3Yr6WVwWrd+dXT93Db+SxDwBpmr1Zre51Ex4I=;
+        b=nNOVJ3vN0rFBmgnVURURJZUP1NAU5qAqU2zFX3lLnNNONJLDlADruSJ1cKwoIMLMiH
+         sxEKBfrplmC4+LbNQ11n+RFxTzWSYYfoJ7oXIhrG+Z7sogskoJ3eeIyg+6HJBtMdwBC+
+         5YpRQFX3ypgey+X7/vuAOjewfPWRhGZH98wcIwdUwIwMLGyU3g9vsU9BBdHYp+M3tXOQ
+         n2FSe/Forx2MORVwCT4mOdJu44RzF373NZojOsFVyrAmPy+i2c4P266hAzZc0+vm2Mv5
+         +ILj/ISo6TzcXdD9Ebb5TmBcjIlC/xMtC41aBArnhdb7n66zfqF3XaHycDAREd52pQ3Z
+         eYfg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=aeWyu0fhicZ35ndvB5G7CKdKzKpJv3Q8+/dMeny8r3E=;
-        b=Tm9Kt/lLPAzdk9crNClC2f2jWoJjmuysUv/qxZidTNJe8m4l1kD7ue1rNVXN5bQx9B
-         WqyIuwXa+VVVPIdD+3J9cWR80kh7P1VppdTMfZdwXQ0TceS0opbJFLh2w2eL+jFMJ8du
-         /ohjdzr5w0A7rX27y9IyzVxCLlPA0Dx8GdxrQ3tyhlpaqtn4M5gg50NpepFxOLI4iC7m
-         9haBTGdHJdbvTZIaEMqancmL5X4lhLlo4tGvvetlXdOBTCw4bRg4y7q3MNcZlvYiyBAF
-         d4lelbTx94MTxOBp6yMPkoX1oJpmqzGSzJPgvldA4qgZBGKj+eK7fIunKn6r6Zo+iKfZ
-         1pGQ==
-X-Gm-Message-State: AOAM530MUIWlQf/fNc6Y1IbnQFinVRwCLtj7k9PH2k6e8/qoC6Rs7urx
-        O0mE9HWnjSDHVrFzITTmY7w=
-X-Google-Smtp-Source: ABdhPJyZIBVV6msuVArNaw4EDCFq2Apl0m8HnRD2XrtAzYoL6edLcNmhgdgke6mQaAV0e1pcOOmFPA==
-X-Received: by 2002:a17:907:2179:: with SMTP id rl25mr3703878ejb.450.1602656034995;
-        Tue, 13 Oct 2020 23:13:54 -0700 (PDT)
-Received: from ?IPv6:2003:ea:8f23:2800:e563:1e0d:2b0d:aba7? (p200300ea8f232800e5631e0d2b0daba7.dip0.t-ipconnect.de. [2003:ea:8f23:2800:e563:1e0d:2b0d:aba7])
-        by smtp.googlemail.com with ESMTPSA id oa19sm1016118ejb.95.2020.10.13.23.13.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 13 Oct 2020 23:13:54 -0700 (PDT)
-Subject: Re: [PATCH net-next v2 00/12] net: add and use function
- dev_fetch_sw_netstats for fetching pcpu_sw_netstats
-To:     Leon Romanovsky <leon@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        David Miller <davem@davemloft.net>
-Cc:     =?UTF-8?Q?Bj=c3=b8rn_Mork?= <bjorn@mork.no>,
-        Oliver Neukum <oneukum@suse.com>,
-        Igor Mitsyanko <imitsyanko@quantenna.com>,
-        Sergey Matyukevich <geomatsi@gmail.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <nikolay@nvidia.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Vladimir Oltean <olteanv@gmail.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Pravin B Shelar <pshelar@ovn.org>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        linux-rdma@vger.kernel.org,
-        Linux USB Mailing List <linux-usb@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        bridge@lists.linux-foundation.org
-References: <d77b65de-1793-f808-66b5-aaa4e7c8a8f0@gmail.com>
- <20201013173951.25677bcc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20201014054250.GB6305@unreal>
-From:   Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <3be8fd19-1c7e-0e05-6039-e5404b2682b9@gmail.com>
-Date:   Wed, 14 Oct 2020 08:13:47 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=w+vug/3Yr6WVwWrd+dXT93Db+SxDwBpmr1Zre51Ex4I=;
+        b=GoJ9wJGz38TVasZUE5odPWDnbULF7onpj+Tyuw7YnVla3YV3hQLgux+suyOXmjzf3r
+         wXT2/ztoKvZS9ubREjIobJyd1A0cOpwQXq5shXvDCcQNXPPTFtULYC0B46tcsgW6Caw1
+         iNp+HA9aGFDek3pchU78DPyup5+fp4OVAszWD3GvRSP8PLqYc3xs80u0HVy/M4ZoMdb/
+         Lg7mhn3EcDiDbOhXD4rDaWzkBhvorDwFS6eM8GPq8rYHt002+12hWcI5hfa4ZFWlMIkl
+         tHjbqp4cWUlQjD8Hw87Sxy693QKkBkdn569lELKMeGLzEe+gnHbHYxlvxIvK7FkIuPZV
+         lXqg==
+X-Gm-Message-State: AOAM530S5AYfgDNh1JfWAYrkb3K2jwKn2YxsPWYNroc7rswPO0aUnfH9
+        rKBZuDfd7hTHfqJoVwMuK3u1hfFd1ClgEPFGm0grXmtr
+X-Google-Smtp-Source: ABdhPJxhe9VW9XUgavM/6ARchKBzi5s9Ya6FaaymGswqVSKwzqTktAbPxyBRFypiPISWZCTSuMhO+0RCt1BKorl3X6Y=
+X-Received: by 2002:a9d:1406:: with SMTP id h6mr1587270oth.59.1602635859919;
+ Tue, 13 Oct 2020 17:37:39 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20201014054250.GB6305@unreal>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20201012165229.59257-1-alex.dewar90@gmail.com> <DM6PR12MB3516EC1E0F28EB8F9B970F24D5050@DM6PR12MB3516.namprd12.prod.outlook.com>
+In-Reply-To: <DM6PR12MB3516EC1E0F28EB8F9B970F24D5050@DM6PR12MB3516.namprd12.prod.outlook.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Wed, 14 Oct 2020 08:37:28 +0800
+Message-ID: <CAD=hENeBf=u30XWnZFdcZCYGR2Q41HhCFRSduRER=k05zqaCzQ@mail.gmail.com>
+Subject: Re: FW: [PATCH] RDMA/rxe: Fix possible NULL pointer dereference
+To:     Yanjun Zhu <yanjunz@nvidia.com>,
+        Alex Dewar <alex.dewar90@gmail.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Bob Pearson <rpearsonhpe@gmail.com>,
+        linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 14.10.2020 07:42, Leon Romanovsky wrote:
-> On Tue, Oct 13, 2020 at 05:39:51PM -0700, Jakub Kicinski wrote:
->> On Mon, 12 Oct 2020 10:00:11 +0200 Heiner Kallweit wrote:
->>> In several places the same code is used to populate rtnl_link_stats64
->>> fields with data from pcpu_sw_netstats. Therefore factor out this code
->>> to a new function dev_fetch_sw_netstats().
->>>
->>> v2:
->>> - constify argument netstats
->>> - don't ignore netstats being NULL or an ERRPTR
->>> - switch to EXPORT_SYMBOL_GPL
->>
->> Applied, thank you!
-> 
-> Jakub,
-> 
-> Is it possible to make sure that changelogs are not part of the commit
-> messages? We don't store previous revisions in the git repo, so it doesn't
-> give too much to anyone who is looking on git log later. The lore link
-> to the patch is more than enough.
-> 
-I remember that once I did it the usual way (changelog below the ---) David
-requested the changelog to be part of the commit message. So obviously he
-sees some benefit in doing so. 
+On Wed, Oct 14, 2020 at 8:34 AM Yanjun Zhu <yanjunz@nvidia.com> wrote:
+>
+>
+>
+> -----Original Message-----
+> From: Alex Dewar <alex.dewar90@gmail.com>
+> Sent: Tuesday, October 13, 2020 12:53 AM
+> Cc: Alex Dewar <alex.dewar90@gmail.com>; Yanjun Zhu <yanjunz@nvidia.com>; Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>; Bob Pearson <rpearsonhpe@gmail.com>; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] RDMA/rxe: Fix possible NULL pointer dereference
+>
+> skb_clone() is called without checking if the returned pointer is NULL before it is dereferenced. Fix by adding an additional error check.
+>
+> Fixes: e7ec96fc7932 ("RDMA/rxe: Fix skb lifetime in rxe_rcv_mcast_pkt()")
+> Addresses-Coverity-ID: 1497804: Null pointer dereferences (NULL_RETURNS)
+> Signed-off-by: Alex Dewar <alex.dewar90@gmail.com>
 
-> 44fa32f008ab ("net: add function dev_fetch_sw_netstats for fetching pcpu_sw_netstats")
-> 
-> Thanks
-> 
+Thanks a lot.
 
+Zhu Yanjun
+> ---
+>  drivers/infiniband/sw/rxe/rxe_recv.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+> index 11f3daf20768..a65936e12f89 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+> @@ -266,10 +266,13 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+>                 /* for all but the last qp create a new clone of the
+>                  * skb and pass to the qp.
+>                  */
+> -               if (mce->qp_list.next != &mcg->qp_list)
+> +               if (mce->qp_list.next != &mcg->qp_list) {
+>                         per_qp_skb = skb_clone(skb, GFP_ATOMIC);
+> -               else
+> +                       if (!per_qp_skb)
+> +                               goto err2;
+> +               } else {
+>                         per_qp_skb = skb;
+> +               }
+>
+>                 per_qp_pkt = SKB_TO_PKT(per_qp_skb);
+>                 per_qp_pkt->qp = qp;
+> @@ -283,6 +286,10 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+>
+>         return;
+>
+> +err2:
+> +       spin_unlock_bh(&mcg->mcg_lock);
+> +       rxe_drop_ref(mcg);      /* drop ref from rxe_pool_get_key. */
+> +
+>  err1:
+>         kfree_skb(skb);
+>  }
+> --
+> 2.28.0
+>
