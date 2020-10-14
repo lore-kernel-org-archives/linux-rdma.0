@@ -2,121 +2,96 @@ Return-Path: <SRS0=VZhB=DV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9823FC433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 16:01:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4150CC433DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 22:51:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5180022200
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 16:01:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3F5D2223F
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 22:51:33 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Q3+D8eME"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729395AbgJNQB6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Oct 2020 12:01:58 -0400
-Received: from mga12.intel.com ([192.55.52.136]:46802 "EHLO mga12.intel.com"
+        id S1729726AbgJNWvb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 14 Oct 2020 18:51:31 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:2809 "EHLO nat-hk.nvidia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727034AbgJNQB6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 14 Oct 2020 12:01:58 -0400
-IronPort-SDR: e1JXhhVj4/hQOKGI0RdC5TmvF9PVx+P9fM50a3+AjtNcjzcr5Bit72U8tuo7IyKnX8pH4/nYWm
- n3qfTTroMpgA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9773"; a="145443294"
-X-IronPort-AV: E=Sophos;i="5.77,375,1596524400"; 
-   d="scan'208";a="145443294"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2020 09:01:57 -0700
-IronPort-SDR: DfBAFi75yC9OryKz1lKBNdATthFLHS9uxKfYZOyLJVz0Fi8UM8WCwYyLuCMwP7KMdqzn4AhFHj
- NVNW30PqycEA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.77,375,1596524400"; 
-   d="scan'208";a="345711986"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by fmsmga004.fm.intel.com with ESMTP; 14 Oct 2020 09:01:57 -0700
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH v4 5/5] dma-buf: Clarify that dma-buf sg lists are page aligned
-Date:   Wed, 14 Oct 2020 09:16:01 -0700
-Message-Id: <1602692161-107096-1-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
+        id S1728250AbgJNWvb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 14 Oct 2020 18:51:31 -0400
+Received: from HKMAIL101.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f8780f10000>; Thu, 15 Oct 2020 06:51:29 +0800
+Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL101.nvidia.com
+ (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 14 Oct
+ 2020 22:51:28 +0000
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.172)
+ by HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 14 Oct 2020 22:51:29 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=gVG2ab2FQ2SjqWijDOygTlZdasvsSC30Y/ggNP/j5OQElLRP3PLOPe16AtJAy3a86d9Ex96zNKTHTF5WCIWKl3aH1aCRwVci1J1jIfP/RG62ePr6lpeqT2wa1/Aj6r7W1WF+2eODXxDlW+ezeCGv58xp8I0Cey+mtZ4wa/7rpUboSDVAM+h+h8sgsgqo3l5l0jEk6L5N795R5t/eoVkdrE0aetNEt5MuoKvfsO4A6udlxZ6HCKq69nrbsh5coKYJv4I+zq0+KRF62PgEGnuzZaAr6Yo00j2sg4PdNZB49EXnsYXecMvvtXP5h3PpJzez+vWWUDqXKM+kQiTHczCKIQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=QozgLSbLg2T03V2She+aAryUiB0cUMnvhA5uWoyx1u4=;
+ b=GDX2XVdCoKcZ6oJA7AFJ58RjoOTduj31F1JxCJvb978zufLQ0vrTcykfAV08BVFle8eEEaDsXggWTd5mQnBJzt3bMuSKERA+eAzgRreoMetZUYCpmTlq6tY4OwOoIJ/xcpx7GanOuEj1uJHzdSlg7rskZ+pB43OEoq6nhtsR2WCOD/7J7fnYdP7Pf5SXwONbBSZXzdOXuQbXdnidHhjjOy09Mio1eobSBKOV1ZNz+3TRO64KWMyYUu19yhnTq8vKi1QtS7HDmQ3md0whg4377y5aCv/M5M79FojPqSVc8GJHGOpWMvQCEKbAqSYG09NPmjlr6XLzP/iVdneS6y0/ww==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4483.namprd12.prod.outlook.com (2603:10b6:5:2a2::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.20; Wed, 14 Oct
+ 2020 22:51:26 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3477.020; Wed, 14 Oct 2020
+ 22:51:26 +0000
+Date:   Wed, 14 Oct 2020 19:51:25 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Bob Pearson <rpearsonhpe@gmail.com>,
+        Maor Gottlieb <maorg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>
+Subject: Re: dynamic-sg patch has broken rdma_rxe
+Message-ID: <20201014225125.GC5316@nvidia.com>
+References: <0fdfc60e-ea93-8cf2-b23a-ce5d07d5fe33@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <0fdfc60e-ea93-8cf2-b23a-ce5d07d5fe33@gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-ClientProxiedBy: MN2PR01CA0009.prod.exchangelabs.com (2603:10b6:208:10c::22)
+ To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.177.128.188) by MN2PR01CA0009.prod.exchangelabs.com (2603:10b6:208:10c::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.20 via Frontend Transport; Wed, 14 Oct 2020 22:51:26 +0000
+Received: from jgg by jggl.ziepe.ca with local (Exim 4.90_1)    (envelope-from <jgg@nvidia.com>)        id 1kSpcD-0001ew-Ci; Wed, 14 Oct 2020 19:51:25 -0300
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1602715889; bh=QozgLSbLg2T03V2She+aAryUiB0cUMnvhA5uWoyx1u4=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:User-Agent:X-ClientProxiedBy:
+         MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
+        b=Q3+D8eMEuwlAupdZQXG4kg+DoK20VF5JnL2ShN8/mi0ONcH8GZOfZKgwmaC+eO+xW
+         nGKSURl3SmcosXDiTbvBL9CpjBdCJTfHHAOoP/h9dkDprB4xEMJ0orl9DEbU/78SDW
+         vuY4WcjzyaBHA5FzK7tnR2UfWHDQTc+MH1QGt8RETHn0xxVefuUuIS2tox9q14B12H
+         XslKautH2AymYzqQNqw2lSzyfLGoU2Uv/mqlU1YDk9z/nlPaTyJ/4BxLi2+H8BZ4oU
+         PUNxFBi8KRD6GCHBHf18yQF71dE18LUiyU4nxctK3O6GBFfow8+AE0jHezDbS9VdAQ
+         TAtlzHydS8vtQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The dma-buf API have been used under the assumption that the sg lists
-returned from dma_buf_map_attachment() are fully page aligned. Lots of
-stuff can break otherwise all over the place. Clarify this in the
-documentation and add a check when DMA API debug is enabled.
+On Tue, Oct 13, 2020 at 09:33:14AM -0500, Bob Pearson wrote:
+> Jason,
+> 
+> Just pulled for-next and now hit the following warning.
+> Register user space memory is not longer working.
+> I am trying to debug this but if you have any idea where to look let me know.
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
----
- drivers/dma-buf/dma-buf.c | 21 +++++++++++++++++++++
- include/linux/dma-buf.h   |  3 ++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+The offset_in_page is wrong, but it is protecting some other logic..
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 844967f..7309c83 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -851,6 +851,9 @@ void dma_buf_unpin(struct dma_buf_attachment *attach)
-  * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
-  * on error. May return -EINTR if it is interrupted by a signal.
-  *
-+ * On success, the DMA addresses and lengths in the returned scatterlist are
-+ * PAGE_SIZE aligned.
-+ *
-  * A mapping must be unmapped by using dma_buf_unmap_attachment(). Note that
-  * the underlying backing storage is pinned for as long as a mapping exists,
-  * therefore users/importers should not hold onto a mapping for undue amounts of
-@@ -904,6 +907,24 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 		attach->dir = direction;
- 	}
- 
-+#ifdef CONFIG_DMA_API_DEBUG
-+	{
-+		struct scatterlist *sg;
-+		u64 addr;
-+		int len;
-+		int i;
-+
-+		for_each_sgtable_dma_sg(sg_table, sg, i) {
-+			addr = sg_dma_address(sg);
-+			len = sg_dma_len(sg);
-+			if (!PAGE_ALIGNED(addr) || !PAGE_ALIGNED(len)) {
-+				pr_debug("%s: addr %llx or len %x is not page aligned!\n",
-+					 __func__, addr, len);
-+			}
-+		}
-+	}
-+#endif /* CONFIG_DMA_API_DEBUG */
-+
- 	return sg_table;
- }
- EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index a2ca294e..4a5fa70 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -145,7 +145,8 @@ struct dma_buf_ops {
- 	 *
- 	 * A &sg_table scatter list of or the backing storage of the DMA buffer,
- 	 * already mapped into the device address space of the &device attached
--	 * with the provided &dma_buf_attachment.
-+	 * with the provided &dma_buf_attachment. The addresses and lengths in
-+	 * the scatter list are PAGE_SIZE aligned.
- 	 *
- 	 * On failure, returns a negative error value wrapped into a pointer.
- 	 * May also return -EINTR when a signal was received while being
--- 
-1.8.3.1
+Maor? Leon? Can you sort it out tomorrow?
 
+Jason
