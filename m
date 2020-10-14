@@ -2,186 +2,87 @@ Return-Path: <SRS0=VZhB=DV=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A8CC433DF
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 00:12:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E4B4C433E7
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 00:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A74E920776
-	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 00:12:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="VU1lVov+"
+	by mail.kernel.org (Postfix) with ESMTP id E9DFF21D7F
+	for <linux-rdma@archiver.kernel.org>; Wed, 14 Oct 2020 00:39:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602635995;
+	bh=CFDyw8SnopRjOQTv0trN9Zq7Ipl3I4xqiXTNATXIglw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=ANs9bEw8umK9EiKgHe4XGuNdDayNVpJL1fue5m3BN01Z4UeX6vMlaw+dljZgApbba
+	 v4XLgHRhx/JpAPQItKrNQikw7BVPr8NBKIPCrpIT8dQYHlq0Zu8+mLFvV36mKE/0C0
+	 qnhHCb+m2ftWDQJUx7hGR+Hak5nUSt0YffRtHbEs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727473AbgJNAML (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 13 Oct 2020 20:12:11 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:4223 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727470AbgJNAMK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Oct 2020 20:12:10 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f86424d0001>; Tue, 13 Oct 2020 17:11:57 -0700
-Received: from [172.27.0.178] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 14 Oct
- 2020 00:11:58 +0000
-Subject: Re: [PATCH 1/1] IB/isert: add module param to set sg_tablesize for IO
- cmd
-To:     Sagi Grimberg <sagi@grimberg.me>, <krishna2@chelsio.com>,
-        <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>,
-        <dledford@redhat.com>
-CC:     <oren@nvidia.com>, <maxg@mellanox.com>
-References: <20201011090608.159333-1-mgurtovoy@nvidia.com>
- <80448269-91b9-7d11-b18d-fc838d72e2ec@grimberg.me>
-From:   Max Gurtovoy <mgurtovoy@nvidia.com>
-Message-ID: <7505d8da-9fa6-7460-7e3e-a32e0d9261c7@nvidia.com>
-Date:   Wed, 14 Oct 2020 03:11:56 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.1
+        id S1728315AbgJNAjy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 13 Oct 2020 20:39:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54422 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728029AbgJNAjx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 13 Oct 2020 20:39:53 -0400
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.5])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id B88D921D40;
+        Wed, 14 Oct 2020 00:39:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1602635993;
+        bh=CFDyw8SnopRjOQTv0trN9Zq7Ipl3I4xqiXTNATXIglw=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=nIH5M255GwfPrbDQw7nysc73Kb4lCHwXLccsHykUZ7j00IujiVWARwvphAzSdGbQP
+         IuFY/nrDgxcHpobYsKZV6FppHfBO0ll8YvibDiZtw3KPKZ62M3T+AvO8PaoLzgQAhZ
+         If59RIypN65WfSLeZIhy6Wa8MEgwOEApPF5WA8eU=
+Date:   Tue, 13 Oct 2020 17:39:51 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Heiner Kallweit <hkallweit1@gmail.com>
+Cc:     David Miller <davem@davemloft.net>,
+        =?UTF-8?B?QmrDuHJu?= Mork <bjorn@mork.no>,
+        Oliver Neukum <oneukum@suse.com>,
+        Igor Mitsyanko <imitsyanko@quantenna.com>,
+        Sergey Matyukevich <geomatsi@gmail.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <nikolay@nvidia.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Vivien Didelot <vivien.didelot@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Vladimir Oltean <olteanv@gmail.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Pravin B Shelar <pshelar@ovn.org>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        linux-rdma@vger.kernel.org,
+        Linux USB Mailing List <linux-usb@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        bridge@lists.linux-foundation.org
+Subject: Re: [PATCH net-next v2 00/12] net: add and use function
+ dev_fetch_sw_netstats for fetching pcpu_sw_netstats
+Message-ID: <20201013173951.25677bcc@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <d77b65de-1793-f808-66b5-aaa4e7c8a8f0@gmail.com>
+References: <d77b65de-1793-f808-66b5-aaa4e7c8a8f0@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <80448269-91b9-7d11-b18d-fc838d72e2ec@grimberg.me>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-US
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1602634317; bh=QzkgwWga4FBxPuRVJyIZzStOG8L6N0lvaNxabCCj8l0=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-         Content-Language:X-Originating-IP:X-ClientProxiedBy;
-        b=VU1lVov+XMNle4fLKiUdZ0YDr7jGlEnZpABBuEk/IBBxpQGkAWgHjeJU67tbU8a+J
-         KTlZDiUa16ndi25NvgKxSgOMtZxyMILLMH1P1jcx4Wt4YVasxDWUSXiy0axMRhBmNy
-         7q1/96ys1brJIwP3sUbni/96giNAk4fLAau8Tj0HX6WOQuL32vMeKl2+CmRbJ4txo7
-         m9BptrmY3OZLcjloi+s/V1TXQ9/PWCCQYsoKvqB3H7LkGlrwMBwAR3ayco8WDWfpHA
-         Tg3qWGM/BQTLgLGBX1hI7YBw3IIjR5JDZjbX+5aFV85MiGXjRrjzDjUABMQdFyO0w9
-         jpgHxH2KDR7Ig==
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Mon, 12 Oct 2020 10:00:11 +0200 Heiner Kallweit wrote:
+> In several places the same code is used to populate rtnl_link_stats64
+> fields with data from pcpu_sw_netstats. Therefore factor out this code
+> to a new function dev_fetch_sw_netstats().
+> 
+> v2:
+> - constify argument netstats
+> - don't ignore netstats being NULL or an ERRPTR
+> - switch to EXPORT_SYMBOL_GPL
 
-On 10/14/2020 1:21 AM, Sagi Grimberg wrote:
->
->
-> On 10/11/20 2:06 AM, Max Gurtovoy wrote:
->> From: Max Gurtovoy <maxg@mellanox.com>
->>
->> Currently, iser target support max IO size of 16MiB by default. For some
->> adapters, allocating this amount of resources might reduce the total
->> number of possible connections that can be created. For those adapters,
->> it's preferred to reduce the max IO size to be able to create more
->> connections. Since there is no handshake procedure for max IO size in
->> iser protocol, set the default max IO size to 1MiB and add a module
->> parameter for enabling the option to control it for suitable adapters.
->>
->> Reported-by: Krishnamraju Eraparaju <krishna2@chelsio.com>
->> Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
->
-> You can add a "Fixes:" tag to help it get to stable.
-
-But the previous commit is not buggy. It reveals some resource lacking=20
-in some HCAs.
-
-I can add it if needed.
-
->
->> ---
->> =C2=A0 drivers/infiniband/ulp/isert/ib_isert.c | 27 ++++++++++++++++++++=
-++++-
->> =C2=A0 drivers/infiniband/ulp/isert/ib_isert.h |=C2=A0 6 ++++++
->> =C2=A0 2 files changed, 32 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c=20
->> b/drivers/infiniband/ulp/isert/ib_isert.c
->> index 695f701dc43d..5a47f1bbca96 100644
->> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->> @@ -28,6 +28,18 @@ static int isert_debug_level;
->> =C2=A0 module_param_named(debug_level, isert_debug_level, int, 0644);
->> =C2=A0 MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0=20
->> (default:0)");
->> =C2=A0 +static int isert_sg_tablesize_set(const char *val,
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 const struct kernel_param *kp);
->> +static const struct kernel_param_ops sg_tablesize_ops =3D {
->> +=C2=A0=C2=A0=C2=A0 .set =3D isert_sg_tablesize_set,
->> +=C2=A0=C2=A0=C2=A0 .get =3D param_get_int,
->> +};
->> +
->> +static int isert_sg_tablesize =3D ISCSI_ISER_SG_TABLESIZE;
->> +module_param_cb(sg_tablesize, &sg_tablesize_ops,=20
->> &isert_sg_tablesize, 0644);
->> +MODULE_PARM_DESC(sg_tablesize,
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 "Number of gather/scat=
-ter entries in a single scsi command,=20
->> should >=3D 128 (default: 256, max: 4096)");
->> +
->> =C2=A0 static DEFINE_MUTEX(device_list_mutex);
->> =C2=A0 static LIST_HEAD(device_list);
->> =C2=A0 static struct workqueue_struct *isert_comp_wq;
->> @@ -47,6 +59,19 @@ static void isert_send_done(struct ib_cq *cq,=20
->> struct ib_wc *wc);
->> =C2=A0 static void isert_login_recv_done(struct ib_cq *cq, struct ib_wc =
-*wc);
->> =C2=A0 static void isert_login_send_done(struct ib_cq *cq, struct ib_wc =
-*wc);
->> =C2=A0 +static int isert_sg_tablesize_set(const char *val, const struct=
-=20
->> kernel_param *kp)
->> +{
->> +=C2=A0=C2=A0=C2=A0 int n =3D 0, ret;
->> +
->> +=C2=A0=C2=A0=C2=A0 ret =3D kstrtoint(val, 10, &n);
->> +=C2=A0=C2=A0=C2=A0 if (ret !=3D 0 || n < ISCSI_ISER_MIN_SG_TABLESIZE ||
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 n > ISCSI_ISER_MAX_SG_TABLES=
-IZE)
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return -EINVAL;
->> +
->> +=C2=A0=C2=A0=C2=A0 return param_set_int(val, kp);
->> +}
->> +
->> +
->> =C2=A0 static inline bool
->> =C2=A0 isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
->> =C2=A0 {
->> @@ -101,7 +126,7 @@ isert_create_qp(struct isert_conn *isert_conn,
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 attr.cap.max_send_wr =3D ISERT_QP_MAX_REQ=
-_DTOS + 1;
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 attr.cap.max_recv_wr =3D ISERT_QP_MAX_REC=
-V_DTOS + 1;
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 factor =3D rdma_rw_mr_factor(device->ib_d=
-evice, cma_id->port_num,
->> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ISCSI_ISER_MAX_SG_TABLESIZE);
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 isert_sg_tablesize);
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 attr.cap.max_rdma_ctxs =3D ISCSI_DEF_XMIT=
-_CMDS_MAX * factor;
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 attr.cap.max_send_sge =3D device->ib_devi=
-ce->attrs.max_send_sge;
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 attr.cap.max_recv_sge =3D 1;
->> diff --git a/drivers/infiniband/ulp/isert/ib_isert.h=20
->> b/drivers/infiniband/ulp/isert/ib_isert.h
->> index 7fee4a65e181..90ef215bf755 100644
->> --- a/drivers/infiniband/ulp/isert/ib_isert.h
->> +++ b/drivers/infiniband/ulp/isert/ib_isert.h
->> @@ -65,6 +65,12 @@
->> =C2=A0=C2=A0 */
->> =C2=A0 #define ISER_RX_SIZE=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 (I=
-SCSI_DEF_MAX_RECV_SEG_LEN + 1024)
->> =C2=A0 +/* Default I/O size is 1MB */
->> +#define ISCSI_ISER_SG_TABLESIZE 256
->
-> Maybe name it ISCSI_ISER_DEF_SG_TABLESIZE
-
-ok
-
-
->
-> Otherwise,
->
-> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Applied, thank you!
