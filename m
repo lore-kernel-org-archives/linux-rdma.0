@@ -2,88 +2,105 @@ Return-Path: <SRS0=PlVj=DW=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6C57C433E7
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 02:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C58F2C433E7
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 04:32:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F9C622255
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 02:19:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=fieldses.org header.i=@fieldses.org header.b="rtm3iJB7"
+	by mail.kernel.org (Postfix) with ESMTP id 6CE6E22243
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 04:32:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727987AbgJOCTi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Oct 2020 22:19:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57222 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728900AbgJOCTh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Oct 2020 22:19:37 -0400
-X-Greylist: delayed 345 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 14 Oct 2020 14:32:02 PDT
-Received: from fieldses.org (fieldses.org [IPv6:2600:3c00:e000:2f7::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51F6AC0613B2
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Oct 2020 14:32:02 -0700 (PDT)
-Received: by fieldses.org (Postfix, from userid 2815)
-        id 195E569C3; Wed, 14 Oct 2020 17:26:16 -0400 (EDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 fieldses.org 195E569C3
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fieldses.org;
-        s=default; t=1602710776;
-        bh=fOYQQVYkLChPD6OiLg4J/sj4FskeLbgptD5n8KmZRxY=;
-        h=Date:To:Cc:Subject:References:In-Reply-To:From:From;
-        b=rtm3iJB7yviet329Ti1h1bGcGz9KxS7ad4jygurs7eNyufF6mNT05o3Y9jNti/hpq
-         FNhuGLOHDucMbEuug1dNXosq6klVFX5SD29Mh9nBcMht8H2WFtUuRI55p1ew54aXPz
-         3IC311IDr34JgIuYI16ZZXiu5SYY9iP5FW7xCAvo=
-Date:   Wed, 14 Oct 2020 17:26:16 -0400
-To:     Dan Aloni <dan@kernelim.com>
-Cc:     Chuck Lever <chuck.lever@oracle.com>, linux-rdma@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: Re: [PATCH v2] svcrdma: fix bounce buffers for unaligned offsets and
- multiple pages
-Message-ID: <20201014212616.GB23262@fieldses.org>
-References: <58FBC94E-3F7D-4C23-A720-6588B0B22E86@oracle.com>
- <20201002193343.1040351-1-dan@kernelim.com>
+        id S1727434AbgJOEcG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 15 Oct 2020 00:32:06 -0400
+Received: from mail-pj1-f66.google.com ([209.85.216.66]:34825 "EHLO
+        mail-pj1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725208AbgJOEcF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 15 Oct 2020 00:32:05 -0400
+Received: by mail-pj1-f66.google.com with SMTP id h4so1157352pjk.0;
+        Wed, 14 Oct 2020 21:32:05 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=K64GKhtw+rJqkS3SqXm3fRppZopgGb55fc2+FtOF5gQ=;
+        b=tWSfGlYQbcvmrtKPAS+cgouRRfSw4lO47PNj4sOLLtxbYK09dVCNPDclT9NyhMAPFK
+         P+2Ydv+MXh1csm9au1W7n3T+jjjqxIT6Wrm7HuLQD7vwRlQ4bqL9Js8ko+Y5ftdEjZ6i
+         eGr1DMl+ql9jdsue8QpezXqPanTJdHftZ28ATsO53yiGLAl/QWwnopU9+cku6AW6g7gn
+         +0CHixcINBal2/AkdwTO8iwUpUTyyMwutiHooNdRv5oXXcO4+ppVWjPpJFpeYkleaFsG
+         hUMVszCBLgvffnS7JlfFtg3T3J6yPLRxjUvB0pT5W/QtjT2BuhXnYl8WSnP0ZlUoSIuM
+         adpg==
+X-Gm-Message-State: AOAM533Aioho4YZ66eV+sCNOg0PPGUqSLwWeutxBghs/roWu9nqlBJp1
+        RBvxFRMg5EQ9MeVikEiLqksCIPFNOQCBIA==
+X-Google-Smtp-Source: ABdhPJxAHk/YzMqBEB5OL/UCNy2qUEkee/nT3sbO5NNRlDG85RqPqVpO35cLYkqneQeihGANHlLyOw==
+X-Received: by 2002:a17:90a:e107:: with SMTP id c7mr2333525pjz.27.1602736324170;
+        Wed, 14 Oct 2020 21:32:04 -0700 (PDT)
+Received: from [192.168.3.218] (c-73-241-217-19.hsd1.ca.comcast.net. [73.241.217.19])
+        by smtp.gmail.com with ESMTPSA id u14sm1282426pjf.53.2020.10.14.21.32.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Oct 2020 21:32:02 -0700 (PDT)
+Subject: Re: [PATCH v6 69/80] IB/srpt: docs: add a description for cq_size
+ member
+To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc:     Jonathan Corbet <corbet@lwn.net>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Yamin Friedman <yaminf@mellanox.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        target-devel@vger.kernel.org
+References: <cover.1602589096.git.mchehab+huawei@kernel.org>
+ <d44a565b1638481c8dd282f01cae1fda3adf9fad.1602589096.git.mchehab+huawei@kernel.org>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <f283f15e-073c-ee42-d022-5b543f041d0b@acm.org>
+Date:   Wed, 14 Oct 2020 21:32:01 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.3.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201002193343.1040351-1-dan@kernelim.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-From:   bfields@fieldses.org (J. Bruce Fields)
+In-Reply-To: <d44a565b1638481c8dd282f01cae1fda3adf9fad.1602589096.git.mchehab+huawei@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Thanks, applying for 5.10.--b.
-
-On Fri, Oct 02, 2020 at 10:33:43PM +0300, Dan Aloni wrote:
-> This was discovered using O_DIRECT at the client side, with small
-> unaligned file offsets or IOs that span multiple file pages.
+On 10/13/20 4:54 AM, Mauro Carvalho Chehab wrote:
+> Changeset c804af2c1d31 ("IB/srpt: use new shared CQ mechanism")
+> added a new member for struct srpt_rdma_ch, but didn't add the
+> corresponding kernel-doc markup, as repoted when doing
+> "make htmldocs":
+> 	./drivers/infiniband/ulp/srpt/ib_srpt.h:331: warning: Function parameter or member 'cq_size' not described in 'srpt_rdma_ch'
 > 
-> Fixes: e248aa7be86 ("svcrdma: Remove max_sge check at connect time")
-> Signed-off-by: Dan Aloni <dan@kernelim.com>
+> Add a description for it.
+> 
+> Fixes: c804af2c1d31 ("IB/srpt: use new shared CQ mechanism")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 > ---
->  net/sunrpc/xprtrdma/svc_rdma_sendto.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  drivers/infiniband/ulp/srpt/ib_srpt.h | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> Extended testing found another issue with the loop.
-> 
-> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> index 7b94d971feb3..c3d588b149aa 100644
-> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-> @@ -638,10 +638,11 @@ static int svc_rdma_pull_up_reply_msg(struct svcxprt_rdma *rdma,
->  		while (remaining) {
->  			len = min_t(u32, PAGE_SIZE - pageoff, remaining);
->  
-> -			memcpy(dst, page_address(*ppages), len);
-> +			memcpy(dst, page_address(*ppages) + pageoff, len);
->  			remaining -= len;
->  			dst += len;
->  			pageoff = 0;
-> +			ppages++;
->  		}
->  	}
->  
-> -- 
-> 2.26.2
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+> index 41435a699b53..e5d6af14d073 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+> @@ -256,6 +256,7 @@ enum rdma_ch_state {
+>   * @rdma_cm:	   See below.
+>   * @rdma_cm.cm_id: RDMA CM ID associated with the channel.
+>   * @cq:            IB completion queue for this channel.
+> + * @cq_size:	   Size of the @cq pool.
+>   * @zw_cqe:	   Zero-length write CQE.
+>   * @rcu:           RCU head.
+>   * @kref:	   kref for this channel.
+
+That doesn't seem correct to me. My understanding is that cq_size is the
+number of CQEs in @cq. @cq is a completion queue and not a CQ pool.
+
+Bart.
+
+
