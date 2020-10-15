@@ -2,100 +2,102 @@ Return-Path: <SRS0=PlVj=DW=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E85C433E7
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 12:21:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8B65C433E7
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 15:35:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6415A2223F
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 12:21:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 750ED22248
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Oct 2020 15:35:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="ku90oI65"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i94nJejx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726662AbgJOMVk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 15 Oct 2020 08:21:40 -0400
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:12621 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725899AbgJOMVk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 15 Oct 2020 08:21:40 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f883ea80001>; Thu, 15 Oct 2020 05:20:56 -0700
-Received: from [172.27.15.143] (10.124.1.5) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 15 Oct
- 2020 12:21:38 +0000
+        id S2389731AbgJOPf5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 15 Oct 2020 11:35:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39356 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388393AbgJOPf5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 15 Oct 2020 11:35:57 -0400
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81C0BC061755
+        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2020 08:35:57 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id e20so3248666otj.11
+        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2020 08:35:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=fNYfWGLUuPV+Kb6UwvOD1/FjqWpxI+3aCb35zPNV+ys=;
+        b=i94nJejxtXbuyieKHQC7tC17YkcQZRgIPauYb0ZEfqzYFOUApwJSH8u6HhGP4PVWVY
+         UfIBlkA/vPmNtEYTLDo+aoCyuAKlWhPNH0bDxf3F8L4FMj/zVo93qpCxiw0F8ZtvKPbH
+         cw5V4ztIUoNbzXruCGR5p0VguyL6jjAEjjb3XxiM7GYT/t5De776K2P/y5RTLcYMDsuS
+         yMz+qWXlGRfvaOcyJ/6rx6M4/T0PtU0nxeqtMlpitj8S+QwTpJ0JnZBPiFrXjvTUrtgG
+         BGw5LzYDWq+6bdN3DJ4GutzSiqWGwZhZKM3hYg6tybxCr64qDnYUgUX3ors/pIT+PHvd
+         224w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=fNYfWGLUuPV+Kb6UwvOD1/FjqWpxI+3aCb35zPNV+ys=;
+        b=cngU3h13+CaH9ahLe0h03blheglwUQ+L4UvzezMqc06JUTvqbrFWloaYYom203x1AR
+         Q6FUi8NoC5poLgK0Wipxs7ApsI8BKdQfPkPl5s0owZOAiLY1rP3FUCpDvAqFcYkvVRzc
+         JOhLpG16bTZC9GOi7gyU+/qGMk4W2EJ0HDmpxSmFIt6V6wI45i02Tk2ks0wd7LBmQpC/
+         MrOWAyn7zCVRV2aW2h8OnZSQG4EbxAordVmhUPtfayViLymj2or7+tTvMOQVp/yRZ5Nu
+         NIoymPg4JVNtHkk9zm1ERxFH3bMnx7f/JEqYG+FqIBgMesn6F+SmrP/EPmsJsWNngz8U
+         4XCQ==
+X-Gm-Message-State: AOAM5334dQ/gbyonADRUMDuEeLnW/UaemJaKP2hQGDbr4ME0M3l2diNN
+        tB2/KckyWAPzo9xa3YtS454iDjyl9jA=
+X-Google-Smtp-Source: ABdhPJxJU9QDt+f73J84UTo21kWIg+HBusCj1FnyCWhGU9XYUQ0W88X10Grg18UqsNXhAs+Z7GeATQ==
+X-Received: by 2002:a05:6830:19fd:: with SMTP id t29mr3029030ott.307.1602776156838;
+        Thu, 15 Oct 2020 08:35:56 -0700 (PDT)
+Received: from ?IPv6:2603:8081:140c:1a00:7547:59bc:fd97:5e88? (2603-8081-140c-1a00-7547-59bc-fd97-5e88.res6.spectrum.com. [2603:8081:140c:1a00:7547:59bc:fd97:5e88])
+        by smtp.gmail.com with ESMTPSA id n128sm1434536oif.14.2020.10.15.08.35.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 15 Oct 2020 08:35:56 -0700 (PDT)
 Subject: Re: dynamic-sg patch has broken rdma_rxe
-To:     Gal Pressman <galpress@amazon.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        "Bob Pearson" <rpearsonhpe@gmail.com>,
+To:     Maor Gottlieb <maorg@nvidia.com>, Jason Gunthorpe <jgg@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>,
         Christoph Hellwig <hch@lst.de>
-CC:     <linux-rdma@vger.kernel.org>
+Cc:     linux-rdma@vger.kernel.org
 References: <0fdfc60e-ea93-8cf2-b23a-ce5d07d5fe33@gmail.com>
  <20201014225125.GC5316@nvidia.com>
  <e2763434-2f4f-9971-ae9d-62bab62b2e93@nvidia.com>
- <63997d02-827c-5a0d-c6a1-427cbeb4ef27@amazon.com>
-From:   Maor Gottlieb <maorg@nvidia.com>
-Message-ID: <8cf4796d-4dcb-ef5a-83ac-e11134eac99b@nvidia.com>
-Date:   Thu, 15 Oct 2020 15:21:34 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.3.2
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+Message-ID: <566a08ac-d4fc-baf0-eecc-4fb15a03c38a@gmail.com>
+Date:   Thu, 15 Oct 2020 10:35:55 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <63997d02-827c-5a0d-c6a1-427cbeb4ef27@amazon.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <e2763434-2f4f-9971-ae9d-62bab62b2e93@nvidia.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-X-Originating-IP: [10.124.1.5]
-X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1602764456; bh=NWtxuGAKngdyRoJu8S7DezWrowK2Ke5gpzFALApQ+tw=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-         Content-Language:X-Originating-IP:X-ClientProxiedBy;
-        b=ku90oI65JoGs0wMRnu5f+8wFKb3ZKL5hgdLnhzpC3+F/3l80biTqW19aKM+2igVhP
-         IQ6YsEs9ve6wB3Q8PPBkSNOXouME2m2kJrzJLYv/6v+kloo+RBgH3yLng6Q+AiSs+n
-         kxyxCx0EwWJbjnqv1pXr65mN3QEnrqaLVZ7h55tsCkbEIahiBb8YxNMgo4Hx405o4L
-         XCgzolWs+jvmk8uFlitl/EInJl+dw5dgGgx7QjMhKwbBWZlV2Ku2d09E3lWn8hbDlY
-         4xH+wcyVeq5ZHWfGTlF81awKQo3Pa3FxQiJsjW7xzw2rnyapwcr0ZNdOYFsWzSiM31
-         wLM8CmTrPAALQ==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On 10/15/2020 2:23 PM, Gal Pressman wrote:
-> On 15/10/2020 10:44, Maor Gottlieb wrote:
->> On 10/15/2020 1:51 AM, Jason Gunthorpe wrote:
->>> On Tue, Oct 13, 2020 at 09:33:14AM -0500, Bob Pearson wrote:
->>>> Jason,
->>>>
->>>> Just pulled for-next and now hit the following warning.
->>>> Register user space memory is not longer working.
->>>> I am trying to debug this but if you have any idea where to look let m=
-e know.
->>> The offset_in_page is wrong, but it is protecting some other logic..
+On 10/15/20 2:44 AM, Maor Gottlieb wrote:
+> 
+> On 10/15/2020 1:51 AM, Jason Gunthorpe wrote:
+>> On Tue, Oct 13, 2020 at 09:33:14AM -0500, Bob Pearson wrote:
+>>> Jason,
 >>>
->>> Maor? Leon? Can you sort it out tomorrow?
->> Leon and I investigated it. This check existed before my series to prote=
-ct the
->> alloc_table_from_pages logic. It's still relevant.
->> This patch that broke it:=C2=A0 54816d3e69d1 ("RDMA: Explicitly pass in =
-the
->> dma_device to ib_register_device"), and according to below link it was
->> expected.=C2=A0 The safest approach is to set the max_segment_size back =
-the 2GB in
->> all drivers. What do you think?
+>>> Just pulled for-next and now hit the following warning.
+>>> Register user space memory is not longer working.
+>>> I am trying to debug this but if you have any idea where to look let me know.
+>> The offset_in_page is wrong, but it is protecting some other logic..
 >>
->> https://lore.kernel.org/linux-rdma/20200923072111.GA31828@infradead.org/
-> FWIW, EFA is broken as well (same call trace) so it's not just software d=
-rivers.
-
-This is true to all drivers that call to ib_umem_get and set UINT_MAX=C2=A0=
-=20
-as max_segment_size.
-Jason,=C2=A0 maybe instead of set UINT_MAX as max_segment_size, need to set=
-=20
-SCATTERLIST_MAX_SEGMENT which does the required alignment.
+>> Maor? Leon? Can you sort it out tomorrow?
+> 
+> Leon and I investigated it. This check existed before my series to protect the alloc_table_from_pages logic. It's still relevant.
+> This patch that broke it:  54816d3e69d1 ("RDMA: Explicitly pass in the dma_device to ib_register_device"), and according to below link it was expected.  The safest approach is to set the max_segment_size back the 2GB in all drivers. What do you think?
+> 
+> https://lore.kernel.org/linux-rdma/20200923072111.GA31828@infradead.org/
+> 
+>>
+>> Jason
+That's what I did to fix it.
