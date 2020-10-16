@@ -2,113 +2,339 @@ Return-Path: <SRS0=crls=DX=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BF6C433E7
-	for <linux-rdma@archiver.kernel.org>; Fri, 16 Oct 2020 01:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C3BC433E7
+	for <linux-rdma@archiver.kernel.org>; Fri, 16 Oct 2020 06:40:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69CC320760
-	for <linux-rdma@archiver.kernel.org>; Fri, 16 Oct 2020 01:23:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 682682080A
+	for <linux-rdma@archiver.kernel.org>; Fri, 16 Oct 2020 06:40:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eF4EJZmd"
+	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="YQsn6FZ7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388759AbgJPBXH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 15 Oct 2020 21:23:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45706 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388752AbgJPBXH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 15 Oct 2020 21:23:07 -0400
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7FFC061755
-        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2020 18:23:07 -0700 (PDT)
-Received: by mail-ot1-x342.google.com with SMTP id e20so975311otj.11
-        for <linux-rdma@vger.kernel.org>; Thu, 15 Oct 2020 18:23:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=RovObBpNisJCKcc/ON8pW/HebeWPeEw1lRWgivGX+88=;
-        b=eF4EJZmdwnsO6i1icQu84XR/scp/0aIBHnrMyh/7fAWxlXgUJ+wm2EWxXKA+zytyav
-         EvK7Zce+WgAseBx1WZyc9iumD91y3OAvCPEWi8130/q7Y/uaQsN9hBXcT/LFX0SotuL6
-         Zb5BOZAbxFLw/Mxd3yORXeZWnmMTUQmkA8pYZEI5w1dA4cNRiT24UfLyLl8OV+qUNCxA
-         VmdM8Xp7Si0J3vABNPHRtAZnJCEL26WGSGxxw0lNEoss/6qjybXvHoB+yhkNVzFzLtX+
-         q8B5zwvycwDNHWvpyMwdbITd8vs27LCkJF/sCvzFBC8E86Suo221qLxkM4I7GOHa4ywk
-         mS6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=RovObBpNisJCKcc/ON8pW/HebeWPeEw1lRWgivGX+88=;
-        b=XT+Nt/tCBVubFlUyxs76Woyg9bcjdK6veyl0lQcQ8sjVQ6RB+0m/Ug+e2Zs+93i7SJ
-         LnMsLfvEFjq5rVcdEip2OJNG0umlPAHL5OvGN5qTDgJ11XvVselIqpdPjKspE6nxFGeR
-         VXrN1l3khbqbxYrL316G+KvX9n3bQ3Mqc7K+1QDBiNVmOEVt32zOd8Z9IM9vpHmwwt7c
-         pmj3Aj9RShSwERJlg7FpYKcrcSaVONTn7mpiz6pmNe7MVCXvXho4a3zXJip6FiVSXDFp
-         FHRPnwao51ln6S8UZSFYvbTjv6MRYO4amGnUzXDdXOaH3dqiEv7QUw6FkNCLOHWUX76C
-         e2TQ==
-X-Gm-Message-State: AOAM532QE48b4CaoR/4bOQZFewsPrkmLfxX+qmRfGuEX3y3YXed7SCVS
-        DpGEi39aLiLTbMIUvbBgY6g=
-X-Google-Smtp-Source: ABdhPJxAvYCQDqmEq5jXXK5aM8ak7krdh9IXe+X4s5scYfBMhYDhzjGhPWSMvtOREhcZvX5BitOiSw==
-X-Received: by 2002:a9d:ac9:: with SMTP id 67mr897282otq.321.1602811386327;
-        Thu, 15 Oct 2020 18:23:06 -0700 (PDT)
-Received: from ?IPv6:2603:8081:140c:1a00:4fdb:8393:d75b:2d46? (2603-8081-140c-1a00-4fdb-8393-d75b-2d46.res6.spectrum.com. [2603:8081:140c:1a00:4fdb:8393:d75b:2d46])
-        by smtp.gmail.com with ESMTPSA id m1sm422211otq.30.2020.10.15.18.23.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 15 Oct 2020 18:23:05 -0700 (PDT)
-Subject: Re: [PATCH] Provider/rxe: Fix regression to UD traffic
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
-        Bob Pearson <rpearson@hpe.com>
-References: <20201015201750.8336-1-rpearson@hpe.com>
- <20201015234720.GA6219@nvidia.com>
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-Message-ID: <fc242ad5-2175-6b34-2d5c-3daae3f4b68b@gmail.com>
-Date:   Thu, 15 Oct 2020 20:23:05 -0500
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
-MIME-Version: 1.0
-In-Reply-To: <20201015234720.GA6219@nvidia.com>
-Content-Type: text/plain; charset=utf-8
+        id S2394309AbgJPGkI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 16 Oct 2020 02:40:08 -0400
+Received: from mga02.intel.com ([134.134.136.20]:13945 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2394272AbgJPGkI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 16 Oct 2020 02:40:08 -0400
+IronPort-SDR: ouGEbeMbmKwl0SQP57Glm0LNKarzbvTf9jV7pD6T+7Ie5C8b8l1jipePjo1xDJFay5EyB7/G0p
+ hH6chPT7ihxw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9775"; a="153463184"
+X-IronPort-AV: E=Sophos;i="5.77,381,1596524400"; 
+   d="scan'208";a="153463184"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2020 23:40:07 -0700
+IronPort-SDR: zHU6MSnzjw6JiTZnFxy0Llc0C3QcKt8GfMS7kRA0gXTgpjogi4xJSB6tC/jwQh221Yk4w2yS2K
+ OCk4CKTr9l6Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,381,1596524400"; 
+   d="scan'208";a="521071414"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by fmsmga006.fm.intel.com with ESMTP; 15 Oct 2020 23:40:07 -0700
+Received: from fmsmsx607.amr.corp.intel.com (10.18.126.87) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Thu, 15 Oct 2020 23:40:06 -0700
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx607.amr.corp.intel.com (10.18.126.87) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Thu, 15 Oct 2020 23:40:06 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
+ via Frontend Transport; Thu, 15 Oct 2020 23:40:06 -0700
+Received: from NAM04-CO1-obe.outbound.protection.outlook.com (104.47.45.55) by
+ edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.1713.5; Thu, 15 Oct 2020 23:40:05 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=kmtVglbkdyjEVQrdO6OZaawJfVcokYx2kKM2xd9YQY8Tl0n9kV1o3Au5eQ7q+daK5QwiFwI6kUKRO9ipiA29bABocZuF6z+cp7POgHt9i5+wSylPjWQUEdD2uAuQMWx2vetH/aKqY2hf73dLbH+ANomhfhSTZC4rajuxD6dg2JplNIesd59zeUce8CbiK7NAhv1F80+PObnkgQWXBqpld32ZSzPTB+28eKJMqFbARBNp70/KXEOiUnJ/Oq/8I+BH7wygo8lobcBwAgqtNM3CywJhK/T4qe6JE+EVKA71k3fYUQkfn1GbPzRKkDMUPoByLZ+kSiGuMOsz36uuA9rp7w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lNBoG+Mi8FfFQCdYrGgRwfzcqS91a7a0iwH0+B8dfQI=;
+ b=bqhqI0Uq3B1MJRcSOg4Ig9tnt+kTwDDGeJ+4kPlLlaavUzMnjE64TrqP/+Zqnp9FKOcFvD7B8liUDkMZW2a6Ojl08KcgKaHkiX3hlGFq7jaywHX3bfPxzFmubsXG4DGH8TueTiVIuclw6eqANNN5NapGABu3hskm7ppI6vkHUAK9vSXBc+C2nTy4qjuJJgmwHrZ96s+8G3qcAilRjwTCF70sS8bky1cCE2zCtFW4vN+VPERsQWn+UIxA2PA7aImh9Z2URPFWOMSsCSvketNtidH9fdaOAXRffB8uAT8It043OBkDTOWbgG21x/mIG6s4mN+oH7itmwTEmcrwoY0C8w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lNBoG+Mi8FfFQCdYrGgRwfzcqS91a7a0iwH0+B8dfQI=;
+ b=YQsn6FZ7jXbe4vC1ihHLlhdG01HBG1VHC7VRs24wvNKRC0VDmwqqClal74heodvdE81T5TIbENN8ATofHBRgQZAO7q2Um7oLVKlROqqSH6RcmpG6eKLujVrUshKPM/0fzAMpyxCCBztOFbpZbwxVov3nhoXeP5sSpcvjO3GNwpg=
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com (2603:10b6:303:2e::24)
+ by MWHPR11MB1902.namprd11.prod.outlook.com (2603:10b6:300:10f::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.23; Fri, 16 Oct
+ 2020 06:40:01 +0000
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::7067:d996:719:10fa]) by MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::7067:d996:719:10fa%5]) with mapi id 15.20.3477.022; Fri, 16 Oct 2020
+ 06:40:01 +0000
+From:   "Xiong, Jianxin" <jianxin.xiong@intel.com>
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Doug Ledford" <dledford@redhat.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "Sumit Semwal" <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>
+Subject: RE: [PATCH v5 4/5] RDMA/mlx5: Support dma-buf based userspace memory
+ region
+Thread-Topic: [PATCH v5 4/5] RDMA/mlx5: Support dma-buf based userspace memory
+ region
+Thread-Index: AQHWozz6PA4Nzmnoo0+o3Tip+3Bz9amZZ0eAgABQccA=
+Date:   Fri, 16 Oct 2020 06:40:01 +0000
+Message-ID: <MW3PR11MB4555528000D39F35A47C5F8CE5030@MW3PR11MB4555.namprd11.prod.outlook.com>
+References: <1602799378-138316-1-git-send-email-jianxin.xiong@intel.com>
+ <20201016005419.GA36674@ziepe.ca>
+In-Reply-To: <20201016005419.GA36674@ziepe.ca>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.5.1.3
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+authentication-results: ziepe.ca; dkim=none (message not signed)
+ header.d=none;ziepe.ca; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [73.53.14.45]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 16ce8d81-c539-4a77-1dfb-08d8719e4ee5
+x-ms-traffictypediagnostic: MWHPR11MB1902:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <MWHPR11MB19024F71D50FB5B6A357C975E5030@MWHPR11MB1902.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: ELuC82JpriTuSRAD7CXeLtOqpZbfUDNrx0h9GJoknQSvA/1xBUeBDHlfEedLTNQO4LVqpYpc10LI2xFox5nWE1EBuofiDf1O4BFurY8fkZ1buN533A/HhVKNUz9pNYP98lWiSiMNGeqJDHNd7n8h4L5GXk75TDtNP3K/gEAMsjiv3jdHZ9vHemSgN19gTs3SSBGXE7AclPkp6bTvoEOix2xlUonXD/wM7/ax5P/zfDv4Pfz7n6ByZmLdKoq0+LrWBJlCKQ3Rqnf17ylixlNE99ISpif4YVtPFS8yRsHG5VoI41dhTXC2BtkdvEPYxPtLuUaUCYOoavDIdjxy+SZpIA==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW3PR11MB4555.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(396003)(346002)(136003)(366004)(376002)(316002)(6506007)(8936002)(33656002)(86362001)(66446008)(66946007)(4326008)(8676002)(186003)(66476007)(76116006)(64756008)(52536014)(478600001)(66556008)(5660300002)(9686003)(71200400001)(6916009)(83380400001)(7696005)(55016002)(53546011)(2906002)(54906003)(107886003)(26005);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: INbL1VhS9HzJVFTxLuCK9Kr9/Z8B51j1SN7ceoWzB467N4q5HBx4hs7Rzj6TfAW/ObrgGc2vM2L1MfcDV03jETvUEgCqZCPxasbqlCV8GTCAaPTE7D8jC1BbO18YOA75dadonatmMNz6eiotHFlT1PbSLAg9lk9TMFmsNM1f7O7qyCm2oiSNWLEuhCF1VrZMb5JEGW9G9VG5JGZQ4iShU4fe4U3dx/hhEIRKnr4LAXB/tt7z/PxQ8ryLDLyFhqQvXcvRE80iMq5HnvOOurPc2Ou3uXDuMB36deO91sNBBV49fHTa7V0IZoD+IL7NNPnzRHbHcjjaLAqBxMrlKlwd7jX56J/gzKW0MenycbVfMR4kJVWZZNC7E45jDMuq9klt/8Ka7Lb9eSkpu9VC9brO5yP1rurLLhtNvGcjrCdrAmBxtpIZZWUnNidhaftZcSKRrMpRnLHKDTx/2ZHXMI772S8r/rhn3sbOOHS66BpEkzApM4/8SjaRO/S/UIbkt61aZ9F+wD/n0mha0X9zVHfkaE9HCxQ2Okz3NdNC48Ej3sojvUotiEJ9zvFWhGOMGTT8b0qqmTjS7J5jIxn0B0+CZmwUH5rRcAITHRUG7n4PN4RnAs84s+vHvFG8hkP8771U3lgWswKhWIbjB4TrDZxRIA==
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MW3PR11MB4555.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 16ce8d81-c539-4a77-1dfb-08d8719e4ee5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Oct 2020 06:40:01.3687
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: BClcNyUgYh7UlsMAhqpcyXnKpsfgqojNb3GEdKiaWgkMaxCG3YSY/wJXo6571HnqThi7zYsJsQlzAsFLUy2e3g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB1902
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 10/15/20 6:47 PM, Jason Gunthorpe wrote:
-> On Thu, Oct 15, 2020 at 03:17:51PM -0500, Bob Pearson wrote:
->> Update enum rdma_network_type copy to match kernel version.
->> Without this change provider/rxe will send incorrect
->> network types to the kernel in send WQEs.
->>
->> This fix keeps rxe functional but should be replaced by a better
->> implementation.
->>
->> Signed-off-by: Bob Pearson <rpearson@hpe.com>
->> ---
->>  providers/rxe/rxe.h | 1 +
->>  1 file changed, 1 insertion(+)
-> 
-> Well, we can't just break user space so the kernel has to change in
-> some way to accommodate this.
-> 
-> Obviously rxe should not have uAPI stuff that is not in
-> include/uapi/rdma, so lets just fix that directly.
-> 
-> Please confirm I did this right. The PR for this merge window must be
-> sent Friday.
+> -----Original Message-----
+> From: Jason Gunthorpe <jgg@ziepe.ca>
+> Sent: Thursday, October 15, 2020 5:54 PM
+> To: Xiong, Jianxin <jianxin.xiong@intel.com>
+> Cc: linux-rdma@vger.kernel.org; dri-devel@lists.freedesktop.org; Doug Led=
+ford <dledford@redhat.com>; Leon Romanovsky
+> <leon@kernel.org>; Sumit Semwal <sumit.semwal@linaro.org>; Christian Koen=
+ig <christian.koenig@amd.com>; Vetter, Daniel
+> <daniel.vetter@intel.com>
+> Subject: Re: [PATCH v5 4/5] RDMA/mlx5: Support dma-buf based userspace me=
+mory region
+>=20
 
-That works too. I am figuring out how to convert ah_handle to ib_ah in rdma_rxe. I think I've mostly got it.
-uobj_get_obj_read(type, id, attr) is close to what I need. The problem is that all the code in this area assumes
-it is getting called in a user verb API call so there is an attr to pass around. What we need is an API like
-rdma_get_obj(ucontext, type, id) since we need a way to get to the user api data structures. Better would be
-a pointer from qp to ucontext or ufile that would be set for user QPs. If we did this rxe just use handles from
-the core instead of creating its own databases of objects.
+//snip
 
-Your patch will get us going for now. The above is a longer project that won't fit in your short term schedule.
+> > +static int mlx5_ib_umem_dmabuf_xlt_init(struct ib_umem *umem, void
+> > +*context) {
+> > +	struct mlx5_ib_mr *mr =3D context;
+> > +	int flags =3D MLX5_IB_UPD_XLT_ENABLE;
+> > +
+> > +	if (!mr)
+> > +		return -EINVAL;
+> > +
+> > +	return mlx5_ib_update_xlt(mr, 0, mr->npages, PAGE_SHIFT, flags); }
+>=20
+> > +static int mlx5_ib_umem_dmabuf_xlt_update(struct ib_umem *umem, void
+> > +*context) {
+> > +	struct mlx5_ib_mr *mr =3D context;
+> > +	int flags =3D MLX5_IB_UPD_XLT_ATOMIC;
+>=20
+> Why are these atomic? Why the strange coding style of declaring a variabl=
+e?
 
-Bob
+The atomic flag is copied from the odp code. I have verified that it is not=
+ necessary.
+I can remove the definition of 'flags' here. =20
+
+>=20
+> > +	if (!mr)
+> > +		return -EINVAL;
+>=20
+> Why can this happen? Will dma_buf call move_notify prior to dma_buf_map_a=
+ttachment? There are locking problems if that happens.
+
+I agree this check is unnecessary.
+
+>=20
+> > +	return mlx5_ib_update_xlt(mr, 0, mr->npages, PAGE_SHIFT, flags); }
+> > +
+> > +static int mlx5_ib_umem_dmabuf_xlt_invalidate(struct ib_umem *umem,
+> > +void *context) {
+> > +	struct mlx5_ib_mr *mr =3D context;
+> > +	int flags =3D MLX5_IB_UPD_XLT_ZAP | MLX5_IB_UPD_XLT_ATOMIC;
+> > +
+> > +	if (!mr)
+> > +		return -EINVAL;
+> > +
+> > +	return mlx5_ib_update_xlt(mr, 0, mr->npages, PAGE_SHIFT, flags); }
+> > +
+> > +static struct ib_umem_dmabuf_ops mlx5_ib_umem_dmabuf_ops =3D {
+> > +	.init =3D mlx5_ib_umem_dmabuf_xlt_init,
+> > +	.update =3D mlx5_ib_umem_dmabuf_xlt_update,
+> > +	.invalidate =3D mlx5_ib_umem_dmabuf_xlt_invalidate,
+> > +};
+>=20
+> I'm not really convinced these should be ops, this is usually a bad desig=
+n pattern.
+>=20
+> Why do I need so much code to extract the sgl from the dma_buf? I would p=
+refer the dma_buf layer simplify this, not by adding a wrapper
+> around it in the IB core code...
+>=20
+
+We just need a way to call a device specific function to update the NIC's t=
+ranslation
+table.  I considered three ways: (1) ops registered with ib_umem_get_dmabuf=
+;=20
+(2) a single function pointer registered with ib_umem_get_dmabuf; (3) a met=
+hod=20
+in 'struct ib_device'. Option (1) was chosen here with no strong reason. We=
+ could
+consolidate the three functions of the ops into one, but then we will need =
+to=20
+define commands or flags for different update operations.  =20
+
+> > +struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+> > +					 u64 length, u64 virt_addr,
+> > +					 int dmabuf_fd, int access_flags,
+> > +					 struct ib_udata *udata)
+> > +{
+> > +	struct mlx5_ib_dev *dev =3D to_mdev(pd->device);
+> > +	struct mlx5_ib_mr *mr =3D NULL;
+> > +	struct ib_umem *umem;
+> > +	int page_shift;
+> > +	int npages;
+> > +	int ncont;
+> > +	int order;
+> > +	int err;
+> > +
+> > +	if (!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM))
+> > +		return ERR_PTR(-EOPNOTSUPP);
+> > +
+> > +	mlx5_ib_dbg(dev,
+> > +		    "start 0x%llx, virt_addr 0x%llx, length 0x%llx, fd %d, access_fl=
+ags 0x%x\n",
+> > +		    start, virt_addr, length, dmabuf_fd, access_flags);
+> > +
+> > +	if (!mlx5_ib_can_load_pas_with_umr(dev, length))
+> > +		return ERR_PTR(-EINVAL);
+> > +
+> > +	umem =3D ib_umem_dmabuf_get(&dev->ib_dev, start, length, dmabuf_fd,
+> > +				  access_flags, &mlx5_ib_umem_dmabuf_ops);
+> > +	if (IS_ERR(umem)) {
+> > +		mlx5_ib_dbg(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
+> > +		return ERR_PTR(PTR_ERR(umem));
+> > +	}
+> > +
+> > +	npages =3D ib_umem_num_pages(umem);
+> > +	if (!npages) {
+> > +		mlx5_ib_warn(dev, "avoid zero region\n");
+> > +		ib_umem_release(umem);
+> > +		return ERR_PTR(-EINVAL);
+> > +	}
+> > +
+> > +	page_shift =3D PAGE_SHIFT;
+> > +	ncont =3D npages;
+> > +	order =3D ilog2(roundup_pow_of_two(ncont));
+>=20
+> We still need to deal with contiguity here, this ncont/npages is just obf=
+uscation.
+
+Since the pages can move, we can't take advantage of contiguity here. This =
+handling
+is similar to the ODP case. The variables 'ncont' and 'page_shift' here are=
+ not necessary.
+They are kept just for the sake of signifying the semantics of the followin=
+g functions that
+use them.
+
+>=20
+> I have a patch series that should get posted soon rewriting all of this s=
+tuff..
+
+Great. This can be updated accordingly.
+
+>=20
+> > +	mlx5_ib_dbg(dev, "npages %d, ncont %d, order %d, page_shift %d\n",
+> > +		    npages, ncont, order, page_shift);
+> > +
+> > +	mr =3D alloc_mr_from_cache(pd, umem, virt_addr, length, ncont,
+> > +				 page_shift, order, access_flags);
+> > +	if (IS_ERR(mr))
+> > +		mr =3D NULL;
+> > +
+> > +	if (!mr) {
+> > +		mutex_lock(&dev->slow_path_mutex);
+> > +		mr =3D reg_create(NULL, pd, virt_addr, length, umem, ncont,
+> > +				page_shift, access_flags, false);
+> > +		mutex_unlock(&dev->slow_path_mutex);
+> > +	}
+> > +
+> > +	if (IS_ERR(mr)) {
+> > +		err =3D PTR_ERR(mr);
+> > +		goto error;
+> > +	}
+> > +
+> > +	mlx5_ib_dbg(dev, "mkey 0x%x\n", mr->mmkey.key);
+> > +
+> > +	mr->umem =3D umem;
+> > +	set_mr_fields(dev, mr, npages, length, access_flags);
+>=20
+> After another series I have there will be three copies of this sequence :=
+\
+
+Maybe this can be made into a utility function?
+
+>=20
+> > +	err =3D ib_umem_dmabuf_init_mapping(umem, mr);
+> > +	if (err) {
+> > +		dereg_mr(dev, mr);
+> > +		return ERR_PTR(err);
+> > +	}
+>=20
+> Did you test the page fault path at all? Looks like some xarray code is m=
+issing here, and this is also missing the related complex teardown
+> logic.
+>=20
+> Does this mean you didn't test the pagefault_dmabuf_mr() at all?
+
+Thanks for the hint. I was unable to get the test runs reaching the
+pagefault_dmabuf_mr() function. Now I have found the reason. Along
+the path of all the page fault handlers, the array "odp_mkeys" is checked
+against the mr key. Since the dmabuf mr keys are not in the list the
+handler is never called.
+
+On the other hand, it seems that pagefault_dmabuf_mr() is not needed at all=
+.
+The pagefault is gracefully handled by retrying until the work thread finis=
+hed
+programming the NIC.
+ =20
+>=20
+> Jason
