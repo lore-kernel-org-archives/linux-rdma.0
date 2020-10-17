@@ -2,154 +2,81 @@ Return-Path: <SRS0=VaLo=DY=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DATE_IN_PAST_06_12,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FEEEC433DF
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Oct 2020 06:25:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AFB7C433DF
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Oct 2020 07:04:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF0682073A
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Oct 2020 06:25:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="O+2trJIX"
+	by mail.kernel.org (Postfix) with ESMTP id 250E520758
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Oct 2020 07:04:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2436615AbgJQGZA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 17 Oct 2020 02:25:00 -0400
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:7256 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2411862AbgJQGZA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 17 Oct 2020 02:25:00 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f8a43250000>; Fri, 16 Oct 2020 18:04:39 -0700
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL101.nvidia.com
- (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 17 Oct
- 2020 01:04:40 +0000
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.51) by
- HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Sat, 17 Oct 2020 01:04:40 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=e5Qwe+3ZBtKl/YVMp0s9fHKUmp5HRG258zFj00YeiVvnpZzQ+jg+Fx+Ca8KqheDzjRmYx/Hkk+XY0yyK2OxX+cEnn5xdCCVBDAbyb72HT+7ViXtwdiQAWPjBwF00g90I+4pSH5woZAgK7Ma75SX0q93qInOWA8UD5yi+V2zwCymjC4GGvNmx4vMR+u17tBcgydcCcyJ1EQmJi+cbK9ZDUoSM67+WH0CdC/X2Y7rnZCDoci26s0y/LWF3oXTKbW770TLsoDWxliytDYbvylX9xtVCfBxQO0RcIBRKWZ32FfsEUXORbhzaS5hUTJCbVOWlP+VwqpfAE51eAUpnaswbZw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2xgtFflxg3bpDIq+93IgyfKNLgFzELy2Lr0cQUv1yzM=;
- b=eLvSCho6ont/7ptBpa8onmtccStdiudG7yO7W1Wxhchmm1aRJfX03qOJpFulzygP43xGVOzqYUgSqID7sCH3M9mf10BGRf+8c5Z3a9DdEqc8yVeIHrOW6CQTNgw+J4umWbVxg1c19cM3OvwrNofYQy4OnwS4oIzag8ocW7kAPp9p2yO9mV47bPb8y1MilsxF2QNLKMmyk38KFsAxltiZmjo2VS0uYT/lGDKrwta0pZUqc+VyvtblfiU8SqdVNKeqY3geDqggFKrR20RgcUwVL+lGFFb27VSCF9ZPoyLaOSjx7YN8JlWP9oIrVKLkj7LDR0WQOsESda8yN9+C5g2LBw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3836.namprd12.prod.outlook.com (2603:10b6:5:1c3::33) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.21; Sat, 17 Oct
- 2020 01:04:38 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3477.027; Sat, 17 Oct 2020
- 01:04:38 +0000
-Date:   Fri, 16 Oct 2020 22:04:37 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     "Xiong, Jianxin" <jianxin.xiong@intel.com>
-CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Doug Ledford" <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "Sumit Semwal" <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>
-Subject: Re: [PATCH v5 1/5] RDMA/umem: Support importing dma-buf as user
- memory region
-Message-ID: <20201017010437.GZ6219@nvidia.com>
-References: <1602799365-138199-1-git-send-email-jianxin.xiong@intel.com>
- <20201017002816.GA334909@nvidia.com>
- <MW3PR11MB45556014C8D85ABC9EBFA97CE5000@MW3PR11MB4555.namprd11.prod.outlook.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <MW3PR11MB45556014C8D85ABC9EBFA97CE5000@MW3PR11MB4555.namprd11.prod.outlook.com>
-X-ClientProxiedBy: BL0PR0102CA0025.prod.exchangelabs.com
- (2603:10b6:207:18::38) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S2391251AbgJQHEA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 17 Oct 2020 03:04:00 -0400
+Received: from p3plsmtpa11-08.prod.phx3.secureserver.net ([68.178.252.109]:56810
+        "EHLO p3plsmtpa11-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729897AbgJQHEA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 17 Oct 2020 03:04:00 -0400
+X-Greylist: delayed 3600 seconds by postgrey-1.27 at vger.kernel.org; Sat, 17 Oct 2020 03:04:00 EDT
+Received: from [192.168.0.116] ([71.184.94.153])
+        by :SMTPAUTH: with ESMTPSA
+        id TZzIko6YFQ64uTZzJkATte; Fri, 16 Oct 2020 17:22:21 -0700
+X-CMAE-Analysis: v=2.3 cv=RIjN4Lq+ c=1 sm=1 tr=0
+ a=vbvdVb1zh1xTTaY8rfQfKQ==:117 a=vbvdVb1zh1xTTaY8rfQfKQ==:17
+ a=IkcTkHD0fZMA:10 a=quMw7rvdrhMgCCBUYJAA:9 a=QEXdDO2ut3YA:10
+X-SECURESERVER-ACCT: tom@talpey.com
+Subject: Re: Question about supporting RDMA Extensions for PMEM
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>,
+        linux-rdma@vger.kernel.org
+References: <8b3c3c81-c0fd-adb2-52a9-94c73aac7e37@cn.fujitsu.com>
+ <b7cc3571-5c4b-d5f1-d4e4-97afba4a7994@talpey.com>
+ <20201016223734.GG36674@ziepe.ca>
+From:   Tom Talpey <tom@talpey.com>
+Message-ID: <fa3e23a4-49fe-efa2-04dd-1264b352d8cb@talpey.com>
+Date:   Fri, 16 Oct 2020 20:22:21 -0400
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by BL0PR0102CA0025.prod.exchangelabs.com (2603:10b6:207:18::38) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.21 via Frontend Transport; Sat, 17 Oct 2020 01:04:38 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kTaeD-001QCd-AH; Fri, 16 Oct 2020 22:04:37 -0300
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1602896679; bh=2xgtFflxg3bpDIq+93IgyfKNLgFzELy2Lr0cQUv1yzM=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=O+2trJIXiDSlYVR880Uv2oepRo2fzVGTdoQWCnyimqSnLV9IiZ3gVnK9kyIg6ucAq
-         DR6c0mc7qQMm0IKVhlVeyFEfysYdcx62JdlrcNxczsDh3sBnrSQz1xiwdSI9Ib+pUE
-         NQ/tQVld2erejjyC7rQzqsnogPy+7cL+MST+o/vs2B5q1GDFZMu3vfmAQBpvfHcpY/
-         9xzmdMaBGHNOmzjCQC8DJJ/ddOCAdoJ+dkjhQl+jiqiXIxMwKe+oJzqJ+tZLoQYWKg
-         41vJXN3Lj68hlyAMNoZiTWbcLQcC5Sp0amkt2a0iYbuxd0fZAAayjGErmGLdWeqqxR
-         wAukK4zIx9JTg==
+In-Reply-To: <20201016223734.GG36674@ziepe.ca>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfOzcp4T5/intnDpTbR9RH/d42IogDbfcsdfEwzbY81qdiuB5QJiPbTIFwirhLfW9wvtwVTB+KHTPL3p9l8MkhZ0LRKKf7cLfuS/vLcEmhZP+X/NCsB8H
+ 8X4FosUrlIpqeWfz6d2pNZHcd2/ghyT+wAKqGkZdggdg4p8Gfxo9x8etfEWZmU+wLZdpvRmGtCJmNR/1YQpgCKoCd8JQDRsSKjTbplaxnBcA6IPLwukp0ijx
+ DA7Z8Z7IOMaPOCHgAFuFsA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Oct 17, 2020 at 12:57:21AM +0000, Xiong, Jianxin wrote:
-> > From: Jason Gunthorpe <jgg@nvidia.com>
-> > Sent: Friday, October 16, 2020 5:28 PM
-> > To: Xiong, Jianxin <jianxin.xiong@intel.com>
-> > Cc: linux-rdma@vger.kernel.org; dri-devel@lists.freedesktop.org; Doug Ledford <dledford@redhat.com>; Leon Romanovsky
-> > <leon@kernel.org>; Sumit Semwal <sumit.semwal@linaro.org>; Christian Koenig <christian.koenig@amd.com>; Vetter, Daniel
-> > <daniel.vetter@intel.com>
-> > Subject: Re: [PATCH v5 1/5] RDMA/umem: Support importing dma-buf as user memory region
-> > 
-> > On Thu, Oct 15, 2020 at 03:02:45PM -0700, Jianxin Xiong wrote:
-> > > +struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
-> > > +				   unsigned long addr, size_t size,
-> > > +				   int dmabuf_fd, int access,
-> > > +				   const struct ib_umem_dmabuf_ops *ops) {
-> > > +	struct dma_buf *dmabuf;
-> > > +	struct ib_umem_dmabuf *umem_dmabuf;
-> > > +	struct ib_umem *umem;
-> > > +	unsigned long end;
-> > > +	long ret;
-> > > +
-> > > +	if (check_add_overflow(addr, (unsigned long)size, &end))
-> > > +		return ERR_PTR(-EINVAL);
-> > > +
-> > > +	if (unlikely(PAGE_ALIGN(end) < PAGE_SIZE))
-> > > +		return ERR_PTR(-EINVAL);
-> > > +
-> > > +	if (unlikely(!ops || !ops->invalidate || !ops->update))
-> > > +		return ERR_PTR(-EINVAL);
-> > > +
-> > > +	umem_dmabuf = kzalloc(sizeof(*umem_dmabuf), GFP_KERNEL);
-> > > +	if (!umem_dmabuf)
-> > > +		return ERR_PTR(-ENOMEM);
-> > > +
-> > > +	umem_dmabuf->ops = ops;
-> > > +	INIT_WORK(&umem_dmabuf->work, ib_umem_dmabuf_work);
-> > > +
-> > > +	umem = &umem_dmabuf->umem;
-> > > +	umem->ibdev = device;
-> > > +	umem->length = size;
-> > > +	umem->address = addr;
-> > 
-> > addr here is offset within the dma buf, but this code does nothing with it.
-> > 
-> The current code assumes 0 offset, and 'addr' is the nominal starting address of the
-> buffer. If this is to be changed to offset, then yes, some more handling is needed
-> as you mentioned below.
-
-There is no such thing as 'nominal starting address'
-
-If the user is to provide any argument it can only be offset and length.
-
-> > Also, dma_buf_map_attachment() does not do the correct dma mapping
-> > for RDMA, eg it does not use ib_dma_map(). This is not a problem
-> > for mlx5 but it is troublesome to put in the core code.
+On 10/16/2020 6:37 PM, Jason Gunthorpe wrote:
+> On Mon, Oct 12, 2020 at 10:26:32PM -0400, Tom Talpey wrote:
 > 
-> ib_dma_map() uses dma_map_single(), GPU drivers use dma_map_resource() for
-> dma_buf_map_attachment(). They belong to the same family, but take different
-> address type (kernel address vs MMIO physical address). Could you elaborate what
-> the problem could be for non-mlx5 HCAs?
+>> In theory, the IBTA SWG is in control of specifying any Verbs changes.
+> 
+> SWG and IETF should agree on what the general software presentation
+> should look like so HW implementations can be compatible.
+> 
+> It looks fairly straightforward so this probably isn't strictly
+> necessary once the one the wire protocol is decided.
+> 
+> verbs has a life of its own these days outside IBTA/IETF..
 
-They use the virtual dma ops which we intend to remove
+For the record, I completely agree with the goal of compatible
+interfaces. And, I'm committed to defining it, however I am not
+able to participate in IBTA as I am no longer associated with
+any IBTA member company. I am active in IETF, which has no such
+restriction.
 
-Jason
+However, it's also important to point out that IETF considers
+programming interfaces to be out of scope. The draft-hilland-verbs
+document for iWARP was not adopted as a work item, and its
+content, while extraordinary useful, is not an IETF product.
+As an example, consider TCP and Sockets. IETF owns the former,
+and has no input on the latter.
+
+In other words, I think it's on us.
+
+Tom.
