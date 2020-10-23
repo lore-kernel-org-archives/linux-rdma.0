@@ -2,391 +2,63 @@ Return-Path: <SRS0=oPJA=D6=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39FADC56201
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 00:36:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C1FC388F9
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 06:49:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1338223C7
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 00:36:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABECB223C7
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 06:49:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373982AbgJWAgR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Oct 2020 20:36:17 -0400
-Received: from mga11.intel.com ([192.55.52.93]:43016 "EHLO mga11.intel.com"
+        id S373281AbgJWGtv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Oct 2020 02:49:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S373791AbgJWAf3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 22 Oct 2020 20:35:29 -0400
-IronPort-SDR: 4GQUuxDWy9cAeqppVlIQtafA3HDfHvgri3duOEs/8Acw5sJg43D3CKMBUK8FmA5PxwnMXamAj8
- YQ6qMkY2jOUg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9782"; a="164118647"
-X-IronPort-AV: E=Sophos;i="5.77,404,1596524400"; 
-   d="scan'208";a="164118647"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:26 -0700
-IronPort-SDR: 6Pptt0QEJl+6NDAsOUm3bC0SzSV690gnyVhTidKs6s1Oo0y5OX+ZNJ4Igk7sUUdjBJUGQD7UVP
- IVJvuOyZIHGw==
-X-IronPort-AV: E=Sophos;i="5.77,404,1596524400"; 
-   d="scan'208";a="302505814"
-Received: from dmert-dev.jf.intel.com ([10.166.241.5])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:26 -0700
-From:   Dave Ertman <david.m.ertman@intel.com>
-To:     alsa-devel@alsa-project.org
-Cc:     tiwai@suse.de, broonie@kernel.org, linux-rdma@vger.kernel.org,
-        jgg@nvidia.com, dledford@redhat.com, netdev@vger.kernel.org,
-        davem@davemloft.net, kuba@kernel.org, gregkh@linuxfoundation.org,
-        ranjani.sridharan@linux.intel.com,
+        id S373254AbgJWGtu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 23 Oct 2020 02:49:50 -0400
+Received: from localhost (unknown [213.57.247.131])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id ABAD92192A;
+        Fri, 23 Oct 2020 06:49:49 +0000 (UTC)
+Date:   Fri, 23 Oct 2020 09:49:46 +0300
+From:   Leon Romanovsky <leonro@nvidia.com>
+To:     Dave Ertman <david.m.ertman@intel.com>
+Cc:     alsa-devel@alsa-project.org, tiwai@suse.de, broonie@kernel.org,
+        linux-rdma@vger.kernel.org, jgg@nvidia.com, dledford@redhat.com,
+        netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
+        gregkh@linuxfoundation.org, ranjani.sridharan@linux.intel.com,
         pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
         parav@mellanox.com, shiraz.saleem@intel.com,
         dan.j.williams@intel.com, kiran.patil@intel.com,
-        linux-kernel@vger.kernel.org, leonro@nvidia.com
-Subject: [PATCH v3 06/10] ASoC: SOF: Intel: Remove IPC flood test support in SOF core
-Date:   Thu, 22 Oct 2020 17:33:34 -0700
-Message-Id: <20201023003338.1285642-7-david.m.ertman@intel.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201023003338.1285642-1-david.m.ertman@intel.com>
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 00/10] Auxiliary bus implementation and SOF
+ multi-client support
+Message-ID: <20201023064946.GP2611066@unreal>
 References: <20201023003338.1285642-1-david.m.ertman@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201023003338.1285642-1-david.m.ertman@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+On Thu, Oct 22, 2020 at 05:33:28PM -0700, Dave Ertman wrote:
 
-Remove the IPC flood test support in the SOF core as it is
-now added in the IPC flood test client.
+<...>
 
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
-Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
----
- sound/soc/sof/Kconfig    |   8 --
- sound/soc/sof/debug.c    | 230 ---------------------------------------
- sound/soc/sof/sof-priv.h |   6 +-
- 3 files changed, 1 insertion(+), 243 deletions(-)
+> Dave Ertman (1):
+>   Add auxiliary bus support
 
-diff --git a/sound/soc/sof/Kconfig b/sound/soc/sof/Kconfig
-index 13bde36cc5d7..a0f9474b8143 100644
---- a/sound/soc/sof/Kconfig
-+++ b/sound/soc/sof/Kconfig
-@@ -182,14 +182,6 @@ config SND_SOC_SOF_DEBUG_ENABLE_FIRMWARE_TRACE
- 	  module parameter (similar to dynamic debug)
- 	  If unsure, select "N".
- 
--config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST
--	bool "SOF enable IPC flood test"
--	help
--	  This option enables the IPC flood test which can be used to flood
--	  the DSP with test IPCs and gather stats about response times.
--	  Say Y if you want to enable IPC flood test.
--	  If unsure, select "N".
--
- config SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST_CLIENT
- 	tristate "SOF enable IPC flood test client"
- 	depends on SND_SOC_SOF_CLIENT
-diff --git a/sound/soc/sof/debug.c b/sound/soc/sof/debug.c
-index 9419a99bab53..d224641768da 100644
---- a/sound/soc/sof/debug.c
-+++ b/sound/soc/sof/debug.c
-@@ -232,120 +232,10 @@ static int snd_sof_debugfs_probe_item(struct snd_sof_dev *sdev,
- }
- #endif
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--#define MAX_IPC_FLOOD_DURATION_MS 1000
--#define MAX_IPC_FLOOD_COUNT 10000
--#define IPC_FLOOD_TEST_RESULT_LEN 512
--
--static int sof_debug_ipc_flood_test(struct snd_sof_dev *sdev,
--				    struct snd_sof_dfsentry *dfse,
--				    bool flood_duration_test,
--				    unsigned long ipc_duration_ms,
--				    unsigned long ipc_count)
--{
--	struct sof_ipc_cmd_hdr hdr;
--	struct sof_ipc_reply reply;
--	u64 min_response_time = U64_MAX;
--	ktime_t start, end, test_end;
--	u64 avg_response_time = 0;
--	u64 max_response_time = 0;
--	u64 ipc_response_time;
--	int i = 0;
--	int ret;
--
--	/* configure test IPC */
--	hdr.cmd = SOF_IPC_GLB_TEST_MSG | SOF_IPC_TEST_IPC_FLOOD;
--	hdr.size = sizeof(hdr);
--
--	/* set test end time for duration flood test */
--	if (flood_duration_test)
--		test_end = ktime_get_ns() + ipc_duration_ms * NSEC_PER_MSEC;
--
--	/* send test IPC's */
--	while (1) {
--		start = ktime_get();
--		ret = sof_ipc_tx_message(sdev->ipc, hdr.cmd, &hdr, hdr.size,
--					 &reply, sizeof(reply));
--		end = ktime_get();
--
--		if (ret < 0)
--			break;
--
--		/* compute min and max response times */
--		ipc_response_time = ktime_to_ns(ktime_sub(end, start));
--		min_response_time = min(min_response_time, ipc_response_time);
--		max_response_time = max(max_response_time, ipc_response_time);
--
--		/* sum up response times */
--		avg_response_time += ipc_response_time;
--		i++;
--
--		/* test complete? */
--		if (flood_duration_test) {
--			if (ktime_to_ns(end) >= test_end)
--				break;
--		} else {
--			if (i == ipc_count)
--				break;
--		}
--	}
--
--	if (ret < 0)
--		dev_err(sdev->dev,
--			"error: ipc flood test failed at %d iterations\n", i);
--
--	/* return if the first IPC fails */
--	if (!i)
--		return ret;
--
--	/* compute average response time */
--	do_div(avg_response_time, i);
--
--	/* clear previous test output */
--	memset(dfse->cache_buf, 0, IPC_FLOOD_TEST_RESULT_LEN);
--
--	if (flood_duration_test) {
--		dev_dbg(sdev->dev, "IPC Flood test duration: %lums\n",
--			ipc_duration_ms);
--		snprintf(dfse->cache_buf, IPC_FLOOD_TEST_RESULT_LEN,
--			 "IPC Flood test duration: %lums\n", ipc_duration_ms);
--	}
--
--	dev_dbg(sdev->dev,
--		"IPC Flood count: %d, Avg response time: %lluns\n",
--		i, avg_response_time);
--	dev_dbg(sdev->dev, "Max response time: %lluns\n",
--		max_response_time);
--	dev_dbg(sdev->dev, "Min response time: %lluns\n",
--		min_response_time);
--
--	/* format output string */
--	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
--		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
--		 "IPC Flood count: %d\nAvg response time: %lluns\n",
--		 i, avg_response_time);
--
--	snprintf(dfse->cache_buf + strlen(dfse->cache_buf),
--		 IPC_FLOOD_TEST_RESULT_LEN - strlen(dfse->cache_buf),
--		 "Max response time: %lluns\nMin response time: %lluns\n",
--		 max_response_time, min_response_time);
--
--	return ret;
--}
--#endif
- 
- static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
- 				  size_t count, loff_t *ppos)
- {
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	struct snd_sof_dfsentry *dfse = file->private_data;
--	struct snd_sof_dev *sdev = dfse->sdev;
--	unsigned long ipc_duration_ms = 0;
--	bool flood_duration_test = false;
--	unsigned long ipc_count = 0;
--	struct dentry *dentry;
--	int err;
--#endif
- 	size_t size;
- 	char *string;
- 	int ret;
-@@ -357,78 +247,6 @@ static ssize_t sof_dfsentry_write(struct file *file, const char __user *buffer,
- 	size = simple_write_to_buffer(string, count, ppos, buffer, count);
- 	ret = size;
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/*
--	 * write op is only supported for ipc_flood_count or
--	 * ipc_flood_duration_ms debugfs entries atm.
--	 * ipc_flood_count floods the DSP with the number of IPC's specified.
--	 * ipc_duration_ms test floods the DSP for the time specified
--	 * in the debugfs entry.
--	 */
--	dentry = file->f_path.dentry;
--	if (strcmp(dentry->d_name.name, "ipc_flood_count") &&
--	    strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	if (!strcmp(dentry->d_name.name, "ipc_flood_duration_ms"))
--		flood_duration_test = true;
--
--	/* test completion criterion */
--	if (flood_duration_test)
--		ret = kstrtoul(string, 0, &ipc_duration_ms);
--	else
--		ret = kstrtoul(string, 0, &ipc_count);
--	if (ret < 0)
--		goto out;
--
--	/* limit max duration/ipc count for flood test */
--	if (flood_duration_test) {
--		if (!ipc_duration_ms) {
--			ret = size;
--			goto out;
--		}
--
--		/* find the minimum. min() is not used to avoid warnings */
--		if (ipc_duration_ms > MAX_IPC_FLOOD_DURATION_MS)
--			ipc_duration_ms = MAX_IPC_FLOOD_DURATION_MS;
--	} else {
--		if (!ipc_count) {
--			ret = size;
--			goto out;
--		}
--
--		/* find the minimum. min() is not used to avoid warnings */
--		if (ipc_count > MAX_IPC_FLOOD_COUNT)
--			ipc_count = MAX_IPC_FLOOD_COUNT;
--	}
--
--	ret = pm_runtime_get_sync(sdev->dev);
--	if (ret < 0 && ret != -EACCES) {
--		dev_err_ratelimited(sdev->dev,
--				    "error: debugfs write failed to resume %d\n",
--				    ret);
--		pm_runtime_put_noidle(sdev->dev);
--		goto out;
--	}
--
--	/* flood test */
--	ret = sof_debug_ipc_flood_test(sdev, dfse, flood_duration_test,
--				       ipc_duration_ms, ipc_count);
--
--	pm_runtime_mark_last_busy(sdev->dev);
--	err = pm_runtime_put_autosuspend(sdev->dev);
--	if (err < 0)
--		dev_err_ratelimited(sdev->dev,
--				    "error: debugfs write failed to idle %d\n",
--				    err);
--
--	/* return size if test is successful */
--	if (ret >= 0)
--		ret = size;
--out:
--#endif
- 	kfree(string);
- 	return ret;
- }
-@@ -444,25 +262,6 @@ static ssize_t sof_dfsentry_read(struct file *file, char __user *buffer,
- 	int size;
- 	u8 *buf;
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	struct dentry *dentry;
--
--	dentry = file->f_path.dentry;
--	if ((!strcmp(dentry->d_name.name, "ipc_flood_count") ||
--	     !strcmp(dentry->d_name.name, "ipc_flood_duration_ms")) &&
--	    dfse->cache_buf) {
--		if (*ppos)
--			return 0;
--
--		count = strlen(dfse->cache_buf);
--		size_ret = copy_to_user(buffer, dfse->cache_buf, count);
--		if (size_ret)
--			return -EFAULT;
--
--		*ppos += count;
--		return count;
--	}
--#endif
- 	size = dfse->size;
- 
- 	/* validate position & count */
-@@ -606,17 +405,6 @@ int snd_sof_debugfs_buf_item(struct snd_sof_dev *sdev,
- 	dfse->size = size;
- 	dfse->sdev = sdev;
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/*
--	 * cache_buf is unused for SOF_DFSENTRY_TYPE_BUF debugfs entries.
--	 * So, use it to save the results of the last IPC flood test.
--	 */
--	dfse->cache_buf = devm_kzalloc(sdev->dev, IPC_FLOOD_TEST_RESULT_LEN,
--				       GFP_KERNEL);
--	if (!dfse->cache_buf)
--		return -ENOMEM;
--#endif
--
- 	debugfs_create_file(name, mode, sdev->debugfs_root, dfse,
- 			    &sof_dfs_fops);
- 	/* add to dfsentry list */
-@@ -662,24 +450,6 @@ int snd_sof_dbg_init(struct snd_sof_dev *sdev)
- 		return err;
- #endif
- 
--#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST)
--	/* create read-write ipc_flood_count debugfs entry */
--	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
--				       "ipc_flood_count", 0666);
--
--	/* errors are only due to memory allocation, not debugfs */
--	if (err < 0)
--		return err;
--
--	/* create read-write ipc_flood_duration_ms debugfs entry */
--	err = snd_sof_debugfs_buf_item(sdev, NULL, 0,
--				       "ipc_flood_duration_ms", 0666);
--
--	/* errors are only due to memory allocation, not debugfs */
--	if (err < 0)
--		return err;
--#endif
--
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(snd_sof_dbg_init);
-diff --git a/sound/soc/sof/sof-priv.h b/sound/soc/sof/sof-priv.h
-index cca239c09d0e..e44158410b24 100644
---- a/sound/soc/sof/sof-priv.h
-+++ b/sound/soc/sof/sof-priv.h
-@@ -50,10 +50,6 @@ extern int sof_core_debug;
- #define SOF_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE | \
- 	SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_FLOAT)
- 
--#define ENABLE_DEBUGFS_CACHEBUF \
--	(IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE) || \
--	 IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_IPC_FLOOD_TEST))
--
- /* So far the primary core on all DSPs has ID 0 */
- #define SOF_DSP_PRIMARY_CORE 0
- 
-@@ -301,7 +297,7 @@ struct snd_sof_dfsentry {
- 	 * or if it is accessible only when the DSP is in D0.
- 	 */
- 	enum sof_debugfs_access_type access_type;
--#if ENABLE_DEBUGFS_CACHEBUF
-+#if IS_ENABLED(CONFIG_SND_SOC_SOF_DEBUG_ENABLE_DEBUGFS_CACHE)
- 	char *cache_buf; /* buffer to cache the contents of debugfs memory */
- #endif
- 	struct snd_sof_dev *sdev;
--- 
-2.26.2
+We are in merge window now and both netdev and RDMA are closed for
+submissions. So I'll send my mlx5 conversion patches once -rc1 will
+be tagged.
 
+However, It is important that this "auxiliary bus" patch will be applied
+to some topic branch based on Linus's -rcX. It will give us an ability
+to pull this patch to RDMA, VDPA and netdev subsystems at the same time.
+
+Thanks
