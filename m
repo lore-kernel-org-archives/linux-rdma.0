@@ -4,36 +4,36 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2617FC56202
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1FAC5DF9E
 	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 00:36:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2636223C7
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 00:36:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A262724641
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 00:36:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373857AbgJWAf3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Oct 2020 20:35:29 -0400
+        id S373963AbgJWAgK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Oct 2020 20:36:10 -0400
 Received: from mga11.intel.com ([192.55.52.93]:43009 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2901453AbgJWAfZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 22 Oct 2020 20:35:25 -0400
-IronPort-SDR: ipZCRaVb0HyUKR/nBmK+ubIZd6lg0N471x1LwEXRaGGwp2Am5kgvc0OofDZKi2J6CsRe/8sjky
- PPxj+thj8QlA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9782"; a="164118638"
+        id S373861AbgJWAfa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 22 Oct 2020 20:35:30 -0400
+IronPort-SDR: EQOVrewm/EdYCG7GEFQj6QkZvgZl7GE1c6/1Q6GntpjCUOE6lyTxxzyotWOihoG9RNeZSL7uDP
+ MaNsXUeALieA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9782"; a="164118651"
 X-IronPort-AV: E=Sophos;i="5.77,404,1596524400"; 
-   d="scan'208";a="164118638"
+   d="scan'208";a="164118651"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:24 -0700
-IronPort-SDR: jwomrjVvVE5G/79P2w4YBk87r4nYs91p2cM+SBam5ByjQI+Bx2iYQ6wp7MdCn8KyycWte+KQts
- o7a3TZATlo+Q==
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:27 -0700
+IronPort-SDR: 18qW83gLRKyW77TzyKGUMM+iMckw6+8PkfCBvA9H1uWBMqZ6cl4vtWcGGDzKgnZ4+lHtmCbdLo
+ ekgwrk0PTh+Q==
 X-IronPort-AV: E=Sophos;i="5.77,404,1596524400"; 
-   d="scan'208";a="302505788"
+   d="scan'208";a="302505825"
 Received: from dmert-dev.jf.intel.com ([10.166.241.5])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:23 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 17:35:27 -0700
 From:   Dave Ertman <david.m.ertman@intel.com>
 To:     alsa-devel@alsa-project.org
 Cc:     tiwai@suse.de, broonie@kernel.org, linux-rdma@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     tiwai@suse.de, broonie@kernel.org, linux-rdma@vger.kernel.org,
         parav@mellanox.com, shiraz.saleem@intel.com,
         dan.j.williams@intel.com, kiran.patil@intel.com,
         linux-kernel@vger.kernel.org, leonro@nvidia.com
-Subject: [PATCH v3 02/10] ASoC: SOF: Introduce descriptors for SOF client
-Date:   Thu, 22 Oct 2020 17:33:30 -0700
-Message-Id: <20201023003338.1285642-3-david.m.ertman@intel.com>
+Subject: [PATCH v3 08/10] ASoC: SOF: compress: move and export sof_probe_compr_ops
+Date:   Thu, 22 Oct 2020 17:33:36 -0700
+Message-Id: <20201023003338.1285642-9-david.m.ertman@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201023003338.1285642-1-david.m.ertman@intel.com>
 References: <20201023003338.1285642-1-david.m.ertman@intel.com>
@@ -58,328 +58,78 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
 
-A client in the SOF (Sound Open Firmware) context is a
-device that needs to communicate with the DSP via IPC
-messages. The SOF core is responsible for serializing the
-IPC messages to the DSP from the different clients. One
-example of an SOF client would be an IPC test client that
-floods the DSP with test IPC messages to validate if the
-serialization works as expected. Multi-client support will
-also add the ability to split the existing audio cards
-into multiple ones, so as to e.g. to deal with HDMI with a
-dedicated client instead of adding HDMI to all cards.
-
-This patch introduces descriptors for SOF client driver
-and SOF client device along with APIs for registering
-and unregistering a SOF client driver, sending IPCs from
-a client device and accessing the SOF core debugfs root entry.
-
-Along with this, add a couple of new members to struct
-snd_sof_dev that will be used for maintaining the list of
-clients.
+sof_probe_compr_ops are not platform-specific. So move
+it to common compress code and export the symbol. The
+compilation of the common compress code is already dependent
+on the selection of CONFIG_SND_SOC_SOF_DEBUG_PROBES, so no
+need to check the Kconfig section for defining sof_probe_compr_ops
+again.
 
 Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Tested-by: Fred Oh <fred.oh@linux.intel.com>
 Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-Co-developed-by: Fred Oh <fred.oh@linux.intel.com>
-Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
 ---
- sound/soc/sof/Kconfig      |  19 ++++++
- sound/soc/sof/Makefile     |   3 +
- sound/soc/sof/core.c       |   2 +
- sound/soc/sof/sof-client.c | 115 +++++++++++++++++++++++++++++++++++++
- sound/soc/sof/sof-client.h |  66 +++++++++++++++++++++
- sound/soc/sof/sof-priv.h   |   9 +++
- 6 files changed, 214 insertions(+)
- create mode 100644 sound/soc/sof/sof-client.c
- create mode 100644 sound/soc/sof/sof-client.h
+ sound/soc/sof/compress.c      |  9 +++++++++
+ sound/soc/sof/compress.h      |  1 +
+ sound/soc/sof/intel/hda-dai.c | 12 ------------
+ 3 files changed, 10 insertions(+), 12 deletions(-)
 
-diff --git a/sound/soc/sof/Kconfig b/sound/soc/sof/Kconfig
-index 8c1f0829de40..31e9911098fc 100644
---- a/sound/soc/sof/Kconfig
-+++ b/sound/soc/sof/Kconfig
-@@ -50,6 +50,24 @@ config SND_SOC_SOF_DEBUG_PROBES
- 	  Say Y if you want to enable probes.
- 	  If unsure, select "N".
+diff --git a/sound/soc/sof/compress.c b/sound/soc/sof/compress.c
+index 2d4969c705a4..0443f171b4e7 100644
+--- a/sound/soc/sof/compress.c
++++ b/sound/soc/sof/compress.c
+@@ -13,6 +13,15 @@
+ #include "ops.h"
+ #include "probe.h"
  
-+config SND_SOC_SOF_CLIENT
-+	tristate
-+	select AUXILIARY_BUS
-+	help
-+	  This option is not user-selectable but automagically handled by
-+	  'select' statements at a higher level.
-+
-+config SND_SOC_SOF_CLIENT_SUPPORT
-+	bool "SOF enable clients"
-+	depends on SND_SOC_SOF
-+	help
-+	  This adds support for auxiliary client devices to separate out the debug
-+	  functionality for IPC tests, probes etc. into separate devices. This
-+	  option would also allow adding client devices based on DSP firmware
-+	  capabilities and ACPI/OF device information.
-+	  Say Y if you want to enable clients with SOF.
-+	  If unsure select "N".
-+
- config SND_SOC_SOF_DEVELOPER_SUPPORT
- 	bool "SOF developer options support"
- 	depends on EXPERT
-@@ -186,6 +204,7 @@ endif ## SND_SOC_SOF_DEVELOPER_SUPPORT
- 
- config SND_SOC_SOF
- 	tristate
-+	select SND_SOC_SOF_CLIENT if SND_SOC_SOF_CLIENT_SUPPORT
- 	select SND_SOC_TOPOLOGY
- 	select SND_SOC_SOF_NOCODEC if SND_SOC_SOF_NOCODEC_SUPPORT
- 	help
-diff --git a/sound/soc/sof/Makefile b/sound/soc/sof/Makefile
-index 05718dfe6cd2..5e46f25a3851 100644
---- a/sound/soc/sof/Makefile
-+++ b/sound/soc/sof/Makefile
-@@ -2,6 +2,7 @@
- 
- snd-sof-objs := core.o ops.o loader.o ipc.o pcm.o pm.o debug.o topology.o\
- 		control.o trace.o utils.o sof-audio.o
-+snd-sof-client-objs := sof-client.o
- snd-sof-$(CONFIG_SND_SOC_SOF_DEBUG_PROBES) += probe.o compress.o
- 
- snd-sof-pci-objs := sof-pci-dev.o
-@@ -18,6 +19,8 @@ obj-$(CONFIG_SND_SOC_SOF_ACPI) += snd-sof-acpi.o
- obj-$(CONFIG_SND_SOC_SOF_OF) += snd-sof-of.o
- obj-$(CONFIG_SND_SOC_SOF_PCI) += snd-sof-pci.o
- 
-+obj-$(CONFIG_SND_SOC_SOF_CLIENT) += snd-sof-client.o
-+
- obj-$(CONFIG_SND_SOC_SOF_INTEL_TOPLEVEL) += intel/
- obj-$(CONFIG_SND_SOC_SOF_IMX_TOPLEVEL) += imx/
- obj-$(CONFIG_SND_SOC_SOF_XTENSA) += xtensa/
-diff --git a/sound/soc/sof/core.c b/sound/soc/sof/core.c
-index adc7c37145d6..72a97219395f 100644
---- a/sound/soc/sof/core.c
-+++ b/sound/soc/sof/core.c
-@@ -314,8 +314,10 @@ int snd_sof_device_probe(struct device *dev, struct snd_sof_pdata *plat_data)
- 	INIT_LIST_HEAD(&sdev->widget_list);
- 	INIT_LIST_HEAD(&sdev->dai_list);
- 	INIT_LIST_HEAD(&sdev->route_list);
-+	INIT_LIST_HEAD(&sdev->client_list);
- 	spin_lock_init(&sdev->ipc_lock);
- 	spin_lock_init(&sdev->hw_lock);
-+	mutex_init(&sdev->client_mutex);
- 
- 	if (IS_ENABLED(CONFIG_SND_SOC_SOF_PROBE_WORK_QUEUE))
- 		INIT_WORK(&sdev->probe_work, sof_probe_work);
-diff --git a/sound/soc/sof/sof-client.c b/sound/soc/sof/sof-client.c
-new file mode 100644
-index 000000000000..dd75a0ba4c28
---- /dev/null
-+++ b/sound/soc/sof/sof-client.c
-@@ -0,0 +1,115 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+//
-+// Copyright(c) 2020 Intel Corporation. All rights reserved.
-+//
-+// Author: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-+//
-+
-+#include <linux/debugfs.h>
-+#include <linux/errno.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include "sof-client.h"
-+#include "sof-priv.h"
-+
-+static void sof_client_auxdev_release(struct device *dev)
-+{
-+	struct auxiliary_device *auxdev = to_auxiliary_dev(dev);
-+	struct sof_client_dev *cdev = auxiliary_dev_to_sof_client_dev(auxdev);
-+
-+	kfree(cdev);
-+}
-+
-+static struct sof_client_dev *sof_client_dev_alloc(struct snd_sof_dev *sdev, const char *name,
-+						   u32 id)
-+{
-+	struct sof_client_dev *cdev;
-+	struct auxiliary_device *auxdev;
-+	int ret;
-+
-+	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
-+	if (!cdev)
-+		return ERR_PTR(-ENOMEM);
-+
-+	cdev->sdev = sdev;
-+	auxdev = &cdev->auxdev;
-+	auxdev->name = name;
-+	auxdev->dev.parent = sdev->dev;
-+	auxdev->dev.release = sof_client_auxdev_release;
-+	auxdev->id = id;
-+
-+	ret = auxiliary_device_init(auxdev);
-+	if (ret < 0) {
-+		dev_err(sdev->dev, "error: failed to initialize client dev %s\n", name);
-+		goto err_free;
-+	}
-+
-+	return cdev;
-+
-+err_free:
-+	kfree(cdev);
-+	return NULL;
-+}
-+
-+int sof_client_dev_register(struct snd_sof_dev *sdev, const char *name, u32 id)
-+{
-+	struct sof_client_dev *cdev;
-+	int ret;
-+
-+	cdev = sof_client_dev_alloc(sdev, name, id);
-+	if (IS_ERR_OR_NULL(cdev))
-+		return PTR_ERR(cdev);
-+
-+	ret = auxiliary_device_add(&cdev->auxdev);
-+	if (ret < 0) {
-+		dev_err(sdev->dev, "error: failed to add client dev %s\n", name);
-+		/* cdev will be freed when the release callback is invoked through put_device() */
-+		auxiliary_device_uninit(&cdev->auxdev);
-+		return ret;
-+	}
-+
-+	/* add to list of SOF client devices */
-+	mutex_lock(&sdev->client_mutex);
-+	list_add(&cdev->list, &sdev->client_list);
-+	mutex_unlock(&sdev->client_mutex);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_NS_GPL(sof_client_dev_register, SND_SOC_SOF_CLIENT);
-+
-+void sof_client_dev_unregister(struct snd_sof_dev *sdev, const char *name, u32 id)
-+{
-+	struct sof_client_dev *cdev, *_cdev;
-+
-+	mutex_lock(&sdev->client_mutex);
-+
-+	/* cdev will be freed when the release callback for the auxiliary device is invoked */
-+	list_for_each_entry_safe(cdev, _cdev, &sdev->client_list, list) {
-+		if (!strcmp(cdev->auxdev.name, name) && cdev->auxdev.id == id) {
-+			auxiliary_device_delete(&cdev->auxdev);
-+			auxiliary_device_uninit(&cdev->auxdev);
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&sdev->client_mutex);
-+}
-+EXPORT_SYMBOL_NS_GPL(sof_client_dev_unregister, SND_SOC_SOF_CLIENT);
-+
-+int sof_client_ipc_tx_message(struct sof_client_dev *cdev, u32 header, void *msg_data,
-+			      size_t msg_bytes, void *reply_data, size_t reply_bytes)
-+{
-+	return sof_ipc_tx_message(cdev->sdev->ipc, header, msg_data, msg_bytes,
-+				  reply_data, reply_bytes);
-+}
-+EXPORT_SYMBOL_NS_GPL(sof_client_ipc_tx_message, SND_SOC_SOF_CLIENT);
-+
-+struct dentry *sof_client_get_debugfs_root(struct sof_client_dev *cdev)
-+{
-+	return cdev->sdev->debugfs_root;
-+}
-+EXPORT_SYMBOL_NS_GPL(sof_client_get_debugfs_root, SND_SOC_SOF_CLIENT);
-+
-+MODULE_LICENSE("GPL");
-diff --git a/sound/soc/sof/sof-client.h b/sound/soc/sof/sof-client.h
-new file mode 100644
-index 000000000000..429282df9f65
---- /dev/null
-+++ b/sound/soc/sof/sof-client.h
-@@ -0,0 +1,66 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+
-+#ifndef __SOUND_SOC_SOF_CLIENT_H
-+#define __SOUND_SOC_SOF_CLIENT_H
-+
-+#include <linux/auxiliary_bus.h>
-+#include <linux/device.h>
-+#include <linux/idr.h>
-+#include <linux/list.h>
-+
-+#define SOF_CLIENT_PROBE_TIMEOUT_MS 2000
-+
-+struct snd_sof_dev;
-+
-+/* SOF client device */
-+struct sof_client_dev {
-+	struct auxiliary_device auxdev;
-+	struct snd_sof_dev *sdev;
-+	struct list_head list;	/* item in SOF core client dev list */
-+	void *data;
++struct snd_soc_cdai_ops sof_probe_compr_ops = {
++	.startup	= sof_probe_compr_open,
++	.shutdown	= sof_probe_compr_free,
++	.set_params	= sof_probe_compr_set_params,
++	.trigger	= sof_probe_compr_trigger,
++	.pointer	= sof_probe_compr_pointer,
 +};
++EXPORT_SYMBOL(sof_probe_compr_ops);
 +
-+/* client-specific ops, all optional */
-+struct sof_client_ops {
-+	int (*client_ipc_rx)(struct sof_client_dev *cdev, u32 msg_cmd);
-+};
-+
-+struct sof_client_drv {
-+	const struct sof_client_ops ops;
-+	struct auxiliary_driver auxiliary_drv;
-+};
-+
-+#define auxiliary_dev_to_sof_client_dev(auxiliary_dev) \
-+	container_of(auxiliary_dev, struct sof_client_dev, auxdev)
-+
-+static inline int sof_client_drv_register(struct sof_client_drv *drv)
-+{
-+	return auxiliary_driver_register(&drv->auxiliary_drv);
-+}
-+
-+static inline void sof_client_drv_unregister(struct sof_client_drv *drv)
-+{
-+	auxiliary_driver_unregister(&drv->auxiliary_drv);
-+}
-+
-+int sof_client_dev_register(struct snd_sof_dev *sdev, const char *name, u32 id);
-+void sof_client_dev_unregister(struct snd_sof_dev *sdev, const char *name, u32 id);
-+
-+int sof_client_ipc_tx_message(struct sof_client_dev *cdev, u32 header, void *msg_data,
-+			      size_t msg_bytes, void *reply_data, size_t reply_bytes);
-+
-+struct dentry *sof_client_get_debugfs_root(struct sof_client_dev *cdev);
-+
-+/**
-+ * module_sof_client_driver() - Helper macro for registering an SOF Client
-+ * driver
-+ * @__sof_client_driver: SOF client driver struct
-+ *
-+ * Helper macro for SOF client drivers which do not do anything special in
-+ * module init/exit. This eliminates a lot of boilerplate. Each module may only
-+ * use this macro once, and calling it replaces module_init() and module_exit()
-+ */
-+#define module_sof_client_driver(__sof_client_driver) \
-+	module_driver(__sof_client_driver, sof_client_drv_register, sof_client_drv_unregister)
-+
-+#endif
-diff --git a/sound/soc/sof/sof-priv.h b/sound/soc/sof/sof-priv.h
-index 0aed2a7ab858..dceac73b858f 100644
---- a/sound/soc/sof/sof-priv.h
-+++ b/sound/soc/sof/sof-priv.h
-@@ -442,6 +442,15 @@ struct snd_sof_dev {
+ struct snd_compress_ops sof_probe_compressed_ops = {
+ 	.copy		= sof_probe_compr_copy,
+ };
+diff --git a/sound/soc/sof/compress.h b/sound/soc/sof/compress.h
+index ca8790bd4b13..689c83ac8ffc 100644
+--- a/sound/soc/sof/compress.h
++++ b/sound/soc/sof/compress.h
+@@ -13,6 +13,7 @@
  
- 	bool msi_enabled;
+ #include <sound/compress_driver.h>
  
-+	/*
-+	 * Used to keep track of registered client devices so that they can be removed when the
-+	 * parent SOF module is removed.
-+	 */
-+	struct list_head client_list;
-+
-+	/* mutex to protect client list */
-+	struct mutex client_mutex;
-+
- 	void *private;			/* core does not touch this */
++extern struct snd_soc_cdai_ops sof_probe_compr_ops;
+ extern struct snd_compress_ops sof_probe_compressed_ops;
+ 
+ int sof_probe_compr_open(struct snd_compr_stream *cstream,
+diff --git a/sound/soc/sof/intel/hda-dai.c b/sound/soc/sof/intel/hda-dai.c
+index c6cb8c212eca..1acec1176986 100644
+--- a/sound/soc/sof/intel/hda-dai.c
++++ b/sound/soc/sof/intel/hda-dai.c
+@@ -400,18 +400,6 @@ static const struct snd_soc_dai_ops hda_link_dai_ops = {
+ 	.prepare = hda_link_pcm_prepare,
  };
  
+-#if IS_ENABLED(CONFIG_SND_SOC_SOF_HDA_PROBES)
+-#include "../compress.h"
+-
+-static struct snd_soc_cdai_ops sof_probe_compr_ops = {
+-	.startup	= sof_probe_compr_open,
+-	.shutdown	= sof_probe_compr_free,
+-	.set_params	= sof_probe_compr_set_params,
+-	.trigger	= sof_probe_compr_trigger,
+-	.pointer	= sof_probe_compr_pointer,
+-};
+-
+-#endif
+ #endif
+ 
+ /*
 -- 
 2.26.2
 
