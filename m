@@ -5,72 +5,68 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA47FC63777
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 12:22:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C38D5C388F9
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 12:22:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 711CF20795
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 12:22:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CA5020795
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 12:22:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="h2UcRa9U"
+	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="QRe2K4ND"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S463590AbgJWMWc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Oct 2020 08:22:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37882 "EHLO
+        id S463619AbgJWMWn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Oct 2020 08:22:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S463594AbgJWMWb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Oct 2020 08:22:31 -0400
-Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F316C0613CE
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 05:22:30 -0700 (PDT)
-Received: by mail-wm1-x343.google.com with SMTP id c16so1298354wmd.2
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 05:22:30 -0700 (PDT)
+        with ESMTP id S463616AbgJWMWn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Oct 2020 08:22:43 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C691AC0613D2
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 05:22:42 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id e2so1303797wme.1
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 05:22:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+fkOMfIAhHnIvKJblgrObApVFyijBiqdZwYQpautVWE=;
-        b=h2UcRa9UQoJClDthSwfwclF7bhL3oBVRME7c7/5zSRqhORAazkbgsGc4/vw6kIZtIK
-         fhou2mbGdVANXK1CAFqIvL046sqBvxJGq5gDLkYCxZejl9o44OcJnB+RHw52tVnqbiHm
-         JEDd6QHk5g7ytqeIZjF9fLUc3+7QOoDG7T1g8=
+        bh=Oo+WCqNcRY4hz8ARHU44AzglCk3LcvfnVh+Q+d4r9RU=;
+        b=QRe2K4NDzMa3XvVHnklPYEQBWwaTYYKSqPpSchH+IzdO7uoZMOJmLrYKxFyPuFedgt
+         hBGRQ8jSDsXFVPkf4tno5kbL04YE1J5uETPopMp2haTMemX81cxn8GM2SG8tLS8LW1Tq
+         3bmfMo7wGggEbrwFcrXY/XzlIA2yGcA0FzNrU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+fkOMfIAhHnIvKJblgrObApVFyijBiqdZwYQpautVWE=;
-        b=sWiGKDzZJmuHdWVU+jTOEGKXmSD2rGgeD2hZPrlmHJXpyHx/4eHR5lEnf+LfAYYyeI
-         6J+M7sWZpLZ7ubTKRl+h8RFbXTh10TCMQv7glkKOQxKds/MWo6ixixOeW1Vj0zYcq1Bn
-         hqnoqe/8Oo7FvRFtNyE78K3pg5DiC0ub0++orgDsY+MV0H7auIXxyyfiz5UoS/bwVSAs
-         ef2TcWyW5aiGGHdJYSUgIm+7tFdS3+P5z2+V2KG6PZ144EgEeRcEM9UUnYLgjY43b/3h
-         YNGDGcY4gQ8USENwQjnChbsTEhaqhb2l0Eoi64BDbzkK/ro5XlKs09cal1FUbjFi5RhU
-         S1GA==
-X-Gm-Message-State: AOAM533vbiXVv7Kskynz1i0W30edPDNdRqFg+Vls52BGvWpI6Yt5h5ZO
-        vaMylu4TtEJ3+gGoWbr8SNwDjA==
-X-Google-Smtp-Source: ABdhPJxH4xe48wzE/NSho9ypMHFrSsNZaDWF+abLcTHBzoHtv3gPf22+aRfQRDawp5z3s1pKd7nXCw==
-X-Received: by 2002:a1c:4445:: with SMTP id r66mr2000497wma.140.1603455748879;
-        Fri, 23 Oct 2020 05:22:28 -0700 (PDT)
+        bh=Oo+WCqNcRY4hz8ARHU44AzglCk3LcvfnVh+Q+d4r9RU=;
+        b=SeHkQeL5rblOSGLIuTUkYviPikB/WDBp+42rzYoRSBV4pYNX5AAn+bBYZ71nyXqjKy
+         yQFTAc807S96rCOSP+4gpJgyKiPeWdtg+HHWLyXxz1iDYPFH6DOCIp1q/FWGgfNR+0bn
+         zjrRwHBwZftmX0ZO5YRNDYWrfLMQMnT/MuKuSpjZd814EqxWC6GxEmNaD5w9mRsmfgwX
+         egWBmVebfjyYviEhePryBNUe2ZJckHmMF7r/LZn0zjW8IRabqBAs2XKtorhgvr3hwCfe
+         qJd7CIpQC8exWBaZnYmpHylW4fe4ALNFIPi1fyJ4sC9lVYW7jNvIkN5a3uIwJ1u1wvhX
+         UlSg==
+X-Gm-Message-State: AOAM532h3/ipdJZ4Lg5lJ0YUBp9ebfpZ56+U4PbQfQJKKDr3FMfBPFek
+        3uYfWNXN1T6+gXW0IpLj74Ld9De90R9QaoAn
+X-Google-Smtp-Source: ABdhPJxmIrYyotlMUykKvZ8yFRoXhmXv4OuqQiJQL/V4ipGjIXJX6Lq0IMzK4dvfWtQS6XzUEHIJNg==
+X-Received: by 2002:a7b:c401:: with SMTP id k1mr2023294wmi.120.1603455761598;
+        Fri, 23 Oct 2020 05:22:41 -0700 (PDT)
 Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id y4sm3056484wrp.74.2020.10.23.05.22.27
+        by smtp.gmail.com with ESMTPSA id y4sm3056484wrp.74.2020.10.23.05.22.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2020 05:22:28 -0700 (PDT)
+        Fri, 23 Oct 2020 05:22:41 -0700 (PDT)
 From:   Daniel Vetter <daniel.vetter@ffwll.ch>
 To:     DRI Development <dri-devel@lists.freedesktop.org>
 Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
         Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Melissa Wen <melissa.srw@gmail.com>,
-        Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>,
         linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
         linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org,
         Chris Wilson <chris@chris-wilson.co.uk>,
         Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
         =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Haneen Mohammed <hamohammed.sa@gmail.com>,
-        Daniel Vetter <daniel@ffwll.ch>
-Subject: [PATCH 06/65] drm/vkms: Annotate vblank timer
-Date:   Fri, 23 Oct 2020 14:21:17 +0200
-Message-Id: <20201023122216.2373294-6-daniel.vetter@ffwll.ch>
+        Daniel Vetter <daniel.vetter@intel.com>
+Subject: [PATCH 17/65] drm/scheduler: use dma-fence annotations in main thread
+Date:   Fri, 23 Oct 2020 14:21:28 +0200
+Message-Id: <20201023122216.2373294-17-daniel.vetter@ffwll.ch>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201023122216.2373294-1-daniel.vetter@ffwll.ch>
 References: <20201021163242.1458885-1-daniel.vetter@ffwll.ch>
@@ -82,14 +78,14 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is needed to signal the fences from page flips, annotate it
-accordingly. We need to annotate entire timer callback since if we get
-stuck anywhere in there, then the timer stops, and hence fences stop.
-Just annotating the top part that does the vblank handling isn't
-enough.
+If the scheduler rt thread gets stuck on a mutex that we're holding
+while waiting for gpu workloads to complete, we have a problem.
 
-Tested-by: Melissa Wen <melissa.srw@gmail.com>
-Reviewed-by: Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>
+Add dma-fence annotations so that lockdep can check this for us.
+
+I've tried to quite carefully review this, and I think it's at the
+right spot. But obviosly no expert on drm scheduler.
+
 Cc: linux-media@vger.kernel.org
 Cc: linaro-mm-sig@lists.linaro.org
 Cc: linux-rdma@vger.kernel.org
@@ -99,43 +95,35 @@ Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Christian König <christian.koenig@amd.com>
 Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>
-Cc: Haneen Mohammed <hamohammed.sa@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
 ---
- drivers/gpu/drm/vkms/vkms_crtc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/scheduler/sched_main.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/gpu/drm/vkms/vkms_crtc.c b/drivers/gpu/drm/vkms/vkms_crtc.c
-index e43e4e1b268a..8124d8f2ee15 100644
---- a/drivers/gpu/drm/vkms/vkms_crtc.c
-+++ b/drivers/gpu/drm/vkms/vkms_crtc.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0+
+diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
+index 9a0d77a68018..f69abc4e70d3 100644
+--- a/drivers/gpu/drm/scheduler/sched_main.c
++++ b/drivers/gpu/drm/scheduler/sched_main.c
+@@ -764,9 +764,12 @@ static int drm_sched_main(void *param)
+ {
+ 	struct drm_gpu_scheduler *sched = (struct drm_gpu_scheduler *)param;
+ 	int r;
++	bool fence_cookie;
  
-+#include <linux/dma-fence.h>
-+
- #include <drm/drm_atomic.h>
- #include <drm/drm_atomic_helper.h>
- #include <drm/drm_probe_helper.h>
-@@ -14,7 +16,9 @@ static enum hrtimer_restart vkms_vblank_simulate(struct hrtimer *timer)
- 	struct drm_crtc *crtc = &output->crtc;
- 	struct vkms_crtc_state *state;
- 	u64 ret_overrun;
--	bool ret;
-+	bool ret, fence_cookie;
-+
+ 	sched_set_fifo_low(current);
+ 
 +	fence_cookie = dma_fence_begin_signalling();
++
+ 	while (!kthread_should_stop()) {
+ 		struct drm_sched_entity *entity = NULL;
+ 		struct drm_sched_fence *s_fence;
+@@ -824,6 +827,9 @@ static int drm_sched_main(void *param)
  
- 	ret_overrun = hrtimer_forward_now(&output->vblank_hrtimer,
- 					  output->period_ns);
-@@ -49,6 +53,8 @@ static enum hrtimer_restart vkms_vblank_simulate(struct hrtimer *timer)
- 			DRM_DEBUG_DRIVER("Composer worker already queued\n");
+ 		wake_up(&sched->job_scheduled);
  	}
- 
++
 +	dma_fence_end_signalling(fence_cookie);
 +
- 	return HRTIMER_RESTART;
+ 	return 0;
  }
  
 -- 
