@@ -4,68 +4,68 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28691C55179
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 07:44:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC6AC56202
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 07:44:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB60821D47
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 07:44:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8661E2177B
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Oct 2020 07:44:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="WXvwE9tc"
+	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="gNadxjyA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S375769AbgJWHoE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Oct 2020 03:44:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51294 "EHLO
+        id S375777AbgJWHoH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Oct 2020 03:44:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S374490AbgJWHoD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Oct 2020 03:44:03 -0400
-Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01AE6C0613CE
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 00:44:02 -0700 (PDT)
-Received: by mail-ej1-x631.google.com with SMTP id p5so1062233ejj.2
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 00:44:01 -0700 (PDT)
+        with ESMTP id S375775AbgJWHoH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Oct 2020 03:44:07 -0400
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09AD0C0613D2
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 00:44:07 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id w23so633632edl.0
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Oct 2020 00:44:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=JfZtk3pjF4WlFpJWibZh2FBLGDetHSR9s/tKhrXEPr8=;
-        b=WXvwE9tcHGlufbxdJd07cJJn7qvGpGJ8k8lhmivlnr/rDfhGcUDVsVS759dA0FPbzL
-         ol6XdTx4lyYDDyEOTvXpnO0Anmm9IlXCRW8uemuJSPJ5i2J8L+r6pOcoWXPPR51Vsk8I
-         EdEJN8wHca0aHvLaDrx9qYlWhkdNG5aHWk+YHu0unysZTRwt6bDBCWMrY0r7pP6WHX/t
-         leB6St96t70TddstRI/d1OfsgZfVVoWvN9gdhqr5uYwbiMbI9kwDrfJ5RCoFEsSCb66I
-         QvVPgw0AHdQ2j7tQG64Ar/BUhAwYOapsvrKL51up0KrUt0SUYwZSLZS87cvNye6LZ9Ls
-         tEfA==
+        bh=N98xLNwIrHPVMGn4TFLYhEJS7NXRDPuaQTkSD4Kdyco=;
+        b=gNadxjyAJ/SAUFEN/n2FoOEfFGW7zJLUWUktpPazNrl1HtrRxN1PxQz3CRXj6q+0dK
+         xCLeib6AWV84VXDVj9n8JqY5stJ7bYVrTfisFZ470jSxiXfYpbrchWsg3fluqVzt3HOO
+         vecxRI7aecInlF9ZbwRJlIP1tB0hb3fQQlvYx7+agEh9EqgWNpxhqgbxhqc6WKGeWAS7
+         tn6jkmSAiOnV+SLdXcGKB+GGfc5ARGppc76m1axPsSfoplLp6CGIQkqDscrocTRs923l
+         +T9x/PMPvcHWNERgUf80P6HhWEXSsJXgf5w4SXtooOmmjhbVyR9Jx1YDQ04qqRkzCdKa
+         NzkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=JfZtk3pjF4WlFpJWibZh2FBLGDetHSR9s/tKhrXEPr8=;
-        b=rTpEU1lY4Tu8cnrSgH9w5HnThwnl7mJ6H6FfpIjQSn8E3c6gj0wsfGm0okeVKfamNb
-         cGWlBFun13XS9ekZa0OjN9NNDECu8zSt5FOdmzajH8QWGA0Dtaaj5LLqILvuXGcKduq6
-         Hl7qbtyMLQP1uJRruc2JMgJzcEXZviy4m/+JlWwt9w5gopVjEzV8Hp1JM5NwfNLR+s11
-         +EDriVizjBHL/ZuD8gkEkN65Ma9RZ3b7OWRprtcTZFc3F1bda6WrWPJcy8w/EX1/sRYX
-         pYwTKO97l6MhdlSDq0466FeJfcl7xrUn2hi9VZ6XFo0t7MDOURxK5BfsQigSu3kB1QRb
-         Z0Ag==
-X-Gm-Message-State: AOAM531wq5v4IDGca1rnq9H2TGJtaOd3C71xy5uTACWXx3AJQNhJhv45
-        eRngLRU05xC1L+yGX5msHTILUbzSfFZBnQ==
-X-Google-Smtp-Source: ABdhPJyK7dW9NhUIx8fzLZofkA5C/rJ3INQfFYnOkWJbLzHbBfyM1U2xbWK/Zf/7yfQNhOdg7aeAXQ==
-X-Received: by 2002:a17:906:30c8:: with SMTP id b8mr798723ejb.77.1603439040610;
-        Fri, 23 Oct 2020 00:44:00 -0700 (PDT)
+        bh=N98xLNwIrHPVMGn4TFLYhEJS7NXRDPuaQTkSD4Kdyco=;
+        b=WQZ9AlakO92AdrDnKXiaxljDGKz5cHdOmWdkVWGYybkECzHFEb/32drs3/qF0FwpUC
+         e9njf4pp85vO0IvbUHN8SRp2GCZK7tXOZCVMeCW94TQRlod/obfVdXQDzZ52b79AnWp0
+         E9JV7OovrrRamInTC8WsVM2O5qO+6jwGULKfohH6YjCAp7FvE1H6TydWUZQa7s0rQZK3
+         oN/vIOMR6MHh9ohNQuvUpslUkLGiRBUUs+oI9T5OswU+AZcK9zyZGaZLAbl+I2/mAviV
+         QxeFQrw5hMC0deZZdYVqtoexlYExNeLZTvpwoRPGgSp2aqNlFuyWkAN3HANjgn9zhJmz
+         fE/A==
+X-Gm-Message-State: AOAM530GBwpLP3Qupy3WXDGE9DKqCr71Wj/cVI/M7TDbE46Nj/WYNwy/
+        XiV9BY3KQfMFe2RI5J22GouTrqkbK01Pmg==
+X-Google-Smtp-Source: ABdhPJyrr+2FP262gZTTNn093G9iHJ6qw4gcfR27XdRYtXhDPUit9PaZlHiC58+2gQ6hgeKu3E2RYA==
+X-Received: by 2002:a50:b023:: with SMTP id i32mr908249edd.377.1603439045509;
+        Fri, 23 Oct 2020 00:44:05 -0700 (PDT)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:49b9:3000:d18a:ee7b:bff9:e374])
-        by smtp.gmail.com with ESMTPSA id op24sm337928ejb.56.2020.10.23.00.43.59
+        by smtp.gmail.com with ESMTPSA id op24sm337928ejb.56.2020.10.23.00.44.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Oct 2020 00:44:00 -0700 (PDT)
+        Fri, 23 Oct 2020 00:44:05 -0700 (PDT)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com,
         Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCHv2 for-next 06/12] RDMA/rtrs-srv: fix typo
-Date:   Fri, 23 Oct 2020 09:43:47 +0200
-Message-Id: <20201023074353.21946-7-jinpu.wang@cloud.ionos.com>
+Subject: [PATCHv2 for-next 11/12] RDMA/rtrs: introduce rtrs_post_send
+Date:   Fri, 23 Oct 2020 09:43:52 +0200
+Message-Id: <20201023074353.21946-12-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201023074353.21946-1-jinpu.wang@cloud.ionos.com>
 References: <20201023074353.21946-1-jinpu.wang@cloud.ionos.com>
@@ -77,28 +77,99 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-It should mean region here.
+Since the three functions share the similar logic, let's introduce one
+common function for it.
 
-Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/rtrs/rtrs.c | 52 +++++++++++-------------------
+ 1 file changed, 19 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.h b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
-index 08b0b8a6eebe..9543ae19996c 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
-@@ -62,7 +62,7 @@ struct rtrs_srv_op {
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
+index 48f648f573b6..2e3a849e0a77 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs.c
+@@ -104,6 +104,22 @@ int rtrs_post_recv_empty(struct rtrs_con *con, struct ib_cqe *cqe)
+ }
+ EXPORT_SYMBOL_GPL(rtrs_post_recv_empty);
  
- /*
-  * server side memory region context, when always_invalidate=Y, we need
-- * queue_depth of memory regrion to invalidate each memory region.
-+ * queue_depth of memory region to invalidate each memory region.
-  */
- struct rtrs_srv_mr {
- 	struct ib_mr	*mr;
++static int rtrs_post_send(struct ib_qp *qp, struct ib_send_wr *head,
++			     struct ib_send_wr *wr)
++{
++	if (head) {
++		struct ib_send_wr *tail = head;
++
++		while (tail->next)
++			tail = tail->next;
++		tail->next = wr;
++	} else {
++		head = wr;
++	}
++
++	return ib_post_send(qp, head, NULL);
++}
++
+ int rtrs_iu_post_send(struct rtrs_con *con, struct rtrs_iu *iu, size_t size,
+ 		       struct ib_send_wr *head)
+ {
+@@ -126,17 +142,7 @@ int rtrs_iu_post_send(struct rtrs_con *con, struct rtrs_iu *iu, size_t size,
+ 		.send_flags = IB_SEND_SIGNALED,
+ 	};
+ 
+-	if (head) {
+-		struct ib_send_wr *tail = head;
+-
+-		while (tail->next)
+-			tail = tail->next;
+-		tail->next = &wr;
+-	} else {
+-		head = &wr;
+-	}
+-
+-	return ib_post_send(con->qp, head, NULL);
++	return rtrs_post_send(con->qp, head, &wr);
+ }
+ EXPORT_SYMBOL_GPL(rtrs_iu_post_send);
+ 
+@@ -168,17 +174,7 @@ int rtrs_iu_post_rdma_write_imm(struct rtrs_con *con, struct rtrs_iu *iu,
+ 		if (WARN_ON(sge[i].length == 0))
+ 			return -EINVAL;
+ 
+-	if (head) {
+-		struct ib_send_wr *tail = head;
+-
+-		while (tail->next)
+-			tail = tail->next;
+-		tail->next = &wr.wr;
+-	} else {
+-		head = &wr.wr;
+-	}
+-
+-	return ib_post_send(con->qp, head, NULL);
++	return rtrs_post_send(con->qp, head, &wr.wr);
+ }
+ EXPORT_SYMBOL_GPL(rtrs_iu_post_rdma_write_imm);
+ 
+@@ -195,17 +191,7 @@ int rtrs_post_rdma_write_imm_empty(struct rtrs_con *con, struct ib_cqe *cqe,
+ 		.ex.imm_data	= cpu_to_be32(imm_data),
+ 	};
+ 
+-	if (head) {
+-		struct ib_send_wr *tail = head;
+-
+-		while (tail->next)
+-			tail = tail->next;
+-		tail->next = &wr;
+-	} else {
+-		head = &wr;
+-	}
+-
+-	return ib_post_send(con->qp, head, NULL);
++	return rtrs_post_send(con->qp, head, &wr);
+ }
+ EXPORT_SYMBOL_GPL(rtrs_post_rdma_write_imm_empty);
+ 
 -- 
 2.25.1
 
