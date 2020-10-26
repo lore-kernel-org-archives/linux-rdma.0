@@ -5,50 +5,50 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9909C6369E
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 00:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A775AC8302C
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 00:34:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C05121D7B
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 00:31:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73E44216FD
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 00:34:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603758666;
-	bh=LdhIsQP3Wpe1HFkaDxMtIKxZKkDqsSdrPjQQjtv8TLM=;
+	s=default; t=1603758878;
+	bh=SwXqYwRkx/z615Ox9quIoeda/08mwl9yxzkKyFz1PUY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=sCnNcB1Pq1L1CvUsk4+UgajB+NDDEXJ71wKrKSQkmkacQVw7RLHxSrlD7VJXzTSnf
-	 71wLP/uunWuUPa6bPzuGwkGdO4ncOVR5KDWBHotKvOTLqDGXjsZtiJ4cV4lqpg0RB3
-	 pvpq52tO6LbG0L3ZkLC29BkZ0kwxBqXn6Ie18Xts=
+	b=pt3FppqBLXY3BWn451wjkD0igm5M01YAk6/MOzPIKR9gYMsa+bX1q7i7fRmFXFZo2
+	 oVLF6r1fe0+qrt0UpPh9esePPuvwVODAIKMTwu3zLIlwyedUT3CEZ5BGtwUjHjlJlz
+	 C/GX8f4Qhj8BNNHmNC57qO9tfIXZLHL4Aarv4WaQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439495AbgJ0AbC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Oct 2020 20:31:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54062 "EHLO mail.kernel.org"
+        id S2408613AbgJZXtL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Oct 2020 19:49:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2409639AbgJZXwJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 19:52:09 -0400
+        id S2408598AbgJZXtK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 19:49:10 -0400
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 609BE21655;
-        Mon, 26 Oct 2020 23:52:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 361402075B;
+        Mon, 26 Oct 2020 23:49:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603756328;
-        bh=LdhIsQP3Wpe1HFkaDxMtIKxZKkDqsSdrPjQQjtv8TLM=;
+        s=default; t=1603756149;
+        bh=SwXqYwRkx/z615Ox9quIoeda/08mwl9yxzkKyFz1PUY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0iwr/5z9jJdMLNPgIFgiAonZlQTzRPomfI0UAV0UAeZCjxuT4CNJjbVCWtuVuFNjC
-         zrcyH56iDvoZVyEb4ULBZMfNLvoKTbKiFmf/CxRsZcO7ivj1uj0kTDr7H6Pl6H52sI
-         LBjP1LrPkAJdiIS9jZ/+k2/ZOgfyvIizmmzb1DK0=
+        b=CTwDY6e7vX0LYOkNchxrgcomRUcupMDeNxg78EOEOwQ7WHpVW0xKnIIO9OGFnD/Bz
+         c+wJI35dvD7RdIZ+cpSyZVzMdCHi2ZCKzH408WVihUDHgS8qyP00cgi3e8uHd8w+X6
+         JV+BRb58b4SBfUxKbkqX4MJ29hG/ZrvYHAN5LcFY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jason Gunthorpe <jgg@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.8 002/132] RDMA/core: Change how failing destroy is handled during uobj abort
-Date:   Mon, 26 Oct 2020 19:49:54 -0400
-Message-Id: <20201026235205.1023962-2-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.9 003/147] RDMA/core: Change how failing destroy is handled during uobj abort
+Date:   Mon, 26 Oct 2020 19:46:41 -0400
+Message-Id: <20201026234905.1022767-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20201026235205.1023962-1-sashal@kernel.org>
-References: <20201026235205.1023962-1-sashal@kernel.org>
+In-Reply-To: <20201026234905.1022767-1-sashal@kernel.org>
+References: <20201026234905.1022767-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -130,10 +130,10 @@ index 6d3ed7c6e19eb..3962da54ffbf4 100644
  	/* Matches the down_read in rdma_alloc_begin_uobject */
  	up_read(&ufile->hw_destroy_rwsem);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ef2f3986c4933..f1a072cc9fc0e 100644
+index c0b2fa7e9b959..0095fc186a9fd 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1489,11 +1489,6 @@ enum rdma_remove_reason {
+@@ -1463,11 +1463,6 @@ enum rdma_remove_reason {
  	RDMA_REMOVE_DRIVER_REMOVE,
  	/* uobj is being cleaned-up before being committed */
  	RDMA_REMOVE_ABORT,
