@@ -2,150 +2,87 @@ Return-Path: <SRS0=Cmar=EB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A448AC56201
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43E5AC4363A
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7175520809
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF1EB20809
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603718579;
-	bh=skuxtExF0xcEEcMrbTkcb9u3rzu/nUPrLyLn8uEpTsI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=fT5Kfprx/zb3jNrfvnhsV6MXVzfgIeBl/lI4It+JMw70N/l9VbXZ1pStZ+1sQtGIy
-	 cN1oPNOc2G00uPIiA3FNFnTvZDTDuXzH6IshSqxEvvl/j5xBBmUXDE9ACcyOR4xNnW
-	 +MI8mLYkTzXd7ZjpLgnHD+vPhyBjjkcRyROVVMSE=
+	s=default; t=1603718604;
+	bh=Wqyhlt/zYMpL8iZMsoMxIRDiAqiLMR+CelNVahqUIow=;
+	h=From:To:Cc:Subject:Date:List-ID:From;
+	b=sbrnrV7cI4m2iQY44uGPKdaf0ULadsrBpXaBYYgEiP/FU/GC578VWcaG20+bUMO0C
+	 2FLeJmwgjuBF9NIzl1Fvz//epmPLs49xKOOTqF+FDBUwLryuwrSGt62zxoqvL9Bd7k
+	 6TqPbYWKRbPcNc/EpOKLDANES0h2riYLAPXkDQDk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404060AbgJZNWq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Oct 2020 09:22:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54544 "EHLO mail.kernel.org"
+        id S1421363AbgJZNXV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Oct 2020 09:23:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1776791AbgJZNTu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 09:19:50 -0400
+        id S1421312AbgJZNXT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 09:23:19 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B2F2022263;
-        Mon, 26 Oct 2020 13:19:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1AE4F207DE;
+        Mon, 26 Oct 2020 13:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603718389;
-        bh=skuxtExF0xcEEcMrbTkcb9u3rzu/nUPrLyLn8uEpTsI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fHxeUCx60ou6HhoSQpFAeQ+/edAWQTh/ajFj9O/TxV3+CO9xLP8Bo2Zy7C3Z2+C7J
-         y/rNbnv4rv+zncSOGwczGVSclOv0xjPG6nl8ANXaRzcZsTAsw6+VbktNr4Kr27cKLQ
-         PeTlQ/jDAdM3OoJ6tw9+pxHhOrahkw+U7WUb2cIQ=
+        s=default; t=1603718598;
+        bh=Wqyhlt/zYMpL8iZMsoMxIRDiAqiLMR+CelNVahqUIow=;
+        h=From:To:Cc:Subject:Date:From;
+        b=1ZQYMT2NJa9lTsguGJvVAaQvqxNHRDc53YNS3VCWSFKeweT7hh2MYV1oqvkW28jxu
+         nYwBnQcVGvJCbXowZ9V0S0TY51BqSqW80pXZZRRoqFYIDq5/Zna9m8cPWThPkPOiyb
+         3zEkzayrJhE90t7pszv9rQqKYvJQVwDLXcz0/WNY=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 3/7] RDMA/mlx5: Remove mlx5_ib_mr->npages
-Date:   Mon, 26 Oct 2020 15:19:32 +0200
-Message-Id: <20201026131936.1335664-4-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 0/5] Use ib_umem_find_best_pgsz() when creating MRs
+Date:   Mon, 26 Oct 2020 15:23:09 +0200
+Message-Id: <20201026132314.1336717-1-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201026131936.1335664-1-leon@kernel.org>
-References: <20201026131936.1335664-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-This is the same value as ib_umem_num_pages(mr->umem), use that instead.
+From Jason:
 
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
- drivers/infiniband/hw/mlx5/mr.c      | 26 ++++++++++++++------------
- 2 files changed, 14 insertions(+), 13 deletions(-)
+The new common code does a better job finding large page sizes. Use it in
+mlx5 for MRs.
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 93310dda01b6..0eaf992a4e15 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -602,7 +602,6 @@ struct mlx5_ib_mr {
- 	struct mlx5_shared_mr_info	*smr_info;
- 	struct list_head	list;
- 	struct mlx5_cache_ent  *cache_ent;
--	int			npages;
- 	struct mlx5_ib_dev     *dev;
- 	u32 out[MLX5_ST_SZ_DW(create_mkey_out)];
- 	struct mlx5_core_sig_ctx    *sig;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 769c5ae4894a..c76134219bf2 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1418,8 +1418,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 	mlx5_ib_dbg(dev, "mkey 0x%x\n", mr->mmkey.key);
- 
- 	mr->umem = umem;
--	mr->npages = npages;
--	atomic_add(mr->npages, &dev->mdev->priv.reg_pages);
-+	atomic_add(ib_umem_num_pages(mr->umem), &dev->mdev->priv.reg_pages);
- 	set_mr_fields(dev, mr, length, access_flags);
- 
- 	if (xlt_with_umr && !(access_flags & IB_ACCESS_ON_DEMAND)) {
-@@ -1552,8 +1551,8 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 		 * used.
- 		 */
- 		flags |= IB_MR_REREG_TRANS;
--		atomic_sub(mr->npages, &dev->mdev->priv.reg_pages);
--		mr->npages = 0;
-+		atomic_sub(ib_umem_num_pages(mr->umem),
-+			   &dev->mdev->priv.reg_pages);
- 		ib_umem_release(mr->umem);
- 		mr->umem = NULL;
- 
-@@ -1561,8 +1560,8 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
- 				  &npages, &page_shift, &ncont, &order);
- 		if (err)
- 			goto err;
--		mr->npages = ncont;
--		atomic_add(mr->npages, &dev->mdev->priv.reg_pages);
-+		atomic_add(ib_umem_num_pages(mr->umem),
-+			   &dev->mdev->priv.reg_pages);
- 	}
- 
- 	if (!mlx5_ib_can_reconfig_with_umr(dev, mr->access_flags,
-@@ -1695,23 +1694,26 @@ static void clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- 
- static void dereg_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
--	int npages = mr->npages;
- 	struct ib_umem *umem = mr->umem;
-+	bool is_odp = is_odp_mr(mr);
- 
- 	/* Stop all DMA */
--	if (is_odp_mr(mr))
-+	if (is_odp)
- 		mlx5_ib_fence_odp_mr(mr);
- 	else
- 		clean_mr(dev, mr);
- 
-+	if (umem) {
-+		if (!is_odp)
-+			atomic_sub(ib_umem_num_pages(umem),
-+				   &dev->mdev->priv.reg_pages);
-+		ib_umem_release(umem);
-+	}
-+
- 	if (mr->cache_ent)
- 		mlx5_mr_cache_free(dev, mr);
- 	else
- 		kfree(mr);
--
--	ib_umem_release(umem);
--	atomic_sub(npages, &dev->mdev->priv.reg_pages);
--
- }
- 
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
--- 
+This requires moving the MTT population for mailboxes and UMR over to
+rdma_for_each_dma_block().
+
+Thanks
+
+Jason Gunthorpe (5):
+  RDMA/mlx5: Change mlx5_ib_populate_pas() to use rdma_for_each_block()
+  RDMA/mlx5: Move xlt_emergency_page_mutex into mr.c
+  RDMA/mlx5: Split the WR setup out of mlx5_ib_update_xlt()
+  RDMA/mlx5: Split mlx5_ib_update_xlt() into ODP and non-ODP cases
+  RDMA/mlx5: Use ib_umem_find_best_pgsz() for mkc's
+
+ drivers/infiniband/core/umem.c       |   9 +
+ drivers/infiniband/hw/mlx5/cq.c      |   6 +-
+ drivers/infiniband/hw/mlx5/devx.c    |   4 +-
+ drivers/infiniband/hw/mlx5/main.c    |  26 +-
+ drivers/infiniband/hw/mlx5/mem.c     |  73 +-----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  37 ++-
+ drivers/infiniband/hw/mlx5/mr.c      | 364 ++++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/qp.c      |   6 +-
+ drivers/infiniband/hw/mlx5/srq.c     |   2 +-
+ 9 files changed, 312 insertions(+), 215 deletions(-)
+
+--
 2.26.2
 
