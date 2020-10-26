@@ -2,97 +2,232 @@ Return-Path: <SRS0=Cmar=EB=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82E25C4363A
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C99DFC2D0A3
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DF2F207DE
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89720207DE
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603718569;
-	bh=WN48BsDW4YWDZH9vRbJ0KsZM81iUpHmuKeC2degqmfI=;
-	h=From:To:Cc:Subject:Date:List-ID:From;
-	b=pPsnPF06U5FQTjsjloYPUVplxYSep+GVKi78Wqv4P9jsoNShyZIRn7r4Wn8q5s59n
-	 E/vaSEXC4T6tjtbnRnYAXt2qqW87UtYutD7BBXS4turn87aBCd9OPEUC/l5tVDH0y5
-	 IcYYBklRiGqhkRxQOD9NHQ/UDlRDyoRP2Vcx8WJU=
+	s=default; t=1603718570;
+	bh=hCl0cYfW0qjG+44yrsNpHBlx9coWPBy1ET86dyRLBms=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=KdALlwcKkyZYllctIqNkM4a7SFxtH0XBkZrsBUJAQgCZvnD55dacIGaItieMVeD7O
+	 +2zLttUAUjM6Z409Mfuo3vle7KQqS1lBlNkmyrelaW9DoSjWSOw2j9h4iCcSnhktyy
+	 HCH7CSu0sV0s1YrrPwQhhMrxDw7AR8l1o9qPj77g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1779961AbgJZNWq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Oct 2020 09:22:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54404 "EHLO mail.kernel.org"
+        id S1421139AbgJZNWs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Oct 2020 09:22:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1776648AbgJZNTn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 09:19:43 -0400
+        id S1776924AbgJZNT5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 09:19:57 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F09B722263;
-        Mon, 26 Oct 2020 13:19:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A7A2822265;
+        Mon, 26 Oct 2020 13:19:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603718382;
-        bh=WN48BsDW4YWDZH9vRbJ0KsZM81iUpHmuKeC2degqmfI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=RAL8/S1dVoRwxVEhEzNJDtjG8WqUV9vQwS6fwfRMgCDitEeM9fuXQQ60MI6BwY1iE
-         imEcO9farQ2c/z6mKAaxVn9p7vjw0pQs7QyHnj0l/p6gFtggF4DyaDZZnXQyjUtMxa
-         cxbO7JTFG7svAy05IYo7+4llSbrp4wtkAT66gK28=
+        s=default; t=1603718396;
+        bh=hCl0cYfW0qjG+44yrsNpHBlx9coWPBy1ET86dyRLBms=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=cRr1tidSfLtGrXhm5/vftkfYyl3bPkvM+gRNJPUPhdl0WMgTw0zKuidyd8scYFx7N
+         myqJ4jnBye1WxUVOHJFtEE+W+h8dxDuyFOiEzRx0hF9V8w7jE/pOuV1H8eFUZG5uBq
+         xYhrGp0xENmcdvYJoCUXZ+JxSQkXKi1Ad0G7qMX4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Artemy Kovalyov <artemyko@mellanox.com>,
-        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH rdma-next 0/7] Use only a umem and HW page_shift to calculate MR sizes
-Date:   Mon, 26 Oct 2020 15:19:29 +0200
-Message-Id: <20201026131936.1335664-1-leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 5/7] RDMA/mlx5: Remove order from mlx5_ib_cont_pages()
+Date:   Mon, 26 Oct 2020 15:19:34 +0200
+Message-Id: <20201026131936.1335664-6-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201026131936.1335664-1-leon@kernel.org>
+References: <20201026131936.1335664-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-From Jason:
+Only alloc_mr_from_cache() needs order and can trivially compute it, so
+lift it to the one call site and remove the NULL arguments.
 
-The MR code computes and passes around a tuple of (npages, page_shift,
-ncont, order) to represent the size of the MR in various terms.
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/cq.c      |  5 ++---
+ drivers/infiniband/hw/mlx5/devx.c    |  2 +-
+ drivers/infiniband/hw/mlx5/mem.c     | 13 +------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ drivers/infiniband/hw/mlx5/mr.c      |  8 ++++----
+ drivers/infiniband/hw/mlx5/qp.c      |  4 ++--
+ drivers/infiniband/hw/mlx5/srq.c     |  2 +-
+ 7 files changed, 12 insertions(+), 24 deletions(-)
 
-This is quite confusing about what term refers to what, and overlaps with
-data already stored and computed inside the umem. Rework all of this to be
-more umem centric and use these identities instead:
-
-      npages == ib_umem_num_pages(mr->umem)
-      page_shift == mr->page_shift
-      ncont == ib_umem_num_dma_blocks(mr->umem, 1 << mr->page_shift)
-      order == order_base_2(ncont)
-
-By storing the page_shift inside the mlx5_ib_mr it becomes nearly self
-describing.
-
-Thanks
-
-Jason Gunthorpe (7):
-  RDMA/mlx5: Remove mlx5_ib_mr->order
-  RDMA/mlx5: Fix corruption of reg_pages in mlx5_ib_rereg_user_mr()
-  RDMA/mlx5: Remove mlx5_ib_mr->npages
-  RDMA/mlx5: Move mlx5_ib_cont_pages() to the creation of the mlx5_ib_mr
-  RDMA/mlx5: Remove order from mlx5_ib_cont_pages()
-  RDMA/mlx5: Remove ncont from mlx5_ib_cont_pages()
-  RDMA/mlx5: Remove npages from mlx5_ib_cont_pages()
-
- drivers/infiniband/hw/mlx5/cq.c      |  39 ++++---
- drivers/infiniband/hw/mlx5/devx.c    |  20 ++--
- drivers/infiniband/hw/mlx5/mem.c     |  30 ++---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 +-
- drivers/infiniband/hw/mlx5/mr.c      | 168 ++++++++++++---------------
- drivers/infiniband/hw/mlx5/qp.c      |  39 +++----
- drivers/infiniband/hw/mlx5/srq.c     |   8 +-
- 7 files changed, 134 insertions(+), 176 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index fb62f1d04afa..f993b8f55231 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -747,7 +747,7 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 		goto err_umem;
+ 
+ 	mlx5_ib_cont_pages(cq->buf.umem, ucmd.buf_addr, 0, &npages, &page_shift,
+-			   &ncont, NULL);
++			   &ncont);
+ 	mlx5_ib_dbg(dev, "addr 0x%llx, size %u, npages %d, page_shift %d, ncont %d\n",
+ 		    ucmd.buf_addr, entries * ucmd.cqe_size, npages, page_shift, ncont);
+ 
+@@ -1155,8 +1155,7 @@ static int resize_user(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
+ 		return err;
+ 	}
+ 
+-	mlx5_ib_cont_pages(umem, ucmd.buf_addr, 0, &npages, page_shift,
+-			   npas, NULL);
++	mlx5_ib_cont_pages(umem, ucmd.buf_addr, 0, &npages, page_shift, npas);
+ 
+ 	cq->resize_umem = umem;
+ 	*cqe_size = ucmd.cqe_size;
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 9e3d8b826498..ebd6e6c4127e 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -2083,7 +2083,7 @@ static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
+ 
+ 	mlx5_ib_cont_pages(obj->umem, obj->umem->address,
+ 			   MLX5_MKEY_PAGE_SHIFT_MASK, &npages,
+-			   &obj->page_shift, &obj->ncont, NULL);
++			   &obj->page_shift, &obj->ncont);
+ 
+ 	if (!npages) {
+ 		ib_umem_release(obj->umem);
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index e63af1b05c0b..2faee44cca99 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -42,12 +42,11 @@
+  * @count: number of PAGE_SIZE pages covered by umem
+  * @shift: page shift for the compound pages found in the region
+  * @ncont: number of compund pages
+- * @order: log2 of the number of compound pages
+  */
+ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 			unsigned long max_page_shift,
+ 			int *count, int *shift,
+-			int *ncont, int *order)
++			int *ncont)
+ {
+ 	unsigned long tmp;
+ 	unsigned long m;
+@@ -63,8 +62,6 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 		*shift = odp->page_shift;
+ 		*ncont = ib_umem_odp_num_pages(odp);
+ 		*count = *ncont << (*shift - PAGE_SHIFT);
+-		if (order)
+-			*order = ilog2(roundup_pow_of_two(*count));
+ 		return;
+ 	}
+ 
+@@ -95,17 +92,9 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 
+ 	if (i) {
+ 		m = min_t(unsigned long, ilog2(roundup_pow_of_two(i)), m);
+-
+-		if (order)
+-			*order = ilog2(roundup_pow_of_two(i) >> m);
+-
+ 		*ncont = DIV_ROUND_UP(i, (1 << m));
+ 	} else {
+ 		m  = 0;
+-
+-		if (order)
+-			*order = 0;
+-
+ 		*ncont = 0;
+ 	}
+ 	*shift = PAGE_SHIFT + m;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 9c1d206cb900..15f95900e83c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1232,7 +1232,7 @@ int mlx5_ib_query_port(struct ib_device *ibdev, u8 port,
+ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr,
+ 			unsigned long max_page_shift,
+ 			int *count, int *shift,
+-			int *ncont, int *order);
++			int *ncont);
+ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
+ 			    int page_shift, size_t offset, size_t num_pages,
+ 			    __be64 *pas, int access_flags);
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index f1e4b4c001fe..67f5834254c9 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -960,11 +960,11 @@ static struct mlx5_ib_mr *alloc_mr_from_cache(struct ib_pd *pd,
+ 	int npages;
+ 	int page_shift;
+ 	int ncont;
+-	int order;
+ 
+ 	mlx5_ib_cont_pages(umem, iova, MLX5_MKEY_PAGE_SHIFT_MASK, &npages,
+-			   &page_shift, &ncont, &order);
+-	ent = mr_cache_ent_from_order(dev, order);
++			   &page_shift, &ncont);
++	ent = mr_cache_ent_from_order(dev, order_base_2(ib_umem_num_dma_blocks(
++						   umem, 1UL << page_shift)));
+ 	if (!ent)
+ 		return ERR_PTR(-E2BIG);
+ 
+@@ -1165,7 +1165,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	mlx5_ib_cont_pages(umem, iova, MLX5_MKEY_PAGE_SHIFT_MASK, &npages,
+-			   &page_shift, &ncont, NULL);
++			   &page_shift, &ncont);
+ 
+ 	mr->page_shift = page_shift;
+ 	mr->ibmr.pd = pd;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index ab2a9c71c543..77ba3adfd148 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -791,7 +791,7 @@ static int mlx5_ib_umem_get(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 		return PTR_ERR(*umem);
+ 	}
+ 
+-	mlx5_ib_cont_pages(*umem, addr, 0, npages, page_shift, ncont, NULL);
++	mlx5_ib_cont_pages(*umem, addr, 0, npages, page_shift, ncont);
+ 
+ 	err = mlx5_ib_get_buf_offset(addr, *page_shift, offset);
+ 	if (err) {
+@@ -850,7 +850,7 @@ static int create_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	}
+ 
+ 	mlx5_ib_cont_pages(rwq->umem, ucmd->buf_addr, 0, &npages, &page_shift,
+-			   &ncont, NULL);
++			   &ncont);
+ 	err = mlx5_ib_get_buf_offset(ucmd->buf_addr, page_shift,
+ 				     &rwq->rq_page_offset);
+ 	if (err) {
+diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
+index e2f720eec1e1..9b655192797d 100644
+--- a/drivers/infiniband/hw/mlx5/srq.c
++++ b/drivers/infiniband/hw/mlx5/srq.c
+@@ -88,7 +88,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 	}
+ 
+ 	mlx5_ib_cont_pages(srq->umem, ucmd.buf_addr, 0, &npages,
+-			   &page_shift, &ncont, NULL);
++			   &page_shift, &ncont);
+ 	err = mlx5_ib_get_buf_offset(ucmd.buf_addr, page_shift,
+ 				     &offset);
+ 	if (err) {
+-- 
 2.26.2
 
