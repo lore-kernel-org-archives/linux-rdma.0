@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99939C55178
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:20:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F44FC56201
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:20:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43CC824641
+	by mail.kernel.org (Postfix) with ESMTP id DFF4624641
 	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:20:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1603711209;
-	bh=Bwf9EeRDzNlTwd3uiv9ShTYlaGrimLdvLHv/ch9Ke90=;
+	bh=kYfadg6gLyLVi6mHxKCgaHXIqaW4EsqBEoU/06nnGP4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Ix/qUFWFyxPnp+fUqVLXWPFzdrqwbyk6noqqZvcra004nqkGGlKDYNROvOspsGSXW
-	 be4XpzkwW1oVLKQlGQX9MbEY1o6FUbqrbzvrWiBHGfJg9xXg27ebMrHzlQDipeGYNp
-	 CN6UjlBOqzGMozVTvjamK5oM3NxJEzUHdenUtp8k=
+	b=zyZEwiSeFM9guIpcgbYR7yMEYRZAmfIQw2/7EFbEZsH58UPHzcvJ0guhPz8OFgg9T
+	 hxwP5nKaUrXj5c+v4Ijz5yPy8jFMYIpeKvAbRTD74XC+mx5il/qz1Krln19nLc4nGh
+	 6R4uQgDTW62Y+qO6Mz2JdewX6G9UA0TB1ryt+Myg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1773430AbgJZLTm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:19:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48736 "EHLO mail.kernel.org"
+        id S1773369AbgJZLTZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:19:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1773381AbgJZLTj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:19:39 -0400
+        id S1773358AbgJZLTW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:19:22 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 788922463C;
-        Mon, 26 Oct 2020 11:19:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 906B3223AB;
+        Mon, 26 Oct 2020 11:19:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603711178;
-        bh=Bwf9EeRDzNlTwd3uiv9ShTYlaGrimLdvLHv/ch9Ke90=;
+        s=default; t=1603711161;
+        bh=kYfadg6gLyLVi6mHxKCgaHXIqaW4EsqBEoU/06nnGP4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TgdGoEBYFq+NorLzheAeRZQi7R/OCUUOk6TkqZLDPOPNfurTwpWq0dc91X2RRbNd8
-         lF6GFidxKfoH9lTalaunBrynKDDeKStuV3+6ZXEZBYNFp3l5BJEASUmVzsrpqpc/Mi
-         hfak58GBhU3mvxHsdV1D9egoLy7X2thIhk1HkeGY=
+        b=IzKsb4WqC7vpB1Ho2x6iJyy5BwG0vMGG3QFDfjlpMd1mGsE5OsqCs4PXlYnX2LZxz
+         gQIXYz9KojONk50TAzbeveRtOF5q22Q+lxZJIaMlJhgBq7nq87YiTowQHdRSsjg705
+         +ViaPVxWe1qgVDoEhkasZlXtJkdTKf+4ZbRRP/G8=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -54,9 +54,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
         shiraz.saleem@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, linux-kernel@vger.kernel.org
-Subject: [PATCH mlx5-next 10/11] net/mlx5: Simplify eswitch mode check
-Date:   Mon, 26 Oct 2020 13:18:48 +0200
-Message-Id: <20201026111849.1035786-11-leon@kernel.org>
+Subject: [PATCH mlx5-next 03/11] net/mlx5_core: Clean driver version and name
+Date:   Mon, 26 Oct 2020 13:18:41 +0200
+Message-Id: <20201026111849.1035786-4-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201026111849.1035786-1-leon@kernel.org>
 References: <20201026111849.1035786-1-leon@kernel.org>
@@ -68,210 +68,154 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Provide mlx5_core device instead of "priv" pointer while checking
-eswith mode.
+Remove exposed driver version as it was done in other drivers,
+so module version will work correctly by displaying the kernel
+version for which it is compiled.
+
+And move mlx5_core module name to general include, so auxiliary drivers
+will be able to use it as a basis for a name in their device ID tables.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/counters.c             | 7 -------
- drivers/infiniband/hw/mlx5/ib_rep.c               | 5 -----
- drivers/infiniband/hw/mlx5/ib_rep.h               | 6 ------
- drivers/net/ethernet/mellanox/mlx5/core/dev.c     | 4 ++--
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c   | 8 +++-----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 4 +++-
- include/linux/mlx5/eswitch.h                      | 8 ++++++--
- 9 files changed, 16 insertions(+), 30 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/devlink.c     |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c  |  4 +---
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c      |  1 -
+ .../net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c   |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c        | 11 +++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h   |  3 ---
+ include/linux/mlx5/driver.h                           |  2 ++
+ 7 files changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
-index 70c8fd67ee2f..084652e2b15a 100644
---- a/drivers/infiniband/hw/mlx5/counters.c
-+++ b/drivers/infiniband/hw/mlx5/counters.c
-@@ -138,13 +138,6 @@ static int mlx5_ib_create_counters(struct ib_counters *counters,
- }
-
-
--static bool is_mdev_switchdev_mode(const struct mlx5_core_dev *mdev)
--{
--	return MLX5_ESWITCH_MANAGER(mdev) &&
--	       mlx5_ib_eswitch_mode(mdev->priv.eswitch) ==
--		       MLX5_ESWITCH_OFFLOADS;
--}
--
- static const struct mlx5_ib_counters *get_counters(struct mlx5_ib_dev *dev,
- 						   u8 port_num)
- {
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index 0dc15757cc66..9810bdd7f3bc 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.c
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -102,11 +102,6 @@ static const struct mlx5_eswitch_rep_ops rep_ops = {
- 	.get_proto_dev = mlx5_ib_vport_get_proto_dev,
- };
-
--u8 mlx5_ib_eswitch_mode(struct mlx5_eswitch *esw)
--{
--	return mlx5_eswitch_mode(esw);
--}
--
- struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
- 					  u16 vport_num)
- {
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.h b/drivers/infiniband/hw/mlx5/ib_rep.h
-index 94bf51ddd422..93f562735e89 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.h
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.h
-@@ -12,7 +12,6 @@
- extern const struct mlx5_ib_profile raw_eth_profile;
-
- #ifdef CONFIG_MLX5_ESWITCH
--u8 mlx5_ib_eswitch_mode(struct mlx5_eswitch *esw);
- struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
- 					  u16 vport_num);
- struct mlx5_ib_dev *mlx5_ib_get_uplink_ibdev(struct mlx5_eswitch *esw);
-@@ -26,11 +25,6 @@ struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
- struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
- 					  u16 vport_num);
- #else /* CONFIG_MLX5_ESWITCH */
--static inline u8 mlx5_ib_eswitch_mode(struct mlx5_eswitch *esw)
--{
--	return MLX5_ESWITCH_NONE;
--}
--
- static inline
- struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
- 					  u16 vport_num)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-index 81803bc75066..842b6f8ae457 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-@@ -47,7 +47,7 @@ static bool is_eth_rep_supported(struct mlx5_core_dev *dev)
- 	if (!MLX5_ESWITCH_MANAGER(dev))
- 		return false;
-
--	if (mlx5_eswitch_mode(dev->priv.eswitch) != MLX5_ESWITCH_OFFLOADS)
-+	if (!is_mdev_switchdev_mode(dev))
- 		return false;
-
- 	return true;
-@@ -144,7 +144,7 @@ static bool is_ib_rep_supported(struct mlx5_core_dev *dev)
- 	if (!MLX5_ESWITCH_MANAGER(dev))
- 		return false;
-
--	if (mlx5_eswitch_mode(dev->priv.eswitch) != MLX5_ESWITCH_OFFLOADS)
-+	if (!is_mdev_switchdev_mode(dev))
- 		return false;
-
- 	if (mlx5_core_mp_enabled(dev))
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index 1a351e2f6ace..aeffb6b135ee 100644
+index a28f95df2901..1a351e2f6ace 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -221,7 +221,7 @@ static int mlx5_devlink_fs_mode_validate(struct devlink *devlink, u32 id,
- 		u8 eswitch_mode;
- 		bool smfs_cap;
+@@ -52,7 +52,7 @@ mlx5_devlink_info_get(struct devlink *devlink, struct devlink_info_req *req,
+ 	u32 running_fw, stored_fw;
+ 	int err;
 
--		eswitch_mode = mlx5_eswitch_mode(dev->priv.eswitch);
-+		eswitch_mode = mlx5_eswitch_mode(dev);
- 		smfs_cap = mlx5_fs_dr_is_supported(dev);
+-	err = devlink_info_driver_name_put(req, DRIVER_NAME);
++	err = devlink_info_driver_name_put(req, KBUILD_MODNAME);
+ 	if (err)
+ 		return err;
 
- 		if (!smfs_cap) {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 3c4f880c6329..8d65ac888a28 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -3135,7 +3135,7 @@ static void mlx5e_modify_admin_state(struct mlx5_core_dev *mdev,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+index d25a56ec6876..bcff18a87bcd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+@@ -40,9 +40,7 @@ void mlx5e_ethtool_get_drvinfo(struct mlx5e_priv *priv,
+ {
+ 	struct mlx5_core_dev *mdev = priv->mdev;
 
- 	mlx5_set_port_admin_status(mdev, state);
+-	strlcpy(drvinfo->driver, DRIVER_NAME, sizeof(drvinfo->driver));
+-	strlcpy(drvinfo->version, DRIVER_VERSION,
+-		sizeof(drvinfo->version));
++	strlcpy(drvinfo->driver, KBUILD_MODNAME, sizeof(drvinfo->driver));
+ 	snprintf(drvinfo->fw_version, sizeof(drvinfo->fw_version),
+ 		 "%d.%d.%04d (%.16s)",
+ 		 fw_rev_maj(mdev), fw_rev_min(mdev), fw_rev_sub(mdev),
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 67247c33b9fd..ef2f8889ba0f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -64,7 +64,6 @@ static void mlx5e_rep_get_drvinfo(struct net_device *dev,
 
--	if (!MLX5_ESWITCH_MANAGER(mdev) ||  mlx5_eswitch_mode(esw) == MLX5_ESWITCH_OFFLOADS)
-+	if (mlx5_eswitch_mode(mdev) != MLX5_ESWITCH_LEGACY)
- 		return;
+ 	strlcpy(drvinfo->driver, mlx5e_rep_driver_name,
+ 		sizeof(drvinfo->driver));
+-	strlcpy(drvinfo->version, UTS_RELEASE, sizeof(drvinfo->version));
+ 	snprintf(drvinfo->fw_version, sizeof(drvinfo->fw_version),
+ 		 "%d.%d.%04d (%.16s)",
+ 		 fw_rev_maj(mdev), fw_rev_min(mdev),
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+index cac8f085b16d..97d96fc38a65 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ethtool.c
+@@ -39,7 +39,7 @@ static void mlx5i_get_drvinfo(struct net_device *dev,
+ 	struct mlx5e_priv *priv = mlx5i_epriv(dev);
 
- 	if (state == MLX5_PORT_UP)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index e3a968e9e2a0..7548bab78654 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -271,8 +271,6 @@ mlx5e_tc_match_to_reg_set(struct mlx5_core_dev *mdev,
- 	return 0;
+ 	mlx5e_ethtool_get_drvinfo(priv, drvinfo);
+-	strlcpy(drvinfo->driver, DRIVER_NAME "[ib_ipoib]",
++	strlcpy(drvinfo->driver, KBUILD_MODNAME "[ib_ipoib]",
+ 		sizeof(drvinfo->driver));
  }
 
--#define esw_offloads_mode(esw) (mlx5_eswitch_mode(esw) == MLX5_ESWITCH_OFFLOADS)
--
- static struct mlx5_tc_ct_priv *
- get_ct_priv(struct mlx5e_priv *priv)
- {
-@@ -280,7 +278,7 @@ get_ct_priv(struct mlx5e_priv *priv)
- 	struct mlx5_rep_uplink_priv *uplink_priv;
- 	struct mlx5e_rep_priv *uplink_rpriv;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 71e210f22f69..9827127cb674 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -77,7 +77,6 @@
+ MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
+ MODULE_DESCRIPTION("Mellanox 5th generation network adapters (ConnectX series) core driver");
+ MODULE_LICENSE("Dual BSD/GPL");
+-MODULE_VERSION(DRIVER_VERSION);
 
--	if (esw_offloads_mode(esw)) {
-+	if (is_mdev_switchdev_mode(priv->mdev)) {
- 		uplink_rpriv = mlx5_eswitch_get_uplink_priv(esw, REP_ETH);
- 		uplink_priv = &uplink_rpriv->uplink_priv;
+ unsigned int mlx5_core_debug_mask;
+ module_param_named(debug_mask, mlx5_core_debug_mask, uint, 0644);
+@@ -228,7 +227,7 @@ static void mlx5_set_driver_version(struct mlx5_core_dev *dev)
+ 	strncat(string, ",", remaining_size);
 
-@@ -297,7 +295,7 @@ mlx5_tc_rule_insert(struct mlx5e_priv *priv,
- {
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+ 	remaining_size = max_t(int, 0, driver_ver_sz - strlen(string));
+-	strncat(string, DRIVER_NAME, remaining_size);
++	strncat(string, KBUILD_MODNAME, remaining_size);
 
--	if (esw_offloads_mode(esw))
-+	if (is_mdev_switchdev_mode(priv->mdev))
- 		return mlx5_eswitch_add_offloaded_rule(esw, spec, attr);
+ 	remaining_size = max_t(int, 0, driver_ver_sz - strlen(string));
+ 	strncat(string, ",", remaining_size);
+@@ -313,7 +312,7 @@ static int request_bar(struct pci_dev *pdev)
+ 		return -ENODEV;
+ 	}
 
- 	return	mlx5e_add_offloaded_nic_rule(priv, spec, attr);
-@@ -310,7 +308,7 @@ mlx5_tc_rule_delete(struct mlx5e_priv *priv,
- {
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+-	err = pci_request_regions(pdev, DRIVER_NAME);
++	err = pci_request_regions(pdev, KBUILD_MODNAME);
+ 	if (err)
+ 		dev_err(&pdev->dev, "Couldn't get PCI resources, aborting\n");
 
--	if (esw_offloads_mode(esw)) {
-+	if (is_mdev_switchdev_mode(priv->mdev)) {
- 		mlx5_eswitch_del_offloaded_rule(esw, rule, attr);
-
- 		return;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index b652b4bde733..b44f28fb5518 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -2439,8 +2439,10 @@ int mlx5_eswitch_get_vport_stats(struct mlx5_eswitch *esw,
- 	return err;
+@@ -1617,7 +1616,7 @@ void mlx5_recover_device(struct mlx5_core_dev *dev)
  }
 
--u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw)
-+u8 mlx5_eswitch_mode(struct mlx5_core_dev *dev)
+ static struct pci_driver mlx5_core_driver = {
+-	.name           = DRIVER_NAME,
++	.name           = KBUILD_MODNAME,
+ 	.id_table       = mlx5_core_pci_table,
+ 	.probe          = init_one,
+ 	.remove         = remove_one,
+@@ -1643,6 +1642,10 @@ static int __init init(void)
  {
-+	struct mlx5_eswitch *esw = dev->priv.eswitch;
+ 	int err;
+
++	WARN_ONCE(strcmp(MLX5_ADEV_NAME, KBUILD_MODNAME) ||
++		  strlen(MLX5_ADEV_NAME) != strlen(KBUILD_MODNAME),
++		  "mlx5_core name not in sync with kernel module name");
 +
- 	return ESW_ALLOWED(esw) ? esw->mode : MLX5_ESWITCH_NONE;
- }
- EXPORT_SYMBOL_GPL(mlx5_eswitch_mode);
-diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
-index b0ae8020f13e..29fd832950e0 100644
---- a/include/linux/mlx5/eswitch.h
-+++ b/include/linux/mlx5/eswitch.h
-@@ -96,10 +96,10 @@ static inline u32 mlx5_eswitch_get_vport_metadata_mask(void)
+ 	get_random_bytes(&sw_owner_id, sizeof(sw_owner_id));
 
- u32 mlx5_eswitch_get_vport_metadata_for_match(struct mlx5_eswitch *esw,
- 					      u16 vport_num);
--u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw);
-+u8 mlx5_eswitch_mode(struct mlx5_core_dev *dev);
- #else  /* CONFIG_MLX5_ESWITCH */
+ 	mlx5_core_verify_params();
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index 8cec85ab419d..b285f1515e4e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -42,9 +42,6 @@
+ #include <linux/mlx5/fs.h>
+ #include <linux/mlx5/driver.h>
 
--static inline u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw)
-+static inline u8 mlx5_eswitch_mode(struct mlx5_core_dev *dev)
- {
- 	return MLX5_ESWITCH_NONE;
- }
-@@ -136,4 +136,8 @@ mlx5_eswitch_get_vport_metadata_mask(void)
- }
- #endif /* CONFIG_MLX5_ESWITCH */
+-#define DRIVER_NAME "mlx5_core"
+-#define DRIVER_VERSION "5.0-0"
+-
+ extern uint mlx5_core_debug_mask;
 
-+static inline bool is_mdev_switchdev_mode(struct mlx5_core_dev *dev)
-+{
-+	return mlx5_eswitch_mode(dev) == MLX5_ESWITCH_OFFLOADS;
-+}
- #endif
+ #define mlx5_core_dbg(__dev, format, ...)				\
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 317257f8e0ad..ed1d030658d2 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -56,6 +56,8 @@
+ #include <linux/ptp_clock_kernel.h>
+ #include <net/devlink.h>
+
++#define MLX5_ADEV_NAME "mlx5_core"
++
+ enum {
+ 	MLX5_BOARD_ID_LEN = 64,
+ };
 --
 2.26.2
 
