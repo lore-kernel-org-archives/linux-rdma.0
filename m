@@ -5,39 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DFA1C4363A
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FEFBC4363A
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:19:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65B702223C
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:19:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAEF82344C
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 11:19:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603711153;
-	bh=I3M3alcIz9H62nKqMPZr4skNCtxKtg9JX4DaomofIPM=;
+	s=default; t=1603711161;
+	bh=p/8LjURGxbgfxGjqZnzp03kNS6UcszzCDdsxjft9TVc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NnprKI8Z3CoCv1AqFDl4OX54L10GL/MCO0G9M4t1qPTcmFwsXmIrym9kmcc2vRvbv
-	 tMCxhxXL0eDwxAoQCuV66ekLgKhKwWA9PzjzVaagvtRrcWNWo/CikIbS54DgOsSpLK
-	 UOs9UBEJ8dhbaYPKR6t15TWi04QvdT68VuJO5cC0=
+	b=DWqWJihS8lTZpOsOGteKsF8nLHmI3+fd/K/8wPZ7ZVS7iAekB8s65nWIrAWfKG7oO
+	 Ib9k3gq7DyP6PQ9MldYr7YbYk0+8SCWbwT9dnEDFlJvrmCoJWF/6lBy2wfXbB51sH3
+	 Kj4DnVTKT8i12vjG1xJDWq1ZaWhxlT/mbPrjNR/s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1772872AbgJZLTG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Oct 2020 07:19:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47828 "EHLO mail.kernel.org"
+        id S1773329AbgJZLTU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Oct 2020 07:19:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1771082AbgJZLTF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 07:19:05 -0400
+        id S1773340AbgJZLTT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 07:19:19 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7FE9222265;
-        Mon, 26 Oct 2020 11:19:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1F15922284;
+        Mon, 26 Oct 2020 11:19:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603711144;
-        bh=I3M3alcIz9H62nKqMPZr4skNCtxKtg9JX4DaomofIPM=;
+        s=default; t=1603711158;
+        bh=p/8LjURGxbgfxGjqZnzp03kNS6UcszzCDdsxjft9TVc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kZmwVYsb0PMiAitTOnAk+gQSFVNOxKPj2csjRMtKacaCDngsES89hD6KjGYNNu8r/
-         qtV/qagdBdnzSXq4Fpy5jsJ20gp9qMk0bw4HuMrj+MIll3ZGWxW1pEX8rUZhhN7jd/
-         TVM+awtVZp95gyCNFzxACE7/VNRI79n6K5+gb69A=
+        b=E4PTgtc05FZClhnQW9/ku7zh9qFOr21Cf1X7vsq76FB7E9QAPJhpcDSXsVuTFpaV9
+         4Gqm/j8gfr9sQBNXINho8vMVgAwicWIsZ4C6ffXwxNPMJ46Eyfkangy2ThPqkvvBPP
+         guECJ5mS8uOLisqoFJWcrICJfljApkLfC2ZPMwsI=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -54,9 +54,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
         shiraz.saleem@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, linux-kernel@vger.kernel.org
-Subject: [PATCH mlx5-next 01/11] net/mlx5: Don't skip vport check
-Date:   Mon, 26 Oct 2020 13:18:39 +0200
-Message-Id: <20201026111849.1035786-2-leon@kernel.org>
+Subject: [PATCH mlx5-next 06/11] vdpa/mlx5: Connect mlx5_vdpa to auxiliary bus
+Date:   Mon, 26 Oct 2020 13:18:44 +0200
+Message-Id: <20201026111849.1035786-7-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201026111849.1035786-1-leon@kernel.org>
 References: <20201026111849.1035786-1-leon@kernel.org>
@@ -68,86 +68,302 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Users of mlx5_eswitch_get_vport() are required to check return value
-prior to passing mlx5_vport further. Fix all the places to do not skip
-that check.
+Change module registration logic to use auxiliary bus instead of custom
+made mlx5 register interface.
 
-Fixes: c7eddc6092b4 ("net/mlx5: E-switch, Move devlink eswitch ports closer to eswitch")
-Fixes: 5d9986a3947a ("net/mlx5: E-Switch, Fix the check of legal vport")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c          | 7 +++++++
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 6 ++++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c | 28 ++++++-
+ drivers/vdpa/mlx5/Makefile                    |  2 +-
+ drivers/vdpa/mlx5/net/main.c                  | 76 -------------------
+ drivers/vdpa/mlx5/net/mlx5_vnet.c             | 53 +++++++++++--
+ drivers/vdpa/mlx5/net/mlx5_vnet.h             | 24 ------
+ 5 files changed, 73 insertions(+), 110 deletions(-)
+ delete mode 100644 drivers/vdpa/mlx5/net/main.c
+ delete mode 100644 drivers/vdpa/mlx5/net/mlx5_vnet.h
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-index ffff11baa3d0..88688b84513b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-@@ -120,5 +120,5 @@ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u1
- 	struct mlx5_vport *vport;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+index d57b549a358c..aa4f30bd7bb5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+@@ -31,6 +31,7 @@
+  */
 
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
--	return vport->dl_port;
-+	return IS_ERR(vport) ? ERR_CAST(vport) : vport->dl_port;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 6e6a9a563992..2e14bf238588 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1142,6 +1142,9 @@ int mlx5_esw_modify_vport_rate(struct mlx5_eswitch *esw, u16 vport_num,
- 	struct mlx5_vport *vport;
+ #include <linux/mlx5/driver.h>
++#include <linux/mlx5/mlx5_ifc_vdpa.h>
+ #include "mlx5_core.h"
 
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
+ static LIST_HEAD(intf_list);
+@@ -51,10 +52,35 @@ enum {
+ 	MLX5_INTERFACE_ATTACHED,
+ };
+
++static bool is_vnet_supported(struct mlx5_core_dev *dev)
++{
++	if (!IS_ENABLED(CONFIG_MLX5_VDPA_NET))
++		return false;
 +
- 	MLX5_SET(scheduling_context, ctx, max_average_bw, rate_mbps);
-
- 	return mlx5_modify_scheduling_element_cmd(esw->dev,
-@@ -1276,6 +1279,8 @@ static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
- 	int ret;
-
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
-
- 	mutex_lock(&esw->state_lock);
- 	WARN_ON(vport->enabled);
-@@ -1311,6 +1316,8 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, u16 vport_num)
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return;
-
- 	mutex_lock(&esw->state_lock);
- 	if (!vport->enabled)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index c9c2962ad49f..429dc613530b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2159,6 +2159,9 @@ static int esw_create_uplink_offloads_acl_tables(struct mlx5_eswitch *esw)
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
++	if (mlx5_core_is_pf(dev))
++		return false;
 +
- 	return esw_vport_create_offloads_acl_tables(esw, vport);
++	if (!(MLX5_CAP_GEN_64(dev, general_obj_types) &
++	      MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q))
++		return false;
++
++	if (!(MLX5_CAP_DEV_VDPA_EMULATION(dev, event_mode) &
++	      MLX5_VIRTIO_Q_EVENT_MODE_QP_MODE))
++		return false;
++
++	if (!MLX5_CAP_DEV_VDPA_EMULATION(dev, eth_frame_offload_type))
++		return false;
++
++	return true;
++}
++
+ static const struct mlx5_adev_device {
+ 	const char *suffix;
+ 	bool (*is_supported)(struct mlx5_core_dev *dev);
+-} mlx5_adev_devices[1] = {};
++} mlx5_adev_devices[] = {
++	[MLX5_INTERFACE_PROTOCOL_VDPA] = { .suffix = "vnet",
++					   .is_supported = &is_vnet_supported },
++};
+
+ int mlx5_adev_init(struct mlx5_core_dev *dev)
+ {
+diff --git a/drivers/vdpa/mlx5/Makefile b/drivers/vdpa/mlx5/Makefile
+index 89a5bededc9f..f717978c83bf 100644
+--- a/drivers/vdpa/mlx5/Makefile
++++ b/drivers/vdpa/mlx5/Makefile
+@@ -1,4 +1,4 @@
+ subdir-ccflags-y += -I$(srctree)/drivers/vdpa/mlx5/core
+
+ obj-$(CONFIG_MLX5_VDPA_NET) += mlx5_vdpa.o
+-mlx5_vdpa-$(CONFIG_MLX5_VDPA_NET) += net/main.o net/mlx5_vnet.o core/resources.o core/mr.o
++mlx5_vdpa-$(CONFIG_MLX5_VDPA_NET) += net/mlx5_vnet.o core/resources.o core/mr.o
+diff --git a/drivers/vdpa/mlx5/net/main.c b/drivers/vdpa/mlx5/net/main.c
+deleted file mode 100644
+index 4dd3f00f2306..000000000000
+--- a/drivers/vdpa/mlx5/net/main.c
++++ /dev/null
+@@ -1,76 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+-/* Copyright (c) 2020 Mellanox Technologies Ltd. */
+-
+-#include <linux/module.h>
+-#include <linux/mlx5/driver.h>
+-#include <linux/mlx5/device.h>
+-#include <linux/mlx5/mlx5_ifc_vdpa.h>
+-#include "mlx5_vnet.h"
+-
+-MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
+-MODULE_DESCRIPTION("Mellanox VDPA driver");
+-MODULE_LICENSE("Dual BSD/GPL");
+-
+-static bool required_caps_supported(struct mlx5_core_dev *mdev)
+-{
+-	u8 event_mode;
+-	u64 got;
+-
+-	got = MLX5_CAP_GEN_64(mdev, general_obj_types);
+-
+-	if (!(got & MLX5_GENERAL_OBJ_TYPES_CAP_VIRTIO_NET_Q))
+-		return false;
+-
+-	event_mode = MLX5_CAP_DEV_VDPA_EMULATION(mdev, event_mode);
+-	if (!(event_mode & MLX5_VIRTIO_Q_EVENT_MODE_QP_MODE))
+-		return false;
+-
+-	if (!MLX5_CAP_DEV_VDPA_EMULATION(mdev, eth_frame_offload_type))
+-		return false;
+-
+-	return true;
+-}
+-
+-static void *mlx5_vdpa_add(struct mlx5_core_dev *mdev)
+-{
+-	struct mlx5_vdpa_dev *vdev;
+-
+-	if (mlx5_core_is_pf(mdev))
+-		return NULL;
+-
+-	if (!required_caps_supported(mdev)) {
+-		dev_info(mdev->device, "virtio net emulation not supported\n");
+-		return NULL;
+-	}
+-	vdev = mlx5_vdpa_add_dev(mdev);
+-	if (IS_ERR(vdev))
+-		return NULL;
+-
+-	return vdev;
+-}
+-
+-static void mlx5_vdpa_remove(struct mlx5_core_dev *mdev, void *context)
+-{
+-	struct mlx5_vdpa_dev *vdev = context;
+-
+-	mlx5_vdpa_remove_dev(vdev);
+-}
+-
+-static struct mlx5_interface mlx5_vdpa_interface = {
+-	.add = mlx5_vdpa_add,
+-	.remove = mlx5_vdpa_remove,
+-	.protocol = MLX5_INTERFACE_PROTOCOL_VDPA,
+-};
+-
+-static int __init mlx5_vdpa_init(void)
+-{
+-	return mlx5_register_interface(&mlx5_vdpa_interface);
+-}
+-
+-static void __exit mlx5_vdpa_exit(void)
+-{
+-	mlx5_unregister_interface(&mlx5_vdpa_interface);
+-}
+-
+-module_init(mlx5_vdpa_init);
+-module_exit(mlx5_vdpa_exit);
+diff --git a/drivers/vdpa/mlx5/net/mlx5_vnet.c b/drivers/vdpa/mlx5/net/mlx5_vnet.c
+index 6c218b47b9f1..07216e9736ce 100644
+--- a/drivers/vdpa/mlx5/net/mlx5_vnet.c
++++ b/drivers/vdpa/mlx5/net/mlx5_vnet.c
+@@ -1,18 +1,27 @@
+ // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+ /* Copyright (c) 2020 Mellanox Technologies Ltd. */
+
++#include <linux/module.h>
+ #include <linux/vdpa.h>
++#include <linux/vringh.h>
++#include <uapi/linux/virtio_net.h>
+ #include <uapi/linux/virtio_ids.h>
+ #include <linux/virtio_config.h>
++#include <linux/auxiliary_bus.h>
++#include <linux/mlx5/cq.h>
+ #include <linux/mlx5/qp.h>
+ #include <linux/mlx5/device.h>
++#include <linux/mlx5/driver.h>
+ #include <linux/mlx5/vport.h>
+ #include <linux/mlx5/fs.h>
+-#include <linux/mlx5/device.h>
+ #include <linux/mlx5/mlx5_ifc_vdpa.h>
+-#include "mlx5_vnet.h"
+ #include "mlx5_vdpa.h"
+
++MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
++MODULE_DESCRIPTION("Mellanox VDPA driver");
++MODULE_LICENSE("Dual BSD/GPL");
++
++#define to_mlx5_vdpa_ndev(__mvdev) container_of(__mvdev, struct mlx5_vdpa_net, mvdev)
+ #define to_mvdev(__vdev) container_of((__vdev), struct mlx5_vdpa_dev, vdev)
+
+ #define VALID_FEATURES_MASK                                                                        \
+@@ -159,6 +168,11 @@ static bool mlx5_vdpa_debug;
+ 			mlx5_vdpa_info(mvdev, "%s\n", #_status);                                   \
+ 	} while (0)
+
++static inline u32 mlx5_vdpa_max_qps(int max_vqs)
++{
++	return max_vqs / 2;
++}
++
+ static void print_status(struct mlx5_vdpa_dev *mvdev, u8 status, bool set)
+ {
+ 	if (status & ~VALID_STATUS_MASK)
+@@ -1928,8 +1942,11 @@ static void init_mvqs(struct mlx5_vdpa_net *ndev)
+ 	}
  }
 
-@@ -2167,6 +2170,9 @@ static void esw_destroy_uplink_offloads_acl_tables(struct mlx5_eswitch *esw)
- 	struct mlx5_vport *vport;
+-void *mlx5_vdpa_add_dev(struct mlx5_core_dev *mdev)
++static int mlx5v_probe(struct auxiliary_device *adev,
++		       const struct auxiliary_device_id *id)
+ {
++	struct mlx5_adev *vdev = container_of(adev, struct mlx5_adev, adev);
++	struct mlx5_core_dev *mdev = vdev->mdev;
+ 	struct virtio_net_config *config;
+ 	struct mlx5_vdpa_dev *mvdev;
+ 	struct mlx5_vdpa_net *ndev;
+@@ -1943,7 +1960,7 @@ void *mlx5_vdpa_add_dev(struct mlx5_core_dev *mdev)
+ 	ndev = vdpa_alloc_device(struct mlx5_vdpa_net, mvdev.vdev, mdev->device, &mlx5_vdpa_ops,
+ 				 2 * mlx5_vdpa_max_qps(max_vqs));
+ 	if (IS_ERR(ndev))
+-		return ndev;
++		return PTR_ERR(ndev);
 
- 	vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
-+	if (IS_ERR(vport))
-+		return;
-+
- 	esw_vport_destroy_offloads_acl_tables(esw, vport);
+ 	ndev->mvdev.max_vqs = max_vqs;
+ 	mvdev = &ndev->mvdev;
+@@ -1972,7 +1989,8 @@ void *mlx5_vdpa_add_dev(struct mlx5_core_dev *mdev)
+ 	if (err)
+ 		goto err_reg;
+
+-	return ndev;
++	dev_set_drvdata(&adev->dev, ndev);
++	return 0;
+
+ err_reg:
+ 	free_resources(ndev);
+@@ -1981,10 +1999,29 @@ void *mlx5_vdpa_add_dev(struct mlx5_core_dev *mdev)
+ err_mtu:
+ 	mutex_destroy(&ndev->reslock);
+ 	put_device(&mvdev->vdev.dev);
+-	return ERR_PTR(err);
++	return err;
  }
 
+-void mlx5_vdpa_remove_dev(struct mlx5_vdpa_dev *mvdev)
++static int mlx5v_remove(struct auxiliary_device *adev)
+ {
+-	vdpa_unregister_device(&mvdev->vdev);
++	struct mlx5_vdpa_dev *vdev = dev_get_drvdata(&adev->dev);
++
++	vdpa_unregister_device(&vdev->vdev);
++	return 0;
+ }
++
++static const struct auxiliary_device_id mlx5v_id_table[] = {
++	{ .name = MLX5_ADEV_NAME ".vnet", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(auxiliary, mlx5v_id_table);
++
++static struct auxiliary_driver mlx5v_driver = {
++	.name = "vnet",
++	.probe = mlx5v_probe,
++	.remove = mlx5v_remove,
++	.id_table = mlx5v_id_table,
++};
++
++module_auxiliary_driver(mlx5v_driver);
+diff --git a/drivers/vdpa/mlx5/net/mlx5_vnet.h b/drivers/vdpa/mlx5/net/mlx5_vnet.h
+deleted file mode 100644
+index f2d6d68b020e..000000000000
+--- a/drivers/vdpa/mlx5/net/mlx5_vnet.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
+-/* Copyright (c) 2020 Mellanox Technologies Ltd. */
+-
+-#ifndef __MLX5_VNET_H_
+-#define __MLX5_VNET_H_
+-
+-#include <linux/vdpa.h>
+-#include <linux/virtio_net.h>
+-#include <linux/vringh.h>
+-#include <linux/mlx5/driver.h>
+-#include <linux/mlx5/cq.h>
+-#include <linux/mlx5/qp.h>
+-#include "mlx5_vdpa.h"
+-
+-static inline u32 mlx5_vdpa_max_qps(int max_vqs)
+-{
+-	return max_vqs / 2;
+-}
+-
+-#define to_mlx5_vdpa_ndev(__mvdev) container_of(__mvdev, struct mlx5_vdpa_net, mvdev)
+-void *mlx5_vdpa_add_dev(struct mlx5_core_dev *mdev);
+-void mlx5_vdpa_remove_dev(struct mlx5_vdpa_dev *mvdev);
+-
+-#endif /* __MLX5_VNET_H_ */
 --
 2.26.2
 
