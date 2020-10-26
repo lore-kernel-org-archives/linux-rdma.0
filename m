@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02313C56201
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2D86C56202
 	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE45E207DE
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86C2A24650
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Oct 2020 13:22:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603718572;
-	bh=PJHiRrOSw7My/JUwmS3Bw+/FZRkU5NJbmwAlX2AW8v8=;
+	s=default; t=1603718573;
+	bh=x2mXMTjcThmtxtMQEdE0TLiSlSsrPl4ayjuNi09gjow=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=grl5JzaenZrT5PjYvh6eN/Jk92OsdD9Pp3BEojCgF4K3H/y0SeY/TQiLmtb+O99/U
-	 2NJjLB7OL5wzNc8p2FQyG6iG/GC/PP/b88jTjrTIgu24xbCZ5hN2sCBQISJ2hXCRQB
-	 a4eFhzdw2lMKBE1mR+GFHfMOFkHQW8wQgxxuV70c=
+	b=m4ml2w0Kg3pyQAp1EU0vsikjr4b3c7jbG0WOS60aWOK2VLUmqEf+5jrZC2hckJ0hn
+	 EKnUQk86J2Z+OhYtIg6klMD6aTRMAXmQ5ckOQupBCAMFm+mJCo9m/JrgrFNnBRoRPY
+	 SH/58pFn95RdOi/QpbPiwI8HqwYWUxxHEtVXndn8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1421228AbgJZNWu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1421242AbgJZNWu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 26 Oct 2020 09:22:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54474 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1776731AbgJZNTq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 26 Oct 2020 09:19:46 -0400
+        id S1776991AbgJZNUA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 26 Oct 2020 09:20:00 -0400
 Received: from localhost (unknown [213.57.247.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5998622265;
-        Mon, 26 Oct 2020 13:19:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1D33222263;
+        Mon, 26 Oct 2020 13:19:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603718386;
-        bh=PJHiRrOSw7My/JUwmS3Bw+/FZRkU5NJbmwAlX2AW8v8=;
+        s=default; t=1603718399;
+        bh=x2mXMTjcThmtxtMQEdE0TLiSlSsrPl4ayjuNi09gjow=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Lxz7yjraWZ5GPzdSi978DOobQ+rKHmcdddejX83jHHMRIepIs+AEv9vTg9sOeL9xC
-         rQ2QgQkE30uhUri8Ocrj/0fP1jwM28OWjIAaFth47D9r+Lzv4wqucH1YLHcA23cBWs
-         y+dACZ5wDWVtK5NbrCKcZ97wmmIhzP6kq2BOdARE=
+        b=nePx52/MOqJLLSbltNsvuU2LC7juNa2NWVMKhI0cveOeduJaBnRJ0IwED2WfvrsnD
+         +M6+GPA0A5ew7CFRVSypTlhZPBrKHcsqf7S8zLpN0ewQu6qdoYmvTWcGrqLUfQefnM
+         IF8Em4nu7ezGsUdzH/03FCkHoiSrjrP9Vt9uy12o=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/7] RDMA/mlx5: Remove mlx5_ib_mr->order
-Date:   Mon, 26 Oct 2020 15:19:30 +0200
-Message-Id: <20201026131936.1335664-2-leon@kernel.org>
+Cc:     Artemy Kovalyov <artemyko@mellanox.com>,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 2/7] RDMA/mlx5: Fix corruption of reg_pages in mlx5_ib_rereg_user_mr()
+Date:   Mon, 26 Oct 2020 15:19:31 +0200
+Message-Id: <20201026131936.1335664-3-leon@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201026131936.1335664-1-leon@kernel.org>
 References: <20201026131936.1335664-1-leon@kernel.org>
@@ -56,53 +57,98 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-The is only ever set to non-zero if the MR is from the cache, and if it is
-cached then the order is in cached_ent->order.
+reg_pages should always contain mr->npage since when the mr is finally
+de-reg'd it is always subtracted out.
 
-Make it clearer that use_umr_mtt_update() only returns true for cached MRs
-and remove the redundant data.
+If there were any error exits then mlx5_ib_rereg_user_mr() would leave the
+reg_pages adjusted and this will cause it to be double subtracted
+eventually.
 
+The manipulation of reg_pages is inherently connected to the umem, so lift
+it out of set_mr_fields() and only adjust it around creating/destroying a
+umem.
+
+reg_pages is only used for diagnostics in sysfs.
+
+Fixes: 7d0cc6edcc70 ("IB/mlx5: Add MR cache for large UMR regions")
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 -
- drivers/infiniband/hw/mlx5/mr.c      | 5 +++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b1f2b34e5955..93310dda01b6 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -601,7 +601,6 @@ struct mlx5_ib_mr {
- 	struct ib_umem	       *umem;
- 	struct mlx5_shared_mr_info	*smr_info;
- 	struct list_head	list;
--	unsigned int		order;
- 	struct mlx5_cache_ent  *cache_ent;
- 	int			npages;
- 	struct mlx5_ib_dev     *dev;
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 910120b551c5..c9be69fcc1ea 100644
+index c9be69fcc1ea..769c5ae4894a 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -126,7 +126,9 @@ static int destroy_mkey(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- static inline bool mlx5_ib_pas_fits_in_mr(struct mlx5_ib_mr *mr, u64 start,
- 					  u64 length)
- {
--	return ((u64)1 << mr->order) * MLX5_ADAPTER_PAGE_SIZE >=
-+	if (!mr->cache_ent)
-+		return false;
-+	return ((u64)1 << mr->cache_ent->order) * MLX5_ADAPTER_PAGE_SIZE >=
- 		length + (start & (MLX5_ADAPTER_PAGE_SIZE - 1));
+@@ -1248,10 +1248,8 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
  }
  
-@@ -172,7 +174,6 @@ static struct mlx5_ib_mr *alloc_cache_mr(struct mlx5_cache_ent *ent, void *mkc)
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
- 	if (!mr)
- 		return NULL;
--	mr->order = ent->order;
- 	mr->cache_ent = ent;
- 	mr->dev = ent->dev;
+ static void set_mr_fields(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+-			  int npages, u64 length, int access_flags)
++			  u64 length, int access_flags)
+ {
+-	mr->npages = npages;
+-	atomic_add(npages, &dev->mdev->priv.reg_pages);
+ 	mr->ibmr.lkey = mr->mmkey.key;
+ 	mr->ibmr.rkey = mr->mmkey.key;
+ 	mr->ibmr.length = length;
+@@ -1291,8 +1289,7 @@ static struct ib_mr *mlx5_ib_get_dm_mr(struct ib_pd *pd, u64 start_addr,
+ 
+ 	kfree(in);
+ 
+-	mr->umem = NULL;
+-	set_mr_fields(dev, mr, 0, length, acc);
++	set_mr_fields(dev, mr, length, acc);
+ 
+ 	return &mr->ibmr;
+ 
+@@ -1421,7 +1418,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mlx5_ib_dbg(dev, "mkey 0x%x\n", mr->mmkey.key);
+ 
+ 	mr->umem = umem;
+-	set_mr_fields(dev, mr, npages, length, access_flags);
++	mr->npages = npages;
++	atomic_add(mr->npages, &dev->mdev->priv.reg_pages);
++	set_mr_fields(dev, mr, length, access_flags);
+ 
+ 	if (xlt_with_umr && !(access_flags & IB_ACCESS_ON_DEMAND)) {
+ 		/*
+@@ -1533,8 +1532,6 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
+ 		    start, virt_addr, length, access_flags);
+ 
+-	atomic_sub(mr->npages, &dev->mdev->priv.reg_pages);
+-
+ 	if (!mr->umem)
+ 		return -EINVAL;
+ 
+@@ -1555,12 +1552,17 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		 * used.
+ 		 */
+ 		flags |= IB_MR_REREG_TRANS;
++		atomic_sub(mr->npages, &dev->mdev->priv.reg_pages);
++		mr->npages = 0;
+ 		ib_umem_release(mr->umem);
+ 		mr->umem = NULL;
++
+ 		err = mr_umem_get(dev, addr, len, access_flags, &mr->umem,
+ 				  &npages, &page_shift, &ncont, &order);
+ 		if (err)
+ 			goto err;
++		mr->npages = ncont;
++		atomic_add(mr->npages, &dev->mdev->priv.reg_pages);
+ 	}
+ 
+ 	if (!mlx5_ib_can_reconfig_with_umr(dev, mr->access_flags,
+@@ -1611,7 +1613,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			goto err;
+ 	}
+ 
+-	set_mr_fields(dev, mr, npages, len, access_flags);
++	set_mr_fields(dev, mr, len, access_flags);
+ 
+ 	return 0;
  
 -- 
 2.26.2
