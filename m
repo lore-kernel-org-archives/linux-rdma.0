@@ -5,45 +5,45 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6666DC55178
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 22:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E3E7C4363A
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 22:56:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1722C2076D
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 22:56:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E21EF221F7
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 22:56:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="0GnEbZql";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="LsJR1NJ1"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="S1Go9+9X";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="gge+wRRs"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1832587AbgJ0W4P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 27 Oct 2020 18:56:15 -0400
+        id S1832604AbgJ0W40 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 27 Oct 2020 18:56:26 -0400
 Received: from Galois.linutronix.de ([193.142.43.55]:50108 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1832564AbgJ0W4H (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Oct 2020 18:56:07 -0400
+        with ESMTP id S1832549AbgJ0W4A (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Oct 2020 18:56:00 -0400
 From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1603839365;
+        s=2020; t=1603839358;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=jttJQYUY921gdQBinUA2N0GBiq3HS7MmOYm/9rq3mlU=;
-        b=0GnEbZqlXJZLQfjONDg/KSujsSvfMvUdN9MjzKaP55p1OEL8105JJGIQe6F3XVpxye4QRG
-        RNPtf8SiqF6hXmGgkfl/1C/UqBtecqyV1R5ba28I2myfZGnsuvT0wtttW7aBU23i8cp0Kp
-        KPePrRqnO5QD3zsNjl0yz3RIKPYR9IqDfkJJwLOramUuxXxYnkd8Z0mwa5+ATFm5MBsojH
-        c1s8YWDtwJjB+Py3JzwS5Sia73LSJCXx75eylZj0Pz3x7x+1Nh9Y0AYUTJPGgc6ryex4na
-        0xwLG2EUr3iK9u8qT5n0uUKslQ2EpAHI1jsLzfDpVY5F44gyFbKLZ6KAepUyjA==
+        bh=SYBcnGuL2Fv6XeYcZjE3LkVMNVEGa0a3exz1vREKTcg=;
+        b=S1Go9+9Xp1GErdJCi+ANF4TEINcRzr4AAM9/EjAfOm4GEAFc0SAG0j54/KDBMytSqwvQfq
+        RGUaLHTTjqE0QRPwHdSY+UdOuUmep7RPNXzM9oAi28hssNsjf7kGpFSOVeeC1JUfcKe6tz
+        bR/M0svDfG+smM3ZkcyuGLBREabdElvv/1cqPEpYchufXaGju3kscLwxVoombjHcDLxGdO
+        oqwvAjv2MmmHX2ZyDbISyl2mOuqmVj4hqglUIjxYCWCaCuU8KT/Chcnr+/MNAaCO88JXQr
+        vI1oB6Vkr8DY8OB3gr9Gp9LXg4bJyq5R50D4HAWZbvQWxrJvOHM+5ztGg+8i2g==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1603839365;
+        s=2020e; t=1603839358;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=jttJQYUY921gdQBinUA2N0GBiq3HS7MmOYm/9rq3mlU=;
-        b=LsJR1NJ1kfuG7mH7WHiTgHjGj108g1qTNgV4c1oTVdGNGA/LhmC59JAAm3KDssv9bSM5bW
-        AvG+0+npRHIheYCA==
+        bh=SYBcnGuL2Fv6XeYcZjE3LkVMNVEGa0a3exz1vREKTcg=;
+        b=gge+wRRsIsf6uzGIOrNEXhKbIkqdyeWoXun2w3tqw/cLzNfabNyfNxT4gS/Gwym/a3kk4u
+        vFpUXoU8eg4F39DA==
 To:     netdev@vger.kernel.org
 Cc:     Aymen Sghaier <aymen.sghaier@nxp.com>,
         Daniel Drake <dsd@gentoo.org>,
@@ -65,80 +65,106 @@ Cc:     Aymen Sghaier <aymen.sghaier@nxp.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net-next 15/15] crypto: caam: Replace in_irq() usage.
-Date:   Tue, 27 Oct 2020 23:54:54 +0100
-Message-Id: <20201027225454.3492351-16-bigeasy@linutronix.de>
+Subject: [PATCH net-next 11/15] net: rtlwifi: Remove in_interrupt() usage in is_any_client_connect_to_ap().
+Date:   Tue, 27 Oct 2020 23:54:50 +0100
+Message-Id: <20201027225454.3492351-12-bigeasy@linutronix.de>
 In-Reply-To: <20201027225454.3492351-1-bigeasy@linutronix.de>
 References: <20201027225454.3492351-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The driver uses in_irq() + in_serving_softirq() magic to decide if NAPI
-scheduling is required or packet processing.
+is_any_client_connect_to_ap() is using in_interrupt() to determine whether
+it should acquire the lock prior accessing the list.
 
-The usage of in_*() in drivers is phased out and Linus clearly requested
-that code which changes behaviour depending on context should either be
-seperated or the context be conveyed in an argument passed by the caller,
-which usually knows the context.
+The usage of in_interrupt() in drivers is phased out and Linus clearly
+requested that code which changes behaviour depending on context should
+either be separated or the context be conveyed in an argument passed by the
+caller, which usually knows the context.
 
-Use the `napi' argument passed by the callback. It is set true if
-called from the interrupt handler and NAPI should be scheduled.
+The function is called from:
+
+    - halbtc_get()
+
+    - halbtc_get()
+        halbtc_get_wifi_link_status()
+
+    - halbtc_display_dbg_msg()
+	halbtc_display_wifi_status()
+          halbtc_get_wifi_link_status()
+
+All top level callers are part of the btc_coexist callback inferface and
+are never invoked from a context which can hold the lock already.
+
+The contexts which hold the lock are either protecting list add/del
+operations or list walks which never call into any of the btc_coexist
+interfaces.
+
+In fact the conditional is outright dangerous because if this function
+would be invoked from a BH disabled context the check would avoid taking
+the lock while on another CPU the list could be manipulated under the lock.
+
+Remove the in_interrupt() check and always acquire the lock.
+
+To simplify the code further use list_empty() instead of walking the list
+and counting the entries just to check the count for > 0 at the end.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "Horia Geant=C4=83" <horia.geanta@nxp.com>
-Cc: Aymen Sghaier <aymen.sghaier@nxp.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ping-Ke Shih <pkshih@realtek.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Madalin Bucur <madalin.bucur@nxp.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Li Yang <leoyang.li@nxp.com>
-Cc: linux-crypto@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
 Cc: netdev@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-arm-kernel@lists.infradead.org
 ---
- drivers/crypto/caam/qi.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ .../realtek/rtlwifi/btcoexist/halbtcoutsrc.c  | 25 +++++--------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/crypto/caam/qi.c b/drivers/crypto/caam/qi.c
-index 09ea398304c8b..79dbd90887f8a 100644
---- a/drivers/crypto/caam/qi.c
-+++ b/drivers/crypto/caam/qi.c
-@@ -545,14 +545,10 @@ static void cgr_cb(struct qman_portal *qm, struct qma=
-n_cgr *cgr, int congested)
+diff --git a/drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtcoutsrc.c =
+b/drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtcoutsrc.c
+index 2c05369b79e4d..2155a6699ef8d 100644
+--- a/drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtcoutsrc.c
++++ b/drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtcoutsrc.c
+@@ -47,30 +47,17 @@ static bool is_any_client_connect_to_ap(struct btc_coex=
+ist *btcoexist)
+ {
+ 	struct rtl_priv *rtlpriv =3D btcoexist->adapter;
+ 	struct rtl_mac *mac =3D rtl_mac(rtlpriv);
+-	struct rtl_sta_info *drv_priv;
+-	u8 cnt =3D 0;
++	bool ret =3D false;
+=20
+ 	if (mac->opmode =3D=3D NL80211_IFTYPE_ADHOC ||
+ 	    mac->opmode =3D=3D NL80211_IFTYPE_MESH_POINT ||
+ 	    mac->opmode =3D=3D NL80211_IFTYPE_AP) {
+-		if (in_interrupt() > 0) {
+-			list_for_each_entry(drv_priv, &rtlpriv->entry_list,
+-					    list) {
+-				cnt++;
+-			}
+-		} else {
+-			spin_lock_bh(&rtlpriv->locks.entry_list_lock);
+-			list_for_each_entry(drv_priv, &rtlpriv->entry_list,
+-					    list) {
+-				cnt++;
+-			}
+-			spin_unlock_bh(&rtlpriv->locks.entry_list_lock);
+-		}
++		spin_lock_bh(&rtlpriv->locks.entry_list_lock);
++		if (!list_empty(&rtlpriv->entry_list))
++			ret =3D true;
++		spin_unlock_bh(&rtlpriv->locks.entry_list_lock);
  	}
+-	if (cnt > 0)
+-		return true;
+-	else
+-		return false;
++	return ret;
  }
 =20
--static int caam_qi_napi_schedule(struct qman_portal *p, struct caam_napi *=
-np)
-+static int caam_qi_napi_schedule(struct qman_portal *p, struct caam_napi *=
-np,
-+				 bool napi)
- {
--	/*
--	 * In case of threaded ISR, for RT kernels in_irq() does not return
--	 * appropriate value, so use in_serving_softirq to distinguish between
--	 * softirq and irq contexts.
--	 */
--	if (unlikely(in_irq() || !in_serving_softirq())) {
-+	if (napi) {
- 		/* Disable QMan IRQ source and invoke NAPI */
- 		qman_p_irqsource_remove(p, QM_PIRQ_DQRI);
- 		np->p =3D p;
-@@ -574,7 +570,7 @@ static enum qman_cb_dqrr_result caam_rsp_fq_dqrr_cb(str=
-uct qman_portal *p,
- 	struct caam_drv_private *priv =3D dev_get_drvdata(qidev);
- 	u32 status;
-=20
--	if (caam_qi_napi_schedule(p, caam_napi))
-+	if (caam_qi_napi_schedule(p, caam_napi, napi))
- 		return qman_cb_dqrr_stop;
-=20
- 	fd =3D &dqrr->fd;
+ static bool halbtc_legacy(struct rtl_priv *adapter)
 --=20
 2.28.0
 
