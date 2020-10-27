@@ -2,170 +2,100 @@ Return-Path: <SRS0=adbP=EC=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE36C388F9
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 17:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9439EC4363A
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 18:04:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB1802231B
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 17:35:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3623C20723
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Oct 2020 18:04:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="PHfiwRp0"
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="FiY6WeDk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1812875AbgJ0Rb0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 27 Oct 2020 13:31:26 -0400
-Received: from aserp2130.oracle.com ([141.146.126.79]:58586 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1819447AbgJ0RaJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Oct 2020 13:30:09 -0400
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-        by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09RHJpjA035966;
-        Tue, 27 Oct 2020 17:30:05 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=content-type :
- mime-version : subject : from : in-reply-to : date : cc :
- content-transfer-encoding : message-id : references : to;
- s=corp-2020-01-29; bh=/8XvTAsg8nY/7dtMegiNl3lPyG1gHOa+DpOe1QAzegg=;
- b=PHfiwRp0dls7RVWFwENLItplBrpOZYwDeKc7ZQox7ZIV+YLpVvZy1Z8+JhclkiKn1Ypr
- yVmpgbRBSvA2C+rN86kapNSpd08xdoTb7E+44I5UTN6noZYxwrmvnpXe4hUKaDJ6HVMu
- UV2UikbnJfnsH0heTTsV9Na9Pb3mcXueY48rS7lmo7cBStshOjENb9l8bAux3AvyTco0
- almB19G/51kRACgYsp5k6hGFT96MH4CdJvcRflFxOM06dcN9oCb61GVZ7KldJZBhrymq
- yf5O4lUpvhOY1J1WhOFFkIiAyPjOYhu79XlEOXhQYCRJP/SMEhPcL7sREllE0kDONsWI 0A== 
+        id S1824202AbgJ0SEI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 27 Oct 2020 14:04:08 -0400
+Received: from aserp2120.oracle.com ([141.146.126.78]:57676 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756932AbgJ0OSk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Oct 2020 10:18:40 -0400
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09REFYLh152692;
+        Tue, 27 Oct 2020 14:18:39 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=nI3m8Y8OcNr/GVLvzRaUSo3wS/gzjtSUTYSe1wHMf7I=;
+ b=FiY6WeDkT1tv1bqtXDMVPDMn/ZfLQafK5QYzCeaSQEjmjVkjoWPvrtzF+u0R5wemHtYc
+ /tqFB650oaiDzjAbPhkeNM5u68OvWKV7nzwTjWuflPLTPNvwe3FcjxNe13JVtHWwYx3q
+ AjwjNmDdk6IDarj64ypIgDzyWUAa8VeW9YqwZsqGjBOdQmV/Qw37YEFQ5LqYZ7jxmEmq
+ 12R2FVYR3ewbtgDSegc+geLz7MF+IF4XJs1OOh6ipXV0bflV5nHTJZyFJb9Et5f2Ox7n
+ 0xoSoQPtX96MuDpsf+XqqjIiKnhdmKPeR32sASuG9g5qUs5PzWp4NrGzYv3X4gHPvPEH rA== 
 Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-        by aserp2130.oracle.com with ESMTP id 34c9sauhvy-1
+        by aserp2120.oracle.com with ESMTP id 34cc7kt7rq-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Tue, 27 Oct 2020 17:30:05 +0000
+        Tue, 27 Oct 2020 14:18:39 +0000
 Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09RHG3M6019976;
-        Tue, 27 Oct 2020 17:30:04 GMT
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 09REG2Dc089358;
+        Tue, 27 Oct 2020 14:18:38 GMT
 Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-        by aserp3020.oracle.com with ESMTP id 34cx5xdjj9-1
+        by aserp3020.oracle.com with ESMTP id 34cx5x66pu-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 27 Oct 2020 17:30:04 +0000
-Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
-        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 09RHU1GY016924;
-        Tue, 27 Oct 2020 17:30:01 GMT
-Received: from anon-dhcp-152.1015granger.net (/68.61.232.219)
+        Tue, 27 Oct 2020 14:18:38 +0000
+Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
+        by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 09REIb8x025107;
+        Tue, 27 Oct 2020 14:18:37 GMT
+Received: from [10.159.235.220] (/10.159.235.220)
         by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 27 Oct 2020 10:30:00 -0700
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.4\))
-Subject: Re: [PATCH 00/20] NFSD support for multiple RPC/RDMA chunks
-From:   Chuck Lever <chuck.lever@oracle.com>
-In-Reply-To: <20201027172545.GB1644@fieldses.org>
-Date:   Tue, 27 Oct 2020 13:29:59 -0400
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        linux-rdma@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <D00EBDE2-D748-4977-9E2D-186BFAD56ED5@oracle.com>
-References: <160373843299.1886.12604782813896379719.stgit@klimt.1015granger.net>
- <20201027060823.GF4821@unreal>
- <DAC657D8-D254-452C-9B21-3053F70C8C73@oracle.com>
- <20201027172545.GB1644@fieldses.org>
-To:     Bruce Fields <bfields@fieldses.org>
-X-Mailer: Apple Mail (2.3608.120.23.2.4)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9787 signatures=668682
+        with ESMTP ; Tue, 27 Oct 2020 07:18:37 -0700
+Subject: Re: [PATCH 0/2] rds: MR(Memory Region) related patches
+To:     santosh.shilimkar@oracle.com
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        rama.nichanamatlu@oracle.com
+References: <1603144088-8769-1-git-send-email-manjunath.b.patil@oracle.com>
+From:   Manjunath Patil <manjunath.b.patil@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <dab2480c-64d9-0238-7737-eb0b2738922e@oracle.com>
+Date:   Tue, 27 Oct 2020 07:18:36 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
+MIME-Version: 1.0
+In-Reply-To: <1603144088-8769-1-git-send-email-manjunath.b.patil@oracle.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9786 signatures=668682
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 mlxlogscore=999
- suspectscore=0 bulkscore=0 malwarescore=0 spamscore=0 phishscore=0
+ suspectscore=1 bulkscore=0 malwarescore=0 spamscore=0 phishscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2010270104
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9787 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 malwarescore=0 lowpriorityscore=0 bulkscore=0
- priorityscore=1501 spamscore=0 phishscore=0 clxscore=1015 suspectscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2010270104
+ definitions=main-2010270090
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9786 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 adultscore=0
+ malwarescore=0 spamscore=0 clxscore=1015 mlxscore=0 suspectscore=1
+ priorityscore=1501 impostorscore=0 bulkscore=0 phishscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2010270090
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+ping!
 
-
-> On Oct 27, 2020, at 1:25 PM, bfields@fieldses.org wrote:
->=20
-> On Tue, Oct 27, 2020 at 09:24:54AM -0400, Chuck Lever wrote:
->> Hi Leon-
->>=20
->>> On Oct 27, 2020, at 2:08 AM, Leon Romanovsky <leon@kernel.org> =
-wrote:
->>>=20
->>> On Mon, Oct 26, 2020 at 02:53:53PM -0400, Chuck Lever wrote:
->>>> This series implements support for multiple RPC/RDMA chunks per RPC
->>>> transaction. This is one of the few remaining generalities that the
->>>> Linux NFS/RDMA server implementation lacks.
->>>>=20
->>>> There is currently one known NFS/RDMA client implementation that =
-can
->>>> send multiple chunks per RPC, and that is Solaris. Multiple chunks
->>>> are rare enough that the Linux NFS/RDMA implementation has been
->>>> successful without this support for many years.
->>>=20
->>> So why do we need it? Solaris is dead, and like you wrote Linux =
-systems
->>> work without this feature just fine, what are the benefits? Who will =
-use it?
->>=20
->> The Linux NFS implementation is living. We can add the ability
->> to provision multiple chunks per RPC to the Linux NFS client at
->> any time.
->>=20
->> Likewise any actively developed NFS/RDMA implementation can add
->> this feature. The RPC/RDMA version 1 protocol does not have the
->> ability to communicate the maximum number of chunks the server
->> will accept per RPC.
->>=20
->> Other server implementations do support multiple chunks per RPC.
->> The Linux NFS/RDMA server implementation has always been incomplete
->> in this regard.
->=20
-> Can the client can detect the server's lack of support and fall back, =
-or
-> does the server's incompleteness violate the RFC in some way that can
-> actually cause a failure to interoperate?
-
-The latter. Currently the client has no way to detect that our server
-does not comply with RFC 8166, which places no arbitrary limits on
-the number of chunks per RPC.
-
-If a client attempts to send more than one chunk the RPC fails (or
-worse). RPC/RDMA version 1 does not provide a way to indicate that
-the failure was because the client sent too many chunks, so the
-client has to terminate the RPC transaction with an error.
-
-
->> And the Linux NFS server implementation (the non-transport specific
->> part) already supports multiple data payloads per NFSv4 COMPOUND.
->>=20
->>=20
->> Restoring a little more of the cover letter:
->>=20
->>>> Along with multiple chunk support, this series adds the following
->>>> benefits:
->>>>=20
->>>> - More robust input sanitization of RPC/RDMA headers
->>>> - An internal representation of chunks that is agnostic to their
->>>> wire format
->>=20
->> The Linux NFS/RDMA server implementation does need to have better
->> input sanitization.
->>=20
->> And there is a version 2 of RPC/RDMA under active development:
->>=20
->> =
-https://datatracker.ietf.org/doc/draft-ietf-nfsv4-rpcrdma-version-two/
->>=20
->> Having some protocol version agnosticism in our transport might
->> be necessary eventually.
->>=20
->> --
->> Chuck Lever
-
---
-Chuck Lever
-
-
+On 10/19/2020 2:48 PM, Manjunath Patil wrote:
+> This patchset intends to add functionality to track MR usages by RDS
+> applications.
+>
+> Manjunath Patil (2):
+>    rds: track memory region (MR) usage in kernel
+>    rds: add functionality to print MR related information
+>
+>   include/uapi/linux/rds.h | 13 ++++++++++++-
+>   net/rds/af_rds.c         | 42 ++++++++++++++++++++++++++++++++++++++++
+>   net/rds/ib.c             |  1 +
+>   net/rds/rdma.c           | 29 ++++++++++++++++++++-------
+>   net/rds/rds.h            | 10 +++++++++-
+>   5 files changed, 86 insertions(+), 9 deletions(-)
+>
 
