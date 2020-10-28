@@ -2,106 +2,140 @@ Return-Path: <SRS0=/7et=EE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 587B7C4363A
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0EBBC56202
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:55:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFD0C2054F
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:22:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACB2E20724
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:55:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="SkuUZz9j"
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="T/Wp+QgT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731439AbgJ2AWb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:22:31 -0400
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:1411 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388926AbgJ1WiG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Oct 2020 18:38:06 -0400
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f9975bd0000>; Wed, 28 Oct 2020 06:44:29 -0700
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 28 Oct
- 2020 13:44:22 +0000
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.106)
- by HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Wed, 28 Oct 2020 13:44:22 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=M2uPTtg9NQHstNCgAkrl7j6PEqZ9W2KnGCTH3H+6+w9V4Grm6acGV1AwvG6CFti0FnjTZVoJgEdYQxW41cQ8ZMYv1/ECVIqQTcHHTugrTZEy/xfp1HlF2Tn3+wQOkghffjHjhaPX2C/1OJuAMYnqekum620oIDz4murtubX4ZXjfckoyM9UlQQl/0Ko+WbtVniPpbHyf/NAMR70V0JYEwVUkNZCF5TZNObJE57FwVeamDy3SAFYcNg/PzSn6HzuyyP3x3ar1UPhAymcX0Q7XYzRupOK1XrInCqcnLddZ32ct/FWZwvy13RBVf7ax8WFfVMsVZlBtT20md0Q93i8xhw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=P9QUyHpzQ2ndwW+DsNxJKwemH/MiGJeJBp23BtCN4EY=;
- b=DcIVyxgZBIBrwpXF9cBYZjWgzpGyyRpb9sokJ32IXt99jUsaw9Y8bsaMVMjLrZKeNqtqI2/uQATNMeU1J57QvqAw24YisYD23M0ZOYx7wwrYsAyOU2zOHO/UFNpsxkXI3HmlJwIzTtKcf08Iy7UJDVyjsqEq8lZ6wx5kmgRF2o/XRhrYmPUUvOAc06EvNwV/zkpFJwuD400I7YtdTishC/frFsbX4/kHvVwa4isYDq+fSgbMoiekqjXVBAYAphLKtrPdodEm2EjRzz1nW1S+dNs8UDgWRBTMAy++BOf6XNRmc9m4oDF54JWUf/L8dlJ0WtO41MnjLMbnkTRhmnFDng==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3018.namprd12.prod.outlook.com (2603:10b6:5:118::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.24; Wed, 28 Oct
- 2020 13:44:21 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3499.027; Wed, 28 Oct 2020
- 13:44:21 +0000
-Date:   Wed, 28 Oct 2020 10:44:19 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Jack Wang <jinpu.wang@cloud.ionos.com>
-CC:     <linux-rdma@vger.kernel.org>, <bvanassche@acm.org>,
-        <leon@kernel.org>, <dledford@redhat.com>,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Subject: Re: [PATCH] RDMA/ipoib: distribute cq completion vector better
-Message-ID: <20201028134419.GA2417977@nvidia.com>
-References: <20201013074342.15867-1-jinpu.wang@cloud.ionos.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20201013074342.15867-1-jinpu.wang@cloud.ionos.com>
-X-ClientProxiedBy: MN2PR06CA0002.namprd06.prod.outlook.com
- (2603:10b6:208:23d::7) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1731798AbgJ1WSE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Oct 2020 18:18:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53562 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731800AbgJ1WRq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Oct 2020 18:17:46 -0400
+Received: from mail-vs1-xe41.google.com (mail-vs1-xe41.google.com [IPv6:2607:f8b0:4864:20::e41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F378AC0613CF
+        for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2020 15:17:45 -0700 (PDT)
+Received: by mail-vs1-xe41.google.com with SMTP id n18so451531vsl.2
+        for <linux-rdma@vger.kernel.org>; Wed, 28 Oct 2020 15:17:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=c5JnGX1FZzDj3iERlJZXW7b5+HdbiYzlb4fBgkfb0xg=;
+        b=T/Wp+QgTZbv1wee/sHrDIFOH1/IukfATS3nj85orHSLzJ5Ci9m9D9+5FMe4siiBzKb
+         mnYxiZmf+h5ISKzGYL3LfRD5Z/h7CeU9Ic3o8vVi6dtsur5ymMwco2Ic+E0p077eQq7E
+         TmLJWTlgAyWXhpZWnOwwSxe4pEu4ZM2JogMMIKQz7TfFL/amHFBGVZ1fsGtEtKkooqzS
+         XP1JQGRB9eIb36j10Za/P/QA3GFLBthurwPS9fpKQwou7YDQBnPDd5dMChnQbGA7nb5M
+         9j3Oo/ALtArT66luG6iq9Ub9hL58nPVAMiawomI1aPcKjl0lYkr7t0Q5+tEc6jD88Wtx
+         53hg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=c5JnGX1FZzDj3iERlJZXW7b5+HdbiYzlb4fBgkfb0xg=;
+        b=XcljA+uaknaf07aXFG5oVqZlMT85jk442z+ZldPP3+YPDyx9kVwvh9MZZry7E81CZv
+         mPgcnF2qkk5bR0XcHoaGmQeSjCnRdCIrI5VH3Op7Qq8pe0GGOKKxLTw/UxWfFdzFoU3Q
+         kUuflRMBIT0nKvCZAuorTyTAozMDyh63g2lSyvy7NdwULDGLVOhmlZxogwlpz8XWNKta
+         ZDnPidfTsEQVEFjZispDp9b9AvrgjNwSPcRr4FY9R8gbaJlH1Xf25p9+FaXUD4QubwO8
+         A0jWqKExIDQnHBMQxwqLl1Blo6qkVet+w3Jla+m/5bZZuHiKqfWO3MyczpQ66AcaqFEg
+         PWRw==
+X-Gm-Message-State: AOAM533jG1eGTTK6ATbQAcF2Ank5cY8XkDXr5XAiViTjp9yHUyBGUdiM
+        laLUmIk9niNWKtS9B7SKB20pa8u1+cqRpg==
+X-Google-Smtp-Source: ABdhPJwochXOFNBSHbc/0ALAjHT9FDE73znluF9TV4zOl+vupz8WA9nPGsuNsYdeDgOjpuKu7jxv0Q==
+X-Received: by 2002:a0c:fe49:: with SMTP id u9mr8645159qvs.40.1603902948133;
+        Wed, 28 Oct 2020 09:35:48 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-156-34-48-30.dhcp-dynamic.fibreop.ns.bellaliant.net. [156.34.48.30])
+        by smtp.gmail.com with ESMTPSA id a201sm959571qkc.76.2020.10.28.09.35.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 28 Oct 2020 09:35:47 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1kXoQM-00AH3D-5P; Wed, 28 Oct 2020 13:35:46 -0300
+Date:   Wed, 28 Oct 2020 13:35:46 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "Xiong, Jianxin" <jianxin.xiong@intel.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>
+Subject: Re: [PATCH v6 4/4] RDMA/mlx5: Support dma-buf based userspace memory
+ region
+Message-ID: <20201028163546.GY36674@ziepe.ca>
+References: <1603471201-32588-1-git-send-email-jianxin.xiong@intel.com>
+ <1603471201-32588-5-git-send-email-jianxin.xiong@intel.com>
+ <20201027200816.GX36674@ziepe.ca>
+ <MW3PR11MB45559D700788EFFE08E9B639E5160@MW3PR11MB4555.namprd11.prod.outlook.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR06CA0002.namprd06.prod.outlook.com (2603:10b6:208:23d::7) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Wed, 28 Oct 2020 13:44:21 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kXlkR-00A943-Vs; Wed, 28 Oct 2020 10:44:20 -0300
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1603892669; bh=P9QUyHpzQ2ndwW+DsNxJKwemH/MiGJeJBp23BtCN4EY=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=SkuUZz9jO63f9R+NKuurPkS2iZQoQNJ23hSIKsxUae5GFAzfKxJH9ABibFslmRCwJ
-         I2UKLgFFgeb3gV6P099vOiH02gdxEzRgmiX5kyPIFDuw2aAn9go3CNDs36uuAc99xZ
-         QiAVZU5IZeEWRovsVzCdz4yCsVlg7tQkhvLwbpUarq/XC9IbfAZH7gV/PwyOvQkkaG
-         LKdBB7+ffM1UARQ3dGAZramrUPWuXQKKcPSjkHAZA9xO85E3p9vzdf75exNvUITZyX
-         Q2ENwq9tzzosF9/hPFGH1fDVX9r0zXIiLaGSKofC/5aA9mzs3uFpvlKQS+wOlJBzo7
-         LW4R0QzLsVRVw==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <MW3PR11MB45559D700788EFFE08E9B639E5160@MW3PR11MB4555.namprd11.prod.outlook.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 13, 2020 at 09:43:42AM +0200, Jack Wang wrote:
-> Currently ipoib choose cq completion vector based on port number,
-> when HCA only have one port, all the interface recv queue completion
-> are bind to cq completion vector 0.
+On Tue, Oct 27, 2020 at 08:33:52PM +0000, Xiong, Jianxin wrote:
+> > > @@ -801,6 +816,52 @@ static int pagefault_implicit_mr(struct mlx5_ib_mr *imr,
+> > >   * Returns:
+> > >   *  -EFAULT: The io_virt->bcnt is not within the MR, it covers pages that are
+> > >   *           not accessible, or the MR is no longer valid.
+> > > + *  -EAGAIN: The operation should be retried
+> > > + *
+> > > + *  >0: Number of pages mapped
+> > > + */
+> > > +static int pagefault_dmabuf_mr(struct mlx5_ib_mr *mr, struct ib_umem *umem,
+> > > +			       u64 io_virt, size_t bcnt, u32 *bytes_mapped,
+> > > +			       u32 flags)
+> > > +{
+> > > +	struct ib_umem_dmabuf *umem_dmabuf = to_ib_umem_dmabuf(umem);
+> > > +	u64 user_va;
+> > > +	u64 end;
+> > > +	int npages;
+> > > +	int err;
+> > > +
+> > > +	if (unlikely(io_virt < mr->mmkey.iova))
+> > > +		return -EFAULT;
+> > > +	if (check_add_overflow(io_virt - mr->mmkey.iova,
+> > > +			       (u64)umem->address, &user_va))
+> > > +		return -EFAULT;
+> > > +	/* Overflow has alreddy been checked at the umem creation time */
+> > > +	end = umem->address + umem->length;
+> > > +	if (unlikely(user_va >= end || end  - user_va < bcnt))
+> > > +		return -EFAULT;
+> > 
+> > Why duplicate this sequence? Caller does it
 > 
-> To better distribute the load, use same method as __ib_alloc_cq_any
-> to choose completion vector, with the change, each interface now use
-> different completion vectors.
-> 
-> Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-> Reviewed-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> The sequence in the caller is for umem_odp only.
 
-If you care about IPoIB performance you should be using the
-accelerated IPoIB stuff, the drivers implementing that all provide
-much better handling of CQ affinity.
+Nothing about umem_odp in this code though??
 
-What scenario does this patch make a difference?
+> > >  	/* prefetch with write-access must be supported by the MR */
+> > >  	if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE &&
+> > > -	    !odp->umem.writable)
+> > > +	    !mr->umem->writable)
+> > 
+> > ??
 
+> There is no need to use umem_odp here, mr->umem is the same as &odp->umem. 
+> This change makes the code works for both umem_odp and umem_dmabuf.
+
+Ok
+
+Can you please also think about how to test this? I very much prefer
+to see new pyverbs tests for new APIs. 
+
+Distros are running the rdma-core test suite, if you want this to work
+widely we need a public test for it.
+
+Thanks,
 Jason
