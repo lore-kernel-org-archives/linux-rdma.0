@@ -2,171 +2,102 @@ Return-Path: <SRS0=KJVK=ED=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B98BC56202
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 23:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6373CC388F7
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 23:21:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1584D20791
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 23:20:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D67720790
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 23:21:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=vmware.com header.i=@vmware.com header.b="NO4Taz9B"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="dfLB2rsS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733190AbgJ1XU6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Oct 2020 19:20:58 -0400
-Received: from mail-eopbgr770081.outbound.protection.outlook.com ([40.107.77.81]:20388
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730715AbgJ1XUI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 28 Oct 2020 19:20:08 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=YBg9/lsy69Lm7uSRL6PPjgzSAAyr9yNbQAJVa0gn3Esy20IJc3AbIoK5bT4eNFXFQ6VgicPe3IlKHT9nEojHkMmq1Tf4FRmTNgnTny9Ntc8f5+QohZLuHjXppeC+JTVnK6HRVyjsoAVV0TpXPVmnjUVkyF2YeCbAUNSmH4Md8E4RFStEyw/UuGgGzF2uKRHMI886V7RPXjh4DNl/FtTGto4nodHjTyFMoP8S6hrPpHqGPb/TwsFtgSPeHEc3zI4GdcHFfyQSvSdY/28g2uvEdnmOg6R3qI0sjRxE5VcAea2v28i86x4APOm4Gu4Zs7eNkz7vx8bDFOaqaZFpMf2TMg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SSdv1i60FbwEWhmDxXzIs0HDb/LTLuY0bs66xHXElHQ=;
- b=Dqmv+360oh7/wc++wkbnY3LS8rofssPAfOdtiVdpK/19EADRFFZXftQ5MRbUnn5Via8jB7lzsRP5qmLbGhxOXPVYa0clLHAKebH1U3KY/S8PTAKrb5RfFGttfr0RaXpp3Evhjz1sJkVCBH+V5kebuEKBRqyWmjLirxQKZZ6XnSd8I8v9PxNmQO+CzCAysUmL8108n/aC4N+FGIdTxfOPObdkxQtQ/4tSjE58XK98IhYbXtS1WtMBrLcZJ+TTsrYQ7K2oTax40y0UlL6dceQSoxMIuOmxgHg/vs7etI96LBBd5U7aB0hIYWVNDcFxlSdFjyczVcJrq4QimgEBD5AaOg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=vmware.com; dmarc=pass action=none header.from=vmware.com;
- dkim=pass header.d=vmware.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vmware.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SSdv1i60FbwEWhmDxXzIs0HDb/LTLuY0bs66xHXElHQ=;
- b=NO4Taz9BPec7dR/Vb4OEaM7C6nchZe2O4AAT4NgL04nnq9XfPqsjhp/N9kxJkN9NeekgDj0jxDxrISuVJFFyQ4l0JO+UOnEUELmTQJq+zAElBCKcX02DMIPXz1xy6sV46Evn68EZGu6HNJTWyHAafi4WYlI7ow82+JM868nLk0M=
-Authentication-Results: mellanox.com; dkim=none (message not signed)
- header.d=none;mellanox.com; dmarc=none action=none header.from=vmware.com;
-Received: from BYAPR05MB5511.namprd05.prod.outlook.com (2603:10b6:a03:1a::28)
- by SJ0PR05MB7626.namprd05.prod.outlook.com (2603:10b6:a03:2ee::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.4; Wed, 28 Oct
- 2020 23:20:04 +0000
-Received: from BYAPR05MB5511.namprd05.prod.outlook.com
- ([fe80::958b:64f6:b2f9:97e0]) by BYAPR05MB5511.namprd05.prod.outlook.com
- ([fe80::958b:64f6:b2f9:97e0%7]) with mapi id 15.20.3499.027; Wed, 28 Oct 2020
- 23:20:04 +0000
-From:   Adit Ranadive <aditr@vmware.com>
-To:     jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org
-Cc:     Adit Ranadive <aditr@vmware.com>, pv-drivers@vmware.com
-Subject: [PATCH for-rc] RDMA/vmw_pvrdma: Fix the active_speed and phys_state value
-Date:   Wed, 28 Oct 2020 23:19:45 +0000
-Message-Id: <20201028231945.6533-1-aditr@vmware.com>
-X-Mailer: git-send-email 2.18.1
-Content-Type: text/plain
-X-Originating-IP: [66.170.99.2]
-X-ClientProxiedBy: SJ0PR13CA0101.namprd13.prod.outlook.com
- (2603:10b6:a03:2c5::16) To BYAPR05MB5511.namprd05.prod.outlook.com
- (2603:10b6:a03:1a::28)
+        id S2390131AbgJ1XVE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Oct 2020 19:21:04 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:1455 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390129AbgJ1XVE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Oct 2020 19:21:04 -0400
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f99728e0002>; Wed, 28 Oct 2020 06:30:54 -0700
+Received: from [172.27.12.9] (10.124.1.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 28 Oct
+ 2020 13:31:06 +0000
+Subject: Re: [PATCH rdma v2] RDMA: Add rdma_connect_locked()
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Chao Leng <lengchao@huawei.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        Keith Busch <kbusch@kernel.org>,
+        <linux-nvme@lists.infradead.org>,
+        "Max Gurtovoy" <mgurtovoy@nvidia.com>, <netdev@vger.kernel.org>,
+        <rds-devel@oss.oracle.com>, Sagi Grimberg <sagi@grimberg.me>
+References: <0-v2-53c22d5c1405+33-rdma_connect_locking_jgg@nvidia.com>
+ <4401b7b1-5d05-a715-4701-957fd09f34c9@nvidia.com>
+ <20201028121437.GU1523783@nvidia.com>
+From:   Maor Gottlieb <maorg@nvidia.com>
+Message-ID: <8306260b-ce24-3803-7d39-42f5d2209af7@nvidia.com>
+Date:   Wed, 28 Oct 2020 15:31:03 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.3.3
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from linux-build.eng.vmware.com (66.170.99.2) by SJ0PR13CA0101.namprd13.prod.outlook.com (2603:10b6:a03:2c5::16) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Wed, 28 Oct 2020 23:20:04 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c590ded6-a9ef-47e9-c1eb-08d87b980041
-X-MS-TrafficTypeDiagnostic: SJ0PR05MB7626:
-X-LD-Processed: b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0,ExtAddr
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <SJ0PR05MB7626547D5A4B35CF25A994AEC5170@SJ0PR05MB7626.namprd05.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:6108;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: OQQb0oMwP4ArP295T1VCXhFefygd5kmE2bNHCb4sd1zmT4WeXDFA9+bE+v6rD8LHMn2EGSLrFA/nHYjg6Obymbe59DNo32Bm1YdjYWMS/tdsmBJdyO8c9QXy0vSdg3ntThST3te+gJZy2MdK4QT6yaCTUr+wmmRCCMOboYvsg9PGVlJsCzUmzpaegVuOrkouwtMdycHqG56eEVF8OZB7w8tKdZqna6guacrfDi/IMG+nkaPcKWLrb1QfwqD3+UQ1VlDXJ1e45YQhVLRRgZy9u1Bqbx1FrYHaE39amJ3dtrGBLOX2hoeBOBxYvH79cfQVkXB/DaoMyu0KZKa/S6ngyA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR05MB5511.namprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(39860400002)(346002)(136003)(376002)(396003)(86362001)(36756003)(2906002)(5660300002)(6666004)(66476007)(1076003)(66556008)(66946007)(956004)(478600001)(8936002)(2616005)(316002)(16526019)(8676002)(26005)(186003)(6486002)(107886003)(4326008)(7696005)(52116002)(83380400001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: f35ICTPl6KWVTJwZKKhmgZT+o6eqR1o69nEmPoE2kaMhOgZJi7uwHH8eJjF+TPml4Vyuyfy8jWg74sEpjyJjPp1adUvwOG95tz0XwQhWpQnjgIXxJlzygqJwHW2AlOS34eq1JtuHsZ/LVvpRRc0UIWTYUYlXGFNaKSVM1gE4MT1mOEfkH+TwPjPLj4Qdhd0mfNJRhMEjPm5sjbiE/sAJeaRFVkBzNdrC/2XxktJq2o6AZzQ7ivwAkLhXXBpaCFSwDef+nRCi4yt5TjKqh2sTq9xC68BnbKBhcAW+U7DmDncAlpNy6WDwkW8ozFKFwKbUB57/1m1AsgjZThdSYovJqTZ4/jyflY0Y2usdlpKA9oQJ5zZNFkIDE22I4o+yxG8/nCIQu9RbiqQBQFTAmW9OKdomLb80Ka3W3Ro0eUxrusd6soUdiTKanbO/zRHVqxeV+zcEToxsYFoL1/ABVT3KpVUvhyC4zepB8XKVpswdaAR0baDAwxZRCevyQZfot6++Vp+ApuXt7MgnrZIK2C/5Oy9wcOoglj8S36KAbArarg0BKYVGueQ1g7rx9LCLX2DQQQHnIXebZG0X7EuhQoWliYWZiUOo9t/nqiJlH694EHVrU/DwX/WRzlf5krrMFSP3iCfgKDJWj5+alou6gc6nbw==
-X-OriginatorOrg: vmware.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c590ded6-a9ef-47e9-c1eb-08d87b980041
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR05MB5511.namprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Oct 2020 23:20:04.8236
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: /zsbjBBSERvb0IorMNSVGLqBcVQ6SaMn8jDKyCKQ3M/RCXmdHZ5mB5o14yFWAHgtE+2hjVOy4BgM52PYS8FVWg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR05MB7626
+In-Reply-To: <20201028121437.GU1523783@nvidia.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Originating-IP: [10.124.1.5]
+X-ClientProxiedBy: HQMAIL105.nvidia.com (172.20.187.12) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1603891854; bh=fKN2cuSU18H4ENLzpHtOq1/kruo8GahizM1U701HZ08=;
+        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+         MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+         Content-Language:X-Originating-IP:X-ClientProxiedBy;
+        b=dfLB2rsS1jUeLVi1EHeqpVPZWc/4tQtRWeoiQezb8WagHM2EcW7c/0f1dboAtSOG6
+         IXyLr9NhAuGTFluamN3ynArryMwcDQwtPhZ0TYR+nRvXYYVOtTAx4X7GZg/tot7M2p
+         7ruyD2L7GnnqM30XK6BApKEHUxrN9la+USpL5oMPyaNTpbvi0ccrfmEUZUPqymKFHJ
+         glkEMEt11eJbAhHl3+SV+3ancTya0jEfZNi7WAyrlOwKhz0fflBOj3KL2DMnBJocIV
+         mYY8+o9QX8TuAIyH+N13YrhDQwAsY2/WLdDl6I60N9sKzqgDkQpjdMR4wQEVVccX+7
+         dv4Or74fAEf/A==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The PVRDMA device still reports the active_speed in u8.
-Lets use the ib_eth_get_speed to report the speed and
-width. Unfortunately, phys_state gets stored as msb of
-the new u16 active_speed.
 
-Fixes: 376ceb31ff87 ("RDMA: Fix link active_speed size")
-Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
-Signed-off-by: Adit Ranadive <aditr@vmware.com>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      | 18 ------------------
- .../infiniband/hw/vmw_pvrdma/pvrdma_verbs.c    |  8 ++++----
- .../infiniband/hw/vmw_pvrdma/pvrdma_verbs.h    |  2 +-
- 3 files changed, 5 insertions(+), 23 deletions(-)
+On 10/28/2020 2:14 PM, Jason Gunthorpe wrote:
+> On Wed, Oct 28, 2020 at 11:19:14AM +0200, Maor Gottlieb wrote:
+>>> +			struct rdma_conn_param *conn_param)
+>>>    {
+>>>    	struct rdma_id_private *id_priv =
+>>>    		container_of(id, struct rdma_id_private, id);
+>>>    	int ret;
+>>> -	mutex_lock(&id_priv->handler_mutex);
+>> You need to delete the mutex_unlock in success path too.
+> Gaaaaah. Just goes to prove I shouldn't write patches with a child on
+> my lap :\
+>
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index f58d19881524dc..a77750b8954db0 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -4072,7 +4072,6 @@ int rdma_connect_locked(struct rdma_cm_id *id,
+>   		ret = -ENOSYS;
+>   	if (ret)
+>   		goto err_state;
+> -	mutex_unlock(&id_priv->handler_mutex);
+>   	return 0;
+>   err_state:
+>   	cma_comp_exch(id_priv, RDMA_CM_CONNECT, RDMA_CM_ROUTE_RESOLVED);
+>
+> Thanks,
+> Jason
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-index c142f5e7f25f..17f20506575f 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -360,24 +360,6 @@ static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
- 	return (enum pvrdma_port_width)width;
- }
- 
--static inline enum ib_port_width pvrdma_port_width_to_ib(
--					enum pvrdma_port_width width)
--{
--	return (enum ib_port_width)width;
--}
--
--static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
--					enum ib_port_speed speed)
--{
--	return (enum pvrdma_port_speed)speed;
--}
--
--static inline enum ib_port_speed pvrdma_port_speed_to_ib(
--					enum pvrdma_port_speed speed)
--{
--	return (enum ib_port_speed)speed;
--}
--
- static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
- {
- 	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-index fc412cbfd042..221705837d78 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -167,11 +167,11 @@ int pvrdma_query_port(struct ib_device *ibdev, u8 port,
- 	props->sm_sl = resp->attrs.sm_sl;
- 	props->subnet_timeout = resp->attrs.subnet_timeout;
- 	props->init_type_reply = resp->attrs.init_type_reply;
--	props->active_width = pvrdma_port_width_to_ib(resp->attrs.active_width);
--	props->active_speed = pvrdma_port_speed_to_ib(resp->attrs.active_speed);
--	props->phys_state = resp->attrs.phys_state;
-+	err = ib_get_eth_speed(ibdev, 1, &props->active_speed,
-+			       &props->active_width);
-+	props->phys_state = resp->attrs.active_speed >> 8;
- 
--	return 0;
-+	return err;
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-index f0e5ffba2d51..715416902992 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h
-@@ -178,7 +178,7 @@ struct pvrdma_port_attr {
- 	u8			active_width;
- 	u16			active_speed;
- 	u8			phys_state;
--	u8			reserved[2];
-+	u8			reserved;
- };
- 
- struct pvrdma_global_route {
--- 
-2.18.1
-
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
