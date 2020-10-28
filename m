@@ -4,97 +4,119 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42DB7C55179
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 21:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD006C4363A
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 21:35:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1E4E24842
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 21:35:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89A6024842
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Oct 2020 21:35:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Z+xFWBa8"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="aS+R9tss"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726694AbgJ1VfL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Oct 2020 17:35:11 -0400
-Received: from nat-hk.nvidia.com ([203.18.50.4]:11845 "EHLO nat-hk.nvidia.com"
+        id S1726729AbgJ1VfR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Oct 2020 17:35:17 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:28258 "EHLO nat-hk.nvidia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726703AbgJ1VfK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726700AbgJ1VfK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 28 Oct 2020 17:35:10 -0400
-Received: from HKMAIL102.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5f99732d0000>; Wed, 28 Oct 2020 21:33:33 +0800
-Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL102.nvidia.com
- (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 28 Oct
- 2020 13:33:28 +0000
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.173)
- by HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Wed, 28 Oct 2020 13:33:28 +0000
+Received: from HKMAIL101.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f9960b90000>; Wed, 28 Oct 2020 20:14:49 +0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL101.nvidia.com
+ (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 28 Oct
+ 2020 12:14:43 +0000
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.171)
+ by HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 28 Oct 2020 12:14:43 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Ck/wuCJEDTtJGfLj+hJiGD7cpCk7mJHek5bANWji2uvCZbBE2nWXlZPcphb7fcaRnuZ2SoW4FuJpLBYwBlMMl/8M/qTtKyjlaYK29Bn9cCPMFwydRQb5yCOnOV8w64kQgQ26tv7eJpkdaMcie5BMCiVnyLIwlFvuhpeChYZkYuZQYdog4zM4GeWiapVEyWfBi3NdGLhJU4Qs1SIj4GiaeRt2IRReIE5Mo8WoGPms8PtNamEpZjTwJ4aZfs6t+CKtkHvbTTlep9mf2w/LNtqY4VFcMakurfHgPHl0qfwEvJAM0xgJ4mnkGjnVWQ9pPkwnzzkY+778qLYVsBjdrao4WA==
+ b=OCSDZgL05dyDiIyyctUaDs9bPa/AMR7fcRlj8gDV4gonXgS3mVisqdbR1RonXkd/J8/SXu1ED2TtELTt2rVeHwyforKVvtElXsIDJ2oNIzVVsmeaEvjDlmErIQh8Amt2rDKLxR3CzcoLlRucbUo/04zjSNGey5dBLI6fU+MUJUlxa2lQI56q4ccQfqG6wAX91EpgijO1MopwnxxZPRM6UI59kG1pAo4esvmYcT01ldn/doMQdLU+dBglpjebvqos/jdE459rqUmWGVgG6xSTfGrbtsZQzyP8Qnn+/pokqVmYnpuPMRJb+7suQfBIRF6AJ/RD3V0dhVsIXy5QrIHXEA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Psxsz9YuMQF8C6dHzvkuZjnpYRrloQUZ+WbtQ6jXfBg=;
- b=YcFtLLrxfliDzl+/a/LjBjvyj1E3gAIBoh27I1JyA4vkjeGRonFbDHSKgXDjqaBkNv1dcWDggc5OdKz0BYqgJZZCI6szoGrhPXKsjCTHdGu4iOAmlNf87U0AT3DjbROWF/dsS56LNC5JS7J8aVcnMK/bzhQfdILE41gVUoqB2tsFnKSgKIwkJGNMqDbD27RveqzLlmMCg92tA9QnN/SE6B+5aSnv3sbwKrGkWEodwIUkh79ZsooG/B8maNHvDRRJekFCuTwknYWzJpLIjXM8ukTDWzol6/08JmNZF/yJbz4etRazDnJGdfallSlb40KY7NUa3mMTij1AnBRjXIEhRw==
+ bh=GDsk0pGeWll3uhXmO7tKPci2CWy4O4fCJM6xIer31Ao=;
+ b=cE2azgy6OKXmje4H1nnHi/maQfbOzS/R02IW8EEemRbE62+ZPZyvcGDhdlRKxT7dRp2b6p1f2r4rwC2Tj+8mJqix+xgVe706hhDzMOZCYH+QMUPWYN5I8PoUtTgwrqntP69YyKJZy+d/ZoayFUygxJsbw71p/QS1d4hGmRkjzFeu0mNuDONyV1w2IUdwQ5lKlRzcHXx30xtdIDqR2hbkn6YoRBGl8YTVp7F19Im4NUzIJItJpHRP9DdkeaAaW7Lo5Rmh2Q9DOMLRU3C03M9VGh5SCFSEz0gGa0t4Vi26O7/OP/YIZi9FZpTwJgPs7hp6L1ZwdFpRAczSlXg17KSlgQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4943.namprd12.prod.outlook.com (2603:10b6:5:1bc::21) with
+Received: from CH2PR12MB3831.namprd12.prod.outlook.com (2603:10b6:610:29::13)
+ by CH2PR12MB4021.namprd12.prod.outlook.com (2603:10b6:610:2b::29) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18; Wed, 28 Oct
- 2020 13:33:24 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3499.027; Wed, 28 Oct 2020
- 13:33:24 +0000
-Date:   Wed, 28 Oct 2020 10:33:22 -0300
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.25; Wed, 28 Oct
+ 2020 12:14:40 +0000
+Received: from CH2PR12MB3831.namprd12.prod.outlook.com
+ ([fe80::304d:bd84:52d9:7f74]) by CH2PR12MB3831.namprd12.prod.outlook.com
+ ([fe80::304d:bd84:52d9:7f74%6]) with mapi id 15.20.3477.028; Wed, 28 Oct 2020
+ 12:14:40 +0000
+Date:   Wed, 28 Oct 2020 09:14:37 -0300
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Jing Xiangfeng <jingxiangfeng@huawei.com>
-CC:     <dledford@redhat.com>, <leon@kernel.org>, <maorg@mellanox.com>,
-        <parav@mellanox.com>, <galpress@amazon.com>, <monis@mellanox.com>,
-        <chuck.lever@oracle.com>, <maxg@mellanox.com>,
-        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/core: Fix error return in _ib_modify_qp()
-Message-ID: <20201028133322.GA2410517@nvidia.com>
-References: <20201016075845.129562-1-jingxiangfeng@huawei.com>
+To:     Maor Gottlieb <maorg@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Chao Leng <lengchao@huawei.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        Keith Busch <kbusch@kernel.org>,
+        <linux-nvme@lists.infradead.org>,
+        "Max Gurtovoy" <mgurtovoy@nvidia.com>, <netdev@vger.kernel.org>,
+        <rds-devel@oss.oracle.com>, Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH rdma v2] RDMA: Add rdma_connect_locked()
+Message-ID: <20201028121437.GU1523783@nvidia.com>
+References: <0-v2-53c22d5c1405+33-rdma_connect_locking_jgg@nvidia.com>
+ <4401b7b1-5d05-a715-4701-957fd09f34c9@nvidia.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20201016075845.129562-1-jingxiangfeng@huawei.com>
-X-ClientProxiedBy: BL0PR02CA0034.namprd02.prod.outlook.com
- (2603:10b6:207:3c::47) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+In-Reply-To: <4401b7b1-5d05-a715-4701-957fd09f34c9@nvidia.com>
+X-ClientProxiedBy: MN2PR08CA0008.namprd08.prod.outlook.com
+ (2603:10b6:208:239::13) To CH2PR12MB3831.namprd12.prod.outlook.com
+ (2603:10b6:610:29::13)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by BL0PR02CA0034.namprd02.prod.outlook.com (2603:10b6:207:3c::47) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Wed, 28 Oct 2020 13:33:23 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kXlZq-00A76G-Df; Wed, 28 Oct 2020 10:33:22 -0300
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR08CA0008.namprd08.prod.outlook.com (2603:10b6:208:239::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Wed, 28 Oct 2020 12:14:40 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kXkLd-009vvx-Mn; Wed, 28 Oct 2020 09:14:37 -0300
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1603892013; bh=Psxsz9YuMQF8C6dHzvkuZjnpYRrloQUZ+WbtQ6jXfBg=;
+        t=1603887289; bh=GDsk0pGeWll3uhXmO7tKPci2CWy4O4fCJM6xIer31Ao=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=Z+xFWBa8k8DuW3ZGy0gsgxTtIE8HGH8ZB9U+k0eIdcDiiPRZaAWXGtyuNIwzAmvhp
-         IEqsTyFMAVBtk7zUELD9toWKxaf3DVgRHtY3bJn4DaK+/UvUmHLZDgK1gpdLnQvFsp
-         aBsv26idm//P5hY5/9xizJVfdH0Gvp3GPCgwR0m8EB+m0rT/DU9XoffsDNEzr4s2A4
-         XcohJdMxzYqN0vVTVpR6a7fzTB+GxqgaN9RstIvd9OyPlAxsEnZh//MIUs9aoPpJIA
-         8aOSv8M/j+ZKHzoumzuE5DxfUmb6eMKH5YnSgWq2c0PuG5CMIcKTmp60V26gLjb1E1
-         EXcb+NaEstR5Q==
+        b=aS+R9tss6LVVb5Qv8AxvF/SbcIZwtLAToMUBdozqBpZyM0nbXaAnYELa8HsvV+2nn
+         JfH07a9NeE6PAjWd+KdiGzKdWm3Qw2MPTKZaYG5yZptJ4l1rW9at+lE6BQpjxtrIjp
+         P3CWHAGi1+B6IbQl2FENZOjXX/yzOTEt0W7BS+jsGtnDUAccNgaqlvBb0c45Sl3xw5
+         uV/xxyFWQWJa4GZ4aH/f7XjQn5WXmYWISnue1aG5SaYaXNAftDSAEzOQvm9wY4an4Z
+         DCPFV3BZHPIi2AiXbNr80XgZP92UEX7KjzCs2intun9fljaj7glWNN1qtRdAwfeeCJ
+         v4oikr2yYOAqA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Oct 16, 2020 at 03:58:45PM +0800, Jing Xiangfeng wrote:
-> Fix to return error code PTR_ERR() from the error handling case instead of
-> 0.
+On Wed, Oct 28, 2020 at 11:19:14AM +0200, Maor Gottlieb wrote:
+> > +			struct rdma_conn_param *conn_param)
+> >   {
+> >   	struct rdma_id_private *id_priv =
+> >   		container_of(id, struct rdma_id_private, id);
+> >   	int ret;
+> > -	mutex_lock(&id_priv->handler_mutex);
 > 
-> Fixes: 51aab12631dd ("RDMA/core: Get xmit slave for LAG")
-> Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
-> Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
-> ---
->  drivers/infiniband/core/verbs.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> You need to delete the mutex_unlock in success path too.
 
-Applied to for-next, thanks
+Gaaaaah. Just goes to prove I shouldn't write patches with a child on
+my lap :\
 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index f58d19881524dc..a77750b8954db0 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4072,7 +4072,6 @@ int rdma_connect_locked(struct rdma_cm_id *id,
+ 		ret = -ENOSYS;
+ 	if (ret)
+ 		goto err_state;
+-	mutex_unlock(&id_priv->handler_mutex);
+ 	return 0;
+ err_state:
+ 	cma_comp_exch(id_priv, RDMA_CM_CONNECT, RDMA_CM_ROUTE_RESOLVED);
+
+Thanks,
 Jason
