@@ -2,94 +2,91 @@ Return-Path: <SRS0=/7et=EE=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,DATE_IN_PAST_03_06,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E76A5C55179
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6D06C55179
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 01:00:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 92E9920724
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 00:56:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603932983;
-	bh=BSxR9G99QZZs9WQft0msIQGjwPYUjz+YA1ZtZ90swg4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=syJHwJcY0/jaOJfePfIKj3QCX37+rbFEGHGYrrgbmlbxTSj4KbiFNcOc6IBDWM0GJ
-	 C8kf39yDx8gRxh0h8aCOWVZTRApqRSqw2SSYTBM1N4aVve/jVLbou3uZhkKdkoc/ND
-	 AoM1axLbysKE22dir4J6JAyk/3BcD2RLUPcXwV0A=
+	by mail.kernel.org (Postfix) with ESMTP id 9DCDB207E8
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Oct 2020 01:00:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391016AbgJ2A4W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:56:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60520 "EHLO mail.kernel.org"
+        id S2403969AbgJ2A7y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Oct 2020 20:59:54 -0400
+Received: from verein.lst.de ([213.95.11.211]:45249 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731617AbgJ1WRg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 28 Oct 2020 18:17:36 -0400
-Received: from localhost (unknown [213.57.247.131])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 75ADC22275;
-        Wed, 28 Oct 2020 07:16:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1603869365;
-        bh=BSxR9G99QZZs9WQft0msIQGjwPYUjz+YA1ZtZ90swg4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ztI4+WMUvZa0GWBnfKsmFMQgiwsXUHvSmBC0cGW2zG4/jBiYdYKeimxRCZUGVtSzY
-         NKX8OJOH0OC8jpwXKQEE570YqQVdwcjy+bJhU5rpVWZKm+OySoGTEKtYOuCbmWyfR9
-         X0M3K4XN+1qkqv+KA2ebktet80+pHQUHutl5NI5o=
-Date:   Wed, 28 Oct 2020 09:16:01 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Chuck Lever <chuck.lever@oracle.com>
-Cc:     Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 00/20] NFSD support for multiple RPC/RDMA chunks
-Message-ID: <20201028071601.GA114054@unreal>
-References: <160373843299.1886.12604782813896379719.stgit@klimt.1015granger.net>
- <20201027060823.GF4821@unreal>
- <DAC657D8-D254-452C-9B21-3053F70C8C73@oracle.com>
+        id S1731500AbgJ1WR3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 28 Oct 2020 18:17:29 -0400
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 7742C68BFE; Wed, 28 Oct 2020 18:31:08 +0100 (CET)
+Date:   Wed, 28 Oct 2020 18:31:08 +0100
+From:   "hch@lst.de" <hch@lst.de>
+To:     Parav Pandit <parav@nvidia.com>
+Cc:     "hch@lst.de" <hch@lst.de>, Jakub Kicinski <kuba@kernel.org>,
+        syzbot <syzbot+34dc2fea3478e659af01@syzkaller.appspotmail.com>,
+        "christian.koenig@amd.com" <christian.koenig@amd.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
+        "linaro-mm-sig-owner@lists.linaro.org" 
+        <linaro-mm-sig-owner@lists.linaro.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "sumit.semwal@linaro.org" <sumit.semwal@linaro.org>,
+        "syzkaller-bugs@googlegroups.com" <syzkaller-bugs@googlegroups.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: WARNING in dma_map_page_attrs
+Message-ID: <20201028173108.GA10135@lst.de>
+References: <000000000000335adc05b23300f6@google.com> <000000000000a0f8a305b261fe4a@google.com> <20201024111516.59abc9ec@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net> <BY5PR12MB4322CC03CE0D34B83269676ADC190@BY5PR12MB4322.namprd12.prod.outlook.com> <20201027081103.GA22877@lst.de> <BY5PR12MB43221380BB0259FF0693BB0CDC160@BY5PR12MB4322.namprd12.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <DAC657D8-D254-452C-9B21-3053F70C8C73@oracle.com>
+In-Reply-To: <BY5PR12MB43221380BB0259FF0693BB0CDC160@BY5PR12MB4322.namprd12.prod.outlook.com>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 27, 2020 at 09:24:54AM -0400, Chuck Lever wrote:
-> Hi Leon-
->
-> > On Oct 27, 2020, at 2:08 AM, Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > On Mon, Oct 26, 2020 at 02:53:53PM -0400, Chuck Lever wrote:
-> >> This series implements support for multiple RPC/RDMA chunks per RPC
-> >> transaction. This is one of the few remaining generalities that the
-> >> Linux NFS/RDMA server implementation lacks.
-> >>
-> >> There is currently one known NFS/RDMA client implementation that can
-> >> send multiple chunks per RPC, and that is Solaris. Multiple chunks
-> >> are rare enough that the Linux NFS/RDMA implementation has been
-> >> successful without this support for many years.
-> >
-> > So why do we need it? Solaris is dead, and like you wrote Linux systems
-> > work without this feature just fine, what are the benefits? Who will use it?
->
-> The Linux NFS implementation is living. We can add the ability
-> to provision multiple chunks per RPC to the Linux NFS client at
-> any time.
->
-> Likewise any actively developed NFS/RDMA implementation can add
-> this feature. The RPC/RDMA version 1 protocol does not have the
-> ability to communicate the maximum number of chunks the server
-> will accept per RPC.
->
-> Other server implementations do support multiple chunks per RPC.
-> The Linux NFS/RDMA server implementation has always been incomplete
-> in this regard.
->
-> And the Linux NFS server implementation (the non-transport specific
-> part) already supports multiple data payloads per NFSv4 COMPOUND.
+On Tue, Oct 27, 2020 at 12:52:30PM +0000, Parav Pandit wrote:
+> 
+> > From: hch@lst.de <hch@lst.de>
+> > Sent: Tuesday, October 27, 2020 1:41 PM
+> > 
+> > On Mon, Oct 26, 2020 at 05:23:48AM +0000, Parav Pandit wrote:
+> > > Hi Christoph,
+> > >
+> > > > From: Jakub Kicinski <kuba@kernel.org>
+> > > > Sent: Saturday, October 24, 2020 11:45 PM
+> > > >
+> > > > CC: rdma, looks like rdma from the stack trace
+> > > >
+> > > > On Fri, 23 Oct 2020 20:07:17 -0700 syzbot wrote:
+> > > > > syzbot has found a reproducer for the following issue on:
+> > > > >
+> > > > > HEAD commit:    3cb12d27 Merge tag 'net-5.10-rc1' of
+> > git://git.kernel.org/..
+> > >
+> > > In [1] you mentioned that dma_mask should not be set for dma_virt_ops.
+> > > So patch [2] removed it.
+> > >
+> > > But check to validate the dma mask for all dma_ops was added in [3].
+> > >
+> > > What is the right way? Did I misunderstood your comment about
+> > dma_mask in [1]?
+> > 
+> > No, I did not say we don't need the mask.  I said copying over the various
+> > dma-related fields from the parent is bogus.
+> > 
+> > I think rxe (and ther other drivers/infiniband/sw drivers) need a simple
+> > dma_coerce_mask_and_coherent and nothing else.
+> 
+> I see. Does below fix make sense?
+> Is DMA_MASK_NONE correct?
 
-Thanks, I just got different feeling then I read the cover letter.
-You presented it like no one needs this feature.
-
-Thanks
+DMA_MASK_NONE is gone in 5.10.  I think you want DMA_BIT_MASK(64).
+That isn't actually correct for 32-bit platforms, but good enough.
