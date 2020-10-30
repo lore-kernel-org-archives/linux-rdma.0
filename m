@@ -2,39 +2,36 @@ Return-Path: <SRS0=ZJsx=EF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B367DC55179
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C853C4742C
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BD2C20825
+	by mail.kernel.org (Postfix) with ESMTP id D3784221EB
 	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726527AbgJ3LlQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1726530AbgJ3LlQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 30 Oct 2020 07:41:16 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7115 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7107 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726530AbgJ3LlQ (ORCPT
+        with ESMTP id S1726486AbgJ3LlQ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Oct 2020 07:41:16 -0400
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CN0kZ49TpzLr2L;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CN0kZ4rq5zLrSy;
         Fri, 30 Oct 2020 19:41:10 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 30 Oct 2020 19:41:01 +0800
+ 14.3.487.0; Fri, 30 Oct 2020 19:40:59 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 4/8] RDMA/hns: Add check for the validity of sl configuration in UD SQ WQE
-Date:   Fri, 30 Oct 2020 19:39:31 +0800
-Message-ID: <1604057975-23388-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 0/8] RDMA/hns: Support UD for HIP09
+Date:   Fri, 30 Oct 2020 19:39:27 +0800
+Message-ID: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
-References: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -43,50 +40,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jiaran Zhang <zhangjiaran@huawei.com>
+This series does cleanups on UD related code at first, including removing
+dead code, adding necessary check and some refactors. Then the UD feature
+is enabled on HIP09.
 
-According to the RoCE v1 specification, the sl (service level) 0-7 are
-mapped directly to priorities 0-7 respectively, sl 8-15 are reserved. The
-driver should verify whether the value of sl is larger than 7, if so, an
-exception should be returned.
+Jiaran Zhang (1):
+  RDMA/hns: Add check for the validity of sl configuration in UD SQ WQE
 
-Fixes: d6a3627e311c ("RDMA/hns: Optimize wqe buffer set flow for post send")
-Signed-off-by: Jiaran Zhang <zhangjiaran@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Weihang Li (7):
+  RDMA/hns: Only record vlan info for HIP08
+  RDMA/hns: Fix missing fields in address vector
+  RDMA/hns: Avoid setting loopback indicator when smac is same as dmac
+  RDMA/hns: Remove the portn field in UD SQ WQE
+  RDMA/hns: Simplify process of filling UD SQ WQE
+  RDMA/hns: Add UD support for HIP09
+  RDMA/hns: Add support for UD inline
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 7a1d30f..69386a5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -427,9 +427,10 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
- 			     void *wqe, unsigned int *sge_idx,
- 			     unsigned int owner_bit)
- {
--	struct hns_roce_dev *hr_dev = to_hr_dev(qp->ibqp.device);
- 	struct hns_roce_ah *ah = to_hr_ah(ud_wr(wr)->ah);
- 	struct hns_roce_v2_ud_send_wqe *ud_sq_wqe = wqe;
-+	struct ib_device *ib_dev = qp->ibqp.device;
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
- 	unsigned int curr_idx = *sge_idx;
- 	int valid_num_sge;
- 	u32 msg_len = 0;
-@@ -489,6 +490,13 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
- 		       V2_UD_SEND_WQE_BYTE_36_TCLASS_S, ah->av.tclass);
- 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M,
- 		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
-+
-+	if (unlikely(ah->av.sl > MAX_SERVICE_LEVEL)) {
-+		ibdev_err(ib_dev,
-+			  "failed to fill ud av, ud sl (%d) shouldn't be larger than %d.\n",
-+			  ah->av.sl, MAX_SERVICE_LEVEL);
-+		return -EINVAL;
-+	}
- 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
- 		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
- 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_PORTN_M,
+ drivers/infiniband/hw/hns/hns_roce_ah.c     |  61 ++++----
+ drivers/infiniband/hw/hns/hns_roce_device.h |   5 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 206 ++++++++++++++++++++--------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  44 +++---
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |   9 +-
+ 5 files changed, 209 insertions(+), 116 deletions(-)
+
 -- 
 2.8.1
 
