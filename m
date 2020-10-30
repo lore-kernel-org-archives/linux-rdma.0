@@ -2,143 +2,83 @@ Return-Path: <SRS0=ZJsx=EF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA885C55179
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 09:48:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22034C4363A
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51B7520724
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 09:48:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloud.ionos.com header.i=@cloud.ionos.com header.b="Ggurgj+Z"
+	by mail.kernel.org (Postfix) with ESMTP id C5F342076E
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726014AbgJ3JsP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 30 Oct 2020 05:48:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47146 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725808AbgJ3JsP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Oct 2020 05:48:15 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B38C9C0613CF
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2020 02:48:13 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id b8so5766988wrn.0
-        for <linux-rdma@vger.kernel.org>; Fri, 30 Oct 2020 02:48:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloud.ionos.com; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=q0cqWxTuGMilmd1mw4GMD/Lnmx0idiEf5piJvmyiMKY=;
-        b=Ggurgj+ZoTJw7rUVBXhpNGvYG0Hbko/Y2zN5RTqsP0yKLiY/lCLGM+Be09MaNo6NL5
-         R0r3edocuOljZHlgNT/mm3tJSj+Zq7Uf3HIU7UiGb4lUS6CuqqVtB0pELN0CzGGV2ohl
-         bYgcPlVryfTA9Wq3v0vGRSd1Qa4KGp0Re3POLEd0xclAb0sBI03hh3wApBYXBoqfAKGG
-         ZA4VO0axmo7EFDg2f5IAMRyuzVrh+LSELd315JifF6xKsepytOLxa8FtShNLjKqaWgbM
-         Z+/axW+CEpSQOiZEyGo73tYBlTzRGdXnvv7aEiIfVwvUkQHuZ875pTjlHC8l8+yV7t8U
-         QqDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=q0cqWxTuGMilmd1mw4GMD/Lnmx0idiEf5piJvmyiMKY=;
-        b=RxJ0Ijgv8JSccFOSnOjfB6icASgaKrPuMUAz3JLAyx7dH8EIfJ7gmPf39SjlnSZa7A
-         5orkqGmu7Pk2zuhpIE1Zq1Lu7Z9mazNZsEjaT86viyDUJD1gKSr5kPBvmsgni2C2cUsp
-         jia9NtCSXoRImJ56r6BpjATa7I0skMRUqX+fT2Y2u80sIVTBnM+7ps+KYibjkpiZXweG
-         UUzwA0QdWTCtMyz3MhD2YGW/ss7TIfbhR+EaOiAdFio4FsOHlQH2e6AwNQ79F6s8V4Jr
-         taLXs+UN+ukV+E6ZuPV1H0G88ehMstvcz9cRnLvTdXUX+UUDyWNwbWCy3Imse1mlYhPN
-         QUbQ==
-X-Gm-Message-State: AOAM5322iTCSQ7J0C76ClU8eO5uqPvYQMgpw4uwga50BzJ8hZXdrM+FI
-        +UAiyfJv1cILb6PjFfQSw1+D4A==
-X-Google-Smtp-Source: ABdhPJyfpTBvv56UHyIdIL9rnyOiKBDXtJ0ioZdDUamPiwzCvH3AOaGoUnyftkeS/BxarIvsbfBY2g==
-X-Received: by 2002:a05:6000:1188:: with SMTP id g8mr1738804wrx.422.1604051292279;
-        Fri, 30 Oct 2020 02:48:12 -0700 (PDT)
-Received: from ?IPv6:240e:82:3:96c8:9dbf:9753:3203:b67b? ([240e:82:3:96c8:9dbf:9753:3203:b67b])
-        by smtp.gmail.com with ESMTPSA id s2sm4153549wmf.45.2020.10.30.02.48.07
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 30 Oct 2020 02:48:11 -0700 (PDT)
-Subject: Re: [PATCH] RDMA: Fix software RDMA drivers for dma mapping error
-To:     Parav Pandit <parav@nvidia.com>,
-        dennis.dalessandro@cornelisnetworks.com,
-        mike.marciniszyn@cornelisnetworks.com, dledford@redhat.com,
-        jgg@ziepe.ca, yanjunz@nvidia.com, bmt@zurich.ibm.com,
-        linux-rdma@vger.kernel.org
-Cc:     hch@lst.de, syzbot+34dc2fea3478e659af01@syzkaller.appspotmail.com
-References: <20201030093803.278830-1-parav@nvidia.com>
-From:   Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Message-ID: <5448d3f6-b5b5-4362-373a-5e424ca787db@cloud.ionos.com>
-Date:   Fri, 30 Oct 2020 10:48:01 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        id S1726528AbgJ3LlM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 30 Oct 2020 07:41:12 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:7108 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726055AbgJ3LlM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Oct 2020 07:41:12 -0400
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CN0kZ4LM5zLr6S;
+        Fri, 30 Oct 2020 19:41:10 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 30 Oct 2020 19:41:01 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next 5/8] RDMA/hns: Remove the portn field in UD SQ WQE
+Date:   Fri, 30 Oct 2020 19:39:32 +0800
+Message-ID: <1604057975-23388-6-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
+References: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20201030093803.278830-1-parav@nvidia.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+This field in UD WQE in not used by hardware.
 
+Fixes: 7bdee4158b37 ("RDMA/hns: Fill sq wqe context of ud type in hip08")
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 --
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 3 ---
+ 2 files changed, 5 deletions(-)
 
-On 10/30/20 10:38, Parav Pandit wrote:
-> A cited commit in fixes tag avoided setting dma_mask of the ib_device.
-> Commit [1] made dma_mask as mandetory field to be setup even for
-> dma_virt_ops based dma devices. Due to which below call trace occurred.
-> 
-> Fix it by setting empty DMA MASK for software based RDMA devices.
-> 
-> WARNING: CPU: 1 PID: 8488 at kernel/dma/mapping.c:149
-> dma_map_page_attrs+0x493/0x700 kernel/dma/mapping.c:149 Modules linked in:
-> CPU: 1 PID: 8488 Comm: syz-executor144 Not tainted 5.9.0-syzkaller #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine,
-> BIOS Google 01/01/2011
-> RIP: 0010:dma_map_page_attrs+0x493/0x700 kernel/dma/mapping.c:149
-> Trace:
->   dma_map_single_attrs include/linux/dma-mapping.h:279 [inline]
-> ib_dma_map_single include/rdma/ib_verbs.h:3967 [inline]
->   ib_mad_post_receive_mads+0x23f/0xd60
-> drivers/infiniband/core/mad.c:2715
->   ib_mad_port_start drivers/infiniband/core/mad.c:2862 [inline]
-> ib_mad_port_open drivers/infiniband/core/mad.c:3016 [inline]
->   ib_mad_init_device+0x72b/0x1400 drivers/infiniband/core/mad.c:3092
->   add_client_context+0x405/0x5e0 drivers/infiniband/core/device.c:680
->   enable_device_and_get+0x1d5/0x3c0
-> drivers/infiniband/core/device.c:1301
->   ib_register_device drivers/infiniband/core/device.c:1376 [inline]
->   ib_register_device+0x7a7/0xa40 drivers/infiniband/core/device.c:1335
->   rxe_register_device+0x46d/0x570
-> drivers/infiniband/sw/rxe/rxe_verbs.c:1182
->   rxe_add+0x12fe/0x16d0 drivers/infiniband/sw/rxe/rxe.c:247
->   rxe_net_add+0x8c/0xe0 drivers/infiniband/sw/rxe/rxe_net.c:507
->   rxe_newlink drivers/infiniband/sw/rxe/rxe.c:269 [inline]
->   rxe_newlink+0xb7/0xe0 drivers/infiniband/sw/rxe/rxe.c:250
->   nldev_newlink+0x30e/0x540 drivers/infiniband/core/nldev.c:1555
->   rdma_nl_rcv_msg+0x367/0x690 drivers/infiniband/core/netlink.c:195
->   rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
->   rdma_nl_rcv+0x2f2/0x440 drivers/infiniband/core/netlink.c:259
->   netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
->   netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
->   netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1919
-> sock_sendmsg_nosec net/socket.c:651 [inline]
->   sock_sendmsg+0xcf/0x120 net/socket.c:671
->   ____sys_sendmsg+0x6e8/0x810 net/socket.c:2353
->   ___sys_sendmsg+0xf3/0x170 net/socket.c:2407
->   __sys_sendmsg+0xe5/0x1b0 net/socket.c:2440
->   do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
->   entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> RIP: 0033:0x443699
-> 
-> [1] commit f959dcd6ddfd ("dma-direct: Fix potential NULL pointer dereference")
-> 
-> Reported-by: syzbot+34dc2fea3478e659af01@syzkaller.appspotmail.com
-> Fixes: e0477b34d9d1 ("RDMA: Explicitly pass in the dma_device to ib_register_device")
-> Signed-off-by: Parav Pandit <parav@nvidia.com>
-> ---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 69386a5..99e4189 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -499,8 +499,6 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
+ 	}
+ 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
+ 		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
+-	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_PORTN_M,
+-		       V2_UD_SEND_WQE_BYTE_40_PORTN_S, qp->port);
+ 
+ 	roce_set_field(ud_sq_wqe->byte_48, V2_UD_SEND_WQE_BYTE_48_SGID_INDX_M,
+ 		       V2_UD_SEND_WQE_BYTE_48_SGID_INDX_S, ah->av.gid_index);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 1409d05..1466888 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1121,9 +1121,6 @@ struct hns_roce_v2_ud_send_wqe {
+ #define	V2_UD_SEND_WQE_BYTE_40_SL_S 20
+ #define V2_UD_SEND_WQE_BYTE_40_SL_M GENMASK(23, 20)
+ 
+-#define	V2_UD_SEND_WQE_BYTE_40_PORTN_S 24
+-#define V2_UD_SEND_WQE_BYTE_40_PORTN_M GENMASK(26, 24)
+-
+ #define V2_UD_SEND_WQE_BYTE_40_UD_VLAN_EN_S 30
+ 
+ #define	V2_UD_SEND_WQE_BYTE_40_LBI_S 31
+-- 
+2.8.1
 
-Fixed the issue which happened in my test.
-
-Tested-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-
-Guoqing
