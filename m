@@ -2,67 +2,94 @@ Return-Path: <SRS0=ZJsx=EF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C853C4742C
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC96C4363A
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:47:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3784221EB
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:41:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A63C12076E
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 11:47:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="gaHMJz3f"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726530AbgJ3LlQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 30 Oct 2020 07:41:16 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:7107 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726486AbgJ3LlQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Oct 2020 07:41:16 -0400
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CN0kZ4rq5zLrSy;
-        Fri, 30 Oct 2020 19:41:10 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 30 Oct 2020 19:40:59 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/8] RDMA/hns: Support UD for HIP09
-Date:   Fri, 30 Oct 2020 19:39:27 +0800
-Message-ID: <1604057975-23388-1-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
+        id S1726072AbgJ3Lrk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 30 Oct 2020 07:47:40 -0400
+Received: from nat-hk.nvidia.com ([203.18.50.4]:14591 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725993AbgJ3Lrj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 30 Oct 2020 07:47:39 -0400
+Received: from HKMAIL101.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5f9bfd590000>; Fri, 30 Oct 2020 19:47:37 +0800
+Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL101.nvidia.com
+ (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 30 Oct
+ 2020 11:47:37 +0000
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.108)
+ by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 30 Oct 2020 11:47:37 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FnVxFIvVt1t0HAvUYFEmudhNT7Gq9ns6mGkNPo10bgacdNEeTsApsmQNdeenCEe3Ip+yOKVM37UnGeKUHhJ8gI9mNuIEe7Q/C/cTRXUKtxReaAFqt3vvsvlSbtUcg1PiaBa4p1bBcJi4l+Yk60EV0LkA1813Yw08oRYnROKLxNX8S5vw6Onu6PV68MEfK1+09PZ+oN2nA9Xsbb6qiBOVHiXfOxZfSwUTe/H037AaSNnaXmlaJbkyLDog+85/OlI9ZUoFA0BH/IE/udRCZSlUe1D0sTB7iwKF2a/rWY63ZQn4HcGpRIabR46NUrBbTPUUO9a5WQdlXwmqEpmNfoG/HQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=yEj98RiKUedCvIJLRq5PRwXY4N+xgposVn0nq8rSQRE=;
+ b=SPQ7FRUt7o2U6fE1g16MSKQa63ZJuhR72G4BccC03ZM39z1EmCr6inIMQGGXxF7YRXT/4mI4Q+ezE8EbF7bVdIA7uJw2PI3Lc7tpnZKhqVP1BUWdaa42pt1K/W7UW0S5BU38mITvO858mNloqzh9OvpuxjJETNubWh4Ikpbens/NnXZxNQkNqKfgObJUJBtahxwORLlRLWQdMVSxaERNPoadjhEtMgcYeIZ4ERMmJNroudGs6v9zV1Z6yLdLS4y+REwfBgwuGlvSF5bi+35JF0gJOxFIFSlAN4mFPbsupLMyjY+l2r4QzgfVrQ6Ftqi8SR7NAxFZWVlydMFQhiI5hA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4780.namprd12.prod.outlook.com (2603:10b6:5:168::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.19; Fri, 30 Oct
+ 2020 11:47:34 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3499.027; Fri, 30 Oct 2020
+ 11:47:34 +0000
+Date:   Fri, 30 Oct 2020 08:47:32 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: another change breaks rxe
+Message-ID: <20201030114732.GC2620339@nvidia.com>
+References: <32fa9c9f-5816-7474-b821-ccccd4cb5af0@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <32fa9c9f-5816-7474-b821-ccccd4cb5af0@gmail.com>
+X-ClientProxiedBy: MN2PR10CA0013.namprd10.prod.outlook.com
+ (2603:10b6:208:120::26) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR10CA0013.namprd10.prod.outlook.com (2603:10b6:208:120::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Fri, 30 Oct 2020 11:47:33 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kYSsW-00CwHt-OG; Fri, 30 Oct 2020 08:47:32 -0300
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1604058457; bh=yEj98RiKUedCvIJLRq5PRwXY4N+xgposVn0nq8rSQRE=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=gaHMJz3fodpzMlqvVq4QdOvcJHrPa7FbsfYg8ooQmY+/6sxsjFDKTnvfhB2i/xjS3
+         knYvNko2TJeNdJBasy9ATYZZUcw892j4PlDcMl/VdJfovA9C9a7pJKglBF3TrbgeCe
+         pmp2YM+ekOwVxywXNjXlJFDfrqalOjZhoYrKjPPPI73ov9CDNFiq0noM3+4ow2qgev
+         rmqNIsIKKT4E0szqes2XWhA7Olz3c8WGRR0xfUQlZhK7j62FjFkSb44SCQkWXIK1yY
+         Xdege3NNwWJJIMApOJZ/CRryZRxbsxq5qKkkWVnLU+3UoBVXSjN3wRCyrJt+w9E74A
+         cGzlblMldwWug==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series does cleanups on UD related code at first, including removing
-dead code, adding necessary check and some refactors. Then the UD feature
-is enabled on HIP09.
+On Fri, Oct 30, 2020 at 12:41:12AM -0500, Bob Pearson wrote:
 
-Jiaran Zhang (1):
-  RDMA/hns: Add check for the validity of sl configuration in UD SQ WQE
+> breaks rxe because it does use IB_USER_VERBS_CMD_POST_SEND. rxe
+> posts wqes to a work queue in shared memory and then calls
+> ibv_post_send with zero wqes as a doorbell to the kernel which uses
+> this as a hint to go read the shared memory.
 
-Weihang Li (7):
-  RDMA/hns: Only record vlan info for HIP08
-  RDMA/hns: Fix missing fields in address vector
-  RDMA/hns: Avoid setting loopback indicator when smac is same as dmac
-  RDMA/hns: Remove the portn field in UD SQ WQE
-  RDMA/hns: Simplify process of filling UD SQ WQE
-  RDMA/hns: Add UD support for HIP09
-  RDMA/hns: Add support for UD inline
+Gah, siw and rxe are open coding this stuff (wrongly!) in rdma-core
 
- drivers/infiniband/hw/hns/hns_roce_ah.c     |  61 ++++----
- drivers/infiniband/hw/hns/hns_roce_device.h |   5 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 206 ++++++++++++++++++++--------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  44 +++---
- drivers/infiniband/hw/hns/hns_roce_qp.c     |   9 +-
- 5 files changed, 209 insertions(+), 116 deletions(-)
+This would be a lot better to use an eventfd
 
--- 
-2.8.1
-
+Jason
