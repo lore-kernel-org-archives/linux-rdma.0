@@ -2,118 +2,122 @@ Return-Path: <SRS0=ZJsx=EF=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92DD2C4363A
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 02:54:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97872C5517A
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 05:46:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24C8320791
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 02:54:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EB79206F4
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Oct 2020 05:46:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fHrddPxi"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tob8R3F6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725790AbgJ3Cy1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Oct 2020 22:54:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39882 "EHLO
+        id S1725771AbgJ3Fq4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 30 Oct 2020 01:46:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38230 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725780AbgJ3Cy0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Oct 2020 22:54:26 -0400
-Received: from mail-oo1-xc43.google.com (mail-oo1-xc43.google.com [IPv6:2607:f8b0:4864:20::c43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F1FDC0613CF
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2020 19:54:26 -0700 (PDT)
-Received: by mail-oo1-xc43.google.com with SMTP id f1so1272470oov.1
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2020 19:54:26 -0700 (PDT)
+        with ESMTP id S1725770AbgJ3Fqz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Oct 2020 01:46:55 -0400
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 956F8C0613D4
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2020 22:46:55 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id b2so4620894ots.5
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Oct 2020 22:46:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=3MjkbtwLZRo7hjCSi0XdpJJrMSdKJOPlZBTkb1T3jx4=;
-        b=fHrddPxiwrYccFgjtFJwwrg/xoOXCJoaVI4TpKvCkqbZ2snTMEZ1OzGObSMrWdGNYN
-         of8f928JlZAQrd07IGqyImdti4w4A6ka9QAqyuA1a4pncDGk6b+2nCjdakDnsnj+O2Pn
-         /CDp2qSjq034JmcALV6rW3VwsqBgo50Trc02Vj4+hg/TLwum5EGnS5HsntuG4syoVHcO
-         GbKJ4ZAMEoDnIVsF+d4foOmwrbtTWCh5dQZ2YVL+Nk8VwS7fp1zJAUq7jQEnntkUbWfU
-         6MZnNcMUM98+mjxe+NVJtLeCFy9gU0gtTwQvULp2RvehC9jtXbbNWiX0wSPghuZvX5x6
-         yg0g==
+        h=subject:from:to:cc:references:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=qHOdm0C4J08y8qn8DLdPKVru+H714VVwBZpBWPFtHr8=;
+        b=Tob8R3F6hgjXs7upwsBnR5JwUHW1PNbrpKSRxzYU7pu5LCcBULdQPWacMT5w4nZpmx
+         g6hFdl7C5SpyG4zMJVnDNfGtGTo3KiuoGCzSmLZNJjCzyG362QzlIVCiFhrT6UrXomUr
+         AiXd6p4f7oF4UCuFe1+qJ013M4GGJaO5tJyzGeA53Df+NWIQQUm7aTgeZ/TNZAG3aQPb
+         iE9kShV1+fzc91RAY+zEc3BHYsQ2gRUQe3L3o+FG/EWFnn+vDc2fg+Q+geoVA+97ZKTw
+         d0zUEgzV/amW1WxIKbWKhXCvcy1nGJkx4Fxi7FeHajcFelchPlF1c5bNFSW451eEAC/g
+         u8GA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=3MjkbtwLZRo7hjCSi0XdpJJrMSdKJOPlZBTkb1T3jx4=;
-        b=FR8as1G2dZtdQRjvtVfU9kHqVSFo46omaLfGlJmv9m59Cl3kqiYBjPE4/H01/ad9lD
-         l68KZt6XsKJZrjUiC5XwF/D+oMUfEBIZ38A075yBNinxojz9lZo72IYebaFcFY3UBR+1
-         umOZqBZh3Auoo0Qm5+kqu2WRKVmROR2xBlqoeqpfbd9CPE/koDISYJdglljfOVrWauDn
-         lJl3uIeCNdanJEV/k+8cUXvhoBc9GPMpZmv6vu47DIvCz5NoRk17gQJrg8kmJFAmbpFd
-         YyVEw0cr8I68RSGeWplAOUzKx1KKKAMqKHTV4NB5VQhld/9BpgZfLRDBbFKL2VtycvHK
-         ITdA==
-X-Gm-Message-State: AOAM533eiisYHpGNoKH7+VqSE7ssvPF/mm4/63/FsTSSA6c+RBRdI5A9
-        eHeHXNGx3qTvylrt8ygQdUy5CAU3CLVgvaXLbVFSnL3O
-X-Google-Smtp-Source: ABdhPJy1sNvMPWBx5wW+uIxsgYhJdlTBoJ9Xz5bMxb79B2zuCb12rUGQE8COWOiLdc8tmhGK+QFrtY+CZgjWHigHxwI=
-X-Received: by 2002:a4a:5547:: with SMTP id e68mr138570oob.49.1604026465696;
- Thu, 29 Oct 2020 19:54:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <20201029212545.6616-1-rpearson@hpe.com>
-In-Reply-To: <20201029212545.6616-1-rpearson@hpe.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Fri, 30 Oct 2020 10:54:14 +0800
-Message-ID: <CAD=hENeC0F7K8VtN-JhmMgJVbidJ4gxMwqjPyLscYA4s2oGXrQ@mail.gmail.com>
+        h=x-gm-message-state:subject:from:to:cc:references:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=qHOdm0C4J08y8qn8DLdPKVru+H714VVwBZpBWPFtHr8=;
+        b=IwAgFQquBKGSRPtturnw2oIpuT1hbn2a5DYPOqf96HrJ9bAzkCddCYURlv7Qi3dNJK
+         fWMrP+C7Ka0iqwbv/iK8AOWFJeWxrTkToxDF/ZpebFPYarAxKLXvEcO1z+S81DAhauMX
+         8lJKJB8HG3oFsUWQ7K0xzASQeJOQUOSsHpRayOxD8pPYsjXY69CsJ/V+hJkBrA6xsr60
+         rOBq4peXdfPZVMn612EethdKt3MsDJUrAHSeBPpXur318Lqiqb8l1YJB7XDPciTWqJEv
+         cXejf+lmH3ow+YhdF+bfq94/num7k7lCcNKS1hHRNFRst+MlyUFCxcACrhewHMIe3lKD
+         C03w==
+X-Gm-Message-State: AOAM533DbaeAmLcMUwAa2YI+Vfav9iIa/fHQOsver9kW3//Hmf+2ph8Y
+        zTT1lfO7sNwtXSrLrWwjdJg=
+X-Google-Smtp-Source: ABdhPJxYrjBu6LFOvA/hXAreUICjT2HDaztlUOGovfyFrGm3Bj+Aq+4/hhaX+f4NmFbSlRKn+LhtxA==
+X-Received: by 2002:a9d:370:: with SMTP id 103mr436598otv.89.1604036814975;
+        Thu, 29 Oct 2020 22:46:54 -0700 (PDT)
+Received: from ?IPv6:2603:8081:140c:1a00:b6dc:62b4:e209:78d4? (2603-8081-140c-1a00-b6dc-62b4-e209-78d4.res6.spectrum.com. [2603:8081:140c:1a00:b6dc:62b4:e209:78d4])
+        by smtp.gmail.com with ESMTPSA id j3sm1216839oij.9.2020.10.29.22.46.54
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 29 Oct 2020 22:46:54 -0700 (PDT)
 Subject: Re: [PATCH for-next] RDMA/rxe: fix regression caused by recent patch
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
-        Bob Pearson <rpearson@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+References: <20201029212545.6616-1-rpearson@hpe.com>
+Message-ID: <703e1658-1efa-9dbb-1803-9f7392a2439d@gmail.com>
+Date:   Fri, 30 Oct 2020 00:46:53 -0500
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.3.2
+MIME-Version: 1.0
+In-Reply-To: <20201029212545.6616-1-rpearson@hpe.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Oct 30, 2020 at 5:27 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->
+On 10/29/20 4:25 PM, Bob Pearson wrote:
 > The commit referenced below performs additional checking on
 > devices used for DMA. Specifically it checks that
->
+> 
 > device->dma_mask != NULL
->
+> 
 > Rdma_rxe uses this device when pinning MR memory but did not
 > set the value of dma_mask. In fact rdma_rxe does not perform
 > any DMA operations so the value is never used but is checked.
->
+> 
 > This patch gives dma_mask a valid value. Without this patch
 > rdma_rxe does not function at all.
->
+> 
 > Fixes: f959dcd6ddfd2 ("dma-direct: Fix potential NULL pointer dereference")
 > Signed-off-by: Bob Pearson <rpearson@hpe.com>
-
-Thanks a lot.
-
-Zhu Yanjun
-
 > ---
 >  drivers/infiniband/sw/rxe/rxe_verbs.c | 7 +++++++
 >  1 file changed, 7 insertions(+)
->
+> 
 > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
 > index 7652d53af2c1..116a234e92db 100644
 > --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
 > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
 > @@ -1134,8 +1134,15 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
->         dev->node_type = RDMA_NODE_IB_CA;
->         dev->phys_port_cnt = 1;
->         dev->num_comp_vectors = num_possible_cpus();
+>  	dev->node_type = RDMA_NODE_IB_CA;
+>  	dev->phys_port_cnt = 1;
+>  	dev->num_comp_vectors = num_possible_cpus();
 > +
-> +       /* rdma_rxe never does real DMA but does rely on
-> +        * pinning user memory in MRs to avoid page faults
-> +        * in responder and completer tasklets
-> +        */
->         dev->dev.parent = rxe_dma_device(rxe);
-> +       dev->dev.dma_mask = DMA_BIT_MASK(64);
->         dev->local_dma_lkey = 0;
+> +	/* rdma_rxe never does real DMA but does rely on
+> +	 * pinning user memory in MRs to avoid page faults
+> +	 * in responder and completer tasklets
+> +	 */
+>  	dev->dev.parent = rxe_dma_device(rxe);
+> +	dev->dev.dma_mask = DMA_BIT_MASK(64);
+>  	dev->local_dma_lkey = 0;
 > +
->         addrconf_addr_eui48((unsigned char *)&dev->node_guid,
->                             rxe->ndev->dev_addr);
->         dev->dev.dma_parms = &rxe->dma_parms;
-> --
-> 2.27.0
+>  	addrconf_addr_eui48((unsigned char *)&dev->node_guid,
+>  			    rxe->ndev->dev_addr);
+>  	dev->dev.dma_parms = &rxe->dma_parms;
 >
+
+Ignore this patch. It turns out it works because any nonzero number in dma_mask will stop the check that is failing and since rxe never uses DMA it won't affect anything. But, it doesn't compile cleanly because the dma_mask is a pointer to the actual dma_mask and not the mask. Somehow I missed the warning. I have a newer version that uses the function dma_coerce_mask_and_coherent() and also works. (Works means it gets to the next problem as mentioned in the prvious note.)
+
+Bob
