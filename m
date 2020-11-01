@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27B02C5517A
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50395C4742C
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:16:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D19A122253
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:16:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2004B22260
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:16:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604261763;
-	bh=82mzLcsfZ3S5B5q/81xAXJUgqhFrk8AhGLZ3FiZPDFQ=;
+	s=default; t=1604261787;
+	bh=Q9+DNPy01/d6QOTNLTpXmnb96hr2wRSaRSliuVZgSfw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=Z50rXItYIIEC6r7TvfeCYng7FuAb3QunQhoUuMARS5MUfF1fFSgU7RiYHbn8zfeUE
-	 N0wvhEDvfJm0g8LMBocL/5wMgfs2AdM658G/TeWiDwr/uX9AzXdgSnXycep4hr3AnE
-	 FtqUGGH9HC0tIuYG5gDDyGyCn16mlyqh4fPes51A=
+	b=rMXJbYGXLXtgEdoUHaFPwDQVc1V5k3AgjBJdZnWwRiW5GmM0fpR4ERxwWFzV6jFvC
+	 4y20JoOwFyYNFSMaHMkzq7J1UbzQ8Hu1ojPM7RdZg8MCqu9/v8JiOB5jsgAXlfhRc2
+	 KZrSKZ9XSC45oez8SORgdio3Fj5m90SeYW3/qZbM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727395AbgKAUQC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Nov 2020 15:16:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57422 "EHLO mail.kernel.org"
+        id S1727614AbgKAUQZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Nov 2020 15:16:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727386AbgKAUQB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 1 Nov 2020 15:16:01 -0500
+        id S1727289AbgKAUQY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 1 Nov 2020 15:16:24 -0500
 Received: from localhost (host-213-179-129-39.customer.m-online.net [213.179.129.39])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C9EFE21527;
-        Sun,  1 Nov 2020 20:15:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F1A5A22253;
+        Sun,  1 Nov 2020 20:16:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604261760;
-        bh=82mzLcsfZ3S5B5q/81xAXJUgqhFrk8AhGLZ3FiZPDFQ=;
+        s=default; t=1604261783;
+        bh=Q9+DNPy01/d6QOTNLTpXmnb96hr2wRSaRSliuVZgSfw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=bZLdKkmaw4RwWW3u7h0CAfcpdRvLyCYwBkGa8PDgnS8bBe3f/zHRSDMOIIcmB1l3R
-         hNCXOJzCPwIxLoo0CuAz6jb9P1LIoqRVCRlQacz9Gq1rVxy127Q5rF6cmefPp32GOp
-         zaoA3r2c5MixfYtgczplMzH1XbN2uIz9VsAv+WzI=
+        b=HuM41gDsnUSP+oOKwGhvqCR8H8RP66Er0wiLHxdgacfs+Gpf9awx8liietvFpcOOk
+         MxaypMf0W+Y5cv14JFrH03yAeA87saQiAmXDqQiSlPJoXafF6nFNnXrVlxihv3dXNz
+         hGoki06zj7bh2hXPgvc/ArR1dcSypdVPpu3MfidA=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
@@ -55,9 +55,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
         shiraz.saleem@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, linux-kernel@vger.kernel.org
-Subject: [PATCH mlx5-next v1 04/11] vdpa/mlx5: Make hardware definitions visible to all mlx5 devices
-Date:   Sun,  1 Nov 2020 22:15:35 +0200
-Message-Id: <20201101201542.2027568-5-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 11/11] RDMA/mlx5: Remove IB representors dead code
+Date:   Sun,  1 Nov 2020 22:15:42 +0200
+Message-Id: <20201101201542.2027568-12-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201101201542.2027568-1-leon@kernel.org>
 References: <20201101201542.2027568-1-leon@kernel.org>
@@ -69,73 +69,135 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Move mlx5_vdpa IFC header file to the general include folder, so
-mlx5_core will be able to reuse it to check if VDPA is supported
-prior to creating an auxiliary device.
+Delete dead code.
 
-As part of this move, update the header file name to mlx5 general
-naming scheme.
-
-Reviewed-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/vdpa/mlx5/net/main.c                                | 2 +-
- drivers/vdpa/mlx5/net/mlx5_vnet.c                           | 2 +-
- .../mlx5_vdpa_ifc.h => include/linux/mlx5/mlx5_ifc_vdpa.h   | 6 +++---
- 3 files changed, 5 insertions(+), 5 deletions(-)
- rename drivers/vdpa/mlx5/core/mlx5_vdpa_ifc.h => include/linux/mlx5/mlx5_ifc_vdpa.h (97%)
+ drivers/infiniband/hw/mlx5/ib_rep.c | 31 +++++++----------------------
+ drivers/infiniband/hw/mlx5/ib_rep.h | 31 -----------------------------
+ 2 files changed, 7 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/vdpa/mlx5/net/main.c b/drivers/vdpa/mlx5/net/main.c
-index 838cd98386ff..4dd3f00f2306 100644
---- a/drivers/vdpa/mlx5/net/main.c
-+++ b/drivers/vdpa/mlx5/net/main.c
-@@ -4,7 +4,7 @@
- #include <linux/module.h>
- #include <linux/mlx5/driver.h>
- #include <linux/mlx5/device.h>
--#include "mlx5_vdpa_ifc.h"
-+#include <linux/mlx5/mlx5_ifc_vdpa.h>
- #include "mlx5_vnet.h"
+diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
+index 9810bdd7f3bc..a1a9450ed92c 100644
+--- a/drivers/infiniband/hw/mlx5/ib_rep.c
++++ b/drivers/infiniband/hw/mlx5/ib_rep.c
+@@ -13,7 +13,7 @@ mlx5_ib_set_vport_rep(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ 	struct mlx5_ib_dev *ibdev;
+ 	int vport_index;
 
- MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
-diff --git a/drivers/vdpa/mlx5/net/mlx5_vnet.c b/drivers/vdpa/mlx5/net/mlx5_vnet.c
-index 1fa6fcac8299..6c218b47b9f1 100644
---- a/drivers/vdpa/mlx5/net/mlx5_vnet.c
-+++ b/drivers/vdpa/mlx5/net/mlx5_vnet.c
-@@ -9,8 +9,8 @@
- #include <linux/mlx5/vport.h>
- #include <linux/mlx5/fs.h>
- #include <linux/mlx5/device.h>
-+#include <linux/mlx5/mlx5_ifc_vdpa.h>
- #include "mlx5_vnet.h"
--#include "mlx5_vdpa_ifc.h"
- #include "mlx5_vdpa.h"
+-	ibdev = mlx5_ib_get_uplink_ibdev(dev->priv.eswitch);
++	ibdev = mlx5_eswitch_uplink_get_proto_dev(dev->priv.eswitch, REP_IB);
+ 	vport_index = rep->vport_index;
 
- #define to_mvdev(__vdev) container_of((__vdev), struct mlx5_vdpa_dev, vdev)
-diff --git a/drivers/vdpa/mlx5/core/mlx5_vdpa_ifc.h b/include/linux/mlx5/mlx5_ifc_vdpa.h
-similarity index 97%
-rename from drivers/vdpa/mlx5/core/mlx5_vdpa_ifc.h
-rename to include/linux/mlx5/mlx5_ifc_vdpa.h
-index f6f57a29b38e..97784098a992 100644
---- a/drivers/vdpa/mlx5/core/mlx5_vdpa_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc_vdpa.h
-@@ -1,8 +1,8 @@
- /* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
- /* Copyright (c) 2020 Mellanox Technologies Ltd. */
+ 	ibdev->port[vport_index].rep = rep;
+@@ -74,6 +74,11 @@ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ 	return ret;
+ }
 
--#ifndef __MLX5_VDPA_IFC_H_
--#define __MLX5_VDPA_IFC_H_
-+#ifndef __MLX5_IFC_VDPA_H_
-+#define __MLX5_IFC_VDPA_H_
++static void *mlx5_ib_rep_to_dev(struct mlx5_eswitch_rep *rep)
++{
++	return rep->rep_data[REP_IB].priv;
++}
++
+ static void
+ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ {
+@@ -91,40 +96,18 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ 		__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
+ }
 
- #include <linux/mlx5/mlx5_ifc.h>
-
-@@ -165,4 +165,4 @@ struct mlx5_ifc_modify_virtio_net_q_out_bits {
- 	struct mlx5_ifc_general_obj_out_cmd_hdr_bits general_obj_out_cmd_hdr;
+-static void *mlx5_ib_vport_get_proto_dev(struct mlx5_eswitch_rep *rep)
+-{
+-	return mlx5_ib_rep_to_dev(rep);
+-}
+-
+ static const struct mlx5_eswitch_rep_ops rep_ops = {
+ 	.load = mlx5_ib_vport_rep_load,
+ 	.unload = mlx5_ib_vport_rep_unload,
+-	.get_proto_dev = mlx5_ib_vport_get_proto_dev,
++	.get_proto_dev = mlx5_ib_rep_to_dev,
  };
 
--#endif /* __MLX5_VDPA_IFC_H_ */
-+#endif /* __MLX5_IFC_VDPA_H_ */
+-struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
+-					  u16 vport_num)
+-{
+-	return mlx5_eswitch_get_proto_dev(esw, vport_num, REP_IB);
+-}
+-
+ struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
+ 					  u16 vport_num)
+ {
+ 	return mlx5_eswitch_get_proto_dev(esw, vport_num, REP_ETH);
+ }
+
+-struct mlx5_ib_dev *mlx5_ib_get_uplink_ibdev(struct mlx5_eswitch *esw)
+-{
+-	return mlx5_eswitch_uplink_get_proto_dev(esw, REP_IB);
+-}
+-
+-struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
+-					   u16 vport_num)
+-{
+-	return mlx5_eswitch_vport_rep(esw, vport_num);
+-}
+-
+ struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
+ 						   struct mlx5_ib_sq *sq,
+ 						   u16 port)
+diff --git a/drivers/infiniband/hw/mlx5/ib_rep.h b/drivers/infiniband/hw/mlx5/ib_rep.h
+index 93f562735e89..ce1dcb105dbd 100644
+--- a/drivers/infiniband/hw/mlx5/ib_rep.h
++++ b/drivers/infiniband/hw/mlx5/ib_rep.h
+@@ -12,11 +12,6 @@
+ extern const struct mlx5_ib_profile raw_eth_profile;
+
+ #ifdef CONFIG_MLX5_ESWITCH
+-struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
+-					  u16 vport_num);
+-struct mlx5_ib_dev *mlx5_ib_get_uplink_ibdev(struct mlx5_eswitch *esw);
+-struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
+-					   u16 vport_num);
+ int mlx5r_rep_init(void);
+ void mlx5r_rep_cleanup(void);
+ struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
+@@ -25,26 +20,6 @@ struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
+ struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
+ 					  u16 vport_num);
+ #else /* CONFIG_MLX5_ESWITCH */
+-static inline
+-struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
+-					  u16 vport_num)
+-{
+-	return NULL;
+-}
+-
+-static inline
+-struct mlx5_ib_dev *mlx5_ib_get_uplink_ibdev(struct mlx5_eswitch *esw)
+-{
+-	return NULL;
+-}
+-
+-static inline
+-struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
+-					   u16 vport_num)
+-{
+-	return NULL;
+-}
+-
+ static inline int mlx5r_rep_init(void) { return 0; }
+ static inline void mlx5r_rep_cleanup(void) {}
+ static inline
+@@ -62,10 +37,4 @@ struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
+ 	return NULL;
+ }
+ #endif
+-
+-static inline
+-struct mlx5_ib_dev *mlx5_ib_rep_to_dev(struct mlx5_eswitch_rep *rep)
+-{
+-	return rep->rep_data[REP_IB].priv;
+-}
+ #endif /* __MLX5_IB_REP_H__ */
 --
 2.28.0
 
