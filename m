@@ -2,224 +2,94 @@ Return-Path: <SRS0=fQuC=EH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EAC3C2D0A3
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 09:20:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF4F8C2D0A3
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 14:05:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 001AA207F7
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 09:20:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 542372158C
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 14:05:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iXBJvEF2"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iNhip/XE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725951AbgKAJUf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Nov 2020 04:20:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34454 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725936AbgKAJUc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Nov 2020 04:20:32 -0500
-Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com [IPv6:2607:f8b0:4864:20::241])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CD2BC0617A6
-        for <linux-rdma@vger.kernel.org>; Sun,  1 Nov 2020 01:20:31 -0800 (PST)
-Received: by mail-oi1-x241.google.com with SMTP id x203so11452150oia.10
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2020 01:20:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=FN5qyVQCaeL53HKuSQeZosxGoo7oXbbsWytjj8ZUMuQ=;
-        b=iXBJvEF2QXZszM85NvHv6Q2P5ED20f75VQILyOsl33JEtjfcMSRNallKyEPbZb+lv/
-         xbvnpDZhTaIYc7UYeOrR9XVu5gHstIP9WP6mnASAhU+w9pqYU4t4RemIs0HA+StglvLp
-         gmK6G/2b/q0Um6+c9nAiIouH0f36Tkt92v/7vfohPq5VIryrbcCG/7AV4yz2oTKpfSDX
-         spskDlRW55YJHo27B/s4S4MqHmg9zjG6156547a5BXrl5Xp5dnd6A6+KHaenkK95Y/b5
-         8GmPNfr0b88XnQPLBisPkQPXgZzZP6Gul/ERlG9IJCygg7wBhioKiEm+mhdO/QxxLPV9
-         yPfg==
+        id S1726496AbgKAOFi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Nov 2020 09:05:38 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:20810 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726370AbgKAOFi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Nov 2020 09:05:38 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1604239536;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc; bh=aWuZ6CNcX73ZRXvjOOgvWKSO2p04g3cpgBeEkZo1Tfs=;
+        b=iNhip/XE7whz6XZlukyr7LjzpuRMhXyXewJ/gd6Xp74KMTwgH9+B21IptDWTOFAQQk/8MC
+        JQT5eGhLHH12Ji3Lc7j4V0EYoosE+f4zRMQG5zjBUP2z4iQnvPzRGzjfNUqfNRmdOtLLkC
+        kvre9tVyqx0kT96Wud8PVsyRZ8MiO3s=
+Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com
+ [209.85.210.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-156-l1_kQRoxNmS8CdGArOMbHA-1; Sun, 01 Nov 2020 09:05:35 -0500
+X-MC-Unique: l1_kQRoxNmS8CdGArOMbHA-1
+Received: by mail-ot1-f70.google.com with SMTP id k103so4758467otk.1
+        for <linux-rdma@vger.kernel.org>; Sun, 01 Nov 2020 06:05:35 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=FN5qyVQCaeL53HKuSQeZosxGoo7oXbbsWytjj8ZUMuQ=;
-        b=ewZxRHVeG/far5JKWb4A3HP4/EaHoImeb0z6Qtk4WwPDzXY9j5f9TndsU9elUjnVLn
-         jedOAxSnpxzNr//7TNXzumK3bkCO4aM5sbAPBj/iHvoifsBN6t6PjV2mNK659TnHsmAK
-         fd/5eeSlRWc95KWUdQhJDsZkJfwzjcFaXrkKSv8/fNhlz6xEBCs9S5UDFg5CwzJSCM1B
-         mewWJPpeAH38CUtE0NRjOYZPtQvBW+KAbpsBZq0lhjqUqvG83FO5XcW2TyJJZ/63ndtF
-         3sBh7Ztxu5HNUENXYdAnTHJxCCQBYjUBzU6S+ZcxKBuPvA/6zczErfmn3LT6xeQTWi3z
-         aLLA==
-X-Gm-Message-State: AOAM5312nwfOyYJSUSOONKSLn4i3hKBBjfjWSq178hbvmokpw+hK5nlB
-        UnzBnPSneOZZFvBBS+2vX67l9/MT6EQlbIPPS8Y=
-X-Google-Smtp-Source: ABdhPJxqtUZY6s0xqQ2GIqeQy/VzQdZhu6vI1GVVB5EF0oAf56RN49q/fRMOmZPOle7ryAfxgYVd09HVkkiAf7aOiH4=
-X-Received: by 2002:aca:750b:: with SMTP id q11mr6831640oic.163.1604222430704;
- Sun, 01 Nov 2020 01:20:30 -0800 (PST)
-MIME-Version: 1.0
-References: <20201030093803.278830-1-parav@nvidia.com> <CAD=hENeUA7AhndzEvWPyyZ6KcKu7T3sacXbDNCLRiLeEBBiELA@mail.gmail.com>
-In-Reply-To: <CAD=hENeUA7AhndzEvWPyyZ6KcKu7T3sacXbDNCLRiLeEBBiELA@mail.gmail.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Sun, 1 Nov 2020 17:20:19 +0800
-Message-ID: <CAD=hENfZ2Yxrr5h4FV4TCDqGUrtmZUD43wM5Faf06+Rqv-xDpQ@mail.gmail.com>
-Subject: Re: [PATCH] RDMA: Fix software RDMA drivers for dma mapping error
-To:     Parav Pandit <parav@nvidia.com>
-Cc:     dennis.dalessandro@cornelisnetworks.com,
-        mike.marciniszyn@cornelisnetworks.com,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Zhu Yanjun <yanjunz@nvidia.com>, bmt@zurich.ibm.com,
-        linux-rdma@vger.kernel.org, hch@lst.de,
-        syzbot+34dc2fea3478e659af01@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=aWuZ6CNcX73ZRXvjOOgvWKSO2p04g3cpgBeEkZo1Tfs=;
+        b=YZhs2cX+ETRSJiZbAmH6rwniRqTp+1fadmHCfr9xa9E07flsIkPNccfFxXRCGoCkNX
+         0dQf8VpCrf20tb7gEG73LrpWPAMsuth6TUiXJHMU45BlTGJt/8EJho/Av6Y7FpCa7BnZ
+         Kn0bXnES7Mdxr4VqPXa2A2r//5S9tsR1RW7V7yPAmSazkyn5wMWcN6HCkTNU1Ct2kq9J
+         GufmpNyvn8eb//yB3ts4lK2LRYLm9g66c5Irx5MC0ekS0uCyyNnMDnHUPd0uh3GuXpY8
+         RihNS2dQQRvDUxwCB2G2bFR4Wfdany/S9OJapSvZC7S/KZXitX3JuJSIFUjbMBKw0HAf
+         Pa3Q==
+X-Gm-Message-State: AOAM532aXfMGbhEJ4Y1cys3IWkvfQsLYzg/NcgW61tk3ShbscqeN+o8x
+        j/E4kMVG5Hk2Dx6AH5nHL3k1WB5lzIEWtzKbCiwtHhy+ATbPUkbIePbPN9MIakT9NBokWu8zVop
+        A+qmMCR2QlJ0DDmUSXfPOjQ==
+X-Received: by 2002:a9d:6c0e:: with SMTP id f14mr8738003otq.275.1604239534468;
+        Sun, 01 Nov 2020 06:05:34 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJw4WDgKv4A+XxRMymr7Yk4a/1H3WY29ZBfgtBiE1ZxZk/R2BNNIqV4/zyl4X5ZA7JzAKIVmtA==
+X-Received: by 2002:a9d:6c0e:: with SMTP id f14mr8737996otq.275.1604239534306;
+        Sun, 01 Nov 2020 06:05:34 -0800 (PST)
+Received: from trix.remote.csb (075-142-250-213.res.spectrum.com. [75.142.250.213])
+        by smtp.gmail.com with ESMTPSA id s27sm2923193otg.80.2020.11.01.06.05.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 01 Nov 2020 06:05:33 -0800 (PST)
+From:   trix@redhat.com
+To:     tariqt@nvidia.com, davem@davemloft.net, kuba@kernel.org
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Tom Rix <trix@redhat.com>
+Subject: [PATCH] net/mlx4_core : remove unneeded semicolon
+Date:   Sun,  1 Nov 2020 06:05:28 -0800
+Message-Id: <20201101140528.2279424-1-trix@redhat.com>
+X-Mailer: git-send-email 2.18.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Nov 1, 2020 at 12:28 PM Zhu Yanjun <zyjzyj2000@gmail.com> wrote:
->
-> On Fri, Oct 30, 2020 at 5:39 PM Parav Pandit <parav@nvidia.com> wrote:
-> >
-> > A cited commit in fixes tag avoided setting dma_mask of the ib_device.
-> > Commit [1] made dma_mask as mandetory field to be setup even for
-> > dma_virt_ops based dma devices. Due to which below call trace occurred.
-> >
-> > Fix it by setting empty DMA MASK for software based RDMA devices.
-> >
-> > WARNING: CPU: 1 PID: 8488 at kernel/dma/mapping.c:149
-> > dma_map_page_attrs+0x493/0x700 kernel/dma/mapping.c:149 Modules linked in:
-> > CPU: 1 PID: 8488 Comm: syz-executor144 Not tainted 5.9.0-syzkaller #0
-> > Hardware name: Google Google Compute Engine/Google Compute Engine,
-> > BIOS Google 01/01/2011
-> > RIP: 0010:dma_map_page_attrs+0x493/0x700 kernel/dma/mapping.c:149
-> > Trace:
-> >  dma_map_single_attrs include/linux/dma-mapping.h:279 [inline]
-> > ib_dma_map_single include/rdma/ib_verbs.h:3967 [inline]
-> >  ib_mad_post_receive_mads+0x23f/0xd60
-> > drivers/infiniband/core/mad.c:2715
-> >  ib_mad_port_start drivers/infiniband/core/mad.c:2862 [inline]
-> > ib_mad_port_open drivers/infiniband/core/mad.c:3016 [inline]
-> >  ib_mad_init_device+0x72b/0x1400 drivers/infiniband/core/mad.c:3092
-> >  add_client_context+0x405/0x5e0 drivers/infiniband/core/device.c:680
-> >  enable_device_and_get+0x1d5/0x3c0
-> > drivers/infiniband/core/device.c:1301
-> >  ib_register_device drivers/infiniband/core/device.c:1376 [inline]
-> >  ib_register_device+0x7a7/0xa40 drivers/infiniband/core/device.c:1335
-> >  rxe_register_device+0x46d/0x570
-> > drivers/infiniband/sw/rxe/rxe_verbs.c:1182
-> >  rxe_add+0x12fe/0x16d0 drivers/infiniband/sw/rxe/rxe.c:247
-> >  rxe_net_add+0x8c/0xe0 drivers/infiniband/sw/rxe/rxe_net.c:507
-> >  rxe_newlink drivers/infiniband/sw/rxe/rxe.c:269 [inline]
-> >  rxe_newlink+0xb7/0xe0 drivers/infiniband/sw/rxe/rxe.c:250
-> >  nldev_newlink+0x30e/0x540 drivers/infiniband/core/nldev.c:1555
-> >  rdma_nl_rcv_msg+0x367/0x690 drivers/infiniband/core/netlink.c:195
-> >  rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
-> >  rdma_nl_rcv+0x2f2/0x440 drivers/infiniband/core/netlink.c:259
-> >  netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
-> >  netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
-> >  netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1919
-> > sock_sendmsg_nosec net/socket.c:651 [inline]
-> >  sock_sendmsg+0xcf/0x120 net/socket.c:671
-> >  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2353
-> >  ___sys_sendmsg+0xf3/0x170 net/socket.c:2407
-> >  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2440
-> >  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
-> >  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > RIP: 0033:0x443699
-> >
-> > [1] commit f959dcd6ddfd ("dma-direct: Fix potential NULL pointer dereference")
-> >
-> > Reported-by: syzbot+34dc2fea3478e659af01@syzkaller.appspotmail.com
-> > Fixes: e0477b34d9d1 ("RDMA: Explicitly pass in the dma_device to ib_register_device")
-> > Signed-off-by: Parav Pandit <parav@nvidia.com>
+From: Tom Rix <trix@redhat.com>
 
-Thanks a lot.
-Acked-by:  Zhu Yanjun <yanjunz@nvidia.com>
+A semicolon is not needed after a switch statement.
 
-Zhu Yanjun
+Signed-off-by: Tom Rix <trix@redhat.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
-> Thanks a lot. I have made tests and confirmed that this commit works very well.
->
-> Zhu Yanjun
->
-> > ---
-> >  drivers/infiniband/sw/rdmavt/vt.c     | 7 +++++--
-> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++++-
-> >  drivers/infiniband/sw/siw/siw_main.c  | 7 +++++--
-> >  3 files changed, 15 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-> > index 43fbc4e54edf..5bd817490b1f 100644
-> > --- a/drivers/infiniband/sw/rdmavt/vt.c
-> > +++ b/drivers/infiniband/sw/rdmavt/vt.c
-> > @@ -525,6 +525,7 @@ static noinline int check_support(struct rvt_dev_info *rdi, int verb)
-> >  int rvt_register_device(struct rvt_dev_info *rdi)
-> >  {
-> >         int ret = 0, i;
-> > +       u64 dma_mask;
-> >
-> >         if (!rdi)
-> >                 return -EINVAL;
-> > @@ -581,8 +582,10 @@ int rvt_register_device(struct rvt_dev_info *rdi)
-> >
-> >         /* DMA Operations */
-> >         rdi->ibdev.dev.dma_parms = rdi->ibdev.dev.parent->dma_parms;
-> > -       dma_set_coherent_mask(&rdi->ibdev.dev,
-> > -                             rdi->ibdev.dev.parent->coherent_dma_mask);
-> > +       dma_mask = IS_ENABLED(CONFIG_64BIT) ? DMA_BIT_MASK(64) : DMA_BIT_MASK(32);
-> > +       ret = dma_coerce_mask_and_coherent(&rdi->ibdev.dev, dma_mask);
-> > +       if (ret)
-> > +               goto bail_wss;
-> >
-> >         /* Protection Domain */
-> >         spin_lock_init(&rdi->n_pds_lock);
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > index 7652d53af2c1..50ad3dded786 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > @@ -1128,6 +1128,7 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
-> >         int err;
-> >         struct ib_device *dev = &rxe->ib_dev;
-> >         struct crypto_shash *tfm;
-> > +       u64 dma_mask;
-> >
-> >         strlcpy(dev->node_desc, "rxe", sizeof(dev->node_desc));
-> >
-> > @@ -1140,7 +1141,10 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
-> >                             rxe->ndev->dev_addr);
-> >         dev->dev.dma_parms = &rxe->dma_parms;
-> >         dma_set_max_seg_size(&dev->dev, UINT_MAX);
-> > -       dma_set_coherent_mask(&dev->dev, dma_get_required_mask(&dev->dev));
-> > +       dma_mask = IS_ENABLED(CONFIG_64BIT) ? DMA_BIT_MASK(64) : DMA_BIT_MASK(32);
-> > +       err = dma_coerce_mask_and_coherent(&dev->dev, dma_mask);
-> > +       if (err)
-> > +               return err;
-> >
-> >         dev->uverbs_cmd_mask |= BIT_ULL(IB_USER_VERBS_CMD_REQ_NOTIFY_CQ);
-> >
-> > diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-> > index e49faefdee92..6fe120187238 100644
-> > --- a/drivers/infiniband/sw/siw/siw_main.c
-> > +++ b/drivers/infiniband/sw/siw/siw_main.c
-> > @@ -306,6 +306,7 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
-> >         struct siw_device *sdev = NULL;
-> >         struct ib_device *base_dev;
-> >         struct device *parent = netdev->dev.parent;
-> > +       u64 dma_mask;
-> >         int rv;
-> >
-> >         if (!parent) {
-> > @@ -360,8 +361,10 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
-> >         base_dev->dev.parent = parent;
-> >         base_dev->dev.dma_parms = &sdev->dma_parms;
-> >         dma_set_max_seg_size(&base_dev->dev, UINT_MAX);
-> > -       dma_set_coherent_mask(&base_dev->dev,
-> > -                             dma_get_required_mask(&base_dev->dev));
-> > +       dma_mask = IS_ENABLED(CONFIG_64BIT) ? DMA_BIT_MASK(64) : DMA_BIT_MASK(32);
-> > +       if (dma_coerce_mask_and_coherent(&base_dev->dev, dma_mask))
-> > +               goto error;
-> > +
-> >         base_dev->num_comp_vectors = num_possible_cpus();
-> >
-> >         xa_init_flags(&sdev->qp_xa, XA_FLAGS_ALLOC1);
-> > --
-> > 2.26.2
-> >
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 1187ef1375e2..394f43add85c 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -300,7 +300,7 @@ static const char *resource_str(enum mlx4_resource rt)
+ 	case RES_FS_RULE: return "RES_FS_RULE";
+ 	case RES_XRCD: return "RES_XRCD";
+ 	default: return "Unknown resource type !!!";
+-	};
++	}
+ }
+ 
+ static void rem_slave_vlans(struct mlx4_dev *dev, int slave);
+-- 
+2.18.1
+
