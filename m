@@ -2,155 +2,114 @@ Return-Path: <SRS0=fQuC=EH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76C4EC4741F
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:17:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1014C2D0A3
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 21:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42D67208B6
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 20:17:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604261826;
-	bh=r8vLl6ZsscvRfoz94nO95aIzCwzo8xXWar83yZ8c/Nw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=BkRAiKvbGcXP/qxwkUOcAmFQKIGEkFoI0Wsl4wwo6enGAaUE6z8OqB9/eljCU3Mmq
-	 I50f/tb380qL1mnRXoNC9/CwW9OA4TxHzoKnPGYeVF7/s90xONKQLwwgr7gXuEDt1n
-	 0EzPnuKVtV9J189n3+1hNC6rkeUll84MW4iJTcxA=
+	by mail.kernel.org (Postfix) with ESMTP id 3AC7B221FC
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 21:00:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=northeastern.edu header.i=@northeastern.edu header.b="UeLoiWxi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727302AbgKAUP4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Nov 2020 15:15:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57244 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727298AbgKAUPz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 1 Nov 2020 15:15:55 -0500
-Received: from localhost (host-213-179-129-39.customer.m-online.net [213.179.129.39])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 955C221527;
-        Sun,  1 Nov 2020 20:15:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604261754;
-        bh=r8vLl6ZsscvRfoz94nO95aIzCwzo8xXWar83yZ8c/Nw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kcmM8YLclC92/kqrYCEF1U76q6zo14WTZ+qOg6pJsatEYviyPi0kkF9T9w6eWf2pd
-         BfOQQ12GgchIBHWJvYGgKUqaVSfnhwjYNZYigN950lAu98yRJ5NdjG7ct17srtAh+U
-         D4Epm3wo8qc3KccKKVtWBP4piv31SqSZX6lOk52E=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        gregkh <gregkh@linuxfoundation.org>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jason Wang <jasowang@redhat.com>, linux-rdma@vger.kernel.org,
-        "Michael S. Tsirkin" <mst@redhat.com>, netdev@vger.kernel.org,
-        Parav Pandit <parav@nvidia.com>, Roi Dayan <roid@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        virtualization@lists.linux-foundation.org,
-        alsa-devel@alsa-project.org, tiwai@suse.de, broonie@kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        ranjani.sridharan@linux.intel.com,
-        pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
-        shiraz.saleem@intel.com, dan.j.williams@intel.com,
-        kiran.patil@intel.com, linux-kernel@vger.kernel.org,
-        Eli Cohen <elic@nvidia.com>
-Subject: [PATCH mlx5-next v1 01/11] net/mlx5: Don't skip vport check
-Date:   Sun,  1 Nov 2020 22:15:32 +0200
-Message-Id: <20201101201542.2027568-2-leon@kernel.org>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201101201542.2027568-1-leon@kernel.org>
-References: <20201101201542.2027568-1-leon@kernel.org>
+        id S1727009AbgKAVAR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Nov 2020 16:00:17 -0500
+Received: from mail-eopbgr750119.outbound.protection.outlook.com ([40.107.75.119]:34563
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727004AbgKAVAR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 1 Nov 2020 16:00:17 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=lZjG5KZSQZ3XW2FX5fdGtMc/H4+b/IaKR3tkZDqDp38qNHetrfB7EiGpjlDIj0ZPObjdmzQiU02uV5i0zw0VRnaIqNTpTPebhnM/rV4gBjimlQvPP0BhnlidP08xgZlg1ug/eexbWpx4pdGlpUH2JTVsV23zjebH2B00/yrC9tYiUaeBL3V7YJK7MM+Z29AijJjzEAN6o8mA9C//ppiF1wNTfdeeEliyiBrqxjxIoiOymQT8KyOsm5/65/FgZ9A4aVElWmzQkx53MI1Jqz4psZu9esCKD5j7+u01AA+wENC0urf72T+3Od6+w4JdejKPRLuuTJkFdOYi7q/X1GzC8A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=F2WdOABzmTEAI6XD4uaLf4tZnAioOnrK6c/3fcZKXHs=;
+ b=lATicUpV+RlemBkLhgQjqjk20Ari8U0qh7aAXcXwEu3Zi6g4Unopk+jiQUoY50PFtDpJZAcXFWb6HQEzjxEXFiO64hvCaYqY2d9yYBbPk+FkYIHox3kze5yTj6giufF/2an6pSJxUaGSSa/F3xGKayyRRZrNFyO4dy+ksTs9r7doigCW+lc5w/x8Eeh8ZDArQau1eOjKQwhooSwjpiECoRukPSizXd5brLeC/TKevHRwX3LZsJ4TZJcjp7z+BwFCaEnH0RcmJdbzWgnZY1F/RDfiGqp6oFRFnpaUWaH7l4SYnNJJcfyieeNkmhMFF7r1nPVEiPQ3Wy3+4ZBzOTNcFg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=northeastern.edu; dmarc=pass action=none
+ header.from=northeastern.edu; dkim=pass header.d=northeastern.edu; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=northeastern.edu;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=F2WdOABzmTEAI6XD4uaLf4tZnAioOnrK6c/3fcZKXHs=;
+ b=UeLoiWxi/GFmOqZTWdWjiShGJAAmflMxiti2Qe3DHbd6csshGuxp7YSRpgXtwZ3g3AfqhYmnewH34uZo4PxV7Nb+F7h29Owbj4X45qmVzZDK++ShVe5NuJyOPeLntfuzTnILbeOi87n66q6GH0nV1IN5rJdp7fuD/f0LqVIpLD4=
+Received: from BN6PR06MB2532.namprd06.prod.outlook.com (2603:10b6:404:2a::10)
+ by BN6PR06MB3475.namprd06.prod.outlook.com (2603:10b6:404:119::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18; Sun, 1 Nov
+ 2020 21:00:14 +0000
+Received: from BN6PR06MB2532.namprd06.prod.outlook.com
+ ([fe80::2c22:5dbb:becd:88d]) by BN6PR06MB2532.namprd06.prod.outlook.com
+ ([fe80::2c22:5dbb:becd:88d%3]) with mapi id 15.20.3499.030; Sun, 1 Nov 2020
+ 21:00:13 +0000
+From:   Changming Liu <liu.changm@northeastern.edu>
+To:     "jgg@ziepe.ca" <jgg@ziepe.ca>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        yaohway <yaohway@gmail.com>
+Subject: How to fuzz testing infiniband/uverb driver
+Thread-Topic: How to fuzz testing infiniband/uverb driver
+Thread-Index: AdawkarIjS+Q8tCzT3S+sAjKAmsjCQ==
+Date:   Sun, 1 Nov 2020 21:00:13 +0000
+Message-ID: <BN6PR06MB2532A875B6C3AC57072570B6E5130@BN6PR06MB2532.namprd06.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: ziepe.ca; dkim=none (message not signed)
+ header.d=none;ziepe.ca; dmarc=none action=none header.from=northeastern.edu;
+x-originating-ip: [173.48.78.29]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: da5ec204-f56a-409b-09e1-08d87ea920be
+x-ms-traffictypediagnostic: BN6PR06MB3475:
+x-ld-processed: a8eec281-aaa3-4dae-ac9b-9a398b9215e7,ExtAddr
+x-microsoft-antispam-prvs: <BN6PR06MB34754080971A65708B708B1AE5130@BN6PR06MB3475.namprd06.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8273;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: IDMikXDZYsA9AL8JJ7P1ii7uCXmzwBl4KVsY6BCBm4jOKT9bNYDrstshRMf16fj2YRAe+gXuwKTZBBTc7mjOP8h1pav/UVg30HK7a+U227BIZZKN+KBVDuSuSROCcE/nnS4NtwQ+zxE6/kjpR9TKOJPK2g6L47smOVB+G8dnYQaLBEwrnZWx/QrTfkyAxBdcxfy7C5IcaIlNUiPziJwvsUn5crsw+5Je+1t1RfqqpRvmLQX9pHd18rvqlhL9BapGA4xBG7Q1ipl42kVqs1YHfvX/Wab0A9FqoAKIvte8bOeLoNUswbH7uVftifGwfzy7
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN6PR06MB2532.namprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(39860400002)(376002)(346002)(136003)(366004)(6916009)(8676002)(2906002)(8936002)(4744005)(33656002)(478600001)(9686003)(71200400001)(66556008)(66476007)(66446008)(64756008)(55016002)(6506007)(4326008)(316002)(186003)(86362001)(5660300002)(66946007)(52536014)(76116006)(83380400001)(54906003)(786003)(7696005)(75432002)(26005);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: wZ/7V5+kLkmNMb93E5wCTqeABZ6eYhqindrutwZEdzSi9hB9xQoWQzUYGU5mSIhvWWeUE0JoFvZLY+wuDrlOoHqNsULAZZ9EMTB22TvxN5gcg52A6IrhubdTHdiikgVaKrrNucTmatxQxdFQZsD/I/ASESzO46qhhZR95yspd+r2fL3c4QcBe8pr8k+OIO15Ev4bOe3Hb6DlIcWcdYBGVTS8qCyA5YNlEnTMHe2QUuEQghmXZrO/AuxT1rtSeqmcPM96gjr+OyD6ZiseI9nMsEGF8LY25ZtLa1S1rOL268whylrh0vcAaAfEmVZ2kWSd5NC96BbYktBPAsNvLE5lOt5YBNlUTBzeQX7e+Ssl0bTt+sqrUUYgs60WXO9TcWOp4IcfGCdsIQmLESJ4hjK6o6EVapJcwGUXUyS4RG0hIvxHnVexX/REffovRlotahw29YoyKrYVho5Aj/kZQW38pyAGFKpmpt46KtP+s0eCYrjnuC15IH1gsrYRXrxz+Yf784SRGyGhicv/vKUcjntdFrrMHh/VdfoNExVk/Lq/ecf49UdrHKXs4HJtpfaqBXWyYY9PHeAIAYpZsWnd3FFncVJekONquFEM2owcJ7k4DWrQHx0vasSSX+vD3K7xwg5Wi/QUyyTOpjL9KRTvofIyVg==
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: northeastern.edu
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BN6PR06MB2532.namprd06.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: da5ec204-f56a-409b-09e1-08d87ea920be
+X-MS-Exchange-CrossTenant-originalarrivaltime: 01 Nov 2020 21:00:13.3114
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a8eec281-aaa3-4dae-ac9b-9a398b9215e7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 6HiatUSyboc4O5X90NfM18jWFCUjUm4FzvOIpO9Tm76E6cMNvOsNynaYICanaVffaDCFjKFpfXj8B2L3GDZ6Uh9JTOLBV305m4KhB0SonLc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR06MB3475
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Hi Jason,
+Greetings, I'm a PhD student interested in linux, I found a bug in=20
+drivers/infiniband/core/uverbs_cmd.c via static analysis.
 
-Users of mlx5_eswitch_get_vport() are required to check return value
-prior to passing mlx5_vport further. Fix all the places to do not skip
-that check.
+As a follow-up, I planned to fuzz testing this driver using syzkaller
+to confirm this.
+However, according to the doc in Documentation/infiniband/user_verbs.rst,
+(it's a bit out-dated BTW, as CONFIG_INFINIBAND_USER_VERBS is not used anym=
+ore).
+I built the kernel with all related options set to y, installed libibverbs-=
+dev,
+and added KERNEL=3D"uverbs*", NAME=3D"infiniband/%k" to my udev rule.
 
-Fixes: c7eddc6092b4 ("net/mlx5: E-switch, Move devlink eswitch ports closer to eswitch")
-Fixes: 5d9986a3947a ("net/mlx5: E-Switch, Fix the check of legal vport")
-Reviewed-by: Eli Cohen <elic@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c          | 7 +++++++
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 6 ++++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+there is no 'uverbs0' file created under /sys/class/infiniband or=20
+/dev/infiniband/. So may I ask how to properly set up my testing=20
+environment so that I can fuzzi testing this driver? Is a physical
+device required?
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-index ffff11baa3d0..88688b84513b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-@@ -120,5 +120,5 @@ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u1
- 	struct mlx5_vport *vport;
+Any information is greatly appreciated.
 
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
--	return vport->dl_port;
-+	return IS_ERR(vport) ? ERR_CAST(vport) : vport->dl_port;
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 6e6a9a563992..2e14bf238588 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1142,6 +1142,9 @@ int mlx5_esw_modify_vport_rate(struct mlx5_eswitch *esw, u16 vport_num,
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
-+
- 	MLX5_SET(scheduling_context, ctx, max_average_bw, rate_mbps);
-
- 	return mlx5_modify_scheduling_element_cmd(esw->dev,
-@@ -1276,6 +1279,8 @@ static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
- 	int ret;
-
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
-
- 	mutex_lock(&esw->state_lock);
- 	WARN_ON(vport->enabled);
-@@ -1311,6 +1316,8 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, u16 vport_num)
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return;
-
- 	mutex_lock(&esw->state_lock);
- 	if (!vport->enabled)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index c9c2962ad49f..429dc613530b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2159,6 +2159,9 @@ static int esw_create_uplink_offloads_acl_tables(struct mlx5_eswitch *esw)
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
-+
- 	return esw_vport_create_offloads_acl_tables(esw, vport);
- }
-
-@@ -2167,6 +2170,9 @@ static void esw_destroy_uplink_offloads_acl_tables(struct mlx5_eswitch *esw)
- 	struct mlx5_vport *vport;
-
- 	vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
-+	if (IS_ERR(vport))
-+		return;
-+
- 	esw_vport_destroy_offloads_acl_tables(esw, vport);
- }
-
---
-2.28.0
-
+Best,
+Changming Liu
