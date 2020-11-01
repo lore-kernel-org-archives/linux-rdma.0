@@ -2,217 +2,176 @@ Return-Path: <SRS0=fQuC=EH=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDAF5C2D0A3
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 14:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69D43C4741F
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 19:50:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FA312158C
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 14:17:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 319BF22253
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Nov 2020 19:50:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604260255;
+	bh=ggvoVwwLIzKiSDItohf4zJ0R+fBUJRlqriGIhjydae8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=GI0Nxb5Hs589iCMbKUsYWQN4UZGSHzODxsFSGCY6SaDB1rMRD1kOA09XefpJ2uVzA
+	 TJ4xR9/ghpnpEYycqCT5mBSjRdvrOZTQWWSYveZJtOidd5rRhenP1Ba8w0dxVAF8B9
+	 30DhlbxwEuHvDOW0Oqzm76RRchD3pmivztmgL4+4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726496AbgKAORl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Nov 2020 09:17:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726370AbgKAORk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Nov 2020 09:17:40 -0500
-X-Greylist: delayed 902 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 01 Nov 2020 06:17:40 PST
-Received: from mailg110.ethz.ch (mailg110.ethz.ch [IPv6:2001:67c:10ec:5605::21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57940C0617A6
-        for <linux-rdma@vger.kernel.org>; Sun,  1 Nov 2020 06:17:40 -0800 (PST)
-Received: from mailm214.d.ethz.ch (2001:67c:10ec:5603::28) by mailg110.ethz.ch
- (2001:67c:10ec:5605::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2044.4; Sun, 1 Nov 2020
- 15:02:30 +0100
-Received: from ktaranov-laptop (194.230.155.211) by mailm214.d.ethz.ch
- (2001:67c:10ec:5603::28) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2; Sun, 1 Nov 2020
- 15:02:35 +0100
-Date:   Sun, 1 Nov 2020 15:02:33 +0100
-From:   Konstantin Taranov <konstantin.taranov@inf.ethz.ch>
-To:     <linux-rdma@vger.kernel.org>
-CC:     <konstantin.taranov@inf.ethz.ch>
-Subject: [PATCH] The patch fixes minor typos in debug messages and comments
- in rdma-core
-Message-ID: <20201101150233.3b9ebb41@ktaranov-laptop>
-X-Mailer: Claws Mail 3.17.5 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+        id S1727054AbgKATuy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Nov 2020 14:50:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52320 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726790AbgKATuy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 1 Nov 2020 14:50:54 -0500
+Received: from localhost (host-213-179-129-39.customer.m-online.net [213.179.129.39])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 90327208B6;
+        Sun,  1 Nov 2020 19:50:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1604260253;
+        bh=ggvoVwwLIzKiSDItohf4zJ0R+fBUJRlqriGIhjydae8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=qEYxzv1vwTB402op7PJL2cPdmf5feB2evrGSKOTRqrmiKqQhtkoEfMrwaVKQen0PY
+         w4+YCdzaeNIIaaUnNAznWhNTzjCDrznPSPPabGqBARLvXcBwi/Lg+xmoJyP3v6wTe8
+         2Lsao4TpzJYcr+TtZMPFZYWxuynJjjl6E84jcSzs=
+Date:   Sun, 1 Nov 2020 21:50:49 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-rc 1/3] RDMA/core: Postpone uobject cleanup on
+ failure till FD close
+Message-ID: <20201101195049.GC5429@unreal>
+References: <20201012045600.418271-1-leon@kernel.org>
+ <20201012045600.418271-2-leon@kernel.org>
+ <20201027165508.GA2267703@nvidia.com>
+ <20201027171122.GP1523783@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [194.230.155.211]
-X-ClientProxiedBy: mailm213.d.ethz.ch (2001:67c:10ec:5603::27) To
- mailm214.d.ethz.ch (2001:67c:10ec:5603::28)
-X-TM-SNTS-SMTP: 4D315C5289D373E4DC944A3D9E411D3FEF2513F506C6E202A40D85DE1F2780192000:8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201027171122.GP1523783@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The patch only makes grammar-related fixes. It fixes misspelled abbreviations for Remote Direct Memory Access and incorrect use of the article "a" with "RDMA".
+On Tue, Oct 27, 2020 at 02:11:22PM -0300, Jason Gunthorpe wrote:
+> On Tue, Oct 27, 2020 at 01:55:08PM -0300, Jason Gunthorpe wrote:
+>
+> > diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> > index 3d366cb79cef42..3ae878f3d173d3 100644
+> > +++ b/drivers/infiniband/core/rdma_core.c
+> > @@ -540,6 +540,9 @@ static int __must_check destroy_hw_idr_uobject(struct ib_uobject *uobj,
+> >  	if (ret)
+> >  		return ret;
+> >
+> > +	if (why == RDMA_REMOVE_ABORT)
+> > +		return 0;
+> > +
+> >  	ib_rdmacg_uncharge(&uobj->cg_obj, uobj->context->device,
+> >  			   RDMACG_RESOURCE_HCA_OBJECT);
+> >
+> > @@ -727,10 +730,8 @@ void release_ufile_idr_uobject(struct ib_uverbs_file *ufile)
+> >  	 *
+> >  	 * This is an optimized equivalent to remove_handle_idr_uobject
+> >  	 */
+> > -	xa_for_each(&ufile->idr, id, entry) {
+> > -		WARN_ON(entry->object);
+> > +	xa_for_each(&ufile->idr, id, entry)
+> >  		uverbs_uobject_put(entry);
+> > -	}
+>
+> Actually this is not a good idea
+>
+> This one is better:
 
-The changes include:
- * Changed "a RDMA" to "an RDMA"
- * Changed "RMDA" to "RDMA".
+This causes to many syzkaller bugs, I didn't debug yet.
 
-Signed-off-by: Konstantin Taranov <konstantin.taranov@inf.ethz.ch>
----
- Documentation/udev.md                   | 4 ++--
- buildlib/azure-pipelines.yml            | 2 +-
- debian/control                          | 2 +-
- libibverbs/driver.h                     | 2 +-
- libibverbs/man/ibv_query_gid_table.3.md | 2 +-
- librdmacm/examples/rping.c              | 2 +-
- librdmacm/man/rdma_init_qp_attr.3.md    | 4 ++--
- tests/base_rdmacm.py                    | 2 +-
- tests/rdmacm_utils.py                   | 4 ++--
- 9 files changed, 12 insertions(+), 12 deletions(-)
+Thanks
 
-diff --git a/Documentation/udev.md b/Documentation/udev.md
-index cf94a4fb..1ebee250 100644
---- a/Documentation/udev.md
-+++ b/Documentation/udev.md
-@@ -26,7 +26,7 @@ This can happen in several spots along the bootup:
-    This happens asynchronously in the boot process, systemd does not wait for
-    udev to finish loading modules before it continues on.
- 
--   This path makes it very likely the system will experience a RDMA 'hot plug'
-+   This path makes it very likely the system will experience an RDMA 'hot plug'
-    scenario.
- 
-  - From systemd's fixed module loader systemd-modules-load.service, e.g. from
-@@ -41,7 +41,7 @@ This is triggered automatically by udev rules that match the master devices
- and load the protocol module with udev's module loader. This happens
- asynchronously to the rest of the systemd startup.
- 
--Once a RDMA device is created by the kernel then udev will cause systemd to
-+Once an RDMA device is created by the kernel then udev will cause systemd to
- schedule ULP module loading services (e.g. rdma-load-modules@.service) specific
- to the plugged hardware. If sysinit.target has not yet been passed then these
- loaders will defer sysinit.target until they complete, otherwise this is a hot
-diff --git a/buildlib/azure-pipelines.yml b/buildlib/azure-pipelines.yml
-index f2a86b46..6a948480 100644
---- a/buildlib/azure-pipelines.yml
-+++ b/buildlib/azure-pipelines.yml
-@@ -165,7 +165,7 @@ stages:
- 
-           - task: PublishPipelineArtifact@0
-             inputs:
--              # Contains a rdma-core-XX.tar.gz file
-+              # Contains an rdma-core-XX.tar.gz file
-               artifactName: source_tar
-               targetPath: artifacts
- 
-diff --git a/debian/control b/debian/control
-index 0837cfc1..290b14d8 100644
---- a/debian/control
-+++ b/debian/control
-@@ -87,7 +87,7 @@ Description: User space provider drivers for libibverbs
-  hardware access from userspace (kernel bypass), and libibverbs
-  supports this when available.
-  .
-- A RDMA driver consists of a kernel portion and a user space portion.
-+ An RDMA driver consists of a kernel portion and a user space portion.
-  This package contains the user space verbs drivers:
-  .
-   - bnxt_re: Broadcom NetXtreme-E RoCE HCAs
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 451924d4..87d1a030 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -190,7 +190,7 @@ enum {
- 	VSYSFS_READ_FW_VER = 1 << 2,
- };
- 
--/* A rdma device detected in sysfs */
-+/* An rdma device detected in sysfs */
- struct verbs_sysfs_dev {
- 	struct list_node entry;
- 	void *provider_data;
-diff --git a/libibverbs/man/ibv_query_gid_table.3.md b/libibverbs/man/ibv_query_gid_table.3.md
-index e10f51c6..63f17a49 100644
---- a/libibverbs/man/ibv_query_gid_table.3.md
-+++ b/libibverbs/man/ibv_query_gid_table.3.md
-@@ -37,7 +37,7 @@ to the size of *entries* array.
- *entries* array must be allocated such that it can contain all the valid
- GID table entries of the device. If there are more valid GID entries than
- the provided value of *max_entries* and *entries* array, the call will fail.
--For example, if a RDMA device *context* has a total of 10 valid
-+For example, if an RDMA device *context* has a total of 10 valid
- GID entries, *entries* should be allocated for at least 10 entries, and
- *max_entries* should be set appropriately.
- 
-diff --git a/librdmacm/examples/rping.c b/librdmacm/examples/rping.c
-index 882f878b..a270d7db 100644
---- a/librdmacm/examples/rping.c
-+++ b/librdmacm/examples/rping.c
-@@ -1119,7 +1119,7 @@ static int rping_connect_client(struct rping_cb *cb)
- 		}
- 	}
- 
--	DEBUG_LOG("rmda_connect successful\n");
-+	DEBUG_LOG("rdma_connect successful\n");
- 	return 0;
- }
- 
-diff --git a/librdmacm/man/rdma_init_qp_attr.3.md b/librdmacm/man/rdma_init_qp_attr.3.md
-index 99e812ab..dfd6f22a 100644
---- a/librdmacm/man/rdma_init_qp_attr.3.md
-+++ b/librdmacm/man/rdma_init_qp_attr.3.md
-@@ -10,7 +10,7 @@ title: RDMA_INIT_QP_ATTR
- 
- # NAME
- 
--rdma_init_qp_attr - Returns qp attributes of a rdma_cm_id.
-+rdma_init_qp_attr - Returns qp attributes of an rdma_cm_id.
- 
- # SYNOPSIS
- 
-@@ -23,7 +23,7 @@ int rdma_init_qp_attr(struct rdma_cm_id *id,
- ```
- # DESCRIPTION
- 
--**rdma_init_qp_attr()** returns qp attributes of a rdma_cm_id.
-+**rdma_init_qp_attr()** returns qp attributes of an rdma_cm_id.
- 
- Information about qp attributes and qp attributes mask is returned through the *qp_attr* and *qp_attr_mask* parameters.
- 
-diff --git a/tests/base_rdmacm.py b/tests/base_rdmacm.py
-index 67d00fbf..e5ecc7df 100755
---- a/tests/base_rdmacm.py
-+++ b/tests/base_rdmacm.py
-@@ -91,7 +91,7 @@ class CMResources(abc.ABC):
- 
-     def create_qp(self):
-         """
--        Create a rdmacm QP. If self.with_ext_qp is set, then an external CQ and
-+        Create an rdmacm QP. If self.with_ext_qp is set, then an external CQ and
-         RC QP will be created and set in self.cq and self.qp
-         respectively.
-         """
-diff --git a/tests/rdmacm_utils.py b/tests/rdmacm_utils.py
-index 834762cb..2880fa2a 100755
---- a/tests/rdmacm_utils.py
-+++ b/tests/rdmacm_utils.py
-@@ -267,7 +267,7 @@ class CMAsyncConnection(CMConnection):
- 
-     def establish_connection(self):
-         """
--        Establish RMDACM connection between two Async CMIDs.
-+        Establish RDMACM connection between two Async CMIDs.
-         """
-         if self.cm_res.passive:
-             self.cm_res.cmid.bind_addr(self.cm_res.ai)
-@@ -378,7 +378,7 @@ class CMSyncConnection(CMConnection):
- 
-     def establish_connection(self):
-         """
--        Establish RMDACM connection between two Sync CMIDs.
-+        Establish RDMACM connection between two Sync CMIDs.
-         """
-         if self.cm_res.passive:
-             self.cm_res.cmid.listen()
--- 
-2.25.1
-
+>
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index 3d366cb79cef42..fd012be700ccc2 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -540,6 +540,9 @@ static int __must_check destroy_hw_idr_uobject(struct ib_uobject *uobj,
+>  	if (ret)
+>  		return ret;
+>
+> +	if (why == RDMA_REMOVE_ABORT)
+> +		return 0;
+> +
+>  	ib_rdmacg_uncharge(&uobj->cg_obj, uobj->context->device,
+>  			   RDMACG_RESOURCE_HCA_OBJECT);
+>
+> @@ -845,11 +848,17 @@ static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
+>  		 * racing with a lookup_get.
+>  		 */
+>  		WARN_ON(uverbs_try_lock_object(obj, UVERBS_LOOKUP_WRITE));
+> +		if (reason == RDMA_REMOVE_DRIVER_FAILURE)
+> +			obj->object = NULL;
+>  		if (!uverbs_destroy_uobject(obj, reason, &attrs))
+>  			ret = 0;
+>  		else
+>  			atomic_set(&obj->usecnt, 0);
+>  	}
+> +	if (reason == RDMA_REMOVE_DRIVER_FAILURE) {
+> +		WARN_ON(!list_empty(&ufile->uobjects));
+> +		return 0;
+> +	}
+>  	return ret;
+>  }
+>
+> @@ -862,9 +871,6 @@ static int __uverbs_cleanup_ufile(struct ib_uverbs_file *ufile,
+>  void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
+>  			     enum rdma_remove_reason reason)
+>  {
+> -	struct ib_uobject *obj, *next_obj;
+> -	unsigned long flags;
+> -
+>  	down_write(&ufile->hw_destroy_rwsem);
+>
+>  	/*
+> @@ -875,25 +881,10 @@ void uverbs_destroy_ufile_hw(struct ib_uverbs_file *ufile,
+>  		goto done;
+>
+>  	while (!list_empty(&ufile->uobjects))
+> -		if (__uverbs_cleanup_ufile(ufile, reason)) {
+> -			/*
+> -			 * No entry was cleaned-up successfully during this
+> -			 * iteration. It is a driver bug to fail destruction.
+> -			 */
+> -			WARN_ON(!list_empty(&ufile->uobjects));
+> +		if (__uverbs_cleanup_ufile(ufile, reason))
+>  			break;
+> -		}
+> -
+> -	list_for_each_entry_safe (obj, next_obj, &ufile->uobjects, list) {
+> -		spin_lock_irqsave(&ufile->uobjects_lock, flags);
+> -		list_del_init(&obj->list);
+> -		spin_unlock_irqrestore(&ufile->uobjects_lock, flags);
+> -		/*
+> -		 * Pairs with the get in rdma_alloc_commit_uobject(), could
+> -		 * destroy uobj.
+> -		 */
+> -		uverbs_uobject_put(obj);
+> -	}
+> +	if (WARN_ON(!list_empty(&ufile->uobjects)))
+> +		__uverbs_cleanup_ufile(ufile, RDMA_REMOVE_DRIVER_FAILURE);
+>  	ufile_destroy_ucontext(ufile, reason);
+>
+>  done:
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index edfc1d7d3766ca..7e330f4a6d33ff 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1471,6 +1471,8 @@ enum rdma_remove_reason {
+>  	RDMA_REMOVE_DRIVER_REMOVE,
+>  	/* uobj is being cleaned-up before being committed */
+>  	RDMA_REMOVE_ABORT,
+> +	/* The driver failed to destroy the uobject and is being disconnected */
+> +	RDMA_REMOVE_DRIVER_FAILURE,
+>  };
+>
+>  struct ib_rdmacg_object {
