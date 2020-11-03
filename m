@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB561C2D0A3
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Nov 2020 13:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D8EC388F9
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Nov 2020 13:07:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89E0720731
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Nov 2020 13:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F9E822243
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Nov 2020 13:07:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729069AbgKCNFs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Nov 2020 08:05:48 -0500
-Received: from mga09.intel.com ([134.134.136.24]:23994 "EHLO mga09.intel.com"
+        id S1728439AbgKCNHm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 3 Nov 2020 08:07:42 -0500
+Received: from mga04.intel.com ([192.55.52.120]:17648 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729079AbgKCNFb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 3 Nov 2020 08:05:31 -0500
-IronPort-SDR: gF1hkoKOQ/Eg6IX/Y/tNdbQ4G8LDbch2zGRxjIeUKj8SlMJX6WB+yVrKjoquU3LZIUDTQtb+Lc
- V7Mtu95Vro1w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="169179973"
+        id S1728027AbgKCNGc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 3 Nov 2020 08:06:32 -0500
+IronPort-SDR: xx0nGUdD92kkgXzUctZyat3PKZPW6i1MqTw2tmn9UHYSvzOqxeg99p+SF53yYzsYhWvI2Iosqq
+ DLAQtlVKqhsA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="166455683"
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="169179973"
+   d="scan'208";a="166455683"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 05:05:30 -0800
-IronPort-SDR: mPri04HwtKS6ixCY3oEtN4nb4bsH5FdhYX8u6rtBWveR1SLPH56ZfncxMvVCUEf1C3xfOOerUg
- cwu7T8FDFUZg==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 05:06:31 -0800
+IronPort-SDR: SwhB7QRI+NxOwnXikb4sX1CsQVizsDysevMeaQwNLrFpnLO/Sj7w781ckljTbKIUan0a8barZw
+ MVnPHGcCfEcA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,448,1596524400"; 
-   d="scan'208";a="325224142"
+   d="scan'208";a="363592636"
 Received: from lkp-server02.sh.intel.com (HELO e61783667810) ([10.239.97.151])
-  by orsmga006.jf.intel.com with ESMTP; 03 Nov 2020 05:05:29 -0800
+  by orsmga007.jf.intel.com with ESMTP; 03 Nov 2020 05:06:29 -0800
 Received: from kbuild by e61783667810 with local (Exim 4.92)
         (envelope-from <lkp@intel.com>)
-        id 1kZw08-0000FV-CY; Tue, 03 Nov 2020 13:05:28 +0000
-Date:   Tue, 03 Nov 2020 21:05:27 +0800
+        id 1kZw17-0000Fb-2l; Tue, 03 Nov 2020 13:06:29 +0000
+Date:   Tue, 03 Nov 2020 21:05:28 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 32053e584e4a342be37a0932ffc1f9b13e914515
-Message-ID: <5fa15597.CxrYeX95PsQ5RuUP%lkp@intel.com>
+Subject: [rdma:for-rc] BUILD SUCCESS
+ 00469c97ef64f6b7e3ab08c5eeb0378260baf983
+Message-ID: <5fa15598.tcvErape/TwAjczl%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -53,12 +53,12 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-next
-branch HEAD: 32053e584e4a342be37a0932ffc1f9b13e914515  RDMA/hns: Add support for filling GMV table
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  for-rc
+branch HEAD: 00469c97ef64f6b7e3ab08c5eeb0378260baf983  RDMA/vmw_pvrdma: Fix the active_speed and phys_state value
 
 elapsed time: 722m
 
-configs tested: 167
+configs tested: 186
 configs skipped: 3
 
 The following configs have been built successfully.
@@ -70,6 +70,14 @@ arm64                            allyesconfig
 arm64                               defconfig
 arm                              allyesconfig
 arm                              allmodconfig
+powerpc                 mpc8272_ads_defconfig
+um                             i386_defconfig
+powerpc                mpc7448_hpc2_defconfig
+mips                        vocore2_defconfig
+arm                         ebsa110_defconfig
+powerpc                      pasemi_defconfig
+arm64                            alldefconfig
+ia64                            zx1_defconfig
 mips                  cavium_octeon_defconfig
 mips                     loongson1b_defconfig
 arm                           h3600_defconfig
@@ -84,7 +92,6 @@ arm                        oxnas_v6_defconfig
 arc                     nsimosci_hs_defconfig
 sh                          rsk7269_defconfig
 powerpc                      obs600_defconfig
-powerpc                mpc7448_hpc2_defconfig
 ia64                             alldefconfig
 powerpc                    sam440ep_defconfig
 powerpc                   bluestone_defconfig
@@ -92,10 +99,13 @@ arc                        vdk_hs38_defconfig
 nds32                               defconfig
 arm                            qcom_defconfig
 ia64                          tiger_defconfig
+mips                         bigsur_defconfig
+mips                         db1xxx_defconfig
 arm                        shmobile_defconfig
 m68k                        m5407c3_defconfig
 mips                        qi_lb60_defconfig
 arm                            u300_defconfig
+powerpc                          allmodconfig
 riscv                            alldefconfig
 powerpc                      arches_defconfig
 powerpc                    gamecube_defconfig
@@ -104,6 +114,10 @@ mips                      bmips_stb_defconfig
 arm                         lubbock_defconfig
 arm                        vexpress_defconfig
 powerpc                     mpc512x_defconfig
+arm                         axm55xx_defconfig
+parisc                           alldefconfig
+powerpc                    socrates_defconfig
+powerpc                 mpc834x_mds_defconfig
 powerpc                    ge_imp3a_defconfig
 sh                          rsk7264_defconfig
 powerpc                     asp8347_defconfig
@@ -125,6 +139,12 @@ sparc                       sparc64_defconfig
 m68k                       m5275evb_defconfig
 m68k                        m5272c3_defconfig
 xtensa                  cadence_csp_defconfig
+arm                            zeus_defconfig
+mips                      malta_kvm_defconfig
+sh                         apsh4a3a_defconfig
+powerpc                     ep8248e_defconfig
+arm                          pcm027_defconfig
+powerpc                     stx_gp3_defconfig
 m68k                       m5475evb_defconfig
 m68k                        m5307c3_defconfig
 mips                           jazz_defconfig
@@ -132,14 +152,12 @@ arm                          prima2_defconfig
 mips                          rb532_defconfig
 powerpc64                           defconfig
 arm                       imx_v6_v7_defconfig
-um                             i386_defconfig
 sh                   sh7770_generic_defconfig
 mips                           ip32_defconfig
 arm                             mxs_defconfig
 openrisc                            defconfig
 powerpc                       holly_defconfig
 arm                        mvebu_v7_defconfig
-sh                         apsh4a3a_defconfig
 powerpc                    mvme5100_defconfig
 powerpc                      acadia_defconfig
 powerpc                     ppa8548_defconfig
@@ -150,11 +168,13 @@ h8300                     edosk2674_defconfig
 arm                       mainstone_defconfig
 xtensa                  audio_kc705_defconfig
 powerpc                      ppc44x_defconfig
+mips                           gcw0_defconfig
+arm                           sama5_defconfig
+m68k                          atari_defconfig
 arm                         lpc18xx_defconfig
 nds32                             allnoconfig
 ia64                                defconfig
 sh                            shmin_defconfig
-powerpc                 mpc834x_mds_defconfig
 ia64                             allmodconfig
 m68k                             allmodconfig
 m68k                                defconfig
@@ -181,7 +201,6 @@ i386                                defconfig
 mips                             allyesconfig
 mips                             allmodconfig
 powerpc                          allyesconfig
-powerpc                          allmodconfig
 powerpc                           allnoconfig
 x86_64               randconfig-a004-20201103
 x86_64               randconfig-a005-20201103
@@ -196,11 +215,11 @@ i386                 randconfig-a001-20201103
 i386                 randconfig-a002-20201103
 i386                 randconfig-a003-20201103
 x86_64               randconfig-a012-20201102
-x86_64               randconfig-a015-20201102
 x86_64               randconfig-a011-20201102
 x86_64               randconfig-a013-20201102
-x86_64               randconfig-a014-20201102
+x86_64               randconfig-a015-20201102
 x86_64               randconfig-a016-20201102
+x86_64               randconfig-a014-20201102
 i386                 randconfig-a013-20201103
 i386                 randconfig-a015-20201103
 i386                 randconfig-a014-20201103
@@ -222,18 +241,18 @@ x86_64                               rhel-8.3
 x86_64                                  kexec
 
 clang tested configs:
+x86_64               randconfig-a004-20201102
+x86_64               randconfig-a003-20201102
+x86_64               randconfig-a002-20201102
+x86_64               randconfig-a001-20201102
+x86_64               randconfig-a005-20201102
+x86_64               randconfig-a006-20201102
 x86_64               randconfig-a012-20201103
 x86_64               randconfig-a015-20201103
 x86_64               randconfig-a011-20201103
 x86_64               randconfig-a013-20201103
 x86_64               randconfig-a014-20201103
 x86_64               randconfig-a016-20201103
-x86_64               randconfig-a004-20201102
-x86_64               randconfig-a005-20201102
-x86_64               randconfig-a003-20201102
-x86_64               randconfig-a002-20201102
-x86_64               randconfig-a006-20201102
-x86_64               randconfig-a001-20201102
 
 ---
 0-DAY CI Kernel Test Service, Intel Corporation
