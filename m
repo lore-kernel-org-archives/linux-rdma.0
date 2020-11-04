@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A3F0C388F9
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A5AC4741F
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B237F20739
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C06062074B
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604500823;
-	bh=NH8vwx9p6cRsaUGIDfGxtSai//KGuiVEzU6hfO9M6I8=;
+	s=default; t=1604500827;
+	bh=kL22NUVmodfSN1qRrf4Ufad8+E1u6L+r8uXRnjzHrnI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=VzQz6wrgfWTujsteWhXp9gV83Osqqv8pmBTtNjwHBe6+CNYgSRX4hnERBqHE1rvWQ
-	 cos/eTUtbSIbxDwins8mv1KHvYB8k2Jxv23go4d8dGWYuPybMHD9mm3af7MFyX2mlj
-	 Cu27PaCKV/RBHjt0tOmdbAhMQM+9swBvr99IFZMY=
+	b=qRJ1p5vlesMzD/LA0yXWUc1yRo972xwW475u8hgBzIrcYhoo2LMoH+22U74kQVJ9W
+	 SILRXYBb9OuhRc+jXXXQt2gn8lpfkXaAXWWMXx5NiUH9GxQdYyupaBi1e/2tXdqB2y
+	 SbzwglM3sWI+9TBu9CA9pYwS22i5v/pjsFIMLnZI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728827AbgKDOkX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Nov 2020 09:40:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44442 "EHLO mail.kernel.org"
+        id S1727003AbgKDOk0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Nov 2020 09:40:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44470 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726564AbgKDOkW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 4 Nov 2020 09:40:22 -0500
+        id S1726564AbgKDOk0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 4 Nov 2020 09:40:26 -0500
 Received: from localhost (searspoint.nvidia.com [216.228.112.21])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EA5FF20756;
-        Wed,  4 Nov 2020 14:40:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A8A1B20739;
+        Wed,  4 Nov 2020 14:40:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604500821;
-        bh=NH8vwx9p6cRsaUGIDfGxtSai//KGuiVEzU6hfO9M6I8=;
+        s=default; t=1604500825;
+        bh=kL22NUVmodfSN1qRrf4Ufad8+E1u6L+r8uXRnjzHrnI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kf5tlAq2DPFUEztg6s1kgHPH6/y+jzI/kKwoKjEGw5SoNWLpc6H6/os8dRTxOY2Re
-         92VEZbqHOT1bRBGlLsj6htUptDDbgC8qciSKepzUPCvIvLWQ5TJ2KfIHSi6YOJddfM
-         GKvKQflCmVpNLoZ2bWpnLvbEiH6k/IKNilPSuWkA=
+        b=TlfU+Fx36O+BzUMEfzefYo47v2fNfXQJuhYWVoQpxwIDiuCF1vLxkCiJtU16Ki9ZP
+         B02fSdrLE97Qjmx7k2sJn4zjoJoOBbE75Y21NssKqaO0UTKiDFxXu3l5EnK/Egr1y3
+         gsGJBsiLZIXK53jm7ZWbyGdcgtRMEP4fV3DIFlYM=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v4 3/5] RDMA/restrack: Store all special QPs in restrack DB
-Date:   Wed,  4 Nov 2020 16:40:06 +0200
-Message-Id: <20201104144008.3808124-4-leon@kernel.org>
+Subject: [PATCH rdma-next v4 1/5] RDMA/core: Allow drivers to disable restrack DB
+Date:   Wed,  4 Nov 2020 16:40:04 +0200
+Message-Id: <20201104144008.3808124-2-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201104144008.3808124-1-leon@kernel.org>
 References: <20201104144008.3808124-1-leon@kernel.org>
@@ -56,72 +56,156 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Special QPs (SMI and GSI) have different rules in regards of their QP
-numbers. While all other QP numbers are unique per-device, the QP0 and QP1
-are created per-port as requested by IBTA.
+Driver QP types are special case with no IBTA restrictions. For example,
+EFA implemented creation of this QP type as regular one, while mlx5
+separated create to two step: create and modify. That separation causes
+to the situation where DC QP (mlx5) is always added to the same xarray
+index zero.
 
-In multiple port devices, the number of SMI and GSI QPs with be equal
-to the number ports.
+This change allows to drivers like mlx5 simply disable restrack DB
+tracking, but it doesn't disable kref on the memory.
 
-[leonro@vm ~]$ rdma dev
-0: ibp0s9: node_type ca fw 4.4.9999 node_guid 5254:00c0:fe12:3455 sys_image_guid 5254:00c0:fe12:3455
-[leonro@vm ~]$ rdma link
-0/1: ibp0s9/1: subnet_prefix fe80:0000:0000:0000 lid 13397 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
-0/2: ibp0s9/2: subnet_prefix fe80:0000:0000:0000 lid 13397 sm_lid 49151 lmc 0 state UNKNOWN physical_state UNKNOWN
-
-Before:
-[leonro@mtl-leonro-l-vm ~]$ rdma res show qp type SMI,GSI
-link ibp0s9/1 lqpn 0 type SMI state RTS sq-psn 0 comm [ib_core]
-link ibp0s9/1 lqpn 1 type GSI state RTS sq-psn 0 comm [ib_core]
-
-After:
-[leonro@vm ~]$ rdma res show qp type SMI,GSI
-link ibp0s9/1 lqpn 0 type SMI state RTS sq-psn 0 comm [ib_core]
-link ibp0s9/1 lqpn 1 type GSI state RTS sq-psn 0 comm [ib_core]
-link ibp0s9/2 lqpn 0 type SMI state RTS sq-psn 0 comm [ib_core]
-link ibp0s9/2 lqpn 1 type GSI state RTS sq-psn 0 comm [ib_core]
-
+Fixes: 52e0a118a203 ("RDMA/restrack: Track driver QP types in resource tracker")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/core_priv.h |  2 ++
- drivers/infiniband/core/restrack.c  | 11 +++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/counters.c |  2 +-
+ drivers/infiniband/core/restrack.c | 12 ++++++++++--
+ drivers/infiniband/hw/mlx4/qp.c    |  5 +++++
+ drivers/infiniband/hw/mlx5/qp.c    |  2 +-
+ include/rdma/restrack.h            | 24 ++++++++++++++++++++++++
+ 5 files changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index e84b0fedaacb..7c4752c47f80 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -347,6 +347,8 @@ static inline struct ib_qp *_ib_create_qp(struct ib_device *dev,
- 	qp->srq = attr->srq;
- 	qp->rwq_ind_tbl = attr->rwq_ind_tbl;
- 	qp->event_handler = attr->event_handler;
-+	qp->qp_type = attr->qp_type;
-+	qp->port = attr->port_num;
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index e4ff0d3328b6..fa1a4a318fd7 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -275,7 +275,7 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
+ 	struct rdma_counter *counter;
+ 	int ret;
 
- 	atomic_set(&qp->usecnt, 0);
- 	spin_lock_init(&qp->mr_lock);
+-	if (!qp->res.valid || rdma_is_kernel_res(&qp->res))
++	if (!rdma_restrack_is_tracked(&qp->res) || rdma_is_kernel_res(&qp->res))
+ 		return 0;
+
+ 	if (!rdma_is_port_valid(dev, port))
 diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index e26a3213f500..e0a41c867002 100644
+index 4aeeaaed0f17..e26a3213f500 100644
 --- a/drivers/infiniband/core/restrack.c
 +++ b/drivers/infiniband/core/restrack.c
-@@ -235,8 +235,15 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
- 		/* Special case to ensure that LQPN points to right QP */
- 		struct ib_qp *qp = container_of(res, struct ib_qp, res);
+@@ -221,11 +221,14 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
+ {
+ 	struct ib_device *dev = res_to_dev(res);
+ 	struct rdma_restrack_root *rt;
+-	int ret;
++	int ret = 0;
 
--		ret = xa_insert(&rt->xa, qp->qp_num, res, GFP_KERNEL);
--		res->id = ret ? 0 : qp->qp_num;
-+		WARN_ONCE(qp->qp_num >> 24 || qp->port >> 8,
-+			  "QP number 0x%0X and port 0x%0X", qp->qp_num,
-+			  qp->port);
-+		res->id = qp->qp_num;
-+		if (qp->qp_type == IB_QPT_SMI || qp->qp_type == IB_QPT_GSI)
-+			res->id |= qp->port << 24;
-+		ret = xa_insert(&rt->xa, res->id, res, GFP_KERNEL);
-+		if (ret)
-+			res->id = 0;
- 	} else if (res->type == RDMA_RESTRACK_COUNTER) {
- 		/* Special case to ensure that cntn points to right counter */
- 		struct rdma_counter *counter;
+ 	if (!dev)
+ 		return;
+
++	if (res->no_track)
++		goto out;
++
+ 	rt = &dev->res[res->type];
+
+ 	if (res->type == RDMA_RESTRACK_QP) {
+@@ -246,6 +249,7 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
+ 				      &rt->next_id, GFP_KERNEL);
+ 	}
+
++out:
+ 	if (!ret)
+ 		res->valid = true;
+ }
+@@ -318,6 +322,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 		return;
+ 	}
+
++	if (res->no_track)
++		goto out;
++
+ 	dev = res_to_dev(res);
+ 	if (WARN_ON(!dev))
+ 		return;
+@@ -328,8 +335,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 	if (res->type == RDMA_RESTRACK_MR || res->type == RDMA_RESTRACK_QP)
+ 		return;
+ 	WARN_ON(old != res);
+-	res->valid = false;
+
++out:
++	res->valid = false;
+ 	rdma_restrack_put(res);
+ 	wait_for_completion(&res->comp);
+ }
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 47b9ed5599b3..44534a12819a 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1561,6 +1561,11 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struct mlx4_ib_qp *qp,
+ 		if (err)
+ 			return err;
+
++		if (init_attr->create_flags &
++		    (MLX4_IB_SRIOV_SQP | MLX4_IB_SRIOV_TUNNEL_QP))
++			/* Internal QP created with ib_create_qp */
++			rdma_restrack_no_track(&qp->ibqp.res);
++
+ 		qp->port	= init_attr->port_num;
+ 		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 :
+ 			init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI ? sqpn : 1;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index cfabcd4d46b6..9a04a5949d50 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2435,7 +2435,7 @@ static int create_dct(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	}
+
+ 	qp->state = IB_QPS_RESET;
+-
++	rdma_restrack_no_track(&qp->ibqp.res);
+ 	return 0;
+ }
+
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+index d3a1cc5be7bc..05e18839eaff 100644
+--- a/include/rdma/restrack.h
++++ b/include/rdma/restrack.h
+@@ -68,6 +68,14 @@ struct rdma_restrack_entry {
+ 	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
+ 	 */
+ 	bool			valid;
++	/**
++	 * @no_track: don't add this entry to restrack DB
++	 *
++	 * This field is used to mark an entry that doesn't need to be added to
++	 * internal restrack DB and presented later to the users at the nldev
++	 * query stage.
++	 */
++	u8			no_track : 1;
+ 	/*
+ 	 * @kref: Protect destroy of the resource
+ 	 */
+@@ -145,4 +153,20 @@ int rdma_nl_stat_hwcounter_entry(struct sk_buff *msg, const char *name,
+ struct rdma_restrack_entry *rdma_restrack_get_byid(struct ib_device *dev,
+ 						   enum rdma_restrack_type type,
+ 						   u32 id);
++
++/**
++ * rdma_restrack_no_track() - don't add resource to the DB
++ * @res: resource entry
++ *
++ * Every user of thie API should be cross examined.
++ * Probaby you don't need to use this function.
++ */
++static inline void rdma_restrack_no_track(struct rdma_restrack_entry *res)
++{
++	res->no_track = true;
++}
++static inline bool rdma_restrack_is_tracked(struct rdma_restrack_entry *res)
++{
++	return !res->no_track;
++}
+ #endif /* _RDMA_RESTRACK_H_ */
 --
 2.28.0
 
