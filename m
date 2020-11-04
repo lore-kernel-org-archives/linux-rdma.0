@@ -2,49 +2,49 @@ Return-Path: <SRS0=S7NO=EK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A5AC4741F
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2467C2D0A3
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C06062074B
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BFB220756
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 14:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1604500827;
-	bh=kL22NUVmodfSN1qRrf4Ufad8+E1u6L+r8uXRnjzHrnI=;
+	s=default; t=1604500831;
+	bh=JDZqeEdi14yeP8RqmvGxLRLBiAhK+IVpQMxy7xeG+MQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=qRJ1p5vlesMzD/LA0yXWUc1yRo972xwW475u8hgBzIrcYhoo2LMoH+22U74kQVJ9W
-	 SILRXYBb9OuhRc+jXXXQt2gn8lpfkXaAXWWMXx5NiUH9GxQdYyupaBi1e/2tXdqB2y
-	 SbzwglM3sWI+9TBu9CA9pYwS22i5v/pjsFIMLnZI=
+	b=uOtT/kLHu3SyOdYWV/5lmUaIkaVJ6KGZKmt2utZUI05wabVE4etYaurXggVVHHixY
+	 DKViO4tqynytbjwTDBwlc1yKEkxIxLjrq+EOV7TxlBXnyVUkv+wK2OtC+fLdk06N8N
+	 c75wyFRWT1D4Ji3xqQFtb3Fju51xYul9LLe9RtPU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727003AbgKDOk0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Nov 2020 09:40:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44470 "EHLO mail.kernel.org"
+        id S1729630AbgKDOka (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Nov 2020 09:40:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726564AbgKDOk0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 4 Nov 2020 09:40:26 -0500
+        id S1726564AbgKDOka (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 4 Nov 2020 09:40:30 -0500
 Received: from localhost (searspoint.nvidia.com [216.228.112.21])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A8A1B20739;
-        Wed,  4 Nov 2020 14:40:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 637842074B;
+        Wed,  4 Nov 2020 14:40:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1604500825;
-        bh=kL22NUVmodfSN1qRrf4Ufad8+E1u6L+r8uXRnjzHrnI=;
+        s=default; t=1604500829;
+        bh=JDZqeEdi14yeP8RqmvGxLRLBiAhK+IVpQMxy7xeG+MQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TlfU+Fx36O+BzUMEfzefYo47v2fNfXQJuhYWVoQpxwIDiuCF1vLxkCiJtU16Ki9ZP
-         B02fSdrLE97Qjmx7k2sJn4zjoJoOBbE75Y21NssKqaO0UTKiDFxXu3l5EnK/Egr1y3
-         gsGJBsiLZIXK53jm7ZWbyGdcgtRMEP4fV3DIFlYM=
+        b=aYGNhUn0E9puCrm9MRlbENPt+07bK8DCEcI6CJfXsbZQg0+aNEg8h3F7P+n6ET695
+         9mIlhOB9pAtcvwpIG4jpnFT8L6Cw6jN/0USLtJFLsUStZ6guN/h3hz52db77n5PHkL
+         l2ykL1CEFiXrsVqAizHE/lINCmEnozB5WJ3cQTX4=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v4 1/5] RDMA/core: Allow drivers to disable restrack DB
-Date:   Wed,  4 Nov 2020 16:40:04 +0200
-Message-Id: <20201104144008.3808124-2-leon@kernel.org>
+Subject: [PATCH rdma-next v4 5/5] RDMA/cma: Be strict with attaching to CMA device
+Date:   Wed,  4 Nov 2020 16:40:08 +0200
+Message-Id: <20201104144008.3808124-6-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201104144008.3808124-1-leon@kernel.org>
 References: <20201104144008.3808124-1-leon@kernel.org>
@@ -56,156 +56,149 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Driver QP types are special case with no IBTA restrictions. For example,
-EFA implemented creation of this QP type as regular one, while mlx5
-separated create to two step: create and modify. That separation causes
-to the situation where DC QP (mlx5) is always added to the same xarray
-index zero.
+The RDMA-CM code wasn't consistent in flows that attached to cma_dev,
+this caused to situations where a failure during attach to listen on such
+device leaves RDMA-CM in a non-consistent state.
 
-This change allows to drivers like mlx5 simply disable restrack DB
-tracking, but it doesn't disable kref on the memory.
+Change the _cma_attach_to_dev to return an error in case of failure,
+so listen/attach flows will deal correctly with the failures.
 
-Fixes: 52e0a118a203 ("RDMA/restrack: Track driver QP types in resource tracker")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/counters.c |  2 +-
- drivers/infiniband/core/restrack.c | 12 ++++++++++--
- drivers/infiniband/hw/mlx4/qp.c    |  5 +++++
- drivers/infiniband/hw/mlx5/qp.c    |  2 +-
- include/rdma/restrack.h            | 24 ++++++++++++++++++++++++
- 5 files changed, 41 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/cma.c | 42 +++++++++++++++++++++++------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index e4ff0d3328b6..fa1a4a318fd7 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -275,7 +275,7 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
- 	struct rdma_counter *counter;
- 	int ret;
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 89cc4b0a48ec..290624150c20 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -448,8 +448,8 @@ static int cma_igmp_send(struct net_device *ndev, union ib_gid *mgid, bool join)
+ 	return (in_dev) ? 0 : -ENODEV;
+ }
 
--	if (!qp->res.valid || rdma_is_kernel_res(&qp->res))
-+	if (!rdma_restrack_is_tracked(&qp->res) || rdma_is_kernel_res(&qp->res))
- 		return 0;
-
- 	if (!rdma_is_port_valid(dev, port))
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index 4aeeaaed0f17..e26a3213f500 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -221,11 +221,14 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
+-static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
+-			       struct cma_device *cma_dev)
++static int _cma_attach_to_dev(struct rdma_id_private *id_priv,
++			      struct cma_device *cma_dev)
  {
- 	struct ib_device *dev = res_to_dev(res);
- 	struct rdma_restrack_root *rt;
--	int ret;
-+	int ret = 0;
+ 	cma_dev_get(cma_dev);
+ 	id_priv->cma_dev = cma_dev;
+@@ -460,15 +460,22 @@ static void _cma_attach_to_dev(struct rdma_id_private *id_priv,
+ 	rdma_restrack_add(&id_priv->res);
 
- 	if (!dev)
- 		return;
+ 	trace_cm_id_attach(id_priv, cma_dev->device);
++	return 0;
+ }
 
-+	if (res->no_track)
-+		goto out;
+-static void cma_attach_to_dev(struct rdma_id_private *id_priv,
+-			      struct cma_device *cma_dev)
++static int cma_attach_to_dev(struct rdma_id_private *id_priv,
++			     struct cma_device *cma_dev)
+ {
+-	_cma_attach_to_dev(id_priv, cma_dev);
++	int ret;
 +
- 	rt = &dev->res[res->type];
++	ret = _cma_attach_to_dev(id_priv, cma_dev);
++	if (ret)
++		return ret;
++
+ 	id_priv->gid_type =
+ 		cma_dev->default_gid_type[id_priv->id.port_num -
+ 					  rdma_start_port(cma_dev->device)];
++	return 0;
+ }
 
- 	if (res->type == RDMA_RESTRACK_QP) {
-@@ -246,6 +249,7 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
- 				      &rt->next_id, GFP_KERNEL);
- 	}
+ static void cma_release_dev(struct rdma_id_private *id_priv)
+@@ -633,8 +640,7 @@ static int cma_acquire_dev_by_src_ip(struct rdma_id_private *id_priv)
+ 			if (!IS_ERR(sgid_attr)) {
+ 				id_priv->id.port_num = port;
+ 				cma_bind_sgid_attr(id_priv, sgid_attr);
+-				cma_attach_to_dev(id_priv, cma_dev);
+-				ret = 0;
++				ret = cma_attach_to_dev(id_priv, cma_dev);
+ 				goto out;
+ 			}
+ 		}
+@@ -663,6 +669,7 @@ static int cma_ib_acquire_dev(struct rdma_id_private *id_priv,
+ 	const struct ib_gid_attr *sgid_attr;
+ 	enum ib_gid_type gid_type;
+ 	union ib_gid gid;
++	int ret;
 
-+out:
+ 	if (dev_addr->dev_type != ARPHRD_INFINIBAND &&
+ 	    id_priv->id.ps == RDMA_PS_IPOIB)
+@@ -688,9 +695,9 @@ static int cma_ib_acquire_dev(struct rdma_id_private *id_priv,
+ 	 * cma_process_remove().
+ 	 */
+ 	mutex_lock(&lock);
+-	cma_attach_to_dev(id_priv, listen_id_priv->cma_dev);
++	ret = cma_attach_to_dev(id_priv, listen_id_priv->cma_dev);
+ 	mutex_unlock(&lock);
+-	return 0;
++	return ret;
+ }
+
+ static int cma_iw_acquire_dev(struct rdma_id_private *id_priv,
+@@ -745,7 +752,7 @@ static int cma_iw_acquire_dev(struct rdma_id_private *id_priv,
+
+ out:
  	if (!ret)
- 		res->valid = true;
- }
-@@ -318,6 +322,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
- 		return;
- 	}
+-		cma_attach_to_dev(id_priv, cma_dev);
++		ret = cma_attach_to_dev(id_priv, cma_dev);
 
-+	if (res->no_track)
-+		goto out;
-+
- 	dev = res_to_dev(res);
- 	if (WARN_ON(!dev))
- 		return;
-@@ -328,8 +335,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
- 	if (res->type == RDMA_RESTRACK_MR || res->type == RDMA_RESTRACK_QP)
- 		return;
- 	WARN_ON(old != res);
--	res->valid = false;
+ 	mutex_unlock(&lock);
+ 	return ret;
+@@ -762,7 +769,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	unsigned int p;
+ 	u16 pkey, index;
+ 	enum ib_port_state port_state;
+-	int i;
++	int i, ret;
 
-+out:
-+	res->valid = false;
- 	rdma_restrack_put(res);
- 	wait_for_completion(&res->comp);
- }
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 47b9ed5599b3..44534a12819a 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1561,6 +1561,11 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struct mlx4_ib_qp *qp,
- 		if (err)
- 			return err;
+ 	cma_dev = NULL;
+ 	addr = (struct sockaddr_ib *) cma_dst_addr(id_priv);
+@@ -805,8 +812,10 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+ 	return -ENODEV;
 
-+		if (init_attr->create_flags &
-+		    (MLX4_IB_SRIOV_SQP | MLX4_IB_SRIOV_TUNNEL_QP))
-+			/* Internal QP created with ib_create_qp */
-+			rdma_restrack_no_track(&qp->ibqp.res);
-+
- 		qp->port	= init_attr->port_num;
- 		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 :
- 			init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI ? sqpn : 1;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index cfabcd4d46b6..9a04a5949d50 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2435,7 +2435,7 @@ static int create_dct(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	}
+ found:
+-	cma_attach_to_dev(id_priv, cma_dev);
++	ret = cma_attach_to_dev(id_priv, cma_dev);
+ 	mutex_unlock(&lock);
++	if (ret)
++		return ret;
+ 	addr = (struct sockaddr_ib *)cma_src_addr(id_priv);
+ 	memcpy(&addr->sib_addr, &sgid, sizeof(sgid));
+ 	cma_translate_ib(addr, &id_priv->id.route.addr.dev_addr);
+@@ -2517,7 +2526,9 @@ static int cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	memcpy(cma_src_addr(dev_id_priv), cma_src_addr(id_priv),
+ 	       rdma_addr_size(cma_src_addr(id_priv)));
 
- 	qp->state = IB_QPS_RESET;
--
-+	rdma_restrack_no_track(&qp->ibqp.res);
+-	_cma_attach_to_dev(dev_id_priv, cma_dev);
++	ret = _cma_attach_to_dev(dev_id_priv, cma_dev);
++	if (ret)
++		goto err_attach;
+ 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
+ 	cma_id_get(id_priv);
+ 	dev_id_priv->internal_id = 1;
+@@ -2531,6 +2542,7 @@ static int cma_listen_on_dev(struct rdma_id_private *id_priv,
  	return 0;
- }
-
-diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-index d3a1cc5be7bc..05e18839eaff 100644
---- a/include/rdma/restrack.h
-+++ b/include/rdma/restrack.h
-@@ -68,6 +68,14 @@ struct rdma_restrack_entry {
- 	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
- 	 */
- 	bool			valid;
-+	/**
-+	 * @no_track: don't add this entry to restrack DB
-+	 *
-+	 * This field is used to mark an entry that doesn't need to be added to
-+	 * internal restrack DB and presented later to the users at the nldev
-+	 * query stage.
-+	 */
-+	u8			no_track : 1;
- 	/*
- 	 * @kref: Protect destroy of the resource
- 	 */
-@@ -145,4 +153,20 @@ int rdma_nl_stat_hwcounter_entry(struct sk_buff *msg, const char *name,
- struct rdma_restrack_entry *rdma_restrack_get_byid(struct ib_device *dev,
- 						   enum rdma_restrack_type type,
- 						   u32 id);
-+
-+/**
-+ * rdma_restrack_no_track() - don't add resource to the DB
-+ * @res: resource entry
-+ *
-+ * Every user of thie API should be cross examined.
-+ * Probaby you don't need to use this function.
-+ */
-+static inline void rdma_restrack_no_track(struct rdma_restrack_entry *res)
-+{
-+	res->no_track = true;
-+}
-+static inline bool rdma_restrack_is_tracked(struct rdma_restrack_entry *res)
-+{
-+	return !res->no_track;
-+}
- #endif /* _RDMA_RESTRACK_H_ */
+ err_listen:
+ 	list_del(&id_priv->listen_list);
++err_attach:
+ 	dev_warn(&cma_dev->device->dev, "RDMA CMA: %s, error %d\n", __func__, ret);
+ 	rdma_destroy_id(&dev_id_priv->id);
+ 	return ret;
+@@ -3128,7 +3140,9 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
+ 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
+ 	id_priv->id.port_num = p;
+-	cma_attach_to_dev(id_priv, cma_dev);
++	ret = cma_attach_to_dev(id_priv, cma_dev);
++	if (ret)
++		goto out;
+ 	cma_set_loopback(cma_src_addr(id_priv));
+ out:
+ 	mutex_unlock(&lock);
 --
 2.28.0
 
