@@ -2,147 +2,108 @@ Return-Path: <SRS0=S7NO=EK=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80637C2D0A3
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 21:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33CD6C55179
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 21:52:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2721520825
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 21:41:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HAKe0MIB"
+	by mail.kernel.org (Postfix) with ESMTP id E07D320780
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Nov 2020 21:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727013AbgKDVlH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Nov 2020 16:41:07 -0500
-Received: from nat-hk.nvidia.com ([203.18.50.4]:12088 "EHLO nat-hk.nvidia.com"
+        id S1731533AbgKDVwo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Nov 2020 16:52:44 -0500
+Received: from mga14.intel.com ([192.55.52.115]:38123 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726827AbgKDVlH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 4 Nov 2020 16:41:07 -0500
-Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fa31ff10000>; Thu, 05 Nov 2020 05:41:05 +0800
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL104.nvidia.com
- (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 4 Nov
- 2020 21:41:04 +0000
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.41) by
- HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Wed, 4 Nov 2020 21:41:04 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ihOMovb0EsGwDoiKB3JwlBI8UKScobgBxiaJH3MmrXfZgyyH0HBUy8n7dJ886vwrjMEP4nCE2iqDwmkbxGsoT6gCxsVKN8u20SFkBrlD3jXdwA1R3jUtvqxtXc8V+voZwfUZXbOZuWA91geElkeRCKaDAYwF+lRXz+EIwriB0plpELJ3CZhbwxDQQ5WQnWjkGsBPggP4HgNVmaPiCUCsGM8It5IZ9C5Amro3RLmWlr/6dOtehmNAT+lmdezJ7411Dgmi8rSJ/qPfKr3aDIAsfxuXeqkEp+NaJQIY0mIExQNEInshIOqSKcylFF6dfy10qklQzGKZDDgjGGsk++lsRw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Z6QcO8cmKwJRJD0Sbv6eR598p7/FBDeumalDt7XFAic=;
- b=AtuHkNuIRE0OUPg0yuZH9woLaw6sZ3WoNM48HGEV0GeNHHWy5cULBF0RHFdlGisciVYj+G6wnJCH/8fs/7qH0IPyEW0h0hzqQaU1hIt/M2B7vr+txpN+zzlvbJnKGSKIuPbkY9MdCZS2OeGSYiBSYuZ/d74xNDHdtS0G7OqMCastuQRN7MvsrODek/POVHT31qgQlWD5RicQCGimgd3tQIjMShgYWl953prX2zkbR8+hRHCRDeMz8PYtdg7A60Y1+2oxuZlEnWMkcR7WoxNxo9OSgeJ8DzmXUJg2xdIQP/aaYx0KTiq/AfPsIgL+lJzZ2shKTsduPaZRlTbg10XHZg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB2857.namprd12.prod.outlook.com (2603:10b6:5:184::31) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.24; Wed, 4 Nov
- 2020 21:41:01 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3499.032; Wed, 4 Nov 2020
- 21:41:01 +0000
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>
-CC:     Leon Romanovsky <leonro@mellanox.com>,
-        Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH] RDMA/cm: Make the local_id_table xarray non-irq
-Date:   Wed, 4 Nov 2020 17:40:59 -0400
-Message-ID: <0-v1-808b6da3bd3f+1857-cm_xarray_no_irq_jgg@nvidia.com>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain
-X-ClientProxiedBy: MN2PR07CA0030.namprd07.prod.outlook.com
- (2603:10b6:208:1a0::40) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
-MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR07CA0030.namprd07.prod.outlook.com (2603:10b6:208:1a0::40) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.18 via Frontend Transport; Wed, 4 Nov 2020 21:41:01 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kaQWZ-00GimS-Sq; Wed, 04 Nov 2020 17:40:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1604526065; bh=Zj6s4TOwMCc7FUvB5J/sgSPsSpu62WYSTnw+sJuWI9Q=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
-         CC:Subject:Date:Message-ID:Content-Transfer-Encoding:Content-Type:
-         X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=HAKe0MIBsZ/S+ZxQaaKy08hqx7DRh5Qyl7nndomvUGcPvNUEkiJT6enSaP7U1yjdV
-         QzdpKAvAsWlVIubmBVLn7rVBWqedMiu/dqTeHKfEEY/x5iFGHhcMj3elIimcfIm7+E
-         zisPPNsZpvJQeKKabPu2MmgdJ14W7rMy8Fup3+KzENDdSrfVjKZpuX2lLKOt6Mo4fK
-         rA3K//b7cDvLNn9dXtL7XL/IAwOpyL3SRQ/jqBidX0sbeQQFKlrQbLHSM1hilYyhqo
-         kobx4MUqn+A7uvFMTf8JdMAmBG/AS83vGh1sP3rU8tbpio5t7XV/IqnmmOsALGBwfn
-         ePpyVgTvm8ftw==
+        id S1731555AbgKDVwn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 4 Nov 2020 16:52:43 -0500
+IronPort-SDR: 2FWLpy93dqj/KqTHZhcrcTYfuUN6meEwssCCLgRCOcHfZiRkdh+VYKSF0PdH0HBfl6qwV50wY8
+ GeEF5kaeer3g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9795"; a="168509119"
+X-IronPort-AV: E=Sophos;i="5.77,451,1596524400"; 
+   d="scan'208";a="168509119"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2020 13:52:42 -0800
+IronPort-SDR: IbyUh0/5eOKCxWm/PWcYwUcjE00GFg1dGONu9ONduZZJ+5EUzhUC6Xg9QaF+SdukgoqW+olGBN
+ yEtvwMvz3iNA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,451,1596524400"; 
+   d="scan'208";a="337019384"
+Received: from cst-dev.jf.intel.com ([10.23.221.69])
+  by orsmga002.jf.intel.com with ESMTP; 04 Nov 2020 13:52:42 -0800
+From:   Jianxin Xiong <jianxin.xiong@intel.com>
+To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+Subject: [PATCH v7 2/5] RDMA/core: Add device method for registering dma-buf based memory region
+Date:   Wed,  4 Nov 2020 14:06:32 -0800
+Message-Id: <1604527595-39736-3-git-send-email-jianxin.xiong@intel.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1604527595-39736-1-git-send-email-jianxin.xiong@intel.com>
+References: <1604527595-39736-1-git-send-email-jianxin.xiong@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The xarray is never mutated from an IRQ handler, only from work queues
-under a spinlock_irq. Thus there is no reason for it be an IRQ type
-xarray.
+Dma-buf based memory region requires one extra parameter and is processed
+quite differently. Adding a separate method allows clean separation from
+regular memory regions.
 
-This was copied over from the original IDR code, but the recent rework put
-the xarray inside another spinlock_irq which will unbalance the unlocking.
-
-Fixes: c206f8bad15d ("RDMA/cm: Make it clearer how concurrency works in cm_=
-req_handler()")
-Reported-by: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+Reviewed-by: Sean Hefty <sean.hefty@intel.com>
+Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Acked-by: Christian Koenig <christian.koenig@amd.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 ---
- drivers/infiniband/core/cm.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/device.c | 1 +
+ include/rdma/ib_verbs.h          | 6 +++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0201364974594f..167e436ae11ded 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -859,8 +859,8 @@ static struct cm_id_private *cm_alloc_id_priv(struct ib=
-_device *device,
- 	atomic_set(&cm_id_priv->work_count, -1);
- 	refcount_set(&cm_id_priv->refcount, 1);
-=20
--	ret =3D xa_alloc_cyclic_irq(&cm.local_id_table, &id, NULL, xa_limit_32b,
--				  &cm.local_id_next, GFP_KERNEL);
-+	ret =3D xa_alloc_cyclic(&cm.local_id_table, &id, NULL, xa_limit_32b,
-+			      &cm.local_id_next, GFP_KERNEL);
- 	if (ret < 0)
- 		goto error;
- 	cm_id_priv->id.local_id =3D (__force __be32)id ^ cm.random_id_operand;
-@@ -878,8 +878,8 @@ static struct cm_id_private *cm_alloc_id_priv(struct ib=
-_device *device,
-  */
- static void cm_finalize_id(struct cm_id_private *cm_id_priv)
- {
--	xa_store_irq(&cm.local_id_table, cm_local_id(cm_id_priv->id.local_id),
--		     cm_id_priv, GFP_KERNEL);
-+	xa_store(&cm.local_id_table, cm_local_id(cm_id_priv->id.local_id),
-+		 cm_id_priv, GFP_ATOMIC);
- }
-=20
- struct ib_cm_id *ib_create_cm_id(struct ib_device *device,
-@@ -1169,7 +1169,7 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int=
- err)
- 	spin_unlock(&cm.lock);
- 	spin_unlock_irq(&cm_id_priv->lock);
-=20
--	xa_erase_irq(&cm.local_id_table, cm_local_id(cm_id->local_id));
-+	xa_erase(&cm.local_id_table, cm_local_id(cm_id->local_id));
- 	cm_deref_id(cm_id_priv);
- 	wait_for_completion(&cm_id_priv->comp);
- 	while ((work =3D cm_dequeue_work(cm_id_priv)) !=3D NULL)
-@@ -4482,7 +4482,7 @@ static int __init ib_cm_init(void)
- 	cm.remote_id_table =3D RB_ROOT;
- 	cm.remote_qp_table =3D RB_ROOT;
- 	cm.remote_sidr_table =3D RB_ROOT;
--	xa_init_flags(&cm.local_id_table, XA_FLAGS_ALLOC | XA_FLAGS_LOCK_IRQ);
-+	xa_init_flags(&cm.local_id_table, XA_FLAGS_ALLOC);
- 	get_random_bytes(&cm.random_id_operand, sizeof cm.random_id_operand);
- 	INIT_LIST_HEAD(&cm.timewait_list);
-=20
---=20
-2.28.0
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index ce26564..6768a19 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2689,6 +2689,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, read_counters);
+ 	SET_DEVICE_OP(dev_ops, reg_dm_mr);
+ 	SET_DEVICE_OP(dev_ops, reg_user_mr);
++	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
+ 	SET_DEVICE_OP(dev_ops, req_ncomp_notif);
+ 	SET_DEVICE_OP(dev_ops, req_notify_cq);
+ 	SET_DEVICE_OP(dev_ops, rereg_user_mr);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9420827..3d1d098 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2,7 +2,7 @@
+ /*
+  * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
+  * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
+- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004, 2020 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+  * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
+  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+@@ -2433,6 +2433,10 @@ struct ib_device_ops {
+ 	struct ib_mr *(*reg_user_mr)(struct ib_pd *pd, u64 start, u64 length,
+ 				     u64 virt_addr, int mr_access_flags,
+ 				     struct ib_udata *udata);
++	struct ib_mr *(*reg_user_mr_dmabuf)(struct ib_pd *pd, u64 offset,
++				     u64 length, u64 virt_addr, int fd,
++				     int mr_access_flags,
++				     struct ib_udata *udata);
+ 	int (*rereg_user_mr)(struct ib_mr *mr, int flags, u64 start, u64 length,
+ 			     u64 virt_addr, int mr_access_flags,
+ 			     struct ib_pd *pd, struct ib_udata *udata);
+-- 
+1.8.3.1
 
