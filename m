@@ -2,25 +2,26 @@ Return-Path: <SRS0=hjws=EL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E001EC55179
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 17:08:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69AC3C55179
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 17:09:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CFEB20867
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 17:08:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 104C621D81
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 17:09:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730246AbgKERIT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Nov 2020 12:08:19 -0500
-Received: from verein.lst.de ([213.95.11.211]:47919 "EHLO verein.lst.de"
+        id S1726801AbgKERJR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Nov 2020 12:09:17 -0500
+Received: from verein.lst.de ([213.95.11.211]:47930 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726801AbgKERIT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 5 Nov 2020 12:08:19 -0500
+        id S1725862AbgKERJR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Nov 2020 12:09:17 -0500
 Received: by verein.lst.de (Postfix, from userid 2407)
-        id E83EA68B02; Thu,  5 Nov 2020 18:08:16 +0100 (CET)
-Date:   Thu, 5 Nov 2020 18:08:16 +0100
+        id E09B768B02; Thu,  5 Nov 2020 18:09:14 +0100 (CET)
+Date:   Thu, 5 Nov 2020 18:09:14 +0100
 From:   Christoph Hellwig <hch@lst.de>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Christoph Hellwig <hch@lst.de>,
@@ -32,45 +33,38 @@ Cc:     Christoph Hellwig <hch@lst.de>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
         iommu@lists.linux-foundation.org
-Subject: Re: [PATCH 4/6] PCI/P2PDMA: Remove the DMA_VIRT_OPS hacks
-Message-ID: <20201105170816.GC7502@lst.de>
-References: <20201105074205.1690638-1-hch@lst.de> <20201105074205.1690638-5-hch@lst.de> <20201105143418.GA4142106@ziepe.ca>
+Subject: Re: [PATCH 3/6] RDMA/core: remove use of dma_virt_ops
+Message-ID: <20201105170914.GD7502@lst.de>
+References: <20201105074205.1690638-1-hch@lst.de> <20201105074205.1690638-4-hch@lst.de> <20201105143415.GB36674@ziepe.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20201105143418.GA4142106@ziepe.ca>
+In-Reply-To: <20201105143415.GB36674@ziepe.ca>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2020 at 10:34:18AM -0400, Jason Gunthorpe wrote:
-> The check is removed here, but I didn't see a matching check added to
-> the IB side? Something like:
+On Thu, Nov 05, 2020 at 10:34:15AM -0400, Jason Gunthorpe wrote:
+> On Thu, Nov 05, 2020 at 08:42:02AM +0100, Christoph Hellwig wrote:
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index 5f8fd7976034e0..661e4a22b3cb81 100644
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -3950,6 +3950,8 @@ static inline int ib_req_ncomp_notif(struct ib_cq *cq, int wc_cnt)
+> >   */
+> >  static inline int ib_dma_mapping_error(struct ib_device *dev, u64 dma_addr)
+> >  {
+> > +	if (!dev->dma_device)
+> > +		return 0;
 > 
-> static int rdma_rw_map_sg(struct ib_device *dev, struct scatterlist *sg,
-> 			  u32 sg_cnt, enum dma_data_direction dir)
+> How about:
+> 
+> static inline bool ib_uses_virt_dma(struct ib_device *dev)
 > {
-> 	if (is_pci_p2pdma_page(sg_page(sg))) {
-> 		if (ib_uses_virt_dma(dev))
-> 			return 0;
-> 		return pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-> 	}
-> 	return ib_dma_map_sg(dev, sg, sg_cnt, dir);
+> 	return IS_ENABLED(CONFIG_INFINIBAND_VIRT_DMA) && !dev->dma_device;
 > }
+> 
+> Which is a a little more guidance that driver authors need to set this
+> config symbol.
 
-We should never get a P2P page into the rdma_rw_map_sg or other ib_dma*
-routines for the software drivers, as their struct devices don't connect
-to a PCІ device underneath, and thus no valid P2P distance can be
-retourned.  That being said IFF we want to implement P2P for those
-we'd need somethign like the above check, except that we still need
-to cal ib_dma_map_sg, i.e.:
-
-static int rdma_rw_map_sg(struct ib_device *dev, struct scatterlist *sg,
- 			  u32 sg_cnt, enum dma_data_direction dir)
-{
-	if (is_pci_p2pdma_page(sg_page(sg)) && !ib_uses_virt_dma(dev))
-		return pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-	return ib_dma_map_sg(dev, sg, sg_cnt, dir);
-}
+Sure, I'll do that.
