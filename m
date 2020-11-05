@@ -2,183 +2,69 @@ Return-Path: <SRS0=hjws=EL=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47CD5C4742C
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 07:57:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9625BC00A89
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 08:30:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB6A521D81
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 07:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 366BA20729
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Nov 2020 08:30:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="RH683BS6"
+	dkim=pass (2048-bit key) header.d=fullbizgoal.com header.i=@fullbizgoal.com header.b="PQXJeD0o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726737AbgKEH5g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Nov 2020 02:57:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39628 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725287AbgKEH5f (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Nov 2020 02:57:35 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5DBAC0613CF;
-        Wed,  4 Nov 2020 23:57:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=6i+ZQBC5XZcaf/YFDznwfiEdycwkjc1Y9jVRZuhej00=; b=RH683BS6pYnoIPIxpAcBWUqUpd
-        gqmAHzd9FO2OScF+iPyFvAUGstxatab/1MyTa29VRPgKnarjTDlivC4qMlYxh0sNa/jwkl5WLbZ6m
-        E4uJ410+U7P/vgKuuDQjXsYqdmdMQohqESMnUm2zsl0Zv1gamoJuyBwmXJ6u+qyCEnA3tWXN5s3ON
-        4bvPeFh5nUOzMnhg1WarNiX07CbIvvzgyP7Wr5Ad0qAtmeBBVS9qVm/1xVb6lrm6dGNMIYU3yjXlE
-        5U2k7NH2Ji/oaKI8+oFbU+fGS2MgH03GuTqe7mIA+EjZb4I4DDbUFS9REcRIEGbmO/bujSuGMmd5b
-        i8OQCGKA==;
-Received: from 089144208145.atnat0017.highway.a1.net ([89.144.208.145] helo=localhost)
-        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kaa9B-0005KN-RF; Thu, 05 Nov 2020 07:57:30 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
-        iommu@lists.linux-foundation.org
-Subject: [PATCH 6/6] dma-mapping: remove dma_virt_ops
-Date:   Thu,  5 Nov 2020 08:42:05 +0100
-Message-Id: <20201105074205.1690638-7-hch@lst.de>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201105074205.1690638-1-hch@lst.de>
-References: <20201105074205.1690638-1-hch@lst.de>
+        id S1729722AbgKEIat (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Nov 2020 03:30:49 -0500
+Received: from mail.fullbizgoal.com ([80.211.27.207]:50502 "EHLO
+        server1.mail.fullbizgoal.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729301AbgKEIat (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Nov 2020 03:30:49 -0500
+Received: by server1.mail.fullbizgoal.com (Postfix, from userid 1001)
+        id ADD9EA5157; Thu,  5 Nov 2020 08:30:28 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fullbizgoal.com;
+        s=mail; t=1604565047;
+        bh=1A+RQztZunBjkjQlXgr2uQY18vlGaIq8j7jGOmWqiI0=;
+        h=Date:From:To:Subject:From;
+        b=PQXJeD0oPR1aIpNRjUZd50f1VTkE+lTWcp5SsUPmumzbVhAkc0HqQ1xvk4h3tBmV9
+         LQc/6csBIWpxL3ABZisqWwU3UB9qc6rC7OEuWSo6EuWGG+P5NYz4SbE7+vXIKZX56t
+         TNAXaJ1LPAD+cp108irtynQfKyX9hvHBjATkqVXT9qDFGkxaIczK0XHuiL4Uvmzf4O
+         fq89fkrYPBQh+kY6qU5WUCrejo74nfliC2iI+VLlB0oAi29+Q0r2Ssiv62RVi7N+Et
+         AWkYliDLQ1itzzIcoM8smI4uANS01AdWgeIsyYFQEZ1RGadQL8ZIFM+YJg95XRixMq
+         wip3Hd/DQXFZQ==
+Received: by mail.fullbizgoal.com for <linux-rdma@vger.kernel.org>; Thu,  5 Nov 2020 08:30:14 GMT
+Message-ID: <20201105074501-0.1.2o.ez33.0.z3ad3zh64e@fullbizgoal.com>
+Date:   Thu,  5 Nov 2020 08:30:14 GMT
+From:   "Ethan Smith" <ethan.smith@fullbizgoal.com>
+To:     <linux-rdma@vger.kernel.org>
+Subject: Disinfectant
+X-Mailer: mail.fullbizgoal.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Now that the RDMA core deals with devices that only do DMA mapping in
-lower layers properly, there is no user for dma_virt_ops and it can
-be removed.
+Good morning,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/dma-mapping.h |  2 --
- kernel/dma/Kconfig          |  5 ---
- kernel/dma/Makefile         |  1 -
- kernel/dma/virt.c           | 61 -------------------------------------
- 4 files changed, 69 deletions(-)
- delete mode 100644 kernel/dma/virt.c
+looking for companies interested in raising additional capital by diversi=
+fying their offer in soaps, liquids and gels for hand disinfection and co=
+smetics for body and hair care.
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 956151052d4542..2aaed35b556df4 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -565,6 +565,4 @@ static inline int dma_mmap_wc(struct device *dev,
- int dma_direct_set_offset(struct device *dev, phys_addr_t cpu_start,
- 		dma_addr_t dma_start, u64 size);
- 
--extern const struct dma_map_ops dma_virt_ops;
--
- #endif /* _LINUX_DMA_MAPPING_H */
-diff --git a/kernel/dma/Kconfig b/kernel/dma/Kconfig
-index c99de4a2145889..fd2db2665fc691 100644
---- a/kernel/dma/Kconfig
-+++ b/kernel/dma/Kconfig
-@@ -75,11 +75,6 @@ config ARCH_HAS_DMA_PREP_COHERENT
- config ARCH_HAS_FORCE_DMA_UNENCRYPTED
- 	bool
- 
--config DMA_VIRT_OPS
--	bool
--	depends on HAS_DMA
--	select DMA_OPS
--
- config SWIOTLB
- 	bool
- 	select NEED_DMA_MAP_STATE
-diff --git a/kernel/dma/Makefile b/kernel/dma/Makefile
-index dc755ab68aabf9..cd1d86358a7a62 100644
---- a/kernel/dma/Makefile
-+++ b/kernel/dma/Makefile
-@@ -5,7 +5,6 @@ obj-$(CONFIG_DMA_OPS)			+= ops_helpers.o
- obj-$(CONFIG_DMA_OPS)			+= dummy.o
- obj-$(CONFIG_DMA_CMA)			+= contiguous.o
- obj-$(CONFIG_DMA_DECLARE_COHERENT)	+= coherent.o
--obj-$(CONFIG_DMA_VIRT_OPS)		+= virt.o
- obj-$(CONFIG_DMA_API_DEBUG)		+= debug.o
- obj-$(CONFIG_SWIOTLB)			+= swiotlb.o
- obj-$(CONFIG_DMA_COHERENT_POOL)		+= pool.o
-diff --git a/kernel/dma/virt.c b/kernel/dma/virt.c
-deleted file mode 100644
-index 59d32317dd574a..00000000000000
---- a/kernel/dma/virt.c
-+++ /dev/null
-@@ -1,61 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * DMA operations that map to virtual addresses without flushing memory.
-- */
--#include <linux/export.h>
--#include <linux/mm.h>
--#include <linux/dma-map-ops.h>
--#include <linux/scatterlist.h>
--
--static void *dma_virt_alloc(struct device *dev, size_t size,
--			    dma_addr_t *dma_handle, gfp_t gfp,
--			    unsigned long attrs)
--{
--	void *ret;
--
--	ret = (void *)__get_free_pages(gfp | __GFP_ZERO, get_order(size));
--	if (ret)
--		*dma_handle = (uintptr_t)ret;
--	return ret;
--}
--
--static void dma_virt_free(struct device *dev, size_t size,
--			  void *cpu_addr, dma_addr_t dma_addr,
--			  unsigned long attrs)
--{
--	free_pages((unsigned long)cpu_addr, get_order(size));
--}
--
--static dma_addr_t dma_virt_map_page(struct device *dev, struct page *page,
--				    unsigned long offset, size_t size,
--				    enum dma_data_direction dir,
--				    unsigned long attrs)
--{
--	return (uintptr_t)(page_address(page) + offset);
--}
--
--static int dma_virt_map_sg(struct device *dev, struct scatterlist *sgl,
--			   int nents, enum dma_data_direction dir,
--			   unsigned long attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sgl, sg, nents, i) {
--		BUG_ON(!sg_page(sg));
--		sg_dma_address(sg) = (uintptr_t)sg_virt(sg);
--		sg_dma_len(sg) = sg->length;
--	}
--
--	return nents;
--}
--
--const struct dma_map_ops dma_virt_ops = {
--	.alloc			= dma_virt_alloc,
--	.free			= dma_virt_free,
--	.map_page		= dma_virt_map_page,
--	.map_sg			= dma_virt_map_sg,
--	.alloc_pages		= dma_common_alloc_pages,
--	.free_pages		= dma_common_free_pages,
--};
--EXPORT_SYMBOL(dma_virt_ops);
--- 
-2.28.0
+The distribution of innovative products corresponding to the current pref=
+erences of customers in the field of hygiene and preventive healthcare al=
+lows our partners to gain new markets and achieve better economic results=
+=2E
 
+In addition to products with bactericidal action, our range includes show=
+er gels, shampoos and hair conditioners, as well as efficient, concentrat=
+ed detergents.
+
+The versatility (suitable for all skin types) combined with an affordable=
+ price means that customers make an informed choice of a product among ot=
+hers available on the market.
+
+Are you interested in cooperation?
+
+Ethan Smith
