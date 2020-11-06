@@ -2,184 +2,122 @@ Return-Path: <SRS0=fSJB=EM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8D4C5517A
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBDEEC2D0A3
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 19:35:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55437221F8
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="vD/64GD7"
+	by mail.kernel.org (Postfix) with ESMTP id 7D19721D46
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 19:35:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604691355;
+	bh=gAAMGunkKSJbUJ0jDwiyrsTYQWulMREXYV/jPPdlyhY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=PiU6YfciwkFC36EXOwPbaK/SILLPgyaN2GcX602G95o9nO765IdzSGnuO3aepvX8P
+	 x4pO3TwwoeqsS/jOk7M1bWMw2YLSKizLtTlAMnEfIbNPr0NlBRKZNmmMiIgGZsvVOY
+	 J2IhIPJdFaHzOxEu56qScQlbjb/Ry6AfQMMiJSck=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727919AbgKFSUS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Nov 2020 13:20:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52374 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727918AbgKFSUS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:18 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAD34C0613CF;
-        Fri,  6 Nov 2020 10:20:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=6i+ZQBC5XZcaf/YFDznwfiEdycwkjc1Y9jVRZuhej00=; b=vD/64GD71o5eXoUcpM/pMq7C5Q
-        BRpA+tQa3c5ev/wh5nWlIONnQpXda1mskNB4X3AWGEaAnUeqWX65BIK4mWp0Wc50sEPNkMu/mUAba
-        Qdv5Cn1uT1Z1EX2fPNyqt+Ybdli3027UuyroqnDBdwml7p1pm0Oo5YdmQ4UXgBqIFhicPnMMCzGce
-        QGyuqEhjgeovUD6PaAVvTsWcbDLVm0vALlVjocWucdh++UVDVXGHBG1uW+Q9PoUGn7+AJB3ks7VUf
-        lbvS2x9KXnPK6HIiPtHQJLZcwUOf1wOeIgVk6bw0GHOGqkyh1J1IalUFJud09gk9WQ10c52LJ4lMl
-        8IPh/u+w==;
-Received: from [2001:4bb8:184:9a8d:9e34:f7f4:e59e:ad6f] (helo=localhost)
-        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kb6LG-0005g8-CB; Fri, 06 Nov 2020 18:20:06 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org
-Subject: [PATCH 10/10] dma-mapping: remove dma_virt_ops
-Date:   Fri,  6 Nov 2020 19:19:41 +0100
-Message-Id: <20201106181941.1878556-11-hch@lst.de>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201106181941.1878556-1-hch@lst.de>
-References: <20201106181941.1878556-1-hch@lst.de>
+        id S1728214AbgKFTfu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 6 Nov 2020 14:35:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39786 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727912AbgKFTfu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 6 Nov 2020 14:35:50 -0500
+Received: from localhost (fw-tnat.cambridge.arm.com [217.140.96.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id AC3A72151B;
+        Fri,  6 Nov 2020 19:35:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1604691349;
+        bh=gAAMGunkKSJbUJ0jDwiyrsTYQWulMREXYV/jPPdlyhY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=D0Xu+rYt9C6Tc+VTC54qKBXq6GLWh08vIeOMccUgOtpRZ/tFEbHtStgv0seBSFBHX
+         vHdysUc93O3IVC2DvU28chVdccfrFLheZ6x9cKOxmpHr61t2KFftVtOled9hAF6WKP
+         e80nYfp/j0cpijlRtF9bvm0slegS0fhMdzotFDPA=
+Date:   Fri, 6 Nov 2020 19:35:37 +0000
+From:   Mark Brown <broonie@kernel.org>
+To:     Parav Pandit <parav@nvidia.com>
+Cc:     Dan Williams <dan.j.williams@intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+        Takashi Iwai <tiwai@suse.de>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Netdev <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Ranjani Sridharan <ranjani.sridharan@linux.intel.com>,
+        Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+        Fred Oh <fred.oh@linux.intel.com>,
+        Parav Pandit <parav@mellanox.com>,
+        "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        "Patil, Kiran" <kiran.patil@intel.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Leon Romanovsky <leonro@nvidia.com>
+Subject: Re: [PATCH v3 01/10] Add auxiliary bus support
+Message-ID: <20201106193537.GH49612@sirena.org.uk>
+References: <20201023003338.1285642-1-david.m.ertman@intel.com>
+ <20201023003338.1285642-2-david.m.ertman@intel.com>
+ <CAPcyv4i9s=CsO5VJOhPnS77K=bD0LTQ8TUAbhLd+0OmyU8YQ3g@mail.gmail.com>
+ <DM6PR11MB284191BAA817540E52E4E2C4DDEE0@DM6PR11MB2841.namprd11.prod.outlook.com>
+ <BY5PR12MB43228923300FDE8B087DC4E9DCEE0@BY5PR12MB4322.namprd12.prod.outlook.com>
+ <CAPcyv4h1LH+ojRGqvh_R6mfuBbsibGa8DNMG5M1sN5G1BgwiHw@mail.gmail.com>
+ <BY5PR12MB43222D59CCCFCF368C357098DCEE0@BY5PR12MB4322.namprd12.prod.outlook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="WRT3RXLOp/bBMgTI"
+Content-Disposition: inline
+In-Reply-To: <BY5PR12MB43222D59CCCFCF368C357098DCEE0@BY5PR12MB4322.namprd12.prod.outlook.com>
+X-Cookie: When does later become never?
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Now that the RDMA core deals with devices that only do DMA mapping in
-lower layers properly, there is no user for dma_virt_ops and it can
-be removed.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/dma-mapping.h |  2 --
- kernel/dma/Kconfig          |  5 ---
- kernel/dma/Makefile         |  1 -
- kernel/dma/virt.c           | 61 -------------------------------------
- 4 files changed, 69 deletions(-)
- delete mode 100644 kernel/dma/virt.c
+--WRT3RXLOp/bBMgTI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 956151052d4542..2aaed35b556df4 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -565,6 +565,4 @@ static inline int dma_mmap_wc(struct device *dev,
- int dma_direct_set_offset(struct device *dev, phys_addr_t cpu_start,
- 		dma_addr_t dma_start, u64 size);
- 
--extern const struct dma_map_ops dma_virt_ops;
--
- #endif /* _LINUX_DMA_MAPPING_H */
-diff --git a/kernel/dma/Kconfig b/kernel/dma/Kconfig
-index c99de4a2145889..fd2db2665fc691 100644
---- a/kernel/dma/Kconfig
-+++ b/kernel/dma/Kconfig
-@@ -75,11 +75,6 @@ config ARCH_HAS_DMA_PREP_COHERENT
- config ARCH_HAS_FORCE_DMA_UNENCRYPTED
- 	bool
- 
--config DMA_VIRT_OPS
--	bool
--	depends on HAS_DMA
--	select DMA_OPS
--
- config SWIOTLB
- 	bool
- 	select NEED_DMA_MAP_STATE
-diff --git a/kernel/dma/Makefile b/kernel/dma/Makefile
-index dc755ab68aabf9..cd1d86358a7a62 100644
---- a/kernel/dma/Makefile
-+++ b/kernel/dma/Makefile
-@@ -5,7 +5,6 @@ obj-$(CONFIG_DMA_OPS)			+= ops_helpers.o
- obj-$(CONFIG_DMA_OPS)			+= dummy.o
- obj-$(CONFIG_DMA_CMA)			+= contiguous.o
- obj-$(CONFIG_DMA_DECLARE_COHERENT)	+= coherent.o
--obj-$(CONFIG_DMA_VIRT_OPS)		+= virt.o
- obj-$(CONFIG_DMA_API_DEBUG)		+= debug.o
- obj-$(CONFIG_SWIOTLB)			+= swiotlb.o
- obj-$(CONFIG_DMA_COHERENT_POOL)		+= pool.o
-diff --git a/kernel/dma/virt.c b/kernel/dma/virt.c
-deleted file mode 100644
-index 59d32317dd574a..00000000000000
---- a/kernel/dma/virt.c
-+++ /dev/null
-@@ -1,61 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * DMA operations that map to virtual addresses without flushing memory.
-- */
--#include <linux/export.h>
--#include <linux/mm.h>
--#include <linux/dma-map-ops.h>
--#include <linux/scatterlist.h>
--
--static void *dma_virt_alloc(struct device *dev, size_t size,
--			    dma_addr_t *dma_handle, gfp_t gfp,
--			    unsigned long attrs)
--{
--	void *ret;
--
--	ret = (void *)__get_free_pages(gfp | __GFP_ZERO, get_order(size));
--	if (ret)
--		*dma_handle = (uintptr_t)ret;
--	return ret;
--}
--
--static void dma_virt_free(struct device *dev, size_t size,
--			  void *cpu_addr, dma_addr_t dma_addr,
--			  unsigned long attrs)
--{
--	free_pages((unsigned long)cpu_addr, get_order(size));
--}
--
--static dma_addr_t dma_virt_map_page(struct device *dev, struct page *page,
--				    unsigned long offset, size_t size,
--				    enum dma_data_direction dir,
--				    unsigned long attrs)
--{
--	return (uintptr_t)(page_address(page) + offset);
--}
--
--static int dma_virt_map_sg(struct device *dev, struct scatterlist *sgl,
--			   int nents, enum dma_data_direction dir,
--			   unsigned long attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sgl, sg, nents, i) {
--		BUG_ON(!sg_page(sg));
--		sg_dma_address(sg) = (uintptr_t)sg_virt(sg);
--		sg_dma_len(sg) = sg->length;
--	}
--
--	return nents;
--}
--
--const struct dma_map_ops dma_virt_ops = {
--	.alloc			= dma_virt_alloc,
--	.free			= dma_virt_free,
--	.map_page		= dma_virt_map_page,
--	.map_sg			= dma_virt_map_sg,
--	.alloc_pages		= dma_common_alloc_pages,
--	.free_pages		= dma_common_free_pages,
--};
--EXPORT_SYMBOL(dma_virt_ops);
--- 
-2.28.0
+On Thu, Nov 05, 2020 at 08:37:14PM +0000, Parav Pandit wrote:
 
+> > > This example describes the mlx5 PCI subfunction use case.
+> > > I didn't follow your question about 'explicit example'.
+> > > What part is missing to identify it as explicit example?
+
+> > Specifically listing "mlx5" so if someone reading this document thinks to
+> > themselves "hey mlx5 sounds like my use case" they can go grep for that.
+
+> Ah, I see.
+> "mlx5" is not listed explicitly, because it is not included in this patchset.
+> In various previous discussions in this thread, mlx5 subfunction use case is described that justifies the existence of the bus.
+> I will be happy to update this documentation once mlx5 subfunction will be part of kernel so that grep actually shows valid output.
+> (waiting to post them as it uses auxiliary bus :-)).
+
+For ease of review if there's a new version it might be as well to just
+reference it anyway, hopefully the mlx5 code will be merged fairly
+quickly once the bus itself is merged.  It's probably easier all round
+than adding the reference later, it seems more likely that mlx5 will get
+merged than that it'll fall by the wayside.
+
+--WRT3RXLOp/bBMgTI
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAl+lpYgACgkQJNaLcl1U
+h9BucQf/eNw6ctPFmmRQVuSB2n3HuUQKEXfBdp/GJzm2Ao34q3WIZJ5mANQN+PsD
+1RdlG+KooBtZmSD8LTDhdMB7I75TNfJOZBV6uGJFOSZ1FPmnYGE8sipgOyMlg94b
+6tlWmBBWuueK4uA3etjOa8QTVxysmK+x1JkvBLPFk5t43D3zxOvUhdmdYZbEt3z7
+U5amclwnzVW5uwMFacm4zhGSVnffO9rD3HCqieFDgAtPfl/QDuBntmA5lbmpTU0R
+CiwdqKpuhH2/AX0QHsiFJh6bgxPhEilHcZk7ZZGftB/J+Sc5dxIhXxRTql4R0u0n
+zkdYy/19+i8RI7ppfSbIPOr91XQsDg==
+=vai3
+-----END PGP SIGNATURE-----
+
+--WRT3RXLOp/bBMgTI--
