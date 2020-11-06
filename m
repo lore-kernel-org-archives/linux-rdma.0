@@ -2,41 +2,40 @@ Return-Path: <SRS0=fSJB=EM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A740EC55ABD
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48BF7C56201
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52BC8208FE
+	by mail.kernel.org (Postfix) with ESMTP id DD78721D46
 	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="IAEdO1lB"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="KCAgJkpP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727916AbgKFSUP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727914AbgKFSUP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 6 Nov 2020 13:20:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52362 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727914AbgKFSUO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:14 -0500
+        with ESMTP id S1726880AbgKFSUN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:13 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64303C0613CF;
-        Fri,  6 Nov 2020 10:20:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CDC7C0613CF;
+        Fri,  6 Nov 2020 10:20:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-        Content-Type:Content-ID:Content-Description;
-        bh=IlFC5uLN53//nOw1snJqxiUukwasxjVCret8k23G090=; b=IAEdO1lB16SqRSTED4QBzz1owR
-        AT3SIaxam9iY1i5Yrg3FtIfN0wR8diPLP6ewpqDHi9BMpuk6o7yzVZyXlyMw788yGOV/BFNo670Xi
-        Xd3lVTAL6XX9Mv3nW5B5216lmekIRSMJXre+mMZsFeo8rZTxWTGJfdaR0zu0UQTbqv+DM0+f+u7JA
-        A5dx8XjhXO3HT+rHVdryx7K3d7/fq8qhUHtx5d5MAdeDkTURN71v6XEVXGoo2K7gcDvmaXcl4SUvL
-        Dvymnt2o9amdUaiz5MTxv8GmIEY5tZnGe2omjQs/HC4EjJOZLB/SrwmWgY90MC8Rd2BMaStZ7id1c
-        r1+cr76g==;
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=mhhxrFElh9XAgV4r8RFj88/oUF482qQDia6CDAfPp3A=; b=KCAgJkpPBd9RbBwfVfsiJt0bEJ
+        vxkKj002ZBPd2P4huLXRf8se6b/AMgfHdQC4Jif8H9VV11DJTges84PlTFMq9Gxd6mEGgewd6tjni
+        nDf7nkqnXhZzn+juogWqBHHKuId1j3g+1qtmG4XtBTUy6DDpC8W14PhXMUSBV0k6AVTssAr63HWo6
+        6OWkHKrcXo1uJc0JjuvSdpWcXlfZ5Kzr45BEUEV/eMt6dU6eC7x9IP5DFWL6bvH4I4ZWFanhg2CYU
+        Pz1ARAf3UPw/f2fJrrD89wiVfEzmsglTYRLYVvoesZu2zKuVIfY3wO0o+9Wf3caS8D42QR0HBVref
+        7x/GANHQ==;
 Received: from [2001:4bb8:184:9a8d:9e34:f7f4:e59e:ad6f] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kb6LD-0005fQ-Mg; Fri, 06 Nov 2020 18:20:04 +0000
+        id 1kb6Kt-0005cf-2Y; Fri, 06 Nov 2020 18:19:44 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>,
@@ -48,12 +47,10 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>,
         linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org
-Subject: [PATCH 09/10] PCI/P2PDMA: Cleanup __pci_p2pdma_map_sg a bit
-Date:   Fri,  6 Nov 2020 19:19:40 +0100
-Message-Id: <20201106181941.1878556-10-hch@lst.de>
+Subject: remove dma_virt_ops v2
+Date:   Fri,  6 Nov 2020 19:19:31 +0100
+Message-Id: <20201106181941.1878556-1-hch@lst.de>
 X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201106181941.1878556-1-hch@lst.de>
-References: <20201106181941.1878556-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
@@ -61,34 +58,27 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Remove the pointless paddr variable that was only used once.
+Hi Jason,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/p2pdma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+this series switches the RDMA core to opencode the special case of
+devices bypassing the DMA mapping in the RDMA ULPs.  The virt ops
+have caused a bit of trouble due to the P2P code node working with
+them due to the fact that we'd do two dma mapping iterations for a
+single I/O, but also are a bit of layering violation and lead to
+more code than necessary.
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index b07018af53876c..afd792cc272832 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -825,13 +825,10 @@ static int __pci_p2pdma_map_sg(struct pci_p2pdma_pagemap *p2p_pgmap,
- 		struct device *dev, struct scatterlist *sg, int nents)
- {
- 	struct scatterlist *s;
--	phys_addr_t paddr;
- 	int i;
- 
- 	for_each_sg(sg, s, nents, i) {
--		paddr = sg_phys(s);
--
--		s->dma_address = paddr - p2p_pgmap->bus_offset;
-+		s->dma_address = sg_phys(s) - p2p_pgmap->bus_offset;
- 		sg_dma_len(s) = s->length;
- 	}
- 
--- 
-2.28.0
+Tested with nvme-rdma over rxe.
 
+Note that the rds changes are untested, as I could not find any
+simple rds test setup.
+
+Changes since v2:
+ - simplify the INFINIBAND_VIRT_DMA dependencies
+ - add a ib_uses_virt_dma helper
+ - use ib_uses_virt_dma in nvmet-rdma to disable p2p for virt_dma devices
+ - use ib_dma_max_seg_size in umem
+ - stop using dmapool in rds
+
+Changes since v1:
+ - disable software RDMA drivers for highmem configs
+ - update the PCI commit logs
