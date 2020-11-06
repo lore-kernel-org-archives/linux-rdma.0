@@ -2,187 +2,115 @@ Return-Path: <SRS0=fSJB=EM=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69655C55ABD
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 17:01:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C323C388F2
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE4F6206F9
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 17:01:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB6F921D81
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="lHldcATu"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="oiIbG6Mb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727610AbgKFRBc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Nov 2020 12:01:32 -0500
-Received: from mga12.intel.com ([192.55.52.136]:26673 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727868AbgKFRB3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 6 Nov 2020 12:01:29 -0500
-IronPort-SDR: G9jjOXoHCOoC8IW9g5bzp9F4vhEar1j6qGSIlVnt48mA/PkncZIv/qyLyFsKeCy7OdWC77KUIH
- pYqaAiHDLPzg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9797"; a="148849977"
-X-IronPort-AV: E=Sophos;i="5.77,457,1596524400"; 
-   d="scan'208";a="148849977"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 09:01:14 -0800
-IronPort-SDR: M4LfvqcKPqXaHSVN4MWp0GltC7taYi6Nn/nRQfpIReTrMuckXWCoUpchyrz3a+xgX6q2MMUiJS
- 3bfiL6+OQnJg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.77,457,1596524400"; 
-   d="scan'208";a="528406894"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by fmsmga006.fm.intel.com with ESMTP; 06 Nov 2020 09:01:14 -0800
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Fri, 6 Nov 2020 09:01:13 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Fri, 6 Nov 2020 09:01:13 -0800
-Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
- via Frontend Transport; Fri, 6 Nov 2020 09:01:13 -0800
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.177)
- by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.1713.5; Fri, 6 Nov 2020 09:01:10 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ieUfuyp4LaJeAfAcoiQFpZoOEtALqVST9fiaE1Z7YKQF0eKs1KVdXaxK6YIlmVxzJ1fT+B1wal2FIOdPE6WuPa8CqUvy0Ur6XmzPnZMpU7tVNLcLUek72TljhiV090gtvYLSaghVAQV4LUdTpe8WEDF/IaxDVo+gSoPM8BYFX9CisgkQPQDRcBSp8Pc0lgEYGAA7M8m/H0Ox5WngXGKNs6LDQc4PI5vs/xsaK8H62DjjjfuqtTZSZvZyShipDjLLKLL5mCCidy/R4Syb3aKX0PiZzlxObqQqGKmHhPn5tUgQgmtQf0pwwWLU/tvqUwJd5sGRoU3D/f8dwB8sgdM81w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dJfYJ5zhT1jYU+clJG4je4rLmCG8VWQ0SkVe115Y9QI=;
- b=Cvfcp09n7dKmDaPY/jlyOGDojpg/0V5QyWyRVmMi279UcKd8zm//7oB4MYXCovL5cr0Si9cfw2fgJqTKO7MtqV/nxhJHyfcazywPFqXkyTJ4BMIcQ8O4pMfmfkoWvdoAzRvxoXd/D9oOoGPExqkpgzyUgd6EBVooJdsoT41Px/68i3Zvpunel6dnjI3++OykzdvS3ckuIkExft5Mk1T9AICU2lAl5/CJbh8xdB1O2NPh+uuTE5eStTjKKnnKyw89w/li81CPrlqKzLFGoWxMrn2aJIjXkfTtsKQ4nP5xs3sgyIqlqeDuOl8XJaYqcH3L8VL2rrVrnIH1ohhCfWk0iQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dJfYJ5zhT1jYU+clJG4je4rLmCG8VWQ0SkVe115Y9QI=;
- b=lHldcATuH0LqJeTUBpJR/BMkbn2/w3DZzeZ1eQjBZ5rSu/fv77vrR1LQgx7nnTY6s78QuvQ8vP7WvHlKINjq33OkKEkr95IJJn69Fmr08ZsccGPoVuHZShrQYLtXOTqagDrGF0YON4Y0639ZXoUvrkmgYb6Gn0gE6bXHlilJg3Q=
-Received: from MW3PR11MB4555.namprd11.prod.outlook.com (2603:10b6:303:2e::24)
- by MWHPR11MB1855.namprd11.prod.outlook.com (2603:10b6:300:10e::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3499.27; Fri, 6 Nov
- 2020 17:01:06 +0000
-Received: from MW3PR11MB4555.namprd11.prod.outlook.com
- ([fe80::8d73:60dd:89aa:99a9]) by MW3PR11MB4555.namprd11.prod.outlook.com
- ([fe80::8d73:60dd:89aa:99a9%8]) with mapi id 15.20.3499.032; Fri, 6 Nov 2020
- 17:01:06 +0000
-From:   "Xiong, Jianxin" <jianxin.xiong@intel.com>
+        id S1727899AbgKFSUG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 6 Nov 2020 13:20:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52324 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727860AbgKFSUG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:06 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C5E7C0613CF;
+        Fri,  6 Nov 2020 10:20:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+        Content-Type:Content-ID:Content-Description;
+        bh=VaZQL4432wwI41txwmAvcg9ln4IR3PCVL4Re3U71+J4=; b=oiIbG6MbnwXt4SgUikGk8KT98L
+        J1OORciwVDKq9gmw4bD1H9mTO8kgveIGr1uMAgl58563N27BK71gwjNO328LXWvEvsPjBFjgRtnGe
+        TKy7mkH5PG4AOHrR7RvtBLXGWAh3QrxUmMtK0qt7spGStyPW7e9ilc0k4LAQrgyj5LIkK1uZTf/ws
+        bn8hsIBxBSKvvR8AJurjqoyvAZvZ/01DHO789M19Ml/thAKRcOnbwSUc9qgEwR8sdfoz2/c0haOJf
+        Doe6Utc1Efl6lYAkQ+X8zTrq5mdZvsj7nxR1tsXAk4sAJOjx8g6An+6e1ZAk0DHYmmfFEziBfkCeF
+        WaKTmIYA==;
+Received: from [2001:4bb8:184:9a8d:9e34:f7f4:e59e:ad6f] (helo=localhost)
+        by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kb6L0-0005do-1K; Fri, 06 Nov 2020 18:19:51 +0000
+From:   Christoph Hellwig <hch@lst.de>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
-CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Doug Ledford" <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "Sumit Semwal" <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>
-Subject: RE: [PATCH v8 1/5] RDMA/umem: Support importing dma-buf as user
- memory region
-Thread-Topic: [PATCH v8 1/5] RDMA/umem: Support importing dma-buf as user
- memory region
-Thread-Index: AQHWs8PR1fXMlpsAzEa77sJjy3Zc0Km6OnuAgAEPmYCAAAVLgIAAAPPA
-Date:   Fri, 6 Nov 2020 17:01:06 +0000
-Message-ID: <MW3PR11MB45556244E010E7E0F7D58CD7E5ED0@MW3PR11MB4555.namprd11.prod.outlook.com>
-References: <1604616489-69267-1-git-send-email-jianxin.xiong@intel.com>
- <1604616489-69267-2-git-send-email-jianxin.xiong@intel.com>
- <20201106000851.GK36674@ziepe.ca>
- <MW3PR11MB45552DC0851F4490B2450EDFE5ED0@MW3PR11MB4555.namprd11.prod.outlook.com>
- <20201106163953.GR36674@ziepe.ca>
-In-Reply-To: <20201106163953.GR36674@ziepe.ca>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-version: 11.5.1.3
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-authentication-results: ziepe.ca; dkim=none (message not signed)
- header.d=none;ziepe.ca; dmarc=none action=none header.from=intel.com;
-x-originating-ip: [73.53.14.45]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 8d73a54e-33e8-45f4-4582-08d882758d36
-x-ms-traffictypediagnostic: MWHPR11MB1855:
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <MWHPR11MB185581A075641B469B50A60DE5ED0@MWHPR11MB1855.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:7219;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 3NAMaBNOpY9HYtqoG7YcGDklOlWo2YfqsCT0P9Oj7+bpUzKJ2bEq7EcZcjGzDU+W/AtdMxoMka/rxgA1SQp+zCXt0TyUfcAXP4bXzAwMjjUSF4l9chj86K1LhoK2L00NvRkYvdaKR93OnuAI+soZTzcSPIz3nEtLDbyGofbCoh7dglK98ZyUMmLQ1WBTLeCsWRP9vAB7FHH3s/xYTOzEJipYGF9qQV+80QjfNzk7yVVdAD8NhNUpv1cbbZtk2wZ0Rex2AHodtQpFLO2HK/j2G7TRI7XwzHl4LnWrZK4jqhq6xeLnlYU80PbJUKmRZ88embLG0XRt4Nde9cEnRgH39A==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW3PR11MB4555.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(366004)(376002)(39860400002)(136003)(396003)(66946007)(4326008)(66446008)(86362001)(83380400001)(8676002)(66476007)(66556008)(7696005)(6506007)(316002)(64756008)(53546011)(107886003)(186003)(26005)(71200400001)(2906002)(54906003)(478600001)(33656002)(6916009)(52536014)(5660300002)(55016002)(9686003)(8936002)(76116006);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: wdfDOoU0zZoSuKWPAXeRTCiZ57HxCEPTOqojRXAM6E0hy/OCGFjNkcY70zjopXPn1MPeQgjVSzMOBCRC2DtE6bKxcVoUL9kPwHisPGLSZGPDmb/4UIRDLd5fDb5QZVjLFW2nx6SGfxHNIj6dSXPqqn8cYZ0/MXvb0VP3aKE7zyjRcJoSBylC3HRiaGzWKBgbOjSB+sBYbFHuH7j39TptAXs9ieBdN1zT8o8WMG5AoUeZE/NuMRloXS04mD1xEnF2bJe0Q7r/TDWq9qa14SfjMENZK5deQviNQIpB7TeprQF9SYtsVhBfNUpGuP0MQ8Ffw3HPI/eMGbCPHA1LHe3QNNHaNH40g76dujJYprDhPKvd1LMC/8V/2WsGcCMAmy8r6ZXq6wwWXm5AMNwD/++ATtjG2gwBfqosH7Mr2SbAFyvjfQgsBA0IK5kXASRqAqD0HIOnoU4tA1RtRc5vn1+LrfCwXKm9oIn3FpX0e3uS098V0CnKQc0F/0qjqooHCPjscY7BK9wi9qqnT/kdsbdm+wz3awoLkBlbky+bfm4GpbkXD+IB8g2Y1xAV5OoiHfJvf76wEAQ9kNTaqQClxuZvKHbGMBhGx/kLRW3CoPaJRJPk8LDTLG1+3uq7oR+yp0OsghWh40IPjugsgwqhgcgY4g==
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org
+Subject: [PATCH 03/10] RDMA: lift ibdev_to_node from rds to common code
+Date:   Fri,  6 Nov 2020 19:19:34 +0100
+Message-Id: <20201106181941.1878556-4-hch@lst.de>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201106181941.1878556-1-hch@lst.de>
+References: <20201106181941.1878556-1-hch@lst.de>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MW3PR11MB4555.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8d73a54e-33e8-45f4-4582-08d882758d36
-X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Nov 2020 17:01:06.4047
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: cPtzwQW5pL4H7+dhIfgbzZSnp6WZs9I/4UCwIvt+A5z9q3lkGfZJ5h7f/x+CF4y/aI2wvBnHqoFOUTZpW2EoJA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB1855
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Jason Gunthorpe <jgg@ziepe.ca>
-> Sent: Friday, November 06, 2020 8:40 AM
-> To: Xiong, Jianxin <jianxin.xiong@intel.com>
-> Cc: linux-rdma@vger.kernel.org; dri-devel@lists.freedesktop.org; Doug Led=
-ford <dledford@redhat.com>; Leon Romanovsky
-> <leon@kernel.org>; Sumit Semwal <sumit.semwal@linaro.org>; Christian Koen=
-ig <christian.koenig@amd.com>; Vetter, Daniel
-> <daniel.vetter@intel.com>
-> Subject: Re: [PATCH v8 1/5] RDMA/umem: Support importing dma-buf as user =
-memory region
->=20
-> On Fri, Nov 06, 2020 at 04:34:07PM +0000, Xiong, Jianxin wrote:
->=20
-> > > The user could specify a length that is beyond the dma buf, can the
-> > > dma buf length be checked during get?
-> >
-> > In order to check the length, the buffer needs to be mapped. That can b=
-e done.
->=20
-> Do DMA bufs even have definitate immutable lengths? Going to be a probelm=
- if they can shrink
+Lift the ibdev_to_node from rds to common code and document it.
 
-Good question. The buffer itself has fixed size. If for whatever reason the=
- mapping
-is not full it must be temporary. If that does happen ib_umem_dmabuf_map_pa=
-ges
-will undo the mapping and return error. It will be retried later via the pa=
-gefault handler.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/rdma/ib_verbs.h | 13 +++++++++++++
+ net/rds/ib.h            |  7 -------
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
->=20
-> > > Also page_size can be 0 because iova is not OK. iova should be
-> > > checked for alignment during get as well:
-> > >
-> > >   iova & (PAGE_SIZE-1) =3D=3D umem->addr & (PAGE_SIZE-1)
-> >
-> > If ib_umem_dmabuf_map_pages is called during get this error is automati=
-cally caught.
->=20
-> The ib_umem_find_best_pgsz() checks this equation, yes.
->=20
-> So you'd map the sgl before allocating the mkey? This then checks the len=
-gth and iova?
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9bf6c319a670e2..3257cc046e460f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4615,6 +4615,19 @@ static inline struct ib_device *rdma_device_to_ibdev(struct device *device)
+ 	return coredev->owner;
+ }
+ 
++/**
++ * ibdev_to_node - return the NUMA node for a given ib_device
++ * @dev:	device to get the NUMA node for.
++ */
++static inline int ibdev_to_node(struct ib_device *ibdev)
++{
++	struct device *parent = ibdev->dev.parent;
++
++	if (!parent)
++		return NUMA_NO_NODE;
++	return dev_to_node(parent);
++}
++
+ /**
+  * rdma_device_to_drv_device - Helper macro to reach back to driver's
+  *			       ib_device holder structure from device pointer.
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 8dfff43cf07f46..c23a11d9ad3628 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -264,13 +264,6 @@ struct rds_ib_device {
+ 	int			*vector_load;
+ };
+ 
+-static inline int ibdev_to_node(struct ib_device *ibdev)
+-{
+-	struct device *parent;
+-
+-	parent = ibdev->dev.parent;
+-	return parent ? dev_to_node(parent) : NUMA_NO_NODE;
+-}
+ #define rdsibdev_to_node(rdsibdev) ibdev_to_node(rdsibdev->dev)
+ 
+ /* bits for i_ack_flags */
+-- 
+2.28.0
 
-Yes
-
->=20
-> Jason
