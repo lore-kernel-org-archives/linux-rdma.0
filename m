@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9547AC2D0A3
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6F0C388F2
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 367702223F
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 269CB2223F
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Nov 2020 18:20:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="vUzrjATA"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZmelvDHz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727912AbgKFSUN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Nov 2020 13:20:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52350 "EHLO
+        id S1727915AbgKFSUO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 6 Nov 2020 13:20:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726880AbgKFSUM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:12 -0500
+        with ESMTP id S1727914AbgKFSUN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 13:20:13 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8639CC0613CF;
-        Fri,  6 Nov 2020 10:20:12 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 565D8C0613D2;
+        Fri,  6 Nov 2020 10:20:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=8HNfwBlNSAg+LZJvcmYMWBom95EiBVW9juhSXpZeH6I=; b=vUzrjATA0760PXkfY/rEEuFcPj
-        R1Dhmwia29RBnH9AimhaYVEMgXT968d8IQr3gNYrlnaaZqd6fj7BduqWhsLMygJdTGu5iUxecX1mz
-        UYKNlcL3DDw0tvT/6CCZLdDGYHn5sl9rzJVYUPJjfespkNKUZDYB3xRW1m3Tk+BPMHhJ8QHtPEcn6
-        VSz+1s/ViGV8v9pQgVvg8a0cCQyNy9aPQIwoC22mAPdKrv9FGjZgo4msnvNXBYOmYB28RUqh//UXb
-        7BHL56mFAMDQKGxkFs7zg8iLVulrKcAtEI8JrW3w1lmfEtK1iLUi6r+veMTjEDP4UbOQRTnHp6IGz
-        aL1z+PbA==;
+        bh=jzVxkCOMV+ZsFNlpyWtMfsKBytOCJws52NU0gO5aQ1s=; b=ZmelvDHzr0KjuikniYN3XAXCgF
+        ovUAts43+DdG8mAeWoRUy8h8s0JVd69a6uuBGI9TEwMR/a41KRF9N4pJzRYot33B5doqdWGRt1Cz1
+        q//N9WAg+5IDj0q4OgWClx4LdMm7CzLOlCh4Cj7joNQJEukX5Tke4pXmZ94Ozomz0vxDWpW3/3L2N
+        kphpO6sDq5OQbOl9NTXm0ilDk7FQgxCys3e0fMuzmfO5fmRpbKMjmEl3Kyqn30lJ7qWCP/usbt5T5
+        lr0wpUjQ3eL9DnpbbszOP2wQCb5QABTMIhnk+JbHfag+9DJAGphkRN8ejfReKotaVFYn4r3kGnxiq
+        wyKd7gNw==;
 Received: from [2001:4bb8:184:9a8d:9e34:f7f4:e59e:ad6f] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1kb6LB-0005f7-PV; Fri, 06 Nov 2020 18:20:02 +0000
+        id 1kb6L2-0005e4-Q8; Fri, 06 Nov 2020 18:19:53 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Bjorn Helgaas <bhelgaas@google.com>,
@@ -48,9 +48,9 @@ Cc:     Bjorn Helgaas <bhelgaas@google.com>,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>,
         linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
         linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org
-Subject: [PATCH 08/10] PCI/P2PDMA: Remove the DMA_VIRT_OPS hacks
-Date:   Fri,  6 Nov 2020 19:19:39 +0100
-Message-Id: <20201106181941.1878556-9-hch@lst.de>
+Subject: [PATCH 04/10] nvme-rdma: use ibdev_to_node instead of dereferencing ->dma_device
+Date:   Fri,  6 Nov 2020 19:19:35 +0100
+Message-Id: <20201106181941.1878556-5-hch@lst.de>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201106181941.1878556-1-hch@lst.de>
 References: <20201106181941.1878556-1-hch@lst.de>
@@ -61,54 +61,28 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Now that all users of dma_virt_ops are gone we can remove the workaround
-for it in the PCI peer to peer code.
+->dma_device is a private implementation detail of the RDMA core.  Use
+the ibdev_to_node helper to get the NUMA node for a ib_device instead
+of poking into ->dma_device.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/p2pdma.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/nvme/host/rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index de1c331dbed43f..b07018af53876c 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -556,15 +556,6 @@ int pci_p2pdma_distance_many(struct pci_dev *provider, struct device **clients,
- 		return -1;
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 541b0cba6d8019..c08625e2f21a56 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -854,7 +854,7 @@ static int nvme_rdma_configure_admin_queue(struct nvme_rdma_ctrl *ctrl,
+ 		return error;
  
- 	for (i = 0; i < num_clients; i++) {
--#ifdef CONFIG_DMA_VIRT_OPS
--		if (clients[i]->dma_ops == &dma_virt_ops) {
--			if (verbose)
--				dev_warn(clients[i],
--					 "cannot be used for peer-to-peer DMA because the driver makes use of dma_virt_ops\n");
--			return -1;
--		}
--#endif
--
- 		pci_client = find_parent_pci_dev(clients[i]);
- 		if (!pci_client) {
- 			if (verbose)
-@@ -837,17 +828,6 @@ static int __pci_p2pdma_map_sg(struct pci_p2pdma_pagemap *p2p_pgmap,
- 	phys_addr_t paddr;
- 	int i;
+ 	ctrl->device = ctrl->queues[0].device;
+-	ctrl->ctrl.numa_node = dev_to_node(ctrl->device->dev->dma_device);
++	ctrl->ctrl.numa_node = ibdev_to_node(ctrl->device->dev);
  
--	/*
--	 * p2pdma mappings are not compatible with devices that use
--	 * dma_virt_ops. If the upper layers do the right thing
--	 * this should never happen because it will be prevented
--	 * by the check in pci_p2pdma_distance_many()
--	 */
--#ifdef CONFIG_DMA_VIRT_OPS
--	if (WARN_ON_ONCE(dev->dma_ops == &dma_virt_ops))
--		return 0;
--#endif
--
- 	for_each_sg(sg, s, nents, i) {
- 		paddr = sg_phys(s);
- 
+ 	/* T10-PI support */
+ 	if (ctrl->device->dev->attrs.device_cap_flags &
 -- 
 2.28.0
 
