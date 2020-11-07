@@ -2,114 +2,70 @@ Return-Path: <SRS0=60yH=EN=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E4B2C2D0A3
-	for <linux-rdma@archiver.kernel.org>; Sat,  7 Nov 2020 01:04:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F965C388F9
+	for <linux-rdma@archiver.kernel.org>; Sat,  7 Nov 2020 20:26:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1718D20704
-	for <linux-rdma@archiver.kernel.org>; Sat,  7 Nov 2020 01:04:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C74D320B1F
+	for <linux-rdma@archiver.kernel.org>; Sat,  7 Nov 2020 20:26:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604780779;
+	bh=YXvXkW38HfeyGfVedt2xstjkWzg0BS9FrUKV2L8Lu4I=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=emrEKmpPjSRvUdK6PHXltGn9dpq9nWqLAgSzGOj038jJYtVwxJB39fY91D5hmIS0/
+	 cS8zdZKGKvRPC6Bf5c+Fi0beuAc+uFFXGtYT++FNArBD38HsH11A9Sr2yzQ+TrIkSt
+	 7vnIEYZTfxibyywfWIN75T4zso0KcL62k5ZhW6nc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726987AbgKGBE3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Nov 2020 20:04:29 -0500
-Received: from mail-pg1-f172.google.com ([209.85.215.172]:37383 "EHLO
-        mail-pg1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726447AbgKGBE3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Nov 2020 20:04:29 -0500
-Received: by mail-pg1-f172.google.com with SMTP id h6so2380470pgk.4
-        for <linux-rdma@vger.kernel.org>; Fri, 06 Nov 2020 17:04:28 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=kzUqApX78AxcncsIhNbEqWLvY3I2jwzXg7iE3K65YeE=;
-        b=hzcX4kc6C7pUZD2Djaa3Ghop161gmTsea+iPM3MgWqYLTSgs/n76hRHXGeOknPQHHy
-         vmO5UH9jPS74ml8FNrSLGp42I09uMoCvgmpVa5bUHz+ZwoIr8Z9DQrsnSM6AmkqfnBvq
-         RW3I3l2OFzZ854gpWvcxc1F5Jm1mb0doUv4sfJzWgO2+c46lWXVs3VSI0DToq/HLIQBy
-         JmdxkaV6vJedOUiRvnREigQXows6lsRMAR8xKsJfn5/M4is7mgAbVZXl+Q0tw/83Dg2+
-         cfA85XnSxCMcpq4+xGTJM+k6mBOg+qK59ceUFty2h0e5w3z+7EupkNP8r+jCOGWdb4UC
-         zZXA==
-X-Gm-Message-State: AOAM533Ssju4UpJYq9J7axjcxbUJgFRfdTEmpCG6H+FjDjDObakwpyG3
-        RitK1EZiEzABSY10YmkWbV8=
-X-Google-Smtp-Source: ABdhPJy1dM120uQA+EKT2yS9IT6DIj3C+mrVWhR93Zlr+6MjjeYL791K7lIDDt7XVcdg7XodQfrzIg==
-X-Received: by 2002:a62:6586:0:b029:164:1cb9:8aff with SMTP id z128-20020a6265860000b02901641cb98affmr4488286pfb.64.1604711067997;
-        Fri, 06 Nov 2020 17:04:27 -0800 (PST)
-Received: from [192.168.3.218] (c-73-241-217-19.hsd1.ca.comcast.net. [73.241.217.19])
-        by smtp.gmail.com with ESMTPSA id o132sm3563997pfg.100.2020.11.06.17.04.25
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 06 Nov 2020 17:04:26 -0800 (PST)
-Subject: Re: [PATCH] RDMA/siw,rxe: Make emulated devices virtual in the device
- tree
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Zhu Yanjun <yanjunz@nvidia.com>,
-        "Pearson, Robert B" <robert.pearson2@hpe.com>
-References: <0-v1-dcbfc68c4b4a+d6-virtual_dev_jgg@nvidia.com>
-From:   Bart Van Assche <bvanassche@acm.org>
-Message-ID: <677434b0-7482-2a11-ae80-7f9f9563aad0@acm.org>
-Date:   Fri, 6 Nov 2020 17:04:24 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+        id S1725846AbgKGU0S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 7 Nov 2020 15:26:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53076 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725836AbgKGU0S (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 7 Nov 2020 15:26:18 -0500
+Received: from kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com (unknown [163.114.132.4])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2F2C720885;
+        Sat,  7 Nov 2020 20:26:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1604780778;
+        bh=YXvXkW38HfeyGfVedt2xstjkWzg0BS9FrUKV2L8Lu4I=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=xbUkiyWoKX8bEbqrp2VgX5Qi0zA7zP4/NtyNf804JmzwZcsOoI5p8hwNX9EmUBDiq
+         Vd1J2EC+cWmuWa265ZXALpbqlt1xC510vIdxrAiwqYH/pJSAG6t31tu+GDaMSDNH/Y
+         VIquRLZonVgidWUHVWjWdMM3DR47ypU0/JK7/Fs8=
+Date:   Sat, 7 Nov 2020 12:26:17 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Zhu Yanjun <yanjunz@nvidia.com>
+Cc:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: Re: [PATCH 1/1] RDMA/rxe: Fetch skb packets from ethernet layer
+Message-ID: <20201107122617.55d0909c@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <1604574721-2505-1-git-send-email-yanjunz@nvidia.com>
+References: <1604574721-2505-1-git-send-email-yanjunz@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <0-v1-dcbfc68c4b4a+d6-virtual_dev_jgg@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 11/6/20 6:00 AM, Jason Gunthorpe wrote:
-> This moves siw and rxe to be virtual devices in the device tree:
+On Thu,  5 Nov 2020 19:12:01 +0800 Zhu Yanjun wrote:
+> In the original design, in rx, skb packet would pass ethernet
+> layer and IP layer, eventually reach udp tunnel.
 > 
-> lrwxrwxrwx 1 root root 0 Nov  6 13:55 /sys/class/infiniband/rxe0 -> ../../devices/virtual/infiniband/rxe0/
+> Now rxe fetches the skb packets from the ethernet layer directly.
+> So this bypasses the IP and UDP layer. As such, the skb packets
+> are sent to the upper protocals directly from the ethernet layer.
 > 
-> Previously they were trying to parent themselves to the physical device of
-> their attached netdev, which doesn't make alot of sense.
+> This increases bandwidth and decreases latency.
 > 
-> My hope is this will solve some weird syzkaller hits related to sysfs as
-> it could be possible that the parent of a netdev is another netdev, eg
-> under bonding or some other syzkaller found netdev configuration.
-> 
-> Nesting a ib_device under anything but a physical device is going to cause
-> inconsistencies in sysfs during destructions.
+> Signed-off-by: Zhu Yanjun <yanjunz@nvidia.com>
 
-Hi Jason,
+Nope, no stealing UDP packets with some random rx handlers.
 
-I do not know enough about the code touched by this patch to comment on
-the patch itself. But I expect that the blktests code will have to be
-modified to compensate for this change. How to translate the name of a
-virtual RDMA device into a netdev device with this patch applied?
-
-From the blktests project:
-
-# Check whether or not an rdma_rxe instance has been associated with
-# network interface $1.
-has_rdma_rxe() {
-	local f
-
-	for f in /sys/class/infiniband/*/parent; do
-		if [ -e "$f" ] && [ "$(<"$f")" = "$1" ]; then
-			return 0
-		fi
-	done
-
-	return 1
-}
-
-rdma_dev_to_net_dev() {
-	local b d rdma_dev=$1
-
-	b=/sys/class/infiniband/$rdma_dev/parent
-	if [ -e "$b" ]; then
-		echo "$(<"$b")"
-	else
-		echo "${rdma_dev%_siw}"
-	fi
-}
-
-Bart.
+The tunnel socket is a correct approach.
