@@ -2,110 +2,132 @@ Return-Path: <SRS0=x9wV=EP=vger.kernel.org=linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0429C63697
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Nov 2020 05:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0177BC2D0A3
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Nov 2020 09:03:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B71F02084C
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Nov 2020 05:09:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9522D206ED
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Nov 2020 09:03:45 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="gm58af3b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729391AbgKIFJI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Nov 2020 00:09:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41534 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729389AbgKIFJH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 9 Nov 2020 00:09:07 -0500
-Received: from localhost (searspoint.nvidia.com [216.228.112.21])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3EE95221FB;
-        Mon,  9 Nov 2020 05:09:06 +0000 (UTC)
-Date:   Mon, 9 Nov 2020 07:09:02 +0200
-From:   Leon Romanovsky <leonro@nvidia.com>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Gal Pressman <galpress@amazon.com>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH for-next] RDMA/nldev: Add parent bdf to device
- information dump
-Message-ID: <20201109050902.GA4527@unreal>
+        id S1727791AbgKIJDp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Nov 2020 04:03:45 -0500
+Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:10846 "EHLO
+        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726482AbgKIJDo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Nov 2020 04:03:44 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1604912624; x=1636448624;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=8d/oo8SF1edhlC/UyIZwGAECm1XonjcNLtFDvtkLcN8=;
+  b=gm58af3b3u+AXJC21+g9dXUj9SPToO4QNstZhOlIreQpUN0e+dx+bLs+
+   PNjc5oDvg9l286FsJatfCfnsA8WZjRr9McmIZqOKZnVUJOzkabMrWqcxw
+   bvMPxctzvnlffD9BJOIv6rRqHYaXKQhQGBycfm7y6rR+vyIaxPsVjed0h
+   4=;
+X-IronPort-AV: E=Sophos;i="5.77,463,1596499200"; 
+   d="scan'208";a="65460827"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1d-474bcd9f.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 09 Nov 2020 09:03:38 +0000
+Received: from EX13D19EUB001.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-1d-474bcd9f.us-east-1.amazon.com (Postfix) with ESMTPS id 212BDA1FD9;
+        Mon,  9 Nov 2020 09:03:33 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.161.55) by
+ EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Mon, 9 Nov 2020 09:03:30 +0000
+Subject: Re: [PATCH for-next] RDMA/nldev: Add parent bdf to device information
+ dump
+To:     Leon Romanovsky <leonro@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>
+CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>
 References: <20201103132627.67642-1-galpress@amazon.com>
- <20201103134522.GL36674@ziepe.ca>
- <20201103135719.GK5429@unreal>
+ <20201103134522.GL36674@ziepe.ca> <20201103135719.GK5429@unreal>
  <0825e1bf-f913-d2c1-ad3f-35ba3d6b75ef@amazon.com>
  <20201103142243.GM36674@ziepe.ca>
  <5e2208ab-9e87-56ae-bc38-5827637eb5be@amazon.com>
  <20201105200005.GJ36674@ziepe.ca>
  <cd3f2926-0491-8540-d6b1-534014190bae@amazon.com>
- <20201108234935.GC244516@ziepe.ca>
+ <20201108234935.GC244516@ziepe.ca> <20201109050902.GA4527@unreal>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <1a16f57c-cfad-c0fc-67f0-11156f9689ac@amazon.com>
+Date:   Mon, 9 Nov 2020 11:03:25 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201108234935.GC244516@ziepe.ca>
+In-Reply-To: <20201109050902.GA4527@unreal>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.161.55]
+X-ClientProxiedBy: EX13P01UWB001.ant.amazon.com (10.43.161.59) To
+ EX13D19EUB001.ant.amazon.com (10.43.166.229)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Nov 08, 2020 at 07:49:35PM -0400, Jason Gunthorpe wrote:
-> On Sun, Nov 08, 2020 at 03:03:45PM +0200, Gal Pressman wrote:
-> > On 05/11/2020 22:00, Jason Gunthorpe wrote:
-> > > On Tue, Nov 03, 2020 at 05:45:26PM +0200, Gal Pressman wrote:
-> > >> On 03/11/2020 16:22, Jason Gunthorpe wrote:
-> > >>> On Tue, Nov 03, 2020 at 04:11:19PM +0200, Gal Pressman wrote:
-> > >>>> On 03/11/2020 15:57, Leon Romanovsky wrote:
-> > >>>>> On Tue, Nov 03, 2020 at 09:45:22AM -0400, Jason Gunthorpe wrote:
-> > >>>>>> On Tue, Nov 03, 2020 at 03:26:27PM +0200, Gal Pressman wrote:
-> > >>>>>>> Add the ability to query the device's bdf through rdma tool netlink
-> > >>>>>>> command (in addition to the sysfs infra).
-> > >>>>>>>
-> > >>>>>>> In case of virtual devices (rxe/siw), the netdev bdf will be shown.
-> > >>>>>>
-> > >>>>>> Why? What is the use case?
-> > >>>>>
-> > >>>>> Right, and why isn't netdev (RDMA_NLDEV_ATTR_NDEV_NAME) enough?
-> > >>>>
-> > >>>> When taking system topology into consideration you need some way to pair the
-> > >>>> ibdev and bdf, especially when working with multiple devices.
-> > >>>> The netdev name doesn't exist on devices with no netdevs (IB, EFA).
-> > >>>
-> > >>> You are supposed to use sysfs
-> > >>>
-> > >>> /sys/class/infiniband/ibp0s9/device
-> > >>>
-> > >>> Should always be the physical device
-> > >>>
-> > >>>> Why rdma tool? Because it's more intuitive than sysfs.
-> > >>>
-> > >>> But we generally don't put this information into netlink BDF is just
-> > >>> the start, you need all the other topology information to make sense
-> > >>> of it, and all that is in sysfs only already
-> > >>
-> > >> As the commit message says, it's in addition to the device sysfs.
-> > >>
-> > >> Many (if not most) of the existing rdma netlink commands are duplicates of some
-> > >> sysfs entries, but show it in a more "modern" way.
-> > >> I'm not convinced that bdf should be treated differently.
-> > >
-> > > Why did you call it BDF anyhow? it has nothing to do with PCI BDF
-> > > other than it happens to be the PDF for PCI devices. Netdev called
-> > > this bus_info
-> >
-> > Are there non pci devices in the subsystem?
->
-> Yes, HNS uses non-pci devices
->
-> > I can rename to a more fitting name, will change to bus_info unless
-> > someone has a better idea.
->
-> The thing is, is is still useless. You have to consult sysfs to
-> understand what bus it is scoped on to do anything further with
-> it. Can't just assume it is PCI.
 
-Can anyone please remind me why are we doing it?
-What problem do you solve here by adding new nldev attributes?
+On 09/11/2020 7:09, Leon Romanovsky wrote:
+> On Sun, Nov 08, 2020 at 07:49:35PM -0400, Jason Gunthorpe wrote:
+>> On Sun, Nov 08, 2020 at 03:03:45PM +0200, Gal Pressman wrote:
+>>> On 05/11/2020 22:00, Jason Gunthorpe wrote:
+>>>> On Tue, Nov 03, 2020 at 05:45:26PM +0200, Gal Pressman wrote:
+>>>>> On 03/11/2020 16:22, Jason Gunthorpe wrote:
+>>>>>> On Tue, Nov 03, 2020 at 04:11:19PM +0200, Gal Pressman wrote:
+>>>>>>> On 03/11/2020 15:57, Leon Romanovsky wrote:
+>>>>>>>> On Tue, Nov 03, 2020 at 09:45:22AM -0400, Jason Gunthorpe wrote:
+>>>>>>>>> On Tue, Nov 03, 2020 at 03:26:27PM +0200, Gal Pressman wrote:
+>>>>>>>>>> Add the ability to query the device's bdf through rdma tool netlink
+>>>>>>>>>> command (in addition to the sysfs infra).
+>>>>>>>>>>
+>>>>>>>>>> In case of virtual devices (rxe/siw), the netdev bdf will be shown.
+>>>>>>>>>
+>>>>>>>>> Why? What is the use case?
+>>>>>>>>
+>>>>>>>> Right, and why isn't netdev (RDMA_NLDEV_ATTR_NDEV_NAME) enough?
+>>>>>>>
+>>>>>>> When taking system topology into consideration you need some way to pair the
+>>>>>>> ibdev and bdf, especially when working with multiple devices.
+>>>>>>> The netdev name doesn't exist on devices with no netdevs (IB, EFA).
+>>>>>>
+>>>>>> You are supposed to use sysfs
+>>>>>>
+>>>>>> /sys/class/infiniband/ibp0s9/device
+>>>>>>
+>>>>>> Should always be the physical device
+>>>>>>
+>>>>>>> Why rdma tool? Because it's more intuitive than sysfs.
+>>>>>>
+>>>>>> But we generally don't put this information into netlink BDF is just
+>>>>>> the start, you need all the other topology information to make sense
+>>>>>> of it, and all that is in sysfs only already
+>>>>>
+>>>>> As the commit message says, it's in addition to the device sysfs.
+>>>>>
+>>>>> Many (if not most) of the existing rdma netlink commands are duplicates of some
+>>>>> sysfs entries, but show it in a more "modern" way.
+>>>>> I'm not convinced that bdf should be treated differently.
+>>>>
+>>>> Why did you call it BDF anyhow? it has nothing to do with PCI BDF
+>>>> other than it happens to be the PDF for PCI devices. Netdev called
+>>>> this bus_info
+>>>
+>>> Are there non pci devices in the subsystem?
+>>
+>> Yes, HNS uses non-pci devices
+>>
+>>> I can rename to a more fitting name, will change to bus_info unless
+>>> someone has a better idea.
+>>
+>> The thing is, is is still useless. You have to consult sysfs to
+>> understand what bus it is scoped on to do anything further with
+>> it. Can't just assume it is PCI.
+> 
+> Can anyone please remind me why are we doing it?
+> What problem do you solve here by adding new nldev attributes?
 
-Thanks
-
->
-> Jason
+https://lore.kernel.org/linux-rdma/0825e1bf-f913-d2c1-ad3f-35ba3d6b75ef@amazon.com/
