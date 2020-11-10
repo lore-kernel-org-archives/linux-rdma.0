@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61889C388F7
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 21:27:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6579EC61DD8
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 21:27:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F375206F1
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 21:27:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35A31206F1
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 21:27:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731666AbgKJV1b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Nov 2020 16:27:31 -0500
-Received: from mga05.intel.com ([192.55.52.43]:54357 "EHLO mga05.intel.com"
+        id S1726706AbgKJV1c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Nov 2020 16:27:32 -0500
+Received: from mga05.intel.com ([192.55.52.43]:54360 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726737AbgKJV1a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 10 Nov 2020 16:27:30 -0500
-IronPort-SDR: ULWmGpFOnadSB4LFfR8cMZsq1V4jaujYhUwIUx8tx/PalOmOCofukee5q9giaDmNvSWuvW7lYP
- FljrTVZscanA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9801"; a="254762134"
+        id S1731657AbgKJV1b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Nov 2020 16:27:31 -0500
+IronPort-SDR: 28+EG9fki/VjzvlzwIC0cqUZkAb2njzM0356+kBAuUlIwBmsFciAIRioJNC5TbJLkV8/vW6HmE
+ fm8xE9v7vp/w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9801"; a="254762137"
 X-IronPort-AV: E=Sophos;i="5.77,467,1596524400"; 
-   d="scan'208";a="254762134"
+   d="scan'208";a="254762137"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
   by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2020 13:27:29 -0800
-IronPort-SDR: Cod5gKtZtm1jlnT0GoQFx/yzH0WS3Mo4RWjVZ0+SICRCx+UtEw4u1tvyCdK0i166mTP6O7ifVw
- R1W5Cwp7/PtQ==
+IronPort-SDR: 0NS6aqzbuIqjlXBVxN7ajmtLstwKmkSe/I+jNmp4B05cgZBS6lE5JvIRmrlc7sL+cjw6uo8Fxq
+ KGoGPbSHX2dA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.77,467,1596524400"; 
-   d="scan'208";a="541500543"
+   d="scan'208";a="541500552"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
   by orsmga005.jf.intel.com with ESMTP; 10 Nov 2020 13:27:28 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
@@ -44,9 +44,9 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Christian Koenig <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH v10 3/6] RDMA/uverbs: Add uverbs command for dma-buf based MR registration
-Date:   Tue, 10 Nov 2020 13:41:14 -0800
-Message-Id: <1605044477-51833-4-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH v10 6/6] dma-buf: Document that dma-buf size is fixed
+Date:   Tue, 10 Nov 2020 13:41:17 -0800
+Message-Id: <1605044477-51833-7-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1605044477-51833-1-git-send-email-jianxin.xiong@intel.com>
 References: <1605044477-51833-1-git-send-email-jianxin.xiong@intel.com>
@@ -54,212 +54,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement a new uverbs ioctl method for memory registration with file
-descriptor as an extra parameter.
+The fact that the size of dma-buf is invariant over the lifetime of the
+buffer is mentioned in the comment of 'dma_buf_ops.mmap', but is not
+documented at where the info is defined. Add the missing documentation.
 
 Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-Reviewed-by: Sean Hefty <sean.hefty@intel.com>
-Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Acked-by: Christian Koenig <christian.koenig@amd.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 ---
- drivers/infiniband/core/uverbs_std_types_mr.c | 122 +++++++++++++++++++++++++-
- include/uapi/rdma/ib_user_ioctl_cmds.h        |  14 +++
- 2 files changed, 134 insertions(+), 2 deletions(-)
+ include/linux/dma-buf.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index 9b22bb5..aefed77 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-+ * Copyright (c) 2020, Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -178,6 +179,91 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- 	return IS_UVERBS_COPY_ERR(ret) ? ret : 0;
- }
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 9dcd569..92da98b 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -272,7 +272,7 @@ struct dma_buf_ops {
  
-+static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uobject *uobj =
-+		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
-+	struct ib_pd *pd =
-+		uverbs_attr_get_obj(attrs, UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE);
-+	struct ib_device *ib_dev = pd->device;
-+
-+	u64 offset, length, virt_addr;
-+	u32 fd, access_flags;
-+	struct ib_mr *mr;
-+	int ret;
-+
-+	if (!ib_dev->ops.reg_user_mr_dmabuf)
-+		return -EOPNOTSUPP;
-+
-+	ret = uverbs_copy_from(&offset, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_OFFSET);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&length, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_LENGTH);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&virt_addr, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_IOVA);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&fd, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_FD);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_get_flags32(&access_flags, attrs,
-+				 UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+				 IB_ACCESS_LOCAL_WRITE |
-+				 IB_ACCESS_REMOTE_READ |
-+				 IB_ACCESS_REMOTE_WRITE |
-+				 IB_ACCESS_REMOTE_ATOMIC |
-+				 IB_ACCESS_RELAXED_ORDERING);
-+	if (ret)
-+		return ret;
-+
-+	ret = ib_check_mr_access(access_flags);
-+	if (ret)
-+		return ret;
-+
-+	mr = pd->device->ops.reg_user_mr_dmabuf(pd, offset, length, virt_addr,
-+						fd, access_flags,
-+						&attrs->driver_udata);
-+	if (IS_ERR(mr))
-+		return PTR_ERR(mr);
-+
-+	mr->device = pd->device;
-+	mr->pd = pd;
-+	mr->type = IB_MR_TYPE_USER;
-+	mr->uobject = uobj;
-+	atomic_inc(&pd->usecnt);
-+
-+	uobj->object = mr;
-+
-+	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+			     &mr->lkey, sizeof(mr->lkey));
-+	if (ret)
-+		goto err_dereg;
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+			     &mr->rkey, sizeof(mr->rkey));
-+	if (ret)
-+		goto err_dereg;
-+
-+	return 0;
-+
-+err_dereg:
-+	ib_dereg_mr_user(mr, uverbs_get_cleared_udata(attrs));
-+
-+	return ret;
-+}
-+
- DECLARE_UVERBS_NAMED_METHOD(
- 	UVERBS_METHOD_ADVISE_MR,
- 	UVERBS_ATTR_IDR(UVERBS_ATTR_ADVISE_MR_PD_HANDLE,
-@@ -243,6 +329,37 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- 			    UVERBS_ATTR_TYPE(u32),
- 			    UA_MANDATORY));
- 
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_REG_DMABUF_MR,
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
-+			UVERBS_OBJECT_MR,
-+			UVERBS_ACCESS_NEW,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE,
-+			UVERBS_OBJECT_PD,
-+			UVERBS_ACCESS_READ,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_OFFSET,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_LENGTH,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_IOVA,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_FD,
-+			   UVERBS_ATTR_TYPE(u32),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+			     enum ib_access_flags),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY));
-+
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 	UVERBS_METHOD_MR_DESTROY,
- 	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_MR_HANDLE,
-@@ -253,10 +370,11 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- DECLARE_UVERBS_NAMED_OBJECT(
- 	UVERBS_OBJECT_MR,
- 	UVERBS_TYPE_ALLOC_IDR(uverbs_free_mr),
-+	&UVERBS_METHOD(UVERBS_METHOD_ADVISE_MR),
- 	&UVERBS_METHOD(UVERBS_METHOD_DM_MR_REG),
- 	&UVERBS_METHOD(UVERBS_METHOD_MR_DESTROY),
--	&UVERBS_METHOD(UVERBS_METHOD_ADVISE_MR),
--	&UVERBS_METHOD(UVERBS_METHOD_QUERY_MR));
-+	&UVERBS_METHOD(UVERBS_METHOD_QUERY_MR),
-+	&UVERBS_METHOD(UVERBS_METHOD_REG_DMABUF_MR));
- 
- const struct uapi_definition uverbs_def_obj_mr[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_MR,
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 7968a18..dafc7eb 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-+ * Copyright (c) 2020, Intel Corporation. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -251,6 +252,7 @@ enum uverbs_methods_mr {
- 	UVERBS_METHOD_MR_DESTROY,
- 	UVERBS_METHOD_ADVISE_MR,
- 	UVERBS_METHOD_QUERY_MR,
-+	UVERBS_METHOD_REG_DMABUF_MR,
- };
- 
- enum uverbs_attrs_mr_destroy_ids {
-@@ -272,6 +274,18 @@ enum uverbs_attrs_query_mr_cmd_attr_ids {
- 	UVERBS_ATTR_QUERY_MR_RESP_IOVA,
- };
- 
-+enum uverbs_attrs_reg_dmabuf_mr_cmd_attr_ids {
-+	UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
-+	UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE,
-+	UVERBS_ATTR_REG_DMABUF_MR_OFFSET,
-+	UVERBS_ATTR_REG_DMABUF_MR_LENGTH,
-+	UVERBS_ATTR_REG_DMABUF_MR_IOVA,
-+	UVERBS_ATTR_REG_DMABUF_MR_FD,
-+	UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+	UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+	UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+};
-+
- enum uverbs_attrs_create_counters_cmd_attr_ids {
- 	UVERBS_ATTR_CREATE_COUNTERS_HANDLE,
- };
+ /**
+  * struct dma_buf - shared buffer object
+- * @size: size of the buffer
++ * @size: size of the buffer; invariant over the lifetime of the buffer.
+  * @file: file pointer used for sharing buffers across, and for refcounting.
+  * @attachments: list of dma_buf_attachment that denotes all devices attached,
+  *               protected by dma_resv lock.
+@@ -404,7 +404,7 @@ struct dma_buf_attachment {
+  * @exp_name:	name of the exporter - useful for debugging.
+  * @owner:	pointer to exporter module - used for refcounting kernel module
+  * @ops:	Attach allocator-defined dma buf ops to the new buffer
+- * @size:	Size of the buffer
++ * @size:	Size of the buffer - invariant over the lifetime of the buffer
+  * @flags:	mode flags for the file
+  * @resv:	reservation-object, NULL to allocate default one
+  * @priv:	Attach private data of allocator to this buffer
 -- 
 1.8.3.1
 
