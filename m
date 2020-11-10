@@ -2,114 +2,87 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28D8BC2D0A3
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 01:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C6EFC4741F
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 02:52:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF91D20789
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 01:58:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Folh9NIK"
+	by mail.kernel.org (Postfix) with ESMTP id 34372206ED
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Nov 2020 02:52:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729874AbgKJB6g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Nov 2020 20:58:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57296 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728607AbgKJB6f (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Nov 2020 20:58:35 -0500
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C20FEC0613CF;
-        Mon,  9 Nov 2020 17:58:35 -0800 (PST)
-Received: by mail-oi1-x244.google.com with SMTP id c80so12552250oib.2;
-        Mon, 09 Nov 2020 17:58:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DC8+tLhb9a8fMLxHpLtJ9VTDmC950bus6WDTnMhq6EI=;
-        b=Folh9NIKyaT4XVyUdc3Fy7l3SM0kW87zCzcF2vWHUeKWkjONGj1ZsU01wfRvmexy/l
-         Zrs1R90AN+JFbX3uoghO0qcRYwfIrapfe+PtnKWC8HIfGzD7x+y6NG5RGZIJADh7jbVk
-         jwnS/R1VTEYVllDo1hrGkhv9U8zoc6R6yvSVWWYUJNTpIS9llzZJwcC7O+qMSZrnund6
-         reTwOawFmbM+X0h0CyVZKFoHTlAl/iKmmTf9n4OT+71cMCcbLsWesPA/TqSAUfCJPO6K
-         0RKY137HHkNCZaAKi0nk23mtWagLh2Sv/k1L6fYRrohOkFG9kicrWWlrrDB1jmWEZaN+
-         dMxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DC8+tLhb9a8fMLxHpLtJ9VTDmC950bus6WDTnMhq6EI=;
-        b=kYQBppqdpXesT1zcRforDGOvl52PDDEDY72DGYtcLnZ4pH+GMzk5DzrLrF4yjXT2bT
-         sgcGUOXc52gQExF4SqC0/vyo922AMkd20PSuplK8nEwTh5JeN51ji6TyC+jcoKtly1pz
-         PTmESRajb6xsYSTth3lCzKctL501MpadLaneM7oP7UR4lo5WW88x1l6qy6uf+2ask+7B
-         74v/LtLh1/hL/McpjR6xm+Y6D91wDDnULW6oQ8Zy7HLIdWwByudOER+UM5hC5DpI67LI
-         WLESLjxrltt8IqGuDjvDwDPkVrDzizfoZpJnV15Y8vY5Y8y8vRReEUm/5fw1ZRDrY6vi
-         Rokg==
-X-Gm-Message-State: AOAM5322w2/F5Ura0I4vkZaMPiv7hRdxZfo2e5LD6AKfX4iTRvkq2a36
-        BQ4YZSkypn0qvpwE3xEABjnS6xx48TqDLeSklM8=
-X-Google-Smtp-Source: ABdhPJyndzSrsy63dd3cPba+mThUF2ZBAEHKGVYrvxzYJ06ov8mkQrwaX8KAh9RlKx1oHXZ1WMa3JWGAtFB8/wtc95Q=
-X-Received: by 2002:aca:ec97:: with SMTP id k145mr1373199oih.163.1604973515290;
- Mon, 09 Nov 2020 17:58:35 -0800 (PST)
+        id S1729831AbgKJCwS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Nov 2020 21:52:18 -0500
+Received: from smtprelay0242.hostedemail.com ([216.40.44.242]:52914 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727311AbgKJCwS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Nov 2020 21:52:18 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id F008012CB;
+        Tue, 10 Nov 2020 02:52:13 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: ink22_1714ef1272f1
+X-Filterd-Recvd-Size: 2439
+Received: from [192.168.0.160] (cpe-72-134-80-165.natsow.res.rr.com [72.134.80.165])
+        (Authenticated sender: joe@perches.com)
+        by omf07.hostedemail.com (Postfix) with ESMTPA;
+        Tue, 10 Nov 2020 02:52:09 +0000 (UTC)
+Message-ID: <3c39c363690d0b46069afddc3ad09213011e5cd4.camel@perches.com>
+Subject: Re: Subject: [RFC] clang tooling cleanups
+From:   Joe Perches <joe@perches.com>
+To:     trix@redhat.com, linux-kernel@vger.kernel.org,
+        clang-built-linux@googlegroups.com, cocci <cocci@systeme.lip6.fr>
+Cc:     linux-pm@vger.kernel.org, linux-crypto@vger.kernel.org,
+        qat-linux@intel.com, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org,
+        netdev@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linux-amlogic@lists.infradead.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-rtc@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-aspeed@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net, alsa-devel@alsa-project.org,
+        linux-rpi-kernel@lists.infradead.org, linux-tegra@vger.kernel.org
+Date:   Mon, 09 Nov 2020 18:52:08 -0800
+In-Reply-To: <20201027164255.1573301-1-trix@redhat.com>
+References: <20201027164255.1573301-1-trix@redhat.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
-References: <20201107122617.55d0909c@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <222b9c1b-9d60-22f3-6097-8abd651cc192@gmail.com> <CAD=hENdP8sJrBZ7uDEWtatZ3D6bKQY=wBKdM5NQ79xveohAnhQ@mail.gmail.com>
- <20201109102518.6b3d92a5@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20201109102518.6b3d92a5@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Tue, 10 Nov 2020 09:58:24 +0800
-Message-ID: <CAD=hENcAc8TZSeW1ba_BDiT7M7+HeyWUHSVwnFQjOi6vk5TPMQ@mail.gmail.com>
-Subject: Re: [PATCH 1/1] RDMA/rxe: Fetch skb packets from ethernet layer
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 10, 2020 at 2:25 AM Jakub Kicinski <kuba@kernel.org> wrote:
->
-> On Sun, 8 Nov 2020 13:27:32 +0800 Zhu Yanjun wrote:
-> > On Sun, Nov 8, 2020 at 1:24 PM Zhu Yanjun <zyjzyj2000@gmail.com> wrote:
-> > > On Thu, 5 Nov 2020 19:12:01 +0800 Zhu Yanjun wrote:
-> > >
-> > > In the original design, in rx, skb packet would pass ethernet
-> > > layer and IP layer, eventually reach udp tunnel.
-> > >
-> > > Now rxe fetches the skb packets from the ethernet layer directly.
-> > > So this bypasses the IP and UDP layer. As such, the skb packets
-> > > are sent to the upper protocals directly from the ethernet layer.
-> > >
-> > > This increases bandwidth and decreases latency.
-> > >
-> > > Signed-off-by: Zhu Yanjun <yanjunz@nvidia.com>
-> > >
-> > >
-> > > Nope, no stealing UDP packets with some random rx handlers.
-> >
-> > Why? Is there any risks?
->
-> Are there risks in layering violations? Yes.
->
-> For example - you do absolutely no protocol parsing,
+On Tue, 2020-10-27 at 09:42 -0700, trix@redhat.com wrote:
+> This rfc will describe
+> An upcoming treewide cleanup.
+> How clang tooling was used to programatically do the clean up.
+> Solicit opinions on how to generally use clang tooling.
+> 
+> The clang warning -Wextra-semi-stmt produces about 10k warnings.
+> Reviewing these, a subset of semicolon after a switch looks safe to
+> fix all the time.  An example problem
+> 
+> void foo(int a) {
+>      switch(a) {
+>      	       case 1:
+> 	       ...
+>      }; <--- extra semicolon
+> }
+> 
+> Treewide, there are about 100 problems in 50 files for x86_64 allyesconfig.
+> These fixes will be the upcoming cleanup.
 
-Protocol parsing is in rxe driver.
+coccinelle already does some of these.
 
-> checksum validation, only support IPv4, etc.
+For instance: scripts/coccinelle/misc/semicolon.cocci
 
-Since only ipv4 is supported in rxe, if ipv6 is supported in rxe, I
-will add ipv6.
+Perhaps some tool coordination can be done here as
+coccinelle/checkpatch/clang/Lindent call all be used
+to do some facet or another of these cleanup issues.
 
->
-> Besides it also makes the code far less maintainable, rx_handler is a
 
-This rx_handler is also used in openvswitch and bridge.
 
-Zhu Yanjun
-
-> singleton, etc. etc.
->
-> > > The tunnel socket is a correct approach.
