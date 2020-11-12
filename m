@@ -5,28 +5,27 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB67AC5519F
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20B30C2D0E4
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9471C20B80
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C006B2222F
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="CxacRKt6"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="mPbMV2li"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726831AbgKLTYw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Nov 2020 14:24:52 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14152 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726826AbgKLTYv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Nov 2020 14:24:51 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fad8c060000>; Thu, 12 Nov 2020 11:24:54 -0800
+        id S1727041AbgKLTZZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Nov 2020 14:25:25 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:11329 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726812AbgKLTYu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Nov 2020 14:24:50 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fad8c090001>; Thu, 12 Nov 2020 11:24:57 -0800
 Received: from sw-mtx-036.mtx.labs.mlnx (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Nov
- 2020 19:24:49 +0000
+ 2020 19:24:48 +0000
 From:   Parav Pandit <parav@nvidia.com>
 To:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <gregkh@linuxfoundation.org>
@@ -34,9 +33,9 @@ CC:     <jiri@nvidia.com>, <jgg@nvidia.com>, <dledford@redhat.com>,
         <leonro@nvidia.com>, <saeedm@nvidia.com>, <kuba@kernel.org>,
         <davem@davemloft.net>, Parav Pandit <parav@nvidia.com>,
         Vu Pham <vuhuong@nvidia.com>
-Subject: [PATCH net-next 03/13] devlink: Support add and delete devlink port
-Date:   Thu, 12 Nov 2020 21:24:13 +0200
-Message-ID: <20201112192424.2742-4-parav@nvidia.com>
+Subject: [PATCH net-next 02/13] devlink: Introduce PCI SF port flavour and port attribute
+Date:   Thu, 12 Nov 2020 21:24:12 +0200
+Message-ID: <20201112192424.2742-3-parav@nvidia.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201112192424.2742-1-parav@nvidia.com>
 References: <20201112192424.2742-1-parav@nvidia.com>
@@ -47,238 +46,223 @@ X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605209095; bh=D4JZp5kVleCr5eF3o9evBl+V3rS5np4bBhWU/57b7mE=;
+        t=1605209097; bh=qAAyHZbrk+w0mcub+q1sHLPG34iiL4uRk0ZQDzAVc2M=;
         h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
          References:MIME-Version:Content-Transfer-Encoding:Content-Type:
          X-Originating-IP:X-ClientProxiedBy;
-        b=CxacRKt6bmjC54t3dJiI0b32E03UQgrzDHATkPkA2VQ7xLMceUMnIm5pSzqehX0GD
-         N96SLyDteYGRpUO08CjYxjPwQyqYBiJoiZFGxH+77avsOzAWKrknxsjhGnxvvHqa2J
-         Zu36loAk8+nGYFgXR7NY7RDNJrDlup4or4vC8TTF0qypdDl6mFadJxakEP1WQrP+AJ
-         ADQSvnHiYwUg8vy1zh43otVgceT7spQ06czFDudRMv862Gn//uLc0AnrM8whs6Ja+R
-         TADxaPZAJ8LjEFDrMLbTmlmCo/JnAKb1AMcP7TnebTL6DBd0vwj54GuFgULM0qOq6X
-         TfDkMpVH0JA1Q==
+        b=mPbMV2liF8U9ZVw4VgFXQfozW3yVZrSijFqz8YKkTZBYNkk67lLdFnE+KX5/hYPtR
+         PvVBTO29vX7rUMVv+zh+JhYFkP842uaM3DAHsafNGgrbtcXScwmRCmQE4sPSW0oXDO
+         BIEc6PQt6VLEPHlcUvyOjFz1qHo3agktKRz5ruYxl/WNj28wlIqoUqdpG8MvBr/umF
+         vcwGiWAfM8b9UrQSm67VdoHywlROiUVr5o48SNLj2YfpvmUEct3Bc/QvRCGWkxwvOF
+         n1gg27vFSAtqN/PAxmtON6Jp14xlANu8RwsHQg81oRE8nMRcmS8jVeVJBJmMupX8Pi
+         +e8fqNCvv4u5A==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extended devlink interface for the user to add and delete port.
-Extend devlink to connect user requests to driver to add/delete
-such port in the device.
+A PCI sub-function (SF) represents a portion of the device similar
+to PCI VF.
 
-When driver routines are invoked, devlink instance lock is not held.
-This enables driver to perform several devlink objects registration,
-unregistration such as (port, health reporter, resource etc)
-by using exising devlink APIs.
-This also helps to uniformly use the code for port unregistration
-during driver unload and during port deletion initiated by user.
+In an eswitch, PCI SF may have port which is normally represented
+using a representor netdevice.
+To have better visibility of eswitch port, its association with SF,
+and its representor netdevice, introduce a PCI SF port flavour.
 
-Examples of add, show and delete commands:
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
+When devlink port flavour is PCI SF, fill up PCI SF attributes of the
+port.
 
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 s=
-plittable false
+Extend port name creation using PCI PF and SF number scheme on best
+effort basis, so that vendor drivers can skip defining their own
+scheme.
+This is done as cApfNSfM, where A, N and M are controller, PCI PF and
+PCI SF number respectively.
+This is similar to existing naming for PCI PF and PCI VF ports.
 
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
+An example view of a PCI SF port:
 
 $ devlink port show pci/0000:06:00.0/32768
 pci/0000:06:00.0/32768: type eth netdev eth0 flavour pcisf controller 0 pfn=
 um 0 sfnum 88 external false splittable false
   function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
+    hw_addr 00:00:00:00:88:88 state active opstate attached
 
-$ udevadm test-builtin net_id /sys/class/net/eth0
-Load module index
-Parsed configuration file /usr/lib/systemd/network/99-default.link
-Created link configuration context.
-Using default interface naming scheme 'v245'.
-ID_NET_NAMING_SCHEME=3Dv245
-ID_NET_NAME_PATH=3Denp6s0f0npf0sf88
-ID_NET_NAME_SLOT=3Dens2f0npf0sf88
-Unload module index
-Unloaded link configuration context.
-
-$ devlink port del netdevsim/netdevsim10/32768
+$ devlink port show pci/0000:06:00.0/32768 -jp
+{
+    "port": {
+        "pci/0000:06:00.0/32768": {
+            "type": "eth",
+            "netdev": "eth0",
+            "flavour": "pcisf",
+            "controller": 0,
+            "pfnum": 0,
+            "sfnum": 88,
+            "external": false,
+            "splittable": false,
+            "function": {
+                "hw_addr": "00:00:00:00:88:88",
+                "state": "active",
+                "opstate": "attached"
+            }
+        }
+    }
+}
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Reviewed-by: Jiri Pirko <jiri@nvidia.com>
 Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 ---
- include/net/devlink.h | 38 ++++++++++++++++++++++++
- net/core/devlink.c    | 67 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 105 insertions(+)
+ include/net/devlink.h        | 17 +++++++++++++
+ include/uapi/linux/devlink.h |  5 ++++
+ net/core/devlink.c           | 46 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 68 insertions(+)
 
 diff --git a/include/net/devlink.h b/include/net/devlink.h
-index 1b7c9fbc607a..3991345ef3e2 100644
+index b01bb9bca5a2..1b7c9fbc607a 100644
 --- a/include/net/devlink.h
 +++ b/include/net/devlink.h
-@@ -152,6 +152,17 @@ struct devlink_port {
- 	struct mutex reporters_lock; /* Protects reporter_list */
+@@ -92,6 +92,20 @@ struct devlink_port_pci_vf_attrs {
+ 	u8 external:1;
  };
 =20
-+struct devlink_port_new_attrs {
-+	enum devlink_port_flavour flavour;
-+	unsigned int port_index;
++/**
++ * struct devlink_port_pci_sf_attrs - devlink port's PCI SF attributes
++ * @controller: Associated controller number
++ * @pf: Associated PCI PF number for this port.
++ * @sf: Associated PCI SF for of the PCI PF for this port.
++ * @external: when set, indicates if a port is for an external controller
++ */
++struct devlink_port_pci_sf_attrs {
 +	u32 controller;
-+	u32 sfnum;
-+	u16 pfnum;
-+	u8 port_index_valid:1,
-+	   controller_valid:1,
-+	   sfnum_valid:1;
++	u16 pf;
++	u32 sf;
++	u8 external:1;
 +};
 +
- struct devlink_sb_pool_info {
- 	enum devlink_sb_pool_type pool_type;
- 	u32 size;
-@@ -1360,6 +1371,33 @@ struct devlink_ops {
- 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_=
-port *port,
- 					 const u8 *hw_addr, int hw_addr_len,
- 					 struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_new: Port add function.
-+	 *
-+	 * Should be used by device driver to let caller add new port of a specif=
-ied flavour
-+	 * with optional attributes.
-+	 * Driver should return -EOPNOTSUPP if it doesn't support port addition o=
-f a specified
-+	 * flavour or specified attributes. Driver should set extack error messag=
-e in case of fail
-+	 * to add the port.
-+	 * devlink core does not hold a devlink instance lock when this callback =
-is invoked.
-+	 * Driver must ensures synchronization when adding or deleting a port. Dr=
-iver must
-+	 * register a port with devlink core.
-+	 */
-+	int (*port_new)(struct devlink *devlink, const struct devlink_port_new_at=
-trs *attrs,
-+			struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_del: Port delete function.
-+	 *
-+	 * Should be used by device driver to let caller delete port which was pr=
-eviously created
-+	 * using port_new() callback.
-+	 * Driver should return -EOPNOTSUPP if it doesn't support port deletion.
-+	 * Driver should set extack error message in case of fail to delete the p=
-ort.
-+	 * devlink core does not hold a devlink instance lock when this callback =
-is invoked.
-+	 * Driver must ensures synchronization when adding or deleting a port. Dr=
-iver must
-+	 * register a port with devlink core.
-+	 */
-+	int (*port_del)(struct devlink *devlink, unsigned int port_index,
-+			struct netlink_ext_ack *extack);
+ /**
+  * struct devlink_port_attrs - devlink port object
+  * @flavour: flavour of the port
+@@ -113,6 +127,7 @@ struct devlink_port_attrs {
+ 		struct devlink_port_phys_attrs phys;
+ 		struct devlink_port_pci_pf_attrs pci_pf;
+ 		struct devlink_port_pci_vf_attrs pci_vf;
++		struct devlink_port_pci_sf_attrs pci_sf;
+ 	};
  };
 =20
- static inline void *devlink_priv(struct devlink *devlink)
+@@ -1401,6 +1416,8 @@ void devlink_port_attrs_pci_pf_set(struct devlink_por=
+t *devlink_port, u32 contro
+ 				   u16 pf, bool external);
+ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 =
+controller,
+ 				   u16 pf, u16 vf, bool external);
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 =
+controller,
++				   u16 pf, u32 sf, bool external);
+ int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
+ 			u32 size, u16 ingress_pools_count,
+ 			u16 egress_pools_count, u16 ingress_tc_count,
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index 0113bc4db9f5..57065722b9c3 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -200,6 +200,10 @@ enum devlink_port_flavour {
+ 	DEVLINK_PORT_FLAVOUR_UNUSED, /* Port which exists in the switch, but
+ 				      * is not used in any way.
+ 				      */
++	DEVLINK_PORT_FLAVOUR_PCI_SF, /* Represents eswitch port
++				      * for the PCI SF. It is an internal
++				      * port that faces the PCI SF.
++				      */
+ };
+=20
+ enum devlink_param_cmode {
+@@ -527,6 +531,7 @@ enum devlink_attr {
+ 	DEVLINK_ATTR_RELOAD_STATS_VALUE,	/* u32 */
+ 	DEVLINK_ATTR_REMOTE_RELOAD_STATS,	/* nested */
+=20
++	DEVLINK_ATTR_PORT_PCI_SF_NUMBER,	/* u32 */
+ 	/* add new attributes above here, update the policy in devlink.c */
+=20
+ 	__DEVLINK_ATTR_MAX,
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index b1e849b624a6..dccdf36afba6 100644
+index 75cca9cbb9d9..b1e849b624a6 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -1124,6 +1124,57 @@ static int devlink_nl_cmd_port_unsplit_doit(struct s=
-k_buff *skb,
- 	return devlink_port_unsplit(devlink, port_index, info->extack);
+@@ -673,6 +673,15 @@ static int devlink_nl_port_attrs_put(struct sk_buff *m=
+sg,
+ 		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_vf.external))
+ 			return -EMSGSIZE;
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		if (nla_put_u32(msg, DEVLINK_ATTR_PORT_CONTROLLER_NUMBER,
++				attrs->pci_sf.controller) ||
++		    nla_put_u16(msg, DEVLINK_ATTR_PORT_PCI_PF_NUMBER, attrs->pci_sf.pf) =
+||
++		    nla_put_u32(msg, DEVLINK_ATTR_PORT_PCI_SF_NUMBER, attrs->pci_sf.sf))
++			return -EMSGSIZE;
++		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_sf.external))
++			return -EMSGSIZE;
++		break;
+ 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
+ 	case DEVLINK_PORT_FLAVOUR_CPU:
+ 	case DEVLINK_PORT_FLAVOUR_DSA:
+@@ -8330,6 +8339,33 @@ void devlink_port_attrs_pci_vf_set(struct devlink_po=
+rt *devlink_port, u32 contro
  }
+ EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
 =20
-+static int devlink_nl_cmd_port_new_doit(struct sk_buff *skb, struct genl_i=
-nfo *info)
++/**
++ *	devlink_port_attrs_pci_sf_set - Set PCI SF port attributes
++ *
++ *	@devlink_port: devlink port
++ *	@controller: associated controller number for the devlink port instance
++ *	@pf: associated PF for the devlink port instance
++ *	@sf: associated SF of a PF for the devlink port instance
++ *	@external: indicates if the port is for an external controller
++ */
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 =
+controller,
++				   u16 pf, u32 sf, bool external)
 +{
-+	struct netlink_ext_ack *extack =3D info->extack;
-+	struct devlink_port_new_attrs new_attrs =3D {};
-+	struct devlink *devlink =3D info->user_ptr[0];
++	struct devlink_port_attrs *attrs =3D &devlink_port->attrs;
++	int ret;
 +
-+	if (!info->attrs[DEVLINK_ATTR_PORT_FLAVOUR] ||
-+	    !info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMBER]) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port flavour or PCI PF are not specified");
-+		return -EINVAL;
-+	}
-+	new_attrs.flavour =3D nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_FLAVOUR])=
-;
-+	new_attrs.pfnum =3D nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMB=
-ER]);
-+
-+	if (info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
-+		new_attrs.port_index =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX=
-]);
-+		new_attrs.port_index_valid =3D true;
-+	}
-+	if (info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]) {
-+		new_attrs.controller =3D
-+			nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]);
-+		new_attrs.controller_valid =3D true;
-+	}
-+	if (info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUMBER]) {
-+		new_attrs.sfnum =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUM=
-BER]);
-+		new_attrs.sfnum_valid =3D true;
-+	}
-+
-+	if (!devlink->ops->port_new)
-+		return -EOPNOTSUPP;
-+
-+	return devlink->ops->port_new(devlink, &new_attrs, extack);
++	if (WARN_ON(devlink_port->registered))
++		return;
++	ret =3D __devlink_port_attrs_set(devlink_port, DEVLINK_PORT_FLAVOUR_PCI_S=
+F);
++	if (ret)
++		return;
++	attrs->pci_sf.controller =3D controller;
++	attrs->pci_sf.pf =3D pf;
++	attrs->pci_sf.sf =3D sf;
++	attrs->pci_sf.external =3D external;
 +}
++EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_sf_set);
 +
-+static int devlink_nl_cmd_port_del_doit(struct sk_buff *skb, struct genl_i=
-nfo *info)
-+{
-+	struct netlink_ext_ack *extack =3D info->extack;
-+	struct devlink *devlink =3D info->user_ptr[0];
-+	unsigned int port_index;
-+
-+	if (!info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port index is not specified");
-+		return -EINVAL;
-+	}
-+	port_index =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX]);
-+
-+	if (!devlink->ops->port_del)
-+		return -EOPNOTSUPP;
-+	return devlink->ops->port_del(devlink, port_index, extack);
-+}
-+
- static int devlink_nl_sb_fill(struct sk_buff *msg, struct devlink *devlink=
-,
- 			      struct devlink_sb *devlink_sb,
- 			      enum devlink_command cmd, u32 portid,
-@@ -7565,6 +7616,10 @@ static const struct nla_policy devlink_nl_policy[DEV=
-LINK_ATTR_MAX + 1] =3D {
- 	[DEVLINK_ATTR_RELOAD_ACTION] =3D NLA_POLICY_RANGE(NLA_U8, DEVLINK_RELOAD_=
-ACTION_DRIVER_REINIT,
- 							DEVLINK_RELOAD_ACTION_MAX),
- 	[DEVLINK_ATTR_RELOAD_LIMITS] =3D NLA_POLICY_BITFIELD32(DEVLINK_RELOAD_LIM=
-ITS_VALID_MASK),
-+	[DEVLINK_ATTR_PORT_FLAVOUR] =3D { .type =3D NLA_U16 },
-+	[DEVLINK_ATTR_PORT_PCI_PF_NUMBER] =3D { .type =3D NLA_U16 },
-+	[DEVLINK_ATTR_PORT_PCI_SF_NUMBER] =3D { .type =3D NLA_U32 },
-+	[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER] =3D { .type =3D NLA_U32 },
- };
+ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_=
+port,
+ 					     char *name, size_t len)
+ {
+@@ -8378,6 +8414,16 @@ static int __devlink_port_phys_port_name_get(struct =
+devlink_port *devlink_port,
+ 		n =3D snprintf(name, len, "pf%uvf%u",
+ 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		if (attrs->pci_sf.external) {
++			n =3D snprintf(name, len, "c%u", attrs->pci_sf.controller);
++			if (n >=3D len)
++				return -EINVAL;
++			len -=3D n;
++			name +=3D n;
++		}
++		n =3D snprintf(name, len, "pf%usf%u", attrs->pci_sf.pf, attrs->pci_sf.sf=
+);
++		break;
+ 	}
 =20
- static const struct genl_small_ops devlink_nl_ops[] =3D {
-@@ -7604,6 +7659,18 @@ static const struct genl_small_ops devlink_nl_ops[] =
-=3D {
- 		.flags =3D GENL_ADMIN_PERM,
- 		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
- 	},
-+	{
-+		.cmd =3D DEVLINK_CMD_PORT_NEW,
-+		.doit =3D devlink_nl_cmd_port_new_doit,
-+		.flags =3D GENL_ADMIN_PERM,
-+		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
-+	},
-+	{
-+		.cmd =3D DEVLINK_CMD_PORT_DEL,
-+		.doit =3D devlink_nl_cmd_port_del_doit,
-+		.flags =3D GENL_ADMIN_PERM,
-+		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
-+	},
- 	{
- 		.cmd =3D DEVLINK_CMD_SB_GET,
- 		.validate =3D GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
+ 	if (n >=3D len)
 --=20
 2.26.2
 
