@@ -5,36 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B85C55ABD
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB67AC5519F
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 528DB20B80
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9471C20B80
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Nov 2020 19:25:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="F9eSGrW6"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="CxacRKt6"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727002AbgKLTZP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Nov 2020 14:25:15 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14161 "EHLO
+        id S1726831AbgKLTYw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Nov 2020 14:24:52 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14152 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726865AbgKLTYz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Nov 2020 14:24:55 -0500
+        with ESMTP id S1726826AbgKLTYv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Nov 2020 14:24:51 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fad8c090000>; Thu, 12 Nov 2020 11:24:57 -0800
+        id <B5fad8c060000>; Thu, 12 Nov 2020 11:24:54 -0800
 Received: from sw-mtx-036.mtx.labs.mlnx (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 12 Nov
- 2020 19:24:52 +0000
+ 2020 19:24:49 +0000
 From:   Parav Pandit <parav@nvidia.com>
 To:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <gregkh@linuxfoundation.org>
 CC:     <jiri@nvidia.com>, <jgg@nvidia.com>, <dledford@redhat.com>,
         <leonro@nvidia.com>, <saeedm@nvidia.com>, <kuba@kernel.org>,
-        <davem@davemloft.net>, Parav Pandit <parav@nvidia.com>
-Subject: [PATCH net-next 06/13] devlink: Introduce devlink refcount to reduce scope of global devlink_mutex
-Date:   Thu, 12 Nov 2020 21:24:16 +0200
-Message-ID: <20201112192424.2742-7-parav@nvidia.com>
+        <davem@davemloft.net>, Parav Pandit <parav@nvidia.com>,
+        Vu Pham <vuhuong@nvidia.com>
+Subject: [PATCH net-next 03/13] devlink: Support add and delete devlink port
+Date:   Thu, 12 Nov 2020 21:24:13 +0200
+Message-ID: <20201112192424.2742-4-parav@nvidia.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201112192424.2742-1-parav@nvidia.com>
 References: <20201112192424.2742-1-parav@nvidia.com>
@@ -45,273 +47,238 @@ X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605209098; bh=duM8oXC36aVKHiWOtlUJ0x2Qpxs/rbzwQ5FiUJNUeko=;
+        t=1605209095; bh=D4JZp5kVleCr5eF3o9evBl+V3rS5np4bBhWU/57b7mE=;
         h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
          References:MIME-Version:Content-Transfer-Encoding:Content-Type:
          X-Originating-IP:X-ClientProxiedBy;
-        b=F9eSGrW6Z8OaszUNTbldZ87T3/J/ImhHJ0VRlBMNRpT5tg6wQ65GSqQSPxZHim3ow
-         S3m5Hbu/XYjGKRsKPkE+ITjfOf6gMK5kcY+YI7VhXrzFEDN3M/qZ+JyJjrqnW3gFpY
-         IYPtv7pE54lbZIBSk3xZv8VIidvVQG+qOgmhCUZv5N/SrRhNEtXNFD68/jlGPKG/LS
-         Kzec/BzzV32nMZiYUIEA9X3MMN1uaUw7N5ShDWlAmGlFabiwl+SQMTW2Y6Adoo9ljJ
-         nWH5CZJDJM+ukaQUZYyniiOOm+f4zSTk2A53urZHpIcNpj4jdl2xL1ADcC9JrRPha6
-         qMPukygEERxVg==
+        b=CxacRKt6bmjC54t3dJiI0b32E03UQgrzDHATkPkA2VQ7xLMceUMnIm5pSzqehX0GD
+         N96SLyDteYGRpUO08CjYxjPwQyqYBiJoiZFGxH+77avsOzAWKrknxsjhGnxvvHqa2J
+         Zu36loAk8+nGYFgXR7NY7RDNJrDlup4or4vC8TTF0qypdDl6mFadJxakEP1WQrP+AJ
+         ADQSvnHiYwUg8vy1zh43otVgceT7spQ06czFDudRMv862Gn//uLc0AnrM8whs6Ja+R
+         TADxaPZAJ8LjEFDrMLbTmlmCo/JnAKb1AMcP7TnebTL6DBd0vwj54GuFgULM0qOq6X
+         TfDkMpVH0JA1Q==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently global devlink_mutex is held while a doit() operation is
-progress. This brings a limitation.
+Extended devlink interface for the user to add and delete port.
+Extend devlink to connect user requests to driver to add/delete
+such port in the device.
 
-A Driver cannot perform devlink_register()/unregister() calls
-during devlink doit() callback functions.
-This is typically required when a port state change described in
-RFC [1] callback wants to delete an active SF port or wants to
-activate a SF port that results into unregistering or registering a
-devlink instance on different bus such as ancillary bus.
+When driver routines are invoked, devlink instance lock is not held.
+This enables driver to perform several devlink objects registration,
+unregistration such as (port, health reporter, resource etc)
+by using exising devlink APIs.
+This also helps to uniformly use the code for port unregistration
+during driver unload and during port deletion initiated by user.
 
-An example flow:
+Examples of add, show and delete commands:
+$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
 
-devlink_predoit()
-  mutex_lock(&devlink_mutex); <- First lock acquire
-  devlink_reload()
-    driver->reload_down(inactive)
-        adev->remove();
-           mlx5_adev_remove(ancillary_dev);
-             devlink_unregister(ancillary_dev->devlink_instance);
-               mutex_lock(&devlink_mutex); <- Second lock acquire
+$ devlink port show
+pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 s=
+plittable false
 
-This patch is preparation patch to enable drivers to achieve this.
+$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
 
-It achieves this by maintaining a per devlink instance refcount to
-prevent devlink device unregistration while user command are in progress
-or while devlink device is migration to init_net net namespace.
+$ devlink port show pci/0000:06:00.0/32768
+pci/0000:06:00.0/32768: type eth netdev eth0 flavour pcisf controller 0 pfn=
+um 0 sfnum 88 external false splittable false
+  function:
+    hw_addr 00:00:00:00:88:88 state inactive opstate detached
 
-devlink_nl_family continue to remain registered with parallel_ops
-disabled. So even after removing devlink_mutex during doit commands,
-it doesn't enable userspace to run multiple devlink commands for one
-or multiple devlink instance.
+$ udevadm test-builtin net_id /sys/class/net/eth0
+Load module index
+Parsed configuration file /usr/lib/systemd/network/99-default.link
+Created link configuration context.
+Using default interface naming scheme 'v245'.
+ID_NET_NAMING_SCHEME=3Dv245
+ID_NET_NAME_PATH=3Denp6s0f0npf0sf88
+ID_NET_NAME_SLOT=3Dens2f0npf0sf88
+Unload module index
+Unloaded link configuration context.
 
-[1] https://lore.kernel.org/netdev/20200519092258.GF4655@nanopsycho
+$ devlink port del netdevsim/netdevsim10/32768
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 ---
- include/net/devlink.h |  5 +++
- net/core/devlink.c    | 84 +++++++++++++++++++++++++++++++------------
- 2 files changed, 67 insertions(+), 22 deletions(-)
+ include/net/devlink.h | 38 ++++++++++++++++++++++++
+ net/core/devlink.c    | 67 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 105 insertions(+)
 
 diff --git a/include/net/devlink.h b/include/net/devlink.h
-index ef487b8ed17b..c8eab814c234 100644
+index 1b7c9fbc607a..3991345ef3e2 100644
 --- a/include/net/devlink.h
 +++ b/include/net/devlink.h
-@@ -53,6 +53,11 @@ struct devlink {
- 			    * port, sb, dpipe, resource, params, region, traps and more.
- 			    */
- 	struct mutex reload_lock; /* Protects reload operation */
-+	struct list_head reload_list;
-+	refcount_t refcount; /* Serializes user doit commands and netns command
-+			      * with device unregistration.
-+			      */
-+	struct completion unregister_complete;
- 	u8 reload_failed:1,
- 	   reload_enabled:1,
- 	   registered:1;
+@@ -152,6 +152,17 @@ struct devlink_port {
+ 	struct mutex reporters_lock; /* Protects reporter_list */
+ };
+=20
++struct devlink_port_new_attrs {
++	enum devlink_port_flavour flavour;
++	unsigned int port_index;
++	u32 controller;
++	u32 sfnum;
++	u16 pfnum;
++	u8 port_index_valid:1,
++	   controller_valid:1,
++	   sfnum_valid:1;
++};
++
+ struct devlink_sb_pool_info {
+ 	enum devlink_sb_pool_type pool_type;
+ 	u32 size;
+@@ -1360,6 +1371,33 @@ struct devlink_ops {
+ 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_=
+port *port,
+ 					 const u8 *hw_addr, int hw_addr_len,
+ 					 struct netlink_ext_ack *extack);
++	/**
++	 * @port_new: Port add function.
++	 *
++	 * Should be used by device driver to let caller add new port of a specif=
+ied flavour
++	 * with optional attributes.
++	 * Driver should return -EOPNOTSUPP if it doesn't support port addition o=
+f a specified
++	 * flavour or specified attributes. Driver should set extack error messag=
+e in case of fail
++	 * to add the port.
++	 * devlink core does not hold a devlink instance lock when this callback =
+is invoked.
++	 * Driver must ensures synchronization when adding or deleting a port. Dr=
+iver must
++	 * register a port with devlink core.
++	 */
++	int (*port_new)(struct devlink *devlink, const struct devlink_port_new_at=
+trs *attrs,
++			struct netlink_ext_ack *extack);
++	/**
++	 * @port_del: Port delete function.
++	 *
++	 * Should be used by device driver to let caller delete port which was pr=
+eviously created
++	 * using port_new() callback.
++	 * Driver should return -EOPNOTSUPP if it doesn't support port deletion.
++	 * Driver should set extack error message in case of fail to delete the p=
+ort.
++	 * devlink core does not hold a devlink instance lock when this callback =
+is invoked.
++	 * Driver must ensures synchronization when adding or deleting a port. Dr=
+iver must
++	 * register a port with devlink core.
++	 */
++	int (*port_del)(struct devlink *devlink, unsigned int port_index,
++			struct netlink_ext_ack *extack);
+ };
+=20
+ static inline void *devlink_priv(struct devlink *devlink)
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index c7c6f274d392..84f3ec12b3e8 100644
+index b1e849b624a6..dccdf36afba6 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -96,9 +96,8 @@ static LIST_HEAD(devlink_list);
-=20
- /* devlink_mutex
-  *
-- * An overall lock guarding every operation coming from userspace.
-- * It also guards devlink devices list and it is taken when
-- * driver registers/unregisters it.
-+ * An overall lock guarding devlink devices list during operations coming =
-from
-+ * userspace and when driver registers/unregisters devlink device.
-  */
- static DEFINE_MUTEX(devlink_mutex);
-=20
-@@ -121,6 +120,18 @@ void devlink_net_set(struct devlink *devlink, struct n=
-et *net)
+@@ -1124,6 +1124,57 @@ static int devlink_nl_cmd_port_unsplit_doit(struct s=
+k_buff *skb,
+ 	return devlink_port_unsplit(devlink, port_index, info->extack);
  }
- EXPORT_SYMBOL_GPL(devlink_net_set);
 =20
-+static inline bool
-+devlink_try_get(struct devlink *devlink)
++static int devlink_nl_cmd_port_new_doit(struct sk_buff *skb, struct genl_i=
+nfo *info)
 +{
-+	return refcount_inc_not_zero(&devlink->refcount);
-+}
++	struct netlink_ext_ack *extack =3D info->extack;
++	struct devlink_port_new_attrs new_attrs =3D {};
++	struct devlink *devlink =3D info->user_ptr[0];
 +
-+static void devlink_put(struct devlink *devlink)
-+{
-+	if (refcount_dec_and_test(&devlink->refcount))
-+		complete(&devlink->unregister_complete);
-+}
-+
- static struct devlink *devlink_get_from_attrs(struct net *net,
- 					      struct nlattr **attrs)
- {
-@@ -139,7 +150,7 @@ static struct devlink *devlink_get_from_attrs(struct ne=
-t *net,
- 	list_for_each_entry(devlink, &devlink_list, list) {
- 		if (strcmp(devlink->dev->bus->name, busname) =3D=3D 0 &&
- 		    strcmp(dev_name(devlink->dev), devname) =3D=3D 0 &&
--		    net_eq(devlink_net(devlink), net))
-+		    net_eq(devlink_net(devlink), net) && devlink_try_get(devlink))
- 			return devlink;
- 	}
-=20
-@@ -411,7 +422,7 @@ devlink_region_snapshot_get_by_id(struct devlink_region=
- *region, u32 id)
-=20
- /* The per devlink instance lock is taken by default in the pre-doit
-  * operation, yet several commands do not require this. The global
-- * devlink lock is taken and protects from disruption by user-calls.
-+ * devlink lock is taken and protects from disruption by dumpit user-calls=
-.
-  */
- #define DEVLINK_NL_FLAG_NO_LOCK			BIT(2)
-=20
-@@ -424,10 +435,10 @@ static int devlink_nl_pre_doit(const struct genl_ops =
-*ops,
-=20
- 	mutex_lock(&devlink_mutex);
- 	devlink =3D devlink_get_from_info(info);
--	if (IS_ERR(devlink)) {
--		mutex_unlock(&devlink_mutex);
-+	mutex_unlock(&devlink_mutex);
-+
-+	if (IS_ERR(devlink))
- 		return PTR_ERR(devlink);
--	}
- 	if (~ops->internal_flags & DEVLINK_NL_FLAG_NO_LOCK)
- 		mutex_lock(&devlink->lock);
- 	info->user_ptr[0] =3D devlink;
-@@ -448,7 +459,7 @@ static int devlink_nl_pre_doit(const struct genl_ops *o=
-ps,
- unlock:
- 	if (~ops->internal_flags & DEVLINK_NL_FLAG_NO_LOCK)
- 		mutex_unlock(&devlink->lock);
--	mutex_unlock(&devlink_mutex);
-+	devlink_put(devlink);
- 	return err;
- }
-=20
-@@ -460,7 +471,7 @@ static void devlink_nl_post_doit(const struct genl_ops =
-*ops,
- 	devlink =3D info->user_ptr[0];
- 	if (~ops->internal_flags & DEVLINK_NL_FLAG_NO_LOCK)
- 		mutex_unlock(&devlink->lock);
--	mutex_unlock(&devlink_mutex);
-+	devlink_put(devlink);
- }
-=20
- static struct genl_family devlink_nl_family;
-@@ -8122,6 +8133,7 @@ struct devlink *devlink_alloc(const struct devlink_op=
-s *ops, size_t priv_size)
- 	mutex_init(&devlink->lock);
- 	mutex_init(&devlink->reporters_lock);
- 	mutex_init(&devlink->reload_lock);
-+	init_completion(&devlink->unregister_complete);
- 	return devlink;
- }
- EXPORT_SYMBOL_GPL(devlink_alloc);
-@@ -8136,6 +8148,7 @@ int devlink_register(struct devlink *devlink, struct =
-device *dev)
- {
- 	devlink->dev =3D dev;
- 	devlink->registered =3D true;
-+	refcount_set(&devlink->refcount, 1);
- 	mutex_lock(&devlink_mutex);
- 	list_add_tail(&devlink->list, &devlink_list);
- 	devlink_notify(devlink, DEVLINK_CMD_NEW);
-@@ -8151,12 +8164,23 @@ EXPORT_SYMBOL_GPL(devlink_register);
-  */
- void devlink_unregister(struct devlink *devlink)
- {
-+	/* Remove from the list first, so that no new users can get it */
- 	mutex_lock(&devlink_mutex);
--	WARN_ON(devlink_reload_supported(devlink->ops) &&
--		devlink->reload_enabled);
- 	devlink_notify(devlink, DEVLINK_CMD_DEL);
- 	list_del(&devlink->list);
- 	mutex_unlock(&devlink_mutex);
-+
-+	/* Balances with refcount_set in devlink_register(). */
-+	devlink_put(devlink);
-+	/* Wait for any existing users to stop using the devlink device */
-+	wait_for_completion(&devlink->unregister_complete);
-+
-+	/* At this point there are no active users working on the devlink instanc=
-e;
-+	 * also net ns exit operation (if any) is also completed.
-+	 * devlink is out of global list, hence no users can acquire reference to=
- this devlink
-+	 * instance anymore. Hence, it is safe to proceed with unregistration.
-+	 */
-+	WARN_ON(devlink_reload_supported(devlink->ops) && devlink->reload_enabled=
-);
- }
- EXPORT_SYMBOL_GPL(devlink_unregister);
-=20
-@@ -10472,6 +10496,8 @@ static void __net_exit devlink_pernet_pre_exit(stru=
-ct net *net)
- {
- 	struct devlink *devlink;
- 	u32 actions_performed;
-+	LIST_HEAD(local_list);
-+	struct devlink *tmp;
- 	int err;
-=20
- 	/* In case network namespace is getting destroyed, reload
-@@ -10479,18 +10505,32 @@ static void __net_exit devlink_pernet_pre_exit(st=
-ruct net *net)
- 	 */
- 	mutex_lock(&devlink_mutex);
- 	list_for_each_entry(devlink, &devlink_list, list) {
--		if (net_eq(devlink_net(devlink), net)) {
--			if (WARN_ON(!devlink_reload_supported(devlink->ops)))
--				continue;
--			err =3D devlink_reload(devlink, &init_net,
--					     DEVLINK_RELOAD_ACTION_DRIVER_REINIT,
--					     DEVLINK_RELOAD_LIMIT_UNSPEC,
--					     &actions_performed, NULL);
--			if (err && err !=3D -EOPNOTSUPP)
--				pr_warn("Failed to reload devlink instance into init_net\n");
--		}
-+		if (!net_eq(devlink_net(devlink), net))
-+			continue;
-+
-+		if (WARN_ON(!devlink_reload_supported(devlink->ops)))
-+			continue;
-+
-+		/* Hold the reference to devlink instance so that it doesn't get unregis=
-tered
-+		 * once global devlink_mutex is unlocked.
-+		 * Store the devlink to a shadow list so that if devlink unregistration =
-is
-+		 * started, it can be still found in the shadow list.
-+		 */
-+		if (devlink_try_get(devlink))
-+			list_add_tail(&devlink->reload_list, &local_list);
- 	}
- 	mutex_unlock(&devlink_mutex);
-+
-+	list_for_each_entry_safe(devlink, tmp, &local_list, reload_list) {
-+		list_del_init(&devlink->reload_list);
-+		err =3D devlink_reload(devlink, &init_net,
-+				     DEVLINK_RELOAD_ACTION_DRIVER_REINIT,
-+				     DEVLINK_RELOAD_LIMIT_UNSPEC,
-+				     &actions_performed, NULL);
-+		if (err && err !=3D -EOPNOTSUPP)
-+			pr_warn("Failed to reload devlink instance into init_net\n");
-+		devlink_put(devlink);
++	if (!info->attrs[DEVLINK_ATTR_PORT_FLAVOUR] ||
++	    !info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMBER]) {
++		NL_SET_ERR_MSG_MOD(extack, "Port flavour or PCI PF are not specified");
++		return -EINVAL;
 +	}
- }
++	new_attrs.flavour =3D nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_FLAVOUR])=
+;
++	new_attrs.pfnum =3D nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMB=
+ER]);
++
++	if (info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
++		new_attrs.port_index =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX=
+]);
++		new_attrs.port_index_valid =3D true;
++	}
++	if (info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]) {
++		new_attrs.controller =3D
++			nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]);
++		new_attrs.controller_valid =3D true;
++	}
++	if (info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUMBER]) {
++		new_attrs.sfnum =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUM=
+BER]);
++		new_attrs.sfnum_valid =3D true;
++	}
++
++	if (!devlink->ops->port_new)
++		return -EOPNOTSUPP;
++
++	return devlink->ops->port_new(devlink, &new_attrs, extack);
++}
++
++static int devlink_nl_cmd_port_del_doit(struct sk_buff *skb, struct genl_i=
+nfo *info)
++{
++	struct netlink_ext_ack *extack =3D info->extack;
++	struct devlink *devlink =3D info->user_ptr[0];
++	unsigned int port_index;
++
++	if (!info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
++		NL_SET_ERR_MSG_MOD(extack, "Port index is not specified");
++		return -EINVAL;
++	}
++	port_index =3D nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX]);
++
++	if (!devlink->ops->port_del)
++		return -EOPNOTSUPP;
++	return devlink->ops->port_del(devlink, port_index, extack);
++}
++
+ static int devlink_nl_sb_fill(struct sk_buff *msg, struct devlink *devlink=
+,
+ 			      struct devlink_sb *devlink_sb,
+ 			      enum devlink_command cmd, u32 portid,
+@@ -7565,6 +7616,10 @@ static const struct nla_policy devlink_nl_policy[DEV=
+LINK_ATTR_MAX + 1] =3D {
+ 	[DEVLINK_ATTR_RELOAD_ACTION] =3D NLA_POLICY_RANGE(NLA_U8, DEVLINK_RELOAD_=
+ACTION_DRIVER_REINIT,
+ 							DEVLINK_RELOAD_ACTION_MAX),
+ 	[DEVLINK_ATTR_RELOAD_LIMITS] =3D NLA_POLICY_BITFIELD32(DEVLINK_RELOAD_LIM=
+ITS_VALID_MASK),
++	[DEVLINK_ATTR_PORT_FLAVOUR] =3D { .type =3D NLA_U16 },
++	[DEVLINK_ATTR_PORT_PCI_PF_NUMBER] =3D { .type =3D NLA_U16 },
++	[DEVLINK_ATTR_PORT_PCI_SF_NUMBER] =3D { .type =3D NLA_U32 },
++	[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER] =3D { .type =3D NLA_U32 },
+ };
 =20
- static struct pernet_operations devlink_pernet_ops __net_initdata =3D {
+ static const struct genl_small_ops devlink_nl_ops[] =3D {
+@@ -7604,6 +7659,18 @@ static const struct genl_small_ops devlink_nl_ops[] =
+=3D {
+ 		.flags =3D GENL_ADMIN_PERM,
+ 		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
+ 	},
++	{
++		.cmd =3D DEVLINK_CMD_PORT_NEW,
++		.doit =3D devlink_nl_cmd_port_new_doit,
++		.flags =3D GENL_ADMIN_PERM,
++		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
++	},
++	{
++		.cmd =3D DEVLINK_CMD_PORT_DEL,
++		.doit =3D devlink_nl_cmd_port_del_doit,
++		.flags =3D GENL_ADMIN_PERM,
++		.internal_flags =3D DEVLINK_NL_FLAG_NO_LOCK,
++	},
+ 	{
+ 		.cmd =3D DEVLINK_CMD_SB_GET,
+ 		.validate =3D GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 --=20
 2.26.2
 
