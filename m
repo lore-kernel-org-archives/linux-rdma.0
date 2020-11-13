@@ -2,144 +2,100 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D598AC63697
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Nov 2020 16:23:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2030C55ABD
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Nov 2020 16:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E82820791
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Nov 2020 16:23:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F450208D5
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Nov 2020 16:36:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="fvBInP7o"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727003AbgKMQW5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 13 Nov 2020 11:22:57 -0500
-Received: from mga18.intel.com ([134.134.136.126]:46001 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726452AbgKMQVp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 13 Nov 2020 11:21:45 -0500
-IronPort-SDR: E5OxmvtJPvM5w/amJabfqQ+tdHAFLKbZF4YAyNTrUV/x7RBSHXEXjCf43qim2LZNzkuQ6ZOLF9
- eF9eddKbqu2Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9804"; a="158272289"
-X-IronPort-AV: E=Sophos;i="5.77,475,1596524400"; 
-   d="scan'208";a="158272289"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2020 08:21:43 -0800
-IronPort-SDR: 7xWpfFSdKcgBl+qASGrpV/jCI1GuerUtF4R1/bUaWfMnTEFf6MVWKNGgjrtD+VEKkp3KMVLRPK
- IJogL9NnnLbw==
-X-IronPort-AV: E=Sophos;i="5.77,475,1596524400"; 
-   d="scan'208";a="366767235"
-Received: from dmert-dev.jf.intel.com ([10.166.241.5])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2020 08:21:42 -0800
-From:   Dave Ertman <david.m.ertman@intel.com>
-To:     alsa-devel@alsa-project.org
-Cc:     tiwai@suse.de, broonie@kernel.org, linux-rdma@vger.kernel.org,
-        jgg@nvidia.com, dledford@redhat.com, netdev@vger.kernel.org,
-        davem@davemloft.net, kuba@kernel.org, gregkh@linuxfoundation.org,
-        ranjani.sridharan@linux.intel.com,
-        pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
-        parav@mellanox.com, shiraz.saleem@intel.com,
-        dan.j.williams@intel.com, kiran.patil@intel.com,
-        linux-kernel@vger.kernel.org, leonro@nvidia.com
-Subject: [PATCH v4 04/10] ASoC: SOF: ops: Add ops for client registration
-Date:   Fri, 13 Nov 2020 08:18:53 -0800
-Message-Id: <20201113161859.1775473-5-david.m.ertman@intel.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201113161859.1775473-1-david.m.ertman@intel.com>
-References: <20201113161859.1775473-1-david.m.ertman@intel.com>
+        id S1726157AbgKMQgS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 13 Nov 2020 11:36:18 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:17800 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726156AbgKMQgS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 13 Nov 2020 11:36:18 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5faeb5fb0000>; Fri, 13 Nov 2020 08:36:11 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 13 Nov
+ 2020 16:36:10 +0000
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.105)
+ by HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 13 Nov 2020 16:36:10 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=QRyXnCrNJ7zYKFWzqtW7ZxW0mRD3cEmr0qHu9D8cIv/SztLIj2gsb3B47uuEEziHa0+TVbAUBdR8XeuhbD0j4sUTF2vGqX9+H7ZaQRNX2rQ+VAbJDRsYNDtJtuDEDjVe3OkB1/MZvXcwhrBpXFyZzQhSgGm+88IKnboi0mSbyrq2elH6NceE3pimaqUfowl/SMRGf2Bn3Yux0VSW98SAmnQ0gyIf1xfxTqK2WQV6EITqoviLinAw63sYA/6fV/q+amUvyBXjmJjfVfduQp6eRu13c2Zmc2jqviG+wdzGDs+WXklyzaHUE9Ejp/Jxcc1xsX5FFgYfbp9EFNJdT4H4jw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=cyoSs12fvO8We5L+wdqjqLJkx8kVqqjX+jnVVSyC6k4=;
+ b=MpZrSRYsFQh2UxixyNZ5nyGTr81spKYlU81UQ87dTzYcWe99R/rOnFrx+uvviUwDtk0JuWEAkuLV4FkWe/YgKJotz3MUYQ64WVsFUoa7M0d3nKw6zj9LNNyYk4kHfckiW+CpAixwB+1U1/PTYbBJLzQZTL90mOzoCIwERVlT9R/WcPLFeCB5low23Bvjv8LEXgj74xkoHLampAGNZYTlLkBZJ8ELeEvfwPWJ0s91/mHH9z/x1b881UzNdai27sCd7n5sF/nGx2CEet/8i9iFXWfpQbM9APXT+9ypctGnD3AupOs7gqihek1eZyMTQnk0YsqPu20Qjpxf/E0nI690FQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4042.namprd12.prod.outlook.com (2603:10b6:5:215::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3541.21; Fri, 13 Nov
+ 2020 16:36:09 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::cdbe:f274:ad65:9a78%7]) with mapi id 15.20.3499.032; Fri, 13 Nov 2020
+ 16:36:09 +0000
+Date:   Fri, 13 Nov 2020 12:36:06 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Zhang Changzhong <zhangchangzhong@huawei.com>
+CC:     <mike.marciniszyn@cornelisnetworks.com>,
+        <dennis.dalessandro@cornelisnetworks.com>, <dledford@redhat.com>,
+        <sadanand.warrier@intel.com>, <grzegorz.andrejczuk@intel.com>,
+        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] IB/hfi1: fix error return code in hfi1_init_dd()
+Message-ID: <20201113163606.GA1159754@nvidia.com>
+References: <1605249747-17942-1-git-send-email-zhangchangzhong@huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1605249747-17942-1-git-send-email-zhangchangzhong@huawei.com>
+X-ClientProxiedBy: MN2PR20CA0037.namprd20.prod.outlook.com
+ (2603:10b6:208:235::6) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR20CA0037.namprd20.prod.outlook.com (2603:10b6:208:235::6) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Fri, 13 Nov 2020 16:36:08 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kdc3S-004rpR-ON; Fri, 13 Nov 2020 12:36:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1605285371; bh=cyoSs12fvO8We5L+wdqjqLJkx8kVqqjX+jnVVSyC6k4=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=fvBInP7o+EZgP4jg8u4tA0w0tmCo7//Jj8eBfXNdc7HxoGI9dgjWdnu85NDXMH9VM
+         eZHjhbeSelkCS5c0UESSl/sQ3J4t7oUMXLgbbSSX6QBSEmVSt4qe1MmJOmVz0WuMcr
+         kz9YLG+1u6vaNP9VAshPoocSi22yr43drNjYwXi9PXDIkDxviOxhMZuKR/msc+p9nP
+         9QnWssZYshqTYEBewnsij6DYIf8/rETO1fhaW805GELvyAkCNVWtsXHXv/goobLkXu
+         pMbOjXzOvhCXiisw2YOty7tTE/RLfWHFZngU9rk8NKk/zB5y+F9EziQbHRDMePmIEc
+         dEXRfKuxglLeQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+On Fri, Nov 13, 2020 at 02:42:27PM +0800, Zhang Changzhong wrote:
+> Fix to return a negative error code from the error handling
+> case instead of 0, as done elsewhere in this function.
+> 
+> Fixes: 4730f4a6c6b2 ("IB/hfi1: Activate the dummy netdev")
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: Zhang Changzhong <zhangchangzhong@huawei.com>
+> Acked-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+> ---
+>  drivers/infiniband/hw/hfi1/chip.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 
-Add new ops for registering/unregistering clients based
-on DSP capabilities and/or DT information.
+Applied to for-rc, thanks
 
-Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
----
- sound/soc/sof/core.c     | 10 ++++++++++
- sound/soc/sof/ops.h      | 14 ++++++++++++++
- sound/soc/sof/sof-priv.h |  4 ++++
- 3 files changed, 28 insertions(+)
-
-diff --git a/sound/soc/sof/core.c b/sound/soc/sof/core.c
-index 72a97219395f..ddb9a12d5aac 100644
---- a/sound/soc/sof/core.c
-+++ b/sound/soc/sof/core.c
-@@ -246,8 +246,17 @@ static int sof_probe_continue(struct snd_sof_dev *sdev)
- 	if (plat_data->sof_probe_complete)
- 		plat_data->sof_probe_complete(sdev->dev);
- 
-+	/* If registering certain clients fails, unregister the previously registered clients. */
-+	ret = snd_sof_register_clients(sdev);
-+	if (ret < 0) {
-+		dev_err(sdev->dev, "error: failed to register clients %d\n", ret);
-+		goto client_reg_err;
-+	}
-+
- 	return 0;
- 
-+client_reg_err:
-+	snd_sof_unregister_clients(sdev);
- fw_trace_err:
- 	snd_sof_free_trace(sdev);
- fw_run_err:
-@@ -356,6 +365,7 @@ int snd_sof_device_remove(struct device *dev)
- 			dev_warn(dev, "error: %d failed to prepare DSP for device removal",
- 				 ret);
- 
-+		snd_sof_unregister_clients(sdev);
- 		snd_sof_fw_unload(sdev);
- 		snd_sof_ipc_free(sdev);
- 		snd_sof_free_debug(sdev);
-diff --git a/sound/soc/sof/ops.h b/sound/soc/sof/ops.h
-index b21632f5511a..00370f8bcd75 100644
---- a/sound/soc/sof/ops.h
-+++ b/sound/soc/sof/ops.h
-@@ -470,6 +470,20 @@ snd_sof_set_mach_params(const struct snd_soc_acpi_mach *mach,
- 		sof_ops(sdev)->set_mach_params(mach, dev);
- }
- 
-+static inline int snd_sof_register_clients(struct snd_sof_dev *sdev)
-+{
-+	if (sof_ops(sdev) && sof_ops(sdev)->register_clients)
-+		return sof_ops(sdev)->register_clients(sdev);
-+
-+	return 0;
-+}
-+
-+static inline void snd_sof_unregister_clients(struct snd_sof_dev *sdev)
-+{
-+	if (sof_ops(sdev) && sof_ops(sdev)->unregister_clients)
-+		sof_ops(sdev)->unregister_clients(sdev);
-+}
-+
- static inline const struct snd_sof_dsp_ops
- *sof_get_ops(const struct sof_dev_desc *d,
- 	     const struct sof_ops_table mach_ops[], int asize)
-diff --git a/sound/soc/sof/sof-priv.h b/sound/soc/sof/sof-priv.h
-index dceac73b858f..cca239c09d0e 100644
---- a/sound/soc/sof/sof-priv.h
-+++ b/sound/soc/sof/sof-priv.h
-@@ -252,6 +252,10 @@ struct snd_sof_dsp_ops {
- 	void (*set_mach_params)(const struct snd_soc_acpi_mach *mach,
- 				struct device *dev); /* optional */
- 
-+	/* client ops */
-+	int (*register_clients)(struct snd_sof_dev *sdev); /* optional */
-+	void (*unregister_clients)(struct snd_sof_dev *sdev); /* optional */
-+
- 	/* DAI ops */
- 	struct snd_soc_dai_driver *drv;
- 	int num_drv;
--- 
-2.26.2
-
+Jason
