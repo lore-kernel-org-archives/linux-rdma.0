@@ -2,103 +2,157 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BFFAC2D0E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D189FC63697
 	for <linux-rdma@archiver.kernel.org>; Sun, 15 Nov 2020 11:43:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1828C222C3
-	for <linux-rdma@archiver.kernel.org>; Sun, 15 Nov 2020 11:43:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DD7922370
+	for <linux-rdma@archiver.kernel.org>; Sun, 15 Nov 2020 11:43:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="nHTgLmOW"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q2ANopVe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726983AbgKOLnS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 15 Nov 2020 06:43:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52432 "EHLO mail.kernel.org"
+        id S1726998AbgKOLnZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 15 Nov 2020 06:43:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726537AbgKOLnR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 15 Nov 2020 06:43:17 -0500
+        id S1726537AbgKOLnZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 15 Nov 2020 06:43:25 -0500
 Received: from localhost (thunderhill.nvidia.com [216.228.112.22])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 86E102225B;
-        Sun, 15 Nov 2020 11:43:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C7D1D222B8;
+        Sun, 15 Nov 2020 11:43:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605440597;
-        bh=lbJzMmcIHKZw6icm+u/fUPmEkFsHnOIOxVx+EoPyE14=;
-        h=From:To:Cc:Subject:Date:From;
-        b=nHTgLmOWJWMrMZOZUWS3Op37vJeQ/ixGG4vT26WQ5PEOfbC+jITx9dbOtSCaxXFzP
-         xDpTUGbr/TdlEVLOoN4BD8fpcfVlTGRKRfJLfa7qO45zrb1GuQhCHQovlejx2iHYkj
-         hC7LtdT6TtomGtsOX7aSuJScVMdA52J5HOrbB52c=
+        s=default; t=1605440604;
+        bh=m7pEbcn0u1MHqlZZJO8T0iyHyBWBQ7yc4bE1SCrX3rk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Q2ANopVeJsKjUeUj7Wx5bhmp7KFQ2H+mAnkNHv2PRaOB7E0o2cSAW9Q2NcqQXgcTu
+         +MVqtgovJtk1Vxm+3V91+ej+l+k3LTYr7M7Ck+5l08MvQjYVN5LJUya5bxOevrYRZm
+         Be1y4t3JaxoJDQtD2KpAEDwT0LvtE/Uk+g8rmNqw=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eli Cohen <eli@mellanox.com>,
-        Haggai Abramonvsky <hagaya@mellanox.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        "majd@mellanox.com" <majd@mellanox.com>,
-        Matan Barak <matanb@mellanox.com>,
-        Or Gerlitz <ogerlitz@mellanox.com>,
-        Roland Dreier <roland@purestorage.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next v1 0/7] Use ib_umem_find_best_pgsz() for all umems
-Date:   Sun, 15 Nov 2020 13:43:04 +0200
-Message-Id: <20201115114311.136250-1-leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1 3/7] RDMA/mlx5: Directly compute the PAS list for raw QP RQ's
+Date:   Sun, 15 Nov 2020 13:43:07 +0200
+Message-Id: <20201115114311.136250-4-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201115114311.136250-1-leon@kernel.org>
+References: <20201115114311.136250-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-Changelog:
-v1:
- * Added patch for raw QP
- * Fixed commit messages
-v0: https://lore.kernel.org/lkml/20201026132635.1337663-1-leon@kernel.org
+The RQ WQ created when making a raw ethernet QP copies the PAS list from
+a dummy QPC command created earlier in the flow. The WQC and QPC PAS lists
+are not fully compatible as the page_offset is a different size.
 
--------------------------
-From Jason:
+Create the RQ WQ's PAS list directly and do not try to copy it from
+another command structure.
 
-Move the remaining cases working with umems to use versions of
-ib_umem_find_best_pgsz() tailored to the calculations the devices
-requires.
+Like the prior patch, this also means that badly aligned buffers were not
+correctly rejected.
 
-Unlike a MR there is no IOVA, instead a page offset from the starting page
-is possible, with various restrictions.
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 41 +++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 25 deletions(-)
 
-Compute the best page size to meet the page_offset restrictions.
-
-Thanks
-
-Jason Gunthorpe (7):
-  RDMA/mlx5: Use ib_umem_find_best_pgoff() for SRQ
-  RDMA/mlx5: Use mlx5_umem_find_best_quantized_pgoff() for WQ
-  RDMA/mlx5: Directly compute the PAS list for raw QP RQ's
-  RDMA/mlx5: Use mlx5_umem_find_best_quantized_pgoff() for QP
-  RDMA/mlx5: mlx5_umem_find_best_quantized_pgoff() for CQ
-  RDMA/mlx5: Use ib_umem_find_best_pgsz() for devx
-  RDMA/mlx5: Lower setting the umem's PAS for SRQ
-
- drivers/infiniband/hw/mlx5/cq.c      |  48 +++++---
- drivers/infiniband/hw/mlx5/devx.c    |  66 ++++++-----
- drivers/infiniband/hw/mlx5/mem.c     | 115 +++++++------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  47 +++++++-
- drivers/infiniband/hw/mlx5/qp.c      | 165 ++++++++++++---------------
- drivers/infiniband/hw/mlx5/srq.c     |  27 +----
- drivers/infiniband/hw/mlx5/srq.h     |   1 +
- drivers/infiniband/hw/mlx5/srq_cmd.c |  80 ++++++++++++-
- include/rdma/ib_umem.h               |  42 +++++++
- 9 files changed, 343 insertions(+), 248 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index ec598eef815f..25904778e371 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1286,40 +1286,31 @@ static void destroy_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
+ 	ib_umem_release(sq->ubuffer.umem);
+ }
+ 
+-static size_t get_rq_pas_size(void *qpc)
+-{
+-	u32 log_page_size = MLX5_GET(qpc, qpc, log_page_size) + 12;
+-	u32 log_rq_stride = MLX5_GET(qpc, qpc, log_rq_stride);
+-	u32 log_rq_size   = MLX5_GET(qpc, qpc, log_rq_size);
+-	u32 page_offset   = MLX5_GET(qpc, qpc, page_offset);
+-	u32 po_quanta	  = 1 << (log_page_size - 6);
+-	u32 rq_sz	  = 1 << (log_rq_size + 4 + log_rq_stride);
+-	u32 page_size	  = 1 << log_page_size;
+-	u32 rq_sz_po      = rq_sz + (page_offset * po_quanta);
+-	u32 rq_num_pas	  = (rq_sz_po + page_size - 1) / page_size;
+-
+-	return rq_num_pas * sizeof(u64);
+-}
+-
+ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
+ 				   struct mlx5_ib_rq *rq, void *qpin,
+-				   size_t qpinlen, struct ib_pd *pd)
++				   struct ib_pd *pd)
+ {
+ 	struct mlx5_ib_qp *mqp = rq->base.container_mibqp;
+ 	__be64 *pas;
+-	__be64 *qp_pas;
+ 	void *in;
+ 	void *rqc;
+ 	void *wq;
+ 	void *qpc = MLX5_ADDR_OF(create_qp_in, qpin, qpc);
+-	size_t rq_pas_size = get_rq_pas_size(qpc);
++	struct ib_umem *umem = rq->base.ubuffer.umem;
++	unsigned int page_offset_quantized;
++	unsigned long page_size = 0;
+ 	size_t inlen;
+ 	int err;
+ 
+-	if (qpinlen < rq_pas_size + MLX5_BYTE_OFF(create_qp_in, pas))
++	page_size = mlx5_umem_find_best_quantized_pgoff(umem, wq, log_wq_pg_sz,
++							MLX5_ADAPTER_PAGE_SHIFT,
++							page_offset, 64,
++							&page_offset_quantized);
++	if (!page_size)
+ 		return -EINVAL;
+ 
+-	inlen = MLX5_ST_SZ_BYTES(create_rq_in) + rq_pas_size;
++	inlen = MLX5_ST_SZ_BYTES(create_rq_in) +
++		sizeof(u64) * ib_umem_num_dma_blocks(umem, page_size);
+ 	in = kvzalloc(inlen, GFP_KERNEL);
+ 	if (!in)
+ 		return -ENOMEM;
+@@ -1341,16 +1332,16 @@ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(wq, wq, wq_type, MLX5_WQ_TYPE_CYCLIC);
+ 	if (rq->flags & MLX5_IB_RQ_PCI_WRITE_END_PADDING)
+ 		MLX5_SET(wq, wq, end_padding_mode, MLX5_WQ_END_PAD_MODE_ALIGN);
+-	MLX5_SET(wq, wq, page_offset, MLX5_GET(qpc, qpc, page_offset));
++	MLX5_SET(wq, wq, page_offset, page_offset_quantized);
+ 	MLX5_SET(wq, wq, pd, MLX5_GET(qpc, qpc, pd));
+ 	MLX5_SET64(wq, wq, dbr_addr, MLX5_GET64(qpc, qpc, dbr_addr));
+ 	MLX5_SET(wq, wq, log_wq_stride, MLX5_GET(qpc, qpc, log_rq_stride) + 4);
+-	MLX5_SET(wq, wq, log_wq_pg_sz, MLX5_GET(qpc, qpc, log_page_size));
++	MLX5_SET(wq, wq, log_wq_pg_sz,
++		 order_base_2(page_size) - MLX5_ADAPTER_PAGE_SHIFT);
+ 	MLX5_SET(wq, wq, log_wq_sz, MLX5_GET(qpc, qpc, log_rq_size));
+ 
+ 	pas = (__be64 *)MLX5_ADDR_OF(wq, wq, pas);
+-	qp_pas = (__be64 *)MLX5_ADDR_OF(create_qp_in, qpin, pas);
+-	memcpy(pas, qp_pas, rq_pas_size);
++	mlx5_ib_populate_pas(umem, page_size, pas, 0);
+ 
+ 	err = mlx5_core_create_rq_tracked(dev, in, inlen, &rq->base.mqp);
+ 
+@@ -1471,7 +1462,7 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			rq->flags |= MLX5_IB_RQ_CVLAN_STRIPPING;
+ 		if (qp->flags & IB_QP_CREATE_PCI_WRITE_END_PADDING)
+ 			rq->flags |= MLX5_IB_RQ_PCI_WRITE_END_PADDING;
+-		err = create_raw_packet_qp_rq(dev, rq, in, inlen, pd);
++		err = create_raw_packet_qp_rq(dev, rq, in, pd);
+ 		if (err)
+ 			goto err_destroy_sq;
+ 
+-- 
 2.28.0
 
