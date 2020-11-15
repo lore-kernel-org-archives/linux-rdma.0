@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F20ABC6369E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B38C55ABD
 	for <linux-rdma@archiver.kernel.org>; Sun, 15 Nov 2020 11:43:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0E2E222C3
+	by mail.kernel.org (Postfix) with ESMTP id 6433A222C3
 	for <linux-rdma@archiver.kernel.org>; Sun, 15 Nov 2020 11:43:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="1nTdOymh"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="FCiL4DLj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727001AbgKOLn3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 15 Nov 2020 06:43:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52532 "EHLO mail.kernel.org"
+        id S1727000AbgKOLnX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 15 Nov 2020 06:43:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726537AbgKOLn2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 15 Nov 2020 06:43:28 -0500
+        id S1726537AbgKOLnW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 15 Nov 2020 06:43:22 -0500
 Received: from localhost (thunderhill.nvidia.com [216.228.112.22])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 64BA62225B;
-        Sun, 15 Nov 2020 11:43:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 49C20222B8;
+        Sun, 15 Nov 2020 11:43:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605440608;
-        bh=iL9+Uq23ybTZSxslVYWs0fQlOcsZwm+ytkUqB7ZsCTI=;
+        s=default; t=1605440601;
+        bh=mil2Qv6JueKGymLGSTjpcWJ2e1NPdEt3XOGNvxyBbIE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=1nTdOymhrqfcZU78zUCI70QtpLXGOLJTRcQmy3MFS+yC9pyNun3JWCifGcwWEtERX
-         BNET7mtzvq/aKWWAMspUpEIWfl7cSlvo+FZVHMHhiJdp9A/C45dGQonwiFMDSAUM+u
-         2j/MuRwaDSAxWlPvawCGF9ZhaRVex8qUWfGKQ6zc=
+        b=FCiL4DLjnL135xspL2rfkbXUdYS4oABR2xAbUXD8jZTzc3Z/L8cwjpjyQMNx2xNff
+         H5kQR+5hkjlVs5Dht0U7tEDXA8Jo8O7V/SSLHbyX/cFrVQcKaCfkSFMkVV8Wf4ieug
+         Wi8kz08ZOs+QKWxeDz7+qbmvvnxsjg7Rx/Im9YGQ=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 4/7] RDMA/mlx5: Use mlx5_umem_find_best_quantized_pgoff() for QP
-Date:   Sun, 15 Nov 2020 13:43:08 +0200
-Message-Id: <20201115114311.136250-5-leon@kernel.org>
+Subject: [PATCH rdma-next v1 1/7] RDMA/mlx5: Use ib_umem_find_best_pgoff() for SRQ
+Date:   Sun, 15 Nov 2020 13:43:05 +0200
+Message-Id: <20201115114311.136250-2-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20201115114311.136250-1-leon@kernel.org>
 References: <20201115114311.136250-1-leon@kernel.org>
@@ -51,166 +51,248 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-Delete custom logic in the QP in favor of more general variant.
+SRQ uses a quantized and scaled page_offset, which is another variation of
+ib_umem_find_best_pgsz(). Add mlx5_umem_find_best_quantized_pgoff() to
+perform this calculation for each mailbox. A macro shows how the
+calculation is directly connected to the mailbox format.
+
+This new routine replaces the limited mlx5_ib_cont_pages() and
+mlx5_ib_get_buf_offset() pairing which would reject valid configurations
+rather than adjust the page_size to make it work.
+
+In turn this is much more aggressive about choosing large page sizes for
+these objects and when THP is enabled it will now often find a single page
+solution.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mem.c     | 21 --------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
- drivers/infiniband/hw/mlx5/qp.c      | 71 +++++++++-------------------
- 3 files changed, 23 insertions(+), 70 deletions(-)
+ drivers/infiniband/hw/mlx5/mem.c     | 45 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 31 +++++++++++++++++++
+ drivers/infiniband/hw/mlx5/srq.c     | 20 ++++++-------
+ include/rdma/ib_umem.h               | 42 ++++++++++++++++++++++++++
+ 4 files changed, 128 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
-index fd9778113d26..ad9830eeb4b6 100644
+index 92e7621ec858..fd9778113d26 100644
 --- a/drivers/infiniband/hw/mlx5/mem.c
 +++ b/drivers/infiniband/hw/mlx5/mem.c
-@@ -152,27 +152,6 @@ unsigned long __mlx5_umem_find_best_quantized_pgoff(
- 	return page_size;
+@@ -107,6 +107,51 @@ void mlx5_ib_populate_pas(struct ib_umem *umem, size_t page_size, __be64 *pas,
+ 	}
  }
  
--int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
--{
--	u64 page_size;
--	u64 page_mask;
--	u64 off_size;
--	u64 off_mask;
--	u64 buf_off;
--
--	page_size = (u64)1 << page_shift;
--	page_mask = page_size - 1;
--	buf_off = addr & page_mask;
--	off_size = page_size >> 6;
--	off_mask = off_size - 1;
--
--	if (buf_off & off_mask)
--		return -EINVAL;
--
--	*offset = buf_off >> ilog2(off_size);
--	return 0;
--}
--
- #define WR_ID_BF 0xBF
- #define WR_ID_END 0xBAD
- #define TEST_WC_NUM_WQES 255
++/*
++ * Compute the page shift and page_offset for mailboxes that use a quantized
++ * page_offset. The granulatity of the page offset scales according to page
++ * size.
++ */
++unsigned long __mlx5_umem_find_best_quantized_pgoff(
++	struct ib_umem *umem, unsigned long pgsz_bitmap,
++	unsigned int page_offset_bits, u64 pgoff_bitmask, unsigned int scale,
++	unsigned int *page_offset_quantized)
++{
++	const u64 page_offset_mask = (1 << page_offset_bits) - 1;
++	unsigned long page_size;
++	u64 page_offset;
++
++	page_size = ib_umem_find_best_pgoff(umem, pgsz_bitmap, pgoff_bitmask);
++	if (!page_size)
++		return 0;
++
++	/*
++	 * page size is the largest possible page size.
++	 *
++	 * Reduce the page_size, and thus the page_offset and quanta, until the
++	 * page_offset fits into the mailbox field. Once page_size < scale this
++	 * loop is guaranteed to terminate.
++	 */
++	page_offset = ib_umem_dma_offset(umem, page_size);
++	while (page_offset & ~(u64)(page_offset_mask * (page_size / scale))) {
++		page_size /= 2;
++		page_offset = ib_umem_dma_offset(umem, page_size);
++	}
++
++	/*
++	 * The address is not aligned, or otherwise cannot be represented by the
++	 * page_offset.
++	 */
++	if (!(pgsz_bitmap & page_size))
++		return 0;
++
++	*page_offset_quantized =
++		(unsigned long)page_offset / (page_size / scale);
++	if (WARN_ON(*page_offset_quantized > page_offset_mask))
++		return 0;
++	return page_size;
++}
++
+ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
+ {
+ 	u64 page_size;
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 2f08a5b4a438..555bc94d4786 100644
+index bb44080170be..2f08a5b4a438 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1267,7 +1267,6 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 			size_t *out_mad_size, u16 *out_mad_pkey_index);
- int mlx5_ib_alloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
- int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
--int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset);
- int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port);
- int mlx5_query_mad_ifc_smp_attr_node_info(struct ib_device *ibdev,
- 					  struct ib_smp *out_mad);
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 25904778e371..b66fa112d0b0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -778,39 +778,6 @@ int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
- 	return bfregi->sys_pages[index_of_sys_page] + offset;
+@@ -69,6 +69,37 @@ __mlx5_log_page_size_to_bitmap(unsigned int log_pgsz_bits,
+ 				       pgsz_shift),                            \
+ 			       iova)
+ 
++static __always_inline unsigned long
++__mlx5_page_offset_to_bitmask(unsigned int page_offset_bits,
++			      unsigned int offset_shift)
++{
++	unsigned int largest_offset_shift =
++		min_t(unsigned long, page_offset_bits - 1 + offset_shift,
++		      BITS_PER_LONG - 1);
++
++	return GENMASK(largest_offset_shift, offset_shift);
++}
++
++/*
++ * QP/CQ/WQ/etc type commands take a page offset that satisifies:
++ *   page_offset_quantized * (page_size/scale) = page_offset
++ * Which restricts allowed page sizes to ones that satisify the above.
++ */
++unsigned long __mlx5_umem_find_best_quantized_pgoff(
++	struct ib_umem *umem, unsigned long pgsz_bitmap,
++	unsigned int page_offset_bits, u64 pgoff_bitmask, unsigned int scale,
++	unsigned int *page_offset_quantized);
++#define mlx5_umem_find_best_quantized_pgoff(umem, typ, log_pgsz_fld,           \
++					    pgsz_shift, page_offset_fld,       \
++					    scale, page_offset_quantized)      \
++	__mlx5_umem_find_best_quantized_pgoff(                                 \
++		umem,                                                          \
++		__mlx5_log_page_size_to_bitmap(                                \
++			__mlx5_bit_sz(typ, log_pgsz_fld), pgsz_shift),         \
++		__mlx5_bit_sz(typ, page_offset_fld),                           \
++		GENMASK(31, order_base_2(scale)), scale,                       \
++		page_offset_quantized)
++
+ enum {
+ 	MLX5_IB_MMAP_OFFSET_START = 9,
+ 	MLX5_IB_MMAP_OFFSET_END = 255,
+diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
+index cb5ad045da9a..7dfdc9e54866 100644
+--- a/drivers/infiniband/hw/mlx5/srq.c
++++ b/drivers/infiniband/hw/mlx5/srq.c
+@@ -51,8 +51,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 		udata, struct mlx5_ib_ucontext, ibucontext);
+ 	size_t ucmdlen;
+ 	int err;
+-	int page_shift;
+-	u32 offset;
++	unsigned int page_offset_quantized;
++	unsigned int page_size;
+ 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
+ 
+ 	ucmdlen = min(udata->inlen, sizeof(ucmd));
+@@ -85,22 +85,22 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 		return err;
+ 	}
+ 
+-	mlx5_ib_cont_pages(srq->umem, ucmd.buf_addr, 0, &page_shift);
+-	err = mlx5_ib_get_buf_offset(ucmd.buf_addr, page_shift,
+-				     &offset);
+-	if (err) {
++	page_size = mlx5_umem_find_best_quantized_pgoff(
++		srq->umem, srqc, log_page_size, MLX5_ADAPTER_PAGE_SHIFT,
++		page_offset, 64, &page_offset_quantized);
++	if (!page_size) {
+ 		mlx5_ib_warn(dev, "bad offset\n");
+ 		goto err_umem;
+ 	}
+ 
+-	in->pas = kvcalloc(ib_umem_num_dma_blocks(srq->umem, 1UL << page_shift),
++	in->pas = kvcalloc(ib_umem_num_dma_blocks(srq->umem, page_size),
+ 			   sizeof(*in->pas), GFP_KERNEL);
+ 	if (!in->pas) {
+ 		err = -ENOMEM;
+ 		goto err_umem;
+ 	}
+ 
+-	mlx5_ib_populate_pas(srq->umem, 1UL << page_shift, in->pas, 0);
++	mlx5_ib_populate_pas(srq->umem, page_size, in->pas, 0);
+ 
+ 	err = mlx5_ib_db_map_user(ucontext, udata, ucmd.db_addr, &srq->db);
+ 	if (err) {
+@@ -108,8 +108,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 		goto err_in;
+ 	}
+ 
+-	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
+-	in->page_offset = offset;
++	in->log_page_size = order_base_2(page_size) - MLX5_ADAPTER_PAGE_SHIFT;
++	in->page_offset = page_offset_quantized;
+ 	in->uid = (in->type != IB_SRQT_XRC) ?  to_mpd(pd)->uid : 0;
+ 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
+ 	    in->type != IB_SRQT_BASIC)
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 70597508c765..7752211c9638 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -34,6 +34,13 @@ static inline int ib_umem_offset(struct ib_umem *umem)
+ 	return umem->address & ~PAGE_MASK;
  }
  
--static int mlx5_ib_umem_get(struct mlx5_ib_dev *dev, struct ib_udata *udata,
--			    unsigned long addr, size_t size,
--			    struct ib_umem **umem, int *page_shift,
--			    u32 *offset)
--{
--	int err;
--
--	*umem = ib_umem_get(&dev->ib_dev, addr, size, 0);
--	if (IS_ERR(*umem)) {
--		mlx5_ib_dbg(dev, "umem_get failed\n");
--		return PTR_ERR(*umem);
--	}
--
--	mlx5_ib_cont_pages(*umem, addr, 0, page_shift);
--
--	err = mlx5_ib_get_buf_offset(addr, *page_shift, offset);
--	if (err) {
--		mlx5_ib_warn(dev, "bad offset\n");
--		goto err_umem;
--	}
--
--	mlx5_ib_dbg(dev, "addr 0x%lx, size %zu, npages %zu, page_shift %d, offset %d\n",
--		    addr, size, ib_umem_num_pages(*umem), *page_shift, *offset);
--
--	return 0;
--
--err_umem:
--	ib_umem_release(*umem);
--	*umem = NULL;
--
--	return err;
--}
--
- static void destroy_user_rq(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			    struct mlx5_ib_rwq *rwq, struct ib_udata *udata)
++static inline unsigned long ib_umem_dma_offset(struct ib_umem *umem,
++					       unsigned long pgsz)
++{
++	return (sg_dma_address(umem->sg_head.sgl) + ib_umem_offset(umem)) &
++	       (pgsz - 1);
++}
++
+ static inline size_t ib_umem_num_dma_blocks(struct ib_umem *umem,
+ 					    unsigned long pgsz)
  {
-@@ -897,9 +864,9 @@ static int _create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+@@ -79,6 +86,35 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
+ 				     unsigned long pgsz_bitmap,
+ 				     unsigned long virt);
++/**
++ * ib_umem_find_best_pgoff - Find best HW page size
++ *
++ * @umem: umem struct
++ * @pgsz_bitmap bitmap of HW supported page sizes
++ * @pgoff_bitmask: Mask of bits that can be represented with an offset
++ *
++ * This is very similar to ib_umem_find_best_pgsz() except instead of accepting
++ * an IOVA it accepts a bitmask specifying what address bits can be represented
++ * with a page offset.
++ *
++ * For instance if the HW has multiple page sizes, requires 64 byte alignemnt,
++ * and can support aligned offsets up to 4032 then pgoff_bitmask would be
++ * "111111000000".
++ *
++ * If the pgoff_bitmask requires either alignment in the low bit or an
++ * unavailable page size for the high bits, this function returns 0.
++ */
++static inline unsigned long ib_umem_find_best_pgoff(struct ib_umem *umem,
++						    unsigned long pgsz_bitmap,
++						    u64 pgoff_bitmask)
++{
++	struct scatterlist *sg = umem->sg_head.sgl;
++	dma_addr_t dma_addr;
++
++	dma_addr = sg_dma_address(sg) + (umem->address & ~PAGE_MASK);
++	return ib_umem_find_best_pgsz(umem, pgsz_bitmap,
++				      dma_addr & pgoff_bitmask);
++}
+ 
+ #else /* CONFIG_INFINIBAND_USER_MEM */
+ 
+@@ -101,6 +137,12 @@ static inline unsigned long ib_umem_find_best_pgsz(struct ib_umem *umem,
  {
- 	struct mlx5_ib_ucontext *context;
- 	struct mlx5_ib_ubuffer *ubuffer = &base->ubuffer;
--	int page_shift = 0;
-+	unsigned int page_offset_quantized = 0;
-+	unsigned long page_size = 0;
- 	int uar_index = 0;
--	u32 offset = 0;
- 	int bfregn;
- 	int ncont = 0;
- 	__be64 *pas;
-@@ -950,12 +917,21 @@ static int _create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	return 0;
+ }
++static inline unsigned long ib_umem_find_best_pgoff(struct ib_umem *umem,
++						    unsigned long pgsz_bitmap,
++						    u64 pgoff_bitmask)
++{
++	return 0;
++}
  
- 	if (ucmd->buf_addr && ubuffer->buf_size) {
- 		ubuffer->buf_addr = ucmd->buf_addr;
--		err = mlx5_ib_umem_get(dev, udata, ubuffer->buf_addr,
--				       ubuffer->buf_size, &ubuffer->umem,
--				       &page_shift, &offset);
--		if (err)
-+		ubuffer->umem = ib_umem_get(&dev->ib_dev, ubuffer->buf_addr,
-+					    ubuffer->buf_size, 0);
-+		if (IS_ERR(ubuffer->umem)) {
-+			err = PTR_ERR(ubuffer->umem);
- 			goto err_bfreg;
--		ncont = ib_umem_num_dma_blocks(ubuffer->umem, 1UL << page_shift);
-+		}
-+		page_size = mlx5_umem_find_best_quantized_pgoff(
-+			ubuffer->umem, qpc, log_page_size,
-+			MLX5_ADAPTER_PAGE_SHIFT, page_offset, 64,
-+			&page_offset_quantized);
-+		if (!page_size) {
-+			err = -EINVAL;
-+			goto err_umem;
-+		}
-+		ncont = ib_umem_num_dma_blocks(ubuffer->umem, page_size);
- 	} else {
- 		ubuffer->umem = NULL;
- 	}
-@@ -970,15 +946,14 @@ static int _create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ #endif /* CONFIG_INFINIBAND_USER_MEM */
  
- 	uid = (attr->qp_type != IB_QPT_XRC_INI) ? to_mpd(pd)->uid : 0;
- 	MLX5_SET(create_qp_in, *in, uid, uid);
--	pas = (__be64 *)MLX5_ADDR_OF(create_qp_in, *in, pas);
--	if (ubuffer->umem)
--		mlx5_ib_populate_pas(ubuffer->umem, 1UL << page_shift, pas, 0);
--
- 	qpc = MLX5_ADDR_OF(create_qp_in, *in, qpc);
--
--	MLX5_SET(qpc, qpc, log_page_size, page_shift - MLX5_ADAPTER_PAGE_SHIFT);
--	MLX5_SET(qpc, qpc, page_offset, offset);
--
-+	pas = (__be64 *)MLX5_ADDR_OF(create_qp_in, *in, pas);
-+	if (ubuffer->umem) {
-+		mlx5_ib_populate_pas(ubuffer->umem, page_size, pas, 0);
-+		MLX5_SET(qpc, qpc, log_page_size,
-+			 order_base_2(page_size) - MLX5_ADAPTER_PAGE_SHIFT);
-+		MLX5_SET(qpc, qpc, page_offset, page_offset_quantized);
-+	}
- 	MLX5_SET(qpc, qpc, uar_page, uar_index);
- 	if (bfregn != MLX5_IB_INVALID_BFREG)
- 		resp->bfreg_index = adjust_bfregn(dev, &context->bfregi, bfregn);
 -- 
 2.28.0
 
