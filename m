@@ -2,25 +2,24 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EE3C64E7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4952C83020
 	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81FC422265
+	by mail.kernel.org (Postfix) with ESMTP id A7EDC20855
 	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726487AbgKPMAY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 07:00:24 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:7915 "EHLO
+        id S1726614AbgKPMAZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 07:00:25 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:7917 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726175AbgKPMAY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 07:00:24 -0500
+        with ESMTP id S1726274AbgKPMAZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 07:00:25 -0500
 Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CZSLc0j8Hz6xlY;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CZSLc14r6z6xlb;
         Mon, 16 Nov 2020 20:00:08 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
@@ -29,12 +28,10 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 2/2] RDMA/hns: Add support for QP stash
-Date:   Mon, 16 Nov 2020 19:58:39 +0800
-Message-ID: <1605527919-48769-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 0/2] RDMA/hns: Add supports for stash
+Date:   Mon, 16 Nov 2020 19:58:37 +0800
+Message-ID: <1605527919-48769-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1605527919-48769-1-git-send-email-liweihang@huawei.com>
-References: <1605527919-48769-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -43,49 +40,26 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
-
 Stash is a mechanism that uses the core information carried by the ARM AXI
-bus to access the L3 cache. It can be used to improve the performance by
-increasing the hit ratio of L3 cache. QPs need to enable stash by default.
+bus to access the L3 cache. The CPU and I/O subsystems can access the L3
+cache consistently by enabling stash, so the performance can be improved.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 ++
- 2 files changed, 8 insertions(+)
+Changes since v1:
+- Fix comments from Jason about the unused macros.
+- Rewrite hr_reg_set() to make it easier for driver to define and set a
+  field.
+link: https://patchwork.kernel.org/project/linux-rdma/cover/1601458452-55263-1-git-send-email-liweihang@huawei.com/
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 5fd0458..eb2838a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3986,6 +3986,12 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 	hr_qp->access_flags = attr->qp_access_flags;
- 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
- 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
-+
-+	if (hr_dev->caps.qpc_sz < HNS_ROCE_V3_QPC_SZ)
-+		return;
-+
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_STASH)
-+		hr_reg_set(context->ext, QPCEX_STASH);
- }
- 
- static void modify_qp_init_to_init(struct ib_qp *ibqp,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 50a5187..4679afb 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -898,6 +898,8 @@ struct hns_roce_v2_qp_context {
- #define	V2_QPC_BYTE_256_SQ_FLUSH_IDX_S 16
- #define V2_QPC_BYTE_256_SQ_FLUSH_IDX_M GENMASK(31, 16)
- 
-+#define QPCEX_STASH FIELD_LOC(82, 82)
-+
- #define	V2_QP_RWE_S 1 /* rdma write enable */
- #define	V2_QP_RRE_S 2 /* rdma read enable */
- #define	V2_QP_ATE_S 3 /* rdma atomic enable */
+Lang Cheng (2):
+  RDMA/hns: Add support for CQ stash
+  RDMA/hns: Add support for QP stash
+
+ drivers/infiniband/hw/hns/hns_roce_common.h | 12 +++++++++
+ drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  9 +++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 41 ++++++++++++++++++-----------
+ 4 files changed, 47 insertions(+), 16 deletions(-)
+
 -- 
 2.8.1
 
