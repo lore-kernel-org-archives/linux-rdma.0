@@ -8,35 +8,35 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8AEAC55ABD
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B9DDC63798
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CCAB20781
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DC5920782
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="a2pQPspJ"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="MzlE12vG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727359AbgKPUXO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:23:14 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:3319 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732263AbgKPUXN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:23:13 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb2dfb50000>; Mon, 16 Nov 2020 12:23:17 -0800
-Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
- 2020 20:23:13 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.175)
- by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:23:13 +0000
+        id S1732263AbgKPUXU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:23:20 -0500
+Received: from nat-hk.nvidia.com ([203.18.50.4]:34378 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732273AbgKPUXT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 16 Nov 2020 15:23:19 -0500
+Received: from HKMAIL102.nvidia.com (Not Verified[10.18.92.100]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fb2dfb50001>; Tue, 17 Nov 2020 04:23:17 +0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL102.nvidia.com
+ (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
+ 2020 20:23:17 +0000
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.172)
+ by HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:23:17 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=lHYZPW32qZBG26Wu7wUixUoNs9OsY4SGDNu0aFGd9K7O16wPo6VjPyq94tEYQPJQFkiVTDFGBKhUikkuIivjANhma7OAki9jcjFCGedVINRXLwKMAMnhqDgsPh07lI3kJU+e33Kgb7b2swJKn9JAtnsPiVv4BCLSgEhTQk4kBwHItYbq3QGn5YdvxP420oUPfUbHF2Y/C8LrdwDKDw16EFdKPhpEKhlN5+ezWocmo9sYMIT4FbzPYHyjnEfYogjc371bPfnzaLNSoEAQqrfk54d+ehQiLsgBLSbfu3fmotKN3jytZGHumld84EfafiudIkB5W4S2v2BdoVDhIGLX/g==
+ b=cRsZoX2VZBqCUn7ja/kbGxqXOtt7ZZSiGsDDeUCqnjGjbUrHvaXPWDgABLiZJBrSx4T06nwbQUoAJVCf4pdjMbsMNgruahe1VroPit3/gz7EiRyssirfUFlUybJJ/nbHGeMVnX3MFhT8Z7K6S+G4dk/wvI260Ue4DEFR66d4ceaHdyC3gBnszWlBuJOztUoQJeEuMTXN8J+TAs5+JtKV50UvtWAxbP0M8zRPbuDPZlFuT1mtFF+dJkPCDnKNgBTt7Bk7TuWOjHDw8HglWs0HDjE6YmZcGIfX2dLI8hUk6W5dQPl/H9UO7zSkkoOdomdQM53a3qFhBbK3FxoT/N7ehA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wOR8kxl7+Glby/qXr/Fr3WAwO0foD8dN/e8zqeHT6t4=;
- b=k+Ng0fsHcggAJg2ui2W8fHxMLB7s/FX2bTizpejXCywfDKGqwgwWTT/RrgGsg6iq8D3PaRo+07047R0CyBvdZQDvBmEd5gFrZj+Jr5s92Txut7vFHLHsfwA4yySUGp5VBfD3dNoZPU3vML+FVlYqOrGtpdIxieu5nhTwxt6q9RsvypOzxYmrA+fp2ODXmLaU2hvIf+eKVoHh9g96D3qJAgnqCeGDfBzgNxisKdDvdk2/XhuezTBF89cKbyZNNKZzGOnJuSU+saSerd2bOvsNts73FvbjnTg8aL0suqwQb+YOSWfMz8qjLqLSm5cAqvw13iJMfkX9OJ736NKIWKeXtA==
+ bh=7eTkCR8woWkrC/G6SDMORKzsRZv71XqArzVZMUhPR8I=;
+ b=JFiRBJTlT86rgK5lCqjk/VSN498Ln6U13qFmIiY6fwZyXhwNXZ6czPclhtStp8qldE+uytebVm+y3kCKAkYWWuygK7+gAqCevsh3ZWx2pUBsg1q5BtoLJdsVD7rr7OOh0AuXzoTgvOh4wxnXGY0m6bVWnKu3dn7f6BUfkGZSHr8qlxFatmvo6XDGvisieq2GecFzs+uvLN4GsAIDp+l+8JPwg9nzJpGx+ZtS93JFpw91PkweEn/ubFaPiKsgYXo/+Jx4P+iadpofcoNM8JIW87n69Yk2cbhrD+kr8S1ohp0hjh+uryIpbE8VmwGXeUpE8gNUr/FGg9C0cFTaZzcjYg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
@@ -44,207 +44,288 @@ Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM6PR12MB3305.namprd12.prod.outlook.com (2603:10b6:5:189::29) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.28; Mon, 16 Nov
- 2020 20:23:12 +0000
+ 2020 20:23:15 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9%7]) with mapi id 15.20.3564.028; Mon, 16 Nov 2020
- 20:23:12 +0000
+ 20:23:15 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH 5/9] mlx4: Move the context intialization out of mlx4_query_device_ex()
-Date:   Mon, 16 Nov 2020 16:23:06 -0400
-Message-ID: <5-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
+Subject: [PATCH 9/9] verbs: Delete query_device() internal support
+Date:   Mon, 16 Nov 2020 16:23:10 -0400
+Message-ID: <9-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
 In-Reply-To: <0-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR11CA0021.namprd11.prod.outlook.com
- (2603:10b6:208:23b::26) To DM6PR12MB3834.namprd12.prod.outlook.com
+X-ClientProxiedBy: MN2PR19CA0026.namprd19.prod.outlook.com
+ (2603:10b6:208:178::39) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR11CA0021.namprd11.prod.outlook.com (2603:10b6:208:23b::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.28 via Frontend Transport; Mon, 16 Nov 2020 20:23:11 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kel1q-006l82-RL; Mon, 16 Nov 2020 16:23:10 -0400
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR19CA0026.namprd19.prod.outlook.com (2603:10b6:208:178::39) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.28 via Frontend Transport; Mon, 16 Nov 2020 20:23:12 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kel1q-006l8I-Vh; Mon, 16 Nov 2020 16:23:10 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605558197; bh=ztaESyD2IsmnAT7uarJTmK7wOFWIR1BHA6TG7EpqhUU=;
+        t=1605558197; bh=HG4720+cJVyzYX1qqso0mFbPlQI5tUWkyTpDhb/SDJs=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
          Subject:Date:Message-ID:In-Reply-To:References:
          Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:
          MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
-        b=a2pQPspJHTbUL5Lqh0yOizCLZDtIl4aefDlF6AHpV6lb6/aJ5ewSOjUaRz+pIJps+
-         ZzlU7prdR3HSqZgflGcXY9VpKLagKkNh+igOjfz+/nRo9XKmiXHEdx/icIZRklOedn
-         yLR9xeh0eVe06PdLOWLomKsd8VgD/pwxWDL9WjvAmEWOvtrs8RZ4SOGW0zrlR7oe7B
-         bD4tyQxezxN056mcavtda/R230gIsdWoiABfRGqCiP/bFKd8jm0KuxSm+2YtaV+pSs
-         Ufl5Wiu9YzZ176pGBQpi9eJkpai6h4eLjiomXyHZIxJIZZnDzt7K8xQ2L4jhH/OaC/
-         zIM250h7Smc1w==
+        b=MzlE12vGnq+k44czM3Wy/9Mhxs/izLC6WInQgoh6Jl1qJyg6tlAIIeNl6XU5cI7dA
+         rasCefXUsqySBUmUOc13T5MeS0S4d9gmplL3/sVQScg77DXfy+t+9Afjt1pXIR07G0
+         X8Kynmafc0X4BSUUFuZNaXwGKd8fwtfkQM1brOHklAhKEWNLP75h5GHmj9juyCK6jl
+         a7RL/XRGXz2CZvg9EWCjd0yoFWfYiqeLXMZW21KCJFZxAGbf1FFLwMe7dcqiI4f3Mk
+         8FfxZrsXcRyohKWsMICm3nQKZvEgkoHJOcTVDL8u/7yCDyD6wBCl91tIdbaMdZVxF1
+         rDAPxzwPz01Bw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When the user calls mlx4_query_device_ex() it should not cause the context
-values to be mutated, only the attribute shuld be returned.
-
-Move this code to a dedicated function that is only called during context
-setup.
+Now that all providers only implement the _ex API have the external API
+call query_device_ex() directly and remove everything to do with
+the internal query_device op.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- providers/mlx4/mlx4.c  | 33 +-------------------------------
- providers/mlx4/mlx4.h  |  1 +
- providers/mlx4/verbs.c | 43 +++++++++++++++++++++++++++++++++++-------
- 3 files changed, 38 insertions(+), 39 deletions(-)
+ libibverbs/cmd.c       | 65 ------------------------------------------
+ libibverbs/device.c    |  1 +
+ libibverbs/driver.h    |  6 ----
+ libibverbs/dummy_ops.c | 28 +-----------------
+ libibverbs/verbs.c     |  5 +++-
+ libibverbs/verbs.h     |  3 +-
+ providers/cxgb4/dev.c  |  8 +++---
+ 7 files changed, 12 insertions(+), 104 deletions(-)
 
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index c4a3c557fea426..619b841d788cb2 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -136,28 +136,6 @@ static const struct verbs_context_ops mlx4_ctx_ops =3D=
- {
- 	.free_context =3D mlx4_free_context,
- };
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index ec9750e7c04eb4..d7078823989bd2 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -47,71 +47,6 @@
 =20
--static int mlx4_map_internal_clock(struct mlx4_device *mdev,
--				   struct ibv_context *ibv_ctx)
+ bool verbs_allow_disassociate_destroy;
+=20
+-static void copy_query_dev_fields(struct ibv_device_attr *device_attr,
+-				  struct ib_uverbs_query_device_resp *resp,
+-				  uint64_t *raw_fw_ver)
 -{
--	struct mlx4_context *context =3D to_mctx(ibv_ctx);
--	void *hca_clock_page;
+-	*raw_fw_ver				=3D resp->fw_ver;
+-	device_attr->node_guid			=3D resp->node_guid;
+-	device_attr->sys_image_guid		=3D resp->sys_image_guid;
+-	device_attr->max_mr_size		=3D resp->max_mr_size;
+-	device_attr->page_size_cap		=3D resp->page_size_cap;
+-	device_attr->vendor_id			=3D resp->vendor_id;
+-	device_attr->vendor_part_id		=3D resp->vendor_part_id;
+-	device_attr->hw_ver			=3D resp->hw_ver;
+-	device_attr->max_qp			=3D resp->max_qp;
+-	device_attr->max_qp_wr			=3D resp->max_qp_wr;
+-	device_attr->device_cap_flags		=3D resp->device_cap_flags;
+-	device_attr->max_sge			=3D resp->max_sge;
+-	device_attr->max_sge_rd			=3D resp->max_sge_rd;
+-	device_attr->max_cq			=3D resp->max_cq;
+-	device_attr->max_cqe			=3D resp->max_cqe;
+-	device_attr->max_mr			=3D resp->max_mr;
+-	device_attr->max_pd			=3D resp->max_pd;
+-	device_attr->max_qp_rd_atom		=3D resp->max_qp_rd_atom;
+-	device_attr->max_ee_rd_atom		=3D resp->max_ee_rd_atom;
+-	device_attr->max_res_rd_atom		=3D resp->max_res_rd_atom;
+-	device_attr->max_qp_init_rd_atom	=3D resp->max_qp_init_rd_atom;
+-	device_attr->max_ee_init_rd_atom	=3D resp->max_ee_init_rd_atom;
+-	device_attr->atomic_cap			=3D resp->atomic_cap;
+-	device_attr->max_ee			=3D resp->max_ee;
+-	device_attr->max_rdd			=3D resp->max_rdd;
+-	device_attr->max_mw			=3D resp->max_mw;
+-	device_attr->max_raw_ipv6_qp		=3D resp->max_raw_ipv6_qp;
+-	device_attr->max_raw_ethy_qp		=3D resp->max_raw_ethy_qp;
+-	device_attr->max_mcast_grp		=3D resp->max_mcast_grp;
+-	device_attr->max_mcast_qp_attach	=3D resp->max_mcast_qp_attach;
+-	device_attr->max_total_mcast_qp_attach	=3D resp->max_total_mcast_qp_attac=
+h;
+-	device_attr->max_ah			=3D resp->max_ah;
+-	device_attr->max_fmr			=3D resp->max_fmr;
+-	device_attr->max_map_per_fmr		=3D resp->max_map_per_fmr;
+-	device_attr->max_srq			=3D resp->max_srq;
+-	device_attr->max_srq_wr			=3D resp->max_srq_wr;
+-	device_attr->max_srq_sge		=3D resp->max_srq_sge;
+-	device_attr->max_pkeys			=3D resp->max_pkeys;
+-	device_attr->local_ca_ack_delay		=3D resp->local_ca_ack_delay;
+-	device_attr->phys_port_cnt		=3D resp->phys_port_cnt;
+-}
 -
--	hca_clock_page =3D mmap(NULL, mdev->page_size,
--			      PROT_READ, MAP_SHARED, ibv_ctx->cmd_fd,
--			      mdev->page_size * 3);
+-int ibv_cmd_query_device(struct ibv_context *context,
+-			 struct ibv_device_attr *device_attr,
+-			 uint64_t *raw_fw_ver,
+-			 struct ibv_query_device *cmd, size_t cmd_size)
+-{
+-	struct ib_uverbs_query_device_resp resp;
+-	int ret;
 -
--	if (hca_clock_page =3D=3D MAP_FAILED) {
--		fprintf(stderr, PFX
--			"Warning: Timestamp available,\n"
--			"but failed to mmap() hca core clock page.\n");
--		return -1;
--	}
+-	ret =3D execute_cmd_write(context, IB_USER_VERBS_CMD_QUERY_DEVICE, cmd,
+-				cmd_size, &resp, sizeof(resp));
+-	if (ret)
+-		return ret;
 -
--	context->hca_core_clock =3D hca_clock_page +
--		(context->core_clock.offset & (mdev->page_size - 1));
+-	memset(device_attr->fw_ver, 0, sizeof device_attr->fw_ver);
+-	copy_query_dev_fields(device_attr, &resp, raw_fw_ver);
+-
 -	return 0;
 -}
 -
- static struct verbs_context *mlx4_alloc_context(struct ibv_device *ibdev,
- 						  int cmd_fd,
- 						  void *private_data)
-@@ -170,7 +148,6 @@ static struct verbs_context *mlx4_alloc_context(struct =
-ibv_device *ibdev,
- 	__u16				bf_reg_size;
- 	struct mlx4_device              *dev =3D to_mdev(ibdev);
- 	struct verbs_context		*verbs_ctx;
--	struct ibv_device_attr_ex	dev_attrs;
+ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
+ 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
+ 		     struct ib_uverbs_alloc_pd_resp *resp, size_t resp_size)
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index e9c429a51c7dd1..331a0871b4a77b 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -320,6 +320,7 @@ static void set_lib_ops(struct verbs_context *vctx)
+ #undef ibv_query_port
+ 	vctx->context.ops._compat_query_port =3D ibv_query_port;
+ 	vctx->query_port =3D __lib_query_port;
++	vctx->context.ops._compat_query_device =3D ibv_query_device;
 =20
- 	context =3D verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
- 					       RDMA_DRIVER_MLX4);
-@@ -242,15 +219,7 @@ static struct verbs_context *mlx4_alloc_context(struct=
- ibv_device *ibdev,
-=20
- 	verbs_set_ops(verbs_ctx, &mlx4_ctx_ops);
-=20
--	context->hca_core_clock =3D NULL;
--	memset(&dev_attrs, 0, sizeof(dev_attrs));
--	if (!mlx4_query_device_ex(&verbs_ctx->context, NULL, &dev_attrs,
--				  sizeof(struct ibv_device_attr_ex))) {
--		context->max_qp_wr =3D dev_attrs.orig_attr.max_qp_wr;
--		context->max_sge =3D dev_attrs.orig_attr.max_sge;
--		if (context->core_clock.offset_valid)
--			mlx4_map_internal_clock(dev, &verbs_ctx->context);
--	}
-+	mlx4_query_device_ctx(dev, context);
-=20
- 	return verbs_ctx;
-=20
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 479c39d0a69fc4..3c0787144e7e51 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -304,6 +304,7 @@ __be32 *mlx4_alloc_db(struct mlx4_context *context, enu=
-m mlx4_db_type type);
- void mlx4_free_db(struct mlx4_context *context, enum mlx4_db_type type,
- 		  __be32 *db);
-=20
-+void mlx4_query_device_ctx(struct mlx4_device *mdev, struct mlx4_context *=
-mctx);
- int mlx4_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *attr);
- int mlx4_query_device_ex(struct ibv_context *context,
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 512297f2eebac0..4fe5c1d87d6d91 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -38,6 +38,7 @@
- #include <string.h>
- #include <pthread.h>
- #include <errno.h>
-+#include <sys/mman.h>
-=20
- #include <util/mmio.h>
-=20
-@@ -70,7 +71,6 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 			 struct ibv_device_attr_ex *attr,
- 			 size_t attr_size)
- {
--	struct mlx4_context *mctx =3D to_mctx(context);
- 	struct mlx4_query_device_ex_resp resp =3D {};
- 	struct mlx4_query_device_ex cmd =3D {};
- 	uint64_t raw_fw_ver;
-@@ -90,12 +90,6 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 	attr->tso_caps.max_tso =3D resp.tso_caps.max_tso;
- 	attr->tso_caps.supported_qpts =3D resp.tso_caps.supported_qpts;
-=20
--	if (resp.comp_mask & MLX4_IB_QUERY_DEV_RESP_MASK_CORE_CLOCK_OFFSET) {
--		mctx->core_clock.offset =3D resp.hca_core_clock_offset;
--		mctx->core_clock.offset_valid =3D 1;
--	}
--	mctx->max_inl_recv_sz =3D resp.max_inl_recv_sz;
--
- 	major     =3D (raw_fw_ver >> 32) & 0xffff;
- 	minor     =3D (raw_fw_ver >> 16) & 0xffff;
- 	sub_minor =3D raw_fw_ver & 0xffff;
-@@ -106,6 +100,41 @@ int mlx4_query_device_ex(struct ibv_context *context,
- 	return 0;
+ 	/*
+ 	 * In order to maintain backward/forward binary compatibility
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 33998e227c98ec..359b17302fab5d 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -354,8 +354,6 @@ struct verbs_context_ops {
+ 			    struct ibv_ops_wr **bad_op);
+ 	int (*post_srq_recv)(struct ibv_srq *srq, struct ibv_recv_wr *recv_wr,
+ 			     struct ibv_recv_wr **bad_recv_wr);
+-	int (*query_device)(struct ibv_context *context,
+-			    struct ibv_device_attr *device_attr);
+ 	int (*query_device_ex)(struct ibv_context *context,
+ 			       const struct ibv_query_device_ex_input *input,
+ 			       struct ibv_device_attr_ex *attr,
+@@ -449,10 +447,6 @@ int ibv_cmd_get_context(struct verbs_context *context,
+ 			struct ib_uverbs_get_context_resp *resp, size_t resp_size);
+ int ibv_cmd_query_context(struct ibv_context *ctx,
+ 			  struct ibv_command_buffer *driver);
+-int ibv_cmd_query_device(struct ibv_context *context,
+-			 struct ibv_device_attr *device_attr,
+-			 uint64_t *raw_fw_ver,
+-			 struct ibv_query_device *cmd, size_t cmd_size);
+ int ibv_cmd_create_flow_action_esp(struct ibv_context *ctx,
+ 				   struct ibv_flow_action_esp_attr *attr,
+ 				   struct verbs_flow_action *flow_action,
+diff --git a/libibverbs/dummy_ops.c b/libibverbs/dummy_ops.c
+index 711dfafb5caed5..b6f272dbd8f6de 100644
+--- a/libibverbs/dummy_ops.c
++++ b/libibverbs/dummy_ops.c
+@@ -377,35 +377,11 @@ static int post_srq_recv(struct ibv_srq *srq, struct =
+ibv_recv_wr *recv_wr,
+ 	return EOPNOTSUPP;
  }
 =20
-+void mlx4_query_device_ctx(struct mlx4_device *mdev, struct mlx4_context *=
-mctx)
-+{
-+	struct ibv_device_attr_ex device_attr;
-+	struct mlx4_query_device_ex_resp resp;
-+	size_t resp_size =3D sizeof(resp);
-+
-+	if (ibv_cmd_query_device_any(&mctx->ibv_ctx.context, NULL,
-+				       &device_attr, sizeof(device_attr),
-+				       &resp.ibv_resp, &resp_size))
-+		return;
-+
-+	mctx->max_qp_wr =3D device_attr.orig_attr.max_qp_wr;
-+	mctx->max_sge =3D device_attr.orig_attr.max_sge;
-+	mctx->max_inl_recv_sz =3D resp.max_inl_recv_sz;
-+
-+	if (resp.comp_mask & MLX4_IB_QUERY_DEV_RESP_MASK_CORE_CLOCK_OFFSET) {
-+		void *hca_clock_page;
-+
-+		mctx->core_clock.offset =3D resp.hca_core_clock_offset;
-+		mctx->core_clock.offset_valid =3D 1;
-+
-+		hca_clock_page =3D
-+			mmap(NULL, mdev->page_size, PROT_READ, MAP_SHARED,
-+			     mctx->ibv_ctx.context.cmd_fd, mdev->page_size * 3);
-+		if (hca_clock_page !=3D MAP_FAILED)
-+			mctx->hca_core_clock =3D
-+				hca_clock_page + (mctx->core_clock.offset &
-+						  (mdev->page_size - 1));
-+		else
-+			fprintf(stderr, PFX
-+				"Warning: Timestamp available,\n"
-+				"but failed to mmap() hca core clock page.\n");
-+	}
-+}
-+
- static int mlx4_read_clock(struct ibv_context *context, uint64_t *cycles)
+-static int query_device(struct ibv_context *context,
+-			struct ibv_device_attr *device_attr)
+-{
+-	const struct verbs_context_ops *ops =3D get_ops(context);
+-
+-	if (!ops->query_device_ex)
+-		return EOPNOTSUPP;
+-	return ops->query_device_ex(
+-		context, NULL,
+-		container_of(device_attr, struct ibv_device_attr_ex, orig_attr),
+-		sizeof(*device_attr));
+-}
+-
+-/* Provide a generic implementation for all providers that don't implement
+- * query_device_ex.
+- */
+ static int query_device_ex(struct ibv_context *context,
+ 			   const struct ibv_query_device_ex_input *input,
+ 			   struct ibv_device_attr_ex *attr, size_t attr_size)
  {
- 	uint32_t clockhi, clocklo, clockhi1;
+-	if (input && input->comp_mask)
+-		return EINVAL;
+-
+-	if (attr_size < sizeof(attr->orig_attr))
+-		return EOPNOTSUPP;
+-
+-	memset(attr, 0, attr_size);
+-
+-	return ibv_query_device(context, &attr->orig_attr);
++	return EOPNOTSUPP;
+ }
+=20
+ static int query_ece(struct ibv_qp *qp, struct ibv_ece *ece)
+@@ -558,7 +534,6 @@ const struct verbs_context_ops verbs_dummy_ops =3D {
+ 	post_send,
+ 	post_srq_ops,
+ 	post_srq_recv,
+-	query_device,
+ 	query_device_ex,
+ 	query_ece,
+ 	query_port,
+@@ -680,7 +655,6 @@ void verbs_set_ops(struct verbs_context *vctx,
+ 	SET_OP(ctx, post_send);
+ 	SET_OP(vctx, post_srq_ops);
+ 	SET_OP(ctx, post_srq_recv);
+-	SET_PRIV_OP(ctx, query_device);
+ 	SET_OP(vctx, query_device_ex);
+ 	SET_PRIV_OP_IC(vctx, query_ece);
+ 	SET_PRIV_OP_IC(ctx, query_port);
+diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
+index 7fc10240cf9def..18f5cba8c49525 100644
+--- a/libibverbs/verbs.c
++++ b/libibverbs/verbs.c
+@@ -156,7 +156,10 @@ LATEST_SYMVER_FUNC(ibv_query_device, 1_1, "IBVERBS_1.1=
+",
+ 		   struct ibv_context *context,
+ 		   struct ibv_device_attr *device_attr)
+ {
+-	return get_ops(context)->query_device(context, device_attr);
++	return get_ops(context)->query_device_ex(
++		context, NULL,
++		container_of(device_attr, struct ibv_device_attr_ex, orig_attr),
++		sizeof(*device_attr));
+ }
+=20
+ int __lib_query_port(struct ibv_context *context, uint8_t port_num,
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index ee57e0526d65b4..aafab2ab5547bd 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -1922,7 +1922,8 @@ struct ibv_device {
+=20
+ struct _compat_ibv_port_attr;
+ struct ibv_context_ops {
+-	void *(*_compat_query_device)(void);
++	int (*_compat_query_device)(struct ibv_context *context,
++				    struct ibv_device_attr *device_attr);
+ 	int (*_compat_query_port)(struct ibv_context *context,
+ 				  uint8_t port_num,
+ 				  struct _compat_ibv_port_attr *port_attr);
+diff --git a/providers/cxgb4/dev.c b/providers/cxgb4/dev.c
+index 76b78d9b29a71c..c42c2300f1751f 100644
+--- a/providers/cxgb4/dev.c
++++ b/providers/cxgb4/dev.c
+@@ -114,8 +114,6 @@ static struct verbs_context *c4iw_alloc_context(struct =
+ibv_device *ibdev,
+ 	struct ibv_get_context cmd;
+ 	struct uc4iw_alloc_ucontext_resp resp;
+ 	struct c4iw_dev *rhp =3D to_c4iw_dev(ibdev);
+-	struct ibv_query_device qcmd;
+-	uint64_t raw_fw_ver;
+ 	struct ibv_device_attr attr;
+=20
+ 	context =3D verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
+@@ -143,8 +141,10 @@ static struct verbs_context *c4iw_alloc_context(struct=
+ ibv_device *ibdev,
+ 	}=20
+=20
+ 	verbs_set_ops(&context->ibv_ctx, &c4iw_ctx_common_ops);
+-	if (ibv_cmd_query_device(&context->ibv_ctx.context, &attr,
+-				 &raw_fw_ver, &qcmd, sizeof(qcmd)))
++	if (c4iw_query_device(&context->ibv_ctx.context, NULL,
++			      container_of(&attr, struct ibv_device_attr_ex,
++					   orig_attr),
++			      sizeof(attr)))
+ 		goto err_unmap;
+=20
+ 	if (!rhp->mmid2ptr) {
 --=20
 2.29.2
 
