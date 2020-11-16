@@ -2,109 +2,84 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CC2C4742C
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 11:54:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EAB7C83D28
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD0342224B
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 11:54:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="BuNrY5fQ"
+	by mail.kernel.org (Postfix) with ESMTP id 3673320855
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728771AbgKPKgZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 05:36:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41476 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727192AbgKPKgY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 16 Nov 2020 05:36:24 -0500
-Received: from embeddedor (187-162-31-110.static.axtel.net [187.162.31.110])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 50FDE20674;
-        Mon, 16 Nov 2020 10:36:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605522983;
-        bh=sB1fHRfQmwkkYezelPi5kH60dsraF17NjD8mYeSex1Q=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=BuNrY5fQErUh/1P2ZIaVFVahY1lVfFpyAKONxMmg1jvFNxvE4H20Sf+mP3esbFc0o
-         yVWG3oNBBWberVrRNkVye8LBn5qXslIaj8pXV2rzuVLkM/7cdl4jXrK0xb8sl+mEB2
-         subjnfIe1JOggyBsD6p5eMVRCep9YSZ7e4OlZ2dI=
-Date:   Mon, 16 Nov 2020 04:36:16 -0600
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Danit Goldberg <danitg@mellanox.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Divya Indi <divya.indi@oracle.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Maor Gottlieb <maorg@mellanox.com>,
-        Max Gurtovoy <mgurtovoy@nvidia.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Moni Shoua <monis@mellanox.com>,
-        Or Gerlitz <ogerlitz@mellanox.com>,
-        Parav Pandit <parav@mellanox.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Ursula Braun <ubraun@linux.ibm.com>,
-        Xi Wang <wangxi11@huawei.com>,
-        Yamin Friedman <yaminf@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        target-devel@vger.kernel.org
-Subject: Re: [PATCH v4 07/27] IB: fix kernel-doc markups
-Message-ID: <20201116103616.GA13162@embeddedor>
-References: <cover.1605521731.git.mchehab+huawei@kernel.org>
- <4983a0c6fe5dbc2c779d2b5950a6f90f81a16d56.1605521731.git.mchehab+huawei@kernel.org>
+        id S1729800AbgKPLfM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 06:35:12 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:7908 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729592AbgKPLfM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 06:35:12 -0500
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CZRnY0rFWz6wpR;
+        Mon, 16 Nov 2020 19:34:57 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 16 Nov 2020 19:35:02 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 3/7] RDMA/hns: Avoid setting loopback indicator when smac is same as dmac
+Date:   Mon, 16 Nov 2020 19:33:24 +0800
+Message-ID: <1605526408-6936-4-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1605526408-6936-1-git-send-email-liweihang@huawei.com>
+References: <1605526408-6936-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4983a0c6fe5dbc2c779d2b5950a6f90f81a16d56.1605521731.git.mchehab+huawei@kernel.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 11:18:03AM +0100, Mauro Carvalho Chehab wrote:
+The loopback flag will be set to 1 by the hardware when the source mac
+address is same as the destination mac address. So the driver don't need to
+compare them.
 
-[..]
+Fixes: d6a3627e311c ("RDMA/hns: Optimize wqe buffer set flow for post send")
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-> diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
-> index f9754dcd250b..480b621d1a9f 100644
-> --- a/drivers/infiniband/sw/rdmavt/ah.c
-> +++ b/drivers/infiniband/sw/rdmavt/ah.c
-[..]
->  /**
-> - * rvt_destory_ah - Destory an address handle
-> + * rvt_destroy_ah - Destory an address handle
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 3895a2a..bd09df4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -433,8 +433,6 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
+ 	unsigned int curr_idx = *sge_idx;
+ 	int valid_num_sge;
+ 	u32 msg_len = 0;
+-	bool loopback;
+-	u8 *smac;
+ 	int ret;
+ 
+ 	valid_num_sge = calc_wr_sge_num(wr, &msg_len);
+@@ -457,13 +455,6 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
+ 	roce_set_field(ud_sq_wqe->byte_48, V2_UD_SEND_WQE_BYTE_48_DMAC_5_M,
+ 		       V2_UD_SEND_WQE_BYTE_48_DMAC_5_S, ah->av.mac[5]);
+ 
+-	/* MAC loopback */
+-	smac = (u8 *)hr_dev->dev_addr[qp->port];
+-	loopback = ether_addr_equal_unaligned(ah->av.mac, smac) ? 1 : 0;
+-
+-	roce_set_bit(ud_sq_wqe->byte_40,
+-		     V2_UD_SEND_WQE_BYTE_40_LBI_S, loopback);
+-
+ 	ud_sq_wqe->msg_len = cpu_to_le32(msg_len);
+ 
+ 	/* Set sig attr */
+-- 
+2.8.1
 
-s/Destory/Destroy
-
->   * @ibah: address handle
->   * @destroy_flags: destroy address handle flags (see enum rdma_destroy_ah_flags)
->   * Return: 0 on success
->   */
->  int rvt_destroy_ah(struct ib_ah *ibah, u32 destroy_flags)
->  {
->  	struct rvt_dev_info *dev = ib_to_rvt(ibah->device);
->  	struct rvt_ah *ah = ibah_to_rvtah(ibah);
->  	unsigned long flags;
->  
->  	spin_lock_irqsave(&dev->n_ahs_lock, flags);
->  	dev->n_ahs_allocated--;
->  	spin_unlock_irqrestore(&dev->n_ahs_lock, flags);
->  
->  	rdma_destroy_ah_attr(&ah->attr);
->  	return 0;
->  }
-
---
-Gustavo
