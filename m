@@ -8,237 +8,247 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDFFC61DD8
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 982B6C2D0A3
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6F7521D7E
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46C4A20782
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:23:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="KDZHMUiH"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="aHV+NuqA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729707AbgKPUQW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:16:22 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:11997 "EHLO
+        id S1732269AbgKPUXO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:23:14 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:12625 "EHLO
         hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729248AbgKPUQV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:16:21 -0500
+        with ESMTP id S1727359AbgKPUXN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:23:13 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb2de1e0001>; Mon, 16 Nov 2020 12:16:30 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
- 2020 20:16:20 +0000
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.177)
- by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:16:20 +0000
+        id <B5fb2dfbb0000>; Mon, 16 Nov 2020 12:23:23 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
+ 2020 20:23:12 +0000
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.175)
+ by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:23:13 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=kqxdJwLIMj/T/gEu8I0n+LHtd0JHdd7pmWocgqZyeutEy15BKDAQq+983DzPaHn7e7YHBLGJYcBynQbmeQgwVgeEyLys7l5gpIkeMldvaizBZW14tueYyyWyfvaiqWyGkD/Eg5sxcoJjMEhX1f39cdYNZ/8PxyVtfBFnlro1LZZBAyahViMFt+V48lJcMuqN9e7EufMim9/VOdHH8MGonxJFCFuocPrqYjla7Tlt8f9/f4kFT2oGfARuGohcvUBaAk8YwRjvEQP24VceSUJ6MEK+4MWTgXa+IbIRPybUo6wkUbwRP49WcwjTbP2ZQ3AD/7ipEawwifClWsvjnyxXgw==
+ b=IsU0ejNyBy83Sj9tzZWtGmG2/80YE+EY56XAA/kVUfu5yMvcPPhJbgJL/xyFKldXRIlYFnRgng0CST2ovi5BArFFURZKUAPAGFrMidVhmKnCSJcmpVtWNpSBZchF6x2QxlnFZPmY3nwOlgq/yy8YpLeqrfzi8pOrX01IXUpK4YjMx9xhv2FjE2aZQcf/LV9r1Nj9bcL/jyHz4PCZX0ck7zZRfSKbT6+Xh1xIJZLf//XXSmxAjBfksdM2CkJ/5XhvYS6Hu/Xmk95xMW5UoMz9QkmLAOfpLGDaiwYCprP4vX72y4b5D+r1BlvRtmvtSnZ8yMAOFtSL6y6EHb+0htIlKA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aPNCuKOxdVgADTdxhvq0pU9C2ZUChbdl5OcB2L5rMMk=;
- b=ePM+DZyR0pkQdUtPbHlze2i7/CaVG6M5B8YdSOWgoBRWr2zclc0SgpBr/AH9UbN5tS8WJRcOH8T9bg4pkhx60cIsehGq0pUZQSk2Nup3jJ1XmJvq+SDF799X4YUAau9JalB60MSlyUK4huqc+JAnS4VYpap4q4oUL8Y4bO01DAcpqHXUwQAs1aj+mBf9JyUgzoR7F6mzpuexcfBQ33FY4havVnl5FHSMPqhwFrZHlckQBqlbnRm9/iGwYJHvzMcCSK39BNxCrFBBLb57cuRrWPfC4tv8v13XnDEl8z7LpmMi65wMeJ2ISFuqOXaZZgCOv6SJbQfqDo8dIZ5qs+OKhw==
+ bh=51s1+kWORPkJl090L1pmm00dTc7s19N82eli6m206aw=;
+ b=Xv1a0ess24vUWAG87QM+KLx1WZGwr2LYT7ugHIKa99pS84pLgkBfF43rRgyvxOp6gkUz3orhAStCKzx1nEsDlkhZNXF9Sj3pDl4dgSDj6iF2AAnZBjSNJZC/vGYwzCPgeEYBXPThMc0H4J/+fgx6TI0ABwSE1KkuGIzl6EOfOgFgB9qGV0g7Yr0lzBp4/l9rvP/Bs2vim7T9uLObk/Pv7wtD76WC111USIBtJ/zA9iJn4gqXACulg5nKjaxvHVqcxm7DGc7bNArSz10rp8+akXdMBXrbeDamWMVbgPvcMWfvYBKmBXcgpW+43hZ/lJmX+wXjzPyw1lFC95YjQKNLYw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4810.namprd12.prod.outlook.com (2603:10b6:5:1f7::15) with
+ by DM6PR12MB3305.namprd12.prod.outlook.com (2603:10b6:5:189::29) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25; Mon, 16 Nov
- 2020 20:16:19 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.28; Mon, 16 Nov
+ 2020 20:23:11 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9%7]) with mapi id 15.20.3564.028; Mon, 16 Nov 2020
- 20:16:19 +0000
+ 20:23:11 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>
-Subject: [PATCH 4/4] util: Use GCC 10's attribute symver to define compat symbol versions
-Date:   Mon, 16 Nov 2020 16:16:16 -0400
-Message-ID: <4-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
-In-Reply-To: <0-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>, Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH 3/9] mlx5: Move context initialization out of mlx5_query_device_ex()
+Date:   Mon, 16 Nov 2020 16:23:04 -0400
+Message-ID: <3-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
+In-Reply-To: <0-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR01CA0061.prod.exchangelabs.com (2603:10b6:208:23f::30)
- To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+X-ClientProxiedBy: MN2PR11CA0001.namprd11.prod.outlook.com
+ (2603:10b6:208:23b::6) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR01CA0061.prod.exchangelabs.com (2603:10b6:208:23f::30) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Mon, 16 Nov 2020 20:16:18 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kekvA-006kmJ-Nr     for linux-rdma@vger.kernel.org; Mon, 16 Nov 2020 16:16:16 -0400
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR11CA0001.namprd11.prod.outlook.com (2603:10b6:208:23b::6) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Mon, 16 Nov 2020 20:23:11 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kel1q-006l7v-P8; Mon, 16 Nov 2020 16:23:10 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605557790; bh=+igmOoWzzOVgWRl7NVGOd4YgqTlBSGeDQKeBMfmqGNs=;
+        t=1605558203; bh=GEePscrNeNY8DNgcLpwdv53Z3sJTM2FGoOcqyrl16ow=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
          Subject:Date:Message-ID:In-Reply-To:References:
          Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:
          MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
-        b=KDZHMUiHsi87rWtS93k4q8BWFIkRJZ4iBWP2kL01UQuQUDZrB4lwMySSa6FFIVxG6
-         9q1N8/Bry8/jahwlIpayd6qR14HSmeQfkTGsnHwlCVwh6tv8xOBhw3eM7hY4QyVyYO
-         GqCB+eV9Y7MSJUaUnL4rQu1FFoA6U08wxEmsS/A47AEqmD5z+ognPM8Q54HI5dRasu
-         8BP7f4IGH2QD9HEvZkfbvkYYAs8MV3sl/uSZm/bzpgkvpAiXueo8xe/n2ASR5zaRIK
-         fmKlnkv6FGxm/6GXm47sT7dUClJu6Sjes/Ns/BW7LvRHoI0OT3UnjgMETSQVf1/tTE
-         GfEFdPTEbKzlA==
+        b=aHV+NuqAL1d+PU4J6OVXtANPgNNK4ddJrUtYNkW5x9kGLFveqD5fXRekvZXo0vMZj
+         xEyZ5yBXg3wp5EBkVNDJoPfGyfJN9Jp5tGbIvbbQ+O0XS4QVMD1CTJux/DdcacKnki
+         EkF5bTCNojyWr04vrixLOr3RdWur3H5DTs4hLWRK/PjyTPi0E0VnW9nW/vo4osdD90
+         KcJjrkxw10EeVDLzs2biLRfrxDPYNhfn1ouaxqgOjzKKLCraZEjzijpQrA0qbB6z8a
+         SbAHSPjXjmK4mw+I+0mxfXTgdHd+ghIkGlQ8/ijjtiKZTctrz4MG6l3juoxDJnvuk5
+         oPhD6+1YLeWlg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This has no behavior change but allows LTO to be used to build rdma-core.
-Also remove the LTO disablement in the spec files since it works now.
+When the user calls mlx5_query_device_ex() it should not cause the context
+values to be mutated, only the attribute should be returned.
+
+Move this code to a dedicated function that is only called during context
+setup.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- CMakeLists.txt              | 13 +++++++++++++
- buildlib/FindLDSymVer.cmake | 28 +++++++++++++++++++---------
- buildlib/config.h.in        |  2 ++
- redhat/rdma-core.spec       |  7 -------
- suse/rdma-core.spec         |  2 --
- util/symver.h               |  9 +++++++--
- 6 files changed, 41 insertions(+), 20 deletions(-)
+ providers/mlx5/mlx5.c  | 10 +------
+ providers/mlx5/mlx5.h  |  1 +
+ providers/mlx5/verbs.c | 62 ++++++++++++++++++++++++++++--------------
+ 3 files changed, 44 insertions(+), 29 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ab9caff1f68d02..33fd120f23581a 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -282,6 +282,16 @@ CHECK_C_SOURCE_COMPILES("
-   HAVE_FUNC_ATTRIBUTE_IFUNC
-   FAIL_REGEX "warning")
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 1378acf2e2f3af..06b9a52ebb3019 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -1373,7 +1373,6 @@ static int mlx5_set_context(struct mlx5_context *cont=
+ext,
+ {
+ 	struct verbs_context *v_ctx =3D &context->ibv_ctx;
+ 	struct ibv_port_attr port_attr =3D {};
+-	struct ibv_device_attr_ex device_attr =3D {};
+ 	int cmd_fd =3D v_ctx->context.cmd_fd;
+ 	struct mlx5_device *mdev =3D to_mdev(v_ctx->context.device);
+ 	struct ibv_device *ibdev =3D v_ctx->context.device;
+@@ -1518,14 +1517,7 @@ bf_done:
+ 			goto err_free;
+ 	}
 =20
-+CHECK_C_SOURCE_COMPILES("
-+ #include <unistd.h>
-+
-+ void _sym(void);
-+ __attribute__((__symver__(\"sym@TEST_1.1\"))) void _sym(void) {}
-+
-+ int main(int argc,const char *argv[]) { _sym(); }"
-+  HAVE_FUNC_ATTRIBUTE_SYMVER
-+  FAIL_REGEX "warning")
-+
- # The code does not do the racy fcntl if the various CLOEXEC's are not
- # supported so it really doesn't work right if this isn't available. Thus =
-hard
- # require it.
-@@ -700,6 +710,9 @@ endif()
- if (NOT HAVE_FUNC_ATTRIBUTE_IFUNC)
-   message(STATUS " Compiler attribute ifunc NOT supported")
- endif()
-+if (NOT HAVE_FUNC_ATTRIBUTE_SYMVER)
-+  message(STATUS " Compiler attribute symver NOT supported, can not use LT=
-O")
-+endif()
- if (NOT HAVE_COHERENT_DMA)
-   message(STATUS " Architecture NOT able to do coherent DMA (check util/ud=
-ma_barrier.h) some providers disabled!")
- endif()
-diff --git a/buildlib/FindLDSymVer.cmake b/buildlib/FindLDSymVer.cmake
-index 48238f2407f4fd..d4065d92220a6e 100644
---- a/buildlib/FindLDSymVer.cmake
-+++ b/buildlib/FindLDSymVer.cmake
-@@ -27,15 +27,25 @@ else()
- endif()
+-	if (!mlx5_query_device_ex(&v_ctx->context, NULL, &device_attr,
+-				  sizeof(struct ibv_device_attr_ex))) {
+-		context->cached_device_cap_flags =3D
+-			device_attr.orig_attr.device_cap_flags;
+-		context->atomic_cap =3D device_attr.orig_attr.atomic_cap;
+-		context->cached_tso_caps =3D device_attr.tso_caps;
+-		context->max_dm_size =3D device_attr.max_dm_size;
+-	}
++	mlx5_query_device_ctx(context);
 =20
- # And matching source, this also checks that .symver asm works
--check_c_source_compiles("
--void ibv_get_device_list_1(void);
--void ibv_get_device_list_1(void){}
--asm(\".symver ibv_get_device_list_1, ibv_get_device_list@IBVERBS_1.1\");
--void ibv_get_device_list_0(void);
--void ibv_get_device_list_0(void){}
--asm(\".symver ibv_get_device_list_0, ibv_get_device_list@@IBVERBS_1.0\");
+ 	for (j =3D 0; j < min(MLX5_MAX_PORTS_NUM, context->num_ports); ++j) {
+ 		memset(&port_attr, 0, sizeof(port_attr));
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 782d29bf757e0b..72e710b7b5e4aa 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -878,6 +878,7 @@ __be32 *mlx5_alloc_dbrec(struct mlx5_context *context, =
+struct ibv_pd *pd,
+ void mlx5_free_db(struct mlx5_context *context, __be32 *db, struct ibv_pd =
+*pd,
+ 		  bool custom_alloc);
+=20
++void mlx5_query_device_ctx(struct mlx5_context *mctx);
+ int mlx5_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *attr);
+ int mlx5_query_device_ex(struct ibv_context *context,
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 3622cae1df5017..42c984033d8eaa 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -3450,19 +3450,19 @@ static void get_pci_atomic_caps(struct ibv_context =
+*context,
+ 	}
+ }
+=20
+-static void get_lag_caps(struct ibv_context *ctx)
++static void get_lag_caps(struct mlx5_context *mctx)
+ {
+ 	uint16_t opmod =3D MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE |
+ 		HCA_CAP_OPMOD_GET_CUR;
+ 	uint32_t out[DEVX_ST_SZ_DW(query_hca_cap_out)] =3D {};
+ 	uint32_t in[DEVX_ST_SZ_DW(query_hca_cap_in)] =3D {};
+-	struct mlx5_context *mctx =3D to_mctx(ctx);
+ 	int ret;
+=20
+ 	DEVX_SET(query_hca_cap_in, in, opcode, MLX5_CMD_OP_QUERY_HCA_CAP);
+ 	DEVX_SET(query_hca_cap_in, in, op_mod, opmod);
+=20
+-	ret =3D mlx5dv_devx_general_cmd(ctx, in, sizeof(in), out, sizeof(out));
++	ret =3D mlx5dv_devx_general_cmd(&mctx->ibv_ctx.context, in, sizeof(in),
++				      out, sizeof(out));
+ 	if (ret)
+ 		return;
+=20
+@@ -3512,6 +3512,41 @@ int mlx5_query_device_ex(struct ibv_context *context=
+,
+ 	attr->packet_pacing_caps.supported_qpts =3D
+ 		resp.packet_pacing_caps.supported_qpts;
+=20
++	major     =3D (raw_fw_ver >> 32) & 0xffff;
++	minor     =3D (raw_fw_ver >> 16) & 0xffff;
++	sub_minor =3D raw_fw_ver & 0xffff;
++	a =3D &attr->orig_attr;
++	snprintf(a->fw_ver, sizeof(a->fw_ver), "%d.%d.%04d",
++		 major, minor, sub_minor);
++
++	if (attr_size >=3D offsetof(struct ibv_device_attr_ex, pci_atomic_caps) +
++			sizeof(attr->pci_atomic_caps))
++		get_pci_atomic_caps(context, attr);
++
++	return 0;
++}
++
++void mlx5_query_device_ctx(struct mlx5_context *mctx)
++{
++	struct ibv_device_attr_ex device_attr;
++	struct mlx5_query_device_ex_resp resp;
++	size_t resp_size =3D sizeof(resp);
++
++	get_lag_caps(mctx);
++
++	if (!(mctx->cmds_supp_uhw & MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE))
++		return;
++
++	if (ibv_cmd_query_device_any(&mctx->ibv_ctx.context, NULL, &device_attr,
++				     sizeof(device_attr), &resp.ibv_resp,
++				     &resp_size))
++		return;
++
++	mctx->cached_device_cap_flags =3D device_attr.orig_attr.device_cap_flags;
++	mctx->atomic_cap =3D device_attr.orig_attr.atomic_cap;
++	mctx->cached_tso_caps =3D device_attr.tso_caps;
++	mctx->max_dm_size =3D device_attr.max_dm_size;
++
+ 	if (resp.mlx5_ib_support_multi_pkt_send_wqes & MLX5_IB_ALLOW_MPW)
+ 		mctx->vendor_cap_flags |=3D MLX5_VENDOR_CAP_FLAGS_MPW_ALLOWED;
+=20
+@@ -3519,7 +3554,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 		mctx->vendor_cap_flags |=3D MLX5_VENDOR_CAP_FLAGS_ENHANCED_MPW;
+=20
+ 	mctx->cqe_comp_caps.max_num =3D resp.cqe_comp_caps.max_num;
+-	mctx->cqe_comp_caps.supported_format =3D resp.cqe_comp_caps.supported_for=
+mat;
++	mctx->cqe_comp_caps.supported_format =3D
++		resp.cqe_comp_caps.supported_format;
+ 	mctx->sw_parsing_caps.sw_parsing_offloads =3D
+ 		resp.sw_parsing_caps.sw_parsing_offloads;
+ 	mctx->sw_parsing_caps.supported_qpts =3D
+@@ -3544,25 +3580,11 @@ int mlx5_query_device_ex(struct ibv_context *contex=
+t,
+ 		mctx->vendor_cap_flags |=3D MLX5_VENDOR_CAP_FLAGS_CQE_128B_PAD;
+=20
+ 	if (resp.flags & MLX5_IB_QUERY_DEV_RESP_PACKET_BASED_CREDIT_MODE)
+-		mctx->vendor_cap_flags |=3D MLX5_VENDOR_CAP_FLAGS_PACKET_BASED_CREDIT_MO=
+DE;
++		mctx->vendor_cap_flags |=3D
++			MLX5_VENDOR_CAP_FLAGS_PACKET_BASED_CREDIT_MODE;
+=20
+ 	if (resp.flags & MLX5_IB_QUERY_DEV_RESP_FLAGS_SCAT2CQE_DCT)
+ 		mctx->vendor_cap_flags |=3D MLX5_VENDOR_CAP_FLAGS_SCAT2CQE_DCT;
 -
--int main(int argc,const char *argv[]){return 0;}" _LDSYMVER_SUCCESS)
-+if (HAVE_FUNC_ATTRIBUTE_SYMVER)
-+  check_c_source_compiles("
-+  void ibv_get_device_list_1(void);
-+  __attribute((__symver__(\"ibv_get_device_list@IBVERBS_1.1\")))
-+  void ibv_get_device_list_1(void){}
-+  void ibv_get_device_list_0(void);
-+  __attribute((__symver__(\"ibv_get_device_list@IBVERBS_1.0\")))
-+  void ibv_get_device_list_0(void){}
-+  int main(int argc,const char *argv[]){return 0;}" _LDSYMVER_SUCCESS)
-+else()
-+  check_c_source_compiles("
-+  void ibv_get_device_list_1(void);
-+  void ibv_get_device_list_1(void){}
-+  asm(\".symver ibv_get_device_list_1, ibv_get_device_list@IBVERBS_1.1\");
-+  void ibv_get_device_list_0(void);
-+  void ibv_get_device_list_0(void){}
-+  asm(\".symver ibv_get_device_list_0, ibv_get_device_list@@IBVERBS_1.0\")=
-;
-+  int main(int argc,const char *argv[]){return 0;}" _LDSYMVER_SUCCESS)
-+endif()
+-	major     =3D (raw_fw_ver >> 32) & 0xffff;
+-	minor     =3D (raw_fw_ver >> 16) & 0xffff;
+-	sub_minor =3D raw_fw_ver & 0xffff;
+-	a =3D &attr->orig_attr;
+-	snprintf(a->fw_ver, sizeof(a->fw_ver), "%d.%d.%04d",
+-		 major, minor, sub_minor);
+-
+-	if (attr_size >=3D offsetof(struct ibv_device_attr_ex, pci_atomic_caps) +
+-			sizeof(attr->pci_atomic_caps))
+-		get_pci_atomic_caps(context, attr);
+-
+-	get_lag_caps(context);
+-
+-	return 0;
+ }
 =20
- file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/test.map")
- set(CMAKE_EXE_LINKER_FLAGS "${SAFE_CMAKE_EXE_LINKER_FLAGS}")
-diff --git a/buildlib/config.h.in b/buildlib/config.h.in
-index e22e136a5878aa..c5b0bf55709d03 100644
---- a/buildlib/config.h.in
-+++ b/buildlib/config.h.in
-@@ -46,6 +46,8 @@
-=20
- #cmakedefine HAVE_FUNC_ATTRIBUTE_IFUNC 1
-=20
-+#cmakedefine HAVE_FUNC_ATTRIBUTE_SYMVER 1
-+
- #cmakedefine HAVE_WORKING_IF_H 1
-=20
- // Operating mode for symbol versions
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index e1ee0801344a45..179f4a61aca9a9 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -279,13 +279,6 @@ easy, object-oriented access to IB verbs.
- %setup
-=20
- %build
--# This package uses top level ASM constructs which are incompatible with L=
-TO.
--# Top level ASMs are often used to implement symbol versioning.  gcc-10
--# introduces a new mechanism for symbol versioning which works with LTO.
--# Converting packages to use that mechanism instead of toplevel ASMs is
--# recommended.
--# Disable LTO
--%define _lto_cflags %{nil}
-=20
- # New RPM defines _rundir, usually as /run
- %if 0%{?_rundir:1}
-diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
-index c89ecba6242f1f..229c75bb0118f7 100644
---- a/suse/rdma-core.spec
-+++ b/suse/rdma-core.spec
-@@ -389,8 +389,6 @@ Pyverbs is a Cython-based Python API over libibverbs, p=
-roviding an
- easy, object-oriented access to IB verbs.
-=20
- %prep
--# Make sure LTO is disable as rdma-core fails to compile with LTO enabled
--%define _lto_cflags %{nil}
- %setup -q -n  %{name}-%{version}%{git_ver}
-=20
- %build
-diff --git a/util/symver.h b/util/symver.h
-index ae413050650e0f..eb14c57ebdc132 100644
---- a/util/symver.h
-+++ b/util/symver.h
-@@ -58,11 +58,16 @@
-   warnings.  See also Documentation/versioning.md
- */
-=20
-+#if HAVE_FUNC_ATTRIBUTE_SYMVER
- #define _MAKE_SYMVER(_local_sym, _public_sym, _ver_str)                   =
-     \
--	asm(".symver " #_local_sym "," #_public_sym "@" _ver_str)
-+	__attribute__((__symver__(#_public_sym "@" _ver_str)))
-+#else
-+#define _MAKE_SYMVER(_local_sym, _public_sym, _ver_str)                   =
-     \
-+	asm(".symver " #_local_sym "," #_public_sym "@" _ver_str);
-+#endif
- #define _MAKE_SYMVER_FUNC(_public_sym, _uniq, _ver_str, _ret, ...)        =
-     \
- 	_ret __##_public_sym##_##_uniq(__VA_ARGS__);                           \
--	_MAKE_SYMVER(__##_public_sym##_##_uniq, _public_sym, _ver_str);        \
-+	_MAKE_SYMVER(__##_public_sym##_##_uniq, _public_sym, _ver_str)         \
- 	_ret __##_public_sym##_##_uniq(__VA_ARGS__)
-=20
- #if defined(HAVE_FULL_SYMBOL_VERSIONS) && !defined(_STATIC_LIBRARY_BUILD_)
+ static int rwq_sig_enabled(struct ibv_context *context)
 --=20
 2.29.2
 
