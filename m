@@ -2,89 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8AEC55ABD
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71857C2D0A3
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1B70620A8B
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:05:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08E29217A0
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="PvrRQ1yB"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="OOzL9pcE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731502AbgKPUFJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:05:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48704 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731488AbgKPUFI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 16 Nov 2020 15:05:08 -0500
-Received: from lt-jalone-7480.mtl.com (c-24-6-56-119.hsd1.ca.comcast.net [24.6.56.119])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EEEB520A8B;
-        Mon, 16 Nov 2020 20:05:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605557108;
-        bh=KH69V18rMUxKg+oWCxZehuAaYIXnsuXmjaKO7YMqvcI=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=PvrRQ1yBXAirL0IMeeXHa2cGqSeEveHnEH1TXaKntTE6BE5sK8pdET2ERcFgU1Fad
-         771Ub9QQq29adfwtVA4IvwW/N857ThRWJjK2RkGynwsyKGbbK2q9I6VRaD3gK87qkD
-         reujwiBblMcxfx9pRDK1oN5IwHVfk8BwxZLV/uzE=
-Message-ID: <32a6628214621766d884308fd9f29abad9e149b9.camel@kernel.org>
-Subject: Re: [PATCH net] net/mlx5: fix error return code in
- mlx5e_tc_nic_init()
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     Wang Hai <wanghai38@huawei.com>, leon@kernel.org,
-        davem@davemloft.net, kuba@kernel.org, lariel@mellanox.com,
-        roid@mellanox.com
-Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Date:   Mon, 16 Nov 2020 12:05:06 -0800
-In-Reply-To: <20201114115223.39505-1-wanghai38@huawei.com>
-References: <20201114115223.39505-1-wanghai38@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.36.5 (3.36.5-1.fc32) 
+        id S1729744AbgKPUQU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:16:20 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:2705 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727204AbgKPUQT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:16:19 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fb2de170000>; Mon, 16 Nov 2020 12:16:23 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
+ 2020 20:16:19 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.176)
+ by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:16:19 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MBuYbwKM7emi4zkKoQENaERDz6b8atkZCSVDtd1yY3+nun2CswcduiX+ep8nX2rTO+Is4yfpS4T3yMA575jCkxDZW/HHdgY5BsfkVQqEZn8aDTcYTdPBQr+mmQlbALWgzf9l11XN7m2NaATGdMT+LwROSvE4CB1KNX8GNSaMv8kLY76/kyD6f6EtUw3RDpJrCHyYcaj0LVhoVBcHUr1So1WDRPMFjYrJMYegQHdd5gB47ZQ9crBxm40cbwLtXXuO6rvCj2l7yHfH3Vr+yLu5r4swuO1Ecdj/ytemetwx4rxW1vnqEenpLwsgNdVgXHQRJDdAZMJAnxaIMQ87yGgowQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aV4/UkYUuW9ZruyzQVzhUOiNWRi/ddN1BL+iIQ+ms6U=;
+ b=XJZcVW9HBxEyjSWu5i6Nw042fv/PPIzKbNWMEylFEcnGUk6yLRR0lTLQYQT9t506GRMOacq948Er/FpSwJsFiK1YC5NE+E5VUGRlXnls8oJg9bTCHMeBKQjOHhOufSEU2z9N7JUgjPbIbH49WUon6kAH1pkuIdTY/14Z73B5OKdakUMkl070hUL3Ymf5Bw0EWOdmqqDM9C6ZLJypoGlCOyizpEgwR0xuetoDw4rfc6itqWanicFhl4HJwJkE7pj4qvj2A/lqba6Hjnw1wRTWZ/Y8p4lb/qlY0Qqlf1nOh7zvs+paaT7qC1nsk9bdpNXn1F4uXN8MMHT5IrEBzO5lsA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4810.namprd12.prod.outlook.com (2603:10b6:5:1f7::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25; Mon, 16 Nov
+ 2020 20:16:18 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::e40c:730c:156c:2ef9]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::e40c:730c:156c:2ef9%7]) with mapi id 15.20.3564.028; Mon, 16 Nov 2020
+ 20:16:18 +0000
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>
+Subject: [PATCH 3/4] iwpmd: Always copy the ss_family in copy_iwpm_sockaddr()
+Date:   Mon, 16 Nov 2020 16:16:15 -0400
+Message-ID: <3-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+In-Reply-To: <0-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+References: 
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-ClientProxiedBy: MN2PR01CA0041.prod.exchangelabs.com (2603:10b6:208:23f::10)
+ To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR01CA0041.prod.exchangelabs.com (2603:10b6:208:23f::10) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Mon, 16 Nov 2020 20:16:17 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kekvA-006kmF-N7     for linux-rdma@vger.kernel.org; Mon, 16 Nov 2020 16:16:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1605557783; bh=mZUT2DUJm9nduciCWrQB9nPmIKLWLF2pVT9oC1VB+uk=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
+         Subject:Date:Message-ID:In-Reply-To:References:
+         Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:
+         MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
+        b=OOzL9pcEPWgPFHAuXzzHPQU8UkjkoyJdEMcDp4rXmVNUFfHvHzpdIjuQbJl6qDDN6
+         ONa0PwCIIRLEiRYDY+r8vT7Oty2FXuQFSVaPua7h8Ce8Y1gsg5M2/1y+PxXSvGpBto
+         NinVEQ22yaCshsL9amr71kkcB36TGHWIYCXQBvkn5NdvwnAcZPs6RNbuVUWn0q4Vjk
+         eda7Yd3rBViIv8NlS4fmAO4U8k8M+b7AbY5ZtEZPnKoQN8OraH5JNWFPbaJWvn6Jrj
+         SRVDHi1Ww1TYXu7lxceu2dvZkPoYKEKEi3TEmbHz0o4g+OuAc/mbS8j8I/0ROlOz2e
+         Hqq7jQ7yFkSlw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, 2020-11-14 at 19:52 +0800, Wang Hai wrote:
-> Fix to return a negative error code from the error handling
-> case instead of 0, as done elsewhere in this function.
-> 
-> Fixes: aedd133d17bc ("net/mlx5e: Support CT offload for tc nic
-> flows")
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: Wang Hai <wanghai38@huawei.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> index e3a968e9e2a0..c7ad5db84f78 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-> @@ -5227,8 +5227,10 @@ int mlx5e_tc_nic_init(struct mlx5e_priv *priv)
->  
->  	tc->ct = mlx5_tc_ct_init(priv, tc->chains, &priv-
-> >fs.tc.mod_hdr,
->  				 MLX5_FLOW_NAMESPACE_KERNEL);
-> -	if (IS_ERR(tc->ct))
-> +	if (IS_ERR(tc->ct)) {
-> +		err = PTR_ERR(tc->ct);
->  		goto err_ct;
-> +	}
->  
->  	tc->netdevice_nb.notifier_call = mlx5e_tc_netdev_event;
->  	err = register_netdevice_notifier_dev_net(priv->netdev,
+gcc10 with LTO finds a path where process_iwpm_wire_request() calls
+copy_iwpm_sockaddr() and then does print_iwpm_sockaddr() against the
+dst. If the case statement in copy_iwpm_sockaddr() bails then
+print_iwpm_sockaddr() is still called and this triggers a read from
+uninitialized memory.
 
-Applied to net-mlx5 
-Thanks !
+Always copy the ss_family, this will cause the default case to be taken in
+print_iwpm_sockaddr() as well.
 
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ iwpmd/iwarp_pm_common.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/iwpmd/iwarp_pm_common.c b/iwpmd/iwarp_pm_common.c
+index 8160180aee48e8..67309cbee6a057 100644
+--- a/iwpmd/iwarp_pm_common.c
++++ b/iwpmd/iwarp_pm_common.c
+@@ -570,6 +570,10 @@ void copy_iwpm_sockaddr(__u16 addr_family, struct sock=
+addr_storage *src_sockaddr
+ 		*dst =3D *src;
+ 		break;
+ 	}
++	default:
++	assert(false);
++	if (dst_sockaddr)
++		dst_sockaddr->ss_family =3D addr_family;
+ 	}
+ }
+=20
+--=20
+2.29.2
 
