@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0489C83D2C
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16533C83D2D
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8542720855
+	by mail.kernel.org (Postfix) with ESMTP id D023B20855
 	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 12:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728928AbgKPLfM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 06:35:12 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:7910 "EHLO
+        id S1729802AbgKPLfN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 06:35:13 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:7911 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726281AbgKPLfM (ORCPT
+        with ESMTP id S1729799AbgKPLfM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 06:35:12 -0500
 Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CZRnY0TyPz6wmK;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CZRnY0gWLz6wn0;
         Mon, 16 Nov 2020 19:34:57 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 16 Nov 2020 19:35:02 +0800
+ 14.3.487.0; Mon, 16 Nov 2020 19:35:03 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 2/7] RDMA/hns: Fix missing fields in address vector
-Date:   Mon, 16 Nov 2020 19:33:23 +0800
-Message-ID: <1605526408-6936-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 4/7] RDMA/hns: Remove the portn field in UD SQ WQE
+Date:   Mon, 16 Nov 2020 19:33:25 +0800
+Message-ID: <1605526408-6936-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1605526408-6936-1-git-send-email-liweihang@huawei.com>
 References: <1605526408-6936-1-git-send-email-liweihang@huawei.com>
@@ -43,44 +43,42 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Traffic class and hop limit in address vector is not assigned from GRH, but
-it will be filled into UD SQ WQE. So the hardware will get a wrong value.
+This field in UD WQE in not used by hardware.
 
-Fixes: 82e620d9c3a0 ("RDMA/hns: Modify the data structure of hns_roce_av")
+Fixes: 7bdee4158b37 ("RDMA/hns: Fill sq wqe context of ud type in hip08")
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_ah.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 --
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 3 ---
+ 2 files changed, 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index 3be80d4..d65ff6a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -64,18 +64,20 @@ int hns_roce_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 	struct hns_roce_ah *ah = to_hr_ah(ibah);
- 	int ret = 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index bd09df4..f4358d2 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -491,8 +491,6 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
+ 		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
+ 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
+ 		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
+-	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_PORTN_M,
+-		       V2_UD_SEND_WQE_BYTE_40_PORTN_S, qp->port);
  
--	memcpy(ah->av.mac, ah_attr->roce.dmac, ETH_ALEN);
+ 	roce_set_field(ud_sq_wqe->byte_48, V2_UD_SEND_WQE_BYTE_48_SGID_INDX_M,
+ 		       V2_UD_SEND_WQE_BYTE_48_SGID_INDX_S, ah->av.gid_index);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 1409d05..1466888 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1121,9 +1121,6 @@ struct hns_roce_v2_ud_send_wqe {
+ #define	V2_UD_SEND_WQE_BYTE_40_SL_S 20
+ #define V2_UD_SEND_WQE_BYTE_40_SL_M GENMASK(23, 20)
+ 
+-#define	V2_UD_SEND_WQE_BYTE_40_PORTN_S 24
+-#define V2_UD_SEND_WQE_BYTE_40_PORTN_M GENMASK(26, 24)
 -
- 	ah->av.port = rdma_ah_get_port_num(ah_attr);
- 	ah->av.gid_index = grh->sgid_index;
+ #define V2_UD_SEND_WQE_BYTE_40_UD_VLAN_EN_S 30
  
- 	if (rdma_ah_get_static_rate(ah_attr))
- 		ah->av.stat_rate = IB_RATE_10_GBPS;
- 
--	memcpy(ah->av.dgid, grh->dgid.raw, HNS_ROCE_GID_SIZE);
--	ah->av.sl = rdma_ah_get_sl(ah_attr);
-+	ah->av.hop_limit = grh->hop_limit;
- 	ah->av.flowlabel = grh->flow_label;
- 	ah->av.udp_sport = get_ah_udp_sport(ah_attr);
-+	ah->av.sl = rdma_ah_get_sl(ah_attr);
-+	ah->av.tclass = grh->traffic_class;
-+
-+	memcpy(ah->av.dgid, grh->dgid.raw, HNS_ROCE_GID_SIZE);
-+	memcpy(ah->av.mac, ah_attr->roce.dmac, ETH_ALEN);
- 
- 	/* HIP08 needs to record vlan info in Address Vector */
- 	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08) {
+ #define	V2_UD_SEND_WQE_BYTE_40_LBI_S 31
 -- 
 2.8.1
 
