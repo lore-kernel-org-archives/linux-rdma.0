@@ -2,40 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FA6C63697
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1D06C4742C
 	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8D34217A0
+	by mail.kernel.org (Postfix) with ESMTP id 7066921D93
 	for <linux-rdma@archiver.kernel.org>; Mon, 16 Nov 2020 20:16:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="o4+uY5Bi"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="X0GPQ7Nt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730068AbgKPUQV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Nov 2020 15:16:21 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:11998 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729707AbgKPUQV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:16:21 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb2de1f0000>; Mon, 16 Nov 2020 12:16:31 -0800
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL109.nvidia.com
+        id S1729595AbgKPUQU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Nov 2020 15:16:20 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:14442 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729707AbgKPUQU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Nov 2020 15:16:20 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fb2de0b0000>; Mon, 16 Nov 2020 12:16:11 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
  (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 16 Nov
- 2020 20:16:20 +0000
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.177)
- by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:16:20 +0000
+ 2020 20:16:19 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.176)
+ by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 16 Nov 2020 20:16:19 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BL5yl1JTpqUkrPqD1M3U9wrlnCLhF2k18VZrqHXPH4XwF+HA1aJwz63yEZ+hJBzVltcXARk7P8TClY++78CkJ/AuBk4Pqo7uln1z9u2dEzpU7982zHi3dvvvO1b1p8nc1ccUTAE88BvEq9HbynxqmWRHaBC/m3k+Z7BAhnybMkoz35j7XmfSrJSJ3/E6IhsxXk8fNc2jSLXhjaHnY6PJaGXL+GOKFAHHuHPCjLrOrL3XYfw3P4hcv5Dwxwzb6v1fptFbbYvi/iX3oipSqeqCf35TNKnXT9I7rJ1N9Sa4PyK/rus/I5Y1tg2zA9k3tmTNsbBBN6ALndSnnru1/r/s8w==
+ b=ct3ywEdvkLYbOuCaiwnIHU/jhQrAU7dFSEjoM0BIdbf/JJWCyCfVPyZL390aaWGYngvWld6zgqCgDwm3hm/tqSvExSaY7gpe6iFbw56rgD1dgamYJx0zKHFHI+daIHhQ2t820MKhAcw9p5i4ZiQ9UmU1Dzr2fjm3eVjHc719Q3L1GMAdnBi3ioUvRjN7Yy+7n/DuuatcIJfocFDOk5dfPMeGh9jaM3XTrFQowZcYGcEgPkqCqNDbTs/pw0V6vWdx3aRaajrLP7sZsi8STF1flE9Sgb0CQDVqWticZlVHaN8PE6KiINkiRxhvB7qE1h+4Gc/8yrFCIfshd4DIPpopfg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tp7/T4gYI7eUrbuBdjhrqlZ/yeh1ubDB4+EDh7HX3/0=;
- b=OSJA4uMqGkql15oBykX+/JrYle/+HItXnOTEBegf0OOTTQxxbr+sq+92coIWj18rtNh64oKV0oDS/2RXFcr2rWLpC2jy2arqbqqTn/4fdh44euL75vaH0I/1i2Ye4/ARMvMe5v33PY0vWECpbeSPjtwBDBasvXW6+DMJeZs2PjUHJ9X/RXsxqlXbuZfHa8oj+AoF6PGMeVWc6MppJLa4DyR9lHfFPYqyi5Sezkr1kRkzL4lG1G4BlH4k+jMkRZJ2IM2jfVg9qRANuX1H860pCimm7ax6YN67ca/YutH/8m7BvY40GNKObM8tQZdGh9wk8igmrWyAt8/T6o5ITX+ftQ==
+ bh=rRxkvsuynKZiwELP/GsBJcCIronelnOLN9PEF7ZShxA=;
+ b=Gx46oFSUc+A42LNCUfVCwm7MwYLaibfVkqCywb/YBr7xDqyhbmj+lMcoubxGtm6eiJtJ/jBosEf/wV5gTUnSMTbcs7Pqg87IW3//3krWOVJX8uJTmUWohWv4mj8+mjP6lDHbjs0AscWAXsdWdC27NqHWJfA3jTvstlDQuqTUdf9xrcGFzk7R6MU//+v2omXJkPaQimpNRLx7iX5dgxPndKk4Zfe3+ejRyUIVbwsnaSTM+HAEWD806CEnk6Njm3j/HvK6+q896svMkuNZC/8svuyQ4yGh4uFsLpf5EAtk34gOZ3vIaOkb07R+5EaWSKay01hbWi4P+jKaMXIeIthNAg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
@@ -43,69 +44,99 @@ Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM6PR12MB4810.namprd12.prod.outlook.com (2603:10b6:5:1f7::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25; Mon, 16 Nov
- 2020 20:16:20 +0000
+ 2020 20:16:19 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::e40c:730c:156c:2ef9%7]) with mapi id 15.20.3564.028; Mon, 16 Nov 2020
- 20:16:20 +0000
+ 20:16:19 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>
-Subject: [PATCH 0/4] Enable LTO support for rdma-core
-Date:   Mon, 16 Nov 2020 16:16:12 -0400
-Message-ID: <0-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+Subject: [PATCH 2/4] verbs: Simplify the logic assigning vid in ibv_resolve_eth_l2_from_gid()
+Date:   Mon, 16 Nov 2020 16:16:14 -0400
+Message-ID: <2-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+In-Reply-To: <0-v1-f03f70229014+144-fix_lto_jgg@nvidia.com>
+References: 
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR01CA0045.prod.exchangelabs.com (2603:10b6:208:23f::14)
- To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+X-ClientProxiedBy: MN2PR12CA0006.namprd12.prod.outlook.com
+ (2603:10b6:208:a8::19) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR01CA0045.prod.exchangelabs.com (2603:10b6:208:23f::14) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Mon, 16 Nov 2020 20:16:19 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kekvA-006km4-Kl     for linux-rdma@vger.kernel.org; Mon, 16 Nov 2020 16:16:16 -0400
+Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR12CA0006.namprd12.prod.outlook.com (2603:10b6:208:a8::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.25 via Frontend Transport; Mon, 16 Nov 2020 20:16:17 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kekvA-006kmB-MH     for linux-rdma@vger.kernel.org; Mon, 16 Nov 2020 16:16:16 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605557791; bh=9u8pQwrJwgJ91LLnxdvIA8OIGEv5VktYbD1nUqwpFOg=;
+        t=1605557771; bh=KMbAfhl+V28GcZdSXt21UbDtqtAbXOHsI6cC0ckh0N0=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
-         Subject:Date:Message-ID:Content-Transfer-Encoding:Content-Type:
-         X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=o4+uY5BiSmMZklYASvkYtpiPI2iWZ+nlw2jrMYb/8Ld4zFYAg+/Ty090N0scyzV/a
-         oZFthXvh/lEthltyZ5quqtJ9TCZJjsQ9OmAhtSBI5RP342BHSlRTeKCFoov/nExohN
-         6AuDwsbi+tO1fwMANbfwDE3xia8InEi/f4N6eC54NehQTdSqiTQOaBjhzIpdIfUF29
-         tHzzTViSjFeT4fuGmyM0bj3qh3Ri0OnfDrQSOjHa+GL6Mj0u+REiYIPnx2z7Ge0JXP
-         gw4kRLikyd4+k8kuLTx5ZI2ODJDBE0V7GH4QFvLysoWF1l115M7Ho2PsNEUbcu95nh
-         JB1JHNGRafQYA==
+         Subject:Date:Message-ID:In-Reply-To:References:
+         Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:
+         MIME-Version:X-MS-Exchange-MessageSentRepresentingType;
+        b=X0GPQ7NtPnJY/4CefsmyzfyRyfOgGAu3nduLfzXdzhNAUggaEk3PAYTZV30aAQiN2
+         gTCZ5qUTXv3Nb+XHz+Bvfn/IhesoU/aVzIeQhJzQjcfBWIcK8ySfzuexlGtQWTztBs
+         MRg9XgCZ4CbS+mB74mtURQHLOeQ5BQSiukAa993FCpQW1LdEZSGYeRfCdcv/ai03rx
+         GfezeD/Qp/ztC5a4FA3wvtFXvt1j16zdvg1QA564byClnvR9V459wnI4jTWLhlSW6O
+         YFRbIzMLjoTFlfeSaukmRGXLMYvu/HkqsYYANfaSYbZ2fenCjosqHOYNPnoZoNmeLy
+         oUgwflPG556yQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-GCC 10 finally has the function attribute to allow LTO to be mixed with
-symbol versions. Use the function attribute instead of the top level
-inline asm and have cmake deal with all this. Remove the LTO disablement
-in the packaging files. Distros with GCC 10 will be compatible.
+gcc 10 with LTO reports:
 
-Fix several warnings GCC 10 LTO spits out so AZP remains warning free.
+../libibverbs/verbs.c:1040:8: error: 'ret_vid' may be used uninitialized in=
+ this function [-Werror=3Dmaybe-uninitialized]
+ 1040 |   *vid =3D ret_vid;
 
-This is a PR:
+Which seems like a compiler bug as there is obviously no way for this to
+be true, nor is it clear how LTO has any impact here since
+neigh_get_vlan_id_from_dev() always returns a defined value.
 
-https://github.com/linux-rdma/rdma-core/pull/880
+Nevertheless, the logic is tortured, so simplify it by combining
+everything into one if.
 
-Jason Gunthorpe (4):
-  libibumad: Check for error returns in get_port()
-  verbs: Simplify the logic assigning vid in
-    ibv_resolve_eth_l2_from_gid()
-  iwpmd: Always copy the ss_family in copy_iwpm_sockaddr()
-  util: Use GCC 10's attribute symver to define compat symbol versions
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ libibverbs/verbs.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
- CMakeLists.txt              | 13 ++++++++++
- buildlib/FindLDSymVer.cmake | 28 ++++++++++++++-------
- buildlib/config.h.in        |  2 ++
- iwpmd/iwarp_pm_common.c     |  4 +++
- libibumad/umad.c            | 49 +++++++++++++++++++------------------
- libibverbs/verbs.c          |  7 ++----
- redhat/rdma-core.spec       |  7 ------
- suse/rdma-core.spec         |  2 --
- util/symver.h               |  9 +++++--
- 9 files changed, 72 insertions(+), 49 deletions(-)
-
+diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
+index 7fc10240cf9def..2b0ede84e8d635 100644
+--- a/libibverbs/verbs.c
++++ b/libibverbs/verbs.c
+@@ -973,7 +973,6 @@ int ibv_resolve_eth_l2_from_gid(struct ibv_context *con=
+text,
+ 	int ether_len;
+ 	struct peer_address src;
+ 	struct peer_address dst;
+-	uint16_t ret_vid;
+ 	int ret =3D -EINVAL;
+ 	int err;
+=20
+@@ -1022,10 +1021,11 @@ int ibv_resolve_eth_l2_from_gid(struct ibv_context =
+*context,
+ 		goto free_resources;
+=20
+ 	if (vid) {
+-		ret_vid =3D neigh_get_vlan_id_from_dev(&neigh_handler);
++		uint16_t ret_vid =3D neigh_get_vlan_id_from_dev(&neigh_handler);
+=20
+ 		if (ret_vid <=3D 0xfff)
+ 			neigh_set_vlan_id(&neigh_handler, ret_vid);
++		*vid =3D ret_vid;
+ 	}
+=20
+ 	/* We are using only Ethernet here */
+@@ -1036,9 +1036,6 @@ int ibv_resolve_eth_l2_from_gid(struct ibv_context *c=
+ontext,
+ 	if (ether_len <=3D 0)
+ 		goto free_resources;
+=20
+-	if (vid)
+-		*vid =3D ret_vid;
+-
+ 	ret =3D 0;
+=20
+ free_resources:
 --=20
 2.29.2
 
