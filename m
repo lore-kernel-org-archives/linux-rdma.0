@@ -2,103 +2,207 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED367C5519F
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9535DC63777
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:02:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AFF8241A7
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4737A241A6
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:02:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="EKvG/6RR"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="pvxWwU2S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726426AbgKQHBz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 02:01:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57454 "EHLO mail.kernel.org"
+        id S1726512AbgKQHB7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Nov 2020 02:01:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726387AbgKQHBy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 17 Nov 2020 02:01:54 -0500
+        id S1726417AbgKQHB6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Nov 2020 02:01:58 -0500
 Received: from localhost (thunderhill.nvidia.com [216.228.112.22])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 22FF4241A6;
-        Tue, 17 Nov 2020 07:01:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1AB4E241A7;
+        Tue, 17 Nov 2020 07:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605596513;
-        bh=F9nczTQGYkSFtNatdOGDtmL3fXRqk522Wwk8t9ZSgD4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=EKvG/6RRxoZkJdDAAE7nVFcOzZnEbrVziizhvLF7Kn1QmWasYfrmo2g+pNXGInijq
-         +7APxZ7QKauXmTKu5q4mLn3dYFpm+eFHOU3+GTA4Itye3lhE2WAs4oR81tF7O4L0Ck
-         sH+9onwF4zPk4Cz5DCKg79mBaiMUqKq/JRWXyylA=
+        s=default; t=1605596517;
+        bh=Yqi1SDZEqazG82ZW94EFnToJoJxcOYIYWSoDaFhRPIo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=pvxWwU2SMVDMEquZuQrhWoAWHhGWsgJKDMIujx00LJ0U0Rngg+lR2DNXjxaft4jv2
+         gvahfS7dxNcq408ejLB+2LjybT9PYDoojaBl1tvARF7Zxh7BubJmPqF9NwxTldO7EP
+         xY6RWXwuOdeuwSVpJWx185HOgYrx0BaU0HtsBTAs=
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Ariel Levkovich <lariel@mellanox.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Leon Romanovsky <leonro@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Mark Zhang <markz@nvidia.com>,
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Gal Pressman <galpress@amazon.com>, linux-rdma@vger.kernel.org,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next v5 0/3] Track memory allocation with restrack DB help (Part II)
-Date:   Tue, 17 Nov 2020 09:01:45 +0200
-Message-Id: <20201117070148.1974114-1-leon@kernel.org>
+Subject: [PATCH rdma-next v5 2/3] RDMA/core: Allow drivers to disable restrack DB
+Date:   Tue, 17 Nov 2020 09:01:47 +0200
+Message-Id: <20201117070148.1974114-3-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201117070148.1974114-1-leon@kernel.org>
+References: <20201117070148.1974114-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
-v5:
- * Reorder patches to postpone changes in rdma_restrack_add to be in next series.
-v4: https://lore.kernel.org/linux-rdma/20201104144008.3808124-1-leon@kernel.org/
- * Rebased on latest for-upstream, all that time the patches were in
- our regression and didn't introduce any issues.
- * Took first five patches that hadn't any comments
-v3: https://lore.kernel.org/lkml/20200926101938.2964394-1-leon@kernel.org
- * Rebased on already accepted patches.
- * Added mlx4 special QPs to the list of not-tracked QPs (dropped previous mlx4 special QP patch).
- * Separated to two patches change in return value of cma_listen_* routines.
- * Changed commit messages and added Fixes as Jason requested.
-v2: https://lore.kernel.org/linux-rdma/20200907122156.478360-1-leon@kernel.org/
- * Added new patch to fix mlx4 failure on SR-IOV, it didn't have port set.
- * Changed "RDMA/cma: Delete from restrack DB after successful destroy" patch.
-v1: https://lore.kernel.org/lkml/20200830101436.108487-1-leon@kernel.org
- * Fixed rebase error, deleted second assignment of qp_type.
- * Rebased code on latests rdma-next, the changes in cma.c caused to change
-   in patch "RDMA/cma: Delete from restrack DB after successful destroy".
- * Dropped patch of port assignment, it is already done as part of this
-   series.
- * I didn't add @calller description, regular users should not use _named() funciton.
-v0: https://lore.kernel.org/lkml/20200824104415.1090901-1-leon@kernel.org
+Driver QP types are special case with no IBTA restrictions. For example,
+EFA implemented creation of this QP type as regular one, while mlx5
+separated create to two step: create and modify. That separation causes
+to the situation where DC QP (mlx5) is always added to the same xarray
+index zero.
 
-----------------------------------------------------------------------------------
+This change allows to drivers like mlx5 simply disable restrack DB
+tracking, but it doesn't disable kref on the memory.
 
-Leon Romanovsky (3):
-  RDMA/core: Track device memory MRs
-  RDMA/core: Allow drivers to disable restrack DB
-  RDMA/restrack: Support all QP types
+Fixes: 52e0a118a203 ("RDMA/restrack: Track driver QP types in resource tracker")
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/counters.c |  2 +-
+ drivers/infiniband/core/restrack.c | 12 ++++++++++--
+ drivers/infiniband/hw/mlx4/qp.c    |  5 +++++
+ drivers/infiniband/hw/mlx5/qp.c    |  2 +-
+ include/rdma/restrack.h            | 24 ++++++++++++++++++++++++
+ 5 files changed, 41 insertions(+), 4 deletions(-)
 
- drivers/infiniband/core/core_priv.h           | 25 ++++++-------------
- drivers/infiniband/core/counters.c            |  2 +-
- drivers/infiniband/core/restrack.c            | 12 +++++++--
- drivers/infiniband/core/uverbs_cmd.c          |  4 +--
- drivers/infiniband/core/uverbs_std_types_mr.c |  4 +++
- drivers/infiniband/core/uverbs_std_types_qp.c |  4 +--
- drivers/infiniband/core/verbs.c               | 11 ++++----
- drivers/infiniband/hw/mlx4/qp.c               |  5 ++++
- drivers/infiniband/hw/mlx5/qp.c               |  2 +-
- include/rdma/ib_verbs.h                       | 10 ++++++--
- include/rdma/restrack.h                       | 24 ++++++++++++++++++
- 11 files changed, 70 insertions(+), 33 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+index 2c67ba6a2725..92745522250e 100644
+--- a/drivers/infiniband/core/counters.c
++++ b/drivers/infiniband/core/counters.c
+@@ -285,7 +285,7 @@ int rdma_counter_bind_qp_auto(struct ib_qp *qp, u8 port)
+ 	struct rdma_counter *counter;
+ 	int ret;
+ 
+-	if (!qp->res.valid || rdma_is_kernel_res(&qp->res))
++	if (!rdma_restrack_is_tracked(&qp->res) || rdma_is_kernel_res(&qp->res))
+ 		return 0;
+ 
+ 	if (!rdma_is_port_valid(dev, port))
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+index a123b22b454a..e0a41c867002 100644
+--- a/drivers/infiniband/core/restrack.c
++++ b/drivers/infiniband/core/restrack.c
+@@ -221,11 +221,14 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
+ {
+ 	struct ib_device *dev = res_to_dev(res);
+ 	struct rdma_restrack_root *rt;
+-	int ret;
++	int ret = 0;
+ 
+ 	if (!dev)
+ 		return;
+ 
++	if (res->no_track)
++		goto out;
++
+ 	rt = &dev->res[res->type];
+ 
+ 	if (res->type == RDMA_RESTRACK_QP) {
+@@ -253,6 +256,7 @@ void rdma_restrack_add(struct rdma_restrack_entry *res)
+ 				      &rt->next_id, GFP_KERNEL);
+ 	}
+ 
++out:
+ 	if (!ret)
+ 		res->valid = true;
+ }
+@@ -325,6 +329,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 		return;
+ 	}
+ 
++	if (res->no_track)
++		goto out;
++
+ 	dev = res_to_dev(res);
+ 	if (WARN_ON(!dev))
+ 		return;
+@@ -335,8 +342,9 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 	if (res->type == RDMA_RESTRACK_MR || res->type == RDMA_RESTRACK_QP)
+ 		return;
+ 	WARN_ON(old != res);
+-	res->valid = false;
+ 
++out:
++	res->valid = false;
+ 	rdma_restrack_put(res);
+ 	wait_for_completion(&res->comp);
+ }
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 47b9ed5599b3..44534a12819a 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1561,6 +1561,11 @@ static int _mlx4_ib_create_qp(struct ib_pd *pd, struct mlx4_ib_qp *qp,
+ 		if (err)
+ 			return err;
+ 
++		if (init_attr->create_flags &
++		    (MLX4_IB_SRIOV_SQP | MLX4_IB_SRIOV_TUNNEL_QP))
++			/* Internal QP created with ib_create_qp */
++			rdma_restrack_no_track(&qp->ibqp.res);
++
+ 		qp->port	= init_attr->port_num;
+ 		qp->ibqp.qp_num = init_attr->qp_type == IB_QPT_SMI ? 0 :
+ 			init_attr->create_flags & MLX4_IB_QP_CREATE_ROCE_V2_GSI ? sqpn : 1;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 1ff156cfb5b1..b66fa112d0b0 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2410,7 +2410,7 @@ static int create_dct(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	}
+ 
+ 	qp->state = IB_QPS_RESET;
+-
++	rdma_restrack_no_track(&qp->ibqp.res);
+ 	return 0;
+ }
+ 
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+index d3a1cc5be7bc..05e18839eaff 100644
+--- a/include/rdma/restrack.h
++++ b/include/rdma/restrack.h
+@@ -68,6 +68,14 @@ struct rdma_restrack_entry {
+ 	 * As an example for that, see mlx5 QPs with type MLX5_IB_QPT_HW_GSI
+ 	 */
+ 	bool			valid;
++	/**
++	 * @no_track: don't add this entry to restrack DB
++	 *
++	 * This field is used to mark an entry that doesn't need to be added to
++	 * internal restrack DB and presented later to the users at the nldev
++	 * query stage.
++	 */
++	u8			no_track : 1;
+ 	/*
+ 	 * @kref: Protect destroy of the resource
+ 	 */
+@@ -145,4 +153,20 @@ int rdma_nl_stat_hwcounter_entry(struct sk_buff *msg, const char *name,
+ struct rdma_restrack_entry *rdma_restrack_get_byid(struct ib_device *dev,
+ 						   enum rdma_restrack_type type,
+ 						   u32 id);
++
++/**
++ * rdma_restrack_no_track() - don't add resource to the DB
++ * @res: resource entry
++ *
++ * Every user of thie API should be cross examined.
++ * Probaby you don't need to use this function.
++ */
++static inline void rdma_restrack_no_track(struct rdma_restrack_entry *res)
++{
++	res->no_track = true;
++}
++static inline bool rdma_restrack_is_tracked(struct rdma_restrack_entry *res)
++{
++	return !res->no_track;
++}
+ #endif /* _RDMA_RESTRACK_H_ */
+-- 
 2.28.0
 
