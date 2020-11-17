@@ -2,98 +2,108 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BFAC63798
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6457CC64E69
 	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:02:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB32A241A6
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:02:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35237241A6
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 07:02:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="y473Hntp"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="HccT+e98"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726417AbgKQHCG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 02:02:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57658 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726560AbgKQHCF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1726543AbgKQHCF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 17 Nov 2020 02:02:05 -0500
-Received: from localhost (thunderhill.nvidia.com [216.228.112.22])
+Received: from mail.kernel.org ([198.145.29.99]:57628 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726417AbgKQHCF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Nov 2020 02:02:05 -0500
+Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B0B1B241A6;
-        Tue, 17 Nov 2020 07:02:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CE8B8241A7;
+        Tue, 17 Nov 2020 07:02:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605596525;
-        bh=705AQFg48JYSoBR8K0coQS4UIIVfR9sqw4Xgq3pz+yA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=y473HntpqiXDSqxLJqfIPUcX3tdrN93st8gsq5SHXwnSyG538Rc5vzXu59iuvX59v
-         ElsSo4qByGy5ur0g+Lh5ARv8Sb/EIGP5J0I8rcBSiC7kr5pKzXMUT4dMiQkxzD7Ygo
-         DIQzjGR6nV/mZh5RbP+IXOsZUXYMIkgeEmPAbqi8=
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@mellanox.com>,
-        Ariel Levkovich <lariel@mellanox.com>,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v5 1/3] RDMA/core: Track device memory MRs
-Date:   Tue, 17 Nov 2020 09:01:46 +0200
-Message-Id: <20201117070148.1974114-2-leon@kernel.org>
-X-Mailer: git-send-email 2.28.0
-In-Reply-To: <20201117070148.1974114-1-leon@kernel.org>
-References: <20201117070148.1974114-1-leon@kernel.org>
+        s=default; t=1605596524;
+        bh=x6cXubNXc3tGqmxmQvpt5NxRCngt77HtQoMhgwcbzN0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=HccT+e98CTjo/3xnpyy36qRn2CLzuuWriOejALzW0PBKOKrRbf9noJh7Xv7v+IYRM
+         nwikssCF7+zKPCQmoCWAytzUdz8bUQGWRddiyyWZRe7Vr5cGoA7H8Tj80uUVmuFkKd
+         0EXZCXTnnO+jkOVyGCUWrNmdDbzubNoCXSUijIRc=
+Date:   Tue, 17 Nov 2020 08:02:53 +0100
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Leon Romanovsky <leonro@nvidia.com>
+Cc:     Dave Ertman <david.m.ertman@intel.com>,
+        alsa-devel@alsa-project.org, tiwai@suse.de, broonie@kernel.org,
+        linux-rdma@vger.kernel.org, jgg@nvidia.com, dledford@redhat.com,
+        netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
+        ranjani.sridharan@linux.intel.com,
+        pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
+        parav@mellanox.com, shiraz.saleem@intel.com,
+        dan.j.williams@intel.com, kiran.patil@intel.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 01/10] Add auxiliary bus support
+Message-ID: <X7N1naYOXodPsP/I@kroah.com>
+References: <20201113161859.1775473-1-david.m.ertman@intel.com>
+ <20201113161859.1775473-2-david.m.ertman@intel.com>
+ <20201117053000.GM47002@unreal>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201117053000.GM47002@unreal>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+On Tue, Nov 17, 2020 at 07:30:00AM +0200, Leon Romanovsky wrote:
+> On Fri, Nov 13, 2020 at 08:18:50AM -0800, Dave Ertman wrote:
+> > Add support for the Auxiliary Bus, auxiliary_device and auxiliary_driver.
+> > It enables drivers to create an auxiliary_device and bind an
+> > auxiliary_driver to it.
+> >
+> > The bus supports probe/remove shutdown and suspend/resume callbacks.
+> > Each auxiliary_device has a unique string based id; driver binds to
+> > an auxiliary_device based on this id through the bus.
+> >
+> > Co-developed-by: Kiran Patil <kiran.patil@intel.com>
+> > Signed-off-by: Kiran Patil <kiran.patil@intel.com>
+> > Co-developed-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+> > Signed-off-by: Ranjani Sridharan <ranjani.sridharan@linux.intel.com>
+> > Co-developed-by: Fred Oh <fred.oh@linux.intel.com>
+> > Signed-off-by: Fred Oh <fred.oh@linux.intel.com>
+> > Co-developed-by: Leon Romanovsky <leonro@nvidia.com>
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> > Reviewed-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+> > Reviewed-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > Reviewed-by: Parav Pandit <parav@mellanox.com>
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+> > ---
+> 
+> Greg,
+> 
+> This horse was beaten to death, can we please progress with this patch?
+> Create special topic branch or ack so I'll prepare this branch.
+> 
+> We are in -rc4 now and we (Mellanox) can't hold our submissions anymore.
+> My mlx5_core probe patches [1] were too intrusive and they are ready to
+> be merged, Parav's patches got positive review as well [2] and will be
+> taken next.
+> 
+> We delayed and have in our internal queues the patches for VDPA, eswitch
+> and followup for mlx5_core probe rework, but trapped due to this AUX bus
+> patch.
 
-Device memory (DM) are registered as MR during initialization flow,
-these MRs were not tracked by resource tracker and had res->valid set
-as a false. Update the code to manage them too.
+There are no deadlines for kernel patches here, sorry.  Give me some
+time to properly review this, core kernel changes should not be rushed.
 
-Before this change:
-[leonro@vm ~]$ ibv_rc_pingpong -j &
-[leonro@vm ~]$ rdma res show mr <-- shows nothing
+Also, if you really want to blame someone for the delay, look at the
+patch submitters, not the reviewers, as they are the ones that took a
+very long time with this over the lifecycle of this patchset, not me.  I
+have provided many "instant" reviews of this patchset, and then months
+went by between updates from them.
 
-After this change:
-[leonro@vm ~]$ ibv_rc_pingpong -j &
-[leonro@vm ~]$ rdma res show mr
-dev ibp0s9 mrn 0 mrlen 4096 pdn 3 pid 734 comm ibv_rc_pingpong
-
-Fixes: be934cca9e98 ("IB/uverbs: Add device memory registration ioctl support")
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/uverbs_std_types_mr.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index 9b22bb553e8b..dc5856441729 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -33,6 +33,7 @@
- #include "rdma_core.h"
- #include "uverbs.h"
- #include <rdma/uverbs_std_types.h>
-+#include "restrack.h"
- 
- static int uverbs_free_mr(struct ib_uobject *uobject,
- 			  enum rdma_remove_reason why,
-@@ -134,6 +135,9 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_MR_REG)(
- 	atomic_inc(&pd->usecnt);
- 	atomic_inc(&dm->usecnt);
- 
-+	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
-+	rdma_restrack_set_name(&mr->res, NULL);
-+	rdma_restrack_add(&mr->res);
- 	uobj->object = mr;
- 
- 	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_REG_DM_MR_HANDLE);
--- 
-2.28.0
-
+greg k-h
