@@ -2,86 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6DA4C56202
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 16:09:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6446EC2D0E4
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 17:11:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91DC02463D
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 16:09:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04B13246A5
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 17:11:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="N6mnx5J1"
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="OGA9bcXq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726504AbgKQQIp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 11:08:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40708 "EHLO mail.kernel.org"
+        id S1729432AbgKQRLX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Nov 2020 12:11:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726433AbgKQQIp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 17 Nov 2020 11:08:45 -0500
-Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
+        id S1729409AbgKQRLW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Nov 2020 12:11:22 -0500
+Received: from kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net (c-67-180-217-166.hsd1.ca.comcast.net [67.180.217.166])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4726924655;
-        Tue, 17 Nov 2020 16:08:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 80D6420702;
+        Tue, 17 Nov 2020 17:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1605629324;
-        bh=g4vB3mdu+chdNCAjY+sz6l9E1Ab2sYs0J3DRDQUTmw8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=N6mnx5J1ajFlk7nf3GPVAtAaEeGioyhfHPcOpXrf0e/MQ3hIKdhv4Yv/4fPKKT0uV
-         Ch3fWm6duvtgpVxRBepEVXCzH79fbvDkQidB7nXk/L5+S6QW5ryytTFy0s1Sgk+kOL
-         MV8BJOxmCISOyFxQGhTTS08EQ/hyYbRFeL+XRLds=
-Date:   Tue, 17 Nov 2020 16:48:44 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Leon Romanovsky <leonro@nvidia.com>
-Cc:     Mark Brown <broonie@kernel.org>,
-        Dave Ertman <david.m.ertman@intel.com>,
-        alsa-devel@alsa-project.org, tiwai@suse.de,
-        linux-rdma@vger.kernel.org, jgg@nvidia.com, dledford@redhat.com,
-        netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
-        ranjani.sridharan@linux.intel.com,
-        pierre-louis.bossart@linux.intel.com, fred.oh@linux.intel.com,
-        parav@mellanox.com, shiraz.saleem@intel.com,
-        dan.j.williams@intel.com, kiran.patil@intel.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 01/10] Add auxiliary bus support
-Message-ID: <X7Pw3GQr80BAE1L1@kroah.com>
-References: <20201113161859.1775473-1-david.m.ertman@intel.com>
- <20201113161859.1775473-2-david.m.ertman@intel.com>
- <20201117053000.GM47002@unreal>
- <20201117134808.GC5142@sirena.org.uk>
- <20201117135724.GA2160964@unreal>
+        s=default; t=1605633081;
+        bh=SDqIbkBAJGVaB3nLM5KS4BE7PANmli0SwI2jdbQwt2k=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=OGA9bcXqxRHovUoXLDdVpMCzci2T47yYaIauKPZHnsQMqI96ESFUX3PCPRBqF3+DS
+         Wdd0inhDJPa0wYmQwP44Y0yTau+ntunqM0fvjy8vk6pvVopCsA5GtFLcO/8EcLHXzq
+         H+VyXN7qZSQihEs65z3tdf/l7msQwaX/r9wbRLhQ=
+Date:   Tue, 17 Nov 2020 09:11:20 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Parav Pandit <parav@nvidia.com>
+Cc:     Saeed Mahameed <saeed@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        Jiri Pirko <jiri@nvidia.com>, Jason Gunthorpe <jgg@nvidia.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        "davem@davemloft.net" <davem@davemloft.net>
+Subject: Re: [PATCH net-next 00/13] Add mlx5 subfunction support
+Message-ID: <20201117091120.0c933a4c@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+In-Reply-To: <BY5PR12MB43229F23C101AFBCD2971534DCE20@BY5PR12MB4322.namprd12.prod.outlook.com>
+References: <20201112192424.2742-1-parav@nvidia.com>
+        <20201116145226.27b30b1f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <cdd576ebad038a3a9801e7017b7794e061e3ddcc.camel@kernel.org>
+        <20201116175804.15db0b67@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <BY5PR12MB43229F23C101AFBCD2971534DCE20@BY5PR12MB4322.namprd12.prod.outlook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201117135724.GA2160964@unreal>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 17, 2020 at 03:57:24PM +0200, Leon Romanovsky wrote:
-> On Tue, Nov 17, 2020 at 01:48:08PM +0000, Mark Brown wrote:
-> > On Tue, Nov 17, 2020 at 07:30:00AM +0200, Leon Romanovsky wrote:
-> > > On Fri, Nov 13, 2020 at 08:18:50AM -0800, Dave Ertman wrote:
-> >
-> > > > Add support for the Auxiliary Bus, auxiliary_device and auxiliary_driver.
-> > > > It enables drivers to create an auxiliary_device and bind an
-> > > > auxiliary_driver to it.
-> >
-> > > This horse was beaten to death, can we please progress with this patch?
-> > > Create special topic branch or ack so I'll prepare this branch.
-> >
-> > It's been about 2 working days since the patch was last posted.
+On Tue, 17 Nov 2020 04:08:57 +0000 Parav Pandit wrote:
+> > On Mon, 16 Nov 2020 16:06:02 -0800 Saeed Mahameed wrote:  
+> > > > > Subfunction support is discussed in detail in RFC [1] and [2].
+> > > > > RFC [1] and extension [2] describes requirements, design, and
+> > > > > proposed plumbing using devlink, auxiliary bus and sysfs for
+> > > > > systemd/udev support.  
+> > > >
+> > > > So we're going to have two ways of adding subdevs? Via devlink and
+> > > > via the new vdpa netlink thing?  
+> Nop.
+> Subfunctions (subdevs) are added only one way, 
+> i.e. devlink port as settled in RFC [1].
 > 
-> There is no code changes between v3 and v4 except docs improvements.
-> The v3 was posted almost 3-4 weeks ago.
+> Just to refresh all our memory, we discussed and settled on the flow
+> in [2]; RFC [1] followed this discussion.
+> 
+> vdpa tool of [3] can add one or more vdpa device(s) on top of already
+> spawned PF, VF, SF device.
 
-But everything else that came in since then needs to be reviewed first,
-right?  It's a fifo queue, no jumping the line.  And, to be frank, if
-people complain, that's a sure way for it to get dumped to the end of
-the line, as you know.
+Nack for the networking part of that. It'd basically be VMDq.
 
-thanks,
+> > > Via devlink you add the Sub-function bus device - think of it as
+> > > spawning a new VF - but has no actual characteristics
+> > > (netdev/vpda/rdma) "yet" until user admin decides to load an
+> > > interface on it via aux sysfs.  
+> > 
+> > By which you mean it doesn't get probed or the device type is not
+> > set (IOW it can still become a block device or netdev depending on
+> > the vdpa request)? 
+> > > Basically devlink adds a new eswitch port (the SF port) and
+> > > loading the drivers and the interfaces is done via the auxbus
+> > > subsystem only after the SF is spawned by FW.  
+> > 
+> > But why?
+> > 
+> > Is this for the SmartNIC / bare metal case? The flow for spawning
+> > on the local host gets highly convoluted.
+>
+> The flow of spawning for (a) local host or (b) for external host
+> controller from smartnic is same.
+> 
+> $ devlink port add..
+> [..]
+> Followed by
+> $ devlink port function set state...
+> 
+> Only change would be to specify the destination where to spawn it.
+> (controller number, pf, sf num etc) Please refer to the detailed
+> examples in individual patch. Patch 12 and 13 mostly covers the
+> complete view.
 
-greg k-h
+Please share full examples of the workflow.
+
+I'm asking how the vdpa API fits in with this, and you're showing me
+the two devlink commands we already talked about in the past.
