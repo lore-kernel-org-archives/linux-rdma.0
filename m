@@ -2,119 +2,83 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BACC5519F
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 14:33:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A9C0C63798
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 16:02:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F42F2222E
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 14:33:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D706C241A7
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 16:02:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731664AbgKQOci (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 09:32:38 -0500
-Received: from bosmailout06.eigbox.net ([66.96.187.6]:40391 "EHLO
-        bosmailout06.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731357AbgKQOch (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Nov 2020 09:32:37 -0500
-X-Greylist: delayed 1814 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Nov 2020 09:32:36 EST
-Received: from bosmailscan05.eigbox.net ([10.20.15.5])
-        by bosmailout06.eigbox.net with esmtp (Exim)
-        id 1kf1Yp-000197-UZ; Tue, 17 Nov 2020 09:02:19 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=cornelisnetworks.com; s=dkim; h=Sender:Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:
-        Subject:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=OQ/j0tk/3/6taMHML6/LZ+8wC6OlN+24PAxPKRw0GKQ=; b=ovmOuOEw81+FTaKijMmKPkDwFI
-        L3zmnOhkLMctmZ1Q6LA7RAliMKRgfBgoAsNQFvmbkQFMScNSBcGmpMWyOm5XQgV65HTPK0eCQfONo
-        /P+AYXYPMRSxc4SMh/cOzp6b6GGHlEcdrU24kh4HrOO9/EMqBZ24ayvL7Y+Q3BBk/eUmMzigfzkP8
-        FYS0l4C8YrQ1zsF//erM5Cg/IeOgD31UsmuULDUYXVJkeVuUZab0zSohhojch9Di3OLzEOWBy73m8
-        LbvbatIZ5ku4BiRjOg1uQQgDwgUAwI+7/zTOrjv7DPCIeoB8eUZsPj9gdrdXQJVJsfjBhaOMsw/DX
-        Wl3fTnKg==;
-Received: from [10.115.3.32] (helo=bosimpout12)
-        by bosmailscan05.eigbox.net with esmtp (Exim)
-        id 1kf1Yp-00041S-Jb; Tue, 17 Nov 2020 09:02:19 -0500
-Received: from bosauthsmtp13.yourhostingaccount.com ([10.20.18.13])
-        by bosimpout12 with 
-        id tS2F2300B0GvDVm01S2JKD; Tue, 17 Nov 2020 09:02:19 -0500
-X-Authority-Analysis: v=2.3 cv=WuawzeXv c=1 sm=1 tr=0
- a=UH8/iCWBfdUmbm4Ft4Vi3Q==:117 a=t5jG6c9IKFG8al4zq+RKCw==:17
- a=IkcTkHD0fZMA:10 a=nNwsprhYR40A:10 a=sI1n-BzLCC4A:10 a=VwQbUJbxAAAA:8
- a=LRYjQimtAAAA:8 a=gm1xG5NVYmixJIDKLiEA:9 a=QEXdDO2ut3YA:10
- a=AjGcO6oz07-iQ99wixmX:22 a=JC7xiqAVgOyvJ6DxgMma:22
-Received: from fmdmzpr03-ext.fm.intel.com ([192.55.54.38]:53205)
-        by bosauthsmtp13.eigbox.net with esmtpa (Exim)
-        id 1kf1Yl-0008WK-DA; Tue, 17 Nov 2020 09:02:15 -0500
-From:   Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Subject: Re: remove dma_virt_ops v2
-To:     Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Zhu Yanjun <yanjunz@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        linux-pci@vger.kernel.org, iommu@lists.linux-foundation.org
-References: <20201106181941.1878556-1-hch@lst.de>
- <20201112165935.GA932629@nvidia.com> <20201112170956.GA18813@lst.de>
- <20201112173906.GT244516@ziepe.ca> <20201113085023.GA17412@lst.de>
-Message-ID: <b6834645-d62b-f88b-9fc6-d1207ae33549@cornelisnetworks.com>
-Date:   Tue, 17 Nov 2020 09:01:56 -0500
+        id S1726766AbgKQQCq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Nov 2020 11:02:46 -0500
+Received: from btbn.de ([5.9.118.179]:37528 "EHLO btbn.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726588AbgKQQCq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Nov 2020 11:02:46 -0500
+X-Greylist: delayed 494 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Nov 2020 11:02:45 EST
+Received: from [IPv6:2001:16b8:64fc:e100:ecd3:36d:b750:1faf] (200116b864fce100ecd3036db7501faf.dip.versatel-1u1.de [IPv6:2001:16b8:64fc:e100:ecd3:36d:b750:1faf])
+        by btbn.de (Postfix) with ESMTPSA id 0A385E289C
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2020 16:54:31 +0100 (CET)
+To:     RDMA mailing list <linux-rdma@vger.kernel.org>
+From:   Timo Rothenpieler <timo@rothenpieler.org>
+Subject: Issue after 5.4.70->5.4.77 update: mlx5_core: reg_mr_callback: async
+ reg mr failed. status -11
+Message-ID: <53e3f194-fe27-ba79-bcff-6dd1d778ede0@rothenpieler.org>
+Date:   Tue, 17 Nov 2020 16:54:30 +0100
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
  Thunderbird/78.4.3
 MIME-Version: 1.0
-In-Reply-To: <20201113085023.GA17412@lst.de>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-EN-UserInfo: 0c01d0184442a6165e428d14bd4242e2:931c98230c6409dcc37fa7e93b490c27
-X-EN-AuthUser: mike.marciniszyn@cornelisnetworks.com
-Sender:  Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-X-EN-OrigIP: 192.55.54.38
-X-EN-OrigHost: fmdmzpr03-ext.fm.intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
->> Fixes: 551199aca1c3 ("lib/dma-virt: Add dma_virt_ops")
-> 
-> Note that the drivers had open coded versions of this earlier.  I think
-> this goes back to the addition of the qib driver which is now gone
-> or the addition of the hfi1 or rxe drivers for something that still
-> matters
+This has started happening after I upgraded from 5.4.70 to 5.4.77, on a 
+"Mellanox Technologies MT27700 Family [ConnectX-4]".
 
-Christoph,Jason
+On every bootup, the following messages appear in dmesg:
 
-I built a branch using the following recipe:
-https://patchwork.kernel.org/project/linux-rdma/patch/:
-20201106181941.1878556-11-hch@lst.de/ dma-mapping: remove dma_virt_ops 
-20201106181941.1878556-10-hch@lst.de/ PCI/P2PDMA: Cleanup 
-__pci_p2pdma_map_sg a bit
-20201106181941.1878556-9-hch@lst.de/  PCI/P2PDMA: Remove the 
-DMA_VIRT_OPS hacks
-20201106181941.1878556-8-hch@lst.de/  RDMA/core: remove use of dma_virt_ops
-20201106181941.1878556-7-hch@lst.de/  RDMA/core: remove 
-ib_dma_{alloc,free}_coherent
-20201106181941.1878556-6-hch@lst.de/  rds: stop using dmapool
-20201106181941.1878556-5-hch@lst.de/  nvme-rdma: use ibdev_to_node 
-instead of dereferencing ->dma_device
-20201106181941.1878556-4-hch@lst.de/  RDMA: lift ibdev_to_node from rds 
-to common code
-20201106181941.1878556-3-hch@lst.de/  RDMA/umem: use ib_dma_max_seg_size 
-instead of dma_get_max_seg_size
-rdma/for-rc dabbd6abcdbe which has RMDA/sw: don't allow drivers using 
-dma_virt_ops on highmem configs
+> store01 ~ # journalctl -b | grep mlx5
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: firmware version: 12.28.1002
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: 126.016 Gb/s available PCIe bandwidth (8 GT/s x16 link)
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: Port module event: module 0, Cable plugged
+> Nov 17 01:25:23 store01 kernel: mlx5_ib: Mellanox Connect-IB Infiniband driver v5.0-0
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: cmd_work_handler:887:(pid 376): failed to allocate command entry
+> Nov 17 01:25:23 store01 kernel: infiniband mlx5_0: reg_mr_callback:104:(pid 376): async reg mr failed. status -11
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: MLX5E: StrdRq(0) RqSz(1024) StrdSz(256) RxCqeCmprss(0)
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0: MLX5E: StrdRq(0) RqSz(1024) StrdSz(256) RxCqeCmprss(0)
+> Nov 17 01:25:23 store01 kernel: mlx5_core 0000:01:00.0 ibp1s0: renamed from ib0
 
-All of our rdmavt/hfi1 tests passed.
+Other than those two error messages, the system and adapter appears to 
+work fine.
+However, sporadically, the issue extends itself and fails to bring up IPoIB:
 
-So I can at least vouch for "RDMA/core: remove use of dma_virt_ops"
+> store01 ~ # journalctl -b -1 | grep mlx5
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: firmware version: 12.28.1002
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: 126.016 Gb/s available PCIe bandwidth (8 GT/s x16 link)
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: Port module event: module 0, Cable plugged
+> Nov 17 01:12:58 store01 kernel: mlx5_ib: Mellanox Connect-IB Infiniband driver v5.0-0
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: cmd_work_handler:887:(pid 383): failed to allocate command entry
+> Nov 17 01:12:58 store01 kernel: infiniband mlx5_0: reg_mr_callback:104:(pid 383): async reg mr failed. status -11
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: cmd_work_handler:887:(pid 383): failed to allocate command entry
+> Nov 17 01:12:58 store01 kernel: mlx5_core 0000:01:00.0: mlx5e_create_mdev_resources:104:(pid 1): alloc td failed, -11
+> Nov 17 01:12:58 store01 kernel: mlx5_0, 1: ipoib_intf_alloc failed -11
 
-Mike
-Tested-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+When that happens, only another reboot fixes IPoIB.
+Neither of those issues are a thing when booting 5.4.70.
+
+The most likely candidate for this seems to be 
+0ec52f0194638e2d284ad55eba5a7aff753de1b9(RDMA/mlx5: Disable 
+IB_DEVICE_MEM_MGT_EXTENSIONS if IB_WR_REG_MR can't work)  which was 
+merged in 5.4.73. There were also a lot of mlx5 related changes in 
+5.4.71 though.
+Though since this is a production system, I cannot sensibly bisect this.
 
 
+Any ideas on how to mitigate this, like backporting more patches or 
+changing some settings are appreciated.
