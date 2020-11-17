@@ -2,112 +2,240 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6B7C2D0E4
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 08:56:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21377C71156
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 09:53:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB911223BD
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 08:56:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=riken.jp header.i=@riken.jp header.b="WOioGUQF"
+	by mail.kernel.org (Postfix) with ESMTP id DD950246C2
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 09:53:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726332AbgKQI4Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 03:56:16 -0500
-Received: from postmanrt1.riken.jp ([134.160.33.66]:60300 "EHLO
-        postmanrt1.riken.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726310AbgKQI4Q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Nov 2020 03:56:16 -0500
-X-Greylist: delayed 592 seconds by postgrey-1.27 at vger.kernel.org; Tue, 17 Nov 2020 03:56:15 EST
-Received: from postman-ex1.riken.jp (postman-ex1.riken.go.jp [134.160.33.91])
-        by postmanrt1.riken.jp (Postfix) with ESMTP id 667701E0E82
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2020 17:46:23 +0900 (JST)
-Received: from postman-ex1.riken.jp (localhost [127.0.0.1])
-        by localhost (Postfix) with SMTP id 1CCA8DC03DD;
-        Tue, 17 Nov 2020 17:46:22 +0900 (JST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 localhost 1CCA8DC03DD
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=riken.jp; s=s1-2020;
-        t=1605602782; bh=U6o+48LZxFzamhrcg8P9z8QmBQTJU5v9dzF4zFTlirM=;
-        h=Subject:To:References:Cc:From:Date:In-Reply-To:From;
-        b=WOioGUQFtQZVqgoQjd/3SWMwwUfAvnMX/thUzF7JNzGOat+96e7xiDHiSIseKmto3
-         PNv8DcDRIJoV+YEKg5ytbW+iZlC8j1tWoDSwPkELZinQ+04IuY7DHODSjuxD0CDg+b
-         lXN3wkI3OZ+a4uE4Nlprku7pz6L8hvHNe9F03EYzldqUrpOpGxGIVKFeqG0Hq2qNpY
-         pIs+ln2qHU8Fr6SbbE8W7AxW7w32t3kGXW+cDQC7ii+U8CQQtOzExaW9HXRczQboYV
-         fF678qB7zEQEdyFDpQveiBMHbGlNvouTTnmjvz4M4lY1XlKZ5C+xyWQyaohQGXretR
-         4qtZYgSopwK4g==
-Received: from postman.riken.jp (unknown [192.168.60.184])
-        by postman-ex1.riken.jp (Postfix) with ESMTP id 129D8DC026A;
-        Tue, 17 Nov 2020 17:46:22 +0900 (JST)
-Received: from postman.riken.jp (localhost.localdomain [127.0.0.1])
-        by postman.riken.jp (Postfix) with SMTP id E530B67E00A;
-        Tue, 17 Nov 2020 17:46:21 +0900 (JST)
-Received: from [192.168.11.9] (ab241072.dynamic.ppp.asahi-net.or.jp [183.76.241.72])
-        by postman.riken.jp (Postfix) with ESMTPA id AE71F15003A;
-        Tue, 17 Nov 2020 17:46:21 +0900 (JST)
-Subject: Re: Is there a working cache for path record and lids etc for
- librdmacm?
-To:     Christopher Lameter <cl@linux.com>
-References: <alpine.DEB.2.22.394.2011170253150.206345@www.lameter.com>
-Cc:     linux-rdma@vger.kernel.org
-From:   Jens Domke <jens.domke@riken.jp>
-Message-ID: <bbaa9827-fed4-492b-5c22-e543e8c69fbf@riken.jp>
-Date:   Tue, 17 Nov 2020 17:46:21 +0900
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+        id S1727647AbgKQJx0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Nov 2020 04:53:26 -0500
+Received: from mga03.intel.com ([134.134.136.65]:25824 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727377AbgKQJxZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 17 Nov 2020 04:53:25 -0500
+IronPort-SDR: eMTl5d+3Z6ktfwukGhXrC3Rh6wi+7/09tTULvsLv0h+maVvoIcHpkOlWKf3i66AXqxSbzZJXkz
+ pNvbY460Ef8w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9807"; a="170995997"
+X-IronPort-AV: E=Sophos;i="5.77,485,1596524400"; 
+   d="scan'208";a="170995997"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Nov 2020 01:53:25 -0800
+IronPort-SDR: ufFwZ+dNRwDKnUTrBSNPl6EvhRua9alRpZ3QOI+N+lUEOtr2JHLWB63m5dScRLbJ6P8KZ7pLX8
+ kL0ZuVDEMUMQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,485,1596524400"; 
+   d="scan'208";a="543976550"
+Received: from lkp-server01.sh.intel.com (HELO 45561eaec37e) ([10.239.97.150])
+  by orsmga005.jf.intel.com with ESMTP; 17 Nov 2020 01:53:23 -0800
+Received: from kbuild by 45561eaec37e with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kexfu-00001a-RJ; Tue, 17 Nov 2020 09:53:22 +0000
+Date:   Tue, 17 Nov 2020 17:53:17 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 8a7904a672a1d33c848e5129f886ee69e0773a2e
+Message-ID: <5fb39d8d.CVHnTT/zMpZi4B2o%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.22.394.2011170253150.206345@www.lameter.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-PMX-Version: 6.4.8.2820816, Antispam-Engine: 2.7.2.2107409, Antispam-Data: 2020.11.17.84217, AntiVirus-Engine: 5.77.0, AntiVirus-Data: 2020.9.1.5770004
-X-PMX-Version: 6.4.8.2820816, Antispam-Engine: 2.7.2.2107409, Antispam-Data: 2020.3.25.52717, AntiVirus-Engine: 5.72.0, AntiVirus-Data: 2020.3.25.5720000
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Christopher,
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-next
+branch HEAD: 8a7904a672a1d33c848e5129f886ee69e0773a2e  RDMA/mlx5: Lower setting the umem's PAS for SRQ
 
-On 11/17/20 11:57 AM, Christopher Lameter wrote:
-> We have a large number of apps running on the same host that are all
-> sending to the same set of hosts. Lots of requests for address resolution
-> are going to the SM and for a large set of hosts this can become too much
-> for the SM.
+elapsed time: 722m
 
-I have used ibacm successfully years ago (think somewhere in the
-2013-2015 timeframe) but abandoned the approach because some
-measurements indicated that using OpenMPI with rdmacm had a big
-runtime overhead compared to using OpenMPI+oob (Mellanox was
-informed but I'm unsure how much has changed until now)
+configs tested: 168
+configs skipped: 2
 
-> Is there something that can locally cache the results of the SM queries to
-> avoid additional requests?
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Not that I know of, but others might know better. Maybe try contacting
-Sean Hefty (driver behind ibacm) directly if he missed your email here
-on the list.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+m68k                            q40_defconfig
+m68k                       m5475evb_defconfig
+arm                        mini2440_defconfig
+arm                        vexpress_defconfig
+mips                  decstation_64_defconfig
+sh                          rsk7203_defconfig
+powerpc               mpc834x_itxgp_defconfig
+mips                         bigsur_defconfig
+sh                           sh2007_defconfig
+mips                        bcm63xx_defconfig
+arm                         shannon_defconfig
+mips                           gcw0_defconfig
+sh                 kfr2r09-romimage_defconfig
+arm                          iop32x_defconfig
+powerpc                 linkstation_defconfig
+mips                          rb532_defconfig
+m68k                        mvme147_defconfig
+openrisc                    or1ksim_defconfig
+sh                          rsk7201_defconfig
+mips                          rm200_defconfig
+mips                       lemote2f_defconfig
+mips                 decstation_r4k_defconfig
+powerpc                     ppa8548_defconfig
+sh                     magicpanelr2_defconfig
+arm                            zeus_defconfig
+arm                           omap1_defconfig
+arm                        neponset_defconfig
+mips                           ip22_defconfig
+mips                         tb0219_defconfig
+arc                      axs103_smp_defconfig
+mips                        qi_lb60_defconfig
+m68k                            mac_defconfig
+mips                          ath79_defconfig
+sh                         ecovec24_defconfig
+m68k                          hp300_defconfig
+arm                          gemini_defconfig
+arm                      tct_hammer_defconfig
+mips                        bcm47xx_defconfig
+sh                      rts7751r2d1_defconfig
+mips                     cu1830-neo_defconfig
+mips                            gpr_defconfig
+powerpc                        icon_defconfig
+sh                           se7721_defconfig
+mips                      loongson3_defconfig
+powerpc                     stx_gp3_defconfig
+arc                     nsimosci_hs_defconfig
+mips                        jmr3927_defconfig
+powerpc                       holly_defconfig
+xtensa                          iss_defconfig
+powerpc                     mpc83xx_defconfig
+mips                      bmips_stb_defconfig
+powerpc                   lite5200b_defconfig
+sh                        apsh4ad0a_defconfig
+s390                             alldefconfig
+arm                           sunxi_defconfig
+powerpc                  mpc885_ads_defconfig
+powerpc                     powernv_defconfig
+arm                            mmp2_defconfig
+arm                       cns3420vb_defconfig
+arm                         lpc32xx_defconfig
+ia64                      gensparse_defconfig
+powerpc                    amigaone_defconfig
+sh                           se7724_defconfig
+arc                    vdk_hs38_smp_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a003-20201116
+x86_64               randconfig-a005-20201116
+x86_64               randconfig-a004-20201116
+x86_64               randconfig-a002-20201116
+x86_64               randconfig-a001-20201116
+x86_64               randconfig-a006-20201116
+i386                 randconfig-a006-20201116
+i386                 randconfig-a005-20201116
+i386                 randconfig-a001-20201116
+i386                 randconfig-a002-20201116
+i386                 randconfig-a004-20201116
+i386                 randconfig-a003-20201116
+i386                 randconfig-a006-20201115
+i386                 randconfig-a005-20201115
+i386                 randconfig-a001-20201115
+i386                 randconfig-a002-20201115
+i386                 randconfig-a004-20201115
+i386                 randconfig-a003-20201115
+x86_64               randconfig-a015-20201115
+x86_64               randconfig-a011-20201115
+x86_64               randconfig-a014-20201115
+x86_64               randconfig-a013-20201115
+x86_64               randconfig-a016-20201115
+x86_64               randconfig-a012-20201115
+i386                 randconfig-a012-20201116
+i386                 randconfig-a014-20201116
+i386                 randconfig-a016-20201116
+i386                 randconfig-a011-20201116
+i386                 randconfig-a015-20201116
+i386                 randconfig-a013-20201116
+i386                 randconfig-a012-20201117
+i386                 randconfig-a014-20201117
+i386                 randconfig-a016-20201117
+i386                 randconfig-a011-20201117
+i386                 randconfig-a015-20201117
+i386                 randconfig-a013-20201117
+i386                 randconfig-a012-20201115
+i386                 randconfig-a014-20201115
+i386                 randconfig-a016-20201115
+i386                 randconfig-a011-20201115
+i386                 randconfig-a015-20201115
+i386                 randconfig-a013-20201115
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
 
-> We have tried IBACM but the address resolution does not work on it. It is
-> unable to complete a request for any address resolution and leaves kernel
-> threads that never terminate instead.
+clang tested configs:
+x86_64               randconfig-a003-20201115
+x86_64               randconfig-a005-20201115
+x86_64               randconfig-a004-20201115
+x86_64               randconfig-a002-20201115
+x86_64               randconfig-a001-20201115
+x86_64               randconfig-a006-20201115
+x86_64               randconfig-a015-20201116
+x86_64               randconfig-a011-20201116
+x86_64               randconfig-a014-20201116
+x86_64               randconfig-a013-20201116
+x86_64               randconfig-a016-20201116
+x86_64               randconfig-a012-20201116
 
-Setting up ibacm was/is painful, maybe you could verify that it works on
-a test bed with lowlevel rdmacm tools to debug with ping-pong, etc.
-
-Furthermore, another thing I learned the hard way was that a cold cache
-can overwhelm opensm as well. So, if you deploy ibacm, you have to make
-sure that not too many requests go to the local ibacm on too many nodes
-simultaneously right after starting ibacm service, otherwise having all
-nodes sending numerous requests to opensm could timeout -> could be the
-reason for your stalled kernel threads.
-
-(another explanation is obviously a bug in ibacm and/or incompatibility
-to newer versions of librdmacm or opensm or other IB libs)
-
-Sorry, that I cannot provide more specific and direct help, but maybe my
-pointers can help you solve the issue.
-
-Best,
-  Jens
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
