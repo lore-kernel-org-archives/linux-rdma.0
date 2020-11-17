@@ -2,98 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C61C2D0E4
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 19:33:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E23BC63798
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 19:42:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B3AB24631
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 19:33:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE6FF22240
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Nov 2020 19:42:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="SvR2DroS"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="GE2QgNvn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726644AbgKQTdc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Nov 2020 14:33:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60918 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726227AbgKQTdc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Nov 2020 14:33:32 -0500
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EED0C0613CF
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2020 11:33:32 -0800 (PST)
-Received: by mail-qv1-xf2b.google.com with SMTP id q7so11301363qvt.12
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Nov 2020 11:33:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=5aCgCWj3poVg2jFDgfbkWAbsDOsSNcE+785dZ4ojIoc=;
-        b=SvR2DroSYb8TZZPv1z1ETYgHoxuWhWYgAy79HDRimZFjviFWQC4ARgIT4hQCACogzv
-         7n01rNi0AZHjpZ+5xmExtM1oKiiXoXkVOvEA53fhwForpOyryoI2WYplvE3eo3JdxnBO
-         yEV4Eyg3hPXnMLDepTGzdeHewO+92Ayt7sSfEwOquBO9nWZp4ezxC2wjvnHwgGNjPRy8
-         Uzgp5+E6WAEHgm+kYWrO8szMBQwnF6lSDicCx/8d+O1v/yQN6fh1O2hr6JgdiGwr60yy
-         IZIjitWn3tmsDoQkXuW9iwSbxg4Q7y29IhLdDVqPo9hq9UNpOxyTshJfnr1dCXpuggcq
-         jaAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=5aCgCWj3poVg2jFDgfbkWAbsDOsSNcE+785dZ4ojIoc=;
-        b=OxprjUzn1dNWwYEkLYzYwEUN5LDm5QRNqhpT9QbMlXx06fl28wS4KWSkB+luafKvfH
-         BEZHDuxR/eqPQUJyBD+x+5UZ5JFpyDP0QeKY+gpheWvpB1pUPduPcF6QGkjxmyNWYOcD
-         xlncGlRapzWVSqoXdm4VkPtBp2dPPE9c2kGgoaqqiOpo6ZXqn7ieYHVTo5/u9lH/PCmy
-         Rzr7HB8UNmDz1KKTyM+iOn3+CUxLhU+cK8xHKo6YuNRxKbhkaXrOX4Xab57S/noodQy9
-         kDAB1nOwRm4A/mhMNzr99PBiFn5OP6DEJfl/QWl58uMAHMYpP50WWrCU0LAne8S1sPZx
-         k0Rw==
-X-Gm-Message-State: AOAM533Bsi/SbQpS3F6IiB1ATcqh9fYW/83QJVWQfYaVXQWQ0BV9bV1/
-        wqtZMkTkjnFHulkzfGaxurGOcgz2QG78NKFE
-X-Google-Smtp-Source: ABdhPJwgil9wAPk44FvWtRYyliwL4Ic1AzwOmN0rH7Gw59lOazPw9vjtzjXTvSS0TGmRnp1cYvf5eA==
-X-Received: by 2002:ad4:50a2:: with SMTP id d2mr822749qvq.21.1605641611307;
-        Tue, 17 Nov 2020 11:33:31 -0800 (PST)
-Received: from ziepe.ca ([206.223.160.26])
-        by smtp.gmail.com with ESMTPSA id f130sm13741938qke.30.2020.11.17.11.33.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Nov 2020 11:33:30 -0800 (PST)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kf6jJ-007MEG-3r; Tue, 17 Nov 2020 15:33:29 -0400
-Date:   Tue, 17 Nov 2020 15:33:29 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Christopher Lameter <cl@linux.com>,
-        Haakon Bugge <haakon.bugge@oracle.com>,
-        Mark Haywood <mark.haywood@oracle.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: Re: Is there a working cache for path record and lids etc for
- librdmacm?
-Message-ID: <20201117193329.GH244516@ziepe.ca>
-References: <alpine.DEB.2.22.394.2011170253150.206345@www.lameter.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+        id S1730399AbgKQTle (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Nov 2020 14:41:34 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:2849 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730396AbgKQTld (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Nov 2020 14:41:33 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fb427640000>; Tue, 17 Nov 2020 11:41:24 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 17 Nov
+ 2020 19:41:33 +0000
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.43) by
+ HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Tue, 17 Nov 2020 19:41:33 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=R8S/mZQbZ+wSJMwed2tnC83wffG4dhfa638mkJURcO74siBaCip6+xrI+TIielfXy5J2/mbod8JpoLhv+azB7BwyKE7RoiDpnBuVDjGShv9NhRuUzBsVeIGh1v3ZEKnarto9zbx1jQ2YJJM5cbhOzNyWhiwaSbXFyHyGMhlyi4wtxnPGoe+y/i0YV3m8tHGfFEL85gBIN12Eios6I6hX4+JDp5dSGueOsehL3ZAut5jYsW/nqd0nFFLMhwas+zhiE+WamQ/kyBS71myPRyftfZjKrXs2sbJCXVZVI2uH28YbuGIMT7kaW7CLZVLxGZSO6ZV8NAuj9thyg/vYgrovpw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=jJM5Y9H78KXYKRCnnVEEJagbt01lS64k9Cqs2QVudZA=;
+ b=etF8OHVJvidJtM3r/DGme97xNALnpTmWeikLd37mvgrfGiYsj7JrxzSZGgsJ5nK+r5AY9n8SksWMjR8zRQBYvS7j7XNmfMmc63AK6Am77AAKeeYUfV0p6q+3JsZv0GGCsvYJJsr/RGkB2VXMZ3aUIUSGhBoTt9v1Ie1coLEw1AaeQG/h+nWZ8JDCvFccmZcwTuPe/6+5TbYF44ET96uKIRtssotP4cdzxTM3VXREAzwnLgsqCssDMZEa5RmXFAEmjRRGZhpEHnVjds3W2fNJFYWEgEhu8HeL5FomBcdxLgsfL68jpSFDnb2JIZxNSKrhmCsqzkgGWEgAvyL1rH6YZA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3305.namprd12.prod.outlook.com (2603:10b6:5:189::29) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3564.28; Tue, 17 Nov
+ 2020 19:41:32 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::e40c:730c:156c:2ef9]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::e40c:730c:156c:2ef9%7]) with mapi id 15.20.3564.028; Tue, 17 Nov 2020
+ 19:41:31 +0000
+Date:   Tue, 17 Nov 2020 15:41:29 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Christoph Hellwig <hch@lst.de>
+CC:     Bjorn Helgaas <bhelgaas@google.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Zhu Yanjun <yanjunz@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        <linux-rdma@vger.kernel.org>, <rds-devel@oss.oracle.com>,
+        <linux-pci@vger.kernel.org>, <iommu@lists.linux-foundation.org>
+Subject: Re: remove dma_virt_ops v2
+Message-ID: <20201117194129.GA1757698@nvidia.com>
+References: <20201106181941.1878556-1-hch@lst.de>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.22.394.2011170253150.206345@www.lameter.com>
+In-Reply-To: <20201106181941.1878556-1-hch@lst.de>
+X-ClientProxiedBy: MN2PR19CA0067.namprd19.prod.outlook.com
+ (2603:10b6:208:19b::44) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (206.223.160.26) by MN2PR19CA0067.namprd19.prod.outlook.com (2603:10b6:208:19b::44) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3589.20 via Frontend Transport; Tue, 17 Nov 2020 19:41:31 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kf6r3-007NGx-I0; Tue, 17 Nov 2020 15:41:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1605642084; bh=jJM5Y9H78KXYKRCnnVEEJagbt01lS64k9Cqs2QVudZA=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=GE2QgNvnRwvZKRhh8TudXZKfjJl7PAfGgQx6aB9j7Yp+dW7iLeQI8L82ARv56ftOw
+         w8a4q4CoNRLZqpWtNQZj8QUKbcWByvf8r4E5Jz4KXAPfrzFDnhUT9K6XiufMS7nHc/
+         zsIW9ht2GbCcbw+NLPl0lFAgfUCVChDXhUCEPiFGvkY+SSfRlf7EmMzjIFU6ND9ENL
+         iOC9obDWE2b2srpib4KwJaMI/MXXR+eMoUf+SazDOPICEo6E6HjDq91lu3Etn162Hv
+         j+ZZ68UK1QO3rhV8FquSwZMOnhgYAAd4GDOSfPssuxA+EmOGUpnGu94le8xZJCgyPK
+         DZuw3DTw+WGKA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 17, 2020 at 02:57:57AM +0000, Christopher Lameter wrote:
-> We have a large number of apps running on the same host that are all
-> sending to the same set of hosts. Lots of requests for address resolution
-> are going to the SM and for a large set of hosts this can become too much
-> for the SM.
+On Fri, Nov 06, 2020 at 07:19:31PM +0100, Christoph Hellwig wrote:
+> Hi Jason,
 > 
-> Is there something that can locally cache the results of the SM queries to
-> avoid additional requests?
+> this series switches the RDMA core to opencode the special case of
+> devices bypassing the DMA mapping in the RDMA ULPs.  The virt ops
+> have caused a bit of trouble due to the P2P code node working with
+> them due to the fact that we'd do two dma mapping iterations for a
+> single I/O, but also are a bit of layering violation and lead to
+> more code than necessary.
 > 
-> We have tried IBACM but the address resolution does not work on it. It is
-> unable to complete a request for any address resolution and leaves kernel
-> threads that never terminate instead.
+> Tested with nvme-rdma over rxe.
+> 
+> Note that the rds changes are untested, as I could not find any
+> simple rds test setup.
+> 
+> Changes since v2:
+>  - simplify the INFINIBAND_VIRT_DMA dependencies
+>  - add a ib_uses_virt_dma helper
+>  - use ib_uses_virt_dma in nvmet-rdma to disable p2p for virt_dma devices
+>  - use ib_dma_max_seg_size in umem
+>  - stop using dmapool in rds
+> 
+> Changes since v1:
+>  - disable software RDMA drivers for highmem configs
+>  - update the PCI commit logs
 
-If it really doesn't work at all any more we should delete it from
-rdma-core if nobody is interested to fix it.
-
-Haakon and Mark had stepped up to maintain it a while ago because they
-were using it internally, so I'm surprised to hear it is broken.
+All applied to for-next, thanks everyone
 
 Jason
