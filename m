@@ -2,53 +2,54 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CDB2C6369E
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Nov 2020 07:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB582C63798
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Nov 2020 08:08:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BB8224656
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Nov 2020 07:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EEB32417E
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Nov 2020 08:08:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="h9V+rQkr"
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="hvy9jkuh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbgKRHkH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Nov 2020 02:40:07 -0500
-Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:8858 "EHLO
-        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726296AbgKRHkH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Nov 2020 02:40:07 -0500
+        id S1725879AbgKRIIG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Nov 2020 03:08:06 -0500
+Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:14221 "EHLO
+        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725747AbgKRIIG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Nov 2020 03:08:06 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1605685207; x=1637221207;
+  t=1605686886; x=1637222886;
   h=subject:to:references:from:message-id:date:mime-version:
    in-reply-to:content-transfer-encoding;
-  bh=/bFTtAHM7FQ9yKJRVDdaJ1C9iOPo97WJW039+o7FMUI=;
-  b=h9V+rQkrxBnSoTWwi7VvsC6AV6/XlHopagPed6ajv8CFcdSl8PNiIwWS
-   l2qAnjH8Ju0o8kmXtxUJ30m4VOdLyZPS0zMv4ze7L5xsYRcXcfb7NhPjL
-   5KoucKZp+9TGWxWV9XIXWQx7eLHISPEBXGlDzE18t0yiL8guK6I6DCadl
-   g=;
+  bh=4wFjCvbY729StTlVw+oIaT1Ti3zePYLG75hWimVbV6E=;
+  b=hvy9jkuht2mP9+865/jxe2NJxuzWjuM+N+9GRRYehZLzt2ybZfmP5TvJ
+   MANfF8u7SMFh+mQZBfJZMxhPNBktyEZv+0XA5qd1H0zprBd7xDSCpwr21
+   Mb9nTCZwcOgGaTN9RHAjfUsPVnfjJZmWJ3vGbGzZ2S3hYuUDIWjpMLftV
+   s=;
 X-IronPort-AV: E=Sophos;i="5.77,486,1596499200"; 
-   d="scan'208";a="67116443"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-1d-98acfc19.us-east-1.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 18 Nov 2020 07:39:59 +0000
-Received: from EX13D19EUB003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan3.iad.amazon.com [10.40.163.38])
-        by email-inbound-relay-1d-98acfc19.us-east-1.amazon.com (Postfix) with ESMTPS id 9E7D9A21E8;
-        Wed, 18 Nov 2020 07:39:58 +0000 (UTC)
-Received: from 8c85908914bf.ant.amazon.com (10.43.161.102) by
+   d="scan'208";a="64634750"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-1e-c7c08562.us-east-1.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-4101.iad4.amazon.com with ESMTP; 18 Nov 2020 08:07:59 +0000
+Received: from EX13D19EUB003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-1e-c7c08562.us-east-1.amazon.com (Postfix) with ESMTPS id 2873A241242;
+        Wed, 18 Nov 2020 08:07:57 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.161.55) by
  EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Wed, 18 Nov 2020 07:39:54 +0000
+ id 15.0.1497.2; Wed, 18 Nov 2020 08:07:54 +0000
 Subject: Re: [PATCH 4/9] efa: Move the context intialization out of
  efa_query_device_ex()
 To:     Jason Gunthorpe <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>,
         Bob Pearson <rpearsonhpe@gmail.com>
 References: <4-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
 From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <529bdbd3-3db4-f317-e403-1c4d670e6a23@amazon.com>
-Date:   Wed, 18 Nov 2020 09:39:49 +0200
+Message-ID: <096f7bfc-518c-f017-6dd8-93449f7d2120@amazon.com>
+Date:   Wed, 18 Nov 2020 10:07:48 +0200
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
  Gecko/20100101 Thunderbird/78.4.3
 MIME-Version: 1.0
@@ -56,8 +57,8 @@ In-Reply-To: <4-v1-34e141ddf17e+89-query_device_ex_jgg@nvidia.com>
 Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.161.102]
-X-ClientProxiedBy: EX13D06UWA002.ant.amazon.com (10.43.160.143) To
+X-Originating-IP: [10.43.161.55]
+X-ClientProxiedBy: EX13D50UWC004.ant.amazon.com (10.43.162.109) To
  EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -72,8 +73,35 @@ On 16/11/2020 22:23, Jason Gunthorpe wrote:
 > 
 > Cc: Gal Pressman <galpress@amazon.com>
 > Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+>  providers/efa/efa.c   | 14 +------------
+>  providers/efa/verbs.c | 46 +++++++++++++++++++++++++++++++++++--------
+>  providers/efa/verbs.h |  1 +
+>  3 files changed, 40 insertions(+), 21 deletions(-)
+> 
+> diff --git a/providers/efa/efa.c b/providers/efa/efa.c
+> index 35f9b246a711ec..b24c14f7fa1fe1 100644
+> --- a/providers/efa/efa.c
+> +++ b/providers/efa/efa.c
+> @@ -54,10 +54,7 @@ static struct verbs_context *efa_alloc_context(struct ibv_device *vdev,
+>  {
+>  	struct efa_alloc_ucontext_resp resp = {};
+>  	struct efa_alloc_ucontext cmd = {};
+> -	struct ibv_device_attr_ex attr;
+> -	unsigned int qp_table_sz;
+>  	struct efa_context *ctx;
+> -	int err;
+>  
+>  	cmd.comp_mask |= EFA_ALLOC_UCONTEXT_CMD_COMP_TX_BATCH;
+>  	cmd.comp_mask |= EFA_ALLOC_UCONTEXT_CMD_COMP_MIN_SQ_WR;
+> @@ -86,17 +83,8 @@ static struct verbs_context *efa_alloc_context(struct ibv_device *vdev,
+>  
+>  	verbs_set_ops(&ctx->ibvctx, &efa_ctx_ops);
+>  
+> -	err = efa_query_device_ex(&ctx->ibvctx.context, NULL, &attr,
+> -				  sizeof(attr));
+> -	if (err)
+> +	if (!efa_query_device_ctx(ctx))
+>  		goto err_free_spinlock;
 
-Didn't get a chance to review yet, but this one breaks EFA.
-I'll try to provide more info today/tomorrow.
-
-(BTW: typo in the subject line "intialization", and "shuld" in the commit message)
+This return error on success seems to be the issue, will verify.
