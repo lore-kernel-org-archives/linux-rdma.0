@@ -8,33 +8,35 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31018C64E8A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D66C64E90
 	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D76A02240C
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16D442240B
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HQoS5O7R"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="HG9v5ukD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728810AbgKTXEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Nov 2020 18:04:14 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:1194 "EHLO
+        id S1728623AbgKTXEL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Nov 2020 18:04:11 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:1184 "EHLO
         hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728625AbgKTXEL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:11 -0500
+        with ESMTP id S1728054AbgKTXEK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:10 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb84b5f0007>; Fri, 20 Nov 2020 15:03:59 -0800
+        id <B5fb84b5f0000>; Fri, 20 Nov 2020 15:03:59 -0800
 Received: from sx1.mtl.com (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 20 Nov
- 2020 23:04:01 +0000
+ 2020 23:03:59 +0000
 From:   Saeed Mahameed <saeedm@nvidia.com>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@mellanox.com>
 CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Aya Levin <ayal@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>
-Subject: [PATCH mlx5-next 09/16] net/mlx5: Expose IP-in-IP TX and RX capability bits
-Date:   Fri, 20 Nov 2020 15:03:32 -0800
-Message-ID: <20201120230339.651609-10-saeedm@nvidia.com>
+        Meir Lichtinger <meirl@nvidia.com>,
+        Eran Ben Elisha <eranbe@nvidia.com>,
+        Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH mlx5-next 07/16] net/mlx5: Update the list of the PCI supported devices
+Date:   Fri, 20 Nov 2020 15:03:30 -0800
+Message-ID: <20201120230339.651609-8-saeedm@nvidia.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201120230339.651609-1-saeedm@nvidia.com>
 References: <20201120230339.651609-1-saeedm@nvidia.com>
@@ -45,55 +47,50 @@ X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605913439; bh=W6pKMuf/KgnwGNgqWgjk8dGoJtcl++rqCeAwoa4ckxs=;
+        t=1605913439; bh=jk2egcnsKlHDEDPsFQbMR+WG+6rVRdRXUH9kjvqYhN0=;
         h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
          References:MIME-Version:Content-Transfer-Encoding:Content-Type:
          X-Originating-IP:X-ClientProxiedBy;
-        b=HQoS5O7RToFSZp0xF86okH05P6FhmcCvOT19ACgLv2Nn5duG2P9EkkThuEf5irUYQ
-         7BCKWhzAJlmkcKpMSV/PToU7IBqexxdJFCx79tQgc40+hJYABHKd86L5VZJxLRgDWr
-         4DXQW9CYNYRR/+L2kfYq3Qx9hr7Lrdurh5LB/pFUcNNyieHN33yXeW21+VjVHcxx2u
-         TqvOiu8yaNClt17SZWbwSQKeMWZXVMs1Wvriu7MVr5Z2vrfndlN8ZFP1nSEV/APe3G
-         ysTlGiNASQi9aDqWL2FgN3npnLy/mdBdldvpNVNQGMH7lXTgnxkddgH8LzIaLQh/b+
-         fMZJQMkT3CXFQ==
+        b=HG9v5ukDE+5IOUw53KZOLOsBIP7fa3RXfISPzvHtDK+zPdvtVXT3tMsvzK5uXUrIc
+         6e42cOeL1NjphIaOq66U6ph4fOc34DqT3ZJ9NN1lr9KmoLRh8SGIfq3Xp6APVWPyWf
+         YB8l4zV0gE1RWzhz31J7RSTliPxspiu3fy7l2NW7SbWZJ1HchHu7AaUM7TTTuz47WX
+         Vdrqr0NfPQi8t6AbFHmb2dIO0aaVqCP+aNjJDzS5rQ+ATFhz2kfVnkYAFF7sUv2TfE
+         5lboXEulnjPYQM0UMZ6EbBrU13h1ysvVN8ITQBao+//bojGQ98MQpPtMJkT7OV48WQ
+         M7RIpGsBggi8w==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aya Levin <ayal@nvidia.com>
+From: Meir Lichtinger <meirl@nvidia.com>
 
-Expose FW indication that it supports stateless offloads for IP over IP
-tunneled packets per direction. In some HW like ConnectX-4 IP-in-IP
-support is not symmetric, it supports steering on the inner header but
-it doesn't TX-Checksum and TSO. Add IP-in-IP capability per direction to
-cover this case as well.
+Add the upcoming BlueField-3 device ID.
 
-Note: only if both indications are turned on, the global
-tunnel_stateless_ip_over_ip is on too.
-
-Signed-off-by: Aya Levin <ayal@nvidia.com>
-Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+Signed-off-by: Meir Lichtinger <meirl@nvidia.com>
+Reviewed-by: Eran Ben Elisha <eranbe@nvidia.com>
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 3ace1976514c..96888f9f822d 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -913,7 +913,10 @@ struct mlx5_ifc_per_protocol_networking_offload_caps_b=
-its {
- 	u8         tunnel_stateless_ipv4_over_vxlan[0x1];
- 	u8         tunnel_stateless_ip_over_ip[0x1];
- 	u8         insert_trailer[0x1];
--	u8         reserved_at_2b[0x5];
-+	u8         reserved_at_2b[0x1];
-+	u8         tunnel_stateless_ip_over_ip_rx[0x1];
-+	u8         tunnel_stateless_ip_over_ip_tx[0x1];
-+	u8         reserved_at_2e[0x2];
- 	u8         max_vxlan_udp_ports[0x8];
- 	u8         reserved_at_38[0x6];
- 	u8         max_geneve_opt_len[0x1];
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/e=
+thernet/mellanox/mlx5/core/main.c
+index 8ff207aa1479..a9757ccb9d16 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1594,6 +1594,7 @@ static const struct pci_device_id mlx5_core_pci_table=
+[] =3D {
+ 	{ PCI_VDEVICE(MELLANOX, 0xa2d2) },			/* BlueField integrated ConnectX-5 n=
+etwork controller */
+ 	{ PCI_VDEVICE(MELLANOX, 0xa2d3), MLX5_PCI_DEV_IS_VF},	/* BlueField integr=
+ated ConnectX-5 network controller VF */
+ 	{ PCI_VDEVICE(MELLANOX, 0xa2d6) },			/* BlueField-2 integrated ConnectX-6=
+ Dx network controller */
++	{ PCI_VDEVICE(MELLANOX, 0xa2dc) },			/* BlueField-3 integrated ConnectX-7=
+ network controller */
+ 	{ 0, }
+ };
+=20
 --=20
 2.26.2
 
