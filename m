@@ -2,69 +2,106 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D94FC63777
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 10:19:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A2CC56202
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 12:31:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F334C2242A
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 10:19:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD1D92087D
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 12:31:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="1BZd4+5E"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727100AbgKTKTL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Nov 2020 05:19:11 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:7661 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726548AbgKTKTL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 05:19:11 -0500
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Ccsvq3zGwz15N9C;
-        Fri, 20 Nov 2020 18:18:47 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 20 Nov 2020 18:18:56 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 0/2] RDMA/hns: Add supports for stash
-Date:   Fri, 20 Nov 2020 18:17:18 +0800
-Message-ID: <1605867440-2413-1-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
+        id S1727858AbgKTMbV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Nov 2020 07:31:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42008 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726559AbgKTMbU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 07:31:20 -0500
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69A36C0613CF;
+        Fri, 20 Nov 2020 04:31:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=In-Reply-To:Content-Transfer-Encoding:
+        Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+        Sender:Reply-To:Content-ID:Content-Description;
+        bh=K8UBxjP8yh0K1nEhdWupH2vnZSMF4nPrjni8IUXNzjo=; b=1BZd4+5EtF2GA93p1bG4pY3gB7
+        QhH2TPwCVpchRnmG9PDNkiLSA6L/UTtj82RQx2PGenurzrDMfp4tPnalO2QMM1ufTYCifJKan2cZJ
+        mtSmlHNCm0PGKuAGSHedd8dD/J+O/iA9yP2AJLzHGtUp5pMk1Va72YNJUB2LcaDCIxE9uiKgkgQDT
+        rEwi/yaKSzf81FAAPQ6lut44qdL0ZgEP7Hr3JRp75mPNnVO0/KjLCAzM7is3xEHLBKObY3JIOwFgV
+        QImVjjf6GWYpCXf0OtpnXZwIqNWzKYN80NC1nYz0Ja7SFd7ALr+6qs8m7FN64cxGVhyUBfZHYeLTP
+        9Jdvc6Vg==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kg5Z9-0007Q4-NN; Fri, 20 Nov 2020 12:31:03 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 3F2DD3012DC;
+        Fri, 20 Nov 2020 13:31:01 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 2844B25F09B24; Fri, 20 Nov 2020 13:31:01 +0100 (CET)
+Date:   Fri, 20 Nov 2020 13:31:01 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc:     DRI Development <dri-devel@lists.freedesktop.org>,
+        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+        linux-mm@kvack.org, linux-xfs@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Dave Chinner <david@fromorbit.com>, Qian Cai <cai@lca.pw>,
+        Thomas =?iso-8859-1?Q?Hellstr=F6m?= <thomas_os@shipmail.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>
+Subject: Re: [PATCH 3/3] locking/selftests: Add testcases for fs_reclaim
+Message-ID: <20201120123101.GH3021@hirez.programming.kicks-ass.net>
+References: <20201120095445.1195585-1-daniel.vetter@ffwll.ch>
+ <20201120095445.1195585-4-daniel.vetter@ffwll.ch>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201120095445.1195585-4-daniel.vetter@ffwll.ch>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Stash is a mechanism that uses the core information carried by the ARM AXI
-bus to access the L3 cache. The CPU and I/O subsystems can access the L3
-cache consistently by enabling stash, so the performance can be improved.
+On Fri, Nov 20, 2020 at 10:54:44AM +0100, Daniel Vetter wrote:
+> Since I butchered this I figured better to make sure we have testcases
+> for this now. Since we only have a locking context for __GFP_FS that's
+> the only thing we're testing right now.
+> 
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: Dave Chinner <david@fromorbit.com>
+> Cc: Qian Cai <cai@lca.pw>
+> Cc: linux-xfs@vger.kernel.org
+> Cc: Thomas Hellström (Intel) <thomas_os@shipmail.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Jason Gunthorpe <jgg@mellanox.com>
+> Cc: linux-mm@kvack.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+> Cc: Christian König <christian.koenig@amd.com>
+> Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Will Deacon <will@kernel.org>
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  lib/locking-selftest.c | 47 ++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 47 insertions(+)
 
-Changes since v2:
-- Replace hr_reg_set() with hr_reg_enable(), which supports to set a single
-  bit.
-link: https://patchwork.kernel.org/project/linux-rdma/cover/1605527919-48769-1-git-send-email-liweihang@huawei.com/
+I have a few changes pending for this file, I don't think the conflicts
+will be bad, but..
 
-Changes since v1:
-- Fix comments from Jason about the unused macros.
-- Rewrite hr_reg_set() to make it easier for driver to define and set a
-  field.
-link: https://patchwork.kernel.org/project/linux-rdma/cover/1601458452-55263-1-git-send-email-liweihang@huawei.com/
+In any case:
 
-Lang Cheng (2):
-  RDMA/hns: Add support for CQ stash
-  RDMA/hns: Add support for QP stash
-
- drivers/infiniband/hw/hns/hns_roce_common.h | 10 +++++++
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  9 +++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 41 ++++++++++++++++++-----------
- 4 files changed, 45 insertions(+), 16 deletions(-)
-
--- 
-2.8.1
-
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
