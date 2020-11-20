@@ -8,34 +8,33 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B1A6C71155
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B472FC83012
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 216A72240C
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71EE12408E
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="Chjj3hXq"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="EBbGZowa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728600AbgKTXEL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Nov 2020 18:04:11 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:1185 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728557AbgKTXEK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:10 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb84b5f0001>; Fri, 20 Nov 2020 15:03:59 -0800
+        id S1726739AbgKTXEG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Nov 2020 18:04:06 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12659 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727367AbgKTXEF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:05 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fb84b690002>; Fri, 20 Nov 2020 15:04:09 -0800
 Received: from sx1.mtl.com (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 20 Nov
- 2020 23:04:01 +0000
+ 2020 23:03:59 +0000
 From:   Saeed Mahameed <saeedm@nvidia.com>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@mellanox.com>
 CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Yishai Hadas <yishaih@nvidia.com>,
         Parav Pandit <parav@nvidia.com>
-Subject: [PATCH mlx5-next 10/16] net/mlx5: Expose other function ifc bits
-Date:   Fri, 20 Nov 2020 15:03:33 -0800
-Message-ID: <20201120230339.651609-11-saeedm@nvidia.com>
+Subject: [PATCH mlx5-next 06/16] net/mlx5: Avoid exposing driver internal command helpers
+Date:   Fri, 20 Nov 2020 15:03:29 -0800
+Message-ID: <20201120230339.651609-7-saeedm@nvidia.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201120230339.651609-1-saeedm@nvidia.com>
 References: <20201120230339.651609-1-saeedm@nvidia.com>
@@ -46,63 +45,90 @@ X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605913439; bh=L5wQxV4HrSLh4QxQn9oBdIRroggeioHKAWIUpUh1xPc=;
+        t=1605913449; bh=yc/5TXOvPWPrPN0DnVMdQ2jQoOJIp4xmeY34kecALGE=;
         h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
          References:MIME-Version:Content-Transfer-Encoding:Content-Type:
          X-Originating-IP:X-ClientProxiedBy;
-        b=Chjj3hXqEj8sFYPLjUkddjS+cPZpnujYxxPH0it3amYNj8bfeyZgVgvjj9cZHocQW
-         hRb0V6luXWKuyk/ZJzyGRruK6MnZO+S/8h6ta+KczQbJO6KFZ0Wej5MY7vzM2pXDCr
-         +Y20FuPGH69JG36HLxP+wj9yTNNQBQzqf7eZOBnYRRxsXq2EvVA1l0DiRyWasPWLma
-         rCSG0Ds8nCkW+iHYZIi96HGRfacwhk6FSKoX5HKyckI06ujt1uWfuAZH78hflopOHE
-         NJAKabaVUIZJJsQYsP0brMSzTmBeyaMb9r+twJC7so2bYP/s59TRHT/2mVbfGrzMA4
-         D8kAi8g14v6hQ==
+        b=EBbGZowa+xCBPSWRjGrDCFqoZhVOS13eYdKZ+r7v9halG70ciFETVcFtox080wfrj
+         ywCrTaZuAEGiOAbt6lrMfbuWnQO3QjGkEgOFRQQk3+fdyqf2cC5956isB1DybXnzfY
+         uP1VRpmqfnUktX7LnWsSErAueF+moCg+mmbB5Cj29jxSmV6YQm1EBWv8t2s4pLnOyN
+         PSmRN8Cc3L0+xywEOT7O6rPJrrEs9EKv19PoaYY+tqDvOQvmP/jWS+mM5BD8TiBEDC
+         eRXvvOzi+dXZC7fN6GTpNrzIrqnhzfk9C/RmUQHDXP2JlNcKd34Uby7mRXCxwYcZof
+         jneFOgaFTCOBw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@nvidia.com>
+From: Parav Pandit <parav@nvidia.com>
 
-Expose other function ifc bits to enable setting HCA caps on behalf of
-other function.
+mlx5 command init and cleanup routines are internal to mlx5_core driver.
+Hence, avoid exporting them and move their definition to mlx5_core
+driver's internal file mlx5_core.h
 
-In addition, expose vhca_resource_manager bit to control whether the
-other function functionality is supported by firmware.
-
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Reviewed-by: Parav Pandit <parav@nvidia.com>
+Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c       | 3 ---
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 4 ++++
+ include/linux/mlx5/driver.h                         | 4 ----
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 96888f9f822d..3e337386faa8 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1249,7 +1249,8 @@ enum mlx5_fc_bulk_alloc_bitmask {
- #define MLX5_FC_BULK_NUM_FCS(fc_enum) (MLX5_FC_BULK_SIZE_FACTOR * (fc_enum=
-))
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/et=
+hernet/mellanox/mlx5/core/cmd.c
+index e49387dbef98..50c7b9ee80c3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -2142,7 +2142,6 @@ int mlx5_cmd_init(struct mlx5_core_dev *dev)
+ 	kvfree(cmd->stats);
+ 	return err;
+ }
+-EXPORT_SYMBOL(mlx5_cmd_init);
 =20
- struct mlx5_ifc_cmd_hca_cap_bits {
--	u8         reserved_at_0[0x20];
-+	u8         reserved_at_0[0x1f];
-+	u8         vhca_resource_manager[0x1];
+ void mlx5_cmd_cleanup(struct mlx5_core_dev *dev)
+ {
+@@ -2155,11 +2154,9 @@ void mlx5_cmd_cleanup(struct mlx5_core_dev *dev)
+ 	dma_pool_destroy(cmd->pool);
+ 	kvfree(cmd->stats);
+ }
+-EXPORT_SYMBOL(mlx5_cmd_cleanup);
 =20
- 	u8         reserved_at_20[0x3];
- 	u8         event_on_vhca_state_teardown_request[0x1];
-@@ -4247,7 +4248,11 @@ struct mlx5_ifc_set_hca_cap_in_bits {
- 	u8         reserved_at_20[0x10];
- 	u8         op_mod[0x10];
+ void mlx5_cmd_set_state(struct mlx5_core_dev *dev,
+ 			enum mlx5_cmdif_state cmdif_state)
+ {
+ 	dev->cmd.state =3D cmdif_state;
+ }
+-EXPORT_SYMBOL(mlx5_cmd_set_state);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/=
+net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index 8cec85ab419d..9d00efa9e6bc 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -122,6 +122,10 @@ enum mlx5_semaphore_space_address {
 =20
--	u8         reserved_at_40[0x40];
-+	u8         other_function[0x1];
-+	u8         reserved_at_41[0xf];
-+	u8         function_id[0x10];
-+
-+	u8         reserved_at_60[0x20];
-=20
- 	union mlx5_ifc_hca_cap_union_bits capability;
+ int mlx5_query_hca_caps(struct mlx5_core_dev *dev);
+ int mlx5_query_board_id(struct mlx5_core_dev *dev);
++int mlx5_cmd_init(struct mlx5_core_dev *dev);
++void mlx5_cmd_cleanup(struct mlx5_core_dev *dev);
++void mlx5_cmd_set_state(struct mlx5_core_dev *dev,
++			enum mlx5_cmdif_state cmdif_state);
+ int mlx5_cmd_init_hca(struct mlx5_core_dev *dev, uint32_t *sw_owner_id);
+ int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev);
+ int mlx5_cmd_force_teardown_hca(struct mlx5_core_dev *dev);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index add85094f9a5..5e84b1d53650 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -888,10 +888,6 @@ enum {
+ 	CMD_ALLOWED_OPCODE_ALL,
  };
+=20
+-int mlx5_cmd_init(struct mlx5_core_dev *dev);
+-void mlx5_cmd_cleanup(struct mlx5_core_dev *dev);
+-void mlx5_cmd_set_state(struct mlx5_core_dev *dev,
+-			enum mlx5_cmdif_state cmdif_state);
+ void mlx5_cmd_use_events(struct mlx5_core_dev *dev);
+ void mlx5_cmd_use_polling(struct mlx5_core_dev *dev);
+ void mlx5_cmd_allowed_opcode(struct mlx5_core_dev *dev, u16 opcode);
 --=20
 2.26.2
 
