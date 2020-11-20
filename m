@@ -2,38 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1E2C64E75
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 678B8C64E7B
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DF5F2416E
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2642824101
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 23:04:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="UH3I+cp2"
+	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="FDgm3yd0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728403AbgKTXEG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Nov 2020 18:04:06 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12657 "EHLO
+        id S1729052AbgKTXEb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Nov 2020 18:04:31 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:12666 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726255AbgKTXEF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:05 -0500
+        with ESMTP id S1728360AbgKTXEG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 18:04:06 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fb84b690000>; Fri, 20 Nov 2020 15:04:09 -0800
+        id <B5fb84b690006>; Fri, 20 Nov 2020 15:04:09 -0800
 Received: from sx1.mtl.com (172.20.13.39) by HQMAIL107.nvidia.com
  (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 20 Nov
- 2020 23:03:55 +0000
+ 2020 23:03:57 +0000
 From:   Saeed Mahameed <saeedm@nvidia.com>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@mellanox.com>
-CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
-Subject: [PATCH mlx5-next 00/16] mlx5 next updates 2020-11-20
-Date:   Fri, 20 Nov 2020 15:03:23 -0800
-Message-ID: <20201120230339.651609-1-saeedm@nvidia.com>
+CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        Muhammad Sammar <muhammads@nvidia.com>,
+        Alex Vesker <valex@nvidia.com>, Mark Bloch <mbloch@nvidia.com>
+Subject: [PATCH mlx5-next 03/16] net/mlx5: Check dr mask size against mlx5_match_param size
+Date:   Fri, 20 Nov 2020 15:03:26 -0800
+Message-ID: <20201120230339.651609-4-saeedm@nvidia.com>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201120230339.651609-1-saeedm@nvidia.com>
+References: <20201120230339.651609-1-saeedm@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
@@ -41,94 +45,79 @@ X-Originating-IP: [172.20.13.39]
 X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
  HQMAIL107.nvidia.com (172.20.187.13)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1605913449; bh=QxGRq9NZHuKs8nUtKjXeDD29HIQlu20aNKFp8YeH+H0=;
-        h=From:To:CC:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-         Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-         X-ClientProxiedBy;
-        b=UH3I+cp2oasLap9VmRNM47S0EE9CEUe/7DjYtZTQ+BoCp4lz2pmpKMJUKdt6CjWWX
-         zy7DSfMesUqZprp9XMLHIsxhUE7/TwUlrDmDFpDTxhHzIVfl6kUec70T0l4fmwWf83
-         i08VIa30nVyJrNgjD7p+rWYxEf2wsHhTjztYUv8/Yt3xZCGZe64FVzERFjzU/TrPMa
-         x6Q9/+dTIGW+smyEGf3o6kSPEp7JeuwM6bsC+T+Tc7TnKsko2JnJAjMa+Ly5TQEP/J
-         b34oo6YlmjGUVOYXFhl+wBNOiTm7xGmY9gXrhk6soc9zDAJdpN3TCVga36+tdKoYxz
-         Dt0EvOcwaNgOw==
+        t=1605913450; bh=yLKPGy4CVZOt8m4iHf1ZN0MUSg/Z3q23njyQrd10gYY=;
+        h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
+         References:MIME-Version:Content-Transfer-Encoding:Content-Type:
+         X-Originating-IP:X-ClientProxiedBy;
+        b=FDgm3yd0xGx2I3yKKLIoCKYBqBfWyKGRfjT3DVm3okrsDhphHwlzFjsqql8YyAHiz
+         k8NwBjv7Ko1xwAnNYepct40Uxy5SUmbmzJuMnI4qf7/YsLjqVBI4I7Z0u6fXmMp0f5
+         3Ri8+wrqaOjICajlEfIPLswBkyfa1bg4xBppeL24OdMaBzGlTh5LunAI5kDp+hWDif
+         p6j0b8GxZyLbwa2l5LZPpw0rVgQH2AvAHzcgJvQdaJiq7xUI4ljT6CduSqvwFIqku2
+         k+qh30IGNhhtfMzGVq731C4TyBPLdOi/6dm/uIvmTsmiNvkyxFy2iefPxISWMFD4QX
+         jdIR2UBYqlpWA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+From: Muhammad Sammar <muhammads@nvidia.com>
 
-This series includes trivial updates to mlx5 next branch
-1) HW definition for upcoming features
-2) Include files and general Cleanups
-3) Add the upcoming BlueField-3 device ID
-4) Define flow steering priority for VDPA
-5) Export missing steering API for ULPs,
-   will be used later in VDPA driver, to create flow steering domain for
-   VDPA queues.
-6) ECPF (Embedded CPU Physical function) minor improvements for BlueField.
+This is to allow passing misc4 match param from userspace when
+function like ib_flow_matcher_create is called.
 
-In case of no objection this series will be applied to mlx5-next, and sent
-as a pull request to both net-next and rdma-next trees.
-
-Thanks,
-Saeed.
-
+Signed-off-by: Muhammad Sammar <muhammads@nvidia.com>
+Reviewed-by: Alex Vesker <valex@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c    | 3 +--
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h   | 1 +
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Aya Levin (1):
-  net/mlx5: Expose IP-in-IP TX and RX capability bits
-
-Chris Mi (2):
-  net/mlx5: Add sample offload hardware bits and structures
-  net/mlx5: Add sampler destination type
-
-Eli Cohen (2):
-  net/mlx5: Add VDPA priority to NIC RX namespace
-  net/mlx5: Export steering related functions
-
-Eran Ben Elisha (1):
-  net/mlx5: Add ts_cqe_to_dest_cqn related bits
-
-Meir Lichtinger (1):
-  net/mlx5: Update the list of the PCI supported devices
-
-Muhammad Sammar (2):
-  net/mlx5: Check dr mask size against mlx5_match_param size
-  net/mlx5: Add misc4 to mlx5_ifc_fte_match_param_bits
-
-Parav Pandit (6):
-  net/mlx5: Avoid exposing driver internal command helpers
-  net/mlx5: Update the hardware interface definition for vhca state
-  net/mlx5: Make API mlx5_core_is_ecpf accept const pointer
-  net/mlx5: Rename peer_pf to host_pf
-  net/mlx5: Enable host PF HCA after eswitch is initialized
-  net/mlx5: Treat host PF vport as other (non eswitch manager) vport
-
-Yishai Hadas (1):
-  net/mlx5: Expose other function ifc bits
-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  3 -
- .../mellanox/mlx5/core/diag/fs_tracepoint.c   |  3 +
- .../net/ethernet/mellanox/mlx5/core/ecpf.c    | 76 ++++++++++-----
- .../net/ethernet/mellanox/mlx5/core/ecpf.h    |  3 +
- .../mellanox/mlx5/core/esw/acl/helper.c       |  5 +-
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 29 +++++-
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  | 57 ++++++-----
- .../net/ethernet/mellanox/mlx5/core/fs_core.c | 27 +++---
- .../net/ethernet/mellanox/mlx5/core/fs_core.h |  2 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    | 19 ++--
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  4 +
- .../ethernet/mellanox/mlx5/core/pagealloc.c   | 12 +--
- .../mellanox/mlx5/core/steering/dr_matcher.c  |  2 +-
- .../mellanox/mlx5/core/steering/dr_rule.c     |  3 +-
- .../mellanox/mlx5/core/steering/dr_types.h    |  1 +
- include/linux/mlx5/device.h                   |  8 ++
- include/linux/mlx5/driver.h                   |  8 +-
- include/linux/mlx5/fs.h                       |  7 +-
- include/linux/mlx5/mlx5_ifc.h                 | 94 +++++++++++++++++--
- include/uapi/rdma/mlx5_user_ioctl_cmds.h      |  2 +-
- 20 files changed, 260 insertions(+), 105 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c =
+b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c
+index 7df883686d46..1b3b2acd45c5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_matcher.c
+@@ -630,7 +630,7 @@ static int dr_matcher_init(struct mlx5dr_matcher *match=
+er,
+ 	}
+=20
+ 	if (mask) {
+-		if (mask->match_sz > sizeof(struct mlx5dr_match_param)) {
++		if (mask->match_sz > DR_SZ_MATCH_PARAM) {
+ 			mlx5dr_err(dmn, "Invalid match size attribute\n");
+ 			return -EINVAL;
+ 		}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c b/d=
+rivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
+index b3c9dc032026..6d73719db1f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
+@@ -874,8 +874,7 @@ static bool dr_rule_verify(struct mlx5dr_matcher *match=
+er,
+ 	u32 s_idx, e_idx;
+=20
+ 	if (!value_size ||
+-	    (value_size > sizeof(struct mlx5dr_match_param) ||
+-	     (value_size % sizeof(u32)))) {
++	    (value_size > DR_SZ_MATCH_PARAM || (value_size % sizeof(u32)))) {
+ 		mlx5dr_err(matcher->tbl->dmn, "Rule parameters length is incorrect\n");
+ 		return false;
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h b/=
+drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
+index f50f3b107aa3..937f469ec678 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
+@@ -17,6 +17,7 @@
+ #define WIRE_PORT 0xFFFF
+ #define DR_STE_SVLAN 0x1
+ #define DR_STE_CVLAN 0x2
++#define DR_SZ_MATCH_PARAM (MLX5_ST_SZ_DW_MATCH_PARAM * 4)
+=20
+ #define mlx5dr_err(dmn, arg...) mlx5_core_err((dmn)->mdev, ##arg)
+ #define mlx5dr_info(dmn, arg...) mlx5_core_info((dmn)->mdev, ##arg)
 --=20
 2.26.2
 
