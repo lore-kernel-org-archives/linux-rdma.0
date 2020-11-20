@@ -2,184 +2,90 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7DDEC64EBC
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 09:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 263AAC5519F
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 10:19:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9044F2240C
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 09:56:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="abxl7E4w"
+	by mail.kernel.org (Postfix) with ESMTP id C62962240C
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Nov 2020 10:19:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727767AbgKTJ4d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 20 Nov 2020 04:56:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46078 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727182AbgKTJ4Q (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 04:56:16 -0500
-Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com [IPv6:2a00:1450:4864:20::443])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7D2BC061A04
-        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2020 01:56:15 -0800 (PST)
-Received: by mail-wr1-x443.google.com with SMTP id b6so9410693wrt.4
-        for <linux-rdma@vger.kernel.org>; Fri, 20 Nov 2020 01:56:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ODWIjSITGhibxiu5sdcf8aVMrj4QUXzG8FJI3RynFGM=;
-        b=abxl7E4wo7jZpAfTzuunphaH5vlt/naI7HAiWaSpvixjFnf4sVbia8Q3BJ+dVpIqSd
-         rzyCZR6pVpoX67iLtk7QN881pKiYydMCbW2tIIk5Y0QHWn5wBSS/BB//JgXsoKgg8fVg
-         rRtlAoYdJtnHk5e8fU/kzRg05Ih+mmmH1kzj4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ODWIjSITGhibxiu5sdcf8aVMrj4QUXzG8FJI3RynFGM=;
-        b=nwcAHWT2zHH51Z/WFOS/m4NZ0wJpFqPSO51BSKSjeA9+JNnunCvxxvdnI18ttCaDEm
-         X29hOFhTHRtIcb6dACSjUmbfq7GcRgA3YXKSsJNGbwjyYGTTMnGo+kKHX4XHAaCUZbJi
-         SjlbeSPrR9ILu/FGMJz5t1ZA2JhI1Qc/+21sE40PkSVMLgtFr9Ocy5K9ldLhmuGvTuOn
-         mae/oVFnZ7MQXBsSb3Fin+aWM12DMzR0NC8Dc8IZJmeBtq0OeJxdfAN89oDhfu/J3M6N
-         DpZFEiYa7nBPuF98hFiozcQ++Q4gZkwZONlOaBL/nsXykmcKcElnYGVHj+gIcb78WgfG
-         C+lg==
-X-Gm-Message-State: AOAM531aVjQT+Bu5oHHMeFUPAVAoeX1hx1ztmbE9EiFKu/ZAf2oJOd43
-        qqaq/IKs3o/Jh03KIwtpHHBJTQ==
-X-Google-Smtp-Source: ABdhPJxJ2UyLnfvFIWnVmPKRqax6sfQkCZohfTD1sEUpZkqrYbW1bkqO7INNhAf+GB4nJI4JFKC4Ow==
-X-Received: by 2002:a5d:4d87:: with SMTP id b7mr15742781wru.115.1605866174422;
-        Fri, 20 Nov 2020 01:56:14 -0800 (PST)
-Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
-        by smtp.gmail.com with ESMTPSA id t9sm4500208wrr.49.2020.11.20.01.56.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Nov 2020 01:56:13 -0800 (PST)
-From:   Daniel Vetter <daniel.vetter@ffwll.ch>
-To:     DRI Development <dri-devel@lists.freedesktop.org>
-Cc:     Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        linux-mm@kvack.org, linux-xfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Dave Chinner <david@fromorbit.com>, Qian Cai <cai@lca.pw>,
-        =?UTF-8?q?Thomas=20Hellstr=C3=B6m?= <thomas_os@shipmail.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>
-Subject: [PATCH 3/3] locking/selftests: Add testcases for fs_reclaim
-Date:   Fri, 20 Nov 2020 10:54:44 +0100
-Message-Id: <20201120095445.1195585-4-daniel.vetter@ffwll.ch>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201120095445.1195585-1-daniel.vetter@ffwll.ch>
-References: <20201120095445.1195585-1-daniel.vetter@ffwll.ch>
+        id S1727063AbgKTKTJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 Nov 2020 05:19:09 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:7662 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726335AbgKTKTI (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 Nov 2020 05:19:08 -0500
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Ccsvq3ltKz15MVG;
+        Fri, 20 Nov 2020 18:18:47 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 20 Nov 2020 18:18:57 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v3 for-next 2/2] RDMA/hns: Add support for QP stash
+Date:   Fri, 20 Nov 2020 18:17:20 +0800
+Message-ID: <1605867440-2413-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1605867440-2413-1-git-send-email-liweihang@huawei.com>
+References: <1605867440-2413-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Since I butchered this I figured better to make sure we have testcases
-for this now. Since we only have a locking context for __GFP_FS that's
-the only thing we're testing right now.
+From: Lang Cheng <chenglang@huawei.com>
 
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: linux-xfs@vger.kernel.org
-Cc: Thomas Hellström (Intel) <thomas_os@shipmail.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-mm@kvack.org
-Cc: linux-rdma@vger.kernel.org
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: linux-kernel@vger.kernel.org
+Stash is a mechanism that uses the core information carried by the ARM AXI
+bus to access the L3 cache. It can be used to improve the performance by
+increasing the hit ratio of L3 cache. QPs need to enable stash by default.
+
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- lib/locking-selftest.c | 47 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 ++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
-index a899b3f0e2e5..ad47c3358e30 100644
---- a/lib/locking-selftest.c
-+++ b/lib/locking-selftest.c
-@@ -15,6 +15,7 @@
- #include <linux/mutex.h>
- #include <linux/ww_mutex.h>
- #include <linux/sched.h>
-+#include <linux/sched/mm.h>
- #include <linux/delay.h>
- #include <linux/lockdep.h>
- #include <linux/spinlock.h>
-@@ -2357,6 +2358,50 @@ static void queued_read_lock_tests(void)
- 	pr_cont("\n");
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index da7f909..00c67d6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3986,6 +3986,12 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+ 	hr_qp->access_flags = attr->qp_access_flags;
+ 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
+ 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
++
++	if (hr_dev->caps.qpc_sz < HNS_ROCE_V3_QPC_SZ)
++		return;
++
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_STASH)
++		hr_reg_enable(context->ext, QPCEX_STASH);
  }
  
-+static void fs_reclaim_correct_nesting(void)
-+{
-+	fs_reclaim_acquire(GFP_KERNEL);
-+	might_alloc(GFP_NOFS);
-+	fs_reclaim_release(GFP_KERNEL);
-+}
-+
-+static void fs_reclaim_wrong_nesting(void)
-+{
-+	fs_reclaim_acquire(GFP_KERNEL);
-+	might_alloc(GFP_KERNEL);
-+	fs_reclaim_release(GFP_KERNEL);
-+}
-+
-+static void fs_reclaim_protected_nesting(void)
-+{
-+	unsigned int flags;
-+
-+	fs_reclaim_acquire(GFP_KERNEL);
-+	flags = memalloc_nofs_save();
-+	might_alloc(GFP_KERNEL);
-+	memalloc_nofs_restore(flags);
-+	fs_reclaim_release(GFP_KERNEL);
-+}
-+
-+static void fs_reclaim_tests(void)
-+{
-+	printk("  --------------------\n");
-+	printk("  | fs_reclaim tests |\n");
-+	printk("  --------------------\n");
-+
-+	print_testname("correct nesting");
-+	dotest(fs_reclaim_correct_nesting, SUCCESS, 0);
-+	pr_cont("\n");
-+
-+	print_testname("wrong nesting");
-+	dotest(fs_reclaim_wrong_nesting, FAILURE, 0);
-+	pr_cont("\n");
-+
-+	print_testname("protected nesting");
-+	dotest(fs_reclaim_protected_nesting, SUCCESS, 0);
-+	pr_cont("\n");
-+}
-+
- void locking_selftest(void)
- {
- 	/*
-@@ -2478,6 +2523,8 @@ void locking_selftest(void)
- 	if (IS_ENABLED(CONFIG_QUEUED_RWLOCKS))
- 		queued_read_lock_tests();
+ static void modify_qp_init_to_init(struct ib_qp *ibqp,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 50a5187..4679afb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -898,6 +898,8 @@ struct hns_roce_v2_qp_context {
+ #define	V2_QPC_BYTE_256_SQ_FLUSH_IDX_S 16
+ #define V2_QPC_BYTE_256_SQ_FLUSH_IDX_M GENMASK(31, 16)
  
-+	fs_reclaim_tests();
++#define QPCEX_STASH FIELD_LOC(82, 82)
 +
- 	if (unexpected_testcase_failures) {
- 		printk("-----------------------------------------------------------------\n");
- 		debug_locks = 0;
+ #define	V2_QP_RWE_S 1 /* rdma write enable */
+ #define	V2_QP_RRE_S 2 /* rdma read enable */
+ #define	V2_QP_ATE_S 3 /* rdma atomic enable */
 -- 
-2.29.2
+2.8.1
 
