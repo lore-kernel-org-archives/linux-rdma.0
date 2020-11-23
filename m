@@ -2,39 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3276EC6379F
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Nov 2020 17:38:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F8EC2D0E4
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Nov 2020 17:39:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEF332072C
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Nov 2020 17:38:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D4BA2072C
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Nov 2020 17:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732939AbgKWRiY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Nov 2020 12:38:24 -0500
-Received: from mga05.intel.com ([192.55.52.43]:24096 "EHLO mga05.intel.com"
+        id S2390278AbgKWRjK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Nov 2020 12:39:10 -0500
+Received: from mga11.intel.com ([192.55.52.93]:51712 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388458AbgKWRiY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 23 Nov 2020 12:38:24 -0500
-IronPort-SDR: +GQrfEvHBUzO8tmDFL/+CBY2Oi4EMNPZLTLP09zbGtQo64H5rvlMP/d+mnscZRxKtAJQnPZXxe
- fv5dbrPEVdFQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9814"; a="256518423"
+        id S2388458AbgKWRjJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Nov 2020 12:39:09 -0500
+IronPort-SDR: OGcppsB/leBDezbNrHVcxZ0pnLuqTWSoTbUvKuRSnJJ1MVXHVYTLQWd3t/xi6gIUulx5uaRZVV
+ 0gxHV7LXJ7JQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9814"; a="168301213"
 X-IronPort-AV: E=Sophos;i="5.78,364,1599548400"; 
-   d="scan'208";a="256518423"
+   d="scan'208";a="168301213"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2020 09:38:23 -0800
-IronPort-SDR: U6KCiK0dyNvwnNhrxaUaNGA2EfWGTJx+2YwYsSleKLApTyCzxMUfls57Eme3Zqnj19+3EiBkwQ
- pZadAPsVRRGA==
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2020 09:39:09 -0800
+IronPort-SDR: 2wG7QKoMyGBALxz/acAfvDTXdakVXq3fhePyU7hjISktsLLcaiNJqzPZvOp2t9K67gr6DQNXj8
+ pPbPANBvJVUg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.78,364,1599548400"; 
-   d="scan'208";a="364717883"
+   d="scan'208";a="361525786"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by fmsmga002.fm.intel.com with ESMTP; 23 Nov 2020 09:38:22 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 23 Nov 2020 09:39:09 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
 To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
@@ -44,214 +44,55 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Christian Koenig <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH v11 3/4] RDMA/uverbs: Add uverbs command for dma-buf based MR registration
-Date:   Mon, 23 Nov 2020 09:51:58 -0800
-Message-Id: <1606153919-104513-4-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core 0/5] Add user space dma-buf support
+Date:   Mon, 23 Nov 2020 09:52:59 -0800
+Message-Id: <1606153984-104583-1-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1606153919-104513-1-git-send-email-jianxin.xiong@intel.com>
-References: <1606153919-104513-1-git-send-email-jianxin.xiong@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement a new uverbs ioctl method for memory registration with file
-descriptor as an extra parameter.
+This is the user space counter-part of the kernel patch set to add
+dma-buf support to the RDMA subsystem. This patch series adds user
+space API for registering dma-buf based memory regions, updates
+pyverbs with the new API, and adds new tests.
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-Reviewed-by: Sean Hefty <sean.hefty@intel.com>
-Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Acked-by: Christian Koenig <christian.koenig@amd.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/infiniband/core/uverbs_std_types_mr.c | 114 +++++++++++++++++++++++++-
- include/uapi/rdma/ib_user_ioctl_cmds.h        |  14 ++++
- 2 files changed, 126 insertions(+), 2 deletions(-)
+This series consists of five patches. The first patch adds the new API
+function and updates the man pages. Patch 2 implements the new API in
+the mlx5 provider. Patch 3 adds new class definitions to pyverbs for
+the new API. Patch 4 adds new tests for the new API. Patch 5 fixes bug
+in the utility code of the tests.
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index 9b22bb5..e9028ea 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-+ * Copyright (c) 2020, Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -178,6 +179,83 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- 	return IS_UVERBS_COPY_ERR(ret) ? ret : 0;
- }
- 
-+static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uobject *uobj =
-+		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
-+	struct ib_pd *pd =
-+		uverbs_attr_get_obj(attrs, UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE);
-+	struct ib_device *ib_dev = pd->device;
-+
-+	u64 offset, length, virt_addr;
-+	u32 fd, access_flags;
-+	struct ib_mr *mr;
-+	int ret;
-+
-+	if (!ib_dev->ops.reg_user_mr_dmabuf)
-+		return -EOPNOTSUPP;
-+
-+	ret = uverbs_copy_from(&offset, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_OFFSET);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&length, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_LENGTH);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&virt_addr, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_IOVA);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_from(&fd, attrs,
-+			       UVERBS_ATTR_REG_DMABUF_MR_FD);
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_get_flags32(&access_flags, attrs,
-+				 UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+				 IB_ACCESS_LOCAL_WRITE |
-+				 IB_ACCESS_REMOTE_READ |
-+				 IB_ACCESS_REMOTE_WRITE |
-+				 IB_ACCESS_REMOTE_ATOMIC |
-+				 IB_ACCESS_RELAXED_ORDERING);
-+	if (ret)
-+		return ret;
-+
-+	ret = ib_check_mr_access(access_flags);
-+	if (ret)
-+		return ret;
-+
-+	mr = pd->device->ops.reg_user_mr_dmabuf(pd, offset, length, virt_addr,
-+						fd, access_flags,
-+						&attrs->driver_udata);
-+	if (IS_ERR(mr))
-+		return PTR_ERR(mr);
-+
-+	mr->device = pd->device;
-+	mr->pd = pd;
-+	mr->type = IB_MR_TYPE_USER;
-+	mr->uobject = uobj;
-+	atomic_inc(&pd->usecnt);
-+
-+	uobj->object = mr;
-+
-+	uverbs_finalize_uobj_create(attrs, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+			     &mr->lkey, sizeof(mr->lkey));
-+	if (ret)
-+		return ret;
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+			     &mr->rkey, sizeof(mr->rkey));
-+	return ret;
-+}
-+
- DECLARE_UVERBS_NAMED_METHOD(
- 	UVERBS_METHOD_ADVISE_MR,
- 	UVERBS_ATTR_IDR(UVERBS_ATTR_ADVISE_MR_PD_HANDLE,
-@@ -243,6 +321,37 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- 			    UVERBS_ATTR_TYPE(u32),
- 			    UA_MANDATORY));
- 
-+DECLARE_UVERBS_NAMED_METHOD(
-+	UVERBS_METHOD_REG_DMABUF_MR,
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
-+			UVERBS_OBJECT_MR,
-+			UVERBS_ACCESS_NEW,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_IDR(UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE,
-+			UVERBS_OBJECT_PD,
-+			UVERBS_ACCESS_READ,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_OFFSET,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_LENGTH,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_IOVA,
-+			   UVERBS_ATTR_TYPE(u64),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_REG_DMABUF_MR_FD,
-+			   UVERBS_ATTR_TYPE(u32),
-+			   UA_MANDATORY),
-+	UVERBS_ATTR_FLAGS_IN(UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+			     enum ib_access_flags),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+			    UVERBS_ATTR_TYPE(u32),
-+			    UA_MANDATORY));
-+
- DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 	UVERBS_METHOD_MR_DESTROY,
- 	UVERBS_ATTR_IDR(UVERBS_ATTR_DESTROY_MR_HANDLE,
-@@ -253,10 +362,11 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QUERY_MR)(
- DECLARE_UVERBS_NAMED_OBJECT(
- 	UVERBS_OBJECT_MR,
- 	UVERBS_TYPE_ALLOC_IDR(uverbs_free_mr),
-+	&UVERBS_METHOD(UVERBS_METHOD_ADVISE_MR),
- 	&UVERBS_METHOD(UVERBS_METHOD_DM_MR_REG),
- 	&UVERBS_METHOD(UVERBS_METHOD_MR_DESTROY),
--	&UVERBS_METHOD(UVERBS_METHOD_ADVISE_MR),
--	&UVERBS_METHOD(UVERBS_METHOD_QUERY_MR));
-+	&UVERBS_METHOD(UVERBS_METHOD_QUERY_MR),
-+	&UVERBS_METHOD(UVERBS_METHOD_REG_DMABUF_MR));
- 
- const struct uapi_definition uverbs_def_obj_mr[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(UVERBS_OBJECT_MR,
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index 7968a18..dafc7eb 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-+ * Copyright (c) 2020, Intel Corporation. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -251,6 +252,7 @@ enum uverbs_methods_mr {
- 	UVERBS_METHOD_MR_DESTROY,
- 	UVERBS_METHOD_ADVISE_MR,
- 	UVERBS_METHOD_QUERY_MR,
-+	UVERBS_METHOD_REG_DMABUF_MR,
- };
- 
- enum uverbs_attrs_mr_destroy_ids {
-@@ -272,6 +274,18 @@ enum uverbs_attrs_query_mr_cmd_attr_ids {
- 	UVERBS_ATTR_QUERY_MR_RESP_IOVA,
- };
- 
-+enum uverbs_attrs_reg_dmabuf_mr_cmd_attr_ids {
-+	UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
-+	UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE,
-+	UVERBS_ATTR_REG_DMABUF_MR_OFFSET,
-+	UVERBS_ATTR_REG_DMABUF_MR_LENGTH,
-+	UVERBS_ATTR_REG_DMABUF_MR_IOVA,
-+	UVERBS_ATTR_REG_DMABUF_MR_FD,
-+	UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
-+	UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY,
-+	UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY,
-+};
-+
- enum uverbs_attrs_create_counters_cmd_attr_ids {
- 	UVERBS_ATTR_CREATE_COUNTERS_HANDLE,
- };
+Jianxin Xiong (5):
+  verbs: Support dma-buf based memory region
+  mlx5: Support dma-buf based memory region
+  pyverbs: Add dma-buf based MR support
+  tests: Add tests for dma-buf based memory regions
+  tests: Bug fix for get_access_flags()
+
+ kernel-headers/rdma/ib_user_ioctl_cmds.h |  14 ++++
+ libibverbs/cmd_mr.c                      |  38 +++++++++
+ libibverbs/driver.h                      |   7 ++
+ libibverbs/dummy_ops.c                   |  11 +++
+ libibverbs/libibverbs.map.in             |   6 ++
+ libibverbs/man/ibv_reg_mr.3              |  21 ++++-
+ libibverbs/verbs.c                       |  19 +++++
+ libibverbs/verbs.h                       |  10 +++
+ providers/mlx5/mlx5.c                    |   2 +
+ providers/mlx5/mlx5.h                    |   3 +
+ providers/mlx5/verbs.c                   |  23 ++++++
+ pyverbs/CMakeLists.txt                   |   2 +
+ pyverbs/dmabuf.pxd                       |  13 ++++
+ pyverbs/dmabuf.pyx                       |  58 ++++++++++++++
+ pyverbs/libibverbs.pxd                   |   2 +
+ pyverbs/mr.pxd                           |   5 ++
+ pyverbs/mr.pyx                           |  77 +++++++++++++++++-
+ tests/test_mr.py                         | 130 ++++++++++++++++++++++++++++++-
+ tests/utils.py                           |  31 +++++++-
+ 19 files changed, 464 insertions(+), 8 deletions(-)
+ create mode 100644 pyverbs/dmabuf.pxd
+ create mode 100644 pyverbs/dmabuf.pyx
+
 -- 
 1.8.3.1
 
