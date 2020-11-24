@@ -2,342 +2,153 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73D13C64E7C
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:25:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A779C64E75
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:26:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53A0520857
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:25:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12189208FE
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:26:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="oKmDT/E0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730408AbgKXVY6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Nov 2020 16:24:58 -0500
-Received: from mga03.intel.com ([134.134.136.65]:3765 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731546AbgKXVY6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Nov 2020 16:24:58 -0500
-IronPort-SDR: sGL6IbD3hJTmuCKrB2b+KSx5R5rzA/iQZUUf5FpQA+mAvmeCzgp6idr2BdsoOoAsggo/kZJ68E
- vLvroU3cFtDQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9815"; a="172117607"
-X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="172117607"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2020 13:24:56 -0800
-IronPort-SDR: JW80gQaFvoMxmoRlKA9rBiCzWr+sR7L9n+DipPQ+dA2HRtTJ0tUbx7C+9sHs1CQgkuqOwAWFze
- Op4R2HXqSyEA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="332701585"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by orsmga006.jf.intel.com with ESMTP; 24 Nov 2020 13:24:56 -0800
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH rdma-core v2 4/6] pyverbs: Add dma-buf based MR support
-Date:   Tue, 24 Nov 2020 13:38:52 -0800
-Message-Id: <1606253934-67181-5-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1606253934-67181-1-git-send-email-jianxin.xiong@intel.com>
-References: <1606253934-67181-1-git-send-email-jianxin.xiong@intel.com>
+        id S1731627AbgKXVZr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Nov 2020 16:25:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51460 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731613AbgKXVZp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Nov 2020 16:25:45 -0500
+Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com [IPv6:2607:f8b0:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 355C2C08E85E
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2020 13:25:44 -0800 (PST)
+Received: by mail-pg1-x544.google.com with SMTP id 34so330831pgp.10
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2020 13:25:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Hc7xHQdcWqcI1RL6yWHK3qM7+D3PcB+9wJ1f+Y4kOZ8=;
+        b=oKmDT/E0BiqfYtxGd9S8VgvaixpTRLnYMRrsUV9kaRuJo3R/5oNlOHAboaJA72rvz5
+         cPy+dYNpKpp/tW1abpWiBH/rmtZxXE/MLGj7m5uMt/n+RU1YTE1Rw6QIxNLzAajuHLbW
+         OV/WWZm28UqOigi5ggHh0BMVZishCwQGNb1Ns=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Hc7xHQdcWqcI1RL6yWHK3qM7+D3PcB+9wJ1f+Y4kOZ8=;
+        b=FvhQ1B60kqpzScmbzd/OUEsuQB4wtqTdApPg6OHgu5ylhfzKYiapezVOYSxBI3/iH+
+         p99/AAvU40FkiTxTrqfQAOM6vm9j7RcNBpIDQvVepFEHstwcIUGpqNZSZY2jmKFEZjMB
+         5rJesVZkk0P93H+3uUsP3GOK4Agy8J4cEMsMbaNCicSA5ChFuYlV22BQXIfzwLNPsHI/
+         Cm1LW21mzNZ2BqnFnO1sSkKWgbPBeYgegKjVQt1fV8qTA1o3Sl8icqOOiRuByT21Opr0
+         GHgJzRC1MrrY3SHX9lSusAT2dyl6KB+iSJt96VfjmUPjQqPY8vU/VTA41MHk2A84t4H7
+         AqMg==
+X-Gm-Message-State: AOAM532+jOKubZHS3GqMG07yxwntPXZoxP79+DcFD0TB+ljpv2Ijm+86
+        walGdX0eEN9PZV5+D0JbhV/JQQ==
+X-Google-Smtp-Source: ABdhPJxsDEVO/Xg3mAfgqSRlRs3zdio+GHjlgjpaUz/oJCQVSbFGge5HhgP1eTMpBX6raLsCCheJTQ==
+X-Received: by 2002:a17:90a:c695:: with SMTP id n21mr214694pjt.86.1606253143481;
+        Tue, 24 Nov 2020 13:25:43 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id l10sm163395pjg.3.2020.11.24.13.25.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Nov 2020 13:25:41 -0800 (PST)
+Date:   Tue, 24 Nov 2020 13:25:40 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     Nick Desaulniers <ndesaulniers@google.com>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, alsa-devel@alsa-project.org,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        bridge@lists.linux-foundation.org, ceph-devel@vger.kernel.org,
+        cluster-devel@redhat.com, coreteam@netfilter.org,
+        devel@driverdev.osuosl.org, dm-devel@redhat.com,
+        drbd-dev@lists.linbit.com,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
+        intel-gfx@lists.freedesktop.org, intel-wired-lan@lists.osuosl.org,
+        keyrings@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-acpi@vger.kernel.org, linux-afs@lists.infradead.org,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-atm-general@lists.sourceforge.net,
+        linux-block@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-cifs@vger.kernel.org,
+        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE" 
+        <linux-crypto@vger.kernel.org>,
+        linux-decnet-user@lists.sourceforge.net,
+        linux-ext4@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-geode@lists.infradead.org, linux-gpio@vger.kernel.org,
+        linux-hams@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-i3c@lists.infradead.org, linux-ide@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-integrity@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        linux-scsi@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, nouveau@lists.freedesktop.org,
+        op-tee@lists.trustedfirmware.org, oss-drivers@netronome.com,
+        patches@opensource.cirrus.com, rds-devel@oss.oracle.com,
+        reiserfs-devel@vger.kernel.org, samba-technical@lists.samba.org,
+        selinux@vger.kernel.org, target-devel@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net,
+        usb-storage@lists.one-eyed-alien.net,
+        virtualization@lists.linux-foundation.org,
+        wcn36xx@lists.infradead.org,
+        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
+        xen-devel@lists.xenproject.org, linux-hardening@vger.kernel.org,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Miguel Ojeda <ojeda@kernel.org>, Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 000/141] Fix fall-through warnings for Clang
+Message-ID: <202011241324.B3439A2@keescook>
+References: <cover.1605896059.git.gustavoars@kernel.org>
+ <20201120105344.4345c14e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011201129.B13FDB3C@keescook>
+ <20201120115142.292999b2@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <202011220816.8B6591A@keescook>
+ <CAKwvOdntVfXj2WRR5n6Kw7BfG7FdKpTeHeh5nPu5AzwVMhOHTg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKwvOdntVfXj2WRR5n6Kw7BfG7FdKpTeHeh5nPu5AzwVMhOHTg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Define a new sub-class of 'MR' that uses dma-buf object for the memory
-region. Define a new class 'DmaBuf' for dma-buf object allocation.
+On Mon, Nov 23, 2020 at 05:32:51PM -0800, Nick Desaulniers wrote:
+> On Sun, Nov 22, 2020 at 8:17 AM Kees Cook <keescook@chromium.org> wrote:
+> >
+> > On Fri, Nov 20, 2020 at 11:51:42AM -0800, Jakub Kicinski wrote:
+> > > If none of the 140 patches here fix a real bug, and there is no change
+> > > to machine code then it sounds to me like a W=2 kind of a warning.
+> >
+> > FWIW, this series has found at least one bug so far:
+> > https://lore.kernel.org/lkml/CAFCwf11izHF=g1mGry1fE5kvFFFrxzhPSM6qKAO8gxSp=Kr_CQ@mail.gmail.com/
+> 
+> So looks like the bulk of these are:
+> switch (x) {
+>   case 0:
+>     ++x;
+>   default:
+>     break;
+> }
+> 
+> I have a patch that fixes those up for clang:
+> https://reviews.llvm.org/D91895
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
----
- pyverbs/CMakeLists.txt |  2 ++
- pyverbs/dmabuf.pxd     | 13 ++++++++
- pyverbs/dmabuf.pyx     | 85 ++++++++++++++++++++++++++++++++++++++++++++++++++
- pyverbs/libibverbs.pxd |  2 ++
- pyverbs/mr.pxd         |  5 +++
- pyverbs/mr.pyx         | 77 +++++++++++++++++++++++++++++++++++++++++++--
- 6 files changed, 182 insertions(+), 2 deletions(-)
- create mode 100644 pyverbs/dmabuf.pxd
- create mode 100644 pyverbs/dmabuf.pyx
+I still think this isn't right -- it's a case statement that runs off
+the end without an explicit flow control determination. I think Clang is
+right to warn for these, and GCC should also warn.
 
-diff --git a/pyverbs/CMakeLists.txt b/pyverbs/CMakeLists.txt
-index 9542c4b..5aee02b 100644
---- a/pyverbs/CMakeLists.txt
-+++ b/pyverbs/CMakeLists.txt
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
-+# Copyright (c) 2020, Intel Corporation. All rights reserved.
- 
- rdma_cython_module(pyverbs ""
-   addr.pyx
-@@ -16,6 +17,7 @@ rdma_cython_module(pyverbs ""
-   wr.pyx
-   xrcd.pyx
-   srq.pyx
-+  dmabuf.pyx
-   )
- 
- rdma_python_module(pyverbs
-diff --git a/pyverbs/dmabuf.pxd b/pyverbs/dmabuf.pxd
-new file mode 100644
-index 0000000..040db4b
---- /dev/null
-+++ b/pyverbs/dmabuf.pxd
-@@ -0,0 +1,13 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2020, Intel Corporation. All rights reserved.
-+
-+#cython: language_level=3
-+
-+cdef class DmaBuf:
-+    cdef int dri_fd
-+    cdef int handle
-+    cdef int fd
-+    cdef unsigned long size
-+    cdef unsigned long map_offset
-+    cdef object dmabuf_mrs
-+    cdef add_ref(self, obj)
-diff --git a/pyverbs/dmabuf.pyx b/pyverbs/dmabuf.pyx
-new file mode 100644
-index 0000000..a72d808
---- /dev/null
-+++ b/pyverbs/dmabuf.pyx
-@@ -0,0 +1,85 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2020, Intel Corporation. All rights reserved.
-+
-+#cython: language_level=3
-+
-+import weakref
-+
-+from os import open, close, O_RDWR
-+from fcntl import ioctl
-+from struct import pack_into, unpack
-+from pyverbs.base cimport close_weakrefs
-+from pyverbs.mr cimport DmaBufMR
-+
-+cdef extern from "drm/drm.h":
-+    cdef int DRM_IOCTL_MODE_CREATE_DUMB
-+    cdef int DRM_IOCTL_MODE_MAP_DUMB
-+    cdef int DRM_IOCTL_MODE_DESTROY_DUMB
-+    cdef int DRM_IOCTL_PRIME_HANDLE_TO_FD
-+
-+cdef class DmaBuf:
-+    def __init__(self, size, unit=0):
-+        """
-+        Allocate DmaBuf object from a GPU device. This is done through the
-+        DRI device interface (/dev/dri/card*). Usually this requires the
-+        effective user id being root or being a member of the 'video' group.
-+        :param size: The size (in number of bytes) of the buffer.
-+        :param unit: The unit number of the GPU to allocate the buffer from.
-+        :return: The newly created DmaBuf object on success.
-+        """
-+        self.dmabuf_mrs = weakref.WeakSet()
-+        self.dri_fd = open('/dev/dri/card'+str(unit), O_RDWR)
-+
-+        # create a dumb scanout buffer:
-+        #     struct drm_mode_create_dumb {
-+        #        __u32 height;
-+        #        __u32 width;
-+        #        __u32 bpp;
-+        #        __u32 flags;
-+        #        __u32 handle; /* output */
-+        #        __u32 pitch; /* output */
-+        #        __u64 size; /* output */
-+        #    };
-+        create_dumb = bytearray(32)
-+        pack_into('=iiiiiiq', create_dumb, 0, 1, size, 8, 0, 0, 0, 0)
-+        ioctl(self.dri_fd, DRM_IOCTL_MODE_CREATE_DUMB, create_dumb)
-+        a, b, c, d, self.handle, e, self.size = unpack('=iiiiiiq', create_dumb)
-+
-+        # get dma-buf file descriptor from a PRIME handle:
-+        #     struct drm_prime_handle {
-+        #         __u32 handle;
-+        #         __u32 flags;
-+        #         __s32 fd; /* output */
-+        #     };
-+        prime_handle = bytearray(12)
-+        pack_into('=iii', prime_handle, 0, self.handle, O_RDWR, 0)
-+        ioctl(self.dri_fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, prime_handle)
-+        a, b, self.fd = unpack('=iii', prime_handle)
-+
-+        # set up for mmap of a dumb scanout buffer:
-+        #     struct drm_mode_map_dumb {
-+        #         __u32 handle;
-+        #         __u32 pad;
-+        #         __u64 offset; /* output */
-+        #     };
-+        map_dumb = bytearray(16)
-+        pack_into('=iiq', map_dumb, 0, self.handle, 0, 0)
-+        ioctl(self.dri_fd, DRM_IOCTL_MODE_MAP_DUMB, map_dumb);
-+        a, b, self.map_offset = unpack('=iiq', map_dumb);
-+
-+    def __dealloc__(self):
-+        close_weakrefs([self.dmabuf_mrs])
-+
-+        # destroy a dumb scanout buffer:
-+        #     struct drm_mode_destroy_dumb {
-+        #         __u32 handle;
-+        #     };
-+        destroy_dumb = bytearray(4)
-+        pack_into('=i', destroy_dumb, 0, self.handle)
-+        ioctl(self.dri_fd, DRM_IOCTL_MODE_DESTROY_DUMB, destroy_dumb)
-+        close(self.dri_fd)
-+
-+    cdef add_ref(self, obj):
-+        if isinstance(obj, DmaBufMR):
-+            self.dmabuf_mrs.add(obj)
-+
-diff --git a/pyverbs/libibverbs.pxd b/pyverbs/libibverbs.pxd
-index 6fbba54..95e51e1 100644
---- a/pyverbs/libibverbs.pxd
-+++ b/pyverbs/libibverbs.pxd
-@@ -507,6 +507,8 @@ cdef extern from 'infiniband/verbs.h':
-     ibv_pd *ibv_alloc_pd(ibv_context *context)
-     int ibv_dealloc_pd(ibv_pd *pd)
-     ibv_mr *ibv_reg_mr(ibv_pd *pd, void *addr, size_t length, int access)
-+    ibv_mr *ibv_reg_dmabuf_mr(ibv_pd *pd, uint64_t offset, size_t length,
-+			      int fd, int access)
-     int ibv_dereg_mr(ibv_mr *mr)
-     int ibv_advise_mr(ibv_pd *pd, uint32_t advice, uint32_t flags,
-                       ibv_sge *sg_list, uint32_t num_sge)
-diff --git a/pyverbs/mr.pxd b/pyverbs/mr.pxd
-index ebe8ada..b89cf02 100644
---- a/pyverbs/mr.pxd
-+++ b/pyverbs/mr.pxd
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
-+# Copyright (c) 2020, Intel Corporation. All rights reserved.
- 
- #cython: language_level=3
- 
-@@ -33,3 +34,7 @@ cdef class MW(PyverbsCM):
- 
- cdef class DMMR(MR):
-     cdef object dm
-+
-+cdef class DmaBufMR(MR):
-+    cdef object dmabuf
-+    cdef unsigned long offset
-diff --git a/pyverbs/mr.pyx b/pyverbs/mr.pyx
-index 7011da1..4102d3c 100644
---- a/pyverbs/mr.pyx
-+++ b/pyverbs/mr.pyx
-@@ -1,11 +1,12 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2019, Mellanox Technologies. All rights reserved. See COPYING file
-+# Copyright (c) 2020, Intel Corporation. All rights reserved.
- 
- import resource
- import logging
- 
- from posix.mman cimport mmap, munmap, MAP_PRIVATE, PROT_READ, PROT_WRITE, \
--    MAP_ANONYMOUS, MAP_HUGETLB
-+    MAP_ANONYMOUS, MAP_HUGETLB, MAP_SHARED
- from pyverbs.pyverbs_error import PyverbsError, PyverbsRDMAError, \
-     PyverbsUserError
- from libc.stdint cimport uintptr_t, SIZE_MAX
-@@ -14,9 +15,10 @@ from posix.stdlib cimport posix_memalign
- from libc.string cimport memcpy, memset
- cimport pyverbs.libibverbs_enums as e
- from pyverbs.device cimport DM
--from libc.stdlib cimport free
-+from libc.stdlib cimport free, malloc
- from .cmid cimport CMID
- from .pd cimport PD
-+from .dmabuf cimport DmaBuf
- 
- cdef extern from 'sys/mman.h':
-     cdef void* MAP_FAILED
-@@ -348,6 +350,77 @@ cdef class DMMR(MR):
-     cpdef read(self, length, offset):
-         return self.dm.copy_from_dm(offset, length)
- 
-+cdef class DmaBufMR(MR):
-+    def __init__(self, PD pd not None, length=0, access=0, DmaBuf dmabuf=None, offset=0):
-+        """
-+        Initializes a DmaBufMR (DMA-BUF Memory Region) of the given length
-+        and access flags using the given PD and DmaBuf objects.
-+        :param pd: A PD object
-+        :param length: Length in bytes
-+        :param access: Access flags, see ibv_access_flags enum
-+        :param dmabuf: A DmaBuf object
-+        :param offset: Byte offset from the beginning of the dma-buf
-+        :return: The newly create DMABUFMR
-+        """
-+        self.logger = logging.getLogger(self.__class__.__name__)
-+        if dmabuf is None:
-+            dmabuf = DmaBuf(length + offset)
-+        self.mr = v.ibv_reg_dmabuf_mr(pd.pd, offset, length, dmabuf.fd, access)
-+        if self.mr == NULL:
-+            raise PyverbsRDMAErrno('Failed to register a dma-buf MR. length: {len}, access flags: {flags}'.
-+                                   format(len=length, flags=access,))
-+        super().__init__(pd, length, access)
-+        self.pd = pd
-+        self.dmabuf = dmabuf
-+        self.offset = offset
-+        pd.add_ref(self)
-+        dmabuf.add_ref(self)
-+        self.logger.debug('Registered dma-buf ibv_mr. Length: {len}, access flags {flags}'.
-+                          format(len=length, flags=access))
-+
-+    def write(self, data, length, offset=0):
-+        """
-+        Write user data to the dma-buf backing the MR
-+        :param data: User data to write
-+        :param length: Length of the data to write
-+        :param offset: Writing offset
-+        :return: None
-+        """
-+        if isinstance(data, str):
-+            data = data.encode()
-+        # can't access the attributes if self.dmabuf is used w/o cast
-+        dmabuf = <DmaBuf>self.dmabuf
-+        cdef int off = offset + self.offset
-+        cdef void *buf = mmap(NULL, length + off, PROT_READ | PROT_WRITE,
-+                              MAP_SHARED, dmabuf.dri_fd, dmabuf.map_offset)
-+        if buf == MAP_FAILED:
-+            raise PyverbsError('Failed to map dma-buf of size {l}'.
-+                               format(l=length))
-+        memcpy(<char*>(buf + off), <char *>data, length)
-+        munmap(buf, length + off)
-+
-+    cpdef read(self, length, offset):
-+        """
-+        Reads data from the dma-buf backing the MR
-+        :param length: Length of data to read
-+        :param offset: Reading offset
-+        :return: The data on the buffer in the requested offset
-+        """
-+        # can't access the attributes if self.dmabuf is used w/o cast
-+        dmabuf = <DmaBuf>self.dmabuf
-+        cdef int off = offset + self.offset
-+        cdef void *buf = mmap(NULL, length + off, PROT_READ | PROT_WRITE,
-+                              MAP_SHARED, dmabuf.dri_fd, dmabuf.map_offset)
-+        if buf == MAP_FAILED:
-+            raise PyverbsError('Failed to map dma-buf of size {l}'.
-+                               format(l=length))
-+        cdef char *data =<char*>malloc(length)
-+        memset(data, 0, length)
-+        memcpy(data, <char*>(buf + off), length)
-+        munmap(buf, length + off)
-+        res = data[:length]
-+        free(data)
-+        return res
- 
- def mwtype2str(mw_type):
-     mw_types = {1:'IBV_MW_TYPE_1', 2:'IBV_MW_TYPE_2'}
 -- 
-1.8.3.1
-
+Kees Cook
