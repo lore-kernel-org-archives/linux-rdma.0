@@ -2,74 +2,63 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E83AC2D0E4
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 09:46:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A709C2D0E4
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 09:49:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A82592076E
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 09:46:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3901820684
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 09:49:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="wdolciZI"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="VTdTNc0G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731001AbgKXJqe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Nov 2020 04:46:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42968 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730272AbgKXJqd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Nov 2020 04:46:33 -0500
-Received: from localhost (searspoint.nvidia.com [216.228.112.21])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 51B0B2075A;
-        Tue, 24 Nov 2020 09:46:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1606211193;
-        bh=uIhAd9QzKa21wsF9mjq14Klx+f+GayjVUkoddWfApiE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=wdolciZI2QszA3qdPu+SeoRq1qVgkQrWQIZO3U8tvPY0TO0DqAWEmleOwEFItcArE
-         ElDTGCeHKVpMeMlAgjmdlfZm9mbrKK/qOoGF1o6U34S+w+wr8kKlEeZVy565RPQ26N
-         M/iycefV+zHntqzqn/STYY8BpNOvH684zDmD/j04=
-Date:   Tue, 24 Nov 2020 11:46:28 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
+        id S1731122AbgKXJtv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Nov 2020 04:49:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55976 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731107AbgKXJtv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Nov 2020 04:49:51 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2504BC0613D6
+        for <linux-rdma@vger.kernel.org>; Tue, 24 Nov 2020 01:49:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=d6ZuqYkbfOHusqc3y6DFnVipQtCEDx53GAmDcDagbPM=; b=VTdTNc0GpSplKkomTER4QyuFFr
+        bxU4sF0OZU6JaWR/9wry/HxDWOCvDkRn1eYr9Ky77Sgs1w7HTWZXl+ZgyZUd6ta85PcFlMeIGX6DK
+        Zn/wltLfEt8ncXFAlydWJgOz+m4oAcKvqHZxTBWfGksTJ889GZKrCj5Qz43ILgUY/s/HfSHZT+8dt
+        yaQuci3OCIlMFAZJwhN8XV5tDTmABSi5IhFaskyiy54HqoOXx0kccRX38JHK4WhTyNiVAE3x//2AQ
+        9Yy6bKBwZNft2qrsDIFayzvikXNwA5v9Pxcl/6kfHSjxb4acn/at2uyuYZ1uFazz9+1BP38DHMys6
+        ko5JNXKA==;
+Received: from hch by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1khUxG-0000pb-FP; Tue, 24 Nov 2020 09:49:46 +0000
+Date:   Tue, 24 Nov 2020 09:49:46 +0000
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Christoph Hellwig <hch@infradead.org>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org
 Subject: Re: [PATCH rdma-next] IB/mlx5: Use ib_dma APIs instead of open
  access to parent device
-Message-ID: <20201124094628.GI3159@unreal>
+Message-ID: <20201124094946.GA3106@infradead.org>
 References: <20201123082400.351371-1-leon@kernel.org>
  <20201124093154.GA29715@infradead.org>
+ <20201124094628.GI3159@unreal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201124093154.GA29715@infradead.org>
+In-Reply-To: <20201124094628.GI3159@unreal>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 24, 2020 at 09:31:54AM +0000, Christoph Hellwig wrote:
-> On Mon, Nov 23, 2020 at 10:24:00AM +0200, Leon Romanovsky wrote:
-> > diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-> > index 090e204ef1e1..d24ac339c053 100644
-> > --- a/drivers/infiniband/hw/mlx5/mr.c
-> > +++ b/drivers/infiniband/hw/mlx5/mr.c
-> > @@ -42,7 +42,7 @@
-> >  #include "mlx5_ib.h"
-> >
-> >  /*
-> > - * We can't use an array for xlt_emergency_page because dma_map_single doesn't
-> > + * We can't use an array for xlt_emergency_page because ib_dma_map_single doesn't
->
-> Please avoid the pointlessly overly long line.
->
-> > +		ib_dma_sync_single_for_cpu(&dev->ib_dev, sg.addr, sg.length, DMA_TO_DEVICE);
->
-> And here and much more.
+On Tue, Nov 24, 2020 at 11:46:28AM +0200, Leon Romanovsky wrote:
+> No problem, I will reduce checkpatch limit from its default.
 
-No problem, I will reduce checkpatch limit from its default.
-
-Thanks
+checkpatch unfortunately does not match what is documented in the
+codingstyle document and leads to these kinds of problems :(
