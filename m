@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7B0C64E7A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58806C64E75
 	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:25:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D2F120857
+	by mail.kernel.org (Postfix) with ESMTP id 2916F20866
 	for <linux-rdma@archiver.kernel.org>; Tue, 24 Nov 2020 21:25:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731574AbgKXVY6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1731576AbgKXVY6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 24 Nov 2020 16:24:58 -0500
 Received: from mga03.intel.com ([134.134.136.65]:3768 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731570AbgKXVY6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1730408AbgKXVY6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 24 Nov 2020 16:24:58 -0500
-IronPort-SDR: 2dsD4PCgoHYzgk2XS1V59qnaEuaXxFtCQaXTih9U8pu6tY3yNf+PXGwKglZDbGLivRrcQUVvfI
- V8CiGOQ7PWQQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9815"; a="172117606"
+IronPort-SDR: k5QHRgkoio8xllBaJJ3u9Tbx+cQC9aMi0iiBihj/G9FdsabgOUXZCe6STmIgBX6w4pGuT3x0gX
+ 0Fhh1vIPohWg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9815"; a="172117609"
 X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="172117606"
+   d="scan'208";a="172117609"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
   by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2020 13:24:56 -0800
-IronPort-SDR: ryDwUIBJr6wljZhN21CUgdlRaLHhlXRQlQwXJ7cLK4v0/ftIbtRtj1oSxj6utuRp9JBWuso4RY
- R2L09nhY2b9g==
+IronPort-SDR: 1eod7JVgHIf1fqpcsM5IjySiBg5w+qVnb4tydiOUihbCWpNG71rhTuoRkyXoxt5XkqYRXaAewV
+ c+parO6st4+A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="332701582"
+   d="scan'208";a="332701590"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
   by orsmga006.jf.intel.com with ESMTP; 24 Nov 2020 13:24:56 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
@@ -44,9 +44,9 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Christian Koenig <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH rdma-core v2 3/6] mlx5: Support dma-buf based memory region
-Date:   Tue, 24 Nov 2020 13:38:51 -0800
-Message-Id: <1606253934-67181-4-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core v2 6/6] tests: Bug fix for get_access_flags()
+Date:   Tue, 24 Nov 2020 13:38:54 -0800
+Message-Id: <1606253934-67181-7-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1606253934-67181-1-git-send-email-jianxin.xiong@intel.com>
 References: <1606253934-67181-1-git-send-email-jianxin.xiong@intel.com>
@@ -54,94 +54,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement the new provider method for registering dma-buf based memory
-regions.
+The filter definition is wrong and causes get_access_flags() always
+returning empty list. As the result the MR tests using this function
+are effectively skipped (but report success).
 
 Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
 ---
- providers/mlx5/mlx5.c  |  2 ++
- providers/mlx5/mlx5.h  |  3 +++
- providers/mlx5/verbs.c | 22 ++++++++++++++++++++++
- 3 files changed, 27 insertions(+)
+ tests/utils.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 1378acf..b3e2d57 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -96,6 +97,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
- 	.async_event   = mlx5_async_event,
- 	.dealloc_pd    = mlx5_free_pd,
- 	.reg_mr	       = mlx5_reg_mr,
-+	.reg_dmabuf_mr = mlx5_reg_dmabuf_mr,
- 	.rereg_mr      = mlx5_rereg_mr,
- 	.dereg_mr      = mlx5_dereg_mr,
- 	.alloc_mw      = mlx5_alloc_mw,
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 8c94f72..17a2470 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -903,6 +904,8 @@ void mlx5_async_event(struct ibv_context *context,
- struct ibv_mr *mlx5_alloc_null_mr(struct ibv_pd *pd);
- struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 			   uint64_t hca_va, int access);
-+struct ibv_mr *mlx5_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
-+				  uint64_t iova, int fd, int access);
- int mlx5_rereg_mr(struct verbs_mr *mr, int flags, struct ibv_pd *pd, void *addr,
- 		  size_t length, int access);
- int mlx5_dereg_mr(struct verbs_mr *mr);
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index b956156..a7fc3b0 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -647,6 +648,27 @@ struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 	return &mr->vmr.ibv_mr;
- }
+diff --git a/tests/utils.py b/tests/utils.py
+index 0ad7110..9ff2603 100644
+--- a/tests/utils.py
++++ b/tests/utils.py
+@@ -55,8 +55,8 @@ def filter_illegal_access_flags(element):
+     :param element: A list of access flags to check
+     :return: True if this list is legal, else False
+     """
+-    if e.IBV_ACCESS_REMOTE_ATOMIC in element or e.IBV_ACCESS_REMOTE_WRITE:
+-        if e.IBV_ACCESS_LOCAL_WRITE:
++    if e.IBV_ACCESS_REMOTE_ATOMIC in element or e.IBV_ACCESS_REMOTE_WRITE in element:
++        if not e.IBV_ACCESS_LOCAL_WRITE in element:
+             return False
+     return True
  
-+struct ibv_mr *mlx5_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
-+				  uint64_t iova, int fd, int acc)
-+{
-+	struct mlx5_mr *mr;
-+	int ret;
-+
-+	mr = calloc(1, sizeof(*mr));
-+	if (!mr)
-+		return NULL;
-+
-+	ret = ibv_cmd_reg_dmabuf_mr(pd, offset, length, iova, fd, acc,
-+				    &mr->vmr);
-+	if (ret) {
-+		free(mr);
-+		return NULL;
-+	}
-+	mr->alloc_flags = acc;
-+
-+	return &mr->vmr.ibv_mr;
-+}
-+
- struct ibv_mr *mlx5_alloc_null_mr(struct ibv_pd *pd)
- {
- 	struct mlx5_mr *mr;
 -- 
 1.8.3.1
 
