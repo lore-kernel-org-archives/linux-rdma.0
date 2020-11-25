@@ -2,56 +2,144 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 176EEC5519F
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 06:32:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A43C71155
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 06:46:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC479206F7
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 06:31:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B29C72067D
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 06:46:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="zdGq9rKG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726249AbgKYGbi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 25 Nov 2020 01:31:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41652 "EHLO mail.kernel.org"
+        id S1726760AbgKYGqf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 25 Nov 2020 01:46:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725562AbgKYGbi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 25 Nov 2020 01:31:38 -0500
+        id S1726595AbgKYGqe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 25 Nov 2020 01:46:34 -0500
 Received: from localhost (searspoint.nvidia.com [216.228.112.21])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D8E1206F7;
-        Wed, 25 Nov 2020 06:31:37 +0000 (UTC)
-Date:   Wed, 25 Nov 2020 08:15:37 +0200
-From:   Leon Romanovsky <leonro@mellanox.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>
-Subject: Re: [PATCH] RDMA/mlx5: Check for ERR_PTR from uverbs_zalloc()
-Message-ID: <20201125061537.GA3223@unreal>
-References: <0-v1-4d05ccc1c223+173-devx_err_ptr_jgg@nvidia.com>
+        by mail.kernel.org (Postfix) with ESMTPSA id ED1932067D;
+        Wed, 25 Nov 2020 06:46:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1606286793;
+        bh=86VZxei8XE01yUAd/Va+H68KT9ZhAzO5jqjISus0IQ8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=zdGq9rKGtiZKPAYnD2dhqAQEJYBUUeNDSNzzmcsbCvpQar5gysoYx+sBO++rkX5qD
+         RxO3MT+qj2576MarnNkgkfQiMxerPJeFdlS9tZ2LkAPpuG81SoLl9PnksjCCDMSZ2n
+         oMhBRWF9Ofw0kJDNsY1FRP+rfS+bIQl/V6B/Wljk=
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1] IB/mlx5: Use PCI device for dma mappings
+Date:   Wed, 25 Nov 2020 08:46:28 +0200
+Message-Id: <20201125064628.8431-1-leon@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0-v1-4d05ccc1c223+173-devx_err_ptr_jgg@nvidia.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 24, 2020 at 07:34:33PM -0400, Jason Gunthorpe wrote:
-> The return code from uverbs_zalloc() was wrongly checked, it is ERR_PTR
-> not NULL like other allocators:
->
-> drivers/infiniband/hw/mlx5/devx.c:2110 devx_umem_reg_cmd_alloc() warn: passing zero to 'PTR_ERR'
->
-> Fixes: 878f7b31c3a7 ("RDMA/mlx5: Use ib_umem_find_best_pgsz() for devx")
-> Reported-by: kernel test robot <lkp@intel.com>
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> ---
->  drivers/infiniband/hw/mlx5/devx.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+From: Parav Pandit <parav@nvidia.com>
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@nvidia.com>
+DMA operation of the IB device is done using ib_device->dma_device.
+
+Instead of accessing parent of the IB device, use the PCI dma device
+which is setup to ib_device->dma_device during IB device registration.
+
+Signed-off-by: Parav Pandit <parav@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+Chagenlog:
+v1:
+ * Use PCI device directly instead of ib_dma API
+ * Limited checkpatch to 80 symbols.
+v0: https://lore.kernel.org/linux-rdma/20201123082400.351371-1-leon@kernel.org
+---
+ drivers/infiniband/hw/mlx5/mr.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 090e204ef1e1..b3192da36d5e 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1081,7 +1081,7 @@ static void *mlx5_ib_create_xlt_wr(struct mlx5_ib_mr *mr,
+ 				   unsigned int flags)
+ {
+ 	struct mlx5_ib_dev *dev = mr->dev;
+-	struct device *ddev = dev->ib_dev.dev.parent;
++	struct device *ddev = &dev->mdev->pdev->dev;
+ 	dma_addr_t dma;
+ 	void *xlt;
+
+@@ -1118,7 +1118,7 @@ static void *mlx5_ib_create_xlt_wr(struct mlx5_ib_mr *mr,
+ static void mlx5_ib_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
+ 				   struct ib_sge *sg)
+ {
+-	struct device *ddev = dev->ib_dev.dev.parent;
++	struct device *ddev = &dev->mdev->pdev->dev;
+
+ 	dma_unmap_single(ddev, sg->addr, sg->length, DMA_TO_DEVICE);
+ 	mlx5_ib_free_xlt(xlt, sg->length);
+@@ -1143,7 +1143,7 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 		       int page_shift, int flags)
+ {
+ 	struct mlx5_ib_dev *dev = mr->dev;
+-	struct device *ddev = dev->ib_dev.dev.parent;
++	struct device *ddev = &dev->mdev->pdev->dev;
+ 	void *xlt;
+ 	struct mlx5_umr_wr wr;
+ 	struct ib_sge sg;
+@@ -1222,7 +1222,7 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ static int mlx5_ib_update_mr_pas(struct mlx5_ib_mr *mr, unsigned int flags)
+ {
+ 	struct mlx5_ib_dev *dev = mr->dev;
+-	struct device *ddev = dev->ib_dev.dev.parent;
++	struct device *ddev = &dev->mdev->pdev->dev;
+ 	struct ib_block_iter biter;
+ 	struct mlx5_mtt *cur_mtt;
+ 	struct mlx5_umr_wr wr;
+@@ -1751,6 +1751,8 @@ mlx5_alloc_priv_descs(struct ib_device *device,
+ 		      int ndescs,
+ 		      int desc_size)
+ {
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct device *ddev = &dev->mdev->pdev->dev;
+ 	int size = ndescs * desc_size;
+ 	int add_size;
+ 	int ret;
+@@ -1763,9 +1765,8 @@ mlx5_alloc_priv_descs(struct ib_device *device,
+
+ 	mr->descs = PTR_ALIGN(mr->descs_alloc, MLX5_UMR_ALIGN);
+
+-	mr->desc_map = dma_map_single(device->dev.parent, mr->descs,
+-				      size, DMA_TO_DEVICE);
+-	if (dma_mapping_error(device->dev.parent, mr->desc_map)) {
++	mr->desc_map = dma_map_single(ddev, mr->descs, size, DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, mr->desc_map)) {
+ 		ret = -ENOMEM;
+ 		goto err;
+ 	}
+@@ -1783,9 +1784,10 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
+ 	if (mr->descs) {
+ 		struct ib_device *device = mr->ibmr.device;
+ 		int size = mr->max_descs * mr->desc_size;
++		struct mlx5_ib_dev *dev = to_mdev(device);
+
+-		dma_unmap_single(device->dev.parent, mr->desc_map,
+-				 size, DMA_TO_DEVICE);
++		dma_unmap_single(&dev->mdev->pdev->dev, mr->desc_map, size,
++				 DMA_TO_DEVICE);
+ 		kfree(mr->descs_alloc);
+ 		mr->descs = NULL;
+ 	}
+--
+2.28.0
+
