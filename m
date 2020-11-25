@@ -2,154 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0047CC2D0E4
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 00:56:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0097C56202
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 01:04:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6EDC20BED
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 00:56:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79C0B20BED
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Nov 2020 01:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727347AbgKYA4q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Nov 2020 19:56:46 -0500
-Received: from mga07.intel.com ([134.134.136.100]:24261 "EHLO mga07.intel.com"
+        id S1726708AbgKYBEp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Nov 2020 20:04:45 -0500
+Received: from mga11.intel.com ([192.55.52.93]:58506 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727343AbgKYA4q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 24 Nov 2020 19:56:46 -0500
-IronPort-SDR: HrNk+2WrqLHv+p16SeMyPM80RREPLIUfgTAP3kC4U0Qmmq7kryQBRav6XhiHBm5iij99ywB5Y0
- O/yQk3VZePpQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9815"; a="236179426"
+        id S1726249AbgKYBEp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 24 Nov 2020 20:04:45 -0500
+IronPort-SDR: D0Fklotj6bk1Q9q9P5qIB0OdJSt7dw9PzB8WJh2NxmzYf+gu6MSsvoLUnzHyefBY3DiLZXVcFt
+ Pq/WXVJI0m5A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9815"; a="168534367"
 X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="236179426"
+   d="scan'208";a="168534367"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2020 16:56:45 -0800
-IronPort-SDR: kzngTPiWAryiaffnveHlXmG2ZomxxfdszhTUDL89g1XPvbMPZzXp6jxPLKKRtHfM+n+uDb6xuA
- SJCdjVcleNNg==
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2020 17:04:44 -0800
+IronPort-SDR: fo/Uug6qey5wgrm3NIUGKPX4D7mDfSvcl9DbIcDH/LjwlsuUJhB48/EFHMIll3aV7nun6lRz3e
+ /kUYCyTe6MNQ==
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.78,367,1599548400"; 
-   d="scan'208";a="370647821"
-Received: from ssaleem-mobl.amr.corp.intel.com ([10.212.134.32])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2020 16:56:43 -0800
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     dledford@redhat.com, jgg@nvidia.com
-Cc:     linux-rdma@vger.kernel.org, stable@kernel.org,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
+   d="scan'208";a="343388202"
+Received: from fmsmsx604.amr.corp.intel.com ([10.18.126.84])
+  by orsmga002.jf.intel.com with ESMTP; 24 Nov 2020 17:04:44 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx604.amr.corp.intel.com (10.18.126.84) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 24 Nov 2020 17:04:44 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 24 Nov 2020 17:04:43 -0800
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.1713.004;
+ Tue, 24 Nov 2020 17:04:43 -0800
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "stable@kernel.org" <stable@kernel.org>,
         Di Zhu <zhudi21@huawei.com>
-Subject: [PATCH v2 1/2] RDMA/i40iw: Address an mmap handler exploit in i40iw
-Date:   Tue, 24 Nov 2020 18:56:16 -0600
-Message-Id: <20201125005616.1800-2-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.21.0
-In-Reply-To: <20201125005616.1800-1-shiraz.saleem@intel.com>
-References: <20201125005616.1800-1-shiraz.saleem@intel.com>
+Subject: RE: [PATCH v1 1/2] RDMA/i40iw: Address an mmap handler exploit in
+ i40iw
+Thread-Topic: [PATCH v1 1/2] RDMA/i40iw: Address an mmap handler exploit in
+ i40iw
+Thread-Index: AQHWwrzhhYicmCuT5kWM/DvcWPdmQ6nYfowA//+JmTA=
+Date:   Wed, 25 Nov 2020 01:04:43 +0000
+Message-ID: <a935ec3699744af6a282e1897ef52565@intel.com>
+References: <20201124235102.1745-1-shiraz.saleem@intel.com>
+ <20201124235102.1745-2-shiraz.saleem@intel.com>
+ <20201125000726.GG4800@nvidia.com>
+In-Reply-To: <20201125000726.GG4800@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+x-originating-ip: [10.22.254.132]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-i40iw_mmap manipulates the vma->vm_pgoff to differentiate a push page
-mmap vs a doorbell mmap, and uses it to compute the pfn in remap_pfn_range
-without any validation. This is vulnerable to an mmap exploit as
-described in [1].
-
-Push feature is disabled in the driver currently and therefore no push
-mmaps are issued from user-space. The feature does not work as expected
-in the x722 product.
-
-Remove the push module parameter and all VMA attribute manipulations
-for this feature in i40iw_mmap. Update i40iw_mmap to only allow DB
-user mmapings at offset = 0. Check vm_pgoff for zero and if the mmaps
-are bound to a single page.
-
-[1] https://lore.kernel.org/linux-rdma/20201119093523.7588-1-zhudi21@huawei.com/raw
-
-Fixes: d37498417947 ("i40iw: add files for iwarp interface")
-Cc: stable@kernel.org
-Reported-by: Di Zhu <zhudi21@huawei.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
----
- drivers/infiniband/hw/i40iw/i40iw_main.c  |    5 ----
- drivers/infiniband/hw/i40iw/i40iw_verbs.c |   37 +++++-----------------------
- 2 files changed, 7 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 2408b27..584932d 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -54,10 +54,6 @@
- #define DRV_VERSION	__stringify(DRV_VERSION_MAJOR) "."		\
- 	__stringify(DRV_VERSION_MINOR) "." __stringify(DRV_VERSION_BUILD)
- 
--static int push_mode;
--module_param(push_mode, int, 0644);
--MODULE_PARM_DESC(push_mode, "Low latency mode: 0=disabled (default), 1=enabled)");
--
- static int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "debug flags: 0=disabled (default), 0x7fffffff=all");
-@@ -1580,7 +1576,6 @@ static enum i40iw_status_code i40iw_setup_init_state(struct i40iw_handler *hdl,
- 	if (status)
- 		goto exit;
- 	iwdev->obj_next = iwdev->obj_mem;
--	iwdev->push_mode = push_mode;
- 
- 	init_waitqueue_head(&iwdev->vchnl_waitq);
- 	init_waitqueue_head(&dev->vf_reqs);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 581ecba..533f3ca 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -167,39 +167,16 @@ static void i40iw_dealloc_ucontext(struct ib_ucontext *context)
-  */
- static int i40iw_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
- {
--	struct i40iw_ucontext *ucontext;
--	u64 db_addr_offset, push_offset, pfn;
--
--	ucontext = to_ucontext(context);
--	if (ucontext->iwdev->sc_dev.is_pf) {
--		db_addr_offset = I40IW_DB_ADDR_OFFSET;
--		push_offset = I40IW_PUSH_OFFSET;
--		if (vma->vm_pgoff)
--			vma->vm_pgoff += I40IW_PF_FIRST_PUSH_PAGE_INDEX - 1;
--	} else {
--		db_addr_offset = I40IW_VF_DB_ADDR_OFFSET;
--		push_offset = I40IW_VF_PUSH_OFFSET;
--		if (vma->vm_pgoff)
--			vma->vm_pgoff += I40IW_VF_FIRST_PUSH_PAGE_INDEX - 1;
--	}
-+	struct i40iw_ucontext *ucontext = to_ucontext(context);
-+	u64 dbaddr;
- 
--	vma->vm_pgoff += db_addr_offset >> PAGE_SHIFT;
--
--	if (vma->vm_pgoff == (db_addr_offset >> PAGE_SHIFT)) {
--		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	} else {
--		if ((vma->vm_pgoff - (push_offset >> PAGE_SHIFT)) % 2)
--			vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--		else
--			vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
--	}
-+	if (vma->vm_pgoff || vma->vm_end - vma->vm_start != PAGE_SIZE)
-+		return -EINVAL;
- 
--	pfn = vma->vm_pgoff +
--	      (pci_resource_start(ucontext->iwdev->ldev->pcidev, 0) >>
--	       PAGE_SHIFT);
-+	dbaddr = I40IW_DB_ADDR_OFFSET + pci_resource_start(ucontext->iwdev->ldev->pcidev, 0);
- 
--	return rdma_user_mmap_io(context, vma, pfn, PAGE_SIZE,
--				 vma->vm_page_prot, NULL);
-+	return rdma_user_mmap_io(context, vma, dbaddr >> PAGE_SHIFT, PAGE_SIZE,
-+				 pgprot_noncached(vma->vm_page_prot), NULL);
- }
- 
- /**
--- 
-1.7.1
-
+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYxIDEvMl0gUkRNQS9pNDBpdzogQWRkcmVzcyBhbiBtbWFw
+IGhhbmRsZXIgZXhwbG9pdCBpbg0KPiBpNDBpdw0KPiANCj4gT24gVHVlLCBOb3YgMjQsIDIwMjAg
+YXQgMDU6NTE6MDJQTSAtMDYwMCwgU2hpcmF6IFNhbGVlbSB3cm90ZToNCj4gPiBpNDBpd19tbWFw
+IG1hbmlwdWxhdGVzIHRoZSB2bWEtPnZtX3Bnb2ZmIHRvIGRpZmZlcmVudGlhdGUgYSBwdXNoIHBh
+Z2UNCj4gPiBtbWFwIHZzIGEgZG9vcmJlbGwgbW1hcCwgYW5kIHVzZXMgaXQgdG8gY29tcHV0ZSB0
+aGUgcGZuIGluDQo+ID4gcmVtYXBfcGZuX3JhbmdlIHdpdGhvdXQgYW55IHZhbGlkYXRpb24uIFRo
+aXMgaXMgdnVsbmVyYWJsZSB0byBhbiBtbWFwDQo+ID4gZXhwbG9pdCBhcyBkZXNjcmliZWQgaW4g
+WzFdLg0KPiA+DQo+ID4gUHVzaCBmZWF0dXJlIGlzIGRpc2FibGVkIGluIHRoZSBkcml2ZXIgY3Vy
+cmVudGx5IGFuZCB0aGVyZWZvcmUgbm8gcHVzaA0KPiA+IG1tYXBzIGFyZSBpc3N1ZWQgZnJvbSB1
+c2VyLXNwYWNlLiBUaGUgZmVhdHVyZSBkb2VzIG5vdCB3b3JrIGFzDQo+ID4gZXhwZWN0ZWQgaW4g
+dGhlIHg3MjIgcHJvZHVjdC4NCj4gPg0KPiA+IFJlbW92ZSB0aGUgcHVzaCBtb2R1bGUgcGFyYW1l
+dGVyIGFuZCBhbGwgVk1BIGF0dHJpYnV0ZSBtYW5pcHVsYXRpb25zDQo+ID4gZm9yIHRoaXMgZmVh
+dHVyZSBpbiBpNDBpd19tbWFwLiBVcGRhdGUgaTQwaXdfbW1hcCB0byBvbmx5IGFsbG93IERCDQo+
+ID4gdXNlciBtbWFwaW5ncyBhdCBvZmZzZXQgPSAwLiBDaGVjayB2bV9wZ29mZiBmb3IgemVybyBh
+bmQgaWYgdGhlIG1tYXBzDQo+ID4gYXJlIGJvdW5kIHRvIGEgc2luZ2xlIHBhZ2UuDQo+ID4NCj4g
+PiBbMV0NCj4gPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1yZG1hLzIwMjAxMTE5MDkz
+NTIzLjc1ODgtMS16aHVkaTIxQGh1YXdlDQo+ID4gaS5jb20vcmF3DQo+ID4NCj4gPiBGaXhlczog
+ZDM3NDk4NDE3OTQ3ICgiaTQwaXc6IGFkZCBmaWxlcyBmb3IgaXdhcnAgaW50ZXJmYWNlIikNCj4g
+PiBDYzogc3RhYmxlQGtlcm5lbC5vcmcNCj4gPiBSZXBvcnRlZC1ieTogRGkgWmh1IDx6aHVkaTIx
+QGh1YXdlaS5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogU2hpcmF6IFNhbGVlbSA8c2hpcmF6LnNh
+bGVlbUBpbnRlbC5jb20+DQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9pNDBpdy9pNDBpd19t
+YWluLmMgIHwgICAgNCAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2k0MGl3L2k0MGl3
+X3ZlcmJzLmMgfCAgIDM3ICsrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiAgMiBmaWxl
+cyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDM0IGRlbGV0aW9ucygtKQ0KPiANCj4gUGxlYXNl
+IGNvbXBpbGUgeW91ciBwYXRjaGVzOg0KPiANCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L2k0MGl3
+L2k0MGl3X21haW4uYzogSW4gZnVuY3Rpb24g4oCYaTQwaXdfc2V0dXBfaW5pdF9zdGF0ZeKAmToN
+Cj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L2k0MGl3L2k0MGl3X21haW4uYzoxNTc5OjIxOiBlcnJv
+cjog4oCYcHVzaF9tb2Rl4oCZIHVuZGVjbGFyZWQNCj4gKGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0
+aW9uKTsgZGlkIHlvdSBtZWFuIOKAmHVzZXJfbW9kZeKAmT8NCj4gIDE1NzkgfCAgaXdkZXYtPnB1
+c2hfbW9kZSA9IHB1c2hfbW9kZTsNCj4gICAgICAgfCAgICAgICAgICAgICAgICAgICAgIF5+fn5+
+fn5+fg0KPiAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgdXNlcl9tb2RlDQo+IGRyaXZlcnMv
+aW5maW5pYmFuZC9ody9pNDBpdy9pNDBpd19tYWluLmM6MTU3OToyMTogbm90ZTogZWFjaCB1bmRl
+Y2xhcmVkIGlkZW50aWZpZXIgaXMNCj4gcmVwb3J0ZWQgb25seSBvbmNlIGZvciBlYWNoIGZ1bmN0
+aW9uIGl0IGFwcGVhcnMgaW4NCj4gDQoNClNvcnJ5ISBHb29mZWQgdXAuIEhhZCBvbmx5IGNvbXBp
+bGVkIHRoZSBzZXJpZXMuIFNlbnQgdjIuDQo=
