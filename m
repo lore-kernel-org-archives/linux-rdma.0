@@ -2,100 +2,374 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 330C6C5519F
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Nov 2020 16:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA3E4C3E8C5
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Nov 2020 20:43:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6FC320674
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Nov 2020 16:49:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="kM+DGerX"
+	by mail.kernel.org (Postfix) with ESMTP id 5DD0821D7F
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Nov 2020 20:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731364AbgK0Qt0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Nov 2020 11:49:26 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:13015 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731556AbgK0Qt0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Nov 2020 11:49:26 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fc12e180001>; Fri, 27 Nov 2020 08:49:28 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 27 Nov
- 2020 16:49:21 +0000
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.46) by
- HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Fri, 27 Nov 2020 16:49:21 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=UE8EDQuFZLkbBz5tqdQjn2QkCw5rFlw5y58nSLJtn9Wwqzc8qUMC0BRtuHoqV/t1wcEVl6NNyXlCL23cuuf0xzy3cg/ZsVNlo9bOdmUjY8BBpJKC/1gCWZRdiUug11VGGKZhnt3ncroL+W2TiY+SvBOexCqIPA2VTNn3JyoDh+QFgCZZA8uwRuljnh9GAluBel/bkrjsaU0DaowMmVWPsDEmiLnKCvwpe3qn4bAvM4v/Y06nWBcA5X7XQ7HUdo/+RZilHAJquaaAP6eXUucwksJOYNIjmD47nMy3wO4ut/phzq7QTxI4SnrngbDWETPWUmZmT4VMxZQU++laGym5DA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EVZrGtt3Lgf8BXfRjtRlVcpobfgSwuG2IwgA0ndNzDc=;
- b=M6tngJs7Caejltu9a73LcErpTJyfaOvTmRDv19K1d3m/t+GyVXgWTVYnOwvDYVqsQ4b/+6/eSlKPQI4TYv4V0ELLAxyPoUsmxai22h8pr0Vs3XjhjZiIL+/BK+LFcLn7j/CL5tzF3Sl+GKbsow9+G79ryflWUhlnrT9EZ4v+pJX3qyJzFTVQ0tncYGOnJ0al+gEwl7WAanA9hbocGWcIJgzo+XvXOAS0EueAWcvF+cF6CQYEQGl0UtY3hqsD7IEECCRbkWIZXyP3p9s1KrFgk/MO4ACVQHq6iv9+oyyhgDGunvkEh69cclyC50cDHa8/S8DdLT1NMPmqqzDH0FyAuQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4618.namprd12.prod.outlook.com (2603:10b6:5:78::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3589.22; Fri, 27 Nov
- 2020 16:49:20 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1ce9:3434:90fe:3433]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1ce9:3434:90fe:3433%3]) with mapi id 15.20.3611.025; Fri, 27 Nov 2020
- 16:49:19 +0000
-Date:   Fri, 27 Nov 2020 12:49:17 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Weihang Li <liweihang@huawei.com>
-CC:     <dledford@redhat.com>, <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: Re: [PATCH v3 for-next] RDMA/hns: Create QP with selected QPN for
- bank load balance
-Message-ID: <20201127164917.GA675120@nvidia.com>
-References: <1606220649-1465-1-git-send-email-liweihang@huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1606220649-1465-1-git-send-email-liweihang@huawei.com>
-X-ClientProxiedBy: MN2PR13CA0023.namprd13.prod.outlook.com
- (2603:10b6:208:160::36) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
-MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (156.34.48.30) by MN2PR13CA0023.namprd13.prod.outlook.com (2603:10b6:208:160::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.9 via Frontend Transport; Fri, 27 Nov 2020 16:49:18 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kigvt-002pdl-JV; Fri, 27 Nov 2020 12:49:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1606495768; bh=EVZrGtt3Lgf8BXfRjtRlVcpobfgSwuG2IwgA0ndNzDc=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=kM+DGerXyRyHdFsZwwJJ0tMk9pjXmqZgF+EXS0nR/aMT4l4k5NKs/lky0Qa9TIA6B
-         xF/3poa3YUbAZRmawmv+7lvFXBLiUtoGRFP/DSpPlwyC3vsJ+z6Y2DWSMj8we70Gd5
-         zHNFVJV3FN7tKItwiACjjAGfqYtvRVEIVeaaZ3+0j96HdYesmErG19KHXUv+oTyvot
-         UWDuQWyUXZkin5dhyrdApSpGJX+x2eJsKEeF/+EWv4si2645pLt5yHchFtuiqDt7a0
-         WHDmnHxwfJWnlBeE6NvEKllnUkfclLQQkAe12JFjf/2WjNn9xBVq84djjWfngS67a5
-         FrQfri9Z0afqA==
+        id S1731486AbgK0UmX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 27 Nov 2020 15:42:23 -0500
+Received: from mga03.intel.com ([134.134.136.65]:6709 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728120AbgK0UmA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 27 Nov 2020 15:42:00 -0500
+IronPort-SDR: B68sHhUWIsgOCw/Rd2oKqTtJJ3DF3pd/5W/ABSml5L2SCq4asaiUb3+2cG2aBqctrJ3fEL2oMp
+ 6+OCWw1ibPmA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9818"; a="172533991"
+X-IronPort-AV: E=Sophos;i="5.78,375,1599548400"; 
+   d="scan'208";a="172533991"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2020 12:41:46 -0800
+IronPort-SDR: /V91eRKIuTLAILy1tUImAe6XFWHC6tY0UphkIqab9WXNkcn2317Iac+4cJHi0wLd5X7NlUr/y4
+ 49BkUeAe9xhg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.78,375,1599548400"; 
+   d="scan'208";a="537737692"
+Received: from cst-dev.jf.intel.com ([10.23.221.69])
+  by fmsmga005.fm.intel.com with ESMTP; 27 Nov 2020 12:41:45 -0800
+From:   Jianxin Xiong <jianxin.xiong@intel.com>
+To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+Subject: [PATCH rdma-core v3 5/6] tests: Add tests for dma-buf based memory regions
+Date:   Fri, 27 Nov 2020 12:55:42 -0800
+Message-Id: <1606510543-45567-6-git-send-email-jianxin.xiong@intel.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1606510543-45567-1-git-send-email-jianxin.xiong@intel.com>
+References: <1606510543-45567-1-git-send-email-jianxin.xiong@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Nov 24, 2020 at 08:24:09PM +0800, Weihang Li wrote:
-> From: Yangyang Li <liyangyang20@huawei.com>
-> 
-> In order to improve performance by balancing the load between different
-> banks of cache, the QPC cache is desigend to choose one of 8 banks
-> according to lower 3 bits of QPN. The hns driver needs to count the number
-> of QP on each bank and then assigns the QP being created to the bank with
-> the minimum load first.
-> 
-> Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-> Signed-off-by: Weihang Li <liweihang@huawei.com>
-> ---
+Define a set of unit tests similar to regular MR tests and a set of
+tests for send/recv and rdma traffic using dma-buf MRs. Add a utility
+function to generate access flags for dma-buf based MRs because the
+set of supported flags is smaller.
 
-Applied to for-next, thanks
+Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+---
+ tests/test_mr.py | 239 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ tests/utils.py   |  26 ++++++
+ 2 files changed, 264 insertions(+), 1 deletion(-)
 
-Jason
+diff --git a/tests/test_mr.py b/tests/test_mr.py
+index adc649c..52cf20a 100644
+--- a/tests/test_mr.py
++++ b/tests/test_mr.py
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved. See COPYING file
++# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
+ """
+ Test module for pyverbs' mr module.
+ """
+@@ -9,9 +10,10 @@ import errno
+ 
+ from tests.base import PyverbsAPITestCase, RCResources, RDMATestCase
+ from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
+-from pyverbs.mr import MR, MW, DMMR, MWBindInfo, MWBind
++from pyverbs.mr import MR, MW, DMMR, DmaBufMR, MWBindInfo, MWBind
+ from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
+ from pyverbs.wr import SendWR
++from pyverbs.dmabuf import DmaBuf
+ import pyverbs.device as d
+ from pyverbs.pd import PD
+ import pyverbs.enums as e
+@@ -366,3 +368,238 @@ class DMMRTest(PyverbsAPITestCase):
+                         dm_mr = DMMR(pd, dm_mr_len, e.IBV_ACCESS_ZERO_BASED,
+                                      dm=dm, offset=dm_mr_offset)
+                         dm_mr.close()
++
++
++def check_dmabuf_support():
++    """
++    Check if dma-buf allocation is supported by the system.
++    Skip the test on failure.
++    """
++    try:
++        DmaBuf(1)
++    except PyverbsRDMAError as ex:
++        if ex.error_code == errno.ENOENT:
++            raise unittest.SkipTest('Device /dev/dri/renderD* is not present')
++        if ex.error_code == errno.EACCES:
++            raise unittest.SkipTest('Lack of permission to access /dev/dri/renderD*')
++
++
++def check_dmabuf_mr_support(pd):
++    """
++    Check if dma-buf MR registration is supported by the driver.
++    Skip the test on failure
++    """
++    try:
++        DmaBufMR(pd, 1, 0)
++    except PyverbsRDMAError as ex:
++        if ex.error_code == errno.EOPNOTSUPP:
++            raise unittest.SkipTest('Reg dma-buf MR is not supported')
++
++
++class DmaBufMRTest(PyverbsAPITestCase):
++    """
++    Test various functionalities of the DmaBufMR class.
++    """
++    def test_dmabuf_reg_mr(self):
++        """
++        Test ibv_reg_dmabuf_mr()
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off) as mr:
++                            pass
++
++    def test_dmabuf_dereg_mr(self):
++        """
++        Test ibv_dereg_mr() with DmaBufMR
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off) as mr:
++                            mr.close()
++
++    def test_dmabuf_dereg_mr_twice(self):
++        """
++        Verify that explicit call to DmaBufMR's close() doesn't fail
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off) as mr:
++                            # Pyverbs supports multiple destruction of objects,
++                            # we are not expecting an exception here.
++                            mr.close()
++                            mr.close()
++
++    def test_dmabuf_reg_mr_bad_flags(self):
++        """
++        Verify that illegal flags combination fails as expected
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                for i in range(5):
++                    flags = random.sample([e.IBV_ACCESS_REMOTE_WRITE,
++                                           e.IBV_ACCESS_REMOTE_ATOMIC],
++                                          random.randint(1, 2))
++                    mr_flags = 0
++                    for i in flags:
++                        mr_flags += i.value
++                    try:
++                        DmaBufMR(pd, u.get_mr_length(), mr_flags)
++                    except PyverbsRDMAError as err:
++                        assert 'Failed to register a dma-buf MR' in err.args[0]
++                    else:
++                        raise PyverbsRDMAError('Registered a dma-buf MR with illegal falgs')
++
++    def test_dmabuf_write(self):
++        """
++        Test writing to DmaBufMR's buffer
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                for i in range(10):
++                    mr_len = u.get_mr_length()
++                    flags = u.get_dmabuf_access_flags(ctx)
++                    for f in flags:
++                        for mr_off in [0, mr_len//2]:
++                            with DmaBufMR(pd, mr_len, f, offset=mr_off) as mr:
++                                write_len = min(random.randint(1, MAX_IO_LEN),
++                                                mr_len)
++                                mr.write('a' * write_len, write_len)
++
++    def test_dmabuf_read(self):
++        """
++        Test reading from DmaBufMR's buffer
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                for i in range(10):
++                    mr_len = u.get_mr_length()
++                    flags = u.get_dmabuf_access_flags(ctx)
++                    for f in flags:
++                        for mr_off in [0, mr_len//2]:
++                            with DmaBufMR(pd, mr_len, f, offset=mr_off) as mr:
++                                write_len = min(random.randint(1, MAX_IO_LEN),
++                                                mr_len)
++                                write_str = 'a' * write_len
++                                mr.write(write_str, write_len)
++                                read_len = random.randint(1, write_len)
++                                offset = random.randint(0, write_len-read_len)
++                                read_str = mr.read(read_len, offset).decode()
++                                assert read_str in write_str
++
++    def test_dmabuf_lkey(self):
++        """
++        Test reading lkey property
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                length = u.get_mr_length()
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    with DmaBufMR(pd, length, f) as mr:
++                        mr.lkey
++
++    def test_dmabuf_rkey(self):
++        """
++        Test reading rkey property
++        """
++        check_dmabuf_support()
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd)
++                length = u.get_mr_length()
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    with DmaBufMR(pd, length, f) as mr:
++                        mr.rkey
++
++
++class DmaBufRC(RCResources):
++    def __init__(self, dev_name, ib_port, gid_index):
++        """
++        Initialize an DmaBufRC object.
++        :param dev_name: Device name to be used
++        :param ib_port: IB port of the device to use
++        :param gid_index: Which GID index to use
++        """
++        super(DmaBufRC, self).__init__(dev_name=dev_name, ib_port=ib_port,
++                                       gid_index=gid_index)
++
++    def create_mr(self):
++        check_dmabuf_support()
++        check_dmabuf_mr_support(self.pd)
++        access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
++        mr = DmaBufMR(self.pd, self.msg_size, access)
++        self.mr = mr
++
++    def create_qp_attr(self):
++        qp_attr = QPAttr(port_num=self.ib_port)
++        qp_access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
++        qp_attr.qp_access_flags = qp_access
++        return qp_attr
++
++
++class DmaBufTestCase(RDMATestCase):
++    def setUp(self):
++        super(DmaBufTestCase, self).setUp()
++        self.iters = 100
++
++    def create_players(self, resource, **resource_arg):
++        """
++        Init dma-buf tests resources.
++        :param resource: The RDMA resources to use. A class of type
++                         BaseResources.
++        :param resource_arg: Dict of args that specify the resource specific
++                             attributes.
++        :return: The (client, server) resources.
++        """
++        client = resource(**self.dev_info, **resource_arg)
++        server = resource(**self.dev_info, **resource_arg)
++        client.pre_run(server.psns, server.qps_num)
++        server.pre_run(client.psns, client.qps_num)
++        return client, server
++
++    def test_dmabuf_rc_traffic(self):
++        """
++        Test send/recv using dma-buf MR over RC
++        """
++        client, server = self.create_players(DmaBufRC)
++        u.traffic(client, server, self.iters, self.gid_index, self.ib_port)
++
++    def test_dmabuf_rdma_traffic(self):
++        """
++        Test rdma write using dma-buf MR
++        """
++        client, server = self.create_players(DmaBufRC)
++        server.rkey = client.mr.rkey
++        server.remote_addr = client.mr.offset
++        client.rkey = server.mr.rkey
++        client.remote_addr = server.mr.offset
++        u.rdma_traffic(client, server, self.iters, self.gid_index, self.ib_port,
++                       send_op=e.IBV_WR_RDMA_WRITE)
+diff --git a/tests/utils.py b/tests/utils.py
+index 7039f41..d3d5c16 100644
+--- a/tests/utils.py
++++ b/tests/utils.py
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
++# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
+ """
+ Provide some useful helper function for pyverbs' tests.
+ """
+@@ -94,6 +95,31 @@ def get_access_flags(ctx):
+     return arr
+ 
+ 
++def get_dmabuf_access_flags(ctx):
++    """
++    Similar to get_access_flags, except that dma-buf MR only support
++    a subset of the flags.
++    :param ctx: Device Context to check capabilities
++    :return: A random legal value for MR flags
++    """
++    attr = ctx.query_device()
++    vals = [e.IBV_ACCESS_LOCAL_WRITE, e.IBV_ACCESS_REMOTE_WRITE,
++            e.IBV_ACCESS_REMOTE_READ, e.IBV_ACCESS_REMOTE_ATOMIC,
++            e.IBV_ACCESS_RELAXED_ORDERING]
++    if not attr.atomic_caps & e.IBV_ATOMIC_HCA:
++        vals.remove(e.IBV_ACCESS_REMOTE_ATOMIC)
++    arr = []
++    for i in range(1, len(vals)):
++        tmp = list(com(vals, i))
++        tmp = filter(filter_illegal_access_flags, tmp)
++        for t in tmp:  # Iterate legal combinations and bitwise OR them
++            val = 0
++            for flag in t:
++                val += flag.value
++            arr.append(val)
++    return arr
++
++
+ def get_dm_attrs(dm_len):
+     """
+     Initializes an AllocDmAttr member with the given length and random
+-- 
+1.8.3.1
+
