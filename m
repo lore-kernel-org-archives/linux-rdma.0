@@ -2,61 +2,124 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A821C8301F
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Nov 2020 22:05:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17341C64E8A
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Nov 2020 04:08:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F37BA24640
-	for <linux-rdma@archiver.kernel.org>; Sat, 28 Nov 2020 22:05:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D8BC520756
+	for <linux-rdma@archiver.kernel.org>; Mon, 30 Nov 2020 04:08:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730418AbgK1VuZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 28 Nov 2020 16:50:25 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8162 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730425AbgK1SlC (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 28 Nov 2020 13:41:02 -0500
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CjnfC0QHFz15LLm;
-        Sat, 28 Nov 2020 18:24:03 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Sat, 28 Nov 2020 18:24:18 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/3] RDMA/hns: Fixes for calculation of sge
-Date:   Sat, 28 Nov 2020 18:22:36 +0800
-Message-ID: <1606558959-48510-1-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
+        id S1726811AbgK3EId (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 29 Nov 2020 23:08:33 -0500
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:46070 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726560AbgK3EId (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 29 Nov 2020 23:08:33 -0500
+Received: by mail-pg1-f196.google.com with SMTP id e23so4441486pgk.12
+        for <linux-rdma@vger.kernel.org>; Sun, 29 Nov 2020 20:08:17 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=NIiQfdxupl97garY21VhVsH1ic9ExBPQ5IjiB87+7DE=;
+        b=D0h27gXezC9AGIZLv7GrHpuZTCpeyW7290ujzHRiS3KH+NPYxPp7NMmCDQIsl1zt7+
+         fik6rN960HXJJs60VuHUgu8/p4+3nK4F2bXbeOz4WdPVi/ZsxGyusLiCiiNe6BE99c6D
+         wkcBngenUbev/Dhu15S3zqi+EofpZYR0ls+ZSJzCaiyfPprJdK6mHPnLgVQjYqdPho3W
+         Q0Yz3Dn2NSUyDQEk3uch1ZFX5hMQpv8A9sOz7WBMD/GTcPSIoNCWjS4srC+nsxNsJea0
+         IejkOzQwtJJzSXO9juNbUd830SJk9/rcfbcvDGVnV8NWyaixI0slCNy4Con6v9GMZNjj
+         1sfg==
+X-Gm-Message-State: AOAM530QL27srz72BzNUj3ssZjXPLzqRHRTOgRmiPDNXmPSTbMVm9mSX
+        s1n3fdNnhHb8RfuC5BKzJYM=
+X-Google-Smtp-Source: ABdhPJyQeOqljhxI5kxbd4+AnAFz29UVc9wr1vnPJwXzHg/lXxF1Smj6ZkcELheGGGZW40P+6cEgaQ==
+X-Received: by 2002:a62:68c7:0:b029:197:c7e0:6d8f with SMTP id d190-20020a6268c70000b0290197c7e06d8fmr17031417pfc.74.1606709271904;
+        Sun, 29 Nov 2020 20:07:51 -0800 (PST)
+Received: from [192.168.3.218] (c-73-241-217-19.hsd1.ca.comcast.net. [73.241.217.19])
+        by smtp.gmail.com with ESMTPSA id o2sm6537695pgq.63.2020.11.29.20.07.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 29 Nov 2020 20:07:50 -0800 (PST)
+Subject: Re: [PATCH] RDMA/srp: Fix support for unpopulated NUMA nodes
+To:     Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Bart Van Assche <bart.vanassche@wdc.com>
+References: <6c9f38f6-de5b-d01f-f67a-52a518d2a26d@suse.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <efe241f7-6acf-3d39-b29c-fadefc7939d3@acm.org>
+Date:   Sun, 29 Nov 2020 20:07:49 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.5.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <6c9f38f6-de5b-d01f-f67a-52a518d2a26d@suse.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There are two issues with calculation of extended sge, one is about page
-alignment and another is about the 0-length sges. Then, the path #3
-refactor the code.
+On 11/25/20 10:26 AM, Nicolas Morey-Chaisemartin wrote:
+> +static int srp_get_num_populated_nodes(void)
+> +{
+> +    int num_populated_nodes = 0;
+> +    int node, cpu;
+> +
+> +    for_each_online_node(node) {
+> +        bool populated = false;
+> +        for_each_online_cpu(cpu) {
+> +            if (cpu_to_node(cpu) == node){
+> +                populated = true;
+> +                break;
+> +            }
+> +        }
+> +        if (populated) {
+> +            num_populated_nodes++;
+> +            break;
+> +        }
+> +    }
+> +
+> +    return num_populated_nodes;
+> +}
 
-Lang Cheng (1):
-  RDMA/hns: Fix 0-length sge calculation error
+Does the above code do what it should do? Will the outer loop be left as
+soon as one populated node has been found? Can the 'populated' variable
+be left out, e.g. as follows (untested):
 
-Weihang Li (1):
-  RDMA/hns: Refactor process of setting extended sge
++    for_each_online_node(node) {
++        for_each_online_cpu(cpu) {
++            if (cpu_to_node(cpu) == node){
++                num_populated_nodes++;
++                break;
++            }
++        }
++    }
 
-Yangyang Li (1):
-  RDMA/hns: Bugfix for calculation of extended sge
+>      if (target->ch_count == 0)
+>          target->ch_count =
+> -            max_t(unsigned int, num_online_nodes(),
+> -                  min(ch_count ?:
+> -                      min(4 * num_online_nodes(),
+> -                          ibdev->num_comp_vectors),
+> -                  num_online_cpus()));
+> +            min(ch_count ?:
+> +                min(4 * num_populated_nodes,
+> +                    ibdev->num_comp_vectors),
+> +                num_online_cpus());
 
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 24 +++++-------
- drivers/infiniband/hw/hns/hns_roce_qp.c    | 61 +++++++++++++++---------------
- 2 files changed, 41 insertions(+), 44 deletions(-)
+It seems like "max_t(unsigned int, num_populated_nodes," is missing from
+the above expression? I think there should be at least one channel per
+NUMA node even if the number of completion vectors is less than the
+number of NUMA nodes.
 
--- 
-2.8.1
+> -        node_idx++;
+> +        if(cpu_idx)
+> +            node_idx++;
 
+Has this patch been verified with checkpatch? I think a space is missing
+between "if" and "(".
+
+Thanks,
+
+Bart.
