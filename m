@@ -2,213 +2,178 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57C36C8301A
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Dec 2020 12:11:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29200C64E7A
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Dec 2020 13:26:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2B9B2084C
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Dec 2020 12:11:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="eqagvTWu"
+	by mail.kernel.org (Postfix) with ESMTP id D547B20770
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Dec 2020 13:26:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730785AbgLAMKi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Dec 2020 07:10:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40534 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730755AbgLAMKh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 1 Dec 2020 07:10:37 -0500
-Received: from mail.kernel.org (ip5f5ad5d9.dynamic.kabel-deutschland.de [95.90.213.217])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 66E8D221FD;
-        Tue,  1 Dec 2020 12:09:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1606824555;
-        bh=CKU7nFOSsbN/XW/BnFcmO1V7GANr6/4MKPOejaVqscI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=eqagvTWutTLcVFzb95Ciee9q0qDa5UFPbM5AAbFexOp5sfH7FAIDQn0oGeWvCXuev
-         TL7qtQMzvXDryh4IscT9uizp2JYQMu8M7zg6S2cpSqSmJfU9hbX12hd/de4h/liUaU
-         ksZGda6OQGzAGoKB9pYow+AqPj198CvdI0OsA+3E=
-Received: from mchehab by mail.kernel.org with local (Exim 4.94)
-        (envelope-from <mchehab@kernel.org>)
-        id 1kk4T2-00DGcs-P1; Tue, 01 Dec 2020 13:09:12 +0100
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc:     Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Bounine <alex.bou9@gmail.com>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Anton Vorontsov <anton@enomsg.org>,
-        Ben Segall <bsegall@google.com>,
-        Colin Cross <ccross@android.com>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Evgeniy Polyakov <zbr@ioremap.net>,
-        Ingo Molnar <mingo@redhat.com>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Kees Cook <keescook@chromium.org>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Mel Gorman <mgorman@suse.de>, Mike Rapoport <rppt@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Richard Gong <richard.gong@linux.intel.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Will Drewry <wad@chromium.org>, linux-fsdevel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, linux-mm@kvack.org,
-        linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
-Subject: [PATCH v5 00/16]Fix several bad kernel-doc markups
-Date:   Tue,  1 Dec 2020 13:08:53 +0100
-Message-Id: <cover.1606823973.git.mchehab+huawei@kernel.org>
-X-Mailer: git-send-email 2.28.0
+        id S2387551AbgLAN0T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Dec 2020 08:26:19 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:8484 "EHLO
+        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725977AbgLAN0T (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Dec 2020 08:26:19 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4CljWs35GyzhXwr;
+        Tue,  1 Dec 2020 21:25:13 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 1 Dec 2020 21:25:25 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH for-next] RDMA/hns: Move capability flags of QP and CQ to hns-abi.h
+Date:   Tue, 1 Dec 2020 21:23:44 +0800
+Message-ID: <1606829024-51856-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Kernel-doc has always be limited to a probably bad documented
-rule:
+These flags will be returned to the userspace through ABI, so they should
+be defined in hns-abi.h. Furthermore, there is no need to include
+hns-abi.h in every source files, it just needs to be included in the
+common header file.
 
-The kernel-doc markups should appear *imediatelly before* the
-function or data structure that it documents.
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  1 -
+ drivers/infiniband/hw/hns/hns_roce_device.h | 11 +----------
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  1 -
+ drivers/infiniband/hw/hns/hns_roce_pd.c     |  1 -
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  1 -
+ drivers/infiniband/hw/hns/hns_roce_srq.c    |  1 -
+ include/uapi/rdma/hns-abi.h                 | 10 ++++++++++
+ 7 files changed, 11 insertions(+), 15 deletions(-)
 
-On other words, if a C file would contain something like this:
-
-	/**
-	 * foo - function foo
-	 * @args: foo args
-	 */
-	static inline void bar(int args);
-
-	/**
-	 * bar - function bar
-	 * @args: foo args
-	 */
-	static inline void foo(void *args);
-
-
-The output (in ReST format) will be:
-
-	.. c:function:: void bar (int args)
-
-	   function foo
-
-	**Parameters**
-
-	``int args``
-	  foo args
-
-
-	.. c:function:: void foo (void *args)
-
-	   function bar
-
-	**Parameters**
-
-	``void *args``
-	  foo args
-
-Which is clearly a wrong result.  Before this changeset, 
-not even a warning is produced on such cases.
-
-As placing such markups just before the documented
-data is a common practice, on most cases this is fine.
-
-However, as patches touch things, identifiers may be
-renamed, and people may forget to update the kernel-doc
-markups to follow such changes.
-
-This has been happening for quite a while, as there are
-lots of files with kernel-doc problems.
-
-This series address those issues and add a file at the
-end that will enforce that the identifier will match the
-kernel-doc markup, avoiding this problem from
-keep happening as time goes by.
-
-This series is based on current upstream tree.
-
-@maintainers: feel free to pick the patches and
-apply them directly on your trees, as all patches on 
-this series are independent from the other ones.
-
---
-
-v5:
-  - The completion.h patch was replaced by another one which drops
-    an obsolete macro;
-  - Some typos got fixed and review tags got added;
-  - Dropped patches that were already merged at linux-next.
-
-v4:
-
-  - Patches got rebased and got some acks.
-
-Mauro Carvalho Chehab (16):
-  HSI: fix a kernel-doc markup
-  IB: fix kernel-doc markups
-  parport: fix a kernel-doc markup
-  rapidio: fix kernel-doc a markup
-  fs: fix kernel-doc markups
-  pstore/zone: fix a kernel-doc markup
-  completion: drop init_completion define
-  firmware: stratix10-svc: fix kernel-doc markups
-  connector: fix a kernel-doc markup
-  lib/crc7: fix a kernel-doc markup
-  memblock: fix kernel-doc markups
-  w1: fix a kernel-doc markup
-  sched: fix kernel-doc markup
-  selftests: kselftest_harness.h: partially fix kernel-doc markups
-  refcount.h: fix a kernel-doc markup
-  scripts: kernel-doc: validate kernel-doc markup with the actual names
-
- drivers/hsi/hsi_core.c                        |  2 +-
- drivers/infiniband/core/cm.c                  |  5 +-
- drivers/infiniband/core/cq.c                  |  4 +-
- drivers/infiniband/core/iwpm_util.h           |  2 +-
- drivers/infiniband/core/sa_query.c            |  3 +-
- drivers/infiniband/core/verbs.c               |  4 +-
- drivers/infiniband/sw/rdmavt/ah.c             |  2 +-
- drivers/infiniband/sw/rdmavt/mcast.c          | 12 ++--
- drivers/infiniband/sw/rdmavt/qp.c             |  8 +--
- drivers/infiniband/ulp/iser/iscsi_iser.c      |  2 +-
- .../infiniband/ulp/opa_vnic/opa_vnic_encap.h  |  2 +-
- .../ulp/opa_vnic/opa_vnic_vema_iface.c        |  2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.h         |  2 +-
- drivers/parport/share.c                       |  2 +-
- drivers/rapidio/rio.c                         |  2 +-
- fs/dcache.c                                   | 72 +++++++++----------
- fs/inode.c                                    |  4 +-
- fs/pstore/zone.c                              |  2 +-
- fs/seq_file.c                                 |  5 +-
- fs/super.c                                    | 12 ++--
- include/linux/completion.h                    |  5 +-
- include/linux/connector.h                     |  2 +-
- .../firmware/intel/stratix10-svc-client.h     | 10 +--
- include/linux/memblock.h                      |  4 +-
- include/linux/parport.h                       | 31 ++++++++
- include/linux/refcount.h                      |  2 +-
- include/linux/w1.h                            |  2 +-
- include/rdma/ib_verbs.h                       | 11 +++
- kernel/sched/core.c                           | 16 ++---
- kernel/sched/fair.c                           |  2 +-
- lib/crc7.c                                    |  2 +-
- scripts/kernel-doc                            | 62 +++++++++++-----
- tools/testing/selftests/kselftest_harness.h   | 22 +++---
- 33 files changed, 197 insertions(+), 123 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 68f355f..5e6d688 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -36,7 +36,6 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
+-#include <rdma/hns-abi.h>
+ #include "hns_roce_common.h"
+ 
+ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 1c1deb4..6c5d5dd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -34,6 +34,7 @@
+ #define _HNS_ROCE_DEVICE_H
+ 
+ #include <rdma/ib_verbs.h>
++#include <rdma/hns-abi.h>
+ 
+ #define DRV_NAME "hns_roce"
+ 
+@@ -129,16 +130,6 @@ enum {
+ 	SERV_TYPE_UD,
+ };
+ 
+-enum hns_roce_qp_caps {
+-	HNS_ROCE_QP_CAP_RQ_RECORD_DB = BIT(0),
+-	HNS_ROCE_QP_CAP_SQ_RECORD_DB = BIT(1),
+-	HNS_ROCE_QP_CAP_OWNER_DB = BIT(2),
+-};
+-
+-enum hns_roce_cq_flags {
+-	HNS_ROCE_CQ_FLAG_RECORD_DB = BIT(0),
+-};
+-
+ enum hns_roce_qp_state {
+ 	HNS_ROCE_QP_STATE_RST,
+ 	HNS_ROCE_QP_STATE_INIT,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index f01590d..e8aa807 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -40,7 +40,6 @@
+ #include <rdma/ib_cache.h>
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+-#include <rdma/hns-abi.h>
+ #include "hns_roce_hem.h"
+ 
+ /**
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 98f6949..45ec91d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -32,7 +32,6 @@
+ 
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
+-#include <uapi/rdma/hns-abi.h>
+ #include "hns_roce_device.h"
+ 
+ static int hns_roce_pd_alloc(struct hns_roce_dev *hr_dev, unsigned long *pdn)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 5e505a3..5a94b20 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -39,7 +39,6 @@
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_hem.h"
+-#include <rdma/hns-abi.h>
+ 
+ static void flush_work_handle(struct work_struct *work)
+ {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index 27646b9..36c6bcb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -4,7 +4,6 @@
+  */
+ 
+ #include <rdma/ib_umem.h>
+-#include <rdma/hns-abi.h>
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index 9ec85f7..2dd5fa07 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -43,6 +43,10 @@ struct hns_roce_ib_create_cq {
+ 	__u32 reserved;
+ };
+ 
++enum hns_roce_cq_cap_flags {
++	HNS_ROCE_CQ_FLAG_RECORD_DB = BIT(0),
++};
++
+ struct hns_roce_ib_create_cq_resp {
+ 	__aligned_u64 cqn; /* Only 32 bits used, 64 for compat */
+ 	__aligned_u64 cap_flags;
+@@ -69,6 +73,12 @@ struct hns_roce_ib_create_qp {
+ 	__aligned_u64 sdb_addr;
+ };
+ 
++enum hns_roce_qp_cap_flags {
++	HNS_ROCE_QP_CAP_RQ_RECORD_DB = BIT(0),
++	HNS_ROCE_QP_CAP_SQ_RECORD_DB = BIT(1),
++	HNS_ROCE_QP_CAP_OWNER_DB = BIT(2),
++};
++
+ struct hns_roce_ib_create_qp_resp {
+ 	__aligned_u64 cap_flags;
+ };
 -- 
-2.28.0
-
+2.8.1
 
