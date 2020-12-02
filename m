@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5201BC71155
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A04BCC83014
 	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE6362222C
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53070221E9
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388024AbgLBJBp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Dec 2020 04:01:45 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8907 "EHLO
+        id S2388027AbgLBJBr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Dec 2020 04:01:47 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8910 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388026AbgLBJBo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:01:44 -0500
+        with ESMTP id S2388026AbgLBJBr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:01:47 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc34pGHz77Bc;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc35L1Bz77Bn;
         Wed,  2 Dec 2020 17:00:35 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 04/11] RDMA/hns: Avoid filling sl in high 3 bits of vlan_id
-Date:   Wed, 2 Dec 2020 16:59:06 +0800
-Message-ID: <1606899553-54592-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 06/11] RDMA/hns: Remove unnecessary access right set during INIT2INIT
+Date:   Wed, 2 Dec 2020 16:59:08 +0800
+Message-ID: <1606899553-54592-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
 References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
@@ -43,49 +43,84 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Only the low 12 bits of vlan_id is valid, and service level has been filled
-in Address Vector. So there is no need to fill sl in vlan_id in Address
-Vector.
+From: Yixian Liu <liuyixian@huawei.com>
 
+As the qp access right is checked and setted in common function
+hns_roce_v2_set_opt_fields(), there is no need to set again for a special
+case INIT2INIT.
+
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Fixes: 7db82697b8bf ("RDMA/hns: Add support for extended atomic in userspace")
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_ah.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 46 ------------------------------
+ 1 file changed, 46 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index b09ef33..0566a10 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -36,9 +36,6 @@
- #include <rdma/ib_cache.h>
- #include "hns_roce_device.h"
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 41861dd..f43434e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3976,7 +3976,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
  
--#define VLAN_SL_MASK 7
--#define VLAN_SL_SHIFT 13
+ 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
+ 
+-	hr_qp->access_flags = attr->qp_access_flags;
+ 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
+ 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
+ 
+@@ -4005,51 +4004,6 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
+ 		       V2_QPC_BYTE_4_TST_S, 0);
+ 
+-	if (attr_mask & IB_QP_ACCESS_FLAGS) {
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     0);
 -
- static inline u16 get_ah_udp_sport(const struct rdma_ah_attr *ah_attr)
- {
- 	u32 fl = ah_attr->grh.flow_label;
-@@ -84,18 +81,12 @@ int hns_roce_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 
- 	/* HIP08 needs to record vlan info in Address Vector */
- 	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08) {
--		ah->av.vlan_en = 0;
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     !!(attr->qp_access_flags &
+-			     IB_ACCESS_REMOTE_WRITE));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     0);
 -
- 		ret = rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr,
- 					      &ah->av.vlan_id, NULL);
- 		if (ret)
- 			return ret;
- 
--		if (ah->av.vlan_id < VLAN_N_VID) {
--			ah->av.vlan_en = 1;
--			ah->av.vlan_id |= (rdma_ah_get_sl(ah_attr) & VLAN_SL_MASK) <<
--					  VLAN_SL_SHIFT;
--		}
-+		ah->av.vlan_en = ah->av.vlan_id < VLAN_N_VID;
- 	}
- 
- 	return ret;
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     !!(attr->qp_access_flags &
+-			     IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     0);
+-		roce_set_bit(context->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S,
+-			     !!(attr->qp_access_flags &
+-				IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
+-	} else {
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_READ));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_WRITE));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     0);
+-		roce_set_bit(context->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
+-	}
+-
+ 	roce_set_field(context->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
+ 		       V2_QPC_BYTE_16_PD_S, to_hr_pd(ibqp->pd)->pdn);
+ 	roce_set_field(qpc_mask->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
 -- 
 2.8.1
 
