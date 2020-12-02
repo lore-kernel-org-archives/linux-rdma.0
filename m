@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C1CC64E7C
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54222C83012
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CAD80221E9
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03ED6221E9
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387947AbgLBJC0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2387921AbgLBJC0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 2 Dec 2020 04:02:26 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8912 "EHLO
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8917 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387852AbgLBJCZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:02:25 -0500
+        with ESMTP id S2387941AbgLBJC0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:02:26 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc35t9Tz77Bs;
-        Wed,  2 Dec 2020 17:00:35 +0800 (CST)
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc920xnz77Bl;
+        Wed,  2 Dec 2020 17:00:41 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 2 Dec 2020 17:00:54 +0800
+ 14.3.487.0; Wed, 2 Dec 2020 17:00:56 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 01/11] RDMA/hns: Limit the length of data copied between kernel and userspace
-Date:   Wed, 2 Dec 2020 16:59:03 +0800
-Message-ID: <1606899553-54592-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 08/11] RDMA/hns: Clear redundant variable initialization
+Date:   Wed, 2 Dec 2020 16:59:10 +0800
+Message-ID: <1606899553-54592-9-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
 References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
@@ -43,141 +43,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Xinhao Liu <liuxinhao5@hisilicon.com>
 
-For ib_copy_from_user(), the length of udata may not be the same as that
-of cmd. For ib_copy_to_user(), the length of udata may not be the same as
-that of resp. So limit the length to prevent out-of-bounds read and write
-operations from ib_copy_from_user() and ib_copy_to_user().
+There is no need to initialize some variable because they will be assigned
+with a value later.
 
-Fixes: de77503a5940 ("RDMA/hns: RDMA/hns: Assign rq head pointer when enable rq record db")
-Fixes: 633fb4d9fdaa ("RDMA/hns: Use structs to describe the uABI instead of opencoding")
-Fixes: ae85bf92effc ("RDMA/hns: Optimize qp param setup flow")
-Fixes: 6fd610c5733d ("RDMA/hns: Support 0 hop addressing for SRQ buffer")
-Fixes: 9d9d4ff78884 ("RDMA/hns: Update the kernel header file of hns")
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c   |  5 +++--
- drivers/infiniband/hw/hns/hns_roce_main.c |  3 ++-
- drivers/infiniband/hw/hns/hns_roce_pd.c   | 11 ++++++-----
- drivers/infiniband/hw/hns/hns_roce_qp.c   |  9 ++++++---
- drivers/infiniband/hw/hns/hns_roce_srq.c  | 10 +++++-----
- 5 files changed, 22 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c   | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 68f355f..b94a560 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -277,7 +277,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 303c8dd..f19bbcc 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -887,7 +887,7 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ 		unsigned long buf_chunk_size;
+ 		unsigned long bt_chunk_size;
+ 		unsigned long bt_chunk_num;
+-		unsigned long num_bt_l0 = 0;
++		unsigned long num_bt_l0;
+ 		u32 hop_num;
  
- 	if (udata) {
- 		ret = ib_copy_from_udata(&ucmd, udata,
--					 min(sizeof(ucmd), udata->inlen));
-+					 min(udata->inlen, sizeof(ucmd)));
- 		if (ret) {
- 			ibdev_err(ibdev, "Failed to copy CQ udata, err %d\n",
- 				  ret);
-@@ -316,7 +316,8 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 		if (get_hem_table_config(hr_dev, &mhop, type))
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index eb0fd72..0f4273d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -353,8 +353,8 @@ static int hns_roce_v1_post_recv(struct ib_qp *ibqp,
+ 	unsigned long flags = 0;
+ 	unsigned int wqe_idx;
+ 	int ret = 0;
+-	int nreq = 0;
+-	int i = 0;
++	int nreq;
++	int i;
+ 	u32 reg_val;
  
- 	if (udata) {
- 		resp.cqn = hr_cq->cqn;
--		ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
- 		if (ret)
- 			goto err_cqc;
- 	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index f01590d..cab95fd 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -328,7 +328,8 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 	spin_lock_irqsave(&hr_qp->rq.lock, flags);
+@@ -2300,7 +2300,7 @@ int hns_roce_v1_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ 	struct hns_roce_qp *cur_qp = NULL;
+ 	unsigned long flags;
+ 	int npolled;
+-	int ret = 0;
++	int ret;
  
- 	resp.cqe_size = hr_dev->caps.cqe_sz;
+ 	spin_lock_irqsave(&hr_cq->lock, flags);
  
--	ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+	ret = ib_copy_to_udata(udata, &resp,
-+			       min(udata->outlen, sizeof(resp)));
- 	if (ret)
- 		goto error_fail_copy_to_udata;
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index 98f6949..f78fa1d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_pd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -70,16 +70,17 @@ int hns_roce_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 	}
- 
- 	if (udata) {
--		struct hns_roce_ib_alloc_pd_resp uresp = {.pdn = pd->pdn};
-+		struct hns_roce_ib_alloc_pd_resp resp = {.pdn = pd->pdn};
- 
--		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
-+		if (ret) {
- 			hns_roce_pd_free(to_hr_dev(ib_dev), pd->pdn);
--			ibdev_err(ib_dev, "failed to copy to udata\n");
--			return -EFAULT;
-+			ibdev_err(ib_dev, "failed to copy to udata, ret = %d\n", ret);
- 		}
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- int hns_roce_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 34aa086..ebf152f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -925,9 +925,12 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	}
- 
- 	if (udata) {
--		if (ib_copy_from_udata(ucmd, udata, sizeof(*ucmd))) {
--			ibdev_err(ibdev, "Failed to copy QP ucmd\n");
--			return -EFAULT;
-+		ret = ib_copy_from_udata(ucmd, udata,
-+					 min(udata->inlen, sizeof(*ucmd)));
-+		if (ret) {
-+			ibdev_err(ibdev,
-+				  "failed to copy QP ucmd, ret = %d\n", ret);
-+			return ret;
- 		}
- 
- 		ret = set_user_sq_size(hr_dev, &init_attr->cap, hr_qp, ucmd);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 27646b9..6ce250e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -304,7 +304,8 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	srq->max_gs = init_attr->attr.max_sge;
- 
- 	if (udata) {
--		ret = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
-+		ret = ib_copy_from_udata(&ucmd, udata,
-+					 min(udata->inlen, sizeof(ucmd)));
- 		if (ret) {
- 			ibdev_err(ibdev, "Failed to copy SRQ udata, err %d\n",
- 				  ret);
-@@ -347,11 +348,10 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	resp.srqn = srq->srqn;
- 
- 	if (udata) {
--		if (ib_copy_to_udata(udata, &resp,
--				     min(udata->outlen, sizeof(resp)))) {
--			ret = -EFAULT;
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
-+		if (ret)
- 			goto err_srqc_alloc;
--		}
- 	}
- 
- 	return 0;
+@@ -4123,7 +4123,7 @@ static int hns_roce_v1_create_eq(struct hns_roce_dev *hr_dev,
+ 	void __iomem *eqc = hr_dev->eq_table.eqc_base[eq->eqn];
+ 	struct device *dev = &hr_dev->pdev->dev;
+ 	dma_addr_t tmp_dma_addr;
+-	u32 eqcuridx_val = 0;
++	u32 eqcuridx_val;
+ 	u32 eqconsindx_val;
+ 	u32 eqshift_val;
+ 	__le32 tmp2 = 0;
 -- 
 2.8.1
 
