@@ -2,36 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E59CC64E8A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E09C64E7C
 	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCB7322206
+	by mail.kernel.org (Postfix) with ESMTP id 8E1BA221E9
 	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388043AbgLBJBp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Dec 2020 04:01:45 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8906 "EHLO
+        id S2388022AbgLBJBo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Dec 2020 04:01:44 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8908 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388028AbgLBJBo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:01:44 -0500
+        with ESMTP id S2388024AbgLBJBn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:01:43 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc34ztWz77Bh;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc359Bmz77Bk;
         Wed,  2 Dec 2020 17:00:35 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 2 Dec 2020 17:00:54 +0800
+ 14.3.487.0; Wed, 2 Dec 2020 17:00:55 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 00/11] RDMA/hns: Updates for 5.11
-Date:   Wed, 2 Dec 2020 16:59:02 +0800
-Message-ID: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 05/11] RDMA/hns: WARN_ON if get a reserved sl from users
+Date:   Wed, 2 Dec 2020 16:59:07 +0800
+Message-ID: <1606899553-54592-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
+References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -40,58 +43,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There are miscellaneous updates for hns driver:
-* #1 fixes a potential length issue when copying udata.
-* #2 fixes the unreasonable judgment when using HEM of SRQ and SCCC.
-* #3 fixes wrong value of Traffic Class.
-* #4 and #5 fix issues about Service Level.
-* #6 ~ #11 are cleanups, including removing dead code, fixing coding style
-  issues and so on.
+According to the RoCE v1 specification, the sl (service level) 0-7 are
+mapped directly to priorities 0-7 respectively, sl 8-15 are reserved. The
+driver should verify whether the value of sl is larger than 7, if so, an
+exception should be returned.
 
-Lang Cheng (1):
-  RDMA/hns: Fix coding style issues
+Fixes: 172505cfa3a8 ("RDMA/hns: Add check for the validity of sl configuration")
+Fixes: d6a3627e311c ("RDMA/hns: Optimize wqe buffer set flow for post send")
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Weihang Li (3):
-  RDMA/hns: Do shift on traffic class of UD SQ WQE
-  RDMA/hns: Avoid filling sl in high 3 bits of vlan_id
-  RDMA/hns: WARN_ON if get a reserved sl from users
-
-Wenpeng Liang (3):
-  RDMA/hns: Limit the length of data copied between kernel and userspace
-  RDMA/hns: Normalization the judgment of some features
-  RDMA/hns: Fix incorrect symbol types
-
-Xinhao Liu (1):
-  RDMA/hns: Clear redundant variable initialization
-
-Yixian Liu (2):
-  RDMA/hns: Remove unnecessary access right set during INIT2INIT
-  RDMA/hns: Simplify AEQE process for different types of queue
-
-Yixing Liu (1):
-  RDMA/hns: Fix inaccurate prints
-
- drivers/infiniband/hw/hns/hns_roce_ah.c     |  11 +-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |   4 +-
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |  37 +++---
- drivers/infiniband/hw/hns/hns_roce_cmd.h    |   6 +-
- drivers/infiniband/hw/hns/hns_roce_common.h |  14 +--
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  42 +++----
- drivers/infiniband/hw/hns/hns_roce_db.c     |   8 +-
- drivers/infiniband/hw/hns/hns_roce_device.h |  81 +++++--------
- drivers/infiniband/hw/hns/hns_roce_hem.c    |  42 +++----
- drivers/infiniband/hw/hns/hns_roce_hem.h    |   2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  37 +++---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 177 +++++++++-------------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   6 +-
- drivers/infiniband/hw/hns/hns_roce_main.c   |  19 +--
- drivers/infiniband/hw/hns/hns_roce_mr.c     |  25 ++--
- drivers/infiniband/hw/hns/hns_roce_pd.c     |  13 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  82 +++++++------
- drivers/infiniband/hw/hns/hns_roce_srq.c    |  48 ++++----
- 19 files changed, 288 insertions(+), 368 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 13c8a2c..41861dd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -434,6 +434,10 @@ static int fill_ud_av(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
+ 		       ah->av.tclass >> DSCP_SHIFT);
+ 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M,
+ 		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
++
++	if (WARN_ON(ah->av.sl > MAX_SERVICE_LEVEL))
++		return -EINVAL;
++
+ 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
+ 		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
+ 
+@@ -4610,12 +4614,8 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
+ 	memset(qpc_mask->dgid, 0, sizeof(grh->dgid.raw));
+ 
+ 	hr_qp->sl = rdma_ah_get_sl(&attr->ah_attr);
+-	if (unlikely(hr_qp->sl > MAX_SERVICE_LEVEL)) {
+-		ibdev_err(ibdev,
+-			  "failed to fill QPC, sl (%d) shouldn't be larger than %d.\n",
+-			  hr_qp->sl, MAX_SERVICE_LEVEL);
++	if (WARN_ON(hr_qp->sl > MAX_SERVICE_LEVEL))
+ 		return -EINVAL;
+-	}
+ 
+ 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
+ 		       V2_QPC_BYTE_28_SL_S, hr_qp->sl);
 -- 
 2.8.1
 
