@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A04BCC83014
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D02DC64E8A
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53070221E9
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26FDF22202
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388027AbgLBJBr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Dec 2020 04:01:47 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8910 "EHLO
+        id S2387852AbgLBJC0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Dec 2020 04:02:26 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:8911 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388026AbgLBJBr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:01:47 -0500
+        with ESMTP id S2387921AbgLBJCZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:02:25 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc35L1Bz77Bn;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc35WY3z77Bq;
         Wed,  2 Dec 2020 17:00:35 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 2 Dec 2020 17:00:55 +0800
+ 14.3.487.0; Wed, 2 Dec 2020 17:00:54 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 06/11] RDMA/hns: Remove unnecessary access right set during INIT2INIT
-Date:   Wed, 2 Dec 2020 16:59:08 +0800
-Message-ID: <1606899553-54592-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 02/11] RDMA/hns: Normalization the judgment of some features
+Date:   Wed, 2 Dec 2020 16:59:04 +0800
+Message-ID: <1606899553-54592-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
 References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
@@ -43,84 +43,92 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-As the qp access right is checked and setted in common function
-hns_roce_v2_set_opt_fields(), there is no need to set again for a special
-case INIT2INIT.
+Whether to enable the these features should better depend on the enable
+flags, not the value of related fields.
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
-Fixes: 7db82697b8bf ("RDMA/hns: Add support for extended atomic in userspace")
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+Fixes: 5c1f167af112 ("RDMA/hns: Init SRQ table for hip08")
+Fixes: 3cb2c996c9dc ("RDMA/hns: Add support for SCCC in size of 64 Bytes")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 46 ------------------------------
- 1 file changed, 46 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c  | 4 ++--
+ drivers/infiniband/hw/hns/hns_roce_main.c | 8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_qp.c   | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 41861dd..f43434e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3976,7 +3976,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 5c302ae..359e5dd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1028,7 +1028,7 @@ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
  
- 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
+ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ {
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->srq_table.table);
+ 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->cq_table.table);
+@@ -1038,7 +1038,7 @@ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->caps.cqc_timer_entry_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->cqc_timer_table);
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ 	if (hr_dev->caps.trrl_entry_sz)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index cab95fd..9ca4892 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -607,7 +607,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		goto err_unmap_trrl;
+ 	}
  
--	hr_qp->access_flags = attr->qp_access_flags;
- 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
- 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
+-	if (hr_dev->caps.srqc_entry_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
+ 		ret = hns_roce_init_hem_table(hr_dev, &hr_dev->srq_table.table,
+ 					      HEM_TYPE_SRQC,
+ 					      hr_dev->caps.srqc_entry_sz,
+@@ -619,7 +619,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		}
+ 	}
  
-@@ -4005,51 +4004,6 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
- 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
- 		       V2_QPC_BYTE_4_TST_S, 0);
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		ret = hns_roce_init_hem_table(hr_dev,
+ 					      &hr_dev->qp_table.sccc_table,
+ 					      HEM_TYPE_SCCC,
+@@ -680,11 +680,11 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->qpc_timer_table);
  
--	if (attr_mask & IB_QP_ACCESS_FLAGS) {
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     !!(attr->qp_access_flags &
--			     IB_ACCESS_REMOTE_WRITE));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     !!(attr->qp_access_flags &
--			     IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     0);
--		roce_set_bit(context->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S,
--			     !!(attr->qp_access_flags &
--				IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
--	} else {
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_READ));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_WRITE));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     0);
--		roce_set_bit(context->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
--	}
--
- 	roce_set_field(context->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
- 		       V2_QPC_BYTE_16_PD_S, to_hr_pd(ibqp->pd)->pdn);
- 	roce_set_field(qpc_mask->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
+ err_unmap_ctx:
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ err_unmap_srq:
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->srq_table.table);
+ 
+ err_unmap_cq:
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index ebf152f..0e784c5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -335,7 +335,7 @@ static int alloc_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		}
+ 	}
+ 
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		/* Alloc memory for SCC CTX */
+ 		ret = hns_roce_table_get(hr_dev, &qp_table->sccc_table,
+ 					 hr_qp->qpn);
 -- 
 2.8.1
 
