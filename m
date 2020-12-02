@@ -2,486 +2,265 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38B10C83012
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C31CCC64E7B
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 15:26:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDA48221E9
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 09:02:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 560B520B1F
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 15:26:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387880AbgLBJCa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Dec 2020 04:02:30 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:8916 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387937AbgLBJC1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Dec 2020 04:02:27 -0500
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CmCc91Z0Gz77Bp;
-        Wed,  2 Dec 2020 17:00:41 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 2 Dec 2020 17:00:55 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH for-next 07/11] RDMA/hns: Fix coding style issues
-Date:   Wed, 2 Dec 2020 16:59:09 +0800
-Message-ID: <1606899553-54592-8-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
-References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
+        id S1728356AbgLBP0b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Dec 2020 10:26:31 -0500
+Received: from mga11.intel.com ([192.55.52.93]:26663 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727920AbgLBP0b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Dec 2020 10:26:31 -0500
+IronPort-SDR: VQ3MuZvECJ9fyLosXBWOu8qBflTydYiWdRmsCIaQ1u0QlxmPh6TPYg0E3FWV82pd7lDFxpOiT9
+ wLRGcn4Em0ww==
+X-IronPort-AV: E=McAfee;i="6000,8403,9823"; a="169528549"
+X-IronPort-AV: E=Sophos;i="5.78,387,1599548400"; 
+   d="scan'208";a="169528549"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2020 07:25:50 -0800
+IronPort-SDR: XN4RVRB5rTvsTWDWL1fjGsdEuxZY51Hys2lTkKolYros+RKGZP6vYuJqvgZ+A4nDYlzDUgpJo2
+ Jy2nAEZSttBA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.78,387,1599548400"; 
+   d="scan'208";a="316126758"
+Received: from lkp-server01.sh.intel.com (HELO 54133fc185c3) ([10.239.97.150])
+  by fmsmga007.fm.intel.com with ESMTP; 02 Dec 2020 07:25:49 -0800
+Received: from kbuild by 54133fc185c3 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1kkU0q-0000BR-Gb; Wed, 02 Dec 2020 15:25:48 +0000
+Date:   Wed, 02 Dec 2020 23:25:38 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ 93416ab0f994f6cf16fa0c695577f8b19d30c533
+Message-ID: <5fc7b1f2.OUBfKikI5yFz/PcL%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git  wip/jgg-for-rc
+branch HEAD: 93416ab0f994f6cf16fa0c695577f8b19d30c533  RDMA/efa: Use the correct current and new states in modify QP
 
-Just format the code without modifying anything, including fixing some
-redundant and missing blanks and spaces and changing the variable
-definition order.
+elapsed time: 830m
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+configs tested: 193
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+powerpc                         ps3_defconfig
+mips                malta_qemu_32r6_defconfig
+x86_64                           alldefconfig
+mips                          ath25_defconfig
+sh                          rsk7201_defconfig
+openrisc                         alldefconfig
+sh                               j2_defconfig
+mips                       capcella_defconfig
+arm                           viper_defconfig
+c6x                        evmc6474_defconfig
+powerpc                  mpc885_ads_defconfig
+arm                           stm32_defconfig
+powerpc                      pmac32_defconfig
+powerpc                 mpc837x_rdb_defconfig
+arm                          pxa3xx_defconfig
+c6x                        evmc6457_defconfig
+m68k                            q40_defconfig
+arc                        nsim_700_defconfig
+riscv                    nommu_k210_defconfig
+nios2                               defconfig
+mips                malta_kvm_guest_defconfig
+sh                ecovec24-romimage_defconfig
+powerpc                         wii_defconfig
+arm                      integrator_defconfig
+arm                          imote2_defconfig
+mips                           ip28_defconfig
+powerpc                  mpc866_ads_defconfig
+mips                          rm200_defconfig
+arm                              zx_defconfig
+sh                          sdk7786_defconfig
+arm                           u8500_defconfig
+sparc64                          alldefconfig
+m68k                            mac_defconfig
+mips                           gcw0_defconfig
+xtensa                         virt_defconfig
+c6x                        evmc6678_defconfig
+sh                             shx3_defconfig
+mips                  maltasmvp_eva_defconfig
+powerpc                     tqm5200_defconfig
+arc                 nsimosci_hs_smp_defconfig
+powerpc                    mvme5100_defconfig
+s390                                defconfig
+arm                         s3c6400_defconfig
+sparc                               defconfig
+powerpc                     sequoia_defconfig
+powerpc                 canyonlands_defconfig
+arm                         nhk8815_defconfig
+sh                         ap325rxa_defconfig
+m68k                       m5475evb_defconfig
+c6x                                 defconfig
+powerpc                     ep8248e_defconfig
+arm                          pcm027_defconfig
+mips                           ip22_defconfig
+m68k                       m5208evb_defconfig
+m68k                        mvme16x_defconfig
+m68k                          atari_defconfig
+arc                        nsimosci_defconfig
+sh                           se7722_defconfig
+sh                   sh7724_generic_defconfig
+arm                        magician_defconfig
+arm                          exynos_defconfig
+riscv                               defconfig
+powerpc                        fsp2_defconfig
+powerpc                      ppc40x_defconfig
+h8300                               defconfig
+powerpc                      ppc44x_defconfig
+arm                              alldefconfig
+powerpc                     mpc5200_defconfig
+powerpc                    ge_imp3a_defconfig
+powerpc                       ebony_defconfig
+powerpc                 mpc8313_rdb_defconfig
+sh                           se7343_defconfig
+sh                           se7750_defconfig
+arm                        shmobile_defconfig
+openrisc                            defconfig
+xtensa                  cadence_csp_defconfig
+powerpc                      pasemi_defconfig
+arm                      footbridge_defconfig
+powerpc                mpc7448_hpc2_defconfig
+arm                         lpc18xx_defconfig
+nios2                         10m50_defconfig
+mips                       lemote2f_defconfig
+mips                 decstation_r4k_defconfig
+arm                     davinci_all_defconfig
+powerpc                 mpc834x_itx_defconfig
+sh                        apsh4ad0a_defconfig
+sh                  sh7785lcr_32bit_defconfig
+m68k                        m5407c3_defconfig
+arm                       cns3420vb_defconfig
+powerpc                 linkstation_defconfig
+ia64                          tiger_defconfig
+s390                             alldefconfig
+mips                      fuloong2e_defconfig
+sparc                            allyesconfig
+sparc                       sparc64_defconfig
+arm                        vexpress_defconfig
+powerpc                       eiger_defconfig
+powerpc                  storcenter_defconfig
+parisc                generic-32bit_defconfig
+mips                    maltaup_xpa_defconfig
+mips                            e55_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+parisc                           allyesconfig
+i386                             allyesconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a004-20201201
+i386                 randconfig-a005-20201201
+i386                 randconfig-a001-20201201
+i386                 randconfig-a002-20201201
+i386                 randconfig-a006-20201201
+i386                 randconfig-a003-20201201
+i386                 randconfig-a004-20201202
+i386                 randconfig-a005-20201202
+i386                 randconfig-a001-20201202
+i386                 randconfig-a002-20201202
+i386                 randconfig-a006-20201202
+i386                 randconfig-a003-20201202
+x86_64               randconfig-a016-20201201
+x86_64               randconfig-a012-20201201
+x86_64               randconfig-a014-20201201
+x86_64               randconfig-a013-20201201
+x86_64               randconfig-a015-20201201
+x86_64               randconfig-a011-20201201
+i386                 randconfig-a014-20201202
+i386                 randconfig-a013-20201202
+i386                 randconfig-a011-20201202
+i386                 randconfig-a015-20201202
+i386                 randconfig-a012-20201202
+i386                 randconfig-a016-20201202
+i386                 randconfig-a014-20201201
+i386                 randconfig-a013-20201201
+i386                 randconfig-a011-20201201
+i386                 randconfig-a015-20201201
+i386                 randconfig-a012-20201201
+i386                 randconfig-a016-20201201
+x86_64               randconfig-a004-20201202
+x86_64               randconfig-a006-20201202
+x86_64               randconfig-a001-20201202
+x86_64               randconfig-a002-20201202
+x86_64               randconfig-a005-20201202
+x86_64               randconfig-a003-20201202
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a004-20201201
+x86_64               randconfig-a006-20201201
+x86_64               randconfig-a001-20201201
+x86_64               randconfig-a002-20201201
+x86_64               randconfig-a005-20201201
+x86_64               randconfig-a003-20201201
+x86_64               randconfig-a016-20201202
+x86_64               randconfig-a012-20201202
+x86_64               randconfig-a014-20201202
+x86_64               randconfig-a013-20201202
+x86_64               randconfig-a015-20201202
+x86_64               randconfig-a011-20201202
+
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c   | 27 +++++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_cmd.h   |  4 ++--
- drivers/infiniband/hw/hns/hns_roce_cq.c    |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hem.c   | 20 ++++++++++----------
- drivers/infiniband/hw/hns/hns_roce_hem.h   |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  9 +++------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h |  2 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  9 +++------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  6 +++---
- drivers/infiniband/hw/hns/hns_roce_main.c  |  6 +++---
- drivers/infiniband/hw/hns/hns_roce_mr.c    |  4 ++--
- drivers/infiniband/hw/hns/hns_roce_qp.c    |  2 +-
- drivers/infiniband/hw/hns/hns_roce_srq.c   |  1 -
- 13 files changed, 43 insertions(+), 51 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 455d533..c493d76 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -36,9 +36,9 @@
- #include "hns_roce_device.h"
- #include "hns_roce_cmd.h"
- 
--#define CMD_POLL_TOKEN		0xffff
--#define CMD_MAX_NUM		32
--#define CMD_TOKEN_MASK		0x1f
-+#define CMD_POLL_TOKEN 0xffff
-+#define CMD_MAX_NUM 32
-+#define CMD_TOKEN_MASK 0x1f
- 
- static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
- 				     u64 out_param, u32 in_modifier,
-@@ -93,8 +93,8 @@ static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
- void hns_roce_cmd_event(struct hns_roce_dev *hr_dev, u16 token, u8 status,
- 			u64 out_param)
- {
--	struct hns_roce_cmd_context
--		*context = &hr_dev->cmd.context[token & hr_dev->cmd.token_mask];
-+	struct hns_roce_cmd_context *context =
-+		&hr_dev->cmd.context[token % hr_dev->cmd.max_cmds];
- 
- 	if (token != context->token)
- 		return;
-@@ -164,8 +164,8 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- 	int ret;
- 
- 	down(&hr_dev->cmd.event_sem);
--	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
--				       in_modifier, op_modifier, op, timeout);
-+	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param, in_modifier,
-+				       op_modifier, op, timeout);
- 	up(&hr_dev->cmd.event_sem);
- 
- 	return ret;
-@@ -231,9 +231,8 @@ int hns_roce_cmd_use_events(struct hns_roce_dev *hr_dev)
- 	struct hns_roce_cmdq *hr_cmd = &hr_dev->cmd;
- 	int i;
- 
--	hr_cmd->context = kmalloc_array(hr_cmd->max_cmds,
--					sizeof(*hr_cmd->context),
--					GFP_KERNEL);
-+	hr_cmd->context =
-+		kcalloc(hr_cmd->max_cmds, sizeof(*hr_cmd->context), GFP_KERNEL);
- 	if (!hr_cmd->context)
- 		return -ENOMEM;
- 
-@@ -262,8 +261,8 @@ void hns_roce_cmd_use_polling(struct hns_roce_dev *hr_dev)
- 	hr_cmd->use_events = 0;
- }
- 
--struct hns_roce_cmd_mailbox
--	*hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev)
-+struct hns_roce_cmd_mailbox *
-+hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_cmd_mailbox *mailbox;
- 
-@@ -271,8 +270,8 @@ struct hns_roce_cmd_mailbox
- 	if (!mailbox)
- 		return ERR_PTR(-ENOMEM);
- 
--	mailbox->buf = dma_pool_alloc(hr_dev->cmd.pool, GFP_KERNEL,
--				      &mailbox->dma);
-+	mailbox->buf =
-+		dma_pool_alloc(hr_dev->cmd.pool, GFP_KERNEL, &mailbox->dma);
- 	if (!mailbox->buf) {
- 		kfree(mailbox);
- 		return ERR_PTR(-ENOMEM);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-index 1915bac..8e63b82 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-@@ -143,8 +143,8 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
- 		      unsigned long in_modifier, u8 op_modifier, u16 op,
- 		      unsigned long timeout);
- 
--struct hns_roce_cmd_mailbox
--	*hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev);
-+struct hns_roce_cmd_mailbox *
-+hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev);
- void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_cmd_mailbox *mailbox);
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index b94a560..9b6c493 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -41,9 +41,9 @@
- 
- static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- {
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	struct hns_roce_cmd_mailbox *mailbox;
- 	struct hns_roce_cq_table *cq_table;
--	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	u64 mtts[MTT_MIN_COUNT] = { 0 };
- 	dma_addr_t dma_handle;
- 	int ret;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 359e5dd..303c8dd 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -209,9 +209,9 @@ int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
- {
- 	struct device *dev = hr_dev->dev;
- 	u32 chunk_ba_num;
-+	u32 chunk_size;
- 	u32 table_idx;
- 	u32 bt_num;
--	u32 chunk_size;
- 
- 	if (get_hem_table_config(hr_dev, mhop, table->type))
- 		return -EINVAL;
-@@ -343,15 +343,15 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
- {
- 	spinlock_t *lock = &hr_dev->bt_cmd_lock;
- 	struct device *dev = hr_dev->dev;
--	long end;
--	unsigned long flags;
- 	struct hns_roce_hem_iter iter;
- 	void __iomem *bt_cmd;
- 	__le32 bt_cmd_val[2];
- 	__le32 bt_cmd_h = 0;
-+	unsigned long flags;
- 	__le32 bt_cmd_l;
--	u64 bt_ba;
- 	int ret = 0;
-+	u64 bt_ba;
-+	long end;
- 
- 	/* Find the HEM(Hardware Entry Memory) entry */
- 	unsigned long i = (obj & (table->num_obj - 1)) /
-@@ -651,8 +651,8 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
- 		       struct hns_roce_hem_table *table, unsigned long obj)
- {
- 	struct device *dev = hr_dev->dev;
--	int ret = 0;
- 	unsigned long i;
-+	int ret = 0;
- 
- 	if (hns_roce_check_whether_mhop(hr_dev, table->type))
- 		return hns_roce_table_mhop_get(hr_dev, table, obj);
-@@ -800,14 +800,14 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 	struct hns_roce_hem_chunk *chunk;
- 	struct hns_roce_hem_mhop mhop;
- 	struct hns_roce_hem *hem;
--	void *addr = NULL;
- 	unsigned long mhop_obj = obj;
- 	unsigned long obj_per_chunk;
- 	unsigned long idx_offset;
- 	int offset, dma_offset;
-+	void *addr = NULL;
-+	u32 hem_idx = 0;
- 	int length;
- 	int i, j;
--	u32 hem_idx = 0;
- 
- 	if (!table->lowmem)
- 		return NULL;
-@@ -977,8 +977,8 @@ static void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
- {
- 	struct hns_roce_hem_mhop mhop;
- 	u32 buf_chunk_size;
--	int i;
- 	u64 obj;
-+	int i;
- 
- 	if (hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop))
- 		return;
-@@ -1313,8 +1313,8 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
- 				  const struct hns_roce_buf_region *regions,
- 				  int region_cnt)
- {
--	struct roce_hem_item *hem, *temp_hem, *root_hem;
- 	struct list_head temp_list[HNS_ROCE_MAX_BT_REGION];
-+	struct roce_hem_item *hem, *temp_hem, *root_hem;
- 	const struct hns_roce_buf_region *r;
- 	struct list_head temp_root;
- 	struct list_head temp_btm;
-@@ -1419,8 +1419,8 @@ int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
- {
- 	const struct hns_roce_buf_region *r;
- 	int ofs, end;
--	int ret;
- 	int unit;
-+	int ret;
- 	int i;
- 
- 	if (region_cnt > HNS_ROCE_MAX_BT_REGION) {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index c6bd982..13fdeb3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -175,4 +175,4 @@ static inline dma_addr_t hns_roce_hem_addr(struct hns_roce_hem_iter *iter)
- 	return sg_dma_address(&iter->chunk->mem[iter->page_idx]);
- }
- 
--#endif /*_HNS_ROCE_HEM_H*/
-+#endif /* _HNS_ROCE_HEM_H */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index f18380f..eb0fd72 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -239,7 +239,7 @@ static int hns_roce_v1_post_send(struct ib_qp *ibqp,
- 				break;
- 			}
- 
--			/*Ctrl field, ctrl set type: sig, solic, imm, fence */
-+			/* Ctrl field, ctrl set type: sig, solic, imm, fence */
- 			/* SO wait for conforming application scenarios */
- 			ctrl->flag |= (wr->send_flags & IB_SEND_SIGNALED ?
- 				      cpu_to_le32(HNS_ROCE_WQE_CQ_NOTIFY) : 0) |
-@@ -300,7 +300,7 @@ static int hns_roce_v1_post_send(struct ib_qp *ibqp,
- 				}
- 				ctrl->flag |= cpu_to_le32(HNS_ROCE_WQE_INLINE);
- 			} else {
--				/*sqe num is two */
-+				/* sqe num is two */
- 				for (i = 0; i < wr->num_sge; i++)
- 					set_data_seg(dseg + i, wr->sg_list + i);
- 
-@@ -1165,7 +1165,7 @@ static int hns_roce_raq_init(struct hns_roce_dev *hr_dev)
- 	}
- 	raq->e_raq_buf->map = addr;
- 
--	/* Configure raq extended address. 48bit 4K align*/
-+	/* Configure raq extended address. 48bit 4K align */
- 	roce_write(hr_dev, ROCEE_EXT_RAQ_REG, raq->e_raq_buf->map >> 12);
- 
- 	/* Configure raq_shift */
-@@ -2760,7 +2760,6 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 		roce_set_field(context->qpc_bytes_16,
- 			       QP_CONTEXT_QPC_BYTES_16_QP_NUM_M,
- 			       QP_CONTEXT_QPC_BYTES_16_QP_NUM_S, hr_qp->qpn);
--
- 	} else if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
- 		roce_set_field(context->qpc_bytes_4,
- 			       QP_CONTEXT_QPC_BYTES_4_TRANSPORT_SERVICE_TYPE_M,
-@@ -3795,7 +3794,6 @@ static int hns_roce_v1_aeq_int(struct hns_roce_dev *hr_dev,
- 	int event_type;
- 
- 	while ((aeqe = next_aeqe_sw_v1(eq))) {
--
- 		/* Make sure we read the AEQ entry after we have checked the
- 		 * ownership bit
- 		 */
-@@ -3900,7 +3898,6 @@ static int hns_roce_v1_ceq_int(struct hns_roce_dev *hr_dev,
- 	u32 cqn;
- 
- 	while ((ceqe = next_ceqe_sw_v1(eq))) {
--
- 		/* Make sure we read CEQ entry after we have checked the
- 		 * ownership bit
- 		 */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index ffd0156..46ab0a3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -419,7 +419,7 @@ struct hns_roce_wqe_data_seg {
- 
- struct hns_roce_wqe_raddr_seg {
- 	__le32 rkey;
--	__le32 len;/* reserved */
-+	__le32 len; /* reserved */
- 	__le64 raddr;
- };
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index f43434e..8281616 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1026,8 +1026,8 @@ static int hns_roce_v2_rst_process_cmd(struct hns_roce_dev *hr_dev)
- 	struct hns_roce_v2_priv *priv = hr_dev->priv;
- 	struct hnae3_handle *handle = priv->handle;
- 	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
--	unsigned long instance_stage;	/* the current instance stage */
--	unsigned long reset_stage;	/* the current reset stage */
-+	unsigned long instance_stage; /* the current instance stage */
-+	unsigned long reset_stage; /* the current reset stage */
- 	unsigned long reset_cnt;
- 	bool sw_resetting;
- 	bool hw_resetting;
-@@ -2452,7 +2452,6 @@ static int hns_roce_init_link_table(struct hns_roce_dev *hr_dev,
- 		if (i < (pg_num - 1))
- 			entry[i].blk_ba1_nxt_ptr |=
- 				(i + 1) << HNS_ROCE_LINK_TABLE_NXT_PTR_S;
--
- 	}
- 	link_tbl->npages = pg_num;
- 	link_tbl->pg_sz = buf_chk_sz;
-@@ -5616,16 +5615,14 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		case HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW:
- 			hns_roce_cq_event(hr_dev, cqn, event_type);
- 			break;
--		case HNS_ROCE_EVENT_TYPE_DB_OVERFLOW:
--			break;
- 		case HNS_ROCE_EVENT_TYPE_MB:
- 			hns_roce_cmd_event(hr_dev,
- 					le16_to_cpu(aeqe->event.cmd.token),
- 					aeqe->event.cmd.status,
- 					le64_to_cpu(aeqe->event.cmd.out_param));
- 			break;
-+		case HNS_ROCE_EVENT_TYPE_DB_OVERFLOW:
- 		case HNS_ROCE_EVENT_TYPE_CEQ_OVERFLOW:
--			break;
- 		case HNS_ROCE_EVENT_TYPE_FLR:
- 			break;
- 		default:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index fac8536..bdaccf8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -449,7 +449,7 @@ struct hns_roce_srq_context {
- #define SRQC_BYTE_60_SRQ_DB_RECORD_ADDR_S 1
- #define SRQC_BYTE_60_SRQ_DB_RECORD_ADDR_M GENMASK(31, 1)
- 
--enum{
-+enum {
- 	V2_MPT_ST_VALID = 0x1,
- 	V2_MPT_ST_FREE	= 0x2,
- };
-@@ -1094,9 +1094,9 @@ struct hns_roce_v2_ud_send_wqe {
- 	u8	sgid_index;
- 	u8	smac_index;
- 	u8	dgid[GID_LEN_V2];
--
- };
--#define	V2_UD_SEND_WQE_BYTE_4_OPCODE_S 0
-+
-+#define V2_UD_SEND_WQE_BYTE_4_OPCODE_S 0
- #define V2_UD_SEND_WQE_BYTE_4_OPCODE_M GENMASK(4, 0)
- 
- #define	V2_UD_SEND_WQE_BYTE_4_OWNER_S 7
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 9ca4892..b6f27f9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -556,8 +556,8 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 
- static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- {
--	int ret;
- 	struct device *dev = hr_dev->dev;
-+	int ret;
- 
- 	ret = hns_roce_init_hem_table(hr_dev, &hr_dev->mr_table.mtpt_table,
- 				      HEM_TYPE_MTPT, hr_dev->caps.mtpt_entry_sz,
-@@ -714,8 +714,8 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
-  */
- static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- {
--	int ret;
- 	struct device *dev = hr_dev->dev;
-+	int ret;
- 
- 	spin_lock_init(&hr_dev->sm_lock);
- 	spin_lock_init(&hr_dev->bt_cmd_lock);
-@@ -839,8 +839,8 @@ void hns_roce_handle_device_err(struct hns_roce_dev *hr_dev)
- 
- int hns_roce_init(struct hns_roce_dev *hr_dev)
- {
--	int ret;
- 	struct device *dev = hr_dev->dev;
-+	int ret;
- 
- 	if (hr_dev->hw->reset) {
- 		ret = hr_dev->hw->reset(hr_dev, true);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 87e2e62..5c43089 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -167,10 +167,10 @@ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev,
- static int hns_roce_mr_enable(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_mr *mr)
- {
--	int ret;
- 	unsigned long mtpt_idx = key_to_hw_index(mr->key);
--	struct device *dev = hr_dev->dev;
- 	struct hns_roce_cmd_mailbox *mailbox;
-+	struct device *dev = hr_dev->dev;
-+	int ret;
- 
- 	/* Allocate mailbox memory */
- 	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 0e784c5..b59f3e0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -114,8 +114,8 @@ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
- static void hns_roce_ib_qp_event(struct hns_roce_qp *hr_qp,
- 				 enum hns_roce_event type)
- {
--	struct ib_event event;
- 	struct ib_qp *ibqp = &hr_qp->ibqp;
-+	struct ib_event event;
- 
- 	if (ibqp->event_handler) {
- 		event.device = ibqp->device;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 6ce250e..bf0b51e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -240,7 +240,6 @@ static int alloc_srq_idx(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq,
- 			err = -ENOMEM;
- 			goto err_idx_mtr;
- 		}
--
- 	}
- 
- 	return 0;
--- 
-2.8.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
