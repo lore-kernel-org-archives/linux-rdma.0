@@ -3,38 +3,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F34E5C83014
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7DFAC64E7B
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD71E221FA
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67CFF205F4
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Dec 2020 20:44:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389505AbgLBUoW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Dec 2020 15:44:22 -0500
-Received: from mga11.intel.com ([192.55.52.93]:58903 "EHLO mga11.intel.com"
+        id S1727552AbgLBUoh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Dec 2020 15:44:37 -0500
+Received: from mga11.intel.com ([192.55.52.93]:58899 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389502AbgLBUoV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Dec 2020 15:44:21 -0500
-IronPort-SDR: Kn/9tW2XsLELJ3pYeb0COtGg8nwwj64qBMuYnjXoI4J9tBjPjc4G0Ha1oxgL1qeV894IB5hpD8
- S4805HxcUxUw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9823"; a="169579856"
+        id S1729335AbgLBUoh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Dec 2020 15:44:37 -0500
+IronPort-SDR: vmpDWzUAT2HnfA9RPvF/VKPEayigH0yPahsGSfDJwQL+Tz+jR2i4KxQslkAQauTn0jV+knKg53
+ e3VebTCUhjvg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9823"; a="169579866"
 X-IronPort-AV: E=Sophos;i="5.78,387,1599548400"; 
-   d="scan'208";a="169579856"
+   d="scan'208";a="169579866"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2020 12:43:24 -0800
-IronPort-SDR: +4BAfJ5mg0Q0U8uw0mGcVOI6HrXJKQzkd9JiBEky2XEuWal1KlX7A8vjFQ2oabgsw+aYZHOgmo
- Ugd0AG8ufzqA==
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Dec 2020 12:43:26 -0800
+IronPort-SDR: qjqfp53UTWJ1s415BhO2GpRABE9Oj599FBZeXlfNq6B1pxMxz04tdsL6114GkHadokKkdgGEUq
+ NVOK85iXJIYw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.78,387,1599548400"; 
-   d="scan'208";a="365457414"
+   d="scan'208";a="365457429"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by fmsmga004.fm.intel.com with ESMTP; 02 Dec 2020 12:43:23 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 02 Dec 2020 12:43:25 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
 To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
@@ -45,106 +45,373 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Christian Koenig <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
         Edward Srouji <edwards@nvidia.com>
-Subject: [PATCH rdma-core v4 0/6] Add user space dma-buf support
-Date:   Wed,  2 Dec 2020 12:57:15 -0800
-Message-Id: <1606942641-47234-1-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core v4 5/6] tests: Add tests for dma-buf based memory regions
+Date:   Wed,  2 Dec 2020 12:57:20 -0800
+Message-Id: <1606942641-47234-6-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1606942641-47234-1-git-send-email-jianxin.xiong@intel.com>
+References: <1606942641-47234-1-git-send-email-jianxin.xiong@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is the fourth version of the patch series. Change log:
+Define a set of unit tests similar to regular MR tests and a set of
+tests for send/recv and rdma traffic using dma-buf MRs. Add a utility
+function to generate access flags for dma-buf based MRs because the
+set of supported flags is smaller.
 
-v4:
-* Rework the cmake funciton rdma_cython_module to support both single
-  source (.pyx) and multiple source (.pyx + [.c]*) scenarios instead
-  of using two separate functions
-* Rename 'dri_*' to 'drm_*' for the dmabuf allocation interface
-* Add option to dmabuf allocation routine to allow allocation from GTT
-  instead of VRAM
-* Add proper CPU access flags when allocating dmabufs
-* Remove 'radeon' driver support from the dmabuf allocation routines
-* Add comand line arguments to the tests for selecting GPU unit and
-  setting the option for allocating from GTT
+Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+---
+ tests/args_parser.py |   4 +
+ tests/test_mr.py     | 264 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ tests/utils.py       |  26 +++++
+ 3 files changed, 293 insertions(+), 1 deletion(-)
 
-v3: https://www.spinics.net/lists/linux-rdma/msg98059.html
-* Add parameter 'iova' to the new ibv_reg_dmabuf_mr() API
-* Change the way of allocating dma-buf object - use /dev/dri/renderD*
-  instead of /dev/dri/card* and use GEM object instead of dumb buffer
-* Add cmake function to allow building modules with mixed cython and C
-  source files
-* Add new tests that use dma-buf MRs for send/recv and rdma traffic
-* Skip dma-buf tests on unsupported systems
-* Remove some use of random values in the new tests
-* Add dealloc() and close() methods to the new classes
-* Replace string.format with f-string in python code
-* Fix some coding style issues: spacing, indentation, typo, comments
-
-v2: https://www.spinics.net/lists/linux-rdma/msg97936.html
-* Put the kernel header updates into a separate commit
-* Add comments for the data structure used in python ioctl calls
-* Fix issues related to symbol versioning
-* Fix styling issues: extra spaces, unncecessary variable, typo
-* Fix an inproper error code usage
-* Put the new op into ibv_context_ops instead if verbs_context
-
-v1: https://www.spinics.net/lists/linux-rdma/msg97865.html
-* Add user space API for registering dma-buf based memory regions
-* Update pyverbs with the new API
-* Add new tests
-
-This is the user space counter-part of the kernel patch set to add
-dma-buf support to the RDMA subsystem.
-
-This series consists of six patches. The first patch updates the
-kernel headers for dma-buf support. Patch 2 adds the new API function
-and updates the man pages. Patch 3 implements the new API in the mlx5
-provider. Patch 4 adds new class definitions to pyverbs for the new API.
-Patch 5 adds a set of new tests for the new API. Patch 6 fixes bug in
-the utility code of the tests.
-
-Pull request at github: https://github.com/linux-rdma/rdma-core/pull/895
-
-Jianxin Xiong (6):
-  Update kernel headers
-  verbs: Support dma-buf based memory region
-  mlx5: Support dma-buf based memory region
-  pyverbs: Add dma-buf based MR support
-  tests: Add tests for dma-buf based memory regions
-  tests: Bug fix for get_access_flags()
-
- buildlib/pyverbs_functions.cmake         |  78 ++++++---
- debian/libibverbs1.symbols               |   2 +
- kernel-headers/rdma/ib_user_ioctl_cmds.h |  14 ++
- kernel-headers/rdma/ib_user_verbs.h      |  14 --
- libibverbs/CMakeLists.txt                |   2 +-
- libibverbs/cmd_mr.c                      |  38 +++++
- libibverbs/driver.h                      |   7 +
- libibverbs/dummy_ops.c                   |  11 ++
- libibverbs/libibverbs.map.in             |   6 +
- libibverbs/man/ibv_reg_mr.3              |  27 ++-
- libibverbs/verbs.c                       |  18 ++
- libibverbs/verbs.h                       |  11 ++
- providers/mlx5/mlx5.c                    |   2 +
- providers/mlx5/mlx5.h                    |   3 +
- providers/mlx5/verbs.c                   |  22 +++
- pyverbs/CMakeLists.txt                   |  11 +-
- pyverbs/dmabuf.pxd                       |  15 ++
- pyverbs/dmabuf.pyx                       |  73 ++++++++
- pyverbs/dmabuf_alloc.c                   | 278 +++++++++++++++++++++++++++++++
- pyverbs/dmabuf_alloc.h                   |  19 +++
- pyverbs/libibverbs.pxd                   |   2 +
- pyverbs/mr.pxd                           |   6 +
- pyverbs/mr.pyx                           | 105 +++++++++++-
- tests/args_parser.py                     |   4 +
- tests/test_mr.py                         | 264 ++++++++++++++++++++++++++++-
- tests/utils.py                           |  30 +++-
- 26 files changed, 1012 insertions(+), 50 deletions(-)
- create mode 100644 pyverbs/dmabuf.pxd
- create mode 100644 pyverbs/dmabuf.pyx
- create mode 100644 pyverbs/dmabuf_alloc.c
- create mode 100644 pyverbs/dmabuf_alloc.h
-
+diff --git a/tests/args_parser.py b/tests/args_parser.py
+index 71a0f34..4e12d52 100644
+--- a/tests/args_parser.py
++++ b/tests/args_parser.py
+@@ -16,6 +16,10 @@ class ArgsParser(object):
+         parser = argparse.ArgumentParser()
+         parser.add_argument('--dev',
+                             help='RDMA device to run the tests on')
++        parser.add_argument('--gpu', nargs='?', type=int, const=0, default=0,
++                            help='GPU unit to allocate dmabuf from')
++        parser.add_argument('--gtt', action='store_true', default=False,
++                            help='Allocate dmabuf from GTT instead of VRAM')
+         parser.add_argument('-v', '--verbose', dest='verbosity',
+                             action='store_const',
+                             const=2, help='Verbose output')
+diff --git a/tests/test_mr.py b/tests/test_mr.py
+index adc649c..6915853 100644
+--- a/tests/test_mr.py
++++ b/tests/test_mr.py
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved. See COPYING file
++# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
+ """
+ Test module for pyverbs' mr module.
+ """
+@@ -9,9 +10,10 @@ import errno
+ 
+ from tests.base import PyverbsAPITestCase, RCResources, RDMATestCase
+ from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
+-from pyverbs.mr import MR, MW, DMMR, MWBindInfo, MWBind
++from pyverbs.mr import MR, MW, DMMR, DmaBufMR, MWBindInfo, MWBind
+ from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
+ from pyverbs.wr import SendWR
++from pyverbs.dmabuf import DmaBuf
+ import pyverbs.device as d
+ from pyverbs.pd import PD
+ import pyverbs.enums as e
+@@ -366,3 +368,263 @@ class DMMRTest(PyverbsAPITestCase):
+                         dm_mr = DMMR(pd, dm_mr_len, e.IBV_ACCESS_ZERO_BASED,
+                                      dm=dm, offset=dm_mr_offset)
+                         dm_mr.close()
++
++
++def check_dmabuf_support(unit=0):
++    """
++    Check if dma-buf allocation is supported by the system.
++    Skip the test on failure.
++    """
++    device_num = 128 + unit
++    try:
++        DmaBuf(1, unit=unit)
++    except PyverbsRDMAError as ex:
++        if ex.error_code == errno.ENOENT:
++            raise unittest.SkipTest(f'Device /dev/dri/renderD{device_num} is not present')
++        if ex.error_code == errno.EACCES:
++            raise unittest.SkipTest(f'Lack of permission to access /dev/dri/renderD{device_num}')
++        if ex.error_code == errno.EOPNOTSUPP:
++            raise unittest.SkipTest(f'Allocating dmabuf is not supported by /dev/dri/renderD{device_num}')
++
++
++def check_dmabuf_mr_support(pd, unit=0):
++    """
++    Check if dma-buf MR registration is supported by the driver.
++    Skip the test on failure
++    """
++    try:
++        DmaBufMR(pd, 1, 0, unit=unit)
++    except PyverbsRDMAError as ex:
++        if ex.error_code == errno.EOPNOTSUPP:
++            raise unittest.SkipTest('Reg dma-buf MR is not supported by the RDMA driver')
++
++
++class DmaBufMRTest(PyverbsAPITestCase):
++    """
++    Test various functionalities of the DmaBufMR class.
++    """
++    def setUp(self):
++        super().setUp()
++        self.unit = self.config['gpu']
++        self.gtt = self.config['gtt']
++
++    def test_dmabuf_reg_mr(self):
++        """
++        Test ibv_reg_dmabuf_mr()
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
++                                      gtt=self.gtt) as mr:
++                            pass
++
++    def test_dmabuf_dereg_mr(self):
++        """
++        Test ibv_dereg_mr() with DmaBufMR
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
++                                      gtt=self.gtt) as mr:
++                            mr.close()
++
++    def test_dmabuf_dereg_mr_twice(self):
++        """
++        Verify that explicit call to DmaBufMR's close() doesn't fail
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    len = u.get_mr_length()
++                    for off in [0, len//2]:
++                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
++                                      gtt=self.gtt) as mr:
++                            # Pyverbs supports multiple destruction of objects,
++                            # we are not expecting an exception here.
++                            mr.close()
++                            mr.close()
++
++    def test_dmabuf_reg_mr_bad_flags(self):
++        """
++        Verify that illegal flags combination fails as expected
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                for i in range(5):
++                    flags = random.sample([e.IBV_ACCESS_REMOTE_WRITE,
++                                           e.IBV_ACCESS_REMOTE_ATOMIC],
++                                          random.randint(1, 2))
++                    mr_flags = 0
++                    for i in flags:
++                        mr_flags += i.value
++                    try:
++                        DmaBufMR(pd, u.get_mr_length(), mr_flags,
++                                 unit=self.unit, gtt=self.gtt)
++                    except PyverbsRDMAError as err:
++                        assert 'Failed to register a dma-buf MR' in err.args[0]
++                    else:
++                        raise PyverbsRDMAError('Registered a dma-buf MR with illegal falgs')
++
++    def test_dmabuf_write(self):
++        """
++        Test writing to DmaBufMR's buffer
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                for i in range(10):
++                    mr_len = u.get_mr_length()
++                    flags = u.get_dmabuf_access_flags(ctx)
++                    for f in flags:
++                        for mr_off in [0, mr_len//2]:
++                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
++                                          unit=self.unit, gtt=self.gtt) as mr:
++                                write_len = min(random.randint(1, MAX_IO_LEN),
++                                                mr_len)
++                                mr.write('a' * write_len, write_len)
++
++    def test_dmabuf_read(self):
++        """
++        Test reading from DmaBufMR's buffer
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                for i in range(10):
++                    mr_len = u.get_mr_length()
++                    flags = u.get_dmabuf_access_flags(ctx)
++                    for f in flags:
++                        for mr_off in [0, mr_len//2]:
++                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
++                                          unit=self.unit, gtt=self.gtt) as mr:
++                                write_len = min(random.randint(1, MAX_IO_LEN),
++                                                mr_len)
++                                write_str = 'a' * write_len
++                                mr.write(write_str, write_len)
++                                read_len = random.randint(1, write_len)
++                                offset = random.randint(0, write_len-read_len)
++                                read_str = mr.read(read_len, offset).decode()
++                                assert read_str in write_str
++
++    def test_dmabuf_lkey(self):
++        """
++        Test reading lkey property
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                length = u.get_mr_length()
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    with DmaBufMR(pd, length, f, unit=self.unit,
++                                  gtt=self.gtt) as mr:
++                        mr.lkey
++
++    def test_dmabuf_rkey(self):
++        """
++        Test reading rkey property
++        """
++        check_dmabuf_support(self.unit)
++        for ctx, attr, attr_ex in self.devices:
++            with PD(ctx) as pd:
++                check_dmabuf_mr_support(pd, self.unit)
++                length = u.get_mr_length()
++                flags = u.get_dmabuf_access_flags(ctx)
++                for f in flags:
++                    with DmaBufMR(pd, length, f, unit=self.unit,
++                                  gtt=self.gtt) as mr:
++                        mr.rkey
++
++
++class DmaBufRC(RCResources):
++    def __init__(self, dev_name, ib_port, gid_index, unit, gtt):
++        """
++        Initialize an DmaBufRC object.
++        :param dev_name: Device name to be used
++        :param ib_port: IB port of the device to use
++        :param gid_index: Which GID index to use
++        :param unit: GPU unit to allocate dmabuf from
++        :gtt: Allocate dmabuf from GTT instead og VRAM
++        """
++        self.unit = unit
++        self.gtt = gtt
++        super(DmaBufRC, self).__init__(dev_name=dev_name, ib_port=ib_port,
++                                       gid_index=gid_index)
++
++    def create_mr(self):
++        check_dmabuf_support(self.unit)
++        check_dmabuf_mr_support(self.pd, self.unit)
++        access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
++        mr = DmaBufMR(self.pd, self.msg_size, access, unit=self.unit,
++                      gtt=self.gtt)
++        self.mr = mr
++
++    def create_qp_attr(self):
++        qp_attr = QPAttr(port_num=self.ib_port)
++        qp_access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
++        qp_attr.qp_access_flags = qp_access
++        return qp_attr
++
++
++class DmaBufTestCase(RDMATestCase):
++    def setUp(self):
++        super(DmaBufTestCase, self).setUp()
++        self.iters = 100
++        self.unit = self.config['gpu']
++        self.gtt = self.config['gtt']
++
++    def create_players(self, resource, **resource_arg):
++        """
++        Init dma-buf tests resources.
++        :param resource: The RDMA resources to use. A class of type
++                         BaseResources.
++        :param resource_arg: Dict of args that specify the resource specific
++                             attributes.
++        :return: The (client, server) resources.
++        """
++        client = resource(**self.dev_info, **resource_arg)
++        server = resource(**self.dev_info, **resource_arg)
++        client.pre_run(server.psns, server.qps_num)
++        server.pre_run(client.psns, client.qps_num)
++        return client, server
++
++    def test_dmabuf_rc_traffic(self):
++        """
++        Test send/recv using dma-buf MR over RC
++        """
++        client, server = self.create_players(DmaBufRC, unit=self.unit,
++                                             gtt=self.gtt)
++        u.traffic(client, server, self.iters, self.gid_index, self.ib_port)
++
++    def test_dmabuf_rdma_traffic(self):
++        """
++        Test rdma write using dma-buf MR
++        """
++        client, server = self.create_players(DmaBufRC, unit=self.unit,
++                                             gtt=self.gtt)
++        server.rkey = client.mr.rkey
++        server.remote_addr = client.mr.offset
++        client.rkey = server.mr.rkey
++        client.remote_addr = server.mr.offset
++        u.rdma_traffic(client, server, self.iters, self.gid_index, self.ib_port,
++                       send_op=e.IBV_WR_RDMA_WRITE)
+diff --git a/tests/utils.py b/tests/utils.py
+index 7039f41..d3d5c16 100644
+--- a/tests/utils.py
++++ b/tests/utils.py
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
+ # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
++# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
+ """
+ Provide some useful helper function for pyverbs' tests.
+ """
+@@ -94,6 +95,31 @@ def get_access_flags(ctx):
+     return arr
+ 
+ 
++def get_dmabuf_access_flags(ctx):
++    """
++    Similar to get_access_flags, except that dma-buf MR only support
++    a subset of the flags.
++    :param ctx: Device Context to check capabilities
++    :return: A random legal value for MR flags
++    """
++    attr = ctx.query_device()
++    vals = [e.IBV_ACCESS_LOCAL_WRITE, e.IBV_ACCESS_REMOTE_WRITE,
++            e.IBV_ACCESS_REMOTE_READ, e.IBV_ACCESS_REMOTE_ATOMIC,
++            e.IBV_ACCESS_RELAXED_ORDERING]
++    if not attr.atomic_caps & e.IBV_ATOMIC_HCA:
++        vals.remove(e.IBV_ACCESS_REMOTE_ATOMIC)
++    arr = []
++    for i in range(1, len(vals)):
++        tmp = list(com(vals, i))
++        tmp = filter(filter_illegal_access_flags, tmp)
++        for t in tmp:  # Iterate legal combinations and bitwise OR them
++            val = 0
++            for flag in t:
++                val += flag.value
++            arr.append(val)
++    return arr
++
++
+ def get_dm_attrs(dm_len):
+     """
+     Initializes an AllocDmAttr member with the given length and random
 -- 
 1.8.3.1
 
