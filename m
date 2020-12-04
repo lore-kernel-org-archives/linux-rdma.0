@@ -2,139 +2,90 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D5AC4361A
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CCC1C433FE
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C99E22518
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:12:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CB9E2251E
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387880AbgLDKM5 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Dec 2020 05:12:57 -0500
-Received: from szxga03-in.huawei.com ([45.249.212.189]:2394 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387621AbgLDKM5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Dec 2020 05:12:57 -0500
-Received: from DGGEMM402-HUB.china.huawei.com (unknown [172.30.72.53])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4CnT572wnrz51L2;
-        Fri,  4 Dec 2020 18:11:39 +0800 (CST)
-Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
- DGGEMM402-HUB.china.huawei.com (10.3.20.210) with Microsoft SMTP Server (TLS)
- id 14.3.487.0; Fri, 4 Dec 2020 18:10:31 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1913.5; Fri, 4 Dec 2020 18:10:31 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.1913.007;
- Fri, 4 Dec 2020 18:10:31 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     chenglang <chenglang@huawei.com>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>
-CC:     "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH for-next 03/11] RDMA/hns: Do shift on traffic class of UD
- SQ WQE
-Thread-Topic: [PATCH for-next 03/11] RDMA/hns: Do shift on traffic class of UD
- SQ WQE
-Thread-Index: AQHWyInTvRnDqsw1X0+OrXo57Mk++Q==
-Date:   Fri, 4 Dec 2020 10:10:31 +0000
-Message-ID: <d6be6f6b77a84efc9e134ef1618da23d@huawei.com>
-References: <1606899553-54592-1-git-send-email-liweihang@huawei.com>
- <1606899553-54592-4-git-send-email-liweihang@huawei.com>
- <13aca8fb-8171-b5ca-ec58-540bb36a8512@huawei.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1729032AbgLDKnJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Dec 2020 05:43:09 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8693 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728532AbgLDKnJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Dec 2020 05:43:09 -0500
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CnTlz4fWszkkQY;
+        Fri,  4 Dec 2020 18:41:51 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 4 Dec 2020 18:42:19 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 04/11] RDMA/hns: Avoid filling sl in high 3 bits of vlan_id
+Date:   Fri, 4 Dec 2020 18:40:29 +0800
+Message-ID: <1607078436-26455-5-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
+References: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/12/4 18:04, chenglang wrote:
-> 
-> 
-> On 2020/12/2 16:59, Weihang Li wrote:
->> The high 6 bits of traffic class in GRH is DSCP (Differentiated Services
->> Codepoint), the driver should shift it before the hardware gets it. In
->> addition, there is no need to check whether it's RoCEv2 when filling TC
->> into QPC because the DSCP field is meaningless for RoCEv1.
-> 
-> I think the high 6 bits of DSCP are valid for ROCEv2, and the entire 8 
-> bits are valid for ROCEv1.
-> 
+Only the low 12 bits of vlan_id is valid, and service level has been filled
+in Address Vector. So there is no need to fill sl in vlan_id in Address
+Vector.
 
-You are right, thanks for the reminder.
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_ah.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Weihang
-
->>
->> Fixes: 606bf89e98ef ("RDMA/hns: Refactor for hns_roce_v2_modify_qp function")
->> Fixes: d6a3627e311c ("RDMA/hns: Optimize wqe buffer set flow for post send")
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->> ---
->>   drivers/infiniband/hw/hns/hns_roce_device.h |  2 ++
->>   drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 13 +++++--------
->>   2 files changed, 7 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
->> index a5c6bb0..1981501 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_device.h
->> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
->> @@ -119,6 +119,8 @@
->>   
->>   #define HNS_ROCE_QP_BANK_NUM 8
->>   
->> +#define DSCP_SHIFT 2
->> +
->>   /* The chip implementation of the consumer index is calculated
->>    * according to twice the actual EQ depth
->>    */
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index 8d37067..13c8a2c 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -430,7 +430,8 @@ static int fill_ud_av(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
->>   	roce_set_field(ud_sq_wqe->byte_36, V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_M,
->>   		       V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_S, ah->av.hop_limit);
->>   	roce_set_field(ud_sq_wqe->byte_36, V2_UD_SEND_WQE_BYTE_36_TCLASS_M,
->> -		       V2_UD_SEND_WQE_BYTE_36_TCLASS_S, ah->av.tclass);
->> +		       V2_UD_SEND_WQE_BYTE_36_TCLASS_S,
->> +		       ah->av.tclass >> DSCP_SHIFT);
->>   	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M,
->>   		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
->>   	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
->> @@ -4596,15 +4597,11 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
->>   	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_HOP_LIMIT_M,
->>   		       V2_QPC_BYTE_24_HOP_LIMIT_S, 0);
->>   
->> -	if (is_udp)
->> -		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
->> -			       V2_QPC_BYTE_24_TC_S, grh->traffic_class >> 2);
->> -	else
->> -		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
->> -			       V2_QPC_BYTE_24_TC_S, grh->traffic_class);
->> -
->> +	roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
->> +		       V2_QPC_BYTE_24_TC_S, grh->traffic_class >> DSCP_SHIFT);
->>   	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
->>   		       V2_QPC_BYTE_24_TC_S, 0);
->> +
->>   	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_FL_M,
->>   		       V2_QPC_BYTE_28_FL_S, grh->flow_label);
->>   	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_FL_M,
->>
-> 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
+index c9a44db..cc258ed 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_ah.c
++++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
+@@ -36,9 +36,6 @@
+ #include <rdma/ib_cache.h>
+ #include "hns_roce_device.h"
+ 
+-#define VLAN_SL_MASK 7
+-#define VLAN_SL_SHIFT 13
+-
+ static inline u16 get_ah_udp_sport(const struct rdma_ah_attr *ah_attr)
+ {
+ 	u32 fl = ah_attr->grh.flow_label;
+@@ -84,18 +81,12 @@ int hns_roce_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
+ 
+ 	/* HIP08 needs to record vlan info in Address Vector */
+ 	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08) {
+-		ah->av.vlan_en = 0;
+-
+ 		ret = rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr,
+ 					      &ah->av.vlan_id, NULL);
+ 		if (ret)
+ 			return ret;
+ 
+-		if (ah->av.vlan_id < VLAN_N_VID) {
+-			ah->av.vlan_en = 1;
+-			ah->av.vlan_id |= (rdma_ah_get_sl(ah_attr) & VLAN_SL_MASK) <<
+-					  VLAN_SL_SHIFT;
+-		}
++		ah->av.vlan_en = ah->av.vlan_id < VLAN_N_VID;
+ 	}
+ 
+ 	return ret;
+-- 
+2.8.1
 
