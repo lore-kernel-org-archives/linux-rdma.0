@@ -2,39 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B31F0C433FE
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CE30C193FE
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6ED7622571
+	by mail.kernel.org (Postfix) with ESMTP id C757D22573
 	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728997AbgLDKnx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2387473AbgLDKnx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 4 Dec 2020 05:43:53 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8695 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8696 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728879AbgLDKnx (ORCPT
+        with ESMTP id S1729610AbgLDKnx (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Dec 2020 05:43:53 -0500
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CnTlz4zg3zkkYt;
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CnTlz4pngzkkXl;
         Fri,  4 Dec 2020 18:41:51 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 4 Dec 2020 18:42:20 +0800
+ 14.3.487.0; Fri, 4 Dec 2020 18:42:18 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 06/11] RDMA/hns: Remove unnecessary access right set during INIT2INIT
-Date:   Fri, 4 Dec 2020 18:40:31 +0800
-Message-ID: <1607078436-26455-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 00/11] RDMA/hns: Updates for 5.11
+Date:   Fri, 4 Dec 2020 18:40:25 +0800
+Message-ID: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
-References: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -43,84 +40,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+There are miscellaneous updates for hns driver:
+* #1 fixes a potential length issue when copying udata.
+* #2 fixes the unreasonable judgment when using HEM of SRQ and SCCC.
+* #3 fixes wrong value of Traffic Class.
+* #4 and #5 fix issues about Service Level.
+* #6 ~ #11 are cleanups, including removing dead code, fixing coding style
+  issues and so on.
 
-As the qp access right is checked and setted in common function
-hns_roce_v2_set_opt_fields(), there is no need to set again for a special
-case INIT2INIT.
+Changes since v1:
+- Only do shift on tclass when using RoCEv2 in #3.
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
-Fixes: 7db82697b8bf ("RDMA/hns: Add support for extended atomic in userspace")
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 46 ------------------------------
- 1 file changed, 46 deletions(-)
+Previous version:
+v1: https://patchwork.kernel.org/project/linux-rdma/cover/1606899553-54592-1-git-send-email-liweihang@huawei.com/
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 15e1313..2d994d2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3975,7 +3975,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 
- 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
- 
--	hr_qp->access_flags = attr->qp_access_flags;
- 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
- 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
- 
-@@ -4004,51 +4003,6 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
- 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
- 		       V2_QPC_BYTE_4_TST_S, 0);
- 
--	if (attr_mask & IB_QP_ACCESS_FLAGS) {
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     !!(attr->qp_access_flags &
--			     IB_ACCESS_REMOTE_WRITE));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     !!(attr->qp_access_flags &
--			     IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     0);
--		roce_set_bit(context->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S,
--			     !!(attr->qp_access_flags &
--				IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
--	} else {
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_READ));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_WRITE));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
--			     0);
--
--		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
--			     0);
--		roce_set_bit(context->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S,
--			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
--		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
--			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
--	}
--
- 	roce_set_field(context->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
- 		       V2_QPC_BYTE_16_PD_S, to_hr_pd(ibqp->pd)->pdn);
- 	roce_set_field(qpc_mask->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
+Lang Cheng (1):
+  RDMA/hns: Fix coding style issues
+
+Weihang Li (3):
+  RDMA/hns: Do shift on traffic class when using RoCEv2
+  RDMA/hns: Avoid filling sl in high 3 bits of vlan_id
+  RDMA/hns: WARN_ON if get a reserved sl from users
+
+Wenpeng Liang (3):
+  RDMA/hns: Limit the length of data copied between kernel and userspace
+  RDMA/hns: Normalization the judgment of some features
+  RDMA/hns: Fix incorrect symbol types
+
+Xinhao Liu (1):
+  RDMA/hns: Clear redundant variable initialization
+
+Yixian Liu (2):
+  RDMA/hns: Remove unnecessary access right set during INIT2INIT
+  RDMA/hns: Simplify AEQE process for different types of queue
+
+Yixing Liu (1):
+  RDMA/hns: Fix inaccurate prints
+
+ drivers/infiniband/hw/hns/hns_roce_ah.c     |  13 +--
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    |  37 +++---
+ drivers/infiniband/hw/hns/hns_roce_cmd.h    |   6 +-
+ drivers/infiniband/hw/hns/hns_roce_common.h |  14 +--
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |  42 +++----
+ drivers/infiniband/hw/hns/hns_roce_db.c     |   8 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  87 ++++++--------
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  42 +++----
+ drivers/infiniband/hw/hns/hns_roce_hem.h    |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  41 +++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 174 +++++++++-------------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   6 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  19 +--
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |  25 ++--
+ drivers/infiniband/hw/hns/hns_roce_pd.c     |  13 ++-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  82 +++++++------
+ drivers/infiniband/hw/hns/hns_roce_srq.c    |  48 ++++----
+ 19 files changed, 295 insertions(+), 370 deletions(-)
+
 -- 
 2.8.1
 
