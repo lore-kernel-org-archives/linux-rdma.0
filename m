@@ -4,34 +4,34 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A58C4361A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCCC3C433FE
 	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56DA22251E
+	by mail.kernel.org (Postfix) with ESMTP id 83A6D2251F
 	for <linux-rdma@archiver.kernel.org>; Fri,  4 Dec 2020 10:43:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728532AbgLDKnK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727518AbgLDKnK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 4 Dec 2020 05:43:10 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8692 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8689 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727518AbgLDKnK (ORCPT
+        with ESMTP id S1727096AbgLDKnK (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Dec 2020 05:43:10 -0500
 Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CnTlz5L5JzkkcQ;
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CnTlz67Zgzkkhc;
         Fri,  4 Dec 2020 18:41:51 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Fri, 4 Dec 2020 18:42:19 +0800
+ 14.3.487.0; Fri, 4 Dec 2020 18:42:18 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v2 for-next 05/11] RDMA/hns: WARN_ON if get a reserved sl from users
-Date:   Fri, 4 Dec 2020 18:40:30 +0800
-Message-ID: <1607078436-26455-6-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 02/11] RDMA/hns: Normalization the judgment of some features
+Date:   Fri, 4 Dec 2020 18:40:27 +0800
+Message-ID: <1607078436-26455-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
 References: <1607078436-26455-1-git-send-email-liweihang@huawei.com>
@@ -43,47 +43,92 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-According to the RoCE v1 specification, the sl (service level) 0-7 are
-mapped directly to priorities 0-7 respectively, sl 8-15 are reserved. The
-driver should verify whether the value of sl is larger than 7, if so, an
-exception should be returned.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Fixes: 172505cfa3a8 ("RDMA/hns: Add check for the validity of sl configuration")
-Fixes: d6a3627e311c ("RDMA/hns: Optimize wqe buffer set flow for post send")
+Whether to enable the these features should better depend on the enable
+flags, not the value of related fields.
+
+Fixes: 5c1f167af112 ("RDMA/hns: Init SRQ table for hip08")
+Fixes: 3cb2c996c9dc ("RDMA/hns: Add support for SCCC in size of 64 Bytes")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c  | 4 ++--
+ drivers/infiniband/hw/hns/hns_roce_main.c | 8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_qp.c   | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 7a0c1ab..15e1313 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -433,6 +433,10 @@ static int fill_ud_av(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
- 		       V2_UD_SEND_WQE_BYTE_36_TCLASS_S, ah->av.tclass);
- 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M,
- 		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
-+
-+	if (WARN_ON(ah->av.sl > MAX_SERVICE_LEVEL))
-+		return -EINVAL;
-+
- 	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
- 		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 5c302ae..359e5dd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1028,7 +1028,7 @@ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
  
-@@ -4609,12 +4613,8 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
- 	memset(qpc_mask->dgid, 0, sizeof(grh->dgid.raw));
+ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ {
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->srq_table.table);
+ 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->cq_table.table);
+@@ -1038,7 +1038,7 @@ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->caps.cqc_timer_entry_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->cqc_timer_table);
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ 	if (hr_dev->caps.trrl_entry_sz)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index cab95fd..9ca4892 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -607,7 +607,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		goto err_unmap_trrl;
+ 	}
  
- 	hr_qp->sl = rdma_ah_get_sl(&attr->ah_attr);
--	if (unlikely(hr_qp->sl > MAX_SERVICE_LEVEL)) {
--		ibdev_err(ibdev,
--			  "failed to fill QPC, sl (%d) shouldn't be larger than %d.\n",
--			  hr_qp->sl, MAX_SERVICE_LEVEL);
-+	if (WARN_ON(hr_qp->sl > MAX_SERVICE_LEVEL))
- 		return -EINVAL;
--	}
+-	if (hr_dev->caps.srqc_entry_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
+ 		ret = hns_roce_init_hem_table(hr_dev, &hr_dev->srq_table.table,
+ 					      HEM_TYPE_SRQC,
+ 					      hr_dev->caps.srqc_entry_sz,
+@@ -619,7 +619,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		}
+ 	}
  
- 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_SL_M,
- 		       V2_QPC_BYTE_28_SL_S, hr_qp->sl);
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		ret = hns_roce_init_hem_table(hr_dev,
+ 					      &hr_dev->qp_table.sccc_table,
+ 					      HEM_TYPE_SCCC,
+@@ -680,11 +680,11 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->qpc_timer_table);
+ 
+ err_unmap_ctx:
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ err_unmap_srq:
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->srq_table.table);
+ 
+ err_unmap_cq:
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index ebf152f..0e784c5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -335,7 +335,7 @@ static int alloc_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		}
+ 	}
+ 
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		/* Alloc memory for SCC CTX */
+ 		ret = hns_roce_table_get(hr_dev, &qp_table->sccc_table,
+ 					 hr_qp->qpn);
 -- 
 2.8.1
 
