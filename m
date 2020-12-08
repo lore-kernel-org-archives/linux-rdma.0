@@ -2,66 +2,88 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AABC2BBCF
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 07:36:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19791C3526A
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 07:36:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91E5923A7E
+	by mail.kernel.org (Postfix) with ESMTP id D494F23A6A
 	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 07:36:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727463AbgLHHgh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Dec 2020 02:36:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50460 "EHLO mail.kernel.org"
+        id S1726825AbgLHHgn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Dec 2020 02:36:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726825AbgLHHgh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 8 Dec 2020 02:36:37 -0500
+        id S1726299AbgLHHgn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 8 Dec 2020 02:36:43 -0500
 From:   Leon Romanovsky <leon@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Avihai Horon <avihaih@nvidia.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Jack Morgenstein <jackm@dev.mellanox.co.il>,
+Cc:     Jack Morgenstein <jackm@dev.mellanox.co.il>,
         Leon Romanovsky <leonro@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 0/3] Various fixes collected over time
-Date:   Tue,  8 Dec 2020 09:35:42 +0200
-Message-Id: <20201208073545.9723-1-leon@kernel.org>
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 2/3] RDMA/core: Do not indicate device ready when device enablement fails
+Date:   Tue,  8 Dec 2020 09:35:44 +0200
+Message-Id: <20201208073545.9723-3-leon@kernel.org>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20201208073545.9723-1-leon@kernel.org>
+References: <20201208073545.9723-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-Hi,
+In procedure ib_register_device, procedure kobject_uevent is called
+(advertising that the device is ready for userspace usage) even when
+device_enable_and_get() returned an error.
 
-This is set of various and unrelated fixes that we collected over time.
+As a result, various RDMA modules attempted to register for the device
+even while the device driver was preparing to unregister the device.
 
-Thanks
+Fix this by advertising the device availability only after enabling
+the device succeeds.
 
-Avihai Horon (1):
-  RDMA/uverbs: Fix incorrect variable type
+Fixes: e7a5b4aafd82 ("RDMA/device: Don't fire uevent before device is fully initialized")
+Suggested-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/device.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Jack Morgenstein (2):
-  RDMA/core: Clean up cq pool mechanism
-  RDMA/core: Do not indicate device ready when device enablement fails
-
- drivers/infiniband/core/core_priv.h              |  3 +--
- drivers/infiniband/core/cq.c                     | 12 ++----------
- drivers/infiniband/core/device.c                 | 16 ++++++++++------
- .../infiniband/core/uverbs_std_types_device.c    | 14 +++++---------
- include/rdma/uverbs_ioctl.h                      | 10 ++++++++++
- 5 files changed, 28 insertions(+), 27 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 11485b8748a2..e96f979e6d52 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1397,9 +1397,6 @@ int ib_register_device(struct ib_device *device, const char *name,
+ 	}
+ 
+ 	ret = enable_device_and_get(device);
+-	dev_set_uevent_suppress(&device->dev, false);
+-	/* Mark for userspace that device is ready */
+-	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
+ 	if (ret) {
+ 		void (*dealloc_fn)(struct ib_device *);
+ 
+@@ -1419,8 +1416,12 @@ int ib_register_device(struct ib_device *device, const char *name,
+ 		ib_device_put(device);
+ 		__ib_unregister_device(device);
+ 		device->ops.dealloc_driver = dealloc_fn;
++		dev_set_uevent_suppress(&device->dev, false);
+ 		return ret;
+ 	}
++	dev_set_uevent_suppress(&device->dev, false);
++	/* Mark for userspace that device is ready */
++	kobject_uevent(&device->dev.kobj, KOBJ_ADD);
+ 	ib_device_put(device);
+ 
+ 	return 0;
+-- 
 2.28.0
 
