@@ -2,89 +2,144 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F735C4167B
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 20:39:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55999C4361B
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 20:59:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A68923AFB
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 20:39:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 276AC239FD
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 20:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729085AbgLHUj1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Dec 2020 15:39:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45014 "EHLO mail.kernel.org"
+        id S1729266AbgLHU71 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Dec 2020 15:59:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726307AbgLHUj1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 8 Dec 2020 15:39:27 -0500
-Date:   Tue, 8 Dec 2020 11:22:26 -0800
+        id S1728996AbgLHU71 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 8 Dec 2020 15:59:27 -0500
+Date:   Tue, 8 Dec 2020 21:02:52 +0200
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607455347;
-        bh=0hoIplBhL2TPhrhpgcVbMyxg8H17FzeKx+l9ZHZK0r0=;
-        h=From:To:Cc:Subject:In-Reply-To:References:From;
-        b=AWKrbTQP49oNKAXiA4uPh3YzudRhdOK14Op9O74N37SqW+g9n8py37Fjg9ZcDE9BO
-         BQXmmkCblG5xxZsRRw2dKmrtR74Lad9VCDjL8LDjXJJJ146QpmEeQJ0git1MoPdvx7
-         XyiGgrfsPs+1DgpppxLYzSeIbD02mekyJrsmoqdvA00S/hYdWEeHj58Q3GMV8iVLR9
-         uoPXH5aVRB+3fOz47BK5NP7ZvRCpRnhdM7hae3PrfiEoq9ac3OyDdg8VFRGg3rHuBF
-         QNg9zVqse7kSWdem9XkdflYKxVhVJ6OzcebjrjLGvE+acdPwDwSBirGe5Hgawjlse4
-         3Ue1xNPo9ZraA==
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Zou Wei <zou_wei@huawei.com>
-Cc:     <saeedm@nvidia.com>, <leon@kernel.org>, <davem@davemloft.net>,
-        <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH -next] net/mlx5_core: remove unused including
- <generated/utsrelease.h>
-Message-ID: <20201208112226.1bb31229@kicinski-fedora-pc1c0hjn.DHCP.thefacebook.com>
-In-Reply-To: <1607343240-39155-1-git-send-email-zou_wei@huawei.com>
-References: <1607343240-39155-1-git-send-email-zou_wei@huawei.com>
+        s=k20201202; t=1607454176;
+        bh=on7V4OWCmVPzcIia0frhRZpTXCRt5e/b3cclGe2h/vc=;
+        h=From:To:Cc:Subject:References:In-Reply-To:From;
+        b=AWrmh7AdWcTdHB/rW/9k5hDWSjxkK6XQilu9LdiVu5TDSjcBq6T3BVuHyS2Difqbl
+         BYaiQfKf0zrqJlScxqzMo17FxqxFcHpangAOlkxGzuw+wlaj+XAl8CVRLi7kYXUhdW
+         +Hz3ZqKbCY9bp4F/TrVUBXlla8N4FHeFfQ933WEvrRYE2Zzy1L/Wyhbwyf2QImhWmG
+         HvkJ3ypbHXCXY+zzAkDb3npeZV8wBaY25q7dk+lY+VXxnGvouhdVPXpySXApgpIH/6
+         wMBSmCGIzY45V+INYmN9PYj8QFsgHUnBuD1VkpLtXUy5ho5HMZ4NgNaFiK5rGbK81T
+         0dCFF+jeKYygQ==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "Xiong, Jianxin" <jianxin.xiong@intel.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>
+Subject: Re: [PATCH v13 1/4] RDMA/umem: Support importing dma-buf as user
+ memory region
+Message-ID: <20201208190252.GI4430@unreal>
+References: <1607379353-116215-1-git-send-email-jianxin.xiong@intel.com>
+ <1607379353-116215-2-git-send-email-jianxin.xiong@intel.com>
+ <20201208070532.GE4430@unreal>
+ <MW3PR11MB45554A727DA7940D81FE1C14E5CD0@MW3PR11MB4555.namprd11.prod.outlook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <MW3PR11MB45554A727DA7940D81FE1C14E5CD0@MW3PR11MB4555.namprd11.prod.outlook.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, 7 Dec 2020 20:14:00 +0800 Zou Wei wrote:
-> Remove including <generated/utsrelease.h> that don't need it.
->=20
-> Signed-off-by: Zou Wei <zou_wei@huawei.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/n=
-et/ethernet/mellanox/mlx5/core/en_rep.c
-> index 989c70c..82ecc161 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-> @@ -30,7 +30,6 @@
->   * SOFTWARE.
->   */
-> =20
-> -#include <generated/utsrelease.h>
->  #include <linux/mlx5/fs.h>
->  #include <net/switchdev.h>
->  #include <net/pkt_cls.h>
+On Tue, Dec 08, 2020 at 06:13:20PM +0000, Xiong, Jianxin wrote:
+> > -----Original Message-----
+> > From: Leon Romanovsky <leon@kernel.org>
+> > Sent: Monday, December 07, 2020 11:06 PM
+> > To: Xiong, Jianxin <jianxin.xiong@intel.com>
+> > Cc: linux-rdma@vger.kernel.org; dri-devel@lists.freedesktop.org; Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>;
+> > Sumit Semwal <sumit.semwal@linaro.org>; Christian Koenig <christian.koenig@amd.com>; Vetter, Daniel <daniel.vetter@intel.com>
+> > Subject: Re: [PATCH v13 1/4] RDMA/umem: Support importing dma-buf as user memory region
+> >
+> > On Mon, Dec 07, 2020 at 02:15:50PM -0800, Jianxin Xiong wrote:
+> > > Dma-buf is a standard cross-driver buffer sharing mechanism that can
+> > > be used to support peer-to-peer access from RDMA devices.
+> > >
+> > > Device memory exported via dma-buf is associated with a file descriptor.
+> > > This is passed to the user space as a property associated with the
+> > > buffer allocation. When the buffer is registered as a memory region,
+> > > the file descriptor is passed to the RDMA driver along with other
+> > > parameters.
+> > >
+> > > Implement the common code for importing dma-buf object and mapping
+> > > dma-buf pages.
+> > >
+> > > Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+> > > Reviewed-by: Sean Hefty <sean.hefty@intel.com>
+> > > Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> > > Acked-by: Christian Koenig <christian.koenig@amd.com>
+> > > Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > >
+> > > Conflicts:
+> > > 	include/rdma/ib_umem.h
+> >
 
+<...>
 
-drivers/net/ethernet/mellanox/mlx5/core/en_rep.c: In function =E2=80=98mlx5=
-e_rep_get_drvinfo=E2=80=99:
-drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:66:28: error: =E2=80=98UTS=
-_RELEASE=E2=80=99 undeclared (first use in this function); did you mean =E2=
-=80=98CSS_RELEASED=E2=80=99?
-   66 |  strlcpy(drvinfo->version, UTS_RELEASE, sizeof(drvinfo->version));
-      |                            ^~~~~~~~~~~
-      |                            CSS_RELEASED
-drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:66:28: note: each undeclar=
-ed identifier is reported only once for each function it appears in
-make[6]: *** [drivers/net/ethernet/mellanox/mlx5/core/en_rep.o] Error 1
-make[5]: *** [drivers/net/ethernet/mellanox/mlx5/core] Error 2
-make[4]: *** [drivers/net/ethernet/mellanox] Error 2
-make[3]: *** [drivers/net/ethernet] Error 2
-make[2]: *** [drivers/net] Error 2
-make[2]: *** Waiting for unfinished jobs....
-make[1]: *** [drivers] Error 2
-make: *** [__sub-make] Error 2
+> > > +	/*
+> > > +	 * Although the sg list is valid now, the content of the pages
+> > > +	 * may be not up-to-date. Wait for the exporter to finish
+> > > +	 * the migration.
+> > > +	 */
+> > > +	fence = dma_resv_get_excl(umem_dmabuf->attach->dmabuf->resv);
+> > > +	if (fence)
+> > > +		dma_fence_wait(fence, false);
+> >
+> > Any reason do not check return result from dma_fence_wait()?
+>
+> This is called with interruptible flag set to false and normally should only return 0.
+> I do see similar usage cases that check the result and don't check the result. Maybe
+> we can add a WARN_ON here?
+
+I have no idea :), just saw that other places check returned value.
+
+<...>
+
+> > > +
+> > > +struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
+> > > +				   unsigned long offset, size_t size,
+> > > +				   int fd, int access,
+> > > +				   const struct dma_buf_attach_ops *ops) {
+> > > +	struct dma_buf *dmabuf;
+> > > +	struct ib_umem_dmabuf *umem_dmabuf;
+> > > +	struct ib_umem *umem;
+> > > +	unsigned long end;
+> > > +	long ret = -EINVAL;
+> >
+> > It is wrong type for the returned value. One of the possible options is to declare "struct ib_umem *ret;" and set ret = ERR_PTR(-EINVAL) or
+> > ret = ERR_CAST(dmabuf);
+>
+> At the actual point the value is returned, ERR_PTR(ret) is used. I think we can change the
+> variable name to "err" instead to avoid confusion.
+
+The point is that "ret" should be declared as "struct ib_umem *" and not
+as "long" and ERR_CAST() should be used instead of (void *).
+
+<...>
+
+> > > +static inline struct ib_umem *ib_umem_dmabuf_get(struct ib_device *device,
+> > > +						 unsigned long offset,
+> > > +						 size_t size, int fd,
+> > > +						 int access,
+> > > +						 struct dma_buf_attach_ops *ops) {
+> > > +	return ERR_PTR(-EINVAL);
+> >
+> > Probably, It should be EOPNOTSUPP and not EINVAL.
+>
+> EINVAL is used here to be consistent with existing definitions in the same file.
+
+ok
+
+Thanks
