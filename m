@@ -2,92 +2,54 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD9A9C19437
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 23:42:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F903C2D0E4
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 00:28:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8029B23B16
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Dec 2020 23:42:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38AFA239E5
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 00:28:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731814AbgLHXmY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Dec 2020 18:42:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41112 "EHLO
+        id S1731928AbgLIA0D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Dec 2020 19:26:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725906AbgLHXmS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Dec 2020 18:42:18 -0500
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D258FC0617A6
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Dec 2020 15:41:32 -0800 (PST)
-Received: by mail-qt1-x844.google.com with SMTP id p12so108101qtp.7
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Dec 2020 15:41:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=rPNigW+nYiMVFpS2HNpPz+E34HVn3r2r0I5yXJefsg0=;
-        b=INvPDUjmBQg/XN/s94mwe+p9VTcHDyg24OIgi8usg+LPtqCKJ/yLY3fOZv/k1QJfmk
-         ghsp/Lj9V5tu7Dy2VE/ajVWjzMyKghABF3dcRxHo33vLciJkdAtH9PbnfGnIaGtoEHb6
-         hdXwuYBNOQ4S7ifBs8upiX3auZc/7iLC5oRZHDlarJHur4kCSgbMWeBYs4iDV7q1FIOr
-         sw8TyZFDjFwpHqkfpV/1K3XVVOYlw56mXOz+MPLpCGPVeFSukrmigdP6jNpAtQRNN4Gf
-         AUAAAxGpEwTz3p+YkIlMCCa7nUDgA4eb4lLDXqmv/i3lkkuaRJ855iiPgnmAtKN8M2D0
-         VZWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=rPNigW+nYiMVFpS2HNpPz+E34HVn3r2r0I5yXJefsg0=;
-        b=eMj1QLQs/dyej3TyvPMsE1vn6j98+6IP7/zSdm0pKrRm0oSYR41BQpxT0iaj2POTIJ
-         PdJX2VJaZgLDdrzs14TIq8ET2ueyVHhG2eEL42d8Zq2rKr8mdTLrvjrfP2WnEPx4yCDE
-         pCD0YBFLUA78i0jBqF4c89Ro7qOxKMnKZ25gKOcpxFwF0hyHhbd4LetMdi/81nNCmd5i
-         gnzmnDgqyttvFVvq4wZgh3+ZZHQhlLsuzwjVTOWZfN2uDshHHz434xwm9C9du4hLTWNz
-         xKuzgnIn65nwH2bMybLJVN67xjZPGnALqhE8nYcRbX6cMDtRb7pTKBgxlBghD1iLwPIo
-         k/vQ==
-X-Gm-Message-State: AOAM530b3bCXc6qX6TLZIaua2bVOjwzy62anV0pRtYAK3qFdgfG1rrLS
-        A9wJ0faKhfWBk6Yc1Hx2c75tjw==
-X-Google-Smtp-Source: ABdhPJzH06GR1oL/I8np/AXOA+PRONtRyvvr67W9LuNjviB7kkzJ7iR5hHdRJNdVVeoz687VjkhPCg==
-X-Received: by 2002:ac8:5a03:: with SMTP id n3mr677650qta.240.1607470892118;
-        Tue, 08 Dec 2020 15:41:32 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-115-133.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.115.133])
-        by smtp.gmail.com with ESMTPSA id o68sm200168qkf.84.2020.12.08.15.41.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Dec 2020 15:41:31 -0800 (PST)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1kmmbq-0083ZD-Vj; Tue, 08 Dec 2020 19:41:30 -0400
-Date:   Tue, 8 Dec 2020 19:41:30 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Jianxin Xiong <jianxin.xiong@intel.com>
-Cc:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: Re: [PATCH v14 0/4] RDMA: Add dma-buf support
-Message-ID: <20201208234130.GS5487@ziepe.ca>
-References: <1607467155-92725-1-git-send-email-jianxin.xiong@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1607467155-92725-1-git-send-email-jianxin.xiong@intel.com>
+        with ESMTP id S1731931AbgLIAZ7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Dec 2020 19:25:59 -0500
+Received: from mail.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E6E1C0613CF;
+        Tue,  8 Dec 2020 16:25:19 -0800 (PST)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 289F74D248DBF;
+        Tue,  8 Dec 2020 16:25:19 -0800 (PST)
+Date:   Tue, 08 Dec 2020 16:25:18 -0800 (PST)
+Message-Id: <20201208.162518.612024256091904820.davem@davemloft.net>
+To:     zhengyongjun3@huawei.com
+Cc:     kuba@kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next] net/mlx5: simplify the return expression of
+ mlx5_esw_offloads_pair()
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20201208135625.11872-1-zhengyongjun3@huawei.com>
+References: <20201208135625.11872-1-zhengyongjun3@huawei.com>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Tue, 08 Dec 2020 16:25:19 -0800 (PST)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Dec 08, 2020 at 02:39:11PM -0800, Jianxin Xiong wrote:
-> This is the fourteenth version of the patch set. Changelog:
+From: Zheng Yongjun <zhengyongjun3@huawei.com>
+Date: Tue, 8 Dec 2020 21:56:25 +0800
+
+> Simplify the return expression.
 > 
-> v14:
-> * Check return value of dma_fence_wait()
-> * Fix a dma-buf leak in ib_umem_dmabuf_get()
-> * Fix return value type cast for ib_umem_dmabuf_get()
-> * Return -EOPNOTSUPP instead of -EINVAL for unimplemented functions
-> * Remove an unnecessary use of unlikely()
-> * Remove left-over commit message resulted from rebase
+> Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 
-You should probably slow down a bit, v13 needed rebasing too.
+Applied.
 
-Jason
