@@ -6,17 +6,17 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43A00C4361B
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD41DC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:32:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F07D323B79
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:32:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F76223B79
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728050AbgLIHcf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1725816AbgLIHcf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 9 Dec 2020 02:32:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60562 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726543AbgLIHbg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727248AbgLIHbg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 9 Dec 2020 02:31:36 -0500
 From:   saeed@kernel.org
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
@@ -30,10 +30,10 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
         Parav Pandit <parav@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH net-next v2 05/14] net/mlx5: Introduce vhca state event notifier
-Date:   Tue,  8 Dec 2020 23:29:25 -0800
-Message-Id: <20201209072934.1272819-6-saeed@kernel.org>
+        Roi Dayan <roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH net-next v2 09/14] net/mlx5: E-switch, Add eswitch helpers for SF vport
+Date:   Tue,  8 Dec 2020 23:29:29 -0800
+Message-Id: <20201209072934.1272819-10-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201209072934.1272819-1-saeed@kernel.org>
 References: <20201209072934.1272819-1-saeed@kernel.org>
@@ -45,636 +45,222 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-vhca state events indicates change in the state of the vhca that may
-occur due to a SF allocation, deallocation or enabling/disabling the
-SF HCA.
+Add helpers to enable/disable eswitch port, register its devlink port and
+load its representor.
 
-Introduce vhca state event handler which will be used by SF devlink
-port manager and SF hardware id allocator in subsequent patches
-to act on the event.
-
-This enables single entity to subscribe, query and rearm the event
-for a function.
-
+Signed-off-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
+Reviewed-by: Roi Dayan <roid@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
 Changelog:
 v1->v2:
- - new patch
+ - cut down extra api for vport enable/disable
 ---
- .../net/ethernet/mellanox/mlx5/core/Kconfig   |   9 +
- .../net/ethernet/mellanox/mlx5/core/Makefile  |   4 +
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   4 +
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   3 +
- .../net/ethernet/mellanox/mlx5/core/events.c  |   7 +
- .../net/ethernet/mellanox/mlx5/core/main.c    |  16 ++
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 +
- .../mlx5/core/sf/mlx5_ifc_vhca_event.h        |  82 ++++++++
- .../net/ethernet/mellanox/mlx5/core/sf/sf.h   |  45 +++++
- .../mellanox/mlx5/core/sf/vhca_event.c        | 189 ++++++++++++++++++
- .../mellanox/mlx5/core/sf/vhca_event.h        |  57 ++++++
- include/linux/mlx5/driver.h                   |   4 +
- 12 files changed, 422 insertions(+)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/mlx5_ifc_vhca_event.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.h
+ .../mellanox/mlx5/core/esw/devlink_port.c     | 41 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 12 +++---
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h | 16 ++++++++
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 36 +++++++++++++++-
+ 4 files changed, 97 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-index 485478979b1a..10dfaf671c90 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -202,3 +202,12 @@ config MLX5_SW_STEERING
- 	default y
- 	help
- 	Build support for software-managed steering in the NIC.
-+
-+config MLX5_SF
-+	bool "Mellanox Technologies subfunction device support using auxiliary device"
-+	depends on MLX5_CORE && MLX5_CORE_EN
-+	default n
-+	help
-+	Build support for subfuction device in the NIC. A Mellanox subfunction
-+	device can support RDMA, netdevice and vdpa device.
-+	It is similar to a SRIOV VF but it doesn't require SRIOV support.
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-index 83a67ca43a41..3abb286dbbea 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-@@ -85,3 +85,7 @@ mlx5_core-$(CONFIG_MLX5_SW_STEERING) += steering/dr_domain.o steering/dr_table.o
- 					steering/dr_ste.o steering/dr_send.o \
- 					steering/dr_cmd.o steering/dr_fw.o \
- 					steering/dr_action.o steering/fs_dr.o
-+#
-+# SF device
-+#
-+mlx5_core-$(CONFIG_MLX5_SF) += sf/vhca_event.o
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 50c7b9ee80c3..47dcc3ac2cf0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -464,6 +464,8 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
- 	case MLX5_CMD_OP_ALLOC_MEMIC:
- 	case MLX5_CMD_OP_MODIFY_XRQ:
- 	case MLX5_CMD_OP_RELEASE_XRQ_ERROR:
-+	case MLX5_CMD_OP_QUERY_VHCA_STATE:
-+	case MLX5_CMD_OP_MODIFY_VHCA_STATE:
- 		*status = MLX5_DRIVER_STATUS_ABORTED;
- 		*synd = MLX5_DRIVER_SYND;
- 		return -EIO;
-@@ -657,6 +659,8 @@ const char *mlx5_command_str(int command)
- 	MLX5_COMMAND_STR_CASE(DESTROY_UMEM);
- 	MLX5_COMMAND_STR_CASE(RELEASE_XRQ_ERROR);
- 	MLX5_COMMAND_STR_CASE(MODIFY_XRQ);
-+	MLX5_COMMAND_STR_CASE(QUERY_VHCA_STATE);
-+	MLX5_COMMAND_STR_CASE(MODIFY_VHCA_STATE);
- 	default: return "unknown command opcode";
- 	}
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 4ea5d6ddf56a..f3e1d5b785ce 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -597,6 +597,9 @@ static void gather_async_events_mask(struct mlx5_core_dev *dev, u64 mask[4])
- 		async_event_mask |=
- 			(1ull << MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED);
- 
-+	if (MLX5_CAP_GEN_MAX(dev, vhca_state))
-+		async_event_mask |= (1ull << MLX5_EVENT_TYPE_VHCA_STATE_CHANGE);
-+
- 	mask[0] = async_event_mask;
- 
- 	if (MLX5_CAP_GEN(dev, event_cap))
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 3ce17c3d7a00..5523d218e5fb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -110,6 +110,8 @@ static const char *eqe_type_str(u8 type)
- 		return "MLX5_EVENT_TYPE_CMD";
- 	case MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED:
- 		return "MLX5_EVENT_TYPE_ESW_FUNCTIONS_CHANGED";
-+	case MLX5_EVENT_TYPE_VHCA_STATE_CHANGE:
-+		return "MLX5_EVENT_TYPE_VHCA_STATE_CHANGE";
- 	case MLX5_EVENT_TYPE_PAGE_REQUEST:
- 		return "MLX5_EVENT_TYPE_PAGE_REQUEST";
- 	case MLX5_EVENT_TYPE_PAGE_FAULT:
-@@ -403,3 +405,8 @@ int mlx5_notifier_call_chain(struct mlx5_events *events, unsigned int event, voi
- {
- 	return atomic_notifier_call_chain(&events->nh, event, data);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+index ffff11baa3d0..4b7e9f783789 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+@@ -122,3 +122,44 @@ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u1
+ 	vport = mlx5_eswitch_get_vport(esw, vport_num);
+ 	return vport->dl_port;
  }
 +
-+void mlx5_events_work_enqueue(struct mlx5_core_dev *dev, struct work_struct *work)
++int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum)
 +{
-+	queue_work(dev->priv.events->wq, work);
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index c08315b51fd3..6e67ad11c713 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -73,6 +73,7 @@
- #include "ecpf.h"
- #include "lib/hv_vhca.h"
- #include "diag/rsc_dump.h"
-+#include "sf/vhca_event.h"
- 
- MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
- MODULE_DESCRIPTION("Mellanox 5th generation network adapters (ConnectX series) core driver");
-@@ -567,6 +568,8 @@ static int handle_hca_cap(struct mlx5_core_dev *dev, void *set_ctx)
- 	if (MLX5_CAP_GEN_MAX(dev, mkey_by_name))
- 		MLX5_SET(cmd_hca_cap, set_hca_cap, mkey_by_name, 1);
- 
-+	mlx5_vhca_state_cap_handle(dev, set_hca_cap);
-+
- 	return set_caps(dev, set_ctx, MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
- }
- 
-@@ -884,6 +887,12 @@ static int mlx5_init_once(struct mlx5_core_dev *dev)
- 		goto err_eswitch_cleanup;
- 	}
- 
-+	err = mlx5_vhca_event_init(dev);
-+	if (err) {
-+		mlx5_core_err(dev, "Failed to init vhca event notifier %d\n", err);
-+		goto err_fpga_cleanup;
-+	}
-+
- 	dev->dm = mlx5_dm_create(dev);
- 	if (IS_ERR(dev->dm))
- 		mlx5_core_warn(dev, "Failed to init device memory%d\n", err);
-@@ -894,6 +903,8 @@ static int mlx5_init_once(struct mlx5_core_dev *dev)
- 
- 	return 0;
- 
-+err_fpga_cleanup:
-+	mlx5_fpga_cleanup(dev);
- err_eswitch_cleanup:
- 	mlx5_eswitch_cleanup(dev->priv.eswitch);
- err_sriov_cleanup:
-@@ -925,6 +936,7 @@ static void mlx5_cleanup_once(struct mlx5_core_dev *dev)
- 	mlx5_hv_vhca_destroy(dev->hv_vhca);
- 	mlx5_fw_tracer_destroy(dev->tracer);
- 	mlx5_dm_cleanup(dev);
-+	mlx5_vhca_event_cleanup(dev);
- 	mlx5_fpga_cleanup(dev);
- 	mlx5_eswitch_cleanup(dev->priv.eswitch);
- 	mlx5_sriov_cleanup(dev);
-@@ -1129,6 +1141,8 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- 		goto err_sriov;
- 	}
- 
-+	mlx5_vhca_event_start(dev);
-+
- 	err = mlx5_ec_init(dev);
- 	if (err) {
- 		mlx5_core_err(dev, "Failed to init embedded CPU\n");
-@@ -1146,6 +1160,7 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- err_sriov:
- 	mlx5_ec_cleanup(dev);
- err_ec:
-+	mlx5_vhca_event_stop(dev);
- 	mlx5_cleanup_fs(dev);
- err_fs:
- 	mlx5_accel_tls_cleanup(dev);
-@@ -1173,6 +1188,7 @@ static void mlx5_unload(struct mlx5_core_dev *dev)
- {
- 	mlx5_sriov_detach(dev);
- 	mlx5_ec_cleanup(dev);
-+	mlx5_vhca_event_stop(dev);
- 	mlx5_cleanup_fs(dev);
- 	mlx5_accel_ipsec_cleanup(dev);
- 	mlx5_accel_tls_cleanup(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 0a0302ce7144..a33b7496d748 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -259,4 +259,6 @@ void mlx5_set_nic_state(struct mlx5_core_dev *dev, u8 state);
- 
- void mlx5_unload_one(struct mlx5_core_dev *dev, bool cleanup);
- int mlx5_load_one(struct mlx5_core_dev *dev, bool boot);
-+
-+void mlx5_events_work_enqueue(struct mlx5_core_dev *dev, struct work_struct *work);
- #endif /* __MLX5_CORE_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/mlx5_ifc_vhca_event.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/mlx5_ifc_vhca_event.h
-new file mode 100644
-index 000000000000..1daf5a122ba3
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/mlx5_ifc_vhca_event.h
-@@ -0,0 +1,82 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2020 Mellanox Technologies Ltd */
-+
-+#ifndef __MLX5_IFC_VHCA_EVENT_H__
-+#define __MLX5_IFC_VHCA_EVENT_H__
-+
-+enum mlx5_ifc_vhca_state {
-+	MLX5_VHCA_STATE_INVALID = 0x0,
-+	MLX5_VHCA_STATE_ALLOCATED = 0x1,
-+	MLX5_VHCA_STATE_ACTIVE = 0x2,
-+	MLX5_VHCA_STATE_IN_USE = 0x3,
-+	MLX5_VHCA_STATE_TEARDOWN_REQUEST = 0x4,
-+};
-+
-+struct mlx5_ifc_vhca_state_context_bits {
-+	u8         arm_change_event[0x1];
-+	u8         reserved_at_1[0xb];
-+	u8         vhca_state[0x4];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         sw_function_id[0x20];
-+
-+	u8         reserved_at_40[0x80];
-+};
-+
-+struct mlx5_ifc_query_vhca_state_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+
-+	struct mlx5_ifc_vhca_state_context_bits vhca_state_context;
-+};
-+
-+struct mlx5_ifc_query_vhca_state_in_bits {
-+	u8         opcode[0x10];
-+	u8         uid[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         embedded_cpu_function[0x1];
-+	u8         reserved_at_41[0xf];
-+	u8         function_id[0x10];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
-+struct mlx5_ifc_vhca_state_field_select_bits {
-+	u8         reserved_at_0[0x1e];
-+	u8         sw_function_id[0x1];
-+	u8         arm_change_event[0x1];
-+};
-+
-+struct mlx5_ifc_modify_vhca_state_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
-+struct mlx5_ifc_modify_vhca_state_in_bits {
-+	u8         opcode[0x10];
-+	u8         uid[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         embedded_cpu_function[0x1];
-+	u8         reserved_at_41[0xf];
-+	u8         function_id[0x10];
-+
-+	struct mlx5_ifc_vhca_state_field_select_bits vhca_state_field_select;
-+
-+	struct mlx5_ifc_vhca_state_context_bits vhca_state_context;
-+};
-+
-+#endif
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-new file mode 100644
-index 000000000000..623191679b49
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-@@ -0,0 +1,45 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2020 Mellanox Technologies Ltd */
-+
-+#ifndef __MLX5_SF_H__
-+#define __MLX5_SF_H__
-+
-+#include <linux/mlx5/driver.h>
-+
-+static inline u16 mlx5_sf_start_function_id(const struct mlx5_core_dev *dev)
-+{
-+	return MLX5_CAP_GEN(dev, sf_base_id);
-+}
-+
-+#ifdef CONFIG_MLX5_SF
-+
-+static inline bool mlx5_sf_supported(const struct mlx5_core_dev *dev)
-+{
-+	return MLX5_CAP_GEN(dev, sf);
-+}
-+
-+static inline u16 mlx5_sf_max_functions(const struct mlx5_core_dev *dev)
-+{
-+	if (!mlx5_sf_supported(dev))
-+		return 0;
-+	if (MLX5_CAP_GEN(dev, max_num_sf))
-+		return MLX5_CAP_GEN(dev, max_num_sf);
-+	else
-+		return 1 << MLX5_CAP_GEN(dev, log_max_sf);
-+}
-+
-+#else
-+
-+static inline bool mlx5_sf_supported(const struct mlx5_core_dev *dev)
-+{
-+	return false;
-+}
-+
-+static inline u16 mlx5_sf_max_functions(const struct mlx5_core_dev *dev)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
-new file mode 100644
-index 000000000000..af2f2dd9db25
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
-@@ -0,0 +1,189 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/* Copyright (c) 2020 Mellanox Technologies Ltd */
-+
-+#include <linux/mlx5/driver.h>
-+#include "mlx5_ifc_vhca_event.h"
-+#include "mlx5_core.h"
-+#include "vhca_event.h"
-+#include "ecpf.h"
-+
-+struct mlx5_vhca_state_notifier {
-+	struct mlx5_core_dev *dev;
-+	struct mlx5_nb nb;
-+	struct blocking_notifier_head n_head;
-+};
-+
-+struct mlx5_vhca_event_work {
-+	struct work_struct work;
-+	struct mlx5_vhca_state_notifier *notifier;
-+	struct mlx5_vhca_state_event event;
-+};
-+
-+int mlx5_cmd_query_vhca_state(struct mlx5_core_dev *dev, u16 function_id,
-+			      bool ecpu, u32 *out, u32 outlen)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_vhca_state_in)] = {};
-+
-+	MLX5_SET(query_vhca_state_in, in, opcode, MLX5_CMD_OP_QUERY_VHCA_STATE);
-+	MLX5_SET(query_vhca_state_in, in, function_id, function_id);
-+	MLX5_SET(query_vhca_state_in, in, embedded_cpu_function, ecpu);
-+
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, outlen);
-+}
-+
-+static int mlx5_cmd_modify_vhca_state(struct mlx5_core_dev *dev, u16 function_id,
-+				      bool ecpu, u32 *in, u32 inlen)
-+{
-+	u32 out[MLX5_ST_SZ_DW(modify_vhca_state_out)] = {};
-+
-+	MLX5_SET(modify_vhca_state_in, in, opcode, MLX5_CMD_OP_MODIFY_VHCA_STATE);
-+	MLX5_SET(modify_vhca_state_in, in, function_id, function_id);
-+	MLX5_SET(modify_vhca_state_in, in, embedded_cpu_function, ecpu);
-+
-+	return mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
-+}
-+
-+int mlx5_modify_vhca_sw_id(struct mlx5_core_dev *dev, u16 function_id, bool ecpu, u32 sw_fn_id)
-+{
-+	u32 out[MLX5_ST_SZ_DW(modify_vhca_state_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(modify_vhca_state_in)] = {};
-+
-+	MLX5_SET(modify_vhca_state_in, in, opcode, MLX5_CMD_OP_MODIFY_VHCA_STATE);
-+	MLX5_SET(modify_vhca_state_in, in, function_id, function_id);
-+	MLX5_SET(modify_vhca_state_in, in, embedded_cpu_function, ecpu);
-+	MLX5_SET(modify_vhca_state_in, in, vhca_state_field_select.sw_function_id, 1);
-+	MLX5_SET(modify_vhca_state_in, in, vhca_state_context.sw_function_id, sw_fn_id);
-+
-+	return mlx5_cmd_exec_inout(dev, modify_vhca_state, in, out);
-+}
-+
-+int mlx5_vhca_event_arm(struct mlx5_core_dev *dev, u16 function_id, bool ecpu)
-+{
-+	u32 in[MLX5_ST_SZ_DW(modify_vhca_state_in)] = {};
-+
-+	MLX5_SET(modify_vhca_state_in, in, vhca_state_context.arm_change_event, 1);
-+	MLX5_SET(modify_vhca_state_in, in, vhca_state_field_select.arm_change_event, 1);
-+
-+	return mlx5_cmd_modify_vhca_state(dev, function_id, ecpu, in, sizeof(in));
-+}
-+
-+static void
-+mlx5_vhca_event_notify(struct mlx5_core_dev *dev, struct mlx5_vhca_state_event *event)
-+{
-+	u32 out[MLX5_ST_SZ_DW(query_vhca_state_out)] = {};
++	struct mlx5_core_dev *dev = esw->dev;
++	struct netdev_phys_item_id ppid = {};
++	unsigned int dl_port_index;
++	struct mlx5_vport *vport;
++	struct devlink *devlink;
++	u16 pfnum;
 +	int err;
 +
-+	err = mlx5_cmd_query_vhca_state(dev, event->function_id, event->ecpu, out, sizeof(out));
++	vport = mlx5_eswitch_get_vport(esw, vport_num);
++	if (IS_ERR(vport))
++		return PTR_ERR(vport);
++
++	pfnum = PCI_FUNC(dev->pdev->devfn);
++	mlx5_esw_get_port_parent_id(dev, &ppid);
++	memcpy(dl_port->attrs.switch_id.id, &ppid.id[0], ppid.id_len);
++	dl_port->attrs.switch_id.id_len = ppid.id_len;
++	devlink_port_attrs_pci_sf_set(dl_port, 0, pfnum, sfnum, false);
++	devlink = priv_to_devlink(dev);
++	dl_port_index = mlx5_esw_vport_to_devlink_port_index(dev, vport_num);
++	err = devlink_port_register(devlink, dl_port, dl_port_index);
 +	if (err)
-+		return;
++		return err;
 +
-+	event->sw_function_id = MLX5_GET(query_vhca_state_out, out,
-+					 vhca_state_context.sw_function_id);
-+	event->new_vhca_state = MLX5_GET(query_vhca_state_out, out,
-+					 vhca_state_context.vhca_state);
-+
-+	mlx5_vhca_event_arm(dev, event->function_id, event->ecpu);
-+
-+	blocking_notifier_call_chain(&dev->priv.vhca_state_notifier->n_head, 0, event);
-+}
-+
-+static void mlx5_vhca_state_work_handler(struct work_struct *_work)
-+{
-+	struct mlx5_vhca_event_work *work = container_of(_work, struct mlx5_vhca_event_work, work);
-+	struct mlx5_vhca_state_notifier *notifier = work->notifier;
-+	struct mlx5_core_dev *dev = notifier->dev;
-+
-+	mlx5_vhca_event_notify(dev, &work->event);
-+}
-+
-+static int
-+mlx5_vhca_state_change_notifier(struct notifier_block *nb, unsigned long type, void *data)
-+{
-+	struct mlx5_vhca_state_notifier *notifier =
-+				mlx5_nb_cof(nb, struct mlx5_vhca_state_notifier, nb);
-+	struct mlx5_vhca_event_work *work;
-+	struct mlx5_eqe *eqe = data;
-+
-+	work = kzalloc(sizeof(*work), GFP_ATOMIC);
-+	if (!work)
-+		return NOTIFY_DONE;
-+	INIT_WORK(&work->work, &mlx5_vhca_state_work_handler);
-+	work->notifier = notifier;
-+	work->event.function_id = be16_to_cpu(eqe->data.vhca_state.function_id);
-+	work->event.ecpu = be16_to_cpu(eqe->data.vhca_state.ec_function);
-+	mlx5_events_work_enqueue(notifier->dev, &work->work);
-+	return NOTIFY_OK;
-+}
-+
-+void mlx5_vhca_state_cap_handle(struct mlx5_core_dev *dev, void *set_hca_cap)
-+{
-+	if (!mlx5_vhca_event_supported(dev))
-+		return;
-+
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, vhca_state, 1);
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, event_on_vhca_state_allocated, 1);
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, event_on_vhca_state_active, 1);
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, event_on_vhca_state_in_use, 1);
-+	MLX5_SET(cmd_hca_cap, set_hca_cap, event_on_vhca_state_teardown_request, 1);
-+}
-+
-+int mlx5_vhca_event_init(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_vhca_state_notifier *notifier;
-+
-+	if (!mlx5_vhca_event_supported(dev))
-+		return 0;
-+
-+	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
-+	if (!notifier)
-+		return -ENOMEM;
-+
-+	dev->priv.vhca_state_notifier = notifier;
-+	notifier->dev = dev;
-+	BLOCKING_INIT_NOTIFIER_HEAD(&notifier->n_head);
-+	MLX5_NB_INIT(&notifier->nb, mlx5_vhca_state_change_notifier, VHCA_STATE_CHANGE);
++	vport->dl_port = dl_port;
 +	return 0;
 +}
 +
-+void mlx5_vhca_event_cleanup(struct mlx5_core_dev *dev)
++void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num)
 +{
-+	if (!mlx5_vhca_event_supported(dev))
++	struct mlx5_vport *vport;
++
++	vport = mlx5_eswitch_get_vport(esw, vport_num);
++	if (IS_ERR(vport))
 +		return;
-+
-+	kfree(dev->priv.vhca_state_notifier);
-+	dev->priv.vhca_state_notifier = NULL;
++	devlink_port_unregister(vport->dl_port);
++	vport->dl_port = NULL;
 +}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index d75247a8ce55..d06e7a5f15de 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1273,8 +1273,8 @@ static void esw_vport_cleanup(struct mlx5_eswitch *esw, struct mlx5_vport *vport
+ 	esw_vport_cleanup_acl(esw, vport);
+ }
+ 
+-static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
+-			    enum mlx5_eswitch_vport_event enabled_events)
++int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
++			  enum mlx5_eswitch_vport_event enabled_events)
+ {
+ 	struct mlx5_vport *vport;
+ 	int ret;
+@@ -1310,7 +1310,7 @@ static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ 	return ret;
+ }
+ 
+-static void esw_disable_vport(struct mlx5_eswitch *esw, u16 vport_num)
++void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	struct mlx5_vport *vport;
+ 
+@@ -1432,7 +1432,7 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ {
+ 	int err;
+ 
+-	err = esw_enable_vport(esw, vport_num, enabled_events);
++	err = mlx5_esw_vport_enable(esw, vport_num, enabled_events);
+ 	if (err)
+ 		return err;
+ 
+@@ -1443,14 +1443,14 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ 	return err;
+ 
+ err_rep:
+-	esw_disable_vport(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
+ 	return err;
+ }
+ 
+ void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	esw_offloads_unload_rep(esw, vport_num);
+-	esw_disable_vport(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
+ }
+ 
+ void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 4e3ed878ff03..54514b04808d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -688,6 +688,10 @@ mlx5_eswitch_enable_pf_vf_vports(struct mlx5_eswitch *esw,
+ 				 enum mlx5_eswitch_vport_event enabled_events);
+ void mlx5_eswitch_disable_pf_vf_vports(struct mlx5_eswitch *esw);
+ 
++int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
++			  enum mlx5_eswitch_vport_event enabled_events);
++void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
 +
-+void mlx5_vhca_event_start(struct mlx5_core_dev *dev)
+ int
+ esw_vport_create_offloads_acl_tables(struct mlx5_eswitch *esw,
+ 				     struct mlx5_vport *vport);
+@@ -706,6 +710,9 @@ esw_get_max_restore_tag(struct mlx5_eswitch *esw);
+ int esw_offloads_load_rep(struct mlx5_eswitch *esw, u16 vport_num);
+ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num);
+ 
++int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num);
++void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num);
++
+ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ 			    enum mlx5_eswitch_vport_event enabled_events);
+ void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num);
+@@ -717,6 +724,15 @@ void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs);
+ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, u16 vport_num);
+ void mlx5_esw_offloads_devlink_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
+ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u16 vport_num);
++
++int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum);
++void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
++
++int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum);
++void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
++
+ #else  /* CONFIG_MLX5_ESWITCH */
+ /* eswitch API stubs */
+ static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index f6c8dae739c2..0d76d80022ce 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1834,7 +1834,7 @@ static void __unload_reps_all_vport(struct mlx5_eswitch *esw, u8 rep_type)
+ 	__esw_offloads_unload_rep(esw, rep, rep_type);
+ }
+ 
+-static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
++int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	struct mlx5_eswitch_rep *rep;
+ 	int rep_type;
+@@ -1858,7 +1858,7 @@ static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
+ 	return err;
+ }
+ 
+-static void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
++void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	struct mlx5_eswitch_rep *rep;
+ 	int rep_type;
+@@ -2836,3 +2836,35 @@ u32 mlx5_eswitch_get_vport_metadata_for_match(struct mlx5_eswitch *esw,
+ 	return vport->metadata << (32 - ESW_SOURCE_PORT_METADATA_BITS);
+ }
+ EXPORT_SYMBOL(mlx5_eswitch_get_vport_metadata_for_match);
++
++int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum)
 +{
-+	struct mlx5_vhca_state_notifier *notifier;
++	int err;
 +
-+	if (!dev->priv.vhca_state_notifier)
-+		return;
++	err = mlx5_esw_vport_enable(esw, vport_num, MLX5_VPORT_UC_ADDR_CHANGE);
++	if (err)
++		return err;
 +
-+	notifier = dev->priv.vhca_state_notifier;
-+	mlx5_eq_notifier_register(dev, &notifier->nb);
-+}
++	err = mlx5_esw_devlink_sf_port_register(esw, dl_port, vport_num, sfnum);
++	if (err)
++		goto devlink_err;
 +
-+void mlx5_vhca_event_stop(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_vhca_state_notifier *notifier;
-+
-+	if (!dev->priv.vhca_state_notifier)
-+		return;
-+
-+	notifier = dev->priv.vhca_state_notifier;
-+	mlx5_eq_notifier_unregister(dev, &notifier->nb);
-+}
-+
-+int mlx5_vhca_event_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb)
-+{
-+	if (!dev->priv.vhca_state_notifier)
-+		return -EOPNOTSUPP;
-+	return blocking_notifier_chain_register(&dev->priv.vhca_state_notifier->n_head, nb);
-+}
-+
-+void mlx5_vhca_event_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&dev->priv.vhca_state_notifier->n_head, nb);
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.h
-new file mode 100644
-index 000000000000..1fe1ec6f4d4b
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.h
-@@ -0,0 +1,57 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2020 Mellanox Technologies Ltd */
-+
-+#ifndef __MLX5_VHCA_EVENT_H__
-+#define __MLX5_VHCA_EVENT_H__
-+
-+#ifdef CONFIG_MLX5_SF
-+
-+struct mlx5_vhca_state_event {
-+	u16 function_id;
-+	u16 sw_function_id;
-+	u8 new_vhca_state;
-+	bool ecpu;
-+};
-+
-+static inline bool mlx5_vhca_event_supported(const struct mlx5_core_dev *dev)
-+{
-+	return MLX5_CAP_GEN_MAX(dev, vhca_state);
-+}
-+
-+void mlx5_vhca_state_cap_handle(struct mlx5_core_dev *dev, void *set_hca_cap);
-+int mlx5_vhca_event_init(struct mlx5_core_dev *dev);
-+void mlx5_vhca_event_cleanup(struct mlx5_core_dev *dev);
-+void mlx5_vhca_event_start(struct mlx5_core_dev *dev);
-+void mlx5_vhca_event_stop(struct mlx5_core_dev *dev);
-+int mlx5_vhca_event_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb);
-+void mlx5_vhca_event_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *nb);
-+int mlx5_modify_vhca_sw_id(struct mlx5_core_dev *dev, u16 function_id, bool ecpu, u32 sw_fn_id);
-+int mlx5_vhca_event_arm(struct mlx5_core_dev *dev, u16 function_id, bool ecpu);
-+int mlx5_cmd_query_vhca_state(struct mlx5_core_dev *dev, u16 function_id,
-+			      bool ecpu, u32 *out, u32 outlen);
-+#else
-+
-+static inline void mlx5_vhca_state_cap_handle(struct mlx5_core_dev *dev, void *set_hca_cap)
-+{
-+}
-+
-+static inline int mlx5_vhca_event_init(struct mlx5_core_dev *dev)
-+{
++	err = mlx5_esw_offloads_rep_load(esw, vport_num);
++	if (err)
++		goto rep_err;
 +	return 0;
++
++rep_err:
++	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
++devlink_err:
++	mlx5_esw_vport_disable(esw, vport_num);
++	return err;
 +}
 +
-+static inline void mlx5_vhca_event_cleanup(struct mlx5_core_dev *dev)
++void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
 +{
++	mlx5_esw_offloads_rep_unload(esw, vport_num);
++	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
 +}
-+
-+static inline void mlx5_vhca_event_start(struct mlx5_core_dev *dev)
-+{
-+}
-+
-+static inline void mlx5_vhca_event_stop(struct mlx5_core_dev *dev)
-+{
-+}
-+
-+#endif
-+
-+#endif
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index f93bfe7473aa..ffba0786051e 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -507,6 +507,7 @@ struct mlx5_devcom;
- struct mlx5_fw_reset;
- struct mlx5_eq_table;
- struct mlx5_irq_table;
-+struct mlx5_vhca_state_notifier;
- 
- struct mlx5_rate_limit {
- 	u32			rate;
-@@ -603,6 +604,9 @@ struct mlx5_priv {
- 
- 	struct mlx5_bfreg_data		bfregs;
- 	struct mlx5_uars_page	       *uar;
-+#ifdef CONFIG_MLX5_SF
-+	struct mlx5_vhca_state_notifier *vhca_state_notifier;
-+#endif
- };
- 
- enum mlx5_device_state {
 -- 
 2.26.2
 
