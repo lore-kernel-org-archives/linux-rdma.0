@@ -2,22 +2,22 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 914D7C2BB40
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61014C4167B
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:31:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F81023B84
+	by mail.kernel.org (Postfix) with ESMTP id 2366E23B85
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727478AbgLIHa4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Dec 2020 02:30:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60276 "EHLO mail.kernel.org"
+        id S1727719AbgLIHbG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Dec 2020 02:31:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727248AbgLIHax (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 9 Dec 2020 02:30:53 -0500
+        id S1727695AbgLIHa6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 9 Dec 2020 02:30:58 -0500
 From:   saeed@kernel.org
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -29,11 +29,15 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>
-Subject: [PATCH net-next v2 00/14] Add mlx5 subfunction support
-Date:   Tue,  8 Dec 2020 23:29:20 -0800
-Message-Id: <20201209072934.1272819-1-saeed@kernel.org>
+        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
+        Vu Pham <vuhuong@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH net-next v2 04/14] devlink: Support get and set state of port function
+Date:   Tue,  8 Dec 2020 23:29:24 -0800
+Message-Id: <20201209072934.1272819-5-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201209072934.1272819-1-saeed@kernel.org>
+References: <20201209072934.1272819-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -42,213 +46,264 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-Hi Dave, Jakub, Jason,
+devlink port function can be in active or inactive state.
+Allow users to get and set port function's state.
 
-This series form Parav was the theme of this mlx5 release cycle,
-we've been waiting anxiously for the auxbus infrastructure to make it into
-the kernel, and now as the auxbus is in and all the stars are aligned, I
-can finally submit this V2 of the devlink and mlx5 subfunction support.
+When the port function it activated, its operational state may change
+after a while when the device is created and driver binds to it.
+Similarly on deactivation flow.
 
-Subfunctions came to solve the scaling issue of virtualization
-and switchdev environments, where SRIOV failed to deliver and users ran
-out of VFs very quickly as SRIOV demands huge amount of physical resources
-in both of the servers and the NIC.
+To clearly describe the state of the port function and its device's
+operational state in the host system, define state and opstate
+attributes.
 
-Subfunction provide the same functionality as SRIOV but in a very
-lightweight manner, please see the thorough and detailed
-documentation from Parav below, in the commit messages and the
-Networking documentation patches at the end of this series.
+Example of a PCI SF port which supports a port function:
+Create a device with ID=10 and one physical port.
 
-Sending V2 as a continuation to V1 that was sent Last month [0],
-Parav has provided full change-log in the commit message of each patch.
-[0] https://lore.kernel.org/linux-rdma/20201112192424.2742-1-parav@nvidia.com/
-
-Parav Pandit Says:
-=================
-
-This patchset introduces support for mlx5 subfunction (SF).
-
-A subfunction is a lightweight function that has a parent PCI function on
-which it is deployed. mlx5 subfunction has its own function capabilities
-and its own resources. This means a subfunction has its own dedicated
-queues(txq, rxq, cq, eq). These queues are neither shared nor stealed from
-the parent PCI function.
-
-When subfunction is RDMA capable, it has its own QP1, GID table and rdma
-resources neither shared nor stealed from the parent PCI function.
-
-A subfunction has dedicated window in PCI BAR space that is not shared
-with ther other subfunctions or parent PCI function. This ensures that all
-class devices of the subfunction accesses only assigned PCI BAR space.
-
-A Subfunction supports eswitch representation through which it supports tc
-offloads. User must configure eswitch to send/receive packets from/to
-subfunction port.
-
-Subfunctions share PCI level resources such as PCI MSI-X IRQs with
-their other subfunctions and/or with its parent PCI function.
-
-Patch summary:
---------------
-Patch 1 to 4 prepares devlink
-patch 5 to 7 mlx5 adds SF device support
-Patch 8 to 11 mlx5 adds SF devlink port support
-Patch 12 and 14 adds documentation
-
-Patch-1 prepares code to handle multiple port function attributes
-Patch-2 introduces devlink pcisf port flavour similar to pcipf and pcivf
-Patch-3 adds port add and delete driver callbacks
-Patch-4 adds port function state get and set callbacks
-Patch-5 mlx5 vhca event notifier support to distribute subfunction
-        state change notification
-Patch-6 adds SF auxiliary device
-Patch-7 adds SF auxiliary driver
-Patch-8 prepares eswitch to handler SF vport
-Patch-9 adds eswitch helpers to add/remove SF vport
-Patch-10 implements devlink port add/del callbacks
-Patch-11 implements devlink port function get/set callbacks
-Patch-12 to 14 adds documentation
-Patch-12 added mlx5 port function documentation
-Patch-13 adds subfunction documentation
-Patch-14 adds mlx5 subfunction documentation
-
-Subfunction support is discussed in detail in RFC [1] and [2].
-RFC [1] and extension [2] describes requirements, design and proposed
-plumbing using devlink, auxiliary bus and sysfs for systemd/udev
-support. Functionality of this patchset is best explained using real
-examples further below.
-
-overview:
---------
-A subfunction can be created and deleted by a user using devlink port
-add/delete interface.
-
-A subfunction can be configured using devlink port function attribute
-before its activated.
-
-When a subfunction is activated, it results in an auxiliary device on
-the host PCI device where it is deployed. A driver binds to the
-auxiliary device that further creates supported class devices.
-
-example subfunction usage sequence:
------------------------------------
-Change device to switchdev mode:
 $ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
 
-Add a devlink port of subfunction flaovur:
+$ devlink port show
+pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
+
 $ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
 
-Configure mac address of the port function:
-$ devlink port function set ens2f0npf0sf88 hw_addr 00:00:00:00:88:88
+$ devlink port show pci/0000:06:00.0/32768
+pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
+  function:
+    hw_addr 00:00:00:00:88:88 state inactive opstate detached
 
-Now activate the function:
-$ devlink port function set ens2f0npf0sf88 state active
+$ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88 state active
 
-Now use the auxiliary device and class devices:
-$ devlink dev show
-pci/0000:06:00.0
-auxiliary/mlx5_core.sf.4
+$ devlink port show pci/0000:06:00.0/32768 -jp
+{
+    "port": {
+        "pci/0000:06:00.0/32768": {
+            "type": "eth",
+            "netdev": "ens2f0npf0sf88",
+            "flavour": "pcisf",
+            "controller": 0,
+            "pfnum": 0,
+            "sfnum": 88,
+            "external": false,
+            "splittable": false,
+            "function": {
+                "hw_addr": "00:00:00:00:88:88",
+                "state": "active",
+                "opstate": "attached"
+            }
+        }
+    }
+}
 
-$ ip link show
-127: ens2f0np0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 24:8a:07:b3:d1:12 brd ff:ff:ff:ff:ff:ff
-    altname enp6s0f0np0
-129: p0sf88: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-    link/ether 00:00:00:00:88:88 brd ff:ff:ff:ff:ff:ff
-
-$ rdma dev show
-43: rdmap6s0f0: node_type ca fw 16.29.0550 node_guid 248a:0703:00b3:d112 sys_image_guid 248a:0703:00b3:d112
-44: mlx5_0: node_type ca fw 16.29.0550 node_guid 0000:00ff:fe00:8888 sys_image_guid 248a:0703:00b3:d112
-
-After use inactivate the function:
-$ devlink port function set ens2f0npf0sf88 state inactive
-
-Now delete the subfunction port:
-$ devlink port del ens2f0npf0sf88
-
-[1] https://lore.kernel.org/netdev/20200519092258.GF4655@nanopsycho/
-[2] https://marc.info/?l=linux-netdev&m=158555928517777&w=2
-
-=================
+Signed-off-by: Parav Pandit <parav@nvidia.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Vu Pham <vuhuong@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
-Changelog:
-v1->v2:
- - added documentation for subfunction and its mlx5 implementation
- - add MLX5_SF config option documentation
- - rebased
- - dropped devlink global lock improvement patch as mlx5 doesn't support
-   reload while SFs are allocated
- - dropped devlink reload lock patch as mlx5 doesn't support reload
-   when SFs are allocated
- - using updated vhca event from device to add remove auxiliary device
- - split sf devlink port allocation and sf hardware context allocation
+ include/net/devlink.h        | 23 +++++++++
+ include/uapi/linux/devlink.h | 21 +++++++++
+ net/core/devlink.c           | 90 +++++++++++++++++++++++++++++++++++-
+ 3 files changed, 133 insertions(+), 1 deletion(-)
 
-Parav Pandit (13):
-  devlink: Prepare code to fill multiple port function attributes
-  devlink: Introduce PCI SF port flavour and port attribute
-  devlink: Support add and delete devlink port
-  devlink: Support get and set state of port function
-  net/mlx5: Introduce vhca state event notifier
-  net/mlx5: SF, Add auxiliary device support
-  net/mlx5: SF, Add auxiliary device driver
-  net/mlx5: E-switch, Add eswitch helpers for SF vport
-  net/mlx5: SF, Add port add delete functionality
-  net/mlx5: SF, Port function state change support
-  devlink: Add devlink port documentation
-  devlink: Extend devlink port documentation for subfunctions
-  net/mlx5: Add devlink subfunction port documentation
-
-Vu Pham (1):
-  net/mlx5: E-switch, Prepare eswitch to handle SF vport
-
- Documentation/driver-api/auxiliary_bus.rst    |   2 +
- .../device_drivers/ethernet/mellanox/mlx5.rst | 209 +++++++
- .../networking/devlink/devlink-port.rst       | 199 +++++++
- Documentation/networking/devlink/index.rst    |   1 +
- .../net/ethernet/mellanox/mlx5/core/Kconfig   |  19 +
- .../net/ethernet/mellanox/mlx5/core/Makefile  |   9 +
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   8 +
- .../net/ethernet/mellanox/mlx5/core/devlink.c |  19 +
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   5 +-
- .../mellanox/mlx5/core/esw/acl/egress_ofld.c  |   2 +-
- .../mellanox/mlx5/core/esw/devlink_port.c     |  41 ++
- .../net/ethernet/mellanox/mlx5/core/eswitch.c |  48 +-
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  78 +++
- .../mellanox/mlx5/core/eswitch_offloads.c     |  47 +-
- .../net/ethernet/mellanox/mlx5/core/events.c  |   7 +
- .../net/ethernet/mellanox/mlx5/core/main.c    |  60 +-
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  12 +
- .../net/ethernet/mellanox/mlx5/core/pci_irq.c |  20 +
- .../net/ethernet/mellanox/mlx5/core/sf/cmd.c  |  48 ++
- .../ethernet/mellanox/mlx5/core/sf/dev/dev.c  | 271 +++++++++
- .../ethernet/mellanox/mlx5/core/sf/dev/dev.h  |  55 ++
- .../mellanox/mlx5/core/sf/dev/driver.c        | 101 ++++
- .../ethernet/mellanox/mlx5/core/sf/devlink.c  | 552 ++++++++++++++++++
- .../ethernet/mellanox/mlx5/core/sf/hw_table.c | 235 ++++++++
- .../mlx5/core/sf/mlx5_ifc_vhca_event.h        |  82 +++
- .../net/ethernet/mellanox/mlx5/core/sf/priv.h |  21 +
- .../net/ethernet/mellanox/mlx5/core/sf/sf.h   |  92 +++
- .../mellanox/mlx5/core/sf/vhca_event.c        | 189 ++++++
- .../mellanox/mlx5/core/sf/vhca_event.h        |  57 ++
- .../net/ethernet/mellanox/mlx5/core/vport.c   |   3 +-
- include/linux/mlx5/driver.h                   |  16 +-
- include/net/devlink.h                         |  79 +++
- include/uapi/linux/devlink.h                  |  26 +
- net/core/devlink.c                            | 266 ++++++++-
- 34 files changed, 2832 insertions(+), 47 deletions(-)
- create mode 100644 Documentation/networking/devlink/devlink-port.rst
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/cmd.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/mlx5_ifc_vhca_event.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/priv.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.h
-
+diff --git a/include/net/devlink.h b/include/net/devlink.h
+index f8cff3e402da..18a7e66b7982 100644
+--- a/include/net/devlink.h
++++ b/include/net/devlink.h
+@@ -1374,6 +1374,29 @@ struct devlink_ops {
+ 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_port *port,
+ 					 const u8 *hw_addr, int hw_addr_len,
+ 					 struct netlink_ext_ack *extack);
++	/**
++	 * @port_function_state_get: Port function's state get function.
++	 *
++	 * Should be used by device drivers to report the state of a function
++	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
++	 * doesn't support port function handling for a particular port.
++	 */
++	int (*port_function_state_get)(struct devlink *devlink,
++				       struct devlink_port *port,
++				       enum devlink_port_function_state *state,
++				       enum devlink_port_function_opstate *opstate,
++				       struct netlink_ext_ack *extack);
++	/**
++	 * @port_function_state_set: Port function's state set function.
++	 *
++	 * Should be used by device drivers to set the state of a function
++	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
++	 * doesn't support port function handling for a particular port.
++	 */
++	int (*port_function_state_set)(struct devlink *devlink,
++				       struct devlink_port *port,
++				       enum devlink_port_function_state state,
++				       struct netlink_ext_ack *extack);
+ 	/**
+ 	 * @port_new: Port add function.
+ 	 *
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index 6fe00f10eb3f..beeb30bb6b20 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -583,9 +583,30 @@ enum devlink_resource_unit {
+ enum devlink_port_function_attr {
+ 	DEVLINK_PORT_FUNCTION_ATTR_UNSPEC,
+ 	DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR,	/* binary */
++	DEVLINK_PORT_FUNCTION_ATTR_STATE,	/* u8 */
++	DEVLINK_PORT_FUNCTION_ATTR_OPSTATE,	/* u8 */
+ 
+ 	__DEVLINK_PORT_FUNCTION_ATTR_MAX,
+ 	DEVLINK_PORT_FUNCTION_ATTR_MAX = __DEVLINK_PORT_FUNCTION_ATTR_MAX - 1
+ };
+ 
++enum devlink_port_function_state {
++	DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
++	DEVLINK_PORT_FUNCTION_STATE_ACTIVE,
++};
++
++/**
++ * enum devlink_port_function_opstate - indicates operational state of port function
++ * @DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED: Driver is attached to the function of port, for
++ *					    gracefufl tear down of the function, after
++ *					    inactivation of the port function, user should wait
++ *					    for operational state to turn DETACHED.
++ * @DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED: Driver is detached from the function of port; it is
++ *					    safe to delete the port.
++ */
++enum devlink_port_function_opstate {
++	DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED,
++	DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED,
++};
++
+ #endif /* _UAPI_LINUX_DEVLINK_H_ */
+diff --git a/net/core/devlink.c b/net/core/devlink.c
+index 43198d9c6d25..c7e3d3cdd5fa 100644
+--- a/net/core/devlink.c
++++ b/net/core/devlink.c
+@@ -87,6 +87,9 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(devlink_trap_report);
+ 
+ static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_ATTR_MAX + 1] = {
+ 	[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR] = { .type = NLA_BINARY },
++	[DEVLINK_PORT_FUNCTION_ATTR_STATE] =
++		NLA_POLICY_RANGE(NLA_U8, DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
++				 DEVLINK_PORT_FUNCTION_STATE_ACTIVE),
+ };
+ 
+ static LIST_HEAD(devlink_list);
+@@ -746,6 +749,57 @@ devlink_port_function_hw_addr_fill(struct devlink *devlink, const struct devlink
+ 	return 0;
+ }
+ 
++static bool
++devlink_port_function_state_valid(enum devlink_port_function_state state)
++{
++	return state == DEVLINK_PORT_FUNCTION_STATE_INACTIVE ||
++	       state == DEVLINK_PORT_FUNCTION_STATE_ACTIVE;
++}
++
++static bool
++devlink_port_function_opstate_valid(enum devlink_port_function_opstate state)
++{
++	return state == DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED ||
++	       state == DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED;
++}
++
++static int
++devlink_port_function_state_fill(struct devlink *devlink,
++				 const struct devlink_ops *ops,
++				 struct devlink_port *port, struct sk_buff *msg,
++				 struct netlink_ext_ack *extack,
++				 bool *msg_updated)
++{
++	enum devlink_port_function_opstate opstate;
++	enum devlink_port_function_state state;
++	int err;
++
++	if (!ops->port_function_state_get)
++		return 0;
++
++	err = ops->port_function_state_get(devlink, port, &state, &opstate, extack);
++	if (err) {
++		if (err == -EOPNOTSUPP)
++			return 0;
++		return err;
++	}
++	if (!devlink_port_function_state_valid(state)) {
++		WARN_ON_ONCE(1);
++		NL_SET_ERR_MSG_MOD(extack, "Invalid state value read from driver");
++		return -EINVAL;
++	}
++	if (!devlink_port_function_opstate_valid(opstate)) {
++		WARN_ON_ONCE(1);
++		NL_SET_ERR_MSG_MOD(extack, "Invalid operational state value read from driver");
++		return -EINVAL;
++	}
++	if (nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_STATE, state) ||
++	    nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_OPSTATE, opstate))
++		return -EMSGSIZE;
++	*msg_updated = true;
++	return 0;
++}
++
+ static int
+ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *port,
+ 				   struct netlink_ext_ack *extack)
+@@ -762,6 +816,13 @@ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *por
+ 
+ 	ops = devlink->ops;
+ 	err = devlink_port_function_hw_addr_fill(devlink, ops, port, msg, extack, &msg_updated);
++	if (err)
++		goto out;
++	err = devlink_port_function_state_fill(devlink, ops, port, msg, extack,
++					       &msg_updated);
++	if (err)
++		goto out;
++out:
+ 	if (err || !msg_updated)
+ 		nla_nest_cancel(msg, function_attr);
+ 	else
+@@ -1027,6 +1088,22 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
+ 	return ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
+ }
+ 
++static int
++devlink_port_function_state_set(struct devlink *devlink, struct devlink_port *port,
++				const struct nlattr *attr, struct netlink_ext_ack *extack)
++{
++	enum devlink_port_function_state state;
++	const struct devlink_ops *ops;
++
++	state = nla_get_u8(attr);
++	ops = devlink->ops;
++	if (!ops->port_function_state_set) {
++		NL_SET_ERR_MSG_MOD(extack, "Port function does not support state setting");
++		return -EOPNOTSUPP;
++	}
++	return ops->port_function_state_set(devlink, port, state, extack);
++}
++
+ static int
+ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
+ 			  const struct nlattr *attr, struct netlink_ext_ack *extack)
+@@ -1042,8 +1119,19 @@ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
+ 	}
+ 
+ 	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR];
+-	if (attr)
++	if (attr) {
+ 		err = devlink_port_function_hw_addr_set(devlink, port, attr, extack);
++		if (err)
++			return err;
++	}
++	/* Keep this as the last function attribute set, so that when
++	 * multiple port function attributes are set along with state,
++	 * Those can be applied first before activating the state.
++	 */
++	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_STATE];
++	if (attr)
++		err = devlink_port_function_state_set(devlink, port, attr,
++						      extack);
+ 
+ 	if (!err)
+ 		devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
 -- 
 2.26.2
 
