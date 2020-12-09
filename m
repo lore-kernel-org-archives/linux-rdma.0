@@ -6,18 +6,18 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61014C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4628C1B0D9
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:31:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2366E23B85
+	by mail.kernel.org (Postfix) with ESMTP id 8D89C23B79
 	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 07:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727719AbgLIHbG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Dec 2020 02:31:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60342 "EHLO mail.kernel.org"
+        id S1727384AbgLIHaz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Dec 2020 02:30:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60312 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727695AbgLIHa6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 9 Dec 2020 02:30:58 -0500
+        id S1725993AbgLIHaz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 9 Dec 2020 02:30:55 -0500
 From:   saeed@kernel.org
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -32,9 +32,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
         Vu Pham <vuhuong@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH net-next v2 04/14] devlink: Support get and set state of port function
-Date:   Tue,  8 Dec 2020 23:29:24 -0800
-Message-Id: <20201209072934.1272819-5-saeed@kernel.org>
+Subject: [PATCH net-next v2 02/14] devlink: Introduce PCI SF port flavour and port attribute
+Date:   Tue,  8 Dec 2020 23:29:22 -0800
+Message-Id: <20201209072934.1272819-3-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201209072934.1272819-1-saeed@kernel.org>
 References: <20201209072934.1272819-1-saeed@kernel.org>
@@ -46,33 +46,30 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-devlink port function can be in active or inactive state.
-Allow users to get and set port function's state.
+A PCI sub-function (SF) represents a portion of the device similar
+to PCI VF.
 
-When the port function it activated, its operational state may change
-after a while when the device is created and driver binds to it.
-Similarly on deactivation flow.
+In an eswitch, PCI SF may have port which is normally represented
+using a representor netdevice.
+To have better visibility of eswitch port, its association with SF,
+and its representor netdevice, introduce a PCI SF port flavour.
 
-To clearly describe the state of the port function and its device's
-operational state in the host system, define state and opstate
-attributes.
+When devlink port flavour is PCI SF, fill up PCI SF attributes of the
+port.
 
-Example of a PCI SF port which supports a port function:
-Create a device with ID=10 and one physical port.
+Extend port name creation using PCI PF and SF number scheme on best
+effort basis, so that vendor drivers can skip defining their own
+scheme.
+This is done as cApfNSfM, where A, N and M are controller, PCI PF and
+PCI SF number respectively.
+This is similar to existing naming for PCI PF and PCI VF ports.
 
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
-
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
-
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
+An example view of a PCI SF port:
 
 $ devlink port show pci/0000:06:00.0/32768
 pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
   function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
-
-$ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88 state active
+    hw_addr 00:00:00:00:88:88 state active opstate attached
 
 $ devlink port show pci/0000:06:00.0/32768 -jp
 {
@@ -100,210 +97,147 @@ Reviewed-by: Jiri Pirko <jiri@nvidia.com>
 Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/net/devlink.h        | 23 +++++++++
- include/uapi/linux/devlink.h | 21 +++++++++
- net/core/devlink.c           | 90 +++++++++++++++++++++++++++++++++++-
- 3 files changed, 133 insertions(+), 1 deletion(-)
+ include/net/devlink.h        | 17 +++++++++++++
+ include/uapi/linux/devlink.h |  5 ++++
+ net/core/devlink.c           | 46 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 68 insertions(+)
 
 diff --git a/include/net/devlink.h b/include/net/devlink.h
-index f8cff3e402da..18a7e66b7982 100644
+index f466819cc477..5bd43f0a79a8 100644
 --- a/include/net/devlink.h
 +++ b/include/net/devlink.h
-@@ -1374,6 +1374,29 @@ struct devlink_ops {
- 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_port *port,
- 					 const u8 *hw_addr, int hw_addr_len,
- 					 struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_get: Port function's state get function.
-+	 *
-+	 * Should be used by device drivers to report the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_get)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state *state,
-+				       enum devlink_port_function_opstate *opstate,
-+				       struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_set: Port function's state set function.
-+	 *
-+	 * Should be used by device drivers to set the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_set)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state state,
-+				       struct netlink_ext_ack *extack);
- 	/**
- 	 * @port_new: Port add function.
- 	 *
+@@ -93,6 +93,20 @@ struct devlink_port_pci_vf_attrs {
+ 	u8 external:1;
+ };
+ 
++/**
++ * struct devlink_port_pci_sf_attrs - devlink port's PCI SF attributes
++ * @controller: Associated controller number
++ * @pf: Associated PCI PF number for this port.
++ * @sf: Associated PCI SF for of the PCI PF for this port.
++ * @external: when set, indicates if a port is for an external controller
++ */
++struct devlink_port_pci_sf_attrs {
++	u32 controller;
++	u16 pf;
++	u32 sf;
++	u8 external:1;
++};
++
+ /**
+  * struct devlink_port_attrs - devlink port object
+  * @flavour: flavour of the port
+@@ -114,6 +128,7 @@ struct devlink_port_attrs {
+ 		struct devlink_port_phys_attrs phys;
+ 		struct devlink_port_pci_pf_attrs pci_pf;
+ 		struct devlink_port_pci_vf_attrs pci_vf;
++		struct devlink_port_pci_sf_attrs pci_sf;
+ 	};
+ };
+ 
+@@ -1404,6 +1419,8 @@ void devlink_port_attrs_pci_pf_set(struct devlink_port *devlink_port, u32 contro
+ 				   u16 pf, bool external);
+ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 controller,
+ 				   u16 pf, u16 vf, bool external);
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 controller,
++				   u16 pf, u32 sf, bool external);
+ int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
+ 			u32 size, u16 ingress_pools_count,
+ 			u16 egress_pools_count, u16 ingress_tc_count,
 diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index 6fe00f10eb3f..beeb30bb6b20 100644
+index 5203f54a2be1..6fe00f10eb3f 100644
 --- a/include/uapi/linux/devlink.h
 +++ b/include/uapi/linux/devlink.h
-@@ -583,9 +583,30 @@ enum devlink_resource_unit {
- enum devlink_port_function_attr {
- 	DEVLINK_PORT_FUNCTION_ATTR_UNSPEC,
- 	DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR,	/* binary */
-+	DEVLINK_PORT_FUNCTION_ATTR_STATE,	/* u8 */
-+	DEVLINK_PORT_FUNCTION_ATTR_OPSTATE,	/* u8 */
- 
- 	__DEVLINK_PORT_FUNCTION_ATTR_MAX,
- 	DEVLINK_PORT_FUNCTION_ATTR_MAX = __DEVLINK_PORT_FUNCTION_ATTR_MAX - 1
+@@ -200,6 +200,10 @@ enum devlink_port_flavour {
+ 	DEVLINK_PORT_FLAVOUR_UNUSED, /* Port which exists in the switch, but
+ 				      * is not used in any way.
+ 				      */
++	DEVLINK_PORT_FLAVOUR_PCI_SF, /* Represents eswitch port
++				      * for the PCI SF. It is an internal
++				      * port that faces the PCI SF.
++				      */
  };
  
-+enum devlink_port_function_state {
-+	DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+	DEVLINK_PORT_FUNCTION_STATE_ACTIVE,
-+};
-+
-+/**
-+ * enum devlink_port_function_opstate - indicates operational state of port function
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED: Driver is attached to the function of port, for
-+ *					    gracefufl tear down of the function, after
-+ *					    inactivation of the port function, user should wait
-+ *					    for operational state to turn DETACHED.
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED: Driver is detached from the function of port; it is
-+ *					    safe to delete the port.
-+ */
-+enum devlink_port_function_opstate {
-+	DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED,
-+	DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED,
-+};
-+
- #endif /* _UAPI_LINUX_DEVLINK_H_ */
+ enum devlink_param_cmode {
+@@ -529,6 +533,7 @@ enum devlink_attr {
+ 	DEVLINK_ATTR_RELOAD_ACTION_INFO,        /* nested */
+ 	DEVLINK_ATTR_RELOAD_ACTION_STATS,       /* nested */
+ 
++	DEVLINK_ATTR_PORT_PCI_SF_NUMBER,	/* u32 */
+ 	/* add new attributes above here, update the policy in devlink.c */
+ 
+ 	__DEVLINK_ATTR_MAX,
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 43198d9c6d25..c7e3d3cdd5fa 100644
+index d812ed26a330..8a33b3150d1a 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -87,6 +87,9 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(devlink_trap_report);
- 
- static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_ATTR_MAX + 1] = {
- 	[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR] = { .type = NLA_BINARY },
-+	[DEVLINK_PORT_FUNCTION_ATTR_STATE] =
-+		NLA_POLICY_RANGE(NLA_U8, DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+				 DEVLINK_PORT_FUNCTION_STATE_ACTIVE),
- };
- 
- static LIST_HEAD(devlink_list);
-@@ -746,6 +749,57 @@ devlink_port_function_hw_addr_fill(struct devlink *devlink, const struct devlink
- 	return 0;
+@@ -690,6 +690,15 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
+ 		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_vf.external))
+ 			return -EMSGSIZE;
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		if (nla_put_u32(msg, DEVLINK_ATTR_PORT_CONTROLLER_NUMBER,
++				attrs->pci_sf.controller) ||
++		    nla_put_u16(msg, DEVLINK_ATTR_PORT_PCI_PF_NUMBER, attrs->pci_sf.pf) ||
++		    nla_put_u32(msg, DEVLINK_ATTR_PORT_PCI_SF_NUMBER, attrs->pci_sf.sf))
++			return -EMSGSIZE;
++		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_sf.external))
++			return -EMSGSIZE;
++		break;
+ 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
+ 	case DEVLINK_PORT_FLAVOUR_CPU:
+ 	case DEVLINK_PORT_FLAVOUR_DSA:
+@@ -8378,6 +8387,33 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 contro
  }
+ EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
  
-+static bool
-+devlink_port_function_state_valid(enum devlink_port_function_state state)
++/**
++ *	devlink_port_attrs_pci_sf_set - Set PCI SF port attributes
++ *
++ *	@devlink_port: devlink port
++ *	@controller: associated controller number for the devlink port instance
++ *	@pf: associated PF for the devlink port instance
++ *	@sf: associated SF of a PF for the devlink port instance
++ *	@external: indicates if the port is for an external controller
++ */
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 controller,
++				   u16 pf, u32 sf, bool external)
 +{
-+	return state == DEVLINK_PORT_FUNCTION_STATE_INACTIVE ||
-+	       state == DEVLINK_PORT_FUNCTION_STATE_ACTIVE;
++	struct devlink_port_attrs *attrs = &devlink_port->attrs;
++	int ret;
++
++	if (WARN_ON(devlink_port->registered))
++		return;
++	ret = __devlink_port_attrs_set(devlink_port, DEVLINK_PORT_FLAVOUR_PCI_SF);
++	if (ret)
++		return;
++	attrs->pci_sf.controller = controller;
++	attrs->pci_sf.pf = pf;
++	attrs->pci_sf.sf = sf;
++	attrs->pci_sf.external = external;
 +}
++EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_sf_set);
 +
-+static bool
-+devlink_port_function_opstate_valid(enum devlink_port_function_opstate state)
-+{
-+	return state == DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED ||
-+	       state == DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED;
-+}
-+
-+static int
-+devlink_port_function_state_fill(struct devlink *devlink,
-+				 const struct devlink_ops *ops,
-+				 struct devlink_port *port, struct sk_buff *msg,
-+				 struct netlink_ext_ack *extack,
-+				 bool *msg_updated)
-+{
-+	enum devlink_port_function_opstate opstate;
-+	enum devlink_port_function_state state;
-+	int err;
-+
-+	if (!ops->port_function_state_get)
-+		return 0;
-+
-+	err = ops->port_function_state_get(devlink, port, &state, &opstate, extack);
-+	if (err) {
-+		if (err == -EOPNOTSUPP)
-+			return 0;
-+		return err;
-+	}
-+	if (!devlink_port_function_state_valid(state)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (!devlink_port_function_opstate_valid(opstate)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid operational state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_STATE, state) ||
-+	    nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_OPSTATE, opstate))
-+		return -EMSGSIZE;
-+	*msg_updated = true;
-+	return 0;
-+}
-+
- static int
- devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *port,
- 				   struct netlink_ext_ack *extack)
-@@ -762,6 +816,13 @@ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *por
- 
- 	ops = devlink->ops;
- 	err = devlink_port_function_hw_addr_fill(devlink, ops, port, msg, extack, &msg_updated);
-+	if (err)
-+		goto out;
-+	err = devlink_port_function_state_fill(devlink, ops, port, msg, extack,
-+					       &msg_updated);
-+	if (err)
-+		goto out;
-+out:
- 	if (err || !msg_updated)
- 		nla_nest_cancel(msg, function_attr);
- 	else
-@@ -1027,6 +1088,22 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
- 	return ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
- }
- 
-+static int
-+devlink_port_function_state_set(struct devlink *devlink, struct devlink_port *port,
-+				const struct nlattr *attr, struct netlink_ext_ack *extack)
-+{
-+	enum devlink_port_function_state state;
-+	const struct devlink_ops *ops;
-+
-+	state = nla_get_u8(attr);
-+	ops = devlink->ops;
-+	if (!ops->port_function_state_set) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port function does not support state setting");
-+		return -EOPNOTSUPP;
-+	}
-+	return ops->port_function_state_set(devlink, port, state, extack);
-+}
-+
- static int
- devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
- 			  const struct nlattr *attr, struct netlink_ext_ack *extack)
-@@ -1042,8 +1119,19 @@ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
+ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 					     char *name, size_t len)
+ {
+@@ -8426,6 +8462,16 @@ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 		n = snprintf(name, len, "pf%uvf%u",
+ 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		if (attrs->pci_sf.external) {
++			n = snprintf(name, len, "c%u", attrs->pci_sf.controller);
++			if (n >= len)
++				return -EINVAL;
++			len -= n;
++			name += n;
++		}
++		n = snprintf(name, len, "pf%usf%u", attrs->pci_sf.pf, attrs->pci_sf.sf);
++		break;
  	}
  
- 	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR];
--	if (attr)
-+	if (attr) {
- 		err = devlink_port_function_hw_addr_set(devlink, port, attr, extack);
-+		if (err)
-+			return err;
-+	}
-+	/* Keep this as the last function attribute set, so that when
-+	 * multiple port function attributes are set along with state,
-+	 * Those can be applied first before activating the state.
-+	 */
-+	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_STATE];
-+	if (attr)
-+		err = devlink_port_function_state_set(devlink, port, attr,
-+						      extack);
- 
- 	if (!err)
- 		devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
+ 	if (n >= len)
 -- 
 2.26.2
 
