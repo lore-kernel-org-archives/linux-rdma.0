@@ -7,63 +7,63 @@ X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A46B3C19425
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 16:47:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F680C1B0D9
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 16:47:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CA7023C41
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 16:47:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DD6C23C41
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 16:47:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727894AbgLIQrJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728826AbgLIQrJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 9 Dec 2020 11:47:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57708 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728826AbgLIQrI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Dec 2020 11:47:08 -0500
+        with ESMTP id S1729635AbgLIQrJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Dec 2020 11:47:09 -0500
 Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCB9EC06138C
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Dec 2020 08:45:55 -0800 (PST)
-Received: by mail-ej1-x643.google.com with SMTP id lt17so3090606ejb.3
-        for <linux-rdma@vger.kernel.org>; Wed, 09 Dec 2020 08:45:55 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 514DBC061285
+        for <linux-rdma@vger.kernel.org>; Wed,  9 Dec 2020 08:45:58 -0800 (PST)
+Received: by mail-ej1-x643.google.com with SMTP id x16so3058757ejj.7
+        for <linux-rdma@vger.kernel.org>; Wed, 09 Dec 2020 08:45:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=81PSqEKTzeewp1eFw0SkbXHJmtuB6a/3wq15G2WR/5g=;
-        b=dVeOT5AN38neXJXE5Q5P2egreXighdeMV857uiJff3y0FdZ7wW76rcXrQzQcqqRyqo
-         ubuQCcR9aOZanCa+DAwJ0QABHPqJ19FmBBlOdSyPATjU0z4S2NohuIELX5zsY7KY+vWt
-         FAYksWCargftoNqxZSiV+J579acLbYMREMgd88EJW0+PgeCegTOOqXxCyN289ScIwRzZ
-         OVFop1D7dGUJT4aIj57IOB/HMerHwU5YcByzPqshkJCQAucSiHvkf2E8Zf1txa7icnbe
-         GZGmr1tY8Apwprh5x4wV2h91xhwqOA2DcT+sRT3zKnOXk+sXdRdNy/Yq0eDvW36JlGG5
-         SqTg==
+        bh=3RUukiGOKC64hIM5ZnyE1+UPMzjrvnMOxG9huIVLy+s=;
+        b=ERYkXltTsA2Kgi5mUdiKzeIbSWuL24PF6DHocmyjBmJPC1JZQj7yS3FNVYpERsyHzN
+         zO45WxmMOmjJIqaeDs6HehrLHfCDz6PXIdIVm7IMd29Yvj02Wpc2ipc5bgQM0e+sfdKY
+         abE0zK2dbo62l6M9hJilIAHRc2RdyVL5CAkOiPAtvosQkAfS4hycm3YKQTNtyCxF+R+8
+         qgTtTZBkzGSGyTzeSPOcav1abSIBVGVMbqtqJMstOiU40miXJqBojpHi8z5ipEH8xnvE
+         8/Q7du2tpPZfdVBBT2HGZOk/lVg+yvqr4FFfdizWJMT6Wlxs9LYNBr1k1ujw03PjTlo/
+         613A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=81PSqEKTzeewp1eFw0SkbXHJmtuB6a/3wq15G2WR/5g=;
-        b=MBSY9nVFQ+5uEvb8kh2NfVoU0s7m+F9c0LwGY52aoNKfduMjwa+TkS7Jir+NOjiP8d
-         b7qYAoesiPpdNSPUuD3phUApVsLL0aSmbdOfVhFMgnKPoeraEBRqUyUIX4VcqdXsdUIN
-         wSUnVtiZUYUs7spmPyLip9rYdQj/w1NUmpMukBtpi33jjmOoYP82i3Y/7N2oDyoVdoqT
-         SK91xYa+Kj0EHhe/9SJCbcKzZeHDwFprwsAXaAK2Jr0xNnD9TsUfLHZzykhTwMF1wBfl
-         bcE7gOWaPp0lhRrE4GOPqDb5Td78yw/+TiYEiK7FoDsif5CDECG1ym6lSxulXXhQtN2H
-         MNig==
-X-Gm-Message-State: AOAM5321kwbwuV/ytvlNOSQ3z6CvhIOl1hbOwhJq4dXZRHS7LMJ/LACa
-        QrzHSVcABxaplRcWVRkulNsVjR9PnpfmgQ==
-X-Google-Smtp-Source: ABdhPJyL8THNDBIjQ3FttuMY6h9Qv/HgRwtfAbYIsSRZWY4PSPUxQUm/t1+AltBiC2b8Xg9YX3tAQA==
-X-Received: by 2002:a17:906:c087:: with SMTP id f7mr2812726ejz.492.1607532354434;
-        Wed, 09 Dec 2020 08:45:54 -0800 (PST)
+        bh=3RUukiGOKC64hIM5ZnyE1+UPMzjrvnMOxG9huIVLy+s=;
+        b=ikVRo8QGC/oGf4pmwx0lH0JWppGLImLimJp7/eZ3GB8FuO8txe14PRjVBIj3sxfYXX
+         aN2FbTFWR3KCS86DLOo/NwcwrrOwrL5LQsFetxcVXnmaPnDH50t4sbhPk8+UAy2itkuA
+         Tfsxdqzp8W0Fh1+mORklRJ3cTfXVyYM+laj2TTNDREwCxwqktA9zDYT3gKPFjbojX9/X
+         pMXLYtXrPFb0GcNLmkq2rt6bC2wWbhLoJ62SN7aag6pgW/gObVU3AcDWP5gZVtzkyOQi
+         YrnW7Wi0mSd31uNqnT4V0zkeKvgtGJVE+C6aVDIiR9QqOouqr4/BPHrlmPP3P6+ZNnyu
+         QSzg==
+X-Gm-Message-State: AOAM531Ah+BXl3nHC8bNLk3JeSBCCTUHThnCs3IxN5CPMZt5tx5zCg1+
+        5XWR4MwydeHc/1P8DQCUNuaFFDG91soqow==
+X-Google-Smtp-Source: ABdhPJw6aROIFtl2IEv8C3z8YWgDI7GgmGCW3zm2DpeDmyuqrTx2BZSdEh5d0SxpV9hdm0cfIr0YDA==
+X-Received: by 2002:a17:907:20a4:: with SMTP id pw4mr2730686ejb.499.1607532356906;
+        Wed, 09 Dec 2020 08:45:56 -0800 (PST)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:49e0:2500:1d14:118d:b29c:98ec])
-        by smtp.gmail.com with ESMTPSA id h16sm1977915eji.110.2020.12.09.08.45.53
+        by smtp.gmail.com with ESMTPSA id h16sm1977915eji.110.2020.12.09.08.45.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Dec 2020 08:45:53 -0800 (PST)
+        Wed, 09 Dec 2020 08:45:56 -0800 (PST)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com,
         Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCH for-next 08/18] RDMA/rtrs-clt: Consolidate rtrs_clt_destroy_sysfs_root_{folder,files}
-Date:   Wed,  9 Dec 2020 17:45:32 +0100
-Message-Id: <20201209164542.61387-9-jinpu.wang@cloud.ionos.com>
+Subject: [PATCH for-next 10/18] RDMA/rtrs-clt: Remove unnecessary 'goto out'
+Date:   Wed,  9 Dec 2020 17:45:34 +0100
+Message-Id: <20201209164542.61387-11-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201209164542.61387-1-jinpu.wang@cloud.ionos.com>
 References: <20201209164542.61387-1-jinpu.wang@cloud.ionos.com>
@@ -75,78 +75,26 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-Since the two functions are called together, let's consolidate them in
-a new function rtrs_clt_destroy_sysfs_root.
+This is not needed since the label is just after the place.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 9 +++------
- drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 6 ++----
- drivers/infiniband/ulp/rtrs/rtrs-clt.h       | 3 +--
- 3 files changed, 6 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-index ad77659800cd..b6a0abf40589 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-@@ -471,15 +471,12 @@ int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt)
- 	return sysfs_create_group(&clt->dev.kobj, &rtrs_clt_attr_group);
- }
- 
--void rtrs_clt_destroy_sysfs_root_folders(struct rtrs_clt *clt)
-+void rtrs_clt_destroy_sysfs_root(struct rtrs_clt *clt)
- {
-+	sysfs_remove_group(&clt->dev.kobj, &rtrs_clt_attr_group);
-+
- 	if (clt->kobj_paths) {
- 		kobject_del(clt->kobj_paths);
- 		kobject_put(clt->kobj_paths);
- 	}
- }
--
--void rtrs_clt_destroy_sysfs_root_files(struct rtrs_clt *clt)
--{
--	sysfs_remove_group(&clt->dev.kobj, &rtrs_clt_attr_group);
--}
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index b3fb5fb93815..99fc34950032 100644
+index 6a5b72ad5ba1..d99fb1a1c194 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -2707,8 +2707,7 @@ struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
- 		rtrs_clt_close_conns(sess, true);
- 		kobject_put(&sess->kobj);
+@@ -2434,7 +2434,6 @@ static int rtrs_send_sess_info(struct rtrs_clt_sess *sess)
+ 			err = -ECONNRESET;
+ 		else
+ 			err = -ETIMEDOUT;
+-		goto out;
  	}
--	rtrs_clt_destroy_sysfs_root_files(clt);
--	rtrs_clt_destroy_sysfs_root_folders(clt);
-+	rtrs_clt_destroy_sysfs_root(clt);
- 	free_clt(clt);
  
  out:
-@@ -2725,8 +2724,7 @@ void rtrs_clt_close(struct rtrs_clt *clt)
- 	struct rtrs_clt_sess *sess, *tmp;
- 
- 	/* Firstly forbid sysfs access */
--	rtrs_clt_destroy_sysfs_root_files(clt);
--	rtrs_clt_destroy_sysfs_root_folders(clt);
-+	rtrs_clt_destroy_sysfs_root(clt);
- 
- 	/* Now it is safe to iterate over all paths without locks */
- 	list_for_each_entry_safe(sess, tmp, &clt->paths_list, s.entry) {
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-index b8dbd701b3cb..a97a068c4c28 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-@@ -243,8 +243,7 @@ ssize_t rtrs_clt_reset_all_help(struct rtrs_clt_stats *stats,
- /* rtrs-clt-sysfs.c */
- 
- int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt);
--void rtrs_clt_destroy_sysfs_root_folders(struct rtrs_clt *clt);
--void rtrs_clt_destroy_sysfs_root_files(struct rtrs_clt *clt);
-+void rtrs_clt_destroy_sysfs_root(struct rtrs_clt *clt);
- 
- int rtrs_clt_create_sess_files(struct rtrs_clt_sess *sess);
- void rtrs_clt_destroy_sess_files(struct rtrs_clt_sess *sess,
 -- 
 2.25.1
 
