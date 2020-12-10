@@ -7,46 +7,57 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06257C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:55:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3DB9C4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:56:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A21E022571
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:55:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FA6822E00
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:56:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404466AbgLJTwD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2404458AbgLJTwD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 10 Dec 2020 14:52:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53304 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404334AbgLJTnk (ORCPT
+        with ESMTP id S2404335AbgLJTnk (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:40 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2CFEC061257;
-        Thu, 10 Dec 2020 11:42:32 -0800 (PST)
-Message-Id: <20201210194043.862572239@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36F09C0611C5;
+        Thu, 10 Dec 2020 11:42:35 -0800 (PST)
+Message-Id: <20201210194044.065003856@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629351;
+        s=2020; t=1607629353;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=JhTeD+U5tH7aZNj19fhxsRS/YgkGW74hooJZTJtUYG8=;
-        b=kakkmibZTWswSOf57jMSc/btXnxa6RB0Oxv9VvloZSQtIG4WkM/MftbHazL1ObfAX1q6u6
-        v9EgNe5gwBKYjRSGkjE0PSwHQU5J90KEPnfCKLss4hKXmA7Bkc/E+T/2WPZaHEkFR4i+UO
-        QdX6JJ+VHkGH1egGtgEd0+oJvfTVSCCs6O0nmczsu900db4+znQu/4DZ0ZqIrtnAutI7sP
-        lL8sGEqmceEeKou2jRcjeSLimqt3xaebgyRNSKG8cou2Ox4v3oxNWhwx9YCjoUSMJE+bd8
-        k+CDY3uhTourxMY6j19wud6jiqrZu7xtNFwliIMKmsBQdSHoUGcZxQdzt+oYyw==
+        bh=fEH7SfFXgNBjB2KnJKxA/TzRUtcjVN/8Utn6le7GAgY=;
+        b=jLhcNWAI6/f0h7r8+rFxJO/huD0wZGw+D4hiyZeoGMMj1an/mYZLtmxjGnZ/aSu9ajxbNk
+        p75pL7pZYF9lDXL6k6cLxjzZOwC5q8ecIjJ39xF/dSPObsyqM+yudoL9yN0v7780Bn5yyF
+        /Ve3t66EmBeMbc9BsRyBF2dkjfBuqeDKx8lYvDouLXZuAf0vFtIPH5zU4jlfdixs/IVdOS
+        vmsr5U63fIVzglTEhwYSxzXESekgTuzdOHcprErKfUMwbSexx9oDdfFa+4Z1VcZaNX5rSu
+        6l8HXwdp3e4RNwPr1pyTZfpMenA4zfmUQEoZ4/oyxWsRJm8zIR/y6ojvGi9aNQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629351;
+        s=2020e; t=1607629353;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=JhTeD+U5tH7aZNj19fhxsRS/YgkGW74hooJZTJtUYG8=;
-        b=plOxIMbVY4CH/4Uw1Dak+ev4LYX0asa/YH9Oe3KWiQVB69dEiGhbzcOFTb0+Om9wD47q90
-        EKL6tVW8YPmeHADg==
-Date:   Thu, 10 Dec 2020 20:25:49 +0100
+        bh=fEH7SfFXgNBjB2KnJKxA/TzRUtcjVN/8Utn6le7GAgY=;
+        b=vcq9ylrl3bvEPVRyLq7+7uNgnxo0i4JU/giqH4jOxFiIi2uv7Mz1SZNae4Tgp0yDwrMR2T
+        GgsHxKk5w8TyzfBQ==
+Date:   Thu, 10 Dec 2020 20:25:51 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        afzal mohammed <afzal.mohd.ma@gmail.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
         Jani Nikula <jani.nikula@linux.intel.com>,
         Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
         Rodrigo Vivi <rodrigo.vivi@intel.com>,
@@ -56,20 +67,8 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Chris Wilson <chris@chris-wilson.co.uk>,
         Wambui Karuga <wambui.karugax@gmail.com>,
         intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        afzal mohammed <afzal.mohd.ma@gmail.com>,
-        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
         Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
-        Jon Mason <jdmason@kudzu.us>,
+        Lee Jones <lee.jones@linaro.org>, Jon Mason <jdmason@kudzu.us>,
         Dave Jiang <dave.jiang@intel.com>,
         Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
@@ -88,7 +87,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 13/30] drm/i915/lpe_audio: Remove pointless irq_to_desc() usage
+Subject: [patch 15/30] pinctrl: nomadik: Use irq_has_action()
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -97,37 +96,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Nothing uses the result and nothing should ever use it in driver code.
+Let the core code do the fiddling with irq_desc.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Wambui Karuga <wambui.karugax@gmail.com>
-Cc: intel-gfx@lists.freedesktop.org
-Cc: dri-devel@lists.freedesktop.org
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-gpio@vger.kernel.org
 ---
- drivers/gpu/drm/i915/display/intel_lpe_audio.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/pinctrl/nomadik/pinctrl-nomadik.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/i915/display/intel_lpe_audio.c
-+++ b/drivers/gpu/drm/i915/display/intel_lpe_audio.c
-@@ -297,13 +297,9 @@ int intel_lpe_audio_init(struct drm_i915
-  */
- void intel_lpe_audio_teardown(struct drm_i915_private *dev_priv)
- {
--	struct irq_desc *desc;
--
- 	if (!HAS_LPE_AUDIO(dev_priv))
- 		return;
+--- a/drivers/pinctrl/nomadik/pinctrl-nomadik.c
++++ b/drivers/pinctrl/nomadik/pinctrl-nomadik.c
+@@ -948,7 +948,6 @@ static void nmk_gpio_dbg_show_one(struct
+ 			   (mode < 0) ? "unknown" : modes[mode]);
+ 	} else {
+ 		int irq = chip->to_irq(chip, offset);
+-		struct irq_desc	*desc = irq_to_desc(irq);
+ 		const int pullidx = pull ? 1 : 0;
+ 		int val;
+ 		static const char * const pulls[] = {
+@@ -969,7 +968,7 @@ static void nmk_gpio_dbg_show_one(struct
+ 		 * This races with request_irq(), set_irq_type(),
+ 		 * and set_irq_wake() ... but those are "rare".
+ 		 */
+-		if (irq > 0 && desc && desc->action) {
++		if (irq > 0 && irq_has_action(irq)) {
+ 			char *trigger;
  
--	desc = irq_to_desc(dev_priv->lpe_audio.irq);
--
- 	lpe_audio_platdev_destroy(dev_priv);
- 
- 	irq_free_desc(dev_priv->lpe_audio.irq);
+ 			if (nmk_chip->edge_rising & BIT(offset))
 
