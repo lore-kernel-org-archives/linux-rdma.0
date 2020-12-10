@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5258C2BB48
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B2CC4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D5F622EBF
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3781F23D57
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404330AbgLJTnj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 14:43:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53272 "EHLO
+        id S2393565AbgLJT4f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:56:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393492AbgLJTnb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:31 -0500
+        with ESMTP id S2404333AbgLJTnk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:40 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 915D1C06138C;
-        Thu, 10 Dec 2020 11:42:27 -0800 (PST)
-Message-Id: <20201210194043.454288890@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF579C061285;
+        Thu, 10 Dec 2020 11:42:29 -0800 (PST)
+Message-Id: <20201210194043.659522455@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629346;
+        s=2020; t=1607629348;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=d6ZnDp1ZYVpzy4fVKUFFFULYmpUUlcl5sebpJ1aGphc=;
-        b=MSBX3shBH0qoLZgoBaKe5kLbUB8TnsF2wkt/HDprwYNeTCAbd2lA/IPfG5shNVgtErFne6
-        2e7dxedwAVSHA242jzYwEZEDos7nzVn3jxex71TScShSaummfLGCXQPpi9hsC6bxlpki1A
-        PaKHNLN8C0jAcib2U6kKogdFm6aBvAusAl2wzmpxVjN8CVqMhcCswRy3h+4P9laPxunXLd
-        H7LLUzUcw0fvfesHPPxL0uK/nLdCXiS7KyYQy2gAPBMvgGCcbyREn+oK+jObT1BhRalalZ
-        V5Nn3/fVSWTJibiL01V8QA9WbzxTf/xt6yFIPqkmLVhG809hQRqJj+6eoADqiw==
+        bh=b1npAX3rdKpi0zxYsfY5Z+OgET1V6fz47IjXP2N2S30=;
+        b=XVTknQmD0+t9vnaeIeIdlOsx1km0mt60yX3sLzQQo1Ss1/zAJ0V4dKHa6DvwjgOabag8/L
+        cdAIIF6lZarTaeoLKetYm0pzGwl8kcckN80Dn3W3jMGiKQboR+gMBzt00I83ziyHabYe8b
+        NtMvjO2a5WGqd9peY6AIorbHYlQYKzPUUQ5sgSHC+l4y5YIFim4X7GOcwjhvZ7Git47A37
+        gmcxNDaJq1jS9foBWYoWsrYgrXjv0vr506Cf/8Zt24Pt75S4yTc5RSKsMNiLugnEQs66lu
+        JY2BKtk7vw81ebNMg9AR+ndNy6um/c3Nr6OXjzxeLIyPUkLePe2OzZqJJSi+0A==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629346;
+        s=2020e; t=1607629348;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=d6ZnDp1ZYVpzy4fVKUFFFULYmpUUlcl5sebpJ1aGphc=;
-        b=/jZEQ2YP5EiBLPFVPa41DzeVlkA22cUlEXVQ4rLDBt8Dt9AhsUKkU1UyqJF1WyN4nzOpZY
-        l36XkFlXpQQTzpDg==
-Date:   Thu, 10 Dec 2020 20:25:45 +0100
+        bh=b1npAX3rdKpi0zxYsfY5Z+OgET1V6fz47IjXP2N2S30=;
+        b=WNYux1er1Ehidg7p8CyS69i/jC/6HS8muln7aTCmBy2Y4C4fUCVrgJw4x7KlJp6BDc2l6Z
+        2PdGgfz2rCEe0FAA==
+Date:   Thu, 10 Dec 2020 20:25:47 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
-        linux-parisc@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel@lists.infradead.org,
+        Mark Rutland <mark.rutland@arm.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
@@ -88,7 +88,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 09/30] ARM: smp: Use irq_desc_kstat_cpu() in show_ipi_list()
+Subject: [patch 11/30] parisc/irq: Use irq_desc_kstat_cpu() in show_interrupts()
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -100,22 +100,23 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 The irq descriptor is already there, no need to look it up again.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: afzal mohammed <afzal.mohd.ma@gmail.com>
+Cc: linux-parisc@vger.kernel.org
 ---
- arch/arm/kernel/smp.c |    2 +-
+ arch/parisc/kernel/irq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -550,7 +550,7 @@ void show_ipi_list(struct seq_file *p, i
- 		seq_printf(p, "%*s%u: ", prec - 1, "IPI", i);
+--- a/arch/parisc/kernel/irq.c
++++ b/arch/parisc/kernel/irq.c
+@@ -218,7 +218,7 @@ int show_interrupts(struct seq_file *p,
+ 		seq_printf(p, "%3d: ", i);
  
- 		for_each_online_cpu(cpu)
--			seq_printf(p, "%10u ", kstat_irqs_cpu(irq, cpu));
-+			seq_printf(p, "%10u ", irq_desc_kstat_cpu(ipi_desc[i], cpu));
+ 		for_each_online_cpu(j)
+-			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
++			seq_printf(p, "%10u ", irq_desc_kstat_cpu(desc, j));
  
- 		seq_printf(p, " %s\n", ipi_types[i]);
- 	}
+ 		seq_printf(p, " %14s", irq_desc_get_chip(desc)->name);
+ #ifndef PARISC_IRQ_CR16_COUNTS
 
