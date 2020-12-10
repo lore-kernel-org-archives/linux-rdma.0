@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2902AC2BB40
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DDBC4167B
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E595623101
+	by mail.kernel.org (Postfix) with ESMTP id C1096230FC
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732977AbgLJNZa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S2389222AbgLJNZa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 10 Dec 2020 08:25:30 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9581 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:9582 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389222AbgLJNZ3 (ORCPT
+        with ESMTP id S2389230AbgLJNZ3 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:25:29 -0500
 Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsF4L4JRczM2wh;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsF4L4rqjzM32l;
         Thu, 10 Dec 2020 21:24:02 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 03/11] RDMA/hns: Do shift on traffic class when using RoCEv2
-Date:   Thu, 10 Dec 2020 21:22:44 +0800
-Message-ID: <1607606572-11968-4-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 02/11] RDMA/hns: Normalization the judgment of some features
+Date:   Thu, 10 Dec 2020 21:22:43 +0800
+Message-ID: <1607606572-11968-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1607606572-11968-1-git-send-email-liweihang@huawei.com>
 References: <1607606572-11968-1-git-send-email-liweihang@huawei.com>
@@ -43,74 +43,92 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The high 6 bits of traffic class in GRH is DSCP (Differentiated Services
-Codepoint), the driver should shift it before the hardware gets it when
-using RoCEv2.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Fixes: 606bf89e98ef ("RDMA/hns: Refactor for hns_roce_v2_modify_qp function")
-Fixes: fba429fcf9a5 ("RDMA/hns: Fix missing fields in address vector")
+Whether to enable the these features should better depend on the enable
+flags, not the value of related fields.
+
+Fixes: 5c1f167af112 ("RDMA/hns: Init SRQ table for hip08")
+Fixes: 3cb2c996c9dc ("RDMA/hns: Add support for SCCC in size of 64 Bytes")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_ah.c     |  2 +-
- drivers/infiniband/hw/hns/hns_roce_device.h |  8 ++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 10 +++-------
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c  | 4 ++--
+ drivers/infiniband/hw/hns/hns_roce_main.c | 8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_qp.c   | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index b09ef33..c9a44db 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -77,7 +77,7 @@ int hns_roce_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 	ah->av.flowlabel = grh->flow_label;
- 	ah->av.udp_sport = get_ah_udp_sport(ah_attr);
- 	ah->av.sl = rdma_ah_get_sl(ah_attr);
--	ah->av.tclass = grh->traffic_class;
-+	ah->av.tclass = get_tclass(grh);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 5c302ae..359e5dd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -1028,7 +1028,7 @@ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
  
- 	memcpy(ah->av.dgid, grh->dgid.raw, HNS_ROCE_GID_SIZE);
- 	memcpy(ah->av.mac, ah_attr->roce.dmac, ETH_ALEN);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 60b8349..4ba6ff5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1148,6 +1148,14 @@ static inline u32 to_hr_hem_entries_shift(u32 count, u32 buf_shift)
- 	return ilog2(to_hr_hem_entries_count(count, buf_shift));
- }
+ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ {
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->srq_table.table);
+ 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->cq_table.table);
+@@ -1038,7 +1038,7 @@ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->caps.cqc_timer_entry_sz)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->cqc_timer_table);
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ 	if (hr_dev->caps.trrl_entry_sz)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index bc46624..dbb1af1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -606,7 +606,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		goto err_unmap_trrl;
+ 	}
  
-+#define DSCP_SHIFT 2
-+
-+static inline u8 get_tclass(const struct ib_global_route *grh)
-+{
-+	return grh->sgid_attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP ?
-+	       grh->traffic_class >> DSCP_SHIFT : grh->traffic_class;
-+}
-+
- int hns_roce_init_uar_table(struct hns_roce_dev *dev);
- int hns_roce_uar_alloc(struct hns_roce_dev *dev, struct hns_roce_uar *uar);
- void hns_roce_uar_free(struct hns_roce_dev *dev, struct hns_roce_uar *uar);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 8d37067..7a0c1ab 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4596,15 +4596,11 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
- 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_HOP_LIMIT_M,
- 		       V2_QPC_BYTE_24_HOP_LIMIT_S, 0);
+-	if (hr_dev->caps.srqc_entry_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
+ 		ret = hns_roce_init_hem_table(hr_dev, &hr_dev->srq_table.table,
+ 					      HEM_TYPE_SRQC,
+ 					      hr_dev->caps.srqc_entry_sz,
+@@ -618,7 +618,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		}
+ 	}
  
--	if (is_udp)
--		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
--			       V2_QPC_BYTE_24_TC_S, grh->traffic_class >> 2);
--	else
--		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
--			       V2_QPC_BYTE_24_TC_S, grh->traffic_class);
--
-+	roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
-+		       V2_QPC_BYTE_24_TC_S, get_tclass(&attr->ah_attr.grh));
- 	roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_TC_M,
- 		       V2_QPC_BYTE_24_TC_S, 0);
-+
- 	roce_set_field(context->byte_28_at_fl, V2_QPC_BYTE_28_FL_M,
- 		       V2_QPC_BYTE_28_FL_S, grh->flow_label);
- 	roce_set_field(qpc_mask->byte_28_at_fl, V2_QPC_BYTE_28_FL_M,
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		ret = hns_roce_init_hem_table(hr_dev,
+ 					      &hr_dev->qp_table.sccc_table,
+ 					      HEM_TYPE_SCCC,
+@@ -679,11 +679,11 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->qpc_timer_table);
+ 
+ err_unmap_ctx:
+-	if (hr_dev->caps.sccc_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
+ 		hns_roce_cleanup_hem_table(hr_dev,
+ 					   &hr_dev->qp_table.sccc_table);
+ err_unmap_srq:
+-	if (hr_dev->caps.srqc_entry_sz)
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->srq_table.table);
+ 
+ err_unmap_cq:
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index c85513d..76a7c95 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -334,7 +334,7 @@ static int alloc_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		}
+ 	}
+ 
+-	if (hr_dev->caps.sccc_sz) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
+ 		/* Alloc memory for SCC CTX */
+ 		ret = hns_roce_table_get(hr_dev, &qp_table->sccc_table,
+ 					 hr_qp->qpn);
 -- 
 2.8.1
 
