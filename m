@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A802C2BBCD
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D815C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:09:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1191123406
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:02:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0D6622D72
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:09:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390151AbgLJUB0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 15:01:26 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:57710 "EHLO
+        id S2393540AbgLJUDN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 15:03:13 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:57192 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404302AbgLJTna (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:30 -0500
-Message-Id: <20201210194045.157601122@linutronix.de>
+        with ESMTP id S2404300AbgLJTnU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:20 -0500
+Message-Id: <20201210194044.364211860@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629367;
+        s=2020; t=1607629357;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=RU1bu/2cEIaQZD4XBTa1ORm36AT2+9xoAT9okJ4RH1c=;
-        b=AhYGZMH5Lll3k86M+Mw+u/CMXrFP+z5OweedDSPLrQC7zMl71ejfF6LXNXRZTGD8kmOuJe
-        qS19XHZYRwS6BqhVuvnoRC1T4ttKWNuaoSyT3BgYYN1BzFtZlPcOz+YQKy/43th5Y90u/R
-        X6B6cmkRFkndNRXwbx2PLjfkgaDXN0K9HLJvSEGYF2Mwu+bniCBmPPPJ7kblKM0absRSol
-        Xu6RJgcDTReN71V4H+Nn1MY4+vbA65bMSFOyl/jldJBTen7poJfNR1wRX6XEMJPR917pl1
-        k5XFjcYwY2tULG78ylPnHOTKCe4dKJGK7v6roca6SRSYcgOrtkVCsvBrRQWZhw==
+        bh=KHY7zLB5K6l5lfek87988opcUU+hIDNSDHLcEFMtdbE=;
+        b=n90PZIqvfSG+SCpScanG1Bc3HG4388BY/dyhI0EaH1D5VR7ALSrd8Di/XFloXi9hIrAe0N
+        2w3FtiOOS83MM1ENKBnmKIYjMGlFGK+8CqwAWA+3cn+4JTZrOFNQqz1w6/1pfc9dn229g5
+        RxyxMUVWrnZNU+m4ITHF184nuNhmqfYSIV87jZv/HzJ2V1oJQzYeMWo1OTElMpaTWpCUk8
+        uJoofHd7ipNCSNBQWtvCPnJySQsMZYd1ezWjVgB5vtUTP93BsKFGqlD/7O6EwVQkeOfVvC
+        5nN2twyUqXClogpFmRmB9lY9+05jwyoSoCoyIBMb5KsyzJun61fUTTAt7Pca7g==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629367;
+        s=2020e; t=1607629357;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=RU1bu/2cEIaQZD4XBTa1ORm36AT2+9xoAT9okJ4RH1c=;
-        b=XdjqOHU/CtrxmjSRt3J35g254e3xJTlyAPxkG/hnQfineDJae9yPVorBnqLmfzdojIT+AV
-        RtH7kedwWF+OweDQ==
-Date:   Thu, 10 Dec 2020 20:26:02 +0100
+        bh=KHY7zLB5K6l5lfek87988opcUU+hIDNSDHLcEFMtdbE=;
+        b=z1bwpMRZ9X4kcUp+yA6PiwjKs/Xplaj9Bs6jEJYC/xJl+CtwyGu1dX/ChX9QURLpfQuyav
+        KbgY/emP2bdsj/AQ==
+Date:   Thu, 10 Dec 2020 20:25:54 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        xen-devel@lists.xenproject.org,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
         linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
         Mark Rutland <mark.rutland@arm.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
@@ -73,19 +73,18 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Jon Mason <jdmason@kudzu.us>,
         Dave Jiang <dave.jiang@intel.com>,
         Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        linux-pci@vger.kernel.org,
         Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
         Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
         Tariq Toukan <tariqt@nvidia.com>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>
-Subject: [patch 26/30] xen/events: Use immediate affinity setting
+        Leon Romanovsky <leon@kernel.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org
+Subject: [patch 18/30] PCI: xilinx-nwl: Use irq_data_get_irq_chip_data()
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -94,102 +93,56 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There is absolutely no reason to mimic the x86 deferred affinity
-setting. This mechanism is required to handle the hardware induced issues
-of IO/APIC and MSI and is not in use when the interrupts are remapped.
+Going through a full irq descriptor lookup instead of just using the proper
+helper function which provides direct access is suboptimal.
 
-XEN does not need this and can simply change the affinity from the calling
-context. The core code invokes this with the interrupt descriptor lock held
-so it is fully serialized against any other operation.
-
-Mark the interrupts with IRQ_MOVE_PCNTXT to disable the deferred affinity
-setting. The conditional mask/unmask operation is already handled in
-xen_rebind_evtchn_to_cpu().
-
-This makes XEN on x86 use the same mechanics as on e.g. ARM64 where
-deferred affinity setting is not required and not implemented and the code
-path in the ack functions is compiled out.
+In fact it _is_ wrong because the chip callback needs to get the chip data
+which is relevant for the chip while using the irq descriptor variant
+returns the irq chip data of the top level chip of a hierarchy. It does not
+matter in this case because the chip is the top level chip, but that
+doesn't make it more correct.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: xen-devel@lists.xenproject.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Michal Simek <michal.simek@xilinx.com>
+Cc: linux-pci@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 ---
- drivers/xen/events/events_base.c |   35 +++++++++--------------------------
- 1 file changed, 9 insertions(+), 26 deletions(-)
+ drivers/pci/controller/pcie-xilinx-nwl.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/drivers/xen/events/events_base.c
-+++ b/drivers/xen/events/events_base.c
-@@ -628,6 +628,11 @@ static void xen_irq_init(unsigned irq)
- 	info->refcnt = -1;
+--- a/drivers/pci/controller/pcie-xilinx-nwl.c
++++ b/drivers/pci/controller/pcie-xilinx-nwl.c
+@@ -379,13 +379,11 @@ static void nwl_pcie_msi_handler_low(str
  
- 	set_info_for_irq(irq, info);
-+	/*
-+	 * Interrupt affinity setting can be immediate. No point
-+	 * in delaying it until an interrupt is handled.
-+	 */
-+	irq_set_status_flags(irq, IRQ_MOVE_PCNTXT);
- 
- 	INIT_LIST_HEAD(&info->eoi_list);
- 	list_add_tail(&info->list, &xen_irq_list_head);
-@@ -739,18 +744,7 @@ static void eoi_pirq(struct irq_data *da
- 	if (!VALID_EVTCHN(evtchn))
- 		return;
- 
--	if (unlikely(irqd_is_setaffinity_pending(data)) &&
--	    likely(!irqd_irq_disabled(data))) {
--		int masked = test_and_set_mask(evtchn);
--
--		clear_evtchn(evtchn);
--
--		irq_move_masked_irq(data);
--
--		if (!masked)
--			unmask_evtchn(evtchn);
--	} else
--		clear_evtchn(evtchn);
-+	clear_evtchn(evtchn);
- 
- 	if (pirq_needs_eoi(data->irq)) {
- 		rc = HYPERVISOR_physdev_op(PHYSDEVOP_eoi, &eoi);
-@@ -1641,7 +1635,6 @@ void rebind_evtchn_irq(evtchn_port_t evt
- 	mutex_unlock(&irq_mapping_update_lock);
- 
-         bind_evtchn_to_cpu(evtchn, info->cpu);
--	/* This will be deferred until interrupt is processed */
- 	irq_set_affinity(irq, cpumask_of(info->cpu));
- 
- 	/* Unmask the event channel. */
-@@ -1688,8 +1681,9 @@ static int set_affinity_irq(struct irq_d
- 			    bool force)
+ static void nwl_mask_leg_irq(struct irq_data *data)
  {
- 	unsigned tcpu = cpumask_first_and(dest, cpu_online_mask);
--	int ret = xen_rebind_evtchn_to_cpu(evtchn_from_irq(data->irq), tcpu);
-+	int ret;
+-	struct irq_desc *desc = irq_to_desc(data->irq);
+-	struct nwl_pcie *pcie;
++	struct nwl_pcie *pcie = irq_data_get_irq_chip_data(data);
+ 	unsigned long flags;
+ 	u32 mask;
+ 	u32 val;
  
-+	ret = xen_rebind_evtchn_to_cpu(evtchn_from_irq(data->irq), tcpu);
- 	if (!ret)
- 		irq_data_update_effective_affinity(data, cpumask_of(tcpu));
+-	pcie = irq_desc_get_chip_data(desc);
+ 	mask = 1 << (data->hwirq - 1);
+ 	raw_spin_lock_irqsave(&pcie->leg_mask_lock, flags);
+ 	val = nwl_bridge_readl(pcie, MSGF_LEG_MASK);
+@@ -395,13 +393,11 @@ static void nwl_mask_leg_irq(struct irq_
  
-@@ -1719,18 +1713,7 @@ static void ack_dynirq(struct irq_data *
- 	if (!VALID_EVTCHN(evtchn))
- 		return;
+ static void nwl_unmask_leg_irq(struct irq_data *data)
+ {
+-	struct irq_desc *desc = irq_to_desc(data->irq);
+-	struct nwl_pcie *pcie;
++	struct nwl_pcie *pcie = irq_data_get_irq_chip_data(data);
+ 	unsigned long flags;
+ 	u32 mask;
+ 	u32 val;
  
--	if (unlikely(irqd_is_setaffinity_pending(data)) &&
--	    likely(!irqd_irq_disabled(data))) {
--		int masked = test_and_set_mask(evtchn);
--
--		clear_evtchn(evtchn);
--
--		irq_move_masked_irq(data);
--
--		if (!masked)
--			unmask_evtchn(evtchn);
--	} else
--		clear_evtchn(evtchn);
-+	clear_evtchn(evtchn);
- }
- 
- static void mask_ack_dynirq(struct irq_data *data)
+-	pcie = irq_desc_get_chip_data(desc);
+ 	mask = 1 << (data->hwirq - 1);
+ 	raw_spin_lock_irqsave(&pcie->leg_mask_lock, flags);
+ 	val = nwl_bridge_readl(pcie, MSGF_LEG_MASK);
 
