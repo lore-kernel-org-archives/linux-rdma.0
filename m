@@ -2,135 +2,154 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB550C1B0E3
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD989C4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:51:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F57622571
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:51:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8074722571
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:51:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393539AbgLJTuY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 14:50:24 -0500
-Received: from mga02.intel.com ([134.134.136.20]:36449 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390244AbgLJTuW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Dec 2020 14:50:22 -0500
-IronPort-SDR: HRNuGsWQ6M8xwh46flU+d8/VQ0PKqgz+c0cf6S67IE/Oy4bOzBRO1paMazkipbly5LMYl5dip5
- RUSw8zjSR8Iw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9831"; a="161372918"
-X-IronPort-AV: E=Sophos;i="5.78,409,1599548400"; 
-   d="scan'208";a="161372918"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2020 11:48:35 -0800
-IronPort-SDR: Qef2UfSDuwyPiJ27NUpAFZLQLjXKYRK609+0x1abl5RvYR7KCkszp/IICW7DO8jsBWdQpq5EWc
- XoQtIWeVTwmw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.78,409,1599548400"; 
-   d="scan'208";a="376070310"
-Received: from stinkbox.fi.intel.com (HELO stinkbox) ([10.237.72.174])
-  by orsmga007.jf.intel.com with SMTP; 10 Dec 2020 11:48:24 -0800
-Received: by stinkbox (sSMTP sendmail emulation); Thu, 10 Dec 2020 21:48:23 +0200
-Date:   Thu, 10 Dec 2020 21:48:23 +0200
-From:   Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To:     Thomas Gleixner <tglx@linutronix.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        dri-devel@lists.freedesktop.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        netdev@vger.kernel.org, Will Deacon <will@kernel.org>,
-        Michal Simek <michal.simek@xilinx.com>,
-        Rob Herring <robh@kernel.org>, linux-s390@vger.kernel.org,
-        afzal mohammed <afzal.mohd.ma@gmail.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        xen-devel@lists.xenproject.org, Leon Romanovsky <leon@kernel.org>,
-        linux-rdma@vger.kernel.org, Marc Zyngier <maz@kernel.org>,
+        id S2404350AbgLJTnu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:43:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53318 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404339AbgLJTnn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:43 -0500
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF77BC0611CD;
+        Thu, 10 Dec 2020 11:42:43 -0800 (PST)
+Message-Id: <20201210194044.769458162@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1607629362;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:  references:references;
+        bh=VOaf/d7D7QtaaC+WU1sXZf5eTJVDFk9LK/s7Au7CufU=;
+        b=ebvAKnU9U5xxsuTyZRRyBD/pSxlAzqV321cu/1PSB+S30uzHIXKjKJyuLWtBWcYVZXlybn
+        NBr9KiI1e9paQHPvIfvkgD6mJDZPhiGb5TN5PvcTekgbiahpQ8LQMlSJSX4xpUxk9f2Ol5
+        F8oNCSe1H+ais24JO9t2IwvShGuXdvh8ES7plOqYyAwLRKf0TojyhsFUMV5kjVjEtAGPaz
+        UOL8zFfw66+Fs8FOPny2ek7maFNW7ZTVUGseqbCjWR7MjO0q/MLzWc7S4CWwTTyNrDt17N
+        pAxkdJedoxJwP4qnw1l3YgNebMwtGsjkmDdMWwXGJEDNlPXObkHeBB1kSiRQpQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1607629362;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:  references:references;
+        bh=VOaf/d7D7QtaaC+WU1sXZf5eTJVDFk9LK/s7Au7CufU=;
+        b=W/Zofh+C9ibp8KsiLJ6iyTc3jKq0LDlUAeV1W45RXNpyPicUPyvAT+QSfrk4IRw9rtLo2E
+        zAcfM77lXBTE8oDg==
+Date:   Thu, 10 Dec 2020 20:25:58 +0100
+From:   Thomas Gleixner <tglx@linutronix.de>
+To:     LKML <linux-kernel@vger.kernel.org>
+Cc:     Peter Zijlstra <peterz@infradead.org>,
+        Marc Zyngier <maz@kernel.org>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
-        Russell King <linux@armlinux.org.uk>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        linux-pci@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Wambui Karuga <wambui.karugax@gmail.com>,
-        Allen Hubbe <allenbh@gmail.com>,
-        Juergen Gross <jgross@suse.com>,
-        intel-gfx@lists.freedesktop.org, linux-gpio@vger.kernel.org,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Lee Jones <lee.jones@linaro.org>,
+        afzal mohammed <afzal.mohd.ma@gmail.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
         linux-arm-kernel@lists.infradead.org,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        David Airlie <airlied@linux.ie>, linux-parisc@vger.kernel.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Wambui Karuga <wambui.karugax@gmail.com>,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
+        Jon Mason <jdmason@kudzu.us>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-pci@vger.kernel.org,
+        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
         Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        Tariq Toukan <tariqt@nvidia.com>, Jon Mason <jdmason@kudzu.us>,
-        linux-ntb@googlegroups.com, Saeed Mahameed <saeedm@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [Intel-gfx] [patch 13/30] drm/i915/lpe_audio: Remove pointless
- irq_to_desc() usage
-Message-ID: <X9J7h+myHaraeoKH@intel.com>
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org
+Subject: [patch 22/30] net/mlx5: Replace irq_to_desc() abuse
 References: <20201210192536.118432146@linutronix.de>
- <20201210194043.862572239@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20201210194043.862572239@linutronix.de>
-X-Patchwork-Hint: comment
+Content-Type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8-bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2020 at 08:25:49PM +0100, Thomas Gleixner wrote:
-> Nothing uses the result and nothing should ever use it in driver code.
-> 
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
-> Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-> Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-> Cc: David Airlie <airlied@linux.ie>
-> Cc: Daniel Vetter <daniel@ffwll.ch>
-> Cc: Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>
-> Cc: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Wambui Karuga <wambui.karugax@gmail.com>
-> Cc: intel-gfx@lists.freedesktop.org
-> Cc: dri-devel@lists.freedesktop.org
+No driver has any business with the internals of an interrupt
+descriptor. Storing a pointer to it just to use yet another helper at the
+actual usage site to retrieve the affinity mask is creative at best. Just
+because C does not allow encapsulation does not mean that the kernel has no
+limits.
 
-Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Retrieve a pointer to the affinity mask itself and use that. It's still
+using an interface which is usually not for random drivers, but definitely
+less hideous than the previous hack.
 
-> ---
->  drivers/gpu/drm/i915/display/intel_lpe_audio.c |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> --- a/drivers/gpu/drm/i915/display/intel_lpe_audio.c
-> +++ b/drivers/gpu/drm/i915/display/intel_lpe_audio.c
-> @@ -297,13 +297,9 @@ int intel_lpe_audio_init(struct drm_i915
->   */
->  void intel_lpe_audio_teardown(struct drm_i915_private *dev_priv)
->  {
-> -	struct irq_desc *desc;
-> -
->  	if (!HAS_LPE_AUDIO(dev_priv))
->  		return;
->  
-> -	desc = irq_to_desc(dev_priv->lpe_audio.irq);
-> -
->  	lpe_audio_platdev_destroy(dev_priv);
->  
->  	irq_free_desc(dev_priv->lpe_audio.irq);
-> 
-> _______________________________________________
-> Intel-gfx mailing list
-> Intel-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en.h      |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |    2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c |    6 +-----
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
--- 
-Ville Syrjälä
-Intel
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -669,7 +669,7 @@ struct mlx5e_channel {
+ 	spinlock_t                 async_icosq_lock;
+ 
+ 	/* data path - accessed per napi poll */
+-	struct irq_desc *irq_desc;
++	const struct cpumask	  *aff_mask;
+ 	struct mlx5e_ch_stats     *stats;
+ 
+ 	/* control */
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1998,7 +1998,7 @@ static int mlx5e_open_channel(struct mlx
+ 	c->num_tc   = params->num_tc;
+ 	c->xdp      = !!params->xdp_prog;
+ 	c->stats    = &priv->channel_stats[ix].ch;
+-	c->irq_desc = irq_to_desc(irq);
++	c->aff_mask = irq_get_affinity_mask(irq);
+ 	c->lag_port = mlx5e_enumerate_lag_port(priv->mdev, ix);
+ 
+ 	netif_napi_add(netdev, &c->napi, mlx5e_napi_poll, 64);
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+@@ -40,12 +40,8 @@
+ static inline bool mlx5e_channel_no_affinity_change(struct mlx5e_channel *c)
+ {
+ 	int current_cpu = smp_processor_id();
+-	const struct cpumask *aff;
+-	struct irq_data *idata;
+ 
+-	idata = irq_desc_get_irq_data(c->irq_desc);
+-	aff = irq_data_get_affinity_mask(idata);
+-	return cpumask_test_cpu(current_cpu, aff);
++	return cpumask_test_cpu(current_cpu, c->aff_mask);
+ }
+ 
+ static void mlx5e_handle_tx_dim(struct mlx5e_txqsq *sq)
+
