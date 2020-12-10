@@ -5,48 +5,49 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0C76C2BBCA
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 563C3C4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:44:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EFA023D23
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:43:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01FC62310C
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:44:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404270AbgLJTnE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 14:43:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53194 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393512AbgLJTnC (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:02 -0500
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8125FC06179C;
-        Thu, 10 Dec 2020 11:42:22 -0800 (PST)
-Message-Id: <20201210194043.067097663@linutronix.de>
+        id S2404318AbgLJTni (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:43:38 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:57330 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2393538AbgLJTnW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:22 -0500
+Message-Id: <20201210194044.580936243@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629341;
+        s=2020; t=1607629359;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=an/0SlT10gC/rfGB9cofMBAbBc2y8gDRMVN0GHlSQuQ=;
-        b=4P4kE5RTAFQxk4E9p2NZ5tVZaT/fVdqT6FUBVR+n0VlRr8uKLCY6ouByJWK/y9MigmPqnb
-        tesyONzFlkjZdJe1WWdFvx3h+r+GXjLB7sIlmHBZwN8ZTN8764SDWmNv/29J0LI/juCzrG
-        5AR2DIz8iI4y5+WrS2Gk+rZPh543USYMAHoeudVHDJ9Wges2zOPIJ3rC2brtEkqswFGEBV
-        qoEKpCAHt2vMMptUuKRYjL5+zlSE91zw5P4yyaAjNJTKm8BCJhUlMmWxn/QqILbbs/4fJM
-        zRFVwll3IxpXJvkmkahKFPnuLZWACJTleFizSON231iYySZCGseiBRgkWQqHew==
+        bh=KrhhIjbt5v6ZrRAi/JobWuMkwODXuYkNejeEJ8r5wYA=;
+        b=O2jdDNolMgwdeqbdehl1p9TNp5CMFEegQIULELNgmYRztgIcL4c3f02Qf6SlZ5l3g40OIQ
+        RgS4jJlX+w2xWwCBcvE8uOXoWkE+AICi/Nh5GaOHSq9qtJLjJ382ImsNRhJ2OXUKqHjpIF
+        I8MjuSPpVTKBCKMHB0jWJJqdHHehIe0RI7sKzCawI6DUxBj2zGutPRs1VZRztMy0HnwSsf
+        OI5cZWwaKtKyxElh00AwZXcb13cApJGdpe1cNRwNFz3Ty/Mas6lCOq0rRGjsr5nCkNgDIf
+        ZfeC1Cgjfe3pwIQtGOuNMnkwwWQv4/tiKJan+K2zSJCygXvLKALGPkNvkXEO8Q==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629341;
+        s=2020e; t=1607629359;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=an/0SlT10gC/rfGB9cofMBAbBc2y8gDRMVN0GHlSQuQ=;
-        b=0D9iZlJLFfBnhtOaF8MIaZu0T6LGBg7Mhm2UH/Vr6qq568TJA8295HDu2RHkjE+w+f0eVZ
-        +xYpdmSgjdKynXCQ==
-Date:   Thu, 10 Dec 2020 20:25:41 +0100
+        bh=KrhhIjbt5v6ZrRAi/JobWuMkwODXuYkNejeEJ8r5wYA=;
+        b=AYssMWVwzMPlm7xFPvozIcusMMzaZeOC4IJgbRnnFFntYh+XGLTcZ4I1FH/Z2XIwzAjKaN
+        H21cttJmA1LtW+AQ==
+Date:   Thu, 10 Dec 2020 20:25:56 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
@@ -79,16 +80,13 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-pci@vger.kernel.org,
         Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
         Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
         Boris Ostrovsky <boris.ostrovsky@oracle.com>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 05/30] genirq: Annotate irq stats data races
+Subject: [patch 20/30] net/mlx4: Replace irq_to_desc() abuse
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -97,44 +95,92 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Both the per cpu stats and the accumulated count are accessed lockless and
-can be concurrently modified. That's intentional and the stats are a rough
-estimate anyway. Annotate them with data_race().
+No driver has any business with the internals of an interrupt
+descriptor. Storing a pointer to it just to use yet another helper at the
+actual usage site to retrieve the affinity mask is creative at best. Just
+because C does not allow encapsulation does not mean that the kernel has no
+limits.
+
+Retrieve a pointer to the affinity mask itself and use that. It's still
+using an interface which is usually not for random drivers, but definitely
+less hideous than the previous hack.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tariq Toukan <tariqt@nvidia.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
 ---
- kernel/irq/irqdesc.c |    4 ++--
- kernel/irq/proc.c    |    5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c   |    8 +++-----
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c   |    6 +-----
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |    3 ++-
+ 3 files changed, 6 insertions(+), 11 deletions(-)
 
---- a/kernel/irq/irqdesc.c
-+++ b/kernel/irq/irqdesc.c
-@@ -943,10 +943,10 @@ unsigned int kstat_irqs(unsigned int irq
- 	if (!irq_settings_is_per_cpu_devid(desc) &&
- 	    !irq_settings_is_per_cpu(desc) &&
- 	    !irq_is_nmi(desc))
--	    return desc->tot_count;
-+		return data_race(desc->tot_count);
+--- a/drivers/net/ethernet/mellanox/mlx4/en_cq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
+@@ -90,7 +90,7 @@ int mlx4_en_activate_cq(struct mlx4_en_p
+ 			int cq_idx)
+ {
+ 	struct mlx4_en_dev *mdev = priv->mdev;
+-	int err = 0;
++	int irq, err = 0;
+ 	int timestamp_en = 0;
+ 	bool assigned_eq = false;
  
- 	for_each_possible_cpu(cpu)
--		sum += *per_cpu_ptr(desc->kstat_irqs, cpu);
-+		sum += data_race(*per_cpu_ptr(desc->kstat_irqs, cpu));
- 	return sum;
- }
+@@ -116,10 +116,8 @@ int mlx4_en_activate_cq(struct mlx4_en_p
  
---- a/kernel/irq/proc.c
-+++ b/kernel/irq/proc.c
-@@ -488,9 +488,10 @@ int show_interrupts(struct seq_file *p,
- 	if (!desc || irq_settings_is_hidden(desc))
- 		goto outsparse;
+ 			assigned_eq = true;
+ 		}
+-
+-		cq->irq_desc =
+-			irq_to_desc(mlx4_eq_get_irq(mdev->dev,
+-						    cq->vector));
++		irq = mlx4_eq_get_irq(mdev->dev, cq->vector);
++		cq->aff_mask = irq_get_affinity_mask(irq);
+ 	} else {
+ 		/* For TX we use the same irq per
+ 		ring we assigned for the RX    */
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -959,8 +959,6 @@ int mlx4_en_poll_rx_cq(struct napi_struc
  
--	if (desc->kstat_irqs)
-+	if (desc->kstat_irqs) {
- 		for_each_online_cpu(j)
--			any_count |= *per_cpu_ptr(desc->kstat_irqs, j);
-+			any_count |= data_race(*per_cpu_ptr(desc->kstat_irqs, j));
-+	}
+ 	/* If we used up all the quota - we're probably not done yet... */
+ 	if (done == budget || !clean_complete) {
+-		const struct cpumask *aff;
+-		struct irq_data *idata;
+ 		int cpu_curr;
  
- 	if ((!desc->action || irq_desc_is_chained(desc)) && !any_count)
- 		goto outsparse;
+ 		/* in case we got here because of !clean_complete */
+@@ -969,10 +967,8 @@ int mlx4_en_poll_rx_cq(struct napi_struc
+ 		INC_PERF_COUNTER(priv->pstats.napi_quota);
+ 
+ 		cpu_curr = smp_processor_id();
+-		idata = irq_desc_get_irq_data(cq->irq_desc);
+-		aff = irq_data_get_affinity_mask(idata);
+ 
+-		if (likely(cpumask_test_cpu(cpu_curr, aff)))
++		if (likely(cpumask_test_cpu(cpu_curr, cq->aff_mask)))
+ 			return budget;
+ 
+ 		/* Current cpu is not according to smp_irq_affinity -
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -46,6 +46,7 @@
+ #endif
+ #include <linux/cpu_rmap.h>
+ #include <linux/ptp_clock_kernel.h>
++#include <linux/irq.h>
+ #include <net/xdp.h>
+ 
+ #include <linux/mlx4/device.h>
+@@ -380,7 +381,7 @@ struct mlx4_en_cq {
+ 	struct mlx4_cqe *buf;
+ #define MLX4_EN_OPCODE_ERROR	0x1e
+ 
+-	struct irq_desc *irq_desc;
++	const struct cpumask *aff_mask;
+ };
+ 
+ struct mlx4_en_port_profile {
 
