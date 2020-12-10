@@ -2,182 +2,113 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 289E6C4167B
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3BF5C4167B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:26:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D03562332A
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:13:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80B2323C18
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:26:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404621AbgLJUNB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 15:13:01 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:56122 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393381AbgLJTm7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:42:59 -0500
-Message-Id: <20201210194042.548936472@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629336;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=wCqGjbHBcSlcHWGOV/dAhxvR97JcFGNX9psmcROoCq0=;
-        b=2Z0Q8lbqw2d3iK0lyMTfu6GGSIFMkE/mgVP/hAGnWOqxBRMxf5MtZTpRPSPBXz/boYfgYn
-        ST6oe0NetpTwhOSarLLIdAuYLS1gydE77MQVYVcY3FouLrWnl5si1eWOJ4F95yCk0G9X60
-        1VL1Pvt1tpdt2jzvXhHk1B3J4gqT2I16payytnnsVM1ae0GkKHVOkzm3mG/NvUjNMZDZ8b
-        Y9sC2WWQtJSCM32DjS16A3YMAUHnAI48PATHpxuESAMuGdCfbbEW6ICvvlfOLWvLQ9S/jh
-        Z+QD95xpqockzbshrRUV6G0e1FqEFRsR9IAhKZG5jK6CihEBgYA5K4ONks8gvw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629336;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=wCqGjbHBcSlcHWGOV/dAhxvR97JcFGNX9psmcROoCq0=;
-        b=7JxYxk/ThtDXDjNM4lO0Kv6ZI0VZ4wL2ccu9YMROMO3FB+Dn8roKKZsGAALM1EdgllUWzl
-        ydzvbEXlvqdXI/CQ==
-Date:   Thu, 10 Dec 2020 20:25:37 +0100
-From:   Thomas Gleixner <tglx@linutronix.de>
-To:     LKML <linux-kernel@vger.kernel.org>
-Cc:     Peter Zijlstra <peterz@infradead.org>,
-        Marc Zyngier <maz@kernel.org>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        afzal mohammed <afzal.mohd.ma@gmail.com>,
-        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Wambui Karuga <wambui.karugax@gmail.com>,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
-        Jon Mason <jdmason@kudzu.us>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        linux-pci@vger.kernel.org,
-        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
-        Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        xen-devel@lists.xenproject.org
-Subject: [patch 01/30] genirq: Move irq_has_action() into core code
-References: <20201210192536.118432146@linutronix.de>
+        id S2390070AbgLJU0o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 15:26:44 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:13224 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390094AbgLJU0o (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 15:26:44 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fd2845b0001>; Thu, 10 Dec 2020 12:26:03 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 10 Dec
+ 2020 20:26:03 +0000
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.172)
+ by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 10 Dec 2020 20:26:03 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=l28X6CLQeb8U8QZ2YQuQO0adSg1HM1eKvZv80/3rTHCwTX7/npaVox27y5W3IOmoHj6XESyWvHJV3VHR+t11v4T+aek1mswaF3ycQz2WyxnpeEJOGguAwhUBqDXAIglGLtKI7EiT/6WwVHcP2TbLCpLp4C8sECeS/mbrPHBhgSyeuaFpNGJkS8vd1zesTWDDLkdw8nFHN9306QO7u7JTJeS5fgPzSBV9YKtp0/crnjDzJUtGMmhwSDyMf5axqRNovYODfBXg+9MH++1iRR/+OfGLAYtq/1RXHxP3cdc9sFqqMFoTSDkOlHR27Zbc0I8P3T9CN4rxCnvopgetbYeQPg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+i2yP9qeGjcGRaIqa6mtckBZ5DgX4jfGJr+IWmZ5HYk=;
+ b=MV0Ojs+DzEJn/TDtalnf93adg+ZJ5RV3rDfnyikPVeJi16Tbp76w3Icq7YR1fQZLARlB4um6isT1I+V/Ud3ukaT6qiz2Cu6txb7m0hwAvfuKu/1pGKpWp6sMtMCN2DENxaQEUMxrxJJxyAyzUPDeohI3dH3/RkFFcqVMbVXbj95BEQWGvDJsAs9M4/yWQLJSqjW7S8R1jtIS3kgbiQgsIRq78fw+T6YpZ7oFGRWVMtN8YV8ooR2gphGGgz0mVR41oYazbQoEwo0Y08VOjI8vP27ZTsPVjXYytOvq/7YQBXdVHkW9AhOunjEq4unosEekS3gYI1JBsNyqIVPBxPYZvw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3595.namprd12.prod.outlook.com (2603:10b6:5:118::29) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.21; Thu, 10 Dec
+ 2020 20:26:01 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1ce9:3434:90fe:3433]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1ce9:3434:90fe:3433%3]) with mapi id 15.20.3632.023; Thu, 10 Dec 2020
+ 20:26:01 +0000
+Date:   Thu, 10 Dec 2020 16:26:00 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Avihai Horon <avihaih@nvidia.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Jack Morgenstein <jackm@dev.mellanox.co.il>,
+        Leon Romanovsky <leonro@mellanox.com>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH rdma-next 0/3] Various fixes collected over time
+Message-ID: <20201210202600.GA2136131@nvidia.com>
+References: <20201208073545.9723-1-leon@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20201208073545.9723-1-leon@kernel.org>
+X-ClientProxiedBy: MN2PR16CA0023.namprd16.prod.outlook.com
+ (2603:10b6:208:134::36) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8-bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR16CA0023.namprd16.prod.outlook.com (2603:10b6:208:134::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.12 via Frontend Transport; Thu, 10 Dec 2020 20:26:01 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1knSVk-008xiL-47; Thu, 10 Dec 2020 16:26:00 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1607631963; bh=+i2yP9qeGjcGRaIqa6mtckBZ5DgX4jfGJr+IWmZ5HYk=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=kPpXD93BV/D0ZwTewPFswUoC4yd1xablWclR6aAPgfE7g0C1G6VTdgJfufFv/h0Qz
+         z1hrWP3ZZ9kRwZp+9IuGrmMd1Idxd8TtZvHoZziR6RHzba/hv3oVfmoyoeE6YSfBAW
+         2+xQEaACB/vzZqbv0awWO7YqUhlIOCiLK7RwjaVuWnmxAdFtCBxxX7UBGqUwv/aCBR
+         LBYLRjYxjcTwlYr+cGTGC0JQu1x2VaiVS8ZayffNgnW2gmL5oNpV8Kj9lKGWjVCfoO
+         uKieqKbxqmZUbcsZUvDf1wTUEGT7gjh1ievAz9/ZLzXVYbCCndIaeWESHbsW5+cSw0
+         6RRjyKCPu2s+w==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This function uses irq_to_desc() and is going to be used by modules to
-replace the open coded irq_to_desc() (ab)usage. The final goal is to remove
-the export of irq_to_desc() so driver cannot fiddle with it anymore.
+On Tue, Dec 08, 2020 at 09:35:42AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Hi,
+> 
+> This is set of various and unrelated fixes that we collected over time.
+> 
+> Thanks
+> 
+> Avihai Horon (1):
+>   RDMA/uverbs: Fix incorrect variable type
+> 
+> Jack Morgenstein (2):
+>   RDMA/core: Clean up cq pool mechanism
+>   RDMA/core: Do not indicate device ready when device enablement fails
+> 
+>  drivers/infiniband/core/core_priv.h              |  3 +--
+>  drivers/infiniband/core/cq.c                     | 12 ++----------
+>  drivers/infiniband/core/device.c                 | 16 ++++++++++------
+>  .../infiniband/core/uverbs_std_types_device.c    | 14 +++++---------
+>  include/rdma/uverbs_ioctl.h                      | 10 ++++++++++
+>  5 files changed, 28 insertions(+), 27 deletions(-)
 
-Move it into the core code and fixup the usage sites to include the proper
-header.
+Applied to for-next, thanks
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
----
- arch/alpha/kernel/sys_jensen.c |    2 +-
- arch/x86/kernel/topology.c     |    1 +
- include/linux/interrupt.h      |    1 +
- include/linux/irqdesc.h        |    7 +------
- kernel/irq/manage.c            |   17 +++++++++++++++++
- 5 files changed, 21 insertions(+), 7 deletions(-)
-
---- a/arch/alpha/kernel/sys_jensen.c
-+++ b/arch/alpha/kernel/sys_jensen.c
-@@ -7,7 +7,7 @@
-  *
-  * Code supporting the Jensen.
-  */
--
-+#include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/mm.h>
---- a/arch/x86/kernel/topology.c
-+++ b/arch/x86/kernel/topology.c
-@@ -25,6 +25,7 @@
-  *
-  * Send feedback to <colpatch@us.ibm.com>
-  */
-+#include <linux/interrupt.h>
- #include <linux/nodemask.h>
- #include <linux/export.h>
- #include <linux/mmzone.h>
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -232,6 +232,7 @@ extern void devm_free_irq(struct device
- # define local_irq_enable_in_hardirq()	local_irq_enable()
- #endif
- 
-+bool irq_has_action(unsigned int irq);
- extern void disable_irq_nosync(unsigned int irq);
- extern bool disable_hardirq(unsigned int irq);
- extern void disable_irq(unsigned int irq);
---- a/include/linux/irqdesc.h
-+++ b/include/linux/irqdesc.h
-@@ -179,12 +179,7 @@ int handle_domain_nmi(struct irq_domain
- /* Test to see if a driver has successfully requested an irq */
- static inline int irq_desc_has_action(struct irq_desc *desc)
- {
--	return desc->action != NULL;
--}
--
--static inline int irq_has_action(unsigned int irq)
--{
--	return irq_desc_has_action(irq_to_desc(irq));
-+	return desc && desc->action != NULL;
- }
- 
- /**
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -2752,3 +2752,20 @@ int irq_set_irqchip_state(unsigned int i
- 	return err;
- }
- EXPORT_SYMBOL_GPL(irq_set_irqchip_state);
-+
-+/**
-+ * irq_has_action - Check whether an interrupt is requested
-+ * @irq:	The linux irq number
-+ *
-+ * Returns: A snapshot of the current state
-+ */
-+bool irq_has_action(unsigned int irq)
-+{
-+	bool res;
-+
-+	rcu_read_lock();
-+	res = irq_desc_has_action(irq_to_desc(irq));
-+	rcu_read_unlock();
-+	return res;
-+}
-+EXPORT_SYMBOL_GPL(irq_has_action);
-
+Jason
