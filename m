@@ -2,91 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1926CC4361B
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 14:00:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 494FBC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 14:58:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC7B023B85
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 14:00:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05C18206D5
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 14:58:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389789AbgLJOAH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 09:00:07 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9496 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389763AbgLJN5g (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:57:36 -0500
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsFnD2k9Yzhq6y;
-        Thu, 10 Dec 2020 21:56:00 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 10 Dec 2020 21:56:26 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@ziepe.ca>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>
-Subject: [PATCH v4 for-next 04/11] RDMA/hns: Avoid filling sl in high 3 bits of vlan_id
-Date:   Thu, 10 Dec 2020 21:54:32 +0800
-Message-ID: <1607608479-54518-5-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1607608479-54518-1-git-send-email-liweihang@huawei.com>
-References: <1607608479-54518-1-git-send-email-liweihang@huawei.com>
+        id S1725947AbgLJO62 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 09:58:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36660 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726931AbgLJO53 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 09:57:29 -0500
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D2C0C0613CF
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Dec 2020 06:56:49 -0800 (PST)
+Received: by mail-ed1-x544.google.com with SMTP id u19so5808593edx.2
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Dec 2020 06:56:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ZL5eMnJUZR33II2tRNEvHV28YGyV0efiJaemSe8WAL8=;
+        b=akIU4qVngXp7tUxsTpmsploSNjsFnVTgliaKCHs2wM5h2N2p5Xd+m9mEqSPvN0u8GF
+         4Ng44A0bv8WlQdrthC9XeSLV5M9krm9sRVWDqeeSDKz5ezOMoyecZ4m5zF0sP1GMcUaB
+         LMgLx8LqDYrw8TIf9jlQsyDfK63qvpDFPYCETvNt5GHpiNN/jhEPgMLlsNEPrZqxT8aB
+         nrDcJCT1Ac6HTVxf7qvmysQv+WhvqnV3gvGGy2DHM9cL83tJ6XzIpNgDcaNxki17Erus
+         yibBkCqzFSZJwpaIMWGOwaLMytZHDKLwBA41xV/vVpX1tSUnrdnsrvW+IiVbbHBS9bUY
+         xglA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ZL5eMnJUZR33II2tRNEvHV28YGyV0efiJaemSe8WAL8=;
+        b=Wp0LUBTRIjTRz8BR7ThJCQ+ufjl0rJjD2/isUSZQFRfm/RGaPDrSrCtiZLheJammCW
+         xPxKfGoSrwXzUOj+mzirOsKX+bnfU0gssUlSl6J6c9lpOXxkHAV67674+Y1emc6znP6/
+         0Ov6+3pe/j+oUhnYt7zvCIreSyBa+nqabfPg7HFueO9O0vq/sp7ErXsBn7dczysLi3M8
+         7gZlzdp0G/f9CQLHf4CjYXZuqB9ZvJaWSEHdvs7Hsa2Y4G+l1p/XRMru7k5HRe2s80M/
+         Qwq7OYsC2ewHeqyNUleOjb6Px3LjHeQg+QJvekFTPlwEWAxz1X9Q+F5cQNQqRGERs36g
+         VJ9g==
+X-Gm-Message-State: AOAM531j9B4rXRCZJwBsPu/fBYvXlsS9GKRAej2OfonCpxiClYpHx3xj
+        5Y/ecfljoqnkGWRginb2qbNLMhaLwVMk//7Kzlls+70ttxbc2Q==
+X-Google-Smtp-Source: ABdhPJw5auWCqQHSJm24bEJ2kXtOw4b4XpqDDSCaH0x+ylCi8syeGkKj4TMOwTEOtK/X5cOUD5/hLMvmLVUl/5xZDCs=
+X-Received: by 2002:a05:6402:a53:: with SMTP id bt19mr7282780edb.104.1607612207423;
+ Thu, 10 Dec 2020 06:56:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+References: <20201209164542.61387-1-jinpu.wang@cloud.ionos.com> <20201209164542.61387-3-jinpu.wang@cloud.ionos.com>
+In-Reply-To: <20201209164542.61387-3-jinpu.wang@cloud.ionos.com>
+From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date:   Thu, 10 Dec 2020 15:56:15 +0100
+Message-ID: <CAMGffE=_axtHU=pAV3qx5FVY2pB786z3kffQwDzinOaH=yS5Ag@mail.gmail.com>
+Subject: Re: [PATCH for-next 02/18] RMDA/rtrs-srv: Occasionally flush ongoing
+ session closing
+To:     linux-rdma@vger.kernel.org
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Only the low 12 bits of vlan_id is valid, and service level has been filled
-in Address Vector. So there is no need to fill sl in vlan_id in Address
-Vector.
+On Wed, Dec 9, 2020 at 5:45 PM Jack Wang <jinpu.wang@cloud.ionos.com> wrote:
+>
+> If there are many establishments/teardowns, we need to make sure
+> we do not consume too much system memory. Thus let on going
+> session closing to finish before accepting new connection.
+>
+> Inspired by commit 777dc82395de ("nvmet-rdma: occasionally flush ongoing controller teardown")
+> Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+> Reviewed-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Please ignore this one, it could lead to deadlock, due to the fact
+cma_ib_req_handler is holding
+mutex_lock(&listen_id->handler_mutex) when calling into
+rtrs_rdma_connect, we call close_work which will call rdma_destroy_id,
+which
+could try to hold the same handler_mutex, so deadlock.
 
-Fixes: 7406c0036f85 ("RDMA/hns: Only record vlan info for HIP08")
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_ah.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+Sorry & thanks!
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index c9a44db..cc258ed 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -36,9 +36,6 @@
- #include <rdma/ib_cache.h>
- #include "hns_roce_device.h"
- 
--#define VLAN_SL_MASK 7
--#define VLAN_SL_SHIFT 13
--
- static inline u16 get_ah_udp_sport(const struct rdma_ah_attr *ah_attr)
- {
- 	u32 fl = ah_attr->grh.flow_label;
-@@ -84,18 +81,12 @@ int hns_roce_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
- 
- 	/* HIP08 needs to record vlan info in Address Vector */
- 	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08) {
--		ah->av.vlan_en = 0;
--
- 		ret = rdma_read_gid_l2_fields(ah_attr->grh.sgid_attr,
- 					      &ah->av.vlan_id, NULL);
- 		if (ret)
- 			return ret;
- 
--		if (ah->av.vlan_id < VLAN_N_VID) {
--			ah->av.vlan_en = 1;
--			ah->av.vlan_id |= (rdma_ah_get_sl(ah_attr) & VLAN_SL_MASK) <<
--					  VLAN_SL_SHIFT;
--		}
-+		ah->av.vlan_en = ah->av.vlan_id < VLAN_N_VID;
- 	}
- 
- 	return ret;
--- 
-2.8.1
+Jack
 
+> ---
+>  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> index ed4628f032bb..0a2202c28b54 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> @@ -1791,6 +1791,10 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+>                 err = -ENOMEM;
+>                 goto reject_w_err;
+>         }
+> +       if (!cid) {
+> +               /* Let inflight session teardown complete */
+> +               flush_workqueue(rtrs_wq);
+> +       }
+>         mutex_lock(&srv->paths_mutex);
+>         sess = __find_sess(srv, &msg->sess_uuid);
+>         if (sess) {
+> --
+> 2.25.1
+>
