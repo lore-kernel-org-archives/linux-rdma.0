@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DDBC4167B
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 961DCC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1096230FC
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C7A0230FC
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:25:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389222AbgLJNZa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 08:25:30 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9582 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389230AbgLJNZ3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:25:29 -0500
-Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsF4L4rqjzM32l;
-        Thu, 10 Dec 2020 21:24:02 +0800 (CST)
+        id S2389260AbgLJNZf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 08:25:35 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9152 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731917AbgLJNZf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:25:35 -0500
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CsF4d2CZmz15bDJ;
+        Thu, 10 Dec 2020 21:24:17 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 10 Dec 2020 21:24:37 +0800
+ 14.3.487.0; Thu, 10 Dec 2020 21:24:39 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v3 for-next 02/11] RDMA/hns: Normalization the judgment of some features
-Date:   Thu, 10 Dec 2020 21:22:43 +0800
-Message-ID: <1607606572-11968-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 08/11] RDMA/hns: Clear redundant variable initialization
+Date:   Thu, 10 Dec 2020 21:22:49 +0800
+Message-ID: <1607606572-11968-9-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1607606572-11968-1-git-send-email-liweihang@huawei.com>
 References: <1607606572-11968-1-git-send-email-liweihang@huawei.com>
@@ -43,92 +43,64 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Xinhao Liu <liuxinhao5@hisilicon.com>
 
-Whether to enable the these features should better depend on the enable
-flags, not the value of related fields.
+There is no need to initialize some variable because they will be assigned
+with a value later.
 
-Fixes: 5c1f167af112 ("RDMA/hns: Init SRQ table for hip08")
-Fixes: 3cb2c996c9dc ("RDMA/hns: Add support for SCCC in size of 64 Bytes")
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c  | 4 ++--
- drivers/infiniband/hw/hns/hns_roce_main.c | 8 ++++----
- drivers/infiniband/hw/hns/hns_roce_qp.c   | 2 +-
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c   | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 5c302ae..359e5dd 100644
+index 303c8dd..f19bbcc 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hem.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -1028,7 +1028,7 @@ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
+@@ -887,7 +887,7 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ 		unsigned long buf_chunk_size;
+ 		unsigned long bt_chunk_size;
+ 		unsigned long bt_chunk_num;
+-		unsigned long num_bt_l0 = 0;
++		unsigned long num_bt_l0;
+ 		u32 hop_num;
  
- void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
- {
--	if (hr_dev->caps.srqc_entry_sz)
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
- 		hns_roce_cleanup_hem_table(hr_dev,
- 					   &hr_dev->srq_table.table);
- 	hns_roce_cleanup_hem_table(hr_dev, &hr_dev->cq_table.table);
-@@ -1038,7 +1038,7 @@ void hns_roce_cleanup_hem(struct hns_roce_dev *hr_dev)
- 	if (hr_dev->caps.cqc_timer_entry_sz)
- 		hns_roce_cleanup_hem_table(hr_dev,
- 					   &hr_dev->cqc_timer_table);
--	if (hr_dev->caps.sccc_sz)
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
- 		hns_roce_cleanup_hem_table(hr_dev,
- 					   &hr_dev->qp_table.sccc_table);
- 	if (hr_dev->caps.trrl_entry_sz)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index bc46624..dbb1af1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -606,7 +606,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- 		goto err_unmap_trrl;
- 	}
+ 		if (get_hem_table_config(hr_dev, &mhop, type))
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index eb0fd72..0f4273d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -353,8 +353,8 @@ static int hns_roce_v1_post_recv(struct ib_qp *ibqp,
+ 	unsigned long flags = 0;
+ 	unsigned int wqe_idx;
+ 	int ret = 0;
+-	int nreq = 0;
+-	int i = 0;
++	int nreq;
++	int i;
+ 	u32 reg_val;
  
--	if (hr_dev->caps.srqc_entry_sz) {
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
- 		ret = hns_roce_init_hem_table(hr_dev, &hr_dev->srq_table.table,
- 					      HEM_TYPE_SRQC,
- 					      hr_dev->caps.srqc_entry_sz,
-@@ -618,7 +618,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- 		}
- 	}
+ 	spin_lock_irqsave(&hr_qp->rq.lock, flags);
+@@ -2300,7 +2300,7 @@ int hns_roce_v1_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ 	struct hns_roce_qp *cur_qp = NULL;
+ 	unsigned long flags;
+ 	int npolled;
+-	int ret = 0;
++	int ret;
  
--	if (hr_dev->caps.sccc_sz) {
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
- 		ret = hns_roce_init_hem_table(hr_dev,
- 					      &hr_dev->qp_table.sccc_table,
- 					      HEM_TYPE_SCCC,
-@@ -679,11 +679,11 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
- 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->qpc_timer_table);
+ 	spin_lock_irqsave(&hr_cq->lock, flags);
  
- err_unmap_ctx:
--	if (hr_dev->caps.sccc_sz)
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL)
- 		hns_roce_cleanup_hem_table(hr_dev,
- 					   &hr_dev->qp_table.sccc_table);
- err_unmap_srq:
--	if (hr_dev->caps.srqc_entry_sz)
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
- 		hns_roce_cleanup_hem_table(hr_dev, &hr_dev->srq_table.table);
- 
- err_unmap_cq:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index c85513d..76a7c95 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -334,7 +334,7 @@ static int alloc_qpc(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 		}
- 	}
- 
--	if (hr_dev->caps.sccc_sz) {
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_FLOW_CTRL) {
- 		/* Alloc memory for SCC CTX */
- 		ret = hns_roce_table_get(hr_dev, &qp_table->sccc_table,
- 					 hr_qp->qpn);
+@@ -4123,7 +4123,7 @@ static int hns_roce_v1_create_eq(struct hns_roce_dev *hr_dev,
+ 	void __iomem *eqc = hr_dev->eq_table.eqc_base[eq->eqn];
+ 	struct device *dev = &hr_dev->pdev->dev;
+ 	dma_addr_t tmp_dma_addr;
+-	u32 eqcuridx_val = 0;
++	u32 eqcuridx_val;
+ 	u32 eqconsindx_val;
+ 	u32 eqshift_val;
+ 	__le32 tmp2 = 0;
 -- 
 2.8.1
 
