@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E81C5C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:57:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C03EC4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:58:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6A3123119
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:57:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C21423119
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 13:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389780AbgLJN5i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 08:57:38 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9500 "EHLO
+        id S1729675AbgLJN6M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 08:58:12 -0500
+Received: from szxga05-in.huawei.com ([45.249.212.191]:9502 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389777AbgLJN5h (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:57:37 -0500
+        with ESMTP id S2389623AbgLJN6D (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 08:58:03 -0500
 Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsFnD1ybYzhpLL;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CsFnD3fpXzhq7g;
         Thu, 10 Dec 2020 21:56:00 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 10 Dec 2020 21:56:25 +0800
+ 14.3.487.0; Thu, 10 Dec 2020 21:56:26 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH v4 for-next 01/11] RDMA/hns: Limit the length of data copied between kernel and userspace
-Date:   Thu, 10 Dec 2020 21:54:29 +0800
-Message-ID: <1607608479-54518-2-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v4 for-next 06/11] RDMA/hns: Remove unnecessary access right set during INIT2INIT
+Date:   Thu, 10 Dec 2020 21:54:34 +0800
+Message-ID: <1607608479-54518-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1607608479-54518-1-git-send-email-liweihang@huawei.com>
 References: <1607608479-54518-1-git-send-email-liweihang@huawei.com>
@@ -43,141 +43,84 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+From: Yixian Liu <liuyixian@huawei.com>
 
-For ib_copy_from_user(), the length of udata may not be the same as that
-of cmd. For ib_copy_to_user(), the length of udata may not be the same as
-that of resp. So limit the length to prevent out-of-bounds read and write
-operations from ib_copy_from_user() and ib_copy_to_user().
+As the qp access right is checked and setted in common function
+hns_roce_v2_set_opt_fields(), there is no need to set again for a special
+case INIT2INIT.
 
-Fixes: de77503a5940 ("RDMA/hns: RDMA/hns: Assign rq head pointer when enable rq record db")
-Fixes: 633fb4d9fdaa ("RDMA/hns: Use structs to describe the uABI instead of opencoding")
-Fixes: ae85bf92effc ("RDMA/hns: Optimize qp param setup flow")
-Fixes: 6fd610c5733d ("RDMA/hns: Support 0 hop addressing for SRQ buffer")
-Fixes: 9d9d4ff78884 ("RDMA/hns: Update the kernel header file of hns")
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Fixes: 7db82697b8bf ("RDMA/hns: Add support for extended atomic in userspace")
+Signed-off-by: Yixian Liu <liuyixian@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c   |  5 +++--
- drivers/infiniband/hw/hns/hns_roce_main.c |  3 ++-
- drivers/infiniband/hw/hns/hns_roce_pd.c   | 11 ++++++-----
- drivers/infiniband/hw/hns/hns_roce_qp.c   |  9 ++++++---
- drivers/infiniband/hw/hns/hns_roce_srq.c  | 10 +++++-----
- 5 files changed, 22 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 46 ------------------------------
+ 1 file changed, 46 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 5e6d688..e67c2b9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -276,7 +276,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index b2b8052..6d80cda 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3975,7 +3975,6 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
  
- 	if (udata) {
- 		ret = ib_copy_from_udata(&ucmd, udata,
--					 min(sizeof(ucmd), udata->inlen));
-+					 min(udata->inlen, sizeof(ucmd)));
- 		if (ret) {
- 			ibdev_err(ibdev, "Failed to copy CQ udata, err %d\n",
- 				  ret);
-@@ -315,7 +315,8 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 	roce_set_bit(context->byte_172_sq_psn, V2_QPC_BYTE_172_FRE_S, 1);
  
- 	if (udata) {
- 		resp.cqn = hr_cq->cqn;
--		ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
- 		if (ret)
- 			goto err_cqc;
- 	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index e8aa807..bc46624 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -327,7 +327,8 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+-	hr_qp->access_flags = attr->qp_access_flags;
+ 	roce_set_field(context->byte_252_err_txcqn, V2_QPC_BYTE_252_TX_CQN_M,
+ 		       V2_QPC_BYTE_252_TX_CQN_S, to_hr_cq(ibqp->send_cq)->cqn);
  
- 	resp.cqe_size = hr_dev->caps.cqe_sz;
+@@ -4004,51 +4003,6 @@ static void modify_qp_init_to_init(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_4_sqpn_tst, V2_QPC_BYTE_4_TST_M,
+ 		       V2_QPC_BYTE_4_TST_S, 0);
  
--	ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+	ret = ib_copy_to_udata(udata, &resp,
-+			       min(udata->outlen, sizeof(resp)));
- 	if (ret)
- 		goto error_fail_copy_to_udata;
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index 45ec91d..8dccb6e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_pd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -69,16 +69,17 @@ int hns_roce_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 	}
- 
- 	if (udata) {
--		struct hns_roce_ib_alloc_pd_resp uresp = {.pdn = pd->pdn};
-+		struct hns_roce_ib_alloc_pd_resp resp = {.pdn = pd->pdn};
- 
--		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
-+		if (ret) {
- 			hns_roce_pd_free(to_hr_dev(ib_dev), pd->pdn);
--			ibdev_err(ib_dev, "failed to copy to udata\n");
--			return -EFAULT;
-+			ibdev_err(ib_dev, "failed to copy to udata, ret = %d\n", ret);
- 		}
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- int hns_roce_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 121d3b4..c85513d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -924,9 +924,12 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	}
- 
- 	if (udata) {
--		if (ib_copy_from_udata(ucmd, udata, sizeof(*ucmd))) {
--			ibdev_err(ibdev, "Failed to copy QP ucmd\n");
--			return -EFAULT;
-+		ret = ib_copy_from_udata(ucmd, udata,
-+					 min(udata->inlen, sizeof(*ucmd)));
-+		if (ret) {
-+			ibdev_err(ibdev,
-+				  "failed to copy QP ucmd, ret = %d\n", ret);
-+			return ret;
- 		}
- 
- 		ret = set_user_sq_size(hr_dev, &init_attr->cap, hr_qp, ucmd);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index 36c6bcb..6a3ebb3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -303,7 +303,8 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	srq->max_gs = init_attr->attr.max_sge;
- 
- 	if (udata) {
--		ret = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
-+		ret = ib_copy_from_udata(&ucmd, udata,
-+					 min(udata->inlen, sizeof(ucmd)));
- 		if (ret) {
- 			ibdev_err(ibdev, "Failed to copy SRQ udata, err %d\n",
- 				  ret);
-@@ -346,11 +347,10 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
- 	resp.srqn = srq->srqn;
- 
- 	if (udata) {
--		if (ib_copy_to_udata(udata, &resp,
--				     min(udata->outlen, sizeof(resp)))) {
--			ret = -EFAULT;
-+		ret = ib_copy_to_udata(udata, &resp,
-+				       min(udata->outlen, sizeof(resp)));
-+		if (ret)
- 			goto err_srqc_alloc;
--		}
- 	}
- 
- 	return 0;
+-	if (attr_mask & IB_QP_ACCESS_FLAGS) {
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     !!(attr->qp_access_flags & IB_ACCESS_REMOTE_READ));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     !!(attr->qp_access_flags &
+-			     IB_ACCESS_REMOTE_WRITE));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     !!(attr->qp_access_flags &
+-			     IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     0);
+-		roce_set_bit(context->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S,
+-			     !!(attr->qp_access_flags &
+-				IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
+-	} else {
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_READ));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RRE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_WRITE));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_RWE_S,
+-			     0);
+-
+-		roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en, V2_QPC_BYTE_76_ATE_S,
+-			     0);
+-		roce_set_bit(context->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S,
+-			     !!(hr_qp->access_flags & IB_ACCESS_REMOTE_ATOMIC));
+-		roce_set_bit(qpc_mask->byte_76_srqn_op_en,
+-			     V2_QPC_BYTE_76_EXT_ATE_S, 0);
+-	}
+-
+ 	roce_set_field(context->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
+ 		       V2_QPC_BYTE_16_PD_S, to_hr_pd(ibqp->pd)->pdn);
+ 	roce_set_field(qpc_mask->byte_16_buf_ba_pg_sz, V2_QPC_BYTE_16_PD_M,
 -- 
 2.8.1
 
