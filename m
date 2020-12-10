@@ -2,52 +2,52 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F7CC1B0E3
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:01:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6100C2BB48
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B8B522E00
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:01:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A92C322D5A
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:01:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404509AbgLJUB1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 15:01:27 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:57658 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393543AbgLJTn3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:29 -0500
-Message-Id: <20201210194045.065115500@linutronix.de>
+        id S2404366AbgLJT7e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:59:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53270 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390461AbgLJTnb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:31 -0500
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 479B4C0617B0;
+        Thu, 10 Dec 2020 11:42:26 -0800 (PST)
+Message-Id: <20201210194043.362094758@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629366;
+        s=2020; t=1607629344;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=tEVls3jI8V5LtEBTs0cm0Szr6SDBh3GYqdx/X7n2UZY=;
-        b=bwVQ7gaQwvbfHTgP7MZDc/YhDLMbL2OEi1WnGDxUtEPa/zAOSNbqLaLeQTtD11Dg5082Qp
-        Qz2zPtGhojJeSFokGiFaFmgg8DCDEwh1sTNplvk+ABtrVMp4PQqBe9MzYq5Rmcua4Vok7H
-        MC3M8vw+sJGbud8ji2De2+9/N0C9SKASfhkEKBqszbBCF+wOvRW/V0B92szqDuXVqeCKre
-        YRoIqIe820JAXb6fr66VrfJCEVfdlAwTC/JagtnRSgmfc3XazagnRYgk6a6iOnmsLRNX1p
-        MVTREOpKae1E6DDuEk9FawkuR3E7r4E4WNu7go88D2q5JTNminPamGP01SwVTQ==
+        bh=xI8ipC8kVjJGltjSHu5Mwub/dbA42XKOSuIg0xDxbuM=;
+        b=D/de10U4HoG38vblr7IeySKjPU1LbUwG6rWRmeGYZrTiPhh//Hh7l/GxJreJ0rFcvzRPJy
+        uoauNylV8dWf/MoltroGmVGhvJ2oJ5Y1i1Hdh3B/UY4mD9pwH+y7Dg4V+Vuar0V4FZXmUS
+        6T9k0+65HYvYSEKNJ4TVXxdcFWWUmHXiCvk5q873lejGHd1ZF8kDnbNFZOuvndA/bZ6hqk
+        upKi4g8D5MCEBYYTgyELzJKcRa+JlxwqpINFEbwiyouRus62LMleSD5uCsPspz8eEzaopF
+        eLafHsQRj846r/5tje8mdg+dCV5YsColFl6docNWF4RiFgqrORcZz2o154ST/Q==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629366;
+        s=2020e; t=1607629344;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=tEVls3jI8V5LtEBTs0cm0Szr6SDBh3GYqdx/X7n2UZY=;
-        b=oavywJTHDWv3olwcxAvfm8NfynriH4GVMpKUR3SAwF8GgtSSOX9oqiCpUNJcYYnYuyj2zl
-        2KDiXd1knCZbiIAw==
-Date:   Thu, 10 Dec 2020 20:26:01 +0100
+        bh=xI8ipC8kVjJGltjSHu5Mwub/dbA42XKOSuIg0xDxbuM=;
+        b=uhk8uY0rFu42URnjai4w+dmeZE7ul5z78imfPTBVOwBrf5zNSXRAMP26aad4ZYcrnfPUQU
+        IQRkkJ1oiqPOXJDw==
+Date:   Thu, 10 Dec 2020 20:25:44 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        xen-devel@lists.xenproject.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
@@ -84,8 +84,12 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>
-Subject: [patch 25/30] xen/events: Remove disfunct affinity spreading
+        Leon Romanovsky <leon@kernel.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org
+Subject: [patch 08/30] genirq: Provide kstat_irqdesc_cpu()
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -94,97 +98,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This function can only ever work when the event channels:
+Most users of kstat_irqs_cpu() have the irq descriptor already. No point in
+calling into the core code and looking it up once more.
 
-  - are already established
-  - interrupts assigned to them
-  - the affinity has been set by user space already
-
-because any newly set up event channel is forced to be bound to CPU0 and
-the affinity mask of the interrupt is forced to contain cpumask_of(0).
-
-As the CPU0 enforcement was in place _before_ this was implemented it's
-entirely unclear how that can ever have worked at all.
-
-Remove it as preparation for doing it proper.
+Use it in per_cpu_count_show() to start with.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: xen-devel@lists.xenproject.org
 ---
- drivers/xen/events/events_base.c |    9 ---------
- drivers/xen/evtchn.c             |   34 +---------------------------------
- 2 files changed, 1 insertion(+), 42 deletions(-)
+ include/linux/irqdesc.h |    6 ++++++
+ kernel/irq/irqdesc.c    |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/drivers/xen/events/events_base.c
-+++ b/drivers/xen/events/events_base.c
-@@ -1696,15 +1696,6 @@ static int set_affinity_irq(struct irq_d
- 	return ret;
- }
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -113,6 +113,12 @@ static inline void irq_unlock_sparse(voi
+ extern struct irq_desc irq_desc[NR_IRQS];
+ #endif
  
--/* To be called with desc->lock held. */
--int xen_set_affinity_evtchn(struct irq_desc *desc, unsigned int tcpu)
--{
--	struct irq_data *d = irq_desc_get_irq_data(desc);
--
--	return set_affinity_irq(d, cpumask_of(tcpu), false);
--}
--EXPORT_SYMBOL_GPL(xen_set_affinity_evtchn);
--
- static void enable_dynirq(struct irq_data *data)
++static inline unsigned int irq_desc_kstat_cpu(struct irq_desc *desc,
++					      unsigned int cpu)
++{
++	return desc->kstat_irqs ? *per_cpu_ptr(desc->kstat_irqs, cpu) : 0;
++}
++
+ static inline struct irq_desc *irq_data_to_desc(struct irq_data *data)
  {
- 	evtchn_port_t evtchn = evtchn_from_irq(data->irq);
---- a/drivers/xen/evtchn.c
-+++ b/drivers/xen/evtchn.c
-@@ -421,36 +421,6 @@ static void evtchn_unbind_from_user(stru
- 	del_evtchn(u, evtchn);
- }
- 
--static DEFINE_PER_CPU(int, bind_last_selected_cpu);
--
--static void evtchn_bind_interdom_next_vcpu(evtchn_port_t evtchn)
--{
--	unsigned int selected_cpu, irq;
--	struct irq_desc *desc;
--	unsigned long flags;
--
--	irq = irq_from_evtchn(evtchn);
--	desc = irq_to_desc(irq);
--
--	if (!desc)
--		return;
--
--	raw_spin_lock_irqsave(&desc->lock, flags);
--	selected_cpu = this_cpu_read(bind_last_selected_cpu);
--	selected_cpu = cpumask_next_and(selected_cpu,
--			desc->irq_common_data.affinity, cpu_online_mask);
--
--	if (unlikely(selected_cpu >= nr_cpu_ids))
--		selected_cpu = cpumask_first_and(desc->irq_common_data.affinity,
--				cpu_online_mask);
--
--	this_cpu_write(bind_last_selected_cpu, selected_cpu);
--
--	/* unmask expects irqs to be disabled */
--	xen_set_affinity_evtchn(desc, selected_cpu);
--	raw_spin_unlock_irqrestore(&desc->lock, flags);
--}
--
- static long evtchn_ioctl(struct file *file,
- 			 unsigned int cmd, unsigned long arg)
+ 	return container_of(data->common, struct irq_desc, irq_common_data);
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -147,12 +147,12 @@ static ssize_t per_cpu_count_show(struct
+ 				  struct kobj_attribute *attr, char *buf)
  {
-@@ -508,10 +478,8 @@ static long evtchn_ioctl(struct file *fi
- 			break;
+ 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
+-	int cpu, irq = desc->irq_data.irq;
+ 	ssize_t ret = 0;
+ 	char *p = "";
++	int cpu;
  
- 		rc = evtchn_bind_to_user(u, bind_interdomain.local_port);
--		if (rc == 0) {
-+		if (rc == 0)
- 			rc = bind_interdomain.local_port;
--			evtchn_bind_interdom_next_vcpu(rc);
--		}
- 		break;
- 	}
+ 	for_each_possible_cpu(cpu) {
+-		unsigned int c = kstat_irqs_cpu(irq, cpu);
++		unsigned int c = irq_desc_kstat_cpu(desc, cpu);
  
+ 		ret += scnprintf(buf + ret, PAGE_SIZE - ret, "%s%u", p, c);
+ 		p = ",";
 
