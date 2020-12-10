@@ -2,109 +2,146 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A55CC433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 23:15:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 664EAC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 23:23:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E9CC23B85
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 23:15:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EE5E23DE8
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 23:23:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725789AbgLJXPE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 18:15:04 -0500
-Received: from nat-hk.nvidia.com ([203.18.50.4]:7054 "EHLO nat-hk.nvidia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393087AbgLJXOt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 10 Dec 2020 18:14:49 -0500
-Received: from HKMAIL102.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5fd2abbe0001>; Fri, 11 Dec 2020 07:14:06 +0800
-Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL102.nvidia.com
- (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 10 Dec
- 2020 23:14:06 +0000
-Received: from NAM04-BN3-obe.outbound.protection.outlook.com (104.47.46.52) by
- HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 10 Dec 2020 23:14:06 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=GO576VMKRVLrSWkADBVc4N/P1Or1bAAAeUwOO12t9whwjF5NMNJK6W6UDPIiv/ponWySv9m2kDPFimLPis7gaqTJmUZVyA5VQynnwAHieXaGm5E7SeWKv2YvlNNjXvlf6BJwZsa1hmwg3hV/KCn/jbuLcHaLhJofxKMBUu+AmWd3GDz9Vz0SpxXEAk+eQNsvsyXnWJ7lQgyQT6IQwnQhwKypCZFYbejA9RByoKsbTk3Y48hdEMDnscLNbaJm9rTaovg9fPY0ee5mpGDUmBVOYkFoJvT+5rfLbwjvUhQSer9i3jwsjMYmyaeyN7SrhVFHIvExER1kLVIZuVo+EF63fg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=7qbtO4vxst9IHdsTAD0AiE+cAnTtxaqNxTOGX8eLOLY=;
- b=hoFIeUMEM+bixP37KLNMW40HU5ZGgyxKqnz8rgBY5RZnkRwgVDvs3NxppbPynAghfZ0veb80MNfgv+z3KX3CKgvNao42LanwuFbZShWogqL+eywjOIKs1jiAyvfI7c0p9eHhAJazj8eQ5NXYWAwJrjxfT8kpp1pyBDkERp4hv+SOhH8Bp8juBkqUw9r3dVU986aWyWAyCKpzOb5jipwg8YUYa2D9Uuuy/1qgmlYa0TTJPGv2nfE//mk7bgW1MFeXKieRI5g9lvoxHfWcA9RHPmE4wF1Viw6MOb5NBQELg86RMIgsDd3wYcPzmchK42kEpl3A4rp2J490Z86GQf1z8Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3836.namprd12.prod.outlook.com (2603:10b6:5:1c3::33) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17; Thu, 10 Dec
- 2020 23:14:02 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1ce9:3434:90fe:3433]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1ce9:3434:90fe:3433%3]) with mapi id 15.20.3632.023; Thu, 10 Dec 2020
- 23:14:02 +0000
-Date:   Thu, 10 Dec 2020 19:14:00 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-CC:     <zyjzyj2000@gmail.com>, <linux-rdma@vger.kernel.org>,
-        Bob Pearson <rpearson@hpe.com>
-Subject: Re: [PATCH v2] RDMA/rxe: Use acquire/release for memory ordering
-Message-ID: <20201210231400.GZ552508@nvidia.com>
-References: <20201210174258.5234-1-rpearson@hpe.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20201210174258.5234-1-rpearson@hpe.com>
-X-ClientProxiedBy: BL1PR13CA0428.namprd13.prod.outlook.com
- (2603:10b6:208:2c3::13) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S2394288AbgLJXXF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 18:23:05 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:33688 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2394246AbgLJXWp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 18:22:45 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BANJcxD076282;
+        Thu, 10 Dec 2020 23:21:08 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=g9HQMgG8/lH1Xl7UdSJNvDAMRQCo3FWW7Bk60ydYMFM=;
+ b=yiiSqUT1ul8LHgAfKjBlIB4yYYSpi+fGANCSKFFlOWkOUouS3Dv2O9HSPvMZHyva2HLa
+ t2URiRpBCtd04nx9Lq/bUlqBSfAvdgny9AZ7r99NqQl+3SLxNcNacBmNDpvbnkmq+RJf
+ tkHuWp0PFf1OqSZUrQZdo1op9pLE6PCegbVRzlACJRrfsJakcoaM7H+sCwUihUEMr2fQ
+ dVrKn7O2B0uCiKt4l0ihiQonSCwdjdrSogLQz8qpbD6/3t1pwKq6cTqj0HVlsjBYL0mf
+ j+yxZxQYgeFZOyVTmAVytFe3f0zAIJgGCpXDL4UlTLva10Xtrln9de8y9hZfow66cFAT Dg== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by aserp2120.oracle.com with ESMTP id 35825mg2bs-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 10 Dec 2020 23:21:08 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BANKtw7149340;
+        Thu, 10 Dec 2020 23:21:07 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by aserp3020.oracle.com with ESMTP id 358m42f5be-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 10 Dec 2020 23:21:07 +0000
+Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0BANKp8g025210;
+        Thu, 10 Dec 2020 23:20:51 GMT
+Received: from [10.39.227.125] (/10.39.227.125)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 10 Dec 2020 15:20:51 -0800
+Subject: Re: [patch 27/30] xen/events: Only force affinity mask for percpu
+ interrupts
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        LKML <linux-kernel@vger.kernel.org>
+Cc:     Peter Zijlstra <peterz@infradead.org>,
+        Marc Zyngier <maz@kernel.org>, Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        afzal mohammed <afzal.mohd.ma@gmail.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel@lists.infradead.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Wambui Karuga <wambui.karugax@gmail.com>,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
+        Jon Mason <jdmason@kudzu.us>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-pci@vger.kernel.org,
+        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
+        Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>
+References: <20201210192536.118432146@linutronix.de>
+ <20201210194045.250321315@linutronix.de>
+From:   boris.ostrovsky@oracle.com
+Organization: Oracle Corporation
+Message-ID: <7f7af60f-567f-cdef-f8db-8062a44758ce@oracle.com>
+Date:   Thu, 10 Dec 2020 18:20:46 -0500
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.5.1
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0428.namprd13.prod.outlook.com (2603:10b6:208:2c3::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.10 via Frontend Transport; Thu, 10 Dec 2020 23:14:02 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1knV8K-0091AF-UO; Thu, 10 Dec 2020 19:14:00 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1607642046; bh=7qbtO4vxst9IHdsTAD0AiE+cAnTtxaqNxTOGX8eLOLY=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=cSsYtR0Uj+yTQfD3YifTODfqRP+YZVp4u+wlnSY6LRWIN+ZXbYgnJTJJojUk2fEwd
-         uU34PSKy505heliJGnuN871oDWNUCglBvtIp8F1+y4qrVeIH8O6TA8IkG5ivqgdXlM
-         HzLGeIGNIPSO8JuNCCQVDn0iWr4LPKgZbbs4QswbVyFWOz8ZscCi1IXctrfgpYrWPv
-         8BFuLBMWUUEF0C20FTPGnMwj3KH9gwFECtG10CaWxfPSCachaowRMQfKFQMJd5/QTG
-         aYaePsiVavkze0ZK5ZQFEy/XZ3qqpWKmnTw1SCfHCNIiTi8pJv1HBamDZoAwsZcn2m
-         p4NwS8gfaw8sQ==
+In-Reply-To: <20201210194045.250321315@linutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9831 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 malwarescore=0 adultscore=0
+ bulkscore=0 phishscore=0 suspectscore=0 mlxscore=0 mlxlogscore=999
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2012100149
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9831 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 adultscore=0 bulkscore=0
+ phishscore=0 mlxlogscore=999 clxscore=1015 priorityscore=1501 mlxscore=0
+ spamscore=0 lowpriorityscore=0 malwarescore=0 impostorscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2012100149
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2020 at 11:42:59AM -0600, Bob Pearson wrote:
 
-> @@ -76,26 +56,56 @@ static inline int next_index(struct rxe_queue *q, int index)
->  
->  static inline int queue_empty(struct rxe_queue *q)
->  {
-> -	return ((q->buf->producer_index - q->buf->consumer_index)
-> -			& q->index_mask) == 0;
-> +	u32 prod;
-> +	u32 cons;
-> +
-> +	/* make sure all changes to queue complete before
-> +	 * testing queue empty
-> +	 */
-> +	prod = smp_load_acquire(&q->buf->producer_index);
-> +	/* same */
-> +	cons = smp_load_acquire(&q->buf->consumer_index);
+On 12/10/20 2:26 PM, Thomas Gleixner wrote:
+> All event channel setups bind the interrupt on CPU0 or the target CPU for
+> percpu interrupts and overwrite the affinity mask with the corresponding
+> cpumask. That does not make sense.
+>
+> The XEN implementation of irqchip::irq_set_affinity() already picks a
+> single target CPU out of the affinity mask and the actual target is stored
+> in the effective CPU mask, so destroying the user chosen affinity mask
+> which might contain more than one CPU is wrong.
+>
+> Change the implementation so that the channel is bound to CPU0 at the XEN
+> level and leave the affinity mask alone. At startup of the interrupt
+> affinity will be assigned out of the affinity mask and the XEN binding will
+> be updated. 
 
-This is not so sensible. The one written by the kernel should be just
-a normal load and there must be some lock held here to protect that
 
-The one written by user space should be just READ_ONCE
+If that's the case then I wonder whether we need this call at all and instead bind at startup time.
 
-acquire only has meaning if you go on to read additional data based on
-the result of the acquire - then acquire ensures the additional reads
-can't cross writes that occured before the matching release.
 
-Jason
+-boris
+
+
+> Only keep the enforcement for real percpu interrupts.
