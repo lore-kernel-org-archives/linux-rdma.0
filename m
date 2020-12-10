@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF60EC4361B
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:09:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CFE3C4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:10:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BB3B2332A
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:09:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AD602332A
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:10:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390353AbgLJUDM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 15:03:12 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:57392 "EHLO
-        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390176AbgLJTnY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:24 -0500
-Message-Id: <20201210194044.672935978@linutronix.de>
+        id S2393680AbgLJUJm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 15:09:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53204 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404279AbgLJTnF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:05 -0500
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB7F7C0617A7;
+        Thu, 10 Dec 2020 11:42:24 -0800 (PST)
+Message-Id: <20201210194043.268774449@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629361;
+        s=2020; t=1607629343;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=Qj+nUJLINsvJ1wGGRtokQbSqazbntoaovZZiHCUfEoU=;
-        b=mj3Kocu4reYCYLMxNnXCB7pRMj/V2SipP9aFrWWSpDZJXbRGUx/etWSEc4UA9axZe8vH6Z
-        zCNVDaK1BEFqY4IWswwKyY8R7IgAyKxoeqPwRK9IXNNmGiGmnhY15xlempvvXuPFw2/rOc
-        mTCNzl+Tvzsv8H1Zumi6u4b7ahs/w0J8EI2jeDxL0Y5ZADiAONcn7tXXZuRD+mnMyLrQkH
-        8jP8OkOSyfio3wKvjr3Z/OVEvqX5ZlAghchZfn24t0pny2f/12ifma3CZVk+AVM0PtaOxp
-        ZDpdmrDdGhcDUTfi8/G7SVOrzhh/vhKhIeACLrs9VfJAm1rl5JDinUE3lR6YsQ==
+        bh=KtzFp0nR+dJW1v891+1wc4D+KUTADWJVxpq6j1ykdfo=;
+        b=BwWrBYP0c3Z0lFh3V6qC90H7c5G9PHEfLbQKd0hztOiqwJ4kBCiNk+VDHIcCk1P/HxJJE+
+        zt6CbhOUy0zFcpFdRmOFsyfb9chR0Qx1RUaHNJMzGPe4/YSaExFvgbHq6rbAS7kLyxP5tj
+        50aob2dpVHhgmHdoE9LrAgft46kAteQH0u20dVmWOXNd76SQCmuGq0ygZQrP10YFFulxyu
+        /qBwgM/QVkALrmRL+BjjJvZRX8irP6Tqn07c/GO5qIfUgWd74BWRs6KIHsrquTbtL84IH6
+        +M3rrImgxsn11U5KirO7h0p+JsOWwXjhPDlffX4TftaAXSN1Xiplo1xF1UMXlQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629361;
+        s=2020e; t=1607629343;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=Qj+nUJLINsvJ1wGGRtokQbSqazbntoaovZZiHCUfEoU=;
-        b=BJ2Ps/crskKu+hAqmkYsokffZfoswWJHgtK94U0YlOuWVRLji6xjfgt0Ui2ooTzFtjd00H
-        sqLSJBfAAw+mcaDw==
-Date:   Thu, 10 Dec 2020 20:25:57 +0100
+        bh=KtzFp0nR+dJW1v891+1wc4D+KUTADWJVxpq6j1ykdfo=;
+        b=YlMcwWy3vQ5LbjypUKpYuIGaMi15XbC955aXBdrVoJspoFoOrPcJRpjqt+rHhF7aRCDnxi
+        VzPUfEGKZfuiRjBQ==
+Date:   Thu, 10 Dec 2020 20:25:43 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
@@ -80,13 +79,16 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-pci@vger.kernel.org,
         Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
         Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
         Boris Ostrovsky <boris.ostrovsky@oracle.com>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 21/30] net/mlx4: Use effective interrupt affinity
+Subject: [patch 07/30] genirq: Make kstat_irqs() static
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -95,33 +97,60 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Using the interrupt affinity mask for checking locality is not really
-working well on architectures which support effective affinity masks.
-
-The affinity mask is either the system wide default or set by user space,
-but the architecture can or even must reduce the mask to the effective set,
-which means that checking the affinity mask itself does not really tell
-about the actual target CPUs.
+No more users outside the core code.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tariq Toukan <tariqt@nvidia.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
 ---
- drivers/net/ethernet/mellanox/mlx4/en_cq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel_stat.h |    1 -
+ kernel/irq/irqdesc.c        |   19 ++++++-------------
+ 2 files changed, 6 insertions(+), 14 deletions(-)
 
---- a/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-@@ -117,7 +117,7 @@ int mlx4_en_activate_cq(struct mlx4_en_p
- 			assigned_eq = true;
- 		}
- 		irq = mlx4_eq_get_irq(mdev->dev, cq->vector);
--		cq->aff_mask = irq_get_affinity_mask(irq);
-+		cq->aff_mask = irq_get_effective_affinity_mask(irq);
- 	} else {
- 		/* For TX we use the same irq per
- 		ring we assigned for the RX    */
+--- a/include/linux/kernel_stat.h
++++ b/include/linux/kernel_stat.h
+@@ -67,7 +67,6 @@ static inline unsigned int kstat_softirq
+ /*
+  * Number of interrupts per specific IRQ source, since bootup
+  */
+-extern unsigned int kstat_irqs(unsigned int irq);
+ extern unsigned int kstat_irqs_usr(unsigned int irq);
+ 
+ /*
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -924,15 +924,7 @@ static bool irq_is_nmi(struct irq_desc *
+ 	return desc->istate & IRQS_NMI;
+ }
+ 
+-/**
+- * kstat_irqs - Get the statistics for an interrupt
+- * @irq:	The interrupt number
+- *
+- * Returns the sum of interrupt counts on all cpus since boot for
+- * @irq. The caller must ensure that the interrupt is not removed
+- * concurrently.
+- */
+-unsigned int kstat_irqs(unsigned int irq)
++static unsigned int kstat_irqs(unsigned int irq)
+ {
+ 	struct irq_desc *desc = irq_to_desc(irq);
+ 	unsigned int sum = 0;
+@@ -951,13 +943,14 @@ unsigned int kstat_irqs(unsigned int irq
+ }
+ 
+ /**
+- * kstat_irqs_usr - Get the statistics for an interrupt
++ * kstat_irqs_usr - Get the statistics for an interrupt from thread context
+  * @irq:	The interrupt number
+  *
+  * Returns the sum of interrupt counts on all cpus since boot for @irq.
+- * Contrary to kstat_irqs() this can be called from any context.
+- * It uses rcu since a concurrent removal of an interrupt descriptor is
+- * observing an rcu grace period before delayed_free_desc()/irq_kobj_release().
++ *
++ * It uses rcu to protect the access since a concurrent removal of an
++ * interrupt descriptor is observing an rcu grace period before
++ * delayed_free_desc()/irq_kobj_release().
+  */
+ unsigned int kstat_irqs_usr(unsigned int irq)
+ {
 
