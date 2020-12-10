@@ -7,55 +7,54 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3DB9C4361B
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:56:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE864C4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FA6822E00
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:56:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAF7622EBF
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404458AbgLJTwD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 14:52:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53306 "EHLO
+        id S2393644AbgLJT4f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:56:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404335AbgLJTnk (ORCPT
+        with ESMTP id S2404332AbgLJTnk (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:40 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36F09C0611C5;
-        Thu, 10 Dec 2020 11:42:35 -0800 (PST)
-Message-Id: <20201210194044.065003856@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB36C061282;
+        Thu, 10 Dec 2020 11:42:28 -0800 (PST)
+Message-Id: <20201210194043.546326568@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629353;
+        s=2020; t=1607629347;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=fEH7SfFXgNBjB2KnJKxA/TzRUtcjVN/8Utn6le7GAgY=;
-        b=jLhcNWAI6/f0h7r8+rFxJO/huD0wZGw+D4hiyZeoGMMj1an/mYZLtmxjGnZ/aSu9ajxbNk
-        p75pL7pZYF9lDXL6k6cLxjzZOwC5q8ecIjJ39xF/dSPObsyqM+yudoL9yN0v7780Bn5yyF
-        /Ve3t66EmBeMbc9BsRyBF2dkjfBuqeDKx8lYvDouLXZuAf0vFtIPH5zU4jlfdixs/IVdOS
-        vmsr5U63fIVzglTEhwYSxzXESekgTuzdOHcprErKfUMwbSexx9oDdfFa+4Z1VcZaNX5rSu
-        6l8HXwdp3e4RNwPr1pyTZfpMenA4zfmUQEoZ4/oyxWsRJm8zIR/y6ojvGi9aNQ==
+        bh=5nQTlSWs0aM1JwskkO++sgVx3e7r1A0iUoENDct9w0g=;
+        b=QPllCmzoid7R7QOyZWHCOYQKMI+juGJWW7IXPn4ldqvXap5zOWqeLwIujbfic04O+qhazO
+        0xgWWwKg3GbwssA1OWCHaW+e3v13fVknyR8JXjPDh7PwNE+Ckpns9v0fFT+ZM3yGQ/k3Vv
+        GCsqZz06V+zRI8tFVRs2T2IovMxYUYd8eD6JafQc5V2xJxNbrsWbTKI93mSM/Ta7w2MVgk
+        H0DCRjstAo+JEpF+kGbxIAfIodj4WQwAN11f4kvj+YdByF1NUUzPqO+eeo3F+Zo17kc0So
+        XSotZsWfd7b5nXWYK0Zyq3GvoLnhjvZlI0o0fsviKiEzV4hSu6MDcZkJycE3/A==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629353;
+        s=2020e; t=1607629347;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=fEH7SfFXgNBjB2KnJKxA/TzRUtcjVN/8Utn6le7GAgY=;
-        b=vcq9ylrl3bvEPVRyLq7+7uNgnxo0i4JU/giqH4jOxFiIi2uv7Mz1SZNae4Tgp0yDwrMR2T
-        GgsHxKk5w8TyzfBQ==
-Date:   Thu, 10 Dec 2020 20:25:51 +0100
+        bh=5nQTlSWs0aM1JwskkO++sgVx3e7r1A0iUoENDct9w0g=;
+        b=vR1W3s1vgzWnaT5Q7BZrP5IMwXx2MgiIHJAS9ztGZt4iF+7Bkm46E7nJWgDdHbgllL9/0G
+        km2qINIgPXSFZ2CQ==
+Date:   Thu, 10 Dec 2020 20:25:46 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
         linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
         Jani Nikula <jani.nikula@linux.intel.com>,
@@ -68,7 +67,9 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Wambui Karuga <wambui.karugax@gmail.com>,
         intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
         Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        Lee Jones <lee.jones@linaro.org>, Jon Mason <jdmason@kudzu.us>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
+        Jon Mason <jdmason@kudzu.us>,
         Dave Jiang <dave.jiang@intel.com>,
         Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
@@ -87,7 +88,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 15/30] pinctrl: nomadik: Use irq_has_action()
+Subject: [patch 10/30] arm64/smp: Use irq_desc_kstat_cpu() in arch_show_interrupts()
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -96,33 +97,27 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Let the core code do the fiddling with irq_desc.
+The irq descriptor is already there, no need to look it up again.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Marc Zyngier <maz@kernel.org>
 Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-gpio@vger.kernel.org
 ---
- drivers/pinctrl/nomadik/pinctrl-nomadik.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm64/kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/pinctrl/nomadik/pinctrl-nomadik.c
-+++ b/drivers/pinctrl/nomadik/pinctrl-nomadik.c
-@@ -948,7 +948,6 @@ static void nmk_gpio_dbg_show_one(struct
- 			   (mode < 0) ? "unknown" : modes[mode]);
- 	} else {
- 		int irq = chip->to_irq(chip, offset);
--		struct irq_desc	*desc = irq_to_desc(irq);
- 		const int pullidx = pull ? 1 : 0;
- 		int val;
- 		static const char * const pulls[] = {
-@@ -969,7 +968,7 @@ static void nmk_gpio_dbg_show_one(struct
- 		 * This races with request_irq(), set_irq_type(),
- 		 * and set_irq_wake() ... but those are "rare".
- 		 */
--		if (irq > 0 && desc && desc->action) {
-+		if (irq > 0 && irq_has_action(irq)) {
- 			char *trigger;
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -809,7 +809,7 @@ int arch_show_interrupts(struct seq_file
+ 		seq_printf(p, "%*s%u:%s", prec - 1, "IPI", i,
+ 			   prec >= 4 ? " " : "");
+ 		for_each_online_cpu(cpu)
+-			seq_printf(p, "%10u ", kstat_irqs_cpu(irq, cpu));
++			seq_printf(p, "%10u ", irq_desc_kstat_cpu(ipi_desc[i], cpu));
+ 		seq_printf(p, "      %s\n", ipi_types[i]);
+ 	}
  
- 			if (nmk_chip->edge_rising & BIT(offset))
 
