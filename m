@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E159C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:12:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 883A3C2BB40
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:12:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3DE22332A
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:12:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A31A235F7
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 20:12:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393729AbgLJULI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 15:11:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53202 "EHLO
+        id S2393517AbgLJTnD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:43:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404272AbgLJTnE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:04 -0500
+        with ESMTP id S2393443AbgLJTm7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:42:59 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFC7EC0617A6;
-        Thu, 10 Dec 2020 11:42:23 -0800 (PST)
-Message-Id: <20201210194043.172893840@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 235BAC0613D6;
+        Thu, 10 Dec 2020 11:42:19 -0800 (PST)
+Message-Id: <20201210194042.703779349@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629342;
+        s=2020; t=1607629337;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=H6DxzomRopFmkit4/4R6NYU2nMIU3VEhxNUq8xSIzZg=;
-        b=Mmus8yMHzmRoOuv6OrtKQYqVrIXFlyNqamgESIcbo+FOsqNCh4jNhMrhvtgIbG1dHFvJC+
-        BN8Q2AXY7eE0VbmyhcLPklodEgxwCZ8ZVxoetzzzrQMxxhJeOuw6ycJopu9ZM+HbvHrHyd
-        IWP7LrT/B7MAbb8pT190VoO7MTJuA1obD8dhEINtYVE4KCpqtRWqxMcR/CBUrG9TYUjwDi
-        +msxVmLhS+JWVhN88RJHPjmRnkz1vSg1hhvl2W0fsWBOq4djR+BrSPhFkw8uZNfFkc9Wy1
-        kP6KYk7n5zZjtKAaOxpoGToDh/v/xpae6+owBkHebtH5vIi8texeMaL2QUYeaQ==
+        bh=xNUoZoBVroF7IJy3X8hhV7V+S/ANMxwK+r48iZvHH7k=;
+        b=SuZCyt4zlNSkg7Jh6xjd5t+bljnkIDhiuE1rhn/qKeMG+ite6vJEiEbNofXy6Jc8tYg+0b
+        IECvv2LjnWcGzCS6R2c2tg4sgQpGcjXByKLBZPL7Xs4OwNUUaKF820w3Ic1JKPFWbxYaV/
+        zQxlwp4rnzD+WzTiaw91J+4L7iQQ+SR32KSqZT854CLAJKIIUHqBcwUh01vq4gYJysHS9U
+        2YuIdbPutXAYf6qxYXI8k/N2s6EcL8OojQbYBV3yqFeMwoY5o0cLfzqE9P8/gw+P+igDVq
+        lKj3W3wk7xu1ziy9h34ybqOITt3G9Oy0XdV3S2Ut5Fvm8NWwxziMLNP2XRk3vg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629342;
+        s=2020e; t=1607629337;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=H6DxzomRopFmkit4/4R6NYU2nMIU3VEhxNUq8xSIzZg=;
-        b=rqJf3IS+tp6Aq+14lO31OpHLTmQ/963wA224eQ6BXLp/Y3RncaPXYeQ/h9yfO2+idiLTk2
-        qfa93PzKze1vcODg==
-Date:   Thu, 10 Dec 2020 20:25:42 +0100
+        bh=xNUoZoBVroF7IJy3X8hhV7V+S/ANMxwK+r48iZvHH7k=;
+        b=VHoSRskFC2dXgfT8CV99ZHE5BpRPUfLU6nfE7o3PMPrsIEKWqDmtgbLpWFRMlRZjjTeINe
+        qsFjW8cMZ9WikxCw==
+Date:   Thu, 10 Dec 2020 20:25:38 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
@@ -88,7 +88,7 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         Juergen Gross <jgross@suse.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         xen-devel@lists.xenproject.org
-Subject: [patch 06/30] parisc/irq: Simplify irq count output for /proc/interrupts
+Subject: [patch 02/30] genirq: Move status flag checks to core
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -97,31 +97,75 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The SMP variant works perfectly fine on UP as well.
+These checks are used by modules and prevent the removal of the export of
+irq_to_desc(). Move the accessor into the core.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: afzal mohammed <afzal.mohd.ma@gmail.com>
-Cc: linux-parisc@vger.kernel.org
 ---
- arch/parisc/kernel/irq.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/irqdesc.h |   17 +++++------------
+ kernel/irq/manage.c     |   17 +++++++++++++++++
+ 2 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/arch/parisc/kernel/irq.c
-+++ b/arch/parisc/kernel/irq.c
-@@ -216,12 +216,9 @@ int show_interrupts(struct seq_file *p,
- 		if (!action)
- 			goto skip;
- 		seq_printf(p, "%3d: ", i);
--#ifdef CONFIG_SMP
-+
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
--#else
--		seq_printf(p, "%10u ", kstat_irqs(i));
--#endif
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -223,28 +223,21 @@ irq_set_chip_handler_name_locked(struct
+ 	data->chip = chip;
+ }
  
- 		seq_printf(p, " %14s", irq_desc_get_chip(desc)->name);
- #ifndef PARISC_IRQ_CR16_COUNTS
++bool irq_check_status_bit(unsigned int irq, unsigned int bitmask);
++
+ static inline bool irq_balancing_disabled(unsigned int irq)
+ {
+-	struct irq_desc *desc;
+-
+-	desc = irq_to_desc(irq);
+-	return desc->status_use_accessors & IRQ_NO_BALANCING_MASK;
++	return irq_check_status_bit(irq, IRQ_NO_BALANCING_MASK);
+ }
+ 
+ static inline bool irq_is_percpu(unsigned int irq)
+ {
+-	struct irq_desc *desc;
+-
+-	desc = irq_to_desc(irq);
+-	return desc->status_use_accessors & IRQ_PER_CPU;
++	return irq_check_status_bit(irq, IRQ_PER_CPU);
+ }
+ 
+ static inline bool irq_is_percpu_devid(unsigned int irq)
+ {
+-	struct irq_desc *desc;
+-
+-	desc = irq_to_desc(irq);
+-	return desc->status_use_accessors & IRQ_PER_CPU_DEVID;
++	return irq_check_status_bit(irq, IRQ_PER_CPU_DEVID);
+ }
+ 
+ static inline void
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -2769,3 +2769,23 @@ bool irq_has_action(unsigned int irq)
+ 	return res;
+ }
+ EXPORT_SYMBOL_GPL(irq_has_action);
++
++/**
++ * irq_check_status_bit - Check whether bits in the irq descriptor status are set
++ * @irq:	The linux irq number
++ * @bitmask:	The bitmask to evaluate
++ *
++ * Returns: True if one of the bits in @bitmask is set
++ */
++bool irq_check_status_bit(unsigned int irq, unsigned int bitmask)
++{
++	struct irq_desc *desc;
++	bool res = false;
++
++	rcu_read_lock();
++	desc = irq_to_desc(irq);
++	if (desc)
++		res = !!(desc->status_use_accessors & bitmask);
++	rcu_read_unlock();
++	return res;
++}
 
