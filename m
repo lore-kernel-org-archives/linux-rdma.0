@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 563C3C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C07AC433FE
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:44:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01FC62310C
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:44:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E64423DB4
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 19:44:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404318AbgLJTni (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 14:43:38 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:57330 "EHLO
+        id S2404343AbgLJTnp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 14:43:45 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:57796 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393538AbgLJTnW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:22 -0500
-Message-Id: <20201210194044.580936243@linutronix.de>
+        with ESMTP id S2404307AbgLJTnc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 14:43:32 -0500
+Message-Id: <20201210194045.250321315@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1607629359;
+        s=2020; t=1607629368;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=KrhhIjbt5v6ZrRAi/JobWuMkwODXuYkNejeEJ8r5wYA=;
-        b=O2jdDNolMgwdeqbdehl1p9TNp5CMFEegQIULELNgmYRztgIcL4c3f02Qf6SlZ5l3g40OIQ
-        RgS4jJlX+w2xWwCBcvE8uOXoWkE+AICi/Nh5GaOHSq9qtJLjJ382ImsNRhJ2OXUKqHjpIF
-        I8MjuSPpVTKBCKMHB0jWJJqdHHehIe0RI7sKzCawI6DUxBj2zGutPRs1VZRztMy0HnwSsf
-        OI5cZWwaKtKyxElh00AwZXcb13cApJGdpe1cNRwNFz3Ty/Mas6lCOq0rRGjsr5nCkNgDIf
-        ZfeC1Cgjfe3pwIQtGOuNMnkwwWQv4/tiKJan+K2zSJCygXvLKALGPkNvkXEO8Q==
+        bh=h+/J8p7baJr0DOpzZw5pWLEFMQkgQKdthJegqn8/Z3Y=;
+        b=ViQ26TbnUeY8qEjEzYulRVnhFAoB9EDH9YUPDvEiFg//dnXloI1oen9eNgmVDH3RmZaBn0
+        0l0hb/eh9AtQOqQOiBnzJtoucvR/Mgcwm3gjLtIH7WkV3WksbFVdOMHzNi5Zj6EnqfiQBo
+        j3AWozoE82ZIwe2qbFS8RFleThcs9Bt3OInvffx5HlfgL9KUZRRlg7kyEJZxqWJqWBqEXh
+        aZpEesZBBg55CfasJSjlzL/0bXPLxp/DGSRYtaZAfSC1smsroPfxhOGgzqx3F6MyhNadS8
+        HUk9gvp8N0w4LGaQVpf17rVe2GplhulXqQJFiAihQg9NPYrVAz0L2MOk4uIbBw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1607629359;
+        s=2020e; t=1607629368;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:  references:references;
-        bh=KrhhIjbt5v6ZrRAi/JobWuMkwODXuYkNejeEJ8r5wYA=;
-        b=AYssMWVwzMPlm7xFPvozIcusMMzaZeOC4IJgbRnnFFntYh+XGLTcZ4I1FH/Z2XIwzAjKaN
-        H21cttJmA1LtW+AQ==
-Date:   Thu, 10 Dec 2020 20:25:56 +0100
+        bh=h+/J8p7baJr0DOpzZw5pWLEFMQkgQKdthJegqn8/Z3Y=;
+        b=VbJwfVLRzH/9JhiMalVLwKmOuULPqzvXaWNQJQDqIexhTGvkL8AL9yE+2ch4ltaw7RfVm0
+        CZcollJCruWADiAA==
+Date:   Thu, 10 Dec 2020 20:26:03 +0100
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Peter Zijlstra <peterz@infradead.org>,
         Marc Zyngier <maz@kernel.org>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org,
         "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         afzal mohammed <afzal.mohd.ma@gmail.com>,
@@ -80,13 +80,12 @@ Cc:     Peter Zijlstra <peterz@infradead.org>,
         linux-pci@vger.kernel.org,
         Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
         Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        xen-devel@lists.xenproject.org
-Subject: [patch 20/30] net/mlx4: Replace irq_to_desc() abuse
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>
+Subject: [patch 27/30] xen/events: Only force affinity mask for percpu interrupts
 References: <20201210192536.118432146@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -95,92 +94,145 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-No driver has any business with the internals of an interrupt
-descriptor. Storing a pointer to it just to use yet another helper at the
-actual usage site to retrieve the affinity mask is creative at best. Just
-because C does not allow encapsulation does not mean that the kernel has no
-limits.
+All event channel setups bind the interrupt on CPU0 or the target CPU for
+percpu interrupts and overwrite the affinity mask with the corresponding
+cpumask. That does not make sense.
 
-Retrieve a pointer to the affinity mask itself and use that. It's still
-using an interface which is usually not for random drivers, but definitely
-less hideous than the previous hack.
+The XEN implementation of irqchip::irq_set_affinity() already picks a
+single target CPU out of the affinity mask and the actual target is stored
+in the effective CPU mask, so destroying the user chosen affinity mask
+which might contain more than one CPU is wrong.
+
+Change the implementation so that the channel is bound to CPU0 at the XEN
+level and leave the affinity mask alone. At startup of the interrupt
+affinity will be assigned out of the affinity mask and the XEN binding will
+be updated. Only keep the enforcement for real percpu interrupts.
+
+On resume the overwrite is not required either because info->cpu and the
+affinity mask are still the same as at the time of suspend. Same for
+rebind_evtchn_irq().
+
+This also prepares for proper interrupt spreading.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tariq Toukan <tariqt@nvidia.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: xen-devel@lists.xenproject.org
 ---
- drivers/net/ethernet/mellanox/mlx4/en_cq.c   |    8 +++-----
- drivers/net/ethernet/mellanox/mlx4/en_rx.c   |    6 +-----
- drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |    3 ++-
- 3 files changed, 6 insertions(+), 11 deletions(-)
+ drivers/xen/events/events_base.c |   42 ++++++++++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
---- a/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-@@ -90,7 +90,7 @@ int mlx4_en_activate_cq(struct mlx4_en_p
- 			int cq_idx)
+--- a/drivers/xen/events/events_base.c
++++ b/drivers/xen/events/events_base.c
+@@ -433,15 +433,20 @@ static bool pirq_needs_eoi_flag(unsigned
+ 	return info->u.pirq.flags & PIRQ_NEEDS_EOI;
+ }
+ 
+-static void bind_evtchn_to_cpu(evtchn_port_t evtchn, unsigned int cpu)
++static void bind_evtchn_to_cpu(evtchn_port_t evtchn, unsigned int cpu,
++			       bool force_affinity)
  {
- 	struct mlx4_en_dev *mdev = priv->mdev;
--	int err = 0;
-+	int irq, err = 0;
- 	int timestamp_en = 0;
- 	bool assigned_eq = false;
+ 	int irq = get_evtchn_to_irq(evtchn);
+ 	struct irq_info *info = info_for_irq(irq);
  
-@@ -116,10 +116,8 @@ int mlx4_en_activate_cq(struct mlx4_en_p
+ 	BUG_ON(irq == -1);
+-#ifdef CONFIG_SMP
+-	cpumask_copy(irq_get_affinity_mask(irq), cpumask_of(cpu));
+-#endif
++
++	if (IS_ENABLED(CONFIG_SMP) && force_affinity) {
++		cpumask_copy(irq_get_affinity_mask(irq), cpumask_of(cpu));
++		cpumask_copy(irq_get_effective_affinity_mask(irq),
++			     cpumask_of(cpu));
++	}
++
+ 	xen_evtchn_port_bind_to_cpu(evtchn, cpu, info->cpu);
  
- 			assigned_eq = true;
+ 	info->cpu = cpu;
+@@ -788,7 +793,7 @@ static unsigned int __startup_pirq(unsig
+ 		goto err;
+ 
+ 	info->evtchn = evtchn;
+-	bind_evtchn_to_cpu(evtchn, 0);
++	bind_evtchn_to_cpu(evtchn, 0, false);
+ 
+ 	rc = xen_evtchn_port_setup(evtchn);
+ 	if (rc)
+@@ -1107,8 +1112,8 @@ static int bind_evtchn_to_irq_chip(evtch
+ 			irq = ret;
+ 			goto out;
  		}
--
--		cq->irq_desc =
--			irq_to_desc(mlx4_eq_get_irq(mdev->dev,
--						    cq->vector));
-+		irq = mlx4_eq_get_irq(mdev->dev, cq->vector);
-+		cq->aff_mask = irq_get_affinity_mask(irq);
+-		/* New interdomain events are bound to VCPU 0. */
+-		bind_evtchn_to_cpu(evtchn, 0);
++		/* New interdomain events are initially bound to VCPU 0. */
++		bind_evtchn_to_cpu(evtchn, 0, false);
  	} else {
- 		/* For TX we use the same irq per
- 		ring we assigned for the RX    */
---- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-@@ -959,8 +959,6 @@ int mlx4_en_poll_rx_cq(struct napi_struc
+ 		struct irq_info *info = info_for_irq(irq);
+ 		WARN_ON(info == NULL || info->type != IRQT_EVTCHN);
+@@ -1156,7 +1161,11 @@ static int bind_ipi_to_irq(unsigned int
+ 			irq = ret;
+ 			goto out;
+ 		}
+-		bind_evtchn_to_cpu(evtchn, cpu);
++		/*
++		 * Force the affinity mask to the target CPU so proc shows
++		 * the correct target.
++		 */
++		bind_evtchn_to_cpu(evtchn, cpu, true);
+ 	} else {
+ 		struct irq_info *info = info_for_irq(irq);
+ 		WARN_ON(info == NULL || info->type != IRQT_IPI);
+@@ -1269,7 +1278,11 @@ int bind_virq_to_irq(unsigned int virq,
+ 			goto out;
+ 		}
  
- 	/* If we used up all the quota - we're probably not done yet... */
- 	if (done == budget || !clean_complete) {
--		const struct cpumask *aff;
--		struct irq_data *idata;
- 		int cpu_curr;
+-		bind_evtchn_to_cpu(evtchn, cpu);
++		/*
++		 * Force the affinity mask for percpu interrupts so proc
++		 * shows the correct target.
++		 */
++		bind_evtchn_to_cpu(evtchn, cpu, percpu);
+ 	} else {
+ 		struct irq_info *info = info_for_irq(irq);
+ 		WARN_ON(info == NULL || info->type != IRQT_VIRQ);
+@@ -1634,8 +1647,7 @@ void rebind_evtchn_irq(evtchn_port_t evt
  
- 		/* in case we got here because of !clean_complete */
-@@ -969,10 +967,8 @@ int mlx4_en_poll_rx_cq(struct napi_struc
- 		INC_PERF_COUNTER(priv->pstats.napi_quota);
+ 	mutex_unlock(&irq_mapping_update_lock);
  
- 		cpu_curr = smp_processor_id();
--		idata = irq_desc_get_irq_data(cq->irq_desc);
--		aff = irq_data_get_affinity_mask(idata);
+-        bind_evtchn_to_cpu(evtchn, info->cpu);
+-	irq_set_affinity(irq, cpumask_of(info->cpu));
++	bind_evtchn_to_cpu(evtchn, info->cpu, false);
  
--		if (likely(cpumask_test_cpu(cpu_curr, aff)))
-+		if (likely(cpumask_test_cpu(cpu_curr, cq->aff_mask)))
- 			return budget;
+ 	/* Unmask the event channel. */
+ 	enable_irq(irq);
+@@ -1669,7 +1681,7 @@ static int xen_rebind_evtchn_to_cpu(evtc
+ 	 * it, but don't do the xenlinux-level rebind in that case.
+ 	 */
+ 	if (HYPERVISOR_event_channel_op(EVTCHNOP_bind_vcpu, &bind_vcpu) >= 0)
+-		bind_evtchn_to_cpu(evtchn, tcpu);
++		bind_evtchn_to_cpu(evtchn, tcpu, false);
  
- 		/* Current cpu is not according to smp_irq_affinity -
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-@@ -46,6 +46,7 @@
- #endif
- #include <linux/cpu_rmap.h>
- #include <linux/ptp_clock_kernel.h>
-+#include <linux/irq.h>
- #include <net/xdp.h>
+ 	if (!masked)
+ 		unmask_evtchn(evtchn);
+@@ -1798,7 +1810,8 @@ static void restore_cpu_virqs(unsigned i
  
- #include <linux/mlx4/device.h>
-@@ -380,7 +381,7 @@ struct mlx4_en_cq {
- 	struct mlx4_cqe *buf;
- #define MLX4_EN_OPCODE_ERROR	0x1e
+ 		/* Record the new mapping. */
+ 		(void)xen_irq_info_virq_setup(cpu, irq, evtchn, virq);
+-		bind_evtchn_to_cpu(evtchn, cpu);
++		/* The affinity mask is still valid */
++		bind_evtchn_to_cpu(evtchn, cpu, false);
+ 	}
+ }
  
--	struct irq_desc *irq_desc;
-+	const struct cpumask *aff_mask;
- };
+@@ -1823,7 +1836,8 @@ static void restore_cpu_ipis(unsigned in
  
- struct mlx4_en_port_profile {
+ 		/* Record the new mapping. */
+ 		(void)xen_irq_info_ipi_setup(cpu, irq, evtchn, ipi);
+-		bind_evtchn_to_cpu(evtchn, cpu);
++		/* The affinity mask is still valid */
++		bind_evtchn_to_cpu(evtchn, cpu, false);
+ 	}
+ }
+ 
 
