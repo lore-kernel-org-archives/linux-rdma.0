@@ -2,117 +2,52 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78795C4361B
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 22:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A04C2BB9A
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 00:48:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FB64238A0
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Dec 2020 22:21:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F63723D50
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Dec 2020 00:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388573AbgLIWUo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Dec 2020 17:20:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52856 "EHLO
+        id S1728876AbgLJAfK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Dec 2020 19:35:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388567AbgLIWUo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Dec 2020 17:20:44 -0500
-Received: from ozlabs.org (bilbo.ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88DC5C0613CF;
-        Wed,  9 Dec 2020 14:20:03 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Crs1F04wdz9sW8;
-        Thu, 10 Dec 2020 09:20:00 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1607552401;
-        bh=vYl6b8T/pCw/U0nYGd0muwfFELQAOrkH03yaiZtHyX4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=VRGb3q7cPatcCDByvi4VKJc3UeVLzak/7Tpamsdo+2HzUq5mOwYDAAA2DWMtHxMuK
-         EwvF6UDOVOUJeBzKqmN4nKYmitvLwuu1s5jFT4gJAx9rh0hlY2C36QLUmFRtf05rfh
-         m2nWBV1q42T1G1MdDC/LGqQ/08sS/rxSMkg5sGRB8zHtOQaZ8fRUn+cpX8kLQSo3rc
-         UhsYZpnE7guuAsv8TDTxMHgblIKDGtz/o8uBPpXFyyxuK6rOwAtzbhz4L4jhVJv3sA
-         zWg6HpffNU5E0bmJtDMWJi9gAcJzJ0vcZty0zHJxchiyzUxgYCoRmjn7/m18Cz6/Qh
-         6LLu40OMpc/2w==
-Date:   Thu, 10 Dec 2020 09:20:00 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Chris Mi <cmi@nvidia.com>
-Subject: Re: linux-next: Tree for Dec 9 (ethernet/mellanox/mlx5)
-Message-ID: <20201210092000.4c28192c@canb.auug.org.au>
-In-Reply-To: <e5519ac6-1d25-632a-9b55-087d8ffaf386@infradead.org>
-References: <20201209214447.3bfdeb87@canb.auug.org.au>
-        <e5519ac6-1d25-632a-9b55-087d8ffaf386@infradead.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_//nEQFZCzWmY_20I/Arc4J06";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        with ESMTP id S1728864AbgLJAfC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Dec 2020 19:35:02 -0500
+Received: from mail.monkeyblade.net (shards.monkeyblade.net [IPv6:2620:137:e000::1:9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BE14C06179C;
+        Wed,  9 Dec 2020 16:34:22 -0800 (PST)
+Received: from localhost (unknown [IPv6:2601:601:9f00:477:9e51:a893:b0fe:602a])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 20C334D259C19;
+        Wed,  9 Dec 2020 16:34:22 -0800 (PST)
+Date:   Wed, 09 Dec 2020 16:34:21 -0800 (PST)
+Message-Id: <20201209.163421.2064398689461933924.davem@davemloft.net>
+To:     zhengyongjun3@huawei.com
+Cc:     kuba@kernel.org, linux-afs@lists.infradead.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next] net: mlx5: convert comma to semicolon
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20201209133441.1119-1-zhengyongjun3@huawei.com>
+References: <20201209133441.1119-1-zhengyongjun3@huawei.com>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Wed, 09 Dec 2020 16:34:22 -0800 (PST)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---Sig_//nEQFZCzWmY_20I/Arc4J06
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Zheng Yongjun <zhengyongjun3@huawei.com>
+Date: Wed, 9 Dec 2020 21:34:41 +0800
 
-Hi all,
+> Replace a comma between expression statements by a semicolon.
+> 
+> Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 
-On Wed, 9 Dec 2020 12:14:39 -0800 Randy Dunlap <rdunlap@infradead.org> wrot=
-e:
->
-> On 12/9/20 2:44 AM, Stephen Rothwell wrote:
-> > Hi all,
-> >=20
-> > Changes since 20201208:
-> >  =20
->=20
-> on i386:
->=20
-> I see this warning:/note: repeated 106 times on i386 build:
->=20
->                  from ../drivers/net/ethernet/mellanox/mlx5/core/alloc.c:=
-34:
-> ../include/vdso/bits.h:7:26: warning: left shift count >=3D width of type=
- [-Wshift-count-overflow]
->  #define BIT(nr)   (UL(1) << (nr))
->                           ^
-> ../include/linux/mlx5/mlx5_ifc.h:10716:46: note: in expansion of macro =
-=E2=80=98BIT=E2=80=99
->   MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER =3D BIT(0x20),
->                                               ^~~
-
-Introduced by commit
-
-  2a2970891647 ("net/mlx5: Add sample offload hardware bits and structures")
-
-now in the net-next tree.
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_//nEQFZCzWmY_20I/Arc4J06
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl/RTZAACgkQAVBC80lX
-0Gw/fQgAlynJrf78Tpjjgez63yrCuHjGEUmkhVcTt3a48hpJQELbLU5V57TIvHUQ
-tw+QxYrIs2hBKHcbJEY3MYTFyiFJ0YCM+zxusbdUHoAX5D8ANWTvHOFptq0voDRq
-3JF4NDuwjCyVQsB6ghfO3B7awcX/N/dkAddx3MvlAwUwe0hlD57KFYI8LFdZfZBi
-oKD6rttaQIVSo+uO5YT/cMPCy8t7V8eIaI4a9+vfpN7K7n/z8njDU7Y5IMAa1YVf
-W5R6m2sOjBsJY75+ZgOffbkX2tojVVdSuTmbOsLzcDJEXM/Hs5YsRoGi8+10YlZQ
-0j+/PEfSOIxucjQcKx7tpDUkeN94Fw==
-=Swrk
------END PGP SIGNATURE-----
-
---Sig_//nEQFZCzWmY_20I/Arc4J06--
+Applied.
