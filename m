@@ -2,160 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C48D6C4743F
-	for <linux-rdma@archiver.kernel.org>; Sat, 12 Dec 2020 01:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E62CCC54EC1
+	for <linux-rdma@archiver.kernel.org>; Sat, 12 Dec 2020 01:01:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A61DB2343E
-	for <linux-rdma@archiver.kernel.org>; Sat, 12 Dec 2020 01:01:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC5242343E
+	for <linux-rdma@archiver.kernel.org>; Sat, 12 Dec 2020 01:01:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406179AbgLKOU5 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Dec 2020 09:20:57 -0500
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:26649 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2406027AbgLKOUr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 11 Dec 2020 09:20:47 -0500
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-53-s0AncPC_O7qxZEyLU7X13A-1; Fri, 11 Dec 2020 14:19:07 +0000
-X-MC-Unique: s0AncPC_O7qxZEyLU7X13A-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Fri, 11 Dec 2020 14:19:05 +0000
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Fri, 11 Dec 2020 14:19:05 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Thomas Gleixner' <tglx@linutronix.de>,
-        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>
-CC:     Peter Zijlstra <peterz@infradead.org>,
-        Marc Zyngier <maz@kernel.org>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        David Airlie <airlied@linux.ie>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        afzal mohammed <afzal.mohd.ma@gmail.com>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Wambui Karuga <wambui.karugax@gmail.com>,
-        "Linus Walleij" <linus.walleij@linaro.org>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        Lee Jones <lee.jones@linaro.org>, Jon Mason <jdmason@kudzu.us>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Allen Hubbe <allenbh@gmail.com>,
-        "linux-ntb@googlegroups.com" <linux-ntb@googlegroups.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Rob Herring <robh@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        "Michal Simek" <michal.simek@xilinx.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
-        Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
-        "Tariq Toukan" <tariqt@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Jakub Kicinski" <kuba@kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        "Leon Romanovsky" <leon@kernel.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>
-Subject: RE: [patch 14/30] drm/i915/pmu: Replace open coded kstat_irqs() copy
-Thread-Topic: [patch 14/30] drm/i915/pmu: Replace open coded kstat_irqs() copy
-Thread-Index: AQHWz72qwjNpP0n0UkWT70W8RrLS8qnx7xrw
-Date:   Fri, 11 Dec 2020 14:19:05 +0000
-Message-ID: <d6cbfa118490459bb0671394f00323fc@AcuMS.aculab.com>
-References: <20201210192536.118432146@linutronix.de>
- <20201210194043.957046529@linutronix.de>
- <ad05af1a-5463-2a80-0887-7629721d6863@linux.intel.com>
- <87y2i4h54i.fsf@nanos.tec.linutronix.de>
-In-Reply-To: <87y2i4h54i.fsf@nanos.tec.linutronix.de>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        id S2437616AbgLLABb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Dec 2020 19:01:31 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:19664 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2437568AbgLLAAB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Dec 2020 19:00:01 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5fd407d70001>; Fri, 11 Dec 2020 15:59:19 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 11 Dec
+ 2020 23:59:19 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.175)
+ by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 11 Dec 2020 23:59:18 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=dP6kswS+V+1LQ8VnmGFihuuvy34aDqVvwuAWV0P+jgA/TQveD1fcQn2fQPmYQXpUI+tQywQ0/OZgHmUVx1BkM8rhXwtKd8xPrlz80R0yiESbKDS7ily+in+HTKhfWQZ1yiTqx+J5xv4ptzL/GVElfzGWevOfuR/0gSBPWQggqIBwpXHLZ+AEGrl2ZoWC0kVlr0b3TGx2uzb4LM4yWmZYTesasz1OtJJSb5NlMj4AigetXl7Xf0sukUyWbpFCe4GayKy5nMatqiYkpL4AD9MVtOaVNpD9E1pHJ6CBMhwSJBnwin3ffcOnjMZeQmm/GTeGrvpky7PELva6mNoxkSNQ7g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=n/if1WBxk5r4F0dqVC7ajScoQ40BPyW7UNHiaRzSDW4=;
+ b=B4k3fFdVKFU4xwUmqZONlUblQbloizrlrSKTntGRaXIaKkTx0/t/44PlHPr9nne2rAVj0w/tC3PzkAC7flQ4w51JmbuSejyLLtq9IsstrxqmHdM4aYlkBxQP4Qt3+PQtJPLqMjKQPbW4ThsGIwBdwSrI+7MZ5q7CvFNHLLUe/QT08jxyTCJoHIDhE6WhSAYFLOOk2w93Cz45YWIsZRWXnk0km38OVTeIK25cCa/TrozaCuDLl3eF6uNo5Ij6l3Q1gEgNffqK1pqtxQY7zuY5HPMVoQxgbVxbxG9+yaarVGwHdWBQ1zQ9/0r01uFnFucrnLjygQXzWTlXSbZzzUq3+g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4483.namprd12.prod.outlook.com (2603:10b6:5:2a2::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3632.17; Fri, 11 Dec
+ 2020 23:59:18 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1ce9:3434:90fe:3433]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1ce9:3434:90fe:3433%3]) with mapi id 15.20.3654.018; Fri, 11 Dec 2020
+ 23:59:18 +0000
+Date:   Fri, 11 Dec 2020 19:59:16 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+CC:     <zyjzyj2000@gmail.com>, <linux-rdma@vger.kernel.org>,
+        Bob Pearson <rpearson@hpe.com>
+Subject: Re: [PATCH v2] RDMA/rxe: Use acquire/release for memory ordering
+Message-ID: <20201211235916.GA2238970@nvidia.com>
+References: <20201210174258.5234-1-rpearson@hpe.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20201210174258.5234-1-rpearson@hpe.com>
+X-ClientProxiedBy: BL1PR13CA0090.namprd13.prod.outlook.com
+ (2603:10b6:208:2b8::35) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0090.namprd13.prod.outlook.com (2603:10b6:208:2b8::35) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3676.9 via Frontend Transport; Fri, 11 Dec 2020 23:59:17 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1knsJg-009OTi-Aj; Fri, 11 Dec 2020 19:59:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1607731159; bh=n/if1WBxk5r4F0dqVC7ajScoQ40BPyW7UNHiaRzSDW4=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=O+JZbxGYOj2JYLqky20yHwky/IwYUe+jizlahv1UnacozAsnIOAToQ6v9/0TUYCcR
+         oSKNGb334R9ua6lpNLfXTO78ND0RVO8g7yFTIt+3PXUXRgU3Oq4ictmDsIM7bj1hCH
+         XnRm/0+rrS+ywJwJwVfXcwqvx2puj9fz2dI8aNbFhvXpGLIMnkPN6wXniGL5YO3mIT
+         qta+hjFFo/frElsJsiJR+3/NuykyI3nBGrJ6W+v8OOQRO7TVIVTNvj/qflM+JuiVKv
+         IOUhKGL31Tm+KGZUOjsIDRXsaiZ4De5060zhJEGLe1Y00TBHGAq7nzCIn7PF+sBU1L
+         oi5tO5EOfJ2Cw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Thomas Gleixner
-> Sent: 11 December 2020 12:58
-..
-> > After my failed hasty sketch from last night I had a different one which
-> > was kind of heuristics based (re-reading the upper dword and retrying if
-> > it changed on 32-bit).
+On Thu, Dec 10, 2020 at 11:42:59AM -0600, Bob Pearson wrote:
+> Changed work and completion queues to use smp_load_acquire() and
+> smp_store_release() to synchronize between driver and users.
+> This commit goes with a matching series of commits in the rxe user
+> space provider.
 > 
-> The problem is that there will be two seperate modifications for the low
-> and high word. Several ways how the compiler can translate this, but the
-> problem is the same for all of them:
+> v2: Addressed same issue for kernel ULPs which use rxe_post_send/recv().
 > 
-> CPU 0                           CPU 1
->         load low
->         load high
->         add  low, 1
->         addc high, 0
->         store low               load high
-> --> NMI                         load low
->                                 load high and compare
->         store high
-> 
-> You can't catch that. If this really becomes an issue you need a
-> sequence counter around it.
+> Signed-off-by: Bob Pearson <rpearson@hpe.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_cq.c    |  5 --
+>  drivers/infiniband/sw/rxe/rxe_queue.h | 94 +++++++++++++++++----------
+>  drivers/infiniband/sw/rxe/rxe_verbs.c | 11 ----
+>  include/uapi/rdma/rdma_user_rxe.h     | 21 ++++++
+>  4 files changed, 81 insertions(+), 50 deletions(-)
 
-Or just two copies of the high word.
-Provided the accesses are sequenced:
-writer:
-	load high:low
-	add small_value,high:low
-	store high
-	store low
-	store high_copy
-reader:
-	load high_copy
-	load low
-	load high
-	if (high != high_copy)
-		low = 0;
+This really is a lot better than what was here, the extra barriers on
+empty/full can be fine tuned later
 
-The read value is always stale, so it probably doesn't
-matter that the value you have is one that is between the
-value when you started and that when you finished.
+So applied to for-next
 
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
-
+Thanks,
+Jason
