@@ -2,119 +2,172 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57011C4361B
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 13:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA3F5C4361B
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E02123E26
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 13:47:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C7DE20637
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 14:58:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727077AbgLKNqs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Dec 2020 08:46:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37916 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732259AbgLKNq0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Dec 2020 08:46:26 -0500
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com [IPv6:2607:f8b0:4864:20::844])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FDC2C0613CF
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Dec 2020 05:45:46 -0800 (PST)
-Received: by mail-qt1-x844.google.com with SMTP id a6so6385701qtw.6
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Dec 2020 05:45:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=vSt2SsNlWFXsX9I97ohoMymmKvj2//PHey09huy6uo0=;
-        b=MPyvoghPtZPdN073/KR+AU9kTYiB+PSv88O7Z5QuOjFGgPYR2ATSujiqdq6sVCfWD4
-         qhbdcJ4UGwtFYRzhYOgLYLYn+DG61ignGi3KwyvAE1KLvEP5ksuuyFYr7C0o9YgJUoSC
-         vU1TyFsxyXZUBBh06Y9z6GRJY9SwyDCQuzthOkTwtT1oS0Et0ImE4d94/sG5ENhycnuW
-         ULd561NbyJeUnkS5rPtwNKABDmLom1WCNlDDts9cEXywzOfqsDwUR5u+U88NS0K1vCRR
-         EKXiX5kOdaZHA9jXp9vzm+HP2J//zhiPUOcqcdue9+vwHXsSZMDf6moV0wtHrUsc9SdY
-         gknQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=vSt2SsNlWFXsX9I97ohoMymmKvj2//PHey09huy6uo0=;
-        b=L5z275Rnmff2iPPz3qK/fvp4/VIsLcc/OFUP6yuxd3ynDMWDQPK1eZDhNxbfE4AaMO
-         jqb4s7olXZVprKAmhrI/xf5mWBM3Z9kVwZ+pbx2a1K3UDGO0gB8ssQSb5nOy9VY1AblZ
-         mZRAvqkDhQ7I/iA6wH0sSdwZdf4kiN3IQjZiXRO4tCD6bpK/RuFdcdW+o+ZL0VVaYYzL
-         lyO5jDQyEGEWPqKlreqrRH07Ih8VDMsbRs4km6usZTyQklGLwdrNYFQ0ziaImGtGlYiZ
-         hOPtSXQkxowSzN2LJWbLOZP6c8jOgLS91nJTzbDgfHwZjAdrHzCcelynfgNlXfmhyxob
-         nOZQ==
-X-Gm-Message-State: AOAM531MIWwLVTLnPgA3G6pgXWeWYNhUL3z8jllAuPBsDUfFcE2orEY8
-        a4Amwi2PDoq8ztMrtmztafYUsw==
-X-Google-Smtp-Source: ABdhPJy33m9G5ZzJ/u+kn6MsBh8JqyE3bGCr+pGWletyrd0PX8+hEn/SKjgFO5dIa5vb2aq9B38/Bg==
-X-Received: by 2002:ac8:5a8c:: with SMTP id c12mr15483732qtc.97.1607694345797;
-        Fri, 11 Dec 2020 05:45:45 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-115-133.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.115.133])
-        by smtp.gmail.com with ESMTPSA id r14sm7125076qte.27.2020.12.11.05.45.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Dec 2020 05:45:44 -0800 (PST)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1knijv-009DWW-LI; Fri, 11 Dec 2020 09:45:43 -0400
-Date:   Fri, 11 Dec 2020 09:45:43 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
-        linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Subject: Re: [PATCH for-next 02/18] RMDA/rtrs-srv: Occasionally flush ongoing
- session closing
-Message-ID: <20201211134543.GB5487@ziepe.ca>
-References: <20201209164542.61387-1-jinpu.wang@cloud.ionos.com>
- <20201209164542.61387-3-jinpu.wang@cloud.ionos.com>
- <CAMGffE=_axtHU=pAV3qx5FVY2pB786z3kffQwDzinOaH=yS5Ag@mail.gmail.com>
- <e841a2c3-2774-ca8f-302a-cd43c3b3161e@cloud.ionos.com>
- <CAMGffEmKAzy3dXVKhoZDAqLpZ6DiQiaYNQn8_0Fd+MQUXbn_eA@mail.gmail.com>
- <20201211072600.GA192848@unreal>
- <CAMGffEn4fbTud3qrrwnrS6bqxcpF6sueKb=Qke8N9yLvDeEWpA@mail.gmail.com>
- <CAMGffEnuNHacxqqdZsF0JMk3kTUqT9KdzNK_QzBF_FWjPWLN8Q@mail.gmail.com>
+        id S2406280AbgLKOdP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Dec 2020 09:33:15 -0500
+Received: from userp2130.oracle.com ([156.151.31.86]:44700 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2406261AbgLKOcd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Dec 2020 09:32:33 -0500
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BBEK3q4153543;
+        Fri, 11 Dec 2020 14:29:21 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=XwmNJXsce0biO7XLe+zGaIsjtrmRfK/vTz0mYn6nQBU=;
+ b=bR7yH4+1kTFS/uaRb9qwsHTyFm2EoNVmWnQB/6uOrO708u+eqNtBobFpmn1ttrRdH1ys
+ eWZmcv+9rBDGS0S9dxVH7WJEjVIq3kan/8A2J+2JEfl4cmi6SdTHDxhFZ9FOjgghK0i/
+ gSlqjyBs3FtwP3+ZAOMx//Xrh2s4GGZVNmZZvw8Dg7A8ucgqyFuZ1jZz6HYR0R/QX3KB
+ jq1go8jZfLC3JdZILS9AqGFwicAYPALMmwsEwRd+5bZO9goG03a6o19lTH5pgGTEdXEs
+ I4ECgSmCCiTYqeMDSavCaEpGT9QkWsYwEp7lVPsTzWiLDfHkK38lg3Q5ATAnYCJ8Q3TZ zQ== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by userp2130.oracle.com with ESMTP id 3581mratkd-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Fri, 11 Dec 2020 14:29:21 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BBEPIII069767;
+        Fri, 11 Dec 2020 14:29:20 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3030.oracle.com with ESMTP id 358kstfcjw-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 11 Dec 2020 14:29:20 +0000
+Received: from abhmp0008.oracle.com (abhmp0008.oracle.com [141.146.116.14])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0BBETD7i006093;
+        Fri, 11 Dec 2020 14:29:13 GMT
+Received: from [10.39.222.144] (/10.39.222.144)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 11 Dec 2020 06:29:13 -0800
+Subject: Re: [patch 27/30] xen/events: Only force affinity mask for percpu
+ interrupts
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        =?UTF-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>,
+        LKML <linux-kernel@vger.kernel.org>
+Cc:     Peter Zijlstra <peterz@infradead.org>,
+        Marc Zyngier <maz@kernel.org>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        afzal mohammed <afzal.mohd.ma@gmail.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel@lists.infradead.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Wambui Karuga <wambui.karugax@gmail.com>,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>,
+        Jon Mason <jdmason@kudzu.us>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-pci@vger.kernel.org,
+        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
+        Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>
+References: <20201210192536.118432146@linutronix.de>
+ <20201210194045.250321315@linutronix.de>
+ <7f7af60f-567f-cdef-f8db-8062a44758ce@oracle.com>
+ <2164a0ce-0e0d-c7dc-ac97-87c8f384ad82@suse.com>
+ <871rfwiknd.fsf@nanos.tec.linutronix.de>
+From:   boris.ostrovsky@oracle.com
+Organization: Oracle Corporation
+Message-ID: <9806692f-24a3-4b6f-ae55-86bd66481271@oracle.com>
+Date:   Fri, 11 Dec 2020 09:29:09 -0500
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.5.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMGffEnuNHacxqqdZsF0JMk3kTUqT9KdzNK_QzBF_FWjPWLN8Q@mail.gmail.com>
+In-Reply-To: <871rfwiknd.fsf@nanos.tec.linutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9831 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 suspectscore=0
+ bulkscore=0 malwarescore=0 phishscore=0 mlxscore=0 spamscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2012110094
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9831 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxlogscore=999
+ clxscore=1015 malwarescore=0 priorityscore=1501 adultscore=0
+ lowpriorityscore=0 phishscore=0 spamscore=0 impostorscore=0 mlxscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2012110093
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Dec 11, 2020 at 08:58:09AM +0100, Jinpu Wang wrote:
-> > > > No, I was wrong. I rechecked the code, it's not a valid deadlock, in
-> > > > cma_ib_req_handler, the conn_id is newly created in
-> > > > https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/cma.c#L2185.
-> > > >
-> > > > Flush_workqueue will only flush close_work for any other cm_id, but
-> > > > not the newly created one conn_id, it has not associated with anything
-> > > > yet.
-> > > >
-> > > > The same applies to nvme-rdma. so it's a false alarm by lockdep.
-> > >
-> > > Leaving this without fix (proper lock annotation) is not right thing to
-> > > do, because everyone who runs rtrs code with LOCKDEP on will have same
-> > > "false alarm".
-> > >
-> > > So I recommend or not to take this patch or write it without LOCKDEP warning.
-> > Hi Leon,
-> >
-> > I'm thinking about the same, do you have a suggestion on how to teach
-> > LOCKDEP this is not really a deadlock,
-> > I do not know LOCKDEP well.
-> Found it myself, we can use lockdep_off
-> 
-> https://elixir.bootlin.com/linux/latest/source/drivers/virtio/virtio_mem.c#L699
 
-Gah, that is horrible.
+On 12/11/20 7:37 AM, Thomas Gleixner wrote:
+> On Fri, Dec 11 2020 at 13:10, Jürgen Groß wrote:
+>> On 11.12.20 00:20, boris.ostrovsky@oracle.com wrote:
+>>> On 12/10/20 2:26 PM, Thomas Gleixner wrote:
+>>>> All event channel setups bind the interrupt on CPU0 or the target CPU for
+>>>> percpu interrupts and overwrite the affinity mask with the corresponding
+>>>> cpumask. That does not make sense.
+>>>>
+>>>> The XEN implementation of irqchip::irq_set_affinity() already picks a
+>>>> single target CPU out of the affinity mask and the actual target is stored
+>>>> in the effective CPU mask, so destroying the user chosen affinity mask
+>>>> which might contain more than one CPU is wrong.
+>>>>
+>>>> Change the implementation so that the channel is bound to CPU0 at the XEN
+>>>> level and leave the affinity mask alone. At startup of the interrupt
+>>>> affinity will be assigned out of the affinity mask and the XEN binding will
+>>>> be updated.
+>>>
+>>> If that's the case then I wonder whether we need this call at all and instead bind at startup time.
+>> After some discussion with Thomas on IRC and xen-devel archaeology the
+>> result is: this will be needed especially for systems running on a
+>> single vcpu (e.g. small guests), as the .irq_set_affinity() callback
+>> won't be called in this case when starting the irq.
 
-I'm not completely sure it is false either, at this point two
-handler_mutex's are locked (listening ID and the new ID) and there may
-be locking cycles that end up back on the listening ID, certainly it
-is not so simple.
 
-Jason
+On UP are we not then going to end up with an empty affinity mask? Or are we guaranteed to have it set to 1 by interrupt generic code?
+
+
+This is actually why I brought this up in the first place --- a potential mismatch between the affinity mask and Xen-specific data (e.g. info->cpu and then protocol-specific data in event channel code). Even if they are re-synchronized later, at startup time (for SMP).
+
+
+I don't see anything that would cause a problem right now but I worry that this inconsistency may come up at some point.
+
+
+-boris
+
+
+> That's right, but not limited to ARM. The same problem exists on x86 UP.
+> So yes, the call makes sense, but the changelog is not really useful.
+> Let me add a comment to this.
+>
+> Thanks,
+>
+>         tglx
+>
