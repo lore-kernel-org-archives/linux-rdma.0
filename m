@@ -2,132 +2,113 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 738CCC4361B
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 21:42:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A05EC433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 21:56:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1929223372
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 21:42:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB7BB23B85
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 21:56:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394276AbgLKUuY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Dec 2020 15:50:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42320 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727432AbgLKUuR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 11 Dec 2020 15:50:17 -0500
-Date:   Fri, 11 Dec 2020 22:49:32 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607719776;
-        bh=J47tb1OLs75Yh/YtR9XOTDK4Wi9qkYSvNNNgTJdQRK4=;
-        h=From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sjUVooxm/b+kImM2vgIkTn/YyHIpNT6I3UwdCPiEDH2kwNn6iJWHLLdqBo3LSInbp
-         BX4uFlDHPtRUc8wHlarJA35Yamb9LjiC4iyusoVlYqmaP9RsxzZpeyOkz9gdDLh6JO
-         gYF/DYmTbLTPaUuSTS1dFlnILaDvCx/ji7MkgXSe8Qz1fTn0DHjfIAb2jPjvq5EznX
-         JSMnwZ645JFPC1EEAdkYRNiF/XIoZ+bsVGwOIcgo3kqvjpMbcc2/Dy6OQu0p+oQ9jk
-         fv2e5scDEGAkmf242/wlwa0iMkPV7hWwVerRRaHDLY1rUs7y1fIlRZXyzgqhEdM/BP
-         yUkT6Qql0JcYw==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jinpu Wang <jinpu.wang@cloud.ionos.com>
-Cc:     Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
-        linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Danil Kipnis <danil.kipnis@cloud.ionos.com>
-Subject: Re: [PATCH for-next 02/18] RMDA/rtrs-srv: Occasionally flush ongoing
- session closing
-Message-ID: <20201211204932.GB192848@unreal>
-References: <20201209164542.61387-1-jinpu.wang@cloud.ionos.com>
- <20201209164542.61387-3-jinpu.wang@cloud.ionos.com>
- <CAMGffE=_axtHU=pAV3qx5FVY2pB786z3kffQwDzinOaH=yS5Ag@mail.gmail.com>
- <e841a2c3-2774-ca8f-302a-cd43c3b3161e@cloud.ionos.com>
- <CAMGffEmKAzy3dXVKhoZDAqLpZ6DiQiaYNQn8_0Fd+MQUXbn_eA@mail.gmail.com>
- <20201211072600.GA192848@unreal>
- <CAMGffEn4fbTud3qrrwnrS6bqxcpF6sueKb=Qke8N9yLvDeEWpA@mail.gmail.com>
- <CAMGffEnuNHacxqqdZsF0JMk3kTUqT9KdzNK_QzBF_FWjPWLN8Q@mail.gmail.com>
+        id S2394706AbgLKVJG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Dec 2020 16:09:06 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:37572 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391366AbgLKVIv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Dec 2020 16:08:51 -0500
+From:   Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1607720888;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=HhSZk3JoDjyQOLMPOFgRgzwUyrTACu0UGSGM/7NvY6I=;
+        b=ODjND6hv3nPITeDJOTxlIhVMHSqc6z+V97F+ULhmNWUDUg4MeWWcc8/RjfBSpJ+3E7KGvI
+        7u3oIQ1T0blXK7tiZjRPA+EmHIW9gpYRAbWAbVY6gfKBefi2hgLwHuva9Pr5DzcIfb4zGY
+        SuyetRvP8eIvO7dEK0SnW5NkAhYPqinzrr4Dc4PuL6rLfSElkjk6Dm5HgGKkZSl8lMyVVb
+        GCj6eMo+nj1M3TWtminM7NXFXEDFn7q5iOiTlBNVs+z2wkgYrK9LnDALIH7BFq1ID6L7rE
+        ud/rYvRghXbFi0znwvlxBBbwl+qtg9iLqpnrT1m9/JCtlXDnnHPHRcYj9dijAA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1607720888;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=HhSZk3JoDjyQOLMPOFgRgzwUyrTACu0UGSGM/7NvY6I=;
+        b=jd0RTQztrN1EtCKge/4M0pzHQ/MU02TRkL1ocrE3lvW4v9ht90/z6O6t5eEalNoD9uJ0/m
+        DmETqLTaJjhHPNAQ==
+To:     Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Marc Zyngier <maz@kernel.org>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        afzal mohammed <afzal.mohd.ma@gmail.com>,
+        linux-parisc@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
+        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>, linux-s390@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        David Airlie <airlied@linux.ie>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Pankaj Bharadiya <pankaj.laxminarayan.bharadiya@intel.com>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Wambui Karuga <wambui.karugax@gmail.com>,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        "open list\:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        Lee Jones <lee.jones@linaro.org>, Jon Mason <jdmason@kudzu.us>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-pci <linux-pci@vger.kernel.org>,
+        Karthikeyan Mitran <m.karthikeyan@mobiveil.co.in>,
+        Hou Zhiqiang <Zhiqiang.Hou@nxp.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        "open list\:HFI1 DRIVER" <linux-rdma@vger.kernel.org>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        xen-devel@lists.xenproject.org
+Subject: Re: [patch 03/30] genirq: Move irq_set_lockdep_class() to core
+In-Reply-To: <CAHp75Vc-2OjE2uwvNRiyLMQ8GSN3P7SehKD-yf229_7ocaktiw@mail.gmail.com>
+References: <20201210192536.118432146@linutronix.de> <20201210194042.860029489@linutronix.de> <CAHp75Vc-2OjE2uwvNRiyLMQ8GSN3P7SehKD-yf229_7ocaktiw@mail.gmail.com>
+Date:   Fri, 11 Dec 2020 22:08:07 +0100
+Message-ID: <87h7osgifc.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMGffEnuNHacxqqdZsF0JMk3kTUqT9KdzNK_QzBF_FWjPWLN8Q@mail.gmail.com>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Dec 11, 2020 at 08:58:09AM +0100, Jinpu Wang wrote:
-> On Fri, Dec 11, 2020 at 8:53 AM Jinpu Wang <jinpu.wang@cloud.ionos.com> wrote:
-> >
-> > On Fri, Dec 11, 2020 at 8:26 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > >
-> > > On Fri, Dec 11, 2020 at 07:50:13AM +0100, Jinpu Wang wrote:
-> > > > On Fri, Dec 11, 2020 at 3:35 AM Guoqing Jiang
-> > > > <guoqing.jiang@cloud.ionos.com> wrote:
-> > > > >
-> > > > >
-> > > > >
-> > > > > On 12/10/20 15:56, Jinpu Wang wrote:
-> > > > > > On Wed, Dec 9, 2020 at 5:45 PM Jack Wang <jinpu.wang@cloud.ionos.com> wrote:
-> > > > > >>
-> > > > > >> If there are many establishments/teardowns, we need to make sure
-> > > > > >> we do not consume too much system memory. Thus let on going
-> > > > > >> session closing to finish before accepting new connection.
-> > > > > >>
-> > > > > >> Inspired by commit 777dc82395de ("nvmet-rdma: occasionally flush ongoing controller teardown")
-> > > > > >> Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-> > > > > >> Reviewed-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-> > > > > > Please ignore this one, it could lead to deadlock, due to the fact
-> > > > > > cma_ib_req_handler is holding
-> > > > > > mutex_lock(&listen_id->handler_mutex) when calling into
-> > > > > > rtrs_rdma_connect, we call close_work which will call rdma_destroy_id,
-> > > > > > which
-> > > > > > could try to hold the same handler_mutex, so deadlock.
-> > > > > >
-> > > > >
-> > > > > I am wondering if nvmet-rdma has the similar issue or not, if so, maybe
-> > > > > introduce a locked version of rdma_destroy_id.
-> > > > >
-> > > > > Thanks,
-> > > > > Guoqing
-> > > >
-> > > > No, I was wrong. I rechecked the code, it's not a valid deadlock, in
-> > > > cma_ib_req_handler, the conn_id is newly created in
-> > > > https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/cma.c#L2185.
-> > > >
-> > > > Flush_workqueue will only flush close_work for any other cm_id, but
-> > > > not the newly created one conn_id, it has not associated with anything
-> > > > yet.
-> > > >
-> > > > The same applies to nvme-rdma. so it's a false alarm by lockdep.
-> > >
-> > > Leaving this without fix (proper lock annotation) is not right thing to
-> > > do, because everyone who runs rtrs code with LOCKDEP on will have same
-> > > "false alarm".
-> > >
-> > > So I recommend or not to take this patch or write it without LOCKDEP warning.
-> > Hi Leon,
-> >
-> > I'm thinking about the same, do you have a suggestion on how to teach
-> > LOCKDEP this is not really a deadlock,
-> > I do not know LOCKDEP well.
-> Found it myself, we can use lockdep_off
->
-> https://elixir.bootlin.com/linux/latest/source/drivers/virtio/virtio_mem.c#L699
+On Fri, Dec 11 2020 at 19:53, Andy Shevchenko wrote:
 
-My personal experience from internal/external reviews shows that claims
-about false alarms in LOCKDEP warnings are almost always wrong.
-
-Thanks
-
+> On Thu, Dec 10, 2020 at 10:14 PM Thomas Gleixner <tglx@linutronix.de> wrote:
+>>
+>> irq_set_lockdep_class() is used from modules and requires irq_to_desc() to
+>> be exported. Move it into the core code which lifts another requirement for
+>> the export.
 >
-> Thanks
+> ...
 >
-> >
-> > Thanks
-> > >
-> > > Thanks
-> > >
-> > > >
-> > > > Regards!
-> > > > Jack
+>> +       if (IS_ENABLED(CONFIG_LOCKDEP))
+>> +               __irq_set_lockdep_class(irq, lock_class, request_class);
+
+You are right. Let me fix that.
