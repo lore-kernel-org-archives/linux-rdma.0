@@ -2,86 +2,182 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A21FEC433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 01:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3347DC433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 01:41:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F25D23DE3
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 01:29:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0B5E23C18
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Dec 2020 01:41:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728515AbgLKB25 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Dec 2020 20:28:57 -0500
-Received: from szxga01-in.huawei.com ([45.249.212.187]:4112 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728203AbgLKB2n (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 20:28:43 -0500
-Received: from DGGEMM406-HUB.china.huawei.com (unknown [172.30.72.54])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4CsY742w7bzXlxm;
-        Fri, 11 Dec 2020 09:27:28 +0800 (CST)
-Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
- DGGEMM406-HUB.china.huawei.com (10.3.20.214) with Microsoft SMTP Server (TLS)
- id 14.3.487.0; Fri, 11 Dec 2020 09:27:57 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1913.5; Fri, 11 Dec 2020 09:27:57 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.1913.007;
- Fri, 11 Dec 2020 09:27:57 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>
-Subject: Re: [PATCH v4 for-next 00/11] RDMA/hns: Updates for 5.11
-Thread-Topic: [PATCH v4 for-next 00/11] RDMA/hns: Updates for 5.11
-Thread-Index: AQHWzvyRsBUceKGxqEyJpWg1WxvDMw==
-Date:   Fri, 11 Dec 2020 01:27:56 +0000
-Message-ID: <9786ecef015b4f8d9efa2b264dbe89d9@huawei.com>
-References: <1607608479-54518-1-git-send-email-liweihang@huawei.com>
- <20201211001620.GA2159051@nvidia.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        id S2390357AbgLKBkn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Dec 2020 20:40:43 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:8979 "EHLO
+        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389896AbgLKBkN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Dec 2020 20:40:13 -0500
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4CsYNT3jJ9zhqTG;
+        Fri, 11 Dec 2020 09:39:05 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 11 Dec 2020 09:39:23 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@ziepe.ca>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v5 for-next 01/11] RDMA/hns: Limit the length of data copied between kernel and userspace
+Date:   Fri, 11 Dec 2020 09:37:27 +0800
+Message-ID: <1607650657-35992-2-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1607650657-35992-1-git-send-email-liweihang@huawei.com>
+References: <1607650657-35992-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2020/12/11 8:16, Jason Gunthorpe wrote:
-> On Thu, Dec 10, 2020 at 09:54:28PM +0800, Weihang Li wrote:
->> There are miscellaneous updates for hns driver:
->> * #1 fixes a potential length issue when copying udata.
->> * #2 fixes the unreasonable judgment when using HEM of SRQ and SCCC.
->> * #3 fixes wrong value of Traffic Class.
->> * #4 and #5 fix issues about Service Level.
->> * #6 ~ #11 are cleanups, including removing dead code, fixing coding style
->>   issues and so on.
-> 
-> Doesn't compile:
-> 
-> In file included from drivers/infiniband/hw/hns/hns_roce_hw_v1.c:40:
-> drivers/infiniband/hw/hns/hns_roce_hw_v1.c: In function ‘set_eq_cons_index_v1’:
-> drivers/infiniband/hw/hns/hns_roce_hw_v1.c:3606:42: error: ‘struct hns_roce_eq’ has no member named ‘db_reg’
->  3606 |          (req_not << eq->log_entries), eq->db_reg);
->       |                                          ^~
-> drivers/infiniband/hw/hns/hns_roce_common.h:39:49: note: in definition of macro ‘roce_raw_write’
->    39 |  __raw_writel((__force u32)cpu_to_le32(value), (addr))
->       |                                                 ^~~~
-> 
-> Jason
-> 
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Sorry for that, will fix it later.
+For ib_copy_from_user(), the length of udata may not be the same as that
+of cmd. For ib_copy_to_user(), the length of udata may not be the same as
+that of resp. So limit the length to prevent out-of-bounds read and write
+operations from ib_copy_from_user() and ib_copy_to_user().
 
-Weihang
+Fixes: de77503a5940 ("RDMA/hns: RDMA/hns: Assign rq head pointer when enable rq record db")
+Fixes: 633fb4d9fdaa ("RDMA/hns: Use structs to describe the uABI instead of opencoding")
+Fixes: ae85bf92effc ("RDMA/hns: Optimize qp param setup flow")
+Fixes: 6fd610c5733d ("RDMA/hns: Support 0 hop addressing for SRQ buffer")
+Fixes: 9d9d4ff78884 ("RDMA/hns: Update the kernel header file of hns")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c   |  5 +++--
+ drivers/infiniband/hw/hns/hns_roce_main.c |  3 ++-
+ drivers/infiniband/hw/hns/hns_roce_pd.c   | 11 ++++++-----
+ drivers/infiniband/hw/hns/hns_roce_qp.c   |  9 ++++++---
+ drivers/infiniband/hw/hns/hns_roce_srq.c  | 10 +++++-----
+ 5 files changed, 22 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 5e6d688..e67c2b9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -276,7 +276,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 
+ 	if (udata) {
+ 		ret = ib_copy_from_udata(&ucmd, udata,
+-					 min(sizeof(ucmd), udata->inlen));
++					 min(udata->inlen, sizeof(ucmd)));
+ 		if (ret) {
+ 			ibdev_err(ibdev, "Failed to copy CQ udata, err %d\n",
+ 				  ret);
+@@ -315,7 +315,8 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 
+ 	if (udata) {
+ 		resp.cqn = hr_cq->cqn;
+-		ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
++		ret = ib_copy_to_udata(udata, &resp,
++				       min(udata->outlen, sizeof(resp)));
+ 		if (ret)
+ 			goto err_cqc;
+ 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index e8aa807..bc46624 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -327,7 +327,8 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 
+ 	resp.cqe_size = hr_dev->caps.cqe_sz;
+ 
+-	ret = ib_copy_to_udata(udata, &resp, sizeof(resp));
++	ret = ib_copy_to_udata(udata, &resp,
++			       min(udata->outlen, sizeof(resp)));
+ 	if (ret)
+ 		goto error_fail_copy_to_udata;
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index 45ec91d..8dccb6e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -69,16 +69,17 @@ int hns_roce_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 	}
+ 
+ 	if (udata) {
+-		struct hns_roce_ib_alloc_pd_resp uresp = {.pdn = pd->pdn};
++		struct hns_roce_ib_alloc_pd_resp resp = {.pdn = pd->pdn};
+ 
+-		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
++		ret = ib_copy_to_udata(udata, &resp,
++				       min(udata->outlen, sizeof(resp)));
++		if (ret) {
+ 			hns_roce_pd_free(to_hr_dev(ib_dev), pd->pdn);
+-			ibdev_err(ib_dev, "failed to copy to udata\n");
+-			return -EFAULT;
++			ibdev_err(ib_dev, "failed to copy to udata, ret = %d\n", ret);
+ 		}
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int hns_roce_dealloc_pd(struct ib_pd *pd, struct ib_udata *udata)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 121d3b4..c85513d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -924,9 +924,12 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 	}
+ 
+ 	if (udata) {
+-		if (ib_copy_from_udata(ucmd, udata, sizeof(*ucmd))) {
+-			ibdev_err(ibdev, "Failed to copy QP ucmd\n");
+-			return -EFAULT;
++		ret = ib_copy_from_udata(ucmd, udata,
++					 min(udata->inlen, sizeof(*ucmd)));
++		if (ret) {
++			ibdev_err(ibdev,
++				  "failed to copy QP ucmd, ret = %d\n", ret);
++			return ret;
+ 		}
+ 
+ 		ret = set_user_sq_size(hr_dev, &init_attr->cap, hr_qp, ucmd);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index 36c6bcb..6a3ebb3 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -303,7 +303,8 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 	srq->max_gs = init_attr->attr.max_sge;
+ 
+ 	if (udata) {
+-		ret = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
++		ret = ib_copy_from_udata(&ucmd, udata,
++					 min(udata->inlen, sizeof(ucmd)));
+ 		if (ret) {
+ 			ibdev_err(ibdev, "Failed to copy SRQ udata, err %d\n",
+ 				  ret);
+@@ -346,11 +347,10 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 	resp.srqn = srq->srqn;
+ 
+ 	if (udata) {
+-		if (ib_copy_to_udata(udata, &resp,
+-				     min(udata->outlen, sizeof(resp)))) {
+-			ret = -EFAULT;
++		ret = ib_copy_to_udata(udata, &resp,
++				       min(udata->outlen, sizeof(resp)));
++		if (ret)
+ 			goto err_srqc_alloc;
+-		}
+ 	}
+ 
+ 	return 0;
+-- 
+2.8.1
+
