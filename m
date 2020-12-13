@@ -2,67 +2,67 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A54D8C433FE
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1AEEC433FE
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:30:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6BBC820728
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:30:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BF4320728
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391674AbgLMNa0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 13 Dec 2020 08:30:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53344 "EHLO mail.kernel.org"
+        id S2394627AbgLMNa3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 13 Dec 2020 08:30:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725890AbgLMNa0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 13 Dec 2020 08:30:26 -0500
+        id S1725890AbgLMNa3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 13 Dec 2020 08:30:29 -0500
 From:   Leon Romanovsky <leon@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Daniel Jurgens <danielj@mellanox.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Parav Pandit <parav@mellanox.com>,
-        Shay Drory <shayd@nvidia.com>
-Subject: [PATCH rdma-rc 0/5] Fixes to v5.10
-Date:   Sun, 13 Dec 2020 15:29:35 +0200
-Message-Id: <20201213132940.345554-1-leon@kernel.org>
+Cc:     Shay Drory <shayd@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc 2/5] IB/umad: Return EIO in case of when device disassociated
+Date:   Sun, 13 Dec 2020 15:29:37 +0200
+Message-Id: <20201213132940.345554-3-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20201213132940.345554-1-leon@kernel.org>
+References: <20201213132940.345554-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Shay Drory <shayd@nvidia.com>
 
-Hi,
+MAD message received by the user has EINVAL error in all flows
+including when the device is disassociated. That makes it impossible
+for the applications to treat such flow differently.
 
-This is another series with various fixes that can easily go to -next too.
+Change it to return EIO, so the applications will be able to perform
+disassociation recovery.
 
-Thanks
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/user_mad.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Leon Romanovsky (1):
-  RDMA/cma: Don't overwrite sgid_attr after device is released
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 19104a675691..b671d4aede77 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -524,7 +524,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
 
-Maor Gottlieb (2):
-  RDMA/mlx5: Fix MR cache memory leak
-  RDMA/ucma: Fix memory leak of connection request
-
-Shay Drory (2):
-  IB/umad: Return EIO in case of when device disassociated
-  IB/umad: Return EPOLLERR in case of when device disassociated
-
- drivers/infiniband/core/cma.c      | 7 ++++---
- drivers/infiniband/core/ucma.c     | 4 +++-
- drivers/infiniband/core/user_mad.c | 6 +++++-
- drivers/infiniband/hw/mlx5/mr.c    | 1 +
- 4 files changed, 13 insertions(+), 5 deletions(-)
+ 	agent = __get_agent(file, packet->mad.hdr.id);
+ 	if (!agent) {
+-		ret = -EINVAL;
++		ret = -EIO;
+ 		goto err_up;
+ 	}
 
 --
 2.29.2
