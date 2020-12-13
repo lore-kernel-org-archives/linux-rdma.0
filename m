@@ -6,26 +6,26 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7CBC0018C
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:31:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0822C4361B
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:31:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B90972075B
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:31:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70E9A20728
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Dec 2020 13:31:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394646AbgLMNau (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 13 Dec 2020 08:30:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53656 "EHLO mail.kernel.org"
+        id S2394686AbgLMNbO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 13 Dec 2020 08:31:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394650AbgLMNak (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 13 Dec 2020 08:30:40 -0500
+        id S2394683AbgLMNbG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 13 Dec 2020 08:31:06 -0500
 From:   Leon Romanovsky <leon@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-rc 5/5] RDMA/ucma: Fix memory leak of connection request
-Date:   Sun, 13 Dec 2020 15:29:40 +0200
-Message-Id: <20201213132940.345554-6-leon@kernel.org>
+Subject: [PATCH rdma-rc 1/5] RDMA/mlx5: Fix MR cache memory leak
+Date:   Sun, 13 Dec 2020 15:29:36 +0200
+Message-Id: <20201213132940.345554-2-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201213132940.345554-1-leon@kernel.org>
 References: <20201213132940.345554-1-leon@kernel.org>
@@ -38,50 +38,45 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@nvidia.com>
 
-Add missing call to xa_erase when destroy connection request.
-It fixes the below memory leak.
+If the MR cache entry invalidation failed, then we detach this entry
+from the cache, therefore we must to free the memory as well.
 
-unreferenced object 0xffff88812a340490 (size 576):
-comm “kworker/5:0”, pid 96291, jiffies 4296565270 (age 1835.596s)
-hex dump (first 32 bytes):
-00 20 03 00 00 00 00 00 00 00 00 00 00 00 00 00 . …………..
-a0 d3 1a a0 ff ff ff ff a8 04 34 2a 81 88 ff ff ……….4*….
-backtrace:
-[<0000000059399d4c>] xas_alloc+0x94/0xb0
-[<00000000d855673c>] xas_create+0x1f4/0×4c0
-[<00000000336166d1>] xas_store+0x52/0×5e0
-[<000000006b811da0>] __xa_alloc+0xab/0×140
-[<00000000cf0e9936>] ucma_alloc_ctx+0x197/0×1f0 [rdma_ucm]
-[<000000008f99b6bb>] ucma_event_handler+0x17b/0×2e0 [rdma_ucm]
-[<000000000a07fc34>] cma_cm_event_handler+0x6f/0×390 [rdma_cm]
-[<00000000fe05d574>] cma_ib_req_handler+0x1163/0×2370 [rdma_cm]
-[<000000004516baf4>] cm_work_handler+0xeda/0×2340 [ib_cm]
-[<000000008a83945b>] process_one_work+0x27c/0×610
-[<00000000b71b71e2>] worker_thread+0x2d/0×3c0
-[<00000000caab54ff>] kthread+0x125/0×140
-[<000000004303d699>] ret_from_fork+0x1f/0×30
+  comm "python3", pid 15325, jiffies 4298483783 (age 1787.596s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 40 62 12 f4 82 88 ff ff  ........b……
+    00 22 08 00 00 22 08 00 00 00 00 00 00 00 00 00  .“…”……….
 
-Fixes: a1d33b70dbbc ("RDMA/ucma: Rework how new connections are passed through event delivery")
+  backtrace:
+
+    [<00000000d8e423b0>] alloc_cache_mr+0x23/0xc0 [mlx5_ib]
+    [<000000001f21304c>] create_cache_mr+0x3f/0xf0 [mlx5_ib]
+    [<000000009d6b45dc>] mlx5_ib_alloc_implicit_mr+0x41/0×210 [mlx5_ib]
+    [<00000000879d0d68>] mlx5_ib_reg_user_mr+0x9e/0×6e0 [mlx5_ib]
+    [<00000000be74bf89>] create_qp+0x2fc/0xf00 [ib_uverbs]
+    [<000000001a532d22>] ib_uverbs_handler_UVERBS_METHOD_COUNTERS_READ+0x1d9/0×230 [ib_uverbs]
+    [<0000000070f46001>] rdma_alloc_commit_uobject+0xb5/0×120 [ib_uverbs]
+    [<000000006d8a0b38>] uverbs_alloc+0x2b/0xf0 [ib_uverbs]
+    [<00000000075217c9>] ksysioctl+0x234/0×7d0
+    [<00000000eb5c120b>] __x64_sys_ioctl+0x16/0×20
+    [<00000000db135b48>] do_syscall_64+0x59/0×2e0
+
+Fixes: 1769c4c57548 ("RDMA/mlx5: Always remove MRs from the cache before destroying them")
 Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/ucma.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mr.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 7dab9a27a145..b0b9ea90a27d 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -549,8 +549,10 @@ static int ucma_free_ctx(struct ucma_context *ctx)
- 	list_for_each_entry_safe(uevent, tmp, &list, list) {
- 		list_del(&uevent->list);
- 		if (uevent->resp.event == RDMA_CM_EVENT_CONNECT_REQUEST &&
--		    uevent->conn_req_ctx != ctx)
-+		    uevent->conn_req_ctx != ctx) {
-+			xa_erase(&ctx_table, uevent->conn_req_ctx->id);
- 			__destroy_id(uevent->conn_req_ctx);
-+		}
- 		kfree(uevent);
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 80e3047110a8..479543ebf697 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -644,6 +644,7 @@ void mlx5_mr_cache_free(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ 	if (mlx5_mr_cache_invalidate(mr)) {
+ 		detach_mr_from_cache(mr);
+ 		destroy_mkey(dev, mr);
++		kfree(mr);
+ 		return;
  	}
 
 --
