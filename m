@@ -4,20 +4,20 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2D7C2BB9A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 387FEC2BB40
 	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:47:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35DF320738
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:47:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 013D620798
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438911AbgLNVrG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Dec 2020 16:47:06 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46220 "EHLO mail.kernel.org"
+        id S2503440AbgLNVpv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Dec 2020 16:45:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2503173AbgLNVpu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Dec 2020 16:45:50 -0500
+        id S2441153AbgLNVpb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Dec 2020 16:45:31 -0500
 From:   Saeed Mahameed <saeed@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -29,11 +29,11 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>,
+        Parav Pandit <parav@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next v4 15/15] net/mlx5: Add devlink subfunction port documentation
-Date:   Mon, 14 Dec 2020 13:43:52 -0800
-Message-Id: <20201214214352.198172-16-saeed@kernel.org>
+Subject: [net-next v4 07/15] net/mlx5: SF, Add auxiliary device support
+Date:   Mon, 14 Dec 2020 13:43:44 -0800
+Message-Id: <20201214214352.198172-8-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201214214352.198172-1-saeed@kernel.org>
 References: <20201214214352.198172-1-saeed@kernel.org>
@@ -45,236 +45,439 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-Add documentation for subfunction management using devlink
-port.
+Introduce API to add and delete an auxiliary device for an SF.
+Each SF has its own dedicated window in the PCI BAR 2.
+
+SF device is similar to PCI PF and VF that supports multiple class of
+devices such as net, rdma and vdpa.
+
+SF device will be added or removed in subsequent patch during SF
+devlink port function state change command.
+
+A subfunction device exposes user supplied subfunction number which will
+be further used by systemd/udev to have deterministic name for its
+netdevice and rdma device.
+
+An mlx5 subfunction auxiliary device example:
+
+$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
+
+$ devlink port show
+pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
+
+$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
+
+$ devlink port show ens2f0npf0sf88
+pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
+  function:
+    hw_addr 00:00:00:00:88:88 state inactive opstate detached
+
+$ devlink port function set ens2f0npf0sf88 hw_addr 00:00:00:00:88:88 state active
+
+On activation,
+
+$ ls -l /sys/bus/auxiliary/devices/
+mlx5_core.sf.4 -> ../../../devices/pci0000:00/0000:00:03.0/0000:06:00.0/mlx5_core.sf.4
+
+$ cat /sys/bus/auxiliary/devices/mlx5_core.sf.4/sfnum
+88
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
+Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../device_drivers/ethernet/mellanox/mlx5.rst | 204 ++++++++++++++++++
- 1 file changed, 204 insertions(+)
+ .../device_drivers/ethernet/mellanox/mlx5.rst |   5 +
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+ .../net/ethernet/mellanox/mlx5/core/main.c    |   4 +
+ .../ethernet/mellanox/mlx5/core/sf/dev/dev.c  | 261 ++++++++++++++++++
+ .../ethernet/mellanox/mlx5/core/sf/dev/dev.h  |  35 +++
+ include/linux/mlx5/driver.h                   |   2 +
+ 6 files changed, 308 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
 
 diff --git a/Documentation/networking/device_drivers/ethernet/mellanox/mlx5.rst b/Documentation/networking/device_drivers/ethernet/mellanox/mlx5.rst
-index a5eb22793bb9..07e38c044355 100644
+index e9b65035cd47..a5eb22793bb9 100644
 --- a/Documentation/networking/device_drivers/ethernet/mellanox/mlx5.rst
 +++ b/Documentation/networking/device_drivers/ethernet/mellanox/mlx5.rst
-@@ -12,6 +12,8 @@ Contents
- - `Enabling the driver and kconfig options`_
- - `Devlink info`_
- - `Devlink parameters`_
-+- `mlx5 subfunction`_
-+- `mlx5 port function`_
- - `Devlink health reporters`_
- - `mlx5 tracepoints`_
+@@ -97,6 +97,11 @@ Enabling the driver and kconfig options
  
-@@ -181,6 +183,208 @@ User command examples:
-       values:
-          cmode driverinit value true
+ |   Provides low-level InfiniBand/RDMA and `RoCE <https://community.mellanox.com/s/article/recommended-network-configuration-examples-for-roce-deployment>`_ support.
  
-+mlx5 subfunction
-+================
-+mlx5 supports subfunctions management using devlink port (see :ref:`Documentation/networking/devlink/devlink-port.rst <devlink_port>`) interface.
++**CONFIG_MLX5_SF=(y/n)**
 +
-+A Subfunction has its own function capabilities and its own resources. This
-+means a subfunction has its own dedicated queues(txq, rxq, cq, eq). These queues
-+are neither shared nor stealed from the parent PCI function.
++|   Build support for subfunction.
++|   Subfunctons are more light weight than PCI SRIOV VFs. Choosing this option
++|   will enable support for creating subfunction devices.
+ 
+ **External options** ( Choose if the corresponding mlx5 feature is required )
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+index 292c02c4828c..2aefbca404c3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+@@ -88,4 +88,4 @@ mlx5_core-$(CONFIG_MLX5_SW_STEERING) += steering/dr_domain.o steering/dr_table.o
+ #
+ # SF device
+ #
+-mlx5_core-$(CONFIG_MLX5_SF) += sf/vhca_event.o
++mlx5_core-$(CONFIG_MLX5_SF) += sf/vhca_event.o sf/dev/dev.o
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 6e67ad11c713..292c30e71d7f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -74,6 +74,7 @@
+ #include "lib/hv_vhca.h"
+ #include "diag/rsc_dump.h"
+ #include "sf/vhca_event.h"
++#include "sf/dev/dev.h"
+ 
+ MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
+ MODULE_DESCRIPTION("Mellanox 5th generation network adapters (ConnectX series) core driver");
+@@ -1155,6 +1156,8 @@ static int mlx5_load(struct mlx5_core_dev *dev)
+ 		goto err_sriov;
+ 	}
+ 
++	mlx5_sf_dev_table_create(dev);
 +
-+When subfunction is RDMA capable, it has its own QP1, GID table and rdma
-+resources neither shared nor stealed from the parent PCI function.
+ 	return 0;
+ 
+ err_sriov:
+@@ -1186,6 +1189,7 @@ static int mlx5_load(struct mlx5_core_dev *dev)
+ 
+ static void mlx5_unload(struct mlx5_core_dev *dev)
+ {
++	mlx5_sf_dev_table_destroy(dev);
+ 	mlx5_sriov_detach(dev);
+ 	mlx5_ec_cleanup(dev);
+ 	mlx5_vhca_event_stop(dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
+new file mode 100644
+index 000000000000..6562bf63afaa
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
+@@ -0,0 +1,261 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/* Copyright (c) 2020 Mellanox Technologies Ltd */
 +
-+A subfunction has dedicated window in PCI BAR space that is not shared
-+with ther other subfunctions or parent PCI function. This ensures that all
-+class devices of the subfunction accesses only assigned PCI BAR space.
++#include <linux/mlx5/driver.h>
++#include <linux/mlx5/device.h>
++#include "mlx5_core.h"
++#include "dev.h"
++#include "sf/vhca_event.h"
++#include "sf/sf.h"
++#include "sf/mlx5_ifc_vhca_event.h"
++#include "ecpf.h"
 +
-+A Subfunction supports eswitch representation through which it supports tc
-+offloads. User must configure eswitch to send/receive packets from/to
-+subfunction port.
++struct mlx5_sf_dev_table {
++	struct xarray devices;
++	unsigned int max_sfs;
++	phys_addr_t base_address;
++	u64 sf_bar_length;
++	struct notifier_block nb;
++	struct mlx5_core_dev *dev;
++};
 +
-+Subfunctions share PCI level resources such as PCI MSI-X IRQs with
-+ther other subfunctions and/or with its parent PCI function.
++static bool mlx5_sf_dev_supported(const struct mlx5_core_dev *dev)
++{
++	return MLX5_CAP_GEN(dev, sf) && mlx5_vhca_event_supported(dev);
++}
 +
-+Example mlx5 software, system and device view::
++static ssize_t sfnum_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct auxiliary_device *adev = container_of(dev, struct auxiliary_device, dev);
++	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
 +
-+       _______
-+      | admin |
-+      | user  |----------
-+      |_______|         |
-+          |             |
-+      ____|____       __|______            _________________
-+     |         |     |         |          |                 |
-+     | devlink |     | tc tool |          |    user         |
-+     | tool    |     |_________|          | applications    |
-+     |_________|         |                |_________________|
-+           |             |                   |          |
-+           |             |                   |          |         Userspace
-+ +---------|-------------|-------------------|----------|--------------------+
-+           |             |           +----------+   +----------+   Kernel
-+           |             |           |  netdev  |   | rdma dev |
-+           |             |           +----------+   +----------+
-+   (devlink port add/del |              ^               ^
-+    port function set)   |              |               |
-+           |             |              +---------------|
-+      _____|___          |              |        _______|_______
-+     |         |         |              |       | mlx5 class    |
-+     | devlink |   +------------+       |       |   drivers     |
-+     | kernel  |   | rep netdev |       |       |(mlx5_core,ib) |
-+     |_________|   +------------+       |       |_______________|
-+           |             |              |               ^
-+   (devlink ops)         |              |          (probe/remove)
-+  _________|________     |              |           ____|________
-+ | subfunction      |    |     +---------------+   | subfunction |
-+ | management driver|-----     | subfunction   |---|  driver     |
-+ | (mlx5_core)      |          | auxiliary dev |   | (mlx5_core) |
-+ |__________________|          +---------------+   |_____________|
-+           |                                            ^
-+  (sf add/del, vhca events)                             |
-+           |                                      (device add/del)
-+      _____|____                                    ____|________
-+     |          |                                  | subfunction |
-+     |  PCI NIC |---- activate/deactive events---->| host driver |
-+     |__________|                                  | (mlx5_core) |
-+                                                   |_____________|
++	return scnprintf(buf, PAGE_SIZE, "%u\n", sf_dev->sfnum);
++}
++static DEVICE_ATTR_RO(sfnum);
 +
-+Subfunction is created using devlink port interface.
++static struct attribute *sf_device_attrs[] = {
++	&dev_attr_sfnum.attr,
++	NULL,
++};
 +
-+- Change device to switchdev mode::
++static const struct attribute_group sf_attr_group = {
++	.attrs = sf_device_attrs,
++};
 +
-+    $ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
++static const struct attribute_group *sf_attr_groups[2] = {
++	&sf_attr_group,
++	NULL
++};
 +
-+- Add a devlink port of subfunction flaovur::
++static void mlx5_sf_dev_release(struct device *device)
++{
++	struct auxiliary_device *adev = container_of(device, struct auxiliary_device, dev);
++	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
 +
-+    $ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
++	mlx5_adev_idx_free(adev->id);
++	kfree(sf_dev);
++}
 +
-+- Show a devlink port of the subfunction::
++static void mlx5_sf_dev_remove(struct mlx5_sf_dev *sf_dev)
++{
++	auxiliary_device_delete(&sf_dev->adev);
++	auxiliary_device_uninit(&sf_dev->adev);
++}
 +
-+    $ devlink port show pci/0000:06:00.0/32768
-+    pci/0000:06:00.0/32768: type eth netdev enp6s0pf0sf88 flavour pcisf pfnum 0 sfnum 88
-+      function:
-+        hw_addr 00:00:00:00:00:00
++static void mlx5_sf_dev_add(struct mlx5_core_dev *dev, u16 sf_index, u32 sfnum)
++{
++	struct mlx5_sf_dev_table *table = dev->priv.sf_dev_table;
++	struct mlx5_sf_dev *sf_dev;
++	struct pci_dev *pdev;
++	int err;
++	int id;
 +
-+- Delete a devlink port of subfunction after use::
++	id = mlx5_adev_idx_alloc();
++	if (id < 0) {
++		err = id;
++		goto add_err;
++	}
 +
-+    $ devlink port del pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
++	sf_dev = kzalloc(sizeof(*sf_dev), GFP_KERNEL);
++	if (!sf_dev) {
++		mlx5_adev_idx_free(id);
++		err = -ENOMEM;
++		goto add_err;
++	}
++	pdev = dev->pdev;
++	sf_dev->adev.id = id;
++	sf_dev->adev.name = MLX5_SF_DEV_ID_NAME;
++	sf_dev->adev.dev.release = mlx5_sf_dev_release;
++	sf_dev->adev.dev.parent = &pdev->dev;
++	sf_dev->adev.dev.groups = sf_attr_groups;
++	sf_dev->sfnum = sfnum;
++	sf_dev->parent_mdev = dev;
 +
-+mlx5 port function
-+==================
-+mlx5 driver provides mechanism to setup PCI VF/SF port function
-+attributes in unified way for smartnic and non-smartnic NICs.
++	if (!table->max_sfs) {
++		mlx5_adev_idx_free(id);
++		kfree(sf_dev);
++		err = -EOPNOTSUPP;
++		goto add_err;
++	}
++	sf_dev->bar_base_addr = table->base_address + (sf_index * table->sf_bar_length);
 +
-+This is supported only when eswitch mode is set to switchdev. Port function
-+configuration of the PCI VF/SF is supported through devlink eswitch port.
++	err = auxiliary_device_init(&sf_dev->adev);
++	if (err) {
++		mlx5_adev_idx_free(id);
++		kfree(sf_dev);
++		goto add_err;
++	}
 +
-+Port function attributes should be set before PCI VF/SF is enumerated by the
-+driver.
++	err = auxiliary_device_add(&sf_dev->adev);
++	if (err) {
++		put_device(&sf_dev->adev.dev);
++		goto add_err;
++	}
 +
-+MAC address setup
-+-----------------
-+mlx5 driver provides mechanism to setup the MAC address of the PCI VF/SF.
++	err = xa_insert(&table->devices, sf_index, sf_dev, GFP_KERNEL);
++	if (err)
++		goto xa_err;
++	return;
 +
-+Configured MAC address of the PCI VF/SF will be used by netdevice and rdma
-+device created for the PCI VF/SF.
++xa_err:
++	mlx5_sf_dev_remove(sf_dev);
++add_err:
++	mlx5_core_err(dev, "SF DEV: fail device add for index=%d sfnum=%d err=%d\n",
++		      sf_index, sfnum, err);
++}
 +
-+- Get MAC address of the VF identified by its unique devlink port index::
++static void mlx5_sf_dev_del(struct mlx5_core_dev *dev, struct mlx5_sf_dev *sf_dev, u16 sf_index)
++{
++	struct mlx5_sf_dev_table *table = dev->priv.sf_dev_table;
 +
-+    $ devlink port show pci/0000:06:00.0/2
-+    pci/0000:06:00.0/2: type eth netdev enp6s0pf0vf1 flavour pcivf pfnum 0 vfnum 1
-+      function:
-+        hw_addr 00:00:00:00:00:00
++	xa_erase(&table->devices, sf_index);
++	mlx5_sf_dev_remove(sf_dev);
++}
 +
-+- Set MAC address of the VF identified by its unique devlink port index::
++static int
++mlx5_sf_dev_state_change_handler(struct notifier_block *nb, unsigned long event_code, void *data)
++{
++	struct mlx5_sf_dev_table *table = container_of(nb, struct mlx5_sf_dev_table, nb);
++	const struct mlx5_vhca_state_event *event = data;
++	struct mlx5_sf_dev *sf_dev;
++	u16 sf_index;
 +
-+    $ devlink port function set pci/0000:06:00.0/2 hw_addr 00:11:22:33:44:55
++	sf_index = event->function_id - MLX5_CAP_GEN(table->dev, sf_base_id);
++	sf_dev = xa_load(&table->devices, sf_index);
++	switch (event->new_vhca_state) {
++	case MLX5_VHCA_STATE_TEARDOWN_REQUEST:
++		if (sf_dev)
++			mlx5_sf_dev_del(table->dev, sf_dev, sf_index);
++		else
++			mlx5_core_err(table->dev,
++				      "SF DEV: teardown state for invalid dev index=%d fn_id=0x%x\n",
++				      sf_index, event->sw_function_id);
++		break;
++	case MLX5_VHCA_STATE_ACTIVE:
++		if (!sf_dev)
++			mlx5_sf_dev_add(table->dev, sf_index, event->sw_function_id);
++		break;
++	default:
++		break;
++	}
++	return 0;
++}
 +
-+    $ devlink port show pci/0000:06:00.0/2
-+    pci/0000:06:00.0/2: type eth netdev enp6s0pf0vf1 flavour pcivf pfnum 0 vfnum 1
-+      function:
-+        hw_addr 00:11:22:33:44:55
++static int mlx5_sf_dev_vhca_arm_all(struct mlx5_sf_dev_table *table)
++{
++	struct mlx5_core_dev *dev = table->dev;
++	u16 max_functions;
++	u16 function_id;
++	int err = 0;
++	bool ecpu;
++	int i;
 +
-+- Get MAC address of the SF identified by its unique devlink port index::
++	max_functions = mlx5_sf_max_functions(dev);
++	function_id = MLX5_CAP_GEN(dev, sf_base_id);
++	ecpu = mlx5_read_embedded_cpu(dev);
++	/* Arm the vhca context as the vhca event notifier */
++	for (i = 0; i < max_functions; i++) {
++		err = mlx5_vhca_event_arm(dev, function_id, ecpu);
++		if (err)
++			return err;
 +
-+    $ devlink port show pci/0000:06:00.0/32768
-+    pci/0000:06:00.0/32768: type eth netdev enp6s0pf0sf88 flavour pcisf pfnum 0 sfnum 88
-+      function:
-+        hw_addr 00:00:00:00:00:00
++		function_id++;
++	}
++	return 0;
++}
 +
-+- Set MAC address of the VF identified by its unique devlink port index::
++void mlx5_sf_dev_table_create(struct mlx5_core_dev *dev)
++{
++	struct mlx5_sf_dev_table *table;
++	unsigned int max_sfs;
++	int err;
 +
-+    $ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88
++	if (!mlx5_sf_dev_supported(dev) || !mlx5_vhca_event_supported(dev))
++		return;
 +
-+    $ devlink port show pci/0000:06:00.0/32768
-+    pci/0000:06:00.0/32768: type eth netdev enp6s0pf0sf88 flavour pcivf pfnum 0 sfnum 88
-+      function:
-+        hw_addr 00:00:00:00:88:88
++	table = kzalloc(sizeof(*table), GFP_KERNEL);
++	if (!table) {
++		err = -ENOMEM;
++		goto table_err;
++	}
 +
-+SF state setup
-+--------------
-+To use the SF, user must active the SF using SF port function state attribute.
++	table->nb.notifier_call = mlx5_sf_dev_state_change_handler;
++	table->dev = dev;
++	if (MLX5_CAP_GEN(dev, max_num_sf))
++		max_sfs = MLX5_CAP_GEN(dev, max_num_sf);
++	else
++		max_sfs = 1 << MLX5_CAP_GEN(dev, log_max_sf);
++	table->sf_bar_length = 1 << (MLX5_CAP_GEN(dev, log_min_sf_size) + 12);
++	table->base_address = pci_resource_start(dev->pdev, 2);
++	table->max_sfs = max_sfs;
++	xa_init(&table->devices);
++	dev->priv.sf_dev_table = table;
 +
-+- Get state of the SF identified by its unique devlink port index::
++	err = mlx5_vhca_event_notifier_register(dev, &table->nb);
++	if (err)
++		goto vhca_err;
++	err = mlx5_sf_dev_vhca_arm_all(table);
++	if (err)
++		goto arm_err;
++	mlx5_core_dbg(dev, "SF DEV: max sf devices=%d\n", max_sfs);
++	return;
 +
-+   $ devlink port show ens2f0npf0sf88
-+   pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-+     function:
-+       hw_addr 00:00:00:00:88:88 state inactive opstate detached
++arm_err:
++	mlx5_vhca_event_notifier_unregister(dev, &table->nb);
++vhca_err:
++	table->max_sfs = 0;
++	kfree(table);
++	dev->priv.sf_dev_table = NULL;
++table_err:
++	mlx5_core_err(dev, "SF DEV table create err = %d\n", err);
++}
 +
-+- Activate the function and verify its state is active::
++static void mlx5_sf_dev_destroy_all(struct mlx5_sf_dev_table *table)
++{
++	struct mlx5_sf_dev *sf_dev;
++	unsigned long index;
 +
-+   $ devlink port function set ens2f0npf0sf88 state active
++	xa_for_each(&table->devices, index, sf_dev) {
++		xa_erase(&table->devices, index);
++		mlx5_sf_dev_remove(sf_dev);
++	}
++}
 +
-+   $ devlink port show ens2f0npf0sf88
-+   pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-+     function:
-+       hw_addr 00:00:00:00:88:88 state active opstate detached
++void mlx5_sf_dev_table_destroy(struct mlx5_core_dev *dev)
++{
++	struct mlx5_sf_dev_table *table = dev->priv.sf_dev_table;
 +
-+Upon function activation, PF driver instance gets the event from the device that
-+particular SF was activated. It's the cue to put the device on bus, probe it and
-+instantiate devlink instance and class specific auxiliary devices for it.
++	if (!table)
++		return;
 +
-+- Show the auxiliary device and port of the subfunction::
++	mlx5_vhca_event_notifier_unregister(dev, &table->nb);
 +
-+    $ devlink dev show
-+    devlink dev show auxiliary/mlx5_core.sf.4
++	/* Now that event handler is not running, it is safe to destroy
++	 * the sf device without race.
++	 */
++	mlx5_sf_dev_destroy_all(table);
 +
-+    $ devlink port show auxiliary/mlx5_core.sf.4/1
-+    auxiliary/mlx5_core.sf.4/1: type eth netdev p0sf88 flavour virtual port 0 splittable false
++	WARN_ON(!xa_empty(&table->devices));
++	kfree(table);
++	dev->priv.sf_dev_table = NULL;
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
+new file mode 100644
+index 000000000000..a6fb7289ba2c
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
+@@ -0,0 +1,35 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++/* Copyright (c) 2020 Mellanox Technologies Ltd */
 +
-+    $ rdma link show mlx5_0/1
-+    link mlx5_0/1 state ACTIVE physical_state LINK_UP netdev p0sf88
++#ifndef __MLX5_SF_DEV_H__
++#define __MLX5_SF_DEV_H__
 +
-+    $ rdma dev show
-+    8: rocep6s0f1: node_type ca fw 16.29.0550 node_guid 248a:0703:00b3:d113 sys_image_guid 248a:0703:00b3:d112
-+    13: mlx5_0: node_type ca fw 16.29.0550 node_guid 0000:00ff:fe00:8888 sys_image_guid 248a:0703:00b3:d112
++#ifdef CONFIG_MLX5_SF
 +
-+- Subfunction auxilary device and class device hierarchy::
++#include <linux/auxiliary_bus.h>
 +
-+                 mlx5_core.sf.4
-+          (subfunction auxilary device)
-+                       /\
-+                      /  \
-+                     /    \
-+                    /      \
-+                   /        \
-+      mlx5_core.eth.4     mlx5_core.rdma.4
-+     (sf eth aux dev)     (sf rdma aux dev)
-+         |                      |
-+         |                      |
-+      p0sf88                  mlx5_0
-+     (sf netdev)          (sf rdma device)
++#define MLX5_SF_DEV_ID_NAME "sf"
 +
-+Additionally SF port also gets the event when the driver attaches to the
-+auxiliary device of the subfunction. This results in changing the operational
-+state of the function. This provides visiblity to user to decide when it is
-+safe to delete the SF port for graceful termination of the subfunction.
++struct mlx5_sf_dev {
++	struct auxiliary_device adev;
++	struct mlx5_core_dev *parent_mdev;
++	phys_addr_t bar_base_addr;
++	u32 sfnum;
++};
 +
-+- Show the SF port operational state::
++void mlx5_sf_dev_table_create(struct mlx5_core_dev *dev);
++void mlx5_sf_dev_table_destroy(struct mlx5_core_dev *dev);
 +
-+    $ devlink port show ens2f0npf0sf88
-+    pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-+      function:
-+        hw_addr 00:00:00:00:88:88 state active opstate attached
++#else
 +
- Devlink health reporters
- ========================
++static inline void mlx5_sf_dev_table_create(struct mlx5_core_dev *dev)
++{
++}
++
++static inline void mlx5_sf_dev_table_destroy(struct mlx5_core_dev *dev)
++{
++}
++
++#endif
++
++#endif
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index ffba0786051e..08e5fbe97df0 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -508,6 +508,7 @@ struct mlx5_fw_reset;
+ struct mlx5_eq_table;
+ struct mlx5_irq_table;
+ struct mlx5_vhca_state_notifier;
++struct mlx5_sf_dev_table;
+ 
+ struct mlx5_rate_limit {
+ 	u32			rate;
+@@ -606,6 +607,7 @@ struct mlx5_priv {
+ 	struct mlx5_uars_page	       *uar;
+ #ifdef CONFIG_MLX5_SF
+ 	struct mlx5_vhca_state_notifier *vhca_state_notifier;
++	struct mlx5_sf_dev_table *sf_dev_table;
+ #endif
+ };
  
 -- 
 2.26.2
