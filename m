@@ -2,247 +2,127 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B71C2BB48
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D94B1C2BB40
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 22:32:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC76822210
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:53:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F0F4224F9
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 22:32:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2441033AbgLNVoy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Dec 2020 16:44:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45948 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2440695AbgLNVos (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Dec 2020 16:44:48 -0500
-From:   Saeed Mahameed <saeed@kernel.org>
-Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
-To:     "David S. Miller" <davem@davemloft.net>,
+        id S2441004AbgLNWcX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Dec 2020 17:32:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35990 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2440871AbgLNWcR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Dec 2020 17:32:17 -0500
+Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AB12C0613D6;
+        Mon, 14 Dec 2020 14:31:37 -0800 (PST)
+Received: by mail-io1-xd35.google.com with SMTP id t8so18532772iov.8;
+        Mon, 14 Dec 2020 14:31:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=yNY2CKU3IC5LSdmK56qyD4k/4auH8OVfPuwOc1I+eTI=;
+        b=lU1dv2manwUoKQY1gs88fX6rxw4PY2Z2ICsyUnu/n/DFuCi3YZerq3OSVNXPtboCOH
+         uJLSQ+l0nwFpM+9Id/GlzslzBfdj7tdqtOMCQ6ouxuVeNJ7pmaOvU63i5IPtnqr12bG/
+         VGGh70ll4NcFcBrpL0iFYkLLjPz1R0UUS5QG6wVOnNzwB0to4oTJJ/2k6ow+H58a05Jd
+         SGOOZ311PIoolRNPI7o11TgyACv/eK7kdEHQHgYGtE23nT2Y/dK4odlIfmY9/lVkkFbm
+         jgnbyXv+6j/0YcuXYQhX1KOc4BsnwyHRKUD8TCn+XhWwSTuoQwkx7XP9DI42xDhHKzts
+         ZXjg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=yNY2CKU3IC5LSdmK56qyD4k/4auH8OVfPuwOc1I+eTI=;
+        b=mjC0tEhGSpJJx5rNtyY4CTnOl+vDYNArHFSvBly9idZ3SI/X809moD9Y+Lf+XAxpM1
+         9bsOk7HMj/IOiBY2wiQDJyp59TYOGr2PLRzJXHisu5EQ4mwwhRMenYa4wqvJYYpKW5v2
+         4BatdXHF5a95MNQYJ9U4HYLUNfncavh7JOLFnLonRovZrq3oF1CcDv83eClRaMxbvja5
+         0r2yrh3NgRWmqwzVuk4KT3mBqVg77vljJHFZoosOQf/mIq+XGXCKMDTz4gRJ8+hK7HDF
+         bTlMBTzrSfJv1l47n/94nJZYPgWMGXMMSqHiCBnvFUJJqz2QD6avh5wHErT7PXl1YJ9i
+         B3JQ==
+X-Gm-Message-State: AOAM531yBiT/LSQ0xn6f8lTo24FU3642iUr1Lz6i7VMUW/wNXqQQVTGo
+        Fowy6aec4PQQFOJCtECAhfLIit0zRe6HATkKBzS5zjXky04=
+X-Google-Smtp-Source: ABdhPJwinCJdN/6T/5LHQlMig+D8BEwTFUZH/yV7bIPHejDkzU5heP47ORiNycmIq6HBICVio9WHlB0scpjergZ1UkA=
+X-Received: by 2002:a6b:8e41:: with SMTP id q62mr34912815iod.5.1607985096481;
+ Mon, 14 Dec 2020 14:31:36 -0800 (PST)
+MIME-Version: 1.0
+References: <20201214214352.198172-1-saeed@kernel.org> <20201214214352.198172-2-saeed@kernel.org>
+In-Reply-To: <20201214214352.198172-2-saeed@kernel.org>
+From:   Alexander Duyck <alexander.duyck@gmail.com>
+Date:   Mon, 14 Dec 2020 14:31:25 -0800
+Message-ID: <CAKgT0UeAaydinMZdfJt_f40eK0xxgEUdTeM7-YJc=pUyqB9-5A@mail.gmail.com>
+Subject: Re: [net-next v4 01/15] net/mlx5: Fix compilation warning for 32-bit platform
+To:     Saeed Mahameed <saeed@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org,
+        David Ahern <dsahern@kernel.org>,
         Jacob Keller <jacob.e.keller@intel.com>,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
-        david.m.ertman@intel.com, dan.j.williams@intel.com,
-        kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
-        Vu Pham <vuhuong@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next v4 04/15] devlink: Support add and delete devlink port
-Date:   Mon, 14 Dec 2020 13:43:41 -0800
-Message-Id: <20201214214352.198172-5-saeed@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201214214352.198172-1-saeed@kernel.org>
-References: <20201214214352.198172-1-saeed@kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Kiran Patil <kiran.patil@intel.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Parav Pandit <parav@nvidia.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@nvidia.com>
+On Mon, Dec 14, 2020 at 1:49 PM Saeed Mahameed <saeed@kernel.org> wrote:
+>
+> From: Parav Pandit <parav@nvidia.com>
+>
+> MLX5_GENERAL_OBJECT_TYPES types bitfield is 64-bit field.
+>
+> Defining an enum for such bit fields on 32-bit platform results in below
+> warning.
+>
+> ./include/vdso/bits.h:7:26: warning: left shift count >=3D width of type =
+[-Wshift-count-overflow]
+>                          ^
+> ./include/linux/mlx5/mlx5_ifc.h:10716:46: note: in expansion of macro =E2=
+=80=98BIT=E2=80=99
+>  MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER =3D BIT(0x20),
+>                                              ^~~
+> Use 32-bit friendly left shift.
+>
+> Fixes: 2a2970891647 ("net/mlx5: Add sample offload hardware bits and stru=
+ctures")
+> Signed-off-by: Parav Pandit <parav@nvidia.com>
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> Signed-off-by: Saeed Mahameed <saeed@kernel.org>
+> ---
+>  include/linux/mlx5/mlx5_ifc.h | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.=
+h
+> index 0d6e287d614f..b9f15935dfe5 100644
+> --- a/include/linux/mlx5/mlx5_ifc.h
+> +++ b/include/linux/mlx5/mlx5_ifc.h
+> @@ -10711,9 +10711,9 @@ struct mlx5_ifc_affiliated_event_header_bits {
+>  };
+>
+>  enum {
+> -       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY =3D BIT(0xc),
+> -       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC =3D BIT(0x13),
+> -       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER =3D BIT(0x20),
+> +       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY =3D 1ULL << 0xc,
+> +       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC =3D 1ULL << 0x13,
+> +       MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER =3D 1ULL << 0x20,
+>  };
 
-Extended devlink interface for the user to add and delete port.
-Extend devlink to connect user requests to driver to add/delete
-such port in the device.
-
-When driver routines are invoked, devlink instance lock is not held.
-This enables driver to perform several devlink objects registration,
-unregistration such as (port, health reporter, resource etc)
-by using exising devlink APIs.
-This also helps to uniformly use the code for port unregistration
-during driver unload and during port deletion initiated by user.
-
-Examples of add, show and delete commands:
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
-
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
-
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
-
-$ devlink port show pci/0000:06:00.0/32768
-pci/0000:06:00.0/32768: type eth netdev eth0 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
-
-$ udevadm test-builtin net_id /sys/class/net/eth0
-Load module index
-Parsed configuration file /usr/lib/systemd/network/99-default.link
-Created link configuration context.
-Using default interface naming scheme 'v245'.
-ID_NET_NAMING_SCHEME=v245
-ID_NET_NAME_PATH=enp6s0f0npf0sf88
-ID_NET_NAME_SLOT=ens2f0npf0sf88
-Unload module index
-Unloaded link configuration context.
-
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- include/net/devlink.h | 39 ++++++++++++++++++++++++
- net/core/devlink.c    | 71 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 110 insertions(+)
-
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index 5bd43f0a79a8..f8cff3e402da 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -153,6 +153,17 @@ struct devlink_port {
- 	struct mutex reporters_lock; /* Protects reporter_list */
- };
- 
-+struct devlink_port_new_attrs {
-+	enum devlink_port_flavour flavour;
-+	unsigned int port_index;
-+	u32 controller;
-+	u32 sfnum;
-+	u16 pfnum;
-+	u8 port_index_valid:1,
-+	   controller_valid:1,
-+	   sfnum_valid:1;
-+};
-+
- struct devlink_sb_pool_info {
- 	enum devlink_sb_pool_type pool_type;
- 	u32 size;
-@@ -1363,6 +1374,34 @@ struct devlink_ops {
- 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_port *port,
- 					 const u8 *hw_addr, int hw_addr_len,
- 					 struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_new: Port add function.
-+	 *
-+	 * Should be used by device driver to let caller add new port of a
-+	 * specified flavour with optional attributes.
-+	 * Driver should return -EOPNOTSUPP if it doesn't support port addition
-+	 * of a specified flavour or specified attributes. Driver should set
-+	 * extack error message in case of fail to add the port. Devlink core
-+	 * does not hold a devlink instance lock when this callback is invoked.
-+	 * Driver must ensures synchronization when adding or deleting a port.
-+	 * Driver must register a port with devlink core.
-+	 */
-+	int (*port_new)(struct devlink *devlink,
-+			const struct devlink_port_new_attrs *attrs,
-+			struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_del: Port delete function.
-+	 *
-+	 * Should be used by device driver to let caller delete port which was
-+	 * previously created using port_new() callback.
-+	 * Driver should return -EOPNOTSUPP if it doesn't support port deletion.
-+	 * Driver should set extack error message in case of fail to delete the
-+	 * port. Devlink core does not hold a devlink instance lock when this
-+	 * callback is invoked. Driver must ensures synchronization when adding
-+	 * or deleting a port. Driver must register a port with devlink core.
-+	 */
-+	int (*port_del)(struct devlink *devlink, unsigned int port_index,
-+			struct netlink_ext_ack *extack);
- };
- 
- static inline void *devlink_priv(struct devlink *devlink)
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 08eac247f200..11043707f63f 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -1146,6 +1146,61 @@ static int devlink_nl_cmd_port_unsplit_doit(struct sk_buff *skb,
- 	return devlink_port_unsplit(devlink, port_index, info->extack);
- }
- 
-+static int devlink_nl_cmd_port_new_doit(struct sk_buff *skb,
-+					struct genl_info *info)
-+{
-+	struct netlink_ext_ack *extack = info->extack;
-+	struct devlink_port_new_attrs new_attrs = {};
-+	struct devlink *devlink = info->user_ptr[0];
-+
-+	if (!info->attrs[DEVLINK_ATTR_PORT_FLAVOUR] ||
-+	    !info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMBER]) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port flavour or PCI PF are not specified");
-+		return -EINVAL;
-+	}
-+	new_attrs.flavour = nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_FLAVOUR]);
-+	new_attrs.pfnum =
-+		nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_PCI_PF_NUMBER]);
-+
-+	if (info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
-+		new_attrs.port_index =
-+			nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX]);
-+		new_attrs.port_index_valid = true;
-+	}
-+	if (info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]) {
-+		new_attrs.controller =
-+			nla_get_u16(info->attrs[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER]);
-+		new_attrs.controller_valid = true;
-+	}
-+	if (info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUMBER]) {
-+		new_attrs.sfnum = nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_PCI_SF_NUMBER]);
-+		new_attrs.sfnum_valid = true;
-+	}
-+
-+	if (!devlink->ops->port_new)
-+		return -EOPNOTSUPP;
-+
-+	return devlink->ops->port_new(devlink, &new_attrs, extack);
-+}
-+
-+static int devlink_nl_cmd_port_del_doit(struct sk_buff *skb,
-+					struct genl_info *info)
-+{
-+	struct netlink_ext_ack *extack = info->extack;
-+	struct devlink *devlink = info->user_ptr[0];
-+	unsigned int port_index;
-+
-+	if (!info->attrs[DEVLINK_ATTR_PORT_INDEX]) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port index is not specified");
-+		return -EINVAL;
-+	}
-+	port_index = nla_get_u32(info->attrs[DEVLINK_ATTR_PORT_INDEX]);
-+
-+	if (!devlink->ops->port_del)
-+		return -EOPNOTSUPP;
-+	return devlink->ops->port_del(devlink, port_index, extack);
-+}
-+
- static int devlink_nl_sb_fill(struct sk_buff *msg, struct devlink *devlink,
- 			      struct devlink_sb *devlink_sb,
- 			      enum devlink_command cmd, u32 portid,
-@@ -7604,6 +7659,10 @@ static const struct nla_policy devlink_nl_policy[DEVLINK_ATTR_MAX + 1] = {
- 	[DEVLINK_ATTR_RELOAD_ACTION] = NLA_POLICY_RANGE(NLA_U8, DEVLINK_RELOAD_ACTION_DRIVER_REINIT,
- 							DEVLINK_RELOAD_ACTION_MAX),
- 	[DEVLINK_ATTR_RELOAD_LIMITS] = NLA_POLICY_BITFIELD32(DEVLINK_RELOAD_LIMITS_VALID_MASK),
-+	[DEVLINK_ATTR_PORT_FLAVOUR] = { .type = NLA_U16 },
-+	[DEVLINK_ATTR_PORT_PCI_PF_NUMBER] = { .type = NLA_U16 },
-+	[DEVLINK_ATTR_PORT_PCI_SF_NUMBER] = { .type = NLA_U32 },
-+	[DEVLINK_ATTR_PORT_CONTROLLER_NUMBER] = { .type = NLA_U32 },
- };
- 
- static const struct genl_small_ops devlink_nl_ops[] = {
-@@ -7643,6 +7702,18 @@ static const struct genl_small_ops devlink_nl_ops[] = {
- 		.flags = GENL_ADMIN_PERM,
- 		.internal_flags = DEVLINK_NL_FLAG_NO_LOCK,
- 	},
-+	{
-+		.cmd = DEVLINK_CMD_PORT_NEW,
-+		.doit = devlink_nl_cmd_port_new_doit,
-+		.flags = GENL_ADMIN_PERM,
-+		.internal_flags = DEVLINK_NL_FLAG_NO_LOCK,
-+	},
-+	{
-+		.cmd = DEVLINK_CMD_PORT_DEL,
-+		.doit = devlink_nl_cmd_port_del_doit,
-+		.flags = GENL_ADMIN_PERM,
-+		.internal_flags = DEVLINK_NL_FLAG_NO_LOCK,
-+	},
- 	{
- 		.cmd = DEVLINK_CMD_SB_GET,
- 		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
--- 
-2.26.2
-
+Why not just use BIT_ULL?
