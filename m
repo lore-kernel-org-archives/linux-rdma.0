@@ -4,20 +4,20 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA4D5C4361B
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:48:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 997C0C2BB40
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:48:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 84A6020738
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:48:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ACA420738
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 21:48:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2503171AbgLNVps (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Dec 2020 16:45:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46214 "EHLO mail.kernel.org"
+        id S2387831AbgLNVsQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Dec 2020 16:48:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2441147AbgLNVpb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Dec 2020 16:45:31 -0500
+        id S2503293AbgLNVpt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 14 Dec 2020 16:45:49 -0500
 From:   Saeed Mahameed <saeed@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -29,12 +29,11 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
-        Vu Pham <vuhuong@nvidia.com>,
+        Parav Pandit <parav@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next v4 05/15] devlink: Support get and set state of port function
-Date:   Mon, 14 Dec 2020 13:43:42 -0800
-Message-Id: <20201214214352.198172-6-saeed@kernel.org>
+Subject: [net-next v4 14/15] devlink: Extend devlink port documentation for subfunctions
+Date:   Mon, 14 Dec 2020 13:43:51 -0800
+Message-Id: <20201214214352.198172-15-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201214214352.198172-1-saeed@kernel.org>
 References: <20201214214352.198172-1-saeed@kernel.org>
@@ -46,264 +45,141 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-devlink port function can be in active or inactive state.
-Allow users to get and set port function's state.
-
-When the port function it activated, its operational state may change
-after a while when the device is created and driver binds to it.
-Similarly on deactivation flow.
-
-To clearly describe the state of the port function and its device's
-operational state in the host system, define state and opstate
-attributes.
-
-Example of a PCI SF port which supports a port function:
-Create a device with ID=10 and one physical port.
-
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
-
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
-
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
-
-$ devlink port show pci/0000:06:00.0/32768
-pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
-
-$ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88 state active
-
-$ devlink port show pci/0000:06:00.0/32768 -jp
-{
-    "port": {
-        "pci/0000:06:00.0/32768": {
-            "type": "eth",
-            "netdev": "ens2f0npf0sf88",
-            "flavour": "pcisf",
-            "controller": 0,
-            "pfnum": 0,
-            "sfnum": 88,
-            "external": false,
-            "splittable": false,
-            "function": {
-                "hw_addr": "00:00:00:00:88:88",
-                "state": "active",
-                "opstate": "attached"
-            }
-        }
-    }
-}
+Add devlink port documentation for subfunction management.
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/net/devlink.h        | 23 +++++++++
- include/uapi/linux/devlink.h | 21 +++++++++
- net/core/devlink.c           | 90 +++++++++++++++++++++++++++++++++++-
- 3 files changed, 133 insertions(+), 1 deletion(-)
+ Documentation/driver-api/auxiliary_bus.rst    |  2 +
+ .../networking/devlink/devlink-port.rst       | 89 ++++++++++++++++++-
+ 2 files changed, 87 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index f8cff3e402da..18a7e66b7982 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -1374,6 +1374,29 @@ struct devlink_ops {
- 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_port *port,
- 					 const u8 *hw_addr, int hw_addr_len,
- 					 struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_get: Port function's state get function.
-+	 *
-+	 * Should be used by device drivers to report the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_get)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state *state,
-+				       enum devlink_port_function_opstate *opstate,
-+				       struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_set: Port function's state set function.
-+	 *
-+	 * Should be used by device drivers to set the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_set)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state state,
-+				       struct netlink_ext_ack *extack);
- 	/**
- 	 * @port_new: Port add function.
- 	 *
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index 6fe00f10eb3f..beeb30bb6b20 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -583,9 +583,30 @@ enum devlink_resource_unit {
- enum devlink_port_function_attr {
- 	DEVLINK_PORT_FUNCTION_ATTR_UNSPEC,
- 	DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR,	/* binary */
-+	DEVLINK_PORT_FUNCTION_ATTR_STATE,	/* u8 */
-+	DEVLINK_PORT_FUNCTION_ATTR_OPSTATE,	/* u8 */
+diff --git a/Documentation/driver-api/auxiliary_bus.rst b/Documentation/driver-api/auxiliary_bus.rst
+index 2312506b0674..fff96c7ba7a8 100644
+--- a/Documentation/driver-api/auxiliary_bus.rst
++++ b/Documentation/driver-api/auxiliary_bus.rst
+@@ -1,5 +1,7 @@
+ .. SPDX-License-Identifier: GPL-2.0-only
  
- 	__DEVLINK_PORT_FUNCTION_ATTR_MAX,
- 	DEVLINK_PORT_FUNCTION_ATTR_MAX = __DEVLINK_PORT_FUNCTION_ATTR_MAX - 1
- };
++.. _auxiliary_bus:
++
+ =============
+ Auxiliary Bus
+ =============
+diff --git a/Documentation/networking/devlink/devlink-port.rst b/Documentation/networking/devlink/devlink-port.rst
+index 4c910dbb01ca..c6924e7a341e 100644
+--- a/Documentation/networking/devlink/devlink-port.rst
++++ b/Documentation/networking/devlink/devlink-port.rst
+@@ -34,6 +34,9 @@ Devlink port flavours are described below.
+    * - ``DEVLINK_PORT_FLAVOUR_PCI_VF``
+      - This indicates an eswitch port representing a port of PCI
+        virtual function (VF).
++   * - ``DEVLINK_PORT_FLAVOUR_PCI_SF``
++     - This indicates an eswitch port representing a port of PCI
++       subfunction (SF).
+    * - ``DEVLINK_PORT_FLAVOUR_VIRTUAL``
+      - This indicates a virtual port for the PCI virtual function.
  
-+enum devlink_port_function_state {
-+	DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+	DEVLINK_PORT_FUNCTION_STATE_ACTIVE,
-+};
-+
-+/**
-+ * enum devlink_port_function_opstate - indicates operational state of port function
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED: Driver is attached to the function of port, for
-+ *					    gracefufl tear down of the function, after
-+ *					    inactivation of the port function, user should wait
-+ *					    for operational state to turn DETACHED.
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED: Driver is detached from the function of port; it is
-+ *					    safe to delete the port.
-+ */
-+enum devlink_port_function_opstate {
-+	DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED,
-+	DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED,
-+};
-+
- #endif /* _UAPI_LINUX_DEVLINK_H_ */
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 11043707f63f..b8acb8842aa1 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -87,6 +87,9 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(devlink_trap_report);
+@@ -57,9 +60,9 @@ Devlink port can have a different type based on the link layer described below.
+ PCI controllers
+ ---------------
+ In most cases a PCI device has only one controller. A controller consists of
+-potentially multiple physical and virtual functions. Such PCI function consists
+-of one or more ports. This port of the function is represented by the devlink
+-eswitch port.
++potentially multiple physical functions, virtual functions and subfunctions.
++Such PCI function consists of one or more ports. This port of the function
++is represented by the devlink eswitch port.
  
- static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_ATTR_MAX + 1] = {
- 	[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR] = { .type = NLA_BINARY },
-+	[DEVLINK_PORT_FUNCTION_ATTR_STATE] =
-+		NLA_POLICY_RANGE(NLA_U8, DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+				 DEVLINK_PORT_FUNCTION_STATE_ACTIVE),
- };
+ A PCI Device connected to multiple CPUs or multiple PCI root complexes or
+ SmartNIC, however, may have multiple controllers. For a device with multiple
+@@ -112,7 +115,85 @@ PCI function. Usually it means, user should configure port function attribute
+ before a bus specific device for the function is created. However, when
+ SRIOV is enabled, virtual function devices are created on the PCI bus.
+ Hence, function attribute should be configured before binding virtual
+-function device to the driver.
++function device to the driver. For subfunctions, this means user should
++configure port function attribute before activating the port function.
  
- static LIST_HEAD(devlink_list);
-@@ -746,6 +749,57 @@ devlink_port_function_hw_addr_fill(struct devlink *devlink, const struct devlink
- 	return 0;
- }
- 
-+static bool
-+devlink_port_function_state_valid(enum devlink_port_function_state state)
-+{
-+	return state == DEVLINK_PORT_FUNCTION_STATE_INACTIVE ||
-+	       state == DEVLINK_PORT_FUNCTION_STATE_ACTIVE;
-+}
+ User may set the hardware address of the function represented by the devlink
+ port function. For Ethernet port function this means a MAC address.
 +
-+static bool
-+devlink_port_function_opstate_valid(enum devlink_port_function_opstate state)
-+{
-+	return state == DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED ||
-+	       state == DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED;
-+}
++Subfunctions
++============
 +
-+static int
-+devlink_port_function_state_fill(struct devlink *devlink,
-+				 const struct devlink_ops *ops,
-+				 struct devlink_port *port, struct sk_buff *msg,
-+				 struct netlink_ext_ack *extack,
-+				 bool *msg_updated)
-+{
-+	enum devlink_port_function_opstate opstate;
-+	enum devlink_port_function_state state;
-+	int err;
++Subfunctions are lightweight functions that has parent PCI function on which
++it is deployed. Subfunctions are created and deployed in unit of 1. Unlike
++SRIOV VFs, they don't require their own PCI virtual function. They communicate
++with the hardware through the parent PCI function. Subfunctions can possibly
++scale better.
 +
-+	if (!ops->port_function_state_get)
-+		return 0;
++To use a subfunction, 3 steps setup sequence is followed.
++(1) create - create a subfunction;
++(2) configure - configure subfunction attributes;
++(3) deploy - deploy the subfunction;
 +
-+	err = ops->port_function_state_get(devlink, port, &state, &opstate, extack);
-+	if (err) {
-+		if (err == -EOPNOTSUPP)
-+			return 0;
-+		return err;
-+	}
-+	if (!devlink_port_function_state_valid(state)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (!devlink_port_function_opstate_valid(opstate)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid operational state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_STATE, state) ||
-+	    nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_OPSTATE, opstate))
-+		return -EMSGSIZE;
-+	*msg_updated = true;
-+	return 0;
-+}
++Subfunction management is done using devlink port user interface.
++User performs setup on the subfunction management device.
 +
- static int
- devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *port,
- 				   struct netlink_ext_ack *extack)
-@@ -762,6 +816,13 @@ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *por
- 
- 	ops = devlink->ops;
- 	err = devlink_port_function_hw_addr_fill(devlink, ops, port, msg, extack, &msg_updated);
-+	if (err)
-+		goto out;
-+	err = devlink_port_function_state_fill(devlink, ops, port, msg, extack,
-+					       &msg_updated);
-+	if (err)
-+		goto out;
-+out:
- 	if (err || !msg_updated)
- 		nla_nest_cancel(msg, function_attr);
- 	else
-@@ -1027,6 +1088,22 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
- 	return ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
- }
- 
-+static int
-+devlink_port_function_state_set(struct devlink *devlink, struct devlink_port *port,
-+				const struct nlattr *attr, struct netlink_ext_ack *extack)
-+{
-+	enum devlink_port_function_state state;
-+	const struct devlink_ops *ops;
++(1) Create
++----------
++A subfunction is created using a devlink port interface. User adds the
++subfunction by adding a devlink port of subfunction flavour. The devlink
++kernel code calls down to subfunction management driver (devlink op) and asks
++it to create a subfunction devlink port. Driver then instantiates the
++subfunction port and any associated objects such as health reporters and
++representor netdevice.
 +
-+	state = nla_get_u8(attr);
-+	ops = devlink->ops;
-+	if (!ops->port_function_state_set) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port function does not support state setting");
-+		return -EOPNOTSUPP;
-+	}
-+	return ops->port_function_state_set(devlink, port, state, extack);
-+}
++(2) Configure
++-------------
++Subfunction devlink port is created but it is not active yet. That means the
++entities are created on devlink side, the e-switch port representor is created,
++but the subfunction device itself it not created. User might use e-switch port
++representor to do settings, putting it into bridge, adding TC rules, etc. User
++might as well configure the hardware address (such as MAC address) of the
++subfunction while subfunction is inactive.
 +
- static int
- devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
- 			  const struct nlattr *attr, struct netlink_ext_ack *extack)
-@@ -1042,8 +1119,19 @@ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
- 	}
- 
- 	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR];
--	if (attr)
-+	if (attr) {
- 		err = devlink_port_function_hw_addr_set(devlink, port, attr, extack);
-+		if (err)
-+			return err;
-+	}
-+	/* Keep this as the last function attribute set, so that when
-+	 * multiple port function attributes are set along with state,
-+	 * Those can be applied first before activating the state.
-+	 */
-+	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_STATE];
-+	if (attr)
-+		err = devlink_port_function_state_set(devlink, port, attr,
-+						      extack);
- 
- 	if (!err)
- 		devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
++(3) Deploy
++----------
++Once subfunction is configured, user must activate it to use it. Upon
++activation, subfunction management driver asks the subfunction management
++device to instantiate the actual subfunction device on particular PCI function.
++A subfunction device is created on the :ref:`Documentation/driver-api/auxiliary_bus.rst <auxiliary_bus>`. At this point matching
++subfunction driver binds to the subfunction's auxiliary device.
++
++Terms and Definitions
++=====================
++
++.. list-table:: Terms and Definitions
++   :widths: 22 90
++
++   * - Term
++     - Definitions
++   * - ``PCI device``
++     - A physical PCI device having one or more PCI bus consists of one or
++       more PCI controllers.
++   * - ``PCI controller``
++     -  A controller consists of potentially multiple physical functions,
++        virtual functions and subfunctions.
++   * - ``Port function``
++     -  An object to manage the function of a port.
++   * - ``Subfunction``
++     -  A lightweight function that has parent PCI function on which it is
++        deployed.
++   * - ``Subfunction device``
++     -  A bus device of the subfunction, usually on a auxiliary bus.
++   * - ``Subfunction driver``
++     -  A device driver for the subfunction auxiliary device.
++   * - ``Subfunction management device``
++     -  A PCI physical function that supports subfunction management.
++   * - ``Subfunction management driver``
++     -  A device driver for PCI physical function that supports
++        subfunction management using devlink port interface.
++   * - ``Subfunction host driver``
++     -  A device driver for PCI physical function that host subfunction
++        devices. In most cases it is same as subfunction management driver. When
++        subfunction is used on external controller, subfunction management and
++        host drivers are different.
 -- 
 2.26.2
 
