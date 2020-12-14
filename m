@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ACDEC4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9A6BC2BB40
 	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 13:50:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55EC4229EF
+	by mail.kernel.org (Postfix) with ESMTP id 9DCDA22A84
 	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 13:50:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726595AbgLNNmh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Dec 2020 08:42:37 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9605 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730343AbgLNNmg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Dec 2020 08:42:36 -0500
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CvjGC50gnzM2Nc;
-        Mon, 14 Dec 2020 21:41:07 +0800 (CST)
+        id S1732513AbgLNNmO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Dec 2020 08:42:14 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9202 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2406675AbgLNNmE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Dec 2020 08:42:04 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CvjFb1l3bzkqyJ;
+        Mon, 14 Dec 2020 21:40:35 +0800 (CST)
 Received: from ubuntu.network (10.175.138.68) by
- DGGEMS407-HUB.china.huawei.com (10.3.19.207) with Microsoft SMTP Server id
- 14.3.498.0; Mon, 14 Dec 2020 21:41:47 +0800
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.498.0; Mon, 14 Dec 2020 21:41:15 +0800
 From:   Zheng Yongjun <zhengyongjun3@huawei.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     Zheng Yongjun <zhengyongjun3@huawei.com>
-Subject: [PATCH -next] ulp/ipoib/ipoib_multicast: convert comma to semicolon
-Date:   Mon, 14 Dec 2020 21:42:18 +0800
-Message-ID: <20201214134218.4510-1-zhengyongjun3@huawei.com>
+Subject: [PATCH -next] ulp/opa_vnic/opa_vnic_vema: convert comma to semicolon
+Date:   Mon, 14 Dec 2020 21:41:46 +0800
+Message-ID: <20201214134146.4456-1-zhengyongjun3@huawei.com>
 X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
@@ -45,22 +45,22 @@ Replace a comma between expression statements by a semicolon.
 
 Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 2 +-
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 86e4ed64e4e2..e3e4447c0f51 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -275,7 +275,7 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+index 4933085a864a..cecf0f7cadf9 100644
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
++++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+@@ -233,7 +233,7 @@ static void vema_get_class_port_info(struct opa_vnic_vema_port *port,
  
- 	memset(&av, 0, sizeof(av));
- 	av.type = rdma_ah_find_type(priv->ca, priv->port);
--	rdma_ah_set_dlid(&av, be16_to_cpu(mcast->mcmember.mlid)),
-+	rdma_ah_set_dlid(&av, be16_to_cpu(mcast->mcmember.mlid));
- 	rdma_ah_set_port_num(&av, priv->port);
- 	rdma_ah_set_sl(&av, mcast->mcmember.sl);
- 	rdma_ah_set_static_rate(&av, mcast->mcmember.rate);
+ 	port_info = (struct opa_class_port_info *)rsp_mad->data;
+ 	memcpy(port_info, &port->class_port_info, sizeof(*port_info));
+-	port_info->base_version = OPA_MGMT_BASE_VERSION,
++	port_info->base_version = OPA_MGMT_BASE_VERSION;
+ 	port_info->class_version = OPA_EMA_CLASS_VERSION;
+ 
+ 	/*
 -- 
 2.22.0
 
