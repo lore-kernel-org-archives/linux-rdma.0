@@ -2,68 +2,65 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60122C2BB40
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 11:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB2FC4361B
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 13:42:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22152229C5
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 11:18:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72414229C6
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Dec 2020 13:42:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729487AbgLNLQ5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Dec 2020 06:16:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58470 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725785AbgLNLQx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 14 Dec 2020 06:16:53 -0500
-Date:   Mon, 14 Dec 2020 13:16:08 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607944572;
-        bh=NW4r1Tcxoq5gXK7oXCVu+J52nphOih0Z+rS0DjoWhmg=;
-        h=From:To:Cc:Subject:References:In-Reply-To:From;
-        b=P5cOmZU6g+CgucBWIZXlRMJAYAQjceTR3kOjCivc5aRsLak7N4pVavLGSPd95Rv25
-         FcF9owVY0eekKqSeZGPxuzgYTZLPm4j7Bh634MiJRcO65vqOcH1IxCOdJAxOFyL6bs
-         2U0if1B7pbW3XvUO8F80z+3t6kpsy+nSwDY6oZmUzEEcyrGEoUg3NT+iVEVSdmeFuj
-         6XaFDO5U3dQ1yMLpiJ2ejCFX2sqPYhJOrwzkHxgsDf8ImtjIWISXGLMijNYnIPUwvn
-         +jEWhI2KZIRCcsjftobQir3Xco5YkXgQUxxnEpE4N+YE5r82UgZv6VGN0mqp8nyolZ
-         6FAuA3kHGe1sg==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Vasyl Gomonovych <gomonovych@gmail.com>
-Cc:     tariqt@nvidia.com, kuba@kernel.org, joe@perches.com,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] net/mlx4: Use true,false for bool variable
-Message-ID: <20201214111608.GE5005@unreal>
-References: <20201212090234.0362d64f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20201214103008.14783-1-gomonovych@gmail.com>
+        id S2405793AbgLNNlo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Dec 2020 08:41:44 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:9880 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2408024AbgLNNll (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Dec 2020 08:41:41 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CvjFK1fpXz7G3F;
+        Mon, 14 Dec 2020 21:40:21 +0800 (CST)
+Received: from ubuntu.network (10.175.138.68) by
+ DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
+ 14.3.498.0; Mon, 14 Dec 2020 21:40:47 +0800
+From:   Zheng Yongjun <zhengyongjun3@huawei.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     Zheng Yongjun <zhengyongjun3@huawei.com>
+Subject: [PATCH -next] sw/siw/siw_main: convert comma to semicolon
+Date:   Mon, 14 Dec 2020 21:41:18 +0800
+Message-ID: <20201214134118.4349-1-zhengyongjun3@huawei.com>
+X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201214103008.14783-1-gomonovych@gmail.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.138.68]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Dec 14, 2020 at 11:30:08AM +0100, Vasyl Gomonovych wrote:
-> It is fix for semantic patch warning available in
-> scripts/coccinelle/misc/boolinit.cocci
-> Fix en_rx.c:687:1-17: WARNING: Assignment of 0/1 to bool variable
-> Fix main.c:4465:5-13: WARNING: Comparison of 0/1 to bool variable
->
-> Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
-> ---
->  - Add coccicheck script name
->  - Simplify if condition
-> ---
->  drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
->  drivers/net/ethernet/mellanox/mlx4/main.c  | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+Replace a comma between expression statements by a semicolon.
 
-Please refrain from sending new version of patches as reply-to to
-previous variants. It makes to appear previous patches out-of-order
-while viewing in threaded mode.
+Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
+---
+ drivers/infiniband/sw/siw/siw_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks
+diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
+index 181e06c1c43d..c2fa6132762a 100644
+--- a/drivers/infiniband/sw/siw/siw_main.c
++++ b/drivers/infiniband/sw/siw/siw_main.c
+@@ -403,7 +403,7 @@ static struct siw_device *siw_device_create(struct net_device *netdev)
+ 	       sizeof(base_dev->iw_ifname));
+ 
+ 	/* Disable TCP port mapping */
+-	base_dev->iw_driver_flags = IW_F_NO_PORT_MAP,
++	base_dev->iw_driver_flags = IW_F_NO_PORT_MAP;
+ 
+ 	sdev->attrs.max_qp = SIW_MAX_QP;
+ 	sdev->attrs.max_qp_wr = SIW_MAX_QP_WR;
+-- 
+2.22.0
+
