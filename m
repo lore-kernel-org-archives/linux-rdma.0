@@ -2,137 +2,431 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1B22C2BBCA
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:30:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 433B4C4361B
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:42:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E92C22B47
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:30:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E660322D08
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:42:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729908AbgLOV0X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Dec 2020 16:26:23 -0500
-Received: from mail-co1nam11on2109.outbound.protection.outlook.com ([40.107.220.109]:49450
-        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729976AbgLOV0N (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 15 Dec 2020 16:26:13 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ldMQv6JWUdYpm1/SUuEybfIk5Z0r79wZon7yxaxGlz6FUq2v7PTvAbPitJJ7qvhBt6hvwaBwzeTvTJYKPUrQf/s2rw4QblJoj7Nvwpt0SZkSIU7hi32bmZ1+EHHJWBiRxFvcp6wHYFy18cneg7ITpUFgjagLxeSH3bFaSTnCjg+FdpfPAqW4251+7cGVHlVWIEXwi3EttcOsCRYUDtMswgzQDdo+t/l5XmHjWW+C0Y/6ua28TJ/VjuHQ1dL9AwiPsFOtvhBp0EhIpdYRN2cr72bEqDz64EFc/mhTc99ewItFYN5FJwDa0w/S0VQpOysiOqbGfw6pJb6Hvj6WjSmHOA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UPA5KmKHPo9eFJfXVYfHfCFkUSMKFlX3/slyXxp5RlA=;
- b=OTNsgdA4di8Txa0h730dclQMvi6BGEbYbtiNoiFhR/BqUgvU4C8hPesUyNaUPHuTfEzwtNgsyduGZKC7H1azeHvSunWeFIzO8DxIrjP0McK35MptB1QIVB33oDUw9YSVFYSBbmeCR04tTv2uLgHIMRn560w7fOT/csVFeINYRSDbll0N6XrgCHf0uwyyEBznKhF8VtViHPgPPYNxNoaQxBB6GE3vil7tf8S0cgWN8JTl0B4MmR2Fhr1p2zjhaepiwE1TCo4N1qAbE4GhI4k/7OVQ/ELq1RgCgwqLe18IgL9Adh0++5oXWGcaK0OeKhLTOjqEcwvH2PR7SOmR2cgmnA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=cornelisnetworks.com; dmarc=pass action=none
- header.from=cornelisnetworks.com; dkim=pass header.d=cornelisnetworks.com;
- arc=none
+        id S1730621AbgLOVmL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Dec 2020 16:42:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53152 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727704AbgLOVl4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Dec 2020 16:41:56 -0500
+Received: from mail-il1-x136.google.com (mail-il1-x136.google.com [IPv6:2607:f8b0:4864:20::136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00144C061793;
+        Tue, 15 Dec 2020 13:41:15 -0800 (PST)
+Received: by mail-il1-x136.google.com with SMTP id v3so20683599ilo.5;
+        Tue, 15 Dec 2020 13:41:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=CornelisNetworks.onmicrosoft.com;
- s=selector1-CornelisNetworks-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UPA5KmKHPo9eFJfXVYfHfCFkUSMKFlX3/slyXxp5RlA=;
- b=d+zi7aa/zcoBgdE88CfAqi9jP2/DfBpoDyr4EX7xi9r3L3J82gCC1NyeEz9FQ4NOzqPwmJVTqK6L8wq242vs4VsdMasSssy6SmegHyXnoNISUQTbziLHNhWeTWTGlQe/mjwZrASZSmVwWupHSv38+72yGvDVpoFl56QNjs+ixy2SRr8XwrF7e0lMHHjqan1e1xvaxl/5sLQJ8uN9Y0PsdaR1+BdXz/l6x5w0ScgvkPD7ggOig5IUQfpGNt9d0m47N5ekEtDR/2VFQ1hCFHYQUyK5lj3b3COjAiPolCpSmWWiki9P6+A1KsnuElNWorw3MeuOFPx0UGtqcYSblDn3nw==
-Authentication-Results: vger.kernel.org; dkim=none (message not signed)
- header.d=none;vger.kernel.org; dmarc=none action=none
- header.from=cornelisnetworks.com;
-Received: from DM6PR01MB3817.prod.exchangelabs.com (2603:10b6:5:92::17) by
- DM6PR01MB4025.prod.exchangelabs.com (2603:10b6:5:2b::11) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3654.13; Tue, 15 Dec 2020 21:25:20 +0000
-Received: from DM6PR01MB3817.prod.exchangelabs.com
- ([fe80::80d3:12c5:1173:8cf8]) by DM6PR01MB3817.prod.exchangelabs.com
- ([fe80::80d3:12c5:1173:8cf8%3]) with mapi id 15.20.3654.026; Tue, 15 Dec 2020
- 21:25:19 +0000
-Subject: Re: [PATCH] IB/hfi1: remove h from printk format specifier
-To:     trix@redhat.com, dennis.dalessandro@cornelisnetworks.com,
-        dledford@redhat.com, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20201215183509.2072517-1-trix@redhat.com>
-From:   Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Message-ID: <1df6bc53-58ae-b91a-fbd2-57d52483c24a@cornelisnetworks.com>
-Date:   Tue, 15 Dec 2020 16:25:14 -0500
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.0
-In-Reply-To: <20201215183509.2072517-1-trix@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [70.15.25.19]
-X-ClientProxiedBy: BYAPR08CA0022.namprd08.prod.outlook.com
- (2603:10b6:a03:100::35) To DM6PR01MB3817.prod.exchangelabs.com
- (2603:10b6:5:92::17)
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=BfYn8DGU5Ik+Q43fVNmVww3bvYgsCwYRmFLcnRPRj8k=;
+        b=FKGx8rFEWCW+9/UKRona4eLvvD++Tq9eNRiBWLPRpubiU1m2VIUFhjW9MWHfM4tAMk
+         DGpee1/dI1k/wZk1GzN5Xkvg4+Bl5iATG0Vije5Ie/oCJ8h3y+SiB0j+qN1Mt69d9hVn
+         AI+VHW2GT5ggscs4i3cIgTGBLNlZQoQ/goIsE971SW/KLFljuoD7CGNZUuPbupi8BX7O
+         vHXK1VTbX11QO1LcigOTPwNez6Mld1mP+kT8xK++N3aVnkMAwwlmy2LoJybP0UAJxTrA
+         9TaN/eVml0auGW7/ztxaUs4eJC4KMg2sWqBPr2evamqCebhpBDO76KiwZKiOQqtoOL0K
+         /tAA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=BfYn8DGU5Ik+Q43fVNmVww3bvYgsCwYRmFLcnRPRj8k=;
+        b=Z3f2YxiSQxRfpX5HTwob+CgsTvb2WFHGUZFgmMVyQMUBF/YwGLFUAAxdj6+YYSia99
+         TS4tguFmcl+WPP5SOc8L3KTqPOjs4UtgR7Ns/w4BvZB/nbrwpSmRHHk0yNYwTCPdPLTP
+         EQZnHZbVcoOOo8soeqfyvrx1UGLVwrTs3p3890KszlKC3D93ccgkOu5kxk3PDx+FFeHU
+         5fJ1tIUTmW22cdelap4HL/qYMCnIw8ykKCO+QSDD0Y81Om70rFVUkosmwRBprDODqS0j
+         8lg1w6UCOvvnaHdz5TRQy3C51yExUYXcpi3GQV6B0uWQa7SEEz2JMjsOV+tB47bRqtB7
+         LSyQ==
+X-Gm-Message-State: AOAM531+MpzhryHstNYSC5AdTjqRAs8DHWbxfEBSyu2P/s4H/xfovjgZ
+        AFVvgxEuFfetj7qI1se63OCza9/0PpoxZa4rjfc=
+X-Google-Smtp-Source: ABdhPJzNEl/wP81uX2FwXzXEtwkLXQMES101c8oIQD3SdttW6b9LdHDGKSMBE5funAeTxtu8DnBynnhg7mIGTDwOaGY=
+X-Received: by 2002:a92:730d:: with SMTP id o13mr41655353ilc.95.1608068475138;
+ Tue, 15 Dec 2020 13:41:15 -0800 (PST)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.2.103] (70.15.25.19) by BYAPR08CA0022.namprd08.prod.outlook.com (2603:10b6:a03:100::35) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3654.12 via Frontend Transport; Tue, 15 Dec 2020 21:25:17 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 3e5764e0-9460-4cc4-d9d7-08d8a13fecbe
-X-MS-TrafficTypeDiagnostic: DM6PR01MB4025:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <DM6PR01MB402532EAA7CD082492767DC0F2C60@DM6PR01MB4025.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3173;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: K5h1Qd2mPo06l0yBqiuy8meW1HSZs1Za10XATSZZC09nmid0rYiGKuN02xdBG/67F/lpsm2APHr/RMTD0A3hsYy+5I4JvULptDkY9nXhe2INJQui9msZtxpcaCnHwzFUHaVYP4iSpT9c1wYhYu4QuPgTgMrMXLyqNarjzTwtySyNB8lrsGMSHI/ULPzeujKYJL3EaDCvmbAgDfkr5zfR2Ts/nbeaRoFmaTptO1FPtirhjO2MhScbogthasnKfNPYBPXMdS804qu9Sz2oU8IMwQ2ynoHPjgTsMcj3CjEeU/5EZZHrx/NrC817k5zoppfFMiPtwGRwYx2zTnvLJ577yiEcfH5/xx/CPdnwbp8aLsHqxigJB2eGDM5gGVbGz6iZqRXNrz9wUNoizoDUECJrlVNu2CZS9tWkjW6DbILa7M8m9Wr3EhpM3GRiSk0Nt8Du
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR01MB3817.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(136003)(366004)(346002)(2616005)(34490700003)(66476007)(36756003)(26005)(5660300002)(8936002)(31696002)(186003)(16576012)(8676002)(2906002)(86362001)(4744005)(6666004)(4326008)(44832011)(6486002)(52116002)(83380400001)(53546011)(16526019)(66946007)(508600001)(66556008)(31686004)(956004)(43740500002)(45980500001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?utf-8?B?NjBBbGlMUmFqRGJISWxmWXZZNlVsSUE4TE5aQlVMbkdrUlNiL1FubzcraTBm?=
- =?utf-8?B?N3ZQTlRXQWdDNGt4SHQ1dXdyOG11VDB4b0owdHZtRU9Xbmg4eXRDZ0ltRUll?=
- =?utf-8?B?WHRWL0tMelE4YlFOeWRtS0pTZnVMSWVOQmttVEFuRTd4aXZKUFlYVEN3WjQ4?=
- =?utf-8?B?a3ZmQ00ybUI5SDdBKzZwSjZvOFR4N08wQUpXYWJnZ0JaVlRHZitucDE2dVUz?=
- =?utf-8?B?cldOYnpuYnRHM2grb0djY0E1a1BiZ3VhWTQ2SHYvQWJ0Z2QreGNtRDVKMWZr?=
- =?utf-8?B?Z2RESVFJd2Via3pLTlRseXk5bWkybGdQRnlGeXZBdkZHN2x2M3NSN0dEN0d4?=
- =?utf-8?B?ZHM3dXBUaFVYenRWNlZuWGtRNlFrQVM4ZkdsS0xNdW5FVFBMMzlsem1BZ0Fv?=
- =?utf-8?B?NTd5bzh1S3ZYVktGT0toUGxJQWc3aDluZi96a2U2WXhnTGcvbmgxR3hRbmJV?=
- =?utf-8?B?elozL1BTaE1OTDhhdlQ4R3l6bW15Vk5XWG5wdWY0Mmg2bk9jRWhrQys2Z01s?=
- =?utf-8?B?cThJM2ZuUDNqcmpKcUNzK3ZNbzBGUkprL3hSNUJmaUh0ejAzR0QvMkhqOXFl?=
- =?utf-8?B?SmEzL0kyYmlMWUsrK2p3ZjVoRHNwRDRQUE5KQXhIcm5ETEg4UFB6UXZuYVU5?=
- =?utf-8?B?aDRGV3k5R0JoNjhLakY5ZDZkaExzeXRUYld1UGlmaWRFcENsV1ZabjdEYnNo?=
- =?utf-8?B?LzFBVjhsRzJWNG5uSXh1TmZ3WXYybkZkVlplRmpkZlVqajlydzk2VFcwL1hJ?=
- =?utf-8?B?N2czZzZka2NxbkxBdE9vNVpFM0ZzbUx0MytMRzRNZ3RhVnpxaHByYUFHNS9j?=
- =?utf-8?B?bDF3VDVuckZuamxsdHBiQjEvZjZlME1Id3FuUUVnMnBmUTdvMVJhak51Vzht?=
- =?utf-8?B?T2dmWExabWJ6L3BySStkMmZvOVRTVStuV1d0V3dxOGdMY3RyM2YzUTh1OERo?=
- =?utf-8?B?Z24xVjNOWURWWnIra09saEtLWG9MRFlJT3Ezb0wreGxEclljeUVlZkU3STYy?=
- =?utf-8?B?b0hFb2IyVW5sYXZpVlY3cmZRbC9mMExoRy9DN1hPV2NDU0ZLazRweXh6UXhI?=
- =?utf-8?B?WFQ3TkpMWDlkdFRIem9OanRUcUZVSEJrQllJeDMxenRYa3p0MGVxNU5FWE45?=
- =?utf-8?B?K1ZvSytUVm5BUXdsT1kweTdNRVpPVUhxTFFPTVA5a2d6VWR0YlMxSndtU2JX?=
- =?utf-8?B?SUNmTGlhVENydFJJcE5zcmZzajBaaFVGcHdOTlh5OXYzTmR5dzgxeTBoMk1R?=
- =?utf-8?B?ZHFjUGRrdXJvdTdMVDZXQ0JJNmV4QTRzTVpIWHVMKzByQkJqakRQQ2I1S3di?=
- =?utf-8?Q?007PAesfnLmMs=3D?=
-X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR01MB3817.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Dec 2020 21:25:19.9337
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3e5764e0-9460-4cc4-d9d7-08d8a13fecbe
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 7+UwjzlssgKM2ZLA2G3Ir4tGPEdU9Ub0ZyjkQrMdu9FMi1PYQXV/FW6SfhkEGraNJYLJLVPH4GJSAn4XhE1hKo8KyW5Aoxlo+SoXdQ1Ulw9vPDO8CljIA0NXfBbl1rxn
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR01MB4025
+References: <20201214214352.198172-1-saeed@kernel.org> <CAKgT0UejoduCB6nYFV2atJ4fa4=v9-dsxNh4kNJNTtoHFd1DuQ@mail.gmail.com>
+ <608505778d76b1b01cb3e8d19ecda5b8578f0f79.camel@kernel.org>
+ <CAKgT0UfEsd0hS=iJTcVc20gohG0WQwjsGYOw1y0_=DRVbhb1Ng@mail.gmail.com> <ecad34f5c813591713bb59d9c5854148c3d7f291.camel@kernel.org>
+In-Reply-To: <ecad34f5c813591713bb59d9c5854148c3d7f291.camel@kernel.org>
+From:   Alexander Duyck <alexander.duyck@gmail.com>
+Date:   Tue, 15 Dec 2020 13:41:04 -0800
+Message-ID: <CAKgT0UfTOqS9PBeQFexyxm7ytQzdj0j8VMG71qv4+Vn6koJ5xQ@mail.gmail.com>
+Subject: Re: [net-next v4 00/15] Add mlx5 subfunction support
+To:     Saeed Mahameed <saeed@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org,
+        David Ahern <dsahern@kernel.org>,
+        Jacob Keller <jacob.e.keller@intel.com>,
+        Sridhar Samudrala <sridhar.samudrala@intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Kiran Patil <kiran.patil@intel.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On 12/15/2020 1:35 PM, trix@redhat.com wrote:
-> From: Tom Rix <trix@redhat.com>
+On Tue, Dec 15, 2020 at 12:35 PM Saeed Mahameed <saeed@kernel.org> wrote:
 >
-> See Documentation/core-api/printk-formats.rst.
-> h should no longer be used in the format specifier for printk.
+> On Tue, 2020-12-15 at 11:12 -0800, Alexander Duyck wrote:
+> > On Mon, Dec 14, 2020 at 10:15 PM Saeed Mahameed <saeed@kernel.org>
+> > wrote:
+> > > On Mon, 2020-12-14 at 17:53 -0800, Alexander Duyck wrote:
+> > > > On Mon, Dec 14, 2020 at 1:49 PM Saeed Mahameed <saeed@kernel.org>
+> > > > wrote:
+> > > > > Hi Dave, Jakub, Jason,
+> > > > >
+> > > > > This series form Parav was the theme of this mlx5 release
+> > > > > cycle,
+> > > > > we've been waiting anxiously for the auxbus infrastructure to
+> > > > > make
+> > > > > it into
+> > > > > the kernel, and now as the auxbus is in and all the stars are
+> > > > > aligned, I
+> > > > > can finally submit this V2 of the devlink and mlx5 subfunction
+> > > > > support.
+> > > > >
+> > > > > Subfunctions came to solve the scaling issue of virtualization
+> > > > > and switchdev environments, where SRIOV failed to deliver and
+> > > > > users
+> > > > > ran
+> > > > > out of VFs very quickly as SRIOV demands huge amount of
+> > > > > physical
+> > > > > resources
+> > > > > in both of the servers and the NIC.
+> > > > >
+> > > > > Subfunction provide the same functionality as SRIOV but in a
+> > > > > very
+> > > > > lightweight manner, please see the thorough and detailed
+> > > > > documentation from Parav below, in the commit messages and the
+> > > > > Networking documentation patches at the end of this series.
+> > > > >
+> > > >
+> > > > Just to clarify a few things for myself. You mention
+> > > > virtualization
+> > > > and SR-IOV in your patch description but you cannot support
+> > > > direct
+> > > > assignment with this correct? The idea here is simply logical
+> > > > partitioning of an existing network interface, correct? So this
+> > > > isn't
+> > > > so much a solution for virtualization, but may work better for
+> > > > containers. I view this as an important distinction to make as
+> > > > the
+> > >
+> > > at the current state yes, but the SF solution can be extended to
+> > > support direct assignment, so this is why i think SF solution can
+> > > do
+> > > better and eventually replace SRIOV.
+> >
+> > My only real concern is that this and mediated devices are
+> > essentially
+> > the same thing. When you start making this work for direct-assignment
+> > the only real difference becomes the switchdev and devlink
+> > interfaces.
 >
-> Signed-off-by: Tom Rix <trix@redhat.com>
-> ---
->   drivers/infiniband/hw/hfi1/sdma.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> not just devlink and switchdev, auxbus was also introduced to
+> standardize some of the interfaces.
+
+The auxbus is just there to make up for the fact that there isn't
+another bus type for this though. I would imagine otherwise this would
+be on some sort of platform bus.
+
+> > Basically this is netdev specific mdev versus the PCIe specific mdev.
+> >
 >
-Looks ok!
+> SF is not netdev specific mdev .. :/
 
-Mike
+I agree it is not. However there are just a few extensions to it. What
+I would really like to see is a solid standardization of what this is.
+Otherwise the comparison is going to be made. Especially since a year
+ago Mellanox was pushing this as an mdev type interface. There is more
+here than just mdev, however my concern is that we may be also losing
+some of the advantages of mdev.
 
-Acked-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+It would be much easier for me to go along with this if we had more
+than one vendor pushing it. My concern is that this is becoming
+something that may end up being vendor specific.
 
+> > > also many customers are currently using SRIOV with containers to
+> > > get
+> > > the performance and isolation features since there was no other
+> > > options.
+> >
+> > There were, but you hadn't implemented them. The fact is the approach
+> > Intel had taken for that was offloaded macvlan.
+> >
+>
+> offloaded macvlan is just a macvlan with checksum/tso and gro.
+>
+> macvlan can't provide RDMA, TC offloads, ethtool steering, PTP, vdpa
+
+Agreed. I have already acknowledged that macvlan couldn't meet the
+needs for all use cases. However at the same time it provides a
+consistent interface regardless of vendors.
+
+If we decide to go with the vendor specific drivers for subfunctions
+that is fine, however I see that going down the same path as SR-IOV
+and ultimately ending in obscurity since I don't see many being
+willing to adopt it.
+
+> ...
+> our SF provides the same set of features a VF can provide
+
+That is all well and good. However if we agree that SR-IOV wasn't done
+right saying that you are spinning up something that works just like
+SR-IOV isn't all that appealing, is it?
+
+> > I think the big thing we really should do if we are going to go this
+> > route is to look at standardizing what the flavours are that get
+> > created by the parent netdevice. Otherwise we are just creating the
+> > same mess we had with SRIOV all over again and muddying the waters of
+> > mediated devices.
+> >
+>
+> yes in the near future we will be working on auxbus interfaces for
+> auto-probing and user flavor selection, this is a must have feature for
+> us.
+
+I would take this one step further. If we are going to have flavours
+maybe we should have interfaces pre-defined that are vendor agnostic
+that can represent the possible flavors. Basically an Ethernet
+interface for that case, and RDMA interface for that case and so on.
+It limits what functionality can be exposed, however it frees up the
+containers and/or guests to work on whatever NIC you want as long as
+it supports that interface.
+
+> > > > first thing that came to mind when I read this was mediated
+> > > > devices
+> > > > which is similar, but focused only on the virtualization case:
+> > > > https://www.kernel.org/doc/html/v5.9/driver-api/vfio-mediated-device.html
+> > > >
+> > > > > Parav Pandit Says:
+> > > > > =================
+> > > > >
+> > > > > This patchset introduces support for mlx5 subfunction (SF).
+> > > > >
+> > > > > A subfunction is a lightweight function that has a parent PCI
+> > > > > function on
+> > > > > which it is deployed. mlx5 subfunction has its own function
+> > > > > capabilities
+> > > > > and its own resources. This means a subfunction has its own
+> > > > > dedicated
+> > > > > queues(txq, rxq, cq, eq). These queues are neither shared nor
+> > > > > stealed from
+> > > > > the parent PCI function.
+> > > >
+> > > > Rather than calling this a subfunction, would it make more sense
+> > > > to
+> > > > call it something such as a queue set? It seems like this is
+> > > > exposing
+> > > > some of the same functionality we did in the Intel drivers such
+> > > > as
+> > > > ixgbe and i40e via the macvlan offload interface. However the
+> > > > ixgbe/i40e hardware was somewhat limited in that we were only
+> > > > able to
+> > > > expose Ethernet interfaces via this sort of VMQ/VMDQ feature, and
+> > > > even
+> > > > with that we have seen some limitations to the interface. It
+> > > > sounds
+> > > > like you are able to break out RDMA capable devices this way as
+> > > > well.
+> > > > So in terms of ways to go I would argue this is likely better.
+> > >
+> > > We've discussed this thoroughly on V0, the SF solutions is closer
+> > > to a
+> > > VF than a VMDQ, this is not just a set of queues.
+> > >
+> > > https://lore.kernel.org/linux-rdma/421951d99a33d28b91f2b2997409d0c97fa5a98a.camel@kernel.org/
+> >
+> > VMDq is more than just a set of queues. The fact is it is a pool of
+> > resources that get created to handle the requests for a specific VM.
+> > The extra bits that are added here are essentially stuff that was
+> > required to support mediated devices.
+> >
+>
+> VMDq pools are managed by the driver and only logically isolated in the
+> kernel, SFs has no shared pool for transport resources (queues), SFs
+> have their own isolated steering domains, processing engines, and HW
+> objects, exactly like a VF.
+
+You are describing your specific implementation. That may not apply to
+others. What you are defining as the differences of VMDq and SR-IOV
+are not the same as other vendors.
+
+You are essentially arguing implementation semantics, if it is
+configured by the driver or firmware it doesn't really make any
+difference. Being fully isolated versus only logically isolated only
+really matters in terms of direct assignment. In the grand scheme of
+things the only real difference between SR-IOV and VMDq is the
+spawning of the PCIe device with its own BAR to access the resources.
+Isolating the queues to their own 4K bounded subset of a BAR is pretty
+straightforward and I assume that and the firmware is what is giving
+you most of your isolation in this case.
+
+> > > > However
+> > > > one downside is that we are going to end up seeing each
+> > > > subfunction
+> > > > being different from driver to driver and vendor to vendor which
+> > > > I
+> > > > would argue was also one of the problems with SR-IOV as you end
+> > > > up
+> > > > with a bit of vendor lock-in as a result of this feature since
+> > > > each
+> > > > vendor will be providing a different interface.
+> > > >
+> > >
+> > > I disagree, SFs are tightly coupled with switchdev model and
+> > > devlink
+> > > functions port, they are backed with the a well defined model, i
+> > > can
+> > > say the same about sriov with switchdev mode, this sort of vendor
+> > > lock-
+> > > in issues is eliminated when you migrate to switchdev mode.
+> >
+> > What you are talking about is the backend. I am talking about what is
+> > exposed to the user. The user is going to see a Mellanox device
+> > having
+> > to be placed into their container in order to support this. One of
+> > the
+> > advantages of the Intel approach was that the macvlan interface was
+> > generic so you could have an offloaded interface or not and the user
+> > wouldn't necessarily know. The offload could be disabled and the user
+> > would be none the wiser as it is moved from one interface to another.
+> > I see that as a big thing that is missing in this solution.
+> >
+>
+> You are talking about the basic netdev users, Sure there are users who
+> would want a more generic netdev, so yes. but most of my customers are
+> not like that, they want vdpa/rdma and heavy netdev offload such as
+> encap/decap/crypto and driver xdp in their containers, the SF approach
+> will make more sense to them than sriov and VMDq.
+
+I am talking about my perspective. From what I have seen, one-off
+features that are only available from specific vendors are a pain to
+deal with and difficult to enable when you have to support multiple
+vendors within your ecosystem. What you end up going for is usually
+the lowest common denominator because you ideally want to be able to
+configure all your devices the same and have one recipe for setup.
+
+I'm not saying you cannot enable those features. However at the same
+time I am saying it would be nice to have a vendor neutral way of
+dealing with those if we are going to support SF, ideally with some
+sort of software fallback that may not perform as well but will at
+least get us the same functionality.
+
+I'm trying to remember which netdev conference it was. I referred to
+this as a veth switchdev offload when something like this was first
+brought up. The more I think about it now it would almost make more
+sense to have something like that as a flavor. The way I view it we
+have a few different use cases floating around which will have
+different needs. My thought is having a standardized interface that
+could address those needs would be a good way to go for this as it
+would force everyone to come together and define a standardized
+feature set that all of the vendors would want to expose.
+
+> > > > > When subfunction is RDMA capable, it has its own QP1, GID table
+> > > > > and
+> > > > > rdma
+> > > > > resources neither shared nor stealed from the parent PCI
+> > > > > function.
+> > > > >
+> > > > > A subfunction has dedicated window in PCI BAR space that is not
+> > > > > shared
+> > > > > with ther other subfunctions or parent PCI function. This
+> > > > > ensures
+> > > > > that all
+> > > > > class devices of the subfunction accesses only assigned PCI BAR
+> > > > > space.
+> > > > >
+> > > > > A Subfunction supports eswitch representation through which it
+> > > > > supports tc
+> > > > > offloads. User must configure eswitch to send/receive packets
+> > > > > from/to
+> > > > > subfunction port.
+> > > > >
+> > > > > Subfunctions share PCI level resources such as PCI MSI-X IRQs
+> > > > > with
+> > > > > their other subfunctions and/or with its parent PCI function.
+> > > >
+> > > > This piece to the architecture for this has me somewhat
+> > > > concerned. If
+> > > > all your resources are shared and you are allowing devices to be
+> > >
+> > > not all, only PCI MSIX, for now..
+> >
+> > They aren't shared after you partition them but they are coming from
+> > the same device. Basically you are subdividing the BAR2 in order to
+> > generate the subfunctions. BAR2 is a shared resource in my point of
+> > view.
+> >
+>
+> Sure, but it doesn't host any actual resources, only the communication
+> channel with the HW partition, so other than the BAR and the msix the
+> actual HW resources, steering pipelines, offloads and queues are totlay
+> isolated and separated.
+
+I understand what you are trying to say, however this is semantics
+specific to the implementation. Ultimately you are having to share the
+function.
+
+> > > > created incrementally you either have to pre-partition the entire
+> > > > function which usually results in limited resources for your base
+> > > > setup, or free resources from existing interfaces and
+> > > > redistribute
+> > > > them as things change. I would be curious which approach you are
+> > > > taking here? So for example if you hit a certain threshold will
+> > > > you
+> > > > need to reset the port and rebalance the IRQs between the various
+> > > > functions?
+> > > >
+> > >
+> > > Currently SFs will use whatever IRQs the PF has pre-allocated for
+> > > itself, so there is no IRQ limit issue at the moment, we are
+> > > considering a dynamic IRQ pool with dynamic balancing, or even
+> > > better
+> > > us the IMS approach, which perfectly fits the SF architecture.
+> > > https://patchwork.kernel.org/project/linux-pci/cover/1568338328-22458-1-git-send-email-megha.dey@linux.intel.com/
+> >
+> > When you say you are using the PF's interrupts are you just using
+> > that
+> > as a pool of resources or having the interrupt process interrupts for
+> > both the PF and SFs? Without IMS you are limited to 2048 interrupts.
+> > Moving over to that would make sense since SF is similar to mdev in
+> > the way it partitions up the device and resources.
+> >
+>
+> Yes moving to IMS is on the top of our priorities.
+>
+> > > for internal resources the are fully isolated (not shared) and
+> > > they are internally managed by FW exactly like a VF internal
+> > > resources.
+> >
+> > I assume by isolated you mean they are contained within page aligned
+> > blocks like what was required for mdev?
+>
+> I mean they are isolated and abstracted in the FW, we don't really
+> expose any resource directly to the BAR. the BAR is only used for
+> communicating with the device, so VF and SF will work exactly the same
+> the only difference is where they get their BAR  and offsets from,
+> everything else is just similar.
+
+I think where you and I differ is our use of the term "resource". I
+would consider the address space a "resource", while you argue that
+the resources are hidden behind the BAR.
+
+I agree with you that the firmware should be managing most of the
+resources in the device. So it isn't surprising that it would be
+splitting them up and then dolling out pieces as needed to put
+together a subfunction.
