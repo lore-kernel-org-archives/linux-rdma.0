@@ -6,18 +6,18 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D330C4361B
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DC70C2BB48
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35ADA22225
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:09:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3881622225
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727282AbgLOJH7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Dec 2020 04:07:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36478 "EHLO mail.kernel.org"
+        id S1727767AbgLOJFZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Dec 2020 04:05:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727082AbgLOJFg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 15 Dec 2020 04:05:36 -0500
+        id S1727084AbgLOJEs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Dec 2020 04:04:48 -0500
 From:   Saeed Mahameed <saeed@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -29,15 +29,17 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
-        Roi Dayan <roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next v5 10/15] net/mlx5: E-switch, Add eswitch helpers for SF vport
-Date:   Tue, 15 Dec 2020 01:03:53 -0800
-Message-Id: <20201215090358.240365-11-saeed@kernel.org>
+        Parav Pandit <parav@nvidia.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Saeed Mahameed <saeed@kernel.org>
+Subject: [net-next v5 01/15] net/mlx5: Fix compilation warning for 32-bit platform
+Date:   Tue, 15 Dec 2020 01:03:44 -0800
+Message-Id: <20201215090358.240365-2-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201215090358.240365-1-saeed@kernel.org>
 References: <20201215090358.240365-1-saeed@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -45,218 +47,44 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-Add helpers to enable/disable eswitch port, register its devlink port and
-load its representor.
+MLX5_GENERAL_OBJECT_TYPES types bitfield is 64-bit field.
 
-Signed-off-by: Vu Pham <vuhuong@nvidia.com>
+Defining an enum for such bit fields on 32-bit platform results in below
+warning.
+
+./include/vdso/bits.h:7:26: warning: left shift count >= width of type [-Wshift-count-overflow]
+                         ^
+./include/linux/mlx5/mlx5_ifc.h:10716:46: note: in expansion of macro ‘BIT’
+ MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = BIT(0x20),
+                                             ^~~
+Use 32-bit friendly left shift.
+
+Fixes: 2a2970891647 ("net/mlx5: Add sample offload hardware bits and structures")
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Roi Dayan <roid@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeed@kernel.org>
 ---
- .../mellanox/mlx5/core/esw/devlink_port.c     | 41 +++++++++++++++++++
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 12 +++---
- .../net/ethernet/mellanox/mlx5/core/eswitch.h | 16 ++++++++
- .../mellanox/mlx5/core/eswitch_offloads.c     | 36 +++++++++++++++-
- 4 files changed, 97 insertions(+), 8 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-index ffff11baa3d0..4b7e9f783789 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
-@@ -122,3 +122,44 @@ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u1
- 	vport = mlx5_eswitch_get_vport(esw, vport_num);
- 	return vport->dl_port;
- }
-+
-+int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
-+				      u16 vport_num, u32 sfnum)
-+{
-+	struct mlx5_core_dev *dev = esw->dev;
-+	struct netdev_phys_item_id ppid = {};
-+	unsigned int dl_port_index;
-+	struct mlx5_vport *vport;
-+	struct devlink *devlink;
-+	u16 pfnum;
-+	int err;
-+
-+	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return PTR_ERR(vport);
-+
-+	pfnum = PCI_FUNC(dev->pdev->devfn);
-+	mlx5_esw_get_port_parent_id(dev, &ppid);
-+	memcpy(dl_port->attrs.switch_id.id, &ppid.id[0], ppid.id_len);
-+	dl_port->attrs.switch_id.id_len = ppid.id_len;
-+	devlink_port_attrs_pci_sf_set(dl_port, 0, pfnum, sfnum, false);
-+	devlink = priv_to_devlink(dev);
-+	dl_port_index = mlx5_esw_vport_to_devlink_port_index(dev, vport_num);
-+	err = devlink_port_register(devlink, dl_port, dl_port_index);
-+	if (err)
-+		return err;
-+
-+	vport->dl_port = dl_port;
-+	return 0;
-+}
-+
-+void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num)
-+{
-+	struct mlx5_vport *vport;
-+
-+	vport = mlx5_eswitch_get_vport(esw, vport_num);
-+	if (IS_ERR(vport))
-+		return;
-+	devlink_port_unregister(vport->dl_port);
-+	vport->dl_port = NULL;
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index d75247a8ce55..d06e7a5f15de 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1273,8 +1273,8 @@ static void esw_vport_cleanup(struct mlx5_eswitch *esw, struct mlx5_vport *vport
- 	esw_vport_cleanup_acl(esw, vport);
- }
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 0d6e287d614f..b9f15935dfe5 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -10711,9 +10711,9 @@ struct mlx5_ifc_affiliated_event_header_bits {
+ };
  
--static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
--			    enum mlx5_eswitch_vport_event enabled_events)
-+int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
-+			  enum mlx5_eswitch_vport_event enabled_events)
- {
- 	struct mlx5_vport *vport;
- 	int ret;
-@@ -1310,7 +1310,7 @@ static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
- 	return ret;
- }
+ enum {
+-	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY = BIT(0xc),
+-	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC = BIT(0x13),
+-	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = BIT(0x20),
++	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY = 1ULL << 0xc,
++	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC = 1ULL << 0x13,
++	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = 1ULL << 0x20,
+ };
  
--static void esw_disable_vport(struct mlx5_eswitch *esw, u16 vport_num)
-+void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
- {
- 	struct mlx5_vport *vport;
- 
-@@ -1432,7 +1432,7 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
- {
- 	int err;
- 
--	err = esw_enable_vport(esw, vport_num, enabled_events);
-+	err = mlx5_esw_vport_enable(esw, vport_num, enabled_events);
- 	if (err)
- 		return err;
- 
-@@ -1443,14 +1443,14 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
- 	return err;
- 
- err_rep:
--	esw_disable_vport(esw, vport_num);
-+	mlx5_esw_vport_disable(esw, vport_num);
- 	return err;
- }
- 
- void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num)
- {
- 	esw_offloads_unload_rep(esw, vport_num);
--	esw_disable_vport(esw, vport_num);
-+	mlx5_esw_vport_disable(esw, vport_num);
- }
- 
- void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index 4e3ed878ff03..54514b04808d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -688,6 +688,10 @@ mlx5_eswitch_enable_pf_vf_vports(struct mlx5_eswitch *esw,
- 				 enum mlx5_eswitch_vport_event enabled_events);
- void mlx5_eswitch_disable_pf_vf_vports(struct mlx5_eswitch *esw);
- 
-+int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
-+			  enum mlx5_eswitch_vport_event enabled_events);
-+void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
-+
- int
- esw_vport_create_offloads_acl_tables(struct mlx5_eswitch *esw,
- 				     struct mlx5_vport *vport);
-@@ -706,6 +710,9 @@ esw_get_max_restore_tag(struct mlx5_eswitch *esw);
- int esw_offloads_load_rep(struct mlx5_eswitch *esw, u16 vport_num);
- void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num);
- 
-+int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num);
-+void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num);
-+
- int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
- 			    enum mlx5_eswitch_vport_event enabled_events);
- void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num);
-@@ -717,6 +724,15 @@ void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs);
- int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, u16 vport_num);
- void mlx5_esw_offloads_devlink_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
- struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u16 vport_num);
-+
-+int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
-+				      u16 vport_num, u32 sfnum);
-+void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
-+
-+int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
-+				      u16 vport_num, u32 sfnum);
-+void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
-+
- #else  /* CONFIG_MLX5_ESWITCH */
- /* eswitch API stubs */
- static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 2d241f7351b5..7f09f2bbf7c1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -1833,7 +1833,7 @@ static void __unload_reps_all_vport(struct mlx5_eswitch *esw, u8 rep_type)
- 	__esw_offloads_unload_rep(esw, rep, rep_type);
- }
- 
--static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
-+int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int rep_type;
-@@ -1857,7 +1857,7 @@ static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
- 	return err;
- }
- 
--static void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
-+void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
- {
- 	struct mlx5_eswitch_rep *rep;
- 	int rep_type;
-@@ -2835,3 +2835,35 @@ u32 mlx5_eswitch_get_vport_metadata_for_match(struct mlx5_eswitch *esw,
- 	return vport->metadata << (32 - ESW_SOURCE_PORT_METADATA_BITS);
- }
- EXPORT_SYMBOL(mlx5_eswitch_get_vport_metadata_for_match);
-+
-+int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
-+				      u16 vport_num, u32 sfnum)
-+{
-+	int err;
-+
-+	err = mlx5_esw_vport_enable(esw, vport_num, MLX5_VPORT_UC_ADDR_CHANGE);
-+	if (err)
-+		return err;
-+
-+	err = mlx5_esw_devlink_sf_port_register(esw, dl_port, vport_num, sfnum);
-+	if (err)
-+		goto devlink_err;
-+
-+	err = mlx5_esw_offloads_rep_load(esw, vport_num);
-+	if (err)
-+		goto rep_err;
-+	return 0;
-+
-+rep_err:
-+	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
-+devlink_err:
-+	mlx5_esw_vport_disable(esw, vport_num);
-+	return err;
-+}
-+
-+void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
-+{
-+	mlx5_esw_offloads_rep_unload(esw, vport_num);
-+	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
-+	mlx5_esw_vport_disable(esw, vport_num);
-+}
+ enum {
 -- 
 2.26.2
 
