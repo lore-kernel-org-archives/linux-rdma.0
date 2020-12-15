@@ -2,107 +2,71 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7FA9C4361B
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:13:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABECBC4361B
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:30:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7195922CB8
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:13:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7882022D03
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 21:30:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727990AbgLOVNd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Dec 2020 16:13:33 -0500
-Received: from mga09.intel.com ([134.134.136.24]:23884 "EHLO mga09.intel.com"
+        id S1730046AbgLOV3C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Dec 2020 16:29:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728060AbgLOVNX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 15 Dec 2020 16:13:23 -0500
-IronPort-SDR: EaaKC1vpZ+Zf2CueTm0oOshNzp0WoupbJ6fNlT4TBU9WNtwJ1hpyhN1oc+7FRYlpB0F9UTYpeB
- /59FadoSO8pQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9836"; a="175094865"
-X-IronPort-AV: E=Sophos;i="5.78,422,1599548400"; 
-   d="scan'208";a="175094865"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Dec 2020 13:11:52 -0800
-IronPort-SDR: qqSXLBTXhrber3JzTsqcBifFYMnSAhLkiFb1lhPeLl72gFQiAxG6FUwDpR3yOAVopvx53W5pbB
- 0O78ma4Emxdg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.78,422,1599548400"; 
-   d="scan'208";a="488052992"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by orsmga004.jf.intel.com with ESMTP; 15 Dec 2020 13:11:52 -0800
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH v16 2/4] RDMA/core: Add device method for registering dma-buf based memory region
-Date:   Tue, 15 Dec 2020 13:27:14 -0800
-Message-Id: <1608067636-98073-3-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
-References: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
+        id S1729933AbgLOV27 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Dec 2020 16:28:59 -0500
+Date:   Tue, 15 Dec 2020 13:28:05 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1608067687;
+        bh=fU7bWhe7CB3Ejuj1/qA6X+k8w8TbAvt70UEwgVPc0s0=;
+        h=From:To:Cc:Subject:In-Reply-To:References:From;
+        b=lqfaW/w9OMdKGAbbYfkNu7pZ1MzBjnXlMbcV7xIjxhfX5HFiM+Ogkfh8yNRAEmq7x
+         HJeiu804npSL2gP+lIjXANU73fHbJ3yPdbq2kJRZ2wr2YKE/JJ6QeXGCgIyl1BMZRL
+         yUCli/q8b8HdfnqYFkKUF/7hXZ3jfWQpQQotLq/szZce3MHsynIj39CIkBIm7BBFWz
+         Ca9u4Euv3eSl9jaHH7B6UO6lIS1hE6Rpbk3AcAN0N832TsMVjcxJhaKHQ5ZgFx1MM9
+         XUWyzHosIA3DySnpFIflfDe2p35fWSk2lL8Jh3RgmwXcjv4PlGZMHNbiBwyJknFaxv
+         1CuKLDeG2KQZQ==
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Saeed Mahameed <saeed@kernel.org>
+Cc:     Alexander Duyck <alexander.duyck@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org,
+        David Ahern <dsahern@kernel.org>,
+        Jacob Keller <jacob.e.keller@intel.com>,
+        Sridhar Samudrala <sridhar.samudrala@intel.com>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Kiran Patil <kiran.patil@intel.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [net-next v4 00/15] Add mlx5 subfunction support
+Message-ID: <20201215132805.22ddcd44@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <ecad34f5c813591713bb59d9c5854148c3d7f291.camel@kernel.org>
+References: <20201214214352.198172-1-saeed@kernel.org>
+        <CAKgT0UejoduCB6nYFV2atJ4fa4=v9-dsxNh4kNJNTtoHFd1DuQ@mail.gmail.com>
+        <608505778d76b1b01cb3e8d19ecda5b8578f0f79.camel@kernel.org>
+        <CAKgT0UfEsd0hS=iJTcVc20gohG0WQwjsGYOw1y0_=DRVbhb1Ng@mail.gmail.com>
+        <ecad34f5c813591713bb59d9c5854148c3d7f291.camel@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dma-buf based memory region requires one extra parameter and is processed
-quite differently. Adding a separate method allows clean separation from
-regular memory regions.
+On Tue, 15 Dec 2020 12:35:20 -0800 Saeed Mahameed wrote:
+> > I think the big thing we really should do if we are going to go this
+> > route is to look at standardizing what the flavours are that get
+> > created by the parent netdevice. Otherwise we are just creating the
+> > same mess we had with SRIOV all over again and muddying the waters of
+> > mediated devices.
+> 
+> yes in the near future we will be working on auxbus interfaces for
+> auto-probing and user flavor selection, this is a must have feature for
+> us.
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-Reviewed-by: Sean Hefty <sean.hefty@intel.com>
-Acked-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Acked-by: Christian Koenig <christian.koenig@amd.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/device.c | 1 +
- include/rdma/ib_verbs.h          | 6 +++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 3ab1ede..23f7440 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2677,6 +2677,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, read_counters);
- 	SET_DEVICE_OP(dev_ops, reg_dm_mr);
- 	SET_DEVICE_OP(dev_ops, reg_user_mr);
-+	SET_DEVICE_OP(dev_ops, reg_user_mr_dmabuf);
- 	SET_DEVICE_OP(dev_ops, req_ncomp_notif);
- 	SET_DEVICE_OP(dev_ops, req_notify_cq);
- 	SET_DEVICE_OP(dev_ops, rereg_user_mr);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 06a5652..b2f02a7 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2,7 +2,7 @@
- /*
-  * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
-  * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
-- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2004, 2020 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
-  * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
-  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-@@ -2433,6 +2433,10 @@ struct ib_device_ops {
- 	struct ib_mr *(*reg_user_mr)(struct ib_pd *pd, u64 start, u64 length,
- 				     u64 virt_addr, int mr_access_flags,
- 				     struct ib_udata *udata);
-+	struct ib_mr *(*reg_user_mr_dmabuf)(struct ib_pd *pd, u64 offset,
-+					    u64 length, u64 virt_addr, int fd,
-+					    int mr_access_flags,
-+					    struct ib_udata *udata);
- 	struct ib_mr *(*rereg_user_mr)(struct ib_mr *mr, int flags, u64 start,
- 				       u64 length, u64 virt_addr,
- 				       int mr_access_flags, struct ib_pd *pd,
--- 
-1.8.3.1
-
+Can you elaborate? I thought config would be via devlink.
