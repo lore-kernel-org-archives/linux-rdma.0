@@ -4,19 +4,19 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D069C2BB48
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F118C2BB9A
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:09:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D381122225
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:08:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EABDB22255
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:09:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728032AbgLOJIF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Dec 2020 04:08:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36400 "EHLO mail.kernel.org"
+        id S1728035AbgLOJIK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Dec 2020 04:08:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727845AbgLOJFb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1727843AbgLOJFb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 15 Dec 2020 04:05:31 -0500
 From:   Saeed Mahameed <saeed@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
@@ -29,12 +29,11 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
-        Vu Pham <vuhuong@nvidia.com>,
+        Parav Pandit <parav@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next v5 05/15] devlink: Support get and set state of port function
-Date:   Tue, 15 Dec 2020 01:03:48 -0800
-Message-Id: <20201215090358.240365-6-saeed@kernel.org>
+Subject: [net-next v5 08/15] net/mlx5: SF, Add auxiliary device driver
+Date:   Tue, 15 Dec 2020 01:03:51 -0800
+Message-Id: <20201215090358.240365-9-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201215090358.240365-1-saeed@kernel.org>
 References: <20201215090358.240365-1-saeed@kernel.org>
@@ -46,264 +45,457 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-devlink port function can be in active or inactive state.
-Allow users to get and set port function's state.
+Add auxiliary device driver for mlx5 subfunction auxiliary device.
 
-When the port function it activated, its operational state may change
-after a while when the device is created and driver binds to it.
-Similarly on deactivation flow.
+A mlx5 subfunction is similar to PCI PF and VF. For a subfunction
+an auxiliary device is created.
 
-To clearly describe the state of the port function and its device's
-operational state in the host system, define state and opstate
-attributes.
+As a result, when mlx5 SF auxiliary device binds to the driver,
+its netdev and rdma device are created, they appear as
 
-Example of a PCI SF port which supports a port function:
-Create a device with ID=10 and one physical port.
+$ ls -l /sys/bus/auxiliary/devices/
+mlx5_core.sf.4 -> ../../../devices/pci0000:00/0000:00:03.0/0000:06:00.0/mlx5_core.sf.4
 
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
+$ ls -l /sys/class/net/eth1/device
+/sys/class/net/eth1/device -> ../../../mlx5_core.sf.4
 
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
+$ cat /sys/bus/auxiliary/devices/mlx5_core.sf.4/sfnum
+88
 
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
+$ devlink dev show
+pci/0000:06:00.0
+auxiliary/mlx5_core.sf.4
 
-$ devlink port show pci/0000:06:00.0/32768
-pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
+$ devlink port show auxiliary/mlx5_core.sf.4/1
+auxiliary/mlx5_core.sf.4/1: type eth netdev p0sf88 flavour virtual port 0 splittable false
 
-$ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88 state active
+$ rdma link show mlx5_0/1
+link mlx5_0/1 state ACTIVE physical_state LINK_UP netdev p0sf88
 
-$ devlink port show pci/0000:06:00.0/32768 -jp
-{
-    "port": {
-        "pci/0000:06:00.0/32768": {
-            "type": "eth",
-            "netdev": "ens2f0npf0sf88",
-            "flavour": "pcisf",
-            "controller": 0,
-            "pfnum": 0,
-            "sfnum": 88,
-            "external": false,
-            "splittable": false,
-            "function": {
-                "hw_addr": "00:00:00:00:88:88",
-                "state": "active",
-                "opstate": "attached"
-            }
-        }
-    }
-}
+$ rdma dev show
+8: rocep6s0f1: node_type ca fw 16.29.0550 node_guid 248a:0703:00b3:d113 sys_image_guid 248a:0703:00b3:d112
+13: mlx5_0: node_type ca fw 16.29.0550 node_guid 0000:00ff:fe00:8888 sys_image_guid 248a:0703:00b3:d112
+
+In future, devlink device instance name will adapt to have sfnum
+annotation using either an alias or as devlink instance name described
+in RFC [1].
+
+[1] https://lore.kernel.org/netdev/20200519092258.GF4655@nanopsycho/
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
 Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/net/devlink.h        | 23 +++++++++
- include/uapi/linux/devlink.h | 21 +++++++++
- net/core/devlink.c           | 90 +++++++++++++++++++++++++++++++++++-
- 3 files changed, 133 insertions(+), 1 deletion(-)
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+ .../net/ethernet/mellanox/mlx5/core/devlink.c |  12 +++
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   2 +-
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  12 ++-
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  10 ++
+ .../net/ethernet/mellanox/mlx5/core/pci_irq.c |  20 ++++
+ .../ethernet/mellanox/mlx5/core/sf/dev/dev.c  |  10 ++
+ .../ethernet/mellanox/mlx5/core/sf/dev/dev.h  |  20 ++++
+ .../mellanox/mlx5/core/sf/dev/driver.c        | 101 ++++++++++++++++++
+ include/linux/mlx5/driver.h                   |   4 +-
+ 10 files changed, 187 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
 
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index f8cff3e402da..18a7e66b7982 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -1374,6 +1374,29 @@ struct devlink_ops {
- 	int (*port_function_hw_addr_set)(struct devlink *devlink, struct devlink_port *port,
- 					 const u8 *hw_addr, int hw_addr_len,
- 					 struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_get: Port function's state get function.
-+	 *
-+	 * Should be used by device drivers to report the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_get)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state *state,
-+				       enum devlink_port_function_opstate *opstate,
-+				       struct netlink_ext_ack *extack);
-+	/**
-+	 * @port_function_state_set: Port function's state set function.
-+	 *
-+	 * Should be used by device drivers to set the state of a function
-+	 * managed by the devlink port. Driver should return -EOPNOTSUPP if it
-+	 * doesn't support port function handling for a particular port.
-+	 */
-+	int (*port_function_state_set)(struct devlink *devlink,
-+				       struct devlink_port *port,
-+				       enum devlink_port_function_state state,
-+				       struct netlink_ext_ack *extack);
- 	/**
- 	 * @port_new: Port add function.
- 	 *
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index 6fe00f10eb3f..beeb30bb6b20 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -583,9 +583,30 @@ enum devlink_resource_unit {
- enum devlink_port_function_attr {
- 	DEVLINK_PORT_FUNCTION_ATTR_UNSPEC,
- 	DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR,	/* binary */
-+	DEVLINK_PORT_FUNCTION_ATTR_STATE,	/* u8 */
-+	DEVLINK_PORT_FUNCTION_ATTR_OPSTATE,	/* u8 */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+index 2aefbca404c3..efa95d6dd112 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+@@ -88,4 +88,4 @@ mlx5_core-$(CONFIG_MLX5_SW_STEERING) += steering/dr_domain.o steering/dr_table.o
+ #
+ # SF device
+ #
+-mlx5_core-$(CONFIG_MLX5_SF) += sf/vhca_event.o sf/dev/dev.o
++mlx5_core-$(CONFIG_MLX5_SF) += sf/vhca_event.o sf/dev/dev.o sf/dev/driver.o
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
+index 3261d0dc1104..9afe918c5827 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
+@@ -7,6 +7,7 @@
+ #include "fw_reset.h"
+ #include "fs_core.h"
+ #include "eswitch.h"
++#include "sf/dev/dev.h"
  
- 	__DEVLINK_PORT_FUNCTION_ATTR_MAX,
- 	DEVLINK_PORT_FUNCTION_ATTR_MAX = __DEVLINK_PORT_FUNCTION_ATTR_MAX - 1
- };
- 
-+enum devlink_port_function_state {
-+	DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+	DEVLINK_PORT_FUNCTION_STATE_ACTIVE,
-+};
+ static int mlx5_devlink_flash_update(struct devlink *devlink,
+ 				     struct devlink_flash_update_params *params,
+@@ -127,6 +128,17 @@ static int mlx5_devlink_reload_down(struct devlink *devlink, bool netns_change,
+ 				    struct netlink_ext_ack *extack)
+ {
+ 	struct mlx5_core_dev *dev = devlink_priv(devlink);
++	bool sf_dev_allocated;
 +
-+/**
-+ * enum devlink_port_function_opstate - indicates operational state of port function
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED: Driver is attached to the function of port, for
-+ *					    gracefufl tear down of the function, after
-+ *					    inactivation of the port function, user should wait
-+ *					    for operational state to turn DETACHED.
-+ * @DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED: Driver is detached from the function of port; it is
-+ *					    safe to delete the port.
-+ */
-+enum devlink_port_function_opstate {
-+	DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED,
-+	DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED,
-+};
-+
- #endif /* _UAPI_LINUX_DEVLINK_H_ */
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 11043707f63f..b8acb8842aa1 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -87,6 +87,9 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(devlink_trap_report);
++	sf_dev_allocated = mlx5_sf_dev_allocated(dev);
++	if (sf_dev_allocated) {
++		/* Reload results in deleting SF device which further results in
++		 * unregistering devlink instance while holding devlink_mutext.
++		 * Hence, do not support reload.
++		 */
++		NL_SET_ERR_MSG_MOD(extack, "reload is unsupported when SFs are allocated\n");
++		return -EOPNOTSUPP;
++	}
  
- static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_ATTR_MAX + 1] = {
- 	[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR] = { .type = NLA_BINARY },
-+	[DEVLINK_PORT_FUNCTION_ATTR_STATE] =
-+		NLA_POLICY_RANGE(NLA_U8, DEVLINK_PORT_FUNCTION_STATE_INACTIVE,
-+				 DEVLINK_PORT_FUNCTION_STATE_ACTIVE),
- };
+ 	switch (action) {
+ 	case DEVLINK_RELOAD_ACTION_DRIVER_REINIT:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 421febebc658..174dfbc996c6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -467,7 +467,7 @@ int mlx5_eq_table_init(struct mlx5_core_dev *dev)
+ 	for (i = 0; i < MLX5_EVENT_TYPE_MAX; i++)
+ 		ATOMIC_INIT_NOTIFIER_HEAD(&eq_table->nh[i]);
  
- static LIST_HEAD(devlink_list);
-@@ -746,6 +749,57 @@ devlink_port_function_hw_addr_fill(struct devlink *devlink, const struct devlink
+-	eq_table->irq_table = dev->priv.irq_table;
++	eq_table->irq_table = mlx5_irq_table_get(dev);
  	return 0;
  }
  
-+static bool
-+devlink_port_function_state_valid(enum devlink_port_function_state state)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 292c30e71d7f..932a280a56a5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -84,7 +84,6 @@ unsigned int mlx5_core_debug_mask;
+ module_param_named(debug_mask, mlx5_core_debug_mask, uint, 0644);
+ MODULE_PARM_DESC(debug_mask, "debug mask: 1 = dump cmd data, 2 = dump cmd exec time, 3 = both. Default=0");
+ 
+-#define MLX5_DEFAULT_PROF	2
+ static unsigned int prof_sel = MLX5_DEFAULT_PROF;
+ module_param_named(prof_sel, prof_sel, uint, 0444);
+ MODULE_PARM_DESC(prof_sel, "profile selector. Valid range 0 - 2");
+@@ -1303,7 +1302,7 @@ void mlx5_unload_one(struct mlx5_core_dev *dev, bool cleanup)
+ 	mutex_unlock(&dev->intf_state_mutex);
+ }
+ 
+-static int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
++int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
+ 	int err;
+@@ -1353,7 +1352,7 @@ static int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx)
+ 	return err;
+ }
+ 
+-static void mlx5_mdev_uninit(struct mlx5_core_dev *dev)
++void mlx5_mdev_uninit(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
+ 
+@@ -1693,6 +1692,10 @@ static int __init init(void)
+ 	if (err)
+ 		goto err_debug;
+ 
++	err = mlx5_sf_driver_register();
++	if (err)
++		goto err_sf;
++
+ #ifdef CONFIG_MLX5_CORE_EN
+ 	err = mlx5e_init();
+ 	if (err) {
+@@ -1703,6 +1706,8 @@ static int __init init(void)
+ 
+ 	return 0;
+ 
++err_sf:
++	pci_unregister_driver(&mlx5_core_driver);
+ err_debug:
+ 	mlx5_unregister_debugfs();
+ 	return err;
+@@ -1713,6 +1718,7 @@ static void __exit cleanup(void)
+ #ifdef CONFIG_MLX5_CORE_EN
+ 	mlx5e_cleanup();
+ #endif
++	mlx5_sf_driver_unregister();
+ 	pci_unregister_driver(&mlx5_core_driver);
+ 	mlx5_unregister_debugfs();
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index a33b7496d748..3754ef98554f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -117,6 +117,8 @@ enum mlx5_semaphore_space_address {
+ 	MLX5_SEMAPHORE_SW_RESET         = 0x20,
+ };
+ 
++#define MLX5_DEFAULT_PROF       2
++
+ int mlx5_query_hca_caps(struct mlx5_core_dev *dev);
+ int mlx5_query_board_id(struct mlx5_core_dev *dev);
+ int mlx5_cmd_init(struct mlx5_core_dev *dev);
+@@ -176,6 +178,7 @@ struct cpumask *
+ mlx5_irq_get_affinity_mask(struct mlx5_irq_table *irq_table, int vecidx);
+ struct cpu_rmap *mlx5_irq_get_rmap(struct mlx5_irq_table *table);
+ int mlx5_irq_get_num_comp(struct mlx5_irq_table *table);
++struct mlx5_irq_table *mlx5_irq_table_get(struct mlx5_core_dev *dev);
+ 
+ int mlx5_events_init(struct mlx5_core_dev *dev);
+ void mlx5_events_cleanup(struct mlx5_core_dev *dev);
+@@ -257,6 +260,13 @@ enum {
+ u8 mlx5_get_nic_state(struct mlx5_core_dev *dev);
+ void mlx5_set_nic_state(struct mlx5_core_dev *dev, u8 state);
+ 
++static inline bool mlx5_core_is_sf(const struct mlx5_core_dev *dev)
 +{
-+	return state == DEVLINK_PORT_FUNCTION_STATE_INACTIVE ||
-+	       state == DEVLINK_PORT_FUNCTION_STATE_ACTIVE;
++	return dev->coredev_type == MLX5_COREDEV_SF;
 +}
 +
-+static bool
-+devlink_port_function_opstate_valid(enum devlink_port_function_opstate state)
-+{
-+	return state == DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED ||
-+	       state == DEVLINK_PORT_FUNCTION_OPSTATE_ATTACHED;
-+}
-+
-+static int
-+devlink_port_function_state_fill(struct devlink *devlink,
-+				 const struct devlink_ops *ops,
-+				 struct devlink_port *port, struct sk_buff *msg,
-+				 struct netlink_ext_ack *extack,
-+				 bool *msg_updated)
-+{
-+	enum devlink_port_function_opstate opstate;
-+	enum devlink_port_function_state state;
-+	int err;
-+
-+	if (!ops->port_function_state_get)
++int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx);
++void mlx5_mdev_uninit(struct mlx5_core_dev *dev);
+ void mlx5_unload_one(struct mlx5_core_dev *dev, bool cleanup);
+ int mlx5_load_one(struct mlx5_core_dev *dev, bool boot);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c b/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
+index 6fd974920394..a61e09aff152 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c
+@@ -30,6 +30,9 @@ int mlx5_irq_table_init(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_irq_table *irq_table;
+ 
++	if (mlx5_core_is_sf(dev))
 +		return 0;
 +
-+	err = ops->port_function_state_get(devlink, port, &state, &opstate, extack);
-+	if (err) {
-+		if (err == -EOPNOTSUPP)
-+			return 0;
-+		return err;
-+	}
-+	if (!devlink_port_function_state_valid(state)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (!devlink_port_function_opstate_valid(opstate)) {
-+		WARN_ON_ONCE(1);
-+		NL_SET_ERR_MSG_MOD(extack, "Invalid operational state value read from driver");
-+		return -EINVAL;
-+	}
-+	if (nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_STATE, state) ||
-+	    nla_put_u8(msg, DEVLINK_PORT_FUNCTION_ATTR_OPSTATE, opstate))
-+		return -EMSGSIZE;
-+	*msg_updated = true;
+ 	irq_table = kvzalloc(sizeof(*irq_table), GFP_KERNEL);
+ 	if (!irq_table)
+ 		return -ENOMEM;
+@@ -40,6 +43,9 @@ int mlx5_irq_table_init(struct mlx5_core_dev *dev)
+ 
+ void mlx5_irq_table_cleanup(struct mlx5_core_dev *dev)
+ {
++	if (mlx5_core_is_sf(dev))
++		return;
++
+ 	kvfree(dev->priv.irq_table);
+ }
+ 
+@@ -268,6 +274,9 @@ int mlx5_irq_table_create(struct mlx5_core_dev *dev)
+ 	int nvec;
+ 	int err;
+ 
++	if (mlx5_core_is_sf(dev))
++		return 0;
++
+ 	nvec = MLX5_CAP_GEN(dev, num_ports) * num_online_cpus() +
+ 	       MLX5_IRQ_VEC_COMP_BASE;
+ 	nvec = min_t(int, nvec, num_eqs);
+@@ -319,6 +328,9 @@ void mlx5_irq_table_destroy(struct mlx5_core_dev *dev)
+ 	struct mlx5_irq_table *table = dev->priv.irq_table;
+ 	int i;
+ 
++	if (mlx5_core_is_sf(dev))
++		return;
++
+ 	/* free_irq requires that affinity and rmap will be cleared
+ 	 * before calling it. This is why there is asymmetry with set_rmap
+ 	 * which should be called after alloc_irq but before request_irq.
+@@ -332,3 +344,11 @@ void mlx5_irq_table_destroy(struct mlx5_core_dev *dev)
+ 	kfree(table->irq);
+ }
+ 
++struct mlx5_irq_table *mlx5_irq_table_get(struct mlx5_core_dev *dev)
++{
++#ifdef CONFIG_MLX5_SF
++	if (mlx5_core_is_sf(dev))
++		return dev->priv.parent_mdev->priv.irq_table;
++#endif
++	return dev->priv.irq_table;
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
+index 6562bf63afaa..2675b85d202d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.c
+@@ -24,6 +24,16 @@ static bool mlx5_sf_dev_supported(const struct mlx5_core_dev *dev)
+ 	return MLX5_CAP_GEN(dev, sf) && mlx5_vhca_event_supported(dev);
+ }
+ 
++bool mlx5_sf_dev_allocated(const struct mlx5_core_dev *dev)
++{
++	struct mlx5_sf_dev_table *table = dev->priv.sf_dev_table;
++
++	if (!mlx5_sf_dev_supported(dev))
++		return false;
++
++	return xa_empty(&table->devices);
++}
++
+ static ssize_t sfnum_show(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct auxiliary_device *adev = container_of(dev, struct auxiliary_device, dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
+index a6fb7289ba2c..4de02902aef1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/dev.h
+@@ -13,6 +13,7 @@
+ struct mlx5_sf_dev {
+ 	struct auxiliary_device adev;
+ 	struct mlx5_core_dev *parent_mdev;
++	struct mlx5_core_dev *mdev;
+ 	phys_addr_t bar_base_addr;
+ 	u32 sfnum;
+ };
+@@ -20,6 +21,11 @@ struct mlx5_sf_dev {
+ void mlx5_sf_dev_table_create(struct mlx5_core_dev *dev);
+ void mlx5_sf_dev_table_destroy(struct mlx5_core_dev *dev);
+ 
++int mlx5_sf_driver_register(void);
++void mlx5_sf_driver_unregister(void);
++
++bool mlx5_sf_dev_allocated(const struct mlx5_core_dev *dev);
++
+ #else
+ 
+ static inline void mlx5_sf_dev_table_create(struct mlx5_core_dev *dev)
+@@ -30,6 +36,20 @@ static inline void mlx5_sf_dev_table_destroy(struct mlx5_core_dev *dev)
+ {
+ }
+ 
++static inline int mlx5_sf_driver_register(void)
++{
 +	return 0;
 +}
 +
- static int
- devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *port,
- 				   struct netlink_ext_ack *extack)
-@@ -762,6 +816,13 @@ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *por
- 
- 	ops = devlink->ops;
- 	err = devlink_port_function_hw_addr_fill(devlink, ops, port, msg, extack, &msg_updated);
-+	if (err)
-+		goto out;
-+	err = devlink_port_function_state_fill(devlink, ops, port, msg, extack,
-+					       &msg_updated);
-+	if (err)
-+		goto out;
-+out:
- 	if (err || !msg_updated)
- 		nla_nest_cancel(msg, function_attr);
- 	else
-@@ -1027,6 +1088,22 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
- 	return ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
- }
- 
-+static int
-+devlink_port_function_state_set(struct devlink *devlink, struct devlink_port *port,
-+				const struct nlattr *attr, struct netlink_ext_ack *extack)
++static inline void mlx5_sf_driver_unregister(void)
 +{
-+	enum devlink_port_function_state state;
-+	const struct devlink_ops *ops;
-+
-+	state = nla_get_u8(attr);
-+	ops = devlink->ops;
-+	if (!ops->port_function_state_set) {
-+		NL_SET_ERR_MSG_MOD(extack, "Port function does not support state setting");
-+		return -EOPNOTSUPP;
-+	}
-+	return ops->port_function_state_set(devlink, port, state, extack);
 +}
 +
- static int
- devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
- 			  const struct nlattr *attr, struct netlink_ext_ack *extack)
-@@ -1042,8 +1119,19 @@ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
- 	}
++static inline bool mlx5_sf_dev_allocated(const struct mlx5_core_dev *dev)
++{
++	return 0;
++}
++
+ #endif
  
- 	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR];
--	if (attr)
-+	if (attr) {
- 		err = devlink_port_function_hw_addr_set(devlink, port, attr, extack);
-+		if (err)
-+			return err;
+ #endif
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
+new file mode 100644
+index 000000000000..9a1ad331ce0a
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
+@@ -0,0 +1,101 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/* Copyright (c) 2020 Mellanox Technologies Ltd */
++
++#include <linux/mlx5/driver.h>
++#include <linux/mlx5/device.h>
++#include "mlx5_core.h"
++#include "dev.h"
++#include "devlink.h"
++
++static int mlx5_sf_dev_probe(struct auxiliary_device *adev, const struct auxiliary_device_id *id)
++{
++	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
++	struct mlx5_core_dev *mdev;
++	struct devlink *devlink;
++	int err;
++
++	devlink = mlx5_devlink_alloc();
++	if (!devlink)
++		return -ENOMEM;
++
++	mdev = devlink_priv(devlink);
++	mdev->device = &adev->dev;
++	mdev->pdev = sf_dev->parent_mdev->pdev;
++	mdev->bar_addr = sf_dev->bar_base_addr;
++	mdev->iseg_base = sf_dev->bar_base_addr;
++	mdev->coredev_type = MLX5_COREDEV_SF;
++	mdev->priv.parent_mdev = sf_dev->parent_mdev;
++	mdev->priv.adev_idx = adev->id;
++	sf_dev->mdev = mdev;
++
++	err = mlx5_mdev_init(mdev, MLX5_DEFAULT_PROF);
++	if (err) {
++		mlx5_core_warn(mdev, "mlx5_mdev_init on err=%d\n", err);
++		goto mdev_err;
 +	}
-+	/* Keep this as the last function attribute set, so that when
-+	 * multiple port function attributes are set along with state,
-+	 * Those can be applied first before activating the state.
-+	 */
-+	attr = tb[DEVLINK_PORT_FUNCTION_ATTR_STATE];
-+	if (attr)
-+		err = devlink_port_function_state_set(devlink, port, attr,
-+						      extack);
++
++	mdev->iseg = ioremap(mdev->iseg_base, sizeof(*mdev->iseg));
++	if (!mdev->iseg) {
++		mlx5_core_warn(mdev, "remap error\n");
++		goto remap_err;
++	}
++
++	err = mlx5_load_one(mdev, true);
++	if (err) {
++		mlx5_core_warn(mdev, "mlx5_load_one err=%d\n", err);
++		goto load_one_err;
++	}
++	return 0;
++
++load_one_err:
++	iounmap(mdev->iseg);
++remap_err:
++	mlx5_mdev_uninit(mdev);
++mdev_err:
++	mlx5_devlink_free(devlink);
++	return err;
++}
++
++static void mlx5_sf_dev_remove(struct auxiliary_device *adev)
++{
++	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
++	struct devlink *devlink;
++
++	devlink = priv_to_devlink(sf_dev->mdev);
++	mlx5_unload_one(sf_dev->mdev, true);
++	iounmap(sf_dev->mdev->iseg);
++	mlx5_mdev_uninit(sf_dev->mdev);
++	mlx5_devlink_free(devlink);
++}
++
++static void mlx5_sf_dev_shutdown(struct auxiliary_device *adev)
++{
++	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
++
++	mlx5_unload_one(sf_dev->mdev, false);
++}
++
++static const struct auxiliary_device_id mlx5_sf_dev_id_table[] = {
++	{ .name = KBUILD_MODNAME "." MLX5_SF_DEV_ID_NAME, },
++	{ },
++};
++
++MODULE_DEVICE_TABLE(auxiliary, mlx5_sf_dev_id_table);
++
++static struct auxiliary_driver mlx5_sf_driver = {
++	.name = KBUILD_MODNAME,
++	.probe = mlx5_sf_dev_probe,
++	.remove = mlx5_sf_dev_remove,
++	.shutdown = mlx5_sf_dev_shutdown,
++	.id_table = mlx5_sf_dev_id_table,
++};
++
++int mlx5_sf_driver_register(void)
++{
++	return auxiliary_driver_register(&mlx5_sf_driver);
++}
++
++void mlx5_sf_driver_unregister(void)
++{
++	auxiliary_driver_unregister(&mlx5_sf_driver);
++}
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 08e5fbe97df0..48e3638b1185 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -193,7 +193,8 @@ enum port_state_policy {
  
- 	if (!err)
- 		devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
+ enum mlx5_coredev_type {
+ 	MLX5_COREDEV_PF,
+-	MLX5_COREDEV_VF
++	MLX5_COREDEV_VF,
++	MLX5_COREDEV_SF,
+ };
+ 
+ struct mlx5_field_desc {
+@@ -608,6 +609,7 @@ struct mlx5_priv {
+ #ifdef CONFIG_MLX5_SF
+ 	struct mlx5_vhca_state_notifier *vhca_state_notifier;
+ 	struct mlx5_sf_dev_table *sf_dev_table;
++	struct mlx5_core_dev *parent_mdev;
+ #endif
+ };
+ 
 -- 
 2.26.2
 
