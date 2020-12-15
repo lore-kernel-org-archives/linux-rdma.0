@@ -6,18 +6,18 @@ X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DC70C2BB48
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B01CC4361B
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3881622225
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B36622225
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 09:11:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727767AbgLOJFZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1727749AbgLOJFZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 15 Dec 2020 04:05:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35822 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727084AbgLOJEs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 15 Dec 2020 04:04:48 -0500
+        id S1727198AbgLOJEu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Dec 2020 04:04:50 -0500
 From:   Saeed Mahameed <saeed@kernel.org>
 Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -29,17 +29,16 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         Sridhar Samudrala <sridhar.samudrala@intel.com>,
         david.m.ertman@intel.com, dan.j.williams@intel.com,
         kiran.patil@intel.com, gregkh@linuxfoundation.org,
-        Parav Pandit <parav@nvidia.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Saeed Mahameed <saeed@kernel.org>
-Subject: [net-next v5 01/15] net/mlx5: Fix compilation warning for 32-bit platform
-Date:   Tue, 15 Dec 2020 01:03:44 -0800
-Message-Id: <20201215090358.240365-2-saeed@kernel.org>
+        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
+        Vu Pham <vuhuong@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [net-next v5 02/15] devlink: Prepare code to fill multiple port function attributes
+Date:   Tue, 15 Dec 2020 01:03:45 -0800
+Message-Id: <20201215090358.240365-3-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201215090358.240365-1-saeed@kernel.org>
 References: <20201215090358.240365-1-saeed@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -47,44 +46,126 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-MLX5_GENERAL_OBJECT_TYPES types bitfield is 64-bit field.
+Prepare code to fill zero or more port function optional attributes.
+Subsequent patch makes use of this to fill more port function
+attributes.
 
-Defining an enum for such bit fields on 32-bit platform results in below
-warning.
-
-./include/vdso/bits.h:7:26: warning: left shift count >= width of type [-Wshift-count-overflow]
-                         ^
-./include/linux/mlx5/mlx5_ifc.h:10716:46: note: in expansion of macro ‘BIT’
- MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = BIT(0x20),
-                                             ^~~
-Use 32-bit friendly left shift.
-
-Fixes: 2a2970891647 ("net/mlx5: Add sample offload hardware bits and structures")
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeed@kernel.org>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Vu Pham <vuhuong@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/core/devlink.c | 63 +++++++++++++++++++++++-----------------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 0d6e287d614f..b9f15935dfe5 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -10711,9 +10711,9 @@ struct mlx5_ifc_affiliated_event_header_bits {
- };
+diff --git a/net/core/devlink.c b/net/core/devlink.c
+index ee828e4b1007..13e0de80c4f9 100644
+--- a/net/core/devlink.c
++++ b/net/core/devlink.c
+@@ -712,6 +712,31 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
+ 	return 0;
+ }
  
- enum {
--	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY = BIT(0xc),
--	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC = BIT(0x13),
--	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = BIT(0x20),
-+	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_ENCRYPTION_KEY = 1ULL << 0xc,
-+	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_IPSEC = 1ULL << 0x13,
-+	MLX5_HCA_CAP_GENERAL_OBJECT_TYPES_SAMPLER = 1ULL << 0x20,
- };
++static int
++devlink_port_function_hw_addr_fill(struct devlink *devlink, const struct devlink_ops *ops,
++				   struct devlink_port *port, struct sk_buff *msg,
++				   struct netlink_ext_ack *extack, bool *msg_updated)
++{
++	u8 hw_addr[MAX_ADDR_LEN];
++	int hw_addr_len;
++	int err;
++
++	if (!ops->port_function_hw_addr_get)
++		return 0;
++
++	err = ops->port_function_hw_addr_get(devlink, port, hw_addr, &hw_addr_len, extack);
++	if (err) {
++		if (err == -EOPNOTSUPP)
++			return 0;
++		return err;
++	}
++	err = nla_put(msg, DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR, hw_addr_len, hw_addr);
++	if (err)
++		return err;
++	*msg_updated = true;
++	return 0;
++}
++
+ static int
+ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *port,
+ 				   struct netlink_ext_ack *extack)
+@@ -719,36 +744,16 @@ devlink_nl_port_function_attrs_put(struct sk_buff *msg, struct devlink_port *por
+ 	struct devlink *devlink = port->devlink;
+ 	const struct devlink_ops *ops;
+ 	struct nlattr *function_attr;
+-	bool empty_nest = true;
+-	int err = 0;
++	bool msg_updated = false;
++	int err;
  
- enum {
+ 	function_attr = nla_nest_start_noflag(msg, DEVLINK_ATTR_PORT_FUNCTION);
+ 	if (!function_attr)
+ 		return -EMSGSIZE;
+ 
+ 	ops = devlink->ops;
+-	if (ops->port_function_hw_addr_get) {
+-		int hw_addr_len;
+-		u8 hw_addr[MAX_ADDR_LEN];
+-
+-		err = ops->port_function_hw_addr_get(devlink, port, hw_addr, &hw_addr_len, extack);
+-		if (err == -EOPNOTSUPP) {
+-			/* Port function attributes are optional for a port. If port doesn't
+-			 * support function attribute, returning -EOPNOTSUPP is not an error.
+-			 */
+-			err = 0;
+-			goto out;
+-		} else if (err) {
+-			goto out;
+-		}
+-		err = nla_put(msg, DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR, hw_addr_len, hw_addr);
+-		if (err)
+-			goto out;
+-		empty_nest = false;
+-	}
+-
+-out:
+-	if (err || empty_nest)
++	err = devlink_port_function_hw_addr_fill(devlink, ops, port, msg, extack, &msg_updated);
++	if (err || !msg_updated)
+ 		nla_nest_cancel(msg, function_attr);
+ 	else
+ 		nla_nest_end(msg, function_attr);
+@@ -986,7 +991,6 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
+ 	const struct devlink_ops *ops;
+ 	const u8 *hw_addr;
+ 	int hw_addr_len;
+-	int err;
+ 
+ 	hw_addr = nla_data(attr);
+ 	hw_addr_len = nla_len(attr);
+@@ -1011,12 +1015,7 @@ devlink_port_function_hw_addr_set(struct devlink *devlink, struct devlink_port *
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	err = ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
+-	if (err)
+-		return err;
+-
+-	devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
+-	return 0;
++	return ops->port_function_hw_addr_set(devlink, port, hw_addr, hw_addr_len, extack);
+ }
+ 
+ static int
+@@ -1037,6 +1036,8 @@ devlink_port_function_set(struct devlink *devlink, struct devlink_port *port,
+ 	if (attr)
+ 		err = devlink_port_function_hw_addr_set(devlink, port, attr, extack);
+ 
++	if (!err)
++		devlink_port_notify(port, DEVLINK_CMD_PORT_NEW);
+ 	return err;
+ }
+ 
 -- 
 2.26.2
 
