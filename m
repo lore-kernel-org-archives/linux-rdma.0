@@ -2,111 +2,68 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 690C1C4361B
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 05:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 118F2C2BB48
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 05:25:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F02C22287
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 05:23:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4FA4222BB
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Dec 2020 05:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725854AbgLOFTa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Dec 2020 00:19:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35754 "EHLO mail.kernel.org"
+        id S1725816AbgLOFYu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Dec 2020 00:24:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725864AbgLOFTW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 15 Dec 2020 00:19:22 -0500
-Date:   Tue, 15 Dec 2020 07:18:38 +0200
+        id S1725962AbgLOFYj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 15 Dec 2020 00:24:39 -0500
+Date:   Tue, 15 Dec 2020 07:23:55 +0200
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608009522;
-        bh=sYVoD9fQ4iG/h+hSNQcInrv0UeUccJHoIREfTQfxY7c=;
+        s=k20201202; t=1608009839;
+        bh=9HIoHrJxXz0UpdUuhYVcnt1M8xokvraD0s52MvVemdA=;
         h=From:To:Cc:Subject:References:In-Reply-To:From;
-        b=LoYz2VkhmecU0TapvJ/75sQjoZEdfvX/S4P55adPRt2I1DmlSA/FEyEi1pVtS4mJ7
-         RZUlxKtZTfFY+wCMdaNBL5bfZ1qPi2QeIxaeMTyo3i8F0yoSLL8auWElbfhQySjuQF
-         LoG/UhPIjgEE4zNWy55kNrt7C+bmitx0RsRRIUNTkzOocCeOjpDrIcc6mLbvdIy9li
-         5cB7x+6EAWKAHLXB4oHAZOAqgdr3dv7gbbC1t86sv7BgXHTs67elMd6JZfaSnf9cQw
-         KxUTRiF0PaltqTsAZQ8xnt6INwHW40Dn0TxBLuMA+xenGgl6QYGCXHcEfNM1rkVWhT
-         cGQR6CdYFWnlQ==
+        b=V66A3+HmaT3qGmtC1UF/KE76h9D3jtVnDPu6DiymNgtFuNqn1HiuHks0jt/rGo3vw
+         a9jhEjpFf0bNd6V3mwq0GfCHFiJI1tfX4J2lj8opXxrp3ty3DFTUVTay/zBm8jKYq+
+         LUGEYrQc/oJ9S0kTBJIzj531KxhuiAbsbf7loxPD/CqodWaJHKsrWyNs8KnxGy0Sno
+         XK63g4H+XYe64CcoCeJFTUgixb13eyYAe2l6mPpIkGxoP2jeJt6u/+wjMLP0860IMo
+         W418RVgpk55AxuVpOp4CFrO+vu8QveGV24eeN9gWOGB+pmN1Kt8A8gbJPtP7+2YFoj
+         KQ2roZTRwvO2w==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Joe Perches <joe@perches.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>,
-        Vasyl Gomonovych <gomonovych@gmail.com>, tariqt@nvidia.com,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] net/mlx4: Use true,false for bool variable
-Message-ID: <20201215051838.GH5005@unreal>
-References: <20201212090234.0362d64f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20201214103008.14783-1-gomonovych@gmail.com>
- <20201214111608.GE5005@unreal>
- <20201214110351.29ae7abb@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <1113d2d634d46adb9384e09c3f70cb8376a815c4.camel@perches.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Daniel Jurgens <danielj@mellanox.com>,
+        linux-rdma@vger.kernel.org, Parav Pandit <parav@mellanox.com>
+Subject: Re: [PATCH rdma-rc 4/5] RDMA/cma: Don't overwrite sgid_attr after
+ device is released
+Message-ID: <20201215052355.GJ5005@unreal>
+References: <20201213132940.345554-1-leon@kernel.org>
+ <20201213132940.345554-5-leon@kernel.org>
+ <20201214192636.GA2551375@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1113d2d634d46adb9384e09c3f70cb8376a815c4.camel@perches.com>
+In-Reply-To: <20201214192636.GA2551375@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Dec 14, 2020 at 11:15:01AM -0800, Joe Perches wrote:
-> On Mon, 2020-12-14 at 11:03 -0800, Jakub Kicinski wrote:
-> > On Mon, 14 Dec 2020 13:16:08 +0200 Leon Romanovsky wrote:
-> > > On Mon, Dec 14, 2020 at 11:30:08AM +0100, Vasyl Gomonovych wrote:
-> > > > It is fix for semantic patch warning available in
-> > > > scripts/coccinelle/misc/boolinit.cocci
-> > > > Fix en_rx.c:687:1-17: WARNING: Assignment of 0/1 to bool variable
-> > > > Fix main.c:4465:5-13: WARNING: Comparison of 0/1 to bool variable
-> > > >
-> > > > Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
-> > > > ---
-> > > >  - Add coccicheck script name
-> > > >  - Simplify if condition
-> > > > ---
-> > > >  drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
-> > > >  drivers/net/ethernet/mellanox/mlx4/main.c  | 2 +-
-> > > >  2 files changed, 2 insertions(+), 2 deletions(-)
-> > >
-> > > Please refrain from sending new version of patches as reply-to to
-> > > previous variants. It makes to appear previous patches out-of-order
-> > > while viewing in threaded mode.
-> >
-> > Yes, please! I'm glad I'm not the only one who feels this way! :)
+On Mon, Dec 14, 2020 at 03:26:36PM -0400, Jason Gunthorpe wrote:
+> On Sun, Dec 13, 2020 at 03:29:39PM +0200, Leon Romanovsky wrote:
 >
-> I'm the other way.
+> > Call Trace:
+> >  addr_handler+0x266/0&times;350 drivers/infiniband/core/cma.c:3190
+> >  process_one_req+0xa3/0&times;300 drivers/infiniband/core/addr.c:645
+> >  process_one_work+0x54c/0&times;930 kernel/workqueue.c:2272
+> >  worker_thread+0x82/0&times;830 kernel/workqueue.c:2418
+> >  kthread+0x1ca/0&times;220 kernel/kthread.c:292
+> >  ret_from_fork+0x1f/0&times;30 arch/x86/entry/entry_64.S:296
 >
-> I prefer revisions to single patches (as opposed to large patch series)
-> in the same thread.
+> Why has this been weirdly HTML escaped??? I fixed it..
 
-It depends which side you are in that game. From the reviewer point of
-view, such submission breaks flow very badly. It unfolds the already
-reviewed thread, messes with the order and many more little annoying
-things.
-
->
-> There is no other easy way for changes to a patch to be tracked AFAIK.
-
-Not really,  I'm using very simple convention to keep tracking of
-changes. The changelog together with lorifier does the trick.
-
-https://github.com/danrue/lorifier
-https://lore.kernel.org/linux-rdma/20201125064628.8431-1-leon@kernel.org/
-
-So I'm simply adding link to the previous version when sending new one.
-
->
-> Most email clients use both In-Reply-To: and References: headers as
-> the mechanism to thread replies.
-
-Right, and this is exactly what we don't want for vX patches.
-
->
-> Keeping the latest messages at the bottom of a thread works well
-> to see revision sequences.
-
-I have a different workflow.
+Ahh sorry, I fixed the lines in beginning of the dump, but missed these lines.
 
 Thanks
+
+>
+> Jason
