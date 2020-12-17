@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04DC5C4361B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 936EBC2D0E4
 	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8CE0238EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60339238EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728356AbgLQOUn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728405AbgLQOUn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 17 Dec 2020 09:20:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34800 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728155AbgLQOUm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:42 -0500
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64E35C0611D0
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:31 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id qw4so38044682ejb.12
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:31 -0800 (PST)
+        with ESMTP id S1728325AbgLQOUn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:43 -0500
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F50BC0611CE
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:29 -0800 (PST)
+Received: by mail-ej1-x62f.google.com with SMTP id q22so20357532eja.2
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=EDx0d7sqRwEf6BTXoENkSiqZnuiDyLvadt8JMtY/Ios=;
-        b=XdMDmPcZRDJH7OX2Iw6FKrSs6Aq1WeNs0wZ7OohyRx0HJMAVmzEgK7nvHu3lU27MfA
-         csvbOJtqDC9I1pvUzrz6NBttCsS1jbQHooDce4KmdFzyqVQYb2Sbby37i9kA4zSv4hcT
-         z7Tdlk+5rqJ6klbgqd0EaFAMWXk/J1XLuO7/3ik7rAxXuOE9T1XncQ/TFztg1RIweKBn
-         A+hwP1yghNOnnib4CwkTH9p6M0Z0IVUjoVAy0+CjUCEZ047YJ5a1x6V95eTbd/lHwUKP
-         j+LHuIb7K5KuW/MxzI5YOkGE0dpsz03LkSwpIxbYypPoa/bo9XzcThiVeHzZl+5hrw4Z
-         18vg==
+        bh=TNCE9BUjl8LjgBBWvrzQwpmCGHe5xlvz+eb/c5dap0o=;
+        b=QrnQs7Y54xJMvr96TG9gQqczUbvHJ3KTZO8F4zbSTyaui9oMB0J1BjhW5g72EkSyZ8
+         aNRWMRR9pan0Z9FF37IS0X0wXiMbnbKbZY0RNzi7nLusAF8dcmwv0eScwGDXtalUhzOw
+         oEyGW9N/hrxB4tQuU1CjD/4SoLjKciu0Zml/goSXI80xCp9dDWsvvd7XdFvzqbpssuHG
+         y2OaZ9sCF8Q7r1xwiT0H9n9Z6BdXI+HH4UQrWbNiVLNbtKoKgp4+q5gMSa4v+piS17Ji
+         iNHCQThvkkUojxnCSCFxCEAWU0jdBtjC5Ht1McdDnf/GCb5G8/vg/8Wzu9wsjoYK4x8P
+         LQVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=EDx0d7sqRwEf6BTXoENkSiqZnuiDyLvadt8JMtY/Ios=;
-        b=lhZVzes7EDAouRR6DmV5dnK2UWP57jlgCp3s/xJh1/gveOa7ub7jzGdjWzGmAr1GdK
-         hdOQc3aT+2xmeiykH+Wl1XA3lPdn6ExSGGNvm0QIPRSMoVbFefLw0xhM6dkzvM/ecjgu
-         wN53ry7ZFglMl2G/vhDOdDaakUAgv41QaYxi5yMAc+9XMRsJ94uEcIDIyXaVmhZLM0HX
-         VdPFtYqRcaXc/WjlRiNk2whxfmeOdhWOGqsu0lZwFT81vdXVzzFzWAoqoIJRQ2+E0Ckc
-         YJuUtRM+dvppnn7AsBHr2RqyuAoUlpYd5dO8pPdT5KGekJ1FPCjciKThnpz8AKPKJQCd
-         BNow==
-X-Gm-Message-State: AOAM532XXkLdheYKC/Jr07IpmEUU32ZoP8Z/u/iWVR0+UFWeF4JP1lmo
-        WxRIi3p0ldgYc0SF6tBXrglaP6cWkdT3EA==
-X-Google-Smtp-Source: ABdhPJxYwIjI2VjAlGzYGT14HI4A5+Wd/IEc/k7afj6pdWIvQD7w9i6HUWmMyiREWiUOC8etDTfKrg==
-X-Received: by 2002:a17:906:71ca:: with SMTP id i10mr17695285ejk.528.1608214769982;
-        Thu, 17 Dec 2020 06:19:29 -0800 (PST)
+        bh=TNCE9BUjl8LjgBBWvrzQwpmCGHe5xlvz+eb/c5dap0o=;
+        b=ZZSkB7rkJL8JbdmNcpylGzFVKmP2owvxBeHCJhdIJMyO03kZ9xzY18aWKD7z2xH8eX
+         /fnV5K+TIhg25lheuuvw+NVdbl799dz5hpWBAyi04uYsWySnD90VgbAYvTl5T1ozrE0F
+         dMCD2XxiQ5sCkWzRpzrxD6QOHcuF28ZsEXZNwj+tPvw3//rK6w5MeDgPLTBObR0mjd5M
+         za5ut2vFAWzAfnoanPklqVFgluU6uxpARM5OY9RUdMXqhWZrs+MPZktiwJaj1GEaHS0p
+         4hLSYSJ9/9qyb6F/yjUkB0SW5i/FiAqNuVgVWxoFudslQgEJ7PjfZ5TivRLA8gRmOP1B
+         8z1g==
+X-Gm-Message-State: AOAM530YvsBaNS091SSQG37mk7bApZgd5Jo4IlzHuljaHhycUIo+Yg7u
+        YBdScc8MhzTQaxIuFvbxCUgDIE3syIaOSA==
+X-Google-Smtp-Source: ABdhPJwVn3FqGPKqdoQX/e0Kjg54CQx/0vyVx4e/3C6ZfGZFCYuFqHIwJY+Kl0oiha5Ooo2HUuSxhg==
+X-Received: by 2002:a17:907:28d4:: with SMTP id en20mr36076722ejc.196.1608214768145;
+        Thu, 17 Dec 2020 06:19:28 -0800 (PST)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4991:de00:e5a4:2f4d:99:ddc5])
-        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.29
+        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 06:19:29 -0800 (PST)
+        Thu, 17 Dec 2020 06:19:27 -0800 (PST)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
@@ -62,9 +62,9 @@ Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jinpu.wang@cloud.ionos.com,
         Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
         Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-Subject: [PATCHv2 for-next 14/19] RDMA/rtrs-clt: Refactor the failure cases in alloc_clt
-Date:   Thu, 17 Dec 2020 15:19:10 +0100
-Message-Id: <20201217141915.56989-15-jinpu.wang@cloud.ionos.com>
+Subject: [PATCHv2 for-next 12/19] RDMA/rtrs-clt: Rename __rtrs_clt_change_state to rtrs_clt_change_state
+Date:   Thu, 17 Dec 2020 15:19:08 +0100
+Message-Id: <20201217141915.56989-13-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
 References: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
@@ -76,80 +76,62 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-Make all failure cases go to the common path to avoid duplicate code.
-And some issued existed before.
+Let's rename it to rtrs_clt_change_state since the previous one is
+killed.
 
-1. clt need to be freed to avoid memory leak.
+Also update the comment to make it more clear.
 
-2. return ERR_PTR(-ENOMEM) if kobject_create_and_add fails, because
-   rtrs_clt_open checks the return value of by call "IS_ERR(clt)".
-
-Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Reviewed-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 3c90718f668d..493f45a33b5e 100644
+index 39dc8423d7df..3c90718f668d 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -2568,11 +2568,8 @@ static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
- 	clt->dev.class = rtrs_clt_dev_class;
- 	clt->dev.release = rtrs_clt_dev_release;
- 	err = dev_set_name(&clt->dev, "%s", sessname);
--	if (err) {
--		free_percpu(clt->pcpu_path);
--		kfree(clt);
--		return ERR_PTR(err);
--	}
-+	if (err)
-+		goto err;
- 	/*
- 	 * Suppress user space notification until
- 	 * sysfs files are created
-@@ -2580,29 +2577,31 @@ static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
- 	dev_set_uevent_suppress(&clt->dev, true);
- 	err = device_register(&clt->dev);
- 	if (err) {
--		free_percpu(clt->pcpu_path);
- 		put_device(&clt->dev);
--		return ERR_PTR(err);
-+		goto err;
- 	}
- 
- 	clt->kobj_paths = kobject_create_and_add("paths", &clt->dev.kobj);
- 	if (!clt->kobj_paths) {
--		free_percpu(clt->pcpu_path);
--		device_unregister(&clt->dev);
--		return NULL;
-+		err = -ENOMEM;
-+		goto err_dev;
- 	}
- 	err = rtrs_clt_create_sysfs_root_files(clt);
- 	if (err) {
--		free_percpu(clt->pcpu_path);
- 		kobject_del(clt->kobj_paths);
- 		kobject_put(clt->kobj_paths);
--		device_unregister(&clt->dev);
--		return ERR_PTR(err);
-+		goto err_dev;
- 	}
- 	dev_set_uevent_suppress(&clt->dev, false);
- 	kobject_uevent(&clt->dev.kobj, KOBJ_ADD);
- 
- 	return clt;
-+err_dev:
-+	device_unregister(&clt->dev);
-+err:
-+	free_percpu(clt->pcpu_path);
-+	kfree(clt);
-+	return ERR_PTR(err);
+@@ -178,18 +178,18 @@ struct rtrs_clt_con *rtrs_permit_to_clt_con(struct rtrs_clt_sess *sess,
  }
  
- static void free_clt(struct rtrs_clt *clt)
+ /**
+- * __rtrs_clt_change_state() - change the session state through session state
++ * rtrs_clt_change_state() - change the session state through session state
+  * machine.
+  *
+  * @sess: client session to change the state of.
+  * @new_state: state to change to.
+  *
+- * returns true if successful, false if the requested state can not be set.
++ * returns true if sess's state is changed to new state, otherwise return false.
+  *
+  * Locks:
+  * state_wq lock must be hold.
+  */
+-static bool __rtrs_clt_change_state(struct rtrs_clt_sess *sess,
++static bool rtrs_clt_change_state(struct rtrs_clt_sess *sess,
+ 				     enum rtrs_clt_state new_state)
+ {
+ 	enum rtrs_clt_state old_state;
+@@ -286,7 +286,7 @@ static bool rtrs_clt_change_state_from_to(struct rtrs_clt_sess *sess,
+ 
+ 	spin_lock_irq(&sess->state_wq.lock);
+ 	if (sess->state == old_state)
+-		changed = __rtrs_clt_change_state(sess, new_state);
++		changed = rtrs_clt_change_state(sess, new_state);
+ 	spin_unlock_irq(&sess->state_wq.lock);
+ 
+ 	return changed;
+@@ -1361,7 +1361,7 @@ static bool rtrs_clt_change_state_get_old(struct rtrs_clt_sess *sess,
+ 	spin_lock_irq(&sess->state_wq.lock);
+ 	if (old_state)
+ 		*old_state = sess->state;
+-	changed = __rtrs_clt_change_state(sess, new_state);
++	changed = rtrs_clt_change_state(sess, new_state);
+ 	spin_unlock_irq(&sess->state_wq.lock);
+ 
+ 	return changed;
 -- 
 2.25.1
 
