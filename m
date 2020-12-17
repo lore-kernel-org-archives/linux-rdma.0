@@ -2,68 +2,69 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66729C2BBD5
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2268AC2BBD4
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27CB0238EF
+	by mail.kernel.org (Postfix) with ESMTP id E5D272395A
 	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728305AbgLQOUm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Dec 2020 09:20:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34798 "EHLO
+        id S1728372AbgLQOUn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Dec 2020 09:20:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728143AbgLQOUm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:42 -0500
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96516C0611CD
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:28 -0800 (PST)
-Received: by mail-ed1-x531.google.com with SMTP id g24so3190605edw.9
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:28 -0800 (PST)
+        with ESMTP id S1728338AbgLQOUn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:43 -0500
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66EF7C0611CF
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:30 -0800 (PST)
+Received: by mail-ej1-x632.google.com with SMTP id d17so38116979ejy.9
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=K20am84mWdOPDtt/C3eABp6vABmQqQkIc3UUOw+LTjA=;
-        b=CkwzMmS7VdxuoMezxc2GdrjESt9w/uxgcJJrwPh9t5FUcaDJSf8gMvO8N8uWAnNXwP
-         0qCcpwhBCsj7o3rgh0y79fiuO+iCAJ7VbUCp9j+tu/04jvvyO76vF2MmaEysanJKUfMk
-         OXUJ8gJJsCH6UgqvLbjgO7GJxyW8eCRTdzhPkYKuWdbg+NKFdx1mS3uLULKAvdlBddwV
-         pzL4B6EQUArGIc5/SjkMfSkwdmFYaXWkMURLjUiDLd7X6wg+CgyMk0UMFVErXxUpLTf6
-         7o3r8QSIuvg7nfwG3VSZrvNW/loY15VU8MOs+okeJqzXpG1JOfG2bKRcuwaKOq6wIDi6
-         k8yw==
+        bh=rWIBp61eWpeeSiM2PO3HAO/lWFN6/Kggc1TmjydEVeo=;
+        b=GXrCYwsl/ebMrIiNgtWgA2YNVYDGjVnc8eNaOQDZn9qGloPs7a+6gtsZIZYbsZKbf2
+         H6d8BwpFIRlHOJa4dLDfdABUkB0huC8jo4CdX4oJqdeM3cxUecBr5fPO6FjdKMsPG3ND
+         d3kS6E7R+xytWc58PKV8X3iz4l2xz0pWpCr9LlpbZOXcfu1Yaw04TwfZNTENWNOTFxYc
+         IxlpEC9SDbGfn9JiePKWvYouTADsAu3QnmCw0oBBS8FEy0kTCX9mYXI+u1ouRLfXmWyw
+         tNW5tATAsLHe0meK+c57OYDKjOSH8ZzK36zm4NMPDSOKcJanwtxdn1lSjELfFEQB9pVK
+         3d7w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=K20am84mWdOPDtt/C3eABp6vABmQqQkIc3UUOw+LTjA=;
-        b=dIX+hof7ZRKW/kkWfL0jKqq9Xa9CvIO3Rw46ZxdkdzwZVpaHCl0bqwurpQbo+VH6Ab
-         9Q4JLuJW/ONSuXdwWgMZkYPaVdhXOd0el0HnOCtsUEfu90BNxGNYo38AfGy4Fu7+OoPi
-         PmoSt0Dpx+vkYZ/22bq97M6nyVNkr8G64HXMM3HJBccedBXUgL3KAq6fyuff4JsnH4Pe
-         QIZxSyWe8bcbgNBDPZ4i9XNUf0ohfAFmwkT1RZwu5kzhji54GuAmh0YtzfplItLhbRpR
-         qKfb1ZEYT4Pkl6055Rww6DzBql+dnPyVC7jkXjGdS9cA6++dBAhTuv0pztp2jqsSr8cQ
-         KUNg==
-X-Gm-Message-State: AOAM533+OYWeSIa03sGWyKRFpb5K4HHGoBfEZcpnRFrh4U0qk9ab2gw7
-        U/puSjFb2gX3osrCU8zY4/IZe0joqbqlkg==
-X-Google-Smtp-Source: ABdhPJzFalV0eev3YCAgnYcJqGqhPvP+N3pdh3AGlLB1zdy0pyDdNVmzlFLGFZmvNN+e5XAFqV+bog==
-X-Received: by 2002:a50:9ea4:: with SMTP id a33mr11439540edf.70.1608214767171;
-        Thu, 17 Dec 2020 06:19:27 -0800 (PST)
+        bh=rWIBp61eWpeeSiM2PO3HAO/lWFN6/Kggc1TmjydEVeo=;
+        b=I9dmmPKkVjJSh9jdn5wu0/z+egR69WevNPYxjt0dWILhB7UfnQyY3C8wIxF7HSsKlf
+         a2dAImWhpy4Bn2cntcViJfNPksCu5vVS3Z3xxR+zyKzFE+QTJmtGXLxtw3JubtbwR6uj
+         olXjb91vhbNFpPfYBRSNboukxO3yshCp4IK31u5fcHnW2CNWZp5MW7Re3CmNt4ynv0HJ
+         S+n72QBDwh/pykjhLK53ynz+UnWbmjNAQCe4zmE6poj6/xWUmYOLduV37bIY31eYRrR2
+         CwNLPT0AN/I4eXcxg3xGAhsNRGQimWO6N1TJ6AJGc4/+XvzjZ2B1+TLyksR6vL8Cn8m2
+         FSEA==
+X-Gm-Message-State: AOAM531dAfmntyWLe0rh3CttkMWVtAI33gT83pUy1zT4WfVr5YiN2F82
+        SYdLLLuz3bRK/l15sL0FUM0EPPRVIjl8Aw==
+X-Google-Smtp-Source: ABdhPJyJETbT5kqrbW6Bg4/spbywqPs0TZU39duRdspDdkQivSDorFa79yRW6h3cZPT8ZDefaNwwjg==
+X-Received: by 2002:a17:906:924a:: with SMTP id c10mr35159031ejx.113.1608214768996;
+        Thu, 17 Dec 2020 06:19:28 -0800 (PST)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4991:de00:e5a4:2f4d:99:ddc5])
-        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.26
+        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 06:19:26 -0800 (PST)
+        Thu, 17 Dec 2020 06:19:28 -0800 (PST)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com,
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
         Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCHv2 for-next 11/19] RDMA/rtrs-clt: Kill rtrs_clt_change_state
-Date:   Thu, 17 Dec 2020 15:19:07 +0100
-Message-Id: <20201217141915.56989-12-jinpu.wang@cloud.ionos.com>
+Subject: [PATCHv2 for-next 13/19] RDMA/rtrs-srv: Fix missing wr_cqe
+Date:   Thu, 17 Dec 2020 15:19:09 +0100
+Message-Id: <20201217141915.56989-14-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
 References: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
@@ -73,118 +74,61 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+We had a few places wr_cqe is not set, which could lead to NULL pointer
+deref or GPF in error case.
 
-It is just a wrapper of rtrs_clt_change_state_get_old, and we can reuse
-rtrs_clt_change_state_get_old with add the checking of 'old_state' is
-valid or not.
-
-Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+Reviewed-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 27 ++++++++++----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index d99fb1a1c194..39dc8423d7df 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -1359,21 +1359,14 @@ static bool rtrs_clt_change_state_get_old(struct rtrs_clt_sess *sess,
- 	bool changed;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 89e938a1a4fb..465f20d6b89c 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -267,6 +267,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 		WARN_ON_ONCE(rkey != wr->rkey);
  
- 	spin_lock_irq(&sess->state_wq.lock);
--	*old_state = sess->state;
-+	if (old_state)
-+		*old_state = sess->state;
- 	changed = __rtrs_clt_change_state(sess, new_state);
- 	spin_unlock_irq(&sess->state_wq.lock);
+ 	wr->wr.opcode = IB_WR_RDMA_WRITE;
++	wr->wr.wr_cqe   = &io_comp_cqe;
+ 	wr->wr.ex.imm_data = 0;
+ 	wr->wr.send_flags  = 0;
  
- 	return changed;
- }
- 
--static bool rtrs_clt_change_state(struct rtrs_clt_sess *sess,
--				   enum rtrs_clt_state new_state)
--{
--	enum rtrs_clt_state old_state;
--
--	return rtrs_clt_change_state_get_old(sess, new_state, &old_state);
--}
--
- static void rtrs_clt_hb_err_handler(struct rtrs_con *c)
- {
- 	struct rtrs_clt_con *con = container_of(c, typeof(*con), c);
-@@ -1799,7 +1792,7 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
- 
- static void rtrs_clt_close_conns(struct rtrs_clt_sess *sess, bool wait)
- {
--	if (rtrs_clt_change_state(sess, RTRS_CLT_CLOSING))
-+	if (rtrs_clt_change_state_get_old(sess, RTRS_CLT_CLOSING, NULL))
- 		queue_work(rtrs_wq, &sess->close_work);
- 	if (wait)
- 		flush_work(&sess->close_work);
-@@ -2185,7 +2178,7 @@ static void rtrs_clt_close_work(struct work_struct *work)
- 
- 	cancel_delayed_work_sync(&sess->reconnect_dwork);
- 	rtrs_clt_stop_and_destroy_conns(sess);
--	rtrs_clt_change_state(sess, RTRS_CLT_CLOSED);
-+	rtrs_clt_change_state_get_old(sess, RTRS_CLT_CLOSED, NULL);
- }
- 
- static int init_conns(struct rtrs_clt_sess *sess)
-@@ -2237,7 +2230,7 @@ static int init_conns(struct rtrs_clt_sess *sess)
- 	 * doing rdma_resolve_addr(), switch to CONNECTION_ERR state
- 	 * manually to keep reconnecting.
- 	 */
--	rtrs_clt_change_state(sess, RTRS_CLT_CONNECTING_ERR);
-+	rtrs_clt_change_state_get_old(sess, RTRS_CLT_CONNECTING_ERR, NULL);
- 
- 	return err;
- }
-@@ -2254,7 +2247,7 @@ static void rtrs_clt_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		rtrs_err(sess->clt, "Sess info request send failed: %s\n",
- 			  ib_wc_status_msg(wc->status));
--		rtrs_clt_change_state(sess, RTRS_CLT_CONNECTING_ERR);
-+		rtrs_clt_change_state_get_old(sess, RTRS_CLT_CONNECTING_ERR, NULL);
- 		return;
+@@ -294,6 +295,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 		inv_wr.sg_list = NULL;
+ 		inv_wr.num_sge = 0;
+ 		inv_wr.opcode = IB_WR_SEND_WITH_INV;
++		inv_wr.wr_cqe   = &io_comp_cqe;
+ 		inv_wr.send_flags = 0;
+ 		inv_wr.ex.invalidate_rkey = rkey;
  	}
+@@ -304,6 +306,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
  
-@@ -2378,7 +2371,7 @@ static void rtrs_clt_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
- out:
- 	rtrs_clt_update_wc_stats(con);
- 	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
--	rtrs_clt_change_state(sess, state);
-+	rtrs_clt_change_state_get_old(sess, state, NULL);
- }
+ 		srv_mr = &sess->mrs[id->msg_id];
+ 		rwr.wr.opcode = IB_WR_REG_MR;
++		rwr.wr.wr_cqe = &local_reg_cqe;
+ 		rwr.wr.num_sge = 0;
+ 		rwr.mr = srv_mr->mr;
+ 		rwr.wr.send_flags = 0;
+@@ -379,6 +382,7 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
  
- static int rtrs_send_sess_info(struct rtrs_clt_sess *sess)
-@@ -2443,7 +2436,7 @@ static int rtrs_send_sess_info(struct rtrs_clt_sess *sess)
- 		rtrs_iu_free(rx_iu, sess->s.dev->ib_dev, 1);
- 	if (unlikely(err))
- 		/* If we've never taken async path because of malloc problems */
--		rtrs_clt_change_state(sess, RTRS_CLT_CONNECTING_ERR);
-+		rtrs_clt_change_state_get_old(sess, RTRS_CLT_CONNECTING_ERR, NULL);
- 
- 	return err;
- }
-@@ -2500,7 +2493,7 @@ static void rtrs_clt_reconnect_work(struct work_struct *work)
- 	/* Stop everything */
- 	rtrs_clt_stop_and_destroy_conns(sess);
- 	msleep(RTRS_RECONNECT_BACKOFF);
--	if (rtrs_clt_change_state(sess, RTRS_CLT_CONNECTING)) {
-+	if (rtrs_clt_change_state_get_old(sess, RTRS_CLT_CONNECTING, NULL)) {
- 		err = init_sess(sess);
- 		if (err)
- 			goto reconnect_again;
-@@ -2509,7 +2502,7 @@ static void rtrs_clt_reconnect_work(struct work_struct *work)
- 	return;
- 
- reconnect_again:
--	if (rtrs_clt_change_state(sess, RTRS_CLT_RECONNECTING)) {
-+	if (rtrs_clt_change_state_get_old(sess, RTRS_CLT_RECONNECTING, NULL)) {
- 		sess->stats->reconnects.fail_cnt++;
- 		delay_ms = clt->reconnect_delay_sec * 1000;
- 		queue_delayed_work(rtrs_wq, &sess->reconnect_dwork,
+ 		if (need_inval) {
+ 			if (likely(sg_cnt)) {
++				inv_wr.wr_cqe   = &io_comp_cqe;
+ 				inv_wr.sg_list = NULL;
+ 				inv_wr.num_sge = 0;
+ 				inv_wr.opcode = IB_WR_SEND_WITH_INV;
+@@ -421,6 +425,7 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 		srv_mr = &sess->mrs[id->msg_id];
+ 		rwr.wr.next = &imm_wr;
+ 		rwr.wr.opcode = IB_WR_REG_MR;
++		rwr.wr.wr_cqe = &local_reg_cqe;
+ 		rwr.wr.num_sge = 0;
+ 		rwr.wr.send_flags = 0;
+ 		rwr.mr = srv_mr->mr;
 -- 
 2.25.1
 
