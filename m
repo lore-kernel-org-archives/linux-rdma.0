@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B1C0C1B0D8
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 00:00:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AAABC1B0D8
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 00:09:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 619632376E
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 00:00:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 016B323877
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 00:09:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730787AbgLQAA2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Dec 2020 19:00:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34508 "EHLO mail.kernel.org"
+        id S1730173AbgLQAJc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Dec 2020 19:09:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726806AbgLQAA2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 16 Dec 2020 19:00:28 -0500
-Date:   Wed, 16 Dec 2020 15:59:45 -0800
+        id S1729023AbgLQAJc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 16 Dec 2020 19:09:32 -0500
+Date:   Wed, 16 Dec 2020 16:08:50 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608163187;
-        bh=UHUln+VffhOtlnaM/FbAJpt+TQFlYpAye9uDBpb430w=;
+        s=k20201202; t=1608163731;
+        bh=g801CA1mP6r8B24edAn5HCOD7wX68sdbO7aF1eAwbMs=;
         h=From:To:Cc:Subject:In-Reply-To:References:From;
-        b=UnrwKEN61UwZ8pGUaUJIKv2B7TJ38rOQaH0l+cRRAhm4SaM9xSoNmUHnlpAUp2Aij
-         9azDzhZGChfxRE0QzUu6jS/6QKnL9hbyILV80mp4PlvTeIjCNo64XKl5uU5+RZ6Gdc
-         Y8aIXK9rPa450qK7CxlnVKedQC6r15I+X2zldigjYfeILBoNeksOTHNteiYGY52KMq
-         50d9nAfqEfww0A7YDb+Eo0l/UgOqM3Tzy27in50sXszffNcVvsx7Um6eguPNBUjJam
-         +jg34tytJQEJ04IVjP4NitTruUsSsetsXeuFmIhlI73I8pSXriegC3xcslZkcUyuh6
-         fskQrc+qGqvhw==
+        b=a8mnTHoLnYVS/FWf0dLopw1Dth2zfC1Pfx8NxFC7qlZ5kge18lx+OMb5pWDlKiU8N
+         wivCZTyYQ7zeeg8beWlyL3vwdffC/+96fIxWM30vxorVUXyc2EQPKrvgk0lqTAat48
+         tPEfSbF7rUdH7xkANxCh1bE45sBS0GDXjaYsDExeD9Qo9MI/O3+b0XTiI3X9WMKDXY
+         GPazBaUgq0gYN+GiELoE6ArrPEo1cEdwVGhHiszWuIuLBMOfMiTkrajjR9Q0D0jIWM
+         boWSlujpfyudxGxqVRQ6AaCbGz7t3ygWjSJlrAKcEWViKyhxdnrUQwg/m3Kco33eSQ
+         AOt1VueIwyvkw==
 From:   Jakub Kicinski <kuba@kernel.org>
 To:     Parav Pandit <parav@nvidia.com>
 Cc:     Saeed Mahameed <saeed@kernel.org>,
@@ -46,14 +46,14 @@ Cc:     Saeed Mahameed <saeed@kernel.org>,
         "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
         Jiri Pirko <jiri@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [net-next v5 03/15] devlink: Introduce PCI SF port flavour and
- port attribute
-Message-ID: <20201216155945.63f07c80@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <BY5PR12MB432268C16D118BC435C0EF5CDCC50@BY5PR12MB4322.namprd12.prod.outlook.com>
+Subject: Re: [net-next v5 05/15] devlink: Support get and set state of port
+ function
+Message-ID: <20201216160850.78223a1a@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <BY5PR12MB43225346806029AA31D63918DCC50@BY5PR12MB4322.namprd12.prod.outlook.com>
 References: <20201215090358.240365-1-saeed@kernel.org>
-        <20201215090358.240365-4-saeed@kernel.org>
-        <20201215152740.0b3ed376@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-        <BY5PR12MB432268C16D118BC435C0EF5CDCC50@BY5PR12MB4322.namprd12.prod.outlook.com>
+        <20201215090358.240365-6-saeed@kernel.org>
+        <20201215163747.4091ff61@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <BY5PR12MB43225346806029AA31D63918DCC50@BY5PR12MB4322.namprd12.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -61,49 +61,50 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, 16 Dec 2020 03:42:51 +0000 Parav Pandit wrote:
+On Wed, 16 Dec 2020 05:15:04 +0000 Parav Pandit wrote:
 > > From: Jakub Kicinski <kuba@kernel.org>
-> > So subfunctions don't have a VF id but they may have a controller?
-> >  
-> Right. SF can be on external controller.
->  
-> > Can you tell us more about the use cases and deployment models you're
-> > intending to support? Let's not add attributes and info which will go unused.
-> >   
-> External will be used the same way how it is used for PF and VF.
-> 
-> > How are SFs supposed to be used with SmartNICs? Are you assuming single
-> > domain of control?  
-> No. it is not assumed. SF can be deployed from smartnic to external host.
-> A user has to pass appropriate controller number, pf number attributes during creation time.
-
-My problem with this series is that I've gotten some real life
-application exposure over the last year, and still I have no idea 
-who is going to find this feature useful and why.
-
-That's the point of my questions in the previous email - what
-are the use cases, how are they going to operate.
-
-It's hard to review an API without knowing the use of it. iproute2
-is low level plumbing.
-
-Here the patch is adding the ability to apparently create a SF on 
-a remote controller. If you haven't thought that use case through
-just don't allow it until you know how it will work.
-
-> > It seems that the way the industry is moving the major
-> > use case for SmartNICs is bare metal.
+> > Sent: Wednesday, December 16, 2020 6:08 AM
 > > 
-> > I always assumed nested eswitches when thinking about SmartNICs, what
-> > are you intending to do?
+> > On Tue, 15 Dec 2020 01:03:48 -0800 Saeed Mahameed wrote:  
+> > > From: Parav Pandit <parav@nvidia.com>
+> > >
+> > > devlink port function can be in active or inactive state.
+> > > Allow users to get and set port function's state.
+> > >
+> > > When the port function it activated, its operational state may change
+> > > after a while when the device is created and driver binds to it.
+> > > Similarly on deactivation flow.  
+> > 
+> > So what's the flow device should implement?
+> > 
+> > User requests deactivated, the device sends a notification to the driver
+> > bound to the device. What if the driver ignores it?
 > >  
-> Mlx5 doesn't support nested eswitch. SF can be deployed on the external controller PCI function.
-> But this interface neither limited nor enforcing nested or flat eswitch.
->  
-> > What are your plans for enabling this feature in user space project?  
-> Do you mean K8s plugin or iproute2? Can you please tell us what user space project?
+> If driver ignores it, those devices are marked unusable for new allocation.
+> Device becomes usable only after it has act on the event.
 
-That's my question. For SR-IOV it'd be all the virt stacks out there.
-But this can't do virt. So what can it do?
+But the device remains fully operational?
 
-> If iproute2, will send the iproute2 patchset like other patchset pointing to kernel uapi headers..
+So if I'm an admin who wants to unplug a misbehaving "entity"[1]
+the deactivate is not gonna help me, it's just a graceful hint?
+Is there no need for a forceful shutdown?
+
+[1] refer to earlier email, IDK what entity is supposed to use this
+
+> > > + * @DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED: Driver is detached  
+> > from the function of port; it is  
+> > > + *					    safe to delete the port.
+> > > + */
+> > > +enum devlink_port_function_opstate {
+> > > +	DEVLINK_PORT_FUNCTION_OPSTATE_DETACHED,  
+> > 
+> > The port function must be some Mellanox speak - for the second time - I
+> > have no idea what it means. Please use meaningful names.
+> >  
+> It is not a Mellanox term.
+> Port function object is the one that represents function behind this port.
+> It is not a new term. Port function already exists in devlink whose operational state attribute is defined here.
+
+I must have missed that in review. PCI functions can host multiple
+ports. So "port function" does not compute for me. Can we drop the
+"function"?
