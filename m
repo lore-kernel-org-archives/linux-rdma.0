@@ -7,64 +7,64 @@ X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D92C2BB9A
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35445C2BBCA
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13AF8238EF
+	by mail.kernel.org (Postfix) with ESMTP id F1100238EF
 	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728117AbgLQOUk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Dec 2020 09:20:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34782 "EHLO
+        id S1728153AbgLQOUl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Dec 2020 09:20:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727246AbgLQOUj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:39 -0500
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16376C061248
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:24 -0800 (PST)
-Received: by mail-ed1-x52a.google.com with SMTP id cm17so28824678edb.4
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:24 -0800 (PST)
+        with ESMTP id S1728136AbgLQOUl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:41 -0500
+Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB8BBC0611CA
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:26 -0800 (PST)
+Received: by mail-ej1-x62a.google.com with SMTP id 6so23453839ejz.5
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=HaKGDnuifTU5L5KLU2Tpj7+tCZ+lTyDwJG4jK//u6Sk=;
-        b=VI+ekysY4Vx41AFO01ZJU5eGxwCcFIAMDyXbUo1DeHj9YKE8C8PHcD6ryt0eKBjqxr
-         TVBDQ6TFrFSenbDgtY/XVFAKi3n0CKBST4AR+hO6YXgoBVMsM7AU4jMbYAbIDCxawZuB
-         BHxb28kt4TW0SEkWQTRi9+beSNJh6vuFXZWwWHmWjjabNFjWSQH7I0ZaSjFqiixP+LHA
-         4Mbn/0cIbV986P65L4+4M3nAtkqRjE/ozfmneguTgjk+DcipcNWqif/cAsVDmq5FFOeP
-         sI1i7kc8lnt/SAt/KlanMr5FAJyfh+eOkhanJ1iEZ1DMOndbExaQkVE7ZBy9oXYVzvGI
-         z9mg==
+        bh=Qy3ygq6w7O8DF53aV7q7DOLXGPF0OfN7MeSVY+w05wM=;
+        b=B0TKE+vjtx+0BG3H7KiU4TJ/P1oBR+BobIQ8CKfnEq18l/s3dydiYC4EfnQWN2Me5B
+         5fcpLqXse7cjrec7GIAId5UgOoN0iydwF8MbXHFLY7wVvZNkDpiMdzGYdPhZ1lyS0WOt
+         qBgp7nKn1abRJ8d08qYauDROnP1mWFZdQXWl9SudYUBprr863Y+jqnbNBGC0EejyTMbv
+         qvwqlk89JPakKc3KuEGZa4fpSebYUkpscAX8cwfW+zgg9u38kfxxiH5K0wdRGLxHddXw
+         7v3WZXSBLYW8+rfbrk4ZulczH2wB6Y+w1vYtGeZpdyNrsZC55lA3l6soI592r7t/pbs5
+         Wlkw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=HaKGDnuifTU5L5KLU2Tpj7+tCZ+lTyDwJG4jK//u6Sk=;
-        b=gijEVexpUjPTKPdcyD/ZtmH9heEbEPFtWsHqtpDo9lL3iGSt0mPlmU+F+B0OsZWVcp
-         SUkiDiDmOOJiFd2QorjLynj4jbnGJ9CXESdIQYoIa/jQ43kwasxNtqnSAI2AGX7OxfpW
-         4bk30RvaC7W0bbmW1BCMGrD+1EZ88m0X0Tq4QkrfXX9HmZce8hO3GWoX1L5TqCnhmZHt
-         LFJGgJye17kVJFf/JDCkYFWK72LZby8u9r6yeZa8GuWE5IzLPEVXxOy5MhIjlF2xfQzr
-         iPLwZfmhgm87aQ5wh3QhgegYaaDe93RAfkFKpfa2ZtjwVAnypgRsHwfaueKSb8ZSsEV/
-         m3pg==
-X-Gm-Message-State: AOAM530m3DG4tSMPn6v+82+DzUEqOEGngfukP74z9V8fbCo+X22OfqQI
-        AfgpbErqm4DsE/8pnERxlFxmQlbl3mtAlg==
-X-Google-Smtp-Source: ABdhPJx3pjmlYhdC7oA9AoMCKKRqBll3MHb4SDGbfUe0roHhv7Tn28oMxB/A0bszVddsNe/IDSLyig==
-X-Received: by 2002:aa7:d485:: with SMTP id b5mr37568150edr.214.1608214762707;
-        Thu, 17 Dec 2020 06:19:22 -0800 (PST)
+        bh=Qy3ygq6w7O8DF53aV7q7DOLXGPF0OfN7MeSVY+w05wM=;
+        b=PYikgmGs7OZ3DfbUuGOszQWAFe3Xu0upehLjSdh4PCkzmgqUarsrSBNDAvqszLJMKM
+         d9YLSJGelxiH5Sq1Z7HjHZJbiiflWgYfcjmZBV2K+aDd2sTkpEo78JVp+a/s/YYaQHfw
+         +2Ikf04GikLNNWxDkf5fW/O2iKdKqlloFrqtzUkys9gnEXHjCoTOXLQ8OZVsq+dWoaBF
+         E8pBVINQX1flk3cXIuWucy+QlgX+3db0+PY4RofIpTeCLJU9zPO5C2AcDQ6Uo3pFG/oj
+         QCXmFbEHE2WMpHo59ZpBo7rMtP29uEeLu4qJXRTjqsYaqoCd2zk15BhNUXGIcJ9Lql87
+         h3eQ==
+X-Gm-Message-State: AOAM533nhY7YlHaOTVmIDYHz9RHdINQyASDSYOqLbw1IW8k4jg1p65B/
+        nWrLwopRkcwX1fX4BMPOnwJZZCerypmR2Q==
+X-Google-Smtp-Source: ABdhPJzvgmmtd4lfNJ8Yr7gPJbFf9a2Bo3wd2EBQx0KMqpWa005lMFlCc3qvfX1d6tzwe4byfb7I9w==
+X-Received: by 2002:a17:906:ce2b:: with SMTP id sd11mr36357385ejb.334.1608214765452;
+        Thu, 17 Dec 2020 06:19:25 -0800 (PST)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4991:de00:e5a4:2f4d:99:ddc5])
-        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.21
+        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 06:19:22 -0800 (PST)
+        Thu, 17 Dec 2020 06:19:25 -0800 (PST)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com,
         Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Subject: [PATCHv2 for-next 06/19] RDMA/rtrs-srv: Jump to dereg_mr label if allocate iu fails
-Date:   Thu, 17 Dec 2020 15:19:02 +0100
-Message-Id: <20201217141915.56989-7-jinpu.wang@cloud.ionos.com>
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+Subject: [PATCHv2 for-next 09/19] RDMA/rtrs-clt: Kill wait_for_inflight_permits
+Date:   Thu, 17 Dec 2020 15:19:05 +0100
+Message-Id: <20201217141915.56989-10-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
 References: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
@@ -76,38 +76,52 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-The rtrs_iu_free is called in rtrs_iu_alloc if memory is limited, so we
-don't need to free the same iu again.
+Let's wait the inflight permits before free it.
 
-Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Reviewed-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+Reviewed-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 6771fb4a1110..89e938a1a4fb 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -651,7 +651,7 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
- 			if (!srv_mr->iu) {
- 				err = -ENOMEM;
- 				rtrs_err(ss, "rtrs_iu_alloc(), err: %d\n", err);
--				goto free_iu;
-+				goto dereg_mr;
- 			}
- 		}
- 		/* Eventually dma addr for each chunk can be cached */
-@@ -667,7 +667,6 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
- 			srv_mr = &sess->mrs[mri];
- 			sgt = &srv_mr->sgt;
- 			mr = srv_mr->mr;
--free_iu:
- 			rtrs_iu_free(srv_mr->iu, sess->s.dev->ib_dev, 1);
- dereg_mr:
- 			ib_dereg_mr(mr);
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 99fc34950032..6a5b72ad5ba1 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1318,6 +1318,12 @@ static int alloc_permits(struct rtrs_clt *clt)
+ 
+ static void free_permits(struct rtrs_clt *clt)
+ {
++	if (clt->permits_map) {
++		size_t sz = clt->queue_depth;
++
++		wait_event(clt->permits_wait,
++			   find_first_bit(clt->permits_map, sz) >= sz);
++	}
+ 	kfree(clt->permits_map);
+ 	clt->permits_map = NULL;
+ 	kfree(clt->permits);
+@@ -2607,19 +2613,8 @@ static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
+ 	return clt;
+ }
+ 
+-static void wait_for_inflight_permits(struct rtrs_clt *clt)
+-{
+-	if (clt->permits_map) {
+-		size_t sz = clt->queue_depth;
+-
+-		wait_event(clt->permits_wait,
+-			   find_first_bit(clt->permits_map, sz) >= sz);
+-	}
+-}
+-
+ static void free_clt(struct rtrs_clt *clt)
+ {
+-	wait_for_inflight_permits(clt);
+ 	free_permits(clt);
+ 	free_percpu(clt->pcpu_path);
+ 	mutex_destroy(&clt->paths_ev_mutex);
 -- 
 2.25.1
 
