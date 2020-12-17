@@ -2,68 +2,68 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01CDAC2BBCA
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3B3AC4361B
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A47FA2395A
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF667238EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727786AbgLQOUB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Dec 2020 09:20:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34670 "EHLO
+        id S1728119AbgLQOUk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Dec 2020 09:20:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727394AbgLQOUA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:00 -0500
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3442FC0617B0
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:20 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id j22so20121170eja.13
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:20 -0800 (PST)
+        with ESMTP id S1726291AbgLQOUj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Dec 2020 09:20:39 -0500
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C03FC061285
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:23 -0800 (PST)
+Received: by mail-ed1-x533.google.com with SMTP id b2so28834796edm.3
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Dec 2020 06:19:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=cloud.ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=8XPsxXHpszxd63HxIjgzTJhXEGSxw+1lsDSBnkcjABc=;
-        b=TJvw/QhaoiXwTKVokg9Hn1muk2JMizYT+nn0x7X6ke3a6P+BbuZRkJU5uGDswuDiBk
-         jTN/rekHr22C8C/vrL/iS6U+CVXuKxO8J/2atpqY5Fom7VGAe1lMd+/+IvG+5WV38wOH
-         VAkcoW+6k7ZPuPrXyK1/FAnEbbvLC44AXe7q9f+cxlqOLzfgPdbWsYShXwMgcBc7A/Uz
-         0+3B6rvDnJ7r7uOKiuZehwFsWzzzeepjIfJkiyAAILOynraBgme6Ey2wsixINcgvdN8o
-         w+46p7sfxdC1dL7Jnc2UkxpYghl3BuDrD2aLQXoMYgh69/JHzvN6XhV+GGdYcPaeOOEN
-         ATIQ==
+        bh=Cwr31r9xVs6HYLbvddJ5+hEwG5tfmVS3LWgeJk4fqjQ=;
+        b=PpqAfLHCAvlmnS5JjNrMY/6s1cf+6ltv3fGoq8NU8VYYSBt+qlaNCUdhWk+S4C2yRb
+         rDomAG0aYMvBxDrvWXNO6um+Dn+DKJ0KJeNLeI5IWpLl8smlP7syl3WC6KVunw0ll38s
+         06dj3uMqSVBJJ9AuNqsJztPB/U1kIE52XGC9YciAQ4SBW92X476AJJvL44NaDN552HE5
+         lUk6Bw2GbgJ0KYr8oISf4a+4B2WyqC+mMeltvkblSYkHbIWqQBW//MGcbUusVTbbMBBn
+         062lvUwus/b+PUsr1/voCcrtEEGqpz14yEypuXoDXEvASz7sHga/6zaS9KP9GV11B+Tz
+         elMw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=8XPsxXHpszxd63HxIjgzTJhXEGSxw+1lsDSBnkcjABc=;
-        b=I7yZEQHBpURrtcKfdYxF9cBYrOlFPmWFUdPb1narDHlKFxpye23IhoSN3kzMBOFqC6
-         KvabwIOROAR2w9UJJZ4S9dWFG7bG34NddWeBhJtIbYmCoR5at4hr+t+GNdbQsU5eg2+z
-         tDuWkfibmx7jLaEq2pHHFyOGfouPBE/hqgnHbZLiDbBKhB/nVNtvhLOozA5S+/8nmLyD
-         JhO4cpcQt2byYN1QkBLkOOv/pgXBtSmVEwO+mRimmKncZxaoQJfx+CX7Fn/yIykMBNm9
-         5r7d3uT/mONblhZDSnCGEC/7rJ9PORnjgSFEMuNWBjYjTgQFp7nB1OlJtOxft//JWOUL
-         afTw==
-X-Gm-Message-State: AOAM532ckAeyI3e4MKt45Y4raw6ZZiUk1po07Bv3M28CaZK5Buv9ceZU
-        vUnaczATOnuOAiBo9ZU2KRL6iE2GNqYsbw==
-X-Google-Smtp-Source: ABdhPJzMRb3zcDBpp9SlBitAV1SRCChTVEnoBt9GmIaJpFJBtfRL+A004GOsFfr6GvnO3RqS84Ru5w==
-X-Received: by 2002:a17:907:2052:: with SMTP id pg18mr3225734ejb.153.1608214758800;
-        Thu, 17 Dec 2020 06:19:18 -0800 (PST)
+        bh=Cwr31r9xVs6HYLbvddJ5+hEwG5tfmVS3LWgeJk4fqjQ=;
+        b=ZFYGqbpcXnG787h3vz55+sMGGwpZfbHRoEEFNU9kra8dIhhJ+ianjj2eJZ9sSDcqVM
+         PW+ivMpm7K1OP7iEKpfFJmbAG2tqgVj1204iOQlubKKIGPm11PSADQHivqIalgETm/PB
+         lmK4rM1NqSDKdhEgQnKwjY28R/maAZ+gGr6GqivaWJvQL78EBaR9ekUNvSHdiV7RdZXJ
+         XvfYDASuiewy+jusuypStQywgCZR4jb+pDuwNFTtJe8HkBzV6CLYbGgJy1qus0EsKSHh
+         U7FBAG+xzB4P+HyE6L33VkTFvYoSSt2f6Fzz6ifsbRsASS/38O4N/zD0RAFgihaoQuBd
+         PSrA==
+X-Gm-Message-State: AOAM533DWXDjtUvgCLg/4QAHKpGJYdTA12jkyU4A+Nt5xXR+0mdIAtF8
+        L5/7yKKA0upgj3aLbKFbOFZjctUuOZYKew==
+X-Google-Smtp-Source: ABdhPJyWbYuBdybVbpivKLPJgmTHWoZHfiN6PovzqZ7VSL4Jn93Q74ng9H/xD/b+7jdbax7g5E4S4Q==
+X-Received: by 2002:a50:fc13:: with SMTP id i19mr39777345edr.281.1608214761816;
+        Thu, 17 Dec 2020 06:19:21 -0800 (PST)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4991:de00:e5a4:2f4d:99:ddc5])
-        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.18
+        by smtp.gmail.com with ESMTPSA id b14sm18168969edu.3.2020.12.17.06.19.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 06:19:18 -0800 (PST)
+        Thu, 17 Dec 2020 06:19:21 -0800 (PST)
 From:   Jack Wang <jinpu.wang@cloud.ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         jinpu.wang@cloud.ionos.com,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCHv2 for-next 02/19] RMDA/rtrs-srv: Occasionally flush ongoing session closing
-Date:   Thu, 17 Dec 2020 15:18:58 +0100
-Message-Id: <20201217141915.56989-3-jinpu.wang@cloud.ionos.com>
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+Subject: [PATCHv2 for-next 05/19] RDMA/rtrs-clt: Set mininum limit when create QP
+Date:   Thu, 17 Dec 2020 15:19:01 +0100
+Message-Id: <20201217141915.56989-6-jinpu.wang@cloud.ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
 References: <20201217141915.56989-1-jinpu.wang@cloud.ionos.com>
@@ -73,51 +73,81 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-If there are many establishments/teardowns, we need to make sure
-we do not consume too much system memory. Thus let on going
-session closing to finish before accepting new connection.
+Currently rtrs when create_qp use a coarse numbers (bigger in general),
+which leads to hardware create more resources which only waste memory
+with no benefits.
 
-In cma_ib_req_handler, the conn_id is newly created holding
-handler_mutex when call this function, and flush_workqueue
-wait for close_work to finish, in close_work rdma_destroy_id
-will be called, which will hold the handler_mutex, but they
-are mutex for different rdma_cm_id.
+- SERVICE con,
+For max_send_wr/max_recv_wr, it's 2 times SERVICE_CON_QUEUE_DEPTH + 2
 
-To avoid circular locking lockdep warnings, disable lockdep
-around flush_workqueue in rtrs_rdma_connect, it's false positive.
+- IO con
+For max_send_wr/max_recv_wr, it's sess->queue_depth * 3 + 1
 
-Inspired by commit 777dc82395de ("nvmet-rdma: occasionally flush ongoing controller teardown")
+Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
 Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Reviewed-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Reviewed-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index ed4628f032bb..eb7bb93884e7 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -1791,6 +1791,20 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- 		err = -ENOMEM;
- 		goto reject_w_err;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 719254fc83a1..b3fb5fb93815 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1511,7 +1511,7 @@ static void destroy_con(struct rtrs_clt_con *con)
+ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ {
+ 	struct rtrs_clt_sess *sess = to_clt_sess(con->c.sess);
+-	u32 wr_queue_size;
++	u32 max_send_wr, max_recv_wr, cq_size;
+ 	int err, cq_vector;
+ 	struct rtrs_msg_rkey_rsp *rsp;
+ 
+@@ -1523,7 +1523,8 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ 		 * + 2 for drain and heartbeat
+ 		 * in case qp gets into error state
+ 		 */
+-		wr_queue_size = SERVICE_CON_QUEUE_DEPTH * 3 + 2;
++		max_send_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
++		max_recv_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
+ 		/* We must be the first here */
+ 		if (WARN_ON(sess->s.dev))
+ 			return -EINVAL;
+@@ -1555,25 +1556,29 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ 
+ 		/* Shared between connections */
+ 		sess->s.dev_ref++;
+-		wr_queue_size =
++		max_send_wr =
+ 			min_t(int, sess->s.dev->ib_dev->attrs.max_qp_wr,
+ 			      /* QD * (REQ + RSP + FR REGS or INVS) + drain */
+ 			      sess->queue_depth * 3 + 1);
++		max_recv_wr =
++			min_t(int, sess->s.dev->ib_dev->attrs.max_qp_wr,
++			      sess->queue_depth * 3 + 1);
  	}
-+	if (!cid) {
-+		/* Let inflight session teardown complete *
-+		 *
-+		 * Avoid circular locking lockdep warnings.
-+		 * cma_ib_req_handler, the conn_id is newly created holding
-+		 * handler_mutex when call this function, and flush_workqueue
-+		 * wait for close_work to finish, in close_work rdma_destroy_id
-+		 * will be called, which will hold the handler_mutex, but they
-+		 * are mutex for different rdma_cm_id.
-+		 */
-+		lockdep_off();
-+		flush_workqueue(rtrs_wq);
-+		lockdep_on();
-+	}
- 	mutex_lock(&srv->paths_mutex);
- 	sess = __find_sess(srv, &msg->sess_uuid);
- 	if (sess) {
+ 	/* alloc iu to recv new rkey reply when server reports flags set */
+ 	if (sess->flags == RTRS_MSG_NEW_RKEY_F || con->c.cid == 0) {
+-		con->rsp_ius = rtrs_iu_alloc(wr_queue_size, sizeof(*rsp),
++		con->rsp_ius = rtrs_iu_alloc(max_recv_wr, sizeof(*rsp),
+ 					      GFP_KERNEL, sess->s.dev->ib_dev,
+ 					      DMA_FROM_DEVICE,
+ 					      rtrs_clt_rdma_done);
+ 		if (!con->rsp_ius)
+ 			return -ENOMEM;
+-		con->queue_size = wr_queue_size;
++		con->queue_size = max_recv_wr;
+ 	}
++	cq_size = max_send_wr + max_recv_wr;
+ 	cq_vector = con->cpu % sess->s.dev->ib_dev->num_comp_vectors;
+ 	err = rtrs_cq_qp_create(&sess->s, &con->c, sess->max_send_sge,
+-				 cq_vector, wr_queue_size, wr_queue_size,
+-				 wr_queue_size, IB_POLL_SOFTIRQ);
++				 cq_vector, cq_size, max_send_wr,
++				 max_recv_wr, IB_POLL_SOFTIRQ);
+ 	/*
+ 	 * In case of error we do not bother to clean previous allocations,
+ 	 * since destroy_con_cq_qp() must be called.
 -- 
 2.25.1
 
