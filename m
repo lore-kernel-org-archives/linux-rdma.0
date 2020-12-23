@@ -2,89 +2,72 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 391FDC433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Dec 2020 03:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE25FC4332E
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Dec 2020 14:13:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 10B42207AA
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Dec 2020 03:10:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B015223159
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Dec 2020 14:13:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728135AbgLWCSc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Dec 2020 21:18:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46280 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727990AbgLWCSb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 22 Dec 2020 21:18:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0FB0922A83;
-        Wed, 23 Dec 2020 02:16:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608689808;
-        bh=jUTVGPKaUv0dLokQQNpWd1K4DlKDte1jQwHqFUCqreY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=igB9VK2E0ctLkgo1/UC0P/3yA4JxmS+NB630ZsWGlqMTTY5pVSPV4ruE9bSKijk78
-         2SJ/db2GSKETU40Yhiea8FkOym9dzCACOjajklWfI+K2XX/w16VgPlxWjlZ1Fs6qP0
-         cXGKpLM0s2nXFHjAKdEYZp2qyeNmroge4Fyd3+9ZlNotEKKVk4iq8YdEX09UQMvmAf
-         8Efm7h8EYL6BF5Z9V9XHem95Fuk37QHCR5SYfz5VWlP6gxApSwCJm6CBRQ7ac2blq4
-         2w057e/aYiiy3ir8cQ3o4M7Aavdmw/u3Kz7cnpGo74ZOrRpR99Zf9kwIW1+K4mokGg
-         GUAj+nIWz7IhA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Zhang Qilong <zhangqilong3@huawei.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 017/217] RDMA/siw: Fix typo of EAGAIN not -EAGAIN in siw_cm_work_handler()
-Date:   Tue, 22 Dec 2020 21:13:06 -0500
-Message-Id: <20201223021626.2790791-17-sashal@kernel.org>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20201223021626.2790791-1-sashal@kernel.org>
-References: <20201223021626.2790791-1-sashal@kernel.org>
+        id S1728980AbgLWOMk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Dec 2020 09:12:40 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9678 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728578AbgLWOMj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Dec 2020 09:12:39 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4D1FVW5McjzkvT3;
+        Wed, 23 Dec 2020 22:10:59 +0800 (CST)
+Received: from ubuntu.network (10.175.138.68) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.498.0; Wed, 23 Dec 2020 22:11:47 +0800
+From:   Zheng Yongjun <zhengyongjun3@huawei.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     Zheng Yongjun <zhengyongjun3@huawei.com>
+Subject: [PATCH -next] mlx5: use DEFINE_MUTEX (and mutex_init() had been too late)
+Date:   Wed, 23 Dec 2020 22:12:23 +0800
+Message-ID: <20201223141223.313-1-zhengyongjun3@huawei.com>
+X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.138.68]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhang Qilong <zhangqilong3@huawei.com>
-
-[ Upstream commit 856c2998999958761b6a52208b4edb4d352c4037 ]
-
-The rv cannot be 'EAGAIN' in the previous path, we should use '-EAGAIN' to
-check it. For example:
-
-Call trace:
- ->siw_cm_work_handler
-	->siw_proc_mpareq
-		->siw_recv_mpa_rr
-
-Link: https://lore.kernel.org/r/20201028122509.47074-1-zhangqilong3@huawei.com
-Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
-Reviewed-by: Bernard Metzler <bmt@zurich.ibm.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 66764f7ef072a..1f9e15b715048 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1047,7 +1047,7 @@ static void siw_cm_work_handler(struct work_struct *w)
- 					    cep->state);
- 			}
- 		}
--		if (rv && rv != EAGAIN)
-+		if (rv && rv != -EAGAIN)
- 			release_cep = 1;
- 		break;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 246e3cbe0b2c..8a260773722f 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -79,7 +79,7 @@ static DEFINE_MUTEX(mlx5_ib_multiport_mutex);
+  * doesn't work on kernel modules memory
+  */
+ static unsigned long xlt_emergency_page;
+-static struct mutex xlt_emergency_page_mutex;
++static DEFINE_MUTEX(xlt_emergency_page_mutex);
  
+ struct mlx5_ib_dev *mlx5_ib_get_ibdev_from_mpi(struct mlx5_ib_multiport_info *mpi)
+ {
+@@ -4874,8 +4874,6 @@ static int __init mlx5_ib_init(void)
+ 	if (!xlt_emergency_page)
+ 		return -ENOMEM;
+ 
+-	mutex_init(&xlt_emergency_page_mutex);
+-
+ 	mlx5_ib_event_wq = alloc_ordered_workqueue("mlx5_ib_event_wq", 0);
+ 	if (!mlx5_ib_event_wq) {
+ 		free_page(xlt_emergency_page);
 -- 
-2.27.0
+2.22.0
 
