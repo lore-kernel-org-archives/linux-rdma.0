@@ -2,79 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A5AC433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F2BDC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:53:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51C8A2079A
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:32:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5EFED20784
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:53:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726292AbgL2Nc0 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Dec 2020 08:32:26 -0500
-Received: from szxga08-in.huawei.com ([45.249.212.255]:2348 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725979AbgL2NcZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 29 Dec 2020 08:32:25 -0500
-Received: from DGGEMM402-HUB.china.huawei.com (unknown [172.30.72.57])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4D4wJq3hGWz13bV5;
-        Tue, 29 Dec 2020 21:30:19 +0800 (CST)
-Received: from dggema701-chm.china.huawei.com (10.3.20.65) by
- DGGEMM402-HUB.china.huawei.com (10.3.20.210) with Microsoft SMTP Server (TLS)
- id 14.3.498.0; Tue, 29 Dec 2020 21:31:39 +0800
-Received: from dggema703-chm.china.huawei.com (10.3.20.67) by
- dggema701-chm.china.huawei.com (10.3.20.65) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.1913.5; Tue, 29 Dec 2020 21:31:39 +0800
-Received: from dggema703-chm.china.huawei.com ([10.8.64.130]) by
- dggema703-chm.china.huawei.com ([10.8.64.130]) with mapi id 15.01.1913.007;
- Tue, 29 Dec 2020 21:31:39 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
-CC:     "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Is it ok to use debugfs to dump some ucontext-level driver-defined
- info?
-Thread-Topic: Is it ok to use debugfs to dump some ucontext-level
- driver-defined info?
-Thread-Index: AQHW3ebw3F8B3O2FE0G2KEXK5NMuLQ==
-Date:   Tue, 29 Dec 2020 13:31:39 +0000
-Message-ID: <d681bc1cad0e4726806aeb46f240d07d@huawei.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1726548AbgL2Nws (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Dec 2020 08:52:48 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:9947 "EHLO
+        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726618AbgL2Nwr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 29 Dec 2020 08:52:47 -0500
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4D4wn71FGbzhylk;
+        Tue, 29 Dec 2020 21:51:23 +0800 (CST)
+Received: from ubuntu.network (10.175.138.68) by
+ DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
+ 14.3.498.0; Tue, 29 Dec 2020 21:51:52 +0800
+From:   Zheng Yongjun <zhengyongjun3@huawei.com>
+To:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     <bharat@chelsio.com>, <dledford@redhat.com>, <jgg@ziepe.ca>,
+        Zheng Yongjun <zhengyongjun3@huawei.com>
+Subject: [PATCH -next] iw_cxgb4: Use kzalloc for allocating only one thing
+Date:   Tue, 29 Dec 2020 21:52:32 +0800
+Message-ID: <20201229135232.23869-1-zhengyongjun3@huawei.com>
+X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.138.68]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi all,
+Use kzalloc rather than kcalloc(1,...)
 
-We want to dump some hns driver-defined information that belongs to a
-process to keep track of current memory usage. For example, there is
-a ucontext-level(process-level) memory pool to store WQE which is
-shared by a lot of QPs, we want to record and query which QPs are using
-this pool and how much space each QP is using.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-rdmatool don't have a ucontext-level resource tracking currently, is it
-ok to achieve that through debugfs?
+// <smpl>
+@@
+@@
 
-This may looks like:
+- kcalloc(1,
++ kzalloc(
+          ...)
+// </smpl>
 
-$ echo 1 > <dbgfs_dir>/hns_roce/hns_0/<pid>/qp
-QPN        Total(kB)  SQ(kB)     SGE(kB)    RQ(kB)
-110        6400       256        2048       4096
-118        6400       256        2048       0
+Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
+---
+ drivers/infiniband/hw/cxgb4/restrack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Or should it be achieved in rdmatool?
+diff --git a/drivers/infiniband/hw/cxgb4/restrack.c b/drivers/infiniband/hw/cxgb4/restrack.c
+index b32e6516d65f..ff645b955a08 100644
+--- a/drivers/infiniband/hw/cxgb4/restrack.c
++++ b/drivers/infiniband/hw/cxgb4/restrack.c
+@@ -209,7 +209,7 @@ int c4iw_fill_res_cm_id_entry(struct sk_buff *msg,
+ 	epcp = (struct c4iw_ep_common *)iw_cm_id->provider_data;
+ 	if (!epcp)
+ 		return 0;
+-	uep = kcalloc(1, sizeof(*uep), GFP_KERNEL);
++	uep = kzalloc(sizeof(*uep), GFP_KERNEL);
+ 	if (!uep)
+ 		return 0;
+ 
+-- 
+2.22.0
 
-Thanks
-Weihang
