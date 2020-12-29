@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F2BDC433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:53:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D87C4332B
+	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:53:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EFED20784
+	by mail.kernel.org (Postfix) with ESMTP id C607620771
 	for <linux-rdma@archiver.kernel.org>; Tue, 29 Dec 2020 13:53:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726548AbgL2Nws (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 29 Dec 2020 08:52:48 -0500
-Received: from szxga06-in.huawei.com ([45.249.212.32]:9947 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726618AbgL2Nwr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 29 Dec 2020 08:52:47 -0500
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4D4wn71FGbzhylk;
-        Tue, 29 Dec 2020 21:51:23 +0800 (CST)
+        id S1726663AbgL2Nww (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 29 Dec 2020 08:52:52 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9699 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726610AbgL2Nwv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 29 Dec 2020 08:52:51 -0500
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4D4wmV4rCgzkxsX;
+        Tue, 29 Dec 2020 21:50:50 +0800 (CST)
 Received: from ubuntu.network (10.175.138.68) by
- DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
- 14.3.498.0; Tue, 29 Dec 2020 21:51:52 +0800
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.498.0; Tue, 29 Dec 2020 21:51:45 +0800
 From:   Zheng Yongjun <zhengyongjun3@huawei.com>
 To:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <bharat@chelsio.com>, <dledford@redhat.com>, <jgg@ziepe.ca>,
+CC:     <dledford@redhat.com>, <jgg@ziepe.ca>,
         Zheng Yongjun <zhengyongjun3@huawei.com>
-Subject: [PATCH -next] iw_cxgb4: Use kzalloc for allocating only one thing
-Date:   Tue, 29 Dec 2020 21:52:32 +0800
-Message-ID: <20201229135232.23869-1-zhengyongjun3@huawei.com>
+Subject: [PATCH -next] RDMA/rw: Use kzalloc for allocating only one thing
+Date:   Tue, 29 Dec 2020 21:52:23 +0800
+Message-ID: <20201229135223.23815-1-zhengyongjun3@huawei.com>
 X-Mailer: git-send-email 2.22.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
@@ -58,22 +58,22 @@ The semantic patch that makes this change is as follows:
 
 Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 ---
- drivers/infiniband/hw/cxgb4/restrack.c | 2 +-
+ drivers/infiniband/core/rw.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/restrack.c b/drivers/infiniband/hw/cxgb4/restrack.c
-index b32e6516d65f..ff645b955a08 100644
---- a/drivers/infiniband/hw/cxgb4/restrack.c
-+++ b/drivers/infiniband/hw/cxgb4/restrack.c
-@@ -209,7 +209,7 @@ int c4iw_fill_res_cm_id_entry(struct sk_buff *msg,
- 	epcp = (struct c4iw_ep_common *)iw_cm_id->provider_data;
- 	if (!epcp)
- 		return 0;
--	uep = kcalloc(1, sizeof(*uep), GFP_KERNEL);
-+	uep = kzalloc(sizeof(*uep), GFP_KERNEL);
- 	if (!uep)
- 		return 0;
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 13f43ab7220b..a41413c51609 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -407,7 +407,7 @@ int rdma_rw_ctx_signature_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
  
+ 	ctx->type = RDMA_RW_SIG_MR;
+ 	ctx->nr_ops = 1;
+-	ctx->reg = kcalloc(1, sizeof(*ctx->reg), GFP_KERNEL);
++	ctx->reg = kzalloc(sizeof(*ctx->reg), GFP_KERNEL);
+ 	if (!ctx->reg) {
+ 		ret = -ENOMEM;
+ 		goto out_unmap_prot_sg;
 -- 
 2.22.0
 
