@@ -2,85 +2,120 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F068CC43331
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jan 2021 23:01:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEE2C43381
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Jan 2021 05:51:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD618230FD
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jan 2021 23:01:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29462227C3
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Jan 2021 05:51:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728596AbhAEW7i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Jan 2021 17:59:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55352 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726052AbhAEW7h (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 5 Jan 2021 17:59:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A93D22E00;
-        Tue,  5 Jan 2021 22:58:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1609887537;
-        bh=yvJWF3Atmch9FILnbqt/QhYjAjr7OwsXdfUPbuO+iRc=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=e1EKylGCYebCczfXcfcJEHEw4BpAEWIsvSBX6o1AfbEKGSIrWDuTUUcWlHT2rnZ4Y
-         izZ812JOdoWRnRuf5vtuKbJicnsSwz28RLURStkW5dWPtuy8kyWaWWulcsYMWIxG6s
-         wH1W+iTWUfE9p2YVvFWrSD3B97fafcDeFVKhhBTY/8g7X5jVLQc+6fd1FQo5K2+GWo
-         myXxj1XXLbYZOyolzq4D5JYqA4j36hsnJDrvRglhmzIBV9HYCUTadl8e/GJ95eIqb6
-         A8uv034Ho9Rsd2oRFT5kir5jz8LCvXNjCFxWpldnVd/x6fEM6XEU8K9MG+wIhLHvr8
-         eWkvZxld8NM2w==
-Message-ID: <84f00137e923162ece24462f56aa204b7a561256.camel@kernel.org>
-Subject: Re: [PATCH] [v2] net/mlx5e: Fix two double free cases
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     Dinghao Liu <dinghao.liu@zju.edu.cn>, kjlu@umn.edu
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Or Gerlitz <ogerlitz@mellanox.com>,
-        Gal Pressman <galp@mellanox.com>,
-        Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Tue, 05 Jan 2021 14:58:55 -0800
-In-Reply-To: <1c573f4e9cbfac79a959fb978459874f19307328.camel@kernel.org>
-References: <20201228084840.5013-1-dinghao.liu@zju.edu.cn>
-         <1c573f4e9cbfac79a959fb978459874f19307328.camel@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.36.5 (3.36.5-2.fc32) 
+        id S1726362AbhAFFvf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Jan 2021 00:51:35 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:9646 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725800AbhAFFve (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Jan 2021 00:51:34 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5ff54fbe0000>; Tue, 05 Jan 2021 21:50:54 -0800
+Received: from localhost (172.20.145.6) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 6 Jan
+ 2021 05:50:53 +0000
+Date:   Wed, 6 Jan 2021 07:50:50 +0200
+From:   Leon Romanovsky <leonro@nvidia.com>
+To:     Bjorn Helgaas <bhelgaas@google.com>
+CC:     Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>, <linux-pci@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>
+Subject: Re: [PATCH mlx5-next 0/4] Dynamically assign MSI-X vectors count
+Message-ID: <20210106055050.GT31158@unreal>
+References: <20210103082440.34994-1-leon@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210103082440.34994-1-leon@kernel.org>
+X-Originating-IP: [172.20.145.6]
+X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1609912254; bh=TQxUJmNNZ4DZ0KVJcQg/uVvfTat5TCPZxfDgC+i/lZE=;
+        h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+         Content-Type:Content-Disposition:In-Reply-To:X-Originating-IP:
+         X-ClientProxiedBy;
+        b=MKldL8+iQQ2zj0glQVTLNJF+1dE/Da4jt9qtvvKCrwET6jWs9oWSbwbgzwdqVc6j2
+         nEZ4juVJVAgH0Z22bdw+57J5kmNAP8ra249UWU5lgpUZHxech/w4DR2w3dN0uq/vbH
+         56KGkFuKWoNC4sZPRbXqpA6tAqevleqxcqTtiTpkjI+7TGQSBOgt3fR+6OV2j8uEy9
+         y8LK7jvf9evlXmw7slfgAhR/+/aM4T84X1Gmf4f7pdp+DFXTGvAZ8QKDZAPBcCpkLa
+         BrHa9c4XWt3X2x3vJqLmQEKkjH7BQaAVjuEuWNuksi3WaOSh0KAgWZhjNgHhtHuuxl
+         guUfOlXvXZqHw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2021-01-05 at 13:02 -0800, Saeed Mahameed wrote:
-> On Mon, 2020-12-28 at 16:48 +0800, Dinghao Liu wrote:
-> > mlx5e_create_ttc_table_groups() frees ft->g on failure of
-> > kvzalloc(), but such failure will be caught by its caller
-> > in mlx5e_create_ttc_table() and ft->g will be freed again
-> > in mlx5e_destroy_flow_table(). The same issue also occurs
-> > in mlx5e_create_ttc_table_groups(). Set ft->g to NULL after
-> > kfree() to avoid double free.
-> > 
-> > Fixes: 7b3722fa9ef64 ("net/mlx5e: Support RSS for GRE tunneled
-                       ^ this is one digit too much..
-Fixes line must start with a 12 char SHA and not 13 :).
+On Sun, Jan 03, 2021 at 10:24:36AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+>
+> Hi,
+>
+> The number of MSI-X vectors is PCI property visible through lspci, that
+> field is read-only and configured by the device.
+>
+> The static assignment of an amount of MSI-X vectors doesn't allow utilize
+> the newly created VF because it is not known to the device the future load
+> and configuration where that VF will be used.
+>
+> The VFs are created on the hypervisor and forwarded to the VMs that have
+> different properties (for example number of CPUs).
+>
+> To overcome the inefficiency in the spread of such MSI-X vectors, we
+> allow the kernel to instruct the device with the needed number of such
+> vectors, before VF is initialized and bounded to the driver.
+>
+> Before this series:
+> [root@server ~]# lspci -vs 0000:08:00.2
+> 08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
+> ....
+> 	Capabilities: [9c] MSI-X: Enable- Count=12 Masked-
+>
+> Configuration script:
+> 1. Start fresh
+> echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
+> modprobe -q -r mlx5_ib mlx5_core
+> 2. Ensure that driver doesn't run and it is safe to change MSI-X
+> echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_drivers_autoprobe
+> 3. Load driver for the PF
+> modprobe mlx5_core
+> 4. Configure one of the VFs with new number
+> echo 2 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
+> echo 21 > /sys/bus/pci/devices/0000\:08\:00.2/vf_msix_vec
+>
+> After this series:
+> [root@server ~]# lspci -vs 0000:08:00.2
+> 08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
+> ....
+> 	Capabilities: [9c] MSI-X: Enable- Count=21 Masked-
+>
+>
+> Thanks
+>
+> Leon Romanovsky (4):
+>   PCI: Configure number of MSI-X vectors for SR-IOV VFs
+>   net/mlx5: Add dynamic MSI-X capabilities bits
+>   net/mlx5: Dynamically assign MSI-X vectors count
+>   net/mlx5: Allow to the users to configure number of MSI-X vectors
 
-I fixed this up, no need to do anything but just FYI.
+Hi Bjorn,
 
-> > packets")
-> > Fixes: 33cfaaa8f36ff ("net/mlx5e: Split the main flow steering
-> > table")
-> > Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
-> > ---
-> > 
-> > Changelog:
-> > 
-> > v2: - Set ft->g to NULL after kfree() instead of removing kfree().
-> >       Refine commit message.
-> > 
-> 
-> applied to net-next-mlx5,
-> Thanks!
-> 
+I would like to route the PCI patch through mlx5-next tree which will
+be taken to the netdev and rdma trees.
 
+This is needed to avoid any possible merge conflicts between three
+subsystems PCI, netdev and RDMA.
+
+Is it acceptable by you?
+
+Thanks
