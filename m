@@ -2,62 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D15CC4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F101C43331
 	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 09:52:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 457612333E
+	by mail.kernel.org (Postfix) with ESMTP id 2EA0D2333F
 	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 09:52:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728007AbhAGJwW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Jan 2021 04:52:22 -0500
-Received: from lpdvacalvio01.broadcom.com ([192.19.229.182]:46318 "EHLO
+        id S1728006AbhAGJwV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Jan 2021 04:52:21 -0500
+Received: from lpdvacalvio01.broadcom.com ([192.19.229.182]:46316 "EHLO
         relay.smtp-ext.broadcom.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727959AbhAGJwU (ORCPT
+        by vger.kernel.org with ESMTP id S1727905AbhAGJwU (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Jan 2021 04:52:20 -0500
+X-Greylist: delayed 477 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Jan 2021 04:52:20 EST
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net (dhcp-10-123-156-76.dhcp.broadcom.net [10.123.156.76])
-        by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id 5D7CE7DB2;
-        Thu,  7 Jan 2021 01:43:31 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com 5D7CE7DB2
+        by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id 7E8877DC5;
+        Thu,  7 Jan 2021 01:43:35 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com 7E8877DC5
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=broadcom.com;
-        s=dkimrelay; t=1610012612;
-        bh=uiI0G8/blJuQqTC1YjT/ooHBOoARNDvS4SkmH7pTOyE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=MVExLvmuZGNt8BePs+CB3rq2yDoTS2YZdpGJZVhrqL5PkjDy/q1XanJaQD0hBpJdr
-         B2RKePw3kg1b256L9p3Eb+jWRlWMwjxWV0yDQqAjZENqYlfNkAuPsiANatsz6K0GIW
-         2gsZ8ptSQZ6mYMjYItSUZC+lGKkGgLxxSgnpODAA=
+        s=dkimrelay; t=1610012617;
+        bh=r6eq53L0u6h64YiuotFZFYv0RJNrAkWbddVU07Wax/o=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=jeKXNP0tiIpjD+OkWKllTOe/xL03rZFEhVRF/4qltWqj1BbTzAYV7c5AKJcf8KcKA
+         k/4gqDYjo2zV+PgztUmQ8RH7/BVq7Qb+BFAbivzX54ziHWNgKv/vuyQIvK3aZ4Wpv0
+         VeckGcyhduQ3NlFgKmOmxnct6f6C2tI/PwlLazPk=
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
 Cc:     linux-rdma@vger.kernel.org,
-        Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next v2 0/2] RDMA/bnxt_re: Allow bigger user MRs
-Date:   Thu,  7 Jan 2021 01:43:26 -0800
-Message-Id: <1610012608-14528-1-git-send-email-selvin.xavier@broadcom.com>
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: [PATCH for-next v2 2/2] RDMA/bnxt_re: Allow bigger MR creation
+Date:   Thu,  7 Jan 2021 01:43:28 -0800
+Message-Id: <1610012608-14528-3-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1610012608-14528-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1610012608-14528-1-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Refactor user space MR code to handle bigger MRs. Removes couple of checks
-that prevented the bigger MRs.
+Allow users to create bigger MRs. Remove the check that
+prevented creating MRs with number of pages more than 512.
 
-v1->v2:
- - Fix the build warning
-   Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  8 --------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c | 14 ++------------
+ 2 files changed, 2 insertions(+), 20 deletions(-)
 
-Selvin Xavier (2):
-  RDMA/bnxt_re: Code refactor while populating user MRs
-  RDMA/bnxt_re: Allow bigger MR creation
-
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 49 ++++----------------------------
- drivers/infiniband/hw/bnxt_re/qplib_sp.c | 29 +++++--------------
- drivers/infiniband/hw/bnxt_re/qplib_sp.h |  2 +-
- 3 files changed, 14 insertions(+), 66 deletions(-)
-
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 00d2a5a..ba515ef 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3829,14 +3829,6 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	}
+ 	mr->qplib_mr.total_size = length;
+ 
+-	if (page_size == BNXT_RE_PAGE_SIZE_4K &&
+-	    length > BNXT_RE_MAX_MR_SIZE_LOW) {
+-		ibdev_err(&rdev->ibdev, "Requested MR Sz:%llu Max sup:%llu",
+-			  length, (u64)BNXT_RE_MAX_MR_SIZE_LOW);
+-		rc = -EINVAL;
+-		goto free_umem;
+-	}
+-
+ 	umem_pgs = ib_umem_num_dma_blocks(umem, page_size);
+ 	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, umem,
+ 			       umem_pgs, page_size);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index 22cb46a..049b357 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -658,24 +658,14 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 	struct creq_register_mr_resp resp;
+ 	struct cmdq_register_mr req;
+ 	u16 cmd_flags = 0, level;
+-	int pages, rc, pg_ptrs;
++	int pages, rc;
+ 	u32 pg_size;
+ 
+ 	if (num_pbls) {
++		pages = roundup_pow_of_two(num_pbls);
+ 		/* Allocate memory for the non-leaf pages to store buf ptrs.
+ 		 * Non-leaf pages always uses system PAGE_SIZE
+ 		 */
+-		pg_ptrs = roundup_pow_of_two(num_pbls);
+-		pages = pg_ptrs >> MAX_PBL_LVL_1_PGS_SHIFT;
+-		if (!pages)
+-			pages++;
+-
+-		if (pages > MAX_PBL_LVL_1_PGS) {
+-			dev_err(&res->pdev->dev,
+-				"SP: Reg MR: pages requested (0x%x) exceeded max (0x%x)\n",
+-				pages, MAX_PBL_LVL_1_PGS);
+-			return -ENOMEM;
+-		}
+ 		/* Free the hwq if it already exist, must be a rereg */
+ 		if (mr->hwq.max_elements)
+ 			bnxt_qplib_free_hwq(res, &mr->hwq);
 -- 
 2.5.5
 
