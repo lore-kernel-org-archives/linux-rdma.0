@@ -2,81 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07443C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 06:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13183C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 06:47:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C62F22223E
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 06:38:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C966222E00
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 06:47:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbhAGGiN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Jan 2021 01:38:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51110 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726581AbhAGGiN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 Jan 2021 01:38:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 16DB52158C;
-        Thu,  7 Jan 2021 06:37:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1610001452;
-        bh=TdqsjKwkdGqmzCggPVn0kvAfKJ2ppLt6TlNNRcNYzIw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Y7cojOkS68jAMIv9yassJSVi/AC+Ra+C5qpRp5yHqiF+NittMUQWKPbKLMN9VSZ4Z
-         6yBXQqNgiLq+A40/lVeAfVk/ZhJXSKySrfNgRoHKygll56FPYUWjzHFRqcP3BpC9Hh
-         prD1EOhUm0Z5+XzQrTB3RQsH5xogEYtu4i0h3OmLDGE/B3kFN4QtViuVmHeYU/o76I
-         LrDhy9Ku/mDBHi9zlZuj+VP8vk2eONhUh3t4HS5UB/odWKh27whBj+TvS5B5SqOtc5
-         45sFtNKTXtoIVgN7XXHmdGNgtQrCPXEPkECaxScbxNebMtCd0XTAbzE4uDehK+BZ3h
-         JYhHQlsAPlEPg==
-Date:   Thu, 7 Jan 2021 08:37:28 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Avihai Horon <avihaih@nvidia.com>,
-        Amit Matityahu <mitm@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-rc] RDMA/ucma: Fix use-after-free bug in
- ucma_create_uevent
-Message-ID: <20210107063728.GZ31158@unreal>
-References: <20210106122212.498789-1-leon@kernel.org>
- <20210106213316.GA825697@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210106213316.GA825697@nvidia.com>
+        id S1726001AbhAGGrT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Jan 2021 01:47:19 -0500
+Received: from saphodev.broadcom.com ([192.19.232.172]:33960 "EHLO
+        relay.smtp-ext.broadcom.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725929AbhAGGrT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Jan 2021 01:47:19 -0500
+X-Greylist: delayed 422 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Jan 2021 01:47:18 EST
+Received: from dhcp-10-192-206-197.iig.avagotech.net.net (dhcp-10-123-156-76.dhcp.broadcom.net [10.123.156.76])
+        by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id AABFC398F6;
+        Wed,  6 Jan 2021 22:39:28 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com AABFC398F6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=broadcom.com;
+        s=dkimrelay; t=1610001570;
+        bh=mQY/g1p6p9YIjo2967t3gbhCOzddpV0Zy01sTha6xoY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=BilZyWXZOw3cwstiEBgFeh8sWaawxZMaa9Fx83cTNMV/XJeEtedA64SVTWlRZzLXa
+         EiTtPoz0aI5Cb9zskCLR10SVB460tTddRTxQzjQ5hePJZayfXauweeNvlUJSQXVnM3
+         XCXuc596LYVofEMgZLin8MzhReZdQ3PXj/5wLheQ=
+From:   Selvin Xavier <selvin.xavier@broadcom.com>
+To:     jgg@ziepe.ca, dledford@redhat.com
+Cc:     linux-rdma@vger.kernel.org,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: [PATCH for-next 2/2] RDMA/bnxt_re: Allow bigger MR creation
+Date:   Wed,  6 Jan 2021 22:39:19 -0800
+Message-Id: <1610001559-13193-3-git-send-email-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1610001559-13193-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1610001559-13193-1-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jan 06, 2021 at 05:33:16PM -0400, Jason Gunthorpe wrote:
-> On Wed, Jan 06, 2021 at 02:22:12PM +0200, Leon Romanovsky wrote:
-> > diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-> > index da2512c30ffd..d6cd72ff213b 100644
-> > +++ b/drivers/infiniband/core/ucma.c
-> > @@ -1430,6 +1430,12 @@ static ssize_t ucma_notify(struct ucma_file *file, const char __user *inbuf,
-> >  	return ret;
-> >  }
-> >
-> > +static void ucma_flush_wq(struct rdma_cm_id *id)
-> > +{
-> > +	if (rdma_protocol_roce(id->device, id->port_num))
-> > +		cma_flush_wq();
-> > +}
->
-> The problem here is that rdma_leave_multicast() does not cancel the
-> work it created. It is a bug on the iboe side because the normal IB
-> side does do the ib_sa_free_multicast() which cancels its callback.
->
-> The fix is to add a cancel work to destroy_mc(), not queue flushing
+Allow users to create bigger MRs. Remove the check that
+prevented creating MRs with number of pages more than 512.
 
-In IB flow, we are storing work pointer so it will be possible to
-cancel. This is not the case for the iboe, we simply don't know which
-work to cancel.
+Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  8 --------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c | 14 ++------------
+ 2 files changed, 2 insertions(+), 20 deletions(-)
 
-We can cache that work inside "mc" too.
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 6b5b8d1..f8c714f 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3831,14 +3831,6 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	}
+ 	mr->qplib_mr.total_size = length;
+ 
+-	if (page_size == BNXT_RE_PAGE_SIZE_4K &&
+-	    length > BNXT_RE_MAX_MR_SIZE_LOW) {
+-		ibdev_err(&rdev->ibdev, "Requested MR Sz:%llu Max sup:%llu",
+-			  length, (u64)BNXT_RE_MAX_MR_SIZE_LOW);
+-		rc = -EINVAL;
+-		goto free_umem;
+-	}
+-
+ 	umem_pgs = ib_umem_num_dma_blocks(umem, page_size);
+ 	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, umem,
+ 			       umem_pgs, page_size);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index 22cb46a..049b357 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -658,24 +658,14 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 	struct creq_register_mr_resp resp;
+ 	struct cmdq_register_mr req;
+ 	u16 cmd_flags = 0, level;
+-	int pages, rc, pg_ptrs;
++	int pages, rc;
+ 	u32 pg_size;
+ 
+ 	if (num_pbls) {
++		pages = roundup_pow_of_two(num_pbls);
+ 		/* Allocate memory for the non-leaf pages to store buf ptrs.
+ 		 * Non-leaf pages always uses system PAGE_SIZE
+ 		 */
+-		pg_ptrs = roundup_pow_of_two(num_pbls);
+-		pages = pg_ptrs >> MAX_PBL_LVL_1_PGS_SHIFT;
+-		if (!pages)
+-			pages++;
+-
+-		if (pages > MAX_PBL_LVL_1_PGS) {
+-			dev_err(&res->pdev->dev,
+-				"SP: Reg MR: pages requested (0x%x) exceeded max (0x%x)\n",
+-				pages, MAX_PBL_LVL_1_PGS);
+-			return -ENOMEM;
+-		}
+ 		/* Free the hwq if it already exist, must be a rereg */
+ 		if (mr->hwq.max_elements)
+ 			bnxt_qplib_free_hwq(res, &mr->hwq);
+-- 
+2.5.5
 
-Thanks
-
->
-> Jason
