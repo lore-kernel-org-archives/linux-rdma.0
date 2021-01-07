@@ -2,111 +2,108 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_NONE autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 230EBC4332B
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 20:42:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 009EBC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 20:50:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E84C523609
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 20:42:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA7832343E
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Jan 2021 20:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726629AbhAGUlt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Jan 2021 15:41:49 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:2070 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726073AbhAGUlt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Jan 2021 15:41:49 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5ff771e50000>; Thu, 07 Jan 2021 12:41:09 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 7 Jan
- 2021 20:41:06 +0000
-Received: from NAM02-CY1-obe.outbound.protection.outlook.com (104.47.37.59) by
- HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 7 Jan 2021 20:41:06 +0000
+        id S1727215AbhAGUt6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Jan 2021 15:49:58 -0500
+Received: from nat-hk.nvidia.com ([203.18.50.4]:40198 "EHLO nat-hk.nvidia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725944AbhAGUt6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 Jan 2021 15:49:58 -0500
+Received: from HKMAIL101.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5ff773cc0000>; Fri, 08 Jan 2021 04:49:16 +0800
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL101.nvidia.com
+ (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 7 Jan
+ 2021 20:49:14 +0000
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.102)
+ by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 7 Jan 2021 20:49:14 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=eKqWUbRq88faB6OrPbXCmna1EORlvV/Ubu7tQ+qlHNZKeuEY2jZYppVk35T2Fel2fcAV4cD4zuv8z6EOpFgEISclchRWywKP2RTsWQxhgI01m/p6OpizIGtPuxsiDEsPhS4LBZqJC0cfWPutw/9hgDI+jlW2jU3ARmwQEG5JnuQE2veXYvvuHL/hY+o/8k8K1xCbCDNmarchcFRly+ts+u4qqAGXI8GOOOOmVv4a+2/8S85/xteCeN2c6SZXXeNCsf+8GukEK99d2nlrPiJux27QRtlZcXKRRrXpJUOcNT1QJsKgmyR+5ysFtPQO7q1HGaBo1sJYE9ayY/+LkwFi1g==
+ b=iiQtbBmbpwjtedSKPpGI5n8m0mqGwY3w0npUYZsc7DLk+PW5mtUo6rG5ENEo/5XnVttBAvEL12qQmf1gRzfImzc00611lsvorMvJzryFHYOsI6NI8P2waYZ45cSrb922k2SG1rINKpyt+2h4ZlR3cQ9D15s3y+Ls8vWBo/VkNCPzfpRD0gV8v32gge3v3AmaSDTkzUvrJONMqv2p/PfkRw04G5ziAmEaB130dKvF6UtcuU8fqAawu5snm4vNFTWrzMIRiegWOS+WA9Iob9sx5/mHiMuZYDGJ7/TNY1sKcWKHM9S3S/FbSYY8oIWroSd4OMQK6SR6hN5+hEz+P9YzgA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xdNJaIz6r9cJhxdBrqGu2vw9xSxQsf7n/apnzxQj1wo=;
- b=DzIvUGtqMMYkfADDGI3Ar0CWUSapohYaOZMW00ETfxll2uB1JuhEmUEfZvZ9lS+EzRO6ZO9Z4Jht1JU6Pwhv6L8xQ6/dzPiWk3bXtzbZD+xaOfG3GoKGnbmS9Pgr/7Ozov/ODSqKJ+2aRy2ArLwSBI7LZpbgNT4HSNKa8jrEb2Phhbwpn4yumA+u9DWRxnlfKpR0K6Cc2jRikxIMaEx6mLOmfpsRN8GRkDytlNBE+Oag/+y5Qa3DPOo1tiieLu6Po7pYZHBZzPXIrN6K1LRHyphHhewSGOtgKPhUPvqk/lrnss9euP7VbSmVERRiVEJS1kkd73OkGLZJDEFeBj19YA==
+ bh=KMO9KITY4Azeq1jcktkuGbSarhE7ul1o+du2L3DYgIk=;
+ b=XDvV9cgKpvMcAZIVJwtRSdoA+lbAce7CRKwsV/DsXAaHZeA6ZYqi3jdaztIBe7zTTCW3vC4HaL2GP9LlYlI/QPYc9beBPA+p1eKx5I28yYXqSghalevC+tfuPkQkhDHCkng0RgXiiCe4nTDdmfqTydwfExpX0QLFuGgcHVA82VXZGaatTb+z+SqCgipxQr7SdstPQ15LiNXDW8Fpz5+hDxi7QJXdnH3xYRx4wTVLLfAEda6jWkGIhEjNLOvv4ulPVuLX1VLiNpVE2NmQaKpVebHxO94sgfdlDBXC7zByN63FqNBJHtOe13qOopNf6bsXl+2kjwSgCcC/YJqlULg8FQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4633.namprd12.prod.outlook.com (2603:10b6:5:16f::16) with
+ by DM6PR12MB3931.namprd12.prod.outlook.com (2603:10b6:5:1cb::12) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3742.6; Thu, 7 Jan
- 2021 20:41:05 +0000
+ 2021 20:49:12 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3742.008; Thu, 7 Jan 2021
- 20:41:04 +0000
-Date:   Thu, 7 Jan 2021 16:41:02 -0400
+ 20:49:12 +0000
+Date:   Thu, 7 Jan 2021 16:49:10 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     <trix@redhat.com>
-CC:     <selvin.xavier@broadcom.com>, <devesh.sharma@broadcom.com>,
-        <dledford@redhat.com>, <leon@kernel.org>, <maxg@mellanox.com>,
-        <galpress@amazon.com>, <michaelgur@nvidia.com>,
-        <monis@mellanox.com>, <gustavoars@kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/ocrdma: fix use after free in
- ocrdma_dealloc_ucontext_pd()
-Message-ID: <20210107204102.GA933840@nvidia.com>
-References: <20201230024653.1516495-1-trix@redhat.com>
+To:     Zheng Yongjun <zhengyongjun3@huawei.com>
+CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <dledford@redhat.com>
+Subject: Re: [PATCH -next] RDMA/rw: Use kzalloc for allocating only one thing
+Message-ID: <20210107204910.GA938437@nvidia.com>
+References: <20201229135223.23815-1-zhengyongjun3@huawei.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20201230024653.1516495-1-trix@redhat.com>
-X-ClientProxiedBy: BL1PR13CA0201.namprd13.prod.outlook.com
- (2603:10b6:208:2be::26) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <20201229135223.23815-1-zhengyongjun3@huawei.com>
+X-ClientProxiedBy: BL1PR13CA0467.namprd13.prod.outlook.com
+ (2603:10b6:208:2c4::22) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0201.namprd13.prod.outlook.com (2603:10b6:208:2be::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3721.17 via Frontend Transport; Thu, 7 Jan 2021 20:41:04 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kxc5e-003uyb-PA; Thu, 07 Jan 2021 16:41:02 -0400
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0467.namprd13.prod.outlook.com (2603:10b6:208:2c4::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.2 via Frontend Transport; Thu, 7 Jan 2021 20:49:11 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kxcDW-003w99-F7; Thu, 07 Jan 2021 16:49:10 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1610052069; bh=xdNJaIz6r9cJhxdBrqGu2vw9xSxQsf7n/apnzxQj1wo=;
+        t=1610052556; bh=KMO9KITY4Azeq1jcktkuGbSarhE7ul1o+du2L3DYgIk=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=ARwBCflLM1IWE+m/cjVxN8GaXv6vqxdiz1wye+UQuKyHBs9cLm17/8XzS48eMZpTM
-         OUZnQ8BHW2dEmMOMnnBe4hqr56rUmDJktdYSJUJxdRo2nxAb+Igd//aZ9sSN7hSfv7
-         aA7sGTHtPUimzWvBwlylMzqyvIE7GDSqNMyMZ6vWWMu4zLWQUg6lsEsNC/C6XA4umM
-         OCNXWhKPEwPQHgrciwvRwrvSgQsS5PdEyVK4xENwCk2FyGr0Zc/PQf+lxklcJVU9bB
-         R8D4MH3y2NaenBVfKXj8X/OMo3J6GoV3IcYfLehDkX5mPYCHt8dVuhqJ9jL+9UEj/c
-         VZ0fGvEfnFnOQ==
+        b=FNAaUuXftjqDqFc2mE6iJSxo8YXu6fbGUOjA+sUa/vXa9gHugos7S11zc7IufiHwT
+         mjYKAobpmW87Xb/oY2OavIrfva7WB3WeMLOcxCaTr+u7QKJpxrJBkIF2Q+8hwy82yi
+         7qTrh/2XccJnssFYGN/pqaiwYwspwdD9xahMPXB5gJ1z6sXXHiqzpqdG6OIPgILW5P
+         gjEj8zCY8o/cf06eLgf5/b10srtFwe7I4bR9ARHZhr+U6bFr8IsxVkrbr3OJd4D1px
+         PoMmyuglz9RIPvZKUK1JP5pnyNKgPez/7T56SNSPWTMCGNY2aC+J9w1YRAjBlWKh2q
+         fsZVcy4VSY6eQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Dec 29, 2020 at 06:46:53PM -0800, trix@redhat.com wrote:
-> From: Tom Rix <trix@redhat.com>
+On Tue, Dec 29, 2020 at 09:52:23PM +0800, Zheng Yongjun wrote:
+> Use kzalloc rather than kcalloc(1,...)
 > 
-> In ocrdma_dealloc_ucontext_pd() uctx->cntxt_pd is assigned to
-> the variable pd and then after uctx->cntxt_pd is freed, the
-> variable pd is passed to function _ocrdma_dealloc_pd() which
-> dereferences pd directly or through its call to
-> ocrdma_mbx_dealloc_pd().
+> The semantic patch that makes this change is as follows:
+> (http://coccinelle.lip6.fr/)
 > 
-> Reorder the free using the variable pd.
+> // <smpl>
+> @@
+> @@
 > 
-> Fixes: 21a428a019c9 ("RDMA: Handle PD allocations by IB/core")
-> Signed-off-by: Tom Rix <trix@redhat.com>
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
+> - kcalloc(1,
+> + kzalloc(
+>           ...)
+> // </smpl>
+> 
+> Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
+> ---
+>  drivers/infiniband/core/rw.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Applied to for-rc
+I applied this one and
 
-Is anyone testing ocrdma? Just doing the pyverbs rdma tests with kasn
-turned on would have instantly caught this, and the change is nearly a
-year old.
+ iw_cxgb4: Use kzalloc for allocating only one thing
 
-Is ocrdma obsolete enough we can delete the driver?
+Together as one commit to for-next, thanks
 
-Thanks,
 Jason
