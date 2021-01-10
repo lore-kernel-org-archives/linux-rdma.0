@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C993C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC874C43332
 	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 15:08:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DBAB239EF
+	by mail.kernel.org (Postfix) with ESMTP id B60242389B
 	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 15:08:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726709AbhAJPIR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 10 Jan 2021 10:08:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37946 "EHLO mail.kernel.org"
+        id S1726796AbhAJPIY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 10 Jan 2021 10:08:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726612AbhAJPIQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 10 Jan 2021 10:08:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0436F22AAE;
-        Sun, 10 Jan 2021 15:07:34 +0000 (UTC)
+        id S1726723AbhAJPIX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 10 Jan 2021 10:08:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 48B7622AB9;
+        Sun, 10 Jan 2021 15:07:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1610291255;
-        bh=/KQr93Nb3+WkS9tFMAKpr8ZV8pJbjLYVfQXkHGtQ+YI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=IQJRvgztB7F4MGsqrF0FghjP/pJ/YpFO+s5veuGgEto0t2iLr3/dzako6ijctkonG
-         OmiXXiZ+2hYPe4DNKukdr0/WcF/p/whOlkdqJz2T5iDEZ2F1K/auZt6BrjAG8kL73U
-         ym3O/zVIMAAzG4mbjLZbBuGIaKyvAppieGryW/nDL64uovJU9/14Cc4brrF+ECZq5t
-         mxdXDllJMB7k1s5QHBjLvL4nH2NURe5l+SjnAy4Pv4JlLuRMerJN0DLPlEC9fM1S6i
-         c+vFxbC3rIjydLaKDbpta9gYlYA8Ur/t87crjUqb3upk9txFCfUgnpmp6CHn7yVTAd
-         /NYRfNURI5aWA==
+        s=k20201202; t=1610291263;
+        bh=N0L/ajUl+DqT7TvFkBOc02XrqsPAylqRsuZMrgq1oaA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=W55XoPCErWSZSz+8HAAPCZoMjXgP/Qks0O73ttoZOY6BYp7BC9T396spKZq626GeE
+         nsQ+YTh5bRniOajc4+Yc4IRcx8DHrj0n44vMz5O4DILpCpCLvaTqSHcLT3h56fEcT4
+         IGpWn+SO12JRiWcL416rP0iuZFs7z7ocZzghMN/llwjJ2lE7A6//PzMwF+JqMc82oe
+         RfZineHueSIdpJP4upAtI8EHD4sjoAzu7Af8DoepRflkbvj0qsZRxFU7LHUXeS3qSa
+         aiN8jNh2h404Wu8ZMRk/hYCTWAIN2hPdPoEdU0GH8H2QCu8C1ALd8j7nz0NSKlngFV
+         uN3T+ihOQhadA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Saeed Mahameed <saeedm@nvidia.com>
@@ -40,10 +40,12 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         Don Dutile <ddutile@redhat.com>,
         Alex Williamson <alex.williamson@redhat.com>
-Subject: [PATCH mlx5-next v1 0/5] Dynamically assign MSI-X vectors count
-Date:   Sun, 10 Jan 2021 17:07:22 +0200
-Message-Id: <20210110150727.1965295-1-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 3/5] net/mlx5: Add dynamic MSI-X capabilities bits
+Date:   Sun, 10 Jan 2021 17:07:25 +0200
+Message-Id: <20210110150727.1965295-4-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210110150727.1965295-1-leon@kernel.org>
+References: <20210110150727.1965295-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -52,78 +54,42 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Changelog
-v1:
- * Improved wording and commit messages of first PCI patch
- * Added extra PCI patch to provide total number of MSI-X vectors
- * Prohibited read of vf_msix_vec sysfs file if driver doesn't support write
- * Removed extra function definition in pci.h
-v0: https://lore.kernel.org/linux-pci/20210103082440.34994-1-leon@kernel.org
+These new fields declare the number of MSI-X vectors that is
+possible to allocate on the VF through PF configuration.
 
---------------------------------------------------------------------
-Hi,
+Value must be in range defined by min_dynamic_vf_msix_table_size
+and max_dynamic_vf_msix_table_size.
 
-The number of MSI-X vectors is PCI property visible through lspci, that
-field is read-only and configured by the device.
+The driver should continue to query its MSI-X table through PCI
+configuration header.
 
-The static assignment of an amount of MSI-X vectors doesn't allow utilize
-the newly created VF because it is not known to the device the future load
-and configuration where that VF will be used.
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-The VFs are created on the hypervisor and forwarded to the VMs that have
-different properties (for example number of CPUs).
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 8c5d5fe58051..7ac614bc592a 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1656,7 +1656,16 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8	   reserved_at_6e0[0x10];
+ 	u8	   sf_base_id[0x10];
 
-To overcome the inefficiency in the spread of such MSI-X vectors, we
-allow the kernel to instruct the device with the needed number of such
-vectors, before VF is initialized and bounded to the driver.
-
-Before this series:
-[root@server ~]# lspci -vs 0000:08:00.2
-08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
-....
-        Capabilities: [9c] MSI-X: Enable- Count=12 Masked-
-
-Configuration script:
-1. Start fresh
-echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
-modprobe -q -r mlx5_ib mlx5_core
-2. Ensure that driver doesn't run and it is safe to change MSI-X
-echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_drivers_autoprobe
-3. Load driver for the PF
-modprobe mlx5_core
-4. Configure one of the VFs with new number
-echo 2 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
-echo 21 > /sys/bus/pci/devices/0000\:08\:00.2/vf_msix_vec
-
-After this series:
-[root@server ~]# lspci -vs 0000:08:00.2
-08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
-....
-        Capabilities: [9c] MSI-X: Enable- Count=21 Masked-
-
-
-Thanks
-
-Leon Romanovsky (5):
-  PCI: Add sysfs callback to allow MSI-X table size change of SR-IOV VFs
-  PCI: Add SR-IOV sysfs entry to read number of MSI-X vectors
-  net/mlx5: Add dynamic MSI-X capabilities bits
-  net/mlx5: Dynamically assign MSI-X vectors count
-  net/mlx5: Allow to the users to configure number of MSI-X vectors
-
- Documentation/ABI/testing/sysfs-bus-pci       | 34 +++++++
- .../net/ethernet/mellanox/mlx5/core/main.c    |  5 +
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  6 ++
- .../net/ethernet/mellanox/mlx5/core/pci_irq.c | 62 +++++++++++++
- .../net/ethernet/mellanox/mlx5/core/sriov.c   | 52 ++++++++++-
- drivers/pci/iov.c                             | 93 +++++++++++++++++++
- drivers/pci/msi.c                             | 29 ++++++
- drivers/pci/pci-sysfs.c                       |  1 +
- drivers/pci/pci.h                             |  5 +
- include/linux/mlx5/mlx5_ifc.h                 | 11 ++-
- include/linux/pci.h                           | 10 +-
- 11 files changed, 304 insertions(+), 4 deletions(-)
-
+-	u8	   reserved_at_700[0x80];
++	u8	   reserved_at_700[0x8];
++	u8	   num_total_dynamic_vf_msix[0x18];
++	u8	   reserved_at_720[0x14];
++	u8	   dynamic_msix_table_size[0xc];
++	u8	   reserved_at_740[0xc];
++	u8	   min_dynamic_vf_msix_table_size[0x4];
++	u8	   reserved_at_750[0x4];
++	u8	   max_dynamic_vf_msix_table_size[0xc];
++
++	u8	   reserved_at_760[0x20];
+ 	u8	   vhca_tunnel_commands[0x40];
+ 	u8	   reserved_at_7c0[0x40];
+ };
 --
 2.29.2
 
