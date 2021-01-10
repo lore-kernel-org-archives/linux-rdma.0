@@ -2,134 +2,82 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AFCFC433E6
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 08:48:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C6FC433E0
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 11:20:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B7A1239EB
-	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 08:48:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D480E22EBF
+	for <linux-rdma@archiver.kernel.org>; Sun, 10 Jan 2021 11:20:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726665AbhAJIsU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 10 Jan 2021 03:48:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60530 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726142AbhAJIsU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 10 Jan 2021 03:48:20 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B31ED239EB;
-        Sun, 10 Jan 2021 08:47:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1610268459;
-        bh=irKAhtaJtCZe7N6lWVZH9hxZFfZco7OZkLCmKDfdn88=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=eAS/0EP5SqObKkIVZntlBA6V9qV71hEJ1cFHBihZ7qcN1biUc63pVcAbKioWPMj0a
-         79/x4ZxBMDd3rcA+f1fspyX3ayFf/MGSrAeG5xq4F64ZQsnmA9+nBhrgsJs2vsop2k
-         KEz80++RprQXuTHZThW2vLo+gaSuQtoVpXi4QcyK85O9gHuztKQosoB4ji4foSE5q9
-         tO4HprIXJCb9PQr8owxzgkBWF2vo86v+lOO2J0iboKIteAXXEKUzjShV+vZbifG/hE
-         ZvHS3QM3ih0TEIKT5Id3QfRtolvGajdm82mb+4irp8m+UK/ZZzFHj54oZyEJnJLqrG
-         kqd46rVmb81RQ==
-Date:   Sun, 10 Jan 2021 10:47:35 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Alex Williamson <alex.williamson@redhat.com>
-Cc:     Don Dutile <ddutile@redhat.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH mlx5-next 1/4] PCI: Configure number of MSI-X vectors for
- SR-IOV VFs
-Message-ID: <20210110084735.GH31158@unreal>
-References: <20210108005721.GA1403391@bjorn-Precision-5520>
- <ba1e7c38-2a21-40ba-787f-458b979b938f@redhat.com>
- <20210108072525.GB31158@unreal>
- <20210108092145.7c70ff74@omen.home>
+        id S1726365AbhAJLTx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 10 Jan 2021 06:19:53 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:19510 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726069AbhAJLTu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 10 Jan 2021 06:19:50 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B5ffae2ae0000>; Sun, 10 Jan 2021 03:19:10 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 10 Jan
+ 2021 11:19:09 +0000
+Received: from r-nvmx02.mtr.labs.mlnx (172.20.145.6) by mail.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server id 15.0.1473.3 via Frontend
+ Transport; Sun, 10 Jan 2021 11:19:07 +0000
+From:   Max Gurtovoy <mgurtovoy@nvidia.com>
+To:     <linux-rdma@vger.kernel.org>, <dledford@redhat.com>,
+        <jgg@nvidia.com>, <leonro@nvidia.com>, <sagi@grimberg.me>
+CC:     <oren@nvidia.com>, Max Gurtovoy <mgurtovoy@nvidia.com>,
+        Israel Rukshin <israelr@nvidia.com>
+Subject: [PATCH 2/3] IB/isert: remove unneeded semicolon
+Date:   Sun, 10 Jan 2021 11:19:02 +0000
+Message-ID: <20210110111903.486681-2-mgurtovoy@nvidia.com>
+X-Mailer: git-send-email 2.25.4
+In-Reply-To: <20210110111903.486681-1-mgurtovoy@nvidia.com>
+References: <20210110111903.486681-1-mgurtovoy@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210108092145.7c70ff74@omen.home>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1610277550; bh=TNSYOmBkaDlRr0JXmtL0QACJKjSaAgcBwquzdgSX4ss=;
+        h=From:To:CC:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
+         References:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        b=U2tB0wAjEgzo0bPdtWuonFnSwOuwXWuLl7MJ8d+HOWNcuHa0KEc4DGXN6d7myhW28
+         5NTIL8UjcJbbUVdcjU8isgOf+REeofs/0ULvrcM5aXdD0IxkS3RhKV+5XZNSHdxIYF
+         fyEKV6BS3l3Tg9HvwLqxgAqRTxWLxN+MTjtrVvoy6m/z9itV96J62DTK3ONCCx5K04
+         KWlA2xzCcMPMFLMBi1nvkI4uN8PTHflF7vWuLOFN6qC3KgmhnWKMuhC2TK6UYlSCDH
+         2hZQJgnRYp/W6rIJIi8G5xPTSAK6GS8nF9704+J3XGytM9+eGM3lqgfL8n69oqAWGV
+         fDukHXlFgRTJw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jan 08, 2021 at 09:21:45AM -0700, Alex Williamson wrote:
-> On Fri, 8 Jan 2021 09:25:25 +0200
-> Leon Romanovsky <leon@kernel.org> wrote:
->
-> > On Thu, Jan 07, 2021 at 10:54:38PM -0500, Don Dutile wrote:
-> > > On 1/7/21 7:57 PM, Bjorn Helgaas wrote:
-> > > > [+cc Alex, Don]
-> >
-> > <...>
-> >
-> > > > Help me connect the dots here.  Is this required because of something
-> > > > peculiar to mlx5, or is something like this required for all SR-IOV
-> > > > devices because of the way the PCIe spec is written?
-> > > So, overall, I'm guessing the mlx5 device can have 1000's of MSIX -- say, one per send/receive/completion queue.
-> > > This device capability may exceed the max number MSIX a VM can have/support (depending on guestos).
-> > > So, a sysfs tunable is used to set the max MSIX available, and thus, the device puts >1 send/rcv/completion queue intr on a given MSIX.
-> > >
-> > > ok, time for Leon to better state what this patch does,
-> > > and why it's needed on mlx5 (and may be applicable to other/future high-MSIX devices assigned to VMs (NVME?)).
-> > > Hmmm, now that I said it, why is it SRIOV-centric and not pci-device centric (can pass a PF w/high number of MSIX to a VM).
-> >
-> > Thanks Don and Bjorn,
-> >
-> > I will answer on all comments a little bit later when I will return
-> > to the office (Sunday).
-> >
-> > However it is important for me to present the use case.
-> >
-> > Our mlx5 SR-IOV devices were always capable to drive many MSI-X (upto 2K,
-> > don't catch me on exact number), however when user created VFs, the FW has
-> > no knowledge of how those VFs will be used. So FW had no choice but statically
-> > and equally assign same amount of MSI-X to all VFs.
-> >
-> > After SR-IOV VF creation, user will bind those new VFs to the VMs, but
-> > the VMs have different number of CPUs and despite HW being able to deliver
-> > all needed number of vectors (in mlx5 netdev world, number of channels == number
-> > of CPUs == number of vectors), we will be limited by already set low number
-> > of vectors.
-> >
-> > So it is not for vector reduction, but more for vector re-partition.
-> >
-> > As an example, imagine mlx5 with two VFs. One VF is bounded to VM with 200 CPUs
-> > and another is bounded to VM with 1 CPU. They need different amount of MSI-X vectors.
-> >
-> > Hope that I succeeded to explain :).
->
-> The idea is not unreasonable imo, but without knowing the size of the
-> vector pool, range available per vf, or ultimately whether the vf
-> supports this feature before we try to configure it, I don't see how
-> userspace is expected to make use of this in the general case.  If the
-> configuration requires such specific vf vector usage and pf driver
-> specific knowledge, I'm not sure it's fit as a generic pci-sysfs
-> interface.  Thanks,
+No need to add semicolon after closing bracket.
 
-I didn't prohibit read of newly created sysfs file, but if I change
-the implementation to vf_msix_vec_show() to return -EOPNOTSUPP for
-not-supported device, the software will be able to distinguish
-supported/not-supported.
+Reviewed-by: Israel Rukshin <israelr@nvidia.com>
+Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-SW will read this file:
-	-> success -> feature supported
-	-> failure -> feature not supported
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/u=
+lp/isert/ib_isert.c
+index 5958929b7dec..96514f675427 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -1991,7 +1991,7 @@ isert_set_dif_domain(struct se_cmd *se_cmd, struct ib=
+_sig_domain *domain)
+ 	if (se_cmd->prot_type =3D=3D TARGET_DIF_TYPE1_PROT ||
+ 	    se_cmd->prot_type =3D=3D TARGET_DIF_TYPE2_PROT)
+ 		domain->sig.dif.ref_remap =3D true;
+-};
++}
+=20
+ static int
+ isert_set_sig_attrs(struct se_cmd *se_cmd, struct ib_sig_attrs *sig_attrs)
+--=20
+2.25.4
 
-There is one extra sysfs file needed: vf_total_msix. That file will
-give total number of MSI-X vectors that is possible to configure.
-
-The same logic (supported/not-supported) can be applicable here as well.
-
-The feature itself will be used by orchestration software that will
-make decisions based on already configured values or future promises
-and the overall total number. The positive outcome of this scheme
-that driver stays lean.
-
-Thanks
-
->
-> Alex
->
