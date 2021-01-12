@@ -5,122 +5,181 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32065C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Jan 2021 19:26:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96347C07EBC
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Jan 2021 21:43:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C92722070B
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Jan 2021 19:26:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4CAA623122
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Jan 2021 21:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2393153AbhALT0J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Jan 2021 14:26:09 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:1965 "EHLO
+        id S2437114AbhALVhU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Jan 2021 16:37:20 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14744 "EHLO
         hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392189AbhALT0I (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Jan 2021 14:26:08 -0500
+        with ESMTP id S2437086AbhALU60 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Jan 2021 15:58:26 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B5ffdf7a80000>; Tue, 12 Jan 2021 11:25:28 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 12 Jan
- 2021 19:25:27 +0000
-Received: from NAM02-CY1-obe.outbound.protection.outlook.com (104.47.37.59) by
- HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Tue, 12 Jan 2021 19:25:27 +0000
+        id <B5ffe0d4a0000>; Tue, 12 Jan 2021 12:57:46 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 12 Jan
+ 2021 20:57:45 +0000
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.175)
+ by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Tue, 12 Jan 2021 20:57:45 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=YZdBNZZ2R3fT2B+LA0N9BJakMJ+uEhfSWPDuVYU8nIZr/rAaoOPt7RPCXx/EuFk9M1VXdlCJesKvFLmEpnvH7yK5Sov+94W2LorBIulEuP6YW4gToWy+xODtUUXqii49aPHySoOvM7iPAcwO1v58/zkd4kTv7NiYItaX7tWT5lrHvt0ZxgRfehv4d/jDkhsFMO6JzZYFSkvIevEtnPAy7+zvfeyT6Qzr5gMCgZMPljcRH7DS/CJLWXos2cKwPjX6ywN8hdoCH3ak8FsQk10u8AR8OAfLGmbSrliQv6fgCygca2ZtXaoUAZJC2f4T1GN/Tc3YmabCsK4m8YmqvCdPFw==
+ b=OWCIAekIZqFMpd4WVSNG5u1QsZU0pgSzaezfk7ysN3mIUZYggMfLScgPvyzCdBBmZopdkByqFDRXj9FH+8vUSbSoTjbR/uQwbeVzMqD1FBr1BJMoSntPtVjcl5DgSwwPZ0HdHVQhcvw+tBePcipMHYvRzBTlORueMpor+8iUuwuCMEaqgxZZQPibDGB9MvAkod/7rdrkuEqlXJNUrz3oUWVuUuRV0uvN3KYVEN8M3JKEBi47tuCK0xp4P9yePwxkxKtF1c38sHNT2wwPQ8+R2mqc/TQDTt27wrPX2ytHNU3zOOz/YIKyhxMl182X7pfgtfEkeRdUtxDBu86RGVti4Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=cT86yUCBYAMKz5yz/SYaqiFAUtQLJ5mLcDLMME/vBdo=;
- b=DWJ4lkRQMPwkldAoJ+Qf/LnYyUDZ5UG+OY8LaxWfNqTrSgRzWxh3zhRHMCIzG6DNWrdbeOo2SxE0WdCIgyXvSMv9QCWXVLr9Bf904G1PImFjuPjdJ6kBjQfc3nGRlVJkO7r9JjjRt7BmEOUdzTLoVaLgiYn/mclLkAGQgKfwnkOYxrtwFN1mGc0oHBH/uZRUF+ciZdKQ5YRgcTDwDuiBBHuEvnSBvw8rc4ZfVdIF07r/nWpNhvkT5MHXS0S7A0EWTUO3jrklUcA8iM9hys7AE6t8xqBGqlV9VKQJinGjzhxLc1VvRsRweC2+dIg4FHZv80UOuACX5OwJ9fkMlOkl3g==
+ bh=dNamHuFItSSHOK3CTBZ7Fn6N0UaRHR3x5ULHZGNCQ5Y=;
+ b=OktmzyHDwdfhBSyodJL6gueSzAA2AMO22S9ZWAD04/lt9PLJuzA9vZe9wPB7SXgxNlJ3PilGKxMi00odh9aJz3jP69dWxyvBykfJ+fB3lH6OCqg0iabrHJDSruIo8Rf0zjHwtNVYPT5xiDTl6EkDoBRxrtIVKSIhr2AUB4gjdRo3uSmKriPsEbg5gThQSw96elJRK+DZqUWess3FeuboN9J1hmPL4IAApZ0TlltxdD/c5awyguxdY7sw+5OhkhAzs1lDpTsQEvlOV3+7XnFexrZXMiPrnMoFGQbYr8dC4SbM6+rZbvR+bjGNDQPCJPrQ8yJGORqHatCAm6LuDHOU8A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4943.namprd12.prod.outlook.com (2603:10b6:5:1bc::21) with
+ by DM5PR12MB1340.namprd12.prod.outlook.com (2603:10b6:3:76::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3742.6; Tue, 12 Jan
- 2021 19:25:26 +0000
+ 2021 20:57:44 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3742.012; Tue, 12 Jan 2021
- 19:25:26 +0000
-Date:   Tue, 12 Jan 2021 15:25:24 -0400
+ 20:57:44 +0000
+Date:   Tue, 12 Jan 2021 16:57:41 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Doug Ledford <dledford@redhat.com>, Shay Drory <shayd@nvidia.com>,
-        <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH rdma-rc 3/5] IB/umad: Return EPOLLERR in case of when
- device disassociated
-Message-ID: <20210112192524.GA17254@nvidia.com>
-References: <20201213132940.345554-1-leon@kernel.org>
- <20201213132940.345554-4-leon@kernel.org>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+CC:     <zyjzyj2000@gmail.com>, <linux-rdma@vger.kernel.org>,
+        Bob Pearson <rpearson@hpe.com>
+Subject: Re: [PATCH for-next 4/7] RDMA/rxe: Make pool lookup and alloc APIs
+ type safe
+Message-ID: <20210112205741.GA36057@nvidia.com>
+References: <20201216231550.27224-1-rpearson@hpe.com>
+ <20201216231550.27224-5-rpearson@hpe.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20201213132940.345554-4-leon@kernel.org>
-X-ClientProxiedBy: BL0PR02CA0026.namprd02.prod.outlook.com
- (2603:10b6:207:3c::39) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <20201216231550.27224-5-rpearson@hpe.com>
+X-ClientProxiedBy: MN2PR07CA0019.namprd07.prod.outlook.com
+ (2603:10b6:208:1a0::29) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (206.223.160.26) by BL0PR02CA0026.namprd02.prod.outlook.com (2603:10b6:207:3c::39) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Tue, 12 Jan 2021 19:25:26 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kzPIC-0004XA-HD; Tue, 12 Jan 2021 15:25:24 -0400
+Received: from mlx.ziepe.ca (206.223.160.26) by MN2PR07CA0019.namprd07.prod.outlook.com (2603:10b6:208:1a0::29) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Tue, 12 Jan 2021 20:57:43 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1kzQjV-0009e5-Ot; Tue, 12 Jan 2021 16:57:41 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1610479528; bh=cT86yUCBYAMKz5yz/SYaqiFAUtQLJ5mLcDLMME/vBdo=;
+        t=1610485066; bh=dNamHuFItSSHOK3CTBZ7Fn6N0UaRHR3x5ULHZGNCQ5Y=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=OnLBMCy7Mv6hwdGTEb7+PtmJ30TBqZ7Ijz1Px37erRkBi4ekYU0tSjuO9Nw0nfELG
-         OkRjhs7mXzYa9bBL5aqqSuOsFkMByN2GVm7ee8TKmh0arcTKITWXikQNhT58soWBfI
-         OzW+rxVmX+ID7OhmLM4hxlOwne2ZcJBc+hbxuYuZ4jB7OfLxNpRh6KGnoK7dv2GFv4
-         4G/vmeMBekw9Uo7OalAHDdpePeiA4cr4rivr5vfqtK6IlJFcG0HOoK7Wz8Eha8hZm0
-         pAv/ZjI4LqvOc+JQshQW6f+LJ3yRtw9sh4efLRNkeAr2ZJHm8QrRUKV6yqL/t0xerv
-         01X3ScnTf1vHw==
+        b=cB1vuvC7qgji0M5xl4XZRpKqXKffix4/iI1I8sDC0NH+G8dItN1Qu11fiw5+T2wer
+         1OE97BKbXq2Y2obRHg++SzwlzkLHnnMjOrdeyBoZDvf7ahxQcUPIbYF0TOeRg5J0rt
+         0QuUqgmuA2mIJx4nOk/ue9MuNrG/us11QR64p5YQc2Fl6URCm9qqTpRju1Jc84Kndv
+         vN6h/Y1AJl4Boqcpp/HAzif7Maq3N+7tF8ZEeRN2ZF4ECc6xjfrwa5h9E7vGDCLWuq
+         DaGmRuPKWlqEYlfE/KWJRQVJ7CB9Vy6j60X3h9HR3i441hMY8DT95QqL1LhF2CZifz
+         XCM6zEoG/tIiw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Dec 13, 2020 at 03:29:38PM +0200, Leon Romanovsky wrote:
-> From: Shay Drory <shayd@nvidia.com>
+On Wed, Dec 16, 2020 at 05:15:47PM -0600, Bob Pearson wrote:
+> The allocate, lookup index, lookup key and cleanup routines
+> in rxe_pool.c currently are not type safe against relocating
+> the pelem field in the objects. Planned changes to move
+> allocation of objects into rdma-core make addressing this a
+> requirement.
 > 
-> Currently, polling a umad device will always works, even if the device
-> was disassociated. Hence, returning EPOLLERR if device was
-> disassociated.
-
-Grammar:
-
-    Currently, polling a umad device will always work, even if the device was
-    disassociated. A disassociated device should immediately return EPOLLERR
-    from poll() and EIO from any read()/write(). Otherwise userspace is
-    endlessly hung on poll() with no idea that the device has been removed
-    from the system.
-    
-
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Signed-off-by: Shay Drory <shayd@nvidia.com>
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
->  drivers/infiniband/core/user_mad.c | 4 ++++
->  1 file changed, 4 insertions(+)
+> Use the elem_offset field in rxe_type_info make these APIs
+> safe against moving the pelem field.
 > 
-> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-> index b671d4aede77..6681e9cf8a18 100644
-> +++ b/drivers/infiniband/core/user_mad.c
-> @@ -653,10 +653,14 @@ static __poll_t ib_umad_poll(struct file *filp, struct poll_table_struct *wait)
->  	/* we will always be able to post a MAD send */
->  	__poll_t mask = EPOLLOUT | EPOLLWRNORM;
+> Signed-off-by: Bob Pearson <rpearson@hpe.com>
+>  drivers/infiniband/sw/rxe/rxe_pool.c | 55 +++++++++++++++++++---------
+>  1 file changed, 38 insertions(+), 17 deletions(-)
 > 
-> +	mutex_lock(&file->mutex);
->  	poll_wait(filp, &file->recv_wait, wait);
-> 
->  	if (!list_empty(&file->recv_list))
->  		mask |= EPOLLIN | EPOLLRDNORM;
-> +	if (file->agents_dead)
-> +		mask = EPOLLERR;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+> index 4d667b78af9b..2873ecfb84c2 100644
+> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+> @@ -315,7 +315,9 @@ void rxe_drop_index(void *arg)
+>  
+>  void *rxe_alloc(struct rxe_pool *pool)
+>  {
+> +	struct rxe_type_info *info = &rxe_type_info[pool->type];
+>  	struct rxe_pool_entry *elem;
+> +	u8 *obj;
+>  	unsigned long flags;
+>  
+>  	might_sleep_if(!(pool->flags & RXE_POOL_ATOMIC));
+> @@ -334,16 +336,17 @@ void *rxe_alloc(struct rxe_pool *pool)
+>  	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+>  		goto out_cnt;
+>  
+> -	elem = kzalloc(rxe_type_info[pool->type].size,
+> -				 (pool->flags & RXE_POOL_ATOMIC) ?
+> -				 GFP_ATOMIC : GFP_KERNEL);
+> -	if (!elem)
+> +	obj = kzalloc(info->size, (pool->flags & RXE_POOL_ATOMIC) ?
+> +		      GFP_ATOMIC : GFP_KERNEL);
+> +	if (!obj)
+>  		goto out_cnt;
+>  
+> +	elem = (struct rxe_pool_entry *)(obj + info->elem_offset);
 
-This also needs to trigger the recv_wait when agents_dead is set in
-ib_umad_kill_port()
+This makes more sense squashed with the
 
-Jason
+https://patchwork.kernel.org/project/linux-rdma/patch/20201216231550.27224-4-rpearson@hpe.com/
+
+patch
+
+But I would suggest a simpler answer, the pool APIs should always work
+with 'struct rxe_pool_entry *'
+
+Here it should return it:
+
+struct rxe_pool_entry *_rxe_alloc(struct rxe_pool *pool, size_t size)
+
+And then use a compile time macro to enforce that pelm is always
+first:
+
+#define rxe_alloc(pool, type) \
+   container_of(_rxe_alloc(pool, sizeof(type) + BUILD_BUG_ON(offsetof(type, pelem) != 0)), type, pelm)
+
+This would eliminate all the ugly void *'s from the API. Just the
+allocator needs the BUILD_BUG_ON, but all the other places really
+ought to use container_of() not void * to transform the rxe_pool_entry
+to its larger struct.
+
+Also I noticed this when I was looking - which also means size can be
+removed from the struct rxe_type_info as the allocation here was the
+only use.
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index d26730eec720c6..d515314510ed6a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -128,14 +128,12 @@ int rxe_pool_init(
+ 	unsigned int		max_elem)
+ {
+ 	int			err = 0;
+-	size_t			size = rxe_type_info[type].size;
+ 
+ 	memset(pool, 0, sizeof(*pool));
+ 
+ 	pool->rxe		= rxe;
+ 	pool->type		= type;
+ 	pool->max_elem		= max_elem;
+-	pool->elem_size		= ALIGN(size, RXE_POOL_ALIGN);
+ 	pool->flags		= rxe_type_info[type].flags;
+ 	pool->index.tree	= RB_ROOT;
+ 	pool->key.tree		= RB_ROOT;
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 373e08554c1c9d..f34da4d33e243b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -68,7 +68,6 @@ struct rxe_pool_entry {
+ struct rxe_pool {
+ 	struct rxe_dev		*rxe;
+ 	rwlock_t		pool_lock; /* protects pool add/del/search */
+-	size_t			elem_size;
+ 	struct kref		ref_cnt;
+ 	void			(*cleanup)(struct rxe_pool_entry *obj);
+ 	enum rxe_pool_state	state;
