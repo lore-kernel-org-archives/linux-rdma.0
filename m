@@ -5,44 +5,43 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB0C7C43381
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 19:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1341C433DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 19:29:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE1C12310F
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 19:28:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A6A22310E
+	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 19:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728688AbhAMT2e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 Jan 2021 14:28:34 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55890 "EHLO mail.kernel.org"
+        id S1728764AbhAMT3Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 Jan 2021 14:29:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728628AbhAMT2a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 13 Jan 2021 14:28:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B9CF23122;
-        Wed, 13 Jan 2021 19:27:47 +0000 (UTC)
+        id S1728760AbhAMT3P (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 13 Jan 2021 14:29:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 033D623434;
+        Wed, 13 Jan 2021 19:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1610566068;
-        bh=huldKtagp1CrI6m8Xc+wrtS2WUNzP8F9WlPn8+xsT7k=;
+        s=k20201202; t=1610566079;
+        bh=5dYdTSw2bzzwajZvYKSQkTrCxmNTmJIBFGJaGWIYrd8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Sp3YkoqHb/8jD4/W2xAeL/od9NkPX64X5ccdQF5M/H/k/DsgB7h7KCLz1dfMBREvm
-         2C9P94Wji+RoXynNeB35E4S+fpIGJZ63IMCKKBJVbVDZohB9pvMjYEE1U0d+YRx75X
-         58W+TUfRSj6ElHab+814/n+hNSV5Cx8D5OPBjbDqak9VQjgZDL6dLGN7JLXyN8s+j5
-         O06g+fpqJUgdYxb5r+JoMy9mZYnFHowst4ZjOs8pmzYQwsmcbsAJ0LobHkXyf3NDjt
-         VUj14HBK3uakIBAI8rx2PL03OWnvXOSsP0BGTQ/F1Z7pmClWX3IE5+GpzQjE8xq7pc
-         EwpfJhdMEJzTQ==
+        b=R7jIT3AVlMCcOb1BG//08UwpDgDqtOFxNpgU+4UjI1XwIcZf7mzmrLECPD9rrqljh
+         AzPZaVkdTPNB5/eiVwToKiQFA5uN5fAxLawV+ixEez5AqmWqGbPyOgtmO6X2yzoaZd
+         6F7FYnvcjODSz0zzKAgvhriQlvvxtLkgOo1sOIqZz9S9ZtMaPURRDgxEJzjuA0iQjs
+         LWA80yJoQdsZ+sg7m0jsk3dE4psxv+7morUtKvFonCkJdVowzXiJoQCwwh4P0jTG5m
+         CXWUlLAtjdSI1fDlilit4yuI0IXtDrZm4VS6niGNR8BosmsVDZufBZMczcdf83DzxK
+         C4hpaUPqlm5kg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Jakub Kicinski <kuba@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         Leon Romanovsky <leonro@nvidia.com>,
-        Parav Pandit <parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>,
-        Vu Pham <vuhuong@nvidia.com>,
+        Parav Pandit <parav@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next V6 02/14] devlink: Introduce PCI SF port flavour and port attribute
-Date:   Wed, 13 Jan 2021 11:27:18 -0800
-Message-Id: <20210113192730.280656-3-saeed@kernel.org>
+Subject: [net-next V6 13/14] devlink: Extend devlink port documentation for subfunctions
+Date:   Wed, 13 Jan 2021 11:27:29 -0800
+Message-Id: <20210113192730.280656-14-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210113192730.280656-1-saeed@kernel.org>
 References: <20210113192730.280656-1-saeed@kernel.org>
@@ -54,194 +53,140 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-A PCI sub-function (SF) represents a portion of the device similar
-to PCI VF.
-
-In an eswitch, PCI SF may have port which is normally represented
-using a representor netdevice.
-To have better visibility of eswitch port, its association with SF,
-and its representor netdevice, introduce a PCI SF port flavour.
-
-When devlink port flavour is PCI SF, fill up PCI SF attributes of the
-port.
-
-Extend port name creation using PCI PF and SF number scheme on best
-effort basis, so that vendor drivers can skip defining their own
-scheme.
-This is done as cApfNSfM, where A, N and M are controller, PCI PF and
-PCI SF number respectively.
-This is similar to existing naming for PCI PF and PCI VF ports.
-
-An example view of a PCI SF port:
-
-$ devlink port show pci/0000:06:00.0/32768
-pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state active opstate attached
-
-$ devlink port show pci/0000:06:00.0/32768 -jp
-{
-    "port": {
-        "pci/0000:06:00.0/32768": {
-            "type": "eth",
-            "netdev": "ens2f0npf0sf88",
-            "flavour": "pcisf",
-            "controller": 0,
-            "pfnum": 0,
-            "sfnum": 88,
-            "splittable": false,
-            "function": {
-                "hw_addr": "00:00:00:00:88:88",
-                "state": "active",
-                "opstate": "attached"
-            }
-        }
-    }
-}
-
-changelog:
-v5->v6:
- - aligned code to 80 characters wherever readability is not affected
- - packed the sf attribute structure
- - removed external flag for sf for initial patchset
+Add devlink port documentation for subfunction management.
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/net/devlink.h        | 15 ++++++++++++++
- include/uapi/linux/devlink.h |  5 +++++
- net/core/devlink.c           | 39 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 59 insertions(+)
+ Documentation/driver-api/auxiliary_bus.rst    |  2 +
+ .../networking/devlink/devlink-port.rst       | 87 ++++++++++++++++++-
+ 2 files changed, 86 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index f466819cc477..b6ebb516f1b0 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -93,6 +93,18 @@ struct devlink_port_pci_vf_attrs {
- 	u8 external:1;
- };
+diff --git a/Documentation/driver-api/auxiliary_bus.rst b/Documentation/driver-api/auxiliary_bus.rst
+index 2312506b0674..fff96c7ba7a8 100644
+--- a/Documentation/driver-api/auxiliary_bus.rst
++++ b/Documentation/driver-api/auxiliary_bus.rst
+@@ -1,5 +1,7 @@
+ .. SPDX-License-Identifier: GPL-2.0-only
  
-+/**
-+ * struct devlink_port_pci_sf_attrs - devlink port's PCI SF attributes
-+ * @controller: Associated controller number
-+ * @sf: Associated PCI SF for of the PCI PF for this port.
-+ * @pf: Associated PCI PF number for this port.
-+ */
-+struct devlink_port_pci_sf_attrs {
-+	u32 controller;
-+	u32 sf;
-+	u16 pf;
-+};
++.. _auxiliary_bus:
 +
- /**
-  * struct devlink_port_attrs - devlink port object
-  * @flavour: flavour of the port
-@@ -114,6 +126,7 @@ struct devlink_port_attrs {
- 		struct devlink_port_phys_attrs phys;
- 		struct devlink_port_pci_pf_attrs pci_pf;
- 		struct devlink_port_pci_vf_attrs pci_vf;
-+		struct devlink_port_pci_sf_attrs pci_sf;
- 	};
- };
+ =============
+ Auxiliary Bus
+ =============
+diff --git a/Documentation/networking/devlink/devlink-port.rst b/Documentation/networking/devlink/devlink-port.rst
+index c564b557e757..99b475658422 100644
+--- a/Documentation/networking/devlink/devlink-port.rst
++++ b/Documentation/networking/devlink/devlink-port.rst
+@@ -34,6 +34,9 @@ Devlink port flavours are described below.
+    * - ``DEVLINK_PORT_FLAVOUR_PCI_VF``
+      - This indicates an eswitch port representing a port of PCI
+        virtual function (VF).
++   * - ``DEVLINK_PORT_FLAVOUR_PCI_SF``
++     - This indicates an eswitch port representing a port of PCI
++       subfunction (SF).
+    * - ``DEVLINK_PORT_FLAVOUR_VIRTUAL``
+      - This indicates a virtual port for the PCI virtual function.
  
-@@ -1404,6 +1417,8 @@ void devlink_port_attrs_pci_pf_set(struct devlink_port *devlink_port, u32 contro
- 				   u16 pf, bool external);
- void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 controller,
- 				   u16 pf, u16 vf, bool external);
-+void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port,
-+				   u32 controller, u16 pf, u32 sf);
- int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
- 			u32 size, u16 ingress_pools_count,
- 			u16 egress_pools_count, u16 ingress_tc_count,
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index cf89c318f2ac..1a241b09a7f8 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -200,6 +200,10 @@ enum devlink_port_flavour {
- 	DEVLINK_PORT_FLAVOUR_UNUSED, /* Port which exists in the switch, but
- 				      * is not used in any way.
- 				      */
-+	DEVLINK_PORT_FLAVOUR_PCI_SF, /* Represents eswitch port
-+				      * for the PCI SF. It is an internal
-+				      * port that faces the PCI SF.
-+				      */
- };
+@@ -57,8 +60,9 @@ Devlink port can have a different type based on the link layer described below.
+ PCI controllers
+ ---------------
+ In most cases a PCI device has only one controller. A controller consists of
+-potentially multiple physical and virtual functions. A function consists
+-of one or more ports. This port is represented by the devlink eswitch port.
++potentially multiple physical, virtual functions and subfunctions. A function
++consists of one or more ports. This port is represented by the devlink eswitch
++port.
  
- enum devlink_param_cmode {
-@@ -529,6 +533,7 @@ enum devlink_attr {
- 	DEVLINK_ATTR_RELOAD_ACTION_INFO,        /* nested */
- 	DEVLINK_ATTR_RELOAD_ACTION_STATS,       /* nested */
+ A PCI device connected to multiple CPUs or multiple PCI root complexes or a
+ SmartNIC, however, may have multiple controllers. For a device with multiple
+@@ -111,8 +115,85 @@ function. Usually it means, user should configure function attribute
+ before a bus specific device for the function is created. However, when
+ SRIOV is enabled, virtual function devices are created on the PCI bus.
+ Hence, function attribute should be configured before binding virtual
+-function device to the driver.
++function device to the driver. For subfunctions, this means user should
++configure port function attribute before activating the port function.
  
-+	DEVLINK_ATTR_PORT_PCI_SF_NUMBER,	/* u32 */
- 	/* add new attributes above here, update the policy in devlink.c */
- 
- 	__DEVLINK_ATTR_MAX,
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index c39496311b71..4cbc02fb602d 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -690,6 +690,15 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
- 		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_vf.external))
- 			return -EMSGSIZE;
- 		break;
-+	case DEVLINK_PORT_FLAVOUR_PCI_SF:
-+		if (nla_put_u32(msg, DEVLINK_ATTR_PORT_CONTROLLER_NUMBER,
-+				attrs->pci_sf.controller) ||
-+		    nla_put_u16(msg, DEVLINK_ATTR_PORT_PCI_PF_NUMBER,
-+				attrs->pci_sf.pf) ||
-+		    nla_put_u32(msg, DEVLINK_ATTR_PORT_PCI_SF_NUMBER,
-+				attrs->pci_sf.sf))
-+			return -EMSGSIZE;
-+		break;
- 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
- 	case DEVLINK_PORT_FLAVOUR_CPU:
- 	case DEVLINK_PORT_FLAVOUR_DSA:
-@@ -8374,6 +8383,32 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 contro
- }
- EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
- 
-+/**
-+ *	devlink_port_attrs_pci_sf_set - Set PCI SF port attributes
-+ *
-+ *	@devlink_port: devlink port
-+ *	@controller: associated controller number for the devlink port instance
-+ *	@pf: associated PF for the devlink port instance
-+ *	@sf: associated SF of a PF for the devlink port instance
-+ */
-+void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 controller,
-+				   u16 pf, u32 sf)
-+{
-+	struct devlink_port_attrs *attrs = &devlink_port->attrs;
-+	int ret;
+ A user may set the hardware address of the function using
+ 'devlink port function set hw_addr' command. For Ethernet port function
+ this means a MAC address.
 +
-+	if (WARN_ON(devlink_port->registered))
-+		return;
-+	ret = __devlink_port_attrs_set(devlink_port,
-+				       DEVLINK_PORT_FLAVOUR_PCI_SF);
-+	if (ret)
-+		return;
-+	attrs->pci_sf.controller = controller;
-+	attrs->pci_sf.pf = pf;
-+	attrs->pci_sf.sf = sf;
-+}
-+EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_sf_set);
++Subfunctions
++============
 +
- static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
- 					     char *name, size_t len)
- {
-@@ -8422,6 +8457,10 @@ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
- 		n = snprintf(name, len, "pf%uvf%u",
- 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
- 		break;
-+	case DEVLINK_PORT_FLAVOUR_PCI_SF:
-+		n = snprintf(name, len, "pf%usf%u", attrs->pci_sf.pf,
-+			     attrs->pci_sf.sf);
-+		break;
- 	}
- 
- 	if (n >= len)
++Subfunctions are lightweight functions that has parent PCI function on which
++it is deployed. Subfunctions are created and deployed in unit of 1. Unlike
++SRIOV VFs, they don't require their own PCI virtual function. They communicate
++with the hardware through the parent PCI function.
++
++To use a subfunction, 3 steps setup sequence is followed.
++(1) create - create a subfunction;
++(2) configure - configure subfunction attributes;
++(3) deploy - deploy the subfunction;
++
++Subfunction management is done using devlink port user interface.
++User performs setup on the subfunction management device.
++
++(1) Create
++----------
++A subfunction is created using a devlink port interface. A user adds the
++subfunction by adding a devlink port of subfunction flavour. The devlink
++kernel code calls down to subfunction management driver (devlink ops) and asks
++it to create a subfunction devlink port. Driver then instantiates the
++subfunction port and any associated objects such as health reporters and
++representor netdevice.
++
++(2) Configure
++-------------
++A subfunction devlink port is created but it is not active yet. That means the
++entities are created on devlink side, the e-switch port representor is created,
++but the subfunction device itself it not created. A user might use e-switch port
++representor to do settings, putting it into bridge, adding TC rules, etc. A user
++might as well configure the hardware address (such as MAC address) of the
++subfunction while subfunction is inactive.
++
++(3) Deploy
++----------
++Once a subfunction is configured, user must activate it to use it. Upon
++activation, subfunction management driver asks the subfunction management
++device to instantiate the subfunction device on particular PCI function.
++A subfunction device is created on the :ref:`Documentation/driver-api/auxiliary_bus.rst <auxiliary_bus>`.
++At this point a matching subfunction driver binds to the subfunction's auxiliary device.
++
++Terms and Definitions
++=====================
++
++.. list-table:: Terms and Definitions
++   :widths: 22 90
++
++   * - Term
++     - Definitions
++   * - ``PCI device``
++     - A physical PCI device having one or more PCI bus consists of one or
++       more PCI controllers.
++   * - ``PCI controller``
++     -  A controller consists of potentially multiple physical functions,
++        virtual functions and subfunctions.
++   * - ``Port function``
++     -  An object to manage the function of a port.
++   * - ``Subfunction``
++     -  A lightweight function that has parent PCI function on which it is
++        deployed.
++   * - ``Subfunction device``
++     -  A bus device of the subfunction, usually on a auxiliary bus.
++   * - ``Subfunction driver``
++     -  A device driver for the subfunction auxiliary device.
++   * - ``Subfunction management device``
++     -  A PCI physical function that supports subfunction management.
++   * - ``Subfunction management driver``
++     -  A device driver for PCI physical function that supports
++        subfunction management using devlink port interface.
++   * - ``Subfunction host driver``
++     -  A device driver for PCI physical function that hosts subfunction
++        devices. In most cases it is same as subfunction management driver. When
++        subfunction is used on external controller, subfunction management and
++        host drivers are different.
 -- 
 2.26.2
 
