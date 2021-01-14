@@ -3,34 +3,34 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B45C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10719C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65EB222DFA
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9D1B23A9D
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727685AbhANVVW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jan 2021 16:21:22 -0500
+        id S1728726AbhANVVh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jan 2021 16:21:37 -0500
 Received: from mga06.intel.com ([134.134.136.31]:64540 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726189AbhANVVW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 Jan 2021 16:21:22 -0500
-IronPort-SDR: YaAGrv8df+tumVxpMiMGt2nTb7MH+0tv8s5fyg39J0DmkM0NZ1TLv5tpxqnpjLsmLWthRVXEn5
- qKgVypj8/6IA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="239991139"
+        id S1726123AbhANVVh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 Jan 2021 16:21:37 -0500
+IronPort-SDR: 70wM1EfQ2At+jSrPuBSbFAFqTMezsziodHZSHUn+uGDVfNbx7XaftjDuyX+UnIGA45uvX+jyYk
+ ChkKUAdmvAxw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="239991140"
 X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
-   d="scan'208";a="239991139"
+   d="scan'208";a="239991140"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2021 13:20:25 -0800
-IronPort-SDR: EnmSn0pbeU48BKtznRcQOMjKmcpPwnMMNmM/Xxac8SdA7Y3wCj8CkMUk0g9davjlbmyrkQHGnI
- i/+S4e1AJ0oQ==
+IronPort-SDR: b/3MsT+uUnFr+Dk60HAtzZUvqWHsYPKho+VlpiqlZ4+3OvL5FafQ+DWu0SlWKFOhR3hyvOVNrK
+ B+Pa7fCtRTAQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
-   d="scan'208";a="499717143"
+   d="scan'208";a="499717147"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
   by orsmga004.jf.intel.com with ESMTP; 14 Jan 2021 13:20:25 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
@@ -44,109 +44,104 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
         Edward Srouji <edwards@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-core v5 0/6] Add user space dma-buf support
-Date:   Thu, 14 Jan 2021 13:35:30 -0800
-Message-Id: <1610660136-126627-1-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core v5 3/6] mlx5: Support dma-buf based memory region
+Date:   Thu, 14 Jan 2021 13:35:33 -0800
+Message-Id: <1610660136-126627-4-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1610660136-126627-1-git-send-email-jianxin.xiong@intel.com>
+References: <1610660136-126627-1-git-send-email-jianxin.xiong@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This is the fifth version of the patch series. Change log:
+Implement the new provider method for registering dma-buf based memory
+regions.
 
-v5:
-* Use a different mr_type for dmabuf so that ibv_dofork_range() is not
-  called inside ibv_dereg_mr() for dmabuf based mr
+Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+---
+ providers/mlx5/mlx5.c  |  2 ++
+ providers/mlx5/mlx5.h  |  3 +++
+ providers/mlx5/verbs.c | 22 ++++++++++++++++++++++
+ 3 files changed, 27 insertions(+)
 
-v4: https://www.spinics.net/lists/linux-rdma/msg98135.html
-* Rework the cmake funciton rdma_cython_module to support both single
-  source (.pyx) and multiple source (.pyx + [.c]*) scenarios instead
-  of using two separate functions
-* Rename 'dri_*' to 'drm_*' for the dmabuf allocation interface
-* Add option to dmabuf allocation routine to allow allocation from GTT
-  instead of VRAM
-* Add proper CPU access flags when allocating dmabufs
-* Remove 'radeon' driver support from the dmabuf allocation routines
-* Add comand line arguments to the tests for selecting GPU unit and
-  setting the option for allocating from GTT
-
-v3: https://www.spinics.net/lists/linux-rdma/msg98059.html
-* Add parameter 'iova' to the new ibv_reg_dmabuf_mr() API
-* Change the way of allocating dma-buf object - use /dev/dri/renderD*
-  instead of /dev/dri/card* and use GEM object instead of dumb buffer
-* Add cmake function to allow building modules with mixed cython and C
-  source files
-* Add new tests that use dma-buf MRs for send/recv and rdma traffic
-* Skip dma-buf tests on unsupported systems
-* Remove some use of random values in the new tests
-* Add dealloc() and close() methods to the new classes
-* Replace string.format with f-string in python code
-* Fix some coding style issues: spacing, indentation, typo, comments
-
-v2: https://www.spinics.net/lists/linux-rdma/msg97936.html
-* Put the kernel header updates into a separate commit
-* Add comments for the data structure used in python ioctl calls
-* Fix issues related to symbol versioning
-* Fix styling issues: extra spaces, unncecessary variable, typo
-* Fix an inproper error code usage
-* Put the new op into ibv_context_ops instead if verbs_context
-
-v1: https://www.spinics.net/lists/linux-rdma/msg97865.html
-* Add user space API for registering dma-buf based memory regions
-* Update pyverbs with the new API
-* Add new tests
-
-This is the user space counter-part of the kernel patch set to add
-dma-buf support to the RDMA subsystem.
-
-This series consists of six patches. The first patch updates the
-kernel headers for dma-buf support. Patch 2 adds the new API function
-and updates the man pages. Patch 3 implements the new API in the mlx5
-provider. Patch 4 adds new class definitions to pyverbs for the new API.
-Patch 5 adds a set of new tests for the new API. Patch 6 fixes bug in
-the utility code of the tests.
-
-Pull request at github: https://github.com/linux-rdma/rdma-core/pull/895
-
-Jianxin Xiong (6):
-  Update kernel headers
-  verbs: Support dma-buf based memory region
-  mlx5: Support dma-buf based memory region
-  pyverbs: Add dma-buf based MR support
-  tests: Add tests for dma-buf based memory regions
-  tests: Bug fix for get_access_flags()
-
- buildlib/pyverbs_functions.cmake         |  78 ++++++---
- debian/libibverbs1.symbols               |   2 +
- kernel-headers/rdma/ib_user_ioctl_cmds.h |  14 ++
- libibverbs/CMakeLists.txt                |   2 +-
- libibverbs/cmd_mr.c                      |  38 +++++
- libibverbs/driver.h                      |   8 +
- libibverbs/dummy_ops.c                   |  11 ++
- libibverbs/libibverbs.map.in             |   6 +
- libibverbs/man/ibv_reg_mr.3              |  27 ++-
- libibverbs/verbs.c                       |  18 ++
- libibverbs/verbs.h                       |  11 ++
- providers/mlx5/mlx5.c                    |   2 +
- providers/mlx5/mlx5.h                    |   3 +
- providers/mlx5/verbs.c                   |  22 +++
- pyverbs/CMakeLists.txt                   |  11 +-
- pyverbs/dmabuf.pxd                       |  15 ++
- pyverbs/dmabuf.pyx                       |  73 ++++++++
- pyverbs/dmabuf_alloc.c                   | 278 +++++++++++++++++++++++++++++++
- pyverbs/dmabuf_alloc.h                   |  19 +++
- pyverbs/libibverbs.pxd                   |   2 +
- pyverbs/mr.pxd                           |   6 +
- pyverbs/mr.pyx                           | 105 +++++++++++-
- tests/args_parser.py                     |   4 +
- tests/test_mr.py                         | 264 ++++++++++++++++++++++++++++-
- tests/utils.py                           |  30 +++-
- 25 files changed, 1013 insertions(+), 36 deletions(-)
- create mode 100644 pyverbs/dmabuf.pxd
- create mode 100644 pyverbs/dmabuf.pyx
- create mode 100644 pyverbs/dmabuf_alloc.c
- create mode 100644 pyverbs/dmabuf_alloc.h
-
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index a2a1696..b3c49af 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -95,6 +96,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
+ 	.async_event   = mlx5_async_event,
+ 	.dealloc_pd    = mlx5_free_pd,
+ 	.reg_mr	       = mlx5_reg_mr,
++	.reg_dmabuf_mr = mlx5_reg_dmabuf_mr,
+ 	.rereg_mr      = mlx5_rereg_mr,
+ 	.dereg_mr      = mlx5_dereg_mr,
+ 	.alloc_mw      = mlx5_alloc_mw,
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index bafe077..decc7f8 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -941,6 +942,8 @@ void mlx5_async_event(struct ibv_context *context,
+ struct ibv_mr *mlx5_alloc_null_mr(struct ibv_pd *pd);
+ struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 			   uint64_t hca_va, int access);
++struct ibv_mr *mlx5_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++				  uint64_t iova, int fd, int access);
+ int mlx5_rereg_mr(struct verbs_mr *mr, int flags, struct ibv_pd *pd, void *addr,
+ 		  size_t length, int access);
+ int mlx5_dereg_mr(struct verbs_mr *mr);
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index b2391e8..cc0bc42 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2012 Mellanox Technologies, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -626,6 +627,27 @@ struct ibv_mr *mlx5_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 	return &mr->vmr.ibv_mr;
+ }
+ 
++struct ibv_mr *mlx5_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++				  uint64_t iova, int fd, int acc)
++{
++	struct mlx5_mr *mr;
++	int ret;
++
++	mr = calloc(1, sizeof(*mr));
++	if (!mr)
++		return NULL;
++
++	ret = ibv_cmd_reg_dmabuf_mr(pd, offset, length, iova, fd, acc,
++				    &mr->vmr);
++	if (ret) {
++		free(mr);
++		return NULL;
++	}
++	mr->alloc_flags = acc;
++
++	return &mr->vmr.ibv_mr;
++}
++
+ struct ibv_mr *mlx5_alloc_null_mr(struct ibv_pd *pd)
+ {
+ 	struct mlx5_mr *mr;
 -- 
 1.8.3.1
 
