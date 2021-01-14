@@ -2,314 +2,64 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39722C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 22:50:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 858DBC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 00:11:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 050A023339
-	for <linux-rdma@archiver.kernel.org>; Wed, 13 Jan 2021 22:50:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 373B522CBE
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 00:11:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727237AbhAMWsz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 13 Jan 2021 17:48:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59638 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729349AbhAMWrY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Jan 2021 17:47:24 -0500
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3C3CC061575;
-        Wed, 13 Jan 2021 14:44:56 -0800 (PST)
-Received: by mail-io1-xd33.google.com with SMTP id y19so7511644iov.2;
-        Wed, 13 Jan 2021 14:44:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Jp+QX8KdT4lzR3e/aV/6wYQpGFyZWdIs9GWj82wlKdE=;
-        b=Z8C092hPk5rTxwubDmQx3tAOWYm5arWFNspu3djG4R0L3PGvVKCLV4PGf6azsDD1CQ
-         lwWpe+LDIjBo1C8rKHp3/6dUUrVrfV5vQ/GgQ+dEXLfFM2fQyW4so2ra+A45YRDCWDd+
-         u8H3lX+FSjx/40DFLAqVOiyTBtr8iV94+DseuH9E0wab1HuEW7soU7+dH1jKwJde+hrB
-         trJ+Lh4sDFujeFrpOQrGXb70r/VvEJ5W0NOWHKNV58qMMedXclhYQ90lDEG/st8DstbA
-         q250vAJDBZKeY774kkFB7nhkeG7o8eK7jrMdrl3PkqTllfIl7qz8AOoqYEsrDS5hxvCY
-         P51g==
+        id S1729788AbhANAJi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 13 Jan 2021 19:09:38 -0500
+Received: from mail-wm1-f43.google.com ([209.85.128.43]:52291 "EHLO
+        mail-wm1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729772AbhANAHz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 13 Jan 2021 19:07:55 -0500
+Received: by mail-wm1-f43.google.com with SMTP id a6so3094492wmc.2
+        for <linux-rdma@vger.kernel.org>; Wed, 13 Jan 2021 16:07:39 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Jp+QX8KdT4lzR3e/aV/6wYQpGFyZWdIs9GWj82wlKdE=;
-        b=n1pCv42S/2odzLV08vk7zGFGrqRj4oSakDKhb3hPM3ohi33fllODJJ6yZ0qnYZJIvV
-         cLgti0WG5ASXEI98gp740x1XdHBD5AXuWdSq2oIyaUsoqNLqqLpUsVKKX5qe8MXasFWT
-         QzwP9GsgS5XIphKhU9QkzunhWo5yraqeJd54mt93iaMb5dkbYi4QgtrPG6GgSvvgudvf
-         nirvbndHkrWfpPp1UDg9e23zFSgIhaFIEIeAP89XoKyMC7fJxWWg7P4TPYF13u6li895
-         oh+hWFpg5ZZ8COczVNFvKC9I9N6wJY3wBwdlD3qPoPJyaQv8R/zFGss1HG8D8rh3j3US
-         7N6w==
-X-Gm-Message-State: AOAM533WlkI3F0j+0+dMKGvN7aF/+VzeBzm52tgLJANhceFRxOeHTz6n
-        n1K7U3n0LNvG+SzLFyNL/I28dyVMpxddm1IC+Ho=
-X-Google-Smtp-Source: ABdhPJxTTJ+LVeIRmmKrn7gX+wAIs1dszT2UKs4JckU1bp9WmyiIBkRkWXVYLCnWlfETwGOmwBfxfbvOcpbcZ4xNHF8=
-X-Received: by 2002:a05:6602:152:: with SMTP id v18mr3320439iot.187.1610577896161;
- Wed, 13 Jan 2021 14:44:56 -0800 (PST)
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=nWpDQmZNg8zKVk12QskQ7NNS05C4fI/JmZBKLdKyu8Q=;
+        b=IULFnkKDK5duevCPVrFGpADnEfUXVuv6tD2bADwMylZK/8coWtnQSBjdcjxu0aps2N
+         1s8VnmQ2vLHq7DD5MJ3wlXHxEMHjQwyTB3bYaxeziPNyuK/cOt5EIiyiJOU248hBcOYe
+         Uz4Uo9YLVcj1DxGAZZWQRpLJKEUzKs1bSdCmN+Q7JIw0eAyXp+hiAZA0oQ6bq9mAVqpo
+         Du99pzFJVM6Xs9jZ84FiOfoglTQIhIgWI3EuECAskgLioG9afpNB36MkvOzsqyCpYu5X
+         jGgP47Wmxjrpvi2BonKswWXpHHZ/4b/1A5LA0tveu82xqcI/y2FbxDVecim1ExFQj5bU
+         NJqA==
+X-Gm-Message-State: AOAM532Ss/rfyytlbFDVvHXuV7gtYH6/0UsMogPopoqNgYlWxKdeD6ix
+        aJ+8/nJUrrB/6ns/+mlC10UOWMjUcN8=
+X-Google-Smtp-Source: ABdhPJwTv/8XVgMOVK3w9eFoQvd443a+lXlxdLN6uu20K02V2U6j+5gIc9+tZjO2+ELXU19mC+B0Xg==
+X-Received: by 2002:a7b:c3d6:: with SMTP id t22mr1438706wmj.134.1610582833361;
+        Wed, 13 Jan 2021 16:07:13 -0800 (PST)
+Received: from ?IPv6:2601:647:4802:9070:e70c:620a:4d8a:b988? ([2601:647:4802:9070:e70c:620a:4d8a:b988])
+        by smtp.gmail.com with ESMTPSA id b133sm5628135wme.33.2021.01.13.16.07.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 13 Jan 2021 16:07:12 -0800 (PST)
+Subject: Re: [PATCH 2/3] IB/isert: remove unneeded semicolon
+To:     Max Gurtovoy <mgurtovoy@nvidia.com>, linux-rdma@vger.kernel.org,
+        dledford@redhat.com, jgg@nvidia.com, leonro@nvidia.com
+Cc:     oren@nvidia.com, Israel Rukshin <israelr@nvidia.com>
+References: <20210110111903.486681-1-mgurtovoy@nvidia.com>
+ <20210110111903.486681-2-mgurtovoy@nvidia.com>
+From:   Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <3178aa17-5b28-b8c7-1ba9-eeb8b3525476@grimberg.me>
+Date:   Wed, 13 Jan 2021 16:07:09 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-References: <20210110150727.1965295-1-leon@kernel.org> <20210110150727.1965295-3-leon@kernel.org>
- <CAKgT0Uczu6cULPsVjFuFVmir35SpL-bs0hosbfH-T5sZLZ78BQ@mail.gmail.com>
- <20210112065601.GD4678@unreal> <CAKgT0UdndGdA3xONBr62hE-_RBdL-fq6rHLy0PrdsuMn1936TA@mail.gmail.com>
- <20210113061909.GG4678@unreal>
-In-Reply-To: <20210113061909.GG4678@unreal>
-From:   Alexander Duyck <alexander.duyck@gmail.com>
-Date:   Wed, 13 Jan 2021 14:44:45 -0800
-Message-ID: <CAKgT0Uc4v54vqRVk_HhjOk=OLJu-20AhuBVcg7=C9_hsLtzxLA@mail.gmail.com>
-Subject: Re: [PATCH mlx5-next v1 2/5] PCI: Add SR-IOV sysfs entry to read
- number of MSI-X vectors
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        linux-rdma@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-        Don Dutile <ddutile@redhat.com>,
-        Alex Williamson <alex.williamson@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20210110111903.486681-2-mgurtovoy@nvidia.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jan 12, 2021 at 10:19 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Tue, Jan 12, 2021 at 01:34:50PM -0800, Alexander Duyck wrote:
-> > On Mon, Jan 11, 2021 at 10:56 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > >
-> > > On Mon, Jan 11, 2021 at 11:30:39AM -0800, Alexander Duyck wrote:
-> > > > On Sun, Jan 10, 2021 at 7:10 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > > >
-> > > > > From: Leon Romanovsky <leonro@nvidia.com>
-> > > > >
-> > > > > Some SR-IOV capable devices provide an ability to configure specific
-> > > > > number of MSI-X vectors on their VF prior driver is probed on that VF.
-> > > > >
-> > > > > In order to make management easy, provide new read-only sysfs file that
-> > > > > returns a total number of possible to configure MSI-X vectors.
-> > > > >
-> > > > > cat /sys/bus/pci/devices/.../sriov_vf_total_msix
-> > > > >   = 0 - feature is not supported
-> > > > >   > 0 - total number of MSI-X vectors to consume by the VFs
-> > > > >
-> > > > > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > > > > ---
-> > > > >  Documentation/ABI/testing/sysfs-bus-pci | 14 +++++++++++
-> > > > >  drivers/pci/iov.c                       | 31 +++++++++++++++++++++++++
-> > > > >  drivers/pci/pci.h                       |  3 +++
-> > > > >  include/linux/pci.h                     |  2 ++
-> > > > >  4 files changed, 50 insertions(+)
-> > > > >
-> > > > > diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-> > > > > index 05e26e5da54e..64e9b700acc9 100644
-> > > > > --- a/Documentation/ABI/testing/sysfs-bus-pci
-> > > > > +++ b/Documentation/ABI/testing/sysfs-bus-pci
-> > > > > @@ -395,3 +395,17 @@ Description:
-> > > > >                 The file is writable if the PF is bound to a driver that
-> > > > >                 supports the ->sriov_set_msix_vec_count() callback and there
-> > > > >                 is no driver bound to the VF.
-> > > > > +
-> > > > > +What:          /sys/bus/pci/devices/.../sriov_vf_total_msix
-> > > >
-> > > > In this case I would drop the "vf" and just go with sriov_total_msix
-> > > > since now you are referring to a global value instead of a per VF
-> > > > value.
-> > >
-> > > This field indicates the amount of MSI-X available for VFs, it doesn't
-> > > include PFs. The missing "_vf_" will mislead users who will believe that
-> > > it is all MSI-X vectors available for this device. They will need to take
-> > > into consideration amount of PF MSI-X in order to calculate the VF distribution.
-> > >
-> > > So I would leave "_vf_" here.
-> >
-> > The problem is you aren't indicating how many are available for an
-> > individual VF though, you are indicating how many are available for
-> > use by SR-IOV to give to the VFs. The fact that you are dealing with a
-> > pool makes things confusing in my opinion. For example sriov_vf_device
-> > describes the device ID that will be given to each VF.
->
-> sriov_vf_device is different and is implemented accordingly to the PCI
-> spec, 9.3.3.11 VF Device ID (Offset 1Ah)
-> "This field contains the Device ID that should be presented for every VF
-> to the SI."
->
-> It is one ID for all VFs.
-
-Yes, but that is what I am getting at. It is also what the device
-configuration will be for one VF. So when I read sriov_vf_total_msix
-it reads as the total for a single VF, not all of the the VFs. That is
-why I think dropping the "vf_" part of the name would make sense, as
-what you are describing is the total number of MSI-X vectors for use
-by SR-IOV VFs.
-
-> >
-> > > >
-> > > > > +Date:          January 2021
-> > > > > +Contact:       Leon Romanovsky <leonro@nvidia.com>
-> > > > > +Description:
-> > > > > +               This file is associated with the SR-IOV PFs.
-> > > > > +               It returns a total number of possible to configure MSI-X
-> > > > > +               vectors on the enabled VFs.
-> > > > > +
-> > > > > +               The values returned are:
-> > > > > +                * > 0 - this will be total number possible to consume by VFs,
-> > > > > +                * = 0 - feature is not supported
-> > > > > +
-> > > > > +               If no SR-IOV VFs are enabled, this value will return 0.
-> > > > > diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
-> > > > > index 42c0df4158d1..0a6ddf3230fd 100644
-> > > > > --- a/drivers/pci/iov.c
-> > > > > +++ b/drivers/pci/iov.c
-> > > > > @@ -394,12 +394,22 @@ static ssize_t sriov_drivers_autoprobe_store(struct device *dev,
-> > > > >         return count;
-> > > > >  }
-> > > > >
-> > > > > +static ssize_t sriov_vf_total_msix_show(struct device *dev,
-> > > > > +                                       struct device_attribute *attr,
-> > > > > +                                       char *buf)
-> > > > > +{
-> > > > > +       struct pci_dev *pdev = to_pci_dev(dev);
-> > > > > +
-> > > > > +       return sprintf(buf, "%d\n", pdev->sriov->vf_total_msix);
-> > > > > +}
-> > > > > +
-> > > >
-> > > > You display it as a signed value, but unsigned values are not
-> > > > supported, correct?
-> > >
-> > > Right, I made it similar to the vf_msix_set. I can change.
-> > >
-> > > >
-> > > > >  static DEVICE_ATTR_RO(sriov_totalvfs);
-> > > > >  static DEVICE_ATTR_RW(sriov_numvfs);
-> > > > >  static DEVICE_ATTR_RO(sriov_offset);
-> > > > >  static DEVICE_ATTR_RO(sriov_stride);
-> > > > >  static DEVICE_ATTR_RO(sriov_vf_device);
-> > > > >  static DEVICE_ATTR_RW(sriov_drivers_autoprobe);
-> > > > > +static DEVICE_ATTR_RO(sriov_vf_total_msix);
-> > > > >
-> > > > >  static struct attribute *sriov_dev_attrs[] = {
-> > > > >         &dev_attr_sriov_totalvfs.attr,
-> > > > > @@ -408,6 +418,7 @@ static struct attribute *sriov_dev_attrs[] = {
-> > > > >         &dev_attr_sriov_stride.attr,
-> > > > >         &dev_attr_sriov_vf_device.attr,
-> > > > >         &dev_attr_sriov_drivers_autoprobe.attr,
-> > > > > +       &dev_attr_sriov_vf_total_msix.attr,
-> > > > >         NULL,
-> > > > >  };
-> > > > >
-> > > > > @@ -658,6 +669,7 @@ static void sriov_disable(struct pci_dev *dev)
-> > > > >                 sysfs_remove_link(&dev->dev.kobj, "dep_link");
-> > > > >
-> > > > >         iov->num_VFs = 0;
-> > > > > +       iov->vf_total_msix = 0;
-> > > > >         pci_iov_set_numvfs(dev, 0);
-> > > > >  }
-> > > > >
-> > > > > @@ -1116,6 +1128,25 @@ int pci_sriov_get_totalvfs(struct pci_dev *dev)
-> > > > >  }
-> > > > >  EXPORT_SYMBOL_GPL(pci_sriov_get_totalvfs);
-> > > > >
-> > > > > +/**
-> > > > > + * pci_sriov_set_vf_total_msix - set total number of MSI-X vectors for the VFs
-> > > > > + * @dev: the PCI PF device
-> > > > > + * @numb: the total number of MSI-X vector to consume by the VFs
-> > > > > + *
-> > > > > + * Sets the number of MSI-X vectors that is possible to consume by the VFs.
-> > > > > + * This interface is complimentary part of the pci_set_msix_vec_count()
-> > > > > + * that will be used to configure the required number on the VF.
-> > > > > + */
-> > > > > +void pci_sriov_set_vf_total_msix(struct pci_dev *dev, int numb)
-> > > > > +{
-> > > > > +       if (!dev->is_physfn || !dev->driver ||
-> > > > > +           !dev->driver->sriov_set_msix_vec_count)
-> > > > > +               return;
-> > > > > +
-> > > > > +       dev->sriov->vf_total_msix = numb;
-> > > > > +}
-> > > > > +EXPORT_SYMBOL_GPL(pci_sriov_set_vf_total_msix);
-> > > > > +
-> > > >
-> > > > This seems broken. What validation is being done on the numb value?
-> > > > You pass it as int, and your documentation all refers to tests for >=
-> > > > 0, but isn't a signed input a possibility as well? Also "numb" doesn't
-> > > > make for a good abbreviation as it is already a word of its own. It
-> > > > might make more sense to use count or something like that rather than
-> > > > trying to abbreviate number.
-> > >
-> > > "Broken" is a nice word to describe misunderstanding.
-> >
-> > Would you prefer "lacking input validation".
-> >
-> > I see all this code in there checking for is_physfn and driver and
-> > sriov_set_msix_vec_count before allowing the setting of vf_total_msix.
-> > It just seems like a lot of validation is taking place on the wrong
-> > things if you are just going to be setting a value reporting the total
-> > number of MSI-X vectors in use for SR-IOV.
->
-> All those checks are in place to ensure that we are not overwriting the
-> default value, which is 0.
-
-Okay, so what you really have is surplus interrupts that you are
-wanting to give out to VF devices. So when we indicate 0 here as the
-default it really means we have no additional interrupts to give out.
-Am I understanding that correctly?
-
-The problem is this is very vendor specific so I am doing my best to
-understand it as it is different then the other NICs I have worked
-with.
-
-So this value is the size of the total pool of interrupt vectors you
-have to split up between the functions, or just the spare ones you
-could add to individual VFs? Since you say "total" I am assuming it is
-the total pool which means that in order to figure out how many are
-available to be reserved we would have to run through all the VFs and
-figure out what has already been assigned, correct? If so it wouldn't
-hurt to also think about having a free and in-use count somewhere as
-well.
-
-> >
-> > In addition this value seems like a custom purpose being pushed into
-> > the PCIe code since there isn't anything that defaults the value. It
-> > seems like at a minimum there should be something that programs a
-> > default value for both of these new fields that are being added so
-> > that you pull the maximum number of VFs when SR-IOV is enabled, the
-> > maximum number of MSI-X vectors from a single VF, and then the default
-> > value for this should be the multiple of the two which can then be
-> > overridden later.
->
-> The default is 0, because most SR-IOV doesn't have proper support of
-> setting VF MSI-X.
-
-It wasn't designed to work this way. That is why it doesn't really work.
-
-> Regarding the calculation, it is not correct for the mlx5. We have large
-> pool of MSI-X vectors, but setting small number of them. This allows us
-> to increase that number on specific VF without need to decrease on
-> others "to free" the vectors.
-
-I think I am finally starting to grok what is going on here, but I
-really don't like the approach.
-
-Is there any reason why you couldn't have configured your VF to
-support whatever the maximum number of MSI-X vectors you wanted to use
-was, and then just internally masked off or disabled the ones that you
-couldn't allocate to the VF and communicate that to the VF via some
-sort of firmware message so it wouldn't use them? If I am not mistaken
-that is the approach that has been taken in the past for at least this
-portion of things in the Intel drivers.
-
-Then the matter is how to configure it. I'm not a big fan of adding
-sysfs to the VF to manage resources that are meant to be controlled by
-the PF. Especially when you are having to add sysfs to the PF as well
-which creates an asymmetric setup where you are having to read the PF
-to find out what resources you can move to the VF. I wonder if
-something like the Devlink Resource interface wouldn't make more sense
-in this case. Then you would just manage "vf-interrupts" or something
-like that with the resource split between each of the VFs with each VF
-uniquely identified as a separate sub resource.
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
