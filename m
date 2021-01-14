@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 339EDC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE371C433E6
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:22:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA5D723A9D
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:21:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D66523A9D
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jan 2021 21:22:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729586AbhANVVx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jan 2021 16:21:53 -0500
-Received: from mga06.intel.com ([134.134.136.31]:64540 "EHLO mga06.intel.com"
+        id S1729627AbhANVWD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jan 2021 16:22:03 -0500
+Received: from mga06.intel.com ([134.134.136.31]:64586 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728298AbhANVVx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 14 Jan 2021 16:21:53 -0500
-IronPort-SDR: SEkzGyfG8sUjbyhSC62Ijx93GnlgiqQWURTdQYu1fCrCjsyseNMjT0Aeb5AcOtj/29UVTA8Ip5
- mrjGjctLxpVQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="239991143"
+        id S1729600AbhANVWD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 14 Jan 2021 16:22:03 -0500
+IronPort-SDR: DV/6nYKjwAk9W8vrwBDlQZZluGD2vg8n9vLzKcKY2EIrWWkoFKEF/M/XTAiNXLNCHVFUzLNTTD
+ DrV/5Otd7/Aw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9864"; a="239991141"
 X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
-   d="scan'208";a="239991143"
+   d="scan'208";a="239991141"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jan 2021 13:20:25 -0800
-IronPort-SDR: mT54iL+CQLkC9muGZZQxyW+zSGKyssjxizZPd7hBt5GH3txCHEeSjAk+kx0AHQdtBtytFuddvX
- 6edT4J5we96A==
+IronPort-SDR: sXWZF5htxmnBB68jY7kflB1DQPORfsc66HBliL3GtqVGYs0WHBfrYcdLxMldg774TIVXA2XpMM
+ 1+PL65vnI4Zw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.79,347,1602572400"; 
-   d="scan'208";a="499717154"
+   d="scan'208";a="499717148"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
   by orsmga004.jf.intel.com with ESMTP; 14 Jan 2021 13:20:25 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
@@ -44,9 +44,9 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
         Edward Srouji <edwards@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-core v5 5/6] tests: Add tests for dma-buf based memory regions
-Date:   Thu, 14 Jan 2021 13:35:35 -0800
-Message-Id: <1610660136-126627-6-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core v5 2/6] verbs: Support dma-buf based memory region
+Date:   Thu, 14 Jan 2021 13:35:32 -0800
+Message-Id: <1610660136-126627-3-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1610660136-126627-1-git-send-email-jianxin.xiong@intel.com>
 References: <1610660136-126627-1-git-send-email-jianxin.xiong@intel.com>
@@ -54,363 +54,341 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Define a set of unit tests similar to regular MR tests and a set of
-tests for send/recv and rdma traffic using dma-buf MRs. Add a utility
-function to generate access flags for dma-buf based MRs because the
-set of supported flags is smaller.
+Add new API function and new provider method for registering dma-buf
+based memory region. Update the man page and bump the API version.
 
 Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
 ---
- tests/args_parser.py |   4 +
- tests/test_mr.py     | 264 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- tests/utils.py       |  26 +++++
- 3 files changed, 293 insertions(+), 1 deletion(-)
+ debian/libibverbs1.symbols   |  2 ++
+ libibverbs/CMakeLists.txt    |  2 +-
+ libibverbs/cmd_mr.c          | 38 ++++++++++++++++++++++++++++++++++++++
+ libibverbs/driver.h          |  8 ++++++++
+ libibverbs/dummy_ops.c       | 11 +++++++++++
+ libibverbs/libibverbs.map.in |  6 ++++++
+ libibverbs/man/ibv_reg_mr.3  | 27 +++++++++++++++++++++++++--
+ libibverbs/verbs.c           | 18 ++++++++++++++++++
+ libibverbs/verbs.h           | 11 +++++++++++
+ 9 files changed, 120 insertions(+), 3 deletions(-)
 
-diff --git a/tests/args_parser.py b/tests/args_parser.py
-index 71a0f34..4e12d52 100644
---- a/tests/args_parser.py
-+++ b/tests/args_parser.py
-@@ -16,6 +16,10 @@ class ArgsParser(object):
-         parser = argparse.ArgumentParser()
-         parser.add_argument('--dev',
-                             help='RDMA device to run the tests on')
-+        parser.add_argument('--gpu', nargs='?', type=int, const=0, default=0,
-+                            help='GPU unit to allocate dmabuf from')
-+        parser.add_argument('--gtt', action='store_true', default=False,
-+                            help='Allocate dmabuf from GTT instead of VRAM')
-         parser.add_argument('-v', '--verbose', dest='verbosity',
-                             action='store_const',
-                             const=2, help='Verbose output')
-diff --git a/tests/test_mr.py b/tests/test_mr.py
-index adc649c..6915853 100644
---- a/tests/test_mr.py
-+++ b/tests/test_mr.py
+diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
+index 9130f41..fcf4d87 100644
+--- a/debian/libibverbs1.symbols
++++ b/debian/libibverbs1.symbols
+@@ -9,6 +9,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
+  IBVERBS_1.9@IBVERBS_1.9 30
+  IBVERBS_1.10@IBVERBS_1.10 31
+  IBVERBS_1.11@IBVERBS_1.11 32
++ IBVERBS_1.12@IBVERBS_1.12 33
+  (symver)IBVERBS_PRIVATE_33 33
+  _ibv_query_gid_ex@IBVERBS_1.11 32
+  _ibv_query_gid_table@IBVERBS_1.11 32
+@@ -99,6 +100,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
+  ibv_rate_to_mbps@IBVERBS_1.1 1.1.8
+  ibv_rate_to_mult@IBVERBS_1.0 1.1.6
+  ibv_read_sysfs_file@IBVERBS_1.0 1.1.6
++ ibv_reg_dmabuf_mr@IBVERBS_1.12 33
+  ibv_reg_mr@IBVERBS_1.0 1.1.6
+  ibv_reg_mr@IBVERBS_1.1 1.1.6
+  ibv_reg_mr_iova@IBVERBS_1.7 25
+diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
+index 0fe4256..d075225 100644
+--- a/libibverbs/CMakeLists.txt
++++ b/libibverbs/CMakeLists.txt
+@@ -21,7 +21,7 @@ configure_file("libibverbs.map.in"
+ 
+ rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
+   # See Documentation/versioning.md
+-  1 1.11.${PACKAGE_VERSION}
++  1 1.12.${PACKAGE_VERSION}
+   all_providers.c
+   cmd.c
+   cmd_ah.c
+diff --git a/libibverbs/cmd_mr.c b/libibverbs/cmd_mr.c
+index 42dbe42..af0fad7 100644
+--- a/libibverbs/cmd_mr.c
++++ b/libibverbs/cmd_mr.c
 @@ -1,5 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved. See COPYING file
-+# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
- """
- Test module for pyverbs' mr module.
- """
-@@ -9,9 +10,10 @@ import errno
+ /*
+  * Copyright (c) 2018 Mellanox Technologies, Ltd.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -116,3 +117,40 @@ int ibv_cmd_query_mr(struct ibv_pd *pd, struct verbs_mr *vmr,
+ 	return 0;
+ }
  
- from tests.base import PyverbsAPITestCase, RCResources, RDMATestCase
- from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
--from pyverbs.mr import MR, MW, DMMR, MWBindInfo, MWBind
-+from pyverbs.mr import MR, MW, DMMR, DmaBufMR, MWBindInfo, MWBind
- from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
- from pyverbs.wr import SendWR
-+from pyverbs.dmabuf import DmaBuf
- import pyverbs.device as d
- from pyverbs.pd import PD
- import pyverbs.enums as e
-@@ -366,3 +368,263 @@ class DMMRTest(PyverbsAPITestCase):
-                         dm_mr = DMMR(pd, dm_mr_len, e.IBV_ACCESS_ZERO_BASED,
-                                      dm=dm, offset=dm_mr_offset)
-                         dm_mr.close()
++int ibv_cmd_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++			  uint64_t iova, int fd, int access,
++			  struct verbs_mr *vmr)
++{
++	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_MR,
++			       UVERBS_METHOD_REG_DMABUF_MR,
++			       9);
++	struct ib_uverbs_attr *handle;
++	uint32_t lkey, rkey;
++	int ret;
 +
++	handle = fill_attr_out_obj(cmdb, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY, &lkey);
++	fill_attr_out_ptr(cmdb, UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY, &rkey);
 +
-+def check_dmabuf_support(unit=0):
-+    """
-+    Check if dma-buf allocation is supported by the system.
-+    Skip the test on failure.
-+    """
-+    device_num = 128 + unit
-+    try:
-+        DmaBuf(1, unit=unit)
-+    except PyverbsRDMAError as ex:
-+        if ex.error_code == errno.ENOENT:
-+            raise unittest.SkipTest(f'Device /dev/dri/renderD{device_num} is not present')
-+        if ex.error_code == errno.EACCES:
-+            raise unittest.SkipTest(f'Lack of permission to access /dev/dri/renderD{device_num}')
-+        if ex.error_code == errno.EOPNOTSUPP:
-+            raise unittest.SkipTest(f'Allocating dmabuf is not supported by /dev/dri/renderD{device_num}')
++	fill_attr_in_obj(cmdb, UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE, pd->handle);
++	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_OFFSET, offset);
++	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_LENGTH, length);
++	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_IOVA, iova);
++	fill_attr_in_uint32(cmdb, UVERBS_ATTR_REG_DMABUF_MR_FD, fd);
++	fill_attr_in_uint32(cmdb, UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS, access);
 +
++	ret = execute_ioctl(pd->context, cmdb);
++	if (ret)
++		return errno;
 +
-+def check_dmabuf_mr_support(pd, unit=0):
-+    """
-+    Check if dma-buf MR registration is supported by the driver.
-+    Skip the test on failure
-+    """
-+    try:
-+        DmaBufMR(pd, 1, 0, unit=unit)
-+    except PyverbsRDMAError as ex:
-+        if ex.error_code == errno.EOPNOTSUPP:
-+            raise unittest.SkipTest('Reg dma-buf MR is not supported by the RDMA driver')
-+
-+
-+class DmaBufMRTest(PyverbsAPITestCase):
-+    """
-+    Test various functionalities of the DmaBufMR class.
-+    """
-+    def setUp(self):
-+        super().setUp()
-+        self.unit = self.config['gpu']
-+        self.gtt = self.config['gtt']
-+
-+    def test_dmabuf_reg_mr(self):
-+        """
-+        Test ibv_reg_dmabuf_mr()
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                flags = u.get_dmabuf_access_flags(ctx)
-+                for f in flags:
-+                    len = u.get_mr_length()
-+                    for off in [0, len//2]:
-+                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                                      gtt=self.gtt) as mr:
-+                            pass
-+
-+    def test_dmabuf_dereg_mr(self):
-+        """
-+        Test ibv_dereg_mr() with DmaBufMR
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                flags = u.get_dmabuf_access_flags(ctx)
-+                for f in flags:
-+                    len = u.get_mr_length()
-+                    for off in [0, len//2]:
-+                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                                      gtt=self.gtt) as mr:
-+                            mr.close()
-+
-+    def test_dmabuf_dereg_mr_twice(self):
-+        """
-+        Verify that explicit call to DmaBufMR's close() doesn't fail
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                flags = u.get_dmabuf_access_flags(ctx)
-+                for f in flags:
-+                    len = u.get_mr_length()
-+                    for off in [0, len//2]:
-+                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                                      gtt=self.gtt) as mr:
-+                            # Pyverbs supports multiple destruction of objects,
-+                            # we are not expecting an exception here.
-+                            mr.close()
-+                            mr.close()
-+
-+    def test_dmabuf_reg_mr_bad_flags(self):
-+        """
-+        Verify that illegal flags combination fails as expected
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                for i in range(5):
-+                    flags = random.sample([e.IBV_ACCESS_REMOTE_WRITE,
-+                                           e.IBV_ACCESS_REMOTE_ATOMIC],
-+                                          random.randint(1, 2))
-+                    mr_flags = 0
-+                    for i in flags:
-+                        mr_flags += i.value
-+                    try:
-+                        DmaBufMR(pd, u.get_mr_length(), mr_flags,
-+                                 unit=self.unit, gtt=self.gtt)
-+                    except PyverbsRDMAError as err:
-+                        assert 'Failed to register a dma-buf MR' in err.args[0]
-+                    else:
-+                        raise PyverbsRDMAError('Registered a dma-buf MR with illegal falgs')
-+
-+    def test_dmabuf_write(self):
-+        """
-+        Test writing to DmaBufMR's buffer
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                for i in range(10):
-+                    mr_len = u.get_mr_length()
-+                    flags = u.get_dmabuf_access_flags(ctx)
-+                    for f in flags:
-+                        for mr_off in [0, mr_len//2]:
-+                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
-+                                          unit=self.unit, gtt=self.gtt) as mr:
-+                                write_len = min(random.randint(1, MAX_IO_LEN),
-+                                                mr_len)
-+                                mr.write('a' * write_len, write_len)
-+
-+    def test_dmabuf_read(self):
-+        """
-+        Test reading from DmaBufMR's buffer
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                for i in range(10):
-+                    mr_len = u.get_mr_length()
-+                    flags = u.get_dmabuf_access_flags(ctx)
-+                    for f in flags:
-+                        for mr_off in [0, mr_len//2]:
-+                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
-+                                          unit=self.unit, gtt=self.gtt) as mr:
-+                                write_len = min(random.randint(1, MAX_IO_LEN),
-+                                                mr_len)
-+                                write_str = 'a' * write_len
-+                                mr.write(write_str, write_len)
-+                                read_len = random.randint(1, write_len)
-+                                offset = random.randint(0, write_len-read_len)
-+                                read_str = mr.read(read_len, offset).decode()
-+                                assert read_str in write_str
-+
-+    def test_dmabuf_lkey(self):
-+        """
-+        Test reading lkey property
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                length = u.get_mr_length()
-+                flags = u.get_dmabuf_access_flags(ctx)
-+                for f in flags:
-+                    with DmaBufMR(pd, length, f, unit=self.unit,
-+                                  gtt=self.gtt) as mr:
-+                        mr.lkey
-+
-+    def test_dmabuf_rkey(self):
-+        """
-+        Test reading rkey property
-+        """
-+        check_dmabuf_support(self.unit)
-+        for ctx, attr, attr_ex in self.devices:
-+            with PD(ctx) as pd:
-+                check_dmabuf_mr_support(pd, self.unit)
-+                length = u.get_mr_length()
-+                flags = u.get_dmabuf_access_flags(ctx)
-+                for f in flags:
-+                    with DmaBufMR(pd, length, f, unit=self.unit,
-+                                  gtt=self.gtt) as mr:
-+                        mr.rkey
-+
-+
-+class DmaBufRC(RCResources):
-+    def __init__(self, dev_name, ib_port, gid_index, unit, gtt):
-+        """
-+        Initialize an DmaBufRC object.
-+        :param dev_name: Device name to be used
-+        :param ib_port: IB port of the device to use
-+        :param gid_index: Which GID index to use
-+        :param unit: GPU unit to allocate dmabuf from
-+        :gtt: Allocate dmabuf from GTT instead og VRAM
-+        """
-+        self.unit = unit
-+        self.gtt = gtt
-+        super(DmaBufRC, self).__init__(dev_name=dev_name, ib_port=ib_port,
-+                                       gid_index=gid_index)
-+
-+    def create_mr(self):
-+        check_dmabuf_support(self.unit)
-+        check_dmabuf_mr_support(self.pd, self.unit)
-+        access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
-+        mr = DmaBufMR(self.pd, self.msg_size, access, unit=self.unit,
-+                      gtt=self.gtt)
-+        self.mr = mr
-+
-+    def create_qp_attr(self):
-+        qp_attr = QPAttr(port_num=self.ib_port)
-+        qp_access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
-+        qp_attr.qp_access_flags = qp_access
-+        return qp_attr
-+
-+
-+class DmaBufTestCase(RDMATestCase):
-+    def setUp(self):
-+        super(DmaBufTestCase, self).setUp()
-+        self.iters = 100
-+        self.unit = self.config['gpu']
-+        self.gtt = self.config['gtt']
-+
-+    def create_players(self, resource, **resource_arg):
-+        """
-+        Init dma-buf tests resources.
-+        :param resource: The RDMA resources to use. A class of type
-+                         BaseResources.
-+        :param resource_arg: Dict of args that specify the resource specific
-+                             attributes.
-+        :return: The (client, server) resources.
-+        """
-+        client = resource(**self.dev_info, **resource_arg)
-+        server = resource(**self.dev_info, **resource_arg)
-+        client.pre_run(server.psns, server.qps_num)
-+        server.pre_run(client.psns, client.qps_num)
-+        return client, server
-+
-+    def test_dmabuf_rc_traffic(self):
-+        """
-+        Test send/recv using dma-buf MR over RC
-+        """
-+        client, server = self.create_players(DmaBufRC, unit=self.unit,
-+                                             gtt=self.gtt)
-+        u.traffic(client, server, self.iters, self.gid_index, self.ib_port)
-+
-+    def test_dmabuf_rdma_traffic(self):
-+        """
-+        Test rdma write using dma-buf MR
-+        """
-+        client, server = self.create_players(DmaBufRC, unit=self.unit,
-+                                             gtt=self.gtt)
-+        server.rkey = client.mr.rkey
-+        server.remote_addr = client.mr.offset
-+        client.rkey = server.mr.rkey
-+        client.remote_addr = server.mr.offset
-+        u.rdma_traffic(client, server, self.iters, self.gid_index, self.ib_port,
-+                       send_op=e.IBV_WR_RDMA_WRITE)
-diff --git a/tests/utils.py b/tests/utils.py
-index e2ab669..8546329 100644
---- a/tests/utils.py
-+++ b/tests/utils.py
++	vmr->ibv_mr.handle = read_attr_obj(UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
++					   handle);
++	vmr->ibv_mr.context = pd->context;
++	vmr->ibv_mr.lkey = lkey;
++	vmr->ibv_mr.rkey = rkey;
++	vmr->ibv_mr.pd = pd;
++	vmr->ibv_mr.addr = (void *)offset;
++	vmr->ibv_mr.length = length;
++	vmr->mr_type = IBV_MR_TYPE_DMABUF_MR;
++	return 0;
++}
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 427c225..0798152 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
+  * Copyright (c) 2005, 2006 Cisco Systems, Inc.  All rights reserved.
+  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -87,6 +88,7 @@ enum ibv_mr_type {
+ 	IBV_MR_TYPE_MR,
+ 	IBV_MR_TYPE_NULL_MR,
+ 	IBV_MR_TYPE_IMPORTED_MR,
++	IBV_MR_TYPE_DMABUF_MR,
+ };
+ 
+ struct verbs_mr {
+@@ -371,6 +373,9 @@ struct verbs_context_ops {
+ 	struct ibv_mr *(*reg_dm_mr)(struct ibv_pd *pd, struct ibv_dm *dm,
+ 				    uint64_t dm_offset, size_t length,
+ 				    unsigned int access);
++	struct ibv_mr *(*reg_dmabuf_mr)(struct ibv_pd *pd, uint64_t offset,
++					size_t length, uint64_t iova,
++					int fd, int access);
+ 	struct ibv_mr *(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
+ 				 uint64_t hca_va, int access);
+ 	int (*req_notify_cq)(struct ibv_cq *cq, int solicited_only);
+@@ -489,6 +494,9 @@ int ibv_cmd_advise_mr(struct ibv_pd *pd,
+ 		      uint32_t flags,
+ 		      struct ibv_sge *sg_list,
+ 		      uint32_t num_sge);
++int ibv_cmd_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++			  uint64_t iova, int fd, int access,
++			  struct verbs_mr *vmr);
+ int ibv_cmd_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type,
+ 		     struct ibv_mw *mw, struct ibv_alloc_mw *cmd,
+ 		     size_t cmd_size,
+diff --git a/libibverbs/dummy_ops.c b/libibverbs/dummy_ops.c
+index b6f272d..60a4527 100644
+--- a/libibverbs/dummy_ops.c
++++ b/libibverbs/dummy_ops.c
 @@ -1,5 +1,6 @@
- # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
- # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
-+# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
- """
- Provide some useful helper function for pyverbs' tests.
- """
-@@ -96,6 +97,31 @@ def get_access_flags(ctx):
-     return arr
+ /*
+  * Copyright (c) 2017 Mellanox Technologies, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -435,6 +436,14 @@ static struct ibv_mr *reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 	return NULL;
+ }
  
++static struct ibv_mr *reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset,
++				    size_t length, uint64_t iova,
++				    int fd, int access)
++{
++	errno = EOPNOTSUPP;
++	return NULL;
++}
++
+ static int req_notify_cq(struct ibv_cq *cq, int solicited_only)
+ {
+ 	return EOPNOTSUPP;
+@@ -542,6 +551,7 @@ const struct verbs_context_ops verbs_dummy_ops = {
+ 	query_srq,
+ 	read_counters,
+ 	reg_dm_mr,
++	reg_dmabuf_mr,
+ 	reg_mr,
+ 	req_notify_cq,
+ 	rereg_mr,
+@@ -670,6 +680,7 @@ void verbs_set_ops(struct verbs_context *vctx,
+ 	SET_PRIV_OP_IC(vctx, set_ece);
+ 	SET_PRIV_OP_IC(vctx, unimport_mr);
+ 	SET_PRIV_OP_IC(vctx, unimport_pd);
++	SET_OP(ctx, reg_dmabuf_mr);
  
-+def get_dmabuf_access_flags(ctx):
-+    """
-+    Similar to get_access_flags, except that dma-buf MR only support
-+    a subset of the flags.
-+    :param ctx: Device Context to check capabilities
-+    :return: A random legal value for MR flags
-+    """
-+    attr = ctx.query_device()
-+    vals = [e.IBV_ACCESS_LOCAL_WRITE, e.IBV_ACCESS_REMOTE_WRITE,
-+            e.IBV_ACCESS_REMOTE_READ, e.IBV_ACCESS_REMOTE_ATOMIC,
-+            e.IBV_ACCESS_RELAXED_ORDERING]
-+    if not attr.atomic_caps & e.IBV_ATOMIC_HCA:
-+        vals.remove(e.IBV_ACCESS_REMOTE_ATOMIC)
-+    arr = []
-+    for i in range(1, len(vals)):
-+        tmp = list(com(vals, i))
-+        tmp = filter(filter_illegal_access_flags, tmp)
-+        for t in tmp:  # Iterate legal combinations and bitwise OR them
-+            val = 0
-+            for flag in t:
-+                val += flag.value
-+            arr.append(val)
-+    return arr
+ #undef SET_OP
+ #undef SET_OP2
+diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
+index d124004..745146d 100644
+--- a/libibverbs/libibverbs.map.in
++++ b/libibverbs/libibverbs.map.in
+@@ -148,6 +148,11 @@ IBVERBS_1.11 {
+ 		_ibv_query_gid_table;
+ } IBVERBS_1.10;
+ 
++IBVERBS_1.12 {
++	global:
++		ibv_reg_dmabuf_mr;
++} IBVERBS_1.11;
 +
+ /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
+    version. See the top level CMakeLists.txt for this setting. */
+ 
+@@ -211,6 +216,7 @@ IBVERBS_PRIVATE_@IBVERBS_PABI_VERSION@ {
+ 		ibv_cmd_query_srq;
+ 		ibv_cmd_read_counters;
+ 		ibv_cmd_reg_dm_mr;
++		ibv_cmd_reg_dmabuf_mr;
+ 		ibv_cmd_reg_mr;
+ 		ibv_cmd_req_notify_cq;
+ 		ibv_cmd_rereg_mr;
+diff --git a/libibverbs/man/ibv_reg_mr.3 b/libibverbs/man/ibv_reg_mr.3
+index 2bfc955..a522527 100644
+--- a/libibverbs/man/ibv_reg_mr.3
++++ b/libibverbs/man/ibv_reg_mr.3
+@@ -3,7 +3,7 @@
+ .\"
+ .TH IBV_REG_MR 3 2006-10-31 libibverbs "Libibverbs Programmer's Manual"
+ .SH "NAME"
+-ibv_reg_mr, ibv_reg_mr_iova, ibv_dereg_mr \- register or deregister a memory region (MR)
++ibv_reg_mr, ibv_reg_mr_iova, ibv_reg_dmabuf_mr, ibv_dereg_mr \- register or deregister a memory region (MR)
+ .SH "SYNOPSIS"
+ .nf
+ .B #include <infiniband/verbs.h>
+@@ -15,6 +15,10 @@ ibv_reg_mr, ibv_reg_mr_iova, ibv_dereg_mr \- register or deregister a memory reg
+ .BI "                               size_t " "length" ", uint64_t " "hca_va" ,
+ .BI "                               int " "access" );
+ .sp
++.BI "struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd " "*pd" ", uint64_t " "offset" ,
++.BI "                                 size_t " "length" ", uint64_t " "iova" ,
++.BI "                                 int " "fd" ", int " "access" );
++.sp
+ .BI "int ibv_dereg_mr(struct ibv_mr " "*mr" );
+ .fi
+ .SH "DESCRIPTION"
+@@ -71,11 +75,30 @@ a lkey or rkey. The offset in the memory region is computed as 'addr +
+ (iova - hca_va)'. Specifying 0 for hca_va has the same effect as
+ IBV_ACCESS_ZERO_BASED.
+ .PP
++.B ibv_reg_dmabuf_mr()
++registers a dma-buf based memory region (MR) associated with the protection domain
++.I pd\fR.
++The MR starts at
++.I offset
++of the dma-buf and its size is
++.I length\fR.
++The dma-buf is identified by the file descriptor
++.I fd\fR.
++The argument
++.I iova
++specifies the virtual base address of the MR when accessed through a lkey or rkey.
++It must have the same page offset as
++.I offset\fR.
++The argument
++.I access
++describes the desired memory protection attributes; it is similar to the ibv_reg_mr case except that only the following flags are supported:
++.B IBV_ACCESS_LOCAL_WRITE, IBV_ACCESS_REMOTE_WRITE, IBV_ACCESS_REMOTE_READ, IBV_ACCESS_REMOTE_ATOMIC, IBV_ACCESS_RELAXED_ORDERING.
++.PP
+ .B ibv_dereg_mr()
+ deregisters the MR
+ .I mr\fR.
+ .SH "RETURN VALUE"
+-.B ibv_reg_mr() / ibv_reg_mr_iova()
++.B ibv_reg_mr() / ibv_reg_mr_iova() / ibv_reg_dmabuf_mr()
+ returns a pointer to the registered MR, or NULL if the request fails.
+ The local key (\fBL_Key\fR) field
+ .B lkey
+diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
+index 4fb3893..c5e8700 100644
+--- a/libibverbs/verbs.c
++++ b/libibverbs/verbs.c
+@@ -1,6 +1,7 @@
+ /*
+  * Copyright (c) 2005 Topspin Communications.  All rights reserved.
+  * Copyright (c) 2006, 2007 Cisco Systems, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corperation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -370,6 +371,23 @@ void ibv_unimport_mr(struct ibv_mr *mr)
+ 	get_ops(mr->context)->unimport_mr(mr);
+ }
+ 
++struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset,
++				 size_t length, uint64_t iova, int fd,
++				 int access)
++{
++	struct ibv_mr *mr;
 +
- def get_dm_attrs(dm_len):
-     """
-     Initializes an AllocDmAttr member with the given length and random
++	mr = get_ops(pd->context)->reg_dmabuf_mr(pd, offset, length, iova,
++						 fd, access);
++	if (mr) {
++		mr->context = pd->context;
++		mr->pd      = pd;
++		mr->addr    = (void *)offset;
++		mr->length  = length;
++	}
++	return mr;
++}
++
+ LATEST_SYMVER_FUNC(ibv_rereg_mr, 1_1, "IBVERBS_1.1",
+ 		   int,
+ 		   struct ibv_mr *mr, int flags,
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index da782f2..68b5d18 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2004, 2011-2012 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
+  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
++ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -1962,6 +1963,10 @@ struct ibv_context_ops {
+ 	void *(*_compat_attach_mcast)(void);
+ 	void *(*_compat_detach_mcast)(void);
+ 	void *(*_compat_async_event)(void);
++	struct ibv_mr *		(*reg_dmabuf_mr)(struct ibv_pd *pd,
++						 uint64_t offset, size_t length,
++						 uint64_t iova, int fd,
++						 int access);
+ };
+ 
+ struct ibv_context {
+@@ -2536,6 +2541,12 @@ __ibv_reg_mr_iova(struct ibv_pd *pd, void *addr, size_t length, uint64_t iova,
+ 			  __builtin_constant_p(                                \
+ 				  ((access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
+ 
++/**
++ * ibv_reg_dmabuf_mr - Register a dambuf-based memory region
++ */
++struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
++				 uint64_t iova, int fd, int access);
++
+ enum ibv_rereg_mr_err_code {
+ 	/* Old MR is valid, invalid input */
+ 	IBV_REREG_MR_ERR_INPUT = -1,
 -- 
 1.8.3.1
 
