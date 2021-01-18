@@ -5,56 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A0BFC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 798F4C433DB
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:45:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 635E222DFB
+	by mail.kernel.org (Postfix) with ESMTP id 3EB4E22DD3
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:45:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389109AbhARWlZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 17:41:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46996 "EHLO
+        id S2389125AbhARWl0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 17:41:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388988AbhARWlS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:18 -0500
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66943C0617A0
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:45 -0800 (PST)
-Received: by mail-wm1-x333.google.com with SMTP id e15so8652147wme.0
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:45 -0800 (PST)
+        with ESMTP id S2389064AbhARWlW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:22 -0500
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0BE1C0617A9
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:49 -0800 (PST)
+Received: by mail-wr1-x42a.google.com with SMTP id y17so17908197wrr.10
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=6wNCEKXSovrgDcg/eymskQwC0/mm+MKrGvoBfPJUQt0=;
-        b=P/cRXjIXkqCzwdQPKm+lw89m4nei/klZZcPENBNA6i+oROmqLZrEd49470LIOAu5wZ
-         zGjIZiD2PnMlzePE+CgTKz4Ntlws8tuauVJNX6RUWRVBvC92gHuQty4Zpp6qixgCEm2f
-         /8CBBU5izhqOnJ1Vt3Y2g6ltjpRQ2jrLAgaRQeZjb1oqkxMDlbtqYN0vgRdR5u7H9kKz
-         98rrngFqUJdd5GwCVWDtbSlAmU3dPsmslI/rm9iynd7v7ZzKvWKh8dRSwE85LKw6azNx
-         pshmvdTd/6zZVOlfHbt2o9rEfEAjRNkuymXBm+wk8mZY3St7PRKjiccjzfUAe2oJZyy2
-         uMPQ==
+        bh=GzQUCY9gltxfn7wTWc0ySyU4Wa3SIVVQ4lvu3auZsiw=;
+        b=ohaQkkPE5BgucSaroC8gEHqCxwBRDcrdwe4Cyh7fq924EvWjlTswVIVGtLhbkXgpsz
+         ulUELXQeoxytr+p7G+zPjYmHGafVu3hjH56YiLJ2RpROKnP+GLir5xo25TO5zEaFdlcI
+         MK5/3gqGS/gQyil6c1nGMndBqM6F7NgA+/ZvxeDi+hQizAXYIZj0XMY6qdx0ar6FTgPK
+         Ewgd99Que7Bozg6S33+/gHuWP+TbuVB3MkfcpNrnDweVUSMTe9qo1ezj0t6wlWGDUj2L
+         xkjaBTM1cqVVv4R7OMmQcXjgAwEFt0HGNHyoz4ijZ3hGjhH2enqCefN4ZjtvM8+zfKvU
+         /BWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=6wNCEKXSovrgDcg/eymskQwC0/mm+MKrGvoBfPJUQt0=;
-        b=iL9vRahcsTH0awydY4lkdZCGlH6jQJ8Yr+Vclul3/smZp4r1d2z9QwBV5hB2I1s5rr
-         gSHrxOTwqXCPRTsKvMzvP+OXCJP01BClISagtnBNs86D1iD3db5Z1cQ9bXYFRH3dcOV7
-         TQalceYZJqVgnK3oIC7IuoBseB+pGl24eRbviftJl25VUqJIfcKdyRvKk6azvv/MYQ6m
-         HFxNhTMSizRYz982jt+cUx6AuT5U+TPTYoq7ci8mrX6S9eEzbfBEZbjc0aKQ3+Q3jgNt
-         1eKNFBz64SiZqoM1P/Czja6lHuYPU1Mteo62EOWDFv9MQIxgW797D6JLff0/bqxl5rCh
-         x3yw==
-X-Gm-Message-State: AOAM5319n4/jDQCyYmKYE1/AVLsOOe7Uerbb1mIMTw1vH/p02TZhxFqz
-        GfmZYJ43oIiczJi1coVqgDzUfQ==
-X-Google-Smtp-Source: ABdhPJzM1pEz5Fy5M6FAKs8Lx2eEYfMI1Dfk/J4XW9ajHHf4mJATxMpAzXP9cK2DtoskVJL4vaO7qQ==
-X-Received: by 2002:a1c:6484:: with SMTP id y126mr1286178wmb.45.1611009584143;
-        Mon, 18 Jan 2021 14:39:44 -0800 (PST)
+        bh=GzQUCY9gltxfn7wTWc0ySyU4Wa3SIVVQ4lvu3auZsiw=;
+        b=TxoYuV7XxqeT0JZn5AJmo26daaWgablOemse0mRS7kPw66sGlgTlcGF9ECQd6sjENM
+         iTpRs3wTf2AL/VaNFD+ZQf+BUFvzfw7X1AbLgyNMD6IjmHaW1vw6tY1+yd0hQQplB3Fk
+         uyiMPso7yfWWYmohNJWk925RmvNb2o/CyW0LTgHmkX+yuuDYtJQOn4SuQT3Lj70wXBXS
+         CQeVfVNkNXOfk+Oqeuber9QgPYCW+rhFSnvb/nF1ZelaxSFgleP8Ar+EYS0XKL5A7cGM
+         WUsH53lR13bJNHKaV++JKV8SSC4hA5Cl3IQvDmtiiyI7T9Goa8JiyiT389oNoZESLydE
+         K+tA==
+X-Gm-Message-State: AOAM532ErVhvhthzEQNof6a9deg4Q+4k+yGfwbn5WnkfdkG1z7uTrMHv
+        61DAEjkRTDnNx5F8qs03NnGG3Q==
+X-Google-Smtp-Source: ABdhPJx7Wy4kfxuvLtUzePjNlo6w8TVwAo44JXWCI23N5aeZOa8LhTrUBFImsyKhcczcOrnPyjQYAQ==
+X-Received: by 2002:adf:dd90:: with SMTP id x16mr1417506wrl.85.1611009588581;
+        Mon, 18 Jan 2021 14:39:48 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.43
+        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Jan 2021 14:39:43 -0800 (PST)
+        Mon, 18 Jan 2021 14:39:48 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 10/20] RDMA/hw/i40iw/i40iw_puda: Fix some misspellings and provide missing descriptions
-Date:   Mon, 18 Jan 2021 22:39:19 +0000
-Message-Id: <20210118223929.512175-11-lee.jones@linaro.org>
+Subject: [PATCH 14/20] RDMA/hw/i40iw/i40iw_virtchnl: Fix a bunch of kernel-doc issues
+Date:   Mon, 18 Jan 2021 22:39:23 +0000
+Message-Id: <20210118223929.512175-15-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210118223929.512175-1-lee.jones@linaro.org>
 References: <20210118223929.512175-1-lee.jones@linaro.org>
@@ -76,19 +76,22 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/i40iw/i40iw_puda.c:517: warning: Function parameter or member 'dev' not described in 'i40iw_puda_qp_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:517: warning: Function parameter or member 'qp' not described in 'i40iw_puda_qp_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:517: warning: Excess function parameter 'rsrc' description in 'i40iw_puda_qp_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:629: warning: Function parameter or member 'dev' not described in 'i40iw_puda_cq_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:629: warning: Function parameter or member 'cq' not described in 'i40iw_puda_cq_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:629: warning: Excess function parameter 'rsrc' description in 'i40iw_puda_cq_wqe'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:792: warning: Function parameter or member 'vsi' not described in 'i40iw_puda_dele_resources'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:792: warning: Excess function parameter 'dev' description in 'i40iw_puda_dele_resources'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:884: warning: Function parameter or member 'vsi' not described in 'i40iw_puda_create_rsrc'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:884: warning: Excess function parameter 'dev' description in 'i40iw_puda_create_rsrc'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:1135: warning: Function parameter or member 'pfpdu' not described in 'i40iw_ieq_create_pbufl'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:1442: warning: Function parameter or member 'vsi' not described in 'i40iw_ieq_receive'
- drivers/infiniband/hw/i40iw/i40iw_puda.c:1442: warning: Excess function parameter 'dev' description in 'i40iw_ieq_receive'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:132: warning: Function parameter or member 'rsrc_type' not described in 'vchnl_vf_send_add_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:132: warning: Function parameter or member 'start_index' not described in 'vchnl_vf_send_add_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:132: warning: Function parameter or member 'rsrc_count' not described in 'vchnl_vf_send_add_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:170: warning: Function parameter or member 'rsrc_type' not described in 'vchnl_vf_send_del_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:170: warning: Function parameter or member 'start_index' not described in 'vchnl_vf_send_del_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:170: warning: Function parameter or member 'rsrc_count' not described in 'vchnl_vf_send_del_hmc_objs_req'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:230: warning: Function parameter or member 'hmc_fcn' not described in 'vchnl_pf_send_get_hmc_fcn_resp'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:283: warning: Function parameter or member 'op_ret_code' not described in 'vchnl_pf_send_error_resp'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:305: warning: Function parameter or member 'dev' not described in 'pf_cqp_get_hmc_fcn_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:305: warning: Function parameter or member 'callback_param' not described in 'pf_cqp_get_hmc_fcn_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:305: warning: Function parameter or member 'cqe_info' not described in 'pf_cqp_get_hmc_fcn_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:305: warning: Excess function parameter 'cqp_req_param' description in 'pf_cqp_get_hmc_fcn_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:305: warning: Excess function parameter 'not_used' description in 'pf_cqp_get_hmc_fcn_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:337: warning: Function parameter or member 'work_vf_dev' not described in 'pf_add_hmc_obj_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:337: warning: Excess function parameter 'vf_dev' description in 'pf_add_hmc_obj_callback'
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:412: warning: Function parameter or member 'dev' not described in 'i40iw_vf_init_pestat'
 
 Cc: Faisal Latif <faisal.latif@intel.com>
 Cc: Shiraz Saleem <shiraz.saleem@intel.com>
@@ -97,68 +100,81 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_puda.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-index 924be4b03c9a0..d1c8cc0a62365 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-@@ -511,7 +511,8 @@ static void i40iw_puda_qp_setctx(struct i40iw_puda_rsrc *rsrc)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+index 48fd327f876b0..aca9061688ae0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+@@ -119,7 +119,7 @@ static enum i40iw_status_code vchnl_vf_send_get_pe_stats_req(struct i40iw_sc_dev
+ 	return ret_code;
+ }
+ 
+-/**
++/*
+  * vchnl_vf_send_add_hmc_objs_req - Add HMC objects
+  * @dev: IWARP device pointer
+  * @vchnl_req: Virtual channel message request pointer
+@@ -158,9 +158,9 @@ static enum i40iw_status_code vchnl_vf_send_add_hmc_objs_req(struct i40iw_sc_dev
+  * vchnl_vf_send_del_hmc_objs_req - del HMC objects
+  * @dev: IWARP device pointer
+  * @vchnl_req: Virtual channel message request pointer
+- * @ rsrc_type - resource type to delete
+- * @ start_index - starting index for resource
+- * @ rsrc_count - number of resource type to delete
++ * @rsrc_type: resource type to delete
++ * @start_index: starting index for resource
++ * @rsrc_count: number of resource type to delete
+  */
+ static enum i40iw_status_code vchnl_vf_send_del_hmc_objs_req(struct i40iw_sc_dev *dev,
+ 							     struct i40iw_virtchnl_req *vchnl_req,
+@@ -222,6 +222,7 @@ static void vchnl_pf_send_get_ver_resp(struct i40iw_sc_dev *dev,
+  * @dev: IWARP device pointer
+  * @vf_id: Virtual function ID associated with the message
+  * @vchnl_msg: Virtual channel message buffer pointer
++ * @hmc_fcn: HMC function index pointer
+  */
+ static void vchnl_pf_send_get_hmc_fcn_resp(struct i40iw_sc_dev *dev,
+ 					   u32 vf_id,
+@@ -276,6 +277,7 @@ static void vchnl_pf_send_get_pe_stats_resp(struct i40iw_sc_dev *dev,
+  * @dev: IWARP device pointer
+  * @vf_id: Virtual function ID associated with the message
+  * @vchnl_msg: Virtual channel message buffer pointer
++ * @op_ret_code: I40IW_ERR_* status code
+  */
+ static void vchnl_pf_send_error_resp(struct i40iw_sc_dev *dev, u32 vf_id,
+ 				     struct i40iw_virtchnl_op_buf *vchnl_msg,
+@@ -297,8 +299,9 @@ static void vchnl_pf_send_error_resp(struct i40iw_sc_dev *dev, u32 vf_id,
  
  /**
-  * i40iw_puda_qp_wqe - setup wqe for qp create
-- * @rsrc: resource for qp
-+ * @dev: iwarp device
-+ * @qp: resource for qp
+  * pf_cqp_get_hmc_fcn_callback - Callback for Get HMC Fcn
+- * @cqp_req_param: CQP Request param value
+- * @not_used: unused CQP callback parameter
++ * @dev: IWARP device pointer
++ * @callback_param: unused CQP callback parameter
++ * @cqe_info: CQE information pointer
   */
- static enum i40iw_status_code i40iw_puda_qp_wqe(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp)
+ static void pf_cqp_get_hmc_fcn_callback(struct i40iw_sc_dev *dev, void *callback_param,
+ 					struct i40iw_ccq_cqe_info *cqe_info)
+@@ -331,7 +334,7 @@ static void pf_cqp_get_hmc_fcn_callback(struct i40iw_sc_dev *dev, void *callback
+ 
+ /**
+  * pf_add_hmc_obj - Callback for Add HMC Object
+- * @vf_dev: pointer to the VF Device
++ * @work_vf_dev: pointer to the VF Device
+  */
+ static void pf_add_hmc_obj_callback(void *work_vf_dev)
  {
-@@ -623,7 +624,8 @@ static enum i40iw_status_code i40iw_puda_qp_create(struct i40iw_puda_rsrc *rsrc)
+@@ -404,7 +407,7 @@ static void pf_del_hmc_obj_callback(void *work_vf_dev)
  
  /**
-  * i40iw_puda_cq_wqe - setup wqe for cq create
-- * @rsrc: resource for cq
-+ * @dev: iwarp device
-+ * @cq: cq to setup
+  * i40iw_vf_init_pestat - Initialize stats for VF
+- * @devL pointer to the VF Device
++ * @dev: pointer to the VF Device
+  * @stats: Statistics structure pointer
+  * @index: Stats index
   */
- static enum i40iw_status_code i40iw_puda_cq_wqe(struct i40iw_sc_dev *dev, struct i40iw_sc_cq *cq)
- {
-@@ -782,7 +784,7 @@ static void i40iw_puda_free_cq(struct i40iw_puda_rsrc *rsrc)
- 
- /**
-  * i40iw_puda_dele_resources - delete all resources during close
-- * @dev: iwarp device
-+ * @vsi: pointer to vsi structure
-  * @type: type of resource to dele
-  * @reset: true if reset chip
-  */
-@@ -876,7 +878,7 @@ static enum i40iw_status_code i40iw_puda_allocbufs(struct i40iw_puda_rsrc *rsrc,
- 
- /**
-  * i40iw_puda_create_rsrc - create resouce (ilq or ieq)
-- * @dev: iwarp device
-+ * @vsi: pointer to vsi structure
-  * @info: resource information
-  */
- enum i40iw_status_code i40iw_puda_create_rsrc(struct i40iw_sc_vsi *vsi,
-@@ -1121,6 +1123,7 @@ static void  i40iw_ieq_compl_pfpdu(struct i40iw_puda_rsrc *ieq,
- 
- /**
-  * i40iw_ieq_create_pbufl - create buffer list for single fpdu
-+ * @pfpdu: partial management per user qp
-  * @rxlist: resource list for receive ieq buffes
-  * @pbufl: temp. list for buffers for fpddu
-  * @buf: first receive buffer
-@@ -1434,7 +1437,7 @@ static void i40iw_ieq_handle_exception(struct i40iw_puda_rsrc *ieq,
- 
- /**
-  * i40iw_ieq_receive - received exception buffer
-- * @dev: iwarp device
-+ * @vsi: pointer to vsi structure
-  * @buf: exception buffer received
-  */
- static void i40iw_ieq_receive(struct i40iw_sc_vsi *vsi,
 -- 
 2.25.1
 
