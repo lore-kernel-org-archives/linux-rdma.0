@@ -5,63 +5,66 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3FAC433E9
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:42:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77FA1C43381
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:42:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D928622BE9
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:42:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4124422BE9
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:42:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389476AbhARWlr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 17:41:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47188 "EHLO
+        id S2389556AbhARWmK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 17:42:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389409AbhARWln (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:43 -0500
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90AD1C0617A3
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:47 -0800 (PST)
-Received: by mail-wm1-x32a.google.com with SMTP id y187so15071151wmd.3
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:47 -0800 (PST)
+        with ESMTP id S2389470AbhARWlr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:47 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F270CC0617B9
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:52 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id a12so17889791wrv.8
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:52 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=gHiJhxMJMTlKf0rwnSY2fvsJQElsTJK9TpSX7iDgS9U=;
-        b=c/wzvuGs7H2n2IY5w2J7DUpQ6H/5aj0IhNxht22Kh3XJC8ekmOjvgFNC9UH3S1cqPX
-         kpA7gmlOrragpwi/LxDDh7L9I98as16dNbr3ZfA2TEEp76/rDn5RJKp+28mz1JypJ/KE
-         uu7WBmoNGTSPta8rTtAyxml3RjhGp6LjHiiKv7jTB8jelN/v845/Qd+oalAl6PjiOqYB
-         dVi2xU8NJFxAcLXd4UlxB1+LL21o2p9uAyVJraIM/VmAdrelF/1K2aDFE7puguv4v7jW
-         waeoFb4BOBoafcnJhQgKR6PxIsHJbbKYU3qxrKJThGACD6WynCZHcsR9CUG3jz8B6BLB
-         8Fig==
+        bh=41jrK8tqpJECnYanwp1YJTyb0GhdE88NeiFiFexYn+U=;
+        b=CmlNVxQTCIQV4c/g3Ja3Hok8QLIdmpZDAnVm0XuGvNaIgSUSZjGd84XCU0VsGqKlXy
+         G4lP1Z1qM/sJylS6BcxYWG/fK7cW+Aw4sUaLhvTBFikXESyzkgAldft3TgS3JZQlTTA9
+         ov0YudSg4IQeZ2+68uvxL0ZE5h2QibWmf9u/8Fr4Is6K1LPaTTmQNBwglE50qhKXhWSe
+         YyYc/OVf48k395xsPG161hOABYLcKMNgJ1mFR5tD9NUJ8W6DhEO1hJvflEB5lSP8zMB1
+         04TsoyUgIejk1PLb05irwtWyYqstkDesep0lSKs+my+bxL7H53EaH5mTls9iYGgrCak5
+         eMrQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=gHiJhxMJMTlKf0rwnSY2fvsJQElsTJK9TpSX7iDgS9U=;
-        b=EyIHizfW6k0oMe72CpNrxqKq4DHnzDyXGItDAj/2oWPJLOdMpBpWRAALm0+Xuc4JB2
-         cb2PwBi8R7My6XCNm2s2RBd7uE8UWoiOrDHjuP/RhO8fOksVpA08mCCJjGz3HMrGMZjl
-         tpa+ST8Lm2+c03i6ff2oB9r8zXmAQeMsx4X3m3XLpG4bHGm5YKjqLxvg4udtJh/GgPEW
-         FF64TQ2D4x5tClHvrL8BLIBW5Zz2VWew7JdjoUrcqjcehThK1oy9MbEUquB+Z8jan8kS
-         PZMujKyQsNK7BLPLcdMgsJsZRYfoIKOaS3jwQ4T2OTew0sb8POn4tApSbkX42kNsWoBk
-         4VHQ==
-X-Gm-Message-State: AOAM530GPNHFG9ZNeWQUbrToimVzfUDOm69c5oscYp+DKXn+CGmkGplg
-        doSi+kBe3wxg6hsopj9fyTWVXQ==
-X-Google-Smtp-Source: ABdhPJzdlcg52fvz/z4ZD7lsZ+PnpThAHnHstBLslXgw7h+m2r6Bas2FH1QY72pFWP27L7ZRpVV8fQ==
-X-Received: by 2002:a1c:24c4:: with SMTP id k187mr1361332wmk.14.1611009586380;
-        Mon, 18 Jan 2021 14:39:46 -0800 (PST)
+        bh=41jrK8tqpJECnYanwp1YJTyb0GhdE88NeiFiFexYn+U=;
+        b=DOaJLDtpPzP38LNR/1aRPWlY3nm9hjTalplneqSn/ulLHIEiqF8SlkYiBv8Kgkfi9i
+         l2p7+sMU3nXwO4Q2uTMPlcDizGu7x/+B63emM19sdR+NMuJfhH65tIi9y6bu/lvuysAv
+         2F0oOXj4fkdoKaVVj6PbOw7kX4P+86mCG+mF/7/2YPnuHJw6JjpoMxz9+Wvx/raQsMtu
+         vZftWOiNGNo8LMoy/LlZg9B2iL+aeEV0eGy/aOinAEwoz+itvodS20e0JAxoDyDM/EFM
+         tfFn35idKjh3WO2kV0KBY9wyCbijoBkq6NzfrpvQzZz+wFberQt88kzGGuMMMKg50G+T
+         2R1g==
+X-Gm-Message-State: AOAM5305PXFlkxNYPIN/IT8jhk3j12sJkqrKTnkYM+kHPRxGln3WnNgJ
+        k05Ze789PUT2z7qIXSOmtwuuJg==
+X-Google-Smtp-Source: ABdhPJw24QWYWrJDsRVFCliI3DWdja/CEmJlCTNupjTyNdIeFxS7crWd6U6n5VSX2PBTrVXeBUpf+A==
+X-Received: by 2002:a5d:4ccb:: with SMTP id c11mr1398112wrt.324.1611009591755;
+        Mon, 18 Jan 2021 14:39:51 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.45
+        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Jan 2021 14:39:45 -0800 (PST)
+        Mon, 18 Jan 2021 14:39:51 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
+Cc:     linux-kernel@vger.kernel.org,
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 12/20] RDMA/core/sa_query: Demote non-conformant kernel-doc header
-Date:   Mon, 18 Jan 2021 22:39:21 +0000
-Message-Id: <20210118223929.512175-13-lee.jones@linaro.org>
+Subject: [PATCH 17/20] RDMA/hw/i40iw/i40iw_verbs: Fix worthy function headers and demote some others
+Date:   Mon, 18 Jan 2021 22:39:26 +0000
+Message-Id: <20210118223929.512175-18-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210118223929.512175-1-lee.jones@linaro.org>
 References: <20210118223929.512175-1-lee.jones@linaro.org>
@@ -73,33 +76,131 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/core/sa_query.c:1449: warning: Function parameter or member 'client' not described in 'opa_pr_query_possible'
- drivers/infiniband/core/sa_query.c:1449: warning: Function parameter or member 'sa_dev' not described in 'opa_pr_query_possible'
- drivers/infiniband/core/sa_query.c:1449: warning: Function parameter or member 'device' not described in 'opa_pr_query_possible'
- drivers/infiniband/core/sa_query.c:1449: warning: Function parameter or member 'port_num' not described in 'opa_pr_query_possible'
- drivers/infiniband/core/sa_query.c:1449: warning: Function parameter or member 'rec' not described in 'opa_pr_query_possible'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:273: warning: Excess function parameter 'iwdev' description in 'i40iw_free_qp_resources'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:273: warning: Excess function parameter 'qp_num' description in 'i40iw_free_qp_resources'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:307: warning: Function parameter or member 'udata' not described in 'i40iw_destroy_qp'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:348: warning: Function parameter or member 'iwdev' not described in 'i40iw_setup_virt_qp'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:348: warning: Function parameter or member 'iwqp' not described in 'i40iw_setup_virt_qp'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:348: warning: Excess function parameter 'dev' description in 'i40iw_setup_virt_qp'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:348: warning: Excess function parameter 'qp' description in 'i40iw_setup_virt_qp'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1248: warning: Function parameter or member 'pg_size' not described in 'i40iw_check_mem_contiguous'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1264: warning: Function parameter or member 'pg_size' not described in 'i40iw_check_mr_contiguous'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1539: warning: Function parameter or member 'sg_offset' not described in 'i40iw_map_mr_sg'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1886: warning: Function parameter or member 'udata' not described in 'i40iw_dereg_mr'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1953: warning: Function parameter or member 'dev' not described in 'hw_rev_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1953: warning: Function parameter or member 'attr' not described in 'hw_rev_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1953: warning: Function parameter or member 'buf' not described in 'hw_rev_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1967: warning: Function parameter or member 'dev' not described in 'hca_type_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1967: warning: Function parameter or member 'attr' not described in 'hca_type_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1967: warning: Function parameter or member 'buf' not described in 'hca_type_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1977: warning: Function parameter or member 'dev' not described in 'board_id_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1977: warning: Function parameter or member 'attr' not described in 'board_id_show'
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c:1977: warning: Function parameter or member 'buf' not described in 'board_id_show'
 
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/core/sa_query.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 89a831fa1885b..5bd047042e686 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -1434,7 +1434,7 @@ enum opa_pr_supported {
- 	PR_IB_SUPPORTED
- };
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 65aedfe57e776..f18d146a6079f 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -265,9 +265,7 @@ static struct i40iw_pbl *i40iw_get_pbl(unsigned long va,
+ 
+ /**
+  * i40iw_free_qp_resources - free up memory resources for qp
+- * @iwdev: iwarp device
+  * @iwqp: qp ptr (user or kernel)
+- * @qp_num: qp number assigned
+  */
+ void i40iw_free_qp_resources(struct i40iw_qp *iwqp)
+ {
+@@ -302,6 +300,7 @@ static void i40iw_clean_cqes(struct i40iw_qp *iwqp, struct i40iw_cq *iwcq)
+ /**
+  * i40iw_destroy_qp - destroy qp
+  * @ibqp: qp's ib pointer also to get to device's qp address
++ * @udata: user data
+  */
+ static int i40iw_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ {
+@@ -338,8 +337,8 @@ static int i40iw_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 
+ /**
+  * i40iw_setup_virt_qp - setup for allocation of virtual qp
+- * @dev: iwarp device
+- * @qp: qp ptr
++ * @iwdev: iwarp device
++ * @iwqp: qp ptr
+  * @init_info: initialize info to return
+  */
+ static int i40iw_setup_virt_qp(struct i40iw_device *iwdev,
+@@ -1241,7 +1240,7 @@ static void i40iw_copy_user_pgaddrs(struct i40iw_mr *iwmr,
+  * i40iw_check_mem_contiguous - check if pbls stored in arr are contiguous
+  * @arr: lvl1 pbl array
+  * @npages: page count
+- * pg_size: page size
++ * @pg_size: page size
+  *
+  */
+ static bool i40iw_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
+@@ -1258,7 +1257,7 @@ static bool i40iw_check_mem_contiguous(u64 *arr, u32 npages, u32 pg_size)
+ /**
+  * i40iw_check_mr_contiguous - check if MR is physically contiguous
+  * @palloc: pbl allocation struct
+- * pg_size: page size
++ * @pg_size: page size
+  */
+ static bool i40iw_check_mr_contiguous(struct i40iw_pble_alloc *palloc, u32 pg_size)
+ {
+@@ -1533,6 +1532,7 @@ static int i40iw_set_page(struct ib_mr *ibmr, u64 addr)
+  * @ibmr: ib mem to access iwarp mr pointer
+  * @sg: scatter gather list for fmr
+  * @sg_nents: number of sg pages
++ * @sg_offset: scatter gather offset
+  */
+ static int i40iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+ 			   int sg_nents, unsigned int *sg_offset)
+@@ -1881,6 +1881,7 @@ static void i40iw_del_memlist(struct i40iw_mr *iwmr,
+ /**
+  * i40iw_dereg_mr - deregister mr
+  * @ib_mr: mr ptr for dereg
++ * @udata: user data
+  */
+ static int i40iw_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
+ {
+@@ -1945,7 +1946,7 @@ static int i40iw_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
+ 	return 0;
+ }
  
 -/**
 +/*
-  * opa_pr_query_possible - Check if current PR query can be an OPA query.
-  *
-  * Retuns PR_NOT_SUPPORTED if a path record query is not
+  * hw_rev_show
+  */
+ static ssize_t hw_rev_show(struct device *dev,
+@@ -1959,7 +1960,7 @@ static ssize_t hw_rev_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(hw_rev);
+ 
+-/**
++/*
+  * hca_type_show
+  */
+ static ssize_t hca_type_show(struct device *dev,
+@@ -1969,7 +1970,7 @@ static ssize_t hca_type_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(hca_type);
+ 
+-/**
++/*
+  * board_id_show
+  */
+ static ssize_t board_id_show(struct device *dev,
 -- 
 2.25.1
 
