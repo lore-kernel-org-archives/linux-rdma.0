@@ -8,103 +8,90 @@ X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B66C433E6
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:02:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8457BC433DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE161207C4
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:02:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42F682225E
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388466AbhARVCd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 16:02:33 -0500
-Received: from nat-hk.nvidia.com ([203.18.50.4]:55527 "EHLO nat-hk.nvidia.com"
+        id S2394525AbhARVGn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 16:06:43 -0500
+Received: from nat-hk.nvidia.com ([203.18.50.4]:52516 "EHLO nat-hk.nvidia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388380AbhARVCE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Jan 2021 16:02:04 -0500
-Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6005f71c0001>; Tue, 19 Jan 2021 05:01:16 +0800
-Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL104.nvidia.com
+        id S2390359AbhARVD1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Jan 2021 16:03:27 -0500
+Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.77]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B6005f76f0000>; Tue, 19 Jan 2021 05:02:39 +0800
+Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL104.nvidia.com
  (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 18 Jan
- 2021 21:01:12 +0000
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.47) by
- HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 18 Jan 2021 21:01:12 +0000
+ 2021 21:02:39 +0000
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.105)
+ by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 18 Jan 2021 21:02:38 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Z+7DHV22/7L8Pmc3nUw/buCPlFq7rdhjfpNZJ5KVmLX9V6eE+tDn72avsHa0ybsrhPD6CzzKbJuYkgKW26wTET/soxTZfyn4nLUZvKeiVXVNQtKf+bAUoGJHgbmhR75d33G/I616PLa8Xek1nugOMrTyjxkCDTH1gq0TAf34EB2oRhS4BAKLkaefXrOOZ28PAGJ6PyTEZ350UQygoG4BRRZcG++tFRtp8aoFX8dtjT5427bxRxuZ8VC6KCftTzguSMMQqhpy6zwArTJRyQH/FT9crHSuEayQmX27TxHJTTFMnjQpkNgSUO6Ctr/ylrLO6EErb6lRTbbimQQyJscoqA==
+ b=k2aex2xFFLt6WMKh9If/0/oIYJx0lYMbSYj9nS/STz5Ab8DVNQyKiibLOIUj/CSU2ZxNKgw9fObXRdc/B3LM3tg2nO1EhfgARMAURPtdwyYJKWuLK096lkLwXlusZR5mSnQwQ7atMWc2bKb5wWFrGsubUfyfRLQ0pfLU5ufWBBifPjUmyaQr09OJWgGYnCUUyOj0nIXfMlTa0vyPg0B74RafLp1E1CHIeWcqosIixYsOFgzU5LK6UFFYuFTRrl4YCSJmRGlqBxXmXcMuoGOKr3X65F7J0Zi/7IT86gqqIJlG5vLojOE3hQ3uvBm3ee5B+wErE6R7GhGGn/K1502Dkw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tz70eeU7BktpAAyS3txpP8CEqJcRvv1tvXY3oYKyMWY=;
- b=IhGkIS1PzOoqmHj6VNPsp3B1YYF2h52KSDksXx3u8ugF589oHzfc58al5AMFEMAkZ0cLplUD86xYcxMopELt8ji0pAlIf7NLBLli9TV2HMbXEaxGmMQGTBTkQiNI8O4863DGEhIX1WQaFWqDMocDFVWqT2EtZyGAMnsfLs4MWL+OsomZndnghP/RqH9AH8iiL8J49tevemuMwRFs8kmYvbg6c7zXCqKy0Cgwaie9L0J5ggyIj+fivzaCLC9cZjrCTeA3FrKVpYvrQ6PdLYsH8HL0qxlKk7fKfTS+pFRHuP6LVQQafGhHFJsjlIyS72LfAgXsP+gecwdf0f3D/81TNw==
+ bh=I5jJoggtnCxW01YO8Mb7PWJXK2bvdTeRv+TyfkkqpBI=;
+ b=VilGt7+53En9/E6a3zmFPGbm5NUk7XR3B/EGz9ADGH46ZhKyJqX53Gez6zWJeCaaAyo3QJZd0Im9EiqBMX2pvkUEYithdUhyMGIVckY3wH7cDCb7RhEYM12zqJ5Hw+YArvpAXRH7EFgt+lE8lKb+PbL/AQ3m9Z4StavK8kdDk2G4pTJdXHCbM1MWgwhCt5aPD7LqL0IZHUa9O99rB96haddZUIS1hSF0iavLoWZq7+ToSvtgSsfTCzGLRSD76t2mdjR6Xp9qT5CnaQJ3vOY1kJLWyPlebluh3jHdxUynI6x4+pZq3IyOUcpgqAa4mBMYTmy4i/8YWwxcArW9HXugXg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4451.namprd12.prod.outlook.com (2603:10b6:5:2ab::18) with
+ by DM5PR12MB2440.namprd12.prod.outlook.com (2603:10b6:4:b6::39) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.11; Mon, 18 Jan
- 2021 21:01:09 +0000
+ 2021 21:02:36 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3763.014; Mon, 18 Jan 2021
- 21:01:09 +0000
-Date:   Mon, 18 Jan 2021 17:01:07 -0400
+ 21:02:36 +0000
+Date:   Mon, 18 Jan 2021 17:02:34 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Weihang Li <liweihang@huawei.com>
-CC:     <dledford@redhat.com>, <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@openeuler.org>
-Subject: Re: [PATCH v2 for-next] RDMA/hns: Create CQ with selected CQN for
- bank load balance
-Message-ID: <20210118210107.GB797553@nvidia.com>
-References: <1610008589-35770-1-git-send-email-liweihang@huawei.com>
+To:     Max Gurtovoy <mgurtovoy@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>, <dledford@redhat.com>,
+        <leonro@nvidia.com>, <sagi@grimberg.me>, <oren@nvidia.com>,
+        Israel Rukshin <israelr@nvidia.com>
+Subject: Re: [PATCH 1/3] IB/isert: remove unneeded new lines
+Message-ID: <20210118210234.GD797553@nvidia.com>
+References: <20210110111903.486681-1-mgurtovoy@nvidia.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <1610008589-35770-1-git-send-email-liweihang@huawei.com>
-X-ClientProxiedBy: MN2PR18CA0030.namprd18.prod.outlook.com
- (2603:10b6:208:23c::35) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <20210110111903.486681-1-mgurtovoy@nvidia.com>
+X-ClientProxiedBy: BL0PR02CA0110.namprd02.prod.outlook.com
+ (2603:10b6:208:35::15) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR18CA0030.namprd18.prod.outlook.com (2603:10b6:208:23c::35) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Mon, 18 Jan 2021 21:01:09 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1be7-003LUv-Ud; Mon, 18 Jan 2021 17:01:07 -0400
+Received: from mlx.ziepe.ca (142.162.115.133) by BL0PR02CA0110.namprd02.prod.outlook.com (2603:10b6:208:35::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Mon, 18 Jan 2021 21:02:36 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1bfW-003LWK-Ka; Mon, 18 Jan 2021 17:02:34 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611003677; bh=tz70eeU7BktpAAyS3txpP8CEqJcRvv1tvXY3oYKyMWY=;
+        t=1611003759; bh=I5jJoggtnCxW01YO8Mb7PWJXK2bvdTeRv+TyfkkqpBI=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=EdtTqsLqxMNEvROuR6GH8kAwNk4+MgKcxS5v2+VwteY4+56y+Nbhb7w8v7Pbabo5m
-         S/U/oV0bvjX3r26BQ5TaDO/0ApmmANn2e6JZRXyMASQ0xpndrBwzPj4feikjmPrITj
-         wEi78ePXjwvbyP1Jn8fQT0Zo69RD7KMi7SRstwO2DNyAHt+3wrUOLAMNo51QFUVmHX
-         SdoEw1/IprlElAWxCUlV6JadsNSAOxBJh3sekKnJ46P/i5EUpq3p+iH1ymQN64Gbwx
-         TBrRwaTbb0IICd6Cz8wE6CpYP00hEFsB9rO4KiVvuv/sr5iYnH8oM+kj1Y9HrEfvds
-         4ZJqIVBA0R0kg==
+        b=hmT3VtY9e7cBLCao/Mp7igxw4DKNQIJGu7Ck7TJAj4hhJKTJO63LmwHNpBFxZb3+7
+         xc4HX1o0ABkqlDrGPUM84HW7jY+6ViilpVWf5oNyx+FGe+eubieByNZaKcIcWLPjJM
+         gRAcgsTNlusTPZu4Gp2mCWQfDpQwNpp03XB31LqVcGSQ32zwqun6dl/qGmnfUFUqwd
+         qg0uM71WDkOOB/uCdsIg2fg+5Xix4mb+6yZNUTY1fTqtCNSWVfVZeMCg+IfPHpbi36
+         pV2BU8dAellC6yfgSYhclnDGgAVuT/FEbgholxf1WoqcQHY/ryECfcO2fXmBkwb533
+         4/+v7SBPDHbdw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 04:36:29PM +0800, Weihang Li wrote:
-> From: Yangyang Li <liyangyang20@huawei.com>
+On Sun, Jan 10, 2021 at 11:19:01AM +0000, Max Gurtovoy wrote:
+> The Linux convention is to have only 1 new line between functions.
 > 
-> In order to improve performance by balancing the load between different
-> banks of cache, the CQC cache is desigend to choose one of 4 banks
-> according to lower 2 bits of CQN. The hns driver needs to count the number
-> of CQ on each bank and then assigns the CQ being created to the bank with
-> the minimum load first.
-> 
-> Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-> Signed-off-by: Weihang Li <liweihang@huawei.com>
+> Reviewed-by: Israel Rukshin <israelr@nvidia.com>
+> Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
+> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 > ---
-> Changes since v1:
-> - Change GFP_ATOMIC to GFP_KERNEL as there is a chance of memory allocation
->   failure, and change the spin lock to mutex lock because ida_alloc_range()
->   may sleep.
-> - Link: https://patchwork.kernel.org/project/linux-rdma/patch/1609742115-47270-1-git-send-email-liweihang@huawei.com/
-> 
->  drivers/infiniband/hw/hns/hns_roce_cq.c     | 115 +++++++++++++++++++++++-----
->  drivers/infiniband/hw/hns/hns_roce_device.h |  10 ++-
->  drivers/infiniband/hw/hns/hns_roce_main.c   |   8 +-
->  3 files changed, 105 insertions(+), 28 deletions(-)
+>  drivers/infiniband/ulp/isert/ib_isert.c | 2 --
+>  1 file changed, 2 deletions(-)
 
-Applied to for-next, thanks
+Series applied to for-next, thanks
 
 Jason
