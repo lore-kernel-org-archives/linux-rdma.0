@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34708C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74DF2C43381
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 20:16:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE03322E00
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 20:16:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5814C22EBD
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 20:16:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2394294AbhARUOk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 15:14:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52940 "EHLO mail.kernel.org"
+        id S2394285AbhARUOU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 15:14:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52936 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394276AbhARUOQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Jan 2021 15:14:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 133AC23100;
-        Mon, 18 Jan 2021 20:12:57 +0000 (UTC)
+        id S2394271AbhARUOM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 18 Jan 2021 15:14:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0163230FE;
+        Mon, 18 Jan 2021 20:12:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611000778;
-        bh=A7KEFmxN3DVmc8kkZcblDlmaJu5jjoRnmTnpEgGbV8s=;
+        s=k20201202; t=1611000776;
+        bh=79YqCqFxrAoHnJPPr5ijFQ1b+GdnEWIcFuOBtj7q2uE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CYvl6zB2GKYyFfvHo0uw4MeuAsHP0CKyRRTnwfPZQjelAYnL2mEz+4qNn8br4i/HX
-         IA3rZ6USMFM6LnRN6/gV6RI+Kgz24r8/0tCQgYH6XWI+82939TuNwe6kiUOGOl3L5C
-         eOnRDPNaVB0H1qFCbc219ZgGP+f3Xl7WsI1wWduC/+b+ko2jXrqP+kersj8ti1VT4u
-         UVdK7yBMYp1kgfHWfpE3/wL9YuTBTHlXK1Ll2UC8rxeUjJpptYNhMwe7Wyy/Gz5F8T
-         KwGBhIcOy4QQ4l2wrYG9C1KaqY4LzjIQtgCajHfEYFLJZKaRgXxF+0EalfYpzTEf/l
-         VFHGrJpGW0JmA==
+        b=FCv3v8HuI/kf3ebjy4GTaOduoAQUEtsQOqqqCSXbPmvqpUfTa7Upo7dfCDbES9jmo
+         LcfHMF25jb0LrStrpnEnFCfTa4/7EjgKYbHp2AUNdNcL3MR2EkER37SJHT8mScN7Jv
+         AjRsh/NJ/DlrYTNDHkiQK+jt67uhyNH2l+jWw7o83BJKwAyBY1eu1J3yD1FCAe1L/p
+         1/boivvu4RoxYQgeUw8zpa8hbwJiKYjZTNMlNbWKNu99QyRGI506akWtqNxRW3bY4f
+         e+L/VmuEMtI3Xf2pwuZ+NCJyLGdfMs9l9OfidJFRMSTs/vgPMJL7cvP5Nk3jLfDkPp
+         dqf1oEld9gX0w==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         Parav Pandit <parav@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next V7 11/14] net/mlx5: SF, Port function state change support
-Date:   Mon, 18 Jan 2021 12:12:28 -0800
-Message-Id: <20210118201231.363126-12-saeed@kernel.org>
+        Roi Dayan <roid@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>
+Subject: [net-next V7 09/14] net/mlx5: E-switch, Add eswitch helpers for SF vport
+Date:   Mon, 18 Jan 2021 12:12:26 -0800
+Message-Id: <20210118201231.363126-10-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210118201231.363126-1-saeed@kernel.org>
 References: <20210118201231.363126-1-saeed@kernel.org>
@@ -52,835 +52,218 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-Support changing the state of the SF port's function through devlink.
-When activating the SF port's function, enable the hca in the device
-followed by adding its auxiliary device.
-When deactivating the SF port's function, delete its auxiliary device
-followed by disabling the vHCA.
+Add helpers to enable/disable eswitch port, register its devlink port and
+load its representor.
 
-Port function attributes get/set callbacks are invoked with devlink
-instance lock held. Such callbacks need to synchronize with sf port
-table getting disabled either via sriov sysfs callback. Such callbacks
-synchronize with table disable context holding table refcount.
-
-$ devlink dev eswitch set pci/0000:06:00.0 mode switchdev
-
-$ devlink port show
-pci/0000:06:00.0/65535: type eth netdev ens2f0np0 flavour physical port 0 splittable false
-
-$ devlink port add pci/0000:06:00.0 flavour pcisf pfnum 0 sfnum 88
-pci/0000:06:00.0/32768: type eth netdev eth6 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:00:00 state inactive opstate detached
-
-$ devlink port show ens2f0npf0sf88
-pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state inactive opstate detached
-
-$ devlink port function set pci/0000:06:00.0/32768 hw_addr 00:00:00:00:88:88 state active
-
-$ devlink port show ens2f0npf0sf88 -jp
-{
-    "port": {
-        "pci/0000:06:00.0/32768": {
-            "type": "eth",
-            "netdev": "ens2f0npf0sf88",
-            "flavour": "pcisf",
-            "controller": 0,
-            "pfnum": 0,
-            "sfnum": 88,
-            "external": false,
-            "splittable": false,
-            "function": {
-                "hw_addr": "00:00:00:00:88:88",
-                "state": "active",
-                "opstate": "attached"
-            }
-        }
-    }
-}
-
-On port function activation, an auxiliary device is created in below
-example.
-
-$ devlink dev show
-devlink dev show auxiliary/mlx5_core.sf.4
-
-$ devlink port show auxiliary/mlx5_core.sf.4/1
-auxiliary/mlx5_core.sf.4/1: type eth netdev p0sf88 flavour virtual port 0 splittable false
-
+Signed-off-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
+Reviewed-by: Roi Dayan <roid@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/devlink.c |   2 +
- .../net/ethernet/mellanox/mlx5/core/main.c    |  10 +
- .../net/ethernet/mellanox/mlx5/core/sf/cmd.c  |  22 ++
- .../ethernet/mellanox/mlx5/core/sf/devlink.c  | 284 ++++++++++++++++--
- .../ethernet/mellanox/mlx5/core/sf/hw_table.c | 116 ++++++-
- .../net/ethernet/mellanox/mlx5/core/sf/priv.h |   4 +
- .../net/ethernet/mellanox/mlx5/core/sf/sf.h   |  20 +-
- 7 files changed, 431 insertions(+), 27 deletions(-)
+ .../mellanox/mlx5/core/esw/devlink_port.c     | 41 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 12 +++---
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h | 16 ++++++++
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 36 +++++++++++++++-
+ 4 files changed, 97 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index d4c0cdf5edd9..7712311e8684 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -195,6 +195,8 @@ static const struct devlink_ops mlx5_devlink_ops = {
- #ifdef CONFIG_MLX5_SF_MANAGER
- 	.port_new = mlx5_devlink_sf_port_new,
- 	.port_del = mlx5_devlink_sf_port_del,
-+	.port_fn_state_get = mlx5_devlink_sf_port_fn_state_get,
-+	.port_fn_state_set = mlx5_devlink_sf_port_fn_state_set,
- #endif
- 	.flash_update = mlx5_devlink_flash_update,
- 	.info_get = mlx5_devlink_info_get,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index d6bd09dd7490..604ac8bdebe0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -75,6 +75,7 @@
- #include "diag/rsc_dump.h"
- #include "sf/vhca_event.h"
- #include "sf/dev/dev.h"
-+#include "sf/sf.h"
- 
- MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
- MODULE_DESCRIPTION("Mellanox 5th generation network adapters (ConnectX series) core driver");
-@@ -1161,6 +1162,12 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- 
- 	mlx5_vhca_event_start(dev);
- 
-+	err = mlx5_sf_hw_table_create(dev);
-+	if (err) {
-+		mlx5_core_err(dev, "sf table create failed %d\n", err);
-+		goto err_vhca;
-+	}
-+
- 	err = mlx5_ec_init(dev);
- 	if (err) {
- 		mlx5_core_err(dev, "Failed to init embedded CPU\n");
-@@ -1180,6 +1187,8 @@ static int mlx5_load(struct mlx5_core_dev *dev)
- err_sriov:
- 	mlx5_ec_cleanup(dev);
- err_ec:
-+	mlx5_sf_hw_table_destroy(dev);
-+err_vhca:
- 	mlx5_vhca_event_stop(dev);
- 	mlx5_cleanup_fs(dev);
- err_fs:
-@@ -1209,6 +1218,7 @@ static void mlx5_unload(struct mlx5_core_dev *dev)
- 	mlx5_sf_dev_table_destroy(dev);
- 	mlx5_sriov_detach(dev);
- 	mlx5_ec_cleanup(dev);
-+	mlx5_sf_hw_table_destroy(dev);
- 	mlx5_vhca_event_stop(dev);
- 	mlx5_cleanup_fs(dev);
- 	mlx5_accel_ipsec_cleanup(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/cmd.c
-index 0bc3075f34fa..a8d75c2f0275 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/cmd.c
-@@ -25,3 +25,25 @@ int mlx5_cmd_dealloc_sf(struct mlx5_core_dev *dev, u16 function_id)
- 
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+index ffff11baa3d0..cb1e181f4c6a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+@@ -122,3 +122,44 @@ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u1
+ 	vport = mlx5_eswitch_get_vport(esw, vport_num);
+ 	return vport->dl_port;
  }
 +
-+int mlx5_cmd_sf_enable_hca(struct mlx5_core_dev *dev, u16 func_id)
++int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum)
 +{
-+	u32 out[MLX5_ST_SZ_DW(enable_hca_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(enable_hca_in)] = {};
-+
-+	MLX5_SET(enable_hca_in, in, opcode, MLX5_CMD_OP_ENABLE_HCA);
-+	MLX5_SET(enable_hca_in, in, function_id, func_id);
-+	MLX5_SET(enable_hca_in, in, embedded_cpu_function, 0);
-+	return mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
-+}
-+
-+int mlx5_cmd_sf_disable_hca(struct mlx5_core_dev *dev, u16 func_id)
-+{
-+	u32 out[MLX5_ST_SZ_DW(disable_hca_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(disable_hca_in)] = {};
-+
-+	MLX5_SET(disable_hca_in, in, opcode, MLX5_CMD_OP_DISABLE_HCA);
-+	MLX5_SET(disable_hca_in, in, function_id, func_id);
-+	MLX5_SET(enable_hca_in, in, embedded_cpu_function, 0);
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
-index 7ad0d210ec30..c2ba41bb7a70 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
-@@ -4,11 +4,17 @@
- #include <linux/mlx5/driver.h>
- #include "eswitch.h"
- #include "priv.h"
-+#include "sf/dev/dev.h"
-+#include "mlx5_ifc_vhca_event.h"
-+#include "vhca_event.h"
-+#include "ecpf.h"
- 
- struct mlx5_sf {
- 	struct devlink_port dl_port;
- 	unsigned int port_index;
- 	u16 id;
-+	u16 hw_fn_id;
-+	u16 hw_state;
- };
- 
- struct mlx5_sf_table {
-@@ -16,7 +22,10 @@ struct mlx5_sf_table {
- 	struct xarray port_indices; /* port index based lookup. */
- 	refcount_t refcount;
- 	struct completion disable_complete;
-+	struct mutex sf_state_lock; /* Serializes sf state among user cmds & vhca event handler. */
- 	struct notifier_block esw_nb;
-+	struct notifier_block vhca_nb;
-+	u8 ecpu: 1;
- };
- 
- static struct mlx5_sf *
-@@ -25,6 +34,19 @@ mlx5_sf_lookup_by_index(struct mlx5_sf_table *table, unsigned int port_index)
- 	return xa_load(&table->port_indices, port_index);
- }
- 
-+static struct mlx5_sf *
-+mlx5_sf_lookup_by_function_id(struct mlx5_sf_table *table, unsigned int fn_id)
-+{
-+	unsigned long index;
-+	struct mlx5_sf *sf;
-+
-+	xa_for_each(&table->port_indices, index, sf) {
-+		if (sf->hw_fn_id == fn_id)
-+			return sf;
-+	}
-+	return NULL;
-+}
-+
- static int mlx5_sf_id_insert(struct mlx5_sf_table *table, struct mlx5_sf *sf)
- {
- 	return xa_insert(&table->port_indices, sf->port_index, sf, GFP_KERNEL);
-@@ -59,6 +81,8 @@ mlx5_sf_alloc(struct mlx5_sf_table *table, u32 sfnum, struct netlink_ext_ack *ex
- 	hw_fn_id = mlx5_sf_sw_to_hw_id(table->dev, sf->id);
- 	dl_port_index = mlx5_esw_vport_to_devlink_port_index(table->dev, hw_fn_id);
- 	sf->port_index = dl_port_index;
-+	sf->hw_fn_id = hw_fn_id;
-+	sf->hw_state = MLX5_VHCA_STATE_ALLOCATED;
- 
- 	err = mlx5_sf_id_insert(table, sf);
- 	if (err)
-@@ -99,6 +123,146 @@ static void mlx5_sf_table_put(struct mlx5_sf_table *table)
- 		complete(&table->disable_complete);
- }
- 
-+static enum devlink_port_fn_state mlx5_sf_to_devlink_state(u8 hw_state)
-+{
-+	switch (hw_state) {
-+	case MLX5_VHCA_STATE_ACTIVE:
-+	case MLX5_VHCA_STATE_IN_USE:
-+	case MLX5_VHCA_STATE_TEARDOWN_REQUEST:
-+		return DEVLINK_PORT_FN_STATE_ACTIVE;
-+	case MLX5_VHCA_STATE_INVALID:
-+	case MLX5_VHCA_STATE_ALLOCATED:
-+	default:
-+		return DEVLINK_PORT_FN_STATE_INACTIVE;
-+	}
-+}
-+
-+static enum devlink_port_fn_opstate mlx5_sf_to_devlink_opstate(u8 hw_state)
-+{
-+	switch (hw_state) {
-+	case MLX5_VHCA_STATE_IN_USE:
-+	case MLX5_VHCA_STATE_TEARDOWN_REQUEST:
-+		return DEVLINK_PORT_FN_OPSTATE_ATTACHED;
-+	case MLX5_VHCA_STATE_INVALID:
-+	case MLX5_VHCA_STATE_ALLOCATED:
-+	case MLX5_VHCA_STATE_ACTIVE:
-+	default:
-+		return DEVLINK_PORT_FN_OPSTATE_DETACHED;
-+	}
-+}
-+
-+static bool mlx5_sf_is_active(const struct mlx5_sf *sf)
-+{
-+	return sf->hw_state == MLX5_VHCA_STATE_ACTIVE || sf->hw_state == MLX5_VHCA_STATE_IN_USE;
-+}
-+
-+int mlx5_devlink_sf_port_fn_state_get(struct devlink *devlink, struct devlink_port *dl_port,
-+				      enum devlink_port_fn_state *state,
-+				      enum devlink_port_fn_opstate *opstate,
-+				      struct netlink_ext_ack *extack)
-+{
-+	struct mlx5_core_dev *dev = devlink_priv(devlink);
-+	struct mlx5_sf_table *table;
-+	struct mlx5_sf *sf;
-+	int err = 0;
-+
-+	table = mlx5_sf_table_try_get(dev);
-+	if (!table)
-+		return -EOPNOTSUPP;
-+
-+	sf = mlx5_sf_lookup_by_index(table, dl_port->index);
-+	if (!sf) {
-+		err = -EOPNOTSUPP;
-+		goto sf_err;
-+	}
-+	mutex_lock(&table->sf_state_lock);
-+	*state = mlx5_sf_to_devlink_state(sf->hw_state);
-+	*opstate = mlx5_sf_to_devlink_opstate(sf->hw_state);
-+	mutex_unlock(&table->sf_state_lock);
-+sf_err:
-+	mlx5_sf_table_put(table);
-+	return err;
-+}
-+
-+static int mlx5_sf_activate(struct mlx5_core_dev *dev, struct mlx5_sf *sf)
-+{
++	struct mlx5_core_dev *dev = esw->dev;
++	struct netdev_phys_item_id ppid = {};
++	unsigned int dl_port_index;
++	struct mlx5_vport *vport;
++	struct devlink *devlink;
++	u16 pfnum;
 +	int err;
 +
-+	if (mlx5_sf_is_active(sf))
-+		return 0;
-+	if (sf->hw_state != MLX5_VHCA_STATE_ALLOCATED)
-+		return -EINVAL;
++	vport = mlx5_eswitch_get_vport(esw, vport_num);
++	if (IS_ERR(vport))
++		return PTR_ERR(vport);
 +
-+	err = mlx5_cmd_sf_enable_hca(dev, sf->hw_fn_id);
++	pfnum = PCI_FUNC(dev->pdev->devfn);
++	mlx5_esw_get_port_parent_id(dev, &ppid);
++	memcpy(dl_port->attrs.switch_id.id, &ppid.id[0], ppid.id_len);
++	dl_port->attrs.switch_id.id_len = ppid.id_len;
++	devlink_port_attrs_pci_sf_set(dl_port, 0, pfnum, sfnum);
++	devlink = priv_to_devlink(dev);
++	dl_port_index = mlx5_esw_vport_to_devlink_port_index(dev, vport_num);
++	err = devlink_port_register(devlink, dl_port, dl_port_index);
 +	if (err)
 +		return err;
 +
-+	sf->hw_state = MLX5_VHCA_STATE_ACTIVE;
++	vport->dl_port = dl_port;
 +	return 0;
 +}
 +
-+static int mlx5_sf_deactivate(struct mlx5_core_dev *dev, struct mlx5_sf *sf)
++void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num)
 +{
-+	int err;
++	struct mlx5_vport *vport;
 +
-+	if (!mlx5_sf_is_active(sf))
-+		return 0;
-+
-+	err = mlx5_cmd_sf_disable_hca(dev, sf->hw_fn_id);
-+	if (err)
-+		return err;
-+
-+	sf->hw_state = MLX5_VHCA_STATE_TEARDOWN_REQUEST;
-+	return 0;
++	vport = mlx5_eswitch_get_vport(esw, vport_num);
++	if (IS_ERR(vport))
++		return;
++	devlink_port_unregister(vport->dl_port);
++	vport->dl_port = NULL;
 +}
-+
-+static int mlx5_sf_state_set(struct mlx5_core_dev *dev, struct mlx5_sf_table *table,
-+			     struct mlx5_sf *sf,
-+			     enum devlink_port_fn_state state)
-+{
-+	int err = 0;
-+
-+	mutex_lock(&table->sf_state_lock);
-+	if (state == mlx5_sf_to_devlink_state(sf->hw_state))
-+		goto out;
-+	if (state == DEVLINK_PORT_FN_STATE_ACTIVE)
-+		err = mlx5_sf_activate(dev, sf);
-+	else if (state == DEVLINK_PORT_FN_STATE_INACTIVE)
-+		err = mlx5_sf_deactivate(dev, sf);
-+	else
-+		err = -EINVAL;
-+out:
-+	mutex_unlock(&table->sf_state_lock);
-+	return err;
-+}
-+
-+int mlx5_devlink_sf_port_fn_state_set(struct devlink *devlink, struct devlink_port *dl_port,
-+				      enum devlink_port_fn_state state,
-+				      struct netlink_ext_ack *extack)
-+{
-+	struct mlx5_core_dev *dev = devlink_priv(devlink);
-+	struct mlx5_sf_table *table;
-+	struct mlx5_sf *sf;
-+	int err;
-+
-+	table = mlx5_sf_table_try_get(dev);
-+	if (!table) {
-+		NL_SET_ERR_MSG_MOD(extack,
-+				   "Port state set is only supported in eswitch switchdev mode or SF ports are disabled.");
-+		return -EOPNOTSUPP;
-+	}
-+	sf = mlx5_sf_lookup_by_index(table, dl_port->index);
-+	if (!sf) {
-+		err = -ENODEV;
-+		goto out;
-+	}
-+
-+	err = mlx5_sf_state_set(dev, table, sf, state);
-+out:
-+	mlx5_sf_table_put(table);
-+	return err;
-+}
-+
- static int mlx5_sf_add(struct mlx5_core_dev *dev, struct mlx5_sf_table *table,
- 		       const struct devlink_port_new_attrs *new_attr,
- 		       struct netlink_ext_ack *extack,
-@@ -125,16 +289,6 @@ static int mlx5_sf_add(struct mlx5_core_dev *dev, struct mlx5_sf_table *table,
- 	return err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 55ebd9474d97..538d2e44a589 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1272,8 +1272,8 @@ static void esw_vport_cleanup(struct mlx5_eswitch *esw, struct mlx5_vport *vport
+ 	esw_vport_cleanup_acl(esw, vport);
  }
  
--static void mlx5_sf_del(struct mlx5_core_dev *dev, struct mlx5_sf_table *table, struct mlx5_sf *sf)
--{
--	struct mlx5_eswitch *esw = dev->priv.eswitch;
--	u16 hw_fn_id;
--
--	hw_fn_id = mlx5_sf_sw_to_hw_id(dev, sf->id);
--	mlx5_esw_offloads_sf_vport_disable(esw, hw_fn_id);
--	mlx5_sf_free(table, sf);
--}
--
- static int
- mlx5_sf_new_check_attr(struct mlx5_core_dev *dev, const struct devlink_port_new_attrs *new_attr,
- 		       struct netlink_ext_ack *extack)
-@@ -188,10 +342,30 @@ int mlx5_devlink_sf_port_new(struct devlink *devlink,
- 	return err;
- }
- 
-+static void mlx5_sf_dealloc(struct mlx5_sf_table *table, struct mlx5_sf *sf)
-+{
-+	if (sf->hw_state == MLX5_VHCA_STATE_ALLOCATED) {
-+		mlx5_sf_free(table, sf);
-+	} else if (mlx5_sf_is_active(sf)) {
-+		/* Even if its active, it is treated as in_use because by the time,
-+		 * it is disabled here, it may getting used. So it is safe to
-+		 * always look for the event to ensure that it is recycled only after
-+		 * firmware gives confirmation that it is detached by the driver.
-+		 */
-+		mlx5_cmd_sf_disable_hca(table->dev, sf->hw_fn_id);
-+		mlx5_sf_hw_table_sf_deferred_free(table->dev, sf->id);
-+		kfree(sf);
-+	} else {
-+		mlx5_sf_hw_table_sf_deferred_free(table->dev, sf->id);
-+		kfree(sf);
-+	}
-+}
-+
- int mlx5_devlink_sf_port_del(struct devlink *devlink, unsigned int port_index,
- 			     struct netlink_ext_ack *extack)
+-static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
+-			    enum mlx5_eswitch_vport_event enabled_events)
++int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
++			  enum mlx5_eswitch_vport_event enabled_events)
  {
- 	struct mlx5_core_dev *dev = devlink_priv(devlink);
-+	struct mlx5_eswitch *esw = dev->priv.eswitch;
- 	struct mlx5_sf_table *table;
- 	struct mlx5_sf *sf;
- 	int err = 0;
-@@ -208,20 +382,58 @@ int mlx5_devlink_sf_port_del(struct devlink *devlink, unsigned int port_index,
- 		goto sf_err;
- 	}
- 
--	mlx5_sf_del(dev, table, sf);
-+	mlx5_esw_offloads_sf_vport_disable(esw, sf->hw_fn_id);
-+	mlx5_sf_id_erase(table, sf);
-+
-+	mutex_lock(&table->sf_state_lock);
-+	mlx5_sf_dealloc(table, sf);
-+	mutex_unlock(&table->sf_state_lock);
- sf_err:
- 	mlx5_sf_table_put(table);
- 	return err;
+ 	struct mlx5_vport *vport;
+ 	int ret;
+@@ -1309,7 +1309,7 @@ static int esw_enable_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ 	return ret;
  }
  
--static void mlx5_sf_destroy_all(struct mlx5_sf_table *table)
-+static bool mlx5_sf_state_update_check(const struct mlx5_sf *sf, u8 new_state)
+-static void esw_disable_vport(struct mlx5_eswitch *esw, u16 vport_num)
++void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
  {
--	struct mlx5_core_dev *dev = table->dev;
--	unsigned long index;
-+	if (sf->hw_state == MLX5_VHCA_STATE_ACTIVE && new_state == MLX5_VHCA_STATE_IN_USE)
-+		return true;
-+
-+	if (sf->hw_state == MLX5_VHCA_STATE_IN_USE && new_state == MLX5_VHCA_STATE_ACTIVE)
-+		return true;
-+
-+	if (sf->hw_state == MLX5_VHCA_STATE_TEARDOWN_REQUEST &&
-+	    new_state == MLX5_VHCA_STATE_ALLOCATED)
-+		return true;
-+
-+	return false;
-+}
-+
-+static int mlx5_sf_vhca_event(struct notifier_block *nb, unsigned long opcode, void *data)
-+{
-+	struct mlx5_sf_table *table = container_of(nb, struct mlx5_sf_table, vhca_nb);
-+	const struct mlx5_vhca_state_event *event = data;
-+	bool update = false;
- 	struct mlx5_sf *sf;
+ 	struct mlx5_vport *vport;
  
--	xa_for_each(&table->port_indices, index, sf)
--		mlx5_sf_del(dev, table, sf);
-+	table = mlx5_sf_table_try_get(table->dev);
-+	if (!table)
-+		return 0;
-+
-+	mutex_lock(&table->sf_state_lock);
-+	sf = mlx5_sf_lookup_by_function_id(table, event->function_id);
-+	if (!sf)
-+		goto sf_err;
-+
-+	/* When driver is attached or detached to a function, an event
-+	 * notifies such state change.
-+	 */
-+	update = mlx5_sf_state_update_check(sf, event->new_vhca_state);
-+	if (update)
-+		sf->hw_state = event->new_vhca_state;
-+sf_err:
-+	mutex_unlock(&table->sf_state_lock);
-+	mlx5_sf_table_put(table);
-+	return 0;
- }
- 
- static void mlx5_sf_table_enable(struct mlx5_sf_table *table)
-@@ -233,6 +445,22 @@ static void mlx5_sf_table_enable(struct mlx5_sf_table *table)
- 	refcount_set(&table->refcount, 1);
- }
- 
-+static void mlx5_sf_deactivate_all(struct mlx5_sf_table *table)
-+{
-+	struct mlx5_eswitch *esw = table->dev->priv.eswitch;
-+	unsigned long index;
-+	struct mlx5_sf *sf;
-+
-+	/* At this point, no new user commands can start and no vhca event can
-+	 * arrive. It is safe to destroy all user created SFs.
-+	 */
-+	xa_for_each(&table->port_indices, index, sf) {
-+		mlx5_esw_offloads_sf_vport_disable(esw, sf->hw_fn_id);
-+		mlx5_sf_id_erase(table, sf);
-+		mlx5_sf_dealloc(table, sf);
-+	}
-+}
-+
- static void mlx5_sf_table_disable(struct mlx5_sf_table *table)
+@@ -1431,7 +1431,7 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
  {
- 	if (!mlx5_sf_max_functions(table->dev))
-@@ -241,14 +469,13 @@ static void mlx5_sf_table_disable(struct mlx5_sf_table *table)
- 	if (!refcount_read(&table->refcount))
- 		return;
- 
--	/* Balances with refcount_set; drop the reference so that new user cmd cannot start. */
-+	/* Balances with refcount_set; drop the reference so that new user cmd cannot start
-+	 * and new vhca event handler cannnot run.
-+	 */
- 	mlx5_sf_table_put(table);
- 	wait_for_completion(&table->disable_complete);
- 
--	/* At this point, no new user commands can start.
--	 * It is safe to destroy all user created SFs.
--	 */
--	mlx5_sf_destroy_all(table);
-+	mlx5_sf_deactivate_all(table);
- }
- 
- static int mlx5_sf_esw_event(struct notifier_block *nb, unsigned long event, void *data)
-@@ -280,23 +507,34 @@ int mlx5_sf_table_init(struct mlx5_core_dev *dev)
- 	struct mlx5_sf_table *table;
  	int err;
  
--	if (!mlx5_sf_table_supported(dev))
-+	if (!mlx5_sf_table_supported(dev) || !mlx5_vhca_event_supported(dev))
- 		return 0;
- 
- 	table = kzalloc(sizeof(*table), GFP_KERNEL);
- 	if (!table)
- 		return -ENOMEM;
- 
-+	mutex_init(&table->sf_state_lock);
- 	table->dev = dev;
- 	xa_init(&table->port_indices);
- 	dev->priv.sf_table = table;
-+	refcount_set(&table->refcount, 0);
- 	table->esw_nb.notifier_call = mlx5_sf_esw_event;
- 	err = mlx5_esw_event_notifier_register(dev->priv.eswitch, &table->esw_nb);
+-	err = esw_enable_vport(esw, vport_num, enabled_events);
++	err = mlx5_esw_vport_enable(esw, vport_num, enabled_events);
  	if (err)
- 		goto reg_err;
-+
-+	table->vhca_nb.notifier_call = mlx5_sf_vhca_event;
-+	err = mlx5_vhca_event_notifier_register(table->dev, &table->vhca_nb);
-+	if (err)
-+		goto vhca_err;
-+
- 	return 0;
+ 		return err;
  
-+vhca_err:
-+	mlx5_esw_event_notifier_unregister(dev->priv.eswitch, &table->esw_nb);
- reg_err:
-+	mutex_destroy(&table->sf_state_lock);
- 	kfree(table);
- 	dev->priv.sf_table = NULL;
+@@ -1442,14 +1442,14 @@ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
  	return err;
-@@ -309,8 +547,10 @@ void mlx5_sf_table_cleanup(struct mlx5_core_dev *dev)
- 	if (!table)
- 		return;
  
-+	mlx5_vhca_event_notifier_unregister(table->dev, &table->vhca_nb);
- 	mlx5_esw_event_notifier_unregister(dev->priv.eswitch, &table->esw_nb);
- 	WARN_ON(refcount_read(&table->refcount));
-+	mutex_destroy(&table->sf_state_lock);
- 	WARN_ON(!xa_empty(&table->port_indices));
- 	kfree(table);
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-index c7757f399e8a..58b6be0b03d7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/hw_table.c
-@@ -4,11 +4,14 @@
- #include "vhca_event.h"
- #include "priv.h"
- #include "sf.h"
-+#include "mlx5_ifc_vhca_event.h"
-+#include "vhca_event.h"
- #include "ecpf.h"
- 
- struct mlx5_sf_hw {
- 	u32 usr_sfnum;
- 	u8 allocated: 1;
-+	u8 pending_delete: 1;
- };
- 
- struct mlx5_sf_hw_table {
-@@ -16,6 +19,8 @@ struct mlx5_sf_hw_table {
- 	struct mlx5_sf_hw *sfs;
- 	int max_local_functions;
- 	u8 ecpu: 1;
-+	struct mutex table_lock; /* Serializes sf deletion and vhca state change handler. */
-+	struct notifier_block vhca_nb;
- };
- 
- u16 mlx5_sf_sw_to_hw_id(const struct mlx5_core_dev *dev, u16 sw_id)
-@@ -23,6 +28,11 @@ u16 mlx5_sf_sw_to_hw_id(const struct mlx5_core_dev *dev, u16 sw_id)
- 	return sw_id + mlx5_sf_start_function_id(dev);
- }
- 
-+static u16 mlx5_sf_hw_to_sw_id(const struct mlx5_core_dev *dev, u16 hw_id)
-+{
-+	return hw_id - mlx5_sf_start_function_id(dev);
-+}
-+
- int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 usr_sfnum)
- {
- 	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
-@@ -34,10 +44,13 @@ int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 usr_sfnum)
- 	if (!table->max_local_functions)
- 		return -EOPNOTSUPP;
- 
-+	mutex_lock(&table->table_lock);
- 	/* Check if sf with same sfnum already exists or not. */
- 	for (i = 0; i < table->max_local_functions; i++) {
--		if (table->sfs[i].allocated && table->sfs[i].usr_sfnum == usr_sfnum)
--			return -EEXIST;
-+		if (table->sfs[i].allocated && table->sfs[i].usr_sfnum == usr_sfnum) {
-+			err = -EEXIST;
-+			goto exist_err;
-+		}
- 	}
- 
- 	/* Find the free entry and allocate the entry from the array */
-@@ -63,16 +76,19 @@ int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 usr_sfnum)
- 	if (err)
- 		goto vhca_err;
- 
-+	mutex_unlock(&table->table_lock);
- 	return sw_id;
- 
- vhca_err:
- 	mlx5_cmd_dealloc_sf(table->dev, hw_fn_id);
- err:
- 	table->sfs[i].allocated = false;
-+exist_err:
-+	mutex_unlock(&table->table_lock);
+ err_rep:
+-	esw_disable_vport(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
  	return err;
  }
  
--void mlx5_sf_hw_table_sf_free(struct mlx5_core_dev *dev, u16 id)
-+static void _mlx5_sf_hw_id_free(struct mlx5_core_dev *dev, u16 id)
+ void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num)
  {
- 	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
- 	u16 hw_fn_id;
-@@ -80,6 +96,50 @@ void mlx5_sf_hw_table_sf_free(struct mlx5_core_dev *dev, u16 id)
- 	hw_fn_id = mlx5_sf_sw_to_hw_id(table->dev, id);
- 	mlx5_cmd_dealloc_sf(table->dev, hw_fn_id);
- 	table->sfs[id].allocated = false;
-+	table->sfs[id].pending_delete = false;
-+}
+ 	esw_offloads_unload_rep(esw, vport_num);
+-	esw_disable_vport(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
+ }
+ 
+ void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 4e3ed878ff03..54514b04808d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -688,6 +688,10 @@ mlx5_eswitch_enable_pf_vf_vports(struct mlx5_eswitch *esw,
+ 				 enum mlx5_eswitch_vport_event enabled_events);
+ void mlx5_eswitch_disable_pf_vf_vports(struct mlx5_eswitch *esw);
+ 
++int mlx5_esw_vport_enable(struct mlx5_eswitch *esw, u16 vport_num,
++			  enum mlx5_eswitch_vport_event enabled_events);
++void mlx5_esw_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
 +
-+void mlx5_sf_hw_table_sf_free(struct mlx5_core_dev *dev, u16 id)
+ int
+ esw_vport_create_offloads_acl_tables(struct mlx5_eswitch *esw,
+ 				     struct mlx5_vport *vport);
+@@ -706,6 +710,9 @@ esw_get_max_restore_tag(struct mlx5_eswitch *esw);
+ int esw_offloads_load_rep(struct mlx5_eswitch *esw, u16 vport_num);
+ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num);
+ 
++int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num);
++void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num);
++
+ int mlx5_eswitch_load_vport(struct mlx5_eswitch *esw, u16 vport_num,
+ 			    enum mlx5_eswitch_vport_event enabled_events);
+ void mlx5_eswitch_unload_vport(struct mlx5_eswitch *esw, u16 vport_num);
+@@ -717,6 +724,15 @@ void mlx5_eswitch_unload_vf_vports(struct mlx5_eswitch *esw, u16 num_vfs);
+ int mlx5_esw_offloads_devlink_port_register(struct mlx5_eswitch *esw, u16 vport_num);
+ void mlx5_esw_offloads_devlink_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
+ struct devlink_port *mlx5_esw_offloads_devlink_port(struct mlx5_eswitch *esw, u16 vport_num);
++
++int mlx5_esw_devlink_sf_port_register(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum);
++void mlx5_esw_devlink_sf_port_unregister(struct mlx5_eswitch *esw, u16 vport_num);
++
++int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum);
++void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num);
++
+ #else  /* CONFIG_MLX5_ESWITCH */
+ /* eswitch API stubs */
+ static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 2d241f7351b5..7f09f2bbf7c1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1833,7 +1833,7 @@ static void __unload_reps_all_vport(struct mlx5_eswitch *esw, u8 rep_type)
+ 	__esw_offloads_unload_rep(esw, rep, rep_type);
+ }
+ 
+-static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
++int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	struct mlx5_eswitch_rep *rep;
+ 	int rep_type;
+@@ -1857,7 +1857,7 @@ static int mlx5_esw_offloads_rep_load(struct mlx5_eswitch *esw, u16 vport_num)
+ 	return err;
+ }
+ 
+-static void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
++void mlx5_esw_offloads_rep_unload(struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	struct mlx5_eswitch_rep *rep;
+ 	int rep_type;
+@@ -2835,3 +2835,35 @@ u32 mlx5_eswitch_get_vport_metadata_for_match(struct mlx5_eswitch *esw,
+ 	return vport->metadata << (32 - ESW_SOURCE_PORT_METADATA_BITS);
+ }
+ EXPORT_SYMBOL(mlx5_eswitch_get_vport_metadata_for_match);
++
++int mlx5_esw_offloads_sf_vport_enable(struct mlx5_eswitch *esw, struct devlink_port *dl_port,
++				      u16 vport_num, u32 sfnum)
 +{
-+	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
-+
-+	mutex_lock(&table->table_lock);
-+	_mlx5_sf_hw_id_free(dev, id);
-+	mutex_unlock(&table->table_lock);
-+}
-+
-+void mlx5_sf_hw_table_sf_deferred_free(struct mlx5_core_dev *dev, u16 id)
-+{
-+	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
-+	u32 out[MLX5_ST_SZ_DW(query_vhca_state_out)] = {};
-+	u16 hw_fn_id;
-+	u8 state;
 +	int err;
 +
-+	hw_fn_id = mlx5_sf_sw_to_hw_id(dev, id);
-+	mutex_lock(&table->table_lock);
-+	err = mlx5_cmd_query_vhca_state(dev, hw_fn_id, table->ecpu, out, sizeof(out));
++	err = mlx5_esw_vport_enable(esw, vport_num, MLX5_VPORT_UC_ADDR_CHANGE);
 +	if (err)
-+		goto err;
-+	state = MLX5_GET(query_vhca_state_out, out, vhca_state_context.vhca_state);
-+	if (state == MLX5_VHCA_STATE_ALLOCATED) {
-+		mlx5_cmd_dealloc_sf(table->dev, hw_fn_id);
-+		table->sfs[id].allocated = false;
-+	} else {
-+		table->sfs[id].pending_delete = true;
-+	}
-+err:
-+	mutex_unlock(&table->table_lock);
-+}
++		return err;
 +
-+static void mlx5_sf_hw_dealloc_all(struct mlx5_sf_hw_table *table)
-+{
-+	int i;
++	err = mlx5_esw_devlink_sf_port_register(esw, dl_port, vport_num, sfnum);
++	if (err)
++		goto devlink_err;
 +
-+	for (i = 0; i < table->max_local_functions; i++) {
-+		if (table->sfs[i].allocated)
-+			_mlx5_sf_hw_id_free(table->dev, i);
-+	}
- }
- 
- int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev)
-@@ -88,7 +148,7 @@ int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev)
- 	struct mlx5_sf_hw *sfs;
- 	int max_functions;
- 
--	if (!mlx5_sf_supported(dev))
-+	if (!mlx5_sf_supported(dev) || !mlx5_vhca_event_supported(dev))
- 		return 0;
- 
- 	max_functions = mlx5_sf_max_functions(dev);
-@@ -100,6 +160,7 @@ int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev)
- 	if (!sfs)
- 		goto table_err;
- 
-+	mutex_init(&table->table_lock);
- 	table->dev = dev;
- 	table->sfs = sfs;
- 	table->max_local_functions = max_functions;
-@@ -120,6 +181,53 @@ void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev)
- 	if (!table)
- 		return;
- 
-+	mutex_destroy(&table->table_lock);
- 	kfree(table->sfs);
- 	kfree(table);
- }
-+
-+static int mlx5_sf_hw_vhca_event(struct notifier_block *nb, unsigned long opcode, void *data)
-+{
-+	struct mlx5_sf_hw_table *table = container_of(nb, struct mlx5_sf_hw_table, vhca_nb);
-+	const struct mlx5_vhca_state_event *event = data;
-+	struct mlx5_sf_hw *sf_hw;
-+	u16 sw_id;
-+
-+	if (event->new_vhca_state != MLX5_VHCA_STATE_ALLOCATED)
-+		return 0;
-+
-+	sw_id = mlx5_sf_hw_to_sw_id(table->dev, event->function_id);
-+	sf_hw = &table->sfs[sw_id];
-+
-+	mutex_lock(&table->table_lock);
-+	/* SF driver notified through firmware that SF is finally detached.
-+	 * Hence recycle the sf hardware id for reuse.
-+	 */
-+	if (sf_hw->allocated && sf_hw->pending_delete)
-+		_mlx5_sf_hw_id_free(table->dev, sw_id);
-+	mutex_unlock(&table->table_lock);
++	err = mlx5_esw_offloads_rep_load(esw, vport_num);
++	if (err)
++		goto rep_err;
 +	return 0;
++
++rep_err:
++	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
++devlink_err:
++	mlx5_esw_vport_disable(esw, vport_num);
++	return err;
 +}
 +
-+int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev)
++void mlx5_esw_offloads_sf_vport_disable(struct mlx5_eswitch *esw, u16 vport_num)
 +{
-+	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
-+
-+	if (!table)
-+		return 0;
-+
-+	table->vhca_nb.notifier_call = mlx5_sf_hw_vhca_event;
-+	return mlx5_vhca_event_notifier_register(table->dev, &table->vhca_nb);
++	mlx5_esw_offloads_rep_unload(esw, vport_num);
++	mlx5_esw_devlink_sf_port_unregister(esw, vport_num);
++	mlx5_esw_vport_disable(esw, vport_num);
 +}
-+
-+void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_sf_hw_table *table = dev->priv.sf_hw_table;
-+
-+	if (!table)
-+		return;
-+
-+	mlx5_vhca_event_notifier_unregister(table->dev, &table->vhca_nb);
-+	/* Dealloc SFs whose firmware event has been missed. */
-+	mlx5_sf_hw_dealloc_all(table);
-+}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/priv.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/priv.h
-index 7f3622375a9c..cb02a51d0986 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/priv.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/priv.h
-@@ -9,9 +9,13 @@
- int mlx5_cmd_alloc_sf(struct mlx5_core_dev *dev, u16 function_id);
- int mlx5_cmd_dealloc_sf(struct mlx5_core_dev *dev, u16 function_id);
- 
-+int mlx5_cmd_sf_enable_hca(struct mlx5_core_dev *dev, u16 func_id);
-+int mlx5_cmd_sf_disable_hca(struct mlx5_core_dev *dev, u16 func_id);
-+
- u16 mlx5_sf_sw_to_hw_id(const struct mlx5_core_dev *dev, u16 sw_id);
- 
- int mlx5_sf_hw_table_sf_alloc(struct mlx5_core_dev *dev, u32 usr_sfnum);
- void mlx5_sf_hw_table_sf_free(struct mlx5_core_dev *dev, u16 id);
-+void mlx5_sf_hw_table_sf_deferred_free(struct mlx5_core_dev *dev, u16 id);
- 
- #endif
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-index 31278dc42e72..0b6aea1e6a94 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/sf.h
-@@ -47,6 +47,9 @@ static inline u16 mlx5_sf_max_functions(const struct mlx5_core_dev *dev)
- int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev);
- void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev);
- 
-+int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev);
-+void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev);
-+
- int mlx5_sf_table_init(struct mlx5_core_dev *dev);
- void mlx5_sf_table_cleanup(struct mlx5_core_dev *dev);
- 
-@@ -56,7 +59,13 @@ int mlx5_devlink_sf_port_new(struct devlink *devlink,
- 			     unsigned int *new_port_index);
- int mlx5_devlink_sf_port_del(struct devlink *devlink, unsigned int port_index,
- 			     struct netlink_ext_ack *extack);
--
-+int mlx5_devlink_sf_port_fn_state_get(struct devlink *devlink, struct devlink_port *dl_port,
-+				      enum devlink_port_fn_state *state,
-+				      enum devlink_port_fn_opstate *opstate,
-+				      struct netlink_ext_ack *extack);
-+int mlx5_devlink_sf_port_fn_state_set(struct devlink *devlink, struct devlink_port *dl_port,
-+				      enum devlink_port_fn_state state,
-+				      struct netlink_ext_ack *extack);
- #else
- 
- static inline int mlx5_sf_hw_table_init(struct mlx5_core_dev *dev)
-@@ -68,6 +77,15 @@ static inline void mlx5_sf_hw_table_cleanup(struct mlx5_core_dev *dev)
- {
- }
- 
-+static inline int mlx5_sf_hw_table_create(struct mlx5_core_dev *dev)
-+{
-+	return 0;
-+}
-+
-+static inline void mlx5_sf_hw_table_destroy(struct mlx5_core_dev *dev)
-+{
-+}
-+
- static inline int mlx5_sf_table_init(struct mlx5_core_dev *dev)
- {
- 	return 0;
 -- 
 2.26.2
 
