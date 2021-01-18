@@ -2,38 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32323C433DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:09:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE517C433E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:11:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 027032225E
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:09:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76FE0222B3
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 21:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388470AbhARVCk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 16:02:40 -0500
-Received: from nat-hk.nvidia.com ([203.18.50.4]:5573 "EHLO nat-hk.nvidia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728618AbhARVCS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 18 Jan 2021 16:02:18 -0500
-Received: from HKMAIL104.nvidia.com (Not Verified[10.18.92.9]) by nat-hk.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6005f7300002>; Tue, 19 Jan 2021 05:01:36 +0800
-Received: from HKMAIL104.nvidia.com (10.18.16.13) by HKMAIL104.nvidia.com
- (10.18.16.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 18 Jan
- 2021 21:01:34 +0000
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.46) by
- HKMAIL104.nvidia.com (10.18.16.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 18 Jan 2021 21:01:33 +0000
+        id S2394498AbhARVKt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 16:10:49 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:6372 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388952AbhARVBn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 16:01:43 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B6005f7080000>; Mon, 18 Jan 2021 13:00:56 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 18 Jan
+ 2021 21:00:51 +0000
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.40) by
+ HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 18 Jan 2021 21:00:51 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=nXxanMesy4Iwx6s2ZSgSAIDFEF1gOTBCLIq0XSuSt4PX+Jo2z8f+L7bdid5tcXoOBrxRNEJ4eh+UHmXZ+mCXilQmyr53+LYzWnT9fuSviddO9DKciL7Ten1ndTrd4ruN2q55+U0jIrqhmIeOsU+DbMGjf/xcgnbpywik3J+qad2lFO3MuNJ6vUHq4DDNh8l6Ji1gTWCN1oVx4yLFGmYxLZcesNF9JBNnYc5jjlWfNS9Mnm3FY9apj8+GMxPfmLYc912oJ1hZngfKhQS2KQ3f6/SP5BdmjY34zh6sRGK8ISd1w9PKnhE3v4RQz8ySwlEZT2iWg3FMr4QprINhv0vADA==
+ b=idxbNQIglTpZ0PqcO0Q/Q778cBNt7vMcmGJsKjU/I06gy9suVBQ73AHtwwldNO4yU/FAYhZR7rLkEmazEGhN2+CmHlVdXkypc6PNdlrytluYW+1TTS90roiTmmd3w7dW2CLR7JeG+FqxSbmi920NXi2yIQCPoAM6RN1crf43NdT5N88RPxKD4RPIFI4gStZNoMnnXbgy264ox8EMyPCJyUTHZOSonfFcrKqy3/fMzJwNE7/ESpJ5KIpbS0S6nb0DRZiyiDLZVmYA8AwIRnRMt1ArJ7Smpmd6XhjHPBFSHgHqmhVvfHP5KuR0KVWXR7hqzY5SChAjp8N3Z5VOlYRGUA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0IPLrH9pz/vRSbU79iR03d24Ywg9TZF5tSzEBqOLqdE=;
- b=HA2l/pd+Ts6Vc9tGeyJKx8vXn8x2mGzClX0j0GlRtixaLvS8/jTY9w1gL4Htm9eP+oH6AR9ySETnh8YzT8ViVqcvtf5aVOpHJSdJuqGI28uYf0Y8S0f5dLvRobZ0ITTuIOiUi9nfyIGr3+L0s+ZKHwyZvadyDHnahw6ITckIof3lpdne+odtkeDZxYwWAFiBRBFL/4ZkeYD8rI+UWEuEqqWEB1ZZxcYPUdJ+XylNjW0JBrUKV5vGIylyiqmyYGFiIfqDwvcXnIfF58prSSwXxLPBsDOUIv0yGFI1Yirhjq5RkETIAIRu+zlQsEAt1tdh+TxzLa2q2dKSVk/Ymg11tA==
+ bh=i4TSUMRTFgxnk9IHmK5ztL2pWdWAI1PvbBr8+iY0ev8=;
+ b=Kafn9tHth6QS53vnklyfo5w1GUWNZxJyYVbCeU+nQ1pfh4Z9krtQo3kb/V+XM7xQ0ZKbiSRTxJG6U4IrLRq4cQ/98fWDsoMMNZtpxPKeLkKRPCjHxAJWG794Ra7VRXIbhSKCrF5VXhyXK0QVin/RClbe2SyMdVSXR3sAsp4Vr84Jtq3F2o/R2B1hn87XtXGJ4N+sZBNp3SHoghJBN3S5R/VHaN5aB4W7mBVGLwFjfQ+oN43wxwpDjH1R82gM4xSgIdBJr1WMaFzYr0FRuqsA2yYzjhCjAy/aiHJ1/gYGhv+Kf+hkXEURiB9hs0VS1X6rTxD3+n+QO9vfU4iMG2utEA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
@@ -41,55 +42,62 @@ Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM6PR12MB4451.namprd12.prod.outlook.com (2603:10b6:5:2ab::18) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.11; Mon, 18 Jan
- 2021 21:01:31 +0000
+ 2021 21:00:50 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3763.014; Mon, 18 Jan 2021
- 21:01:30 +0000
-Date:   Mon, 18 Jan 2021 17:01:29 -0400
+ 21:00:50 +0000
+Date:   Mon, 18 Jan 2021 17:00:48 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Selvin Xavier <selvin.xavier@broadcom.com>
-CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH for-next v2 0/2] RDMA/bnxt_re: Allow bigger user MRs
-Message-ID: <20210118210129.GC797553@nvidia.com>
-References: <1610012608-14528-1-git-send-email-selvin.xavier@broadcom.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Patrisious Haddad <phaddad@nvidia.com>,
+        <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH rdma-next] RDMA/nldev: Return an error message on failure
+ to turn auto mode
+Message-ID: <20210118210048.GA797553@nvidia.com>
+References: <20201230130240.180737-1-leon@kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <1610012608-14528-1-git-send-email-selvin.xavier@broadcom.com>
-X-ClientProxiedBy: BLAPR03CA0099.namprd03.prod.outlook.com
- (2603:10b6:208:32a::14) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <20201230130240.180737-1-leon@kernel.org>
+X-ClientProxiedBy: BL1PR13CA0535.namprd13.prod.outlook.com
+ (2603:10b6:208:2c5::30) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BLAPR03CA0099.namprd03.prod.outlook.com (2603:10b6:208:32a::14) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.11 via Frontend Transport; Mon, 18 Jan 2021 21:01:30 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1beT-003LVM-2E; Mon, 18 Jan 2021 17:01:29 -0400
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0535.namprd13.prod.outlook.com (2603:10b6:208:2c5::30) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.6 via Frontend Transport; Mon, 18 Jan 2021 21:00:49 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1bdo-003LUY-1U; Mon, 18 Jan 2021 17:00:48 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611003697; bh=0IPLrH9pz/vRSbU79iR03d24Ywg9TZF5tSzEBqOLqdE=;
+        t=1611003656; bh=i4TSUMRTFgxnk9IHmK5ztL2pWdWAI1PvbBr8+iY0ev8=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=U03450XMTksJU7PwoDvKpwfXxO6HQLxJK7Gk8BMoQbSqcIlkiSJc25iK5scAiIIqn
-         /QvA3z5ZaMbqvgg45ZNyUH0phpUWs3Sa1QWN6dtCTea0KOlT85Gzu0kRy85jdgCdKN
-         QKKLc6UDH5U6Ntbbzxsw7eToaFpJpSDgyMnK9XwFydptPgSJzlJ6aXU0obAaiOxSrL
-         +/jsK+P3o3kq1j2GTNzczA9P7urlaGtG05tkobxrCeo1LyzCCc6WSbbCcn0ngktHh6
-         ZmuZJf8DDt2b0htVvQUczF8WcgrG7b3a/c+Y0yvKVNyoIuSnxrlXztuu8rD4lppSK3
-         5StQjHcaYQtrw==
+        b=fYvU91a2k5ZMTMz2aK74ZLEh0D2G6k7WHM4T2v1yFgIMcR87mem+r7NHdh3hNX9vh
+         TF3621YD6U7EU5ihAcAz9L0zvCUENcOwfcOHuYhCPnFkABZfi/Gjys89HnkEuQcBNC
+         a8xe0rZa48Iyo6nka0nIAl3XqTpG5a/DOICF6Lm4xit0PL4mArlEPCMAwh7l9x2IZE
+         9iGh82lOtYeM6JMX+ZSEDUTIGOK9MB2Nq0oqhdhUu94fD9ZgxveomM6ZqSYxDUAHgw
+         Ga/VnRkV6UNkru/vC62/rG/nVMBTPB+S6TsHByBsLU+gjmd3J6z1q5NzFjphuKzoPw
+         Un34W1LTVDx7g==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 01:43:26AM -0800, Selvin Xavier wrote:
-> Refactor user space MR code to handle bigger MRs. Removes couple of checks
-> that prevented the bigger MRs.
+On Wed, Dec 30, 2020 at 03:02:40PM +0200, Leon Romanovsky wrote:
+> From: Patrisious Haddad <phaddad@nvidia.com>
 > 
-> v1->v2:
->  - Fix the build warning
->    Reported-by: kernel test robot <lkp@intel.com>
+> The bounded counter can't be reconfigured to be in auto mode,
+> in attempt to do it, the user will get an error, but without any
+> hint why. Update nldev interface to return an error message through
+> extack mechanism.
 > 
-> Selvin Xavier (2):
->   RDMA/bnxt_re: Code refactor while populating user MRs
->   RDMA/bnxt_re: Allow bigger MR creation
+> Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/infiniband/core/counters.c | 62 ++++++++++++++++--------------
+>  drivers/infiniband/core/nldev.c    |  4 +-
+>  include/rdma/rdma_counter.h        |  3 +-
+>  3 files changed, 36 insertions(+), 33 deletions(-)
 
 Applied to for-next, thanks
 
