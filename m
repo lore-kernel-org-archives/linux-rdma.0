@@ -7,63 +7,61 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7579FC43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF42C433E9
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:47:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5664A22DFB
+	by mail.kernel.org (Postfix) with ESMTP id 408F922DD3
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:47:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389766AbhARWrQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 17:47:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47002 "EHLO
+        id S1730963AbhARWrO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 17:47:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388973AbhARWlO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:14 -0500
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31BA3C06179B
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:43 -0800 (PST)
-Received: by mail-wr1-x436.google.com with SMTP id d13so17874330wrc.13
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:43 -0800 (PST)
+        with ESMTP id S2389004AbhARWlS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:41:18 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 826D8C0617A2
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:46 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id c5so17912944wrp.6
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=orJ4MubFFDrHOBvfCjsG4URIp3hoMSlpV6ATN8JCkIo=;
-        b=sZWe1lP5fLhCU3GqoO7akig9dSeHebVeFrHGuu4i5asoHobQN2ThfoWSqFNh+tlK/k
-         Fi+siBJRky8inu8KjhGVE1vwJMaAX7GcSkcRjbBZp398Kbls6llygpN77QQCLy2BINQO
-         ZpNYhftoOfFiBZ2AFVdwOXvtrbY1TOcmr5XryL2DDoN7LWsrKt/efKBLY8cH4tWVzH0i
-         CUTZPO3wR8h6EeOeqhWQEpAkptbf9W+fNhj8zAOw+NdUdpt2xfIeMCzJteK3m9GX7I5X
-         pq0Pw7Y1tRrXzRGtQmCNN8UhCTEEXnvUGWk9LxmBUFIl05QU7Ajy4q9ZvBsUYfmxWlca
-         k3kA==
+        bh=cwzNP5kyHoQeZRxeZSVY+m4WgCNHmZim89Aex+bzV3M=;
+        b=DE6emldwpqG09140iU8DJVIgEVttWIINr5Lyz4ugvS4DsV0dLBfNxYlSnC0vczze2C
+         9Ld7waXjDpfvS+Ez0w90iivhrKe0y8nE9y4gDBEjvdrmswkfS6jnIB54//9B2j0rc826
+         j4nTGlxxPOdqnaxA8TofEn7/nsnwnN+/A3S/nE4ZBscU5SwDeKpTj8PtK3JHOtJsFwja
+         KGNOMeHXDalpBDCos7sMEQ4mN9RV57pN4MAPuc5LA9h4dAcjOxy979wHnVUrDxVb31po
+         b+rV+pTXCFvW6YkCBNzIk5gH+RnHBBoxZEBiPRvS/VOeH1SiPjtu013xXZa26F3uo75n
+         lrbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=orJ4MubFFDrHOBvfCjsG4URIp3hoMSlpV6ATN8JCkIo=;
-        b=W/mnW+b7skuRF0+TqB8xk+f/EvlzxW82GlgwTa+KUIM7X4kWLD/L+FHowDfvo3LEqD
-         96ay+S1AK6p9tnU0WMzc8+Eo2TNMlKl+BKQWrOfho8QfX4Ro6lwN4p4Ru9Ut0i9FB7Wz
-         kxCRdmpqtu/vKobUjFJPxeOJUeZw5Gd4NJ1ujCyBFDIJsjGwGSiIW3Pu/ysPhnTge+cS
-         CVtvvQrBUMR9nsym3PWmQYHrprhlGc14lpG3xE6L3noUvjo9Ywofh2N5FIL3WaTSDO/r
-         CTyguYxx1+1bB4J3avyCJwrbUq+yUQEsAbZc+1ErNOFi6nduGZBSurE6/60s2IxyRrhh
-         z/bQ==
-X-Gm-Message-State: AOAM532jYzzaG9+K7WFJD2cUxcWMgIdjSprf+qxSQQKn55Hm3ULQ7Mzu
-        QHcDYWA94WDDO370cnpy1lQhxg==
-X-Google-Smtp-Source: ABdhPJxH3Pgx7YHt5GpuujRMO6MRF3pwk+EFgidtQ3/cdtNsO2hfzVmhKUGiBqomPyi5RhvHCqoGHA==
-X-Received: by 2002:adf:efc5:: with SMTP id i5mr1382127wrp.377.1611009581912;
-        Mon, 18 Jan 2021 14:39:41 -0800 (PST)
+        bh=cwzNP5kyHoQeZRxeZSVY+m4WgCNHmZim89Aex+bzV3M=;
+        b=FP94fzUaci3kazdt/C4p3i8bds2WxlyOVS10jAUqdxUOdI34k+S9hPvXTHjLn2SoRh
+         jPktwXCBQJ1r1DiBDrVBVoyQEecb4Bo6s6lM4bRRSQhNvkrZNgzY59JXLPnVVwhWqmyI
+         gceVbq0zQxNxvD4qZsEX9NOOdJzct+dyaPzueKN12uZKRrgWDKV8Iytovf3JwhTkrgSu
+         5sWO28wxfyD4QrC7HbauuVB/a5G18InkgaPU33wqDUxvZWBnQwdpoj98GpCCjpSopX39
+         yjBsDhANsv9M7dqAp1v6ewScHl+FMYlXMYxjVWdZzZmgAPxyXMCcnaGrYT5Oj5oecHTZ
+         Xtkw==
+X-Gm-Message-State: AOAM532tpBN9SqPLUwAduvlRA8WFBij/gjfW4ZhVMQBwKKGssCNzDYVn
+        asO8V1ojQyFnGOb6ebD46cmeiQ==
+X-Google-Smtp-Source: ABdhPJywvIwmt0EOck4Pbkb+KtkE7KXOTIlpGFAE9ml3JcVB5KSkZ2lIFh8jLT1cKdtTrG5XBxeluQ==
+X-Received: by 2002:adf:9d42:: with SMTP id o2mr1408439wre.135.1611009585324;
+        Mon, 18 Jan 2021 14:39:45 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.40
+        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Jan 2021 14:39:41 -0800 (PST)
+        Mon, 18 Jan 2021 14:39:44 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Taehee Yoo <ap420073@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org
-Subject: [PATCH 08/20] RDMA/core/roce_gid_mgmt: Fix misnaming of 'rdma_roce_rescan_device()'s param 'ib_dev'
-Date:   Mon, 18 Jan 2021 22:39:17 +0000
-Message-Id: <20210118223929.512175-9-lee.jones@linaro.org>
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 11/20] RDMA/core/multicast: Provide description for 'ib_init_ah_from_mcmember()'s 'rec' param
+Date:   Mon, 18 Jan 2021 22:39:20 +0000
+Message-Id: <20210118223929.512175-12-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210118223929.512175-1-lee.jones@linaro.org>
 References: <20210118223929.512175-1-lee.jones@linaro.org>
@@ -75,32 +73,28 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/core/roce_gid_mgmt.c:511: warning: Function parameter or member 'ib_dev' not described in 'rdma_roce_rescan_device'
- drivers/infiniband/core/roce_gid_mgmt.c:511: warning: Excess function parameter 'device' description in 'rdma_roce_rescan_device'
+ drivers/infiniband/core/multicast.c:739: warning: Function parameter or member 'rec' not described in 'ib_init_ah_from_mcmember'
 
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Taehee Yoo <ap420073@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/core/roce_gid_mgmt.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/multicast.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
-index 6b8364bb032d6..34fff94eaa382 100644
---- a/drivers/infiniband/core/roce_gid_mgmt.c
-+++ b/drivers/infiniband/core/roce_gid_mgmt.c
-@@ -505,7 +505,7 @@ static void enum_all_gids_of_dev_cb(struct ib_device *ib_dev,
-  * rdma_roce_rescan_device - Rescan all of the network devices in the system
-  * and add their gids, as needed, to the relevant RoCE devices.
-  *
-- * @device:         the rdma device
-+ * @ib_dev:         the rdma device
-  */
- void rdma_roce_rescan_device(struct ib_device *ib_dev)
- {
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 740f03ecc05d7..57519ca6cd2c7 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -721,6 +721,7 @@ EXPORT_SYMBOL(ib_sa_get_mcmember_rec);
+  * member record and gid of the device.
+  * @device:	RDMA device
+  * @port_num:	Port of the rdma device to consider
++ * @rec:	Multicast member record to use
+  * @ndev:	Optional netdevice, applicable only for RoCE
+  * @gid_type:	GID type to consider
+  * @ah_attr:	AH attribute to fillup on successful completion
 -- 
 2.25.1
 
