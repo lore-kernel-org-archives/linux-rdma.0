@@ -7,66 +7,64 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC2F4C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C19CBC433E0
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:45:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7AAA922E01
+	by mail.kernel.org (Postfix) with ESMTP id 91A7522DD3
 	for <linux-rdma@archiver.kernel.org>; Mon, 18 Jan 2021 22:45:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389099AbhARWlY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Jan 2021 17:41:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47018 "EHLO
+        id S2389035AbhARWlU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Jan 2021 17:41:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388946AbhARWk6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:40:58 -0500
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B4D0C061796
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:42 -0800 (PST)
-Received: by mail-wm1-x329.google.com with SMTP id o10so653882wmc.1
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:41 -0800 (PST)
+        with ESMTP id S2388639AbhARWk5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Jan 2021 17:40:57 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E49A3C061786
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:38 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id q18so17936520wrn.1
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Jan 2021 14:39:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=EgbSvphWdwzoBJALaG5BEz5GzMJcNLhN5bTWYIzGc8o=;
-        b=n0Y2GqqSm30E9OfSryhsHoC/PL/uRTDwVaSnUQYY8jzlExX+zKe0qFuyPFHKRQtGG/
-         pveNN1+C62Wrs24SkcfGxKTyxDHx5gWqCQ7ht+xm57FuaMN8yFitoRaFpKz2kFB5e5Bb
-         QYuP8oqQAFoTEoueNQkAc6Q1dtpxqnHd2ngiT4AKqEH4GG30yjR3OJxv1PhOugAAuZQp
-         DIbTtdO+qYQ2iPkgwa95alf9BI14ebxKLJxXic4ygYccB9K9AGyGvTNiz6AksSkg6oze
-         XhXv6PglbbG2GVfainLgogtv3lB/imkN1hRHb7aHBe0ch1PPmktFQudX4j+4PWdv6NmY
-         TT0A==
+        bh=2zCFxNxC1849c1rWm6WspmEg7y5zlYGUnMSic9ZfnKc=;
+        b=LflVijOPHoSSIlKgkVZiZW3Hc8wVCelYr3w5fn3OGARaCQRsIGeckBPvOnPvrOWaIk
+         M5sCZrm3fkOqPBHCZUXWk8/h77OxwK0B5zKS5/bqw3ShNpdCbShRIV8i/DwFp7I84Icx
+         OFD2zMxCZNfipwxFt7sz2AzxMxP1l3uCO7yTrw1WMWyPbfUkxaFb7aMqDwwXExd+ejLj
+         Ysn6xEE5Qql9qCeW8HJJRTPpJ3KL5eZA3bf49a54+twBJuk73hnQtH/srwgZ0FLp6zu1
+         D9NtIN1c+/xiYVDpndXgHHjAgN6Z4sdqRW033JPL3Qm7C4U2R7agL17E8XFLWfFhNqd5
+         rOJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=EgbSvphWdwzoBJALaG5BEz5GzMJcNLhN5bTWYIzGc8o=;
-        b=udDVcCf7AcpxsP8cmf/l+FlwvmJzWxhSBIk0b3gYa4zULHJSWqNxpWiRE7MkXifJ9W
-         REEAmeTxoW9Y7HXlXr10aV9e+Dl/flL60Ag6nQG6/rw/O7zwRQrQEsqyStWxNDJWQ0/J
-         3YwElGrZZZbFI2NbNZKJN/5doN9vdJ81868eo/ItB8rl0LaTpP+sw/lwBXmRSB6sQt5z
-         fEUOe5MV55pOcwKLfIw01VRTAUm4mnkFuLHW3ZKrjTgqyt6vvzabCiayaAMN3JDvSXHX
-         TMoDPRd757x6nCF0YTg0LJDNo/acAMTTU/tgzogG2r871IqCD6m0Zg98xnyaZbdqIEs/
-         ZsxA==
-X-Gm-Message-State: AOAM530cs6qJHZ0VCLEEhHCT0E/HYmpCdM8iNFfnrDH59EodyU2M5wtp
-        8FLVIC/raTjzr32oQNZIvP+27Q==
-X-Google-Smtp-Source: ABdhPJxxAfyj1fv6jJ7Rj0sPN41RWYm1gUgLhgyw4XjU8eHbr5Uc2Pc16D+NBnnAbJFnBuTztZGm0Q==
-X-Received: by 2002:a1c:5644:: with SMTP id k65mr1290708wmb.62.1611009580837;
-        Mon, 18 Jan 2021 14:39:40 -0800 (PST)
+        bh=2zCFxNxC1849c1rWm6WspmEg7y5zlYGUnMSic9ZfnKc=;
+        b=E0e/bjrcNQBAYjYT1sN0ddZkPTQqzKrJe4KqNhOk6+MaRhtF+XZxkPShLn0r8jYllH
+         WGEGRUfz48i1WRjJ/tO8EZVWfqbBTaLCBEr1BWkm6K9rxIfKq9c52vL6DAMH3QtIm5c3
+         2MWIyi/VT+/yNdkLbPL0dKf3afM73ae4CxKRtVAP/BjQnzrtKyrExvkGmQW6UwilOnvs
+         3jUr4ZyNb1iyGINhQxYvD1dzssZ3GRaatIZ/T5IoBsDJ/XAeu/++lJxcaJcZCCv4G8vA
+         dlQ3ZZuoSiFvxaBqy/GiGE0b6bTpGFtxA7TZmVANQ3SWEZXpqKi8Ad/C+lPz2bBHIRdn
+         aiow==
+X-Gm-Message-State: AOAM532Y9STgki43Orvm22c+ramma+nDmwH5lBBhwjMUDfByCzFVKDZd
+        zz2Qj8h2gm18qB/nrgrUi39z0w==
+X-Google-Smtp-Source: ABdhPJyBs23FfpBTJdohr+eiQsr283xaDs8nkxlG8Zkp1P6jeJLNmfjSumGo/JfYdhy/mcTAR3ilrQ==
+X-Received: by 2002:adf:dc8d:: with SMTP id r13mr1422006wrj.325.1611009577630;
+        Mon, 18 Jan 2021 14:39:37 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.39
+        by smtp.gmail.com with ESMTPSA id l1sm33255902wrq.64.2021.01.18.14.39.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Jan 2021 14:39:40 -0800 (PST)
+        Mon, 18 Jan 2021 14:39:37 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
         Faisal Latif <faisal.latif@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Intel Corporation <e1000-rdma@lists.sourceforge.net>,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH 07/20] RDMA/hw/i40iw/i40iw_main: Rectify some kernel-doc misdemeanours
-Date:   Mon, 18 Jan 2021 22:39:16 +0000
-Message-Id: <20210118223929.512175-8-lee.jones@linaro.org>
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 04/20] RDMA/hw/i40iw/i40iw_cm: Fix a bunch of function documentation issues
+Date:   Mon, 18 Jan 2021 22:39:13 +0000
+Message-Id: <20210118223929.512175-5-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210118223929.512175-1-lee.jones@linaro.org>
 References: <20210118223929.512175-1-lee.jones@linaro.org>
@@ -78,98 +76,146 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/i40iw/i40iw_main.c:192: warning: Function parameter or member 't' not described in 'i40iw_dpc'
- drivers/infiniband/hw/i40iw/i40iw_main.c:192: warning: Excess function parameter 'data' description in 'i40iw_dpc'
- drivers/infiniband/hw/i40iw/i40iw_main.c:206: warning: Function parameter or member 't' not described in 'i40iw_ceq_dpc'
- drivers/infiniband/hw/i40iw/i40iw_main.c:206: warning: Excess function parameter 'data' description in 'i40iw_ceq_dpc'
- drivers/infiniband/hw/i40iw/i40iw_main.c:236: warning: Function parameter or member 'free_hwcqp' not described in 'i40iw_destroy_cqp'
- drivers/infiniband/hw/i40iw/i40iw_main.c:236: warning: Excess function parameter 'create_done' description in 'i40iw_destroy_cqp'
- drivers/infiniband/hw/i40iw/i40iw_main.c:264: warning: Function parameter or member 'msix_vec' not described in 'i40iw_disable_irq'
- drivers/infiniband/hw/i40iw/i40iw_main.c:264: warning: Excess function parameter 'msic_vec' description in 'i40iw_disable_irq'
- drivers/infiniband/hw/i40iw/i40iw_main.c:407: warning: Function parameter or member 'dev' not described in 'i40iw_close_hmc_objects_type'
- drivers/infiniband/hw/i40iw/i40iw_main.c:407: warning: Function parameter or member 'hmc_info' not described in 'i40iw_close_hmc_objects_type'
- drivers/infiniband/hw/i40iw/i40iw_main.c:407: warning: Excess function parameter 'iwdev' description in 'i40iw_close_hmc_objects_type'
- drivers/infiniband/hw/i40iw/i40iw_main.c:443: warning: Function parameter or member 'irq' not described in 'i40iw_ceq_handler'
- drivers/infiniband/hw/i40iw/i40iw_main.c:1786: warning: Function parameter or member 'reset' not described in 'i40iw_close'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:76: warning: Function parameter or member 'bufp' not described in 'i40iw_free_sqbuf'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:76: warning: Excess function parameter 'buf' description in 'i40iw_free_sqbuf'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:737: warning: Function parameter or member 'start_addr' not described in 'i40iw_build_mpa_v1'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1059: warning: Function parameter or member 'cm_node' not described in 'i40iw_schedule_cm_timer'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1211: warning: Function parameter or member 't' not described in 'i40iw_cm_timer_tick'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1211: warning: Excess function parameter 'pass' description in 'i40iw_cm_timer_tick'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1475: warning: Function parameter or member 'vlan_id' not described in 'i40iw_find_listener'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1527: warning: Function parameter or member 'port' not described in 'i40iw_find_port'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1527: warning: Excess function parameter 'accelerated_list' description in 'i40iw_find_port'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:1843: warning: Function parameter or member 'listener' not described in 'i40iw_dec_refcnt_listen'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:2037: warning: Function parameter or member 'src_addr' not described in 'i40iw_get_dst_ipv6'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:2037: warning: Function parameter or member 'dst_addr' not described in 'i40iw_get_dst_ipv6'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:2061: warning: Function parameter or member 'src' not described in 'i40iw_addr_resolve_neigh_ipv6'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:2061: warning: Function parameter or member 'dest' not described in 'i40iw_addr_resolve_neigh_ipv6'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:2061: warning: Excess function parameter 'dst_ip' description in 'i40iw_addr_resolve_neigh_ipv6'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:3011: warning: Function parameter or member 'pdata' not described in 'i40iw_cm_reject'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:3011: warning: Excess function parameter 'pdate' description in 'i40iw_cm_reject'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:4312: warning: Function parameter or member 'nfo' not described in 'i40iw_cm_teardown_connections'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:4312: warning: Excess function parameter 'ipv4' description in 'i40iw_cm_teardown_connections'
+ drivers/infiniband/hw/i40iw/i40iw_cm.c:4367: warning: Function parameter or member 'netdev' not described in 'i40iw_if_notify'
 
 Cc: Faisal Latif <faisal.latif@intel.com>
 Cc: Shiraz Saleem <shiraz.saleem@intel.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Intel Corporation <e1000-rdma@lists.sourceforge.net>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_main.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 584932d3cc44b..ab4cb11950dc1 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -186,7 +186,7 @@ static void i40iw_enable_intr(struct i40iw_sc_dev *dev, u32 msix_id)
- 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 9acc0ecc9a43e..ac65c8237b2ed 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -70,7 +70,7 @@ static void i40iw_disconnect_worker(struct work_struct *work);
  /**
-  * i40iw_dpc - tasklet for aeq and ceq 0
-- * @data: iwarp device
-+ * @t: Timer context to fetch pointer to iwarp device
+  * i40iw_free_sqbuf - put back puda buffer if refcount = 0
+  * @vsi: pointer to vsi structure
+- * @buf: puda buffer to free
++ * @bufp: puda buffer to free
   */
- static void i40iw_dpc(struct tasklet_struct *t)
+ void i40iw_free_sqbuf(struct i40iw_sc_vsi *vsi, void *bufp)
  {
-@@ -200,7 +200,7 @@ static void i40iw_dpc(struct tasklet_struct *t)
+@@ -729,6 +729,7 @@ static int i40iw_handle_tcp_options(struct i40iw_cm_node *cm_node,
+ /**
+  * i40iw_build_mpa_v1 - build a MPA V1 frame
+  * @cm_node: connection's node
++ * @start_addr: MPA frame start address
+  * @mpa_key: to do read0 or write0
+  */
+ static void i40iw_build_mpa_v1(struct i40iw_cm_node *cm_node,
+@@ -1040,7 +1041,7 @@ static int i40iw_parse_mpa(struct i40iw_cm_node *cm_node, u8 *buffer, u32 *type,
  
  /**
-  * i40iw_ceq_dpc - dpc handler for CEQ
-- * @data: data points to CEQ
-+ * @t: Timer context to fetch pointer to CEQ data
+  * i40iw_schedule_cm_timer
+- * @@cm_node: connection's node
++ * @cm_node: connection's node
+  * @sqbuf: buffer to send
+  * @type: if it is send or close
+  * @send_retrans: if rexmits to be done
+@@ -1205,7 +1206,7 @@ static void i40iw_build_timer_list(struct list_head *timer_list,
+ 
+ /**
+  * i40iw_cm_timer_tick - system's timer expired callback
+- * @pass: Pointing to cm_core
++ * @t: Timer instance to fetch the cm_core pointer from
   */
- static void i40iw_ceq_dpc(struct tasklet_struct *t)
+ static void i40iw_cm_timer_tick(struct timer_list *t)
  {
-@@ -227,7 +227,7 @@ static irqreturn_t i40iw_irq_handler(int irq, void *data)
- /**
-  * i40iw_destroy_cqp  - destroy control qp
-  * @iwdev: iwarp device
-- * @create_done: 1 if cqp create poll was success
-+ * @free_hwcqp: 1 if CQP should be destroyed
-  *
-  * Issue destroy cqp request and
-  * free the resources associated with the cqp
-@@ -253,7 +253,7 @@ static void i40iw_destroy_cqp(struct i40iw_device *iwdev, bool free_hwcqp)
- /**
-  * i40iw_disable_irqs - disable device interrupts
-  * @dev: hardware control device structure
-- * @msic_vec: msix vector to disable irq
-+ * @msix_vec: msix vector to disable irq
-  * @dev_id: parameter to pass to free_irq (used during irq setup)
-  *
-  * The function is called when destroying aeq/ceq
-@@ -394,8 +394,9 @@ static enum i40iw_hmc_rsrc_type iw_hmc_obj_types[] = {
- 
- /**
-  * i40iw_close_hmc_objects_type - delete hmc objects of a given type
-- * @iwdev: iwarp device
-+ * @dev: iwarp device
-  * @obj_type: the hmc object type to be deleted
-+ * @hmc_info: pointer to the HMC configuration information
-  * @is_pf: true if the function is PF otherwise false
-  * @reset: true if called before reset
+@@ -1463,6 +1464,7 @@ struct i40iw_cm_node *i40iw_find_node(struct i40iw_cm_core *cm_core,
+  * @cm_core: cm's core
+  * @dst_port: listener tcp port num
+  * @dst_addr: listener ip addr
++ * @vlan_id: vlan id for the given address
+  * @listener_state: state to match with listen node's
   */
-@@ -437,6 +438,7 @@ static void i40iw_del_hmc_objects(struct i40iw_sc_dev *dev,
- 
+ static struct i40iw_cm_listener *i40iw_find_listener(
+@@ -1521,7 +1523,7 @@ static void i40iw_add_hte_node(struct i40iw_cm_core *cm_core,
  /**
-  * i40iw_ceq_handler - interrupt handler for ceq
-+ * @irq: interrupt request number
-  * @data: ceq pointer
+  * i40iw_find_port - find port that matches reference port
+  * @hte: ptr to accelerated or non-accelerated list
+- * @accelerated_list: flag for accelerated vs non-accelerated list
++ * @port: port number to locate
   */
- static irqreturn_t i40iw_ceq_handler(int irq, void *data)
-@@ -1777,6 +1779,7 @@ static void i40iw_l2param_change(struct i40e_info *ldev, struct i40e_client *cli
+ static bool i40iw_find_port(struct list_head *hte, u16 port)
+ {
+@@ -1834,6 +1836,7 @@ static enum i40iw_status_code i40iw_add_mqh_4(
  /**
-  * i40iw_close - client interface operation close for iwarp/uda device
-  * @ldev: lan device information
-+ * @reset: true if called before reset
-  * @client: client to close
-  *
-  * Called by the lan driver during the processing of client unregister
+  * i40iw_dec_refcnt_listen - delete listener and associated cm nodes
+  * @cm_core: cm's core
++ * @listener: passive connection's listener
+  * @free_hanging_nodes: to free associated cm_nodes
+  * @apbvt_del: flag to delete the apbvt
+  */
+@@ -2029,7 +2032,7 @@ static int i40iw_addr_resolve_neigh(struct i40iw_device *iwdev,
+ 	return rc;
+ }
+ 
+-/**
++/*
+  * i40iw_get_dst_ipv6
+  */
+ static struct dst_entry *i40iw_get_dst_ipv6(struct sockaddr_in6 *src_addr,
+@@ -2051,7 +2054,8 @@ static struct dst_entry *i40iw_get_dst_ipv6(struct sockaddr_in6 *src_addr,
+ /**
+  * i40iw_addr_resolve_neigh_ipv6 - resolve neighbor ipv6 address
+  * @iwdev: iwarp device structure
+- * @dst_ip: remote ip address
++ * @src: source ip address
++ * @dest: remote ip address
+  * @arpindex: if there is an arp entry
+  */
+ static int i40iw_addr_resolve_neigh_ipv6(struct i40iw_device *iwdev,
+@@ -3004,7 +3008,7 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
+ /**
+  * i40iw_cm_reject - reject and teardown a connection
+  * @cm_node: connection's node
+- * @pdate: ptr to private data for reject
++ * @pdata: ptr to private data for reject
+  * @plen: size of private data
+  */
+ static int i40iw_cm_reject(struct i40iw_cm_node *cm_node, const void *pdata, u8 plen)
+@@ -4302,7 +4306,7 @@ static void i40iw_qhash_ctrl(struct i40iw_device *iwdev,
+  * i40iw_cm_teardown_connections - teardown QPs
+  * @iwdev: device pointer
+  * @ipaddr: Pointer to IPv4 or IPv6 address
+- * @ipv4: flag indicating IPv4 when true
++ * @nfo: cm info node
+  * @disconnect_all: flag indicating disconnect all QPs
+  * teardown QPs where source or destination addr matches ip addr
+  */
+@@ -4358,6 +4362,7 @@ void i40iw_cm_teardown_connections(struct i40iw_device *iwdev, u32 *ipaddr,
+ /**
+  * i40iw_ifdown_notify - process an ifdown on an interface
+  * @iwdev: device pointer
++ * @netdev: network interface device structure
+  * @ipaddr: Pointer to IPv4 or IPv6 address
+  * @ipv4: flag indicating IPv4 when true
+  * @ifup: flag indicating interface up when true
 -- 
 2.25.1
 
