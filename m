@@ -2,101 +2,101 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA2A9C10F0D
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:27:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 008E3C43333
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A510D22D2A
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:27:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEFBC22E01
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728210AbhASPAI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 10:00:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51292 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394218AbhASNfn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 08:35:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A320D21D7F;
-        Tue, 19 Jan 2021 13:35:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611063302;
-        bh=Zmdb06aKMXvtXcbO2kaNUiTEoQr6daIVyTpw3LAIf4c=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=H6723nCzYhHeDXDjG+ytGihFuAy5PJoWv/Zi2ce6Wl7HCNzYT+Zkgobqq30SYH/yw
-         tgm5LcYoTmxHVuB3PEX3dpXJK5Dd/cFq2Au9zgIVmZlqmeZ+HixGGXQkcMVKIsDP9h
-         xXSfBPIc4lFb2UugO99T+/FAE6TFOzlscH3CQQmF5A5Nwrym9d0X2JBIgjRt7bSLE1
-         T8t9NuDkP1113RCT9OciQOhO9kEzfbnfQ6V34X3I5YzlhtQddZMB5M2fvqgqy/6kvm
-         iV78XMxyxn9eJCJcx8dO2NJaysOM1OFejfi5ufHkmy6hhcoGEF7EFc7Sf4C9b2OmPg
-         quCeIQZSkgmqw==
-Date:   Tue, 19 Jan 2021 15:34:58 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Gal Pressman <galpress@amazon.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Alexander Matushevsky <matua@amazon.com>,
-        "Leybovich, Yossi" <sleybo@amazon.com>
-Subject: Re: [PATCH for-next 0/2] Host information userspace version
-Message-ID: <20210119133458.GK21258@unreal>
-References: <20210105104326.67895-1-galpress@amazon.com>
- <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
- <20210119084632.GI21258@unreal>
- <91c354f0-ada7-85d5-8496-122a3a54354a@amazon.com>
- <20210119115808.GJ21258@unreal>
- <1cb7058a-0bde-943b-64b7-d2a39337a085@amazon.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+        id S2390830AbhASQvN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 11:51:13 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:5450 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731236AbhASQvB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 11:51:01 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B60070dc90000>; Tue, 19 Jan 2021 08:50:17 -0800
+Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 19 Jan
+ 2021 16:50:17 +0000
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.47) by
+ HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Tue, 19 Jan 2021 16:50:17 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=jjlCO1PHXk4EJRQaUPEgW2DnTfuDVuDePjS4uW64hyNp2R7VjcpkA/2goQVmIT0F6Aq0E784tPFwRMdznX0nD9b4IcZO78hIklTb8hOcNtKXgNELatR4V/sPYTqXH2cL2EPkVCdBPOZyGq3OfRC/llDfeq/2HL4CzLKjjIiEDIDcnsqqFZAB07j8iCbq3Tn7t8WDapOkZyCJi9QFrQt42AZqBWvm4AMno1dOlQuJM7DxWAzf1WqUzpgykHpYlRFTBr5J4Edqthrut/wGaWI/dNaYfCSpHk1s2ribw7IAiEjaZlmAV2t5dV/irHAp3EM59VI4bjXwDszMi3YEmKq4DA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=x+JTlu57P9gPnkJ3jUDTwD91tN5ghJrX/iVCJRHHT6E=;
+ b=Kxwin+ycHE1IQDeqEGjpq9VOHtowwK3+S+y/j6hBBsW8AVT11WQPdvbQgu4yJZkoznO5oreBP3p8qY3iCUV2MOMv+j2NNwHM1YrfsOsQNRu6V3hAF+0t/jHiaEMeE1Ji3vWupObizJIigfB6F3++FSIXzp1Yph07hv2QLStS/6OFEYLS/yMalPspOn/fOUzdZiMUUupvFTKndtZMaTMHz3xkgpaHbQ/2P3itdFe6MGt2xuRsL845HNIFYPDM4MriUxz4/0Nt1WHbLbXXtCTmn29JwsTo9cofAfHUvoqNhjyvWq6qoXveN6dgcbFaIEmkeAGEoDxhVTdwT0pXtw26xg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3403.namprd12.prod.outlook.com (2603:10b6:5:11d::27) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.13; Tue, 19 Jan
+ 2021 16:50:16 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Tue, 19 Jan 2021
+ 16:50:15 +0000
+Date:   Tue, 19 Jan 2021 12:50:12 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: Re: [PATCH mlx5-next 0/3] Cleanup around DEVX get/set commands
+Message-ID: <20210119165012.GA906477@nvidia.com>
+References: <20201230130121.180350-1-leon@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <1cb7058a-0bde-943b-64b7-d2a39337a085@amazon.com>
+In-Reply-To: <20201230130121.180350-1-leon@kernel.org>
+X-ClientProxiedBy: MN2PR04CA0023.namprd04.prod.outlook.com
+ (2603:10b6:208:d4::36) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR04CA0023.namprd04.prod.outlook.com (2603:10b6:208:d4::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Tue, 19 Jan 2021 16:50:14 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1uCq-003npO-SA; Tue, 19 Jan 2021 12:50:12 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1611075017; bh=x+JTlu57P9gPnkJ3jUDTwD91tN5ghJrX/iVCJRHHT6E=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=oNnlU6ngDh2zgR56XwIfCxljhgAC0B3EiHw7wLoojQe+VOE1UOTNnnLqfk4dFhyDq
+         C7+zgPChJHIoFRNZmu18FLLCDhxHYHjRtL/gdOcxbvhsId9Oo+dT0wNgctszjyV7l+
+         OUJZ/PDoT1DsnKEeUp+xBqDKkYLcvUqSdzeG3F4CnvnNglrKTGIzBCTT8ufbhQoqfM
+         5Z0ti2g27v6Hd/mnoukBn14el0DquD4UNTpuQuD0AdKvfae86yT4uH5ur/k8Sn2HOU
+         GtqozPvQn6ElPT6undG44Xmt9CT2D9kS4iGrbOqzHnOBj7r0hIia4LvRYCd9gQU6Ut
+         uGO06GbI64T0Q==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jan 19, 2021 at 03:19:15PM +0200, Gal Pressman wrote:
-> On 19/01/2021 13:58, Leon Romanovsky wrote:
-> > On Tue, Jan 19, 2021 at 11:10:59AM +0200, Gal Pressman wrote:
-> >> On 19/01/2021 10:46, Leon Romanovsky wrote:
-> >>> On Tue, Jan 19, 2021 at 09:17:14AM +0200, Gal Pressman wrote:
-> >>>> On 05/01/2021 12:43, Gal Pressman wrote:
-> >>>>> The following two patches add the userspace version to the host
-> >>>>> information struct reported to the device, used for debugging and
-> >>>>> troubleshooting purposes.
-> >>>>>
-> >>>>> PR was sent:
-> >>>>> https://github.com/linux-rdma/rdma-core/pull/918
-> >>>>>
-> >>>>> Thanks,
-> >>>>> Gal
-> >>>>
-> >>>> Anything stopping this series from being merged?
-> >>>
-> >>> It is unclear when this forwarding of non-verbs data to the FW will stop.
-> >>
-> >> This was already discussed in the PR. Not everything should be passed through
-> >> this interface, there should be a limit and it should be examined per case.
-> >> rdma-core version is clearly related to an RDMA device.
-> >
-> > "Clearly or not" - it depends on the observer.
-> >
-> >>
-> >> BTW, if you have any concerns about a patch you can state them, you don't have
-> >> to ignore it and wait for the submitter to ask what's wrong..
-> >
-> > Didn't you mistake me with anyone else?
->
-> No, you decided to answer my original question :).
->
-> > I'm reviewer in the kernel exactly like you and it gives me nice thing - ignore patches.
->
-> Don't get me wrong, your review is very appreciated, but this series is 20 LOC
-> which you already reviewed two weeks ago, and I replied to all comments.
-> Ignoring patches is fine, but please don't review, ignore and wait for the last
-> minute to say they shouldn't be merged.
+On Wed, Dec 30, 2020 at 03:01:18PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Be more strict with DEVX get/set operations for the obj_id.
+> 
+> Yishai Hadas (3):
+>   RDMA/mlx5: Use the correct obj_id upon DEVX TIR creation
+>   net/mlx5: Expose ifc bits for query modify header
+>   RDMA/mlx5: Use strict get/set operations for obj_id
+> 
+>  drivers/infiniband/hw/mlx5/devx.c | 201 ++++++++++++++++++++++--------
+>  include/linux/mlx5/mlx5_ifc.h     |  12 ++
+>  2 files changed, 160 insertions(+), 53 deletions(-)
 
-Sorry, but it is impossible to get it right.
+Applied to for-next, thanks
 
-I gave you hint WHY it takes so long, it is not review/ack/nack or
-anything like this.
-
-Thanks
+Jason
