@@ -2,95 +2,123 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F529C43331
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F4AC4332E
 	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:30:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11A1F20754
+	by mail.kernel.org (Postfix) with ESMTP id 29B09233EA
 	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389653AbhASN0W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 08:26:22 -0500
-Received: from mx2.suse.de ([195.135.220.15]:41510 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392912AbhASNOz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 08:14:55 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1611062006; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=evtmKTLSIqyRfQDYA8S2u8hWMWmpFcVladCMvE5eV5I=;
-        b=NLZkl3TeMqhKi69zy2BHCKYyU52iyT9h51uDMshh/fZ13NrEzeC5rZiYlWEz19ZnufJtoX
-        wrCSpcL8HK4b/iwYuuBkyiUJzry2C5fp+XonC82r1EwW2MexgjYYeYC1a+h2g9dOy+KXFK
-        hRrK0F7FihypBhJdS4i6s7VnsnyLmqs=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 7D683AB7F;
-        Tue, 19 Jan 2021 13:13:26 +0000 (UTC)
-Message-ID: <23fce5aa875575b9a5446baa793a948cc393ca73.camel@suse.com>
-Subject: Re: [PATCH] Revert "RDMA/rxe: Remove VLAN code leftovers from RXE"
-From:   Martin Wilck <mwilck@suse.com>
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Mohammad Heib <goody698@gmail.com>,
-        Vijay Immanuel <vijayi@attalasystems.com>,
-        Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>
-Date:   Tue, 19 Jan 2021 14:13:25 +0100
-In-Reply-To: <CAD=hENfrUJGeUGUfb6t6o3d8J_5ONMPfx3Gae8=xwrhq0DBKwg@mail.gmail.com>
-References: <20210119105644.2658-1-mwilck@suse.com>
-         <CAD=hENfrUJGeUGUfb6t6o3d8J_5ONMPfx3Gae8=xwrhq0DBKwg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.38.2 
+        id S2390259AbhASNLq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 08:11:46 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:11405 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387522AbhASJba (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 04:31:30 -0500
+Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DKjzN73Bgz7XPd;
+        Tue, 19 Jan 2021 17:29:36 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
+ 14.3.498.0; Tue, 19 Jan 2021 17:30:38 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@openeuler.org>
+Subject: [PATCH for-rc] RDMA/hns: Use mutex instead of spinlock for ida allocation
+Date:   Tue, 19 Jan 2021 17:28:33 +0800
+Message-ID: <1611048513-28663-1-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2021-01-19 at 20:10 +0800, Zhu Yanjun wrote:
-> On Tue, Jan 19, 2021 at 6:57 PM <mwilck@suse.com> wrote:
-> > 
-> > From: Martin Wilck <mwilck@suse.com>
-> > 
-> > This reverts commit b2d2440430c0fdd5e0cad3efd6d1c9e3d3d02e5b.
-> > 
-> > It's true that creating rxe on top of 802.1q interfaces doesn't
-> > work.
-> > Thus, commit fd49ddaf7e26 ("RDMA/rxe: prevent rxe creation on top
-> > of vlan interface")
-> > was absolutely correct.
-> > 
-> > But b2d2440430c0 was incorrect assuming that with this change,
-> > RDMA and VLAN don't work togehter at all. It just has to be
-> > set up differently. Rather than creating rxe on top of the VLAN
-> > interface, rxe must be created on top of the physical interface.
-> > RDMA then works just fine through VLAN interfaces on top of that
-> > physical interface, via the "upper device" logic.
-> 
-> I read this commit log for several times. I can not get you.
-> Can you show me by an example?
+From: Yangyang Li <liyangyang20@huawei.com>
 
-My test scenario which is broken by your patch uses a script that does
-roughly the following:
+GFP_KERNEL may cause ida_alloc_range() to sleep, but the spinlock covering
+this function is not allowed to sleep, so the spinlock needs to be changed
+to mutex.
 
-# (set up eth0)
-rdma link add rxe_eth0 type rxe netdev eth0
-ip link add link eth0 name eth0.10 type vlan id 10
-ip link set eth0.10 up
-ip addr add 192.168.10.102/24 dev eth0.10
+As there is a certain chance of memory allocation failure, GFP_ATOMIC
+is not suitable for QP allocation scenarios.
 
-nvme discover -t rdma -a 192.168.10.101 -s 4420  
+Fixes: 71586dd20010 ("RDMA/hns: Create QP with selected QPN for bank load balance")
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 11 ++++++-----
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-192.168.10.101 is another host that configures the network
-and rxe the same way, and has some nvmet targets.
-
-  => fails with your patch applied, works otherwise.
-
-Regards,
-Martin
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 55d5386..ad82532 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -532,7 +532,7 @@ struct hns_roce_qp_table {
+ 	struct hns_roce_hem_table	sccc_table;
+ 	struct mutex			scc_mutex;
+ 	struct hns_roce_bank bank[HNS_ROCE_QP_BANK_NUM];
+-	spinlock_t bank_lock;
++	struct mutex bank_mutex;
+ };
+ 
+ struct hns_roce_cq_table {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index d8e2fe5..1116371 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -209,7 +209,7 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 
+ 		hr_qp->doorbell_qpn = 1;
+ 	} else {
+-		spin_lock(&qp_table->bank_lock);
++		mutex_lock(&qp_table->bank_mutex);
+ 		bankid = get_least_load_bankid_for_qp(qp_table->bank);
+ 
+ 		ret = alloc_qpn_with_bankid(&qp_table->bank[bankid], bankid,
+@@ -217,12 +217,12 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		if (ret) {
+ 			ibdev_err(&hr_dev->ib_dev,
+ 				  "failed to alloc QPN, ret = %d\n", ret);
+-			spin_unlock(&qp_table->bank_lock);
++			mutex_unlock(&qp_table->bank_mutex);
+ 			return ret;
+ 		}
+ 
+ 		qp_table->bank[bankid].inuse++;
+-		spin_unlock(&qp_table->bank_lock);
++		mutex_unlock(&qp_table->bank_mutex);
+ 
+ 		hr_qp->doorbell_qpn = (u32)num;
+ 	}
+@@ -408,9 +408,9 @@ static void free_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 
+ 	ida_free(&hr_dev->qp_table.bank[bankid].ida, hr_qp->qpn >> 3);
+ 
+-	spin_lock(&hr_dev->qp_table.bank_lock);
++	mutex_lock(&hr_dev->qp_table.bank_mutex);
+ 	hr_dev->qp_table.bank[bankid].inuse--;
+-	spin_unlock(&hr_dev->qp_table.bank_lock);
++	mutex_unlock(&hr_dev->qp_table.bank_mutex);
+ }
+ 
+ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
+@@ -1371,6 +1371,7 @@ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
+ 	unsigned int i;
+ 
+ 	mutex_init(&qp_table->scc_mutex);
++	mutex_init(&qp_table->bank_mutex);
+ 	xa_init(&hr_dev->qp_table_xa);
+ 
+ 	reserved_from_bot = hr_dev->caps.reserved_qps;
+-- 
+2.8.1
 
