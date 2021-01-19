@@ -2,101 +2,165 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 008E3C43333
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91CE4C18E7C
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEFBC22E01
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6257022CAD
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 18:28:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390830AbhASQvN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 11:51:13 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:5450 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731236AbhASQvB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 11:51:01 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B60070dc90000>; Tue, 19 Jan 2021 08:50:17 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 19 Jan
- 2021 16:50:17 +0000
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.47) by
- HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Tue, 19 Jan 2021 16:50:17 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=jjlCO1PHXk4EJRQaUPEgW2DnTfuDVuDePjS4uW64hyNp2R7VjcpkA/2goQVmIT0F6Aq0E784tPFwRMdznX0nD9b4IcZO78hIklTb8hOcNtKXgNELatR4V/sPYTqXH2cL2EPkVCdBPOZyGq3OfRC/llDfeq/2HL4CzLKjjIiEDIDcnsqqFZAB07j8iCbq3Tn7t8WDapOkZyCJi9QFrQt42AZqBWvm4AMno1dOlQuJM7DxWAzf1WqUzpgykHpYlRFTBr5J4Edqthrut/wGaWI/dNaYfCSpHk1s2ribw7IAiEjaZlmAV2t5dV/irHAp3EM59VI4bjXwDszMi3YEmKq4DA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=x+JTlu57P9gPnkJ3jUDTwD91tN5ghJrX/iVCJRHHT6E=;
- b=Kxwin+ycHE1IQDeqEGjpq9VOHtowwK3+S+y/j6hBBsW8AVT11WQPdvbQgu4yJZkoznO5oreBP3p8qY3iCUV2MOMv+j2NNwHM1YrfsOsQNRu6V3hAF+0t/jHiaEMeE1Ji3vWupObizJIigfB6F3++FSIXzp1Yph07hv2QLStS/6OFEYLS/yMalPspOn/fOUzdZiMUUupvFTKndtZMaTMHz3xkgpaHbQ/2P3itdFe6MGt2xuRsL845HNIFYPDM4MriUxz4/0Nt1WHbLbXXtCTmn29JwsTo9cofAfHUvoqNhjyvWq6qoXveN6dgcbFaIEmkeAGEoDxhVTdwT0pXtw26xg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3403.namprd12.prod.outlook.com (2603:10b6:5:11d::27) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.13; Tue, 19 Jan
- 2021 16:50:16 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Tue, 19 Jan 2021
- 16:50:15 +0000
-Date:   Tue, 19 Jan 2021 12:50:12 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@nvidia.com>,
-        Yishai Hadas <yishaih@mellanox.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: Re: [PATCH mlx5-next 0/3] Cleanup around DEVX get/set commands
-Message-ID: <20210119165012.GA906477@nvidia.com>
-References: <20201230130121.180350-1-leon@kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20201230130121.180350-1-leon@kernel.org>
-X-ClientProxiedBy: MN2PR04CA0023.namprd04.prod.outlook.com
- (2603:10b6:208:d4::36) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S2390057AbhASRLK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 12:11:10 -0500
+Received: from smtp.infotech.no ([82.134.31.41]:59504 "EHLO smtp.infotech.no"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389552AbhASRKt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 Jan 2021 12:10:49 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by smtp.infotech.no (Postfix) with ESMTP id 32E9B2042B2;
+        Tue, 19 Jan 2021 18:09:37 +0100 (CET)
+X-Virus-Scanned: by amavisd-new-2.6.6 (20110518) (Debian) at infotech.no
+Received: from smtp.infotech.no ([127.0.0.1])
+        by localhost (smtp.infotech.no [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id IQ6qjm-zJqzh; Tue, 19 Jan 2021 18:09:34 +0100 (CET)
+Received: from xtwo70.bingwo.ca (host-104-157-204-209.dyn.295.ca [104.157.204.209])
+        by smtp.infotech.no (Postfix) with ESMTPA id 6080A2041AC;
+        Tue, 19 Jan 2021 18:09:33 +0100 (CET)
+From:   Douglas Gilbert <dgilbert@interlog.com>
+To:     linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     martin.petersen@oracle.com, jejb@linux.vnet.ibm.com,
+        bostroesser@gmail.com, ddiss@suse.de, bvanassche@acm.org
+Subject: [PATCH 1/3] scatterlist: add sgl_copy_sgl() function
+Date:   Tue, 19 Jan 2021 12:09:26 -0500
+Message-Id: <20210119170928.79805-2-dgilbert@interlog.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210119170928.79805-1-dgilbert@interlog.com>
+References: <20210119170928.79805-1-dgilbert@interlog.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR04CA0023.namprd04.prod.outlook.com (2603:10b6:208:d4::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Tue, 19 Jan 2021 16:50:14 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l1uCq-003npO-SA; Tue, 19 Jan 2021 12:50:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611075017; bh=x+JTlu57P9gPnkJ3jUDTwD91tN5ghJrX/iVCJRHHT6E=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=oNnlU6ngDh2zgR56XwIfCxljhgAC0B3EiHw7wLoojQe+VOE1UOTNnnLqfk4dFhyDq
-         C7+zgPChJHIoFRNZmu18FLLCDhxHYHjRtL/gdOcxbvhsId9Oo+dT0wNgctszjyV7l+
-         OUJZ/PDoT1DsnKEeUp+xBqDKkYLcvUqSdzeG3F4CnvnNglrKTGIzBCTT8ufbhQoqfM
-         5Z0ti2g27v6Hd/mnoukBn14el0DquD4UNTpuQuD0AdKvfae86yT4uH5ur/k8Sn2HOU
-         GtqozPvQn6ElPT6undG44Xmt9CT2D9kS4iGrbOqzHnOBj7r0hIia4LvRYCd9gQU6Ut
-         uGO06GbI64T0Q==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Dec 30, 2020 at 03:01:18PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> Be more strict with DEVX get/set operations for the obj_id.
-> 
-> Yishai Hadas (3):
->   RDMA/mlx5: Use the correct obj_id upon DEVX TIR creation
->   net/mlx5: Expose ifc bits for query modify header
->   RDMA/mlx5: Use strict get/set operations for obj_id
-> 
->  drivers/infiniband/hw/mlx5/devx.c | 201 ++++++++++++++++++++++--------
->  include/linux/mlx5/mlx5_ifc.h     |  12 ++
->  2 files changed, 160 insertions(+), 53 deletions(-)
+Both the SCSI and NVMe subsystems receive user data from the block
+layer in scatterlist_s (aka scatter gather lists (sgl) which are
+often arrays). If drivers in those subsystems represent storage
+(e.g. a ramdisk) or cache "hot" user data then they may also
+choose to use scatterlist_s. Currently there are no sgl to sgl
+operations in the kernel. Start with a sgl to sgl copy. Stops
+when the first of the number of requested bytes to copy, or the
+source sgl, or the destination sgl is exhausted. So the
+destination sgl will _not_ grow.
 
-Applied to for-next, thanks
+Reviewed-by: Bodo Stroesser <bostroesser@gmail.com>
+Signed-off-by: Douglas Gilbert <dgilbert@interlog.com>
+---
+ include/linux/scatterlist.h |  4 ++
+ lib/scatterlist.c           | 74 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
-Jason
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 6f70572b2938..22111ee21383 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -320,6 +320,10 @@ size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
+ size_t sg_zero_buffer(struct scatterlist *sgl, unsigned int nents,
+ 		       size_t buflen, off_t skip);
+ 
++size_t sgl_copy_sgl(struct scatterlist *d_sgl, unsigned int d_nents, off_t d_skip,
++		    struct scatterlist *s_sgl, unsigned int s_nents, off_t s_skip,
++		    size_t n_bytes);
++
+ /*
+  * Maximum number of entries that will be allocated in one piece, if
+  * a list larger than this is required then chaining will be utilized.
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index a59778946404..782bcfe72c60 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -1058,3 +1058,77 @@ size_t sg_zero_buffer(struct scatterlist *sgl, unsigned int nents,
+ 	return offset;
+ }
+ EXPORT_SYMBOL(sg_zero_buffer);
++
++/**
++ * sgl_copy_sgl - Copy over a destination sgl from a source sgl
++ * @d_sgl:		 Destination sgl
++ * @d_nents:		 Number of SG entries in destination sgl
++ * @d_skip:		 Number of bytes to skip in destination before starting
++ * @s_sgl:		 Source sgl
++ * @s_nents:		 Number of SG entries in source sgl
++ * @s_skip:		 Number of bytes to skip in source before starting
++ * @n_bytes:		 The (maximum) number of bytes to copy
++ *
++ * Returns:
++ *   The number of copied bytes.
++ *
++ * Notes:
++ *   Destination arguments appear before the source arguments, as with memcpy().
++ *
++ *   Stops copying if either d_sgl, s_sgl or n_bytes is exhausted.
++ *
++ *   Since memcpy() is used, overlapping copies (where d_sgl and s_sgl belong
++ *   to the same sgl and the copy regions overlap) are not supported.
++ *
++ *   Large copies are broken into copy segments whose sizes may vary. Those
++ *   copy segment sizes are chosen by the min3() statement in the code below.
++ *   Since SG_MITER_ATOMIC is used for both sides, each copy segment is started
++ *   with kmap_atomic() [in sg_miter_next()] and completed with kunmap_atomic()
++ *   [in sg_miter_stop()]. This means pre-emption is inhibited for relatively
++ *   short periods even in very large copies.
++ *
++ *   If d_skip is large, potentially spanning multiple d_nents then some
++ *   integer arithmetic to adjust d_sgl may improve performance. For example
++ *   if d_sgl is built using sgl_alloc_order(chainable=false) then the sgl
++ *   will be an array with equally sized segments facilitating that
++ *   arithmetic. The suggestion applies to s_skip, s_sgl and s_nents as well.
++ *
++ **/
++size_t sgl_copy_sgl(struct scatterlist *d_sgl, unsigned int d_nents, off_t d_skip,
++		    struct scatterlist *s_sgl, unsigned int s_nents, off_t s_skip,
++		    size_t n_bytes)
++{
++	size_t len;
++	size_t offset = 0;
++	struct sg_mapping_iter d_iter, s_iter;
++
++	if (n_bytes == 0)
++		return 0;
++	sg_miter_start(&s_iter, s_sgl, s_nents, SG_MITER_ATOMIC | SG_MITER_FROM_SG);
++	sg_miter_start(&d_iter, d_sgl, d_nents, SG_MITER_ATOMIC | SG_MITER_TO_SG);
++	if (!sg_miter_skip(&s_iter, s_skip))
++		goto fini;
++	if (!sg_miter_skip(&d_iter, d_skip))
++		goto fini;
++
++	while (offset < n_bytes) {
++		if (!sg_miter_next(&s_iter))
++			break;
++		if (!sg_miter_next(&d_iter))
++			break;
++		len = min3(d_iter.length, s_iter.length, n_bytes - offset);
++
++		memcpy(d_iter.addr, s_iter.addr, len);
++		offset += len;
++		/* LIFO order (stop d_iter before s_iter) needed with SG_MITER_ATOMIC */
++		d_iter.consumed = len;
++		sg_miter_stop(&d_iter);
++		s_iter.consumed = len;
++		sg_miter_stop(&s_iter);
++	}
++fini:
++	sg_miter_stop(&d_iter);
++	sg_miter_stop(&s_iter);
++	return offset;
++}
++EXPORT_SYMBOL(sgl_copy_sgl);
+-- 
+2.25.1
+
