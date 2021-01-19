@@ -2,85 +2,76 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBCC5C433E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D647DC433E0
 	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:23:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B715D207B3
+	by mail.kernel.org (Postfix) with ESMTP id 9A5D82312D
 	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:23:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391233AbhASNRM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 08:17:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59376 "EHLO mail.kernel.org"
+        id S2391014AbhASNQj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 08:16:39 -0500
+Received: from mx2.suse.de ([195.135.220.15]:60670 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392145AbhASL6x (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 06:58:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 44D1623104;
-        Tue, 19 Jan 2021 11:58:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611057493;
-        bh=JweHzevrolWM5kXjB9Lfgw0EaAsgBY/Yh8gSFboi1Lk=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=t3ddP+TecdXoO8ax32O8z43fb+iJz9/0v4At8+0q4RDS5NVmofoMEOBdffoettUXb
-         GFwpeROzdGBZ4RMT0PzKgA44PeJdfqT2jFHjHwmuQ2qle2dRSvwXTmUpfTW3+uOauk
-         87XTiOjJnTFC7xTbN5lPR/O43W7TxCV5Nl2f6P/ZRZ64UizEdLVZjwB7W18lwNHruc
-         4wP/+DmpocvjwrKFPAvL1LqSSLhg9WHgYWcrWNRWzri6p68Ccj8Q1nB4K1dTtpYibj
-         EzMXxDVVFuWYL53iVbZmsN/0/a90vCpGF69P11qveNXUb8AnE3Dbgdy+6TE563vNMW
-         BCfxD5IrpYNFA==
-Date:   Tue, 19 Jan 2021 13:58:08 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Gal Pressman <galpress@amazon.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Alexander Matushevsky <matua@amazon.com>,
-        "Leybovich, Yossi" <sleybo@amazon.com>
-Subject: Re: [PATCH for-next 0/2] Host information userspace version
-Message-ID: <20210119115808.GJ21258@unreal>
-References: <20210105104326.67895-1-galpress@amazon.com>
- <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
- <20210119084632.GI21258@unreal>
- <91c354f0-ada7-85d5-8496-122a3a54354a@amazon.com>
+        id S2389055AbhASLvJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 Jan 2021 06:51:09 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id AE34BAC7B;
+        Tue, 19 Jan 2021 11:50:16 +0000 (UTC)
+Date:   Tue, 19 Jan 2021 12:50:15 +0100
+From:   David Disseldorp <ddiss@suse.de>
+To:     Douglas Gilbert <dgilbert@interlog.com>
+Cc:     linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, martin.petersen@oracle.com,
+        jejb@linux.vnet.ibm.com, bostroesser@gmail.com, bvanassche@acm.org,
+        jgg@ziepe.ca
+Subject: Re: [PATCH v6 3/4] scatterlist: add sgl_compare_sgl() function
+Message-ID: <20210119125015.2f063af5@suse.de>
+In-Reply-To: <d0b8312b-5dbf-6196-d962-40851c5cbbf7@interlog.com>
+References: <20210118163006.61659-1-dgilbert@interlog.com>
+        <20210118163006.61659-4-dgilbert@interlog.com>
+        <20210119002741.4dbc290e@suse.de>
+        <d0b8312b-5dbf-6196-d962-40851c5cbbf7@interlog.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <91c354f0-ada7-85d5-8496-122a3a54354a@amazon.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jan 19, 2021 at 11:10:59AM +0200, Gal Pressman wrote:
-> On 19/01/2021 10:46, Leon Romanovsky wrote:
-> > On Tue, Jan 19, 2021 at 09:17:14AM +0200, Gal Pressman wrote:
-> >> On 05/01/2021 12:43, Gal Pressman wrote:
-> >>> The following two patches add the userspace version to the host
-> >>> information struct reported to the device, used for debugging and
-> >>> troubleshooting purposes.
-> >>>
-> >>> PR was sent:
-> >>> https://github.com/linux-rdma/rdma-core/pull/918
-> >>>
-> >>> Thanks,
-> >>> Gal
-> >>
-> >> Anything stopping this series from being merged?
-> >
-> > It is unclear when this forwarding of non-verbs data to the FW will stop.
->
-> This was already discussed in the PR. Not everything should be passed through
-> this interface, there should be a limit and it should be examined per case.
-> rdma-core version is clearly related to an RDMA device.
+On Mon, 18 Jan 2021 20:04:20 -0500, Douglas Gilbert wrote:
 
-"Clearly or not" - it depends on the observer.
+> >> +bool sgl_compare_sgl(struct scatterlist *x_sgl, unsigned int x_nents, off_t x_skip,
+> >> +		     struct scatterlist *y_sgl, unsigned int y_nents, off_t y_skip,
+> >> +		     size_t n_bytes);
+> >> +
+> >> +bool sgl_compare_sgl_idx(struct scatterlist *x_sgl, unsigned int x_nents, off_t x_skip,
+> >> +			 struct scatterlist *y_sgl, unsigned int y_nents, off_t y_skip,
+> >> +			 size_t n_bytes, size_t *miscompare_idx);  
+> > 
+> > 
+> > This patch looks good and works fine as a replacement for
+> > compare_and_write_do_cmp(). One minor suggestion would be to name it
+> > sgl_equal() or similar, to perhaps better reflect the bool return and
+> > avoid memcmp() confusion. Either way:
+> > Reviewed-by: David Disseldorp <ddiss@suse.de>  
+> 
+> Thanks. NVMe calls the command that does this Compare and SCSI uses
+> COMPARE AND WRITE (and VERIFY(BYTCHK=1) ) but "equal" is fine with me.
+> There will be another patchset version (at least) so there is time
+> to change.
+> 
+> Do you want:
+>    - sgl_equal(...), or
+>    - sgl_equal_sgl(...) ?
 
->
-> BTW, if you have any concerns about a patch you can state them, you don't have
-> to ignore it and wait for the submitter to ask what's wrong..
+I'd probably prefer the former as it's shorter, but I don't feel
+strongly about it. The latter would make sense if you expect sgl compare
+helpers for other buffer types.
 
-Didn't you mistake me with anyone else?
-
-I'm reviewer in the kernel exactly like you and it gives me nice thing - ignore patches.
-
-Thanks
+Cheers, David
