@@ -2,118 +2,95 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DA8CC433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 06:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 920FDC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 07:02:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 15FFF23125
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 06:40:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F3A42312D
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 07:02:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727013AbhASGjK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 01:39:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57080 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732677AbhASFkR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 00:40:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DCFBD20707;
-        Tue, 19 Jan 2021 05:39:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611034775;
-        bh=30QA8sfSITs3gpwA/1iUXVHhw489NQgc3I22GSDkfmA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=GStJBH73usYbmfGoHh7ojXBl3SErt/0PQPdS80ZofKrM9VIsxdZMu1ql/trUXMRr5
-         OgSP6RlJHTK83iiX9O0SywESB13dBGDJxAvw5gkyEIJ9mxkORGH5v5UORsfYs5tDXV
-         JAmIzBctzrBW3oRFbWu9DB9IjHV1tVwcbVwjAtS/J4u3xB7tySqIo7oENCmoiMpYfm
-         NlYl6m4/yQFth61wxD8CgY5NqO82F6OoEbNTqkZZ9QdS3gLbMjNSMYVI4G7O3CE8If
-         LdrmLnbsiM65Wk/UT2HQhEgeBUwi/EB8zNgiwPpTJ3oG5EkItJMqxW4yW7MtoLOhT5
-         NxLeiO8+W5bAA==
-Date:   Tue, 19 Jan 2021 07:39:31 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>, linux-pci@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Don Dutile <ddutile@redhat.com>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Alexander Duyck <alexander.duyck@gmail.com>
-Subject: Re: [PATCH mlx5-next v2 0/5] Dynamically assign MSI-X vectors count
-Message-ID: <20210119053931.GC21258@unreal>
-References: <20210114103140.866141-1-leon@kernel.org>
- <20210114095128.0f388f08@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
- <20210117054409.GQ944463@unreal>
- <20210117072441.GA1242829@unreal>
- <20210118100732.51803b06@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        id S1730590AbhASHC2 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 02:02:28 -0500
+Received: from szxga03-in.huawei.com ([45.249.212.189]:2864 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730580AbhASHCB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 02:02:01 -0500
+Received: from DGGEMM404-HUB.china.huawei.com (unknown [172.30.72.55])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4DKffb2Jpqz5Hkt;
+        Tue, 19 Jan 2021 14:59:51 +0800 (CST)
+Received: from dggema703-chm.china.huawei.com (10.3.20.67) by
+ DGGEMM404-HUB.china.huawei.com (10.3.20.212) with Microsoft SMTP Server (TLS)
+ id 14.3.498.0; Tue, 19 Jan 2021 15:01:14 +0800
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggema703-chm.china.huawei.com (10.3.20.67) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2106.2; Tue, 19 Jan 2021 15:01:14 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.002;
+ Tue, 19 Jan 2021 15:01:14 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Jason Gunthorpe <jgg@nvidia.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: Re: [Linuxarm] Re: [PATCH v2 for-next] RDMA/hns: Add caps flag for UD
+ inline of userspace
+Thread-Topic: [Linuxarm] Re: [PATCH v2 for-next] RDMA/hns: Add caps flag for
+ UD inline of userspace
+Thread-Index: AQHW7idvPj71VFG9skyUr2jC02wJ6Q==
+Date:   Tue, 19 Jan 2021 07:01:13 +0000
+Message-ID: <aacc6653bd794f2d934ff85d5151d1af@huawei.com>
+References: <1609836423-40069-1-git-send-email-liweihang@huawei.com>
+ <20210118200854.GA778611@nvidia.com>
+ <180c1cd8489e430eaa99913885356e03@huawei.com> <20210119062705.GE21258@unreal>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210118100732.51803b06@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 18, 2021 at 10:07:32AM -0800, Jakub Kicinski wrote:
-> On Sun, 17 Jan 2021 09:24:41 +0200 Leon Romanovsky wrote:
-> > On Sun, Jan 17, 2021 at 07:44:09AM +0200, Leon Romanovsky wrote:
-> > > On Thu, Jan 14, 2021 at 09:51:28AM -0800, Jakub Kicinski wrote:
-> > > > On Thu, 14 Jan 2021 12:31:35 +0200 Leon Romanovsky wrote:
-> > > > > The number of MSI-X vectors is PCI property visible through lspci, that
-> > > > > field is read-only and configured by the device.
-> > > > >
-> > > > > The static assignment of an amount of MSI-X vectors doesn't allow utilize
-> > > > > the newly created VF because it is not known to the device the future load
-> > > > > and configuration where that VF will be used.
-> > > > >
-> > > > > The VFs are created on the hypervisor and forwarded to the VMs that have
-> > > > > different properties (for example number of CPUs).
-> > > > >
-> > > > > To overcome the inefficiency in the spread of such MSI-X vectors, we
-> > > > > allow the kernel to instruct the device with the needed number of such
-> > > > > vectors, before VF is initialized and bounded to the driver.
-> > > >
-> > > >
-> > > > Hi Leon!
-> > > >
-> > > > Looks like you got some missing kdoc here, check out the test in
-> > > > patchwork so we don't need to worry about this later:
-> > > >
-> > > > https://patchwork.kernel.org/project/netdevbpf/list/?series=414497
-> > >
-> > > Thanks Jakub,
-> > >
-> > > I'll add kdocs to internal mlx5 functions.
-> > > IMHO, they are useless.
->
-> It's just scripts/kernel-doc, and it's checking if the kdoc is _valid_,
-> your call if you want to add kdoc, just a comment, or nothing at all.
+On 2021/1/19 14:27, Leon Romanovsky wrote:
+> On Tue, Jan 19, 2021 at 05:53:40AM +0000, liweihang wrote:
+>> On 2021/1/19 4:09, Jason Gunthorpe wrote:
+>>> On Tue, Jan 05, 2021 at 04:47:03PM +0800, Weihang Li wrote:
+>>>> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+>>>> index 90b739d..79dba94 100644
+>>>> +++ b/include/uapi/rdma/hns-abi.h
+>>>> @@ -77,6 +77,7 @@ enum hns_roce_qp_cap_flags {
+>>>>  	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
+>>>>  	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
+>>>>  	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
+>>>> +	HNS_ROCE_QP_CAP_UD_SQ_INL = 1 << 3,
+>>>>  };
+>>> Where are the rdma-core patches to support this bit? I don't see them
+>>> on github?
+>>>
+>>> Jason
+>> I thought we needed to send the userspace part after the kernel part
+>> was merged. I sent the rdma-core patches just now:
+>>
+>> https://github.com/linux-rdma/rdma-core/pull/934
+> After kernel part will be accessed, you will need to update the patch
+> https://github.com/linux-rdma/rdma-core/pull/934/commits/2877713e1fed29305d04e39dd934ea81082e616e
+> with the correct SHA-1.
+> 
+> Thanks
+> 
 
-I prefer clean CI, so will add.
-
->
-> > At the end, it looks like CI false alarm.
-> >
-> > drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c:81: warning: Function parameter or member 'dev' not described in 'mlx5_set_msix_vec_count'
-> > drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c:81: warning: Function parameter or member 'function_id' not described in 'mlx5_set_msix_vec_count'
-> > drivers/net/ethernet/mellanox/mlx5/core/pci_irq.c:81: warning: Function parameter or member 'msix_vec_count' not described in 'mlx5_set_msix_vec_count'
-> > New warnings added
-> >
-> > The function mlx5_set_msix_vec_count() is documented.
-> > +/**
-> > + * mlx5_set_msix_vec_count() - Set dynamically allocated MSI-X to the VF
-> > + * @dev - PF to work on
-> > + * @function_id - internal PCI VF function id
-> > + * @msix_vec_count - Number of MSI-X to set
-> > + **/
-> > +int mlx5_set_msix_vec_count(struct mlx5_core_dev *dev, int function_id,
-> > +			    int msix_vec_count)
-> > https://patchwork.kernel.org/project/netdevbpf/patch/20210114103140.866141-5-leon@kernel.org/
->
-> AFAIU that's not valid kdoc, I _think_ you need to replace ' -' with ':'
-> for arguments (not my rules).
-
-Right, I figured it when submitted v3.
+OK, I will update it then.
 
 Thanks
+Weihang
