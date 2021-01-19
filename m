@@ -2,123 +2,193 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F4AC4332E
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:30:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46895C433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 15:02:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29B09233EA
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:30:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3A91207B1
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 15:02:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390259AbhASNLq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 08:11:46 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:11405 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387522AbhASJba (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 04:31:30 -0500
-Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DKjzN73Bgz7XPd;
-        Tue, 19 Jan 2021 17:29:36 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
- 14.3.498.0; Tue, 19 Jan 2021 17:30:38 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@openeuler.org>
-Subject: [PATCH for-rc] RDMA/hns: Use mutex instead of spinlock for ida allocation
-Date:   Tue, 19 Jan 2021 17:28:33 +0800
-Message-ID: <1611048513-28663-1-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
+        id S1727762AbhASPAd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 10:00:33 -0500
+Received: from mga18.intel.com ([134.134.136.126]:6858 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2395405AbhASOSY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 19 Jan 2021 09:18:24 -0500
+IronPort-SDR: svqlXgVRmczZa98bVoDKhAV59BfOF1ehs+Vc47es0AWiWnVDcGKaERwP+ARWIghN22Au/aoIhg
+ +aqRvAWAXo/g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9868"; a="166597693"
+X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
+   d="scan'208";a="166597693"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 06:15:01 -0800
+IronPort-SDR: AK4MZ3YUYlCn63BrXM0JPGNKvikXS7aQKfrik1pbdQ01iAxNcG9ZC7/jOwTBYYHcAT/6QjSVSx
+ HhUMqQyD3Z4w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.79,359,1602572400"; 
+   d="scan'208";a="466712198"
+Received: from lkp-server01.sh.intel.com (HELO 260eafd5ecd0) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 19 Jan 2021 06:14:59 -0800
+Received: from kbuild by 260eafd5ecd0 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1l1rmd-00056O-6o; Tue, 19 Jan 2021 14:14:59 +0000
+Date:   Tue, 19 Jan 2021 22:14:03 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:for-rc] BUILD SUCCESS
+ a372173bf314d374da4dd1155549d8ca7fc44709
+Message-ID: <6006e92b.zI1vjitV8ecEHL7Q%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-rc
+branch HEAD: a372173bf314d374da4dd1155549d8ca7fc44709  RDMA/cxgb4: Fix the reported max_recv_sge value
 
-GFP_KERNEL may cause ida_alloc_range() to sleep, but the spinlock covering
-this function is not allowed to sleep, so the spinlock needs to be changed
-to mutex.
+elapsed time: 725m
 
-As there is a certain chance of memory allocation failure, GFP_ATOMIC
-is not suitable for QP allocation scenarios.
+configs tested: 124
+configs skipped: 2
 
-Fixes: 71586dd20010 ("RDMA/hns: Create QP with selected QPN for bank load balance")
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm64                            allyesconfig
+arm64                               defconfig
+powerpc                    amigaone_defconfig
+ia64                                defconfig
+arm                           tegra_defconfig
+arm                          collie_defconfig
+powerpc                 mpc836x_mds_defconfig
+powerpc                  mpc885_ads_defconfig
+openrisc                         alldefconfig
+arm                           h3600_defconfig
+mips                         tb0226_defconfig
+powerpc                 canyonlands_defconfig
+powerpc                      tqm8xx_defconfig
+sh                          polaris_defconfig
+s390                             allyesconfig
+m68k                        mvme147_defconfig
+arm                          tango4_defconfig
+powerpc                  iss476-smp_defconfig
+s390                       zfcpdump_defconfig
+powerpc                      ep88xc_defconfig
+powerpc                      mgcoge_defconfig
+arm                            xcep_defconfig
+powerpc                 mpc837x_rdb_defconfig
+arm                         nhk8815_defconfig
+h8300                     edosk2674_defconfig
+mips                     decstation_defconfig
+mips                malta_qemu_32r6_defconfig
+arm                         s3c2410_defconfig
+sh                              ul2_defconfig
+m68k                          multi_defconfig
+mips                           xway_defconfig
+sparc                       sparc32_defconfig
+mips                       lemote2f_defconfig
+arm                          imote2_defconfig
+arm                       imx_v4_v5_defconfig
+mips                      pic32mzda_defconfig
+sparc                               defconfig
+sh                        sh7763rdp_defconfig
+sh                          rsk7201_defconfig
+arm                         shannon_defconfig
+arm                           efm32_defconfig
+arc                      axs103_smp_defconfig
+arm                           sama5_defconfig
+arm                        mvebu_v7_defconfig
+mips                          rm200_defconfig
+arm                        magician_defconfig
+h8300                               defconfig
+openrisc                 simple_smp_defconfig
+powerpc                 mpc85xx_cds_defconfig
+powerpc                 xes_mpc85xx_defconfig
+arm                      tct_hammer_defconfig
+mips                           jazz_defconfig
+powerpc                     skiroot_defconfig
+ia64                             allmodconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+i386                               tinyconfig
+i386                                defconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a002-20210118
+i386                 randconfig-a005-20210118
+i386                 randconfig-a006-20210118
+i386                 randconfig-a001-20210118
+i386                 randconfig-a003-20210118
+i386                 randconfig-a004-20210118
+x86_64               randconfig-a015-20210118
+x86_64               randconfig-a013-20210118
+x86_64               randconfig-a012-20210118
+x86_64               randconfig-a016-20210118
+x86_64               randconfig-a011-20210118
+x86_64               randconfig-a014-20210118
+i386                 randconfig-a011-20210118
+i386                 randconfig-a012-20210118
+i386                 randconfig-a016-20210118
+i386                 randconfig-a015-20210118
+i386                 randconfig-a013-20210118
+i386                 randconfig-a014-20210118
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                    rhel-7.6-kselftests
+x86_64                      rhel-8.3-kbuiltin
+x86_64                           allyesconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a004-20210118
+x86_64               randconfig-a006-20210118
+x86_64               randconfig-a001-20210118
+x86_64               randconfig-a003-20210118
+x86_64               randconfig-a005-20210118
+x86_64               randconfig-a002-20210118
+
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 11 ++++++-----
- 2 files changed, 7 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 55d5386..ad82532 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -532,7 +532,7 @@ struct hns_roce_qp_table {
- 	struct hns_roce_hem_table	sccc_table;
- 	struct mutex			scc_mutex;
- 	struct hns_roce_bank bank[HNS_ROCE_QP_BANK_NUM];
--	spinlock_t bank_lock;
-+	struct mutex bank_mutex;
- };
- 
- struct hns_roce_cq_table {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index d8e2fe5..1116371 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -209,7 +209,7 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 
- 		hr_qp->doorbell_qpn = 1;
- 	} else {
--		spin_lock(&qp_table->bank_lock);
-+		mutex_lock(&qp_table->bank_mutex);
- 		bankid = get_least_load_bankid_for_qp(qp_table->bank);
- 
- 		ret = alloc_qpn_with_bankid(&qp_table->bank[bankid], bankid,
-@@ -217,12 +217,12 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 		if (ret) {
- 			ibdev_err(&hr_dev->ib_dev,
- 				  "failed to alloc QPN, ret = %d\n", ret);
--			spin_unlock(&qp_table->bank_lock);
-+			mutex_unlock(&qp_table->bank_mutex);
- 			return ret;
- 		}
- 
- 		qp_table->bank[bankid].inuse++;
--		spin_unlock(&qp_table->bank_lock);
-+		mutex_unlock(&qp_table->bank_mutex);
- 
- 		hr_qp->doorbell_qpn = (u32)num;
- 	}
-@@ -408,9 +408,9 @@ static void free_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 
- 	ida_free(&hr_dev->qp_table.bank[bankid].ida, hr_qp->qpn >> 3);
- 
--	spin_lock(&hr_dev->qp_table.bank_lock);
-+	mutex_lock(&hr_dev->qp_table.bank_mutex);
- 	hr_dev->qp_table.bank[bankid].inuse--;
--	spin_unlock(&hr_dev->qp_table.bank_lock);
-+	mutex_unlock(&hr_dev->qp_table.bank_mutex);
- }
- 
- static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
-@@ -1371,6 +1371,7 @@ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
- 	unsigned int i;
- 
- 	mutex_init(&qp_table->scc_mutex);
-+	mutex_init(&qp_table->bank_mutex);
- 	xa_init(&hr_dev->qp_table_xa);
- 
- 	reserved_from_bot = hr_dev->caps.reserved_qps;
--- 
-2.8.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
