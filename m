@@ -2,124 +2,94 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48BE3C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 624A2C433E0
 	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 06:19:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A07E22E01
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 06:18:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2877F22EBF
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 06:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727223AbhASGQS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 01:16:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56650 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728956AbhASFi5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 00:38:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D9C0207B1;
-        Tue, 19 Jan 2021 05:38:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611034691;
-        bh=icZxTvui0uXyecHvXQypSINhhAwhfI8fl7Y6Gu74ZsU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=kqhF4JpoZe9r41AtsGL8PsbiLn37goEt/RLJHT0Yzu3GEL/SwoN4l1KPjk9uMKnxF
-         CdTrhvzs1kF/TS/cT4vvlqs+fSyCPHTDWXHIB/gwRN17UpwQmNSnAs/Yeoh8kxSjJI
-         3BedgcLkUiff1yGjcQffaOS2/Cuwsr39CUvZNCdA3MFA0a6fNPCBX0FQITAebvxfk6
-         Fp0G7va5qGTQfRGN/aGafoGOLr9JkRJwilxVoHky480VAb3gTXbtgC8ZzTZiE1GaJp
-         cZU1kZ0FteJqGXkXwRGrvPbvkS9vBdh5W4Zj8+fdwAB7itJejXlCSblgsH3MJGI1kx
-         kw5qIP1QCpnVA==
-Date:   Tue, 19 Jan 2021 07:38:07 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Greg KH <gregkh@linuxfoundation.org>
-Cc:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Don Dutile <ddutile@redhat.com>,
-        Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [PATCH mlx5-next v1 2/5] PCI: Add SR-IOV sysfs entry to read
- number of MSI-X vectors
-Message-ID: <20210119053807.GB21258@unreal>
-References: <20210110150727.1965295-1-leon@kernel.org>
- <20210110150727.1965295-3-leon@kernel.org>
- <YAW/Wtr0thScxvK/@kroah.com>
+        id S1727430AbhASGQV convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 01:16:21 -0500
+Received: from szxga02-in.huawei.com ([45.249.212.188]:2949 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732257AbhASFyu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 00:54:50 -0500
+Received: from DGGEMM404-HUB.china.huawei.com (unknown [172.30.72.55])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4DKd8y5nDtz5JNs;
+        Tue, 19 Jan 2021 13:52:34 +0800 (CST)
+Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
+ DGGEMM404-HUB.china.huawei.com (10.3.20.212) with Microsoft SMTP Server (TLS)
+ id 14.3.498.0; Tue, 19 Jan 2021 13:53:40 +0800
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2106.2; Tue, 19 Jan 2021 13:53:40 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.002;
+ Tue, 19 Jan 2021 13:53:40 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: Re: [Linuxarm] Re: [PATCH v2 for-next] RDMA/hns: Add caps flag for UD
+ inline of userspace
+Thread-Topic: [Linuxarm] Re: [PATCH v2 for-next] RDMA/hns: Add caps flag for
+ UD inline of userspace
+Thread-Index: AQHW7idvPj71VFG9skyUr2jC02wJ6Q==
+Date:   Tue, 19 Jan 2021 05:53:40 +0000
+Message-ID: <180c1cd8489e430eaa99913885356e03@huawei.com>
+References: <1609836423-40069-1-git-send-email-liweihang@huawei.com>
+ <20210118200854.GA778611@nvidia.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YAW/Wtr0thScxvK/@kroah.com>
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 18, 2021 at 06:03:22PM +0100, Greg KH wrote:
-> On Sun, Jan 10, 2021 at 05:07:24PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> >
-> > Some SR-IOV capable devices provide an ability to configure specific
-> > number of MSI-X vectors on their VF prior driver is probed on that VF.
-> >
-> > In order to make management easy, provide new read-only sysfs file that
-> > returns a total number of possible to configure MSI-X vectors.
-> >
-> > cat /sys/bus/pci/devices/.../sriov_vf_total_msix
-> >   = 0 - feature is not supported
-> >   > 0 - total number of MSI-X vectors to consume by the VFs
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> >  Documentation/ABI/testing/sysfs-bus-pci | 14 +++++++++++
-> >  drivers/pci/iov.c                       | 31 +++++++++++++++++++++++++
-> >  drivers/pci/pci.h                       |  3 +++
-> >  include/linux/pci.h                     |  2 ++
-> >  4 files changed, 50 insertions(+)
-> >
-> > diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-> > index 05e26e5da54e..64e9b700acc9 100644
-> > --- a/Documentation/ABI/testing/sysfs-bus-pci
-> > +++ b/Documentation/ABI/testing/sysfs-bus-pci
-> > @@ -395,3 +395,17 @@ Description:
-> >  		The file is writable if the PF is bound to a driver that
-> >  		supports the ->sriov_set_msix_vec_count() callback and there
-> >  		is no driver bound to the VF.
-> > +
-> > +What:		/sys/bus/pci/devices/.../sriov_vf_total_msix
-> > +Date:		January 2021
-> > +Contact:	Leon Romanovsky <leonro@nvidia.com>
-> > +Description:
-> > +		This file is associated with the SR-IOV PFs.
-> > +		It returns a total number of possible to configure MSI-X
-> > +		vectors on the enabled VFs.
-> > +
-> > +		The values returned are:
-> > +		 * > 0 - this will be total number possible to consume by VFs,
-> > +		 * = 0 - feature is not supported
-> > +
-> > +		If no SR-IOV VFs are enabled, this value will return 0.
-> > diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
-> > index 42c0df4158d1..0a6ddf3230fd 100644
-> > --- a/drivers/pci/iov.c
-> > +++ b/drivers/pci/iov.c
-> > @@ -394,12 +394,22 @@ static ssize_t sriov_drivers_autoprobe_store(struct device *dev,
-> >  	return count;
-> >  }
-> >
-> > +static ssize_t sriov_vf_total_msix_show(struct device *dev,
-> > +					struct device_attribute *attr,
-> > +					char *buf)
-> > +{
-> > +	struct pci_dev *pdev = to_pci_dev(dev);
-> > +
-> > +	return sprintf(buf, "%d\n", pdev->sriov->vf_total_msix);
->
-> Nit, please use sysfs_emit() for new sysfs files.
+On 2021/1/19 4:09, Jason Gunthorpe wrote:
+> On Tue, Jan 05, 2021 at 04:47:03PM +0800, Weihang Li wrote:
+>> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+>> index 90b739d..79dba94 100644
+>> +++ b/include/uapi/rdma/hns-abi.h
+>> @@ -77,6 +77,7 @@ enum hns_roce_qp_cap_flags {
+>>  	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
+>>  	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
+>>  	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
+>> +	HNS_ROCE_QP_CAP_UD_SQ_INL = 1 << 3,
+>>  };
+> 
+> Where are the rdma-core patches to support this bit? I don't see them
+> on github?
+> 
+> Jason
 
-I'll do, thanks.
+I thought we needed to send the userspace part after the kernel part
+was merged. I sent the rdma-core patches just now:
 
->
-> thanks,
->
-> greg k-h
+https://github.com/linux-rdma/rdma-core/pull/934
+
+Thank you
+Weihang
+
+
+
+> _______________________________________________
+> Linuxarm mailing list -- linuxarm@openeuler.org
+> To unsubscribe send an email to linuxarm-leave@openeuler.org
+> 
+
