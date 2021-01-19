@@ -2,204 +2,108 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC6BC43217
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:23:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19D26C433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:27:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCA9B23137
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:23:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4EFE207B3
+	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 13:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389324AbhASNPF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 08:15:05 -0500
-Received: from mga04.intel.com ([192.55.52.120]:37975 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387620AbhASJga (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 04:36:30 -0500
-IronPort-SDR: dwQZ65p34u/LAVf9q1Y/PgymgJyHahuOwx3qDvg5Cnvm75ass+JfW+IGsxyfiVkZlIwJOsZfER
- EXELC1q8w6pQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9868"; a="176330049"
-X-IronPort-AV: E=Sophos;i="5.79,358,1602572400"; 
-   d="scan'208";a="176330049"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jan 2021 01:35:39 -0800
-IronPort-SDR: H41XFZFbH6QlMXu1x2ldgmM5JsWmuaQDtp8SodmmWz8EEBWK4EkeshHSjAgISSeqNaeZUFU9X5
- UV9xZKpMbY/A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.79,358,1602572400"; 
-   d="scan'208";a="347124241"
-Received: from lkp-server01.sh.intel.com (HELO 260eafd5ecd0) ([10.239.97.150])
-  by fmsmga007.fm.intel.com with ESMTP; 19 Jan 2021 01:35:37 -0800
-Received: from kbuild by 260eafd5ecd0 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1l1nQG-0004xX-D3; Tue, 19 Jan 2021 09:35:36 +0000
-Date:   Tue, 19 Jan 2021 17:34:43 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 7fbc3c373eefc291ff96d48496106c106b7f81c6
-Message-ID: <6006a7b3.w21dsKw2KoOxKhaJ%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S2387734AbhASNYB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 08:24:01 -0500
+Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:1476 "EHLO
+        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404454AbhASNUd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 08:20:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1611062433; x=1642598433;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=xH3+LA2qNBIbQD4GWagHPEPKbwkKXcR0ynHj5mgkYUY=;
+  b=coG+Fdzc+6aIdyk2PpXJLoMaJu+bHEY7buSehK6kD6rLQPFPCJiuznnQ
+   MKJu7KkonVrdhGR/eGKSc9Ge1L0AqJ28wAyC0RfZou7wiSbSqOKQda9xV
+   MMOAnv5sr/i8g7XeDKT+ML0e2vsRwaQD/sSyqttjumygX76rS2UySZLxz
+   o=;
+X-IronPort-AV: E=Sophos;i="5.79,358,1602547200"; 
+   d="scan'208";a="79996660"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2c-4e7c8266.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 19 Jan 2021 13:19:26 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2c-4e7c8266.us-west-2.amazon.com (Postfix) with ESMTPS id 3A49AA2904;
+        Tue, 19 Jan 2021 13:19:25 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.162.94) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Tue, 19 Jan 2021 13:19:21 +0000
+Subject: Re: [PATCH for-next 0/2] Host information userspace version
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        <linux-rdma@vger.kernel.org>,
+        Alexander Matushevsky <matua@amazon.com>,
+        "Leybovich, Yossi" <sleybo@amazon.com>
+References: <20210105104326.67895-1-galpress@amazon.com>
+ <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
+ <20210119084632.GI21258@unreal>
+ <91c354f0-ada7-85d5-8496-122a3a54354a@amazon.com>
+ <20210119115808.GJ21258@unreal>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <1cb7058a-0bde-943b-64b7-d2a39337a085@amazon.com>
+Date:   Tue, 19 Jan 2021 15:19:15 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.6.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20210119115808.GJ21258@unreal>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.162.94]
+X-ClientProxiedBy: EX13D50UWA002.ant.amazon.com (10.43.163.10) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-branch HEAD: 7fbc3c373eefc291ff96d48496106c106b7f81c6  RDMA/rtrs: Fix KASAN: stack-out-of-bounds bug
+On 19/01/2021 13:58, Leon Romanovsky wrote:
+> On Tue, Jan 19, 2021 at 11:10:59AM +0200, Gal Pressman wrote:
+>> On 19/01/2021 10:46, Leon Romanovsky wrote:
+>>> On Tue, Jan 19, 2021 at 09:17:14AM +0200, Gal Pressman wrote:
+>>>> On 05/01/2021 12:43, Gal Pressman wrote:
+>>>>> The following two patches add the userspace version to the host
+>>>>> information struct reported to the device, used for debugging and
+>>>>> troubleshooting purposes.
+>>>>>
+>>>>> PR was sent:
+>>>>> https://github.com/linux-rdma/rdma-core/pull/918
+>>>>>
+>>>>> Thanks,
+>>>>> Gal
+>>>>
+>>>> Anything stopping this series from being merged?
+>>>
+>>> It is unclear when this forwarding of non-verbs data to the FW will stop.
+>>
+>> This was already discussed in the PR. Not everything should be passed through
+>> this interface, there should be a limit and it should be examined per case.
+>> rdma-core version is clearly related to an RDMA device.
+> 
+> "Clearly or not" - it depends on the observer.
+> 
+>>
+>> BTW, if you have any concerns about a patch you can state them, you don't have
+>> to ignore it and wait for the submitter to ask what's wrong..
+> 
+> Didn't you mistake me with anyone else?
 
-elapsed time: 762m
+No, you decided to answer my original question :).
 
-configs tested: 135
-configs skipped: 2
+> I'm reviewer in the kernel exactly like you and it gives me nice thing - ignore patches.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-powerpc                 mpc836x_rdk_defconfig
-openrisc                            defconfig
-arm                         lubbock_defconfig
-sh                 kfr2r09-romimage_defconfig
-sparc                            allyesconfig
-sparc64                             defconfig
-arm                          pxa910_defconfig
-powerpc                         ps3_defconfig
-arm                     am200epdkit_defconfig
-mips                      loongson3_defconfig
-ia64                             alldefconfig
-powerpc                 xes_mpc85xx_defconfig
-arm                         s3c6400_defconfig
-arm                         lpc32xx_defconfig
-sh                           sh2007_defconfig
-powerpc                     kmeter1_defconfig
-nds32                               defconfig
-arm                          gemini_defconfig
-um                           x86_64_defconfig
-arc                     nsimosci_hs_defconfig
-s390                       zfcpdump_defconfig
-powerpc                      ep88xc_defconfig
-powerpc                      mgcoge_defconfig
-arm                            xcep_defconfig
-powerpc                 mpc837x_rdb_defconfig
-arm                         nhk8815_defconfig
-arm                       imx_v4_v5_defconfig
-mips                      pic32mzda_defconfig
-sparc                               defconfig
-sh                        sh7763rdp_defconfig
-sh                          rsk7201_defconfig
-powerpc                    sam440ep_defconfig
-powerpc                    mvme5100_defconfig
-powerpc                      ppc64e_defconfig
-arc                              alldefconfig
-mips                        vocore2_defconfig
-arm                      jornada720_defconfig
-arm                            zeus_defconfig
-mips                      bmips_stb_defconfig
-arm                            hisi_defconfig
-arm                         vf610m4_defconfig
-arm                        shmobile_defconfig
-arm                       netwinder_defconfig
-parisc                generic-32bit_defconfig
-powerpc                      katmai_defconfig
-powerpc                     tqm8548_defconfig
-h8300                               defconfig
-arm                      tct_hammer_defconfig
-mips                           jazz_defconfig
-powerpc                     skiroot_defconfig
-xtensa                generic_kc705_defconfig
-powerpc                     tqm5200_defconfig
-m68k                         amcore_defconfig
-arm                             ezx_defconfig
-xtensa                       common_defconfig
-sh                            hp6xx_defconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-c6x                              allyesconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-parisc                           allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-i386                               tinyconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-i386                 randconfig-a002-20210118
-i386                 randconfig-a005-20210118
-i386                 randconfig-a006-20210118
-i386                 randconfig-a001-20210118
-i386                 randconfig-a003-20210118
-i386                 randconfig-a004-20210118
-x86_64               randconfig-a015-20210118
-x86_64               randconfig-a013-20210118
-x86_64               randconfig-a012-20210118
-x86_64               randconfig-a016-20210118
-x86_64               randconfig-a011-20210118
-x86_64               randconfig-a014-20210118
-i386                 randconfig-a011-20210118
-i386                 randconfig-a012-20210118
-i386                 randconfig-a016-20210118
-i386                 randconfig-a015-20210118
-i386                 randconfig-a013-20210118
-i386                 randconfig-a014-20210118
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                                   rhel
-x86_64                           allyesconfig
-x86_64                    rhel-7.6-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                      rhel-8.3-kbuiltin
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a004-20210118
-x86_64               randconfig-a006-20210118
-x86_64               randconfig-a001-20210118
-x86_64               randconfig-a003-20210118
-x86_64               randconfig-a005-20210118
-x86_64               randconfig-a002-20210118
-x86_64               randconfig-a015-20210119
-x86_64               randconfig-a013-20210119
-x86_64               randconfig-a012-20210119
-x86_64               randconfig-a016-20210119
-x86_64               randconfig-a011-20210119
-x86_64               randconfig-a014-20210119
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Don't get me wrong, your review is very appreciated, but this series is 20 LOC
+which you already reviewed two weeks ago, and I replied to all comments.
+Ignoring patches is fine, but please don't review, ignore and wait for the last
+minute to say they shouldn't be merged.
