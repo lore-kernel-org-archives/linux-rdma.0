@@ -2,121 +2,99 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB81C433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 22:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE1FEC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:11:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8244F22E01
-	for <linux-rdma@archiver.kernel.org>; Tue, 19 Jan 2021 22:34:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9C372310B
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:11:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727387AbhASRoK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 12:44:10 -0500
-Received: from mail-io1-f69.google.com ([209.85.166.69]:41290 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389766AbhASRkB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 12:40:01 -0500
-Received: by mail-io1-f69.google.com with SMTP id x189so18355697iof.8
-        for <linux-rdma@vger.kernel.org>; Tue, 19 Jan 2021 09:39:45 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=RvRcnXzmh80CmPwNJc6C/dVPmHxxvZ98wqHvifc9g5g=;
-        b=T3pSVi/YoUMAYW3eFjQiJfpwHol5n19cco9a+Zu6qaSec41R6M355BxqFEaxSZqEzE
-         a3eGyL3B3QHNGlYGkOcUskLo9pP0ejA7GAOWu7zUReMnkIJEFkFHBVow19CYdkJAg+v0
-         JIJwGgmTgI4jXFyFdbjDewx4o9N/KUKdU1rUA658XMbHnf9TewqclL0tH3cwtsVGyMz7
-         tPKVvC1EQq8KHQNCuEUUdOZkWDx19RsKj2Ixxy04fgbu9BppdjVyYyfWDsBfaNSlDiLr
-         Sypy2Cy3LIlMHGC9myPdx/stopxkjtgboUNaUbsUU9MaBI0ETiJJicmML/TQmbYLL4f+
-         oy4w==
-X-Gm-Message-State: AOAM532hRg64SmfenxOk59soy1mxKthfXyvGFlrbuvahO1XwirESUZYV
-        MnZ90Kg8lD8Jhk+zCxu2zHt51IhN7uwy1lEnBg71VBCyxmNT
-X-Google-Smtp-Source: ABdhPJwYONYODzuDw1xHz7CSUoC2704iRqonKVHiCwF3SNls2pRq0v3FvHqr9XRpKmAN7bpfAXO6pPgRV5DlppV8jEjjiRf67p/9
+        id S1728325AbhATALi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 19:11:38 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:17380 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730062AbhATALZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 19:11:25 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B600774fe0000>; Tue, 19 Jan 2021 16:10:38 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 20 Jan
+ 2021 00:10:38 +0000
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.175)
+ by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 20 Jan 2021 00:10:38 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=bDqZ9bILYqJ7P86pkyDRBQD0JdDLKifLcFljviXbCc6kIJbbX6rmqpTwhTpXUb8v/fo1L2If9se/g6lmOTPr0+s/QKT1EKYNH9Dnu55U9qYp+IsIda4RI6hZvjLgrjQIAlefx9GVoKF0IiYO1GGnBDkuBYgJQ0EHbph62eO/9z8oA1/4lZ+A+7vbsvrKEBUQZY+42JTIbtA4PhcNDAMDd1i72cU+eiz3Sm5JKfm9VOI3Jq6sWFyIh2Ww3m5w/r7gAZSMmW8O4CCvpRwN60Ud6Uk49FnkRjtAf7VZRVxqLinEWqqt4bkT8/Qcuy6slFy99vcCVT/NsTLBNwI5kGv/Ew==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=vW/BWknj4AXAG1qPtKGJ5Z/fUWf4riOt+DwdMDehn64=;
+ b=m+Q4vl8pQY2eAtqq5KlO30wWTMMXk8bWWEP4htgDm1nZD5a17Y0qGkAWPrivj5KKPcC6LBN1pfavrW7u1Uev0GhbllUk4iSO8ljqVQDP87jS4hA05ZqY3hUufKdHN4rB9sXXWkCwTWpnxccvsV2gWChA0O+pWdoKbkwFQQowpHW52SXfOX4nn5h45/BebsSjMNTcpJPoRttGW5m2PDjmuOV21so72C53/TYttRA/6LjfXoSV2vu/2JD0UqqUtzALlvA/Dvp9ve3UWrc5ugORpqf/CXJr9bXp+gLaIBADBAeRhOTOjHPzkb5zLUUpIpcKj1hq3UH3W7PG8DnDaLZpkg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3514.namprd12.prod.outlook.com (2603:10b6:5:183::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.12; Wed, 20 Jan
+ 2021 00:10:37 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Wed, 20 Jan 2021
+ 00:10:37 +0000
+Date:   Tue, 19 Jan 2021 20:10:35 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Max Gurtovoy <mgurtovoy@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>, <dledford@redhat.com>,
+        <leonro@nvidia.com>, <sagi@grimberg.me>, <oren@nvidia.com>,
+        <nitzanc@nvidia.com>, <sergeygo@nvidia.com>, <ngottlieb@nvidia.com>
+Subject: Re: [PATCH 0/4] IB/iser cleanups and fixes for 5.11
+Message-ID: <20210120001035.GA944141@nvidia.com>
+References: <20210111145754.56727-1-mgurtovoy@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210111145754.56727-1-mgurtovoy@nvidia.com>
+X-ClientProxiedBy: MN2PR20CA0014.namprd20.prod.outlook.com
+ (2603:10b6:208:e8::27) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-X-Received: by 2002:a92:c5d0:: with SMTP id s16mr4079618ilt.223.1611077960353;
- Tue, 19 Jan 2021 09:39:20 -0800 (PST)
-Date:   Tue, 19 Jan 2021 09:39:20 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000885c1d05b94451f0@google.com>
-Subject: WARNING in kmalloc_array
-From:   syzbot <syzbot+5d578be9b4bfe1b6bbd6@syzkaller.appspotmail.com>
-To:     davem@davemloft.net, kuba@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR20CA0014.namprd20.prod.outlook.com (2603:10b6:208:e8::27) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9 via Frontend Transport; Wed, 20 Jan 2021 00:10:36 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l2151-003xd2-Ll; Tue, 19 Jan 2021 20:10:35 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1611101438; bh=vW/BWknj4AXAG1qPtKGJ5Z/fUWf4riOt+DwdMDehn64=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=GCGi4PiTd2AqRBpLJQAP26QYaH9qswF8fYt5KlXoq8H6zU8tDR+HVpbU52U6nxWh9
+         1K55Jn83aowRd1eZbwo4FvZbE8GOoRRBS/8jZFvQG8Q9tsTFQZhdVEbl74ul6RXp2G
+         lH4ELR0HkwvNszZGsyilwdonkZugOUxnm8lWeR7BXzXLJwkREKS9ZbDgzhbxRPR2GX
+         Bbn3u3sRt8GHu8vvPAv4Vx7fZME95ONYzCDMLmpHUXlmHLw51Wf34P57ymN+0Qs3M6
+         RlQsHp4yMeNGYMRqgKerMEmo7ufLfM85dEzZu+/yCdX+u35JRn4XFPBHwxswyYRbmB
+         Zvcukd4JNcFhA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello,
+On Mon, Jan 11, 2021 at 02:57:50PM +0000, Max Gurtovoy wrote:
+> Hi Jason/Leon/Sagi,
+> This series introduce some minor code conventions cleanups and 1 module
+> param fix that can cause the driver to fail in connection establishment
+> (if one will set max_sectors = 0).
+> 
+> Please consider this for the next 5.11 PR or for 5.12 merge window.
+> 
+> Max Gurtovoy (4):
+>   IB/iser: remove unneeded semicolons
+>   IB/iser: protect iscsi_max_lun module param using callback
+>   IB/iser: enforce iser_max_sectors to be greater than 0
+>   IB/iser: simplify prot_caps setting
 
-syzbot found the following issue on:
+Applied to for-next, thanks
 
-HEAD commit:    0da0a8a0 Merge tag 'scsi-fixes' of git://git.kernel.org/pu..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1293e1f7500000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ee2266946ed36986
-dashboard link: https://syzkaller.appspot.com/bug?extid=5d578be9b4bfe1b6bbd6
-compiler:       clang version 11.0.1
-
-Unfortunately, I don't have any reproducer for this issue yet.
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+5d578be9b4bfe1b6bbd6@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 15540 at mm/page_alloc.c:4977 __alloc_pages_nodemask+0x4e5/0x5a0 mm/page_alloc.c:5021
-Modules linked in:
-CPU: 1 PID: 15540 Comm: syz-executor.2 Not tainted 5.11.0-rc3-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:__alloc_pages_nodemask+0x4e5/0x5a0 mm/page_alloc.c:5021
-Code: ab 09 00 e9 dd fd ff ff 44 89 e9 80 e1 07 80 c1 03 38 c1 0f 8c eb fd ff ff 4c 89 ef e8 f4 aa 09 00 8b 74 24 18 e9 da fd ff ff <0f> 0b e9 f3 fd ff ff a9 00 00 08 00 75 16 8b 4c 24 1c 89 cb 81 e3
-RSP: 0018:ffffc90016bff620 EFLAGS: 00010246
-RAX: ffffc90016bff6a0 RBX: ffffc90016bff6a0 RCX: 0000000000000000
-RDX: 0000000000000028 RSI: 0000000000000000 RDI: ffffc90016bff6c8
-RBP: ffffc90016bff758 R08: dffffc0000000000 R09: ffffc90016bff6a0
-R10: fffff52002d7fed9 R11: 0000000000000000 R12: dffffc0000000000
-R13: 0000000000000018 R14: 1ffff92002d7fed0 R15: 0000000000040dc0
-FS:  00007fc7102ae700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000749138 CR3: 0000000025dd7000 CR4: 00000000001506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
-Call Trace:
- alloc_pages include/linux/gfp.h:547 [inline]
- kmalloc_order+0x40/0x130 mm/slab_common.c:837
- kmalloc_order_trace+0x15/0x70 mm/slab_common.c:853
- kmalloc_large include/linux/slab.h:481 [inline]
- __kmalloc+0x257/0x330 mm/slub.c:3959
- kmalloc_array+0x2d/0x40 include/linux/slab.h:593
- kcalloc include/linux/slab.h:621 [inline]
- rds_rdma_extra_size+0x84/0x300 net/rds/rdma.c:568
- rds_rm_size net/rds/send.c:928 [inline]
- rds_sendmsg+0xfad/0x3210 net/rds/send.c:1265
- sock_sendmsg_nosec net/socket.c:652 [inline]
- sock_sendmsg net/socket.c:672 [inline]
- ____sys_sendmsg+0x5a2/0x900 net/socket.c:2345
- ___sys_sendmsg net/socket.c:2399 [inline]
- __sys_sendmsg+0x319/0x400 net/socket.c:2432
- do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-RIP: 0033:0x45e219
-Code: 0d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fc7102adc68 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 000000000045e219
-RDX: 0000000000000000 RSI: 0000000020001600 RDI: 0000000000000003
-RBP: 000000000119bfc0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 000000000119bf8c
-R13: 00007ffd4cf1c0cf R14: 00007fc7102ae9c0 R15: 000000000119bf8c
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Jason
