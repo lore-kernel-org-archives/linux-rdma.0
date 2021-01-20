@@ -2,106 +2,98 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10014C433E6
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:12:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC27C433DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:16:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA75023104
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:12:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D549822CE3
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 00:16:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730033AbhATAM2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 19 Jan 2021 19:12:28 -0500
-Received: from mx2.suse.de ([195.135.220.15]:39640 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389912AbhASNtw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 19 Jan 2021 08:49:52 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1611064145; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=dTDTirzfFXcMbl0I90q8K9Ib3F4tQLxtj/OWpsZ76Nk=;
-        b=kvVXfSg0KbaT3grQ7Ilgy7BXXi4i9EARkJ9ZA7W0jZ7TN1wUnvAm2n8TK6VYu3qrw5ReRG
-        yEdTMVKJtdqYJ7XWH5H+kxA4Ylw6wmOABO1gFElCMubv+c89k+KyBPD7Zlbjh1RmdyBMJ6
-        +ZERChMNCsEg2Zvva76EXCT40FpDNRY=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 0F463AB7F;
-        Tue, 19 Jan 2021 13:49:05 +0000 (UTC)
-Message-ID: <437bed090fc9af02aaaf46a5841874ca31cc9d36.camel@suse.com>
-Subject: Re: [PATCH] Revert "RDMA/rxe: Remove VLAN code leftovers from RXE"
-From:   Martin Wilck <mwilck@suse.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        "Mohamed._. Heib" <goody698@gmail.com>
-Cc:     Zhu Yanjun <zyjzyj2000@gmail.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Vijay Immanuel <vijayi@attalasystems.com>,
-        Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>
-Date:   Tue, 19 Jan 2021 14:49:04 +0100
-In-Reply-To: <20210119130102.GO4147@nvidia.com>
-References: <20210119105644.2658-1-mwilck@suse.com>
-         <CAD=hENfrUJGeUGUfb6t6o3d8J_5ONMPfx3Gae8=xwrhq0DBKwg@mail.gmail.com>
-         <CANRB76_kkvfX9Us0rSynaNxYuVdYT-SLxEmhp+ijSeP+++HGdA@mail.gmail.com>
-         <20210119130102.GO4147@nvidia.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.38.2 
+        id S1726638AbhATAQP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 19 Jan 2021 19:16:15 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:5370 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728240AbhATAQL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 19 Jan 2021 19:16:11 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B600776210000>; Tue, 19 Jan 2021 16:15:29 -0800
+Received: from HQMAIL101.nvidia.com (172.20.187.10) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 20 Jan
+ 2021 00:15:29 +0000
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.102)
+ by HQMAIL101.nvidia.com (172.20.187.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 20 Jan 2021 00:15:29 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=P0MgQNcZpJZ/OEwmAO27BvqpTAxqtz+obEEDALDyq2OWpnyDKnUKiKhlcM5/+QW8ro5e5/fedoGyyHik1kYZuUqsdMpA0LcBhdpDQb4XRKim9m1dl4B0FNKnYbHKVEMs2a89fiqsTjSPYF6GeI0PRwWXgEDUGjBLrOt7f0bZGGrjstbEGbLA45+GT9msxoC1kuv6Yxy+V46hQEaxovVv7sZOLZEnVwqy3hlm4yfkF9X5abU0iagHo8pBQM8vzL29HEeVXmUm137uG00MqxaX/wdtBMNm5kY++2WbHdPL3wf10T/xnzZiGtSrN6w2y7fbs0TxVFVA9Ov06gbZTevp3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8LrZvW1QGcnRTa+vw/b+U++eWX7OSfi0z0SNsSIyHlc=;
+ b=WKX84+6MpcjRLHvqpekvblTSkaXVz4ZA/S9g2QxFsxaMRC/VTGC/4yhvQFTWAwIbzzrEQEcR7nQ+AJp3aP+9Uh+9gWAG9bSYC/VscKjs+DHzS/5x9iFS+ArWTxLb1yU6phgs93AF3bGrP1mgZTCGT7SRkXL4fpIJgNNE2QtAp/J6Pp9ks3ZHS8mq0Dz+jc8JnzxhSaPToZW0jBYLhuTo3Ker3jxDC2OYgJuFQ8QPL9RtplUjN3us202gIZ4Py/eIfEexeYu2zLQhRwpBW6fu3EWV7yROUyMlSlp6o1CMJymBDcYFT5BFrVyFZrfcCvW4iIL0x976XbNARPkf1DNYYQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4356.namprd12.prod.outlook.com (2603:10b6:5:2aa::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.10; Wed, 20 Jan
+ 2021 00:15:28 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Wed, 20 Jan 2021
+ 00:15:28 +0000
+Date:   Tue, 19 Jan 2021 20:15:26 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Aharon Landau <aharonl@nvidia.com>,
+        <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>,
+        Mark Bloch <mbloch@nvidia.com>, Parav Pandit <parav@nvidia.com>
+Subject: Re: [PATCH rdma-next 0/5] Set of fixes
+Message-ID: <20210120001526.GA948597@nvidia.com>
+References: <20210113121703.559778-1-leon@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210113121703.559778-1-leon@kernel.org>
+X-ClientProxiedBy: BL0PR02CA0067.namprd02.prod.outlook.com
+ (2603:10b6:207:3d::44) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL0PR02CA0067.namprd02.prod.outlook.com (2603:10b6:207:3d::44) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.10 via Frontend Transport; Wed, 20 Jan 2021 00:15:28 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l219i-003ymj-RK; Tue, 19 Jan 2021 20:15:26 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1611101729; bh=8LrZvW1QGcnRTa+vw/b+U++eWX7OSfi0z0SNsSIyHlc=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=FGyz0eIKWp5fWCXd9teonIW2dHECSBxeDD5TOocbSwUOX2HlV9NCYDYfFqfDTsajo
+         6KQD/c7i0i+MM07d70oQ58fqFTCgh6VKPKaGnx34Vu3eQf3g3PmuAISeR4FB3mG3JT
+         CstUMjZ2NV6TLFdAl2TjJAwHVd8n6uV9h1/UE57XH+W+V8BIQcAytKqIVYH/YBJOa8
+         w7p3h15MUOmPT3a+r19/7I0++qc+Ow+lw+wnU+uwoVe8vSAcAEZsCK6dMSfK7HGEpH
+         C+tzz7+OUZ8VxwxShL4cLeP9DQIGw9PcYy2dfCInsCcf5TExZsNfrExFchs7A3l5od
+         ZoVwj50TJhslg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2021-01-19 at 09:01 -0400, Jason Gunthorpe wrote:
-> On Tue, Jan 19, 2021 at 02:40:52PM +0200, Mohamed._. Heib wrote:
-> >    Hi,
-> >    As far as i remember the traffic still can be encapsulated over
-> > the
-> >    vlan interface with vlan tag
-> >    by specifying the vlan interface gid index that mapped to the
-> > vlan ip
-> >    on the vlan parent interface gids table.
-> >    And by removing the vlan related functionality on rxe (commit:
-> >    b2d2440430c0) the rxe still can send traffic via vlan interface
-> >    but can't receive from vlan interface and that will break the
-> > vlan
-> >    functionality on rxe so i think you need keep the vlan related
-> > code on
-> >    rxe.
+On Wed, Jan 13, 2021 at 02:16:58PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> That may be, but the code here is still wrong.
+> Small set of fixes for -next, only Aharon's fix has potential to be
+> taken to the -rc.
 > 
-> Incoming packets are supposed to be matched to the gid table, which
-> specifies the allowed vlans, it can't just be taken raw from the skb
-> like this.
+> Thanks
+> 
+>   IB/mlx5: Add mutex destroy call to cap_mask_mutex mutex
+>   IB/mlx5: Make function static
 
-I lack the deep understanding of the RDMA stack to fully understand.
-Are you saying it's a permission problem? Do you see a security issue?
-Or is it not compliant with some spec? Which?
+These two applied to for-next, thanks
 
-> If someone wants to add vlan support to rxe it needs to be done
-> right,
-> currently it doesn't support vlan.
-
-Hm. As a matter of fact, it has "worked" this way in mainline since
-v5.0, when 43c9fc509fa5 ("rdma_rxe: make rxe work over 802.1q VLAN
-devices") had been merged. The code that deals with VLANs in RXE, which
-was fixed by that commit, is older. AFAICS it dates back to the first
-merge of the rxe driver.
-
-Just ripping the code out causes a regression, after 10 kernel minor
-releases during which it "worked" in practice (as far as I can judge).
-I suppose there are only a few users of this feature, but I fail to see
-why keeping this code in until a clean implementation is available
-would do any harm.
-
-I'd like to fix this for good, but I lack the knowledge to do this, at
-least in the short term. I've asked back in 2018 how RXE+VLAN was
-intended to work, but never got an answer.
-
-Regards,
-Martin
-
-
+Jason
