@@ -2,124 +2,166 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17C67C433DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 05:37:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0772EC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 08:14:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFB8B23131
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 05:37:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE9262332A
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Jan 2021 08:14:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726486AbhATFhH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Jan 2021 00:37:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51186 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726023AbhATFef (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Jan 2021 00:34:35 -0500
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 167DBC061575
-        for <linux-rdma@vger.kernel.org>; Tue, 19 Jan 2021 21:33:55 -0800 (PST)
-Received: by mail-ot1-x32f.google.com with SMTP id o11so22307521ote.4
-        for <linux-rdma@vger.kernel.org>; Tue, 19 Jan 2021 21:33:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=bfE625taTNIabYcxrauV/zKrngHJnfxvyXwAYf/bO7g=;
-        b=Hs+Lv44SNv69MXFA7WxMaj/n2WHrQc19lUWqR9nDDBqelSvB3xh9W9PmYUN9MBZwaL
-         8oHME3Gz47opngLOVGv2JgiSHLrTkDYQhrlR3wXbrdI5zoZ8/1HJW9hzxQ8jVTo/L9nr
-         wi574s92R3tc3pg+ocOItlPIx2qAk4uW6nxKa797PAXjKq/l9N/YHYadTEZK/9Q7Fknk
-         JlK4hUlcYzmDaK2+DZd4Yhr7M/y2WEh9s+ydLa0noSQFblhWSnautydGFMtYqFPJa16s
-         x3gBHrs9kkB/VSHmLPKtGR+YdAFRKd9IjrQCpeZzNkMg3wnvT1CPCgtbLNbx44ugnzqX
-         GMpA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=bfE625taTNIabYcxrauV/zKrngHJnfxvyXwAYf/bO7g=;
-        b=I3JAOHwJzYrt9OKCKEw5Um7ymRYJgg42qz0ADnUYK+SPrQHfyNBM7++Gtj4N0G5ztH
-         q8Gb3o4/kNuz3HRV1QFLJd/M6FzxFjLv1ER/9s6xAUAl1zIuXBVXpFE0lpTNL+fd5N77
-         4KNBMMlkRmXxPlP8nBCfcUI6oBXICbDbKnpeAXxmibbTDDX4/VELbAahS6DV/qVv/vu1
-         4lq4akOtoKUMmv70Z/DPSSx15N7YbU5HyHEFyLnFaJeigvKUE7Z7yy5vtbBUTTAfccZb
-         //AMWjKSZrB6LITXLDfQ7HNSdG8++AjOWWT7X+gGtDD6xIKfe+6osyKfR1+NnNLT5/9v
-         k7sg==
-X-Gm-Message-State: AOAM530K//J6YD+AYfPjlU5oYobNU3MRIwXKUMFkg/5LcIOI5yIFy4lM
-        NEputsnyRrcidHjcE2NqO2PUO2/3MZDmcxeQ2cI=
-X-Google-Smtp-Source: ABdhPJxNMsz68dAdWwDDjaY/v91ffIG5Dhd6+QxXE+1ZcPHu2AQjIFXbuSZ7lDfjtSUcU5LIO0PC9ZlEZM3sELXynL4=
-X-Received: by 2002:a9d:3e2:: with SMTP id f89mr5951600otf.278.1611120834545;
- Tue, 19 Jan 2021 21:33:54 -0800 (PST)
+        id S1730664AbhATIN6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 Jan 2021 03:13:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53704 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730769AbhATILK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 20 Jan 2021 03:11:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 28F1223131;
+        Wed, 20 Jan 2021 08:10:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1611130229;
+        bh=VK/3WnHnCQDRUsKhBb3/kv0y45Ig0eq1LuiXg5V+mlw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=pUMhwg7TdOm+uNwKrpZ9IFnSnDmky+wQivOLQJYur7bpTjJJzA8c9pGGqG3xEBJuE
+         bPR/HtnSSARxhlJINOMVYbil54aPoRlxR5+eEWAoniEty/E0jaPPqKVqZzC1DBXRyk
+         ACGgs/3VPhGSGm6l9fv7oUkDUfEcJv0FwgSgid4VFI8vpK9kOLLueL5lBi7imJOxCS
+         DiaqcDwcW8XY1or0MOw67KywnnXKFjbsnbVVGTVrXOZuN6PCyS51udh9yIZDE0RHV4
+         0MbYwUsyYnEpfbxs+7ol5AOuglUxslxJ5W3aAPVpfsxbL0cH+lCRBDY+ZVPQs//lhf
+         JBoqeU4yrak4g==
+Date:   Wed, 20 Jan 2021 10:10:25 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Weihang Li <liweihang@huawei.com>
+Cc:     dledford@redhat.com, jgg@nvidia.com, linux-rdma@vger.kernel.org,
+        linuxarm@openeuler.org
+Subject: Re: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
+Message-ID: <20210120081025.GA225873@unreal>
+References: <1610706138-4219-1-git-send-email-liweihang@huawei.com>
+ <1610706138-4219-2-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Wed, 20 Jan 2021 13:33:43 +0800
-Message-ID: <CAD=hENfPfgZpcs+JER9qijyo-D16n1X0q2oPqF-qo88GLkkBXw@mail.gmail.com>
-Subject: Revert "RDMA/rxe: Remove VLAN code leftovers from RXE"
-To:     mwilck@suse.com, Jason Gunthorpe <jgg@nvidia.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Leon Romanovsky <leon@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1610706138-4219-2-git-send-email-liweihang@huawei.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2021-01-19 at 20:10 +0800, Zhu Yanjun wrote:
-> On Tue, Jan 19, 2021 at 6:57 PM <mwilck@suse.com> wrote:
-> >
-> > From: Martin Wilck <mwilck@suse.com>
-> >
-> > This reverts commit b2d2440430c0fdd5e0cad3efd6d1c9e3d3d02e5b.
-> >
-> > It's true that creating rxe on top of 802.1q interfaces doesn't
-> > work.
-> > Thus, commit fd49ddaf7e26 ("RDMA/rxe: prevent rxe creation on top
-> > of vlan interface")
-> > was absolutely correct.
-> >
-> > But b2d2440430c0 was incorrect assuming that with this change,
-> > RDMA and VLAN don't work togehter at all. It just has to be
-> > set up differently. Rather than creating rxe on top of the VLAN
-> > interface, rxe must be created on top of the physical interface.
-> > RDMA then works just fine through VLAN interfaces on top of that
-> > physical interface, via the "upper device" logic.
+On Fri, Jan 15, 2021 at 06:22:12PM +0800, Weihang Li wrote:
+> From: Xi Wang <wangxi11@huawei.com>
 >
-> I read this commit log for several times. I can not get you.
-> Can you show me by an example?
+> The hip09 introduces the DCA(Dynamic context attachment) feature which
+> supports many RC QPs to share the WQE buffer in a memory pool, this will
+> reduce the memory consumption when there are too many QPs are inactive.
+>
+> If a QP enables DCA feature, the WQE's buffer will not be allocated when
+> creating. But when the users start to post WRs, the hns driver will
+> allocate a buffer from the memory pool and then fill WQEs which tagged with
+> this QP's number.
+>
+> The hns ROCEE will stop accessing the WQE buffer when the user polled all
+> of the CQEs for a DCA QP, then the driver will recycle this WQE's buffer
+> to the memory pool.
+>
+> This patch adds a group of methods to support the user space register
+> buffers to a memory pool which belongs to the user context. The hns kernel
+> driver will update the pages state in this pool when the user calling the
+> post/poll methods and the user driver can get the QP's WQE buffer address
+> by the key and offset which queried from kernel.
+>
+> Signed-off-by: Xi Wang <wangxi11@huawei.com>
+> Signed-off-by: Weihang Li <liweihang@huawei.com>
+> ---
+>  drivers/infiniband/hw/hns/Makefile          |   2 +-
+>  drivers/infiniband/hw/hns/hns_roce_dca.c    | 381 ++++++++++++++++++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_dca.h    |  22 ++
+>  drivers/infiniband/hw/hns/hns_roce_device.h |  10 +
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |  27 +-
+>  include/uapi/rdma/hns-abi.h                 |  23 ++
+>  6 files changed, 462 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.c
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.h
 
-> My test scenario which is broken by your patch uses a script that does
-> roughly the following:
+<...>
 
-> # (set up eth0)
-> rdma link add rxe_eth0 type rxe netdev eth0
-> ip link add link eth0 name eth0.10 type vlan id 10
-> ip link set eth0.10 up
-> ip addr add 192.168.10.102/24 dev eth0.10
+> +static struct dca_mem *alloc_dca_mem(struct hns_roce_dca_ctx *ctx)
+> +{
+> +	struct dca_mem *mem, *tmp, *found = NULL;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&ctx->pool_lock, flags);
+> +	list_for_each_entry_safe(mem, tmp, &ctx->pool, list) {
+> +		spin_lock(&mem->lock);
+> +		if (dca_mem_is_free(mem)) {
+> +			found = mem;
+> +			set_dca_mem_alloced(mem);
+> +			spin_unlock(&mem->lock);
+> +			goto done;
+> +		}
+> +		spin_unlock(&mem->lock);
+> +	}
+> +
+> +done:
+> +	spin_unlock_irqrestore(&ctx->pool_lock, flags);
+> +
+> +	if (found)
+> +		return found;
+> +
+> +	mem = kzalloc(sizeof(*mem), GFP_ATOMIC);
 
-Thanks a lot.
-It seems that the vlan SKBs also enter RXE.
+Should it be ATOMIC?
 
-There are 3 hunks in the commit b2d2440430c0("RDMA/rxe: Remove VLAN
-code leftovers from RXE").
+> +	if (!mem)
+> +		return NULL;
+> +
+> +	spin_lock_init(&mem->lock);
+> +	INIT_LIST_HEAD(&mem->list);
+> +
+> +	set_dca_mem_alloced(mem);
+> +
+> +	spin_lock_irqsave(&ctx->pool_lock, flags);
+> +	list_add(&mem->list, &ctx->pool);
+> +	spin_unlock_irqrestore(&ctx->pool_lock, flags);
+> +	return mem;
+> +}
 
-Can you make more research to find out which hunk causes this problem?
+<...>
 
-From Jason, vlan is not supported now.
-If you want to make more work, the link
-https://www.spinics.net/lists/linux-rdma/msg94737.html can give some
-tips.
+>  /**
+>   * hns_get_gid_index - Get gid index.
+> @@ -306,15 +308,16 @@ static int hns_roce_modify_device(struct ib_device *ib_dev, int mask,
+>  static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+>  				   struct ib_udata *udata)
+>  {
+> -	int ret;
+>  	struct hns_roce_ucontext *context = to_hr_ucontext(uctx);
+> -	struct hns_roce_ib_alloc_ucontext_resp resp = {};
+>  	struct hns_roce_dev *hr_dev = to_hr_dev(uctx->device);
+> +	struct hns_roce_ib_alloc_ucontext_resp resp = {};
+> +	int ret;
+>
+>  	if (!hr_dev->active)
+>  		return -EAGAIN;
+>
+>  	resp.qp_tab_size = hr_dev->caps.num_qps;
+> +	resp.cap_flags = (u32)hr_dev->caps.flags;
 
-good luck.
+This is prone to errors, flags is u64.
 
-Zhu Yanjun
+<...>
 
-> nvme discover -t rdma -a 192.168.10.101 -s 4420
+> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+> index 90b739d..f59abc4 100644
+> --- a/include/uapi/rdma/hns-abi.h
+> +++ b/include/uapi/rdma/hns-abi.h
+> @@ -86,10 +86,33 @@ struct hns_roce_ib_create_qp_resp {
+>  struct hns_roce_ib_alloc_ucontext_resp {
+>  	__u32	qp_tab_size;
+>  	__u32	cqe_size;
+> +	__u32	cap_flags;
+>  };
 
+This struct should be padded to 64bits,
 
-
-> 192.168.10.101 is another host that configures the network
-> and rxe the same way, and has some nvmet targets.
-
->  => fails with your patch applied, works otherwise.
-
-
-> Regards,
-> Martin
+Thanks
