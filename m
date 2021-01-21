@@ -2,73 +2,112 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26FD4C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 17:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87215C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 17:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC54C21973
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 17:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 291A321973
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 17:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388246AbhAURta (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 12:49:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52828 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389259AbhAURsc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Jan 2021 12:48:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA183207C5;
-        Thu, 21 Jan 2021 17:47:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611251271;
-        bh=oMiI6DC0wqnDzsVHC7jO/akP9QPC83R9sCcZVqjCxp4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=UggbUS2Vn3Isnolv1iMfwv25UNGmLIIca8pcBkPhRNc5iKb0w1uML9/RDRMXMDq+L
-         2izP0XmyHHd2ry2LNg7UiyVwgparv13fphGyD58cAp8Ush5xXIvbua1s0NuCXXvZWx
-         kNVjXL0tvuCO61jvfT8PYuTI24iNdYxNBNSXjHI4AiJgbyrRCLYDWWJXpWQCcjjfQo
-         uzbZTVTwFO5ouCJMd/zbqoIsdpJngkBgZrvuH3Cz6KV/9GrQtB+4luSfyxzukDZO5r
-         muJJYhQ2DECKCRn8Jhy+bNO2+q0DQXMe7ACYccaDOj4bRVIGzTCPF+YwbxWyT6q0+R
-         /WMV+AodVz46Q==
-Date:   Thu, 21 Jan 2021 19:47:47 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Lee Jones <lee.jones@linaro.org>
-Cc:     linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 01/30] RDMA/hw/mlx5/odp: Fix formatting and add missing
- descriptions in 'pagefault_data_segments()'
-Message-ID: <20210121174747.GF320304@unreal>
-References: <20210121094519.2044049-1-lee.jones@linaro.org>
- <20210121094519.2044049-2-lee.jones@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210121094519.2044049-2-lee.jones@linaro.org>
+        id S2389168AbhAURub (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 12:50:31 -0500
+Received: from aserp2120.oracle.com ([141.146.126.78]:34568 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389138AbhAURu3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 12:50:29 -0500
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+        by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10LHiVUL025764;
+        Thu, 21 Jan 2021 17:49:41 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id; s=corp-2020-01-29;
+ bh=g1RiJfLYb3t7A1iOCvX+EpuuS96sGsVoWA0CHrGekAY=;
+ b=M4jUrNYgy+/WTuUPln3lIz6aQaTCuP1e3bDEqD0rEtETCBR+bYPpSFzGLd+qukA1yzqB
+ H/KiN+Zy9dbSdspI9qvyZ+W0ijYjLKjBIHVbqLOOtsWqjT/hSnTV+s0PKWdzL3mdM/+9
+ NwQ9LZ8PUoedAOd7LdJZmAGRx82YaqxFFmjs/o+sFXds9WCGIngHjxYcVuSDQkJ4y3Le
+ LQ6XI8YuQsIJocJ7vO4nMxoGvlbPCjAzYyOu7PQNX3whbTfrFMZHzH/LoW/YIuRLlG+w
+ b1VFqKE2C4ScQ714GF/5OC/K5If4yQkTrtMzLyL7AnT7674ExJrgTQvX1mgPAmgR2MXk AQ== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by aserp2120.oracle.com with ESMTP id 3668qn0j6y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 21 Jan 2021 17:49:41 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 10LHkFYm168415;
+        Thu, 21 Jan 2021 17:47:40 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3020.oracle.com with ESMTP id 3668rg4t8y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 21 Jan 2021 17:47:39 +0000
+Received: from abhmp0006.oracle.com (abhmp0006.oracle.com [141.146.116.12])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 10LHla0q013305;
+        Thu, 21 Jan 2021 17:47:37 GMT
+Received: from mbpatil-test01.us.oracle.com (/10.211.44.151)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 21 Jan 2021 09:47:36 -0800
+From:   Manjunath Patil <manjunath.b.patil@oracle.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org,
+        valentinef@mellanox.com, gustavoars@kernel.org
+Cc:     haakon.bugge@oracle.com, manjunath.b.patil@oracle.com,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH] IB/ipoib: improve latency in ipoib/cm connection formation
+Date:   Thu, 21 Jan 2021 09:50:03 -0800
+Message-Id: <1611251403-12810-1-git-send-email-manjunath.b.patil@oracle.com>
+X-Mailer: git-send-email 1.7.1
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9871 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 spamscore=0 suspectscore=0
+ adultscore=0 mlxlogscore=999 bulkscore=0 malwarescore=0 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2101210092
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9871 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 priorityscore=1501
+ adultscore=0 impostorscore=0 mlxlogscore=999 spamscore=0 suspectscore=0
+ phishscore=0 clxscore=1011 bulkscore=0 mlxscore=0 lowpriorityscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2101210092
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 21, 2021 at 09:44:50AM +0000, Lee Jones wrote:
-> Fixes the following W=1 kernel build warning(s):
->
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'dev' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'pfault' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'wqe' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'wqe_end' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'bytes_mapped' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'total_wqe_bytes' not described in 'pagefault_data_segments'
->  drivers/infiniband/hw/mlx5/odp.c:1062: warning: Function parameter or member 'receive_queue' not described in 'pagefault_data_segments'
->
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: linux-rdma@vger.kernel.org
-> Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> ---
->  drivers/infiniband/hw/mlx5/odp.c | 22 ++++++++++++----------
->  1 file changed, 12 insertions(+), 10 deletions(-)
->
+ipoib connected mode presently queries the device[HCA] to get P_Key
+table entry during connection formation. This will increase the time
+taken to form the connection, especially when limited P_Keys are in use.
+This gets worse when multiple connection attempts are done in parallel.
+Improve this by using the cached version of ib_find_pkey().
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@nvidia.com>
+This improved the latency from 500ms to 3ms on an internal setup.
+
+Suggested-by: Haakon Bugge <haakon.bugge@oracle.com>
+Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 8f0b598..013a1d8 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -40,6 +40,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
++#include <rdma/ib_cache.h>
+ 
+ #include "ipoib.h"
+ 
+@@ -1122,7 +1123,8 @@ static int ipoib_cm_modify_tx_init(struct net_device *dev,
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+ 	struct ib_qp_attr qp_attr;
+ 	int qp_attr_mask, ret;
+-	ret = ib_find_pkey(priv->ca, priv->port, priv->pkey, &qp_attr.pkey_index);
++	ret = ib_find_cached_pkey(priv->ca, priv->port, priv->pkey,
++						&qp_attr.pkey_index);
+ 	if (ret) {
+ 		ipoib_warn(priv, "pkey 0x%x not found: %d\n", priv->pkey, ret);
+ 		return ret;
+-- 
+1.7.1
+
