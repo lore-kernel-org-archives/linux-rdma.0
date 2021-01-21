@@ -7,63 +7,64 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18A18C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:47:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A40D5C433E6
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:47:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFDFA235DD
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:47:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F12A235DD
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:47:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728910AbhAUJrC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 04:47:02 -0500
+        id S1728873AbhAUJrE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 04:47:04 -0500
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728873AbhAUJqj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:46:39 -0500
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D05CC061795
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:29 -0800 (PST)
-Received: by mail-wm1-x32d.google.com with SMTP id v184so938859wma.1
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:29 -0800 (PST)
+        with ESMTP id S1728889AbhAUJq6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:46:58 -0500
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC9B1C0617AA
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:40 -0800 (PST)
+Received: by mail-wr1-x434.google.com with SMTP id v15so1060151wrx.4
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=l90cpQ/e0T6TuHwbhU/4LDQoeOSySsNazUcP2W8fpcw=;
-        b=L1EpP2OlDV281D8ChiGh+C9MURnk5TsQ2b0hrO8AIuw6a0RHnu43Wnv3e6Ka1XH6YU
-         ycjd3SONVCJOuz4cE03wkdbqQRMRtf+GV3/rW6SNeK5AIN84J/F88FjfUkeJPQlRVjyu
-         gHTkRbeeuceYrm+Zf/lXZA2AIdL0t+HpKXpLem2AfDc/WiPGXAw0Kppj2MXpULyjRSri
-         GwxHEHdTs/j9C09/0OlycRKvczqMD31fL9m+DUSvPfobi3jr18BQilUQIky9RF9ufdsL
-         WYwelapy5ylUtEymKJl7PV3I0S5I58bNZyOymZnZBav2OAnZEmUfk4fg0uZNO41Jaxea
-         tdOA==
+        bh=l5TP7SOW2qS+epdcMI5v0wC0XhSdnGQZ2H2fkGXdgtw=;
+        b=GHgcG5XwW3b1jiCm5xGS6W9EwgGh2Ytv30roeEV7x4YCdpXWj5wk2VYAFaBBtG30iG
+         cEkBNIoUlCFw0OnJXTjq45+lkursH/CjoS2fGHGeYAfF8XqY6aDuAxZH9MD1VXPR7ycs
+         XletK79gfIi2IZn4t6/4aEPNmzHAHlGvyyQm4BQCsFp4r+/d92YWdkBBIk+/XrM88bud
+         /NV+jJDE1VNWDU27m3wyt96ZIsoNvK8MsOWrkLhkCaamaRtOhznSDJy0ox374zwt7Ydp
+         XK0HlyUwbRq5ol8VjxQmj6gDqIhkwNDwj9mSiRrhfHgDas70bhu1j6l9L6kekyUvbdYi
+         FxcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=l90cpQ/e0T6TuHwbhU/4LDQoeOSySsNazUcP2W8fpcw=;
-        b=rPhHn3XQ2NpgEz3n4UWX/RHIm98fYhxI7vYzEAT0O6F1XVlXIUt01Aqphlpg43Nkh7
-         WkjN43kXUv50y1+lvPWMPC2Ggi7htMRbzj1P4hEy+BQE6R9QrvOZ2OZCA3Wd3Fl1+GRM
-         V6/a+wE7tKdF1kKAQxnBdGjUP540WnUk4u0ZTk6NokKXr1UktRoG5mHHrqLmSx25//r5
-         0ZxMkL1HF5HaLDj61visTX5ygB1q9KoI/QyWanDhT2kotePTRiQJC6k3lWkjfuJA3u7g
-         45TFoqBzAASZs0QbrxQRCn7sKWA4dFYcuy3ZdykbnE89lRaCN1kpPE3HUQBmFz5J903w
-         5bDA==
-X-Gm-Message-State: AOAM531+hnBDRQXZ5OWLwh7bNb/psk3O2CuWN2pW+7eIFcXeMaRoTC0A
-        w0cnwmA1W18yIjV1ZihfH7AXRg==
-X-Google-Smtp-Source: ABdhPJxi6autxrB/UQLxpm5CwpzYbaV6KpUuwNif9ZzlofRVk0JZbRFYvUwAELNzokX8sqEzjzTAFw==
-X-Received: by 2002:a1c:9e02:: with SMTP id h2mr8144143wme.107.1611222328098;
-        Thu, 21 Jan 2021 01:45:28 -0800 (PST)
+        bh=l5TP7SOW2qS+epdcMI5v0wC0XhSdnGQZ2H2fkGXdgtw=;
+        b=C3yLERrESm149y1yvzsNnZ2tznDkaWBUmp1bZjNEuoGgAvmpIO0W26rxNNwmGko1Z/
+         lgH7o1rqNJxWBw8eyrqnQ0r3c4XkL0grOeoHxUpcUyvExaTJdi2JKlrBTDbNtxonY9Kj
+         AHH5Tpy3sFt8HrKEdIqQ+lxkH2XTdQyQqzALP5UlCfvqgyDs3aC9hHxP/A2CFHKuMxry
+         mEiOaHcLGzSzWMO0c8y1SUbO+dxPAfOPjUbYYEhUOL729AjSJcsr/WBLZnX9NMuFKTtB
+         RwhlnvAb1dQtcGVkc43RKP+4D0rNYxi8BvhzO27cqMVryj7w2TcVxbVnIylxY2mo/cd5
+         11Hw==
+X-Gm-Message-State: AOAM5328xUiVRe2Brhxxnd2Mcck2UfXCLQjumjODzaCwraG88IsL51iK
+        cvu0kHBxGyilm2cr8SXZKSlJcQ==
+X-Google-Smtp-Source: ABdhPJyw5JGcIev6YI1r4Oogk+Z/zXtt6cDAcLCzW8hq8pf6WIY4/7B0GzBugt0neuEHI5VHfZpryg==
+X-Received: by 2002:adf:f512:: with SMTP id q18mr1959752wro.55.1611222339429;
+        Thu, 21 Jan 2021 01:45:39 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.26
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:45:27 -0800 (PST)
+        Thu, 21 Jan 2021 01:45:38 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org, Lijun Ou <oulijun@huawei.com>,
-        Weihang Li <liweihang@huawei.com>,
+Cc:     linux-kernel@vger.kernel.org,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 05/30] RDMA/hw/hns/hns_roce_mr: Add missing description for 'hr_dev' param
-Date:   Thu, 21 Jan 2021 09:44:54 +0000
-Message-Id: <20210121094519.2044049-6-lee.jones@linaro.org>
+Subject: [PATCH 14/30] RDMA/hw/qib/qib_rc: Fix some worthy kernel-docs demote hardly complete one
+Date:   Thu, 21 Jan 2021 09:45:03 +0000
+Message-Id: <20210121094519.2044049-15-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
 References: <20210121094519.2044049-1-lee.jones@linaro.org>
@@ -75,31 +76,60 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/hns/hns_roce_mr.c:1003: warning: Function parameter or member 'hr_dev' not described in 'hns_roce_mtr_create'
+ drivers/infiniband/hw/qib/qib_rc.c:216: warning: Function parameter or member 'flags' not described in 'qib_make_rc_req'
+ drivers/infiniband/hw/qib/qib_rc.c:1008: warning: Function parameter or member 'aeth' not described in 'do_rc_ack'
+ drivers/infiniband/hw/qib/qib_rc.c:1008: warning: Function parameter or member 'val' not described in 'do_rc_ack'
+ drivers/infiniband/hw/qib/qib_rc.c:1008: warning: Function parameter or member 'rcd' not described in 'do_rc_ack'
+ drivers/infiniband/hw/qib/qib_rc.c:1274: warning: Function parameter or member 'rcd' not described in 'qib_rc_rcv_resp'
+ drivers/infiniband/hw/qib/qib_rc.c:1497: warning: Function parameter or member 'rcd' not described in 'qib_rc_rcv_error'
 
-Cc: Lijun Ou <oulijun@huawei.com>
-Cc: "Wei Hu
-Cc: Weihang Li <liweihang@huawei.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_mr.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/qib/qib_rc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 1bcffd93ff3e3..1fbfa3a375453 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -990,6 +990,7 @@ static int mtr_init_buf_cfg(struct hns_roce_dev *hr_dev,
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 3915e5b4a9bc1..a1c20ffb44903 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -207,6 +207,7 @@ static int qib_make_rc_ack(struct qib_ibdev *dev, struct rvt_qp *qp,
  /**
-  * hns_roce_mtr_create - Create hns memory translate region.
+  * qib_make_rc_req - construct a request packet (SEND, RDMA r/w, ATOMIC)
+  * @qp: a pointer to the QP
++ * @flags: unused
   *
-+ * @hr_dev: RoCE device struct pointer
-  * @mtr: memory translate region
-  * @buf_attr: buffer attribute for creating mtr
-  * @ba_page_shift: page shift for multi-hop base address table
+  * Assumes the s_lock is held.
+  *
+@@ -992,7 +993,7 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
+ 	return wqe;
+ }
+ 
+-/**
++/*
+  * do_rc_ack - process an incoming RC ACK
+  * @qp: the QP the ACK came in on
+  * @psn: the packet sequence number of the ACK
+@@ -1259,6 +1260,7 @@ static void rdma_seq_err(struct rvt_qp *qp, struct qib_ibport *ibp, u32 psn,
+  * @psn: the packet sequence number for this packet
+  * @hdrsize: the header length
+  * @pmtu: the path MTU
++ * @rcd: the context pointer
+  *
+  * This is called from qib_rc_rcv() to process an incoming RC response
+  * packet for the given QP.
+@@ -1480,6 +1482,7 @@ static void qib_rc_rcv_resp(struct qib_ibport *ibp,
+  * @opcode: the opcode for this packet
+  * @psn: the packet sequence number for this packet
+  * @diff: the difference between the PSN and the expected PSN
++ * @rcd: the context pointer
+  *
+  * This is called from qib_rc_rcv() to process an unexpected
+  * incoming RC packet for the given QP.
 -- 
 2.25.1
 
