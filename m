@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65496C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 212A2C433DB
 	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:49:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23E3C23A68
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:49:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C541323A1C
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:49:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726419AbhAUSsU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 13:48:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34004 "EHLO mail.kernel.org"
+        id S1726301AbhAUSsO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 13:48:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728303AbhAUIye (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1728299AbhAUIye (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 21 Jan 2021 03:54:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C7CA523A21;
-        Thu, 21 Jan 2021 08:52:59 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B2C1E239FE;
+        Thu, 21 Jan 2021 08:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611219180;
-        bh=scLCCxJVoGOvT2w5RbwYecYIAeA90dNW03bxA9MWhWA=;
+        s=k20201202; t=1611219176;
+        bh=1/OkBEeVRnJGXA+NaqwKTgjw4sa5OO6eacs1KTvvueY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MAZs1Go4ydZ/MvWH/Rnb0wNOt6nl/RXrmG5DpNfC/SMgDn46j0ETuTEyjtXIzDHnQ
-         oa8lbiY5ebfWTgIB56A7lNtf9xah/uFDSpT+bt4A5A8/ZFbHgy/rT7+1CHLauqGEJC
-         g1VE0voW5fFvpWqkqI5h/JX8Eup5k4TkeMBdvnR+ANy1syQMX/BrS3Nb4HL57ysdIs
-         IJoGXlqIkADcPsrRz09a+Q6bWy9AwdDq5lUtfPCqBXhgaXbRwLJrc7CCAQiEiR3xT8
-         Ae1QMwfqdSZ0fp0riapbEmHFGv+9rEdSM1IGSOvh5Wgbd5cVC0Yye18yk7287g1VVZ
-         valbjKnOelCyA==
+        b=M0kkPGZ46wGcE3mh2caK7iDUx9pH4NgVV0auX36z/fix08ryNhhz3i1/iiCOcKeGB
+         OYzrc6JRZywChZz1+dN45Z7o577mj4bzzVp2V1lSxpSoPyDsrLkOl7W47hotXVdFwN
+         OOuUy2aRwZs0YywFGaM+371GCFe9KO53PgmX54oo8voCqWmpgQ/lyJ56P7BvmPeLQi
+         r7nARUip9Ih93AwwSCfi5RpEAtlKAsw5bM+x5jnAp3/4kBrvZZC2VFw63+oJute37l
+         yUoeh1aqcIMrYgLQ4vQIWgF+lyOXsmIWXNC5JwIIkul+4B6Tu1XrE82Xbpf8y9nXfK
+         h85mjUTjFo3Lg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -39,12 +39,12 @@ Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         alexander.duyck@gmail.com, sridhar.samudrala@intel.com,
         edwin.peer@broadcom.com, dsahern@kernel.org, kiran.patil@intel.com,
         jacob.e.keller@intel.com, david.m.ertman@intel.com,
-        dan.j.williams@intel.com, Parav Pandit <parav@nvidia.com>,
-        Jiri Pirko <jiri@nvidia.com>,
+        dan.j.williams@intel.com, Vu Pham <vuhuong@nvidia.com>,
+        Parav Pandit <parav@nvidia.com>, Roi Dayan <roid@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next V9 12/14] devlink: Add devlink port documentation
-Date:   Thu, 21 Jan 2021 00:52:35 -0800
-Message-Id: <20210121085237.137919-13-saeed@kernel.org>
+Subject: [net-next V9 08/14] net/mlx5: E-switch, Prepare eswitch to handle SF vport
+Date:   Thu, 21 Jan 2021 00:52:31 -0800
+Message-Id: <20210121085237.137919-9-saeed@kernel.org>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210121085237.137919-1-saeed@kernel.org>
 References: <20210121085237.137919-1-saeed@kernel.org>
@@ -54,156 +54,220 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@nvidia.com>
+From: Vu Pham <vuhuong@nvidia.com>
 
-Added documentation for devlink port and port function related commands.
+Prepare eswitch to handle SF vport during
+(a) querying eswitch functions
+(b) egress ACL creation
+(c) account for SF vports in total vports calculation
 
+Assign a dedicated placeholder for SFs vports and their representors.
+They are placed after VFs vports and before ECPF vports as below:
+[PF,VF0,...,VFn,SF0,...SFm,ECPF,UPLINK].
+
+Change functions to map SF's vport numbers to indices when
+accessing the vports or representors arrays, and vice versa.
+
+Signed-off-by: Vu Pham <vuhuong@nvidia.com>
 Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
+Reviewed-by: Roi Dayan <roid@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../networking/devlink/devlink-port.rst       | 118 ++++++++++++++++++
- Documentation/networking/devlink/index.rst    |   1 +
- 2 files changed, 119 insertions(+)
- create mode 100644 Documentation/networking/devlink/devlink-port.rst
+ .../mellanox/mlx5/core/esw/acl/egress_ofld.c  |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c | 11 +++-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h | 50 +++++++++++++++++++
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 11 ++++
+ .../net/ethernet/mellanox/mlx5/core/vport.c   |  3 +-
+ 5 files changed, 73 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/networking/devlink/devlink-port.rst b/Documentation/networking/devlink/devlink-port.rst
-new file mode 100644
-index 000000000000..c564b557e757
---- /dev/null
-+++ b/Documentation/networking/devlink/devlink-port.rst
-@@ -0,0 +1,118 @@
-+.. SPDX-License-Identifier: GPL-2.0
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/egress_ofld.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/egress_ofld.c
+index 4c74e2690d57..26b37a0f8762 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/egress_ofld.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/egress_ofld.c
+@@ -150,7 +150,7 @@ static void esw_acl_egress_ofld_groups_destroy(struct mlx5_vport *vport)
+ 
+ static bool esw_acl_egress_needed(const struct mlx5_eswitch *esw, u16 vport_num)
+ {
+-	return mlx5_eswitch_is_vf_vport(esw, vport_num);
++	return mlx5_eswitch_is_vf_vport(esw, vport_num) || mlx5_esw_is_sf_vport(esw, vport_num);
+ }
+ 
+ int esw_acl_egress_ofld_setup(struct mlx5_eswitch *esw, struct mlx5_vport *vport)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 876e6449edb3..55ebd9474d97 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1365,9 +1365,15 @@ const u32 *mlx5_esw_query_functions(struct mlx5_core_dev *dev)
+ {
+ 	int outlen = MLX5_ST_SZ_BYTES(query_esw_functions_out);
+ 	u32 in[MLX5_ST_SZ_DW(query_esw_functions_in)] = {};
++	u16 max_sf_vports;
+ 	u32 *out;
+ 	int err;
+ 
++	max_sf_vports = mlx5_sf_max_functions(dev);
++	/* Device interface is array of 64-bits */
++	if (max_sf_vports)
++		outlen += DIV_ROUND_UP(max_sf_vports, BITS_PER_TYPE(__be64)) * sizeof(__be64);
 +
-+.. _devlink_port:
+ 	out = kvzalloc(outlen, GFP_KERNEL);
+ 	if (!out)
+ 		return ERR_PTR(-ENOMEM);
+@@ -1375,7 +1381,7 @@ const u32 *mlx5_esw_query_functions(struct mlx5_core_dev *dev)
+ 	MLX5_SET(query_esw_functions_in, in, opcode,
+ 		 MLX5_CMD_OP_QUERY_ESW_FUNCTIONS);
+ 
+-	err = mlx5_cmd_exec_inout(dev, query_esw_functions, in, out);
++	err = mlx5_cmd_exec(dev, in, sizeof(in), out, outlen);
+ 	if (!err)
+ 		return out;
+ 
+@@ -1898,7 +1904,8 @@ static bool
+ is_port_function_supported(const struct mlx5_eswitch *esw, u16 vport_num)
+ {
+ 	return vport_num == MLX5_VPORT_PF ||
+-	       mlx5_eswitch_is_vf_vport(esw, vport_num);
++	       mlx5_eswitch_is_vf_vport(esw, vport_num) ||
++	       mlx5_esw_is_sf_vport(esw, vport_num);
+ }
+ 
+ int mlx5_devlink_port_function_hw_addr_get(struct devlink *devlink,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index cf87de94418f..4e3ed878ff03 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -43,6 +43,7 @@
+ #include <linux/mlx5/fs.h>
+ #include "lib/mpfs.h"
+ #include "lib/fs_chains.h"
++#include "sf/sf.h"
+ #include "en/tc_ct.h"
+ 
+ #ifdef CONFIG_MLX5_ESWITCH
+@@ -499,6 +500,40 @@ static inline u16 mlx5_eswitch_first_host_vport_num(struct mlx5_core_dev *dev)
+ 		MLX5_VPORT_PF : MLX5_VPORT_FIRST_VF;
+ }
+ 
++static inline int mlx5_esw_sf_start_idx(const struct mlx5_eswitch *esw)
++{
++	/* PF and VF vports indices start from 0 to max_vfs */
++	return MLX5_VPORT_PF_PLACEHOLDER + mlx5_core_max_vfs(esw->dev);
++}
 +
-+============
-+Devlink Port
-+============
++static inline int mlx5_esw_sf_end_idx(const struct mlx5_eswitch *esw)
++{
++	return mlx5_esw_sf_start_idx(esw) + mlx5_sf_max_functions(esw->dev);
++}
 +
-+``devlink-port`` is a port that exists on the device. It has a logically
-+separate ingress/egress point of the device. A devlink port can be any one
-+of many flavours. A devlink port flavour along with port attributes
-+describe what a port represents.
++static inline int
++mlx5_esw_sf_vport_num_to_index(const struct mlx5_eswitch *esw, u16 vport_num)
++{
++	return vport_num - mlx5_sf_start_function_id(esw->dev) +
++	       MLX5_VPORT_PF_PLACEHOLDER + mlx5_core_max_vfs(esw->dev);
++}
 +
-+A device driver that intends to publish a devlink port sets the
-+devlink port attributes and registers the devlink port.
++static inline u16
++mlx5_esw_sf_vport_index_to_num(const struct mlx5_eswitch *esw, int idx)
++{
++	return mlx5_sf_start_function_id(esw->dev) + idx -
++	       (MLX5_VPORT_PF_PLACEHOLDER + mlx5_core_max_vfs(esw->dev));
++}
 +
-+Devlink port flavours are described below.
++static inline bool
++mlx5_esw_is_sf_vport(const struct mlx5_eswitch *esw, u16 vport_num)
++{
++	return mlx5_sf_supported(esw->dev) &&
++	       vport_num >= mlx5_sf_start_function_id(esw->dev) &&
++	       (vport_num < (mlx5_sf_start_function_id(esw->dev) +
++			     mlx5_sf_max_functions(esw->dev)));
++}
 +
-+.. list-table:: List of devlink port flavours
-+   :widths: 33 90
+ static inline bool mlx5_eswitch_is_funcs_handler(const struct mlx5_core_dev *dev)
+ {
+ 	return mlx5_core_is_ecpf_esw_manager(dev);
+@@ -527,6 +562,10 @@ static inline int mlx5_eswitch_vport_num_to_index(struct mlx5_eswitch *esw,
+ 	if (vport_num == MLX5_VPORT_UPLINK)
+ 		return mlx5_eswitch_uplink_idx(esw);
+ 
++	if (mlx5_esw_is_sf_vport(esw, vport_num))
++		return mlx5_esw_sf_vport_num_to_index(esw, vport_num);
 +
-+   * - Flavour
-+     - Description
-+   * - ``DEVLINK_PORT_FLAVOUR_PHYSICAL``
-+     - Any kind of physical port. This can be an eswitch physical port or any
-+       other physical port on the device.
-+   * - ``DEVLINK_PORT_FLAVOUR_DSA``
-+     - This indicates a DSA interconnect port.
-+   * - ``DEVLINK_PORT_FLAVOUR_CPU``
-+     - This indicates a CPU port applicable only to DSA.
-+   * - ``DEVLINK_PORT_FLAVOUR_PCI_PF``
-+     - This indicates an eswitch port representing a port of PCI
-+       physical function (PF).
-+   * - ``DEVLINK_PORT_FLAVOUR_PCI_VF``
-+     - This indicates an eswitch port representing a port of PCI
-+       virtual function (VF).
-+   * - ``DEVLINK_PORT_FLAVOUR_VIRTUAL``
-+     - This indicates a virtual port for the PCI virtual function.
++	/* PF and VF vports start from 0 to max_vfs */
+ 	return vport_num;
+ }
+ 
+@@ -540,6 +579,12 @@ static inline u16 mlx5_eswitch_index_to_vport_num(struct mlx5_eswitch *esw,
+ 	if (index == mlx5_eswitch_uplink_idx(esw))
+ 		return MLX5_VPORT_UPLINK;
+ 
++	/* SF vports indices are after VFs and before ECPF */
++	if (mlx5_sf_supported(esw->dev) &&
++	    index > mlx5_core_max_vfs(esw->dev))
++		return mlx5_esw_sf_vport_index_to_num(esw, index);
 +
-+Devlink port can have a different type based on the link layer described below.
++	/* PF and VF vports start from 0 to max_vfs */
+ 	return index;
+ }
+ 
+@@ -625,6 +670,11 @@ void mlx5e_tc_clean_fdb_peer_flows(struct mlx5_eswitch *esw);
+ 	for ((vport) = (nvfs);						\
+ 	     (vport) >= (esw)->first_host_vport; (vport)--)
+ 
++#define mlx5_esw_for_each_sf_rep(esw, i, rep)		\
++	for ((i) = mlx5_esw_sf_start_idx(esw);		\
++	     (rep) = &(esw)->offloads.vport_reps[(i)],	\
++	     (i) < mlx5_esw_sf_end_idx(esw); (i++))
 +
-+.. list-table:: List of devlink port types
-+   :widths: 23 90
+ struct mlx5_eswitch *mlx5_devlink_eswitch_get(struct devlink *devlink);
+ struct mlx5_vport *__must_check
+ mlx5_eswitch_get_vport(struct mlx5_eswitch *esw, u16 vport_num);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 2f6a0ae20650..2d241f7351b5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1800,11 +1800,22 @@ static void __esw_offloads_unload_rep(struct mlx5_eswitch *esw,
+ 		esw->offloads.rep_ops[rep_type]->unload(rep);
+ }
+ 
++static void __unload_reps_sf_vport(struct mlx5_eswitch *esw, u8 rep_type)
++{
++	struct mlx5_eswitch_rep *rep;
++	int i;
 +
-+   * - Type
-+     - Description
-+   * - ``DEVLINK_PORT_TYPE_ETH``
-+     - Driver should set this port type when a link layer of the port is
-+       Ethernet.
-+   * - ``DEVLINK_PORT_TYPE_IB``
-+     - Driver should set this port type when a link layer of the port is
-+       InfiniBand.
-+   * - ``DEVLINK_PORT_TYPE_AUTO``
-+     - This type is indicated by the user when driver should detect the port
-+       type automatically.
++	mlx5_esw_for_each_sf_rep(esw, i, rep)
++		__esw_offloads_unload_rep(esw, rep, rep_type);
++}
 +
-+PCI controllers
-+---------------
-+In most cases a PCI device has only one controller. A controller consists of
-+potentially multiple physical and virtual functions. A function consists
-+of one or more ports. This port is represented by the devlink eswitch port.
+ static void __unload_reps_all_vport(struct mlx5_eswitch *esw, u8 rep_type)
+ {
+ 	struct mlx5_eswitch_rep *rep;
+ 	int i;
+ 
++	__unload_reps_sf_vport(esw, rep_type);
 +
-+A PCI device connected to multiple CPUs or multiple PCI root complexes or a
-+SmartNIC, however, may have multiple controllers. For a device with multiple
-+controllers, each controller is distinguished by a unique controller number.
-+An eswitch is on the PCI device which supports ports of multiple controllers.
-+
-+An example view of a system with two controllers::
-+
-+                 ---------------------------------------------------------
-+                 |                                                       |
-+                 |           --------- ---------         ------- ------- |
-+    -----------  |           | vf(s) | | sf(s) |         |vf(s)| |sf(s)| |
-+    | server  |  | -------   ----/---- ---/----- ------- ---/--- ---/--- |
-+    | pci rc  |=== | pf0 |______/________/       | pf1 |___/_______/     |
-+    | connect |  | -------                       -------                 |
-+    -----------  |     | controller_num=1 (no eswitch)                   |
-+                 ------|--------------------------------------------------
-+                 (internal wire)
-+                       |
-+                 ---------------------------------------------------------
-+                 | devlink eswitch ports and reps                        |
-+                 | ----------------------------------------------------- |
-+                 | |ctrl-0 | ctrl-0 | ctrl-0 | ctrl-0 | ctrl-0 |ctrl-0 | |
-+                 | |pf0    | pf0vfN | pf0sfN | pf1    | pf1vfN |pf1sfN | |
-+                 | ----------------------------------------------------- |
-+                 | |ctrl-1 | ctrl-1 | ctrl-1 | ctrl-1 | ctrl-1 |ctrl-1 | |
-+                 | |pf0    | pf0vfN | pf0sfN | pf1    | pf1vfN |pf1sfN | |
-+                 | ----------------------------------------------------- |
-+                 |                                                       |
-+                 |                                                       |
-+    -----------  |           --------- ---------         ------- ------- |
-+    | smartNIC|  |           | vf(s) | | sf(s) |         |vf(s)| |sf(s)| |
-+    | pci rc  |==| -------   ----/---- ---/----- ------- ---/--- ---/--- |
-+    | connect |  | | pf0 |______/________/       | pf1 |___/_______/     |
-+    -----------  | -------                       -------                 |
-+                 |                                                       |
-+                 |  local controller_num=0 (eswitch)                     |
-+                 ---------------------------------------------------------
-+
-+In the above example, the external controller (identified by controller number = 1)
-+doesn't have the eswitch. Local controller (identified by controller number = 0)
-+has the eswitch. The Devlink instance on the local controller has eswitch
-+devlink ports for both the controllers.
-+
-+Function configuration
-+======================
-+
-+A user can configure the function attribute before enumerating the PCI
-+function. Usually it means, user should configure function attribute
-+before a bus specific device for the function is created. However, when
-+SRIOV is enabled, virtual function devices are created on the PCI bus.
-+Hence, function attribute should be configured before binding virtual
-+function device to the driver.
-+
-+A user may set the hardware address of the function using
-+'devlink port function set hw_addr' command. For Ethernet port function
-+this means a MAC address.
-diff --git a/Documentation/networking/devlink/index.rst b/Documentation/networking/devlink/index.rst
-index d82874760ae2..aab79667f97b 100644
---- a/Documentation/networking/devlink/index.rst
-+++ b/Documentation/networking/devlink/index.rst
-@@ -18,6 +18,7 @@ general.
-    devlink-info
-    devlink-flash
-    devlink-params
-+   devlink-port
-    devlink-region
-    devlink-resource
-    devlink-reload
+ 	mlx5_esw_for_each_vf_rep_reverse(esw, i, rep, esw->esw_funcs.num_vfs)
+ 		__esw_offloads_unload_rep(esw, rep, rep_type);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index bdafc85fd874..ba78e0660523 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -36,6 +36,7 @@
+ #include <linux/mlx5/vport.h>
+ #include <linux/mlx5/eswitch.h>
+ #include "mlx5_core.h"
++#include "sf/sf.h"
+ 
+ /* Mutex to hold while enabling or disabling RoCE */
+ static DEFINE_MUTEX(mlx5_roce_en_lock);
+@@ -1160,6 +1161,6 @@ EXPORT_SYMBOL_GPL(mlx5_query_nic_system_image_guid);
+  */
+ u16 mlx5_eswitch_get_total_vports(const struct mlx5_core_dev *dev)
+ {
+-	return MLX5_SPECIAL_VPORTS(dev) + mlx5_core_max_vfs(dev);
++	return MLX5_SPECIAL_VPORTS(dev) + mlx5_core_max_vfs(dev) + mlx5_sf_max_functions(dev);
+ }
+ EXPORT_SYMBOL_GPL(mlx5_eswitch_get_total_vports);
 -- 
 2.26.2
 
