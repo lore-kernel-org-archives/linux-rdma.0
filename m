@@ -2,224 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C5D0C433E6
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C74C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:53:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9967239D4
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:51:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB701233F8
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:53:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730068AbhAUNvE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 08:51:04 -0500
-Received: from szxga05-in.huawei.com ([45.249.212.191]:11565 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729109AbhAUNu5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 08:50:57 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4DM3dT0rhyzMNJ0;
-        Thu, 21 Jan 2021 21:48:45 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.498.0; Thu, 21 Jan 2021 21:50:10 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@openeuler.org>
-Subject: [PATCH for-next 3/3] RDMA/hns: Use new interface to set MPT related fields
-Date:   Thu, 21 Jan 2021 21:48:02 +0800
-Message-ID: <1611236882-41498-4-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1611236882-41498-1-git-send-email-liweihang@huawei.com>
-References: <1611236882-41498-1-git-send-email-liweihang@huawei.com>
+        id S1729514AbhAUNwr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 08:52:47 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:13364 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729106AbhAUNwc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 08:52:32 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B600986f30000>; Thu, 21 Jan 2021 05:51:47 -0800
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Jan
+ 2021 13:51:46 +0000
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.176)
+ by HQMAIL111.nvidia.com (172.20.187.18) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 21 Jan 2021 13:51:46 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=bgwoEfaQF4NE70StblEVmC48DRRAC1jHmuNadKpr36k1cCohUdQ6blzOXxyfDGOA4vCBpZ4eg05t+UAldO21lYoSaPdZX3YEM0s2Gm4EdVtLrrOMDPi+ClLlJLMTNaT+vqTQBxiKxZCn6Zejdb6tHRmsCq9b/OSCyqJkuqaZzkzG0c672QSYFPaX05HWzkpl5lvNT4+tYOpNbDTBgS0G1z8nOoGH96p6KY+cQuwyaGq5GFDzo/FWM4OR51ggWJzQ7OycvZPjYLiZeucr+pfQ026Dm/zxOEP3eYtjPW7hl6AhJhyuUuvDXm5AiW5uMJix3L6nh3HeWiKymK7sCB+x2A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=dAcLHAvcGKqXW9Mrf54v7UbYz/6agvxAw6vGWQcsmHE=;
+ b=cPilrkTBmG3QvIrwMUdPnoGOmP5bYKXZRQX9lLsPsnwBNWZaP0di/Ge1a+arFrCf5CUKgMJCMsehgujTIsjcrBYDBZz1NwlcVxwTL2SQn4HiXonzo/4fqwMr1Kvh1191/Jgb8tspmDpewjDqxAtsmRMcRAgN9uh+U/XgaFCU/IEWPc3kME16i/QTNA6UmYHJkI9xMwWoPKkndhdYOu2wrymxGlwqU1hPQNeMd7eN1Tdh2BzvnJAE/xjKPJDZNTEN/+Dk9VnLcv9Dnrg1LI6thkjfyUJ36UZvru9zv0VVUEbSTUdhL8PS4MJI2d2m4ojrLgZqtvxsEcy+RYhKpL0zJw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB2859.namprd12.prod.outlook.com (2603:10b6:5:15d::29) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.13; Thu, 21 Jan
+ 2021 13:51:45 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Thu, 21 Jan 2021
+ 13:51:45 +0000
+Date:   Thu, 21 Jan 2021 09:51:43 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     liweihang <liweihang@huawei.com>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: Re: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
+Message-ID: <20210121135143.GZ4147@nvidia.com>
+References: <1610706138-4219-1-git-send-email-liweihang@huawei.com>
+ <1610706138-4219-2-git-send-email-liweihang@huawei.com>
+ <20210120081025.GA225873@unreal>
+ <8d255812177a4f53becd3c912d00c528@huawei.com>
+ <20210121085325.GC320304@unreal>
+ <96d7fb7db36e4bce8c556d0de5c8f961@huawei.com>
+ <20210121133445.GY4147@nvidia.com>
+ <14243f680ba6428789b878078f766967@huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <14243f680ba6428789b878078f766967@huawei.com>
+X-ClientProxiedBy: BL1PR13CA0433.namprd13.prod.outlook.com
+ (2603:10b6:208:2c3::18) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (206.223.160.26) by BL1PR13CA0433.namprd13.prod.outlook.com (2603:10b6:208:2c3::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.6 via Frontend Transport; Thu, 21 Jan 2021 13:51:45 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l2aND-0051l0-ON; Thu, 21 Jan 2021 09:51:43 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1611237107; bh=dAcLHAvcGKqXW9Mrf54v7UbYz/6agvxAw6vGWQcsmHE=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=oujH3TYwPLVl6APoRcRQ1+X1NdTWKukbN+mbUUs/VEBQnaiYUiG4RgtZIbXg6r+b0
+         w1ebPTa+WzpP419ZOBiPG9t3VrUfpdKccvdeLbGxJN73MYxQ2pmr1DNC+18IIMiKsN
+         qtPMTpXCC7nYTcX8nZSkfgpQR5MWf54AlC/snBtXB3UyXlfy61Xj9tHCnpnRw9T1P0
+         PslVGgsE9EjCjYKbtlhZ1xsFuy3d22ECFAMj5I45tj5pQZnjAyppgrEiq0IcGw1G7T
+         f/G5QbLhljpfACEaxIqpO3QA/60plqRuzqwlWm9KYPar6HpcQSsF8aVVLMFrA8xF23
+         hUcnsmG2/Szew==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On Thu, Jan 21, 2021 at 01:48:56PM +0000, liweihang wrote:
+> On 2021/1/21 21:36, Jason Gunthorpe wrote:
+> > On Thu, Jan 21, 2021 at 01:33:42PM +0000, liweihang wrote:
+> > 
+> >> We need to allocate memory while spin_lock is hold, how about using GFP_KERNEL or
+> >> GFP_NOWAIT?
+> > 
+> > You should try hard not to do that. Convert he spinlock to a mutex,
+> > for instance.
+> > 
+> > Jason
+> > 
+> 
+> But what if some kernel users call ib_post_send() when holding a spinlock?
 
-Achieve hr_reg_write() to simply the codes to fill fields.
+I doubt extensions like this would be part of kernel verbs..
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_common.h | 22 ++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 54 +++++++++++++----------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 39 +++++++++++++++++++++
- 3 files changed, 85 insertions(+), 30 deletions(-)
+Does any ULP call ib_post_send under lock? I'm not sure that is valid.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index 5afee04..3ca6e88 100644
---- a/drivers/infiniband/hw/hns/hns_roce_common.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -32,6 +32,7 @@
- 
- #ifndef _HNS_ROCE_COMMON_H
- #define _HNS_ROCE_COMMON_H
-+#include <linux/bitfield.h>
- 
- #define roce_write(dev, reg, val)	writel((val), (dev)->reg_base + (reg))
- #define roce_read(dev, reg)		readl((dev)->reg_base + (reg))
-@@ -65,6 +66,27 @@
- 
- #define hr_reg_enable(ptr, field) _hr_reg_enable(ptr, field)
- 
-+#define _hr_reg_clear(ptr, field_type, field_h, field_l)                       \
-+	({                                                                     \
-+		const field_type *_ptr = ptr;                                  \
-+		*((__le32 *)_ptr + (field_h) / 32) &=                          \
-+			cpu_to_le32(                                           \
-+				~GENMASK((field_h) % 32, (field_l) % 32)) +    \
-+			BUILD_BUG_ON_ZERO(((field_h) / 32) !=                  \
-+					  ((field_l) / 32));                   \
-+	})
-+
-+#define hr_reg_clear(ptr, field) _hr_reg_clear(ptr, field)
-+
-+#define _hr_reg_write(ptr, field_type, field_h, field_l, val)                  \
-+	({                                                                     \
-+		_hr_reg_clear(ptr, field_type, field_h, field_l);              \
-+		*((__le32 *)ptr + (field_h) / 32) |= cpu_to_le32(FIELD_PREP(   \
-+			GENMASK((field_h) % 32, (field_l) % 32), val));        \
-+	})
-+
-+#define hr_reg_write(ptr, field, val) _hr_reg_write(ptr, field, val)
-+
- #define ROCEE_GLB_CFG_ROCEE_DB_SQ_MODE_S 3
- #define ROCEE_GLB_CFG_ROCEE_DB_OTH_MODE_S 4
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 16ef631..a5bbfb1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2880,36 +2880,20 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
- 	mpt_entry = mb_buf;
- 	memset(mpt_entry, 0, sizeof(*mpt_entry));
- 
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_MPT_ST_M,
--		       V2_MPT_BYTE_4_MPT_ST_S, V2_MPT_ST_VALID);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PBL_HOP_NUM_M,
--		       V2_MPT_BYTE_4_PBL_HOP_NUM_S, mr->pbl_hop_num ==
--		       HNS_ROCE_HOP_NUM_0 ? 0 : mr->pbl_hop_num);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_M,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_S,
--		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.ba_pg_shift));
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
--		       V2_MPT_BYTE_4_PD_S, mr->pd);
--
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RA_EN_S, 0);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_R_INV_EN_S, 0);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_L_INV_EN_S, 1);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_BIND_EN_S,
--		     (mr->access & IB_ACCESS_MW_BIND ? 1 : 0));
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_ATOMIC_EN_S,
--		     mr->access & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RR_EN_S,
--		     (mr->access & IB_ACCESS_REMOTE_READ ? 1 : 0));
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RW_EN_S,
--		     (mr->access & IB_ACCESS_REMOTE_WRITE ? 1 : 0));
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S,
--		     (mr->access & IB_ACCESS_LOCAL_WRITE ? 1 : 0));
--
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_PA_S,
--		     mr->type == MR_TYPE_MR ? 0 : 1);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_INNER_PA_VLD_S,
--		     1);
-+	hr_reg_write(mpt_entry, MPT_ST, V2_MPT_ST_VALID);
-+	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
-+	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
-+
-+	hr_reg_write(mpt_entry, MPT_BIND_EN,
-+		     !!(mr->access & IB_ACCESS_MW_BIND));
-+	hr_reg_write(mpt_entry, MPT_ATOMIC_EN,
-+		     !!(mr->access & IB_ACCESS_REMOTE_ATOMIC));
-+	hr_reg_write(mpt_entry, MPT_RR_EN,
-+		     !!(mr->access & IB_ACCESS_REMOTE_READ));
-+	hr_reg_write(mpt_entry, MPT_RW_EN,
-+		     !!(mr->access & IB_ACCESS_REMOTE_WRITE));
-+	hr_reg_write(mpt_entry, MPT_LW_EN,
-+		     !!((mr->access & IB_ACCESS_LOCAL_WRITE)));
- 
- 	mpt_entry->len_l = cpu_to_le32(lower_32_bits(mr->size));
- 	mpt_entry->len_h = cpu_to_le32(upper_32_bits(mr->size));
-@@ -2917,9 +2901,19 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
- 	mpt_entry->va_l = cpu_to_le32(lower_32_bits(mr->iova));
- 	mpt_entry->va_h = cpu_to_le32(upper_32_bits(mr->iova));
- 
-+	if (mr->type != MR_TYPE_MR)
-+		hr_reg_enable(mpt_entry, MPT_PA);
-+
- 	if (mr->type == MR_TYPE_DMA)
- 		return 0;
- 
-+	if (mr->pbl_hop_num != HNS_ROCE_HOP_NUM_0)
-+		hr_reg_write(mpt_entry, MPT_PBL_HOP_NUM, mr->pbl_hop_num);
-+
-+	hr_reg_write(mpt_entry, MPT_PBL_BA_PG_SZ,
-+		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.ba_pg_shift));
-+	hr_reg_enable(mpt_entry, MPT_INNER_PA_VLD);
-+
- 	ret = set_mtpt_pbl(hr_dev, mpt_entry, mr);
- 
- 	return ret;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index bdaccf8..69bc072 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -993,6 +993,45 @@ struct hns_roce_v2_mpt_entry {
- 	__le32	byte_64_buf_pa1;
- };
- 
-+#define MPT_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_v2_mpt_entry, h, l)
-+
-+#define MPT_ST MPT_FIELD_LOC(1, 0)
-+#define MPT_PBL_HOP_NUM MPT_FIELD_LOC(3, 2)
-+#define MPT_PBL_BA_PG_SZ MPT_FIELD_LOC(7, 4)
-+#define MPT_PD MPT_FIELD_LOC(31, 8)
-+#define MPT_RA_EN MPT_FIELD_LOC(32, 32)
-+#define MPT_R_INV_EN MPT_FIELD_LOC(33, 33)
-+#define MPT_L_INV_EN MPT_FIELD_LOC(34, 34)
-+#define MPT_BIND_EN MPT_FIELD_LOC(35, 35)
-+#define MPT_ATOMIC_EN MPT_FIELD_LOC(36, 36)
-+#define MPT_RR_EN MPT_FIELD_LOC(37, 37)
-+#define MPT_RW_EN MPT_FIELD_LOC(38, 38)
-+#define MPT_LW_EN MPT_FIELD_LOC(39, 39)
-+#define MPT_MW_CNT MPT_FIELD_LOC(63, 40)
-+#define MPT_FRE MPT_FIELD_LOC(64, 64)
-+#define MPT_PA MPT_FIELD_LOC(65, 65)
-+#define MPT_ZBVA MPT_FIELD_LOC(66, 66)
-+#define MPT_SHARE MPT_FIELD_LOC(67, 67)
-+#define MPT_MR_MW MPT_FIELD_LOC(68, 68)
-+#define MPT_BPD MPT_FIELD_LOC(69, 69)
-+#define MPT_BQP MPT_FIELD_LOC(70, 70)
-+#define MPT_INNER_PA_VLD MPT_FIELD_LOC(71, 71)
-+#define MPT_MW_BIND_QPN MPT_FIELD_LOC(95, 72)
-+#define MPT_BOUND_LKEY MPT_FIELD_LOC(127, 96)
-+#define MPT_LEN MPT_FIELD_LOC(191, 128)
-+#define MPT_LKEY MPT_FIELD_LOC(223, 192)
-+#define MPT_VA MPT_FIELD_LOC(287, 224)
-+#define MPT_PBL_SIZE MPT_FIELD_LOC(319, 288)
-+#define MPT_PBL_BA MPT_FIELD_LOC(380, 320)
-+#define MPT_BLK_MODE MPT_FIELD_LOC(381, 381)
-+#define MPT_RSV0 MPT_FIELD_LOC(383, 382)
-+#define MPT_PA0 MPT_FIELD_LOC(441, 384)
-+#define MPT_BOUND_VA MPT_FIELD_LOC(447, 442)
-+#define MPT_PA1 MPT_FIELD_LOC(505, 448)
-+#define MPT_PERSIST_EN MPT_FIELD_LOC(506, 506)
-+#define MPT_RSV2 MPT_FIELD_LOC(507, 507)
-+#define MPT_PBL_BUF_PG_SZ MPT_FIELD_LOC(511, 508)
-+
- #define V2_MPT_BYTE_4_MPT_ST_S 0
- #define V2_MPT_BYTE_4_MPT_ST_M GENMASK(1, 0)
- 
--- 
-2.8.1
-
+Jason
