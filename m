@@ -2,193 +2,250 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F6CC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 07:08:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4498EC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 08:54:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 849432396D
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 07:08:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB6D72399A
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 08:54:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbhAUHH6 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 02:07:58 -0500
-Received: from szxga01-in.huawei.com ([45.249.212.187]:4144 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727143AbhAUHCg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 02:02:36 -0500
-Received: from DGGEMM406-HUB.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4DLtZp4kz8zY2Cb;
-        Thu, 21 Jan 2021 15:00:50 +0800 (CST)
-Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
- DGGEMM406-HUB.china.huawei.com (10.3.20.214) with Microsoft SMTP Server (TLS)
- id 14.3.498.0; Thu, 21 Jan 2021 15:01:51 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2106.2; Thu, 21 Jan 2021 15:01:50 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.002;
- Thu, 21 Jan 2021 15:01:50 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@nvidia.com" <jgg@nvidia.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Re: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
-Thread-Topic: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
-Thread-Index: AQHW7wPDP5RkMGFqYkur4LkmHzzsFQ==
-Date:   Thu, 21 Jan 2021 07:01:50 +0000
-Message-ID: <8d255812177a4f53becd3c912d00c528@huawei.com>
-References: <1610706138-4219-1-git-send-email-liweihang@huawei.com>
- <1610706138-4219-2-git-send-email-liweihang@huawei.com>
- <20210120081025.GA225873@unreal>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1728106AbhAUIxq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 03:53:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33102 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728263AbhAUIxb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Jan 2021 03:53:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5FDDA239EF;
+        Thu, 21 Jan 2021 08:52:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1611219170;
+        bh=eSYLmvCypJgMnlM449jFAOgQeum1+s5F1uGrryXaYDQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=RDYiP18Dbc9JHEqThgWW4je5brb8nEnoyamQ3OWTXwaa/hkePj1HZvFYjejdey1aA
+         EpRj0AEYWj+rTr2z0dLUGaAutJLt74wWrLdBxEPba2aj3Jw0cuKjp8UuyOuZiavsAM
+         z1mvce9/ZL7xXJuEYjs8d2Wp09Aunw36Niby5/S0SgdGY8XEpc3IdCFIgmF9cfBVKk
+         XCaw6JnLf+cnNGeQDyTNKNkq5RCh6Jqmc9SHjxXkJkL+fyDFk/98s9F6ggkF3tasP3
+         RV7S2Op25efl2z9xHtl1RuqsBP3klPtXEKmWoDBE+7lOoOyO7m46UNMG0LeW2Ele3i
+         peMR5pLVLmVLg==
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        alexander.duyck@gmail.com, sridhar.samudrala@intel.com,
+        edwin.peer@broadcom.com, dsahern@kernel.org, kiran.patil@intel.com,
+        jacob.e.keller@intel.com, david.m.ertman@intel.com,
+        dan.j.williams@intel.com, Parav Pandit <parav@nvidia.com>,
+        Jiri Pirko <jiri@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [net-next V9 02/14] devlink: Introduce PCI SF port flavour and port attribute
+Date:   Thu, 21 Jan 2021 00:52:25 -0800
+Message-Id: <20210121085237.137919-3-saeed@kernel.org>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20210121085237.137919-1-saeed@kernel.org>
+References: <20210121085237.137919-1-saeed@kernel.org>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/1/20 16:10, Leon Romanovsky wrote:
-> On Fri, Jan 15, 2021 at 06:22:12PM +0800, Weihang Li wrote:
->> From: Xi Wang <wangxi11@huawei.com>
->>
->> The hip09 introduces the DCA(Dynamic context attachment) feature which
->> supports many RC QPs to share the WQE buffer in a memory pool, this will
->> reduce the memory consumption when there are too many QPs are inactive.
->>
->> If a QP enables DCA feature, the WQE's buffer will not be allocated when
->> creating. But when the users start to post WRs, the hns driver will
->> allocate a buffer from the memory pool and then fill WQEs which tagged with
->> this QP's number.
->>
->> The hns ROCEE will stop accessing the WQE buffer when the user polled all
->> of the CQEs for a DCA QP, then the driver will recycle this WQE's buffer
->> to the memory pool.
->>
->> This patch adds a group of methods to support the user space register
->> buffers to a memory pool which belongs to the user context. The hns kernel
->> driver will update the pages state in this pool when the user calling the
->> post/poll methods and the user driver can get the QP's WQE buffer address
->> by the key and offset which queried from kernel.
->>
->> Signed-off-by: Xi Wang <wangxi11@huawei.com>
->> Signed-off-by: Weihang Li <liweihang@huawei.com>
->> ---
->>  drivers/infiniband/hw/hns/Makefile          |   2 +-
->>  drivers/infiniband/hw/hns/hns_roce_dca.c    | 381 ++++++++++++++++++++++++++++
->>  drivers/infiniband/hw/hns/hns_roce_dca.h    |  22 ++
->>  drivers/infiniband/hw/hns/hns_roce_device.h |  10 +
->>  drivers/infiniband/hw/hns/hns_roce_main.c   |  27 +-
->>  include/uapi/rdma/hns-abi.h                 |  23 ++
->>  6 files changed, 462 insertions(+), 3 deletions(-)
->>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.c
->>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.h
-> 
-> <...>
-> 
->> +static struct dca_mem *alloc_dca_mem(struct hns_roce_dca_ctx *ctx)
->> +{
->> +	struct dca_mem *mem, *tmp, *found = NULL;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&ctx->pool_lock, flags);
->> +	list_for_each_entry_safe(mem, tmp, &ctx->pool, list) {
->> +		spin_lock(&mem->lock);
->> +		if (dca_mem_is_free(mem)) {
->> +			found = mem;
->> +			set_dca_mem_alloced(mem);
->> +			spin_unlock(&mem->lock);
->> +			goto done;
->> +		}
->> +		spin_unlock(&mem->lock);
->> +	}
->> +
->> +done:
->> +	spin_unlock_irqrestore(&ctx->pool_lock, flags);
->> +
->> +	if (found)
->> +		return found;
->> +
->> +	mem = kzalloc(sizeof(*mem), GFP_ATOMIC);
-> 
-> Should it be ATOMIC?
-> 
+From: Parav Pandit <parav@nvidia.com>
 
-Hi Leon,
+A PCI sub-function (SF) represents a portion of the device similar
+to PCI VF.
 
-The current DCA interfaces can be invoked by userspace through ibv_xx_cmd(),
-but it is expected that it can work in ib_post_xx() in kernel in the future.
-Since it may work in context of spin_lock, so we use GFP_ATOMIC.
+In an eswitch, PCI SF may have port which is normally represented
+using a representor netdevice.
+To have better visibility of eswitch port, its association with SF,
+and its representor netdevice, introduce a PCI SF port flavour.
 
+When devlink port flavour is PCI SF, fill up PCI SF attributes of the
+port.
 
->> +	if (!mem)
->> +		return NULL;
->> +
->> +	spin_lock_init(&mem->lock);
->> +	INIT_LIST_HEAD(&mem->list);
->> +
->> +	set_dca_mem_alloced(mem);
->> +
->> +	spin_lock_irqsave(&ctx->pool_lock, flags);
->> +	list_add(&mem->list, &ctx->pool);
->> +	spin_unlock_irqrestore(&ctx->pool_lock, flags);
->> +	return mem;
->> +}
-> 
-> <...>
-> 
->>  /**
->>   * hns_get_gid_index - Get gid index.
->> @@ -306,15 +308,16 @@ static int hns_roce_modify_device(struct ib_device *ib_dev, int mask,
->>  static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
->>  				   struct ib_udata *udata)
->>  {
->> -	int ret;
->>  	struct hns_roce_ucontext *context = to_hr_ucontext(uctx);
->> -	struct hns_roce_ib_alloc_ucontext_resp resp = {};
->>  	struct hns_roce_dev *hr_dev = to_hr_dev(uctx->device);
->> +	struct hns_roce_ib_alloc_ucontext_resp resp = {};
->> +	int ret;
->>
->>  	if (!hr_dev->active)
->>  		return -EAGAIN;
->>
->>  	resp.qp_tab_size = hr_dev->caps.num_qps;
->> +	resp.cap_flags = (u32)hr_dev->caps.flags;
-> 
-> This is prone to errors, flags is u64.
-> 
+Extend port name creation using PCI PF and SF number scheme on best
+effort basis, so that vendor drivers can skip defining their own
+scheme.
+This is done as cApfNSfM, where A, N and M are controller, PCI PF and
+PCI SF number respectively.
+This is similar to existing naming for PCI PF and PCI VF ports.
 
-OK, we plan to change type of resp.cap_flags to u64.
+An example view of a PCI SF port:
 
-> <...>
-> 
->> diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
->> index 90b739d..f59abc4 100644
->> --- a/include/uapi/rdma/hns-abi.h
->> +++ b/include/uapi/rdma/hns-abi.h
->> @@ -86,10 +86,33 @@ struct hns_roce_ib_create_qp_resp {
->>  struct hns_roce_ib_alloc_ucontext_resp {
->>  	__u32	qp_tab_size;
->>  	__u32	cqe_size;
->> +	__u32	cap_flags;
->>  };
-> 
-> This struct should be padded to 64bits,
-> > Thanks
-> 
-Thanks, I will fix it.
+$ devlink port show pci/0000:06:00.0/32768
+pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
+  function:
+    hw_addr 00:00:00:00:88:88 state active opstate attached
 
-Weihang
+$ devlink port show pci/0000:06:00.0/32768 -jp
+{
+    "port": {
+        "pci/0000:06:00.0/32768": {
+            "type": "eth",
+            "netdev": "ens2f0npf0sf88",
+            "flavour": "pcisf",
+            "controller": 0,
+            "pfnum": 0,
+            "sfnum": 88,
+            "splittable": false,
+            "function": {
+                "hw_addr": "00:00:00:00:88:88",
+                "state": "active",
+                "opstate": "attached"
+            }
+        }
+    }
+}
+
+Signed-off-by: Parav Pandit <parav@nvidia.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Vu Pham <vuhuong@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+---
+ include/net/devlink.h        | 16 +++++++++++++++
+ include/uapi/linux/devlink.h |  5 +++++
+ net/core/devlink.c           | 39 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 60 insertions(+)
+
+diff --git a/include/net/devlink.h b/include/net/devlink.h
+index f466819cc477..dc3bf8000082 100644
+--- a/include/net/devlink.h
++++ b/include/net/devlink.h
+@@ -93,6 +93,18 @@ struct devlink_port_pci_vf_attrs {
+ 	u8 external:1;
+ };
+ 
++/**
++ * struct devlink_port_pci_sf_attrs - devlink port's PCI SF attributes
++ * @controller: Associated controller number
++ * @sf: Associated PCI SF for of the PCI PF for this port.
++ * @pf: Associated PCI PF number for this port.
++ */
++struct devlink_port_pci_sf_attrs {
++	u32 controller;
++	u32 sf;
++	u16 pf;
++};
++
+ /**
+  * struct devlink_port_attrs - devlink port object
+  * @flavour: flavour of the port
+@@ -103,6 +115,7 @@ struct devlink_port_pci_vf_attrs {
+  * @phys: physical port attributes
+  * @pci_pf: PCI PF port attributes
+  * @pci_vf: PCI VF port attributes
++ * @pci_sf: PCI SF port attributes
+  */
+ struct devlink_port_attrs {
+ 	u8 split:1,
+@@ -114,6 +127,7 @@ struct devlink_port_attrs {
+ 		struct devlink_port_phys_attrs phys;
+ 		struct devlink_port_pci_pf_attrs pci_pf;
+ 		struct devlink_port_pci_vf_attrs pci_vf;
++		struct devlink_port_pci_sf_attrs pci_sf;
+ 	};
+ };
+ 
+@@ -1404,6 +1418,8 @@ void devlink_port_attrs_pci_pf_set(struct devlink_port *devlink_port, u32 contro
+ 				   u16 pf, bool external);
+ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 controller,
+ 				   u16 pf, u16 vf, bool external);
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port,
++				   u32 controller, u16 pf, u32 sf);
+ int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
+ 			u32 size, u16 ingress_pools_count,
+ 			u16 egress_pools_count, u16 ingress_tc_count,
+diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
+index cf89c318f2ac..1a241b09a7f8 100644
+--- a/include/uapi/linux/devlink.h
++++ b/include/uapi/linux/devlink.h
+@@ -200,6 +200,10 @@ enum devlink_port_flavour {
+ 	DEVLINK_PORT_FLAVOUR_UNUSED, /* Port which exists in the switch, but
+ 				      * is not used in any way.
+ 				      */
++	DEVLINK_PORT_FLAVOUR_PCI_SF, /* Represents eswitch port
++				      * for the PCI SF. It is an internal
++				      * port that faces the PCI SF.
++				      */
+ };
+ 
+ enum devlink_param_cmode {
+@@ -529,6 +533,7 @@ enum devlink_attr {
+ 	DEVLINK_ATTR_RELOAD_ACTION_INFO,        /* nested */
+ 	DEVLINK_ATTR_RELOAD_ACTION_STATS,       /* nested */
+ 
++	DEVLINK_ATTR_PORT_PCI_SF_NUMBER,	/* u32 */
+ 	/* add new attributes above here, update the policy in devlink.c */
+ 
+ 	__DEVLINK_ATTR_MAX,
+diff --git a/net/core/devlink.c b/net/core/devlink.c
+index c39496311b71..4cbc02fb602d 100644
+--- a/net/core/devlink.c
++++ b/net/core/devlink.c
+@@ -690,6 +690,15 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
+ 		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_vf.external))
+ 			return -EMSGSIZE;
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		if (nla_put_u32(msg, DEVLINK_ATTR_PORT_CONTROLLER_NUMBER,
++				attrs->pci_sf.controller) ||
++		    nla_put_u16(msg, DEVLINK_ATTR_PORT_PCI_PF_NUMBER,
++				attrs->pci_sf.pf) ||
++		    nla_put_u32(msg, DEVLINK_ATTR_PORT_PCI_SF_NUMBER,
++				attrs->pci_sf.sf))
++			return -EMSGSIZE;
++		break;
+ 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
+ 	case DEVLINK_PORT_FLAVOUR_CPU:
+ 	case DEVLINK_PORT_FLAVOUR_DSA:
+@@ -8374,6 +8383,32 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 contro
+ }
+ EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
+ 
++/**
++ *	devlink_port_attrs_pci_sf_set - Set PCI SF port attributes
++ *
++ *	@devlink_port: devlink port
++ *	@controller: associated controller number for the devlink port instance
++ *	@pf: associated PF for the devlink port instance
++ *	@sf: associated SF of a PF for the devlink port instance
++ */
++void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 controller,
++				   u16 pf, u32 sf)
++{
++	struct devlink_port_attrs *attrs = &devlink_port->attrs;
++	int ret;
++
++	if (WARN_ON(devlink_port->registered))
++		return;
++	ret = __devlink_port_attrs_set(devlink_port,
++				       DEVLINK_PORT_FLAVOUR_PCI_SF);
++	if (ret)
++		return;
++	attrs->pci_sf.controller = controller;
++	attrs->pci_sf.pf = pf;
++	attrs->pci_sf.sf = sf;
++}
++EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_sf_set);
++
+ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 					     char *name, size_t len)
+ {
+@@ -8422,6 +8457,10 @@ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
+ 		n = snprintf(name, len, "pf%uvf%u",
+ 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
+ 		break;
++	case DEVLINK_PORT_FLAVOUR_PCI_SF:
++		n = snprintf(name, len, "pf%usf%u", attrs->pci_sf.pf,
++			     attrs->pci_sf.sf);
++		break;
+ 	}
+ 
+ 	if (n >= len)
+-- 
+2.26.2
+
