@@ -2,124 +2,102 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 223ACC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF95C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:37:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4A1323A54
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:26:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B35722A83
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:37:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726662AbhAUS0T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 13:26:19 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:6625 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389491AbhAUSRn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 13:17:43 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6009c4f70000>; Thu, 21 Jan 2021 10:16:23 -0800
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Jan
- 2021 18:16:22 +0000
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL102.nvidia.com
- (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Jan
- 2021 18:16:20 +0000
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.170)
- by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 21 Jan 2021 18:16:20 +0000
+        id S1726073AbhAUShE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 13:37:04 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:5239 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728889AbhAUSgs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 13:36:48 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B6009c9630001>; Thu, 21 Jan 2021 10:35:15 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
+ (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Jan
+ 2021 18:35:15 +0000
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.44) by
+ HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 21 Jan 2021 18:35:15 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Pz+dw9HbO87Em1MiGkJizMGcJNFLpe0b5dl5gWYvwY+skc1wu0PBDy+o3zMK54KYLrCOVqKnws3z5dl6v591QKbVnUlZSB7ldxCg6SQY5SM2B+ZiUGkvXYH7r8mubNADefNCINhYsOEQVflzvSQ0xYunQJbc6IdiqJghxaNyC+rt5FnxcmB1JYf1YC4Mm/aEaqKRBbrdGWpZ4b3fOGGwuCgRYSCMy1BgD4okdv5tEMqZZv/cDWg50a21xxIk6CoTJlkQrLa6jCKV8ZBpr/bSbC7Y9/uBmBhF1zYfLRqbvkgAbCNeNq6Sd1ycgE4ukkQzknXH/YnBoKVoRmiiXkasyw==
+ b=aDVAEYV4Agmn6MEj8NM5SasQHdZsekWfNdVvf06X5rLXnx8GdFdBvXQBFzvVXJIoqsJ8SEt3yOZzxoi8jDCOpf7vaQwno5YozEtGUEraFDSArp298Duo5Txp3D+jFGFCDh5i8cvp471fAm4s7qmrBoHnb4hZRf+zVdjvcWXHnhGOsaxBhnZKn9vofbwxCYdQqIu33denBwmS+aCrenJaXNo+6oIgN2zikq4mICkmiljD2LbCCTznjZjUSl5wDpi1ZyikBjrV5NeuIvl0lpsia0EY47zKGlstuvYcHDMFvuNOQjUb8RBET+zb6IrE6v+OIuH93s/6bLEx/I6ht9RRGQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wNssNcLT1WJGIY5EAWd/Ag8rXNjN3VAe26VFF/7F6h0=;
- b=Ohxa79Zk2KGqQNjavLoOTGDvMjHf9g88FwuQdaR9wquYLDOjTAgegNfmkNQqG7djmoUHJPjTC+aNGY5ImF6tPPGUgFJeHnJsMN25v6SY8V96TD1qYNRWwMCDV1YG6K+Ej16ddL3LMlpviH2qviUDzBQ/dvgIO+Z2JYXWjryWCR/SmJQqW982KCFnoJJx2qVL2w/GFVx7UXhf53Uk11SP/OyOyPB1jz/mF0xcBeNWNRLYImaTpdxp219JBqailCAS77BwHq5Vc3Ux7VtWt4v1xUvdkAEeRAn1aabmThyQU1d5cRTvd0ZFW0mJGHnRF7BQMOMjPzsJSk8nToF3JQbynA==
+ bh=qCs/C5l+rHeqd/OtESVisc/BSAKXtCBrHg79u5/NNyk=;
+ b=YVBTsDmXK2MyNiHT2P0CxsB3W6XHxvXsWxH/vkB4+J5oqhRg6m8EKI3rGiUXnoaLvJ2UJ6zpN5f1us51aTKv55MCzysgGT17RagLmlkzJgP+/6B0VG53cWjY0nJ5SmqM9r4URy7UCy0MmPAP1VVadfBrndDs5F31AYcAZhZh8ffFXMjUgkb0jrdspbFCIrQlnbmDbzKrUA4mt0ccTczcQjzXTW5gDSr5LeixMVu5DxXx3XjWXN/yea/ynWkqkzBWI3w4zMSv85fX84Hj5WWl6yTU0U4zWh+nPu148vmElJrEuzp9uMyX3ectb4JK1B26uk6wvxF1aigKOl9ewSUj6A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3739.namprd12.prod.outlook.com (2603:10b6:5:1c4::21) with
+ by DM6PR12MB4973.namprd12.prod.outlook.com (2603:10b6:5:1b7::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.10; Thu, 21 Jan
- 2021 18:16:17 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12; Thu, 21 Jan
+ 2021 18:35:14 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Thu, 21 Jan 2021
- 18:16:17 +0000
-Date:   Thu, 21 Jan 2021 14:16:15 -0400
+ 18:35:14 +0000
+Date:   Thu, 21 Jan 2021 14:35:12 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Manjunath Patil <manjunath.b.patil@oracle.com>
-CC:     <dledford@redhat.com>, <leon@kernel.org>,
-        <valentinef@mellanox.com>, <gustavoars@kernel.org>,
-        <haakon.bugge@oracle.com>, <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH] IB/ipoib: improve latency in ipoib/cm connection
- formation
-Message-ID: <20210121181615.GA1224360@nvidia.com>
-References: <1611251403-12810-1-git-send-email-manjunath.b.patil@oracle.com>
+To:     Gal Pressman <galpress@amazon.com>
+CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
+        Alexander Matushevsky <matua@amazon.com>
+Subject: Re: [PATCH for-next 0/2] Host information userspace version
+Message-ID: <20210121183512.GC4147@nvidia.com>
+References: <20210105104326.67895-1-galpress@amazon.com>
+ <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <1611251403-12810-1-git-send-email-manjunath.b.patil@oracle.com>
-X-ClientProxiedBy: BL1PR13CA0071.namprd13.prod.outlook.com
- (2603:10b6:208:2b8::16) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
+X-ClientProxiedBy: MN2PR20CA0050.namprd20.prod.outlook.com
+ (2603:10b6:208:235::19) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0071.namprd13.prod.outlook.com (2603:10b6:208:2b8::16) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.7 via Frontend Transport; Thu, 21 Jan 2021 18:16:17 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l2eVD-0058Wq-Ot; Thu, 21 Jan 2021 14:16:15 -0400
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR20CA0050.namprd20.prod.outlook.com (2603:10b6:208:235::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.14 via Frontend Transport; Thu, 21 Jan 2021 18:35:13 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l2enY-0058yt-Ld; Thu, 21 Jan 2021 14:35:12 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611252983; bh=wNssNcLT1WJGIY5EAWd/Ag8rXNjN3VAe26VFF/7F6h0=;
+        t=1611254115; bh=qCs/C5l+rHeqd/OtESVisc/BSAKXtCBrHg79u5/NNyk=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=Xa/04mJxA3XAW8QeP/b6zmuI1g/IsUGeIsrpzLqlTFxtBfdLqFrrZrzkfhI3UQkhT
-         ZXUGmW1SMruIarEhRBD45rXo+/i/8iEiC7hwtYPLdUCu7+N8qAg2AE90qVbkoWYv02
-         3es9GCanmlpUHuZ7v6PBlYneTusJwM9SKm1+DTiOyMB4reEf6M6E9j665aiVkzhU2T
-         V3jnP0JjCCniWWpuCsMsb9F5aBR9GZJcbskCVA91l6Wt1Lq+inme+wmFb4kHS7gI3B
-         yc7jKPu6QPFRSwzlHbxIqRVJ+TtG2ugBzEbkAV/QTdpYSW7s2mTXtBeEDWP8NzY6tq
-         0PV9vp3crHgpg==
+        b=rYHNwxokzhxDo6MInOCIRn2leWBNjR1tyyMQrWZHONhVoVy4VoEjAPaYs8Xlcyx1E
+         HCw2Tx3/+zMP6NMtADi14gXdTgo0LKczxoBUogYuZSyXKSc4gOPP47zmWZ0+W21pL7
+         kV4U70C3DnF+pS2C08fK4VqxaFDe2eZ8MbaNpI3VgrwqqgjtQw/LpqFZUGnCIA8cyP
+         Bav1TfFrnQQLdIUKPI45bR0tOE+UZcjc7NS51VJisU5LLl2qI83B3jhGmSSrImj2/m
+         o4U5ENBuDlgBiIp3CxjcfhN6RSFMpLV6koMa4KGUuKjfZiYNKfvLRFBDe+OMzWCFLc
+         VLTTxpM4PZuIw==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 21, 2021 at 09:50:03AM -0800, Manjunath Patil wrote:
-> ipoib connected mode presently queries the device[HCA] to get P_Key
-> table entry during connection formation. This will increase the time
-> taken to form the connection, especially when limited P_Keys are in use.
-> This gets worse when multiple connection attempts are done in parallel.
-> Improve this by using the cached version of ib_find_pkey().
+On Tue, Jan 19, 2021 at 09:17:14AM +0200, Gal Pressman wrote:
+> On 05/01/2021 12:43, Gal Pressman wrote:
+> > The following two patches add the userspace version to the host
+> > information struct reported to the device, used for debugging and
+> > troubleshooting purposes.
+> > 
+> > PR was sent:
+> > https://github.com/linux-rdma/rdma-core/pull/918
+> > 
+> > Thanks,
+> > Gal
 > 
-> This improved the latency from 500ms to 3ms on an internal setup.
-> 
-> Suggested-by: Haakon Bugge <haakon.bugge@oracle.com>
-> Signed-off-by: Manjunath Patil <manjunath.b.patil@oracle.com>
->  drivers/infiniband/ulp/ipoib/ipoib_cm.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 8f0b598..013a1d8 100644
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -40,6 +40,7 @@
->  #include <linux/moduleparam.h>
->  #include <linux/sched/signal.h>
->  #include <linux/sched/mm.h>
-> +#include <rdma/ib_cache.h>
->  
->  #include "ipoib.h"
->  
-> @@ -1122,7 +1123,8 @@ static int ipoib_cm_modify_tx_init(struct net_device *dev,
->  	struct ipoib_dev_priv *priv = ipoib_priv(dev);
->  	struct ib_qp_attr qp_attr;
->  	int qp_attr_mask, ret;
-> -	ret = ib_find_pkey(priv->ca, priv->port, priv->pkey, &qp_attr.pkey_index);
-> +	ret = ib_find_cached_pkey(priv->ca, priv->port, priv->pkey,
-> +						&qp_attr.pkey_index);
+> Anything stopping this series from being merged?
 
-ipoib interfaces are locked to a single pkey, you should be able to
-get the pkey index that was determined at link up time and use it here
-instead of searching anything
+Honestly, I'm not very keen on this
+
+Why does this have to go through a kernel driver, can't you collect
+OS telemetry some other way?
 
 Jason
