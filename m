@@ -5,56 +5,56 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4481C4332E
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:07:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FBF8C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:08:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA30F23A5A
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:07:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B767F23A22
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:08:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389106AbhAUSHW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1728936AbhAUSHW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 21 Jan 2021 13:07:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47768 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728936AbhAUJrT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:19 -0500
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16238C061381
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:48 -0800 (PST)
-Received: by mail-wm1-x32a.google.com with SMTP id v184so939866wma.1
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:48 -0800 (PST)
+        with ESMTP id S1728932AbhAUJrQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:16 -0500
+Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5434C0617BC
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:45 -0800 (PST)
+Received: by mail-wr1-x430.google.com with SMTP id 7so1076050wrz.0
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=XmIU7Hx0pkyEcx/3o0WhDyQYZMQPyc4u6z7mHc/BEGk=;
-        b=W2U5NYMURcYEfi5ItscagZ3XbR3KUn3NejODcNDGd9GGFAGN4o0zTppEo4rhafYLWe
-         SuwBlJ5zK6okyN6LB/V9uNfTiOab6kqx/F/L9QfeFs+eK6+vvGjf5Jda5pjGBNSK82sG
-         zFQZ0E/w2S4Rlxrj5fv39FuyF73iO9TMOQinfRlNUWHvkQzwk8HKSYhbQ56OZh2Ogp4J
-         86zRyke2tfC6+10MvbrkxzKE4GYQ+otnmNRHkK2GZmNG3BixJ/kO2Qi/s0Bhft+v8IDU
-         Fpr73Od7A7Jme+kP+n7KyJR5FhMIRkaLPQpplv17ancvFLioyeASK8wc9JK2KJyozTbH
-         eyqg==
+        bh=bQj9Yz0LsqxFRbs970izNlVd0TnTgiu7VPZTWgmuulQ=;
+        b=hm9y9/U251qJnd1mNpICdUnfsUijKIs0K8BN6Sxq6UmgDsd0Ncwa8J50V0M35XwoRc
+         pQ3Kl7ovk4sfJxgy0/1xk/r4SS7x9npQ+aAtgfU4ySGCvjgrSrMpcWrRT7DUw7ykli1P
+         mRF7+fxkl1S6FODlz2He88YQ8nodQAAR14XRMlcoyJAjZXeGphGEnXfDFiXvlaMaPrx9
+         Ntmk6/StXCD+3q3hJ96dXv/zpX3Dv1nGN9ulokXpLLf5GxXGaZYjYftCt8+jE+HgdFh8
+         KZXdjDd3x7vJsGhzyeg4+WwujH4vnHt/XU344ATGeobEekKSyTjE/GCPIGLgMifGA9KU
+         bRew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XmIU7Hx0pkyEcx/3o0WhDyQYZMQPyc4u6z7mHc/BEGk=;
-        b=COqtqo8uhy5P3Jx1Fsx+64pfpBP2D08fVpOr//axq5uOkFamIH3uS6V6AK8dTqkO1V
-         TqsrIcRleT5UnVESlC0UlZVLcvkRHrE6CuGRrppdoeVQTOkZJ0Q/ARSGO+V+arxvNyaR
-         StxSIFeClIxE6iPUI+mxlQ09SrbpNcRs/TQTe5/oH65CTy/XHmUEqT4zYHOANMJEuVTo
-         EYVfj8sgLQ5ZHfKZ7HOl/qBV58+tau/5pIUDj9B77Uw5zEItaH/tena8leSLjrpaxJCn
-         0dCQcePp41ptOeJD3+BifHsagFIEdcnvThQmR2yTWHcCc0Lb3Knsqa6doXguJpKAPym5
-         qz0Q==
-X-Gm-Message-State: AOAM532vcehgy9moRef0rYBoRy136VoPjtaICdxYFiwWm8V+gJhr23lD
-        eb6Z0MnJL+r5KWeiLGA5i3QCtg==
-X-Google-Smtp-Source: ABdhPJxz48wWMCXURTZGOMFkGBBixGQ0C0+9Ej4xgco1ek+rzYnYc+5272A+DPVgnMKnuIZf3tC7jw==
-X-Received: by 2002:a05:600c:2249:: with SMTP id a9mr8318923wmm.169.1611222346891;
-        Thu, 21 Jan 2021 01:45:46 -0800 (PST)
+        bh=bQj9Yz0LsqxFRbs970izNlVd0TnTgiu7VPZTWgmuulQ=;
+        b=P5C9FBUKcEblEXPoXsExQfGrS8NaiZTmVLYzwDEB4Il82UZjAYBcfMBfOSwuoNUE/z
+         iYX16N6y5l2wUJ0Z7qzOSTQE5VkRrrt4oOcbFS+CNmC37Ds3rU3rjede67/Tp5+hqQYr
+         OAtcYB+K2fhQwLEJvAxo68I1Qp5Fd45JuwWTQs5vs7Q9NZZfnq1lg6hilbl8eu36T/DM
+         +Pq/MZyWuF17vkDx4aV+QiL+L3abJ27em2v4iJkOZeRczML6OXWBr+cpU7QZSHryjz+j
+         6w9rnHxsX4GCO5aokJpfbmpmTpIoByMBt7GITYfKKoRA54/oB7ASUv8aFrtJwQsPz6Wq
+         JwVw==
+X-Gm-Message-State: AOAM532Z7wx442c2JTiKIdbNNMZQ+T1fBNPv4fdCPa4zPwi4m2BhHukG
+        uroksLE6PM8APx2lWF1Wr+AdoQ==
+X-Google-Smtp-Source: ABdhPJyFMznrk9mjmBUMiZvtOK9aG393nTPehjVw8PPdCM3jpKQ/UvucvDGqnqPYKjf5weOAXCOwJA==
+X-Received: by 2002:adf:efc5:: with SMTP id i5mr13033790wrp.377.1611222344559;
+        Thu, 21 Jan 2021 01:45:44 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.45
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:45:46 -0800 (PST)
+        Thu, 21 Jan 2021 01:45:43 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 19/30] RDMA/hw/qib/qib_ud: Provide description for 'qib_make_ud_req's 'flags' param
-Date:   Thu, 21 Jan 2021 09:45:08 +0000
-Message-Id: <20210121094519.2044049-20-lee.jones@linaro.org>
+Subject: [PATCH 17/30] RDMA/hw/qib/qib_tx: Provide description for 'qib_chg_pioavailkernel()'s 'rcd' param
+Date:   Thu, 21 Jan 2021 09:45:06 +0000
+Message-Id: <20210121094519.2044049-18-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
 References: <20210121094519.2044049-1-lee.jones@linaro.org>
@@ -76,7 +76,7 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/qib/qib_ud.c:231: warning: Function parameter or member 'flags' not described in 'qib_make_ud_req'
+ drivers/infiniband/hw/qib/qib_tx.c:383: warning: Function parameter or member 'rcd' not described in 'qib_chg_pioavailkernel'
 
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
@@ -85,21 +85,21 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/qib/qib_ud.c | 1 +
+ drivers/infiniband/hw/qib/qib_tx.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 93ca21347959f..81eda94bd2799 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -222,6 +222,7 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- /**
-  * qib_make_ud_req - construct a UD request packet
-  * @qp: the QP
-+ * @flags: flags to modify and pass back to caller
-  *
-  * Assumes the s_lock is held.
-  *
+diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
+index 29785eb846469..6a8148851f21d 100644
+--- a/drivers/infiniband/hw/qib/qib_tx.c
++++ b/drivers/infiniband/hw/qib/qib_tx.c
+@@ -377,6 +377,7 @@ void qib_sendbuf_done(struct qib_devdata *dd, unsigned n)
+  * @start: the starting send buffer number
+  * @len: the number of send buffers
+  * @avail: true if the buffers are available for kernel use, false otherwise
++ * @rcd: the context pointer
+  */
+ void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
+ 	unsigned len, u32 avail, struct qib_ctxtdata *rcd)
 -- 
 2.25.1
 
