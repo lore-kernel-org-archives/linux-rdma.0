@@ -2,134 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23F18C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 08:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99FAAC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2DB1221F7
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 08:56:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5487E235DD
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 09:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728269AbhAUI42 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 03:56:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33802 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728329AbhAUIzF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Jan 2021 03:55:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 807E9239FD;
-        Thu, 21 Jan 2021 08:53:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611219211;
-        bh=tw4UYL3pvQMg4DyrGa0MkzZdQZztDObMi56CsNzh2Xo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ubYLJxIXBBOMQZUW7ljvLGbLCHrPrwBMqwfGb74HbD1JyzQuvteo5EWf4vljKt+cb
-         eGokO4UfTF2G5+si4Ys9dNvqBaFsy2Qhe95HO6OR747WUqUcBaL3NUTvPdW0mw+cPr
-         OKiKDWmeXi+Q6IOKRq1uedaxsDTwFxx4BCj1KGUqv27iTCjGxrYapVf9Bd4Vo7GIQN
-         +Z6a/9iEuRv+tBl+LSyBZBQfJsVmh0n0VbYrZDLjwqJk+DdJ7FcBEAUCo4Cy0uA2aP
-         2mmTbRtdr1sTKl8z/Jqhoh1oIuOfcGKG18oBUFUhqDRJDPdkvOiFGL3ggIgNDAOCf2
-         XOjq+P7KUre4g==
-Date:   Thu, 21 Jan 2021 10:53:25 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     liweihang <liweihang@huawei.com>
-Cc:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@nvidia.com" <jgg@nvidia.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Re: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
-Message-ID: <20210121085325.GC320304@unreal>
-References: <1610706138-4219-1-git-send-email-liweihang@huawei.com>
- <1610706138-4219-2-git-send-email-liweihang@huawei.com>
- <20210120081025.GA225873@unreal>
- <8d255812177a4f53becd3c912d00c528@huawei.com>
+        id S1728582AbhAUJqT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 04:46:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47580 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728844AbhAUJqH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:46:07 -0500
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF409C0613ED
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:26 -0800 (PST)
+Received: by mail-wm1-x333.google.com with SMTP id e15so939338wme.0
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=DuWnTnQlKM5d7eIpepIHxbb/jr5fMrflS56XVI5B5ZI=;
+        b=LVvJvw4WJe3+7vXijwOXM85K/2lPGitkue2jDfxepKvoOG6dCHHTDbzHSXWlKspZJu
+         Hl2kNIBKk05w2PaoGOamZkh5lkelwiryKXtR9bx5WvHO6KHr/pZBczENO2+XFkYsvho0
+         9OPBG6ai394ZE5c59fU8jXyRd80HHYkF8d3GpFCFbRuK89VI4qvJBMeLiSjVkVg8dA/F
+         +uxND7F+FnmRyF69505R6IZutHG6wRACnILzSxy7EJKgGpWhl8kWHlx7fakTa74jnKEE
+         alnse0sizD2R5pLU8EZEBi4nqYsuBYmelN6gg9XK65xNNrKbwRqwMtvIg5pr2FnJF0pK
+         Swkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=DuWnTnQlKM5d7eIpepIHxbb/jr5fMrflS56XVI5B5ZI=;
+        b=SZBS2oUAPsH+a8L2liySlwK2u6a9/z6C4/N0311bZBwcBYuzPfoIdhehjg4hedlKqO
+         Vv89A0GdlgEq3e8In4yfIBBiFaVSKTUoIAmP/VYbIFFKJ/oAmCA22LGJ4i2XIXSsilaW
+         F0yS/Gt2VjBOQZURGE0XwZLLfMJb28Gc+xdqu+HOOifsKzLSvoKQBqhzW1/MjNY2nnEP
+         2mYrpVpyWVEtutjwTLHFsKy7KSZDKGi3xZ2ZY1PGHx+a8qqpN+boJUgUp7agYkyyMBqN
+         Kdnhdt2McEXH2sYWpV24GfWEs02Un+LDBGsfKjM/nRuxpPrOO6yE5eTjC/ATXGvEtVi2
+         +W9A==
+X-Gm-Message-State: AOAM531qK7t28TWt0Kza4ZDQqZW4TIsm1OPm02d/k6Of2j+uY9puEKEH
+        s76GP7XgQXSG8jPbvep2eI2Cxg==
+X-Google-Smtp-Source: ABdhPJzZbE02TDkxHr4pcuDCcMT0VK0JklH7GHF4SOka1EHWF5SyStuve8C+Q8twGRUoeDsfSZlExA==
+X-Received: by 2002:a1c:5608:: with SMTP id k8mr8035775wmb.91.1611222325701;
+        Thu, 21 Jan 2021 01:45:25 -0800 (PST)
+Received: from dell.default ([91.110.221.158])
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Jan 2021 01:45:25 -0800 (PST)
+From:   Lee Jones <lee.jones@linaro.org>
+To:     lee.jones@linaro.org
+Cc:     linux-kernel@vger.kernel.org, Gal Pressman <galpress@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 03/30] RDMA/hw/efa/efa_com: Stop using param description notation for non-params
+Date:   Thu, 21 Jan 2021 09:44:52 +0000
+Message-Id: <20210121094519.2044049-4-lee.jones@linaro.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
+References: <20210121094519.2044049-1-lee.jones@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8d255812177a4f53becd3c912d00c528@huawei.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 21, 2021 at 07:01:50AM +0000, liweihang wrote:
-> On 2021/1/20 16:10, Leon Romanovsky wrote:
-> > On Fri, Jan 15, 2021 at 06:22:12PM +0800, Weihang Li wrote:
-> >> From: Xi Wang <wangxi11@huawei.com>
-> >>
-> >> The hip09 introduces the DCA(Dynamic context attachment) feature which
-> >> supports many RC QPs to share the WQE buffer in a memory pool, this will
-> >> reduce the memory consumption when there are too many QPs are inactive.
-> >>
-> >> If a QP enables DCA feature, the WQE's buffer will not be allocated when
-> >> creating. But when the users start to post WRs, the hns driver will
-> >> allocate a buffer from the memory pool and then fill WQEs which tagged with
-> >> this QP's number.
-> >>
-> >> The hns ROCEE will stop accessing the WQE buffer when the user polled all
-> >> of the CQEs for a DCA QP, then the driver will recycle this WQE's buffer
-> >> to the memory pool.
-> >>
-> >> This patch adds a group of methods to support the user space register
-> >> buffers to a memory pool which belongs to the user context. The hns kernel
-> >> driver will update the pages state in this pool when the user calling the
-> >> post/poll methods and the user driver can get the QP's WQE buffer address
-> >> by the key and offset which queried from kernel.
-> >>
-> >> Signed-off-by: Xi Wang <wangxi11@huawei.com>
-> >> Signed-off-by: Weihang Li <liweihang@huawei.com>
-> >> ---
-> >>  drivers/infiniband/hw/hns/Makefile          |   2 +-
-> >>  drivers/infiniband/hw/hns/hns_roce_dca.c    | 381 ++++++++++++++++++++++++++++
-> >>  drivers/infiniband/hw/hns/hns_roce_dca.h    |  22 ++
-> >>  drivers/infiniband/hw/hns/hns_roce_device.h |  10 +
-> >>  drivers/infiniband/hw/hns/hns_roce_main.c   |  27 +-
-> >>  include/uapi/rdma/hns-abi.h                 |  23 ++
-> >>  6 files changed, 462 insertions(+), 3 deletions(-)
-> >>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.c
-> >>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.h
-> >
-> > <...>
-> >
-> >> +static struct dca_mem *alloc_dca_mem(struct hns_roce_dca_ctx *ctx)
-> >> +{
-> >> +	struct dca_mem *mem, *tmp, *found = NULL;
-> >> +	unsigned long flags;
-> >> +
-> >> +	spin_lock_irqsave(&ctx->pool_lock, flags);
-> >> +	list_for_each_entry_safe(mem, tmp, &ctx->pool, list) {
-> >> +		spin_lock(&mem->lock);
-> >> +		if (dca_mem_is_free(mem)) {
-> >> +			found = mem;
-> >> +			set_dca_mem_alloced(mem);
-> >> +			spin_unlock(&mem->lock);
-> >> +			goto done;
-> >> +		}
-> >> +		spin_unlock(&mem->lock);
-> >> +	}
-> >> +
-> >> +done:
-> >> +	spin_unlock_irqrestore(&ctx->pool_lock, flags);
-> >> +
-> >> +	if (found)
-> >> +		return found;
-> >> +
-> >> +	mem = kzalloc(sizeof(*mem), GFP_ATOMIC);
-> >
-> > Should it be ATOMIC?
-> >
->
-> Hi Leon,
->
-> The current DCA interfaces can be invoked by userspace through ibv_xx_cmd(),
-> but it is expected that it can work in ib_post_xx() in kernel in the future.
-> Since it may work in context of spin_lock, so we use GFP_ATOMIC.
+Fixes the following W=1 kernel build warning(s):
 
-Are you planning to invoke kzalloc in data path?
+ drivers/infiniband/hw/efa/efa_com.c:801: warning: Excess function parameter 'note' description in 'efa_com_admin_q_comp_intr_handler'
 
-The GFP_ATOMIC will cause to use special allocation pool that is seen as precious
-resource because it must to succeed.
+Cc: Gal Pressman <galpress@amazon.com>
+Cc: Yossi Leybovich <sleybo@amazon.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/infiniband/hw/efa/efa_com.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It is better to avoid this flag if you don't need it.
+diff --git a/drivers/infiniband/hw/efa/efa_com.c b/drivers/infiniband/hw/efa/efa_com.c
+index 336bc2c57bb1d..f7242188a8434 100644
+--- a/drivers/infiniband/hw/efa/efa_com.c
++++ b/drivers/infiniband/hw/efa/efa_com.c
+@@ -795,7 +795,7 @@ int efa_com_admin_init(struct efa_com_dev *edev,
+  * This method goes over the admin completion queue and wakes up
+  * all the pending threads that wait on the commands wait event.
+  *
+- * @note: Should be called after MSI-X interrupt.
++ * Note: Should be called after MSI-X interrupt.
+  */
+ void efa_com_admin_q_comp_intr_handler(struct efa_com_dev *edev)
+ {
+-- 
+2.25.1
 
-Thanks
