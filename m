@@ -2,102 +2,106 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF95C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:37:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60702C433E9
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:46:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2B35722A83
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:37:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D8F423A61
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:46:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726073AbhAUShE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 13:37:04 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:5239 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728889AbhAUSgs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 13:36:48 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6009c9630001>; Thu, 21 Jan 2021 10:35:15 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 21 Jan
- 2021 18:35:15 +0000
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.44) by
- HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 21 Jan 2021 18:35:15 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aDVAEYV4Agmn6MEj8NM5SasQHdZsekWfNdVvf06X5rLXnx8GdFdBvXQBFzvVXJIoqsJ8SEt3yOZzxoi8jDCOpf7vaQwno5YozEtGUEraFDSArp298Duo5Txp3D+jFGFCDh5i8cvp471fAm4s7qmrBoHnb4hZRf+zVdjvcWXHnhGOsaxBhnZKn9vofbwxCYdQqIu33denBwmS+aCrenJaXNo+6oIgN2zikq4mICkmiljD2LbCCTznjZjUSl5wDpi1ZyikBjrV5NeuIvl0lpsia0EY47zKGlstuvYcHDMFvuNOQjUb8RBET+zb6IrE6v+OIuH93s/6bLEx/I6ht9RRGQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qCs/C5l+rHeqd/OtESVisc/BSAKXtCBrHg79u5/NNyk=;
- b=YVBTsDmXK2MyNiHT2P0CxsB3W6XHxvXsWxH/vkB4+J5oqhRg6m8EKI3rGiUXnoaLvJ2UJ6zpN5f1us51aTKv55MCzysgGT17RagLmlkzJgP+/6B0VG53cWjY0nJ5SmqM9r4URy7UCy0MmPAP1VVadfBrndDs5F31AYcAZhZh8ffFXMjUgkb0jrdspbFCIrQlnbmDbzKrUA4mt0ccTczcQjzXTW5gDSr5LeixMVu5DxXx3XjWXN/yea/ynWkqkzBWI3w4zMSv85fX84Hj5WWl6yTU0U4zWh+nPu148vmElJrEuzp9uMyX3ectb4JK1B26uk6wvxF1aigKOl9ewSUj6A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4973.namprd12.prod.outlook.com (2603:10b6:5:1b7::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12; Thu, 21 Jan
- 2021 18:35:14 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.011; Thu, 21 Jan 2021
- 18:35:14 +0000
-Date:   Thu, 21 Jan 2021 14:35:12 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Gal Pressman <galpress@amazon.com>
-CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>
-Subject: Re: [PATCH for-next 0/2] Host information userspace version
-Message-ID: <20210121183512.GC4147@nvidia.com>
-References: <20210105104326.67895-1-galpress@amazon.com>
- <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <9286e969-09b8-a7d0-ca7e-50b8e3864a11@amazon.com>
-X-ClientProxiedBy: MN2PR20CA0050.namprd20.prod.outlook.com
- (2603:10b6:208:235::19) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1728379AbhAUSOk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 13:14:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47580 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728883AbhAUJq6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:46:58 -0500
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BC5EC0617A7
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:39 -0800 (PST)
+Received: by mail-wm1-x333.google.com with SMTP id m2so868170wmm.1
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=gI++tdaotzFTWEtFjrYrQT/ATa/OhK5Kbs3X5CYZOEc=;
+        b=wa7rs05ZwLBVT4NrU+//IeE7VH3Bh3P6pjXr71eZRYaojm7cni7eR6qIKC6+S7Sdn/
+         +nR2KQCzecZ+0l5Tl3kZau/YAQzQhV57imwyLBZgiLA1kVZ+WcuBGOi0JQSAuoMapdYc
+         StW3HN8o6FzCblly+f76yNmoBGUtmPCBs4w2ekNGXwYQCwI+0bvaWNBy5aPpnjCn0O7i
+         YQtmzvh/PVgOtNfVAmnMaRDDEQxct2EALmN2tAdpiCkrAJ/RqogsZZoSWKzA+iD4O+Jb
+         2LbYxcERfUalti9kbBk3AoJKbjSJYczMfjFrPCtx1Nge6Ufw6eBC5266soosPs/R00ur
+         jyHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=gI++tdaotzFTWEtFjrYrQT/ATa/OhK5Kbs3X5CYZOEc=;
+        b=RWNRkSJqzuMAMxgQjBAne0vC12tQ1CpA7VG12sd3MUFh3Eb/9T0tycaLhKUoyv8NsN
+         IrQGNTcmm7mAh+6Zc1zcnhIukW6zA49ZZo701khW2/kXU4S2KkJcwXFHtM3D6+mp13rY
+         kmd1hGpxsL+6Y4kOegVX/Fik2hr8IQbQWwL3juS2hZaVZYINYticwuspBp7aS0qjIpRE
+         xuQk41Qis+jinDAK/4ZEX2pwMiVJ5vHb34qFDJnB5OVc+/fZvdaWc8BGkEdqejzo6a0V
+         0eNfJZuSOWqNKouMIxf/+d3W6moHRtTrwo6XfeYdBB+phxukd4KMObLaIfFAcoKzzJtz
+         QD/g==
+X-Gm-Message-State: AOAM530h1hM30j0plNbnHKDroX2Ta9tshzVc70OtxqOHUN51ZVkfMCZD
+        3pDA54pB6p3ndg2QrkJCl/akKVoqKqc/DY91
+X-Google-Smtp-Source: ABdhPJzLcptrzIXNQrmi7mv457uOgJ6M3AFulTuDrWnc7HhdLM8ljD4lIdvVhdmnjj0x3SreZ5nBbw==
+X-Received: by 2002:a1c:b1d7:: with SMTP id a206mr8101992wmf.88.1611222338036;
+        Thu, 21 Jan 2021 01:45:38 -0800 (PST)
+Received: from dell.default ([91.110.221.158])
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Jan 2021 01:45:37 -0800 (PST)
+From:   Lee Jones <lee.jones@linaro.org>
+To:     lee.jones@linaro.org
+Cc:     linux-kernel@vger.kernel.org,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 13/30] RDMA/sw/rdmavt/cq: Demote hardly complete kernel-doc header
+Date:   Thu, 21 Jan 2021 09:45:02 +0000
+Message-Id: <20210121094519.2044049-14-lee.jones@linaro.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
+References: <20210121094519.2044049-1-lee.jones@linaro.org>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR20CA0050.namprd20.prod.outlook.com (2603:10b6:208:235::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.14 via Frontend Transport; Thu, 21 Jan 2021 18:35:13 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l2enY-0058yt-Ld; Thu, 21 Jan 2021 14:35:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611254115; bh=qCs/C5l+rHeqd/OtESVisc/BSAKXtCBrHg79u5/NNyk=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=rYHNwxokzhxDo6MInOCIRn2leWBNjR1tyyMQrWZHONhVoVy4VoEjAPaYs8Xlcyx1E
-         HCw2Tx3/+zMP6NMtADi14gXdTgo0LKczxoBUogYuZSyXKSc4gOPP47zmWZ0+W21pL7
-         kV4U70C3DnF+pS2C08fK4VqxaFDe2eZ8MbaNpI3VgrwqqgjtQw/LpqFZUGnCIA8cyP
-         Bav1TfFrnQQLdIUKPI45bR0tOE+UZcjc7NS51VJisU5LLl2qI83B3jhGmSSrImj2/m
-         o4U5ENBuDlgBiIp3CxjcfhN6RSFMpLV6koMa4KGUuKjfZiYNKfvLRFBDe+OMzWCFLc
-         VLTTxpM4PZuIw==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jan 19, 2021 at 09:17:14AM +0200, Gal Pressman wrote:
-> On 05/01/2021 12:43, Gal Pressman wrote:
-> > The following two patches add the userspace version to the host
-> > information struct reported to the device, used for debugging and
-> > troubleshooting purposes.
-> > 
-> > PR was sent:
-> > https://github.com/linux-rdma/rdma-core/pull/918
-> > 
-> > Thanks,
-> > Gal
-> 
-> Anything stopping this series from being merged?
+Fixes the following W=1 kernel build warning(s):
 
-Honestly, I'm not very keen on this
+ drivers/infiniband/sw/rdmavt/cq.c:381: warning: Function parameter or member 'cqe' not described in 'rvt_resize_cq'
+ drivers/infiniband/sw/rdmavt/cq.c:381: warning: Function parameter or member 'udata' not described in 'rvt_resize_cq'
 
-Why does this have to go through a kernel driver, can't you collect
-OS telemetry some other way?
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/infiniband/sw/rdmavt/cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Jason
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 20cc0799ac4bc..5138afca067f6 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -371,7 +371,7 @@ int rvt_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
+ 	return ret;
+ }
+ 
+-/**
++/*
+  * rvt_resize_cq - change the size of the CQ
+  * @ibcq: the completion queue
+  *
+-- 
+2.25.1
+
