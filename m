@@ -2,107 +2,82 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FE48C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:29:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 642D7C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:15:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E0D7204EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:29:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C66C23A01
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728803AbhAUK2q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 05:28:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47776 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728942AbhAUJrX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:23 -0500
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DC33C061385
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:50 -0800 (PST)
-Received: by mail-wr1-x433.google.com with SMTP id v15so1060596wrx.4
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:50 -0800 (PST)
+        id S1731732AbhAUNPp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 08:15:45 -0500
+Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:19725 "EHLO
+        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731573AbhAUNPl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 08:15:41 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=Q4kMSsAHr6rPwePPe9GLokWhKQx3zqto7WVpZ/I6tzo=;
-        b=fAM8b8n5WWLc5D9TMzPl5yev6ZUXT1KUpdBUyeatcBeABXWK/wVvW/XHTCmcN6T93+
-         hslAQP9sDCW7uRl1EuF4vOSZaR9uXksbbpTUVkOm7+oTk+3vlSAsRHHcIWLp89WghyL7
-         bKWoF+fLrnjoPAJYTfip5++bLkyurCIsDwpPug0WvmVQLUlJ+KnKozM+PYhcmGwOotCp
-         55H3vtwrqMvoV1O75xsOg7W45E5fLPq8uzFgOXD9pYGCwve/9eo35FASq7QaS5kJwkuj
-         bztRTszYbo8Z2EYZtm16+KmIdWpai+T5QrhcsChqkfH52y4gNrjJlfBR+FbSbid9yTWF
-         GWsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=Q4kMSsAHr6rPwePPe9GLokWhKQx3zqto7WVpZ/I6tzo=;
-        b=NYh17iPslwX0TvbdNYDfkuU5vW4Y2AIuWq7kEzqGkYxFauGPZucJ6DrbsvSO30s8/H
-         2M1VQEZlEm22Vmng419nSKTJvyzB/oB3LDgVtzYKNRk2lP769+3xxjGoHjrloxGynv1z
-         HlyrMfjQp0lZgYaWTKvg4LkaJHXTkcwomDSlgrzo5+q47D6bZkX4glqQCmHE8okPmUqs
-         2MgpiSzk5P2pNHBULrGYsvTqKJvchjp5sWJtVynz/ZkbF63FCGy2L/2Mh+t0tUBfudQA
-         Qv/xMFaszt83KChGxAxsA1iiSw5j2VTUPW2aB1C6B6MN5Pm6kJ4wSqadzLvxmpdUsvVS
-         bkPw==
-X-Gm-Message-State: AOAM533rzWvj9GttZ/aCJ1ynNDcQLz1UUUINjqEk+Y1lckGwxsQrQDN1
-        AAR4tyt5FD0dWF30e8cx+/7DSA==
-X-Google-Smtp-Source: ABdhPJzTTMwSDYFOzdJ/1Jrdc93C45YqhRaj0x+Mn3bYqzQ7mVNkSyBRiZwG3Y/p3e2Hq2Wnm+YPvA==
-X-Received: by 2002:a5d:6749:: with SMTP id l9mr13439374wrw.395.1611222349332;
-        Thu, 21 Jan 2021 01:45:49 -0800 (PST)
-Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:45:48 -0800 (PST)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1611234941; x=1642770941;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=PsfoKx/hyaMVkwjODX746+FLrLtvm5f9cDCj2C4Es9w=;
+  b=Rd8BSfa/K00Yq12fLfwlxZl332z2QU0tlpODOWHpYne4NM+eeQ8NbS9q
+   bePDTeE7Km4jTvc0jNRHXEB3n7b0HusJhbYNFO/wV+ib+qiI1nMpa7Zjh
+   Mp+HcIxSmGmFRR8U4KZTpZANFuGzQldDXdh4xdk74TYuP2xnTLuFV+7pP
+   w=;
+X-IronPort-AV: E=Sophos;i="5.79,364,1602547200"; 
+   d="scan'208";a="112553244"
+Received: from sea32-co-svc-lb4-vlan3.sea.corp.amazon.com (HELO email-inbound-relay-2c-4e7c8266.us-west-2.amazon.com) ([10.47.23.38])
+  by smtp-border-fw-out-33001.sea14.amazon.com with ESMTP; 21 Jan 2021 13:14:53 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2c-4e7c8266.us-west-2.amazon.com (Postfix) with ESMTPS id 0709FA1901;
+        Thu, 21 Jan 2021 13:14:51 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.132) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Thu, 21 Jan 2021 13:14:47 +0000
+Subject: Re: [PATCH 03/30] RDMA/hw/efa/efa_com: Stop using param description
+ notation for non-params
+To:     Lee Jones <lee.jones@linaro.org>
+CC:     <linux-kernel@vger.kernel.org>,
+        Yossi Leybovich <sleybo@amazon.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 21/30] RDMA/hw/qib/qib_user_pages: Demote non-conformant documentation header
-Date:   Thu, 21 Jan 2021 09:45:10 +0000
-Message-Id: <20210121094519.2044049-22-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
+        Jason Gunthorpe <jgg@ziepe.ca>, <linux-rdma@vger.kernel.org>
 References: <20210121094519.2044049-1-lee.jones@linaro.org>
+ <20210121094519.2044049-4-lee.jones@linaro.org>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <8f803700-e001-7eb8-9ea0-a039201b9509@amazon.com>
+Date:   Thu, 21 Jan 2021 15:14:40 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.6.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210121094519.2044049-4-lee.jones@linaro.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.160.132]
+X-ClientProxiedBy: EX13D12UWC001.ant.amazon.com (10.43.162.78) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Fixes the following W=1 kernel build warning(s):
+On 21/01/2021 11:44, Lee Jones wrote:
+> Fixes the following W=1 kernel build warning(s):
+> 
+>  drivers/infiniband/hw/efa/efa_com.c:801: warning: Excess function parameter 'note' description in 'efa_com_admin_q_comp_intr_handler'
+> 
+> Cc: Gal Pressman <galpress@amazon.com>
+> Cc: Yossi Leybovich <sleybo@amazon.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: linux-rdma@vger.kernel.org
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
 
- drivers/infiniband/hw/qib/qib_user_pages.c:60: warning: Function parameter or member 'hwdev' not described in 'qib_map_page'
- drivers/infiniband/hw/qib/qib_user_pages.c:60: warning: Function parameter or member 'page' not described in 'qib_map_page'
- drivers/infiniband/hw/qib/qib_user_pages.c:60: warning: Function parameter or member 'daddr' not described in 'qib_map_page'
+I would change the subject's prefix to 'RDMA/efa', but other than that looks good:
+Acked-by: Gal Pressman <galpress@amazon.com>
 
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/infiniband/hw/qib/qib_user_pages.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 4c24e83f31752..5d6cf7427431b 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -43,7 +43,7 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
- 	unpin_user_pages_dirty_lock(p, num_pages, dirty);
- }
- 
--/**
-+/*
-  * qib_map_page - a safety wrapper around pci_map_page()
-  *
-  * A dma_addr of all 0's is interpreted by the chip as "disabled".
--- 
-2.25.1
-
+Thanks Lee.
