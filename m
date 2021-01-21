@@ -7,64 +7,66 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72E75C433E9
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:11:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E5AC43381
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:14:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1768F23A5A
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:11:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0DCF23A57
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 18:14:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728360AbhAUSK7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 13:10:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47776 "EHLO
+        id S1728255AbhAUSOh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 13:14:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728901AbhAUJq6 (ORCPT
+        with ESMTP id S1728894AbhAUJq6 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:46:58 -0500
-Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD50BC0617A1
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:35 -0800 (PST)
-Received: by mail-wm1-x335.google.com with SMTP id e15so939707wme.0
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:35 -0800 (PST)
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B517C061794
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:28 -0800 (PST)
+Received: by mail-wm1-x329.google.com with SMTP id u14so930803wmq.4
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=L2I8dCKIs3PfH9t5ebM9UIW4X6/Lh18WEUkSq5oyF1c=;
-        b=Nv2ll40o/1jNkvdCMnMHS8IeGvGLQxo5qX+lL0/yj3gapBl0p+YUjhj4taNi8NgJpz
-         ApPYPjbxdNur+YfZYdmDtWaYIg3Vk5ZchnPrTz8+w5gPgQJ+mETHyZVCoLPOX8/rF/AQ
-         +uNYfWEJnvfP9r7Saq9S5H/PixWwbStCT/7K+l6w71MIOMh1ywv1wS05Si4RopylAjZw
-         YmiGSdozEKgnY9Rvb+JDyEDQZcIRGxo4y9MvP5FONJrpUzuMg7lWtD6c4RfcEihk20LE
-         ZqCz9M3X66cUaHDS1XuQFZblb1DVOXSDKNR3mgFT1kLGPAU/h8W5qDJQ4Uqr626zDUGq
-         JZaw==
+        bh=lBLwu+617zQ07npA6RXz6Tf17IOtHddjN6cfc3yfTCI=;
+        b=dfLuKNzZ3ku/O7QE9b2/0QO9aIwxpb3WHqXtAqE0V52WOktO4jw01QZw73WtJjBr5U
+         5mbmCFDOjUvG7AIVz4lCKaG7O38kTo78KyHCMLwM2hpML1vlVQoxQlfgxPRa2ZpNWiDx
+         djcKyw139NyoRRzxu34PYyn18P55ak47Cnk5UiYhYqTXj1RfRTHlflsQUm44X4yxZG23
+         RK/qDniEwy98Fpwz8UOYSSP2NB0BH/u9Opdh9QvEXlDTxfo3alHKXGU7uUVKhBpqsQiJ
+         oFNwGbIcHfiDH7byUXHl79PkoSsqNnyfLNAKCJPWrfEjYjuGpOFrIRFf5iKjh5QVVtic
+         Rbsw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=L2I8dCKIs3PfH9t5ebM9UIW4X6/Lh18WEUkSq5oyF1c=;
-        b=gX19+PX41otIlDG8Ukt7hqelT4AyjY8WazqlrRghbtMCo2bfSvlDHzpgzCjwIpgDxT
-         jmGz7wHPuGLdfkJNOPWJQY3W329mizddlW1bGrNpFBD5VJycozO6urnxHC7MQlWMaYll
-         +XI/d5D4D/Y6cu7jX3n4WkO46A7gjsb6tdIDTjxB7Ce9C7MqD4XUtcMGoTghQ74HfvqU
-         CW4O9rF5KdPeC2cMv6rsW1TVzVPM6htxHi0TKf61V+JXHJw/IlzhjB+0t+SSV70MycDi
-         IBl32jtjZ2ZdXx5KE+e55UdJZSsvZPSfeP5SRQa+QNZw/hzd2Vv82l56bdggbyMSRupJ
-         AE9g==
-X-Gm-Message-State: AOAM532YeG4uj1YlPBJ2TBBxEQJJytbKRXCHqhDiEQxMVZjimxOHyHEh
-        w0w0VoVEaKUqopyVZ5zNrk/jrg1C7h6kg5zX
-X-Google-Smtp-Source: ABdhPJwQF2LMwnM2UWIfClu/IM8MwWBJ8P9C/RaSSGEx6Tgbv96zNiFUr+W7lvYe6cZlixx4F2U1zg==
-X-Received: by 2002:a7b:c854:: with SMTP id c20mr7978977wml.127.1611222334495;
-        Thu, 21 Jan 2021 01:45:34 -0800 (PST)
+        bh=lBLwu+617zQ07npA6RXz6Tf17IOtHddjN6cfc3yfTCI=;
+        b=dEtyQwaeyyU+aiti3MUZ5JAOcSaIh+Yd/mzxLyXtM1Ty4d8NOgubNmE8Nf2cKDx0NB
+         jSPjC1dCGB/+C2+OOY2gBPtL1IQjrlJqXLcDPoPDaDqBlBjDMmSwErL1EAtRzaPSO1gh
+         SkoQ8hL1Hz7+y70bHuPJ+gT7E72jMfRCvaLpMRkN4cE0/uLcElg0PvLz1SQROWIdl2Lz
+         tDIUYym9cDhbeVKD87P2Fi468sSgbRYDNQ96i2FhNbpnGkSwv9nnyfGRE8RB5FQgsAwi
+         zEJCCTiz0kLIXYLlzFdW6oqgYX1QgvIsMHF6QIPEbFWXiku1quvqicA7v7ao7r7YJSul
+         az/Q==
+X-Gm-Message-State: AOAM5332gVi5I1W3GYXR8BbJNDaAZBBYhlDqLTxOZ9L44LCbLjm7n6Ih
+        hQaSGQziS7MTIHcT4yUqOKCgjg==
+X-Google-Smtp-Source: ABdhPJwO5trW2/kFg2672ZAmOG6H9jxxi6HftdC4+xImSiIHF4p72gEqrWXXpradGXLbGc8ASwjlwQ==
+X-Received: by 2002:a05:600c:2249:: with SMTP id a9mr8317598wmm.169.1611222326913;
+        Thu, 21 Jan 2021 01:45:26 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.32
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:45:33 -0800 (PST)
+        Thu, 21 Jan 2021 01:45:26 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+Cc:     linux-kernel@vger.kernel.org, Lijun Ou <oulijun@huawei.com>,
+        Weihang Li <liweihang@huawei.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 10/30] RDMA/hw/qib/qib_intr: Fix a bunch of formatting issues
-Date:   Thu, 21 Jan 2021 09:44:59 +0000
-Message-Id: <20210121094519.2044049-11-lee.jones@linaro.org>
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Wei Hu <xavier.huwei@huawei.com>,
+        Nenglong Zhao <zhaonenglong@hisilicon.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH 04/30] RDMA/hw/hns/hns_roce_hw_v1: Fix doc-rot issue relating to 'rereset'
+Date:   Thu, 21 Jan 2021 09:44:53 +0000
+Message-Id: <20210121094519.2044049-5-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
 References: <20210121094519.2044049-1-lee.jones@linaro.org>
@@ -76,59 +78,35 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/qib/qib_intr.c:48: warning: Function parameter or member 'msg' not described in 'qib_format_hwmsg'
- drivers/infiniband/hw/qib/qib_intr.c:48: warning: Function parameter or member 'msgl' not described in 'qib_format_hwmsg'
- drivers/infiniband/hw/qib/qib_intr.c:48: warning: Function parameter or member 'hwmsg' not described in 'qib_format_hwmsg'
- drivers/infiniband/hw/qib/qib_intr.c:64: warning: Function parameter or member 'hwerrs' not described in 'qib_format_hwerrors'
- drivers/infiniband/hw/qib/qib_intr.c:64: warning: Function parameter or member 'hwerrmsgs' not described in 'qib_format_hwerrors'
- drivers/infiniband/hw/qib/qib_intr.c:64: warning: Function parameter or member 'nhwerrmsgs' not described in 'qib_format_hwerrors'
- drivers/infiniband/hw/qib/qib_intr.c:64: warning: Function parameter or member 'msg' not described in 'qib_format_hwerrors'
- drivers/infiniband/hw/qib/qib_intr.c:64: warning: Function parameter or member 'msgl' not described in 'qib_format_hwerrors'
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1398: warning: Function parameter or member 'dereset' not described in 'hns_roce_v1_reset'
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1398: warning: Excess function parameter 'enable' description in 'hns_roce_v1_reset'
 
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Cc: Lijun Ou <oulijun@huawei.com>
+Cc: "Wei Hu
+Cc: Weihang Li <liweihang@huawei.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Wei Hu <xavier.huwei@huawei.com>
+Cc: Nenglong Zhao <zhaonenglong@hisilicon.com>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/qib/qib_intr.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_intr.c b/drivers/infiniband/hw/qib/qib_intr.c
-index 65c3b964ad1bf..85c3187d796d9 100644
---- a/drivers/infiniband/hw/qib/qib_intr.c
-+++ b/drivers/infiniband/hw/qib/qib_intr.c
-@@ -40,9 +40,9 @@
- 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index f68585ff8e8a5..23fe8e9f61da5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -1391,7 +1391,7 @@ static void hns_roce_free_mr_free(struct hns_roce_dev *hr_dev)
  /**
-  * qib_format_hwmsg - format a single hwerror message
-- * @msg message buffer
-- * @msgl length of message buffer
-- * @hwmsg message to add to message buffer
-+ * @msg: message buffer
-+ * @msgl: length of message buffer
-+ * @hwmsg: message to add to message buffer
+  * hns_roce_v1_reset - reset RoCE
+  * @hr_dev: RoCE device struct pointer
+- * @enable: true -- drop reset, false -- reset
++ * @dereset: true -- drop reset, false -- reset
+  * return 0 - success , negative --fail
   */
- static void qib_format_hwmsg(char *msg, size_t msgl, const char *hwmsg)
- {
-@@ -53,11 +53,11 @@ static void qib_format_hwmsg(char *msg, size_t msgl, const char *hwmsg)
- 
- /**
-  * qib_format_hwerrors - format hardware error messages for display
-- * @hwerrs hardware errors bit vector
-- * @hwerrmsgs hardware error descriptions
-- * @nhwerrmsgs number of hwerrmsgs
-- * @msg message buffer
-- * @msgl message buffer length
-+ * @hwerrs: hardware errors bit vector
-+ * @hwerrmsgs: hardware error descriptions
-+ * @nhwerrmsgs: number of hwerrmsgs
-+ * @msg: message buffer
-+ * @msgl: message buffer length
-  */
- void qib_format_hwerrors(u64 hwerrs, const struct qib_hwerror_msgs *hwerrmsgs,
- 			 size_t nhwerrmsgs, char *msg, size_t msgl)
+ static int hns_roce_v1_reset(struct hns_roce_dev *hr_dev, bool dereset)
 -- 
 2.25.1
 
