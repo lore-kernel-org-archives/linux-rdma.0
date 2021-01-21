@@ -2,116 +2,80 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07150C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:19:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17C66C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:50:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD5B223A01
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:19:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9BFD238EC
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 13:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728942AbhAUK24 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 05:28:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47770 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728948AbhAUJr3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:29 -0500
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5733DC061382
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:49 -0800 (PST)
-Received: by mail-wr1-x42f.google.com with SMTP id l12so1069042wry.2
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=sN+lfIF9Ruac5w+3RJGLplih0Ni1e9QoQ7rC6Jmgsbs=;
-        b=hMoksjVQLU5nEHu9W9aY8QUD6u3DDph2ZjVE8VQjUyMtfH/lCdBJB2JYHH/OkZgvp+
-         i2p2r37+btE9jabrt1F/n3hcnuTvJt2jCFNblRusd3sg7XhTiXEogYb0lkzT5bwv01d9
-         c1A7EoWZPrOtIDi0v5sEJBzhLQOKBMOloWxu6rv6RH6WIfmtZqLzHHx3ekxt04EVYgZK
-         CZO2/Gvm6TUPWjQKXuL5CgWVedFQqaai1awC7Y3JjqFf3kQyk34sUumbRzGRg0QdzemP
-         cMFpCFdT6VM/QBcfzWciTxkGeitEqrqVxrI9vKK4LyN3aU4Ef7p2t+cx1wQ9OgP9mlDw
-         ihMw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=sN+lfIF9Ruac5w+3RJGLplih0Ni1e9QoQ7rC6Jmgsbs=;
-        b=CCAylnaF5jNVm9Wq/PDWKnzO0uBh8K8eiDSqzmHq9Fe77t7mnTL9SnVfXmiHnYunew
-         UrTOfd8IFpwfIPui/RzPaqslF3Ya67AUDXBnMt9Yn23bLAfwfk1oUHbNCWEhtGY8F7uT
-         t98of/skgACihqxAug9rIyFDSK7rlCZDt+upec2xfjQiqArsG4xAvFTIfGofm12uT6Gj
-         BftoyCyYxMi4oOSDG87Pwf4ZO+hkIIggh0bFvA8ypOtS3x1OJ1ouQI5H7uRq6zVAt0WF
-         Dg1l57bUgucdEMlm62Wmz1aA6G0vR8UJQKdcj4NkqofeMlmf4VDPVpJmAQUr4Vt0072h
-         i7Ng==
-X-Gm-Message-State: AOAM5333N7Ed/+z+4RlnGkCO7uNVhb2vok9dIVA90sH2xFC+aO5GwtrS
-        cCc0qVNO7wAhBnxcKYKECaChew==
-X-Google-Smtp-Source: ABdhPJwBvadl37HLosjSDHe2pRSFbd8z9UuT5CPM5/vCOZPZTmF5U2ApYFZYsdLzgTJ1HHIMICFbhA==
-X-Received: by 2002:adf:e705:: with SMTP id c5mr12995825wrm.303.1611222348084;
-        Thu, 21 Jan 2021 01:45:48 -0800 (PST)
-Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:45:47 -0800 (PST)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 20/30] RDMA/sw/rdmavt/mad: Fix 'rvt_process_mad()'s documentation header
-Date:   Thu, 21 Jan 2021 09:45:09 +0000
-Message-Id: <20210121094519.2044049-21-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
-References: <20210121094519.2044049-1-lee.jones@linaro.org>
+        id S1728071AbhAUNt6 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 08:49:58 -0500
+Received: from szxga03-in.huawei.com ([45.249.212.189]:2867 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730280AbhAUNtn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 08:49:43 -0500
+Received: from DGGEMM404-HUB.china.huawei.com (unknown [172.30.72.54])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4DM3c31Prgz5JKj;
+        Thu, 21 Jan 2021 21:47:31 +0800 (CST)
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ DGGEMM404-HUB.china.huawei.com (10.3.20.212) with Microsoft SMTP Server (TLS)
+ id 14.3.498.0; Thu, 21 Jan 2021 21:48:56 +0800
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2106.2; Thu, 21 Jan 2021 21:48:56 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.002;
+ Thu, 21 Jan 2021 21:48:56 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     Leon Romanovsky <leon@kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: Re: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
+Thread-Topic: [PATCH RFC 1/7] RDMA/hns: Introduce DCA for RC QP
+Thread-Index: AQHW7/oITeBBndE4CkiFjIHgF/TJug==
+Date:   Thu, 21 Jan 2021 13:48:56 +0000
+Message-ID: <14243f680ba6428789b878078f766967@huawei.com>
+References: <1610706138-4219-1-git-send-email-liweihang@huawei.com>
+ <1610706138-4219-2-git-send-email-liweihang@huawei.com>
+ <20210120081025.GA225873@unreal>
+ <8d255812177a4f53becd3c912d00c528@huawei.com>
+ <20210121085325.GC320304@unreal>
+ <96d7fb7db36e4bce8c556d0de5c8f961@huawei.com>
+ <20210121133445.GY4147@nvidia.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Fixes the following W=1 kernel build warning(s):
+On 2021/1/21 21:36, Jason Gunthorpe wrote:
+> On Thu, Jan 21, 2021 at 01:33:42PM +0000, liweihang wrote:
+> 
+>> We need to allocate memory while spin_lock is hold, how about using GFP_KERNEL or
+>> GFP_NOWAIT?
+> 
+> You should try hard not to do that. Convert he spinlock to a mutex,
+> for instance.
+> 
+> Jason
+> 
 
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Function parameter or member 'in' not described in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Function parameter or member 'in_mad_size' not described in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Function parameter or member 'out' not described in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Function parameter or member 'out_mad_size' not described in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Function parameter or member 'out_mad_pkey_index' not described in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Excess function parameter 'in_mad' description in 'rvt_process_mad'
- drivers/infiniband/sw/rdmavt/mad.c:75: warning: Excess function parameter 'out_mad' description in 'rvt_process_mad'
+But what if some kernel users call ib_post_send() when holding a spinlock?
 
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
----
- drivers/infiniband/sw/rdmavt/mad.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
-index 108c71e3ac233..8cc4de9aa6644 100644
---- a/drivers/infiniband/sw/rdmavt/mad.c
-+++ b/drivers/infiniband/sw/rdmavt/mad.c
-@@ -56,8 +56,11 @@
-  * @port_num: the port number this packet came in on, 1 based from ib core
-  * @in_wc: the work completion entry for this packet
-  * @in_grh: the global route header for this packet
-- * @in_mad: the incoming MAD
-- * @out_mad: any outgoing MAD reply
-+ * @in: the incoming MAD
-+ * @out_mad_size: size of the incoming MAD reply
-+ * @out: any outgoing MAD reply
-+ * @out_mad_size: size of the outgoing MAD reply
-+ * @out_mad_pkey_index: unused
-  *
-  * Note that the verbs framework has already done the MAD sanity checks,
-  * and hop count/pointer updating for IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE
--- 
-2.25.1
-
+Thanks
+Weihang
