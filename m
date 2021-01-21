@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E58E4C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CB5C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:15:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98DB3239D3
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:06:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0594A239EB
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Jan 2021 10:15:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726181AbhAUKF5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Jan 2021 05:05:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47560 "EHLO
+        id S1728685AbhAUKP2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Jan 2021 05:15:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728415AbhAUJrx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:53 -0500
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2CBCC061349
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:46:01 -0800 (PST)
-Received: by mail-wr1-x42a.google.com with SMTP id a9so1056126wrt.5
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:46:01 -0800 (PST)
+        with ESMTP id S1728987AbhAUJro (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Jan 2021 04:47:44 -0500
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9F3AC06138E
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:56 -0800 (PST)
+Received: by mail-wr1-x436.google.com with SMTP id a9so1055907wrt.5
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Jan 2021 01:45:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=XqksBZrA3odDFn/ITnacc/iTVMMrBkdLV36fQYYpBKs=;
-        b=IUHmUEPz1ssVdtT4iImldKBIPFQSaTjNATWl7tdiuiuCD6yIIvpW1LcjWqf2zC+kP+
-         ONvIqMfLNnBxYsAjFxhqUZKTgOetpiOucBtGyycM6K+34CFTNmR2j8iHyiDqRazhlGBc
-         qRh3c3qTtOWnDb00KWaUh/UZexq0lrQYMf1ezzoInYRh3sJOLgEhcH+uNVGNB9u0/363
-         q/3qmOMCHAwiHnsJUKhCLptQuhFk04j4h3uYAiguVyK4Q1f90DtcDDwc3OD/guHvROCn
-         z3lbMc5Eq/0vCPRmQ3u98ZqEe8k0K11pYmvcz7IhGcZJDA7vIWZn7yDejUNqs68yMmY7
-         kgrw==
+        bh=/z56S/t3xQgupRDRVcqi9lXvNCrBWFO94RXqxT4CMuQ=;
+        b=qL6bk2OfCaDqiV1dsjLrmXbE3eDhjXTa/paqFHpv6GVUOlLVqfE82X803aM219wIE2
+         UhkS7Ki0YMa7u4BMypzQfBrefVZRSPbJ5sZrSRU2OtValeT3N+LUIJHe85EQfwS5joSC
+         yppbjdBD7Ld5/lsq07E/vIw02sn2+SwyjXAeEqoG6TrYUZvTOuX6xfcYgyalU6CSw1gL
+         Va5A0Gn8FstqbqsA/m0uN9xDFHkX6y1vpUnFK/flTLvyTz2/x6xinjhZAZY6J5rZTAQH
+         OWZXIH1CHqZkaRHfgFIcnsanU6jvg5wRF3ab6kZ9U7BbI0cnGT2clnDDDdcYVNliEL0b
+         Q9mQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XqksBZrA3odDFn/ITnacc/iTVMMrBkdLV36fQYYpBKs=;
-        b=jd5hmcYF4kNgwqiKEW3yYd3sZ7tdBlHctbrM0ak3CBuQlDH6CohqM8JBGHYnNUvFLy
-         JI1zbqpQ0ewwqMrTAh5PsVblTDnfxHvA7vfP/adogGpd4tO482ZcYODJgtdzQr4TZXi/
-         Rkppa5OnoH7f93PwwWylyhn+a/dCtBiUZhZIsV9wM2ffGKI1W3B19/E3LqzFX6GYgzrQ
-         1wDmaxkh+AwvM9kuLdoDUnCQLWaewepuzxVgMln/1VIH8XnLIgEPS+xI/G5fZ9A7AyF1
-         MHtvjq4UUyQQljhlJWAXIJ1g1LVrO3Vuz9MV03Lon/8xx5QSKNYBXc/PyqS+pV48MANE
-         dOaQ==
-X-Gm-Message-State: AOAM530l9rJRCMtQAGxgBJ316KFgqaSG5sZhgAirUMszXqzbFOIFgOTx
-        3dKWFq9ZkGeUVpDr/Ue/cTLa6Q==
-X-Google-Smtp-Source: ABdhPJzC+77t2FW0BclKKfKW3nlo0wzlW6UtCmvMAeUddP508BE1nW6k6f4Ou+MV0qRyLsxZmlPopQ==
-X-Received: by 2002:a5d:4bc2:: with SMTP id l2mr13557020wrt.204.1611222360687;
-        Thu, 21 Jan 2021 01:46:00 -0800 (PST)
+        bh=/z56S/t3xQgupRDRVcqi9lXvNCrBWFO94RXqxT4CMuQ=;
+        b=uQV6wdnQ2b2hT3zpgzivirpN0hWCPKMBPF7SfcwNaUBl1Tu0dqA26as+sO5iUyl2nA
+         Ot18P70Zj3BMhyLqcrR+SYi6ZIi5yVerZwuAxI6BWRCus09AzC21iXnW2kvY9hDes2VM
+         lgWmepKsCsAJWk105JWVLLeO6AJ7cGPVgZtU2UicJKumMt7Yp/bxT23+1cnbS45nQ8jL
+         8V1hyVOefHAfUx3ye5vCenVH+cDbxrGhUCPqBvQoHdOn//9X5opv0XKFUiJf9dT94gVa
+         0eZLQpMu/bqrOy+ts8kIJ6hLbPaFYi2aVYd1Q8zzI5tqkqzP2KQJkCCIJgWHWOv/QR7M
+         h+SQ==
+X-Gm-Message-State: AOAM530+0aiJMKN2UII4uiLzLHDJuYC0jqq0QJ1fftuodbLGjOZFG6sQ
+        5Exv9d/msCA/MQ6tFPyz1bPsXQ==
+X-Google-Smtp-Source: ABdhPJxP9fP515TxSu/dojg5poCx1LFivE8imReVdPIJ84j5E6L788alyhlX1DaQIBkEcY7GUB3FMg==
+X-Received: by 2002:adf:e54a:: with SMTP id z10mr13580456wrm.1.1611222355700;
+        Thu, 21 Jan 2021 01:45:55 -0800 (PST)
 Received: from dell.default ([91.110.221.158])
-        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.59
+        by smtp.gmail.com with ESMTPSA id a17sm8185648wrs.20.2021.01.21.01.45.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jan 2021 01:46:00 -0800 (PST)
+        Thu, 21 Jan 2021 01:45:55 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 30/30] RDMA/sw/rdmavt/qp: Fix a bunch of kernel-doc misdemeanours
-Date:   Thu, 21 Jan 2021 09:45:19 +0000
-Message-Id: <20210121094519.2044049-31-lee.jones@linaro.org>
+Subject: [PATCH 26/30] RDMA/sw/rdmavt/mr: Fix some issues related to formatting and missing descriptions
+Date:   Thu, 21 Jan 2021 09:45:15 +0000
+Message-Id: <20210121094519.2044049-27-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210121094519.2044049-1-lee.jones@linaro.org>
 References: <20210121094519.2044049-1-lee.jones@linaro.org>
@@ -76,23 +76,17 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/sw/rdmavt/qp.c:165: warning: Function parameter or member 'rdi' not described in 'rvt_wss_init'
- drivers/infiniband/sw/rdmavt/qp.c:329: warning: Function parameter or member 'rdi' not described in 'init_qpn_table'
- drivers/infiniband/sw/rdmavt/qp.c:534: warning: Function parameter or member 'type' not described in 'alloc_qpn'
- drivers/infiniband/sw/rdmavt/qp.c:664: warning: Function parameter or member 'wqe' not described in 'rvt_swqe_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:664: warning: Function parameter or member 'lkey' not described in 'rvt_swqe_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:682: warning: Function parameter or member 'qp' not described in 'rvt_qp_sends_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:682: warning: Function parameter or member 'lkey' not described in 'rvt_qp_sends_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:706: warning: Function parameter or member 'qp' not described in 'rvt_qp_acks_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:706: warning: Function parameter or member 'lkey' not described in 'rvt_qp_acks_has_lkey'
- drivers/infiniband/sw/rdmavt/qp.c:866: warning: Function parameter or member 'rdi' not described in 'rvt_init_qp'
- drivers/infiniband/sw/rdmavt/qp.c:920: warning: Function parameter or member 'rdi' not described in '_rvt_reset_qp'
- drivers/infiniband/sw/rdmavt/qp.c:1736: warning: Function parameter or member 'udata' not described in 'rvt_destroy_qp'
- drivers/infiniband/sw/rdmavt/qp.c:1924: warning: Function parameter or member 'qp' not described in 'rvt_qp_valid_operation'
- drivers/infiniband/sw/rdmavt/qp.c:1924: warning: Function parameter or member 'post_parms' not described in 'rvt_qp_valid_operation'
- drivers/infiniband/sw/rdmavt/qp.c:1924: warning: Function parameter or member 'wr' not described in 'rvt_qp_valid_operation'
- drivers/infiniband/sw/rdmavt/qp.c:2020: warning: Function parameter or member 'call_send' not described in 'rvt_post_one_wr'
- drivers/infiniband/sw/rdmavt/qp.c:2621: warning: Function parameter or member 'qp' not described in 'rvt_stop_rnr_timer'
+ drivers/infiniband/sw/rdmavt/mr.c:380: warning: Function parameter or member 'virt_addr' not described in 'rvt_reg_user_mr'
+ drivers/infiniband/sw/rdmavt/mr.c:449: warning: Function parameter or member 'qp' not described in 'rvt_dereg_clean_qp_cb'
+ drivers/infiniband/sw/rdmavt/mr.c:449: warning: Function parameter or member 'v' not described in 'rvt_dereg_clean_qp_cb'
+ drivers/infiniband/sw/rdmavt/mr.c:466: warning: Function parameter or member 'mr' not described in 'rvt_dereg_clean_qps'
+ drivers/infiniband/sw/rdmavt/mr.c:484: warning: Function parameter or member 'mr' not described in 'rvt_check_refs'
+ drivers/infiniband/sw/rdmavt/mr.c:484: warning: Function parameter or member 't' not described in 'rvt_check_refs'
+ drivers/infiniband/sw/rdmavt/mr.c:513: warning: Function parameter or member 'mr' not described in 'rvt_mr_has_lkey'
+ drivers/infiniband/sw/rdmavt/mr.c:513: warning: Function parameter or member 'lkey' not described in 'rvt_mr_has_lkey'
+ drivers/infiniband/sw/rdmavt/mr.c:526: warning: Function parameter or member 'ss' not described in 'rvt_ss_has_lkey'
+ drivers/infiniband/sw/rdmavt/mr.c:526: warning: Function parameter or member 'lkey' not described in 'rvt_ss_has_lkey'
+ drivers/infiniband/sw/rdmavt/mr.c:551: warning: Function parameter or member 'udata' not described in 'rvt_dereg_mr'
 
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
@@ -101,139 +95,83 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c | 34 ++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ drivers/infiniband/sw/rdmavt/mr.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 22fa9bde54199..76d6bbfbec50c 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -156,7 +156,7 @@ void rvt_wss_exit(struct rvt_dev_info *rdi)
- 	rdi->wss = NULL;
- }
- 
--/**
-+/*
-  * rvt_wss_init - Init wss data structures
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 90fc234f489ac..601d18dda1f5a 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -369,6 +369,7 @@ struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc)
+  * @pd: protection domain for this memory region
+  * @start: starting userspace address
+  * @length: length of region to register
++ * @virt_addr: associated virtual address
+  * @mr_access_flags: access flags for this memory region
+  * @udata: unused by the driver
   *
-  * Return: 0 on success
-@@ -323,6 +323,7 @@ static void get_map_page(struct rvt_qpn_table *qpt,
+@@ -438,8 +439,8 @@ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
  
  /**
-  * init_qpn_table - initialize the QP number table for a device
-+ * @rdi: rvt dev struct
-  * @qpt: the QPN table
-  */
- static int init_qpn_table(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt)
-@@ -524,6 +525,7 @@ static inline unsigned mk_qpn(struct rvt_qpn_table *qpt,
-  *	       IB_QPT_SMI/IB_QPT_GSI
-  * @rdi: rvt device info structure
-  * @qpt: queue pair number table pointer
-+ * @type: the QP type
-  * @port_num: IB port number, 1 based, comes from core
-  * @exclude_prefix: prefix of special queue pair number being allocated
-  *
-@@ -655,8 +657,8 @@ static void rvt_clear_mr_refs(struct rvt_qp *qp, int clr_sends)
- 
- /**
-  * rvt_swqe_has_lkey - return true if lkey is used by swqe
-- * @wqe - the send wqe
-- * @lkey - the lkey
-+ * @wqe: the send wqe
-+ * @lkey: the lkey
-  *
-  * Test the swqe for using lkey
-  */
-@@ -675,8 +677,8 @@ static bool rvt_swqe_has_lkey(struct rvt_swqe *wqe, u32 lkey)
- 
- /**
-  * rvt_qp_sends_has_lkey - return true is qp sends use lkey
-- * @qp - the rvt_qp
-- * @lkey - the lkey
-+ * @qp: the rvt_qp
-+ * @lkey: the lkey
-  */
- static bool rvt_qp_sends_has_lkey(struct rvt_qp *qp, u32 lkey)
- {
-@@ -699,8 +701,8 @@ static bool rvt_qp_sends_has_lkey(struct rvt_qp *qp, u32 lkey)
- 
- /**
-  * rvt_qp_acks_has_lkey - return true if acks have lkey
+  * rvt_dereg_clean_qp_cb - callback from iterator
 - * @qp - the qp
-- * @lkey - the lkey
+- * @v - the mregion (as u64)
 + * @qp: the qp
++ * @v: the mregion (as u64)
+  *
+  * This routine fields the callback for all QPs and
+  * for QPs in the same PD as the MR will call the
+@@ -457,7 +458,7 @@ static void rvt_dereg_clean_qp_cb(struct rvt_qp *qp, u64 v)
+ 
+ /**
+  * rvt_dereg_clean_qps - find QPs for reference cleanup
+- * @mr - the MR that is being deregistered
++ * @mr: the MR that is being deregistered
+  *
+  * This routine iterates RC QPs looking for references
+  * to the lkey noted in mr.
+@@ -471,8 +472,8 @@ static void rvt_dereg_clean_qps(struct rvt_mregion *mr)
+ 
+ /**
+  * rvt_check_refs - check references
+- * @mr - the megion
+- * @t - the caller identification
++ * @mr: the megion
++ * @t: the caller identification
+  *
+  * This routine checks MRs holding a reference during
+  * when being de-registered.
+@@ -506,8 +507,8 @@ static int rvt_check_refs(struct rvt_mregion *mr, const char *t)
+ 
+ /**
+  * rvt_mr_has_lkey - is MR
+- * @mr - the mregion
+- * @lkey - the lkey
++ * @mr: the mregion
 + * @lkey: the lkey
   */
- static bool rvt_qp_acks_has_lkey(struct rvt_qp *qp, u32 lkey)
+ bool rvt_mr_has_lkey(struct rvt_mregion *mr, u32 lkey)
  {
-@@ -716,10 +718,10 @@ static bool rvt_qp_acks_has_lkey(struct rvt_qp *qp, u32 lkey)
- 	return false;
- }
- 
--/*
-+/**
-  * rvt_qp_mr_clean - clean up remote ops for lkey
-- * @qp - the qp
-- * @lkey - the lkey that is being de-registered
-+ * @qp: the qp
-+ * @lkey: the lkey that is being de-registered
-  *
-  * This routine checks if the lkey is being used by
-  * the qp.
-@@ -853,6 +855,7 @@ int rvt_alloc_rq(struct rvt_rq *rq, u32 size, int node,
+@@ -516,8 +517,8 @@ bool rvt_mr_has_lkey(struct rvt_mregion *mr, u32 lkey)
  
  /**
-  * rvt_init_qp - initialize the QP state to the reset state
-+ * @rdi: rvt dev struct
-  * @qp: the QP to init or reinit
-  * @type: the QP type
+  * rvt_ss_has_lkey - is mr in sge tests
+- * @ss - the sge state
+- * @lkey
++ * @ss: the sge state
++ * @lkey: the lkey
   *
-@@ -907,6 +910,7 @@ static void rvt_init_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 
+  * This code tests for an MR in the indicated
+  * sge state.
+@@ -540,7 +541,7 @@ bool rvt_ss_has_lkey(struct rvt_sge_state *ss, u32 lkey)
  /**
-  * _rvt_reset_qp - initialize the QP state to the reset state
-+ * @rdi: rvt dev struct
-  * @qp: the QP to reset
-  * @type: the QP type
-  *
-@@ -1726,6 +1730,7 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- /**
-  * rvt_destroy_qp - destroy a queue pair
-  * @ibqp: the queue pair to destroy
+  * rvt_dereg_mr - unregister and free a memory region
+  * @ibmr: the memory region to free
+- *
 + * @udata: unused by the driver
   *
-  * Note that this can be called while the QP is actively sending or
-  * receiving!
-@@ -1901,9 +1906,9 @@ int rvt_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 
- /**
-  * rvt_qp_valid_operation - validate post send wr request
-- * @qp - the qp
-- * @post-parms - the post send table for the driver
-- * @wr - the work request
-+ * @qp: the qp
-+ * @post_parms_ the post send table for the driver
-+ * @wr: the work request
-  *
-  * The routine validates the operation based on the
-  * validation table an returns the length of the operation
-@@ -2013,6 +2018,7 @@ static inline int rvt_qp_is_avail(
-  * rvt_post_one_wr - post one RC, UC, or UD send work request
-  * @qp: the QP to post on
-  * @wr: the work request to send
-+ * @call_send: kick the send engine into gear
-  */
- static int rvt_post_one_wr(struct rvt_qp *qp,
- 			   const struct ib_send_wr *wr,
-@@ -2612,7 +2618,7 @@ EXPORT_SYMBOL(rvt_stop_rc_timers);
- 
- /**
-  * rvt_stop_rnr_timer - stop an rnr timer
-- * @qp - the QP
-+ * @qp: the QP
-  *
-  * stop an rnr timer and return if the timer
-  * had been pending.
+  * Note that this is called to free MRs created by rvt_get_dma_mr()
+  * or rvt_reg_user_mr().
 -- 
 2.25.1
 
