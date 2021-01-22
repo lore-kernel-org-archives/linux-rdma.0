@@ -2,250 +2,96 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B827C433DB
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Jan 2021 23:13:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD6B0C433DB
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Jan 2021 23:14:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 144D523B00
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Jan 2021 23:13:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C87923B00
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Jan 2021 23:14:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728882AbhAVXMi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Jan 2021 18:12:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60832 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729213AbhAVThs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 22 Jan 2021 14:37:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C94BF23B03;
-        Fri, 22 Jan 2021 19:37:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611344226;
-        bh=eSYLmvCypJgMnlM449jFAOgQeum1+s5F1uGrryXaYDQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EIptk5vOiPsnz3JapYKP209SUxpNpb+FZ6QQsLTd96ZEZUPBqBZKKzC7B3Cj60Z0W
-         a8T8t715zkRDnb45qjGfGuzLqG6D2LgxfbUtSPda/70CgEApPaDBIsl2XL81h0ASyw
-         zYfNxHrPNKXiysmiAGW+C83vCYeWvr9CCIhZ62ciCpSBFDSk5fi5l8GDytiBzWMK5k
-         YpXdo0b2mXvLGkBaKyfgbHy+5xm2XijR7fr1ZMKRA/VkKf+wuVvBh2jUFl3ws8qJmD
-         NmNGXaBJh54IN4lHNwRj/bw3hsuasUICNO7JTBk6CYr7fvhiNZTOpAzSQkDG+Aojjt
-         xB4XucnmoMjCA==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        alexander.duyck@gmail.com, sridhar.samudrala@intel.com,
-        edwin.peer@broadcom.com, dsahern@kernel.org, kiran.patil@intel.com,
-        jacob.e.keller@intel.com, david.m.ertman@intel.com,
-        dan.j.williams@intel.com, Parav Pandit <parav@nvidia.com>,
-        Jiri Pirko <jiri@nvidia.com>, Vu Pham <vuhuong@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next V10 02/14] devlink: Introduce PCI SF port flavour and port attribute
-Date:   Fri, 22 Jan 2021 11:36:46 -0800
-Message-Id: <20210122193658.282884-3-saeed@kernel.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20210122193658.282884-1-saeed@kernel.org>
-References: <20210122193658.282884-1-saeed@kernel.org>
+        id S1729588AbhAVThj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Jan 2021 14:37:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60608 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730667AbhAVTap (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Jan 2021 14:30:45 -0500
+Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com [IPv6:2607:f8b0:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6F00C06174A
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Jan 2021 11:30:04 -0800 (PST)
+Received: by mail-ot1-x335.google.com with SMTP id k8so6193660otr.8
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Jan 2021 11:30:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=StE1txwZLwqU0WVkGzN91XKJ5XfkymFhHwtSz9OoWfs=;
+        b=Jzg4NAlT1xhhe58tUmBeTj2qTbVVK1bsoML8+eNngqBnIrgH1upTDGVBUhBPrRwSqq
+         OPQ9pKZFdCxaWL3ZQui0AwAG57lCb8DytbPvidmXePbBt89ESfDtd3GZoEWTRilzb/u5
+         V2urFM8W8omoAepduu+gTF2fXiIfV5S/U22pfvn6iTrzoBzAveUUML48TTuqbTIIQ+uG
+         6nBHu/KcWFkitP1oNxIRmv4hMbgWWnwiIWx2mehslcLKMAkwDgd+fFhVVPeXpu3iVcqb
+         f6yMdH2iU55wD+vvwl+Jl6jGuY1DC77zQ66QCQsCdR3JFGbj58j9TPLLm3gSFY+hPR7D
+         PZvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=StE1txwZLwqU0WVkGzN91XKJ5XfkymFhHwtSz9OoWfs=;
+        b=HEFXZo6JKCvytiPCPYXm4mivkiOwIzun6+4CkeqffLg6rA2RuJdWkQf8m+3jalrYgq
+         DJHKNbO28P0tifXqYl8B0hru6YcFio0NdUUMtIcDRKgrOmrsZcMiJCXuLTG7q548JPlh
+         9Ts+xCOs3p+laf3fDecdyLI9qcxlPAKB12Fo/vgOh2zAm+7kq5JohbCRloTN38E+w7UK
+         3XvBKHQvOPoexwNS68epWlao6POCXhmXnh6+epVZtJ+Rijs5Nbm1wvvne6G9Ed9/5IQq
+         ZC0VWqh55vUcYUK8XttsSHxk92zgkoIJnU7e437tsUbqO4zBkJrAajDR3wlUC/PzxUye
+         p1WA==
+X-Gm-Message-State: AOAM533WyvpKxEPhpB6W820XdWq6ZDVf/LoOGin0h+2tdgXa7DnPgFY3
+        4VY9Xs3nyzrGVNFmR1DG2Tw=
+X-Google-Smtp-Source: ABdhPJyIRHjHQ9T7eo+54LQf+C+fnC1N6NyzxO2nFEAF6Ti0XyblQS+9qo4xgfEGnP22QxhCbUZ5Og==
+X-Received: by 2002:a9d:20a8:: with SMTP id x37mr4609307ota.62.1611343802356;
+        Fri, 22 Jan 2021 11:30:02 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-7fcf-0a74-ddeb-d9b7.res6.spectrum.com. [2603:8081:140c:1a00:7fcf:a74:ddeb:d9b7])
+        by smtp.gmail.com with ESMTPSA id 36sm1835546oty.62.2021.01.22.11.30.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 Jan 2021 11:30:01 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next v2 0/6] RDMA/rxe: Misc rxe_pool cleanups
+Date:   Fri, 22 Jan 2021 13:29:37 -0600
+Message-Id: <20210122192943.5538-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@nvidia.com>
+This series of patches corrects a bug introduced in rxe_pool.c
+by a recent commit and then addresses several issues raised
+during discussion of the bug and the proposed fix.
 
-A PCI sub-function (SF) represents a portion of the device similar
-to PCI VF.
+The first patch fixes a real bug but the other five are
+stylistic and cleanup changes.
 
-In an eswitch, PCI SF may have port which is normally represented
-using a representor netdevice.
-To have better visibility of eswitch port, its association with SF,
-and its representor netdevice, introduce a PCI SF port flavour.
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
 
-When devlink port flavour is PCI SF, fill up PCI SF attributes of the
-port.
+Bob Pearson (6):
+  RDMA/rxe: Fix bug in rxe_alloc
+  RDMA/rxe: Fix misleading comments and names
+  RDMA/rxe: Remove RXE_POOL_ATOMIC
+  RDMA/rxe: Remove references to ib_device and pool
+  RDMA/rxe: Remove unneeded pool->state
+  RDMA/rxe: Replace missing rxe_pool_get_index__
 
-Extend port name creation using PCI PF and SF number scheme on best
-effort basis, so that vendor drivers can skip defining their own
-scheme.
-This is done as cApfNSfM, where A, N and M are controller, PCI PF and
-PCI SF number respectively.
-This is similar to existing naming for PCI PF and PCI VF ports.
+ drivers/infiniband/sw/rxe/rxe_mcast.c |   8 +-
+ drivers/infiniband/sw/rxe/rxe_pool.c  | 132 +++++++++-----------------
+ drivers/infiniband/sw/rxe/rxe_pool.h  |  57 ++++++-----
+ 3 files changed, 76 insertions(+), 121 deletions(-)
 
-An example view of a PCI SF port:
-
-$ devlink port show pci/0000:06:00.0/32768
-pci/0000:06:00.0/32768: type eth netdev ens2f0npf0sf88 flavour pcisf controller 0 pfnum 0 sfnum 88 external false splittable false
-  function:
-    hw_addr 00:00:00:00:88:88 state active opstate attached
-
-$ devlink port show pci/0000:06:00.0/32768 -jp
-{
-    "port": {
-        "pci/0000:06:00.0/32768": {
-            "type": "eth",
-            "netdev": "ens2f0npf0sf88",
-            "flavour": "pcisf",
-            "controller": 0,
-            "pfnum": 0,
-            "sfnum": 88,
-            "splittable": false,
-            "function": {
-                "hw_addr": "00:00:00:00:88:88",
-                "state": "active",
-                "opstate": "attached"
-            }
-        }
-    }
-}
-
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Reviewed-by: Jiri Pirko <jiri@nvidia.com>
-Reviewed-by: Vu Pham <vuhuong@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- include/net/devlink.h        | 16 +++++++++++++++
- include/uapi/linux/devlink.h |  5 +++++
- net/core/devlink.c           | 39 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 60 insertions(+)
-
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index f466819cc477..dc3bf8000082 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -93,6 +93,18 @@ struct devlink_port_pci_vf_attrs {
- 	u8 external:1;
- };
- 
-+/**
-+ * struct devlink_port_pci_sf_attrs - devlink port's PCI SF attributes
-+ * @controller: Associated controller number
-+ * @sf: Associated PCI SF for of the PCI PF for this port.
-+ * @pf: Associated PCI PF number for this port.
-+ */
-+struct devlink_port_pci_sf_attrs {
-+	u32 controller;
-+	u32 sf;
-+	u16 pf;
-+};
-+
- /**
-  * struct devlink_port_attrs - devlink port object
-  * @flavour: flavour of the port
-@@ -103,6 +115,7 @@ struct devlink_port_pci_vf_attrs {
-  * @phys: physical port attributes
-  * @pci_pf: PCI PF port attributes
-  * @pci_vf: PCI VF port attributes
-+ * @pci_sf: PCI SF port attributes
-  */
- struct devlink_port_attrs {
- 	u8 split:1,
-@@ -114,6 +127,7 @@ struct devlink_port_attrs {
- 		struct devlink_port_phys_attrs phys;
- 		struct devlink_port_pci_pf_attrs pci_pf;
- 		struct devlink_port_pci_vf_attrs pci_vf;
-+		struct devlink_port_pci_sf_attrs pci_sf;
- 	};
- };
- 
-@@ -1404,6 +1418,8 @@ void devlink_port_attrs_pci_pf_set(struct devlink_port *devlink_port, u32 contro
- 				   u16 pf, bool external);
- void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 controller,
- 				   u16 pf, u16 vf, bool external);
-+void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port,
-+				   u32 controller, u16 pf, u32 sf);
- int devlink_sb_register(struct devlink *devlink, unsigned int sb_index,
- 			u32 size, u16 ingress_pools_count,
- 			u16 egress_pools_count, u16 ingress_tc_count,
-diff --git a/include/uapi/linux/devlink.h b/include/uapi/linux/devlink.h
-index cf89c318f2ac..1a241b09a7f8 100644
---- a/include/uapi/linux/devlink.h
-+++ b/include/uapi/linux/devlink.h
-@@ -200,6 +200,10 @@ enum devlink_port_flavour {
- 	DEVLINK_PORT_FLAVOUR_UNUSED, /* Port which exists in the switch, but
- 				      * is not used in any way.
- 				      */
-+	DEVLINK_PORT_FLAVOUR_PCI_SF, /* Represents eswitch port
-+				      * for the PCI SF. It is an internal
-+				      * port that faces the PCI SF.
-+				      */
- };
- 
- enum devlink_param_cmode {
-@@ -529,6 +533,7 @@ enum devlink_attr {
- 	DEVLINK_ATTR_RELOAD_ACTION_INFO,        /* nested */
- 	DEVLINK_ATTR_RELOAD_ACTION_STATS,       /* nested */
- 
-+	DEVLINK_ATTR_PORT_PCI_SF_NUMBER,	/* u32 */
- 	/* add new attributes above here, update the policy in devlink.c */
- 
- 	__DEVLINK_ATTR_MAX,
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index c39496311b71..4cbc02fb602d 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -690,6 +690,15 @@ static int devlink_nl_port_attrs_put(struct sk_buff *msg,
- 		if (nla_put_u8(msg, DEVLINK_ATTR_PORT_EXTERNAL, attrs->pci_vf.external))
- 			return -EMSGSIZE;
- 		break;
-+	case DEVLINK_PORT_FLAVOUR_PCI_SF:
-+		if (nla_put_u32(msg, DEVLINK_ATTR_PORT_CONTROLLER_NUMBER,
-+				attrs->pci_sf.controller) ||
-+		    nla_put_u16(msg, DEVLINK_ATTR_PORT_PCI_PF_NUMBER,
-+				attrs->pci_sf.pf) ||
-+		    nla_put_u32(msg, DEVLINK_ATTR_PORT_PCI_SF_NUMBER,
-+				attrs->pci_sf.sf))
-+			return -EMSGSIZE;
-+		break;
- 	case DEVLINK_PORT_FLAVOUR_PHYSICAL:
- 	case DEVLINK_PORT_FLAVOUR_CPU:
- 	case DEVLINK_PORT_FLAVOUR_DSA:
-@@ -8374,6 +8383,32 @@ void devlink_port_attrs_pci_vf_set(struct devlink_port *devlink_port, u32 contro
- }
- EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_vf_set);
- 
-+/**
-+ *	devlink_port_attrs_pci_sf_set - Set PCI SF port attributes
-+ *
-+ *	@devlink_port: devlink port
-+ *	@controller: associated controller number for the devlink port instance
-+ *	@pf: associated PF for the devlink port instance
-+ *	@sf: associated SF of a PF for the devlink port instance
-+ */
-+void devlink_port_attrs_pci_sf_set(struct devlink_port *devlink_port, u32 controller,
-+				   u16 pf, u32 sf)
-+{
-+	struct devlink_port_attrs *attrs = &devlink_port->attrs;
-+	int ret;
-+
-+	if (WARN_ON(devlink_port->registered))
-+		return;
-+	ret = __devlink_port_attrs_set(devlink_port,
-+				       DEVLINK_PORT_FLAVOUR_PCI_SF);
-+	if (ret)
-+		return;
-+	attrs->pci_sf.controller = controller;
-+	attrs->pci_sf.pf = pf;
-+	attrs->pci_sf.sf = sf;
-+}
-+EXPORT_SYMBOL_GPL(devlink_port_attrs_pci_sf_set);
-+
- static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
- 					     char *name, size_t len)
- {
-@@ -8422,6 +8457,10 @@ static int __devlink_port_phys_port_name_get(struct devlink_port *devlink_port,
- 		n = snprintf(name, len, "pf%uvf%u",
- 			     attrs->pci_vf.pf, attrs->pci_vf.vf);
- 		break;
-+	case DEVLINK_PORT_FLAVOUR_PCI_SF:
-+		n = snprintf(name, len, "pf%usf%u", attrs->pci_sf.pf,
-+			     attrs->pci_sf.sf);
-+		break;
- 	}
- 
- 	if (n >= len)
 -- 
-2.26.2
+2.27.0
 
