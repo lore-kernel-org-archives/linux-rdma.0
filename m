@@ -2,231 +2,251 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9D32C433E0
-	for <linux-rdma@archiver.kernel.org>; Sat, 23 Jan 2021 01:57:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10076C433E6
+	for <linux-rdma@archiver.kernel.org>; Sat, 23 Jan 2021 09:46:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9040F23B26
-	for <linux-rdma@archiver.kernel.org>; Sat, 23 Jan 2021 01:57:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6F8523437
+	for <linux-rdma@archiver.kernel.org>; Sat, 23 Jan 2021 09:46:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726306AbhAWB5L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Jan 2021 20:57:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59386 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726305AbhAWB5K (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Jan 2021 20:57:10 -0500
-Received: from mail-ot1-x331.google.com (mail-ot1-x331.google.com [IPv6:2607:f8b0:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9172C06174A
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Jan 2021 17:56:29 -0800 (PST)
-Received: by mail-ot1-x331.google.com with SMTP id e70so7007275ote.11
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Jan 2021 17:56:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=H2blLCH6juiVmdbhJDDMZiQxySH9Sb75QXMXFHdItvI=;
-        b=MuDvkXBGSI/utPF+XVKCWXp3ZEPyiNwQDuHHu2MBeY3hRzVoYNSnejWwNoqKfKrTsj
-         q0acn42PU2Sm/4aXGnAxxoFYitL/a78kuIrEio6JgY5qUtBDyOF11zR5xLqxpYsMseSc
-         jAzuEuT63O+UpLkZXoJFE4fCp3B7Xbee654aSOB+8Qm75ctQfOTmBcmAQ5hh3lcMi+xM
-         6nFaemzI7kzZOOI+EsmP7GTwpgVO3NubARHGqduAOGhWmnhYyAkQJeO5BnmpbfmvX1/j
-         8X+32cQaIGkDOGA/eHrZvvAzxv3HO9PzsW7Ek9nBXWHoj+eUoVjoV6jL0OUhBi6EfcCk
-         WkOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=H2blLCH6juiVmdbhJDDMZiQxySH9Sb75QXMXFHdItvI=;
-        b=pvwvwlWOjJlSwcDaDSw7MCsq70bDbTYBYDrR9YVyx4gYNXJPxKfuS8zxVxCPdDEIhU
-         fvX0sGiPDD40h20cUJnyiroty4xFS85klLVsvz6/vVpF3BJo03yNWIu0AAfcAgum7/U+
-         H4mNNrmmeqc5VlinaCJajaTxCQCAX4IQq1eoC07xevejyCcOe3Q7CcEEw+JffYy35rSe
-         8eDriSIEtbIrzTSKAxonqRTJ5MMN6xG1/wfo6sPdobwUtVf4A/CViPNNJY3OWxDaO4Dm
-         TxWTV5OFf6fmIMFSdLezO7ooL0cZJMRCdSXxRGgqFzgLNkoqiJKLjcUrCaZdCSgyT5xD
-         vIPg==
-X-Gm-Message-State: AOAM532wE4dshXTCYQsPJM/3+0NIrMJuJvnrgCRgAeVAIDygwsYbY6Ph
-        SNWln+fEvbfR6ccYN1g29oT1dii//GckmH/HH8E3EBQ/agk=
-X-Google-Smtp-Source: ABdhPJw1xg4uy2p9kvVg/OapqolRSgIsyNRubOKgIq5XmtEk1Z565RvCvvEjIpNoCo0WBlVsIKiUefeuDevff2fA8Q0=
-X-Received: by 2002:a05:6830:19cb:: with SMTP id p11mr4308601otp.53.1611366987421;
- Fri, 22 Jan 2021 17:56:27 -0800 (PST)
+        id S1726588AbhAWJqL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 23 Jan 2021 04:46:11 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:11136 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726820AbhAWJqI (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 23 Jan 2021 04:46:08 -0500
+Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DNB6S07pzz15vkb;
+        Sat, 23 Jan 2021 17:44:16 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS411-HUB.china.huawei.com (10.3.19.211) with Microsoft SMTP Server id
+ 14.3.498.0; Sat, 23 Jan 2021 17:45:23 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@openeuler.org>
+Subject: [PATCH v2 RFC 7/7] RDMA/hns: Add method to query WQE buffer's address
+Date:   Sat, 23 Jan 2021 17:43:14 +0800
+Message-ID: <1611394994-50363-8-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1611394994-50363-1-git-send-email-liweihang@huawei.com>
+References: <1611394994-50363-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-References: <20210122192943.5538-1-rpearson@hpe.com> <20210122192943.5538-5-rpearson@hpe.com>
-In-Reply-To: <20210122192943.5538-5-rpearson@hpe.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Sat, 23 Jan 2021 09:56:15 +0800
-Message-ID: <CAD=hENdPTny3Obqc7V+WfhGk=p8SPm21psqXRb8Xn5bU+VwGdA@mail.gmail.com>
-Subject: Re: [PATCH for-next v2 4/6] RDMA/rxe: Remove references to ib_device
- and pool
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Bob Pearson <rpearson@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Jan 23, 2021 at 3:30 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->
-> rxe_pool.c takes references to the pool and ib_device structs
-> for each object allocated and also keeps an atomic num_elem
-> count in each pool. This is more work than is needed. Pool
-> allocation is only called from verbs APIs which already have
-> references to ib_device and pools are only diasbled when the
-> driver is removed so no protection of the pool addresses
-> are needed. The elem count is used to warn if elements are
-> still present in a pool when it is cleaned up which is useful.
->
-> This patch eliminates the references to the ib_device and pool
-> structs.
->
-> The previous version only removed the ib_device reference.
->
-> Signed-off-by: Bob Pearson <rpearson@hpe.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_pool.c | 42 ++--------------------------
->  drivers/infiniband/sw/rxe/rxe_pool.h |  1 -
->  2 files changed, 2 insertions(+), 41 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-> index 7e68f99558a7..09d8665c5343 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_pool.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-> @@ -142,8 +142,6 @@ int rxe_pool_init(
->
->         atomic_set(&pool->num_elem, 0);
->
-> -       kref_init(&pool->ref_cnt);
+From: Xi Wang <wangxi11@huawei.com>
 
-The pool->ref_cnt is useful to the statistics of usage of pool.
-Not sure if it is good to remove it.
+If a uQP works in DCA mode, the userspace driver need to get the buffer's
+address in DCA memory pool by calling the 'HNS_IB_METHOD_DCA_MEM_QUERY'
+method after the QP was attached by calling the
+'HNS_IB_METHOD_DCA_MEM_ATTACH' method.
 
-> -
->         rwlock_init(&pool->pool_lock);
->
->         if (rxe_type_info[type].flags & RXE_POOL_INDEX) {
-> @@ -165,19 +163,6 @@ int rxe_pool_init(
->         return err;
->  }
->
-> -static void rxe_pool_release(struct kref *kref)
-> -{
-> -       struct rxe_pool *pool = container_of(kref, struct rxe_pool, ref_cnt);
-> -
-> -       pool->state = RXE_POOL_STATE_INVALID;
-> -       kfree(pool->index.table);
-> -}
-> -
-> -static void rxe_pool_put(struct rxe_pool *pool)
-> -{
-> -       kref_put(&pool->ref_cnt, rxe_pool_release);
-> -}
-> -
->  void rxe_pool_cleanup(struct rxe_pool *pool)
->  {
->         unsigned long flags;
-> @@ -189,7 +174,8 @@ void rxe_pool_cleanup(struct rxe_pool *pool)
->                         pool_name(pool));
->         write_unlock_irqrestore(&pool->pool_lock, flags);
->
-> -       rxe_pool_put(pool);
-> +       pool->state = RXE_POOL_STATE_INVALID;
-> +       kfree(pool->index.table);
->  }
->
->  static u32 alloc_index(struct rxe_pool *pool)
-> @@ -345,11 +331,6 @@ void *rxe_alloc__(struct rxe_pool *pool)
->         if (pool->state != RXE_POOL_STATE_VALID)
->                 return NULL;
->
-> -       kref_get(&pool->ref_cnt);
-> -
-> -       if (!ib_device_try_get(&pool->rxe->ib_dev))
-> -               goto out_put_pool;
-> -
->         if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
->                 goto out_cnt;
->
-> @@ -366,9 +347,6 @@ void *rxe_alloc__(struct rxe_pool *pool)
->
->  out_cnt:
->         atomic_dec(&pool->num_elem);
-> -       ib_device_put(&pool->rxe->ib_dev);
-> -out_put_pool:
-> -       rxe_pool_put(pool);
->         return NULL;
->  }
->
-> @@ -385,12 +363,8 @@ void *rxe_alloc(struct rxe_pool *pool)
->                 return NULL;
->         }
->
-> -       kref_get(&pool->ref_cnt);
->         read_unlock_irqrestore(&pool->pool_lock, flags);
->
-> -       if (!ib_device_try_get(&pool->rxe->ib_dev))
-> -               goto out_put_pool;
-> -
->         if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
->                 goto out_cnt;
->
-> @@ -407,9 +381,6 @@ void *rxe_alloc(struct rxe_pool *pool)
->
->  out_cnt:
->         atomic_dec(&pool->num_elem);
-> -       ib_device_put(&pool->rxe->ib_dev);
-> -out_put_pool:
-> -       rxe_pool_put(pool);
->         return NULL;
->  }
->
-> @@ -422,12 +393,8 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_entry *elem)
->                 read_unlock_irqrestore(&pool->pool_lock, flags);
->                 return -EINVAL;
->         }
-> -       kref_get(&pool->ref_cnt);
->         read_unlock_irqrestore(&pool->pool_lock, flags);
->
-> -       if (!ib_device_try_get(&pool->rxe->ib_dev))
-> -               goto out_put_pool;
-> -
->         if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
->                 goto out_cnt;
->
-> @@ -438,9 +405,6 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_entry *elem)
->
->  out_cnt:
->         atomic_dec(&pool->num_elem);
-> -       ib_device_put(&pool->rxe->ib_dev);
-> -out_put_pool:
-> -       rxe_pool_put(pool);
->         return -EINVAL;
->  }
->
-> @@ -461,8 +425,6 @@ void rxe_elem_release(struct kref *kref)
->         }
->
->         atomic_dec(&pool->num_elem);
-> -       ib_device_put(&pool->rxe->ib_dev);
-> -       rxe_pool_put(pool);
->  }
->
->  void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
-> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
-> index f916ad4d0406..294839d1eed8 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_pool.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_pool.h
-> @@ -68,7 +68,6 @@ struct rxe_pool {
->         struct rxe_dev          *rxe;
->         rwlock_t                pool_lock; /* protects pool add/del/search */
->         size_t                  elem_size;
-> -       struct kref             ref_cnt;
->         void                    (*cleanup)(struct rxe_pool_entry *obj);
->         enum rxe_pool_state     state;
->         enum rxe_pool_flags     flags;
-> --
-> 2.27.0
->
+This method will return the DCA mem object's key and the offset to let the
+userspace driver get the WQE's virtual address in DCA memory pool.
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_dca.c | 112 ++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_dca.h |   6 ++
+ include/uapi/rdma/hns-abi.h              |  10 +++
+ 3 files changed, 127 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.c b/drivers/infiniband/hw/hns/hns_roce_dca.c
+index 0a12559..0d018c0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.c
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.c
+@@ -80,6 +80,14 @@ static inline bool dca_page_is_attached(struct hns_dca_page_state *state,
+ 			(HNS_DCA_OWN_MASK & state->buf_id);
+ }
+ 
++static inline bool dca_page_is_active(struct hns_dca_page_state *state,
++				      u32 buf_id)
++{
++	/* all buf id bits must be matched */
++	return (HNS_DCA_ID_MASK & buf_id) == state->buf_id &&
++		!state->lock && state->active;
++}
++
+ static inline bool dca_page_is_allocated(struct hns_dca_page_state *state,
+ 					 u32 buf_id)
+ {
+@@ -792,6 +800,64 @@ static int attach_dca_mem(struct hns_roce_dev *hr_dev,
+ 	return 0;
+ }
+ 
++struct dca_page_query_active_attr {
++	u32 buf_id;
++	u32 curr_index;
++	u32 start_index;
++	u32 page_index;
++	u32 page_count;
++	u64 mem_key;
++};
++
++static int query_dca_active_pages_proc(struct dca_mem *mem, int index,
++				       void *param)
++{
++	struct hns_dca_page_state *state = &mem->states[index];
++	struct dca_page_query_active_attr *attr = param;
++
++	if (!dca_page_is_active(state, attr->buf_id))
++		return 0;
++
++	if (attr->curr_index < attr->start_index) {
++		attr->curr_index++;
++		return 0;
++	} else if (attr->curr_index > attr->start_index) {
++		return DCA_MEM_STOP_ITERATE;
++	}
++
++	/* Search first page in DCA mem */
++	attr->page_index = index;
++	attr->mem_key = mem->key;
++	/* Search active pages in continuous addresses */
++	while (index < mem->page_count) {
++		state = &mem->states[index];
++		if (!dca_page_is_active(state, attr->buf_id))
++			break;
++
++		index++;
++		attr->page_count++;
++	}
++
++	return DCA_MEM_STOP_ITERATE;
++}
++
++static int query_dca_mem(struct hns_roce_qp *hr_qp, u32 page_index,
++			 struct hns_dca_query_resp *resp)
++{
++	struct hns_roce_dca_ctx *ctx = hr_qp_to_dca_ctx(hr_qp);
++	struct dca_page_query_active_attr attr = {};
++
++	attr.buf_id = hr_qp->dca_cfg.buf_id;
++	attr.start_index = page_index;
++	travel_dca_pages(ctx, &attr, query_dca_active_pages_proc);
++
++	resp->mem_key = attr.mem_key;
++	resp->mem_ofs = attr.page_index << HNS_HW_PAGE_SHIFT;
++	resp->page_count = attr.page_count;
++
++	return attr.page_count ? 0 : -ENOMEM;
++}
++
+ struct dca_page_free_buf_attr {
+ 	u32 buf_id;
+ 	u32 max_pages;
+@@ -1131,13 +1197,57 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 	UVERBS_ATTR_PTR_IN(HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
+ 			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
+ 
++static int UVERBS_HANDLER(HNS_IB_METHOD_DCA_MEM_QUERY)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct hns_roce_qp *hr_qp = uverbs_attr_to_hr_qp(attrs);
++	struct hns_dca_query_resp resp = {};
++	u32 page_idx;
++	int ret;
++
++	if (!hr_qp)
++		return -EINVAL;
++
++	if (uverbs_copy_from(&page_idx, attrs,
++			     HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX))
++		return -EFAULT;
++
++	ret = query_dca_mem(hr_qp, page_idx, &resp);
++	if (ret)
++		return ret;
++
++	if (uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++			   &resp.mem_key, sizeof(resp.mem_key)) ||
++	    uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++			   &resp.mem_ofs, sizeof(resp.mem_ofs)) ||
++	    uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++			   &resp.page_count, sizeof(resp.page_count)))
++		return -EFAULT;
++
++	return 0;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	HNS_IB_METHOD_DCA_MEM_QUERY,
++	UVERBS_ATTR_IDR(HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE, UVERBS_OBJECT_QP,
++			UVERBS_ACCESS_READ, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++			    UVERBS_ATTR_TYPE(u64), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
+ DECLARE_UVERBS_NAMED_OBJECT(HNS_IB_OBJECT_DCA_MEM,
+ 			    UVERBS_TYPE_ALLOC_IDR(dca_cleanup),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_REG),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DEREG),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_SHRINK),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_ATTACH),
+-			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DETACH));
++			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DETACH),
++			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_QUERY));
+ 
+ static bool dca_is_supported(struct ib_device *device)
+ {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.h b/drivers/infiniband/hw/hns/hns_roce_dca.h
+index 8155903..3e9971a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.h
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.h
+@@ -50,6 +50,12 @@ struct hns_dca_detach_attr {
+ 	u32 sq_idx;
+ };
+ 
++struct hns_dca_query_resp {
++	u64 mem_key;
++	u32 mem_ofs;
++	u32 page_count;
++};
++
+ void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_ucontext *uctx);
+ void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index 3912c7ac..b832f26 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -111,6 +111,7 @@ enum hns_ib_dca_mem_methods {
+ 	HNS_IB_METHOD_DCA_MEM_SHRINK,
+ 	HNS_IB_METHOD_DCA_MEM_ATTACH,
+ 	HNS_IB_METHOD_DCA_MEM_DETACH,
++	HNS_IB_METHOD_DCA_MEM_QUERY,
+ };
+ 
+ enum hns_ib_dca_mem_reg_attrs {
+@@ -146,4 +147,13 @@ enum hns_ib_dca_mem_detach_attrs {
+ 	HNS_IB_ATTR_DCA_MEM_DETACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
+ 	HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
+ };
++
++enum hns_ib_dca_mem_query_attrs {
++	HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++};
++
+ #endif /* HNS_ABI_USER_H */
+-- 
+2.8.1
+
