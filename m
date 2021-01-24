@@ -2,96 +2,187 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAAEFC4332E
-	for <linux-rdma@archiver.kernel.org>; Sun, 24 Jan 2021 13:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 867C2C433DB
+	for <linux-rdma@archiver.kernel.org>; Sun, 24 Jan 2021 13:46:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C752422ADC
-	for <linux-rdma@archiver.kernel.org>; Sun, 24 Jan 2021 13:13:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43CC7227BF
+	for <linux-rdma@archiver.kernel.org>; Sun, 24 Jan 2021 13:46:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727006AbhAXNMp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 24 Jan 2021 08:12:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42278 "EHLO mail.kernel.org"
+        id S1725550AbhAXNqh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 24 Jan 2021 08:46:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbhAXNMo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 24 Jan 2021 08:12:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2807822D2C;
-        Sun, 24 Jan 2021 13:11:36 +0000 (UTC)
+        id S1725268AbhAXNqg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 24 Jan 2021 08:46:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 57488227BF;
+        Sun, 24 Jan 2021 13:45:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611493897;
-        bh=aHBmFnfLyG43e7CqSIxZ36xVHHd++9BQh2pCJmoqnr0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=C5XQosOH9gXH2dshXEXIFJYYImstVT3WfEC7Zzc0YFbGMSFs1wJfcqtHkx2ub/zSY
-         aAmtz08sf2jmrPM9kzReqsOeCpGhJEK6BQd4ly/GXnBnHUj2hCLSb7GjkVNRD1qXqg
-         0/1dyL+7QnAi5m7A8fNmgQB/EACW9Oyk/IgsTiMk83uq8j3hXS8nNX3eV8C3PXgK57
-         lCVBJoVMHTQ7hLPjngaczoXdLGGr+dMWWM7gyaVEOdG4n2tmzYnTW1PK4LxwZsuYGY
-         U2iJ3TH2LlV+TRayVA/S1YVg4gVik+y00150Hy21KGLG00FP6PoPI+irgbkyjZwMXU
-         y00gOmZDKMx0A==
+        s=k20201202; t=1611495955;
+        bh=8SKR/G8hww3sahSCUEdv19IP/CnswdwvSZfUon47hoM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=PCEuPA0rqStT4mgsklOrINGz3tu50k5eiGiiRbM0D1uu6G78KGX7lFNp15lf2dQq0
+         VcsIycdrcPagT6iuFXkWgfb43+hWGT580cfxhwBqZ+rFAZ/ytu/n+4gbXIK/m616dS
+         tCk4M1ElhKkEhLWhb9tglFyK1/14s8fbfedWpxpPBu9bp/jCBAn0PsKA2nU2vMvcVW
+         UcgXczdBUqhh4szwl+68NU33QMkqVJN3/1Bu9Gqd9kgarlpNCR4wP87NjP2SUutSCV
+         4SBSfn250/WfvHKbRngyKU/nz8o+4nR2YyiUJFpihjD2wRLg4gYtXmoX8RHV9SJRt1
+         fc+gtRVM54Bww==
+Date:   Sun, 24 Jan 2021 15:45:51 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Alexander Duyck <alexander.duyck@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Don Dutile <ddutile@redhat.com>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        "David S . Miller" <davem@davemloft.net>
-Subject: [PATCH mlx5-next v4 2/4] net/mlx5: Add dynamic MSI-X capabilities bits
-Date:   Sun, 24 Jan 2021 15:11:17 +0200
-Message-Id: <20210124131119.558563-3-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210124131119.558563-1-leon@kernel.org>
-References: <20210124131119.558563-1-leon@kernel.org>
+To:     Shiraz Saleem <shiraz.saleem@intel.com>
+Cc:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
+        davem@davemloft.net, linux-rdma@vger.kernel.org,
+        gregkh@linuxfoundation.org, netdev@vger.kernel.org,
+        david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
+        Mustafa Ismail <mustafa.ismail@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Message-ID: <20210124134551.GB5038@unreal>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+ <20210122234827.1353-8-shiraz.saleem@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210122234827.1353-8-shiraz.saleem@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail@intel.com>
+>
+> Register irdma as an auxiliary driver which can attach to auxiliary RDMA
+> devices from Intel PCI netdev drivers i40e and ice. Implement the private
+> channel ops, add basic devlink support in the driver and register net
+> notifiers.
 
-These new fields declare the number of MSI-X vectors that is
-possible to allocate on the VF through PF configuration.
+Devlink part in "the RDMA client" is interesting thing.
 
-Value must be in range defined by min_dynamic_vf_msix_table_size
-and max_dynamic_vf_msix_table_size.
+The idea behind auxiliary bus was that PCI logic will stay at one place
+and devlink considered as the tool to manage that.
 
-The driver should continue to query its MSI-X table through PCI
-configuration header.
+In current form every client is going to get independent devlink instance.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- include/linux/mlx5/mlx5_ifc.h | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+<...>
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index b96f99f1198e..31e6eac67f51 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1657,7 +1657,16 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8	   reserved_at_6e0[0x10];
- 	u8	   sf_base_id[0x10];
- 
--	u8	   reserved_at_700[0x80];
-+	u8	   reserved_at_700[0x8];
-+	u8	   num_total_dynamic_vf_msix[0x18];
-+	u8	   reserved_at_720[0x14];
-+	u8	   dynamic_msix_table_size[0xc];
-+	u8	   reserved_at_740[0xc];
-+	u8	   min_dynamic_vf_msix_table_size[0x4];
-+	u8	   reserved_at_750[0x4];
-+	u8	   max_dynamic_vf_msix_table_size[0xc];
-+
-+	u8	   reserved_at_760[0x20];
- 	u8	   vhca_tunnel_commands[0x40];
- 	u8	   reserved_at_7c0[0x40];
- };
--- 
-2.29.2
+> +static int irdma_devlink_rsrc_limits_validate(struct devlink *dl, u32 id,
+> +					      union devlink_param_value val,
+> +					      struct netlink_ext_ack *extack)
+> +{
+> +	u8 value = val.vu8;
+> +
+> +	if (value > 7) {
+> +		NL_SET_ERR_MSG_MOD(extack, "resource limits selector range is (0-7)");
+> +		return -ERANGE;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int irdma_devlink_enable_roce_validate(struct devlink *dl, u32 id,
+> +					      union devlink_param_value val,
+> +					      struct netlink_ext_ack *extack)
+> +{
+> +	struct irdma_dl_priv *priv = devlink_priv(dl);
+> +	bool value = val.vbool;
+> +
+> +	if (value && priv->drvdata->hw_ver == IRDMA_GEN_1) {
+> +		NL_SET_ERR_MSG_MOD(extack, "RoCE not supported on device");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int irdma_devlink_upload_ctx_get(struct devlink *devlink, u32 id,
+> +					struct devlink_param_gset_ctx *ctx)
+> +{
+> +	ctx->val.vbool = irdma_upload_context;
+> +	return 0;
+> +}
+> +
+> +static int irdma_devlink_upload_ctx_set(struct devlink *devlink, u32 id,
+> +					struct devlink_param_gset_ctx *ctx)
+> +{
+> +	irdma_upload_context = ctx->val.vbool;
+> +	return 0;
+> +}
+> +
+> +enum irdma_dl_param_id {
+> +	IRDMA_DEVLINK_PARAM_ID_BASE = DEVLINK_PARAM_GENERIC_ID_MAX,
+> +	IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
+> +	IRDMA_DEVLINK_PARAM_ID_UPLOAD_CONTEXT,
+> +};
+> +
+> +static const struct devlink_param irdma_devlink_params[] = {
+> +	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
+> +			     "resource_limits_selector", DEVLINK_PARAM_TYPE_U8,
+> +			      BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+> +			      NULL, NULL, irdma_devlink_rsrc_limits_validate),
+> +	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_UPLOAD_CONTEXT,
+> +			     "upload_context", DEVLINK_PARAM_TYPE_BOOL,
+> +			     BIT(DEVLINK_PARAM_CMODE_RUNTIME),
+> +			     irdma_devlink_upload_ctx_get,
+> +			     irdma_devlink_upload_ctx_set, NULL),
+> +	DEVLINK_PARAM_GENERIC(ENABLE_ROCE, BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+> +			      NULL, NULL, irdma_devlink_enable_roce_validate),
+> +};
 
+RoCE enable knob is understandable, but others are not explained.
+
+> +
+> +static int irdma_devlink_reload_down(struct devlink *devlink, bool netns_change,
+> +				     enum devlink_reload_action action,
+> +				     enum devlink_reload_limit limit,
+> +				     struct netlink_ext_ack *extack)
+> +{
+> +	struct irdma_dl_priv *priv = devlink_priv(devlink);
+> +	struct auxiliary_device *aux_dev = to_auxiliary_dev(devlink->dev);
+> +
+> +	if (netns_change) {
+> +		NL_SET_ERR_MSG_MOD(extack, "Namespace change is not supported");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	priv->drvdata->deinit_dev(aux_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int irdma_devlink_reload_up(struct devlink *devlink, enum devlink_reload_action action,
+> +				   enum devlink_reload_limit limit, u32 *actions_performed,
+> +				   struct netlink_ext_ack *extack)
+> +{
+> +	struct irdma_dl_priv *priv = devlink_priv(devlink);
+> +	struct auxiliary_device *aux_dev = to_auxiliary_dev(devlink->dev);
+> +	union devlink_param_value saved_value;
+> +	int ret;
+> +
+> +	*actions_performed = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT);
+> +
+> +	devlink_param_driverinit_value_get(devlink,
+> +				DEVLINK_PARAM_GENERIC_ID_ENABLE_ROCE,
+> +				&saved_value);
+> +	priv->roce_ena = saved_value.vbool;
+> +	devlink_param_driverinit_value_get(devlink,
+> +				IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
+> +				&saved_value);
+> +	priv->limits_sel = saved_value.vbool;
+> +
+> +	ret = priv->drvdata->init_dev(aux_dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static const struct devlink_ops irdma_devlink_ops = {
+> +	.reload_up = irdma_devlink_reload_up,
+> +	.reload_down = irdma_devlink_reload_down,
+> +	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
+> +};
+
+So the plan is that every client will implement same devlink reload logic?
+
+Thanks
