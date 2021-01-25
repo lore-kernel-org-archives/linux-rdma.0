@@ -8,61 +8,61 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B42B0C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3A4CC433DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F1D920679
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EAC120679
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732552AbhAYVTL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jan 2021 16:19:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49238 "EHLO
+        id S1726716AbhAYVTP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jan 2021 16:19:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732573AbhAYVSX (ORCPT
+        with ESMTP id S1732568AbhAYVSX (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 16:18:23 -0500
-Received: from mail-ot1-x32a.google.com (mail-ot1-x32a.google.com [IPv6:2607:f8b0:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69BEBC061788
-        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:47 -0800 (PST)
-Received: by mail-ot1-x32a.google.com with SMTP id a109so14236718otc.1
-        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:47 -0800 (PST)
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88143C06178C
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:49 -0800 (PST)
+Received: by mail-oi1-x233.google.com with SMTP id m13so8358532oig.8
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ak10mtEKMMemekcMv4+yfdQKMMStyMtW7BlCZsMxFLo=;
-        b=aaFyttkx0Ad8A/9CM6wJRlU8aAS8qrqeHuvqu126lmog5IOSSWlbr+mTUruLV1gFqf
-         CvKljhc77KwPnJ/kNslLlLQRUGEJUjcvNA3jCoW5HzWhfoxF2JPtam6MI7aLUUOcDE3n
-         IP1pOFtT+G6IWjs6XmhcKW5ieuZz0LoVn5430r6TFVoIcOdE3AE39+VT52EeThfy8vAN
-         2KNOtdweMoZRGgnuS/65d73f861r//VufNPgrhSVp5PC5piVF6BI5j3dXZng3YHVIJHD
-         z5iSIF1sIAxNCWTvm/qnPoYRIEB4J9X8TkU/m20v0Xv/PiQ7PG3lAy8pu9Ds/wH706eA
-         I1ng==
+        bh=9E77g67+kgLL6DKT76WJ3KWOIjkCnglA8Markr+v0xM=;
+        b=BDF99oER9+ZDKZBKJTJWKWwC9oF8n6iAgJ8CI8uRN4vAT+PUpbawcg6pfgKzT0KfhY
+         vkZ2ac5tELvjTL4LhJH1iPnCDx9toG4MJZVgQ1Gt83DQSpENBy7tVp6aGvvtXPiS/1uS
+         64t37lEDjYEzgqQdpocjpEN1SYGpEj6zxiMQaHl0tzPfwEGZAxiIRSK/ltc+0bXzmiUs
+         JJi2TCq3PMJvCCUvm47LRj6dtDjU+I9PY21fOHmwpiVHl3rusSnBhXzLJ+f8Ptwoyh48
+         QoYfbR+fFJx8zLO0WJ/z/CCzMi7/FE56lJZrCG6ioowt+jw4y20YKm5yRm+rP9IieaLB
+         Kd/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ak10mtEKMMemekcMv4+yfdQKMMStyMtW7BlCZsMxFLo=;
-        b=Qu6S0igVXhCN+MpArEbT2mrEnYVaCVAjur3qoh6fO1gUW1LHS/qxVR2zkfMuSBbawa
-         KjhBD0jMZFfB2AGkRxkU7kNwL7PlQZH83hExrgJ3vKhXXmFat2BLIcNj/DiOvsrFwe3u
-         WQDNvSLwMRBvyhYPnIVtkHWvg25vhk+ICcftXWMtGq8gouEC5XHER9UBjyr7IAXKdoiv
-         zD2R3iuKgSZAo/rElOvKBb9TTfMjz/ZfrXvM8R+IhR3rfppr4bV6jNIVwuzK0qxJKZOW
-         RHJDJHyjZJaj5I6KgZCpIZu+Tb+s0hgbButzEGP/El2uvDyOb4YsisfQ1ZD0dqLeTbyr
-         e5RA==
-X-Gm-Message-State: AOAM530GYEDPV9WDtMn8Q3POHGRryj60gerAarm4TPIiVWEYMPUaY8md
-        51gPUOc0hqgH0gyXuGzAI0Q=
-X-Google-Smtp-Source: ABdhPJwZvx+Of7khi6wAVRhPeC2DutpwhZ/HCh4uZoqOGlDOrEspXPYsulDaRkeYJ0d+27ywmYpEEA==
-X-Received: by 2002:a9d:84d:: with SMTP id 71mr1770740oty.338.1611609406899;
-        Mon, 25 Jan 2021 13:16:46 -0800 (PST)
+        bh=9E77g67+kgLL6DKT76WJ3KWOIjkCnglA8Markr+v0xM=;
+        b=gk+1DNgD/lijpMN8Bfv0WJjO8Ip+oh3VYqlI5bBEHwD+xVreZsaw1yFMDi/NIbHAUQ
+         cOkwC1jsBDyPCoyY8ryuO/ePw0HuUmbGPAOPyHGW+nfnyCP1mC8wIhW5DJ+bHMo1fVMA
+         qMPweJ5CQU9gBuZYkm5i4Efw04FIFh1pNxXVCxbgw4UtWGejoSP5k5DzoacOEvHFrxC0
+         8X5ja8twjC41sIaKLfIrw/idnw3T+SSd8hsEgSAobrlBNpQMh9Qnq3ZVh58ATstjXBZW
+         i2ZTsfIAZZ5oYynusc222wPCN7n2OUjKv2oFiAiNCRhaQ388xAhFxk/LMI8YcI03conn
+         D/kg==
+X-Gm-Message-State: AOAM530t0usq3lFW1TNJBeUvky18+R9W2km3scL9NCB3Ah8vwDPZsn9B
+        Z1OelAeTsLREO+xkStAshFrVbSsgUYM=
+X-Google-Smtp-Source: ABdhPJw407eB2lShKQHeG2AXnTEdKf2uXBBliDV/rNGcQ+oElzG6KLzBUK78CdTeQ8i8Z+8cPEuVxg==
+X-Received: by 2002:aca:f009:: with SMTP id o9mr1312380oih.133.1611609409070;
+        Mon, 25 Jan 2021 13:16:49 -0800 (PST)
 Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-8baa-bb83-cd49-4ca4.res6.spectrum.com. [2603:8081:140c:1a00:8baa:bb83:cd49:4ca4])
-        by smtp.gmail.com with ESMTPSA id w11sm3722564otg.58.2021.01.25.13.16.46
+        by smtp.gmail.com with ESMTPSA id w11sm3722564otg.58.2021.01.25.13.16.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 Jan 2021 13:16:46 -0800 (PST)
+        Mon, 25 Jan 2021 13:16:48 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH for-next v3 3/6] RDMA/rxe: Remove RXE_POOL_ATOMIC
-Date:   Mon, 25 Jan 2021 15:16:38 -0600
-Message-Id: <20210125211641.2694-4-rpearson@hpe.com>
+Subject: [PATCH for-next v3 6/6] RDMA/rxe: Replace missing rxe_pool_get_index_locked
+Date:   Mon, 25 Jan 2021 15:16:41 -0600
+Message-Id: <20210125211641.2694-7-rpearson@hpe.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210125211641.2694-1-rpearson@hpe.com>
 References: <20210125211641.2694-1-rpearson@hpe.com>
@@ -73,63 +73,71 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 [v2]
-rxe_alloc() used the RXE_POOL_ATOMIC flag in rxe_type_info
-to select GFP_ATOMIC in calls to kzalloc(). This was intended
-to handle cases where an object could be created in interrupt
-context. This no longer occurs since allocating those objects
-has moved into the core so this flag is not necessary. An
-incorrect use of this flag was still present for rxe_mc_elem
-objects and is removed.
+One of the pool APIs for when caller is holding lock was not defined
+but is declared in rxe_pool.h. This patch adds the definition.
 
 Signed-off-by: Bob Pearson <rpearson@hpe.com>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 6 +-----
- drivers/infiniband/sw/rxe/rxe_pool.h | 1 -
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 5ca54e09cd0e..0ca46bd8be51 100644
+index 5aa835028460..307d8986e7c9 100644
 --- a/drivers/infiniband/sw/rxe/rxe_pool.c
 +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -84,7 +84,6 @@ struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
- 		.name		= "rxe-mc_elem",
- 		.size		= sizeof(struct rxe_mc_elem),
- 		.elem_offset	= offsetof(struct rxe_mc_elem, pelem),
--		.flags		= RXE_POOL_ATOMIC,
- 	},
- };
+@@ -398,15 +398,12 @@ void rxe_elem_release(struct kref *kref)
+ 	atomic_dec(&pool->num_elem);
+ }
  
-@@ -380,8 +379,6 @@ void *rxe_alloc(struct rxe_pool *pool)
+-void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
++void *rxe_pool_get_index_locked(struct rxe_pool *pool, u32 index)
+ {
+ 	struct rxe_type_info *info = &rxe_type_info[pool->type];
+ 	struct rb_node *node;
  	struct rxe_pool_entry *elem;
- 	u8 *obj;
- 
--	might_sleep_if(!(pool->flags & RXE_POOL_ATOMIC));
+-	u8 *obj = NULL;
+-	unsigned long flags;
 -
+-	read_lock_irqsave(&pool->pool_lock, flags);
++	u8 *obj;
+ 
+ 	node = pool->index.tree.rb_node;
+ 
+@@ -428,6 +425,16 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+ 		obj = NULL;
+ 	}
+ 
++	return obj;
++}
++
++void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
++{
++	u8 *obj;
++	unsigned long flags;
++
++	read_lock_irqsave(&pool->pool_lock, flags);
++	obj = rxe_pool_get_index_locked(pool, index);
+ 	read_unlock_irqrestore(&pool->pool_lock, flags);
+ 
+ 	return obj;
+@@ -438,7 +445,7 @@ void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
+ 	struct rxe_type_info *info = &rxe_type_info[pool->type];
+ 	struct rb_node *node;
+ 	struct rxe_pool_entry *elem;
+-	u8 *obj = NULL;
++	u8 *obj;
+ 	int cmp;
+ 
+ 	node = pool->key.tree.rb_node;
+@@ -469,7 +476,7 @@ void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
+ 
+ void *rxe_pool_get_key(struct rxe_pool *pool, void *key)
+ {
+-	u8 *obj = NULL;
++	u8 *obj;
+ 	unsigned long flags;
+ 
  	read_lock_irqsave(&pool->pool_lock, flags);
- 	if (pool->state != RXE_POOL_STATE_VALID) {
- 		read_unlock_irqrestore(&pool->pool_lock, flags);
-@@ -397,8 +394,7 @@ void *rxe_alloc(struct rxe_pool *pool)
- 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
- 		goto out_cnt;
- 
--	obj = kzalloc(info->size, (pool->flags & RXE_POOL_ATOMIC) ?
--		      GFP_ATOMIC : GFP_KERNEL);
-+	obj = kzalloc(info->size, GFP_KERNEL);
- 	if (!obj)
- 		goto out_cnt;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
-index a75ac2d2847a..22714dafe00d 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.h
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.h
-@@ -11,7 +11,6 @@
- #define RXE_POOL_CACHE_FLAGS	(0)
- 
- enum rxe_pool_flags {
--	RXE_POOL_ATOMIC		= BIT(0),
- 	RXE_POOL_INDEX		= BIT(1),
- 	RXE_POOL_KEY		= BIT(2),
- 	RXE_POOL_NO_ALLOC	= BIT(4),
 -- 
 2.27.0
 
