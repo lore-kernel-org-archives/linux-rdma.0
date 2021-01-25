@@ -2,116 +2,194 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66526C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A00EC433E6
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:38:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35564229C4
+	by mail.kernel.org (Postfix) with ESMTP id 63FBB22B2C
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:38:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728778AbhAZFhk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:37:40 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:15154 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728595AbhAYNIT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 08:08:19 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B600ec2790000>; Mon, 25 Jan 2021 05:07:05 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 13:06:57 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.176)
- by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 25 Jan 2021 13:06:57 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=UlES/XAK5kiQUzy5IFZt0F7Bz8pUIfg+5wm7tSm4FJFs3ZeiW2S3KOR4ozkz5CC5eTtoJhNiybPMjkmwMlDY87fsBz9RL0Of8h3k7SGmLEp745vfvAVzpXO++3AxsyhLiwDhf8N+2Wn4zcv5nhoyiI9pj9KamuijwlBURQ3weplySQMPmge1L1mczb6YJ/UNuy+OFYZiUkvqKbvOj6twsA61kZAJ5uMTFBe8JbcIpgJJj0VpZ/hgUghUt2OFMu+CXUZ1QvUcwy56oBoK+WNdxW3xFVaLvpqpZrSfqBT17TIfP/XKyzvqy1mNK/jcoEntGbXIq8fLHO4460KmbfA6mQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=x2BtXjwSXfzJg2tpgFpOEQEtp3L1KjIvV6LvlaELgEg=;
- b=ZSxc8I3xrj0UvbQX5MKoj8lnKOCBGYKO4WtkqINvkEvY80y2btrLKjPfq8cSDbVxWPjGmKGDCLkXA+9/4AX5PJVxuaue08R1l6Z4fOASxLY/odzTVJsUqvz8ZJd/SC5ht0nCuZj3r7QRc+sTv2ooaOAz7sn47hbEG5eEIdidiEjJ9+PsJEZrTK7SM85K4R+88QMedqa0Bi+Es27RWNKLV5VQfo/W8XmFUhNpdMTXnsQ9GzM9FS0C8is/1r8Xa2FnptDluf2wzd/br2BlzZSdH/OkfSMMNVHcr6W3dXNfM1b//WFfq6rX9FAkHAR9nmu3JrV0+letJc40l8vEqqBmJA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB2582.namprd12.prod.outlook.com (2603:10b6:4:b5::37) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12; Mon, 25 Jan
- 2021 13:06:56 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.017; Mon, 25 Jan 2021
- 13:06:56 +0000
-Date:   Mon, 25 Jan 2021 09:06:54 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     "Samudrala, Sridhar" <sridhar.samudrala@intel.com>
-CC:     Saeed Mahameed <saeed@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, <netdev@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <alexander.duyck@gmail.com>,
-        <edwin.peer@broadcom.com>, <dsahern@kernel.org>,
-        <kiran.patil@intel.com>, <jacob.e.keller@intel.com>,
-        <david.m.ertman@intel.com>, <dan.j.williams@intel.com>,
-        Parav Pandit <parav@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [net-next V9 14/14] net/mlx5: Add devlink subfunction port
- documentation
-Message-ID: <20210125130654.GI4147@nvidia.com>
-References: <20210121085237.137919-1-saeed@kernel.org>
- <20210121085237.137919-15-saeed@kernel.org>
- <d5ef3359-ff3c-0e71-8312-0f24c3af4bce@intel.com>
- <20210122001157.GE4147@nvidia.com>
- <89d0c6de-18e3-5728-a220-3440ca263616@intel.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <89d0c6de-18e3-5728-a220-3440ca263616@intel.com>
-X-ClientProxiedBy: BLAPR03CA0057.namprd03.prod.outlook.com
- (2603:10b6:208:32d::32) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1727670AbhAZFhp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:37:45 -0500
+Received: from gentwo.org ([3.19.106.255]:53792 "EHLO gentwo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728821AbhAYNZY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 25 Jan 2021 08:25:24 -0500
+Received: by gentwo.org (Postfix, from userid 1002)
+        id E5EA83F559; Mon, 25 Jan 2021 11:28:57 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+        by gentwo.org (Postfix) with ESMTP id E119A3F558;
+        Mon, 25 Jan 2021 11:28:57 +0000 (UTC)
+Date:   Mon, 25 Jan 2021 11:28:57 +0000 (UTC)
+From:   Christoph Lameter <cl@linux.com>
+X-X-Sender: cl@www.lameter.com
+To:     Leon Romanovsky <leon@kernel.org>
+cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH] Fix: Remove racy Subnet Manager sendonly join checks
+Message-ID: <alpine.DEB.2.22.394.2101251126090.344695@www.lameter.com>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BLAPR03CA0057.namprd03.prod.outlook.com (2603:10b6:208:32d::32) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12 via Frontend Transport; Mon, 25 Jan 2021 13:06:56 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l41a2-006UR5-HS; Mon, 25 Jan 2021 09:06:54 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611580025; bh=GOxnf/1FDRpkmxX0Rfc95kJhR6v5dbRL9ZP6sX1B9XI=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
-         X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=No/XmjyJwcyJ16fHZy0vx3rFK7qdfjw37B853q5YkvIN2RCEuF0JxlbkC+jPxKRCv
-         v56dqq/RxiYmOSltseP6CZYigFtruotot5HWKwY2ss4mNddKV8E85LJbkQmSgszSbb
-         DmnbjqoOiEKohk/3o/I5MsVmAGK3K/KvB8mq1vs4pYZ7E9umUps3XoR0ZZkY8sM/xn
-         /ABZUOXfUWSVbj/3i6Pt8XZUxLgKKoBLlBHmfhIq2tsK5QyL9psW+8/NpubRxMfYC8
-         sScOGkcF3fPLgJGAqcxlsl+P/64lym/TREKp8olDHxufdbNx/+7kUtOnMMB/b9Lcfd
-         zOqNCmQif7c2A==
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Jan 23, 2021 at 12:09:15PM -0800, Samudrala, Sridhar wrote:
+On Sun, 24 Jan 2021, Leon Romanovsky wrote:
 
-> > The other aux devices represent the subsystem split of the mlx5 driver
-> > - mlx5_core creates them and each subsystem in turn binds to the
-> > mlx5_core driver. This already exists, and Intel will be doing this as
-> > well whenever the RDMA driver is posted again..
->=20
-> Yes. I see that the intel RDMA patches are now submitted. We are
-> creating an aux device to expose RDMA functionality, but=C2=A0 not
-> planning to create an aux device for ethernet subsystem on a PF/SF
-> as the function-level pci/aux device can represent the default
-> ethernet.
+> > Since all SMs out there have had support for sendonly join for years now
+> > we could just remove the check entirely. If there is an old grizzly SM out
+> > there then it would not process that join request and would return an
+> > error.
+>
+> I have no idea if it possible, if yes, this will be the best solution.
 
-That is because the ethernet and shared code are all in the same
-module
+Ok hier ist ein neuer Patch:
 
-You may find this becomes inconvenient when you want to add something
-like SF, where there is alot of merit to having uniformity in the
-ethernet driver.
+From: Christoph Lameter <cl@linux.com>
+Subject: [PATCH] Fix: Remove racy Subnet Manager sendonly join checks
 
-Jason
+When a system receives a REREG event from the SM, then the SM information in
+the kernel is marked as invalid and a request is sent to the SM to update
+the information. The SM information is invalid in that time period.
+
+However, receiving a REREG also occurs simultaneously in user space
+applications that are now trying to rejoin the multicast groups. Some of those
+may be sendonly multicast groups which are then failing.
+
+If the SM information is invalid then ib_sa_sendonly_fullmem_support()
+returns false. That is wrong because it just means that we do not know
+yet if the potentially new SM supports sendonly joins.
+
+Sendonly join was introduced in 2015 and all the Subnet managers have
+supported it ever since. So there is no point in checking if a subnet
+manager supports it.
+
+Should an old opensm get a request for a sendonly join then the request
+will fail. The code that is removed here accomodated that situation
+and fell back to a full join.
+
+Falling back to a full join is problematic in itself. The reason to
+use the sendonly join was to reduce the traffic on the Infiniband
+fabric otherwise one could have just stayed with the regular join.
+So this patch may cause users of very old opensms to discover that
+lots of traffic needlessly crosses their IB fabrics.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+
+Index: linux/drivers/infiniband/core/cma.c
+===================================================================
+--- linux.orig/drivers/infiniband/core/cma.c	2020-12-17 14:51:15.301206041 +0000
++++ linux/drivers/infiniband/core/cma.c	2021-01-25 09:39:29.191032891 +0000
+@@ -4542,17 +4542,6 @@ static int cma_join_ib_multicast(struct
+ 	rec.pkey = cpu_to_be16(ib_addr_get_pkey(dev_addr));
+ 	rec.join_state = mc->join_state;
+
+-	if ((rec.join_state == BIT(SENDONLY_FULLMEMBER_JOIN)) &&
+-	    (!ib_sa_sendonly_fullmem_support(&sa_client,
+-					     id_priv->id.device,
+-					     id_priv->id.port_num))) {
+-		dev_warn(
+-			&id_priv->id.device->dev,
+-			"RDMA CM: port %u Unable to multicast join: SM doesn't support Send Only Full Member option\n",
+-			id_priv->id.port_num);
+-		return -EOPNOTSUPP;
+-	}
+-
+ 	comp_mask = IB_SA_MCMEMBER_REC_MGID | IB_SA_MCMEMBER_REC_PORT_GID |
+ 		    IB_SA_MCMEMBER_REC_PKEY | IB_SA_MCMEMBER_REC_JOIN_STATE |
+ 		    IB_SA_MCMEMBER_REC_QKEY | IB_SA_MCMEMBER_REC_SL |
+Index: linux/drivers/infiniband/core/sa_query.c
+===================================================================
+--- linux.orig/drivers/infiniband/core/sa_query.c	2021-01-25 09:36:56.000000000 +0000
++++ linux/drivers/infiniband/core/sa_query.c	2021-01-25 09:38:09.818795183 +0000
+@@ -1951,30 +1951,6 @@ err1:
+ }
+ EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
+
+-bool ib_sa_sendonly_fullmem_support(struct ib_sa_client *client,
+-				    struct ib_device *device,
+-				    u8 port_num)
+-{
+-	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
+-	struct ib_sa_port *port;
+-	bool ret = false;
+-	unsigned long flags;
+-
+-	if (!sa_dev)
+-		return ret;
+-
+-	port  = &sa_dev->port[port_num - sa_dev->start_port];
+-
+-	spin_lock_irqsave(&port->classport_lock, flags);
+-	if ((port->classport_info.valid) &&
+-	    (port->classport_info.data.type == RDMA_CLASS_PORT_INFO_IB))
+-		ret = ib_get_cpi_capmask2(&port->classport_info.data.ib)
+-			& IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT;
+-	spin_unlock_irqrestore(&port->classport_lock, flags);
+-	return ret;
+-}
+-EXPORT_SYMBOL(ib_sa_sendonly_fullmem_support);
+-
+ struct ib_classport_info_context {
+ 	struct completion	done;
+ 	struct ib_sa_query	*sa_query;
+Index: linux/drivers/infiniband/ulp/ipoib/ipoib.h
+===================================================================
+--- linux.orig/drivers/infiniband/ulp/ipoib/ipoib.h	2020-08-11 13:08:51.122523955 +0000
++++ linux/drivers/infiniband/ulp/ipoib/ipoib.h	2021-01-25 09:42:34.783587162 +0000
+@@ -413,7 +413,6 @@ struct ipoib_dev_priv {
+ 	u64	hca_caps;
+ 	struct ipoib_ethtool_st ethtool;
+ 	unsigned int max_send_sge;
+-	bool sm_fullmember_sendonly_support;
+ 	const struct net_device_ops	*rn_ops;
+ };
+
+Index: linux/drivers/infiniband/ulp/ipoib/ipoib_main.c
+===================================================================
+--- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_main.c	2020-12-17 14:51:15.333206132 +0000
++++ linux/drivers/infiniband/ulp/ipoib/ipoib_main.c	2021-01-25 09:43:03.911673987 +0000
+@@ -141,8 +141,6 @@ int ipoib_open(struct net_device *dev)
+
+ 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
+
+-	priv->sm_fullmember_sendonly_support = false;
+-
+ 	if (ipoib_ib_dev_open(dev)) {
+ 		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
+ 			return 0;
+Index: linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+===================================================================
+--- linux.orig/drivers/infiniband/ulp/ipoib/ipoib_multicast.c	2020-08-11 13:08:51.122523955 +0000
++++ linux/drivers/infiniband/ulp/ipoib/ipoib_multicast.c	2021-01-25 09:41:24.415377238 +0000
+@@ -334,15 +334,6 @@ void ipoib_mcast_carrier_on_task(struct
+ 		return;
+ 	}
+ 	/*
+-	 * Check if can send sendonly MCG's with sendonly-fullmember join state.
+-	 * It done here after the successfully join to the broadcast group,
+-	 * because the broadcast group must always be joined first and is always
+-	 * re-joined if the SM changes substantially.
+-	 */
+-	priv->sm_fullmember_sendonly_support =
+-		ib_sa_sendonly_fullmem_support(&ipoib_sa_client,
+-					       priv->ca, priv->port);
+-	/*
+ 	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+ 	 * turning the carrier back on while a device is being
+ 	 * removed.  However, ipoib_stop() will attempt to flush
+@@ -537,9 +528,7 @@ static int ipoib_mcast_join(struct net_d
+ 		 * most closely emulates the behavior, from a user space
+ 		 * application perspective, of Ethernet multicast operation.
+ 		 */
+-		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
+-		    priv->sm_fullmember_sendonly_support)
+-			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
++		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
+ 			rec.join_state = SENDONLY_FULLMEMBER_JOIN;
+ 	}
+ 	spin_unlock_irq(&priv->lock);
