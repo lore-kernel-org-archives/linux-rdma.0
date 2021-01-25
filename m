@@ -2,183 +2,230 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A1A3C433DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 23:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA97C433E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 23:47:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 246D1229EF
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 23:16:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F88722AAC
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 23:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732510AbhAYXP4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jan 2021 18:15:56 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:1464 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732291AbhAYXPU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 18:15:20 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B600f50d80000>; Mon, 25 Jan 2021 15:14:32 -0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 23:14:31 +0000
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL101.nvidia.com
- (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 23:13:59 +0000
-Received: from NAM04-SN1-obe.outbound.protection.outlook.com (104.47.44.57) by
- HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 25 Jan 2021 23:13:59 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fVCzrT3EHUkPLDrtu5QbycgEFy/PfWCqx4oxbcY3ZIiUNjHzkvGSeZurfA3rVmJyXqWvyzwUgrhE9e69+Yv+sijUUy5C6Rj2mJGqGNhn9kzvc7PHU8s0wM48uXho3Lh87TZhaEj2AP/Gb3lwFBQZdvpnXmWsWruDkXsMYiwQZ62yXwKIyP2j3S32Q6ffDLej6MK6fyqB3IjG3xAiPvuwpDz8fB9zqa48xxrwgh5EQpjlGHWEJON/+Xc9A8p0HQG9QjnOqR1kXVpNrBMY6p/ghVpZz7dSyZBIPMs3p3EOl3KKBXzDxuSm/jn5MBmOWO1QSOfnNtdixPOPyidm6MMn1g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ugtF0NcHK0eH9JLck5QVusW/bK7+MYd3/Fhnw5C7/BA=;
- b=aJcbJwtY15C9WXml9qM4gejnej5erh95yq2FuaqGA2PsXePYJjFqz7X+fC8zPByFp7veJIVBtinYq8n1NI9oRmnwBovZsSSadF4sWDyaIqKoOvCTbL1wB+uminZ1cm7BnBA3GSoWBXrv7Wn+ke3EUwN00xdqHGySJYC7BM9VKdZ8G+v1i1e/CIa+t5rGCIISzJSP62z3+lUdTX3E+WQwHODE5jj6YFq8VscFcSvc7RlwcXq+CouO5DEenfFQ5YUEyltNcsB6knvW1DKbLQW2+ByPzVeHJqgOIMdJVw2tljS2Zv6opUiBfgzbt9fEHjAfdZINESimvjmqDKWZQaCOsg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4497.namprd12.prod.outlook.com (2603:10b6:5:2a5::24) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.16; Mon, 25 Jan
- 2021 23:13:57 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.019; Mon, 25 Jan 2021
- 23:13:57 +0000
-Date:   Mon, 25 Jan 2021 19:13:55 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Edwin Peer <edwin.peer@broadcom.com>
-CC:     Parav Pandit <parav@nvidia.com>, Saeed Mahameed <saeed@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Alexander Duyck <alexander.duyck@gmail.com>,
-        Sridhar Samudrala <sridhar.samudrala@intel.com>,
-        David Ahern <dsahern@kernel.org>,
-        Kiran Patil <kiran.patil@intel.com>,
-        Jacob Keller <jacob.e.keller@intel.com>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [pull request][net-next V10 00/14] Add mlx5 subfunction support
-Message-ID: <20210125231355.GC4147@nvidia.com>
-References: <20210122193658.282884-1-saeed@kernel.org>
- <CAKOOJTxQ8G1krPbRmRHx8N0bsHnT3XXkgkREY6NxCJ26aHH7RQ@mail.gmail.com>
- <BY5PR12MB43229840037E730F884C3356DCBD9@BY5PR12MB4322.namprd12.prod.outlook.com>
- <CAKOOJTw_RfYfFunhHKTD6k73FvFObVb5Xx7hK8uPUUGJpuTzuw@mail.gmail.com>
- <CAKOOJTx7ogAvUkT5y8vKYp=KB+VSbe0MgXg5PuvjEiU_dO_5YA@mail.gmail.com>
- <20210125195905.GA4147@nvidia.com>
- <CAKOOJTx_0CxQ27PmB6MfcagGYdeAqEDy4CCr0wNATZOeCBBkTg@mail.gmail.com>
- <20210125204143.GB4147@nvidia.com>
- <CAKOOJTwWUCe+6qkderKY7ojfHWDxkMQyQTR6uYRFNiZJ8zzYbw@mail.gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CAKOOJTwWUCe+6qkderKY7ojfHWDxkMQyQTR6uYRFNiZJ8zzYbw@mail.gmail.com>
-X-ClientProxiedBy: MN2PR04CA0028.namprd04.prod.outlook.com
- (2603:10b6:208:d4::41) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1732536AbhAYVTE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jan 2021 16:19:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49240 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732575AbhAYVSX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 16:18:23 -0500
+Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD8B0C06178B
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:48 -0800 (PST)
+Received: by mail-oi1-x22a.google.com with SMTP id n7so4408246oic.11
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=tsTol3rhzUxL2jFVkJX/iOKqAbW+O0NXRl4F0Z6OsCw=;
+        b=rQ4NEQuk+PgwD8WI/Vy/TP2ucL9CR4Z2T3ohkZ30Pz2zw1H16h99uhtN105emhE3al
+         xhuEjabdIPvS8UR4D1+hSbJzwzYrrdfQZmMBwZV3VHm+ZzPMPfbOTdq8OfrsDyuYLZ+J
+         0BLKnRoWRnD9GYaleLzl59bO2lxR5vfW+GRP0M61OTSrd9n0SSQMs7PGrjP6n2nLPxKs
+         R/V/5DP/LdfDuASZs0ZHSfax3tGcqCz9UVq9KVDc6fPTnOTjKbh0NZAbW5O1K7JKxYJE
+         LqoBunVEPBFdIaW+WZSZc0j6h97LU6W3OsNdspXIy0yTUFuou1z4XY9Sm9QVRVFyaNNO
+         xf+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=tsTol3rhzUxL2jFVkJX/iOKqAbW+O0NXRl4F0Z6OsCw=;
+        b=MUYfW+x2dqSWeG/jK4LvTD/OZIYwx4CQ+iQ9bPNtKv/cLWfji4jY1znkS53p6JmIBM
+         q5IkT0YkNDZrBpEnGs8eCYtx6YGZ8lTQorpd9p/YrY+uKZQ4ARhloJEKT2fbVQ0BndLc
+         LSWApuYPOpophe/zKDUaqpMkPYGQbyQhsv9LdmP8spvWeEHZKkBturYO3gru9jjG+OIJ
+         zHisi9TGDhBYMmY618VUMYnAyeYNvoOR20VwfO4gWcwFDbAOKquVQ5AAO88438dVQIgx
+         VHInDVIGBXmjYyj+p/wlugtXipmKU1QzieCTClXxj3aA7bFP+HoG63D3jgk65ft0JQ+k
+         ro5g==
+X-Gm-Message-State: AOAM530MOnf4dqHQfOMlIQEkFZjjI/A4hQ+1K2JphvdtBY3XZccfaMFa
+        7DDm3yebXAj4jBqwMM67ycU=
+X-Google-Smtp-Source: ABdhPJxliPQZKlf+Ud3tXg/1cSBA/NET5jw7rBWQr1RCRbndvYudbzol+0TBiPTcRPhEn2DqepaPTg==
+X-Received: by 2002:aca:a844:: with SMTP id r65mr1282430oie.35.1611609408275;
+        Mon, 25 Jan 2021 13:16:48 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-8baa-bb83-cd49-4ca4.res6.spectrum.com. [2603:8081:140c:1a00:8baa:bb83:cd49:4ca4])
+        by smtp.gmail.com with ESMTPSA id w11sm3722564otg.58.2021.01.25.13.16.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Jan 2021 13:16:47 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>, zyjzyj2000@gmail.c
+Subject: [PATCH for-next v3 5/6] RDMA/rxe: Remove unneeded pool->state
+Date:   Mon, 25 Jan 2021 15:16:40 -0600
+Message-Id: <20210125211641.2694-6-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20210125211641.2694-1-rpearson@hpe.com>
+References: <20210125211641.2694-1-rpearson@hpe.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR04CA0028.namprd04.prod.outlook.com (2603:10b6:208:d4::41) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12 via Frontend Transport; Mon, 25 Jan 2021 23:13:56 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l4B3T-006poA-NQ; Mon, 25 Jan 2021 19:13:55 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611616472; bh=ugtF0NcHK0eH9JLck5QVusW/bK7+MYd3/Fhnw5C7/BA=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=iwXg6xlk8ft7FAZHmQdvqeGejYcrWGLTqCCylf2omxFxQy/WdIYz3oqzq8SK3Os4y
-         21LlrvGVYPowsHf4PAy0NwWWhVNXdk0qXgxzyxY2wK9+jVtZIfASn/0t5pFlTkxHLj
-         aLcpCBKDNFDRF/f8OUCdGg1T/KFYJ1m3U1VCcUFl8F1MDj04XP71wTkKSJIkGmeWJ+
-         vn19MiS3RBxJ1C1xTzyOzgbE1ovca4eNWsLtx4nx8sXoF4PxYBb+jH2tkO8pmg68hy
-         5cLDna7GEV3SgU5BohIhypJvY6w6weouAfqOAgvqwU9wM4PmTrt/3tjqTLcZp5X/xM
-         2K9oZphh4ovjQ==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 25, 2021 at 01:23:04PM -0800, Edwin Peer wrote:
-> On Mon, Jan 25, 2021 at 12:41 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
-> 
-> > > That's an implementation decision. Nothing mandates that the state has
-> > > to physically exist in the same structure, only that reads and writes
-> > > are appropriately responded to.
-> >
-> > Yes, PCI does mandate this, you can't store the data on the other side
-> > of the PCI link, and if you can't cross the PCI link that only leaves
-> > on die/package memory resources.
-> 
-> Going off device was not what I was suggesting at all. I meant the
-> data doesn't necessarily need to be stored in the same physical
-> layout.
+[v3]
+Fixed spelling error.
 
-It doesn't change anything, every writable bit must still be stored
-on-die SRAM. You can compute the minimum by summing all writable and
-read-reporting bits in the standard SRIOV config space.
+rxe_pool.c uses the field pool->state to mark a pool as invalid
+when it is shut down and checks it in several pool APIs to verify
+that the pool has not been shut down. This is unneeded because the
+pools are not marked invalid unless the entire driver is being
+removed at which point no functional APIs should or could be
+executing. This patch removes this field and associated code.
 
-Every bit used for SRIOV is a bit that couldn't be used to improve
-device performance.
+Suggested-by: zyjzyj2000@gmail.c
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_pool.c | 38 +---------------------------
+ drivers/infiniband/sw/rxe/rxe_pool.h |  6 -----
+ 2 files changed, 1 insertion(+), 43 deletions(-)
 
-> > > Right, but presumably it still needs to be at least a page. And,
-> > > nothing says your device's VF BAR protocol can't be equally simple.
-> >
-> > Having VFs that are not self-contained would require significant
-> > changing of current infrastructure, if we are going to change things
-> > then let's fix everything instead of some half measure.
-> 
-> I don't understand what you mean by self-contained. 
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 5f85a90e5a5a..5aa835028460 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -157,24 +157,16 @@ int rxe_pool_init(
+ 		pool->key.key_size = rxe_type_info[type].key_size;
+ 	}
+ 
+-	pool->state = RXE_POOL_STATE_VALID;
+-
+ out:
+ 	return err;
+ }
+ 
+ void rxe_pool_cleanup(struct rxe_pool *pool)
+ {
+-	unsigned long flags;
+-
+-	write_lock_irqsave(&pool->pool_lock, flags);
+-	pool->state = RXE_POOL_STATE_INVALID;
+ 	if (atomic_read(&pool->num_elem) > 0)
+ 		pr_warn("%s pool destroyed with unfree'd elem\n",
+ 			pool_name(pool));
+-	write_unlock_irqrestore(&pool->pool_lock, flags);
+ 
+-	pool->state = RXE_POOL_STATE_INVALID;
+ 	kfree(pool->index.table);
+ }
+ 
+@@ -328,9 +320,6 @@ void *rxe_alloc_locked(struct rxe_pool *pool)
+ 	struct rxe_pool_entry *elem;
+ 	u8 *obj;
+ 
+-	if (pool->state != RXE_POOL_STATE_VALID)
+-		return NULL;
+-
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+ 		goto out_cnt;
+ 
+@@ -352,19 +341,10 @@ void *rxe_alloc_locked(struct rxe_pool *pool)
+ 
+ void *rxe_alloc(struct rxe_pool *pool)
+ {
+-	unsigned long flags;
+ 	struct rxe_type_info *info = &rxe_type_info[pool->type];
+ 	struct rxe_pool_entry *elem;
+ 	u8 *obj;
+ 
+-	read_lock_irqsave(&pool->pool_lock, flags);
+-	if (pool->state != RXE_POOL_STATE_VALID) {
+-		read_unlock_irqrestore(&pool->pool_lock, flags);
+-		return NULL;
+-	}
+-
+-	read_unlock_irqrestore(&pool->pool_lock, flags);
+-
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+ 		goto out_cnt;
+ 
+@@ -386,15 +366,6 @@ void *rxe_alloc(struct rxe_pool *pool)
+ 
+ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_entry *elem)
+ {
+-	unsigned long flags;
+-
+-	read_lock_irqsave(&pool->pool_lock, flags);
+-	if (pool->state != RXE_POOL_STATE_VALID) {
+-		read_unlock_irqrestore(&pool->pool_lock, flags);
+-		return -EINVAL;
+-	}
+-	read_unlock_irqrestore(&pool->pool_lock, flags);
+-
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+ 		goto out_cnt;
+ 
+@@ -437,9 +408,6 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+ 
+ 	read_lock_irqsave(&pool->pool_lock, flags);
+ 
+-	if (pool->state != RXE_POOL_STATE_VALID)
+-		goto out;
+-
+ 	node = pool->index.tree.rb_node;
+ 
+ 	while (node) {
+@@ -460,8 +428,8 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+ 		obj = NULL;
+ 	}
+ 
+-out:
+ 	read_unlock_irqrestore(&pool->pool_lock, flags);
++
+ 	return obj;
+ }
+ 
+@@ -473,9 +441,6 @@ void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
+ 	u8 *obj = NULL;
+ 	int cmp;
+ 
+-	if (pool->state != RXE_POOL_STATE_VALID)
+-		goto out;
+-
+ 	node = pool->key.tree.rb_node;
+ 
+ 	while (node) {
+@@ -499,7 +464,6 @@ void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
+ 		obj = NULL;
+ 	}
+ 
+-out:
+ 	return obj;
+ }
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 8f8de746ca17..61210b300a78 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -46,11 +46,6 @@ struct rxe_type_info {
+ 
+ extern struct rxe_type_info rxe_type_info[];
+ 
+-enum rxe_pool_state {
+-	RXE_POOL_STATE_INVALID,
+-	RXE_POOL_STATE_VALID,
+-};
+-
+ struct rxe_pool_entry {
+ 	struct rxe_pool		*pool;
+ 	struct kref		ref_cnt;
+@@ -69,7 +64,6 @@ struct rxe_pool {
+ 	rwlock_t		pool_lock; /* protects pool add/del/search */
+ 	size_t			elem_size;
+ 	void			(*cleanup)(struct rxe_pool_entry *obj);
+-	enum rxe_pool_state	state;
+ 	enum rxe_pool_flags	flags;
+ 	enum rxe_elem_type	type;
+ 
+-- 
+2.27.0
 
-Self-contained means you can pass the VF to a VM with vfio and run a
-driver on it. A VF that only has a write-only doorbell page probably
-cannot be self contained.
-
-> In practice, there will be some kind of configuration channel too,
-> but this doesn't necessarily need a lot of room either 
-
-I don't know of any device that can run without configuration, even in
-a VF case.
-
-So this all costs SRAM too.
-
-> > The actual complexity inside the kernel is small and the user
-> > experience to manage them through devlink is dramatically better than
-> > SRIOV. I think it is a win even if there isn't any HW savings.
-> 
-> I'm not sure I agree with respect to user experience. Users are
-> familiar with SR-IOV.
-
-Sort of, SRIOV is a very bad fit for these sophisticated devices, and
-no, users are not familiar with the weird intricate details of SR-IOV
-in the context of very sophisticated reconfigurable HW like we are
-seeing now.
-
-Look at the other series about MSI-X reconfiguration for some colour
-on where SRIOV runs into limits due to its specific design.
-
-> Now you impose a complementary model for accomplishing the same goal
-> (without solving all the problems, as per the previous discussion,
-> so we'll need to reinvent it again later).  
-
-I'm not sure what you are referring to.
-
-> It's not easier for vendors either. Now we need to get users onto new
-> drivers to exploit it, with all the distribution lags that entails
-> (where existing drivers would work for SR-IOV). 
-
-Compatability with existing drivers in a VM is a vendor
-choice. Drivers can do a lot in a scalable way in hypervisor SW to
-present whateve programming interface makes sense to the VM. Intel is
-showing this approach in their IDXD SIOV ADI driver.
-
-> Some vendors will support it, some won't, further adding to user
-> confusion.
-
-Such is the nature of all things, some vendors supported SRIOV and
-other didn't too.
-
-Jason
