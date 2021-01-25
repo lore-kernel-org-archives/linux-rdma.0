@@ -2,118 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AE6C433DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:44:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C63EEC433E6
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:55:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E290A2256F
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:44:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A50122582
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731269AbhAYUnr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jan 2021 15:43:47 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:19380 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732097AbhAYTuh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 14:50:37 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B600f20e20000>; Mon, 25 Jan 2021 11:49:54 -0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 19:49:53 +0000
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL101.nvidia.com
- (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 19:49:44 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.177)
- by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 25 Jan 2021 19:49:44 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=F+68gOmRfKuyvP8JRHBpA1p5zlymWaM+bxfyADMeA3mJwt2be3rxYtLNDuSNkPDuSq0Qp0MrXdtHvMV74aScDgruK///WBHxYiYfWga4xKIpaeS+B/IQ4NbYgXsid38v80iO0+YpFir9j8f9vTgdXWOca0gQ7vf6Jz7AJlkhOZmwfjEKpNol0POjYc3BIhSb9cT0arPN52C0OHwqllkDCcgwsdRE+f2/oL8Sz2o0/613aCV1TCJA911Rdq1t16HcTcFQdtPR4wbjBcKu9DSlk2vHYca/E/LZiLUYxhFMlnyJAB9PR0zj51ft8v00L/1EDSr2TC3fG0Cv72VFgntDrA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=+rBrJp3D0/deZS2m7iEuBAAQb4R6sBhX6MDEkU8y7JU=;
- b=RvbJ59dIJz9QelmkYnrL2BsxulDtxzi65zRUCgxf5BB/pU6ea/wBLuLQSJHSVycufxNCjV6kSX+G2ZYfbsdaKdwO/sjzqkK20odvY0D8oHWivTmW5Pu0SozX8g1tWORby3QuwC98w99ZzxUYJ7Yx2X55vTU2JZIoPJlX+nNeZJ6Eh6Q8J3E4zILWEKYcDllScOMmUjIC/fxilc5DnEJ9VT/9B14jwF9TxvR3rsl1wN80GjzXk6yGlJdyDyxs5kEMdsA3LaY/Pdr9Z+ByDn/VdVpo1ejDYXqIpcW4ZjGmJVeZCU2O3FfVozTP8R/Ibn17ReTaTqhKqD9741PJtCz19g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4402.namprd12.prod.outlook.com (2603:10b6:5:2a5::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9; Mon, 25 Jan
- 2021 19:49:43 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.017; Mon, 25 Jan 2021
- 19:49:43 +0000
-Date:   Mon, 25 Jan 2021 15:49:41 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Edwin Peer <edwin.peer@broadcom.com>
-CC:     Parav Pandit <parav@nvidia.com>, Saeed Mahameed <saeed@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Alexander Duyck <alexander.duyck@gmail.com>,
-        Sridhar Samudrala <sridhar.samudrala@intel.com>,
-        David Ahern <dsahern@kernel.org>,
-        Kiran Patil <kiran.patil@intel.com>,
-        Jacob Keller <jacob.e.keller@intel.com>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [pull request][net-next V10 00/14] Add mlx5 subfunction support
-Message-ID: <20210125194941.GZ4147@nvidia.com>
-References: <20210122193658.282884-1-saeed@kernel.org>
- <CAKOOJTxQ8G1krPbRmRHx8N0bsHnT3XXkgkREY6NxCJ26aHH7RQ@mail.gmail.com>
- <BY5PR12MB43229840037E730F884C3356DCBD9@BY5PR12MB4322.namprd12.prod.outlook.com>
- <20210125132210.GJ4147@nvidia.com>
- <CAKOOJTx9V328r+TC_Pd0LXQr6aMaiK2eB4Qu77Dw-kc00vg3Bg@mail.gmail.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CAKOOJTx9V328r+TC_Pd0LXQr6aMaiK2eB4Qu77Dw-kc00vg3Bg@mail.gmail.com>
-X-ClientProxiedBy: BL0PR02CA0061.namprd02.prod.outlook.com
- (2603:10b6:207:3d::38) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1732443AbhAYUxg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jan 2021 15:53:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51144 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732427AbhAYUxX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 25 Jan 2021 15:53:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BCB52251D;
+        Mon, 25 Jan 2021 20:52:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1611607963;
+        bh=jKa1NaFdRA7s2N74JjyXd7xJi2aGjpOTnv1ljZflI1g=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Pja8o96UTo95+PIxYC7eUqyEYKzkD0G8H/Yc2OpXQkoSdMBWAWDzpQIFZzGYx7Gq6
+         JKrqVtOvCXtoIwxXVdOFIGsTuLozSn7fk+F/G3yJ9SGStXWSDTc/r9FjOdbxH34jfb
+         agV/cFKqcp4Y4eWRiSNni6hwP0VJ8t33/SBV2X8dav/3Q+IHc2K2JxhHjlek2y9jQy
+         GXu2EaYL7hQ59NbfrAzVXgfPPxQDLdDQI+6hvofu02aBA2k7iX7Mfxw616ZoIrD/9n
+         y9R0iwooH1h1PMI+pWdPEJ9Lm6CSR94h9lJqYz4BSvIy38OnrAHw1t9ptoFf5CGKzS
+         TQR4C8vBSS26g==
+Date:   Mon, 25 Jan 2021 12:52:41 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Shiraz Saleem <shiraz.saleem@intel.com>, <dledford@redhat.com>,
+        <davem@davemloft.net>, <linux-rdma@vger.kernel.org>,
+        <gregkh@linuxfoundation.org>, <netdev@vger.kernel.org>,
+        <david.m.ertman@intel.com>, <anthony.l.nguyen@intel.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Message-ID: <20210125125241.495d8d82@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20210125132834.GK4147@nvidia.com>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+        <20210122234827.1353-8-shiraz.saleem@intel.com>
+        <20210124134551.GB5038@unreal>
+        <20210125132834.GK4147@nvidia.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BL0PR02CA0061.namprd02.prod.outlook.com (2603:10b6:207:3d::38) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.12 via Frontend Transport; Mon, 25 Jan 2021 19:49:42 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l47rp-006ioV-F3; Mon, 25 Jan 2021 15:49:41 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611604194; bh=+rBrJp3D0/deZS2m7iEuBAAQb4R6sBhX6MDEkU8y7JU=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=RDnS/rhgTEv6DP8YN53WBn8QXjlNEvr5mV9wJTf2K3kw+c0RsZSpRt8kR8h+KFqUb
-         AbgFPBGYAVwjVo2K/hk+sqgw1mtUC3VfpFivUr1f++MnKJuDcF3+zZ7jsFdZdAtzyT
-         pS32J7GcGlmp79AO2tYL0MD+hRsWrTZj5eeMHc8mw7Wf1IyV8Pa/g5KBzPn9Ni6bBp
-         rqrzxjrDMROrvJkUdWCV444IQdZ8+hdHub4H0qtwrbwkfH0yizkZLr1O7k2SHO0FZc
-         nwWEym3+f6Iz/KhDijmEvakBDZIwTahk7vqUZXliEVwPCSQ40DfXTFUZpoHXNBkPK9
-         +u9gyjfopbaLg==
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 25, 2021 at 11:23:56AM -0800, Edwin Peer wrote:
-> On Mon, Jan 25, 2021 at 5:22 AM Jason Gunthorpe <jgg@nvidia.com> wrote:
+On Mon, 25 Jan 2021 09:28:34 -0400 Jason Gunthorpe wrote:
+> On Sun, Jan 24, 2021 at 03:45:51PM +0200, Leon Romanovsky wrote:
+> > On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:  
+> > > From: Mustafa Ismail <mustafa.ismail@intel.com>
+> > >
+> > > Register irdma as an auxiliary driver which can attach to auxiliary RDMA
+> > > devices from Intel PCI netdev drivers i40e and ice. Implement the private
+> > > channel ops, add basic devlink support in the driver and register net
+> > > notifiers.  
+> > 
+> > Devlink part in "the RDMA client" is interesting thing.
+> > 
+> > The idea behind auxiliary bus was that PCI logic will stay at one place
+> > and devlink considered as the tool to manage that.  
 > 
-> > SRIOV and SF's require a simple linear lookup to learn the "function"
-> > because the BAR space is required to be linear.
-> 
-> Isn't this still true even for NumVF's > 256? Wouldn't there still be
-> a contiguous VF BAR space? Don't the routing IDs simply carry on
-> incrementing by stride, with each being assigned the next slice of the
-> shared BAR space?
+> Yes, this doesn't seem right, I don't think these auxiliary bus
+> objects should have devlink instances
 
-I've never seen someone implement a NumVF > 256 by co-opting the bus
-number.
-
-Can Linux even assign more bus numbers to a port without firmware
-help? Bus numbers are something that requires the root complex to be
-aware of to setup routability.
-
-Jason
++1
