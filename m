@@ -2,155 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65B1EC433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:59:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B23D1C433DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 317CD207B1
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 20:59:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8435F20679
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jan 2021 21:19:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731702AbhAYU7N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jan 2021 15:59:13 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:3642 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731797AbhAYTrY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 14:47:24 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B600f1fd50001>; Mon, 25 Jan 2021 11:45:25 -0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 19:45:23 +0000
-Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL101.nvidia.com
- (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 25 Jan
- 2021 19:45:19 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.170)
- by HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Mon, 25 Jan 2021 19:45:18 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aQPLTdyWHSzksYRqWwOjsd+xKEWuWcCW0apshzrRliDj8+vxxizk7eWnSoMiDrRIH0QfhoPRzieacINrY9syyfddVKU3XKbX75xZHhRQVRo09XXnsIjfZ8iJ1YLYQ13ouW6y6VTegCSLPATxa0mD6fVGxV1NO876sVdbS2JbLvdERPo+99DUNbugPhTnV9aBz1SOnDksLVbAmyTg+xe7VdbdhMrjFPR81shOvyDH1iuWg1Q7bJTOZvRc7uPpkABOibC40fTK0cpEk6KhNy2r2e3heTRZUp6n9Nt0O1vAiG+DlntlyyCGbtrmwYs5FeBJUtRTx+YxjiUczjd/b9xJ1g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=MkpTbzUWS8J8UQtQtCfDPIcVvDeh+1kenQ7wU+DdsF8=;
- b=fO/m1QD1ciKZG/RUraE797xTsUh/f6sV8QvAnsKZHeLmqIF3w2JYnsHJKWZEfgHBQZPZ9OXI6rTE3EIbxehyisHbkdXyJOghwjz5g0MDJbtklwaWLz0AWErmcjkRvY5ZJAhP6W3dZm45eK+biudjAiaulKe1lT+NxK4CXBcPvZ1NhxE676dQNWER5qDXeYw8Bc+wsKlqbc4UGdko4OEk/XOvAyCIC+eSz+CMKVPtaGS5bYFrRU3GdddV57YPdLCQscgl7F6EiWAebwwAMShG1uwdd54K8TVCm+XAREVuAjcJo7KswNV/vulQTrnYeyeGOBZYAvsbkMoVQQ4KzlUV4w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB4402.namprd12.prod.outlook.com (2603:10b6:5:2a5::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3763.9; Mon, 25 Jan
- 2021 19:45:17 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.017; Mon, 25 Jan 2021
- 19:45:17 +0000
-Date:   Mon, 25 Jan 2021 15:45:15 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Shiraz Saleem <shiraz.saleem@intel.com>
-CC:     <dledford@redhat.com>, <kuba@kernel.org>, <davem@davemloft.net>,
-        <linux-rdma@vger.kernel.org>, <gregkh@linuxfoundation.org>,
-        <netdev@vger.kernel.org>, <david.m.ertman@intel.com>,
-        <anthony.l.nguyen@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>
-Subject: Re: [PATCH 20/22] RDMA/irdma: Add ABI definitions
-Message-ID: <20210125194515.GY4147@nvidia.com>
-References: <20210122234827.1353-1-shiraz.saleem@intel.com>
- <20210122234827.1353-21-shiraz.saleem@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20210122234827.1353-21-shiraz.saleem@intel.com>
-X-ClientProxiedBy: MN2PR13CA0023.namprd13.prod.outlook.com
- (2603:10b6:208:160::36) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S1731893AbhAYVRr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jan 2021 16:17:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49030 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726769AbhAYVRj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 16:17:39 -0500
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FFBDC0613D6
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:45 -0800 (PST)
+Received: by mail-oi1-x22e.google.com with SMTP id r189so16316388oih.4
+        for <linux-rdma@vger.kernel.org>; Mon, 25 Jan 2021 13:16:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=iFh6Ix/PdTVqutumuHsClVSB5t4m9keuKTZxKXMeJ68=;
+        b=TEp4IJa8VL+c97pH123IRyaRvVc/BI+ijdigVXzDDubwrFIF4/qBn7/En+t/7mBW8e
+         dEsO9p0H6o+YD5E85CZm+0sfYvYzgJ0sGwIkRe4gazA4+YztcbjXV31EYy1JgNQB++9d
+         s4QFJF3v8dDNQ40DM2XHoRExHiVaEOLtwIDvpqPA1N+C5jny49yT3XGmSVFktWq0hMC7
+         z2zlAiSy4k6exN+hRz8RzQJIAotqQ+j/GwjiTN9hWM6YFzBGkZusTD80ZD4fubv+ajvi
+         bA8Eq7p0LzOY9MNv1kI83uF7JoyN9A1jL7CpoTdrnvIaKMdUTYQ0KsvZqi6v+R5slG9c
+         NIJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=iFh6Ix/PdTVqutumuHsClVSB5t4m9keuKTZxKXMeJ68=;
+        b=IUH/+IeFuaqCqSXDqIrtqEUqPF74qWZigF0KzxClSJncxYE3lulqQvtnoTmFaG6xOk
+         pFVJBYif1AUjF2kSpkCOSvgt9KWEbz9XmG0nh9025nT6z3pWLaV/DN8M/OmgAYhV2Da4
+         SVB5f35GkLa+LvgD3Ko3xQedXosc2cTYf8cwjLVY7KJ16oRBnuqy3KJmKJF/w3qtVgPE
+         qDFnpwG6F8N6g3gXRV2QpjO0UidvXCkAtrCNKx3YP1eYWMw0rtPL5F/PKax6DRgMs33H
+         vPMpo347kirfxjMlScrWm3ch/BBjs61hoY3p2DwsVQ7MLWA8PVjMnu055sWneLF/7lo1
+         N0Bw==
+X-Gm-Message-State: AOAM531Gzoc2uG8/qQBVzSlVI9FcU/Evtz4QdhXpTrUTR9/3vXy5Q2VP
+        iNVzNwu0i4C0hnCWEO7YFkQ=
+X-Google-Smtp-Source: ABdhPJzWu7V5C5eJQ7/NwC05gmJTzzkMMIDoz9yIYWIcB/FTTeI+G3Cp218O56I77kKhmeugSli0qA==
+X-Received: by 2002:aca:f40c:: with SMTP id s12mr1239173oih.105.1611609404738;
+        Mon, 25 Jan 2021 13:16:44 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-8baa-bb83-cd49-4ca4.res6.spectrum.com. [2603:8081:140c:1a00:8baa:bb83:cd49:4ca4])
+        by smtp.gmail.com with ESMTPSA id w11sm3722564otg.58.2021.01.25.13.16.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Jan 2021 13:16:44 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next v3 0/6] RDMA/rxe: Misc rxe_pool cleanups
+Date:   Mon, 25 Jan 2021 15:16:35 -0600
+Message-Id: <20210125211641.2694-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR13CA0023.namprd13.prod.outlook.com (2603:10b6:208:160::36) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.7 via Frontend Transport; Mon, 25 Jan 2021 19:45:16 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l47nX-006ih8-VR; Mon, 25 Jan 2021 15:45:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611603925; bh=MkpTbzUWS8J8UQtQtCfDPIcVvDeh+1kenQ7wU+DdsF8=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=oDWuyoM3JTO90pYM2j0uPgQT1KUraYMb0prdjnYH5ZgBpzGBrKXSa+NbAMiwLaYPs
-         qblbsq18OYE5xTbo/I0sKFzaWDKA0VaaYxBY+/cnJS09vqk4n27hT3Ksz9EC5cESqI
-         VEHMlRBgsVAdchxJkak6XsrKHRksbSV+qHEcEWdk6JrmXUPPoLkpeDBVCd5RQuM+z6
-         n9iJR7Eybc1UuOhs1HggyBsEYPUquyjoK32TrPpbUCcQohGA8v43QcpfhXVqJPux9d
-         DxskUMHxZdHuZHxOqDR3SBAYuuVF964ZfESygPmJIxFlacPsCe9+JrnUiqGuFaKFS7
-         SK7eIN1VuklaQ==
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jan 22, 2021 at 05:48:25PM -0600, Shiraz Saleem wrote:
-> From: Mustafa Ismail <mustafa.ismail@intel.com>
-> 
-> Add ABI definitions for irdma.
-> 
-> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
->  include/uapi/rdma/irdma-abi.h | 140 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 140 insertions(+)
->  create mode 100644 include/uapi/rdma/irdma-abi.h
-> 
-> diff --git a/include/uapi/rdma/irdma-abi.h b/include/uapi/rdma/irdma-abi.h
-> new file mode 100644
-> index 0000000..d9c8ce1
-> +++ b/include/uapi/rdma/irdma-abi.h
-> @@ -0,0 +1,140 @@
-> +/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) OR Linux-OpenIB) */
-> +/*
-> + * Copyright (c) 2006 - 2021 Intel Corporation.  All rights reserved.
-> + * Copyright (c) 2005 Topspin Communications.  All rights reserved.
-> + * Copyright (c) 2005 Cisco Systems.  All rights reserved.
-> + * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
-> + */
-> +
-> +#ifndef IRDMA_ABI_H
-> +#define IRDMA_ABI_H
-> +
-> +#include <linux/types.h>
-> +
-> +/* irdma must support legacy GEN_1 i40iw kernel
-> + * and user-space whose last ABI ver is 5
-> + */
-> +#define IRDMA_ABI_VER 6
+[v3]
+Fixed a spelling error suggested by zyjzyj2000@gmail.com
+Changed the naming of APIs to xxx_locked suggested by jgg@nvidia.com
 
-I don't want to see this value increase, either this is ABI compatible
-with i40iw or it is not and should be a new driver_id.
+[v2]
+This series of patches corrects a bug introduced in rxe_pool.c
+by a recent commit and then addresses several issues raised
+during discussion of the bug and the proposed fix.
 
-This should have a small diff against include/uapi/rdma/i40iw-abi.h
-that is obviously compatible
+The first patch fixes a real bug but the other five are
+stylistic and cleanup changes.
 
-> +struct irdma_create_qp_resp {
-> +	__u32 qp_id;
-> +	__u32 actual_sq_size;
-> +	__u32 actual_rq_size;
-> +	__u32 irdma_drv_opt;
-> +	__u32 qp_caps;
-> +	__u16 rsvd1;
-> +	__u8 lsmm;
-> +	__u8 rsvd2;
-> +};
+Taken together these changes also improve the performance of
+ib_write_bw (in software loopback) by about 6% by reducing
+overhead in rxe_pool.c compared to current head of tree.
 
-> +struct i40iw_create_qp_resp {
-> +	__u32 qp_id;
-> +	__u32 actual_sq_size;
-> +	__u32 actual_rq_size;
-> +	__u32 i40iw_drv_opt;
-> +	__u16 push_idx;
-> +	__u8 lsmm;
-> +	__u8 rsvd;
-> +};
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
 
-For instance these are almost the same, why put qp_caps in the middle?
-Add it to the end so the whole thing is properly compatible with a
-single structure.
+Bob Pearson (6):
+  RDMA/rxe: Fix bug in rxe_alloc
+  RDMA/rxe: Fix misleading comments and names
+  RDMA/rxe: Remove RXE_POOL_ATOMIC
+  RDMA/rxe: Remove references to ib_device and pool
+  RDMA/rxe: Remove unneeded pool->state
+  RDMA/rxe: Replace missing rxe_pool_get_index_locked
 
-Jason
+ drivers/infiniband/sw/rxe/rxe_mcast.c |   8 +-
+ drivers/infiniband/sw/rxe/rxe_pool.c  | 132 +++++++++-----------------
+ drivers/infiniband/sw/rxe/rxe_pool.h  |  63 ++++++------
+ 3 files changed, 76 insertions(+), 127 deletions(-)
+-- 
+2.27.0
+
