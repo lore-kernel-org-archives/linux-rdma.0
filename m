@@ -2,135 +2,122 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1631C4332E
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E64CBC4332B
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 08:22:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9501E22B2C
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B20CE22DFB
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 08:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388067AbhAZFjU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:39:20 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:14684 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731269AbhAZCQi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 21:16:38 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B600f69780000>; Mon, 25 Jan 2021 16:59:36 -0800
-Received: from HKMAIL103.nvidia.com (10.18.16.12) by HQMAIL109.nvidia.com
- (172.20.187.15) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 26 Jan
- 2021 00:59:35 +0000
-Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL103.nvidia.com
- (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 26 Jan
- 2021 00:59:32 +0000
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.58) by
- HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Tue, 26 Jan 2021 00:59:32 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FhcIdDawDpsvXVs+xFNzrwiBrM6Ye218q4Xl1BSIzU0Ig/WgQvtsUSOmuz5KbllFEhmCJ2D0zCMFeS1lg8ua2C+4Pa5zd3fv9PXKsaHiZopWuWNxvJjFhvkg4ngnZmza2igh7hdjgtntlkm/GDG6vYrgg+YnHWO9BsqLbZGQX3fB4x3FLvK/UPnctb/W3RQ2LLqDz0p+FxO42/J0zVLLUw2RPbUMkUCwPsvwOprXu49p5N7aoi3YRgrKFkiTvi+sZ4Rg+QMzqMEzFFEL6i5QX73puhhknpxzxR1tBgMuY+FRbsfdRlv9wu+iSgyKyVpPyE08f6e/8qMlHU3UqrI7nQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IDaFVbmeFQ0AzNIkoX0Mlv7rJPGfwNx0DNCu5ENH0pI=;
- b=jByClsGDK+36rJxdW3TIlzpawoVRtCbrr1Y21JoZjjsJ+QjTFa0ZjY9iLioSXorXDv27isDmwoBP8jhn+bbbvb1z1mm3qEJhwvfUPQh7XAKLWTocfqM0rVclO3H+GHuv33wD2ckBZplp+YwoSzqrQ6KOSD+gMmtnQvdc8RQwSyGHJ9gkGaYIb2dXp+p5I2I08BB9vsE+3V30flxC9mUQHrLzAnh1v0MQ1/bKQqQ4z3TigCL1V6eXMfhjty5XXmhA3fDROKKduPlOmhoZmDwwIfcVQ5h3JzYnHu9np535wdM6MixOuvBTxaVZLvngKC71KA/aoajDAs7Cb7JYpebWvw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB2487.namprd12.prod.outlook.com (2603:10b6:4:af::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.13; Tue, 26 Jan
- 2021 00:59:30 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.019; Tue, 26 Jan 2021
- 00:59:30 +0000
-Date:   Mon, 25 Jan 2021 20:59:28 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
-        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
- implement private channel OPs
-Message-ID: <20210126005928.GF4147@nvidia.com>
-References: <20210122234827.1353-1-shiraz.saleem@intel.com>
- <20210122234827.1353-8-shiraz.saleem@intel.com>
- <20210125184248.GS4147@nvidia.com>
- <99895f7c10a2473c84a105f46c7ef498@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <99895f7c10a2473c84a105f46c7ef498@intel.com>
-X-ClientProxiedBy: MN2PR15CA0063.namprd15.prod.outlook.com
- (2603:10b6:208:237::32) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S2389817AbhAZIVC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 03:21:02 -0500
+Received: from smtprelay0146.hostedemail.com ([216.40.44.146]:53526 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2389809AbhAZIVA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 Jan 2021 03:21:00 -0500
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay02.hostedemail.com (Postfix) with ESMTP id 8742B12C7;
+        Tue, 26 Jan 2021 08:20:14 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: fire53_3e0904e2758c
+X-Filterd-Recvd-Size: 4553
+Received: from [192.168.1.159] (unknown [47.151.137.21])
+        (Authenticated sender: joe@perches.com)
+        by omf02.hostedemail.com (Postfix) with ESMTPA;
+        Tue, 26 Jan 2021 08:20:12 +0000 (UTC)
+Message-ID: <48c5a16657bb7b6c0f619253e57133137d4e825c.camel@perches.com>
+Subject: Re: [PATCH mlx5-next v4 1/4] PCI: Add sysfs callback to allow MSI-X
+ table size change of SR-IOV VFs
+From:   Joe Perches <joe@perches.com>
+To:     Leon Romanovsky <leon@kernel.org>, Jakub Kicinski <kuba@kernel.org>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>
+Date:   Tue, 26 Jan 2021 00:20:11 -0800
+In-Reply-To: <20210126060135.GQ579511@unreal>
+References: <20210124131119.558563-1-leon@kernel.org>
+         <20210124131119.558563-2-leon@kernel.org>
+         <20210125135229.6193f783@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+         <20210126060135.GQ579511@unreal>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.38.1-1 
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR15CA0063.namprd15.prod.outlook.com (2603:10b6:208:237::32) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.11 via Frontend Transport; Tue, 26 Jan 2021 00:59:29 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l4Chc-006tBh-L1; Mon, 25 Jan 2021 20:59:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611622776; bh=IDaFVbmeFQ0AzNIkoX0Mlv7rJPGfwNx0DNCu5ENH0pI=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType;
-        b=Im12xVbjXtaWsZAc1FGPK6Ic241J8zICcrvQjtbgF4eRENPuUP5ZwMpxSfAssRR1U
-         P+Zqa1umS91KJsWngWrRoKoGchZ0Xyyid+UyVt2Cx5e4wSnMJtJjEj7kkFsY4B4VpD
-         X3B5oe6aS7YRCrbX8gR/Qr4+KYFYdM2Qj/6nf1IiPH8MkowFL8JXcBGbu70AgWgPkB
-         GBS6QA0C1573j99zIIeRO6xCAJ+1xOCvFOq3enRy0aKpnpBWL4lN9Umbl7x11o/lmV
-         uYR9rukW7+1PVXpcd8bghxPlVvgK3In5fPlQaljoz6JTopDlkePIyRbhdGiO/CluqB
-         LViOCSIzENPag==
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jan 26, 2021 at 12:42:16AM +0000, Saleem, Shiraz wrote:
-
-> I think this essentially means doing away with .open/.close piece. 
-
-Yes, that too, and probably the FSM as well.
-
-> Or are you saying that is ok?  Yes we had a discussion in the past
-> and I thought we concluded. But maybe I misunderstood.
+On Tue, 2021-01-26 at 08:01 +0200, Leon Romanovsky wrote:
+> On Mon, Jan 25, 2021 at 01:52:29PM -0800, Jakub Kicinski wrote:
+> > On Sun, 24 Jan 2021 15:11:16 +0200 Leon Romanovsky wrote:
+> > > +static int pci_enable_vfs_overlay(struct pci_dev *dev) { return 0; }
+> > > +static void pci_disable_vfs_overlay(struct pci_dev *dev) {}
+> > 
+> > s/static /static inline /
 > 
-> https://lore.kernel.org/linux-rdma/9DD61F30A802C4429A01CA4200E302A7DCD4FD03@fmsmsx124.amr.corp.intel.com/
+> Thanks a lot, I think that we should extend checkpatch.pl to catch such
+> mistakes.
 
-Well, having now seen how aux bus ended up and the way it effected the
-mlx5 driver, I am more firmly of the opinion this needs to be
-fixed. It is extremly hard to get everything right with two different
-registration schemes running around.
+Who is this "we" you refer to? ;)
 
-You never answered my question:
+> How hard is it to extend checkpatch.pl to do regexp and warn if in *.h file
+> someone declared function with implementation but didn't add "inline" word?
 
-> Still, you need to be able to cope with the user unbinding your
-> drivers in any order via sysfs. What happens to the VFs when the PF is
-> unbound and releases whatever resources? This is where the broadcom
-> driver ran into troubles..
+Something like this seems reasonable and catches these instances in
+include/linux/*.h
 
-?
+$ ./scripts/checkpatch.pl -f include/linux/*.h --types=static_inline --terse --nosummary
+include/linux/dma-mapping.h:203: WARNING: static function definition might be better as static inline
+include/linux/genl_magic_func.h:55: WARNING: static function definition might be better as static inline
+include/linux/genl_magic_func.h:78: WARNING: static function definition might be better as static inline
+include/linux/kernel.h:670: WARNING: static function definition might be better as static inline
+include/linux/kprobes.h:213: WARNING: static function definition might be better as static inline
+include/linux/kprobes.h:231: WARNING: static function definition might be better as static inline
+include/linux/kprobes.h:511: WARNING: static function definition might be better as static inline
+include/linux/skb_array.h:185: WARNING: static function definition might be better as static inline
+include/linux/slab.h:606: WARNING: static function definition might be better as static inline
+include/linux/stop_machine.h:62: WARNING: static function definition might be better as static inline
+include/linux/vmw_vmci_defs.h:850: WARNING: static function definition might be better as static inline
+include/linux/zstd.h:95: WARNING: static function definition might be better as static inline
+include/linux/zstd.h:106: WARNING: static function definition might be better as static inline
 
-> PF due to underlying config changes which require a
-> de-reg/re-registration of the ibdevice.  Today such config changes
-> are handled with the netdev PCI driver using the .close() private
-> callback into rdma driver which unregister ibdevice in PF while
-> allowing the RDMA VF to survive.
+A false positive exists when __must_check is used between
+static and inline.  It's an unusual and IMO not a preferred use.
+---
+ scripts/checkpatch.pl | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Putting resources the device needs to function in the aux driver is no
-good, managing shared resources is the role of the PCI function owning
-core driver.
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 4f8494527139..0ac366481962 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -4451,6 +4451,18 @@ sub process {
+ 			}
+ 		}
+ 
++# check for static function definitions without inline in .h files
++# only works for static in column 1 and avoids multiline macro definitions
++		if ($realfile =~ /\.h$/ &&
++		    defined($stat) &&
++		    $stat =~ /^\+static(?!\s+(?:$Inline|union|struct))\b.*\{.*\}\s*$/s &&
++		    $line =~ /^\+static(?!\s+(?:$Inline|union|struct))\b/ &&
++		    $line !~ /\\$/) {
++			WARN("STATIC_INLINE",
++			     "static function definition might be better as static inline\n" .
++				$herecurr);
++		}
++
+ # check for non-global char *foo[] = {"bar", ...} declarations.
+ 		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
+ 			WARN("STATIC_CONST_CHAR_ARRAY",
 
-If you put the open/close on the aux device_driver struct and got rid
-of the redundant life cycle stuff, it might be OK enough, assuming
-there is a good answer to the question above.
 
-Jason
