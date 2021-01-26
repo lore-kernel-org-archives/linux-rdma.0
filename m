@@ -2,160 +2,100 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF3A1C433E9
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 17:01:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 121FAC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 19:05:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 873D622EBD
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 17:01:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3B9722228
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 19:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726314AbhAZRAy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 12:00:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53676 "EHLO mail.kernel.org"
+        id S1727260AbhAZRCA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 12:02:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390537AbhAZI6e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 26 Jan 2021 03:58:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2FF3230FC;
-        Tue, 26 Jan 2021 08:57:34 +0000 (UTC)
+        id S2390764AbhAZJ1B (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 Jan 2021 04:27:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 152A923104;
+        Tue, 26 Jan 2021 09:26:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611651455;
-        bh=JAkZWzoFVc/4aeT+y5JDmRQyFWQ/0bllo+5oGyiqzEg=;
-        h=From:To:Cc:Subject:Date:From;
-        b=WDHNyT96TtepU0zetviXWikwpqssSGufbRJTDIquQKujtXkjSAcSPyNGEMJr6x4CA
-         wRmF81QEcdpufg0POGWTPKHfEiVXJCC4j6BT7GvEFES+QsG8f1HCt7atza/HIT9N9Q
-         QRUn6Uc0amo2etDApPt/cERCOobb8V+QMy4DJ/5Q1uoqcYQWeP2tD+mNiTXprZ+FsD
-         mSUoJe8oukhGD9VVgCSjEFkRYNTH7nayeVcdaIqdCMJo0vTfPvRSIBLh/k9asyeTTI
-         dsbGUGpq1dROy7wPUNIDIBbAX0x1P1O6MmxQwv9BBEXAYFQUNi95IqOzTWSgHtiPVC
-         Eu0IDWOxc4mKw==
+        s=k20201202; t=1611653164;
+        bh=n9V/J8e1eqv74S9xZ5fa3DLyRbZIQAOTaxLDUbYwHkc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=DVBMX5ML+9cNH7+RQ1EHJQmzJaKeva177oUJz8EmuWGnbv3oAeZAujkGJmJspvJRF
+         KmFTGrQaZu6Px5ryOdwdI09ZSfWFaHXXpMRgVEZC++RsII4J4I9PWr2JXicoqTmo0Q
+         ozc0LYSJX/0F82pMQspLCWl7toeGNv7BEyuao/tSi+OZZ52N229/HSEqTlyZpjZeQI
+         dDRgTUZ858WgBJddsL1m12qrUndGLQWJVt/nK/bsY8btEmxcEpnVC7/QXSP5wMVReQ
+         A6QWXftQTz/4fNWOxBonBK3W/wusiND203Zny9SAJ5XeIGfgGMJdHmlzr46Ak1+yja
+         W8AmBtBlmIdGw==
+Date:   Tue, 26 Jan 2021 11:26:01 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+To:     Joe Perches <joe@perches.com>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Alexander Duyck <alexander.duyck@gmail.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Don Dutile <ddutile@redhat.com>,
+        linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Don Dutile <ddutile@redhat.com>,
         Alex Williamson <alex.williamson@redhat.com>,
         "David S . Miller" <davem@davemloft.net>
-Subject: [PATCH mlx5-next v5 0/4] Dynamically assign MSI-X vectors count
-Date:   Tue, 26 Jan 2021 10:57:26 +0200
-Message-Id: <20210126085730.1165673-1-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
+Subject: Re: [PATCH mlx5-next v4 1/4] PCI: Add sysfs callback to allow MSI-X
+ table size change of SR-IOV VFs
+Message-ID: <20210126092601.GE1053290@unreal>
+References: <20210124131119.558563-1-leon@kernel.org>
+ <20210124131119.558563-2-leon@kernel.org>
+ <20210125135229.6193f783@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20210126060135.GQ579511@unreal>
+ <48c5a16657bb7b6c0f619253e57133137d4e825c.camel@perches.com>
+ <20210126084817.GD1053290@unreal>
+ <cb6dec52b62dd008d20e9de45f1f15341bbde6ad.camel@perches.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cb6dec52b62dd008d20e9de45f1f15341bbde6ad.camel@perches.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
-
-Changelog
-v5:
- * Patch 1:
-  * Added forgotten "inline" keyword when declaring empty functions.
-v4: https://lore.kernel.org/linux-pci/20210124131119.558563-1-leon@kernel.org
- * Used sysfs_emit() instead of sprintf() in new sysfs entries.
- * Changed EXPORT_SYMBOL to be EXPORT_SYMBOL_GPL for pci_iov_virtfn_devfn().
- * Rewrote sysfs registration code to be driven by PF that wants to enable VF
-   overlay instead of creating to all SR-IOV devices.
- * Grouped all such functionality under new "vfs_overlay" folder.
- * Combined two PCI patches into one.
-v3: https://lore.kernel.org/linux-pci/20210117081548.1278992-1-leon@kernel.org
- * Renamed pci_set_msix_vec_count to be pci_vf_set_msix_vec_count.
- * Added VF msix_cap check to hide sysfs entry if device doesn't support msix.
- * Changed "-" to be ":" in the mlx5 patch to silence CI warnings about missing
-   kdoc description.
- * Split differently error print in mlx5 driver to avoid checkpatch warning.
-v2: https://lore.kernel.org/linux-pci/20210114103140.866141-1-leon@kernel.org
- * Patch 1:
-  * Renamed vf_msix_vec sysfs knob to be sriov_vf_msix_count
-  * Added PF and VF device locks during set MSI-X call to protect from parallel
-    driver bind/unbind operations.
-  * Removed extra checks when reading sriov_vf_msix, because users will
-    be able to distinguish between supported/not supported by looking on
-    sriov_vf_total_msix count.
-  * Changed all occurrences of "numb" to be "count"
-  * Changed returned error from EOPNOTSUPP to be EBUSY if user tries to set
-    MSI-X count after driver already bound to the VF.
-  * Added extra comment in pci_set_msix_vec_count() to emphasize that driver
-    should not be bound.
- * Patch 2:
-  * Changed vf_total_msix from int to be u32 and updated function signatures
-    accordingly.
-  * Improved patch title
-v1: https://lore.kernel.org/linux-pci/20210110150727.1965295-1-leon@kernel.org
- * Improved wording and commit messages of first PCI patch
- * Added extra PCI patch to provide total number of MSI-X vectors
- * Prohibited read of vf_msix_vec sysfs file if driver doesn't support write
- * Removed extra function definition in pci.h
-v0: https://lore.kernel.org/linux-pci/20210103082440.34994-1-leon@kernel.org
-
---------------------------------------------------------------------
-Hi,
-
-The number of MSI-X vectors is PCI property visible through lspci, that
-field is read-only and configured by the device.
-
-The static assignment of an amount of MSI-X vectors doesn't allow utilize
-the newly created VF because it is not known to the device the future load
-and configuration where that VF will be used.
-
-The VFs are created on the hypervisor and forwarded to the VMs that have
-different properties (for example number of CPUs).
-
-To overcome the inefficiency in the spread of such MSI-X vectors, we
-allow the kernel to instruct the device with the needed number of such
-vectors, before VF is initialized and bounded to the driver.
-
-Before this series:
-[root@server ~]# lspci -vs 0000:08:00.2
-08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
-....
-        Capabilities: [9c] MSI-X: Enable- Count=12 Masked-
-
-Configuration script:
-1. Start fresh
-echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
-modprobe -q -r mlx5_ib mlx5_core
-2. Ensure that driver doesn't run and it is safe to change MSI-X
-echo 0 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_drivers_autoprobe
-3. Load driver for the PF
-modprobe mlx5_core
-4. Configure one of the VFs with new number
-echo 2 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
-echo 21 > /sys/bus/pci/devices/0000\:08\:00.2/vfs_overlay/sriov_vf_msix_count
-
-After this series:
-[root@server ~]# lspci -vs 0000:08:00.2
-08:00.2 Ethernet controller: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function]
-....
-        Capabilities: [9c] MSI-X: Enable- Count=21 Masked-
+On Tue, Jan 26, 2021 at 12:57:06AM -0800, Joe Perches wrote:
+> On Tue, 2021-01-26 at 10:48 +0200, Leon Romanovsky wrote:
+> > On Tue, Jan 26, 2021 at 12:20:11AM -0800, Joe Perches wrote:
+> > > On Tue, 2021-01-26 at 08:01 +0200, Leon Romanovsky wrote:
+> > > > On Mon, Jan 25, 2021 at 01:52:29PM -0800, Jakub Kicinski wrote:
+> > > > > On Sun, 24 Jan 2021 15:11:16 +0200 Leon Romanovsky wrote:
+> > > > > > +static int pci_enable_vfs_overlay(struct pci_dev *dev) { return 0; }
+> > > > > > +static void pci_disable_vfs_overlay(struct pci_dev *dev) {}
+> []
+> > > $ ./scripts/checkpatch.pl -f include/linux/*.h --types=static_inline --terse --nosummary
+> > > include/linux/dma-mapping.h:203: WARNING: static function definition might be better as static inline
+> > > include/linux/genl_magic_func.h:55: WARNING: static function definition might be better as static inline
+> > > include/linux/genl_magic_func.h:78: WARNING: static function definition might be better as static inline
+> > > include/linux/kernel.h:670: WARNING: static function definition might be better as static inline
+> > > include/linux/kprobes.h:213: WARNING: static function definition might be better as static inline
+> > > include/linux/kprobes.h:231: WARNING: static function definition might be better as static inline
+> > > include/linux/kprobes.h:511: WARNING: static function definition might be better as static inline
+> > > include/linux/skb_array.h:185: WARNING: static function definition might be better as static inline
+> > > include/linux/slab.h:606: WARNING: static function definition might be better as static inline
+> > > include/linux/stop_machine.h:62: WARNING: static function definition might be better as static inline
+> > > include/linux/vmw_vmci_defs.h:850: WARNING: static function definition might be better as static inline
+> > > include/linux/zstd.h:95: WARNING: static function definition might be better as static inline
+> > > include/linux/zstd.h:106: WARNING: static function definition might be better as static inline
+> > >
+> > > A false positive exists when __must_check is used between
+> > > static and inline.  It's an unusual and IMO not a preferred use.
+> >
+> > Maybe just filter and ignore such functions for now?
+>
+> Not worth it.
+>
+> > Will you send proper patch or do you want me to do it?
+>
+> I'll do it eventually.
 
 Thanks
 
-Leon Romanovsky (4):
-  PCI: Add sysfs callback to allow MSI-X table size change of SR-IOV VFs
-  net/mlx5: Add dynamic MSI-X capabilities bits
-  net/mlx5: Dynamically assign MSI-X vectors count
-  net/mlx5: Allow to the users to configure number of MSI-X vectors
-
- Documentation/ABI/testing/sysfs-bus-pci       |  32 ++++
- .../net/ethernet/mellanox/mlx5/core/main.c    |  16 ++
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   6 +
- .../net/ethernet/mellanox/mlx5/core/pci_irq.c |  72 +++++++
- .../net/ethernet/mellanox/mlx5/core/sriov.c   |  59 +++++-
- drivers/pci/iov.c                             | 180 ++++++++++++++++++
- drivers/pci/msi.c                             |  47 +++++
- drivers/pci/pci.h                             |   4 +
- include/linux/mlx5/mlx5_ifc.h                 |  11 +-
- include/linux/pci.h                           |  10 +
- 10 files changed, 434 insertions(+), 3 deletions(-)
-
---
-2.29.2
-
+>
+>
