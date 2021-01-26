@@ -2,51 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C98C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE33DC43332
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BEFA23103
+	by mail.kernel.org (Postfix) with ESMTP id B1A93229C4
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388053AbhAZFjS convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:39:18 -0500
-Received: from mga09.intel.com ([134.134.136.24]:62493 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729947AbhAZBZh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 25 Jan 2021 20:25:37 -0500
-IronPort-SDR: TeK1a5Fxp3qDwua5YrFZzv2jviMJPZWu/JIg24LaGRxRHr3Tq8SU1XZsWp78QoXzchMEYtk6Up
- tmAM1VsHgjwQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="179973518"
-X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="179973518"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 16:42:17 -0800
-IronPort-SDR: +WLzoT/SZhh9m4E8YZGzc1lPOGb+FkQw6G4F3aPCmon1LBU5YxL6iyF/nJ/PZetzxRb3lXTAJE
- ud7PX6hy483Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="356532897"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by orsmga006.jf.intel.com with ESMTP; 25 Jan 2021 16:42:17 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Mon, 25 Jan 2021 16:42:16 -0800
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Mon, 25 Jan 2021 16:42:16 -0800
-Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
- fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.1713.004;
- Mon, 25 Jan 2021 16:42:16 -0800
-From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        id S2388072AbhAZFjU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:39:20 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:15220 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731411AbhAZCRn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jan 2021 21:17:43 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B600f6c1f0005>; Mon, 25 Jan 2021 17:10:55 -0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 26 Jan
+ 2021 01:10:55 +0000
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL103.nvidia.com
+ (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 26 Jan
+ 2021 01:10:48 +0000
+Received: from NAM02-BL2-obe.outbound.protection.outlook.com (104.47.38.58) by
+ HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Tue, 26 Jan 2021 01:10:48 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=kMIV5UsluO3X4t3QrvgbvUNAq05r47cSSO7CPeocq0B2/e2MtLLo58ZlKt7jfQ0EIu0ohgmADW/VNLo9j4pWspNJiqswQbv+SvBvWhXWty2bAlPLZseQm5kgeEqpxU8CnoP0wgrYOdoWkRvi08kWgfIjaTODNc0IuvNCsUdNOv1ErtezwbFPqavCl2SzVNtLrpmVe+jEJS6rhfe5mpJB5zh9w7QjHDrZlPdotUDYjb7G1fyLuFCn47DaW6dXmrdPZkajrHY2Y6fCHB5bkJL9Tp2Yf2cZy6bTCYI2y2t1pq4I1F7Yiep/OmGCXpBtQRl0nFRMH5IV/PtTo/RaZaHztQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bv1m0IqIy+JuqUa83fJ5LkpwhUejXPUQe/Okvn0g/jg=;
+ b=bg+tMOhKbKsIOJvda1gEJEuvoGMk9K4cQivOzyJb5wXhjbs/lFWfBELhGEVKhn3RSAsBTCThjrfw9jZZ7xG1PeWemjtS5g0N7a5eFigHLaxkuuNPG+3k2tZvRZ5cPgVeA3o3j7BgI3y9rVn6Aryoe1MX3a+zb4XQrEZaIQFdzqKUhee6iJIR6YBxkk27UXRNm2VlDFixqxjEvVmnvOJGtmaSA4QlqCQwHYRzhWMPDtB+qslz4NtDAZ7hgxrv3F97G0AqfafBBehMNEpoexiBZtm1Bp+oKZ3j/bBGR289qwfNuWbDGFlPIy23AVY71+YBhPH3+676ZgNAzTyTcO6cLw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3020.namprd12.prod.outlook.com (2603:10b6:5:11f::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.11; Tue, 26 Jan
+ 2021 01:10:46 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.019; Tue, 26 Jan 2021
+ 01:10:45 +0000
+Date:   Mon, 25 Jan 2021 21:10:43 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Jacob Keller <jacob.e.keller@intel.com>
+CC:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
         "kuba@kernel.org" <kuba@kernel.org>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
@@ -54,119 +62,91 @@ CC:     "dledford@redhat.com" <dledford@redhat.com>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "Ertman, David M" <david.m.ertman@intel.com>,
         "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: RE: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "jiri@nvidia.com" <jiri@nvidia.com>,
+        "Samudrala, Sridhar" <sridhar.samudrala@intel.com>,
+        "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
  implement private channel OPs
-Thread-Topic: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
- implement private channel OPs
-Thread-Index: AQHW8RlTrNE3qjtLukSnj7NcX24DDao5N6oA//+n/DA=
-Date:   Tue, 26 Jan 2021 00:42:16 +0000
-Message-ID: <99895f7c10a2473c84a105f46c7ef498@intel.com>
+Message-ID: <20210126011043.GG4147@nvidia.com>
 References: <20210122234827.1353-1-shiraz.saleem@intel.com>
  <20210122234827.1353-8-shiraz.saleem@intel.com>
- <20210125184248.GS4147@nvidia.com>
-In-Reply-To: <20210125184248.GS4147@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-x-originating-ip: [10.22.254.132]
+ <20210124134551.GB5038@unreal> <20210125132834.GK4147@nvidia.com>
+ <2072c76154cd4232b78392c650b2b2bf@intel.com>
+ <5b3f609d-034a-826f-1e50-0a5f8ad8406e@intel.com>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+In-Reply-To: <5b3f609d-034a-826f-1e50-0a5f8ad8406e@intel.com>
+X-ClientProxiedBy: BLAPR03CA0168.namprd03.prod.outlook.com
+ (2603:10b6:208:32c::23) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BLAPR03CA0168.namprd03.prod.outlook.com (2603:10b6:208:32c::23) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.11 via Frontend Transport; Tue, 26 Jan 2021 01:10:44 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l4CsV-006tOB-4u; Mon, 25 Jan 2021 21:10:43 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1611623456; bh=bv1m0IqIy+JuqUa83fJ5LkpwhUejXPUQe/Okvn0g/jg=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType;
+        b=NXcdNM7E30KnqmiclGSzWD7TjPefBZu+AyetuApiL6O2twRBNpQkfcQtGboD3hLGa
+         JwhTQcKtonmCRGERJYqTJFOzQPlFDMnCM9P8fRlWfYiQb5GxLsf0JML8pKEWU6jeQ/
+         zjOBdcKTTkifJZ/Yn8puZh47ntsBJo6yWQlESrW4kMfRhEmwrV1kIDjQfJz2Opf8TJ
+         b2psz0tFQUMMDFpBeeHgAd3Dzdg4YIii+rZUwwlkBKBS1hNbm6aO+PNT+zx72XLc7y
+         KU3BJCJsubtjha2NcHS+PzKRxuXpW96c7qc3KpNKpbEbQAl3lhn44o9g47erY6M+Rz
+         8eGwXfNDNjcQA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
-> implement private channel OPs
+On Mon, Jan 25, 2021 at 05:01:40PM -0800, Jacob Keller wrote:
 > 
-> On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
-> > +/**
-> > + * irdma_init_dev - GEN_2 device init
-> > + * @aux_dev: auxiliary device
-> > + *
-> > + * Create device resources, set up queues, pble and hmc objects.
-> > + * Return 0 if successful, otherwise return error  */ int
-> > +irdma_init_dev(struct auxiliary_device *aux_dev) {
-> > +	struct iidc_auxiliary_object *vo = container_of(aux_dev,
-> > +							struct
-> iidc_auxiliary_object,
-> > +							adev);
-> > +	struct iidc_peer_obj *peer_info = vo->peer_obj;
-> > +	struct irdma_handler *hdl;
-> > +	struct irdma_pci_f *rf;
-> > +	struct irdma_sc_dev *dev;
-> > +	struct irdma_priv_peer_info *priv_peer_info;
-> > +	int err;
-> > +
-> > +	hdl = irdma_find_handler(peer_info->pdev);
-> > +	if (hdl)
-> > +		return -EBUSY;
-> > +
-> > +	hdl = kzalloc(sizeof(*hdl), GFP_KERNEL);
-> > +	if (!hdl)
-> > +		return -ENOMEM;
-> > +
-> > +	rf = &hdl->rf;
-> > +	priv_peer_info = &rf->priv_peer_info;
-> > +	rf->aux_dev = aux_dev;
-> > +	rf->hdl = hdl;
-> > +	dev = &rf->sc_dev;
-> > +	dev->back_dev = rf;
-> > +	rf->gen_ops.init_hw = icrdma_init_hw;
-> > +	rf->gen_ops.request_reset = icrdma_request_reset;
-> > +	rf->gen_ops.register_qset = irdma_lan_register_qset;
-> > +	rf->gen_ops.unregister_qset = irdma_lan_unregister_qset;
-> > +	priv_peer_info->peer_info = peer_info;
-> > +	rf->rdma_ver = IRDMA_GEN_2;
-> > +	irdma_set_config_params(rf);
-> > +	dev->pci_rev = peer_info->pdev->revision;
-> > +	rf->default_vsi.vsi_idx = peer_info->pf_vsi_num;
-> > +	/* save information from peer_info to priv_peer_info*/
-> > +	priv_peer_info->fn_num = PCI_FUNC(peer_info->pdev->devfn);
-> > +	rf->hw.hw_addr = peer_info->hw_addr;
-> > +	rf->pcidev = peer_info->pdev;
-> > +	rf->netdev = peer_info->netdev;
-> > +	priv_peer_info->ftype = peer_info->ftype;
-> > +	priv_peer_info->msix_count = peer_info->msix_count;
-> > +	priv_peer_info->msix_entries = peer_info->msix_entries;
-> > +	irdma_add_handler(hdl);
-> > +	if (irdma_ctrl_init_hw(rf)) {
-> > +		err = -EIO;
-> > +		goto err_ctrl_init;
-> > +	}
-> > +	peer_info->peer_ops = &irdma_peer_ops;
-> > +	peer_info->peer_drv = &irdma_peer_drv;
-> > +	err = peer_info->ops->peer_register(peer_info);
-> > +	if (err)
-> > +		goto err_peer_reg;
 > 
-> No to this, I don't want to see aux bus layered on top of another management
-> framework in new drivers. When this driver uses aux bus get rid of the old i40iw
-> stuff. I already said this in one of the older postings of this driver.
+> On 1/25/2021 4:39 PM, Saleem, Shiraz wrote:
+> >> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+> >> implement private channel OPs
+> >>
+> >> On Sun, Jan 24, 2021 at 03:45:51PM +0200, Leon Romanovsky wrote:
+> >>> On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
+> >>>> From: Mustafa Ismail <mustafa.ismail@intel.com>
+> >>>>
+> >>>> Register irdma as an auxiliary driver which can attach to auxiliary
+> >>>> RDMA devices from Intel PCI netdev drivers i40e and ice. Implement
+> >>>> the private channel ops, add basic devlink support in the driver and
+> >>>> register net notifiers.
+> >>>
+> >>> Devlink part in "the RDMA client" is interesting thing.
+> >>>
+> >>> The idea behind auxiliary bus was that PCI logic will stay at one
+> >>> place and devlink considered as the tool to manage that.
+> >>
+> >> Yes, this doesn't seem right, I don't think these auxiliary bus objects should have
+> >> devlink instances, or at least someone from devlink land should approve of the
+> >> idea.
+> >>
+> > 
+> > In our model, we have one auxdev (for RDMA) per PCI device function owned by netdev driver
+> > and one devlink instance per auxdev. Plus there is an Intel netdev driver for each HW generation.
+> > Moving the devlink logic to the PCI netdev driver would mean duplicating the same set of RDMA
+> > params in each Intel netdev driver. Additionally, plumbing RDMA specific params in the netdev
+> > driver sort of seems misplaced to me.
+> > 
 > 
-> auxbus probe() for a RDMA driver should call ib_alloc_device() near its start and
-> ib_register_device() near the end its end.
-> 
-> drvdata for the aux device should point to the driver struct containing the
-> ib_device.
-> 
-> Just like any ordinary PCI based rdma driver, look at how something like
-> pvrdma_pci_probe() is structued.
-> 
+> I agree that plumbing these parameters at the PCI side in the devlink of
+> the parent device is weird. They don't seem to be parameters that the
+> parent driver cares about.
 
-I think this essentially means doing away with .open/.close piece. Or are you saying that is ok?
-Yes we had a discussion in the past and I thought we concluded. But maybe I misunderstood.
+It does, the PCI driver is not supposed to spawn any aux devices for
+RDMA at all if RDMA is disabled.
 
-https://lore.kernel.org/linux-rdma/9DD61F30A802C4429A01CA4200E302A7DCD4FD03@fmsmsx124.amr.corp.intel.com/
+For an iWarp driver I would consider ENABLE_ROCE to really be a
+general ENABLE_RDMA.
 
-The concern is around losing the resources held for rdma VFs by rdma PF due to underlying config changes which require a de-reg/re-registration of the ibdevice.
-Today such config changes are handled with the netdev PCI driver using the .close() private callback into rdma driver which unregister ibdevice in PF while allowing
-the RDMA VF to survive.
+Are you sure you need to implement this?
 
-Shiraz
+In any event, you just can't put the generic ENABLE_ROCE flag anyplace
+but the PCI device for devlink, it breaks the expected user API
+established by mlx5
 
+Jason
