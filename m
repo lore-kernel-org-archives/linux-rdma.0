@@ -2,137 +2,96 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 784DCC433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 13:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 361AAC433E6
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 17:01:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D0D023110
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 13:07:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E4A322EBD
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 17:01:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391732AbhAZNGw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 08:06:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51026 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391986AbhAZMtB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:01 -0500
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB577C0611C2
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:36 -0800 (PST)
-Received: by mail-wm1-x32a.google.com with SMTP id c127so2619867wmf.5
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=X8BAzJFz4ZIrpg/Z+DKR2RrLgnadQAJiV/btseJ+HGo=;
-        b=Mhc1dP5lYtWDjM7iP3QCf7se8IPXO5Zpw+dLL5XJ5foEKLkrFsse1ajEsjhcEnlufj
-         K+THdxTRx2NC1k6nHlUU9gJTHgaPOOw+RbLYOlo7U20HVu3rdIzsI1AvQ3P8hFj4T4Uz
-         x6Ruab8R7JXJv66upE2kqHcUlBrzag2mqp+qHZl13tSIoU6fRo0iSrjcpIqmOV71q12V
-         YqO3rCKOoG4LOKOLRax2GuPWaHwl81QxMcX6J1CH8tK637ZoqXSLbhSbdPpevAxoWdud
-         wvQnXQCTT5ZkEyXhOsFrRWHTqdOxgEoH7RTuI2BqrVJJV79CB8oQO3BtL3NK3ckS6EAJ
-         CgsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=X8BAzJFz4ZIrpg/Z+DKR2RrLgnadQAJiV/btseJ+HGo=;
-        b=h0VgE0N/Q6+imD4tHVo0RH7z06VjcI09yTylhjRL+9x9szwd+CxoVOkd0/s++iyTSy
-         /kRVX5/qCOscgMHTcwZmjvEtbp93CCgkkY1OtZb0gR8g9FFzT/QjHcj5iSbldWXd0lxh
-         EpOFZNDotq9n3dOYsnAPt0fyqadtFEBy7l9MJh2DwbxKDczjovOB+FePNoUZhJSpPA2Y
-         NnTTRQ5o1u96BomBzj4fZXQNjF48iqPrqjyLL5SSnKRXK4tmq0fnyAnLus7qy/plfU42
-         Ymn7lbX0wmewmnnUkAI05WCc8rFqkg9ZIul57kmb+EQBLHj8v9igS6KHksic0WqyfbM4
-         hz/A==
-X-Gm-Message-State: AOAM533JB8lwzKvbBNT7uPkIicIJRbAOgSonakavj1agj6Scwlxll4nI
-        0mNjlsvD09EX02zWpzTneuMbxw==
-X-Google-Smtp-Source: ABdhPJxnIr7hKqNIROJ6CQJNvglpa/yGCZFNQOCByUbAhAXURtdmxS5i7pvkN0tgzQ4jq/v90uZ99A==
-X-Received: by 2002:a1c:457:: with SMTP id 84mr4603536wme.148.1611665255554;
-        Tue, 26 Jan 2021 04:47:35 -0800 (PST)
-Received: from dell.default ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 04:47:34 -0800 (PST)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Subject: [PATCH 00/20] [Set 3] Rid W=1 warnings from Infiniband
-Date:   Tue, 26 Jan 2021 12:47:12 +0000
-Message-Id: <20210126124732.3320971-1-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.25.1
+        id S1726616AbhAZRAr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 12:00:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53702 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2390589AbhAZI6d (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 Jan 2021 03:58:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 77DC2230FD;
+        Tue, 26 Jan 2021 08:57:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1611651459;
+        bh=aHBmFnfLyG43e7CqSIxZ36xVHHd++9BQh2pCJmoqnr0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=mqHq3lnWsnnIxbEmR84cNJohLvSC5dUSmBmQxCkkLT7XXPcjO/xjPRazHUq7V2xOC
+         4xajUQZU4H+h5erutEjIZzB1E2YWHzj8MU3OuTa5lHtl7uVFWaopo8i5vgxuuoZvOc
+         zRNeoLK/qu6r97znPWCbF0Au2BztUt285cvXCdwjwZfbEnC8i2s/mghelbIroG0kLZ
+         byk0Elahede/Jg0PbcciYPTaskFPAvZJWkP/kJCv3f0cdlgBPTdDQf7SR8GSh3Tkld
+         zDXzx7434AhBCF/Dnqn5Jd4SXkhvfyhTJabApJRb7PzGXNBhsXorLT33i/3Tq7tkF4
+         QA8KNQW8nDqsQ==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: [PATCH mlx5-next v5 2/4] net/mlx5: Add dynamic MSI-X capabilities bits
+Date:   Tue, 26 Jan 2021 10:57:28 +0200
+Message-Id: <20210126085730.1165673-3-leon@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210126085730.1165673-1-leon@kernel.org>
+References: <20210126085730.1165673-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This set is part of a larger effort attempting to clean-up W=1
-kernel builds, which are currently overwhelmingly riddled with
-niggly little warnings.
+From: Leon Romanovsky <leonro@nvidia.com>
 
-This is set 3 of 3 sets required to fully clean-up.  All done!
+These new fields declare the number of MSI-X vectors that is
+possible to allocate on the VF through PF configuration.
 
-Lee Jones (20):
-  RDMA/hw/hfi1/intr: Fix some kernel-doc formatting issues
-  RDMA/sw/rdmavt/srq: Fix a couple of kernel-doc issues
-  RDMA/hw/hfi1/iowait: Demote half-completed kernel-doc and fix
-    formatting issue in another
-  RDMA/hw/hfi1/mad: Demote half-completed kernel-doc header fix another
-  RDMA/hw/hfi1/msix: Add description for 'name' and remove superfluous
-    param 'idx'
-  RDMA/sw/rdmavt/mad: Fix misspelling of 'rvt_process_mad()'s
-    'in_mad_size' param
-  RDMA/sw/rdmavt/qp: Fix kernel-doc formatting problem
-  RDMA/hw/hfi1/netdev_rx: Fix misdocumentation of the 'start_id' param
-  RDMA/hw/hfi1/pcie: Demote kernel-doc abuses
-  RDMA/hw/hfi1/pio_copy: Provide entry for 'pio_copy()'s 'dd' param
-  RDMA/hw/hfi1/rc: Fix a few function documentation issues
-  RDMA/hw/hfi1/qp: Fix some formatting issues and demote kernel-doc
-    abuse
-  RDMA/hw/hfi1/ruc: Fix a small formatting and description issues
-  RDMA/hw/hfi1/sdma: Fix misnaming of 'sdma_send_txlist()'s 'count_out'
-    param
-  RDMA/hw/hfi1/tid_rdma: Fix a plethora of kernel-doc issues
-  RDMA/hw/hfi1/uc: Fix a little doc-rot
-  RDMA/hw/hfi1/ud: Fix a little more doc-rot
-  RDMA/hw/hfi1/user_exp_rcv: Demote half-documented and kernel-doc
-    abuses
-  RDMA/hw/hfi1/verbs: Demote non-conforming doc header and fix a
-    misspelling
-  RDMA/hw/hfi1/rc: Demote incorrectly populated kernel-doc header
+Value must be in range defined by min_dynamic_vf_msix_table_size
+and max_dynamic_vf_msix_table_size.
 
- drivers/infiniband/hw/hfi1/intr.c         | 16 ++++----
- drivers/infiniband/hw/hfi1/iowait.c       |  4 +-
- drivers/infiniband/hw/hfi1/mad.c          |  4 +-
- drivers/infiniband/hw/hfi1/msix.c         |  2 +-
- drivers/infiniband/hw/hfi1/netdev_rx.c    |  2 +-
- drivers/infiniband/hw/hfi1/pcie.c         |  4 +-
- drivers/infiniband/hw/hfi1/pio_copy.c     |  1 +
- drivers/infiniband/hw/hfi1/qp.c           | 14 +++----
- drivers/infiniband/hw/hfi1/rc.c           |  7 ++--
- drivers/infiniband/hw/hfi1/ruc.c          |  5 ++-
- drivers/infiniband/hw/hfi1/sdma.c         | 10 ++---
- drivers/infiniband/hw/hfi1/tid_rdma.c     | 47 +++++++++++++----------
- drivers/infiniband/hw/hfi1/uc.c           |  8 +---
- drivers/infiniband/hw/hfi1/ud.c           |  8 +---
- drivers/infiniband/hw/hfi1/user_exp_rcv.c | 10 ++---
- drivers/infiniband/hw/hfi1/verbs.c        |  6 +--
- drivers/infiniband/sw/rdmavt/mad.c        |  2 +-
- drivers/infiniband/sw/rdmavt/qp.c         |  2 +-
- drivers/infiniband/sw/rdmavt/srq.c        |  7 ++--
- 19 files changed, 82 insertions(+), 77 deletions(-)
+The driver should continue to query its MSI-X table through PCI
+configuration header.
 
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index b96f99f1198e..31e6eac67f51 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1657,7 +1657,16 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8	   reserved_at_6e0[0x10];
+ 	u8	   sf_base_id[0x10];
+ 
+-	u8	   reserved_at_700[0x80];
++	u8	   reserved_at_700[0x8];
++	u8	   num_total_dynamic_vf_msix[0x18];
++	u8	   reserved_at_720[0x14];
++	u8	   dynamic_msix_table_size[0xc];
++	u8	   reserved_at_740[0xc];
++	u8	   min_dynamic_vf_msix_table_size[0x4];
++	u8	   reserved_at_750[0x4];
++	u8	   max_dynamic_vf_msix_table_size[0xc];
++
++	u8	   reserved_at_760[0x20];
+ 	u8	   vhca_tunnel_commands[0x40];
+ 	u8	   reserved_at_7c0[0x40];
+ };
 -- 
-2.25.1
+2.29.2
 
