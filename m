@@ -2,383 +2,159 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA41C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 01:25:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3389BC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 01:31:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7301123105
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 01:25:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE9CF23107
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 01:31:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729263AbhAZBZP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jan 2021 20:25:15 -0500
-Received: from mga09.intel.com ([134.134.136.24]:29052 "EHLO mga09.intel.com"
+        id S1727066AbhAZB3y convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jan 2021 20:29:54 -0500
+Received: from mga03.intel.com ([134.134.136.65]:50872 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726480AbhAYTnJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 25 Jan 2021 14:43:09 -0500
-IronPort-SDR: G7arAfL0QKbgV8x4I2hrs9nWBEZ22U/HtqZGP/5RmiDWx+6rhfnJqKJe3z+J+9SwsRF2/ER55c
- LKDhLfREP1Uw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="179937092"
-X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="179937092"
+        id S1731230AbhAZB1e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 25 Jan 2021 20:27:34 -0500
+IronPort-SDR: Volfh2KGnOT8QxXloKeLIjB1bR6cxvq4MflOOrgz8rnVWbzQNSZ6Y5QbDqh43lk+uUH7OwKSd8
+ BfXM8Xk5dJ+g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="179909629"
+X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
+   d="scan'208";a="179909629"
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 11:41:58 -0800
-IronPort-SDR: 7+JfBqgnSxFDKM8OXqAJdfPF9eD8VyaYrDKXruoyDx/iuKEXOPeWPQOleOQJu9VxpCCn9+NQz/
- PuZGvX5eTEvA==
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 16:39:21 -0800
+IronPort-SDR: ShCaldHqtzaM8oxJfXsNGxmzh0pNz0/dSvuS2I+C7n1vfg6KUOv1p05e1VXXkRXJ0JPrhsJeBk
+ taxpz99OxAnQ==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.79,374,1602572400"; 
-   d="scan'208";a="402468951"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by fmsmga004.fm.intel.com with ESMTP; 25 Jan 2021 11:41:58 -0800
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Edward Srouji <edwards@nvidia.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-core v7 2/6] verbs: Support dma-buf based memory region
-Date:   Mon, 25 Jan 2021 11:56:58 -0800
-Message-Id: <1611604622-86968-3-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1611604622-86968-1-git-send-email-jianxin.xiong@intel.com>
-References: <1611604622-86968-1-git-send-email-jianxin.xiong@intel.com>
+X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
+   d="scan'208";a="402570112"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by fmsmga004.fm.intel.com with ESMTP; 25 Jan 2021 16:39:21 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Mon, 25 Jan 2021 16:39:21 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Mon, 25 Jan 2021 16:39:20 -0800
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.1713.004;
+ Mon, 25 Jan 2021 16:39:20 -0800
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@nvidia.com" <jgg@nvidia.com>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>
+Subject: RE: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Thread-Topic: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Thread-Index: AQHW8RlTrNE3qjtLukSnj7NcX24DDao3Ul6AgAFbdYA=
+Date:   Tue, 26 Jan 2021 00:39:20 +0000
+Message-ID: <3de0df06f50541aab9ecf61d035c839a@intel.com>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+ <20210122234827.1353-8-shiraz.saleem@intel.com>
+ <20210124134551.GB5038@unreal>
+In-Reply-To: <20210124134551.GB5038@unreal>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+x-originating-ip: [10.22.254.132]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add new API function and new provider method for registering dma-buf
-based memory region. Update the man page and bump the API version.
+> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+> implement private channel OPs
+> 
+> 
+> > +static int irdma_devlink_rsrc_limits_validate(struct devlink *dl, u32 id,
+> > +					      union devlink_param_value val,
+> > +					      struct netlink_ext_ack *extack) {
+> > +	u8 value = val.vu8;
+> > +
+> > +	if (value > 7) {
+> > +		NL_SET_ERR_MSG_MOD(extack, "resource limits selector range
+> is (0-7)");
+> > +		return -ERANGE;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int irdma_devlink_enable_roce_validate(struct devlink *dl, u32 id,
+> > +					      union devlink_param_value val,
+> > +					      struct netlink_ext_ack *extack) {
+> > +	struct irdma_dl_priv *priv = devlink_priv(dl);
+> > +	bool value = val.vbool;
+> > +
+> > +	if (value && priv->drvdata->hw_ver == IRDMA_GEN_1) {
+> > +		NL_SET_ERR_MSG_MOD(extack, "RoCE not supported on
+> device");
+> > +		return -EOPNOTSUPP;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int irdma_devlink_upload_ctx_get(struct devlink *devlink, u32 id,
+> > +					struct devlink_param_gset_ctx *ctx) {
+> > +	ctx->val.vbool = irdma_upload_context;
+> > +	return 0;
+> > +}
+> > +
+> > +static int irdma_devlink_upload_ctx_set(struct devlink *devlink, u32 id,
+> > +					struct devlink_param_gset_ctx *ctx) {
+> > +	irdma_upload_context = ctx->val.vbool;
+> > +	return 0;
+> > +}
+> > +
+> > +enum irdma_dl_param_id {
+> > +	IRDMA_DEVLINK_PARAM_ID_BASE =
+> DEVLINK_PARAM_GENERIC_ID_MAX,
+> > +	IRDMA_DEVLINK_PARAM_ID_LIMITS_SELECTOR,
+> > +	IRDMA_DEVLINK_PARAM_ID_UPLOAD_CONTEXT,
+> > +};
+> > +
+> > +static const struct devlink_param irdma_devlink_params[] = {
+> > +
+> 	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_LIMITS_SELE
+> CTOR,
+> > +			     "resource_limits_selector",
+> DEVLINK_PARAM_TYPE_U8,
+> > +			      BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+> > +			      NULL, NULL, irdma_devlink_rsrc_limits_validate),
+> > +
+> 	DEVLINK_PARAM_DRIVER(IRDMA_DEVLINK_PARAM_ID_UPLOAD_CON
+> TEXT,
+> > +			     "upload_context", DEVLINK_PARAM_TYPE_BOOL,
+> > +			     BIT(DEVLINK_PARAM_CMODE_RUNTIME),
+> > +			     irdma_devlink_upload_ctx_get,
+> > +			     irdma_devlink_upload_ctx_set, NULL),
+> > +	DEVLINK_PARAM_GENERIC(ENABLE_ROCE,
+> BIT(DEVLINK_PARAM_CMODE_DRIVERINIT),
+> > +			      NULL, NULL, irdma_devlink_enable_roce_validate),
+> > +};
+> 
+> RoCE enable knob is understandable, but others are not explained.
+> 
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
----
- debian/libibverbs1.symbols   |  2 ++
- libibverbs/CMakeLists.txt    |  2 +-
- libibverbs/cmd_mr.c          | 38 ++++++++++++++++++++++++++++++++++++++
- libibverbs/driver.h          |  8 ++++++++
- libibverbs/dummy_ops.c       | 11 +++++++++++
- libibverbs/libibverbs.map.in |  6 ++++++
- libibverbs/man/ibv_reg_mr.3  | 27 +++++++++++++++++++++++++--
- libibverbs/verbs.c           | 19 +++++++++++++++++++
- libibverbs/verbs.h           |  7 +++++++
- 9 files changed, 117 insertions(+), 3 deletions(-)
-
-diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
-index 7f59d0a..6cf5c2f 100644
---- a/debian/libibverbs1.symbols
-+++ b/debian/libibverbs1.symbols
-@@ -9,6 +9,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
-  IBVERBS_1.9@IBVERBS_1.9 30
-  IBVERBS_1.10@IBVERBS_1.10 31
-  IBVERBS_1.11@IBVERBS_1.11 32
-+ IBVERBS_1.12@IBVERBS_1.12 34
-  (symver)IBVERBS_PRIVATE_34 34
-  _ibv_query_gid_ex@IBVERBS_1.11 32
-  _ibv_query_gid_table@IBVERBS_1.11 32
-@@ -99,6 +100,7 @@ libibverbs.so.1 libibverbs1 #MINVER#
-  ibv_rate_to_mbps@IBVERBS_1.1 1.1.8
-  ibv_rate_to_mult@IBVERBS_1.0 1.1.6
-  ibv_read_sysfs_file@IBVERBS_1.0 1.1.6
-+ ibv_reg_dmabuf_mr@IBVERBS_1.12 34
-  ibv_reg_mr@IBVERBS_1.0 1.1.6
-  ibv_reg_mr@IBVERBS_1.1 1.1.6
-  ibv_reg_mr_iova@IBVERBS_1.7 25
-diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
-index 0fe4256..d075225 100644
---- a/libibverbs/CMakeLists.txt
-+++ b/libibverbs/CMakeLists.txt
-@@ -21,7 +21,7 @@ configure_file("libibverbs.map.in"
- 
- rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
-   # See Documentation/versioning.md
--  1 1.11.${PACKAGE_VERSION}
-+  1 1.12.${PACKAGE_VERSION}
-   all_providers.c
-   cmd.c
-   cmd_ah.c
-diff --git a/libibverbs/cmd_mr.c b/libibverbs/cmd_mr.c
-index 42dbe42..af0fad7 100644
---- a/libibverbs/cmd_mr.c
-+++ b/libibverbs/cmd_mr.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2018 Mellanox Technologies, Ltd.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -116,3 +117,40 @@ int ibv_cmd_query_mr(struct ibv_pd *pd, struct verbs_mr *vmr,
- 	return 0;
- }
- 
-+int ibv_cmd_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
-+			  uint64_t iova, int fd, int access,
-+			  struct verbs_mr *vmr)
-+{
-+	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_MR,
-+			       UVERBS_METHOD_REG_DMABUF_MR,
-+			       9);
-+	struct ib_uverbs_attr *handle;
-+	uint32_t lkey, rkey;
-+	int ret;
-+
-+	handle = fill_attr_out_obj(cmdb, UVERBS_ATTR_REG_DMABUF_MR_HANDLE);
-+	fill_attr_out_ptr(cmdb, UVERBS_ATTR_REG_DMABUF_MR_RESP_LKEY, &lkey);
-+	fill_attr_out_ptr(cmdb, UVERBS_ATTR_REG_DMABUF_MR_RESP_RKEY, &rkey);
-+
-+	fill_attr_in_obj(cmdb, UVERBS_ATTR_REG_DMABUF_MR_PD_HANDLE, pd->handle);
-+	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_OFFSET, offset);
-+	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_LENGTH, length);
-+	fill_attr_in_uint64(cmdb, UVERBS_ATTR_REG_DMABUF_MR_IOVA, iova);
-+	fill_attr_in_uint32(cmdb, UVERBS_ATTR_REG_DMABUF_MR_FD, fd);
-+	fill_attr_in_uint32(cmdb, UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS, access);
-+
-+	ret = execute_ioctl(pd->context, cmdb);
-+	if (ret)
-+		return errno;
-+
-+	vmr->ibv_mr.handle = read_attr_obj(UVERBS_ATTR_REG_DMABUF_MR_HANDLE,
-+					   handle);
-+	vmr->ibv_mr.context = pd->context;
-+	vmr->ibv_mr.lkey = lkey;
-+	vmr->ibv_mr.rkey = rkey;
-+	vmr->ibv_mr.pd = pd;
-+	vmr->ibv_mr.addr = (void *)offset;
-+	vmr->ibv_mr.length = length;
-+	vmr->mr_type = IBV_MR_TYPE_DMABUF_MR;
-+	return 0;
-+}
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index 9bbd3b4..3965fa3 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -2,6 +2,7 @@
-  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
-  * Copyright (c) 2005, 2006 Cisco Systems, Inc.  All rights reserved.
-  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -91,6 +92,7 @@ enum ibv_mr_type {
- 	IBV_MR_TYPE_MR,
- 	IBV_MR_TYPE_NULL_MR,
- 	IBV_MR_TYPE_IMPORTED_MR,
-+	IBV_MR_TYPE_DMABUF_MR,
- };
- 
- struct verbs_mr {
-@@ -375,6 +377,9 @@ struct verbs_context_ops {
- 	struct ibv_mr *(*reg_dm_mr)(struct ibv_pd *pd, struct ibv_dm *dm,
- 				    uint64_t dm_offset, size_t length,
- 				    unsigned int access);
-+	struct ibv_mr *(*reg_dmabuf_mr)(struct ibv_pd *pd, uint64_t offset,
-+					size_t length, uint64_t iova,
-+					int fd, int access);
- 	struct ibv_mr *(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
- 				 uint64_t hca_va, int access);
- 	int (*req_notify_cq)(struct ibv_cq *cq, int solicited_only);
-@@ -493,6 +498,9 @@ int ibv_cmd_advise_mr(struct ibv_pd *pd,
- 		      uint32_t flags,
- 		      struct ibv_sge *sg_list,
- 		      uint32_t num_sge);
-+int ibv_cmd_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
-+			  uint64_t iova, int fd, int access,
-+			  struct verbs_mr *vmr);
- int ibv_cmd_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type,
- 		     struct ibv_mw *mw, struct ibv_alloc_mw *cmd,
- 		     size_t cmd_size,
-diff --git a/libibverbs/dummy_ops.c b/libibverbs/dummy_ops.c
-index b6f272d..a4769ad 100644
---- a/libibverbs/dummy_ops.c
-+++ b/libibverbs/dummy_ops.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2017 Mellanox Technologies, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -435,6 +436,14 @@ static struct ibv_mr *reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 	return NULL;
- }
- 
-+static struct ibv_mr *reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset,
-+				    size_t length, uint64_t iova,
-+				    int fd, int access)
-+{
-+	errno = EOPNOTSUPP;
-+	return NULL;
-+}
-+
- static int req_notify_cq(struct ibv_cq *cq, int solicited_only)
- {
- 	return EOPNOTSUPP;
-@@ -542,6 +551,7 @@ const struct verbs_context_ops verbs_dummy_ops = {
- 	query_srq,
- 	read_counters,
- 	reg_dm_mr,
-+	reg_dmabuf_mr,
- 	reg_mr,
- 	req_notify_cq,
- 	rereg_mr,
-@@ -663,6 +673,7 @@ void verbs_set_ops(struct verbs_context *vctx,
- 	SET_OP(vctx, read_counters);
- 	SET_PRIV_OP(ctx, query_srq);
- 	SET_OP(vctx, reg_dm_mr);
-+	SET_PRIV_OP_IC(vctx, reg_dmabuf_mr);
- 	SET_PRIV_OP(ctx, reg_mr);
- 	SET_OP(ctx, req_notify_cq);
- 	SET_PRIV_OP(ctx, rereg_mr);
-diff --git a/libibverbs/libibverbs.map.in b/libibverbs/libibverbs.map.in
-index d124004..745146d 100644
---- a/libibverbs/libibverbs.map.in
-+++ b/libibverbs/libibverbs.map.in
-@@ -148,6 +148,11 @@ IBVERBS_1.11 {
- 		_ibv_query_gid_table;
- } IBVERBS_1.10;
- 
-+IBVERBS_1.12 {
-+	global:
-+		ibv_reg_dmabuf_mr;
-+} IBVERBS_1.11;
-+
- /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
-    version. See the top level CMakeLists.txt for this setting. */
- 
-@@ -211,6 +216,7 @@ IBVERBS_PRIVATE_@IBVERBS_PABI_VERSION@ {
- 		ibv_cmd_query_srq;
- 		ibv_cmd_read_counters;
- 		ibv_cmd_reg_dm_mr;
-+		ibv_cmd_reg_dmabuf_mr;
- 		ibv_cmd_reg_mr;
- 		ibv_cmd_req_notify_cq;
- 		ibv_cmd_rereg_mr;
-diff --git a/libibverbs/man/ibv_reg_mr.3 b/libibverbs/man/ibv_reg_mr.3
-index 2bfc955..a522527 100644
---- a/libibverbs/man/ibv_reg_mr.3
-+++ b/libibverbs/man/ibv_reg_mr.3
-@@ -3,7 +3,7 @@
- .\"
- .TH IBV_REG_MR 3 2006-10-31 libibverbs "Libibverbs Programmer's Manual"
- .SH "NAME"
--ibv_reg_mr, ibv_reg_mr_iova, ibv_dereg_mr \- register or deregister a memory region (MR)
-+ibv_reg_mr, ibv_reg_mr_iova, ibv_reg_dmabuf_mr, ibv_dereg_mr \- register or deregister a memory region (MR)
- .SH "SYNOPSIS"
- .nf
- .B #include <infiniband/verbs.h>
-@@ -15,6 +15,10 @@ ibv_reg_mr, ibv_reg_mr_iova, ibv_dereg_mr \- register or deregister a memory reg
- .BI "                               size_t " "length" ", uint64_t " "hca_va" ,
- .BI "                               int " "access" );
- .sp
-+.BI "struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd " "*pd" ", uint64_t " "offset" ,
-+.BI "                                 size_t " "length" ", uint64_t " "iova" ,
-+.BI "                                 int " "fd" ", int " "access" );
-+.sp
- .BI "int ibv_dereg_mr(struct ibv_mr " "*mr" );
- .fi
- .SH "DESCRIPTION"
-@@ -71,11 +75,30 @@ a lkey or rkey. The offset in the memory region is computed as 'addr +
- (iova - hca_va)'. Specifying 0 for hca_va has the same effect as
- IBV_ACCESS_ZERO_BASED.
- .PP
-+.B ibv_reg_dmabuf_mr()
-+registers a dma-buf based memory region (MR) associated with the protection domain
-+.I pd\fR.
-+The MR starts at
-+.I offset
-+of the dma-buf and its size is
-+.I length\fR.
-+The dma-buf is identified by the file descriptor
-+.I fd\fR.
-+The argument
-+.I iova
-+specifies the virtual base address of the MR when accessed through a lkey or rkey.
-+It must have the same page offset as
-+.I offset\fR.
-+The argument
-+.I access
-+describes the desired memory protection attributes; it is similar to the ibv_reg_mr case except that only the following flags are supported:
-+.B IBV_ACCESS_LOCAL_WRITE, IBV_ACCESS_REMOTE_WRITE, IBV_ACCESS_REMOTE_READ, IBV_ACCESS_REMOTE_ATOMIC, IBV_ACCESS_RELAXED_ORDERING.
-+.PP
- .B ibv_dereg_mr()
- deregisters the MR
- .I mr\fR.
- .SH "RETURN VALUE"
--.B ibv_reg_mr() / ibv_reg_mr_iova()
-+.B ibv_reg_mr() / ibv_reg_mr_iova() / ibv_reg_dmabuf_mr()
- returns a pointer to the registered MR, or NULL if the request fails.
- The local key (\fBL_Key\fR) field
- .B lkey
-diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
-index 4fb3893..b93046a 100644
---- a/libibverbs/verbs.c
-+++ b/libibverbs/verbs.c
-@@ -1,6 +1,7 @@
- /*
-  * Copyright (c) 2005 Topspin Communications.  All rights reserved.
-  * Copyright (c) 2006, 2007 Cisco Systems, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corperation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -370,6 +371,24 @@ void ibv_unimport_mr(struct ibv_mr *mr)
- 	get_ops(mr->context)->unimport_mr(mr);
- }
- 
-+struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset,
-+				 size_t length, uint64_t iova, int fd,
-+				 int access)
-+{
-+	struct ibv_mr *mr;
-+
-+	mr = get_ops(pd->context)->reg_dmabuf_mr(pd, offset, length, iova,
-+						 fd, access);
-+	if (!mr)
-+		return NULL;
-+
-+	mr->context = pd->context;
-+	mr->pd = pd;
-+	mr->addr = (void *)offset;
-+	mr->length = length;
-+	return mr;
-+}
-+
- LATEST_SYMVER_FUNC(ibv_rereg_mr, 1_1, "IBVERBS_1.1",
- 		   int,
- 		   struct ibv_mr *mr, int flags,
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index da782f2..656b0f9 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2004, 2011-2012 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
-  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
-+ * Copyright (c) 2020 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -2536,6 +2537,12 @@ __ibv_reg_mr_iova(struct ibv_pd *pd, void *addr, size_t length, uint64_t iova,
- 			  __builtin_constant_p(                                \
- 				  ((access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
- 
-+/**
-+ * ibv_reg_dmabuf_mr - Register a dambuf-based memory region
-+ */
-+struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
-+				 uint64_t iova, int fd, int access);
-+
- enum ibv_rereg_mr_err_code {
- 	/* Old MR is valid, invalid input */
- 	IBV_REREG_MR_ERR_INPUT = -1,
--- 
-1.8.3.1
-
+OK. That can be fixed.
