@@ -2,63 +2,133 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45EBEC433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 19:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71F3FC433E9
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 04:21:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20739207BC
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 19:42:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EA662070C
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 04:21:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727767AbhAZFhT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:37:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34000 "EHLO mail.kernel.org"
+        id S1343653AbhA0EVZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 23:21:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727873AbhAYMP2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 25 Jan 2021 07:15:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1E4FA22E03;
-        Mon, 25 Jan 2021 12:13:44 +0000 (UTC)
+        id S2388030AbhAZFiZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 26 Jan 2021 00:38:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6E152223D;
+        Tue, 26 Jan 2021 05:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611576825;
-        bh=KR+Gvuyb4FgDBSUYKTomBM6PTJsiLT9lAX/sI8Z9mmo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ni6ZTlt6OB+vnB4QbUJgFcmeZnWJhaKPudU2AnhqnZ8IQ/D8YDvBsCIfZVEj1YlWZ
-         HrnYVQuHHppuvRHW4VrghVPV+CRP6ldGASta90BPKFwFXCw/6btQ5794cn6v5Gf4OD
-         dV8PAgSfvquZJTBrV8ej3TI3JDNSvy9kT9n0tNYT9TAMwsQtZZUYM6Z1tV1M5v22Aw
-         eoPtliadCk2Unu3tZkY2Wvz/6R6vjGvAHIqVSC/g5pWmFhMpJB0c4ycLqRqyTr8fa0
-         9q2u+4UDnfORhiesPIGU00FU0U1c4fM1ZrWNDxs1NxMI/9XM+YfmQjgw7x6hbGcUGl
-         ywXEZ1HfEQ/Ew==
+        s=k20201202; t=1611639464;
+        bh=ibjvNJg6Y0oi3XXh3+5AHtIS0a4DyHJrTtmFzGR2s3I=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=XVqbUo+MC5RZRtnp7Zy2iObRa7Dn8FgjHwhY6BiZNKyIeKKC5aVIFKgaQUIqvzSZl
+         5kQ2eV+97bfMjUiTh4uCzUeQclvCcrE9aS0KYa4krkPbmnTe9suKpVggDuNXS4K1g3
+         g1ktbO4J28pJFxzlouL0G/9RDUWPtfbVUOJvXptjbajvTA7NNTblE6Be5OAgaC29UT
+         Gs1nYPp5UL2i4sQj1te/94rjmzHNe0zQ6IGaVfnfbadpWmqocdkCbxuGyiyiPRKHXc
+         eusbu0FvmDCPpLD99P5z3k4rAIsbTudgGULAbkzjyqNjXAYciFzbzgCy+9kacH60Z8
+         iyoaDiRRiUW7w==
+Date:   Tue, 26 Jan 2021 07:37:40 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Shay Drory <shayd@nvidia.com>
-Subject: [PATCH rdma-next v1 0/2] Fixes to v5.11
-Date:   Mon, 25 Jan 2021 14:13:37 +0200
-Message-Id: <20210125121339.837518-1-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Shiraz Saleem <shiraz.saleem@intel.com>, dledford@redhat.com,
+        kuba@kernel.org, davem@davemloft.net, linux-rdma@vger.kernel.org,
+        gregkh@linuxfoundation.org, netdev@vger.kernel.org,
+        david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
+        Mustafa Ismail <mustafa.ismail@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Message-ID: <20210126053740.GO579511@unreal>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+ <20210122234827.1353-8-shiraz.saleem@intel.com>
+ <20210125184248.GS4147@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210125184248.GS4147@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Mon, Jan 25, 2021 at 02:42:48PM -0400, Jason Gunthorpe wrote:
+> On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
+> > +/**
+> > + * irdma_init_dev - GEN_2 device init
+> > + * @aux_dev: auxiliary device
+> > + *
+> > + * Create device resources, set up queues, pble and hmc objects.
+> > + * Return 0 if successful, otherwise return error
+> > + */
+> > +int irdma_init_dev(struct auxiliary_device *aux_dev)
+> > +{
+> > +	struct iidc_auxiliary_object *vo = container_of(aux_dev,
+> > +							struct iidc_auxiliary_object,
+> > +							adev);
+> > +	struct iidc_peer_obj *peer_info = vo->peer_obj;
+> > +	struct irdma_handler *hdl;
+> > +	struct irdma_pci_f *rf;
+> > +	struct irdma_sc_dev *dev;
+> > +	struct irdma_priv_peer_info *priv_peer_info;
+> > +	int err;
+> > +
+> > +	hdl = irdma_find_handler(peer_info->pdev);
+> > +	if (hdl)
+> > +		return -EBUSY;
+> > +
+> > +	hdl = kzalloc(sizeof(*hdl), GFP_KERNEL);
+> > +	if (!hdl)
+> > +		return -ENOMEM;
+> > +
+> > +	rf = &hdl->rf;
+> > +	priv_peer_info = &rf->priv_peer_info;
+> > +	rf->aux_dev = aux_dev;
+> > +	rf->hdl = hdl;
+> > +	dev = &rf->sc_dev;
+> > +	dev->back_dev = rf;
+> > +	rf->gen_ops.init_hw = icrdma_init_hw;
+> > +	rf->gen_ops.request_reset = icrdma_request_reset;
+> > +	rf->gen_ops.register_qset = irdma_lan_register_qset;
+> > +	rf->gen_ops.unregister_qset = irdma_lan_unregister_qset;
+> > +	priv_peer_info->peer_info = peer_info;
+> > +	rf->rdma_ver = IRDMA_GEN_2;
+> > +	irdma_set_config_params(rf);
+> > +	dev->pci_rev = peer_info->pdev->revision;
+> > +	rf->default_vsi.vsi_idx = peer_info->pf_vsi_num;
+> > +	/* save information from peer_info to priv_peer_info*/
+> > +	priv_peer_info->fn_num = PCI_FUNC(peer_info->pdev->devfn);
+> > +	rf->hw.hw_addr = peer_info->hw_addr;
+> > +	rf->pcidev = peer_info->pdev;
+> > +	rf->netdev = peer_info->netdev;
+> > +	priv_peer_info->ftype = peer_info->ftype;
+> > +	priv_peer_info->msix_count = peer_info->msix_count;
+> > +	priv_peer_info->msix_entries = peer_info->msix_entries;
+> > +	irdma_add_handler(hdl);
+> > +	if (irdma_ctrl_init_hw(rf)) {
+> > +		err = -EIO;
+> > +		goto err_ctrl_init;
+> > +	}
+> > +	peer_info->peer_ops = &irdma_peer_ops;
+> > +	peer_info->peer_drv = &irdma_peer_drv;
+> > +	err = peer_info->ops->peer_register(peer_info);
+> > +	if (err)
+> > +		goto err_peer_reg;
+>
+> No to this, I don't want to see aux bus layered on top of another
+> management framework in new drivers. When this driver uses aux bus get
+> rid of the old i40iw stuff. I already said this in one of the older
+> postings of this driver.
+>
+> auxbus probe() for a RDMA driver should call ib_alloc_device() near
+> its start and ib_register_device() near the end its end.
+>
+> drvdata for the aux device should point to the driver struct
+> containing the ib_device.
 
-v1:
- * Improved grammar and add wake call to ib_umad_kill_port()
-v0: https://lore.kernel.org/linux-rdma/20201213132940.345554-1-leon@kernel.org/
+My other expectation is to see at least two aux_drivers, one for the
+RoCE and another for the iWARP. It will allow easy management for the
+users if they decide to disable/enable specific functionality
+(/sys/bus/auxiliary/device/*). It will simplify code management too.
 
-Shay Drory (2):
-  IB/umad: Return EIO in case of when device disassociated
-  IB/umad: Return EPOLLERR in case of when device disassociated
-
- drivers/infiniband/core/user_mad.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
-
---
-2.29.2
-
+Thanks
