@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F4231C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:56:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22953C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C44D92224C
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:56:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECF3223109
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:56:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2403958AbhAZM4D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:56:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51092 "EHLO
+        id S2403819AbhAZM4A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:56:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404114AbhAZMuI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:50:08 -0500
-Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7225C08EC2A
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:59 -0800 (PST)
-Received: by mail-wr1-x42e.google.com with SMTP id 7so16324509wrz.0
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:59 -0800 (PST)
+        with ESMTP id S2404103AbhAZMuG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:50:06 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E2D5C08EB2F
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:56 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id 6so16315420wri.3
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=9JTe+jRXALQKf3yY8IU1E8sEuYfjFJES4qTh1TiteyM=;
-        b=Meed0fqrtuRP5qb5w4GuMUsUbI4hj7GoqnFzKuoS/e3WeCj7/a6Vycj84cMinxtPCw
-         mq5Y6noIM+LlWPZIfLKcIWyC/6ebjVbujaY0qIODGLptYZtWVdabraN2Sb7nhLtyYjpf
-         J3LUIM3YmQZiyxmeORHTTFS8EppCtc4iMOrS3KbnvTyf/mlz/GQR9/r68lVL8ifUnTmc
-         FhXWaWMCHTBlL94wQJTfshMfsUensOj+fwqvd4y4xWndBKylhMVyRpTPFCXNHG2zBjUZ
-         mX+iDtpIaSMOSav7tet0FCTqiwHdloM/KiX9XVvdew1WtpXZik0LiiYCqTZtix7MxzVO
-         tgxg==
+        bh=qncZWHsLqXASAb7WKMbAV3gMhi+sjt/v/oNjYxknz8Y=;
+        b=NcIYoCqk3hUpJsDz9SfdkAFaGLumlfnhs1YR/p42LL4vdvcjB2Eylpt+wA4f29kfkP
+         CnK8TqZJRq5EhPZC3C08uNaS6L1lQUUyQMNtJY7ZZRD272gVCXsN2syn8JMbHMaBDnKE
+         +Zo0/q3WAI9LRKYTb009yKJp9wC/l9NiVdRHZxxuTcE+65GJe7cJ34P92CpIsfsqvDUs
+         5yfGbi+jUUpxu2rjM6Mj8QzLrBJG3HGsOPOaqhq5LnjHt07Pz27iTBXBwgFYogkJlPCW
+         /h2fFdUF76tANhPTf+RBKYSyJmvt1ha93oyPlHNs8BQK34/6Uz1ZjJmgjDyEiQpm3uz5
+         kmEQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=9JTe+jRXALQKf3yY8IU1E8sEuYfjFJES4qTh1TiteyM=;
-        b=pg5nttBYg2xNwg2rFo5ZmjiHH2upUgdbx41I9Oini5uARJOgiN83COFRworVpN6n86
-         DZ2SKQDE1llpOua8x8eHUqyoFHB0GguiPxT+FT8gmys1TQnRl1l31WtScc/hiJCzaAoI
-         eHkSvGjdludRngtFqhnlLu1JfoTaKrVuWLPsIbPPeTZpW2xZOk+VH2rSWa9krPnu7IGX
-         FosxA3Sktas2Ju3z+hu90zvQ+hlFqgeSsO/bcBP1KqIYMvGac1+EuR2kc3wweWahkarJ
-         fU/G7xNVBrW37tJt1s1B4t1btUIFODsKMCxsFam6+cXsJAXEFhk72KPWmKw78icNalDX
-         U1fQ==
-X-Gm-Message-State: AOAM5316DBigY0x+k/tcHrajJyMUIQJvmNTgexHSRPc5naFmIup8YouR
-        GNW8A6sr4WEr66ALgCSq+RDzMg==
-X-Google-Smtp-Source: ABdhPJy1jf9vr6ciXCO7+QCbDSXqsRfYt98g7N9DvzH95d3RzqN0DIBwvucSHQbJf5P4sRL0S7d3Jw==
-X-Received: by 2002:adf:dc89:: with SMTP id r9mr5907515wrj.52.1611665278654;
-        Tue, 26 Jan 2021 04:47:58 -0800 (PST)
+        bh=qncZWHsLqXASAb7WKMbAV3gMhi+sjt/v/oNjYxknz8Y=;
+        b=rGnRq/NDtvY3A9IckeErp5LvkG4ybD29hFAU40LVHyJm47UncFs+tru2llg7ih8qkA
+         aiVdsP9D2ctk4AF31eSeUITR8Q1lz8eV5uauEYIGPD0vdZ61Wif52lpZDTFx2mbh01j5
+         aP5W5Zz/wqIFzbGobmVBI0Myl3VqD00nkMBpGYhZJTb+fZglQrVOWSiHrS5r9V6d4XBs
+         wiY6kw033MWqDt+wUEZuZUhRJiSHALg4ZIo3kXumVT2th9L+HIyw2vJoFYkCrNZSxWfP
+         VvkW2u5D1jXILZNNW8xIIMRCKzpuQ5jXpCeBUwalO/XXHyazABKxPq0QQfzSdiqD99w9
+         x19A==
+X-Gm-Message-State: AOAM532pvood0dgnuyK2fXf/IzZCFPVPSZ9tkxjxzRoTWr+0a4sr8Bk+
+        ezYSWuj4qg90bMJk0Owr8GonLA==
+X-Google-Smtp-Source: ABdhPJw2xjb1RdcsnXKRATtfdI88n+CathRcAI2SOo030+I1jUS4DZ75Hx3+2ch6KS6QY4E5AZ7xIg==
+X-Received: by 2002:adf:dd45:: with SMTP id u5mr5869894wrm.392.1611665275238;
+        Tue, 26 Jan 2021 04:47:55 -0800 (PST)
 Received: from dell.default ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.57
+        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 04:47:58 -0800 (PST)
+        Tue, 26 Jan 2021 04:47:54 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 20/20] RDMA/hw/hfi1/rc: Demote incorrectly populated kernel-doc header
-Date:   Tue, 26 Jan 2021 12:47:32 +0000
-Message-Id: <20210126124732.3320971-21-lee.jones@linaro.org>
+Subject: [PATCH 17/20] RDMA/hw/hfi1/ud: Fix a little more doc-rot
+Date:   Tue, 26 Jan 2021 12:47:29 +0000
+Message-Id: <20210126124732.3320971-18-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210126124732.3320971-1-lee.jones@linaro.org>
 References: <20210126124732.3320971-1-lee.jones@linaro.org>
@@ -76,9 +76,14 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/hfi1/rc.c:1388: warning: Function parameter or member 'packet' not described in 'hfi1_send_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:1388: warning: Function parameter or member 'is_fecn' not described in 'hfi1_send_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:1388: warning: Excess function parameter 'qp' description in 'hfi1_send_rc_ack'
+ drivers/infiniband/hw/hfi1/ud.c:477: warning: Function parameter or member 'ps' not described in 'hfi1_make_ud_req'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Function parameter or member 'packet' not described in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'ibp' description in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'hdr' description in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'rcv_flags' description in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'data' description in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'tlen' description in 'hfi1_ud_rcv'
+ drivers/infiniband/hw/hfi1/ud.c:855: warning: Excess function parameter 'qp' description in 'hfi1_ud_rcv'
 
 Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
@@ -87,24 +92,35 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/hfi1/rc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/ud.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 7194236aec8fe..0174b8ee9f00f 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1376,9 +1376,8 @@ static const hfi1_make_rc_ack hfi1_make_rc_ack_tbl[2] = {
- 	[HFI1_PKT_TYPE_16B] = &hfi1_make_rc_ack_16B
- };
- 
--/**
-+/*
-  * hfi1_send_rc_ack - Construct an ACK packet and send it
-- * @qp: a pointer to the QP
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index e804af71b629d..6ecb984c85fac 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -468,6 +468,7 @@ void hfi1_make_ud_req_16B(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ /**
+  * hfi1_make_ud_req - construct a UD request packet
+  * @qp: the QP
++ * @ps: the current packet state
   *
-  * This is called from hfi1_rc_rcv() and handle_receive_interrupt().
-  * Note that RDMA reads and atomics are handled in the
+  * Assume s_lock is held.
+  *
+@@ -840,12 +841,7 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
+ 
+ /**
+  * hfi1_ud_rcv - receive an incoming UD packet
+- * @ibp: the port the packet came in on
+- * @hdr: the packet header
+- * @rcv_flags: flags relevant to rcv processing
+- * @data: the packet data
+- * @tlen: the packet length
+- * @qp: the QP the packet came on
++ * @packet: the packet structure
+  *
+  * This is called from qp_rcv() to process an incoming UD packet
+  * for the given QP.
 -- 
 2.25.1
 
