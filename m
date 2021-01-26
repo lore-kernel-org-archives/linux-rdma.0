@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5C5C433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B274C433E9
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB03923127
+	by mail.kernel.org (Postfix) with ESMTP id D20BE23122
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391809AbhAZMtz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:49:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51298 "EHLO
+        id S2403796AbhAZMuB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:50:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2403796AbhAZMtv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:51 -0500
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A5F8C08EB22
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:49 -0800 (PST)
-Received: by mail-wr1-x434.google.com with SMTP id 6so16315043wri.3
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:49 -0800 (PST)
+        with ESMTP id S2392111AbhAZMt4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:56 -0500
+Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3017C08EB25
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:51 -0800 (PST)
+Received: by mail-wr1-x435.google.com with SMTP id v15so16308922wrx.4
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=rnUOXuaDVhzv+JRzF2N3phcXKpl5z42SkYZrTN+HwL8=;
-        b=MqNVz8RNxX/zGJoBvGZbRzmox2XT2+Oo/kNZZVSP2zXsRlIQkB6mQwDoEBKNS+SK4q
-         Z/4yHb7RqDDLXtoV7Rl536qDZwv7sYfZeavJ9tMpe+Ksv1Ss4RMNynaIgYmnCjSGWGsF
-         3HiYTJDeO+PRz9SVF6G9UzhTAwOJSAWOtGC+eGgr9wfCHNVoNzlL7j9NDn9SUsa5uPbi
-         6YEDTLtk6bftJmna9JYd7xBUpLEzK5bn6EcKNrY6GWQ7h/M1NeyNVZOkfxXt+SMg+Wgh
-         /wOOjdsMNBbmv2tmNmERZuUae9CxU8/Vg3xFbF/Ip/K+RnHJZRZBY7hHLbW0jKAt2bub
-         Kk7A==
+        bh=4f4I65tHSu0Sevubz3lp3Zk+K7fk0+tHrgiLNeMd+Rc=;
+        b=p4HdJ6LjNhnbcw4Rkb46d4O637uRz+G/y5kFGVkp3mw/I0eBw5VnPxLp4bvxxC6wPD
+         GUyd4XS8uv/MF76CwjocbLJjE/kwtXYQ+If2ymHM+H/TPnFDJnXwSXLLdWBhlOJ4MQBn
+         nNO/VP+yk6ec2yyGbteddQCv3ieCJxN/y5KZ+AnFkCHYtohS/SQxbSQxTaGYs3+iqI0P
+         tOWUnxm8z/PTmJkNGaUVOnm9brIEBrrC6EjUD72jUJkyPtLQ5kljrZhftYjfpDSmgdec
+         4yGsORj7TSSiL+/AspbTUt4v+Ni4/pBRg9UtqRw/eDSoHo/NE7EZm1Nbw+cuJCQqSOKh
+         p+/w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rnUOXuaDVhzv+JRzF2N3phcXKpl5z42SkYZrTN+HwL8=;
-        b=jwoTqQ44b/xz7daz+2+TuN3MfCnb7FsNq5//CusZETbpF8nn2hvQmDmnGfeQjJFKJ8
-         eSersBob+TZb6Z/1Sw71pZdWo99ycmDoK9bNX564sfKh7o30m42FLfV0c95TKIC5L8y/
-         o7OK9fcHdRKOdayP5hHjSn/ZzJlr5Ov5t9ewQakjZhpEtKRhUBzxGf3RBgfqqFMPPdqm
-         eMnavNgLYbA1mi2cXFb/j/mi2GGc80vRpyFeEIVl38KQ+AwxjFMIgrCGdEePBDDHrYvx
-         pb19J7JPM5dy2UcJlRjw00U52CdVGgVfFb6Ol/fUr2oL5Q3B68nD9zlSb60YVFF2PpCC
-         Q7Hg==
-X-Gm-Message-State: AOAM533HBs8XWObdmODwTCiHb4KC+uCFvXNsqu7SsZ3giBTNqhb8IIry
-        hGdhN/opCcPbqbL1p6C15J+peA==
-X-Google-Smtp-Source: ABdhPJyLudmPTC3h2iicIMU90/lCacPFTuduSuKUdXae8KM5eDTxCucVccuknk2sFWP6UvfheL9vuA==
-X-Received: by 2002:adf:cd83:: with SMTP id q3mr5883891wrj.225.1611665268097;
-        Tue, 26 Jan 2021 04:47:48 -0800 (PST)
+        bh=4f4I65tHSu0Sevubz3lp3Zk+K7fk0+tHrgiLNeMd+Rc=;
+        b=p7LtZfoJfgtPK51d2Q6H/plWSpTct/OdsYyp7+J8sPhHAvveYuzzuSNCEk8DKgGwWu
+         3yROIjioc5uJZCmk43wJtDC8fXRDsFjJ4x+HTmiCfZMlfD9hNH/ircyRfNZYPXiiO328
+         duktg3cgu1IDiFCX8PTQ62YpoJMdiCVufmrVGaAWEuVfA37Ke05Bv6bnq8QTC0MbCwcM
+         yUlYkmPb5Oy6Qh/9IJ3oqn1Byp7nA3fcIVtINWX6c0j74l8f2J+fBQ2NHVDBd8XtkdG/
+         Cj3d9IRccipj+/D3BLdDiPdruG2FpX1Ui6oVi4adsKYed/ohkn7oB9GH4KX14h3gOXbC
+         aHmQ==
+X-Gm-Message-State: AOAM530WS5kJAAcHEW+42tI09kpd+fY8CDDTef317crduAKPMq4xUhmO
+        /O72Rgsu4lQEm3c9CkX7yuYCIgQgHiPVDMm1
+X-Google-Smtp-Source: ABdhPJwFJFyJiQxPN+ieJwSG+epJ+dfgs4HDsCWwPmw6XySAq1DHWA1Fxp8sJuDlEEZ9YiFCba30Dg==
+X-Received: by 2002:a5d:414c:: with SMTP id c12mr6099593wrq.251.1611665270492;
+        Tue, 26 Jan 2021 04:47:50 -0800 (PST)
 Received: from dell.default ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.47
+        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 04:47:47 -0800 (PST)
+        Tue, 26 Jan 2021 04:47:49 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 11/20] RDMA/hw/hfi1/rc: Fix a few function documentation issues
-Date:   Tue, 26 Jan 2021 12:47:23 +0000
-Message-Id: <20210126124732.3320971-12-lee.jones@linaro.org>
+Subject: [PATCH 13/20] RDMA/hw/hfi1/ruc: Fix a small formatting and description issues
+Date:   Tue, 26 Jan 2021 12:47:25 +0000
+Message-Id: <20210126124732.3320971-14-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210126124732.3320971-1-lee.jones@linaro.org>
 References: <20210126124732.3320971-1-lee.jones@linaro.org>
@@ -76,14 +76,10 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/hfi1/rc.c:430: warning: Function parameter or member 'ps' not described in 'hfi1_make_rc_req'
- drivers/infiniband/hw/hfi1/rc.c:1387: warning: Function parameter or member 'packet' not described in 'hfi1_send_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:1387: warning: Function parameter or member 'is_fecn' not described in 'hfi1_send_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:1387: warning: Excess function parameter 'qp' description in 'hfi1_send_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'aeth' not described in 'do_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'val' not described in 'do_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'rcd' not described in 'do_rc_ack'
- drivers/infiniband/hw/hfi1/rc.c:2554: warning: Function parameter or member 'rcd' not described in 'rc_rcv_error'
+ drivers/infiniband/hw/hfi1/ruc.c:277: warning: Function parameter or member 'bth1' not described in 'hfi1_make_ruc_header_16B'
+ drivers/infiniband/hw/hfi1/ruc.c:365: warning: Function parameter or member 'bth1' not described in 'hfi1_make_ruc_header_9B'
+ drivers/infiniband/hw/hfi1/ruc.c:472: warning: Function parameter or member 'tid' not described in 'hfi1_schedule_send_yield'
+ drivers/infiniband/hw/hfi1/ruc.c:472: warning: Excess function parameter 'timeout' description in 'hfi1_schedule_send_yield'
 
 Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
@@ -92,38 +88,42 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/hfi1/rc.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi1/ruc.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 1bb5f57152d35..7194236aec8fe 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -421,6 +421,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 23ac6057b2112..c3fa1814c6a86 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -260,6 +260,7 @@ static inline void hfi1_make_ruc_bth(struct rvt_qp *qp,
+  * @qp: the queue pair
+  * @ohdr: a pointer to the destination header memory
+  * @bth0: bth0 passed in from the RC/UC builder
++ * @bth1: bth1 passed in from the RC/UC builder
+  * @bth2: bth2 passed in from the RC/UC builder
+  * @middle: non zero implies indicates ahg "could" be used
+  * @ps: the current packet state
+@@ -348,6 +349,7 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+  * @qp: the queue pair
+  * @ohdr: a pointer to the destination header memory
+  * @bth0: bth0 passed in from the RC/UC builder
++ * @bth1: bth1 passed in from the RC/UC builder
+  * @bth2: bth2 passed in from the RC/UC builder
+  * @middle: non zero implies indicates ahg "could" be used
+  * @ps: the current packet state
+@@ -455,11 +457,10 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
  /**
-  * hfi1_make_rc_req - construct a request packet (SEND, RDMA r/w, ATOMIC)
-  * @qp: a pointer to the QP
-+ * @ps: the current packet state
+  * hfi1_schedule_send_yield - test for a yield required for QP
+  * send engine
+- * @timeout: Final time for timeout slice for jiffies
+  * @qp: a pointer to QP
+  * @ps: a pointer to a structure with commonly lookup values for
+  *      the the send engine progress
+- * @tid - true if it is the tid leg
++ * @tid: true if it is the tid leg
   *
-  * Assumes s_lock is held.
-  *
-@@ -1992,7 +1993,7 @@ static void update_qp_retry_state(struct rvt_qp *qp, u32 psn, u32 spsn,
- 	}
- }
- 
--/**
-+/*
-  * do_rc_ack - process an incoming RC ACK
-  * @qp: the QP the ACK came in on
-  * @psn: the packet sequence number of the ACK
-@@ -2541,6 +2542,7 @@ static inline void rc_cancel_ack(struct rvt_qp *qp)
-  * @opcode: the opcode for this packet
-  * @psn: the packet sequence number for this packet
-  * @diff: the difference between the PSN and the expected PSN
-+ * @rcd: the receive context
-  *
-  * This is called from hfi1_rc_rcv() to process an unexpected
-  * incoming RC packet for the given QP.
+  * This routine checks if the time slice for the QP has expired
+  * for RC QPs, if so an additional work entry is queued. At this
 -- 
 2.25.1
 
