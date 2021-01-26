@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C36C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5C5C433DB
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95C1C23122
+	by mail.kernel.org (Postfix) with ESMTP id AB03923127
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391304AbhAZMts (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:49:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51300 "EHLO
+        id S2391809AbhAZMtz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:49:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404040AbhAZMta (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:30 -0500
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34FEAC0698C0
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:40 -0800 (PST)
-Received: by mail-wr1-x429.google.com with SMTP id p15so9656917wrq.8
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:40 -0800 (PST)
+        with ESMTP id S2403796AbhAZMtv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:51 -0500
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A5F8C08EB22
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:49 -0800 (PST)
+Received: by mail-wr1-x434.google.com with SMTP id 6so16315043wri.3
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=i9Mu8Bh1YY8EtsX22yToiGMh//B01t5LgpZPGaTQ+Bo=;
-        b=i0VO5mhW8uoKItgQm7dfy12wJVs5GTBAslNT7PWgwS7TuwlhdcxUEdQqzki08qZkQC
-         YjgRfy3KrKwCInmXbDIeaD7G/dXs93oEphzBYGQUSygA36QZETV9s7KptEBUt6S0JNZu
-         M6+xxyrs4nOFtD8+Imix14sya8zsehfGTyJ2XK1S8X8nW3zaYs9bwmVUQI0o2GeXnHKC
-         rg/C/EKYFIsSHkFpHEuOuytKfxlsQGXqph8v6UwaSx+oAIvah6CGkuAvDoIudoy0ltnB
-         ZJkrtDCYpdtu1tDrILXOYyq3NtO7A/E0hE8k8U+PntWoFwMM8QYxyL+D/qvpm12l8bRe
-         8B1Q==
+        bh=rnUOXuaDVhzv+JRzF2N3phcXKpl5z42SkYZrTN+HwL8=;
+        b=MqNVz8RNxX/zGJoBvGZbRzmox2XT2+Oo/kNZZVSP2zXsRlIQkB6mQwDoEBKNS+SK4q
+         Z/4yHb7RqDDLXtoV7Rl536qDZwv7sYfZeavJ9tMpe+Ksv1Ss4RMNynaIgYmnCjSGWGsF
+         3HiYTJDeO+PRz9SVF6G9UzhTAwOJSAWOtGC+eGgr9wfCHNVoNzlL7j9NDn9SUsa5uPbi
+         6YEDTLtk6bftJmna9JYd7xBUpLEzK5bn6EcKNrY6GWQ7h/M1NeyNVZOkfxXt+SMg+Wgh
+         /wOOjdsMNBbmv2tmNmERZuUae9CxU8/Vg3xFbF/Ip/K+RnHJZRZBY7hHLbW0jKAt2bub
+         Kk7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=i9Mu8Bh1YY8EtsX22yToiGMh//B01t5LgpZPGaTQ+Bo=;
-        b=l5ewzuioAgMCD+lOoCWNBke0t3rUZqhzLSPPdCoeUeWbxI1sgGRocC7scGzVWj/AKZ
-         oNL9gYKKWhh5DPKo9oRyGEL2Qwnm6FY5EiZyGjNdqucSsNEvYD7fy9LH+/GMn2UP8Q5f
-         UwBIEMlZPZNeGUGAPA/eHIUlRP2NW7KAkXkKerCUOWpGuMq1oaaH6VbOE8RHBBi9uiaG
-         ykVeb3GN4hXZOCjOgiy4AmhQcpoE2n5yMFYboAf82nJSL7lfndWDkq5cdABa5dgqm60c
-         BhVsGIe5k5qpb+NTHT6cvtWkwWsT6JExQ2hJY2i9UsKDrwGvNys/vmpd+IE9RDL10fXq
-         N0PQ==
-X-Gm-Message-State: AOAM531o0J4hAIQ3wxPGubmVW1bU1MZLRsve1mlkSplSuXXydMhED5o0
-        uGlV3SZesEFSKc05GZoEGzDCig==
-X-Google-Smtp-Source: ABdhPJw9ITUWt0EJXUR9dYh1AQKI+wsUulyl960WAdsqnnB/If5INkjPbVIRAIdpsX0AEOHvSxbPzQ==
-X-Received: by 2002:adf:e610:: with SMTP id p16mr5840983wrm.169.1611665259013;
-        Tue, 26 Jan 2021 04:47:39 -0800 (PST)
+        bh=rnUOXuaDVhzv+JRzF2N3phcXKpl5z42SkYZrTN+HwL8=;
+        b=jwoTqQ44b/xz7daz+2+TuN3MfCnb7FsNq5//CusZETbpF8nn2hvQmDmnGfeQjJFKJ8
+         eSersBob+TZb6Z/1Sw71pZdWo99ycmDoK9bNX564sfKh7o30m42FLfV0c95TKIC5L8y/
+         o7OK9fcHdRKOdayP5hHjSn/ZzJlr5Ov5t9ewQakjZhpEtKRhUBzxGf3RBgfqqFMPPdqm
+         eMnavNgLYbA1mi2cXFb/j/mi2GGc80vRpyFeEIVl38KQ+AwxjFMIgrCGdEePBDDHrYvx
+         pb19J7JPM5dy2UcJlRjw00U52CdVGgVfFb6Ol/fUr2oL5Q3B68nD9zlSb60YVFF2PpCC
+         Q7Hg==
+X-Gm-Message-State: AOAM533HBs8XWObdmODwTCiHb4KC+uCFvXNsqu7SsZ3giBTNqhb8IIry
+        hGdhN/opCcPbqbL1p6C15J+peA==
+X-Google-Smtp-Source: ABdhPJyLudmPTC3h2iicIMU90/lCacPFTuduSuKUdXae8KM5eDTxCucVccuknk2sFWP6UvfheL9vuA==
+X-Received: by 2002:adf:cd83:: with SMTP id q3mr5883891wrj.225.1611665268097;
+        Tue, 26 Jan 2021 04:47:48 -0800 (PST)
 Received: from dell.default ([91.110.221.188])
-        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.37
+        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 04:47:38 -0800 (PST)
+        Tue, 26 Jan 2021 04:47:47 -0800 (PST)
 From:   Lee Jones <lee.jones@linaro.org>
 To:     lee.jones@linaro.org
 Cc:     linux-kernel@vger.kernel.org,
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [PATCH 03/20] RDMA/hw/hfi1/iowait: Demote half-completed kernel-doc and fix formatting issue in another
-Date:   Tue, 26 Jan 2021 12:47:15 +0000
-Message-Id: <20210126124732.3320971-4-lee.jones@linaro.org>
+Subject: [PATCH 11/20] RDMA/hw/hfi1/rc: Fix a few function documentation issues
+Date:   Tue, 26 Jan 2021 12:47:23 +0000
+Message-Id: <20210126124732.3320971-12-lee.jones@linaro.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210126124732.3320971-1-lee.jones@linaro.org>
 References: <20210126124732.3320971-1-lee.jones@linaro.org>
@@ -76,12 +76,14 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'tidfunc' not described in 'iowait_init'
- drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'wakeup' not described in 'iowait_init'
- drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'sdma_drained' not described in 'iowait_init'
- drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'init_priority' not described in 'iowait_init'
- drivers/infiniband/hw/hfi1/iowait.c:52: warning: Excess function parameter 'resume' description in 'iowait_init'
- drivers/infiniband/hw/hfi1/iowait.c:94: warning: Function parameter or member 'w' not described in 'iowait_set_work_flag'
+ drivers/infiniband/hw/hfi1/rc.c:430: warning: Function parameter or member 'ps' not described in 'hfi1_make_rc_req'
+ drivers/infiniband/hw/hfi1/rc.c:1387: warning: Function parameter or member 'packet' not described in 'hfi1_send_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:1387: warning: Function parameter or member 'is_fecn' not described in 'hfi1_send_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:1387: warning: Excess function parameter 'qp' description in 'hfi1_send_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'aeth' not described in 'do_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'val' not described in 'do_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:2008: warning: Function parameter or member 'rcd' not described in 'do_rc_ack'
+ drivers/infiniband/hw/hfi1/rc.c:2554: warning: Function parameter or member 'rcd' not described in 'rc_rcv_error'
 
 Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
@@ -90,31 +92,38 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/infiniband/hw/hfi1/iowait.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/rc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/iowait.c b/drivers/infiniband/hw/hfi1/iowait.c
-index 5836fe7b28177..1114898026140 100644
---- a/drivers/infiniband/hw/hfi1/iowait.c
-+++ b/drivers/infiniband/hw/hfi1/iowait.c
-@@ -26,7 +26,7 @@ inline void iowait_clear_flag(struct iowait *wait, u32 flag)
- 	clear_bit(flag, &wait->flags);
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 1bb5f57152d35..7194236aec8fe 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -421,6 +421,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ /**
+  * hfi1_make_rc_req - construct a request packet (SEND, RDMA r/w, ATOMIC)
+  * @qp: a pointer to the QP
++ * @ps: the current packet state
+  *
+  * Assumes s_lock is held.
+  *
+@@ -1992,7 +1993,7 @@ static void update_qp_retry_state(struct rvt_qp *qp, u32 psn, u32 spsn,
+ 	}
  }
  
 -/**
 +/*
-  * iowait_init() - initialize wait structure
-  * @wait: wait struct to initialize
-  * @tx_limit: limit for overflow queuing
-@@ -88,7 +88,7 @@ void iowait_cancel_work(struct iowait *w)
- 
- /**
-  * iowait_set_work_flag - set work flag based on leg
-- * @w - the iowait work struct
-+ * @w: the iowait work struct
-  */
- int iowait_set_work_flag(struct iowait_work *w)
- {
+  * do_rc_ack - process an incoming RC ACK
+  * @qp: the QP the ACK came in on
+  * @psn: the packet sequence number of the ACK
+@@ -2541,6 +2542,7 @@ static inline void rc_cancel_ack(struct rvt_qp *qp)
+  * @opcode: the opcode for this packet
+  * @psn: the packet sequence number for this packet
+  * @diff: the difference between the PSN and the expected PSN
++ * @rcd: the receive context
+  *
+  * This is called from hfi1_rc_rcv() to process an unexpected
+  * incoming RC packet for the given QP.
 -- 
 2.25.1
 
