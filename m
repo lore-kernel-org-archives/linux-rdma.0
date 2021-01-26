@@ -2,49 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2720CC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48DBDC433E9
 	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EEF4E22ADF
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1267222D58
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 05:39:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729266AbhAZFjK convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:39:10 -0500
-Received: from mga14.intel.com ([192.55.52.115]:31395 "EHLO mga14.intel.com"
+        id S1732126AbhAZFjR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 00:39:17 -0500
+Received: from mga03.intel.com ([134.134.136.65]:50872 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387440AbhAZBXY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 25 Jan 2021 20:23:24 -0500
-IronPort-SDR: oZWRFmGYYMtY4RZP3OJs7ANd4uZCr/IAvQ2kluH0m7/3/NgiGFNuSOWZJga2QaqB0xUhZOX3j4
- NGE3B7fbdJ8Q==
-X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="179050465"
+        id S1729396AbhAZBZS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 25 Jan 2021 20:25:18 -0500
+IronPort-SDR: oxgCSTlF8d6yRP9DtwPpM+cK9fNJ8RPtvNt1K3V+ErPC+GiT0p18ZiaINscKNS4dgF6xOW/x5h
+ 5u6nuMxdrutA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9875"; a="179911441"
 X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="179050465"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 16:57:43 -0800
-IronPort-SDR: CXDMzNOA/+Uh7UeFfUhVG/+pGBcuxji6hmdz5jvKdgHmXBWbYH7MyVqkuCKSlHOKbRFT87T8an
- URG/5wmDi6AA==
-X-ExtLoop1: 1
+   d="scan'208";a="179911441"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 17:01:44 -0800
+IronPort-SDR: xtZkSNkt1CuBIENkrmeIaXUQ1CDJ19qajK1Nu62DxYCV9OeL81tG2gouzssm/kiWtmY1d21yM5
+ wYgNgm/2ztPw==
 X-IronPort-AV: E=Sophos;i="5.79,375,1602572400"; 
-   d="scan'208";a="368927213"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orsmga002.jf.intel.com with ESMTP; 25 Jan 2021 16:57:43 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Mon, 25 Jan 2021 16:57:41 -0800
-Received: from orsmsx610.amr.corp.intel.com ([10.22.229.23]) by
- ORSMSX610.amr.corp.intel.com ([10.22.229.23]) with mapi id 15.01.1713.004;
- Mon, 25 Jan 2021 16:57:41 -0800
-From:   "Keller, Jacob E" <jacob.e.keller@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        "Saleem, Shiraz" <shiraz.saleem@intel.com>
-CC:     Leon Romanovsky <leon@kernel.org>,
-        "dledford@redhat.com" <dledford@redhat.com>,
+   d="scan'208";a="353271108"
+Received: from jekeller-mobl1.amr.corp.intel.com (HELO [10.255.231.75]) ([10.255.231.75])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2021 17:01:43 -0800
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>
+Cc:     "dledford@redhat.com" <dledford@redhat.com>,
         "kuba@kernel.org" <kuba@kernel.org>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
@@ -56,96 +49,62 @@ CC:     Leon Romanovsky <leon@kernel.org>,
         "jiri@nvidia.com" <jiri@nvidia.com>,
         "Samudrala, Sridhar" <sridhar.samudrala@intel.com>,
         "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: RE: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
- implement private channel OPs
-Thread-Topic: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
- implement private channel OPs
-Thread-Index: AQHW8R0q9oy2W9uBuU2uSYnJtHdSaao3Ul6AgAGNgQD//8rX0IAA8vMA//9711A=
-Date:   Tue, 26 Jan 2021 00:57:41 +0000
-Message-ID: <27df0b1283124afa896899cab3969b03@intel.com>
 References: <20210122234827.1353-1-shiraz.saleem@intel.com>
  <20210122234827.1353-8-shiraz.saleem@intel.com>
  <20210124134551.GB5038@unreal> <20210125132834.GK4147@nvidia.com>
  <2072c76154cd4232b78392c650b2b2bf@intel.com>
- <20210126004758.GE4147@nvidia.com>
-In-Reply-To: <20210126004758.GE4147@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-x-originating-ip: [10.22.254.132]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From:   Jacob Keller <jacob.e.keller@intel.com>
+Organization: Intel Corporation
+Message-ID: <5b3f609d-034a-826f-1e50-0a5f8ad8406e@intel.com>
+Date:   Mon, 25 Jan 2021 17:01:40 -0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.1
 MIME-Version: 1.0
+In-Reply-To: <2072c76154cd4232b78392c650b2b2bf@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Jason Gunthorpe <jgg@nvidia.com>
-> Sent: Monday, January 25, 2021 4:48 PM
-> To: Saleem, Shiraz <shiraz.saleem@intel.com>
-> Cc: Leon Romanovsky <leon@kernel.org>; dledford@redhat.com;
-> kuba@kernel.org; davem@davemloft.net; linux-rdma@vger.kernel.org;
-> gregkh@linuxfoundation.org; netdev@vger.kernel.org; Ertman, David M
-> <david.m.ertman@intel.com>; Nguyen, Anthony L
-> <anthony.l.nguyen@intel.com>; Ismail, Mustafa <mustafa.ismail@intel.com>;
-> Keller, Jacob E <jacob.e.keller@intel.com>; jiri@nvidia.com; Samudrala, Sridhar
-> <sridhar.samudrala@intel.com>; Williams, Dan J <dan.j.williams@intel.com>
-> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
-> implement private channel OPs
-> 
-> On Tue, Jan 26, 2021 at 12:39:53AM +0000, Saleem, Shiraz wrote:
-> > > Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
-> > > implement private channel OPs
-> > >
-> > > On Sun, Jan 24, 2021 at 03:45:51PM +0200, Leon Romanovsky wrote:
-> > > > On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
-> > > > > From: Mustafa Ismail <mustafa.ismail@intel.com>
-> > > > >
-> > > > > Register irdma as an auxiliary driver which can attach to auxiliary
-> > > > > RDMA devices from Intel PCI netdev drivers i40e and ice. Implement
-> > > > > the private channel ops, add basic devlink support in the driver and
-> > > > > register net notifiers.
-> > > >
-> > > > Devlink part in "the RDMA client" is interesting thing.
-> > > >
-> > > > The idea behind auxiliary bus was that PCI logic will stay at one
-> > > > place and devlink considered as the tool to manage that.
-> > >
-> > > Yes, this doesn't seem right, I don't think these auxiliary bus objects should
-> have
-> > > devlink instances, or at least someone from devlink land should approve of
-> the
-> > > idea.
-> > >
-> >
-> > In our model, we have one auxdev (for RDMA) per PCI device function
-> > owned by netdev driver and one devlink instance per auxdev. Plus
-> > there is an Intel netdev driver for each HW generation.  Moving the
-> > devlink logic to the PCI netdev driver would mean duplicating the
-> > same set of RDMA params in each Intel netdev driver. Additionally,
-> > plumbing RDMA specific params in the netdev driver sort of seems
-> > misplaced to me.
-> 
-> That's because it is not supposed to be "the netdev driver" but the
-> shared physical PCI function driver, and devlink is a shared part of
-> the PCI function.
 
-Well, at least in Intel ice driver case, we have multiple PCI functions, and each function gets its own devlink (as opposed to a single devlink instance). There's no separation between the netdev driver and the PCI function driver today.
 
+On 1/25/2021 4:39 PM, Saleem, Shiraz wrote:
+>> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+>> implement private channel OPs
+>>
+>> On Sun, Jan 24, 2021 at 03:45:51PM +0200, Leon Romanovsky wrote:
+>>> On Fri, Jan 22, 2021 at 05:48:12PM -0600, Shiraz Saleem wrote:
+>>>> From: Mustafa Ismail <mustafa.ismail@intel.com>
+>>>>
+>>>> Register irdma as an auxiliary driver which can attach to auxiliary
+>>>> RDMA devices from Intel PCI netdev drivers i40e and ice. Implement
+>>>> the private channel ops, add basic devlink support in the driver and
+>>>> register net notifiers.
+>>>
+>>> Devlink part in "the RDMA client" is interesting thing.
+>>>
+>>> The idea behind auxiliary bus was that PCI logic will stay at one
+>>> place and devlink considered as the tool to manage that.
+>>
+>> Yes, this doesn't seem right, I don't think these auxiliary bus objects should have
+>> devlink instances, or at least someone from devlink land should approve of the
+>> idea.
+>>
 > 
-> > devlink is on a per 'struct device' object right? Should we be
-> > limiting ourselves in its usage to only the PCI driver and PCI dev?
-> > And not other devices like auxdev?
+> In our model, we have one auxdev (for RDMA) per PCI device function owned by netdev driver
+> and one devlink instance per auxdev. Plus there is an Intel netdev driver for each HW generation.
+> Moving the devlink logic to the PCI netdev driver would mean duplicating the same set of RDMA
+> params in each Intel netdev driver. Additionally, plumbing RDMA specific params in the netdev
+> driver sort of seems misplaced to me.
 > 
-> The devlink should not be created on the aux device, devlink should be
-> created against PCI functions.
-> 
-> It is important to follow establish convention here, otherwise it is a
-> user mess to know what to do
-> 
-> Jason
+
+I agree that plumbing these parameters at the PCI side in the devlink of
+the parent device is weird. They don't seem to be parameters that the
+parent driver cares about.
+
+Maybe there is another mechanism that makes more sense? To me it is a
+bit like if we were plumbing netdev specific paramters into devlink
+instead of trying to expose them through netdevice specific interfaces
+like iproute2 or ethtool.
