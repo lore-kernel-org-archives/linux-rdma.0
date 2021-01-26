@@ -2,142 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AF2CC433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:15:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C36C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AFBF230FD
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:15:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95C1C23122
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392130AbhAZMPL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:15:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58038 "EHLO
+        id S2391304AbhAZMts (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:49:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404915AbhAZLJR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 06:09:17 -0500
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF2AFC06174A
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 03:08:33 -0800 (PST)
-Received: by mail-wr1-x42c.google.com with SMTP id a1so15994689wrq.6
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 03:08:33 -0800 (PST)
+        with ESMTP id S2404040AbhAZMta (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:49:30 -0500
+Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34FEAC0698C0
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:40 -0800 (PST)
+Received: by mail-wr1-x429.google.com with SMTP id p15so9656917wrq.8
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 04:47:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=YexESypTZUXGxM0RNYUq5KscUb8ruQBrW1cIhg1mZJ0=;
-        b=bskZDSuMdTWcqASyQOy7OtS5KG6+pzOlrEOQmnZLWuKDog92AwWAC1iTsT88zhd+Ja
-         ZTzLqQWfD+pNGaDtTg9/JwZGrg2jqNk3p00j0Vqeou4Es5qRMXi3/B5C/X8WDGdgvLC8
-         Mj3oB0BD2rnEjNWyqV+6YxFkgxDX0gk7IrTBWoutXmKk+hMV/QjsiqUyNqRK8Iswsc7m
-         L/hxU2h/VFLAZ4DsQP4cuQ7HTUZC0vC1x1KXSwSA/5/55OU/Ep4640dCRmO3bKDGb5Zn
-         HmIQWYUROmzmI+3qbDfiEH9LsEymELXtGaIE2e6Wv5p2XA69vrlDal64gt7vPdqeUPwV
-         TT1A==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=i9Mu8Bh1YY8EtsX22yToiGMh//B01t5LgpZPGaTQ+Bo=;
+        b=i0VO5mhW8uoKItgQm7dfy12wJVs5GTBAslNT7PWgwS7TuwlhdcxUEdQqzki08qZkQC
+         YjgRfy3KrKwCInmXbDIeaD7G/dXs93oEphzBYGQUSygA36QZETV9s7KptEBUt6S0JNZu
+         M6+xxyrs4nOFtD8+Imix14sya8zsehfGTyJ2XK1S8X8nW3zaYs9bwmVUQI0o2GeXnHKC
+         rg/C/EKYFIsSHkFpHEuOuytKfxlsQGXqph8v6UwaSx+oAIvah6CGkuAvDoIudoy0ltnB
+         ZJkrtDCYpdtu1tDrILXOYyq3NtO7A/E0hE8k8U+PntWoFwMM8QYxyL+D/qvpm12l8bRe
+         8B1Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=YexESypTZUXGxM0RNYUq5KscUb8ruQBrW1cIhg1mZJ0=;
-        b=bB9+hUSKBtPXQ+/itwRobewJNjhRNYt+qasrm4pNoXwLDObJx4q0pOGc52NNCwEdbJ
-         sM+b/xTHs+Jp3nD3mCs3rWUuGeq/cDdBnF+bgYFdVFXI7oMgsN32RQQ25f9NgiWYOMeG
-         tFBOL5PSWPDqF7/fGQwFvydKfqpoN08DhI0/VVW/k3Xwd5+16j0mbT2lihLoAbOShrqz
-         Do/OERsVjBJWqt5xT+A3EIRM5oF5GSKz0wnvZfTvPyJhFC2lTgPkOP+jIuJa/hwK0MNB
-         vgCXq06qmVBOy98CrgXnfX6KX+/FHF1jwOMRCfgHIoOSJkrBnW6U2tUns4tmWZ9wa5+4
-         vWMA==
-X-Gm-Message-State: AOAM5322W+pBVNXPTXvK9xs9Aj6HadMTR8hE/siCo3BLVmOnzVCcUMN0
-        L5Y+n2iHB5HRn5rhvVdLVxrdwA==
-X-Google-Smtp-Source: ABdhPJyfP85ucHm7H/Dm1TztP6OgLXgNB/BxHatQ80kHkb7XarU2/+PooSiT+4Wl68HlfXcBzEPDXg==
-X-Received: by 2002:a5d:440a:: with SMTP id z10mr5556407wrq.266.1611659312476;
-        Tue, 26 Jan 2021 03:08:32 -0800 (PST)
-Received: from apalos.home (athedsl-376992.home.otenet.gr. [79.131.24.158])
-        by smtp.gmail.com with ESMTPSA id z18sm10610031wro.91.2021.01.26.03.08.30
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=i9Mu8Bh1YY8EtsX22yToiGMh//B01t5LgpZPGaTQ+Bo=;
+        b=l5ewzuioAgMCD+lOoCWNBke0t3rUZqhzLSPPdCoeUeWbxI1sgGRocC7scGzVWj/AKZ
+         oNL9gYKKWhh5DPKo9oRyGEL2Qwnm6FY5EiZyGjNdqucSsNEvYD7fy9LH+/GMn2UP8Q5f
+         UwBIEMlZPZNeGUGAPA/eHIUlRP2NW7KAkXkKerCUOWpGuMq1oaaH6VbOE8RHBBi9uiaG
+         ykVeb3GN4hXZOCjOgiy4AmhQcpoE2n5yMFYboAf82nJSL7lfndWDkq5cdABa5dgqm60c
+         BhVsGIe5k5qpb+NTHT6cvtWkwWsT6JExQ2hJY2i9UsKDrwGvNys/vmpd+IE9RDL10fXq
+         N0PQ==
+X-Gm-Message-State: AOAM531o0J4hAIQ3wxPGubmVW1bU1MZLRsve1mlkSplSuXXydMhED5o0
+        uGlV3SZesEFSKc05GZoEGzDCig==
+X-Google-Smtp-Source: ABdhPJw9ITUWt0EJXUR9dYh1AQKI+wsUulyl960WAdsqnnB/If5INkjPbVIRAIdpsX0AEOHvSxbPzQ==
+X-Received: by 2002:adf:e610:: with SMTP id p16mr5840983wrm.169.1611665259013;
+        Tue, 26 Jan 2021 04:47:39 -0800 (PST)
+Received: from dell.default ([91.110.221.188])
+        by smtp.gmail.com with ESMTPSA id p15sm26942190wrt.15.2021.01.26.04.47.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Jan 2021 03:08:31 -0800 (PST)
-Date:   Tue, 26 Jan 2021 13:08:28 +0200
-From:   Ilias Apalodimas <ilias.apalodimas@linaro.org>
-To:     Alexander Lobakin <alobakin@pm.me>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Aleksandr Nogikh <nogikh@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH net-next 3/3] net: page_pool: simplify page recycling
- condition tests
-Message-ID: <YA/4LNJPEQJv++mo@apalos.home>
-References: <20210125164612.243838-1-alobakin@pm.me>
- <20210125164612.243838-4-alobakin@pm.me>
+        Tue, 26 Jan 2021 04:47:38 -0800 (PST)
+From:   Lee Jones <lee.jones@linaro.org>
+To:     lee.jones@linaro.org
+Cc:     linux-kernel@vger.kernel.org,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Subject: [PATCH 03/20] RDMA/hw/hfi1/iowait: Demote half-completed kernel-doc and fix formatting issue in another
+Date:   Tue, 26 Jan 2021 12:47:15 +0000
+Message-Id: <20210126124732.3320971-4-lee.jones@linaro.org>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210126124732.3320971-1-lee.jones@linaro.org>
+References: <20210126124732.3320971-1-lee.jones@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210125164612.243838-4-alobakin@pm.me>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 25, 2021 at 04:47:20PM +0000, Alexander Lobakin wrote:
-> pool_page_reusable() is a leftover from pre-NUMA-aware times. For now,
-> this function is just a redundant wrapper over page_is_pfmemalloc(),
-> so Inline it into its sole call site.
-> 
-> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
-> ---
->  net/core/page_pool.c | 14 ++++----------
->  1 file changed, 4 insertions(+), 10 deletions(-)
-> 
-> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-> index f3c690b8c8e3..ad8b0707af04 100644
-> --- a/net/core/page_pool.c
-> +++ b/net/core/page_pool.c
-> @@ -350,14 +350,6 @@ static bool page_pool_recycle_in_cache(struct page *page,
->  	return true;
->  }
->  
-> -/* page is NOT reusable when:
-> - * 1) allocated when system is under some pressure. (page_is_pfmemalloc)
-> - */
-> -static bool pool_page_reusable(struct page_pool *pool, struct page *page)
-> -{
-> -	return !page_is_pfmemalloc(page);
-> -}
-> -
->  /* If the page refcnt == 1, this will try to recycle the page.
->   * if PP_FLAG_DMA_SYNC_DEV is set, we'll try to sync the DMA area for
->   * the configured size min(dma_sync_size, pool->max_len).
-> @@ -373,9 +365,11 @@ __page_pool_put_page(struct page_pool *pool, struct page *page,
->  	 * regular page allocator APIs.
->  	 *
->  	 * refcnt == 1 means page_pool owns page, and can recycle it.
-> +	 *
-> +	 * page is NOT reusable when allocated when system is under
-> +	 * some pressure. (page_is_pfmemalloc)
->  	 */
-> -	if (likely(page_ref_count(page) == 1 &&
-> -		   pool_page_reusable(pool, page))) {
-> +	if (likely(page_ref_count(page) == 1 && !page_is_pfmemalloc(page))) {
->  		/* Read barrier done in page_ref_count / READ_ONCE */
->  
->  		if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
-> -- 
-> 2.30.0
-> 
-> 
+Fixes the following W=1 kernel build warning(s):
 
-Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+ drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'tidfunc' not described in 'iowait_init'
+ drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'wakeup' not described in 'iowait_init'
+ drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'sdma_drained' not described in 'iowait_init'
+ drivers/infiniband/hw/hfi1/iowait.c:52: warning: Function parameter or member 'init_priority' not described in 'iowait_init'
+ drivers/infiniband/hw/hfi1/iowait.c:52: warning: Excess function parameter 'resume' description in 'iowait_init'
+ drivers/infiniband/hw/hfi1/iowait.c:94: warning: Function parameter or member 'w' not described in 'iowait_set_work_flag'
+
+Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/infiniband/hw/hfi1/iowait.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/iowait.c b/drivers/infiniband/hw/hfi1/iowait.c
+index 5836fe7b28177..1114898026140 100644
+--- a/drivers/infiniband/hw/hfi1/iowait.c
++++ b/drivers/infiniband/hw/hfi1/iowait.c
+@@ -26,7 +26,7 @@ inline void iowait_clear_flag(struct iowait *wait, u32 flag)
+ 	clear_bit(flag, &wait->flags);
+ }
+ 
+-/**
++/*
+  * iowait_init() - initialize wait structure
+  * @wait: wait struct to initialize
+  * @tx_limit: limit for overflow queuing
+@@ -88,7 +88,7 @@ void iowait_cancel_work(struct iowait *w)
+ 
+ /**
+  * iowait_set_work_flag - set work flag based on leg
+- * @w - the iowait work struct
++ * @w: the iowait work struct
+  */
+ int iowait_set_work_flag(struct iowait_work *w)
+ {
+-- 
+2.25.1
+
