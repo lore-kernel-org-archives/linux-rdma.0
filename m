@@ -2,92 +2,142 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD940C433E6
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AF2CC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:15:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8292D20637
-	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:09:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2AFBF230FD
+	for <linux-rdma@archiver.kernel.org>; Tue, 26 Jan 2021 12:15:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392421AbhAZMJj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 07:09:39 -0500
-Received: from smtp-fw-2101.amazon.com ([72.21.196.25]:60464 "EHLO
-        smtp-fw-2101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392596AbhAZMJV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 07:09:21 -0500
+        id S2392130AbhAZMPL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 26 Jan 2021 07:15:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58038 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404915AbhAZLJR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 06:09:17 -0500
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF2AFC06174A
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 03:08:33 -0800 (PST)
+Received: by mail-wr1-x42c.google.com with SMTP id a1so15994689wrq.6
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Jan 2021 03:08:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1611662962; x=1643198962;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Pqs46+Al2GjlLS1/yjkliOEa5s1UWhZGr+OvYYZgCks=;
-  b=YAgV3j9UkOxEmchrKvt6/y31VHQDN6/s6u0lc07v2pVeqDOM1GGKxBkm
-   w7/J75lv2q4qt2lh25alOBk0LkScnLIlstyZTehfyrGb89mx7LpbsLVEO
-   FVOleamd5l9Y1Ybx9MT7tNAuPJOcgNBRI5thjbqccPHbcvfB5O1gxx5/f
-   k=;
-X-IronPort-AV: E=Sophos;i="5.79,375,1602547200"; 
-   d="scan'208";a="77442493"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1e-57e1d233.us-east-1.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-out-2101.iad2.amazon.com with ESMTP; 26 Jan 2021 12:08:40 +0000
-Received: from EX13D19EUB001.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan3.iad.amazon.com [10.40.163.38])
-        by email-inbound-relay-1e-57e1d233.us-east-1.amazon.com (Postfix) with ESMTPS id D8AAF14164D;
-        Tue, 26 Jan 2021 12:08:39 +0000 (UTC)
-Received: from EX13MTAUEA001.ant.amazon.com (10.43.61.82) by
- EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Tue, 26 Jan 2021 12:08:38 +0000
-Received: from 8c85908914bf.ant.amazon.com (10.1.213.21) by
- mail-relay.amazon.com (10.43.61.243) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Tue, 26 Jan 2021 12:08:36 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        Doug Ledford <dledford@redhat.com>
-CC:     <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Firas JahJah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-Subject: [PATCH for-next 5/5] RDMA/efa: Remove unused syndrome enum values
-Date:   Tue, 26 Jan 2021 14:07:01 +0200
-Message-ID: <20210126120702.9807-6-galpress@amazon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210126120702.9807-1-galpress@amazon.com>
-References: <20210126120702.9807-1-galpress@amazon.com>
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=YexESypTZUXGxM0RNYUq5KscUb8ruQBrW1cIhg1mZJ0=;
+        b=bskZDSuMdTWcqASyQOy7OtS5KG6+pzOlrEOQmnZLWuKDog92AwWAC1iTsT88zhd+Ja
+         ZTzLqQWfD+pNGaDtTg9/JwZGrg2jqNk3p00j0Vqeou4Es5qRMXi3/B5C/X8WDGdgvLC8
+         Mj3oB0BD2rnEjNWyqV+6YxFkgxDX0gk7IrTBWoutXmKk+hMV/QjsiqUyNqRK8Iswsc7m
+         L/hxU2h/VFLAZ4DsQP4cuQ7HTUZC0vC1x1KXSwSA/5/55OU/Ep4640dCRmO3bKDGb5Zn
+         HmIQWYUROmzmI+3qbDfiEH9LsEymELXtGaIE2e6Wv5p2XA69vrlDal64gt7vPdqeUPwV
+         TT1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=YexESypTZUXGxM0RNYUq5KscUb8ruQBrW1cIhg1mZJ0=;
+        b=bB9+hUSKBtPXQ+/itwRobewJNjhRNYt+qasrm4pNoXwLDObJx4q0pOGc52NNCwEdbJ
+         sM+b/xTHs+Jp3nD3mCs3rWUuGeq/cDdBnF+bgYFdVFXI7oMgsN32RQQ25f9NgiWYOMeG
+         tFBOL5PSWPDqF7/fGQwFvydKfqpoN08DhI0/VVW/k3Xwd5+16j0mbT2lihLoAbOShrqz
+         Do/OERsVjBJWqt5xT+A3EIRM5oF5GSKz0wnvZfTvPyJhFC2lTgPkOP+jIuJa/hwK0MNB
+         vgCXq06qmVBOy98CrgXnfX6KX+/FHF1jwOMRCfgHIoOSJkrBnW6U2tUns4tmWZ9wa5+4
+         vWMA==
+X-Gm-Message-State: AOAM5322W+pBVNXPTXvK9xs9Aj6HadMTR8hE/siCo3BLVmOnzVCcUMN0
+        L5Y+n2iHB5HRn5rhvVdLVxrdwA==
+X-Google-Smtp-Source: ABdhPJyfP85ucHm7H/Dm1TztP6OgLXgNB/BxHatQ80kHkb7XarU2/+PooSiT+4Wl68HlfXcBzEPDXg==
+X-Received: by 2002:a5d:440a:: with SMTP id z10mr5556407wrq.266.1611659312476;
+        Tue, 26 Jan 2021 03:08:32 -0800 (PST)
+Received: from apalos.home (athedsl-376992.home.otenet.gr. [79.131.24.158])
+        by smtp.gmail.com with ESMTPSA id z18sm10610031wro.91.2021.01.26.03.08.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 26 Jan 2021 03:08:31 -0800 (PST)
+Date:   Tue, 26 Jan 2021 13:08:28 +0200
+From:   Ilias Apalodimas <ilias.apalodimas@linaro.org>
+To:     Alexander Lobakin <alobakin@pm.me>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        Jonathan Lemon <jonathan.lemon@gmail.com>,
+        Willem de Bruijn <willemb@google.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Aleksandr Nogikh <nogikh@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Dexuan Cui <decui@microsoft.com>,
+        Jakub Sitnicki <jakub@cloudflare.com>,
+        Marco Elver <elver@google.com>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        linux-rdma@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH net-next 3/3] net: page_pool: simplify page recycling
+ condition tests
+Message-ID: <YA/4LNJPEQJv++mo@apalos.home>
+References: <20210125164612.243838-1-alobakin@pm.me>
+ <20210125164612.243838-4-alobakin@pm.me>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210125164612.243838-4-alobakin@pm.me>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The notification syndrome enum values are unused, remove them.
+On Mon, Jan 25, 2021 at 04:47:20PM +0000, Alexander Lobakin wrote:
+> pool_page_reusable() is a leftover from pre-NUMA-aware times. For now,
+> this function is just a redundant wrapper over page_is_pfmemalloc(),
+> so Inline it into its sole call site.
+> 
+> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+> ---
+>  net/core/page_pool.c | 14 ++++----------
+>  1 file changed, 4 insertions(+), 10 deletions(-)
+> 
+> diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+> index f3c690b8c8e3..ad8b0707af04 100644
+> --- a/net/core/page_pool.c
+> +++ b/net/core/page_pool.c
+> @@ -350,14 +350,6 @@ static bool page_pool_recycle_in_cache(struct page *page,
+>  	return true;
+>  }
+>  
+> -/* page is NOT reusable when:
+> - * 1) allocated when system is under some pressure. (page_is_pfmemalloc)
+> - */
+> -static bool pool_page_reusable(struct page_pool *pool, struct page *page)
+> -{
+> -	return !page_is_pfmemalloc(page);
+> -}
+> -
+>  /* If the page refcnt == 1, this will try to recycle the page.
+>   * if PP_FLAG_DMA_SYNC_DEV is set, we'll try to sync the DMA area for
+>   * the configured size min(dma_sync_size, pool->max_len).
+> @@ -373,9 +365,11 @@ __page_pool_put_page(struct page_pool *pool, struct page *page,
+>  	 * regular page allocator APIs.
+>  	 *
+>  	 * refcnt == 1 means page_pool owns page, and can recycle it.
+> +	 *
+> +	 * page is NOT reusable when allocated when system is under
+> +	 * some pressure. (page_is_pfmemalloc)
+>  	 */
+> -	if (likely(page_ref_count(page) == 1 &&
+> -		   pool_page_reusable(pool, page))) {
+> +	if (likely(page_ref_count(page) == 1 && !page_is_pfmemalloc(page))) {
+>  		/* Read barrier done in page_ref_count / READ_ONCE */
+>  
+>  		if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
+> -- 
+> 2.30.0
+> 
+> 
 
-Reviewed-by: Firas JahJah <firasj@amazon.com>
-Signed-off-by: Gal Pressman <galpress@amazon.com>
----
- drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 6 ------
- 1 file changed, 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-index 9327d5e3ec62..fa38b34eddb8 100644
---- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-+++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-@@ -819,12 +819,6 @@ enum efa_admin_aenq_group {
- 	EFA_ADMIN_AENQ_GROUPS_NUM                   = 5,
- };
- 
--enum efa_admin_aenq_notification_syndrom {
--	EFA_ADMIN_SUSPEND                           = 0,
--	EFA_ADMIN_RESUME                            = 1,
--	EFA_ADMIN_UPDATE_HINTS                      = 2,
--};
--
- struct efa_admin_mmio_req_read_less_resp {
- 	u16 req_id;
- 
--- 
-2.30.0
-
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
