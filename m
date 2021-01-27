@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12874C433E9
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:35:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDC7C433E6
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:35:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D91262084D
+	by mail.kernel.org (Postfix) with ESMTP id 8AC16207FB
 	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:35:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235506AbhA0PfR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Jan 2021 10:35:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56428 "EHLO mail.kernel.org"
+        id S235510AbhA0PfM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Jan 2021 10:35:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235516AbhA0PDf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S235506AbhA0PDf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Wed, 27 Jan 2021 10:03:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8A2B2137B;
-        Wed, 27 Jan 2021 15:00:36 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C6DC21D46;
+        Wed, 27 Jan 2021 15:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611759637;
-        bh=xbtozgcP4p9018Ok8BMcwSdWh6sy1q1vVRuen6HmaDw=;
+        s=k20201202; t=1611759647;
+        bh=Ns0R28BuxjNGn7xzXxWbGMHIvqUqKvMaXxI8ZL9jTNI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XFOrrstPFVENjJaGkybglmhewuLEyr4AjOGG8zBzHudD+SmL/Q2TfXx1ZwTxNNwqu
-         /cTeRyNDGeXvBXMD4TfF7opE4KGFiQZik8YQPpUDR2T/u0eqleEiDoQLMefItTUfhX
-         W9iduBL8N45JYKUtvmxyz+ZQcCbNioDldlfJXlEeJEP8hYmHkUSQ/FA2F5Q71+cRQ0
-         3LWHZ5V6YQzPbHqCBBD4c2A/6hKwYvRFzC1MG8YFelXbMd4H09r0DFsv98SxTs09mP
-         R3KrJOjKt5FTHI7bvK+vdbjiM4mVycADE6mMQzMmZxl1+GK6FJ7g0RHdE4IHbX+mMw
-         MOvyCH6tzqeDQ==
+        b=So9GfB03cFMVYF+rcAjYx3xlnHZwv11SJCqDbg/wyCKAD4YwsJjavFT3YHdlW1WHs
+         0AcwdHNMEv8+ZYJU1SchsiZz5kZjx9mjVXu2Xu/OTmkl1XxLdDCMfg3pKkItj17fan
+         Cbdd5vI95AE/ByyeASiBcKNTlXAcutgC8Y9rCIqHrRFaiMpPTCfgWrspdflqTpYpAO
+         PYSZd3PMU0I+M9BjpDCS2qWv6iIOYm9ixIZqoYeViitWUqGEoRs1IjUXN435oE2RkS
+         TvqCRjPSWT2oDbS/KPkCNDfrI70gHd9dSnqpGxNIrp1WumepG+YNrtge2T/dcyahAm
+         FzWQMPfHuZmLg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org,
-        Mark Bloch <markb@mellanox.com>
-Subject: [PATCH rdma-next 07/10] IB/mlx5: Return appropriate error code instead of ENOMEM
-Date:   Wed, 27 Jan 2021 17:00:07 +0200
-Message-Id: <20210127150010.1876121-8-leon@kernel.org>
+Cc:     Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 10/10] IB/core: Use valid port number to check link layer
+Date:   Wed, 27 Jan 2021 17:00:10 +0200
+Message-Id: <20210127150010.1876121-11-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210127150010.1876121-1-leon@kernel.org>
 References: <20210127150010.1876121-1-leon@kernel.org>
@@ -50,46 +49,37 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-When mlx5_ib_stage_init_init() fails, return the error code related to
-failure instead of -ENOMEM.
+IB HCA port starts from 1. Use IB core provided port iterator API to
+avoid any assumption with start port number.
 
-Fixes: 16c1975f1032 ("IB/mlx5: Create profile infrastructure to add and remove stages")
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 3 +--
- drivers/infiniband/hw/mlx5/odp.c  | 4 ----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/infiniband/core/verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ad7bb37e501d..9e8b4d591138 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3952,8 +3952,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
-
- err_mp:
- 	mlx5_ib_cleanup_multiport_master(dev);
--
--	return -ENOMEM;
-+	return err;
- }
-
- static int mlx5_ib_enable_driver(struct ib_device *dev)
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index f4b82daf1e22..a1be8fb2800e 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -484,10 +484,6 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 6fc6a5b41f86..d25695ad50de 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2281,7 +2281,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+ 	struct ib_qp_init_attr init_attr = {};
+ 	struct ib_qp_attr attr = {};
+ 	int num_eth_ports = 0;
+-	int port;
++	unsigned int port;
+ 
+ 	/* If QP state >= init, it is assigned to a port and we can check this
+ 	 * port only.
+@@ -2296,7 +2296,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
  	}
-
- 	xa_lock(&imr->implicit_children);
--	/*
--	 * Once the store to either xarray completes any error unwind has to
--	 * use synchronize_srcu(). Avoid this with xa_reserve()
--	 */
- 	ret = __xa_cmpxchg(&imr->implicit_children, idx, NULL, mr,
- 			   GFP_KERNEL);
- 	if (unlikely(ret)) {
---
+ 
+ 	/* Can't get a quick answer, iterate over all ports */
+-	for (port = 0; port < qp->device->phys_port_cnt; port++)
++	rdma_for_each_port(qp->device, port)
+ 		if (rdma_port_get_link_layer(qp->device, port) !=
+ 		    IB_LINK_LAYER_INFINIBAND)
+ 			num_eth_ports++;
+-- 
 2.29.2
 
