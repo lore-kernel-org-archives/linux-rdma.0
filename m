@@ -2,37 +2,37 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E16DBC433E6
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 21:50:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12371C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 21:54:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB4D464DCC
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 21:50:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B72AF64DA3
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 21:54:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235052AbhA0VuD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Jan 2021 16:50:03 -0500
-Received: from mga17.intel.com ([192.55.52.151]:44159 "EHLO mga17.intel.com"
+        id S235579AbhA0Vxq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Jan 2021 16:53:46 -0500
+Received: from mga09.intel.com ([134.134.136.24]:48633 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231127AbhA0VsT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 Jan 2021 16:48:19 -0500
-IronPort-SDR: lcRO+nBbwlxD5OKQ9floYnPqvizXa/TpKNsXPOC2RGM3wZ0MgRHL4W5twcWIKDXDS+qBKmCR6V
- trTxUngA0I8w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="159912616"
+        id S234982AbhA0VxC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 Jan 2021 16:53:02 -0500
+IronPort-SDR: 1bpDCo7Ak/dMDUK3T+Y7W63dH8aMJXTVfDqWDnJ5AB0NSNUsu2V9nDdyKTRYPGuvPapwZQjppC
+ fpbvyA4zs/lg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9877"; a="180284196"
 X-IronPort-AV: E=Sophos;i="5.79,380,1602572400"; 
-   d="scan'208";a="159912616"
+   d="scan'208";a="180284196"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 13:47:30 -0800
-IronPort-SDR: x8SX2Z/eZDC0uopz6q0GvPObDP9bsfjhVBCSv7w/mie7EoujaaoDFv19suwWd/v2MLVVLnlSIt
- K8UvsSEBqhkg==
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 13:52:15 -0800
+IronPort-SDR: eMUsAMTAn1/kJKi2+N3WYkgp2WWjSfrhNUEGMZw4T01LBxqqkukZ/UCturgutvXJEvoRl1ZhpB
+ h4jTZtxahTwA==
 X-IronPort-AV: E=Sophos;i="5.79,380,1602572400"; 
-   d="scan'208";a="573409951"
+   d="scan'208";a="573410519"
 Received: from jbrandeb-mobl4.amr.corp.intel.com (HELO localhost) ([10.212.44.59])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 13:47:28 -0800
-Date:   Wed, 27 Jan 2021 13:47:26 -0800
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2021 13:52:13 -0800
+Date:   Wed, 27 Jan 2021 13:52:11 -0800
 From:   Jesse Brandeburg <jesse.brandeburg@intel.com>
 To:     Alexander Lobakin <alobakin@pm.me>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -56,12 +56,11 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
         linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 net-next 3/4] net: introduce common
- dev_page_is_reserved()
-Message-ID: <20210127134726.00003605@intel.com>
-In-Reply-To: <20210127201031.98544-4-alobakin@pm.me>
+Subject: Re: [PATCH v2 net-next 0/4] net: consolidate page_is_pfmemalloc()
+ usage
+Message-ID: <20210127135211.00005620@intel.com>
+In-Reply-To: <20210127201031.98544-1-alobakin@pm.me>
 References: <20210127201031.98544-1-alobakin@pm.me>
-        <20210127201031.98544-4-alobakin@pm.me>
 X-Mailer: Claws Mail 3.12.0 (GTK+ 2.24.28; i686-w64-mingw32)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -72,30 +71,17 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Alexander Lobakin wrote:
 
-> A bunch of drivers test the page before reusing/recycling for two
-> common conditions:
->  - if a page was allocated under memory pressure (pfmemalloc page);
->  - if a page was allocated at a distant memory node (to exclude
->    slowdowns).
-> 
-> Introduce and use a new common function for doing this and eliminate
-> all functions-duplicates from drivers.
-> 
-> Suggested-by: David Rientjes <rientjes@google.com>
-> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
-> ---
->  drivers/net/ethernet/hisilicon/hns3/hns3_enet.c   | 10 ++--------
->  drivers/net/ethernet/intel/fm10k/fm10k_main.c     |  9 ++-------
->  drivers/net/ethernet/intel/i40e/i40e_txrx.c       | 15 +--------------
->  drivers/net/ethernet/intel/iavf/iavf_txrx.c       | 15 +--------------
->  drivers/net/ethernet/intel/ice/ice_txrx.c         | 11 +----------
->  drivers/net/ethernet/intel/igb/igb_main.c         |  7 +------
->  drivers/net/ethernet/intel/igc/igc_main.c         |  7 +------
->  drivers/net/ethernet/intel/ixgbe/ixgbe_main.c     |  7 +------
->  drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c |  7 +------
->  drivers/net/ethernet/mellanox/mlx5/core/en_rx.c   |  7 +------
->  include/linux/skbuff.h                            | 15 +++++++++++++++
->  11 files changed, 27 insertions(+), 83 deletions(-)
+> page_is_pfmemalloc() is used mostly by networking drivers to test
+> if a page can be considered for reusing/recycling.
+> It doesn't write anything to the struct page itself, so its sole
+> argument can be constified, as well as the first argument of
+> skb_propagate_pfmemalloc().
+> In Page Pool core code, it can be simply inlined instead.
+> Most of the callers from NIC drivers were just doppelgangers of
+> the same condition tests. Derive them into a new common function
+> do deduplicate the code.
 
-For the patch, and esp. for the Intel drivers:
+This is a useful cleanup! Thanks.
+
+For the series:
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
