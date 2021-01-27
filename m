@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74327C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 20:12:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08745C43381
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 20:12:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 284BA64D9E
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 20:12:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D99D364D9E
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 20:12:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232798AbhA0UMJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Jan 2021 15:12:09 -0500
-Received: from mail-40133.protonmail.ch ([185.70.40.133]:29739 "EHLO
-        mail-40133.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232789AbhA0ULz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 Jan 2021 15:11:55 -0500
-Date:   Wed, 27 Jan 2021 20:11:12 +0000
+        id S231891AbhA0UMg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Jan 2021 15:12:36 -0500
+Received: from mail-40131.protonmail.ch ([185.70.40.131]:15025 "EHLO
+        mail-40131.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231982AbhA0UM2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 Jan 2021 15:12:28 -0500
+Date:   Wed, 27 Jan 2021 20:11:31 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=pm.me; s=protonmail;
-        t=1611778273; bh=WGn3Y4XXY7ltWJBzRL8oxPGlTjtHLW5fnpeQGERPzl4=;
+        t=1611778293; bh=9qyrYwHZiBXvDz842Cw5/bsnWtdqL9n+12n4P+yiMMc=;
         h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
-        b=kLg7qi7avVJ9qLl4flp/CXLvM3HChtTuCeAiof3s0V/YfAxu8HF+otf0ApeHUvgUG
-         MxeMACV+4kgXuidZB8WCoonEBt21RadqT+/dYt3uW92WeHHN0G2sxWnxIgfJgZoWtk
-         Mss+4kom9kQFB4kRGjcfD4efRioZ8gHF2oWgGpH7UIErdsXpGvrbYsYd9/I7XG3kS5
-         snI3iiHPi1hnxKGFqTltxOuLP1IzszKFhMc6FqGCwoyD9UafrD4G3jveOBC6wdyXO/
-         B8GRHXAA2t24hiBkfVeQfkTNi/I0gA/qIPvgPb0NLVaKDx1gNFkm/tlHcJMHS5c+bW
-         IimfDh7I9ScXQ==
+        b=f4zd97APJyHcue9fD9L3vZ6ObTvDAUTssdCjkJFUURwJpo26PCZZKFy2l1suO3zVz
+         8NNsQtnAaEkc6VyEiMYabnXmIjFugh7vzLUt/ZHQUBGYplrJAw0WE/jH6ruBux/j0J
+         04OvKQeW+CcjBPC+F95iJgzpVnAdr90tWgHt29Cn4UgcLXhZXrCE2IrTp91BlVRDhj
+         F1M6wnpbadsj3dAwxbGoBMbFmPE/4fIQUF7/PWpstXw/eoUNHlhSOFPybnBQj0SvjA
+         BP4f3UBxUnZ9eTZqjzIpcVhlufshszPAf0klO9GAvl9KV5JB4USz1IaKHK3mFxkwmI
+         1jDc+G2UaWtqg==
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 From:   Alexander Lobakin <alobakin@pm.me>
@@ -54,8 +54,8 @@ Cc:     David Rientjes <rientjes@google.com>,
         linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
         linux-rdma@vger.kernel.org, linux-mm@kvack.org
 Reply-To: Alexander Lobakin <alobakin@pm.me>
-Subject: [PATCH v2 net-next 2/4] skbuff: constify skb_propagate_pfmemalloc() "page" argument
-Message-ID: <20210127201031.98544-3-alobakin@pm.me>
+Subject: [PATCH v2 net-next 4/4] net: page_pool: simplify page recycling condition tests
+Message-ID: <20210127201031.98544-5-alobakin@pm.me>
 In-Reply-To: <20210127201031.98544-1-alobakin@pm.me>
 References: <20210127201031.98544-1-alobakin@pm.me>
 MIME-Version: 1.0
@@ -65,31 +65,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The function doesn't write anything to the page struct itself,
-so this argument can be const.
-
-Misc: align second argument to the brace while at it.
+pool_page_reusable() is a leftover from pre-NUMA-aware times. For now,
+this function is just a redundant wrapper over page_is_pfmemalloc(),
+so Inline it into its sole call site.
 
 Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 ---
- include/linux/skbuff.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/core/page_pool.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 9313b5aaf45b..b027526da4f9 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -2943,8 +2943,8 @@ static inline struct page *dev_alloc_page(void)
-  *=09@page: The page that was allocated from skb_alloc_page
-  *=09@skb: The skb that may need pfmemalloc set
-  */
--static inline void skb_propagate_pfmemalloc(struct page *page,
--=09=09=09=09=09     struct sk_buff *skb)
-+static inline void skb_propagate_pfmemalloc(const struct page *page,
-+=09=09=09=09=09    struct sk_buff *skb)
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index f3c690b8c8e3..ad8b0707af04 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -350,14 +350,6 @@ static bool page_pool_recycle_in_cache(struct page *pa=
+ge,
+ =09return true;
+ }
+=20
+-/* page is NOT reusable when:
+- * 1) allocated when system is under some pressure. (page_is_pfmemalloc)
+- */
+-static bool pool_page_reusable(struct page_pool *pool, struct page *page)
+-{
+-=09return !page_is_pfmemalloc(page);
+-}
+-
+ /* If the page refcnt =3D=3D 1, this will try to recycle the page.
+  * if PP_FLAG_DMA_SYNC_DEV is set, we'll try to sync the DMA area for
+  * the configured size min(dma_sync_size, pool->max_len).
+@@ -373,9 +365,11 @@ __page_pool_put_page(struct page_pool *pool, struct pa=
+ge *page,
+ =09 * regular page allocator APIs.
+ =09 *
+ =09 * refcnt =3D=3D 1 means page_pool owns page, and can recycle it.
++=09 *
++=09 * page is NOT reusable when allocated when system is under
++=09 * some pressure. (page_is_pfmemalloc)
+ =09 */
+-=09if (likely(page_ref_count(page) =3D=3D 1 &&
+-=09=09   pool_page_reusable(pool, page))) {
++=09if (likely(page_ref_count(page) =3D=3D 1 && !page_is_pfmemalloc(page)))=
  {
- =09if (page_is_pfmemalloc(page))
- =09=09skb->pfmemalloc =3D true;
+ =09=09/* Read barrier done in page_ref_count / READ_ONCE */
+=20
+ =09=09if (pool->p.flags & PP_FLAG_DMA_SYNC_DEV)
 --=20
 2.30.0
 
