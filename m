@@ -2,138 +2,81 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D59A5C4332B
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:33:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB78BC433E6
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:34:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A69E2207C4
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:33:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AAD74207E2
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 15:34:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235240AbhA0PFW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Jan 2021 10:05:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56150 "EHLO mail.kernel.org"
+        id S229757AbhA0PFO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Jan 2021 10:05:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235323AbhA0PCz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 Jan 2021 10:02:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D50720C56;
-        Wed, 27 Jan 2021 15:00:32 +0000 (UTC)
+        id S235240AbhA0PA4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 Jan 2021 10:00:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B567207D8;
+        Wed, 27 Jan 2021 15:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611759633;
-        bh=vThR8JoD3KCufXTeyKibZYnn+fS9RllSFXcNW7NXN4Y=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ukvSF/NpmknO9OVWhrr/sZa5kCeWsBS9TZXEUMsCDElT9RmTAhNcJjy17iZO4ZFDy
-         365UfgUsnfOLj5EMOUc9FF1vUz3+t1Ru7X42R9W0b051Tp586jGysd4wcgsMYXFVtH
-         m6MNlJLKJVkZWBFSFpFbfQ17aJeNn++fIyxv9PvLUKQ5GDMzYL/Y95oJv9IWgMisJ1
-         CSy97h1VffSna8osBgmu+jhL5ik2Zy/+XEHFBw02Kf2C0KnWOnnVphpchBiDKkkFh1
-         jfGIE8zSyw6aMfd05dNeAQuTlCp1p0QbHAPcCPBDIQpQoVxgrpiYbu+pkhTsAdwsMe
-         bHbjrTMY2KOzQ==
+        s=k20201202; t=1611759615;
+        bh=5RrZeRzyyqgONaEurLCI9VSNk2qxED+CmOh7EofRy8I=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Gb11+dDZv9vBOt2fnzGmQz28oJgDlnZ32XysNPl2Oi9rAkEcsZs3iMphddErDsQiF
+         1wcs0mq4ltlv6D08gT6x3e7funuKsr/iEEbP8tvcDBVtJWi1hRaWC8ia6kq5cNcUGH
+         EyODeqvYLbrJzMyN/tsNlmgD6jnUqlar4SQllEOY7d7A7lNq2oRjHQvTUZ13zPO3tB
+         tFDZSlSiA/STY16wZm6fesm/XnYT9ZMMWQ35znRcmmYTgOeKN3UDLk3l7jF9T2MLUs
+         GWp080yA1i9L4ImzKtbuUZD2W8z5jGZShLRlhwgaRWs2QTP5eqDHotT3fVZi4VDMlJ
+         u7bOG5xNqfRaw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 06/10] IB/mlx5: Use rdma_for_each_port for port iteration
-Date:   Wed, 27 Jan 2021 17:00:06 +0200
-Message-Id: <20210127150010.1876121-7-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+        Parav Pandit <parav@nvidia.com>
+Subject: [PATCH rdma-next 00/10] Various cleanups
+Date:   Wed, 27 Jan 2021 17:00:00 +0200
+Message-Id: <20210127150010.1876121-1-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210127150010.1876121-1-leon@kernel.org>
-References: <20210127150010.1876121-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Instead of open coding the loop for port iteration, use
-rdma_for_each_port macro provided by core.
+Various simple cleanups to mlx4, mlx5 and core.
 
-To use such macro, early initialization of phys_port_cnt is needed.
-Hence, initialize such constant early enough in the init stage.
+Parav Pandit (10):
+  IB/mlx5: Move mlx5_port_caps from mlx5_core_dev to mlx5_ib_dev
+  IB/mlx5: Avoid calling query device for reading pkey table length
+  IB/mlx5: Support default partition key for representor port
+  IB/mlx5: Improve query port for representor port
+  RDMA/core: Introduce and use API to read port immutable data
+  IB/mlx5: Use rdma_for_each_port for port iteration
+  IB/mlx5: Return appropriate error code instead of ENOMEM
+  IB/cm: Avoid a loop when device has 255 ports
+  IB/mlx4: Use port iterator and validation APIs
+  IB/core: Use valid port number to check link layer
 
-Whichever functions are called with port using rdma_for_each_port(),
-convert their port type from u8 to unsigned int to match the core API.
+ drivers/infiniband/core/cm.c         |   8 +-
+ drivers/infiniband/core/device.c     |  14 +++
+ drivers/infiniband/core/verbs.c      |   4 +-
+ drivers/infiniband/hw/mlx4/main.c    |   2 +-
+ drivers/infiniband/hw/mlx4/sysfs.c   |   4 +-
+ drivers/infiniband/hw/mlx5/mad.c     |  10 +-
+ drivers/infiniband/hw/mlx5/main.c    | 137 +++++++--------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   9 +-
+ drivers/infiniband/hw/mlx5/odp.c     |   4 -
+ drivers/infiniband/hw/mlx5/qp.c      |  20 ++--
+ drivers/infiniband/hw/mlx5/wr.c      |   2 +-
+ include/linux/mlx5/driver.h          |   8 --
+ include/rdma/ib_verbs.h              |   3 +
+ 13 files changed, 84 insertions(+), 141 deletions(-)
 
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mad.c     |  2 +-
- drivers/infiniband/hw/mlx5/main.c    | 15 ++++++++-------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
- 3 files changed, 10 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index cdb47a00e516..652c6ccf1881 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -279,7 +279,7 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
- }
-
--int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port)
-+int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, unsigned int port)
- {
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 742e565309f8..ad7bb37e501d 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2982,9 +2982,9 @@ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
-
- static void get_ext_port_caps(struct mlx5_ib_dev *dev)
- {
--	int port;
-+	unsigned int port;
-
--	for (port = 1; port <= dev->num_ports; port++)
-+	rdma_for_each_port (&dev->ib_dev, port)
- 		mlx5_query_ext_port_caps(dev, port);
- }
-
-@@ -3905,6 +3905,12 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	int err;
- 	int i;
-
-+	dev->ib_dev.node_type = RDMA_NODE_IB_CA;
-+	dev->ib_dev.local_dma_lkey = 0 /* not supported for now */;
-+	dev->ib_dev.phys_port_cnt = dev->num_ports;
-+	dev->ib_dev.dev.parent = mdev->device;
-+	dev->ib_dev.lag_flags = RDMA_LAG_FLAGS_HASH_ALL_SLAVES;
-+
- 	for (i = 0; i < dev->num_ports; i++) {
- 		spin_lock_init(&dev->port[i].mp.mpi_lock);
- 		rwlock_init(&dev->port[i].roce.netdev_lock);
-@@ -3930,12 +3936,7 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	if (mlx5_use_mad_ifc(dev))
- 		get_ext_port_caps(dev);
-
--	dev->ib_dev.node_type		= RDMA_NODE_IB_CA;
--	dev->ib_dev.local_dma_lkey	= 0 /* not supported for now */;
--	dev->ib_dev.phys_port_cnt	= dev->num_ports;
- 	dev->ib_dev.num_comp_vectors    = mlx5_comp_vectors_count(mdev);
--	dev->ib_dev.dev.parent		= mdev->device;
--	dev->ib_dev.lag_flags		= RDMA_LAG_FLAGS_HASH_ALL_SLAVES;
-
- 	mutex_init(&dev->cap_mask_mutex);
- 	INIT_LIST_HEAD(&dev->qp_list);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 69c45adb2518..88cc26e008fc 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1291,7 +1291,7 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 			size_t *out_mad_size, u16 *out_mad_pkey_index);
- int mlx5_ib_alloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
- int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd, struct ib_udata *udata);
--int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port);
-+int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, unsigned int port);
- int mlx5_query_mad_ifc_system_image_guid(struct ib_device *ibdev,
- 					 __be64 *sys_image_guid);
- int mlx5_query_mad_ifc_max_pkeys(struct ib_device *ibdev,
 --
 2.29.2
 
