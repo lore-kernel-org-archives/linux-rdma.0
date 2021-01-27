@@ -2,57 +2,56 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BF32C433DB
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 04:22:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E48C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 06:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D6D320709
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 04:22:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FC4920715
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Jan 2021 06:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231309AbhA0EWl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 26 Jan 2021 23:22:41 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:15628 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232093AbhA0DCm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 22:02:42 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6010d2cd0000>; Tue, 26 Jan 2021 18:41:17 -0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 27 Jan
- 2021 02:41:16 +0000
-Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL101.nvidia.com
- (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 27 Jan
- 2021 02:41:12 +0000
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.44) by
- HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Wed, 27 Jan 2021 02:41:12 +0000
+        id S232321AbhA0Gdd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Jan 2021 01:33:33 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:4424 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232841AbhA0DIx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 26 Jan 2021 22:08:53 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B6010d38d0001>; Tue, 26 Jan 2021 18:44:29 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Wed, 27 Jan
+ 2021 02:44:26 +0000
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.103)
+ by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Wed, 27 Jan 2021 02:44:26 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bm6ApYnwUFcLALuhIvURTyH6WQP6l6iCrTWs36gsVDWEJMtVrM2unPkO2THrd2MUnH6CEZojJcZ1H/2sTWjuZwCrWWbXv5uPNOIEpLvbsR9Uu+19gynkT3w4AX1dxtv2B7tUmO2MB7k7pmuf2ikxGOgNOhVWwnimBtic4pf9O9CxTa/vuqeGVwm+GRTj+wC/kGAs0OSVm1ly1vIvnUswkY/LphoL04pySjKmOVYTkUdm3sqYyQWlZ5ToUtPQGeavMpIoVwedva7sqJS6gCn/GNIvTn0FHK61oLBPBu1VTEV5sR0fGcK8gWFhyi/E5AjQ6e+ZrFPTeEsBaUNQ++MayQ==
+ b=m2x5EQpv+D8TL4Av20j4YLUjeNpfGlzadhK5sEWuevfVgMgHA+AIowt9vfqF6bSiNPY+M8cZ5jDUU5SwztJ+YKmeIbPtAc+hqA/oEJNnlEL7/jnObdkP1yo6z9PtKb+QnLLSJx3PH2FdHOvJDo0UBbkqR3JQAw8Du+mNnWdI8Vgx6McRQkHaRsm+jhFkv3amYOFhowpp5loBGrMRWkwCcnrh/pnVgx0WMig2xIfsZjcl/cFJiwtghDtaIhfdtS7vZV8z9YCdldykOtPB90PLoydiy52asjRykeFMzdM6Uh+tOc1hSflJ+apzbMVUPG+s/ywmCi9JtRGa25MAItpLXg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/oHl6y1opY73UQDRpIt+UlaiGJAMUzYncsyt2HojZKg=;
- b=IOdeNtV29ZX+KivoQOr8PY60sPLgPeWlOXYO3dLEZqkjukk/0oZAYIlSGWfjsGQVzXXWjsH7j2LwmeB3mzKoIo7CazaTBa2mGjWxIeuFzxq0EEVqs/8Vu5IxL163dPc2M2TXnR3oVpDsKz+EZhERpL6kW1pmze5QuosaI5jXj0uV43VO1wTLHt4xsvqgkzr56uS9pLsjvQNDwgA7lwYicr+ggB3NOOJ/3g57+uDVANjzT605FOTTbTv5YRU2Erb/EMUZTyVAXfjlL98SzVMhK/20sfFsfthk8mytv0zo7r0ejLuVB1ElxVwjfTsTlhM/cjKXu2u01TT6ga7eTN7Mhg==
+ bh=F9CSOF88e9CdtCrouUZFAmqN8ZA4YXMuAivyQAbPhCo=;
+ b=SzNrlg0Zika6voOnmOe8ErV7MSgHh240QyEEGtNl4BDbuTZGLDdZrJuK9G8CfZ2WbFN149nhMHwKlmleB2jlUU5+48qpiFi5D4Uc3QbgVkujKdXE+wtUahMQkzC+As2ymmPncA5eJdMe/vHZA6hbshNFNunai63yo7TeYMtmbXnei0ldI0NaCr47tq9oT3SALVfb52lnJ0kWelIGBsHeWXIYA66Si0u+D58VQ1T8TDaKi7KZvZoaIZi0MeiIOBmNDffjcFz3Kbt88vz0fUDn8XgloeryYvU+j05tmQsTtMZO9dNmM330gHUMboupNRBQW8GbAqkMNGf5SVZPiadG6g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM6PR12MB3516.namprd12.prod.outlook.com (2603:10b6:5:18b::16) with
+ by DM6PR12MB4513.namprd12.prod.outlook.com (2603:10b6:5:2ad::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3784.13; Wed, 27 Jan
- 2021 02:41:10 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.16; Wed, 27 Jan
+ 2021 02:44:25 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::546d:512c:72fa:4727%7]) with mapi id 15.20.3784.019; Wed, 27 Jan 2021
- 02:41:10 +0000
-Date:   Tue, 26 Jan 2021 22:41:09 -0400
+ 02:44:25 +0000
+Date:   Tue, 26 Jan 2021 22:44:23 -0400
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
+CC:     "Keller, Jacob E" <jacob.e.keller@intel.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>,
         "kuba@kernel.org" <kuba@kernel.org>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
@@ -60,86 +59,82 @@ CC:     "dledford@redhat.com" <dledford@redhat.com>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "Ertman, David M" <david.m.ertman@intel.com>,
         "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: Re: [PATCH 09/22] RDMA/irdma: Implement HW Admin Queue OPs
-Message-ID: <20210127024109.GK4147@nvidia.com>
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "jiri@nvidia.com" <jiri@nvidia.com>,
+        "Samudrala, Sridhar" <sridhar.samudrala@intel.com>,
+        "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Message-ID: <20210127024423.GL4147@nvidia.com>
 References: <20210122234827.1353-1-shiraz.saleem@intel.com>
- <20210122234827.1353-10-shiraz.saleem@intel.com>
- <20210125192319.GW4147@nvidia.com>
- <5c36451841f64f90ac2be6d23ffa9578@intel.com>
+ <20210122234827.1353-8-shiraz.saleem@intel.com>
+ <20210124134551.GB5038@unreal> <20210125132834.GK4147@nvidia.com>
+ <2072c76154cd4232b78392c650b2b2bf@intel.com>
+ <5b3f609d-034a-826f-1e50-0a5f8ad8406e@intel.com>
+ <20210126011043.GG4147@nvidia.com>
+ <328b9c06a18e48efbcc4121c5d375cb7@intel.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <5c36451841f64f90ac2be6d23ffa9578@intel.com>
-X-ClientProxiedBy: MN2PR05CA0063.namprd05.prod.outlook.com
- (2603:10b6:208:236::32) To DM6PR12MB3834.namprd12.prod.outlook.com
+In-Reply-To: <328b9c06a18e48efbcc4121c5d375cb7@intel.com>
+X-ClientProxiedBy: MN2PR06CA0001.namprd06.prod.outlook.com
+ (2603:10b6:208:23d::6) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR05CA0063.namprd05.prod.outlook.com (2603:10b6:208:236::32) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.7 via Frontend Transport; Wed, 27 Jan 2021 02:41:10 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l4alZ-007KOh-C9; Tue, 26 Jan 2021 22:41:09 -0400
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR06CA0001.namprd06.prod.outlook.com (2603:10b6:208:23d::6) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.16 via Frontend Transport; Wed, 27 Jan 2021 02:44:25 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l4aoh-007KQu-VC; Tue, 26 Jan 2021 22:44:23 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1611715277; bh=/oHl6y1opY73UQDRpIt+UlaiGJAMUzYncsyt2HojZKg=;
+        t=1611715469; bh=F9CSOF88e9CdtCrouUZFAmqN8ZA4YXMuAivyQAbPhCo=;
         h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
          From:To:CC:Subject:Message-ID:References:Content-Type:
          Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
          X-MS-Exchange-MessageSentRepresentingType;
-        b=NY52gJFLf1/uevsRqgkYleJKDFYlgG/1G0cJ5elBu1rHcs4Bl5n1QNEYDUaxTHJzZ
-         a5SLuYf3mJ0pHZvN3a97EoCCBBIbSxIskvNIKyDjQXvCbaZCjOLURUDluEkUKWdh08
-         HNRKExjnVmQm9h7RkggStUMcoXZudwO+bmqgeSJEy3Rrt4QCZwdUQKD373i+lyRfkS
-         kd6yS1PgdO50OHULtugoAcIgtVOtKPOH+M1zK8xWIZ1A7eJH8Fra4yC+yYmL+wu8/2
-         NdVhro7KYjSkm7R0EE3l+79ANASHLBn5+nhJCN0nTVJFKPGr4YT1xATpviKtDKn03i
-         KSa7d+8lvDExw==
+        b=cY9dOkMuTu7z0Z0xDcb2AYTP8tm+3C//uJmSHZ9l8/hXe3Ynz4QehO4K6qIleqspz
+         +db6GuKQpHTCFtY8f2IaBgXA9SYES7w1bghuXJyx4xbV51Z2C1MNCsj7pkxRluzWdk
+         1w6XzAKMIwD0jnjI0q/9hj2zYLT4M83KhkVXFmFY8LR2/kc6IDYf/yLgKLOip8TgnU
+         hbEY/PVP3HfXo2jYkU6FCAlRE7Ia3JJ0qyjDlLIVUQoJTHdSAj9aCGOk1gtr6dc+Ka
+         DoMfUBGBmTEWj7qYVmrzZyBfmTuCZW+IcJrgbduwu5+NaD79vAfJ4YRCO8s8/V1ss0
+         P6Lr93O6WEvfg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jan 27, 2021 at 12:41:59AM +0000, Saleem, Shiraz wrote:
-> > Subject: Re: [PATCH 09/22] RDMA/irdma: Implement HW Admin Queue OPs
+On Wed, Jan 27, 2021 at 12:42:09AM +0000, Saleem, Shiraz wrote:
+
+> > It does, the PCI driver is not supposed to spawn any aux devices for RDMA at all
+> > if RDMA is disabled.
 > > 
-> > On Fri, Jan 22, 2021 at 05:48:14PM -0600, Shiraz Saleem wrote:
-> > > +#define LS_64_1(val, bits)	((u64)(uintptr_t)(val) << (bits))
-> > > +#define RS_64_1(val, bits)	((u64)(uintptr_t)(val) >> (bits))
-> > > +#define LS_32_1(val, bits)	((u32)((val) << (bits)))
-> > > +#define RS_32_1(val, bits)	((u32)((val) >> (bits)))
-> > > +#define LS_64(val, field)	(((u64)(val) << field ## _S) & (field ## _M))
-> > > +#define RS_64(val, field)	((u64)((val) & field ## _M) >> field ## _S)
-> > > +#define LS_32(val, field)	(((val) << field ## _S) & (field ## _M))
-> > > +#define RS_32(val, field)	(((val) & field ## _M) >> field ## _S)
-> > 
-> > Yikes, why can't this use the normal GENMASK/FIELD_PREP infrastructure like the
-> > other new drivers are now doing?
-> > 
-> > EFA is not a perfect example, but EFA_GET/EFA_SET are the macros I would
-> > expect to see, just without the _MASK thing.
-> > 
-> > IBA_GET/SET shows how to do that pattern
-> > 
-> > > +#define FLD_LS_64(dev, val, field)	\
-> > > +	(((u64)(val) << (dev)->hw_shifts[field ## _S]) & (dev)->hw_masks[field ##
-> > _M])
-> > > +#define FLD_RS_64(dev, val, field)	\
-> > > +	((u64)((val) & (dev)->hw_masks[field ## _M]) >> (dev)->hw_shifts[field ##
-> > _S])
-> > > +#define FLD_LS_32(dev, val, field)	\
-> > > +	(((val) << (dev)->hw_shifts[field ## _S]) & (dev)->hw_masks[field ## _M])
-> > > +#define FLD_RS_32(dev, val, field)	\
-> > > +	((u64)((val) & (dev)->hw_masks[field ## _M]) >>
-> > > +(dev)->hw_shifts[field ## _S])
-> > 
-> > Is it because the register access is programmable? That shouldn't be a significant
-> > problem.
-> > 
+> > For an iWarp driver I would consider ENABLE_ROCE to really be a general
+> > ENABLE_RDMA.
 > 
-> Yes. How do we solve that?
+> Well the driver supports iWARP and RoCE for E810 device.
+> Are you saying that this generic enable_roce devlink param really
+> is an enable 'rdma' traffic or not param?
+
+I've thought of it that way, that is what it was created for at least.
+
+Overloading it to be a iwarp not roce switch feels wrong
+ 
+> > Are you sure you need to implement this?
 > 
-> https://lore.kernel.org/linux-rdma/20200602232903.GD65026@mellanox.com/
+> What we are after is some mechanism for user to switch the protocols iWARP vs RoCE
+> [default the device comes up as an iWARP dev]. The protocol info is really needed early-on
+> in the RDMA driver.probe(). i.e. when the rdma admin queue is created.
 
-Ooh, I'm remarkably consistent after all this time
+This needs to be a pci devlink at least, some kind of mode switch
+seems appropriate
+ 
+> The same goes with the other param resource_limits_selector. It's a
+> profile selector that a user can chose to different # of max QP,
+> CQs, MRs etc.
 
-I think the answer hasn't changed the point is to make the macros the
-same.
+And it must be done at init time? Also seems like pci devlink
 
-And the LS/RS stuff isn't using the indirection, so why isn't it using
-normal GENMASK stuff?
+Generally speaking anything that requires the rdma driver to be
+reloaded should remove/restore the aux device.
+
+Mode switch from roce to/from iwarp should create aux devices of
+different names which naturally triggers the right kind of sequences
+in the driver core
 
 Jason
