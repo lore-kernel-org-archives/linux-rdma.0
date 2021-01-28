@@ -2,113 +2,294 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2CF8C433E6
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:56:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC731C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 23:36:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65D5464DED
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:56:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A74464DEF
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 23:36:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231733AbhA1Wzn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 Jan 2021 17:55:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37622 "EHLO
+        id S231127AbhA1XgG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 Jan 2021 18:36:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231608AbhA1WwN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Jan 2021 17:52:13 -0500
-Received: from mail-pg1-x52f.google.com (mail-pg1-x52f.google.com [IPv6:2607:f8b0:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CFBCC061356
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:48:46 -0800 (PST)
-Received: by mail-pg1-x52f.google.com with SMTP id n10so5279353pgl.10
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:48:46 -0800 (PST)
+        with ESMTP id S231245AbhA1Xfj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Jan 2021 18:35:39 -0500
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D89B7C061574
+        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 15:34:47 -0800 (PST)
+Received: by mail-ot1-x32f.google.com with SMTP id e70so6940039ote.11
+        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 15:34:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:from:to:cc:subject:in-reply-to:message-id:references
-         :mime-version;
-        bh=jRc+9koAFnFriBYMbCECl8bNtNHOFnGAZDdGQS3iVDU=;
-        b=VX8To19226WV8RDTkFQ5ObLuNZF9XVTO28Kn6srr7oOvy3bJROldWKCMUzp1PQKXf9
-         DxW/pzBX8qvpyf9JYyEV0tsfWnIQwh8StSLFabjSv9bq/h+LrM8BcShVwk+8h5JEIVAC
-         m7rR/FINIdZ5nzLJ4PtqwDLyuNTB4ApMNbGX1tO8SauTFQvq0jZUXb6tQjVnZTTurC4o
-         JnT9bk1zHAxQ/KJOZ2l5CO8dDG2tvWtV2Yqs/XVrEpJuA4GCbDFdVRNie/dpc5yVuHhc
-         6tpUXWl/fB3cIiNkDeifZnbig6ARvwbuNY0PAKYEKLOUWsV+N9z5P3YBgnwxTr3v/Wvb
-         uKpQ==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=SNPHPdWJPZ2f+qmznYRJ8qHYUYRVQ+yuc9DRf8WEokY=;
+        b=uZlFw77cJyPdUISx4ETJxGKPUiCFeb9q5YPgR5gcH3GxvfGMPlTQYLxQvyMNHpuuG/
+         MOG649VZniDVN6s43SqRgeeCFKq/x1YnN3wHzfMfdNlZW0Oq5D7EASCFYsbAlH1PAvhd
+         Em9H/J5ThfY+JHIOPF0lXSp72dqRA67Qg6v4vFMowslvWz/5DbS+U1CbfOr4Dk9xaOMq
+         //GQvdH8Qxvf5WTXf683jppZOa8f0e2Y7JRa46LviCTxRMPr4ATbnbAcwtMXmyumXdw7
+         6f9JMfOETLO/L48AQmHBwClyvkXYQgZRWx67vnUCAcbHgdX3TWfkwFZfsMn5B4vl/RIw
+         49Qw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
-         :references:mime-version;
-        bh=jRc+9koAFnFriBYMbCECl8bNtNHOFnGAZDdGQS3iVDU=;
-        b=MzTGNG3MPXdbF1DoXru7KOjR0CeBRtKQdN2OnZukTJQc2KTuepH1smEy9ez5iZ71al
-         7nXPVg+fYYx0IgL2V3FepH6DnH3/Hau2ZQ7n+XpIH6Jf8WP8ponGPn2v1iwET9B67Qu2
-         daRvs09K8qUuTMbMPapQoiDTJU8FxMEBuDSy68DUOpuGvn1sOI5RraxmvZKVkjI2Y1PX
-         QXg9dEvOpucyRgIWBvjHdINVQSWQYmkF7/Spju8Otdu26HPll8NyOQRNYN9c0W2MCrQs
-         pvVBRfwjSMa5dyXznBMbXk2ZEwQk2RMb7WnFAHR571gchqaWbW9BaamZ4Svpak7wcQOs
-         tBHg==
-X-Gm-Message-State: AOAM5337+mvjO7ssAAwGJAhCQcNbKuQlCKm2gvMM/agg1s5nn2EqNPJ+
-        p7gaPRM0HY8r9/OtjW8l8lz6JA==
-X-Google-Smtp-Source: ABdhPJwBVbXS8W3fPe5c+jU1CL/MRyTOw1r5xPcMxMQku9sVK6cWDkTe2rvBDuGwi5tcagKuWF06SA==
-X-Received: by 2002:a62:f943:0:b029:1a5:43f9:9023 with SMTP id g3-20020a62f9430000b02901a543f99023mr1512252pfm.75.1611874125638;
-        Thu, 28 Jan 2021 14:48:45 -0800 (PST)
-Received: from [2620:15c:17:3:4a0f:cfff:fe51:6667] ([2620:15c:17:3:4a0f:cfff:fe51:6667])
-        by smtp.gmail.com with ESMTPSA id v1sm7110414pga.63.2021.01.28.14.48.44
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=SNPHPdWJPZ2f+qmznYRJ8qHYUYRVQ+yuc9DRf8WEokY=;
+        b=E4l2SD/YkCPRhfQxwN6iW4kP8TJbfQNCaL7wtjhVKEki9pPIgjLhshuUIO/6fXvimm
+         qwwiMjCnk0RyAy1tg1dRUKdT8j2yjtvkhP76OspLe3mspY7q5ZlwT1taSLiB7PsJX9I0
+         1odp26aRHVgx/8chqs+8BsydDNuYFxsrGbAsEmrkYO3UwBB8ZcMVFtlrKiKROxLSs4Je
+         vONFDfp8Y8EDlPkfej7h/n8gcP8tEKkQxHDM1zbVRd2U194watbEbIV9y/ooo9OJCLgx
+         bCsR7x0vFnUFIjX1e+lC92KpONy0MK6OKxmmbeQpqgzoqvu+r6QTVB8X1PeKNsuNWO4d
+         yD7w==
+X-Gm-Message-State: AOAM530nH9xEsa/DwNV28z+HY6SOHr58Y+DQBJRtYOOsuCAX0EzZgPgS
+        I0ZGxAbFN5+iXy9bTV7Ukzs=
+X-Google-Smtp-Source: ABdhPJypVCsMsk/PQHbJEIPIBxxFvUQ3pdubFZhoZLId1DV2dn+O0V5aJDKwEz9hS5NpOeSyPX/4cA==
+X-Received: by 2002:a9d:1c9a:: with SMTP id l26mr1255798ota.316.1611876887328;
+        Thu, 28 Jan 2021 15:34:47 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-0a17-c366-3c70-b476.res6.spectrum.com. [2603:8081:140c:1a00:a17:c366:3c70:b476])
+        by smtp.gmail.com with ESMTPSA id q127sm1617379oia.18.2021.01.28.15.34.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Jan 2021 14:48:44 -0800 (PST)
-Date:   Thu, 28 Jan 2021 14:48:43 -0800 (PST)
-From:   David Rientjes <rientjes@google.com>
-To:     Alexander Lobakin <alobakin@pm.me>
-cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 net-next 3/4] net: introduce common
- dev_page_is_reserved()
-In-Reply-To: <20210127201031.98544-4-alobakin@pm.me>
-Message-ID: <d8e86f1a-d2a6-d8af-142c-f735fd3be9f2@google.com>
-References: <20210127201031.98544-1-alobakin@pm.me> <20210127201031.98544-4-alobakin@pm.me>
+        Thu, 28 Jan 2021 15:34:46 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] RDMA/rxe: Fix FIXME in rxe_udp_encap_recv()
+Date:   Thu, 28 Jan 2021 17:33:19 -0600
+Message-Id: <20210128233318.2591-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, 27 Jan 2021, Alexander Lobakin wrote:
+rxe_udp_encap_recv() drops the reference to rxe->ib_dev taken by
+rxe_get_dev_from_net() which should be held until each received
+skb is freed. This patch moves the calls to ib_device_put() to
+each place a received skb is freed. It also takes references to
+the ib_device for each cloned skb created to process received
+multicast packets.
 
-> A bunch of drivers test the page before reusing/recycling for two
-> common conditions:
->  - if a page was allocated under memory pressure (pfmemalloc page);
->  - if a page was allocated at a distant memory node (to exclude
->    slowdowns).
-> 
-> Introduce and use a new common function for doing this and eliminate
-> all functions-duplicates from drivers.
-> 
-> Suggested-by: David Rientjes <rientjes@google.com>
-> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+Fixes: 4c173f596b3ff ("RDMA/rxe: Use ib_device_get_by_netdev()
+                instead of open coding")
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_comp.c | 49 ++++++++++++----------------
+ drivers/infiniband/sw/rxe/rxe_net.c  | 12 +++----
+ drivers/infiniband/sw/rxe/rxe_recv.c | 15 +++++++--
+ drivers/infiniband/sw/rxe/rxe_resp.c |  3 ++
+ 4 files changed, 42 insertions(+), 37 deletions(-)
 
-Looks even better than I thought!
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 0a1e6393250b..96d32903a3b5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -515,6 +515,7 @@ static void rxe_drain_resp_pkts(struct rxe_qp *qp, bool notify)
+ 	while ((skb = skb_dequeue(&qp->resp_pkts))) {
+ 		rxe_drop_ref(qp);
+ 		kfree_skb(skb);
++		ib_device_put(qp->ibqp.device);
+ 	}
+ 
+ 	while ((wqe = queue_head(qp->sq.queue))) {
+@@ -527,6 +528,17 @@ static void rxe_drain_resp_pkts(struct rxe_qp *qp, bool notify)
+ 	}
+ }
+ 
++void free_pkt(struct rxe_pkt_info *pkt)
++{
++	struct sk_buff *skb = PKT_TO_SKB(pkt);
++	struct rxe_qp *qp = pkt->qp;
++	struct ib_device *dev = qp->ibqp.device;
++
++	kfree_skb(skb);
++	rxe_drop_ref(qp);
++	ib_device_put(dev);
++}
++
+ int rxe_completer(void *arg)
+ {
+ 	struct rxe_qp *qp = (struct rxe_qp *)arg;
+@@ -624,11 +636,8 @@ int rxe_completer(void *arg)
+ 			break;
+ 
+ 		case COMPST_DONE:
+-			if (pkt) {
+-				rxe_drop_ref(pkt->qp);
+-				kfree_skb(skb);
+-				skb = NULL;
+-			}
++			if (pkt)
++				free_pkt(pkt);
+ 			goto done;
+ 
+ 		case COMPST_EXIT:
+@@ -671,12 +680,8 @@ int rxe_completer(void *arg)
+ 			 */
+ 			if (qp->comp.started_retry &&
+ 			    !qp->comp.timeout_retry) {
+-				if (pkt) {
+-					rxe_drop_ref(pkt->qp);
+-					kfree_skb(skb);
+-					skb = NULL;
+-				}
+-
++				if (pkt)
++					free_pkt(pkt);
+ 				goto done;
+ 			}
+ 
+@@ -699,13 +704,8 @@ int rxe_completer(void *arg)
+ 					qp->comp.started_retry = 1;
+ 					rxe_run_task(&qp->req.task, 0);
+ 				}
+-
+-				if (pkt) {
+-					rxe_drop_ref(pkt->qp);
+-					kfree_skb(skb);
+-					skb = NULL;
+-				}
+-
++				if (pkt)
++					free_pkt(pkt);
+ 				goto done;
+ 
+ 			} else {
+@@ -726,9 +726,7 @@ int rxe_completer(void *arg)
+ 				mod_timer(&qp->rnr_nak_timer,
+ 					  jiffies + rnrnak_jiffies(aeth_syn(pkt)
+ 						& ~AETH_TYPE_MASK));
+-				rxe_drop_ref(pkt->qp);
+-				kfree_skb(skb);
+-				skb = NULL;
++				free_pkt(pkt);
+ 				goto exit;
+ 			} else {
+ 				rxe_counter_inc(rxe,
+@@ -742,13 +740,8 @@ int rxe_completer(void *arg)
+ 			WARN_ON_ONCE(wqe->status == IB_WC_SUCCESS);
+ 			do_complete(qp, wqe);
+ 			rxe_qp_error(qp);
+-
+-			if (pkt) {
+-				rxe_drop_ref(pkt->qp);
+-				kfree_skb(skb);
+-				skb = NULL;
+-			}
+-
++			if (pkt)
++				free_pkt(pkt);
+ 			goto exit;
+ 		}
+ 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index c4b06ced30a7..1dba23e57d92 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -152,10 +152,14 @@ static struct dst_entry *rxe_find_route(struct net_device *ndev,
+ static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ {
+ 	struct udphdr *udph;
++	struct rxe_dev *rxe;
+ 	struct net_device *ndev = skb->dev;
+-	struct rxe_dev *rxe = rxe_get_dev_from_net(ndev);
+ 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
+ 
++	/* takes a reference on rxe->ib_dev
++	 * drop when skb is freed
++	 */
++	rxe = rxe_get_dev_from_net(ndev);
+ 	if (!rxe)
+ 		goto drop;
+ 
+@@ -174,12 +178,6 @@ static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ 
+ 	rxe_rcv(skb);
+ 
+-	/*
+-	 * FIXME: this is in the wrong place, it needs to be done when pkt is
+-	 * destroyed
+-	 */
+-	ib_device_put(&rxe->ib_dev);
+-
+ 	return 0;
+ drop:
+ 	kfree_skb(skb);
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index c9984a28eecc..8e60d9eaf79a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -266,10 +266,19 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 		/* for all but the last qp create a new clone of the
+ 		 * skb and pass to the qp.
+ 		 */
+-		if (mce->qp_list.next != &mcg->qp_list)
++		if (mce->qp_list.next != &mcg->qp_list) {
+ 			per_qp_skb = skb_clone(skb, GFP_ATOMIC);
+-		else
++			if (!ib_device_try_get(&rxe->ib_dev)) {
++				/* shouldn't happen we already have
++				 * one ref for skb.
++				 */
++				pr_warn("ib_device_try_get failed\n");
++				kfree_skb(per_qp_skb);
++				continue;
++			}
++		} else {
+ 			per_qp_skb = skb;
++		}
+ 
+ 		if (unlikely(!per_qp_skb))
+ 			continue;
+@@ -288,6 +297,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 
+ err1:
+ 	kfree_skb(skb);
++	ib_device_put(&rxe->ib_dev);
+ }
+ 
+ /**
+@@ -397,4 +407,5 @@ void rxe_rcv(struct sk_buff *skb)
+ 		rxe_drop_ref(pkt->qp);
+ 
+ 	kfree_skb(skb);
++	ib_device_put(&rxe->ib_dev);
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 5a098083a9d2..5fd26786d79b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -99,6 +99,7 @@ static inline enum resp_states get_req(struct rxe_qp *qp,
+ 		while ((skb = skb_dequeue(&qp->req_pkts))) {
+ 			rxe_drop_ref(qp);
+ 			kfree_skb(skb);
++			ib_device_put(qp->ibqp.device);
+ 		}
+ 
+ 		/* go drain recv wr queue */
+@@ -1012,6 +1013,7 @@ static enum resp_states cleanup(struct rxe_qp *qp,
+ 		skb = skb_dequeue(&qp->req_pkts);
+ 		rxe_drop_ref(qp);
+ 		kfree_skb(skb);
++		ib_device_put(qp->ibqp.device);
+ 	}
+ 
+ 	if (qp->resp.mr) {
+@@ -1176,6 +1178,7 @@ static void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
+ 	while ((skb = skb_dequeue(&qp->req_pkts))) {
+ 		rxe_drop_ref(qp);
+ 		kfree_skb(skb);
++		ib_device_put(qp->ibqp.device);
+ 	}
+ 
+ 	if (notify)
+-- 
+2.27.0
 
-(Since all of the changes are in drivers/net/ethernet/, I assume 
-everything directly or indirectly includes skbuff.h already.)
-
-Acked-by: David Rientjes <rientjes@google.com>
-
-Thanks for doing this.
