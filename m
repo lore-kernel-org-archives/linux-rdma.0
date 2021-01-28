@@ -7,55 +7,55 @@ X-Spam-Status: No, score=-18.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E29DC433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:48:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF59C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:55:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DD7764DED
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:48:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB72C64D9E
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 Jan 2021 22:55:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231534AbhA1Wrz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 Jan 2021 17:47:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36724 "EHLO
+        id S231249AbhA1WzQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 Jan 2021 17:55:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231712AbhA1Wqg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Jan 2021 17:46:36 -0500
-Received: from mail-pg1-x52e.google.com (mail-pg1-x52e.google.com [IPv6:2607:f8b0:4864:20::52e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4B0DC0613ED
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:45:25 -0800 (PST)
-Received: by mail-pg1-x52e.google.com with SMTP id s23so4013267pgh.11
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:45:25 -0800 (PST)
+        with ESMTP id S231771AbhA1Wwp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Jan 2021 17:52:45 -0500
+Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 279CEC06121D
+        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:49:30 -0800 (PST)
+Received: by mail-pl1-x630.google.com with SMTP id 31so4175787plb.10
+        for <linux-rdma@vger.kernel.org>; Thu, 28 Jan 2021 14:49:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=date:from:to:cc:subject:in-reply-to:message-id:references
          :mime-version;
-        bh=cbREDcYUxdGPWuZgrjmxI5lJSyINoM6pZuP8VJQYcBo=;
-        b=ewjgG2AitYQp4pR9LLq/tqMYwnkFQZMJwHV8dd5+P0lSWU/WAGkDWJkNSkhhHO1LhD
-         yWduDr7ASEWl6p1Gh5LXct/KLCVZRbh1Vz7VPKX6RvOQzaN7p70IOUlTuf5IXKs4Yh87
-         5BgRM1DILAYPL4ZGok0do/GOURwRmcb22SyrNd5SfM/gixVkT8qoX+cyJpEv8fa5m9Ib
-         jprArihDrGfUsIobODolmJ0tGUvqPW98PLhRZX1SdPYWKnUb0eMHVkotno395LYey9rq
-         0v//KPAC4zpmFUMGUIcHUt7amWMNjxhruYpGecyr1o4snnqTuvdYBgDKi75JeHKcplS1
-         lLAg==
+        bh=G+ih4TCLjMlDhHUsK2A+TR2HHdkm5AqUa1C6G/BSwSU=;
+        b=MtFfpkPTsZTn0gFaHxFhSWOMva66E/lvz+hUXR3FrCHa9T0vjY+xbhdIBytnfT4hde
+         0Ys5AJYDByRiNPKT0aWC33/ZwpGaEnDVdDZLHxgNhDamHGH+rUdr/YNIrHzbogxyK2ot
+         0DoGbhkKgR6CODspeFMH0JINuzKgti7159D7tR9XKwR9K09g/4AR5nAIex+fNblniZwf
+         nuLbHpvajXVngPXWUmYWJr62ll4sVI6GL9+9DOw2ps6euNFMlJMMKUqLwUBvfOr4+JOI
+         dE/ui+K9GxRvn1sNUBZjR8TFkXXLIPq75nHYRfA916R0qHMnMt7BOLu7EI21THYWQnjm
+         aX5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
          :references:mime-version;
-        bh=cbREDcYUxdGPWuZgrjmxI5lJSyINoM6pZuP8VJQYcBo=;
-        b=Kqy2rQ8mutad1zAwoNjgYAvDFAY6bHYbXrICEzmeisy4OdHTmJxgbjAKnSnIUcgsf9
-         uyxC0WmuXITkgQLqPI5OSaJ/V/zgQuMA1mgfUHnmf3o95zdQ1KZBQYuCfUsOL59Ipomu
-         e/zucBTXNA+G+qRg+oKS7gMz2QF7eAsMnCzoJWFJ9a0VeEQRjHop/PoJHVbeb/f76tMR
-         FP91fZ17/eqkQ5V6+KWXwVhKhsY2B00RQ0nO7mJunbvErz4MMMZrTCoQflDmBD4OoVCh
-         +sjfdNewFaYdLVS3ubQBCCJNxDLMI42VJctL6vGz9KCupPNZdtkAK+u82ZXi2J7pTC9m
-         wU7Q==
-X-Gm-Message-State: AOAM531Yb2ZJxGtP6ePPXGFAB6FPPoprOg27ZzE3gZqdvGy1GO1OKzsX
-        8jrZf23RSQLS9oDHZlMuwuGbNw==
-X-Google-Smtp-Source: ABdhPJwWjMZAyLfJ0E9B8GRyN2meuwNffp9+5ZYWtwCpfUrwQjj8uej2C7H59DTF1LfNJWBTTZ9/zA==
-X-Received: by 2002:a63:db54:: with SMTP id x20mr1543682pgi.200.1611873925104;
-        Thu, 28 Jan 2021 14:45:25 -0800 (PST)
+        bh=G+ih4TCLjMlDhHUsK2A+TR2HHdkm5AqUa1C6G/BSwSU=;
+        b=gqgyD1qAvwu3SOHPSFWlMx84GEbflnyhPTAJOyOcPHudTExQoEYbpfZTSIH6ZdOk6h
+         bUcjib/dsaF87pR7AvprTPnH3FVLUAlXVKMFc9k9Zo2KcvhweUX83b/vedeJFQYnyYuH
+         /ZdcweX/mYgSqRG7uTky0lPTGE6KiEayGuas6jb3emnnn5TTugwMMXOEVtL9wBac4Ots
+         QeNeKWxeZ+FZC7JsDoyzpYhFGRe5nIb6R1/JpCYXSAiDRwqInLNWQP/BcQtHIlbk7kl/
+         pykhc6x6WR3eEzHVMt1vm7qLoXgjpXRPfM7QLqgKU+aKFyCKRLe08EAuaFhHHWiIIiNS
+         /PYA==
+X-Gm-Message-State: AOAM5301UnMlpIQFW1cwPkIoO6CglsT1ZRLfLBXXkYUkll3vWmRqOIO1
+        kfg/PIMBypMxn68/TxCwc3wLAQ==
+X-Google-Smtp-Source: ABdhPJyfRuzHyqHVdqBK8f0+yDGR+PAfYB5Dc8yFBfd7wqG+BeYIWPtIjMNVkXFepyiH+P/AGil0yA==
+X-Received: by 2002:a17:90a:470f:: with SMTP id h15mr1601393pjg.179.1611874169526;
+        Thu, 28 Jan 2021 14:49:29 -0800 (PST)
 Received: from [2620:15c:17:3:4a0f:cfff:fe51:6667] ([2620:15c:17:3:4a0f:cfff:fe51:6667])
-        by smtp.gmail.com with ESMTPSA id d21sm6051801pjz.39.2021.01.28.14.45.23
+        by smtp.gmail.com with ESMTPSA id u126sm6508563pfu.113.2021.01.28.14.49.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Jan 2021 14:45:24 -0800 (PST)
-Date:   Thu, 28 Jan 2021 14:45:23 -0800 (PST)
+        Thu, 28 Jan 2021 14:49:28 -0800 (PST)
+Date:   Thu, 28 Jan 2021 14:49:27 -0800 (PST)
 From:   David Rientjes <rientjes@google.com>
 To:     Alexander Lobakin <alobakin@pm.me>
 cc:     "David S. Miller" <davem@davemloft.net>,
@@ -79,11 +79,11 @@ cc:     "David S. Miller" <davem@davemloft.net>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
         linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 net-next 2/4] skbuff: constify skb_propagate_pfmemalloc()
- "page" argument
-In-Reply-To: <20210127201031.98544-3-alobakin@pm.me>
-Message-ID: <b1d34275-1564-a46c-601b-a4b9865f50c7@google.com>
-References: <20210127201031.98544-1-alobakin@pm.me> <20210127201031.98544-3-alobakin@pm.me>
+Subject: Re: [PATCH v2 net-next 4/4] net: page_pool: simplify page recycling
+ condition tests
+In-Reply-To: <20210127201031.98544-5-alobakin@pm.me>
+Message-ID: <7ac4064-b63-b26f-10db-68b83e6d4c6@google.com>
+References: <20210127201031.98544-1-alobakin@pm.me> <20210127201031.98544-5-alobakin@pm.me>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
@@ -92,11 +92,12 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 On Wed, 27 Jan 2021, Alexander Lobakin wrote:
 
-> The function doesn't write anything to the page struct itself,
-> so this argument can be const.
-> 
-> Misc: align second argument to the brace while at it.
+> pool_page_reusable() is a leftover from pre-NUMA-aware times. For now,
+> this function is just a redundant wrapper over page_is_pfmemalloc(),
+> so Inline it into its sole call site.
 > 
 > Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+> Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 
 Acked-by: David Rientjes <rientjes@google.com>
