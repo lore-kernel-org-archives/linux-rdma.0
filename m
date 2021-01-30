@@ -2,122 +2,94 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F41C433E6
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:44:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F916C433DB
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF8B264DE2
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:44:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 523AF64DE4
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231733AbhA3Jo1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 30 Jan 2021 04:44:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33954 "EHLO mail.kernel.org"
+        id S232002AbhA3J7f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 30 Jan 2021 04:59:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46618 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233420AbhA3DJ7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 29 Jan 2021 22:09:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8159864E0A;
-        Sat, 30 Jan 2021 02:26:32 +0000 (UTC)
+        id S232053AbhA3J7U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 30 Jan 2021 04:59:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9DE0464E1A;
+        Sat, 30 Jan 2021 02:31:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611973593;
-        bh=gmarr4qVjyw751E10OSXeuOyiSWaDLjl7GR0aalT4MM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=X/p9RIOeeOCUCtkVQDvViROd9OK3Q2VeP6FWJuU0Kf66mr3Gb37NSl5AGCzO13NZZ
-         UYYAx4qQjRc86x545qZlyn+I0BKREpYV/GzhzPpjFYF9NHl+QeKbebQbyRVHi7JOmv
-         klEegbR+neqzK/VC0AWU7ftTUD4iXFD+yiY+f7a8fqAkgoJHy2kHkg0BloOujVOMlP
-         8bA22TjhWE11r6aiHY5wuZSzWb768qtzPHbzzDr8i3d30mDkpN+nhbyPkN1ezVCW7L
-         yEcOOWWsCbWQh0m9TxSIZzb9L69niDfFfHqtX0BFcqEpt0yCiU/SV211/3rEBgfKlS
-         1cHWJEj5VK/4g==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@nvidia.com>,
-        Yevgeny Kliteynik <kliteyn@nvidia.com>,
-        Erez Shitrit <erezsh@nvidia.com>,
-        Alex Vesker <valex@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next 08/11] net/mlx5: DR, Use the right size when writing partial STE into HW
-Date:   Fri, 29 Jan 2021 18:26:15 -0800
-Message-Id: <20210130022618.317351-9-saeed@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210130022618.317351-1-saeed@kernel.org>
-References: <20210130022618.317351-1-saeed@kernel.org>
+        s=k20201202; t=1611973892;
+        bh=cGf3iJ+ecwtb9Ubl0TlE4VdI62kqOG/SRgvcxfXZejg=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Wyotr9H9B00UJUKheIXtljvx8UCaT02HI/9TZ//h3FJLuKKoSlXIoUT4dm6LRRuVv
+         AUVjtQBdvXqMf4nJUiAd8k1d8TkppgzKPcKYBIq527jRWD3XHIy0fiJkEkxNZthJvx
+         3YD6JzlBY2rtZOnwnxCqjZYRG3Tp9Iz5+9HEbe3615xDxhTdjSuGf9yxlvpeK5zzmO
+         D4fPKYi/j0h0Urv7ObZS28fLIdKiQL90fnnAcGF9W2dFqKpeV5tNQ+h8miISEY0PSP
+         NEFeNtttgTEBEGpKv4rAQDR1NI7PhXdj4rbOefks8jgfQ61g1GQ/k+Y4dxmeqiybEk
+         Yu2M65T9m2x7w==
+Date:   Fri, 29 Jan 2021 18:30:51 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Alexander Lobakin <alobakin@pm.me>,
+        "David S. Miller" <davem@davemloft.net>,
+        David Rientjes <rientjes@google.com>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+        Jonathan Lemon <jonathan.lemon@gmail.com>,
+        Willem de Bruijn <willemb@google.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Dexuan Cui <decui@microsoft.com>,
+        Jakub Sitnicki <jakub@cloudflare.com>,
+        Marco Elver <elver@google.com>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        linux-rdma@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v2 net-next 1/4] mm: constify page_is_pfmemalloc()
+ argument
+Message-ID: <20210129183051.62874a6d@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <20210127201031.98544-2-alobakin@pm.me>
+References: <20210127201031.98544-1-alobakin@pm.me>
+        <20210127201031.98544-2-alobakin@pm.me>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yevgeny Kliteynik <kliteyn@nvidia.com>
+On Wed, 27 Jan 2021 20:11:01 +0000 Alexander Lobakin wrote:
+> The function only tests for page->index, so its argument should be
+> const.
+> 
+> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+> ---
+>  include/linux/mm.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index ecdf8a8cd6ae..078633d43af9 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1584,7 +1584,7 @@ struct address_space *page_mapping_file(struct page *page);
+>   * ALLOC_NO_WATERMARKS and the low watermark was not
+>   * met implying that the system is under some pressure.
+>   */
+> -static inline bool page_is_pfmemalloc(struct page *page)
+> +static inline bool page_is_pfmemalloc(const struct page *page)
+>  {
+>  	/*
+>  	 * Page index cannot be this large so this must be
 
-In these cases we need to update only the ctrl area of the STE.
-So it is better to write only the control 32B and avoid copying
-the unneeded reduced 48B (control 32B + tag 16B).
-
-Signed-off-by: Erez Shitrit <erezsh@nvidia.com>
-Signed-off-by: Alex Vesker <valex@nvidia.com>
-Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- .../ethernet/mellanox/mlx5/core/steering/dr_rule.c   | 12 ++++++++----
- .../ethernet/mellanox/mlx5/core/steering/dr_ste.c    |  2 +-
- 2 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
-index ddcb7017e121..fcea2a21abe9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_rule.c
-@@ -30,7 +30,7 @@ static int dr_rule_append_to_miss_list(struct mlx5dr_ste_ctx *ste_ctx,
- 				 mlx5dr_ste_get_icm_addr(new_last_ste));
- 	list_add_tail(&new_last_ste->miss_list_node, miss_list);
- 
--	mlx5dr_send_fill_and_append_ste_send_info(last_ste, DR_STE_SIZE_REDUCED,
-+	mlx5dr_send_fill_and_append_ste_send_info(last_ste, DR_STE_SIZE_CTRL,
- 						  0, last_ste->hw_ste,
- 						  ste_info_last, send_list, true);
- 
-@@ -110,10 +110,14 @@ dr_rule_handle_one_ste_in_update_list(struct mlx5dr_ste_send_info *ste_info,
- 				       ste_info->size, ste_info->offset);
- 	if (ret)
- 		goto out;
--	/* Copy data to ste, only reduced size, the last 16B (mask)
-+
-+	/* Copy data to ste, only reduced size or control, the last 16B (mask)
- 	 * is already written to the hw.
- 	 */
--	memcpy(ste_info->ste->hw_ste, ste_info->data, DR_STE_SIZE_REDUCED);
-+	if (ste_info->size == DR_STE_SIZE_CTRL)
-+		memcpy(ste_info->ste->hw_ste, ste_info->data, DR_STE_SIZE_CTRL);
-+	else
-+		memcpy(ste_info->ste->hw_ste, ste_info->data, DR_STE_SIZE_REDUCED);
- 
- out:
- 	kfree(ste_info);
-@@ -456,7 +460,7 @@ dr_rule_rehash_htbl(struct mlx5dr_rule *rule,
- 		ste_to_update = cur_htbl->pointing_ste;
- 	}
- 
--	mlx5dr_send_fill_and_append_ste_send_info(ste_to_update, DR_STE_SIZE_REDUCED,
-+	mlx5dr_send_fill_and_append_ste_send_info(ste_to_update, DR_STE_SIZE_CTRL,
- 						  0, ste_to_update->hw_ste, ste_info,
- 						  update_list, false);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste.c
-index 0f318f409c91..e21b61030e35 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste.c
-@@ -264,7 +264,7 @@ static void dr_ste_remove_middle_ste(struct mlx5dr_ste_ctx *ste_ctx,
- 	miss_addr = ste_ctx->get_miss_addr(ste->hw_ste);
- 	ste_ctx->set_miss_addr(prev_ste->hw_ste, miss_addr);
- 
--	mlx5dr_send_fill_and_append_ste_send_info(prev_ste, DR_STE_SIZE_REDUCED, 0,
-+	mlx5dr_send_fill_and_append_ste_send_info(prev_ste, DR_STE_SIZE_CTRL, 0,
- 						  prev_ste->hw_ste, ste_info,
- 						  send_ste_list, true /* Copy data*/);
- 
--- 
-2.29.2
-
+No objections for this going via net-next?
