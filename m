@@ -2,82 +2,140 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.7 required=3.0 tests=BAYES_00,DATE_IN_PAST_06_12,
-	DKIMWL_WL_HIGH,DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA98BC433E0
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C309FC433DB
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:14:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C5A264DE7
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:04:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 954AC64DE7
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 10:14:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231503AbhA3KEc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 30 Jan 2021 05:04:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47712 "EHLO mail.kernel.org"
+        id S229683AbhA3KNy convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 30 Jan 2021 05:13:54 -0500
+Received: from mga06.intel.com ([134.134.136.31]:11401 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232098AbhA3KDy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 30 Jan 2021 05:03:54 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E6A9464E0E;
-        Sat, 30 Jan 2021 02:39:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611974348;
-        bh=Xa3aXdkH6VcjkQv2mRzeHTVU3FePrWxYumhPtvDn8zo=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=CuA7saw/NDT+jltBVLbBOTtilmjJ0UnnOPSNhIp0vShR5tTLtelQ/Ci1Y9jrcJzjk
-         3FDxe+ykvXfRDbwSZtUYnXtiMKt7H4HVivJJqrTYJLfVxJhJmmk9QLMSNTtOVqUTDb
-         dZyybRVqcd4QDuNd46UIFCQs37Gnk5Wg+w4OCZp/BECSGKKr2Rsk1VOvwYaiqlQywb
-         VzKklQrRbxLRmDiDCPqKf/0JADwvBNgIVZ5Q1Jh2qc26DZyViIudB0FLkI9srNwS0N
-         JVXIyfhG944QWXOaymGasP3yjFfN1BYSqkbDq7WrhqUa8KGo01/23gOQAkgrkSry62
-         RWTV4TxpCVpcg==
-Date:   Fri, 29 Jan 2021 18:39:07 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Alexander Lobakin <alobakin@pm.me>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        David Rientjes <rientjes@google.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
+        id S233039AbhA3BXl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 29 Jan 2021 20:23:41 -0500
+IronPort-SDR: KiyvYPbhou3R+qX4uLsgliy1PpdleHlpeTVIIrZjNYlgbck6L86nExysJlIyf7S8pl+hkhSFjo
+ QwPpuYxqIb7w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9879"; a="242025138"
+X-IronPort-AV: E=Sophos;i="5.79,387,1602572400"; 
+   d="scan'208";a="242025138"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jan 2021 17:19:16 -0800
+IronPort-SDR: WVnYgMGfdXzN12TCASt/52qPxBvtN70sNUFwBC3spdeNgunv7+uQU4dMo9OhVd4gw3nS4TpMen
+ LoG7gxDtVIYw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.79,387,1602572400"; 
+   d="scan'208";a="411803150"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by FMSMGA003.fm.intel.com with ESMTP; 29 Jan 2021 17:19:16 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Fri, 29 Jan 2021 17:19:15 -0800
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2106.002;
+ Fri, 29 Jan 2021 17:19:15 -0800
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "Keller, Jacob E" <jacob.e.keller@intel.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v2 net-next 3/4] net: introduce common
- dev_page_is_reserved()
-Message-ID: <20210129183907.2ae5ca3d@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
-In-Reply-To: <20210127201031.98544-4-alobakin@pm.me>
-References: <20210127201031.98544-1-alobakin@pm.me>
-        <20210127201031.98544-4-alobakin@pm.me>
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "jiri@nvidia.com" <jiri@nvidia.com>,
+        "Samudrala, Sridhar" <sridhar.samudrala@intel.com>,
+        "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: RE: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Thread-Topic: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Thread-Index: AQHW8RlTrNE3qjtLukSnj7NcX24DDao3Ul6AgAGNgQD//8rX0IAA9s8AgAACh4CAAGNSUIABSS+AgAD/0AA=
+Date:   Sat, 30 Jan 2021 01:19:15 +0000
+Message-ID: <4d07c2a9527a4297b04007bdfeaae22e@intel.com>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+ <20210122234827.1353-8-shiraz.saleem@intel.com>
+ <20210124134551.GB5038@unreal> <20210125132834.GK4147@nvidia.com>
+ <2072c76154cd4232b78392c650b2b2bf@intel.com>
+ <5b3f609d-034a-826f-1e50-0a5f8ad8406e@intel.com>
+ <20210126011043.GG4147@nvidia.com>
+ <328b9c06a18e48efbcc4121c5d375cb7@intel.com>
+ <20210127024423.GL4147@nvidia.com>
+In-Reply-To: <20210127024423.GL4147@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+x-originating-ip: [10.1.200.100]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, 27 Jan 2021 20:11:23 +0000 Alexander Lobakin wrote:
-> + * dev_page_is_reserved - check whether a page can be reused for network Rx
-> + * @page: the page to test
-> + *
-> + * A page shouldn't be considered for reusing/recycling if it was allocated
-> + * under memory pressure or at a distant memory node.
-> + *
-> + * Returns true if this page should be returned to page allocator, false
-> + * otherwise.
-> + */
-> +static inline bool dev_page_is_reserved(const struct page *page)
+> Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+> implement private channel OPs
+> 
+> On Wed, Jan 27, 2021 at 12:42:09AM +0000, Saleem, Shiraz wrote:
+> 
+> > > It does, the PCI driver is not supposed to spawn any aux devices for
+> > > RDMA at all if RDMA is disabled.
+> > >
+> > > For an iWarp driver I would consider ENABLE_ROCE to really be a
+> > > general ENABLE_RDMA.
+> >
+> > Well the driver supports iWARP and RoCE for E810 device.
+> > Are you saying that this generic enable_roce devlink param really is
+> > an enable 'rdma' traffic or not param?
+> 
+> I've thought of it that way, that is what it was created for at least.
+> 
+> Overloading it to be a iwarp not roce switch feels wrong
 
-Am I the only one who feels like "reusable" is a better term than
-"reserved".
+OK.
+
+> 
+> > > Are you sure you need to implement this?
+> >
+> > What we are after is some mechanism for user to switch the protocols
+> > iWARP vs RoCE [default the device comes up as an iWARP dev]. The
+> > protocol info is really needed early-on in the RDMA driver.probe(). i.e. when the
+> rdma admin queue is created.
+> 
+> This needs to be a pci devlink at least, some kind of mode switch seems
+> appropriate
+> 
+> > The same goes with the other param resource_limits_selector. It's a
+> > profile selector that a user can chose to different # of max QP, CQs,
+> > MRs etc.
+> 
+> And it must be done at init time? Also seems like pci devlink
+
+Yes.
+
+> 
+> Generally speaking anything that requires the rdma driver to be reloaded should
+> remove/restore the aux device.
+> 
+> Mode switch from roce to/from iwarp should create aux devices of different names
+> which naturally triggers the right kind of sequences in the driver core
+> 
+
+OK we will move devlink out of aux rdma driver to PCI driver.
+
+About separate aux dev names for iWARP, RoCE, that sounds reasonable.
+
