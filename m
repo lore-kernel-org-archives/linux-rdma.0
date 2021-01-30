@@ -5,32 +5,32 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB474C433DB
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDF54C433E0
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:40:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFFD564DE3
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:38:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A31D164DDC
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Jan 2021 09:40:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231764AbhA3JiB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 30 Jan 2021 04:38:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33956 "EHLO mail.kernel.org"
+        id S231816AbhA3JiI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 30 Jan 2021 04:38:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233410AbhA3DKA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S233409AbhA3DKA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 29 Jan 2021 22:10:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 652E964E02;
-        Sat, 30 Jan 2021 02:26:30 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B082164E14;
+        Sat, 30 Jan 2021 02:26:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1611973590;
-        bh=EgB8yvui0N7E/Loj1UbhOvwarWawFL5CqU/pk+M5yKA=;
+        s=k20201202; t=1611973595;
+        bh=nrejU/eD18V1WMdom+AhGx0A4MoJFPtNst8MSkzg8Yk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JW5Z4fhb3CQJ5u2P90+4Gx10cGjTD1f4NDtaadVdgmgkeS+nwFmBamlzplz38Yx1s
-         CqTa6wsvD5gBtQhT1Ub7jMvvrCSu9hjEsAbMubH/7DstBHfH0h3X6EarY3STBvnua+
-         culNCejUTpvq3as72/KLIcrr3DRPz+O6IxNDHUdZ07zRePfqaRa+DXBoNbcs2Dy6m7
-         4Ev2Z5ZdLaHI6b1wkMcId5Qvph2NwYV2pnvK4sFigQ1J69oL8vWONWP9shNvxPAcVv
-         sBHS42VQCA1tysoC/VHTpuK1JbxSP/0jO7G7WToNZ2a+axWv3FufbtQU23mJRYsEGK
-         3LKKJX6qwvuyg==
+        b=XQZsxTKUqT4LK2ezpohSy/uLROEQbKeWdHGqp4hs3L6c/sYm14b0Q4PtzrRaRM638
+         VR3zi4apNCCqVTZI1iVVbx/O0Ja4/X4HoJc0c5slzxN/Yt97+72pmCGEcrWxhdQEot
+         48PZvzwphnhbU31Bx1uVk2oyY4tyXj8LC9zU0L3ZIVtbFPSrElzcJQH+/oLNiE8f2M
+         EeMeeopNx8HWyX8WtiTZliifEZsoTjWpPAp8xoDsVogH/p276A1PcMfNcUZqX2z2ha
+         spHU59L/Af4M+mHVFM2St2EnSO7QKmFU0F9FM/1oMy4dUTsCwBukoN3yscF3W7Owfq
+         hUA6njdJEjYFQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
@@ -38,9 +38,9 @@ Cc:     "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
         Yevgeny Kliteynik <kliteyn@nvidia.com>,
         Alex Vesker <valex@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net-next 05/11] net/mlx5: DR, Add STEv1 setters and getters
-Date:   Fri, 29 Jan 2021 18:26:12 -0800
-Message-Id: <20210130022618.317351-6-saeed@kernel.org>
+Subject: [net-next 11/11] net/mlx5: DR, Allow SW steering for sw_owner_v2 devices
+Date:   Fri, 29 Jan 2021 18:26:18 -0800
+Message-Id: <20210130022618.317351-12-saeed@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210130022618.317351-1-saeed@kernel.org>
 References: <20210130022618.317351-1-saeed@kernel.org>
@@ -52,185 +52,156 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yevgeny Kliteynik <kliteyn@nvidia.com>
 
-Add HW specific setter and getters to STEv1 file.
-Since STEv0 and STEv1 format are different, each version
-should implemented different setters and getters.
+Allow sw_owner_v2 based on sw_format_version.
 
 Signed-off-by: Alex Vesker <valex@nvidia.com>
 Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../mellanox/mlx5/core/steering/dr_ste_v1.c   | 76 +++++++++++++++++++
- .../mlx5/core/steering/mlx5_ifc_dr_ste_v1.h   | 57 ++++++++++++++
- 2 files changed, 133 insertions(+)
+ .../mellanox/mlx5/core/steering/dr_cmd.c        | 17 +++++++++++------
+ .../mellanox/mlx5/core/steering/dr_domain.c     | 17 +++++++++--------
+ .../mellanox/mlx5/core/steering/dr_types.h      |  6 +++++-
+ .../mellanox/mlx5/core/steering/mlx5dr.h        |  5 ++++-
+ 4 files changed, 29 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
-index bf3cb189f3bc..522909f1cab6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
-@@ -55,6 +55,72 @@ enum {
- 	DR_STE_V1_LU_TYPE_DONT_CARE			= MLX5DR_STE_LU_TYPE_DONT_CARE,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
+index ba65ec406cfa..30b0136b5bc7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
+@@ -78,9 +78,9 @@ int mlx5dr_cmd_query_esw_caps(struct mlx5_core_dev *mdev,
+ 	caps->uplink_icm_address_tx =
+ 		MLX5_CAP64_ESW_FLOWTABLE(mdev,
+ 					 sw_steering_uplink_icm_address_tx);
+-	caps->sw_owner =
+-		MLX5_CAP_ESW_FLOWTABLE_FDB(mdev,
+-					   sw_owner);
++	caps->sw_owner_v2 = MLX5_CAP_ESW_FLOWTABLE_FDB(mdev, sw_owner_v2);
++	if (!caps->sw_owner_v2)
++		caps->sw_owner = MLX5_CAP_ESW_FLOWTABLE_FDB(mdev, sw_owner);
+ 
+ 	return 0;
+ }
+@@ -113,10 +113,15 @@ int mlx5dr_cmd_query_device(struct mlx5_core_dev *mdev,
+ 	caps->nic_tx_allow_address =
+ 		MLX5_CAP64_FLOWTABLE(mdev, sw_steering_nic_tx_action_allow_icm_address);
+ 
+-	caps->rx_sw_owner = MLX5_CAP_FLOWTABLE_NIC_RX(mdev, sw_owner);
+-	caps->max_ft_level = MLX5_CAP_FLOWTABLE_NIC_RX(mdev, max_ft_level);
++	caps->rx_sw_owner_v2 = MLX5_CAP_FLOWTABLE_NIC_RX(mdev, sw_owner_v2);
++	caps->tx_sw_owner_v2 = MLX5_CAP_FLOWTABLE_NIC_TX(mdev, sw_owner_v2);
++
++	if (!caps->rx_sw_owner_v2)
++		caps->rx_sw_owner = MLX5_CAP_FLOWTABLE_NIC_RX(mdev, sw_owner);
++	if (!caps->tx_sw_owner_v2)
++		caps->tx_sw_owner = MLX5_CAP_FLOWTABLE_NIC_TX(mdev, sw_owner);
+ 
+-	caps->tx_sw_owner = MLX5_CAP_FLOWTABLE_NIC_TX(mdev, sw_owner);
++	caps->max_ft_level = MLX5_CAP_FLOWTABLE_NIC_RX(mdev, max_ft_level);
+ 
+ 	caps->log_icm_size = MLX5_CAP_DEV_MEM(mdev, log_steering_sw_icm_size);
+ 	caps->hdr_modify_icm_addr =
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_domain.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_domain.c
+index 47ec88964bf3..7091b1be84ef 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_domain.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_domain.c
+@@ -4,6 +4,11 @@
+ #include <linux/mlx5/eswitch.h>
+ #include "dr_types.h"
+ 
++#define DR_DOMAIN_SW_STEERING_SUPPORTED(dmn, dmn_type)	\
++	((dmn)->info.caps.dmn_type##_sw_owner ||	\
++	 ((dmn)->info.caps.dmn_type##_sw_owner_v2 &&	\
++	  (dmn)->info.caps.sw_format_ver <= MLX5_STEERING_FORMAT_CONNECTX_6DX))
++
+ static int dr_domain_init_cache(struct mlx5dr_domain *dmn)
+ {
+ 	/* Per vport cached FW FT for checksum recalculation, this
+@@ -187,6 +192,7 @@ static int dr_domain_query_fdb_caps(struct mlx5_core_dev *mdev,
+ 		return ret;
+ 
+ 	dmn->info.caps.fdb_sw_owner = dmn->info.caps.esw_caps.sw_owner;
++	dmn->info.caps.fdb_sw_owner_v2 = dmn->info.caps.esw_caps.sw_owner_v2;
+ 	dmn->info.caps.esw_rx_drop_address = dmn->info.caps.esw_caps.drop_icm_address_rx;
+ 	dmn->info.caps.esw_tx_drop_address = dmn->info.caps.esw_caps.drop_icm_address_tx;
+ 
+@@ -229,18 +235,13 @@ static int dr_domain_caps_init(struct mlx5_core_dev *mdev,
+ 	if (ret)
+ 		return ret;
+ 
+-	if (dmn->info.caps.sw_format_ver != MLX5_STEERING_FORMAT_CONNECTX_5) {
+-		mlx5dr_err(dmn, "SW steering is not supported on this device\n");
+-		return -EOPNOTSUPP;
+-	}
+-
+ 	ret = dr_domain_query_fdb_caps(mdev, dmn);
+ 	if (ret)
+ 		return ret;
+ 
+ 	switch (dmn->type) {
+ 	case MLX5DR_DOMAIN_TYPE_NIC_RX:
+-		if (!dmn->info.caps.rx_sw_owner)
++		if (!DR_DOMAIN_SW_STEERING_SUPPORTED(dmn, rx))
+ 			return -ENOTSUPP;
+ 
+ 		dmn->info.supp_sw_steering = true;
+@@ -249,7 +250,7 @@ static int dr_domain_caps_init(struct mlx5_core_dev *mdev,
+ 		dmn->info.rx.drop_icm_addr = dmn->info.caps.nic_rx_drop_address;
+ 		break;
+ 	case MLX5DR_DOMAIN_TYPE_NIC_TX:
+-		if (!dmn->info.caps.tx_sw_owner)
++		if (!DR_DOMAIN_SW_STEERING_SUPPORTED(dmn, tx))
+ 			return -ENOTSUPP;
+ 
+ 		dmn->info.supp_sw_steering = true;
+@@ -261,7 +262,7 @@ static int dr_domain_caps_init(struct mlx5_core_dev *mdev,
+ 		if (!dmn->info.caps.eswitch_manager)
+ 			return -ENOTSUPP;
+ 
+-		if (!dmn->info.caps.fdb_sw_owner)
++		if (!DR_DOMAIN_SW_STEERING_SUPPORTED(dmn, fdb))
+ 			return -ENOTSUPP;
+ 
+ 		dmn->info.rx.ste_type = MLX5DR_STE_TYPE_RX;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
+index 3b76142218d1..a8b497cbb844 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
+@@ -666,7 +666,8 @@ struct mlx5dr_esw_caps {
+ 	u64 drop_icm_address_tx;
+ 	u64 uplink_icm_address_rx;
+ 	u64 uplink_icm_address_tx;
+-	bool sw_owner;
++	u8 sw_owner:1;
++	u8 sw_owner_v2:1;
  };
  
-+static void dr_ste_v1_set_miss_addr(u8 *hw_ste_p, u64 miss_addr)
-+{
-+	u64 index = miss_addr >> 6;
-+
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, miss_address_39_32, index >> 26);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, miss_address_31_6, index);
-+}
-+
-+static u64 dr_ste_v1_get_miss_addr(u8 *hw_ste_p)
-+{
-+	u64 index =
-+		(MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_31_6) |
-+		 MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_39_32) << 26);
-+
-+	return index << 6;
-+}
-+
-+static void dr_ste_v1_set_byte_mask(u8 *hw_ste_p, u16 byte_mask)
-+{
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, byte_mask, byte_mask);
-+}
-+
-+static u16 dr_ste_v1_get_byte_mask(u8 *hw_ste_p)
-+{
-+	return MLX5_GET(ste_match_bwc_v1, hw_ste_p, byte_mask);
-+}
-+
-+static void dr_ste_v1_set_lu_type(u8 *hw_ste_p, u16 lu_type)
-+{
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, entry_format, lu_type >> 8);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, match_definer_ctx_idx, lu_type & 0xFF);
-+}
-+
-+static void dr_ste_v1_set_next_lu_type(u8 *hw_ste_p, u16 lu_type)
-+{
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, next_entry_format, lu_type >> 8);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, hash_definer_ctx_idx, lu_type & 0xFF);
-+}
-+
-+static u16 dr_ste_v1_get_next_lu_type(u8 *hw_ste_p)
-+{
-+	u8 mode = MLX5_GET(ste_match_bwc_v1, hw_ste_p, next_entry_format);
-+	u8 index = MLX5_GET(ste_match_bwc_v1, hw_ste_p, hash_definer_ctx_idx);
-+
-+	return (mode << 8 | index);
-+}
-+
-+static void dr_ste_v1_set_hit_addr(u8 *hw_ste_p, u64 icm_addr, u32 ht_size)
-+{
-+	u64 index = (icm_addr >> 5) | ht_size;
-+
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, next_table_base_39_32_size, index >> 27);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, next_table_base_31_5_size, index);
-+}
-+
-+static void dr_ste_v1_init(u8 *hw_ste_p, u16 lu_type,
-+			   u8 entry_type, u16 gvmi)
-+{
-+	dr_ste_v1_set_lu_type(hw_ste_p, lu_type);
-+	dr_ste_v1_set_next_lu_type(hw_ste_p, MLX5DR_STE_LU_TYPE_DONT_CARE);
-+
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, gvmi, gvmi);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, next_table_base_63_48, gvmi);
-+	MLX5_SET(ste_match_bwc_v1, hw_ste_p, miss_address_63_48, gvmi);
-+}
-+
- static void dr_ste_v1_build_eth_l2_src_dst_bit_mask(struct mlx5dr_match_param *value,
- 						    bool inner, u8 *bit_mask)
+ struct mlx5dr_cmd_vport_cap {
+@@ -699,6 +700,9 @@ struct mlx5dr_cmd_caps {
+ 	bool rx_sw_owner;
+ 	bool tx_sw_owner;
+ 	bool fdb_sw_owner;
++	u8 rx_sw_owner_v2:1;
++	u8 tx_sw_owner_v2:1;
++	u8 fdb_sw_owner_v2:1;
+ 	u32 num_vports;
+ 	struct mlx5dr_esw_caps esw_caps;
+ 	struct mlx5dr_cmd_vport_cap *vports_caps;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
+index 4177786b8eaf..612b0ac31db2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
+@@ -124,7 +124,10 @@ int mlx5dr_action_destroy(struct mlx5dr_action *action);
+ static inline bool
+ mlx5dr_is_supported(struct mlx5_core_dev *dev)
  {
-@@ -885,6 +951,7 @@ static void dr_ste_v1_build_src_gvmi_qpn_init(struct mlx5dr_ste_build *sb,
+-	return MLX5_CAP_ESW_FLOWTABLE_FDB(dev, sw_owner);
++	return MLX5_CAP_ESW_FLOWTABLE_FDB(dev, sw_owner) ||
++	       (MLX5_CAP_ESW_FLOWTABLE_FDB(dev, sw_owner_v2) &&
++		(MLX5_CAP_GEN(dev, steering_format_version) <=
++		 MLX5_STEERING_FORMAT_CONNECTX_6DX));
  }
  
- struct mlx5dr_ste_ctx ste_ctx_v1 = {
-+	/* Builders */
- 	.build_eth_l2_src_dst_init	= &dr_ste_v1_build_eth_l2_src_dst_init,
- 	.build_eth_l3_ipv6_src_init	= &dr_ste_v1_build_eth_l3_ipv6_src_init,
- 	.build_eth_l3_ipv6_dst_init	= &dr_ste_v1_build_eth_l3_ipv6_dst_init,
-@@ -905,4 +972,13 @@ struct mlx5dr_ste_ctx ste_ctx_v1 = {
- 	.build_register_0_init		= &dr_ste_v1_build_register_0_init,
- 	.build_register_1_init		= &dr_ste_v1_build_register_1_init,
- 	.build_src_gvmi_qpn_init	= &dr_ste_v1_build_src_gvmi_qpn_init,
-+	/* Getters and Setters */
-+	.ste_init			= &dr_ste_v1_init,
-+	.set_next_lu_type		= &dr_ste_v1_set_next_lu_type,
-+	.get_next_lu_type		= &dr_ste_v1_get_next_lu_type,
-+	.set_miss_addr			= &dr_ste_v1_set_miss_addr,
-+	.get_miss_addr			= &dr_ste_v1_get_miss_addr,
-+	.set_hit_addr			= &dr_ste_v1_set_hit_addr,
-+	.set_byte_mask			= &dr_ste_v1_set_byte_mask,
-+	.get_byte_mask			= &dr_ste_v1_get_byte_mask,
- };
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5_ifc_dr_ste_v1.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5_ifc_dr_ste_v1.h
-index 6db7b8493fd9..678b048e7022 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5_ifc_dr_ste_v1.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5_ifc_dr_ste_v1.h
-@@ -4,6 +4,63 @@
- #ifndef MLX5_IFC_DR_STE_V1_H
- #define MLX5_IFC_DR_STE_V1_H
- 
-+struct mlx5_ifc_ste_match_bwc_v1_bits {
-+	u8         entry_format[0x8];
-+	u8         counter_id[0x18];
-+
-+	u8         miss_address_63_48[0x10];
-+	u8         match_definer_ctx_idx[0x8];
-+	u8         miss_address_39_32[0x8];
-+
-+	u8         miss_address_31_6[0x1a];
-+	u8         reserved_at_5a[0x1];
-+	u8         match_polarity[0x1];
-+	u8         reparse[0x1];
-+	u8         reserved_at_5d[0x3];
-+
-+	u8         next_table_base_63_48[0x10];
-+	u8         hash_definer_ctx_idx[0x8];
-+	u8         next_table_base_39_32_size[0x8];
-+
-+	u8         next_table_base_31_5_size[0x1b];
-+	u8         hash_type[0x2];
-+	u8         hash_after_actions[0x1];
-+	u8         reserved_at_9e[0x2];
-+
-+	u8         byte_mask[0x10];
-+	u8         next_entry_format[0x1];
-+	u8         mask_mode[0x1];
-+	u8         gvmi[0xe];
-+
-+	u8         action[0x40];
-+};
-+
-+struct mlx5_ifc_ste_mask_and_match_v1_bits {
-+	u8         entry_format[0x8];
-+	u8         counter_id[0x18];
-+
-+	u8         miss_address_63_48[0x10];
-+	u8         match_definer_ctx_idx[0x8];
-+	u8         miss_address_39_32[0x8];
-+
-+	u8         miss_address_31_6[0x1a];
-+	u8         reserved_at_5a[0x1];
-+	u8         match_polarity[0x1];
-+	u8         reparse[0x1];
-+	u8         reserved_at_5d[0x3];
-+
-+	u8         next_table_base_63_48[0x10];
-+	u8         hash_definer_ctx_idx[0x8];
-+	u8         next_table_base_39_32_size[0x8];
-+
-+	u8         next_table_base_31_5_size[0x1b];
-+	u8         hash_type[0x2];
-+	u8         hash_after_actions[0x1];
-+	u8         reserved_at_9e[0x2];
-+
-+	u8         action[0x60];
-+};
-+
- struct mlx5_ifc_ste_eth_l2_src_v1_bits {
- 	u8         reserved_at_0[0x1];
- 	u8         sx_sniffer[0x1];
+ /* buddy functions & structure */
 -- 
 2.29.2
 
