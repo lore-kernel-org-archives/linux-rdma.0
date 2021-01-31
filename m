@@ -8,448 +8,287 @@ X-Spam-Status: No, score=-17.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 072B2C433E6
-	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 08:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4250C433E0
+	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 15:33:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C34D564E24
-	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 08:46:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ACDD064E29
+	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 15:33:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229603AbhAaIpm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 31 Jan 2021 03:45:42 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:14910 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229892AbhAaIpb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 31 Jan 2021 03:45:31 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B60166dff0001>; Sun, 31 Jan 2021 00:44:47 -0800
-Received: from [10.2.50.90] (172.20.145.6) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sun, 31 Jan
- 2021 08:44:40 +0000
-Subject: Re: [PATCH rdma-core v7 5/6] tests: Add tests for dma-buf based
- memory regions
+        id S229892AbhAaPc6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 31 Jan 2021 10:32:58 -0500
+Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:26285 "EHLO
+        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231625AbhAaPcU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 31 Jan 2021 10:32:20 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1612107138; x=1643643138;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=361eNcfAb9g9ZSaxI7ZiqDfl2/qOTTT0U45r7JgDzi0=;
+  b=q1Cc4Rt+OFb4THE4qa1Oc71O9rHrNW/YZZZprXBkLKELp6daWCbVk0N/
+   HYNk0FuRtvgzpPR5O5kRaZxi6LFA99iVS7pM5fdlF4oD5DYGPKgpZqR5G
+   hdBhBG/FSjoblRxlBOEXScxN1q5sdqqNpgthQ2GQwqYLfFeVd5dRFwJa5
+   o=;
+X-IronPort-AV: E=Sophos;i="5.79,390,1602547200"; 
+   d="scan'208";a="81288272"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-1d-474bcd9f.us-east-1.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-6002.iad6.amazon.com with ESMTP; 31 Jan 2021 15:31:31 +0000
+Received: from EX13D19EUB003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-1d-474bcd9f.us-east-1.amazon.com (Postfix) with ESMTPS id 8C979A1CC8;
+        Sun, 31 Jan 2021 15:31:27 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.207) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Sun, 31 Jan 2021 15:31:21 +0000
+Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR support
 To:     Jianxin Xiong <jianxin.xiong@intel.com>,
         <linux-rdma@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
 CC:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        "Leon Romanovsky" <leon@kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Christian Koenig <christian.koenig@amd.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
         Edward Srouji <edwards@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
 References: <1611604622-86968-1-git-send-email-jianxin.xiong@intel.com>
- <1611604622-86968-6-git-send-email-jianxin.xiong@intel.com>
-From:   John Hubbard <jhubbard@nvidia.com>
-Message-ID: <b147c3ca-5754-f317-9f3b-5fbd42eaf4c0@nvidia.com>
-Date:   Sun, 31 Jan 2021 00:44:40 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101
- Thunderbird/85.0
+ <1611604622-86968-5-git-send-email-jianxin.xiong@intel.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <137f406b-d3e0-fdeb-18e7-194a2aed927c@amazon.com>
+Date:   Sun, 31 Jan 2021 17:31:16 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.7.0
 MIME-Version: 1.0
-In-Reply-To: <1611604622-86968-6-git-send-email-jianxin.xiong@intel.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+In-Reply-To: <1611604622-86968-5-git-send-email-jianxin.xiong@intel.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [172.20.145.6]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612082687; bh=oj3YCe8M1DH9eZT2qTwLLd29vY3WVVNKOYm3laAu++g=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Language:
-         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-        b=f2uUIX8s2xTAfq05101SnY2FKQSvUvU5pQNEFmZoMH+DHBWPMYYV94k/isQmrYYLT
-         j/zWNjerBTBpi14zyafjHRQLn5MXegMGBT3uSgESEFN+kcU65sZfBa/czdGJnm7X/E
-         pDcqGJ2YkijTx4QO9mbZaxF+y2XDT4ofkQbYovvzALVazO5uegNiVBr6HIMtEgE5Na
-         TFQgOf/k06gVGmXZ7ukbt4Gh+E2sGRS1+SxQBzgWEp3RyU6Q0Zl//cMI8rXMA7rDQ0
-         +h8mHGDO6WiFzwpudrw0wUP3kNtb80p6aRX7QCA0WVFNAtc5SZnPNJUHYNyLdmIH0+
-         yaKNIIvXf6CoA==
+Content-Transfer-Encoding: base64
+X-Originating-IP: [10.43.160.207]
+X-ClientProxiedBy: EX13D50UWA001.ant.amazon.com (10.43.163.46) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 1/25/21 11:57 AM, Jianxin Xiong wrote:
-> Define a set of unit tests similar to regular MR tests and a set of
-> tests for send/recv and rdma traffic using dma-buf MRs. Add a utility
-> function to generate access flags for dma-buf based MRs because the
-> set of supported flags is smaller.
-> 
-> Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-
-Hi Jianxin,
-
-It's awesome to see a GPU to IB test suite here!
-
-> ---
->   tests/args_parser.py |   4 +
->   tests/test_mr.py     | 266 ++++++++++++++++++++++++++++++++++++++++++++++++++-
->   tests/utils.py       |  26 +++++
->   3 files changed, 295 insertions(+), 1 deletion(-)
-> 
-> diff --git a/tests/args_parser.py b/tests/args_parser.py
-> index 446535a..5bc53b0 100644
-> --- a/tests/args_parser.py
-> +++ b/tests/args_parser.py
-> @@ -19,6 +19,10 @@ class ArgsParser(object):
->           parser.add_argument('--port',
->                               help='Use port <port> of RDMA device', type=int,
->                               default=1)
-> +        parser.add_argument('--gpu', nargs='?', type=int, const=0, default=0,
-> +                            help='GPU unit to allocate dmabuf from')
-> +        parser.add_argument('--gtt', action='store_true', default=False,
-> +                            help='Allocate dmabuf from GTT instead of VRAM')
-
-Just to be kind to non-GPU people, how about:
-
-	s/GTT/GTT (Graphics Translation Table)/
-
-
->           parser.add_argument('-v', '--verbose', dest='verbosity',
->                               action='store_const',
->                               const=2, help='Verbose output')
-> diff --git a/tests/test_mr.py b/tests/test_mr.py
-> index b88ad23..03a645f 100644
-> --- a/tests/test_mr.py
-> +++ b/tests/test_mr.py
-> @@ -1,5 +1,6 @@
->   # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
->   # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved. See COPYING file
-> +# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
->   """
->   Test module for pyverbs' mr module.
->   """
-> @@ -9,15 +10,18 @@ import errno
->   
->   from tests.base import PyverbsAPITestCase, RCResources, RDMATestCase
->   from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsError
-> -from pyverbs.mr import MR, MW, DMMR, MWBindInfo, MWBind
-> +from pyverbs.mr import MR, MW, DMMR, DmaBufMR, MWBindInfo, MWBind
->   from pyverbs.qp import QPCap, QPInitAttr, QPAttr, QP
->   from pyverbs.mem_alloc import posix_memalign, free
->   from pyverbs.wr import SendWR
-> +from pyverbs.dmabuf import DmaBuf
->   import pyverbs.device as d
->   from pyverbs.pd import PD
->   import pyverbs.enums as e
->   import tests.utils as u
->   
-> +MAX_IO_LEN = 1048576
-> +
->   
->   class MRRes(RCResources):
->       def __init__(self, dev_name, ib_port, gid_index,
-> @@ -423,3 +427,263 @@ class DMMRTest(PyverbsAPITestCase):
->                           dm_mr = DMMR(pd, dm_mr_len, e.IBV_ACCESS_ZERO_BASED,
->                                        dm=dm, offset=dm_mr_offset)
->                           dm_mr.close()
-> +
-> +
-> +def check_dmabuf_support(unit=0):
-> +    """
-> +    Check if dma-buf allocation is supported by the system.
-> +    Skip the test on failure.
-> +    """
-> +    device_num = 128 + unit
-> +    try:
-> +        DmaBuf(1, unit=unit)
-
-unit?? This is a GPU, never anything else! Let's s/unit/gpu/ throughout, yes?
-
-thanks,
--- 
-John Hubbard
-NVIDIA
-
-> +    except PyverbsRDMAError as ex:
-> +        if ex.error_code == errno.ENOENT:
-> +            raise unittest.SkipTest(f'Device /dev/dri/renderD{device_num} is not present')
-> +        if ex.error_code == errno.EACCES:
-> +            raise unittest.SkipTest(f'Lack of permission to access /dev/dri/renderD{device_num}')
-> +        if ex.error_code == errno.EOPNOTSUPP:
-> +            raise unittest.SkipTest(f'Allocating dmabuf is not supported by /dev/dri/renderD{device_num}')
-> +
-> +
-> +def check_dmabuf_mr_support(pd, unit=0):
-> +    """
-> +    Check if dma-buf MR registration is supported by the driver.
-> +    Skip the test on failure
-> +    """
-> +    try:
-> +        DmaBufMR(pd, 1, 0, unit=unit)
-> +    except PyverbsRDMAError as ex:
-> +        if ex.error_code == errno.EOPNOTSUPP:
-> +            raise unittest.SkipTest('Reg dma-buf MR is not supported by the RDMA driver')
-> +
-> +
-> +class DmaBufMRTest(PyverbsAPITestCase):
-> +    """
-> +    Test various functionalities of the DmaBufMR class.
-> +    """
-> +    def setUp(self):
-> +        super().setUp()
-> +        self.unit = self.config['gpu']
-> +        self.gtt = self.config['gtt']
-> +
-> +    def test_dmabuf_reg_mr(self):
-> +        """
-> +        Test ibv_reg_dmabuf_mr()
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                flags = u.get_dmabuf_access_flags(ctx)
-> +                for f in flags:
-> +                    len = u.get_mr_length()
-> +                    for off in [0, len//2]:
-> +                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-> +                                      gtt=self.gtt) as mr:
-> +                            pass
-> +
-> +    def test_dmabuf_dereg_mr(self):
-> +        """
-> +        Test ibv_dereg_mr() with DmaBufMR
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                flags = u.get_dmabuf_access_flags(ctx)
-> +                for f in flags:
-> +                    len = u.get_mr_length()
-> +                    for off in [0, len//2]:
-> +                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-> +                                      gtt=self.gtt) as mr:
-> +                            mr.close()
-> +
-> +    def test_dmabuf_dereg_mr_twice(self):
-> +        """
-> +        Verify that explicit call to DmaBufMR's close() doesn't fail
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                flags = u.get_dmabuf_access_flags(ctx)
-> +                for f in flags:
-> +                    len = u.get_mr_length()
-> +                    for off in [0, len//2]:
-> +                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-> +                                      gtt=self.gtt) as mr:
-> +                            # Pyverbs supports multiple destruction of objects,
-> +                            # we are not expecting an exception here.
-> +                            mr.close()
-> +                            mr.close()
-> +
-> +    def test_dmabuf_reg_mr_bad_flags(self):
-> +        """
-> +        Verify that illegal flags combination fails as expected
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                for i in range(5):
-> +                    flags = random.sample([e.IBV_ACCESS_REMOTE_WRITE,
-> +                                           e.IBV_ACCESS_REMOTE_ATOMIC],
-> +                                          random.randint(1, 2))
-> +                    mr_flags = 0
-> +                    for i in flags:
-> +                        mr_flags += i.value
-> +                    try:
-> +                        DmaBufMR(pd, u.get_mr_length(), mr_flags,
-> +                                 unit=self.unit, gtt=self.gtt)
-> +                    except PyverbsRDMAError as err:
-> +                        assert 'Failed to register a dma-buf MR' in err.args[0]
-> +                    else:
-> +                        raise PyverbsRDMAError('Registered a dma-buf MR with illegal falgs')
-> +
-> +    def test_dmabuf_write(self):
-> +        """
-> +        Test writing to DmaBufMR's buffer
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                for i in range(10):
-> +                    mr_len = u.get_mr_length()
-> +                    flags = u.get_dmabuf_access_flags(ctx)
-> +                    for f in flags:
-> +                        for mr_off in [0, mr_len//2]:
-> +                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
-> +                                          unit=self.unit, gtt=self.gtt) as mr:
-> +                                write_len = min(random.randint(1, MAX_IO_LEN),
-> +                                                mr_len)
-> +                                mr.write('a' * write_len, write_len)
-> +
-> +    def test_dmabuf_read(self):
-> +        """
-> +        Test reading from DmaBufMR's buffer
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                for i in range(10):
-> +                    mr_len = u.get_mr_length()
-> +                    flags = u.get_dmabuf_access_flags(ctx)
-> +                    for f in flags:
-> +                        for mr_off in [0, mr_len//2]:
-> +                            with DmaBufMR(pd, mr_len, f, offset=mr_off,
-> +                                          unit=self.unit, gtt=self.gtt) as mr:
-> +                                write_len = min(random.randint(1, MAX_IO_LEN),
-> +                                                mr_len)
-> +                                write_str = 'a' * write_len
-> +                                mr.write(write_str, write_len)
-> +                                read_len = random.randint(1, write_len)
-> +                                offset = random.randint(0, write_len-read_len)
-> +                                read_str = mr.read(read_len, offset).decode()
-> +                                assert read_str in write_str
-> +
-> +    def test_dmabuf_lkey(self):
-> +        """
-> +        Test reading lkey property
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                length = u.get_mr_length()
-> +                flags = u.get_dmabuf_access_flags(ctx)
-> +                for f in flags:
-> +                    with DmaBufMR(pd, length, f, unit=self.unit,
-> +                                  gtt=self.gtt) as mr:
-> +                        mr.lkey
-> +
-> +    def test_dmabuf_rkey(self):
-> +        """
-> +        Test reading rkey property
-> +        """
-> +        check_dmabuf_support(self.unit)
-> +        for ctx, attr, attr_ex in self.devices:
-> +            with PD(ctx) as pd:
-> +                check_dmabuf_mr_support(pd, self.unit)
-> +                length = u.get_mr_length()
-> +                flags = u.get_dmabuf_access_flags(ctx)
-> +                for f in flags:
-> +                    with DmaBufMR(pd, length, f, unit=self.unit,
-> +                                  gtt=self.gtt) as mr:
-> +                        mr.rkey
-> +
-> +
-> +class DmaBufRC(RCResources):
-> +    def __init__(self, dev_name, ib_port, gid_index, unit, gtt):
-> +        """
-> +        Initialize an DmaBufRC object.
-> +        :param dev_name: Device name to be used
-> +        :param ib_port: IB port of the device to use
-> +        :param gid_index: Which GID index to use
-> +        :param unit: GPU unit to allocate dmabuf from
-> +        :gtt: Allocate dmabuf from GTT instead og VRAM
-> +        """
-> +        self.unit = unit
-> +        self.gtt = gtt
-> +        super(DmaBufRC, self).__init__(dev_name=dev_name, ib_port=ib_port,
-> +                                       gid_index=gid_index)
-> +
-> +    def create_mr(self):
-> +        check_dmabuf_support(self.unit)
-> +        check_dmabuf_mr_support(self.pd, self.unit)
-> +        access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
-> +        mr = DmaBufMR(self.pd, self.msg_size, access, unit=self.unit,
-> +                      gtt=self.gtt)
-> +        self.mr = mr
-> +
-> +    def create_qp_attr(self):
-> +        qp_attr = QPAttr(port_num=self.ib_port)
-> +        qp_access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
-> +        qp_attr.qp_access_flags = qp_access
-> +        return qp_attr
-> +
-> +
-> +class DmaBufTestCase(RDMATestCase):
-> +    def setUp(self):
-> +        super(DmaBufTestCase, self).setUp()
-> +        self.iters = 100
-> +        self.unit = self.config['gpu']
-> +        self.gtt = self.config['gtt']
-> +
-> +    def create_players(self, resource, **resource_arg):
-> +        """
-> +        Init dma-buf tests resources.
-> +        :param resource: The RDMA resources to use. A class of type
-> +                         BaseResources.
-> +        :param resource_arg: Dict of args that specify the resource specific
-> +                             attributes.
-> +        :return: The (client, server) resources.
-> +        """
-> +        client = resource(**self.dev_info, **resource_arg)
-> +        server = resource(**self.dev_info, **resource_arg)
-> +        client.pre_run(server.psns, server.qps_num)
-> +        server.pre_run(client.psns, client.qps_num)
-> +        return client, server
-> +
-> +    def test_dmabuf_rc_traffic(self):
-> +        """
-> +        Test send/recv using dma-buf MR over RC
-> +        """
-> +        client, server = self.create_players(DmaBufRC, unit=self.unit,
-> +                                             gtt=self.gtt)
-> +        u.traffic(client, server, self.iters, self.gid_index, self.ib_port)
-> +
-> +    def test_dmabuf_rdma_traffic(self):
-> +        """
-> +        Test rdma write using dma-buf MR
-> +        """
-> +        client, server = self.create_players(DmaBufRC, unit=self.unit,
-> +                                             gtt=self.gtt)
-> +        server.rkey = client.mr.rkey
-> +        server.remote_addr = client.mr.offset
-> +        client.rkey = server.mr.rkey
-> +        client.remote_addr = server.mr.offset
-> +        u.rdma_traffic(client, server, self.iters, self.gid_index, self.ib_port,
-> +                       send_op=e.IBV_WR_RDMA_WRITE)
-> diff --git a/tests/utils.py b/tests/utils.py
-> index e2ab669..8546329 100644
-> --- a/tests/utils.py
-> +++ b/tests/utils.py
-> @@ -1,5 +1,6 @@
->   # SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
->   # Copyright (c) 2019 Mellanox Technologies, Inc. All rights reserved.  See COPYING file
-> +# Copyright (c) 2020 Intel Corporation. All rights reserved. See COPYING file
->   """
->   Provide some useful helper function for pyverbs' tests.
->   """
-> @@ -96,6 +97,31 @@ def get_access_flags(ctx):
->       return arr
->   
->   
-> +def get_dmabuf_access_flags(ctx):
-> +    """
-> +    Similar to get_access_flags, except that dma-buf MR only support
-> +    a subset of the flags.
-> +    :param ctx: Device Context to check capabilities
-> +    :return: A random legal value for MR flags
-> +    """
-> +    attr = ctx.query_device()
-> +    vals = [e.IBV_ACCESS_LOCAL_WRITE, e.IBV_ACCESS_REMOTE_WRITE,
-> +            e.IBV_ACCESS_REMOTE_READ, e.IBV_ACCESS_REMOTE_ATOMIC,
-> +            e.IBV_ACCESS_RELAXED_ORDERING]
-> +    if not attr.atomic_caps & e.IBV_ATOMIC_HCA:
-> +        vals.remove(e.IBV_ACCESS_REMOTE_ATOMIC)
-> +    arr = []
-> +    for i in range(1, len(vals)):
-> +        tmp = list(com(vals, i))
-> +        tmp = filter(filter_illegal_access_flags, tmp)
-> +        for t in tmp:  # Iterate legal combinations and bitwise OR them
-> +            val = 0
-> +            for flag in t:
-> +                val += flag.value
-> +            arr.append(val)
-> +    return arr
-> +
-> +
->   def get_dm_attrs(dm_len):
->       """
->       Initializes an AllocDmAttr member with the given length and random
-> 
-
+T24gMjUvMDEvMjAyMSAyMTo1NywgSmlhbnhpbiBYaW9uZyB3cm90ZToNCj4gRGVmaW5lIGEg
+bmV3IHN1Yi1jbGFzcyBvZiAnTVInIHRoYXQgdXNlcyBkbWEtYnVmIG9iamVjdCBmb3IgdGhl
+IG1lbW9yeQ0KPiByZWdpb24uIERlZmluZSBhIG5ldyBjbGFzcyAnRG1hQnVmJyBhcyBhIHdy
+YXBwZXIgZm9yIGRtYS1idWYgYWxsb2NhdGlvbg0KPiBtZWNoYW5pc20gaW1wbGVtZW50ZWQg
+aW4gQy4NCj4gDQo+IFVwZGF0ZSB0aGUgY21ha2UgZnVuY3Rpb24gZm9yIGN5dGhvbiBtb2R1
+bGVzIHRvIGFsbG93IGJ1aWxkaW5nIG1vZHVsZXMNCj4gd2l0aCBtaXhlZCBjeXRob24gYW5k
+IGMgc291cmNlIGZpbGVzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogSmlhbnhpbiBYaW9uZyA8
+amlhbnhpbi54aW9uZ0BpbnRlbC5jb20+DQo+IC0tLQ0KPiAgYnVpbGRsaWIvcHl2ZXJic19m
+dW5jdGlvbnMuY21ha2UgfCAgNzggKysrKysrKy0tLS0NCj4gIHB5dmVyYnMvQ01ha2VMaXN0
+cy50eHQgICAgICAgICAgIHwgIDExICstDQo+ICBweXZlcmJzL2RtYWJ1Zi5weGQgICAgICAg
+ICAgICAgICB8ICAxNSArKysNCj4gIHB5dmVyYnMvZG1hYnVmLnB5eCAgICAgICAgICAgICAg
+IHwgIDczICsrKysrKysrKysNCj4gIHB5dmVyYnMvZG1hYnVmX2FsbG9jLmMgICAgICAgICAg
+IHwgMjc4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAgcHl2
+ZXJicy9kbWFidWZfYWxsb2MuaCAgICAgICAgICAgfCAgMTkgKysrDQo+ICBweXZlcmJzL2xp
+YmlidmVyYnMucHhkICAgICAgICAgICB8ICAgMiArDQo+ICBweXZlcmJzL21yLnB4ZCAgICAg
+ICAgICAgICAgICAgICB8ICAgNiArDQo+ICBweXZlcmJzL21yLnB5eCAgICAgICAgICAgICAg
+ICAgICB8IDEwNSArKysrKysrKysrKysrKy0NCj4gIDkgZmlsZXMgY2hhbmdlZCwgNTU3IGlu
+c2VydGlvbnMoKyksIDMwIGRlbGV0aW9ucygtKQ0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IHB5
+dmVyYnMvZG1hYnVmLnB4ZA0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IHB5dmVyYnMvZG1hYnVm
+LnB5eA0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IHB5dmVyYnMvZG1hYnVmX2FsbG9jLmMNCj4g
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBweXZlcmJzL2RtYWJ1Zl9hbGxvYy5oDQo+IA0KPiBkaWZm
+IC0tZ2l0IGEvYnVpbGRsaWIvcHl2ZXJic19mdW5jdGlvbnMuY21ha2UgYi9idWlsZGxpYi9w
+eXZlcmJzX2Z1bmN0aW9ucy5jbWFrZQ0KPiBpbmRleCA5NTNjZWMyLi4wNzkyNDEwIDEwMDY0
+NA0KPiAtLS0gYS9idWlsZGxpYi9weXZlcmJzX2Z1bmN0aW9ucy5jbWFrZQ0KPiArKysgYi9i
+dWlsZGxpYi9weXZlcmJzX2Z1bmN0aW9ucy5jbWFrZQ0KPiBAQCAtMSwzNSArMSw2MSBAQA0K
+PiAgIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogKEdQTC0yLjAgT1IgTGludXgtT3BlbklC
+KQ0KPiAgIyBDb3B5cmlnaHQgKGMpIDIwMTgsIE1lbGxhbm94IFRlY2hub2xvZ2llcy4gQWxs
+IHJpZ2h0cyByZXNlcnZlZC4gIFNlZSBDT1BZSU5HIGZpbGUNCj4gKyMgQ29weXJpZ2h0IChj
+KSAyMDIwLCBJbnRlbCBDb3Jwb3JhdGlvbi4gQWxsIHJpZ2h0cyByZXNlcnZlZC4gIFNlZSBD
+T1BZSU5HIGZpbGUNCj4gKw0KPiArZnVuY3Rpb24oYnVpbGRfbW9kdWxlX2Zyb21fY2ZpbGVz
+IFBZX01PRFVMRSBNT0RVTEVfTkFNRSBBTExfQ0ZJTEVTIExJTktFUl9GTEFHUykNCj4gKyAg
+c3RyaW5nKFJFR0VYIFJFUExBQ0UgIlxcLnNvJCIgIiIgU09OQU1FICIke01PRFVMRV9OQU1F
+fSR7Q01BS0VfUFlUSE9OX1NPX1NVRkZJWH0iKQ0KPiArICBhZGRfbGlicmFyeSgke1NPTkFN
+RX0gU0hBUkVEICR7QUxMX0NGSUxFU30pDQo+ICsgIHNldF90YXJnZXRfcHJvcGVydGllcygk
+e1NPTkFNRX0gUFJPUEVSVElFUw0KPiArICAgIENPTVBJTEVfRkxBR1MgIiR7Q01BS0VfQ19G
+TEFHU30gLWZQSUMgLWZuby1zdHJpY3QtYWxpYXNpbmcgLVduby11bnVzZWQtZnVuY3Rpb24g
+LVduby1yZWR1bmRhbnQtZGVjbHMgLVduby1zaGFkb3cgLVduby1jYXN0LWZ1bmN0aW9uLXR5
+cGUgLVduby1pbXBsaWNpdC1mYWxsdGhyb3VnaCAtV25vLXVua25vd24td2FybmluZyAtV25v
+LXVua25vd24td2FybmluZy1vcHRpb24gLVduby1kZXByZWNhdGVkLWRlY2xhcmF0aW9ucyAk
+e05PX1ZBUl9UUkFDS0lOR19GTEFHU30iDQo+ICsgICAgTElCUkFSWV9PVVRQVVRfRElSRUNU
+T1JZICIke0JVSUxEX1BZVEhPTn0vJHtQWV9NT0RVTEV9Ig0KPiArICAgIFBSRUZJWCAiIikN
+Cj4gKyAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKCR7U09OQU1FfSBMSU5LX1BSSVZBVEUgJHtQ
+WVRIT05fTElCUkFSSUVTfSBpYnZlcmJzIHJkbWFjbSAke0xJTktFUl9GTEFHU30pDQo+ICsg
+IGluc3RhbGwoVEFSR0VUUyAke1NPTkFNRX0NCj4gKyAgICBERVNUSU5BVElPTiAke0NNQUtF
+X0lOU1RBTExfUFlUSE9OX0FSQ0hfTElCfS8ke1BZX01PRFVMRX0pDQo+ICtlbmRmdW5jdGlv
+bigpDQo+ICANCj4gIGZ1bmN0aW9uKHJkbWFfY3l0aG9uX21vZHVsZSBQWV9NT0RVTEUgTElO
+S0VSX0ZMQUdTKQ0KPiAtICBmb3JlYWNoKFBZWF9GSUxFICR7QVJHTn0pDQo+IC0gICAgZ2V0
+X2ZpbGVuYW1lX2NvbXBvbmVudChGSUxFTkFNRSAke1BZWF9GSUxFfSBOQU1FX1dFKQ0KPiAt
+ICAgIGdldF9maWxlbmFtZV9jb21wb25lbnQoRElSICR7UFlYX0ZJTEV9IERJUkVDVE9SWSkN
+Cj4gLQlpZiAoRElSKQ0KPiAtCQlzZXQoUFlYICIke0NNQUtFX0NVUlJFTlRfU09VUkNFX0RJ
+Un0vJHtESVJ9LyR7RklMRU5BTUV9LnB5eCIpDQo+IC0JZWxzZSgpDQo+IC0JICAgIHNldChQ
+WVggIiR7Q01BS0VfQ1VSUkVOVF9TT1VSQ0VfRElSfS8ke0ZJTEVOQU1FfS5weXgiKQ0KPiAt
+CWVuZGlmKCkNCj4gLSAgICBzZXQoQ0ZJTEUgIiR7Q01BS0VfQ1VSUkVOVF9CSU5BUllfRElS
+fS8ke0ZJTEVOQU1FfS5jIikNCj4gLSAgICBpbmNsdWRlX2RpcmVjdG9yaWVzKCR7UFlUSE9O
+X0lOQ0xVREVfRElSU30pDQo+IC0gICAgYWRkX2N1c3RvbV9jb21tYW5kKA0KPiAtICAgICAg
+T1VUUFVUICIke0NGSUxFfSINCj4gLSAgICAgIE1BSU5fREVQRU5ERU5DWSAiJHtQWVh9Ig0K
+PiAtICAgICAgQ09NTUFORCAke0NZVEhPTl9FWEVDVVRBQkxFfSAiJHtQWVh9IiAtbyAiJHtD
+RklMRX0iDQo+IC0gICAgICAiLUkke1BZVEhPTl9JTkNMVURFX0RJUlN9Ig0KPiAtICAgICAg
+Q09NTUVOVCAiQ3l0aG9uaXppbmcgJHtQWVh9Ig0KPiArICBzZXQoQUxMX0NGSUxFUyAiIikN
+Cj4gKyAgc2V0KE1PRFVMRV9OQU1FICIiKQ0KPiArICBmb3JlYWNoKFNSQ19GSUxFICR7QVJH
+Tn0pDQo+ICsgICAgZ2V0X2ZpbGVuYW1lX2NvbXBvbmVudChGSUxFTkFNRSAke1NSQ19GSUxF
+fSBOQU1FX1dFKQ0KPiArICAgIGdldF9maWxlbmFtZV9jb21wb25lbnQoRElSICR7U1JDX0ZJ
+TEV9IERJUkVDVE9SWSkNCj4gKyAgICBnZXRfZmlsZW5hbWVfY29tcG9uZW50KEVYVCAke1NS
+Q19GSUxFfSBFWFQpDQo+ICsgICAgaWYgKERJUikNCj4gKyAgICAgIHNldChTUkNfUEFUSCAi
+JHtDTUFLRV9DVVJSRU5UX1NPVVJDRV9ESVJ9LyR7RElSfSIpDQo+ICsgICAgZWxzZSgpDQo+
+ICsgICAgICBzZXQoU1JDX1BBVEggIiR7Q01BS0VfQ1VSUkVOVF9TT1VSQ0VfRElSfSIpDQo+
+ICsgICAgZW5kaWYoKQ0KPiArICAgIGlmICgke0VYVH0gU1RSRVFVQUwgIi5weXgiKQ0KPiAr
+ICAgICAgIyBlYWNoIC5weXggZmlsZSBzdGFydHMgYSBuZXcgbW9kdWxlLCBmaW5pc2ggdGhl
+IHByZXZpb3VzIG1vZHVsZSBmaXJzdA0KPiArICAgICAgaWYgKEFMTF9DRklMRVMgQU5EIE1P
+RFVMRV9OQU1FKQ0KPiArICAgICAgICBidWlsZF9tb2R1bGVfZnJvbV9jZmlsZXMoJHtQWV9N
+T0RVTEV9ICR7TU9EVUxFX05BTUV9ICIke0FMTF9DRklMRVN9IiAiJHtMSU5LRVJfRkxBR1N9
+IikNCj4gKyAgICAgIGVuZGlmKCkNCj4gKyAgICAgIHNldChQWVggIiR7U1JDX1BBVEh9LyR7
+RklMRU5BTUV9LnB5eCIpDQo+ICsgICAgICBzZXQoQ0ZJTEUgIiR7Q01BS0VfQ1VSUkVOVF9C
+SU5BUllfRElSfS8ke0ZJTEVOQU1FfS5jIikNCj4gKyAgICAgIGluY2x1ZGVfZGlyZWN0b3Jp
+ZXMoJHtQWVRIT05fSU5DTFVERV9ESVJTfSkNCj4gKyAgICAgIGFkZF9jdXN0b21fY29tbWFu
+ZCgNCj4gKyAgICAgICAgT1VUUFVUICIke0NGSUxFfSINCj4gKyAgICAgICAgTUFJTl9ERVBF
+TkRFTkNZICIke1BZWH0iDQo+ICsgICAgICAgIENPTU1BTkQgJHtDWVRIT05fRVhFQ1VUQUJM
+RX0gIiR7UFlYfSIgLW8gIiR7Q0ZJTEV9Ig0KPiArICAgICAgICAiLUkke1BZVEhPTl9JTkNM
+VURFX0RJUlN9Ig0KPiArICAgICAgICBDT01NRU5UICJDeXRob25pemluZyAke1BZWH0iDQo+
+ICAgICAgICApDQo+IC0NCj4gLSAgICBzdHJpbmcoUkVHRVggUkVQTEFDRSAiXFwuc28kIiAi
+IiBTT05BTUUgIiR7RklMRU5BTUV9JHtDTUFLRV9QWVRIT05fU09fU1VGRklYfSIpDQo+IC0g
+ICAgYWRkX2xpYnJhcnkoJHtTT05BTUV9IFNIQVJFRCAke0NGSUxFfSkNCj4gLSAgICBzZXRf
+dGFyZ2V0X3Byb3BlcnRpZXMoJHtTT05BTUV9IFBST1BFUlRJRVMNCj4gLSAgICAgIENPTVBJ
+TEVfRkxBR1MgIiR7Q01BS0VfQ19GTEFHU30gLWZQSUMgLWZuby1zdHJpY3QtYWxpYXNpbmcg
+LVduby11bnVzZWQtZnVuY3Rpb24gLVduby1yZWR1bmRhbnQtZGVjbHMgLVduby1zaGFkb3cg
+LVduby1jYXN0LWZ1bmN0aW9uLXR5cGUgLVduby1pbXBsaWNpdC1mYWxsdGhyb3VnaCAtV25v
+LXVua25vd24td2FybmluZyAtV25vLXVua25vd24td2FybmluZy1vcHRpb24gLVduby1kZXBy
+ZWNhdGVkLWRlY2xhcmF0aW9ucyAke05PX1ZBUl9UUkFDS0lOR19GTEFHU30iDQo+IC0gICAg
+ICBMSUJSQVJZX09VVFBVVF9ESVJFQ1RPUlkgIiR7QlVJTERfUFlUSE9OfS8ke1BZX01PRFVM
+RX0iDQo+IC0gICAgICBQUkVGSVggIiIpDQo+IC0gICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVz
+KCR7U09OQU1FfSBMSU5LX1BSSVZBVEUgJHtQWVRIT05fTElCUkFSSUVTfSBpYnZlcmJzIHJk
+bWFjbSAke0xJTktFUl9GTEFHU30pDQo+IC0gICAgaW5zdGFsbChUQVJHRVRTICR7U09OQU1F
+fQ0KPiAtICAgICAgREVTVElOQVRJT04gJHtDTUFLRV9JTlNUQUxMX1BZVEhPTl9BUkNIX0xJ
+Qn0vJHtQWV9NT0RVTEV9KQ0KPiArICAgICAgc2V0KE1PRFVMRV9OQU1FICR7RklMRU5BTUV9
+KQ0KPiArICAgICAgc2V0KEFMTF9DRklMRVMgIiR7Q0ZJTEV9IikNCj4gKyAgICBlbHNlaWYo
+JHtFWFR9IFNUUkVRVUFMICIuYyIpDQo+ICsgICAgICAjIC5jIGZpbGVzIGJlbG9uZyB0byB0
+aGUgc2FtZSBtb2R1bGUgYXMgdGhlIG1vc3QgcmVjZW50IC5weXggZmlsZSwNCj4gKyAgICAg
+ICMgaWdub3JlZCBpZiBhcHBlYXJpbmcgYmVmb3JlIGFsbCAucHl4IGZpbGVzDQo+ICsgICAg
+ICBzZXQoQ0ZJTEUgIiR7U1JDX1BBVEh9LyR7RklMRU5BTUV9LmMiKQ0KPiArICAgICAgc2V0
+KEFMTF9DRklMRVMgIiR7QUxMX0NGSUxFU307JHtDRklMRX0iKQ0KPiArICAgIGVsc2UoKQ0K
+PiArICAgICAgY29udGludWUoKQ0KPiArICAgIGVuZGlmKCkNCj4gICAgZW5kZm9yZWFjaCgp
+DQo+ICsgICMgZmluaXNoIHRoZSBsYXN0IG1vZHVsZQ0KPiArICBpZiAoQUxMX0NGSUxFUyBB
+TkQgTU9EVUxFX05BTUUpDQo+ICsgICAgYnVpbGRfbW9kdWxlX2Zyb21fY2ZpbGVzKCR7UFlf
+TU9EVUxFfSAke01PRFVMRV9OQU1FfSAiJHtBTExfQ0ZJTEVTfSIgIiR7TElOS0VSX0ZMQUdT
+fSIpDQo+ICsgIGVuZGlmKCkNCj4gIGVuZGZ1bmN0aW9uKCkNCj4gIA0KPiAgZnVuY3Rpb24o
+cmRtYV9weXRob25fbW9kdWxlIFBZX01PRFVMRSkNCj4gZGlmZiAtLWdpdCBhL3B5dmVyYnMv
+Q01ha2VMaXN0cy50eHQgYi9weXZlcmJzL0NNYWtlTGlzdHMudHh0DQo+IGluZGV4IDk1NDJj
+NGIuLjZmZDc2MjUgMTAwNjQ0DQo+IC0tLSBhL3B5dmVyYnMvQ01ha2VMaXN0cy50eHQNCj4g
+KysrIGIvcHl2ZXJicy9DTWFrZUxpc3RzLnR4dA0KPiBAQCAtMSw1ICsxLDEwIEBADQo+ICAj
+IFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiAoR1BMLTIuMCBPUiBMaW51eC1PcGVuSUIpDQo+
+ICAjIENvcHlyaWdodCAoYykgMjAxOSwgTWVsbGFub3ggVGVjaG5vbG9naWVzLiBBbGwgcmln
+aHRzIHJlc2VydmVkLiBTZWUgQ09QWUlORyBmaWxlDQo+ICsjIENvcHlyaWdodCAoYykgMjAy
+MCwgSW50ZWwgQ29ycG9yYXRpb24uIEFsbCByaWdodHMgcmVzZXJ2ZWQuIFNlZSBDT1BZSU5H
+IGZpbGUNCj4gKw0KPiArcHVibGlzaF9pbnRlcm5hbF9oZWFkZXJzKCIiDQo+ICsgIGRtYWJ1
+Zl9hbGxvYy5oDQo+ICspDQo+ICANCj4gIHJkbWFfY3l0aG9uX21vZHVsZShweXZlcmJzICIi
+DQo+ICAgIGFkZHIucHl4DQo+IEBAIC04LDE1ICsxMywxNyBAQCByZG1hX2N5dGhvbl9tb2R1
+bGUocHl2ZXJicyAiIg0KPiAgICBjbWlkLnB5eA0KPiAgICBjcS5weXgNCj4gICAgZGV2aWNl
+LnB5eA0KPiArICBkbWFidWYucHl4DQo+ICsgIGRtYWJ1Zl9hbGxvYy5jDQo+ICAgIGVudW1z
+LnB5eA0KPiAgICBtZW1fYWxsb2MucHl4DQo+ICAgIG1yLnB5eA0KPiAgICBwZC5weXgNCj4g
+ICAgcXAucHl4DQo+ICsgIHNycS5weXgNCj4gICAgd3IucHl4DQo+ICAgIHhyY2QucHl4DQo+
+IC0gIHNycS5weXgNCj4gLSAgKQ0KPiArKQ0KPiAgDQo+ICByZG1hX3B5dGhvbl9tb2R1bGUo
+cHl2ZXJicw0KPiAgICBfX2luaXRfXy5weQ0KPiBkaWZmIC0tZ2l0IGEvcHl2ZXJicy9kbWFi
+dWYucHhkIGIvcHl2ZXJicy9kbWFidWYucHhkDQo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0DQo+
+IGluZGV4IDAwMDAwMDAuLmEwNjNhY2INCj4gLS0tIC9kZXYvbnVsbA0KPiArKysgYi9weXZl
+cmJzL2RtYWJ1Zi5weGQNCj4gQEAgLTAsMCArMSwxNSBAQA0KPiArIyBTUERYLUxpY2Vuc2Ut
+SWRlbnRpZmllcjogKEdQTC0yLjAgT1IgTGludXgtT3BlbklCKQ0KPiArIyBDb3B5cmlnaHQg
+KGMpIDIwMjAsIEludGVsIENvcnBvcmF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLiBTZWUg
+Q09QWUlORyBmaWxlDQo+ICsNCj4gKyNjeXRob246IGxhbmd1YWdlX2xldmVsPTMNCj4gKw0K
+PiArY2RlZiBjbGFzcyBEbWFCdWY6DQo+ICsgICAgY2RlZiBpbnQgZHJtX2ZkDQo+ICsgICAg
+Y2RlZiBpbnQgaGFuZGxlDQo+ICsgICAgY2RlZiBpbnQgZmQNCj4gKyAgICBjZGVmIHVuc2ln
+bmVkIGxvbmcgc2l6ZQ0KPiArICAgIGNkZWYgdW5zaWduZWQgbG9uZyBtYXBfb2Zmc2V0DQo+
+ICsgICAgY2RlZiB2b2lkICpkbWFidWYNCj4gKyAgICBjZGVmIG9iamVjdCBkbWFidWZfbXJz
+DQo+ICsgICAgY2RlZiBhZGRfcmVmKHNlbGYsIG9iaikNCj4gKyAgICBjcGRlZiBjbG9zZShz
+ZWxmKQ0KPiBkaWZmIC0tZ2l0IGEvcHl2ZXJicy9kbWFidWYucHl4IGIvcHl2ZXJicy9kbWFi
+dWYucHl4DQo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0DQo+IGluZGV4IDAwMDAwMDAuLmI5NDA2
+YmQNCj4gLS0tIC9kZXYvbnVsbA0KPiArKysgYi9weXZlcmJzL2RtYWJ1Zi5weXgNCj4gQEAg
+LTAsMCArMSw3MyBAQA0KPiArIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogKEdQTC0yLjAg
+T1IgTGludXgtT3BlbklCKQ0KPiArIyBDb3B5cmlnaHQgKGMpIDIwMjAsIEludGVsIENvcnBv
+cmF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVkLiBTZWUgQ09QWUlORyBmaWxlDQo+ICsNCj4g
+KyNjeXRob246IGxhbmd1YWdlX2xldmVsPTMNCj4gKw0KPiAraW1wb3J0IHdlYWtyZWYNCj4g
+Kw0KPiArZnJvbSBweXZlcmJzLmJhc2UgY2ltcG9ydCBjbG9zZV93ZWFrcmVmcw0KPiArZnJv
+bSBweXZlcmJzLmJhc2UgaW1wb3J0IFB5dmVyYnNSRE1BRXJybm8NCj4gK2Zyb20gcHl2ZXJi
+cy5tciBjaW1wb3J0IERtYUJ1Zk1SDQo+ICsNCj4gK2NkZWYgZXh0ZXJuIGZyb20gImRtYWJ1
+Zl9hbGxvYy5oIjoNCj4gKyAgICBjZGVmIHN0cnVjdCBkbWFidWY6DQo+ICsgICAgICAgIHBh
+c3MNCj4gKyAgICBkbWFidWYgKmRtYWJ1Zl9hbGxvYyh1bnNpZ25lZCBsb25nIHNpemUsIGlu
+dCB1bml0LCBpbnQgZ3R0KQ0KPiArICAgIHZvaWQgZG1hYnVmX2ZyZWUoZG1hYnVmICpkbWFi
+dWYpDQo+ICsgICAgaW50IGRtYWJ1Zl9nZXRfZHJtX2ZkKGRtYWJ1ZiAqZG1hYnVmKQ0KPiAr
+ICAgIGludCBkbWFidWZfZ2V0X2ZkKGRtYWJ1ZiAqZG1hYnVmKQ0KPiArICAgIHVuc2lnbmVk
+IGxvbmcgZG1hYnVmX2dldF9vZmZzZXQoZG1hYnVmICpkbWFidWYpDQo+ICsNCj4gKw0KPiAr
+Y2RlZiBjbGFzcyBEbWFCdWY6DQo+ICsgICAgZGVmIF9faW5pdF9fKHNlbGYsIHNpemUsIHVu
+aXQ9MCwgZ3R0PTApOg0KPiArICAgICAgICAiIiINCj4gKyAgICAgICAgQWxsb2NhdGUgRG1h
+QnVmIG9iamVjdCBmcm9tIGEgR1BVIGRldmljZS4gVGhpcyBpcyBkb25lIHRocm91Z2ggdGhl
+DQo+ICsgICAgICAgIERSSSBkZXZpY2UgaW50ZXJmYWNlLiBVc3VhbGx5IHRoaXMgcmVxdWly
+ZXMgdGhlIGVmZmVjdGl2ZSB1c2VyIGlkDQo+ICsgICAgICAgIGJlaW5nIGEgbWVtYmVyIG9m
+IHRoZSAncmVuZGVyJyBncm91cC4NCj4gKyAgICAgICAgOnBhcmFtIHNpemU6IFRoZSBzaXpl
+IChpbiBudW1iZXIgb2YgYnl0ZXMpIG9mIHRoZSBidWZmZXIuDQo+ICsgICAgICAgIDpwYXJh
+bSB1bml0OiBUaGUgdW5pdCBudW1iZXIgb2YgdGhlIEdQVSB0byBhbGxvY2F0ZSB0aGUgYnVm
+ZmVyIGZyb20uDQo+ICsgICAgICAgIDpwYXJhbSBndHQ6IEFsbG9jYXRlIGZyb20gR1RUIGlu
+c3RlYWQgb2YgVlJBTS4NCj4gKyAgICAgICAgOnJldHVybjogVGhlIG5ld2x5IGNyZWF0ZWQg
+RG1hQnVmIG9iamVjdCBvbiBzdWNjZXNzLg0KPiArICAgICAgICAiIiINCj4gKyAgICAgICAg
+c2VsZi5kbWFidWZfbXJzID0gd2Vha3JlZi5XZWFrU2V0KCkNCj4gKyAgICAgICAgc2VsZi5k
+bWFidWYgPSBkbWFidWZfYWxsb2Moc2l6ZSwgdW5pdCwgZ3R0KQ0KPiArICAgICAgICBpZiBz
+ZWxmLmRtYWJ1ZiA9PSBOVUxMOg0KPiArICAgICAgICAgICAgcmFpc2UgUHl2ZXJic1JETUFF
+cnJubyhmJ0ZhaWxlZCB0byBhbGxvY2F0ZSBkbWFidWYgb2Ygc2l6ZSB7c2l6ZX0gb24gdW5p
+dCB7dW5pdH0nKQ0KPiArICAgICAgICBzZWxmLmRybV9mZCA9IGRtYWJ1Zl9nZXRfZHJtX2Zk
+KDxkbWFidWYgKj5zZWxmLmRtYWJ1ZikNCj4gKyAgICAgICAgc2VsZi5mZCA9IGRtYWJ1Zl9n
+ZXRfZmQoPGRtYWJ1ZiAqPnNlbGYuZG1hYnVmKQ0KPiArICAgICAgICBzZWxmLm1hcF9vZmZz
+ZXQgPSBkbWFidWZfZ2V0X29mZnNldCg8ZG1hYnVmICo+c2VsZi5kbWFidWYpDQo+ICsNCj4g
+KyAgICBkZWYgX19kZWFsbG9jX18oc2VsZik6DQo+ICsgICAgICAgIHNlbGYuY2xvc2UoKQ0K
+PiArDQo+ICsgICAgY3BkZWYgY2xvc2Uoc2VsZik6DQo+ICsgICAgICAgIGlmIHNlbGYuZG1h
+YnVmID09IE5VTEw6DQo+ICsgICAgICAgICAgICByZXR1cm4gTm9uZQ0KPiArICAgICAgICBj
+bG9zZV93ZWFrcmVmcyhbc2VsZi5kbWFidWZfbXJzXSkNCj4gKyAgICAgICAgZG1hYnVmX2Zy
+ZWUoPGRtYWJ1ZiAqPnNlbGYuZG1hYnVmKQ0KPiArICAgICAgICBzZWxmLmRtYWJ1ZiA9IE5V
+TEwNCj4gKw0KPiArICAgIGNkZWYgYWRkX3JlZihzZWxmLCBvYmopOg0KPiArICAgICAgICBp
+ZiBpc2luc3RhbmNlKG9iaiwgRG1hQnVmTVIpOg0KPiArICAgICAgICAgICAgc2VsZi5kbWFi
+dWZfbXJzLmFkZChvYmopDQo+ICsNCj4gKyAgICBAcHJvcGVydHkNCj4gKyAgICBkZWYgZHJt
+X2ZkKHNlbGYpOg0KPiArICAgICAgICByZXR1cm4gc2VsZi5kcm1fZmQNCj4gKw0KPiArICAg
+IEBwcm9wZXJ0eQ0KPiArICAgIGRlZiBoYW5kbGUoc2VsZik6DQo+ICsgICAgICAgIHJldHVy
+biBzZWxmLmhhbmRsZQ0KPiArDQo+ICsgICAgQHByb3BlcnR5DQo+ICsgICAgZGVmIGZkKHNl
+bGYpOg0KPiArICAgICAgICByZXR1cm4gc2VsZi5mZA0KPiArDQo+ICsgICAgQHByb3BlcnR5
+DQo+ICsgICAgZGVmIHNpemUoc2VsZik6DQo+ICsgICAgICAgIHJldHVybiBzZWxmLnNpemUN
+Cj4gKw0KPiArICAgIEBwcm9wZXJ0eQ0KPiArICAgIGRlZiBtYXBfb2Zmc2V0KHNlbGYpOg0K
+PiArICAgICAgICByZXR1cm4gc2VsZi5tYXBfb2Zmc2V0DQo+IGRpZmYgLS1naXQgYS9weXZl
+cmJzL2RtYWJ1Zl9hbGxvYy5jIGIvcHl2ZXJicy9kbWFidWZfYWxsb2MuYw0KPiBuZXcgZmls
+ZSBtb2RlIDEwMDY0NA0KPiBpbmRleCAwMDAwMDAwLi4wNWVhZTc1DQo+IC0tLSAvZGV2L251
+bGwNCj4gKysrIGIvcHl2ZXJicy9kbWFidWZfYWxsb2MuYw0KPiBAQCAtMCwwICsxLDI3OCBA
+QA0KPiArLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAgT1IgTGludXgtT3Bl
+bklCDQo+ICsvKg0KPiArICogQ29weXJpZ2h0IDIwMjAgSW50ZWwgQ29ycG9yYXRpb24uIEFs
+bCByaWdodHMgcmVzZXJ2ZWQuIFNlZSBDT1BZSU5HIGZpbGUNCj4gKyAqLw0KPiArDQo+ICsj
+aW5jbHVkZSA8c3RkaW8uaD4NCj4gKyNpbmNsdWRlIDxzdGRsaWIuaD4NCj4gKyNpbmNsdWRl
+IDxzdGRpbnQuaD4NCj4gKyNpbmNsdWRlIDx1bmlzdGQuaD4NCj4gKyNpbmNsdWRlIDxzdHJp
+bmcuaD4NCj4gKyNpbmNsdWRlIDxlcnJuby5oPg0KPiArI2luY2x1ZGUgPGRybS9kcm0uaD4N
+Cj4gKyNpbmNsdWRlIDxkcm0vaTkxNV9kcm0uaD4NCj4gKyNpbmNsdWRlIDxkcm0vYW1kZ3B1
+X2RybS5oPg0KPiArI2luY2x1ZGUgPGRybS9yYWRlb25fZHJtLmg+DQoNCkkgYXNzdW1lIHRo
+ZXNlIHNob3VsZCBjb21lIGZyb20gdGhlIGtlcm5lbCBoZWFkZXJzIHBhY2thZ2UsIHJpZ2h0
+Pw0KV2UncmUgZ2V0dGluZyBuZXcgY29tcGlsYXRpb24gZXJyb3JzIG9uIFNMRVMgMTUgZm9y
+IHNvbWUgcmVhc29uLCBhbHRob3VnaCB0aGUNCnBhY2thZ2UgaXMgaW5zdGFsbGVkLg0KDQpG
+QUlMRUQ6IHB5dmVyYnMvQ01ha2VGaWxlcy9kbWFidWYuY3B5dGhvbi0zNm0teDg2XzY0LWxp
+bnV4LWdudS5kaXIvZG1hYnVmX2FsbG9jLmMubyANCi91c3IvYmluL2NjIC1EZG1hYnVmX2Nw
+eXRob25fMzZtX3g4Nl82NF9saW51eF9nbnVfRVhQT1JUUyAtSWluY2x1ZGUgLUkvdXNyL2lu
+Y2x1ZGUvbGlibmwzIC1JL3Vzci9pbmNsdWRlL3B5dGhvbjMuNm0gLVdhbGwgLVdleHRyYSAt
+V25vLXNpZ24tY29tcGFyZSAtV25vLXVudXNlZC1wYXJhbWV0ZXIgLVdtaXNzaW5nLXByb3Rv
+dHlwZXMgLVdtaXNzaW5nLWRlY2xhcmF0aW9ucyAtV3dyaXRlLXN0cmluZ3MgLVdmb3JtYXQ9
+MiAtV2Zvcm1hdC1ub25saXRlcmFsIC1XZGF0ZS10aW1lIC1XbmVzdGVkLWV4dGVybnMgLVdz
+aGFkb3cgLVdzdHJpY3QtcHJvdG90eXBlcyAtV29sZC1zdHlsZS1kZWZpbml0aW9uIC1XcmVk
+dW5kYW50LWRlY2xzIC1PMiAtZyAgLWZQSUMgICAgLVdhbGwgLVdleHRyYSAtV25vLXNpZ24t
+Y29tcGFyZSAtV25vLXVudXNlZC1wYXJhbWV0ZXIgLVdtaXNzaW5nLXByb3RvdHlwZXMgLVdt
+aXNzaW5nLWRlY2xhcmF0aW9ucyAtV3dyaXRlLXN0cmluZ3MgLVdmb3JtYXQ9MiAtV2Zvcm1h
+dC1ub25saXRlcmFsIC1XZGF0ZS10aW1lIC1XbmVzdGVkLWV4dGVybnMgLVdzaGFkb3cgLVdz
+dHJpY3QtcHJvdG90eXBlcyAtV29sZC1zdHlsZS1kZWZpbml0aW9uIC1XcmVkdW5kYW50LWRl
+Y2xzIC1mUElDIC1mbm8tc3RyaWN0LWFsaWFzaW5nIC1Xbm8tdW51c2VkLWZ1bmN0aW9uIC1X
+bm8tcmVkdW5kYW50LWRlY2xzIC1Xbm8tc2hhZG93IC1Xbm8tY2FzdC1mdW5jdGlvbi10eXBl
+IC1Xbm8taW1wbGljaXQtZmFsbHRocm91Z2ggLVduby11bmtub3duLXdhcm5pbmcgLVduby11
+bmtub3duLXdhcm5pbmctb3B0aW9uIC1Xbm8tZGVwcmVjYXRlZC1kZWNsYXJhdGlvbnMgIC1m
+bm8tdmFyLXRyYWNraW5nLWFzc2lnbm1lbnRzIC1zdGQ9Z251MTEgLU1EIC1NVCBweXZlcmJz
+L0NNYWtlRmlsZXMvZG1hYnVmLmNweXRob24tMzZtLXg4Nl82NC1saW51eC1nbnUuZGlyL2Rt
+YWJ1Zl9hbGxvYy5jLm8gLU1GIHB5dmVyYnMvQ01ha2VGaWxlcy9kbWFidWYuY3B5dGhvbi0z
+Nm0teDg2XzY0LWxpbnV4LWdudS5kaXIvZG1hYnVmX2FsbG9jLmMuby5kIC1vIHB5dmVyYnMv
+Q01ha2VGaWxlcy9kbWFidWYuY3B5dGhvbi0zNm0teDg2XzY0LWxpbnV4LWdudS5kaXIvZG1h
+YnVmX2FsbG9jLmMubyAgIC1jIC4uL3B5dmVyYnMvZG1hYnVmX2FsbG9jLmMNCiAuLi9weXZl
+cmJzL2RtYWJ1Zl9hbGxvYy5jOjEyOjEwOiBmYXRhbCBlcnJvcjogZHJtL2RybS5oOiBObyBz
+dWNoIGZpbGUgb3IgZGlyZWN0b3J5DQogICNpbmNsdWRlIDxkcm0vZHJtLmg+DQogICAgICAg
+ICAgIF5+fn5+fn5+fn5+DQogY29tcGlsYXRpb24gdGVybWluYXRlZC4NCg==
