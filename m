@@ -2,92 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33425C433E0
-	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 19:47:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B43D1C433E6
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Feb 2021 06:34:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDA0A64E25
-	for <linux-rdma@archiver.kernel.org>; Sun, 31 Jan 2021 19:47:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 734CD64E30
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Feb 2021 06:34:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229831AbhAaTrg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 31 Jan 2021 14:47:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41496 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbhAaTms (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 31 Jan 2021 14:42:48 -0500
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C5D3C061797
-        for <linux-rdma@vger.kernel.org>; Sun, 31 Jan 2021 11:41:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:From:Subject:Sender
-        :Reply-To:Content-ID:Content-Description;
-        bh=hdYHmA5C5Zp3H9TWb7SrRpj4eKyfWbzS7KrTIYuKz08=; b=PL+j/1/Lulul7xckj2qoAysZIx
-        oOPWdHhE6f/G0/fg0IA+16PUcjsUoahtBe3rkWVLNEjE2b4tFXtTgksMSVBR9+q+rtZmGAVIHE+bg
-        aFdu+2GVIwH15FZz+6wGv+HJNAAxGK5rq8NaKFmm4LPmGe9yQRr5G09XfzMS3oQ8xmNrqqd1+rE/Z
-        3k9VhkHsQ/C3eFkr6WecxwlzERNgC0S2FM1nl4M5L2dcNcWgQ3jSMCHY/YfUUQDClKtzvs6UulXMv
-        BI77QPL+4ftS282+BwDDodiu3WQKdqkjsyc5Yg3W451knSTzF1bv1mVwXptiDp/0WvahH6dDgVHBV
-        42bXqsIA==;
-Received: from [2601:1c0:6280:3f0::9abc]
-        by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-        id 1l6IbE-00029B-9e; Sun, 31 Jan 2021 19:41:32 +0000
-Subject: Re: infiniband Kconfig question
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>, Arnd Bergmann <arnd@arndb.de>
-References: <443b76a6-564d-4329-601c-1dec3c3ce428@infradead.org>
-Message-ID: <6cae3fc8-0349-8259-b4ca-af2635928a09@infradead.org>
-Date:   Sun, 31 Jan 2021 11:41:26 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+        id S231987AbhBAGd4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 1 Feb 2021 01:33:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59230 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232120AbhBAGK1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 1 Feb 2021 01:10:27 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EBF6764E06;
+        Mon,  1 Feb 2021 06:09:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612159766;
+        bh=UBwxXkczigCj0i40nmBHADQZEPwvhb5D9gS621AOJuE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=q7KGuLOKW/tqERGqDdAsWebkkpBhdhtWmsCos1s6732i3mXaHt3ZjvdWbAVqIOidp
+         96EOQThz4u0kURNAEiFjnll6t7OxoqdeISxBWTvocTmPJHOR7P6jnOJcLHs8DoDbAu
+         JtaXZ+NsL53Yx9qiOz77OYIq4GQTLg6FvKvUGFe09IuclCqMuYe2bFKdS+iT1m7rLI
+         Itg35zRUa1rFJoMqYspr2FItdnJOtLnHNr+mJKFjqfDbts8EkJ6TREUQl8iDr95ePI
+         NmpdHMxTZP54wDwkW5rZSP8oDKGk3SFMRa71cUcIJPXtiSvvg2NNziPp9+bXA0neoY
+         +WQ4w7HHGS9Vw==
+Date:   Mon, 1 Feb 2021 08:09:22 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>
+Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+ implement private channel OPs
+Message-ID: <20210201060922.GB4593@unreal>
+References: <20210122234827.1353-8-shiraz.saleem@intel.com>
+ <20210125184248.GS4147@nvidia.com>
+ <99895f7c10a2473c84a105f46c7ef498@intel.com>
+ <20210126005928.GF4147@nvidia.com>
+ <031c2675aff248bd9c78fada059b5c02@intel.com>
+ <20210127121847.GK1053290@unreal>
+ <ea62658f01664a6ea9438631c9ddcb6e@intel.com>
+ <20210127231641.GS4147@nvidia.com>
+ <20210128054133.GA1877006@unreal>
+ <d58f341898834170af1bfb6719e17956@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <443b76a6-564d-4329-601c-1dec3c3ce428@infradead.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d58f341898834170af1bfb6719e17956@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 1/31/21 9:19 AM, Randy Dunlap wrote:
-> Hi,
-> 
-> I happened to notice this Kconfig fragment in drivers/inifiniband/Kconfig:
-> 
-> [from:
-> commit 6fa8f1afd3373c456e556815ebc8cb2330d6c3fe
-> Author: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-> Date:   Wed Jan 9 11:15:15 2019 +0200
-> ]
-> 
-> 
-> if INFINIBAND_USER_ACCESS || !INFINIBAND_USER_ACCESS
-> source "drivers/infiniband/hw/mthca/Kconfig"
-> source "drivers/infiniband/hw/qib/Kconfig"
-> source "drivers/infiniband/hw/cxgb4/Kconfig"
-> ...
-> source "drivers/infiniband/hw/qedr/Kconfig"
-> source "drivers/infiniband/sw/rdmavt/Kconfig"
-> source "drivers/infiniband/sw/rxe/Kconfig"
-> source "drivers/infiniband/sw/siw/Kconfig"
-> endif
-> 
-> 
-> and I was hoping that you could explain to me what the "if" line
-> means or does?
-> 
-> From all of my testing, that "if" is always true
-> (when INFINIBAND is enabled).
+On Sat, Jan 30, 2021 at 01:19:36AM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [PATCH 07/22] RDMA/irdma: Register an auxiliary driver and
+> > implement private channel OPs
+> >
+> > On Wed, Jan 27, 2021 at 07:16:41PM -0400, Jason Gunthorpe wrote:
+> > > On Wed, Jan 27, 2021 at 10:17:56PM +0000, Saleem, Shiraz wrote:
+> > >
+> > > > Even with another core PCI driver, there still needs to be private
+> > > > communication channel between the aux rdma driver and this PCI
+> > > > driver to pass things like QoS updates.
+> > >
+> > > Data pushed from the core driver to its aux drivers should either be
+> > > done through new callbacks in a struct device_driver or by having a
+> > > notifier chain scheme from the core driver.
+> >
+> > Right, and internal to driver/core device_lock will protect from parallel
+> > probe/remove and PCI flows.
+> >
+>
+> OK. We will hold the device_lock while issuing the .ops callbacks from core driver.
+> This should solve our synchronization issue.
+>
+> There have been a few discussions in this thread. And I would like to be clear on what
+> to do.
+>
+> So we will,
+>
+> 1. Remove .open/.close, .peer_register/.peer_unregister
+> 2. Protect ops callbacks issued from core driver to the aux driver with device_lock
+> 3. Move the custom iidc_peer_op callbacks to an irdma driver struct that encapsulates the auxiliary driver struct. For core driver to use.
+> 4. Remove ice FSM around open, close etc...
+> 5. RDMA aux driver probe will allocate ib_device and register it at the end of probe.
+>
+> Does this sound acceptable?
 
+I think that it will be good start, it just hard to say in advance
+without seeing the end result.
 
-Arnd explained this to me (or at least showed me
-what it does).
-
-thanks.
--- 
-~Randy
-
+Thanks
