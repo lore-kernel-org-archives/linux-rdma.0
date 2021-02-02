@@ -2,184 +2,98 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,PDS_BAD_THREAD_QP_64,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E11BDC433E6
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 19:03:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FFF0C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 19:14:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3D8664F5F
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 19:03:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28C2364E46
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 19:14:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237803AbhBBTDA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Feb 2021 14:03:00 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:6432 "EHLO
-        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239093AbhBBTAz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Feb 2021 14:00:55 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6019a13f0001>; Tue, 02 Feb 2021 11:00:15 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 2 Feb
- 2021 19:00:12 +0000
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.174)
- by HQMAIL107.nvidia.com (172.20.187.13) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Tue, 2 Feb 2021 19:00:12 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Dze1yPjCriDKsGixk5/BRtaEvbJlf2DlcM7LxqlHWXwz+9ekjkWrnwUx8MyGOZByaNc6/dilCCJ4w4SSfz8SH0Dpagw4f/0yO1CWZPHIDnOCUA0on5+q+CTwqMBTW0lASZIUd1iJ3tkeIIXki91bonI2AMbZ22g8w1qbAY/rrdwDkS3jw+xUkAftWJMJQiV7B3UUG9cW45GMi2fgGwmaic2SaCxOpfC33zVRxaa1Jjob9LQDjCqLyIsLfyDgMgXrky6ATZZHIVr5UEvrKD+s1jWGWVJZNOXmZztFW3+SRkzQz9jmy/8Jo9+salPy3cXw9d9vg2e7lrWq4VycQdY7mw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rcBH9f61ZMvzc8AqjO5yVawn6TZuMgmSLv1yOcA5O/s=;
- b=UP2xAFeKMZsn9iGzt/OkyILxCMsonkOqFSRb+JqndDuPnUVCGQdJUx7FVTx4r9noayIav+JymZz3zdlSiY562kdObwco2GaxK2EwUn++BnKYBOF3N5sXI3f2R6y1oJLiXWC2ZpJyvMeODWhgY73M2t996x1NC+ofWFYfe171gjxa723Hw/9nPbyuAAacGYqiEQ76hOeXdshKW0FTs4AXy569cw82USLA7AJDHeKBefLcPOxJZM6d4LI7qI+UfA2yJer6keXf5e3nfSD/YwydUzWdmyP79LnNVwgTBbUqWEv5bLryfHs2UBx/jqQpPqi+8vfVZyLRjxO4a/w9DEmlYA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from BY5PR12MB4322.namprd12.prod.outlook.com (2603:10b6:a03:20a::20)
- by BYAPR12MB3416.namprd12.prod.outlook.com (2603:10b6:a03:ac::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.24; Tue, 2 Feb
- 2021 19:00:11 +0000
-Received: from BY5PR12MB4322.namprd12.prod.outlook.com
- ([fe80::f9f4:8fdd:8e2a:67a4]) by BY5PR12MB4322.namprd12.prod.outlook.com
- ([fe80::f9f4:8fdd:8e2a:67a4%3]) with mapi id 15.20.3805.026; Tue, 2 Feb 2021
- 19:00:11 +0000
-From:   Parav Pandit <parav@nvidia.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     Leon Romanovsky <leon@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [PATCH rdma-next 05/10] RDMA/core: Introduce and use API to read
- port immutable data
-Thread-Topic: [PATCH rdma-next 05/10] RDMA/core: Introduce and use API to read
- port immutable data
-Thread-Index: AQHW9L01UOc+cxuk00aRHMnJqKNw26pFHWkAgAAFgICAABIVAIAACn4A
-Date:   Tue, 2 Feb 2021 19:00:11 +0000
-Message-ID: <BY5PR12MB4322E3F452BE145703B61F9BDCB59@BY5PR12MB4322.namprd12.prod.outlook.com>
-References: <20210127150010.1876121-1-leon@kernel.org>
- <20210127150010.1876121-6-leon@kernel.org>
- <20210202165000.GA621786@nvidia.com>
- <BY5PR12MB432200DF13C2C7E2F62E947CDCB59@BY5PR12MB4322.namprd12.prod.outlook.com>
- <20210202181424.GA639633@nvidia.com>
-In-Reply-To: <20210202181424.GA639633@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: nvidia.com; dkim=none (message not signed)
- header.d=none;nvidia.com; dmarc=none action=none header.from=nvidia.com;
-x-originating-ip: [122.167.131.74]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 3fb7c0a9-ad39-4e08-0851-08d8c7acc43b
-x-ms-traffictypediagnostic: BYAPR12MB3416:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <BYAPR12MB34166C038B5542046072DCA4DCB59@BYAPR12MB3416.namprd12.prod.outlook.com>
-x-header: ProcessedBy-CMR-outbound
-x-ms-oob-tlc-oobclassifiers: OLM:7219;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: /K1DQNnquH7nm4UBXWzQytIkXYCY47BM2achXh08qdlIR72zPD7WBaNBuwtXBiAFTXGcMiHOE8D4iwHzOSXlOBcSdNVaa+GqBwAxVJRSjVp+uZrJWPNMIOcfjyaznj8WmlurIdzBkYSTV9gFyxr7Pc6/SZttR8GVjd+4VVJtqc0ssSh8A++O3NK7mSnUfa6f3wlthQLQTrQ6EvTf+5Slf9eUqRIJHKoI5RCiDIM7lLzeQREdtgY7xycA+9XELxTblYmq1UKiVa2kEWOulNJtdnKFZkXnSuiSHF6fjjzF2L+lUbpmIgWSusyZJYQGia3ofNjrPkMFf7dsPYuau6Q4Kysihg/8UzxV099PiSRLtHrXSduTf4PMZ01h7ym8m35gbvmVUr3R2+SiaDj2hXScMnd75k5BVQ2qFeXTynMxc5cJED+nOiQR1avuXEmVffuUCEwlaD878DL5dGwExXUqzk9pwggYwTVJA1LlYcZA97mUXGe30Ewutwu0CSOGVoOU62oXbo5F5q4AzvzarbrGcw==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB4322.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(366004)(346002)(39860400002)(396003)(376002)(4326008)(478600001)(2906002)(71200400001)(26005)(6506007)(186003)(6636002)(86362001)(6862004)(55016002)(5660300002)(33656002)(316002)(52536014)(83380400001)(76116006)(54906003)(66446008)(66556008)(66946007)(66476007)(8676002)(7696005)(8936002)(9686003)(64756008);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata: =?us-ascii?Q?x2WLKhX0MYl4vvovfq+vtRMJBppKf6lW2AVg0j8dEC2evB5GiwJdH2PmfZs/?=
- =?us-ascii?Q?dNmST1VYHIka18+dwCKoDSxIEdweVIUFjIRFIGzYH/qN6Yq050r88TbBgWrf?=
- =?us-ascii?Q?JSGalff30NKzdD17Qe/Ie7eDmcAaT2Eze+Ry7PWUWDLK8HQYjBZeU8vzhjqi?=
- =?us-ascii?Q?SzrLTSuqqqay01as0NEqWusHJf8M34FjHt/aOiS8PkLaf/2OHNEQ4TOnxM9b?=
- =?us-ascii?Q?wxgBAlT3qUqX8ZaiXM6dwODyItjrbxRetPHxbOrhDAuvzxLK2JRjw/v/AMJq?=
- =?us-ascii?Q?BizlMaDxIWsA1p7pmBtcQbrFXIU5zkoASIdvNYUrFbUdT0I1G/Hd1fOC/uQH?=
- =?us-ascii?Q?bgAs89aDMa3w57e7SelqR0WigPRAkpdeBy01BpC/zvxaLo7C0t3WMOTeYDQ0?=
- =?us-ascii?Q?qBHSyGufEPf7MizEFpBfV1NOXEhYX4p/a4++hLMe9OC6pTC8E+UCaNK19EuN?=
- =?us-ascii?Q?WH4Yyw9xG7PAEajVj1zBCFEa8c6DES0BgTHIJHS6c4uWiVERnjVeZUnX0r9k?=
- =?us-ascii?Q?SYn+JDvtWaHcCJGPph2OcPK3IoPb1gngCKr2D3ESedkosqGmnPT/gszm/2+h?=
- =?us-ascii?Q?JyIQBrlcT5E9A3BBHkF/PcW2F9sOb3htpa+XAVP1brzJ7LKQHNNyVS+XFMPp?=
- =?us-ascii?Q?U9knj42ZfZvWrXrGAIE9ymRTGForsNDy0qJ5wUujn8g067CCKT/m6llnMrVo?=
- =?us-ascii?Q?QRKQCuDC7NnP/rsom2ncY/P9rkwQS7suLdLO3TcLemoIg6p+WOqsJrWvEL3w?=
- =?us-ascii?Q?KM7sprC+dQKWhFV8sWj5kVvirfg0V3XKZpil26/kN8Xd7M9yg9kt6lNJoSHa?=
- =?us-ascii?Q?LhZXIuCdRp2zhlYxhNWS/AUtnAxPqsiqIGRcftR4jaY2KctnaPXzSZ0digZ4?=
- =?us-ascii?Q?YX9fbsnuiMwqQVOSYt0GQ+qRn77rtzKqMnHV+CETW8N9rrLhY0YB9Gy/ma8r?=
- =?us-ascii?Q?EYC4qhi/L0NkTCapk+KUF0g88QqVsJagz0NpDnmPNEf6bh1bhCIB9NTuq2wU?=
- =?us-ascii?Q?4LG73EYJv1EKPonXeIRjIqHbTQlDdjRP2QLvR7NCjzfE6o+R5ZZ+LxL7z1z2?=
- =?us-ascii?Q?7vrMKQ6F?=
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S231862AbhBBTOb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Feb 2021 14:14:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60364 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238444AbhBBTMV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Feb 2021 14:12:21 -0500
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEFE5C0617A9;
+        Tue,  2 Feb 2021 11:11:40 -0800 (PST)
+Received: by mail-yb1-xb2a.google.com with SMTP id j84so8312997ybg.1;
+        Tue, 02 Feb 2021 11:11:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KGOLlL3VmlklLSLtTOQCOorpz7skAhQrAaYiiIt3mXc=;
+        b=AGbpY123SzwXAhZmh+7h1fPD9QYPo7FRBr6njLYsJWiQgV451qY7UJ1T+1Tu2786T7
+         NaaVBJk+z6RTBQPCBWtf421r9c8EpbU4ncC8gEkc0DG99Lp9QHWSXn9SQP+ykdgwxyKA
+         uNPcsdPCi4OB6XwBNkArPFKsuakbVTlxGTP39JneEx+NCMWzIrd+SJjiJsGxkx9k4Drq
+         ocaCvqiuDvxSn4jQA05d+H5WECheGlWQ7Mzmdx7uPupegRhyFXxvtbsaJB+I3aDe37XN
+         ZVfX7wVW5TW40a86PavftNzt7jRrYC+oaLdOnJ8DuAhP/FdXyGxaG4NoAssk6hZt+JMl
+         TQPA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KGOLlL3VmlklLSLtTOQCOorpz7skAhQrAaYiiIt3mXc=;
+        b=Gc8KE4ir7Ou8x/oEF0g3klN/MqDy1QCAbCu2m0CXBIwR96kI/fXnnI9dOwD1zueVgn
+         Mq/FWlalu5dv52invA9tXIN3fthbawUcCO39Kkb8Y5cMxbsTXkQsDn70XgvIDO4fOI9c
+         T8cvdZx9bPFlLDK6kh3fpNvz2WzAM21N8BKDGWUYJ+h9hiAK9iUsA67aIabqi8rJHxgl
+         YJWoeBkMXpBaPjfyXFo0dDxPLSldXjFKZS6ZvudpiP3DhdfB25xZ5qlCYdp6hBqH+CrC
+         yU8PdLV4h/pz1suvIMNTKNtecSGJVjFOudpNYioXk2E7mrAcq93iUqpvC7+4ke5F+LwM
+         USCw==
+X-Gm-Message-State: AOAM531x/QfJ6zDY8R1AfWOavf9Fgi3Yji2zpcqy2uzex/JK1xRaoOgx
+        SXKX1jF93lQ9QIT2cco5aJiK8N7tHl/7gLiqSsY=
+X-Google-Smtp-Source: ABdhPJzmLPH+wJJ5EfcKW2fQztuoli3JW9JCYfkRC/VJJ/OCuD+DRu3DZMN+6ee45h1Zip0cbPbWZqebCuoIRDm/wRc=
+X-Received: by 2002:a25:c5c1:: with SMTP id v184mr13084878ybe.56.1612293099895;
+ Tue, 02 Feb 2021 11:11:39 -0800 (PST)
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB4322.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3fb7c0a9-ad39-4e08-0851-08d8c7acc43b
-X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Feb 2021 19:00:11.2753
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: qgq1j0Iz4Uuz2MlX+BwxiG4isXdR/mSqo/vXSzzkKyRL1gYbPivZD6TAR57TaK5qZH1qNwidx+hPPZlzT0rP4g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3416
-X-OriginatorOrg: Nvidia.com
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612292415; bh=rcBH9f61ZMvzc8AqjO5yVawn6TZuMgmSLv1yOcA5O/s=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
-         CC:Subject:Thread-Topic:Thread-Index:Date:Message-ID:References:
-         In-Reply-To:Accept-Language:Content-Language:X-MS-Has-Attach:
-         X-MS-TNEF-Correlator:authentication-results:x-originating-ip:
-         x-ms-publictraffictype:x-ms-office365-filtering-correlation-id:
-         x-ms-traffictypediagnostic:x-ms-exchange-transport-forked:
-         x-microsoft-antispam-prvs:x-header:x-ms-oob-tlc-oobclassifiers:
-         x-ms-exchange-senderadcheck:x-microsoft-antispam:
-         x-microsoft-antispam-message-info:x-forefront-antispam-report:
-         x-ms-exchange-antispam-messagedata:Content-Type:
-         Content-Transfer-Encoding:MIME-Version:
-         X-MS-Exchange-CrossTenant-AuthAs:
-         X-MS-Exchange-CrossTenant-AuthSource:
-         X-MS-Exchange-CrossTenant-Network-Message-Id:
-         X-MS-Exchange-CrossTenant-originalarrivaltime:
-         X-MS-Exchange-CrossTenant-fromentityheader:
-         X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
-         X-MS-Exchange-CrossTenant-userprincipalname:
-         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-        b=T4+BuKMlHVN/A2CcsVnYCRcxGyh5oJ7pE4xlvy0/LOQ8WIThpeNmx9Voe7PKEa8Zq
-         gttQYCxV8DypzP+h0nOuuXiMn1FbuakDUDscf1DW/QOS6PxaCrp3KnWIq75efa+jgq
-         TxDwBoj/u/wvcAJilwHU/XtRFI4CIjH+jWbmCOn2VEoa3kjVS3ywJGdfZ2T5rTED12
-         odwflCaaWxYV2kAvUF4cVuHUB8nPrP2JpgEIVsZsVfCt1/G0ov2gQk4ZySL8pXwp1W
-         MZvPXEA0bTI1K+84mGiYS/WQtAlZHkWRzrn4OBgsnXKS7+0OM6XDobDCIojukDQJ3g
-         4X0Mi86N6qBCQ==
+References: <20210202080614.37903-1-yishaih@nvidia.com> <20210202080614.37903-3-yishaih@nvidia.com>
+In-Reply-To: <20210202080614.37903-3-yishaih@nvidia.com>
+From:   Or Gerlitz <gerlitz.or@gmail.com>
+Date:   Tue, 2 Feb 2021 21:11:28 +0200
+Message-ID: <CAJ3xEMid_wMdJ_bArXvzO1BCFJNU4s5_+555ywD3iW1DvdYztA@mail.gmail.com>
+Subject: Re: [PATCH net-next RESEND 2/2] net/mlx5: E-Switch, Implement devlink
+ port function cmds to control roce
+To:     Yishai Hadas <yishaih@nvidia.com>
+Cc:     Linux Netdev List <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Parav Pandit <parav@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Tue, Feb 2, 2021 at 10:08 AM Yishai Hadas <yishaih@nvidia.com> wrote:
+> Implement devlink port function commands to enable / disable roce.
+> This is used to control the roce device capabilities.
 
+[..]
 
-> From: Jason Gunthorpe <jgg@nvidia.com>
-> Sent: Tuesday, February 2, 2021 11:44 PM
->=20
-> On Tue, Feb 02, 2021 at 06:05:48PM +0000, Parav Pandit wrote:
-> >
-> >
-> > > From: Jason Gunthorpe <jgg@nvidia.com>
-> > > Sent: Tuesday, February 2, 2021 10:20 PM
-> > >
-> > > On Wed, Jan 27, 2021 at 05:00:05PM +0200, Leon Romanovsky wrote:
-> > > > + * ib_port_immutable_read() - Read rdma port's immutable data
-> > > > + * @dev - IB device
-> > > > + * @port - port number whose immutable data to read. It starts
-> > > > + with
-> > > index 1 and
-> > > > + *         valid upto including rdma_end_port().
-> > > > + */
-> > > > +const struct ib_port_immutable*
-> > > > +ib_port_immutable_read(struct ib_device *dev, unsigned int port) {
-> > > > +	WARN_ON(!rdma_is_port_valid(dev, port));
-> > > > +	return &dev->port_data[port].immutable; }
-> > > > +EXPORT_SYMBOL(ib_port_immutable_read);
-> > >
-> > > Why add this function and only call it in one place?
-> > >
-> > A helper API from core helps
-> > (a) to cut down mlx5 ib per port data structures and code around it
-> > (b) it also avoids the need to maintain such driver internal data for
-> > large port count (which is not done today)
-> >
-> I mean why not just access the pointer directly, is isn't in a private he=
-ader or
-> anything
-Oh I see. Yes its accessible directly. An API just looked better to indicat=
-e that its RO for drivers by doing const*.
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+> @@ -122,8 +122,9 @@ struct mlx5_vport_info {
+>         int                     link_state;
+>         u32                     min_rate;
+>         u32                     max_rate;
+> -       bool                    spoofchk;
+> -       bool                    trusted;
+> +       u8                      spoofchk: 1;
+> +       u8                      trusted: 1;
+> +       u8                      roce_enabled: 1;
+>  };
+
+This struct has attributes which have e-switch vport affiliation where
+roce enable/disable
+is a property of the vhca function-over-the-e-wire -- it's that we do
+something specific
+in the e-switching to enforce  - sounds like a problematic location to
+land the bit..
