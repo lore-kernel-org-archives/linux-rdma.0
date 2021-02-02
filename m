@@ -2,33 +2,33 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3804EC43381
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:32:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1935AC433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:34:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1134264F70
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:32:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D952E64DBD
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:34:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232455AbhBBNcX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Feb 2021 08:32:23 -0500
-Received: from mail1.protonmail.ch ([185.70.40.18]:50744 "EHLO
-        mail1.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232359AbhBBNbc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Feb 2021 08:31:32 -0500
-Date:   Tue, 02 Feb 2021 13:30:43 +0000
+        id S232532AbhBBNeA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Feb 2021 08:34:00 -0500
+Received: from mail2.protonmail.ch ([185.70.40.22]:15510 "EHLO
+        mail2.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232446AbhBBNcJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Feb 2021 08:32:09 -0500
+Date:   Tue, 02 Feb 2021 13:31:21 +0000
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=pm.me; s=protonmail;
-        t=1612272649; bh=ZfF+yk2N+NpRKErjKX/1hJfnJ9+R0QZ7qi8wGDkxhLc=;
-        h=Date:To:From:Cc:Reply-To:Subject:From;
-        b=JC6ZE9YeQdNvI/FWAl8VlGARKHDd6WNRQLAfnfL4TVLDkLkoYE9K8UqDc4M7jBs9N
-         g4khZmUyNszCOHZYqaHjaU1RqnX9uCCZF0Y3556PymK+l2H37MIhyhkEFs7WCZtAvf
-         /Hl5Sa4CK7Wbq+vm2zPcTsYQ/N14xJc0SU2u3qE0h50tEDFvF3J9/2nvuOz0JBKGz6
-         xZAC2RaD1jhAkA2NyOJen4GjnhAl8X5d59limqowBlkzBLf50L8+Mf1dC1+8tMB+uu
-         4uMest71b8Svz4XnAVl5nW2/qzGmvnntUkLJptBBRNzv+DKBcOK9Yi+qsDxeW8DiCK
-         l/UcY02ewA5Bg==
+        t=1612272687; bh=k4GmHXZWhLsxhmf6TA7kT97uyu8L/XM/o770SPV6Jso=;
+        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
+        b=Q1dpUXr9oBypKbuAjeH7WV3Gae5fmMAmUR7KAban/Vqhjxcn+5cyBNUn5HdwYZAlT
+         6xTrUz972h23w7+1pwYxCanhFCiNiCgcbjY+olsESYbqVTPRclm0E2iwZ7hfQhd11k
+         5kRbSrx8BEr/lf7ftBdRPmv8QHCFM/Luv8l8ND/MNQoDiKD71gyDiuZGvxdfZqsD/9
+         3o/TXmsbnepA7Y1Yp1PBLWqGoIYCAYyoXZ0cCnZi2o+RCU54apDplLl0nKT4fXv658
+         icxCgo90aUJ0s/MLjZi7eRbLlJ0QA+xecdx9saAOXSL1lv//lk8tUoyAWdthDbfCax
+         wW13ECXVgRZyA==
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 From:   Alexander Lobakin <alobakin@pm.me>
@@ -55,8 +55,10 @@ Cc:     John Hubbard <jhubbard@nvidia.com>,
         linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
         linux-rdma@vger.kernel.org, linux-mm@kvack.org
 Reply-To: Alexander Lobakin <alobakin@pm.me>
-Subject: [PATCH RESEND v3 net-next 0/5] net: consolidate page_is_pfmemalloc() usage
-Message-ID: <20210202133030.5760-1-alobakin@pm.me>
+Subject: [PATCH RESEND v3 net-next 3/5] net: introduce common dev_page_is_reusable()
+Message-ID: <20210202133030.5760-4-alobakin@pm.me>
+In-Reply-To: <20210202133030.5760-1-alobakin@pm.me>
+References: <20210202133030.5760-1-alobakin@pm.me>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
@@ -64,60 +66,55 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-page_is_pfmemalloc() is used mostly by networking drivers to test
-if a page can be considered for reusing/recycling.
-It doesn't write anything to the struct page itself, so its sole
-argument can be constified, as well as the first argument of
-skb_propagate_pfmemalloc().
-In Page Pool core code, it can be simply inlined instead.
-Most of the callers from NIC drivers were just doppelgangers of
-the same condition tests. Derive them into a new common function
-do deduplicate the code.
+A bunch of drivers test the page before reusing/recycling for two
+common conditions:
+ - if a page was allocated under memory pressure (pfmemalloc page);
+ - if a page was allocated at a distant memory node (to exclude
+   slowdowns).
 
-Resend of v3 [2]:
- - it missed Patchwork and Netdev archives, probably due to server-side
-   issues.
+Introduce a new common inline for doing this, with likely() already
+folded inside to make driver code a bit simpler.
 
-Since v2 [1]:
- - use more intuitive name for the new inline function since there's
-   nothing "reserved" in remote pages (Jakub Kicinski, John Hubbard);
- - fold likely() inside the helper itself to make driver code a bit
-   fancier (Jakub Kicinski);
- - split function introduction and using into two separate commits;
- - collect some more tags (Jesse Brandeburg, David Rientjes).
+Suggested-by: David Rientjes <rientjes@google.com>
+Suggested-by: Jakub Kicinski <kuba@kernel.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+---
+ include/linux/skbuff.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Since v1 [0]:
- - new: reduce code duplication by introducing a new common function
-   to test if a page can be reused/recycled (David Rientjes);
- - collect autographs for Page Pool bits (Jesper Dangaard Brouer,
-   Ilias Apalodimas).
-
-[0] https://lore.kernel.org/netdev/20210125164612.243838-1-alobakin@pm.me
-[1] https://lore.kernel.org/netdev/20210127201031.98544-1-alobakin@pm.me
-[2] https://lore.kernel.org/lkml/20210131120844.7529-1-alobakin@pm.me
-
-Alexander Lobakin (5):
-  mm: constify page_is_pfmemalloc() argument
-  skbuff: constify skb_propagate_pfmemalloc() "page" argument
-  net: introduce common dev_page_is_reusable()
-  net: use the new dev_page_is_reusable() instead of private versions
-  net: page_pool: simplify page recycling condition tests
-
- .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 17 ++++++----------
- drivers/net/ethernet/intel/fm10k/fm10k_main.c | 13 ++++--------
- drivers/net/ethernet/intel/i40e/i40e_txrx.c   | 15 +-------------
- drivers/net/ethernet/intel/iavf/iavf_txrx.c   | 15 +-------------
- drivers/net/ethernet/intel/ice/ice_txrx.c     | 13 ++----------
- drivers/net/ethernet/intel/igb/igb_main.c     |  9 ++-------
- drivers/net/ethernet/intel/igc/igc_main.c     |  9 ++-------
- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c |  9 ++-------
- .../net/ethernet/intel/ixgbevf/ixgbevf_main.c |  9 ++-------
- .../net/ethernet/mellanox/mlx5/core/en_rx.c   |  7 +------
- include/linux/mm.h                            |  2 +-
- include/linux/skbuff.h                        | 20 +++++++++++++++++--
- net/core/page_pool.c                          | 14 ++++---------
- 13 files changed, 46 insertions(+), 106 deletions(-)
-
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index b027526da4f9..0e42c53b8ca9 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -2938,6 +2938,22 @@ static inline struct page *dev_alloc_page(void)
+ =09return dev_alloc_pages(0);
+ }
+=20
++/**
++ * dev_page_is_reusable - check whether a page can be reused for network R=
+x
++ * @page: the page to test
++ *
++ * A page shouldn't be considered for reusing/recycling if it was allocate=
+d
++ * under memory pressure or at a distant memory node.
++ *
++ * Returns false if this page should be returned to page allocator, true
++ * otherwise.
++ */
++static inline bool dev_page_is_reusable(const struct page *page)
++{
++=09return likely(page_to_nid(page) =3D=3D numa_mem_id() &&
++=09=09      !page_is_pfmemalloc(page));
++}
++
+ /**
+  *=09skb_propagate_pfmemalloc - Propagate pfmemalloc if skb is allocated a=
+fter RX page
+  *=09@page: The page that was allocated from skb_alloc_page
 --=20
 2.30.0
 
