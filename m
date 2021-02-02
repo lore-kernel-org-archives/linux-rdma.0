@@ -2,98 +2,135 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72867C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C6D4C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 14:45:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30B6F64F7B
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 13:40:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01B6C64F49
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Feb 2021 14:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232457AbhBBNjS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Feb 2021 08:39:18 -0500
-Received: from mail-40134.protonmail.ch ([185.70.40.134]:63694 "EHLO
-        mail-40134.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232401AbhBBNbx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Feb 2021 08:31:53 -0500
-Date:   Tue, 02 Feb 2021 13:31:05 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=pm.me; s=protonmail;
-        t=1612272671; bh=Ykp5oBUQqC+epeovOARUFyMIlBz94OtNSxnarlpoxCM=;
-        h=Date:To:From:Cc:Reply-To:Subject:In-Reply-To:References:From;
-        b=VuC82FKp0cBH26gfiPCBhPYJciwSACumC7iNgDRUYmQxnOJSShchLNXSwlnvj1Wib
-         Pnai7uHviuGVYpmsC7xcVQk3XrKLW1nAUBTt3IEwNtXf83PPs5SJ6h3ISr4E4WlCXi
-         uu9SNKnTLcVmdbqHA4oatbpUKg1qStJ5lBowG+ZKe72EykqijoPGY5zz8z+tRbOtfX
-         TZGx5O1Yz2TbP6If5Nr18xeFqiT27iFM2T8lrexPfjlzaZI3Okyh4wvsEuEWdZrqA2
-         iujsg9mV236040xjxcu8kACpX3O4PIjbuWb6Yb2srEIUbdsJ6rqFfa1jPazJu3U8xw
-         075L/68sfYiAw==
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-From:   Alexander Lobakin <alobakin@pm.me>
-Cc:     John Hubbard <jhubbard@nvidia.com>,
-        David Rientjes <rientjes@google.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Alexander Lobakin <alobakin@pm.me>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Reply-To: Alexander Lobakin <alobakin@pm.me>
-Subject: [PATCH RESEND v3 net-next 2/5] skbuff: constify skb_propagate_pfmemalloc() "page" argument
-Message-ID: <20210202133030.5760-3-alobakin@pm.me>
-In-Reply-To: <20210202133030.5760-1-alobakin@pm.me>
-References: <20210202133030.5760-1-alobakin@pm.me>
+        id S232802AbhBBOpa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Feb 2021 09:45:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57674 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234431AbhBBOn3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 2 Feb 2021 09:43:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C38A864F49;
+        Tue,  2 Feb 2021 14:42:48 +0000 (UTC)
+Subject: [PATCH v1] xprtrdma: Simplify rpcrdma_convert_kvec() and frwr_map()
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     anna.schumaker@netapp.com
+Cc:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Tue, 02 Feb 2021 09:42:47 -0500
+Message-ID: <161227696787.3689758.305854118266206775.stgit@manet.1015granger.net>
+User-Agent: StGit/0.23-29-ga622f1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The function doesn't write anything to the page struct itself,
-so this argument can be const.
+Clean up.
 
-Misc: align second argument to the brace while at it.
+Support for FMR was removed by commit ba69cd122ece ("xprtrdma:
+Remove support for FMR memory registration") [Dec 2018]. That means
+the buffer-splitting behavior of rpcrdma_convert_kvec(), added by
+commit 821c791a0bde ("xprtrdma: Segment head and tail XDR buffers
+on page boundaries") [Mar 2016], is no longer necessary. FRWR
+memory registration handles this case with aplomb.
 
-Signed-off-by: Alexander Lobakin <alobakin@pm.me>
-Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+A related simplification removes an extra conditional branch from
+the SGL set-up loop in frwr_map(): Instead of using either
+sg_set_page() or sg_set_buf(), initialize the mr_page field properly
+when rpcrdma_convert_kvec() converts the kvec to an SGL entry.
+frwr_map() can then invoke sg_set_page() unconditionally.
+
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- include/linux/skbuff.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |   10 ++--------
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   21 +++++----------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
+ 3 files changed, 8 insertions(+), 25 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 9313b5aaf45b..b027526da4f9 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -2943,8 +2943,8 @@ static inline struct page *dev_alloc_page(void)
-  *=09@page: The page that was allocated from skb_alloc_page
-  *=09@skb: The skb that may need pfmemalloc set
-  */
--static inline void skb_propagate_pfmemalloc(struct page *page,
--=09=09=09=09=09     struct sk_buff *skb)
-+static inline void skb_propagate_pfmemalloc(const struct page *page,
-+=09=09=09=09=09    struct sk_buff *skb)
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index baca49fe83af..5eb044a5f0be 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -306,14 +306,8 @@ struct rpcrdma_mr_seg *frwr_map(struct rpcrdma_xprt *r_xprt,
+ 	if (nsegs > ep->re_max_fr_depth)
+ 		nsegs = ep->re_max_fr_depth;
+ 	for (i = 0; i < nsegs;) {
+-		if (seg->mr_page)
+-			sg_set_page(&mr->mr_sg[i],
+-				    seg->mr_page,
+-				    seg->mr_len,
+-				    offset_in_page(seg->mr_offset));
+-		else
+-			sg_set_buf(&mr->mr_sg[i], seg->mr_offset,
+-				   seg->mr_len);
++		sg_set_page(&mr->mr_sg[i], seg->mr_page,
++			    seg->mr_len, offset_in_page(seg->mr_offset));
+ 
+ 		++seg;
+ 		++i;
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 8f5d0cb68360..529adb6ad4db 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -204,9 +204,7 @@ rpcrdma_alloc_sparse_pages(struct xdr_buf *buf)
+ 	return 0;
+ }
+ 
+-/* Split @vec on page boundaries into SGEs. FMR registers pages, not
+- * a byte range. Other modes coalesce these SGEs into a single MR
+- * when they can.
++/* Convert @vec to a single SGL element.
+  *
+  * Returns pointer to next available SGE, and bumps the total number
+  * of SGEs consumed.
+@@ -215,21 +213,12 @@ static struct rpcrdma_mr_seg *
+ rpcrdma_convert_kvec(struct kvec *vec, struct rpcrdma_mr_seg *seg,
+ 		     unsigned int *n)
  {
- =09if (page_is_pfmemalloc(page))
- =09=09skb->pfmemalloc =3D true;
---=20
-2.30.0
+-	u32 remaining, page_offset;
+-	char *base;
+-
+-	base = vec->iov_base;
+-	page_offset = offset_in_page(base);
+-	remaining = vec->iov_len;
+-	while (remaining) {
+-		seg->mr_page = NULL;
+-		seg->mr_offset = base;
+-		seg->mr_len = min_t(u32, PAGE_SIZE - page_offset, remaining);
+-		remaining -= seg->mr_len;
+-		base += seg->mr_len;
++	if (vec->iov_len) {
++		seg->mr_page = virt_to_page(vec->iov_base);
++		seg->mr_offset = vec->iov_base;
++		seg->mr_len = vec->iov_len;
+ 		++seg;
+ 		++(*n);
+-		page_offset = 0;
+ 	}
+ 	return seg;
+ }
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 94b28657aeeb..4a9fe6592795 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -285,7 +285,7 @@ enum {
+ 
+ struct rpcrdma_mr_seg {		/* chunk descriptors */
+ 	u32		mr_len;		/* length of chunk or segment */
+-	struct page	*mr_page;	/* owning page, if any */
++	struct page	*mr_page;	/* underlying struct page */
+ 	char		*mr_offset;	/* kva if no page, else offset */
+ };
+ 
 
 
