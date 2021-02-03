@@ -2,104 +2,105 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.4 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCAE0C433E9
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 20:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8334BC433E6
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 21:25:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88C9164F68
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 20:08:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 306EF64F5F
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 21:25:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231821AbhBCUIL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Feb 2021 15:08:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47810 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231742AbhBCUIG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 3 Feb 2021 15:08:06 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CF53064F7E;
-        Wed,  3 Feb 2021 20:07:16 +0000 (UTC)
-Subject: [PATCH v3 5/6] xprtrdma: Pad optimization, revisited
-From:   Chuck Lever <chuck.lever@oracle.com>
-To:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
-Date:   Wed, 03 Feb 2021 15:07:15 -0500
-Message-ID: <161238283595.946943.5865303378844229040.stgit@manet.1015granger.net>
-In-Reply-To: <161238257595.946943.6571271028482175652.stgit@manet.1015granger.net>
+        id S229991AbhBCVZZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Feb 2021 16:25:25 -0500
+Received: from p3plsmtpa11-09.prod.phx3.secureserver.net ([68.178.252.110]:33605
+        "EHLO p3plsmtpa11-09.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229973AbhBCVZY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Feb 2021 16:25:24 -0500
+Received: from [192.168.0.116] ([71.184.94.153])
+        by :SMTPAUTH: with ESMTPSA
+        id 7PddloU6S4A0U7PddlwssS; Wed, 03 Feb 2021 14:24:38 -0700
+X-CMAE-Analysis: v=2.4 cv=OKDiYQWB c=1 sm=1 tr=0 ts=601b1496
+ a=vbvdVb1zh1xTTaY8rfQfKQ==:117 a=vbvdVb1zh1xTTaY8rfQfKQ==:17
+ a=IkcTkHD0fZMA:10 a=3UT470RhSK1ViTJfi10A:9 a=QEXdDO2ut3YA:10
+X-SECURESERVER-ACCT: tom@talpey.com
+Subject: Re: [PATCH v3 0/6] RPC/RDMA client fixes
+To:     Chuck Lever <chuck.lever@oracle.com>, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org
 References: <161238257595.946943.6571271028482175652.stgit@manet.1015granger.net>
-User-Agent: StGit/0.23-29-ga622f1
+From:   Tom Talpey <tom@talpey.com>
+Message-ID: <84c2694b-9c73-0125-4327-098d8e5e9f96@talpey.com>
+Date:   Wed, 3 Feb 2021 16:24:37 -0500
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <161238257595.946943.6571271028482175652.stgit@manet.1015granger.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4xfKGkQpoctO183CwbznssAhlYZ3RJky6HcxAOIu+rgGZmDyqE5nBEHGjEDCxeEqPxuGWRk/9tjA8NGBdDWd2CWMnkKC6r/wPuUr8Iwq3TN3/kG5EN4z5Q
+ GEFWVLzC9na+N7F/+aAztA6iazNj7pVtK7HqtduiCLISe+s7ENN2/QTeTDK6Ykqiho5DcU2m0Eu5c1LGFFmBRlV0iDu44PeqRMVWZOAxNdT4xRsH6hodKzdo
+ /ZJfhZCCV72/4pKJdLXshfuaG+xk0KiWIfU+lrzi79s=
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The NetApp Linux team discovered that with NFS/RDMA servers that do
-not support RFC 8797, the Linux client is forming NFSv4.x WRITE
-requests incorrectly.
+On 2/3/2021 3:06 PM, Chuck Lever wrote:
+> Changes since v2:
+> - Another minor optimization in rpcrdma_convert_kvec()
+> - Some patch description clarifications
+> - Add Reviewed-by (thanks Tom!)
+> 
+> Changes since v1:
+> - Respond to review comments
+> - Split "Remove FMR support" into three patches for clarity
+> - Fix implicit chunk roundup
+> - Improve Receive completion tracepoints
+> 
+> ---
+> 
+> Chuck Lever (6):
+>        xprtrdma: Remove FMR support in rpcrdma_convert_iovs()
+>        xprtrdma: Simplify rpcrdma_convert_kvec() and frwr_map()
+>        xprtrdma: Refactor invocations of offset_in_page()
+>        rpcrdma: Fix comments about reverse-direction operation
+>        xprtrdma: Pad optimization, revisited
+>        rpcrdma: Capture bytes received in Receive completion tracepoints
+> 
+> 
+>   include/trace/events/rpcrdma.h             | 50 +++++++++++++++++++++-
+>   net/sunrpc/xprtrdma/backchannel.c          |  4 +-
+>   net/sunrpc/xprtrdma/frwr_ops.c             | 12 ++----
+>   net/sunrpc/xprtrdma/rpc_rdma.c             | 17 +++-----
 
-In this case, the Linux NFS client disables implicit chunk round-up
-for odd-length Read and Write chunks. The goal was to support old
-servers that needed that padding to be sent explicitly by clients.
+While reviewing the changes in rpc_rdma.c, I noticed a related minor
+nit, which might be worth cleaning up for clarity.
 
-In that case the Linux NFS included the tail kvec in the Read chunk,
-since the tail contains any needed padding. That meant a separate
-memory registration is needed for the tail kvec, adding to the cost
-of forming such requests. To avoid that cost for a mere 3 bytes of
-zeroes that are always ignored by receivers, we try to use implicit
-roundup when possible.
+Toward the end of rpcrdma_convert_iovs, there is no longer any
+need to capture the returned value of rpcrdma_convert_kvec:
 
-For NFSv4.x, the tail kvec also sometimes contains a trailing
-GETATTR operation. The Linux NFS client unintentionally includes
-that GETATTR operation in the Read chunk as well as inline.
+	if (xdrbuf->tail[0].iov_len)
+		seg = rpcrdma_convert_kvec(&xdrbuf->tail[0], seg, &n);
 
-The fix is simply to /never/ include the tail kvec when forming a
-data payload Read chunk. The padding is thus now always present.
+                 ^^^^^^ --> (void)?
+out:
+	if (unlikely(n > RPCRDMA_MAX_SEGS))
+		return -EIO;
+	return n;
 
-Note that since commit 9ed5af268e88 ("SUNRPC: Clean up the handling
-of page padding in rpc_prepare_reply_pages()") [Dec 2020] the NFS
-client passes payload data to the transport with the padding in
-xdr->pages instead of in the send buffer's tail kvec. So now the
-Linux NFS client appends XDR padding to all odd-sized Read chunks.
-This shouldn't be a problem because:
+The two "goto out" statements just above it are getting kinda ugly
+too, but...
 
- - RFC 8166-compliant servers are supposed to work with or without
-   that XDR padding in Read chunks.
-
- - Since the padding is now in the same memory region as the data
-   payload, a separate memory registration is not needed. In
-   addition, the link layer extends data in RDMA Read responses to
-   4-byte boundaries anyway. Thus there is now no savings when the
-   padding is not included.
-
-Because older kernels include the payload's XDR padding in the
-tail kvec, a fix there will be more complicated. Thus backporting
-this patch is not recommended.
-
-Reported by: Olga Kornievskaia <Olga.Kornievskaia@netapp.com>
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Reviewed-by: Tom Talpey <tom@talpey.com>
----
- net/sunrpc/xprtrdma/rpc_rdma.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 6357ad5d0d3b..8a0571cb97ec 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -255,10 +255,7 @@ rpcrdma_convert_iovs(struct rpcrdma_xprt *r_xprt, struct xdr_buf *xdrbuf,
- 		page_base = 0;
- 	}
- 
--	/* When encoding a Read chunk, the tail iovec contains an
--	 * XDR pad and may be omitted.
--	 */
--	if (type == rpcrdma_readch && r_xprt->rx_ep->re_implicit_roundup)
-+	if (type == rpcrdma_readch)
- 		goto out;
- 
- 	/* When encoding a Write chunk, some servers need to see an
+Tom.
 
 
+>   net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  4 +-
+>   net/sunrpc/xprtrdma/xprt_rdma.h            | 15 ++++---
+>   6 files changed, 68 insertions(+), 34 deletions(-)
+> 
+> --
+> Chuck Lever
+> 
+> 
