@@ -2,159 +2,157 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6847C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 06:04:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7634C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 07:37:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7220364DF4
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 06:04:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7156964F65
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 07:37:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229735AbhBCGEL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Feb 2021 01:04:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35530 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229776AbhBCGEF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 3 Feb 2021 01:04:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 46C3464F5F;
-        Wed,  3 Feb 2021 06:03:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612332204;
-        bh=TamFsy+dl4YKadlK6KUmKSWE8+JRnBdDbFZmUJ9evl4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=KndeHYtdEEwNxKe27RLvOZB++RzvTRcR5yBYQKy+ZDYs7mcRdDtw/FKLBVAGLOyAT
-         Xd69sTTDSNxKnTmtbeplQ2aaxT3TS+GarfhpRHpO/O+tMyZU7mF1TBKE/fzm7jz7TD
-         Xnj5BfFHtRurDNrZB4SRvihgfz/1FbIUsKPoDQLA6EFIGD1KsksKUYvJpAu9yJEsXW
-         Yz+Ouj3WpC919UuZcRoFSchUd2200T3hMs2c2ejijD0AIjO8VmeIqmi1bKnTJhxDRm
-         TlGkV++KHs1YJdy9XLinKRdquUpRCHI2q3p0okjI3an5AYkG/EOTqxaUOpP3bLTxG0
-         8jxTGc/GfQ30A==
-Date:   Wed, 3 Feb 2021 08:03:20 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Daniel Vetter <daniel@ffwll.ch>
-Cc:     "Xiong, Jianxin" <jianxin.xiong@intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Gal Pressman <galpress@amazon.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Edward Srouji <edwards@nvidia.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Doug Ledford <dledford@redhat.com>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>
-Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR support
-Message-ID: <20210203060320.GK3264866@unreal>
-References: <1611604622-86968-1-git-send-email-jianxin.xiong@intel.com>
- <1611604622-86968-5-git-send-email-jianxin.xiong@intel.com>
- <137f406b-d3e0-fdeb-18e7-194a2aed927c@amazon.com>
- <20210201061603.GC4593@unreal>
- <CAKMK7uE0kSC1si0E9D1Spkn9aW2jFJw_SH3hYC6sZL7mG6pzyg@mail.gmail.com>
- <20210201152922.GC4718@ziepe.ca>
- <MW3PR11MB455569DF7B795272687669BFE5B69@MW3PR11MB4555.namprd11.prod.outlook.com>
- <YBluvZn1orYl7L9/@phenom.ffwll.local>
+        id S231922AbhBCHhY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Feb 2021 02:37:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50924 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231840AbhBCHhX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Feb 2021 02:37:23 -0500
+Received: from mail-oi1-x22b.google.com (mail-oi1-x22b.google.com [IPv6:2607:f8b0:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8702C061573
+        for <linux-rdma@vger.kernel.org>; Tue,  2 Feb 2021 23:36:43 -0800 (PST)
+Received: by mail-oi1-x22b.google.com with SMTP id j25so25849098oii.0
+        for <linux-rdma@vger.kernel.org>; Tue, 02 Feb 2021 23:36:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=btWGYH50BP9Us5pLKOutEyaoPlXiEbtJQv5paKv0BVM=;
+        b=M4YntCaVSPjnLMm4YcIoOnYIBpkdbDZ3mYZouEmGwoaSA8gmIhLBH1vHA0KHb+/VD3
+         dp81BKv1FpXSHa+eC7D6y5HEH2wq1AomW1uJi2Homf2TgbcdWpqRKyIZ/8iqhl/zVue3
+         UbNzv1P7mAdvR0aEQBI5sWuzVmD6F0TjallKJyZB2DEyOWbgXpuR05SxGsWElYM6a7s2
+         HLnjsGxS7JOPvwQjCcoyNfqQsd2ZpjnVVmzVaPyv5+rXkBIcYjIfNUZBto8etGM2OdJm
+         +1g2b5Tq2UxhlIq3KphWK1xlAbeC3uBV7/KOi34DBX+2wFQlcOY6lJ3F4uxn3h5iFODS
+         Lyyw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=btWGYH50BP9Us5pLKOutEyaoPlXiEbtJQv5paKv0BVM=;
+        b=SvItBnDPro0jTjM/OW4xLr668Zw8kK1bVet5GeVYms8+ug6LpjIZIvxBIyheboRO3w
+         z3EcGH1DH82TivI+NlQvEEoI/nk/HXtbU0yld5ZUBBVhl3/UFpAcGAhgeVP12J18GUI4
+         3O2hSJosh8kRHBDNj/G2aDEflShe3Xpq57f6neRi++sv7TfHSVWDx6oAsg3h/Gs2M+g3
+         Aq7YCC4ti60JjalrqMjx+dCQgdYrepZ2+9xpvWuKPCjn9kDfgUhrdbdx4l1rF1gWY47h
+         o2A9DAFlW7CtLFnXLnfLqOrIMX9uKRmw36QFSERnNDl65WvtboGzAz2T7XdGWoe+gQOl
+         ojkQ==
+X-Gm-Message-State: AOAM5324avl6DTsNxptmMmkaJoZFfVCTXdWQUYbMLBhPVHSak8i2dJ4t
+        uH0M/4fZjx7ulgf7u3+9vMKKJKU43bTcEoZMA1ItwbhDVaU=
+X-Google-Smtp-Source: ABdhPJyTcnyrEs08j4cqtssTcLciXUIkfsRtfPAjQ2L2tMpHFnG8+fLB5qG1ppFzOWMTTq9+zi02AFae3e0mcHNjbyI=
+X-Received: by 2002:aca:fcc5:: with SMTP id a188mr1172636oii.169.1612337803161;
+ Tue, 02 Feb 2021 23:36:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YBluvZn1orYl7L9/@phenom.ffwll.local>
+References: <20210127082431.2637863-1-yangx.jy@cn.fujitsu.com>
+ <20210127120427.GJ1053290@unreal> <601259D7.1040207@cn.fujitsu.com>
+ <20210128125421.GC5097@unreal> <60136F89.4070402@cn.fujitsu.com>
+ <CAD=hENcXrLjNbXrpU74GoJn1Kg7TdfWBZRMFK6cw+ON9HHRX7A@mail.gmail.com> <601A336E.9050006@cn.fujitsu.com>
+In-Reply-To: <601A336E.9050006@cn.fujitsu.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Wed, 3 Feb 2021 15:36:32 +0800
+Message-ID: <CAD=hENfLZ3ZzU31XZCyhzPjKVb6MAkN+DR4FRASKD2Nie2utcw@mail.gmail.com>
+Subject: Re: [RFC PATCH] RDMA/rxe: Export imm_data to WC when the related WR
+ with imm_data finished on SQ
+To:     Xiao Yang <yangx.jy@cn.fujitsu.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Feb 02, 2021 at 04:24:45PM +0100, Daniel Vetter wrote:
-> On Mon, Feb 01, 2021 at 05:03:44PM +0000, Xiong, Jianxin wrote:
-> > > -----Original Message-----
-> > > From: Jason Gunthorpe <jgg@ziepe.ca>
-> > > Sent: Monday, February 01, 2021 7:29 AM
-> > > To: Daniel Vetter <daniel@ffwll.ch>
-> > > Cc: Leon Romanovsky <leon@kernel.org>; Gal Pressman <galpress@amazon.com>; Xiong, Jianxin <jianxin.xiong@intel.com>; Yishai Hadas
-> > > <yishaih@nvidia.com>; linux-rdma <linux-rdma@vger.kernel.org>; Edward Srouji <edwards@nvidia.com>; dri-devel <dri-
-> > > devel@lists.freedesktop.org>; Christian Koenig <christian.koenig@amd.com>; Doug Ledford <dledford@redhat.com>; Vetter, Daniel
-> > > <daniel.vetter@intel.com>
-> > > Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR support
-> > >
-> > > On Mon, Feb 01, 2021 at 03:10:00PM +0100, Daniel Vetter wrote:
-> > > > On Mon, Feb 1, 2021 at 7:16 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > > >
-> > > > > On Sun, Jan 31, 2021 at 05:31:16PM +0200, Gal Pressman wrote:
-> > > > > > On 25/01/2021 21:57, Jianxin Xiong wrote:
-> > > > > > > Define a new sub-class of 'MR' that uses dma-buf object for the
-> > > > > > > memory region. Define a new class 'DmaBuf' as a wrapper for
-> > > > > > > dma-buf allocation mechanism implemented in C.
-> > > > > > >
-> > > > > > > Update the cmake function for cython modules to allow building
-> > > > > > > modules with mixed cython and c source files.
-> > > > > > >
-> > > > > > > Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-> > > > > > > buildlib/pyverbs_functions.cmake |  78 +++++++----
-> > > > > > >  pyverbs/CMakeLists.txt           |  11 +-
-> > > > > > >  pyverbs/dmabuf.pxd               |  15 +++
-> > > > > > >  pyverbs/dmabuf.pyx               |  73 ++++++++++
-> > > > > > >  pyverbs/dmabuf_alloc.c           | 278 +++++++++++++++++++++++++++++++++++++++
-> > > > > > >  pyverbs/dmabuf_alloc.h           |  19 +++
-> > > > > > >  pyverbs/libibverbs.pxd           |   2 +
-> > > > > > >  pyverbs/mr.pxd                   |   6 +
-> > > > > > >  pyverbs/mr.pyx                   | 105 ++++++++++++++-
-> > > > > > >  9 files changed, 557 insertions(+), 30 deletions(-)  create
-> > > > > > > mode 100644 pyverbs/dmabuf.pxd  create mode 100644
-> > > > > > > pyverbs/dmabuf.pyx  create mode 100644 pyverbs/dmabuf_alloc.c
-> > > > > > > create mode 100644 pyverbs/dmabuf_alloc.h
-> > > > >
-> > > > > <...>
-> > > > >
-> > > > > > > index 0000000..05eae75
-> > > > > > > +++ b/pyverbs/dmabuf_alloc.c
-> > > > > > > @@ -0,0 +1,278 @@
-> > > > > > > +// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-> > > > > > > +/*
-> > > > > > > + * Copyright 2020 Intel Corporation. All rights reserved. See
-> > > > > > > +COPYING file  */
-> > > > > > > +
-> > > > > > > +#include <stdio.h>
-> > > > > > > +#include <stdlib.h>
-> > > > > > > +#include <stdint.h>
-> > > > > > > +#include <unistd.h>
-> > > > > > > +#include <string.h>
-> > > > > > > +#include <errno.h>
-> > > > > > > +#include <drm/drm.h>
-> > > > > > > +#include <drm/i915_drm.h>
-> > > > > > > +#include <drm/amdgpu_drm.h>
-> > > > > > > +#include <drm/radeon_drm.h>
-> > > > > >
-> > > > > > I assume these should come from the kernel headers package, right?
-> > > > >
-> > > > > This is gross, all kernel headers should be placed in
-> > > > > kernel-headers/* and "update" script needs to be extended to take drm/* files too :(.
-> > > >
-> > > > drm kernel headers are in the libdrm package. You need that anyway for
-> > > > doing the ioctls (if you don't hand-roll the restarting yourself).
-> > > >
-> > > > Also our userspace has gone over to just outright copying the driver
-> > > > headers. Not the generic headers, but for the rendering side of gpus,
-> > > > which is the topic here, there's really not much generic stuff.
-> > > >
-> > > > > Jianxin, are you fixing it?
-> > > >
-> > > > So fix is either to depend upon libdrm for building, or have copies of
-> > > > the headers included in the package for the i915/amdgpu/radeon headers
-> > > > (drm/drm.h probably not so good idea).
-> > >
-> > > We should have a cmake test to not build the drm parts if it can't be built, and pyverbs should skip the tests.
-> > >
-> >
-> > Yes, I will add a test for that. Also, on SLES, the headers could be under /usr/include/libdrm instead of /usr/include/drm. The make test should check that and use proper path.
+On Wed, Feb 3, 2021 at 1:25 PM Xiao Yang <yangx.jy@cn.fujitsu.com> wrote:
 >
-> Please use pkgconfig for this, libdrm installs a .pc file to make sure you
-> can find the right headers.
+> On 2021/1/29 14:28, Zhu Yanjun wrote:
+> > On Fri, Jan 29, 2021 at 10:16 AM Xiao Yang<yangx.jy@cn.fujitsu.com>  wrote:
+> >> On 2021/1/28 20:54, Leon Romanovsky wrote:
+> >>> On Thu, Jan 28, 2021 at 02:29:43PM +0800, Xiao Yang wrote:
+> >>>> On 2021/1/27 20:04, Leon Romanovsky wrote:
+> >>>>> On Wed, Jan 27, 2021 at 04:24:31PM +0800, Xiao Yang wrote:
+> >>>>>> Even if we enable sq_sig_all or IBV_SEND_SIGNALED, current rxe
+> >>>>>> module cannot set imm_data in WC when the related WR with imm_data
+> >>>>>> finished on SQ.
+> >>>>>>
+> >>>>>> Signed-off-by: Xiao Yang<yangx.jy@cn.fujitsu.com>
+> >>>>>> ---
+> >>>>>>
+> >>>>>> Current rxe module and other rdma modules(e.g. mlx5) only set
+> >>>>>> imm_data in WC when the related WR with imm_data finished on RQ.
+> >>>>>> I am not sure if it is a expected behavior.
+> >>>>> This is IBTA behavior.
+> >>>>>
+> >>>>> 5.2.11 IMMEDIATE DATA EXTENDED TRANSPORT HEADER (ImmDt) - 4 BYTES
+> >>>>> "Immediate Data (ImmDt) contains data that is placed in the receive
+> >>>>>     Completion Queue Element (CQE). The ImmDt is only allowed in SEND or
+> >>>>>     RDMA WRITE packets with Immediate Data."
+> >>>>>
+> >>>>> If I understand the spec, you shouldn't set imm_data in SQ.
+> >>>> Hi Leon,
+> >>>>
+> >>>> About the behavior, I have another question:
+> >>>> For send operation with imm_data, we can verify if the delivered imm_data is
+> >>>> correct by CQE on RQ.
+> >>>> For rdma write operation with imm_data, how to verify if the delivered
+> >>>> imm_data is correct? :-)
+> >>> Probably that I didn't understand the question, but the RDMA WRITE is
+> >>> marked with special opcode in the BTH that indicates imm_data.
+> >> Hi Leon,
+> >>
+> >> The quesion is about how to get the imm_data in applications(programs in
+> >> user space)
+> > Any steps or simple method to reproduce this problem?
+> > I want to delve into this problem.
+> Hi Yanjun,
+>
+> Sorry for the wrong question. :-)
+> For rdma write operation with imm_data, I can get the delivered imm_data
+> by CQE on RQ.
 
-rdma-core uses cmake build system and in our case cmake find_library()
-is preferable over pkgconfig.
+Wonderful.
 
-Thanks
-
-> -Daniel
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
+Zhu Yanjun
+>
+> Best Regards,
+> Xiao Yang
+> > Thanks a lot.
+> > Zhu Yanjun
+> >
+> >> 1) If client program does send operation with imm_data, server program
+> >> can get the delivered imm_data by calling ibv_poll_cq(&wc)
+> >> 2) If client program does rdma write operation with imm_data, server
+> >> program cannot get the delivered imm_data by calling ibv_poll_cq(&wc).
+> >>       In this case, how does server program get the delivered imm_data?
+> >>
+> >> Best Regards,
+> >> Xiao Yang
+> >>> Thanks
+> >>>
+> >>>> Best Regards,
+> >>>> Xiao Yang
+> >>>>> Thanks
+> >>>>>
+> >>>>>
+> >>>>> .
+> >>>>>
+> >>>>
+> >>> .
+> >>>
+> >>
+> >>
+> >
+> > .
+> >
+>
+>
+>
