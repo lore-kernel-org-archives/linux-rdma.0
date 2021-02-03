@@ -2,163 +2,128 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.4 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6733AC433DB
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 18:16:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5DE9C433E9
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 18:18:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AE3364E39
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 18:16:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61F2564F7C
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 Feb 2021 18:18:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232995AbhBCSP7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Feb 2021 13:15:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47696 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231651AbhBCSPn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Feb 2021 13:15:43 -0500
-Received: from mail-vk1-xa36.google.com (mail-vk1-xa36.google.com [IPv6:2607:f8b0:4864:20::a36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 979FBC061573
-        for <linux-rdma@vger.kernel.org>; Wed,  3 Feb 2021 10:15:03 -0800 (PST)
-Received: by mail-vk1-xa36.google.com with SMTP id y8so66758vky.4
-        for <linux-rdma@vger.kernel.org>; Wed, 03 Feb 2021 10:15:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jTjc5saP18Z9ZHrsWYL0aarveqABgO38FSaqDhJr1pU=;
-        b=qXRC5KH2McF3+nHNT+aNPj6UjiewloENUZY6MIMqUnJD03qfo0kPHOC88M5EQNUW58
-         KHeWB1vv/Lns8LWKDIAdU0PQOlsnGE8Qz4699T5g8Z8hnkYuUVn64FwiyyO3M2QwbFjl
-         TPM9QoLc7BpSXyUAKeiH1m4b+gx4lefk6O+iKcDMcyndbyBe3QI8HXJbABqOJ5euMbhp
-         GLdlkoyHKugaJB0wPW7E0rggsnseDn0w59sMTNNXBFdcHQSgO2s94BAqYsBTcvHmIwa7
-         fE5xaly1dWXBIBuaNUSHLC2dl0hJFdoYt31HYP+C0cIxl9Is0jUOfHpEXuQyTennrIci
-         +aHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jTjc5saP18Z9ZHrsWYL0aarveqABgO38FSaqDhJr1pU=;
-        b=NWw912gNlTK1zthB5CKeTBI9+4MuDwEcji6RHSEUaa3ab/5M7+FvUe8eWjGlaltzkn
-         9Nj7hTwcDXHnfGQc+aqu2RzgSlqlJmdMkFta6RIkbLIYUNWsk3fOiu1Eyc8VynITVT2t
-         tHwu2Bsv2UauKfsrPfCTsCsHNFct/N2sMtW9cadvuefW2VU1cfKDu5QdebvVoZLxCDsX
-         eGMonPQ/cLbwC5dKPUNaE7GcPhyqeF3AQ0KxPI0swdKhiVJpAp+hBHzOFB+T9hYUALGm
-         jYoddLaPYO8wQ4Mzz0VhRu2H+17w2AM51YQgCbm4OMxMEL90bXsCIqXDJoqq0g/I7aCb
-         Cb+Q==
-X-Gm-Message-State: AOAM531/7zP9uqZryQE6B++1MvcLIZygBYnMlZyDU6+yhXqIft28dbsr
-        0ecTJQ9fNfUiGl0VcXncPevGmmqNCLz5xDRbbJk=
-X-Google-Smtp-Source: ABdhPJyOA7VskZ/5XNF1GDtfe083hA/WrGqvZICr1i8BiVEniIT2WP0MrXv5l2Mw/Hh5HB/Dqs4j/vcwKXdBR2sYQ48=
-X-Received: by 2002:a1f:a78c:: with SMTP id q134mr2748109vke.17.1612376102779;
- Wed, 03 Feb 2021 10:15:02 -0800 (PST)
+        id S231591AbhBCSRy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Feb 2021 13:17:54 -0500
+Received: from p3plsmtpa11-08.prod.phx3.secureserver.net ([68.178.252.109]:56444
+        "EHLO p3plsmtpa11-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232555AbhBCSOr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Feb 2021 13:14:47 -0500
+Received: from [192.168.0.116] ([71.184.94.153])
+        by :SMTPAUTH: with ESMTPSA
+        id 7Mf9l2VeRK9xx7Mf9l6ahy; Wed, 03 Feb 2021 11:13:59 -0700
+X-CMAE-Analysis: v=2.4 cv=K9/nowaI c=1 sm=1 tr=0 ts=601ae7e7
+ a=vbvdVb1zh1xTTaY8rfQfKQ==:117 a=vbvdVb1zh1xTTaY8rfQfKQ==:17
+ a=IkcTkHD0fZMA:10 a=SEc3moZ4AAAA:8 a=JDjsHSkAAAAA:8 a=yPCof4ZbAAAA:8
+ a=O4n9R6YOxJqAsZlgij0A:9 a=QEXdDO2ut3YA:10 a=5oRCH6oROnRZc2VpWJZ3:22
+ a=dseMxAR1CDlncBZeV_se:22
+X-SECURESERVER-ACCT: tom@talpey.com
+Subject: Re: [PATCH v2 5/6] xprtrdma: Pad optimization, revisited
+To:     Chuck Lever <chuck.lever@oracle.com>, linux-nfs@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+References: <161236925476.1030487.10407536259816633879.stgit@manet.1015granger.net>
+ <161236945965.1030487.13894327853038566730.stgit@manet.1015granger.net>
+From:   Tom Talpey <tom@talpey.com>
+Message-ID: <f2aad824-4449-be60-a39f-bb317764b090@talpey.com>
+Date:   Wed, 3 Feb 2021 13:13:59 -0500
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 MIME-Version: 1.0
-References: <1611604622-86968-1-git-send-email-jianxin.xiong@intel.com>
- <1611604622-86968-5-git-send-email-jianxin.xiong@intel.com>
- <137f406b-d3e0-fdeb-18e7-194a2aed927c@amazon.com> <20210201061603.GC4593@unreal>
- <CAKMK7uE0kSC1si0E9D1Spkn9aW2jFJw_SH3hYC6sZL7mG6pzyg@mail.gmail.com>
- <20210201152922.GC4718@ziepe.ca> <MW3PR11MB455569DF7B795272687669BFE5B69@MW3PR11MB4555.namprd11.prod.outlook.com>
- <YBluvZn1orYl7L9/@phenom.ffwll.local> <20210203060320.GK3264866@unreal>
- <MW3PR11MB455563A3F337F789613A9940E5B49@MW3PR11MB4555.namprd11.prod.outlook.com>
- <CAKMK7uHAD5FbDPeT2cD03HjHhvmMMG__muXqo=rTjd=htSMhtg@mail.gmail.com> <MW3PR11MB455504E449DC36622361DD22E5B49@MW3PR11MB4555.namprd11.prod.outlook.com>
-In-Reply-To: <MW3PR11MB455504E449DC36622361DD22E5B49@MW3PR11MB4555.namprd11.prod.outlook.com>
-From:   Emil Velikov <emil.l.velikov@gmail.com>
-Date:   Wed, 3 Feb 2021 18:14:51 +0000
-Message-ID: <CACvgo509W372mhrvAp5hmhddGWuWYe20xiwc68SROtHO9_sfsA@mail.gmail.com>
-Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR support
-To:     "Xiong, Jianxin" <jianxin.xiong@intel.com>
-Cc:     Daniel Vetter <daniel@ffwll.ch>, Yishai Hadas <yishaih@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Edward Srouji <edwards@nvidia.com>,
-        Gal Pressman <galpress@amazon.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>,
-        Christian Koenig <christian.koenig@amd.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <161236945965.1030487.13894327853038566730.stgit@manet.1015granger.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4xfLjTiY8FLn2E+ubZUE3/OAQbH7UoR55Hy9rcXEErYfHtTYtSUncCP83keR+3oCzoZCAnQKf1SIgdHEktOigCQVRtK+ArIQ7gw3WaYLVPm3MwoPUyOYGP
+ YCWSuDIoZEoWIt3Dd9er/Vc7msFC31ZucyWsxOSm+N1b9Q4d1/vJUqs3JFrB2jmKBDW7csDotrSMVM1J7nunzQOsw1yigjX49lRcZv6jCtxLFZdL2ofU1H6L
+ ZK6rWyJh5+fDE604RHwZNCGAuUr9SEXO3LcGixd8TyA=
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, 3 Feb 2021 at 17:58, Xiong, Jianxin <jianxin.xiong@intel.com> wrote:
->
-> > -----Original Message-----
-> > From: Daniel Vetter <daniel@ffwll.ch>
-> > Sent: Wednesday, February 03, 2021 9:53 AM
-> > To: Xiong, Jianxin <jianxin.xiong@intel.com>
-> > Cc: Leon Romanovsky <leon@kernel.org>; Jason Gunthorpe <jgg@ziepe.ca>; Gal Pressman <galpress@amazon.com>; Yishai Hadas
-> > <yishaih@nvidia.com>; linux-rdma <linux-rdma@vger.kernel.org>; Edward Srouji <edwards@nvidia.com>; dri-devel <dri-
-> > devel@lists.freedesktop.org>; Christian Koenig <christian.koenig@amd.com>; Doug Ledford <dledford@redhat.com>; Vetter, Daniel
-> > <daniel.vetter@intel.com>
-> > Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR support
-> >
-> > On Wed, Feb 3, 2021 at 5:57 PM Xiong, Jianxin <jianxin.xiong@intel.com> wrote:
-> > >
-> > > > -----Original Message-----
-> > > > From: Leon Romanovsky <leon@kernel.org>
-> > > > Sent: Tuesday, February 02, 2021 10:03 PM
-> > > > To: Daniel Vetter <daniel@ffwll.ch>
-> > > > Cc: Xiong, Jianxin <jianxin.xiong@intel.com>; Jason Gunthorpe
-> > > > <jgg@ziepe.ca>; Gal Pressman <galpress@amazon.com>; Yishai Hadas
-> > > > <yishaih@nvidia.com>; linux-rdma <linux-rdma@vger.kernel.org>;
-> > > > Edward Srouji <edwards@nvidia.com>; dri-devel <dri-
-> > > > devel@lists.freedesktop.org>; Christian Koenig
-> > > > <christian.koenig@amd.com>; Doug Ledford <dledford@redhat.com>;
-> > > > Vetter, Daniel <daniel.vetter@intel.com>
-> > > > Subject: Re: [PATCH rdma-core v7 4/6] pyverbs: Add dma-buf based MR
-> > > > support
-> > > >
-> > >
-> > > <...>
-> > >
-> > > > > > > > > > > +#include <drm/drm.h>
-> > > > > > > > > > > +#include <drm/i915_drm.h> #include <drm/amdgpu_drm.h>
-> > > > > > > > > > > +#include <drm/radeon_drm.h>
-> > > > > > > > > >
-> > > > > > > > > > I assume these should come from the kernel headers package, right?
-> > > > > > > > >
-> > > > > > > > > This is gross, all kernel headers should be placed in
-> > > > > > > > > kernel-headers/* and "update" script needs to be extended to take drm/* files too :(.
-> > > > > > > >
-> > > > > > > > drm kernel headers are in the libdrm package. You need that
-> > > > > > > > anyway for doing the ioctls (if you don't hand-roll the restarting yourself).
-> > > > > > > >
-> > > > > > > > Also our userspace has gone over to just outright copying
-> > > > > > > > the driver headers. Not the generic headers, but for the
-> > > > > > > > rendering side of gpus, which is the topic here, there's really not much generic stuff.
-> > > > > > > >
-> > > > > > > > > Jianxin, are you fixing it?
-> > > > > > > >
-> > > > > > > > So fix is either to depend upon libdrm for building, or have
-> > > > > > > > copies of the headers included in the package for the
-> > > > > > > > i915/amdgpu/radeon headers (drm/drm.h probably not so good idea).
-> > > > > > >
-> > > > > > > We should have a cmake test to not build the drm parts if it can't be built, and pyverbs should skip the tests.
-> > > > > > >
-> > > > > >
-> > > > > > Yes, I will add a test for that. Also, on SLES, the headers
-> > > > > > could be under /usr/include/libdrm instead of /usr/include/drm.
-> > > > > > The make test
-> > > > should check that and use proper path.
-> > > > >
-> > > > > Please use pkgconfig for this, libdrm installs a .pc file to make
-> > > > > sure you can find the right headers.
-> > > >
-> > > > rdma-core uses cmake build system and in our case cmake find_library() is preferable over pkgconfig.
-> > >
-> > > Only the headers are needed, and they could be installed via either the libdrm-devel package or the kernel-headers package. The cmake
-> > find_path() command is more suitable here.
-> >
-> > Except if your distro is buggy (or doesn't support any gpu drivers at
-> > all) they will never be installed as part of kernel-headers.
->
-> Right, that's why we want to check for the existence of the header file (find_path() does just that) instead of the existence of the package(s).
->
-Fwiw the .pc file does not list "packages", but the location of the
-headers and/or libraries.
-Last time I tried find_path() wasn't that great, since it had no way
-to detect non-standard (aka outside of /usr/include) installs.
+This is a safe and obviously warranted processing revision.
 
-HTH
--Emil
+The changelog is quite an eyeful for a one-liner, and maybe only
+makes sense to the truly dedicated reader. But...
+
+Reviewed-By: Tom Talpey <tom@talpey.com>
+
+On 2/3/2021 11:24 AM, Chuck Lever wrote:
+> The NetApp Linux team discovered that with NFS/RDMA servers that do
+> not support RFC 8797, the Linux client is forming NFSv4.x WRITE
+> requests incorrectly.
+> 
+> In this case, the Linux NFS client disables implicit chunk round-up
+> for odd-length Read and Write chunks. The goal was to support old
+> servers that needed that padding to be sent explicitly by clients.
+> 
+> In that case the Linux NFS included the tail kvec in the Read chunk,
+> since the tail contains any needed padding. That meant a separate
+> memory registration is needed for the tail kvec, adding to the cost
+> of forming such requests. To avoid that cost for a mere 3 bytes of
+> zeroes that are always ignored by receivers, we try to use implicit
+> roundup when possible.
+> 
+> For NFSv4.x, the tail kvec also sometimes contains a trailing
+> GETATTR operation. The Linux NFS clients is unintentionally
+> including that GETATTR operation in the Read chunk as well as
+> inline. Fortunately, servers ignore this craziness and go about
+> their normal business.
+> 
+> The fix is simply to /never/ include the tail kvec when forming a
+> data payload Read chunk.
+> 
+> Note that since commit 9ed5af268e88 ("SUNRPC: Clean up the handling
+> of page padding in rpc_prepare_reply_pages()") the NFS client passes
+> payload data to the transport with the padding in xdr->pages instead
+> of in the send buffer's tail kvec. So now the Linux NFS client
+> appends XDR padding to all odd-sized Read chunks. This shouldn't be
+> a problem because:
+> 
+>   - RFC 8166-compliant servers are supposed to work with or without
+>     that XDR padding in Read chunks.
+> 
+>   - Since the padding is now in the same memory region as the data
+>     payload, a separate memory registration is not needed. In
+>     addition, the link layer extends data in RDMA Read responses to
+>     4-byte boundaries anyway. Thus there is now no savings when the
+>     padding is not included.
+> 
+> Because older kernels include the payload's XDR padding in the
+> tail kvec, a fix there will be more complicated. Thus backporting
+> this patch is not recommended.
+> 
+> Reported by: Olga Kornievskaia <Olga.Kornievskaia@netapp.com>
+> Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+> ---
+>   net/sunrpc/xprtrdma/rpc_rdma.c |    5 +----
+>   1 file changed, 1 insertion(+), 4 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+> index f0af89a43efd..f1b52f9ab242 100644
+> --- a/net/sunrpc/xprtrdma/rpc_rdma.c
+> +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+> @@ -257,10 +257,7 @@ rpcrdma_convert_iovs(struct rpcrdma_xprt *r_xprt, struct xdr_buf *xdrbuf,
+>   		page_base = 0;
+>   	}
+>   
+> -	/* When encoding a Read chunk, the tail iovec contains an
+> -	 * XDR pad and may be omitted.
+> -	 */
+> -	if (type == rpcrdma_readch && r_xprt->rx_ep->re_implicit_roundup)
+> +	if (type == rpcrdma_readch)
+>   		goto out;
+>   
+>   	/* When encoding a Write chunk, some servers need to see an
+> 
+> 
+> 
