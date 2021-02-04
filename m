@@ -2,86 +2,131 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43D95C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 19:54:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C6BC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 20:02:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFEFA64F6A
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 19:54:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4C8F64E35
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 20:02:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239502AbhBDTyg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 14:54:36 -0500
-Received: from mga04.intel.com ([192.55.52.120]:64649 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239524AbhBDTxD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Feb 2021 14:53:03 -0500
-IronPort-SDR: xhiiU7J+LIIjyYXnAcV9002zpXaQ0xrGz7DoMSL1awV70dg5EVcC2OCzDhkj/ZjPgymdqnoAG4
- KI1OTR5oLJ+g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9885"; a="178755296"
-X-IronPort-AV: E=Sophos;i="5.81,153,1610438400"; 
-   d="scan'208";a="178755296"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2021 11:52:21 -0800
-IronPort-SDR: lk2OeIHmNPWbmvRojJjqR8Xtfh20RG7xmOB4Z1oM64zOBayunz7AhdCrNPMsooc6EW9bI/cxGe
- DT69vT3vA40Q==
-X-IronPort-AV: E=Sophos;i="5.81,153,1610438400"; 
-   d="scan'208";a="434088875"
-Received: from jbrandeb-mobl4.amr.corp.intel.com (HELO localhost) ([10.212.188.246])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2021 11:52:20 -0800
-Date:   Thu, 4 Feb 2021 11:52:20 -0800
-From:   Jesse Brandeburg <jesse.brandeburg@intel.com>
-To:     Alexander Lobakin <alobakin@pm.me>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        David Rientjes <rientjes@google.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
+        id S239774AbhBDUBu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 15:01:50 -0500
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:18224 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239977AbhBDUBS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 15:01:18 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B601c52620000>; Thu, 04 Feb 2021 12:00:34 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL101.nvidia.com
+ (172.20.187.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
+ 2021 20:00:34 +0000
+Received: from NAM04-CO1-obe.outbound.protection.outlook.com (104.47.45.53) by
+ HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 4 Feb 2021 20:00:34 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=lajgb74IV/h6u+h6hVuXAi7d7n4S2sQf4DGig8OtQ/8P5a46SJZL2HoHrGscK04AeyQ2CYYQb/gQAO2VR69Bp0FjRRHR3O8wkHRerY56dw2YTnEVclkfy/o6oSRdRMnQ+dqS7QuZsVOGxkMJ9nWZtEgLeJlAsFMJL1rbX1Sh/AmZOCQmNvrXoD2S7Zhm2Pw77OBr+i0tJrHCcRylrIt/NZ5HS+dUE2OOQ/HaaE/TXZnGW3c5Z6pDqwpNZEWsOQCTDSYff+6Fg/GaHlF0vmy32BqDIZsVVr/yHrJU1J/FMGnJKo+C7r+JPucKsK6Yy2/8On9kFqT4v8ouvFktgSCZAA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Blxpv9wdIhTHV/SuxJJuCyToGqkciL5tkr9faNzzCsc=;
+ b=UZoNTTaUry0hBJJI6kUFZhMG1TAhKWMXPCEia3zDXarBVWbiEN7BHAu6qu7EgqtRHP9eyJdej/TsE/3PRYLBE0Xa/X0Nv5uDumAbK4FoMbIsKcXFLUWwwD5242oBFnC6zc6W/0V+UbdXbpUgrEvqgQQ1tj8IFF4tHsbgCUmxQlbpJbgCLj/AjdfihJ+lpKTzWFli8Cs01aeae6p4ZNdUUndSziLVgKypDQ/j9QkgwLU/dy0WIBW2vzFd6Jg4az46HdXnfErCiVnfrA5w12CB1ERH4lgx8CP5KLEZBBC7+rmHEyS7HyRMDqs7VBsoMu8HRP73LrBdV2bJMDM+9LWBMw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3402.namprd12.prod.outlook.com (2603:10b6:5:3b::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.17; Thu, 4 Feb
+ 2021 20:00:28 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3805.033; Thu, 4 Feb 2021
+ 20:00:28 +0000
+Date:   Thu, 4 Feb 2021 16:00:26 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     John Hubbard <jhubbard@nvidia.com>
+CC:     Joao Martins <joao.m.martins@oracle.com>, <linux-mm@kvack.org>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-rdma@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH RESEND v3 net-next 4/5] net: use the new
- dev_page_is_reusable() instead of private versions
-Message-ID: <20210204115220.0000018d@intel.com>
-In-Reply-To: <20210202133030.5760-5-alobakin@pm.me>
-References: <20210202133030.5760-1-alobakin@pm.me>
-        <20210202133030.5760-5-alobakin@pm.me>
-X-Mailer: Claws Mail 3.12.0 (GTK+ 2.24.28; i686-w64-mingw32)
+        Doug Ledford <dledford@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH 4/4] RDMA/umem: batch page unpin in __ib_mem_release()
+Message-ID: <20210204200026.GP4247@nvidia.com>
+References: <20210203220025.8568-1-joao.m.martins@oracle.com>
+ <20210203220025.8568-5-joao.m.martins@oracle.com>
+ <4ed92932-8cf2-97ab-7296-6efee51fc555@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <4ed92932-8cf2-97ab-7296-6efee51fc555@nvidia.com>
+X-ClientProxiedBy: BL1PR13CA0432.namprd13.prod.outlook.com
+ (2603:10b6:208:2c3::17) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0432.namprd13.prod.outlook.com (2603:10b6:208:2c3::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.16 via Frontend Transport; Thu, 4 Feb 2021 20:00:28 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l7kni-003anf-TF; Thu, 04 Feb 2021 16:00:26 -0400
+X-Header: ProcessedBy-CMR-outbound
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1612468835; bh=Blxpv9wdIhTHV/SuxJJuCyToGqkciL5tkr9faNzzCsc=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Header;
+        b=N8qveSKf/BXX6yJw26xBnwqkjkeGd5hqs2FZGtWoZI2ozFgkHBoRMcgm66l/Gt3rj
+         6UdtBcul/9b4dI1k2pMwb8tb+e/mGKkMO3rgwMIsIICxdpyBKj5Ubfa5Q1f1pweLET
+         C+RL66SZo8Xxg6B49fdSqfJ4xwwDx2rfXvhK6/pz9FScCdRJHIpFr4ewoMaCMocs0q
+         tc6LbLTCw4o9Tif5KOq7+NyhnFNKjbEiCaobaHidwkisSx/q3rA2WJLYq0E9YLC3oJ
+         IQBSbHZXQ97Xv8BXsxtZSgY/5o602o1ALd5Xl4qMzmfILqfYXClwFBv5hzKLA9tyIV
+         ZY7WOWR6ninKA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Alexander Lobakin wrote:
-
-> Now we can remove a bunch of identical functions from the drivers and
-> make them use common dev_page_is_reusable(). All {,un}likely() checks
-> are omitted since it's already present in this helper.
-> Also update some comments near the call sites.
+On Wed, Feb 03, 2021 at 04:15:53PM -0800, John Hubbard wrote:
+> > diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> > index 2dde99a9ba07..ea4ebb3261d9 100644
+> > +++ b/drivers/infiniband/core/umem.c
+> > @@ -47,17 +47,17 @@
+> >   static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
+> >   {
+> > -	struct sg_page_iter sg_iter;
+> > -	struct page *page;
+> > +	bool make_dirty = umem->writable && dirty;
+> > +	struct scatterlist *sg;
+> > +	int i;
 > 
-> Suggested-by: David Rientjes <rientjes@google.com>
-> Suggested-by: Jakub Kicinski <kuba@kernel.org>
-> Cc: John Hubbard <jhubbard@nvidia.com>
-> Signed-off-by: Alexander Lobakin <alobakin@pm.me>
+> Maybe unsigned int is better, so as to perfectly match the scatterlist.length.
 
-I don't know why it was missed in the series update, but:
-Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Yes please
+
+> >   	if (umem->nmap > 0)
+> >   		ib_dma_unmap_sg(dev, umem->sg_head.sgl, umem->sg_nents,
+> >   				DMA_BIDIRECTIONAL);
+> > -	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
+> > -		page = sg_page_iter_page(&sg_iter);
+> > -		unpin_user_pages_dirty_lock(&page, 1, umem->writable && dirty);
+> > -	}
+> > +	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, i)
+> 
+> The change from umem->sg_nents to umem->nmap looks OK, although we should get
+> IB people to verify that there is not some odd bug or reason to leave it as is.
+
+No, nmap wouldn't be right here. nmap is the number of dma mapped SGLs
+in the list and should only be used by things doing sg_dma* stuff.
+
+umem->sg_nents is the number of CPU SGL entries and is the correct
+thing here.
+
+> > +		unpin_user_page_range_dirty_lock(sg_page(sg),
+> > +			DIV_ROUND_UP(sg->length, PAGE_SIZE), make_dirty);
+> 
+> Is it really OK to refer directly to sg->length? The scatterlist library goes
+> to some effort to avoid having callers directly access the struct member variables.
+
+Yes, only the dma length has acessors
+
+Jason
