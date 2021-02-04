@@ -2,113 +2,140 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 530D9C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 17:10:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0565C433E6
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 18:31:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A29364F74
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 17:10:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C65D964F53
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 18:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237582AbhBDRH6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 12:07:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54414 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238259AbhBDRAB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Feb 2021 12:00:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 047BD64F70;
-        Thu,  4 Feb 2021 16:59:07 +0000 (UTC)
-Subject: [PATCH v4 2/6] xprtrdma: Simplify rpcrdma_convert_kvec() and
- frwr_map()
-From:   Chuck Lever <chuck.lever@oracle.com>
-To:     anna.schumaker@netapp.com
-Cc:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
-Date:   Thu, 04 Feb 2021 11:59:07 -0500
-Message-ID: <161245794724.737759.7163054588613677023.stgit@manet.1015granger.net>
-In-Reply-To: <161245786674.737759.8361822825753388908.stgit@manet.1015granger.net>
-References: <161245786674.737759.8361822825753388908.stgit@manet.1015granger.net>
-User-Agent: StGit/0.23-29-ga622f1
+        id S239041AbhBDSb1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 13:31:27 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:9443 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239146AbhBDSam (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 13:30:42 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B601c3d110001>; Thu, 04 Feb 2021 10:29:37 -0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
+ 2021 18:29:37 +0000
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HKMAIL103.nvidia.com
+ (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
+ 2021 18:29:28 +0000
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.172)
+ by HKMAIL103.nvidia.com (10.18.16.12) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Thu, 4 Feb 2021 18:29:28 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=XIGIAgbSLfhIQRZTG1xJmx0Sa4L/INh8SxvojUDOTdy5VnDUm2YNwXsMqU0kqjTdHwczohcAWGmqizlWxbXxrVOsNM+uKrBJRqJU0vPHk1YPiyiUxx/ln2gizkAynptpq5ooUWcvc99jdc0sxs6klNK7VmFoH/vPkuiVicmSQ3XwjbOEzhp6Tp05ITD7FPYFkvLNaw20r+QjwFrTlaCt9LpefHkkAfdoCTkIl6kK3+jDfNudOEOqKdzsvNn0BmbNdkrWCyQAGQnhuDLvnwHVr1Wb4k4no9BgIE1+cHzMvF2g4n8dmGOdFqo4ysV+RwY77hPp/unxq+h9dxHpRKWLmQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+cZcUkOrwkLnxcAP9Nz/ErpUe7Fr0zvEU0lngQWQMp4=;
+ b=j4DtkByOSYGJXjCg/ny17EQAfzhA7AjxsOknQzeZXfMvg3kRmN1NHzOB1jox2TUQb/NbYEdWjYZOIr/L355cpHZxW5u6v1iRm35sivfXxjauQssGY3VEt46vjiqyTfV3hDRntSeVe6pW/c57l+TI7FBgFXSwVVZ5TSZ3Se3pNcWoZCURCTpVMcNC898RogvIBJFj+jGt+1fdHgL+wzm2b4ou7AKu0vpCcjXmhWYcK+WTvZ6tgQhB2A20827/Tcg5mT0Obh+YEwI73kv1JJckcHqnvya2zcvGuESqUmgg1gm+k1OQ8dNFw4Fw8P6iuvVBW9ifp2WueYy3kRVAH3fOzA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3402.namprd12.prod.outlook.com (2603:10b6:5:3b::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.17; Thu, 4 Feb
+ 2021 18:29:25 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3805.033; Thu, 4 Feb 2021
+ 18:29:25 +0000
+Date:   Thu, 4 Feb 2021 14:29:23 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Alex Deucher <alexdeucher@gmail.com>
+CC:     John Hubbard <jhubbard@nvidia.com>,
+        Jianxin Xiong <jianxin.xiong@intel.com>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        "Maling list - DRI developers" <dri-devel@lists.freedesktop.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+Subject: Re: [PATCH v16 0/4] RDMA: Add dma-buf support
+Message-ID: <20210204182923.GL4247@nvidia.com>
+References: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
+ <5e4ac17d-1654-9abc-9a14-bda223d62866@nvidia.com>
+ <CADnq5_M2YuOv16E2DG6sCPtL=z5SDDrN+y7iwD_pHVc7Omyrmw@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CADnq5_M2YuOv16E2DG6sCPtL=z5SDDrN+y7iwD_pHVc7Omyrmw@mail.gmail.com>
+X-ClientProxiedBy: MN2PR18CA0029.namprd18.prod.outlook.com
+ (2603:10b6:208:23c::34) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR18CA0029.namprd18.prod.outlook.com (2603:10b6:208:23c::34) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.19 via Frontend Transport; Thu, 4 Feb 2021 18:29:24 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l7jNb-003XfL-Jl; Thu, 04 Feb 2021 14:29:23 -0400
+X-Header: ProcessedBy-CMR-outbound
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1612463377; bh=+cZcUkOrwkLnxcAP9Nz/ErpUe7Fr0zvEU0lngQWQMp4=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Header;
+        b=KI5m6Lz5QvaOQZaht8Nt8EjSccBoij3b1m5oJ3/jArsFx4r2bbns/hB3uggGvyrmP
+         pWnjbmavcbwmfUn4qdiQ0WDRKENsr5zRHpGQ9T98HAxiizsvizGxWFLfiKc8vSMsoS
+         f2fzsJqzNeupgejly/8eSmRXQGGgI+E/6NJm9Q5VkRQtZl8bWoIAjjvMCYU3Q2nKl8
+         BCpjkC/1FAc09OSHw7bUSjmeoDxNhHd9rKvVJJ9HeDIUvAyhu+vHYV4r+peT9KJ7fH
+         xQ+VcuyqRuf/dtfPizX7pEEYFC4WPNId3tl/u0MG9rdlRRmmJEPc/J/68di1LESndb
+         7sPVUyjhV5p2Q==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Clean up.
+On Thu, Feb 04, 2021 at 08:50:38AM -0500, Alex Deucher wrote:
+> On Thu, Feb 4, 2021 at 2:48 AM John Hubbard <jhubbard@nvidia.com> wrote:
+> >
+> > On 12/15/20 1:27 PM, Jianxin Xiong wrote:
+> > > This patch series adds dma-buf importer role to the RDMA driver in
+> > > attempt to support RDMA using device memory such as GPU VRAM. Dma-buf is
+> > > chosen for a few reasons: first, the API is relatively simple and allows
+> > > a lot of flexibility in implementing the buffer manipulation ops.
+> > > Second, it doesn't require page structure. Third, dma-buf is already
+> > > supported in many GPU drivers. However, we are aware that existing GPU
+> > > drivers don't allow pinning device memory via the dma-buf interface.
+> > > Pinning would simply cause the backing storage to migrate to system RAM.
+> > > True peer-to-peer access is only possible using dynamic attach, which
+> > > requires on-demand paging support from the NIC to work. For this reason,
+> > > this series only works with ODP capable NICs.
+> >
+> > Hi,
+> >
+> > Looking ahead to after this patchset is merged...
+> >
+> > Are there design thoughts out there, about the future of pinning to vidmem,
+> > for this? It would allow a huge group of older GPUs and NICs and such to
+> > do p2p with this approach, and it seems like a natural next step, right?
+> 
+> The argument is that vram is a scarce resource, but I don't know if
+> that is really the case these days.  At this point, we often have as
+> much vram as system ram if not more.
 
-Remove a conditional branch from the SGL set-up loop in frwr_map():
-Instead of using either sg_set_page() or sg_set_buf(), initialize
-the mr_page field properly when rpcrdma_convert_kvec() converts the
-kvec to an SGL entry. frwr_map() can then invoke sg_set_page()
-unconditionally.
+I thought the main argument was that GPU memory could move at any time
+between the GPU and CPU and the DMA buf would always track its current
+location?
 
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Reviewed-by: Tom Talpey <tom@talpey.com>
----
- net/sunrpc/xprtrdma/frwr_ops.c  |   12 ++++--------
- net/sunrpc/xprtrdma/rpc_rdma.c  |    2 +-
- net/sunrpc/xprtrdma/xprt_rdma.h |    9 +++++----
- 3 files changed, 10 insertions(+), 13 deletions(-)
+IMHO there is no reason not to have a special API to create small
+amounts of GPU dedicated locked memory that cannot be moved off the
+GPU.
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index baca49fe83af..13a50f77dddb 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -306,14 +306,10 @@ struct rpcrdma_mr_seg *frwr_map(struct rpcrdma_xprt *r_xprt,
- 	if (nsegs > ep->re_max_fr_depth)
- 		nsegs = ep->re_max_fr_depth;
- 	for (i = 0; i < nsegs;) {
--		if (seg->mr_page)
--			sg_set_page(&mr->mr_sg[i],
--				    seg->mr_page,
--				    seg->mr_len,
--				    offset_in_page(seg->mr_offset));
--		else
--			sg_set_buf(&mr->mr_sg[i], seg->mr_offset,
--				   seg->mr_len);
-+		sg_set_page(&mr->mr_sg[i],
-+			    seg->mr_page,
-+			    seg->mr_len,
-+			    offset_in_page(seg->mr_offset));
- 
- 		++seg;
- 		++i;
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 57f9217048d8..b36b9aae0588 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -213,7 +213,7 @@ static struct rpcrdma_mr_seg *
- rpcrdma_convert_kvec(struct kvec *vec, struct rpcrdma_mr_seg *seg,
- 		     unsigned int *n)
- {
--	seg->mr_page = NULL;
-+	seg->mr_page = virt_to_page(vec->iov_base);
- 	seg->mr_offset = vec->iov_base;
- 	seg->mr_len = vec->iov_len;
- 	++seg;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 94b28657aeeb..02971e183989 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -283,10 +283,11 @@ enum {
- 				  RPCRDMA_MAX_IOV_SEGS,
- };
- 
--struct rpcrdma_mr_seg {		/* chunk descriptors */
--	u32		mr_len;		/* length of chunk or segment */
--	struct page	*mr_page;	/* owning page, if any */
--	char		*mr_offset;	/* kva if no page, else offset */
-+/* Arguments for DMA mapping and registration */
-+struct rpcrdma_mr_seg {
-+	u32		mr_len;		/* length of segment */
-+	struct page	*mr_page;	/* underlying struct page */
-+	char		*mr_offset;	/* IN: page offset, OUT: iova */
- };
- 
- /* The Send SGE array is provisioned to send a maximum size
+For instance this paper:
 
+http://www.ziti.uni-heidelberg.de/ziti/uploads/ce_group/2014-ASHESIPDPS.pdf
 
+Considers using the GPU to directly drive the RDMA work
+queues. Putting the queues themselves in GPU VRAM would make alot of
+sense.
+
+But that is impossible without fixed non-invalidating dma bufs.
+
+Jason
