@@ -2,171 +2,259 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,PDS_BAD_THREAD_QP_64,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19D0DC433E9
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 21:13:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54D0CC433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 22:12:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF2F864FB0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 21:13:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E308464E42
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 22:12:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbhBDVNB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 16:13:01 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:10153 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229511AbhBDVM7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 16:12:59 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B601c63330000>; Thu, 04 Feb 2021 13:12:19 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
- 2021 21:12:13 +0000
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.168)
- by HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Thu, 4 Feb 2021 21:12:13 +0000
+        id S229554AbhBDWMi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 17:12:38 -0500
+Received: from mga02.intel.com ([134.134.136.20]:52388 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229534AbhBDWMg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Feb 2021 17:12:36 -0500
+IronPort-SDR: 5mWTB93GNjU84W7vBX13Ss43w11f95Jyua0WowpCLNETLNoLScKYD97Xf1YXVvTNcnC8c04os3
+ Sf3Dt5eU6Q6Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9885"; a="168454140"
+X-IronPort-AV: E=Sophos;i="5.81,153,1610438400"; 
+   d="scan'208";a="168454140"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2021 14:11:54 -0800
+IronPort-SDR: WQwVcmO9GZF4+iUkyGi3FwrxeeZakmxJ7AwS50XNa0mOM4Lx2ZJVoP7yeWQaLp4uEw3ypLAxBF
+ MCcLF84Cj9VQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,153,1610438400"; 
+   d="scan'208";a="415332835"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by FMSMGA003.fm.intel.com with ESMTP; 04 Feb 2021 14:11:54 -0800
+Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Thu, 4 Feb 2021 14:11:53 -0800
+Received: from orsmsx608.amr.corp.intel.com (10.22.229.21) by
+ ORSMSX609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2106.2; Thu, 4 Feb 2021 14:11:53 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx608.amr.corp.intel.com (10.22.229.21) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2
+ via Frontend Transport; Thu, 4 Feb 2021 14:11:53 -0800
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.174)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.1713.5; Thu, 4 Feb 2021 14:11:53 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=chYJcFaCcuNwHyBK3lSmCxB4m+e1q0k/Bs9SPomHxnKTzpwVsCalBtoozZ7mSrttohaTJE9u2OKiCUoHC+AQv/1PfsLth2tVMYAvq/D9p4q6bRqKuiTMF9vxCY6mx1jrmRDdOHCoGoCuroUJ85LFhlPwY7VPSGZISWi4T7AuovDtdeJvXRIRuYZmMXtNKt+PrskNUhoe+L3H6pqSvA13CjaC4Qe352XFswtFmVVEuAQ7m1byFj1wMnnQjfUmaPkZ7emOgNRJWy9INiCRjkYJ22z93IaZpwbnIwBe3E0su8kip5Ag5jyBfwmYhJIuRJejiwGSlOMgw46+Ll5FM40RSA==
+ b=ltyADJIJdISKaRRJgoQdNYMQrRph+oiT+3kMLAuL7+zasTubZBnVbWW029esv/l8KHiY4GzCcJxsNf470MU6ThqRX6ML7ABQ7gTkGq+mfTWrfKCP1MC4pK0LwapQlN2xL9tkFz79X3YLa8AvldzMeN7sWedZW4hj4nqmkvejvLWj57Gk6DTVzxHhYOYFVc0yldniFI6zdldYL2fv9F5FIQ4z8A56zsWXmXeANRWqnmrpFd/H3voNzWsO+bmhdcus7438p3P1Iwweg/1qt0NIRQFSY//4eRdelHU9WwaPyD2PICFZjoTfyK9W64F/6BOh5Xh1XtFZerH/ak7YGWP1DA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=vZMiQkLEMbPCt7LjIxhHSSyVBmHq4W3d6kXjAuE2Ozo=;
- b=aZMNnL3A0aY0zrKWRXo0ohrKUAh2WmJAU3CCmW3EK1Q0eEBVF3i/xEqML7TT+UYFq5LZqgM0gx8ZtMnokd+bqDe+BsmHM+OmcVXBzfA3AjBnYk2H2g5jvtymZS3fGhJJYy35yx/edu7/2C9OX+lSt8ReBfMLsyZNrkg36aieBUVSRh6Et4Y5HF5wiJxyvPSG1uaxdFvubD1aO2b1N8SkRqPzGhUlCtaksvu2SgzSYw/LyYMUosM03nTwMENTukJegniyu1bYraWHpP4rumoA6BcZnTeRaPJ5riZUSg9HGsquC2z+jjvHW/a3SQCvPCV+bdnfsxEKbvZyPCm9lVa1rA==
+ bh=6fqwdNlorYab4bpeQIS1sz5uVOZrHoBRCqW2GCVbTcI=;
+ b=gzlk2MEcbcJHRskahIu6/3vkKuzEOu4EPeQYGw0qQs2A+WLfIjmr/i0dsB8oEB9xI2Ve5vHcVD95LzAR85vbVe+C9AEqDZEJffLEao/eN6qybsbYqnZ09DzLTYzF4B6652zEmySeKzL+x1+1RRWrXi1IzGVN+7pSPIUqCqSde/G9UD8vZS/ZhBEDFLIYv7KoAyqSwdgPt2u8u5JTIdtwERTyHeTo31I4sbpo4hHWERJoFCqEnvaSAB/iyD3tvD7wks6t9cJjlXueVXmOGddmq5rrBzZnjzOXIk3Gj4Kfs14cZyi/mg3BCG/PLbkol9f3DvppiFf/xUEwitE6ehSBKQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB2584.namprd12.prod.outlook.com (2603:10b6:4:b0::37) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6fqwdNlorYab4bpeQIS1sz5uVOZrHoBRCqW2GCVbTcI=;
+ b=uHzIj2MVQzpk5phOmWwLDjERFcQoitGddVYnntHsZRv+fFT2LtYhumwiJCnzNmG90II1LAuOHTWZRRVoIwc7D3MRQ1ub9SeTMGa3FPFxSLvCeupIiHaADWh1xd/GEeYlELAdThXGZ7Byj/xQTrIKiVyEuIPoruZ/twOgLV0HFl8=
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com (2603:10b6:303:2e::24)
+ by MWHPR1101MB2190.namprd11.prod.outlook.com (2603:10b6:301:5b::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.17; Thu, 4 Feb
- 2021 21:12:12 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3805.033; Thu, 4 Feb 2021
- 21:12:12 +0000
-Date:   Thu, 4 Feb 2021 17:12:10 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Jianxin Xiong <jianxin.xiong@intel.com>
-CC:     <linux-rdma@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.17; Thu, 4 Feb
+ 2021 22:11:45 +0000
+Received: from MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::4476:930f:5109:9c28]) by MW3PR11MB4555.namprd11.prod.outlook.com
+ ([fe80::4476:930f:5109:9c28%6]) with mapi id 15.20.3805.026; Thu, 4 Feb 2021
+ 22:11:45 +0000
+From:   "Xiong, Jianxin" <jianxin.xiong@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
         "Doug Ledford" <dledford@redhat.com>,
         Leon Romanovsky <leon@kernel.org>,
         "Sumit Semwal" <sumit.semwal@linaro.org>,
         Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        "Edward Srouji" <edwards@nvidia.com>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>,
+        Edward Srouji <edwards@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>,
-        John Hubbard <jhubbard@nvidia.com>,
+        "John Hubbard" <jhubbard@nvidia.com>,
         Ali Alnubani <alialnu@nvidia.com>,
-        Gal Pressman <galpress@amazon.com>,
+        "Gal Pressman" <galpress@amazon.com>,
         Emil Velikov <emil.l.velikov@gmail.com>
-Subject: Re: [PATCH rdma-core 3/3] configure: Add check for the presence of
+Subject: RE: [PATCH rdma-core 3/3] configure: Add check for the presence of
  DRM headers
-Message-ID: <20210204211210.GQ4247@nvidia.com>
+Thread-Topic: [PATCH rdma-core 3/3] configure: Add check for the presence of
+ DRM headers
+Thread-Index: AQHW+yScRpf+OD9gREyLpSuEhxG5P6pIfoMAgAADCQA=
+Date:   Thu, 4 Feb 2021 22:11:45 +0000
+Message-ID: <MW3PR11MB45557821DAFD15937DEF488CE5B39@MW3PR11MB4555.namprd11.prod.outlook.com>
 References: <1612464651-54073-1-git-send-email-jianxin.xiong@intel.com>
  <1612464651-54073-4-git-send-email-jianxin.xiong@intel.com>
+ <20210204211210.GQ4247@nvidia.com>
+In-Reply-To: <20210204211210.GQ4247@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.5.1.3
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+authentication-results: nvidia.com; dkim=none (message not signed)
+ header.d=none;nvidia.com; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [73.53.14.45]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 6795bc4e-ab49-41d8-59c9-08d8c959dbf7
+x-ms-traffictypediagnostic: MWHPR1101MB2190:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <MWHPR1101MB2190A75B9E67BB68C0B7F0A3E5B39@MWHPR1101MB2190.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:5516;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: C7Ckccn18LtNiv9IXfNALJNZQk2H8G2BBxyUNtgnuhidbJX5b5btfu8u4YuiAPLyqoBxXqbJBPPVvgBsEjh+SuU4++4L+qD43PwwyM6bjQnyeXPW+U0hj+w/kQlFkaBzT2krdO+K+OJbrpa9CGXRMGGxSyT/R0kfKzx5NNyNG6LeRYOL9sRGuXthwJEBzEDK1DpM6tZE2uig/sBYiinm+YWwqeQadOVYZtsVF/J3ltyRuP1Ph5Cb2Wo8UsBvzMNV2TYYTv0NejEcQcuQ3DAuvOBXqDh1pd2YxG7A+NDV5cds6ekGFZepB+vjaw/UUFstV3raUAZPQB3J0tORC22bETpboi+DzJXZF7zOvDZolq5hqNYSOwn17aG+civ1VBVe8UXQnCwPLY890HaHisaB6LW9Y6VCowBZ6aJhjEUiRQ/GDvSkYjJ/K72hIU3oqgzrOCX/wxKSWx9X2vIG3YSLzIzL2vKGzFgoldLU4Wf9Kj0vqr1m6Mf8tdCglL1At33Lbi0mY8SO/WLEKzYzc/6MZQ==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW3PR11MB4555.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(346002)(136003)(376002)(366004)(396003)(66476007)(66446008)(52536014)(7696005)(66946007)(66556008)(64756008)(54906003)(9686003)(76116006)(316002)(6916009)(4326008)(55016002)(33656002)(8676002)(7416002)(2906002)(186003)(5660300002)(86362001)(8936002)(71200400001)(478600001)(26005)(53546011)(83380400001)(6506007);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: =?us-ascii?Q?d4WvFGeOTSfYZodJgQZ4LlHBqlzHlzkNlVz2qA5OhKa0ho3VywcxBzfmUH1P?=
+ =?us-ascii?Q?TZVomoLrSh8PMtNS15jE98LVZOzS3Ayp5NrmpWCv0NZkWtBTfLhEOI9WIvbG?=
+ =?us-ascii?Q?AOZizAvYOGQAw+xfJL23w5B0Fb8U69pEHX1qpGkbmoggoLfGOze34Ev64M7z?=
+ =?us-ascii?Q?NjcDhbakfHoSP71Nx783Hnu8n4rJqNOb8y02b91t3Tkp+XxI2Q4nYB9OOxBv?=
+ =?us-ascii?Q?0em3Liqp3X7KmTDZHiMQKDJZ55qQiECgKlXy9Wg79X/en6LUcbRWuKesHqGD?=
+ =?us-ascii?Q?WMKgnFyLioOxaD9XKGc9BBwl7pyWxPZ6VBk3TWgC0ijs20j9HchOg9Q1Jg4V?=
+ =?us-ascii?Q?yIacUSLy/vmQIdUZal/LOSTdmRKvrepWQa1EUEzBkMJ4m2gY7eWJH43xiNtk?=
+ =?us-ascii?Q?N3Z80esgDQje9swStp8OjlEH4GOCHKlgJNtaxytoXROhxULBejMhTrmCNsr2?=
+ =?us-ascii?Q?WmrQhAiZAVHPlQs5TWNRmFj05ai/KHZud1gOKmFgYRm2rJJkGcJN6udytFbv?=
+ =?us-ascii?Q?dwnto5SNOndAbo7Lf+vBCMak2iXEftUgWkkcfYfngddoH6wK8CZK2BAgHvFY?=
+ =?us-ascii?Q?nkJebL9OI6Ha0TJcBrFCmBqmUvZ4IVJPyY6gXhsHLaYYAxdhlaz6ITxCBb4b?=
+ =?us-ascii?Q?SlROhai0gZaPfAEtlPnq8ROmQPZw6mYFXh5/Mp7oVzVkgX/yBQM3HKA8LED1?=
+ =?us-ascii?Q?F+wQ5dXY2yGQn4Aetk/F4VrADrH7ilA5edg3LLd0RsgeoxVVL/6VP1CYiCqf?=
+ =?us-ascii?Q?hVIQraabYelDiBusMRdCAI5+9mGeLjQ2F5bQF2L4eXnxjq5NuXeaeKF+hIkz?=
+ =?us-ascii?Q?aH1b025vSNYWm4K0SkvICj0mgWaHCmSMNCRumbOaxbjapJoRMmK+OiGKjKcL?=
+ =?us-ascii?Q?rpCVA7p3NpVDlVHhbdX7OyXtl8pbegMmv6W1sV0I3VYlQc13Fm4LZ8va5zKc?=
+ =?us-ascii?Q?vjq26PUXV+L/6enE++S35Kc27itA0rJXk3NrFJWoiK9NJraQHC/6KIqbQnzL?=
+ =?us-ascii?Q?WXHe/b2EpzBFSQhevfPFaUoqiGboWWREuRs75qKjx1g2VuvYuC7HQa7wRF8F?=
+ =?us-ascii?Q?OqTdzYKIp5egcdP6+w1u9PWC6DEfTPxZ8YsO2aGdIzce0DHDQUJ0zyK421uu?=
+ =?us-ascii?Q?bjs+XGWi2tFHSBiHD+X5Kj628U5GVmGSS1RzUX2qqXSrFC90KJoPp91dYDIL?=
+ =?us-ascii?Q?I+k30R/iap5XNyL+pFp3EFeWK9z0s6jcSun0+7Sh/ufYSKCSxn9OGKEmLW8I?=
+ =?us-ascii?Q?7Iewq8QxO5dMlS05EOw4hDj7jNVeXOI4pq0ZZXGFaKTLLzHKZjb3mOMARbQz?=
+ =?us-ascii?Q?jBE=3D?=
 Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1612464651-54073-4-git-send-email-jianxin.xiong@intel.com>
-X-ClientProxiedBy: MN2PR05CA0035.namprd05.prod.outlook.com
- (2603:10b6:208:c0::48) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR05CA0035.namprd05.prod.outlook.com (2603:10b6:208:c0::48) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.17 via Frontend Transport; Thu, 4 Feb 2021 21:12:11 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l7lv8-003cEc-Qi; Thu, 04 Feb 2021 17:12:10 -0400
-X-Header: ProcessedBy-CMR-outbound
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612473139; bh=vZMiQkLEMbPCt7LjIxhHSSyVBmHq4W3d6kXjAuE2Ozo=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType:X-Header;
-        b=CgmRzWZtgfzr23n7BPXFlHfi2IeWc2V9bXs9gd72ay0XBf468qBH08KHoxNgZg6o1
-         d3Bv1NbLXFi4/YeI4NLVLHnUtbwb4Nm+onRna0gZftuCbmQUDWNJFpp2l4HAj66Uav
-         tR1kmloUaJB4X4PI8IdBCxLRtQK48ekQtEBCmIFEzgr6EOt8LWBNW2EyHc6Z+MyKRB
-         qK9foBR1RKj8UHpp9l6AdIB7UJoR2nTbJ5VOSnAabrKakJZkE+A/PKDtQrCx/or5fR
-         +kSurQhEJ6lK7mpLF8JdNgTlKqfQwvtiQxqo1WJVweqrZp+6fMGrmmIuOh2qIqzd7K
-         pRHXalK5tOPVw==
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MW3PR11MB4555.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6795bc4e-ab49-41d8-59c9-08d8c959dbf7
+X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Feb 2021 22:11:45.1443
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: HF0idR0tmMDSCC2LdCTzX1Uvao7qvlrDJBzsis4Mg0KD82HLjZr7Puzgw4bmMP5uYdRPUoSOraHdxksTbgARtA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR1101MB2190
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 04, 2021 at 10:50:51AM -0800, Jianxin Xiong wrote:
-> Compilation of pyverbs/dmabuf_alloc.c depends on a few DRM headers
-> that are installed by either the kernel-header or the libdrm package.
-> The installation is optional and the location is not unique.
-> 
-> The standard locations (such as /usr/include/drm, /usr/include/libdrm)
-> are checked first. If failed, pkg-config is tried to find the include
-> path of custom libdrm installation. The dmabuf allocation routines now
-> return suitable error when the headers are not available. The related
-> tests will recognize this error code and skip.
-> 
-> Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
->  CMakeLists.txt         |  7 +++++++
->  buildlib/Finddrm.cmake | 19 +++++++++++++++++++
->  buildlib/config.h.in   |  2 ++
->  pyverbs/dmabuf_alloc.c | 47 ++++++++++++++++++++++++++++++++++++++++++-----
->  4 files changed, 70 insertions(+), 5 deletions(-)
->  create mode 100644 buildlib/Finddrm.cmake
-> 
-> diff --git a/CMakeLists.txt b/CMakeLists.txt
-> index 4113423..feaba3a 100644
-> +++ b/CMakeLists.txt
-> @@ -515,6 +515,13 @@ find_package(Systemd)
->  include_directories(${SYSTEMD_INCLUDE_DIRS})
->  RDMA_DoFixup("${SYSTEMD_FOUND}" "systemd/sd-daemon.h")
->  
-> +# drm headers
-> +find_package(drm)
-> +if (DRM_INCLUDE_DIRS)
-> +  include_directories(${DRM_INCLUDE_DIRS})
-> +  set(HAVE_DRM_H 1)
-> +endif()
-> +
->  #-------------------------
->  # Apply fixups
->  
-> diff --git a/buildlib/Finddrm.cmake b/buildlib/Finddrm.cmake
-> new file mode 100644
-> index 0000000..6f8e5f2
-> +++ b/buildlib/Finddrm.cmake
-> @@ -0,0 +1,19 @@
-> +# COPYRIGHT (c) 2021 Intel Corporation.
-> +# Licensed under BSD (MIT variant) or GPLv2. See COPYING.
-> +
-> +# Check standard locations first
-> +find_path(DRM_INCLUDE_DIRS "drm.h" PATH_SUFFIXES "drm" "libdrm")
-> +
-> +# Check custom libdrm installation, if any
-> +if (NOT DRM_INCLUDE_DIRS)
-> +  execute_process(COMMAND pkg-config --cflags-only-I libdrm
-> +    OUTPUT_VARIABLE _LIBDRM
-> +    RESULT_VARIABLE _LIBDRM_RESULT
-> +    ERROR_QUIET)
-> +
-> +  if (NOT _LIBDRM_RESULT)
-> +    string(REGEX REPLACE "^-I" "" DRM_INCLUDE_DIRS "${_LIBDRM}")
-> +  endif()
-> +  unset(_LIBDRM)
-> +  unset(_LIBDRM_RESULT)
-> +endif()
+> -----Original Message-----
+> From: Jason Gunthorpe <jgg@nvidia.com>
+> Sent: Thursday, February 04, 2021 1:12 PM
+> To: Xiong, Jianxin <jianxin.xiong@intel.com>
+> Cc: linux-rdma@vger.kernel.org; dri-devel@lists.freedesktop.org; Doug Led=
+ford <dledford@redhat.com>; Leon Romanovsky
+> <leon@kernel.org>; Sumit Semwal <sumit.semwal@linaro.org>; Christian Koen=
+ig <christian.koenig@amd.com>; Vetter, Daniel
+> <daniel.vetter@intel.com>; Edward Srouji <edwards@nvidia.com>; Yishai Had=
+as <yishaih@nvidia.com>; John Hubbard
+> <jhubbard@nvidia.com>; Ali Alnubani <alialnu@nvidia.com>; Gal Pressman <g=
+alpress@amazon.com>; Emil Velikov
+> <emil.l.velikov@gmail.com>
+> Subject: Re: [PATCH rdma-core 3/3] configure: Add check for the presence =
+of DRM headers
+>=20
+> On Thu, Feb 04, 2021 at 10:50:51AM -0800, Jianxin Xiong wrote:
+> > Compilation of pyverbs/dmabuf_alloc.c depends on a few DRM headers
+> > that are installed by either the kernel-header or the libdrm package.
+> > The installation is optional and the location is not unique.
+> >
+> > The standard locations (such as /usr/include/drm, /usr/include/libdrm)
+> > are checked first. If failed, pkg-config is tried to find the include
+> > path of custom libdrm installation. The dmabuf allocation routines now
+> > return suitable error when the headers are not available. The related
+> > tests will recognize this error code and skip.
+> >
+> > Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+> >  CMakeLists.txt         |  7 +++++++
+> >  buildlib/Finddrm.cmake | 19 +++++++++++++++++++
+> >  buildlib/config.h.in   |  2 ++
+> >  pyverbs/dmabuf_alloc.c | 47
+> > ++++++++++++++++++++++++++++++++++++++++++-----
+> >  4 files changed, 70 insertions(+), 5 deletions(-)  create mode 100644
+> > buildlib/Finddrm.cmake
+> >
+> > diff --git a/CMakeLists.txt b/CMakeLists.txt index 4113423..feaba3a
+> > 100644
+> > +++ b/CMakeLists.txt
+> > @@ -515,6 +515,13 @@ find_package(Systemd)
+> >  include_directories(${SYSTEMD_INCLUDE_DIRS})
+> >  RDMA_DoFixup("${SYSTEMD_FOUND}" "systemd/sd-daemon.h")
+> >
+> > +# drm headers
+> > +find_package(drm)
+> > +if (DRM_INCLUDE_DIRS)
+> > +  include_directories(${DRM_INCLUDE_DIRS})
+> > +  set(HAVE_DRM_H 1)
+> > +endif()
+> > +
+> >  #-------------------------
+> >  # Apply fixups
+> >
+> > diff --git a/buildlib/Finddrm.cmake b/buildlib/Finddrm.cmake new file
+> > mode 100644 index 0000000..6f8e5f2
+> > +++ b/buildlib/Finddrm.cmake
+> > @@ -0,0 +1,19 @@
+> > +# COPYRIGHT (c) 2021 Intel Corporation.
+> > +# Licensed under BSD (MIT variant) or GPLv2. See COPYING.
+> > +
+> > +# Check standard locations first
+> > +find_path(DRM_INCLUDE_DIRS "drm.h" PATH_SUFFIXES "drm" "libdrm")
+> > +
+> > +# Check custom libdrm installation, if any if (NOT DRM_INCLUDE_DIRS)
+> > +  execute_process(COMMAND pkg-config --cflags-only-I libdrm
+> > +    OUTPUT_VARIABLE _LIBDRM
+> > +    RESULT_VARIABLE _LIBDRM_RESULT
+> > +    ERROR_QUIET)
+> > +
+> > +  if (NOT _LIBDRM_RESULT)
+> > +    string(REGEX REPLACE "^-I" "" DRM_INCLUDE_DIRS "${_LIBDRM}")
+> > +  endif()
+> > +  unset(_LIBDRM)
+> > +  unset(_LIBDRM_RESULT)
+> > +endif()
+>=20
+> I think this should be using pkg_check_modules() ??
+>=20
+> Look at the NL stuff:
+>=20
+>   pkg_check_modules(NL libnl-3.0 libnl-route-3.0 REQUIRED)
+>   include_directories(${NL_INCLUDE_DIRS})
+>   link_directories(${NL_LIBRARY_DIRS})
+>
 
-I think this should be using pkg_check_modules() ??
+Yes, this is much simpler than the pkg-config method.=20
+=20
+> > +#if HAVE_DRM_H
+> > +
+>=20
+> Would rather you use cmake to conditionally compile a dmabuf_alloc.c or a=
+ dmabuf_alloc_stub.c than ifdef the entire file
 
-Look at the NL stuff:
+Sure, will try that.
 
-  pkg_check_modules(NL libnl-3.0 libnl-route-3.0 REQUIRED)
-  include_directories(${NL_INCLUDE_DIRS})
-  link_directories(${NL_LIBRARY_DIRS})
-
-> +#if HAVE_DRM_H
-> +
-
-Would rather you use cmake to conditionally compile a dmabuf_alloc.c
-or a dmabuf_alloc_stub.c than ifdef the entire file
-
-Jaason
+>=20
+> Jaason
