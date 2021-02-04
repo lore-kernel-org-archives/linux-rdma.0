@@ -2,142 +2,90 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02AE8C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 00:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F33BC433DB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 06:26:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B48B661494
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 00:16:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0727B64E31
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 06:26:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233790AbhBDAQf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Feb 2021 19:16:35 -0500
-Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:7678 "EHLO
-        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233393AbhBDAQe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Feb 2021 19:16:34 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate26.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B601b3cb90003>; Wed, 03 Feb 2021 16:15:53 -0800
-Received: from [10.2.50.90] (172.20.145.6) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
- 2021 00:15:53 +0000
-Subject: Re: [PATCH 4/4] RDMA/umem: batch page unpin in __ib_mem_release()
-To:     Joao Martins <joao.m.martins@oracle.com>, <linux-mm@kvack.org>
-CC:     <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>
-References: <20210203220025.8568-1-joao.m.martins@oracle.com>
- <20210203220025.8568-5-joao.m.martins@oracle.com>
-From:   John Hubbard <jhubbard@nvidia.com>
-Message-ID: <4ed92932-8cf2-97ab-7296-6efee51fc555@nvidia.com>
-Date:   Wed, 3 Feb 2021 16:15:53 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101
- Thunderbird/85.0
+        id S231879AbhBDG0D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 01:26:03 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:12392 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231367AbhBDG0D (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 01:26:03 -0500
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DWT5v1Rh9z7gc6;
+        Thu,  4 Feb 2021 14:24:03 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
+ 14.3.498.0; Thu, 4 Feb 2021 14:25:20 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@openeuler.org>
+Subject: [PATCH for-next 3/6] RDMA/hns: Fixes missing error code of CMDQ
+Date:   Thu, 4 Feb 2021 14:23:03 +0800
+Message-ID: <1612419786-39173-4-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1612419786-39173-1-git-send-email-liweihang@huawei.com>
+References: <1612419786-39173-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <20210203220025.8568-5-joao.m.martins@oracle.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [172.20.145.6]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612397753; bh=FKxxVoiW2V506J4PCGyrpYPZ6Kptj9MoY4pk4P9XslA=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Language:
-         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-        b=fJS4knUwtxxz+DimlJaYQXzRUUV1jiXYzmwh2N9EwutcpqMJx2Ir9z7uRwQdFZ9Yd
-         UIsTAjM1UF/vOdTStAC7BGPq2pbqlaLcR3bo5wu3R/h6hu44blEH2R1uykAie8OD4D
-         iArUROqhod14DsVwfpd7RZ6vUKi6wV3dYVQy6pp8pE4TsXc2/rmBCJu+AI+MEq7OUd
-         xUPuFF4pR2tee7vebUeImE7g8PlFC7uvdewEX8Gc4HvQz3UXkf2Np/LevSQpzM1WqV
-         9coNypNBAlQ/Wdt02KLy8L3/Fro0NJGK8S08FSG92Reo1f4F0IkR/CHoRiyX1eaX4M
-         +qOg/j1pFRz3w==
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2/3/21 2:00 PM, Joao Martins wrote:
-> Use the newly added unpin_user_page_range_dirty_lock()
-> for more quickly unpinning a consecutive range of pages
-> represented as compound pages. This will also calculate
-> number of pages to unpin (for the tail pages which matching
-> head page) and thus batch the refcount update.
-> 
-> Running a test program which calls mr reg/unreg on a 1G in size
-> and measures cost of both operations together (in a guest using rxe)
-> with THP and hugetlbfs:
+From: Lang Cheng <chenglang@huawei.com>
 
-In the patch subject line:
+When posting a multi-descriptors command, the error code of previous failed
+descriptors may be rewrote to 0 by a later successful descriptor.
 
-    s/__ib_mem_release/__ib_umem_release/
+Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-> 
-> Before:
-> 590 rounds in 5.003 sec: 8480.335 usec / round
-> 6898 rounds in 60.001 sec: 8698.367 usec / round
-> 
-> After:
-> 2631 rounds in 5.001 sec: 1900.618 usec / round
-> 31625 rounds in 60.001 sec: 1897.267 usec / round
-> 
-> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-> ---
->   drivers/infiniband/core/umem.c | 12 ++++++------
->   1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index 2dde99a9ba07..ea4ebb3261d9 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -47,17 +47,17 @@
->   
->   static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
->   {
-> -	struct sg_page_iter sg_iter;
-> -	struct page *page;
-> +	bool make_dirty = umem->writable && dirty;
-> +	struct scatterlist *sg;
-> +	int i;
-
-Maybe unsigned int is better, so as to perfectly match the scatterlist.length.
-
->   
->   	if (umem->nmap > 0)
->   		ib_dma_unmap_sg(dev, umem->sg_head.sgl, umem->sg_nents,
->   				DMA_BIDIRECTIONAL);
->   
-> -	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
-> -		page = sg_page_iter_page(&sg_iter);
-> -		unpin_user_pages_dirty_lock(&page, 1, umem->writable && dirty);
-> -	}
-> +	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, i)
-
-The change from umem->sg_nents to umem->nmap looks OK, although we should get
-IB people to verify that there is not some odd bug or reason to leave it as is.
-
-> +		unpin_user_page_range_dirty_lock(sg_page(sg),
-> +			DIV_ROUND_UP(sg->length, PAGE_SIZE), make_dirty);
-
-Is it really OK to refer directly to sg->length? The scatterlist library goes
-to some effort to avoid having callers directly access the struct member variables.
-
-Actually, the for_each_sg() code and its behavior with sg->length and sg_page(sg)
-confuses me because I'm new to it, and I don't quite understand how this works.
-Especially with SG_CHAIN. I'm assuming that you've monitored /proc/vmstat for
-nr_foll_pin* ?
-
->   
->   	sg_free_table(&umem->sg_head);
->   }
-> 
-
-thanks,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 260c17c..13f7897 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1245,7 +1245,7 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 	u32 timeout = 0;
+ 	int handle = 0;
+ 	u16 desc_ret;
+-	int ret = 0;
++	int ret;
+ 	int ntc;
+ 
+ 	spin_lock_bh(&csq->lock);
+@@ -1283,15 +1283,14 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 
+ 	if (hns_roce_cmq_csq_done(hr_dev)) {
+ 		handle = 0;
++		ret = 0;
+ 		while (handle < num) {
+ 			/* get the result of hardware write back */
+ 			desc_to_use = &csq->desc[ntc];
+ 			desc[handle] = *desc_to_use;
+ 			dev_dbg(hr_dev->dev, "Get cmq desc:\n");
+ 			desc_ret = le16_to_cpu(desc[handle].retval);
+-			if (desc_ret == CMD_EXEC_SUCCESS)
+-				ret = 0;
+-			else
++			if (unlikely(desc_ret != CMD_EXEC_SUCCESS))
+ 				ret = -EIO;
+ 
+ 			ntc++;
 -- 
-John Hubbard
-NVIDIA
+2.8.1
+
