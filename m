@@ -2,128 +2,88 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8ED4C43381
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 06:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E00C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 07:49:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AAA164E31
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 06:26:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE52364F53
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 07:49:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231791AbhBDG0J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 01:26:09 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:12121 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231872AbhBDG0F (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 01:26:05 -0500
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DWT5t739Jz163q3;
-        Thu,  4 Feb 2021 14:24:02 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.498.0; Thu, 4 Feb 2021 14:25:19 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@openeuler.org>
-Subject: [PATCH for-next 2/6] RDMA/hns: Remove unsupported CMDQ mode
-Date:   Thu, 4 Feb 2021 14:23:02 +0800
-Message-ID: <1612419786-39173-3-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1612419786-39173-1-git-send-email-liweihang@huawei.com>
-References: <1612419786-39173-1-git-send-email-liweihang@huawei.com>
+        id S234332AbhBDHth (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 02:49:37 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:13850 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231941AbhBDHth (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 02:49:37 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B601ba6e90000>; Wed, 03 Feb 2021 23:48:57 -0800
+Received: from [10.2.50.90] (172.20.145.6) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
+ 2021 07:48:48 +0000
+Subject: Re: [PATCH v16 0/4] RDMA: Add dma-buf support
+To:     Jianxin Xiong <jianxin.xiong@intel.com>,
+        <linux-rdma@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
+CC:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        "Leon Romanovsky" <leon@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Daniel Vetter <daniel.vetter@intel.com>
+References: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
+From:   John Hubbard <jhubbard@nvidia.com>
+Message-ID: <5e4ac17d-1654-9abc-9a14-bda223d62866@nvidia.com>
+Date:   Wed, 3 Feb 2021 23:48:48 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101
+ Thunderbird/85.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [172.20.145.6]
+X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1612424937; bh=alcGj/A8SKeiAR0MFZN9AYw8+7za61R+PH3RiAuD15w=;
+        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+         MIME-Version:In-Reply-To:Content-Type:Content-Language:
+         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+        b=SVrbdc1CDRz+lmunAKbsH85fK2fsA61ndMm0kioS6EWP6r/VroL39DWB9UZJmBXZu
+         HEyeEH3h/4ZvWUBJrDxGBSKWjRZyHVS99Qac0tr5M3BCdt0vEI3wvT5bpfPGxv3nxu
+         AQe/CDiEzz9OlHO2w8cHCpGn4rzHBbu/FcvygoiC8EAgL2VToKxOiaRnZMBTT5qR0g
+         ajYpFGIwUWfsqrwI/eKB4KWzJH75+GqoHUPGL3h87rdlQH8GUxtCvBsNkFuTouExRs
+         G6VfnYU8lT8x1XX5vBTnOUhcpfEtLFv6JuXhd6OLeAvCXz7uwZqKzdvyli4sRn4REI
+         daDg9OI+PRUHQ==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On 12/15/20 1:27 PM, Jianxin Xiong wrote:
+> This patch series adds dma-buf importer role to the RDMA driver in
+> attempt to support RDMA using device memory such as GPU VRAM. Dma-buf is
+> chosen for a few reasons: first, the API is relatively simple and allows
+> a lot of flexibility in implementing the buffer manipulation ops.
+> Second, it doesn't require page structure. Third, dma-buf is already
+> supported in many GPU drivers. However, we are aware that existing GPU
+> drivers don't allow pinning device memory via the dma-buf interface.
+> Pinning would simply cause the backing storage to migrate to system RAM.
+> True peer-to-peer access is only possible using dynamic attach, which
+> requires on-demand paging support from the NIC to work. For this reason,
+> this series only works with ODP capable NICs.
 
-HIP08/09 only supports CMDQ in non-interrupt mode, and the firmware always
-ignores the flag to indicate the mode. Therefore, remove the dead code.
+Hi,
 
-Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 24 ++++++++----------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  2 --
- 2 files changed, 8 insertions(+), 18 deletions(-)
+Looking ahead to after this patchset is merged...
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 7a5a41d..260c17c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1197,8 +1197,7 @@ static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
- {
- 	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
- 	desc->opcode = cpu_to_le16(opcode);
--	desc->flag =
--		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
-+	desc->flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
- 	if (is_read)
- 		desc->flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_WR);
- 	else
-@@ -1275,18 +1274,12 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	/* Write to hardware */
- 	roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, csq->next_to_use);
- 
--	/*
--	 * If the command is sync, wait for the firmware to write back,
--	 * if multi descriptors to be sent, use the first one to check
--	 */
--	if (le16_to_cpu(desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
--		do {
--			if (hns_roce_cmq_csq_done(hr_dev))
--				break;
--			udelay(1);
--			timeout++;
--		} while (timeout < priv->cmq.tx_timeout);
--	}
-+	do {
-+		if (hns_roce_cmq_csq_done(hr_dev))
-+			break;
-+		udelay(1);
-+		timeout++;
-+	} while (timeout < priv->cmq.tx_timeout);
- 
- 	if (hns_roce_cmq_csq_done(hr_dev)) {
- 		handle = 0;
-@@ -1626,8 +1619,7 @@ static int hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev, int vf_id)
- 	if (ret)
- 		return ret;
- 
--	desc.flag =
--		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
-+	desc.flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
- 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
- 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
- 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 9f97e32..986a287 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -128,14 +128,12 @@
- #define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
- #define HNS_ROCE_CMD_FLAG_NEXT_SHIFT		2
- #define HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT	3
--#define HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT		4
- #define HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT	5
- 
- #define HNS_ROCE_CMD_FLAG_IN		BIT(HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT)
- #define HNS_ROCE_CMD_FLAG_OUT		BIT(HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT)
- #define HNS_ROCE_CMD_FLAG_NEXT		BIT(HNS_ROCE_CMD_FLAG_NEXT_SHIFT)
- #define HNS_ROCE_CMD_FLAG_WR		BIT(HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT)
--#define HNS_ROCE_CMD_FLAG_NO_INTR	BIT(HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT)
- #define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
- 
- #define HNS_ROCE_CMQ_DESC_NUM_S		3
+Are there design thoughts out there, about the future of pinning to vidmem,
+for this? It would allow a huge group of older GPUs and NICs and such to
+do p2p with this approach, and it seems like a natural next step, right?
+
+
+thanks,
 -- 
-2.8.1
-
+John Hubbard
+NVIDIA
