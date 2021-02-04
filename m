@@ -2,67 +2,32 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06CC0C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 18:56:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F703C433E6
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 19:01:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BABB864E3F
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 18:56:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AD5564F87
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 19:01:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239236AbhBDSzk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 13:55:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52882 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238978AbhBDSpe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 13:45:34 -0500
-Received: from mail-oo1-xc35.google.com (mail-oo1-xc35.google.com [IPv6:2607:f8b0:4864:20::c35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEF2BC061788
-        for <linux-rdma@vger.kernel.org>; Thu,  4 Feb 2021 10:44:53 -0800 (PST)
-Received: by mail-oo1-xc35.google.com with SMTP id x23so1007409oop.1
-        for <linux-rdma@vger.kernel.org>; Thu, 04 Feb 2021 10:44:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4gooucf1A/MMHrPZZxu5UrlGZXNuNVaVVN03MAVxOqo=;
-        b=nrF6qdlRrTGg6bI04z7g6l6waKFUp10JPZfWBBovOVUWSVVGkEyE4fSknfKR0M6ygk
-         1ml9g4QKtEzZxV9Lvc083qz4lSJVFXme2QkjVXmxsi3nmiGCryLH4Yz5PpMfCDWx8g0s
-         1lJbRyJMmAuDf2KR9lZ9fpowwT+pc6MpzAe+S9MeCWwOTt5e6EXjKJPWF2T6dTxn80bW
-         jN3dRGT8BWiDDLD0Onhj2YlpIqlwVMLhZPZjztclfv6Zy+9U6YDgjEOrng9phgTDA8wl
-         PanCqP/A7/M/9owttkc7k0TE9fa3YMbGvAwk07PCwT8ueKbPdQQ1rgbWDb69Sk6AB/do
-         +YVA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4gooucf1A/MMHrPZZxu5UrlGZXNuNVaVVN03MAVxOqo=;
-        b=JMfs8/HLjkVtrIZCoSjCraH0tKOpFWnYcLnUlS5pAE8zl2RJbm+ZanuKEuXo0DBUg3
-         vSZoeDwHl2y26ZJQd6LlAX6OEKcNMVXcHvk7DoruZ88R4wWxXiQ9dBSSOa0vlrmjtg30
-         2zC3sgB9R37H2haFSV6W5hHyDBGriVTuhi29AUcf6p++ayIDEhUJGXK2x3WTxf5m1hBw
-         XaVHrFXFcTii/G4pAA0Eb7ab1dbXzvFcLpsG5qE8F/78YiHloWyfmrNzop4ttkIQYPad
-         ijLUHIbiTfQSMH3xzZmRKLpG+1UpvD2JmZ1N3PrC95VbjdAQJFb9+/HhU0jfbE2tArEb
-         LHhg==
-X-Gm-Message-State: AOAM5313EkF1UAzYfiYKoe7ryKE5gWs2KOnvqpaF4VTrJgHSdvBxkvz0
-        4ytjbq8sC/T19rZxeY+7Gj0pHOInGtON2MnCMVUyzTkT
-X-Google-Smtp-Source: ABdhPJyeoMN3IRVyXp+gfdgnnLu/hcm6gS6KPMHhpb0K/ivi5apGLX3HLtZJBx6m1veE0Uz6mRStkwLzxJ1ESXXZph8=
-X-Received: by 2002:a4a:de94:: with SMTP id v20mr694655oou.90.1612464293198;
- Thu, 04 Feb 2021 10:44:53 -0800 (PST)
-MIME-Version: 1.0
-References: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
- <5e4ac17d-1654-9abc-9a14-bda223d62866@nvidia.com> <CADnq5_M2YuOv16E2DG6sCPtL=z5SDDrN+y7iwD_pHVc7Omyrmw@mail.gmail.com>
- <20210204182923.GL4247@nvidia.com>
-In-Reply-To: <20210204182923.GL4247@nvidia.com>
-From:   Alex Deucher <alexdeucher@gmail.com>
-Date:   Thu, 4 Feb 2021 13:44:41 -0500
-Message-ID: <CADnq5_N9QvgAKQMLeutA7oBo5W5XyttvNOMK_siOc6QL+H07jQ@mail.gmail.com>
+        id S239498AbhBDTBa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 14:01:30 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:13170 "EHLO
+        hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239485AbhBDTBT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 14:01:19 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B601c44570001>; Thu, 04 Feb 2021 11:00:39 -0800
+Received: from MacBook-Pro-10.local (172.20.145.6) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Thu, 4 Feb
+ 2021 19:00:32 +0000
 Subject: Re: [PATCH v16 0/4] RDMA: Add dma-buf support
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     John Hubbard <jhubbard@nvidia.com>,
-        Jianxin Xiong <jianxin.xiong@intel.com>,
+To:     Alex Deucher <alexdeucher@gmail.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+CC:     Jianxin Xiong <jianxin.xiong@intel.com>,
         linux-rdma <linux-rdma@vger.kernel.org>,
         Maling list - DRI developers 
         <dri-devel@lists.freedesktop.org>,
@@ -70,68 +35,72 @@ Cc:     John Hubbard <jhubbard@nvidia.com>,
         Christian Koenig <christian.koenig@amd.com>,
         Doug Ledford <dledford@redhat.com>,
         Daniel Vetter <daniel.vetter@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+References: <1608067636-98073-1-git-send-email-jianxin.xiong@intel.com>
+ <5e4ac17d-1654-9abc-9a14-bda223d62866@nvidia.com>
+ <CADnq5_M2YuOv16E2DG6sCPtL=z5SDDrN+y7iwD_pHVc7Omyrmw@mail.gmail.com>
+ <20210204182923.GL4247@nvidia.com>
+ <CADnq5_N9QvgAKQMLeutA7oBo5W5XyttvNOMK_siOc6QL+H07jQ@mail.gmail.com>
+From:   John Hubbard <jhubbard@nvidia.com>
+Message-ID: <8e731fce-95c1-4ace-d8bc-dc0df7432d22@nvidia.com>
+Date:   Thu, 4 Feb 2021 11:00:32 -0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:78.0)
+ Gecko/20100101 Thunderbird/78.7.0
+MIME-Version: 1.0
+In-Reply-To: <CADnq5_N9QvgAKQMLeutA7oBo5W5XyttvNOMK_siOc6QL+H07jQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [172.20.145.6]
+X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1612465239; bh=ZRwFgdcQ21FKYiVXb0EIKpbgQVH1pjcxmfD2qtvFKCs=;
+        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+         MIME-Version:In-Reply-To:Content-Type:Content-Language:
+         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+        b=O62cwUSgaxuiTPjW3XH95lJXxP99XYlZmxq0IbYI/q5iy+lytfttykWVIg4zh/p79
+         YkpTFrnCNfdEc1GoIJB3TUshyMLqt7hPi6IOGykdN1wypmvoj8iCj1TgKFZxaTs9vF
+         DOuntKqUcV+wJjItWIdWvIynHDtrcN5xfNtqc0wMi496zKEuaR0NCb6IhN25JPC9++
+         lfCJjja90iS2hGwus5QNwCGw8isDOytKQsahv/rrnh7J6AP2dyjbyz923gycpufuX7
+         NcPu1IzdGV196RtO1PKnCTXP54JelRD40hEM+HS7qMt5F70KxK3fmRsrPNpdjBCue0
+         /dDRlSSEeqTHA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 4, 2021 at 1:29 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
->
-> On Thu, Feb 04, 2021 at 08:50:38AM -0500, Alex Deucher wrote:
-> > On Thu, Feb 4, 2021 at 2:48 AM John Hubbard <jhubbard@nvidia.com> wrote:
-> > >
-> > > On 12/15/20 1:27 PM, Jianxin Xiong wrote:
-> > > > This patch series adds dma-buf importer role to the RDMA driver in
-> > > > attempt to support RDMA using device memory such as GPU VRAM. Dma-buf is
-> > > > chosen for a few reasons: first, the API is relatively simple and allows
-> > > > a lot of flexibility in implementing the buffer manipulation ops.
-> > > > Second, it doesn't require page structure. Third, dma-buf is already
-> > > > supported in many GPU drivers. However, we are aware that existing GPU
-> > > > drivers don't allow pinning device memory via the dma-buf interface.
-> > > > Pinning would simply cause the backing storage to migrate to system RAM.
-> > > > True peer-to-peer access is only possible using dynamic attach, which
-> > > > requires on-demand paging support from the NIC to work. For this reason,
-> > > > this series only works with ODP capable NICs.
-> > >
-> > > Hi,
-> > >
-> > > Looking ahead to after this patchset is merged...
-> > >
-> > > Are there design thoughts out there, about the future of pinning to vidmem,
-> > > for this? It would allow a huge group of older GPUs and NICs and such to
-> > > do p2p with this approach, and it seems like a natural next step, right?
-> >
-> > The argument is that vram is a scarce resource, but I don't know if
-> > that is really the case these days.  At this point, we often have as
-> > much vram as system ram if not more.
->
-> I thought the main argument was that GPU memory could move at any time
-> between the GPU and CPU and the DMA buf would always track its current
-> location?
+On 2/4/21 10:44 AM, Alex Deucher wrote:
+...
+>>> The argument is that vram is a scarce resource, but I don't know if
+>>> that is really the case these days.  At this point, we often have as
+>>> much vram as system ram if not more.
+>>
+>> I thought the main argument was that GPU memory could move at any time
+>> between the GPU and CPU and the DMA buf would always track its current
+>> location?
+> 
+> I think the reason for that is that VRAM is scarce so we have to be
+> able to move it around.  We don't enforce the same limitations for
+> buffers in system memory.  We could just support pinning dma-bufs in
+> vram like we do with system ram.  Maybe with some conditions, e.g.,
+> p2p is possible, and the device has a large BAR so you aren't tying up
+> the BAR window.
+> 
 
-I think the reason for that is that VRAM is scarce so we have to be
-able to move it around.  We don't enforce the same limitations for
-buffers in system memory.  We could just support pinning dma-bufs in
-vram like we do with system ram.  Maybe with some conditions, e.g.,
-p2p is possible, and the device has a large BAR so you aren't tying up
-the BAR window.
+Excellent. And yes, we are already building systems in which VRAM is
+definitely not scarce, but on the other hand, those newer systems can
+also handle GPU (and NIC) page faults, so not really an issue. For that,
+we just need to enhance HMM so that it does peer to peer.
 
-Alex
+We also have some older hardware with large BAR1 apertures, specifically
+for this sort of thing.
+
+And again, for slightly older hardware, without pinning to VRAM there is
+no way to use this solution here for peer-to-peer. So I'm glad to see that
+so far you're not ruling out the pinning option.
 
 
->
-> IMHO there is no reason not to have a special API to create small
-> amounts of GPU dedicated locked memory that cannot be moved off the
-> GPU.
->
-> For instance this paper:
->
-> http://www.ziti.uni-heidelberg.de/ziti/uploads/ce_group/2014-ASHESIPDPS.pdf
->
-> Considers using the GPU to directly drive the RDMA work
-> queues. Putting the queues themselves in GPU VRAM would make alot of
-> sense.
->
-> But that is impossible without fixed non-invalidating dma bufs.
->
-> Jason
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
