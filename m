@@ -2,201 +2,307 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48CDAC433E6
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 20:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA33C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 21:13:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 141B764E3F
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 20:27:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8EF764FA9
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Feb 2021 21:13:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240013AbhBDU13 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Feb 2021 15:27:29 -0500
-Received: from aserp2130.oracle.com ([141.146.126.79]:36832 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239717AbhBDU0N (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Feb 2021 15:26:13 -0500
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-        by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 114KJocn136311;
-        Thu, 4 Feb 2021 20:25:23 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : content-type :
- mime-version; s=corp-2020-01-29;
- bh=0LTNyLhfcQU8WurGe4uk1JQtTl/ZkrEkTZA6jP+zRYs=;
- b=OewiCsqUbwT1WSPdt+KcuKs2qKRgwk68fdfxYnJ4fildLzTHOZhVRWJ2Sl8Z5JCZ4JMi
- dx4KVarWpH86Cc+SQ+i9L/kx09X0MXBxQ7JJs0BlxNCwghP+7sZ1ZVy7b+htVHtnWLut
- oKeOqbqNzyZrp4cPkUYev7EhCj8zrT3g8uUykgobo8tw4CMJOVd04RoZU5648wF1bUgu
- ff+x9rLZte0G2LmUuC1K3YZg0fXBG4pVKBSB7Ay0VUH0kRr5DvoZVmhXpfJweU+9HUzp
- EcZ1kv7z1edvXl+qVoBXPVFizA3JtUr+S6xEQORDUG+IkQGLuvBLIMBOqis76DMxJiIE QQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by aserp2130.oracle.com with ESMTP id 36cvyb782m-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 04 Feb 2021 20:25:23 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 114KGLVq070843;
-        Thu, 4 Feb 2021 20:25:22 GMT
-Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2170.outbound.protection.outlook.com [104.47.57.170])
-        by userp3020.oracle.com with ESMTP id 36dh7vpbjy-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 04 Feb 2021 20:25:22 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Oa2ujLm95mY8uMhZNGZjcZwIiVus2+z1uue7k6Zr0Ramk8LWThvSKi92HWSpZjIg2ySSWuAiMadlEsJLtbPlKRhIfNQrnYLAbvY2hDxyDC5nKHtgHTMcWT9FPfZAOVjuu2qe1M+NJSvFeMhAD0+Zd80cVyuBt19DUg5a9me4GZ/sDnWQhxbus+b3gobZQJPTs2wueDdWW1dDm1dvUerRHUM4+N4OPXZ3YjTSYe+PWmh3oVIqhzyZAO9GlAF0LblANnBuuH4WbyLofFUKNCBLJKKUx9s6iBlEqc15iPNgvkMzWzQBQ0+lBzGVlODvIwKMbpyE379sr4sPIBOcHg84WA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0LTNyLhfcQU8WurGe4uk1JQtTl/ZkrEkTZA6jP+zRYs=;
- b=TZoHfc4C/wNgSvYJdCSmplv3ZvefCyBpT/X9Tt8gn8hLxd+oO3qdXBFuswZqdxoZKlQLJR1cX/i4fURernQ7swDouemcSOJvm1fiDt06cJ/cTevl1PRfRdzsiHmxw7JNmTwMvu68B1iwZKIGDpgrG4W/ZXunj7nXcMiVJv236huXeLAVg/AqU0z/ewXL7LwQ8/bzMxTOcvJza6iC07VBG/6oDBG6pmPqhNtidKBPx5/4e2PpHEqWndPXXKXccMYGV4Dt7QJtND902GVQhyOZ8LjwaS1k5vuUPH2xpXPD1T3161L5nwfdcaggBmEf2Y1udlpmBJ/1OLS9M3qLmXVK/Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0LTNyLhfcQU8WurGe4uk1JQtTl/ZkrEkTZA6jP+zRYs=;
- b=W9fGzDBcgn1YyqjOlGPHP2CjzY+4leOK7g7JAsewlDgSeYrOyVQueJU2dyawuoFlBjo1jZBzdTpK+5ZC2FwkPOji7vufzjyh8Ig9gaBzGQhj1blo/8rV23ujMZtn7HzSAZZCTnoV/rCLIineK8yFPDtmjIpcVk+kCXlYx3u0vX4=
-Authentication-Results: kvack.org; dkim=none (message not signed)
- header.d=none;kvack.org; dmarc=none action=none header.from=oracle.com;
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com (2603:10b6:a03:8c::12)
- by SJ0PR10MB4590.namprd10.prod.outlook.com (2603:10b6:a03:2d1::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.20; Thu, 4 Feb
- 2021 20:25:20 +0000
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571]) by BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571%7]) with mapi id 15.20.3805.024; Thu, 4 Feb 2021
- 20:25:20 +0000
-From:   Joao Martins <joao.m.martins@oracle.com>
-To:     linux-mm@kvack.org
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Joao Martins <joao.m.martins@oracle.com>
-Subject: [PATCH v2 4/4] RDMA/umem: batch page unpin in __ib_umem_release()
-Date:   Thu,  4 Feb 2021 20:25:00 +0000
-Message-Id: <20210204202500.26474-5-joao.m.martins@oracle.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20210204202500.26474-1-joao.m.martins@oracle.com>
-References: <20210204202500.26474-1-joao.m.martins@oracle.com>
-Content-Type: text/plain
-X-Originating-IP: [94.61.1.144]
-X-ClientProxiedBy: LO2P123CA0104.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:139::19) To BYAPR10MB3077.namprd10.prod.outlook.com
- (2603:10b6:a03:8c::12)
+        id S229611AbhBDVM5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Feb 2021 16:12:57 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45878 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229511AbhBDVM4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Feb 2021 16:12:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6823064DC3;
+        Thu,  4 Feb 2021 21:12:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612473134;
+        bh=jMi9Fp9v8rwdLl3RtbPVpR5h5MQurHGRE/uhZhD5Xzc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=VKZXMu56xJDeQiTuMp2HcmnBa1QYzyvz9JG8WTAlxUnxQoujEZ5pzrEGEQ02IXgpV
+         dAEcL/w+vMFO0FssnL2vVGIJhCGA1ys60rxCet5VDHkR+/rWuDi53rXOHZp2EB0EjY
+         fsSIbAQ2P7mdA68m0KJcLira9VtfczmyF+98zCVOnyYUcres35Zt1GrjKkbVEE7oMS
+         1giagPD0cw0fV69+hOH0HTFla99AHOJBjhtpSlQ00RifhAkXKq08wAiTzo4oo1ptKp
+         fZhcLFAPI0/+FvVKEW8exD6NfEv6VRRXALz6DXYrVMSLNW2RPLHJTNlrTqmMxbxLq+
+         U2GJQ36RZd2qA==
+Date:   Thu, 4 Feb 2021 15:12:12 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH mlx5-next v5 1/4] PCI: Add sysfs callback to allow MSI-X
+ table size change of SR-IOV VFs
+Message-ID: <20210204211212.GA83310@bjorn-Precision-5520>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from paddy.uk.oracle.com (94.61.1.144) by LO2P123CA0104.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:139::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.3825.21 via Frontend Transport; Thu, 4 Feb 2021 20:25:18 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 462c7a86-d458-49f4-3996-08d8c94afe5a
-X-MS-TrafficTypeDiagnostic: SJ0PR10MB4590:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <SJ0PR10MB4590D41D6526528B8ADB8E76BBB39@SJ0PR10MB4590.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:370;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: H0yfwBVwQ9JChHEe5ZjArW5oLXhHwRUXnPG5O9ZLwhFCNc9S1T8Mn1cD1qI3Kdf75pgkRfeB7xydV5jYQurPGi27lBv5zSj/e4prKn+YRkig9itbrIVXtE5IGpgf7cmJl0Y3mzNnU1F5uvykEqasZCfKtZFy60yMwHJtQSru+BEf3n9edkQ+QT7+a11mPfmthNU9gAkQzX0OZtIZzQJimhSp6VQowMA2zE3nP7ea5faDJgRWwnuA6ldW+s/2i347tnAFp4UqhwIEhyd7ZUtUSqfyY+QWlUtHoWjnRGqhHPWwKeoHuaL/c32XlZi7ghDSqk0nj+4RT9fDQVETRqZHSrtHHkl7UFf5vkAZqCcY3b4QO3fswkLC/TDau8vPg3pqjrsNCCKrpA4J2DJjMwhnBXYq1Z3cuwglJ1fz6IoZl3TGBJrojzAMLbEY6y0mQE7or/ahm2WV+L/L1w+ApoZgzm4G/1vwEkoI8PhmMGpLhvubN6KpOPy5Bvgw8S5Igud8SgBH1JOQav1c3XxPektcBw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(346002)(396003)(366004)(376002)(136003)(52116002)(7696005)(26005)(2906002)(16526019)(66476007)(186003)(66556008)(478600001)(103116003)(316002)(6486002)(66946007)(956004)(54906003)(86362001)(5660300002)(1076003)(8936002)(83380400001)(107886003)(36756003)(4326008)(6666004)(2616005)(6916009)(8676002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?RXnn7J/Qya1eqKXG5A1j6wLBejq/ixKjme2DnAYE5vz09XqU/d4aOSRTDIst?=
- =?us-ascii?Q?dAZ6v+NcvOJM55TB6iCzjbP47yaVYgQPGKoemPZ+I7ZuE4x8dRWMk/I2WMfj?=
- =?us-ascii?Q?L1zk2YhMtBxhVXvD9myK0Oq2n55TszcvjtOIPBA9MVE0XGJ7GVgymvnx6yCi?=
- =?us-ascii?Q?lC/1w9EoeJfkJcnJQerW++l5vaGuHG+LDWfx8eVIf0fUxM82zna/2SCgFl0t?=
- =?us-ascii?Q?PT5dFcEKp+Au+cS7pYLw8RmvWz+81Odz13pV0rblClhcWRYMA1OAMHFpdD9N?=
- =?us-ascii?Q?znzR69fMOWnKsilmhBHGuWJ5rwTy2dWUTtplmr5tMPPfviJJPFlOVvIgM/ea?=
- =?us-ascii?Q?SFiNfQIoaeqlhx9jVGIjgvieYnSsKGnvRKOoCiGxpXC97LHeMMUES7UnZRjZ?=
- =?us-ascii?Q?H1yTGhClaftdYJqQMoeh48I/nbbkYCg7i9MnZcRSPiMEh7UIA6PledBxhEQw?=
- =?us-ascii?Q?iGozv+/0t3ccMZ21rUtmxUvWXT74rKHKkRvrIpUd6FhfwF7oywKhGd98RHJ3?=
- =?us-ascii?Q?0QYBeJ/Df8iLDzwE5ru44qAk4eii5jvqbqtPMDJmek4E8MmL7RyO/H+RBKY3?=
- =?us-ascii?Q?aHaSt4ihkeCpPGOW2KWU2uP1PYeUpE7CNDhXgIirEUARKxrNg7ALSDt9by3d?=
- =?us-ascii?Q?8FfRbQKexatyif3Cq3p3+0+40FhYr60XlFiBUrsiJoaYD/Df5QR5bM9jbHmj?=
- =?us-ascii?Q?TgCCg7YhT2yxPI2zQ2W2d532plaHH/3/phP1r5/9lFe+uzAYMCga+iykjWqG?=
- =?us-ascii?Q?FS5uVDmBYowsrxHNT0a/OMSPJnIWAcV955FLjrphzUFObtrLI4kafMxabT1a?=
- =?us-ascii?Q?9DM85k58Zb+bVcEVPFdDgP/azqBGW3LdO4tpGaFj3h+GjBExVGnhE1rfkFeY?=
- =?us-ascii?Q?y2qEPXeD79OskBr1bXqoL5XVgAQK9uZqx6q7FHXfmkmwTfz7cbK106JY6RER?=
- =?us-ascii?Q?T+bHxMw0Cm+kZlOSGBnG9SpfglNRDwzjtAmkQ6yAmUthStr1hU22Ikt4faAK?=
- =?us-ascii?Q?XBbJoaI1uTXJItnw6cjHgPqTy5wuVBZ7IUTK0hDcHOtuP7gA7ftnFRXrewni?=
- =?us-ascii?Q?SEGqv6eX?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 462c7a86-d458-49f4-3996-08d8c94afe5a
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB3077.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Feb 2021 20:25:20.6253
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: DYROqw5k9ogOeoqWmwt7llfgIo7KYx+x3fn0TEkI0j/ZcR8+uAHbJtXHWIX4JoQ1K8NEsS0kFfn99jj/ATtuRIaMOxMXPNU8SP6xbl5yCd8=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4590
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9885 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
- suspectscore=0 spamscore=0 mlxlogscore=999 phishscore=0 adultscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102040124
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9885 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 impostorscore=0
- mlxscore=0 spamscore=0 bulkscore=0 priorityscore=1501 adultscore=0
- lowpriorityscore=0 malwarescore=0 phishscore=0 mlxlogscore=999
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102040124
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210204155048.GC93433@unreal>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use the newly added unpin_user_page_range_dirty_lock()
-for more quickly unpinning a consecutive range of pages
-represented as compound pages. This will also calculate
-number of pages to unpin (for the tail pages which matching
-head page) and thus batch the refcount update.
+On Thu, Feb 04, 2021 at 05:50:48PM +0200, Leon Romanovsky wrote:
+> On Wed, Feb 03, 2021 at 06:10:39PM -0600, Bjorn Helgaas wrote:
+> > On Tue, Feb 02, 2021 at 09:44:29PM +0200, Leon Romanovsky wrote:
+> > > On Tue, Feb 02, 2021 at 12:06:09PM -0600, Bjorn Helgaas wrote:
+> > > > On Tue, Jan 26, 2021 at 10:57:27AM +0200, Leon Romanovsky wrote:
+> > > > > From: Leon Romanovsky <leonro@nvidia.com>
+> > > > >
+> > > > > Extend PCI sysfs interface with a new callback that allows
+> > > > > configure the number of MSI-X vectors for specific SR-IO VF.
+> > > > > This is needed to optimize the performance of newly bound
+> > > > > devices by allocating the number of vectors based on the
+> > > > > administrator knowledge of targeted VM.
+> > > >
+> > > > I'm reading between the lines here, but IIUC the point is that you
+> > > > have a PF that supports a finite number of MSI-X vectors for use
+> > > > by all the VFs, and this interface is to control the distribution
+> > > > of those MSI-X vectors among the VFs.
 
-Running a test program which calls mr reg/unreg on a 1G in size
-and measures cost of both operations together (in a guest using rxe)
-with THP and hugetlbfs:
+> > This commit log should describe how *this* device manages this
+> > allocation and how the PF Table Size and the VF Table Sizes are
+> > related.  Per PCIe, there is no necessary connection between them.
+> 
+> There is no connection in mlx5 devices either. PF is used as a vehicle
+> to access VF that doesn't have driver yet. From "table size" perspective
+> they completely independent, because PF already probed by driver and
+> it is already too late to change it.
+> 
+> So PF table size is static and can be changed through FW utility only.
 
-Before:
-590 rounds in 5.003 sec: 8480.335 usec / round
-6898 rounds in 60.001 sec: 8698.367 usec / round
+This is where description of the device would be useful.  
 
-After:
-2688 rounds in 5.002 sec: 1860.786 usec / round
-32517 rounds in 60.001 sec: 1845.225 usec / round
+The fact that you need "sriov_vf_total_msix" to advertise how many
+vectors are available and "sriov_vf_msix_count" to influence how they
+are distributed across the VFs suggests that these Table Sizes are not
+completely independent.
 
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
----
- drivers/infiniband/core/umem.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Can a VF have a bigger Table Size than the PF does?  Can all the VF
+Table Sizes added together be bigger than the PF Table Size?  If VF A
+has a larger Table Size, does that mean VF B must have a smaller Table
+Size?
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 2dde99a9ba07..9b607013e2a2 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -47,17 +47,17 @@
- 
- static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
- {
--	struct sg_page_iter sg_iter;
--	struct page *page;
-+	bool make_dirty = umem->writable && dirty;
-+	struct scatterlist *sg;
-+	unsigned int i;
- 
- 	if (umem->nmap > 0)
- 		ib_dma_unmap_sg(dev, umem->sg_head.sgl, umem->sg_nents,
- 				DMA_BIDIRECTIONAL);
- 
--	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
--		page = sg_page_iter_page(&sg_iter);
--		unpin_user_pages_dirty_lock(&page, 1, umem->writable && dirty);
--	}
-+	for_each_sg(umem->sg_head.sgl, sg, umem->sg_nents, i)
-+		unpin_user_page_range_dirty_lock(sg_page(sg),
-+			DIV_ROUND_UP(sg->length, PAGE_SIZE), make_dirty);
- 
- 	sg_free_table(&umem->sg_head);
- }
--- 
-2.17.1
+Obviously I do not understand the details about how this device works.
+It would be helpful to have those details here.
 
+Here's the sequence as I understand it:
+
+  1) PF driver binds to PF
+  2) PF driver enables VFs
+  3) PF driver creates /sys/.../<PF>/sriov_vf_total_msix
+  4) PF driver creates /sys/.../<VFn>/sriov_vf_msix_count for each VF
+  5) Management app reads sriov_vf_total_msix, writes sriov_vf_msix_count
+  6) VF driver binds to VF 
+  7) VF reads MSI-X Message Control (Table Size)
+
+Is it true that "lspci VF" at 4.1 and "lspci VF" at 5.1 may read
+different Table Sizes?  That would be a little weird.
+
+I'm also a little concerned about doing 2 before 3 & 4.  That works
+for mlx5 because implements the Table Size adjustment in a way that
+works *after* the VFs have been enabled.
+
+But it seems conceivable that a device could implement vector
+distribution in a way that would require the VF Table Sizes to be
+fixed *before* enabling VFs.  That would be nice in the sense that the
+VFs would be created "fully formed" and the VF Table Size would be
+completely read-only as documented.
+
+The other knob idea you mentioned at [2]:
+
+  echo "0000:01:00.2 123" > sriov_vf_msix_count
+
+would have the advantage of working for both cases.  That's definitely
+more complicated, but at the same time, I would hate to carve a sysfs
+interface into stone if it might not work for other devices.
+
+> > > > > +What:		/sys/bus/pci/devices/.../vfs_overlay/sriov_vf_total_msix
+> > > > > +Date:		January 2021
+> > > > > +Contact:	Leon Romanovsky <leonro@nvidia.com>
+> > > > > +Description:
+> > > > > +		This file is associated with the SR-IOV PFs.
+> > > > > +		It returns a total number of possible to configure MSI-X
+> > > > > +		vectors on the enabled VFs.
+> > > > > +
+> > > > > +		The values returned are:
+> > > > > +		 * > 0 - this will be total number possible to consume by VFs,
+> > > > > +		 * = 0 - feature is not supported
+> 
+> > Not sure the "= 0" description is necessary here.  If the value
+> > returned is the number of MSI-X vectors available for assignment to
+> > VFs, "0" is a perfectly legitimate value.  It just means there are
+> > none.  It doesn't need to be described separately.
+> 
+> I wanted to help users and remove ambiguity. For example, mlx5 drivers
+> will always implement proper .set_...() callbacks but for some devices
+> without needed FW support, the value will be 0. Instead of misleading
+> users with wrong promise that feature supported but doesn't have
+> available vectors, I decided to be more clear. For the users, 0 means, don't
+> try, it is not working.
+
+Oh, you mean "feature is not supported by the FIRMWARE on some mlx5
+devices"?  I totally missed that; I thought you meant "not supported
+by the PF driver."  Why not have the PF driver detect that the
+firmware doesn't support the feature and just not expose the sysfs
+files at all in that case?
+
+> > If we put them in a new "vfs_overlay" directory, it seems like
+> > overkill to repeat the "vf" part, but I'm hoping the new files can end
+> > up next to these existing files.  In that case, I think it makes sense
+> > to include "sriov".  And it probably does make sense to include "vf"
+> > as well.
+> 
+> I put everything in folder to group any possible future extensions.
+> Those extensions are applicable to SR-IOV VFs only, IMHO they deserve
+> separate folder.
+
+I'm not convinced (yet) that the possibility of future extensions is
+enough justification for adding the "vfs_overlay" directory.  It
+really complicates the code flow -- if we skipped the new directory,
+I'm pretty sure we could make .is_visible() work, which would be a
+major simplification.
+
+And there's quite a bit of value in the new files being right next to
+the existing sriov_* files.
+
+> > > > > +void pci_disable_vfs_overlay(struct pci_dev *dev)
+> > > > > +{
+> > > > > +	struct pci_dev *virtfn;
+> > > > > +	int id;
+> > > > > +
+> > > > > +	if (!dev->is_physfn || !dev->sriov->num_VFs)
+> > > > > +		return;
+> > > > > +
+> > > > > +	id = dev->sriov->num_VFs;
+> > > > > +	while (id--) {
+> > > > > +		virtfn = pci_get_domain_bus_and_slot(
+> > > > > +			pci_domain_nr(dev->bus), pci_iov_virtfn_bus(dev, id),
+> > > > > +			pci_iov_virtfn_devfn(dev, id));
+> > > > > +
+> > > > > +		if (!virtfn)
+> > > > > +			continue;
+> > > > > +
+> > > > > +		sysfs_remove_group(&virtfn->dev.kobj, &sriov_vf_dev_attr_group);
+> > > > > +	}
+> > > > > +	sysfs_remove_group(&dev->dev.kobj, &sriov_pf_dev_attr_group);
+> > > > > +}
+> > > > > +EXPORT_SYMBOL_GPL(pci_disable_vfs_overlay);
+> > > >
+> > > > I'm not convinced all this sysfs wrangling is necessary.  If it is,
+> > > > add a hint in a comment about why this is special and can't use
+> > > > something like sriov_dev_attr_group.
+> > >
+> > > This makes the overlay to be PF-driven. Alexander insisted on this flow.
+> >
+> > If you're referring to [1], I think "insisted on this flow" might be
+> > an overstatement of what Alex was looking for.  IIUC Alex wants the
+> > sysfs files to be visible only when they're useful, i.e., when a
+> > driver implements ->sriov_set_msix_vec_count().
+> 
+> It is only one side of the request, the sysfs files shouldn't be visible
+> if PF driver was removed and visible again when its probed again.
+
+I can't parse this, but it's probably related to the question below.
+
+> > That seems reasonable and also seems like something a smarter
+> > .is_visible() function could accomplish without having drivers call
+> > pci_enable_vfs_overlay(), e.g., maybe some variation of this:
+> >
+> >   static umode_t sriov_vf_attrs_are_visible(...)
+> >   {
+> >     if (!pdev->msix_cap || dev_is_pf(dev))
+> >       return 0;
+> >
+> >     pf = pci_physfn(pdev);
+> >     if (pf->driver && pf->driver->sriov_set_msix_vec_count)
+> >       return a->mode;
+> >
+> >     return 0;
+> >   }
+> 
+> It doesn't work with the following flow:
+> 1. load driver
+> 2. disable autoprobe
+> 3. echo to sriov_numvfs
+> .... <--- you have this sriov_vf_attrs_are_visible() created
+> 4. unload driver
+> .... <--- sysfs still exists despite not having PF driver.
+
+I missed your point here, sorry.  After unloading the PF driver,
+"pf->driver" in the sketch above will be NULL, so the VF sysfs file
+would not be visible.  Right?  Maybe it has to do with autoprobe?  I
+didn't catch what the significance of disabling autoprobe was.
+
+> > > > > +void pci_sriov_set_vf_total_msix(struct pci_dev *dev, u32 count)
+> > > > > +{
+> > > > > +	if (!dev->is_physfn)
+> > > > > +		return;
+> > > > > +
+> > > > > +	dev->sriov->vf_total_msix = count;
+> > > >
+> > > > The PCI core doesn't use vf_total_msix at all.  The driver, e.g.,
+> > > > mlx5, calls this, and all the PCI core does is hang onto the value and
+> > > > expose it via sysfs.  I think I'd rather have a callback in struct
+> > > > pci_driver and let the driver supply the value when needed.  I.e.,
+> > > > sriov_vf_total_msix_show() would call the callback instead of looking
+> > > > at pdev->sriov->vf_total_msix.
+> > >
+> > > It will cause to unnecessary locking to ensure that driver doesn't
+> > > vanish during sysfs read. I can change, but don't think that it is right
+> > > decision.
+> >
+> > Doesn't sysfs already ensure the driver can't vanish while we're
+> > executing a DEVICE_ATTR accessor?
+> 
+> It is not, you can see it by adding device_lock_held() check in any
+> .show attribute. See drivers/base/core.c: dev_attr_show(), it doesn't
+> do much. This is why pci_vf_set_msix_vec_count() has double lock.
+
+Aahh, right, I learned something today, thanks!  There are only a few
+PCI sysfs attributes that reference the driver, and they do their own
+locking.
+
+I do think vf_total_msix is a bit of driver state related to
+implementing this functionality and doesn't need to be in the PCI
+core.  I think device locking is acceptable; it's very similar to what
+is done in sriov_numvfs_store().  Doing the locking and calling a
+driver callback makes it obvious that vf_total_msix is part of this PF
+driver-specific functionality, not a generic part of the PCI core.
+
+So let's give it a try.  If it turns out to be terrible, we can
+revisit it.
+
+> > Also, pci_vf_set_msix_vec_count() is in pci/msi.c, but AFAICT there's
+> > no actual *reason* for it to be there other than the fact that it has
+> > "msix" in the name.  It uses no MSI data structures.  Maybe it could
+> > be folded into sriov_vf_msix_count_store(), which would make the
+> > analysis even easier.
+> 
+> I put _set_ command near _get_ command, but I can move it to iov.c
+
+You mean you put pci_vf_set_msix_vec_count() near
+pci_msix_vec_count()?  That's *true*, but they are not analogues, and
+one is not setting the value returned by the other.
+
+pci_vf_set_msix_vec_count() is a completely magical thing that uses a
+device-specific mechanism on a PF that happens to change what
+pci_msix_vec_count() on a VF will return later.  I think this is more
+related to SR-IOV than it is to MSI.
+
+Bjorn
+
+> > [1] https://lore.kernel.org/r/CAKgT0UcJQ3uy6J_CCLizDLfzGL2saa_PjOYH4nK+RQjfmpNA=w@mail.gmail.com
+
+[2] https://lore.kernel.org/linux-pci/20210118132800.GA4835@unreal/
