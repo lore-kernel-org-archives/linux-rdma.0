@@ -5,32 +5,32 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A51A0C433DB
-	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE19C433E0
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:33:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 749FD61606
-	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:33:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2D0864FAB
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:33:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230226AbhBFDch (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:32:37 -0500
-Received: from mga02.intel.com ([134.134.136.20]:32291 "EHLO mga02.intel.com"
+        id S230466AbhBFDcz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Feb 2021 22:32:55 -0500
+Received: from mga02.intel.com ([134.134.136.20]:32304 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230516AbhBFDaD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:30:03 -0500
-IronPort-SDR: 2tmnBpsH4K0RHrEbSTQWMPbJH42zdI9pGGMCTEdShIDD41L0vndsIdnBmvGKy48SnG+A9TSMML
- /p3A8uFowq5A==
-X-IronPort-AV: E=McAfee;i="6000,8403,9886"; a="168615079"
+        id S230206AbhBFDaS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 5 Feb 2021 22:30:18 -0500
+IronPort-SDR: 1Z/OBRoa59PLrMSkOxTGIVVM+MySeo1cAIkIy3wdNIMgRpRw4rFQsR2QeU/AbjW40g961aQwYS
+ 055z6M0hWd1Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9886"; a="168615077"
 X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="168615079"
+   d="scan'208";a="168615077"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 14:18:36 -0800
-IronPort-SDR: Rn5LZ6O1/5G1Fb+s0u54MZuqX5IgUQqCM3B1NLORiBOk3luIBEVaJs0otQmfmVkXbtqIHJVeG6
- o5PkoEDQ40kA==
+IronPort-SDR: oSMgBYdbG7dIhEy80q9y6mnprtWCtO4wcRnt7P0TGsV2zKPqcB0S61FfddNJQLKy86SFAWyaB0
+ d8rhkgTTDzWg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="394034436"
+   d="scan'208";a="394034429"
 Received: from cst-dev.jf.intel.com ([10.23.221.69])
   by orsmga008.jf.intel.com with ESMTP; 05 Feb 2021 14:18:36 -0800
 From:   Jianxin Xiong <jianxin.xiong@intel.com>
@@ -48,9 +48,9 @@ Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
         Ali Alnubani <alialnu@nvidia.com>,
         Gal Pressman <galpress@amazon.com>,
         Emil Velikov <emil.l.velikov@gmail.com>
-Subject: [PATCH rdma-core v3 3/3] configure: Add check for DRM headers
-Date:   Fri,  5 Feb 2021 14:33:39 -0800
-Message-Id: <1612564419-103455-4-git-send-email-jianxin.xiong@intel.com>
+Subject: [PATCH rdma-core v3 1/3] verbs: Fix gcc warnings when building for 32bit systems
+Date:   Fri,  5 Feb 2021 14:33:37 -0800
+Message-Id: <1612564419-103455-2-git-send-email-jianxin.xiong@intel.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1612564419-103455-1-git-send-email-jianxin.xiong@intel.com>
 References: <1612564419-103455-1-git-send-email-jianxin.xiong@intel.com>
@@ -58,147 +58,56 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Compilation of pyverbs/dmabuf_alloc.c depends on a few DRM headers
-that are installed by either the kernel-header or the libdrm package.
-The installation is optional and the location is not unique.
+Commit 6b0a3238289f ("verbs: Support dma-buf based memory region") caused
+a build failure when building for 32b systems with gcc:
 
-Check the presence and location of the headers and, if the headers
-are missing, replace the dmabuf allocation routines wth stubs that
-return suitable error to allow the related tests to skip.
+$ mkdir build && cd build && CFLAGS="-m32" cmake -GNinja .. \
+  -DIOCTL_MODE=both -DNO_PYVERBS=1 -DENABLE_WERROR=1 && ninja
+...
+../libibverbs/cmd_mr.c: In function 'ibv_cmd_reg_dmabuf_mr':
+../libibverbs/cmd_mr.c:152:21: error: cast to pointer from integer of
+different size [-Werror=int-to-pointer-cast]
+  vmr->ibv_mr.addr = (void *)offset;
+...
+../libibverbs/verbs.c: In function 'ibv_reg_dmabuf_mr':
+../libibverbs/verbs.c:387:13: error: cast to pointer from integer of
+different size [-Werror=int-to-pointer-cast]
+  mr->addr = (void *)offset;
+...
 
+Reported-by: Ali Alnubani <alialnu@nvidia.com>
 Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
 ---
- CMakeLists.txt              | 17 +++++++++++++++++
- pyverbs/CMakeLists.txt      |  8 +++++++-
- pyverbs/dmabuf_alloc.c      |  8 ++++----
- pyverbs/dmabuf_alloc_stub.c | 39 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 67 insertions(+), 5 deletions(-)
- create mode 100644 pyverbs/dmabuf_alloc_stub.c
+ libibverbs/cmd_mr.c | 2 +-
+ libibverbs/verbs.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4113423..80fb747 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -515,6 +515,20 @@ find_package(Systemd)
- include_directories(${SYSTEMD_INCLUDE_DIRS})
- RDMA_DoFixup("${SYSTEMD_FOUND}" "systemd/sd-daemon.h")
+diff --git a/libibverbs/cmd_mr.c b/libibverbs/cmd_mr.c
+index af0fad7..736fce0 100644
+--- a/libibverbs/cmd_mr.c
++++ b/libibverbs/cmd_mr.c
+@@ -149,7 +149,7 @@ int ibv_cmd_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset, size_t length,
+ 	vmr->ibv_mr.lkey = lkey;
+ 	vmr->ibv_mr.rkey = rkey;
+ 	vmr->ibv_mr.pd = pd;
+-	vmr->ibv_mr.addr = (void *)offset;
++	vmr->ibv_mr.addr = (void *)(uintptr_t)offset;
+ 	vmr->ibv_mr.length = length;
+ 	vmr->mr_type = IBV_MR_TYPE_DMABUF_MR;
+ 	return 0;
+diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
+index b93046a..f666695 100644
+--- a/libibverbs/verbs.c
++++ b/libibverbs/verbs.c
+@@ -384,7 +384,7 @@ struct ibv_mr *ibv_reg_dmabuf_mr(struct ibv_pd *pd, uint64_t offset,
  
-+# drm headers
-+
-+# Check if the headers have been installed by kernel-headers
-+find_path(DRM_INCLUDE_DIRS "drm.h" PATH_SUFFIXES "drm")
-+
-+# Alternatively the headers could have been installed by libdrm
-+if (NOT DRM_INCLUDE_DIRS)
-+  pkg_check_modules(DRM libdrm)
-+endif()
-+
-+if (DRM_INCLUDE_DIRS)
-+  include_directories(${DRM_INCLUDE_DIRS})
-+endif()
-+
- #-------------------------
- # Apply fixups
- 
-@@ -786,3 +800,6 @@ endif()
- if (NOT HAVE_TARGET_SSE)
-   message(STATUS " attribute(target(\"sse\")) does NOT work")
- endif()
-+if (NOT DRM_INCLUDE_DIRS)
-+  message(STATUS " DMABUF NOT supported (disabling some tests)")
-+endif()
-diff --git a/pyverbs/CMakeLists.txt b/pyverbs/CMakeLists.txt
-index 6fd7625..dbd0ffe 100644
---- a/pyverbs/CMakeLists.txt
-+++ b/pyverbs/CMakeLists.txt
-@@ -6,6 +6,12 @@ publish_internal_headers(""
-   dmabuf_alloc.h
- )
- 
-+if (DRM_INCLUDE_DIRS)
-+  set(DMABUF_ALLOC dmabuf_alloc.c)
-+else()
-+  set(DMABUF_ALLOC dmabuf_alloc_stub.c)
-+endif()
-+
- rdma_cython_module(pyverbs ""
-   addr.pyx
-   base.pyx
-@@ -14,7 +20,7 @@ rdma_cython_module(pyverbs ""
-   cq.pyx
-   device.pyx
-   dmabuf.pyx
--  dmabuf_alloc.c
-+  ${DMABUF_ALLOC}
-   enums.pyx
-   mem_alloc.pyx
-   mr.pyx
-diff --git a/pyverbs/dmabuf_alloc.c b/pyverbs/dmabuf_alloc.c
-index 85ffb7a..9978a5b 100644
---- a/pyverbs/dmabuf_alloc.c
-+++ b/pyverbs/dmabuf_alloc.c
-@@ -9,12 +9,12 @@
- #include <unistd.h>
- #include <string.h>
- #include <errno.h>
--#include <drm/drm.h>
--#include <drm/i915_drm.h>
--#include <drm/amdgpu_drm.h>
--#include <drm/radeon_drm.h>
- #include <fcntl.h>
- #include <sys/ioctl.h>
-+#include <drm.h>
-+#include <i915_drm.h>
-+#include <amdgpu_drm.h>
-+#include <radeon_drm.h>
- #include "dmabuf_alloc.h"
- 
- /*
-diff --git a/pyverbs/dmabuf_alloc_stub.c b/pyverbs/dmabuf_alloc_stub.c
-new file mode 100644
-index 0000000..a73a5da
---- /dev/null
-+++ b/pyverbs/dmabuf_alloc_stub.c
-@@ -0,0 +1,39 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright 2021 Intel Corporation. All rights reserved. See COPYING file
-+ */
-+
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <errno.h>
-+#include "dmabuf_alloc.h"
-+
-+struct dmabuf *dmabuf_alloc(uint64_t size, int gpu, int gtt)
-+{
-+	errno = EOPNOTSUPP;
-+	return NULL;
-+}
-+
-+void dmabuf_free(struct dmabuf *dmabuf)
-+{
-+	errno = EOPNOTSUPP;
-+}
-+
-+int dmabuf_get_drm_fd(struct dmabuf *dmabuf)
-+{
-+	errno = EOPNOTSUPP;
-+	return -1;
-+}
-+
-+int dmabuf_get_fd(struct dmabuf *dmabuf)
-+{
-+	errno = EOPNOTSUPP;
-+	return -1;
-+}
-+
-+uint64_t dmabuf_get_offset(struct dmabuf *dmabuf)
-+{
-+	errno = EOPNOTSUPP;
-+	return -1;
-+}
-+
+ 	mr->context = pd->context;
+ 	mr->pd = pd;
+-	mr->addr = (void *)offset;
++	mr->addr = (void *)(uintptr_t)offset;
+ 	mr->length = length;
+ 	return mr;
+ }
 -- 
 1.8.3.1
 
