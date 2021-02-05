@@ -2,124 +2,132 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC33C433DB
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 19:56:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40ABDC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 20:11:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CF2E564E51
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 19:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB3BB64FBA
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 20:11:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231455AbhBESNg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 13:13:36 -0500
-Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:8978 "EHLO
+        id S233168AbhBES3G (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Feb 2021 13:29:06 -0500
+Received: from hqnvemgate25.nvidia.com ([216.228.121.64]:4563 "EHLO
         hqnvemgate25.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233312AbhBESMR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 13:12:17 -0500
+        with ESMTP id S233160AbhBEPNJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 10:13:09 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B601da2570001>; Fri, 05 Feb 2021 11:53:59 -0800
-Received: from MacBook-Pro-10.local (172.20.145.6) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 5 Feb
- 2021 19:53:58 +0000
-Subject: Re: [PATCH v2 1/4] mm/gup: add compound page list iterator
-To:     Joao Martins <joao.m.martins@oracle.com>, <linux-mm@kvack.org>
-CC:     <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>
-References: <20210204202500.26474-1-joao.m.martins@oracle.com>
- <20210204202500.26474-2-joao.m.martins@oracle.com>
- <74edd971-a80c-78b6-7ab2-5c1f6ba4ade9@nvidia.com>
- <c274a794-94c8-3bd1-0b9d-670212279e52@oracle.com>
-From:   John Hubbard <jhubbard@nvidia.com>
-Message-ID: <4eececb9-fa0a-eeff-0c1f-79a0afb7da4e@nvidia.com>
-Date:   Fri, 5 Feb 2021 11:53:58 -0800
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:78.0)
- Gecko/20100101 Thunderbird/78.7.0
+        id <B601d63e80000>; Fri, 05 Feb 2021 07:27:36 -0800
+Received: from HKMAIL103.nvidia.com (10.18.16.12) by HQMAIL105.nvidia.com
+ (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 5 Feb
+ 2021 15:27:35 +0000
+Received: from HKMAIL101.nvidia.com (10.18.16.10) by HKMAIL103.nvidia.com
+ (10.18.16.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 5 Feb
+ 2021 15:27:31 +0000
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.171)
+ by HKMAIL101.nvidia.com (10.18.16.10) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Fri, 5 Feb 2021 15:27:31 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=nZSU6hD4CiGfGVkoU/q8JW9xibxBQg56nhxhLlZlogY47m96Z+yoPqqAMlJnCRSDqFrFr8d7K3C4tbyPJLtPR32nXTtmS4kk+sR3GMcMHnowETrAucWUiL+++/fCjpWsC2nhcCeWjakP2bos9nHEJRJpCog8AQtLOhASjHYS9s3wok/0BRNbkZDL30CDnmZLpc3jx3xk4N0r4eg6DpjVn/oAoLvmHo/4MWRgN6o+WCQ1PScm5drzWq1W22TDaa1Z/1XA3NVQAOuiN3soOH9QJiit3cRKWeici0ShX9tNGBHprAhPuz/u59QQwSlPuYcMY643J7ghNoZj4xxSLzlOug==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=gi6UXFGeVnkoq/NRt6oJbd2UsKIvLSaFVbodx0sJS54=;
+ b=Le0y+IId3XJlqzocH7cF+RD95O96Nx3CxBnByjFjvf2pG/N9fD17+pUleUni5zUHasz9F4fkbXPjbMxaBweKFWS+lp/0YY9AQz7cqAURI8eP4f3gzlVqblgT6BEiagmQnjJ2qPINPm+oM8P466YIFpjxQ5AsXJiy4+ZiYogIYpSZOeyrJRh+6i6Pohiv6mPlDlwF3ZYKhDRsXACmAE1f26qqYnfoymxDS+VmnA3CAmwfGJYGD6YsBk8LAOtaYgl/U9WnwVLWGu0i76MBA8CzJW5qIALdN77X7+23x2IfgqJ8USAnrion2kU0nSMUi6rzcwbrnDwaV2Ji2D6flq2UWg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB3116.namprd12.prod.outlook.com (2603:10b6:5:38::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.27; Fri, 5 Feb
+ 2021 15:27:28 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3825.025; Fri, 5 Feb 2021
+ 15:27:28 +0000
+Date:   Fri, 5 Feb 2021 11:27:26 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>
+Subject: Re: [PATCH 04/22] ice: Register auxiliary device to provide RDMA
+Message-ID: <20210205152726.GS4247@nvidia.com>
+References: <20210122234827.1353-1-shiraz.saleem@intel.com>
+ <20210122234827.1353-5-shiraz.saleem@intel.com>
+ <20210125190923.GV4147@nvidia.com>
+ <ae763e223c0040259c63c1e745faa095@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <ae763e223c0040259c63c1e745faa095@intel.com>
+X-ClientProxiedBy: BL1PR13CA0086.namprd13.prod.outlook.com
+ (2603:10b6:208:2b8::31) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-In-Reply-To: <c274a794-94c8-3bd1-0b9d-670212279e52@oracle.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [172.20.145.6]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0086.namprd13.prod.outlook.com (2603:10b6:208:2b8::31) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.10 via Frontend Transport; Fri, 5 Feb 2021 15:27:27 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l8314-003sdZ-EU; Fri, 05 Feb 2021 11:27:26 -0400
+X-Header: ProcessedBy-CMR-outbound
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612554839; bh=0h3J4XpgSbnd1qVxTuResEviGJFb7t4ULuzWgVzqm6Y=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Language:
-         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-        b=J1EL7s+beZe+hOTR8u2crhRqJwPojytXlLfGE4z7O5g60hQTigRJM/n4xeVAszlF2
-         qUsoIUqGgZ5Q2fhuVsO3JaD3xkvCVpotl0OGxKnwu4EZSMKd0zzyTftg7GDq9sE8HD
-         qmyA2mT+XX9TjJgiSN4nhGM3e+fINEVyMLgZc+WqYNzuSvCUKOl1iZsZuRWRxvUWVm
-         sEDaM3+vicku5i6GBMV03yz2o6gIPds3ZzJYXEc5qEEqj7qM/kaO45ZcA0gsQ7zLlL
-         rYd8UBMVWoAEIHFBYRTlplypwua41+B25dAbNDYhuCO+PjALKdu9EWybriTMviDOv3
-         sUZr0urn5TA1g==
+        t=1612538856; bh=gi6UXFGeVnkoq/NRt6oJbd2UsKIvLSaFVbodx0sJS54=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Header;
+        b=Ur3+fzh2c+YqKSTN4u9Cp3oIr/EZMsHTcYOgrOUKC6jAbNJpriGcTsREvkLERerLO
+         Rb1xDwzBqXU0lz40rycjRypY8PT38RGZe3P+W+7Fhqg44e9kZlg1emLX8Sr6lvp/tC
+         qJ3W2N/5LVGUiiyAEbLnujLF4Rvaop69jnMYWHCXN/yy1Qu6jo7tDRIrfoq3ulQ7ip
+         mzrN0EuFdfBQAqNGBPC2DvgaYqRGDxH9KrWeFyv9cDYsxszI1XWJguKtzgC3L6TeTO
+         EAInd8fWGQD9MmwcqmV10k1ygnamqkumI5km5P1LCyxb1iT8wqwcPoHpxH2manHD2I
+         1yI6ZYgCnkF3w==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2/5/21 2:46 AM, Joao Martins wrote:
-...>> If instead you keep npages constant like it naturally wants to be, you could
->> just do a "(*ntails)++" in the loop, to take care of *ntails.
->>
-> I didn't do it as such as I would need to deref @ntails per iteration, so
-> it felt more efficient to do as above. On a second thought, I could alternatively do the
-> following below, thoughts?
+On Fri, Feb 05, 2021 at 03:23:12PM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [PATCH 04/22] ice: Register auxiliary device to provide RDMA
+> >  
+> > > @@ -1254,20 +1282,37 @@ int ice_init_peer_devices(struct ice_pf *pf)
+> > >  		 * |--> iidc_peer_obj
+> > >  		 * |--> *ice_peer_drv_int
+> > >  		 *
+> > > +		 * iidc_auxiliary_object (container_of parent for adev)
+> > > +		 * |--> auxiliary_device
+> > > +		 * |--> *iidc_peer_obj (pointer from internal struct)
+> > > +		 *
+> > >  		 * ice_peer_drv_int (internal only peer_drv struct)
+> > >  		 */
+> > >  		peer_obj_int = kzalloc(sizeof(*peer_obj_int), GFP_KERNEL);
+> > > -		if (!peer_obj_int)
+> > > +		if (!peer_obj_int) {
+> > > +			ida_simple_remove(&ice_peer_ida, id);
+> > >  			return -ENOMEM;
+> > > +		}
+> > 
+> > Why is this allocated memory with a lifetime different from the aux device?
 > 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index d68bcb482b11..8defe4f670d5 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -215,6 +215,32 @@ void unpin_user_page(struct page *page)
->   }
->   EXPORT_SYMBOL(unpin_user_page);
+> This ice_peer_obj_int is the PCI driver internal only info about the peer_obj (not exposed externally)
+> like the state machine, per PF. But Dave is re-writing all of this with the feedback about getting rid
+> of state machine, and this peer_obj_int will likely be culled.
 > 
-> +static inline void compound_next(unsigned long i, unsigned long npages,
-> +                                struct page **list, struct page **head,
-> +                                unsigned int *ntails)
-> +{
-> +       struct page *page;
-> +       unsigned int nr;
-> +
-> +       if (i >= npages)
-> +               return;
-> +
-> +       page = compound_head(list[i]);
-> +       for (nr = i + 1; nr < npages; nr++) {
-> +               if (compound_head(list[nr]) != page)
-> +                       break;
-> +       }
-> +
-> +       *head = page;
-> +       *ntails = nr - i;
-> +}
-> +
+> I think what we will end up with is an iidc_peer_obj per PF which is
+> exported to aux driver with lifetime as described below.
 
-Yes, this is cleaner and quite a bit easier to verify that it is correct.
+I wouldn't call it 'peer' anything, this object represents the
+programming API of the PCI device. The object and the API should be
+understandable from the header files
 
-> 
->> However, given that the patch is correct and works as-is, the above is really just
->> an optional idea, so please feel free to add:
->>
->> Reviewed-by: John Hubbard <jhubbard@nvidia.com>
->>
->>
-> Thanks!
-> 
-> Hopefully I can retain that if the snippet above is preferred?
-> 
-> 	Joao
-> 
+A good design will have netdev also sit on this programming API, even
+if it doesn't have the aux device. mlx5 used mlx5_core as the name,
+I'd suggest something similar.
 
-Yes. Still looks good.
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+Jason
