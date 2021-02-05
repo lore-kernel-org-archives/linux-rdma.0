@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB098C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECEC9C433E9
 	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:44:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C0EC64FB8
+	by mail.kernel.org (Postfix) with ESMTP id 9592064FB4
 	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:44:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbhBEJo3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 04:44:29 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:12844 "EHLO
+        id S229711AbhBEJoc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Feb 2021 04:44:32 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:12841 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229997AbhBEJmh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 04:42:37 -0500
+        with ESMTP id S230000AbhBEJmi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 04:42:38 -0500
 Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DX9Q95zKVz7hVV;
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DX9Q96z1Kz7hVm;
         Fri,  5 Feb 2021 17:40:33 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 5 Feb 2021 17:41:52 +0800
+ 14.3.498.0; Fri, 5 Feb 2021 17:41:48 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH for-next 12/12] RDMA/hns: Delete redundant judgment when preparing descriptors
-Date:   Fri, 5 Feb 2021 17:39:34 +0800
-Message-ID: <1612517974-31867-13-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 01/12] RDMA/hns: Avoid filling sgid index when modifying QP to RTR
+Date:   Fri, 5 Feb 2021 17:39:23 +0800
+Message-ID: <1612517974-31867-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1612517974-31867-1-git-send-email-liweihang@huawei.com>
 References: <1612517974-31867-1-git-send-email-liweihang@huawei.com>
@@ -43,96 +43,110 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xinhao Liu <liuxinhao5@hisilicon.com>
+ULP usually set IB(V)_QP_AV when trying to modify QP to RTR if they want
+to record sgid index into QPC. For UD QPs, it is useless because it will be
+included in WQE. For RC QPs, it will be filled in hns_roce_set_path(). So
+sgid index shouldn't be filled by default. Then hns_get_gid_index() is
+moved to hns_roce_hw_v1.c because it is only called in it.
 
-There is no need to use a for loop to assign values for an array of cmd
-descriptors which has only two elements.
-
-Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 40 +++++++++++-------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 16 ++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 11 -----------
+ drivers/infiniband/hw/hns/hns_roce_main.c  | 16 ----------------
+ 3 files changed, 16 insertions(+), 27 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 23fe8e9..262ad58 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -43,6 +43,22 @@
+ #include "hns_roce_hem.h"
+ #include "hns_roce_hw_v1.h"
+ 
++/**
++ * hns_get_gid_index - Get gid index.
++ * @hr_dev: pointer to structure hns_roce_dev.
++ * @port:  port, value range: 0 ~ MAX
++ * @gid_index:  gid_index, value range: 0 ~ MAX
++ * Description:
++ *    N ports shared gids, allocation method as follow:
++ *		GID[0][0], GID[1][0],.....GID[N - 1][0],
++ *		GID[0][0], GID[1][0],.....GID[N - 1][0],
++ *		And so on
++ */
++u8 hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index)
++{
++	return gid_index * hr_dev->caps.num_ports + port;
++}
++
+ static void set_data_seg(struct hns_roce_wqe_data_seg *dseg, struct ib_sge *sg)
+ {
+ 	dseg->lkey = cpu_to_le32(sg->lkey);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 9c6fe32..1071b3b 100644
+index c962f26..f0691f4 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1611,17 +1611,13 @@ static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
- 	struct hns_roce_pf_res_a *req_a;
- 	struct hns_roce_pf_res_b *req_b;
- 	int ret;
--	int i;
+@@ -4308,7 +4308,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 				 struct hns_roce_v2_qp_context *context,
+ 				 struct hns_roce_v2_qp_context *qpc_mask)
+ {
+-	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+@@ -4316,7 +4315,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	dma_addr_t irrl_ba;
+ 	enum ib_mtu mtu;
+ 	u8 lp_pktn_ini;
+-	u8 port_num;
+ 	u64 *mtts;
+ 	u8 *dmac;
+ 	u8 *smac;
+@@ -4397,15 +4395,6 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 			       V2_QPC_BYTE_56_DQPN_M, V2_QPC_BYTE_56_DQPN_S, 0);
+ 	}
  
--	for (i = 0; i < 2; i++) {
--		hns_roce_cmq_setup_basic_desc(&desc[i],
--					      HNS_ROCE_OPC_QUERY_PF_RES, true);
-+	hns_roce_cmq_setup_basic_desc(&desc[0], HNS_ROCE_OPC_QUERY_PF_RES,
-+				      true);
-+	desc[0].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
+-	/* Configure GID index */
+-	port_num = rdma_ah_get_port_num(&attr->ah_attr);
+-	roce_set_field(context->byte_20_smac_sgid_idx,
+-		       V2_QPC_BYTE_20_SGID_IDX_M, V2_QPC_BYTE_20_SGID_IDX_S,
+-		       hns_get_gid_index(hr_dev, port_num - 1,
+-					 grh->sgid_index));
+-	roce_set_field(qpc_mask->byte_20_smac_sgid_idx,
+-		       V2_QPC_BYTE_20_SGID_IDX_M, V2_QPC_BYTE_20_SGID_IDX_S, 0);
+-
+ 	memcpy(&(context->dmac), dmac, sizeof(u32));
+ 	roce_set_field(context->byte_52_udpspn_dmac, V2_QPC_BYTE_52_DMAC_M,
+ 		       V2_QPC_BYTE_52_DMAC_S, *((u16 *)(&dmac[4])));
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 7978220..c29215a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -42,22 +42,6 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_hem.h"
  
--		if (i == 0)
--			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--		else
--			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--	}
-+	hns_roce_cmq_setup_basic_desc(&desc[1], HNS_ROCE_OPC_QUERY_PF_RES,
-+				      true);
- 
- 	ret = hns_roce_cmq_send(hr_dev, desc, 2);
- 	if (ret)
-@@ -1714,19 +1710,16 @@ static int hns_roce_alloc_vf_resource(struct hns_roce_dev *hr_dev)
- 	struct hns_roce_cmq_desc desc[2];
- 	struct hns_roce_vf_res_a *req_a;
- 	struct hns_roce_vf_res_b *req_b;
--	int i;
- 
- 	req_a = (struct hns_roce_vf_res_a *)desc[0].data;
- 	req_b = (struct hns_roce_vf_res_b *)desc[1].data;
--	for (i = 0; i < 2; i++) {
--		hns_roce_cmq_setup_basic_desc(&desc[i],
--					      HNS_ROCE_OPC_ALLOC_VF_RES, false);
- 
--		if (i == 0)
--			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--		else
--			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--	}
-+	hns_roce_cmq_setup_basic_desc(&desc[0], HNS_ROCE_OPC_ALLOC_VF_RES,
-+				      false);
-+	desc[0].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
-+
-+	hns_roce_cmq_setup_basic_desc(&desc[1], HNS_ROCE_OPC_ALLOC_VF_RES,
-+				      false);
- 
- 	roce_set_field(req_a->vf_qpc_bt_idx_num,
- 		       VF_RES_A_DATA_1_VF_QPC_BT_IDX_M,
-@@ -2407,7 +2400,6 @@ static int hns_roce_config_link_table(struct hns_roce_dev *hr_dev,
- 	struct hns_roce_link_table_entry *entry;
- 	enum hns_roce_opcode_type opcode;
- 	u32 page_num;
--	int i;
- 
- 	switch (type) {
- 	case TSQ_LINK_TABLE:
-@@ -2425,14 +2417,10 @@ static int hns_roce_config_link_table(struct hns_roce_dev *hr_dev,
- 	page_num = link_tbl->npages;
- 	entry = link_tbl->table.buf;
- 
--	for (i = 0; i < 2; i++) {
--		hns_roce_cmq_setup_basic_desc(&desc[i], opcode, false);
-+	hns_roce_cmq_setup_basic_desc(&desc[0], opcode, false);
-+	desc[0].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
- 
--		if (i == 0)
--			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--		else
--			desc[i].flag &= ~cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
--	}
-+	hns_roce_cmq_setup_basic_desc(&desc[1], opcode, false);
- 
- 	req_a->base_addr_l = cpu_to_le32(link_tbl->table.map & 0xffffffff);
- 	req_a->base_addr_h = cpu_to_le32(link_tbl->table.map >> 32);
+-/**
+- * hns_get_gid_index - Get gid index.
+- * @hr_dev: pointer to structure hns_roce_dev.
+- * @port:  port, value range: 0 ~ MAX
+- * @gid_index:  gid_index, value range: 0 ~ MAX
+- * Description:
+- *    N ports shared gids, allocation method as follow:
+- *		GID[0][0], GID[1][0],.....GID[N - 1][0],
+- *		GID[0][0], GID[1][0],.....GID[N - 1][0],
+- *		And so on
+- */
+-u8 hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index)
+-{
+-	return gid_index * hr_dev->caps.num_ports + port;
+-}
+-
+ static int hns_roce_set_mac(struct hns_roce_dev *hr_dev, u8 port, u8 *addr)
+ {
+ 	u8 phy_port;
 -- 
 2.8.1
 
