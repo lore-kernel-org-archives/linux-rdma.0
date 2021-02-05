@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA90C433DB
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:44:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EADAFC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:47:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2910A64FB4
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:44:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A776A64DB1
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 09:47:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229753AbhBEJod (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 04:44:33 -0500
-Received: from szxga07-in.huawei.com ([45.249.212.35]:12843 "EHLO
+        id S229529AbhBEJq5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Feb 2021 04:46:57 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:12846 "EHLO
         szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229984AbhBEJmi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 04:42:38 -0500
+        with ESMTP id S229763AbhBEJpE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 04:45:04 -0500
 Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DX9QB069sz7hVp;
-        Fri,  5 Feb 2021 17:40:34 +0800 (CST)
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DX9Q95hrQz7hVJ;
+        Fri,  5 Feb 2021 17:40:33 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 5 Feb 2021 17:41:50 +0800
+ 14.3.498.0; Fri, 5 Feb 2021 17:41:49 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH for-next 09/12] RDMA/hns: Remove some magic numbers
-Date:   Fri, 5 Feb 2021 17:39:31 +0800
-Message-ID: <1612517974-31867-10-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 05/12] RDMA/hns: Adjust definition of FRMR fields
+Date:   Fri, 5 Feb 2021 17:39:27 +0800
+Message-ID: <1612517974-31867-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1612517974-31867-1-git-send-email-liweihang@huawei.com>
 References: <1612517974-31867-1-git-send-email-liweihang@huawei.com>
@@ -43,65 +43,98 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xinhao Liu <liuxinhao5@hisilicon.com>
+From: Yixing Liu <liuyixing1@huawei.com>
 
-Use macros instead of magic numbers to represent shift of dma_handle_wqe,
-dma_handle_idx and UDP destination port number of RoCEv2.
+The position of the FRMR-related fields has changed, change them to fit
+the new design.
 
-Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
+Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 26 ++++++++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 12 ++++++------
+ 2 files changed, 18 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index a5e304a..1bff432 100644
+index 3ba6783..18a8ac9 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1601,7 +1601,8 @@ static int hns_roce_config_global_param(struct hns_roce_dev *hr_dev)
- 		       CFG_GLOBAL_PARAM_DATA_0_ROCEE_TIME_1US_CFG_S, 0x3e8);
- 	roce_set_field(req->time_cfg_udp_port,
- 		       CFG_GLOBAL_PARAM_DATA_0_ROCEE_UDP_PORT_M,
--		       CFG_GLOBAL_PARAM_DATA_0_ROCEE_UDP_PORT_S, 0x12b7);
-+		       CFG_GLOBAL_PARAM_DATA_0_ROCEE_UDP_PORT_S,
-+		       ROCE_V2_UDP_DPORT);
+@@ -99,16 +99,16 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 	u64 pbl_ba;
  
- 	return hns_roce_cmq_send(hr_dev, &desc, 1);
+ 	/* use ib_access_flags */
+-	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_BIND_EN_S,
+-		     wr->access & IB_ACCESS_MW_BIND ? 1 : 0);
+-	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_ATOMIC_S,
+-		     wr->access & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0);
+-	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_RR_S,
+-		     wr->access & IB_ACCESS_REMOTE_READ ? 1 : 0);
+-	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_RW_S,
+-		     wr->access & IB_ACCESS_REMOTE_WRITE ? 1 : 0);
+-	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_FRMR_WQE_BYTE_4_LW_S,
+-		     wr->access & IB_ACCESS_LOCAL_WRITE ? 1 : 0);
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_BIND_EN_S,
++		     !!(wr->access & IB_ACCESS_MW_BIND));
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_ATOMIC_S,
++		     !!(wr->access & IB_ACCESS_REMOTE_ATOMIC));
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_RR_S,
++		     !!(wr->access & IB_ACCESS_REMOTE_READ));
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_RW_S,
++		     !!(wr->access & IB_ACCESS_REMOTE_WRITE));
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_LW_S,
++		     !!(wr->access & IB_ACCESS_LOCAL_WRITE));
+ 
+ 	/* Data structure reuse may lead to confusion */
+ 	pbl_ba = mr->pbl_mtr.hem_cfg.root_ba;
+@@ -121,12 +121,10 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 	rc_sq_wqe->va = cpu_to_le64(wr->mr->iova);
+ 
+ 	fseg->pbl_size = cpu_to_le32(mr->npages);
+-	roce_set_field(fseg->mode_buf_pg_sz,
+-		       V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_M,
++	roce_set_field(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_M,
+ 		       V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_S,
+ 		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
+-	roce_set_bit(fseg->mode_buf_pg_sz,
+-		     V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S, 0);
++	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S, 0);
  }
-@@ -5264,6 +5265,9 @@ static int hns_roce_v2_qp_flow_control_init(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
  
-+#define DMA_IDX_SHIFT 3
-+#define DMA_WQE_SHIFT 3
-+
- static int hns_roce_v2_write_srqc_index_queue(struct hns_roce_srq *srq,
- 					      struct hns_roce_srq_context *ctx)
- {
-@@ -5286,8 +5290,9 @@ static int hns_roce_v2_write_srqc_index_queue(struct hns_roce_srq *srq,
- 	hr_reg_write(ctx, SRQC_IDX_HOP_NUM,
- 		     to_hr_hem_hopnum(hr_dev->caps.idx_hop_num, srq->wqe_cnt));
+ static void set_atomic_seg(const struct ib_send_wr *wr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index f29438c..1da980c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1255,15 +1255,15 @@ struct hns_roce_v2_rc_send_wqe {
  
--	hr_reg_write(ctx, SRQC_IDX_BT_BA_L, dma_handle_idx >> 3);
--	hr_reg_write(ctx, SRQC_IDX_BT_BA_H, upper_32_bits(dma_handle_idx >> 3));
-+	hr_reg_write(ctx, SRQC_IDX_BT_BA_L, dma_handle_idx >> DMA_IDX_SHIFT);
-+	hr_reg_write(ctx, SRQC_IDX_BT_BA_H,
-+		     upper_32_bits(dma_handle_idx >> DMA_IDX_SHIFT));
+ #define V2_RC_SEND_WQE_BYTE_4_INLINE_S 12
  
- 	hr_reg_write(ctx, SRQC_IDX_BA_PG_SZ,
- 		     to_hr_hw_page_shift(idx_que->mtr.hem_cfg.ba_pg_shift));
-@@ -5340,8 +5345,9 @@ static int hns_roce_v2_write_srqc(struct hns_roce_srq *srq, void *mb_buf)
- 		     to_hr_hem_hopnum(hr_dev->caps.srqwqe_hop_num,
- 				      srq->wqe_cnt));
+-#define V2_RC_FRMR_WQE_BYTE_4_BIND_EN_S 19
++#define V2_RC_FRMR_WQE_BYTE_40_BIND_EN_S 10
  
--	hr_reg_write(ctx, SRQC_WQE_BT_BA_L, dma_handle_wqe >> 3);
--	hr_reg_write(ctx, SRQC_WQE_BT_BA_H, upper_32_bits(dma_handle_wqe >> 3));
-+	hr_reg_write(ctx, SRQC_WQE_BT_BA_L, dma_handle_wqe >> DMA_WQE_SHIFT);
-+	hr_reg_write(ctx, SRQC_WQE_BT_BA_H,
-+		     upper_32_bits(dma_handle_wqe >> DMA_WQE_SHIFT));
+-#define V2_RC_FRMR_WQE_BYTE_4_ATOMIC_S 20
++#define V2_RC_FRMR_WQE_BYTE_40_ATOMIC_S 11
  
- 	hr_reg_write(ctx, SRQC_WQE_BA_PG_SZ,
- 		     to_hr_hw_page_shift(srq->buf_mtr.hem_cfg.ba_pg_shift));
+-#define V2_RC_FRMR_WQE_BYTE_4_RR_S 21
++#define V2_RC_FRMR_WQE_BYTE_40_RR_S 12
+ 
+-#define V2_RC_FRMR_WQE_BYTE_4_RW_S 22
++#define V2_RC_FRMR_WQE_BYTE_40_RW_S 13
+ 
+-#define V2_RC_FRMR_WQE_BYTE_4_LW_S 23
++#define V2_RC_FRMR_WQE_BYTE_40_LW_S 14
+ 
+ #define V2_RC_SEND_WQE_BYTE_4_FLAG_S 31
+ 
+@@ -1280,7 +1280,7 @@ struct hns_roce_v2_rc_send_wqe {
+ 
+ struct hns_roce_wqe_frmr_seg {
+ 	__le32	pbl_size;
+-	__le32	mode_buf_pg_sz;
++	__le32	byte_40;
+ };
+ 
+ #define V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_S	4
 -- 
 2.8.1
 
