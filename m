@@ -2,462 +2,307 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7831BC433DB
-	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:34:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F0F1C433DB
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 12:43:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3987061606
-	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 03:34:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5052E64E5B
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 12:43:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231189AbhBFDd5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 22:33:57 -0500
-Received: from mga02.intel.com ([134.134.136.20]:32272 "EHLO mga02.intel.com"
+        id S229650AbhBFMne (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 6 Feb 2021 07:43:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231948AbhBFDbx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 5 Feb 2021 22:31:53 -0500
-IronPort-SDR: pww/sJWkCT5PXe7ibGfePmiZayJRJ88BiDHdBvQVxJbwGSr6GWdF0TrbTEGOz/RlTJgAHudTEP
- WLvAOxUMuubQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9886"; a="168615078"
-X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="168615078"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2021 14:18:36 -0800
-IronPort-SDR: QyI4pjYweq5Cyf21lJtvuTK/MG/ULI0uf5IV9FwaROBjbSrv5/lT1PTY5rr8VH+W1tTiIFikx7
- J+jyMDzmt3Og==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,156,1610438400"; 
-   d="scan'208";a="394034433"
-Received: from cst-dev.jf.intel.com ([10.23.221.69])
-  by orsmga008.jf.intel.com with ESMTP; 05 Feb 2021 14:18:36 -0800
-From:   Jianxin Xiong <jianxin.xiong@intel.com>
-To:     linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc:     Jianxin Xiong <jianxin.xiong@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Edward Srouji <edwards@nvidia.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Ali Alnubani <alialnu@nvidia.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Emil Velikov <emil.l.velikov@gmail.com>
-Subject: [PATCH rdma-core v3 2/3] pyverbs,tests: Cosmetic improvements for dma-buf allocation routines
-Date:   Fri,  5 Feb 2021 14:33:38 -0800
-Message-Id: <1612564419-103455-3-git-send-email-jianxin.xiong@intel.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1612564419-103455-1-git-send-email-jianxin.xiong@intel.com>
-References: <1612564419-103455-1-git-send-email-jianxin.xiong@intel.com>
+        id S229506AbhBFMnd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 6 Feb 2021 07:43:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5226B64ECC;
+        Sat,  6 Feb 2021 12:42:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612615371;
+        bh=K+VMkGgrhIx6wRS2S0pCwXsb1Z4BJwuZQMHCICdX/rI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=n2bXwtEyKm1iWvMSoEkl8TuiAZuL95DEJbIqTks7TSP/xfjhZaefAhEtiMLTA6qmh
+         CeC/5KHkHHc9fm7uBXCmJNjR4/6pkUJmq8KURJoldAvn5qtnHBkSd32keXRI0LTemR
+         RkFNPPNXSvwrAhHpJXaGmRnwlBraw26ZiCs+jF5YnRlUH3Sc7STwNnXh0ceJRh1NJT
+         a+Zk+ZORs0hNaX7l01HvSF9Xr/GCB05ldulMmB3N3s9YaCYEmb/6ttwLPRyCxwTNpp
+         MavejoE9pefcx+9uTQdU2p8RrKRbqd/nakHjT8JJPWveLLsGjYqWuqG2M1Yz2/dk6P
+         Cp7QDZz5h0B3A==
+Date:   Sat, 6 Feb 2021 14:42:47 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Bjorn Helgaas <helgaas@kernel.org>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH mlx5-next v5 1/4] PCI: Add sysfs callback to allow MSI-X
+ table size change of SR-IOV VFs
+Message-ID: <20210206124247.GF93433@unreal>
+References: <20210205173547.GE93433@unreal>
+ <20210205225703.GA193188@bjorn-Precision-5520>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210205225703.GA193188@bjorn-Precision-5520>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Rename the parameter 'unit' to 'gpu'. Expand GTT to the full name in the
-comments.
+On Fri, Feb 05, 2021 at 04:57:03PM -0600, Bjorn Helgaas wrote:
+> On Fri, Feb 05, 2021 at 07:35:47PM +0200, Leon Romanovsky wrote:
+> > On Thu, Feb 04, 2021 at 03:12:12PM -0600, Bjorn Helgaas wrote:
+> > > On Thu, Feb 04, 2021 at 05:50:48PM +0200, Leon Romanovsky wrote:
+> > > > On Wed, Feb 03, 2021 at 06:10:39PM -0600, Bjorn Helgaas wrote:
+> > > > > On Tue, Feb 02, 2021 at 09:44:29PM +0200, Leon Romanovsky wrote:
+> > > > > > On Tue, Feb 02, 2021 at 12:06:09PM -0600, Bjorn Helgaas wrote:
+> > > > > > > On Tue, Jan 26, 2021 at 10:57:27AM +0200, Leon Romanovsky wrote:
+> > > > > > > > From: Leon Romanovsky <leonro@nvidia.com>
+> > > > > > > >
+> > > > > > > > Extend PCI sysfs interface with a new callback that allows
+> > > > > > > > configure the number of MSI-X vectors for specific SR-IO VF.
+> > > > > > > > This is needed to optimize the performance of newly bound
+> > > > > > > > devices by allocating the number of vectors based on the
+> > > > > > > > administrator knowledge of targeted VM.
+> > > > > > >
+> > > > > > > I'm reading between the lines here, but IIUC the point is that you
+> > > > > > > have a PF that supports a finite number of MSI-X vectors for use
+> > > > > > > by all the VFs, and this interface is to control the distribution
+> > > > > > > of those MSI-X vectors among the VFs.
+> > >
+> > > > > This commit log should describe how *this* device manages this
+> > > > > allocation and how the PF Table Size and the VF Table Sizes are
+> > > > > related.  Per PCIe, there is no necessary connection between them.
+> > > >
+> > > > There is no connection in mlx5 devices either. PF is used as a vehicle
+> > > > to access VF that doesn't have driver yet. From "table size" perspective
+> > > > they completely independent, because PF already probed by driver and
+> > > > it is already too late to change it.
+> > > >
+> > > > So PF table size is static and can be changed through FW utility only.
+> > >
+> > > This is where description of the device would be useful.
+> > >
+> > > The fact that you need "sriov_vf_total_msix" to advertise how many
+> > > vectors are available and "sriov_vf_msix_count" to influence how they
+> > > are distributed across the VFs suggests that these Table Sizes are not
+> > > completely independent.
+> > >
+> > > Can a VF have a bigger Table Size than the PF does?  Can all the VF
+> > > Table Sizes added together be bigger than the PF Table Size?  If VF A
+> > > has a larger Table Size, does that mean VF B must have a smaller Table
+> > > Size?
+> >
+> > VFs are completely independent devices and their table size can be
+> > bigger than PF. FW has two pools, one for PF and another for all VFs.
+> > In real world scenarios, every VF will have more MSI-X vectors than PF,
+> > which will be distributed by orchestration software.
+>
+> Well, if the sum of all the VF Table Sizes cannot exceed the size of
+> the FW pool for VFs, I would say the VFs are not completely
+> independent.  Increasing the Table Size of one VF reduces it for other
+> VFs.
+>
+> This is an essential detail because it's the whole reason behind this
+> interface, so sketching this out in the commit log will make this much
+> easier to understand.
 
-Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
----
- pyverbs/dmabuf.pyx     | 12 ++++----
- pyverbs/dmabuf_alloc.c | 12 ++++----
- pyverbs/dmabuf_alloc.h |  2 +-
- pyverbs/mr.pyx         |  6 ++--
- tests/test_mr.py       | 78 +++++++++++++++++++++++++-------------------------
- 5 files changed, 55 insertions(+), 55 deletions(-)
+I think that it is already written, but will recheck.
 
-diff --git a/pyverbs/dmabuf.pyx b/pyverbs/dmabuf.pyx
-index b9406bd..591c4e8 100644
---- a/pyverbs/dmabuf.pyx
-+++ b/pyverbs/dmabuf.pyx
-@@ -12,7 +12,7 @@ from pyverbs.mr cimport DmaBufMR
- cdef extern from "dmabuf_alloc.h":
-     cdef struct dmabuf:
-         pass
--    dmabuf *dmabuf_alloc(unsigned long size, int unit, int gtt)
-+    dmabuf *dmabuf_alloc(unsigned long size, int gpu, int gtt)
-     void dmabuf_free(dmabuf *dmabuf)
-     int dmabuf_get_drm_fd(dmabuf *dmabuf)
-     int dmabuf_get_fd(dmabuf *dmabuf)
-@@ -20,20 +20,20 @@ cdef extern from "dmabuf_alloc.h":
- 
- 
- cdef class DmaBuf:
--    def __init__(self, size, unit=0, gtt=0):
-+    def __init__(self, size, gpu=0, gtt=0):
-         """
-         Allocate DmaBuf object from a GPU device. This is done through the
-         DRI device interface. Usually this requires the effective user id
-         being a member of the 'render' group.
-         :param size: The size (in number of bytes) of the buffer.
--        :param unit: The unit number of the GPU to allocate the buffer from.
--        :param gtt: Allocate from GTT instead of VRAM.
-+        :param gpu: The GPU unit to allocate the buffer from.
-+        :param gtt: Allocate from GTT (Graphics Translation Table) instead of VRAM.
-         :return: The newly created DmaBuf object on success.
-         """
-         self.dmabuf_mrs = weakref.WeakSet()
--        self.dmabuf = dmabuf_alloc(size, unit, gtt)
-+        self.dmabuf = dmabuf_alloc(size, gpu, gtt)
-         if self.dmabuf == NULL:
--            raise PyverbsRDMAErrno(f'Failed to allocate dmabuf of size {size} on unit {unit}')
-+            raise PyverbsRDMAErrno(f'Failed to allocate dmabuf of size {size} on gpu {gpu}')
-         self.drm_fd = dmabuf_get_drm_fd(<dmabuf *>self.dmabuf)
-         self.fd = dmabuf_get_fd(<dmabuf *>self.dmabuf)
-         self.map_offset = dmabuf_get_offset(<dmabuf *>self.dmabuf)
-diff --git a/pyverbs/dmabuf_alloc.c b/pyverbs/dmabuf_alloc.c
-index 05eae75..85ffb7a 100644
---- a/pyverbs/dmabuf_alloc.c
-+++ b/pyverbs/dmabuf_alloc.c
-@@ -95,7 +95,7 @@ static int amdgpu_mmap_offset(struct drm *drm, uint32_t handle,
- 	return 0;
- }
- 
--static struct drm *drm_open(int unit)
-+static struct drm *drm_open(int gpu)
- {
- 	char path[32];
- 	struct drm_version version = {};
-@@ -107,7 +107,7 @@ static struct drm *drm_open(int unit)
- 	if (!drm)
- 		return NULL;
- 
--	snprintf(path, sizeof(path), "/dev/dri/renderD%d", unit + 128);
-+	snprintf(path, sizeof(path), "/dev/dri/renderD%d", gpu + 128);
- 
- 	drm->fd = open(path, O_RDWR);
- 	if (drm->fd < 0)
-@@ -204,10 +204,10 @@ struct dmabuf {
- /*
-  * dmabuf_alloc - allocate a dmabuf from GPU
-  * @size - byte size of the buffer to allocate
-- * @unit - the GPU unit to use
-- * @gtt - if true, allocate from GTT instead of VRAM
-+ * @gpu - the GPU unit to use
-+ * @gtt - if true, allocate from GTT (Graphics Translation Table) instead of VRAM
-  */
--struct dmabuf *dmabuf_alloc(uint64_t size, int unit, int gtt)
-+struct dmabuf *dmabuf_alloc(uint64_t size, int gpu, int gtt)
- {
- 	struct dmabuf *dmabuf;
- 	int err;
-@@ -216,7 +216,7 @@ struct dmabuf *dmabuf_alloc(uint64_t size, int unit, int gtt)
- 	if (!dmabuf)
- 		return NULL;
- 
--	dmabuf->drm = drm_open(unit);
-+	dmabuf->drm = drm_open(gpu);
- 	if (!dmabuf->drm)
- 		goto out_free;
- 
-diff --git a/pyverbs/dmabuf_alloc.h b/pyverbs/dmabuf_alloc.h
-index f1b03c5..4698b11 100644
---- a/pyverbs/dmabuf_alloc.h
-+++ b/pyverbs/dmabuf_alloc.h
-@@ -10,7 +10,7 @@
- 
- struct dmabuf;
- 
--struct dmabuf *dmabuf_alloc(uint64_t size, int unit, int gtt);
-+struct dmabuf *dmabuf_alloc(uint64_t size, int gpu, int gtt);
- void dmabuf_free(struct dmabuf *dmabuf);
- int dmabuf_get_drm_fd(struct dmabuf *dmabuf);
- int dmabuf_get_fd(struct dmabuf *dmabuf);
-diff --git a/pyverbs/mr.pyx b/pyverbs/mr.pyx
-index aad47e2..d05d044 100644
---- a/pyverbs/mr.pyx
-+++ b/pyverbs/mr.pyx
-@@ -384,7 +384,7 @@ cdef class DMMR(MR):
- 
- cdef class DmaBufMR(MR):
-     def __init__(self, PD pd not None, length, access, DmaBuf dmabuf=None,
--                 offset=0, unit=0, gtt=0):
-+                 offset=0, gpu=0, gtt=0):
-         """
-         Initializes a DmaBufMR (DMA-BUF Memory Region) of the given length
-         and access flags using the given PD and DmaBuf objects.
-@@ -393,14 +393,14 @@ cdef class DmaBufMR(MR):
-         :param access: Access flags, see ibv_access_flags enum
-         :param dmabuf: A DmaBuf object. One will be allocated if absent
-         :param offset: Byte offset from the beginning of the dma-buf
--        :param unit: GPU unit for internal dmabuf allocation
-+        :param gpu: GPU unit for internal dmabuf allocation
-         :param gtt: If true allocate internal dmabuf from GTT instead of VRAM
-         :return: The newly created DMABUFMR
-         """
-         self.logger = logging.getLogger(self.__class__.__name__)
-         if dmabuf is None:
-             self.is_dmabuf_internal = True
--            dmabuf = DmaBuf(length + offset, unit, gtt)
-+            dmabuf = DmaBuf(length + offset, gpu, gtt)
-         self.mr = v.ibv_reg_dmabuf_mr(pd.pd, offset, length, offset, dmabuf.fd, access)
-         if self.mr == NULL:
-             raise PyverbsRDMAErrno(f'Failed to register a dma-buf MR. length: {length}, access flags: {access}')
-diff --git a/tests/test_mr.py b/tests/test_mr.py
-index 03a645f..028be71 100644
---- a/tests/test_mr.py
-+++ b/tests/test_mr.py
-@@ -429,14 +429,14 @@ class DMMRTest(PyverbsAPITestCase):
-                         dm_mr.close()
- 
- 
--def check_dmabuf_support(unit=0):
-+def check_dmabuf_support(gpu=0):
-     """
-     Check if dma-buf allocation is supported by the system.
-     Skip the test on failure.
-     """
--    device_num = 128 + unit
-+    device_num = 128 + gpu
-     try:
--        DmaBuf(1, unit=unit)
-+        DmaBuf(1, gpu=gpu)
-     except PyverbsRDMAError as ex:
-         if ex.error_code == errno.ENOENT:
-             raise unittest.SkipTest(f'Device /dev/dri/renderD{device_num} is not present')
-@@ -446,13 +446,13 @@ def check_dmabuf_support(unit=0):
-             raise unittest.SkipTest(f'Allocating dmabuf is not supported by /dev/dri/renderD{device_num}')
- 
- 
--def check_dmabuf_mr_support(pd, unit=0):
-+def check_dmabuf_mr_support(pd, gpu=0):
-     """
-     Check if dma-buf MR registration is supported by the driver.
-     Skip the test on failure
-     """
-     try:
--        DmaBufMR(pd, 1, 0, unit=unit)
-+        DmaBufMR(pd, 1, 0, gpu=gpu)
-     except PyverbsRDMAError as ex:
-         if ex.error_code == errno.EOPNOTSUPP:
-             raise unittest.SkipTest('Reg dma-buf MR is not supported by the RDMA driver')
-@@ -464,22 +464,22 @@ class DmaBufMRTest(PyverbsAPITestCase):
-     """
-     def setUp(self):
-         super().setUp()
--        self.unit = self.config['gpu']
-+        self.gpu = self.config['gpu']
-         self.gtt = self.config['gtt']
- 
-     def test_dmabuf_reg_mr(self):
-         """
-         Test ibv_reg_dmabuf_mr()
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 flags = u.get_dmabuf_access_flags(ctx)
-                 for f in flags:
-                     len = u.get_mr_length()
-                     for off in [0, len//2]:
--                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                        with DmaBufMR(pd, len, f, offset=off, gpu=self.gpu,
-                                       gtt=self.gtt) as mr:
-                             pass
- 
-@@ -487,15 +487,15 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Test ibv_dereg_mr() with DmaBufMR
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 flags = u.get_dmabuf_access_flags(ctx)
-                 for f in flags:
-                     len = u.get_mr_length()
-                     for off in [0, len//2]:
--                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                        with DmaBufMR(pd, len, f, offset=off, gpu=self.gpu,
-                                       gtt=self.gtt) as mr:
-                             mr.close()
- 
-@@ -503,15 +503,15 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Verify that explicit call to DmaBufMR's close() doesn't fail
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 flags = u.get_dmabuf_access_flags(ctx)
-                 for f in flags:
-                     len = u.get_mr_length()
-                     for off in [0, len//2]:
--                        with DmaBufMR(pd, len, f, offset=off, unit=self.unit,
-+                        with DmaBufMR(pd, len, f, offset=off, gpu=self.gpu,
-                                       gtt=self.gtt) as mr:
-                             # Pyverbs supports multiple destruction of objects,
-                             # we are not expecting an exception here.
-@@ -522,10 +522,10 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Verify that illegal flags combination fails as expected
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 for i in range(5):
-                     flags = random.sample([e.IBV_ACCESS_REMOTE_WRITE,
-                                            e.IBV_ACCESS_REMOTE_ATOMIC],
-@@ -535,7 +535,7 @@ class DmaBufMRTest(PyverbsAPITestCase):
-                         mr_flags += i.value
-                     try:
-                         DmaBufMR(pd, u.get_mr_length(), mr_flags,
--                                 unit=self.unit, gtt=self.gtt)
-+                                 gpu=self.gpu, gtt=self.gtt)
-                     except PyverbsRDMAError as err:
-                         assert 'Failed to register a dma-buf MR' in err.args[0]
-                     else:
-@@ -545,17 +545,17 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Test writing to DmaBufMR's buffer
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 for i in range(10):
-                     mr_len = u.get_mr_length()
-                     flags = u.get_dmabuf_access_flags(ctx)
-                     for f in flags:
-                         for mr_off in [0, mr_len//2]:
-                             with DmaBufMR(pd, mr_len, f, offset=mr_off,
--                                          unit=self.unit, gtt=self.gtt) as mr:
-+                                          gpu=self.gpu, gtt=self.gtt) as mr:
-                                 write_len = min(random.randint(1, MAX_IO_LEN),
-                                                 mr_len)
-                                 mr.write('a' * write_len, write_len)
-@@ -564,17 +564,17 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Test reading from DmaBufMR's buffer
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 for i in range(10):
-                     mr_len = u.get_mr_length()
-                     flags = u.get_dmabuf_access_flags(ctx)
-                     for f in flags:
-                         for mr_off in [0, mr_len//2]:
-                             with DmaBufMR(pd, mr_len, f, offset=mr_off,
--                                          unit=self.unit, gtt=self.gtt) as mr:
-+                                          gpu=self.gpu, gtt=self.gtt) as mr:
-                                 write_len = min(random.randint(1, MAX_IO_LEN),
-                                                 mr_len)
-                                 write_str = 'a' * write_len
-@@ -588,14 +588,14 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Test reading lkey property
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 length = u.get_mr_length()
-                 flags = u.get_dmabuf_access_flags(ctx)
-                 for f in flags:
--                    with DmaBufMR(pd, length, f, unit=self.unit,
-+                    with DmaBufMR(pd, length, f, gpu=self.gpu,
-                                   gtt=self.gtt) as mr:
-                         mr.lkey
- 
-@@ -603,38 +603,38 @@ class DmaBufMRTest(PyverbsAPITestCase):
-         """
-         Test reading rkey property
-         """
--        check_dmabuf_support(self.unit)
-+        check_dmabuf_support(self.gpu)
-         for ctx, attr, attr_ex in self.devices:
-             with PD(ctx) as pd:
--                check_dmabuf_mr_support(pd, self.unit)
-+                check_dmabuf_mr_support(pd, self.gpu)
-                 length = u.get_mr_length()
-                 flags = u.get_dmabuf_access_flags(ctx)
-                 for f in flags:
--                    with DmaBufMR(pd, length, f, unit=self.unit,
-+                    with DmaBufMR(pd, length, f, gpu=self.gpu,
-                                   gtt=self.gtt) as mr:
-                         mr.rkey
- 
- 
- class DmaBufRC(RCResources):
--    def __init__(self, dev_name, ib_port, gid_index, unit, gtt):
-+    def __init__(self, dev_name, ib_port, gid_index, gpu, gtt):
-         """
-         Initialize an DmaBufRC object.
-         :param dev_name: Device name to be used
-         :param ib_port: IB port of the device to use
-         :param gid_index: Which GID index to use
--        :param unit: GPU unit to allocate dmabuf from
-+        :param gpu: GPU unit to allocate dmabuf from
-         :gtt: Allocate dmabuf from GTT instead og VRAM
-         """
--        self.unit = unit
-+        self.gpu = gpu
-         self.gtt = gtt
-         super(DmaBufRC, self).__init__(dev_name=dev_name, ib_port=ib_port,
-                                        gid_index=gid_index)
- 
-     def create_mr(self):
--        check_dmabuf_support(self.unit)
--        check_dmabuf_mr_support(self.pd, self.unit)
-+        check_dmabuf_support(self.gpu)
-+        check_dmabuf_mr_support(self.pd, self.gpu)
-         access = e.IBV_ACCESS_LOCAL_WRITE | e.IBV_ACCESS_REMOTE_WRITE
--        mr = DmaBufMR(self.pd, self.msg_size, access, unit=self.unit,
-+        mr = DmaBufMR(self.pd, self.msg_size, access, gpu=self.gpu,
-                       gtt=self.gtt)
-         self.mr = mr
- 
-@@ -649,7 +649,7 @@ class DmaBufTestCase(RDMATestCase):
-     def setUp(self):
-         super(DmaBufTestCase, self).setUp()
-         self.iters = 100
--        self.unit = self.config['gpu']
-+        self.gpu = self.config['gpu']
-         self.gtt = self.config['gtt']
- 
-     def create_players(self, resource, **resource_arg):
-@@ -671,7 +671,7 @@ class DmaBufTestCase(RDMATestCase):
-         """
-         Test send/recv using dma-buf MR over RC
-         """
--        client, server = self.create_players(DmaBufRC, unit=self.unit,
-+        client, server = self.create_players(DmaBufRC, gpu=self.gpu,
-                                              gtt=self.gtt)
-         u.traffic(client, server, self.iters, self.gid_index, self.ib_port)
- 
-@@ -679,7 +679,7 @@ class DmaBufTestCase(RDMATestCase):
-         """
-         Test rdma write using dma-buf MR
-         """
--        client, server = self.create_players(DmaBufRC, unit=self.unit,
-+        client, server = self.create_players(DmaBufRC, gpu=self.gpu,
-                                              gtt=self.gtt)
-         server.rkey = client.mr.rkey
-         server.remote_addr = client.mr.offset
--- 
-1.8.3.1
+>
+> > > Here's the sequence as I understand it:
+> > >
+> > >   1) PF driver binds to PF
+> > >   2) PF driver enables VFs
+> > >   3) PF driver creates /sys/.../<PF>/sriov_vf_total_msix
+> > >   4) PF driver creates /sys/.../<VFn>/sriov_vf_msix_count for each VF
+> > >   5) Management app reads sriov_vf_total_msix, writes sriov_vf_msix_count
+> > >   6) VF driver binds to VF
+> > >   7) VF reads MSI-X Message Control (Table Size)
+> > >
+> > > Is it true that "lspci VF" at 4.1 and "lspci VF" at 5.1 may read
+> > > different Table Sizes?  That would be a little weird.
+> >
+> > Yes, this is the flow. I think differently from you and think this
+> > is actual good thing that user writes new msix count and it is shown
+> > immediately.
+>
+> Only weird because per spec Table Size is read-only and in this
+> scenario it changes, so it may be surprising, but probably not a huge
+> deal.
+>
+> > > I'm also a little concerned about doing 2 before 3 & 4.  That works
+> > > for mlx5 because implements the Table Size adjustment in a way that
+> > > works *after* the VFs have been enabled.
+> >
+> > It is not related to mlx5, but to the PCI spec that requires us to
+> > create all VFs at the same time. Before enabling VFs, they don't
+> > exist.
+>
+> Yes.  I can imagine a PF driver that collects characteristics for the
+> desired VFs before enabling them, sort of like we already collect the
+> *number* of VFs.  But I think your argument for dynamic changes after
+> creation below is pretty compelling.
 
+IMHO, the best tool for such pre-configured changes will be devlink.
+
+>
+> > > But it seems conceivable that a device could implement vector
+> > > distribution in a way that would require the VF Table Sizes to be
+> > > fixed *before* enabling VFs.  That would be nice in the sense that the
+> > > VFs would be created "fully formed" and the VF Table Size would be
+> > > completely read-only as documented.
+> >
+> > It is not how SR-IOV is used in real world. Cloud providers create many
+> > VFs but don't assign those VFs yet. They do it after customer request
+> > VM with specific properties (number of CPUs) which means number of MSI-X
+> > vectors in our case.
+> >
+> > All this is done when other VFs already in use and we can't destroy and
+> > recreate them at that point of time.
+>
+> Makes sense, thanks for this insight.  The need to change the MSI-X
+> Table Size dynamically while other VFs are in use would also be useful
+> in the commit log because it really helps motivate this design.
+
+It is already written, but I will add more info.
+
+>
+> > > > > > > > +What:		/sys/bus/pci/devices/.../vfs_overlay/sriov_vf_total_msix
+> > > > > > > > +Date:		January 2021
+> > > > > > > > +Contact:	Leon Romanovsky <leonro@nvidia.com>
+> > > > > > > > +Description:
+> > > > > > > > +		This file is associated with the SR-IOV PFs.
+> > > > > > > > +		It returns a total number of possible to configure MSI-X
+> > > > > > > > +		vectors on the enabled VFs.
+> > > > > > > > +
+> > > > > > > > +		The values returned are:
+> > > > > > > > +		 * > 0 - this will be total number possible to consume by VFs,
+> > > > > > > > +		 * = 0 - feature is not supported
+> > > >
+> > > > > Not sure the "= 0" description is necessary here.  If the value
+> > > > > returned is the number of MSI-X vectors available for assignment to
+> > > > > VFs, "0" is a perfectly legitimate value.  It just means there are
+> > > > > none.  It doesn't need to be described separately.
+> > > >
+> > > > I wanted to help users and remove ambiguity. For example, mlx5 drivers
+> > > > will always implement proper .set_...() callbacks but for some devices
+> > > > without needed FW support, the value will be 0. Instead of misleading
+> > > > users with wrong promise that feature supported but doesn't have
+> > > > available vectors, I decided to be more clear. For the users, 0 means, don't
+> > > > try, it is not working.
+> > >
+> > > Oh, you mean "feature is not supported by the FIRMWARE on some mlx5
+> > > devices"?  I totally missed that; I thought you meant "not supported
+> > > by the PF driver."  Why not have the PF driver detect that the
+> > > firmware doesn't support the feature and just not expose the sysfs
+> > > files at all in that case?
+> >
+> > I can do it and will do it, but this behavior will be possible because
+> > mlx5 is flexible enough. I imagine that other device won't be so flexible,
+> > for example they will decide to "close" this feature because of other
+> > SW limitation.
+>
+> What about something like this?
+>
+>   This file contains the total number of MSI-X vectors available for
+>   assignment to all VFs associated with this PF.  It may be zero if
+>   the device doesn't support this functionality.
+
+Sounds good.
+
+>
+> Side question: How does user-space use this?  This file contains a
+> constant, and there's no interface to learn how many vectors are still
+> available in the pool, right?
+
+Right, it is easy for the kernel implementation and easy for the users.
+They don't need from the kernel to see exact utilized number.
+
+Every VF has vectors assigned from the beginning and there is no parallel
+race between kernel and user space to claim resources in our flow, so at the
+point when orchestration will have a chance to run the system will be in steady
+state.
+
+Access to the hypervisor with ability to write to sysfs files requires
+root permissions and management software already counts number of users,
+their CPUs and number of vectors.
+
+>
+> I guess the user just has to manage the values written to
+> .../VF<n>/sriov_vf_msix_count so the sum of all of them never exceeds
+> sriov_vf_total_msix?  If that user app crashes, I guess it can
+> reconstruct this state by reading all the
+> .../VF<n>/sriov_vf_msix_count files?
+
+Yes, if orchestration software crashes on hypervisor, it will simply
+reiterate all VFs from the beginning.
+
+>
+> > > > > If we put them in a new "vfs_overlay" directory, it seems like
+> > > > > overkill to repeat the "vf" part, but I'm hoping the new files can end
+> > > > > up next to these existing files.  In that case, I think it makes sense
+> > > > > to include "sriov".  And it probably does make sense to include "vf"
+> > > > > as well.
+> > > >
+> > > > I put everything in folder to group any possible future extensions.
+> > > > Those extensions are applicable to SR-IOV VFs only, IMHO they deserve
+> > > > separate folder.
+> > >
+> > > I'm not convinced (yet) that the possibility of future extensions is
+> > > enough justification for adding the "vfs_overlay" directory.  It
+> > > really complicates the code flow -- if we skipped the new directory,
+> > > I'm pretty sure we could make .is_visible() work, which would be a
+> > > major simplification.
+> >
+> > Unfortunately not, is_visible() is not dynamic and called when device
+> > creates sysfs and it doesn't rescan it or refresh them. It means that
+> > all files from vfs_overlay folder will exist even driver is removed
+> > from PF.
+> >
+> > Also sysfs is created before driver is probed.
+>
+> Ah, both excellent points, that makes this much clearer to me, thank
+> you!
+>
+> > > And there's quite a bit of value in the new files being right next to
+> > > the existing sriov_* files.
+> >
+> > I have no problem to drop folder, just need clear request, should I.
+>
+> I think we should drop the folder.  I missed the previous discussion
+> though, so if somebody has a good objection to dropping it, let me
+> know.
+
+Just to be clear, dropping "vfs_overlay" folder won't remove any
+complexity with pci_enable_vfs_overlay()/pci_disable_vfs_overlay(), but
+will cause to simple change of the name attribute in the attribute_group.
+
+>
+> Dropping the folder has the potential advantage that we *could* decide
+> to expose these files always, and just have them be non-functional if
+> the device doesn't support assignment or the PF driver isn't bound.
+> Then I think we could use static sysfs attributes without
+> pci_enable_vfs_overlay().
+
+Such static initialization was in v0..v3 versions, but the request was to have
+new files to be PF-driven and it requires enable/disable callbacks.
+
+They need to allow the flow when PF driver is bounded after VF devices
+already created. For example this flow:
+1. modprobe mlx5_core
+2. echo 5 > .../sriov_numvf
+3. rmmod mlx5_core
+...
+4. modprobe mlx5_core <- need to reattach to already existing VFs.
+
+Thanks
+
+>
+> Bjorn
