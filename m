@@ -2,99 +2,170 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C10FC433E0
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 22:52:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5E2C433DB
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D189065009
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Feb 2021 22:52:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9238F64F70
+	for <linux-rdma@archiver.kernel.org>; Sat,  6 Feb 2021 02:36:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230058AbhBEWuV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Feb 2021 17:50:21 -0500
-Received: from userp2120.oracle.com ([156.151.31.85]:60110 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232400AbhBENDx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 08:03:53 -0500
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 115CTTnv115438;
-        Fri, 5 Feb 2021 13:03:07 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=LgzNwtVrPCHQ+X8++9CaF64ugRzfuLVv6tZF9PdDXH8=;
- b=bUmawfdmWCY7B6M4RdQaMNSXMOcMa1rPHhd/3lCHbxtIOyplFoql/OvdSR1P1Amvmhpp
- 5d5oaIsVHfiJugmdhV+F7dyIQUyErjknIHGxQnHJFJwZaF5QXZ4BwKugm6wqboh5X7bR
- tNKeHPbYEA7rufTsrWVolzc5tagUkB0bs+LxsCQhGrSQqkbZOgxpkKUeTXTFwKJKD+5u
- 0tMrCyunsD9bso9PFiXEiFwcE0WzJAPeWTyRGSKOUxi/u6yn1XZPIca9Soy9LUvAJATS
- /nz2VHAS2luM1l5bJPXnsR9kd3eb3GAqW+dCea/Uynb4+6doRhrCqbtLr6qRlS4oCHzC tw== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2120.oracle.com with ESMTP id 36gfw8sqv5-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 05 Feb 2021 13:03:07 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 115CxeSo023736;
-        Fri, 5 Feb 2021 13:03:05 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-        by aserp3030.oracle.com with ESMTP id 36dh1tvpd8-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 05 Feb 2021 13:03:05 +0000
-Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
-        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 115D33SV027207;
-        Fri, 5 Feb 2021 13:03:03 GMT
-Received: from mwanda (/41.210.143.249)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Fri, 05 Feb 2021 05:03:02 -0800
-Date:   Fri, 5 Feb 2021 16:02:54 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     kliteyn@nvidia.com
-Cc:     Yevgeny Kliteynik <kliteyn@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [bug report] net/mlx5: DR, Add STEv1 setters and getters
-Message-ID: <YB1B/iHMlHHnOWCh@mwanda>
+        id S231260AbhBFCgA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Feb 2021 21:36:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37194 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230342AbhBFCdj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Feb 2021 21:33:39 -0500
+Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07B9DC08EE25
+        for <linux-rdma@vger.kernel.org>; Fri,  5 Feb 2021 16:25:02 -0800 (PST)
+Received: by mail-oi1-x22f.google.com with SMTP id v193so3960962oie.8
+        for <linux-rdma@vger.kernel.org>; Fri, 05 Feb 2021 16:25:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=aQKQUsK6QMsy4X1oV28tM4z8Ewm0hEDOsXzwdCyisqY=;
+        b=gexGdOH1sm7Hi0CeMn2IaZ6IvAWu5qkCraAlWyLc+xTkTHRts2h1GVGzwMAxdYclLT
+         pxPTUFhq4U8o5e4bDPEN7IyIDRT0jthzfNZ44/2i8aDcYHobp/Kd99CIkqq5ikg0oZPL
+         B/Fy0t5Q7A+lVnMnj6qBPNX0BO4XN/UbpmmsETf1vUE8XZVYyi4Y488OopqXnYYiHceL
+         x/EBzVfRoOh2VBbhbLEY68jhLiILotMbIbRG0EHS7AavLpyN5Foe8/Sq+ju5YgITHdpz
+         a8bKV1kM6bjaraFVtuGR/ir08nf+09siAFNALDCev03Q5OBjf7bgdOchCyyJTk7LUslL
+         k5FA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=aQKQUsK6QMsy4X1oV28tM4z8Ewm0hEDOsXzwdCyisqY=;
+        b=kteJrB3JsJ08MWvGrp+1CPe/RVM42FpxOq2zQfWMmvuN1tlTsb6Wt1LqhWuD6hZ1/1
+         9qxIEAs6hXZpCVyM1AhYMf2Nm5u258COzNVdgdISYGgF6PV1XzPwNbUctIu1qGZ6iF3b
+         00i2PxvK7mu8mdalZM2dmO5ZPqsr1u/U9/8nWbkK6YXD7G1KhWwDU35W35GDDmkcxpxg
+         yGS4EKNTKqV3N+dwwGrJAfM4rxVKEKTZ5KVWG08tae/EJfUohZIZeKbo7gY8cqU5iunh
+         uRA18NmjSYOVuCAn/LRNVB3HqpCVFyxupXVEJ7XXR2dyUL1gdjzVF7JMRQlgLKQaCRgp
+         S9vA==
+X-Gm-Message-State: AOAM533Rj4/F13QXKgXVUyrhc/S8aWeFwHGkv+HYUkCeazoG6B/N891G
+        C1jRdyAShCWi8VccOJfAkz4=
+X-Google-Smtp-Source: ABdhPJxN3dhQyEKZjX6GIuKwZpyj2jzqxvw+cdp3E3aj/3g06hOSyiXrAP+qmherTkPBaVlw1XQNAA==
+X-Received: by 2002:aca:ba56:: with SMTP id k83mr4804118oif.82.1612571101491;
+        Fri, 05 Feb 2021 16:25:01 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-b1e0-6ae3-596c-1850.res6.spectrum.com. [2603:8081:140c:1a00:b1e0:6ae3:596c:1850])
+        by smtp.gmail.com with ESMTPSA id f26sm2131662otq.80.2021.02.05.16.25.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 05 Feb 2021 16:25:00 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] RDMA/rxe: Cleanup init_send_wqe
+Date:   Fri,  5 Feb 2021 18:24:37 -0600
+Message-Id: <20210206002437.2756-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Proofpoint-IMR: 1
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9885 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 phishscore=0
- suspectscore=0 mlxlogscore=852 bulkscore=0 mlxscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2102050084
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9885 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 bulkscore=0
- impostorscore=0 clxscore=1011 mlxscore=0 mlxlogscore=796 malwarescore=0
- suspectscore=0 lowpriorityscore=0 priorityscore=1501 phishscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2102050083
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello Yevgeny Kliteynik,
+This patch changes the type of init_send_wqe in rxe_verbs.c to void
+since it always returns 0. It also separates out the code that copies
+inline data into the send wqe as copy_inline_data_to_wqe().
 
-The patch a6098129c781: "net/mlx5: DR, Add STEv1 setters and getters"
-from Sep 22, 2020, leads to the following static checker warning:
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 42 ++++++++++++---------------
+ 1 file changed, 19 insertions(+), 23 deletions(-)
 
-	drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c:268 dr_ste_v1_get_miss_addr()
-	warn: potential shift truncation.  '0xff (0-255) << 26'
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 984909e03b35..dee5e0e919d2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -555,14 +555,24 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
+ 	}
+ }
+ 
+-static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
++static void copy_inline_data_to_wqe(struct rxe_send_wqe *wqe,
++				    const struct ib_send_wr *ibwr)
++{
++	struct ib_sge *sge = ibwr->sg_list;
++	u8 *p = wqe->dma.inline_data;
++	int i;
++
++	for (i = 0; i < ibwr->num_sge; i++, sge++) {
++		memcpy(p, (void *)(uintptr_t)sge->addr, sge->length);
++		p += sge->length;
++	}
++}
++
++static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 			 unsigned int mask, unsigned int length,
+ 			 struct rxe_send_wqe *wqe)
+ {
+ 	int num_sge = ibwr->num_sge;
+-	struct ib_sge *sge;
+-	int i;
+-	u8 *p;
+ 
+ 	init_send_wr(qp, &wqe->wr, ibwr);
+ 
+@@ -570,7 +580,7 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	if (unlikely(mask & WR_REG_MASK)) {
+ 		wqe->mask = mask;
+ 		wqe->state = wqe_state_posted;
+-		return 0;
++		return;
+ 	}
+ 
+ 	if (qp_type(qp) == IB_QPT_UD ||
+@@ -578,20 +588,11 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	    qp_type(qp) == IB_QPT_GSI)
+ 		memcpy(&wqe->av, &to_rah(ud_wr(ibwr)->ah)->av, sizeof(wqe->av));
+ 
+-	if (unlikely(ibwr->send_flags & IB_SEND_INLINE)) {
+-		p = wqe->dma.inline_data;
+-
+-		sge = ibwr->sg_list;
+-		for (i = 0; i < num_sge; i++, sge++) {
+-			memcpy(p, (void *)(uintptr_t)sge->addr,
+-					sge->length);
+-
+-			p += sge->length;
+-		}
+-	} else {
++	if (unlikely(ibwr->send_flags & IB_SEND_INLINE))
++		copy_inline_data_to_wqe(wqe, ibwr);
++	else
+ 		memcpy(wqe->dma.sge, ibwr->sg_list,
+ 		       num_sge * sizeof(struct ib_sge));
+-	}
+ 
+ 	wqe->iova = mask & WR_ATOMIC_MASK ? atomic_wr(ibwr)->remote_addr :
+ 		mask & WR_READ_OR_WRITE_MASK ? rdma_wr(ibwr)->remote_addr : 0;
+@@ -603,8 +604,6 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	wqe->dma.sge_offset	= 0;
+ 	wqe->state		= wqe_state_posted;
+ 	wqe->ssn		= atomic_add_return(1, &qp->ssn);
+-
+-	return 0;
+ }
+ 
+ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+@@ -627,10 +626,7 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	}
+ 
+ 	send_wqe = producer_addr(sq->queue);
+-
+-	err = init_send_wqe(qp, ibwr, mask, length, send_wqe);
+-	if (unlikely(err))
+-		goto err1;
++	init_send_wqe(qp, ibwr, mask, length, send_wqe);
+ 
+ 	advance_producer(sq->queue);
+ 	spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
+-- 
+2.27.0
 
-drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
-   264  static u64 dr_ste_v1_get_miss_addr(u8 *hw_ste_p)
-   265  {
-   266          u64 index =
-   267                  (MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_31_6) |
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   268                   MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_39_32) << 26);
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-index is a u64 but the right side is a two u32s.  The << 26 can shift
-wrap potentially according to Smatch.
-
-   269  
-   270          return index << 6;
-   271  }
-
-regards,
-dan carpenter
