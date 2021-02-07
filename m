@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA028C433E9
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 03:16:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E558C4332B
+	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 03:16:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3E2864DC3
+	by mail.kernel.org (Postfix) with ESMTP id D92A064DC3
 	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 03:16:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbhBGDQN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 6 Feb 2021 22:16:13 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:11688 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbhBGDP6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 6 Feb 2021 22:15:58 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DYDkg0DyLzlGSl;
-        Sun,  7 Feb 2021 11:13:31 +0800 (CST)
+        id S229707AbhBGDQS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 6 Feb 2021 22:16:18 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:12861 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229741AbhBGDP7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 6 Feb 2021 22:15:59 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4DYDl44y3Kz7hLs;
+        Sun,  7 Feb 2021 11:13:52 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.498.0; Sun, 7 Feb 2021 11:15:09 +0800
+ 14.3.498.0; Sun, 7 Feb 2021 11:15:10 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH RFC rdma-core 2/5] libhns: Introduce DCA for RC QP
-Date:   Sun, 7 Feb 2021 11:12:51 +0800
-Message-ID: <1612667574-56673-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH RFC rdma-core 5/5] libhns: Add support for configuring DCA
+Date:   Sun, 7 Feb 2021 11:12:54 +0800
+Message-ID: <1612667574-56673-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1612667574-56673-1-git-send-email-liweihang@huawei.com>
 References: <1612667574-56673-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -45,286 +46,171 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-The HIP09 introduces the DCA(Dynamic context attachment) feature which
-supports many RC QPs to share the WQE buffer in a memory pool, this will
-reduce the memory consumption when there are too many QPs inactive.
+Add a group of environment variables for configuring DCA memory pool which
+is as follows:
+ HNS_DCA_MAX_SIZE - the max size when expand the memory pool.
+ HNS_DCA_MIN_SIZE - the reverved size when shrink the memory pool.
+ HNS_DCA_UNIT_SIZE - the increase unit size when expand the memory pool.
 
-This patch wraps two functions for adding buffers to memory pool and
-removing buffers from memory pool by calling ib cmd implemented in hns
-kernel driver.
-
-If a QP enables DCA feature, the WQE's buffer will be attached to the
-memroy pool when the users start to post WRs and be detached when all CQEs
-has been polled.
+Also append 'IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH' for creating a DCA QP.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- providers/hns/hns_roce_u.c     |  41 +++++++++++++
- providers/hns/hns_roce_u.h     |  18 ++++++
- providers/hns/hns_roce_u_buf.c | 134 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 193 insertions(+)
+ libibverbs/cmd_qp.c              |  3 ++-
+ libibverbs/verbs.h               |  1 +
+ providers/hns/hns_roce_u.c       | 52 ++++++++++++++++++++++++++++++++++++++--
+ providers/hns/hns_roce_u_verbs.c | 18 ++++++++++----
+ 4 files changed, 67 insertions(+), 7 deletions(-)
 
+diff --git a/libibverbs/cmd_qp.c b/libibverbs/cmd_qp.c
+index 056f397..f9899ad 100644
+--- a/libibverbs/cmd_qp.c
++++ b/libibverbs/cmd_qp.c
+@@ -38,7 +38,8 @@ enum {
+ 					IBV_QP_CREATE_SCATTER_FCS |
+ 					IBV_QP_CREATE_CVLAN_STRIPPING |
+ 					IBV_QP_CREATE_SOURCE_QPN |
+-					IBV_QP_CREATE_PCI_WRITE_END_PADDING
++					IBV_QP_CREATE_PCI_WRITE_END_PADDING |
++					IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH
+ };
+ 
+ 
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 656b0f9..db37dce 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -918,6 +918,7 @@ enum ibv_qp_create_flags {
+ 	IBV_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
+ 	IBV_QP_CREATE_SOURCE_QPN		= 1 << 10,
+ 	IBV_QP_CREATE_PCI_WRITE_END_PADDING	= 1 << 11,
++	IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH	= 1 << 13,
+ };
+ 
+ enum ibv_qp_create_send_ops_flags {
 diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index e63ef32..28b1130 100644
+index 28b1130..3ba99ed 100644
 --- a/providers/hns/hns_roce_u.c
 +++ b/providers/hns/hns_roce_u.c
-@@ -89,6 +89,40 @@ static const struct verbs_context_ops hns_common_ops = {
- 	.destroy_ah = hns_roce_u_destroy_ah,
- };
+@@ -92,6 +92,10 @@ static const struct verbs_context_ops hns_common_ops = {
+ static int init_dca_context(struct hns_roce_context *ctx, int page_size)
+ {
+ 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	int unit_size = 0;
++	long max_size = 0;
++	long min_size;
++	char *env;
+ 	int ret;
  
-+static int init_dca_context(struct hns_roce_context *ctx, int page_size)
-+{
-+	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+	int ret;
-+
-+	if (!(ctx->cap_flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
-+		return 0;
-+
-+	list_head_init(&dca_ctx->mem_list);
-+	ret = pthread_spin_init(&dca_ctx->lock, PTHREAD_PROCESS_PRIVATE);
-+	if (ret)
-+		return ret;
-+
-+	dca_ctx->unit_size = page_size * HNS_DCA_DEFAULT_UNIT_PAGES;
-+	dca_ctx->max_size = HNS_DCA_MAX_MEM_SIZE;
-+	dca_ctx->mem_cnt = 0;
-+
-+	return 0;
-+}
-+
-+static void uninit_dca_context(struct hns_roce_context *ctx)
-+{
-+	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+
-+	if (!(ctx->cap_flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
-+		return;
-+
-+	pthread_spin_lock(&dca_ctx->lock);
-+	hns_roce_cleanup_dca_mem(ctx);
-+	pthread_spin_unlock(&dca_ctx->lock);
-+
-+	pthread_spin_destroy(&dca_ctx->lock);
-+}
-+
- static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 						    int cmd_fd,
- 						    void *private_data)
-@@ -110,6 +144,8 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 				&resp.ibv_resp, sizeof(resp)))
- 		goto err_free;
+ 	if (!(ctx->cap_flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
+@@ -102,8 +106,52 @@ static int init_dca_context(struct hns_roce_context *ctx, int page_size)
+ 	if (ret)
+ 		return ret;
  
-+	context->cap_flags = resp.cap_flags;
+-	dca_ctx->unit_size = page_size * HNS_DCA_DEFAULT_UNIT_PAGES;
+-	dca_ctx->max_size = HNS_DCA_MAX_MEM_SIZE;
++	env = getenv("HNS_DCA_UNIT_SIZE");
++	if (env) {
++		unit_size = atoi(env);
++		/* Disable DCA only for this process */
++		if (unit_size == 0)
++			return 0;
++	}
 +
- 	context->num_qps = resp.qp_tab_size;
- 	context->qp_table_shift = ffs(context->num_qps) - 1 -
- 				  HNS_ROCE_QP_TABLE_BITS;
-@@ -162,6 +198,9 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 	verbs_set_ops(&context->ibv_ctx, &hns_common_ops);
- 	verbs_set_ops(&context->ibv_ctx, &hr_dev->u_hw->hw_ops);
- 
-+	if (init_dca_context(context, hr_dev->page_size))
-+		goto db_free;
++	if (unit_size < 1)
++		unit_size = page_size * HNS_DCA_DEFAULT_UNIT_PAGES;
 +
- 	return &context->ibv_ctx;
- 
- db_free:
-@@ -183,6 +222,8 @@ static void hns_roce_free_context(struct ibv_context *ibctx)
- 	if (hr_dev->hw_version == HNS_ROCE_HW_VER1)
- 		munmap(context->cq_tptr_base, HNS_ROCE_CQ_DB_BUF_SIZE);
- 
-+	uninit_dca_context(context);
++	unit_size = align(unit_size, page_size);
 +
- 	verbs_uninit_context(&context->ibv_ctx);
- 	free(context);
++	/*
++	 * not set OR 0: Unlimited memory pool increase.
++	 * others: Maximum memory pool size to be increased.
++	 */
++	env = getenv("HNS_DCA_MAX_SIZE");
++	if (env)
++		max_size = atol(env);
++
++	if (max_size == 0)
++		max_size = HNS_DCA_MAX_MEM_SIZE;
++	else
++		max_size = DIV_ROUND_UP(max_size, unit_size);
++
++	/*
++	 * not set: The memory pool cannot be reduced.
++	 * others: The size of free memory in the pool cannot exceed this value.
++	 * 0: Always reduce the free memory in the pool.
++	 */
++	env = getenv("HNS_DCA_MIN_SIZE");
++	if (env) {
++		min_size = atol(env);
++		if (min_size > 0)
++			min_size = DIV_ROUND_UP(min_size, unit_size);
++		else
++			min_size = 0;
++	} else {
++		min_size = HNS_DCA_MAX_MEM_SIZE;
++	}
++
++	dca_ctx->unit_size = unit_size;
++	dca_ctx->max_size = max_size;
++	dca_ctx->min_size = min_size;
++
+ 	dca_ctx->mem_cnt = 0;
+ 
+ 	return 0;
+diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
+index 6ec8b12..0697328 100644
+--- a/providers/hns/hns_roce_u_verbs.c
++++ b/providers/hns/hns_roce_u_verbs.c
+@@ -542,7 +542,7 @@ int hns_roce_u_destroy_srq(struct ibv_srq *srq)
  }
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 67b4433..619b060 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -142,8 +142,21 @@ struct hns_roce_db_page {
- 	bitmap			*bitmap;
+ 
+ enum {
+-	CREATE_QP_SUP_CREATE_FLAGS = 0,
++	CREATE_QP_SUP_CREATE_FLAGS = IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH,
  };
  
-+#define HNS_DCA_MAX_MEM_SIZE ~0UL
-+#define HNS_DCA_DEFAULT_UNIT_PAGES 16
-+
-+struct hns_roce_dca_ctx {
-+	struct list_head mem_list;
-+	pthread_spinlock_t lock;
-+	uint64_t max_size;
-+	uint64_t curr_size;
-+	int mem_cnt;
-+	unsigned int unit_size;
-+};
-+
- struct hns_roce_context {
- 	struct verbs_context		ibv_ctx;
-+	uint32_t			cap_flags;
- 	void				*uar;
- 	pthread_spinlock_t		uar_lock;
- 
-@@ -167,6 +180,8 @@ struct hns_roce_context {
- 	unsigned int			max_sge;
- 	int				max_cqe;
- 	unsigned int			cqe_size;
-+
-+	struct hns_roce_dca_ctx		dca_ctx;
- };
- 
- struct hns_roce_pd {
-@@ -395,6 +410,9 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
- 
- void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
- 
-+void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
-+int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
-+
- void hns_roce_init_qp_indices(struct hns_roce_qp *qp);
- 
- extern const struct hns_roce_u_hw hns_roce_u_hw_v1;
-diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
-index 471dd9c..424f916 100644
---- a/providers/hns/hns_roce_u_buf.c
-+++ b/providers/hns/hns_roce_u_buf.c
-@@ -60,3 +60,137 @@ void hns_roce_free_buf(struct hns_roce_buf *buf)
- 
- 	munmap(buf->buf, buf->length);
+ enum {
+@@ -688,10 +688,11 @@ static int calc_qp_buff_size(struct hns_roce_device *hr_dev,
+ 	return 0;
  }
+ 
+-static inline bool check_qp_support_dca(bool pool_en, enum ibv_qp_type qp_type)
++static inline bool check_qp_support_dca(bool pool_en, enum ibv_qp_type qp_type,
++					uint32_t create_flags)
+ {
+ 	if (pool_en && (qp_type == IBV_QPT_RC || qp_type == IBV_QPT_XRC_SEND))
+-		return true;
++		return !!(create_flags & IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH);
+ 
+ 	return false;
+ }
+@@ -730,7 +731,8 @@ static int qp_alloc_wqe(struct ibv_qp_init_attr_ex *attr,
+ 			goto err_alloc;
+ 	}
+ 
+-	if (check_qp_support_dca(ctx->dca_ctx.max_size != 0, attr->qp_type)) {
++	if (check_qp_support_dca(ctx->dca_ctx.max_size != 0,
++				 attr->qp_type, attr->create_flags)) {
+ 		/* when DCA is enabled, use a buffer list to store page addr */
+ 		qp->buf.buf = NULL;
+ 		qp->page_list.max_cnt = hr_hw_page_count(qp->buf_size);
+@@ -901,6 +903,14 @@ static int qp_exec_create_cmd(struct ibv_qp_init_attr_ex *attr,
+ 	struct hns_roce_create_qp_ex cmd_ex = {};
+ 	int ret;
+ 
++	/*
++	 * When handling the command in kernel space, the user QP enable
++	 * the DCA mode by checking whether the cmd.buf_addr is NULL but
++	 * not the attr->create_flags has the DCA enable bit, so clear
++	 * this bit before command is ready to run.
++	 */
++	attr->create_flags &= ~IBV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH;
 +
-+struct hns_roce_dca_mem {
-+	uint32_t handle;
-+	struct list_node entry;
-+	struct hns_roce_buf buf;
-+	struct hns_roce_context *ctx;
-+};
-+
-+static void free_dca_mem(struct hns_roce_context *ctx,
-+			 struct hns_roce_dca_mem *mem)
-+{
-+	hns_roce_free_buf(&mem->buf);
-+	free(mem);
-+}
-+
-+static struct hns_roce_dca_mem *alloc_dca_mem(uint32_t size)
-+{
-+	struct hns_roce_dca_mem *mem = NULL;
-+	int ret;
-+
-+	mem = malloc(sizeof(struct hns_roce_dca_mem));
-+	if (!mem) {
-+		errno = ENOMEM;
-+		return NULL;
-+	}
-+
-+	ret = hns_roce_alloc_buf(&mem->buf, size, HNS_HW_PAGE_SIZE);
-+	if (ret) {
-+		errno = ENOMEM;
-+		free(mem);
-+		return NULL;
-+	}
-+
-+	return mem;
-+}
-+
-+static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
-+{
-+	return (uintptr_t)dca_mem;
-+}
-+
-+static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
-+{
-+	return dca_mem->buf.buf + offset;
-+}
-+
-+static int register_dca_mem(struct hns_roce_context *ctx, uint64_t key,
-+			    void *addr, uint32_t size, uint32_t *handle)
-+{
-+	struct ib_uverbs_attr *attr;
-+	int ret;
-+
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_REG, 4);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_REG_LEN, size);
-+	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_REG_ADDR, (intptr_t)addr);
-+	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_REG_KEY, key);
-+	attr = fill_attr_out_obj(cmd, HNS_IB_ATTR_DCA_MEM_REG_HANDLE);
-+
-+	ret = execute_ioctl(&ctx->ibv_ctx.context, cmd);
-+	if (!ret)
-+		*handle = read_attr_obj(HNS_IB_ATTR_DCA_MEM_REG_HANDLE, attr);
-+
-+	return ret;
-+}
-+
-+static void deregister_dca_mem(struct hns_roce_context *ctx, uint32_t handle)
-+{
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_DEREG, 1);
-+	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE, handle);
-+	execute_ioctl(&ctx->ibv_ctx.context, cmd);
-+}
-+
-+void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
-+{
-+	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+	struct hns_roce_dca_mem *mem;
-+	struct hns_roce_dca_mem *tmp;
-+
-+	list_for_each_safe(&dca_ctx->mem_list, mem, tmp, entry)
-+		deregister_dca_mem(ctx, mem->handle);
-+}
-+
-+static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
-+				uint32_t alloc_size)
-+{
-+	bool enable;
-+
-+	pthread_spin_lock(&ctx->lock);
-+
-+	if (ctx->unit_size == 0) /* Pool size can't be increased */
-+		enable = false;
-+	else if (ctx->max_size == HNS_DCA_MAX_MEM_SIZE) /* Pool size no limit */
-+		enable = true;
-+	else /* Pool size doesn't exceed max size */
-+		enable = (ctx->curr_size + alloc_size) < ctx->max_size;
-+
-+	pthread_spin_unlock(&ctx->lock);
-+
-+	return enable;
-+}
-+
-+int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
-+{
-+	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+	struct hns_roce_dca_mem *mem;
-+	int ret;
-+
-+	if (!add_dca_mem_enabled(&ctx->dca_ctx, size))
-+		return -ENOMEM;
-+
-+	/* Step 1: Alloc DCA mem address */
-+	mem = alloc_dca_mem(DIV_ROUND_UP(size, dca_ctx->unit_size));
-+	if (!mem)
-+		return -ENOMEM;
-+
-+	/* Step 2: Register DCA mem uobject to pin user address */
-+	ret = register_dca_mem(ctx, dca_mem_to_key(mem), dca_mem_addr(mem, 0),
-+			       mem->buf.length, &mem->handle);
-+	if (ret) {
-+		free_dca_mem(ctx, mem);
-+		return ret;
-+	}
-+
-+	/* Step 3: Add DCA mem node to pool */
-+	pthread_spin_lock(&dca_ctx->lock);
-+	list_add_tail(&dca_ctx->mem_list, &mem->entry);
-+	dca_ctx->mem_cnt++;
-+	dca_ctx->curr_size += mem->buf.length;
-+	pthread_spin_unlock(&dca_ctx->lock);
-+
-+	return 0;
-+}
+ 	cmd_ex.sdb_addr = (uintptr_t)qp->sdb;
+ 	cmd_ex.db_addr = (uintptr_t)qp->rdb;
+ 	cmd_ex.buf_addr = (uintptr_t)qp->buf.buf;
 -- 
 2.8.1
 
