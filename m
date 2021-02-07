@@ -7,21 +7,21 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 164B3C433DB
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 08:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C25C433E0
+	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 08:58:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5A1364DF0
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 08:58:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2844164DF0
+	for <linux-rdma@archiver.kernel.org>; Sun,  7 Feb 2021 08:58:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbhBGI6m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 7 Feb 2021 03:58:42 -0500
-Received: from szxga06-in.huawei.com ([45.249.212.32]:12443 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbhBGI6m (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 Feb 2021 03:58:42 -0500
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4DYNLt3kPRzjJfm;
-        Sun,  7 Feb 2021 16:56:54 +0800 (CST)
+        id S229522AbhBGI6n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 7 Feb 2021 03:58:43 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:11694 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229536AbhBGI6n (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 Feb 2021 03:58:43 -0500
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DYNL942vjzlC23;
+        Sun,  7 Feb 2021 16:56:17 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
  14.3.498.0; Sun, 7 Feb 2021 16:57:58 +0800
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH v2 for-next 2/5] RDMA/hns: Fixes missing error code of CMDQ
-Date:   Sun, 7 Feb 2021 16:55:40 +0800
-Message-ID: <1612688143-28226-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v2 for-next 4/5] RDMA/hns: Adjust fields and variables about CMDQ tail/head
+Date:   Sun, 7 Feb 2021 16:55:42 +0800
+Message-ID: <1612688143-28226-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1612688143-28226-1-git-send-email-liweihang@huawei.com>
 References: <1612688143-28226-1-git-send-email-liweihang@huawei.com>
@@ -45,47 +45,147 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-When posting a multi-descriptors command, the error code of previous failed
-descriptors may be rewrote to 0 by a later successful descriptor.
+The register 0x07014 is actually the head pointer of CMDQ, and 0x07010
+means tail pointer. Current definitions are confusing, so rename them and
+related variables.
 
-Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
+The next_to_use of structure hns_roce_v2_cmq_ring has the same semantics as
+head, merge them into one member. The next_to_clean of structure
+hns_roce_v2_cmq_ring has the same semantics as tail. After deleting
+next_to_clean, tail should also be deleted.
+
 Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_common.h |  4 ++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 37 +++++++++++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  3 ---
+ 3 files changed, 21 insertions(+), 23 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
+index 3ca6e88..23c438c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_common.h
++++ b/drivers/infiniband/hw/hns/hns_roce_common.h
+@@ -364,8 +364,8 @@
+ #define ROCEE_TX_CMQ_BASEADDR_L_REG		0x07000
+ #define ROCEE_TX_CMQ_BASEADDR_H_REG		0x07004
+ #define ROCEE_TX_CMQ_DEPTH_REG			0x07008
+-#define ROCEE_TX_CMQ_TAIL_REG			0x07010
+-#define ROCEE_TX_CMQ_HEAD_REG			0x07014
++#define ROCEE_TX_CMQ_HEAD_REG			0x07010
++#define ROCEE_TX_CMQ_TAIL_REG			0x07014
+ 
+ #define ROCEE_RX_CMQ_BASEADDR_L_REG		0x07018
+ #define ROCEE_RX_CMQ_BASEADDR_H_REG		0x0701c
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 7a5a41d..79cb2d6 100644
+index 1945730..0fb9896 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1246,7 +1246,7 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+@@ -1098,7 +1098,7 @@ static int hns_roce_init_cmq_ring(struct hns_roce_dev *hr_dev, bool ring_type)
+ 					    &priv->cmq.csq : &priv->cmq.crq;
+ 
+ 	ring->flag = ring_type;
+-	ring->next_to_use = 0;
++	ring->head = 0;
+ 
+ 	return hns_roce_alloc_cmq_desc(hr_dev, ring);
+ }
+@@ -1197,10 +1197,10 @@ static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
+ 
+ static int hns_roce_cmq_csq_done(struct hns_roce_dev *hr_dev)
+ {
+-	u32 head = roce_read(hr_dev, ROCEE_TX_CMQ_HEAD_REG);
++	u32 tail = roce_read(hr_dev, ROCEE_TX_CMQ_TAIL_REG);
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+ 
+-	return head == priv->cmq.csq.next_to_use;
++	return tail == priv->cmq.csq.head;
+ }
+ 
+ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+@@ -1212,25 +1212,25 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
  	u32 timeout = 0;
  	int handle = 0;
  	u16 desc_ret;
--	int ret = 0;
-+	int ret;
- 	int ntc;
++	u32 tail;
+ 	int ret;
+-	int ntc;
  
  	spin_lock_bh(&csq->lock);
-@@ -1290,15 +1290,14 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
  
- 	if (hns_roce_cmq_csq_done(hr_dev)) {
- 		handle = 0;
-+		ret = 0;
+-	ntc = csq->next_to_use;
++	tail = csq->head;
+ 
+ 	while (handle < num) {
+-		desc_to_use = &csq->desc[csq->next_to_use];
++		desc_to_use = &csq->desc[csq->head];
+ 		*desc_to_use = desc[handle];
+ 		dev_dbg(hr_dev->dev, "set cmq desc:\n");
+-		csq->next_to_use++;
+-		if (csq->next_to_use == csq->desc_num)
+-			csq->next_to_use = 0;
++		csq->head++;
++		if (csq->head == csq->desc_num)
++			csq->head = 0;
+ 		handle++;
+ 	}
+ 
+ 	/* Write to hardware */
+-	roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, csq->next_to_use);
++	roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, csq->head);
+ 
+ 	/*
+ 	 * If the command is sync, wait for the firmware to write back,
+@@ -1250,24 +1250,25 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 		ret = 0;
  		while (handle < num) {
  			/* get the result of hardware write back */
- 			desc_to_use = &csq->desc[ntc];
+-			desc_to_use = &csq->desc[ntc];
++			desc_to_use = &csq->desc[tail];
  			desc[handle] = *desc_to_use;
  			dev_dbg(hr_dev->dev, "Get cmq desc:\n");
  			desc_ret = le16_to_cpu(desc[handle].retval);
--			if (desc_ret == CMD_EXEC_SUCCESS)
--				ret = 0;
--			else
-+			if (unlikely(desc_ret != CMD_EXEC_SUCCESS))
+ 			if (unlikely(desc_ret != CMD_EXEC_SUCCESS))
  				ret = -EIO;
  
- 			ntc++;
+-			ntc++;
++			tail++;
+ 			handle++;
+-			if (ntc == csq->desc_num)
+-				ntc = 0;
++			if (tail == csq->desc_num)
++				tail = 0;
+ 		}
+ 	} else {
+ 		/* FW/HW reset or incorrect number of desc */
+-		ntc = roce_read(hr_dev, ROCEE_TX_CMQ_HEAD_REG);
+-		dev_warn(hr_dev->dev, "CMDQ move head from %d to %d\n",
+-			 csq->next_to_use, ntc);
+-		csq->next_to_use = ntc;
++		tail = roce_read(hr_dev, ROCEE_TX_CMQ_TAIL_REG);
++		dev_warn(hr_dev->dev, "CMDQ move tail from %d to %d\n",
++			 csq->head, tail);
++		csq->head = tail;
++
+ 		ret = -EAGAIN;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 7714fa4..e773e82 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1825,11 +1825,8 @@ struct hns_roce_v2_cmq_ring {
+ 	dma_addr_t desc_dma_addr;
+ 	struct hns_roce_cmq_desc *desc;
+ 	u32 head;
+-	u32 tail;
+-
+ 	u16 buf_size;
+ 	u16 desc_num;
+-	int next_to_use;
+ 	u8 flag;
+ 	spinlock_t lock; /* command queue lock */
+ };
 -- 
 2.8.1
 
