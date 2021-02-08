@@ -2,175 +2,116 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 099F0C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Feb 2021 03:09:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75EA3C433DB
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Feb 2021 13:00:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFCA764DDB
-	for <linux-rdma@archiver.kernel.org>; Mon,  8 Feb 2021 03:09:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 237F664DB1
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Feb 2021 13:00:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229626AbhBHDJ3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 7 Feb 2021 22:09:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37964 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbhBHDJ0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 Feb 2021 22:09:26 -0500
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2551BC061756
-        for <linux-rdma@vger.kernel.org>; Sun,  7 Feb 2021 19:08:46 -0800 (PST)
-Received: by mail-oi1-x231.google.com with SMTP id g84so426527oib.0
-        for <linux-rdma@vger.kernel.org>; Sun, 07 Feb 2021 19:08:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Yc+pdKJGceHoUsDqIBnOhJ4Y/lSdSiFCQZGmJcD4Jf8=;
-        b=N+ShpGG4IsXenDnNbpJnFAESHZR4y/wz9VJ2cmHp3TaJM+OwvmwKfAVPmr0BEYR5IU
-         CcA2W9kNFaXr+44BvqTRvzI6jLuC8wOeMg/kNuwLwEmeSqvPwiQo/vb7Uxc+hJfn8+zi
-         eIQXav4Xf5W7T7VC7Jd12bJukLc8pFLcA7a/e+rHjDI39t/XxEmZYLreb5+oY6fui8ld
-         cTs2NN06GBAHMWSih4puymGbyoAb1UHiurylERJftAq2PzKNjMAX1LVDmVn+SpVoXP3l
-         TjHwRR0OFLwJWEfBebLz3UaFJ74/nbG5wF5w6jucj1A0qARo1YouCsiyeWxbG8drV+q8
-         t8bQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Yc+pdKJGceHoUsDqIBnOhJ4Y/lSdSiFCQZGmJcD4Jf8=;
-        b=S1lQDtW1osdd3/7LQVmMgZojsxfFI6bYuRcdovYyLWWVuAqW1Rj056fB1mYlUQO/4d
-         N77f08TriyXYEicjZkwPTmAe5255cn9uwaEEmgCD3ejigaOZu2LiwJZEhv1g1i+98Np4
-         SmTfGDTD9HbuWKlsEoxK/DByTr9WVAZbXsM4fVaA3voYNk1VjMQPVONck19kZ0NWT1yE
-         0fdxlT+YdSkN/8D9B9DqIt+tycmVfPggpdbfZOLZ+47L9w/4c6T5ZlrSAZnS4M8nU8tP
-         lNTmETT54GeqbBC8oov9CRfEooygVxxZSyNA61/RPQNa2/nDE+/dnSVyR/yfiVGZ0vEf
-         afTQ==
-X-Gm-Message-State: AOAM533GG9fxfMdsXWVMehFbprnZsOgKKVHpCgB6LAUoWNRnJbXIRp/w
-        Srw1Ydu/ppZAAmYHPcK8HU+fRlF+xnp9KyyskiU=
-X-Google-Smtp-Source: ABdhPJz/vhAZrr9A1YPGv8VWRW7MXnTGBTgZ5GS/VHKwGS05mOsnp8fik27ejqX1Y8TTKHk3KiS7oG59JQi/HhkurNM=
-X-Received: by 2002:aca:3906:: with SMTP id g6mr9926823oia.169.1612753725612;
- Sun, 07 Feb 2021 19:08:45 -0800 (PST)
-MIME-Version: 1.0
-References: <20210206002437.2756-1-rpearson@hpe.com>
-In-Reply-To: <20210206002437.2756-1-rpearson@hpe.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Mon, 8 Feb 2021 11:08:34 +0800
-Message-ID: <CAD=hENfXTKfZQ9ip7jWbtSjj8KPq58E5uRbcjieTA=TFXgovkw@mail.gmail.com>
-Subject: Re: [PATCH for-next] RDMA/rxe: Cleanup init_send_wqe
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        id S230303AbhBHM7x (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Feb 2021 07:59:53 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:2110 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229637AbhBHM7t (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 8 Feb 2021 07:59:49 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B602135970000>; Mon, 08 Feb 2021 04:59:03 -0800
+Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Mon, 8 Feb
+ 2021 12:59:03 +0000
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.45) by
+ HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
+ 15.0.1473.3 via Frontend Transport; Mon, 8 Feb 2021 12:59:03 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=VmO8pAW/bhScjH8OV+wdbzGFJ4q/qfMgmhv6L6oEsLxzxxEieh/r5qBwSWi2sms6OsiMQMd0hldj7UK3mbMNxPfmZizxglaaAphK6mjQDl06xrBRgfUrYgXo1bbb3SvohW+poiAVf2uRi9srNak5pnodnvcDad+tVP0FWn3Fhwmu21Uel5UrVNwEi8/LvW8AUP4J2uGEdLucuZq0NTuRSriAhD9bMjz+M9g5i2eErQevzMlOtcl79C6d1lVbR+2z/wAfsEDIXNMPGTG/NC0XdA3VRk+jNNrx3j/shu4Y5Sl7UA0yuRWrKIE1fTdUw9LW92HCOdZKoCOMeK0MVjWoVw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=D5mluze5Tu7Iw6szgb2J8n4B7eQkElAKZmGtV2jNADA=;
+ b=FRpZNSulFTxALMdlZHzm5KDkC8G21wbYAfkN1zkFlVhFP09J2lA2dNU2ZQYy/tetpWvOq6RwZG5K3TgGU42XCcIFfq47Yeawm2jOtxiGpPFsXnCyWthYIA8as7VlpplKgszSLHr55CN6H4a6vvKz2TK4+s2FX6PDbmnXvxrCrV6PV27xBO26zQbBhRiDXotZw1s4q+rxszSlte9ntnNwbHu25dQpcTeLGWhHA2JyUhakN/+mtCKGSeulhgLgNgEfr93iEoe6GhrPdIdOtRNU5NMGV9GP7rIUGPvMDK6nhdPXgsCJ1Z8BgcBNO1QNKlRwrb7250Dshc4XmM9a2THvbg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB2809.namprd12.prod.outlook.com (2603:10b6:5:4a::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.30; Mon, 8 Feb
+ 2021 12:59:02 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3825.030; Mon, 8 Feb 2021
+ 12:59:02 +0000
+Date:   Mon, 8 Feb 2021 08:59:00 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Honggang Li <honli@redhat.com>, Itay Aveksis <itayav@nvidia.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Bob Pearson <rpearson@hpe.com>
-Content-Type: text/plain; charset="UTF-8"
+        Alaa Hleihel <alaa@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>
+Subject: Re: rdma-core spec weird behavior on Fedora
+Message-ID: <20210208125900.GX4247@nvidia.com>
+References: <20210207080649.GB4656@unreal>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210207080649.GB4656@unreal>
+X-ClientProxiedBy: BL0PR01CA0036.prod.exchangelabs.com (2603:10b6:208:71::49)
+ To DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL0PR01CA0036.prod.exchangelabs.com (2603:10b6:208:71::49) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.19 via Frontend Transport; Mon, 8 Feb 2021 12:59:01 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l9684-004we0-PU; Mon, 08 Feb 2021 08:59:00 -0400
+X-Header: ProcessedBy-CMR-outbound
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1612789143; bh=D5mluze5Tu7Iw6szgb2J8n4B7eQkElAKZmGtV2jNADA=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Header;
+        b=O7ORt6Xwe+S5SggEb80c/eKglH9SM0fKSIi9ExbtKfFtWYW9+k+FfdHGTeh6cau0c
+         3g0VJdAx6HmvXECL5X2vkbTqpunlN0MrYGhQjv9DzmsHsfrNnFCajJldQPMDtprcbv
+         O/yvI4LpIcYmvdD86yF60ZvVXEP4jfmiaoPXXzvmmZc2SIzd0pUOw95gXrrJGmJm/9
+         go2VrLdL8lFW9UpTeEVGc+AZ9xm9a5kSWaQK0rZKm7D6HlyuVDHWEiFlyCbmSeAWAa
+         10l+ak1XHVdZzPT4cKKFPlQi54nest6+z2s2WdzDl7BGSp4vm38qX85YSrSZpYoHXx
+         gMUUWglGgulgA==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Feb 6, 2021 at 8:25 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->
-> This patch changes the type of init_send_wqe in rxe_verbs.c to void
-> since it always returns 0. It also separates out the code that copies
-> inline data into the send wqe as copy_inline_data_to_wqe().
->
-> Signed-off-by: Bob Pearson <rpearson@hpe.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_verbs.c | 42 ++++++++++++---------------
->  1 file changed, 19 insertions(+), 23 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 984909e03b35..dee5e0e919d2 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -555,14 +555,24 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
->         }
->  }
->
-> -static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
-> +static void copy_inline_data_to_wqe(struct rxe_send_wqe *wqe,
-> +                                   const struct ib_send_wr *ibwr)
-> +{
-> +       struct ib_sge *sge = ibwr->sg_list;
-> +       u8 *p = wqe->dma.inline_data;
-> +       int i;
-> +
-> +       for (i = 0; i < ibwr->num_sge; i++, sge++) {
-> +               memcpy(p, (void *)(uintptr_t)sge->addr, sge->length);
-> +               p += sge->length;
-> +       }
-> +}
-> +
-> +static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
->                          unsigned int mask, unsigned int length,
->                          struct rxe_send_wqe *wqe)
->  {
->         int num_sge = ibwr->num_sge;
-> -       struct ib_sge *sge;
-> -       int i;
-> -       u8 *p;
->
->         init_send_wr(qp, &wqe->wr, ibwr);
->
-> @@ -570,7 +580,7 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
->         if (unlikely(mask & WR_REG_MASK)) {
->                 wqe->mask = mask;
->                 wqe->state = wqe_state_posted;
-> -               return 0;
-> +               return;
->         }
->
->         if (qp_type(qp) == IB_QPT_UD ||
-> @@ -578,20 +588,11 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
->             qp_type(qp) == IB_QPT_GSI)
->                 memcpy(&wqe->av, &to_rah(ud_wr(ibwr)->ah)->av, sizeof(wqe->av));
->
-> -       if (unlikely(ibwr->send_flags & IB_SEND_INLINE)) {
-> -               p = wqe->dma.inline_data;
-> -
-> -               sge = ibwr->sg_list;
-> -               for (i = 0; i < num_sge; i++, sge++) {
-> -                       memcpy(p, (void *)(uintptr_t)sge->addr,
-> -                                       sge->length);
-> -
-> -                       p += sge->length;
-> -               }
-> -       } else {
-> +       if (unlikely(ibwr->send_flags & IB_SEND_INLINE))
-> +               copy_inline_data_to_wqe(wqe, ibwr);
-> +       else
->                 memcpy(wqe->dma.sge, ibwr->sg_list,
->                        num_sge * sizeof(struct ib_sge));
-> -       }
+On Sun, Feb 07, 2021 at 10:06:49AM +0200, Leon Romanovsky wrote:
+> Hi Honggang,
+> 
+> Your commit b02de521022a ("redhat: Remove base package dependency from all sub-packages")
+> removes protection from rdma-core when user performs "dnf autoremove".
+> 
+> Before your patch, systemd was dependent on libibverbs and latter
+> required rdma-core. After your patch, the last link is lost and
+> rdma-core marked as orphaned package.
+> 
+> Any attempt to install rdma-core as standalone package will have the
+> following errors, due to the library dependency of udevadm.
+> [leonro@c rdma-core]$ ldd /sbin/udevadm | grep verbs
+> 	libibverbs.so.1 => not found
 
-I git clone  https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git,
-But this commit can not be applied successfully.
+well that makes no sense, since when is udevadm connected to
+libibverbs?
 
-Zhu Yanjun
->
->         wqe->iova = mask & WR_ATOMIC_MASK ? atomic_wr(ibwr)->remote_addr :
->                 mask & WR_READ_OR_WRITE_MASK ? rdma_wr(ibwr)->remote_addr : 0;
-> @@ -603,8 +604,6 @@ static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
->         wqe->dma.sge_offset     = 0;
->         wqe->state              = wqe_state_posted;
->         wqe->ssn                = atomic_add_return(1, &qp->ssn);
-> -
-> -       return 0;
->  }
->
->  static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
-> @@ -627,10 +626,7 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
->         }
->
->         send_wqe = producer_addr(sq->queue);
-> -
-> -       err = init_send_wqe(qp, ibwr, mask, length, send_wqe);
-> -       if (unlikely(err))
-> -               goto err1;
-> +       init_send_wqe(qp, ibwr, mask, length, send_wqe);
->
->         advance_producer(sq->queue);
->         spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
-> --
-> 2.27.0
->
+$ ldd `which udevadm`
+	linux-vdso.so.1 (0x00007ffcc09ef000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f394bec3000)
+	libkmod.so.2 => /lib/x86_64-linux-gnu/libkmod.so.2 (0x00007f394bea8000)
+	libacl.so.1 => /lib/x86_64-linux-gnu/libacl.so.1 (0x00007f394be9d000)
+	libblkid.so.1 => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007f394be46000)
+	libselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007f394be1b000)
+	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f394bdf8000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f394c1b6000)
+	liblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007f394bdcd000)
+	libcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1 (0x00007f394baf7000)
+	libpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007f394ba67000)
+	libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f394ba61000)
+
+Jason
