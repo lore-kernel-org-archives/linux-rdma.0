@@ -2,105 +2,85 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9E33C433E9
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 19:49:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06ED2C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 20:09:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BC0664E8A
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 19:49:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE3D364E9C
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 20:09:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233032AbhBITr0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 9 Feb 2021 14:47:26 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:5245 "EHLO
-        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233723AbhBITpH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Feb 2021 14:45:07 -0500
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B6022e47e0000>; Tue, 09 Feb 2021 11:37:34 -0800
-Received: from HKMAIL101.nvidia.com (10.18.16.10) by HQMAIL111.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 9 Feb
- 2021 19:37:33 +0000
-Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL101.nvidia.com
- (10.18.16.10) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 9 Feb
- 2021 19:37:27 +0000
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.177)
- by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
- 15.0.1473.3 via Frontend Transport; Tue, 9 Feb 2021 19:37:26 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TTER7JNY1PqusPXVDf+7A4QTVcqxq2NiMGwqQlJmCNwAvs0aFlWIdlowl4pJAIDgxIkGQe5bSn6AG7EPeOVphryb8VVe0jtfNR0EIRlWrag56H32uwLTYTfipU7a9fKhdKUKrBgBJE45BTjJPy9tMgEv1lbM14ntLiayrlLVS+zZ5kwQ8Y21ok8OEz7XftplGZc6Kgp76VzwETLaXLB2fpA2kiPl2rnnup2JxmZ1ldJASMg7NdncCysqQ/UlIt+BLNZDG3ZI0pcFyChAMbGag4+6r7yJZAqk0B/IQ4y5o+T0cVohJXuKMGL8sccwoVHsNkoYFS3cBfkb0ruoiS8PBw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EKS3mUK4K20hym2ByaGQIgasnROXIM3uCl1l+oi+MuY=;
- b=KKZZ2FzpqmEUbgo6rgc53VKS2q4sBC7Rve0aoZZNEmxvzd61jdusmxbAqp6qtTWG3NJJ/GEcQ0NazisvyQgttcb8h+TdPjsz7tsL7ZGjr+nx43W6jvMyB63+qOKPjGXCZqT2PVl/0eQbJRfFopaBbW72NBCybkCOS88s6tJyMKF+hVOMuPQbgj5BS/4M8pw1AZs8FC7E9bi8Nbb09MCHOxQcD37zTnBd8+tPd+J6KJ2Mld/0iqzruzET852NWZ3QSrVNTI4hVO+spIsPIEa3tlyxv4KORuKQm8zkj7YKgr7V/XHNyq7qAXWNabuT1dPjBZrIINuotIC8/i3wa8Imyg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB2581.namprd12.prod.outlook.com (2603:10b6:4:b2::36) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.17; Tue, 9 Feb
- 2021 19:37:24 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::d6b:736:fa28:5e4]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::d6b:736:fa28:5e4%7]) with mapi id 15.20.3825.030; Tue, 9 Feb 2021
- 19:37:24 +0000
-Date:   Tue, 9 Feb 2021 15:37:22 -0400
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Weihang Li <liweihang@huawei.com>
-CC:     <dledford@redhat.com>, <leon@kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linuxarm@openeuler.org>
-Subject: Re: [PATCH v2 for-next 0/5] RDMA/hns: Fix and refactor CMDQ related
- code
-Message-ID: <20210209193722.GA1339019@nvidia.com>
-References: <1612688143-28226-1-git-send-email-liweihang@huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1612688143-28226-1-git-send-email-liweihang@huawei.com>
-X-ClientProxiedBy: BL1PR13CA0031.namprd13.prod.outlook.com
- (2603:10b6:208:257::6) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S233267AbhBIUFb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 9 Feb 2021 15:05:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56510 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233269AbhBITq5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 9 Feb 2021 14:46:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C2CC64ED3;
+        Tue,  9 Feb 2021 19:14:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1612898068;
+        bh=jIeL83Vc6VKc9kTFWSUiCB4hPYo8GmO9zhfQVCfKJPA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=mpmVXCL6mJzgnhe83R99JyXKnYiJHjnR25Siu2hKOTlhuFmVLEUpnACMqmAVWFLgE
+         7eLxiWiiugRce7MuoERBj1fgrksnpspNvT8HVWHtIR6kL6+PlyuSWqDa7Os71d+ZX5
+         K8pdrwPMzkIehHu06Q+yjEF9s9QxthHmB2wfjVH7l+wevMTU072i9V75kAUzHi0e4o
+         yFOxk3QPTf7CTQ5FJ/S+/d5mbW4CRIUeCdawpLD2fL8dzFg+dInEoKYaXCG/h4wxP8
+         ycYqNKSRMBAUJE7QpOZfdooRFrchpKqXxjSFyVmI5iTW1Pl4Wza66ktO3I0YR/3bW8
+         m9zpBwZwWhFUQ==
+Date:   Tue, 9 Feb 2021 21:14:24 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@nvidia.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: Re: [PATCH mlx5-next 1/2] net/mlx5: Add new timestamp mode bits
+Message-ID: <20210209191424.GE139298@unreal>
+References: <20210209131107.698833-1-leon@kernel.org>
+ <20210209131107.698833-2-leon@kernel.org>
+ <20210209102825.6ede1bd4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0031.namprd13.prod.outlook.com (2603:10b6:208:257::6) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.15 via Frontend Transport; Tue, 9 Feb 2021 19:37:24 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1l9Yp8-005cLs-SL; Tue, 09 Feb 2021 15:37:22 -0400
-X-Header: ProcessedBy-CMR-outbound
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1612899454; bh=EKS3mUK4K20hym2ByaGQIgasnROXIM3uCl1l+oi+MuY=;
-        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
-         From:To:CC:Subject:Message-ID:References:Content-Type:
-         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
-         X-MS-Exchange-MessageSentRepresentingType:X-Header;
-        b=USHAooATTvkhH9NOKtkYlE7of9mPRddGeDoaq+pcFx3/e4KpOm3HpqciqTZ7IDJkf
-         YRPbWEtJT98A9NrWPKzNLViQV7w3+6KWqLZhek7v9neF+sDLsienId0Z6Rppl8xcop
-         KIiYs/mfay/XP6/CSwxYR3krxXe5uf32tEoExYFMm2qfB9WHduBfgYfBj1paHlcqx4
-         9eAcyp05IgeTzJf9wsNCRihRCSxIJfPv+X2EaYDiLqDmIYN0LwxUkcO6NwXGxUyc/D
-         rpXvwY4ZI/iNdpjjYhtU/8mfmLdOGih3WHxICDcJbYInPhGdda2+SZWKuufxNUMLas
-         aOhB8+jSZmwgg==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210209102825.6ede1bd4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Feb 07, 2021 at 04:55:38PM +0800, Weihang Li wrote:
-> Remove some dead code in process of CMDQ transmission, and fix an issue
-> about missing error code.
-> 
-> Changes since v1:
-> * Drop #2 from the v1 series because the compatibility with the firmware
->   needs to be considered.
-> * Link: https://patchwork.kernel.org/project/linux-rdma/cover/1612419786-39173-1-git-send-email-liweihang@huawei.com/
-> 
-> Lang Cheng (5):
->   RDMA/hns: Remove unused member and variable of CMDQ
->   RDMA/hns: Fixes missing error code of CMDQ
->   RDMA/hns: Remove redundant operations on CMDQ
->   RDMA/hns: Adjust fields and variables about CMDQ tail/head
->   RDMA/hns: Refactor process of posting CMDQ
+On Tue, Feb 09, 2021 at 10:28:25AM -0800, Jakub Kicinski wrote:
+> On Tue,  9 Feb 2021 15:11:06 +0200 Leon Romanovsky wrote:
+> > From: Aharon Landau <aharonl@nvidia.com>
+> >
+> > These fields declare which timestamp mode is supported by the device
+> > per RQ/SQ/QP.
+> >
+> > In addiition add the ts_format field to the select the mode for
+> > RQ/SQ/QP.
+> >
+> > Signed-off-by: Aharon Landau <aharonl@nvidia.com>
+> > Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+>
+> We only got patch 1 which explains very little.
 
-Applied to for-next, thanks
+I will change my scripts to ensure that all people will be always CCed
+on whole series.
 
-Jason
+https://lore.kernel.org/linux-rdma/20210209131107.698833-3-leon@kernel.org
+
+>
+> You also need to CC Richard.
+
+We are not talking about PTP, but about specific to RDMA timestamp mechanism
+which is added to the CQE (completion queue entry) per-user request when
+he/she creates CQ (completion queue). User has an option to choose the format
+of it for every QP/RQ/SQ.
+
+https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/man/ibv_create_cq_ex.3#L44
+
+Thanks
