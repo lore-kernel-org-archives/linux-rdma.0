@@ -2,44 +2,45 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD0CC433E6
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 13:05:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79022C433E0
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 13:12:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB97164E2E
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 13:05:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 236ED64EB8
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Feb 2021 13:12:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231169AbhBINFX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 9 Feb 2021 08:05:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37110 "EHLO mail.kernel.org"
+        id S230499AbhBINMK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 9 Feb 2021 08:12:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:38608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230477AbhBINFP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 9 Feb 2021 08:05:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC12B64EBA;
-        Tue,  9 Feb 2021 13:04:33 +0000 (UTC)
+        id S230520AbhBINLx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 9 Feb 2021 08:11:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 53F4264ECB;
+        Tue,  9 Feb 2021 13:11:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612875874;
-        bh=FXfwD/EFkCUOr/LQ/6TyiEmMI/AkkvSWHIVfhHDzgQg=;
+        s=k20201202; t=1612876273;
+        bh=mq/ywroL3r1LhGpoKQ8X+tQCU9hQV0yV+sfIi3ZLdwQ=;
         h=From:To:Cc:Subject:Date:From;
-        b=VndzUdYCuEOL2N6Wt2MzomMhROmM6Yqisp4vZQyNpkz61uyXIVVVDrzRqSPXSFbGQ
-         PUnnUgWLh6pRvYHRin4dMo0D3CJ/111C8sBnpwZU2v3SY4Ow29Jee3LDJYVLVVaboQ
-         M9+d8r7Rg/m1Kv/d/F9kEJdYwG+OSDZK7GoUuH+tcXbS4C1skIW43e7okjSU5tp9s/
-         976h3lgvMy3O12Zc+msR48jMBQBFJob3fDiLZ/bRKi5gfD2k6Wkxi8zBK8D0ekmTq1
-         Y87nWftuMJvV2J4BQ8Qc6A8sRTUGFMRjhmfqnt1211/2/koD58bmU8+WsMGp96vDwY
-         NS9lpRy82OK8A==
+        b=lNGHusaNbjGjfb/8C1/CnHa78J5LtpGL9ZHH6b7uJCD6OXzLcXp2cgoMSXBo0Dp4o
+         h+UAC0ok0UrSItFKuYB7owIo9n7uIduolTpVDpyW0b5/tM7u4K+nKE3qthkLX6yclg
+         kkmWlBnrnoL4cN5BEtAEdvkGHeQaW0jmL6ODPtpp+by3MzDcmde/D1d9nTF0OV3S49
+         zazkQuTJnXnx48ed3nYoiYTy61PCCjTuSwt9bB0P9NNB0VnfFsEd41PcLeNFFg61bn
+         wJZ5CVbw7CsVwBVAmArIlLtZhizADeSlU5g2lTWTdIiBO+I9JbwYnq+GLLdgEpjn6U
+         HWlZMIPXS5AlA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Patrisious Haddad <phaddad@nvidia.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Mark Zhang <markzhang@nvidia.com>
-Subject: [PATCH rdma-next] RDMA/mlx5: Support 400Gbps IB rate in mlx5 driver
-Date:   Tue,  9 Feb 2021 15:04:29 +0200
-Message-Id: <20210209130429.698237-1-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@nvidia.com>, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH rdma-next 0/2] Real time/free running timestamp support
+Date:   Tue,  9 Feb 2021 15:11:05 +0200
+Message-Id: <20210209131107.698833-1-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -47,31 +48,20 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Support 400Gbps IB rate in mlx5 driver.
+Add an extra timestamp format for mlx5_ib device.
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 2 ++
- 1 file changed, 2 insertions(+)
+Thanks
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 6e88bdc0b30e..38df809a1bd5 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3070,6 +3070,8 @@ static int ib_to_mlx5_rate_map(u8 rate)
- 		return 4;
- 	case IB_RATE_50_GBPS:
- 		return 5;
-+	case IB_RATE_400_GBPS:
-+		return 6;
- 	default:
- 		return rate + MLX5_STAT_RATE_OFFSET;
- 	}
--- 
+Aharon Landau (2):
+  net/mlx5: Add new timestamp mode bits
+  RDMA/mlx5: Fail QP creation if the device can not support the CQE TS
+
+ drivers/infiniband/hw/mlx5/qp.c | 104 +++++++++++++++++++++++++++++---
+ include/linux/mlx5/mlx5_ifc.h   |  54 +++++++++++++++--
+ 2 files changed, 145 insertions(+), 13 deletions(-)
+
+--
 2.29.2
 
