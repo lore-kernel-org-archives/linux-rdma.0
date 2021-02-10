@@ -2,80 +2,199 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2152C433E0
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Feb 2021 15:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EACB6C433DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Feb 2021 16:27:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63C5B64E74
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Feb 2021 15:15:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1F4C64E6F
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Feb 2021 16:27:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229888AbhBJPPI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Feb 2021 10:15:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45404 "EHLO mail.kernel.org"
+        id S232311AbhBJQ0w (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Feb 2021 11:26:52 -0500
+Received: from mga06.intel.com ([134.134.136.31]:5557 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229789AbhBJPPI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Feb 2021 10:15:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0BDFE64DEC;
-        Wed, 10 Feb 2021 15:14:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612970066;
-        bh=ii66ci1wwtAsNnZPwdILdOlu6Vs5fajqRL3tNi1hIsE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=HCQHFKP1wSd0bXI+KXYZ+uutevvCMWNvfeuBVMljkK7rrfqDqok4OK7TmJQxQ7d2S
-         Ry8KftPp1Ysh4pGsKRe+Ky/XPu3oUpjhq4EaZxkxgMBnl9Gd9gsCGOjKHfx4PaNBQW
-         +6G9i7ASp1nevVttlXYa2aFO6Vh7aUeN6RSnrvOTbnzu9hoaWkuFJH2VkuCZU4z7Hi
-         o24aqgqq7ANY3uR/DMeghYI5Lj2cX0ii6lHB7oocq+IOeME1iOsndR3WP/LCjROLJT
-         yrYzZYUZkLdoWuGbVOOYG+3ShuIjviLT0z7UG8tQJCN3pa/ugS7qaGqLaNQRkm1oNI
-         aGu8ip8oUmeQQ==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        Parav Pandit <parav@nvidia.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCH rdma-next] RDMA/core: Fix kernel doc warnings
-Date:   Wed, 10 Feb 2021 17:14:21 +0200
-Message-Id: <20210210151421.1108809-1-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
+        id S232292AbhBJQ0t (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 10 Feb 2021 11:26:49 -0500
+IronPort-SDR: VwSw3O5Wv6bMBO3b81XonOpycJPPg227xk5Rl8fWPNGpJy98D8EByzW9K5a09tcnapDaw5D9A0
+ Xrnhstax2MUg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9891"; a="243593690"
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="243593690"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Feb 2021 08:26:07 -0800
+IronPort-SDR: dNy2QH+prF4MnW+8BCjZeg54Xx7wzQvCGCVh6TouXLVwxD2kawtDHoUpps1k5CZRf5BjCnzGUq
+ ncsp11ugqIYw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,168,1610438400"; 
+   d="scan'208";a="413772307"
+Received: from lkp-server02.sh.intel.com (HELO cd560a204411) ([10.239.97.151])
+  by fmsmga004.fm.intel.com with ESMTP; 10 Feb 2021 08:26:05 -0800
+Received: from kbuild by cd560a204411 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1l9sJZ-00038B-92; Wed, 10 Feb 2021 16:26:05 +0000
+Date:   Thu, 11 Feb 2021 00:25:30 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 3f03ae8e862db6b17b5d60a684ffb1dec61363b6
+Message-ID: <602408fa.cuIjKeoHqcVsDCKP%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
+branch HEAD: 3f03ae8e862db6b17b5d60a684ffb1dec61363b6  RDMA/hns: Refactor process of posting CMDQ
 
-drivers/infiniband/core/device.c:859: warning: Function parameter or member 'dev' not described in 'ib_port_immutable_read'
-drivers/infiniband/core/device.c:859: warning: Function parameter or member 'port' not described in 'ib_port_immutable_read'
+elapsed time: 1023m
 
-Fixes: 7416790e2245 ("RDMA/core: Introduce and use API to read port immutable data")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+configs tested: 129
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+arm                     davinci_all_defconfig
+s390                          debug_defconfig
+arm                         hackkit_defconfig
+powerpc                    socrates_defconfig
+sh                           se7721_defconfig
+m68k                       m5249evb_defconfig
+sh                   sh7770_generic_defconfig
+c6x                        evmc6472_defconfig
+mips                         cobalt_defconfig
+arc                        nsimosci_defconfig
+sh                         apsh4a3a_defconfig
+sh                ecovec24-romimage_defconfig
+powerpc                     ep8248e_defconfig
+powerpc                       holly_defconfig
+arm                       multi_v4t_defconfig
+mips                      maltasmvp_defconfig
+powerpc                     sbc8548_defconfig
+mips                       rbtx49xx_defconfig
+xtensa                          iss_defconfig
+nios2                         3c120_defconfig
+arc                        vdk_hs38_defconfig
+arm                         s3c6400_defconfig
+arm                         vf610m4_defconfig
+arc                              alldefconfig
+c6x                        evmc6474_defconfig
+openrisc                  or1klitex_defconfig
+powerpc                 linkstation_defconfig
+arm                            xcep_defconfig
+powerpc                mpc7448_hpc2_defconfig
+ia64                             alldefconfig
+sh                               allmodconfig
+xtensa                  audio_kc705_defconfig
+mips                           rs90_defconfig
+powerpc                     sequoia_defconfig
+powerpc                     taishan_defconfig
+alpha                               defconfig
+mips                      maltaaprp_defconfig
+arc                              allyesconfig
+m68k                       m5475evb_defconfig
+arm                           stm32_defconfig
+mips                          malta_defconfig
+m68k                        mvme147_defconfig
+arm                       cns3420vb_defconfig
+alpha                            allyesconfig
+sh                             shx3_defconfig
+arm                          ixp4xx_defconfig
+xtensa                  nommu_kc705_defconfig
+arm                       imx_v4_v5_defconfig
+arm                     am200epdkit_defconfig
+powerpc                        cell_defconfig
+microblaze                      mmu_defconfig
+sh                  sh7785lcr_32bit_defconfig
+arm                           sama5_defconfig
+powerpc                       ppc64_defconfig
+arm                         orion5x_defconfig
+m68k                        stmark2_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                               tinyconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a006-20210209
+x86_64               randconfig-a001-20210209
+x86_64               randconfig-a005-20210209
+x86_64               randconfig-a004-20210209
+x86_64               randconfig-a002-20210209
+x86_64               randconfig-a003-20210209
+i386                 randconfig-a001-20210209
+i386                 randconfig-a005-20210209
+i386                 randconfig-a003-20210209
+i386                 randconfig-a002-20210209
+i386                 randconfig-a006-20210209
+i386                 randconfig-a004-20210209
+i386                 randconfig-a016-20210209
+i386                 randconfig-a013-20210209
+i386                 randconfig-a012-20210209
+i386                 randconfig-a014-20210209
+i386                 randconfig-a011-20210209
+i386                 randconfig-a015-20210209
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                                   rhel
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a013-20210209
+x86_64               randconfig-a014-20210209
+x86_64               randconfig-a015-20210209
+x86_64               randconfig-a012-20210209
+x86_64               randconfig-a016-20210209
+x86_64               randconfig-a011-20210209
+
 ---
- drivers/infiniband/core/device.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 051c018fb73c..aac0fe14e1d9 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -850,9 +850,9 @@ static int setup_port_data(struct ib_device *device)
-
- /**
-  * ib_port_immutable_read() - Read rdma port's immutable data
-- * @dev - IB device
-- * @port - port number whose immutable data to read. It starts with index 1 and
-- *         valid upto including rdma_end_port().
-+ * @dev: IB device
-+ * @port: port number whose immutable data to read. It starts with index 1 and
-+ *        valid upto including rdma_end_port().
-  */
- const struct ib_port_immutable*
- ib_port_immutable_read(struct ib_device *dev, unsigned int port)
---
-2.29.2
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
