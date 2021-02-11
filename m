@@ -7,90 +7,81 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80F9BC433DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 11 Feb 2021 08:34:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E4B8C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 11 Feb 2021 08:50:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E05664DE1
-	for <linux-rdma@archiver.kernel.org>; Thu, 11 Feb 2021 08:34:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1775664E92
+	for <linux-rdma@archiver.kernel.org>; Thu, 11 Feb 2021 08:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229480AbhBKIef (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 11 Feb 2021 03:34:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35992 "EHLO mail.kernel.org"
+        id S229775AbhBKIsW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 11 Feb 2021 03:48:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:37386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229478AbhBKIeH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 11 Feb 2021 03:34:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5019264DE1;
-        Thu, 11 Feb 2021 08:33:26 +0000 (UTC)
+        id S229648AbhBKIsH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 11 Feb 2021 03:48:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4D4C664E66;
+        Thu, 11 Feb 2021 08:48:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1613032407;
-        bh=/a1FV5uNCp2JOhLHdCvE0a291A2DxoupZOA4Hhi+uJo=;
+        s=k20201202; t=1613033332;
+        bh=lswKxjQZhc6gdOgPjNtf2RkPeuQL4kOEbFeEzfYh/lM=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=La+BPoYDSlTJ65rS+vEzwztzuXm31vaEW5nQ6JBfGoWe1ECn7VYQln6LN7JNGJpjr
-         2FI8byzfq6LFeUr5450VffpTWVGh87+b49mhSIW61XONVqJn1ZFTOJ5k6eecpzdqWL
-         R9lEDTBUDFyzNmiUnkp6fJdNeUnLaR8rbefgWIZD7DfPmBJah0iGImimLtP7Es0aoC
-         ysxRdpEzD8fF6JJvFbJVUaz40x1ERJk8rSVE0x83LVf3HCyJYVC/TqZjURuE5K74FE
-         YF60KKEnfOPzMzO/F9nMlCIt5XDnjc8oOkPlRBMepKjAoegxWitNWC5ksKKMSFQOYO
-         gCDDCpQceLyUQ==
-Date:   Thu, 11 Feb 2021 10:33:23 +0200
+        b=YNHUXMi8OBIh7gC3zYa4N3JruhrsbcL08Lg28FpnrbUvdsH2CDp1bNcplLLqMFly2
+         31glZNXPukcR6lXK1rHXhEBMT1spYNUHYIgVuGHB3GBUlRNURuYIDXjwBOxurk0VfD
+         n18K2eDeGAGIEpkA+9ETbgst/JqQnnxB2pQ5V5SMZAOXCh7M3kxndssrygheolzhG3
+         It4cziflZQlMaB96nJ8GrUsugggoHPsORzI/JtXwu07GLwDuac1AQWtjKqOR5r8onw
+         z6a9ZTb1z9R5Emo1CiEdmXgNU6t+jhM2FFhVA+qQG0W4kqMsssLilXrU+oYvBQaVGi
+         m88ZAyWPgOSUQ==
+Date:   Thu, 11 Feb 2021 10:48:49 +0200
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jack Wang <jinpu.wang@cloud.ionos.com>
 Cc:     linux-rdma@vger.kernel.org, bvanassche@acm.org,
         dledford@redhat.com, jgg@ziepe.ca, danil.kipnis@cloud.ionos.com,
         Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Subject: Re: [PATCH for-next 1/4] RDMA/rtrs-srv: Fix BUG: KASAN:
- stack-out-of-bounds
-Message-ID: <20210211083323.GA1275163@unreal>
+Subject: Re: [PATCH for-next 4/4] RDMA/rtrs-srv-sysfs: fix missing put_device
+Message-ID: <20210211084849.GC1275163@unreal>
 References: <20210211065526.7510-1-jinpu.wang@cloud.ionos.com>
- <20210211065526.7510-2-jinpu.wang@cloud.ionos.com>
+ <20210211065526.7510-5-jinpu.wang@cloud.ionos.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210211065526.7510-2-jinpu.wang@cloud.ionos.com>
+In-Reply-To: <20210211065526.7510-5-jinpu.wang@cloud.ionos.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 11, 2021 at 07:55:23AM +0100, Jack Wang wrote:
-> [  125.352752] ==================================================================
-> [  125.353122] BUG: KASAN: stack-out-of-bounds in _mlx4_ib_post_send+0x1bd2/0x2770 [mlx4_ib]
-> [  125.353337] Read of size 4 at addr ffff8880d5a7f980 by task kworker/0:1H/565
+On Thu, Feb 11, 2021 at 07:55:26AM +0100, Jack Wang wrote:
+> From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 >
-> [  125.353655] CPU: 0 PID: 565 Comm: kworker/0:1H Tainted: G           O      5.4.84-storage #5.4.84-1+feature+linux+5.4.y+dbg+20201216.1319+b6b887b~deb10
-> [  125.353924] Hardware name: Supermicro H8QG6/H8QG6, BIOS 3.00       09/04/2012
-> [  125.354144] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
-> [  125.354317] Call Trace:
-> [  125.354531]  dump_stack+0x96/0xe0
-> [  125.354715]  print_address_description.constprop.4+0x1f/0x300
-> [  125.354943]  ? irq_work_claim+0x2e/0x50
-> [  125.355129]  __kasan_report.cold.8+0x78/0x92
-> [  125.355334]  ? _mlx4_ib_post_send+0x1bd2/0x2770 [mlx4_ib]
-> [  125.355545]  kasan_report+0x10/0x20
-> [  125.355730]  _mlx4_ib_post_send+0x1bd2/0x2770 [mlx4_ib]
-> [  125.355930]  ? check_chain_key+0x1d7/0x2e0
-> [  125.356203]  ? _mlx4_ib_post_recv+0x630/0x630 [mlx4_ib]
-> [  125.356399]  ? lockdep_hardirqs_on+0x1a8/0x290
-> [  125.356595]  ? stack_depot_save+0x218/0x56e
-> [  125.356781]  ? do_profile_hits.isra.6.cold.13+0x1d/0x1d
-> [  125.356973]  ? check_chain_key+0x1d7/0x2e0
-> [  125.357174]  ? save_stack+0x4d/0x80
-> [  125.357374]  ? save_stack+0x19/0x80
-> [  125.357547]  ? __kasan_slab_free+0x125/0x170
-> [  125.357728]  ? kfree+0xe7/0x3b0
-> [  125.357899]  rdma_write_sg+0x5b0/0x950 [rtrs_server]
+> put_device() decreases the ref-count and then the device will
+> be cleaned-up, while at is also add missing put_device in
+> rtrs_srv_create_once_sysfs_root_folders
 >
-> The problem is when we send imm_wr, the type should be ib_rdma_wr, so
-> hw driver like mlx4 can do rdma_wr(wr), so fix it by use the ib_rdma_wr
-> as type for imm_wr.
+> This patch solves a kmemleak error as below:
 >
-> Fixes: 9cb837480424 ("RDMA/rtrs: server: main functionality")
+> unreferenced object 0xffff88809a7a0710 (size 8):
+>   comm "kworker/4:1H", pid 113, jiffies 4295833049 (age 6212.380s)
+>   hex dump (first 8 bytes):
+>     62 6c 61 00 6b 6b 6b a5                          bla.kkk.
+>   backtrace:
+>     [<0000000054413611>] kstrdup+0x2e/0x60
+>     [<0000000078e3120a>] kobject_set_name_vargs+0x2f/0xb0
+>     [<00000000f1a17a6b>] dev_set_name+0xab/0xe0
+>     [<00000000d5502e32>] rtrs_srv_create_sess_files+0x2fb/0x314 [rtrs_server]
+>     [<00000000ed11a1ef>] rtrs_srv_info_req_done+0x631/0x800 [rtrs_server]
+>     [<000000008fc5aa8f>] __ib_process_cq+0x94/0x100 [ib_core]
+>     [<00000000a9599cb4>] ib_cq_poll_work+0x32/0xc0 [ib_core]
+>     [<00000000cfc376be>] process_one_work+0x4bc/0x980
+>     [<0000000016e5c96a>] worker_thread+0x78/0x5c0
+>     [<00000000c20b8be0>] kthread+0x191/0x1e0
+>     [<000000006c9c0003>] ret_from_fork+0x3a/0x50
+>
+> Fixes: baa5b28b7a47 ("RDMA/rtrs-srv: Replace device_register with device_initialize and device_add")
+> Signed-off-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 > Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-> Reviewed-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 > ---
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 64 +++++++++++++-------------
->  1 file changed, 33 insertions(+), 31 deletions(-)
+>  drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >
-
-You have many lines with double space before "=".
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
