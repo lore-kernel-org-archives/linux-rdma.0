@@ -2,268 +2,170 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35AEDC43381
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Feb 2021 13:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A085C433DB
+	for <linux-rdma@archiver.kernel.org>; Fri, 12 Feb 2021 13:19:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C6CB64DAE
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Feb 2021 13:11:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E50B864E02
+	for <linux-rdma@archiver.kernel.org>; Fri, 12 Feb 2021 13:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232132AbhBLNLI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 12 Feb 2021 08:11:08 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:33736 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232053AbhBLNKK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 12 Feb 2021 08:10:10 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11CD8h39019057;
-        Fri, 12 Feb 2021 13:09:17 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references : content-type :
- mime-version; s=corp-2020-01-29;
- bh=pblMTxugz0sthwIAXE3b5+P7tukiVSJBSWzcnB9s24o=;
- b=NqKENkFVYalGUvP0sPkhFHX8EzjHBquWqOj/eiVDHCasJqItmsv2ZIZkqZcrLToY8vJg
- d4Ye3K/WnSPtklDaZKUZor/o/RQOKBCj3RiMup8sDcWzsDCYGEOVKv9khg+kWgHMoWAt
- AaxeIS+A3itIXq1JL6rBxOxU7oBSnjkYG3V4pUC9kUQM4ZE3NF+Hdf1HnM3R3xEG7O/+
- ftyzOFGeyH388IPZSH5v/4zR7oEedGCHbuNra9nKX1MoifgOyMd2jfe4kcD2+VStVc4C
- 6WMyJ6GT8FbOXbTl6dLEmB1WSei/vgPB0Mrn3yP029aihCqVwEI5/PuhjJhdB8CNdNcb iw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by userp2130.oracle.com with ESMTP id 36mv9dwadn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 12 Feb 2021 13:09:17 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11CCopAr195735;
-        Fri, 12 Feb 2021 13:09:17 GMT
-Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2175.outbound.protection.outlook.com [104.47.58.175])
-        by userp3020.oracle.com with ESMTP id 36j4vvq2mh-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 12 Feb 2021 13:09:16 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=MO96dI9+qtmsq6PWfO5qY3G3VQH7RFqRGvdBLfmVUlHACixhl6/y5SvbMTr/Zsxw8P8GgTpenrEwC+WwReaQZ7wIgdUNyZS3n8Kh/SpxcuZ3cgnzbfph2wpN86pM80lFKlm6dLnReGFtDDF9iLSec/hoTmFz5ZrlkaBZ8vn4tBpR9Hs2nUDXR8W7wFmMJgxGympiQOpP2oBDUBb2sjELzLRetdgMtjcmf0XNJP9KDCJHoREx0hZimjOmsfH5gVFE+xv8IZI5V/4fIIBaKPuTUBK+YIkNxKAVZZrOk4TICSNgatG/oNESsu9YHURBj6cIazh1C0ajogMY+XqIPw+Law==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pblMTxugz0sthwIAXE3b5+P7tukiVSJBSWzcnB9s24o=;
- b=UJxUHHoCIdhsaDGK9aPdijGwPJckskF7uhsivwjhQ04NpMEAz0hl1SRLXrKrzdF7mirvXwmXiWRQ3e227Q15Bmw6fU3MnQO0xzSCAGxKYDxX0pcuS4TbfGVPJd3eslSemASeeu1gPW0N+aoZ8663BPnBtxjQ1aK7IcfuZ5qbB5DO/gl9RBPMiBxcdfePsbMuyeV6YQ6YTefAl6qyTNo6os/b7OGH+9Gm01O0NO4oeum3QX5z98AeMGqYaQo+IlMltliOd6Z/C85NwwqCtU78KYHBKUvwV+6sK0LvvkciucLdqetPpTSckL2xJ1XP740PyRYOb2dPPhlCDH4+PwseyQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pblMTxugz0sthwIAXE3b5+P7tukiVSJBSWzcnB9s24o=;
- b=SJaS5q4Dpwd5n0d4H5xhtwBT2P3wlPfqr7ZFCtZlF/sXqbhog5eqzUgpQcXucI0qRNIv3WhgNi/tgVhvYx25wVJ66SGRneqQT/ZS0lGf0z1781tnMG0vEMRJLvDOJA5zDUEFXokcI4TAR6EWSf+HzKnp0FuyXOpROWTVZ+9jka0=
-Authentication-Results: kvack.org; dkim=none (message not signed)
- header.d=none;kvack.org; dmarc=none action=none header.from=oracle.com;
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com (2603:10b6:a03:8c::12)
- by SJ0PR10MB4509.namprd10.prod.outlook.com (2603:10b6:a03:2d9::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.17; Fri, 12 Feb
- 2021 13:09:09 +0000
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571]) by BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571%7]) with mapi id 15.20.3846.034; Fri, 12 Feb 2021
- 13:09:09 +0000
-From:   Joao Martins <joao.m.martins@oracle.com>
-To:     linux-mm@kvack.org
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Joao Martins <joao.m.martins@oracle.com>
-Subject: [PATCH v4 3/4] mm/gup: add a range variant of unpin_user_pages_dirty_lock()
-Date:   Fri, 12 Feb 2021 13:08:42 +0000
-Message-Id: <20210212130843.13865-4-joao.m.martins@oracle.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20210212130843.13865-1-joao.m.martins@oracle.com>
-References: <20210212130843.13865-1-joao.m.martins@oracle.com>
-Content-Type: text/plain
-X-Originating-IP: [94.61.1.144]
-X-ClientProxiedBy: LO4P123CA0347.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:18d::10) To BYAPR10MB3077.namprd10.prod.outlook.com
- (2603:10b6:a03:8c::12)
+        id S230228AbhBLNT4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 12 Feb 2021 08:19:56 -0500
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:2168 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S230489AbhBLNTy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 12 Feb 2021 08:19:54 -0500
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 11CD1qeu172164
+        for <linux-rdma@vger.kernel.org>; Fri, 12 Feb 2021 08:19:12 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=in-reply-to : subject :
+ from : to : cc : date : mime-version : references :
+ content-transfer-encoding : content-type : message-id; s=pp1;
+ bh=qo/75+X3eGgseOqyZ1QryOmxdkT0lpRp0QqvYkFocaI=;
+ b=Yehp1pBDNv92WQTgW63OvCfBq8WaKdguBTB4VElsKaOLLFNYcnbnmRVWVdC2Plh3LkaL
+ LjF6a79CdWnBkmUkEysc3YpaglqoUPcDtdFrOT/hq+PT3BdONZ6X3BkU8YqHrXF5hhiS
+ /TeBRU/2xXbr9Z5l/nvb4OcFThHDnYiALpfCHqlGrqUApeuCT2+6VYTn4B98ZNFUMvQr
+ xF/5sacVCOC628sCbPb7ZsTYGF3u5rRUqRTVMIXyAJUZFPSKhBR0mVkjkp2e7TrNThp+
+ lXrGpMf/ybhlnFtofLg+vpKPJm73T1Um38epIaxr2JEeYq3Aj/DgpPdU2tgQOoTUxtID Xw== 
+Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [192.155.248.73])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 36nt6s0s94-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-rdma@vger.kernel.org>; Fri, 12 Feb 2021 08:19:12 -0500
+Received: from localhost
+        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
+        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
+        Fri, 12 Feb 2021 13:19:11 -0000
+Received: from us1a3-smtp06.a3.dal06.isc4sb.com (10.146.103.243)
+        by smtp.notes.na.collabserv.com (10.106.227.90) with smtp.notes.na.collabserv.com ESMTP;
+        Fri, 12 Feb 2021 13:19:09 -0000
+Received: from us1a3-mail162.a3.dal06.isc4sb.com ([10.146.71.4])
+          by us1a3-smtp06.a3.dal06.isc4sb.com
+          with ESMTP id 2021021213190949-289270 ;
+          Fri, 12 Feb 2021 13:19:09 +0000 
+In-Reply-To: <4B1D8641-3971-409C-B730-012EDE4D3AEB@oracle.com>
+Subject: Re: Re: directing soft iWARP traffic through a secure tunnel
+From:   "Bernard Metzler" <BMT@zurich.ibm.com>
+To:     "Chuck Lever" <chuck.lever@oracle.com>
+Cc:     "linux-rdma" <linux-rdma@vger.kernel.org>,
+        "Benjamin Coddington" <bcodding@redhat.com>
+Date:   Fri, 12 Feb 2021 13:19:08 +0000
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from paddy.uk.oracle.com (94.61.1.144) by LO4P123CA0347.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:18d::10) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.3825.17 via Frontend Transport; Fri, 12 Feb 2021 13:09:07 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: dc65f803-6005-4089-b9e9-08d8cf57627f
-X-MS-TrafficTypeDiagnostic: SJ0PR10MB4509:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <SJ0PR10MB4509A310B003E8708ACE6C1FBB8B9@SJ0PR10MB4509.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:5516;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: UjQn49ElAuyGDSrCEx7UYykwI3xZDRXTmJQ+Ttl7heqUA+vQmbRL7r34cLIkzMyI5DqO5ZdoHWktEzPlaOuOFM7w14aT7AWr83WIETILiNkT10fIZN0+e7Ft7H4YvSfrf5r5Magot8oJsGJ5z5AAIiZzRP31ed8uDADeF7LX+iFvYFYDTKa0MBy55g6gOiGuC4ztSpxy46fbquPtT+pZpGyiweRxbR/nccg2U2RWdubXIQRdTPnApwToRLuFQ8JkSBubl+24aHaKzOftdpYRk/1LORE2uZM+5OF+2j6iuxPfKzqDVEYPOjAIz4D71LXTksoG0wEY+vbul2oSA+7Q/KdXwBIPixuB759EKe8baMhZdwGPp/lHDujktzvY0wxjkG0xKRpiEaRXWvysyXM4KiDa2lZmxQYrEdN4HzIL5e4iw3M+B+NqvW1ap2eEN3PrUtDs7qrTOYDT+9T6g/IDokRYoxgkk7+0w1Yf+Juz5eklYabHPd1ef0CUBQkTaKc9k5bnfssvXpY1579Jw+gk2mlKfV66UwbUnfXEA4/aiOZ7ZJDHDkcFugOzaYyAWzUv
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(396003)(346002)(136003)(39860400002)(366004)(6486002)(2906002)(8676002)(4326008)(52116002)(186003)(26005)(2616005)(1076003)(316002)(8936002)(107886003)(6666004)(478600001)(6916009)(36756003)(66476007)(5660300002)(86362001)(66946007)(103116003)(66556008)(54906003)(956004)(83380400001)(16526019)(7696005)(14143004);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?dtPWbyBZAgP6Iy1+EyF8kDi3dYBQPfi/8fw+ABexMWurzoZAeW71NOdIXnFM?=
- =?us-ascii?Q?Z0JrBlq+J30UMb/SCySSqRQVyW9j83dvqYccLWI7JwoltbUVLiwdXVH4Z873?=
- =?us-ascii?Q?P+to963w4mCiYOBILudeG1doRElw8bew/WHb+0NJgAFVQErrxSHkYiQTJbJu?=
- =?us-ascii?Q?YXftcrL06FO3KQyCEgJB+nfP7ePQZ8W50jf+9SW+Bae2p0my1lmFi1wrMWAI?=
- =?us-ascii?Q?520FRhE3BH0ms3Qc2kYxaa0qN5K7bdVBxqmEcuw3iTTWfVCNZfd2dB4KPpoR?=
- =?us-ascii?Q?Ky/4kJbtnMHmDdgB00nt8W9ujkM+D2z6TeRbQLoSR1sWW+ab3JG+2ZyE6lfd?=
- =?us-ascii?Q?x46uMxsn7Okf+0SNmBGqIdzEV0uwN8dnepSYZqVJ5hMtlXhIr1byD9VtSv4g?=
- =?us-ascii?Q?I7DJnujqK2XVsZIz/UzGjVe6QiCg4NCj/7trlOIbflW/xnj4xarbYRpceaQY?=
- =?us-ascii?Q?iMMrRvW7fQysjgrwzSs6De6LcMMvy3jDspXQ8gLynx0P4wyreMKoUoSByKEK?=
- =?us-ascii?Q?5YSXVq2tHthi0Pvh0aB8c3XildoDAi97SSVtlaFRv8k3oUkQoXecURlWhksu?=
- =?us-ascii?Q?CAHV0NGIh7rejt4Dy1oMqJsN7euqwf34jnNq/Jt49luCxORkYPiw2LCRG/Ll?=
- =?us-ascii?Q?5wFAbTQiuuXeETQcEE+b82WQYyBpyDniqp23DPA2FEZCJe0ebtE8yfJrVMx5?=
- =?us-ascii?Q?mDbRG/MX7zJrOCJXnZYLpOPFK726BXOmf79R5AbMc7LXB7qtnvRmb10DAp1K?=
- =?us-ascii?Q?CQNXnJVYUWGinKTd3TWmqAHZs7+SLzz8wCje+E12rIVym09V8hzdRWB5a+hS?=
- =?us-ascii?Q?3IgC50qFhj9xmUtoK/P7etT3LQYGTZgYodMhHtoBHmsvc/+dvppeYcMCHOgE?=
- =?us-ascii?Q?fn6QY55uO7e4o1SOcm5VAeSR40nzaIPsdpV44LvQtEb+gKeUD1QAC3Tkes9S?=
- =?us-ascii?Q?85WXHkbnmGYDGQ5n9N8vU9dt5pQS6fEkyL6bgN1VyAR87n1iwG06KCotZFog?=
- =?us-ascii?Q?hmk8mzoAR+jf/LAXUCxn81MlEY9WK0oI7s1tfIDKwFOmnTu580V18TYILTaM?=
- =?us-ascii?Q?gZ6k9cPIjplNeXlAx+W12J3ltStHr+eGfvQtsDT2/0W5sz7Nxrd2HEvE+1t3?=
- =?us-ascii?Q?YOX4e8HFgwpCfi3xJW5UMzTW6gwygJmajygat+gauapHuUWDsltstRbw6bBg?=
- =?us-ascii?Q?IjYDtz9afrnzdRlFPch276cGtFgrMcp6fEzhSMEw4mEzvnc6nci/drsi0i+K?=
- =?us-ascii?Q?zMVGyQUE8wk7drw02CwIkd/3VkK5wFgxUmkADGrPZFjk39XpQesw875NEGga?=
- =?us-ascii?Q?PhbIqyk0XS4JcICrNaSmTK84?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: dc65f803-6005-4089-b9e9-08d8cf57627f
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB3077.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Feb 2021 13:09:09.6286
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: PgJIwIhovVEDg1Ilr5xH9mFBDpMY673ljAs9svP57U3ziCtWNAX5Lq+tlosqMPM9Re5NGsav3NNSfEhjK5wwjCT2qBhUD703A2he+Idv5Zo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4509
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9892 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 adultscore=0
- mlxlogscore=999 mlxscore=0 suspectscore=0 malwarescore=0 phishscore=0
- spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102120101
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9892 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 mlxlogscore=999
- bulkscore=0 suspectscore=0 phishscore=0 adultscore=0 impostorscore=0
- mlxscore=0 clxscore=1015 lowpriorityscore=0 malwarescore=0 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2102120102
+Sensitivity: 
+Importance: Normal
+X-Priority: 3 (Normal)
+References: <4B1D8641-3971-409C-B730-012EDE4D3AEB@oracle.com>,<61EFD7EA-FA16-4AA1-B92F-0B0D4CC697AB@oracle.com>
+ <OFE25AAD0A.3B8CE2E0-ON0025867A.0043F201-0025867A.00455111@notes.na.collabserv.com>
+X-Mailer: IBM iNotes ($HaikuForm 1054.1) | IBM Domino Build
+ SCN1812108_20180501T0841_FP130 January 13, 2021 at 14:04
+X-LLNOutbound: False
+X-Disclaimed: 34607
+X-TNEFEvaluated: 1
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+x-cbid: 21021213-8877-0000-0000-00000577231C
+X-IBM-SpamModules-Scores: BY=0.05725; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
+ SC=0.421684; ST=0; TS=0; UL=0; ISC=; MB=0.207974
+X-IBM-SpamModules-Versions: BY=3.00014728; HX=3.00000242; KW=3.00000007;
+ PH=3.00000004; SC=3.00000295; SDB=6.01506714; UDB=6.00813454; IPR=6.01289257;
+ MB=3.00036113; MTD=3.00000008; XFM=3.00000015; UTC=2021-02-12 13:19:10
+X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
+X-IBM-AV-VERSION: SAVI=2021-02-12 06:52:53 - 6.00012296
+x-cbparentid: 21021213-8878-0000-0000-0000F52F9033
+Message-Id: <OFCA489C99.24705C66-ON0025867A.004929F2-0025867A.004929F9@notes.na.collabserv.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
+ definitions=2021-02-12_04:2021-02-12,2021-02-12 signatures=0
+X-Proofpoint-Spam-Reason: orgsafe
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a unpin_user_page_range_dirty_lock() API which takes a starting page
-and how many consecutive pages we want to unpin and optionally dirty.
+-----"Chuck Lever" <chuck.lever@oracle.com> wrote: -----
 
-To that end, define another iterator for_each_compound_range()
-that operates in page ranges as opposed to page array.
+>To: "Bernard Metzler" <bmt@zurich.ibm.com>
+>From: "Chuck Lever" <chuck.lever@oracle.com>
+>Date: 02/12/2021 02:04PM
+>Cc: "linux-rdma" <linux-rdma@vger.kernel.org>, "Benjamin Coddington"
+><bcodding@redhat.com>
+>Subject: [EXTERNAL] Re: directing soft iWARP traffic through a secure
+>tunnel
+>
+>
+>> On Feb 12, 2021, at 7:37 AM, Bernard Metzler <bmt@zurich.ibm.com>
+>wrote:
+>>=20
+>> -----"Chuck Lever" <chuck.lever@oracle.com> wrote: -----
+>>=20
+>>> To: "linux-rdma" <linux-rdma@vger.kernel.org>
+>>> From: "Chuck Lever" <chuck.lever@oracle.com>
+>>> Date: 02/11/2021 08:38PM
+>>> Cc: "Benjamin Coddington" <bcodding@redhat.com>
+>>> Subject: [EXTERNAL] directing soft iWARP traffic through a secure
+>>> tunnel
+>>>=20
+>>> Hi-
+>>>=20
+>>> This might sound crazy, but bear with me.
+>>>=20
+>>> The NFS community is starting to hold virtual interoperability
+>>> testing
+>>> events to replace our in-person events that are not feasible due
+>to
+>>> pandemic-related travel restrictions. I'm told other communities
+>have
+>>> started doing the same.
+>>>=20
+>>> The virtual event is being held on a private network that is set
+>up
+>>> using OpenVPN across a large geographical area. I attach my test
+>>> systems to the VPN to access test systems run by others at other
+>>> companies.
+>>>=20
+>>> We'd like to continue to include NFS/RDMA testing at these events.
+>>> This means either RoCEv2 or iWARP, since obviously we can't create
+>>> an ad hoc wide-area InfiniBand infrastructure.
+>>>=20
+>>> Because the VPN is operating over long distances, we've decided to
+>>> start with iWARP. However, we are stumbling when it comes to
+>>> directing
+>>> the siw driver's traffic onto the tun0 device:
+>>>=20
+>>> [root@oracle-100 ~]# rdma link add siw0 type siw netdev tun0
+>>> error: Invalid argument
+>>> [root@oracle-100 ~]#
+>>>=20
+>>> Has anyone else tried to do this, and what was the approach? Or
+>does
+>>> siw not yet have this capability?
+>>>=20
+>>=20
+>> Hi Chuck
+>>=20
+>> right. Attaching siw is currently restricted to some physical
+>> device types. This now appears a useless limitation, since
+>> it prevents its usage in the given setup, where it would
+>> be just useful...
+>> Relaxing that limitation is a rather simple code change in siw
+>> - but that would not help you asap?
+>>=20
+>> In any case I'd be happy to help with a fix, but participants
+>> would have to rebuild the siw module...probably no option?
+>
+>Participants bring code and build infrastructure. A patch now
+>would be great, and we can provide you with Tested-by: !
+>
+>
+How does this tunnel device look like? What does
+ifconfig or ip show? Probably NOARP and no
+HW address?
 
-For users (like RDMA mr_dereg) where each sg represents a
-contiguous set of pages, we're able to more efficiently unpin
-pages without having to supply an array of pages much of what
-happens today with unpin_user_pages().
+Or should I better setup a VPN client to your network
+to see what is needed?
 
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
----
- include/linux/mm.h |  2 ++
- mm/gup.c           | 62 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 89fca443e6f1..43f59e4eb760 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1255,6 +1255,8 @@ static inline void put_page(struct page *page)
- void unpin_user_page(struct page *page);
- void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
- 				 bool make_dirty);
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty);
- void unpin_user_pages(struct page **pages, unsigned long npages);
- 
- /**
-diff --git a/mm/gup.c b/mm/gup.c
-index 384571be2c66..6b6d861727cf 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -213,6 +213,32 @@ void unpin_user_page(struct page *page)
- }
- EXPORT_SYMBOL(unpin_user_page);
- 
-+static inline void compound_range_next(unsigned long i, unsigned long npages,
-+				       struct page **list, struct page **head,
-+				       unsigned int *ntails)
-+{
-+	struct page *next, *page;
-+	unsigned int nr = 1;
-+
-+	if (i >= npages)
-+		return;
-+
-+	next = *list + i;
-+	page = compound_head(next);
-+	if (PageCompound(page) && compound_order(page) >= 1)
-+		nr = min_t(unsigned int,
-+			   page + compound_nr(page) - next, npages - i);
-+
-+	*head = page;
-+	*ntails = nr;
-+}
-+
-+#define for_each_compound_range(__i, __list, __npages, __head, __ntails) \
-+	for (__i = 0, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)); \
-+	     __i < __npages; __i += __ntails, \
-+	     compound_range_next(__i, __npages, __list, &(__head), &(__ntails)))
-+
- static inline void compound_next(unsigned long i, unsigned long npages,
- 				 struct page **list, struct page **head,
- 				 unsigned int *ntails)
-@@ -301,6 +327,42 @@ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
- }
- EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
- 
-+/**
-+ * unpin_user_page_range_dirty_lock() - release and optionally dirty
-+ * gup-pinned page range
-+ *
-+ * @page:  the starting page of a range maybe marked dirty, and definitely released.
-+ * @npages: number of consecutive pages to release.
-+ * @make_dirty: whether to mark the pages dirty
-+ *
-+ * "gup-pinned page range" refers to a range of pages that has had one of the
-+ * pin_user_pages() variants called on that page.
-+ *
-+ * For the page ranges defined by [page .. page+npages], make that range (or
-+ * its head pages, if a compound page) dirty, if @make_dirty is true, and if the
-+ * page range was previously listed as clean.
-+ *
-+ * set_page_dirty_lock() is used internally. If instead, set_page_dirty() is
-+ * required, then the caller should a) verify that this is really correct,
-+ * because _lock() is usually required, and b) hand code it:
-+ * set_page_dirty_lock(), unpin_user_page().
-+ *
-+ */
-+void unpin_user_page_range_dirty_lock(struct page *page, unsigned long npages,
-+				      bool make_dirty)
-+{
-+	unsigned long index;
-+	struct page *head;
-+	unsigned int ntails;
-+
-+	for_each_compound_range(index, &page, npages, head, ntails) {
-+		if (make_dirty && !PageDirty(head))
-+			set_page_dirty_lock(head);
-+		put_compound_head(head, ntails, FOLL_PIN);
-+	}
-+}
-+EXPORT_SYMBOL(unpin_user_page_range_dirty_lock);
-+
- /**
-  * unpin_user_pages() - release an array of gup-pinned pages.
-  * @pages:  array of pages to be marked dirty and released.
--- 
-2.17.1
+Best,
+Bernard.
 
