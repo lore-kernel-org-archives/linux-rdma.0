@@ -2,73 +2,87 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE07C433DB
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Feb 2021 23:01:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A1FC433E9
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Feb 2021 06:37:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C37164DAF
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Feb 2021 23:01:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FBEA64E2B
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Feb 2021 06:37:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230457AbhBPXAu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Feb 2021 18:00:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58546 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230074AbhBPXAu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 16 Feb 2021 18:00:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPS id 8BA7864E08;
-        Tue, 16 Feb 2021 23:00:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1613516409;
-        bh=gySbbHCxI3MoBjtyJj9WhEaEgCYpGk38kJXxowW2C14=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=vOniwDsR63IYLcj98rPm9d9aqn/2mWQYxgyvenucuzvogKTbe/aiMa6/WEJdk15Jw
-         Gr8USVM3HnYsYp726XoPuRVrmnSTrq2Hys1uLTKYpEQeYGD6fLC8YtkMJovJyeHS/b
-         6g5wN15GxIr0jL0BYtA/EwpyOMv/NuGfJVd7kr5JAnv7pL9O92Cig8kr8wWOr7H0ZK
-         lwpufP8uPdBXo/E7GketU+XtGySxFMhsh2766GeBrB/ouno3uTkpz846i1j8DR6LkC
-         0YfmAvyD+0nzH0t4nKHa/Pu+2HZ6wOjqxcY7NTx63I10kjZDCyjchEf9POJhy0bnJJ
-         VQtYN/W3ykAFA==
-Content-Type: text/plain; charset="utf-8"
+        id S231444AbhBQGhl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Feb 2021 01:37:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60736 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229459AbhBQGhj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Feb 2021 01:37:39 -0500
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31AB4C061574
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Feb 2021 22:36:59 -0800 (PST)
+Received: by mail-ej1-x62f.google.com with SMTP id g5so16856107ejt.2
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Feb 2021 22:36:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cloud.ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=tCs6nlP9UWOg7Ku+uj0nbENM0wpT2YYYtJ2g2ZjAZKE=;
+        b=Lijxsn012rt7Hw9fQx9JWl4zat589U/0bWhv1zvlGztsRFRNK2pZ62oezo2wXrkQwR
+         tqIgN2tYRnnFBg9fvTDhGLQSDwsEqvyR0gQZDiFBVqpxMZ5VaJTTChUdwFE2l+2cNWos
+         BZppYyHGyagdXeW1hj9gegdqkf/YNZj5wLZKUfgO7vf/obX0PjMfIq6ZwqzsfxlbrhI9
+         zmhJP4aHYcak7z9v0Zd4oavSXYWrW/5fjPnloFIlhSo7+d0efT8fWzvvanVQmvMhDCZO
+         Hf7coObGSePoMze4niKi/6t/TKzMiZ0MQm4S9PyL9lsI1fBEZKOgNsBUJTA32RGH7Fn6
+         iVaA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=tCs6nlP9UWOg7Ku+uj0nbENM0wpT2YYYtJ2g2ZjAZKE=;
+        b=npHuLxiIAypRXqXWHb1wwWdrQyl2pswHcRAimMx398VCAV5kqwPLkPAk+MUSA7W+YE
+         MUbA9hg0HwBMw09LRqYIYPfP7eyOS02S0izaA0YZHdDqtDlj5DeL2b5QcuhzrbMlegGK
+         dv84uuh7v632piZolV3SmaUdflKtlSmMbWn1Y5RXhDiVB/U6LTUecVb3cD0FkF6RSZYh
+         CMD1QgzTbnHnY7LVnxLg0G1UR8izQPFYThcBARZNNsIaQ7TTko7I9/tJvBWM5MkOgmcu
+         kL1uWMP0sWQfgetxvZbG44Ygv4Ggjxyt193JAvyIJz9zBx/3fAK3LByZ0p51F4HOHBbX
+         W8PQ==
+X-Gm-Message-State: AOAM531NqkDQSj2VKmFw/b7nUdv3KaWF9DJl2AbKZxTgyDzqCGzc6iZS
+        AyAu+QJ6pAppLFXzw9gO+mjWq4wkjaimT2a9zVl/xQ==
+X-Google-Smtp-Source: ABdhPJx522HRXxRCHOAypSbPKn6RzI8QMBoeyn5lfsuZch1qZdyzstuCxfcGVnmJeeTur2YXJ2RlHT9nzXwIAoqhNws=
+X-Received: by 2002:a17:906:3456:: with SMTP id d22mr13955389ejb.115.1613543817725;
+ Tue, 16 Feb 2021 22:36:57 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: pull-request: mlx5-next 2021-02-16
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <161351640950.9841.1885063453117608318.git-patchwork-notify@kernel.org>
-Date:   Tue, 16 Feb 2021 23:00:09 +0000
-References: <20210216222438.51678-1-saeed@kernel.org>
-In-Reply-To: <20210216222438.51678-1-saeed@kernel.org>
-To:     Saeed Mahameed <saeed@kernel.org>
-Cc:     davem@davemloft.net, kuba@kernel.org, jgg@nvidia.com,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <20210216143807.65923-1-jinpu.wang@cloud.ionos.com> <20210216144938.GG2222@kadam>
+In-Reply-To: <20210216144938.GG2222@kadam>
+From:   Jinpu Wang <jinpu.wang@cloud.ionos.com>
+Date:   Wed, 17 Feb 2021 07:36:47 +0100
+Message-ID: <CAMGffEnRLV9cO-LE1tpfY6=dynZR50rDODPn+Be2ydWZkdNxow@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rtrs-srv: Suppress warnings passing zero to 'PTR_ERR'
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        kernel test robot <lkp@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello:
-
-This pull request was applied to netdev/net-next.git (refs/heads/master):
-
-On Tue, 16 Feb 2021 14:24:38 -0800 you wrote:
-> Hi Dave, Jakub, Jason
-> 
-> The patches in this pr are already submitted and reviewed through the
-> netdev and rdma mailing lists.
-> 
-> The series includes mlx5 HW bits and definitions for mlx5 real time clock
-> translation and handling in the mlx5 driver clock module to enable and
-> support such mode [1]
-> 
-> [...]
-
-Here is the summary with links:
-  - pull-request: mlx5-next 2021-02-16
-    https://git.kernel.org/netdev/net-next/c/44c32039751a
-
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+On Tue, Feb 16, 2021 at 3:49 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> On Tue, Feb 16, 2021 at 03:38:07PM +0100, Jack Wang wrote:
+> > smatch warnings:
+> > drivers/infiniband/ulp/rtrs/rtrs-srv.c:1805 rtrs_rdma_connect() warn: passing zero to 'PTR_ERR'
+> >
+> > Smatch seems confused by the refcount_read condition, the solution is
+> > protect move the list_add down after full initilization of rtrs_srv.
+>
+> In theory if Smatch had a properly up to date DB then it would print a
+> different warning "passing a valid pointer to PTR_ERR()".
+That will be easier to follow :)
+>
+> regards,
+> dan carpenter
+>
+Thanks!
