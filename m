@@ -2,147 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E0FC433E6
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 16:19:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BCA5C4332D
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 16:19:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A0AB264EAF
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 16:19:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA3C664EAD
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 16:19:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233376AbhBRQR7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Feb 2021 11:17:59 -0500
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:10608 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S231640AbhBROAT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Feb 2021 09:00:19 -0500
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 11IDUkkl075272
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Feb 2021 08:59:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=in-reply-to : subject :
- from : to : cc : date : mime-version : references :
- content-transfer-encoding : content-type : message-id; s=pp1;
- bh=Q7rYE/Q0ODn15Gxpt0hhNvXM+ok4+wTc4/qMx5vOeTA=;
- b=UjbF/hQLTJ3siYrV89WKgVqdXunzXyiej1tIkMrgF/iM30wG6cLAHP0ctsMekm1Cu8yf
- rgzPc+c3Mc4i24OyX+6BOTu3mQzbfFARUKfoRa4v11cm/TKjDqhLrEcFtRWQJVVYbYlW
- 1PQkwtCkY+/BfmdeA9tHLUHu4klIYtjKtBAe5L8BxXtHosfnHRlxuJxk/FJz/d/gWMWk
- ssupUTsFvZz4nJNXWyc8iZxOe5LNKC/Zt/gwljFppxr+dm2FOiRntzsyv2IDTsKJIIhh
- NgSMGUhLT0ATYF3esbUrjkQdRbZrU14j91boIan2EFHK3TGkfc9AknvTtecdosC0kFZo tg== 
-Received: from smtp.notes.na.collabserv.com (smtp.notes.na.collabserv.com [192.155.248.93])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 36sqd1cmdn-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Feb 2021 08:59:37 -0500
-Received: from localhost
-        by smtp.notes.na.collabserv.com with smtp.notes.na.collabserv.com ESMTP
-        for <linux-rdma@vger.kernel.org> from <BMT@zurich.ibm.com>;
-        Thu, 18 Feb 2021 13:59:37 -0000
-Received: from us1a3-smtp05.a3.dal06.isc4sb.com (10.146.71.159)
-        by smtp.notes.na.collabserv.com (10.106.227.39) with smtp.notes.na.collabserv.com ESMTP;
-        Thu, 18 Feb 2021 13:59:36 -0000
-Received: from us1a3-mail162.a3.dal06.isc4sb.com ([10.146.71.4])
-          by us1a3-smtp05.a3.dal06.isc4sb.com
-          with ESMTP id 2021021813593602-386771 ;
-          Thu, 18 Feb 2021 13:59:36 +0000 
-In-Reply-To: <2f01b2b4-f024-d469-7176-aaaca3af9e96@amazon.com>
-Subject: Re: Re: ibv_req_notify_cq clarification
-From:   "Bernard Metzler" <BMT@zurich.ibm.com>
-To:     "Gal Pressman" <galpress@amazon.com>
-Cc:     "RDMA mailing list" <linux-rdma@vger.kernel.org>
-Date:   Thu, 18 Feb 2021 13:59:35 +0000
+        id S233452AbhBRQSi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Feb 2021 11:18:38 -0500
+Received: from userp2130.oracle.com ([156.151.31.86]:54018 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232740AbhBRQDH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Feb 2021 11:03:07 -0500
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+        by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11IFsxwa090548;
+        Thu, 18 Feb 2021 16:02:06 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : from : to :
+ cc : references : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=nTz7w5Opw4DmOhfWAocEaDsHyoTqepWVqxAx/g/DeoM=;
+ b=t6F58OSzo8VILfR7YsFSPiWiWrvUWxT+YtL6u7aFgMeBh5+o2QfNVG+jiATga6XEwB5g
+ 7gG5B4enmaBOEVOZswGXWTpSc4T7tO1QgCYoqFfJ+4ArSZGZduitVBumJVr6Ey5qsQ0/
+ ijjTVDBdrhuTm3QrbL1uEn5MiiQqljk8H1tsg0VAW9XN/MVWfWVSPvK5vI9XgBSc9uLp
+ rOqfjC1NNpcTDi9P/IA141EG6hFaZtKQzUbgEBONY32Um/jrq0bylfJPyj+fIeenh5pG
+ zlyhGpcpkQjMSykeN/gKLwQavRcGGzlyiFh8FX3MUKTwlUkbvUwNetpWbKfl54KD93ok ew== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by userp2130.oracle.com with ESMTP id 36p66r6es2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 18 Feb 2021 16:02:05 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11IFoSwU115383;
+        Thu, 18 Feb 2021 16:02:05 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by aserp3030.oracle.com with ESMTP id 36prbqxdxu-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 18 Feb 2021 16:02:05 +0000
+Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 11IG1wHl014059;
+        Thu, 18 Feb 2021 16:01:59 GMT
+Received: from [10.175.202.26] (/10.175.202.26)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 18 Feb 2021 08:01:58 -0800
+Subject: Re: [PATCH v4 0/4] mm/gup: page unpining improvements
+From:   Joao Martins <joao.m.martins@oracle.com>
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Doug Ledford <dledford@redhat.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Matthew Wilcox <willy@infradead.org>
+References: <20210212130843.13865-1-joao.m.martins@oracle.com>
+ <20210218072432.GA325423@infradead.org>
+ <a5f7d591-f3aa-1a54-569c-bd1abcb99334@oracle.com>
+Message-ID: <8a93027f-edd4-45e0-8fbd-aac9a31e8644@oracle.com>
+Date:   Thu, 18 Feb 2021 16:01:54 +0000
 MIME-Version: 1.0
-Sensitivity: 
-Importance: Normal
-X-Priority: 3 (Normal)
-References: <2f01b2b4-f024-d469-7176-aaaca3af9e96@amazon.com>,<bd5deec5-8fc6-ccd6-927a-898f6d9ab35b@amazon.com>
- <OF8421F948.8385A3FA-ON00258680.00454F8A-00258680.00456EC9@notes.na.collabserv.com>
-X-Mailer: IBM iNotes ($HaikuForm 1054.1) | IBM Domino Build
- SCN1812108_20180501T0841_FP130 January 13, 2021 at 14:04
-X-LLNOutbound: False
-X-Disclaimed: 39995
-X-TNEFEvaluated: 1
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-x-cbid: 21021813-8889-0000-0000-0000049A2A34
-X-IBM-SpamModules-Scores: BY=0; FL=0; FP=0; FZ=0; HX=0; KW=0; PH=0;
- SC=0.40962; ST=0; TS=0; UL=0; ISC=; MB=0.033196
-X-IBM-SpamModules-Versions: BY=3.00014755; HX=3.00000242; KW=3.00000007;
- PH=3.00000004; SC=3.00000295; SDB=6.01509599; UDB=6.00815175; IPR=6.01292123;
- MB=3.00036174; MTD=3.00000008; XFM=3.00000015; UTC=2021-02-18 13:59:36
-X-IBM-AV-DETECTION: SAVI=unsuspicious REMOTE=unsuspicious XFE=unused
-X-IBM-AV-VERSION: SAVI=2021-02-18 03:41:58 - 6.00012309
-x-cbparentid: 21021813-8890-0000-0000-0000AEFA2DD5
-Message-Id: <OFC3C0A907.C449E5C5-ON00258680.004AAFCE-00258680.004CDDF7@notes.na.collabserv.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
- definitions=2021-02-18_05:2021-02-18,2021-02-18 signatures=0
-X-Proofpoint-Spam-Reason: orgsafe
+In-Reply-To: <a5f7d591-f3aa-1a54-569c-bd1abcb99334@oracle.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9898 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 spamscore=0 mlxscore=0
+ phishscore=0 adultscore=0 bulkscore=0 mlxlogscore=923 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2102180139
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9898 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 suspectscore=0
+ impostorscore=0 priorityscore=1501 clxscore=1015 spamscore=0 mlxscore=0
+ phishscore=0 malwarescore=0 bulkscore=0 adultscore=0 mlxlogscore=937
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2102180139
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
------"Gal Pressman" <galpress@amazon.com> wrote: -----
 
->To: "Bernard Metzler" <BMT@zurich.ibm.com>
->From: "Gal Pressman" <galpress@amazon.com>
->Date: 02/18/2021 01:47PM
->Cc: "RDMA mailing list" <linux-rdma@vger.kernel.org>
->Subject: [EXTERNAL] Re: ibv=5Freq=5Fnotify=5Fcq clarification
->
->On 18/02/2021 14:38, Bernard Metzler wrote:
->> -----"Gal Pressman" <galpress@amazon.com> wrote: -----
->>=20
->>> To: "RDMA mailing list" <linux-rdma@vger.kernel.org>
->>> From: "Gal Pressman" <galpress@amazon.com>
->>> Date: 02/18/2021 11:26AM
->>> Subject: [EXTERNAL] ibv=5Freq=5Fnotify=5Fcq clarification
->>>
->>> I'm a bit confused about the meaning of the ibv=5Freq=5Fnotify=5Fcq()
->verb:
->>> "Upon the addition of a new CQ entry (CQE) to cq, a completion
->event
->>> will be
->>> added to the completion channel associated with the CQ."
->>>
->>> What is considered a new CQE in this case?
->>> The next CQE from the user's perspective, i.e. any new CQE that
->>> wasn't consumed
->>> by the user's poll cq?
->>> Or any new CQE from the device's perspective?
->>>
->>> For example, if at the time of ibv=5Freq=5Fnotify=5Fcq() call the CQ has
->>> received 100
->>> completions, but the user hasn't polled his CQ yet, when should he
->be
->>> notified?
->>> On the 101 completion or immediately (since there are completions
->>> waiting on the
->>> CQ)?
->>=20
->> It is from drivers perspective. So notification when 101
->> became available and CQ is marked for notification.
->> Applications tend to poll the CQ after requesting
->> notification, since there might be a race
->> from appl perspective...
->
->Thanks Bernard,
->
->Looking at the implementation of rdma-core providers, most of them
->pass the CQ
->consumer index as part of the arm doorbell which made me think it
->arms the CQ to
->notify on a completion newer than what the app polled, not on a
->completion newer
->than the producer index.
->Any idea why the consumer index is needed if that's not the case?
->
-...maybe to do what you suggest - just kicking the completion
-handler if it appears the application has missed CQE's when the
-CQ was not armed? That would be in the gray zone of having
-a provider which wants to be smarter than the application,
-since this feature is not part of the verbs specification.
-I'd suggest applications better to rely on the
-IB=5FCQ=5FREPORT=5FMISSED=5FEVENTS flag if it doesn't want to
-pull unconditionally.
 
+On 2/18/21 3:33 PM, Joao Martins wrote:
+> On 2/18/21 7:24 AM, Christoph Hellwig wrote:
+>> On Fri, Feb 12, 2021 at 01:08:39PM +0000, Joao Martins wrote:
+>>> Hey,
+>>>
+>>> This series improves page unpinning, with an eye on improving MR
+>>> deregistration for big swaths of memory (which is bound by the page
+>>> unpining), particularly:
+>>
+>> Can you also take a look at the (bdev and iomap) direct I/O code to
+>> make use of this?  It should really help there, with a much wieder use
+>> than RDMA.
+>>
+> Perhaps by bdev and iomap direct I/O using this, you were thinking to replace
+> bio_release_pages() which operates on bvecs and hence releasing contiguous pages
+> in a bvec at once? e.g. something like from this:
+> 
+>         bio_for_each_segment_all(bvec, bio, iter_all) {
+>                 if (mark_dirty && !PageCompound(bvec->bv_page))
+>                         set_page_dirty_lock(bvec->bv_page);
+>                 put_page(bvec->bv_page);
+>         }
+> 
+> (...) to this instead:
+> 
+> 	bio_for_each_bvec_all(bvec, bio, i)
+> 		unpin_user_page_range_dirty_lock(bvec->bv_page,
+> 			DIV_ROUND_UP(bvec->bv_len, PAGE_SIZE),
+> 			mark_dirty && !PageCompound(bvec->bv_page));
+> 
+
+Quick correction: It should be put_user_page_range_dirty_lock() given that unpin is
+specific to FOLL_PIN users.
