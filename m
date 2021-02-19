@@ -1,32 +1,36 @@
 Return-Path: <linux-rdma-owner@kernel.org>
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BB1C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 20:25:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDBEC433E0
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Feb 2021 18:02:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1BD0264EB9
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Feb 2021 20:25:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFCF464D73
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Feb 2021 18:02:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbhBRUZM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Feb 2021 15:25:12 -0500
-Received: from btbn.de ([5.9.118.179]:51508 "EHLO btbn.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229944AbhBRUZC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Feb 2021 15:25:02 -0500
-Received: from [IPv6:2001:16b8:64c0:e200:8477:785d:a559:f590] (200116b864c0e2008477785da559f590.dip.versatel-1u1.de [IPv6:2001:16b8:64c0:e200:8477:785d:a559:f590])
-        by btbn.de (Postfix) with ESMTPSA id 9EB912350EF;
-        Thu, 18 Feb 2021 21:22:36 +0100 (CET)
+        id S229587AbhBSSB7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Feb 2021 13:01:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60676 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229527AbhBSSB4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Feb 2021 13:01:56 -0500
+Received: from btbn.de (btbn.de [IPv6:2a01:4f8:162:63a9::2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90DBBC061574;
+        Fri, 19 Feb 2021 10:01:14 -0800 (PST)
+Received: from [IPv6:2001:16b8:6400:f700:299c:fe0e:bef7:4ba] (200116b86400f700299cfe0ebef704ba.dip.versatel-1u1.de [IPv6:2001:16b8:6400:f700:299c:fe0e:bef7:4ba])
+        by btbn.de (Postfix) with ESMTPSA id D8BD7119F61;
+        Fri, 19 Feb 2021 19:01:09 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=rothenpieler.org;
-        s=mail; t=1613679756;
-        bh=5lExKtxE21JQ2IZLcbgNLX3WjGV7Lc+bLwZXEfXUZ3k=;
+        s=mail; t=1613757670;
+        bh=wnsYL0wVL9UiqdFb/8bbeEi0aYVdQvOMHTTMxcSSuhw=;
         h=Subject:To:Cc:References:From:Date:In-Reply-To;
-        b=NUa25SJmJokTm64yhqMFxcDsPpUN+qHWOe0fSHAalid4nlTlIAHj/d3qhaU3iqK49
-         g2T7Epxf/6YVQfyJUozwh3/FvPHT838giQNM8zEZCvo5FoTdHbJUL9CUU8+r/wGSdj
-         eaYwam5Xj3OumjC7PnxzDUcFvCUL9G4gkSeaqMTW1WMOT90dI0Y/MAIjjWITVjeZCU
-         YNEhtF+/++3STSYDdRvb+Bq3AoCkipaP0kdNRifMM1Vg4MbsHm8L1W+fyhjOY2iEIN
-         tfDVgn0Dt3xI07tqyUnQnKer41pHJBr3sEtVNe22A5XGNwAUH1rpdcXAGI/npiHUls
-         MZD8ZwPYWNDeg==
+        b=WIoNWuG0IpwJ0D1tPRRhaElIMd02C4BZy5wT9ddfnkGE2RM8IufS4d51RQehNAm7B
+         cKUw9vRu9FSr2mDwNquqSbOuhhY5LQZOFBfCGdPg1NcsRGUIvIV54MeZJGyBIKqorL
+         MFe4GbSXRb/s6aPML6x8Z3e6Q40wX+l2yqMLcYN2IT8Hvi5aim5c2LSj61mPUpWmnD
+         HN6W/lidS/f0xTgPdo/+Ydg9PMzOe3CXMhwUe0HvjZeYlDlGQxMdJ4dZqNMjj7M58h
+         tiz/NsBr3IQZMXfN0MKsd0KNpUDc41S3JAPp5OSi5kWtXfAlgMT/ck9KF+PPDkjqpa
+         Bzs3iLzp5nNRQ==
 Subject: Re: copy_file_range() infinitely hangs on NFSv4.2 over RDMA
-To:     Olga Kornievskaia <aglo@umich.edu>
+To:     Chuck Lever <chuck.lever@oracle.com>,
+        Olga Kornievskaia <aglo@umich.edu>
 Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
         Linux NFS Mailing List <linux-nfs@vger.kernel.org>
 References: <57f67888-160f-891c-6217-69e174d7e42b@rothenpieler.org>
@@ -39,58 +43,139 @@ References: <57f67888-160f-891c-6217-69e174d7e42b@rothenpieler.org>
  <3f946e6b-6872-641c-8828-35ddd5c8fed0@rothenpieler.org>
  <e89ab742-7984-6a2c-2f01-402283ba6e89@rothenpieler.org>
  <CAN-5tyGhyh0ZF77voaN4TNgMt+jSUG0PMp-KixfTvgUhDdhDUQ@mail.gmail.com>
+ <def12560-2481-b17d-5a42-7236edbd5392@rothenpieler.org>
+ <CAN-5tyHLRn4HEs9R291N6Y=boOvQ9-qvKfJzA8Khkqie2kVVWQ@mail.gmail.com>
+ <6478B738-0C33-46DC-B711-B0BF7069FD82@oracle.com>
 From:   Timo Rothenpieler <timo@rothenpieler.org>
-Message-ID: <def12560-2481-b17d-5a42-7236edbd5392@rothenpieler.org>
-Date:   Thu, 18 Feb 2021 21:22:36 +0100
+Message-ID: <19c74710-bf35-6412-dd06-071331419ab5@rothenpieler.org>
+Date:   Fri, 19 Feb 2021 19:01:09 +0100
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
  Thunderbird/78.7.1
 MIME-Version: 1.0
-In-Reply-To: <CAN-5tyGhyh0ZF77voaN4TNgMt+jSUG0PMp-KixfTvgUhDdhDUQ@mail.gmail.com>
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256; boundary="------------ms040505020200030408040506"
+In-Reply-To: <6478B738-0C33-46DC-B711-B0BF7069FD82@oracle.com>
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256; boundary="------------ms010809060704030209030507"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms040505020200030408040506
+--------------ms010809060704030209030507
 Content-Type: multipart/mixed;
- boundary="------------E9189B88A24C78C5017357A6"
+ boundary="------------AB6E263A70E7E9D78A375CF6"
 Content-Language: en-US
 
 This is a multi-part message in MIME format.
---------------E9189B88A24C78C5017357A6
+--------------AB6E263A70E7E9D78A375CF6
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
-On 18.02.2021 19:30, Olga Kornievskaia wrote:
-> Thank you for getting tracepoints from a busy server but can you get
-> more? As suspected, the server is having issues sending the callback.
-> I'm not sure why. Any chance to turn on the server's sunrpc
-> tracespoints, probably both sunrpc and rdmas tracepoints, I wonder if
-> we can any more info about why it's failing?
+On 19.02.2021 18:48, Chuck Lever wrote:
+>=20
+>=20
+>> On Feb 19, 2021, at 12:38 PM, Olga Kornievskaia <aglo@umich.edu> wrote=
+:
+>>
+>> On Thu, Feb 18, 2021 at 3:22 PM Timo Rothenpieler <timo@rothenpieler.o=
+rg> wrote:
+>>>
+>>> On 18.02.2021 19:30, Olga Kornievskaia wrote:
+>>>> Thank you for getting tracepoints from a busy server but can you get=
 
-I isolated out two of the machines on that cluster now, one acting as=20
-NFS server from an ext4 mount, the other is the same client as before.
-That way I managed to capture a trace and ibdump of an entire cycle:=20
-mount + successful copy + 5 minutes later a copy that got stuck
-
-Next to no noise happened during those traces, you can find them attached=
+>>>> more? As suspected, the server is having issues sending the callback=
 =2E
+>>>> I'm not sure why. Any chance to turn on the server's sunrpc
+>>>> tracespoints, probably both sunrpc and rdmas tracepoints, I wonder i=
+f
+>>>> we can any more info about why it's failing?
+>>>
+>>> I isolated out two of the machines on that cluster now, one acting as=
 
-Another observation made due to this: unmount and re-mounting the NFS=20
-share also gets it back into working condition for a while, no reboot=20
-necessary.
-During this trace, I got "lucky", and after just 5 minutes of waiting,=20
-it got stuck.
+>>> NFS server from an ext4 mount, the other is the same client as before=
+=2E
+>>> That way I managed to capture a trace and ibdump of an entire cycle:
+>>> mount + successful copy + 5 minutes later a copy that got stuck
+>>>
+>>> Next to no noise happened during those traces, you can find them atta=
+ched.
+>>>
+>>> Another observation made due to this: unmount and re-mounting the NFS=
 
-Before that, I had a run of mount + trying to copy every 5 minutes where =
+>>> share also gets it back into working condition for a while, no reboot=
 
-it ran for 45 minutes without getting stuck. At which point I decided to =
+>>> necessary.
+>>> During this trace, I got "lucky", and after just 5 minutes of waiting=
+,
+>>> it got stuck.
+>>>
+>>> Before that, I had a run of mount + trying to copy every 5 minutes wh=
+ere
+>>> it ran for 45 minutes without getting stuck. At which point I decided=
+ to
+>>> remount once more.
+>>
+>> Timo, thank you for gathering the debug info.
+>>
+>> Chuck, I need your help. Why would the server lose a callback channel?=
 
-remount once more.
+>>
+>>            <...>-1461944 [001] 2076465.200151: rpc_request:
+>> task:57752@6 nfs4_cbv1 CB_OFFLOAD (async)
+>>            <...>-1461944 [001] 2076465.200151: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_reserve
+>>            <...>-1461944 [001] 2076465.200154: xprt_reserve:
+>> task:57752@6 xid=3D0x00a0aaf9
+>>            <...>-1461944 [001] 2076465.200155: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_reserveresult
+>>            <...>-1461944 [001] 2076465.200156: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_refresh
+>>            <...>-1461944 [001] 2076465.200163: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_refreshresult
+>>            <...>-1461944 [001] 2076465.200163: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_allocate
+>>            <...>-1461944 [001] 2076465.200168: rpc_buf_alloc:
+>> task:57752@6 callsize=3D548 recvsize=3D104 status=3D0
+>>            <...>-1461944 [001] 2076465.200168: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE status=3D0 action=3Dcall_encode
+>>            <...>-1461944 [001] 2076465.200173: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE|NEED_XMIT|NEED_RECV status=3D0
+>> action=3Dcall_connect
+>>            <...>-1461944 [001] 2076465.200174: rpc_call_rpcerror:
+>> task:57752@6 tk_status=3D-107 rpc_status=3D-107
+>>            <...>-1461944 [001] 2076465.200174: rpc_task_run_action:
+>> task:57752@6 flags=3DASYNC|DYNAMIC|SOFT|NOCONNECT
+>> runstate=3DRUNNING|ACTIVE|NEED_XMIT|NEED_RECV status=3D-107
+>> action=3Drpc_exit_task
+>>
+>> It's reporting ENOTCON. I'm not really sure if this is related to copy=
 
---------------E9189B88A24C78C5017357A6
+>> offload but more perhaps doing callbacks over RDMA/IB.
+>=20
+> If the client is awaiting a COPY notification callback, I can see why
+> a lost CB channel would cause the client to wait indefinitely.
+>=20
+> The copy mechanism has to deal with this contingency... Perhaps the
+> server could force a disconnect so that the client and server have an
+> opportunity to re-establish the callback channel. <shrug>
+>=20
+> In any event, the trace log above shows nothing more than "hey, it's
+> not working." Are there any rpcrdma trace events we can look at to
+> determine why the backchannel is getting lost?
+>=20
+
+The trace log attached to my previous mail has it enabled, along with=20
+nfsd and sunrpc.
+I'm attaching the two files again here.
+
+
+--------------AB6E263A70E7E9D78A375CF6
 Content-Type: application/octet-stream;
  name="sniffer.pcap.xz"
 Content-Transfer-Encoding: base64
@@ -311,7 +396,7 @@ gp5/iXO4dZNGOh6OzuRJJhVSkB8a+XCK/VFEsFom7pU1UgKhtmpiuc/uXutPV9BojdFrSgly
 dxItrKso2QA6M5BBmeniH2+ncHuZtE31/w77QacQlU8fI7ezTTThGrMIZ4M2jdKyn2hlGuxd
 bXAEUd5mGLPNmHS/efE+HfsADt+w/dWtIIkxcYl326fteYlgK7ut91h+FMB/s0+umqnu8c5w
 0acAAAAASfiXn/2lSUMAAe1Zou4DANwOvzOxxGf7AgAAAAAEWVo=
---------------E9189B88A24C78C5017357A6
+--------------AB6E263A70E7E9D78A375CF6
 Content-Type: application/octet-stream;
  name="trace.dat.xz"
 Content-Transfer-Encoding: base64
@@ -10805,9 +10890,9 @@ Dy/dUBLeOCKUNppJoyUEMkXq+X7U2VvuLthh6zibHikgBT0towNKlcW/FbsUlQ7uzhGgzqke
 LJPqRzM0xIzFhuX1c7BSVrq41fT/OPEtdDtxIqCk4gQ3JN90fRlWKM6T7k0kVlDzMQMFkqrZ
 XaBnzWE11Gw0z10JXy4dEJiwoDWlXAZEGreYxmS3vwl6tDIEF+Vob2u/Fph4Om4g1+IxC0/p
 DGAwAHAWRTl4BkjzAAHkxyKA4NoBAAAA404MBhQXOzADAAAAAARZWg==
---------------E9189B88A24C78C5017357A6--
+--------------AB6E263A70E7E9D78A375CF6--
 
---------------ms040505020200030408040506
+--------------ms010809060704030209030507
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -10881,8 +10966,8 @@ IyclBW9mfuNFDbTBeDEyu80xggPzMIID7wIBATCBljCBgTELMAkGA1UEBhMCSVQxEDAOBgNV
 BAgMB0JlcmdhbW8xGTAXBgNVBAcMEFBvbnRlIFNhbiBQaWV0cm8xFzAVBgNVBAoMDkFjdGFs
 aXMgUy5wLkEuMSwwKgYDVQQDDCNBY3RhbGlzIENsaWVudCBBdXRoZW50aWNhdGlvbiBDQSBH
 MwIQCP8se1eXTyBvFrjHrZ83LDANBglghkgBZQMEAgEFAKCCAi0wGAYJKoZIhvcNAQkDMQsG
-CSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjEwMjE4MjAyMjM2WjAvBgkqhkiG9w0BCQQx
-IgQgOIaGdbNtN/GYbWJjptQIgMDYpNAPTWf9iC2b2L186q0wbAYJKoZIhvcNAQkPMV8wXTAL
+CSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjEwMjE5MTgwMTA5WjAvBgkqhkiG9w0BCQQx
+IgQgnoEh0vYiyEpZVpF/m7Tn4k5NhV0BfY0+/w7s+qoYuEUwbAYJKoZIhvcNAQkPMV8wXTAL
 BglghkgBZQMEASowCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDAN
 BggqhkiG9w0DAgIBQDAHBgUrDgMCBzANBggqhkiG9w0DAgIBKDCBpwYJKwYBBAGCNxAEMYGZ
 MIGWMIGBMQswCQYDVQQGEwJJVDEQMA4GA1UECAwHQmVyZ2FtbzEZMBcGA1UEBwwQUG9udGUg
@@ -10891,10 +10976,10 @@ Q2xpZW50IEF1dGhlbnRpY2F0aW9uIENBIEczAhAI/yx7V5dPIG8WuMetnzcsMIGpBgsqhkiG
 9w0BCRACCzGBmaCBljCBgTELMAkGA1UEBhMCSVQxEDAOBgNVBAgMB0JlcmdhbW8xGTAXBgNV
 BAcMEFBvbnRlIFNhbiBQaWV0cm8xFzAVBgNVBAoMDkFjdGFsaXMgUy5wLkEuMSwwKgYDVQQD
 DCNBY3RhbGlzIENsaWVudCBBdXRoZW50aWNhdGlvbiBDQSBHMwIQCP8se1eXTyBvFrjHrZ83
-LDANBgkqhkiG9w0BAQEFAASCAQBIqH5MhJv2x+3nKRmv+OE50wW60EZ+RpFPmvbRY91W5p8A
-W5YoAlElPCSzD7WzxQpy8R8pISPcstvQX6T9obl1Mn/KlS1UTujw+9fxW5xw54BmQg/3+trk
-tTo+czX0JYFDNQqh1FJxcw+dLwxk2JZnwnSppRTaeNztwz/VK3qsf6tPRPCL498ma+QxezBd
-6Wo5XluAM2BRpsT1+pq4lIM4I0RX7XPXce/x7E+sJEl9N39rXt45tsIbf49USZoQ7K8oZ0Yy
-gWXm7HIqGRjUr8l8z5kXZATtcvZgHk46/qKfkRyxVL11kGQFUEnykRXV9jnQdXv0epziq9wF
-Ib8jVw8bAAAAAAAA
---------------ms040505020200030408040506--
+LDANBgkqhkiG9w0BAQEFAASCAQAmct4MytA8GqO2SZL3a+yCRJb5uRP0zzbNLzPlPTSHQ+0Q
+i+1y54VrKrXFn3+HG2fS2NZ3pGnVvlu+2qrf6mc8+x8TxiftNWRx7kD+idnA1dRiDV3XnEdD
+xhIWBgI9VHy1iWGUU6PWyjN8HU7RbxQa9uLC2Zj3Hn8hiRn/D6ZGAgvMwb1FpBnBRes/937d
+JhNIfgZi04x7yu8Ua3zWF4I10nY3l4HmI8B9wDhgsxQqvw6oMbyFHMot8NkL4b9KG7stUNzW
+AYKibwT3Df7QaabHAZSDVgjrSkDob3PxXGgw95KB7dxISSdxVyTqjkxRi8KYpHWnuw+k5vOr
+0OBDh41CAAAAAAAA
+--------------ms010809060704030209030507--
