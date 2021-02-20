@@ -2,84 +2,72 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B7C1C433E9
-	for <linux-rdma@archiver.kernel.org>; Sat, 20 Feb 2021 09:48:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5883EC433E0
+	for <linux-rdma@archiver.kernel.org>; Sat, 20 Feb 2021 19:07:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 298FB64EDE
-	for <linux-rdma@archiver.kernel.org>; Sat, 20 Feb 2021 09:48:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 258F764EB3
+	for <linux-rdma@archiver.kernel.org>; Sat, 20 Feb 2021 19:07:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229542AbhBTJrv convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 20 Feb 2021 04:47:51 -0500
-Received: from szxga01-in.huawei.com ([45.249.212.187]:4629 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbhBTJrv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 20 Feb 2021 04:47:51 -0500
-Received: from DGGEMM401-HUB.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4DjNq91cvwzYBDn;
-        Sat, 20 Feb 2021 17:45:41 +0800 (CST)
-Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
- DGGEMM401-HUB.china.huawei.com (10.3.20.209) with Microsoft SMTP Server (TLS)
- id 14.3.498.0; Sat, 20 Feb 2021 17:47:05 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2106.2; Sat, 20 Feb 2021 17:47:04 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.006;
- Sat, 20 Feb 2021 17:47:04 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "leon@kernel.org" <leon@kernel.org>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Re: [PATCH RFC rdma-core 0/5] libhns: Add support for Dynamic Context
- Attachment
-Thread-Topic: [PATCH RFC rdma-core 0/5] libhns: Add support for Dynamic
- Context Attachment
-Thread-Index: AQHW/P+g64h4ciCwYkiRw06zMjvQFw==
-Date:   Sat, 20 Feb 2021 09:47:04 +0000
-Message-ID: <ae4b61de7912437c9445ad83430e3475@huawei.com>
-References: <1612667574-56673-1-git-send-email-liweihang@huawei.com>
- <20210209193849.GR4247@nvidia.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S229803AbhBTTGn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 20 Feb 2021 14:06:43 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47228 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229796AbhBTTGm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 20 Feb 2021 14:06:42 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 14DC06023B;
+        Sat, 20 Feb 2021 19:06:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1613847962;
+        bh=aksYvv/pbvkBrCrX+SCT6HQfuRBM+wqAG8UH2b1d1bE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=dxnnMLpH67twloA+/vmCSkcKexWZPI8hyNLC3n3FSAcEcTPsjFWLdYkyW17JDhuhg
+         U/qmm8NswdgNacbtUpK/ceW+DlECvmGUjb+serwKwAdcyB3k1dnapq03faEJCUxu9u
+         boA8+aj79+4t0Gye3lKskgWbXWHh4AH3w0as0av+Zfx1eNmDdq9FQxd2HYhPkcXuyF
+         EQV6mLTRSbQSP2gC1dNTUhR85MZy3pApQv1MKI7hKUHnjbxt8Q3shs9xHEuDmQNb9c
+         3hJvFpoazUBznWx3vzMGsmSJrUZAcxtGB/3OJnPTlSXxrPIDXVw82TklvOQwQDIE4J
+         9pj7D003swsAg==
+Date:   Sat, 20 Feb 2021 13:06:00 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>
+Subject: Re: [PATCH mlx5-next v6 1/4] PCI: Add sysfs callback to allow MSI-X
+ table size change of SR-IOV VFs
+Message-ID: <20210220190600.GA1260870@bjorn-Precision-5520>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YC90wkwk/CdgcYY6@kroah.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/2/10 3:39, Jason Gunthorpe wrote:
-> On Sun, Feb 07, 2021 at 11:12:49AM +0800, Weihang Li wrote:
->> The HIP09 introduces the DCA(Dynamic Context Attachment) feature which
->> supports many RC QPs to share the WQE buffer in a memory pool. If a QP
->> enables DCA feature, the WQE's buffer will not be allocated when creating
->> but when the users start to post WRs. This will reduce the memory
->> consumption when there are too many QPs are inactive.
->>
->> Please note that we didn't find the right way to get user's configuration,
->> so in #4 we still use environment variable to achieve this. We will be
->> appreciated if anyone can provide some sugggestions.
-> 
-> That is definately not going to work.. It should be some dv thing,
-> dv create qp or a dv customization of the parent domain spring to mind
-> 
-> Jason
-> 
+On Fri, Feb 19, 2021 at 09:20:18AM +0100, Greg Kroah-Hartman wrote:
 
-Thank you, we will use the parameter of verbs_open_device() named
-private_data to allow user pass the DCA configurations into the driver
-according to the way of mlx5dv_open_device().
+> Ok, can you step back and try to explain what problem you are trying to
+> solve first, before getting bogged down in odd details?  I find it
+> highly unlikely that this is something "unique", but I could be wrong as
+> I do not understand what you are wanting to do here at all.
 
-Weihang
+We want to add two new sysfs files:
+
+  sriov_vf_total_msix, for PF devices
+  sriov_vf_msix_count, for VF devices associated with the PF
+
+AFAICT it is *acceptable* if they are both present always.  But it
+would be *ideal* if they were only present when a driver that
+implements the ->sriov_get_vf_total_msix() callback is bound to the
+PF.
