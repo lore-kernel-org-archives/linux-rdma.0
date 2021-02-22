@@ -2,64 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2E32C433E0
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Feb 2021 18:44:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B6CC433DB
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Feb 2021 19:22:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 996F164E00
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Feb 2021 18:44:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B2B664DB1
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Feb 2021 19:22:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230526AbhBVSoN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Feb 2021 13:44:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45120 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230316AbhBVSnA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 22 Feb 2021 13:43:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPS id EE49564E34;
-        Mon, 22 Feb 2021 18:37:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614019027;
-        bh=JQGcprhaSNI4UWW0gKJD2NOzXwkpNiW6/jegMKCATWM=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=tSezLW1SCv6dI6JuDT/w531CM3AeM7zN+xbhVXaAokJfVShp4VnQXIGXoDc/C2MYa
-         T2xeWED4IHSl3feBlKcDH3xfPNht7FYrffquTzneZgOrUO0O5Sg+8b04XVe6QwQhu1
-         8a3AFCwmR8dbHmCe/ppNhtxV9iWfrCfMHDAdZfbyVy6YRErxTw/wxZ87DyqKOt4V76
-         lyUU5NA/C+5iiVisk0ecl/u5IEXPOzZN8SMJxT//TYzd9oxpvsMhOBE3jE+xCC5quM
-         W6xs9DjqHP4OY0D0/OnLkdQ3NBwH/+YR5rlgkypxhb3GomxixX1vOxNWJEt2uR6FxU
-         qtKCpsDxxLyyA==
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20210222145921.GA3435145@nvidia.com>
-References: <20210222145921.GA3435145@nvidia.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20210222145921.GA3435145@nvidia.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-X-PR-Tracked-Commit-Id: 7289e26f395b583f68b676d4d12a0971e4f6f65c
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 3672ac8ac0d8bece188f82c48770bbe40f234f1e
-Message-Id: <161401902695.24925.3469178097986913404.pr-tracker-bot@kernel.org>
-Date:   Mon, 22 Feb 2021 18:37:06 +0000
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
+        id S230442AbhBVTWN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Feb 2021 14:22:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37058 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232907AbhBVTTw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Feb 2021 14:19:52 -0500
+Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EAC7C061793
+        for <linux-rdma@vger.kernel.org>; Mon, 22 Feb 2021 11:19:02 -0800 (PST)
+Received: by mail-pf1-x431.google.com with SMTP id m6so7220980pfk.1
+        for <linux-rdma@vger.kernel.org>; Mon, 22 Feb 2021 11:19:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=networkplumber-org.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=u1Yz+6yxFUR2YFaIiitfuzmwB6FuPozy4hIi547hR20=;
+        b=ohvTM7J9u8GjvBzjWDTkgx90AWiCQ/i//M+PotdIS7G0+MqhnzGaUUUMNBC+NvE/Zu
+         eVpvgcq5khGzLC7dP0bWBHm3fvq/Fys9dlqF0cmzzg7sKQaxN9q8ockyrUbHg3EEOzhR
+         68uVaEgp9ZSOe5yWD3Ks4hRXCTdJ1lSriwsCVB6608ZESLnEdePWuFsbyeSgPDrNOKxu
+         NlNRIMeFc5J9m91KD6wyBKqR2bRMYXKCpG85/DRw+jzqKjQsMwC/lTIKHbPnQCQnO/b+
+         JTcQVmxbx3EcGF/R4dyDAKU9NTJXS1KAmQjBjx9W4QNlK9/t598OQ0M3zMOMycNhlg4k
+         Ytwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=u1Yz+6yxFUR2YFaIiitfuzmwB6FuPozy4hIi547hR20=;
+        b=KhV/1X0cRG4iK3+kbDcDaJfgReIQiioOjiFg4X0+YTt3jFCZWTBUuC+Kv2ggxaGVI4
+         LOv+B12ZtXKkSzaCG08UJ4zlnzltWrBkWthrSTl7quwktx6DiNsiWUCM7B0aK4BBGWIL
+         vWACjUbWuT3qnikOzkzZZkg6ftmzXnAeeAwmqE+zyqmDlHBTrgJKfMu6SILVnclShdpN
+         HKVyr6V6vC5w+UVsVDxpfozNFPYTP/noA/l8XkPOlcRzRUGOwPLvvurvLzsOQawwMq8H
+         YhjaLbthV9etXduCCyLrQixDsyoxqMC8I3K49H9DDjmMKQKgBIegy3bpcJNM+gDJ6jqJ
+         h8Zg==
+X-Gm-Message-State: AOAM531cj4MUHzMN9LaVGo3ZUDK0/Z1GbSSBq+zO5cJiEd7ZtYsjTQ6h
+        lunR6JQ5Ec5uNcNL2AWTwfdQTw==
+X-Google-Smtp-Source: ABdhPJyCaizPJhkS52nsxtmIXWIxjJTGO4Yo5nmBm/qoQvXb0M6U8GD8RBVENzk398QnZKHls4WuQg==
+X-Received: by 2002:a63:1343:: with SMTP id 3mr21043379pgt.166.1614021540237;
+        Mon, 22 Feb 2021 11:19:00 -0800 (PST)
+Received: from hermes.local (mobile-166-176-184-131.mycingular.net. [166.176.184.131])
+        by smtp.gmail.com with ESMTPSA id w187sm19944000pgb.52.2021.02.22.11.18.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 22 Feb 2021 11:18:59 -0800 (PST)
+Date:   Mon, 22 Feb 2021 11:18:51 -0800
+From:   Stephen Hemminger <stephen@networkplumber.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     David Ahern <dsahern@gmail.com>, Ido Kalir <idok@nvidia.com>,
+        linux-netdev <netdev@vger.kernel.org>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH iproute2-rc] rdma: Fix statistics bind/unbing argument
+ handling
+Message-ID: <20210222111851.710aa045@hermes.local>
+In-Reply-To: <YC4o4L93lGYFQ1ku@unreal>
+References: <20210214083335.19558-1-leon@kernel.org>
+        <5e9a8752-24a1-7461-e113-004b014dcde9@gmail.com>
+        <YCoJULID1x2kulQe@unreal>
+        <04d7cd07-c3eb-c39c-bce1-3e9d4d1e4a27@gmail.com>
+        <YCtjO1Q2OnCOlEcu@unreal>
+        <9217385b-6002-83c2-b386-85650ce101bc@gmail.com>
+        <YC4o4L93lGYFQ1ku@unreal>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The pull request you sent on Mon, 22 Feb 2021 10:59:21 -0400:
+On Thu, 18 Feb 2021 10:44:16 +0200
+Leon Romanovsky <leon@kernel.org> wrote:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+> On Tue, Feb 16, 2021 at 08:48:24AM -0700, David Ahern wrote:
+> > On 2/15/21 11:16 PM, Leon Romanovsky wrote:  
+> > > On Mon, Feb 15, 2021 at 06:56:26PM -0700, David Ahern wrote:  
+> > >> On 2/14/21 10:40 PM, Leon Romanovsky wrote:  
+> > >>> On Sun, Feb 14, 2021 at 08:26:16PM -0700, David Ahern wrote:  
+> > >>>> what does iproute2-rc mean?  
+> > >>>
+> > >>> Patch target is iproute2.git:
+> > >>> https://git.kernel.org/pub/scm/network/iproute2/iproute2.git/  
+> > >>
+> > >> so you are asking them to be committed for the 5.11 release?  
+> > >
+> > > This is a Fix to an existing issue (not theoretical one), so I was under
+> > > impression that it should go to -rc repo and not to -next.  
+> >
+> > It is assigned to Stephen for iproute2.
+> >  
+> > >
+> > > Personally, I don't care to which repo will this fix be applied as long
+> > > as it is applied to one of the two iproute2 official repos.
+> > >
+> > > Do you have clear guidance when should I send patches to iproute2-rc/iproute2-next?
+> > >  
+> >
+> > It's the rc label that needs to be dropped: iproute2 or iproute2-next.  
+> 
+> Sure, no problem.
+> 
+> Thanks
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/3672ac8ac0d8bece188f82c48770bbe40f234f1e
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Applied, and fixed a minor whitespace issue reported by checkpatch
