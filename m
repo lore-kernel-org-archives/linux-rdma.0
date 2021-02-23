@@ -2,209 +2,172 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22768C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Feb 2021 09:54:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE9EC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Feb 2021 12:19:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF2B164E02
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Feb 2021 09:53:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B31864E00
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Feb 2021 12:19:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231814AbhBWJxp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Feb 2021 04:53:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54094 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232029AbhBWJvS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Feb 2021 04:51:18 -0500
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6E2C061786
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Feb 2021 01:50:38 -0800 (PST)
-Received: by mail-ot1-x32f.google.com with SMTP id b8so14939245oti.7
-        for <linux-rdma@vger.kernel.org>; Tue, 23 Feb 2021 01:50:38 -0800 (PST)
+        id S232441AbhBWMTb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Feb 2021 07:19:31 -0500
+Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:61247 "EHLO
+        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232426AbhBWMT3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Feb 2021 07:19:29 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DzQ9pQ2Y4ykOxM4kBnezaXnOuK+QMlrXt0XpviCqjbY=;
-        b=VBBFeH3In68vqrCZq/LdbyO4B8BJZ3LHoZH0+O2TaGGLN4KmmeFVyl3QDF8qNdoSaP
-         bAwEMiWQytGygznLIM8U89/XgMZOUkdHQsTo9pg1eVXIn2nnq8w4AtjR/t16hR8fvdqv
-         R0kmT9RZ4q09FlEZAcNxhZzoRTa7L3uecHMNhnq1orMaqCu8Fv7ec0MsJi9B4/juK4GO
-         IV6WRzFSmgJZznZXfVTPhKhZ38+9TcJ369cSSqHQ7vnfDgOCXY05tRAhwEiXi9JF+ddi
-         U0x6H0BgX6A8SzgeoK0oyQzHSxxC95hpmc/GXx5mikh3MwNZNJxj290Kc3xtNsMArxZ7
-         dbmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DzQ9pQ2Y4ykOxM4kBnezaXnOuK+QMlrXt0XpviCqjbY=;
-        b=WKQnMB5lVha43LSnlZCd59X49q29WhorYw/HiLkMon26lS8neW6VI4ddVEMGLs3qIY
-         /tl4dlgSiCNFspG4xQezyTMjSzziY5U5aD/1MrBccqeHolj+r7FdfizEnT+pIhbLukNi
-         9bMn9DPG+T8H9bf2J88t37yaGg889H8EAKoyE114rmPS2MrXasdlkgJ1lte8jONDF2hI
-         GMaNKrZh8hYScLHSYCwriZcSeSVvX+Ki2KTlHyNWRiznn6/tlx0v66q1invxVf5uOC1y
-         3qm5f5/f06/lULJDEdq29z+AhOdbO1XIdCzoEfMdnVGjUXeEZc2yGHYiCcMF/Arq9Po1
-         hfdg==
-X-Gm-Message-State: AOAM5327sQuYncjI2B0JV/s4Y3AqI0dYUgEe6dlTz+u/QcoNj3sumYqs
-        a+xp9LkuMx3pT43Agw6jvRseGSztvNQqcBcokbXEJ19A5wk=
-X-Google-Smtp-Source: ABdhPJyqtIWXnstSaNB7QwbkTwZqscBZmsFPOaFMvdvaM5I99FURk4YKVnHHTVe1LztJsLdCJyv/SRdJ/Z2sOfz69I8=
-X-Received: by 2002:a05:6830:30bb:: with SMTP id g27mr16403760ots.278.1614073837968;
- Tue, 23 Feb 2021 01:50:37 -0800 (PST)
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1614082767; x=1645618767;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=NJNEHlo/5zghuR2jV3MEDG4VQ1wre4aCNf2wTe2McFo=;
+  b=jCemgg8rDh/TfKxoTfokplJakpYV4v1ZHw2IvQaDdC4D6xyGQtnK+sHP
+   uVT+IM3Av2n0ByxcjDCzH9jLFk9dqs/UAErnDHauS8Uny0O2WQdNkbShO
+   DBWC0r1APAuSYhFh/QR4doJEyQ/308J/HJGpfay/tWh8l1HAJN7DnnSkq
+   4=;
+X-IronPort-AV: E=Sophos;i="5.81,200,1610409600"; 
+   d="scan'208";a="91134682"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2b-55156cd4.us-west-2.amazon.com) ([10.43.8.2])
+  by smtp-border-fw-out-6001.iad6.amazon.com with ESMTP; 23 Feb 2021 12:18:40 +0000
+Received: from EX13D19EUB003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2b-55156cd4.us-west-2.amazon.com (Postfix) with ESMTPS id 0729BA1FBE;
+        Tue, 23 Feb 2021 12:18:39 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.162.239) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Tue, 23 Feb 2021 12:18:36 +0000
+Subject: Re: ibv_req_notify_cq clarification
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+CC:     RDMA mailing list <linux-rdma@vger.kernel.org>
+References: <bd5deec5-8fc6-ccd6-927a-898f6d9ab35b@amazon.com>
+ <20210218125339.GY4718@ziepe.ca>
+ <5287c059-3d8c-93f4-6be4-a6da07ccdb8a@amazon.com>
+ <20210218162329.GZ4718@ziepe.ca>
+ <51a8fa8c-7529-9ef9-bb52-eccaaef3a666@amazon.com>
+ <20210222134642.GG2643399@ziepe.ca>
+ <e26a3e90-cc8b-d681-5d6b-4e363aa1933c@amazon.com>
+ <20210222155559.GH2643399@ziepe.ca>
+ <8277bebb-8994-af0f-52fc-972c7f8260dd@amazon.com>
+ <20210222193746.GM2643399@ziepe.ca>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <2fa24ddf-1add-a306-003d-0737b2b9cbba@amazon.com>
+Date:   Tue, 23 Feb 2021 14:18:31 +0200
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.7.1
 MIME-Version: 1.0
-References: <0fe96275-9413-18a7-8ec0-d6b456dd1f26@hhu.de> <CAD=hENcBOO3KfH4wHoz1GBz9LPVZ5BOnoyPq8MMtbhB0DA=F5w@mail.gmail.com>
- <YDTDLd8cvGUgtkqb@unreal>
-In-Reply-To: <YDTDLd8cvGUgtkqb@unreal>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Tue, 23 Feb 2021 17:50:26 +0800
-Message-ID: <CAD=hENfGaH00Y52ped7v1uQtiDwaHUFMxMjGMJYLjp_L0hSmEw@mail.gmail.com>
-Subject: Re: ibv_rc_pingpong fails to create a completion queue
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Filip Krakowski <krakowski@hhu.de>,
-        linux-rdma <linux-rdma@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20210222193746.GM2643399@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.43.162.239]
+X-ClientProxiedBy: EX13D02UWC002.ant.amazon.com (10.43.162.6) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Feb 23, 2021 at 4:56 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Tue, Feb 23, 2021 at 11:08:18AM +0800, Zhu Yanjun wrote:
-> > On Tue, Feb 23, 2021 at 12:21 AM Filip Krakowski <krakowski@hhu.de> wrote:
-> > >
-> > > Hi,
-> > >
-> > > whenever I try to test a reliable connection using "ibv_rc_pingpong -d
-> > > mlx5_0"
-> >
-> > ibv_rc_pingpong -d rxe0 -g 1 > /dev/null &
-> >
-> > ibv_rc_pingpong -d rxe0 -g 1 192.168.1.2
-> >
-> > I made tests with the above. It can work well.
-> >
-> > Normally "-g" is needed.
->
-> "-g" is needed because you are running RoCE, while Filip is running IB.
->
-> >
-> > Before directly using mlx5, please make tests with softroce firstly.
->
-> Are you sure that RXE works in 4.18.0-151.el8.x86_64 kernel?
+On 22/02/2021 21:37, Jason Gunthorpe wrote:
+> On Mon, Feb 22, 2021 at 09:24:18PM +0200, Gal Pressman wrote:
+>> On 22/02/2021 17:55, Jason Gunthorpe wrote:
+>>> On Mon, Feb 22, 2021 at 05:36:17PM +0200, Gal Pressman wrote:
+>>>
+>>>> "Mellanox HCAs keep track of the last index for which the user received an
+>>>> event. Using this index, it is guaranteed that an event is generated immediately
+>>>> when a request completion notification is performed and a CQE has already been
+>>>> reported."
+>>>
+>>> I don't think verbs exposes this behavior.
+>>
+>> So in theory this hardware could generate events that the user app
+>> doesn't expect?
+> 
+> Not really, it shuffles around how race conditions are resolved.
+> 
+>> But looking at ibv_ud_pingpong for example, I don't understand how
+>> that could even work.  The test arms the CQ on creation (consumder
+>> index 0), calls ibv_get_cq_event(), wakes up and immediately arms
+>> the CQ again (before polling, consumer index is still 0).
+> 
+> By IBTA spec this is wrong and racey.
 
-I have no 4.18.0-151.el8.x86_64 kernel at hand.
-I use the kernel 4.18.0-240.10.1.el8_3.x86_64 to make tests.
+Where does it say that?
 
-SoftRoCE can work well.
+>> This means that the next ibv_get_cq_event() will wake up immediately, as the CQ
+>> was armed twice with the same consumer index and the first completion already
+>> exists. Surely that's not what's meant to happen?
+> 
+> If the driver for this HW stuffs the consumer index then yes, you'd
+> get a wakeup as though the new entries were delivered instantly after
+> the arm. If it stuffs the current producer index then you get behavior
+> like IBTA describes.
+> 
+> I'd say they are both compatible ways to approach this, the app can't
+> tell the state of the CQ, so it can't know if the new CQEs were
+> delievered before or after it ARM'd it.
 
-Zhu Yanjun
+That's not accurate though.
+A simple ping app that sends one packet at a time knows the CQ state when it
+arms it. The CQ event is for that single sent packet, and the arm should notify
+about the next packet it's about to send.
 
->
-> >
-> > Zhu Yanjun
-> >
-> >  to start the server side the test immediately stops with
-> > > "Couldn't create CQ". Since I couldn't find a solution for this problem
-> > > in one week I would like to ask if someone has encountered this error
-> > > before or knows a way of troubleshooting it. Just to be sure I updated
-> > > the controller to its latest firmware (16.29.2002) today, but the error
-> > > remained the same.
-> > >
-> > > System Information
-> > > ====
-> > >
-> > >      * CentOS Linux release 8.1.1911 (Core)
-> > >      * Linux 4.18.0-151.el8.x86_64
-> > >      * ConnectX-5 (MCX555A-ECA)
-> > >
-> > >
-> > > Installed Packages
-> > > ====
-> > >
-> > >      * rdma-core-32.0-4.el8.x86_64
-> > >      * libibverbs-32.0-4.el8.x86_64
-> > >
-> > >
-> > > Loaded Kernel Modules (lsmod | grep -E 'rdma|mlx')
-> > > ====
-> > >
-> > >      rpcrdma               274432  0
-> > >      sunrpc                454656  22
-> > > rpcrdma,nfsv4,auth_rpcgss,lockd,nfsv3,rpcsec_gss_krb5,nfs_acl,nfs
-> > >      rdma_ucm               32768  0
-> > >      rdma_cm                69632  5
-> > > rpcrdma,ib_srpt,ib_iser,ib_isert,rdma_ucm
-> > >      iw_cm                  53248  1 rdma_cm
-> > >      ib_cm                  57344  3 rdma_cm,ib_ipoib,ib_srpt
-> > >      mlx5_ib               327680  0
-> > >      ib_uverbs             147456  3 i40iw,rdma_ucm,mlx5_ib
-> > >      ib_core               356352  14
-> > > rdma_cm,ib_ipoib,rpcrdma,ib_srpt,iw_cm,ib_iser,ib_umad,ib_isert,i40iw,rdma_ucm,ib_uverbs,mlx5_ib,ib_cm
-> > >      mlx5_core             798720  1 mlx5_ib
-> > >      mlxfw                  24576  1 mlx5_core
-> > >
-> > >
-> > >
-> > > Infiniband Device Info (ibv_devinfo)
-> > > ====
-> > >
-> > >      hca_id:    i40iw0
-> > >          transport:            iWARP (1)
-> > >          fw_ver:                0.2
-> > >          node_guid:            3cec:ef0d:51c3:0000
-> > >          sys_image_guid:            3cec:ef0d:51c3:0000
-> > >          vendor_id:            0x8086
-> > >          vendor_part_id:            14290
-> > >          hw_ver:                0x0
-> > >          board_id:            I40IW Board ID
-> > >          phys_port_cnt:            1
-> > >              port:    1
-> > >                  state:            PORT_DOWN (1)
-> > >                  max_mtu:        4096 (5)
-> > >                  active_mtu:        1024 (3)
-> > >                  sm_lid:            0
-> > >                  port_lid:        1
-> > >                  port_lmc:        0x00
-> > >                  link_layer:        Ethernet
-> > >
-> > >      hca_id:    i40iw1
-> > >          transport:            iWARP (1)
-> > >          fw_ver:                0.2
-> > >          node_guid:            3cec:ef0d:51c2:0000
-> > >          sys_image_guid:            3cec:ef0d:51c2:0000
-> > >          vendor_id:            0x8086
-> > >          vendor_part_id:            14290
-> > >          hw_ver:                0x0
-> > >          board_id:            I40IW Board ID
-> > >          phys_port_cnt:            1
-> > >              port:    1
-> > >                  state:            PORT_ACTIVE (4)
-> > >                  max_mtu:        4096 (5)
-> > >                  active_mtu:        1024 (3)
-> > >                  sm_lid:            0
-> > >                  port_lid:        1
-> > >                  port_lmc:        0x00
-> > >                  link_layer:        Ethernet
-> > >
-> > >      hca_id:    mlx5_0
-> > >          transport:            InfiniBand (0)
-> > >          fw_ver:                16.29.2002
-> > >          node_guid:            0c42:a103:0054:74ca
-> > >          sys_image_guid:            0c42:a103:0054:74ca
-> > >          vendor_id:            0x02c9
-> > >          vendor_part_id:            4119
-> > >          hw_ver:                0x0
-> > >          board_id:            MT_0000000010
-> > >          phys_port_cnt:            1
-> > >              port:    1
-> > >                  state:            PORT_ACTIVE (4)
-> > >                  max_mtu:        4096 (5)
-> > >                  active_mtu:        4096 (5)
-> > >                  sm_lid:            8
-> > >                  port_lid:        196
-> > >                  port_lmc:        0x00
-> > >                  link_layer:        InfiniBand
-> > >
-> > >
-> > > Best regards
-> > > Filip
+In this case, notifying twice for the same completion is not compatible with the
+spec - there are no races in this case.
+
+>> Do you have a way to verify whether this test gets stuck? Maybe I am
+>> missing something?
+> 
+> If the mlx5 implementation is doing like you say then it will not get
+> stuck on that HW, but it is not to spec
+> 
+>> What do you mean by arming a non-empty CQ?
+> 
+> The arm only has meaning if you know the CQ is empty because then you
+> can reliably catch the empty->!empty transition, which is the whole
+> point.
+
+Well, you never really know the CQ is empty though. A completion can always
+arrive just after you finish polling.
+
+> If the CQ is non-empty then, by spec, if no new events arrive it will
+> never be signaled - the app must re-poll it on its own so why arm it?
+> 
+>> The man pages suggest a scheme where the app should call ibv_get_cq_event()
+>> followed by an ibv_req_notify_cq(), the CQ polling/emptying comes after these,
+>> so at the time of arm the CQ isn't empty.
+> 
+> It doesn't show how to re-arm it seems
+> 
+> I'm repeating from memory here, I haven't checked the specs, but that
+> Sean agrees seems like I'm remembering it right :)
+> 
+> The question you seem to be asking is what happens if you re-arm a
+> non-empty CQ, do you immediately get an event or not? It should be
+> easy enough to test on siw, rxe and mlx5 and see
+
+rxe seems to get stuck, had some issues running siw and don't have an mlx5 nic
+at hand.
+
+> I expect by spec arming a non-empty CQ will not generate an event. The
+> spec was written to support very simple hardware that would simply
+> generate an event the next time it writes a CQE then atomically clear
+> the arm.
+> 
+> Does look like a documentation update is in-order though!
+
+Looking at libibverbs examples, pyverbs tests and perftest, they all act roughly
+the same:
+
+1. arm CQ
+2. post send/recv
+3. get event
+4. arm CQ
+5. poll
+6. goto step 2
+
+All of these apps always use the same construct of get event followed by an
+immediate arm. Did all of these apps get it wrong?
+
+Do you have an example of where it's done right :)?
