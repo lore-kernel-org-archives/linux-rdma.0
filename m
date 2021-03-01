@@ -2,97 +2,118 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E54B7C433E9
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Mar 2021 07:56:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E77BC433E0
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Mar 2021 08:15:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE99F64DBD
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Mar 2021 07:56:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B89264DB2
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Mar 2021 08:15:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232683AbhCAH4r (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 1 Mar 2021 02:56:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41200 "EHLO mail.kernel.org"
+        id S232838AbhCAIPe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 1 Mar 2021 03:15:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232676AbhCAH42 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 1 Mar 2021 02:56:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB06B64E38;
-        Mon,  1 Mar 2021 07:55:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614585348;
-        bh=yCHWjJaPT8VcPcdMP71SUt3lFVoga2J+ds6B7mObtYU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QaUs2XYJdybQFG2WzrYIIU/aH22pFvdF7WMZuPwOCqaW8kgr2idVqG/AJdm/5AsRx
-         6HvdpunNzSXmY4JMdO9Labwb/LiZaXjF2G2h/I6mUY2PdbLeHnULoCljXLVhdrLWRu
-         Chyu3UFizW7cg95CaHzaEVIJkw5vMtq2BahnrNXNLp5rZ8QpQCmy3yTwGQ8MX0AA8C
-         EVDDOTheWn03/qOHLJPap778TWK8y58yFxFsvAUaYRXrVAqv43SulSRAuomrA+WPSt
-         wtkKyr9YlGgTKmOxISwNN7yb3w4Y9Pdr+BPDW9ZisVXoH8babV2AdIvtg1cVS5+QeA
-         Op5gz9GNTEC8A==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        id S232842AbhCAIP2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 1 Mar 2021 03:15:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8663A64E38;
+        Mon,  1 Mar 2021 08:14:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1614586485;
+        bh=e/EZNJEqbtARqW8q4zKN6+1Ox/OwDuDs68EFVl0hdV4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=vboS17j1qNHl95CbLCj/K4lbg7ttbEsxPra0YKaBJjPSw/3yHCj3/k1KI3fU33Zx+
+         O8bXjH4RXVnUiryfj9wSNVstTVcFv1/FQvjnpnBM2zVCW4eFqvMUjMIZ7VXSD8NKek
+         aH4qLAyFHYnHvxxpcWA4Ebr4YvfFOq9komzijtzQ=
+Date:   Mon, 1 Mar 2021 09:14:42 +0100
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Alexander Duyck <alexander.duyck@gmail.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-pci@vger.kernel.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         Don Dutile <ddutile@redhat.com>,
         Alex Williamson <alex.williamson@redhat.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH mlx5-next v7 2/4] net/mlx5: Add dynamic MSI-X capabilities bits
-Date:   Mon,  1 Mar 2021 09:55:22 +0200
-Message-Id: <20210301075524.441609-3-leon@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210301075524.441609-1-leon@kernel.org>
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH mlx5-next v7 1/4] PCI: Add a sysfs file to change the
+ MSI-X table size of SR-IOV VFs
+Message-ID: <YDyicnnKPhy5LMJy@kroah.com>
 References: <20210301075524.441609-1-leon@kernel.org>
+ <20210301075524.441609-2-leon@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210301075524.441609-2-leon@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Mon, Mar 01, 2021 at 09:55:21AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> A typical cloud provider SR-IOV use case is to create many VFs for use by
+> guest VMs. The VFs may not be assigned to a VM until a customer requests a
+> VM of a certain size, e.g., number of CPUs. A VF may need MSI-X vectors
+> proportional to the number of CPUs in the VM, but there is no standard way
+> to change the number of MSI-X vectors supported by a VF.
+> 
+> Some Mellanox ConnectX devices support dynamic assignment of MSI-X vectors
+> to SR-IOV VFs. This can be done by the PF driver after VFs are enabled,
+> and it can be done without affecting VFs that are already in use. The
+> hardware supports a limited pool of MSI-X vectors that can be assigned to
+> the PF or to individual VFs.  This is device-specific behavior that
+> requires support in the PF driver.
+> 
+> Add a read-only "sriov_vf_total_msix" sysfs file for the PF and a writable
+> "sriov_vf_msix_count" file for each VF. Management software may use these
+> to learn how many MSI-X vectors are available and to dynamically assign
+> them to VFs before the VFs are passed through to a VM.
+> 
+> If the PF driver implements the ->sriov_get_vf_total_msix() callback,
+> "sriov_vf_total_msix" contains the total number of MSI-X vectors available
+> for distribution among VFs.
+> 
+> If no driver is bound to the VF, writing "N" to "sriov_vf_msix_count" uses
+> the PF driver ->sriov_set_msix_vec_count() callback to assign "N" MSI-X
+> vectors to the VF.  When a VF driver subsequently reads the MSI-X Message
+> Control register, it will see the new Table Size "N".
+> 
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  Documentation/ABI/testing/sysfs-bus-pci |  29 +++++++
+>  drivers/pci/iov.c                       | 102 ++++++++++++++++++++++--
+>  drivers/pci/pci-sysfs.c                 |   3 +-
+>  drivers/pci/pci.h                       |   3 +-
+>  include/linux/pci.h                     |   8 ++
+>  5 files changed, 137 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
+> index 25c9c39770c6..ebabd0d2ae88 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-pci
+> +++ b/Documentation/ABI/testing/sysfs-bus-pci
+> @@ -375,3 +375,32 @@ Description:
+>  		The value comes from the PCI kernel device state and can be one
+>  		of: "unknown", "error", "D0", D1", "D2", "D3hot", "D3cold".
+>  		The file is read only.
+> +
+> +What:		/sys/bus/pci/devices/.../sriov_vf_total_msix
+> +Date:		January 2021
+> +Contact:	Leon Romanovsky <leonro@nvidia.com>
+> +Description:
+> +		This file is associated with a SR-IOV PF.  It contains the
+> +		total number of MSI-X vectors available for assignment to
+> +		all VFs associated with PF.  It will zero if the device
 
-These new fields declare the number of MSI-X vectors that is possible to
-allocate on the VF through PF configuration.
+"The value will be zero if the device..."
 
-Value must be in range defined by min_dynamic_vf_msix_table_size and
-max_dynamic_vf_msix_table_size.
+And definition of "VF" and PF" are where in this file?
 
-The driver should continue to query its MSI-X table through PCI
-configuration header.
+Otherwise looks semi-sane to me, thanks.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- include/linux/mlx5/mlx5_ifc.h | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 60b97556ee14..4215bb6a6b52 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1685,7 +1685,16 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8	   reserved_at_6e0[0x10];
- 	u8	   sf_base_id[0x10];
-
--	u8	   reserved_at_700[0x80];
-+	u8	   reserved_at_700[0x8];
-+	u8	   num_total_dynamic_vf_msix[0x18];
-+	u8	   reserved_at_720[0x14];
-+	u8	   dynamic_msix_table_size[0xc];
-+	u8	   reserved_at_740[0xc];
-+	u8	   min_dynamic_vf_msix_table_size[0x4];
-+	u8	   reserved_at_750[0x4];
-+	u8	   max_dynamic_vf_msix_table_size[0xc];
-+
-+	u8	   reserved_at_760[0x20];
- 	u8	   vhca_tunnel_commands[0x40];
- 	u8	   reserved_at_7c0[0x40];
- };
---
-2.29.2
-
+greg k-h
