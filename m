@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FE27C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53C67C433DB
 	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:14:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA7EE64F2B
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:14:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1747C64F2C
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:14:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1579761AbhCBRKj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Mar 2021 12:10:39 -0500
-Received: from szxga04-in.huawei.com ([45.249.212.190]:12667 "EHLO
+        id S1579831AbhCBRKq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Mar 2021 12:10:46 -0500
+Received: from szxga04-in.huawei.com ([45.249.212.190]:12666 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343986AbhCBMyG (ORCPT
+        with ESMTP id S1344556AbhCBMyG (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Mar 2021 07:54:06 -0500
 Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DqcRt35ZKzlRyX;
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4DqcRt2Vw6zlRtL;
         Tue,  2 Mar 2021 20:50:34 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
@@ -29,9 +29,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
         <linuxarm@openeuler.org>
-Subject: [PATCH rdma-core 3/5] libhns: Support ibv_create_srq_ex
-Date:   Tue, 2 Mar 2021 20:50:22 +0800
-Message-ID: <1614689424-27154-4-git-send-email-liweihang@huawei.com>
+Subject: [PATCH rdma-core 5/5] libhns: Add support for XRC for HIP09
+Date:   Tue, 2 Mar 2021 20:50:24 +0800
+Message-ID: <1614689424-27154-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1614689424-27154-1-git-send-email-liweihang@huawei.com>
 References: <1614689424-27154-1-git-send-email-liweihang@huawei.com>
@@ -45,435 +45,489 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Implement the ibv_create_srq_ex verbs to support for XRC and more
-features in the future.
+The HIP09 supports XRC transport service, it greatly saves the number of
+QPs required to connect all processes in a large cluster.
 
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- providers/hns/hns_roce_u.c       |  23 +++--
- providers/hns/hns_roce_u.h       |  21 +++-
- providers/hns/hns_roce_u_abi.h   |   3 +
- providers/hns/hns_roce_u_verbs.c | 212 +++++++++++++++++++++++++++++++--------
- 4 files changed, 208 insertions(+), 51 deletions(-)
+ providers/hns/hns_roce_u.c       |   4 ++
+ providers/hns/hns_roce_u.h       |  10 ++++
+ providers/hns/hns_roce_u_hw_v2.c |  99 ++++++++++++++++++++++++----------
+ providers/hns/hns_roce_u_hw_v2.h |   1 +
+ providers/hns/hns_roce_u_verbs.c | 114 +++++++++++++++++++++++++++++++++++----
+ 5 files changed, 190 insertions(+), 38 deletions(-)
 
 diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index 6def926..d103808b 100644
+index d103808b..ef8b14a 100644
 --- a/providers/hns/hns_roce_u.c
 +++ b/providers/hns/hns_roce_u.c
-@@ -81,6 +81,7 @@ static const struct verbs_context_ops hns_common_ops = {
- 	.reg_mr = hns_roce_u_reg_mr,
- 	.rereg_mr = hns_roce_u_rereg_mr,
- 	.create_srq = hns_roce_u_create_srq,
-+	.create_srq_ex = hns_roce_u_create_srq_ex,
- 	.modify_srq = hns_roce_u_modify_srq,
- 	.query_srq = hns_roce_u_query_srq,
- 	.destroy_srq = hns_roce_u_destroy_srq,
-@@ -110,21 +111,29 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 				&resp.ibv_resp, sizeof(resp)))
- 		goto err_free;
- 
-+	if (!resp.cqe_size)
-+		context->cqe_size = HNS_ROCE_CQE_SIZE;
-+	else if (resp.cqe_size <= HNS_ROCE_V3_CQE_SIZE)
-+		context->cqe_size = resp.cqe_size;
-+	else
-+		context->cqe_size = HNS_ROCE_V3_CQE_SIZE;
-+
- 	context->num_qps = resp.qp_tab_size;
-+	context->num_srqs = resp.srq_tab_size;
-+
- 	context->qp_table_shift = ffs(context->num_qps) - 1 -
- 				  HNS_ROCE_QP_TABLE_BITS;
- 	context->qp_table_mask = (1 << context->qp_table_shift) - 1;
--
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	for (i = 0; i < HNS_ROCE_QP_TABLE_SIZE; ++i)
- 		context->qp_table[i].refcnt = 0;
- 
--	if (!resp.cqe_size)
--		context->cqe_size = HNS_ROCE_CQE_SIZE;
--	else if (resp.cqe_size <= HNS_ROCE_V3_CQE_SIZE)
--		context->cqe_size = resp.cqe_size;
--	else
--		context->cqe_size = HNS_ROCE_V3_CQE_SIZE;
-+	context->srq_table_shift = ffs(context->num_srqs) - 1 -
-+				       HNS_ROCE_SRQ_TABLE_BITS;
-+	context->srq_table_mask = (1 << context->srq_table_shift) - 1;
-+	pthread_mutex_init(&context->srq_table_mutex, NULL);
-+	for (i = 0; i < HNS_ROCE_SRQ_TABLE_SIZE; ++i)
-+		context->srq_table[i].refcnt = 0;
- 
- 	if (hns_roce_u_query_device(&context->ibv_ctx.context, NULL,
- 				    container_of(&dev_attrs,
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 97e5d54..de6d0f3 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -105,6 +105,9 @@ enum {
- 	HNS_ROCE_QP_TABLE_SIZE		= 1 << HNS_ROCE_QP_TABLE_BITS,
+@@ -88,6 +88,10 @@ static const struct verbs_context_ops hns_common_ops = {
+ 	.free_context = hns_roce_free_context,
+ 	.create_ah = hns_roce_u_create_ah,
+ 	.destroy_ah = hns_roce_u_destroy_ah,
++	.open_xrcd = hns_roce_u_open_xrcd,
++	.close_xrcd = hns_roce_u_close_xrcd,
++	.open_qp = hns_roce_u_open_qp,
++	.get_srq_num = hns_roce_u_get_srq_num,
  };
  
-+#define HNS_ROCE_SRQ_TABLE_BITS 8
-+#define HNS_ROCE_SRQ_TABLE_SIZE BIT(HNS_ROCE_SRQ_TABLE_BITS)
-+
- /* operation type list */
- enum {
- 	/* rq&srq operation */
-@@ -153,13 +156,20 @@ struct hns_roce_context {
- 		struct hns_roce_qp	**table;
- 		int			refcnt;
- 	} qp_table[HNS_ROCE_QP_TABLE_SIZE];
--
- 	pthread_mutex_t			qp_table_mutex;
--
- 	int				num_qps;
- 	int				qp_table_shift;
- 	int				qp_table_mask;
+ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index de6d0f3..1e6e638 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -285,6 +285,7 @@ struct hns_roce_qp {
  
-+	struct {
-+		struct hns_roce_srq	**table;
-+		int			refcnt;
-+	} srq_table[HNS_ROCE_SRQ_TABLE_SIZE];
-+	pthread_mutex_t			srq_table_mutex;
-+	int				num_srqs;
-+	int				srq_table_shift;
-+	int				srq_table_mask;
-+
- 	struct hns_roce_db_page		*db_list[HNS_ROCE_DB_TYPE_NUM];
- 	pthread_mutex_t			db_list_mutex;
+ 	struct hns_roce_rinl_buf	rq_rinl_buf;
+ 	unsigned long			flags;
++	int				refcnt; /* specially used for XRC */
+ };
  
-@@ -376,10 +386,15 @@ void hns_roce_u_cq_event(struct ibv_cq *cq);
- 
- struct ibv_srq *hns_roce_u_create_srq(struct ibv_pd *pd,
+ struct hns_roce_av {
+@@ -388,6 +389,7 @@ struct ibv_srq *hns_roce_u_create_srq(struct ibv_pd *pd,
  				      struct ibv_srq_init_attr *srq_init_attr);
-+struct ibv_srq *hns_roce_u_create_srq_ex(struct ibv_context *context,
-+					 struct ibv_srq_init_attr_ex *attr);
+ struct ibv_srq *hns_roce_u_create_srq_ex(struct ibv_context *context,
+ 					 struct ibv_srq_init_attr_ex *attr);
++int hns_roce_u_get_srq_num(struct ibv_srq *ibv_srq, uint32_t *srq_num);
  int hns_roce_u_modify_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr,
  			  int srq_attr_mask);
  int hns_roce_u_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr);
--int hns_roce_u_destroy_srq(struct ibv_srq *srq);
-+struct hns_roce_srq *hns_roce_find_srq(struct hns_roce_context *ctx,
-+				       uint32_t srqn);
-+int hns_roce_u_destroy_srq(struct ibv_srq *ibv_srq);
-+
- struct ibv_qp *hns_roce_u_create_qp(struct ibv_pd *pd,
- 				    struct ibv_qp_init_attr *attr);
- struct ibv_qp *
-diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
-index 4341207..e56f9d3 100644
---- a/providers/hns/hns_roce_u_abi.h
-+++ b/providers/hns/hns_roce_u_abi.h
-@@ -53,4 +53,7 @@ DECLARE_DRV_CMD(hns_roce_create_qp_ex, IB_USER_VERBS_EX_CMD_CREATE_QP,
- DECLARE_DRV_CMD(hns_roce_create_srq, IB_USER_VERBS_CMD_CREATE_SRQ,
- 		hns_roce_ib_create_srq, hns_roce_ib_create_srq_resp);
+@@ -401,6 +403,9 @@ struct ibv_qp *
+ hns_roce_u_create_qp_ex(struct ibv_context *context,
+ 			struct ibv_qp_init_attr_ex *qp_init_attr_ex);
  
-+DECLARE_DRV_CMD(hns_roce_create_srq_ex, IB_USER_VERBS_CMD_CREATE_XSRQ,
-+		hns_roce_ib_create_srq, hns_roce_ib_create_srq_resp);
++struct ibv_qp *hns_roce_u_open_qp(struct ibv_context *context,
++				  struct ibv_qp_open_attr *attr);
 +
- #endif /* _HNS_ROCE_U_ABI_H */
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index 3329812..e51b9d5 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -391,6 +391,46 @@ int hns_roce_u_destroy_cq(struct ibv_cq *cq)
- 	return ret;
+ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 			int attr_mask, struct ibv_qp_init_attr *init_attr);
+ 
+@@ -408,6 +413,11 @@ struct ibv_ah *hns_roce_u_create_ah(struct ibv_pd *pd,
+ 				    struct ibv_ah_attr *attr);
+ int hns_roce_u_destroy_ah(struct ibv_ah *ah);
+ 
++struct ibv_xrcd *
++hns_roce_u_open_xrcd(struct ibv_context *context,
++		     struct ibv_xrcd_init_attr *xrcd_init_attr);
++int hns_roce_u_close_xrcd(struct ibv_xrcd *ibv_xrcd);
++
+ int hns_roce_alloc_buf(struct hns_roce_buf *buf, unsigned int size,
+ 		       int page_size);
+ void hns_roce_free_buf(struct hns_roce_buf *buf);
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 4d990dd..bbb5262 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -206,6 +206,9 @@ static void hns_roce_v2_handle_error_cqe(struct hns_roce_v2_cqe *cqe,
+ 	case HNS_ROCE_V2_CQE_REMOTE_ABORTED_ERR:
+ 		wc->status = IBV_WC_REM_ABORT_ERR;
+ 		break;
++	case HNS_ROCE_V2_CQE_XRC_VIOLATION_ERR:
++		wc->status = IBV_WC_REM_INV_RD_REQ_ERR;
++		break;
+ 	default:
+ 		wc->status = IBV_WC_GENERAL_ERR;
+ 		break;
+@@ -346,15 +349,17 @@ static struct hns_roce_qp *hns_roce_v2_find_qp(struct hns_roce_context *ctx,
+ 		return NULL;
  }
  
-+static int hns_roce_store_srq(struct hns_roce_context *ctx,
-+			      struct hns_roce_srq *srq)
-+{
-+	int tind = (srq->srqn & (ctx->num_srqs - 1)) >> ctx->srq_table_shift;
+-static void hns_roce_v2_clear_qp(struct hns_roce_context *ctx, uint32_t qpn)
++static void hns_roce_v2_clear_qp(struct hns_roce_context *ctx,
++				 struct hns_roce_qp *qp)
+ {
+-	int tind = (qpn & (ctx->num_qps - 1)) >> ctx->qp_table_shift;
++	uint32_t qpn = qp->verbs_qp.qp.qp_num;
++	uint32_t tind = (qpn & (ctx->num_qps - 1)) >> ctx->qp_table_shift;
+ 
+ 	pthread_mutex_lock(&ctx->qp_table_mutex);
+ 
+ 	if (!--ctx->qp_table[tind].refcnt)
+ 		free(ctx->qp_table[tind].table);
+-	else
++	else if (!--qp->refcnt)
+ 		ctx->qp_table[tind].table[qpn & ctx->qp_table_mask] = NULL;
+ 
+ 	pthread_mutex_unlock(&ctx->qp_table_mutex);
+@@ -510,13 +515,15 @@ static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
+ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+ 				struct hns_roce_qp **cur_qp, struct ibv_wc *wc)
+ {
+-	uint32_t qpn;
+-	int is_send;
+-	uint16_t wqe_ctr;
++	struct hns_roce_context *ctx = to_hr_ctx(cq->ibv_cq.context);
++	struct hns_roce_srq *srq = NULL;
+ 	struct hns_roce_wq *wq = NULL;
+ 	struct hns_roce_v2_cqe *cqe;
+-	struct hns_roce_srq *srq;
++	uint16_t wqe_ctr;
+ 	uint32_t opcode;
++	uint32_t srqn;
++	uint32_t qpn;
++	int is_send;
+ 	int ret;
+ 
+ 	/* According to CI, find the relative cqe */
+@@ -537,15 +544,23 @@ static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
+ 
+ 	/* if qp is zero, it will not get the correct qpn */
+ 	if (!*cur_qp || qpn != (*cur_qp)->verbs_qp.qp.qp_num) {
+-		*cur_qp = hns_roce_v2_find_qp(to_hr_ctx(cq->ibv_cq.context),
+-					      qpn);
++		*cur_qp = hns_roce_v2_find_qp(ctx, qpn);
+ 		if (!*cur_qp)
+ 			return V2_CQ_POLL_ERR;
+ 	}
+ 	wc->qp_num = qpn;
+ 
+-	srq = (*cur_qp)->verbs_qp.qp.srq ?
+-				to_hr_srq((*cur_qp)->verbs_qp.qp.srq) : NULL;
++	if ((*cur_qp)->verbs_qp.qp.qp_type == IBV_QPT_XRC_RECV) {
++		srqn = roce_get_field(cqe->byte_12, CQE_BYTE_12_XRC_SRQN_M,
++				      CQE_BYTE_12_XRC_SRQN_S);
 +
-+	if (!ctx->srq_table[tind].refcnt) {
-+		ctx->srq_table[tind].table =
-+					calloc(ctx->srq_table_mask + 1,
-+					       sizeof(struct hns_roce_srq *));
-+		if (!ctx->srq_table[tind].table)
-+			return -ENOMEM;
++		srq = hns_roce_find_srq(ctx, srqn);
++		if (!srq)
++			return V2_CQ_POLL_ERR;
++	} else if ((*cur_qp)->verbs_qp.qp.srq) {
++		srq = to_hr_srq((*cur_qp)->verbs_qp.qp.srq);
 +	}
 +
-+	++ctx->srq_table[tind].refcnt;
-+	ctx->srq_table[tind].table[srq->srqn & ctx->srq_table_mask] = srq;
-+
-+	return 0;
-+}
-+
-+struct hns_roce_srq *hns_roce_find_srq(struct hns_roce_context *ctx,
-+				       uint32_t srqn)
-+{
-+	int tind = (srqn & (ctx->num_srqs - 1)) >> ctx->srq_table_shift;
-+
-+	if (ctx->srq_table[tind].refcnt)
-+		return ctx->srq_table[tind].table[srqn & ctx->srq_table_mask];
-+	else
-+		return NULL;
-+}
-+
-+static void hns_roce_clear_srq(struct hns_roce_context *ctx, uint32_t srqn)
-+{
-+	int tind = (srqn & (ctx->num_srqs - 1)) >> ctx->srq_table_shift;
-+
-+	if (!--ctx->srq_table[tind].refcnt)
-+		free(ctx->srq_table[tind].table);
-+	else
-+		ctx->srq_table[tind].table[srqn & ctx->srq_table_mask] = NULL;
-+}
-+
- static int hns_roce_create_idx_que(struct hns_roce_srq *srq)
- {
- 	struct hns_roce_idx_que	*idx_que = &srq->idx_que;
-@@ -442,18 +482,71 @@ static int hns_roce_alloc_srq_buf(struct hns_roce_srq *srq)
+ 	if (is_send) {
+ 		wq = &(*cur_qp)->sq;
+ 		/*
+@@ -683,6 +698,21 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
  	return 0;
  }
  
--struct ibv_srq *hns_roce_u_create_srq(struct ibv_pd *pd,
--				      struct ibv_srq_init_attr *init_attr)
-+static int hns_roce_verify_srq(struct hns_roce_context *context,
-+			       struct ibv_srq_init_attr_ex *init_attr)
++static int check_qp_send(struct ibv_qp *qp, struct hns_roce_context *ctx)
 +{
-+	if (init_attr->srq_type != IBV_SRQT_BASIC &&
-+	    init_attr->srq_type != IBV_SRQT_XRC)
++	if (unlikely(qp->qp_type != IBV_QPT_RC &&
++		     qp->qp_type != IBV_QPT_UD) &&
++		     qp->qp_type != IBV_QPT_XRC_SEND)
 +		return -EINVAL;
 +
-+	if (!init_attr->attr.max_wr || !init_attr->attr.max_sge ||
-+	    init_attr->attr.max_wr > context->max_srq_wr ||
-+	    init_attr->attr.max_sge > context->max_srq_sge)
++	if (unlikely(qp->state == IBV_QPS_RESET ||
++		     qp->state == IBV_QPS_INIT ||
++		     qp->state == IBV_QPS_RTR))
 +		return -EINVAL;
 +
 +	return 0;
 +}
 +
-+static int exec_srq_create_cmd(struct ibv_context *context,
-+			       struct hns_roce_srq *srq,
-+			       struct ibv_srq_init_attr_ex *init_attr)
-+{
-+	struct hns_roce_create_srq_resp resp = {};
-+	struct hns_roce_create_srq_ex cmd_ex = {};
-+	struct hns_roce_ib_create_srq *cmd_drv;
-+	struct hns_roce_create_srq cmd = {};
-+	bool is_basic_srq;
-+	int ret;
-+
-+	is_basic_srq = (init_attr->srq_type == IBV_SRQT_BASIC) ||
-+		       (!(init_attr->comp_mask & IBV_SRQ_INIT_ATTR_TYPE));
-+
-+	if (is_basic_srq)
-+		cmd_drv = &cmd.drv_payload;
-+	else
-+		cmd_drv = &cmd_ex.drv_payload;
-+
-+	cmd_drv->buf_addr = (uintptr_t)srq->buf.buf;
-+	cmd_drv->que_addr = (uintptr_t)srq->idx_que.buf.buf;
-+	cmd_drv->db_addr = (uintptr_t)srq->db;
-+
-+	if (is_basic_srq)
-+		ret = ibv_cmd_create_srq(init_attr->pd, &srq->verbs_srq.srq,
-+					 (struct ibv_srq_init_attr *)init_attr,
-+					 &cmd.ibv_cmd, sizeof(cmd),
-+					 &resp.ibv_resp, sizeof(resp));
-+	else
-+		ret = ibv_cmd_create_srq_ex(context, &srq->verbs_srq, init_attr,
-+					    &cmd_ex.ibv_cmd, sizeof(cmd_ex),
-+					    &resp.ibv_resp, sizeof(resp));
-+
-+	if (ret)
-+		return ret;
-+
-+	srq->srqn = resp.srqn;
-+
-+	return 0;
-+}
-+
-+static struct ibv_srq *create_srq(struct ibv_context *context,
-+				  struct ibv_srq_init_attr_ex *init_attr)
- {
--	struct hns_roce_context *ctx = to_hr_ctx(pd->context);
--	struct hns_roce_create_srq_resp resp;
--	struct hns_roce_create_srq cmd;
-+	struct hns_roce_context *ctx = to_hr_ctx(context);
-+	struct ibv_srq_attr *attr = &init_attr->attr;
- 	struct hns_roce_srq *srq;
+ static void set_sge(struct hns_roce_v2_wqe_data_seg *dseg,
+ 		    struct hns_roce_qp *qp, struct ibv_send_wr *wr,
+ 		    struct hns_roce_sge_info *sge_info)
+@@ -913,8 +943,6 @@ static int set_ud_wqe(void *wqe, struct hns_roce_qp *qp,
+ 	struct hns_roce_ud_sq_wqe *ud_sq_wqe = wqe;
+ 	int ret = 0;
+ 
+-	memset(ud_sq_wqe, 0, sizeof(*ud_sq_wqe));
+-
+ 	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_CQE_S,
+ 		     !!(wr->send_flags & IBV_SEND_SIGNALED));
+ 	roce_set_bit(ud_sq_wqe->rsv_opcode, UD_SQ_WQE_SE_S,
+@@ -1071,8 +1099,6 @@ static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
+ 	struct hns_roce_v2_wqe_data_seg *dseg;
  	int ret;
  
--	if (!init_attr->attr.max_wr || !init_attr->attr.max_sge ||
--	    init_attr->attr.max_wr > ctx->max_srq_wr ||
--	    init_attr->attr.max_sge > ctx->max_srq_sge)
-+	if (hns_roce_verify_srq(ctx, init_attr))
- 		return NULL;
- 
- 	srq = calloc(1, sizeof(*srq));
-@@ -461,48 +554,52 @@ struct ibv_srq *hns_roce_u_create_srq(struct ibv_pd *pd,
- 		return NULL;
- 
- 	if (pthread_spin_init(&srq->lock, PTHREAD_PROCESS_PRIVATE))
--		goto out;
-+		goto err_free_srq;
- 
--	if (to_hr_dev(pd->context->device)->hw_version == HNS_ROCE_HW_VER2)
-+	if (to_hr_dev(context->device)->hw_version == HNS_ROCE_HW_VER2)
- 		srq->rsv_sge = 1;
- 
--	srq->wqe_cnt = roundup_pow_of_two(init_attr->attr.max_wr + 1);
--	srq->max_gs = roundup_pow_of_two(init_attr->attr.max_sge + srq->rsv_sge);
--	init_attr->attr.max_sge = srq->max_gs;
-+	srq->wqe_cnt = roundup_pow_of_two(attr->max_wr + 1);
-+	srq->max_gs = roundup_pow_of_two(attr->max_sge + srq->rsv_sge);
-+	attr->max_sge = srq->max_gs;
- 
- 	ret = hns_roce_create_idx_que(srq);
+-	memset(rc_sq_wqe, 0, sizeof(struct hns_roce_rc_sq_wqe));
+-
+ 	ret = check_rc_opcode(rc_sq_wqe, wr);
  	if (ret)
--		goto out;
-+		goto err_free_srq;
+ 		return ret;
+@@ -1137,16 +1163,15 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 	struct hns_roce_context *ctx = to_hr_ctx(ibvqp->context);
+ 	struct hns_roce_qp *qp = to_hr_qp(ibvqp);
+ 	struct hns_roce_sge_info sge_info = {};
++	struct hns_roce_rc_sq_wqe *wqe;
+ 	unsigned int wqe_idx, nreq;
+ 	struct ibv_qp_attr attr;
+ 	int ret = 0;
+-	void *wqe;
  
- 	ret = hns_roce_alloc_srq_buf(srq);
- 	if (ret)
- 		goto err_idx_que;
+-	/* check that state is OK to post send */
+-	if (ibvqp->state == IBV_QPS_RESET || ibvqp->state == IBV_QPS_INIT ||
+-	    ibvqp->state == IBV_QPS_RTR) {
++	ret = check_qp_send(ibvqp, ctx);
++	if (unlikely(ret)) {
+ 		*bad_wr = wr;
+-		return EINVAL;
++		return ret;
+ 	}
  
--	srq->db = hns_roce_alloc_db(to_hr_ctx(pd->context),
--				    HNS_ROCE_QP_TYPE_DB);
-+	srq->db = hns_roce_alloc_db(ctx, HNS_ROCE_QP_TYPE_DB);
- 	if (!srq->db)
- 		goto err_srq_buf;
+ 	pthread_spin_lock(&qp->sq.lock);
+@@ -1172,6 +1197,12 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		qp->sq.wrid[wqe_idx] = wr->wr_id;
  
- 	*(srq->db) = 0;
--	cmd.buf_addr = (uintptr_t)srq->buf.buf;
--	cmd.que_addr = (uintptr_t)srq->idx_que.buf.buf;
--	cmd.db_addr = (uintptr_t)srq->db;
- 
--	ret = ibv_cmd_create_srq(pd, &srq->verbs_srq.srq, init_attr,
--				&cmd.ibv_cmd, sizeof(cmd), &resp.ibv_resp,
--				sizeof(resp));
-+	pthread_mutex_lock(&ctx->srq_table_mutex);
-+
-+	ret = exec_srq_create_cmd(context, srq, init_attr);
- 	if (ret)
- 		goto err_srq_db;
- 
--	srq->srqn = resp.srqn;
--	srq->max_gs = init_attr->attr.max_sge;
--	init_attr->attr.max_sge =
--		min(init_attr->attr.max_sge - srq->rsv_sge, ctx->max_srq_sge);
-+	ret = hns_roce_store_srq(ctx, srq);
-+	if (ret)
-+		goto err_destroy_srq;
-+
-+	pthread_mutex_unlock(&ctx->srq_table_mutex);
-+
-+	srq->max_gs = attr->max_sge;
-+	attr->max_sge = min(attr->max_sge - srq->rsv_sge, ctx->max_srq_sge);
- 
- 	return &srq->verbs_srq.srq;
- 
-+err_destroy_srq:
-+	ibv_cmd_destroy_srq(&srq->verbs_srq.srq);
-+
- err_srq_db:
--	hns_roce_free_db(to_hr_ctx(pd->context), srq->db, HNS_ROCE_QP_TYPE_DB);
-+	pthread_mutex_unlock(&ctx->srq_table_mutex);
-+	hns_roce_free_db(ctx, srq->db, HNS_ROCE_QP_TYPE_DB);
- 
- err_srq_buf:
- 	free(srq->wrid);
-@@ -511,11 +608,35 @@ err_srq_buf:
- err_idx_que:
- 	free(srq->idx_que.bitmap);
- 	hns_roce_free_buf(&srq->idx_que.buf);
--out:
-+
-+err_free_srq:
- 	free(srq);
-+
- 	return NULL;
+ 		switch (ibvqp->qp_type) {
++		case IBV_QPT_XRC_SEND:
++			roce_set_field(wqe->byte_16,
++				       RC_SQ_WQE_BYTE_16_XRC_SRQN_M,
++				       RC_SQ_WQE_BYTE_16_XRC_SRQN_S,
++				       wr->qp_type.xrc.remote_srqn);
++			SWITCH_FALLTHROUGH;
+ 		case IBV_QPT_RC:
+ 			ret = set_rc_wqe(wqe, qp, wr, nreq, &sge_info);
+ 			break;
+@@ -1212,6 +1243,18 @@ out:
+ 	return ret;
  }
  
-+struct ibv_srq *hns_roce_u_create_srq(struct ibv_pd *pd,
-+				      struct ibv_srq_init_attr *attr)
++static int check_qp_recv(struct ibv_qp *qp, struct hns_roce_context *ctx)
 +{
-+	struct ibv_srq_init_attr_ex attrx = {};
-+	struct ibv_srq *srq;
++	if (unlikely(qp->qp_type != IBV_QPT_RC &&
++		     qp->qp_type != IBV_QPT_UD))
++		return -EINVAL;
 +
-+	memcpy(&attrx, attr, sizeof(*attr));
-+	attrx.pd = pd;
++	if (qp->state == IBV_QPS_RESET || qp->srq)
++		return -EINVAL;
 +
-+	srq = create_srq(pd->context, &attrx);
-+	if (srq)
-+		memcpy(attr, &attrx, sizeof(*attr));
-+
-+	return srq;
++	return 0;
 +}
 +
-+struct ibv_srq *hns_roce_u_create_srq_ex(struct ibv_context *context,
-+					 struct ibv_srq_init_attr_ex *attr)
+ static void fill_rq_wqe(struct hns_roce_qp *qp, struct ibv_recv_wr *wr,
+ 			unsigned int wqe_idx)
+ {
+@@ -1252,10 +1295,10 @@ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
+ 	unsigned int max_sge;
+ 	int ret = 0;
+ 
+-	/* check that state is OK to post receive */
+-	if (ibvqp->state == IBV_QPS_RESET) {
++	ret = check_qp_recv(ibvqp, ctx);
++	if (unlikely(ret)) {
+ 		*bad_wr = wr;
+-		return EINVAL;
++		return ret;
+ 	}
+ 
+ 	pthread_spin_lock(&qp->rq.lock);
+@@ -1406,9 +1449,11 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		qp->state = attr->qp_state;
+ 
+ 	if ((attr_mask & IBV_QP_STATE) && attr->qp_state == IBV_QPS_RESET) {
+-		hns_roce_v2_cq_clean(to_hr_cq(qp->recv_cq), qp->qp_num,
+-				     qp->srq ? to_hr_srq(qp->srq) : NULL);
+-		if (qp->send_cq != qp->recv_cq)
++		if (qp->recv_cq)
++			hns_roce_v2_cq_clean(to_hr_cq(qp->recv_cq), qp->qp_num,
++					     qp->srq ? to_hr_srq(qp->srq) :
++					     NULL);
++		if (qp->send_cq && qp->send_cq != qp->recv_cq)
+ 			hns_roce_v2_cq_clean(to_hr_cq(qp->send_cq), qp->qp_num,
+ 					     NULL);
+ 
+@@ -1474,7 +1519,7 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
+ 	if (ret)
+ 		return ret;
+ 
+-	hns_roce_v2_clear_qp(ctx, ibqp->qp_num);
++	hns_roce_v2_clear_qp(ctx, qp);
+ 
+ 	hns_roce_lock_cqs(ibqp);
+ 
+diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
+index f5e6402..af67b31 100644
+--- a/providers/hns/hns_roce_u_hw_v2.h
++++ b/providers/hns/hns_roce_u_hw_v2.h
+@@ -112,6 +112,7 @@ enum {
+ 	HNS_ROCE_V2_CQE_TRANSPORT_RETRY_EXC_ERR		= 0x15,
+ 	HNS_ROCE_V2_CQE_RNR_RETRY_EXC_ERR		= 0x16,
+ 	HNS_ROCE_V2_CQE_REMOTE_ABORTED_ERR		= 0x22,
++	HNS_ROCE_V2_CQE_XRC_VIOLATION_ERR		= 0x24,
+ };
+ 
+ enum {
+diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
+index e51b9d5..fc3dd13 100644
+--- a/providers/hns/hns_roce_u_verbs.c
++++ b/providers/hns/hns_roce_u_verbs.c
+@@ -120,6 +120,41 @@ int hns_roce_u_free_pd(struct ibv_pd *pd)
+ 	return ret;
+ }
+ 
++struct ibv_xrcd *hns_roce_u_open_xrcd(struct ibv_context *context,
++				      struct ibv_xrcd_init_attr *xrcd_init_attr)
 +{
-+	return create_srq(context, attr);
++	struct ib_uverbs_open_xrcd_resp resp = {};
++	struct ibv_open_xrcd cmd = {};
++	struct verbs_xrcd *xrcd;
++	int ret;
++
++	xrcd = calloc(1, sizeof(*xrcd));
++	if (!xrcd)
++		return NULL;
++
++	ret = ibv_cmd_open_xrcd(context, xrcd, sizeof(*xrcd), xrcd_init_attr,
++				&cmd, sizeof(cmd), &resp, sizeof(resp));
++	if (ret) {
++		free(xrcd);
++		return NULL;
++	}
++
++	return &xrcd->xrcd;
++}
++
++int hns_roce_u_close_xrcd(struct ibv_xrcd *ibv_xrcd)
++{
++	struct verbs_xrcd *xrcd =
++			container_of(ibv_xrcd, struct verbs_xrcd, xrcd);
++	int ret;
++
++	ret = ibv_cmd_close_xrcd(xrcd);
++	if (!ret)
++		free(xrcd);
++
++	return ret;
++}
++
+ struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 				 uint64_t hca_va, int access)
+ {
+@@ -637,6 +672,13 @@ struct ibv_srq *hns_roce_u_create_srq_ex(struct ibv_context *context,
+ 	return create_srq(context, attr);
+ }
+ 
++int hns_roce_u_get_srq_num(struct ibv_srq *ibv_srq, uint32_t *srq_num)
++{
++	*srq_num = to_hr_srq(ibv_srq)->srqn;
++
++	return 0;
 +}
 +
  int hns_roce_u_modify_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr,
  			  int srq_attr_mask)
  {
-@@ -536,21 +657,30 @@ int hns_roce_u_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *srq_attr)
- 	return ret;
+@@ -686,14 +728,35 @@ int hns_roce_u_destroy_srq(struct ibv_srq *ibv_srq)
  }
  
--int hns_roce_u_destroy_srq(struct ibv_srq *srq)
-+int hns_roce_u_destroy_srq(struct ibv_srq *ibv_srq)
- {
-+	struct hns_roce_context *ctx = to_hr_ctx(ibv_srq->context);
-+	struct hns_roce_srq *srq = to_hr_srq(ibv_srq);
- 	int ret;
+ enum {
+-	CREATE_QP_SUP_COMP_MASK = IBV_QP_INIT_ATTR_PD,
++	CREATE_QP_SUP_COMP_MASK = IBV_QP_INIT_ATTR_PD | IBV_QP_INIT_ATTR_XRCD,
+ };
  
--	ret = ibv_cmd_destroy_srq(srq);
--	if (ret)
-+	pthread_mutex_lock(&ctx->srq_table_mutex);
+-static int check_qp_create_mask(struct ibv_qp_init_attr_ex *attr)
++static int check_qp_create_mask(struct hns_roce_context *ctx,
++				struct ibv_qp_init_attr_ex *attr)
+ {
++	struct hns_roce_device *hr_dev = to_hr_dev(ctx->ibv_ctx.context.device);
 +
-+	ret = ibv_cmd_destroy_srq(ibv_srq);
-+	if (ret) {
-+		pthread_mutex_unlock(&ctx->srq_table_mutex);
- 		return ret;
+ 	if (!check_comp_mask(attr->comp_mask, CREATE_QP_SUP_COMP_MASK))
+ 		return -EOPNOTSUPP;
+ 
++	switch (attr->qp_type) {
++	case IBV_QPT_UD:
++		if (hr_dev->hw_version < HNS_ROCE_HW_VER3)
++			return -EINVAL;
++		SWITCH_FALLTHROUGH;
++	case IBV_QPT_RC:
++	case IBV_QPT_XRC_SEND:
++		if (!(attr->comp_mask & IBV_QP_INIT_ATTR_PD))
++			return -EINVAL;
++		break;
++	case IBV_QPT_XRC_RECV:
++		if (!(attr->comp_mask & IBV_QP_INIT_ATTR_XRCD))
++			return -EINVAL;
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
-+	hns_roce_clear_srq(ctx, srq->srqn);
+ 	return 0;
+ }
  
--	hns_roce_free_db(to_hr_ctx(srq->context), to_hr_srq(srq)->db,
--			 HNS_ROCE_QP_TYPE_DB);
--	hns_roce_free_buf(&to_hr_srq(srq)->buf);
--	free(to_hr_srq(srq)->wrid);
--	hns_roce_free_buf(&to_hr_srq(srq)->idx_que.buf);
--	free(to_hr_srq(srq)->idx_que.bitmap);
--	free(to_hr_srq(srq));
-+	pthread_mutex_unlock(&ctx->srq_table_mutex);
+@@ -704,8 +767,10 @@ static int verify_qp_create_cap(struct hns_roce_context *ctx,
+ 	struct ibv_qp_cap *cap = &attr->cap;
+ 	uint32_t min_wqe_num;
+ 
+-	if (!cap->max_send_wr ||
+-	    cap->max_send_wr > ctx->max_qp_wr ||
++	if (!cap->max_send_wr && attr->qp_type != IBV_QPT_XRC_RECV)
++		return -EINVAL;
 +
-+	hns_roce_free_db(ctx, srq->db, HNS_ROCE_QP_TYPE_DB);
-+	hns_roce_free_buf(&srq->buf);
-+	free(srq->wrid);
-+	hns_roce_free_buf(&srq->idx_que.buf);
-+	free(srq->idx_que.bitmap);
-+	free(srq);
++	if (cap->max_send_wr > ctx->max_qp_wr ||
+ 	    cap->max_recv_wr > ctx->max_qp_wr ||
+ 	    cap->max_send_sge > ctx->max_sge  ||
+ 	    cap->max_recv_sge > ctx->max_sge)
+@@ -725,11 +790,6 @@ static int verify_qp_create_cap(struct hns_roce_context *ctx,
+ 			return -EINVAL;
+ 	}
  
+-	if (!(attr->qp_type == IBV_QPT_RC ||
+-	      (attr->qp_type == IBV_QPT_UD &&
+-	       hr_dev->hw_version >= HNS_ROCE_HW_VER3)))
+-		return -EOPNOTSUPP;
+-
  	return 0;
  }
-@@ -868,9 +998,9 @@ static int qp_alloc_db(struct ibv_qp_init_attr_ex *attr, struct hns_roce_qp *qp,
- 	return 0;
- }
  
--static int hns_roce_store_qp(struct hns_roce_context *ctx, uint32_t qpn,
--			     struct hns_roce_qp *qp)
-+static int hns_roce_store_qp(struct hns_roce_context *ctx, struct hns_roce_qp *qp)
+@@ -738,7 +798,7 @@ static int verify_qp_create_attr(struct hns_roce_context *ctx,
  {
-+	uint32_t qpn = qp->verbs_qp.qp.qp_num;
+ 	int ret;
+ 
+-	ret = check_qp_create_mask(attr);
++	ret = check_qp_create_mask(ctx, attr);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -998,7 +1058,8 @@ static int qp_alloc_db(struct ibv_qp_init_attr_ex *attr, struct hns_roce_qp *qp,
+ 	return 0;
+ }
+ 
+-static int hns_roce_store_qp(struct hns_roce_context *ctx, struct hns_roce_qp *qp)
++static int hns_roce_store_qp(struct hns_roce_context *ctx,
++			     struct hns_roce_qp *qp)
+ {
+ 	uint32_t qpn = qp->verbs_qp.qp.qp_num;
  	uint32_t tind = (qpn & (ctx->num_qps - 1)) >> ctx->qp_table_shift;
+@@ -1013,6 +1074,7 @@ static int hns_roce_store_qp(struct hns_roce_context *ctx, struct hns_roce_qp *q
+ 		}
+ 	}
  
- 	pthread_mutex_lock(&ctx->qp_table_mutex);
-@@ -987,7 +1117,7 @@ static struct ibv_qp *create_qp(struct ibv_context *ibv_ctx,
- 	if (ret)
- 		goto err_cmd;
++	++qp->refcnt;
+ 	++ctx->qp_table[tind].refcnt;
+ 	ctx->qp_table[tind].table[qpn & ctx->qp_table_mask] = qp;
+ 	pthread_mutex_unlock(&ctx->qp_table_mutex);
+@@ -1162,6 +1224,36 @@ struct ibv_qp *hns_roce_u_create_qp_ex(struct ibv_context *context,
+ 	return create_qp(context, attr);
+ }
  
--	ret = hns_roce_store_qp(context, qp->verbs_qp.qp.qp_num, qp);
-+	ret = hns_roce_store_qp(context, qp);
- 	if (ret)
- 		goto err_store;
- 
++struct ibv_qp *hns_roce_u_open_qp(struct ibv_context *context,
++				  struct ibv_qp_open_attr *attr)
++{
++	struct ib_uverbs_create_qp_resp resp;
++	struct ibv_open_qp cmd;
++	struct hns_roce_qp *qp;
++	int ret;
++
++	qp = calloc(1, sizeof(*qp));
++	if (!qp)
++		return NULL;
++
++	ret = ibv_cmd_open_qp(context, &qp->verbs_qp, sizeof(qp->verbs_qp),
++			      attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
++	if (ret)
++		goto err_buf;
++
++	ret = hns_roce_store_qp(to_hr_ctx(context), qp);
++	if (ret)
++		goto err_cmd;
++
++	return &qp->verbs_qp.qp;
++
++err_cmd:
++	ibv_cmd_destroy_qp(&qp->verbs_qp.qp);
++err_buf:
++	free(qp);
++	return NULL;
++}
++
+ int hns_roce_u_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
+ 			int attr_mask, struct ibv_qp_init_attr *init_attr)
+ {
 -- 
 2.8.1
 
