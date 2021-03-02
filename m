@@ -2,96 +2,117 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAAFDC4321A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2F78C43333
 	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C907964F2B
+	by mail.kernel.org (Postfix) with ESMTP id 89FAA64F31
 	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1573865AbhCBRJH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Mar 2021 12:09:07 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35444 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1382894AbhCBK1i (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 2 Mar 2021 05:27:38 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D41D364EE8;
-        Tue,  2 Mar 2021 10:26:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614680817;
-        bh=0NoY57+k+b4pCUG11G42aDY5MHuEkNJa2tzFGLgOR6w=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=A7IzscKjRjsCVQPeH3NajUo5vP6Qk2u+/FD4hPMtZh4Q0lscAxaxXZdchMajR+d3i
-         K01qBhx/UCGiHEqiD29n1LzR7EyxIuBNh14ujmCv6IaZsJtHbO0l6wTBEoI4Qp+Cfn
-         veE0DTRgnG7OjC7X+tbYMClP9zjM9w8pJNduJYLEPi/k67MlrGBt6ytBj6iHHcodid
-         ANZc7En12Ubo5xMX0yOAWJETpF7OXYfLJpNCretrLkBfvBNJpfTZyPCmSFspCrV8T4
-         9ncPOY9n7tjkKEwLHmywtpQFpuEzZYFz4ocSy6M0+rSXgjavEccCA3/sfua6ApnMV4
-         A2bE6Xq6zJQ4g==
-Date:   Tue, 2 Mar 2021 12:26:53 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Lee Jones <lee.jones@linaro.org>
+        id S1351582AbhCBRHl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Mar 2021 12:07:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58378 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1378825AbhCBJcB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Mar 2021 04:32:01 -0500
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B202C061756
+        for <linux-rdma@vger.kernel.org>; Tue,  2 Mar 2021 01:31:13 -0800 (PST)
+Received: by mail-wm1-x333.google.com with SMTP id n4so1924065wmq.3
+        for <linux-rdma@vger.kernel.org>; Tue, 02 Mar 2021 01:31:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=duqySNS7K2RXV+A+no11hnCWpUd9p0lgrM9odevZ3Ko=;
+        b=KybiIHEHfVSg3YhOS1sOgCd+YntEv3ioQBT6wh7u/BT45PH7GWuqA/X23Y58kK9uqv
+         6In53BefBhjfG5PWhh+8ykxb+dkd2NB96/fqfr5bsCa3F56syAj2XgWXR1U+riEuZIBK
+         XLg20tRKCRtnlIkXl+yyesmt3HuYnd2N/SRHFpWm/k7aFk68CONLlnhXXMSa5T9aDpKy
+         5jSWLHwp+w67XhmEtTS0iUnmBst6SHL6vQEfshvOeauqCwfLeWrGRkF2hhdEBd0jC8H4
+         Kz7nfImcRvgBNavSpFSs8Jz63S025faWMvwgTRrcBvTtVfN0h45L9XyCascOfBa479rK
+         LAow==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=duqySNS7K2RXV+A+no11hnCWpUd9p0lgrM9odevZ3Ko=;
+        b=gTDpfwAmT+pFNeSgeDbtbxcpD0TX9Z5Toontj2TC3inuJcXLyDuk1NAT0h+LWp8HBv
+         y3URqgJI+Xizh17JVluTgR4IuNXnfSXMH2Gf+iBxFkwuIGLiFIdO2QbXeD8UeapyeeEy
+         OoYXhznPNSrS6PELL8iIzGxvBBLQAEeBxCRbPd35+La43qJHkE31M3gO1PCBjZ3xNhfs
+         58mG5soHzmM1HNTu4u4salhTna6urhxy4pcycwOnLAb4shsiJhV+XMsEl5g+HMiPchPA
+         CMwTo1Ut9i6L4jpGbrTYKrMuIDZXX+/lbJDpUcb9hpeUGHpaEwYavoIZ/8nlcyUYkL/H
+         T4mQ==
+X-Gm-Message-State: AOAM531cWaAv5WuqkjBKPbZCWRANKy4KfwNPsNJPs7R7rYoC+LIDb2aB
+        DjQW8P9S4mZybVqLp5z6dzbVYA==
+X-Google-Smtp-Source: ABdhPJxIml2cSRQmyrAOS0vFHxqQG8C+95GOs0WSZY9gEUVuk5drR143w/v2r/4g0i7bWLO+GtoX+g==
+X-Received: by 2002:a05:600c:49aa:: with SMTP id h42mr3132506wmp.49.1614677472184;
+        Tue, 02 Mar 2021 01:31:12 -0800 (PST)
+Received: from dell ([91.110.221.155])
+        by smtp.gmail.com with ESMTPSA id a6sm2557430wmm.0.2021.03.02.01.31.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 02 Mar 2021 01:31:11 -0800 (PST)
+Date:   Tue, 2 Mar 2021 09:31:09 +0000
+From:   Lee Jones <lee.jones@linaro.org>
+To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-rc 2/2] RDMA/uverbs: Fix kernel-doc warning of
- _uverbs_alloc
-Message-ID: <YD4S7ZmdphBUOMmB@unreal>
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-rc 1/2] RDMA/mlx5: Set correct kernel-doc identifier
+Message-ID: <20210302093109.GA2690909@dell>
 References: <20210302074214.1054299-1-leon@kernel.org>
- <20210302074214.1054299-3-leon@kernel.org>
- <20210302093223.GB2690909@dell>
+ <20210302074214.1054299-2-leon@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210302093223.GB2690909@dell>
+In-Reply-To: <20210302074214.1054299-2-leon@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Mar 02, 2021 at 09:32:23AM +0000, Lee Jones wrote:
-> On Tue, 02 Mar 2021, Leon Romanovsky wrote:
->
-> > From: Leon Romanovsky <leonro@nvidia.com>
-> >
-> > Fix the following W=1 compilation warning:
-> > drivers/infiniband/core/uverbs_ioctl.c:108: warning: expecting prototype for uverbs_alloc(). Prototype was for _uverbs_alloc() instead
-> >
-> > Fixes: 461bb2eee4e1 ("IB/uverbs: Add a simple allocator to uverbs_attr_bundle")
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> >  drivers/infiniband/core/uverbs_ioctl.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-> > index e47c5949013f..3871049a48f7 100644
-> > --- a/drivers/infiniband/core/uverbs_ioctl.c
-> > +++ b/drivers/infiniband/core/uverbs_ioctl.c
-> > @@ -90,8 +90,8 @@ void uapi_compute_bundle_size(struct uverbs_api_ioctl_method *method_elm,
-> >  	WARN_ON_ONCE(method_elm->bundle_size > PAGE_SIZE);
-> >  }
-> >
-> > -/**
-> > - * uverbs_alloc() - Quickly allocate memory for use with a bundle
-> > +/*
->
-> Why are you also demoting the header?
+On Tue, 02 Mar 2021, Leon Romanovsky wrote:
 
-It is mistake. thanks
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> The W=1 allmodconfig build produces the following warning:
+> drivers/infiniband/hw/mlx5/odp.c:1086: warning: wrong kernel-doc identifier on line:
+>   * Parse a series of data segments for page fault handling.
+> 
+> Fix it by changing /** to be /* as it is written in kernel-doc documentation.
+> 
+> Fixes: 5e769e444d26 ("RDMA/hw/mlx5/odp: Fix formatting and add missing descriptions in 'pagefault_data_segments()'")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/infiniband/hw/mlx5/odp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+> index 374698186662..b103555b1f5d 100644
+> --- a/drivers/infiniband/hw/mlx5/odp.c
+> +++ b/drivers/infiniband/hw/mlx5/odp.c
+> @@ -1082,7 +1082,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+>  	return ret ? ret : npages;
+>  }
+> 
+> -/**
+> +/*
 
->
-> It looks fine to me.  Just correct the function name.
->
-> > + * _uverbs_alloc() - Quickly allocate memory for use with a bundle
-> >   * @bundle: The bundle
-> >   * @size: Number of bytes to allocate
-> >   * @flags: Allocator flags
->
-> --
-> Lee Jones [李琼斯]
-> Senior Technical Lead - Developer Services
-> Linaro.org │ Open source software for Arm SoCs
-> Follow Linaro: Facebook | Twitter | Blog
+This is not the correct fix.
+
+Kernel-doc is asking for the function name.
+
+>   * Parse a series of data segments for page fault handling.
+>   *
+>   * @dev:  Pointer to mlx5 IB device
+
+-- 
+Lee Jones [李琼斯]
+Senior Technical Lead - Developer Services
+Linaro.org │ Open source software for Arm SoCs
+Follow Linaro: Facebook | Twitter | Blog
