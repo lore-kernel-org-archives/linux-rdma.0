@@ -2,77 +2,169 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F93C433E0
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23506C43381
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90E5364F2C
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0622A64F2B
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Mar 2021 17:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233253AbhCBRAO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Mar 2021 12:00:14 -0500
-Received: from mail-pg1-f171.google.com ([209.85.215.171]:46775 "EHLO
-        mail-pg1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233254AbhCBEAM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 1 Mar 2021 23:00:12 -0500
-Received: by mail-pg1-f171.google.com with SMTP id h4so12961610pgf.13;
-        Mon, 01 Mar 2021 19:59:49 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=lIWzDiqoJEqo1Bg1QhNKMK2MRYP+ewMQz28y/3y4MQU=;
-        b=hGEDou1ZolrwXnKNpmVmqOl9pNeY8LRJLCj3O6nKnytzrzW+8ynH8JnTfabm+0AkxL
-         vlGlg1klsMMEF97aeGOXrwLmbUbvcD43Jlcu3NdhFJO+A3KSQf1eWCYdj/OXv1zET4ON
-         C+EfQxenhJh4KVkkCUDyTLCNIh39BlaIsqGsjxgWVbzsc2pDIqPFsR8wcNuR/SvJOcVj
-         ZhW98tFOvhftCSh9MSokP9HQ+J3FUqPeo8xeG3QqG6jl1QNxYjXgoxoC2C/ASEYIOdFh
-         rYVZY+SdntkUloEFRJHVZBrwg2Jc3Zsf3mex+G9BgFB43mDCFt1EZ8s3RbMLL1Y2YpEw
-         liHg==
-X-Gm-Message-State: AOAM531nX/ivzXMRxqMlJDSp0i+OfiUttOnYTvn1tItx+5cgOPdBgkX/
-        CD8KKPYDDWv5Ys1gZ2owP/4OkpolfQI=
-X-Google-Smtp-Source: ABdhPJx1DOmeowL8c3tVPEhpocfYiDjRETOJnhQOgDjvcxCxsnWMnsyh4jpCyy17C9lLERVoGN8axA==
-X-Received: by 2002:a63:5962:: with SMTP id j34mr16269769pgm.331.1614657563407;
-        Mon, 01 Mar 2021 19:59:23 -0800 (PST)
-Received: from ?IPv6:2601:647:4000:d7:c6e8:5c02:da81:d405? ([2601:647:4000:d7:c6e8:5c02:da81:d405])
-        by smtp.gmail.com with ESMTPSA id r202sm20492015pfc.10.2021.03.01.19.59.22
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 01 Mar 2021 19:59:22 -0800 (PST)
-Subject: Re: [bug report]null pointer at scsi_mq_exit_request+0x14 with
- blktests srp/015
-To:     Yi Zhang <yi.zhang@redhat.com>,
-        Chaitanya Kulkarni <Chaitanya.Kulkarni@wdc.com>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        linux-block <linux-block@vger.kernel.org>
-References: <418155251.14154941.1614505772200.JavaMail.zimbra@redhat.com>
- <BYAPR04MB4965FDA9847096508E35FFB9869B9@BYAPR04MB4965.namprd04.prod.outlook.com>
- <8b1fc0cd-196a-ad78-71c6-a7515ffbb4ad@redhat.com>
-From:   Bart Van Assche <bvanassche@acm.org>
-Message-ID: <4d188158-3f18-c801-02ca-97350eb10c1b@acm.org>
-Date:   Mon, 1 Mar 2021 19:59:21 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.1
+        id S1351497AbhCBRDW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Mar 2021 12:03:22 -0500
+Received: from mga04.intel.com ([192.55.52.120]:31259 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1837474AbhCBHzd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 2 Mar 2021 02:55:33 -0500
+IronPort-SDR: GAHaKppuNXiz/7oyFrmzMD/frqwvSeYwdgPvqpieQ126mDvaWt1hks0qD8HIu7DtRliSP4r5vL
+ ieRi0ZSlNzEA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9910"; a="184288361"
+X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
+   d="scan'208";a="184288361"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2021 23:54:48 -0800
+IronPort-SDR: ppLi+OamBr9QrBVP+6FE3Gf1ZP1d7i0642mX39zciJaT59oVdWt3+DLUa9AmHFxwDWtTbkRJZ6
+ s0g6YlPcEAwQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,216,1610438400"; 
+   d="scan'208";a="427391539"
+Received: from lkp-server02.sh.intel.com (HELO 2482ff9f8ac0) ([10.239.97.151])
+  by fmsmga004.fm.intel.com with ESMTP; 01 Mar 2021 23:54:46 -0800
+Received: from kbuild by 2482ff9f8ac0 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1lGzri-0000CS-05; Tue, 02 Mar 2021 07:54:46 +0000
+Date:   Tue, 02 Mar 2021 15:54:26 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ 3a9b3d4536e0c25bd3906a28c1f584177e49dd0f
+Message-ID: <603def32.UNsXOqACkHD8M2n9%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-In-Reply-To: <8b1fc0cd-196a-ad78-71c6-a7515ffbb4ad@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 3/1/21 7:36 AM, Yi Zhang wrote:
-> This issue cannot be reproduced on latest 5.12.0-rc1.
-> 
-> Please ignore this report, sorry for the noise.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
+branch HEAD: 3a9b3d4536e0c25bd3906a28c1f584177e49dd0f  IB/mlx5: Add missing error code
 
-How about rerunning the same test against v5.11.2, the latest v5.11
-stable kernel? I think your report means that v5.11 can be improved...
+elapsed time: 722m
 
-Thanks,
+configs tested: 99
+configs skipped: 2
 
-Bart.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+powerpc                 mpc8540_ads_defconfig
+mips                      bmips_stb_defconfig
+sparc64                          alldefconfig
+arm                         vf610m4_defconfig
+sparc                       sparc32_defconfig
+sh                        sh7757lcr_defconfig
+arm                    vt8500_v6_v7_defconfig
+m68k                        mvme16x_defconfig
+powerpc                    klondike_defconfig
+mips                         tb0226_defconfig
+powerpc                      pmac32_defconfig
+mips                        bcm63xx_defconfig
+arm                        shmobile_defconfig
+parisc                generic-64bit_defconfig
+x86_64                           alldefconfig
+arm                            hisi_defconfig
+powerpc                    gamecube_defconfig
+powerpc                      mgcoge_defconfig
+mips                           jazz_defconfig
+arm                           omap1_defconfig
+arm                         mv78xx0_defconfig
+riscv             nommu_k210_sdcard_defconfig
+powerpc                 mpc837x_mds_defconfig
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+c6x                              allyesconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                               tinyconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a005-20210301
+i386                 randconfig-a003-20210301
+i386                 randconfig-a002-20210301
+i386                 randconfig-a004-20210301
+i386                 randconfig-a006-20210301
+i386                 randconfig-a001-20210301
+x86_64               randconfig-a013-20210301
+x86_64               randconfig-a016-20210301
+x86_64               randconfig-a015-20210301
+x86_64               randconfig-a014-20210301
+x86_64               randconfig-a012-20210301
+x86_64               randconfig-a011-20210301
+i386                 randconfig-a016-20210301
+i386                 randconfig-a012-20210301
+i386                 randconfig-a014-20210301
+i386                 randconfig-a013-20210301
+i386                 randconfig-a011-20210301
+i386                 randconfig-a015-20210301
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+x86_64                           allyesconfig
+x86_64                    rhel-7.6-kselftests
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
+
+clang tested configs:
+x86_64               randconfig-a006-20210301
+x86_64               randconfig-a001-20210301
+x86_64               randconfig-a004-20210301
+x86_64               randconfig-a002-20210301
+x86_64               randconfig-a005-20210301
+x86_64               randconfig-a003-20210301
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
