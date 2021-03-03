@@ -2,128 +2,99 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 814F3C43332
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Mar 2021 23:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E94A7C15500
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5514D64F5C
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 Mar 2021 23:59:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C49FC64EFD
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231295AbhCCX7n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Mar 2021 18:59:43 -0500
-Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:9625 "EHLO
+        id S231356AbhCCX7o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Mar 2021 18:59:44 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:19966 "EHLO
         hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1842503AbhCCIFp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Mar 2021 03:05:45 -0500
+        with ESMTP id S231162AbhCCRXc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Mar 2021 12:23:32 -0500
 Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-        id <B603f40d20003>; Tue, 02 Mar 2021 23:54:58 -0800
-Received: from DRHQMAIL107.nvidia.com (10.27.9.16) by HQMAIL105.nvidia.com
+        id <B603fc5e60000>; Wed, 03 Mar 2021 09:22:46 -0800
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HQMAIL105.nvidia.com
  (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 3 Mar
- 2021 07:54:58 +0000
-Received: from [172.27.14.101] (172.20.145.6) by DRHQMAIL107.nvidia.com
- (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 3 Mar 2021
- 07:54:54 +0000
-Subject: Re: [PATCH] net/mlx5: use kvfree() for memory allocated with
- kvzalloc()
-To:     angkery <angkery@163.com>, <saeedm@nvidia.com>, <leon@kernel.org>,
-        <davem@davemloft.net>, <kuba@kernel.org>, <vladbu@nvidia.com>,
-        <dlinkin@nvidia.com>, <dan.carpenter@oracle.com>
-CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, Junlin Yang <yangjunlin@yulong.com>
-References: <20210303024019.2245-1-angkery@163.com>
-From:   Roi Dayan <roid@nvidia.com>
-Message-ID: <0c195a3a-53cc-dbd2-f656-54a92e5a569b@nvidia.com>
-Date:   Wed, 3 Mar 2021 09:54:52 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.1
+ 2021 17:22:44 +0000
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL102.nvidia.com
+ (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 3 Mar
+ 2021 17:22:43 +0000
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.50) by
+ HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2 via Frontend Transport; Wed, 3 Mar 2021 17:22:43 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=WyGqvJf5315XGJ3hfugT/7DtWfIk/xuhLesAaBwmqiVM6+ihVQF9gwaejBk/2mslJR7camxbOjOVLkMxGhenFb67zz/HYTg4cD9z++j9fIj+1EDiHIQ/a0S/oLPF2AhWlC/E6uouyF616FlOSJwShIS5WpqIkeTXr5NusGBvrUm1XvmwZugOi+2HfZG1ntlOCf4MBxCMlzCEDz+zd3L9ECYW5va3XAzPf+GT43/mjgfqKzV+82/q8dgZw8XVuXa5pDJzp7n6RRHVSbCUpnBixX9Eu/9hNhfqdUHQDwYQH3HJ87eMbXWjkaL+CFeZf7r2xL1FgoEL9s8dh0kt8jTLEg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=2e6R/C8ZOjRryQI4cwzXwsw6pike1c728++lnFWjNEA=;
+ b=A1juvSih+rhywG/p60x6PkLbOerUatiBcXdz9T5W+5GR8+2B3tud16dn4LsgPP83KX4UU2XXSQRZcNqxKGRCASWVFAlu5eBZzavCVi0ikxIDmMtPOEaFOLLgE6gdIXF3tWDy8SF/rXW/ng2r+ibWgmBOrRFxFAyodNh3u803l+i7JJQnyui+R58Rztj8MSAuHL0QJfDv0JMgh4jzOPrJKvNa9JjQ/PgOKj9ucwlShAAZUWdgxA+gmWZFPND0mM+lfoIfoNOY22Kb4a1hxSi1F/LPjnS0zaQSvzUnjkeSU2Szbz39cGcCYNWRWS0Vq7POXgeS7Z4CW2lvfglxu1zsQg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4356.namprd12.prod.outlook.com (2603:10b6:5:2aa::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3912.17; Wed, 3 Mar
+ 2021 17:22:41 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1c62:7fa3:617b:ab87]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1c62:7fa3:617b:ab87%6]) with mapi id 15.20.3912.017; Wed, 3 Mar 2021
+ 17:22:41 +0000
+Date:   Wed, 3 Mar 2021 13:22:39 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH rdma-rc 0/2] W=1 compilation fixes leftovers
+Message-ID: <20210303172239.GA1480968@nvidia.com>
+References: <20210302074214.1054299-1-leon@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210302074214.1054299-1-leon@kernel.org>
+X-ClientProxiedBy: BL1PR13CA0481.namprd13.prod.outlook.com
+ (2603:10b6:208:2c7::6) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-In-Reply-To: <20210303024019.2245-1-angkery@163.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [172.20.145.6]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- DRHQMAIL107.nvidia.com (10.27.9.16)
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by BL1PR13CA0481.namprd13.prod.outlook.com (2603:10b6:208:2c7::6) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3933.13 via Frontend Transport; Wed, 3 Mar 2021 17:22:40 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lHVCp-006DHa-CJ; Wed, 03 Mar 2021 13:22:39 -0400
+X-Header: ProcessedBy-CMR-outbound
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1614758098; bh=jptEHTTqU5i9Rk44hkt2Xk1fTTxJd4Czd+BJtbXzJQg=;
-        h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
-         MIME-Version:In-Reply-To:Content-Type:Content-Language:
-         Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-        b=EmeeFnPDOYL2h8bUEC9Ejsn5cAia9/0b8bJow1firBmPU8Lnu9e2HHmF6j1QKLtsv
-         PL2ecK2g0MXdNSKzUl76YCTYujMMij+nY7Et/seSfa8ObdBrvt87pGFZdmMj7cX10M
-         Fp3H/TklXsfwQRqgKsa27saB7qqZhqwyTtEqfSkso0PolQ2UegYcGYgUuToojwqlSb
-         MKnEtV1eDr4AiUhCxcNNu+prlYGyzeoqOIoR3Tgh4xzZVqLnSKfMtyN7fYOX0InFKS
-         sUikkrI1WERiorGXKfh4ujrXYOdTY18OpfFjY6a/heqDG15FccbG6bHErCeiYlUgel
-         zY3qvb1m95ukQ==
+        t=1614792166; bh=2e6R/C8ZOjRryQI4cwzXwsw6pike1c728++lnFWjNEA=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:Date:
+         From:To:CC:Subject:Message-ID:References:Content-Type:
+         Content-Disposition:In-Reply-To:X-ClientProxiedBy:MIME-Version:
+         X-MS-Exchange-MessageSentRepresentingType:X-Header;
+        b=fJnltdO8UI9W4jJ5xuOFL+ivryfsrRHRASi2DiBUt/aFkJCrIfqqIWFDP/G8KoD0Y
+         zVzDkoeag6gYa0q+dpstD6+3l1llE7t37YwJLJXiOZ9UTFwlHcCcDPNVnwZQUHPnOX
+         m+hlu9YHT6HhCQ8WYuEFb0BnUK/Pkco+23PVBeLW0EEUQ3AElN0RxoTl+UE70riWFV
+         /xp2YiGV5HBfVV6L8JPNO2uDGVGKEqsba88GLE8GNxFROF4moyUXUoDnZEqYNfDSyR
+         any0/PeiJfBr7FD4Iii3PJqPkSKvkrZVLTc4yOcJdisOCMzi2F5sLkJZH+1IRHrGOD
+         UL0RPAlxNvWRg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-On 2021-03-03 4:40 AM, angkery wrote:
-> From: Junlin Yang <yangjunlin@yulong.com>
+On Tue, Mar 02, 2021 at 09:42:12AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@nvidia.com>
 > 
-> It is allocated with kvzalloc(), the corresponding release function
-> should not be kfree(), use kvfree() instead.
+> Two extra fixes that were missed in Lee's W=1 cleanup.
 > 
-> Generated by: scripts/coccinelle/api/kfree_mismatch.cocci
-> 
-> Signed-off-by: Junlin Yang <yangjunlin@yulong.com>
-> ---
->   drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c | 10 +++++-----
->   1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-> index 6f6772b..3da7bec 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-> @@ -248,7 +248,7 @@ static int mlx5_esw_indir_table_rule_get(struct mlx5_eswitch *esw,
->   err_ethertype:
->   	kfree(rule);
->   out:
-> -	kfree(rule_spec);
-> +	kvfree(rule_spec);
->   	return err;
->   }
->   
-> @@ -328,7 +328,7 @@ static int mlx5_create_indir_recirc_group(struct mlx5_eswitch *esw,
->   	e->recirc_cnt = 0;
->   
->   out:
-> -	kfree(in);
-> +	kvfree(in);
->   	return err;
->   }
->   
-> @@ -347,7 +347,7 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
->   
->   	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
->   	if (!spec) {
-> -		kfree(in);
-> +		kvfree(in);
->   		return -ENOMEM;
->   	}
->   
-> @@ -371,8 +371,8 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
->   	}
->   
->   err_out:
-> -	kfree(spec);
-> -	kfree(in);
-> +	kvfree(spec);
-> +	kvfree(in);
->   	return err;
->   }
->   
-> 
+> Leon Romanovsky (2):
+>   RDMA/mlx5: Set correct kernel-doc identifier
+>   RDMA/uverbs: Fix kernel-doc warning of _uverbs_alloc
 
-thanks!
+Applied to for-rc, thanks
 
-Reviewed-by: Roi Dayan <roid@nvidia.com>
-
+Jason
