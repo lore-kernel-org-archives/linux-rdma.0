@@ -2,266 +2,199 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,PDS_BAD_THREAD_QP_64,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEB64C15501
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81CDAC15502
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A032264ECF
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 547C764ECF
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231362AbhCCX7p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Mar 2021 18:59:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60156 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbhCCXC5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Mar 2021 18:02:57 -0500
-Received: from mail-ot1-x32e.google.com (mail-ot1-x32e.google.com [IPv6:2607:f8b0:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ECADC061756
-        for <linux-rdma@vger.kernel.org>; Wed,  3 Mar 2021 15:02:13 -0800 (PST)
-Received: by mail-ot1-x32e.google.com with SMTP id d9so25304872ote.12
-        for <linux-rdma@vger.kernel.org>; Wed, 03 Mar 2021 15:02:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5WYOcU6TziDLlNIm+VhLKSogzxNrmqNnllIcQDH2j6s=;
-        b=jPM1JBCGH7/I+AoBeVXLIvAEU3uDsY0K5GJHtxiY/ne10QuZvm/bw4uIV8B4hQzx0J
-         BDIwEnsAGky2hyJ5DFu1h84seZ8UuD7k5ZXNPqJxSJDKX2Maj5lxxIi5WCbF3KH9ItKR
-         X4bcVOyZzn5cRnAuLMsIFxYyY4Bs5/RVzXZVyBqhQfWzZi+ZZmrYGR84kQj9gy6V7v3p
-         7wu/OTMgnfwhOFtynPoWiyOS8SV2kgNUgj09UPBS1b+l0YwUntXFkusREtzi9GbeqVVm
-         U7Rmdb/FK/iSWdOU44oNqPVMdQvO5W6aw4j3H1Kk+CZJu65x2HbXiBnuXqN6H4Q8LoQl
-         sR9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=5WYOcU6TziDLlNIm+VhLKSogzxNrmqNnllIcQDH2j6s=;
-        b=kNusUQU0yb93NHgKgB9hVCUy4CdgFF+sIPS/eU6afefMw76WKW51svIl5hMp/2hImZ
-         UIZosQ0NPxvEBKGakTXTy0nqvmc5aQ3LuHRBBa2sL1HfS5VXqKJUFHahYeGqBvfy59rn
-         +XSLxQ6sSIRoD9kTswFYxyx+zvRfJ8bx1vwQiSyWTfBPw+O2H80tt0mmpGE/+BKoh9QL
-         h//aa6BGXQenhKSo7OZMGJVz3USqQ73vJ7OL/PEIaUnYLW1kvRHVyOxmnrKZCPYa2tq3
-         w67iZC0LKa7K8OlN1U2SSHt94OQ/c5P5+hxgDC+4g/8QGyN5xkLttSMFUsAnryEJ3/tO
-         Im1w==
-X-Gm-Message-State: AOAM533DCCxziBcm4iLdhSL/JaPBvh52iL8j6PTw93HyjGr0CvzisVsE
-        M1hY80aE4VivAX4rR7fTPHE=
-X-Google-Smtp-Source: ABdhPJxzl/lJnVrVzvMMrm3mCqVzD/AGBHRb4Pddzc93PUIngGRVloo5k9ti6RN4Oau0Fr2IT+Aeaw==
-X-Received: by 2002:a9d:3ec9:: with SMTP id b67mr23570otc.168.1614812532425;
-        Wed, 03 Mar 2021 15:02:12 -0800 (PST)
-Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-8884-260e-7805-4030.res6.spectrum.com. [2603:8081:140c:1a00:8884:260e:7805:4030])
-        by smtp.gmail.com with ESMTPSA id f189sm1118840oia.44.2021.03.03.15.02.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Mar 2021 15:02:10 -0800 (PST)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
-To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH for-next v2] RDMA/rxe: Fix ib_device reference counting (again)
-Date:   Wed,  3 Mar 2021 16:56:29 -0600
-Message-Id: <20210303225628.2836-1-rpearson@hpe.com>
-X-Mailer: git-send-email 2.27.0
+        id S231315AbhCCX7n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Mar 2021 18:59:43 -0500
+Received: from hqnvemgate24.nvidia.com ([216.228.121.143]:16971 "EHLO
+        hqnvemgate24.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1352980AbhCCLzl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Mar 2021 06:55:41 -0500
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+        id <B603f4e490001>; Wed, 03 Mar 2021 00:52:25 -0800
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 3 Mar
+ 2021 08:52:23 +0000
+Received: from HKMAIL102.nvidia.com (10.18.16.11) by HKMAIL102.nvidia.com
+ (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 3 Mar
+ 2021 08:52:21 +0000
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.109)
+ by HKMAIL102.nvidia.com (10.18.16.11) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2 via Frontend Transport; Wed, 3 Mar 2021 08:52:21 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IvqxJukbVFQkjVIIwwlMMtsU7H2SsmO9vAYXdvozYiwiStPwu81QQv8M/5hwRjYe9tg2DCZx9WK36okz7C0ZDoWwCADF8lxPvVG465k2hKyLYaai2AlWMTkchSuw47WF5mWWQ5NFWBb7UUGPtfsB8/L16gS/AmAkhp38F6pI97TQCV/Zm/cnfvEnvoteV69fJsy5v1eTMNegq80e5CVCU7vKjA8yreOSJYfgShKQKCejr35ci8e2/UGVo0z2LydEGwsufk6j/Q6/CUc6AtoCi4BqrUdOpWuF84JbY8C9T9p1RW5DPilSyrw+c3JH0nunsCMMiZQQY1t2QCDNxF3nNw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JV4+AXTULQaLV9f154tNx+tIA8HDSTl9RZy7LB6k9qM=;
+ b=fsnI1hC6HCNvMXHTv72hBhyiWvRApHfHIl4LPqFiLs/pvhGxUwTnGhDPdKPWbj6eCmkGm6u3K57QvBztF9aWjDvjjjRIq68Ym3Cqc2CFCVNKNAs8Rfk81C9pE9OBO8f+Jd9hJR5p9RQvhKBRFf5VKUXL/gbl+sC+YCL4qx1F2ObtH3/aiQHrlgMdiZd0ZrxnwimElXOo+DVwQmoWoie9dO7RVU9wXQDmSCLPGel+MkJPYmM8OnfQGUm+QISanx04uwCzfZbbsksXOWGfmhY+B0HMwhQXlI3bQLRA6mCSL19oJqTSHjFPAZiuHdr+auv8qx7g5xlFsHnvcWrdP9Bvlw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+Received: from DM6PR12MB4330.namprd12.prod.outlook.com (2603:10b6:5:21d::20)
+ by DM5PR1201MB0042.namprd12.prod.outlook.com (2603:10b6:4:50::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3890.20; Wed, 3 Mar
+ 2021 08:52:19 +0000
+Received: from DM6PR12MB4330.namprd12.prod.outlook.com
+ ([fe80::f432:454e:1731:2a1d]) by DM6PR12MB4330.namprd12.prod.outlook.com
+ ([fe80::f432:454e:1731:2a1d%5]) with mapi id 15.20.3890.029; Wed, 3 Mar 2021
+ 08:52:19 +0000
+From:   Parav Pandit <parav@nvidia.com>
+To:     Parav Pandit <parav@nvidia.com>,
+        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+CC:     "leon@kernel.org" <leon@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH] net/mlx5: remove unneeded semicolon
+Thread-Topic: [PATCH] net/mlx5: remove unneeded semicolon
+Thread-Index: AQHXCQFdZeK6pe8bzk+WL+Rwiz5bb6pj8VNAgA4RhGA=
+Date:   Wed, 3 Mar 2021 08:52:19 +0000
+Message-ID: <DM6PR12MB433097A211B6A99DAF690958DC989@DM6PR12MB4330.namprd12.prod.outlook.com>
+References: <1613987819-43161-1-git-send-email-jiapeng.chong@linux.alibaba.com>
+ <BY5PR12MB4322C25D61EC6E4549370917DC819@BY5PR12MB4322.namprd12.prod.outlook.com>
+In-Reply-To: <BY5PR12MB4322C25D61EC6E4549370917DC819@BY5PR12MB4322.namprd12.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: nvidia.com; dkim=none (message not signed)
+ header.d=none;nvidia.com; dmarc=none action=none header.from=nvidia.com;
+x-originating-ip: [122.166.131.251]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 59a28812-92fc-4712-93a5-08d8de21a779
+x-ms-traffictypediagnostic: DM5PR1201MB0042:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <DM5PR1201MB0042CB46C849C08D4C0030B6DC989@DM5PR1201MB0042.namprd12.prod.outlook.com>
+x-header: ProcessedBy-CMR-outbound
+x-ms-oob-tlc-oobclassifiers: OLM:327;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: sL9zwhiuUBdV6/Xco2oqxGM+Q/LLaBal7iZL0wWWbjsqal/DPfQFjbDG0+IzcNXmBWm4eRLDtKzL6bpeYAPmxEK/bfXpjL7DW9WQ9W8dKvFPJX6++U2Ggxp1SemZKQEpBsT/KIZduGpvwxDNWVsTYetGGom9hKrtziy59ethyu1uN9H7+wpLQ92KYVXO9Q9A9HkjzM8aMcoHDVUn0x3aguZOCI2L6Tt40yDkBtxUY9T+0Pw0EgsMptGA1jUOsncIRgyOY/MrlO/j/I03Orr/L58I9ovhlBh7ePMyK2x4Qcns82iII1YEBtJ8UbWl6ApTElrcIoQ4VSvvDLHKnbegXrvr1vPCTKEBNxpVoMaO3vY+zY9PEYKyRIhoR6sSLEvDLBE6Fd84Gu7JGAPOq+SAXZDtHf80AX4WMAKJf6cY5P7/zWpwtk4NawR03CmPkKiyYvBYzefpUgvT68HAB9Lv6QvPKVyU/EBj7JXilveiWIcC7CLOwxniXvQfEBox7ztrUnW52/YD5d2e1Z5N7lXwXierrP+Ig6HpT3G3tIZxu2eyFULDI+gPwNVtk/F4OYV3gvrhaWdUKq+MgcSsa0oB5aqsHokUUPFNL36fY/2/TA0=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB4330.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(136003)(396003)(39860400002)(346002)(376002)(55016002)(66476007)(52536014)(6636002)(83380400001)(33656002)(64756008)(4326008)(66946007)(6506007)(66556008)(76116006)(7696005)(71200400001)(966005)(54906003)(110136005)(8676002)(316002)(2906002)(8936002)(66446008)(478600001)(5660300002)(186003)(86362001)(26005)(9686003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata: =?us-ascii?Q?eviRKICMceeOFzOQaCs2S2wdSSkYQVP5woZyaQekQ286ChLIUSfFb+NEQ00l?=
+ =?us-ascii?Q?ipGHD+KDiAZGt/0pVPF4PBBFW1EbEhuQNAiOPW25AhkUusBGQ11Hl1KStXZv?=
+ =?us-ascii?Q?aXjV9g9wpH2wgvLcT+gJ7LOm4ok+38mytHauEaCoVMizHWMbr+1AMs6i16ZD?=
+ =?us-ascii?Q?1z6GYM3+ps4jtBryNU4BYicdq9lELLWLgUG7meC+sl75G95uaIN5pVBd2Opn?=
+ =?us-ascii?Q?6T0O5qMkBmnFNwMUXSesnp+Y+i84QvZ77ZEtebU9STLNQuq3G2bkEtuM5kbR?=
+ =?us-ascii?Q?v4M5lljBaovfuPJ1PKGamgYlQp62+CUs0nQ17TlZezlWmpFhwTiDvUQydrxr?=
+ =?us-ascii?Q?Rw+8psAtWzrQ8ivpl/DYZ8o3VmNMy1HILLd8NRPf17y6bkPsMDUk9111zvv2?=
+ =?us-ascii?Q?UpBe8bWkm+0QNvK+k5bOCL33n94LsjCc3TJqyCmwj+Z9K1iUd/4geb6N5Is2?=
+ =?us-ascii?Q?2cONy07MfVbKTtQn6z4boOwSWn5ozZZPNIEkKgFkVplquM0I+D6tiHcEQZdS?=
+ =?us-ascii?Q?3UZVxgK4tBr6dlmV68VMW7dEZePMGMEcANMBjIb3kyLJ51JsRp8QG7+sWZuy?=
+ =?us-ascii?Q?NMseTZGsmlfrgWygX/sWetDhdP8/Qc9Q1pfgYts+6I1Q2g557VH/XXT0VmC1?=
+ =?us-ascii?Q?ke0Rj3eCftNZw8/+Zh7JgzES6yXQzpeVXVlW4kEJEGNZgviS79b3IBELZIAk?=
+ =?us-ascii?Q?ZsQf8jJSvKwDGldV85DoJ5005CK7XkMh9wIznsnwcJP7ZXJkxTv7NbarvXY2?=
+ =?us-ascii?Q?ED1drQaLJ9yYYXnvCQkooGGz7hMVJl42ZqFVTBbsA4j1SMvsqLyaBMhN8fgO?=
+ =?us-ascii?Q?0voEp4Cw4uf8q66iY/iauwBU2Wc5mod2lPyjRNrIjEnu5WNp6xSEOgewdelL?=
+ =?us-ascii?Q?YL9ysuXGec2khbTN+h31jfJnb8PBFxzMJ60hDkhDK9J3JN/D4nq1gtjOKCKT?=
+ =?us-ascii?Q?SXXpADD1ZUuZOtJXdR39960vZmgZZUv9HCeGHW2aaRRQraw3pJzOGuvaaiHl?=
+ =?us-ascii?Q?V/AAkdyknUjaiRjvZJt8XCqJpRkK8UffEQ9spPLeJdFNd/hfIWm3Fvay9Fl6?=
+ =?us-ascii?Q?arC4N0Zhf4mQNpeLc74SyhMcS765tSze6lvYCEfyhBGeLBOg5TDUP6JzjpW0?=
+ =?us-ascii?Q?9AufO95IObdiih7iMGqne9c7pFzoD8q59Cn38MyryP0YiUWCuTiHU2hwXlU3?=
+ =?us-ascii?Q?eZQlif+6iTni/PqxjWeiXkQc5+vPzw9r0Y8GdafE6io4mSr+qcrSGUUDJu24?=
+ =?us-ascii?Q?GdW5k7GS+sfeBfrH0GNZzN2Ra7smK/3f8KQtviW72wbCUhwAzNc99I98Gmw3?=
+ =?us-ascii?Q?ZMGE/GfeiWcgG5hiONtr5+6X?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB4330.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 59a28812-92fc-4712-93a5-08d8de21a779
+X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Mar 2021 08:52:19.6660
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: vwyUPJmsl9sB9HlgDuKFzNAIuJj/7Vs9OROrKv8SGYd77MqbGz9Q6y9xqKdZDTZJf7GZNcgSgb5RffePqmCgeA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR1201MB0042
+X-OriginatorOrg: Nvidia.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1614761545; bh=JV4+AXTULQaLV9f154tNx+tIA8HDSTl9RZy7LB6k9qM=;
+        h=ARC-Seal:ARC-Message-Signature:ARC-Authentication-Results:From:To:
+         CC:Subject:Thread-Topic:Thread-Index:Date:Message-ID:References:
+         In-Reply-To:Accept-Language:Content-Language:X-MS-Has-Attach:
+         X-MS-TNEF-Correlator:authentication-results:x-originating-ip:
+         x-ms-publictraffictype:x-ms-office365-filtering-correlation-id:
+         x-ms-traffictypediagnostic:x-ms-exchange-transport-forked:
+         x-microsoft-antispam-prvs:x-header:x-ms-oob-tlc-oobclassifiers:
+         x-ms-exchange-senderadcheck:x-microsoft-antispam:
+         x-microsoft-antispam-message-info:x-forefront-antispam-report:
+         x-ms-exchange-antispam-messagedata:Content-Type:
+         Content-Transfer-Encoding:MIME-Version:
+         X-MS-Exchange-CrossTenant-AuthAs:
+         X-MS-Exchange-CrossTenant-AuthSource:
+         X-MS-Exchange-CrossTenant-Network-Message-Id:
+         X-MS-Exchange-CrossTenant-originalarrivaltime:
+         X-MS-Exchange-CrossTenant-fromentityheader:
+         X-MS-Exchange-CrossTenant-id:X-MS-Exchange-CrossTenant-mailboxtype:
+         X-MS-Exchange-CrossTenant-userprincipalname:
+         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
+        b=k7qrFrDkG36B5uYNamq8QxKnNCgEqZgiE5ytmSB+mt+JBWGcRcgbIf3g0txJXnHQR
+         EBtfWraP0Do05z/WI7Mb6Jcx6MHfdxfIFN1MKRIbxD8zOo6uZIUEu4087Igf3J6K7M
+         SeKeLVkiTDyJTEdW95XhoJNbmvjYVYx3Sy9PialA4Y/mUhFJ0xAOahXQETveC821fL
+         FNIj3g6Fsmd4YOvzk8thaEcSYgvyPPpgxM41cjIXHxMCd9R049LsfqWOVPV79tA9mv
+         QNak/BWaVg8zSaGpDsl8X5MI5V1JJx2+E/GqkOh9WSup6qH8uj9btn6gEPusGn5Fx2
+         sB74XusqdrSPg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Three errors occurred in the fix referenced below.
+Hi Saeed,
 
-1) rxe_rcv_mcast_pkt() dropped a reference to ib_device when
-no error occured causing an underflow on the reference counter.
-This code is cleaned up to be clearer and easier to read.
+> From: Parav Pandit <parav@nvidia.com>
+> Sent: Monday, February 22, 2021 3:32 PM
+>=20
+>=20
+> > From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+> > Sent: Monday, February 22, 2021 3:27 PM
+> >
+> > Fix the following coccicheck warnings:
+> >
+> > ./drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c:495:2-3:
+> > Unneeded semicolon.
+> >
+> > Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+> > Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+> > ---
+> >  drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> > b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> > index c2ba41b..60a6328 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/devlink.c
+> > @@ -492,7 +492,7 @@ static int mlx5_sf_esw_event(struct notifier_block
+> > *nb, unsigned long event, voi
+> >  		break;
+> >  	default:
+> >  		break;
+> > -	};
+> > +	}
+> >
+> >  	return 0;
+> >  }
+> > --
+> > 1.8.3.1
+>=20
+> Reviewed-by: Parav Pandit <parav@nvidia.com>
 
-2) Extending the reference taken by rxe_get_dev_from_net() in
-rxe_udp_encap_recv() until each skb is freed was not matched by
-a reference in the loopback path resulting in underflows.
+Will you take this patch [1] to your queue?
 
-3) In rxe_comp.c the function free_pkt() did not clear skb which
-triggered a warning at done: and could possibly at exit: in
-rxe_completer(). The WARN_ONCE() calls are not actually needed.
-
-This patch fixes these errors.
-
-Fixes: 899aba891cab ("RDMA/rxe: Fix FIXME in rxe_udp_encap_recv()")
-Signed-off-by: Bob Pearson <rpearson@hpe.com>
----
-Version 2:
-v1 of this patch incorrectly added a WARN_ON_ONCE in rxe_completer
-where it could be triggered for normal traffic. This version
-replaced that with a pr_warn located correctly.
-
-v1 of this patch placed a call to kfree_skb in an if statement
-that could trigger style warnings. This version cleans that up.
-
- drivers/infiniband/sw/rxe/rxe_comp.c |  6 +--
- drivers/infiniband/sw/rxe/rxe_net.c  | 10 ++++-
- drivers/infiniband/sw/rxe/rxe_recv.c | 60 +++++++++++++++++-----------
- 3 files changed, 48 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index a8ac791a1bb9..96e5a73579f8 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -672,8 +672,10 @@ int rxe_completer(void *arg)
- 			 */
- 
- 			/* there is nothing to retry in this case */
--			if (!wqe || (wqe->state == wqe_state_posted))
-+			if (!wqe || (wqe->state == wqe_state_posted)) {
-+				pr_warn("Retry attempted without a valid wqe\n");
- 				goto exit;
-+			}
- 
- 			/* if we've started a retry, don't start another
- 			 * retry sequence, unless this is a timeout.
-@@ -750,7 +752,6 @@ int rxe_completer(void *arg)
- 	/* we come here if we are done with processing and want the task to
- 	 * exit from the loop calling us
- 	 */
--	WARN_ON_ONCE(skb);
- 	rxe_drop_ref(qp);
- 	return -EAGAIN;
- 
-@@ -758,7 +759,6 @@ int rxe_completer(void *arg)
- 	/* we come here if we have processed a packet we want the task to call
- 	 * us again to see if there is anything else to do
- 	 */
--	WARN_ON_ONCE(skb);
- 	rxe_drop_ref(qp);
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 0701bd1ffd1a..01662727dca0 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -407,14 +407,22 @@ int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb)
- 	return 0;
- }
- 
-+/* fix up a send packet to match the packets
-+ * received from UDP before looping them back
-+ */
- void rxe_loopback(struct sk_buff *skb)
- {
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+
- 	if (skb->protocol == htons(ETH_P_IP))
- 		skb_pull(skb, sizeof(struct iphdr));
- 	else
- 		skb_pull(skb, sizeof(struct ipv6hdr));
- 
--	rxe_rcv(skb);
-+	if (WARN_ON(!ib_device_try_get(&pkt->rxe->ib_dev)))
-+		kfree_skb(skb);
-+	else
-+		rxe_rcv(skb);
- }
- 
- struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 45d2f711bce2..2b2465744896 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -237,8 +237,6 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 	struct rxe_mc_elem *mce;
- 	struct rxe_qp *qp;
- 	union ib_gid dgid;
--	struct sk_buff *per_qp_skb;
--	struct rxe_pkt_info *per_qp_pkt;
- 	int err;
- 
- 	if (skb->protocol == htons(ETH_P_IP))
-@@ -250,10 +248,15 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 	/* lookup mcast group corresponding to mgid, takes a ref */
- 	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, &dgid);
- 	if (!mcg)
--		goto err1;	/* mcast group not registered */
-+		goto drop;	/* mcast group not registered */
- 
- 	spin_lock_bh(&mcg->mcg_lock);
- 
-+	/* this is unreliable datagram service so we let
-+	 * failures to deliver a multicast packet to a
-+	 * single QP happen and just move on and try
-+	 * the rest of them on the list
-+	 */
- 	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
- 		qp = mce->qp;
- 
-@@ -266,39 +269,48 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 		if (err)
- 			continue;
- 
--		/* for all but the last qp create a new clone of the
--		 * skb and pass to the qp. If an error occurs in the
--		 * checks for the last qp in the list we need to
--		 * free the skb since it hasn't been passed on to
--		 * rxe_rcv_pkt() which would free it later.
-+		/* for all but the last QP create a new clone of the
-+		 * skb and pass to the QP. Pass the original skb to
-+		 * the last QP in the list.
- 		 */
- 		if (mce->qp_list.next != &mcg->qp_list) {
--			per_qp_skb = skb_clone(skb, GFP_ATOMIC);
--			if (WARN_ON(!ib_device_try_get(&rxe->ib_dev))) {
--				kfree_skb(per_qp_skb);
-+			struct sk_buff *cskb;
-+			struct rxe_pkt_info *cpkt;
-+
-+			cskb = skb_clone(skb, GFP_ATOMIC);
-+			if (unlikely(!cskb))
- 				continue;
-+
-+			if (WARN_ON(!ib_device_try_get(&rxe->ib_dev))) {
-+				kfree_skb(cskb);
-+				break;
- 			}
-+
-+			cpkt = SKB_TO_PKT(cskb);
-+			cpkt->qp = qp;
-+			rxe_add_ref(qp);
-+			rxe_rcv_pkt(cpkt, cskb);
- 		} else {
--			per_qp_skb = skb;
--			/* show we have consumed the skb */
--			skb = NULL;
-+			pkt->qp = qp;
-+			rxe_add_ref(qp);
-+			rxe_rcv_pkt(pkt, skb);
-+			skb = NULL;	/* mark consumed */
- 		}
--
--		if (unlikely(!per_qp_skb))
--			continue;
--
--		per_qp_pkt = SKB_TO_PKT(per_qp_skb);
--		per_qp_pkt->qp = qp;
--		rxe_add_ref(qp);
--		rxe_rcv_pkt(per_qp_pkt, per_qp_skb);
- 	}
- 
- 	spin_unlock_bh(&mcg->mcg_lock);
- 
- 	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
- 
--err1:
--	/* free skb if not consumed */
-+	if (likely(!skb))
-+		return;
-+
-+	/* Fall through to drop packet
-+	 * This only occurs if one of the checks fails on the last
-+	 * QP in the list above
-+	 */
-+
-+drop:
- 	kfree_skb(skb);
- 	ib_device_put(&rxe->ib_dev);
- }
--- 
-2.27.0
-
+[1] https://lore.kernel.org/linux-rdma/1613987819-43161-1-git-send-email-ji=
+apeng.chong@linux.alibaba.com/
