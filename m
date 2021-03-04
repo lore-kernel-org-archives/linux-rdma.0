@@ -2,111 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0039C4332E
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F856C433E0
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 01:31:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A86464EC0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 00:17:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56D3D65270
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 01:31:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231270AbhCCX7m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 Mar 2021 18:59:42 -0500
-Received: from m12-15.163.com ([220.181.12.15]:55473 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1355566AbhCCGtM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 3 Mar 2021 01:49:12 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Y5I94
-        cTExtGaMRThkHngPoCwB3fvdKWQc1AhklMV9I4=; b=Ne5cucJzNtpXb3PgIB1gz
-        /fj3MySWqIocJgPjtNrLbZEX4oEzOYTzuaBLZxvjU0O4sQLG90VPdZ93t0sCCfQB
-        NZx2m8DTDJDW2h8FUcN2Z9DeRBO0SNrN3xKI5x7/mE6XB/gwowtT+t4twomjkcLe
-        L3SLppNhUyIFZ6z5HrLd14=
-Received: from yangjunlin.ccdomain.com (unknown [218.17.89.92])
-        by smtp11 (Coremail) with SMTP id D8CowAAnrAgU+D5g9HhoDg--.49S2;
-        Wed, 03 Mar 2021 10:44:47 +0800 (CST)
-From:   angkery <angkery@163.com>
-To:     saeedm@nvidia.com, leon@kernel.org, davem@davemloft.net,
-        kuba@kernel.org, vladbu@nvidia.com, dlinkin@nvidia.com,
-        roid@nvidia.com, dan.carpenter@oracle.com
-Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Junlin Yang <yangjunlin@yulong.com>
-Subject: [PATCH] net/mlx5: use kvfree() for memory allocated with kvzalloc()
-Date:   Wed,  3 Mar 2021 10:40:19 +0800
-Message-Id: <20210303024019.2245-1-angkery@163.com>
-X-Mailer: git-send-email 2.24.0.windows.2
+        id S233216AbhCDBbT convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 Mar 2021 20:31:19 -0500
+Received: from szxga02-in.huawei.com ([45.249.212.188]:3036 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233161AbhCDBbS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 Mar 2021 20:31:18 -0500
+Received: from DGGEMM403-HUB.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4DrYDX3PMnzRLWw;
+        Thu,  4 Mar 2021 09:29:00 +0800 (CST)
+Received: from dggema751-chm.china.huawei.com (10.1.198.193) by
+ DGGEMM403-HUB.china.huawei.com (10.3.20.211) with Microsoft SMTP Server (TLS)
+ id 14.3.498.0; Thu, 4 Mar 2021 09:30:33 +0800
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggema751-chm.china.huawei.com (10.1.198.193) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2106.2; Thu, 4 Mar 2021 09:30:32 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.006;
+ Thu, 4 Mar 2021 09:30:33 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@nvidia.com" <jgg@nvidia.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
+Subject: Re: [PATCH for-next] RDMA/hns: Add support for XRC on HIP09
+Thread-Topic: [PATCH for-next] RDMA/hns: Add support for XRC on HIP09
+Thread-Index: AQHXD5TGiODtbEVve064q5zq0+33Lw==
+Date:   Thu, 4 Mar 2021 01:30:33 +0000
+Message-ID: <52e3f774ee8f4a6e973aad39f2fe0f41@huawei.com>
+References: <1614689298-13601-1-git-send-email-liweihang@huawei.com>
+ <YD+D4zjc1GzHL0bb@unreal>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: D8CowAAnrAgU+D5g9HhoDg--.49S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7WF13Xw1DGr4kAryrtryrWFg_yoW8XrWxpF
-        s8K34jkr1Sqa47X34kA395Xr98Wa1UKayxur92v3yfXrn5Jw18JF1Fkry3uw18ArWxJasx
-        tr4Yyw1fuaykJwUanT9S1TB71UUUUUJqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07bO1v3UUUUU=
-X-Originating-IP: [218.17.89.92]
-X-CM-SenderInfo: 5dqjyvlu16il2tof0z/1tbiLR9KI1SIlJvXtgAAsp
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Junlin Yang <yangjunlin@yulong.com>
+On 2021/3/3 20:41, Leon Romanovsky wrote:
+> On Tue, Mar 02, 2021 at 08:48:18PM +0800, Weihang Li wrote:
+>> From: Wenpeng Liang <liangwenpeng@huawei.com>
+>>
+>> The HIP09 supports XRC transport service, it greatly saves the number of
+>> QPs required to connect all processes in a large cluster.
+>>
+>> Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+>> Signed-off-by: Weihang Li <liweihang@huawei.com>
+>> ---
+>>  drivers/infiniband/hw/hns/hns_roce_alloc.c  |   3 +
+>>  drivers/infiniband/hw/hns/hns_roce_device.h |  25 +++++
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 147 +++++++++++++++++++---------
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   2 +
+>>  drivers/infiniband/hw/hns/hns_roce_main.c   |  32 +++++-
+>>  drivers/infiniband/hw/hns/hns_roce_pd.c     |  51 ++++++++++
+>>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  63 ++++++++----
+>>  drivers/infiniband/hw/hns/hns_roce_srq.c    |   3 +
+>>  include/uapi/rdma/hns-abi.h                 |   2 +
+>>  9 files changed, 258 insertions(+), 70 deletions(-)
+> 
+> <...>
+> 
+>> +	u32			xrcdn;
+> 
+> <...>
+> 
+>> +	unsigned long		xrcdn;
+> 
+> Can you use the same type (u32) in all structs, please?
+> 
+> Thanks
+> 
 
-It is allocated with kvzalloc(), the corresponding release function
-should not be kfree(), use kvfree() instead.
+Thank you, I will fix it.
 
-Generated by: scripts/coccinelle/api/kfree_mismatch.cocci
-
-Signed-off-by: Junlin Yang <yangjunlin@yulong.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-index 6f6772b..3da7bec 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/indir_table.c
-@@ -248,7 +248,7 @@ static int mlx5_esw_indir_table_rule_get(struct mlx5_eswitch *esw,
- err_ethertype:
- 	kfree(rule);
- out:
--	kfree(rule_spec);
-+	kvfree(rule_spec);
- 	return err;
- }
- 
-@@ -328,7 +328,7 @@ static int mlx5_create_indir_recirc_group(struct mlx5_eswitch *esw,
- 	e->recirc_cnt = 0;
- 
- out:
--	kfree(in);
-+	kvfree(in);
- 	return err;
- }
- 
-@@ -347,7 +347,7 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
- 
- 	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
- 	if (!spec) {
--		kfree(in);
-+		kvfree(in);
- 		return -ENOMEM;
- 	}
- 
-@@ -371,8 +371,8 @@ static int mlx5_create_indir_fwd_group(struct mlx5_eswitch *esw,
- 	}
- 
- err_out:
--	kfree(spec);
--	kfree(in);
-+	kvfree(spec);
-+	kvfree(in);
- 	return err;
- }
- 
--- 
-1.9.1
-
-
+Weihang
