@@ -7,112 +7,106 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C5D7C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0385C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:46:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35FE064F37
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:09:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7F3964EBB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:46:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240381AbhCDMJV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Mar 2021 07:09:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55606 "EHLO mail.kernel.org"
+        id S231224AbhCDMqK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Mar 2021 07:46:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240179AbhCDMIt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Mar 2021 07:08:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C52864F0B;
-        Thu,  4 Mar 2021 12:08:08 +0000 (UTC)
+        id S231272AbhCDMqG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Mar 2021 07:46:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 16C0964EE1;
+        Thu,  4 Mar 2021 12:45:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614859689;
-        bh=jBO/wjl0WKOo+LTLgpQ1TGh37my2c50DGnD/JXKcuFg=;
+        s=k20201202; t=1614861925;
+        bh=MM5KvIq+yS7a0VoyiGg43VWuXPoh2WyHvklJ4/KD3Jk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rIzCLkb3cnb4jdgLsWt58SQf3HlFS6EgihWqXemQRYIlDrzYWjSaAZ0e4S+ISRHTR
-         hV6ylGB3jNLK/wCGalSVo/6rTgOMO6i4lLPNbzbnQVq7hk8gV+lJmntBWD7UiGJycU
-         xucU2PiSkmBt6bPpVDuyaRgWEeQaJ3GdgFLCoIkAcuhKvah5bE8FpuOrBmbdRUOmac
-         H2YkKjEinj3S1PNLCImK0weFFkR32t6F4GzGXebxzgD//ZVqloXJkPNItVbgBLpof1
-         3GrFABLAF6P62HJp+pFWHsxAAriNjixwKBEKQB6v6/P21PRxgM4r4xH3EZwyG1fSbG
-         phBho3ukhrUyQ==
+        b=dh7d1RhdlTM1Vd3zPlSVssbD3/e3Zjyu3Aln/JkDWGQizH5PXUBmePpWLsYLm42Um
+         iYncL1nME95tgErRMFxAJvyi6DHvZA0/qbUr2iC9rRZ+wuH1BvVf7o1nbzRpEEdauD
+         WZnEiiklRe5qsCKAatt8uJb4bmeF7GXoVdoQCF1ilnxb35kuE0mmxhfBSregwv+C8O
+         2H7JgUGvcspZqF/NEK65/WjkvkNA1xAIb/PaYKZJWMvYrzApT9tMPfdt8WClpS8Gy5
+         gnT8M8ynZ7zjzcyfJ+24iZ1oMHpEy20+7sqC6wSQvpu93JK25HgAcum6ahfPDEpejY
+         y/Mr+r5BV5QjA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 2/4] RDMA/mlx5: Use a union inside mlx5_ib_mr
-Date:   Thu,  4 Mar 2021 14:07:43 +0200
-Message-Id: <20210304120745.1090751-3-leon@kernel.org>
+Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 1/3] RDMA/mlx5: Fix query RoCE port
+Date:   Thu,  4 Mar 2021 14:45:15 +0200
+Message-Id: <20210304124517.1100608-2-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210304120745.1090751-1-leon@kernel.org>
-References: <20210304120745.1090751-1-leon@kernel.org>
+In-Reply-To: <20210304124517.1100608-1-leon@kernel.org>
+References: <20210304124517.1100608-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@nvidia.com>
+From: Maor Gottlieb <maorg@nvidia.com>
 
-The struct mlx5_ib_mr can be used for three different things, but only one
-at a time:
+mlx5_is_roce_enabled returns the devlink RoCE init value, therefore
+it should be used only when driver is loaded.
+Instead we just need to read the roce_en field.
 
- - In the user MR cache
- - As a kernel MR
- - As a user MR
+In addition, rename mlx5_is_roce_enabled to mlx5_is_roce_init_enabled.
 
-Overlay the three things into a single union with the following rules:
-
- - If the mr is found on the cache_ent->head list then it is a cache MR
-   and umem == NULL. The entire union is zero after the MR is removed from
-   the cache.
-
- - If umem != NULL or type == IB_MR_TYPE_USER then it is a user MR.
-
- - If umem == NULL then it is a kernel MR
-
-This reduces the size of struct mlx5_ib_mr to 552 bytes from 702.
-
-The only place the three flows overlap in the code is during dereg, so add
-a few extra checks along there.
-
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Fixes: 7a58779edd75 ("IB/mlx5: Improve query port for representor port")
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 6 +++---
+ include/linux/mlx5/driver.h       | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 5bfd14c438c1..03deca79c9cf 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -657,7 +657,7 @@ struct mlx5_ib_mr {
- 	struct ib_umem *umem;
- 
- 	/* This is zero'd when the MR is allocated */
--	struct {
-+	union {
- 		/* Used only while the MR is in the cache */
- 		struct {
- 			u32 out[MLX5_ST_SZ_DW(create_mkey_out)];
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index ea8f068a6da3..54fd38b01a7e 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1929,7 +1929,7 @@ mlx5_alloc_priv_descs(struct ib_device *device,
- static void
- mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b42b5d39a88e..aa3e90594a88 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -499,7 +499,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u32 port_num,
+ 	translate_eth_proto_oper(eth_prot_oper, &props->active_speed,
+ 				 &props->active_width, ext);
+
+-	if (!dev->is_rep && mlx5_is_roce_enabled(mdev)) {
++	if (!dev->is_rep && dev->mdev->roce.roce_en) {
+ 		u16 qkey_viol_cntr;
+
+ 		props->port_cap_flags |= IB_PORT_CM_SUP;
+@@ -4175,7 +4175,7 @@ static int mlx5_ib_roce_init(struct mlx5_ib_dev *dev)
+
+ 		/* Register only for native ports */
+ 		err = mlx5_add_netdev_notifier(dev, port_num);
+-		if (err || dev->is_rep || !mlx5_is_roce_enabled(mdev))
++		if (err || dev->is_rep || !mlx5_is_roce_init_enabled(mdev))
+ 			/*
+ 			 * We don't enable ETH interface for
+ 			 * 1. IB representors
+@@ -4712,7 +4712,7 @@ static int mlx5r_probe(struct auxiliary_device *adev,
+ 	dev->mdev = mdev;
+ 	dev->num_ports = num_ports;
+
+-	if (ll == IB_LINK_LAYER_ETHERNET && !mlx5_is_roce_enabled(mdev))
++	if (ll == IB_LINK_LAYER_ETHERNET && !mlx5_is_roce_init_enabled(mdev))
+ 		profile = &raw_eth_profile;
+ 	else
+ 		profile = &pf_profile;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 53b89631a1d9..ab07f09f2bad 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1226,7 +1226,7 @@ enum {
+ 	MLX5_TRIGGERED_CMD_COMP = (u64)1 << 32,
+ };
+
+-static inline bool mlx5_is_roce_enabled(struct mlx5_core_dev *dev)
++static inline bool mlx5_is_roce_init_enabled(struct mlx5_core_dev *dev)
  {
--	if (mr->descs) {
-+	if (!mr->umem && mr->descs) {
- 		struct ib_device *device = mr->ibmr.device;
- 		int size = mr->max_descs * mr->desc_size;
- 		struct mlx5_ib_dev *dev = to_mdev(device);
-@@ -1943,7 +1943,7 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
- 
- static void clean_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
--	if (mr->sig) {
-+	if (mr->ibmr.type == IB_MR_TYPE_INTEGRITY) {
- 		if (mlx5_core_destroy_psv(dev->mdev,
- 					  mr->sig->psv_memory.psv_idx))
- 			mlx5_ib_warn(dev, "failed to destroy mem psv %d\n",
--- 
+ 	struct devlink *devlink = priv_to_devlink(dev);
+ 	union devlink_param_value val;
+--
 2.29.2
 
