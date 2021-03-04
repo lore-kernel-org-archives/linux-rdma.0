@@ -2,95 +2,141 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AACB4C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 08:27:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AACACC433DB
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 08:53:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FBBC64EFC
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 08:27:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CC1C64F10
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 08:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236697AbhCDI1J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Mar 2021 03:27:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50336 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236695AbhCDI0n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Mar 2021 03:26:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 019D964EFC;
-        Thu,  4 Mar 2021 08:26:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614846362;
-        bh=X75+5RSnLyotDaJHoI89vGtE5h8+oX1tKzuCJDfBkVM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=YOw3+UBOD1S+GjamRV6YpfE38w5j4lldKZRaRbqstXhbarPIL1iQpcERuBB7Vzv1U
-         bp/bt/DpX75pgjMkD4DEnLNGS18du2EExYgwXdOYBDDeXD2GyIsuH04HyqMZA1GthM
-         oG2RXpf/WnYEPCO/xFPhoQ2m4GVbpQSQPIvwAght8aquVpqo8jChXzjtiBHMSdPR74
-         6r+ni6tLxwodked9WinBgFzTB9oB/FTrWlSCYvHDrRHKpM5VqFEqtmYE/KKq8DIxZy
-         jBkMAVUYa95K2pyUYPVAu7zlPPBP36naRbewh+kTuxo7NfnyXSUNb/J/q7RyTXUqlZ
-         3dsCzkR7BAygA==
-Date:   Thu, 4 Mar 2021 10:25:58 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
-        Bob Pearson <rpearson@hpe.com>
-Subject: Re: [PATCH for-next v2] RDMA/rxe: Fix ib_device reference counting
- (again)
-Message-ID: <YECZls7fdfpIkLxi@unreal>
-References: <20210303225628.2836-1-rpearson@hpe.com>
+        id S236870AbhCDIwp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Mar 2021 03:52:45 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:13854 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236847AbhCDIwX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 4 Mar 2021 03:52:23 -0500
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Drl1L4S3Wz7t3h;
+        Thu,  4 Mar 2021 16:49:58 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.498.0; Thu, 4 Mar 2021 16:51:34 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@openeuler.org>
+Subject: [PATCH RFC v2 rdma-core 1/6] Update kernel headers
+Date:   Thu, 4 Mar 2021 16:49:14 +0800
+Message-ID: <1614847759-33139-2-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1614847759-33139-1-git-send-email-liweihang@huawei.com>
+References: <1614847759-33139-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210303225628.2836-1-rpearson@hpe.com>
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Mar 03, 2021 at 04:56:29PM -0600, Bob Pearson wrote:
-> Three errors occurred in the fix referenced below.
->
-> 1) rxe_rcv_mcast_pkt() dropped a reference to ib_device when
-> no error occured causing an underflow on the reference counter.
-> This code is cleaned up to be clearer and easier to read.
->
-> 2) Extending the reference taken by rxe_get_dev_from_net() in
-> rxe_udp_encap_recv() until each skb is freed was not matched by
-> a reference in the loopback path resulting in underflows.
->
-> 3) In rxe_comp.c the function free_pkt() did not clear skb which
-> triggered a warning at done: and could possibly at exit: in
-> rxe_completer(). The WARN_ONCE() calls are not actually needed.
->
-> This patch fixes these errors.
->
-> Fixes: 899aba891cab ("RDMA/rxe: Fix FIXME in rxe_udp_encap_recv()")
-> Signed-off-by: Bob Pearson <rpearson@hpe.com>
-> ---
-> Version 2:
-> v1 of this patch incorrectly added a WARN_ON_ONCE in rxe_completer
-> where it could be triggered for normal traffic. This version
-> replaced that with a pr_warn located correctly.
->
-> v1 of this patch placed a call to kfree_skb in an if statement
-> that could trigger style warnings. This version cleans that up.
->
->  drivers/infiniband/sw/rxe/rxe_comp.c |  6 +--
->  drivers/infiniband/sw/rxe/rxe_net.c  | 10 ++++-
->  drivers/infiniband/sw/rxe/rxe_recv.c | 60 +++++++++++++++++-----------
->  3 files changed, 48 insertions(+), 28 deletions(-)
+To commit ?? ("RDMA/hns: Add method to query WQE buffer's address").
 
-➜  kernel git:(rdma-next) mkt ci
-ff130e1dc197 (HEAD -> build) RDMA/rxe: Fix ib_device reference counting (again)
-WARNING: 'occured' may be misspelled - perhaps 'occurred'?
-#9:
-no error occured causing an underflow on the reference counter.
-         ^^^^^^^
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ kernel-headers/rdma/hns-abi.h | 64 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-WARNING: Prefer 'fallthrough;' over fallthrough comment
-#182: FILE: drivers/infiniband/sw/rxe/rxe_recv.c:308:
-+	/* Fall through to drop packet
+diff --git a/kernel-headers/rdma/hns-abi.h b/kernel-headers/rdma/hns-abi.h
+index 90b739d..b832f26 100644
+--- a/kernel-headers/rdma/hns-abi.h
++++ b/kernel-headers/rdma/hns-abi.h
+@@ -77,19 +77,83 @@ enum hns_roce_qp_cap_flags {
+ 	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
+ 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
+ 	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
++	HNS_ROCE_QP_CAP_DCA = 1 << 4,
+ };
+ 
+ struct hns_roce_ib_create_qp_resp {
+ 	__aligned_u64 cap_flags;
+ };
+ 
++enum {
++	HNS_ROCE_CAP_FLAG_DCA_MODE = 1 << 15,
++};
++
+ struct hns_roce_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ 	__u32	cqe_size;
++	__aligned_u64 cap_flags;
+ };
+ 
+ struct hns_roce_ib_alloc_pd_resp {
+ 	__u32 pdn;
+ };
+ 
++#define UVERBS_ID_NS_MASK 0xF000
++#define UVERBS_ID_NS_SHIFT 12
++
++enum hns_ib_objects {
++	HNS_IB_OBJECT_DCA_MEM = (1U << UVERBS_ID_NS_SHIFT),
++};
++
++enum hns_ib_dca_mem_methods {
++	HNS_IB_METHOD_DCA_MEM_REG = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_METHOD_DCA_MEM_DEREG,
++	HNS_IB_METHOD_DCA_MEM_SHRINK,
++	HNS_IB_METHOD_DCA_MEM_ATTACH,
++	HNS_IB_METHOD_DCA_MEM_DETACH,
++	HNS_IB_METHOD_DCA_MEM_QUERY,
++};
++
++enum hns_ib_dca_mem_reg_attrs {
++	HNS_IB_ATTR_DCA_MEM_REG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_REG_LEN,
++	HNS_IB_ATTR_DCA_MEM_REG_ADDR,
++	HNS_IB_ATTR_DCA_MEM_REG_KEY,
++};
++
++enum hns_ib_dca_mem_dereg_attrs {
++	HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++};
++
++enum hns_ib_dca_mem_shrink_attrs {
++	HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE,
++	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
++	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
++};
++
++#define HNS_IB_ATTACH_FLAGS_NEW_BUFFER 1U
++
++enum hns_ib_dca_mem_attach_attrs {
++	HNS_IB_ATTR_DCA_MEM_ATTACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_ATTACH_SQ_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_ATTACH_SGE_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_ATTACH_RQ_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_FLAGS,
++	HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_PAGES,
++};
++
++enum hns_ib_dca_mem_detach_attrs {
++	HNS_IB_ATTR_DCA_MEM_DETACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
++};
++
++enum hns_ib_dca_mem_query_attrs {
++	HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++};
++
+ #endif /* HNS_ABI_USER_H */
+-- 
+2.8.1
 
-WARNING: From:/Signed-off-by: email address mismatch: 'From: Bob Pearson <rpearsonhpe@gmail.com>' != 'Signed-off-by: Bob Pearson <rpearson@hpe.com>'
