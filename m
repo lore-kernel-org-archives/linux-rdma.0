@@ -2,98 +2,73 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3171C433E0
-	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:46:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 027BBC433E6
+	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:46:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F9B760201
+	by mail.kernel.org (Postfix) with ESMTP id C4B3664F23
 	for <linux-rdma@archiver.kernel.org>; Thu,  4 Mar 2021 12:46:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231272AbhCDMqL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 4 Mar 2021 07:46:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:39868 "EHLO mail.kernel.org"
+        id S229653AbhCDMqK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 4 Mar 2021 07:46:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231334AbhCDMqJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 4 Mar 2021 07:46:09 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B0E7764F23;
-        Thu,  4 Mar 2021 12:45:28 +0000 (UTC)
+        id S231224AbhCDMqC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 4 Mar 2021 07:46:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6BB4464F2B;
+        Thu,  4 Mar 2021 12:45:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1614861929;
-        bh=jHiELPzOTdmAgKcmOydvnH2PdDd1Q7vJN+nh55B2NP4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kS+X8ei8m8FZMXG8AHYRLrXvnKD2Bo3oZTQ5kuKsqDePY5c6zgnjgHHpsKM5CM5V7
-         tGNgXEgSUwGiXB+bUN5JElObyNZLgtWmgKJHmAktv9XmVHFVQYqlKkclD6dpwiiGjf
-         pH+JqRz+h+/Bw2T/e8VtHwqpY6oh0WAllibXvseKiEh+BU714oBYypLieyXyQRkiSD
-         2id7zcUw+S9ZLesmFjQGgd940jMC1TlXPcgF28zJRS1SzS0r09L/MPbaJbdM6eTx9E
-         AlPhbsxmJ6DmdwnDgPOvJ9zDChR3ZtcHu7fdrIyMw9GkyHlHWfwWYy7fMuuQ5txMFo
-         Z8HHOxGZ/R3+A==
+        s=k20201202; t=1614861922;
+        bh=4ZzAOaZx/nYIaR4h1dGLEx3eDAwTI6eNCwgfrcDOXLo=;
+        h=From:To:Cc:Subject:Date:From;
+        b=U5WV4IPmvuQCdsgdTeapXafxdqg0DXe7upmmlwM/qEN7oztYpv6/+HmnI6VutWsRJ
+         dVRz1eA1es9rNFMDPlbSiKlymEBn4CEYdOGOvXOYzt8SR5Jy/9W87Gb4zGq2MoWpEs
+         +BVzVJnOYvRIXTq3fncdQ3e/5Y+UP4pcQ3BlYDIwNZ6Kphmayz8gi0D30kY887DgNo
+         +Zm1CQXlyAmFV8A2HkJqoH6hzGRUWVzRuvmxFBcb+Wt7n+0r6kmdlldO3LhB96YMEU
+         aT0K/Vrl7pUeTWIU/sYXMDL+JbJJdyC9RO/c1Stgfb48EneTsFLmZexsVmzgH2FwX4
+         exW4nOeRvBSmw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Mark Zhang <markzhang@nvidia.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>
-Subject: [PATCH rdma-next 3/3] RDMA/mlx5: Fix mlx5 rates to IB rates map
-Date:   Thu,  4 Mar 2021 14:45:17 +0200
-Message-Id: <20210304124517.1100608-4-leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@nvidia.com>,
+        Mark Zhang <markzhang@nvidia.com>,
+        Shay Drory <shayd@nvidia.com>
+Subject: [PATCH rdma-next 0/3] Batch independent fixes to mlx5_ib
+Date:   Thu,  4 Mar 2021 14:45:14 +0200
+Message-Id: <20210304124517.1100608-1-leon@kernel.org>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210304124517.1100608-1-leon@kernel.org>
-References: <20210304124517.1100608-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markzhang@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Correct the map between mlx5 rates and corresponding ib rates, as they
-are not always have a fixed offset between them.
+Completely independent fixes and improvements to mlx5_ib driver.
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+Maor Gottlieb (1):
+  RDMA/mlx5: Fix query RoCE port
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 669716425e83..f56f144dbfd2 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3142,6 +3142,19 @@ enum {
- 	MLX5_PATH_FLAG_COUNTER	= 1 << 2,
- };
+Mark Zhang (1):
+  RDMA/mlx5: Fix mlx5 rates to IB rates map
 
-+static int mlx5_to_ib_rate_map(u8 rate)
-+{
-+	static const int rates[] = { IB_RATE_PORT_CURRENT, IB_RATE_56_GBPS,
-+				     IB_RATE_25_GBPS,	   IB_RATE_100_GBPS,
-+				     IB_RATE_200_GBPS,	   IB_RATE_50_GBPS,
-+				     IB_RATE_400_GBPS };
-+
-+	if (rate < ARRAY_SIZE(rates))
-+		return rates[rate];
-+
-+	return rate - MLX5_STAT_RATE_OFFSET;
-+}
-+
- static int ib_to_mlx5_rate_map(u8 rate)
- {
- 	switch (rate) {
-@@ -4481,7 +4494,7 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
- 	rdma_ah_set_path_bits(ah_attr, MLX5_GET(ads, path, mlid));
+Shay Drory (1):
+  RDMA/mlx5: Create ODP EQ only when ODP MR is created
 
- 	static_rate = MLX5_GET(ads, path, stat_rate);
--	rdma_ah_set_static_rate(ah_attr, static_rate ? static_rate - 5 : 0);
-+	rdma_ah_set_static_rate(ah_attr, mlx5_to_ib_rate_map(static_rate));
- 	if (MLX5_GET(ads, path, grh) ||
- 	    ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
- 		rdma_ah_set_grh(ah_attr, NULL, MLX5_GET(ads, path, flow_label),
+ drivers/infiniband/hw/mlx5/main.c    |  6 +++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  7 ++++++
+ drivers/infiniband/hw/mlx5/mr.c      |  3 +++
+ drivers/infiniband/hw/mlx5/odp.c     | 32 +++++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/qp.c      | 15 ++++++++++++-
+ include/linux/mlx5/driver.h          |  2 +-
+ 6 files changed, 50 insertions(+), 15 deletions(-)
+
 --
 2.29.2
 
