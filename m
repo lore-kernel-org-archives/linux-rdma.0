@@ -7,40 +7,39 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F8FC433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F8E1C433E6
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2333164E98
+	by mail.kernel.org (Postfix) with ESMTP id 5049564FD0
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232387AbhCJTER (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Mar 2021 14:04:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44276 "EHLO mail.kernel.org"
+        id S233679AbhCJTES (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Mar 2021 14:04:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233716AbhCJTDx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Mar 2021 14:03:53 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26F6A64EAE;
-        Wed, 10 Mar 2021 19:03:53 +0000 (UTC)
+        id S233723AbhCJTDz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 10 Mar 2021 14:03:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CB8BB64FD3;
+        Wed, 10 Mar 2021 19:03:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615403033;
-        bh=/KsyP+Bu4Lck/Np5Pwam/Vf14xeuEIVtTTXur+QCLRo=;
+        s=k20201202; t=1615403035;
+        bh=vWKCxkdlG/VxjJdSvPNM52aYuPBtHXpYMFFydwDAf8I=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hhRKr2DzgvT239YxGDbwFgNWogE9537yUt5Xc7azo0NDT6CyQ9+ENBs5xFUVtEKa3
-         xWeDx/mvPAWzaMTqZPfG8XUu8pY/gA7hAhsy/VbBBJkY69qxZc92nEIYx38I1HFwxS
-         KqmQqUh4IEXwquHtaXDcccikww++ARGn1lMSXHQMKM0DEr9uuBrw5+IdrZePchZ4ss
-         N2yupKnvgsUX/3/XDSP8xKVTcURo8XKeCrvshj1gHEXc8D504M/bX9jrxR60MASEIQ
-         1YAh+uvluy4zOjTCUagJuMcyhOpLH/MbVZI7SwGeDr4QIyBJsiYCVOp6JtMXVQmRQH
-         DWuAfgAU9AUWg==
+        b=PseMnWMoZsSMe+WkdsChB4rmTykCe6YjoNvruKLAZDZZt2Hu/17PUeSdkh///hqR8
+         Ia3ckTlo8SgT4rdxo5v2vcfb1jVYe8iIsNauFlqp+og0fhuxp7kP+n2jOXedyzPTzJ
+         2M41+kZZG7KoqWQdj3gem6UX1KckEjRQm4QZsDGDUFagDUgpfWpNzuZEu+rgJMkugo
+         AzWX1Q9QlErzodKhAhZwYV6Sxnvwuu1oT6tTVn009fDkS6MTZBuTpdHChWZ+i9ZscX
+         cTbtkUUr52VxoXnZkn9ES66qsq38figwSMfamttJ/HPNZoe9pREkO5nsUxKEwKCJ/5
+         pKzsQ/k3P+hyw==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Maxim Mikityanskiy <maximmi@mellanox.com>,
+        Aya Levin <ayal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net 01/18] net/mlx5e: Enforce minimum value check for ICOSQ size
-Date:   Wed, 10 Mar 2021 11:03:25 -0800
-Message-Id: <20210310190342.238957-2-saeed@kernel.org>
+Subject: [net 04/18] net/mlx5e: Set PTP channel pointer explicitly to NULL
+Date:   Wed, 10 Mar 2021 11:03:28 -0800
+Message-Id: <20210310190342.238957-5-saeed@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210310190342.238957-1-saeed@kernel.org>
 References: <20210310190342.238957-1-saeed@kernel.org>
@@ -50,35 +49,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@nvidia.com>
+From: Aya Levin <ayal@nvidia.com>
 
-The ICOSQ size should not go below MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE.
-Enforce this where it's missing.
+When closing the PTP channel, set its pointer explicitly to NULL. PTP
+channel is opened on demand, the code verify the pointer validity before
+access. Nullify it when closing the PTP channel to avoid unexpected
+behavior.
 
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Maxim Mikityanskiy <maximmi@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
+Fixes: 145e5637d941 ("net/mlx5e: Add TX PTP port object support")
+Signed-off-by: Aya Levin <ayal@nvidia.com>
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index ec2fcb2a2977..5c8ffa8da6f0 100644
+index 9e2a30dc5e4f..66d23cd275c1 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2368,8 +2368,9 @@ static u8 mlx5e_build_icosq_log_wq_sz(struct mlx5e_params *params,
+@@ -2503,8 +2503,10 @@ void mlx5e_close_channels(struct mlx5e_channels *chs)
  {
- 	switch (params->rq_wq_type) {
- 	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
--		return order_base_2(MLX5E_UMR_WQEBBS) +
--			mlx5e_get_rq_log_wq_sz(rqp->rqc);
-+		return max_t(u8, MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE,
-+			     order_base_2(MLX5E_UMR_WQEBBS) +
-+			     mlx5e_get_rq_log_wq_sz(rqp->rqc));
- 	default: /* MLX5_WQ_TYPE_CYCLIC */
- 		return MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE;
- 	}
+ 	int i;
+ 
+-	if (chs->port_ptp)
++	if (chs->port_ptp) {
+ 		mlx5e_port_ptp_close(chs->port_ptp);
++		chs->port_ptp = NULL;
++	}
+ 
+ 	for (i = 0; i < chs->num; i++)
+ 		mlx5e_close_channel(chs->c[i]);
 -- 
 2.29.2
 
