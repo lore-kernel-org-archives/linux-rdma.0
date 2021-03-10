@@ -2,78 +2,133 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB07C41621
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA558C433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:10:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A5AD64FB1
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8503664F93
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233844AbhCJTEX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Mar 2021 14:04:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44410 "EHLO mail.kernel.org"
+        id S231402AbhCJTJh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Mar 2021 14:09:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233764AbhCJTEC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Mar 2021 14:04:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ABABB64FCC;
-        Wed, 10 Mar 2021 19:04:01 +0000 (UTC)
+        id S232880AbhCJTJJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 10 Mar 2021 14:09:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 609A764F93;
+        Wed, 10 Mar 2021 19:09:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615403042;
-        bh=bpVODYW5UVZnEOudgLhN4U32hjj1tMuDqmKxMhtCbaE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=T5a3RTKNvIHauz8lFIDZblhgqd9No8wfH2wlNeIvmw1WDKVhFs/jSDzOm2eqhK4zz
-         Y8tQHQwGO63ERS7ZuZ2w+QpB+HVNnDDN9pRLcB+qyC82qmnZoMfmdQuKR1reNUzLFL
-         Dhpk8EttHIczCWthSLPdj93UXVNJzAfUGjiMnRfPE7+sL5XUCS0rhICXMGs7geCMnn
-         S528onk6V/pJAdXBbvyuLpCRTj/CcAHamHKW0/6oybZAKiEcSUcBzf7jwUh0AeODUj
-         y1/lsdHAULDummYOWhTw24qSL/kZTIkYZK6xBo4rf1Y0H3EhHTiNe3NhC/l2B9Buin
-         rJSFhCLGUhXkg==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Shay Drory <shayd@nvidia.com>, Parav Pandit <parav@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net 16/18] net/mlx5: SF: Fix memory leak of work item
-Date:   Wed, 10 Mar 2021 11:03:40 -0800
-Message-Id: <20210310190342.238957-17-saeed@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20210310190342.238957-1-saeed@kernel.org>
-References: <20210310190342.238957-1-saeed@kernel.org>
+        s=k20201202; t=1615403348;
+        bh=/zpyjVEYsl5qnKnsooOKZ2w+XT7cw6yuEAItNuarinc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=hVtTJdMIu4SQ2XrTyYP3PKyc0zktSkjizJJujRecAM+7qc/DqUUZEsM8+aKrf+SwE
+         UZiSJb42rwlhmkT2RTD+C/slo+LmD9Nnae8qFtSYGdPBJWL/yBm4WB3D1YmGFJ0PLI
+         8d3s6/fZbRFHNmSwcZWgSin3kExP4X+LXNy9Y/KODfuyysAxvezcxwAqLEIJImjULA
+         QTLUFEY+znsoSooI6UYYbJoz806X8HVfCKYy43Ayi+a1nJ2KxRi8/fBXs9e+8yG9Dv
+         y8Mdq5DEUlQ6OZeHRlZGiUvfN2LHsURoIGpEAEixF0PvBZ5Cigd07bLnCEfyqE549N
+         qTAJr2GfTPOxg==
+Date:   Wed, 10 Mar 2021 13:09:06 -0600
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Alexander Duyck <alexander.duyck@gmail.com>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        linux-pci <linux-pci@vger.kernel.org>,
+        linux-rdma@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
+        Don Dutile <ddutile@redhat.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH mlx5-next v7 0/4] Dynamically assign MSI-X vectors count
+Message-ID: <20210310190906.GA2020121@bjorn-Precision-5520>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKgT0Ue=g+1pZCct8Kd0OnkPEP0qhggBF96s=noDoWHMJTL6FA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shay Drory <shayd@nvidia.com>
+On Sun, Mar 07, 2021 at 10:55:24AM -0800, Alexander Duyck wrote:
+> On Sun, Feb 28, 2021 at 11:55 PM Leon Romanovsky <leon@kernel.org> wrote:
+> > From: Leon Romanovsky <leonro@nvidia.com>
+> >
+> > @Alexander Duyck, please update me if I can add your ROB tag again
+> > to the series, because you liked v6 more.
+> >
+> > Thanks
+> >
+> > ---------------------------------------------------------------------------------
+> > Changelog
+> > v7:
+> >  * Rebase on top v5.12-rc1
+> >  * More english fixes
+> >  * Returned to static sysfs creation model as was implemented in v0/v1.
+> 
+> Yeah, so I am not a fan of the series. The problem is there is only
+> one driver that supports this, all VFs are going to expose this sysfs,
+> and I don't know how likely it is that any others are going to
+> implement this functionality. I feel like you threw out all the
+> progress from v2-v6.
 
-Cited patch in the fixes tag missed to free the allocated work.
-Fix it by freeing the work after work execution.
+pci_enable_vfs_overlay() turned up in v4, so I think v0-v3 had static
+sysfs files regardless of whether the PF driver was bound.
 
-Fixes: f3196bb0f14c ("net/mlx5: Introduce vhca state event notifier")
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c | 1 +
- 1 file changed, 1 insertion(+)
+> I really feel like the big issue is that this model is broken as you
+> have the VFs exposing sysfs interfaces that make use of the PFs to
+> actually implement. Greg's complaint was the PF pushing sysfs onto the
+> VFs. My complaint is VFs sysfs files operating on the PF. The trick is
+> to find a way to address both issues.
+> 
+> Maybe the compromise is to reach down into the IOV code and have it
+> register the sysfs interface at device creation time in something like
+> pci_iov_sysfs_link if the PF has the functionality present to support
+> it.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
-index af2f2dd9db25..f1c2068d4f2a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/vhca_event.c
-@@ -94,6 +94,7 @@ static void mlx5_vhca_state_work_handler(struct work_struct *_work)
- 	struct mlx5_core_dev *dev = notifier->dev;
- 
- 	mlx5_vhca_event_notify(dev, &work->event);
-+	kfree(work);
- }
- 
- static int
--- 
-2.29.2
+IIUC there are two questions on the table:
 
+  1) Should the sysfs files be visible only when a PF driver that
+     supports MSI-X vector assignment is bound?
+
+     I think this is a cosmetic issue.  The presence of the file is
+     not a reliable signal to management software; it must always
+     tolerate files that don't exist (e.g., on old kernels) or files
+     that are visible but don't work (e.g., vectors may be exhausted).
+
+     If we start with the files always being visible, we should be
+     able to add smarts later to expose them only when the PF driver
+     is bound.
+
+     My concerns with pci_enable_vf_overlay() are that it uses a
+     little more sysfs internals than I'd like (although there are
+     many callers of sysfs_create_files()) and it uses
+     pci_get_domain_bus_and_slot(), which is generally a hack and
+     creates refcounting hassles.  Speaking of which, isn't v6 missing
+     a pci_dev_put() to match the pci_get_domain_bus_and_slot()?
+
+  2) Should a VF sysfs file use the PF to implement this?
+
+     Can you elaborate on your idea here?  I guess
+     pci_iov_sysfs_link() makes a "virtfnX" link from the PF to the
+     VF, and you're thinking we could also make a "virtfnX_msix_count"
+     in the PF directory?  That's a really interesting idea.
+
+> Also we might want to double check that the PF cannot be unbound while
+> the VF is present. I know for a while there it was possible to remove
+> the PF driver while the VF was present. The Mellanox drivers may not
+> allow it but it might not hurt to look at taking a reference against
+> the PF driver if you are allocating the VF MSI-X configuration sysfs
+> file.
+
+Unbinding the PF driver will either remove the *_msix_count files or
+make them stop working.  Is that a problem?  I'm not sure we should
+add a magic link that prevents driver unbinding.  Seems like it would
+be hard for users to figure out why the driver can't be removed.
+
+Bjorn
