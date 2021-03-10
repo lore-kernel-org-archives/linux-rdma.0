@@ -7,39 +7,41 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F40CC28CFB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E1A7C28D13
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 096F964FDC
+	by mail.kernel.org (Postfix) with ESMTP id 37B1F64FDC
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233821AbhCJTEW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Mar 2021 14:04:22 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44378 "EHLO mail.kernel.org"
+        id S233852AbhCJTEY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Mar 2021 14:04:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233749AbhCJTEA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Mar 2021 14:04:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80E5F64FCD;
-        Wed, 10 Mar 2021 19:03:59 +0000 (UTC)
+        id S233770AbhCJTED (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 10 Mar 2021 14:04:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C423664FCD;
+        Wed, 10 Mar 2021 19:04:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615403039;
-        bh=wgCvTOdTj9QlfxodPHyGMS1TatC8CA3u/k0OY5IvK0A=;
+        s=k20201202; t=1615403043;
+        bh=AsCp7Q3ASY5fQ3uCys1QXS4icwVJ/QYriXknYc6Ii6E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Cm2HzbH7tkJlm8wg5jmvymHEY6cNwDbjoCnZdCrPtKDjLEj7yja+0/Uf5OsyawC+7
-         g4/pBZmIqMCMVIkCoP0suYjm7PPmuc6relwZ8B9C6z2A343Y7tUEPwP54hDvjlWc+O
-         n4qA7eGqOd2YB8q9LvExFNlOeK9zt3+DY7wk0ztaiRk209wpFPlvUY47ermnfpeCea
-         kd9rV9IA4AknRbFiBdhXk6retzm8pWYD5qJmuY8d1QqS14+k29Ks1TQfrK2LpiwLmb
-         VXDwmAozVEdNglEaxwr2bsqulaR/ssG/DO3eF25Vyp4i2dfnzbZOMt/dgRkzMY2b4a
-         VVOXKujfF+Fxw==
+        b=t89z4xbLWjvMJnBWTqHlX+pJQt/RXHEdPi0OVvakwMfKTPENnAMkrrZEbnDbrMINP
+         mNs4hmzRvZo8YeJ54JDS50vkawFvCy7AnhuJSwCmGliPHVxfcEDmw8WC9NUrcV5lZN
+         kG151lNtqg+SrJrBZeGMaeEdVc8UjrEZtPVEITS9qb2mc7yKVAZLszqiHZvrwgUI7+
+         g213IH4N7sx528oLl1h68rm6WwJzmWUywPqDm8NWoH6smoSRLIYpevow3syJesAOYj
+         MbhYAUXqNul+MZmFjMIiPTsSvbos0Dz+09hC/bKKJJaekrbDttNgpedbeK+z2nKQIc
+         VorBx632U2Glg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
+        Yevgeny Kliteynik <kliteyn@nvidia.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Alex Vesker <valex@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net 12/18] net/mlx5: Set QP timestamp mode to default
-Date:   Wed, 10 Mar 2021 11:03:36 -0800
-Message-Id: <20210310190342.238957-13-saeed@kernel.org>
+Subject: [net 18/18] net/mlx5: DR, Fix potential shift wrapping of 32-bit value in STEv1 getter
+Date:   Wed, 10 Mar 2021 11:03:42 -0800
+Message-Id: <20210310190342.238957-19-saeed@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210310190342.238957-1-saeed@kernel.org>
 References: <20210310190342.238957-1-saeed@kernel.org>
@@ -49,74 +51,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@nvidia.com>
+From: Yevgeny Kliteynik <kliteyn@nvidia.com>
 
-QPs which don't care from timestamp mode, should set the ts_format
-to default, otherwise the QP creation could be failed if the timestamp
-mode is not supported.
+Fix 32-bit variable shift wrapping in dr_ste_v1_get_miss_addr.
 
-Fixes: 2fe8d4b87802 ("RDMA/mlx5: Fail QP creation if the device can not support the CQE TS")
-Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Fixes: a6098129c781 ("net/mlx5: DR, Add STEv1 setters and getters")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
+Reviewed-by: Alex Vesker <valex@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c        | 1 +
- drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c      | 1 +
- drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c | 1 +
- include/linux/mlx5/qp.h                                    | 7 +++++++
- 4 files changed, 10 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index 80da50e12915..bd66ab2af5b5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -575,6 +575,7 @@ static int mlx5_fpga_conn_create_qp(struct mlx5_fpga_conn *conn,
- 	MLX5_SET(qpc, qpc, log_sq_size, ilog2(conn->qp.sq.size));
- 	MLX5_SET(qpc, qpc, cqn_snd, conn->cq.mcq.cqn);
- 	MLX5_SET(qpc, qpc, cqn_rcv, conn->cq.mcq.cqn);
-+	MLX5_SET(qpc, qpc, ts_format, mlx5_get_qp_default_ts(mdev));
- 	MLX5_SET64(qpc, qpc, dbr_addr, conn->qp.wq_ctrl.db.dma);
- 	if (MLX5_CAP_GEN(mdev, cqe_version) == 1)
- 		MLX5_SET(qpc, qpc, user_index, 0xFFFFFF);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-index 756fa0401ab7..6f7cef47e04c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
-@@ -233,6 +233,7 @@ int mlx5i_create_underlay_qp(struct mlx5e_priv *priv)
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
+index 4088d6e51508..9143ec326ebf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_ste_v1.c
+@@ -264,8 +264,8 @@ static void dr_ste_v1_set_miss_addr(u8 *hw_ste_p, u64 miss_addr)
+ static u64 dr_ste_v1_get_miss_addr(u8 *hw_ste_p)
+ {
+ 	u64 index =
+-		(MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_31_6) |
+-		 MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_39_32) << 26);
++		((u64)MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_31_6) |
++		 ((u64)MLX5_GET(ste_match_bwc_v1, hw_ste_p, miss_address_39_32)) << 26);
  
- 	qpc = MLX5_ADDR_OF(create_qp_in, in, qpc);
-+	MLX5_SET(qpc, qpc, ts_format, mlx5_get_qp_default_ts(priv->mdev));
- 	MLX5_SET(qpc, qpc, st, MLX5_QP_ST_UD);
- 	MLX5_SET(qpc, qpc, pm_state, MLX5_QP_PM_MIGRATED);
- 	MLX5_SET(qpc, qpc, ulp_stateless_offload_mode,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
-index 83c4c877d558..8a6a56f9dc4e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
-@@ -169,6 +169,7 @@ static struct mlx5dr_qp *dr_create_rc_qp(struct mlx5_core_dev *mdev,
- 	MLX5_SET(qpc, qpc, log_rq_size, ilog2(dr_qp->rq.wqe_cnt));
- 	MLX5_SET(qpc, qpc, rq_type, MLX5_NON_ZERO_RQ);
- 	MLX5_SET(qpc, qpc, log_sq_size, ilog2(dr_qp->sq.wqe_cnt));
-+	MLX5_SET(qpc, qpc, ts_format, mlx5_get_qp_default_ts(mdev));
- 	MLX5_SET64(qpc, qpc, dbr_addr, dr_qp->wq_ctrl.db.dma);
- 	if (MLX5_CAP_GEN(mdev, cqe_version) == 1)
- 		MLX5_SET(qpc, qpc, user_index, 0xFFFFFF);
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index d75ef8aa8fac..b7deb790f257 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -547,4 +547,11 @@ static inline const char *mlx5_qp_state_str(int state)
- 	}
+ 	return index << 6;
  }
- 
-+static inline int mlx5_get_qp_default_ts(struct mlx5_core_dev *dev)
-+{
-+	return !MLX5_CAP_ROCE(dev, qp_ts_format) ?
-+		       MLX5_QPC_TIMESTAMP_FORMAT_FREE_RUNNING :
-+		       MLX5_QPC_TIMESTAMP_FORMAT_DEFAULT;
-+}
-+
- #endif /* MLX5_QP_H */
 -- 
 2.29.2
 
