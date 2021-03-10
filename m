@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ED77C4360C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DDB9C43331
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A69864FE5
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC7E164FD5
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Mar 2021 19:04:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233723AbhCJTEV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Mar 2021 14:04:21 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44360 "EHLO mail.kernel.org"
+        id S233724AbhCJTET (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Mar 2021 14:04:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233747AbhCJTD7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 10 Mar 2021 14:03:59 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 69F1E64FD3;
-        Wed, 10 Mar 2021 19:03:58 +0000 (UTC)
+        id S233729AbhCJTD4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 10 Mar 2021 14:03:56 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1BBFE64FB1;
+        Wed, 10 Mar 2021 19:03:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615403038;
-        bh=Qvqevhn9kI9HjQVN5NPV3LLNlAClju92nhxZYdNi2qE=;
+        s=k20201202; t=1615403036;
+        bh=wT14TkWNyI+D1zr2XEPrcqQQppEi/muTDrRtB7IjWsQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=En5+iijF8bi311FTmhSdLXFeYUbT3KR+pBO+Dzu5uLRp3TU4pEP7hZsAWAEbcB6MK
-         kay0ADZZH5w8hIXAwWGz+mEwUPhNvBDhtmX441AxQm6jak6PdgOSU7KhH+NXAAZo72
-         XhH98klAW50opS3izf2yvxPOGA/n9WWz1n8WD78hYLDfSwipIUFOk4J7zpLRmzFVv7
-         hhlNZhoiwj6rb/OQ0faSjj6Hfz1vA11YsJrmtc692xdzx1rlY+Pju6qD9PqldCbXB1
-         UKCEvynAryuNx82GmVQvQl/UDGA4VyTr6J1eVlhVyJzIAlvFFVCDH77pgKCpw37Uj/
-         Q4l7UXKE9Qvdg==
+        b=K92Cr6DR1TtOUR+/YGB0pAZngTZpdQXsjiF7ZOBqCMf2HP6URFrrG+J6/YcDO4A/Z
+         yUPvrmf1k15tqP50ihycXmdvmRuLQDv/UDM+VPIcz1hfWXjboku3eylTm70zITItXf
+         11lElCulLXkVYanFqV1jK4Q5QPY3cY8YJbfD6CFzOpedqo5/0+laD1HKWtN9GD3G7S
+         uEnxBWIXGDPbgAVIrQV7BGf779SciEg2dufPK5tG4T5ChJJ9/AsHfTtHdaXaNtZjh8
+         rXOLRVo/GrFcfqRN6dNCBXBvE33Id2YUfLkVTLdSVj9cV2rbH1YJC7xdcXfD+RV3Hz
+         dJy+WUU7pLe1A==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maor Dickman <maord@nvidia.com>,
-        Vlad Buslov <vladbu@nvidia.com>,
+        Maxim Mikityanskiy <maximmi@mellanox.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [net 10/18] net/mlx5: Disable VF tunnel TX offload if ignore_flow_level isn't supported
-Date:   Wed, 10 Mar 2021 11:03:34 -0800
-Message-Id: <20210310190342.238957-11-saeed@kernel.org>
+Subject: [net 06/18] net/mlx5e: Revert parameters on errors when changing PTP state without reset
+Date:   Wed, 10 Mar 2021 11:03:30 -0800
+Message-Id: <20210310190342.238957-7-saeed@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20210310190342.238957-1-saeed@kernel.org>
 References: <20210310190342.238957-1-saeed@kernel.org>
@@ -50,37 +50,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Dickman <maord@nvidia.com>
+From: Maxim Mikityanskiy <maximmi@mellanox.com>
 
-VF tunnel TX traffic offload is adding flow which forward to flow
-tables with lower level, which isn't support on all FW versions
-and may cause firmware to fail with syndrome.
+Port timestamping for PTP can be enabled/disabled while the channels are
+closed. In that case mlx5e_safe_switch_channels is skipped, and the
+preactivate hook is called directly. However, if that hook returns an
+error, the channel parameters must be reverted back to their old values.
+This commit adds missing handling on this case.
 
-Fixed by enabling VF tunnel TX offload only if flow table capability
-ignore_flow_level is enabled.
-
-Fixes: 10742efc20a4 ("net/mlx5e: VF tunnel TX traffic offloading")
-Signed-off-by: Maor Dickman <maord@nvidia.com>
-Reviewed-by: Vlad Buslov <vladbu@nvidia.com>
+Fixes: 145e5637d941 ("net/mlx5e: Add TX PTP port object support")
+Signed-off-by: Maxim Mikityanskiy <maximmi@mellanox.com>
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 94cb0217b4f3..8694b83968b4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -551,7 +551,8 @@ esw_setup_dests(struct mlx5_flow_destination *dest,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+index abdf721bb264..0e059d5c57ac 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+@@ -2014,8 +2014,13 @@ static int set_pflag_tx_port_ts(struct net_device *netdev, bool enable)
+ 	 */
  
- 	if (!mlx5_eswitch_termtbl_required(esw, attr, flow_act, spec) &&
- 	    MLX5_CAP_GEN(esw_attr->in_mdev, reg_c_preserve) &&
--	    mlx5_eswitch_vport_match_metadata_enabled(esw))
-+	    mlx5_eswitch_vport_match_metadata_enabled(esw) &&
-+	    MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, ignore_flow_level))
- 		attr->flags |= MLX5_ESW_ATTR_FLAG_SRC_REWRITE;
+ 	if (!test_bit(MLX5E_STATE_OPENED, &priv->state)) {
++		struct mlx5e_params old_params;
++
++		old_params = priv->channels.params;
+ 		priv->channels.params = new_channels.params;
+ 		err = mlx5e_num_channels_changed(priv);
++		if (err)
++			priv->channels.params = old_params;
+ 		goto out;
+ 	}
  
- 	if (attr->dest_ft) {
 -- 
 2.29.2
 
