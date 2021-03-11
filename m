@@ -2,105 +2,81 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C47EC433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30D74C433DB
 	for <linux-rdma@archiver.kernel.org>; Thu, 11 Mar 2021 07:10:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A68AD65007
+	by mail.kernel.org (Postfix) with ESMTP id E3CBB6501A
 	for <linux-rdma@archiver.kernel.org>; Thu, 11 Mar 2021 07:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231906AbhCKHJ5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 11 Mar 2021 02:09:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52322 "EHLO mail.kernel.org"
+        id S231829AbhCKHJ6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 11 Mar 2021 02:09:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231950AbhCKHJj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 11 Mar 2021 02:09:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8173065015;
-        Thu, 11 Mar 2021 07:09:38 +0000 (UTC)
+        id S231963AbhCKHJk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 11 Mar 2021 02:09:40 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B15A76501F;
+        Thu, 11 Mar 2021 07:09:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615446578;
-        bh=hZc9q+zX7hfMZamiCC3QUWg/+TU7MMqJeenUVV+SIgg=;
-        h=From:To:Subject:Date:From;
-        b=j3fVTrxY53MVAt6Rq9HB8CKDnSM5IPtMcWxlVXzhCgUrZgsI1sZyBxi+G7sjp26IF
-         nJZYr2j4ZcjUHb0mEKLhpyvzUVddTi6CR7RspKsyItvBsl7p76kbH32XoLqzeqeRhE
-         HnfpoXy5od38cXrnVewy5vaxi2bsgJNn65LGTL+QySO32AnQ1T0/2NANj6zPgLddif
-         4rZrKq0uQyyf110yS6l1D+5lbDvfo6pUYOROCiy65/Re63yc9d60tcx6H2uL/z9ufU
-         lHXGm/dQF+1T/y5YIrpgVGRkneFSZpchibqLe2IKxs4eqwPADvQSpZwTiNwDzj3VWI
-         ZVxokF5dPg1sw==
+        s=k20201202; t=1615446580;
+        bh=YRMEFSdWj/GWucEy0gNovB73REQQQx2/nigGTwxmyig=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=FA0iIWhX1MNaTxpHp1GmQSetz29MHvX5kkjHkXJXG/PihyHpN1npm0pCYfLCallZc
+         Kh24ilKjNR6PvjXOFnDyZQjsMVKrhRm3h+6SLJ/C18AIF5bHi7Zay5HLS9qHUsjymi
+         VlbkIDRtl9QYoK9wsj3ICyQTuNAFUJW/zJpxpFPh6ejv/n7vYR5ugYFJqSeFPhhERI
+         BhUVxq2w3AA+TmHqpgkZWE0Noy10Mf1X7tR5Q9OBUffc6qqkya3FN7tYHfp3DIoWNj
+         YHNu9CbKrC6qnUH6hO/6a9YIDJSPaeeisLXVSbQLS/UlTcpKXiu+R+2Bg+7bQ3PM4v
+         lh8Ob69m9mThQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH mlx5-next 0/9] mlx5 next updates 2021-03-10
-Date:   Wed, 10 Mar 2021 23:09:06 -0800
-Message-Id: <20210311070915.321814-1-saeed@kernel.org>
+Cc:     Zheng Yongjun <zhengyongjun3@huawei.com>
+Subject: [PATCH mlx5-next 2/9] net/mlx5: simplify the return expression of mlx5_esw_offloads_pair()
+Date:   Wed, 10 Mar 2021 23:09:08 -0800
+Message-Id: <20210311070915.321814-3-saeed@kernel.org>
 X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210311070915.321814-1-saeed@kernel.org>
+References: <20210311070915.321814-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+From: Zheng Yongjun <zhengyongjun3@huawei.com>
 
-This series is targeting mlx5-next shared tree for mlx5
-netdev and rdma shared updates.
+Simplify the return expression.
 
-From Mark, E-Switch cleanups and refactoring, and the addition 
-of single FDB mode needed HW bits.
+Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-From Mikhael, Remove unused struct field
-
-From Saeed, Cleanup W=1 prototype warning 
-
-From Zheng, Esw related cleanup
-
-From Tariq, User order-0 page allocation for EQs
-
-In case of no objections, this series will be applied to mlx5-next first
-and then sent in one pull request to both netdev and rdma next trees.
-
-Thanks,
-Saeed
-
-Mark Bloch (5):
-  net/mlx5: E-Switch, Add match on vhca id to default send rules
-  net/mlx5: E-Switch, Add eswitch pointer to each representor
-  RDMA/mlx5: Use represntor E-Switch when getting netdev and metadata
-  net/mlx5: E-Switch, Refactor send to vport to be more generic
-  net/mlx5: Add IFC bits needed for single FDB mode
-
-Mikhael Goikhman (1):
-  net/mlx5: Remove unused mlx5_core_health member recover_work
-
-Saeed Mahameed (1):
-  net/mlx5: Cleanup prototype warning
-
-Tariq Toukan (1):
-  net/mlx5: Use order-0 allocations for EQs
-
-Zheng Yongjun (1):
-  net/mlx5: simplify the return expression of mlx5_esw_offloads_pair()
-
- drivers/infiniband/hw/mlx5/fs.c               |  2 +-
- drivers/infiniband/hw/mlx5/ib_rep.c           |  5 ++-
- drivers/infiniband/hw/mlx5/main.c             |  3 +-
- .../ethernet/mellanox/mlx5/core/en/health.c   |  2 +-
- .../net/ethernet/mellanox/mlx5/core/en_rep.c  |  3 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 27 +++++++++------
- .../mellanox/mlx5/core/eswitch_offloads.c     | 34 +++++++++++++------
- .../net/ethernet/mellanox/mlx5/core/lag_mp.c  |  2 +-
- .../net/ethernet/mellanox/mlx5/core/lib/eq.h  | 15 +++++---
- drivers/net/ethernet/mellanox/mlx5/core/wq.c  |  5 ---
- include/linux/mlx5/driver.h                   |  6 +++-
- include/linux/mlx5/eswitch.h                  |  5 +--
- include/linux/mlx5/mlx5_ifc.h                 | 21 ++++++++----
- 13 files changed, 79 insertions(+), 51 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 94cb0217b4f3..107b1f208b72 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -2288,13 +2288,8 @@ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num)
+ static int mlx5_esw_offloads_pair(struct mlx5_eswitch *esw,
+ 				  struct mlx5_eswitch *peer_esw)
+ {
+-	int err;
+ 
+-	err = esw_add_fdb_peer_miss_rules(esw, peer_esw->dev);
+-	if (err)
+-		return err;
+-
+-	return 0;
++	return esw_add_fdb_peer_miss_rules(esw, peer_esw->dev);
+ }
+ 
+ static void mlx5_esw_offloads_unpair(struct mlx5_eswitch *esw)
 -- 
 2.29.2
 
