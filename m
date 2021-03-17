@@ -2,172 +2,98 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F90FC4332E
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Mar 2021 09:12:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF20EC433E0
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Mar 2021 16:12:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6AEBD64F99
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Mar 2021 09:12:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 80DF164E27
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Mar 2021 16:12:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbhCQJMZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Mar 2021 05:12:25 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:14388 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230127AbhCQJMM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Mar 2021 05:12:12 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4F0ks73R3gzkbLX;
-        Wed, 17 Mar 2021 17:10:35 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.498.0; Wed, 17 Mar 2021 17:12:05 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@openeuler.org>
-Subject: [PATCH for-next 2/5] RDMA/hns: Reorganize hns_roce_create_cq()
-Date:   Wed, 17 Mar 2021 17:09:40 +0800
-Message-ID: <1615972183-42510-3-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1615972183-42510-1-git-send-email-liweihang@huawei.com>
-References: <1615972183-42510-1-git-send-email-liweihang@huawei.com>
+        id S231984AbhCQQMT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Mar 2021 12:12:19 -0400
+Received: from p3plsmtpa06-06.prod.phx3.secureserver.net ([173.201.192.107]:38999
+        "EHLO p3plsmtpa06-06.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231954AbhCQQL7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Mar 2021 12:11:59 -0400
+Received: from [192.168.0.116] ([71.184.94.153])
+        by :SMTPAUTH: with ESMTPSA
+        id MXlslSiWXEYmdMXltlCAty; Wed, 17 Mar 2021 08:07:41 -0700
+X-CMAE-Analysis: v=2.4 cv=adukITkt c=1 sm=1 tr=0 ts=60521b3d
+ a=vbvdVb1zh1xTTaY8rfQfKQ==:117 a=vbvdVb1zh1xTTaY8rfQfKQ==:17
+ a=IkcTkHD0fZMA:10 a=yPCof4ZbAAAA:8 a=VwQbUJbxAAAA:8 a=uRI6DqEH897CDaSaUxwA:9
+ a=QEXdDO2ut3YA:10 a=AjGcO6oz07-iQ99wixmX:22
+X-SECURESERVER-ACCT: tom@talpey.com
+Subject: Re: FastLinQ: possible duplicate flush of FastReg and LocalInv
+To:     Bernard Metzler <BMT@zurich.ibm.com>,
+        Chuck Lever III <chuck.lever@oracle.com>
+Cc:     linux-rdma <linux-rdma@vger.kernel.org>
+References: <73EEB368-3E02-4BDD-BE16-4AA9A87A3919@oracle.com>
+ <OFEAF169BA.A8545B4F-ON0025869B.002EFC4D-0025869B.0030ECF0@notes.na.collabserv.com>
+From:   Tom Talpey <tom@talpey.com>
+Message-ID: <0d502080-bf39-1873-4d48-b98206ef9080@talpey.com>
+Date:   Wed, 17 Mar 2021 11:07:41 -0400
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+In-Reply-To: <OFEAF169BA.A8545B4F-ON0025869B.002EFC4D-0025869B.0030ECF0@notes.na.collabserv.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4xfMk6kIXOSxF5kCHWQqSEztnzhkiSLMUdcvvU71KevVGcJrnzDhb1NVS+6aOwhfXPO/n+8b0nZ6uZa6droxSO2caxLuMQuA6dsCW5OoLxnSauc2QTHLzn
+ M0hZloxyEEYDx26wtWWwqa8zKUmtdASEahw2L1DReMSBmBM/z1HA0L/POByIzfHjdhSBhnmAAB/bNHcC0tMi6gwSuOdZTc+3VoIJSeAOScV3NltlbQOhjM5q
+ MJUdcQEBBwYmDMjvQ68aCg==
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixing Liu <liuyixing1@huawei.com>
+On 3/17/2021 4:54 AM, Bernard Metzler wrote:
+> -----"Chuck Lever III" <chuck.lever@oracle.com> wrote: -----
+> 
+>> To: "linux-rdma" <linux-rdma@vger.kernel.org>
+>> From: "Chuck Lever III" <chuck.lever@oracle.com>
+>> Date: 03/16/2021 08:59PM
+>> Subject: [EXTERNAL] FastLinQ: possible duplicate flush of FastReg and
+>> LocalInv
+>>
+>> Hi-
+>>
+>> I've been trying to track down some crashes when running NFS/RDMA
+>> tests over FastLinQ devices in iWARP mode. To make it stressful,
+>> I've enabled disconnect injection, where rpcrdma injects a
+>> connection disconnect every so often.
+>>
+>> As part of a disconnect event, the Receive and Send queues are
+>> drained. Sometimes I see a duplicate flush for one or more of
+>> memory registration ops. This is not a big deal for FastReq
+>> because its completion handler is basically a no-op.
+>>
+>> But for LocalInv this is a problem. On a flushed completion, the
+>> MR is destroyed. If the completion occurs again, of course, all
+>> kinds of badness happens because we're DMA-unmapping twice,
+>> touching memory that has already been freed, and deleting from a
+>> list_head that is poisonous.
+>>
+>> The last straw is that wc_localinv_done calls the generic RPC layer
+>> to indicate that an RPC Reply is ready. The duplicate flush
+>> dereferences one or more NULL pointers.
+>>
+>> Doesn't the verbs API contract stipulate that every posted WR gets
+>> exactly one completion? I don't see this behavior with other
+>> providers.
+>>
+> Indeed. Nothing else is defined and applications obviously
+> rely on correctness in that respect.
 
-Encapsulate two subprocesses into functions.
+Totally agree - any WR successfully posted must be completed, exactly
+once. A missing or multiple completion is a provider bug.
 
-Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_cq.c | 87 ++++++++++++++++++++++-----------
- 1 file changed, 59 insertions(+), 28 deletions(-)
+Chuck, you might verify that every ib_post_send() call return code
+is being checked. If you missed an error, that would allow for a
+missed completion. But never a double completion, that's on the
+provider.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 74fc494..467caa9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -276,6 +276,58 @@ static void free_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
- 	}
- }
- 
-+static int verify_cq_create_attr(struct hns_roce_dev *hr_dev,
-+				 const struct ib_cq_init_attr *attr)
-+{
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
-+
-+	if (!attr->cqe || attr->cqe > hr_dev->caps.max_cqes) {
-+		ibdev_err(ibdev, "failed to check CQ count %u, max = %u.\n",
-+			  attr->cqe, hr_dev->caps.max_cqes);
-+		return -EINVAL;
-+	}
-+
-+	if (attr->comp_vector >= hr_dev->caps.num_comp_vectors) {
-+		ibdev_err(ibdev, "failed to check CQ vector = %u, max = %d.\n",
-+			  attr->comp_vector, hr_dev->caps.num_comp_vectors);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int get_cq_ucmd(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
-+		       struct hns_roce_ib_create_cq *ucmd)
-+{
-+	struct ib_device *ibdev = hr_cq->ib_cq.device;
-+	int ret;
-+
-+	ret = ib_copy_from_udata(ucmd, udata, min(udata->inlen,
-+						  sizeof(*ucmd)));
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to copy CQ udata, ret = %d.\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static void set_cq_param(struct hns_roce_cq *hr_cq, u32 cq_entries, int vector,
-+			 struct hns_roce_ib_create_cq *ucmd)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(hr_cq->ib_cq.device);
-+
-+	cq_entries = max(cq_entries, hr_dev->caps.min_cqes);
-+	cq_entries = roundup_pow_of_two(cq_entries);
-+	hr_cq->ib_cq.cqe = cq_entries - 1; /* used as cqe index */
-+	hr_cq->cq_depth = cq_entries;
-+	hr_cq->vector = vector;
-+
-+	spin_lock_init(&hr_cq->lock);
-+	INIT_LIST_HEAD(&hr_cq->sq_list);
-+	INIT_LIST_HEAD(&hr_cq->rq_list);
-+}
-+
- static void set_cqe_size(struct hns_roce_cq *hr_cq, struct ib_udata *udata,
- 			 struct hns_roce_ib_create_cq *ucmd)
- {
-@@ -299,44 +351,23 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	struct hns_roce_ib_create_cq ucmd = {};
--	int vector = attr->comp_vector;
--	u32 cq_entries = attr->cqe;
- 	int ret;
- 
- 	if (attr->flags)
- 		return -EOPNOTSUPP;
- 
--	if (cq_entries < 1 || cq_entries > hr_dev->caps.max_cqes) {
--		ibdev_err(ibdev, "failed to check CQ count %u, max = %u.\n",
--			  cq_entries, hr_dev->caps.max_cqes);
--		return -EINVAL;
--	}
--
--	if (vector >= hr_dev->caps.num_comp_vectors) {
--		ibdev_err(ibdev, "failed to check CQ vector = %d, max = %d.\n",
--			  vector, hr_dev->caps.num_comp_vectors);
--		return -EINVAL;
--	}
--
--	cq_entries = max(cq_entries, hr_dev->caps.min_cqes);
--	cq_entries = roundup_pow_of_two(cq_entries);
--	hr_cq->ib_cq.cqe = cq_entries - 1; /* used as cqe index */
--	hr_cq->cq_depth = cq_entries;
--	hr_cq->vector = vector;
--	spin_lock_init(&hr_cq->lock);
--	INIT_LIST_HEAD(&hr_cq->sq_list);
--	INIT_LIST_HEAD(&hr_cq->rq_list);
-+	ret = verify_cq_create_attr(hr_dev, attr);
-+	if (ret)
-+		return ret;
- 
- 	if (udata) {
--		ret = ib_copy_from_udata(&ucmd, udata,
--					 min(udata->inlen, sizeof(ucmd)));
--		if (ret) {
--			ibdev_err(ibdev, "failed to copy CQ udata, ret = %d.\n",
--				  ret);
-+		ret = get_cq_ucmd(hr_cq, udata, &ucmd);
-+		if (ret)
- 			return ret;
--		}
- 	}
- 
-+	set_cq_param(hr_cq, attr->cqe, attr->comp_vector, &ucmd);
-+
- 	set_cqe_size(hr_cq, udata, &ucmd);
- 
- 	ret = alloc_cq_buf(hr_dev, hr_cq, udata, ucmd.buf_addr);
--- 
-2.8.1
-
+Tom.
