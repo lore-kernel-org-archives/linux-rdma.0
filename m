@@ -2,369 +2,125 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF99C4332D
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:04:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCD25C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:08:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0993464F45
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:04:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 73EA764F6B
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:08:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbhCRKDt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Mar 2021 06:03:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39898 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230040AbhCRKDh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Mar 2021 06:03:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B0A8664F3B;
-        Thu, 18 Mar 2021 10:03:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616061817;
-        bh=tBTRpKbp6MOe/+5b5wfuSXIhjStpdZ2gGjl8IAD38c8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PgY+qTvoYmgl/tRABiTambkXEqNBa+emIT7RDAEYsr3salP1de7tuZwO/IKNsEz+6
-         2kVboV/6MfaD5+Oyt13UzbO1/BH2a5hD7KFy89S9jWuMlZfrzNdrmWfdM3JivMoqsX
-         0qZovF+d3DwM7Z9u5+6A66P9yzxeZA3B803dVeUszunvI/vfoaf1gmYzQ2iboU1qWP
-         zBOE+sUv45SPW7vFa/m7JNMWeuoQGSBqd4YbV4qqQ4wSAtwSxBsOCBzTiI759QAxiW
-         3ASkYf7YqTVHtpkb8zgBBI02laoQftLVFuIsy3QwrVBsZHg9SAL9PYxT+vZ7nrtReM
-         +skBZJdPYORyA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Mark Zhang <markzhang@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 5/6] IB/cm: Add lock protection when access av/alt_av's port of a cm_id
-Date:   Thu, 18 Mar 2021 12:03:08 +0200
-Message-Id: <20210318100309.670344-6-leon@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210318100309.670344-1-leon@kernel.org>
-References: <20210318100309.670344-1-leon@kernel.org>
+        id S229654AbhCRKHe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Mar 2021 06:07:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54354 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229929AbhCRKHK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Mar 2021 06:07:10 -0400
+Received: from mail-qk1-x734.google.com (mail-qk1-x734.google.com [IPv6:2607:f8b0:4864:20::734])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49BC1C06174A;
+        Thu, 18 Mar 2021 03:07:10 -0700 (PDT)
+Received: by mail-qk1-x734.google.com with SMTP id f124so1377198qkj.5;
+        Thu, 18 Mar 2021 03:07:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=ELc6LnMGSIijIid0UDHN3y6THIKo2hcD8fRWSaU7IrM=;
+        b=S+R+4up1j6qe1BtwsNDMxnGOBQ4mi0+0lvMzh5dQhlOMqQzX2BUcADOeOmKjgukeVF
+         dkYEeInXy7MzmtQk6vC8Gm51MXI8SY47lC6YHO0dshgmreXjDcjFPD5UpCRk8IldxaXf
+         h+Byv0MIrnPIWaFAjq/6zt+mYLCsZzi7jWPV/B/3o/PoLocOCjIX0BPrfGq3SlmDDYCj
+         l5CapMtPSMdPHdvdZDHspg0LD1oq/ZjaxCRTYFeS2bNpmQ3aFyOPdTbzDpvF6OlPcDBl
+         zkw+e8wBqcX2dxKhY654WRY1IXZZbLZ5djFfgF7rmlyPAcbbVSKfNj1hBdv//aLUk4MM
+         G9ng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=ELc6LnMGSIijIid0UDHN3y6THIKo2hcD8fRWSaU7IrM=;
+        b=PHYXROelaqsC/8lYdBs1V0qj3PCYsRRrJcOhA/yzYhnHnr5P4HkFhfgliEVcZzGyne
+         5Y3KdniYsQMjWBvL5BaB1qSZJpdJSuyTvxIh2sxJdDCI68/Hf74JhqFKD9mrKKmPOK7f
+         VEK+Nm0b6KtLQOReIxUgRWXcCS8QLziLxHZ2YM3f03kxVxjx3snYuxf2JLL2l1s+SJ4j
+         hiDlpvwfSrFrsBAbW2uPBfJBPmgYX76LF0Iz+HF+SQDXPdH4wcZtIp2hFvLapyg5ym9n
+         meVtbSBUg0ef8ahOmFBBnUfEWkoNcZMq58badr/HNgrjZsQ99bAIC/MCKMURX/i9K94g
+         xNWw==
+X-Gm-Message-State: AOAM533unhyYy6wrRxc/8Lk1UrQxdmFzAEC4irGML3Od38+DaMtcH2Wb
+        0A0543X9rDkIntdIn5xJGiZx9FBDr8+h0RWT
+X-Google-Smtp-Source: ABdhPJy6ECJ+MnYLfnv24+HT17uA3AiotvC0EK3LZyt6GlbR0I1wBmv2BvDTpL/Yuj96RmGNa/aNAQ==
+X-Received: by 2002:a05:620a:749:: with SMTP id i9mr3627155qki.40.1616062029596;
+        Thu, 18 Mar 2021 03:07:09 -0700 (PDT)
+Received: from localhost.localdomain ([156.146.54.246])
+        by smtp.gmail.com with ESMTPSA id z7sm1332793qkf.136.2021.03.18.03.07.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 18 Mar 2021 03:07:09 -0700 (PDT)
+From:   Bhaskar Chowdhury <unixbhaskar@gmail.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     rdunlap@infradead.org, Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Subject: [PATCH] RDMA/include: Mundane typo fixes throughout the file
+Date:   Thu, 18 Mar 2021 15:34:53 +0530
+Message-Id: <20210318100453.9759-1-unixbhaskar@gmail.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markzhang@nvidia.com>
 
-Add a rwlock protection when access the av/alt_av's port pointer.
+s/proviee/provide/
+s/undelying/underlying/
+s/quesiton/question/
+s/drivr/driver/
 
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
 ---
- drivers/infiniband/core/cm.c | 129 +++++++++++++++++++++++++++--------
- 1 file changed, 102 insertions(+), 27 deletions(-)
+ include/rdma/rdma_vt.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 964b7a98ad5e..4e6f4c6d7b2a 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -261,6 +261,7 @@ struct cm_id_private {
- 	/* todo: use alternate port on send failure */
- 	struct cm_av av;
- 	struct cm_av alt_av;
-+	rwlock_t av_rwlock;	/* Do not acquire inside cm.lock */
- 
- 	void *private_data;
- 	__be64 tid;
-@@ -303,17 +304,33 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	struct ib_mad_agent *mad_agent;
- 	struct ib_mad_send_buf *m;
- 	struct ib_ah *ah;
-+	int ret;
-+
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (!cm_id_priv->av.port) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	mad_agent = cm_id_priv->av.port->mad_agent;
-+	if (!mad_agent) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
- 	ah = rdma_create_ah(mad_agent->qp->pd, &cm_id_priv->av.ah_attr, 0);
--	if (IS_ERR(ah))
--		return PTR_ERR(ah);
-+	if (IS_ERR(ah)) {
-+		ret = PTR_ERR(ah);
-+		goto out;
-+	}
- 
- 	m = ib_create_send_mad(mad_agent, cm_id_priv->id.remote_cm_qpn,
- 			       cm_id_priv->av.pkey_index,
- 			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
- 			       GFP_ATOMIC,
- 			       IB_MGMT_BASE_VERSION);
-+
-+	read_unlock(&cm_id_priv->av_rwlock);
- 	if (IS_ERR(m)) {
- 		rdma_destroy_ah(ah, 0);
- 		return PTR_ERR(m);
-@@ -327,6 +344,10 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	m->context[0] = cm_id_priv;
- 	*msg = m;
- 	return 0;
-+
-+out:
-+	read_unlock(&cm_id_priv->av_rwlock);
-+	return ret;
- }
- 
- static struct ib_mad_send_buf *cm_alloc_response_msg_no_ah(struct cm_port *port,
-@@ -433,9 +454,6 @@ static int cm_init_av_for_lap(struct cm_port *port, struct ib_wc *wc,
- 	struct rdma_ah_attr new_ah_attr;
- 	int ret;
- 
--	av->port = port;
--	av->pkey_index = wc->pkey_index;
--
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 9fd217b24916..0af89cedfbf5 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -92,7 +92,7 @@ struct rvt_ibport {
  	/*
- 	 * av->ah_attr might be initialized based on past wc during incoming
- 	 * connect request or while sending out connect request. So initialize
-@@ -449,7 +467,11 @@ static int cm_init_av_for_lap(struct cm_port *port, struct ib_wc *wc,
- 	if (ret)
- 		return ret;
- 
-+	write_lock(&cm_id_priv->av_rwlock);
-+	av->port = port;
-+	av->pkey_index = wc->pkey_index;
- 	add_cm_id_to_cm_dev_list(cm_id_priv, port->cm_dev);
-+	write_unlock(&cm_id_priv->av_rwlock);
- 
- 	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
- 	return 0;
-@@ -461,8 +483,10 @@ static int cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
- {
- 	struct cm_av *av = &cm_id_priv->av;
- 
-+	write_lock(&cm_id_priv->av_rwlock);
- 	av->port = port;
- 	add_cm_id_to_cm_dev_list(cm_id_priv, port->cm_dev);
-+	write_unlock(&cm_id_priv->av_rwlock);
- 	av->pkey_index = wc->pkey_index;
- 	return ib_init_ah_attr_from_wc(port->cm_dev->ib_device,
- 				       port->port_num, wc,
-@@ -519,15 +543,21 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
- 	struct cm_device *cm_dev;
- 	struct cm_port *port;
- 	struct cm_av *av;
--	int ret;
-+	int ret = 0;
- 
- 	port = get_cm_port_from_path(path, sgid_attr);
- 	if (!port)
- 		return -EINVAL;
- 	cm_dev = port->cm_dev;
- 
--	if (!is_priv_av && cm_dev != cm_id_priv->av.port->cm_dev)
--		return -EINVAL;
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (!is_priv_av &&
-+	    (!cm_id_priv->av.port || cm_dev != cm_id_priv->av.port->cm_dev))
-+		ret = -EINVAL;
-+
-+	read_unlock(&cm_id_priv->av_rwlock);
-+	if (ret)
-+		return ret;
- 
- 	av = is_priv_av ? &cm_id_priv->av : &cm_id_priv->alt_av;
- 
-@@ -536,8 +566,6 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
- 	if (ret)
- 		return ret;
- 
--	av->port = port;
--
+ 	 * The pkey table is allocated and maintained by the driver. Drivers
+ 	 * need to have access to this before registering with rdmav. However
+-	 * rdmavt will need access to it so drivers need to proviee this during
++	 * rdmavt will need access to it so drivers need to provide this during
+ 	 * the attach port API call.
+ 	 */
+ 	u16 *pkey_table;
+@@ -230,7 +230,7 @@ struct rvt_driver_provided {
+ 	void (*do_send)(struct rvt_qp *qp);
+
  	/*
- 	 * av->ah_attr might be initialized based on wc or during
- 	 * request processing time which might have reference to sgid_attr.
-@@ -552,11 +580,15 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
- 	if (ret)
- 		return ret;
- 
-+	write_lock(&cm_id_priv->av_rwlock);
-+	av->port = port;
- 	av->timeout = path->packet_life_time + 1;
--	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
- 	if (is_priv_av)
- 		add_cm_id_to_cm_dev_list(cm_id_priv, cm_dev);
- 
-+	write_unlock(&cm_id_priv->av_rwlock);
-+
-+	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
- 	return 0;
- }
- 
-@@ -838,6 +870,7 @@ static struct cm_id_private *cm_alloc_id_priv(struct ib_device *device,
- 	INIT_LIST_HEAD(&cm_id_priv->cm_dev_list);
- 	atomic_set(&cm_id_priv->work_count, -1);
- 	refcount_set(&cm_id_priv->refcount, 1);
-+	rwlock_init(&cm_id_priv->av_rwlock);
- 
- 	ret = xa_alloc_cyclic(&cm.local_id_table, &id, NULL, xa_limit_32b,
- 			      &cm.local_id_next, GFP_KERNEL);
-@@ -951,6 +984,26 @@ static u8 cm_ack_timeout(u8 ca_ack_delay, u8 packet_life_time)
- 	return min(31, ack_timeout);
- }
- 
-+static u8 cm_ack_timeout_req(struct cm_id_private *cm_id_priv,
-+			     u8 packet_life_time)
-+{
-+	u8 ack_delay = 0;
-+
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (cm_id_priv->av.port && cm_id_priv->av.port->cm_dev)
-+		ack_delay = cm_id_priv->av.port->cm_dev->ack_delay;
-+	read_unlock(&cm_id_priv->av_rwlock);
-+
-+	return cm_ack_timeout(ack_delay, packet_life_time);
-+}
-+
-+static u8 cm_ack_timeout_rep(struct cm_id_private *cm_id_priv,
-+			     u8 packet_life_time)
-+{
-+	return cm_ack_timeout(cm_id_priv->target_ack_delay,
-+			      packet_life_time);
-+}
-+
- static void cm_remove_remote(struct cm_id_private *cm_id_priv)
- {
- 	struct cm_timewait_info *timewait_info = cm_id_priv->timewait_info;
-@@ -1285,9 +1338,13 @@ EXPORT_SYMBOL(ib_cm_insert_listen);
- 
- static __be64 cm_form_tid(struct cm_id_private *cm_id_priv)
- {
--	u64 hi_tid, low_tid;
-+	u64 hi_tid = 0, low_tid;
-+
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (cm_id_priv->av.port && cm_id_priv->av.port->mad_agent)
-+		hi_tid = ((u64) cm_id_priv->av.port->mad_agent->hi_tid) << 32;
-+	read_unlock(&cm_id_priv->av_rwlock);
- 
--	hi_tid   = ((u64) cm_id_priv->av.port->mad_agent->hi_tid) << 32;
- 	low_tid  = (u64)cm_id_priv->id.local_id;
- 	return cpu_to_be64(hi_tid | low_tid);
- }
-@@ -1391,8 +1448,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	IBA_SET(CM_REQ_PRIMARY_SUBNET_LOCAL, req_msg,
- 		(pri_path->hop_limit <= 1));
- 	IBA_SET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, req_msg,
--		cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
--			       pri_path->packet_life_time));
-+		cm_ack_timeout_req(cm_id_priv, pri_path->packet_life_time));
- 
- 	if (alt_path) {
- 		bool alt_ext = false;
-@@ -1443,8 +1499,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 		IBA_SET(CM_REQ_ALTERNATE_SUBNET_LOCAL, req_msg,
- 			(alt_path->hop_limit <= 1));
- 		IBA_SET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, req_msg,
--			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
--				       alt_path->packet_life_time));
-+			cm_ack_timeout_req(cm_id_priv,
-+					   alt_path->packet_life_time));
- 	}
- 	IBA_SET(CM_REQ_VENDOR_ID, req_msg, param->ece.vendor_id);
- 
-@@ -1781,7 +1837,12 @@ static void cm_format_req_event(struct cm_work *work,
- 	param = &work->cm_event.param.req_rcvd;
- 	param->listen_id = listen_id;
- 	param->bth_pkey = cm_get_bth_pkey(work);
--	param->port = cm_id_priv->av.port->port_num;
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (cm_id_priv->av.port)
-+		param->port = cm_id_priv->av.port->port_num;
-+	else
-+		param->port = 0;
-+	read_unlock(&cm_id_priv->av_rwlock);
- 	param->primary_path = &work->path[0];
- 	cm_opa_to_ib_sgid(work, param->primary_path);
- 	if (cm_req_has_alt_path(req_msg)) {
-@@ -2211,8 +2272,13 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 	IBA_SET(CM_REP_STARTING_PSN, rep_msg, param->starting_psn);
- 	IBA_SET(CM_REP_RESPONDER_RESOURCES, rep_msg,
- 		param->responder_resources);
--	IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
--		cm_id_priv->av.port->cm_dev->ack_delay);
-+	read_lock(&cm_id_priv->av_rwlock);
-+	if (cm_id_priv->av.port && cm_id_priv->av.port->cm_dev)
-+		IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
-+			cm_id_priv->av.port->cm_dev->ack_delay);
-+	else
-+		IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg, 0);
-+	read_unlock(&cm_id_priv->av_rwlock);
- 	IBA_SET(CM_REP_FAILOVER_ACCEPTED, rep_msg, param->failover_accepted);
- 	IBA_SET(CM_REP_RNR_RETRY_COUNT, rep_msg, param->rnr_retry_count);
- 	IBA_SET(CM_REP_LOCAL_CA_GUID, rep_msg,
-@@ -2525,11 +2591,9 @@ static int cm_rep_handler(struct cm_work *work)
- 	cm_id_priv->target_ack_delay =
- 		IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
- 	cm_id_priv->av.timeout =
--			cm_ack_timeout(cm_id_priv->target_ack_delay,
--				       cm_id_priv->av.timeout - 1);
-+		cm_ack_timeout_rep(cm_id_priv, cm_id_priv->av.timeout - 1);
- 	cm_id_priv->alt_av.timeout =
--			cm_ack_timeout(cm_id_priv->target_ack_delay,
--				       cm_id_priv->alt_av.timeout - 1);
-+		cm_ack_timeout_rep(cm_id_priv, cm_id_priv->alt_av.timeout - 1);
- 
- 	ib_cancel_mad(cm_id_priv->msg);
- 	cm_queue_work_unlock(cm_id_priv, work);
-@@ -4097,7 +4161,10 @@ static int cm_init_qp_init_attr(struct cm_id_private *cm_id_priv,
- 			qp_attr->qp_access_flags |= IB_ACCESS_REMOTE_READ |
- 						    IB_ACCESS_REMOTE_ATOMIC;
- 		qp_attr->pkey_index = cm_id_priv->av.pkey_index;
--		qp_attr->port_num = cm_id_priv->av.port->port_num;
-+		read_lock(&cm_id_priv->av_rwlock);
-+		qp_attr->port_num = cm_id_priv->av.port ?
-+			cm_id_priv->av.port->port_num : 0;
-+		read_unlock(&cm_id_priv->av_rwlock);
- 		ret = 0;
- 		break;
- 	default:
-@@ -4141,7 +4208,10 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
- 		}
- 		if (rdma_ah_get_dlid(&cm_id_priv->alt_av.ah_attr)) {
- 			*qp_attr_mask |= IB_QP_ALT_PATH;
--			qp_attr->alt_port_num = cm_id_priv->alt_av.port->port_num;
-+			read_lock(&cm_id_priv->av_rwlock);
-+			qp_attr->alt_port_num = cm_id_priv->alt_av.port ?
-+				cm_id_priv->alt_av.port->port_num : 0;
-+			read_unlock(&cm_id_priv->av_rwlock);
- 			qp_attr->alt_pkey_index = cm_id_priv->alt_av.pkey_index;
- 			qp_attr->alt_timeout = cm_id_priv->alt_av.timeout;
- 			qp_attr->alt_ah_attr = cm_id_priv->alt_av.ah_attr;
-@@ -4200,7 +4270,10 @@ static int cm_init_qp_rts_attr(struct cm_id_private *cm_id_priv,
- 			}
- 		} else {
- 			*qp_attr_mask = IB_QP_ALT_PATH | IB_QP_PATH_MIG_STATE;
--			qp_attr->alt_port_num = cm_id_priv->alt_av.port->port_num;
-+			read_lock(&cm_id_priv->av_rwlock);
-+			qp_attr->alt_port_num = cm_id_priv->alt_av.port ?
-+				cm_id_priv->alt_av.port->port_num : 0;
-+			read_unlock(&cm_id_priv->av_rwlock);
- 			qp_attr->alt_pkey_index = cm_id_priv->alt_av.pkey_index;
- 			qp_attr->alt_timeout = cm_id_priv->alt_av.timeout;
- 			qp_attr->alt_ah_attr = cm_id_priv->alt_av.ah_attr;
-@@ -4418,10 +4491,12 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
- 
- 	list_for_each_entry_safe(cm_id_priv, tmp,
- 				 &cm_dev->cm_id_priv_list, cm_dev_list) {
-+		write_lock(&cm_id_priv->av_rwlock);
- 		if (!list_empty(&cm_id_priv->cm_dev_list))
- 			list_del(&cm_id_priv->cm_dev_list);
- 		cm_id_priv->av.port = NULL;
- 		cm_id_priv->alt_av.port = NULL;
-+		write_unlock(&cm_id_priv->av_rwlock);
- 	}
- 
- 	rdma_for_each_port (ib_device, i) {
--- 
-2.30.2
+-	 * Returns a pointer to the undelying hardware's PCI device. This is
++	 * Returns a pointer to the underlying hardware's PCI device. This is
+ 	 * used to display information as to what hardware is being referenced
+ 	 * in an output message
+ 	 */
+@@ -257,7 +257,7 @@ struct rvt_driver_provided {
+ 	void (*qp_priv_free)(struct rvt_dev_info *rdi, struct rvt_qp *qp);
+
+ 	/*
+-	 * Inform the driver the particular qp in quesiton has been reset so
++	 * Inform the driver the particular qp in question has been reset so
+ 	 * that it can clean up anything it needs to.
+ 	 */
+ 	void (*notify_qp_reset)(struct rvt_qp *qp);
+@@ -281,7 +281,7 @@ struct rvt_driver_provided {
+ 	void (*stop_send_queue)(struct rvt_qp *qp);
+
+ 	/*
+-	 * Have the drivr drain any in progress operations
++	 * Have the driver drain any in progress operations
+ 	 */
+ 	void (*quiesce_qp)(struct rvt_qp *qp);
+
+--
+2.26.2
 
