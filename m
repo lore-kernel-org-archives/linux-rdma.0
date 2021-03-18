@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05732C433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BF99C4332D
 	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:04:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA03964E86
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:04:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0993464F45
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 10:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229995AbhCRKDr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Mar 2021 06:03:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39790 "EHLO mail.kernel.org"
+        id S229914AbhCRKDt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Mar 2021 06:03:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229991AbhCRKDT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Mar 2021 06:03:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5488C64F30;
-        Thu, 18 Mar 2021 10:03:18 +0000 (UTC)
+        id S230040AbhCRKDh (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 18 Mar 2021 06:03:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B0A8664F3B;
+        Thu, 18 Mar 2021 10:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616061799;
-        bh=jdSPueFwzmqztv6mrHQQyIyH2Stg00Po5mCwFmrFMAU=;
+        s=k20201202; t=1616061817;
+        bh=tBTRpKbp6MOe/+5b5wfuSXIhjStpdZ2gGjl8IAD38c8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uWlo9B8DCgL2s6cHUtlLg7+8m6U3O2D1oogd+4GpkICDleS+nVL871mM0lHDceoBL
-         OsNPMNW4kQEKIglFb9STOKeSexPLBiGBsRNGe/q0cpTV/9WzpdoQDy0WEGSK0qvRUw
-         HqNNcaZ4MU21qEpnDy/ZLt/848n/UhtFUc1xRr4CYmLK2UqefDh8Z0zXOYN7drCJHx
-         chNpsSQ+8JoOCq/oc6j6ULqbg3nPXIAGy7/VMc+UwxJyotGY4Sh9aQ1A2Rk7yzeMAQ
-         J7m5dAt4GdXnXwYzn9pbKcDPxHAtyHvlLiJd8Vp6jk7ZzNB5G32SmND+QOq52zeh20
-         OQaNTz63kYnAw==
+        b=PgY+qTvoYmgl/tRABiTambkXEqNBa+emIT7RDAEYsr3salP1de7tuZwO/IKNsEz+6
+         2kVboV/6MfaD5+Oyt13UzbO1/BH2a5hD7KFy89S9jWuMlZfrzNdrmWfdM3JivMoqsX
+         0qZovF+d3DwM7Z9u5+6A66P9yzxeZA3B803dVeUszunvI/vfoaf1gmYzQ2iboU1qWP
+         zBOE+sUv45SPW7vFa/m7JNMWeuoQGSBqd4YbV4qqQ4wSAtwSxBsOCBzTiI759QAxiW
+         3ASkYf7YqTVHtpkb8zgBBI02laoQftLVFuIsy3QwrVBsZHg9SAL9PYxT+vZ7nrtReM
+         +skBZJdPYORyA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Mark Zhang <markzhang@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/6] Revert "IB/cm: Mark stale CM id's whenever the mad agent was unregistered"
-Date:   Thu, 18 Mar 2021 12:03:04 +0200
-Message-Id: <20210318100309.670344-2-leon@kernel.org>
+Subject: [PATCH rdma-next 5/6] IB/cm: Add lock protection when access av/alt_av's port of a cm_id
+Date:   Thu, 18 Mar 2021 12:03:08 +0200
+Message-Id: <20210318100309.670344-6-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210318100309.670344-1-leon@kernel.org>
 References: <20210318100309.670344-1-leon@kernel.org>
@@ -49,325 +49,322 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markzhang@nvidia.com>
 
-This reverts commit 9db0ff53cb9b43ed75bacd42a89c1a0ab048b2b0, which
-wasn't full and still causes to the following panic:
-
-panic @ time 1605623870.843, thread 0xfffffeb63b552000: vm_fault_lookup: fault on nofault entry, addr: 0xfffffe811a94e000
-    time = 1605623870
-    cpuid = 9, TSC = 0xb7937acc1b6
-    Panic occurred in module kernel loaded at 0xffffffff80200000:Stack: --------------------------------------------------
-    kernel:vm_fault+0x19da
-    kernel:vm_fault_trap+0x6e
-    kernel:trap_pfault+0x1f1
-    kernel:trap+0x31e
-    kernel:cm_destroy_id+0x38c
-    kernel:rdma_destroy_id+0x127
-    kernel:sdp_shutdown_task+0x3ae
-    kernel:taskqueue_run_locked+0x10b
-    kernel:taskqueue_thread_loop+0x87
-    kernel:fork_exit+0x83
+Add a rwlock protection when access the av/alt_av's port pointer.
 
 Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cm.c | 123 +++++------------------------------
- 1 file changed, 15 insertions(+), 108 deletions(-)
+ drivers/infiniband/core/cm.c | 129 +++++++++++++++++++++++++++--------
+ 1 file changed, 102 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 74ca5e67a113..f397edd8e0a0 100644
+index 964b7a98ad5e..4e6f4c6d7b2a 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -121,8 +121,6 @@ static struct ib_cm {
- 	__be32 random_id_operand;
- 	struct list_head timewait_list;
- 	struct workqueue_struct *wq;
--	/* Sync on cm change port state */
--	spinlock_t state_lock;
- } cm;
+@@ -261,6 +261,7 @@ struct cm_id_private {
+ 	/* todo: use alternate port on send failure */
+ 	struct cm_av av;
+ 	struct cm_av alt_av;
++	rwlock_t av_rwlock;	/* Do not acquire inside cm.lock */
  
- /* Counter indexes ordered by attribute ID */
-@@ -203,8 +201,6 @@ struct cm_port {
- 	struct cm_device *cm_dev;
- 	struct ib_mad_agent *mad_agent;
- 	u32 port_num;
--	struct list_head cm_priv_prim_list;
--	struct list_head cm_priv_altr_list;
- 	struct cm_counter_group counter_group[CM_COUNTER_GROUPS];
- };
- 
-@@ -284,12 +280,6 @@ struct cm_id_private {
- 	u8 service_timeout;
- 	u8 target_ack_delay;
- 
--	struct list_head prim_list;
--	struct list_head altr_list;
--	/* Indicates that the send port mad is registered and av is set */
--	int prim_send_port_not_ready;
--	int altr_send_port_not_ready;
--
- 	struct list_head work_list;
- 	atomic_t work_count;
- 
-@@ -310,47 +300,20 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 	void *private_data;
+ 	__be64 tid;
+@@ -303,17 +304,33 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
  	struct ib_mad_agent *mad_agent;
  	struct ib_mad_send_buf *m;
  	struct ib_ah *ah;
--	struct cm_av *av;
--	unsigned long flags, flags2;
--	int ret = 0;
++	int ret;
++
++	read_lock(&cm_id_priv->av_rwlock);
++	if (!cm_id_priv->av.port) {
++		ret = -EINVAL;
++		goto out;
++	}
  
--	/* don't let the port to be released till the agent is down */
--	spin_lock_irqsave(&cm.state_lock, flags2);
--	spin_lock_irqsave(&cm.lock, flags);
--	if (!cm_id_priv->prim_send_port_not_ready)
--		av = &cm_id_priv->av;
--	else if (!cm_id_priv->altr_send_port_not_ready &&
--		 (cm_id_priv->alt_av.port))
--		av = &cm_id_priv->alt_av;
--	else {
--		pr_info("%s: not valid CM id\n", __func__);
--		ret = -ENODEV;
--		spin_unlock_irqrestore(&cm.lock, flags);
--		goto out;
--	}
--	spin_unlock_irqrestore(&cm.lock, flags);
--	/* Make sure the port haven't released the mad yet */
  	mad_agent = cm_id_priv->av.port->mad_agent;
--	if (!mad_agent) {
--		pr_info("%s: not a valid MAD agent\n", __func__);
--		ret = -ENODEV;
--		goto out;
--	}
--	ah = rdma_create_ah(mad_agent->qp->pd, &av->ah_attr, 0);
--	if (IS_ERR(ah)) {
--		ret = PTR_ERR(ah);
--		goto out;
--	}
-+	ah = rdma_create_ah(mad_agent->qp->pd, &cm_id_priv->av.ah_attr, 0);
-+	if (IS_ERR(ah))
-+		return PTR_ERR(ah);
++	if (!mad_agent) {
++		ret = -EINVAL;
++		goto out;
++	}
++
+ 	ah = rdma_create_ah(mad_agent->qp->pd, &cm_id_priv->av.ah_attr, 0);
+-	if (IS_ERR(ah))
+-		return PTR_ERR(ah);
++	if (IS_ERR(ah)) {
++		ret = PTR_ERR(ah);
++		goto out;
++	}
  
  	m = ib_create_send_mad(mad_agent, cm_id_priv->id.remote_cm_qpn,
--			       av->pkey_index,
-+			       cm_id_priv->av.pkey_index,
+ 			       cm_id_priv->av.pkey_index,
  			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
  			       GFP_ATOMIC,
  			       IB_MGMT_BASE_VERSION);
++
++	read_unlock(&cm_id_priv->av_rwlock);
  	if (IS_ERR(m)) {
  		rdma_destroy_ah(ah, 0);
--		ret = PTR_ERR(m);
--		goto out;
-+		return PTR_ERR(m);
- 	}
- 
- 	/* Timeout set by caller if response is expected. */
-@@ -360,10 +323,7 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	refcount_inc(&cm_id_priv->refcount);
+ 		return PTR_ERR(m);
+@@ -327,6 +344,10 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
  	m->context[0] = cm_id_priv;
  	*msg = m;
--
--out:
--	spin_unlock_irqrestore(&cm.state_lock, flags2);
--	return ret;
-+	return 0;
+ 	return 0;
++
++out:
++	read_unlock(&cm_id_priv->av_rwlock);
++	return ret;
  }
  
  static struct ib_mad_send_buf *cm_alloc_response_msg_no_ah(struct cm_port *port,
-@@ -481,21 +441,6 @@ static int cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
- 				       grh, &av->ah_attr);
- }
- 
--static void add_cm_id_to_port_list(struct cm_id_private *cm_id_priv,
--				   struct cm_av *av, struct cm_port *port)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&cm.lock, flags);
--	if (&cm_id_priv->av == av)
--		list_add_tail(&cm_id_priv->prim_list, &port->cm_priv_prim_list);
--	else if (&cm_id_priv->alt_av == av)
--		list_add_tail(&cm_id_priv->altr_list, &port->cm_priv_altr_list);
--	else
--		WARN_ON(true);
--	spin_unlock_irqrestore(&cm.lock, flags);
--}
--
- static struct cm_port *
- get_cm_port_from_path(struct sa_path_rec *path, const struct ib_gid_attr *attr)
- {
-@@ -539,8 +484,7 @@ get_cm_port_from_path(struct sa_path_rec *path, const struct ib_gid_attr *attr)
- 
- static int cm_init_av_by_path(struct sa_path_rec *path,
- 			      const struct ib_gid_attr *sgid_attr,
--			      struct cm_av *av,
--			      struct cm_id_private *cm_id_priv)
-+			      struct cm_av *av)
- {
+@@ -433,9 +454,6 @@ static int cm_init_av_for_lap(struct cm_port *port, struct ib_wc *wc,
  	struct rdma_ah_attr new_ah_attr;
- 	struct cm_device *cm_dev;
-@@ -574,7 +518,6 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
+ 	int ret;
+ 
+-	av->port = port;
+-	av->pkey_index = wc->pkey_index;
+-
+ 	/*
+ 	 * av->ah_attr might be initialized based on past wc during incoming
+ 	 * connect request or while sending out connect request. So initialize
+@@ -449,7 +467,11 @@ static int cm_init_av_for_lap(struct cm_port *port, struct ib_wc *wc,
+ 	if (ret)
  		return ret;
  
- 	av->timeout = path->packet_life_time + 1;
--	add_cm_id_to_port_list(cm_id_priv, av, port);
++	write_lock(&cm_id_priv->av_rwlock);
++	av->port = port;
++	av->pkey_index = wc->pkey_index;
+ 	add_cm_id_to_cm_dev_list(cm_id_priv, port->cm_dev);
++	write_unlock(&cm_id_priv->av_rwlock);
+ 
  	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
  	return 0;
+@@ -461,8 +483,10 @@ static int cm_init_av_for_response(struct cm_port *port, struct ib_wc *wc,
+ {
+ 	struct cm_av *av = &cm_id_priv->av;
+ 
++	write_lock(&cm_id_priv->av_rwlock);
+ 	av->port = port;
+ 	add_cm_id_to_cm_dev_list(cm_id_priv, port->cm_dev);
++	write_unlock(&cm_id_priv->av_rwlock);
+ 	av->pkey_index = wc->pkey_index;
+ 	return ib_init_ah_attr_from_wc(port->cm_dev->ib_device,
+ 				       port->port_num, wc,
+@@ -519,15 +543,21 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
+ 	struct cm_device *cm_dev;
+ 	struct cm_port *port;
+ 	struct cm_av *av;
+-	int ret;
++	int ret = 0;
+ 
+ 	port = get_cm_port_from_path(path, sgid_attr);
+ 	if (!port)
+ 		return -EINVAL;
+ 	cm_dev = port->cm_dev;
+ 
+-	if (!is_priv_av && cm_dev != cm_id_priv->av.port->cm_dev)
+-		return -EINVAL;
++	read_lock(&cm_id_priv->av_rwlock);
++	if (!is_priv_av &&
++	    (!cm_id_priv->av.port || cm_dev != cm_id_priv->av.port->cm_dev))
++		ret = -EINVAL;
++
++	read_unlock(&cm_id_priv->av_rwlock);
++	if (ret)
++		return ret;
+ 
+ 	av = is_priv_av ? &cm_id_priv->av : &cm_id_priv->alt_av;
+ 
+@@ -536,8 +566,6 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
+ 	if (ret)
+ 		return ret;
+ 
+-	av->port = port;
+-
+ 	/*
+ 	 * av->ah_attr might be initialized based on wc or during
+ 	 * request processing time which might have reference to sgid_attr.
+@@ -552,11 +580,15 @@ static int cm_init_av_by_path(struct sa_path_rec *path,
+ 	if (ret)
+ 		return ret;
+ 
++	write_lock(&cm_id_priv->av_rwlock);
++	av->port = port;
+ 	av->timeout = path->packet_life_time + 1;
+-	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
+ 	if (is_priv_av)
+ 		add_cm_id_to_cm_dev_list(cm_id_priv, cm_dev);
+ 
++	write_unlock(&cm_id_priv->av_rwlock);
++
++	rdma_move_ah_attr(&av->ah_attr, &new_ah_attr);
+ 	return 0;
  }
-@@ -854,8 +797,6 @@ static struct cm_id_private *cm_alloc_id_priv(struct ib_device *device,
- 	spin_lock_init(&cm_id_priv->lock);
- 	init_completion(&cm_id_priv->comp);
- 	INIT_LIST_HEAD(&cm_id_priv->work_list);
--	INIT_LIST_HEAD(&cm_id_priv->prim_list);
--	INIT_LIST_HEAD(&cm_id_priv->altr_list);
+ 
+@@ -838,6 +870,7 @@ static struct cm_id_private *cm_alloc_id_priv(struct ib_device *device,
+ 	INIT_LIST_HEAD(&cm_id_priv->cm_dev_list);
  	atomic_set(&cm_id_priv->work_count, -1);
  	refcount_set(&cm_id_priv->refcount, 1);
++	rwlock_init(&cm_id_priv->av_rwlock);
  
-@@ -1156,12 +1097,7 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
- 		kfree(cm_id_priv->timewait_info);
- 		cm_id_priv->timewait_info = NULL;
- 	}
--	if (!list_empty(&cm_id_priv->altr_list) &&
--	    (!cm_id_priv->altr_send_port_not_ready))
--		list_del(&cm_id_priv->altr_list);
--	if (!list_empty(&cm_id_priv->prim_list) &&
--	    (!cm_id_priv->prim_send_port_not_ready))
--		list_del(&cm_id_priv->prim_list);
+ 	ret = xa_alloc_cyclic(&cm.local_id_table, &id, NULL, xa_limit_32b,
+ 			      &cm.local_id_next, GFP_KERNEL);
+@@ -951,6 +984,26 @@ static u8 cm_ack_timeout(u8 ca_ack_delay, u8 packet_life_time)
+ 	return min(31, ack_timeout);
+ }
+ 
++static u8 cm_ack_timeout_req(struct cm_id_private *cm_id_priv,
++			     u8 packet_life_time)
++{
++	u8 ack_delay = 0;
 +
- 	WARN_ON(cm_id_priv->listen_sharecount);
- 	WARN_ON(!RB_EMPTY_NODE(&cm_id_priv->service_node));
- 	if (!RB_EMPTY_NODE(&cm_id_priv->sidr_id_node))
-@@ -1528,13 +1464,12 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 	}
++	read_lock(&cm_id_priv->av_rwlock);
++	if (cm_id_priv->av.port && cm_id_priv->av.port->cm_dev)
++		ack_delay = cm_id_priv->av.port->cm_dev->ack_delay;
++	read_unlock(&cm_id_priv->av_rwlock);
++
++	return cm_ack_timeout(ack_delay, packet_life_time);
++}
++
++static u8 cm_ack_timeout_rep(struct cm_id_private *cm_id_priv,
++			     u8 packet_life_time)
++{
++	return cm_ack_timeout(cm_id_priv->target_ack_delay,
++			      packet_life_time);
++}
++
+ static void cm_remove_remote(struct cm_id_private *cm_id_priv)
+ {
+ 	struct cm_timewait_info *timewait_info = cm_id_priv->timewait_info;
+@@ -1285,9 +1338,13 @@ EXPORT_SYMBOL(ib_cm_insert_listen);
  
- 	ret = cm_init_av_by_path(param->primary_path,
--				 param->ppath_sgid_attr, &cm_id_priv->av,
--				 cm_id_priv);
-+				 param->ppath_sgid_attr, &cm_id_priv->av);
- 	if (ret)
- 		goto out;
- 	if (param->alternate_path) {
- 		ret = cm_init_av_by_path(param->alternate_path, NULL,
--					 &cm_id_priv->alt_av, cm_id_priv);
-+					 &cm_id_priv->alt_av);
- 		if (ret)
- 			goto out;
- 	}
-@@ -2166,8 +2101,7 @@ static int cm_req_handler(struct cm_work *work)
- 		sa_path_set_dmac(&work->path[0],
- 				 cm_id_priv->av.ah_attr.roce.dmac);
- 	work->path[0].hop_limit = grh->hop_limit;
--	ret = cm_init_av_by_path(&work->path[0], gid_attr, &cm_id_priv->av,
--				 cm_id_priv);
-+	ret = cm_init_av_by_path(&work->path[0], gid_attr, &cm_id_priv->av);
- 	if (ret) {
- 		int err;
+ static __be64 cm_form_tid(struct cm_id_private *cm_id_priv)
+ {
+-	u64 hi_tid, low_tid;
++	u64 hi_tid = 0, low_tid;
++
++	read_lock(&cm_id_priv->av_rwlock);
++	if (cm_id_priv->av.port && cm_id_priv->av.port->mad_agent)
++		hi_tid = ((u64) cm_id_priv->av.port->mad_agent->hi_tid) << 32;
++	read_unlock(&cm_id_priv->av_rwlock);
  
-@@ -2186,7 +2120,7 @@ static int cm_req_handler(struct cm_work *work)
+-	hi_tid   = ((u64) cm_id_priv->av.port->mad_agent->hi_tid) << 32;
+ 	low_tid  = (u64)cm_id_priv->id.local_id;
+ 	return cpu_to_be64(hi_tid | low_tid);
+ }
+@@ -1391,8 +1448,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 	IBA_SET(CM_REQ_PRIMARY_SUBNET_LOCAL, req_msg,
+ 		(pri_path->hop_limit <= 1));
+ 	IBA_SET(CM_REQ_PRIMARY_LOCAL_ACK_TIMEOUT, req_msg,
+-		cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
+-			       pri_path->packet_life_time));
++		cm_ack_timeout_req(cm_id_priv, pri_path->packet_life_time));
+ 
+ 	if (alt_path) {
+ 		bool alt_ext = false;
+@@ -1443,8 +1499,8 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		IBA_SET(CM_REQ_ALTERNATE_SUBNET_LOCAL, req_msg,
+ 			(alt_path->hop_limit <= 1));
+ 		IBA_SET(CM_REQ_ALTERNATE_LOCAL_ACK_TIMEOUT, req_msg,
+-			cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
+-				       alt_path->packet_life_time));
++			cm_ack_timeout_req(cm_id_priv,
++					   alt_path->packet_life_time));
  	}
+ 	IBA_SET(CM_REQ_VENDOR_ID, req_msg, param->ece.vendor_id);
+ 
+@@ -1781,7 +1837,12 @@ static void cm_format_req_event(struct cm_work *work,
+ 	param = &work->cm_event.param.req_rcvd;
+ 	param->listen_id = listen_id;
+ 	param->bth_pkey = cm_get_bth_pkey(work);
+-	param->port = cm_id_priv->av.port->port_num;
++	read_lock(&cm_id_priv->av_rwlock);
++	if (cm_id_priv->av.port)
++		param->port = cm_id_priv->av.port->port_num;
++	else
++		param->port = 0;
++	read_unlock(&cm_id_priv->av_rwlock);
+ 	param->primary_path = &work->path[0];
+ 	cm_opa_to_ib_sgid(work, param->primary_path);
  	if (cm_req_has_alt_path(req_msg)) {
- 		ret = cm_init_av_by_path(&work->path[1], NULL,
--					 &cm_id_priv->alt_av, cm_id_priv);
-+					 &cm_id_priv->alt_av);
- 		if (ret) {
- 			ib_send_cm_rej(&cm_id_priv->id,
- 				       IB_CM_REJ_INVALID_ALT_GID,
-@@ -3363,7 +3297,7 @@ static int cm_lap_handler(struct cm_work *work)
- 		goto unlock;
+@@ -2211,8 +2272,13 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 	IBA_SET(CM_REP_STARTING_PSN, rep_msg, param->starting_psn);
+ 	IBA_SET(CM_REP_RESPONDER_RESOURCES, rep_msg,
+ 		param->responder_resources);
+-	IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
+-		cm_id_priv->av.port->cm_dev->ack_delay);
++	read_lock(&cm_id_priv->av_rwlock);
++	if (cm_id_priv->av.port && cm_id_priv->av.port->cm_dev)
++		IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg,
++			cm_id_priv->av.port->cm_dev->ack_delay);
++	else
++		IBA_SET(CM_REP_TARGET_ACK_DELAY, rep_msg, 0);
++	read_unlock(&cm_id_priv->av_rwlock);
+ 	IBA_SET(CM_REP_FAILOVER_ACCEPTED, rep_msg, param->failover_accepted);
+ 	IBA_SET(CM_REP_RNR_RETRY_COUNT, rep_msg, param->rnr_retry_count);
+ 	IBA_SET(CM_REP_LOCAL_CA_GUID, rep_msg,
+@@ -2525,11 +2591,9 @@ static int cm_rep_handler(struct cm_work *work)
+ 	cm_id_priv->target_ack_delay =
+ 		IBA_GET(CM_REP_TARGET_ACK_DELAY, rep_msg);
+ 	cm_id_priv->av.timeout =
+-			cm_ack_timeout(cm_id_priv->target_ack_delay,
+-				       cm_id_priv->av.timeout - 1);
++		cm_ack_timeout_rep(cm_id_priv, cm_id_priv->av.timeout - 1);
+ 	cm_id_priv->alt_av.timeout =
+-			cm_ack_timeout(cm_id_priv->target_ack_delay,
+-				       cm_id_priv->alt_av.timeout - 1);
++		cm_ack_timeout_rep(cm_id_priv, cm_id_priv->alt_av.timeout - 1);
  
- 	ret = cm_init_av_by_path(param->alternate_path, NULL,
--				 &cm_id_priv->alt_av, cm_id_priv);
-+				 &cm_id_priv->alt_av);
- 	if (ret)
- 		goto unlock;
+ 	ib_cancel_mad(cm_id_priv->msg);
+ 	cm_queue_work_unlock(cm_id_priv, work);
+@@ -4097,7 +4161,10 @@ static int cm_init_qp_init_attr(struct cm_id_private *cm_id_priv,
+ 			qp_attr->qp_access_flags |= IB_ACCESS_REMOTE_READ |
+ 						    IB_ACCESS_REMOTE_ATOMIC;
+ 		qp_attr->pkey_index = cm_id_priv->av.pkey_index;
+-		qp_attr->port_num = cm_id_priv->av.port->port_num;
++		read_lock(&cm_id_priv->av_rwlock);
++		qp_attr->port_num = cm_id_priv->av.port ?
++			cm_id_priv->av.port->port_num : 0;
++		read_unlock(&cm_id_priv->av_rwlock);
+ 		ret = 0;
+ 		break;
+ 	default:
+@@ -4141,7 +4208,10 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
+ 		}
+ 		if (rdma_ah_get_dlid(&cm_id_priv->alt_av.ah_attr)) {
+ 			*qp_attr_mask |= IB_QP_ALT_PATH;
+-			qp_attr->alt_port_num = cm_id_priv->alt_av.port->port_num;
++			read_lock(&cm_id_priv->av_rwlock);
++			qp_attr->alt_port_num = cm_id_priv->alt_av.port ?
++				cm_id_priv->alt_av.port->port_num : 0;
++			read_unlock(&cm_id_priv->av_rwlock);
+ 			qp_attr->alt_pkey_index = cm_id_priv->alt_av.pkey_index;
+ 			qp_attr->alt_timeout = cm_id_priv->alt_av.timeout;
+ 			qp_attr->alt_ah_attr = cm_id_priv->alt_av.ah_attr;
+@@ -4200,7 +4270,10 @@ static int cm_init_qp_rts_attr(struct cm_id_private *cm_id_priv,
+ 			}
+ 		} else {
+ 			*qp_attr_mask = IB_QP_ALT_PATH | IB_QP_PATH_MIG_STATE;
+-			qp_attr->alt_port_num = cm_id_priv->alt_av.port->port_num;
++			read_lock(&cm_id_priv->av_rwlock);
++			qp_attr->alt_port_num = cm_id_priv->alt_av.port ?
++				cm_id_priv->alt_av.port->port_num : 0;
++			read_unlock(&cm_id_priv->av_rwlock);
+ 			qp_attr->alt_pkey_index = cm_id_priv->alt_av.pkey_index;
+ 			qp_attr->alt_timeout = cm_id_priv->alt_av.timeout;
+ 			qp_attr->alt_ah_attr = cm_id_priv->alt_av.ah_attr;
+@@ -4418,10 +4491,12 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
  
-@@ -3483,8 +3417,7 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
- 
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
- 	ret = cm_init_av_by_path(param->path, param->sgid_attr,
--				 &cm_id_priv->av,
--				 cm_id_priv);
-+				 &cm_id_priv->av);
- 	if (ret)
- 		goto out;
- 
-@@ -3967,9 +3900,7 @@ static int cm_establish(struct ib_cm_id *cm_id)
- static int cm_migrate(struct ib_cm_id *cm_id)
- {
- 	struct cm_id_private *cm_id_priv;
--	struct cm_av tmp_av;
- 	unsigned long flags;
--	int tmp_send_port_not_ready;
- 	int ret = 0;
- 
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
-@@ -3978,14 +3909,7 @@ static int cm_migrate(struct ib_cm_id *cm_id)
- 	    (cm_id->lap_state == IB_CM_LAP_UNINIT ||
- 	     cm_id->lap_state == IB_CM_LAP_IDLE)) {
- 		cm_id->lap_state = IB_CM_LAP_IDLE;
--		/* Swap address vector */
--		tmp_av = cm_id_priv->av;
- 		cm_id_priv->av = cm_id_priv->alt_av;
--		cm_id_priv->alt_av = tmp_av;
--		/* Swap port send ready state */
--		tmp_send_port_not_ready = cm_id_priv->prim_send_port_not_ready;
--		cm_id_priv->prim_send_port_not_ready = cm_id_priv->altr_send_port_not_ready;
--		cm_id_priv->altr_send_port_not_ready = tmp_send_port_not_ready;
- 	} else
- 		ret = -EINVAL;
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-@@ -4360,9 +4284,6 @@ static int cm_add_one(struct ib_device *ib_device)
- 		port->cm_dev = cm_dev;
- 		port->port_num = i;
- 
--		INIT_LIST_HEAD(&port->cm_priv_prim_list);
--		INIT_LIST_HEAD(&port->cm_priv_altr_list);
--
- 		ret = cm_create_port_fs(port);
- 		if (ret)
- 			goto error1;
-@@ -4426,8 +4347,6 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
- {
- 	struct cm_device *cm_dev = client_data;
- 	struct cm_port *port;
--	struct cm_id_private *cm_id_priv;
--	struct ib_mad_agent *cur_mad_agent;
- 	struct ib_port_modify port_modify = {
- 		.clr_port_cap_mask = IB_PORT_CM_SUP
- 	};
-@@ -4448,24 +4367,13 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
- 
- 		port = cm_dev->port[i-1];
- 		ib_modify_port(ib_device, port->port_num, 0, &port_modify);
--		/* Mark all the cm_id's as not valid */
--		spin_lock_irq(&cm.lock);
--		list_for_each_entry(cm_id_priv, &port->cm_priv_altr_list, altr_list)
--			cm_id_priv->altr_send_port_not_ready = 1;
--		list_for_each_entry(cm_id_priv, &port->cm_priv_prim_list, prim_list)
--			cm_id_priv->prim_send_port_not_ready = 1;
--		spin_unlock_irq(&cm.lock);
- 		/*
- 		 * We flush the queue here after the going_down set, this
- 		 * verify that no new works will be queued in the recv handler,
- 		 * after that we can call the unregister_mad_agent
- 		 */
- 		flush_workqueue(cm.wq);
--		spin_lock_irq(&cm.state_lock);
--		cur_mad_agent = port->mad_agent;
--		port->mad_agent = NULL;
--		spin_unlock_irq(&cm.state_lock);
--		ib_unregister_mad_agent(cur_mad_agent);
-+		ib_unregister_mad_agent(port->mad_agent);
- 		cm_remove_port_fs(port);
- 		kfree(port);
+ 	list_for_each_entry_safe(cm_id_priv, tmp,
+ 				 &cm_dev->cm_id_priv_list, cm_dev_list) {
++		write_lock(&cm_id_priv->av_rwlock);
+ 		if (!list_empty(&cm_id_priv->cm_dev_list))
+ 			list_del(&cm_id_priv->cm_dev_list);
+ 		cm_id_priv->av.port = NULL;
+ 		cm_id_priv->alt_av.port = NULL;
++		write_unlock(&cm_id_priv->av_rwlock);
  	}
-@@ -4480,7 +4388,6 @@ static int __init ib_cm_init(void)
- 	INIT_LIST_HEAD(&cm.device_list);
- 	rwlock_init(&cm.device_lock);
- 	spin_lock_init(&cm.lock);
--	spin_lock_init(&cm.state_lock);
- 	cm.listen_service_table = RB_ROOT;
- 	cm.listen_service_id = be64_to_cpu(IB_CM_ASSIGN_SERVICE_ID);
- 	cm.remote_id_table = RB_ROOT;
+ 
+ 	rdma_for_each_port (ib_device, i) {
 -- 
 2.30.2
 
