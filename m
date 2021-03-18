@@ -2,84 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2149C433DB
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 044CEC43381
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8F4264F2A
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB54164F3B
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230381AbhCRLQJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Mar 2021 07:16:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54382 "EHLO mail.kernel.org"
+        id S230151AbhCRLQK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Mar 2021 07:16:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230160AbhCRLPy (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Mar 2021 07:15:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D5A564F04;
-        Thu, 18 Mar 2021 11:15:52 +0000 (UTC)
+        id S230175AbhCRLP6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 18 Mar 2021 07:15:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22CEB64F04;
+        Thu, 18 Mar 2021 11:15:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616066153;
-        bh=SpdXvt/IHN+ouT5vGlIbzinGudPspv45K2jqget9/1Y=;
-        h=From:To:Cc:Subject:Date:From;
-        b=EwjU7DsFLrM3Pixr3E+YF3BlGVbl01cI7J9YUvl95YRMWFK6DNEPAzSU0TPQRnFCt
-         uLEBQB1j0IqQ4nHNcEtyhX2oSM5Z7gh6Lk7UTs94S/jJSuieaGHmlNtcLoVTByDz9m
-         IjFxtwRGKU1wE0QvY03suYo7/Rjv+rUrxVtErK7HfMscXNa9NwRtMv+qAiQlCghdkL
-         Kdrj4/Hj7SaSU+97OfF6ygAwq7pum19GSFtf/9wZpX50bWM/cv89qRpNOEE8BX2dQs
-         uhUB4oiI/7+T4tFttWn9wcK+TLvar6EBwN1tPhe08YT22uX/EK8Ez1YGeWQk4wI6EC
-         n0GZ7bNvqowvA==
+        s=k20201202; t=1616066157;
+        bh=LG9mKIARE6oe3ah4WCGfnisXbvDpdPw5pRFrLoXoGTY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ler0GwQXJQrCGZ0dFCkLFXkMSjjR7uL9Es8rcyVcOWlCaxxLzcS2H0POkPIE4+wDz
+         7jA7PlVqgAe+MJmkMt5lMqvU3pQiwQJf4hmwsSP+qphRoY3jVigbMtgf5mMGEGlBYs
+         oTqQDnC0q91iOJqSqktL6zoJb0jUslFwjuI88SYV4vxPDrhlPVvot3l92l1zbMNqZB
+         VdVoFshLFMEb6s8a0WvCuk/8GhPVfPZfs3deNYriUvzq1Cd2DOs4flqDKjXyBoWEMz
+         /USBlpJ6AIxR8SsyctayoRekb4HMGVvqBqGbBdbFksF7OXxtBo9VpcvRmSL/sSyolM
+         r8jHz6fb9m51Q==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>,
+Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next 0/7] Add MEMIC operations support
-Date:   Thu, 18 Mar 2021 13:15:41 +0200
-Message-Id: <20210318111548.674749-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/7] RDMA/uverbs: Make UVERBS_OBJECT_METHODS to consider line number
+Date:   Thu, 18 Mar 2021 13:15:43 +0200
+Message-Id: <20210318111548.674749-3-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210318111548.674749-1-leon@kernel.org>
+References: <20210318111548.674749-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Maor Gottlieb <maorg@nvidia.com>
 
-Hi,
+In order to support multiple methods declaration in the same file we
+should use the line number as part of the name.
 
-This series from Maor extends MEMIC to support atomic operations from
-the host in addition to already supported regular read/write.
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/rdma/uverbs_named_ioctl.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks
+diff --git a/include/rdma/uverbs_named_ioctl.h b/include/rdma/uverbs_named_ioctl.h
+index f04f5126f61e..f247e5d57bb1 100644
+--- a/include/rdma/uverbs_named_ioctl.h
++++ b/include/rdma/uverbs_named_ioctl.h
+@@ -20,7 +20,8 @@
 
-Maor Gottlieb (7):
-  net/mlx5: Add MEMIC operations related bits
-  RDMA/uverbs: Make UVERBS_OBJECT_METHODS to consider line number
-  RDMA/mlx5: Avoid use after free in allocate MEMIC bad flow
-  RDMA/mlx5: Move all DM logic to separate file
-  RDMA/mlx5: Add support to MODIFY_MEMIC command
-  RDMA/mlx5: Add support in MEMIC operations
-  RDMA/mlx5: Expose UAPI to query DM
+ /* These are static so they do not need to be qualified */
+ #define UVERBS_METHOD_ATTRS(method_id) _method_attrs_##method_id
+-#define UVERBS_OBJECT_METHODS(object_id) _object_methods_##object_id
++#define UVERBS_OBJECT_METHODS(object_id)                                       \
++	_UVERBS_NAME(_object_methods_##object_id, __LINE__)
 
- drivers/infiniband/hw/mlx5/Makefile      |   1 +
- drivers/infiniband/hw/mlx5/cmd.c         | 101 ----
- drivers/infiniband/hw/mlx5/cmd.h         |   3 -
- drivers/infiniband/hw/mlx5/dm.c          | 595 +++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/dm.h          |  18 +
- drivers/infiniband/hw/mlx5/main.c        | 243 +--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h     |  20 +-
- include/linux/mlx5/mlx5_ifc.h            |  42 +-
- include/rdma/uverbs_named_ioctl.h        |   3 +-
- include/uapi/rdma/mlx5_user_ioctl_cmds.h |  19 +
- 10 files changed, 699 insertions(+), 346 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/dm.c
- create mode 100644 drivers/infiniband/hw/mlx5/dm.h
-
+ #define DECLARE_UVERBS_NAMED_METHOD(_method_id, ...)                           \
+ 	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
 --
 2.30.2
 
