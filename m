@@ -5,41 +5,41 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90463C4332D
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA816C4361A
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F1A064F04
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FDC064F7B
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Mar 2021 11:16:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230373AbhCRLQL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Mar 2021 07:16:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54466 "EHLO mail.kernel.org"
+        id S230160AbhCRLQK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Mar 2021 07:16:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230364AbhCRLQJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 18 Mar 2021 07:16:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 680F064F2B;
-        Thu, 18 Mar 2021 11:16:08 +0000 (UTC)
+        id S230367AbhCRLQC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 18 Mar 2021 07:16:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB98D64F2A;
+        Thu, 18 Mar 2021 11:16:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616066169;
-        bh=+Pt0XqK+3EAXj1buSHZGoDdNgxitVYYsZ/ujynONCoo=;
+        s=k20201202; t=1616066161;
+        bh=oiREY68drN1myyHRioNElxvpy+ZFbkwcPBMGSuC/nHU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=q32zq0B3RHsuXNiBU0/R6Afk56IQuccmRoDipX0OUuP1oBVW+6OsS0QAotqResUcq
-         igkqBbvG9I+Zm4s2O2HezwdFJpuBiiP5gi60PuaVYFY8K+sNS4iuoTT8EwFxJTrBfr
-         uz+9+uHMfhzAL0oATgFyVHxwOlCc+1mvUzrh0iLtT5xN69a+TR4XYp6MbOQIx2RjPC
-         VFOreOlgypFbo4Mfe8dEmaJj5LxSt9eyWQ+btcRoyxBixmslD70HF4i16z+I73UA/R
-         5LECZBrIunxnxDPtl1AiZmHoHq8zKobCCGNAlZHAAKJRZRUyMiXi18Y6BhA6xE9w+T
-         jabCg2G94jdDA==
+        b=hXDJebLNQY7hsJQ1R4MaoWazB4abPm7Q59INUg+PSdlg1ht9h9yeOayXXbtdWCeJ9
+         Q7WyuERcXSs4ZfS8DgMEGYP1oeGQSfuKsCIjJQ9OLhBHLVRgMAIE7fWwT09HKTyYTL
+         i9RqG0Ao+WKrKhsdQSfIz/ukU2kxeOMChKz1iMcbZC75JQ2/cwKjZIl3ZPge/VJTQ1
+         EcvjNzE2JwLgvEDT/GCBnHJGco/A2XfQQrirwszoGLpLw5P/jP2BLMnX6eubqVNFxd
+         WYLTabpetINpiHwle18irKeTqhp2zBGzzohohv4f4Yod9b0v5ryZHexxvUNUiOCck/
+         OzoKuaqig8Vsg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Maor Gottlieb <maorg@nvidia.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
         Yishai Hadas <yishaih@mellanox.com>
-Subject: [PATCH rdma-next 5/7] RDMA/mlx5: Add support to MODIFY_MEMIC command
-Date:   Thu, 18 Mar 2021 13:15:46 +0200
-Message-Id: <20210318111548.674749-6-leon@kernel.org>
+Subject: [PATCH rdma-next 3/7] RDMA/mlx5: Avoid use after free in allocate MEMIC bad flow
+Date:   Thu, 18 Mar 2021 13:15:44 +0200
+Message-Id: <20210318111548.674749-4-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210318111548.674749-1-leon@kernel.org>
 References: <20210318111548.674749-1-leon@kernel.org>
@@ -51,77 +51,76 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@nvidia.com>
 
-Add two functions to allocate and deallocate MEMIC operations
-by using the MODIFY_MEMIC command.
+When driver fails to copy the MEMIC address to the user, we
+call to rdma_user_mmap_entry_remove on the mmap entry. Since in this
+state the refcount of the mmap entry is decreased to zero, mmap_free
+is triggered and release the dm object. Therefore we need to avoid
+the explicit call to free the dm.
 
+Fixes: dc2316eba73f ("IB/mlx5: Fix device memory flows")
 Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/dm.c | 38 +++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/dm.h |  2 ++
- 2 files changed, 40 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/dm.c b/drivers/infiniband/hw/mlx5/dm.c
-index 3d39d93625ad..97a925d43312 100644
---- a/drivers/infiniband/hw/mlx5/dm.c
-+++ b/drivers/infiniband/hw/mlx5/dm.c
-@@ -111,6 +111,44 @@ void mlx5_cmd_dealloc_memic(struct mlx5_dm *dm, phys_addr_t addr,
- 	spin_unlock(&dm->lock);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5226664f1bda..d652af720036 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2375,13 +2375,18 @@ static int handle_alloc_dm_memic(struct ib_ucontext *ctx,
+
+ 	err = mlx5_cmd_alloc_memic(dm_db, &dm->dev_addr,
+ 				   dm->size, attr->alignment);
+-	if (err)
++	if (err) {
++		kfree(dm);
+ 		return err;
++	}
+
+ 	address = dm->dev_addr & PAGE_MASK;
+ 	err = add_dm_mmap_entry(ctx, dm, address);
+-	if (err)
+-		goto err_dealloc;
++	if (err) {
++		mlx5_cmd_dealloc_memic(dm_db, dm->dev_addr, dm->size);
++		kfree(dm);
++		return err;
++	}
+
+ 	page_idx = dm->mentry.rdma_entry.start_pgoff & 0xFFFF;
+ 	err = uverbs_copy_to(attrs,
+@@ -2402,8 +2407,6 @@ static int handle_alloc_dm_memic(struct ib_ucontext *ctx,
+
+ err_copy:
+ 	rdma_user_mmap_entry_remove(&dm->mentry.rdma_entry);
+-err_dealloc:
+-	mlx5_cmd_dealloc_memic(dm_db, dm->dev_addr, dm->size);
+
+ 	return err;
+ }
+@@ -2472,9 +2475,7 @@ struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+
+ 	switch (type) {
+ 	case MLX5_IB_UAPI_DM_TYPE_MEMIC:
+-		err = handle_alloc_dm_memic(context, dm,
+-					    attr,
+-					    attrs);
++		err = handle_alloc_dm_memic(context, dm, attr, attrs);
+ 		break;
+ 	case MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM:
+ 		err = handle_alloc_dm_sw_icm(context, dm,
+@@ -2496,7 +2497,9 @@ struct ib_dm *mlx5_ib_alloc_dm(struct ib_device *ibdev,
+ 	return &dm->ibdm;
+
+ err_free:
+-	kfree(dm);
++	/* In MEMIC error flow, dm will be freed internally */
++	if (type != MLX5_IB_UAPI_DM_TYPE_MEMIC)
++		kfree(dm);
+ 	return ERR_PTR(err);
  }
 
-+void mlx5_cmd_dealloc_memic_op(struct mlx5_dm *dm, phys_addr_t addr,
-+			       u8 operation)
-+{
-+	u32 in[MLX5_ST_SZ_DW(modify_memic_in)] = {};
-+	struct mlx5_core_dev *dev = dm->dev;
-+
-+	MLX5_SET(modify_memic_in, in, opcode, MLX5_CMD_OP_MODIFY_MEMIC);
-+	MLX5_SET(modify_memic_in, in, op_mod, MLX5_MODIFY_MEMIC_OP_MOD_DEALLOC);
-+	MLX5_SET(modify_memic_in, in, memic_operation_type,
-+		 MLX5_MODIFY_MEMIC_OP_MOD_ALLOC);
-+	MLX5_SET64(modify_memic_in, in, memic_start_addr, addr - dev->bar_addr);
-+
-+	mlx5_cmd_exec_in(dev, modify_memic, in);
-+}
-+
-+static int mlx5_cmd_alloc_memic_op(struct mlx5_dm *dm, phys_addr_t addr,
-+				   u8 operation, phys_addr_t *op_addr)
-+{
-+	u32 out[MLX5_ST_SZ_DW(modify_memic_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(modify_memic_in)] = {};
-+	struct mlx5_core_dev *dev = dm->dev;
-+	int err;
-+
-+	MLX5_SET(modify_memic_in, in, opcode, MLX5_CMD_OP_MODIFY_MEMIC);
-+	MLX5_SET(modify_memic_in, in, op_mod, MLX5_MODIFY_MEMIC_OP_MOD_ALLOC);
-+	MLX5_SET(modify_memic_in, in, memic_operation_type,
-+		 MLX5_MODIFY_MEMIC_OP_MOD_ALLOC);
-+	MLX5_SET64(modify_memic_in, in, memic_start_addr, addr - dev->bar_addr);
-+
-+	err = mlx5_cmd_exec_inout(dev, modify_memic, in, out);
-+	if (err)
-+		return err;
-+
-+	*op_addr = dev->bar_addr +
-+		   MLX5_GET64(modify_memic_out, out, memic_operation_addr);
-+	return 0;
-+}
-+
- static int add_dm_mmap_entry(struct ib_ucontext *context,
- 			     struct mlx5_ib_dm *mdm, u64 address)
- {
-diff --git a/drivers/infiniband/hw/mlx5/dm.h b/drivers/infiniband/hw/mlx5/dm.h
-index dbef67e38731..adb39d3d8131 100644
---- a/drivers/infiniband/hw/mlx5/dm.h
-+++ b/drivers/infiniband/hw/mlx5/dm.h
-@@ -10,5 +10,7 @@
-
- void mlx5_cmd_dealloc_memic(struct mlx5_dm *dm, phys_addr_t addr,
- 			    u64 length);
-+void mlx5_cmd_dealloc_memic_op(struct mlx5_dm *dm, phys_addr_t addr,
-+			       u8 operation);
-
- #endif /* _MLX5_IB_DM_H */
 --
 2.30.2
 
