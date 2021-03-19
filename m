@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B25C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4703FC433E9
 	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1EB064EED
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BCDD64F6B
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbhCSM4o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Mar 2021 08:56:44 -0400
+        id S229618AbhCSM4n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Mar 2021 08:56:43 -0400
 Received: from mga01.intel.com ([192.55.52.88]:4853 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229927AbhCSM4n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Mar 2021 08:56:43 -0400
-IronPort-SDR: Xmbnit1YHX6KH26z53MpWsT+YI9vuDo4b/7zm+OUrRgNyob/HdVW8zGpsBcSJ3E5It3xKPoAU4
- xyavvT9sCN5g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910284"
+        id S229914AbhCSM4l (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Mar 2021 08:56:41 -0400
+IronPort-SDR: xJo1EpMlxN3Amr46FuKnyF55jHYXR3SR4XZT48R2zfJvX2G4cxdpFouXiDznRor/X4flLUhlRn
+ L8Mg/YBIC5qw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910281"
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="209910284"
+   d="scan'208";a="209910281"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:42 -0700
-IronPort-SDR: 9yWbDQpRpw56ljwPgwZKGYRICzJH1quRVDtWH7qsrZwZFNcx7FUzYZV9YFQknLrBldz1htnI1t
- 9itF8YsSzPQA==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:40 -0700
+IronPort-SDR: KZfsu8nNZlAkshOAZKMSIOJ+EEa+XY7wYIZkNVVsF5ELSNwSlfoxICRUxUwVdq5axDS6z+Z7/0
+ PBJVdvoM3E2Q==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="450851734"
+   d="scan'208";a="450851723"
 Received: from phwfstl014.hd.intel.com ([10.127.241.142])
-  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:41 -0700
+  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:39 -0700
 From:   kaike.wan@intel.com
 To:     dledford@redhat.com, jgg@nvidia.com
 Cc:     linux-rdma@vger.kernel.org, todd.rimmer@intel.com,
         Kaike Wan <kaike.wan@intel.com>
-Subject: [PATCH RFC 5/9] RDMA/rv: Add function to register/deregister memory region
-Date:   Fri, 19 Mar 2021 08:56:31 -0400
-Message-Id: <20210319125635.34492-6-kaike.wan@intel.com>
+Subject: [PATCH RFC 3/9] RDMA/rv: Add the rv module
+Date:   Fri, 19 Mar 2021 08:56:29 -0400
+Message-Id: <20210319125635.34492-4-kaike.wan@intel.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20210319125635.34492-1-kaike.wan@intel.com>
 References: <20210319125635.34492-1-kaike.wan@intel.com>
@@ -49,1060 +49,483 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan@intel.com>
 
-This patch adds functions for user application to register/deregister
-memory region (mr) for user buffers. Two types of mrs are supported:
-user mrs and kernel mrs.
+Add the rv module, the Makefile, and Kconfig file.
 
-User mrs are used soley by the user application. The reason that
-the user mrs are cached in the rv module instead of in the user
-application is that a middleware application may not known when a user
-buffer (allocated by a upper lay application) is freed in order to free
-any stale nodes. On the other hand, the rv module can register an MMU
-notifier callback so that it can promptly remove any stale cache nodes.
-
-Kernel mrs are used by the rv module for any RDMA transactions between
-nodes.
-
-A user mr is registered in a way similar to that in the verbs
-interface. A kernel mr is registered similar to that in
-ib_reg_user_mr() for on-demand paging. An RDMA hardware may have to
-be qualified for this mechanism.
+Also add the functions to manage IB devices.
 
 Signed-off-by: Todd Rimmer <todd.rimmer@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 ---
- drivers/infiniband/core/core_priv.h     |   4 +
- drivers/infiniband/core/rdma_core.c     | 237 ++++++++++++++
- drivers/infiniband/core/uverbs_cmd.c    |  54 +---
- drivers/infiniband/ulp/rv/Makefile      |   2 +-
- drivers/infiniband/ulp/rv/rv_file.c     |  31 ++
- drivers/infiniband/ulp/rv/rv_mr.c       | 393 ++++++++++++++++++++++++
- drivers/infiniband/ulp/rv/rv_mr_cache.c |   2 +-
- drivers/infiniband/ulp/rv/trace.h       |   2 +
- drivers/infiniband/ulp/rv/trace_mr.h    | 109 +++++++
- drivers/infiniband/ulp/rv/trace_user.h  |  66 ++++
- include/rdma/uverbs_types.h             |  10 +
- 11 files changed, 860 insertions(+), 50 deletions(-)
- create mode 100644 drivers/infiniband/ulp/rv/rv_file.c
- create mode 100644 drivers/infiniband/ulp/rv/rv_mr.c
- create mode 100644 drivers/infiniband/ulp/rv/trace_mr.h
- create mode 100644 drivers/infiniband/ulp/rv/trace_user.h
+ MAINTAINERS                           |   6 +
+ drivers/infiniband/Kconfig            |   1 +
+ drivers/infiniband/ulp/Makefile       |   1 +
+ drivers/infiniband/ulp/rv/Kconfig     |  11 ++
+ drivers/infiniband/ulp/rv/Makefile    |   9 +
+ drivers/infiniband/ulp/rv/rv_main.c   | 266 ++++++++++++++++++++++++++
+ drivers/infiniband/ulp/rv/trace.c     |   7 +
+ drivers/infiniband/ulp/rv/trace.h     |   5 +
+ drivers/infiniband/ulp/rv/trace_dev.h |  82 ++++++++
+ 9 files changed, 388 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/rv/Kconfig
+ create mode 100644 drivers/infiniband/ulp/rv/Makefile
+ create mode 100644 drivers/infiniband/ulp/rv/rv_main.c
+ create mode 100644 drivers/infiniband/ulp/rv/trace.c
+ create mode 100644 drivers/infiniband/ulp/rv/trace.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_dev.h
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 315f7a297eee..678fb9a3d77b 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -404,4 +404,8 @@ void rdma_umap_priv_init(struct rdma_umap_priv *priv,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index d92f85ca831d..ba50affec9bc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -15547,6 +15547,12 @@ L:	linux-rdma@vger.kernel.org
+ S:	Maintained
+ F:	drivers/infiniband/ulp/rtrs/
  
- void ib_cq_pool_cleanup(struct ib_device *dev);
++RV DRIVER
++M:	Kaike Wan <kaike.wan@intel.com>
++L:	linux-rdma@vger.kernel.org
++S:	Supported
++F:	drivers/infiniband/ulp/rv
++
+ RXRPC SOCKETS (AF_RXRPC)
+ M:	David Howells <dhowells@redhat.com>
+ L:	linux-afs@lists.infradead.org
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 04a78d9f8fe3..5086164c836f 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -107,5 +107,6 @@ source "drivers/infiniband/ulp/isert/Kconfig"
+ source "drivers/infiniband/ulp/rtrs/Kconfig"
  
-+struct ib_mr *uverbs_reg_mr(struct uverbs_attr_bundle *attrs, u32 pd_handle,
-+			    u64 start, u64 length, u64 hca_va,
-+			    u32 access_flags, struct ib_udata *driver_udata);
-+
- #endif /* _CORE_PRIV_H */
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 75eafd9208aa..22120adf0ef2 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -1013,3 +1013,240 @@ void uverbs_finalize_object(struct ib_uobject *uobj,
- 		WARN_ON(true);
- 	}
- }
-+
-+static struct ib_uverbs_file *get_ufile_from_fd(struct fd *fd)
-+{
-+	return fd->file ? (struct ib_uverbs_file *)fd->file->private_data :
-+			  NULL;
-+}
-+
-+static struct ib_uverbs_file *get_ufile(u32 cmd_fd, struct fd *fd)
-+{
-+	struct fd f;
-+	struct ib_uverbs_file *file;
-+
-+	/* fd to "struct fd" */
-+	f = fdget(cmd_fd);
-+
-+	file = get_ufile_from_fd(&f);
-+	if (!file)
-+		goto bail;
-+
-+	memcpy(fd, &f, sizeof(f));
-+	return file;
-+bail:
-+	fdput(f);
-+	return NULL;
-+}
-+
-+struct ib_mr *uverbs_reg_mr(struct uverbs_attr_bundle *attrs, u32 pd_handle,
-+			    u64 start, u64 length, u64 hca_va,
-+			    u32 access_flags, struct ib_udata *driver_udata)
-+{
-+	struct ib_uobject           *uobj;
-+	struct ib_pd                *pd;
-+	struct ib_mr                *mr;
-+	int                          ret;
-+	struct ib_device            *ib_dev;
-+
-+	uobj = uobj_alloc(UVERBS_OBJECT_MR, attrs, &ib_dev);
-+	if (IS_ERR(uobj))
-+		return (struct ib_mr *)uobj;
-+
-+	ret = ib_check_mr_access(ib_dev, access_flags);
-+	if (ret)
-+		goto err_free;
-+
-+	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, pd_handle, attrs);
-+	if (!pd) {
-+		ret = -EINVAL;
-+		goto err_free;
-+	}
-+
-+	mr = pd->device->ops.reg_user_mr(pd, start, length, hca_va,
-+					 access_flags, driver_udata);
-+	if (IS_ERR(mr)) {
-+		ret = PTR_ERR(mr);
-+		goto err_put;
-+	}
-+
-+	mr->device  = pd->device;
-+	mr->pd      = pd;
-+	mr->type    = IB_MR_TYPE_USER;
-+	mr->dm      = NULL;
-+	mr->sig_attrs = NULL;
-+	mr->uobject = uobj;
-+	atomic_inc(&pd->usecnt);
-+	mr->iova = hca_va;
-+
-+	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
-+	rdma_restrack_set_name(&mr->res, NULL);
-+	rdma_restrack_add(&mr->res);
-+
-+	uobj->object = mr;
-+	uobj_put_obj_read(pd);
-+	uobj_finalize_uobj_create(uobj, attrs);
-+
-+	return mr;
-+
-+err_put:
-+	uobj_put_obj_read(pd);
-+err_free:
-+	uobj_alloc_abort(uobj, attrs);
-+	return ERR_PTR(ret);
-+}
-+
-+struct ib_mr *rdma_reg_user_mr(struct ib_device *ib_dev, u32 cmd_fd,
-+			       u32 pd_handle, u64 start, u64 length,
-+			       u32 access_flags, size_t ulen, void *udata,
-+			       struct fd *fd)
-+{
-+	struct ib_mr *mr;
-+	struct ib_uverbs_file *ufile;
-+	struct uverbs_attr_bundle attrs;
-+	int srcu_key;
-+	struct ib_device *device;
-+
-+	if (!fd) {
-+		mr = ERR_PTR(-EINVAL);
-+		goto out;
-+	}
-+
-+	memset(&attrs, 0, sizeof(attrs));
-+	ufile = get_ufile(cmd_fd, fd);
-+	if (!ufile) {
-+		mr = ERR_PTR(-EINVAL);
-+		goto out;
-+	}
-+
-+	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
-+	/* Validate the target ib_device */
-+	device = srcu_dereference(ufile->device->ib_dev,
-+				  &ufile->device->disassociate_srcu);
-+	if (device != ib_dev) {
-+		mr = ERR_PTR(-EINVAL);
-+		goto out_fd;
-+	}
-+	attrs.ufile = ufile;
-+	attrs.driver_udata.inlen = ulen;
-+	if (ulen)
-+		attrs.driver_udata.inbuf = udata;
-+
-+	mr = uverbs_reg_mr(&attrs, pd_handle, start, length, start,
-+			   access_flags, &attrs.driver_udata);
-+	if (IS_ERR(mr))
-+		goto out_fd;
-+	else
-+		uverbs_finalize_object(attrs.uobject, UVERBS_ACCESS_NEW, true,
-+				       true, &attrs);
-+
-+	goto out_unlock;
-+
-+out_fd:
-+	fdput(*fd);
-+out_unlock:
-+	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
-+out:
-+	return mr;
-+}
-+EXPORT_SYMBOL(rdma_reg_user_mr);
-+
-+int rdma_dereg_user_mr(struct ib_mr *mr, struct fd *fd)
-+{
-+	struct ib_uverbs_file *ufile;
-+	struct uverbs_attr_bundle attrs;
-+	int srcu_key;
-+	int ret;
-+
-+	if (!fd || !mr || !mr->uobject)
-+		return -EINVAL;
-+
-+	memset(&attrs, 0, sizeof(attrs));
-+	ufile = get_ufile_from_fd(fd);
-+	if (!ufile || !ufile->device)
-+		return -EINVAL;
-+
-+	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
-+	attrs.ufile = ufile;
-+
-+	ret = uobj_perform_destroy(UVERBS_OBJECT_MR, (u32)mr->uobject->id,
-+				   &attrs);
-+	fdput(*fd);
-+
-+	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
-+	return ret;
-+}
-+EXPORT_SYMBOL(rdma_dereg_user_mr);
-+
-+struct ib_mr *rdma_reg_kernel_mr(u32 cmd_fd, struct ib_pd *kern_pd, u64 start,
-+				 u64 length, u32 access_flags, size_t ulen,
-+				 void *udata, struct fd *fd)
-+{
-+	struct ib_mr *mr;
-+	struct ib_uverbs_file *ufile;
-+	struct uverbs_attr_bundle attrs;
-+	int srcu_key;
-+
-+	if (!fd) {
-+		mr = ERR_PTR(-EINVAL);
-+		goto out;
-+	}
-+
-+	memset(&attrs, 0, sizeof(attrs));
-+	ufile = get_ufile(cmd_fd, fd);
-+	if (!ufile) {
-+		mr = ERR_PTR(-EINVAL);
-+		goto out;
-+	}
-+	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
-+	attrs.ufile = ufile;
-+	attrs.driver_udata.inlen = ulen;
-+	if (ulen)
-+		attrs.driver_udata.inbuf = udata;
-+
-+	mr = kern_pd->device->ops.reg_user_mr(kern_pd, start, length, start,
-+					      access_flags,
-+					      &attrs.driver_udata);
-+	if (IS_ERR(mr)) {
-+		fdput(*fd);
-+		goto out_unlock;
-+	}
-+
-+	mr->device  = kern_pd->device;
-+	mr->pd      = kern_pd;
-+	mr->dm      = NULL;
-+	atomic_inc(&kern_pd->usecnt);
-+
-+out_unlock:
-+	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
-+out:
-+	return mr;
-+}
-+EXPORT_SYMBOL(rdma_reg_kernel_mr);
-+
-+int rdma_dereg_kernel_mr(struct ib_mr *mr, struct fd *fd)
-+{
-+	struct ib_pd *pd;
-+	struct ib_uverbs_file *ufile;
-+	int srcu_key;
-+	int ret = 0;
-+	struct ib_udata udata;
-+
-+	if (!fd || !mr)
-+		return -EINVAL;
-+
-+	ufile = get_ufile_from_fd(fd);
-+	if (!ufile)
-+		return -EINVAL;
-+
-+	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
-+	memset(&udata, 0, sizeof(udata));
-+	pd = mr->pd;
-+	ret = pd->device->ops.dereg_mr(mr, &udata);
-+	atomic_dec(&pd->usecnt);
-+	fdput(*fd);
-+
-+	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
-+	return ret;
-+}
-+EXPORT_SYMBOL(rdma_dereg_kernel_mr);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index f5b8be3bedde..83751801d217 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -696,11 +696,8 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- {
- 	struct ib_uverbs_reg_mr_resp resp = {};
- 	struct ib_uverbs_reg_mr      cmd;
--	struct ib_uobject           *uobj;
--	struct ib_pd                *pd;
- 	struct ib_mr                *mr;
- 	int                          ret;
--	struct ib_device *ib_dev;
+ source "drivers/infiniband/ulp/opa_vnic/Kconfig"
++source "drivers/infiniband/ulp/rv/Kconfig"
  
- 	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
- 	if (ret)
-@@ -709,55 +706,16 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
- 		return -EINVAL;
- 
--	uobj = uobj_alloc(UVERBS_OBJECT_MR, attrs, &ib_dev);
--	if (IS_ERR(uobj))
--		return PTR_ERR(uobj);
--
--	ret = ib_check_mr_access(ib_dev, cmd.access_flags);
--	if (ret)
--		goto err_free;
--
--	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, cmd.pd_handle, attrs);
--	if (!pd) {
--		ret = -EINVAL;
--		goto err_free;
--	}
--
--	mr = pd->device->ops.reg_user_mr(pd, cmd.start, cmd.length, cmd.hca_va,
--					 cmd.access_flags,
--					 &attrs->driver_udata);
--	if (IS_ERR(mr)) {
--		ret = PTR_ERR(mr);
--		goto err_put;
--	}
--
--	mr->device  = pd->device;
--	mr->pd      = pd;
--	mr->type    = IB_MR_TYPE_USER;
--	mr->dm	    = NULL;
--	mr->sig_attrs = NULL;
--	mr->uobject = uobj;
--	atomic_inc(&pd->usecnt);
--	mr->iova = cmd.hca_va;
--
--	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
--	rdma_restrack_set_name(&mr->res, NULL);
--	rdma_restrack_add(&mr->res);
--
--	uobj->object = mr;
--	uobj_put_obj_read(pd);
--	uobj_finalize_uobj_create(uobj, attrs);
-+	mr = uverbs_reg_mr(attrs, cmd.pd_handle, cmd.start, cmd.length,
-+			   cmd.hca_va, cmd.access_flags,
-+			   &attrs->driver_udata);
-+	if (IS_ERR(mr))
-+		return PTR_ERR(mr);
- 
- 	resp.lkey = mr->lkey;
- 	resp.rkey = mr->rkey;
--	resp.mr_handle = uobj->id;
-+	resp.mr_handle = mr->uobject->id;
- 	return uverbs_response(attrs, &resp, sizeof(resp));
--
--err_put:
--	uobj_put_obj_read(pd);
--err_free:
--	uobj_alloc_abort(uobj, attrs);
--	return ret;
- }
- 
- static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
+ endif # INFINIBAND
+diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
+index 4d0004b58377..f925deb9241c 100644
+--- a/drivers/infiniband/ulp/Makefile
++++ b/drivers/infiniband/ulp/Makefile
+@@ -6,3 +6,4 @@ obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
+ obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
+ obj-$(CONFIG_INFINIBAND_OPA_VNIC)	+= opa_vnic/
+ obj-$(CONFIG_INFINIBAND_RTRS)		+= rtrs/
++obj-$(CONFIG_INFINIBAND_RV)		+= rv/
+diff --git a/drivers/infiniband/ulp/rv/Kconfig b/drivers/infiniband/ulp/rv/Kconfig
+new file mode 100644
+index 000000000000..32a0523ff8ce
+--- /dev/null
++++ b/drivers/infiniband/ulp/rv/Kconfig
+@@ -0,0 +1,11 @@
++# SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
++#
++# Copyright(c) 2020 - 2021 Intel Corporation.
++#
++config INFINIBAND_RV
++	tristate "InfiniBand Rendezvous Module"
++	depends on X86_64 && INFINIBAND
++	help
++	  The rendezvous module provides mechanisms for HPC middlewares
++	  to cache memory region registration, to manage connections
++	  between nodes, and improve the scability of RDMA transactions.
 diff --git a/drivers/infiniband/ulp/rv/Makefile b/drivers/infiniband/ulp/rv/Makefile
-index 01e93dc25f1d..677b113c0666 100644
---- a/drivers/infiniband/ulp/rv/Makefile
+new file mode 100644
+index 000000000000..07a7a7dd9c3b
+--- /dev/null
 +++ b/drivers/infiniband/ulp/rv/Makefile
-@@ -4,6 +4,6 @@
- #
- obj-$(CONFIG_INFINIBAND_RV) += rv.o
- 
--rv-y := rv_main.o rv_mr_cache.o trace.o
-+rv-y := rv_main.o rv_mr_cache.o rv_file.o rv_mr.o trace.o
- 
- CFLAGS_trace.o = -I$(src)
-diff --git a/drivers/infiniband/ulp/rv/rv_file.c b/drivers/infiniband/ulp/rv/rv_file.c
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
++#
++# Copyright(c) 2020 - 2021 Intel Corporation.
++#
++obj-$(CONFIG_INFINIBAND_RV) += rv.o
++
++rv-y := rv_main.o trace.o
++
++CFLAGS_trace.o = -I$(src)
+diff --git a/drivers/infiniband/ulp/rv/rv_main.c b/drivers/infiniband/ulp/rv/rv_main.c
 new file mode 100644
-index 000000000000..3625a9c1681a
+index 000000000000..7f81f97a01f0
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rv/rv_file.c
-@@ -0,0 +1,31 @@
++++ b/drivers/infiniband/ulp/rv/rv_main.c
+@@ -0,0 +1,266 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
 +/*
 + * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
 +
-+#include "rv.h"
++/* This file contains the base of the rendezvous RDMA driver */
 +
-+/* A workqueue for all */
-+static struct workqueue_struct *rv_wq;
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/parser.h>
 +
-+void rv_queue_work(struct work_struct *work)
-+{
-+	queue_work(rv_wq, work);
-+}
-+
-+void rv_job_dev_get(struct rv_job_dev *jdev)
-+{
-+	kref_get(&jdev->kref);
-+}
-+
-+static void rv_job_dev_release(struct kref *kref)
-+{
-+	struct rv_job_dev *jdev = container_of(kref, struct rv_job_dev, kref);
-+
-+	kfree_rcu(jdev, rcu);
-+}
-+
-+void rv_job_dev_put(struct rv_job_dev *jdev)
-+{
-+	kref_put(&jdev->kref, rv_job_dev_release);
-+}
-diff --git a/drivers/infiniband/ulp/rv/rv_mr.c b/drivers/infiniband/ulp/rv/rv_mr.c
-new file mode 100644
-index 000000000000..76786bd11502
---- /dev/null
-+++ b/drivers/infiniband/ulp/rv/rv_mr.c
-@@ -0,0 +1,393 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
-+/*
-+ * Copyright(c) 2020 - 2021 Intel Corporation.
-+ */
-+
-+#include <rdma/uverbs_std_types.h>
-+#include <rdma/uverbs_ioctl.h>
++#include <rdma/ib_user_sa.h>
 +
 +#include "rv.h"
 +#include "trace.h"
 +
-+unsigned int enable_user_mr;
++MODULE_AUTHOR("Kaike Wan");
++MODULE_DESCRIPTION("Rendezvous Module");
++MODULE_LICENSE("Dual BSD/GPL");
 +
-+module_param(enable_user_mr, uint, 0444);
-+MODULE_PARM_DESC(enable_user_mr, "Enable user mode MR caching");
++static int rv_add_one(struct ib_device *device);
++static void rv_remove_one(struct ib_device *device, void *client_data);
++static void rv_rename_dev(struct ib_device *device, void *client_data);
 +
-+static void rv_handle_user_mrs_put(struct work_struct *work);
-+
-+static bool rv_cache_mrc_filter(struct rv_mr_cached *mrc, u64 addr,
-+				u64 len, u32 acc);
-+static void rv_cache_mrc_get(struct rv_mr_cache *cache,
-+			     void *arg, struct rv_mr_cached *mrc);
-+static int rv_cache_mrc_put(struct rv_mr_cache *cache,
-+			    void *arg, struct rv_mr_cached *mrc);
-+static int rv_cache_mrc_invalidate(struct rv_mr_cache *cache,
-+				   void *arg, struct rv_mr_cached *mrc);
-+static int rv_cache_mrc_evict(struct rv_mr_cache *cache,
-+			      void *arg, struct rv_mr_cached *mrc,
-+			      void *evict_arg, bool *stop);
-+
-+static const struct rv_mr_cache_ops rv_cache_ops = {
-+	.filter = rv_cache_mrc_filter,
-+	.get = rv_cache_mrc_get,
-+	.put = rv_cache_mrc_put,
-+	.invalidate = rv_cache_mrc_invalidate,
-+	.evict = rv_cache_mrc_evict
++static struct ib_client rv_client = {
++	.name = "rv",
++	.add = rv_add_one,
++	.remove = rv_remove_one,
++	.rename = rv_rename_dev
 +};
 +
-+/* given an rv, find the proper ib_dev to use when registering user MRs */
-+static struct ib_device *rv_ib_dev(struct rv_user *rv)
-+{
-+	struct rv_device *dev = rv->rdma_mode == RV_RDMA_MODE_USER ? rv->dev :
-+				rv->jdev->dev;
++static struct list_head rv_dev_list;	/* list of rv_device */
++static spinlock_t rv_dev_list_lock;
 +
-+	return dev->ib_dev;
++/* get a device reference and add an rv_user to rv_device.user_list */
++struct rv_device *rv_device_get_add_user(char *dev_name, struct rv_user *rv)
++{
++	struct rv_device *dev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	list_for_each_entry(dev, &rv_dev_list, dev_entry) {
++		if (strcmp(dev->ib_dev->name, dev_name) == 0) {
++			if (!kref_get_unless_zero(&dev->kref))
++				continue; /* skip, going away */
++			list_add_tail(&rv->user_entry, &dev->user_list);
++			spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++			trace_rv_dev_get(dev_name, kref_read(&dev->kref));
++			return dev;
++		}
++	}
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++	rv_err(RV_INVALID, "Could not find IB dev %s\n", dev_name);
++	return NULL;
 +}
 +
-+/* caller must hold rv->mutex */
-+static int rv_drv_api_reg_mem(struct rv_user *rv,
-+			      struct rv_mem_params_in *minfo,
-+			      struct mr_info *mr)
++static void rv_device_release(struct kref *kref)
 +{
-+	struct ib_mr *ib_mr;
++	struct rv_device *dev = container_of(kref, struct rv_device, kref);
 +
-+	mr->ib_mr = NULL;
-+	mr->ib_pd = NULL;
++	ib_unregister_event_handler(&dev->event_handler); /* may need sooner */
++	kfree(dev);
++}
 +
-+	/*
-+	 * Check if the buffer is for kernel use. It should be noted that
-+	 * the ibv_pd_handle value "0" is a valid user space pd handle.
-+	 */
-+	if (minfo->access & IBV_ACCESS_KERNEL)
-+		ib_mr = rdma_reg_kernel_mr(minfo->cmd_fd_int, rv->jdev->pd,
-+					   minfo->addr, minfo->length,
-+					   minfo->access & ~IBV_ACCESS_KERNEL,
-+					   minfo->ulen, minfo->udata,
-+					   &mr->fd);
++void rv_device_get(struct rv_device *dev)
++{
++	kref_get(&dev->kref);
++}
++
++void rv_device_put(struct rv_device *dev)
++{
++	trace_rv_dev_put(dev->ib_dev ? dev->ib_dev->name : "nil",
++			 kref_read(&dev->kref));
++	kref_put(&dev->kref, rv_device_release);
++}
++
++/*
++ * Remove a rv_user from rv_device.user_list
++ *
++ * @rv - The rv_user to remove
++ *
++ * Return:
++ *   0 - The rv_user is in rv_device.user_list and removed;
++ *   1 - The rv_user is already not in rv_device.user_list.
++ */
++int rv_device_del_user(struct rv_user *rv)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	if (list_empty(&rv->user_entry))
++		ret = 1;
 +	else
-+		ib_mr = rdma_reg_user_mr(rv_ib_dev(rv), minfo->cmd_fd_int,
-+					 minfo->ibv_pd_handle,
-+					 minfo->addr, minfo->length,
-+					 minfo->access, minfo->ulen,
-+					 minfo->udata, &mr->fd);
-+	if (IS_ERR(ib_mr)) {
-+		rv_err(rv->inx, "reg_user_mr failed\n");
-+		return  PTR_ERR(ib_mr);
-+	}
-+	/* A hardware driver may not set the iova field */
-+	if (!ib_mr->iova)
-+		ib_mr->iova = minfo->addr;
++		list_del_init(&rv->user_entry);
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
 +
-+	trace_rv_mr_info_reg(minfo->addr, minfo->length, minfo->access,
-+			     ib_mr->lkey, ib_mr->rkey, ib_mr->iova,
-+			     atomic_read(&ib_mr->pd->usecnt));
-+	mr->ib_mr = ib_mr;
-+	mr->ib_pd = ib_mr->pd;
-+
-+	return 0;
-+}
-+
-+int rv_drv_api_dereg_mem(struct mr_info *mr)
-+{
-+	int ret;
-+	struct rv_mr_cached *mrc = container_of(mr, struct rv_mr_cached, mr);
-+
-+	trace_rv_mr_info_dereg(mrc->addr, mrc->len, mrc->access,
-+			       mr->ib_mr->lkey, mr->ib_mr->rkey,
-+			       mr->ib_mr->iova,
-+			       atomic_read(&mr->ib_pd->usecnt));
-+
-+	if (mrc->access & IBV_ACCESS_KERNEL)
-+		ret = rdma_dereg_kernel_mr(mr->ib_mr, &mr->fd);
-+	else
-+		ret = rdma_dereg_user_mr(mr->ib_mr, &mr->fd);
-+	if (!ret) {
-+		mr->ib_mr = NULL;
-+		mr->ib_pd = NULL;
-+	}
 +	return ret;
 +}
 +
-+/* Cannot hold rv->mutex */
-+struct rv_user_mrs *rv_user_mrs_alloc(struct rv_user *rv, u32 cache_size)
++/* verbs device level async events */
++static void rv_device_event_handler(struct ib_event_handler *handler,
++				    struct ib_event *event)
 +{
-+	int ret;
-+	struct rv_user_mrs *umrs;
++	struct rv_device *dev;
 +
-+	umrs = kzalloc(sizeof(*umrs), GFP_KERNEL);
-+	if (!umrs)
-+		return ERR_PTR(-ENOMEM);
++	dev = ib_get_client_data(event->device, &rv_client);
++	if (!dev || dev->ib_dev != event->device)
++		return;
 +
-+	umrs->rv_inx = rv->inx;
-+	ret = rv_mr_cache_init(rv->inx, &umrs->cache, &rv_cache_ops, NULL,
-+			       current->mm, cache_size);
-+	if (ret)
-+		goto bail_free;
-+	kref_init(&umrs->kref); /* refcount now 1 */
-+	INIT_WORK(&umrs->put_work, rv_handle_user_mrs_put);
-+	return umrs;
-+
-+bail_free:
-+	kfree(umrs);
-+	return ERR_PTR(ret);
-+}
-+
-+/* called with rv->mutex */
-+void rv_user_mrs_attach(struct rv_user *rv)
-+{
-+	struct rv_user_mrs *umrs = rv->umrs;
-+
-+	if (rv->rdma_mode == RV_RDMA_MODE_KERNEL) {
-+		/*
-+		 * for mode KERNEL the user_mrs object may survive past the
-+		 * rv_user close, so we need our own jdev reference to dereg
-+		 * MRs while outstanding send IOs complete.
-+		 * For mode USER, the MRs are using the user's pd
-+		 * and rv_user will free all MRs during close
-+		 *
-+		 * the jdev->pd we will use for MRs and QP needs ref to jdev
-+		 */
-+		rv_job_dev_get(rv->jdev);
-+		umrs->jdev = rv->jdev;
++	trace_rv_device_event(dev->ib_dev->name, ib_event_msg(event->event));
++	switch (event->event) {
++	case IB_EVENT_DEVICE_FATAL:
++	case IB_EVENT_PORT_ERR:
++	case IB_EVENT_PORT_ACTIVE:
++	case IB_EVENT_LID_CHANGE:
++	case IB_EVENT_PKEY_CHANGE:
++	case IB_EVENT_SM_CHANGE:
++	case IB_EVENT_CLIENT_REREGISTER:
++	case IB_EVENT_GID_CHANGE:
++	default:
++		break;
 +	}
-+	trace_rv_user_mrs_attach(umrs->rv_inx, umrs->jdev,
-+				 umrs->cache.total_size, umrs->cache.max_size,
-+				 kref_read(&umrs->kref));
 +}
 +
-+static void rv_user_mrs_release(struct rv_user_mrs *umrs)
++static int rv_add_one(struct ib_device *device)
 +{
-+	trace_rv_user_mrs_release(umrs->rv_inx, umrs->jdev,
-+				  umrs->cache.total_size, umrs->cache.max_size,
-+				  kref_read(&umrs->kref));
-+	rv_mr_cache_deinit(umrs->rv_inx, &umrs->cache);
-+	if (umrs->jdev)
-+		rv_job_dev_put(umrs->jdev);
-+	kfree(umrs);
-+}
++	struct rv_device *dev;
++	unsigned long flags;
 +
-+static void rv_handle_user_mrs_put(struct work_struct *work)
-+{
-+	struct rv_user_mrs *umrs = container_of(work, struct rv_user_mrs,
-+						put_work);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		return -ENOMEM;
++	dev->ib_dev = device;
++	kref_init(&dev->kref);
++	mutex_init(&dev->listener_mutex);
++	spin_lock_init(&dev->listener_lock);
++	INIT_LIST_HEAD(&dev->listener_list);
++	INIT_LIST_HEAD(&dev->user_list);
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	list_add(&dev->dev_entry, &rv_dev_list);
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++	trace_rv_dev_add(device->name, kref_read(&dev->kref));
++	ib_set_client_data(device, &rv_client, dev);
 +
-+	rv_user_mrs_release(umrs);
-+}
++	INIT_IB_EVENT_HANDLER(&dev->event_handler, device,
++			      rv_device_event_handler);
++	ib_register_event_handler(&dev->event_handler);
 +
-+static void rv_user_mrs_schedule_release(struct kref *kref)
-+{
-+	struct rv_user_mrs *umrs = container_of(kref, struct rv_user_mrs, kref);
-+
-+	/*
-+	 * Since this function may be called from rv_write_done(),
-+	 * we can't call rv_user_mrs_release() directly to
-+	 * destroy it's rc QP and rv_mr_cache_deinit (and wait for completion)
-+	 * Instead, put the cleanup on a workqueue thread.
-+	 */
-+	rv_queue_work(&umrs->put_work);
-+}
-+
-+void rv_user_mrs_get(struct rv_user_mrs *umrs)
-+{
-+	kref_get(&umrs->kref);
-+}
-+
-+void rv_user_mrs_put(struct rv_user_mrs *umrs)
-+{
-+	kref_put(&umrs->kref, rv_user_mrs_schedule_release);
-+}
-+
-+int doit_reg_mem(struct rv_user *rv, unsigned long arg)
-+{
-+	struct rv_mem_params mparams;
-+	struct rv_mr_cached *mrc;
-+	int ret;
-+	struct rv_user_mrs *umrs = rv->umrs;
-+
-+	if (copy_from_user(&mparams.in, (void __user *)arg,
-+			   sizeof(mparams.in)))
-+		return -EFAULT;
-+
-+	if (!enable_user_mr && !(mparams.in.access & IBV_ACCESS_KERNEL))
-+		return -EINVAL;
-+
-+	/*
-+	 * rv->mutex protects use of umrs QP for REG_MR, also
-+	 * protects between rb_search and rb_insert vs races with other
-+	 * doit_reg_mem and doit_dereg_mem calls
-+	 */
-+	mutex_lock(&rv->mutex);
-+	if (!rv->attached) {
-+		ret = rv->was_attached ? -ENXIO : -EINVAL;
-+		goto bail_unlock;
-+	}
-+	if (rv->rdma_mode != RV_RDMA_MODE_KERNEL &&
-+	    (mparams.in.access & IBV_ACCESS_KERNEL)) {
-+		ret = -EINVAL;
-+		goto bail_unlock;
-+	}
-+
-+	trace_rv_mr_reg(rv->rdma_mode, mparams.in.addr,
-+			mparams.in.length, mparams.in.access);
-+	/* get reference,  if found update hit stats */
-+	mrc = rv_mr_cache_search_get(&umrs->cache, mparams.in.addr,
-+				     mparams.in.length, mparams.in.access,
-+				     true);
-+	if (mrc)
-+		goto cont;
-+
-+	/* create a new mrc for rb tree */
-+	mrc = kzalloc(sizeof(*mrc), GFP_KERNEL);
-+	if (!mrc) {
-+		ret = -ENOMEM;
-+		umrs->stats.failed++;
-+		goto bail_unlock;
-+	}
-+
-+	/* register using verbs callback */
-+	ret = rv_drv_api_reg_mem(rv, &mparams.in, &mrc->mr);
-+	if (ret) {
-+		umrs->stats.failed++;
-+		goto bail_free;
-+	}
-+	mrc->addr = mparams.in.addr;
-+	mrc->len = mparams.in.length;
-+	mrc->access = mparams.in.access;
-+
-+	ret = rv_mr_cache_insert(&umrs->cache, mrc);
-+	if (ret)
-+		goto bail_dereg;
-+
-+cont:
-+	/* return the mr handle, lkey & rkey */
-+	mparams.out.mr_handle = (uint64_t)mrc;
-+	mparams.out.iova = mrc->mr.ib_mr->iova;
-+	mparams.out.lkey = mrc->mr.ib_mr->lkey;
-+	mparams.out.rkey = mrc->mr.ib_mr->rkey;
-+
-+	if (copy_to_user((void __user *)arg, &mparams.out,
-+			 sizeof(mparams.out))) {
-+		ret = -EFAULT;
-+		goto bail_put;
-+	}
-+
-+	mutex_unlock(&rv->mutex);
-+
-+	return 0;
-+
-+bail_dereg:
-+	if (rv_drv_api_dereg_mem(&mrc->mr))
-+		rv_err(rv->inx, "dereg_mem failed during cleanup\n");
-+bail_free:
-+	kfree(mrc);
-+bail_unlock:
-+	mutex_unlock(&rv->mutex);
-+	return ret;
-+
-+bail_put:
-+	rv_mr_cache_put(&umrs->cache, mrc);
-+	mutex_unlock(&rv->mutex);
-+	return ret;
-+}
-+
-+int doit_dereg_mem(struct rv_user *rv, unsigned long arg)
-+{
-+	struct rv_mr_cached *mrc;
-+	struct rv_dereg_params_in dparams;
-+	int ret = -EINVAL;
-+
-+	if (copy_from_user(&dparams, (void __user *)arg, sizeof(dparams)))
-+		return -EFAULT;
-+
-+	/* rv->mutex protects possible race with doit_reg_mem */
-+	mutex_lock(&rv->mutex);
-+	if (!rv->attached) {
-+		ret = rv->was_attached ? -ENXIO : -EINVAL;
-+		goto bail_unlock;
-+	}
-+
-+	mrc = rv_mr_cache_search_put(&rv->umrs->cache, dparams.addr,
-+				     dparams.length, dparams.access);
-+	if (!mrc)
-+		goto bail_unlock;
-+
-+	mutex_unlock(&rv->mutex);
-+	trace_rv_mr_dereg(rv->rdma_mode, dparams.addr,
-+			  dparams.length, dparams.access);
-+
-+	return 0;
-+
-+bail_unlock:
-+	mutex_unlock(&rv->mutex);
-+	return ret;
-+}
-+
-+/* called with cache->lock */
-+static bool rv_cache_mrc_filter(struct rv_mr_cached *mrc, u64 addr,
-+				u64 len, u32 acc)
-+{
-+	return mrc->addr == addr && mrc->len == len && mrc->access == acc;
-+}
-+
-+/* called with cache->lock */
-+static void rv_cache_mrc_get(struct rv_mr_cache *cache,
-+			     void *arg, struct rv_mr_cached *mrc)
-+{
-+	int refcount;
-+
-+	refcount = atomic_inc_return(&mrc->refcount);
-+	if (refcount == 1) {
-+		cache->stats.inuse++;
-+		cache->stats.inuse_bytes += mrc->len;
-+	}
-+	rv_mr_cache_update_stats_max(cache, refcount);
-+}
-+
-+/* called with cache->lock */
-+static int rv_cache_mrc_put(struct rv_mr_cache *cache,
-+			    void *arg, struct rv_mr_cached *mrc)
-+{
-+	int refcount;
-+
-+	refcount = atomic_dec_return(&mrc->refcount);
-+	if (!refcount) {
-+		cache->stats.inuse--;
-+		cache->stats.inuse_bytes -= mrc->len;
-+	}
-+	return refcount;
-+}
-+
-+/* called with cache->lock */
-+static int rv_cache_mrc_invalidate(struct rv_mr_cache *cache,
-+				   void *arg, struct rv_mr_cached *mrc)
-+{
-+	if (!atomic_read(&mrc->refcount))
-+		return 1;
 +	return 0;
 +}
 +
 +/*
-+ * Return 1 if the mrc can be evicted from the cache
++ * Called on device removal, gets users off the device
 + *
-+ * Called with cache->lock
++ * At the same time, applications will get device async events which should
++ * trigger them to start user space cleanup and close.
++ *
++ * We remove the rv_user from the user_list so that the user application knows
++ * that the remove_one handler is cleaning up this rv_user. After this,
++ * the rv->user_entry itself is an empty list, an indicator that the
++ * remove_one handler owns this rv_user.
++ *
++ * To comply with lock heirarchy, we must release rv_dev_list_lock so
++ * rv_detach_user can get rv->mutex.  The empty rv->user_entry will prevent
++ * a race with rv_user starting its own detach.
 + */
-+static int rv_cache_mrc_evict(struct rv_mr_cache *cache,
-+			      void *arg, struct rv_mr_cached *mrc,
-+			      void *evict_arg, bool *stop)
++static void rv_device_detach_users(struct rv_device *dev)
 +{
-+	struct evict_data *evict_data = evict_arg;
++	unsigned long flags;
++	struct rv_user *rv;
 +
-+	/* is this mrc still being used? */
-+	if (atomic_read(&mrc->refcount))
-+		return 0; /* keep this mrc */
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	while (!list_empty(&dev->user_list)) {
++		rv = list_first_entry(&dev->user_list, struct rv_user,
++				      user_entry);
++		list_del_init(&rv->user_entry);
 +
-+	/* this mrc will be evicted, add its size to our count */
-+	evict_data->cleared += mrc->len;
-+
-+	/* have enough bytes been cleared? */
-+	if (evict_data->cleared >= evict_data->target)
-+		*stop = true;
-+
-+	return 1; /* remove this mrc */
++		spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++		/* Detach user here */
++		spin_lock_irqsave(&rv_dev_list_lock, flags);
++	}
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
 +}
-diff --git a/drivers/infiniband/ulp/rv/rv_mr_cache.c b/drivers/infiniband/ulp/rv/rv_mr_cache.c
-index 48ea7c958f74..830ee246006b 100644
---- a/drivers/infiniband/ulp/rv/rv_mr_cache.c
-+++ b/drivers/infiniband/ulp/rv/rv_mr_cache.c
-@@ -374,7 +374,7 @@ static void do_remove(struct rv_mr_cache *cache, struct list_head *del_list)
- 	while (!list_empty(del_list)) {
- 		mrc = list_first_entry(del_list, struct rv_mr_cached, list);
- 		list_del(&mrc->list);
--		/* Deregister the mr here */
-+		rv_drv_api_dereg_mem(&mrc->mr);
- 		kfree(mrc);
- 	}
- }
-diff --git a/drivers/infiniband/ulp/rv/trace.h b/drivers/infiniband/ulp/rv/trace.h
-index 7a4cc4919693..d2827582be05 100644
---- a/drivers/infiniband/ulp/rv/trace.h
-+++ b/drivers/infiniband/ulp/rv/trace.h
-@@ -4,3 +4,5 @@
-  */
- #include "trace_mr_cache.h"
- #include "trace_dev.h"
-+#include "trace_mr.h"
-+#include "trace_user.h"
-diff --git a/drivers/infiniband/ulp/rv/trace_mr.h b/drivers/infiniband/ulp/rv/trace_mr.h
++
++/*
++ * device removal handler
++ *
++ * we allow a wait_time of 2 seconds for applications to cleanup themselves
++ * and close.  Typically they will get an async event and react quickly.
++ * After which we begin forcibly removing the remaining users and
++ * then wait for the internal references to get releaseed by their callbacks
++ */
++static void rv_remove_one(struct ib_device *device, void *client_data)
++{
++	struct rv_device *dev = client_data;
++	unsigned long flags;
++	unsigned long wait_time = 2000; /* 2 seconds */
++	unsigned long sleep_time = msecs_to_jiffies(100);
++	unsigned long end;
++
++	trace_rv_dev_remove(device->name, kref_read(&dev->kref));
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	list_del(&dev->dev_entry);
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++
++	end = jiffies + msecs_to_jiffies(wait_time);
++	while (time_before(jiffies, end) && !list_empty(&dev->user_list))
++		schedule_timeout_interruptible(sleep_time);
++
++	rv_device_detach_users(dev);
++
++	while (kref_read(&dev->kref) > 1)
++		schedule_timeout_interruptible(sleep_time);
++
++	rv_device_put(dev);
++}
++
++static void rv_rename_dev(struct ib_device *device, void *client_data)
++{
++}
++
++static void rv_init_devices(void)
++{
++	spin_lock_init(&rv_dev_list_lock);
++	INIT_LIST_HEAD(&rv_dev_list);
++}
++
++/* uses syncrhnoize_rcu to ensure previous kfree_rcu of references are done */
++static void rv_deinit_devices(void)
++{
++	struct rv_device *dev, *temp;
++	unsigned long flags;
++
++	synchronize_rcu();
++	spin_lock_irqsave(&rv_dev_list_lock, flags);
++	list_for_each_entry_safe(dev, temp, &rv_dev_list, dev_entry) {
++		list_del(&dev->dev_entry);
++		rv_device_put(dev);
++	}
++	spin_unlock_irqrestore(&rv_dev_list_lock, flags);
++}
++
++static int __init rv_init_module(void)
++{
++	pr_info("Loading rendezvous module");
++
++	rv_init_devices();
++
++	if (ib_register_client(&rv_client)) {
++		rv_err(RV_INVALID, "Failed to register with the IB core\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void __exit rv_cleanup_module(void)
++{
++	ib_unregister_client(&rv_client);
++	rv_deinit_devices();
++}
++
++module_init(rv_init_module);
++module_exit(rv_cleanup_module);
+diff --git a/drivers/infiniband/ulp/rv/trace.c b/drivers/infiniband/ulp/rv/trace.c
 new file mode 100644
-index 000000000000..158c1b106b77
+index 000000000000..b27536056c60
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rv/trace_mr.h
-@@ -0,0 +1,109 @@
++++ b/drivers/infiniband/ulp/rv/trace.c
+@@ -0,0 +1,7 @@
++// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
++/*
++ * Copyright(c) 2020 - 2021 Intel Corporation.
++ */
++#define CREATE_TRACE_POINTS
++#include <rdma/rv_user_ioctls.h>
++#include "trace.h"
+diff --git a/drivers/infiniband/ulp/rv/trace.h b/drivers/infiniband/ulp/rv/trace.h
+new file mode 100644
+index 000000000000..cb1d1d087e16
+--- /dev/null
++++ b/drivers/infiniband/ulp/rv/trace.h
+@@ -0,0 +1,5 @@
 +/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 +/*
 + * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
-+#if !defined(__RV_TRACE_MR_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __RV_TRACE_MR_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM rv_mr
-+
-+#define MR_INFO_PRN "addr 0x%llx len 0x%llx acc 0x%x lkey 0x%x rkey 0x%x " \
-+		    "iova 0x%llx pd_usecnt %u"
-+
-+DECLARE_EVENT_CLASS(/* mr */
-+	rv_mr_template,
-+	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
-+	TP_ARGS(mode, addr, len, acc),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u8, mode)
-+		__field(u64, addr)
-+		__field(u64, len)
-+		__field(u32, acc)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->mode = mode;
-+		__entry->addr = addr;
-+		__entry->len = len;
-+		__entry->acc = acc;
-+	),
-+	TP_printk(/* print */
-+		"mode 0x%x addr 0x%llx, len %llu acc 0x%x",
-+		__entry->mode,
-+		__entry->addr,
-+		__entry->len,
-+		__entry->acc
-+	)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_template, rv_mr_reg,
-+	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
-+	TP_ARGS(mode, addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_template, rv_mr_dereg,
-+	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
-+	TP_ARGS(mode, addr, len, acc)
-+);
-+
-+DECLARE_EVENT_CLASS(/* mr_info */
-+	rv_mr_info_template,
-+	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
-+		 u32 rkey, u64 iova, u32 pd_usecnt),
-+	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u64, addr)
-+		__field(u64, len)
-+		__field(u32, acc)
-+		__field(u32, lkey)
-+		__field(u32, rkey)
-+		__field(u64, iova)
-+		__field(u32, cnt)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->addr = addr;
-+		__entry->len = len;
-+		__entry->acc = acc;
-+		__entry->lkey = lkey;
-+		__entry->rkey = rkey;
-+		__entry->iova = iova;
-+		__entry->cnt = pd_usecnt;
-+	),
-+	TP_printk(/* print */
-+		MR_INFO_PRN,
-+		__entry->addr,
-+		__entry->len,
-+		__entry->acc,
-+		__entry->lkey,
-+		__entry->rkey,
-+		__entry->iova,
-+		__entry->cnt
-+	)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_info_template, rv_mr_info_reg,
-+	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
-+		 u32 rkey, u64 iova, u32 pd_usecnt),
-+	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_info_template, rv_mr_info_dereg,
-+	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
-+		 u32 rkey, u64 iova, u32 pd_usecnt),
-+	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt)
-+);
-+
-+#endif /* __RV_TRACE_MR_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_mr
-+#include <trace/define_trace.h>
-diff --git a/drivers/infiniband/ulp/rv/trace_user.h b/drivers/infiniband/ulp/rv/trace_user.h
++#include "trace_dev.h"
+diff --git a/drivers/infiniband/ulp/rv/trace_dev.h b/drivers/infiniband/ulp/rv/trace_dev.h
 new file mode 100644
-index 000000000000..2707e39bdfd6
+index 000000000000..2bfc6b07d518
 --- /dev/null
-+++ b/drivers/infiniband/ulp/rv/trace_user.h
-@@ -0,0 +1,66 @@
++++ b/drivers/infiniband/ulp/rv/trace_dev.h
+@@ -0,0 +1,82 @@
 +/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 +/*
-+ * Copyright(c) 2020 Intel Corporation.
++ * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
-+#if !defined(__RV_TRACE_USER_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __RV_TRACE_USER_H
++#if !defined(__RV_TRACE_DEV_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RV_TRACE_DEV_H
 +
 +#include <linux/tracepoint.h>
 +#include <linux/trace_seq.h>
 +
 +#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM rv_user
++#define TRACE_SYSTEM rv_dev
 +
-+#define RV_USER_MRS_PRN "rv_nx %d jdev %p total_size 0x%llx max_size 0x%llx " \
-+			"refcount %u"
-+
-+DECLARE_EVENT_CLASS(/* user_mrs */
-+	rv_user_mrs_template,
-+	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
-+		 u32 refcount),
-+	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount),
++DECLARE_EVENT_CLASS(/* dev */
++	rv_dev_template,
++	TP_PROTO(const char *dev_name, u32 refcount),
++	TP_ARGS(dev_name, refcount),
 +	TP_STRUCT__entry(/* entry */
-+		__field(int, rv_inx)
-+		__field(void *, jdev)
-+		__field(u64, total_size)
-+		__field(u64, max_size)
++		__string(name, dev_name)
 +		__field(u32, refcount)
 +	),
 +	TP_fast_assign(/* assign */
-+		__entry->rv_inx = rv_inx;
-+		__entry->jdev = jdev;
-+		__entry->total_size = total_size;
-+		__entry->max_size = max_size;
++		__assign_str(name, dev_name);
 +		__entry->refcount = refcount;
 +	),
 +	TP_printk(/* print */
-+		RV_USER_MRS_PRN,
-+		__entry->rv_inx,
-+		__entry->jdev,
-+		__entry->total_size,
-+		__entry->max_size,
++		"name %s, refcount %u",
++		__get_str(name),
 +		__entry->refcount
 +	)
 +);
 +
 +DEFINE_EVENT(/* event */
-+	rv_user_mrs_template, rv_user_mrs_attach,
-+	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
-+		 u32 refcount),
-+	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount)
++	rv_dev_template, rv_dev_add,
++	TP_PROTO(const char *dev_name, u32 refcount),
++	TP_ARGS(dev_name, refcount)
 +);
 +
 +DEFINE_EVENT(/* event */
-+	rv_user_mrs_template, rv_user_mrs_release,
-+	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
-+		 u32 refcount),
-+	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount)
++	rv_dev_template, rv_dev_remove,
++	TP_PROTO(const char *dev_name, u32 refcount),
++	TP_ARGS(dev_name, refcount)
 +);
 +
-+#endif /* __RV_TRACE_USER_H */
++DEFINE_EVENT(/* event */
++	rv_dev_template, rv_dev_get,
++	TP_PROTO(const char *dev_name, u32 refcount),
++	TP_ARGS(dev_name, refcount)
++);
++
++DEFINE_EVENT(/* event */
++	rv_dev_template, rv_dev_put,
++	TP_PROTO(const char *dev_name, u32 refcount),
++	TP_ARGS(dev_name, refcount)
++);
++
++TRACE_EVENT(/* event */
++	rv_device_event,
++	TP_PROTO(const char *dev_name, const char *evt_name),
++	TP_ARGS(dev_name, evt_name),
++	TP_STRUCT__entry(/* entry */
++		__string(device, dev_name)
++		__string(event, evt_name)
++	),
++	TP_fast_assign(/* assign */
++		__assign_str(device, dev_name);
++		__assign_str(event, evt_name);
++	),
++	TP_printk(/* print */
++		"Device %s Event %s",
++		__get_str(device),
++		__get_str(event)
++	)
++);
++
++#endif /* __RV_TRACE_DEV_H */
 +
 +#undef TRACE_INCLUDE_PATH
 +#undef TRACE_INCLUDE_FILE
 +#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_user
++#define TRACE_INCLUDE_FILE trace_dev
 +#include <trace/define_trace.h>
-diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
-index ccd11631c167..93aefd4d085f 100644
---- a/include/rdma/uverbs_types.h
-+++ b/include/rdma/uverbs_types.h
-@@ -134,6 +134,16 @@ static inline void uverbs_uobject_get(struct ib_uobject *uobject)
- }
- void uverbs_uobject_put(struct ib_uobject *uobject);
- 
-+struct ib_mr *rdma_reg_user_mr(struct ib_device *ib_dev, u32 cmd_fd,
-+			       u32 pd_handle, u64 start, u64 length,
-+			       u32 access_flags, size_t ulen, void *udata,
-+			       struct fd *fd);
-+int rdma_dereg_user_mr(struct ib_mr *mr, struct fd *fd);
-+struct ib_mr *rdma_reg_kernel_mr(u32 cmd_fd, struct ib_pd *kern_pd, u64 start,
-+				 u64 length, u32 access_flags, size_t ulen,
-+				 void *udata, struct fd *fd);
-+int rdma_dereg_kernel_mr(struct ib_mr *mr, struct fd *fd);
-+
- struct uverbs_obj_fd_type {
- 	/*
- 	 * In fd based objects, uverbs_obj_type_ops points to generic
 -- 
 2.18.1
 
