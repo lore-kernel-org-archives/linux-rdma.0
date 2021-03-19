@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5502C433DB
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14B25C433E0
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A959464F53
+	by mail.kernel.org (Postfix) with ESMTP id D1EB064EED
 	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229933AbhCSM4n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Mar 2021 08:56:43 -0400
+        id S229821AbhCSM4o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Mar 2021 08:56:44 -0400
 Received: from mga01.intel.com ([192.55.52.88]:4853 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229766AbhCSM4j (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Mar 2021 08:56:39 -0400
-IronPort-SDR: kfuMPcrK74tHkR0a1tYY92VktiDmaSqOfjGILEnjXE0HwzFWnUYZ0w/ypKOqSQxp2blBblf31w
- vBU0t9sQ5MrQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910277"
+        id S229927AbhCSM4n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Mar 2021 08:56:43 -0400
+IronPort-SDR: Xmbnit1YHX6KH26z53MpWsT+YI9vuDo4b/7zm+OUrRgNyob/HdVW8zGpsBcSJ3E5It3xKPoAU4
+ xyavvT9sCN5g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910284"
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="209910277"
+   d="scan'208";a="209910284"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:39 -0700
-IronPort-SDR: zlUW144FQdI+LPrHLB1XDWBoQRgiUmW0PtbPW+7DKJUpHypwzOEEYHZOsI/ANcnECUSgKe3gIi
- ugAHMYTTsQQg==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:42 -0700
+IronPort-SDR: 9yWbDQpRpw56ljwPgwZKGYRICzJH1quRVDtWH7qsrZwZFNcx7FUzYZV9YFQknLrBldz1htnI1t
+ 9itF8YsSzPQA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="450851706"
+   d="scan'208";a="450851734"
 Received: from phwfstl014.hd.intel.com ([10.127.241.142])
-  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:36 -0700
+  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:41 -0700
 From:   kaike.wan@intel.com
 To:     dledford@redhat.com, jgg@nvidia.com
 Cc:     linux-rdma@vger.kernel.org, todd.rimmer@intel.com,
         Kaike Wan <kaike.wan@intel.com>
-Subject: [PATCH RFC 1/9] RDMA/rv: Public interferce for the RDMA Rendezvous module
-Date:   Fri, 19 Mar 2021 08:56:27 -0400
-Message-Id: <20210319125635.34492-2-kaike.wan@intel.com>
+Subject: [PATCH RFC 5/9] RDMA/rv: Add function to register/deregister memory region
+Date:   Fri, 19 Mar 2021 08:56:31 -0400
+Message-Id: <20210319125635.34492-6-kaike.wan@intel.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20210319125635.34492-1-kaike.wan@intel.com>
 References: <20210319125635.34492-1-kaike.wan@intel.com>
@@ -49,595 +49,1060 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan@intel.com>
 
-The RDMA Rendezvous (rv) module provides an interface for HPC
-middlewares to improve performance by caching memory region
-registration, and improve the scalibity of RDMA transaction
-through connection managements between nodes. This mechanism
-is implemented through the following ioctl requests:
-- ATTACH: to attach to an RDMA device.
-- REG_MEM: to register a user/kernel memory region.
-- DEREG_MEM: to release application use of MR, allowing it to
-             remain in cache.
-- GET_CACHE_STATS: to get cache statistics.
-- CONN_CREATE: to create an RC connection.
-- CONN_CONNECT: to start the connection.
-- CONN_GET_CONN_COUNT: to use as part of error recovery from lost
-                       messages in the application.
-- CONN_GET_STATS: to get connection statistics.
-- GET_EVENT_STATS: to get the RDMA event statistics.
-- POST_RDMA_WR_IMMED: to post an RDMA WRITE WITH IMMED request.
+This patch adds functions for user application to register/deregister
+memory region (mr) for user buffers. Two types of mrs are supported:
+user mrs and kernel mrs.
+
+User mrs are used soley by the user application. The reason that
+the user mrs are cached in the rv module instead of in the user
+application is that a middleware application may not known when a user
+buffer (allocated by a upper lay application) is freed in order to free
+any stale nodes. On the other hand, the rv module can register an MMU
+notifier callback so that it can promptly remove any stale cache nodes.
+
+Kernel mrs are used by the rv module for any RDMA transactions between
+nodes.
+
+A user mr is registered in a way similar to that in the verbs
+interface. A kernel mr is registered similar to that in
+ib_reg_user_mr() for on-demand paging. An RDMA hardware may have to
+be qualified for this mechanism.
 
 Signed-off-by: Todd Rimmer <todd.rimmer@intel.com>
 Signed-off-by: Kaike Wan <kaike.wan@intel.com>
 ---
- include/uapi/rdma/rv_user_ioctls.h | 558 +++++++++++++++++++++++++++++
- 1 file changed, 558 insertions(+)
- create mode 100644 include/uapi/rdma/rv_user_ioctls.h
+ drivers/infiniband/core/core_priv.h     |   4 +
+ drivers/infiniband/core/rdma_core.c     | 237 ++++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c    |  54 +---
+ drivers/infiniband/ulp/rv/Makefile      |   2 +-
+ drivers/infiniband/ulp/rv/rv_file.c     |  31 ++
+ drivers/infiniband/ulp/rv/rv_mr.c       | 393 ++++++++++++++++++++++++
+ drivers/infiniband/ulp/rv/rv_mr_cache.c |   2 +-
+ drivers/infiniband/ulp/rv/trace.h       |   2 +
+ drivers/infiniband/ulp/rv/trace_mr.h    | 109 +++++++
+ drivers/infiniband/ulp/rv/trace_user.h  |  66 ++++
+ include/rdma/uverbs_types.h             |  10 +
+ 11 files changed, 860 insertions(+), 50 deletions(-)
+ create mode 100644 drivers/infiniband/ulp/rv/rv_file.c
+ create mode 100644 drivers/infiniband/ulp/rv/rv_mr.c
+ create mode 100644 drivers/infiniband/ulp/rv/trace_mr.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_user.h
 
-diff --git a/include/uapi/rdma/rv_user_ioctls.h b/include/uapi/rdma/rv_user_ioctls.h
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 315f7a297eee..678fb9a3d77b 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -404,4 +404,8 @@ void rdma_umap_priv_init(struct rdma_umap_priv *priv,
+ 
+ void ib_cq_pool_cleanup(struct ib_device *dev);
+ 
++struct ib_mr *uverbs_reg_mr(struct uverbs_attr_bundle *attrs, u32 pd_handle,
++			    u64 start, u64 length, u64 hca_va,
++			    u32 access_flags, struct ib_udata *driver_udata);
++
+ #endif /* _CORE_PRIV_H */
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 75eafd9208aa..22120adf0ef2 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -1013,3 +1013,240 @@ void uverbs_finalize_object(struct ib_uobject *uobj,
+ 		WARN_ON(true);
+ 	}
+ }
++
++static struct ib_uverbs_file *get_ufile_from_fd(struct fd *fd)
++{
++	return fd->file ? (struct ib_uverbs_file *)fd->file->private_data :
++			  NULL;
++}
++
++static struct ib_uverbs_file *get_ufile(u32 cmd_fd, struct fd *fd)
++{
++	struct fd f;
++	struct ib_uverbs_file *file;
++
++	/* fd to "struct fd" */
++	f = fdget(cmd_fd);
++
++	file = get_ufile_from_fd(&f);
++	if (!file)
++		goto bail;
++
++	memcpy(fd, &f, sizeof(f));
++	return file;
++bail:
++	fdput(f);
++	return NULL;
++}
++
++struct ib_mr *uverbs_reg_mr(struct uverbs_attr_bundle *attrs, u32 pd_handle,
++			    u64 start, u64 length, u64 hca_va,
++			    u32 access_flags, struct ib_udata *driver_udata)
++{
++	struct ib_uobject           *uobj;
++	struct ib_pd                *pd;
++	struct ib_mr                *mr;
++	int                          ret;
++	struct ib_device            *ib_dev;
++
++	uobj = uobj_alloc(UVERBS_OBJECT_MR, attrs, &ib_dev);
++	if (IS_ERR(uobj))
++		return (struct ib_mr *)uobj;
++
++	ret = ib_check_mr_access(ib_dev, access_flags);
++	if (ret)
++		goto err_free;
++
++	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, pd_handle, attrs);
++	if (!pd) {
++		ret = -EINVAL;
++		goto err_free;
++	}
++
++	mr = pd->device->ops.reg_user_mr(pd, start, length, hca_va,
++					 access_flags, driver_udata);
++	if (IS_ERR(mr)) {
++		ret = PTR_ERR(mr);
++		goto err_put;
++	}
++
++	mr->device  = pd->device;
++	mr->pd      = pd;
++	mr->type    = IB_MR_TYPE_USER;
++	mr->dm      = NULL;
++	mr->sig_attrs = NULL;
++	mr->uobject = uobj;
++	atomic_inc(&pd->usecnt);
++	mr->iova = hca_va;
++
++	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
++	rdma_restrack_set_name(&mr->res, NULL);
++	rdma_restrack_add(&mr->res);
++
++	uobj->object = mr;
++	uobj_put_obj_read(pd);
++	uobj_finalize_uobj_create(uobj, attrs);
++
++	return mr;
++
++err_put:
++	uobj_put_obj_read(pd);
++err_free:
++	uobj_alloc_abort(uobj, attrs);
++	return ERR_PTR(ret);
++}
++
++struct ib_mr *rdma_reg_user_mr(struct ib_device *ib_dev, u32 cmd_fd,
++			       u32 pd_handle, u64 start, u64 length,
++			       u32 access_flags, size_t ulen, void *udata,
++			       struct fd *fd)
++{
++	struct ib_mr *mr;
++	struct ib_uverbs_file *ufile;
++	struct uverbs_attr_bundle attrs;
++	int srcu_key;
++	struct ib_device *device;
++
++	if (!fd) {
++		mr = ERR_PTR(-EINVAL);
++		goto out;
++	}
++
++	memset(&attrs, 0, sizeof(attrs));
++	ufile = get_ufile(cmd_fd, fd);
++	if (!ufile) {
++		mr = ERR_PTR(-EINVAL);
++		goto out;
++	}
++
++	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
++	/* Validate the target ib_device */
++	device = srcu_dereference(ufile->device->ib_dev,
++				  &ufile->device->disassociate_srcu);
++	if (device != ib_dev) {
++		mr = ERR_PTR(-EINVAL);
++		goto out_fd;
++	}
++	attrs.ufile = ufile;
++	attrs.driver_udata.inlen = ulen;
++	if (ulen)
++		attrs.driver_udata.inbuf = udata;
++
++	mr = uverbs_reg_mr(&attrs, pd_handle, start, length, start,
++			   access_flags, &attrs.driver_udata);
++	if (IS_ERR(mr))
++		goto out_fd;
++	else
++		uverbs_finalize_object(attrs.uobject, UVERBS_ACCESS_NEW, true,
++				       true, &attrs);
++
++	goto out_unlock;
++
++out_fd:
++	fdput(*fd);
++out_unlock:
++	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
++out:
++	return mr;
++}
++EXPORT_SYMBOL(rdma_reg_user_mr);
++
++int rdma_dereg_user_mr(struct ib_mr *mr, struct fd *fd)
++{
++	struct ib_uverbs_file *ufile;
++	struct uverbs_attr_bundle attrs;
++	int srcu_key;
++	int ret;
++
++	if (!fd || !mr || !mr->uobject)
++		return -EINVAL;
++
++	memset(&attrs, 0, sizeof(attrs));
++	ufile = get_ufile_from_fd(fd);
++	if (!ufile || !ufile->device)
++		return -EINVAL;
++
++	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
++	attrs.ufile = ufile;
++
++	ret = uobj_perform_destroy(UVERBS_OBJECT_MR, (u32)mr->uobject->id,
++				   &attrs);
++	fdput(*fd);
++
++	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_dereg_user_mr);
++
++struct ib_mr *rdma_reg_kernel_mr(u32 cmd_fd, struct ib_pd *kern_pd, u64 start,
++				 u64 length, u32 access_flags, size_t ulen,
++				 void *udata, struct fd *fd)
++{
++	struct ib_mr *mr;
++	struct ib_uverbs_file *ufile;
++	struct uverbs_attr_bundle attrs;
++	int srcu_key;
++
++	if (!fd) {
++		mr = ERR_PTR(-EINVAL);
++		goto out;
++	}
++
++	memset(&attrs, 0, sizeof(attrs));
++	ufile = get_ufile(cmd_fd, fd);
++	if (!ufile) {
++		mr = ERR_PTR(-EINVAL);
++		goto out;
++	}
++	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
++	attrs.ufile = ufile;
++	attrs.driver_udata.inlen = ulen;
++	if (ulen)
++		attrs.driver_udata.inbuf = udata;
++
++	mr = kern_pd->device->ops.reg_user_mr(kern_pd, start, length, start,
++					      access_flags,
++					      &attrs.driver_udata);
++	if (IS_ERR(mr)) {
++		fdput(*fd);
++		goto out_unlock;
++	}
++
++	mr->device  = kern_pd->device;
++	mr->pd      = kern_pd;
++	mr->dm      = NULL;
++	atomic_inc(&kern_pd->usecnt);
++
++out_unlock:
++	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
++out:
++	return mr;
++}
++EXPORT_SYMBOL(rdma_reg_kernel_mr);
++
++int rdma_dereg_kernel_mr(struct ib_mr *mr, struct fd *fd)
++{
++	struct ib_pd *pd;
++	struct ib_uverbs_file *ufile;
++	int srcu_key;
++	int ret = 0;
++	struct ib_udata udata;
++
++	if (!fd || !mr)
++		return -EINVAL;
++
++	ufile = get_ufile_from_fd(fd);
++	if (!ufile)
++		return -EINVAL;
++
++	srcu_key = srcu_read_lock(&ufile->device->disassociate_srcu);
++	memset(&udata, 0, sizeof(udata));
++	pd = mr->pd;
++	ret = pd->device->ops.dereg_mr(mr, &udata);
++	atomic_dec(&pd->usecnt);
++	fdput(*fd);
++
++	srcu_read_unlock(&ufile->device->disassociate_srcu, srcu_key);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_dereg_kernel_mr);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f5b8be3bedde..83751801d217 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -696,11 +696,8 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
+ {
+ 	struct ib_uverbs_reg_mr_resp resp = {};
+ 	struct ib_uverbs_reg_mr      cmd;
+-	struct ib_uobject           *uobj;
+-	struct ib_pd                *pd;
+ 	struct ib_mr                *mr;
+ 	int                          ret;
+-	struct ib_device *ib_dev;
+ 
+ 	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
+ 	if (ret)
+@@ -709,55 +706,16 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
+ 	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
+ 		return -EINVAL;
+ 
+-	uobj = uobj_alloc(UVERBS_OBJECT_MR, attrs, &ib_dev);
+-	if (IS_ERR(uobj))
+-		return PTR_ERR(uobj);
+-
+-	ret = ib_check_mr_access(ib_dev, cmd.access_flags);
+-	if (ret)
+-		goto err_free;
+-
+-	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, cmd.pd_handle, attrs);
+-	if (!pd) {
+-		ret = -EINVAL;
+-		goto err_free;
+-	}
+-
+-	mr = pd->device->ops.reg_user_mr(pd, cmd.start, cmd.length, cmd.hca_va,
+-					 cmd.access_flags,
+-					 &attrs->driver_udata);
+-	if (IS_ERR(mr)) {
+-		ret = PTR_ERR(mr);
+-		goto err_put;
+-	}
+-
+-	mr->device  = pd->device;
+-	mr->pd      = pd;
+-	mr->type    = IB_MR_TYPE_USER;
+-	mr->dm	    = NULL;
+-	mr->sig_attrs = NULL;
+-	mr->uobject = uobj;
+-	atomic_inc(&pd->usecnt);
+-	mr->iova = cmd.hca_va;
+-
+-	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
+-	rdma_restrack_set_name(&mr->res, NULL);
+-	rdma_restrack_add(&mr->res);
+-
+-	uobj->object = mr;
+-	uobj_put_obj_read(pd);
+-	uobj_finalize_uobj_create(uobj, attrs);
++	mr = uverbs_reg_mr(attrs, cmd.pd_handle, cmd.start, cmd.length,
++			   cmd.hca_va, cmd.access_flags,
++			   &attrs->driver_udata);
++	if (IS_ERR(mr))
++		return PTR_ERR(mr);
+ 
+ 	resp.lkey = mr->lkey;
+ 	resp.rkey = mr->rkey;
+-	resp.mr_handle = uobj->id;
++	resp.mr_handle = mr->uobject->id;
+ 	return uverbs_response(attrs, &resp, sizeof(resp));
+-
+-err_put:
+-	uobj_put_obj_read(pd);
+-err_free:
+-	uobj_alloc_abort(uobj, attrs);
+-	return ret;
+ }
+ 
+ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
+diff --git a/drivers/infiniband/ulp/rv/Makefile b/drivers/infiniband/ulp/rv/Makefile
+index 01e93dc25f1d..677b113c0666 100644
+--- a/drivers/infiniband/ulp/rv/Makefile
++++ b/drivers/infiniband/ulp/rv/Makefile
+@@ -4,6 +4,6 @@
+ #
+ obj-$(CONFIG_INFINIBAND_RV) += rv.o
+ 
+-rv-y := rv_main.o rv_mr_cache.o trace.o
++rv-y := rv_main.o rv_mr_cache.o rv_file.o rv_mr.o trace.o
+ 
+ CFLAGS_trace.o = -I$(src)
+diff --git a/drivers/infiniband/ulp/rv/rv_file.c b/drivers/infiniband/ulp/rv/rv_file.c
 new file mode 100644
-index 000000000000..97e35b722443
+index 000000000000..3625a9c1681a
 --- /dev/null
-+++ b/include/uapi/rdma/rv_user_ioctls.h
-@@ -0,0 +1,558 @@
-+/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-3-Clause) */
++++ b/drivers/infiniband/ulp/rv/rv_file.c
+@@ -0,0 +1,31 @@
++// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
 +/*
 + * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
-+#ifndef __RV_USER_IOCTL_H__
-+#define __RV_USER_IOCTL_H__
-+#include <rdma/rdma_user_ioctl.h>
-+#include <rdma/ib_user_sa.h>
-+#include <rdma/ib_user_verbs.h>
 +
-+/* Checking /Documentation/userspace-api/ioctl/ioctl-number.rst */
-+#define RV_MAGIC RDMA_IOCTL_MAGIC
-+#define RV_FILE_NAME "/dev/rv"
++#include "rv.h"
 +
++/* A workqueue for all */
++static struct workqueue_struct *rv_wq;
++
++void rv_queue_work(struct work_struct *work)
++{
++	queue_work(rv_wq, work);
++}
++
++void rv_job_dev_get(struct rv_job_dev *jdev)
++{
++	kref_get(&jdev->kref);
++}
++
++static void rv_job_dev_release(struct kref *kref)
++{
++	struct rv_job_dev *jdev = container_of(kref, struct rv_job_dev, kref);
++
++	kfree_rcu(jdev, rcu);
++}
++
++void rv_job_dev_put(struct rv_job_dev *jdev)
++{
++	kref_put(&jdev->kref, rv_job_dev_release);
++}
+diff --git a/drivers/infiniband/ulp/rv/rv_mr.c b/drivers/infiniband/ulp/rv/rv_mr.c
+new file mode 100644
+index 000000000000..76786bd11502
+--- /dev/null
++++ b/drivers/infiniband/ulp/rv/rv_mr.c
+@@ -0,0 +1,393 @@
++// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
 +/*
-+ * Handles are opaque to application; they are meaningful only to the
-+ * RV driver
++ * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
 +
-+/* this version of ABI */
-+#define RV_ABI_VER_MAJOR 1
-+#define RV_ABI_VER_MINOR 0
++#include <rdma/uverbs_std_types.h>
++#include <rdma/uverbs_ioctl.h>
 +
-+struct rv_query_params_out {
-+		/* ABI version */
-+	__u16 major_rev;
-+	__u16 minor_rev;
-+	__u32 resv1;
-+	__aligned_u64 capability;
-+	__aligned_u64 resv2[6];
++#include "rv.h"
++#include "trace.h"
++
++unsigned int enable_user_mr;
++
++module_param(enable_user_mr, uint, 0444);
++MODULE_PARM_DESC(enable_user_mr, "Enable user mode MR caching");
++
++static void rv_handle_user_mrs_put(struct work_struct *work);
++
++static bool rv_cache_mrc_filter(struct rv_mr_cached *mrc, u64 addr,
++				u64 len, u32 acc);
++static void rv_cache_mrc_get(struct rv_mr_cache *cache,
++			     void *arg, struct rv_mr_cached *mrc);
++static int rv_cache_mrc_put(struct rv_mr_cache *cache,
++			    void *arg, struct rv_mr_cached *mrc);
++static int rv_cache_mrc_invalidate(struct rv_mr_cache *cache,
++				   void *arg, struct rv_mr_cached *mrc);
++static int rv_cache_mrc_evict(struct rv_mr_cache *cache,
++			      void *arg, struct rv_mr_cached *mrc,
++			      void *evict_arg, bool *stop);
++
++static const struct rv_mr_cache_ops rv_cache_ops = {
++	.filter = rv_cache_mrc_filter,
++	.get = rv_cache_mrc_get,
++	.put = rv_cache_mrc_put,
++	.invalidate = rv_cache_mrc_invalidate,
++	.evict = rv_cache_mrc_evict
 +};
 +
-+#define RV_IOCTL_QUERY _IOR(RV_MAGIC, 0xFC, struct rv_query_params_out)
++/* given an rv, find the proper ib_dev to use when registering user MRs */
++static struct ib_device *rv_ib_dev(struct rv_user *rv)
++{
++	struct rv_device *dev = rv->rdma_mode == RV_RDMA_MODE_USER ? rv->dev :
++				rv->jdev->dev;
 +
-+/* Mode for use of rv module by PSM */
-+#define RV_RDMA_MODE_USER 0	/* user MR caching only */
-+#define RV_RDMA_MODE_KERNEL 1	/* + kernel RC QPs with kernel MR caching */
-+#define RV_RDMA_MODE_MAX 1
++	return dev->ib_dev;
++}
 +
-+#define RV_MAX_DEV_NAME_LEN IB_DEVICE_NAME_MAX
-+#define RV_MAX_NUM_CONN 16
-+#define RV_MAX_INDEX_BITS 12
-+#define RV_MAX_JOB_KEY_LEN 16
-+#define RV_MAX_CQ_ENTRIES 10000
++/* caller must hold rv->mutex */
++static int rv_drv_api_reg_mem(struct rv_user *rv,
++			      struct rv_mem_params_in *minfo,
++			      struct mr_info *mr)
++{
++	struct ib_mr *ib_mr;
++
++	mr->ib_mr = NULL;
++	mr->ib_pd = NULL;
++
++	/*
++	 * Check if the buffer is for kernel use. It should be noted that
++	 * the ibv_pd_handle value "0" is a valid user space pd handle.
++	 */
++	if (minfo->access & IBV_ACCESS_KERNEL)
++		ib_mr = rdma_reg_kernel_mr(minfo->cmd_fd_int, rv->jdev->pd,
++					   minfo->addr, minfo->length,
++					   minfo->access & ~IBV_ACCESS_KERNEL,
++					   minfo->ulen, minfo->udata,
++					   &mr->fd);
++	else
++		ib_mr = rdma_reg_user_mr(rv_ib_dev(rv), minfo->cmd_fd_int,
++					 minfo->ibv_pd_handle,
++					 minfo->addr, minfo->length,
++					 minfo->access, minfo->ulen,
++					 minfo->udata, &mr->fd);
++	if (IS_ERR(ib_mr)) {
++		rv_err(rv->inx, "reg_user_mr failed\n");
++		return  PTR_ERR(ib_mr);
++	}
++	/* A hardware driver may not set the iova field */
++	if (!ib_mr->iova)
++		ib_mr->iova = minfo->addr;
++
++	trace_rv_mr_info_reg(minfo->addr, minfo->length, minfo->access,
++			     ib_mr->lkey, ib_mr->rkey, ib_mr->iova,
++			     atomic_read(&ib_mr->pd->usecnt));
++	mr->ib_mr = ib_mr;
++	mr->ib_pd = ib_mr->pd;
++
++	return 0;
++}
++
++int rv_drv_api_dereg_mem(struct mr_info *mr)
++{
++	int ret;
++	struct rv_mr_cached *mrc = container_of(mr, struct rv_mr_cached, mr);
++
++	trace_rv_mr_info_dereg(mrc->addr, mrc->len, mrc->access,
++			       mr->ib_mr->lkey, mr->ib_mr->rkey,
++			       mr->ib_mr->iova,
++			       atomic_read(&mr->ib_pd->usecnt));
++
++	if (mrc->access & IBV_ACCESS_KERNEL)
++		ret = rdma_dereg_kernel_mr(mr->ib_mr, &mr->fd);
++	else
++		ret = rdma_dereg_user_mr(mr->ib_mr, &mr->fd);
++	if (!ret) {
++		mr->ib_mr = NULL;
++		mr->ib_pd = NULL;
++	}
++	return ret;
++}
++
++/* Cannot hold rv->mutex */
++struct rv_user_mrs *rv_user_mrs_alloc(struct rv_user *rv, u32 cache_size)
++{
++	int ret;
++	struct rv_user_mrs *umrs;
++
++	umrs = kzalloc(sizeof(*umrs), GFP_KERNEL);
++	if (!umrs)
++		return ERR_PTR(-ENOMEM);
++
++	umrs->rv_inx = rv->inx;
++	ret = rv_mr_cache_init(rv->inx, &umrs->cache, &rv_cache_ops, NULL,
++			       current->mm, cache_size);
++	if (ret)
++		goto bail_free;
++	kref_init(&umrs->kref); /* refcount now 1 */
++	INIT_WORK(&umrs->put_work, rv_handle_user_mrs_put);
++	return umrs;
++
++bail_free:
++	kfree(umrs);
++	return ERR_PTR(ret);
++}
++
++/* called with rv->mutex */
++void rv_user_mrs_attach(struct rv_user *rv)
++{
++	struct rv_user_mrs *umrs = rv->umrs;
++
++	if (rv->rdma_mode == RV_RDMA_MODE_KERNEL) {
++		/*
++		 * for mode KERNEL the user_mrs object may survive past the
++		 * rv_user close, so we need our own jdev reference to dereg
++		 * MRs while outstanding send IOs complete.
++		 * For mode USER, the MRs are using the user's pd
++		 * and rv_user will free all MRs during close
++		 *
++		 * the jdev->pd we will use for MRs and QP needs ref to jdev
++		 */
++		rv_job_dev_get(rv->jdev);
++		umrs->jdev = rv->jdev;
++	}
++	trace_rv_user_mrs_attach(umrs->rv_inx, umrs->jdev,
++				 umrs->cache.total_size, umrs->cache.max_size,
++				 kref_read(&umrs->kref));
++}
++
++static void rv_user_mrs_release(struct rv_user_mrs *umrs)
++{
++	trace_rv_user_mrs_release(umrs->rv_inx, umrs->jdev,
++				  umrs->cache.total_size, umrs->cache.max_size,
++				  kref_read(&umrs->kref));
++	rv_mr_cache_deinit(umrs->rv_inx, &umrs->cache);
++	if (umrs->jdev)
++		rv_job_dev_put(umrs->jdev);
++	kfree(umrs);
++}
++
++static void rv_handle_user_mrs_put(struct work_struct *work)
++{
++	struct rv_user_mrs *umrs = container_of(work, struct rv_user_mrs,
++						put_work);
++
++	rv_user_mrs_release(umrs);
++}
++
++static void rv_user_mrs_schedule_release(struct kref *kref)
++{
++	struct rv_user_mrs *umrs = container_of(kref, struct rv_user_mrs, kref);
++
++	/*
++	 * Since this function may be called from rv_write_done(),
++	 * we can't call rv_user_mrs_release() directly to
++	 * destroy it's rc QP and rv_mr_cache_deinit (and wait for completion)
++	 * Instead, put the cleanup on a workqueue thread.
++	 */
++	rv_queue_work(&umrs->put_work);
++}
++
++void rv_user_mrs_get(struct rv_user_mrs *umrs)
++{
++	kref_get(&umrs->kref);
++}
++
++void rv_user_mrs_put(struct rv_user_mrs *umrs)
++{
++	kref_put(&umrs->kref, rv_user_mrs_schedule_release);
++}
++
++int doit_reg_mem(struct rv_user *rv, unsigned long arg)
++{
++	struct rv_mem_params mparams;
++	struct rv_mr_cached *mrc;
++	int ret;
++	struct rv_user_mrs *umrs = rv->umrs;
++
++	if (copy_from_user(&mparams.in, (void __user *)arg,
++			   sizeof(mparams.in)))
++		return -EFAULT;
++
++	if (!enable_user_mr && !(mparams.in.access & IBV_ACCESS_KERNEL))
++		return -EINVAL;
++
++	/*
++	 * rv->mutex protects use of umrs QP for REG_MR, also
++	 * protects between rb_search and rb_insert vs races with other
++	 * doit_reg_mem and doit_dereg_mem calls
++	 */
++	mutex_lock(&rv->mutex);
++	if (!rv->attached) {
++		ret = rv->was_attached ? -ENXIO : -EINVAL;
++		goto bail_unlock;
++	}
++	if (rv->rdma_mode != RV_RDMA_MODE_KERNEL &&
++	    (mparams.in.access & IBV_ACCESS_KERNEL)) {
++		ret = -EINVAL;
++		goto bail_unlock;
++	}
++
++	trace_rv_mr_reg(rv->rdma_mode, mparams.in.addr,
++			mparams.in.length, mparams.in.access);
++	/* get reference,  if found update hit stats */
++	mrc = rv_mr_cache_search_get(&umrs->cache, mparams.in.addr,
++				     mparams.in.length, mparams.in.access,
++				     true);
++	if (mrc)
++		goto cont;
++
++	/* create a new mrc for rb tree */
++	mrc = kzalloc(sizeof(*mrc), GFP_KERNEL);
++	if (!mrc) {
++		ret = -ENOMEM;
++		umrs->stats.failed++;
++		goto bail_unlock;
++	}
++
++	/* register using verbs callback */
++	ret = rv_drv_api_reg_mem(rv, &mparams.in, &mrc->mr);
++	if (ret) {
++		umrs->stats.failed++;
++		goto bail_free;
++	}
++	mrc->addr = mparams.in.addr;
++	mrc->len = mparams.in.length;
++	mrc->access = mparams.in.access;
++
++	ret = rv_mr_cache_insert(&umrs->cache, mrc);
++	if (ret)
++		goto bail_dereg;
++
++cont:
++	/* return the mr handle, lkey & rkey */
++	mparams.out.mr_handle = (uint64_t)mrc;
++	mparams.out.iova = mrc->mr.ib_mr->iova;
++	mparams.out.lkey = mrc->mr.ib_mr->lkey;
++	mparams.out.rkey = mrc->mr.ib_mr->rkey;
++
++	if (copy_to_user((void __user *)arg, &mparams.out,
++			 sizeof(mparams.out))) {
++		ret = -EFAULT;
++		goto bail_put;
++	}
++
++	mutex_unlock(&rv->mutex);
++
++	return 0;
++
++bail_dereg:
++	if (rv_drv_api_dereg_mem(&mrc->mr))
++		rv_err(rv->inx, "dereg_mem failed during cleanup\n");
++bail_free:
++	kfree(mrc);
++bail_unlock:
++	mutex_unlock(&rv->mutex);
++	return ret;
++
++bail_put:
++	rv_mr_cache_put(&umrs->cache, mrc);
++	mutex_unlock(&rv->mutex);
++	return ret;
++}
++
++int doit_dereg_mem(struct rv_user *rv, unsigned long arg)
++{
++	struct rv_mr_cached *mrc;
++	struct rv_dereg_params_in dparams;
++	int ret = -EINVAL;
++
++	if (copy_from_user(&dparams, (void __user *)arg, sizeof(dparams)))
++		return -EFAULT;
++
++	/* rv->mutex protects possible race with doit_reg_mem */
++	mutex_lock(&rv->mutex);
++	if (!rv->attached) {
++		ret = rv->was_attached ? -ENXIO : -EINVAL;
++		goto bail_unlock;
++	}
++
++	mrc = rv_mr_cache_search_put(&rv->umrs->cache, dparams.addr,
++				     dparams.length, dparams.access);
++	if (!mrc)
++		goto bail_unlock;
++
++	mutex_unlock(&rv->mutex);
++	trace_rv_mr_dereg(rv->rdma_mode, dparams.addr,
++			  dparams.length, dparams.access);
++
++	return 0;
++
++bail_unlock:
++	mutex_unlock(&rv->mutex);
++	return ret;
++}
++
++/* called with cache->lock */
++static bool rv_cache_mrc_filter(struct rv_mr_cached *mrc, u64 addr,
++				u64 len, u32 acc)
++{
++	return mrc->addr == addr && mrc->len == len && mrc->access == acc;
++}
++
++/* called with cache->lock */
++static void rv_cache_mrc_get(struct rv_mr_cache *cache,
++			     void *arg, struct rv_mr_cached *mrc)
++{
++	int refcount;
++
++	refcount = atomic_inc_return(&mrc->refcount);
++	if (refcount == 1) {
++		cache->stats.inuse++;
++		cache->stats.inuse_bytes += mrc->len;
++	}
++	rv_mr_cache_update_stats_max(cache, refcount);
++}
++
++/* called with cache->lock */
++static int rv_cache_mrc_put(struct rv_mr_cache *cache,
++			    void *arg, struct rv_mr_cached *mrc)
++{
++	int refcount;
++
++	refcount = atomic_dec_return(&mrc->refcount);
++	if (!refcount) {
++		cache->stats.inuse--;
++		cache->stats.inuse_bytes -= mrc->len;
++	}
++	return refcount;
++}
++
++/* called with cache->lock */
++static int rv_cache_mrc_invalidate(struct rv_mr_cache *cache,
++				   void *arg, struct rv_mr_cached *mrc)
++{
++	if (!atomic_read(&mrc->refcount))
++		return 1;
++	return 0;
++}
 +
 +/*
-+ * mr_cache_size is in MBs and if 0 will use module param as default
-+ * num_conn - number of QPs between each pair of nodes
-+ * loc_addr - used to select client/listen vs rem_addr
-+ * index_bits - num high bits of immed data with rv index
-+ * loc_gid_index - SGID for client connections
-+ * loc_gid[16] - to double check gid_index unchanged
-+ * job_key[RV_MAX_JOB_KEY_LEN] = unique uuid per job
-+ * job_key_len - len, if 0 matches jobs with len==0 only
-+ * q_depth - size of QP and per QP CQs
-+ * reconnect_timeout - in seconds from loss to restoration
-+ * hb_interval - in milliseconds between heartbeats
++ * Return 1 if the mrc can be evicted from the cache
++ *
++ * Called with cache->lock
 + */
-+struct rv_attach_params_in {
-+	char dev_name[RV_MAX_DEV_NAME_LEN];
-+	__u32 mr_cache_size;
-+	__u8 rdma_mode;
++static int rv_cache_mrc_evict(struct rv_mr_cache *cache,
++			      void *arg, struct rv_mr_cached *mrc,
++			      void *evict_arg, bool *stop)
++{
++	struct evict_data *evict_data = evict_arg;
 +
-+	/* additional information for RV_RDMA_MODE_KERNEL */
-+	__u8 port_num;
-+	__u8 num_conn;
-+	__u32 loc_addr;
-+	__u8 index_bits;
-+	__u16 loc_gid_index;
-+	__u8 loc_gid[16];
-+	__u8 job_key[RV_MAX_JOB_KEY_LEN];
-+	__u8 job_key_len;
-+	__aligned_u64 service_id;
-+	__aligned_u64 context;
-+	__u32 cq_entries;
-+	__u32 q_depth;
-+	__u32 reconnect_timeout;
-+	__u32 hb_interval;
-+};
++	/* is this mrc still being used? */
++	if (atomic_read(&mrc->refcount))
++		return 0; /* keep this mrc */
 +
++	/* this mrc will be evicted, add its size to our count */
++	evict_data->cleared += mrc->len;
++
++	/* have enough bytes been cleared? */
++	if (evict_data->cleared >= evict_data->target)
++		*stop = true;
++
++	return 1; /* remove this mrc */
++}
+diff --git a/drivers/infiniband/ulp/rv/rv_mr_cache.c b/drivers/infiniband/ulp/rv/rv_mr_cache.c
+index 48ea7c958f74..830ee246006b 100644
+--- a/drivers/infiniband/ulp/rv/rv_mr_cache.c
++++ b/drivers/infiniband/ulp/rv/rv_mr_cache.c
+@@ -374,7 +374,7 @@ static void do_remove(struct rv_mr_cache *cache, struct list_head *del_list)
+ 	while (!list_empty(del_list)) {
+ 		mrc = list_first_entry(del_list, struct rv_mr_cached, list);
+ 		list_del(&mrc->list);
+-		/* Deregister the mr here */
++		rv_drv_api_dereg_mem(&mrc->mr);
+ 		kfree(mrc);
+ 	}
+ }
+diff --git a/drivers/infiniband/ulp/rv/trace.h b/drivers/infiniband/ulp/rv/trace.h
+index 7a4cc4919693..d2827582be05 100644
+--- a/drivers/infiniband/ulp/rv/trace.h
++++ b/drivers/infiniband/ulp/rv/trace.h
+@@ -4,3 +4,5 @@
+  */
+ #include "trace_mr_cache.h"
+ #include "trace_dev.h"
++#include "trace_mr.h"
++#include "trace_user.h"
+diff --git a/drivers/infiniband/ulp/rv/trace_mr.h b/drivers/infiniband/ulp/rv/trace_mr.h
+new file mode 100644
+index 000000000000..158c1b106b77
+--- /dev/null
++++ b/drivers/infiniband/ulp/rv/trace_mr.h
+@@ -0,0 +1,109 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 +/*
-+ * rv_index - unique within job on given NIC
-+ * mr_cache_size - in MBs
-+ * q_depth - size of QP and per QP CQs
-+ * reconnect_timeout - value being used
++ * Copyright(c) 2020 - 2021 Intel Corporation.
 + */
-+struct rv_attach_params_out {
-+	__u32 rv_index;
-+	__u32 mr_cache_size;
-+	__u32 q_depth;
-+	__u32 reconnect_timeout;
-+};
++#if !defined(__RV_TRACE_MR_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RV_TRACE_MR_H
 +
-+struct rv_attach_params {
-+	union {
-+		struct rv_attach_params_in in;
-+		struct rv_attach_params_out out;
-+	};
-+};
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+#define RV_IOCTL_ATTACH		_IOWR(RV_MAGIC, 0xF1, struct rv_attach_params)
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rv_mr
 +
-+/* The buffer is used to register a kernel mr */
-+#define IBV_ACCESS_KERNEL 0x80000000
++#define MR_INFO_PRN "addr 0x%llx len 0x%llx acc 0x%x lkey 0x%x rkey 0x%x " \
++		    "iova 0x%llx pd_usecnt %u"
 +
++DECLARE_EVENT_CLASS(/* mr */
++	rv_mr_template,
++	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
++	TP_ARGS(mode, addr, len, acc),
++	TP_STRUCT__entry(/* entry */
++		__field(u8, mode)
++		__field(u64, addr)
++		__field(u64, len)
++		__field(u32, acc)
++	),
++	TP_fast_assign(/* assign */
++		__entry->mode = mode;
++		__entry->addr = addr;
++		__entry->len = len;
++		__entry->acc = acc;
++	),
++	TP_printk(/* print */
++		"mode 0x%x addr 0x%llx, len %llu acc 0x%x",
++		__entry->mode,
++		__entry->addr,
++		__entry->len,
++		__entry->acc
++	)
++);
++
++DEFINE_EVENT(/* event */
++	rv_mr_template, rv_mr_reg,
++	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
++	TP_ARGS(mode, addr, len, acc)
++);
++
++DEFINE_EVENT(/* event */
++	rv_mr_template, rv_mr_dereg,
++	TP_PROTO(u8 mode, u64 addr, u64 len, u32 acc),
++	TP_ARGS(mode, addr, len, acc)
++);
++
++DECLARE_EVENT_CLASS(/* mr_info */
++	rv_mr_info_template,
++	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
++		 u32 rkey, u64 iova, u32 pd_usecnt),
++	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt),
++	TP_STRUCT__entry(/* entry */
++		__field(u64, addr)
++		__field(u64, len)
++		__field(u32, acc)
++		__field(u32, lkey)
++		__field(u32, rkey)
++		__field(u64, iova)
++		__field(u32, cnt)
++	),
++	TP_fast_assign(/* assign */
++		__entry->addr = addr;
++		__entry->len = len;
++		__entry->acc = acc;
++		__entry->lkey = lkey;
++		__entry->rkey = rkey;
++		__entry->iova = iova;
++		__entry->cnt = pd_usecnt;
++	),
++	TP_printk(/* print */
++		MR_INFO_PRN,
++		__entry->addr,
++		__entry->len,
++		__entry->acc,
++		__entry->lkey,
++		__entry->rkey,
++		__entry->iova,
++		__entry->cnt
++	)
++);
++
++DEFINE_EVENT(/* event */
++	rv_mr_info_template, rv_mr_info_reg,
++	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
++		 u32 rkey, u64 iova, u32 pd_usecnt),
++	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt)
++);
++
++DEFINE_EVENT(/* event */
++	rv_mr_info_template, rv_mr_info_dereg,
++	TP_PROTO(u64 addr, u64 len, u32 acc, u32 lkey,
++		 u32 rkey, u64 iova, u32 pd_usecnt),
++	TP_ARGS(addr, len, acc, lkey, rkey, iova, pd_usecnt)
++);
++
++#endif /* __RV_TRACE_MR_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_mr
++#include <trace/define_trace.h>
+diff --git a/drivers/infiniband/ulp/rv/trace_user.h b/drivers/infiniband/ulp/rv/trace_user.h
+new file mode 100644
+index 000000000000..2707e39bdfd6
+--- /dev/null
++++ b/drivers/infiniband/ulp/rv/trace_user.h
+@@ -0,0 +1,66 @@
++/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
 +/*
-+ * ibv_pd_handle - user space appl allocated pd
-+ * ulen - driver_udata inlen
-+ * *udata - driver_updata inbuf
++ * Copyright(c) 2020 Intel Corporation.
 + */
-+struct rv_mem_params_in {
-+	__u32 ibv_pd_handle;
-+	__u32 cmd_fd_int;
-+	__aligned_u64 addr;
-+	__aligned_u64 length;
-+	__u32 access;
-+	size_t ulen;
-+	void *udata;
-+};
++#if !defined(__RV_TRACE_USER_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RV_TRACE_USER_H
 +
-+struct rv_mem_params_out {
-+	__aligned_u64 mr_handle;
-+	__aligned_u64 iova;
-+	__u32 lkey;
-+	__u32 rkey;
-+};
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+struct rv_mem_params {
-+	union {
-+		struct rv_mem_params_in in;
-+		struct rv_mem_params_out out;
-+	};
-+};
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rv_user
 +
-+#define RV_IOCTL_REG_MEM	_IOWR(RV_MAGIC, 0xF3, struct rv_mem_params)
++#define RV_USER_MRS_PRN "rv_nx %d jdev %p total_size 0x%llx max_size 0x%llx " \
++			"refcount %u"
 +
-+struct rv_dereg_params_in {
-+	__aligned_u64 mr_handle;
-+	__aligned_u64 addr;
-+	__aligned_u64 length;
-+	__u32 access;
-+};
++DECLARE_EVENT_CLASS(/* user_mrs */
++	rv_user_mrs_template,
++	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
++		 u32 refcount),
++	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount),
++	TP_STRUCT__entry(/* entry */
++		__field(int, rv_inx)
++		__field(void *, jdev)
++		__field(u64, total_size)
++		__field(u64, max_size)
++		__field(u32, refcount)
++	),
++	TP_fast_assign(/* assign */
++		__entry->rv_inx = rv_inx;
++		__entry->jdev = jdev;
++		__entry->total_size = total_size;
++		__entry->max_size = max_size;
++		__entry->refcount = refcount;
++	),
++	TP_printk(/* print */
++		RV_USER_MRS_PRN,
++		__entry->rv_inx,
++		__entry->jdev,
++		__entry->total_size,
++		__entry->max_size,
++		__entry->refcount
++	)
++);
 +
-+#define RV_IOCTL_DEREG_MEM	_IOW(RV_MAGIC, 0xF4, struct rv_dereg_params_in)
++DEFINE_EVENT(/* event */
++	rv_user_mrs_template, rv_user_mrs_attach,
++	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
++		 u32 refcount),
++	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount)
++);
 +
-+/*
-+ * MR cache statistics are as follows:
-+ *   cache_size - Current memory in the cache in bytes
-+ *   max_cache_size - Maximum of cache_size in bytes
-+ *   limit_cache_size - Maximum allowed cache_size in MB
-+ *   count - Current number of MRs in the cache
-+ *   max_count - Maximum of count
-+ *   inuse - Current number of MRs in the cache with refcount > 0
-+ *   max_inuse - Maximum of inuse
-+ *   inuse_bytes - Current number of bytes in cache for MRs with refcount > 0
-+ *   max_inuse_bytes - Maximum of inuse_bytes
-+ *   max_refcount - Maximum of refcount for an MR
-+ *   Event counts:
-+ *      hit - Cache hit
-+ *      miss - Cache miss and added
-+ *      full - Cache miss but can't add since full
-+ *      failed - Cache miss but can't add since reg_mr failed
-+ *      remove - Refcount == 0 and removed by mmu notifier event or cache deinit
-+ *      evict - Removed from cache due to lack of cache space
-+ *   Number of valid IOCTL_REG_MEM calls = hit+miss+full+failed
-+ *      (counts omit some EINVAL and EFAULT REG_MEM use cases)
-+ */
++DEFINE_EVENT(/* event */
++	rv_user_mrs_template, rv_user_mrs_release,
++	TP_PROTO(int rv_inx, void *jdev, u64 total_size, u64 max_size,
++		 u32 refcount),
++	TP_ARGS(rv_inx, jdev, total_size, max_size, refcount)
++);
 +
-+struct rv_cache_stats_params_out {
-+	__aligned_u64 cache_size;
-+	__aligned_u64 max_cache_size;
-+	__u32 limit_cache_size;
-+	__u32 count;
-+	__u32 max_count;
-+	__u32 inuse;
-+	__u32 max_inuse;
-+	__aligned_u64 inuse_bytes;
-+	__aligned_u64 max_inuse_bytes;
-+	__u32 max_refcount;
-+	__aligned_u64 hit;
-+	__aligned_u64 miss;
-+	__aligned_u64 full;
-+	__aligned_u64 failed;
-+	__aligned_u64 remove;
-+	__aligned_u64 evict;
-+};
++#endif /* __RV_TRACE_USER_H */
 +
-+#define RV_IOCTL_GET_CACHE_STATS _IOR(RV_MAGIC, 0xF7, \
-+				      struct rv_cache_stats_params_out)
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_user
++#include <trace/define_trace.h>
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index ccd11631c167..93aefd4d085f 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -134,6 +134,16 @@ static inline void uverbs_uobject_get(struct ib_uobject *uobject)
+ }
+ void uverbs_uobject_put(struct ib_uobject *uobject);
+ 
++struct ib_mr *rdma_reg_user_mr(struct ib_device *ib_dev, u32 cmd_fd,
++			       u32 pd_handle, u64 start, u64 length,
++			       u32 access_flags, size_t ulen, void *udata,
++			       struct fd *fd);
++int rdma_dereg_user_mr(struct ib_mr *mr, struct fd *fd);
++struct ib_mr *rdma_reg_kernel_mr(u32 cmd_fd, struct ib_pd *kern_pd, u64 start,
++				 u64 length, u32 access_flags, size_t ulen,
++				 void *udata, struct fd *fd);
++int rdma_dereg_kernel_mr(struct ib_mr *mr, struct fd *fd);
 +
-+/*
-+ * The create provides an ah_attr.  Field use is as follows:
-+ * sanity checked with attach:
-+ *	grh.sgid_index, port_num
-+ *	possibly in future: src_path_bits
-+ * identify QPs which can be shared
-+ *	rem_addr, ah.is_global, grh.dgid or dlid
-+ *	possibly in future: sl, traffic_class, flow_label, maybe static_rate
-+ * sanity checked with connect path:
-+ *	dlid, grh.dgid
-+ *	could check: sl
-+ *	don't want to check: static_rate (could negotiate down in path)
-+ * validated with inbound REQ
-+ *	port_num, grh.dgid or dlid
-+ * Not used: hop_limit (locally resolve)
-+ * rem_addr - used to select client/listen vs loc_addr
-+ */
-+struct rv_conn_create_params_in {
-+	struct ib_uverbs_ah_attr ah;
-+	__u32 rem_addr;
-+	__aligned_u64 context;
-+};
-+
-+/*
-+ * handle - rv_user_conn for future conn/discon calls
-+ * conn_handle - rv_conn for completions only
-+ */
-+struct rv_conn_create_params_out {
-+	__aligned_u64 handle;
-+	__aligned_u64 conn_handle;
-+};
-+
-+struct rv_conn_create_params {
-+	union {
-+		struct rv_conn_create_params_in in;
-+		struct rv_conn_create_params_out out;
-+	};
-+};
-+
-+#define RV_IOCTL_CONN_CREATE	_IOWR(RV_MAGIC, 0xF8, \
-+				      struct rv_conn_create_params)
-+
-+struct rv_conn_connect_params_in {
-+	__aligned_u64 handle;
-+	struct ib_user_path_rec path;
-+};
-+
-+#define RV_IOCTL_CONN_CONNECT	_IOW(RV_MAGIC, 0xF9, \
-+				     struct rv_conn_connect_params_in)
-+
-+struct rv_conn_connected_params_in {
-+	__aligned_u64 handle;
-+};
-+
-+#define RV_IOCTL_CONN_CONNECTED	_IOW(RV_MAGIC, 0xFA, \
-+				     struct rv_conn_connected_params_in)
-+
-+/*
-+ * get connection count for a specific sconn
-+ * returns:
-+ *	0 - count returned
-+ *	EIO - connection lost and unrecoverable
-+ *	EINVAL - invalid handle and/or index
-+ * A 32b count is sufficient to handle constant RV reconnects, with a
-+ * 100ms delay between each established connection, for up to 13 years.
-+ */
-+struct rv_conn_get_conn_count_params_in {
-+	__aligned_u64 handle;
-+	__u8 index;
-+};
-+
-+/* we return count as an output parameter (vs ioctl ret) so can use full 32b */
-+struct rv_conn_get_conn_count_params_out {
-+	__u32 count;
-+};
-+
-+struct rv_conn_get_conn_count_params {
-+	union {
-+		struct rv_conn_get_conn_count_params_in in;
-+		struct rv_conn_get_conn_count_params_out out;
-+	};
-+};
-+
-+#define RV_IOCTL_CONN_GET_CONN_COUNT	_IOWR(RV_MAGIC, 0xFF, \
-+					   struct rv_conn_get_conn_count_params)
-+
-+/* index to get agg of sconn in given conn */
-+#define RV_CONN_STATS_AGGREGATE 255
-+
-+/*
-+ * handle - if 0, aggregate of all rv's sconn returned
-+ * index - ignored if !handle, otherwise specific sconn index
-+ */
-+struct rv_conn_get_stats_params_in {
-+	__aligned_u64 handle;
-+	__u8 index;
-+};
-+
-+/*
-+ * flags can be combined when get aggregate results
-+ * so separate bits for client vs server
-+ */
-+#define RV_CONN_STAT_FLAG_SERVER 0x01
-+#define RV_CONN_STAT_FLAG_CLIENT 0x02
-+#define RV_CONN_STAT_FLAG_WAS_CONNECTED 0x04
-+
-+/*
-+ * index - mimics input value
-+ * flags
-+ * num_conn - total QPs included
-+ * CM events
-+ *	req_error - IB_CM_REQ_ERROR
-+ *	req_recv - IB_CM_REQ_RECEIVED
-+ *	rep_error - IB_CM_REP_ERROR
-+ *	rep_recv - IB_CM_REP_RECEIVED
-+ *	rtu_recv - IB_CM_RTU_RECEIVED
-+ *	established - IB_CM_USER_ESTABLISHED - via ib_cm_notify
-+ *	dreq_error - IB_CM_DREQ_ERROR
-+ *	dreq_recv - IB_CM_DREQ_RECEIVED
-+ *	drep_recv - IB_CM_DREP_RECEIVED
-+ *	timewait - IB_CM_TIMEWAIT_EXIT
-+ *	mra_recv - IB_CM_MRA_RECEIVED
-+ *	rej_recv - IB_CM_REJ_RECEIVED
-+ *	lap_error - IB_CM_LAP_ERROR
-+ *	lap_recv - IB_CM_LAP_RECEIVED
-+ *	apr_recv - IB_CM_APR_RECEIVED
-+ *	unexp_event - SIDR and any others
-+ * outbound CM messages
-+ *	req_sent - CM REQ
-+ *	rep_sent - CM REP
-+ *	rtu_sent - CM RTU
-+ *	rej_sent - CM REJ
-+ *	dreq_sent - CM DREQ
-+ *	drep_sent - CM DREP
-+ *	(re)connect time does not include wait nor resolver time
-+ *	wait_time - microseconds for initial connect
-+ *	resolve_time - microseconds for initial connect
-+ *	connect_time - microseconds for initial connect
-+ *	connected_time - microseconds were connected
-+ *	resolve - attempts at resolving
-+ *	resolve_fail - hard failures
-+ *	conn_recovery - # times recovered connection
-+ *	rewait_time - microseconds for connect recovery
-+ *	reresolve_time - microseconds for connect recovery
-+ *	reconnect_time - microseconds for connect recovery
-+ *	max_rewait_time - microseconds for connect recovery
-+ *	max_reresolve_time - microseconds for connect recovery
-+ *	max_reconnect_time - microseconds for connect recovery
-+ *	reresolve - attempts at resolving
-+ *	reresolve_fail - hard failures
-+ *	post_write - successful post_rdma_write
-+ *	post_write_fail - failed at time of posting
-+ *	post_write_bytes - for successful post
-+ *	outstand_send_write - sent RDMA Write waiting for CQE
-+ *	send_write_cqe - successful sent RDMA Write CQE
-+ *	send_write_cqe_fail - sent RDMA Write CQE with bad status
-+ *	recv_write_cqe - successful recv RDMA Write CQE
-+ *	recv_write_bytes - successful recv RDMA Write
-+ *	recv_cqe_fail - recv CQE with bad status
-+ *	post_hb - successful post of heartbeat
-+ *	post_hb_fail - failed at time of posting
-+ *	send_hb_cqe - successful sent heartbeat CQE
-+ *	send_hb_cqe_fail - sent heartbeat CQE with bad status
-+ *	recv_hb_cqe - successful recv heartbeat CQE
-+ */
-+struct rv_conn_get_stats_params_out {
-+	__u8 index;
-+	__u8 flags;
-+	__u32 num_conn;
-+
-+	/* CM events */
-+	__u32 req_error;
-+	__u32 req_recv;
-+	__u32 rep_error;
-+	__u32 rep_recv;
-+	__u32 rtu_recv;
-+	__u32 established;
-+	__u32 dreq_error;
-+	__u32 dreq_recv;
-+	__u32 drep_recv;
-+	__u32 timewait;
-+	__u32 mra_recv;
-+	__u32 rej_recv;
-+	__u32 lap_error;
-+	__u32 lap_recv;
-+	__u32 apr_recv;
-+	__u32 unexp_event;
-+
-+	/* outbound CM messages */
-+	__u32 req_sent;
-+	__u32 rep_sent;
-+	__u32 rtu_sent;
-+	__u32 rej_sent;
-+	__u32 dreq_sent;
-+	__u32 drep_sent;
-+	__aligned_u64 wait_time;
-+	__aligned_u64 resolve_time;
-+	__aligned_u64 connect_time;
-+	__aligned_u64 connected_time;
-+	__u32 resolve;
-+	__u32 resolve_fail;
-+	__u32 conn_recovery;
-+	__aligned_u64 rewait_time;
-+	__aligned_u64 reresolve_time;
-+	__aligned_u64 reconnect_time;
-+	__aligned_u64 max_rewait_time;
-+	__aligned_u64 max_reresolve_time;
-+	__aligned_u64 max_reconnect_time;
-+	__u32 reresolve;
-+	__u32 reresolve_fail;
-+
-+	__aligned_u64 post_write;
-+	__aligned_u64 post_write_fail;
-+	__aligned_u64 post_write_bytes;
-+	__u32 outstand_send_write;
-+	__aligned_u64 send_write_cqe;
-+	__aligned_u64 send_write_cqe_fail;
-+
-+	__aligned_u64 recv_write_cqe;
-+	__aligned_u64 recv_write_bytes;
-+	__aligned_u64 recv_cqe_fail;
-+
-+	__aligned_u64 post_hb;
-+	__aligned_u64 post_hb_fail;
-+	__aligned_u64 send_hb_cqe;
-+	__aligned_u64 send_hb_cqe_fail;
-+	__aligned_u64 recv_hb_cqe;
-+};
-+
-+struct rv_conn_get_stats_params {
-+	union {
-+		struct rv_conn_get_stats_params_in in;
-+		struct rv_conn_get_stats_params_out out;
-+	};
-+};
-+
-+#define RV_IOCTL_CONN_GET_STATS	_IOWR(RV_MAGIC, 0xFD, \
-+				      struct rv_conn_get_stats_params)
-+
-+/*
-+ * send_write_cqe - successful sent RDMA Write CQE
-+ * send_write_cqe_fail - sent RDMA Write CQE with bad status
-+ * send_write_bytes - for successful send
-+ * recv_write_cqe - successful recv RDMA Write CQE
-+ * recv_write_cqe_fail - recv RDMA Write CQE with bad status
-+ * recv_write_bytes - successful recv RDMA Write
-+ */
-+struct rv_event_stats_params_out {
-+	__aligned_u64 send_write_cqe;
-+	__aligned_u64 send_write_cqe_fail;
-+	__aligned_u64 send_write_bytes;
-+
-+	__aligned_u64 recv_write_cqe;
-+	__aligned_u64 recv_write_cqe_fail;
-+	__aligned_u64 recv_write_bytes;
-+};
-+
-+#define RV_IOCTL_GET_EVENT_STATS _IOR(RV_MAGIC, 0xFE, \
-+				      struct rv_event_stats_params_out)
-+
-+/*
-+ * handle - from create_conn
-+ * application source buffer and a kernel lkey for it
-+ *	loc_addr
-+ *	loc_mr_handle
-+ * local MR - selected by 3-tuple (addr, len, access)
-+ *	loc_mr_addr
-+ *	loc_mr_length
-+ *	loc_mr_access
-+ * remote application dest buffer and a kernel rkey for it
-+ *	rem_addr
-+ *	rkey
-+ * length
-+ * wr_id - application context, included in RV SQ completion events
-+ * immed
-+ */
-+struct rv_post_write_params_in {
-+	__aligned_u64 handle;
-+	__aligned_u64 loc_addr;
-+	__aligned_u64 loc_mr_handle;
-+	__aligned_u64 loc_mr_addr;
-+	__aligned_u64 loc_mr_length;
-+	__u32 loc_mr_access;
-+	__u32 rkey;
-+	__aligned_u64 rem_addr;
-+	__aligned_u64 length;
-+	__aligned_u64 wr_id;
-+	__u32 immed;
-+};
-+
-+struct rv_post_write_params_out {
-+	__u8 sconn_index;
-+	__u32 conn_count;
-+};
-+
-+struct rv_post_write_params {
-+	union {
-+		struct rv_post_write_params_in in;
-+		struct rv_post_write_params_out out;
-+	};
-+};
-+
-+#define RV_IOCTL_POST_RDMA_WR_IMMED _IOWR(RV_MAGIC, 0xFB, \
-+					  struct rv_post_write_params)
-+
-+enum rv_event_type {
-+	RV_WC_RDMA_WRITE,		/* send RDMA Write CQE */
-+	RV_WC_RECV_RDMA_WITH_IMM,	/* recv RDMA Write w/immed CQE */
-+};
-+
-+/*
-+ * events placed on ring buffer for delivery to user space.
-+ * Carefully sized to be a multiple of 64 bytes for cache alignment.
-+ * Must pack to get good field alignment and desired 64B overall size
-+ * Unlike verbs, all rv_event fields are defined even when
-+ * rv_event.wc.status != IB_WC_SUCCESS. Only sent writes can report bad status.
-+ * event_type - enum rv_event_type
-+ * wc - send or recv work completions
-+ *	status - ib_wc_status
-+ *	resv1 - alignment
-+ *	imm_data - for RV_WC_RECV_RDMA_WITH_IMM only
-+ *	wr_id - PSM wr_id for RV_WC_RDMA_WRITE only
-+ *	conn_handle - conn handle. For efficiency in completion processing, this
-+ *		handle is the rv_conn handle, not the rv_user_conn.
-+ *		Main use is sanity checks.  On Recv PSM must use imm_data to
-+ *		efficiently identify source.
-+ *	byte_len - unlike verbs API, this is always valid
-+ *	resv2 - alignment
-+ * cache_align -  not used, but forces overall struct to 64B size
-+ */
-+struct rv_event {
-+	__u8		event_type;
-+	union {
-+		struct {
-+			__u8		status;
-+			__u16	resv1;
-+			__u32	imm_data;
-+			__aligned_u64	wr_id;
-+			__aligned_u64	conn_handle;
-+			__u32	byte_len;
-+			__u32	resv2;
-+		} __attribute__((__packed__)) wc;
-+		struct {
-+			__u8 pad[7];
-+			uint64_t pad2[7];
-+		} __attribute__((__packed__)) cache_align;
-+	};
-+} __attribute__((__packed__));
-+
-+/*
-+ * head - consumer removes here
-+ * tail - producer adds here
-+ * overflow_cnt - number of times producer overflowed ring and discarded
-+ * pad - 64B cache alignment for entries
-+ */
-+struct rv_ring_header {
-+	volatile __u32 head;
-+	volatile __u32 tail;
-+	volatile __u64 overflow_cnt;
-+	__aligned_u64 pad[6];
-+	struct rv_event entries[];
-+};
-+
-+#define RV_RING_ALLOC_LEN(num_entries) \
-+	((__u32)(((num_entries) * sizeof(struct rv_event)) + \
-+	       sizeof(struct rv_ring_header)))
-+
-+#endif /* __RV_USER_IOCTL_H__ */
+ struct uverbs_obj_fd_type {
+ 	/*
+ 	 * In fd based objects, uverbs_obj_type_ops points to generic
 -- 
 2.18.1
 
