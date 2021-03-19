@@ -2,715 +2,237 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 375BFC433E6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 716FBC4332B
 	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 016A064F69
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D06464F69
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Mar 2021 12:57:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229756AbhCSM4o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Mar 2021 08:56:44 -0400
+        id S229766AbhCSM4n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Mar 2021 08:56:43 -0400
 Received: from mga01.intel.com ([192.55.52.88]:4853 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229926AbhCSM4m (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 19 Mar 2021 08:56:42 -0400
-IronPort-SDR: I0oukAf4WLwwpHV/ayry2/i4Y6y1OSF3K+8pawPvrSQls3ues7PDdAg6ztqnb/4fSl8NJuCOOI
- 2DimLzkdehJA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910283"
+        id S229756AbhCSM4i (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Mar 2021 08:56:38 -0400
+IronPort-SDR: HkmtEUu+0eHGH5g4BF3recpOe4SMqnSPq8vUiwyJjtf/2AejL3/aIt8t3w+PxPwvXheQUkB9gd
+ FqBAToY7NIvQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9927"; a="209910276"
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="209910283"
+   d="scan'208";a="209910276"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:41 -0700
-IronPort-SDR: rSJ7jUzYhcVcplYMTEnsmK+Lf2j0tsxyoHFXLyg3frfoyqildTXYlNfYqEULinmJ2fbjAKmjLR
- +oF7g3BQHJKw==
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2021 05:56:38 -0700
+IronPort-SDR: M5NVqRYOMauslQmcloRZQW2ZZ+In3zDaqgHJ0fWZbYNImEjMDbmzXh7dz7y+Nm8LrVn8looK+0
+ 9B1KqKfke1bQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.81,261,1610438400"; 
-   d="scan'208";a="450851729"
+   d="scan'208";a="450851694"
 Received: from phwfstl014.hd.intel.com ([10.127.241.142])
-  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:40 -0700
+  by orsmga001.jf.intel.com with ESMTP; 19 Mar 2021 05:56:35 -0700
 From:   kaike.wan@intel.com
 To:     dledford@redhat.com, jgg@nvidia.com
 Cc:     linux-rdma@vger.kernel.org, todd.rimmer@intel.com,
         Kaike Wan <kaike.wan@intel.com>
-Subject: [PATCH RFC 4/9] RDMA/rv: Add functions for memory region cache
-Date:   Fri, 19 Mar 2021 08:56:30 -0400
-Message-Id: <20210319125635.34492-5-kaike.wan@intel.com>
+Subject: [PATCH RFC 0/9] A rendezvous module
+Date:   Fri, 19 Mar 2021 08:56:26 -0400
+Message-Id: <20210319125635.34492-1-kaike.wan@intel.com>
 X-Mailer: git-send-email 2.18.1
-In-Reply-To: <20210319125635.34492-1-kaike.wan@intel.com>
-References: <20210319125635.34492-1-kaike.wan@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Kaike Wan <kaike.wan@intel.com>
 
-The MR cache is implemented through an rb tree. Each node is indexed
-by a simple (address, length, access_flags) tuple, without any
-consideration of buffer overlapping. When a node's refcount goes
-down to 0, it is not removed from the cache. Instead, it is put into
-an LRU list that could be evicted if the cache memory limit is reached.
-However, if the user buffer for the memory region is freed, the node
-will be removed when the MMU notice is received.
+RDMA transactions on RC QPs have a high demand for memory for HPC
+applications such as MPI, especially on nodes with high cpu core
+count, where a process is normally dispatched to each core and an RC QP
+is created for each remote process. For a 100-node fabric,
+about 10 GB - 100 GB memory is required for WQEs/Buffers/QP states on
+each server node. This high demand imposes a severe restriction
+on the scalability of HPC fabric.
 
-Signed-off-by: Todd Rimmer <todd.rimmer@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
----
- drivers/infiniband/ulp/rv/Makefile         |   2 +-
- drivers/infiniband/ulp/rv/rv_mr_cache.c    | 428 +++++++++++++++++++++
- drivers/infiniband/ulp/rv/trace.h          |   1 +
- drivers/infiniband/ulp/rv/trace_mr_cache.h | 181 +++++++++
- 4 files changed, 611 insertions(+), 1 deletion(-)
+A number of solutions have been implemented over the years. UD based
+solutions solve the scalability problem by requiring only one UD
+QP per process that can send a message to or receive a message from any
+other process. However, it does not have the performance of an
+RC QP and the application has to manage the segmentation for large
+messages.
+
+SRQ reduces the memory demand by sharing a receive queue among multiple
+QPs. However, it still requires an RC QP for each remote
+process and each RC QP still requires a send queue. In addition, it is
+an optional feature.
+
+XRC further reduces the memory demand by allowing a single QP per
+process to communicate with any process on a remote node. In this
+mode, each process requires only one QP for each remote node. Again,
+this is optional and not all vendors support it.
+
+Dynamically Connected transport minimizes the memory usage, but requires
+vendor specific hardware and changes in applications.
+Addtionally, all of these mechanisms can induce latency jitter due to
+use of more QPs, more QP state, and hence additional
+PCIe transactions at scale where NIC QP/CQ caches overflow.
+
+Based on this, we are here proposing a generic, vendor-agnostic approach
+to address the RC scalalibity and potentially improve RDMA
+performance for larger messages which uses RDMA Write as part of a
+rendezvous protocol.
+
+Here are the key points of the proposal:
+- For each device used by a job on a given node, there are a fixed
+  number of RC connections (default: 4) between this node and any
+  other remote node, no matter how many processes are running on each
+  node for this job. That is, for a given job and device, all the
+  processes on a given node will communicate with all the processes of
+  the same job on a remote node through the same fixed number of
+  connections. This eliminates the increased memory demand caused by
+  core count increase and reduces the overall RC connection setup
+  costs.
+- Memory region cache is added to reduce the MR
+  registration/deregistration costs, as the same buffers tend to be used
+  repeatedly by applications. The mr cache is per process and can be
+  accessed only by processes in the same job.
+
+Here is how we are proposing to implement this application enabling
+rendezvous module that take advantage of the various features
+of the RDMA subsystem:
+- Create a rendezvous module (rv) under drivers/infiniband/ulp/rv/. This
+  can be changed if a better location is recommended.
+- The rv modules adds a char device file /dev/rv that user
+  applications/middlewares can open to communicate with the rv module
+  (PSM3 OFI provider in libfabric 1.12.0 being the primary use case).
+  The file interface is crucial for associating the job/process
+  with the mr, the connection endpoints, and RDMA requests.
+  rv_file_open - Open a handle to the rv module for the current user
+                 process.
+  rv_file_close - Close the handle and clean up.
+  rv_file_ioctl - The main communication methods: to attach to a device,
+                  to register/deregister mr, to create connection
+                  endpoint, to connect, to query, to get stats, to do
+                  RDMA transactions, etc.
+  rv_file_mmap - Mmap an event ring into user space for the current user
+                 process.
+- Basic mode of operations (PSM3 is used as an example for user
+  applications):
+  - A middleware (like MPI) has out-of-band communication channels
+    between any two nodes, which are used to establish high performance
+    communications for providers such as PSM3.
+  - On each node, the PSM3 provider opens the rv module, and issues an
+    attach request to bind to a specific local device and specifies
+    information specific to the job. This associates the user process
+    with the RDMA device and the job.
+  - On each node, the PSM3 provider will establish user space low
+    latency eager and control message communications, typically via user
+    space UD QPs.
+  - On each node, the PSM3 provider will mmap a ring buffer for events
+    from the rv module.
+  - On each node, the PSM3 provider creates a set of connection
+    endpoints by passing the destination info to the rv module. If the
+    local node is chosen as the listener for the connection (based on
+    address comparison between the two nodes), it will start to listen
+    for any incoming IB CM connection requests and accept them when whey
+    arrive. This step associates the shared connection endpoints with
+    the job and device.
+  - On each node, the PSM3 provider will request connection
+    establishment through the rv module. On the client node, rv sends an
+    IB CM request to the remote node. On the listener node, nothing
+    additional needs to be done for the connect request from the PSM3
+    provider.
+  - On each node, the PSM3 provider will wait until the RC connection is
+    established. The PSM3 provider will query the rv module about the
+    connection status periodically.
+  - As large MPI messages are requested, the PSM3 provider will request
+    rv to register MRs for the MPI application’s send and receive
+    buffers.  The rv module makes use of its MR cache to limit when such
+    requests need to interact with verbs MR calls for the NIC.
+    The PSM3 provider control message mechanisms are used to exchange IO
+    virtual addresses and rkeys for such buffers and MRs.
+  - For RDMA transactions, the RDMA WRITE WITH IMMED request will be
+    used. The immediate data will contain info about the target
+    process on the remote node  and which outstanding rendezvous message
+    this RDMA is for. For send completion and receive completion,
+    an event will be posted into the event ring buffer and the PSM3
+    provider can poll for completion.
+  - As RDMA transactions complete, the PSM3 provider will indicate
+    completion of the corresponding MPI send/receive to the MPI
+    middleware/application. The PSM3 provider will also inform the rv
+    module it may deregister the MR.  The deregistration allows rv
+    to cache the MR for use in future requests by the PSM3 provider to
+    register the same memory for use in another MPI message. The
+    cached MR will be removed if the user buffer is freed and a MMU
+    notifier event is received by the rv module.
+
+Please comment,
+
+Thank you,
+
+Kaike
+
+Kaike Wan (9):
+  RDMA/rv: Public interferce for the RDMA Rendezvous module
+  RDMA/rv: Add the internal header files
+  RDMA/rv: Add the rv module
+  RDMA/rv: Add functions for memory region cache
+  RDMA/rv: Add function to register/deregister memory region
+  RDMA/rv: Add connection management functions
+  RDMA/rv: Add functions for RDMA transactions
+  RDMA/rv: Add functions for file operations
+  RDMA/rv: Integrate the file operations into the rv module
+
+ MAINTAINERS                                |    6 +
+ drivers/infiniband/Kconfig                 |    1 +
+ drivers/infiniband/core/core_priv.h        |    4 +
+ drivers/infiniband/core/rdma_core.c        |  237 ++
+ drivers/infiniband/core/uverbs_cmd.c       |   54 +-
+ drivers/infiniband/ulp/Makefile            |    1 +
+ drivers/infiniband/ulp/rv/Kconfig          |   11 +
+ drivers/infiniband/ulp/rv/Makefile         |    9 +
+ drivers/infiniband/ulp/rv/rv.h             |  892 ++++++
+ drivers/infiniband/ulp/rv/rv_conn.c        | 3037 ++++++++++++++++++++
+ drivers/infiniband/ulp/rv/rv_file.c        | 1196 ++++++++
+ drivers/infiniband/ulp/rv/rv_main.c        |  271 ++
+ drivers/infiniband/ulp/rv/rv_mr.c          |  393 +++
+ drivers/infiniband/ulp/rv/rv_mr_cache.c    |  428 +++
+ drivers/infiniband/ulp/rv/rv_mr_cache.h    |  152 +
+ drivers/infiniband/ulp/rv/rv_rdma.c        |  416 +++
+ drivers/infiniband/ulp/rv/trace.c          |    7 +
+ drivers/infiniband/ulp/rv/trace.h          |   10 +
+ drivers/infiniband/ulp/rv/trace_conn.h     |  547 ++++
+ drivers/infiniband/ulp/rv/trace_dev.h      |   82 +
+ drivers/infiniband/ulp/rv/trace_mr.h       |  109 +
+ drivers/infiniband/ulp/rv/trace_mr_cache.h |  181 ++
+ drivers/infiniband/ulp/rv/trace_rdma.h     |  254 ++
+ drivers/infiniband/ulp/rv/trace_user.h     |  321 +++
+ include/rdma/uverbs_types.h                |   10 +
+ include/uapi/rdma/rv_user_ioctls.h         |  558 ++++
+ 26 files changed, 9139 insertions(+), 48 deletions(-)
+ create mode 100644 drivers/infiniband/ulp/rv/Kconfig
+ create mode 100644 drivers/infiniband/ulp/rv/Makefile
+ create mode 100644 drivers/infiniband/ulp/rv/rv.h
+ create mode 100644 drivers/infiniband/ulp/rv/rv_conn.c
+ create mode 100644 drivers/infiniband/ulp/rv/rv_file.c
+ create mode 100644 drivers/infiniband/ulp/rv/rv_main.c
+ create mode 100644 drivers/infiniband/ulp/rv/rv_mr.c
  create mode 100644 drivers/infiniband/ulp/rv/rv_mr_cache.c
+ create mode 100644 drivers/infiniband/ulp/rv/rv_mr_cache.h
+ create mode 100644 drivers/infiniband/ulp/rv/rv_rdma.c
+ create mode 100644 drivers/infiniband/ulp/rv/trace.c
+ create mode 100644 drivers/infiniband/ulp/rv/trace.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_conn.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_dev.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_mr.h
  create mode 100644 drivers/infiniband/ulp/rv/trace_mr_cache.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_rdma.h
+ create mode 100644 drivers/infiniband/ulp/rv/trace_user.h
+ create mode 100644 include/uapi/rdma/rv_user_ioctls.h
 
-diff --git a/drivers/infiniband/ulp/rv/Makefile b/drivers/infiniband/ulp/rv/Makefile
-index 07a7a7dd9c3b..01e93dc25f1d 100644
---- a/drivers/infiniband/ulp/rv/Makefile
-+++ b/drivers/infiniband/ulp/rv/Makefile
-@@ -4,6 +4,6 @@
- #
- obj-$(CONFIG_INFINIBAND_RV) += rv.o
- 
--rv-y := rv_main.o trace.o
-+rv-y := rv_main.o rv_mr_cache.o trace.o
- 
- CFLAGS_trace.o = -I$(src)
-diff --git a/drivers/infiniband/ulp/rv/rv_mr_cache.c b/drivers/infiniband/ulp/rv/rv_mr_cache.c
-new file mode 100644
-index 000000000000..48ea7c958f74
---- /dev/null
-+++ b/drivers/infiniband/ulp/rv/rv_mr_cache.c
-@@ -0,0 +1,428 @@
-+// SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause)
-+/*
-+ * Copyright(c) 2020 - 2021 Intel Corporation.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/scatterlist.h>
-+#include <linux/debugfs.h>
-+#include <linux/interval_tree_generic.h>
-+
-+#include <rdma/ib_user_sa.h>
-+
-+#include "rv.h"
-+#include "trace.h"
-+
-+static unsigned int mr_cache_size = MAX_RB_SIZE;
-+
-+module_param(mr_cache_size, uint, 0444);
-+MODULE_PARM_DESC(mr_cache_size, "Size of mr cache (in MB)");
-+
-+static void handle_remove(struct work_struct *work);
-+static void do_remove(struct rv_mr_cache *cache, struct list_head *del_list);
-+static u32 rv_cache_evict(struct rv_mr_cache *cache, u64 mbytes);
-+static int mmu_notifier_range_start(struct mmu_notifier *,
-+				    const struct mmu_notifier_range *);
-+static struct rv_mr_cached *rv_mr_cache_search(struct rv_mr_cache *cache,
-+					       u64 addr, u64 len, u32 acc);
-+static void rv_update_mrc_stats_add(struct rv_mr_cache *cache,
-+				    struct rv_mr_cached *mrc);
-+static void rv_update_mrc_stats_remove(struct rv_mr_cache *cache,
-+				       struct rv_mr_cached *mrc);
-+
-+static const struct mmu_notifier_ops mn_opts = {
-+	.invalidate_range_start = mmu_notifier_range_start,
-+};
-+
-+static u64 mrc_start(struct rv_mr_cached *mrc)
-+{
-+	return mrc->addr;
-+}
-+
-+static u64 mrc_last(struct rv_mr_cached *mrc)
-+{
-+	return mrc->addr + mrc->len - 1;
-+}
-+
-+INTERVAL_TREE_DEFINE(struct rv_mr_cached, node, u64, __last,
-+		     mrc_start, mrc_last, static, rv_int_rb);
-+
-+/*
-+ * MMU notifier callback
-+ *
-+ * If the address range overlaps an MR which is in use (refcount>0)
-+ * we refuse to remove it.  Otherwise we remove it from the MR cache
-+ * by getting it off the LRU list and RB-tree and schedule the
-+ * MR deregistration.
-+ */
-+static int mmu_notifier_range_start(struct mmu_notifier *mn,
-+				    const struct mmu_notifier_range *range)
-+{
-+	struct rv_mr_cache *cache = container_of(mn, struct rv_mr_cache, mn);
-+	struct rb_root_cached *root = &cache->root;
-+	struct rv_mr_cached *mrc, *ptr = NULL;
-+	unsigned long flags;
-+	bool added = false;
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	for (mrc = rv_int_rb_iter_first(root, range->start, range->end - 1);
-+	     mrc; mrc = ptr) {
-+		ptr = rv_int_rb_iter_next(mrc, range->start, range->end - 1);
-+		if (cache->ops->invalidate(cache, cache->ops_arg, mrc)) {
-+			trace_rv_mr_cache_notifier(mrc->addr, mrc->len,
-+						   mrc->access);
-+			rv_int_rb_remove(mrc, root);
-+			list_move(&mrc->list, &cache->del_list);
-+			cache->stats.remove++;
-+			rv_update_mrc_stats_remove(cache, mrc);
-+			added = true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	if (added)
-+		queue_work(cache->wq, &cache->del_work);
-+	return 0;
-+}
-+
-+/* MR deregistration is done on a per rv_user work queue.  */
-+int rv_mr_cache_init(int rv_inx, struct rv_mr_cache *cache,
-+		     const struct rv_mr_cache_ops *ops, void *priv,
-+		     struct mm_struct *mm, u32 cache_size)
-+{
-+	char wq_name[25];
-+	int ret = 0;
-+
-+	sprintf(wq_name, "rv-%d\n", rv_inx);
-+	cache->wq = alloc_workqueue(wq_name,
-+				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE
-+					| WQ_MEM_RECLAIM,
-+				    RV_RB_MAX_ACTIVE_WQ_ENTRIES);
-+	if (!cache->wq)
-+		return -ENOMEM;
-+
-+	trace_rv_mr_cache_wq_alloc(wq_name);
-+	cache->root = RB_ROOT_CACHED;
-+	cache->ops = ops;
-+	cache->ops_arg = priv;
-+
-+	INIT_HLIST_NODE(&cache->mn.hlist);
-+	spin_lock_init(&cache->lock);
-+
-+	cache->mn.ops = &mn_opts;
-+	cache->mm = mm;
-+
-+	INIT_WORK(&cache->del_work, handle_remove);
-+	INIT_LIST_HEAD(&cache->del_list);
-+	INIT_LIST_HEAD(&cache->lru_list);
-+
-+	if (cache_size)
-+		cache->max_size = (u64)cache_size * 1024 * 1024;
-+	else
-+		cache->max_size = (u64)mr_cache_size * 1024 * 1024;
-+
-+	if (mm) {
-+		ret = mmu_notifier_register(&cache->mn, cache->mm);
-+		if (ret)
-+			goto bail_wq;
-+	}
-+
-+	return ret;
-+
-+bail_wq:
-+	destroy_workqueue(cache->wq);
-+	cache->wq = NULL;
-+	return ret;
-+}
-+
-+/* All remaining entries in the cache are deregistered */
-+void rv_mr_cache_deinit(int rv_inx, struct rv_mr_cache *cache)
-+{
-+	struct rv_mr_cached *mrc;
-+	struct rb_node *node;
-+	unsigned long flags;
-+	struct list_head del_list;
-+
-+	if (cache->mm)
-+		mmu_notifier_unregister(&cache->mn, cache->mm);
-+
-+	INIT_LIST_HEAD(&del_list);
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	while ((node = rb_first_cached(&cache->root))) {
-+		mrc = rb_entry(node, struct rv_mr_cached, node);
-+		trace_rv_mr_cache_deinit(mrc->addr, mrc->len, mrc->access,
-+					 atomic_read(&mrc->refcount));
-+		rb_erase_cached(node, &cache->root);
-+		list_move(&mrc->list, &del_list);
-+		cache->stats.remove++;
-+		rv_update_mrc_stats_remove(cache, mrc);
-+	}
-+	WARN_ON(cache->total_size);
-+
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	do_remove(cache, &del_list);
-+
-+	if (cache->wq) {
-+		char wq_name[25];
-+
-+		sprintf(wq_name, "rv-%d\n", rv_inx);
-+		trace_rv_mr_cache_wq_destroy(wq_name);
-+		flush_workqueue(cache->wq);
-+		destroy_workqueue(cache->wq);
-+	}
-+	cache->wq = NULL;
-+	cache->mm = NULL;
-+}
-+
-+/* called with cache->lock */
-+void rv_mr_cache_update_stats_max(struct rv_mr_cache *cache, int refcount)
-+{
-+	if ((u32)refcount > cache->stats.max_refcount)
-+		cache->stats.max_refcount = (u32)refcount;
-+	if (cache->stats.inuse > cache->stats.max_inuse)
-+		cache->stats.max_inuse = cache->stats.inuse;
-+	if (cache->stats.inuse_bytes > cache->stats.max_inuse_bytes)
-+		cache->stats.max_inuse_bytes = cache->stats.inuse_bytes;
-+	if (cache->stats.count > cache->stats.max_count)
-+		cache->stats.max_count = cache->stats.count;
-+	if (cache->total_size > cache->stats.max_cache_size)
-+		cache->stats.max_cache_size = cache->total_size;
-+}
-+
-+/* gets a reference to mrc on behalf of caller */
-+int rv_mr_cache_insert(struct rv_mr_cache *cache,
-+		       struct rv_mr_cached *mrc)
-+{
-+	struct rv_mr_cached *existing;
-+	unsigned long flags;
-+	u64 new_len, evict_len;
-+	int ret = 0;
-+
-+again:
-+	trace_rv_mr_cache_insert(mrc->addr, mrc->len, mrc->access);
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	existing = rv_mr_cache_search(cache, mrc->addr, mrc->len, mrc->access);
-+	if (existing) {
-+		ret = -EINVAL;
-+		goto unlock;
-+	}
-+	new_len = cache->total_size + mrc->len;
-+	if (new_len > cache->max_size) {
-+		spin_unlock_irqrestore(&cache->lock, flags);
-+
-+		trace_rv_mr_cache_cache_full(cache->max_size, cache->total_size,
-+					     mrc->len);
-+
-+		evict_len = new_len - cache->max_size;
-+		if (rv_cache_evict(cache, evict_len) >= evict_len)
-+			goto again;
-+		spin_lock_irqsave(&cache->lock, flags);
-+		cache->stats.full++;
-+		spin_unlock_irqrestore(&cache->lock, flags);
-+		return -ENOMEM;
-+	}
-+
-+	rv_int_rb_insert(mrc, &cache->root);
-+	INIT_LIST_HEAD(&mrc->list);
-+
-+	cache->ops->get(cache, cache->ops_arg, mrc);
-+	cache->stats.miss++;
-+	rv_update_mrc_stats_add(cache, mrc);
-+unlock:
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+	return ret;
-+}
-+
-+/* Caller must hold cache->lock */
-+static struct rv_mr_cached *rv_mr_cache_search(struct rv_mr_cache *cache,
-+					       u64 addr, u64 len, u32 acc)
-+{
-+	struct rv_mr_cached *mrc = NULL;
-+
-+	trace_rv_mr_cache_search_enter(addr, len, acc);
-+
-+	if (!cache->ops->filter) {
-+		mrc = rv_int_rb_iter_first(&cache->root, addr,
-+					   (addr + len) - 1);
-+		if (mrc)
-+			trace_rv_mr_cache_search_mrc(mrc->addr, mrc->len,
-+						     mrc->access);
-+	} else {
-+		for (mrc = rv_int_rb_iter_first(&cache->root, addr,
-+						(addr + len) - 1);
-+		     mrc;
-+		     mrc = rv_int_rb_iter_next(mrc, addr, (addr + len) - 1)) {
-+			trace_rv_mr_cache_search_mrc(mrc->addr, mrc->len,
-+						     mrc->access);
-+			if (cache->ops->filter(mrc, addr, len, acc))
-+				return mrc;
-+		}
-+	}
-+	return mrc;
-+}
-+
-+/* look for a cache hit.  If get a hit, make sure removed from LRU list */
-+struct rv_mr_cached *rv_mr_cache_search_get(struct rv_mr_cache *cache,
-+					    u64 addr, u64 len, u32 acc,
-+					    bool update_hit)
-+{
-+	unsigned long flags;
-+	struct rv_mr_cached *mrc;
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	mrc =  rv_mr_cache_search(cache, addr, len, acc);
-+	if (mrc) {
-+		cache->ops->get(cache, cache->ops_arg, mrc);
-+		if (update_hit)
-+			cache->stats.hit++;
-+		list_del_init(&mrc->list);
-+	}
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	return mrc;
-+}
-+
-+/*
-+ * release a cache reference by address.
-+ * This is called from user ioctl, so we must make sure they don't
-+ * dereg twice yielding a negative refcount.
-+ * The released entry goes on our LRU list to prioritize evictions.
-+ */
-+struct rv_mr_cached *rv_mr_cache_search_put(struct rv_mr_cache *cache,
-+					    u64 addr, u64 len, u32 acc)
-+{
-+	unsigned long flags;
-+	struct rv_mr_cached *mrc;
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	mrc =  rv_mr_cache_search(cache, addr, len, acc);
-+	if (mrc) {
-+		if (!atomic_read(&mrc->refcount)) {
-+			mrc = NULL;
-+			goto unlock;
-+		}
-+		if (!cache->ops->put(cache, cache->ops_arg, mrc))
-+			list_add(&mrc->list, &cache->lru_list);
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	return mrc;
-+}
-+
-+/* Simple release, the entry goes on our LRU list to prioritize evictions. */
-+void rv_mr_cache_put(struct rv_mr_cache *cache, struct rv_mr_cached *mrc)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	if (!cache->ops->put(cache, cache->ops_arg, mrc))
-+		list_add(&mrc->list, &cache->lru_list);
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+}
-+
-+/*
-+ * evict entries from the cache, least recently used first.
-+ * We evict until we reach the goal or LRU_list is empty. Evicted
-+ * entries are removed from the cache and deregistered.
-+ */
-+void rv_mr_cache_evict(struct rv_mr_cache *cache, void *evict_arg)
-+{
-+	struct rv_mr_cached *mrc, *temp;
-+	struct list_head del_list;
-+	unsigned long flags;
-+	bool stop = false;
-+
-+	INIT_LIST_HEAD(&del_list);
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	list_for_each_entry_safe_reverse(mrc, temp, &cache->lru_list, list) {
-+		if (cache->ops->evict(cache, cache->ops_arg, mrc, evict_arg,
-+				      &stop)) {
-+			trace_rv_mr_cache_evict_evict(mrc->addr, mrc->len,
-+						      mrc->access);
-+			rv_int_rb_remove(mrc, &cache->root);
-+			list_move(&mrc->list, &del_list);
-+			cache->stats.evict++;
-+			rv_update_mrc_stats_remove(cache, mrc);
-+		} else {
-+			trace_rv_mr_cache_evict_keep(mrc->addr, mrc->len,
-+						     mrc->access);
-+		}
-+		if (stop)
-+			break;
-+	}
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	do_remove(cache, &del_list);
-+}
-+
-+/*
-+ * Call the remove function for the given cache and the list.  This
-+ * is expected to be called with a delete list extracted from cache.
-+ * The caller does NOT need the cache->lock.
-+ */
-+static void do_remove(struct rv_mr_cache *cache, struct list_head *del_list)
-+{
-+	struct rv_mr_cached *mrc;
-+
-+	while (!list_empty(del_list)) {
-+		mrc = list_first_entry(del_list, struct rv_mr_cached, list);
-+		list_del(&mrc->list);
-+		/* Deregister the mr here */
-+		kfree(mrc);
-+	}
-+}
-+
-+/*
-+ * Work queue function to remove all nodes that have been queued up to
-+ * be removed.	The key feature is that mm->mmap_lock is not being held
-+ * and the remove callback can sleep while taking it, if needed.
-+ */
-+static void handle_remove(struct work_struct *work)
-+{
-+	struct rv_mr_cache *cache = container_of(work, struct rv_mr_cache,
-+						 del_work);
-+	struct list_head del_list;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cache->lock, flags);
-+	list_replace_init(&cache->del_list, &del_list);
-+	spin_unlock_irqrestore(&cache->lock, flags);
-+
-+	do_remove(cache, &del_list);
-+}
-+
-+static u32 rv_cache_evict(struct rv_mr_cache *cache, u64 mbytes)
-+{
-+	struct evict_data evict_data;
-+
-+	evict_data.cleared = 0;
-+	evict_data.target = mbytes;
-+	trace_rv_mr_cache_cache_evict(evict_data.cleared, evict_data.target,
-+				      cache->total_size);
-+	rv_mr_cache_evict(cache, &evict_data);
-+	trace_rv_mr_cache_cache_evict(evict_data.cleared, evict_data.target,
-+				      cache->total_size);
-+	return evict_data.cleared;
-+}
-+
-+static void rv_update_mrc_stats_add(struct rv_mr_cache *cache,
-+				    struct rv_mr_cached *mrc)
-+{
-+	cache->total_size += mrc->len;
-+	cache->stats.count++;
-+	rv_mr_cache_update_stats_max(cache, atomic_read(&mrc->refcount));
-+}
-+
-+static void rv_update_mrc_stats_remove(struct rv_mr_cache *cache,
-+				       struct rv_mr_cached *mrc)
-+{
-+	cache->total_size -= mrc->len;
-+	cache->stats.count--;
-+}
-diff --git a/drivers/infiniband/ulp/rv/trace.h b/drivers/infiniband/ulp/rv/trace.h
-index cb1d1d087e16..7a4cc4919693 100644
---- a/drivers/infiniband/ulp/rv/trace.h
-+++ b/drivers/infiniband/ulp/rv/trace.h
-@@ -2,4 +2,5 @@
- /*
-  * Copyright(c) 2020 - 2021 Intel Corporation.
-  */
-+#include "trace_mr_cache.h"
- #include "trace_dev.h"
-diff --git a/drivers/infiniband/ulp/rv/trace_mr_cache.h b/drivers/infiniband/ulp/rv/trace_mr_cache.h
-new file mode 100644
-index 000000000000..4b1f668d4b87
---- /dev/null
-+++ b/drivers/infiniband/ulp/rv/trace_mr_cache.h
-@@ -0,0 +1,181 @@
-+/* SPDX-License-Identifier: (GPL-2.0 OR BSD-3-Clause) */
-+/*
-+ * Copyright(c) 2020 - 2021 Intel Corporation.
-+ */
-+#if !defined(__RV_TRACE_MR_CACHE_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __RV_TRACE_MR_CACHE_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM rv_mr_cache
-+
-+DECLARE_EVENT_CLASS(/* rv_mr_cache */
-+	rv_mr_cache_template,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u64, addr)
-+		__field(u64, len)
-+		__field(u32, acc)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->addr = addr;
-+		__entry->len = len;
-+		__entry->acc = acc;
-+	),
-+	TP_printk(/* print */
-+		"addr 0x%llx, len %llu acc 0x%x",
-+		__entry->addr,
-+		__entry->len,
-+		__entry->acc
-+	)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_insert,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_search_enter,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_search_mrc,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_remove,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_evict_evict,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_evict_keep,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_template, rv_mr_cache_notifier,
-+	TP_PROTO(u64 addr, u64 len, u32 acc),
-+	TP_ARGS(addr, len, acc)
-+);
-+
-+TRACE_EVENT(/* event */
-+	rv_mr_cache_cache_full,
-+	TP_PROTO(u64 max, u64 total, u64 cur),
-+	TP_ARGS(max, total, cur),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u64, max)
-+		__field(u64, total)
-+		__field(u64, cur)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->max = max;
-+		__entry->total = total;
-+		__entry->cur = cur;
-+	),
-+	TP_printk(/* print */
-+		"Cache Full max %llu, total %llu, cur %llu",
-+		__entry->max,
-+		__entry->total,
-+		__entry->cur
-+	)
-+);
-+
-+TRACE_EVENT(/* event */
-+	rv_mr_cache_deinit,
-+	TP_PROTO(u64 addr, u64 len, u32 acc, int cnt),
-+	TP_ARGS(addr, len, acc, cnt),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u64, addr)
-+		__field(u64, len)
-+		__field(u32, acc)
-+		__field(int, cnt)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->addr = addr;
-+		__entry->len = len;
-+		__entry->acc = acc;
-+		__entry->cnt = cnt;
-+	),
-+	TP_printk(/* print */
-+		"addr 0x%llx, len %llu, acc %u refcnt %d",
-+		__entry->addr,
-+		__entry->len,
-+		__entry->acc,
-+		__entry->cnt
-+	)
-+);
-+
-+DECLARE_EVENT_CLASS(/* rv_mr_cache_wq */
-+	rv_mr_cache_wq_template,
-+	TP_PROTO(const char *wq_name),
-+	TP_ARGS(wq_name),
-+	TP_STRUCT__entry(/* entry */
-+		__string(name, wq_name)
-+	),
-+	TP_fast_assign(/* assign */
-+		__assign_str(name, wq_name);
-+	),
-+	TP_printk(/* print */
-+		"Workqueue %s",
-+		__get_str(name)
-+	)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_wq_template, rv_mr_cache_wq_alloc,
-+	TP_PROTO(const char *wq_name),
-+	TP_ARGS(wq_name)
-+);
-+
-+DEFINE_EVENT(/* event */
-+	rv_mr_cache_wq_template, rv_mr_cache_wq_destroy,
-+	TP_PROTO(const char *wq_name),
-+	TP_ARGS(wq_name)
-+);
-+
-+TRACE_EVENT(/* event */
-+	rv_mr_cache_cache_evict,
-+	TP_PROTO(u64 cleared, u64 target, u64 total_size),
-+	TP_ARGS(cleared, target, total_size),
-+	TP_STRUCT__entry(/* entry */
-+		__field(u64, cleared)
-+		__field(u64, target)
-+		__field(u64, total_size)
-+	),
-+	TP_fast_assign(/* assign */
-+		__entry->cleared = cleared;
-+		__entry->target = target;
-+		__entry->total_size = total_size;
-+	),
-+	TP_printk(/* print */
-+		"cleared 0x%llx target 0x%llx total_size 0x%llx",
-+		__entry->cleared,
-+		__entry->target,
-+		__entry->total_size
-+	)
-+);
-+
-+#endif /* __RV_TRACE_MR_CACHE_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_mr_cache
-+#include <trace/define_trace.h>
 -- 
 2.18.1
 
