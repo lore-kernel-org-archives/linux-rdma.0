@@ -2,147 +2,252 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D85CFC433C1
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 19:57:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D65CCC433C1
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 20:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FE09619C9
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 19:57:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A7FD561574
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 20:37:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231708AbhCWT4p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Mar 2021 15:56:45 -0400
-Received: from mail-bn8nam12on2072.outbound.protection.outlook.com ([40.107.237.72]:53728
-        "EHLO NAM12-BN8-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230327AbhCWT4b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Mar 2021 15:56:31 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gOxnWUCW9iJVSm4P36Th3uEOLxao/ymtwPkiCv+uUCcyrVUcEnoQ3H57qEFAHajvZUIAL0TSelOlE7LBu2yh/1LSjG1Qd39r3IKGDIWlZix6bINDBvsDvovmi5nWlhD+Hu2OwJc9ATgrK0JY1Lb1kKbMW2F/Lb+DdP2jNxWLXEXwu5CUex78n3NNGLKvzojPfeFcvZthGbE54DqAc65d0NDP2oIs9ob7xLNpJStvDxcFXwWm8jRBP79SYrh0iGRzSsyhEYQPp6BXs5gn4Ycu3/43nd8pmayA1DHyowePw0IKr7e0UaF/kEl/t1sPVWNouqPocHIhDiXlA46nEoUC6w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qaPkZS5WIYGXOjo95Cccxb3eiGdEGoKAN+8MGrKhdbc=;
- b=Efk6QShZpZWhUc8eyKKSz/zf3G/z7uYOHgp7e/J8fWs4UNOu9tFsn/IPw4PhQ4sFYnxf99HabLqSjBVT9EKIgAJ/37JoSRIYELcwl925KPjB8qJu6ci5l0BF2HD2IAYl5xEjvPB3Rpi7wUE9/mqMduoSZCrfEjUBemYuOIfLZSTKDOorsmf/r2eAM80rhR3SExAEm5Bg7iEC8nI5AYg+g5NWAesVHsCPOHD9nnEK5Zc0LMEwnuHQisKubCVEAEHjkmPUWv7e1ttbUbsskRagN0e+7yoKuhjhTTmU4+t502SQCA9TsoWoCvBqBdIfuUcxLlb0HjWiEsU+Q9PJ9trwvg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qaPkZS5WIYGXOjo95Cccxb3eiGdEGoKAN+8MGrKhdbc=;
- b=Eyc+vNGLP/igDny2yQ9aEV6WtfCi4V7zMXSeTS14a1UCsMft7+Xi5QEkZ2Zn35G8nczF1bJhYWsEWdjTXMClsbMczrXLgIGrrk1J2CRAvrBOWhZfXSPig5Tw2UR6zKiG8uPK+5SGzIaNSd2rfGP9znsm9eQe19sWVP/1qBPbY15YhTovb0gQiswqTETJGRanpst2qclFhcCva7rX55LJtA8a3939kyf4MobSruj3iY1jRsL1wJYKFQlIBmvCbN7Ot1t+Bxy9LjpSOQEQhJOXncQceKIDdnSEFSF5FlJStsZpj9l9ov/g5HDpB6WKoWkd/Nqzm/GyuS1Sn14b3Gp/AA==
-Authentication-Results: huawei.com; dkim=none (message not signed)
- header.d=none;huawei.com; dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR12MB1337.namprd12.prod.outlook.com (2603:10b6:3:6e::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3955.18; Tue, 23 Mar
- 2021 19:56:28 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1c62:7fa3:617b:ab87]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1c62:7fa3:617b:ab87%6]) with mapi id 15.20.3955.027; Tue, 23 Mar 2021
- 19:56:28 +0000
-Date:   Tue, 23 Mar 2021 16:56:27 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Weihang Li <liweihang@huawei.com>
-Cc:     dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org,
-        linuxarm@openeuler.org
-Subject: Re: [PATCH for-next 1/2] RDMA/hns: Support query information of
- functions from FW
-Message-ID: <20210323195627.GA398808@nvidia.com>
-References: <1615542507-40018-1-git-send-email-liweihang@huawei.com>
- <1615542507-40018-2-git-send-email-liweihang@huawei.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1615542507-40018-2-git-send-email-liweihang@huawei.com>
-X-Originating-IP: [206.223.160.26]
-X-ClientProxiedBy: MN2PR11CA0016.namprd11.prod.outlook.com
- (2603:10b6:208:23b::21) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        id S233375AbhCWUhO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Mar 2021 16:37:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49112 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233389AbhCWUhK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Mar 2021 16:37:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 87A93619BA;
+        Tue, 23 Mar 2021 20:37:09 +0000 (UTC)
+Subject: [PATCH 1 1/4] svcrdma: Add a "deferred close" helper
+From:   Chuck Lever <chuck.lever@oracle.com>
+To:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Tue, 23 Mar 2021 16:37:08 -0400
+Message-ID: <161653182869.1499.13690697391581140635.stgit@klimt.1015granger.net>
+In-Reply-To: <161653161669.1499.11923816743962834540.stgit@klimt.1015granger.net>
+References: <161653161669.1499.11923816743962834540.stgit@klimt.1015granger.net>
+User-Agent: StGit/1.0-5-g755c
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (206.223.160.26) by MN2PR11CA0016.namprd11.prod.outlook.com (2603:10b6:208:23b::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3955.18 via Frontend Transport; Tue, 23 Mar 2021 19:56:28 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lOn8d-001fmB-7P; Tue, 23 Mar 2021 16:56:27 -0300
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: ad21cc2f-066f-44d7-85e7-08d8ee35bf69
-X-MS-TrafficTypeDiagnostic: DM5PR12MB1337:
-X-Microsoft-Antispam-PRVS: <DM5PR12MB1337FDA63D27D0FA5230945DC2649@DM5PR12MB1337.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:499;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: nCta1AN1nZyUqpK6VONfCMT9TZ405xxxnTLtBE1B4qrw2rE1je7sR++8RIhbL7ZOHg8yTxKobrQ0B9HjWKvSOIYGa8eggxbtS5qd9/M9ZWbWY6FJRlrbjSyuA+G9JTbBNiQGc+kUN6uL/GBV1/rJcta5a0NngG1BaooW40T1mNPJu03pZokAF6TMwqElDV0RO9Dvnjl2GpWbsL2Azw/6hAskTg01rCQCTdHhNNP011xwEaORz7tqVApJ2TKSF0N+S2DJKOwFvzb1wcC8BuszOPtxQFRkNTDyrEqAGgBaCEzyXAkGv22DEV4PDdcDzPfTjvUXBZjgtp+2Fv7C4eO9vzG5dVbQHEZMEzmWvwkDbraiWmdY2yyAqxEAI4B83njP3dSulm1HnCLnfVxOg/PDY1b2HgCHxrDXOLsCetDzV8ERUgD9NCUGdQLxol659nLF4r3rCo/4utXfOeo4r0bYebDtLt5tb36ziPA0sR+VS6aPZxNZ5XyMT2VIEYvbS02XnxXma/FqCFW2EDY6YzYz7x6gXaq+N7E6eyfr0znJn7pgit3NABTwBkzoIYybpN1pAun38ioU/ZyM1Mfd4QvsPz1dqGut06rFexINyVYVdtMM6WYqgy919aKOT4GeMAsX9SGLG2nQETKe0KX1EXGHE+mHYu+eXDvGCHcc/MzlRY3T5mdzn/R79ZSoWlArndo8
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(136003)(39860400002)(376002)(346002)(366004)(6916009)(478600001)(5660300002)(4326008)(36756003)(26005)(186003)(38100700001)(33656002)(8936002)(9786002)(2616005)(9746002)(66556008)(86362001)(316002)(66946007)(66476007)(426003)(1076003)(4744005)(8676002)(2906002)(27376004);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?xkbztjfc69r2juHg4MpKuGB+pVc6AHJ3Cafsua/AAm5ZNEP4EwcVK7y+FNve?=
- =?us-ascii?Q?ZQzOLLqnDWyR3Rw9WS1FjzYWu2lwYvTcVoI2YaWce575eMlMHlg79vpBi3cS?=
- =?us-ascii?Q?gDSr8UOHGjKJtytcIr6UD2h7/L0ZXzquIJDpqli8gitFuzPmf0rcc1tsReVa?=
- =?us-ascii?Q?x8G8sW/fN/sX9i09u43Oy7OgBAqP/7D9DN8ERMWyy6R15DU1eFt963GBo0Kh?=
- =?us-ascii?Q?nfN23clj5Srmy6E7+ciWWpaAWHckqVDTbVtKfo4DwTnMGoK1m/FWpw58kQLS?=
- =?us-ascii?Q?wAh54lqrjICx8sAvgfszPCKDadf+n407rYQodxYyTPKfgfz62gsBYaKbgGE0?=
- =?us-ascii?Q?fsDurjox8AsFhW4don9AxBM+syOzbyMn8GGTv0HMKy7GpfuDSxNrLqenTmGj?=
- =?us-ascii?Q?ktaDZNW+b+yAX8iorWcRtdto4aqEeyCKtTvBMIWJTarQ/XjFTa1ZwFpJTnxQ?=
- =?us-ascii?Q?ncNnXiTbFM8jStFibClLlR/9dIWKoGVOHpcmeRyLOHXiFH4SEDlHPP04wPeG?=
- =?us-ascii?Q?nAmdYfICEALZxPKDrStjHr4C/+nZZfJz9E1DvXBTndPybanK3ivBwAVV6Bsj?=
- =?us-ascii?Q?gqa6TqIzFmVKx0+w4gQJ1UcFY+odGfu3G7iVNYWa1g1GOC43ajOb6IzNKjTT?=
- =?us-ascii?Q?jwP+56lm2N4i6IalmY3LX8D91OkdyomzG4Ww0885AyxVzsZiarcpWuJO6CDE?=
- =?us-ascii?Q?JqLHdYoVLxCso6lVMqn2kICjU9Vz+T/xCJNLobadeGSoLo9UhBr2e8AZP/ro?=
- =?us-ascii?Q?qaHCiF+2ZaDSGuej4nWpqlgJZJWWPh3IxMhUUq5G+gjAFpHkEMOOWYAnzQ03?=
- =?us-ascii?Q?m+4cwq2nqavPgw72wGy9cgHGPZpHWMXV5FO6WZhN0I0yU9SOyGIZMLwXJgck?=
- =?us-ascii?Q?CO2+/bT4EMP0iFzQh1ddNYqJDdhQlMJZYBC/xgfxbyNt12bWndebJrQ+3tIG?=
- =?us-ascii?Q?QVleamTHIsQJGIP+wwg3ZbuisOYDVqLyy9wiYTELod/Vz0oNuXqAd76O973v?=
- =?us-ascii?Q?o4t3c5rsstc0vmYrA13hV/61nmUxqB6drHUesIhsov5k54yazh/6Es7QDPPa?=
- =?us-ascii?Q?y5DD6TYwHosfJcx+GZQ77N4HEyUvhWbGSQYELM8QWpBSjRfTPI0kkK0ZV5mY?=
- =?us-ascii?Q?YhmFb5sz40vzid6wXMPrJjIi7JZZNTFQXIEyNCpKJwnHFCGBNLE85OLmqmPy?=
- =?us-ascii?Q?A8Tvq19SdSa/N4OBM7uzxgAsslzvRfEJDFd6C32Rvj2iZXuU0H89agR+cm5o?=
- =?us-ascii?Q?ZCeZ7N22xaO3XN5MMCKUgNHhPMXPP6UNwkF6HON75gXsRVqXaBVfeJ5AwrWq?=
- =?us-ascii?Q?6gDCNqunIV8veie4pNb7ga4g?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ad21cc2f-066f-44d7-85e7-08d8ee35bf69
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Mar 2021 19:56:28.6635
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 7qrZGp0CgApMos6tA0Ogx+HTz43JEzVwTYS1KUtXhohxHHKJ0D5misYz+FdtCdf/
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB1337
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 12, 2021 at 05:48:26PM +0800, Weihang Li wrote:
+Refactor a bit of commonly used logic so that every site that wants
+a close deferred to an nfsd thread does all the right things
+(set_bit(XPT_CLOSE) then enqueue).
 
-> +static int hns_roce_query_func_info(struct hns_roce_dev *hr_dev)
-> +{
-> +	struct hns_roce_pf_func_info *resp;
-> +	struct hns_roce_cmq_desc desc;
-> +	int ret;
-> +
-> +	if (hr_dev->pci_dev->revision < PCI_REVISION_ID_HIP09)
-> +		return 0;
-> +
-> +	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_QUERY_FUNC_INFO,
-> +				      true);
-> +	ret = hns_roce_cmq_send(hr_dev, &desc, 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	resp = (struct hns_roce_pf_func_info *)desc.data;
+Also, once XPT_CLOSE is set on a transport, it is never cleared. If
+XPT_CLOSE is already set, then the close is already being handled
+and the enqueue can be skipped.
 
-WTF is this cast?
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+---
+ include/linux/sunrpc/svc_xprt.h          |    1 +
+ net/sunrpc/svc_xprt.c                    |   14 ++++++++++++++
+ net/sunrpc/svcsock.c                     |   15 ++++++---------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |    3 +--
+ net/sunrpc/xprtrdma/svc_rdma_rw.c        |    5 ++---
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   10 ++++------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    6 ++----
+ 7 files changed, 30 insertions(+), 24 deletions(-)
 
-struct hns_roce_cmq_desc {
-        __le16 opcode;
-        __le16 flag;
-        __le16 retval;
-        __le16 rsv;
-        __le32 data[6];
-};
+diff --git a/include/linux/sunrpc/svc_xprt.h b/include/linux/sunrpc/svc_xprt.h
+index 92455e0d5244..34dacadfe517 100644
+--- a/include/linux/sunrpc/svc_xprt.h
++++ b/include/linux/sunrpc/svc_xprt.h
+@@ -143,6 +143,7 @@ struct	svc_xprt *svc_find_xprt(struct svc_serv *serv, const char *xcl_name,
+ int	svc_xprt_names(struct svc_serv *serv, char *buf, const int buflen);
+ void	svc_add_new_perm_xprt(struct svc_serv *serv, struct svc_xprt *xprt);
+ void	svc_age_temp_xprts_now(struct svc_serv *, struct sockaddr *);
++void	svc_xprt_deferred_close(struct svc_xprt *xprt);
+ 
+ static inline void svc_xprt_get(struct svc_xprt *xprt)
+ {
+diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+index 3cdd71a8df1e..b134fc5f3b8d 100644
+--- a/net/sunrpc/svc_xprt.c
++++ b/net/sunrpc/svc_xprt.c
+@@ -139,6 +139,20 @@ int svc_print_xprts(char *buf, int maxlen)
+ 	return len;
+ }
+ 
++/**
++ * svc_xprt_deferred_close - Close a transport
++ * @xprt: transport instance
++ *
++ * Used in contexts that need to defer the work of shutting down
++ * the transport to an nfsd thread.
++ */
++void svc_xprt_deferred_close(struct svc_xprt *xprt)
++{
++	if (!test_and_set_bit(XPT_CLOSE, &xprt->xpt_flags))
++		svc_xprt_enqueue(xprt);
++}
++EXPORT_SYMBOL_GPL(svc_xprt_deferred_close);
++
+ static void svc_xprt_free(struct kref *kref)
+ {
+ 	struct svc_xprt *xprt =
+diff --git a/net/sunrpc/svcsock.c b/net/sunrpc/svcsock.c
+index 2e2f007dfc9f..22454b2df5be 100644
+--- a/net/sunrpc/svcsock.c
++++ b/net/sunrpc/svcsock.c
+@@ -728,10 +728,8 @@ static void svc_tcp_state_change(struct sock *sk)
+ 		rmb();
+ 		svsk->sk_ostate(sk);
+ 		trace_svcsock_tcp_state(&svsk->sk_xprt, svsk->sk_sock);
+-		if (sk->sk_state != TCP_ESTABLISHED) {
+-			set_bit(XPT_CLOSE, &svsk->sk_xprt.xpt_flags);
+-			svc_xprt_enqueue(&svsk->sk_xprt);
+-		}
++		if (sk->sk_state != TCP_ESTABLISHED)
++			svc_xprt_deferred_close(&svsk->sk_xprt);
+ 	}
+ }
+ 
+@@ -901,7 +899,7 @@ static ssize_t svc_tcp_read_marker(struct svc_sock *svsk,
+ 	net_notice_ratelimited("svc: %s %s RPC fragment too large: %d\n",
+ 			       __func__, svsk->sk_xprt.xpt_server->sv_name,
+ 			       svc_sock_reclen(svsk));
+-	set_bit(XPT_CLOSE, &svsk->sk_xprt.xpt_flags);
++	svc_xprt_deferred_close(&svsk->sk_xprt);
+ err_short:
+ 	return -EAGAIN;
+ }
+@@ -1057,7 +1055,7 @@ static int svc_tcp_recvfrom(struct svc_rqst *rqstp)
+ 	svsk->sk_datalen = 0;
+ err_delete:
+ 	trace_svcsock_tcp_recv_err(&svsk->sk_xprt, len);
+-	set_bit(XPT_CLOSE, &svsk->sk_xprt.xpt_flags);
++	svc_xprt_deferred_close(&svsk->sk_xprt);
+ err_noclose:
+ 	return 0;	/* record not complete */
+ }
+@@ -1188,8 +1186,7 @@ static int svc_tcp_sendto(struct svc_rqst *rqstp)
+ 		  xprt->xpt_server->sv_name,
+ 		  (err < 0) ? "got error" : "sent",
+ 		  (err < 0) ? err : sent, xdr->len);
+-	set_bit(XPT_CLOSE, &xprt->xpt_flags);
+-	svc_xprt_enqueue(xprt);
++	svc_xprt_deferred_close(xprt);
+ 	atomic_dec(&svsk->sk_sendqlen);
+ 	mutex_unlock(&xprt->xpt_mutex);
+ 	return -EAGAIN;
+@@ -1268,7 +1265,7 @@ static void svc_tcp_init(struct svc_sock *svsk, struct svc_serv *serv)
+ 		case TCP_ESTABLISHED:
+ 			break;
+ 		default:
+-			set_bit(XPT_CLOSE, &svsk->sk_xprt.xpt_flags);
++			svc_xprt_deferred_close(&svsk->sk_xprt);
+ 		}
+ 	}
+ }
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 2571188ef7f2..8d93d26e0318 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -367,8 +367,7 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ flushed:
+ 	svc_rdma_recv_ctxt_put(rdma, ctxt);
+-	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+-	svc_xprt_enqueue(&rdma->sc_xprt);
++	svc_xprt_deferred_close(&rdma->sc_xprt);
+ }
+ 
+ /**
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+index 693d139a8633..d7054e3a8e33 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+@@ -250,7 +250,7 @@ static void svc_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	wake_up(&rdma->sc_send_wait);
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS))
+-		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
++		svc_xprt_deferred_close(&rdma->sc_xprt);
+ 
+ 	svc_rdma_write_info_free(info);
+ }
+@@ -334,7 +334,6 @@ static void svc_rdma_wc_read_done(struct ib_cq *cq, struct ib_wc *wc)
+ static int svc_rdma_post_chunk_ctxt(struct svc_rdma_chunk_ctxt *cc)
+ {
+ 	struct svcxprt_rdma *rdma = cc->cc_rdma;
+-	struct svc_xprt *xprt = &rdma->sc_xprt;
+ 	struct ib_send_wr *first_wr;
+ 	const struct ib_send_wr *bad_wr;
+ 	struct list_head *tmp;
+@@ -373,7 +372,7 @@ static int svc_rdma_post_chunk_ctxt(struct svc_rdma_chunk_ctxt *cc)
+ 	} while (1);
+ 
+ 	trace_svcrdma_sq_post_err(rdma, ret);
+-	set_bit(XPT_CLOSE, &xprt->xpt_flags);
++	svc_xprt_deferred_close(&rdma->sc_xprt);
+ 
+ 	/* If even one was posted, there will be a completion. */
+ 	if (bad_wr != first_wr)
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index e6fab5dd20d0..4471a0fcd3a3 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -285,10 +285,8 @@ static void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ 	svc_rdma_send_ctxt_put(rdma, ctxt);
+ 
+-	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+-		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+-		svc_xprt_enqueue(&rdma->sc_xprt);
+-	}
++	if (unlikely(wc->status != IB_WC_SUCCESS))
++		svc_xprt_deferred_close(&rdma->sc_xprt);
+ }
+ 
+ /**
+@@ -334,7 +332,7 @@ int svc_rdma_send(struct svcxprt_rdma *rdma, struct svc_rdma_send_ctxt *ctxt)
+ 	}
+ 
+ 	trace_svcrdma_sq_post_err(rdma, ret);
+-	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
++	svc_xprt_deferred_close(&rdma->sc_xprt);
+ 	wake_up(&rdma->sc_send_wait);
+ 	return ret;
+ }
+@@ -994,7 +992,7 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 	svc_rdma_send_ctxt_put(rdma, sctxt);
+  err0:
+ 	trace_svcrdma_send_err(rqstp, ret);
+-	set_bit(XPT_CLOSE, &xprt->xpt_flags);
++	svc_xprt_deferred_close(&rdma->sc_xprt);
+ 	return -ENOTCONN;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index e629eacfedfc..3646216211c5 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -119,8 +119,7 @@ static void qp_event_handler(struct ib_event *event, void *context)
+ 	case IB_EVENT_QP_ACCESS_ERR:
+ 	case IB_EVENT_DEVICE_FATAL:
+ 	default:
+-		set_bit(XPT_CLOSE, &xprt->xpt_flags);
+-		svc_xprt_enqueue(xprt);
++		svc_xprt_deferred_close(xprt);
+ 		break;
+ 	}
+ }
+@@ -286,8 +285,7 @@ static int svc_rdma_cma_handler(struct rdma_cm_id *cma_id,
+ 		break;
+ 	case RDMA_CM_EVENT_DISCONNECTED:
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+-		set_bit(XPT_CLOSE, &xprt->xpt_flags);
+-		svc_xprt_enqueue(xprt);
++		svc_xprt_deferred_close(xprt);
+ 		break;
+ 	default:
+ 		break;
 
-Casting __le32 to a pointer is wrong
 
-Jason
