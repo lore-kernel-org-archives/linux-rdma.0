@@ -2,204 +2,73 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A682AC433C1
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 13:49:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F4AC433DB
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 15:39:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D36661581
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 13:49:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 081BB60201
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Mar 2021 15:39:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231349AbhCWNsi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Mar 2021 09:48:38 -0400
-Received: from mga12.intel.com ([192.55.52.136]:52640 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229953AbhCWNsL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Mar 2021 09:48:11 -0400
-IronPort-SDR: eFMXzr/NrkN8v3TDH/csewzWa7+6M7N/Kl/8b1bwbMi3D1Jljj03UEGEBvP94YIWVyGfjJrxw5
- K7MVRvAkTBPQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9931"; a="169811084"
-X-IronPort-AV: E=Sophos;i="5.81,271,1610438400"; 
-   d="scan'208";a="169811084"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2021 06:48:08 -0700
-IronPort-SDR: xveLzAveLUlWkGlWGdzzdFZIuENti8hotTXc5Gd0iNTl9GVhfEjLwXProHKaV+o0UMwZ0krSXJ
- 7kgszcdh66ag==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,271,1610438400"; 
-   d="scan'208";a="513748707"
-Received: from lkp-server01.sh.intel.com (HELO 69d8fcc516b7) ([10.239.97.150])
-  by fmsmga001.fm.intel.com with ESMTP; 23 Mar 2021 06:48:03 -0700
-Received: from kbuild by 69d8fcc516b7 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1lOhO7-0000dB-7c; Tue, 23 Mar 2021 13:48:03 +0000
-Date:   Tue, 23 Mar 2021 21:47:52 +0800
-From:   kernel test robot <lkp@intel.com>
+        id S232935AbhCWPih (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Mar 2021 11:38:37 -0400
+Received: from casper.infradead.org ([90.155.50.34]:58580 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232846AbhCWPiZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 Mar 2021 11:38:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=3GARnYBw5Kz0ipLY2QfKLoYum46obRcrSAZe3Epq6KU=; b=R5ixmDzJpShlwhZu8wkdYqf8gP
+        AGiN71zkNBb2fqQUNktobslH1nHvqlhrlbIyy1W8IO98z6NevwLoT1s6mVNscB48r4NRIdM/qPlNC
+        ZGzoLFhaER2ON+bjzLD9Vhzxivfr2q4BodAmHgK5onkrogGksI05rlPdB4K0v6XzDPCO1rcCY8Nom
+        +uc4yfMBe8/xPpqpGOxKHvjlF4rDIfQLEg9pUi17DMN49mik4fEM3riy+6kc57iOnhRYyzlwpOlUg
+        +duMPGnYGIFL7xtNuj4xLZ9I/o5mKXDUoQk3cKWAt7q0fgbX4Od8DnteDddtg+Inl9xBeKnUaq0Rg
+        B8A7lPDw==;
+Received: from hch by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+        id 1lOj3s-00AEA4-OV; Tue, 23 Mar 2021 15:35:25 +0000
+Date:   Tue, 23 Mar 2021 15:35:16 +0000
+From:   Christoph Hellwig <hch@infradead.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 783cf673b05ebf290317f583ee7eb6967ed9c964
-Message-ID: <6059f188.aBmmNVmSnERfHW/z%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+Cc:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "Rimmer, Todd" <todd.rimmer@intel.com>,
+        "Wan, Kaike" <kaike.wan@intel.com>,
+        "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH RFC 0/9] A rendezvous module
+Message-ID: <20210323153516.GC2434215@infradead.org>
+References: <20210319202627.GC2356281@nvidia.com>
+ <BL0PR11MB3299C202FCFF25646BFEE9B6F6689@BL0PR11MB3299.namprd11.prod.outlook.com>
+ <20210319205432.GE2356281@nvidia.com>
+ <SN6PR11MB3311F22207FDCA37B3A3C07AF4689@SN6PR11MB3311.namprd11.prod.outlook.com>
+ <29607fd4-906d-7d0d-2940-62ff5c8c9ec6@cornelisnetworks.com>
+ <BL0PR11MB329976F1C41951957E2DBE79F6689@BL0PR11MB3299.namprd11.prod.outlook.com>
+ <be96ccbb-17b7-27e3-a4f2-5b2cc4184ecc@cornelisnetworks.com>
+ <YFcKTjU9JSMBrv0x@unreal>
+ <bc56284b-f517-2770-16ec-b98d95caea6f@cornelisnetworks.com>
+ <20210321164504.GS2356281@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <20210321164504.GS2356281@nvidia.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
-branch HEAD: 783cf673b05ebf290317f583ee7eb6967ed9c964  RDMA/hns: Fix memory corruption when allocating XRCDN
+On Sun, Mar 21, 2021 at 01:45:04PM -0300, Jason Gunthorpe wrote:
+> > We should be trying to get things upstream, not putting up walls when people
+> > want to submit new drivers. Calling code "garbage" [1] is not productive.
+> 
+> Putting a bunch of misaligned structures and random reserved fields
+> *is* garbage by the upstream standard and if I send that to Linus I'll
+> get yelled at.
 
-elapsed time: 723m
-
-configs tested: 135
-configs skipped: 2
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-x86_64                           allyesconfig
-riscv                            allmodconfig
-i386                             allyesconfig
-riscv                            allyesconfig
-m68k                       m5208evb_defconfig
-arc                         haps_hs_defconfig
-powerpc                      katmai_defconfig
-sh                   rts7751r2dplus_defconfig
-arm                         shannon_defconfig
-powerpc                    adder875_defconfig
-parisc                           alldefconfig
-mips                        omega2p_defconfig
-arm                      pxa255-idp_defconfig
-powerpc                     akebono_defconfig
-powerpc                     redwood_defconfig
-arm                            lart_defconfig
-arm                         palmz72_defconfig
-arm                        mvebu_v7_defconfig
-sh                           se7780_defconfig
-nios2                            alldefconfig
-powerpc                 linkstation_defconfig
-powerpc                    gamecube_defconfig
-arm                           tegra_defconfig
-xtensa                  cadence_csp_defconfig
-powerpc                 mpc8272_ads_defconfig
-powerpc                     rainier_defconfig
-mips                        maltaup_defconfig
-arm                          pxa168_defconfig
-arm                          collie_defconfig
-powerpc                         ps3_defconfig
-sh                           se7750_defconfig
-sh                          urquell_defconfig
-openrisc                         alldefconfig
-parisc                generic-64bit_defconfig
-sh                           se7343_defconfig
-arm                          moxart_defconfig
-powerpc                 xes_mpc85xx_defconfig
-powerpc                         wii_defconfig
-mips                        bcm47xx_defconfig
-arc                              alldefconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-parisc                           allyesconfig
-s390                                defconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                               tinyconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a002-20210323
-x86_64               randconfig-a003-20210323
-x86_64               randconfig-a006-20210323
-x86_64               randconfig-a001-20210323
-x86_64               randconfig-a004-20210323
-x86_64               randconfig-a005-20210323
-i386                 randconfig-a003-20210323
-i386                 randconfig-a004-20210323
-i386                 randconfig-a001-20210323
-i386                 randconfig-a002-20210323
-i386                 randconfig-a006-20210323
-i386                 randconfig-a005-20210323
-i386                 randconfig-a004-20210322
-i386                 randconfig-a003-20210322
-i386                 randconfig-a001-20210322
-i386                 randconfig-a002-20210322
-i386                 randconfig-a006-20210322
-i386                 randconfig-a005-20210322
-x86_64               randconfig-a012-20210322
-x86_64               randconfig-a015-20210322
-x86_64               randconfig-a013-20210322
-x86_64               randconfig-a014-20210322
-x86_64               randconfig-a016-20210322
-x86_64               randconfig-a011-20210322
-i386                 randconfig-a014-20210322
-i386                 randconfig-a011-20210322
-i386                 randconfig-a015-20210322
-i386                 randconfig-a016-20210322
-i386                 randconfig-a012-20210322
-i386                 randconfig-a013-20210322
-i386                 randconfig-a014-20210323
-i386                 randconfig-a011-20210323
-i386                 randconfig-a015-20210323
-i386                 randconfig-a016-20210323
-i386                 randconfig-a012-20210323
-i386                 randconfig-a013-20210323
-riscv                    nommu_k210_defconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-x86_64                    rhel-7.6-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                      rhel-8.3-kbuiltin
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a002-20210322
-x86_64               randconfig-a003-20210322
-x86_64               randconfig-a001-20210322
-x86_64               randconfig-a006-20210322
-x86_64               randconfig-a004-20210322
-x86_64               randconfig-a005-20210322
-x86_64               randconfig-a012-20210323
-x86_64               randconfig-a015-20210323
-x86_64               randconfig-a013-20210323
-x86_64               randconfig-a014-20210323
-x86_64               randconfig-a011-20210323
-x86_64               randconfig-a016-20210323
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+And when this is for out of tree crap it is per the very definition of
+the word garbage.  If I was in your position I would not waste any time
+on such an utterly disrespectful submission that violates all the
+community rules.
