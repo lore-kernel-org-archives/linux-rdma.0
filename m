@@ -2,46 +2,45 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170C9C433F7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4BF1C4345A
 	for <linux-rdma@archiver.kernel.org>; Wed, 24 Mar 2021 00:04:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C99D8619E3
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Mar 2021 00:04:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E427619DB
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Mar 2021 00:04:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234421AbhCXAD4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Mar 2021 20:03:56 -0400
+        id S234439AbhCXAD6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Mar 2021 20:03:58 -0400
 Received: from mga17.intel.com ([192.55.52.151]:37624 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234375AbhCXADk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Mar 2021 20:03:40 -0400
-IronPort-SDR: qZPHZpVysPf6D/dKh/7uN74BDDmiEBlHX0HQ4Bg1TIZCHsE7qqfyEUqH2Lg6BASBMhPb+aDeLg
- HXe1qbQ/VOYw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9932"; a="170556626"
+        id S234380AbhCXADp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Mar 2021 20:03:45 -0400
+IronPort-SDR: L63Vw/BeZa+ysBgJVj+ATSpitjnQ7msC0nzTOXjJgde3QdotS1LC5SodktL3grZpJGdvtfbIQz
+ IF8AuglzAA8Q==
+X-IronPort-AV: E=McAfee;i="6000,8403,9932"; a="170556672"
 X-IronPort-AV: E=Sophos;i="5.81,272,1610438400"; 
-   d="scan'208";a="170556626"
+   d="scan'208";a="170556672"
 Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2021 17:03:40 -0700
-IronPort-SDR: mzxJ8SNU4LCGv5IhrDZ09yTea/YJTcHKv4vemeLcF1a0Rcu04fpHVIlcK5K1WwbMRQmMCZ97pD
- qGeVPML1Cxkw==
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2021 17:03:45 -0700
+IronPort-SDR: asegQchJf6lMc/StG7BEuBjb+LQOTnAhs6KVOKGM+X5WSs0F2sL7+6jw9uLTd3GBI15TX+EaYS
+ BVokTS4GZX4Q==
 X-IronPort-AV: E=Sophos;i="5.81,272,1610438400"; 
-   d="scan'208";a="381542295"
+   d="scan'208";a="381542329"
 Received: from ssaleem-mobl.amr.corp.intel.com ([10.209.103.207])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2021 17:03:38 -0700
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2021 17:03:44 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
         davem@davemloft.net
 Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v2 17/23] RDMA/irdma: Add RoCEv2 UD OP support
-Date:   Tue, 23 Mar 2021 19:00:01 -0500
-Message-Id: <20210324000007.1450-18-shiraz.saleem@intel.com>
+Subject: [PATCH v2 22/23] RDMA/irdma: Add irdma Kconfig/Makefile and remove i40iw
+Date:   Tue, 23 Mar 2021 19:00:06 -0500
+Message-Id: <20210324000007.1450-23-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.21.0
 In-Reply-To: <20210324000007.1450-1-shiraz.saleem@intel.com>
 References: <20210324000007.1450-1-shiraz.saleem@intel.com>
@@ -51,611 +50,299 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+Add Kconfig and Makefile to build irdma driver.
 
-Add the header, data structures and functions
-to populate the WQE descriptors and issue the
-Control QP commands that support RoCEv2 UD operations.
+Remove i40iw driver and add an alias in irdma.
+irdma is the replacement driver that supports X722.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/uda.c   | 379 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/uda.h   |  63 ++++++
- drivers/infiniband/hw/irdma/uda_d.h | 128 ++++++++++++
- 3 files changed, 570 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/uda.c
- create mode 100644 drivers/infiniband/hw/irdma/uda.h
- create mode 100644 drivers/infiniband/hw/irdma/uda_d.h
+ Documentation/ABI/stable/sysfs-class-infiniband |   20 -
+ MAINTAINERS                                     |    8 -
+ drivers/infiniband/Kconfig                      |    2 +-
+ drivers/infiniband/hw/Makefile                  |    2 +-
+ drivers/infiniband/hw/i40iw/Kconfig             |    9 -
+ drivers/infiniband/hw/i40iw/Makefile            |    9 -
+ drivers/infiniband/hw/i40iw/i40iw.h             |  602 ---
+ drivers/infiniband/hw/i40iw/i40iw_cm.c          | 4419 -------------------
+ drivers/infiniband/hw/i40iw/i40iw_cm.h          |  462 --
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c        | 5243 -----------------------
+ drivers/infiniband/hw/i40iw/i40iw_d.h           | 1746 --------
+ drivers/infiniband/hw/i40iw/i40iw_hmc.c         |  821 ----
+ drivers/infiniband/hw/i40iw/i40iw_hmc.h         |  241 --
+ drivers/infiniband/hw/i40iw/i40iw_hw.c          |  851 ----
+ drivers/infiniband/hw/i40iw/i40iw_main.c        | 2066 ---------
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h       |  195 -
+ drivers/infiniband/hw/i40iw/i40iw_p.h           |  129 -
+ drivers/infiniband/hw/i40iw/i40iw_pble.c        |  613 ---
+ drivers/infiniband/hw/i40iw/i40iw_pble.h        |  131 -
+ drivers/infiniband/hw/i40iw/i40iw_puda.c        | 1496 -------
+ drivers/infiniband/hw/i40iw/i40iw_puda.h        |  188 -
+ drivers/infiniband/hw/i40iw/i40iw_register.h    | 1030 -----
+ drivers/infiniband/hw/i40iw/i40iw_status.h      |  101 -
+ drivers/infiniband/hw/i40iw/i40iw_type.h        | 1358 ------
+ drivers/infiniband/hw/i40iw/i40iw_uk.c          | 1200 ------
+ drivers/infiniband/hw/i40iw/i40iw_user.h        |  422 --
+ drivers/infiniband/hw/i40iw/i40iw_utils.c       | 1518 -------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c       | 2652 ------------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h       |  179 -
+ drivers/infiniband/hw/i40iw/i40iw_vf.c          |   85 -
+ drivers/infiniband/hw/i40iw/i40iw_vf.h          |   62 -
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c    |  759 ----
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.h    |  124 -
+ drivers/infiniband/hw/irdma/Kconfig             |   11 +
+ drivers/infiniband/hw/irdma/Makefile            |   27 +
+ include/uapi/rdma/i40iw-abi.h                   |  107 -
+ 36 files changed, 40 insertions(+), 28848 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/i40iw/Kconfig
+ delete mode 100644 drivers/infiniband/hw/i40iw/Makefile
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_cm.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_cm.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_d.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hmc.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hmc.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_hw.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_main.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_osdep.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_p.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_pble.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_pble.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_puda.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_puda.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_register.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_status.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_type.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_uk.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_user.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_utils.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_verbs.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_verbs.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_vf.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_vf.h
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+ delete mode 100644 drivers/infiniband/hw/i40iw/i40iw_virtchnl.h
+ create mode 100644 drivers/infiniband/hw/irdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/irdma/Makefile
+ delete mode 100644 include/uapi/rdma/i40iw-abi.h
 
-diff --git a/drivers/infiniband/hw/irdma/uda.c b/drivers/infiniband/hw/irdma/uda.c
+diff --git a/Documentation/ABI/stable/sysfs-class-infiniband b/Documentation/ABI/stable/sysfs-class-infiniband
+index 348c4ac..9b1bdfa 100644
+--- a/Documentation/ABI/stable/sysfs-class-infiniband
++++ b/Documentation/ABI/stable/sysfs-class-infiniband
+@@ -731,26 +731,6 @@ Description:
+ 		is the irq number of "sdma3", and M is irq number of "sdma4" in
+ 		the /proc/interrupts file.
+ 
+-
+-sysfs interface for Intel(R) X722 iWARP i40iw driver
+-----------------------------------------------------
+-
+-What:		/sys/class/infiniband/i40iwX/hw_rev
+-What:		/sys/class/infiniband/i40iwX/hca_type
+-What:		/sys/class/infiniband/i40iwX/board_id
+-Date:		Jan, 2016
+-KernelVersion:	v4.10
+-Contact:	linux-rdma@vger.kernel.org
+-Description:
+-		=============== ==== ========================
+-		hw_rev:		(RO) Hardware revision number
+-
+-		hca_type:	(RO) Show HCA type (I40IW)
+-
+-		board_id:	(RO) I40IW board ID
+-		=============== ==== ========================
+-
+-
+ sysfs interface for QLogic qedr NIC Driver
+ ------------------------------------------
+ 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2d2d4e7..211fbc4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9170,14 +9170,6 @@ L:	linux-pm@vger.kernel.org
+ S:	Supported
+ F:	drivers/cpufreq/intel_pstate.c
+ 
+-INTEL RDMA RNIC DRIVER
+-M:	Faisal Latif <faisal.latif@intel.com>
+-M:	Shiraz Saleem <shiraz.saleem@intel.com>
+-L:	linux-rdma@vger.kernel.org
+-S:	Supported
+-F:	drivers/infiniband/hw/i40iw/
+-F:	include/uapi/rdma/i40iw-abi.h
+-
+ INTEL SCU DRIVERS
+ M:	Mika Westerberg <mika.westerberg@linux.intel.com>
+ S:	Maintained
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 04a78d9..33d3ce9 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -82,7 +82,7 @@ source "drivers/infiniband/hw/mthca/Kconfig"
+ source "drivers/infiniband/hw/qib/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/efa/Kconfig"
+-source "drivers/infiniband/hw/i40iw/Kconfig"
++source "drivers/infiniband/hw/irdma/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+ source "drivers/infiniband/hw/mlx5/Kconfig"
+ source "drivers/infiniband/hw/ocrdma/Kconfig"
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index 0aeccd9..fba0b3b 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_INFINIBAND_MTHCA)		+= mthca/
+ obj-$(CONFIG_INFINIBAND_QIB)		+= qib/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= cxgb4/
+ obj-$(CONFIG_INFINIBAND_EFA)		+= efa/
+-obj-$(CONFIG_INFINIBAND_I40IW)		+= i40iw/
++obj-$(CONFIG_INFINIBAND_IRDMA)		+= irdma/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= mlx4/
+ obj-$(CONFIG_MLX5_INFINIBAND)		+= mlx5/
+ obj-$(CONFIG_INFINIBAND_OCRDMA)		+= ocrdma/
+diff --git a/drivers/infiniband/hw/i40iw/Kconfig b/drivers/infiniband/hw/i40iw/Kconfig
+deleted file mode 100644
+index 7476f3b..00000000
+diff --git a/drivers/infiniband/hw/i40iw/Makefile b/drivers/infiniband/hw/i40iw/Makefile
+deleted file mode 100644
+index 34da9eb..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+deleted file mode 100644
+index be4094a..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+deleted file mode 100644
+index 2450b7d..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+deleted file mode 100644
+index 6e43e4d..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+deleted file mode 100644
+index eaea5d5..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
+deleted file mode 100644
+index 86d5a33..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_hmc.c b/drivers/infiniband/hw/i40iw/i40iw_hmc.c
+deleted file mode 100644
+index b44bfc1..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_hmc.h b/drivers/infiniband/hw/i40iw/i40iw_hmc.h
+deleted file mode 100644
+index 4c3fdd8..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
+deleted file mode 100644
+index d167ac1..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+deleted file mode 100644
+index 2ebcbb1..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_osdep.h b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+deleted file mode 100644
+index d938ccb..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
+deleted file mode 100644
+index 4c42956..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_pble.c b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+deleted file mode 100644
+index 53e5cd1..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_pble.h b/drivers/infiniband/hw/i40iw/i40iw_pble.h
+deleted file mode 100644
+index 7b1851d..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+deleted file mode 100644
+index 88fb68e..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.h b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+deleted file mode 100644
+index 53a7d58c..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_register.h b/drivers/infiniband/hw/i40iw/i40iw_register.h
+deleted file mode 100644
+index 5776818..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_status.h b/drivers/infiniband/hw/i40iw/i40iw_status.h
+deleted file mode 100644
+index 36a19c4..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+deleted file mode 100644
+index 394e182..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+deleted file mode 100644
+index f521be1..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
+deleted file mode 100644
+index 93fc308..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+deleted file mode 100644
+index 9ff825f..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+deleted file mode 100644
+index 375b774..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+deleted file mode 100644
+index bab71f3..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_vf.c b/drivers/infiniband/hw/i40iw/i40iw_vf.c
+deleted file mode 100644
+index e33d481..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_vf.h b/drivers/infiniband/hw/i40iw/i40iw_vf.h
+deleted file mode 100644
+index 4359559..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+deleted file mode 100644
+index e34a152..00000000
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.h b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.h
+deleted file mode 100644
+index 24886ef..00000000
+diff --git a/drivers/infiniband/hw/irdma/Kconfig b/drivers/infiniband/hw/irdma/Kconfig
 new file mode 100644
-index 00000000..da9fc71
+index 00000000..6585842
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.c
-@@ -0,0 +1,379 @@
-+// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+#include "uda.h"
-+#include "uda_d.h"
-+
-+/**
-+ * irdma_sc_init_ah - initialize sc ah struct
-+ * @dev: sc device struct
-+ * @ah: sc ah ptr
-+ */
-+static void irdma_sc_init_ah(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah)
-+{
-+	ah->dev = dev;
-+}
-+
-+/**
-+ * irdma_sc_access_ah() - Create, modify or delete AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @op: Operation
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_access_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u32 op, u64 scratch)
-+{
-+	__le64 *wqe;
-+	u64 qw1, qw2;
-+
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe)
-+		return IRDMA_ERR_RING_FULL;
-+
-+	set_64bit_val(wqe, 0, ether_addr_to_u64(info->mac_addr) << 16);
-+	qw1 = FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_PDINDEXLO, info->pd_idx) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_TC, info->tc_tos) |
-+	      FIELD_PREP(IRDMA_UDAQPC_VLANTAG, info->vlan_tag);
-+
-+	qw2 = FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ARPINDEX, info->dst_arpindex) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_FLOWLABEL, info->flow_label) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_HOPLIMIT, info->hop_ttl) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_PDINDEXHI, info->pd_idx >> 16);
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe, 40,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->dest_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->dest_ip_addr[1]));
-+		set_64bit_val(wqe, 32,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->dest_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[3]));
-+
-+		set_64bit_val(wqe, 56,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->src_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->src_ip_addr[1]));
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->src_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->src_ip_addr[3]));
-+	} else {
-+		set_64bit_val(wqe, 32,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[0]));
-+
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->src_ip_addr[0]));
-+	}
-+
-+	set_64bit_val(wqe, 8, qw1);
-+	set_64bit_val(wqe, 16, qw2);
-+
-+	dma_wmb(); /* need write block before writing WQE header */
-+
-+	set_64bit_val(
-+		wqe, 24,
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_WQEVALID, cqp->polarity) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_OPCODE, op) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK, info->do_lpbk) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_IPV4VALID, info->ipv4_valid) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_AVIDX, info->ah_idx) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG, info->insert_vlan_tag));
-+
-+	print_hex_dump_debug("WQE: MANAGE_AH WQE", DUMP_PREFIX_OFFSET, 16, 8,
-+			     wqe, IRDMA_CQP_WQE_SIZE * 8, false);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
-+}
-+
-+/**
-+ * irdma_sc_create_ah() - Create AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_create_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_CREATE_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * irdma_sc_modify_ah() - Modify AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_modify_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_MODIFY_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * irdma_sc_destroy_ah() - Delete AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_destroy_ah(struct irdma_sc_cqp *cqp,
-+						  struct irdma_ah_info *info,
-+						  u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_DESTROY_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * irdma_create_mg_ctx() - create a mcg context
-+ * @info: multicast group context info
-+ */
-+static enum irdma_status_code
-+irdma_create_mg_ctx(struct irdma_mcast_grp_info *info)
-+{
-+	struct irdma_mcast_grp_ctx_entry_info *entry_info = NULL;
-+	u8 idx = 0; /* index in the array */
-+	u8 ctx_idx = 0; /* index in the MG context */
-+
-+	memset(info->dma_mem_mc.va, 0, IRDMA_MAX_MGS_PER_CTX * sizeof(u64));
-+
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		entry_info = &info->mg_ctx_info[idx];
-+		if (entry_info->valid_entry) {
-+			set_64bit_val((__le64 *)info->dma_mem_mc.va,
-+				      ctx_idx * sizeof(u64),
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_DESTPORT, entry_info->dest_port) |
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_VALIDENT, entry_info->valid_entry) |
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_QPID, entry_info->qp_id));
-+			ctx_idx++;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * irdma_access_mcast_grp() - Access mcast group based on op
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @op: operation to perform
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_access_mcast_grp(struct irdma_sc_cqp *cqp,
-+		       struct irdma_mcast_grp_info *info, u32 op, u64 scratch)
-+{
-+	__le64 *wqe;
-+	enum irdma_status_code ret_code = 0;
-+
-+	if (info->mg_id >= IRDMA_UDA_MAX_FSI_MGS) {
-+		ibdev_dbg(to_ibdev(cqp->dev), "WQE: mg_id out of range\n");
-+		return IRDMA_ERR_PARAM;
-+	}
-+
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe) {
-+		ibdev_dbg(to_ibdev(cqp->dev), "WQE: ring full\n");
-+		return IRDMA_ERR_RING_FULL;
-+	}
-+
-+	ret_code = irdma_create_mg_ctx(info);
-+	if (ret_code)
-+		return ret_code;
-+
-+	set_64bit_val(wqe, 32, info->dma_mem_mc.pa);
-+	set_64bit_val(wqe, 16,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_VLANID, info->vlan_id) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_QS_HANDLE, info->qs_handle));
-+	set_64bit_val(wqe, 0, ether_addr_to_u64(info->dest_mac_addr));
-+	set_64bit_val(wqe, 8,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID, info->hmc_fcn_id));
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe, 56,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->dest_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->dest_ip_addr[1]));
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->dest_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[3]));
-+	} else {
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[0]));
-+	}
-+
-+	dma_wmb(); /* need write memory block before writing the WQE header. */
-+
-+	set_64bit_val(wqe, 24,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_WQEVALID, cqp->polarity) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_OPCODE, op) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_MGIDX, info->mg_id) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_VLANVALID, info->vlan_valid) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_IPV4VALID, info->ipv4_valid));
-+
-+	print_hex_dump_debug("WQE: MANAGE_MCG WQE", DUMP_PREFIX_OFFSET, 16, 8,
-+			     wqe, IRDMA_CQP_WQE_SIZE * 8, false);
-+	print_hex_dump_debug("WQE: MCG_HOST CTX WQE", DUMP_PREFIX_OFFSET, 16,
-+			     8, info->dma_mem_mc.va,
-+			     IRDMA_MAX_MGS_PER_CTX * 8, false);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
-+}
-+
-+/**
-+ * irdma_sc_create_mcast_grp() - Create mcast group.
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_create_mcast_grp(struct irdma_sc_cqp *cqp,
-+			  struct irdma_mcast_grp_info *info, u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_CREATE_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_sc_modify_mcast_grp() - Modify mcast group
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_modify_mcast_grp(struct irdma_sc_cqp *cqp,
-+			  struct irdma_mcast_grp_info *info, u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_MODIFY_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_sc_destroy_mcast_grp() - Destroys mcast group
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_destroy_mcast_grp(struct irdma_sc_cqp *cqp,
-+			   struct irdma_mcast_grp_info *info, u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_DESTROY_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_compare_mgs - Compares two multicast group structures
-+ * @entry1: Multcast group info
-+ * @entry2: Multcast group info in context
-+ */
-+static bool irdma_compare_mgs(struct irdma_mcast_grp_ctx_entry_info *entry1,
-+			      struct irdma_mcast_grp_ctx_entry_info *entry2)
-+{
-+	if (entry1->dest_port == entry2->dest_port &&
-+	    entry1->qp_id == entry2->qp_id)
-+		return true;
-+
-+	return false;
-+}
-+
-+/**
-+ * irdma_sc_add_mcast_grp - Allocates mcast group entry in ctx
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ */
-+static enum irdma_status_code
-+irdma_sc_add_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+		       struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+	bool free_entry_found = false;
-+	u32 free_entry_idx = 0;
-+
-+	/* find either an identical or a free entry for a multicast group */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (ctx->mg_ctx_info[idx].valid_entry) {
-+			if (irdma_compare_mgs(&ctx->mg_ctx_info[idx], mg)) {
-+				ctx->mg_ctx_info[idx].use_cnt++;
-+				return 0;
-+			}
-+			continue;
-+		}
-+		if (!free_entry_found) {
-+			free_entry_found = true;
-+			free_entry_idx = idx;
-+		}
-+	}
-+
-+	if (free_entry_found) {
-+		ctx->mg_ctx_info[free_entry_idx] = *mg;
-+		ctx->mg_ctx_info[free_entry_idx].valid_entry = true;
-+		ctx->mg_ctx_info[free_entry_idx].use_cnt = 1;
-+		ctx->no_of_mgs++;
-+		return 0;
-+	}
-+
-+	return IRDMA_ERR_NO_MEMORY;
-+}
-+
-+/**
-+ * irdma_sc_del_mcast_grp - Delete mcast group
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ *
-+ * Finds and removes a specific mulicast group from context, all
-+ * parameters must match to remove a multicast group.
-+ */
-+static enum irdma_status_code
-+irdma_sc_del_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+		       struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+
-+	/* find an entry in multicast group context */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (!ctx->mg_ctx_info[idx].valid_entry)
-+			continue;
-+
-+		if (irdma_compare_mgs(mg, &ctx->mg_ctx_info[idx])) {
-+			ctx->mg_ctx_info[idx].use_cnt--;
-+
-+			if (!ctx->mg_ctx_info[idx].use_cnt) {
-+				ctx->mg_ctx_info[idx].valid_entry = false;
-+				ctx->no_of_mgs--;
-+				/* Remove gap if element was not the last */
-+				if (idx != ctx->no_of_mgs &&
-+				    ctx->no_of_mgs > 0) {
-+					memcpy(&ctx->mg_ctx_info[idx],
-+					       &ctx->mg_ctx_info[ctx->no_of_mgs - 1],
-+					       sizeof(ctx->mg_ctx_info[idx]));
-+					ctx->mg_ctx_info[ctx->no_of_mgs - 1].valid_entry = false;
-+				}
-+			}
-+
-+			return 0;
-+		}
-+	}
-+
-+	return IRDMA_ERR_PARAM;
-+}
-+
-+const struct irdma_uda_ops irdma_uda_ops = {
-+	.create_ah = irdma_sc_create_ah,
-+	.destroy_ah = irdma_sc_destroy_ah,
-+	.init_ah = irdma_sc_init_ah,
-+	.mcast_grp_add = irdma_sc_add_mcast_grp,
-+	.mcast_grp_create = irdma_sc_create_mcast_grp,
-+	.mcast_grp_del = irdma_sc_del_mcast_grp,
-+	.mcast_grp_destroy = irdma_sc_destroy_mcast_grp,
-+	.mcast_grp_modify = irdma_sc_modify_mcast_grp,
-+	.modify_ah = irdma_sc_modify_ah,
-+};
-diff --git a/drivers/infiniband/hw/irdma/uda.h b/drivers/infiniband/hw/irdma/uda.h
++++ b/drivers/infiniband/hw/irdma/Kconfig
+@@ -0,0 +1,11 @@
++# SPDX-License-Identifier: GPL-2.0-only
++config INFINIBAND_IRDMA
++	tristate "Intel(R) Ethernet Protocol Driver for RDMA"
++	depends on INET
++	depends on IPV6 || !IPV6
++	depends on PCI
++	select GENERIC_ALLOCATOR
++	select CONFIG_AUXILIARY_BUS
++	help
++	 This is an Intel(R) Ethernet Protocol Driver for RDMA driver
++	 that support E810 (iWARP/RoCE) and X722 (iWARP) network devices.
+diff --git a/drivers/infiniband/hw/irdma/Makefile b/drivers/infiniband/hw/irdma/Makefile
 new file mode 100644
-index 00000000..4f6591d
+index 00000000..48c3854
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.h
-@@ -0,0 +1,63 @@
-+/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#ifndef IRDMA_UDA_H
-+#define IRDMA_UDA_H
++++ b/drivers/infiniband/hw/irdma/Makefile
+@@ -0,0 +1,27 @@
++# SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++# Copyright (c) 2019, Intel Corporation.
 +
-+extern const struct irdma_uda_ops irdma_uda_ops;
++#
++# Makefile for the Intel(R) Ethernet Connection RDMA Linux Driver
++#
 +
-+#define IRDMA_UDA_MAX_FSI_MGS	4096
-+#define IRDMA_UDA_MAX_PFS	16
-+#define IRDMA_UDA_MAX_VFS	128
++obj-$(CONFIG_INFINIBAND_IRDMA) += irdma.o
 +
-+struct irdma_sc_cqp;
++irdma-objs := cm.o        \
++              ctrl.o      \
++              hmc.o       \
++              hw.o        \
++              i40iw_hw.o  \
++              i40iw_if.o  \
++              icrdma_hw.o \
++              main.o      \
++              pble.o      \
++              puda.o      \
++              trace.o     \
++              uda.o       \
++              uk.o        \
++              utils.o     \
++              verbs.o     \
++              ws.o        \
 +
-+struct irdma_ah_info {
-+	struct irdma_sc_vsi *vsi;
-+	u32 pd_idx;
-+	u32 dst_arpindex;
-+	u32 dest_ip_addr[4];
-+	u32 src_ip_addr[4];
-+	u32 flow_label;
-+	u32 ah_idx;
-+	u16 vlan_tag;
-+	u8 insert_vlan_tag;
-+	u8 tc_tos;
-+	u8 hop_ttl;
-+	u8 mac_addr[ETH_ALEN];
-+	bool ah_valid:1;
-+	bool ipv4_valid:1;
-+	bool do_lpbk:1;
-+};
-+
-+struct irdma_sc_ah {
-+	struct irdma_sc_dev *dev;
-+	struct irdma_ah_info ah_info;
-+};
-+
-+struct irdma_uda_ops {
-+	void (*init_ah)(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah);
-+	enum irdma_status_code (*create_ah)(struct irdma_sc_cqp *cqp,
-+					    struct irdma_ah_info *info,
-+					    u64 scratch);
-+	enum irdma_status_code (*modify_ah)(struct irdma_sc_cqp *cqp,
-+					    struct irdma_ah_info *info,
-+					    u64 scratch);
-+	enum irdma_status_code (*destroy_ah)(struct irdma_sc_cqp *cqp,
-+					     struct irdma_ah_info *info,
-+					     u64 scratch);
-+	/* multicast */
-+	enum irdma_status_code (*mcast_grp_create)(struct irdma_sc_cqp *cqp,
-+						   struct irdma_mcast_grp_info *info,
-+						   u64 scratch);
-+	enum irdma_status_code (*mcast_grp_modify)(struct irdma_sc_cqp *cqp,
-+						   struct irdma_mcast_grp_info *info,
-+						   u64 scratch);
-+	enum irdma_status_code (*mcast_grp_destroy)(struct irdma_sc_cqp *cqp,
-+						    struct irdma_mcast_grp_info *info,
-+						    u64 scratch);
-+	enum irdma_status_code (*mcast_grp_add)(struct irdma_mcast_grp_info *ctx,
-+						struct irdma_mcast_grp_ctx_entry_info *mg);
-+	enum irdma_status_code (*mcast_grp_del)(struct irdma_mcast_grp_info *ctx,
-+						struct irdma_mcast_grp_ctx_entry_info *mg);
-+};
-+#endif /* IRDMA_UDA_H */
-diff --git a/drivers/infiniband/hw/irdma/uda_d.h b/drivers/infiniband/hw/irdma/uda_d.h
-new file mode 100644
-index 00000000..bfc81ca
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda_d.h
-@@ -0,0 +1,128 @@
-+/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#ifndef IRDMA_UDA_D_H
-+#define IRDMA_UDA_D_H
-+
-+/* L4 packet type */
-+#define IRDMA_E_UDA_SQ_L4T_UNKNOWN	0
-+#define IRDMA_E_UDA_SQ_L4T_TCP		1
-+#define IRDMA_E_UDA_SQ_L4T_SCTP		2
-+#define IRDMA_E_UDA_SQ_L4T_UDP		3
-+
-+/* Inner IP header type */
-+#define IRDMA_E_UDA_SQ_IIPT_UNKNOWN		0
-+#define IRDMA_E_UDA_SQ_IIPT_IPV6		1
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_NO_CSUM	2
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_CSUM		3
-+#define IRDMA_UDA_QPSQ_PUSHWQE BIT_ULL(56)
-+#define IRDMA_UDA_QPSQ_INLINEDATAFLAG BIT_ULL(57)
-+#define IRDMA_UDA_QPSQ_INLINEDATALEN GENMASK_ULL(55, 48)
-+#define IRDMA_UDA_QPSQ_ADDFRAGCNT GENMASK_ULL(41, 38)
-+#define IRDMA_UDA_QPSQ_IPFRAGFLAGS GENMASK_ULL(43, 42)
-+#define IRDMA_UDA_QPSQ_NOCHECKSUM BIT_ULL(45)
-+#define IRDMA_UDA_QPSQ_AHIDXVALID BIT_ULL(46)
-+#define IRDMA_UDA_QPSQ_LOCAL_FENCE BIT_ULL(61)
-+#define IRDMA_UDA_QPSQ_AHIDX GENMASK_ULL(16, 0)
-+#define IRDMA_UDA_QPSQ_PROTOCOL GENMASK_ULL(23, 16)
-+#define IRDMA_UDA_QPSQ_EXTHDRLEN GENMASK_ULL(40, 32)
-+#define IRDMA_UDA_QPSQ_MULTICAST BIT_ULL(63)
-+#define IRDMA_UDA_QPSQ_MACLEN GENMASK_ULL(62, 56)
-+#define IRDMA_UDA_QPSQ_MACLEN_LINE 2
-+#define IRDMA_UDA_QPSQ_IPLEN GENMASK_ULL(54, 48)
-+#define IRDMA_UDA_QPSQ_IPLEN_LINE 2
-+#define IRDMA_UDA_QPSQ_L4T GENMASK_ULL(31, 30)
-+#define IRDMA_UDA_QPSQ_L4T_LINE 2
-+#define IRDMA_UDA_QPSQ_IIPT GENMASK_ULL(29, 28)
-+#define IRDMA_UDA_QPSQ_IIPT_LINE 2
-+
-+#define IRDMA_UDA_QPSQ_DO_LPB_LINE 3
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM BIT_ULL(45)
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_LINE 3
-+#define IRDMA_UDA_QPSQ_IMMDATA GENMASK_ULL(63, 0)
-+
-+/* Byte Offset 0 */
-+#define IRDMA_UDAQPC_IPV4_M BIT_ULL(3)
-+#define IRDMA_UDAQPC_INSERTVLANTAG BIT_ULL(5)
-+#define IRDMA_UDAQPC_ISQP1 BIT_ULL(6)
-+
-+#define IRDMA_UDAQPC_ECNENABLE BIT_ULL(14)
-+#define IRDMA_UDAQPC_PDINDEXHI GENMASK_ULL(21, 20)
-+#define IRDMA_UDAQPC_DCTCPENABLE BIT_ULL(25)
-+
-+#define IRDMA_UDAQPC_RCVTPHEN IRDMAQPC_RCVTPHEN
-+#define IRDMA_UDAQPC_XMITTPHEN IRDMAQPC_XMITTPHEN
-+#define IRDMA_UDAQPC_RQTPHEN IRDMAQPC_RQTPHEN
-+#define IRDMA_UDAQPC_SQTPHEN IRDMAQPC_SQTPHEN
-+#define IRDMA_UDAQPC_PPIDX IRDMAQPC_PPIDX
-+#define IRDMA_UDAQPC_PMENA IRDMAQPC_PMENA
-+#define IRDMA_UDAQPC_INSERTTAG2 BIT_ULL(11)
-+#define IRDMA_UDAQPC_INSERTTAG3 BIT_ULL(14)
-+
-+#define IRDMA_UDAQPC_RQSIZE IRDMAQPC_RQSIZE
-+#define IRDMA_UDAQPC_SQSIZE IRDMAQPC_SQSIZE
-+#define IRDMA_UDAQPC_TXCQNUM IRDMAQPC_TXCQNUM
-+#define IRDMA_UDAQPC_RXCQNUM IRDMAQPC_RXCQNUM
-+#define IRDMA_UDAQPC_QPCOMPCTX IRDMAQPC_QPCOMPCTX
-+#define IRDMA_UDAQPC_SQTPHVAL IRDMAQPC_SQTPHVAL
-+#define IRDMA_UDAQPC_RQTPHVAL IRDMAQPC_RQTPHVAL
-+#define IRDMA_UDAQPC_QSHANDLE IRDMAQPC_QSHANDLE
-+#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE GENMASK_ULL(49, 48)
-+#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE GENMASK_ULL(33, 32)
-+#define IRDMA_UDAQPC_PRIVILEGEENABLE BIT_ULL(25)
-+#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE BIT_ULL(26)
-+#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX GENMASK_ULL(6, 0)
-+#define IRDMA_UDAQPC_PRIVHDRGENENABLE BIT_ULL(0)
-+#define IRDMA_UDAQPC_RQHDRSPLITENABLE BIT_ULL(3)
-+#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE BIT_ULL(2)
-+#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE BIT_ULL(1)
-+#define IRDMA_UDAQPC_IPID GENMASK_ULL(47, 32)
-+#define IRDMA_UDAQPC_SNDMSS GENMASK_ULL(29, 16)
-+#define IRDMA_UDAQPC_VLANTAG GENMASK_ULL(15, 0)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI GENMASK_ULL(21, 20)
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO GENMASK_ULL(63, 48)
-+#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX GENMASK_ULL(29, 24)
-+#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX GENMASK_ULL(63, 48)
-+#define IRDMA_UDA_CQPSQ_MAV_TC GENMASK_ULL(39, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT GENMASK_ULL(39, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL GENMASK_ULL(19, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR0 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR1 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR2 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR3 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_MAV_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK BIT_ULL(62)
-+#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID BIT_ULL(59)
-+#define IRDMA_UDA_CQPSQ_MAV_AVIDX GENMASK_ULL(16, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG BIT_ULL(60)
-+#define IRDMA_UDA_MGCTX_VFFLAG BIT_ULL(29)
-+#define IRDMA_UDA_MGCTX_DESTPORT GENMASK_ULL(47, 32)
-+#define IRDMA_UDA_MGCTX_VFID GENMASK_ULL(28, 22)
-+#define IRDMA_UDA_MGCTX_VALIDENT BIT_ULL(31)
-+#define IRDMA_UDA_MGCTX_PFID GENMASK_ULL(21, 18)
-+#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT BIT_ULL(30)
-+#define IRDMA_UDA_MGCTX_QPID GENMASK_ULL(17, 0)
-+#define IRDMA_UDA_CQPSQ_MG_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_MG_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_MG_MGIDX GENMASK_ULL(12, 0)
-+#define IRDMA_UDA_CQPSQ_MG_IPV4VALID BIT_ULL(60)
-+#define IRDMA_UDA_CQPSQ_MG_VLANVALID BIT_ULL(59)
-+#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID GENMASK_ULL(5, 0)
-+#define IRDMA_UDA_CQPSQ_MG_VLANID GENMASK_ULL(43, 32)
-+#define IRDMA_UDA_CQPSQ_QS_HANDLE GENMASK_ULL(9, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_QPN GENMASK_ULL(49, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ BIT_ULL(0)
-+#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT GENMASK_ULL(31, 16)
-+#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT GENMASK_ULL(15, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR0 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR1 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR2 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR3 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_QHASH_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_MANAGE GENMASK_ULL(62, 61)
-+#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID GENMASK_ULL(60, 60)
-+#define IRDMA_UDA_CQPSQ_QHASH_LANFWD GENMASK_ULL(59, 59)
-+#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE GENMASK_ULL(44, 42)
-+#endif /* IRDMA_UDA_D_H */
++CFLAGS_trace.o = -I$(src)
+diff --git a/include/uapi/rdma/i40iw-abi.h b/include/uapi/rdma/i40iw-abi.h
+deleted file mode 100644
+index 79890ba..00000000
 -- 
 1.8.3.1
 
