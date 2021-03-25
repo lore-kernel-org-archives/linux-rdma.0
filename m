@@ -7,62 +7,65 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA659C43381
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1886FC433F1
 	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 15:34:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA6D361A17
+	by mail.kernel.org (Postfix) with ESMTP id 07F5161A17
 	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 15:34:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231479AbhCYPdz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 25 Mar 2021 11:33:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37188 "EHLO
+        id S231301AbhCYPdv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 25 Mar 2021 11:33:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231482AbhCYPdf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Mar 2021 11:33:35 -0400
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BF81C061763
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:32 -0700 (PDT)
-Received: by mail-ed1-x530.google.com with SMTP id dm8so2913065edb.2
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:32 -0700 (PDT)
+        with ESMTP id S231381AbhCYPdX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Mar 2021 11:33:23 -0400
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B2B9C06174A
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:22 -0700 (PDT)
+Received: by mail-ej1-x632.google.com with SMTP id r12so3620984ejr.5
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=aqJG/VYc1YAv4Kt1Bu+GcYBgqhNALjIo7C5+lsoCkt4=;
-        b=DT8ZbPSeZBGEvlBAF24sUsMVgArOn73FihPSMUARWYJaCwNH/Elw28LVLf+psp1ibU
-         eoWwHTh4n2Opd56UI8gnH715fMDGwbhaw8CVTIGo43YjOL0cwQxq3Kdkp3twiNOTbiHR
-         feOA4WLZPJWi2ozI9YuOWgz6waKabraaq7ZqTpLCr+Yr64N03T455XhVNGc8WTAmirTs
-         Ht2rgL8/1oD4D7Vg3nJaMtSlDMxK3rXO4/6PW1GAVGp5JMynB1F+vm3uzKKKnrXWzvLk
-         iY9wMEtjEZQI5gg1nMuMSZlePO6v5KP74hHtbFVoYzNPTtltRJckWSqUbO9LTBQaDqtK
-         u15Q==
+        bh=nqG/ZKYs7wDVx6d1FSRXmVCq5VuyNsPulySovN98UTs=;
+        b=bzIoWQi2uIeK5xN/1doTzNBij08Vl/iNQYtk6hczm5CucXmI0aBlh4OwHzyilco+0P
+         Ezk72G+TSWSrL6xEZSKUcKi8nvem1qgmNF6Vp86xh9XZTCed4IbhBK30XFHDOxbmnvL+
+         RFfnsrrX1AJXcObXV6suJNXGnrF55Jwn6tcrnJtuUGYpl+waiWmjqD3rdAQX2w4q72we
+         7xtSOA3OVJOWucq5JSOAhz9n2VMGYQ9a6i8au4ICTz2mMIPDdqPUTGAsOanPRwSeR/nc
+         t+gPB8L/nQL926s+6wkJhVFuA7ZdVf54p/nGQks8Z4BtpzLrBfttHJTAltPszVz/+jX+
+         p0pg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=aqJG/VYc1YAv4Kt1Bu+GcYBgqhNALjIo7C5+lsoCkt4=;
-        b=S2QmdygwN3nfeELWSNLnr+OnQHy034KUuYv/+mEKHJtNRaftYxzawxOlxqq8KVbWjD
-         NdJHEHQGvGZv2gb7EnOxckE3N6JWSPxICSXbDev66QeGeDFDgYeZFLwccyheTacxt7W9
-         kHCPAw+YkmOKD5YIwnK7SVJyJRMzCHTwaEM35WEv0h5kZoWNtUqJqllNn5dZljH+SHLo
-         J/MR4OuWNzuAika5p7ZucCQoTqDc48lPKjqZRp4gVWnsIY7iW0gSRCG6SaPwb+bDz8uv
-         qNvalqpIp6ey/w6JZkLzOpg4waQpTlhKngwenBX28rgOqnNosy74SRaFhbJ6YClrbqf4
-         0qDQ==
-X-Gm-Message-State: AOAM533JiUqUpQ3Uy4HeImSuhhFhf/VhsDYW7cP1laRqcfC5ydv5e8ak
-        fkoO/RcDwAhHCGqCl6lBUCamMa3DuT2V9/ga
-X-Google-Smtp-Source: ABdhPJyvoG0pTqKS08k7O0ZJcmAiQTqCVC/9K1+f8F0LyVHVIifDsMPgUFG9BsUkcmYzGE7YsCIq5A==
-X-Received: by 2002:a05:6402:13ca:: with SMTP id a10mr9754866edx.320.1616686410907;
-        Thu, 25 Mar 2021 08:33:30 -0700 (PDT)
+        bh=nqG/ZKYs7wDVx6d1FSRXmVCq5VuyNsPulySovN98UTs=;
+        b=BEpLRSrweM8yQa0Y0QV4q09ez0XfcaZhW8+V8Tp1uaxLEvZsqoxeddq3apCK46Dmnf
+         Q0XoNBglwo2RTfDw3rO4a/y3Oxo+mWLXJuEisW3+8C7pRCemxYbHWte289Oae4GH6FAd
+         W5VRJqU/FyJ352kvdY9vc0ErjyIiHEXB9X+5tKFxVVp5tvyAIZ74oVsBOM5YFbOccLV4
+         0j9No/F8aJueGbq/buV8eu7TGDSlAp3p6H0AVDMMO7rb5LQdoKHZpIRumX4d/a7DvU3k
+         2tC3JL3Ouv/cwajtBs7gwwsz6DZDT8xNhw97yfU4Y9DKx/nCsvI+zf/P1hOaBDXHIQZw
+         JsIw==
+X-Gm-Message-State: AOAM5320PbN2fK+I343gW1zS/vooLLOazLldAdNpXSnFIYTXJoYWP7IJ
+        AhhH18iNwHPXCStL+KAvlJQdrBAKwixl/18B
+X-Google-Smtp-Source: ABdhPJw2heM9wNxgP6Ztgb0oervugZlk5TMSUWZrxhTlWy0Cbt6e+ISu6bd+Et0+5+ccxZyFPPx2Fw==
+X-Received: by 2002:a17:907:162b:: with SMTP id hb43mr10210520ejc.41.1616686401202;
+        Thu, 25 Mar 2021 08:33:21 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aeee5.dynamic.kabel-deutschland.de. [95.90.238.229])
-        by smtp.googlemail.com with ESMTPSA id n26sm2854750eds.22.2021.03.25.08.33.30
+        by smtp.googlemail.com with ESMTPSA id n26sm2854750eds.22.2021.03.25.08.33.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Mar 2021 08:33:30 -0700 (PDT)
+        Thu, 25 Mar 2021 08:33:21 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@ionos.com>,
+        Danil Kipnis <danil.kipnis@ionos.com>,
         Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCH for-next 22/22] Documentation/ABI/rtrs-clt: Add descriptions for min-latency policy
-Date:   Thu, 25 Mar 2021 16:33:08 +0100
-Message-Id: <20210325153308.1214057-23-gi-oh.kim@ionos.com>
+Subject: [PATCH for-next 10/22] RDMA/rtrs: Cleanup the code in rtrs_srv_rdma_cm_handler
+Date:   Thu, 25 Mar 2021 16:32:56 +0100
+Message-Id: <20210325153308.1214057-11-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210325153308.1214057-1-gi-oh.kim@ionos.com>
 References: <20210325153308.1214057-1-gi-oh.kim@ionos.com>
@@ -72,44 +75,38 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-describe new multipath policy min-latency of the RTRS client.
+From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
+Let these cases share the same path since all of them need to close
+session.
+
+Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
+Reviewed-by: Danil Kipnis <danil.kipnis@ionos.com>
 Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 ---
- Documentation/ABI/testing/sysfs-class-rtrs-client | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-class-rtrs-client b/Documentation/ABI/testing/sysfs-class-rtrs-client
-index 0f7165aab251..49a4157c7bf1 100644
---- a/Documentation/ABI/testing/sysfs-class-rtrs-client
-+++ b/Documentation/ABI/testing/sysfs-class-rtrs-client
-@@ -34,6 +34,9 @@ Description:	Multipath policy specifies which path should be selected on each IO
- 		min-inflight (1):
- 		    select path with minimum inflights.
- 
-+		min-latency (2):
-+		    select path with minimum latency.
-+
- What:		/sys/class/rtrs-client/<session-name>/paths/
- Date:		Feb 2020
- KernelVersion:	5.7
-@@ -95,6 +98,15 @@ KernelVersion:	5.7
- Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
- Description:	RO, Contains the destination address of the path
- 
-+What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/cur_latency
-+Date:		Feb 2020
-+KernelVersion:	5.7
-+Contact:	Jack Wang <jinpu.wang@cloud.ionos.com> Danil Kipnis <danil.kipnis@cloud.ionos.com>
-+Description:	RO, Contains the latency time calculated by the heart-beat messages.
-+		Whenever the client sends heart-beat message, it checks the time gap
-+		between sending the heart-beat message and receiving the ACK.
-+		This value can be changed regularly.
-+
- What:		/sys/class/rtrs-client/<session-name>/paths/<src@dst>/stats/reset_all
- Date:		Feb 2020
- KernelVersion:	5.7
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index e9998e40f2f7..c0a65e1e6fda 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -1913,13 +1913,10 @@ static int rtrs_srv_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 	case RDMA_CM_EVENT_UNREACHABLE:
+ 		rtrs_err(s, "CM error (CM event: %s, err: %d)\n",
+ 			  rdma_event_msg(ev->event), ev->status);
+-		close_sess(sess);
+-		break;
++		fallthrough;
+ 	case RDMA_CM_EVENT_DISCONNECTED:
+ 	case RDMA_CM_EVENT_ADDR_CHANGE:
+ 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
+-		close_sess(sess);
+-		break;
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 		close_sess(sess);
+ 		break;
 -- 
 2.25.1
 
