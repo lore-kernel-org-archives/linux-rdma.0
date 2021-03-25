@@ -2,68 +2,69 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-23.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 129D7C433E3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ECA7C433E4
 	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 15:34:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1152619A3
+	by mail.kernel.org (Postfix) with ESMTP id DF80E619EE
 	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 15:34:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231334AbhCYPdr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 25 Mar 2021 11:33:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37092 "EHLO
+        id S231435AbhCYPdp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 25 Mar 2021 11:33:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230436AbhCYPdR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Mar 2021 11:33:17 -0400
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48CF9C061761
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:17 -0700 (PDT)
-Received: by mail-ej1-x62a.google.com with SMTP id e14so3572298ejz.11
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:17 -0700 (PDT)
+        with ESMTP id S230224AbhCYPdQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Mar 2021 11:33:16 -0400
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9B23C06175F
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:15 -0700 (PDT)
+Received: by mail-ej1-x632.google.com with SMTP id a7so3631744ejs.3
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Mar 2021 08:33:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=lDV7JonCYGQdD+L2CIi4xjRjTcPbfiJy/4cE5d4EaOw=;
-        b=UdpfwI0vSFKjR6jak70EOgBgk8Sb80jm4y1R18UYsw/vuJma1vUzYWAYPx9/SmKVxh
-         X30v4Yy/Ag5auuR8WehPyrxCcUUmqhGwRZylF4ICcTUX4xToBnYRJiNiSdcDK4r1kPQV
-         vAOAWAZC/95BOHmdvy3Zjsss7htBTMRpKYJGRTyCnnsmuQ+dYfGB2GSdRpKIaQrFArQc
-         mAt30d2J50YMTs7KkUDF1pevsOhKvaS66BXPGzNRO4LppKXklMsnKr1pCh9hbNRFJW7U
-         YYMgCeYj3Cy4zyTMQBD7cQ6lmVxJZ90Ons3oSjd97j6AyM/IQRp3lL+ixbxSjR96FXBH
-         bENw==
+        bh=+YxuFEwtWmaVSrfs27UVahPrdcjIgQ83fS0W5T4MvGc=;
+        b=S1inAlndY5Yq2ISOaLA1C64xjR3pZ8yLofhJzhEhvC++ISGRvw5p+NKnoaEj/9iTkJ
+         TbiVepXK7HPwS7sXG/gAVeNDoqCvTgYfpiYoSTTBwJCm8tNuWaQp0kOhI2+278c/wcEY
+         NqK73OgFLDKbLc+DglTbhNJyQP2Eil1XKMtvh0ccvYeJNoAvdSAfLdman8DVsaMrQX8u
+         IY4YSIL0re4ny5PfYwuogcc1s2XR4wyLQ37xilOix5j4/4grsOmtB+7hNgv548wXnc5Z
+         6FdfkE7EC16+KVI6Kq8n5v5RJQPdVeWmQWv3Q6tfHSYFRdrcsypOP7/Q+nzZ4G2spE3b
+         pJLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=lDV7JonCYGQdD+L2CIi4xjRjTcPbfiJy/4cE5d4EaOw=;
-        b=LEn7R8bJAKPLZydSPFzIyluZYQtv29m0RcgIP9jCqrEMQ7e4znEm7WlPhXNlfN9HqL
-         EpVPbubH6ev+wydSFTJBl87XGYW+7rMGGeXEC8j6oBC8MHuHJwULsrql9GlRq/Ib+wgT
-         qktkiiKt6oCoY6WyymyHJyV0jqUUTCEVZ8Up7bw5iiUgutCQJZ5/GrXR5YyR0+Wb/XjO
-         xwv75BZ6LWqiHuGclQkoED2hOYogt1ooaYkNGo7HLlqoz/8xcKqAXBydRfym+IeMWJPb
-         86Tz46mB82DfORpb+Dihp7maw6JP25hDzdUcfxH/hFy0S/J1CBNsmIuXLP+5mVmAxOYy
-         VgIg==
-X-Gm-Message-State: AOAM531/Cu/IDsx1WnkyTJJOSQpuDwNw/7VeF7Ir18myryyZkQFLqzDs
-        bakeZpHmnX5i+0fZyQ9EoNgAvVpiOPLFW0lE
-X-Google-Smtp-Source: ABdhPJyNMCByRc8Xgo37oSTXodRbEvKGrLgNk27wA3o+Qp0vOT7RTBfzEL/IBSHiZGhCf/6qkSKIfQ==
-X-Received: by 2002:a17:906:819:: with SMTP id e25mr10298956ejd.292.1616686395781;
-        Thu, 25 Mar 2021 08:33:15 -0700 (PDT)
+        bh=+YxuFEwtWmaVSrfs27UVahPrdcjIgQ83fS0W5T4MvGc=;
+        b=pz0fTlZhnjtpIcGbVl3tOTWpdt8LoybhDJOgDM+F8rqtXlkP8OIRG46yIgEh4VZfje
+         ekVhAl4a+DKotQUHmy4AGa/AkLwtLpZ/Loy5E4GxdSBG0S2vlQEMBlrrcfM3Ic8aR6PP
+         0OEKr9ghbtaCrLF5mcaDV0YS9fAd+l5kwsCSf9vlBocL8uBmTO2BLBloot39R+38SD4C
+         0d496WxS3G07dxEUz9h4lQc9vmsYcxeFGVp31MC9745sivB+YBiL1x8qi7RObADAhr+C
+         KxRrB25gKLnpnLlztSTy/uTx6yiHPhCjgVHicaNgfiLPcwIrYpqp6xjUY0mKgmi3k4DM
+         QucQ==
+X-Gm-Message-State: AOAM530Nma5bVE0HdRtgPBCJmmceG3kYz0rCUPtGr2bI1hKW7Mac2Uk6
+        CW0RJzhKz+nTJZ1YblrQX48cRv7mJJB9U2eM
+X-Google-Smtp-Source: ABdhPJx3kHcFXP9SDubQOs1OZzbRBrDeb9HDQVUQOVNrVa2yeAiYvbcuSenmJ8IVEqt2jBhjGweqtA==
+X-Received: by 2002:a17:906:9bc5:: with SMTP id de5mr10233453ejc.284.1616686394106;
+        Thu, 25 Mar 2021 08:33:14 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aeee5.dynamic.kabel-deutschland.de. [95.90.238.229])
-        by smtp.googlemail.com with ESMTPSA id n26sm2854750eds.22.2021.03.25.08.33.15
+        by smtp.googlemail.com with ESMTPSA id n26sm2854750eds.22.2021.03.25.08.33.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Mar 2021 08:33:15 -0700 (PDT)
+        Thu, 25 Mar 2021 08:33:13 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
+        Danil Kipnis <danil.kipnis@cloud.ionos.com>,
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
         Jack Wang <jinpu.wang@cloud.ionos.com>
-Subject: [PATCH for-next 03/22] RDMA/rtrs-clt: Inject a fault at request processing
-Date:   Thu, 25 Mar 2021 16:32:49 +0100
-Message-Id: <20210325153308.1214057-4-gi-oh.kim@ionos.com>
+Subject: [PATCH for-next 01/22] MAINTAINERS: Change maintainer for rtrs module
+Date:   Thu, 25 Mar 2021 16:32:47 +0100
+Message-Id: <20210325153308.1214057-2-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210325153308.1214057-1-gi-oh.kim@ionos.com>
 References: <20210325153308.1214057-1-gi-oh.kim@ionos.com>
@@ -73,146 +74,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+From: Danil Kipnis <danil.kipnis@cloud.ionos.com>
 
-If the fault-injection is enabled, it does not sent a request to the
-server and returns error.
+Danil will step down, Haris will take over.
+Also update to email address to ionos.com, cloud.ionos.com
+will still work for sometime.
 
-Signed-off-by: Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@cloud.ionos.com>
+Acked-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+Signed-by: Jack Wang <jinpu.wang@cloud.ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 44 ++++++++++++++++++++
- drivers/infiniband/ulp/rtrs/rtrs-clt.c       |  7 ++++
- drivers/infiniband/ulp/rtrs/rtrs-clt.h       | 13 ++++++
- 3 files changed, 64 insertions(+)
+ MAINTAINERS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-index b6a0abf40589..d168bd08037a 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-@@ -480,3 +480,47 @@ void rtrs_clt_destroy_sysfs_root(struct rtrs_clt *clt)
- 		kobject_put(clt->kobj_paths);
- 	}
- }
-+
-+#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
-+void rtrs_clt_fault_inject_init(struct rtrs_clt_fault_inject *fault_inject,
-+				struct rtrs_clt_sess *sess)
-+{
-+	char str[NAME_MAX];
-+	int cnt;
-+
-+	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr,
-+			      str, sizeof(str));
-+	cnt += scnprintf(str + cnt, sizeof(str) - cnt, "@");
-+	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
-+			str + cnt, sizeof(str) - cnt);
-+
-+	rtrs_fault_inject_init(&fault_inject->fj, str, -EBUSY);
-+	/* injection points */
-+	rtrs_fault_inject_add(fault_inject->fj.dir,
-+			      "fail-request", &fault_inject->fail_request);
-+}
-+
-+void rtrs_clt_fault_inject_final(struct rtrs_clt_fault_inject *fault_inject)
-+{
-+	rtrs_fault_inject_final(&fault_inject->fj);
-+}
-+
-+int rtrs_clt_should_fail_request(struct rtrs_clt_fault_inject *fault_inject)
-+{
-+	if (fault_inject->fail_request && should_fail(&fault_inject->fj.attr, 1))
-+		return fault_inject->fj.status;
-+	return 0;
-+}
-+#else
-+void rtrs_clt_fault_inject_init(struct rtrs_clt_fault_inject *fault_inject,
-+				struct rtrs_clt_sess *sess)
-+{
-+}
-+void rtrs_clt_fault_inject_final(struct rtrs_clt_fault_inject *fault_inject)
-+{
-+}
-+int rtrs_clt_should_fail_request(struct rtrs_clt_fault_inject *fault_inject)
-+{
-+	return 0;
-+}
-+#endif
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index f95955fc2992..4f7690137e42 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -1472,6 +1472,7 @@ static struct rtrs_clt_sess *alloc_sess(struct rtrs_clt *clt,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9e876927c60d..716221c9d689 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -15541,8 +15541,8 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jes/linux.git rtl8xxxu-deve
+ F:	drivers/net/wireless/realtek/rtl8xxxu/
  
- void free_sess(struct rtrs_clt_sess *sess)
- {
-+	rtrs_clt_fault_inject_final(&sess->fault_inject);
- 	free_percpu(sess->mp_skip_entry);
- 	mutex_destroy(&sess->init_mutex);
- 	kfree(sess->s.con);
-@@ -2689,6 +2690,8 @@ struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
- 			free_sess(sess);
- 			goto close_all_sess;
- 		}
-+
-+		rtrs_clt_fault_inject_init(&sess->fault_inject, sess);
- 	}
- 	err = alloc_permits(clt);
- 	if (err)
-@@ -2861,6 +2864,10 @@ int rtrs_clt_request(int dir, struct rtrs_clt_req_ops *ops,
- 		if (unlikely(READ_ONCE(sess->state) != RTRS_CLT_CONNECTED))
- 			continue;
- 
-+		err = rtrs_clt_should_fail_request(&sess->fault_inject);
-+		if (unlikely(err))
-+			continue;
-+
- 		if (unlikely(usr_len + hdr_len > sess->max_hdr_size)) {
- 			rtrs_wrn_rl(sess->clt,
- 				     "%s request failed, user message size is %zu and header length %zu, but max size is %u\n",
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-index 692bc83e1f09..59ea2ec44fe5 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-@@ -12,6 +12,7 @@
- 
- #include <linux/device.h>
- #include "rtrs-pri.h"
-+#include "rtrs-fault.h"
- 
- /**
-  * enum rtrs_clt_state - Client states.
-@@ -122,6 +123,13 @@ struct rtrs_rbuf {
- 	u32 rkey;
- };
- 
-+struct rtrs_clt_fault_inject {
-+#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
-+	struct rtrs_fault_inject fj;
-+	bool fail_request;
-+#endif
-+};
-+
- struct rtrs_clt_sess {
- 	struct rtrs_sess	s;
- 	struct rtrs_clt	*clt;
-@@ -150,6 +158,7 @@ struct rtrs_clt_sess {
- 	char                    hca_name[IB_DEVICE_NAME_MAX];
- 	struct list_head __percpu
- 				*mp_skip_entry;
-+	struct rtrs_clt_fault_inject	fault_inject;
- };
- 
- struct rtrs_clt {
-@@ -250,4 +259,8 @@ int rtrs_clt_create_sess_files(struct rtrs_clt_sess *sess);
- void rtrs_clt_destroy_sess_files(struct rtrs_clt_sess *sess,
- 				  const struct attribute *sysfs_self);
- 
-+void rtrs_clt_fault_inject_init(struct rtrs_clt_fault_inject *fault_inject,
-+				struct rtrs_clt_sess *sess);
-+void rtrs_clt_fault_inject_final(struct rtrs_clt_fault_inject *fault_inject);
-+int rtrs_clt_should_fail_request(struct rtrs_clt_fault_inject *fault_inject);
- #endif /* RTRS_CLT_H */
+ RTRS TRANSPORT DRIVERS
+-M:	Danil Kipnis <danil.kipnis@cloud.ionos.com>
+-M:	Jack Wang <jinpu.wang@cloud.ionos.com>
++M:	Md. Haris Iqbal <haris.iqbal@ionos.com>
++M:	Jack Wang <jinpu.wang@ionos.com>
+ L:	linux-rdma@vger.kernel.org
+ S:	Maintained
+ F:	drivers/infiniband/ulp/rtrs/
 -- 
 2.25.1
 
