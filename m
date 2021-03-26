@@ -2,131 +2,94 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,
+	DATE_IN_FUTURE_12_24,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03281C433C1
-	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 08:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55659C433DB
+	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 09:03:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1A5561A0D
-	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 08:46:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B27661879
+	for <linux-rdma@archiver.kernel.org>; Thu, 25 Mar 2021 09:03:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229666AbhCYIqV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 25 Mar 2021 04:46:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57056 "EHLO mail.kernel.org"
+        id S229900AbhCYJDO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 25 Mar 2021 05:03:14 -0400
+Received: from mga05.intel.com ([192.55.52.43]:27743 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229653AbhCYIpv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 25 Mar 2021 04:45:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6734F619F3;
-        Thu, 25 Mar 2021 08:45:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616661951;
-        bh=8FTkRCLDyoEVtkmGm03ZpFYFgZFnI9eioa+y3ybKPeE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=jhGQS+O/q2JI2GWuQvnwkgI03j70tSQMzhPhwB0fptitO5HsF9wV3Mopk7lU2jk+b
-         A+8dHSZ1MKzZsJJI5BRvi1qu0o5t8ibJ6ZUXLEa2xJ47+YMekfqoNLuqbgP78w+tVD
-         hUgsvRvfjFmmyUW0jS6pJpzes6T0rJhcrNTktZS+dAvu9tYStNI4Nkpz5Og4/YEFET
-         YIQUGxtr/nyIovSmmRNVLUhi8ZGZyR1re6WFTjgwvR0aTO8TFOU4KdFIhn3Obgbf2B
-         fqFBCgO8IHc7giWIBry29H0C835HkRRBU9pEJYmLll61TV+kF4iTzblA18UdC9PG1E
-         nzprcNoLxGGPA==
-Date:   Thu, 25 Mar 2021 10:45:47 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        "dledford@redhat.com" <dledford@redhat.com>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
-        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: Re: [PATCH v2 08/23] RDMA/irdma: Register auxiliary driver and
- implement private channel OPs
-Message-ID: <YFxNu0Zx38IXk4rb@unreal>
-References: <20210324000007.1450-1-shiraz.saleem@intel.com>
- <20210324000007.1450-9-shiraz.saleem@intel.com>
- <YFtC9hWHYiCR9vIC@unreal>
- <20210324140046.GA481507@nvidia.com>
- <YFtJ8EraVBJsYjuT@unreal>
- <20210324143509.GB481507@nvidia.com>
- <cc3dfb411c2248fdb3a5adc042d22893@intel.com>
+        id S229617AbhCYJDL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 25 Mar 2021 05:03:11 -0400
+IronPort-SDR: 3kJma+e7uM18fR7WBK9RDEW6l1XVxHDtuti49sD0bxgh3/I49ZTGWzOral70RE0/q/WIffmBpG
+ 13laLws87Jlg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9933"; a="276011801"
+X-IronPort-AV: E=Sophos;i="5.81,277,1610438400"; 
+   d="scan'208";a="276011801"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2021 02:03:10 -0700
+IronPort-SDR: px1i2j0Xj6TAPgQfC7ipHpCwN5f3Pcjh80AVqA2uW/2XAsjmxVf6PvzGTjcGlo2zyzgIz4YSOc
+ sXJ1cAUe9WFg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.81,277,1610438400"; 
+   d="scan'208";a="391646254"
+Received: from unknown (HELO intel-86.bj.intel.com) ([10.238.154.86])
+  by orsmga002.jf.intel.com with ESMTP; 25 Mar 2021 02:03:07 -0700
+From:   Zhu Yanjun <yanjun.zhu@intel.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        leon@kernel.org
+Cc:     Zhu Yanjun <zyjzyj2000@gmail.com>, Yi Zhang <yi.zhang@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>
+Subject: [PATCHv3 for-next 1/1] RDMA/rxe: Disable ipv6 features when ipv6.disable set in cmdline
+Date:   Thu, 25 Mar 2021 21:27:23 -0400
+Message-Id: <20210326012723.41769-1-yanjun.zhu@intel.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cc3dfb411c2248fdb3a5adc042d22893@intel.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Mar 24, 2021 at 11:46:42PM +0000, Saleem, Shiraz wrote:
-> > Subject: Re: [PATCH v2 08/23] RDMA/irdma: Register auxiliary driver and
-> > implement private channel OPs
-> > 
-> > On Wed, Mar 24, 2021 at 04:17:20PM +0200, Leon Romanovsky wrote:
-> > > On Wed, Mar 24, 2021 at 11:00:46AM -0300, Jason Gunthorpe wrote:
-> > > > On Wed, Mar 24, 2021 at 03:47:34PM +0200, Leon Romanovsky wrote:
-> > > > > On Tue, Mar 23, 2021 at 06:59:52PM -0500, Shiraz Saleem wrote:
-> > > > > > From: Mustafa Ismail <mustafa.ismail@intel.com>
-> > > > > >
-> > > > > > Register auxiliary drivers which can attach to auxiliary RDMA
-> > > > > > devices from Intel PCI netdev drivers i40e and ice. Implement
-> > > > > > the private channel ops, and register net notifiers.
-> > > > > >
-> > > > > > Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-> > > > > > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
-> > > > > > drivers/infiniband/hw/irdma/i40iw_if.c | 229 +++++++++++++
-> > > > > >  drivers/infiniband/hw/irdma/main.c     | 382 ++++++++++++++++++++++
-> > > > > >  drivers/infiniband/hw/irdma/main.h     | 565
-> > +++++++++++++++++++++++++++++++++
-> > > > > >  3 files changed, 1176 insertions(+)  create mode 100644
-> > > > > > drivers/infiniband/hw/irdma/i40iw_if.c
-> > > > > >  create mode 100644 drivers/infiniband/hw/irdma/main.c
-> > > > > >  create mode 100644 drivers/infiniband/hw/irdma/main.h
-> > > > >
-> > > > > <...>
-> > > > >
-> > > > > > +/* client interface functions */ static const struct
-> > > > > > +i40e_client_ops i40e_ops = {
-> > > > > > +	.open = i40iw_open,
-> > > > > > +	.close = i40iw_close,
-> > > > > > +	.l2_param_change = i40iw_l2param_change };
-> > > > > > +
-> > > > > > +static struct i40e_client i40iw_client = {
-> > > > > > +	.ops = &i40e_ops,
-> > > > > > +	.type = I40E_CLIENT_IWARP,
-> > > > > > +};
-> > > > > > +
-> > > > > > +static int i40iw_probe(struct auxiliary_device *aux_dev, const
-> > > > > > +struct auxiliary_device_id *id) {
-> > > > > > +	struct i40e_auxiliary_device *i40e_adev = container_of(aux_dev,
-> > > > > > +							       struct
-> > i40e_auxiliary_device,
-> > > > > > +							       aux_dev);
-> > > > > > +	struct i40e_info *cdev_info = i40e_adev->ldev;
-> > > > > > +
-> > > > > > +	strncpy(i40iw_client.name, "irdma", I40E_CLIENT_STR_LENGTH);
-> > > > > > +	cdev_info->client = &i40iw_client;
-> > > > > > +	cdev_info->aux_dev = aux_dev;
-> > > > > > +
-> > > > > > +	return cdev_info->ops->client_device_register(cdev_info);
-> > > > >
-> > > > > Why do we need all this indirection? I see it as leftover from
-> > > > > previous version where you mixed auxdev with your peer registration logic.
-> > > >
-> > > > I think I said the new stuff has to be done sanely, but the i40iw
-> > > > stuff is old and already like this.
-> > >
-> > > They declared this specific "ops" a couple of lines above and all the
-> > > functions are static. At least for the new code, in the irdma, this "ops"
-> > > thing is not needed.
-> > 
-> > It is the code in the 'core' i40iw driver that requries this, AFAICT
-> > 
->  Yes.
+From: Zhu Yanjun <zyjzyj2000@gmail.com>
 
-It is worth to fix.
+When ipv6.disable=1 is set in cmdline, ipv6 is actually disabled
+in the stack. As such, the operations of ipv6 in RXE will fail.
+So ipv6 features in RXE should also be disabled in RXE.
 
-Thanks
+Fixes: 8700e3e7c4857 ("Soft RoCE driver")
+Reported-by: Yi Zhang <yi.zhang@redhat.com>
+Signed-off-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Tested-by: Yi Zhang <yi.zhang@redhat.com>
+---
+V2->V3: Remove print message
+V1->V2: Modify the pr_info messages
+---
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 01662727dca0..3b8ed007e8af 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -72,6 +72,9 @@ static struct dst_entry *rxe_find_route6(struct net_device *ndev,
+ 	struct dst_entry *ndst;
+ 	struct flowi6 fl6 = { { 0 } };
+ 
++	if (!ipv6_mod_enabled())
++		return NULL;
++
+ 	memset(&fl6, 0, sizeof(fl6));
+ 	fl6.flowi6_oif = ndev->ifindex;
+ 	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
+@@ -616,6 +619,8 @@ static int rxe_net_ipv4_init(void)
+ static int rxe_net_ipv6_init(void)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
++	if (!ipv6_mod_enabled())
++		return 0;
+ 
+ 	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
+ 						htons(ROCE_V2_UDP_DPORT), true);
+-- 
+2.27.0
+
