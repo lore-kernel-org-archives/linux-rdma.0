@@ -4,87 +4,176 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D17C433E8
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 02:27:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC56C433C1
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 03:24:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 522FD61A21
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 02:27:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83106619AB
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 03:24:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231202AbhC0C0k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 26 Mar 2021 22:26:40 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14623 "EHLO
+        id S230350AbhC0DYX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 26 Mar 2021 23:24:23 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14625 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230236AbhC0C0L (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Mar 2021 22:26:11 -0400
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F6jMV5ZzZz1BFd5;
-        Sat, 27 Mar 2021 10:24:06 +0800 (CST)
-Received: from huawei.com (10.175.101.6) by DGGEMS402-HUB.china.huawei.com
- (10.3.19.202) with Microsoft SMTP Server id 14.3.498.0; Sat, 27 Mar 2021
- 10:26:04 +0800
-From:   Lu Wei <luwei32@huawei.com>
-To:     <vyasevich@gmail.com>, <nhorman@tuxdriver.com>,
-        <marcelo.leitner@gmail.com>, <davem@davemloft.net>,
-        <kuba@kernel.org>, <linux-sctp@vger.kernel.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <sgarzare@redhat.com>, <jhansen@vmware.com>,
-        <colin.king@canonical.com>, <nslusarek@gmx.net>,
-        <andraprs@amazon.com>, <alex.popov@linux.com>,
-        <santosh.shilimkar@oracle.com>, <linux-rdma@vger.kernel.org>,
-        <rds-devel@oss.oracle.com>
-Subject: [PATCH -next 2/3] net: sctp: Fix some typos
-Date:   Sat, 27 Mar 2021 10:27:23 +0800
-Message-ID: <20210327022724.241376-3-luwei32@huawei.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210327022724.241376-1-luwei32@huawei.com>
-References: <20210327022724.241376-1-luwei32@huawei.com>
+        with ESMTP id S230150AbhC0DYL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Mar 2021 23:24:11 -0400
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F6kfQ4khXz1BGrx;
+        Sat, 27 Mar 2021 11:22:06 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.24) by
+ DGGEMS413-HUB.china.huawei.com (10.3.19.213) with Microsoft SMTP Server id
+ 14.3.498.0; Sat, 27 Mar 2021 11:24:02 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>
+Subject: [PATCH v2 for-next 4/5] RDMA/hns: Reorganize process of setting HEM
+Date:   Sat, 27 Mar 2021 11:21:33 +0800
+Message-ID: <1616815294-13434-5-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1616815294-13434-1-git-send-email-liweihang@huawei.com>
+References: <1616815294-13434-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Originating-IP: [10.175.101.6]
+X-Originating-IP: [10.67.165.24]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Modify "unkown" to "unknown" in net/sctp/sm_make_chunk.c and
-Modify "orginal" to "original" in net/sctp/socket.c.
+From: Xi Wang <wangxi11@huawei.com>
 
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Lu Wei <luwei32@huawei.com>
+Encapsulate configuring GMV base address and other type of HEM table into
+two separate functions to make process of setting HEM clearer.
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- net/sctp/sm_make_chunk.c | 2 +-
- net/sctp/socket.c        | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 77 +++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 33 deletions(-)
 
-diff --git a/net/sctp/sm_make_chunk.c b/net/sctp/sm_make_chunk.c
-index f77484df097b..54e6a708d06e 100644
---- a/net/sctp/sm_make_chunk.c
-+++ b/net/sctp/sm_make_chunk.c
-@@ -3217,7 +3217,7 @@ bool sctp_verify_asconf(const struct sctp_association *asoc,
- 				return false;
- 			break;
- 		default:
--			/* This is unkown to us, reject! */
-+			/* This is unknown to us, reject! */
- 			return false;
- 		}
- 	}
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index a710917c5ac7..76a388b5021c 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -9327,7 +9327,7 @@ void sctp_copy_sock(struct sock *newsk, struct sock *sk,
- 	if (newsk->sk_flags & SK_FLAGS_TIMESTAMP)
- 		net_enable_timestamp();
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index d3a2045..5d499df 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1400,6 +1400,21 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
  
--	/* Set newsk security attributes from orginal sk and connection
-+	/* Set newsk security attributes from original sk and connection
- 	 * security attribute from ep.
- 	 */
- 	security_sctp_sk_clone(ep, sk, newsk);
++static int config_hem_ba_to_hw(struct hns_roce_dev *hr_dev, unsigned long obj,
++			       dma_addr_t base_addr, u16 op)
++{
++	struct hns_roce_cmd_mailbox *mbox = hns_roce_alloc_cmd_mailbox(hr_dev);
++	int ret;
++
++	if (IS_ERR(mbox))
++		return PTR_ERR(mbox);
++
++	ret = hns_roce_cmd_mbox(hr_dev, base_addr, mbox->dma, obj, 0, op,
++				HNS_ROCE_CMD_TIMEOUT_MSECS);
++	hns_roce_free_cmd_mailbox(hr_dev, mbox);
++	return ret;
++}
++
+ static int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_query_version *resp;
+@@ -3779,12 +3794,9 @@ static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
+ }
+ 
+ static int get_op_for_set_hem(struct hns_roce_dev *hr_dev, u32 type,
+-			      int step_idx)
++			      int step_idx, u16 *mbox_op)
+ {
+-	int op;
+-
+-	if (type == HEM_TYPE_SCCC && step_idx)
+-		return -EINVAL;
++	u16 op;
+ 
+ 	switch (type) {
+ 	case HEM_TYPE_QPC:
+@@ -3809,51 +3821,50 @@ static int get_op_for_set_hem(struct hns_roce_dev *hr_dev, u32 type,
+ 		op = HNS_ROCE_CMD_WRITE_CQC_TIMER_BT0;
+ 		break;
+ 	default:
+-		dev_warn(hr_dev->dev,
+-			 "table %u not to be written by mailbox!\n", type);
++		dev_warn(hr_dev->dev, "failed to check hem type %u.\n", type);
+ 		return -EINVAL;
+ 	}
+ 
+-	return op + step_idx;
++	*mbox_op = op + step_idx;
++
++	return 0;
+ }
+ 
+-static int set_hem_to_hw(struct hns_roce_dev *hr_dev, int obj, u64 bt_ba,
+-			 u32 hem_type, int step_idx)
++static int config_gmv_ba_to_hw(struct hns_roce_dev *hr_dev, unsigned long obj,
++			       dma_addr_t base_addr)
+ {
+-	struct hns_roce_cmd_mailbox *mailbox;
+ 	struct hns_roce_cmq_desc desc;
+ 	struct hns_roce_cfg_gmv_bt *gmv_bt =
+ 				(struct hns_roce_cfg_gmv_bt *)desc.data;
+-	int ret;
+-	int op;
++	u64 addr = to_hr_hw_page_addr(base_addr);
+ 
+-	if (hem_type == HEM_TYPE_GMV) {
+-		hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_CFG_GMV_BT,
+-					      false);
++	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_CFG_GMV_BT, false);
+ 
+-		gmv_bt->gmv_ba_l = cpu_to_le32(bt_ba >> HNS_HW_PAGE_SHIFT);
+-		gmv_bt->gmv_ba_h = cpu_to_le32(bt_ba >> (HNS_HW_PAGE_SHIFT +
+-							 32));
+-		gmv_bt->gmv_bt_idx = cpu_to_le32(obj /
+-			(HNS_HW_PAGE_SIZE / hr_dev->caps.gmv_entry_sz));
++	gmv_bt->gmv_ba_l = cpu_to_le32(lower_32_bits(addr));
++	gmv_bt->gmv_ba_h = cpu_to_le32(upper_32_bits(addr));
++	gmv_bt->gmv_bt_idx = cpu_to_le32(obj /
++		(HNS_HW_PAGE_SIZE / hr_dev->caps.gmv_entry_sz));
+ 
+-		return hns_roce_cmq_send(hr_dev, &desc, 1);
+-	}
++	return hns_roce_cmq_send(hr_dev, &desc, 1);
++}
+ 
+-	op = get_op_for_set_hem(hr_dev, hem_type, step_idx);
+-	if (op < 0)
+-		return 0;
++static int set_hem_to_hw(struct hns_roce_dev *hr_dev, int obj,
++			 dma_addr_t base_addr, u32 hem_type, int step_idx)
++{
++	int ret;
++	u16 op;
+ 
+-	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
+-	if (IS_ERR(mailbox))
+-		return PTR_ERR(mailbox);
++	if (unlikely(hem_type == HEM_TYPE_GMV))
++		return config_gmv_ba_to_hw(hr_dev, obj, base_addr);
+ 
+-	ret = hns_roce_cmd_mbox(hr_dev, bt_ba, mailbox->dma, obj,
+-				0, op, HNS_ROCE_CMD_TIMEOUT_MSECS);
++	if (unlikely(hem_type == HEM_TYPE_SCCC && step_idx))
++		return 0;
+ 
+-	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
++	ret = get_op_for_set_hem(hr_dev, hem_type, step_idx, &op);
++	if (ret < 0)
++		return ret;
+ 
+-	return ret;
++	return config_hem_ba_to_hw(hr_dev, obj, base_addr, op);
+ }
+ 
+ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
 -- 
-2.17.1
+2.8.1
 
