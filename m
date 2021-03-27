@@ -2,84 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38805C433E0
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 01:41:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C024C433E3
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 02:27:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 157CB61A1E
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 01:41:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 661BC61A24
+	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 02:27:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230121AbhC0BlD convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 26 Mar 2021 21:41:03 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:3388 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230114AbhC0Bkt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Mar 2021 21:40:49 -0400
-Received: from dggeml406-hub.china.huawei.com (unknown [172.30.72.57])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4F6hLZ15W8z5ggC;
-        Sat, 27 Mar 2021 09:38:14 +0800 (CST)
-Received: from dggema754-chm.china.huawei.com (10.1.198.196) by
- dggeml406-hub.china.huawei.com (10.3.17.50) with Microsoft SMTP Server (TLS)
- id 14.3.498.0; Sat, 27 Mar 2021 09:40:47 +0800
-Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggema754-chm.china.huawei.com (10.1.198.196) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2106.2; Sat, 27 Mar 2021 09:40:47 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2106.013;
- Sat, 27 Mar 2021 09:40:47 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linuxarm@openeuler.org" <linuxarm@openeuler.org>
-Subject: Re: [PATCH for-next 0/5] RDMA/hns: Refactor and reorganization
-Thread-Topic: [PATCH for-next 0/5] RDMA/hns: Refactor and reorganization
-Thread-Index: AQHXGw274uV4421JFEqzSdafmIcBNA==
-Date:   Sat, 27 Mar 2021 01:40:47 +0000
-Message-ID: <d95ba34ad6ec40cdb5188b13780bf54c@huawei.com>
-References: <1615972183-42510-1-git-send-email-liweihang@huawei.com>
- <20210326144726.GA845659@nvidia.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S230372AbhC0C0j (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 26 Mar 2021 22:26:39 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14624 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230106AbhC0C0K (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Mar 2021 22:26:10 -0400
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4F6jMV56rtz1BFd4;
+        Sat, 27 Mar 2021 10:24:06 +0800 (CST)
+Received: from huawei.com (10.175.101.6) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.498.0; Sat, 27 Mar 2021
+ 10:26:05 +0800
+From:   Lu Wei <luwei32@huawei.com>
+To:     <vyasevich@gmail.com>, <nhorman@tuxdriver.com>,
+        <marcelo.leitner@gmail.com>, <davem@davemloft.net>,
+        <kuba@kernel.org>, <linux-sctp@vger.kernel.org>,
+        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <sgarzare@redhat.com>, <jhansen@vmware.com>,
+        <colin.king@canonical.com>, <nslusarek@gmx.net>,
+        <andraprs@amazon.com>, <alex.popov@linux.com>,
+        <santosh.shilimkar@oracle.com>, <linux-rdma@vger.kernel.org>,
+        <rds-devel@oss.oracle.com>
+Subject: [PATCH -next 3/3] net: vsock: Fix a typo
+Date:   Sat, 27 Mar 2021 10:27:24 +0800
+Message-ID: <20210327022724.241376-4-luwei32@huawei.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20210327022724.241376-1-luwei32@huawei.com>
+References: <20210327022724.241376-1-luwei32@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.175.101.6]
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/3/26 22:47, Jason Gunthorpe wrote:
-> On Wed, Mar 17, 2021 at 05:09:38PM +0800, Weihang Li wrote:
->> Refactor the process of polling CQ and several control paths in the hns
->> driver.
->>
->> Weihang Li (1):
->>   RDMA/hns: Refactor hns_roce_v2_poll_one()
->>
->> Xi Wang (3):
->>   RDMA/hns: Refactor reset state checking flow
->>   RDMA/hns: Reorganize process of setting HEM
->>   RDMA/hns: Simplify command fields for HEM base address configuration
->>
->> Yixing Liu (1):
->>   RDMA/hns: Reorganize hns_roce_create_cq()
-> 
-> This series doesn't apply, please resend it
-> 
-> Jason
-> 
+Modify "occured" to "occurred" in net/vmw_vsock/af_vsock.c.
 
-Sorry for that, I will do a rebase.
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: Lu Wei <luwei32@huawei.com>
+---
+ net/vmw_vsock/af_vsock.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thank you
-Weihang
+diff --git a/net/vmw_vsock/af_vsock.c b/net/vmw_vsock/af_vsock.c
+index 5546710d8ac1..01eebfecf1d7 100644
+--- a/net/vmw_vsock/af_vsock.c
++++ b/net/vmw_vsock/af_vsock.c
+@@ -1854,7 +1854,7 @@ vsock_stream_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+ 	if (!transport || sk->sk_state != TCP_ESTABLISHED) {
+ 		/* Recvmsg is supposed to return 0 if a peer performs an
+ 		 * orderly shutdown. Differentiate between that case and when a
+-		 * peer has not connected or a local shutdown occured with the
++		 * peer has not connected or a local shutdown occurred with the
+ 		 * SOCK_DONE flag.
+ 		 */
+ 		if (sock_flag(sk, SOCK_DONE))
+-- 
+2.17.1
+
