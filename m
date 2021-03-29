@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EAE3C433DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9734CC433E2
 	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:56:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 329446191B
+	by mail.kernel.org (Postfix) with ESMTP id 73CB861938
 	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:56:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230435AbhC2Nzm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Mar 2021 09:55:42 -0400
-Received: from mail-mw2nam10on2117.outbound.protection.outlook.com ([40.107.94.117]:39169
-        "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
+        id S229709AbhC2Nzp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Mar 2021 09:55:45 -0400
+Received: from mail-mw2nam12on2105.outbound.protection.outlook.com ([40.107.244.105]:45024
+        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S231506AbhC2NzK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S231639AbhC2NzK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Mon, 29 Mar 2021 09:55:10 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FsqeyCuWgYPbeDjEWk3cu6szKlLV5YDJExxDhaarEygdJe9an/Kk2qQhkPqqUNrq4q2sTDQuB5UfLqzPDMgzKDp5Th/ObUQNAsr1jDtwhoZd4cueuUMUjH0kwwzKDDBD+ipicNl0lgvw0umWm8LuK6iYIgo29voQMTK/IeXUWDVFF9mVuAx8G/W7sIG5SjHedUBgEKRTuc3JJcTguwvhu+bvWt/IQdutkfNp2jr1+sVkiOWegwkwXsZ7xipFuyxi/uRG9lNFzrOY/WLqJH47jwT4TkOGWzdamC7XeY1atc2b3/TIlXJ7BDah7RFzHzaujDTNqJS5b0qw4w8sP3IrMQ==
+ b=WPDpLZUFQ4wOKkJCR1dVlJQpeHQPqEvFdpOomqb4S7ztuUcG5smDnjm0VifQaaoOOEmxi3mVUqD0Qqq6XPumgxEmQX2m1UjmPYibYkpv9tayP6Fayt6xAkX9a3bTh5adyoD0ToCgIqDcNlsMdvGY/yCstOPSc1UkTvr1bsTDX2v3RgHnJSmiWFt1Fa1coiNC6CJ29Iz+1ABRFc6d6KQ8T5CK8rvB8zHztp2K28k6PZxMfRVvrUEZ36QEPU4sEON7BsanTspHDD9F9z4nfRbUbnoYeBTp7VlTVQosVWczfR7x5bDEYpvucnXVByB82rgBoh7eQ/aqXcfQSQV14mwNOg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=R2BOkRYdoz9V1U9MKdWuTN5zyFBUcDFL+1Op7U84bwg=;
- b=DgYIoM8FaZNceKMP+O9zqSb4XuoRPwUi5FkvU7K2BAMSLCUsPe1EDl7vcBUMwwWedYPHCXfZi2Cu9mpKjVyFCLHnSRHo2tzPFrnPtbVN3zkgfwtqEN2D6Q1qtLJl3mq0KtaMIK7Hf+NK015xsR5oR0rN1HBkTXqRjEzC2vgJYI/E+4OfYeu6UzkpmS1XHr15jA4uElqTUnkeX2XxYy1Z9lz8LosMLfOmeFIthK6CJFB/gA33iPOglE1/cIn4D5E1h4edLkmvIgfe6bzCLKmKVsVzgQz4NXnrFBELMRdr3rghpVO2KH+b9n2jD564D+rb0Lzh2L20nKt6w4dwNnx53w==
+ bh=5NzrF1Sqv2HWrKDIDpjb29M49Kx4F4GAB7lXGc+tvYo=;
+ b=LfGoyd4iRIHq692hhGHxZGgmvtNxGoz7ZP2Y7qbd5wFvq9k2YeShKdcZJrQwdbfMxki9QSvRetUQJ75lCbTae3MI+ZDATARulV4GeudOHlOMKRESid9AgqdAXErOiy9kqC3gf2Rb/nI7GkqmsSjS1cCDHBrFME4CZQMyNirU8xyVrsbVTx9ON0eP0RnvSs12Hp3PGWV2YaLKG5p1tJBIy/+hNiNZ6BIZ6MVXw2d9Hy4yWzrbZgqgmEEdHeSv4VCAe0GNWLuw10NNkiUL1FSYBWFzUGk8Uvo3ruDXlQzTqKWEGmNI4gFBYiLicDA30XpEsfoJE+qDDoV/Uum7cOZ45A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass action=none
  header.from=cornelisnetworks.com; dkim=pass header.d=cornelisnetworks.com;
@@ -34,27 +34,27 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=R2BOkRYdoz9V1U9MKdWuTN5zyFBUcDFL+1Op7U84bwg=;
- b=WNHSPvmwjc4w1xavylN1yLCiof1fNvp8nPUJ0/paA7RjW/zLtungGqPbJYefnyDZ6JfBTPbfFhqIjpyn9y1pL8GL3sfpSU9TZ5xyW1+uG7/Njk5Ek+ObXd+x8hxR+3kZhq7fRmPZJgRzvyYYzoNdgj75sAp/p4/huYBKb1x8LvwBwBn5FXJaXIy6m1+PB1srb81BQ/r3fSk0sB04v/JwtBAEI7jwQs8E4pcSonH1f47Kf21ECmyYxDzxWvJ3siFq4ZO4gGM2a2aXCGwEGVDXGfwC9pXFyRFTPoEy7zQVAANeumi/owrs2Dox4cteQT+4ZzeCLFgRNZzGE5SMJAtolQ==
+ bh=5NzrF1Sqv2HWrKDIDpjb29M49Kx4F4GAB7lXGc+tvYo=;
+ b=UNunO8kHm3VQ5WSSCYTR5QpnOrbkc77pXdOoeMn5WMuLrlLyq/JsQqtj2EkJiXD8Eu4QYMxUHo7I4wL+TRjp69cGziR9uqRLqpu9Pb9dUx4pl1Ej3UEWkTLEsM0fViQ5GVdYE8TV62OBBzDxm6We+T8aXL4dEuHyxo0MTMqIPOG+HEg3ZUUSrwb94/SvNsMXPLziUEex+0CcMQutC1FeO5n9t4oDPxgRvpV0BQkLcyVZeyb0vWzAVZVXrePEip/R4smGvWO8L9ufKXNJ01SNoC6T3g/R279S+2qsGygW0hvnfeNr2u2JY130gzhbObPRkq+yWbH39Iyq2MoUnFsVSw==
 Authentication-Results: redhat.com; dkim=none (message not signed)
  header.d=none;redhat.com; dmarc=none action=none
  header.from=cornelisnetworks.com;
 Received: from PH0PR01MB6439.prod.exchangelabs.com (2603:10b6:510:d::22) by
- PH0PR01MB6604.prod.exchangelabs.com (2603:10b6:510:79::9) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3955.18; Mon, 29 Mar 2021 13:55:07 +0000
+ PH0PR01MB6729.prod.exchangelabs.com (2603:10b6:510:97::16) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.3977.32; Mon, 29 Mar 2021 13:55:09 +0000
 Received: from PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860]) by PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860%5]) with mapi id 15.20.3977.033; Mon, 29 Mar 2021
- 13:55:06 +0000
+ 13:55:09 +0000
 From:   dennis.dalessandro@cornelisnetworks.com
 To:     dledford@redhat.com, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+Cc:     linux-rdma@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>,
+        Kaike Wan <kaike.wan@cornelisnetworks.com>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Subject: [PATCH for-next 07/10] IB/hfi1: Add additional usdma traces
-Date:   Mon, 29 Mar 2021 09:54:13 -0400
-Message-Id: <1617026056-50483-8-git-send-email-dennis.dalessandro@cornelisnetworks.com>
+Subject: [PATCH for-next 09/10] IB/hfi1: Remove unused function
+Date:   Mon, 29 Mar 2021 09:54:15 -0400
+Message-Id: <1617026056-50483-10-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 References: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
@@ -65,217 +65,96 @@ X-ClientProxiedBy: SJ0PR03CA0166.namprd03.prod.outlook.com
  (2603:10b6:510:d::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:55:06 +0000
+Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:55:08 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b9773d67-c90a-4f15-0f3c-08d8f2ba4281
-X-MS-TrafficTypeDiagnostic: PH0PR01MB6604:
+X-MS-Office365-Filtering-Correlation-Id: 665c120e-6320-4557-e05a-08d8f2ba43ca
+X-MS-TrafficTypeDiagnostic: PH0PR01MB6729:
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <PH0PR01MB6604639C3C2DD0CBCA1E8716F47E9@PH0PR01MB6604.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:274;
+X-Microsoft-Antispam-PRVS: <PH0PR01MB67297DD152A847104327FFD5F47E9@PH0PR01MB6729.prod.exchangelabs.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4303;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: gC5D01Fhhz6g69eB+nkCemVJA26EIziursbodHmYWN0tuYPXOV+VvkqJtoQwzRyi3lC5TLjEw3LeBCdKmJksiXsJUAa9PlonD24eeVX1VO+7GNw9giryOWfOqw5Smc2iUpPEvBh9JhH8i9LhTkc/JPHO7SOLjtGiwLqJT80Id/IHeJSOTY0MOIy0HbTeg+bMJjEXW0MCs6sYT3btei5YSSan4jReVLjjme8IqzSU1UYRmGaqh5Mo4Jlkfph8+YAMA6G3TGUj/DvechRVX38jDOtUSttxutCzcpJDlA0O5n8bfH7YSN+weqAu3K9fZEFTL5OnGZvtOxyM0GvI2bo+DwQZygexXTKDRcXE21NimeIYmVZimj/UX9AVVE+KLJKY1erBoXaOkTdNMI2u/5WZGyZTcHiayiF2qCsxEWeL+TNr9VdC2MpxjhV4VlEDxsEQ9uFk+1ykHR+lJc7Mo8nUqDtKMYF5jVWfZ/iQu0XeQ2O75/LX5Ca5j2EU/SpXGPCMK4fGH6SrjuGPGAKDA2SPZiVE7r+xrgAf6Eh7nKBrgRDeGYs3Swh4r4Z0jqbPqNkIWgGN7sOrIIoyOfE9JDG/FPRE17M/LANjCBG9l8Z7P/0r3RNxS5XbDspQ7n2rI//RjKhnDol4+746TfLqLrZlBSUJBVHDbxCPoGcNYrot9s/RzNcm4j60tDHgYChyNfQwMsdJxJFUzHmFvedahGuyrMwewbA5LcBiwEPTLdon2xI=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(376002)(396003)(39830400003)(366004)(136003)(956004)(2616005)(186003)(66556008)(66476007)(66946007)(36756003)(26005)(83380400001)(5660300002)(316002)(16526019)(54906003)(9686003)(52116002)(7696005)(6666004)(2906002)(86362001)(4326008)(966005)(6486002)(8676002)(107886003)(38100700001)(8936002)(478600001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?T0gcTIguBEoI9CyoYn1L79qYSfpeF3bD1afs/7mk0NsMAgpkaDkiSlu8dPIN?=
- =?us-ascii?Q?RUSmmH/ECxNil4FQ9CzUeGxtDDNuyWIToDQJi8Uz/4ND8sYu7L8AUnVYYhL8?=
- =?us-ascii?Q?xAOGPSBPjYUnnyp3ojYTpy6XCnB/dqvkhHOMrM+M0EVptVRYj6rlOva028yx?=
- =?us-ascii?Q?FxQRquzpLiW7gawqgcSBvp4iXGX44b9ZVAKODhoTupelowwrDCP5v7XPhvNx?=
- =?us-ascii?Q?I9kTdEJl9SslG1j/nbjf/LrANpbSJpzMGAFyBMrshArEnq9SBkUnkvrVwR4V?=
- =?us-ascii?Q?5Dh8HPeFeKKOkPwAN+XTzKZw5klwistnpGSAYywKIULI+2LO7vwMig/d1G6D?=
- =?us-ascii?Q?8EPnSCXxzMJXHN1qboYbpuKPsOPRdmOD79CpQtnp6jkamCg5zoii9OSTc6wc?=
- =?us-ascii?Q?3APqY0LnsDmr18BJscyY5gqQxK9vVnnnyA8Qw9AcozMg5gfCuXGqDInkklkO?=
- =?us-ascii?Q?tTNeIoQsPcyjsds3rmn9yvoJ9j4gn2rVUM+GgVtgDfcAt1OkAQAqYLrwOk0w?=
- =?us-ascii?Q?JBu0QjDWvB1n0tuogGkpL9TkGzGnajUtg3fQ8EAkA5bOWQlaurON6Ub2b8/1?=
- =?us-ascii?Q?945uAl3qAFparYt3tB5HMSL1X2wvf4pASciplOlAcNjTxOIxheS+8FTYu5f2?=
- =?us-ascii?Q?sO7C3hGkconqDS4mmgEBn/zmcrBPevdmafQ0Bx8G3ip5yU5/UiJXkboVf447?=
- =?us-ascii?Q?DWcJc8Nj6MTTAOgmaOSFBcaI2V4txzU5bQ/9DHyB+EBLfzbPkCPu0ufjo3A/?=
- =?us-ascii?Q?dtPGykMFfuiSVaj5CtxM2FSPW9uxXHpID5RjvdnaKIaxMKBGSQ7RPrzf2R2S?=
- =?us-ascii?Q?ZvwrBOAf8jOMeW/O/8bgrbqsFY37JK7+YGdz2arj/CIlrjFMzbUyFvuqehrh?=
- =?us-ascii?Q?byXQb3tjnhpxJm8VAwcJbGbts2mogLUnXp3bmTZIjT+V7aHpJReCkAOml2ca?=
- =?us-ascii?Q?XdiFkhDPoyRzCAl/FFDnb/HxWqGnVvLRx54KHxr1ns0ZlwnM9S/ASTshKa4t?=
- =?us-ascii?Q?xaDbyDgPBTlaVSebMPhLlhu8JoVnuHORULQtDZ0WnyjSvClU8O24s2xhlHvK?=
- =?us-ascii?Q?uw+DYWhii4ixHa2WmTWyI+cO0UvqKOkg58bTAOfC6b8hu4OzgA5ZMmKoXwgf?=
- =?us-ascii?Q?trTW2ju4zfiONbejuVM0vgsjUtRl+rfFeKzBXOxRgxWjeJPzHRt9Z0uDGXYb?=
- =?us-ascii?Q?hlQ55f4YN07/QSCrMu4MxEfsuVIYYRwA12QaWzRaHYlJGg08qAX5b149BTIf?=
- =?us-ascii?Q?xWuaDvQnV2kvjhWv76KzohrPjl7dTcgrTqlM3p9Vb8Ck5yRUkqyBzOqSyNlf?=
- =?us-ascii?Q?sJha/ViZ90RsSyY0tD+Uzu+1?=
+X-Microsoft-Antispam-Message-Info: zEroH+/hNWYoIfkn54u/vGblnyJQRaUH/wxXTYcA5XdrPFaHm+f8QEw4dnfgTS8cpzwDnzLw3F8h0fU3Xc4oTw9xTSwcWADgTT8osXvA3Dj0pBevrp6epsB+9tAoqJrLdgQ15uqNZyRNoxfbPVV9NIAKJF35FbB/jntO0DrHQXhGq24gKa88+u6KURYjUK0r4DPJ6pLHE5owM1JCrbOSf2SkIWjMgJ5LM0hSzTHWBYmkyt1AdGhVtOE72NR9lAGOzZCgXMtD1xkhx5gj6F3VXXT1fwuCLVoj8ENG9Z4gQhSnqC4EdB7WOY7HlgFmWCNKZ0BpxPRdryQXJ4bese1BHeS+CQIfaP4VVflJVzZloHYNA3NO+edIXu9327mo3Cm6Pc0IjIAxaYTqsg9AN6a6C/W6oPUSm+8Nwy01BoNdCWZXNkQSvR26pkkB5pzH1mr8MCOMvxTU0Cah8tCUd9SQsTv7s+Lj6AWy+Ue6hj4YKFsfV3naLBKDbk3sUSORxFrFs1jMB5jKvpFE9v97QbDtm+fbGnA1ZVVfSTtSxILDI/0sJcs3jgcaMTDYmgXBkpu8R0Rvd1GwmqkI2dkgBLNhu8Sd1twa/Jgzo8+eATVHVc1bEpzf5iq2fXe7iOfYYmBEkr0Gw7a7fDYc7lW9HRJs+zgBguEm8U0M1+pE5lrJWU8=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(136003)(396003)(346002)(366004)(39830400003)(9686003)(52116002)(8936002)(8676002)(6486002)(38100700001)(66946007)(316002)(7696005)(16526019)(186003)(2616005)(956004)(66556008)(4326008)(26005)(83380400001)(2906002)(478600001)(54906003)(36756003)(6666004)(66476007)(5660300002)(107886003)(86362001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?C0C8zxxDq8X6QN21FRmttYJWfCKoKFJJugpyGBSRcSoT3uHWa810TfrrvuJH?=
+ =?us-ascii?Q?jkL2fADuTkOAIKVNd1m+47RH0TrLeQU/KC9b5ejAQ6gq+YnBJQ24+/hWeSE6?=
+ =?us-ascii?Q?TeTrZ9/ItGuELeDMAG+bn5+El69W8NKKC71qOCzGiDNkLaBPK5UVj+BjsOiZ?=
+ =?us-ascii?Q?s0KC7FsHQk6dgRqSvJPfAWfmRj/NIiCsOv0xP+5LQ7v0lF7qdgeTWo0al4Gs?=
+ =?us-ascii?Q?8CoE8B3laxGwyfkjunvACQ1e3jtVzxu/hqjbvmuP5mQU0YNRIaWDwyRZmDty?=
+ =?us-ascii?Q?nyTa8/u2R7VVap0Am9268sdApZRJtx/D7dV4f3Ay7bc1ifqTln4IpKLs0WjV?=
+ =?us-ascii?Q?vahE2OydRCkhWZImfzbceHK3rmueFvvqTxaPENqUh6DuIi4gQ7nmvEtXl/UF?=
+ =?us-ascii?Q?vzLKY20Bx2xFx1KzOsVh2RNcDR9joNTXMYmHObTVX97sE56f++DcNQIE1ZR1?=
+ =?us-ascii?Q?nVXvQADX33wNmGWTWQ4+x5qWRv0ge10oVBySrs0CqBrxcQqoo2bKJcNO9LBQ?=
+ =?us-ascii?Q?rx+bI7GqFqj1Nwu6h1paQleNR/642dfMO6TC+KkO5pBf39q5sQbmjBOFhQxt?=
+ =?us-ascii?Q?AJjGtBnpc5yGt9PDwUvLZDDKTfmGeMbDVr2zJ9IAc9z6tUlS5d1ipmgzy9KN?=
+ =?us-ascii?Q?AyMIo52l5j0ts0LqliH3Uf21UpeOWiWi52AzbI6EwjcI5i5YBAbReTUCapbd?=
+ =?us-ascii?Q?EF1m07Ry5VLJvfYElbEyJguEO4hzXvD/UqSYrsBK3mMYscwzEWElwFTdolTj?=
+ =?us-ascii?Q?GZnsjmi6xsTFW/bVSo9JCrYxaUUFrAnoB6bsAH+tFfpU02xSgmWerFev3s9k?=
+ =?us-ascii?Q?3uVndI28EKVi7FrPIRVQNFXUd68mfgHyAx5yMFnGgDKbzfWu/8S/zoKlPR17?=
+ =?us-ascii?Q?NlCyniRc7k2HC/u/eU20sVHLynZwEZGx2E0QwriJhY0tCiVArSHRrPq3bzu8?=
+ =?us-ascii?Q?uXi+EwWT9RC93mRS1CTPzuZOOl0BjYBe74fk5Wrf6l2Kaul6bTee2iR9mNMl?=
+ =?us-ascii?Q?nlfwzVXvOaNbD8y34Hv5eafk++xz+ijwsB3VVnNsYgv7S7XxTDlilwZ8QmrY?=
+ =?us-ascii?Q?QcYPf/XLiO6eRhOD6rhnrYn71HbUd2Pho7gTptyr5UPNymzj3+7aGxBg/Kkn?=
+ =?us-ascii?Q?Qh2kvAaVM6QyYT6nZIS2iknwndwQ1TV4N8vaXCzJESlMuI9G65zkVL5tBPx2?=
+ =?us-ascii?Q?o4dcm7cVDopGh7FjHrd5n85KL9Td+yzxy2z7Gc6YwbyO16Jwoh8V4Iph+KM4?=
+ =?us-ascii?Q?srl4Z3x5vgltmAMNBjrRwu3ccHwF3S0ggiJXXIGjX/4D0960UfiETDNRLmhf?=
+ =?us-ascii?Q?RbHHn5boLiM58rwhKW3r8rEo?=
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b9773d67-c90a-4f15-0f3c-08d8f2ba4281
+X-MS-Exchange-CrossTenant-Network-Message-Id: 665c120e-6320-4557-e05a-08d8f2ba43ca
 X-MS-Exchange-CrossTenant-AuthSource: PH0PR01MB6439.prod.exchangelabs.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:55:06.7782
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:55:08.9915
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 43bVqqNO2jMNKxceMwXyFlJQ2VYkb/AeStk+uYC0rOUleWXjvSD3dqKyyVIkT4OgquQ9hLFdEC7SxT3PXW+oMUXDeTTQXl/g9xvzzAvMsb/jc6R/IFcBGSNaQxaqF1nJ
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR01MB6604
+X-MS-Exchange-CrossTenant-UserPrincipalName: c5oGdyqvfNiRYc5Go2q+Wrurx0Xa5R06L0SHHuPtaEmJlZVhlrPs2VSWnBUi5andwCTyN5L9T4gtJ6GmiDRbzIvcA8q0Gdtob1odbtT/rmvGIZlXYFySCv8Wks5tJ5tx
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR01MB6729
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+From: Kaike Wan <kaike.wan@intel.com>
 
-Add traces that were vital in isolating an issue with pq waitlist.  See
-URL below.
+Remove the unused function sdma_iowait_schedule().
 
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-URL: https://lore.kernel.org/linux-rdma/20200504130917.175613.43231.stgit@awfm-01.aw.intel.com/
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Signed-off-by: Kaike Wan <kaike.wan@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi1/trace_tx.h  | 75 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/user_sdma.c | 12 ++++--
- drivers/infiniband/hw/hfi1/user_sdma.h |  1 +
- 3 files changed, 85 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hfi1/sdma.h | 18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/trace_tx.h b/drivers/infiniband/hw/hfi1/trace_tx.h
-index 8476541..d44fc54 100644
---- a/drivers/infiniband/hw/hfi1/trace_tx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_tx.h
-@@ -54,6 +54,7 @@
- #include "mad.h"
- #include "sdma.h"
- #include "ipoib.h"
-+#include "user_sdma.h"
+diff --git a/drivers/infiniband/hw/hfi1/sdma.h b/drivers/infiniband/hw/hfi1/sdma.h
+index 7a85119..f57d552 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.h
++++ b/drivers/infiniband/hw/hfi1/sdma.h
+@@ -907,24 +907,6 @@ static inline unsigned sdma_progress(struct sdma_engine *sde, unsigned seq,
+ 	return 0;
+ }
  
- const char *parse_sdma_flags(struct trace_seq *p, u64 desc0, u64 desc1);
- 
-@@ -654,6 +655,80 @@
- 		      __entry->code)
- );
- 
-+TRACE_EVENT(hfi1_usdma_defer,
-+	    TP_PROTO(struct hfi1_user_sdma_pkt_q *pq,
-+		     struct sdma_engine *sde,
-+		     struct iowait *wait),
-+	    TP_ARGS(pq, sde, wait),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd)
-+			     __field(struct hfi1_user_sdma_pkt_q *, pq)
-+			     __field(struct sdma_engine *, sde)
-+			     __field(struct iowait *, wait)
-+			     __field(int, engine)
-+			     __field(int, empty)
-+			     ),
-+	     TP_fast_assign(DD_DEV_ASSIGN(pq->dd);
-+			    __entry->pq = pq;
-+			    __entry->sde = sde;
-+			    __entry->wait = wait;
-+			    __entry->engine = sde->this_idx;
-+			    __entry->empty = list_empty(&__entry->wait->list);
-+			    ),
-+	     TP_printk("[%s] pq %llx sde %llx wait %llx engine %d empty %d",
-+		       __get_str(dev),
-+		       (unsigned long long)__entry->pq,
-+		       (unsigned long long)__entry->sde,
-+		       (unsigned long long)__entry->wait,
-+		       __entry->engine,
-+		       __entry->empty
-+		)
-+);
-+
-+TRACE_EVENT(hfi1_usdma_activate,
-+	    TP_PROTO(struct hfi1_user_sdma_pkt_q *pq,
-+		     struct iowait *wait,
-+		     int reason),
-+	    TP_ARGS(pq, wait, reason),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd)
-+			     __field(struct hfi1_user_sdma_pkt_q *, pq)
-+			     __field(struct iowait *, wait)
-+			     __field(int, reason)
-+			     ),
-+	     TP_fast_assign(DD_DEV_ASSIGN(pq->dd);
-+			    __entry->pq = pq;
-+			    __entry->wait = wait;
-+			    __entry->reason = reason;
-+			    ),
-+	     TP_printk("[%s] pq %llx wait %llx reason %d",
-+		       __get_str(dev),
-+		       (unsigned long long)__entry->pq,
-+		       (unsigned long long)__entry->wait,
-+		       __entry->reason
-+		)
-+);
-+
-+TRACE_EVENT(hfi1_usdma_we,
-+	    TP_PROTO(struct hfi1_user_sdma_pkt_q *pq,
-+		     int we_ret),
-+	    TP_ARGS(pq, we_ret),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(pq->dd)
-+			     __field(struct hfi1_user_sdma_pkt_q *, pq)
-+			     __field(int, state)
-+			     __field(int, we_ret)
-+			     ),
-+	     TP_fast_assign(DD_DEV_ASSIGN(pq->dd);
-+			    __entry->pq = pq;
-+			    __entry->state = pq->state;
-+			    __entry->we_ret = we_ret;
-+			    ),
-+	     TP_printk("[%s] pq %llx state %d we_ret %d",
-+		       __get_str(dev),
-+		       (unsigned long long)__entry->pq,
-+		       __entry->state,
-+		       __entry->we_ret
-+		)
-+);
-+
- const char *print_u32_array(struct trace_seq *, u32 *, int);
- #define __print_u32_hex(arr, len) print_u32_array(p, arr, len)
- 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 4a4956f9..da5b2e3 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -133,6 +133,7 @@ static int defer_packet_queue(
- 		container_of(wait->iow, struct hfi1_user_sdma_pkt_q, busy);
- 
- 	write_seqlock(&sde->waitlock);
-+	trace_hfi1_usdma_defer(pq, sde, &pq->busy);
- 	if (sdma_progress(sde, seq, txreq))
- 		goto eagain;
- 	/*
-@@ -157,7 +158,8 @@ static void activate_packet_queue(struct iowait *wait, int reason)
- {
- 	struct hfi1_user_sdma_pkt_q *pq =
- 		container_of(wait, struct hfi1_user_sdma_pkt_q, busy);
--	pq->busy.lock = NULL;
-+
-+	trace_hfi1_usdma_activate(pq, wait, reason);
- 	xchg(&pq->state, SDMA_PKT_Q_ACTIVE);
- 	wake_up(&wait->wait_dma);
- };
-@@ -599,13 +601,17 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 	while (req->seqsubmitted != req->info.npkts) {
- 		ret = user_sdma_send_pkts(req, pcount);
- 		if (ret < 0) {
-+			int we_ret;
-+
- 			if (ret != -EBUSY)
- 				goto free_req;
--			if (wait_event_interruptible_timeout(
-+			we_ret = wait_event_interruptible_timeout(
- 				pq->busy.wait_dma,
- 				pq->state == SDMA_PKT_Q_ACTIVE,
- 				msecs_to_jiffies(
--					SDMA_IOWAIT_TIMEOUT)) <= 0)
-+					SDMA_IOWAIT_TIMEOUT));
-+			trace_hfi1_usdma_we(pq, we_ret);
-+			if (we_ret <= 0)
- 				flush_pq_iowait(pq);
- 		}
- 	}
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.h b/drivers/infiniband/hw/hfi1/user_sdma.h
-index 1e8c02f..fabe581 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.h
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.h
-@@ -53,6 +53,7 @@
- #include "common.h"
- #include "iowait.h"
- #include "user_exp_rcv.h"
-+#include "mmu_rb.h"
- 
- /* The maximum number of Data io vectors per message/request */
- #define MAX_VECTORS_PER_REQ 8
+-/**
+- * sdma_iowait_schedule() - initialize wait structure
+- * @sde: sdma_engine to schedule
+- * @wait: wait struct to schedule
+- *
+- * This function initializes the iowait
+- * structure embedded in the QP or PQ.
+- *
+- */
+-static inline void sdma_iowait_schedule(
+-	struct sdma_engine *sde,
+-	struct iowait *wait)
+-{
+-	struct hfi1_pportdata *ppd = sde->dd->pport;
+-
+-	iowait_schedule(wait, ppd->hfi1_wq, sde->cpu);
+-}
+-
+ /* for use by interrupt handling */
+ void sdma_engine_error(struct sdma_engine *sde, u64 status);
+ void sdma_engine_interrupt(struct sdma_engine *sde, u64 status);
 -- 
 1.8.3.1
 
