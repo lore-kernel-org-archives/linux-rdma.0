@@ -2,88 +2,84 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C61C433C1
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 12:38:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F62C433C1
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 01:01:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CEB0619D3
-	for <linux-rdma@archiver.kernel.org>; Sat, 27 Mar 2021 12:38:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC5ED61930
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 01:01:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229765AbhC0Mia (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 27 Mar 2021 08:38:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56892 "EHLO mail.kernel.org"
+        id S231651AbhC2BAr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 28 Mar 2021 21:00:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45952 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229627AbhC0Mia (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 27 Mar 2021 08:38:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4AF316196C;
-        Sat, 27 Mar 2021 12:38:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1616848687;
-        bh=Iy5IFoCV3jFpegN8htE9TCzHt5nX7xsGq2wa29AG4Mo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ziWReXLrV1j5Yjp7ZkGCTqN8eYAezPVe1u5PhFiynFczxHVb3G6SAfgEIZJNzpa6p
-         UqVs/00MPSpVWyPAe0d4iHjtLcUFqNBrGQ9NHEWS8N+XTUul/t6hmSw5H8gTPX4pP3
-         HgNiDe/GfFHofOSACrlbzd6sVu5HYxwLbxgUt24M=
-Date:   Sat, 27 Mar 2021 13:38:05 +0100
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     Alexander Duyck <alexander.duyck@gmail.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Keith Busch <kbusch@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        linux-rdma@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-        Don Dutile <ddutile@redhat.com>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        "David S . Miller" <davem@davemloft.net>
-Subject: Re: [PATCH mlx5-next v7 0/4] Dynamically assign MSI-X vectors count
-Message-ID: <YF8nLR3cVOc0y+Rl@kroah.com>
-References: <CAKgT0UcXwNKDSP2ciEjM2AWj2xOZwBxkPCdzkUqDKAMtvTTKPg@mail.gmail.com>
- <20210326193631.GA902426@bjorn-Precision-5520>
+        id S230252AbhC2BAR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 28 Mar 2021 21:00:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 4CADF6193F;
+        Mon, 29 Mar 2021 01:00:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1616979611;
+        bh=bSJHnkL0Y6HWWvXB/0i91Ys2z86pDibN1bNO3jpu7g0=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Gfm6X4B70RVrxyZgXPVZgyBUN3LitUIBIHEUd2adt7SJNWWk3ICPEpgE4YM4N3vIr
+         uX5GaYSJ1H1zfalfbChqPgXOHXgCSVzpI+zoFiM5pnHtQc6K4c2gqvROhcDWnzBvjq
+         vYwM/y8kuYTb/x9ECns7SK5qkLJnXTpcvelHechjCu2NsD72F2g6OU4kp9wsZxeiaY
+         wW+OmeSuR5QPe/B8e8A6PpE3D0Yw+0Rxs8A71r5gwOuJ8yQaalTaksvC9XyKfOiA+d
+         MEaarF48TX4lF7pyJMdZWhgYl4AIwzq9FGawCVhQaYx8cQ9lAivHlRqRV6DfbJa+CN
+         E5Q8DKyQ5QGvw==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210326193631.GA902426@bjorn-Precision-5520>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH -next 0/3] Fix some typos
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <161697961124.31306.16406247961568026068.git-patchwork-notify@kernel.org>
+Date:   Mon, 29 Mar 2021 01:00:11 +0000
+References: <20210327022724.241376-1-luwei32@huawei.com>
+In-Reply-To: <20210327022724.241376-1-luwei32@huawei.com>
+To:     Lu Wei <luwei32@huawei.com>
+Cc:     vyasevich@gmail.com, nhorman@tuxdriver.com,
+        marcelo.leitner@gmail.com, davem@davemloft.net, kuba@kernel.org,
+        linux-sctp@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, sgarzare@redhat.com,
+        jhansen@vmware.com, colin.king@canonical.com, nslusarek@gmx.net,
+        andraprs@amazon.com, alex.popov@linux.com,
+        santosh.shilimkar@oracle.com, linux-rdma@vger.kernel.org,
+        rds-devel@oss.oracle.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 26, 2021 at 02:36:31PM -0500, Bjorn Helgaas wrote:
-> On Fri, Mar 26, 2021 at 11:50:44AM -0700, Alexander Duyck wrote:
-> 
-> > I almost wonder if it wouldn't make sense to just partition this up to
-> > handle flexible resources in the future. Maybe something like having
-> > the directory setup such that you have "sriov_resources/msix/" and
-> > then you could have individual files with one for the total and the
-> > rest with the VF BDF naming scheme. Then if we have to, we could add
-> > other subdirectories in the future to handle things like queues in the
-> > future.
-> 
-> Subdirectories would be nice, but Greg KH said earlier in a different
-> context that there's an issue with them [1].  He went on to say tools
-> like udev would miss uevents for the subdirs [2].
-> 
-> I don't know whether that's really a problem in this case -- it
-> doesn't seem like we would care about uevents for files that do MSI-X
-> vector assignment.
-> 
-> [1] https://lore.kernel.org/linux-pci/20191121211017.GA854512@kroah.com/
-> [2] https://lore.kernel.org/linux-pci/20191124170207.GA2267252@kroah.com/
+Hello:
 
-You can only go "one level deep" on subdirectories tied to a 'struct
-device' and have userspace tools know they are still there.  You can do
-that by giving an attribute group a "name" for the directory.
+This series was applied to netdev/net-next.git (refs/heads/master):
 
-Anything more than that just gets very very messy very quickly and I do
-not recommend doing that at all.
+On Sat, 27 Mar 2021 10:27:21 +0800 you wrote:
+> Lu Wei (3):
+>   net: rds: Fix a typo
+>   net: sctp: Fix some typos
+>   net: vsock: Fix a typo
+> 
+>  net/rds/send.c           | 2 +-
+>  net/sctp/sm_make_chunk.c | 2 +-
+>  net/sctp/socket.c        | 2 +-
+>  net/vmw_vsock/af_vsock.c | 2 +-
+>  4 files changed, 4 insertions(+), 4 deletions(-)
 
-thanks,
+Here is the summary with links:
+  - [-next,1/3] net: rds: Fix a typo
+    https://git.kernel.org/netdev/net-next/c/ebf893958c13
+  - [-next,2/3] net: sctp: Fix some typos
+    https://git.kernel.org/netdev/net-next/c/21c00a186fac
+  - [-next,3/3] net: vsock: Fix a typo
+    https://git.kernel.org/netdev/net-next/c/9195f06b2d0f
 
-greg k-h
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
