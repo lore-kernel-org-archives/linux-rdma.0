@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E00C433E8
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:55:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 716F3C433C1
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:56:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA39561879
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:55:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 430246192F
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:56:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231591AbhC2NzK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Mar 2021 09:55:10 -0400
-Received: from mail-bn7nam10on2091.outbound.protection.outlook.com ([40.107.92.91]:33857
-        "EHLO NAM10-BN7-obe.outbound.protection.outlook.com"
+        id S231506AbhC2Nzm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Mar 2021 09:55:42 -0400
+Received: from mail-mw2nam12on2105.outbound.protection.outlook.com ([40.107.244.105]:45024
+        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S231932AbhC2NzD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 29 Mar 2021 09:55:03 -0400
+        id S231479AbhC2NzK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 29 Mar 2021 09:55:10 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WJbUdfUW/eXSbD2WofWCNW4LSHzM7qTnl3djg3kwgycMOw0WH0r8PgnvD/BqRMkkDmGmqBNbYkRnKUWCiSUtqoZXmVcfEEITXYCAgyekfz0p3th9cl2Y3CQEQDGgl1YwQ7pZ3UeWakQ/JTrx/2iHEWyMjUEaoE+aXbTIMEHVM7xrvxyfWKRZUQ0VW+yulVPsH1PaPEINsy4N+5KqrHl+r0fpxTVwD1bSlgF6mdYrfJORZZeHa5J0KKpxB5XwFqxnmFpv4G/+kNYygJVL01V+1E/OVhA+0GK8A4emzNLfiD8lV1e7di/lNloCwcEWFW9aRPf1GJRP+S2QDDsX+zEOMQ==
+ b=jMo4jKHHvmoxT18vrxv8OdOD1mV9xM9xDVMQ27GprEXQ0xCGN799t9p3tCPCE3APXHtNnnlDeJ6QA0O6IOgN1LwFrRltR5yvsRpZJy6whUrtMFFvDP0qJWXmABI70IKRgeYtLvUQzLk9xaMhnuedh10sgtZCnz6LVOGGWpACxgMxhnX1qqYPZ6KAxQXml51gciScVTZTSRP2za6vWF6PdolCLhh2l/vmYIACr3u0lpuotl7Gd/4PSILnuaschDakyyNnyvvwAaAlHiPdeH2fbJXrHU2ktLZvUYbvSNIFU/vDBDVTS/85ZB39abXuUHjPZWHSGAVfXsa/YeY66JaFDA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5gJLStY8HjQjyKzLnWTjmGHB9trP7eM2wVTKv10HclQ=;
- b=REn1FgLgVnqUO1MHD4UXO1xofp5wkzPUqF6WKf79pjJ6OfQlRKCLfjhE4C3ZGmHlkjSUMpulLSRhBrxTTg23a+p7UDf6w2hhYZ1s3gZsOIbC2Qer2jyNwRITQM4yQ2hTlzweqoPV3D3PacTiRUoNMx8NFv2c55SeirmZUimExzCtyH8+VxEyzIOmoHUAwlHSrkwdA9H9fvX5SUx1qmOj0xL85CB6OicT52y/LqaFqtl2bevVh5tHPZOkeFnMa3Ble9WRrWndHmLsguDXxqvUj25AEH9s4z2fxT5ouHyZcVvg+mhAwZIn9Apb41Zpl9ZtMxEcS/yVFGF1a8qW4KvF2g==
+ bh=egXcVTTYXIduAKWiZKQfB+kutuMHlXi7hhgIpiJN+Gs=;
+ b=lZhCXC/9pR8Lu+y2iztDZN2vsvqFbVdnMu6fbuNRlYZ+etg4usI1gSlfkfk8YvMJK6f8Nz16uWwA9i+sldd+qgVkx+c0NRHt2QfUm89wXFbveQ6q89d/Kw8R5BuW6pwL5gpYP/ottdouwFjgyMTudtbeG5qhzrO7OSuMIOGxNTpaNaP7RMKsDLygCWBjkG3RdaNwuJAmOC5l5iXcRMjpSAE/vbRC1DflelV69KnSGAoPqz5Trwql09zhGVrEos8OzRjihRyDbB+7USqTzfi1fIDFjQ69oS+FK7bJMBugLu2rAwDm8DzA/SEdp48tGBYFXG+IlGBCvDlcKYMlqrViXg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass action=none
  header.from=cornelisnetworks.com; dkim=pass header.d=cornelisnetworks.com;
@@ -34,27 +34,27 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5gJLStY8HjQjyKzLnWTjmGHB9trP7eM2wVTKv10HclQ=;
- b=WtsHd2D5mJv1JgoP+2hXz/ATuN5+QFjIfS5mC1xoNLISL/Y9fVJYGezo6todcmOAV/8al3LqrsGNqvZ9pzNPaxjVpT39b1CbeMEDEJodeTYSe08T9uON8JmAGXDITkdVEZsl2rYlpgj3YmqqjOVt/JRSQcRAEUiGocgyp4es3wiDj3rePRJg9zoU9oKywq5KMQ72p5hI5GIjnyMqQuWzYbfZsbzFmESnkJ5+++/1JYzv9SyZHphPtU5efEBlrs8phIYWd37jmK3zIFb3GbLGNB5VmeL1957PfgIY/BDpDDcfwJ3DwIaOQZ2GEqewELuW60b7sdEqsFOG6Jq6p8q4iQ==
+ bh=egXcVTTYXIduAKWiZKQfB+kutuMHlXi7hhgIpiJN+Gs=;
+ b=KcFcLY7wFFdGTDXNIMtYcuDq7EvtVhzVLXG60CGz7DCIuseM5+ELldJbX8HQI7o+dykJ36vjGEpRKypQwzI2+AW9ix3kfDlnBeR4ERvsr+G+ynrEbJJh1GZBvZkNhYqfTrgZsgzu2lR2ESVbn2M5joDdr2fkM7VWIE2cW8gONISvYAWc15jtyypKkdWHKeNTMyr9Udw4oQaelg97qUY8ePgHFX5z7C1SjdItHprlSLUMBf4zF7FwNaAqNmJBfI+BUikmL3rT70Qf4VjzMAfFI3JAj8UtCf4vPISIXo4XzMJn72BaMO4kAVA10NXQJblqKgOGjPnu3StvSzwbo6BefA==
 Authentication-Results: redhat.com; dkim=none (message not signed)
  header.d=none;redhat.com; dmarc=none action=none
  header.from=cornelisnetworks.com;
 Received: from PH0PR01MB6439.prod.exchangelabs.com (2603:10b6:510:d::22) by
- PH0PR01MB6618.prod.exchangelabs.com (2603:10b6:510:78::20) with Microsoft
+ PH0PR01MB6729.prod.exchangelabs.com (2603:10b6:510:97::16) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3977.24; Mon, 29 Mar 2021 13:55:01 +0000
+ 15.20.3977.32; Mon, 29 Mar 2021 13:55:08 +0000
 Received: from PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860]) by PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860%5]) with mapi id 15.20.3977.033; Mon, 29 Mar 2021
- 13:55:01 +0000
+ 13:55:08 +0000
 From:   dennis.dalessandro@cornelisnetworks.com
 To:     dledford@redhat.com, jgg@ziepe.ca
 Cc:     linux-rdma@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Subject: [PATCH for-next 02/10] IB/{ipoib,hfi1}: Add a timeout handler for rdma_netdev
-Date:   Mon, 29 Mar 2021 09:54:08 -0400
-Message-Id: <1617026056-50483-3-git-send-email-dennis.dalessandro@cornelisnetworks.com>
+Subject: [PATCH for-next 08/10] IB/hfi1: Use kzalloc() for mmu_rb_handler allocation
+Date:   Mon, 29 Mar 2021 09:54:14 -0400
+Message-Id: <1617026056-50483-9-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 References: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
@@ -65,168 +65,95 @@ X-ClientProxiedBy: SJ0PR03CA0166.namprd03.prod.outlook.com
  (2603:10b6:510:d::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:55:00 +0000
+Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:55:07 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: f852e6a8-2cea-4416-e384-08d8f2ba3f67
-X-MS-TrafficTypeDiagnostic: PH0PR01MB6618:
+X-MS-Office365-Filtering-Correlation-Id: 1782ed02-30a7-4386-2b4f-08d8f2ba431c
+X-MS-TrafficTypeDiagnostic: PH0PR01MB6729:
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <PH0PR01MB6618329EAF6BE4A4A09BCA9AF47E9@PH0PR01MB6618.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3826;
+X-Microsoft-Antispam-PRVS: <PH0PR01MB6729ED74B2D14099C2FE41D0F47E9@PH0PR01MB6729.prod.exchangelabs.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: QDIw5p7h7xhOhnOFUtmyKXn7BJeY1nIAJ5iwrnqpTlrI7O4BJQdm+5OwYKuXAxiUbl3URPli48aiXl71A9xYFP6P9+TtEPTtRZluxTmi5+VixaYE98vDQis5buUzldESXmMKE/Lt97EdpFWz7qZSpg0eBW9kpQm78g7imTdlMXFlMvqTuK22s6veLZU3LPJbj+fX/blhLLN3+aqB9A52kN9F1k0oljFSmjhUAQXGGrU+ymz055KDz0R2EKfQys4l1ObbRx1mSTl6Lluwp4Db3pl4jhaWIrDu3jPldUzXsujKpu5TjV9jcI1i/WSxYw7ahQTBjny+mnn5h1B1UfstEVdLmF3jK2GhO3b5tB8x+z9AKNdrNVyNhUwfLiLpbBuFOrspaXquzmP1SsafeXxSgBnIqSsCAuXL55I1MXPXgPE3ZjqMAI+pw+zaaYV1KUuq2KpLlpECDOM3UYQ22d5j7A0dWp/+tddlYsn0Tu/b5aa9SS5xrHm1hrK2BIAaM+U7Gm4PPRGQoCV7s31EOd+NO6/Mtw4IAgs1XNEQS3X/kQkqc6VoWYkt32tVS5AWHkYoQ35NGWwuTdAxyW0ukVbdeumB+LPlS8a8n7WoPPS9ukX17JjyQdguk9BXXLvnXEjDoJOod2zlLON8MJC5p3FSzCUyVz44uLDa1h5RlqRBnm0=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(39830400003)(366004)(346002)(376002)(396003)(86362001)(5660300002)(52116002)(186003)(4326008)(7696005)(2906002)(36756003)(66556008)(8936002)(956004)(66476007)(107886003)(2616005)(478600001)(54906003)(83380400001)(66946007)(6486002)(38100700001)(8676002)(26005)(316002)(9686003)(16526019);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?vq6xvnINvAqIub9FoLNDO4TxdqcTmlGOPhkEHz8x4eLxJznE4h/PEWKeiKoS?=
- =?us-ascii?Q?ZZKVTgXuc8I2fd3UYtKYtcYcyUXlpezRKwfOkgF88VGnRGJWjsfbUpiPA/IO?=
- =?us-ascii?Q?mviU/EX+Kcw8qvUnYteXlKm4SG4LgcCt1hHHC3sdTxx5FJpcG89mhlSQjwB6?=
- =?us-ascii?Q?9GLM24eZR73MpHLoy1NHFdysD4nqbzbJB13uqyslo9meBmwOsVUMwzSalKxq?=
- =?us-ascii?Q?ipcgkWJIufXJAxVMjG5xBIuoptxRU1RcxxvdcFYQkJyi8ceYRmvX0G5AmdHp?=
- =?us-ascii?Q?N7uqxgFD+FhpVmvKLg3i4QMojtRjUHRfZeppOP2QYft6Qkn0bUcm24t7ExP6?=
- =?us-ascii?Q?/u7FS+xbys6e0i+rPKgY74o/b/Wkk6qU4kpUjcgGw+6a2ins4MAW2Xvq0RIs?=
- =?us-ascii?Q?egzTc3e3BYnRE7nWUav1Dl7DHC3+Mp63cki45tFUQu4H+dRVwJyy1R0+/0/B?=
- =?us-ascii?Q?mx9JqR+f1rcA5UQifveInnlLX0KUHKI7KmhQ2cpSuTo7fn9fjjeEYcdXO3G/?=
- =?us-ascii?Q?TjnZ0SREiUKs5BlrZILHHB7y3QgMLHrVpfoikBeNNPG0RUmqa6FKnMz5TxpY?=
- =?us-ascii?Q?Wpo7DNwM9wtPuRTctDxwz3k0T33tReI5CfNyvwiXFDxHHfOApVfgJpFwFIX+?=
- =?us-ascii?Q?8kQfqObg0Y7YeETViIT2UdC2U6JV7TWLQrmucc/mcB0CseX4OAwrwTm7eXhf?=
- =?us-ascii?Q?c35flkI4xmOSjq+Bia5Z4QsuOOqQBS4wWS5DEzDt+PuU+7y/xHMV7rtRI8BH?=
- =?us-ascii?Q?8wa5/2/4kTWfOD5KVYF9YeQSMQm99NjyHxEMzpyBzvXyVP5usnA1UbGULxdT?=
- =?us-ascii?Q?a01wot9Bip8l5RTvaG+9CHH+jQtHPp0I81kat/4uez/gWFuISxIMDxlCH+Li?=
- =?us-ascii?Q?6re1I1NRYuLIK2QeZb86DEnUq/cmUHPXE3johFbr4vj2yYsvxD3wu6tTbetQ?=
- =?us-ascii?Q?o5RAJHnog4w8nrADV6ZGNaN2EHSlwlf8fDdv8IhPg+9eLsa1Mn1tN6Us7hNM?=
- =?us-ascii?Q?4A3TAZRJuid/F+TK/YFLhc+dO2apJ3gcNQiNO0BCJVjX2Is+iZkoQJrmU3CB?=
- =?us-ascii?Q?FlR6B9rykuBzbgj5ig6DjoyqS72Pkn0Xs5JMTpyxY0Tlbq/LegD8xLUQ8BBB?=
- =?us-ascii?Q?axLqJYsxDWNwZS2tfnyqE3stSzwuciuPZgJDjs0zDCRzEQdhAXo41FlBE6i2?=
- =?us-ascii?Q?FNelbjjTuRcZAkCIlfcSZaGr3aB42tlTy6FitGWjzWK42NvXGLfuCPyi0hus?=
- =?us-ascii?Q?3MvzWWlvsJoTJZdosXuHotgQdz4lux8OYuH/TBMbH1sb+z9LMshED+TWjnBG?=
- =?us-ascii?Q?mIWVnix7A5SLcT2ReFztl1SY?=
+X-Microsoft-Antispam-Message-Info: VpaNyi+Vn44Lq8wPo4aezVgtP4LrR9tPtzkElWaeq9ldNXkf5OpSJVolK/cQqIXZErajuuN8/XS/AUVbHXdnVOoFcB1OEyTsNeM1dFyyOrvgVIYpcTgU36dVC7+rI5Jd0fa2fejPoIqTdlP8WBTE8FZmALH/4uYOulTDNS+8qDJ9tDzezKMHu5zdG8u4RrWnSYLUQN+fc2Wvf4Cta7r/0eWEtJB8y4gcTygplrzbUg40EXzzYY7rS8mtvOKVyW7wUAEEb9K0sUUrErg3pyCXFlGM1OetUW1ni5Oh30G3SHcpF5K/OWsAIW1q820qjk++9hnFstUBWnJ6nr8esgNxmDCXfj0GNJEEN8nKJWbBrm+drEGTF1WTRHd6i8n4kGTDKNJEy2/yq+9HRECWz+WgnAqwQsyY/ty2/DihJcceQtHGMze/cJnncKv08dvgOXbzdxQyGN1w+n1/lD216lvvv1t2VdQvjM2Kk7Gad2kwstK1Oq28Dx6+OI4qpPPzITCYEDtkkxG5QfxOMcWRNuJ+ULofvun45PpnQ/1bQSjuAFylAOCpV0wni7WzUMvR0GB5jmcvpZQYp99VinzaotpD0fG1otr6ohz6cUv6hbQrznQLPfCP1X+tpoo5deWwSmBXA+7nZg2DHpx7K2RwjE0gFbmvaQ6LYCNGqjVmoN/hgN4=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(136003)(396003)(346002)(366004)(39830400003)(9686003)(52116002)(8936002)(8676002)(6486002)(38100700001)(66946007)(316002)(7696005)(16526019)(186003)(2616005)(956004)(66556008)(4326008)(26005)(83380400001)(2906002)(478600001)(54906003)(36756003)(6666004)(66476007)(5660300002)(107886003)(86362001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?eIyYJt+NEyEk4TMzUjbgeHaH5Bv+oJMU3lEVYnTNxPcxcX1yBQL7jxMsVmHV?=
+ =?us-ascii?Q?2z/8ekRPA1uXRGXio35KYQ2PsGR10IpBYjm3yDOg55nhYaSNh4txmiW8+qco?=
+ =?us-ascii?Q?QPcl0yrhHCTS25QSQeoywZGt4G403hC3yVxnOMB1LiZeYk+gID8PpRhgjOzi?=
+ =?us-ascii?Q?8dvPFk2oyun7+mh5U10zaVWk6Tlgu9n5UG+OaeyNqgyxML6Jo8JxrGJlPlRc?=
+ =?us-ascii?Q?QnO3Cc2T4VGoIc14+DFVW/HIVEiehZZqI4L0kQXxQSpVBcFhpcvBR9C4HT0T?=
+ =?us-ascii?Q?4thkBdV5FVl/UZGd5x5TOHD2aTllY52QS5NbfRumg33qG1rETfx5Kr5QMPOb?=
+ =?us-ascii?Q?p364EvtPs9BF0hzZ/30z8NG1JGq4DCW4KGSh8ws1+om0IlYsl2WHroxH9739?=
+ =?us-ascii?Q?RdiUS51RlnUjButvk6d6VgweWjgDTS8qpHdQggHGd4SmE6oRoyOwAdL4GDX7?=
+ =?us-ascii?Q?rMnSd1hUfnQCboWTEdsZOnxOVqk05XFB21zb/4uOu+oVgeP6xadOKh3fNvVm?=
+ =?us-ascii?Q?u4I3fGGF/M8IszbpruOpdip5Gn3sz5v8TdEpH86K0Hc2si3Sm/MveOxyfAA+?=
+ =?us-ascii?Q?8zgDVUwTvWo+QCyOXPGO/TD6GSY5YYOEoL42hBvlTOQKQWPdK273ghJXOjJ1?=
+ =?us-ascii?Q?BoFxMZGVsnA+bypCgDMbmy0JON6MLq0eJa9FAR2/fEtxOiv8dzF5OMFU+iiN?=
+ =?us-ascii?Q?tjoo7Pzsoeum3P5c8br8SbG0Y7Os28g2dLX60Jf/ZGf85up1CZVJwx1gKwBo?=
+ =?us-ascii?Q?E8uzFM9noGG/xJ1c6gIDLGVNhVZoDGdw6caH7hGeaZFea0cCNvnfW0VrVNEs?=
+ =?us-ascii?Q?UdYVunG2e43sFHTY+qFAuWaGs1mfIlwK3yvGTL4e9YDhjnEckSdau0KL0gQF?=
+ =?us-ascii?Q?jz/8+jbudBgJYX69365dexZ+oebNbKMLNavE+/QhI9GO0xS9Pxd8zPHhGTTy?=
+ =?us-ascii?Q?K+6ow3fMti6ku6ddC0DXzYZ66Fr8MQOg/ctf2PhoPXiGYgE/nPBXvc5UEJ7U?=
+ =?us-ascii?Q?z6tzIePrMtXfsiyicUXuJYWlV4gNok+s/cGpju6MEmm3QKrrI7XlzU0gOJ1h?=
+ =?us-ascii?Q?Utl+jFy7d2L/1kdVu8coE3hEVgjOFFUGfptQa7I2izVyt+cvzZsc8snuoivN?=
+ =?us-ascii?Q?fJFGyiPfqXKbI+vzDyqFXCUjMhoJfJRYC+YTwkO+8GQGke676ehKu4WwFl1p?=
+ =?us-ascii?Q?PzXPKbe2iShZ7sccz1QakenpXJuRih2qMessvP3OF2Bki8NbyuOXOjYecBHP?=
+ =?us-ascii?Q?8a4jMV9LuJVonTuT8Vi6nUFyMVQ3I6X4S0gdQqZzBv64MCzyl3A0BiW25igE?=
+ =?us-ascii?Q?98mNdMycy7ryMBiPKaiiWTUn?=
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f852e6a8-2cea-4416-e384-08d8f2ba3f67
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1782ed02-30a7-4386-2b4f-08d8f2ba431c
 X-MS-Exchange-CrossTenant-AuthSource: PH0PR01MB6439.prod.exchangelabs.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:55:01.5632
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:55:07.8495
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: cWWwdN/swFc3MPGnF/Wojj1yJ0+BqaX4xXOk+tAgOiLtyDFs7aN1/6rIf30Y2siu6CwM9XpcCT6+YB9iNdc9H5yrRFW8RLlTjCyv/kIKrvDec2/IMJCv/HODV9VtyLtU
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR01MB6618
+X-MS-Exchange-CrossTenant-UserPrincipalName: UqsWmMLWQICP6tGh5YaWyotGMF6q113P7GKvQXjATRXcQ62buDOQc/4mjLeZnkZfB4NPOPwtE5ffEQzz+R4rcD9ivOvfeMK4xqt7Z1p9vTOLAQbaGDETDs9/LYRIC+vN
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR01MB6729
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 
-The current rdma_netdev handling in ipoib hooks the
-tx_timeout handler, but prints out a totally useless
-message that prevents effective debugging especially when
-multiple transmit queues are being used.
+The code currently assumes that the mmu_notifier struct
+embedded in mmu_rb_handler only contains two fields.
 
-Add a tx_timeout rdma_netdev hook and implement the
-callback in the hfi1 to print additional information.
+There are now extra fields:
 
-The existing non-helpful message is avoided when the driver
-has presented a callback.
+struct mmu_notifier {
+        struct hlist_node hlist;
+        const struct mmu_notifier_ops *ops;
+        struct mm_struct *mm;
+        struct rcu_head rcu;
+        unsigned int users;
+};
 
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
+Given that there in no init for the mmu_notifier, a kzalloc() should
+be used to insure that any newly added fields are given a predictable
+initial value of zero.
+
+Fixes: 06e0ffa69312 ("IB/hfi1: Re-factor MMU notification code")
+Reviewed-by: Adam Goldman <adam.goldman@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi1/ipoib.h        |  2 ++
- drivers/infiniband/hw/hfi1/ipoib_main.c   |  1 +
- drivers/infiniband/hw/hfi1/ipoib_tx.c     | 29 +++++++++++++++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  5 +++++
- include/rdma/ib_verbs.h                   |  2 ++
- 5 files changed, 39 insertions(+)
+ drivers/infiniband/hw/hfi1/mmu_rb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib.h b/drivers/infiniband/hw/hfi1/ipoib.h
-index f650cac..1659beb 100644
---- a/drivers/infiniband/hw/hfi1/ipoib.h
-+++ b/drivers/infiniband/hw/hfi1/ipoib.h
-@@ -147,4 +147,6 @@ int hfi1_ipoib_rn_get_params(struct ib_device *device,
- 			     enum rdma_netdev_t type,
- 			     struct rdma_netdev_alloc_params *params);
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
+index 375a881..dccb4c1 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.c
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
+@@ -89,7 +89,7 @@ int hfi1_mmu_rb_register(void *ops_arg,
+ 	struct mmu_rb_handler *h;
+ 	int ret;
  
-+void hfi1_ipoib_tx_timeout(struct net_device *dev, unsigned int q);
-+
- #endif /* _IPOIB_H */
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_main.c b/drivers/infiniband/hw/hfi1/ipoib_main.c
-index 3242290..b8838fa 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_main.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_main.c
-@@ -204,6 +204,7 @@ static int hfi1_ipoib_setup_rn(struct ib_device *device,
- 	int rc;
+-	h = kmalloc(sizeof(*h), GFP_KERNEL);
++	h = kzalloc(sizeof(*h), GFP_KERNEL);
+ 	if (!h)
+ 		return -ENOMEM;
  
- 	rn->send = hfi1_ipoib_send;
-+	rn->tx_timeout = hfi1_ipoib_tx_timeout;
- 	rn->attach_mcast = hfi1_ipoib_mcast_attach;
- 	rn->detach_mcast = hfi1_ipoib_mcast_detach;
- 	rn->set_id = hfi1_ipoib_set_id;
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_tx.c b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-index 5129dc9..e8dece5 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_tx.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-@@ -866,3 +866,32 @@ void hfi1_ipoib_napi_tx_disable(struct net_device *dev)
- 		(void)hfi1_ipoib_drain_tx_ring(txq, txq->tx_ring.max_items);
- 	}
- }
-+
-+void hfi1_ipoib_tx_timeout(struct net_device *dev, unsigned int q)
-+{
-+	struct hfi1_ipoib_dev_priv *priv = hfi1_ipoib_priv(dev);
-+	struct hfi1_ipoib_txq *txq = &priv->txqs[q];
-+	u64 completed = atomic64_read(&txq->complete_txreqs);
-+
-+	dd_dev_info(priv->dd, "timeout txq %llx q %u stopped %u stops %d no_desc %d ring_full %d\n",
-+		    (unsigned long long)txq, q,
-+		    __netif_subqueue_stopped(dev, txq->q_idx),
-+		    atomic_read(&txq->stops),
-+		    atomic_read(&txq->no_desc),
-+		    atomic_read(&txq->ring_full));
-+	dd_dev_info(priv->dd, "sde %llx engine %u\n",
-+		    (unsigned long long)txq->sde,
-+		    txq->sde ? txq->sde->this_idx : 0);
-+	dd_dev_info(priv->dd, "flow %x\n", txq->flow.as_int);
-+	dd_dev_info(priv->dd, "sent %llu completed %llu used %llu\n",
-+		    txq->sent_txreqs, completed, hfi1_ipoib_used(txq));
-+	dd_dev_info(priv->dd, "tx_queue_len %u max_items %lu\n",
-+		    dev->tx_queue_len, txq->tx_ring.max_items);
-+	dd_dev_info(priv->dd, "head %lu tail %lu\n",
-+		    txq->tx_ring.head, txq->tx_ring.tail);
-+	dd_dev_info(priv->dd, "wait queued %u\n",
-+		    !list_empty(&txq->wait.list));
-+	dd_dev_info(priv->dd, "tx_list empty %u\n",
-+		    list_empty(&txq->tx_list));
-+}
-+
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index e16b40c..2fb2fa16 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1181,7 +1181,12 @@ static netdev_tx_t ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
- static void ipoib_timeout(struct net_device *dev, unsigned int txqueue)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-+	struct rdma_netdev *rn = netdev_priv(dev);
- 
-+	if (rn->tx_timeout) {
-+		rn->tx_timeout(dev, txqueue);
-+		return;
-+	}
- 	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
- 		   jiffies_to_msecs(jiffies - dev_trans_start(dev)));
- 	ipoib_warn(priv,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 21c19b1..84f7084 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2215,6 +2215,8 @@ struct rdma_netdev {
- 			    int set_qkey, u32 qkey);
- 	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
- 			    union ib_gid *gid, u16 mlid);
-+	/* timeout */
-+	void (*tx_timeout)(struct net_device *dev, unsigned int txqueue);
- };
- 
- struct rdma_netdev_alloc_params {
 -- 
 1.8.3.1
 
