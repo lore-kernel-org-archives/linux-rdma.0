@@ -2,31 +2,31 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45166C433C1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A90FC433E3
 	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:55:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D4316191B
+	by mail.kernel.org (Postfix) with ESMTP id 6604F6192F
 	for <linux-rdma@archiver.kernel.org>; Mon, 29 Mar 2021 13:55:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231558AbhC2NzK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Mar 2021 09:55:10 -0400
-Received: from mail-bn7nam10on2091.outbound.protection.outlook.com ([40.107.92.91]:33857
+        id S231794AbhC2NzJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Mar 2021 09:55:09 -0400
+Received: from mail-bn7nam10on2130.outbound.protection.outlook.com ([40.107.92.130]:57952
         "EHLO NAM10-BN7-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S231934AbhC2NzE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 29 Mar 2021 09:55:04 -0400
+        id S231600AbhC2Nys (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 29 Mar 2021 09:54:48 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Fjs2Pf9o6oLKx5oPkhcFL7zjQgiNfBH36nfFPiyYVR8mYKfVf3GDjYsEFuFRFFoh4Rz8bCkuk0BAPCEO15KwhMWlrZGaAAZN+ISsRlGmMX8fNKR6VLQu7U0k6mKFj17FambVnu/O0cR3tFJ5kH9AzhCs3LaK3rMG2UcSSfFjdCbn1Nbo5FKI9f6XtqNArMLPktwIr5mioPb7bthHbTSg8i8F+jWKPgtO6FgvsCNrlTNrjde6XjCeaMuQGOYiWBukvNK3hd/qKO1nLu3N3Gvdq1JD9nkXyWrI6cbq/jRhAAILGIUiHhKFBMKs/mB0X+KW0xy1Pb5FIjRGMjmwttEICw==
+ b=LRTENW1L0DaLYemBtZpzb2nDAUVTHPg7q+wycAIpluf+LQjRYlu+9rvOguARqP01Htq+Zzst1JO23apLFW5xSCaxmqz9WELUudoYVT5xOoH6p3wMbQ/ke2kk057whGx7MRKOUu0XwwtRmgdUjeC9mOmCr6F5LoA0imMY9bi8BEUwdPuzdph67DFfmVnCe2DflBBPVtS+L3Svs5Lbd9E7FMlZMOH5qfAUb0nhFPeTs3kTtUyvOtqm4Z1D2qgkWqk56hBOCqpkXByYGr0i0sQ3itDqqYIuWZSlGVk9oa2kdqjJLaH71dmuX3e/PwGpdW1ecjUBWiEW+BbJLS7l1cEMcw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=h6sW7eHePmpg0qDS0MGA5Fe22kM2wRiLX5hkpdvX0z8=;
- b=WKlhAtMzhjY8Vrwv2RelAJ4LWeb9ZbqU0LkNMTcDHNZgtIRDz2q2xfszEbJCGoj79WkVyRZ4vBenhp7R3zpQ5hKxofsJXGgvvihRMXVJRdTT8Ja2GAFMpzh+AAScEM8zOX/z5qKIrKlje0PzHHCX07s3R3Aukxt8HFdRSZ9y/94xfsEGCe2ZRMgc3aC5FBkhzCtfl0GBTiAfWB6PndHuArznnhaFPBSTp8QycAQjE1l4wtVkCDDazZAvYzztoUTIOUe2insGnT9vyslChUy8UklYF9jJkZ4KGVYCEFmUK5GbwrVdmn328zaeffukTlEddr6XMpWf2AXN29AKvLSDPw==
+ bh=li+z3i1njb82FI+vjiuw61jTdc9p03vVFwsfkae/PiY=;
+ b=PCLYJjWoNieeTrpMykxkYo05JpxgDjU9b7hhQm3RgW0vQP0VskiITX+OAKjwHFgAn83ZzP+uBtWS5C2kUnxVb+7Z0vZpbk9foc6RQrlYkJCeLGsKV8rgXgaUzSQgfLdUACTwzmTYQO02d4VI3LXwV+KCQqA1b7t9G4BN/YsU5CNlJqWoRgLwhX9MUwR9zoCly3iZH9SMgX4BTNN+ZDZlrYTqm85LFcFI2iwJF7/8e1FBOaTB+upy+Q477RlfISiT809LKrF2MPmW15zXhn8ZbrfTulTWK6VSjFdhLDChYqYjRllRnZj4CkendBOvN3wdCz3Y/NLK6L+XdWCqasM+BA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=cornelisnetworks.com; dmarc=pass action=none
  header.from=cornelisnetworks.com; dkim=pass header.d=cornelisnetworks.com;
@@ -34,30 +34,27 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=h6sW7eHePmpg0qDS0MGA5Fe22kM2wRiLX5hkpdvX0z8=;
- b=R+xuZ32M1jOlFp6PjhnPW5BX1yLgCehyUEBCJ2Wfuc3aEW2DrDMF/3rEOm6HePVfOXtIhBI5LEefKE+mcPZ3sFBtr+dCDbCEXHezZ8gR3X6MVRslpSJPT1Rjv0u8q43F2iQbbyM4IvwDUxBGMnkz2bHpGjX3RujEicJDoYBD0TC7AgohEnuFL0uZG88Hv+uMWFMdTMtzK12/SY9bFpRF00/AJ1B21qrmBcdfQHIOwo0RXOMbykvGyQyNxk9B8KWx01B6SVA718+wROjuQTGPF1kKQs4Vu1sX8/O0GB4D673XGpkaSGKojmkQ21LrqxgruOgBx2Ws0/JLFXdqXSKR0w==
+ bh=li+z3i1njb82FI+vjiuw61jTdc9p03vVFwsfkae/PiY=;
+ b=gC0WH6PSwnN1KQl5wvxNP6lYJQ6NW/m85E9oOufXpbwDkMCZfBFxnRu0A6yt4sMDIafrckgeScUvfsBZMkotKTNKRVWHyoYsxxsPS/rCA6f3kVZMgukXtb922KMFFcpkJici3Lq9/OdYNatGyPKVeYRdbcYv+CEAlx+vcu4eNHzCjQlFmi4QCoVpg7v4SmuDiJJ7kkYanJEucWuWb88i+NP0kS40XQ1vioykiHCJMndaR69ReZyste6UBigBELsmDKFXU13ke8/wxIlCAJ372o/eecccvidI4DCwexIito7ADWTNf9UT3AD94bQOKERfD1XaTDJLAUIQpJrU7IEvCQ==
 Authentication-Results: redhat.com; dkim=none (message not signed)
  header.d=none;redhat.com; dmarc=none action=none
  header.from=cornelisnetworks.com;
 Received: from PH0PR01MB6439.prod.exchangelabs.com (2603:10b6:510:d::22) by
  PH0PR01MB6618.prod.exchangelabs.com (2603:10b6:510:78::20) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3977.24; Mon, 29 Mar 2021 13:55:02 +0000
+ 15.20.3977.24; Mon, 29 Mar 2021 13:54:45 +0000
 Received: from PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860]) by PH0PR01MB6439.prod.exchangelabs.com
  ([fe80::75a5:79c6:dd14:3860%5]) with mapi id 15.20.3977.033; Mon, 29 Mar 2021
- 13:55:02 +0000
+ 13:54:45 +0000
 From:   dennis.dalessandro@cornelisnetworks.com
 To:     dledford@redhat.com, jgg@ziepe.ca
 Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Subject: [PATCH for-next 03/10] IB/hfi1: Correct oversized ring allocation
-Date:   Mon, 29 Mar 2021 09:54:09 -0400
-Message-Id: <1617026056-50483-4-git-send-email-dennis.dalessandro@cornelisnetworks.com>
+Subject: [PATCH for-next 00/10] Fixes for 5.13
+Date:   Mon, 29 Mar 2021 09:54:06 -0400
+Message-Id: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
-References: <1617026056-50483-1-git-send-email-dennis.dalessandro@cornelisnetworks.com>
 Content-Type: text/plain
 X-Originating-IP: [198.175.72.68]
 X-ClientProxiedBy: SJ0PR03CA0166.namprd03.prod.outlook.com
@@ -65,138 +62,109 @@ X-ClientProxiedBy: SJ0PR03CA0166.namprd03.prod.outlook.com
  (2603:10b6:510:d::22)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:55:01 +0000
+Received: from awfm-01.cornelisnetworks.com (198.175.72.68) by SJ0PR03CA0166.namprd03.prod.outlook.com (2603:10b6:a03:338::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25 via Frontend Transport; Mon, 29 Mar 2021 13:54:44 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 942c25d7-00d4-4680-6097-08d8f2ba3ffd
+X-MS-Office365-Filtering-Correlation-Id: df457675-65b6-48a0-4dbc-08d8f2ba3578
 X-MS-TrafficTypeDiagnostic: PH0PR01MB6618:
 X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <PH0PR01MB6618F5A0A6F8DE5E89E9B7F2F47E9@PH0PR01MB6618.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2733;
+X-Microsoft-Antispam-PRVS: <PH0PR01MB66183FAEB50ED29D443CD759F47E9@PH0PR01MB6618.prod.exchangelabs.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:3968;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: DsJ3Aqfl9NdlRLpyFNU7jXG5bRC2EdNh+nzAXwBzfULkWOIww+h5ewg8t+ZTUoG4uB4exlO3rByvoNkx797UAQNGoFpQ311Z8ExSpVYJb0hkVoew7W6SHtJJqbu2Q6A4gqoz4Z7fpDxZ2pJbpVqTQ90DIdPJc304ISaOuZmalkMaQwR7lgi0G+0geKXndQy/+vCw2REK+GYsQQ/M0LbxdjfBBa01mqkOT15DzbeH4eGwwozoFIFEiH2OSglSLm3DdDPRxaUHOXKRExQl6ouKnvcePClh+BhSB8ZCtKJKBwgV/aiU60kI0IrALTv6DewfjFNFS23UVCmnIi6hjG70b0qU00g97/p3eCFfMc9Of49JQVUBJRPr8gvServWT7VYq+MTOZXsN4OE6qG1tpp4BXY0nY4ysjiL88goYdxU1+SlAOQBWNelQQ5fJ3ClR6jFwHhogh4YBCWyyfHcgRJs8cbhObtjxe7gaqIAjhnif1ZJBJ17V+Qwn6/h0LV0uqz1c+254EF+YI18OMwBAJ14A2rGrgfW0DTuTrN69VtfsqiiLrG/Vz2b3hX0Px1ROGLdQJWzH71K/0xMSFdP6nBG0AdQfeNeifJQYI1hcWl7C2Z1LwnhUJpdtszGwQV+2gSyiuX4lR11cVS54XrvOKGh2d4uH53XdBpxuB9JAsE+P+Q=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(39830400003)(366004)(346002)(376002)(396003)(86362001)(5660300002)(52116002)(186003)(4326008)(7696005)(2906002)(36756003)(66556008)(8936002)(956004)(66476007)(107886003)(2616005)(478600001)(54906003)(83380400001)(66946007)(6486002)(38100700001)(8676002)(26005)(316002)(9686003)(16526019);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?bZq3TuEPAmKt37n1QAWduu0US0IZ4fBICmY7zQ/iVwUotJdhD32GIqjZfT6/?=
- =?us-ascii?Q?8bdDaNJ7xYt5HTG3XbuXlbPOiDwWEnayCIENlVFdokY5QPxvpMII+MatNDdi?=
- =?us-ascii?Q?cHnLX0FXrBCZzUlS7a2yu9vn+oxlV7/G0TvarIxKShH+3K67AGb5iRn6fEZY?=
- =?us-ascii?Q?Fck1Be4vkp1kl9IjEF20Uuq+hhZX9iMGOX3z9QkJCKppxSagJtzJWZOzSKu2?=
- =?us-ascii?Q?573gcqZu7Fwpy6jpP4EdiM3DDyVm4p1CYmADSSEf74Ib5mmll4ud+/RphpzJ?=
- =?us-ascii?Q?LJeXKmQR+XKDw+Y8EHQ3bmocAIyoAfHYTxMrCf/wWwRvtP6Hf8c6LI/R0Tdn?=
- =?us-ascii?Q?ROQyreHCCFltwDEGwpyr8qYqKbjz7xSSmARY6f+eyWzy0ceREU1hUGbxiNrH?=
- =?us-ascii?Q?GaOr3p+/GU2oeDFMSdWTQ9iUwj2Q4a3ezFPFzCgEe9f4OH2sonHp3jWAms5w?=
- =?us-ascii?Q?aKGb5l3HWvY0HFYxB0QYsVHK/KuK6A7j/xz6+VzLCsc4M/olyQAPHkZ/JGGI?=
- =?us-ascii?Q?oXCr06TvW/Em0LpbLqVmZWmd+XkzH98XS0lYhGu3UtqsK4aJLVbgBQZhu8H/?=
- =?us-ascii?Q?qJsPq8RgwaU/d8QVlbSpIqha8qHn43KgejzUKxjMBV1EZkh45WM8yVRM2b+W?=
- =?us-ascii?Q?W91jHbqm6ilVdP43jqShoMeZM0AazD9d58rhqvkVMOvbVMDitmPr/uq0pWfv?=
- =?us-ascii?Q?kwnbN1vSwWEh319ubi1pL6ZfGbTHDxYX1taeL3FxPkY/h63c9XfSCfFjIK3X?=
- =?us-ascii?Q?SC4Y6H9KKzcIu/0yrSPqy50E8j4uCGR8vKedbjuDI7c7fQAjy+ZbdVacwUm9?=
- =?us-ascii?Q?yWFsc3tZHDQKqbjE6XKp1ZxUouGE3hqAqowfOhI6ooy+4CmfSCevvcNUgnMX?=
- =?us-ascii?Q?S6wVY5elo8KtUyoTGj+9SBiRUXa7ZysSpNNmQBRwWYt/6+kx+31KA2C6zVUo?=
- =?us-ascii?Q?CRLusYjcSp72Vus+jmTCvEwn4dlvn8/YhYTpkWus07RQ1S72KIQ9wx/5NcFM?=
- =?us-ascii?Q?Q5tXSpuZwpnhMjvtQqN0tKuUfHfa4Z4HBYIMXxWNJ5Norg8y5MtRSJpoGpBP?=
- =?us-ascii?Q?F2MR5L90JSih6EVwqilQ6c/+aZCbiVdF4g4YlDVGLRhqOmgbDdJzTv00hl3i?=
- =?us-ascii?Q?u0Kse8WesC8TWSaalz/PD7pVxzSLgRQJ2KPtasJQsdaoafrBv1E+fuOOikOv?=
- =?us-ascii?Q?JlGPOkA2Th2rDF/I3aOjF2a9+I2Cf4161Jm6AQp48lnDltJ1X83JTruwoi6+?=
- =?us-ascii?Q?U7Fr0TPyIgE/szKeH08CUoGYCj855oPRHlhMI/A7YnTbhSGrLtS9TTRueRg0?=
- =?us-ascii?Q?EfQJo46DNLiS6x88nzyAbv6U?=
+X-Microsoft-Antispam-Message-Info: /FGw8aYM/N51mrx7GF3dkg/BjX+6ZJu72QezbOzGgIhXuJjJcEK4epkBVvxqc1A+PbClCrhpjvEimkCr9F4s4RGCGCFL4JZ8EHhprNEgRP2GnCfhAFK2+R1avyWst72ZSA+Kkqmx34/4swc88PEbem026dDhlhzFBGy44PSm5bJASLjodyrrg0kOU6d1x3wpdFed5K9WikkPGZWdBdwfqcllHZdf569aeLNQmeixMS/8NzjLp6srxka74uNVCkZAtHQTwvLJVT1UwwIZgJuHO3y7kNghMLtyryXs4O2ytLIx7YBbIkMY8lrpqyM3qa1NwJa9wIe38W7cgZIbuKCuoDiIMBkZa3R8C5aOyysuWEruBNg/AbDjrnMNeh4N450ETeL4GN2nCxSQyIvB4y3GiDJRvrarb1buhtjRig0BlZ058FzpTcV+kf36ETxHaVcOOIEjvnUqJBKzOsgzit9gzpRWJfQLN2EdHDLWUFRHg+77L7zMtMFtPysttbY1l6+7vFJd+xwt3w5b6oeMrMW+ogGvN5fGnORGb2VvP2mWZTVCQZqtNlHCf2puM3c97QHhoa9j/K6IQWeZL+Gk3t2knC5qXn6BDxju1QOq3LWj63vSIwV/MHiNdIp7LgxGn34Com2FfeoE7xW1K2ufiHihiJyJbeCaJvrpg28qHmI3jCA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR01MB6439.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(39830400003)(366004)(346002)(376002)(396003)(86362001)(5660300002)(52116002)(186003)(4326008)(7696005)(2906002)(36756003)(66556008)(8936002)(956004)(66476007)(107886003)(2616005)(478600001)(83380400001)(66946007)(6486002)(38100700001)(8676002)(26005)(316002)(9686003)(6666004)(16526019);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?0gvbQlW/BX5bPvvWcmfXv2HCqQDGtWc7HksxsggOw/Fjn0Dk7W4NDd5FH9EC?=
+ =?us-ascii?Q?KFM+gKnqnl0byh2ND7XaWpqdAN4IzcwyDDkfTMEjLQodKLgnxaeowNqIEG/b?=
+ =?us-ascii?Q?luahbTgksu8sgRefJUiRSV/dbh7GqGlW/YE4VDRHJ4gy4mMaXtciTgBFjYFz?=
+ =?us-ascii?Q?AAWY8ZT/DRezr20FqJkFCLxOAgChfAcGBJAGpslrEb7L69sAVfOfS8ndK4f4?=
+ =?us-ascii?Q?fjtSSn2E/D9QgJvbSp8IxDJt+FXHqNgW1YCpgklndViaKWZOmiWsNrDk4Kd8?=
+ =?us-ascii?Q?AR00AJ6uua3HUWHu7+sLtGxXUIRdn9y6opbxyTlJsz+/16Eie8S0fVWVP4JZ?=
+ =?us-ascii?Q?M8/qOHlal0zrVLr/1K2KN0nkUHlp6DUzn012ppfEEH0wbcG+qzZZYZ1PxtuZ?=
+ =?us-ascii?Q?Hw2BOClunw7agOyCDV8Zgi0G12tKcWppL+AFjS2zwRQ8OCaEDqZ65A77PS8F?=
+ =?us-ascii?Q?MSqeVTCgeqfgKS8cvNcTpX2lZDzZQvN2Mam5LP9jKAiHnrYw5PTMDKSMFvRK?=
+ =?us-ascii?Q?BJ69Eee0gRUz+de5pGT2lK+xrVGPb2KwkMx0L/lVAq5WMCcTz21/B2+BEBe6?=
+ =?us-ascii?Q?KPTXnmrKpij4+DqmYKLYbYdABunBMXY2hbAix8aHlACtaNbg42tJvCwAM3V7?=
+ =?us-ascii?Q?sERbAWZ4MWdWNx26gaBRJN9XFYCVDF/ADv4jIn9ApbZh8+X8QK5IEk+B1/nW?=
+ =?us-ascii?Q?hg9nN0AEiSPMF2MIeyEuI/5jTohX/uhYHBhefXozMBAR7Dv6xNY0FkSltn6L?=
+ =?us-ascii?Q?35KXVzOoAl7uUsGxPFHwaAgR+pwPqBvUzbbPWp7lRRgz86L69R4Ictpmhu5b?=
+ =?us-ascii?Q?qWA1npAVyj+r7XNBMqJ7UyVFtZzyMZY6tZeTkx0jv42SzzjTZ1cFnxZvVB8f?=
+ =?us-ascii?Q?5CtL9lIH6Ey8rV6qauRsM4U7nigfT2nvWj/xVhWQ/QUhO47cwQVAe8YOXAq6?=
+ =?us-ascii?Q?3fXbkqEa9TSJpT/YkGyNyN7MkbyXO0CiiNk6Uh0nqNThCrwtWn58oDu+sjpF?=
+ =?us-ascii?Q?PZWqknbEsI09+GoAKbom1/YYwGrsh1QRuYozO2gPSInvknNuFPXOMu+ZFCQs?=
+ =?us-ascii?Q?rHwq6djgx2E/Gf4RLyJcKZYTtAZwne9YgvrgUP4ImRF8QL7NPW6z+qFEsPvW?=
+ =?us-ascii?Q?SlarIaOjnM1GOLIq+geDidE/Siw9SZFPVpyJfLcqUyL4yhosqPpgpdMIijyI?=
+ =?us-ascii?Q?HttYiiHt3m4xgspM7Z5pFWQdHrIw1abJzvvyfKDFVZQFgyv3adbYBYSb4yq6?=
+ =?us-ascii?Q?PCL1WvuZMFxtJO55olEXK/u5ooB1MZSOyCoWz5WsU2GPNrIfFGWpHoxUmI2+?=
+ =?us-ascii?Q?H/Gq6aR+v+GyFIXixIAOrz0D?=
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 942c25d7-00d4-4680-6097-08d8f2ba3ffd
+X-MS-Exchange-CrossTenant-Network-Message-Id: df457675-65b6-48a0-4dbc-08d8f2ba3578
 X-MS-Exchange-CrossTenant-AuthSource: PH0PR01MB6439.prod.exchangelabs.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:55:02.6096
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2021 13:54:44.8886
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: aicHK1KmrmAHSrpwF3ggm4+lgSMl11wY9P19ZT0ipCU5MvdYBhYUj6otQSQUrgtibD847Oq51HZQqK7J65H9XGvvBYO9nfdjZl/QRkcP7UgYyHYwCW12s732gdiLFauA
+X-MS-Exchange-CrossTenant-UserPrincipalName: uJYcMTOQz9IFHRTJWWpPAQUdD8JPgc9S3wHjEBUZc5CCBr09obC/6uKlovvENlVQUzbPmvJS2PyyjeZPwwlH/B++yLG0PvD6ev0uaairt1z/BgCjsQlCBdF+YpnC4u9n
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR01MB6618
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+From: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 
-The completion ring for tx is using the wrong size to size the
-ring, oversizing the ring by two orders of magniture.
+Here are some fixes, clean-up and debugging type patches for-next. There are
+some changs to the way AIP/VNIC netdevs are used and a timeout handler is added
+for rdma_netdev. 
 
-Correct the allocation size and use kcalloc_node() to allocate
-the ring.  Fix mistaken GFP defines in similar allocations.
+The MTU patch from Kaike will to add a physical MTU to query_port is also of
+particualr note.
 
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
----
- drivers/infiniband/hw/hfi1/ipoib.h    |  3 ++-
- drivers/infiniband/hw/hfi1/ipoib_tx.c | 14 +++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+Kaike Wan (2):
+  rdma: Set physical MTU for query_port function
+  IB/hfi1: Remove unused function
 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib.h b/drivers/infiniband/hw/hfi1/ipoib.h
-index 1659beb..39c8909 100644
---- a/drivers/infiniband/hw/hfi1/ipoib.h
-+++ b/drivers/infiniband/hw/hfi1/ipoib.h
-@@ -52,8 +52,9 @@
-  * @producer_lock: producer sync lock
-  * @consumer_lock: consumer sync lock
-  */
-+struct ipoib_txreq;
- struct hfi1_ipoib_circ_buf {
--	void **items;
-+	struct ipoib_txreq **items;
- 	unsigned long head;
- 	unsigned long tail;
- 	unsigned long max_items;
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_tx.c b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-index e8dece5..1c38c38 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_tx.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-@@ -714,14 +714,14 @@ int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv)
- 
- 	priv->tx_napis = kcalloc_node(dev->num_tx_queues,
- 				      sizeof(struct napi_struct),
--				      GFP_ATOMIC,
-+				      GFP_KERNEL,
- 				      priv->dd->node);
- 	if (!priv->tx_napis)
- 		goto free_txreq_cache;
- 
- 	priv->txqs = kcalloc_node(dev->num_tx_queues,
- 				  sizeof(struct hfi1_ipoib_txq),
--				  GFP_ATOMIC,
-+				  GFP_KERNEL,
- 				  priv->dd->node);
- 	if (!priv->txqs)
- 		goto free_tx_napis;
-@@ -753,9 +753,9 @@ int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv)
- 					     priv->dd->node);
- 
- 		txq->tx_ring.items =
--			vzalloc_node(array_size(tx_ring_size,
--						sizeof(struct ipoib_txreq)),
--				     priv->dd->node);
-+			kcalloc_node(tx_ring_size,
-+				     sizeof(struct ipoib_txreq *),
-+				     GFP_KERNEL, priv->dd->node);
- 		if (!txq->tx_ring.items)
- 			goto free_txqs;
- 
-@@ -776,7 +776,7 @@ int hfi1_ipoib_txreq_init(struct hfi1_ipoib_dev_priv *priv)
- 		struct hfi1_ipoib_txq *txq = &priv->txqs[i];
- 
- 		netif_napi_del(txq->napi);
--		vfree(txq->tx_ring.items);
-+		kfree(txq->tx_ring.items);
- 	}
- 
- 	kfree(priv->txqs);
-@@ -829,7 +829,7 @@ void hfi1_ipoib_txreq_deinit(struct hfi1_ipoib_dev_priv *priv)
- 		hfi1_ipoib_drain_tx_list(txq);
- 		netif_napi_del(txq->napi);
- 		(void)hfi1_ipoib_drain_tx_ring(txq, txq->tx_ring.max_items);
--		vfree(txq->tx_ring.items);
-+		kfree(txq->tx_ring.items);
- 	}
- 
- 	kfree(priv->txqs);
+Mike Marciniszyn (8):
+  IB/hfi1: Add AIP tx traces
+  IB/{ipoib,hfi1}: Add a timeout handler for rdma_netdev
+  IB/hfi1: Correct oversized ring allocation
+  IB/hfi1: Use napi_schedule_irqoff() for tx napi
+  IB/hfi1: Remove indirect call to hfi1_ipoib_send_dma()
+  IB/hfi1: Add additional usdma traces
+  IB/hfi1: Use kzalloc() for mmu_rb_handler allocation
+  IB/hfi1: Rework AIP and VNIC dummy netdev usage
+
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c        |   1 +
+ drivers/infiniband/hw/cxgb4/provider.c          |   1 +
+ drivers/infiniband/hw/efa/efa_verbs.c           |   1 +
+ drivers/infiniband/hw/hfi1/chip.c               |   6 +-
+ drivers/infiniband/hw/hfi1/hfi.h                |   4 +-
+ drivers/infiniband/hw/hfi1/init.c               |   2 +-
+ drivers/infiniband/hw/hfi1/ipoib.h              |  13 +-
+ drivers/infiniband/hw/hfi1/ipoib_main.c         |   9 +-
+ drivers/infiniband/hw/hfi1/ipoib_tx.c           |  71 ++++++++--
+ drivers/infiniband/hw/hfi1/mmu_rb.c             |   2 +-
+ drivers/infiniband/hw/hfi1/netdev.h             |  39 ++----
+ drivers/infiniband/hw/hfi1/netdev_rx.c          | 177 +++++++++++------------
+ drivers/infiniband/hw/hfi1/sdma.h               |  18 ---
+ drivers/infiniband/hw/hfi1/trace_tx.h           | 179 ++++++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/user_sdma.c          |  12 +-
+ drivers/infiniband/hw/hfi1/user_sdma.h          |   1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c       |   1 +
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c       |   1 +
+ drivers/infiniband/hw/mlx4/main.c               |   1 +
+ drivers/infiniband/hw/mlx5/mad.c                |   1 +
+ drivers/infiniband/hw/mlx5/main.c               |   2 +
+ drivers/infiniband/hw/mthca/mthca_provider.c    |   1 +
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c     |   1 +
+ drivers/infiniband/hw/qib/qib_verbs.c           |   1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c    |   1 +
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c |   1 +
+ drivers/infiniband/sw/siw/siw_verbs.c           |   1 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c       |   7 +-
+ include/rdma/ib_verbs.h                         |  19 +--
+ 29 files changed, 386 insertions(+), 188 deletions(-)
+
 -- 
 1.8.3.1
 
