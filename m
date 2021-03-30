@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8414AC433E6
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 17:00:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28294C433EA
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 17:00:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65E29619CC
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 17:00:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07922619D1
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 17:00:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232224AbhC3RAU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Mar 2021 13:00:20 -0400
-Received: from mga04.intel.com ([192.55.52.120]:6360 "EHLO mga04.intel.com"
+        id S232464AbhC3RAV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Mar 2021 13:00:21 -0400
+Received: from mga04.intel.com ([192.55.52.120]:6378 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232221AbhC3RAJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 30 Mar 2021 13:00:09 -0400
-IronPort-SDR: Bn9wwgullj/wAK1ka0TSzyjTRnhzCdxGJeFxe+4g0QGt6NPDEFJb/gqZUaHlyTpQxGT0TrOFh8
- 5UL+JBDcpFjA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9939"; a="189569198"
+        id S232261AbhC3RAL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 30 Mar 2021 13:00:11 -0400
+IronPort-SDR: QaR1ZCJ/nf0LGXkNxQ1bR56LCbCFGpniJe/xRcEu/W1CpVf8kZ5O9M/CSZLB1G5DMBuUmLFlQp
+ cLV6FOs+Jcrg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9939"; a="189569219"
 X-IronPort-AV: E=Sophos;i="5.81,291,1610438400"; 
-   d="scan'208";a="189569198"
+   d="scan'208";a="189569219"
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2021 10:00:07 -0700
-IronPort-SDR: 0fI44fkYGSpgTC7khk/wrc5tdl9pHO25JHFMJru4rzLOOTdaaVaizvikNHtbEZouG9nMMPtOsQ
- PAAzuyksCIzg==
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2021 10:00:11 -0700
+IronPort-SDR: 7aNu05lkHOsrrX9k5fLikm05PXYnDUjWbW4X9vKgS/yAHTl8vQocM6Bg4S/2REbv7UmdEIrNXi
+ Q0CoSLy2aWdA==
 X-IronPort-AV: E=Sophos;i="5.81,291,1610438400"; 
-   d="scan'208";a="610174658"
+   d="scan'208";a="610174700"
 Received: from ssaleem-mobl.amr.corp.intel.com ([10.209.112.111])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2021 10:00:06 -0700
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2021 10:00:10 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
         davem@davemloft.net
 Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v3 04/23] ice: Register auxiliary device to provide RDMA
-Date:   Tue, 30 Mar 2021 11:59:03 -0500
-Message-Id: <20210330165922.2006-5-shiraz.saleem@intel.com>
+Subject: [PATCH v3 07/23] i40e: Register auxiliary devices to provide RDMA
+Date:   Tue, 30 Mar 2021 11:59:06 -0500
+Message-Id: <20210330165922.2006-8-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.31.0
 In-Reply-To: <20210330165922.2006-1-shiraz.saleem@intel.com>
 References: <20210330165922.2006-1-shiraz.saleem@intel.com>
@@ -50,272 +50,310 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dave Ertman <david.m.ertman@intel.com>
+Convert i40e to use the auxiliary bus infrastructure to export
+the RDMA functionality of the device to the RDMA driver.
+Register i40e client auxiliary RDMA device on the auxiliary bus per
+PCIe device function for the new auxiliary rdma driver (irdma) to
+attach to.
 
-Register ice client auxiliary RDMA device on the auxiliary bus per
-PCIe device function for the auxiliary driver (irdma) to attach to.
-It allows to realize a single RDMA driver (irdma) capable of working with
-multiple netdev drivers over multi-generation Intel HW supporting RDMA.
-There is no load ordering dependencies between ice and irdma.
+This replaces the need for the global i40e_register_client and
+i40e_unregister_client symbols to connect the netdev and rdma
+driver. It will be obsoleted once irdma replaces i40iw in the kernel
+for the X722 device.
 
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
-Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/net/ethernet/intel/Kconfig        |   1 +
- drivers/net/ethernet/intel/ice/ice.h      |   8 +-
- drivers/net/ethernet/intel/ice/ice_idc.c  | 123 ++++++++++++++++++++++++++++++
- drivers/net/ethernet/intel/ice/ice_main.c |   9 +++
- 4 files changed, 140 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/intel/Kconfig            |   1 +
+ drivers/net/ethernet/intel/i40e/i40e.h        |   2 +
+ drivers/net/ethernet/intel/i40e/i40e_client.c | 156 ++++++++++++++++++++++----
+ drivers/net/ethernet/intel/i40e/i40e_main.c   |   1 +
+ 4 files changed, 140 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index 5aa8631..cbc5968 100644
+index cbc5968..ccb7ad6 100644
 --- a/drivers/net/ethernet/intel/Kconfig
 +++ b/drivers/net/ethernet/intel/Kconfig
-@@ -294,6 +294,7 @@ config ICE
- 	tristate "Intel(R) Ethernet Connection E800 Series Support"
- 	default n
- 	depends on PCI_MSI
+@@ -241,6 +241,7 @@ config I40E
+ 	tristate "Intel(R) Ethernet Controller XL710 Family support"
+ 	imply PTP_1588_CLOCK
+ 	depends on PCI
 +	select AUXILIARY_BUS
- 	select NET_DEVLINK
- 	select PLDMFW
  	help
-diff --git a/drivers/net/ethernet/intel/ice/ice.h b/drivers/net/ethernet/intel/ice/ice.h
-index 561f8fd..41bae4d 100644
---- a/drivers/net/ethernet/intel/ice/ice.h
-+++ b/drivers/net/ethernet/intel/ice/ice.h
-@@ -34,6 +34,7 @@
- #include <linux/if_bridge.h>
- #include <linux/ctype.h>
- #include <linux/bpf.h>
-+#include <linux/auxiliary_bus.h>
- #include <linux/avf/virtchnl.h>
- #include <linux/cpu_rmap.h>
- #include <net/devlink.h>
-@@ -633,6 +634,8 @@ static inline void ice_clear_sriov_cap(struct ice_pf *pf)
- void ice_fill_rss_lut(u8 *lut, u16 rss_table_size, u16 rss_size);
- int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset);
- void ice_print_link_msg(struct ice_vsi *vsi, bool isup);
-+int ice_plug_aux_devs(struct ice_pf *pf);
-+void ice_unplug_aux_devs(struct ice_pf *pf);
- int ice_init_aux_devices(struct ice_pf *pf);
- int
- ice_for_each_aux(struct ice_pf *pf, void *data,
-@@ -667,8 +670,10 @@ int ice_aq_wait_for_event(struct ice_pf *pf, u16 opcode, unsigned long timeout,
-  */
- static inline void ice_set_rdma_cap(struct ice_pf *pf)
- {
--	if (pf->hw.func_caps.common_cap.iwarp && pf->num_rdma_msix)
-+	if (pf->hw.func_caps.common_cap.iwarp && pf->num_rdma_msix) {
- 		set_bit(ICE_FLAG_IWARP_ENA, pf->flags);
-+		ice_plug_aux_devs(pf);
-+	}
- }
+ 	  This driver supports Intel(R) Ethernet Controller XL710 Family of
+ 	  devices.  For more information on how to identify your adapter, go
+diff --git a/drivers/net/ethernet/intel/i40e/i40e.h b/drivers/net/ethernet/intel/i40e/i40e.h
+index cd53981..3246fef 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e.h
++++ b/drivers/net/ethernet/intel/i40e/i40e.h
+@@ -867,6 +867,8 @@ struct i40e_netdev_priv {
+ 	struct i40e_vsi *vsi;
+ };
  
- /**
-@@ -677,6 +682,7 @@ static inline void ice_set_rdma_cap(struct ice_pf *pf)
-  */
- static inline void ice_clear_rdma_cap(struct ice_pf *pf)
- {
-+	ice_unplug_aux_devs(pf);
- 	clear_bit(ICE_FLAG_IWARP_ENA, pf->flags);
- }
- #endif /* _ICE_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-index 9e3e237..5981cbd 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc.c
-+++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -586,6 +586,109 @@ int ice_cdev_info_update_vsi(struct iidc_core_dev_info *cdev_info, void *data)
++extern struct ida i40e_client_ida;
++
+ /* struct that defines an interrupt vector */
+ struct i40e_q_vector {
+ 	struct i40e_vsi *vsi;
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
+index a2dba32..2eb5aba 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_client.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
+@@ -12,6 +12,7 @@
+ static struct i40e_client *registered_client;
+ static LIST_HEAD(i40e_devices);
+ static DEFINE_MUTEX(i40e_device_mutex);
++DEFINE_IDA(i40e_client_ida);
+ 
+ static int i40e_client_virtchnl_send(struct i40e_info *ldev,
+ 				     struct i40e_client *client,
+@@ -30,11 +31,17 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
+ 				       bool is_vf, u32 vf_id,
+ 				       u32 flag, u32 valid_flag);
+ 
++static int i40e_client_device_register(struct i40e_info *ldev);
++
++static void i40e_client_device_unregister(struct i40e_info *ldev);
++
+ static struct i40e_ops i40e_lan_ops = {
+ 	.virtchnl_send = i40e_client_virtchnl_send,
+ 	.setup_qvlist = i40e_client_setup_qvlist,
+ 	.request_reset = i40e_client_request_reset,
+ 	.update_vsi_ctxt = i40e_client_update_vsi_ctxt,
++	.client_device_register = i40e_client_device_register,
++	.client_device_unregister = i40e_client_device_unregister,
  };
  
  /**
-+ * ice_cdev_info_adev_release - function to be mapped to AUX dev's release op
-+ * @dev: pointer to device to free
-+ */
-+static void ice_cdev_info_adev_release(struct device *dev)
+@@ -275,6 +282,57 @@ void i40e_client_update_msix_info(struct i40e_pf *pf)
+ 	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
+ }
+ 
++static void i40e_auxiliary_dev_release(struct device *dev)
 +{
-+	struct iidc_auxiliary_dev *iadev;
++	struct i40e_auxiliary_device *i40e_aux_dev =
++			container_of(dev, struct i40e_auxiliary_device, aux_dev.dev);
 +
-+	iadev = container_of(dev, struct iidc_auxiliary_dev, adev.dev);
-+	kfree(iadev->adev.name);
-+	kfree(iadev);
++	ida_simple_remove(&i40e_client_ida, i40e_aux_dev->aux_dev.id);
++	kfree(i40e_aux_dev);
 +}
 +
-+/**
-+ * ice_plug_aux_devs - allocate and register one AUX dev per cdev_info in PF
-+ * @pf: pointer to PF struct
-+ */
-+int ice_plug_aux_devs(struct ice_pf *pf)
++static int i40e_register_auxiliary_dev(struct i40e_info *ldev, const char *name)
 +{
-+	struct iidc_auxiliary_dev *iadev;
-+	int ret, i;
++	struct i40e_auxiliary_device *i40e_aux_dev;
++	struct pci_dev *pdev = ldev->pcidev;
++	struct auxiliary_device *aux_dev;
++	int ret;
 +
-+	if (!pf->cdev_infos)
-+		return 0;
++	i40e_aux_dev = kzalloc(sizeof(*i40e_aux_dev), GFP_KERNEL);
++	if (!i40e_aux_dev)
++		return -ENOMEM;
 +
-+	for (i = 0; i < ARRAY_SIZE(ice_cdev_ids); i++) {
-+		struct iidc_core_dev_info *cdev_info;
-+		struct auxiliary_device *adev;
++	i40e_aux_dev->ldev = ldev;
 +
-+		cdev_info = pf->cdev_infos[i];
-+		if (!cdev_info)
-+			continue;
++	aux_dev = &i40e_aux_dev->aux_dev;
++	aux_dev->name = name;
++	aux_dev->dev.parent = &pdev->dev;
++	aux_dev->dev.release = i40e_auxiliary_dev_release;
++	ldev->aux_dev = aux_dev;
 +
-+		iadev = kzalloc(sizeof(*iadev), GFP_KERNEL);
-+		if (!iadev)
-+			return -ENOMEM;
++	ret = ida_simple_get(&i40e_client_ida, 0, 0, GFP_KERNEL);
++	if (ret < 0) {
++		kfree(i40e_aux_dev);
++		return ret;
++	}
++	aux_dev->id = ret;
 +
-+		adev = &iadev->adev;
-+		cdev_info->adev = adev;
-+		iadev->cdev_info = cdev_info;
++	ret = auxiliary_device_init(aux_dev);
++	if (ret < 0) {
++		ida_simple_remove(&i40e_client_ida, aux_dev->id);
++		kfree(i40e_aux_dev);
++		return ret;
++	}
 +
-+		if (ice_cdev_ids[i].id == IIDC_RDMA_ID) {
-+			if (cdev_info->rdma_protocol ==
-+			    IIDC_RDMA_PROTOCOL_IWARP)
-+				adev->name = kasprintf(GFP_KERNEL, "%s_%s",
-+						       ice_cdev_ids[i].name,
-+						       "iwarp");
-+			else
-+				adev->name = kasprintf(GFP_KERNEL, "%s_%s",
-+						       ice_cdev_ids[i].name,
-+						       "roce");
-+		} else {
-+			adev->name = kasprintf(GFP_KERNEL, "%s",
-+					       ice_cdev_ids[i].name);
-+		}
-+		adev->id = pf->aux_idx;
-+		adev->dev.release = ice_cdev_info_adev_release;
-+		adev->dev.parent = &cdev_info->pdev->dev;
-+
-+		ret = auxiliary_device_init(adev);
-+		if (ret) {
-+			cdev_info->adev = NULL;
-+			kfree(adev->name);
-+			kfree(iadev);
-+			return ret;
-+		}
-+
-+		ret = auxiliary_device_add(adev);
-+		if (ret) {
-+			cdev_info->adev = NULL;
-+			auxiliary_device_uninit(adev);
-+			return ret;
-+		}
++	ret = auxiliary_device_add(aux_dev);
++	if (ret) {
++		auxiliary_device_uninit(aux_dev);
++		return ret;
 +	}
 +
 +	return ret;
 +}
 +
-+/**
-+ * ice_unplug_aux_devs - unregister and free AUX devs
-+ * @pf: pointer to PF struct
-+ */
-+void ice_unplug_aux_devs(struct ice_pf *pf)
-+{
-+	int i;
-+
-+	if (!pf->cdev_infos)
-+		return;
-+
-+	for (i = 0; i < ARRAY_SIZE(ice_cdev_ids); i++) {
-+		struct iidc_core_dev_info *cdev_info;
-+
-+		cdev_info = pf->cdev_infos[i];
-+		/* if this AUX dev has already been unplugged move on */
-+		if (!cdev_info->adev)
-+			continue;
-+
-+		auxiliary_device_delete(cdev_info->adev);
-+		auxiliary_device_uninit(cdev_info->adev);
-+		cdev_info->adev = NULL;
-+	}
-+}
-+
-+/**
-  * ice_init_aux_devices - initializes cdev_info objects and AUX devices
-  * @pf: ptr to ice_pf
-  */
-@@ -617,6 +720,19 @@ int ice_init_aux_devices(struct ice_pf *pf)
- 		struct msix_entry *entry = NULL;
- 		int j;
+ /**
+  * i40e_client_add_instance - add a client instance struct to the instance list
+  * @pf: pointer to the board struct
+@@ -286,9 +344,6 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
+ 	struct netdev_hw_addr *mac = NULL;
+ 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
  
-+		/* structure layout needed for container_of's looks like:
-+		 * iidc_auxiliary_dev (container_of super-struct for adev)
-+		 * |--> auxiliary_device
-+		 * |--> *iidc_core_dev_info (pointer from cdev_info struct)
-+		 *
-+		 * The iidc_auxiliary_device has a lifespan as long as it
-+		 * is on the bus.  Once removed it will be freed and a new
-+		 * one allocated if needed to re-add.
-+		 *
-+		 * The iidc_core_dev_info is tied to the life of the PF, and
-+		 * will exist as long as the PF driver is loaded.  It will be
-+		 * freed in the remove flow for the PF driver.
-+		 */
- 		cdev_info = kzalloc(sizeof(*cdev_info), GFP_KERNEL);
- 		if (!cdev_info) {
- 			ida_simple_remove(&ice_cdev_info_ida, pf->aux_idx);
-@@ -668,5 +784,12 @@ int ice_init_aux_devices(struct ice_pf *pf)
- 		cdev_info->msix_entries = entry;
- 	}
+-	if (!registered_client || pf->cinst)
+-		return;
+-
+ 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+ 	if (!cdev)
+ 		return;
+@@ -308,11 +363,8 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
+ 	cdev->lan_info.fw_build = pf->hw.aq.fw_build;
+ 	set_bit(__I40E_CLIENT_INSTANCE_NONE, &cdev->state);
  
-+	ret = ice_plug_aux_devs(pf);
-+	if (ret) {
-+		ice_unplug_aux_devs(pf);
-+		ice_for_each_aux(pf, NULL, ice_unroll_cdev_info);
-+		ida_simple_remove(&ice_cdev_info_ida, pf->aux_idx);
-+	}
+-	if (i40e_client_get_params(vsi, &cdev->lan_info.params)) {
+-		kfree(cdev);
+-		cdev = NULL;
+-		return;
+-	}
++	if (i40e_client_get_params(vsi, &cdev->lan_info.params))
++		goto free_cdev;
+ 
+ 	mac = list_first_entry(&cdev->lan_info.netdev->dev_addrs.list,
+ 			       struct netdev_hw_addr, list);
+@@ -324,7 +376,17 @@ static void i40e_client_add_instance(struct i40e_pf *pf)
+ 	cdev->client = registered_client;
+ 	pf->cinst = cdev;
+ 
+-	i40e_client_update_msix_info(pf);
++	cdev->lan_info.msix_count = pf->num_iwarp_msix;
++	cdev->lan_info.msix_entries = &pf->msix_entries[pf->iwarp_base_vector];
 +
- 	return ret;
++	if (i40e_register_auxiliary_dev(&cdev->lan_info, "intel_rdma_iwarp"))
++		goto free_cdev;
++
++	return;
++
++free_cdev:
++	kfree(cdev);
++	pf->cinst = NULL;
  }
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index 8baf3ac..3d750ba 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -466,6 +466,8 @@ static void ice_pf_dis_all_vsi(struct ice_pf *pf, bool locked)
- 	if (test_bit(__ICE_PREPARED_FOR_RESET, pf->state))
+ 
+ /**
+@@ -345,7 +407,7 @@ void i40e_client_del_instance(struct i40e_pf *pf)
+  **/
+ void i40e_client_subtask(struct i40e_pf *pf)
+ {
+-	struct i40e_client *client = registered_client;
++	struct i40e_client *client;
+ 	struct i40e_client_instance *cdev;
+ 	struct i40e_vsi *vsi = pf->vsi[pf->lan_vsi];
+ 	int ret = 0;
+@@ -359,9 +421,11 @@ void i40e_client_subtask(struct i40e_pf *pf)
+ 	    test_bit(__I40E_CONFIG_BUSY, pf->state))
  		return;
  
-+	ice_unplug_aux_devs(pf);
+-	if (!client || !cdev)
++	if (!cdev || !cdev->client)
+ 		return;
+ 
++	client = cdev->client;
 +
- 	/* Notify VFs of impending reset */
- 	if (ice_check_sq_alive(hw, &hw->mailboxq))
- 		ice_vc_notify_reset(pf);
-@@ -2122,6 +2124,8 @@ int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset)
- 		return -EBUSY;
- 	}
- 
-+	ice_unplug_aux_devs(pf);
-+
- 	switch (reset) {
- 	case ICE_RESET_PFR:
- 		set_bit(__ICE_PFR_REQ, pf->state);
-@@ -4463,6 +4467,7 @@ static void ice_remove(struct pci_dev *pdev)
- 	ice_service_task_stop(pf);
- 
- 	ice_aq_cancel_waiting_tasks(pf);
-+	ice_unplug_aux_devs(pf);
- 	ice_for_each_aux(pf, NULL, ice_unroll_cdev_info);
- 	set_bit(__ICE_DOWN, pf->state);
- 
-@@ -4620,6 +4625,8 @@ static int __maybe_unused ice_suspend(struct device *dev)
+ 	/* Here we handle client opens. If the client is down, and
+ 	 * the netdev is registered, then open the client.
  	 */
- 	disabled = ice_service_task_stop(pf);
+@@ -422,16 +486,8 @@ int i40e_lan_add_device(struct i40e_pf *pf)
+ 		 pf->hw.pf_id, pf->hw.bus.bus_id,
+ 		 pf->hw.bus.device, pf->hw.bus.func);
  
-+	ice_unplug_aux_devs(pf);
+-	/* If a client has already been registered, we need to add an instance
+-	 * of it to our new LAN device.
+-	 */
+-	if (registered_client)
+-		i40e_client_add_instance(pf);
++	i40e_client_add_instance(pf);
+ 
+-	/* Since in some cases register may have happened before a device gets
+-	 * added, we can schedule a subtask to go initiate the clients if
+-	 * they can be launched at probe time.
+-	 */
+ 	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
+ 	i40e_service_event_schedule(pf);
+ 
+@@ -448,9 +504,13 @@ int i40e_lan_add_device(struct i40e_pf *pf)
+  **/
+ int i40e_lan_del_device(struct i40e_pf *pf)
+ {
++	struct auxiliary_device *aux_dev = pf->cinst->lan_info.aux_dev;
+ 	struct i40e_device *ldev, *tmp;
+ 	int ret = -ENODEV;
+ 
++	auxiliary_device_delete(aux_dev);
++	auxiliary_device_uninit(aux_dev);
 +
- 	/* Already suspended?, then there is nothing to do */
- 	if (test_and_set_bit(__ICE_SUSPENDED, pf->state)) {
- 		if (!disabled)
-@@ -6193,6 +6200,8 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
+ 	/* First, remove any client instance. */
+ 	i40e_client_del_instance(pf);
  
- 	/* if we get here, reset flow is successful */
- 	clear_bit(__ICE_RESET_FAILED, pf->state);
+@@ -731,6 +791,62 @@ static int i40e_client_update_vsi_ctxt(struct i40e_info *ldev,
+ 	return err;
+ }
+ 
++static int i40e_client_device_register(struct i40e_info *ldev)
++{
++	struct i40e_client *client;
++	struct i40e_pf *pf;
 +
-+	ice_plug_aux_devs(pf);
- 	return;
- 
- err_vsi_rebuild:
++	if (!ldev) {
++		pr_err("Failed to reg client dev: ldev ptr NULL\n");
++		return -EINVAL;
++	}
++
++	client = ldev->client;
++	pf = ldev->pf;
++	if (!client) {
++		pr_err("Failed to reg client dev: client ptr NULL\n");
++		return -EINVAL;
++	}
++
++	if (!ldev->ops || !client->ops) {
++		pr_err("Failed to reg client dev: client dev peer_ops/ops NULL\n");
++		return -EINVAL;
++	}
++
++	pf->cinst->client = ldev->client;
++	set_bit(__I40E_CLIENT_SERVICE_REQUESTED, pf->state);
++	i40e_service_event_schedule(pf);
++
++	return 0;
++}
++
++static void i40e_client_device_unregister(struct i40e_info *ldev)
++{
++	struct i40e_pf *pf = ldev->pf;
++	struct i40e_client_instance *cdev = pf->cinst;
++
++	while (test_and_set_bit(__I40E_SERVICE_SCHED, pf->state))
++		usleep_range(500, 1000);
++
++	if (!cdev || !cdev->client || !cdev->client->ops ||
++	    !cdev->client->ops->close) {
++		dev_err(&pf->pdev->dev, "Cannot close client device\n");
++		return;
++	}
++	if (test_bit(__I40E_CLIENT_INSTANCE_OPENED, &cdev->state)) {
++		cdev->client->ops->close(&cdev->lan_info, cdev->client, false);
++		clear_bit(__I40E_CLIENT_INSTANCE_OPENED, &cdev->state);
++		i40e_client_release_qvlist(&cdev->lan_info);
++	}
++
++	pf->cinst->client = NULL;
++	clear_bit(__I40E_SERVICE_SCHED, pf->state);
++}
++
++/* Retain legacy global registration/unregistration calls till i40iw is
++ * deprecated from the kernel. The irdma unified driver does not use these
++ * exported symbols.
++ */
+ /**
+  * i40e_register_client - Register a i40e client driver with the L2 driver
+  * @client: pointer to the i40e_client struct
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_main.c b/drivers/net/ethernet/intel/i40e/i40e_main.c
+index 353deae..d8d3b136 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_main.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_main.c
+@@ -16272,6 +16272,7 @@ static void __exit i40e_exit_module(void)
+ {
+ 	pci_unregister_driver(&i40e_driver);
+ 	destroy_workqueue(i40e_wq);
++	ida_destroy(&i40e_client_ida);
+ 	i40e_dbg_exit();
+ }
+ module_exit(i40e_exit_module);
 -- 
 1.8.3.1
 
