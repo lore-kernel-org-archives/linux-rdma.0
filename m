@@ -5,235 +5,92 @@ X-Spam-Level:
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAEB6C433E6
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 07:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D147CC433C1
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 10:17:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C72161959
-	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 07:39:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C6F3619B5
+	for <linux-rdma@archiver.kernel.org>; Tue, 30 Mar 2021 10:17:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231187AbhC3Hij (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Mar 2021 03:38:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40870 "EHLO
+        id S231400AbhC3KQu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Mar 2021 06:16:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231370AbhC3HiO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Mar 2021 03:38:14 -0400
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 473B9C061762
-        for <linux-rdma@vger.kernel.org>; Tue, 30 Mar 2021 00:38:14 -0700 (PDT)
-Received: by mail-ej1-x635.google.com with SMTP id e14so23265886ejz.11
-        for <linux-rdma@vger.kernel.org>; Tue, 30 Mar 2021 00:38:14 -0700 (PDT)
+        with ESMTP id S229693AbhC3KQ0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Mar 2021 06:16:26 -0400
+Received: from ustc.edu.cn (email6.ustc.edu.cn [IPv6:2001:da8:d800::8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B0E51C061574;
+        Tue, 30 Mar 2021 03:16:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=+wNTS4XPUWn/jF7E63ntoE+HOXhLVAf70pg15ObO2xg=;
-        b=brHGtSON3jImzIRE1Wid398RfM1Awe0yDVRTJp4gTLGoDkt2SndXqDNY1r6T+atb1J
-         7Kfig6nfl+lGQ/pgWtJyjdC1qGCYb9+p+29buiT09r/uULD2aOK92Wyot4us99RrY1sH
-         kDsO0/6kzwMygFUnrD5Goubxbzw8WKhpliXbTv2aVQy4fWlvsQQ9cXkq/pxAmIYLtPET
-         Q/sm8pB6y+5L5+wqaVTc/HnfdRHmpuDBfKvkb7MfGQnFUkbqcjUx5rxnJVT6wKb45G3L
-         KuTG8KJlATh9hZgxkY8Z9Lki7J87dBkXBQ0PvD7JK8OcXsIsI6MhoII1GmLFDFnmJpB5
-         wSsQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=+wNTS4XPUWn/jF7E63ntoE+HOXhLVAf70pg15ObO2xg=;
-        b=p4+Ffv9W9r/rsQtc6/a316ArlZb5tqYxYqQcizeh3j42Xq81Cuvb8wKZi7w+22c6UH
-         HKQuMmGo7sBccGAoqJks3TUD3vEX9R9zV6l5X5mFXeW4NYNRby0YTogqN79DfRvUQjP3
-         LXQhnzub5gUYm6wCuFtploQefCPRB/4AB4JJCTt/+4WHzNHntYY+qBfWV75jTH2T1nHl
-         mlTHZbeVTZ453m1z+qGtz+ep6kwSnLxLLV3EVWwme57sg2gXZDlD4mdG0UuoHl8CHooY
-         jpsH01PSPkrpsQ0W48PovipwBDBYG9JIgwngwtFwQyaemZW6qdraCwXZHo1MCKR8uerg
-         Ys1Q==
-X-Gm-Message-State: AOAM531zHcwR+zRdhzBazgWzxqOsqki1thTNOS7T4zXj2Gl1MrxxT7uN
-        4LRf75IzN6OOmYLMhopSoh3qpQ==
-X-Google-Smtp-Source: ABdhPJxIF1hG1RscAxIssw08tn4fhsmYHF3kOBMAxxmXv26Led2ovP3+9M+gcd5MvrQXBOUfrR5bcA==
-X-Received: by 2002:a17:906:1453:: with SMTP id q19mr32502682ejc.76.1617089893062;
-        Tue, 30 Mar 2021 00:38:13 -0700 (PDT)
-Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aeee5.dynamic.kabel-deutschland.de. [95.90.238.229])
-        by smtp.googlemail.com with ESMTPSA id a3sm9556180ejv.40.2021.03.30.00.38.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Mar 2021 00:38:12 -0700 (PDT)
-From:   Gioh Kim <gi-oh.kim@ionos.com>
-To:     linux-block@vger.kernel.org
-Cc:     axboe@kernel.dk, hch@infradead.org, sagi@grimberg.me,
-        bvanassche@acm.org, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org,
-        Aleksei Marov <aleksei.marov@ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv2 for-next 20/24] block/rnbd-srv: Remove unused arguments of rnbd_srv_rdma_ev
-Date:   Tue, 30 Mar 2021 09:37:48 +0200
-Message-Id: <20210330073752.1465613-21-gi-oh.kim@ionos.com>
+        d=mail.ustc.edu.cn; s=dkim; h=Received:From:To:Cc:Subject:Date:
+        Message-Id:MIME-Version:Content-Transfer-Encoding; bh=JQBxnmUDmt
+        k5ywlnAxjrHC7Iq8Hzm8YvT88z/1P/DpI=; b=n+UXrA0YXLyaXFLwHoVOYU195l
+        llgP8AH2gF2lor487Dr6/RzBdgI9Z6EuTJc1aif4w/+mfyFO9bD13AoRrNADjYr+
+        ysx1/gj+KS9BGMOnvSv16R7Rw2nAorpqdCq+jPZeqcqax0k49p59v8XUsoWYu+19
+        WhgwV28FoHPweIrKc=
+Received: from ubuntu.localdomain (unknown [202.38.69.14])
+        by newmailweb.ustc.edu.cn (Coremail) with SMTP id LkAmygDHzU1k+mJgvL5vAA--.283S4;
+        Tue, 30 Mar 2021 18:16:04 +0800 (CST)
+From:   Lv Yunlong <lyl2019@mail.ustc.edu.cn>
+To:     santosh.shilimkar@oracle.com, davem@davemloft.net, kuba@kernel.org
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org,
+        Lv Yunlong <lyl2019@mail.ustc.edu.cn>
+Subject: [PATCH] net/rds: Fix a use after free in rds_message_map_pages
+Date:   Tue, 30 Mar 2021 03:16:02 -0700
+Message-Id: <20210330101602.22505-1-lyl2019@mail.ustc.edu.cn>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210330073752.1465613-1-gi-oh.kim@ionos.com>
-References: <20210330073752.1465613-1-gi-oh.kim@ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: LkAmygDHzU1k+mJgvL5vAA--.283S4
+X-Coremail-Antispam: 1UD129KBjvdXoWrtrWrGF1kZFW3Cw13AF1kKrg_yoWfZFg_Zr
+        W7JFn7W347XF1Iyws7Gws3Jr4Sqr1kJw18ua42gFyFyayDCF1kXw4rtrnxuwnxCFW2qr1x
+        Ww4DXr9xC34vvjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbsAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+        6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+        A2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Cr0_
+        Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+        0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+        64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8Jw
+        Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAG
+        YxC7MxkIecxEwVAFwVW8twCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8Jw
+        C20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAF
+        wI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjx
+        v20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6rW3Jr0E3s1lIxAIcVC2
+        z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnU
+        UI43ZEXa7VUbQVy7UUUUU==
+X-CM-SenderInfo: ho1ojiyrz6zt1loo32lwfovvfxof0/
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+In rds_message_map_pages, the rm is freed by rds_message_put(rm).
+But rm is still used by rm->data.op_sg in return value.
 
-struct rtrs_srv is not used when handling rnbd_srv_rdma_ev messages, so
-cleaned up
-rdma_ev function pointer in rtrs_srv_ops also is changed.
+My patch replaces ERR_CAST(rm->data.op_sg) to ERR_PTR(-ENOMEM) to avoid
+the uaf.
 
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Aleksei Marov <aleksei.marov@ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Fixes: 7dba92037baf3 ("net/rds: Use ERR_PTR for rds_message_alloc_sgs()")
+Signed-off-by: Lv Yunlong <lyl2019@mail.ustc.edu.cn>
 ---
- drivers/block/rnbd/rnbd-srv.c          | 39 ++++++++++----------------
- drivers/infiniband/ulp/rtrs/rtrs-srv.c |  4 +--
- drivers/infiniband/ulp/rtrs/rtrs.h     |  3 +-
- 3 files changed, 18 insertions(+), 28 deletions(-)
+ net/rds/message.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
-index a71b6f7662f5..78bd0ce0ebf0 100644
---- a/drivers/block/rnbd/rnbd-srv.c
-+++ b/drivers/block/rnbd/rnbd-srv.c
-@@ -119,8 +119,7 @@ rnbd_get_sess_dev(int dev_id, struct rnbd_srv_session *srv_sess)
- 	return sess_dev;
- }
+diff --git a/net/rds/message.c b/net/rds/message.c
+index 071a261fdaab..cecd968c9b25 100644
+--- a/net/rds/message.c
++++ b/net/rds/message.c
+@@ -348,7 +348,7 @@ struct rds_message *rds_message_map_pages(unsigned long *page_addrs, unsigned in
+ 	rm->data.op_sg = rds_message_alloc_sgs(rm, num_sgs);
+ 	if (IS_ERR(rm->data.op_sg)) {
+ 		rds_message_put(rm);
+-		return ERR_CAST(rm->data.op_sg);
++		return ERR_PTR(-ENOMEM);
+ 	}
  
--static int process_rdma(struct rtrs_srv *sess,
--			struct rnbd_srv_session *srv_sess,
-+static int process_rdma(struct rnbd_srv_session *srv_sess,
- 			struct rtrs_srv_op *id, void *data, u32 datalen,
- 			const void *usr, size_t usrlen)
- {
-@@ -350,8 +349,7 @@ void rnbd_srv_sess_dev_force_close(struct rnbd_srv_sess_dev *sess_dev,
- 	mutex_unlock(&sess->lock);
- }
- 
--static int process_msg_close(struct rtrs_srv *rtrs,
--			     struct rnbd_srv_session *srv_sess,
-+static int process_msg_close(struct rnbd_srv_session *srv_sess,
- 			     void *data, size_t datalen, const void *usr,
- 			     size_t usrlen)
- {
-@@ -370,20 +368,18 @@ static int process_msg_close(struct rtrs_srv *rtrs,
- 	return 0;
- }
- 
--static int process_msg_open(struct rtrs_srv *rtrs,
--			    struct rnbd_srv_session *srv_sess,
-+static int process_msg_open(struct rnbd_srv_session *srv_sess,
- 			    const void *msg, size_t len,
- 			    void *data, size_t datalen);
- 
--static int process_msg_sess_info(struct rtrs_srv *rtrs,
--				 struct rnbd_srv_session *srv_sess,
-+static int process_msg_sess_info(struct rnbd_srv_session *srv_sess,
- 				 const void *msg, size_t len,
- 				 void *data, size_t datalen);
- 
--static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
--			     struct rtrs_srv_op *id, int dir,
--			     void *data, size_t datalen, const void *usr,
--			     size_t usrlen)
-+static int rnbd_srv_rdma_ev(void *priv,
-+			    struct rtrs_srv_op *id, int dir,
-+			    void *data, size_t datalen, const void *usr,
-+			    size_t usrlen)
- {
- 	struct rnbd_srv_session *srv_sess = priv;
- 	const struct rnbd_msg_hdr *hdr = usr;
-@@ -397,19 +393,16 @@ static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
- 
- 	switch (type) {
- 	case RNBD_MSG_IO:
--		return process_rdma(rtrs, srv_sess, id, data, datalen, usr,
--				    usrlen);
-+		return process_rdma(srv_sess, id, data, datalen, usr, usrlen);
- 	case RNBD_MSG_CLOSE:
--		ret = process_msg_close(rtrs, srv_sess, data, datalen,
--					usr, usrlen);
-+		ret = process_msg_close(srv_sess, data, datalen, usr, usrlen);
- 		break;
- 	case RNBD_MSG_OPEN:
--		ret = process_msg_open(rtrs, srv_sess, usr, usrlen,
--				       data, datalen);
-+		ret = process_msg_open(srv_sess, usr, usrlen, data, datalen);
- 		break;
- 	case RNBD_MSG_SESS_INFO:
--		ret = process_msg_sess_info(rtrs, srv_sess, usr, usrlen,
--					    data, datalen);
-+		ret = process_msg_sess_info(srv_sess, usr, usrlen, data,
-+					    datalen);
- 		break;
- 	default:
- 		pr_warn("Received unexpected message type %d with dir %d from session %s\n",
-@@ -662,8 +655,7 @@ static char *rnbd_srv_get_full_path(struct rnbd_srv_session *srv_sess,
- 	return full_path;
- }
- 
--static int process_msg_sess_info(struct rtrs_srv *rtrs,
--				 struct rnbd_srv_session *srv_sess,
-+static int process_msg_sess_info(struct rnbd_srv_session *srv_sess,
- 				 const void *msg, size_t len,
- 				 void *data, size_t datalen)
- {
-@@ -704,8 +696,7 @@ find_srv_sess_dev(struct rnbd_srv_session *srv_sess, const char *dev_name)
- 	return NULL;
- }
- 
--static int process_msg_open(struct rtrs_srv *rtrs,
--			    struct rnbd_srv_session *srv_sess,
-+static int process_msg_open(struct rnbd_srv_session *srv_sess,
- 			    const void *msg, size_t len,
- 			    void *data, size_t datalen)
- {
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index d071809e3ed2..f7aa2a7e7442 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -998,7 +998,7 @@ static void process_read(struct rtrs_srv_con *con,
- 	usr_len = le16_to_cpu(msg->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
--	ret = ctx->ops.rdma_ev(srv, srv->priv, id, READ, data, data_len,
-+	ret = ctx->ops.rdma_ev(srv->priv, id, READ, data, data_len,
- 			   data + data_len, usr_len);
- 
- 	if (unlikely(ret)) {
-@@ -1051,7 +1051,7 @@ static void process_write(struct rtrs_srv_con *con,
- 	usr_len = le16_to_cpu(req->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
--	ret = ctx->ops.rdma_ev(srv, srv->priv, id, WRITE, data, data_len,
-+	ret = ctx->ops.rdma_ev(srv->priv, id, WRITE, data, data_len,
- 			   data + data_len, usr_len);
- 	if (unlikely(ret)) {
- 		rtrs_err_rl(s,
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
-index eb050738cda1..c25a0fd8a607 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.h
-@@ -139,7 +139,6 @@ struct rtrs_srv_ops {
- 	 *			message for the data transfer will be sent to
- 	 *			the client.
- 
--	 *	@sess:		Session
- 	 *	@priv:		Private data set by rtrs_srv_set_sess_priv()
- 	 *	@id:		internal RTRS operation id
- 	 *	@dir:		READ/WRITE
-@@ -153,7 +152,7 @@ struct rtrs_srv_ops {
- 	 *	@usr:		The extra user message sent by the client (%vec)
- 	 *	@usrlen:	Size of the user message
- 	 */
--	int (*rdma_ev)(struct rtrs_srv *sess, void *priv,
-+	int (*rdma_ev)(void *priv,
- 		       struct rtrs_srv_op *id, int dir,
- 		       void *data, size_t datalen, const void *usr,
- 		       size_t usrlen);
+ 	for (i = 0; i < rm->data.op_nents; ++i) {
 -- 
 2.25.1
+
 
