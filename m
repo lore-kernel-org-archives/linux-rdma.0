@@ -7,26 +7,25 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7CBDC43617
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CE72C43619
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE4C1610A8
+	by mail.kernel.org (Postfix) with ESMTP id D6A4061059
 	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235991AbhCaTg2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 31 Mar 2021 15:36:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44464 "EHLO mail.kernel.org"
+        id S236153AbhCaTg1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 31 Mar 2021 15:36:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44430 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236012AbhCaTgS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 31 Mar 2021 15:36:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 196426100C;
-        Wed, 31 Mar 2021 19:36:18 +0000 (UTC)
-Subject: [PATCH v1 3/8] xprtrdma: Put flushed Receives on free list instead of
- destroying them
+        id S235953AbhCaTgG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 31 Mar 2021 15:36:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DDF5B6100C;
+        Wed, 31 Mar 2021 19:36:05 +0000 (UTC)
+Subject: [PATCH v1 1/8] xprtrdma: Avoid Receive Queue wrapping
 From:   Chuck Lever <chuck.lever@oracle.com>
 To:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
-Date:   Wed, 31 Mar 2021 15:36:17 -0400
-Message-ID: <161721937732.515226.2170674299158077377.stgit@manet.1015granger.net>
+Date:   Wed, 31 Mar 2021 15:36:05 -0400
+Message-ID: <161721936504.515226.14877637433211331378.stgit@manet.1015granger.net>
 In-Reply-To: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
 References: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
 User-Agent: StGit/0.23-29-ga622f1
@@ -37,35 +36,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Defer destruction of an rpcrdma_rep until transport tear-down to
-avoid races between Receive completion and rpcrdma_reps_unmap().
+Commit e340c2d6ef2a ("xprtrdma: Reduce the doorbell rate (Receive)")
+increased the number of Receive WRs that are posted by the client,
+but did not increase the size of the Receive Queue allocated during
+transport set-up.
 
+This is usually not an issue because RPCRDMA_BACKWARD_WRS is defined
+as (32) when SUNRPC_BACKCHANNEL is defined. In cases where it isn't,
+there is a real risk of Receive Queue wrapping.
+
+Fixes: e340c2d6ef2a ("xprtrdma: Reduce the doorbell rate (Receive)")
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
- net/sunrpc/xprtrdma/verbs.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/frwr_ops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 1d88685badbe..92af272f9cc9 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -80,6 +80,8 @@ static void rpcrdma_sendctx_put_locked(struct rpcrdma_xprt *r_xprt,
- 				       struct rpcrdma_sendctx *sc);
- static int rpcrdma_reqs_setup(struct rpcrdma_xprt *r_xprt);
- static void rpcrdma_reqs_reset(struct rpcrdma_xprt *r_xprt);
-+static void rpcrdma_rep_put(struct rpcrdma_buffer *buf,
-+			    struct rpcrdma_rep *rep);
- static void rpcrdma_rep_destroy(struct rpcrdma_rep *rep);
- static void rpcrdma_reps_unmap(struct rpcrdma_xprt *r_xprt);
- static void rpcrdma_mrs_create(struct rpcrdma_xprt *r_xprt);
-@@ -205,7 +207,7 @@ static void rpcrdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 766a1048a48a..132df9b59ab4 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -257,6 +257,7 @@ int frwr_query_device(struct rpcrdma_ep *ep, const struct ib_device *device)
+ 	ep->re_attr.cap.max_send_wr += 1; /* for ib_drain_sq */
+ 	ep->re_attr.cap.max_recv_wr = ep->re_max_requests;
+ 	ep->re_attr.cap.max_recv_wr += RPCRDMA_BACKWARD_WRS;
++	ep->re_attr.cap.max_recv_wr += RPCRDMA_MAX_RECV_BATCH;
+ 	ep->re_attr.cap.max_recv_wr += 1; /* for ib_drain_rq */
  
- out_flushed:
- 	rpcrdma_flush_disconnect(r_xprt, wc);
--	rpcrdma_rep_destroy(rep);
-+	rpcrdma_rep_put(&r_xprt->rx_buf, rep);
- }
- 
- static void rpcrdma_update_cm_private(struct rpcrdma_ep *ep,
+ 	ep->re_max_rdma_segs =
 
 
