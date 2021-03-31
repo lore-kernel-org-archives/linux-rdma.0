@@ -2,29 +2,33 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13CA5C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88AC5C43603
 	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB6596101E
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B8B3610A8
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Mar 2021 19:37:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236126AbhCaTg1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 31 Mar 2021 15:36:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44414 "EHLO mail.kernel.org"
+        id S236237AbhCaTg3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 31 Mar 2021 15:36:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235416AbhCaTgA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 31 Mar 2021 15:36:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A91976101E;
-        Wed, 31 Mar 2021 19:35:59 +0000 (UTC)
-Subject: [PATCH v1 0/8] xprtrdma Receive Queue fixes
+        id S236084AbhCaTgY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 31 Mar 2021 15:36:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EC1C61056;
+        Wed, 31 Mar 2021 19:36:24 +0000 (UTC)
+Subject: [PATCH v1 4/8] xprtrdma: Improve locking around rpcrdma_rep
+ destruction
 From:   Chuck Lever <chuck.lever@oracle.com>
 To:     linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
-Date:   Wed, 31 Mar 2021 15:35:58 -0400
-Message-ID: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
+Date:   Wed, 31 Mar 2021 15:36:23 -0400
+Message-ID: <161721938342.515226.14847295549827213112.stgit@manet.1015granger.net>
+In-Reply-To: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
+References: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
 User-Agent: StGit/0.23-29-ga622f1
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -33,29 +37,75 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-I found a number of crashers and other problems in and around the
-xprtrdma logic for managing the Receive Queue during connect and
-disconnect events.
+Currently rpcrdma_reps_destroy() assumes that, at transport
+tear-down, the content of the rb_free_reps list is the same as the
+content of the rb_all_reps list. Although that is usually true,
+using the rb_all_reps list should be more reliable because of
+the way it's managed. And, rpcrdma_reps_unmap() uses rb_all_reps;
+these two should both traverse the "all" list.
 
+Instead, ensure that all rpcrdma_reps are always destroyed whether
+they are on the rep free list or not. Also ensure that rpcrdma_rep
+destruction logic is protected by the rb_lock.
+
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 ---
+ net/sunrpc/xprtrdma/verbs.c |   31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-Chuck Lever (8):
-      xprtrdma: Avoid Receive Queue wrapping
-      xprtrdma: Do not post Receives after disconnect
-      xprtrdma: Put flushed Receives on free list instead of destroying them
-      xprtrdma: Improve locking around rpcrdma_rep destruction
-      xprtrdma: Improve commentary around rpcrdma_reps_unmap()
-      xprtrdma: Improve locking around rpcrdma_rep creation
-      xprtrdma: Fix cwnd update ordering
-      xprtrdma: Delete rpcrdma_recv_buffer_put()
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 92af272f9cc9..fe250d554695 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1000,16 +1000,23 @@ struct rpcrdma_rep *rpcrdma_rep_create(struct rpcrdma_xprt *r_xprt,
+ 	return NULL;
+ }
+ 
+-/* No locking needed here. This function is invoked only by the
+- * Receive completion handler, or during transport shutdown.
+- */
+-static void rpcrdma_rep_destroy(struct rpcrdma_rep *rep)
++static void rpcrdma_rep_destroy_locked(struct rpcrdma_rep *rep)
+ {
+-	list_del(&rep->rr_all);
+ 	rpcrdma_regbuf_free(rep->rr_rdmabuf);
+ 	kfree(rep);
+ }
+ 
++static void rpcrdma_rep_destroy(struct rpcrdma_rep *rep)
++{
++	struct rpcrdma_buffer *buf = &rep->rr_rxprt->rx_buf;
++
++	spin_lock(&buf->rb_lock);
++	list_del(&rep->rr_all);
++	spin_unlock(&buf->rb_lock);
++
++	rpcrdma_rep_destroy_locked(rep);
++}
++
+ static struct rpcrdma_rep *rpcrdma_rep_get_locked(struct rpcrdma_buffer *buf)
+ {
+ 	struct llist_node *node;
+@@ -1042,8 +1049,18 @@ static void rpcrdma_reps_destroy(struct rpcrdma_buffer *buf)
+ {
+ 	struct rpcrdma_rep *rep;
+ 
+-	while ((rep = rpcrdma_rep_get_locked(buf)) != NULL)
+-		rpcrdma_rep_destroy(rep);
++	spin_lock(&buf->rb_lock);
++	while ((rep = list_first_entry_or_null(&buf->rb_all_reps,
++					       struct rpcrdma_rep,
++					       rr_all)) != NULL) {
++		list_del(&rep->rr_all);
++		spin_unlock(&buf->rb_lock);
++
++		rpcrdma_rep_destroy_locked(rep);
++
++		spin_lock(&buf->rb_lock);
++	}
++	spin_unlock(&buf->rb_lock);
+ }
+ 
+ /**
 
-
- net/sunrpc/xprtrdma/backchannel.c |  4 +-
- net/sunrpc/xprtrdma/rpc_rdma.c    |  7 +--
- net/sunrpc/xprtrdma/verbs.c       | 87 +++++++++++++++++++------------
- net/sunrpc/xprtrdma/xprt_rdma.h   |  4 +-
- 4 files changed, 64 insertions(+), 38 deletions(-)
-
---
-Chuck Lever
 
