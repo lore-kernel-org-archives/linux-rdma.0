@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F39A2C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0D3DC433ED
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 06:58:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B48BE6105A
+	by mail.kernel.org (Postfix) with ESMTP id CB72B610CA
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 06:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233394AbhDAG5g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Apr 2021 02:57:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42254 "EHLO mail.kernel.org"
+        id S233436AbhDAG5i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Apr 2021 02:57:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232565AbhDAG5U (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Apr 2021 02:57:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A7FA61057;
-        Thu,  1 Apr 2021 06:57:19 +0000 (UTC)
+        id S233376AbhDAG51 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Apr 2021 02:57:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 63D9361057;
+        Thu,  1 Apr 2021 06:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617260240;
-        bh=JEptIBXOVTbHsZ8l9RD8OjfRbULoBcoiIlX48sw6icA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=WRgAchBsoins3q8fUtZVHUt8fsfUC5rO8cVfQnibrUuY8IfuumWGGAB+W7iJy/5DZ
-         pSh0QDXcMZZkEBK9RoqiEcPZSx1vQJWhfBLNcR6KYDGH02vnBYfYD89qOQC9G+rYjj
-         4nvriqvOoWMQZdDHdywVE8RybFlAnqtci/JgPSy9OfCNdXROf26/cZcupWQy/JwAfx
-         wqgvM/0wodVHrhlnjSShxyJg2A1Qt0izJ45NnHADVOwE2ELZG7n86F4+DDAD9m8CjO
-         4oJy1c8RTZXWsucVRTcG/ckULLqDvcDCKDqIqzvTKnJ96Eh/20BwT3cRO7WQP9vpgo
-         9VjsDmYIuKQIw==
+        s=k20201202; t=1617260247;
+        bh=qqgym3ZImLzrZ/bfAC2kk5LAa27jppiee5uZ74LdJAc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=fjodSnuamgAja9u/n212mR6hYLFz2ZP74lU4/Fqme4uJKpq/+TyE97k7BXc17hCJY
+         vXUYpoXtdGrlecbiyZd9MrOFyMWzAzu+GTCBoB2b6XpooA5HDNmAHf4MSQkuVX5+DK
+         wg8PQs0nhe6YfZyWTS5kayaBQJuzzkJZuwjYtKCydmUOjzrqWHxNoyYqOJJehelbqL
+         WHkULfyJiGQ804+Y/tiRcIHn8pDhjALU3J8f2RFeRBV2wHT/rclWKw4v/gbPoTUezB
+         ZNnrDMUhTZfahH/+Td+Ngh/d1eN3jqECoSyImWcOnajIJBK2MDLTAwkXlKRQzYZ74e
+         EKlswLbV6UpKA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -43,10 +43,12 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         netdev@vger.kernel.org, Selvin Xavier <selvin.xavier@broadcom.com>,
         Somnath Kotur <somnath.kotur@broadcom.com>,
         Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH rdma-next v2 0/5] Get rid of custom made module dependency
-Date:   Thu,  1 Apr 2021 09:57:10 +0300
-Message-Id: <20210401065715.565226-1-leon@kernel.org>
+Subject: [PATCH rdma-next v2 3/5] RDMA/bnxt_re: Get rid of custom module reference counting
+Date:   Thu,  1 Apr 2021 09:57:13 +0300
+Message-Id: <20210401065715.565226-4-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210401065715.565226-1-leon@kernel.org>
+References: <20210401065715.565226-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -55,47 +57,68 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Changelog:
-v2:
- * kbuild spotted that I didn't delete all code in patch #5, so deleted
-   even more ulp_ops derefences.
-v1: https://lore.kernel.org/linux-rdma/20210329085212.257771-1-leon@kernel.org
- * Go much deeper and removed useless ULP indirection
-v0: https://lore.kernel.org/linux-rdma/20210324142524.1135319-1-leon@kernel.org
------------------------------------------------------------------------
+Instead of manually messing with parent driver module reference
+counting rely on export symbol mechanism to ensure that proper
+probe/remove chain is performed.
 
-The following series fixes issue spotted in [1], where bnxt_re driver
-messed with module reference counting in order to implement symbol
-dependency of bnxt_re and bnxt modules. All of this is done, when in
-upstream we have only one ULP user of that bnxt module. The simple
-declaration of exported symbol would do the trick.
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/bnxt_re/main.c | 16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-This series removes that custom module_get/_put, which is not supposed
-to be in the driver from the beginning and get rid of nasty indirection
-logic that isn't relevant for the upstream code.
-
-Such small changes allow us to simplify the bnxt code and my hope that
-Devesh will continue where I stopped and remove struct bnxt_ulp_ops too.
-
-Thanks
-
-[1] https://lore.kernel.org/linux-rdma/20210324142524.1135319-1-leon@kernel.org
-
-Leon Romanovsky (5):
-  RDMA/bnxt_re: Depend on bnxt ethernet driver and not blindly select it
-  RDMA/bnxt_re: Create direct symbolic link between bnxt modules
-  RDMA/bnxt_re: Get rid of custom module reference counting
-  net/bnxt: Remove useless check of non-existent ULP id
-  net/bnxt: Use direct API instead of useless indirection
-
- drivers/infiniband/hw/bnxt_re/Kconfig         |   4 +-
- drivers/infiniband/hw/bnxt_re/main.c          |  93 ++-----
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     |   4 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt.h     |   1 -
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c | 245 +++++++-----------
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h |  32 +--
- 6 files changed, 119 insertions(+), 260 deletions(-)
-
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 140c54ee5916..8bfbf0231a9e 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -601,13 +601,6 @@ static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev)
+ 	return container_of(ibdev, struct bnxt_re_dev, ibdev);
+ }
+ 
+-static void bnxt_re_dev_unprobe(struct net_device *netdev,
+-				struct bnxt_en_dev *en_dev)
+-{
+-	dev_put(netdev);
+-	module_put(en_dev->pdev->driver->driver.owner);
+-}
+-
+ static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
+ {
+ 	struct bnxt_en_dev *en_dev;
+@@ -628,10 +621,6 @@ static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
+ 		return ERR_PTR(-ENODEV);
+ 	}
+ 
+-	/* Bump net device reference count */
+-	if (!try_module_get(pdev->driver->driver.owner))
+-		return ERR_PTR(-ENODEV);
+-
+ 	dev_hold(netdev);
+ 
+ 	return en_dev;
+@@ -1558,13 +1547,12 @@ static int bnxt_re_dev_init(struct bnxt_re_dev *rdev, u8 wqe_mode)
+ 
+ static void bnxt_re_dev_unreg(struct bnxt_re_dev *rdev)
+ {
+-	struct bnxt_en_dev *en_dev = rdev->en_dev;
+ 	struct net_device *netdev = rdev->netdev;
+ 
+ 	bnxt_re_dev_remove(rdev);
+ 
+ 	if (netdev)
+-		bnxt_re_dev_unprobe(netdev, en_dev);
++		dev_put(netdev);
+ }
+ 
+ static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
+@@ -1586,7 +1574,7 @@ static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
+ 	*rdev = bnxt_re_dev_add(netdev, en_dev);
+ 	if (!*rdev) {
+ 		rc = -ENOMEM;
+-		bnxt_re_dev_unprobe(netdev, en_dev);
++		dev_put(netdev);
+ 		goto exit;
+ 	}
+ exit:
 -- 
 2.30.2
 
