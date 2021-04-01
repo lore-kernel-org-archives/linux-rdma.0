@@ -5,32 +5,32 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0D3DC433ED
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 06:58:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA8BC43460
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 06:58:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB72B610CA
+	by mail.kernel.org (Postfix) with ESMTP id DAB58600EF
 	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 06:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233436AbhDAG5i (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Apr 2021 02:57:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42362 "EHLO mail.kernel.org"
+        id S233419AbhDAG5h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Apr 2021 02:57:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233376AbhDAG51 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 1 Apr 2021 02:57:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 63D9361057;
-        Thu,  1 Apr 2021 06:57:26 +0000 (UTC)
+        id S233345AbhDAG5Y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 1 Apr 2021 02:57:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EC92C600EF;
+        Thu,  1 Apr 2021 06:57:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617260247;
-        bh=qqgym3ZImLzrZ/bfAC2kk5LAa27jppiee5uZ74LdJAc=;
+        s=k20201202; t=1617260243;
+        bh=BJZeUY+q7qbna2guyT/0bs9MCyIHO+8bIlDqf5xYcqI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fjodSnuamgAja9u/n212mR6hYLFz2ZP74lU4/Fqme4uJKpq/+TyE97k7BXc17hCJY
-         vXUYpoXtdGrlecbiyZd9MrOFyMWzAzu+GTCBoB2b6XpooA5HDNmAHf4MSQkuVX5+DK
-         wg8PQs0nhe6YfZyWTS5kayaBQJuzzkJZuwjYtKCydmUOjzrqWHxNoyYqOJJehelbqL
-         WHkULfyJiGQ804+Y/tiRcIHn8pDhjALU3J8f2RFeRBV2wHT/rclWKw4v/gbPoTUezB
-         ZNnrDMUhTZfahH/+Td+Ngh/d1eN3jqECoSyImWcOnajIJBK2MDLTAwkXlKRQzYZ74e
-         EKlswLbV6UpKA==
+        b=uFMLTD7QVKsmAyiyeXeaEyZ84PvfxCJjmlzM1VTQcV/u5E2pqNpjdfQZLHPvCdzsr
+         /J46khOqPdh4+DdWjsy0FhiQ/xbblQBYfPO+l1qjuWj3pjmHa9IFmr+I+nRgQst0Jn
+         hZJv53AixkR8Q6fE5RJnJofdC9GIblJm7UmKEzWelKe3qVqoiQnvH1PT6c/8gRONRt
+         DfpTVN3kNW8FJDA7Qq3vbV1dVpC+inIkpTf7Dvu+rba3qdCb9CxJIS4WLbbCFvYZ6M
+         uVvPeE3PlBltAwSqwyGevbxWPweYqsihUqFoFoiN9Uq7EpHpB2Woch6UOxeqkVdJV/
+         iXNYgIZTzRt2w==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -43,9 +43,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         netdev@vger.kernel.org, Selvin Xavier <selvin.xavier@broadcom.com>,
         Somnath Kotur <somnath.kotur@broadcom.com>,
         Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Subject: [PATCH rdma-next v2 3/5] RDMA/bnxt_re: Get rid of custom module reference counting
-Date:   Thu,  1 Apr 2021 09:57:13 +0300
-Message-Id: <20210401065715.565226-4-leon@kernel.org>
+Subject: [PATCH rdma-next v2 1/5] RDMA/bnxt_re: Depend on bnxt ethernet driver and not blindly select it
+Date:   Thu,  1 Apr 2021 09:57:11 +0300
+Message-Id: <20210401065715.565226-2-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210401065715.565226-1-leon@kernel.org>
 References: <20210401065715.565226-1-leon@kernel.org>
@@ -57,68 +57,35 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Instead of manually messing with parent driver module reference
-counting rely on export symbol mechanism to ensure that proper
-probe/remove chain is performed.
+The "select" kconfig keyword provides reverse dependency, however it
+doesn't check that selected symbol meets its own dependencies. Usually
+"select" is used for non-visible symbols, so instead of trying to keep
+dependencies in sync with BNXT ethernet driver, simply "depends on" it,
+like Kconfig documentation suggest.
+
+* CONFIG_PCI is already required by BNXT
+* CONFIG_NETDEVICES and CONFIG_ETHERNET are needed to chose BNXT
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/bnxt_re/main.c | 16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/bnxt_re/Kconfig | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 140c54ee5916..8bfbf0231a9e 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -601,13 +601,6 @@ static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev)
- 	return container_of(ibdev, struct bnxt_re_dev, ibdev);
- }
- 
--static void bnxt_re_dev_unprobe(struct net_device *netdev,
--				struct bnxt_en_dev *en_dev)
--{
--	dev_put(netdev);
--	module_put(en_dev->pdev->driver->driver.owner);
--}
--
- static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
- {
- 	struct bnxt_en_dev *en_dev;
-@@ -628,10 +621,6 @@ static struct bnxt_en_dev *bnxt_re_dev_probe(struct net_device *netdev)
- 		return ERR_PTR(-ENODEV);
- 	}
- 
--	/* Bump net device reference count */
--	if (!try_module_get(pdev->driver->driver.owner))
--		return ERR_PTR(-ENODEV);
--
- 	dev_hold(netdev);
- 
- 	return en_dev;
-@@ -1558,13 +1547,12 @@ static int bnxt_re_dev_init(struct bnxt_re_dev *rdev, u8 wqe_mode)
- 
- static void bnxt_re_dev_unreg(struct bnxt_re_dev *rdev)
- {
--	struct bnxt_en_dev *en_dev = rdev->en_dev;
- 	struct net_device *netdev = rdev->netdev;
- 
- 	bnxt_re_dev_remove(rdev);
- 
- 	if (netdev)
--		bnxt_re_dev_unprobe(netdev, en_dev);
-+		dev_put(netdev);
- }
- 
- static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
-@@ -1586,7 +1574,7 @@ static int bnxt_re_dev_reg(struct bnxt_re_dev **rdev, struct net_device *netdev)
- 	*rdev = bnxt_re_dev_add(netdev, en_dev);
- 	if (!*rdev) {
- 		rc = -ENOMEM;
--		bnxt_re_dev_unprobe(netdev, en_dev);
-+		dev_put(netdev);
- 		goto exit;
- 	}
- exit:
+diff --git a/drivers/infiniband/hw/bnxt_re/Kconfig b/drivers/infiniband/hw/bnxt_re/Kconfig
+index 0feac5132ce1..6a17f5cdb020 100644
+--- a/drivers/infiniband/hw/bnxt_re/Kconfig
++++ b/drivers/infiniband/hw/bnxt_re/Kconfig
+@@ -2,9 +2,7 @@
+ config INFINIBAND_BNXT_RE
+ 	tristate "Broadcom Netxtreme HCA support"
+ 	depends on 64BIT
+-	depends on ETHERNET && NETDEVICES && PCI && INET && DCB
+-	select NET_VENDOR_BROADCOM
+-	select BNXT
++	depends on INET && DCB && BNXT
+ 	help
+ 	  This driver supports Broadcom NetXtreme-E 10/25/40/50 gigabit
+ 	  RoCE HCAs.  To compile this driver as a module, choose M here:
 -- 
 2.30.2
 
