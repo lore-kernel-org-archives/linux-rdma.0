@@ -2,148 +2,116 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F64C001E1
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 17:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 117B2C001EC
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 17:45:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDD7F613B5
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 17:45:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F005661165
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 17:45:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234397AbhDARpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:45:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57248 "EHLO
+        id S234825AbhDARps (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Apr 2021 13:45:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234729AbhDARj3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Apr 2021 13:39:29 -0400
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on20601.outbound.protection.outlook.com [IPv6:2a01:111:f400:fe5b::601])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2705FC05BD2E
-        for <linux-rdma@vger.kernel.org>; Thu,  1 Apr 2021 06:02:17 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hFyJuvXd9YCJDktJaXE1h+kdcpTAeTY3m5belipPuFiNk4XM8nL941RUOXkBQSPzgwD8m1JX7BEqhHZeLK1smKXdxe2ByS4uVWMD25vDGkt2oxnwkVnpXTxfTVYFn10689VuAfceVkds6P1tSIz5+L6T5q/x6/jbpzkCSMroj2p/2fVdracRcTup1TySndBrzSxGBjQI2U3O0uZOEoKMYJZQUz7xlhmBfMqYoOf73DvthRMA92fDiVHodD5iSPbhX19hPZbQkqveYghsblnIc0e/Xju2uT3E07e+XgQA/5vm7zYPEgwdnHzECC4ovDBlk0o9vtXE737nVIRn6/T3gg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wxBWXaSE+NtKqvTRZ8Mqs04iVQ1RinIvW3t4cq7vh30=;
- b=YUgp4mZ7s97LTpWrx5JAqt0Qf99KRxIsl5jNSDt7gYa+UBV9WJFW9YfVNjpq//d0f1SqspOkzoxPOq4XRlqaDePBLlsloA1XnzOGDPT6niFQ4Vik4CgIrH9DYcFjvYMauLqaiFgUNcYIOVxHXU58JJ3RlCaNfizlAzRr0wEZK9srWO/5ypHUGZKX+smNdQhisczSy6Yu8scemzl7WaPpiRaBp4PPIjDI/jDNPHqGV8F5BYvV0BSIwcNuv/adrimm2jyHZ4Gtt/+VfIdUbcUA9Iw+8PBsoT5Ex4hOVbeqAD0H3rMAmlyGyL4H/tEpuSIm17GpRl4K2SnD1rnVGZUR2Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wxBWXaSE+NtKqvTRZ8Mqs04iVQ1RinIvW3t4cq7vh30=;
- b=Xnp90Zhg35pPRRL8b0D05KHb/R8nZNG5z0o1y1fuvgmrXdXViB6LoEiHaabspxZy5truqAAQ8K4jHCV5oqRo0If27QTf7K0caxaP/z49qhROD8ZqXfFQK8eDXXhQ5Y4Gt7iC7XgvumPG/w9gUEPuflWwNVNWQLMxL3HC9hewMIbkDV4XWypLpl0VCy2fygUhURnnxnTZVYJn5V5h0RQRjyMYgBkPPfLIW0djpONV9pd3IUUuEWkT9EFMvUXUBoLXTeGZxHGiHePCeObYgEHjiRG2+KwN1GBTmaJvWKpNo18EOfPFs34tJM2SgYKznx9bspqlzMSwgmyETn84Mua/Fw==
-Authentication-Results: gmail.com; dkim=none (message not signed)
- header.d=none;gmail.com; dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
- by DM5PR1201MB0105.namprd12.prod.outlook.com (2603:10b6:4:54::23) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.29; Thu, 1 Apr
- 2021 11:31:00 +0000
-Received: from DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1c62:7fa3:617b:ab87]) by DM6PR12MB3834.namprd12.prod.outlook.com
- ([fe80::1c62:7fa3:617b:ab87%6]) with mapi id 15.20.3999.028; Thu, 1 Apr 2021
- 11:31:00 +0000
-Date:   Thu, 1 Apr 2021 08:30:58 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
-        Bob Pearson <rpearson@hpe.com>
-Subject: Re: [PATCH for-next v2] RDMA/rxe: Split MEM into MR and MW
-Message-ID: <20210401113058.GW1463678@nvidia.com>
-References: <20210325212425.2792-1-rpearson@hpe.com>
- <20210330201245.GA1447467@nvidia.com>
- <54ec9b7c-5c43-2c36-ea51-684fd63368f9@gmail.com>
- <20210330225437.GD2356281@nvidia.com>
- <d542977c-54fa-b1e6-8717-616d6c5b5218@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d542977c-54fa-b1e6-8717-616d6c5b5218@gmail.com>
-X-Originating-IP: [142.162.115.133]
-X-ClientProxiedBy: MN2PR03CA0022.namprd03.prod.outlook.com
- (2603:10b6:208:23a::27) To DM6PR12MB3834.namprd12.prod.outlook.com
- (2603:10b6:5:14a::12)
+        with ESMTP id S234856AbhDARky (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Apr 2021 13:40:54 -0400
+Received: from mail-lj1-x236.google.com (mail-lj1-x236.google.com [IPv6:2a00:1450:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04F54C03116E;
+        Thu,  1 Apr 2021 09:56:30 -0700 (PDT)
+Received: by mail-lj1-x236.google.com with SMTP id u4so2983841ljo.6;
+        Thu, 01 Apr 2021 09:56:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wO8Dojv7wME+ubk+Yh3ZKiafoFd7I1oLkJMSO3Y31sI=;
+        b=F3O2zCAbbReZgeHKtbw0aXK2qQlf7F/t03hUelxOfQugiFwprHSLhgAmndLRyhp1eu
+         xD+huyb1UwBnI2IhJFwFLD6bC3DFEp/nV2VqnXwz4Z+UQ9gPjcwRk/qHtnBWHLf/mAMU
+         27lOxowYfM7hfYr4eaYwmbJFgQXm+U9xHJAhoHR0YQpG46pKHL86lxLTvIRkQHbyP68r
+         E+GCoG8AHmtjN5znoQ1bqMrOapzAotTU4Ieze/dDFVTUmF9lXtwLP0DdTEKHBpgWLksF
+         UDQGQ4y7zcArnQk5FyBtctEj/9vPtSB9cmWmtVjWGRr9hKsl17dWe7xH0XvSuTV5nGs4
+         uE7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wO8Dojv7wME+ubk+Yh3ZKiafoFd7I1oLkJMSO3Y31sI=;
+        b=cteK/QAZMNsuYjC5c5iw6fUc43fgZlIEFFKwQuLbvWdYK9MZBzRR379AJL9Be+K6ZE
+         3WUyuYoNxpiaJu8V/iHxUygJdAkRTS3FSRo4ubUBNMk3ns5iQt1PsLDKyo3F9+WK/UBo
+         Sl6ENjP1BOVAy4qbZtddvH41PeYvoWsBLFllr6LOccBYioUHDXIUBCO1AH0H19N3mfTd
+         6wlGnb4w5lHPePzXSRvBVUyGFat9RElfGfU6SgE9qOCPBRD7UCQUyxFV+sMMnOe9rtCE
+         +fMX2z0+v+IlEY/0yois0tKVgJCuXLIhka+KLN9luiqFXRkuexbmLe8Yo6GqLVOwyNCo
+         mjKQ==
+X-Gm-Message-State: AOAM5329jokitcDXaqKBSuVThIyjb3wuT0T9sec5bJHVluEKrB6Sx7yO
+        VpVBYTIuh8qhJE6Gb8sALkTrco4HnjwSTbtB1V0=
+X-Google-Smtp-Source: ABdhPJzQOEEhimvWy6pd+h2jmQJE81piAskC48n/tc82P3AeVvjS9zpEJwTHf4VvbdGu+F2ZVrpUh6DxCyq/L8TTpnI=
+X-Received: by 2002:a2e:a0cf:: with SMTP id f15mr6281590ljm.29.1617296188589;
+ Thu, 01 Apr 2021 09:56:28 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR03CA0022.namprd03.prod.outlook.com (2603:10b6:208:23a::27) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3999.26 via Frontend Transport; Thu, 1 Apr 2021 11:30:59 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lRvXO-006iqq-U5; Thu, 01 Apr 2021 08:30:58 -0300
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 0260c44c-616a-4770-ea7f-08d8f5019fe0
-X-MS-TrafficTypeDiagnostic: DM5PR1201MB0105:
-X-Microsoft-Antispam-PRVS: <DM5PR1201MB01056FC5F9F4BB7829303220C27B9@DM5PR1201MB0105.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: F6fIQF1TCXvMjDlR/YnXbF4MgBrAillD+C+SH/MGsGKmiTQJe0zHl02m9sTNUXXs587JToIl4oCstHqVn+A87bCtpKKKGkof0FGMoRZlt03UmsgEJFy3QgKTxIW709FoXxa4AZgC10kTm92eLd9sppXv+ZfqAhR6JK9ezAYwu3lqU1FS8ZrOmbwfg2DCHAkZrIj1H6GrK+6SleQuaAxfCUmhK9km6GILFtvzke9ql//hIfeiuzHAyi+xQ2LpEZgCS0Ikt9tyUa2PLVmwBBk0R/2HR6FlT4Kl7wmtOrgyTgBQQDTVlbaCotlcN8l+s5a0KiSd/08/7sz631Vp2EJ56LBZPlsWlf+M7iCQ33MDGRD47z53XEPH3WdhyuI6Foz3o9KjzKjRRxoYU9w4n6q0e6YYXVJReddTpoeZMN1+GZAlB9XFc+UibUQifKUNEZlOmrUvskKSqKDzd+YHv1VWrmLl8OWznwSpkULy8PB4En7JS9CwnuJ/jGjVBNTXFi784/EmBWZ7h72aK3vy4Mz8BqN1eF3BtePn56khmMwZ9sLK5nMBksn1sswCD/BZPGPtm2UWUMnPLWgKV8lWkeSr/oW87DHvBKWbTik7Gq17nok9D1kOsU0Otz9lZfX2nMXEJLSH0M2BYksmFixKca6uWiIb0gK/Tu74ROHAFikbrLk=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(136003)(396003)(376002)(366004)(346002)(36756003)(86362001)(186003)(4326008)(26005)(8936002)(5660300002)(66476007)(8676002)(478600001)(6916009)(38100700001)(83380400001)(9746002)(1076003)(9786002)(316002)(2906002)(66556008)(33656002)(66946007)(2616005)(426003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?241S8/bMDiF2qV23yFWjmuII0CqUMp9rFSuPr/ECTjFKhTKJD1ipLsVShLIi?=
- =?us-ascii?Q?Z39+XGK5t/maRxMXGQS25i3St3x4yQyR3pKoBx3hxPIdwmbyU8h7MmBu+y9i?=
- =?us-ascii?Q?NAtRNys9rXIof1rVeeQRqEgCROWznRpOqc6flrLhPTVMUCyI3vgnCui3RA5K?=
- =?us-ascii?Q?2WGOhy3St2or8lrgEXG3srdkcxS4gMCzRooCI7aPP/P1pPY8qrPCVHt5fu9K?=
- =?us-ascii?Q?ZBDpYY/War6Kq1JJB/ZwG/GpzOTFK47LB85HwNIzjiKR0RWONH6OTSO3tFVG?=
- =?us-ascii?Q?QfzyrTQX+xf6pB3pSQsL979+P3gk5CPKhnpvEwso0sdqjauKJgfjhK1vr/oh?=
- =?us-ascii?Q?m0lgUO3exT60HudyRUzSJhqb3tdrZSnkFjrB+s9Q03jfYeu1ykZl0cSidcL0?=
- =?us-ascii?Q?MUOw8hTf0FCs+UWC+qfVmlpt325XxK7ruAwqRxcRW17XKd/0l3qL8naPGM9c?=
- =?us-ascii?Q?RWmqB73TcQ8eH7aGAPLReoDgmOclMnyY5PIQ8L3qqdyZDzJacTqo7tAeZw5/?=
- =?us-ascii?Q?E4VTwmRzDuyNAjJq+I2H/GCLBLQJ86gplnQMFQ+ONZiASAkrt1lfRGLepCWP?=
- =?us-ascii?Q?r11dgz+oJ7gr6K1QmAD4wsLxkCKK+wzVCH2Jf7ZpIvG92TkKn4qlZuVygaF6?=
- =?us-ascii?Q?U6iB6v7CQJaJa8RZOlNUOtUxWKFBLqN012TtsmtkVspI9eUMs1X79GLlP0pq?=
- =?us-ascii?Q?Qd7v4ZItDOUMqKRnKySjs/zFqaY55tu5Ui9nE2TaWRV7ys9IhboPMLPTZwge?=
- =?us-ascii?Q?UTbyPvaj6xr2yxGiqcWVpPV9xQJWYG5eZJGAPe3hfOh4U124ZYsMh+075/q0?=
- =?us-ascii?Q?9bXFQGeoQmT0Hq9tkxs9PhUBfbkbXLkLaNk9X5dtHmZ4XlqzBvHfCPjxqoYo?=
- =?us-ascii?Q?XewCy8SB79hlwEAhjQ0dtI29hn/lXell7brqcO2FzKzrzGn4jHNsKFGsq/jQ?=
- =?us-ascii?Q?Uy7cAauiVWCZ/Tqu87ingZXoPqnf8xwJQR2aFkYgtDbGg1Hb05dSnGjCKt0i?=
- =?us-ascii?Q?YGConnrSc/b0hs2ybt4W5Uer7xSE4IvhOEtCS9dsg6kNZkFrq4L1rUOyBEnK?=
- =?us-ascii?Q?QDxeqlZhlGdIzcSHOMGvufyKHKsHaBjNz+b6Q1smKFXnsfxmLmE2N2Hj5e9l?=
- =?us-ascii?Q?aXI+fKJAUL7q/QrX0tt3dtVG/se/guiSIbsmUfrj01K2KMm7p5K0el9fOgsH?=
- =?us-ascii?Q?dFd/HNmydchxl4X52cixzgD5lPU5jgfMtNU8OGWh0cWfaVpgy8/iDbN70aII?=
- =?us-ascii?Q?PrtGevUclJ16CR04WNxUF9BHFE3VkAtjsfwX33kS9LtVe4dz8BclN1xRwq+7?=
- =?us-ascii?Q?dJpZJS48wUe/fdTtpOw5XMyYTNo95/3ZT42fjmfEvEaUMQ=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0260c44c-616a-4770-ea7f-08d8f5019fe0
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Apr 2021 11:31:00.1233
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OfPLj+JHA6GGzkINm4yg3kyk3UomcmwDsK9llSlPnVXrJGtK4dwCCbctFVOgUDhU
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR1201MB0105
+References: <161721926778.515226.9805598788670386587.stgit@manet.1015granger.net>
+ <161721937122.515226.14731175629421422152.stgit@manet.1015granger.net>
+ <4004f56f-3603-f56c-aea9-651230b3181e@talpey.com> <CAFMMQGvortADqgmAzskZKcnyHDzsTEW0FtR501wpP+deUM57FA@mail.gmail.com>
+ <b5286b3f-439a-ef7c-cd7c-6cebfbccb02d@talpey.com>
+In-Reply-To: <b5286b3f-439a-ef7c-cd7c-6cebfbccb02d@talpey.com>
+From:   Chuck Lever <chucklever@gmail.com>
+Date:   Thu, 1 Apr 2021 12:56:17 -0400
+Message-ID: <CAFMMQGuo6=Leymd++YBtAwQzptzp+rcynM6EXosu20vG67jrMw@mail.gmail.com>
+Subject: Re: [PATCH v1 2/8] xprtrdma: Do not post Receives after disconnect
+To:     Tom Talpey <tom@talpey.com>
+Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
+        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Mar 31, 2021 at 02:51:35PM -0500, Bob Pearson wrote:
+On Wed, Mar 31, 2021 at 5:22 PM Tom Talpey <tom@talpey.com> wrote:
+>
+> On 3/31/2021 4:31 PM, Chuck Lever wrote:
+> > On Wed, Mar 31, 2021 at 4:01 PM Tom Talpey <tom@talpey.com> wrote:
+> >>
+> >> On 3/31/2021 3:36 PM, Chuck Lever wrote:
+> >>> Currently the Receive completion handler refreshes the Receive Queue
+> >>> whenever a successful Receive completion occurs.
+> >>>
+> >>> On disconnect, xprtrdma drains the Receive Queue. The first few
+> >>> Receive completions after a disconnect are typically successful,
+> >>> until the first flushed Receive.
+> snip
+> >> Is it not possible to mark the WRs as
+> >> being part of a batch, and allowing them to flush? You could borrow a
+> >> bit in the completion cookie, and check it when the CQE pops out. Maybe.
+> >
+> > It's not an issue with batching, it's an issue with posting Receives from the
+> > Receive completion handler. I'd think that any of the ULPs that post Receives
+> > in their completion handler would have the same issue.
+> >
+> > The purpose of the QP drain in rpcrdma_xprt_disconnect() is to ensure there
+> > are no more WRs in flight so that the hardware resources can be safely
+> > destroyed. If the Receive completion handler continues to post Receive WRs
+> > after the drain sentinel has been posted, leaks and crashes become possible.
 
-> Is the long term goal to take clang-format as the default whitespace format?
+> Well, why not do an atomic_set() of a flag just before posting the
+> sentinel, and check it with atomic_get() before any other RQ post?
 
-Sort of. clang-format is quite close to the accepted kernel standard
-and makes maintaince alot easier, but gets a bunch of stuff wrong.
+After a couple of private exchanges, Tom and I agree that doing an
+ib_query_qp() in rpcrdma_post_recvs() has some drawbacks and
+does not fully close the race window.
 
-> If so should I just reformat all the files in rxe now and get it over with?
+There is nothing that prevents rpcrdma_xprt_disconnect() from starting
+the RQ drain while rpcrdma_post_recvs is still running. There needs to
+be serialization between ib_drain_rq() and rpcrdma_post_recvs() so
+that the drain sentinel is guaranteed to be the final Receive WR posted
+on the RQ.
 
-We try not to do this, just fix egregious errors when you touch the
-code.
+It would be great if the core ib_drain_rq() API itself could handle the
+exclusion.
 
-There seem to be two camps on this topic:
 
- - Internal consistency is more important that following the normative
-   style. This is the idea that if one file is insane it should stay
-   consistently isane. This avoids files looking "hard to read"
-
- - New code should follow the normative style. Old code should be
-   changed when it is touched. Files will become internally inconsistent.
-   This avoids everyone doing maintenance work from having to
-   understand a million different local style convections
-
-I tend to be in the latter group. 
-
-Especially when it comes to the annoying vertical alignment that is so
-common in RDMA.
-
-Jason
+-- 
+"We cannot take our next breath without the exhale."
+ -- Ellen Scott Grable
