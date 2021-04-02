@@ -3,147 +3,143 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A36CFC433B4
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 19:28:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C0BC433ED
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Apr 2021 00:11:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D424608FE
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Apr 2021 19:28:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04195610CF
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Apr 2021 00:11:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235120AbhDAT2L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Apr 2021 15:28:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52494 "EHLO
+        id S234548AbhDBALL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Apr 2021 20:11:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234273AbhDAT2D (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Apr 2021 15:28:03 -0400
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF3DCC0319C0
-        for <linux-rdma@vger.kernel.org>; Thu,  1 Apr 2021 12:09:58 -0700 (PDT)
-Received: by mail-ed1-x529.google.com with SMTP id b16so3107384eds.7
-        for <linux-rdma@vger.kernel.org>; Thu, 01 Apr 2021 12:09:58 -0700 (PDT)
+        with ESMTP id S233677AbhDBALK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Apr 2021 20:11:10 -0400
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E16A6C0613E6
+        for <linux-rdma@vger.kernel.org>; Thu,  1 Apr 2021 17:11:08 -0700 (PDT)
+Received: by mail-ot1-x32f.google.com with SMTP id w31-20020a9d36220000b02901f2cbfc9743so3659044otb.7
+        for <linux-rdma@vger.kernel.org>; Thu, 01 Apr 2021 17:11:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jstjIVFVKJTqhlzgHV7MXKS9fCGKk+Lgc+r0oEHOkBM=;
-        b=GDq0iTjNAcDbvwtgtgR/3QYL4IwSzGiBukR2OrGWZvtJ+sB20TJAn7Nkx7oIeEum93
-         8Uq0A1TnvdvSUPcccnfD5Vhjp2yBi6vWDXgCo4voZ7VR60UxcOOAjTJAwyYsoesY1yUg
-         2qut8dvckJejr1SKvII1a9LJE0p0TxfDu1v3/FL22RHHIUUXqjVBFdoRlBUn5t/Mn4rd
-         pmXuLtRPksw0DbuTiLcEmNVNQspcsRkqUTH9PGNcl7HMwB8pEkQ2rlDOtYV9FY4K2yij
-         FEfGTzpe36obAZvs48BKlfRcibeB4/0KTLsWdmSnpzBk9++8SUPpJbP91Qr/JhgkjxL6
-         DegA==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UzvN7SdfyeRiJzF+OWQUztNqohVT7lsd+uMFpxa+vOg=;
+        b=pjTbkKaf67nGbrRfw/zpx1CI0oQPu1OtlO7/pBs0HPKYWnWY9Cf5TPpzCFWabSAVrP
+         s4n4WQa98U/G55Yom+ecmkYys2xhfG1iCEhfyxs7DARSHhqdsBwcx06ISHyiqggIwQch
+         dD+aWE08B2uSmJxItrq8JefRGJX3H13LqQiT5ADoJeADP5W8RlUfCix+o0XP7TqZagSP
+         hgImRi4kBVpai+EDD7p7SX7N2teLwaIJokpmGKnBhvBYgRmvJcLzUY4LgEJm0lBe2nTq
+         4AVvvSEn0P5OBJVVtgaiH3ice3L3+a9N0Zn7XYwY5EBjMoqoYI00amFRIf3Hu6fmbtLU
+         ST8A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jstjIVFVKJTqhlzgHV7MXKS9fCGKk+Lgc+r0oEHOkBM=;
-        b=OWkc8SQh7tj5Sv/VwMGLhISpSF/oJ+YkTJxqoxh0Uv5tjB5r1jW9po0U2bIYgYTbuj
-         emO/Aid4+EMa8Ys5fwZKnFxakbaKk2YBsZjNGy/C/1YSh7BJsjB/cWp+KOpXMCdxV/Nm
-         kv3Dsmsgy3IbHvQZBgbjNXO287i+696VkQx3KOzWYCWc1E6prq0BkNT3N188iP4kU3Qi
-         qHa0Bqm5TkL6bUH1fGEE59HKFJFY0fiPFXKrPq+CBP4yIoMg3qM0WeuGMRUdcGvCFS+n
-         lkyNrV4ebRbzhgiuVCUTmGrIxZ5tv2s9JZe5Yt9xjAV0xrLk6Lat0yb3NIFBltsTFrPP
-         2E3Q==
-X-Gm-Message-State: AOAM530+l1b7RkjnXo1PN5vv7t7s8qsoYf+Vk5GLFvyUbaaSYJAP+el0
-        tdbwG00j8Izn/opANyjl2EX/1UpFoHiLLS7TtqW0Og==
-X-Google-Smtp-Source: ABdhPJwMGN4ysRgLGHlANwP8FHlqWzJgwutF78kobI0/r5pD4JyT+vnxjwl9Wk915btb8vlb1/0WuX27bJ4OIAy6LtM=
-X-Received: by 2002:aa7:c497:: with SMTP id m23mr11527667edq.74.1617304197555;
- Thu, 01 Apr 2021 12:09:57 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=UzvN7SdfyeRiJzF+OWQUztNqohVT7lsd+uMFpxa+vOg=;
+        b=W2gvA3l+v9tYtKb92q18DemUmNrePRcueorLx2PF+Zq1s8XuO1iDLkhSxyv68Q9t/M
+         7bWU5vzw0BxD69KWvDNakk6J+mc829SZAvG7zmOBYltAQVsohjnZuhXuf4FuZ319hqfU
+         gMzAIKwBjsv5OqT+pDRVMLl60nq3dn4pViH5w45LkL2SrBMge4IeLL3m5ls8IufvcSHs
+         8T0YHm9XtOSDQLvXtAGwxBGOncNY8vxSSBdsI+nISj2mlTqQJ0KNvkNWPrbpIx2TZMZ5
+         w/VLAGg+d3bHtvd/+vBC2Hipci0b7GmFUnm9dOAHWR3zUBGLf8o1le2GYPAQr2LT4dkg
+         5AVA==
+X-Gm-Message-State: AOAM532BIfg9d8axf8ZyZ9NPxB9GhPBISr3yFFKZX7Un7fTIm/njArlq
+        UmuzkkjyllocCNYMhzesLz0=
+X-Google-Smtp-Source: ABdhPJxhZN3kXzS28tLwaHENQZgxxuCYi5X3rPILgaSLv7zhw15+S4iRHuVIk9+slmBGE92CI8feCg==
+X-Received: by 2002:a05:6830:40b3:: with SMTP id x51mr9049140ott.106.1617322268343;
+        Thu, 01 Apr 2021 17:11:08 -0700 (PDT)
+Received: from localhost (2603-8081-140c-1a00-37e4-2523-bb68-61a6.res6.spectrum.com. [2603:8081:140c:1a00:37e4:2523:bb68:61a6])
+        by smtp.gmail.com with ESMTPSA id j35sm1514201ota.54.2021.04.01.17.11.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 01 Apr 2021 17:11:07 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearson@hpe.com>
+Subject: [PATCH for-next] RDMA/rxe: Fix missing acks from responder
+Date:   Thu,  1 Apr 2021 19:10:17 -0500
+Message-Id: <20210402001016.3210-1-rpearson@hpe.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <20210325153308.1214057-1-gi-oh.kim@ionos.com> <20210325153308.1214057-15-gi-oh.kim@ionos.com>
- <20210401184617.GA1650879@nvidia.com>
-In-Reply-To: <20210401184617.GA1650879@nvidia.com>
-From:   Gioh Kim <gi-oh.kim@ionos.com>
-Date:   Thu, 1 Apr 2021 21:09:22 +0200
-Message-ID: <CAJX1YtaDy5n7g=vKbD3XVcqrg3NusLXBgO30JA0cKU3V+3RpNA@mail.gmail.com>
-Subject: Re: [PATCH for-next 14/22] RDMA/rtrs-clt: Print more info when an
- error happens
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, bvanassche@acm.org, leon@kernel.org,
-        Doug Ledford <dledford@redhat.com>,
-        Haris Iqbal <haris.iqbal@ionos.com>,
-        Jinpu Wang <jinpu.wang@ionos.com>,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Apr 1, 2021 at 8:46 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
->
-> On Thu, Mar 25, 2021 at 04:33:00PM +0100, Gioh Kim wrote:
-> > From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
-> >
-> > Client prints only error value and it is not enough for debugging.
-> >
-> > 1. When client receives an error from server:
-> > the client does not only print the error value but also
-> > more information of server connection.
-> >
-> > 2. When client failes to send IO:
-> > the client gets an error from RDMA layer. It also
-> > print more information of server connection.
-> >
-> > Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-> > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 31 ++++++++++++++++++++++----
-> >  1 file changed, 27 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > index 1519191d7154..a41864ec853d 100644
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > @@ -440,6 +440,11 @@ static void complete_rdma_req(struct rtrs_clt_io_req *req, int errno,
-> >       req->in_use = false;
-> >       req->con = NULL;
-> >
-> > +     if (unlikely(errno)) {
-> > +             rtrs_err_rl(con->c.sess, "IO request failed: error=%d path=%s [%s:%u]\n",
-> > +                         errno, kobject_name(&sess->kobj), sess->hca_name, sess->hca_port);
-> > +     }
-> > +
-> >       if (notify)
-> >               req->conf(req->priv, errno);
-> >  }
-> > @@ -1026,7 +1031,8 @@ static int rtrs_clt_write_req(struct rtrs_clt_io_req *req)
-> >                                      req->usr_len + sizeof(*msg),
-> >                                      imm);
-> >       if (unlikely(ret)) {
-> > -             rtrs_err(s, "Write request failed: %d\n", ret);
-> > +             rtrs_err_rl(s, "Write request failed: error=%d path=%s [%s:%u]\n",
-> > +                         ret, kobject_name(&sess->kobj), sess->hca_name, sess->hca_port);
-> >               if (sess->clt->mp_policy == MP_POLICY_MIN_INFLIGHT)
-> >                       atomic_dec(&sess->stats->inflight);
-> >               if (req->sg_cnt)
-> > @@ -1144,7 +1150,8 @@ static int rtrs_clt_read_req(struct rtrs_clt_io_req *req)
-> >       ret = rtrs_post_send_rdma(req->con, req, &sess->rbufs[buf_id],
-> >                                  req->data_len, imm, wr);
-> >       if (unlikely(ret)) {
-> > -             rtrs_err(s, "Read request failed: %d\n", ret);
-> > +             rtrs_err_rl(s, "Read request failed: error=%d path=%s [%s:%u]\n",
-> > +                         ret, kobject_name(&sess->kobj), sess->hca_name, sess->hca_port);
-> >               if (sess->clt->mp_policy == MP_POLICY_MIN_INFLIGHT)
-> >                       atomic_dec(&sess->stats->inflight);
-> >               req->need_inv = false;
-> > @@ -2465,12 +2472,28 @@ static int init_sess(struct rtrs_clt_sess *sess)
-> >       mutex_lock(&sess->init_mutex);
-> >       err = init_conns(sess);
-> >       if (err) {
-> > -             rtrs_err(sess->clt, "init_conns(), err: %d\n", err);
-> > +             char str[NAME_MAX];
-> > +             int err;
-> > +             struct rtrs_addr path = {
-> > +                     .src = &sess->s.src_addr,
-> > +                     .dst = &sess->s.dst_addr,
-> > +             };
-> > +             rtrs_addr_to_str(&path, str, sizeof(str));
->
-> Coding style is to have new lines after variable blocks.
->
-> Jason
+All responder errors from request packets that do not
+consume a receive WQE fail to generate acks for RC QPs.
+This patch corrects this behavior by making the flow
+follow the same path as request packets that do consume
+a WQE after the completion.
 
-Hi Jason,
+Link: https://lore.kernel.org/linux-rdma/1a7286ac-bcea-40fb-2267-480134dd301b@gmail.com/
+Signed-off-by: Bob Pearson <rpearson@hpe.com>
+---
+ drivers/infiniband/sw/rxe/rxe_comp.c |  1 -
+ drivers/infiniband/sw/rxe/rxe_resp.c | 18 ++++++++----------
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-Ok, I will fix it in v3.
-Thank you for the review.
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index a612b335baa0..2af26737d32d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -676,7 +676,6 @@ int rxe_completer(void *arg)
+ 
+ 			/* there is nothing to retry in this case */
+ 			if (!wqe || (wqe->state == wqe_state_posted)) {
+-				pr_warn("Retry attempted without a valid wqe\n");
+ 				ret = -EAGAIN;
+ 				goto done;
+ 			}
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index e0e9984a3cce..6c43df7bf9bc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -816,8 +816,8 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 	struct rxe_recv_wqe *wqe = qp->resp.wqe;
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+ 
+-	if (unlikely(!wqe))
+-		return RESPST_CLEANUP;
++	if (!wqe)
++		goto finish;
+ 
+ 	memset(&cqe, 0, sizeof(cqe));
+ 
+@@ -917,12 +917,12 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 	if (rxe_cq_post(qp->rcq, &cqe, pkt ? bth_se(pkt) : 1))
+ 		return RESPST_ERR_CQ_OVERFLOW;
+ 
+-	if (qp->resp.state == QP_STATE_ERROR)
++finish:
++	if (unlikely(qp->resp.state == QP_STATE_ERROR))
+ 		return RESPST_CHK_RESOURCE;
+-
+-	if (!pkt)
++	if (unlikely(!pkt))
+ 		return RESPST_DONE;
+-	else if (qp_type(qp) == IB_QPT_RC)
++	if (qp_type(qp) == IB_QPT_RC)
+ 		return RESPST_ACKNOWLEDGE;
+ 	else
+ 		return RESPST_CLEANUP;
+@@ -1056,10 +1056,8 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
+ 	if (pkt->mask & RXE_SEND_MASK ||
+ 	    pkt->mask & RXE_WRITE_MASK) {
+ 		/* SEND. Ack again and cleanup. C9-105. */
+-		if (bth_ack(pkt))
+-			send_ack(qp, pkt, AETH_ACK_UNLIMITED, prev_psn);
+-		rc = RESPST_CLEANUP;
+-		goto out;
++		send_ack(qp, pkt, AETH_ACK_UNLIMITED, prev_psn);
++		return RESPST_CLEANUP;
+ 	} else if (pkt->mask & RXE_READ_MASK) {
+ 		struct resp_res *res;
+ 
+-- 
+2.27.0
+
