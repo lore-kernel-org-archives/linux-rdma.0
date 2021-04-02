@@ -7,31 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 558DEC43460
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Apr 2021 09:10:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06592C43461
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Apr 2021 09:10:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B46361105
+	by mail.kernel.org (Postfix) with ESMTP id CBCC760FF3
 	for <linux-rdma@archiver.kernel.org>; Fri,  2 Apr 2021 09:10:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234389AbhDBJKS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Apr 2021 05:10:18 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:14677 "EHLO
+        id S234640AbhDBJKV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 2 Apr 2021 05:10:21 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:14679 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234821AbhDBJKR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Apr 2021 05:10:17 -0400
+        with ESMTP id S234872AbhDBJKS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Apr 2021 05:10:18 -0400
 Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FBZ2H2QTvznXlB;
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FBZ2H3SVVznY7p;
         Fri,  2 Apr 2021 17:07:35 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 2 Apr 2021 17:10:05 +0800
+ 14.3.498.0; Fri, 2 Apr 2021 17:10:06 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 1/9] RDMA/hns: Avoid enabling RQ inline on UD
-Date:   Fri, 2 Apr 2021 17:07:26 +0800
-Message-ID: <1617354454-47840-2-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Wenpeng Liang <liangwenpeng@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH for-next 4/9] RDMA/hns: Delete redundant abnormal interrupt status
+Date:   Fri, 2 Apr 2021 17:07:29 +0800
+Message-ID: <1617354454-47840-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1617354454-47840-1-git-send-email-liweihang@huawei.com>
 References: <1617354454-47840-1-git-send-email-liweihang@huawei.com>
@@ -43,47 +44,70 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-RQ inline is not supported on UD/GSI QP, it should be disabled in QPC.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
+The hardware supports only two types of abnormal interrupts.
+
+Fixes: a5073d6054f7 ("RDMA/hns: Add eq support of hip08")
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 +++++--
- drivers/infiniband/hw/hns/hns_roce_qp.c    | 4 +++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 19 +++++--------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  3 +--
+ 2 files changed, 6 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index cc334d5c..b48bdc9 100644
+index 807c90c..4240aea 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4106,8 +4106,11 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 		       ((u32)hr_qp->rdb.dma) >> 1);
- 	context->rq_db_record_addr = cpu_to_le32(hr_qp->rdb.dma >> 32);
+@@ -6031,28 +6031,19 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
+ 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
  
--	roce_set_bit(context->byte_76_srqn_op_en, V2_QPC_BYTE_76_RQIE_S,
--		    (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE) ? 1 : 0);
-+	if (ibqp->qp_type != IB_QPT_UD && ibqp->qp_type != IB_QPT_GSI)
-+		roce_set_bit(context->byte_76_srqn_op_en,
-+			     V2_QPC_BYTE_76_RQIE_S,
-+			     !!(hr_dev->caps.flags &
-+				HNS_ROCE_CAP_FLAG_RQ_INLINE));
+ 		int_work = 1;
+-	} else if (int_st & BIT(HNS_ROCE_V2_VF_INT_ST_BUS_ERR_S)) {
+-		dev_err(dev, "BUS ERR!\n");
++	} else if (int_st & BIT(HNS_ROCE_V2_VF_INT_ST_RAS_INT_S)) {
++		dev_err(dev, "RAS interrupt!\n");
  
- 	roce_set_field(context->byte_80_rnr_rx_cqn, V2_QPC_BYTE_80_RX_CQN_M,
- 		       V2_QPC_BYTE_80_RX_CQN_S, get_cqn(ibqp->recv_cq));
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 268d460..f214bd0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -487,7 +487,9 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
- 					    hr_qp->rq.max_gs);
+-		int_st |= 1 << HNS_ROCE_V2_VF_INT_ST_BUS_ERR_S;
++		int_st |= 1 << HNS_ROCE_V2_VF_INT_ST_RAS_INT_S;
+ 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
  
- 	hr_qp->rq.wqe_cnt = cnt;
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE)
-+	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE &&
-+	    hr_qp->ibqp.qp_type != IB_QPT_UD &&
-+	    hr_qp->ibqp.qp_type != IB_QPT_GSI)
- 		hr_qp->rq_inl_buf.wqe_cnt = cnt;
- 	else
- 		hr_qp->rq_inl_buf.wqe_cnt = 0;
+ 		int_en |= 1 << HNS_ROCE_V2_VF_ABN_INT_EN_S;
+ 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
+ 
+ 		int_work = 1;
+-	} else if (int_st & BIT(HNS_ROCE_V2_VF_INT_ST_OTHER_ERR_S)) {
+-		dev_err(dev, "OTHER ERR!\n");
+-
+-		int_st |= 1 << HNS_ROCE_V2_VF_INT_ST_OTHER_ERR_S;
+-		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG, int_st);
+-
+-		int_en |= 1 << HNS_ROCE_V2_VF_ABN_INT_EN_S;
+-		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
+-
+-		int_work = 1;
+-	} else
++	} else {
+ 		dev_err(dev, "There is no abnormal irq found!\n");
++	}
+ 
+ 	return IRQ_RETVAL(int_work);
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 44a3abdd..88b44f7 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1956,8 +1956,7 @@ struct hns_roce_dip {
+ #define HNS_ROCE_V2_ASYNC_EQE_NUM		0x1000
+ 
+ #define HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S	0
+-#define HNS_ROCE_V2_VF_INT_ST_BUS_ERR_S		1
+-#define HNS_ROCE_V2_VF_INT_ST_OTHER_ERR_S	2
++#define HNS_ROCE_V2_VF_INT_ST_RAS_INT_S		1
+ 
+ #define HNS_ROCE_EQ_DB_CMD_AEQ			0x0
+ #define HNS_ROCE_EQ_DB_CMD_AEQ_ARMED		0x1
 -- 
 2.8.1
 
