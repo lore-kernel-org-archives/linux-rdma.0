@@ -5,32 +5,32 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E589FC433ED
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7758BC43460
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5B9461395
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3882C61393
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232124AbhDEFui (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Apr 2021 01:50:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34688 "EHLO mail.kernel.org"
+        id S229717AbhDEFun (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Apr 2021 01:50:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34774 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232224AbhDEFue (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 5 Apr 2021 01:50:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9546061395;
-        Mon,  5 Apr 2021 05:50:28 +0000 (UTC)
+        id S232255AbhDEFui (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 5 Apr 2021 01:50:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E8D1E61393;
+        Mon,  5 Apr 2021 05:50:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617601829;
-        bh=OYi5oBfh+IkfxEpEvlyTxj1HUBFhA7hXBFWPylWIYsw=;
+        s=k20201202; t=1617601832;
+        bh=aLTaImJggynKE0fFKmCwvZD8aLmzRiT3oFV9D4hqRH4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qHFr6cbp8xiOxYDsxElx2f7O7Ptj8Ct/tjaxo5V/6e9cALtKZuUkVoqFEGJedk4WS
-         Kx7up2/a2QcbAfJj1MDAKg7p6nfhS4o+sL0khFkJ75Pj0D8GvA4VSrMeA84kzxYq6+
-         ciUfTpG1BKIXZ9JACRrAnjgT1lEidobeE0O36OF0DFx8GkwDn2H6CJYKNoBvkV24rM
-         YT6hHscu+FiA0fO/6aPja/Vx5sw1K7Ja6a+OXOliz1AfR8rZkE0hwV5WsvfZugBm8H
-         1TQjrjKBOTZZXQT+6eCpF71cbOp+gwTs7DuI79vCkT6dO6SdCTh8ksbb1ae1haUJHl
-         q2hC/gSz/SehA==
+        b=SBEl2X9GiSm4UPtHzNNkC4LUzQNdfuB635NeE5hgeOA3mPdYwbgUyhCU6yJd9KUzc
+         VfgQVLZORn20ZxtS98o4tzuUl0E/VQwxgJFPITucrHLeQJVQ3FkPnECqG4iD3MfNTi
+         3eK4gPXB16QStM+0heMrBy+wrOZLHwt2BU4xxnhTIJE3ZOgue1LozQ236iBnz5Kbx4
+         t44Kz+mpwFSYuIK7dFJQGuUsT1f7R+54ASJ25x6DwanfrpRVP6PS03yZ64EO9VOFyr
+         Q5SRb+5La0oxL5Xic6JHxQ3Z3oZS5xPFGyMhqa+UbpDfatKeUNGjmuhQ3yDlmdeToL
+         qOe6+InnDm3jQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -44,9 +44,9 @@ Cc:     Parav Pandit <parav@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: [PATCH rdma-next 4/8] IB/core: Skip device which doesn't have necessary capabilities
-Date:   Mon,  5 Apr 2021 08:49:56 +0300
-Message-Id: <20210405055000.215792-5-leon@kernel.org>
+Subject: [PATCH rdma-next 8/8] net/rds: Move to client_supported callback
+Date:   Mon,  5 Apr 2021 08:50:00 +0300
+Message-Id: <20210405055000.215792-9-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210405055000.215792-1-leon@kernel.org>
 References: <20210405055000.215792-1-leon@kernel.org>
@@ -58,95 +58,60 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-If device doesn't have multicast capability, avoid client registration
-for it. This saves 16Kbytes of memory for a RDMA device consist of 128
-ports.
-
-If device doesn't support subnet administration, avoid client
-registration for it. This saves 8Kbytes of memory for a RDMA device
-consist of 128 ports.
+Use newly introduced client_supported() callback to avoid client
+additional if the RDMA device is not of IB type or if it doesn't
+support device memory extensions.
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/multicast.c | 15 ++++++++++++++-
- drivers/infiniband/core/sa_query.c  | 15 ++++++++++++++-
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ net/rds/ib.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index a5dd4b7a74bc..8c81acc24e3e 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -44,11 +44,13 @@
- 
- static int mcast_add_one(struct ib_device *device);
- static void mcast_remove_one(struct ib_device *device, void *client_data);
-+static bool mcast_client_supported(struct ib_device *device);
- 
- static struct ib_client mcast_client = {
- 	.name   = "ib_multicast",
- 	.add    = mcast_add_one,
--	.remove = mcast_remove_one
-+	.remove = mcast_remove_one,
-+	.is_supported = mcast_client_supported,
- };
- 
- static struct ib_sa_client	sa_client;
-@@ -816,6 +818,17 @@ static void mcast_event_handler(struct ib_event_handler *handler,
- 	}
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 24c9a9005a6f..bd2ff7d5a718 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -125,18 +125,23 @@ void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
+ 		queue_work(rds_wq, &rds_ibdev->free_work);
  }
  
-+static bool mcast_client_supported(struct ib_device *device)
-+{
-+	u32 i;
+-static int rds_ib_add_one(struct ib_device *device)
++static bool rds_client_supported(struct ib_device *device)
+ {
+-	struct rds_ib_device *rds_ibdev;
+-	int ret;
+-
+ 	/* Only handle IB (no iWARP) devices */
+ 	if (device->node_type != RDMA_NODE_IB_CA)
+-		return -EOPNOTSUPP;
++		return false;
+ 
+ 	/* Device must support FRWR */
+ 	if (!(device->attrs.device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS))
+-		return -EOPNOTSUPP;
++		return false;
 +
-+	rdma_for_each_port(device, i) {
-+		if (rdma_cap_ib_mcast(device, i))
-+			return true;
-+	}
-+	return false;
++	return true;
 +}
 +
- static int mcast_add_one(struct ib_device *device)
- {
- 	struct mcast_device *dev;
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 9a4a49c37922..7e00e24d9423 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -176,11 +176,13 @@ static const struct nla_policy ib_nl_policy[LS_NLA_TYPE_MAX] = {
++static int rds_ib_add_one(struct ib_device *device)
++{
++	struct rds_ib_device *rds_ibdev;
++	int ret;
  
- static int ib_sa_add_one(struct ib_device *device);
- static void ib_sa_remove_one(struct ib_device *device, void *client_data);
-+static bool ib_sa_client_supported(struct ib_device *device);
- 
- static struct ib_client sa_client = {
- 	.name   = "sa",
- 	.add    = ib_sa_add_one,
--	.remove = ib_sa_remove_one
-+	.remove = ib_sa_remove_one,
-+	.is_supported = ib_sa_client_supported,
+ 	rds_ibdev = kzalloc_node(sizeof(struct rds_ib_device), GFP_KERNEL,
+ 				 ibdev_to_node(device));
+@@ -288,7 +293,8 @@ static void rds_ib_remove_one(struct ib_device *device, void *client_data)
+ struct ib_client rds_ib_client = {
+ 	.name   = "rds_ib",
+ 	.add    = rds_ib_add_one,
+-	.remove = rds_ib_remove_one
++	.remove = rds_ib_remove_one,
++	.is_supported = rds_client_supported,
  };
  
- static DEFINE_XARRAY_FLAGS(queries, XA_FLAGS_ALLOC | XA_FLAGS_LOCK_IRQ);
-@@ -2293,6 +2295,17 @@ static void ib_sa_event(struct ib_event_handler *handler,
- 	}
- }
- 
-+static bool ib_sa_client_supported(struct ib_device *device)
-+{
-+	unsigned int i;
-+
-+	rdma_for_each_port(device, i) {
-+		if (rdma_cap_ib_sa(device, i))
-+			return true;
-+	}
-+	return false;
-+}
-+
- static int ib_sa_add_one(struct ib_device *device)
- {
- 	struct ib_sa_device *sa_dev;
+ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
 -- 
 2.30.2
 
