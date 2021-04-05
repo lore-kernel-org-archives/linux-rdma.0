@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51B0DC433B4
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2F45C433B4
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 092C861395
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 787BE61399
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232062AbhDEFuT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Apr 2021 01:50:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34270 "EHLO mail.kernel.org"
+        id S232071AbhDEFuV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Apr 2021 01:50:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232054AbhDEFuR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 5 Apr 2021 01:50:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B1EC6138A;
-        Mon,  5 Apr 2021 05:50:11 +0000 (UTC)
+        id S232078AbhDEFuV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 5 Apr 2021 01:50:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ECC0A6138A;
+        Mon,  5 Apr 2021 05:50:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617601812;
-        bh=PsROXfLh1PLcHMlKcwD6/kCYX1+1tHQ0rQ8neODxlfo=;
+        s=k20201202; t=1617601815;
+        bh=OZcrC5GanjfRIBMiqGHldB7KHYyxXozI8j3d7T22USc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=G0FAGW+541Z00Z1bI3RulQKM/s0QIS0cuSGHw/14luvghB1iYsKox5jHVeR1lI2bi
-         qB8vcBK6/3Ar8Sw+el7Ed++NRSbD7E6Dvj2WyIDsk/MwiajX+53FRf3CoSRAMuBEc/
-         gV2jo1Feyzz62ybr0BgEgJv0VCleevlXrMyoXNhM0OkeraAc/46NOy6FUne8F9Uxpv
-         qsHUphlPdcetw+nuSI1hAfevmQqpJ2jjoGd7B1S7aIbgvoQL9Iy3lVjqo3vHhfJSc/
-         KQg6VNmC9Mu0bb5GBqMzu+ELRy9e+ZmNhu6kKmOG04nX6prLNp8qOyJr0m1rUUP6tO
-         I0eqv0aGIrOkw==
+        b=Mi3dfg3at4/ueREeId3jg7bTAy/4OXL1XBmR9UH001oVmWDFY8KoNBkRoWlTR8Dx/
+         zHryp2NxJGbOPHv2uvxSwTXG2LIx2oop0vngtomkWjljR2ADN3sOthTu8bYalDEXSk
+         jWhO6eqOzd5P5JlBNEtn5CbxWW56Y7jaREo0AgW3sGasikYwtia1fQUIuDq9vHP4wI
+         Wltdboz7BB2mUeogc0dTNFtkfC6s8VOw8+cRbPjByJXPD0Xcj69LVZ3/CuXXG9UpEP
+         7nptGF1rYPcCt6/dj1sU/Ysa2bOANGNInQRP4el2NdanyOvhl1FwX+KpQmkyims/sN
+         CcuTKY03/Kxmw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -44,9 +44,9 @@ Cc:     Parav Pandit <parav@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: [PATCH rdma-next 3/8] IB/cm: Skip device which doesn't support IB CM
-Date:   Mon,  5 Apr 2021 08:49:55 +0300
-Message-Id: <20210405055000.215792-4-leon@kernel.org>
+Subject: [PATCH rdma-next 1/8] RDMA/core: Check if client supports IB device or not
+Date:   Mon,  5 Apr 2021 08:49:53 +0300
+Message-Id: <20210405055000.215792-2-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210405055000.215792-1-leon@kernel.org>
 References: <20210405055000.215792-1-leon@kernel.org>
@@ -58,63 +58,55 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-There are at least 3 types of RDMA devices which do not support IB CM.
-They are
-(1) A (eswitch) switchdev RDMA device,
-(2) iWARP device and
-(3) RDMA device without a RoCE capability
+RDMA devices are of different transport(iWarp, IB, RoCE) and have
+different attributes.
+Not all clients are interested in all type of devices.
 
-Hence, avoid IB CM initialization for such devices.
-
-This saves 8Kbytes of memory for eswitch device consist of 512 ports and
-also avoids unnecessary initialization for all above 3 types of devices.
+Implement a generic callback that each IB client can implement to decide
+if client add() or remove() should be done by the IB core or not for a
+given IB device, client combination.
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cm.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/device.c | 3 +++
+ include/rdma/ib_verbs.h          | 9 +++++++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 8a7791ebae69..5025f2c1347b 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -87,6 +87,7 @@ struct cm_id_private;
- struct cm_work;
- static int cm_add_one(struct ib_device *device);
- static void cm_remove_one(struct ib_device *device, void *client_data);
-+static bool cm_supported(struct ib_device *device);
- static void cm_process_work(struct cm_id_private *cm_id_priv,
- 			    struct cm_work *work);
- static int cm_send_sidr_rep_locked(struct cm_id_private *cm_id_priv,
-@@ -103,7 +104,8 @@ static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
- static struct ib_client cm_client = {
- 	.name   = "cm",
- 	.add    = cm_add_one,
--	.remove = cm_remove_one
-+	.remove = cm_remove_one,
-+	.is_supported = cm_supported,
- };
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index c660cef66ac6..c9af2deba8c1 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -691,6 +691,9 @@ static int add_client_context(struct ib_device *device,
+ 	if (!device->kverbs_provider && !client->no_kverbs_req)
+ 		return 0;
  
- static struct ib_cm {
-@@ -4371,6 +4373,17 @@ static void cm_remove_port_fs(struct cm_port *port)
- 
- }
- 
-+static bool cm_supported(struct ib_device *device)
-+{
-+	u32 i;
++	if (client->is_supported && !client->is_supported(device))
++		return 0;
 +
-+	rdma_for_each_port(device, i) {
-+		if (rdma_cap_ib_cm(device, i))
-+			return true;
-+	}
-+	return false;
-+}
-+
- static int cm_add_one(struct ib_device *ib_device)
- {
- 	struct cm_device *cm_dev;
+ 	down_write(&device->client_data_rwsem);
+ 	/*
+ 	 * So long as the client is registered hold both the client and device
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 59138174affa..777fbcbd4858 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2756,6 +2756,15 @@ struct ib_client {
+ 			const union ib_gid *gid,
+ 			const struct sockaddr *addr,
+ 			void *client_data);
++	/*
++	 * Returns if the client is supported for a given device or not.
++	 * @dev: An RDMA device to check if client can support this RDMA or not.
++	 *
++	 * A client that is interested in specific device attributes, should
++	 * implement it to check if client can be supported for this device or
++	 * not.
++	 */
++	bool (*is_supported)(struct ib_device *dev);
+ 
+ 	refcount_t uses;
+ 	struct completion uses_zero;
 -- 
 2.30.2
 
