@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2F45C433B4
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96165C433ED
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 787BE61399
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A55E61395
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232071AbhDEFuV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Apr 2021 01:50:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34330 "EHLO mail.kernel.org"
+        id S232097AbhDEFu0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Apr 2021 01:50:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232078AbhDEFuV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 5 Apr 2021 01:50:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ECC0A6138A;
-        Mon,  5 Apr 2021 05:50:14 +0000 (UTC)
+        id S232096AbhDEFuY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 5 Apr 2021 01:50:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6483661393;
+        Mon,  5 Apr 2021 05:50:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617601815;
-        bh=OZcrC5GanjfRIBMiqGHldB7KHYyxXozI8j3d7T22USc=;
+        s=k20201202; t=1617601819;
+        bh=546fGdgC8SELgOTgK16DtIQhtdQvE38vpzuMVIP5F1U=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Mi3dfg3at4/ueREeId3jg7bTAy/4OXL1XBmR9UH001oVmWDFY8KoNBkRoWlTR8Dx/
-         zHryp2NxJGbOPHv2uvxSwTXG2LIx2oop0vngtomkWjljR2ADN3sOthTu8bYalDEXSk
-         jWhO6eqOzd5P5JlBNEtn5CbxWW56Y7jaREo0AgW3sGasikYwtia1fQUIuDq9vHP4wI
-         Wltdboz7BB2mUeogc0dTNFtkfC6s8VOw8+cRbPjByJXPD0Xcj69LVZ3/CuXXG9UpEP
-         7nptGF1rYPcCt6/dj1sU/Ysa2bOANGNInQRP4el2NdanyOvhl1FwX+KpQmkyims/sN
-         CcuTKY03/Kxmw==
+        b=ox73jiWftd/wanyKh8k00x9xX3j7k39NF4uvD1Ak6tQOV9KfBK+BZH8T1mUf5n+wR
+         FJ2Nt4BbDlzYiGIz9mbnli/SEUh4JHAU2ASpED1/ocjPHChDnajmT22NXFM9WYbYL0
+         w6Y4/xDB0Ty2VQo+g7a1gTiRiJ8eiOEKZIoKekwZji7Ybxg71daCG4POi2fX7h8NLW
+         rIE2SfTJ7P3BXWivrnxPnUazMZaNSsnW6z8pntprtryMyAP3Z19uBYmQQzaFFNoW7R
+         1pLFUV+S/50/gWtt+xdi2CC1PeSZQnlyH9XO1TrkK5n5S+q8mykPwUgQVw1gdTnioZ
+         xeeSImH3O2VcA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -44,9 +44,9 @@ Cc:     Parav Pandit <parav@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: [PATCH rdma-next 1/8] RDMA/core: Check if client supports IB device or not
-Date:   Mon,  5 Apr 2021 08:49:53 +0300
-Message-Id: <20210405055000.215792-2-leon@kernel.org>
+Subject: [PATCH rdma-next 5/8] IB/IPoIB: Skip device which doesn't have InfiniBand port
+Date:   Mon,  5 Apr 2021 08:49:57 +0300
+Message-Id: <20210405055000.215792-6-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210405055000.215792-1-leon@kernel.org>
 References: <20210405055000.215792-1-leon@kernel.org>
@@ -58,55 +58,53 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav@nvidia.com>
 
-RDMA devices are of different transport(iWarp, IB, RoCE) and have
-different attributes.
-Not all clients are interested in all type of devices.
-
-Implement a generic callback that each IB client can implement to decide
-if client add() or remove() should be done by the IB core or not for a
-given IB device, client combination.
+Skip RDMA device which doesn't have InfiniBand ports using newly
+introduced client_supported() callback.
 
 Signed-off-by: Parav Pandit <parav@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/device.c | 3 +++
- include/rdma/ib_verbs.h          | 9 +++++++++
- 2 files changed, 12 insertions(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index c660cef66ac6..c9af2deba8c1 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -691,6 +691,9 @@ static int add_client_context(struct ib_device *device,
- 	if (!device->kverbs_provider && !client->no_kverbs_req)
- 		return 0;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 8f769ebaacc6..b02c10dea242 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -93,6 +93,7 @@ static struct net_device *ipoib_get_net_dev_by_params(
+ 		struct ib_device *dev, u32 port, u16 pkey,
+ 		const union ib_gid *gid, const struct sockaddr *addr,
+ 		void *client_data);
++static bool ipoib_client_supported(struct ib_device *device);
+ static int ipoib_set_mac(struct net_device *dev, void *addr);
+ static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
+ 		       int cmd);
+@@ -102,6 +103,7 @@ static struct ib_client ipoib_client = {
+ 	.add    = ipoib_add_one,
+ 	.remove = ipoib_remove_one,
+ 	.get_net_dev_by_params = ipoib_get_net_dev_by_params,
++	.is_supported = ipoib_client_supported,
+ };
  
-+	if (client->is_supported && !client->is_supported(device))
-+		return 0;
+ #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+@@ -2530,6 +2532,17 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
++static bool ipoib_client_supported(struct ib_device *device)
++{
++	u32 i;
 +
- 	down_write(&device->client_data_rwsem);
- 	/*
- 	 * So long as the client is registered hold both the client and device
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 59138174affa..777fbcbd4858 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2756,6 +2756,15 @@ struct ib_client {
- 			const union ib_gid *gid,
- 			const struct sockaddr *addr,
- 			void *client_data);
-+	/*
-+	 * Returns if the client is supported for a given device or not.
-+	 * @dev: An RDMA device to check if client can support this RDMA or not.
-+	 *
-+	 * A client that is interested in specific device attributes, should
-+	 * implement it to check if client can be supported for this device or
-+	 * not.
-+	 */
-+	bool (*is_supported)(struct ib_device *dev);
- 
- 	refcount_t uses;
- 	struct completion uses_zero;
++	rdma_for_each_port(device, i) {
++		if (rdma_protocol_ib(device, i))
++			return true;
++	}
++	return false;
++}
++
+ static int ipoib_add_one(struct ib_device *device)
+ {
+ 	struct list_head *dev_list;
 -- 
 2.30.2
 
