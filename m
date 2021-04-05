@@ -2,39 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13544C433ED
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C92C433B4
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D976E61393
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 586FD61393
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Apr 2021 05:50:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231979AbhDEFuL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Apr 2021 01:50:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34076 "EHLO mail.kernel.org"
+        id S232031AbhDEFuO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Apr 2021 01:50:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34180 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229727AbhDEFuL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 5 Apr 2021 01:50:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF4BA6138A;
-        Mon,  5 Apr 2021 05:50:04 +0000 (UTC)
+        id S229727AbhDEFuO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 5 Apr 2021 01:50:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 42EA761399;
+        Mon,  5 Apr 2021 05:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617601805;
-        bh=HL3XcxJnh+PpngLSQ1cW4W65/ax//mggo+MJmIHNZKE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=JoWpvmHr8cbXC2wGqorO6A7gFrAKBNhaX6C0Z1rLW+CLElmWI4t7U6yocQMei8PzC
-         sPyPYTw70ck102ou4VETIuVUfmzuXvHoBcF4zlXCLrJJUV5sfsRdmuKnObGq7tu5qW
-         sNLVme//M7TPI8I85ht1jY1ADGuICcgA3JWoYQwnsBePYtiwkpnVtDp+XEdJ7TwmNx
-         Nd2S0IaIhLaOwlzWT8HjN/UJO13YPDOfdIYEKH0JI2nIHJf0ark0zVO9BG8FXQQrpt
-         /8OV+30NarBYePQino+ZNTl8eaAz3ASFhMo845QpNAN84+qtjUmrlev5KqEoOxOR8+
-         L/0IkSvtF4paQ==
+        s=k20201202; t=1617601808;
+        bh=F5IJVEwD/ds8nR2UWRrmKXAI11023OkVeObLtcX5Os8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=NODekafGzp5kSojCg+hpr6B9AlQvD3zKz1kSQUnnab6bpFEEOrBv7H4HhlV/xDoFY
+         TqFAkD/p2pVLkh3I28NPd/1jujvuwkWrGbTce9KKjJN/16uPujucZoym8KBnN1wLlc
+         QKvVKGhzBkFZWDuJHsCWo1j2ZxDkXtxY53SB2B/tPDIPN7O8ZOy0WgPKkTKjRH+lQW
+         C07RwZj1T/8gB8IjoV1gkCqJobugEN3Ocv/6PIomvbhVfoWbJP1831Zr9n3Xnb6wdM
+         v7QgnCVGlTYCiSGHb7jlz3Xm72ANX8GWg/U5Rafawy+7PiQVcdMJ8O/EQs4ePWufCD
+         EjCIRobdjqIrA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+Cc:     Parav Pandit <parav@nvidia.com>,
         "David S. Miller" <davem@davemloft.net>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -42,51 +42,88 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-s390@vger.kernel.org,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        netdev@vger.kernel.org, Parav Pandit <parav@nvidia.com>,
-        rds-devel@oss.oracle.com,
+        netdev@vger.kernel.org, rds-devel@oss.oracle.com,
         Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: [PATCH rdma-next 0/8] Generalize if ULP supported check
-Date:   Mon,  5 Apr 2021 08:49:52 +0300
-Message-Id: <20210405055000.215792-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/8] RDMA/cma: Skip device which doesn't support CM
+Date:   Mon,  5 Apr 2021 08:49:54 +0300
+Message-Id: <20210405055000.215792-3-leon@kernel.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210405055000.215792-1-leon@kernel.org>
+References: <20210405055000.215792-1-leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Parav Pandit <parav@nvidia.com>
 
-Hi,
+A switchdev RDMA device do not support IB CM. When such device is added
+to the RDMA CM's device list, when application invokes rdma_listen(),
+cma attempts to listen to such device, however it has IB CM attribute
+disabled.
 
-This series adds new callback to check if ib client is supported/not_supported.
-Such general callback allows us to save memory footprint by not starting
-on devices that not going to work on them anyway.
+Due to this, rdma_listen() call fails to listen for other non
+switchdev devices as well.
 
-Thanks
+A below error message can be seen.
 
-Parav Pandit (8):
-  RDMA/core: Check if client supports IB device or not
-  RDMA/cma: Skip device which doesn't support CM
-  IB/cm: Skip device which doesn't support IB CM
-  IB/core: Skip device which doesn't have necessary capabilities
-  IB/IPoIB: Skip device which doesn't have InfiniBand port
-  IB/opa_vnic: Move to client_supported callback
-  net/smc: Move to client_supported callback
-  net/rds: Move to client_supported callback
+infiniband mlx5_0: RDMA CMA: cma_listen_on_dev, error -38
 
- drivers/infiniband/core/cm.c                  | 15 +++++++++++++-
- drivers/infiniband/core/cma.c                 | 15 +++++++++++++-
- drivers/infiniband/core/device.c              |  3 +++
- drivers/infiniband/core/multicast.c           | 15 +++++++++++++-
- drivers/infiniband/core/sa_query.c            | 15 +++++++++++++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c     | 13 ++++++++++++
- .../infiniband/ulp/opa_vnic/opa_vnic_vema.c   |  4 +---
- include/rdma/ib_verbs.h                       |  9 +++++++++
- net/rds/ib.c                                  | 20 ++++++++++++-------
- net/smc/smc_ib.c                              |  9 ++++++---
- 10 files changed, 101 insertions(+), 17 deletions(-)
+A failing call flow is below.
 
+rdma_listen()
+  cma_listen_on_all()
+    cma_listen_on_dev()
+      _cma_attach_to_dev()
+      rdma_listen() <- fails on a specific switchdev device
+
+Hence, when a IB device doesn't support IB CM or IW CM, avoid adding
+such device to the cma list.
+
+Signed-off-by: Parav Pandit <parav@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/cma.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 42a1c8955c50..80156faf90de 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -157,11 +157,13 @@ EXPORT_SYMBOL(rdma_res_to_id);
+ 
+ static int cma_add_one(struct ib_device *device);
+ static void cma_remove_one(struct ib_device *device, void *client_data);
++static bool cma_supported(struct ib_device *device);
+ 
+ static struct ib_client cma_client = {
+ 	.name   = "cma",
+ 	.add    = cma_add_one,
+-	.remove = cma_remove_one
++	.remove = cma_remove_one,
++	.is_supported = cma_supported,
+ };
+ 
+ static struct ib_sa_client sa_client;
+@@ -4870,6 +4872,17 @@ static void cma_process_remove(struct cma_device *cma_dev)
+ 	wait_for_completion(&cma_dev->comp);
+ }
+ 
++static bool cma_supported(struct ib_device *device)
++{
++	u32 i;
++
++	rdma_for_each_port(device, i) {
++		if (rdma_cap_ib_cm(device, i) || rdma_cap_iw_cm(device, i))
++			return true;
++	}
++	return false;
++}
++
+ static int cma_add_one(struct ib_device *device)
+ {
+ 	struct rdma_id_private *to_destroy;
 -- 
 2.30.2
 
