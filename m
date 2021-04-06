@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECE24C43461
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D47C43460
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAFA4613C2
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 95775613C5
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239680AbhDFIWi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 04:22:38 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:15915 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239733AbhDFIWh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 04:22:37 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4FF0pL11GXzkgVC;
-        Tue,  6 Apr 2021 16:20:42 +0800 (CST)
+        id S234557AbhDFIWg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 04:22:36 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15489 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238390AbhDFIWb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 04:22:31 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FF0nn2MSXzwRN7;
+        Tue,  6 Apr 2021 16:20:13 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.498.0; Tue, 6 Apr 2021 16:22:18 +0800
+ 14.3.498.0; Tue, 6 Apr 2021 16:22:16 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 5/6] RDMA/core: Correct format of braces
-Date:   Tue, 6 Apr 2021 16:19:43 +0800
-Message-ID: <1617697184-48683-6-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 1/6] RDMA/core: Print the function name by __func__ instead of an fixed string
+Date:   Tue, 6 Apr 2021 16:19:39 +0800
+Message-ID: <1617697184-48683-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
 References: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
@@ -45,206 +45,133 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Do following cleanups about braces:
-- Add the necessary braces to maintain context alignment.
-- Fix the open '{' that is not on the same line as "switch".
-- Remove braces that are not necessary for single statement blocks.
-- Fix "else" that doesn't follow close brace '}'.
+It's better to use __func__ than a fixed string to print a function's
+name.
 
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/core/cache.c |  3 ++-
- drivers/infiniband/core/cm.c    |  3 +--
- drivers/infiniband/core/cma.c   | 21 ++++++++++++---------
- drivers/infiniband/core/mad.c   | 20 ++++++++------------
- drivers/infiniband/core/sysfs.c |  6 ++----
- 5 files changed, 25 insertions(+), 28 deletions(-)
+ drivers/infiniband/core/ucma.c     |  4 ++--
+ drivers/infiniband/core/umem.c     |  4 ++--
+ drivers/infiniband/core/user_mad.c | 26 +++++++++++---------------
+ 3 files changed, 15 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 0b8c410..1147b9b 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1113,8 +1113,9 @@ int ib_find_cached_pkey(struct ib_device *device, u32 port_num,
- 				*index = i;
- 				ret = 0;
- 				break;
--			} else
-+			} else {
- 				partial_ix = i;
-+			}
- 		}
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index da2512c..21dda69 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1708,8 +1708,8 @@ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+ 	ssize_t ret;
  
- 	if (ret && partial_ix >= 0) {
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 190ac78..ed7b70b 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3917,8 +3917,7 @@ static int cm_establish(struct ib_cm_id *cm_id)
+ 	if (!ib_safe_file_access(filp)) {
+-		pr_err_once("ucma_write: process %d (%s) changed security contexts after opening file descriptor, this is not allowed.\n",
+-			    task_tgid_vnr(current), current->comm);
++		pr_err_once("%s: process %d (%s) changed security contexts after opening file descriptor, this is not allowed.\n",
++			    __func__, task_tgid_vnr(current), current->comm);
+ 		return -EACCES;
+ 	}
  
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
--	switch (cm_id->state)
--	{
-+	switch (cm_id->state) {
- 	case IB_CM_REP_SENT:
- 	case IB_CM_MRA_REP_RCVD:
- 		cm_id->state = IB_CM_ESTABLISHED;
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 670608c..8f73866 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1126,8 +1126,9 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
- 						 qp_attr_mask);
- 		qp_attr->port_num = id_priv->id.port_num;
- 		*qp_attr_mask |= IB_QP_PORT;
--	} else
-+	} else {
- 		ret = -ENOSYS;
-+	}
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 2cd6464..cedd03f 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -305,8 +305,8 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ 	int ret;
  
- 	if ((*qp_attr_mask & IB_QP_TIMEOUT) && id_priv->timeout_set)
- 		qp_attr->timeout = id_priv->timeout;
-@@ -4116,10 +4117,11 @@ int rdma_connect_locked(struct rdma_cm_id *id,
- 			ret = cma_resolve_ib_udp(id_priv, conn_param);
- 		else
- 			ret = cma_connect_ib(id_priv, conn_param);
--	} else if (rdma_cap_iw_cm(id->device, id->port_num))
-+	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = cma_connect_iw(id_priv, conn_param);
--	else
-+	} else {
- 		ret = -ENOSYS;
-+	}
- 	if (ret)
- 		goto err_state;
- 	return 0;
-@@ -4226,9 +4228,9 @@ static int cma_accept_iw(struct rdma_id_private *id_priv,
- 	iw_param.ird = conn_param->responder_resources;
- 	iw_param.private_data = conn_param->private_data;
- 	iw_param.private_data_len = conn_param->private_data_len;
--	if (id_priv->id.qp) {
-+	if (id_priv->id.qp)
- 		iw_param.qpn = id_priv->qp_num;
--	} else
-+	else
- 		iw_param.qpn = conn_param->qp_num;
+ 	if (offset > umem->length || length > umem->length - offset) {
+-		pr_err("ib_umem_copy_from not in range. offset: %zd umem length: %zd end: %zd\n",
+-		       offset, umem->length, end);
++		pr_err("%s not in range. offset: %zd umem length: %zd end: %zd\n",
++		       __func__, offset, umem->length, end);
+ 		return -EINVAL;
+ 	}
  
- 	return iw_cm_accept(id_priv->cm_id.iw, &iw_param);
-@@ -4311,11 +4313,11 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 			else
- 				ret = cma_rep_recv(id_priv);
- 		}
--	} else if (rdma_cap_iw_cm(id->device, id->port_num))
-+	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = cma_accept_iw(id_priv, conn_param);
--	else
-+	} else {
- 		ret = -ENOSYS;
--
-+	}
- 	if (ret)
- 		goto reject;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index a183b27..2e90517 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -688,8 +688,7 @@ static int ib_umad_reg_agent(struct ib_umad_file *file, void __user *arg,
+ 	mutex_lock(&file->mutex);
  
-@@ -4401,8 +4403,9 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = iw_cm_reject(id_priv->cm_id.iw,
- 				   private_data, private_data_len);
--	} else
-+	} else {
- 		ret = -ENOSYS;
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index f066fb1..909c58f 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -155,8 +155,7 @@ static inline u8 convert_mgmt_class(u8 mgmt_class)
- 
- static int get_spl_qp_index(enum ib_qp_type qp_type)
- {
--	switch (qp_type)
--	{
-+	switch (qp_type) {
- 	case IB_QPT_SMI:
- 		return 0;
- 	case IB_QPT_GSI:
-@@ -707,8 +706,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 				      (const struct ib_mad *)smp,
- 				      (struct ib_mad *)mad_priv->mad, &mad_size,
- 				      &out_mad_pkey_index);
--	switch (ret)
--	{
-+	switch (ret) {
- 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY:
- 		if (ib_response_mad((const struct ib_mad_hdr *)mad_priv->mad) &&
- 		    mad_agent_priv->agent.recv_handler) {
-@@ -1275,11 +1273,9 @@ static void remove_methods_mad_agent(struct ib_mad_mgmt_method_table *method,
- 	int i;
- 
- 	/* Remove any methods for this mad agent */
--	for (i = 0; i < IB_MGMT_MAX_METHODS; i++) {
--		if (method->agent[i] == agent) {
-+	for (i = 0; i < IB_MGMT_MAX_METHODS; i++)
-+		if (method->agent[i] == agent)
- 			method->agent[i] = NULL;
--		}
--	}
- }
- 
- static int add_nonoui_reg_req(struct ib_mad_reg_req *mad_reg_req,
-@@ -1454,9 +1450,8 @@ static void remove_mad_reg_req(struct ib_mad_agent_private *agent_priv)
- 	 * Was MAD registration request supplied
- 	 * with original registration ?
- 	 */
--	if (!agent_priv->reg_req) {
-+	if (!agent_priv->reg_req)
+ 	if (!file->port->ib_dev) {
+-		dev_notice(&file->port->dev,
+-			   "ib_umad_reg_agent: invalid device\n");
++		dev_notice(&file->port->dev, "%s: invalid device\n", __func__);
+ 		ret = -EPIPE;
  		goto out;
--	}
+ 	}
+@@ -701,7 +700,7 @@ static int ib_umad_reg_agent(struct ib_umad_file *file, void __user *arg,
  
- 	port_priv = agent_priv->qp_info->port_priv;
- 	mgmt_class = convert_mgmt_class(agent_priv->reg_req->mgmt_class);
-@@ -2200,9 +2195,10 @@ static void wait_for_response(struct ib_mad_send_wr_private *mad_send_wr)
- 				       temp_mad_send_wr->timeout))
- 				break;
- 		}
--	}
--	else
-+	} else {
- 		list_item = &mad_agent_priv->wait_list;
-+	}
+ 	if (ureq.qpn != 0 && ureq.qpn != 1) {
+ 		dev_notice(&file->port->dev,
+-			   "ib_umad_reg_agent: invalid QPN %d specified\n",
++			   "%s: invalid QPN %d specified\n", __func__,
+ 			   ureq.qpn);
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -711,9 +710,9 @@ static int ib_umad_reg_agent(struct ib_umad_file *file, void __user *arg,
+ 		if (!__get_agent(file, agent_id))
+ 			goto found;
+ 
+-	dev_notice(&file->port->dev,
+-		   "ib_umad_reg_agent: Max Agents (%u) reached\n",
++	dev_notice(&file->port->dev, "%s: Max Agents (%u) reached\n", __func__,
+ 		   IB_UMAD_MAX_AGENTS);
 +
- 	list_add(&mad_send_wr->agent_list, list_item);
+ 	ret = -ENOMEM;
+ 	goto out;
  
- 	/* Reschedule a work item if we have a shorter timeout */
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 43a3dc7..095b3a2 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1074,9 +1074,8 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	ret = kobject_init_and_add(&p->kobj, &port_type,
- 				   coredev->ports_kobj,
- 				   "%d", port_num);
--	if (ret) {
-+	if (ret)
- 		goto err_put;
--	}
+@@ -790,8 +789,7 @@ static int ib_umad_reg_agent2(struct ib_umad_file *file, void __user *arg)
+ 	mutex_lock(&file->mutex);
  
- 	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
- 	if (!p->gid_attr_group) {
-@@ -1087,9 +1086,8 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	p->gid_attr_group->port = p;
- 	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
- 				   &p->kobj, "gid_attrs");
--	if (ret) {
-+	if (ret)
- 		goto err_put_gid_attrs;
--	}
+ 	if (!file->port->ib_dev) {
+-		dev_notice(&file->port->dev,
+-			   "ib_umad_reg_agent2: invalid device\n");
++		dev_notice(&file->port->dev, "%s: invalid device\n", __func__);
+ 		ret = -EPIPE;
+ 		goto out;
+ 	}
+@@ -802,17 +800,16 @@ static int ib_umad_reg_agent2(struct ib_umad_file *file, void __user *arg)
+ 	}
  
- 	if (device->ops.process_mad && is_full_dev) {
- 		p->pma_table = get_counter_table(device, port_num);
+ 	if (ureq.qpn != 0 && ureq.qpn != 1) {
+-		dev_notice(&file->port->dev,
+-			   "ib_umad_reg_agent2: invalid QPN %d specified\n",
+-			   ureq.qpn);
++		dev_notice(&file->port->dev, "%s: invalid QPN %d specified\n",
++			   __func__, ureq.qpn);
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+ 	if (ureq.flags & ~IB_USER_MAD_REG_FLAGS_CAP) {
+ 		dev_notice(&file->port->dev,
+-			   "ib_umad_reg_agent2 failed: invalid registration flags specified 0x%x; supported 0x%x\n",
+-			   ureq.flags, IB_USER_MAD_REG_FLAGS_CAP);
++			   "%s failed: invalid registration flags specified 0x%x; supported 0x%x\n",
++			   __func__, ureq.flags, IB_USER_MAD_REG_FLAGS_CAP);
+ 		ret = -EINVAL;
+ 
+ 		if (put_user((u32)IB_USER_MAD_REG_FLAGS_CAP,
+@@ -827,8 +824,7 @@ static int ib_umad_reg_agent2(struct ib_umad_file *file, void __user *arg)
+ 		if (!__get_agent(file, agent_id))
+ 			goto found;
+ 
+-	dev_notice(&file->port->dev,
+-		   "ib_umad_reg_agent2: Max Agents (%u) reached\n",
++	dev_notice(&file->port->dev, "%s: Max Agents (%u) reached\n", __func__,
+ 		   IB_UMAD_MAX_AGENTS);
+ 	ret = -ENOMEM;
+ 	goto out;
+@@ -840,7 +836,7 @@ static int ib_umad_reg_agent2(struct ib_umad_file *file, void __user *arg)
+ 		req.mgmt_class_version = ureq.mgmt_class_version;
+ 		if (ureq.oui & 0xff000000) {
+ 			dev_notice(&file->port->dev,
+-				   "ib_umad_reg_agent2 failed: oui invalid 0x%08x\n",
++				   "%s failed: oui invalid 0x%08x\n", __func__,
+ 				   ureq.oui);
+ 			ret = -EINVAL;
+ 			goto out;
 -- 
 2.8.1
 
