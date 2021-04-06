@@ -2,36 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74091C433ED
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7974C43462
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44FD1613C7
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E2076117A
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234790AbhDFIWg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 04:22:36 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15487 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234557AbhDFIWb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 04:22:31 -0400
-Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FF0nn28ghzwRN8;
-        Tue,  6 Apr 2021 16:20:13 +0800 (CST)
+        id S238390AbhDFIWi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 04:22:38 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:15913 "EHLO
+        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239680AbhDFIWh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 04:22:37 -0400
+Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4FF0pL1mWRzkgWF;
+        Tue,  6 Apr 2021 16:20:42 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
- 14.3.498.0; Tue, 6 Apr 2021 16:22:16 +0800
+ 14.3.498.0; Tue, 6 Apr 2021 16:22:18 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 0/6] RDMA/core: Correct some coding-style issues
-Date:   Tue, 6 Apr 2021 16:19:38 +0800
-Message-ID: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/6] RDMA/core: Correct format of block comments
+Date:   Tue, 6 Apr 2021 16:19:44 +0800
+Message-ID: <1617697184-48683-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
+References: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -40,38 +43,76 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Do some cleanups according to the coding-style of kernel.
+From: Wenpeng Liang <liangwenpeng@huawei.com>
 
-Wenpeng Liang (6):
-  RDMA/core: Print the function name by __func__ instead of an fixed
-    string
-  RDMA/core: Remove the redundant return statements
-  RDMA/core: Add necessary spaces
-  RDMA/core: Remove redundant spaces
-  RDMA/core: Correct format of braces
-  RDMA/core: Correct format of block comments
+Block comments should not use a trailing */ on a separate line and every
+line of a block comment should start with an '*'.
 
- drivers/infiniband/core/cache.c       | 13 +++----
- drivers/infiniband/core/cm.c          | 39 +++++++++++----------
- drivers/infiniband/core/cm_msgs.h     |  4 +--
- drivers/infiniband/core/cma.c         | 31 +++++++++--------
- drivers/infiniband/core/device.c      | 64 +++++++++++++++++------------------
- drivers/infiniband/core/iwcm.c        |  2 +-
- drivers/infiniband/core/iwpm_msg.c    |  3 +-
- drivers/infiniband/core/mad.c         | 45 +++++++++++-------------
- drivers/infiniband/core/mad_rmpp.c    | 10 +++---
- drivers/infiniband/core/nldev.c       |  2 +-
- drivers/infiniband/core/security.c    | 12 +++----
- drivers/infiniband/core/sysfs.c       | 15 ++++----
- drivers/infiniband/core/ucma.c        |  8 ++---
- drivers/infiniband/core/umem.c        |  4 +--
- drivers/infiniband/core/user_mad.c    | 32 ++++++++----------
- drivers/infiniband/core/uverbs_cmd.c  | 20 +++++------
- drivers/infiniband/core/uverbs_main.c |  3 +-
- drivers/infiniband/core/uverbs_uapi.c | 16 ++++-----
- drivers/infiniband/core/verbs.c       |  3 +-
- 19 files changed, 159 insertions(+), 167 deletions(-)
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/core/cm.c       | 3 ++-
+ drivers/infiniband/core/iwpm_msg.c | 3 ++-
+ drivers/infiniband/core/mad.c      | 3 ++-
+ drivers/infiniband/core/verbs.c    | 3 ++-
+ 4 files changed, 8 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index ed7b70b..c3d1103 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -255,7 +255,8 @@ struct cm_id_private {
+ 	struct completion comp;
+ 	refcount_t refcount;
+ 	/* Number of clients sharing this ib_cm_id. Only valid for listeners.
+-	 * Protected by the cm.lock spinlock. */
++	 * Protected by the cm.lock spinlock.
++	 */
+ 	int listen_sharecount;
+ 	struct rcu_head rcu;
+ 
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index 30a0ff7..932b26f 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -528,7 +528,8 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ }
+ 
+ /* netlink attribute policy for the response to add and query mapping request
+- * and response with remote address info */
++ * and response with remote address info
++ */
+ static const struct nla_policy resp_query_policy[IWPM_NLA_RQUERY_MAPPING_MAX] = {
+ 	[IWPM_NLA_RQUERY_MAPPING_SEQ]     = { .type = NLA_U32 },
+ 	[IWPM_NLA_RQUERY_LOCAL_ADDR]      = {
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 909c58f..ca909a5 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1829,7 +1829,8 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 				deref_mad_agent(mad_agent_priv);
+ 			} else {
+ 				/* not user rmpp, revert to normal behavior and
+-				 * drop the mad */
++				 * drop the mad
++				 */
+ 				ib_free_recv_mad(mad_recv_wc);
+ 				deref_mad_agent(mad_agent_priv);
+ 				return;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c576e2b..b7373a5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -342,7 +342,8 @@ int ib_dealloc_pd_user(struct ib_pd *pd, struct ib_udata *udata)
+ 	}
+ 
+ 	/* uverbs manipulates usecnt with proper locking, while the kabi
+-	   requires the caller to guarantee we can't race here. */
++	 * requires the caller to guarantee we can't race here.
++	 */
+ 	WARN_ON(atomic_read(&pd->usecnt));
+ 
+ 	ret = pd->device->ops.dealloc_pd(pd, udata);
 -- 
 2.8.1
 
