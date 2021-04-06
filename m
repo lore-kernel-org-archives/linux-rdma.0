@@ -2,120 +2,146 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E4DC433B4
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:13:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 119A1C433B4
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DB2461260
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:13:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB25F613C4
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242244AbhDFVNt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 17:13:49 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:45486 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241628AbhDFVNt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 17:13:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1617743620;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=n0hWxJLVmdsricryI3Rst9nD37DLk4CPYNA3q9HyKGA=;
-        b=U/LxtqZ6aWK8FrKlCHVfYDuT4hypRZlHVOXk+IwPdyV/gXrGQSiOqd6US3fHB4ZKZ8Ceo6
-        IBTxlNKoPwxHG3dYDM9nPj2uFSfK/G1ygKF4bJDl4paKONjThOVKL5moP0jfbkegWz8WOH
-        xZIr7XM7UsCswOVV/6haPJXfQLetKzc=
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com
- [209.85.160.200]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-223-BwUvcjc3PD2TkamHMhgwdg-1; Tue, 06 Apr 2021 17:13:39 -0400
-X-MC-Unique: BwUvcjc3PD2TkamHMhgwdg-1
-Received: by mail-qt1-f200.google.com with SMTP id m11so10895534qtx.19
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Apr 2021 14:13:39 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=n0hWxJLVmdsricryI3Rst9nD37DLk4CPYNA3q9HyKGA=;
-        b=lX/Imt6dSpPjWIrYKrmiotxKH8d6JN72OaAXMP+YsF7msQAu/5sA4PwYj69Mypzc6y
-         KRHGbsaafVXbiIh19BF8FT2TqEkRBBRRhvlqvnn6Srcjdzxb4KXb3KvabPbz3Bsk5wGB
-         6XMX3C1vZZoc4vHZtHFfrd0Z0zxTKZ0Kzm0gc5weX4lVvCBPTDw2U/ARmmE7A19d3De8
-         5DdS8IE5TFnzHtBnscPzjCeyKRRbHD4PO6lrHXiTY39r3ZG5mPTEjQjf8yrNhX9Xox44
-         L/oDaOYBqoBJcEnEyRsH4yPGs67YLWN1aH4mzlDkqEa9fuydgSWw+AAbzOeT/PF/yEq4
-         vD3w==
-X-Gm-Message-State: AOAM533DjuaTadtKSX41qyOrXnn4E4MtU69LHg8IDEJg9V/zZ5hawUaN
-        Wj/JfkuiBRChOFEdDNvZDGxngagJSH7XuorHtaepIaxpmKYc4w56zP9/+V+Qo3Fppqcq6t+boep
-        y8zpTT7BGkw1gQz+uS8Ni6Q==
-X-Received: by 2002:ac8:6c57:: with SMTP id z23mr14454878qtu.155.1617743618664;
-        Tue, 06 Apr 2021 14:13:38 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyvIEKe5NEFfjLI+xWqaKNhUTCtlcBMeB9iljRNEmRUAfwEbQMtz5cIl77hzWbFWgBhB1CLLA==
-X-Received: by 2002:ac8:6c57:: with SMTP id z23mr14454854qtu.155.1617743618434;
-        Tue, 06 Apr 2021 14:13:38 -0700 (PDT)
-Received: from loberhel7laptop ([2600:6c64:4e7f:cee0:ccad:a4ca:9a69:d8bc])
-        by smtp.gmail.com with ESMTPSA id a10sm16963948qkh.122.2021.04.06.14.13.37
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 06 Apr 2021 14:13:37 -0700 (PDT)
-Message-ID: <fe8cdf3bede40b46716bf94b0760db6d47a13187.camel@redhat.com>
-Subject: Re: [PATCH][next] net/mlx5: Fix bit-wise and with zero
-From:   Laurence Oberman <loberman@redhat.com>
-To:     Colin King <colin.king@canonical.com>,
-        Boris Pismenny <borisp@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Raed Salem <raeds@nvidia.com>, Huy Nguyen <huyn@mellanox.com>,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Date:   Tue, 06 Apr 2021 17:13:36 -0400
-In-Reply-To: <20210406165346.430535-1-colin.king@canonical.com>
-References: <20210406165346.430535-1-colin.king@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-10.el7) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S242931AbhDFVVc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 17:21:32 -0400
+Received: from mga18.intel.com ([134.134.136.126]:37911 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1343669AbhDFVVb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Apr 2021 17:21:31 -0400
+IronPort-SDR: oZDa2qvkRyCdTT+Xoim3W8WM43Myf29Z49xJeqaTcgRNGRpWUnjUqn5Tl8iql6gKgq5MLVGSpi
+ eLuUr4Kb5Ztw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="180703607"
+X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
+   d="scan'208";a="180703607"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:22 -0700
+IronPort-SDR: O4gFTIvfitzRPtls8AZLNCiOJUp4TsZve8vBMHLm0wBnshqgPUujvw4NskubBKU8nHsRbhsvXc
+ R/gAhGLkCkdw==
+X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
+   d="scan'208";a="598092754"
+Received: from tenikolo-mobl1.amr.corp.intel.com ([10.212.86.191])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:22 -0700
+From:   Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+To:     jgg@nvidia.com, dledford@redhat.com, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org,
+        Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+Subject: [PATCH 2/5] rdma-core/irdma: Add Makefile and ABI definitions
+Date:   Tue,  6 Apr 2021 16:17:25 -0500
+Message-Id: <20210406211728.1362-3-tatyana.e.nikolova@intel.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210406211728.1362-1-tatyana.e.nikolova@intel.com>
+References: <20210406211728.1362-1-tatyana.e.nikolova@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 2021-04-06 at 17:53 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The bit-wise and of the action field with
-> MLX5_ACCEL_ESP_ACTION_DECRYPT
-> is incorrect as MLX5_ACCEL_ESP_ACTION_DECRYPT is zero and not
-> intended
-> to be a bit-flag. Fix this by using the == operator as was originally
-> intended.
-> 
-> Addresses-Coverity: ("Logically dead code")
-> Fixes: 7dfee4b1d79e ("net/mlx5: IPsec, Refactor SA handle creation
-> and destruction")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-> b/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-> index d43a05e77f67..0b19293cdd74 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-> @@ -850,7 +850,7 @@ mlx5_fpga_ipsec_release_sa_ctx(struct
-> mlx5_fpga_ipsec_sa_ctx *sa_ctx)
->  		return;
->  	}
->  
-> -	if (sa_ctx->fpga_xfrm->accel_xfrm.attrs.action &
-> +	if (sa_ctx->fpga_xfrm->accel_xfrm.attrs.action ==
->  	    MLX5_ACCEL_ESP_ACTION_DECRYPT)
->  		ida_free(&fipsec->halloc, sa_ctx->sa_handle);
->  
+Add Makefile and ABI definitions for irdma provider.
+Add utility macros to rdma-core util.h which are used by irdma.
 
-Looks correct to me with enum mlx5_accel_esp_action action;
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+---
+ providers/irdma/CMakeLists.txt |  8 ++++++++
+ providers/irdma/abi.h          | 39 +++++++++++++++++++++++++++++++++++++++
+ util/util.h                    |  8 ++++++--
+ 3 files changed, 53 insertions(+), 2 deletions(-)
+ create mode 100644 providers/irdma/CMakeLists.txt
+ create mode 100644 providers/irdma/abi.h
 
-Reviewed-by Laurence Oberman <loberman@redhat.com>
+diff --git a/providers/irdma/CMakeLists.txt b/providers/irdma/CMakeLists.txt
+new file mode 100644
+index 0000000..1542482
+--- /dev/null
++++ b/providers/irdma/CMakeLists.txt
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2019, Intel Corporation.
++
++rdma_provider(irdma
++  uk.c
++  umain.c
++  uverbs.c
++)
+diff --git a/providers/irdma/abi.h b/providers/irdma/abi.h
+new file mode 100644
+index 0000000..bacce40
+--- /dev/null
++++ b/providers/irdma/abi.h
+@@ -0,0 +1,39 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (C) 2019 - 2020 Intel Corporation */
++#ifndef PROVIDER_IRDMA_ABI_H
++#define PROVIDER_IRDMA_ABI_H
++
++#include "irdma.h"
++#include <infiniband/kern-abi.h>
++#include <rdma/irdma-abi.h>
++#include <kernel-abi/irdma-abi.h>
++
++#define IRDMA_MIN_ABI_VERSION	0
++#define IRDMA_MAX_ABI_VERSION	5
++
++DECLARE_DRV_CMD(irdma_ualloc_pd, IB_USER_VERBS_CMD_ALLOC_PD,
++		empty, irdma_alloc_pd_resp);
++DECLARE_DRV_CMD(irdma_ucreate_cq, IB_USER_VERBS_CMD_CREATE_CQ,
++		irdma_create_cq_req, irdma_create_cq_resp);
++DECLARE_DRV_CMD(irdma_ucreate_cq_ex, IB_USER_VERBS_EX_CMD_CREATE_CQ,
++		irdma_create_cq_req, irdma_create_cq_resp);
++DECLARE_DRV_CMD(irdma_uresize_cq, IB_USER_VERBS_CMD_RESIZE_CQ,
++		irdma_resize_cq_req, empty);
++DECLARE_DRV_CMD(irdma_ucreate_qp, IB_USER_VERBS_CMD_CREATE_QP,
++		irdma_create_qp_req, irdma_create_qp_resp);
++DECLARE_DRV_CMD(irdma_umodify_qp, IB_USER_VERBS_EX_CMD_MODIFY_QP,
++		empty, irdma_modify_qp_resp);
++DECLARE_DRV_CMD(irdma_get_context, IB_USER_VERBS_CMD_GET_CONTEXT,
++		irdma_alloc_ucontext_req, irdma_alloc_ucontext_resp);
++DECLARE_DRV_CMD(irdma_ureg_mr, IB_USER_VERBS_CMD_REG_MR,
++		irdma_mem_reg_req, empty);
++DECLARE_DRV_CMD(irdma_ucreate_ah, IB_USER_VERBS_CMD_CREATE_AH,
++		empty, irdma_create_ah_resp);
++
++struct irdma_modify_qp_cmd {
++	struct ibv_modify_qp_ex ibv_cmd;
++	__u8 sq_flush;
++	__u8 rq_flush;
++	__u8 rsvd[6];
++};
++#endif /* PROVIDER_IRDMA_ABI_H */
+diff --git a/util/util.h b/util/util.h
+index 6db46b1..2c05631 100644
+--- a/util/util.h
++++ b/util/util.h
+@@ -26,12 +26,16 @@ static inline bool __good_snprintf(size_t len, int rc)
+ #define offsetofend(_type, _member)                                            \
+ 	(offsetof(_type, _member) + sizeof(((_type *)0)->_member))
+ 
+-#define BITS_PER_LONG	(8 * sizeof(long))
++#define BITS_PER_LONG	   (8 * sizeof(long))
++#define BITS_PER_LONG_LONG (8 * sizeof(long long))
+ 
+ #define GENMASK(h, l) \
+ 	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
++#define GENMASK_ULL(h, l) \
++	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+ 
+-#define BIT(nr) (1UL << (nr))
++#define BIT(nr)     (1UL << (nr))
++#define BIT_ULL(nr) (1ULL << (nr))
+ 
+ #define __bf_shf(x) (__builtin_ffsll(x) - 1)
+ 
+-- 
+1.8.3.1
 
