@@ -3,535 +3,1597 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E82D6C433ED
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5935DC43461
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A16E361396
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25F89613B8
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 21:21:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343674AbhDFVVc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 17:21:32 -0400
+        id S1343676AbhDFVVd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 17:21:33 -0400
 Received: from mga18.intel.com ([134.134.136.126]:37911 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242931AbhDFVVa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Apr 2021 17:21:30 -0400
-IronPort-SDR: L7YCtEv7770DZOLChs8ZGHOPK1kkheTnLajBwgVP7N5WGJHHm1Q9v74l5vMiwvGX5o6DpwI8Xg
- XFwrCJaoyZow==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="180703605"
+        id S1343672AbhDFVVc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Apr 2021 17:21:32 -0400
+IronPort-SDR: 2WLDksgPvgu3jDXDKs1oEoPDBABVXIeml3zFdGVsmuz9zowkhNx6FivP2dfccvvQM8PBVDC2ie
+ imZFBZ/iiUUg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="180703611"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="180703605"
+   d="scan'208";a="180703611"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:21 -0700
-IronPort-SDR: i8WDSx0pby7M0j2IBJI4wGsKl4eXU8nkPydYjQnoQwWITLyxQ7B6PYdH1e2TSV8vZi+NaZN8U/
- BIfTZLC07L7g==
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:24 -0700
+IronPort-SDR: R71JjF7Po4W7OSw64zGyY2yzCMVn/E1RPyqM9I9jX6/oW+4sfgOhMs0gu/DaZBIqDxC0NQzM4d
+ B2WdVTI1z7kw==
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="598092741"
+   d="scan'208";a="598092764"
 Received: from tenikolo-mobl1.amr.corp.intel.com ([10.212.86.191])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:20 -0700
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 14:21:23 -0700
 From:   Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To:     jgg@nvidia.com, dledford@redhat.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 0/5] Add irdma user space provider for Intel Ethernet RDMA
-Date:   Tue,  6 Apr 2021 16:17:23 -0500
-Message-Id: <20210406211728.1362-1-tatyana.e.nikolova@intel.com>
+Cc:     linux-rdma@vger.kernel.org,
+        Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+Subject: [PATCH 4/5] rdma-core/irdma: Add library setup and utility definitions
+Date:   Tue,  6 Apr 2021 16:17:27 -0500
+Message-Id: <20210406211728.1362-5-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210406211728.1362-1-tatyana.e.nikolova@intel.com>
+References: <20210406211728.1362-1-tatyana.e.nikolova@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series replaces the current i40iw library with
-a unified Intel Ethernet RDMA library that supports a new network
-device E810 (iWARP and RoCEv2 capable) and the existing X722 iWARP device.
-The new library is fully backward compatible with the i40iw driver and
-is designed to be used with multiple future HW generations.
+Add definitions to allocate context for user apps,
+recognize HW devices and exchange context with device,
+set up callback tables and device attributes and add
+utility definitions and headers.
 
-This patch series can be viewed at
-https://github.com/tatyana-en/rdma-core/commits/libirdma-040621
-
-The corresponding irdma driver patch series is at https://lore.kernel.org/linux-rdma/a76853a97dda4ccb96c35d4095e4866a@intel.com/T/#m8a649f09901fdc3b319d1f5c98ef11cc66397485
-
-v1-->v2:
-* Replace mfence with a compiler barrier
-* Replace ibv_cmd_create_cq() with the new ibv_cmd_create_ext()
-* Remove unnecessary #ifdef ICE_DEV_ID_xxx
-* Remove fprintf debug prints
-* Do not bump ABI ver. to 6 in irdma. Maintain irdma ABI ver. at 5 for legacy i40iw user-provider compatibility.
-* Use utility macros like FIELD_PREP/FIELD_GET/GENMASK/etc from rdma-core util.h
-* Remove irdma-abi.h file since it is provided by the driver
-* Misc. library fixes in irdma
-
-The library passes the azp sparse and CI checks. Bellow is the output from pyverbs for RoCEv2 and iWARP. All supported tests pass except for test_resize_cq.
-
-The test for resize_cq() fails due to a different implementation vs expected behavior. The unpolled cqe-s aren't lost in our implementation when the cq is shrunk and we allow shrinking the cq to a smaller size than the unpolled entries number.
-
-RoCEv2 pyverbs output:
-
-test_create_ah (tests.test_addr.AHTest) ... ok
-test_create_ah_roce (tests.test_addr.AHTest) ... ok
-test_destroy_ah (tests.test_addr.AHTest) ... ok
-test_create_cq (tests.test_cq.CQAPITest) ... ok
-test_create_cq_bad_flow (tests.test_cq.CQAPITest) ... ok
-test_create_cq_with_comp_channel (tests.test_cq.CQAPITest) ... ok
-test_resize_cq (tests.test_cq.CQTest) ... FAIL
-test_cq_events_rc (tests.test_cq_events.CqEventsTestCase) ... ok
-test_cq_events_ud (tests.test_cq_events.CqEventsTestCase) ... ok
-test_create_cq_ex (tests.test_cqex.CQEXAPITest) ... ok
-test_create_cq_ex_bad_flow (tests.test_cqex.CQEXAPITest) ... ok
-test_rc_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... ok
-test_ud_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... ok
-test_xrc_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... skipped 'Create XRCD is not supported'
-test_create_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_create_dm_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_destroy_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_destroy_dm_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_read (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_write (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_write_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_multi_process_alloc_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dev_list (tests.test_device.DeviceTest) ... ok
-test_open_dev (tests.test_device.DeviceTest) ... ok
-test_query_device (tests.test_device.DeviceTest) ... ok
-test_query_device_ex (tests.test_device.DeviceTest) ... ok
-test_query_gid (tests.test_device.DeviceTest) ... ok
-test_query_gid_ex (tests.test_device.DeviceTest) ... ok
-test_query_gid_ex_bad_flow (tests.test_device.DeviceTest) ... ok
-test_query_gid_table (tests.test_device.DeviceTest) ... ok
-test_query_gid_table_bad_flow (tests.test_device.DeviceTest) ... ok
-test_query_pkey (tests.test_device.DeviceTest) ... ok
-test_query_port (tests.test_device.DeviceTest) ... ok
-test_query_port_bad_flow (tests.test_device.DeviceTest) ... ok
-test_qp_ex_srd_old_send (tests.test_efa_srd.QPSRDTestCase) ... skipped 'Extended SRD QP is not supported on this device'
-test_qp_ex_srd_old_send_imm (tests.test_efa_srd.QPSRDTestCase) ... skipped 'Extended SRD QP is not supported on this device'
-test_qp_ex_srd_rdma_read (tests.test_efa_srd.QPSRDTestCase) ... skipped 'Extended SRD QP is not supported on this device'
-test_qp_ex_srd_send (tests.test_efa_srd.QPSRDTestCase) ... skipped 'Extended SRD QP is not supported on this device'
-test_qp_ex_srd_send_imm (tests.test_efa_srd.QPSRDTestCase) ... skipped 'Extended SRD QP is not supported on this device'
-test_efadv_query_ah (tests.test_efadv.EfaAHTest) ... skipped 'Not supported on non EFA devices'
-test_efadv_create_qp_ex (tests.test_efadv.EfaQPExTest) ... skipped 'Create SRD QPEx is not supported'
-test_efadv_create_driver_qp (tests.test_efadv.EfaQPTest) ... skipped 'Create SRD QP is not supported'
-test_efadv_query (tests.test_efadv.EfaQueryDeviceTest) ... skipped 'Not supported on non EFA devices'
-test_eth_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped 'Create QP type 8 is not supported'
-test_ipv4_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped 'Create QP type 8 is not supported'
-test_ipv6_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped 'Create QP type 8 is not supported'
-test_tcp_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped 'Create QP type 8 is not supported'
-test_udp_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped 'Create QP type 8 is not supported'
-test_dv_cq_compression_flags (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_cqe_size_128 (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_cqe_size_64 (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_cqe_size_environment_var (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_cqe_size_with_bad_size (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_padding (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_padding_not_aligned_cqe_size (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dv_cq_traffic (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_scatter_to_cqe_control_by_qp (tests.test_mlx5_cq.DvCqTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dc_rdma_write (tests.test_mlx5_dc.DCTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_dc_send (tests.test_mlx5_dc.DCTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_odp_dc_traffic (tests.test_mlx5_dc.DCTest) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_raw_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped 'Create Raw Packet QP is not supported'
-test_rc_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped 'Set LAG affinity is not supported on this device'
-test_ud_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped 'Set LAG affinity is not supported on this device'
-test_pp_alloc (tests.test_mlx5_pp.Mlx5PPTestCase) ... skipped 'Could not open mlx5 context (This is not an MLX5 device)'
-test_rdmacm_async_traffic_dc_external_qp (tests.test_mlx5_rdmacm.Mlx5CMTestCase) ... skipped 'Create DC QP is not supported'
-test_reservered_qpn (tests.test_mlx5_rdmacm.ReservedQPTest) ... skipped 'Alloc reserved QP number is not supported'
-test_create_sched_tree (tests.test_mlx5_sched.Mlx5SchedTest) ... skipped 'Create schedule elements is not supported'
-test_sched_per_qp_traffic (tests.test_mlx5_sched.Mlx5SchedTrafficTest) ... skipped 'Creation or usage of schedule elements is not supported'
-test_alloc_uar (tests.test_mlx5_uar.Mlx5UarTestCase) ... skipped 'UAR allocation (with flag=0) is not supported'
-test_rc_modify_udp_sport (tests.test_mlx5_udp_sport.UdpSportTestCase) ... skipped 'Modifying a QP UDP sport is not supported'
-test_var_map_unmap (tests.test_mlx5_var.Mlx5VarTestCase) ... skipped 'VAR allocation is not supported'
-test_create_dm_mr (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_access (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_registration (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_remote_traffic (tests.test_mr-trimmed.DeviceMemoryTest) ... skipped 'Device memory is not supported'
-test_dm_traffic (tests.test_mr-trimmed.DeviceMemoryTest) ... skipped 'Device memory is not supported'
-test_dmabuf_dereg_mr (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_dereg_mr_twice (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_lkey (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_read (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr_bad_flags (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rkey (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_write (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rc_traffic (tests.test_mr-trimmed.DmaBufTestCase) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rdma_traffic (tests.test_mr-trimmed.DmaBufTestCase) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_mw_type2 (tests.test_mr-trimmed.MWTest) ... skipped 'Create MW is not supported'
-test_mw_type2_invalidate_local (tests.test_mr-trimmed.MWTest) ... skipped 'Create MW is not supported'
-test_mw_type2_invalidate_remote (tests.test_mr-trimmed.MWTest) ... skipped 'Create MW is not supported'
-test_create_dm_mr (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_access (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_registration (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_remote_traffic (tests.test_mr.DeviceMemoryTest) ... skipped 'Device memory is not supported'
-test_dm_traffic (tests.test_mr.DeviceMemoryTest) ... skipped 'Device memory is not supported'
-test_dmabuf_dereg_mr (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_dereg_mr_twice (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_lkey (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_read (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr_bad_flags (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rkey (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_write (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rc_traffic (tests.test_mr.DmaBufTestCase) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rdma_traffic (tests.test_mr.DmaBufTestCase) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_mr_rereg_access (tests.test_mr.MRTest) ... skipped 'Rereg MR is not supported (Failed to rereg MR: IBV_REREG_MR_ERR_CMD. Errno: 95, Operation not supported)'
-test_mr_rereg_access_bad_flow (tests.test_mr.MRTest) ... skipped 'Rereg MR is not supported (Failed to rereg MR: IBV_REREG_MR_ERR_CMD. Errno: 95, Operation not supported)'
-test_mr_rereg_addr (tests.test_mr.MRTest) ... skipped 'Rereg MR is not supported (Failed to rereg MR: IBV_REREG_MR_ERR_CMD. Errno: 95, Operation not supported)'
-test_mr_rereg_pd (tests.test_mr.MRTest) ... skipped 'Rereg MR is not supported (Failed to rereg MR: IBV_REREG_MR_ERR_CMD. Errno: 95, Operation not supported)'
-test_reg_mr_bad_flags (tests.test_mr.MRTest) ... ok
-test_invalidate_mw_type1 (tests.test_mr.MWTest) ... ok
-test_mw_type1 (tests.test_mr.MWTest) ... ok
-test_mw_type2 (tests.test_mr.MWTest) ... skipped 'Create MW is not supported'
-test_mw_type2_invalidate_dealloc (tests.test_mr.MWTest) ... skipped 'Create MW is not supported'
-test_mw_type2_invalidate_local (tests.test_mr.MWTest) ... skipped 'Create MW is not supported'
-test_mw_type2_invalidate_remote (tests.test_mr.MWTest) ... skipped 'Create MW is not supported'
-test_reg_mw_wrong_type (tests.test_mr.MWTest) ... skipped 'Create memory window of type 3 is not supported'
-test_odp_async_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_implicit_async_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_implicit_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_implicit_sync_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_prefetch_async_no_page_fault_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_prefetch_sync_no_page_fault_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_rc_huge_traffic (tests.test_odp.OdpTestCase) ... skipped 'There are no huge pages of size 2M allocated'
-test_odp_rc_huge_user_addr_traffic (tests.test_odp.OdpTestCase) ... skipped 'There are no huge pages of size 2M allocated'
-test_odp_rc_srq_traffic (tests.test_odp.OdpTestCase) ... skipped 'Create SRQ is not supported'
-test_odp_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_sync_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_ud_traffic (tests.test_odp.OdpTestCase) ... skipped 'ODP is not supported - No ODP caps'
-test_odp_xrc_traffic (tests.test_odp.OdpTestCase) ... skipped 'Create XRCD is not supported'
-test_default_allocators_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'Parent Domain is not supported on this device'
-test_huge_page_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'There are no huge pages of size 2M allocated'
-test_mem_align_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'Parent Domain is not supported on this device'
-test_mem_align_srq_excq_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'Parent Domain is not supported on this device'
-test_mem_align_ud_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'Parent Domain is not supported on this device'
-test_without_allocators_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped 'Parent Domain is not supported on this device'
-test_alloc_pd (tests.test_pd.PDTest) ... ok
-test_dealloc_pd (tests.test_pd.PDTest) ... ok
-test_destroy_pd_twice (tests.test_pd.PDTest) ... ok
-test_multiple_pd_creation (tests.test_pd.PDTest) ... ok
-test_create_raw_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without extended attrs is not supported'
-test_create_raw_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP with extended attrs is not supported'
-test_create_raw_qp_no_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without attrs is not supported'
-test_create_raw_qp_with_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP with attrs is not supported'
-test_create_rc_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create RC QP without extended attrs is not supported'
-test_create_rc_qp_ex_with_attr (tests.test_qp.QPTest) ... ok
-test_create_rc_qp_no_attr (tests.test_qp.QPTest) ... ok
-test_create_rc_qp_with_attr (tests.test_qp.QPTest) ... ok
-test_create_uc_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP without extended attrs is not supported'
-test_create_uc_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP with extended attrs is not supported'
-test_create_uc_qp_no_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP without attrs is not supported'
-test_create_uc_qp_with_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP with attrs is not supported'
-test_create_ud_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP without extended attrs is not supported'
-test_create_ud_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP with extended attrs is not supported'
-test_create_ud_qp_no_attr (tests.test_qp.QPTest) ... ok
-test_create_ud_qp_with_attr (tests.test_qp.QPTest) ... ok
-test_modify_ud_qp (tests.test_qp.QPTest) ... skipped 'Create UD QP without extended attrs is not supported'
-test_query_raw_qp (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without attrs is not supported'
-test_query_rc_qp (tests.test_qp.QPTest) ... ok
-test_query_uc_qp (tests.test_qp.QPTest) ... skipped 'Create UC QP without attrs is not supported'
-test_query_ud_qp (tests.test_qp.QPTest) ... ok
-test_qp_ex_rc_atomic_cmp_swp (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_atomic_fetch_add (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_bind_mw (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_rdma_read (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_rdma_write (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_rdma_write_imm (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_send (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_rc_send_imm (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_ud_send (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_ud_send_imm (tests.test_qpex.QpExTestCase) ... skipped 'Extended QP is not supported on this device'
-test_qp_ex_xrc_send (tests.test_qpex.QpExTestCase) ... skipped 'Create XRCD is not supported'
-test_qp_ex_xrc_send_imm (tests.test_qpex.QpExTestCase) ... skipped 'Create XRCD is not supported'
-test_rdmacm_async_ex_multicast_traffic (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_multicast_traffic (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_read (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_traffic (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_traffic_external_qp (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_udp_traffic (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_async_write (tests.test_rdmacm.CMTestCase) ... ok
-test_rdmacm_sync_traffic (tests.test_rdmacm.CMTestCase) ... ok
-test_ro_rc_traffic (tests.test_relaxed_ordering.RoTestCase) ... ok
-test_ro_ud_traffic (tests.test_relaxed_ordering.RoTestCase) ... ok
-test_ro_xrc_traffic (tests.test_relaxed_ordering.RoTestCase) ... skipped 'Create XRCD is not supported'
-test_imported_rc_ex_rdma_write (tests.test_shared_pd.SharedPDTestCase) ... skipped 'Extended QP is not supported on this device'
-
-----------------------------------------------------------------------
-Ran 184 tests in 7.135s
-
-FAILED (failures=1, skipped=135)
-
-----------------------------------------------------------------------
-----------------------------------------------------------------------
-----------------------------------------------------------------------
-
-
-iWARP pyverbs output:
-
-test_create_ah (tests.test_addr.AHTest) ... skipped 'Create AH is not supported'
-test_create_ah_roce (tests.test_addr.AHTest) ... skipped 'Create AH is not supported'
-test_destroy_ah (tests.test_addr.AHTest) ... skipped 'Create AH is not supported'
-test_create_cq (tests.test_cq.CQAPITest) ... ok
-test_create_cq_bad_flow (tests.test_cq.CQAPITest) ... ok
-test_create_cq_with_comp_channel (tests.test_cq.CQAPITest) ... ok
-test_resize_cq (tests.test_cq.CQTest) ... skipped "No supported port is up, can't run traffic"
-test_cq_events_rc (tests.test_cq_events.CqEventsTestCase) ... skipped "No supported port is up, can't run traffic"
-test_cq_events_ud (tests.test_cq_events.CqEventsTestCase) ... skipped "No supported port is up, can't run traffic"
-test_create_cq_ex (tests.test_cqex.CQEXAPITest) ... ok
-test_create_cq_ex_bad_flow (tests.test_cqex.CQEXAPITest) ... ok
-test_rc_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_ud_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_xrc_traffic_cq_ex (tests.test_cqex.CqExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_create_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_create_dm_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_destroy_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_destroy_dm_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_read (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_write (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dm_write_bad_flow (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_multi_process_alloc_dm (tests.test_device.DMTest) ... skipped 'Device memory is not supported'
-test_dev_list (tests.test_device.DeviceTest) ... ok
-test_open_dev (tests.test_device.DeviceTest) ... ok
-test_query_device (tests.test_device.DeviceTest) ... ok
-test_query_device_ex (tests.test_device.DeviceTest) ... ok
-test_query_gid (tests.test_device.DeviceTest) ... ok
-test_query_gid_ex (tests.test_device.DeviceTest) ... ok
-test_query_gid_ex_bad_flow (tests.test_device.DeviceTest) ... skipped 'All gid indices populated, cannot check bad flow'
-test_query_gid_table (tests.test_device.DeviceTest) ... ok
-test_query_gid_table_bad_flow (tests.test_device.DeviceTest) ... ok
-test_query_pkey (tests.test_device.DeviceTest) ... ok
-test_query_port (tests.test_device.DeviceTest) ... ok
-test_query_port_bad_flow (tests.test_device.DeviceTest) ... ok
-test_qp_ex_srd_old_send (tests.test_efa_srd.QPSRDTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_srd_old_send_imm (tests.test_efa_srd.QPSRDTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_srd_rdma_read (tests.test_efa_srd.QPSRDTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_srd_send (tests.test_efa_srd.QPSRDTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_srd_send_imm (tests.test_efa_srd.QPSRDTestCase) ... skipped "No supported port is up, can't run traffic"
-test_efadv_query_ah (tests.test_efadv.EfaAHTest) ... skipped 'Not supported on non EFA devices'
-test_efadv_create_qp_ex (tests.test_efadv.EfaQPExTest) ... skipped 'Create SRD QPEx is not supported'
-test_efadv_create_driver_qp (tests.test_efadv.EfaQPTest) ... skipped 'Create SRD QP is not supported'
-test_efadv_query (tests.test_efadv.EfaQueryDeviceTest) ... skipped 'Not supported on non EFA devices'
-test_eth_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped "No supported port is up, can't run traffic"
-test_ipv4_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped "No supported port is up, can't run traffic"
-test_ipv6_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped "No supported port is up, can't run traffic"
-test_tcp_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped "No supported port is up, can't run traffic"
-test_udp_spec_flow_traffic (tests.test_flow.FlowTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_compression_flags (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_cqe_size_128 (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_cqe_size_64 (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_cqe_size_environment_var (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_cqe_size_with_bad_size (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_padding (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_padding_not_aligned_cqe_size (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dv_cq_traffic (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_scatter_to_cqe_control_by_qp (tests.test_mlx5_cq.DvCqTest) ... skipped "No supported port is up, can't run traffic"
-test_dc_rdma_write (tests.test_mlx5_dc.DCTest) ... skipped "No supported port is up, can't run traffic"
-test_dc_send (tests.test_mlx5_dc.DCTest) ... skipped "No supported port is up, can't run traffic"
-test_odp_dc_traffic (tests.test_mlx5_dc.DCTest) ... skipped "No supported port is up, can't run traffic"
-test_raw_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rc_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped "No supported port is up, can't run traffic"
-test_ud_modify_lag_port (tests.test_mlx5_lag_affinity.LagPortTestCase) ... skipped "No supported port is up, can't run traffic"
-test_pp_alloc (tests.test_mlx5_pp.Mlx5PPTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_traffic_dc_external_qp (tests.test_mlx5_rdmacm.Mlx5CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_reservered_qpn (tests.test_mlx5_rdmacm.ReservedQPTest) ... skipped 'Alloc reserved QP number is not supported'
-test_create_sched_tree (tests.test_mlx5_sched.Mlx5SchedTest) ... skipped 'Create schedule elements is not supported'
-test_sched_per_qp_traffic (tests.test_mlx5_sched.Mlx5SchedTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_alloc_uar (tests.test_mlx5_uar.Mlx5UarTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rc_modify_udp_sport (tests.test_mlx5_udp_sport.UdpSportTestCase) ... skipped "No supported port is up, can't run traffic"
-test_var_map_unmap (tests.test_mlx5_var.Mlx5VarTestCase) ... skipped "No supported port is up, can't run traffic"
-test_create_dm_mr (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_access (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_registration (tests.test_mr-trimmed.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_remote_traffic (tests.test_mr-trimmed.DeviceMemoryTest) ... skipped "No supported port is up, can't run traffic"
-test_dm_traffic (tests.test_mr-trimmed.DeviceMemoryTest) ... skipped "No supported port is up, can't run traffic"
-test_dmabuf_dereg_mr (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_dereg_mr_twice (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_lkey (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_read (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr_bad_flags (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rkey (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_write (tests.test_mr-trimmed.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rc_traffic (tests.test_mr-trimmed.DmaBufTestCase) ... skipped "No supported port is up, can't run traffic"
-test_dmabuf_rdma_traffic (tests.test_mr-trimmed.DmaBufTestCase) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2 (tests.test_mr-trimmed.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2_invalidate_local (tests.test_mr-trimmed.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2_invalidate_remote (tests.test_mr-trimmed.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_create_dm_mr (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_access (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_bad_registration (tests.test_mr.DeviceMemoryAPITest) ... skipped 'Device memory is not supported'
-test_dm_remote_traffic (tests.test_mr.DeviceMemoryTest) ... skipped "No supported port is up, can't run traffic"
-test_dm_traffic (tests.test_mr.DeviceMemoryTest) ... skipped "No supported port is up, can't run traffic"
-test_dmabuf_dereg_mr (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_dereg_mr_twice (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_lkey (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_read (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_reg_mr_bad_flags (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rkey (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_write (tests.test_mr.DmaBufMRTest) ... skipped 'Device /dev/dri/renderD128 is not present'
-test_dmabuf_rc_traffic (tests.test_mr.DmaBufTestCase) ... skipped "No supported port is up, can't run traffic"
-test_dmabuf_rdma_traffic (tests.test_mr.DmaBufTestCase) ... skipped "No supported port is up, can't run traffic"
-test_mr_rereg_access (tests.test_mr.MRTest) ... skipped "No supported port is up, can't run traffic"
-test_mr_rereg_access_bad_flow (tests.test_mr.MRTest) ... skipped "No supported port is up, can't run traffic"
-test_mr_rereg_addr (tests.test_mr.MRTest) ... skipped "No supported port is up, can't run traffic"
-test_mr_rereg_pd (tests.test_mr.MRTest) ... skipped "No supported port is up, can't run traffic"
-test_reg_mr_bad_flags (tests.test_mr.MRTest) ... skipped "No supported port is up, can't run traffic"
-test_invalidate_mw_type1 (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type1 (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2 (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2_invalidate_dealloc (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2_invalidate_local (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_mw_type2_invalidate_remote (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_reg_mw_wrong_type (tests.test_mr.MWTest) ... skipped "No supported port is up, can't run traffic"
-test_odp_async_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_implicit_async_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_implicit_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_implicit_sync_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_prefetch_async_no_page_fault_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_prefetch_sync_no_page_fault_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_rc_huge_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_rc_huge_user_addr_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_rc_srq_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_sync_prefetch_rc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_ud_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_odp_xrc_traffic (tests.test_odp.OdpTestCase) ... skipped "No supported port is up, can't run traffic"
-test_default_allocators_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_huge_page_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_mem_align_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_mem_align_srq_excq_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_mem_align_ud_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_without_allocators_rc_traffic (tests.test_parent_domain.ParentDomainTrafficTest) ... skipped "No supported port is up, can't run traffic"
-test_alloc_pd (tests.test_pd.PDTest) ... ok
-test_dealloc_pd (tests.test_pd.PDTest) ... ok
-test_destroy_pd_twice (tests.test_pd.PDTest) ... ok
-test_multiple_pd_creation (tests.test_pd.PDTest) ... ok
-test_create_raw_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without extended attrs is not supported'
-test_create_raw_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP with extended attrs is not supported'
-test_create_raw_qp_no_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without attrs is not supported'
-test_create_raw_qp_with_attr (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP with attrs is not supported'
-test_create_rc_qp_ex_no_attr (tests.test_qp.QPTest) ... ok
-test_create_rc_qp_ex_with_attr (tests.test_qp.QPTest) ... ok
-test_create_rc_qp_no_attr (tests.test_qp.QPTest) ... ok
-test_create_rc_qp_with_attr (tests.test_qp.QPTest) ... ok
-test_create_uc_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP without extended attrs is not supported'
-test_create_uc_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP with extended attrs is not supported'
-test_create_uc_qp_no_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP without attrs is not supported'
-test_create_uc_qp_with_attr (tests.test_qp.QPTest) ... skipped 'Create UC QP with attrs is not supported'
-test_create_ud_qp_ex_no_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP without extended attrs is not supported'
-test_create_ud_qp_ex_with_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP with extended attrs is not supported'
-test_create_ud_qp_no_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP without attrs is not supported'
-test_create_ud_qp_with_attr (tests.test_qp.QPTest) ... skipped 'Create UD QP with attrs is not supported'
-test_modify_ud_qp (tests.test_qp.QPTest) ... skipped 'Create UD QP without attrs is not supported'
-test_query_raw_qp (tests.test_qp.QPTest) ... skipped 'Create Raw Packet QP without attrs is not supported'
-test_query_rc_qp (tests.test_qp.QPTest) ... ok
-test_query_uc_qp (tests.test_qp.QPTest) ... skipped 'Create UC QP without attrs is not supported'
-test_query_ud_qp (tests.test_qp.QPTest) ... skipped 'Create UD QP without attrs is not supported'
-test_qp_ex_rc_atomic_cmp_swp (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_atomic_fetch_add (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_bind_mw (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_rdma_read (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_rdma_write (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_rdma_write_imm (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_send (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_rc_send_imm (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_ud_send (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_ud_send_imm (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_xrc_send (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_qp_ex_xrc_send_imm (tests.test_qpex.QpExTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_ex_multicast_traffic (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_multicast_traffic (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_read (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_traffic (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_traffic_external_qp (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_udp_traffic (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_async_write (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_rdmacm_sync_traffic (tests.test_rdmacm.CMTestCase) ... skipped "No supported port is up, can't run traffic"
-test_ro_rc_traffic (tests.test_relaxed_ordering.RoTestCase) ... skipped "No supported port is up, can't run traffic"
-test_ro_ud_traffic (tests.test_relaxed_ordering.RoTestCase) ... skipped "No supported port is up, can't run traffic"
-test_ro_xrc_traffic (tests.test_relaxed_ordering.RoTestCase) ... skipped "No supported port is up, can't run traffic"
-test_imported_rc_ex_rdma_write (tests.test_shared_pd.SharedPDTestCase) ... skipped "No supported port is up, can't run traffic"
-
-----------------------------------------------------------------------
-Ran 184 tests in 0.170s
-
-OK (skipped=159)
-
-Tatyana Nikolova (5):
-  rdma-core/i40iw: Remove provider i40iw
-  rdma-core/irdma: Add Makefile and ABI definitions
-  rdma-core/irdma: Add user/kernel shared libraries
-  rdma-core/irdma: Add library setup and utility definitions
-  rdma-core/irdma: Implement device supported verb APIs
-
- CMakeLists.txt                            |    2 +-
- MAINTAINERS                               |    7 +-
- debian/control                            |    2 +-
- debian/copyright                          |    8 +-
- kernel-headers/CMakeLists.txt             |    4 +-
- kernel-headers/rdma/i40iw-abi.h           |  107 --
- kernel-headers/rdma/ib_user_ioctl_verbs.h |    2 +-
- libibverbs/verbs.h                        |    2 +-
- providers/i40iw/CMakeLists.txt            |    5 -
- providers/i40iw/i40e_devids.h             |   72 --
- providers/i40iw/i40iw-abi.h               |   55 -
- providers/i40iw/i40iw_d.h                 | 1746 --------------------------
- providers/i40iw/i40iw_osdep.h             |  108 --
- providers/i40iw/i40iw_register.h          | 1030 ---------------
- providers/i40iw/i40iw_status.h            |  101 --
- providers/i40iw/i40iw_uk.c                | 1266 -------------------
- providers/i40iw/i40iw_umain.c             |  226 ----
- providers/i40iw/i40iw_umain.h             |  181 ---
- providers/i40iw/i40iw_user.h              |  456 -------
- providers/i40iw/i40iw_uverbs.c            |  983 ---------------
- providers/irdma/CMakeLists.txt            |    8 +
- providers/irdma/abi.h                     |   39 +
- providers/irdma/defs.h                    |  342 +++++
- providers/irdma/i40e_devids.h             |   36 +
- providers/irdma/i40iw_hw.h                |   31 +
- providers/irdma/ice_devids.h              |   59 +
- providers/irdma/irdma.h                   |   53 +
- providers/irdma/osdep.h                   |   21 +
- providers/irdma/status.h                  |   71 ++
- providers/irdma/uk.c                      | 1737 ++++++++++++++++++++++++++
- providers/irdma/umain.c                   |  234 ++++
- providers/irdma/umain.h                   |  205 +++
- providers/irdma/user.h                    |  466 +++++++
- providers/irdma/uverbs.c                  | 1932 +++++++++++++++++++++++++++++
- redhat/rdma-core.spec                     |    6 +-
- suse/rdma-core.spec                       |    4 +-
- util/util.h                               |    8 +-
- 37 files changed, 5259 insertions(+), 6356 deletions(-)
- delete mode 100644 kernel-headers/rdma/i40iw-abi.h
- delete mode 100644 providers/i40iw/CMakeLists.txt
- delete mode 100644 providers/i40iw/i40e_devids.h
- delete mode 100644 providers/i40iw/i40iw-abi.h
- delete mode 100644 providers/i40iw/i40iw_d.h
- delete mode 100644 providers/i40iw/i40iw_osdep.h
- delete mode 100644 providers/i40iw/i40iw_register.h
- delete mode 100644 providers/i40iw/i40iw_status.h
- delete mode 100644 providers/i40iw/i40iw_uk.c
- delete mode 100644 providers/i40iw/i40iw_umain.c
- delete mode 100644 providers/i40iw/i40iw_umain.h
- delete mode 100644 providers/i40iw/i40iw_user.h
- delete mode 100644 providers/i40iw/i40iw_uverbs.c
- create mode 100644 providers/irdma/CMakeLists.txt
- create mode 100644 providers/irdma/abi.h
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+---
+ providers/irdma/defs.h        | 342 +++++++++++++++++++++++++++++++
+ providers/irdma/i40e_devids.h |  36 ++++
+ providers/irdma/i40iw_hw.h    |  31 +++
+ providers/irdma/ice_devids.h  |  59 ++++++
+ providers/irdma/osdep.h       |  21 ++
+ providers/irdma/status.h      |  71 +++++++
+ providers/irdma/umain.c       | 234 +++++++++++++++++++++
+ providers/irdma/umain.h       | 205 +++++++++++++++++++
+ providers/irdma/user.h        | 466 ++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 1465 insertions(+)
  create mode 100644 providers/irdma/defs.h
  create mode 100644 providers/irdma/i40e_devids.h
  create mode 100644 providers/irdma/i40iw_hw.h
  create mode 100644 providers/irdma/ice_devids.h
- create mode 100644 providers/irdma/irdma.h
  create mode 100644 providers/irdma/osdep.h
  create mode 100644 providers/irdma/status.h
- create mode 100644 providers/irdma/uk.c
  create mode 100644 providers/irdma/umain.c
  create mode 100644 providers/irdma/umain.h
  create mode 100644 providers/irdma/user.h
- create mode 100644 providers/irdma/uverbs.c
 
+diff --git a/providers/irdma/defs.h b/providers/irdma/defs.h
+new file mode 100644
+index 0000000..2f67c7b
+--- /dev/null
++++ b/providers/irdma/defs.h
+@@ -0,0 +1,342 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2021 Intel Corporation */
++#ifndef IRDMA_DEFS_H
++#define IRDMA_DEFS_H
++
++#include "osdep.h"
++
++
++#define IRDMA_QP_TYPE_IWARP	1
++#define IRDMA_QP_TYPE_UDA	2
++#define IRDMA_QP_TYPE_ROCE_RC	3
++#define IRDMA_QP_TYPE_ROCE_UD	4
++
++#define IRDMA_HW_PAGE_SIZE	4096
++#define IRDMA_HW_PAGE_SHIFT	12
++#define IRDMA_CQE_QTYPE_RQ	0
++#define IRDMA_CQE_QTYPE_SQ	1
++
++#define IRDMA_QP_SW_MIN_WQSIZE	8u /* in WRs*/
++#define IRDMA_QP_WQE_MIN_SIZE	32
++#define IRDMA_QP_WQE_MAX_SIZE	256
++#define IRDMA_QP_WQE_MIN_QUANTA 1
++#define IRDMA_MAX_RQ_WQE_SHIFT_GEN1 2
++#define IRDMA_MAX_RQ_WQE_SHIFT_GEN2 3
++
++#define IRDMA_SQ_RSVD	258
++#define IRDMA_RQ_RSVD	1
++
++#define IRDMA_FEATURE_RTS_AE			1ULL
++#define IRDMA_FEATURE_CQ_RESIZE			2ULL
++#define IRDMA_FEATURE_ATOMIC_OPS		32ULL
++#define IRDMA_FEATURE_SRQ			64ULL
++
++#define IRDMAQP_OP_RDMA_WRITE			0x00
++#define IRDMAQP_OP_RDMA_READ			0x01
++#define IRDMAQP_OP_RDMA_SEND			0x03
++#define IRDMAQP_OP_RDMA_SEND_INV		0x04
++#define IRDMAQP_OP_RDMA_SEND_SOL_EVENT		0x05
++#define IRDMAQP_OP_RDMA_SEND_SOL_EVENT_INV	0x06
++#define IRDMAQP_OP_BIND_MW			0x08
++#define IRDMAQP_OP_FAST_REGISTER		0x09
++#define IRDMAQP_OP_LOCAL_INVALIDATE		0x0a
++#define IRDMAQP_OP_RDMA_READ_LOC_INV		0x0b
++#define IRDMAQP_OP_NOP				0x0c
++
++#define LS_64_1(val, bits)	((__u64)(uintptr_t)(val) << (bits))
++#define RS_64_1(val, bits)	((__u64)(uintptr_t)(val) >> (bits))
++#define LS_32_1(val, bits)	((__u32)((val) << (bits)))
++#define RS_32_1(val, bits)	((__u32)((val) >> (bits)))
++
++#define IRDMA_CQPHC_QPCTX GENMASK_ULL(63, 0)
++#define IRDMA_QP_DBSA_HW_SQ_TAIL GENMASK_ULL(14, 0)
++#define IRDMA_CQ_DBSA_CQEIDX GENMASK_ULL(19, 0)
++#define IRDMA_CQ_DBSA_SW_CQ_SELECT GENMASK_ULL(13, 0)
++#define IRDMA_CQ_DBSA_ARM_NEXT BIT_ULL(14)
++#define IRDMA_CQ_DBSA_ARM_NEXT_SE BIT_ULL(15)
++#define IRDMA_CQ_DBSA_ARM_SEQ_NUM GENMASK_ULL(17, 16)
++
++/* CQP and iWARP Completion Queue */
++#define IRDMA_CQ_QPCTX IRDMA_CQPHC_QPCTX
++
++#define IRDMA_CQ_MINERR GENMASK_ULL(15, 0)
++#define IRDMA_CQ_MAJERR GENMASK_ULL(31, 16)
++#define IRDMA_CQ_WQEIDX GENMASK_ULL(46, 32)
++#define IRDMA_CQ_EXTCQE BIT_ULL(50)
++#define IRDMA_OOO_CMPL BIT_ULL(54)
++#define IRDMA_CQ_ERROR BIT_ULL(55)
++#define IRDMA_CQ_SQ BIT_ULL(62)
++
++#define IRDMA_CQ_VALID BIT_ULL(63)
++#define IRDMA_CQ_IMMVALID BIT_ULL(62)
++#define IRDMA_CQ_UDSMACVALID BIT_ULL(61)
++#define IRDMA_CQ_UDVLANVALID BIT_ULL(60)
++#define IRDMA_CQ_UDSMAC GENMASK_ULL(47, 0)
++#define IRDMA_CQ_UDVLAN GENMASK_ULL(63, 48)
++
++#define IRDMA_CQ_IMMDATA_S 0
++#define IRDMA_CQ_IMMDATA_M (0xffffffffffffffffULL << IRDMA_CQ_IMMVALID_S)
++#define IRDMA_CQ_IMMDATALOW32 GENMASK_ULL(31, 0)
++#define IRDMA_CQ_IMMDATAUP32 GENMASK_ULL(63, 32)
++#define IRDMACQ_PAYLDLEN GENMASK_ULL(31, 0)
++#define IRDMACQ_TCPSEQNUMRTT GENMASK_ULL(63, 32)
++#define IRDMACQ_INVSTAG GENMASK_ULL(31, 0)
++#define IRDMACQ_QPID GENMASK_ULL(55, 32)
++
++#define IRDMACQ_UDSRCQPN GENMASK_ULL(31, 0)
++#define IRDMACQ_PSHDROP BIT_ULL(51)
++#define IRDMACQ_STAG BIT_ULL(53)
++#define IRDMACQ_IPV4 BIT_ULL(53)
++#define IRDMACQ_SOEVENT BIT_ULL(54)
++#define IRDMACQ_OP GENMASK_ULL(61, 56)
++
++/* Manage Push Page - MPP */
++#define IRDMA_INVALID_PUSH_PAGE_INDEX_GEN_1 0xffff
++#define IRDMA_INVALID_PUSH_PAGE_INDEX 0xffffffff
++
++#define IRDMAQPSQ_OPCODE GENMASK_ULL(37, 32)
++#define IRDMAQPSQ_COPY_HOST_PBL BIT_ULL(43)
++#define IRDMAQPSQ_ADDFRAGCNT GENMASK_ULL(41, 38)
++#define IRDMAQPSQ_PUSHWQE BIT_ULL(56)
++#define IRDMAQPSQ_STREAMMODE BIT_ULL(58)
++#define IRDMAQPSQ_WAITFORRCVPDU BIT_ULL(59)
++#define IRDMAQPSQ_READFENCE BIT_ULL(60)
++#define IRDMAQPSQ_LOCALFENCE BIT_ULL(61)
++#define IRDMAQPSQ_UDPHEADER BIT_ULL(61)
++#define IRDMAQPSQ_L4LEN GENMASK_ULL(45, 42)
++#define IRDMAQPSQ_SIGCOMPL BIT_ULL(62)
++#define IRDMAQPSQ_VALID BIT_ULL(63)
++
++#define IRDMAQPSQ_FRAG_TO IRDMA_CQPHC_QPCTX
++#define IRDMAQPSQ_FRAG_VALID BIT_ULL(63)
++#define IRDMAQPSQ_FRAG_LEN GENMASK_ULL(62, 32)
++#define IRDMAQPSQ_FRAG_STAG GENMASK_ULL(31, 0)
++#define IRDMAQPSQ_GEN1_FRAG_LEN GENMASK_ULL(31, 0)
++#define IRDMAQPSQ_GEN1_FRAG_STAG GENMASK_ULL(63, 32)
++#define IRDMAQPSQ_REMSTAGINV GENMASK_ULL(31, 0)
++#define IRDMAQPSQ_DESTQKEY GENMASK_ULL(31, 0)
++#define IRDMAQPSQ_DESTQPN GENMASK_ULL(55, 32)
++#define IRDMAQPSQ_AHID GENMASK_ULL(16, 0)
++#define IRDMAQPSQ_INLINEDATAFLAG BIT_ULL(57)
++
++#define IRDMA_INLINE_VALID_S 7
++#define IRDMAQPSQ_INLINEDATALEN GENMASK_ULL(55, 48)
++#define IRDMAQPSQ_IMMDATAFLAG BIT_ULL(47)
++#define IRDMAQPSQ_REPORTRTT BIT_ULL(46)
++
++#define IRDMAQPSQ_IMMDATA GENMASK_ULL(63, 0)
++#define IRDMAQPSQ_REMSTAG GENMASK_ULL(31, 0)
++
++#define IRDMAQPSQ_REMTO IRDMA_CQPHC_QPCTX
++
++#define IRDMAQPSQ_STAGRIGHTS GENMASK_ULL(52, 48)
++#define IRDMAQPSQ_VABASEDTO BIT_ULL(53)
++#define IRDMAQPSQ_MEMWINDOWTYPE BIT_ULL(54)
++
++#define IRDMAQPSQ_MWLEN IRDMA_CQPHC_QPCTX
++#define IRDMAQPSQ_PARENTMRSTAG GENMASK_ULL(63, 32)
++#define IRDMAQPSQ_MWSTAG GENMASK_ULL(31, 0)
++
++#define IRDMAQPSQ_BASEVA_TO_FBO IRDMA_CQPHC_QPCTX
++
++#define IRDMAQPSQ_LOCSTAG GENMASK_ULL(31, 0)
++
++/* iwarp QP RQ WQE common fields */
++#define IRDMAQPRQ_ADDFRAGCNT IRDMAQPSQ_ADDFRAGCNT
++#define IRDMAQPRQ_VALID IRDMAQPSQ_VALID
++#define IRDMAQPRQ_COMPLCTX IRDMA_CQPHC_QPCTX
++#define IRDMAQPRQ_FRAG_LEN IRDMAQPSQ_FRAG_LEN
++#define IRDMAQPRQ_STAG IRDMAQPSQ_FRAG_STAG
++#define IRDMAQPRQ_TO IRDMAQPSQ_FRAG_TO
++
++#define IRDMAPFINT_OICR_HMC_ERR_M BIT(26)
++#define IRDMAPFINT_OICR_PE_PUSH_M BIT(27)
++#define IRDMAPFINT_OICR_PE_CRITERR_M BIT(28)
++
++#define IRDMA_CQP_INIT_WQE(wqe) memset(wqe, 0, 64)
++
++#define IRDMA_GET_CURRENT_CQ_ELEM(_cq) \
++	( \
++		(_cq)->cq_base[IRDMA_RING_CURRENT_HEAD((_cq)->cq_ring)].buf  \
++	)
++#define IRDMA_GET_CURRENT_EXTENDED_CQ_ELEM(_cq) \
++	( \
++		((struct irdma_extended_cqe *) \
++		((_cq)->cq_base))[IRDMA_RING_CURRENT_HEAD((_cq)->cq_ring)].buf \
++	)
++
++#define IRDMA_RING_INIT(_ring, _size) \
++	{ \
++		(_ring).head = 0; \
++		(_ring).tail = 0; \
++		(_ring).size = (_size); \
++	}
++#define IRDMA_RING_SIZE(_ring) ((_ring).size)
++#define IRDMA_RING_CURRENT_HEAD(_ring) ((_ring).head)
++#define IRDMA_RING_CURRENT_TAIL(_ring) ((_ring).tail)
++
++#define IRDMA_RING_MOVE_HEAD(_ring, _retcode) \
++	{ \
++		register __u32 size; \
++		size = (_ring).size;  \
++		if (!IRDMA_RING_FULL_ERR(_ring)) { \
++			(_ring).head = ((_ring).head + 1) % size; \
++			(_retcode) = 0; \
++		} else { \
++			(_retcode) = IRDMA_ERR_RING_FULL; \
++		} \
++	}
++#define IRDMA_RING_MOVE_HEAD_BY_COUNT(_ring, _count, _retcode) \
++	{ \
++		register __u32 size; \
++		size = (_ring).size; \
++		if ((IRDMA_RING_USED_QUANTA(_ring) + (_count)) < size) { \
++			(_ring).head = ((_ring).head + (_count)) % size; \
++			(_retcode) = 0; \
++		} else { \
++			(_retcode) = IRDMA_ERR_RING_FULL; \
++		} \
++	}
++#define IRDMA_SQ_RING_MOVE_HEAD(_ring, _retcode) \
++	{ \
++		register __u32 size; \
++		size = (_ring).size;  \
++		if (!IRDMA_SQ_RING_FULL_ERR(_ring)) { \
++			(_ring).head = ((_ring).head + 1) % size; \
++			(_retcode) = 0; \
++		} else { \
++			(_retcode) = IRDMA_ERR_RING_FULL; \
++		} \
++	}
++#define IRDMA_SQ_RING_MOVE_HEAD_BY_COUNT(_ring, _count, _retcode) \
++	{ \
++		register __u32 size; \
++		size = (_ring).size; \
++		if ((IRDMA_RING_USED_QUANTA(_ring) + (_count)) < (size - 256)) { \
++			(_ring).head = ((_ring).head + (_count)) % size; \
++			(_retcode) = 0; \
++		} else { \
++			(_retcode) = IRDMA_ERR_RING_FULL; \
++		} \
++	}
++#define IRDMA_RING_MOVE_HEAD_BY_COUNT_NOCHECK(_ring, _count) \
++	(_ring).head = ((_ring).head + (_count)) % (_ring).size
++
++#define IRDMA_RING_MOVE_TAIL(_ring) \
++	(_ring).tail = ((_ring).tail + 1) % (_ring).size
++
++#define IRDMA_RING_MOVE_HEAD_NOCHECK(_ring) \
++	(_ring).head = ((_ring).head + 1) % (_ring).size
++
++#define IRDMA_RING_MOVE_TAIL_BY_COUNT(_ring, _count) \
++	(_ring).tail = ((_ring).tail + (_count)) % (_ring).size
++
++#define IRDMA_RING_SET_TAIL(_ring, _pos) \
++	(_ring).tail = (_pos) % (_ring).size
++
++#define IRDMA_RING_FULL_ERR(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 1))  \
++	)
++
++#define IRDMA_ERR_RING_FULL2(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 2))  \
++	)
++
++#define IRDMA_ERR_RING_FULL3(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 3))  \
++	)
++
++#define IRDMA_SQ_RING_FULL_ERR(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 257))  \
++	)
++
++#define IRDMA_ERR_SQ_RING_FULL2(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 258))  \
++	)
++#define IRDMA_ERR_SQ_RING_FULL3(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) == ((_ring).size - 259))  \
++	)
++#define IRDMA_RING_MORE_WORK(_ring) \
++	( \
++		(IRDMA_RING_USED_QUANTA(_ring) != 0) \
++	)
++
++#define IRDMA_RING_USED_QUANTA(_ring) \
++	( \
++		(((_ring).head + (_ring).size - (_ring).tail) % (_ring).size) \
++	)
++
++#define IRDMA_RING_FREE_QUANTA(_ring) \
++	( \
++		((_ring).size - IRDMA_RING_USED_QUANTA(_ring) - 1) \
++	)
++
++#define IRDMA_SQ_RING_FREE_QUANTA(_ring) \
++	( \
++		((_ring).size - IRDMA_RING_USED_QUANTA(_ring) - 257) \
++	)
++
++#define IRDMA_ATOMIC_RING_MOVE_HEAD(_ring, index, _retcode) \
++	{ \
++		index = IRDMA_RING_CURRENT_HEAD(_ring); \
++		IRDMA_RING_MOVE_HEAD(_ring, _retcode); \
++	}
++
++enum irdma_qp_wqe_size {
++	IRDMA_WQE_SIZE_32  = 32,
++	IRDMA_WQE_SIZE_64  = 64,
++	IRDMA_WQE_SIZE_96  = 96,
++	IRDMA_WQE_SIZE_128 = 128,
++	IRDMA_WQE_SIZE_256 = 256,
++};
++
++/**
++ * set_64bit_val - set 64 bit value to hw wqe
++ * @wqe_words: wqe addr to write
++ * @byte_index: index in wqe
++ * @val: value to write
++ **/
++static inline void set_64bit_val(__le64 *wqe_words, __u32 byte_index, __u64 val)
++{
++	wqe_words[byte_index >> 3] = htole64(val);
++}
++
++/**
++ * set_32bit_val - set 32 bit value to hw wqe
++ * @wqe_words: wqe addr to write
++ * @byte_index: index in wqe
++ * @val: value to write
++ **/
++static inline void set_32bit_val(__le32 *wqe_words, __u32 byte_index, __u32 val)
++{
++	wqe_words[byte_index >> 2] = htole32(val);
++}
++
++/**
++ * get_64bit_val - read 64 bit value from wqe
++ * @wqe_words: wqe addr
++ * @byte_index: index to read from
++ * @val: read value
++ **/
++static inline void get_64bit_val(__le64 *wqe_words, __u32 byte_index, __u64 *val)
++{
++	*val = le64toh(wqe_words[byte_index >> 3]);
++}
++
++/**
++ * get_32bit_val - read 32 bit value from wqe
++ * @wqe_words: wqe addr
++ * @byte_index: index to reaad from
++ * @val: return 32 bit value
++ **/
++static inline void get_32bit_val(__le32 *wqe_words, __u32 byte_index, __u32 *val)
++{
++	*val = le32toh(wqe_words[byte_index >> 2]);
++}
++#endif /* IRDMA_DEFS_H */
+diff --git a/providers/irdma/i40e_devids.h b/providers/irdma/i40e_devids.h
+new file mode 100644
+index 0000000..2ea4f2d
+--- /dev/null
++++ b/providers/irdma/i40e_devids.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2019 Intel Corporation */
++#ifndef I40E_DEVIDS_H
++#define I40E_DEVIDS_H
++
++/* Vendor ID */
++#define I40E_INTEL_VENDOR_ID		0x8086
++
++/* Device IDs */
++#define I40E_DEV_ID_SFP_XL710		0x1572
++#define I40E_DEV_ID_QEMU		0x1574
++#define I40E_DEV_ID_KX_B		0x1580
++#define I40E_DEV_ID_KX_C		0x1581
++#define I40E_DEV_ID_QSFP_A		0x1583
++#define I40E_DEV_ID_QSFP_B		0x1584
++#define I40E_DEV_ID_QSFP_C		0x1585
++#define I40E_DEV_ID_10G_BASE_T		0x1586
++#define I40E_DEV_ID_20G_KR2		0x1587
++#define I40E_DEV_ID_20G_KR2_A		0x1588
++#define I40E_DEV_ID_10G_BASE_T4		0x1589
++#define I40E_DEV_ID_25G_B		0x158A
++#define I40E_DEV_ID_25G_SFP28		0x158B
++#define I40E_DEV_ID_VF			0x154C
++#define I40E_DEV_ID_VF_HV		0x1571
++#define I40E_DEV_ID_X722_A0		0x374C
++#define I40E_DEV_ID_X722_A0_VF		0x374D
++#define I40E_DEV_ID_KX_X722		0x37CE
++#define I40E_DEV_ID_QSFP_X722		0x37CF
++#define I40E_DEV_ID_SFP_X722		0x37D0
++#define I40E_DEV_ID_1G_BASE_T_X722	0x37D1
++#define I40E_DEV_ID_10G_BASE_T_X722	0x37D2
++#define I40E_DEV_ID_SFP_I_X722		0x37D3
++#define I40E_DEV_ID_X722_VF		0x37CD
++#define I40E_DEV_ID_X722_VF_HV		0x37D9
++
++#endif /* I40E_DEVIDS_H */
+diff --git a/providers/irdma/i40iw_hw.h b/providers/irdma/i40iw_hw.h
+new file mode 100644
+index 0000000..a0a2848
+--- /dev/null
++++ b/providers/irdma/i40iw_hw.h
+@@ -0,0 +1,31 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2021 Intel Corporation */
++#ifndef I40IW_HW_H
++#define I40IW_HW_H
++
++enum i40iw_device_caps_const {
++	I40IW_MAX_WQ_FRAGMENT_COUNT		= 3,
++	I40IW_MAX_SGE_RD			= 1,
++	I40IW_MAX_PUSH_PAGE_COUNT		= 0,
++	I40IW_MAX_INLINE_DATA_SIZE		= 48,
++	I40IW_MAX_IRD_SIZE			= 63,
++	I40IW_MAX_ORD_SIZE			= 127,
++	I40IW_MAX_WQ_ENTRIES			= 2048,
++	I40IW_MAX_WQE_SIZE_RQ			= 128,
++	I40IW_MAX_PDS				= 32768,
++	I40IW_MAX_STATS_COUNT			= 16,
++	I40IW_MAX_CQ_SIZE			= 1048575,
++	I40IW_MAX_OUTBOUND_MSG_SIZE		= 2147483647,
++	I40IW_MAX_INBOUND_MSG_SIZE		= 2147483647,
++};
++
++#define I40IW_QP_WQE_MIN_SIZE   32
++#define I40IW_QP_WQE_MAX_SIZE   128
++#define I40IW_QP_SW_MIN_WQSIZE  4
++#define I40IW_MAX_RQ_WQE_SHIFT  2
++#define I40IW_MAX_QUANTA_PER_WR 2
++
++#define I40IW_QP_SW_MAX_SQ_QUANTA 2048
++#define I40IW_QP_SW_MAX_RQ_QUANTA 16384
++#define I40IW_QP_SW_MAX_WQ_QUANTA 2048
++#endif /* I40IW_HW_H */
+diff --git a/providers/irdma/ice_devids.h b/providers/irdma/ice_devids.h
+new file mode 100644
+index 0000000..655a1d6
+--- /dev/null
++++ b/providers/irdma/ice_devids.h
+@@ -0,0 +1,59 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2019 - 2020 Intel Corporation */
++#ifndef ICE_DEVIDS_H
++#define ICE_DEVIDS_H
++
++#define PCI_VENDOR_ID_INTEL		0x8086
++
++/* Device IDs */
++/* Intel(R) Ethernet Connection E823-L for backplane */
++#define ICE_DEV_ID_E823L_BACKPLANE      0x124C
++/* Intel(R) Ethernet Connection E823-L for SFP */
++#define ICE_DEV_ID_E823L_SFP            0x124D
++/* Intel(R) Ethernet Connection E823-L/X557-AT 10GBASE-T */
++#define ICE_DEV_ID_E823L_10G_BASE_T     0x124E
++/* Intel(R) Ethernet Connection E823-L 1GbE */
++#define ICE_DEV_ID_E823L_1GBE           0x124F
++/* Intel(R) Ethernet Connection E823-L for QSFP */
++#define ICE_DEV_ID_E823L_QSFP           0x151D
++/* Intel(R) Ethernet Controller E810-C for backplane */
++#define ICE_DEV_ID_E810C_BACKPLANE      0x1591
++/* Intel(R) Ethernet Controller E810-C for QSFP */
++#define ICE_DEV_ID_E810C_QSFP           0x1592
++/* Intel(R) Ethernet Controller E810-C for SFP */
++#define ICE_DEV_ID_E810C_SFP            0x1593
++/* Intel(R) Ethernet Controller E810-XXV for backplane */
++#define ICE_DEV_ID_E810_XXV_BACKPLANE   0x1599
++/* Intel(R) Ethernet Controller E810-XXV for QSFP */
++#define ICE_DEV_ID_E810_XXV_QSFP        0x159A
++/* Intel(R) Ethernet Controller E810-XXV for SFP */
++#define ICE_DEV_ID_E810_XXV_SFP         0x159B
++/* Intel(R) Ethernet Connection E823-C for backplane */
++#define ICE_DEV_ID_E823C_BACKPLANE      0x188A
++/* Intel(R) Ethernet Connection E823-C for QSFP */
++#define ICE_DEV_ID_E823C_QSFP           0x188B
++/* Intel(R) Ethernet Connection E823-C for SFP */
++#define ICE_DEV_ID_E823C_SFP            0x188C
++/* Intel(R) Ethernet Connection E823-C/X557-AT 10GBASE-T */
++#define ICE_DEV_ID_E823C_10G_BASE_T     0x188D
++/* Intel(R) Ethernet Connection E823-C 1GbE */
++#define ICE_DEV_ID_E823C_SGMII          0x188E
++/* Intel(R) Ethernet Connection C822N for backplane */
++#define ICE_DEV_ID_C822N_BACKPLANE      0x1890
++/* Intel(R) Ethernet Connection C822N for QSFP */
++#define ICE_DEV_ID_C822N_QSFP           0x1891
++/* Intel(R) Ethernet Connection C822N for SFP */
++#define ICE_DEV_ID_C822N_SFP            0x1892
++/* Intel(R) Ethernet Connection E822-C/X557-AT 10GBASE-T */
++#define ICE_DEV_ID_E822C_10G_BASE_T     0x1893
++/* Intel(R) Ethernet Connection E822-C 1GbE */
++#define ICE_DEV_ID_E822C_SGMII          0x1894
++/* Intel(R) Ethernet Connection E822-L for backplane */
++#define ICE_DEV_ID_E822L_BACKPLANE      0x1897
++/* Intel(R) Ethernet Connection E822-L for SFP */
++#define ICE_DEV_ID_E822L_SFP            0x1898
++/* Intel(R) Ethernet Connection E822-L/X557-AT 10GBASE-T */
++#define ICE_DEV_ID_E822L_10G_BASE_T     0x1899
++/* Intel(R) Ethernet Connection E822-L 1GbE */
++#define ICE_DEV_ID_E822L_SGMII          0x189A
++#endif /* ICE_DEVIDS_H */
+diff --git a/providers/irdma/osdep.h b/providers/irdma/osdep.h
+new file mode 100644
+index 0000000..2abfb19
+--- /dev/null
++++ b/providers/irdma/osdep.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2021 Intel Corporation */
++#ifndef IRDMA_OSDEP_H
++#define IRDMA_OSDEP_H
++
++#include <stdbool.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdatomic.h>
++#include <util/udma_barrier.h>
++#include <util/util.h>
++#include <linux/types.h>
++#include <inttypes.h>
++#include <pthread.h>
++#include <endian.h>
++
++static inline void db_wr32(__u32 val, __u32 *wqe_word)
++{
++	*wqe_word = val;
++}
++#endif /* IRDMA_OSDEP_H */
+diff --git a/providers/irdma/status.h b/providers/irdma/status.h
+new file mode 100644
+index 0000000..29f7157
+--- /dev/null
++++ b/providers/irdma/status.h
+@@ -0,0 +1,71 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2020 Intel Corporation */
++#ifndef IRDMA_STATUS_H
++#define IRDMA_STATUS_H
++
++/* Error Codes */
++enum irdma_status_code {
++	IRDMA_SUCCESS				= 0,
++	IRDMA_ERR_NVM				= -1,
++	IRDMA_ERR_NVM_CHECKSUM			= -2,
++	IRDMA_ERR_CFG				= -4,
++	IRDMA_ERR_PARAM				= -5,
++	IRDMA_ERR_DEVICE_NOT_SUPPORTED		= -6,
++	IRDMA_ERR_RESET_FAILED			= -7,
++	IRDMA_ERR_SWFW_SYNC			= -8,
++	IRDMA_ERR_NO_MEMORY			= -9,
++	IRDMA_ERR_BAD_PTR			= -10,
++	IRDMA_ERR_INVALID_PD_ID			= -11,
++	IRDMA_ERR_INVALID_QP_ID			= -12,
++	IRDMA_ERR_INVALID_CQ_ID			= -13,
++	IRDMA_ERR_INVALID_CEQ_ID		= -14,
++	IRDMA_ERR_INVALID_AEQ_ID		= -15,
++	IRDMA_ERR_INVALID_SIZE			= -16,
++	IRDMA_ERR_INVALID_ARP_INDEX		= -17,
++	IRDMA_ERR_INVALID_FPM_FUNC_ID		= -18,
++	IRDMA_ERR_QP_INVALID_MSG_SIZE		= -19,
++	IRDMA_ERR_QP_TOOMANY_WRS_POSTED		= -20,
++	IRDMA_ERR_INVALID_FRAG_COUNT		= -21,
++	IRDMA_ERR_Q_EMPTY			= -22,
++	IRDMA_ERR_INVALID_ALIGNMENT		= -23,
++	IRDMA_ERR_FLUSHED_Q			= -24,
++	IRDMA_ERR_INVALID_PUSH_PAGE_INDEX	= -25,
++	IRDMA_ERR_INVALID_INLINE_DATA_SIZE	= -26,
++	IRDMA_ERR_TIMEOUT			= -27,
++	IRDMA_ERR_OPCODE_MISMATCH		= -28,
++	IRDMA_ERR_CQP_COMPL_ERROR		= -29,
++	IRDMA_ERR_INVALID_VF_ID			= -30,
++	IRDMA_ERR_INVALID_HMCFN_ID		= -31,
++	IRDMA_ERR_BACKING_PAGE_ERROR		= -32,
++	IRDMA_ERR_NO_PBLCHUNKS_AVAILABLE	= -33,
++	IRDMA_ERR_INVALID_PBLE_INDEX		= -34,
++	IRDMA_ERR_INVALID_SD_INDEX		= -35,
++	IRDMA_ERR_INVALID_PAGE_DESC_INDEX	= -36,
++	IRDMA_ERR_INVALID_SD_TYPE		= -37,
++	IRDMA_ERR_MEMCPY_FAILED			= -38,
++	IRDMA_ERR_INVALID_HMC_OBJ_INDEX		= -39,
++	IRDMA_ERR_INVALID_HMC_OBJ_COUNT		= -40,
++	IRDMA_ERR_BUF_TOO_SHORT			= -43,
++	IRDMA_ERR_BAD_IWARP_CQE			= -44,
++	IRDMA_ERR_NVM_BLANK_MODE		= -45,
++	IRDMA_ERR_NOT_IMPL			= -46,
++	IRDMA_ERR_PE_DOORBELL_NOT_ENA		= -47,
++	IRDMA_ERR_NOT_READY			= -48,
++	IRDMA_NOT_SUPPORTED			= -49,
++	IRDMA_ERR_FIRMWARE_API_VER		= -50,
++	IRDMA_ERR_RING_FULL			= -51,
++	IRDMA_ERR_MPA_CRC			= -61,
++	IRDMA_ERR_NO_TXBUFS			= -62,
++	IRDMA_ERR_SEQ_NUM			= -63,
++	IRDMA_ERR_LIST_EMPTY			= -64,
++	IRDMA_ERR_INVALID_MAC_ADDR		= -65,
++	IRDMA_ERR_BAD_STAG			= -66,
++	IRDMA_ERR_CQ_COMPL_ERROR		= -67,
++	IRDMA_ERR_Q_DESTROYED			= -68,
++	IRDMA_ERR_INVALID_FEAT_CNT		= -69,
++	IRDMA_ERR_REG_CQ_FULL			= -70,
++	IRDMA_ERR_VF_MSG_ERROR			= -71,
++	IRDMA_ERR_NO_INTR			= -72,
++	IRDMA_ERR_REG_QSET			= -73,
++};
++#endif /* IRDMA_STATUS_H */
+diff --git a/providers/irdma/umain.c b/providers/irdma/umain.c
+new file mode 100644
+index 0000000..ac9758f
+--- /dev/null
++++ b/providers/irdma/umain.c
+@@ -0,0 +1,234 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (C) 2019 - 2020 Intel Corporation */
++#include <config.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <errno.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++
++#include "ice_devids.h"
++#include "i40e_devids.h"
++#include "umain.h"
++#include "abi.h"
++
++#define INTEL_HCA(v, d) VERBS_PCI_MATCH(v, d, NULL)
++static const struct verbs_match_ent hca_table[] = {
++	VERBS_DRIVER_ID(RDMA_DRIVER_IRDMA),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823L_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823L_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823L_10G_BASE_T),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823L_1GBE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823L_QSFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810C_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810C_QSFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810C_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810_XXV_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810_XXV_QSFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E810_XXV_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823C_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823C_QSFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823C_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823C_10G_BASE_T),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E823C_SGMII),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_C822N_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_C822N_QSFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_C822N_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822C_10G_BASE_T),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822C_SGMII),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822L_BACKPLANE),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822L_SFP),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822L_10G_BASE_T),
++	INTEL_HCA(PCI_VENDOR_ID_INTEL, ICE_DEV_ID_E822L_SGMII),
++
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_X722_A0),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_X722_A0_VF),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_KX_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_QSFP_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_SFP_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_1G_BASE_T_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_10G_BASE_T_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_SFP_I_X722),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_X722_VF),
++	INTEL_HCA(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_X722_VF_HV),
++
++	{}
++};
++
++/**
++ * irdma_ufree_context - free context that was allocated
++ * @ibctx: context allocated ptr
++ */
++static void irdma_ufree_context(struct ibv_context *ibctx)
++{
++	struct irdma_uvcontext *iwvctx = to_irdma_uctx(ibctx);
++
++	irdma_ufree_pd(&iwvctx->iwupd->ibv_pd);
++	irdma_munmap(iwvctx->db);
++	verbs_uninit_context(&iwvctx->ibv_ctx);
++	free(iwvctx);
++}
++
++static const struct verbs_context_ops irdma_uctx_ops = {
++	.alloc_mw = irdma_ualloc_mw,
++	.alloc_pd = irdma_ualloc_pd,
++	.attach_mcast = irdma_uattach_mcast,
++	.bind_mw = irdma_ubind_mw,
++	.cq_event = irdma_cq_event,
++	.create_ah = irdma_ucreate_ah,
++	.create_cq = irdma_ucreate_cq,
++	.create_cq_ex = irdma_ucreate_cq_ex,
++	.create_qp = irdma_ucreate_qp,
++	.dealloc_mw = irdma_udealloc_mw,
++	.dealloc_pd = irdma_ufree_pd,
++	.dereg_mr = irdma_udereg_mr,
++	.destroy_ah = irdma_udestroy_ah,
++	.destroy_cq = irdma_udestroy_cq,
++	.destroy_qp = irdma_udestroy_qp,
++	.detach_mcast = irdma_udetach_mcast,
++	.modify_qp = irdma_umodify_qp,
++	.poll_cq = irdma_upoll_cq,
++	.post_recv = irdma_upost_recv,
++	.post_send = irdma_upost_send,
++	.query_device_ex = irdma_uquery_device_ex,
++	.query_port = irdma_uquery_port,
++	.query_qp = irdma_uquery_qp,
++	.reg_mr = irdma_ureg_mr,
++	.req_notify_cq = irdma_uarm_cq,
++	.resize_cq = irdma_uresize_cq,
++	.free_context = irdma_ufree_context,
++};
++
++/**
++ * i40iw_set_hw_attrs - set the hw attributes
++ * @attrs: pointer to hw attributes
++ *
++ * Set the device attibutes to allow user mode to work with
++ * driver on older ABI version.
++ */
++static void i40iw_set_hw_attrs(struct irdma_uk_attrs *attrs)
++{
++	attrs->hw_rev = IRDMA_GEN_1;
++	attrs->max_hw_wq_frags = I40IW_MAX_WQ_FRAGMENT_COUNT;
++	attrs->max_hw_read_sges = I40IW_MAX_SGE_RD;
++	attrs->max_hw_inline = I40IW_MAX_INLINE_DATA_SIZE;
++	attrs->max_hw_rq_quanta = I40IW_QP_SW_MAX_RQ_QUANTA;
++	attrs->max_hw_wq_quanta = I40IW_QP_SW_MAX_WQ_QUANTA;
++	attrs->max_hw_sq_chunk = I40IW_MAX_QUANTA_PER_WR;
++	attrs->max_hw_cq_size = I40IW_MAX_CQ_SIZE;
++	attrs->min_hw_cq_size = IRDMA_MIN_CQ_SIZE;
++}
++
++/**
++ * irdma_ualloc_context - allocate context for user app
++ * @ibdev: ib device created during irdma_driver_init
++ * @cmd_fd: save fd for the device
++ * @private_data: device private data
++ *
++ * Returns callback routine table and calls driver for allocating
++ * context and getting back resource information to return as ibv_context.
++ */
++static struct verbs_context *irdma_ualloc_context(struct ibv_device *ibdev,
++						  int cmd_fd, void *private_data)
++{
++	struct ibv_pd *ibv_pd;
++	struct irdma_uvcontext *iwvctx;
++	struct irdma_get_context cmd;
++	struct irdma_get_context_resp resp = {};
++	__u64 mmap_key;
++	__u8 user_ver = IRDMA_ABI_VER;
++
++	iwvctx = verbs_init_and_alloc_context(ibdev, cmd_fd, iwvctx, ibv_ctx,
++					      RDMA_DRIVER_IRDMA);
++	if (!iwvctx)
++		return NULL;
++
++	cmd.userspace_ver = user_ver;
++	if (ibv_cmd_get_context(&iwvctx->ibv_ctx,
++				(struct ibv_get_context *)&cmd, sizeof(cmd),
++				&resp.ibv_resp, sizeof(resp))) {
++		cmd.userspace_ver = 4;
++		if (ibv_cmd_get_context(&iwvctx->ibv_ctx,
++					(struct ibv_get_context *)&cmd, sizeof(cmd),
++					&resp.ibv_resp, sizeof(resp)))
++			goto err_free;
++		user_ver = cmd.userspace_ver;
++	}
++
++	verbs_set_ops(&iwvctx->ibv_ctx, &irdma_uctx_ops);
++
++	/* Legacy i40iw does not populate hw_rev. The irdma driver always sets it */
++	if (!resp.hw_rev) {
++		i40iw_set_hw_attrs(&iwvctx->uk_attrs);
++		iwvctx->abi_ver = resp.kernel_ver;
++		iwvctx->legacy_mode = true;
++		mmap_key = 0;
++	} else {
++		iwvctx->uk_attrs.feature_flags = resp.feature_flags;
++		iwvctx->uk_attrs.hw_rev = resp.hw_rev;
++		iwvctx->uk_attrs.max_hw_wq_frags = resp.max_hw_wq_frags;
++		iwvctx->uk_attrs.max_hw_read_sges = resp.max_hw_read_sges;
++		iwvctx->uk_attrs.max_hw_inline = resp.max_hw_inline;
++		iwvctx->uk_attrs.max_hw_rq_quanta = resp.max_hw_rq_quanta;
++		iwvctx->uk_attrs.max_hw_wq_quanta = resp.max_hw_wq_quanta;
++		iwvctx->uk_attrs.max_hw_sq_chunk = resp.max_hw_sq_chunk;
++		iwvctx->uk_attrs.max_hw_cq_size = resp.max_hw_cq_size;
++		iwvctx->uk_attrs.min_hw_cq_size = resp.min_hw_cq_size;
++		iwvctx->abi_ver = user_ver;
++		mmap_key = resp.db_mmap_key;
++	}
++
++	iwvctx->db = irdma_mmap(cmd_fd, mmap_key);
++	if (iwvctx->db == MAP_FAILED)
++		goto err_free;
++
++	irdma_device_init_uk(&iwvctx->dev);
++	ibv_pd = irdma_ualloc_pd(&iwvctx->ibv_ctx.context);
++	if (!ibv_pd) {
++		irdma_munmap(iwvctx->db);
++		goto err_free;
++	}
++
++	ibv_pd->context = &iwvctx->ibv_ctx.context;
++	iwvctx->iwupd = to_irdma_upd(ibv_pd);
++	return &iwvctx->ibv_ctx;
++
++err_free:
++	free(iwvctx);
++
++	return NULL;
++}
++
++static void irdma_uninit_device(struct verbs_device *verbs_device)
++{
++	struct irdma_udevice *dev = to_irdma_udev(&verbs_device->device);
++
++	free(dev);
++}
++
++static struct verbs_device *irdma_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
++{
++	struct irdma_udevice *dev;
++
++	dev = calloc(1, sizeof(*dev));
++	if (!dev)
++		return NULL;
++
++	return &dev->ibv_dev;
++}
++
++static const struct verbs_device_ops irdma_udev_ops = {
++	.alloc_context = irdma_ualloc_context,
++	.alloc_device = irdma_device_alloc,
++	.match_max_abi_version = IRDMA_MAX_ABI_VERSION,
++	.match_min_abi_version = IRDMA_MIN_ABI_VERSION,
++	.match_table = hca_table,
++	.name = "irdma",
++	.uninit_device = irdma_uninit_device,
++};
++
++PROVIDER_DRIVER(irdma, irdma_udev_ops);
+diff --git a/providers/irdma/umain.h b/providers/irdma/umain.h
+new file mode 100644
+index 0000000..7df9a92
+--- /dev/null
++++ b/providers/irdma/umain.h
+@@ -0,0 +1,205 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (C) 2019 - 2020 Intel Corporation */
++#ifndef IRDMA_UMAIN_H
++#define IRDMA_UMAIN_H
++
++#include <inttypes.h>
++#include <stddef.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <infiniband/driver.h>
++
++#include "osdep.h"
++#include "irdma.h"
++#include "defs.h"
++#include "i40iw_hw.h"
++#include "status.h"
++#include "user.h"
++
++#define PFX	"libirdma-"
++
++#define IRDMA_BASE_PUSH_PAGE		1
++#define IRDMA_U_MINCQ_SIZE		4
++#define IRDMA_DB_SHADOW_AREA_SIZE	64
++#define IRDMA_DB_CQ_OFFSET		64
++
++enum irdma_supported_wc_flags {
++	IRDMA_CQ_SUPPORTED_WC_FLAGS = IBV_WC_EX_WITH_BYTE_LEN
++				    | IBV_WC_EX_WITH_IMM
++				    | IBV_WC_EX_WITH_QP_NUM
++				    | IBV_WC_EX_WITH_SRC_QP
++				    | IBV_WC_EX_WITH_SLID
++				    | IBV_WC_EX_WITH_SL
++				    | IBV_WC_EX_WITH_DLID_PATH_BITS
++				    | IBV_WC_EX_WITH_COMPLETION_TIMESTAMP_WALLCLOCK
++				    | IBV_WC_EX_WITH_COMPLETION_TIMESTAMP,
++};
++
++struct irdma_udevice {
++	struct verbs_device ibv_dev;
++};
++
++struct irdma_uah {
++	struct ibv_ah ibv_ah;
++	uint32_t ah_id;
++	struct ibv_global_route grh;
++};
++
++struct irdma_upd {
++	struct ibv_pd ibv_pd;
++	void *arm_cq_page;
++	void *arm_cq;
++	uint32_t pd_id;
++};
++
++struct irdma_uvcontext {
++	struct verbs_context ibv_ctx;
++	struct irdma_upd *iwupd;
++	struct irdma_uk_attrs uk_attrs;
++	struct irdma_dev_uk dev;
++	void *db;
++	int abi_ver;
++	bool legacy_mode;
++};
++
++struct irdma_uqp;
++
++struct irdma_cq_buf {
++	struct list_node list;
++	struct irdma_cq_uk cq;
++	struct verbs_mr vmr;
++};
++
++struct irdma_ucq {
++	struct verbs_cq verbs_cq;
++	struct verbs_mr vmr;
++	struct verbs_mr vmr_shadow_area;
++	pthread_spinlock_t lock;
++	size_t buf_size;
++	bool is_armed;
++	bool skip_arm;
++	bool arm_sol;
++	bool skip_sol;
++	int comp_vector;
++	uint32_t report_rtt;
++	struct irdma_uqp *uqp;
++	struct irdma_cq_uk cq;
++	struct list_head resize_list;
++	/* for extended CQ completion fields */
++	struct irdma_cq_poll_info cur_cqe;
++};
++
++struct irdma_uqp {
++	struct ibv_qp ibv_qp;
++	struct ibv_qp_attr attr;
++	struct irdma_ucq *send_cq;
++	struct irdma_ucq *recv_cq;
++	struct verbs_mr vmr;
++	size_t buf_size;
++	uint32_t irdma_drv_opt;
++	pthread_spinlock_t lock;
++	uint16_t sq_sig_all;
++	uint16_t qperr;
++	uint16_t rsvd;
++	uint32_t pending_rcvs;
++	uint32_t wq_size;
++	struct ibv_recv_wr *pend_rx_wr;
++	struct irdma_qp_uk qp;
++	enum ibv_qp_type qp_type;
++	enum ibv_qp_attr_mask attr_mask;
++	struct irdma_sge *recv_sges;
++};
++
++struct irdma_umr {
++	struct verbs_mr vmr;
++	uint32_t acc_flags;
++};
++
++#define to_irdma_uxxx(xxx, type)                                               \
++	container_of(ib##xxx, struct irdma_u##type, ibv_##xxx)
++
++static inline struct irdma_udevice *to_irdma_udev(struct ibv_device *ibdev)
++{
++	return container_of(ibdev, struct irdma_udevice, ibv_dev.device);
++}
++
++static inline struct irdma_uvcontext *to_irdma_uctx(struct ibv_context *ibctx)
++{
++	return container_of(ibctx, struct irdma_uvcontext, ibv_ctx.context);
++}
++
++static inline struct irdma_uah *to_irdma_uah(struct ibv_ah *ibah)
++{
++	return to_irdma_uxxx(ah, ah);
++}
++
++static inline struct irdma_upd *to_irdma_upd(struct ibv_pd *ibpd)
++{
++	return to_irdma_uxxx(pd, pd);
++}
++
++static inline struct irdma_ucq *to_irdma_ucq(struct ibv_cq *ibcq)
++{
++	return container_of(ibcq, struct irdma_ucq, verbs_cq.cq);
++}
++
++static inline struct irdma_ucq *to_irdma_ucq_ex(struct ibv_cq_ex *ibcq_ex)
++{
++	return container_of(ibcq_ex, struct irdma_ucq, verbs_cq.cq_ex);
++}
++
++static inline struct irdma_uqp *to_irdma_uqp(struct ibv_qp *ibqp)
++{
++	return to_irdma_uxxx(qp, qp);
++}
++
++/* irdma_uverbs.c */
++int irdma_uquery_device_ex(struct ibv_context *context,
++			   const struct ibv_query_device_ex_input *input,
++			   struct ibv_device_attr_ex *attr, size_t attr_size);
++int irdma_uquery_port(struct ibv_context *context, uint8_t port,
++		      struct ibv_port_attr *attr);
++struct ibv_pd *irdma_ualloc_pd(struct ibv_context *context);
++int irdma_ufree_pd(struct ibv_pd *pd);
++struct ibv_mr *irdma_ureg_mr(struct ibv_pd *pd, void *addr, size_t length,
++			     uint64_t hca_va, int access);
++int irdma_udereg_mr(struct verbs_mr *vmr);
++struct ibv_mw *irdma_ualloc_mw(struct ibv_pd *pd, enum ibv_mw_type type);
++int irdma_ubind_mw(struct ibv_qp *qp, struct ibv_mw *mw,
++		   struct ibv_mw_bind *mw_bind);
++int irdma_udealloc_mw(struct ibv_mw *mw);
++struct ibv_cq *irdma_ucreate_cq(struct ibv_context *context, int cqe,
++				struct ibv_comp_channel *channel,
++				int comp_vector);
++struct ibv_cq_ex *irdma_ucreate_cq_ex(struct ibv_context *context,
++				      struct ibv_cq_init_attr_ex *attr_ex);
++void irdma_ibvcq_ex_fill_priv_funcs(struct irdma_ucq *iwucq,
++				    struct ibv_cq_init_attr_ex *attr_ex);
++int irdma_uresize_cq(struct ibv_cq *cq, int cqe);
++int irdma_udestroy_cq(struct ibv_cq *cq);
++int irdma_upoll_cq(struct ibv_cq *cq, int entries, struct ibv_wc *entry);
++int irdma_uarm_cq(struct ibv_cq *cq, int solicited);
++void irdma_cq_event(struct ibv_cq *cq);
++struct ibv_qp *irdma_ucreate_qp(struct ibv_pd *pd,
++				struct ibv_qp_init_attr *attr);
++int irdma_uquery_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask,
++		    struct ibv_qp_init_attr *init_attr);
++int irdma_umodify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
++		     int attr_mask);
++int irdma_udestroy_qp(struct ibv_qp *qp);
++int irdma_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
++		     struct ibv_send_wr **bad_wr);
++int irdma_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
++		     struct ibv_recv_wr **bad_wr);
++struct ibv_ah *irdma_ucreate_ah(struct ibv_pd *ibpd, struct ibv_ah_attr *attr);
++int irdma_udestroy_ah(struct ibv_ah *ibah);
++int irdma_uattach_mcast(struct ibv_qp *qp, const union ibv_gid *gid,
++			uint16_t lid);
++int irdma_udetach_mcast(struct ibv_qp *qp, const union ibv_gid *gid,
++			uint16_t lid);
++void irdma_async_event(struct ibv_context *context,
++		       struct ibv_async_event *event);
++void irdma_set_hw_attrs(struct irdma_hw_attrs *attrs);
++void *irdma_mmap(int fd, off_t offset);
++void irdma_munmap(void *map);
++#endif /* IRDMA_UMAIN_H */
+diff --git a/providers/irdma/user.h b/providers/irdma/user.h
+new file mode 100644
+index 0000000..af30ced
+--- /dev/null
++++ b/providers/irdma/user.h
+@@ -0,0 +1,466 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (c) 2015 - 2020 Intel Corporation */
++#ifndef IRDMA_USER_H
++#define IRDMA_USER_H
++
++#include "osdep.h"
++
++#define irdma_handle void *
++#define irdma_adapter_handle irdma_handle
++#define irdma_qp_handle irdma_handle
++#define irdma_cq_handle irdma_handle
++#define irdma_pd_id irdma_handle
++#define irdma_stag_handle irdma_handle
++#define irdma_stag_index __u32
++#define irdma_stag __u32
++#define irdma_stag_key __u8
++#define irdma_tagged_offset __u64
++#define irdma_access_privileges __u32
++#define irdma_physical_fragment __u64
++#define irdma_address_list __u64 *
++#define irdma_sgl struct irdma_sge *
++
++#define	IRDMA_MAX_MR_SIZE       0x200000000000ULL
++
++#define IRDMA_ACCESS_FLAGS_LOCALREAD		0x01
++#define IRDMA_ACCESS_FLAGS_LOCALWRITE		0x02
++#define IRDMA_ACCESS_FLAGS_REMOTEREAD_ONLY	0x04
++#define IRDMA_ACCESS_FLAGS_REMOTEREAD		0x05
++#define IRDMA_ACCESS_FLAGS_REMOTEWRITE_ONLY	0x08
++#define IRDMA_ACCESS_FLAGS_REMOTEWRITE		0x0a
++#define IRDMA_ACCESS_FLAGS_BIND_WINDOW		0x10
++#define IRDMA_ACCESS_FLAGS_ZERO_BASED		0x20
++#define IRDMA_ACCESS_FLAGS_ALL			0x3f
++
++#define IRDMA_OP_TYPE_RDMA_WRITE		0x00
++#define IRDMA_OP_TYPE_RDMA_READ			0x01
++#define IRDMA_OP_TYPE_SEND			0x03
++#define IRDMA_OP_TYPE_SEND_INV			0x04
++#define IRDMA_OP_TYPE_SEND_SOL			0x05
++#define IRDMA_OP_TYPE_SEND_SOL_INV		0x06
++#define IRDMA_OP_TYPE_RDMA_WRITE_SOL		0x0d
++#define IRDMA_OP_TYPE_BIND_MW			0x08
++#define IRDMA_OP_TYPE_FAST_REG_NSMR		0x09
++#define IRDMA_OP_TYPE_INV_STAG			0x0a
++#define IRDMA_OP_TYPE_RDMA_READ_INV_STAG	0x0b
++#define IRDMA_OP_TYPE_NOP			0x0c
++#define IRDMA_OP_TYPE_REC	0x3e
++#define IRDMA_OP_TYPE_REC_IMM	0x3f
++
++#define IRDMA_FLUSH_MAJOR_ERR	1
++
++enum irdma_device_caps_const {
++	IRDMA_WQE_SIZE =			4,
++	IRDMA_CQP_WQE_SIZE =			8,
++	IRDMA_CQE_SIZE =			4,
++	IRDMA_EXTENDED_CQE_SIZE =		8,
++	IRDMA_AEQE_SIZE =			2,
++	IRDMA_CEQE_SIZE =			1,
++	IRDMA_CQP_CTX_SIZE =			8,
++	IRDMA_SHADOW_AREA_SIZE =		8,
++	IRDMA_QUERY_FPM_BUF_SIZE =		176,
++	IRDMA_COMMIT_FPM_BUF_SIZE =		176,
++	IRDMA_GATHER_STATS_BUF_SIZE =		1024,
++	IRDMA_MIN_IW_QP_ID =			0,
++	IRDMA_MAX_IW_QP_ID =			262143,
++	IRDMA_MIN_CEQID =			0,
++	IRDMA_MAX_CEQID =			1023,
++	IRDMA_CEQ_MAX_COUNT =			IRDMA_MAX_CEQID + 1,
++	IRDMA_MIN_CQID =			0,
++	IRDMA_MAX_CQID =			524287,
++	IRDMA_MIN_AEQ_ENTRIES =			1,
++	IRDMA_MAX_AEQ_ENTRIES =			524287,
++	IRDMA_MIN_CEQ_ENTRIES =			1,
++	IRDMA_MAX_CEQ_ENTRIES =			262143,
++	IRDMA_MIN_CQ_SIZE =			1,
++	IRDMA_MAX_CQ_SIZE =			1048575,
++	IRDMA_DB_ID_ZERO =			0,
++	IRDMA_MAX_WQ_FRAGMENT_COUNT =		13,
++	IRDMA_MAX_SGE_RD =			13,
++	IRDMA_MAX_OUTBOUND_MSG_SIZE =		2147483647,
++	IRDMA_MAX_INBOUND_MSG_SIZE =		2147483647,
++	IRDMA_MAX_PUSH_PAGE_COUNT =		1024,
++	IRDMA_MAX_PE_ENA_VF_COUNT =		32,
++	IRDMA_MAX_VF_FPM_ID =			47,
++	IRDMA_MAX_SQ_PAYLOAD_SIZE =		2145386496,
++	IRDMA_MAX_INLINE_DATA_SIZE =		101,
++	IRDMA_MAX_WQ_ENTRIES =			32768,
++	IRDMA_Q2_BUF_SIZE =			256,
++	IRDMA_QP_CTX_SIZE =			256,
++	IRDMA_MAX_PDS =				262144,
++};
++
++enum irdma_addressing_type {
++	IRDMA_ADDR_TYPE_ZERO_BASED = 0,
++	IRDMA_ADDR_TYPE_VA_BASED   = 1,
++};
++
++enum irdma_flush_opcode {
++	FLUSH_INVALID = 0,
++	FLUSH_GENERAL_ERR,
++	FLUSH_PROT_ERR,
++	FLUSH_REM_ACCESS_ERR,
++	FLUSH_LOC_QP_OP_ERR,
++	FLUSH_REM_OP_ERR,
++	FLUSH_LOC_LEN_ERR,
++	FLUSH_FATAL_ERR,
++};
++
++enum irdma_cmpl_status {
++	IRDMA_COMPL_STATUS_SUCCESS = 0,
++	IRDMA_COMPL_STATUS_FLUSHED,
++	IRDMA_COMPL_STATUS_INVALID_WQE,
++	IRDMA_COMPL_STATUS_QP_CATASTROPHIC,
++	IRDMA_COMPL_STATUS_REMOTE_TERMINATION,
++	IRDMA_COMPL_STATUS_INVALID_STAG,
++	IRDMA_COMPL_STATUS_BASE_BOUND_VIOLATION,
++	IRDMA_COMPL_STATUS_ACCESS_VIOLATION,
++	IRDMA_COMPL_STATUS_INVALID_PD_ID,
++	IRDMA_COMPL_STATUS_WRAP_ERROR,
++	IRDMA_COMPL_STATUS_STAG_INVALID_PDID,
++	IRDMA_COMPL_STATUS_RDMA_READ_ZERO_ORD,
++	IRDMA_COMPL_STATUS_QP_NOT_PRIVLEDGED,
++	IRDMA_COMPL_STATUS_STAG_NOT_INVALID,
++	IRDMA_COMPL_STATUS_INVALID_PHYS_BUF_SIZE,
++	IRDMA_COMPL_STATUS_INVALID_PHYS_BUF_ENTRY,
++	IRDMA_COMPL_STATUS_INVALID_FBO,
++	IRDMA_COMPL_STATUS_INVALID_LEN,
++	IRDMA_COMPL_STATUS_INVALID_ACCESS,
++	IRDMA_COMPL_STATUS_PHYS_BUF_LIST_TOO_LONG,
++	IRDMA_COMPL_STATUS_INVALID_VIRT_ADDRESS,
++	IRDMA_COMPL_STATUS_INVALID_REGION,
++	IRDMA_COMPL_STATUS_INVALID_WINDOW,
++	IRDMA_COMPL_STATUS_INVALID_TOTAL_LEN,
++	IRDMA_COMPL_STATUS_UNKNOWN,
++};
++
++enum irdma_cmpl_notify {
++	IRDMA_CQ_COMPL_EVENT     = 0,
++	IRDMA_CQ_COMPL_SOLICITED = 1,
++};
++
++enum irdma_qp_caps {
++	IRDMA_WRITE_WITH_IMM = 1,
++	IRDMA_SEND_WITH_IMM  = 2,
++	IRDMA_ROCE	     = 4,
++	IRDMA_PUSH_MODE      = 8,
++};
++
++struct irdma_qp_uk;
++struct irdma_cq_uk;
++struct irdma_qp_uk_init_info;
++struct irdma_cq_uk_init_info;
++
++struct irdma_sge {
++	irdma_tagged_offset tag_off;
++	__u32 len;
++	irdma_stag stag;
++};
++
++struct irdma_ring {
++	__u32 head;
++	__u32 tail;
++	__u32 size;
++};
++
++struct irdma_cqe {
++	__le64 buf[IRDMA_CQE_SIZE];
++};
++
++struct irdma_extended_cqe {
++	__le64 buf[IRDMA_EXTENDED_CQE_SIZE];
++};
++
++struct irdma_post_send {
++	irdma_sgl sg_list;
++	__u32 num_sges;
++	__u32 qkey;
++	__u32 dest_qp;
++	__u32 ah_id;
++};
++
++struct irdma_post_inline_send {
++	void *data;
++	__u32 len;
++	__u32 qkey;
++	__u32 dest_qp;
++	__u32 ah_id;
++};
++
++struct irdma_post_rq_info {
++	__u64 wr_id;
++	irdma_sgl sg_list;
++	__u32 num_sges;
++};
++
++struct irdma_rdma_write {
++	irdma_sgl lo_sg_list;
++	__u32 num_lo_sges;
++	struct irdma_sge rem_addr;
++};
++
++struct irdma_inline_rdma_write {
++	void *data;
++	__u32 len;
++	struct irdma_sge rem_addr;
++};
++
++struct irdma_rdma_read {
++	irdma_sgl lo_sg_list;
++	__u32 num_lo_sges;
++	struct irdma_sge rem_addr;
++};
++
++struct irdma_bind_window {
++	irdma_stag mr_stag;
++	__u64 bind_len;
++	void *va;
++	enum irdma_addressing_type addressing_type;
++	bool ena_reads:1;
++	bool ena_writes:1;
++	irdma_stag mw_stag;
++	bool mem_window_type_1:1;
++};
++
++struct irdma_inv_local_stag {
++	irdma_stag target_stag;
++};
++
++struct irdma_post_sq_info {
++	__u64 wr_id;
++	__u8 op_type;
++	__u8 l4len;
++	bool signaled:1;
++	bool read_fence:1;
++	bool local_fence:1;
++	bool inline_data:1;
++	bool imm_data_valid:1;
++	bool push_wqe:1;
++	bool report_rtt:1;
++	bool udp_hdr:1;
++	bool defer_flag:1;
++	__u32 imm_data;
++	__u32 stag_to_inv;
++	union {
++		struct irdma_post_send send;
++		struct irdma_rdma_write rdma_write;
++		struct irdma_rdma_read rdma_read;
++		struct irdma_bind_window bind_window;
++		struct irdma_inv_local_stag inv_local_stag;
++		struct irdma_inline_rdma_write inline_rdma_write;
++		struct irdma_post_inline_send inline_send;
++	} op;
++};
++
++struct irdma_cq_poll_info {
++	__u64 wr_id;
++	irdma_qp_handle qp_handle;
++	__u32 bytes_xfered;
++	__u32 tcp_seq_num_rtt;
++	__u32 qp_id;
++	__u32 ud_src_qpn;
++	__u32 imm_data;
++	irdma_stag inv_stag; /* or L_R_Key */
++	enum irdma_cmpl_status comp_status;
++	__u16 major_err;
++	__u16 minor_err;
++	__u16 ud_vlan;
++	__u8 ud_smac[6];
++	__u8 op_type;
++	bool stag_invalid_set:1; /* or L_R_Key set */
++	bool push_dropped:1;
++	bool error:1;
++	bool solicited_event:1;
++	bool ipv4:1;
++	bool ud_vlan_valid:1;
++	bool ud_smac_valid:1;
++	bool imm_valid:1;
++};
++
++struct irdma_qp_uk_ops {
++	enum irdma_status_code (*iw_inline_rdma_write)(struct irdma_qp_uk *qp,
++						       struct irdma_post_sq_info *info,
++						       bool post_sq);
++	enum irdma_status_code (*iw_inline_send)(struct irdma_qp_uk *qp,
++						 struct irdma_post_sq_info *info,
++						 bool post_sq);
++	enum irdma_status_code (*iw_mw_bind)(struct irdma_qp_uk *qp,
++					     struct irdma_post_sq_info *info,
++					     bool post_sq);
++	enum irdma_status_code (*iw_post_nop)(struct irdma_qp_uk *qp, __u64 wr_id,
++					      bool signaled, bool post_sq);
++	enum irdma_status_code (*iw_post_receive)(struct irdma_qp_uk *qp,
++						  struct irdma_post_rq_info *info);
++	void (*iw_qp_post_wr)(struct irdma_qp_uk *qp);
++	void (*iw_qp_ring_push_db)(struct irdma_qp_uk *qp, __u32 wqe_index);
++	enum irdma_status_code (*iw_rdma_read)(struct irdma_qp_uk *qp,
++					       struct irdma_post_sq_info *info,
++					       bool inv_stag, bool post_sq);
++	enum irdma_status_code (*iw_rdma_write)(struct irdma_qp_uk *qp,
++						struct irdma_post_sq_info *info,
++						bool post_sq);
++	enum irdma_status_code (*iw_send)(struct irdma_qp_uk *qp,
++					  struct irdma_post_sq_info *info,
++					  bool post_sq);
++	enum irdma_status_code (*iw_stag_local_invalidate)(struct irdma_qp_uk *qp,
++							   struct irdma_post_sq_info *info,
++							   bool post_sq);
++};
++
++struct irdma_wqe_uk_ops {
++	void (*iw_copy_inline_data)(__u8 *dest, __u8 *src, __u32 len, __u8 polarity);
++	__u16 (*iw_inline_data_size_to_quanta)(__u32 data_size);
++	void (*iw_set_fragment)(__le64 *wqe, __u32 offset, struct irdma_sge *sge,
++				__u8 valid);
++	void (*iw_set_mw_bind_wqe)(__le64 *wqe,
++				   struct irdma_bind_window *op_info);
++};
++
++struct irdma_cq_ops {
++	void (*iw_cq_clean)(void *q, struct irdma_cq_uk *cq);
++	enum irdma_status_code (*iw_cq_poll_cmpl)(struct irdma_cq_uk *cq,
++						  struct irdma_cq_poll_info *info);
++	enum irdma_status_code (*iw_cq_post_entries)(struct irdma_cq_uk *cq,
++						     __u8 count);
++	void (*iw_cq_request_notification)(struct irdma_cq_uk *cq,
++					   enum irdma_cmpl_notify cq_notify);
++	void (*iw_cq_resize)(struct irdma_cq_uk *cq, void *cq_base, int size);
++	void (*iw_cq_set_resized_cnt)(struct irdma_cq_uk *qp, __u16 cnt);
++};
++
++struct irdma_dev_uk;
++
++struct irdma_device_uk_ops {
++	enum irdma_status_code (*iw_cq_uk_init)(struct irdma_cq_uk *cq,
++						struct irdma_cq_uk_init_info *info);
++	enum irdma_status_code (*iw_qp_uk_init)(struct irdma_qp_uk *qp,
++						struct irdma_qp_uk_init_info *info);
++};
++
++struct irdma_dev_uk {
++	struct irdma_device_uk_ops ops_uk;
++};
++
++struct irdma_sq_uk_wr_trk_info {
++	__u64 wrid;
++	__u32 wr_len;
++	__u16 quanta;
++	__u8 reserved[2];
++};
++
++struct irdma_qp_quanta {
++	__le64 elem[IRDMA_WQE_SIZE];
++};
++
++struct irdma_qp_uk {
++	struct irdma_qp_quanta *sq_base;
++	struct irdma_qp_quanta *rq_base;
++	struct irdma_uk_attrs *uk_attrs;
++	__u32 *wqe_alloc_db;
++	struct irdma_sq_uk_wr_trk_info *sq_wrtrk_array;
++	__u64 *rq_wrid_array;
++	__le64 *shadow_area;
++	__le32 *push_db;
++	__le64 *push_wqe;
++	struct irdma_ring sq_ring;
++	struct irdma_ring rq_ring;
++	struct irdma_ring initial_ring;
++	__u32 qp_id;
++	__u32 qp_caps;
++	__u32 sq_size;
++	__u32 rq_size;
++	__u32 max_sq_frag_cnt;
++	__u32 max_rq_frag_cnt;
++	__u32 max_inline_data;
++	struct irdma_qp_uk_ops qp_ops;
++	struct irdma_wqe_uk_ops wqe_ops;
++	__u16 conn_wqes;
++	__u8 qp_type;
++	__u8 swqe_polarity;
++	__u8 swqe_polarity_deferred;
++	__u8 rwqe_polarity;
++	__u8 rq_wqe_size;
++	__u8 rq_wqe_size_multiplier;
++	bool deferred_flag:1;
++	bool push_mode:1; /* whether the last post wqe was pushed */
++	bool push_dropped:1;
++	bool first_sq_wq:1;
++	bool sq_flush_complete:1; /* Indicates flush was seen and SQ was empty after the flush */
++	bool rq_flush_complete:1; /* Indicates flush was seen and RQ was empty after the flush */
++	bool destroy_pending:1; /* Indicates the QP is being destroyed */
++	void *back_qp;
++	pthread_spinlock_t *lock;
++	__u8 dbg_rq_flushed;
++	__u8 sq_flush_seen;
++	__u8 rq_flush_seen;
++};
++
++struct irdma_cq_uk {
++	struct irdma_cqe *cq_base;
++	__u32 *cqe_alloc_db;
++	__u32 *cq_ack_db;
++	__le64 *shadow_area;
++	__u32 cq_id;
++	__u32 cq_size;
++	struct irdma_ring cq_ring;
++	__u8 polarity;
++	struct irdma_cq_ops ops;
++	bool avoid_mem_cflct:1;
++};
++
++struct irdma_qp_uk_init_info {
++	struct irdma_qp_quanta *sq;
++	struct irdma_qp_quanta *rq;
++	struct irdma_uk_attrs *uk_attrs;
++	__u32 *wqe_alloc_db;
++	__le64 *shadow_area;
++	struct irdma_sq_uk_wr_trk_info *sq_wrtrk_array;
++	__u64 *rq_wrid_array;
++	__u32 qp_id;
++	__u32 qp_caps;
++	__u32 sq_size;
++	__u32 rq_size;
++	__u32 max_sq_frag_cnt;
++	__u32 max_rq_frag_cnt;
++	__u32 max_inline_data;
++	__u8 first_sq_wq;
++	__u8 type;
++	int abi_ver;
++	bool legacy_mode;
++};
++
++struct irdma_cq_uk_init_info {
++	__u32 *cqe_alloc_db;
++	__u32 *cq_ack_db;
++	struct irdma_cqe *cq_base;
++	__le64 *shadow_area;
++	__u32 cq_size;
++	__u32 cq_id;
++	bool avoid_mem_cflct;
++};
++
++void irdma_device_init_uk(struct irdma_dev_uk *dev);
++void irdma_qp_post_wr(struct irdma_qp_uk *qp);
++__le64 *irdma_qp_get_next_send_wqe(struct irdma_qp_uk *qp, __u32 *wqe_idx,
++				   __u16 quanta, __u32 total_size,
++				   struct irdma_post_sq_info *info);
++__le64 *irdma_qp_get_next_recv_wqe(struct irdma_qp_uk *qp, __u32 *wqe_idx);
++enum irdma_status_code irdma_cq_uk_init(struct irdma_cq_uk *cq,
++					struct irdma_cq_uk_init_info *info);
++enum irdma_status_code irdma_qp_uk_init(struct irdma_qp_uk *qp,
++					struct irdma_qp_uk_init_info *info);
++void irdma_clean_cq(void *q, struct irdma_cq_uk *cq);
++enum irdma_status_code irdma_nop(struct irdma_qp_uk *qp, __u64 wr_id,
++				 bool signaled, bool post_sq);
++enum irdma_status_code irdma_fragcnt_to_quanta_sq(__u32 frag_cnt, __u16 *quanta);
++enum irdma_status_code irdma_fragcnt_to_wqesize_rq(__u32 frag_cnt, __u16 *wqe_size);
++void irdma_get_wqe_shift(struct irdma_uk_attrs *uk_attrs, __u32 sge,
++			 __u32 inline_data, __u8 *shift);
++enum irdma_status_code irdma_get_sqdepth(struct irdma_uk_attrs *uk_attrs,
++					 __u32 sq_size, __u8 shift, __u32 *wqdepth);
++enum irdma_status_code irdma_get_rqdepth(struct irdma_uk_attrs *uk_attrs,
++					 __u32 rq_size, __u8 shift, __u32 *wqdepth);
++void irdma_qp_push_wqe(struct irdma_qp_uk *qp, __le64 *wqe, __u16 quanta,
++		       __u32 wqe_idx, bool post_sq);
++void irdma_clr_wqes(struct irdma_qp_uk *qp, __u32 qp_wqe_idx);
++#endif /* IRDMA_USER_H */
 -- 
 1.8.3.1
 
