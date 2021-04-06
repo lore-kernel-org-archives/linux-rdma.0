@@ -2,25 +2,24 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46E9AC433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74091C433ED
 	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC886613C0
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44FD1613C7
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 08:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239626AbhDFIWf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 04:22:35 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15488 "EHLO
+        id S234790AbhDFIWg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 04:22:36 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15487 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234790AbhDFIWb (ORCPT
+        with ESMTP id S234557AbhDFIWb (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Apr 2021 04:22:31 -0400
 Received: from DGGEMS403-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FF0nn1tlHzwRN2;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FF0nn28ghzwRN8;
         Tue,  6 Apr 2021 16:20:13 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.24) by
  DGGEMS403-HUB.china.huawei.com (10.3.19.203) with Microsoft SMTP Server id
@@ -29,12 +28,10 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>
-Subject: [PATCH for-next 2/6] RDMA/core: Remove the redundant return statements
-Date:   Tue, 6 Apr 2021 16:19:40 +0800
-Message-ID: <1617697184-48683-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 0/6] RDMA/core: Correct some coding-style issues
+Date:   Tue, 6 Apr 2021 16:19:38 +0800
+Message-ID: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
-References: <1617697184-48683-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -43,42 +40,38 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+Do some cleanups according to the coding-style of kernel.
 
-The return statements at the end of a void function is meaningless.
+Wenpeng Liang (6):
+  RDMA/core: Print the function name by __func__ instead of an fixed
+    string
+  RDMA/core: Remove the redundant return statements
+  RDMA/core: Add necessary spaces
+  RDMA/core: Remove redundant spaces
+  RDMA/core: Correct format of braces
+  RDMA/core: Correct format of block comments
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/core/mad.c   | 2 --
- drivers/infiniband/core/sysfs.c | 1 -
- 2 files changed, 3 deletions(-)
+ drivers/infiniband/core/cache.c       | 13 +++----
+ drivers/infiniband/core/cm.c          | 39 +++++++++++----------
+ drivers/infiniband/core/cm_msgs.h     |  4 +--
+ drivers/infiniband/core/cma.c         | 31 +++++++++--------
+ drivers/infiniband/core/device.c      | 64 +++++++++++++++++------------------
+ drivers/infiniband/core/iwcm.c        |  2 +-
+ drivers/infiniband/core/iwpm_msg.c    |  3 +-
+ drivers/infiniband/core/mad.c         | 45 +++++++++++-------------
+ drivers/infiniband/core/mad_rmpp.c    | 10 +++---
+ drivers/infiniband/core/nldev.c       |  2 +-
+ drivers/infiniband/core/security.c    | 12 +++----
+ drivers/infiniband/core/sysfs.c       | 15 ++++----
+ drivers/infiniband/core/ucma.c        |  8 ++---
+ drivers/infiniband/core/umem.c        |  4 +--
+ drivers/infiniband/core/user_mad.c    | 32 ++++++++----------
+ drivers/infiniband/core/uverbs_cmd.c  | 20 +++++------
+ drivers/infiniband/core/uverbs_main.c |  3 +-
+ drivers/infiniband/core/uverbs_uapi.c | 16 ++++-----
+ drivers/infiniband/core/verbs.c       |  3 +-
+ 19 files changed, 159 insertions(+), 167 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index ce0397f..16ecb81 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1860,8 +1860,6 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 						   mad_recv_wc);
- 		deref_mad_agent(mad_agent_priv);
- 	}
--
--	return;
- }
- 
- static enum smi_action handle_ib_smi(const struct ib_mad_port_private *port_priv,
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 91a53b2..dcff5e7 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1049,7 +1049,6 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
- 	kfree(hsag);
- err_free_stats:
- 	kfree(stats);
--	return;
- }
- 
- static int add_port(struct ib_core_device *coredev, int port_num)
 -- 
 2.8.1
 
