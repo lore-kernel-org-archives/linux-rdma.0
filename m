@@ -2,153 +2,329 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF91C433B4
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 23:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14CB7C433B4
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 00:15:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC4C861205
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Apr 2021 23:30:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD7D8613BE
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 00:15:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344551AbhDFXai convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Apr 2021 19:30:38 -0400
-Received: from mga06.intel.com ([134.134.136.31]:29081 "EHLO mga06.intel.com"
+        id S1347309AbhDGAP4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Apr 2021 20:15:56 -0400
+Received: from mga17.intel.com ([192.55.52.151]:60807 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344418AbhDFXae (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Apr 2021 19:30:34 -0400
-IronPort-SDR: CNRnsIpyetkI6VjoOIHoh7qbbu2z3lQuF4KH27s/ehK674rBZKjB86PS20bGWxsEC1fybDOtQT
- +DP8Y03lrp+g==
-X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="254512708"
+        id S245292AbhDGAPz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Apr 2021 20:15:55 -0400
+IronPort-SDR: HMVTOUr6Zb7LU60q2o0juRgzs1qQVYOVMwqZlQ+avxoDeMB8TVeuHWSy4GQpIWoWXZnUfuC36P
+ M+jTATvg1AzQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9946"; a="173263104"
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="254512708"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 16:30:25 -0700
-IronPort-SDR: OlwFKWXR4GKH/wqcB/R+3F0cE3WcEw6MfELYrLKlf4CoNj8MvK7KxctH413A3QTf3frGJLx5Zv
- h44eBY57eNGw==
-X-ExtLoop1: 1
+   d="scan'208";a="173263104"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 17:15:47 -0700
+IronPort-SDR: xgscpaDb7j/s1bQqCHy1q7n4I3sFyqC7BEAv/M4PoGH9p0aYMzKrVjbLi5Awj10LEmqB7u1tZh
+ fdqyBaGOll8w==
 X-IronPort-AV: E=Sophos;i="5.82,201,1613462400"; 
-   d="scan'208";a="441106637"
-Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by fmsmga004.fm.intel.com with ESMTP; 06 Apr 2021 16:30:25 -0700
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Tue, 6 Apr 2021 16:30:24 -0700
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Tue, 6 Apr 2021 16:30:24 -0700
-Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
- fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2106.013;
- Tue, 6 Apr 2021 16:30:24 -0700
-From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "Ertman, David M" <david.m.ertman@intel.com>,
-        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>
-Subject: RE: [PATCH v4 00/23] Add Intel Ethernet Protocol Driver for RDMA
- (irdma)
-Thread-Topic: [PATCH v4 00/23] Add Intel Ethernet Protocol Driver for RDMA
- (irdma)
-Thread-Index: AQHXKyghWxg1YMB540GtculmvcetP6qolJkA//+MQXA=
-Date:   Tue, 6 Apr 2021 23:30:23 +0000
-Message-ID: <be8b420a3fa844ed94d80f5a6c65acaf@intel.com>
-References: <20210406210125.241-1-shiraz.saleem@intel.com>
- <20210406231550.GB7405@nvidia.com>
-In-Reply-To: <20210406231550.GB7405@nvidia.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-x-originating-ip: [10.1.200.100]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+   d="scan'208";a="396440766"
+Received: from ssaleem-mobl.amr.corp.intel.com ([10.212.32.74])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2021 17:15:46 -0700
+From:   Shiraz Saleem <shiraz.saleem@intel.com>
+To:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
+        davem@davemloft.net
+Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH v4 resend 01/23] iidc: Introduce iidc.h
+Date:   Tue,  6 Apr 2021 19:14:40 -0500
+Message-Id: <20210407001502.1890-2-shiraz.saleem@intel.com>
+X-Mailer: git-send-email 2.31.0
+In-Reply-To: <20210407001502.1890-1-shiraz.saleem@intel.com>
+References: <20210407001502.1890-1-shiraz.saleem@intel.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH v4 00/23] Add Intel Ethernet Protocol Driver for RDMA
-> (irdma)
-> 
-> On Tue, Apr 06, 2021 at 04:01:02PM -0500, Shiraz Saleem wrote:
-> > Dave Ertman (4):
-> >   iidc: Introduce iidc.h
-> >   ice: Initialize RDMA support
-> >   ice: Implement iidc operations
-> >   ice: Register auxiliary device to provide RDMA
-> >
-> > Michael J. Ruhl (1):
-> >   RDMA/irdma: Add dynamic tracing for CM
-> >
-> > Mustafa Ismail (13):
-> >   RDMA/irdma: Register auxiliary driver and implement private channel
-> >     OPs
-> >   RDMA/irdma: Implement device initialization definitions
-> >   RDMA/irdma: Implement HW Admin Queue OPs
-> >   RDMA/irdma: Add HMC backing store setup functions
-> >   RDMA/irdma: Add privileged UDA queue implementation
-> >   RDMA/irdma: Add QoS definitions
-> >   RDMA/irdma: Add connection manager
-> >   RDMA/irdma: Add PBLE resource manager
-> >   RDMA/irdma: Implement device supported verb APIs
-> >   RDMA/irdma: Add RoCEv2 UD OP support
-> >   RDMA/irdma: Add user/kernel shared libraries
-> >   RDMA/irdma: Add miscellaneous utility definitions
-> >   RDMA/irdma: Add ABI definitions
-> >
-> > Shiraz Saleem (5):
-> >   ice: Add devlink params support
-> >   i40e: Prep i40e header for aux bus conversion
-> >   i40e: Register auxiliary devices to provide RDMA
-> >   RDMA/irdma: Add irdma Kconfig/Makefile and remove i40iw
-> >   RDMA/irdma: Update MAINTAINERS file
-> 
-> This doesn't apply, and I don't really know why:
-> 
-> Applying: iidc: Introduce iidc.h
-> Applying: ice: Initialize RDMA support
-> Applying: ice: Implement iidc operations
-> Applying: ice: Register auxiliary device to provide RDMA
-> Applying: ice: Add devlink params support
-> Applying: i40e: Prep i40e header for aux bus conversion
-> Applying: i40e: Register auxiliary devices to provide RDMA
-> Applying: RDMA/irdma: Register auxiliary driver and implement private channel
-> OPs
-> Applying: RDMA/irdma: Implement device initialization definitions
-> Applying: RDMA/irdma: Implement HW Admin Queue OPs
-> Applying: RDMA/irdma: Add HMC backing store setup functions
-> Applying: RDMA/irdma: Add privileged UDA queue implementation
-> Applying: RDMA/irdma: Add QoS definitions
-> Applying: RDMA/irdma: Add connection manager
-> Applying: RDMA/irdma: Add PBLE resource manager
-> Applying: RDMA/irdma: Implement device supported verb APIs
-> Applying: RDMA/irdma: Add RoCEv2 UD OP support
-> Applying: RDMA/irdma: Add user/kernel shared libraries
-> Applying: RDMA/irdma: Add miscellaneous utility definitions
-> Applying: RDMA/irdma: Add dynamic tracing for CM
-> Applying: RDMA/irdma: Add ABI definitions
-> Applying: RDMA/irdma: Add irdma Kconfig/Makefile and remove i40iw Using index
-> info to reconstruct a base tree...
-> error: removal patch leaves file contents
-> error: drivers/infiniband/hw/i40iw/Kconfig: patch does not apply
-> 
-> Can you investigate and fix it? Perhaps using a 9 year old version of git is the
-> problem?
-> 
+From: Dave Ertman <david.m.ertman@intel.com>
 
-Hi Jason - I think its because I used --irreversible-delete flag in git format-patch for review that this one doesn't apply.
+Introduce a shared header file used by the 'ice' Intel networking driver
+providing RDMA support and the 'irdma' driver to provide a private
+interface.
 
-I can resend without it if your trying to apply.
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+---
+ MAINTAINERS                    |   1 +
+ include/linux/net/intel/iidc.h | 242 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 243 insertions(+)
+ create mode 100644 include/linux/net/intel/iidc.h
 
-Shiraz
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a1e3502..27e424e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8955,6 +8955,7 @@ F:	Documentation/networking/device_drivers/ethernet/intel/
+ F:	drivers/net/ethernet/intel/
+ F:	drivers/net/ethernet/intel/*/
+ F:	include/linux/avf/virtchnl.h
++F:	include/linux/net/intel/iidc.h
+ 
+ INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
+ M:	Maik Broemme <mbroemme@libmpq.org>
+diff --git a/include/linux/net/intel/iidc.h b/include/linux/net/intel/iidc.h
+new file mode 100644
+index 0000000..2c360c4
+--- /dev/null
++++ b/include/linux/net/intel/iidc.h
+@@ -0,0 +1,242 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2021, Intel Corporation. */
++
++#ifndef _IIDC_H_
++#define _IIDC_H_
++
++#include <linux/auxiliary_bus.h>
++#include <linux/dcbnl.h>
++#include <linux/device.h>
++#include <linux/if_ether.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++
++enum iidc_event_type {
++	IIDC_EVENT_BEFORE_MTU_CHANGE,
++	IIDC_EVENT_AFTER_MTU_CHANGE,
++	IIDC_EVENT_BEFORE_TC_CHANGE,
++	IIDC_EVENT_AFTER_TC_CHANGE,
++	IIDC_EVENT_DSCP_MAP_CHANGE,
++	IIDC_EVENT_CRIT_ERR,
++	IIDC_EVENT_NBITS		/* must be last */
++};
++
++enum iidc_res_type {
++	IIDC_INVAL_RES,
++	IIDC_VSI,
++	IIDC_VEB,
++	IIDC_EVENT_Q,
++	IIDC_EGRESS_CMPL_Q,
++	IIDC_CMPL_EVENT_Q,
++	IIDC_ASYNC_EVENT_Q,
++	IIDC_DOORBELL_Q,
++	IIDC_RDMA_QSETS_TXSCHED,
++};
++
++enum iidc_reset_type {
++	IIDC_PFR,
++	IIDC_CORER,
++	IIDC_GLOBR,
++};
++
++enum iidc_rdma_protocol {
++	IIDC_RDMA_PROTOCOL_IWARP,
++	IIDC_RDMA_PROTOCOL_ROCEV2,
++};
++
++/* Struct to hold per DCB APP info */
++struct iidc_dcb_app_info {
++	u8  priority;
++	u8  selector;
++	u16 prot_id;
++};
++
++struct iidc_core_dev_info;
++
++#define IIDC_MAX_USER_PRIORITY		8
++#define IIDC_MAX_APPS			72
++#define IIDC_MAX_DSCP_MAPPING		64
++
++/* Struct to hold per RDMA Qset info */
++struct iidc_rdma_qset_params {
++	u32 teid;	/* Qset TEID */
++	u16 qs_handle; /* RDMA driver provides this */
++	u16 vport_id; /* VSI index */
++	u8 tc; /* TC branch the Qset should belong to */
++	u8 reserved[3];
++};
++
++struct iidc_res_base {
++	/* Union for future provision e.g. other res_type */
++	union {
++		struct iidc_rdma_qset_params qsets;
++	} res;
++};
++
++struct iidc_res {
++	/* Type of resource. */
++	enum iidc_res_type res_type;
++	/* Count requested */
++	u16 cnt_req;
++
++	/* Number of resources allocated. Filled in by callee.
++	 * Based on this value, caller to fill up "resources"
++	 */
++	u16 res_allocated;
++
++	/* Unique handle to resources allocated. Zero if call fails.
++	 * Allocated by callee and for now used by caller for internal
++	 * tracking purpose.
++	 */
++	u32 res_handle;
++
++	/* Peer driver has to allocate sufficient memory, to accommodate
++	 * cnt_requested before calling this function.
++	 * Memory has to be zero initialized. It is input/output param.
++	 * As a result of alloc_res API, this structures will be populated.
++	 */
++	struct iidc_res_base res[1];
++};
++
++struct iidc_qos_info {
++	u64 tc_ctx;
++	u8 rel_bw;
++	u8 prio_type;
++	u8 egress_virt_up;
++	u8 ingress_virt_up;
++};
++
++struct iidc_dscp_map {
++	u16 dscp_val;
++	u8 tc;
++};
++
++/* Struct to hold QoS info */
++struct iidc_qos_params {
++	struct iidc_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
++	u8 up2tc[IIDC_MAX_USER_PRIORITY];
++	u8 vport_relative_bw;
++	u8 vport_priority_type;
++	u32 num_apps;
++	struct iidc_dcb_app_info apps[IIDC_MAX_APPS];
++	struct iidc_dscp_map dscp_maps[IIDC_MAX_DSCP_MAPPING];
++	u8 num_tc;
++};
++
++union iidc_event_info {
++	/* IIDC_EVENT_AFTER_TC_CHANGE */
++	struct iidc_qos_params port_qos;
++	/* IIDC_EVENT_CRIT_ERR */
++	u32 reg;
++};
++
++struct iidc_event {
++	DECLARE_BITMAP(type, IIDC_EVENT_NBITS);
++	union iidc_event_info info;
++};
++
++/* Following APIs are implemented by core PCI driver */
++struct iidc_core_ops {
++	/* APIs to allocate resources such as VEB, VSI, Doorbell queues,
++	 * completion queues, Tx/Rx queues, etc...
++	 */
++	int (*alloc_res)(struct iidc_core_dev_info *cdev_info,
++			 struct iidc_res *res,
++			 int partial_acceptable);
++	int (*free_res)(struct iidc_core_dev_info *cdev_info,
++			struct iidc_res *res);
++
++	int (*request_reset)(struct iidc_core_dev_info *cdev_info,
++			     enum iidc_reset_type reset_type);
++
++	int (*update_vport_filter)(struct iidc_core_dev_info *cdev_info,
++				   u16 vport_id, bool enable);
++	int (*vc_send)(struct iidc_core_dev_info *cdev_info, u32 vf_id, u8 *msg,
++		       u16 len);
++};
++
++/* Following APIs are implemented by auxiliary drivers and invoked by core PCI
++ * driver
++ */
++struct iidc_auxiliary_ops {
++	/* This event_handler is meant to be a blocking call.  For instance,
++	 * when a BEFORE_MTU_CHANGE event comes in, the event_handler will not
++	 * return until the auxiliary driver is ready for the MTU change to
++	 * happen.
++	 */
++	void (*event_handler)(struct iidc_core_dev_info *cdev_info,
++			      struct iidc_event *event);
++
++	int (*vc_receive)(struct iidc_core_dev_info *cdev_info, u32 vf_id,
++			  u8 *msg, u16 len);
++};
++
++#define IIDC_RDMA_NAME	"intel_rdma"
++#define IIDC_RDMA_ID	0x00000010
++#define IIDC_MAX_NUM_AUX	4
++
++/* The const struct that instantiates cdev_info_id needs to be initialized
++ * in the .c with the macro ASSIGN_IIDC_INFO.
++ * For example:
++ * static const struct cdev_info_id cdev_info_ids[] = ASSIGN_IIDC_INFO;
++ */
++struct cdev_info_id {
++	char *name;
++	int id;
++};
++
++#define IIDC_RDMA_INFO   { .name = IIDC_RDMA_NAME,  .id = IIDC_RDMA_ID },
++
++#define ASSIGN_IIDC_INFO	\
++{				\
++	IIDC_RDMA_INFO		\
++}
++
++#define iidc_priv(x) ((x)->auxiliary_priv)
++
++/* Structure representing auxiliary driver tailored information about the core
++ * PCI dev, each auxiliary driver using the IIDC interface will have an
++ * instance of this struct dedicated to it.
++ */
++struct iidc_core_dev_info {
++	struct pci_dev *pdev; /* PCI device of corresponding to main function */
++	struct auxiliary_device *adev;
++	/* KVA / Linear address corresponding to BAR0 of underlying
++	 * pci_device.
++	 */
++	u8 __iomem *hw_addr;
++	int cdev_info_id;
++
++	u8 ftype;	/* PF(false) or VF (true) */
++
++	u16 vport_id;
++	enum iidc_rdma_protocol rdma_protocol;
++
++	struct iidc_qos_params qos_info;
++	struct net_device *netdev;
++
++	struct msix_entry *msix_entries;
++	u16 msix_count; /* How many vectors are reserved for this device */
++
++	/* Following struct contains function pointers to be initialized
++	 * by core PCI driver and called by auxiliary driver
++	 */
++	const struct iidc_core_ops *ops;
++};
++
++struct iidc_auxiliary_dev {
++	struct auxiliary_device adev;
++	struct iidc_core_dev_info *cdev_info;
++};
++
++/* structure representing the auxiliary driver. This struct is to be
++ * allocated and populated by the auxiliary driver's owner. The core PCI
++ * driver will access these ops by performing a container_of on the
++ * auxiliary_device->dev.driver.
++ */
++struct iidc_auxiliary_drv {
++	struct auxiliary_driver adrv;
++	struct iidc_auxiliary_ops *ops;
++};
++
++#endif /* _IIDC_H_*/
+-- 
+1.8.3.1
+
