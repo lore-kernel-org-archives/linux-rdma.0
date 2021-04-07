@@ -2,237 +2,132 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3BBCC43460
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 10:42:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B556C433ED
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 11:32:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE1E661242
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 10:42:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DCDE61369
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 11:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234408AbhDGKmU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Apr 2021 06:42:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54192 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234267AbhDGKmT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Apr 2021 06:42:19 -0400
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D79ADC06175F
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Apr 2021 03:42:09 -0700 (PDT)
-Received: by mail-ej1-x635.google.com with SMTP id n2so20599184ejy.7
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Apr 2021 03:42:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=sqfP5iAb61OptBn+FoiSmF1jxKVyTz4nX1wWzNO0/8E=;
-        b=RYIwtnoDhzT0WomesigAkLfILKEh6y27z1NMnUYmIqqYyyzOA4b8xo/uote4nWWxw7
-         6fkvYX+vTvEwxB0TKe+9x8bhMEZCZdSLb28bk3F6QRyVuzMYO65xUPEm8+HL0axnhDxy
-         eNmf6C9VSG/31eprUcx9ZE3M0gaD1sCOwWlXBjw1BjFaa7YCsynIwFZqpsZKxhJI4Wi7
-         8CSQV3p8JESt426LXXoQ+dmQb0+/C1kL/AXfbmiGB3PGjVV4o8PySgoxAZ3fZu1Q+mXB
-         Vm4j3gQs4hGnaNNLrarCPkGA87cXYNFH+OgYm6CiWcn+XuZcxdWdGttIdg3C35XzKpBk
-         rXsw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=sqfP5iAb61OptBn+FoiSmF1jxKVyTz4nX1wWzNO0/8E=;
-        b=mawqjixu05X/NFHRtsj9ndYJanLLQadiyar1mfkIi0tonHdPLZqdEQ0RnnQBbpceTX
-         c7QnqTf9V+heVcE2WwTbYZlyS3aUI7rpkMSA4WtccpyJ/R1xGlcn1jFNTglbqaQYig2B
-         6uE74EhAWz0Wo5I7+WyNF1j6/wcdP1a5OA8WzAJlKvvUBQLfrLf/1EjFTLDJmOXKlwcu
-         Lvz6XvynL6nIl6v5GQJA4AcTYy9nhGhCJSaBZr22LQ3yxu8Tt9yXezTiV7FGrR9f351G
-         tcAUHX1Iio02HVNIlheFPn7rFe1IBivL2aM35c+iueW0UecElB6lNPXPTROqYO+/qnQD
-         tYOQ==
-X-Gm-Message-State: AOAM533UF6mg64Ms+pQVc2hjBe6K4aHPU4IkcqmG2J2I6pWtHRe8hqmr
-        /QEamtIgiXJZj5Atm+CEFK13rbDogepGlS3+
-X-Google-Smtp-Source: ABdhPJynO3NlvzFfVIrUQ4gij8cfPzuTWhzBuBmca6V3Ys0jW0HXfDgq+p1zKaekweWaslQ3sfTyWg==
-X-Received: by 2002:a17:906:398a:: with SMTP id h10mr2975370eje.155.1617792128420;
-        Wed, 07 Apr 2021 03:42:08 -0700 (PDT)
-Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aeee5.dynamic.kabel-deutschland.de. [95.90.238.229])
-        by smtp.googlemail.com with ESMTPSA id j1sm12359779ejt.18.2021.04.07.03.42.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Apr 2021 03:42:08 -0700 (PDT)
-From:   Gioh Kim <gi-oh.kim@ionos.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv2 for-next 3/4] RDMA/rtrs-clt: Check state of the rtrs_clt_sess before reading its stats
-Date:   Wed,  7 Apr 2021 12:42:02 +0200
-Message-Id: <20210407104203.24792-4-gi-oh.kim@ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210407104203.24792-1-gi-oh.kim@ionos.com>
-References: <20210407104203.24792-1-gi-oh.kim@ionos.com>
+        id S239923AbhDGLcM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Apr 2021 07:32:12 -0400
+Received: from mail-co1nam11on2063.outbound.protection.outlook.com ([40.107.220.63]:16608
+        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S233309AbhDGLcL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 7 Apr 2021 07:32:11 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Q4Kdgcs3RkvZxKhUpvsUUgsCVMy7R2HNruWyCDHeX07KlbuQc9n7OA0ugqknk0xvMAAyDwhphG37Xzzhlyelh22ks3/9lQxEJhaghiW1IXCeI7TPHRcqmzWb+FkhMo+oel5pybmOIbL4NfsCLu+VZ2BXeGJf2yXD2C+c7+UZRrMnKn/HvkNSjELtRU2To1uOkKZGR4u/tpxI4aGKwmEgEGi53ScMmLugnfHIxA8l2+QAH4lI3p88uDc/AVWM+emu0u3yb4KdIpcYTR/MqDSAcwPxDSPtKaz0tiCyeK8KMTYaYo+ghu2QCHANCqf2N0ud29Gttr5MbbyavVp3E9zVyA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uAyVrG08zZeQWgnUDqtGWU0Gve9ZxcX8+umaWZqc8Cg=;
+ b=npzvWkc1M5PFGqKGEozn5sfRHPrWjAwtQUf4+bzJ2bLdCSevSNuSzwn0HtdJMIKEIKW/ftdTBNIce9RLiq33XSsNrJ/R4SsIH1rlpY43hzO5cMGLR4/nw49T6qfucsmcjaNIpouBDsCvbpcvqS1Z+EDoPXg2gSbXOjkb7MTQv449KcNMz1N3ciiLwVPQwhXW84NCkyZ/N6Nh0MdjfUnlAj4uRqX6lNBaoKtdoMTpyJceWhnZGB0I5TzH7C0DUGQsskJjWhSnt4KACu/87GOio4unL5e445u2uqtbooRY4Nl01V7Qo5hfalaD9ZTsHwaP4rlzXBBEfyZ0rVGLaYeCVQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=uAyVrG08zZeQWgnUDqtGWU0Gve9ZxcX8+umaWZqc8Cg=;
+ b=hp0MafnvTIFAE6WIhJfLhf66iyd5LOSGnZukUvlSY/nquLqNc0gfAD+JPU/Kmzvlul88PACzqhiHYHQmQCk3kXyp1ZUqRmqGKRbleb7qQBxA8fhRVcXdDyuZLhVPqAoiNO+PO3xdQ9QZ+4lt+ZSUsTrh+E0paSGwEHTGyCzvgys6Hz/WjfU468XW2p/59XkL7TDqAEpRMEx3DB2uONTiHL+vqMc2fRDTIsiOurKB9OlkBS5a0XtxHQYEV6NkdQ0TKFP1vpqJc84Br22QAl3qBUXqwIcCec53qCN9ZrsGh5uerSc92sg21lWJorPsFcVGwXTscNVwO0zm/4pKPra73g==
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=nvidia.com;
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
+ by DM6PR12MB4250.namprd12.prod.outlook.com (2603:10b6:5:21a::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3999.27; Wed, 7 Apr
+ 2021 11:31:59 +0000
+Received: from DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1c62:7fa3:617b:ab87]) by DM6PR12MB3834.namprd12.prod.outlook.com
+ ([fe80::1c62:7fa3:617b:ab87%6]) with mapi id 15.20.3999.032; Wed, 7 Apr 2021
+ 11:31:59 +0000
+Date:   Wed, 7 Apr 2021 08:31:57 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     "dledford@redhat.com" <dledford@redhat.com>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "Ertman, David M" <david.m.ertman@intel.com>,
+        "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>
+Subject: Re: [PATCH v4 00/23] Add Intel Ethernet Protocol Driver for RDMA
+ (irdma)
+Message-ID: <20210407113157.GC7405@nvidia.com>
+References: <20210406210125.241-1-shiraz.saleem@intel.com>
+ <20210406231550.GB7405@nvidia.com>
+ <be8b420a3fa844ed94d80f5a6c65acaf@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <be8b420a3fa844ed94d80f5a6c65acaf@intel.com>
+X-Originating-IP: [142.162.115.133]
+X-ClientProxiedBy: MN2PR16CA0039.namprd16.prod.outlook.com
+ (2603:10b6:208:234::8) To DM6PR12MB3834.namprd12.prod.outlook.com
+ (2603:10b6:5:14a::12)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (142.162.115.133) by MN2PR16CA0039.namprd16.prod.outlook.com (2603:10b6:208:234::8) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4020.17 via Frontend Transport; Wed, 7 Apr 2021 11:31:59 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lU6Pd-001zfo-Uk; Wed, 07 Apr 2021 08:31:57 -0300
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 9a078c97-42dd-499c-e405-08d8f9b8c1b0
+X-MS-TrafficTypeDiagnostic: DM6PR12MB4250:
+X-Microsoft-Antispam-PRVS: <DM6PR12MB4250F63851E6C7CB910B337AC2759@DM6PR12MB4250.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: W1Qqzzvs6CwwMyk5ppcVCINwpdEekyJnEhAcFBvt0nnpd9JJTjL4uuOMJSJnE8k1W12874poSSTpYP9obO6px4Hl1FXO24aFxisecthWiHyBWwf3/VrTNDLLOWIsWSz35n5Voh7exoMjUK6ZkoCySiPh4xEvM8fUdCd+kLDEfXgziti8QJUMV34AXjc5H9+sUs14zUMr1ctnKbp4ApXZM7cCNsmYvhsJlu4c0Pd8t3RjF58iP1WiVltb8LQYDCL13tAQGuWlG0O8v4Q3HgtKEmN+wTLDC/Ezo1VA86P9lR4Y7WvMGuPf6NpIEo6ogQkEN/1Mp0ZrPmUUaVH3VR9OLg39WxXbOCHs7yVWJaADrjpobGgpZ9oHjaZ2KgRSoBQhVR7P/k4irlayes4roilUh4ERXOnWFJyz24xc4uUdf7pzQgeotRsytfbFsMrwQ9DcjbqoHa7xUSGIE9Bz2j06OB7sn1muIW7Ee/FbEoHfo/fCikMnUErCtNHS1gX5z7t8B3monTK3w8siQFf2x/fE/yeOFANSweml48s0TpyzgkJCgbko5sKRsdhldj55pLBR9cz95Lj3U8hkrDJBdtqBUHCzeo7KLX7hcEixupNuPoy26yc8ATRBInJtDP8obay4MfObS/EmTasOTChHppjbs+fVdR4G26133zIQ6Dbp0VA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(396003)(366004)(136003)(39860400002)(376002)(186003)(4326008)(36756003)(26005)(33656002)(9786002)(9746002)(478600001)(2616005)(5660300002)(1076003)(426003)(4744005)(86362001)(83380400001)(2906002)(54906003)(316002)(66556008)(66476007)(66946007)(8676002)(6916009)(38100700001)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?zBsvzkTLgXW3t/TCF7AX9wnPVpgxFsAVGNvF3INXLqALU+bKBxEVW3+sxmIt?=
+ =?us-ascii?Q?mD5QGTdn80QZ2Fet38ksZ+Ys6weEiLsMj7zQhi8MR96K6YhZHf4vklvPKrJh?=
+ =?us-ascii?Q?UIO8y03L0N3eiC3RvvE/5X0v6HyHMq12YYwn/DxTHpNq9/Owf9sFX+gJzjKd?=
+ =?us-ascii?Q?ITejfdz3F2jr94P4nMcVThHejYpOQLCpD4NIWHUjiBcNHV36pIum8AgnSxf1?=
+ =?us-ascii?Q?fcicr4SqKSRoW0sfYba3Vh3MhBB8KqUAs0g/pQfCqLcBe7ywQLjBYFJ0J5oS?=
+ =?us-ascii?Q?bI+1R9FBLd5lzQm52mS7PC4peCpiAlJQXuZcvXBnN2vG7Vto2ltC/KNtaoMw?=
+ =?us-ascii?Q?ZCQ4/Mc2yB73IZZNWGyH59HyRIM+4q/Xfd/21taxdiFa2sUxT76HkRThTy+o?=
+ =?us-ascii?Q?cNrWPgKw3F89RI99vefRb4z4CWHWJy0YkEm7DQwhAPH4VMuSlgZeSMFda08T?=
+ =?us-ascii?Q?PbzxtUaSsGa4HiMyVszqIVyblWZ4AmJJZBJucPVgAHThq0zQYXNTD4qZKZbF?=
+ =?us-ascii?Q?dbUNnoq/ab84ZxAlKOOLRVMB8uvdTRqPq5otYT+AbYyGOsk/QNFEZFqgsCaT?=
+ =?us-ascii?Q?k2wVLSBq4lVYMemDP8QUT+CNzBls1rn8nCORyRWk3sDEf8rg+ufQkIrewUPx?=
+ =?us-ascii?Q?eHeIAyXEf56nmmgKQJgbE+e1XJiDEAPgqm1QE2jq4Hvc6POpwPiNcM7M70JK?=
+ =?us-ascii?Q?lQdE91WEspbbfLjNkUtADQfZ4Mw/I7pm9P/7apEuxZ3ahKInhCLCmMDBw67v?=
+ =?us-ascii?Q?FsSm8YSdhm4l/jbtZ1iDsqCh2AMVIkPut34KxNwBotDNqZ+a1lmWj3Jd8oc2?=
+ =?us-ascii?Q?HARdSGi/vJSfXHIqQCN5bK4RTMBTtSuVtbKovUKclcP7x916fVgA9756esJE?=
+ =?us-ascii?Q?/I5AdXYccLhY8pnl+AWUamkLFNcat9ZxH94sicLJzSA1UMgT8SdkddfsI04M?=
+ =?us-ascii?Q?qj6Ge5qhJcnjor3PvX2sZx77FlDsAcEcWSWHouKYgwqnNctF6oKALxWAXurU?=
+ =?us-ascii?Q?AQynhbWj1eNCWGc2elUzS6anSWBZ2SmXw8d3yVGr1Yq4nplv6qW1qpGlsfgz?=
+ =?us-ascii?Q?xzbKnvARLgI6donyTMmz4CPoY3zqSzS+ZZ/6VdiukIA5gp31diYEIf7B226U?=
+ =?us-ascii?Q?VOjvhtmmna2N9Dc/Mo6smUg7T+taESB+cHebj6aRfZIECryEDA7HSUq0VLHv?=
+ =?us-ascii?Q?XTn77jO1hh8h8y9djf4mcm/UHl6EKFk4juf9+zt0Q6gyOp03Zr0qT70TDU+D?=
+ =?us-ascii?Q?DFaoXGdu2EXx/xB5FeMZvCiM3+jC2iLVSFb2vq1ySwAaTNUm7a6et38Xudnw?=
+ =?us-ascii?Q?lI56b9pwV7M2WtalNjMZa1BGfx8wLRAxYvYoT1HTMHGLow=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9a078c97-42dd-499c-e405-08d8f9b8c1b0
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Apr 2021 11:31:59.3928
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Co9RU0UWWZ3b6y9FDy6SaH5tRiZKnqrKb3wfdhg+n9HxojJGMH7FGZHwqxrHi+hw
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4250
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+On Tue, Apr 06, 2021 at 11:30:23PM +0000, Saleem, Shiraz wrote:
 
-KASAN detected the following BUG:
-[  230.436512] ==================================================================
-[  230.437182] BUG: KASAN: use-after-free in get_next_path_min_inflight+0x95/0x150 [rtrs_client]
-[  230.437632] Read of size 4 at addr ffff88a796b4bb50 by task fio/4130
+> Hi Jason - I think its because I used --irreversible-delete flag in git format-patch for review that this one doesn't apply.
 
-[  230.438069] CPU: 32 PID: 4130 Comm: fio Tainted: G           O      5.4.84-pserver #5.4.84-1+feature+linux+5.4.y+dbg+20201216.1319+b6b887b~deb10
-[  230.438079] Hardware name: Supermicro H8QG6/H8QG6, BIOS 3.00       09/04/2012
-[  230.438088] Call Trace:
-[  230.438111]  dump_stack+0x96/0xe0
-[  230.438136]  print_address_description.constprop.4+0x1f/0x300
-[  230.438150]  ? irq_work_claim+0x2e/0x50
-[  230.438172]  __kasan_report.cold.8+0x78/0x92
-[  230.438203]  ? get_next_path_min_inflight+0x95/0x150 [rtrs_client]
-[  230.438234]  kasan_report+0x10/0x20
-[  230.438249]  check_memory_region+0x144/0x1c0
-[  230.438274]  get_next_path_min_inflight+0x95/0x150 [rtrs_client]
-[  230.438312]  rtrs_clt_request+0x1fe/0x700 [rtrs_client]
-[  230.438364]  ? rtrs_clt_close_work+0x40/0x40 [rtrs_client]
-[  230.438395]  ? rtrs_clt_change_state_get_old+0x70/0x70 [rtrs_client]
-[  230.438417]  ? blk_mq_start_request+0x1a4/0x2c0
-[  230.438430]  ? blk_rq_map_sg+0x3d5/0xaa0
-[  230.438468]  ? round_jiffies_up+0x60/0x90
-[  230.438511]  rnbd_queue_rq+0x3e2/0x870 [rnbd_client]
-[  230.438567]  ? rnbd_softirq_done_fn+0x90/0x90 [rnbd_client]
-[  230.438587]  ? rnbd_get_permit+0x50/0x50 [rnbd_client]
-[  230.438601]  ? __lock_acquire+0x68e/0x23a0
-[  230.438635]  ? blk_mq_get_driver_tag+0xbe/0x250
-[  230.438652]  ? blk_mq_dequeue_from_ctx+0x4d0/0x4d0
-[  230.438663]  ? lock_acquire+0xf3/0x210
-[  230.438726]  __blk_mq_try_issue_directly+0x272/0x390
-[  230.438752]  ? blk_mq_get_driver_tag+0x250/0x250
-[  230.438785]  ? rcu_is_watching+0x34/0x50
-[  230.438816]  blk_mq_request_issue_directly+0xa8/0xf0
-[  230.438833]  ? blk_mq_flush_plug_list+0x690/0x690
-[  230.438859]  ? lock_downgrade+0x390/0x390
-[  230.438892]  ? lock_acquire+0xf3/0x210
-[  230.438920]  blk_mq_try_issue_list_directly+0xa1/0x160
-[  230.438952]  blk_mq_sched_insert_requests+0x23c/0x390
-[  230.438992]  blk_mq_flush_plug_list+0x361/0x690
-[  230.439037]  ? blk_mq_insert_requests+0x300/0x300
-[  230.439058]  ? current_time+0x8c/0xe0
-[  230.439074]  ? timestamp_truncate+0x180/0x180
-[  230.439101]  ? file_remove_privs+0xb4/0x1f0
-[  230.439139]  blk_flush_plug_list+0x1d1/0x210
-[  230.439167]  ? blk_insert_cloned_request+0x1e0/0x1e0
-[  230.439220]  blk_finish_plug+0x3c/0x54
-[  230.439243]  blkdev_write_iter+0x173/0x260
-[  230.439272]  ? bd_finish_claiming+0xe0/0xe0
-[  230.439298]  ? 0xffffffff9a000000
-[  230.439330]  ? rw_verify_area+0xd9/0x130
-[  230.439359]  aio_write+0x1d3/0x300
-[  230.439387]  ? aio_read+0x260/0x260
-[  230.439477]  ? lock_downgrade+0x390/0x390
-[  230.439497]  ? lock_acquire+0xf3/0x210
-[  230.439512]  ? __might_fault+0x7d/0xe0
-[  230.439570]  io_submit_one+0xccc/0x1920
-[  230.439633]  ? aio_poll_complete_work+0x850/0x850
-[  230.439735]  ? __x64_sys_io_submit+0x118/0x380
-[  230.439748]  __x64_sys_io_submit+0x118/0x380
-[  230.439777]  ? __ia32_compat_sys_io_submit+0x360/0x360
-[  230.439793]  ? __x64_sys_io_getevents+0xd7/0x150
-[  230.439807]  ? mark_held_locks+0x29/0xa0
-[  230.439827]  ? entry_SYSCALL_64_after_hwframe+0x3e/0xbe
-[  230.439840]  ? trace_hardirqs_off_caller+0x15/0x110
-[  230.439857]  ? mark_held_locks+0x29/0xa0
-[  230.439893]  ? do_syscall_64+0x68/0x270
-[  230.439903]  do_syscall_64+0x68/0x270
-[  230.439924]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-[  230.439936] RIP: 0033:0x7f8f10233f59
-[  230.439948] Code: 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 07 6f 0c 00 f7 d8 64 89 01 48
-[  230.439958] RSP: 002b:00007fff1df1d238 EFLAGS: 00000246 ORIG_RAX: 00000000000000d1
-[  230.439970] RAX: ffffffffffffffda RBX: 00007f8f104ec360 RCX: 00007f8f10233f59
-[  230.439980] RDX: 0000555c4c1f9440 RSI: 0000000000000001 RDI: 00007f8f04730000
-[  230.439989] RBP: 00007f8f04730000 R08: 0000555c4c1c97f0 R09: 00000000000001e0
-[  230.439998] R10: 0000555c4c1f9670 R11: 0000000000000246 R12: 0000000000000001
-[  230.440007] R13: 0000000000000000 R14: 0000555c4c1f9440 R15: 00007f8ee30b5210
+I doubt it
 
-[  230.440257] Allocated by task 3440:
-[  230.440471]  save_stack+0x19/0x80
-[  230.440482]  __kasan_kmalloc.constprop.9+0xc1/0xd0
-[  230.440492]  kmem_cache_alloc_trace+0x15b/0x350
-[  230.440508]  alloc_sess+0xf4/0x570 [rtrs_client]
-[  230.440524]  rtrs_clt_open+0x3b4/0x780 [rtrs_client]
-[  230.440538]  find_and_get_or_create_sess+0x649/0x9d0 [rnbd_client]
-[  230.440551]  rnbd_clt_map_device+0xd7/0xf50 [rnbd_client]
-[  230.440565]  rnbd_clt_map_device_store+0x4ee/0x970 [rnbd_client]
-[  230.440577]  kernfs_fop_write+0x141/0x240
-[  230.440587]  vfs_write+0xf3/0x280
-[  230.440598]  ksys_write+0xba/0x150
-[  230.440608]  do_syscall_64+0x68/0x270
-[  230.440619]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> I can resend without it if your trying to apply.
 
-[  230.440806] Freed by task 4148:
-[  230.441013]  save_stack+0x19/0x80
-[  230.441024]  __kasan_slab_free+0x125/0x170
-[  230.441034]  kfree+0xe7/0x3f0
-[  230.441045]  kobject_put+0xd3/0x240
-[  230.441061]  rtrs_clt_destroy_sess_files+0x3f/0x60 [rtrs_client]
-[  230.441076]  rtrs_clt_remove_path_from_sysfs+0x95/0xe0 [rtrs_client]
-[  230.441092]  rtrs_clt_remove_path_store+0x3e/0xa0 [rtrs_client]
-[  230.441103]  kernfs_fop_write+0x141/0x240
-[  230.441113]  vfs_write+0xf3/0x280
-[  230.441123]  ksys_write+0xba/0x150
-[  230.441133]  do_syscall_64+0x68/0x270
-[  230.441145]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Now it is too big to go to the mailing lists
 
-[  230.441333] The buggy address belongs to the object at ffff88a796b4bb00
-                which belongs to the cache kmalloc-96 of size 96
-[  230.441705] The buggy address is located 80 bytes inside of
-                96-byte region [ffff88a796b4bb00, ffff88a796b4bb60)
-[  230.442063] The buggy address belongs to the page:
-[  230.442294] page:ffffea009e5ad2c0 refcount:1 mapcount:0 mapping:ffff8887c6016e00 index:0x0
-[  230.442305] flags: 0x12ffff8000000200(slab)
-[  230.442320] raw: 12ffff8000000200 dead000000000100 dead000000000122 ffff8887c6016e00
-[  230.442332] raw: 0000000000000000 0000000000200020 00000001ffffffff 0000000000000000
-[  230.442340] page dumped because: kasan: bad access detected
-
-[  230.442525] Memory state around the buggy address:
-[  230.442756]  ffff88a796b4ba00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-[  230.443059]  ffff88a796b4ba80: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-[  230.443359] >ffff88a796b4bb00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-[  230.443681]                                                  ^
-[  230.443935]  ffff88a796b4bb80: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
-[  230.444233]  ffff88a796b4bc00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-[  230.444529] ==================================================================
-
-When get_next_path_min_inflight is called to select the next path, it
-iterates over the list of available rtrs_clt_sess (paths). It then reads
-the number of inflight IOs for that path to select one which has the least
-
-But it may so happen that that rtrs_clt_sess (path) is no longer in the
-connected state, and like in the above BUG its resources have also been
-freed.
-
-So, check the state of the rtrs_clt_sess (path) before going ahead to read
-its inflight stats.
-
-Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Reviewed-by: Gioh Kim <gi-oh.kim@ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
----
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index f3b8151052cb..96029d4ec26f 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -812,6 +812,9 @@ static struct rtrs_clt_sess *get_next_path_min_inflight(struct path_it *it)
- 	int inflight;
- 
- 	list_for_each_entry_rcu(sess, &clt->paths_list, s.entry) {
-+		if (unlikely(READ_ONCE(sess->state) != RTRS_CLT_CONNECTED))
-+			continue;
-+
- 		if (unlikely(!list_empty(raw_cpu_ptr(sess->mp_skip_entry))))
- 			continue;
- 
--- 
-2.25.1
-
+Jason
