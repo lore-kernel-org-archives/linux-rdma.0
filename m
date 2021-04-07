@@ -2,250 +2,102 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F572C43470
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 08:18:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03C63C43461
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 09:24:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8BFF61363
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 08:18:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3332613A7
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Apr 2021 09:24:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239499AbhDGISv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Apr 2021 04:18:51 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:16371 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238125AbhDGISt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Apr 2021 04:18:49 -0400
-Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4FFcgS476DzjYZv;
-        Wed,  7 Apr 2021 16:16:52 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.24) by
- DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
- 14.3.498.0; Wed, 7 Apr 2021 16:18:29 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Wenpeng Liang <liangwenpeng@huawei.com>,
-        Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v2 for-next 5/7] RDMA/core: Correct format of braces
-Date:   Wed, 7 Apr 2021 16:15:51 +0800
-Message-ID: <1617783353-48249-6-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1617783353-48249-1-git-send-email-liweihang@huawei.com>
-References: <1617783353-48249-1-git-send-email-liweihang@huawei.com>
+        id S234849AbhDGJYV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Apr 2021 05:24:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36896 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234700AbhDGJYB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Apr 2021 05:24:01 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D69C061756
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Apr 2021 02:23:51 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id h10so19934441edt.13
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Apr 2021 02:23:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=bT9O3yxb3U2ZpSof5+/N3iavOsv/hQGWC8I1eC41IFU=;
+        b=cVLGUmU+lpnnJ9g25Q/MCbUqMvwlYuxr2Pqg/309p29MOBqrgSBb0OP03J74YPm4hA
+         0eaF0cjARvTph7+fQ1wtVIQMesA28fIeA1LThFKjVr0l7pwsiV4E4QOWUXhAnnsvYSEM
+         8yjGPsBj+AU88b3mY+8djUAOhAlumKVD/k7MdVEAxh8akic3+mU5MAnsU/Qvje7K8F1g
+         TiIMWUb6TDceAwHwuUtO8irzpkcawYPqwoZvaXGT1Ehkx1kzDhA2ocJ/Zc43izmHuYS2
+         QwHlzdMHE16NNa3OYruKeLo30MhXL9Z0B4nk8ucnPl6fspPKI9bLc+qYOccSxygrnJE5
+         T/sg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=bT9O3yxb3U2ZpSof5+/N3iavOsv/hQGWC8I1eC41IFU=;
+        b=esm4tUa2wii5KfQ85+Z13TWeTUPLoqLRvDzaBKSdOoJ4G/beXXwMVBC8CuTAvvcHOP
+         xjnvZIOj7IoJEr0XYHWH38mDIQg1g9e6N2/MfgaG9CJPS+3wo6++d52QjK0A75DWaEZv
+         RGZmjyMC7eeFGg/BGVbktXGGeRX8DrUUKH+6cUC4kpBcgQblTqzaCFr3I3QQj09klpz6
+         WZyIIjr5LSOGAdECTZZyjZ2M382jvwYRVesXF88CPIsJ2uFfBnr/i60WliU8Zw90Kf/p
+         cE8QtLRwoJtBD5Es2YTiqoa2k2wUE7MTBpZ6wW1IDahfbRYYCjodc8zXBlEnTF5j4xfR
+         8c8A==
+X-Gm-Message-State: AOAM532smizfjNRaqb6eRCyQWLsS0YcnYpBiPpCXIfiA8gXK7qrROjLA
+        Uv1yLfQ6AN8Zm0EX3cTwW5QbGK+cK8CX2kXbHKm22A==
+X-Google-Smtp-Source: ABdhPJzw84Ds1WD+MpLVZj+P3UsxFwSP756RnONErJfy8gfHxhqqD52dlXDWfAR/2M2YaYMoR82XAmzl3gqp+1xec0M=
+X-Received: by 2002:a05:6402:4388:: with SMTP id o8mr3206234edc.262.1617787430105;
+ Wed, 07 Apr 2021 02:23:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-CFilter-Loop: Reflected
+References: <20210406120553.197848-1-gi-oh.kim@ionos.com> <20210406120553.197848-2-gi-oh.kim@ionos.com>
+In-Reply-To: <20210406120553.197848-2-gi-oh.kim@ionos.com>
+From:   Jinpu Wang <jinpu.wang@ionos.com>
+Date:   Wed, 7 Apr 2021 11:23:39 +0200
+Message-ID: <CAMGffEn47V33+EwLXyDiKcZ6zMvD-QufAAfPcVgHNGveKrkR+A@mail.gmail.com>
+Subject: Re: [PATCH 1/4] RDMA/rtrs-clt: Add a minimum latency multipath policy
+To:     Gioh Kim <gi-oh.kim@ionos.com>
+Cc:     linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Haris Iqbal <haris.iqbal@ionos.com>,
+        Gioh Kim <gi-oh.kim@cloud.ionos.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wenpeng Liang <liangwenpeng@huawei.com>
+On Tue, Apr 6, 2021 at 2:06 PM Gioh Kim <gi-oh.kim@ionos.com> wrote:
+>
+> From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+>
+> This patch adds new multipath policy: min-latency.
+> Client checks the latency of each path when it sends the heart-beat.
+> And it sends IO to the path with the minimum latency.
+>
+> Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+> Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+> ---
+>  drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 18 +++++--
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 57 +++++++++++++++++++-
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.h       |  1 +
+>  drivers/infiniband/ulp/rtrs/rtrs-pri.h       |  2 +
+>  drivers/infiniband/ulp/rtrs/rtrs.c           |  3 ++
+>  5 files changed, 77 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+> index c502dcbae9bb..bc46b7a99ba0 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+> @@ -101,6 +101,8 @@ static ssize_t mpath_policy_show(struct device *dev,
+>         case MP_POLICY_MIN_INFLIGHT:
+>                 return sysfs_emit(page, "min-inflight (MI: %d)\n",
+>                                   clt->mp_policy);
+> +       case MP_POLICY_MIN_LATENCY:
+> +               return sprintf(page, "min-latency (ML: %d)\n", clt->mp_policy);
+sysfs_emit should be used here, Gioh please fix it.
 
-Do following cleanups about braces:
-- Add the necessary braces to maintain context alignment.
-- Fix the open '{' that is not on the same line as "switch".
-- Remove braces that are not necessary for single statement blocks.
-- Fix "else" that doesn't follow close brace '}'.
-
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
----
- drivers/infiniband/core/cache.c |  3 ++-
- drivers/infiniband/core/cm.c    |  3 +--
- drivers/infiniband/core/cma.c   | 21 ++++++++++++---------
- drivers/infiniband/core/mad.c   | 20 ++++++++------------
- drivers/infiniband/core/sysfs.c |  6 ++----
- 5 files changed, 25 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index d779590..3b0991f 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -1113,8 +1113,9 @@ int ib_find_cached_pkey(struct ib_device *device, u32 port_num,
- 				*index = i;
- 				ret = 0;
- 				break;
--			} else
-+			} else {
- 				partial_ix = i;
-+			}
- 		}
- 
- 	if (ret && partial_ix >= 0) {
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 190ac78..ed7b70b 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -3917,8 +3917,7 @@ static int cm_establish(struct ib_cm_id *cm_id)
- 
- 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
--	switch (cm_id->state)
--	{
-+	switch (cm_id->state) {
- 	case IB_CM_REP_SENT:
- 	case IB_CM_MRA_REP_RCVD:
- 		cm_id->state = IB_CM_ESTABLISHED;
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 5ad22b2..ca5ff35 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1126,8 +1126,9 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
- 						 qp_attr_mask);
- 		qp_attr->port_num = id_priv->id.port_num;
- 		*qp_attr_mask |= IB_QP_PORT;
--	} else
-+	} else {
- 		ret = -ENOSYS;
-+	}
- 
- 	if ((*qp_attr_mask & IB_QP_TIMEOUT) && id_priv->timeout_set)
- 		qp_attr->timeout = id_priv->timeout;
-@@ -4116,10 +4117,11 @@ int rdma_connect_locked(struct rdma_cm_id *id,
- 			ret = cma_resolve_ib_udp(id_priv, conn_param);
- 		else
- 			ret = cma_connect_ib(id_priv, conn_param);
--	} else if (rdma_cap_iw_cm(id->device, id->port_num))
-+	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = cma_connect_iw(id_priv, conn_param);
--	else
-+	} else {
- 		ret = -ENOSYS;
-+	}
- 	if (ret)
- 		goto err_state;
- 	return 0;
-@@ -4226,9 +4228,9 @@ static int cma_accept_iw(struct rdma_id_private *id_priv,
- 	iw_param.ird = conn_param->responder_resources;
- 	iw_param.private_data = conn_param->private_data;
- 	iw_param.private_data_len = conn_param->private_data_len;
--	if (id_priv->id.qp) {
-+	if (id_priv->id.qp)
- 		iw_param.qpn = id_priv->qp_num;
--	} else
-+	else
- 		iw_param.qpn = conn_param->qp_num;
- 
- 	return iw_cm_accept(id_priv->cm_id.iw, &iw_param);
-@@ -4311,11 +4313,11 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- 			else
- 				ret = cma_rep_recv(id_priv);
- 		}
--	} else if (rdma_cap_iw_cm(id->device, id->port_num))
-+	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = cma_accept_iw(id_priv, conn_param);
--	else
-+	} else {
- 		ret = -ENOSYS;
--
-+	}
- 	if (ret)
- 		goto reject;
- 
-@@ -4401,8 +4403,9 @@ int rdma_reject(struct rdma_cm_id *id, const void *private_data,
- 	} else if (rdma_cap_iw_cm(id->device, id->port_num)) {
- 		ret = iw_cm_reject(id_priv->cm_id.iw,
- 				   private_data, private_data_len);
--	} else
-+	} else {
- 		ret = -ENOSYS;
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 092b660..3aabe90 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -155,8 +155,7 @@ static inline u8 convert_mgmt_class(u8 mgmt_class)
- 
- static int get_spl_qp_index(enum ib_qp_type qp_type)
- {
--	switch (qp_type)
--	{
-+	switch (qp_type) {
- 	case IB_QPT_SMI:
- 		return 0;
- 	case IB_QPT_GSI:
-@@ -707,8 +706,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
- 				      (const struct ib_mad *)smp,
- 				      (struct ib_mad *)mad_priv->mad, &mad_size,
- 				      &out_mad_pkey_index);
--	switch (ret)
--	{
-+	switch (ret) {
- 	case IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY:
- 		if (ib_response_mad((const struct ib_mad_hdr *)mad_priv->mad) &&
- 		    mad_agent_priv->agent.recv_handler) {
-@@ -1275,11 +1273,9 @@ static void remove_methods_mad_agent(struct ib_mad_mgmt_method_table *method,
- 	int i;
- 
- 	/* Remove any methods for this mad agent */
--	for (i = 0; i < IB_MGMT_MAX_METHODS; i++) {
--		if (method->agent[i] == agent) {
-+	for (i = 0; i < IB_MGMT_MAX_METHODS; i++)
-+		if (method->agent[i] == agent)
- 			method->agent[i] = NULL;
--		}
--	}
- }
- 
- static int add_nonoui_reg_req(struct ib_mad_reg_req *mad_reg_req,
-@@ -1454,9 +1450,8 @@ static void remove_mad_reg_req(struct ib_mad_agent_private *agent_priv)
- 	 * Was MAD registration request supplied
- 	 * with original registration ?
- 	 */
--	if (!agent_priv->reg_req) {
-+	if (!agent_priv->reg_req)
- 		goto out;
--	}
- 
- 	port_priv = agent_priv->qp_info->port_priv;
- 	mgmt_class = convert_mgmt_class(agent_priv->reg_req->mgmt_class);
-@@ -2200,9 +2195,10 @@ static void wait_for_response(struct ib_mad_send_wr_private *mad_send_wr)
- 				       temp_mad_send_wr->timeout))
- 				break;
- 		}
--	}
--	else
-+	} else {
- 		list_item = &mad_agent_priv->wait_list;
-+	}
-+
- 	list_add(&mad_send_wr->agent_list, list_item);
- 
- 	/* Reschedule a work item if we have a shorter timeout */
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 52401d7..05b702d 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1074,9 +1074,8 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	ret = kobject_init_and_add(&p->kobj, &port_type,
- 				   coredev->ports_kobj,
- 				   "%d", port_num);
--	if (ret) {
-+	if (ret)
- 		goto err_put;
--	}
- 
- 	p->gid_attr_group = kzalloc(sizeof(*p->gid_attr_group), GFP_KERNEL);
- 	if (!p->gid_attr_group) {
-@@ -1087,9 +1086,8 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	p->gid_attr_group->port = p;
- 	ret = kobject_init_and_add(&p->gid_attr_group->kobj, &gid_attr_type,
- 				   &p->kobj, "gid_attrs");
--	if (ret) {
-+	if (ret)
- 		goto err_put_gid_attrs;
--	}
- 
- 	if (device->ops.process_mad && is_full_dev) {
- 		p->pma_table = get_counter_table(device, port_num);
--- 
-2.8.1
-
+Thanks
