@@ -4,35 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61621C4360C
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE08BC43603
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29A1A61107
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 910AE61131
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231321AbhDHLen (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Apr 2021 07:34:43 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:16837 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231259AbhDHLen (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Apr 2021 07:34:43 -0400
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4FGJyV1bC9z7tyD;
-        Thu,  8 Apr 2021 19:32:18 +0800 (CST)
-Received: from huawei.com (10.175.112.208) by DGGEMS411-HUB.china.huawei.com
- (10.3.19.211) with Microsoft SMTP Server id 14.3.498.0; Thu, 8 Apr 2021
- 19:34:19 +0800
+        id S231259AbhDHLer (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Apr 2021 07:34:47 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15974 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231372AbhDHLeq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Apr 2021 07:34:46 -0400
+Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FGJyb17SYzyNLT;
+        Thu,  8 Apr 2021 19:32:23 +0800 (CST)
+Received: from huawei.com (10.175.112.208) by DGGEMS401-HUB.china.huawei.com
+ (10.3.19.201) with Microsoft SMTP Server id 14.3.498.0; Thu, 8 Apr 2021
+ 19:34:24 +0800
 From:   Wang Wensheng <wangwensheng4@huawei.com>
-To:     <bvanassche@acm.org>, <dledford@redhat.com>, <jgg@ziepe.ca>,
-        <linux-rdma@vger.kernel.org>, <target-devel@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
+To:     <selvin.xavier@broadcom.com>, <devesh.sharma@broadcom.com>,
+        <somnath.kotur@broadcom.com>, <sriharsha.basavapatna@broadcom.com>,
+        <nareshkumar.pbs@broadcom.com>, <dledford@redhat.com>,
+        <jgg@ziepe.ca>, <eddie.wai@broadcom.com>, <leon@kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     <rui.xiang@huawei.com>
-Subject: [PATCH -next] RDMA/srpt: Fix error return code in srpt_cm_req_recv()
-Date:   Thu, 8 Apr 2021 11:31:32 +0000
-Message-ID: <20210408113132.87250-1-wangwensheng4@huawei.com>
+Subject: [PATCH -next] RDMA/bnxt_re: Fix error return code in bnxt_qplib_cq_process_terminal()
+Date:   Thu, 8 Apr 2021 11:31:37 +0000
+Message-ID: <20210408113137.97202-1-wangwensheng4@huawei.com>
 X-Mailer: git-send-email 2.9.4
 MIME-Version: 1.0
 Content-Type: text/plain
@@ -45,23 +47,23 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 Fix to return a negative error code from the error handling
 case instead of 0, as done elsewhere in this function.
 
-Fixes: db7683d7deb2 ("IB/srpt: Fix login-related race conditions")
+Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
 Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: Wang Wensheng <wangwensheng4@huawei.com>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 1 +
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 98a393d..ea44780 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2382,6 +2382,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 		pr_info("rejected SRP_LOGIN_REQ because target %s_%d is not enabled\n",
- 			dev_name(&sdev->device->dev), port_num);
- 		mutex_unlock(&sport->mutex);
-+		ret = -EINVAL;
- 		goto reject;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 995d463..d4d4959 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -2784,6 +2784,7 @@ static int bnxt_qplib_cq_process_terminal(struct bnxt_qplib_cq *cq,
+ 		dev_err(&cq->hwq.pdev->dev,
+ 			"FP: CQ Processed terminal reported rq_cons_idx 0x%x exceeds max 0x%x\n",
+ 			cqe_cons, rq->max_wqe);
++		rc = -EINVAL;
+ 		goto done;
  	}
  
 -- 
