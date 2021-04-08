@@ -4,37 +4,37 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE08BC43603
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95460C43617
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 910AE61131
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56FC661107
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Apr 2021 11:34:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231259AbhDHLer (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S231384AbhDHLer (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 8 Apr 2021 07:34:47 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:15974 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:15975 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231372AbhDHLeq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Apr 2021 07:34:46 -0400
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FGJyb17SYzyNLT;
+        with ESMTP id S231396AbhDHLer (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Apr 2021 07:34:47 -0400
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FGJyb3LLvzyNMr;
         Thu,  8 Apr 2021 19:32:23 +0800 (CST)
-Received: from huawei.com (10.175.112.208) by DGGEMS401-HUB.china.huawei.com
- (10.3.19.201) with Microsoft SMTP Server id 14.3.498.0; Thu, 8 Apr 2021
- 19:34:24 +0800
+Received: from huawei.com (10.175.112.208) by DGGEMS402-HUB.china.huawei.com
+ (10.3.19.202) with Microsoft SMTP Server id 14.3.498.0; Thu, 8 Apr 2021
+ 19:34:28 +0800
 From:   Wang Wensheng <wangwensheng4@huawei.com>
-To:     <selvin.xavier@broadcom.com>, <devesh.sharma@broadcom.com>,
-        <somnath.kotur@broadcom.com>, <sriharsha.basavapatna@broadcom.com>,
-        <nareshkumar.pbs@broadcom.com>, <dledford@redhat.com>,
-        <jgg@ziepe.ca>, <eddie.wai@broadcom.com>, <leon@kernel.org>,
+To:     <mike.marciniszyn@cornelisnetworks.com>,
+        <dennis.dalessandro@cornelisnetworks.com>, <dledford@redhat.com>,
+        <jgg@ziepe.ca>, <brendan.cunningham@intel.com>,
+        <ira.weiny@intel.com>, <sudeep.dutt@intel.com>,
         <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     <rui.xiang@huawei.com>
-Subject: [PATCH -next] RDMA/bnxt_re: Fix error return code in bnxt_qplib_cq_process_terminal()
-Date:   Thu, 8 Apr 2021 11:31:37 +0000
-Message-ID: <20210408113137.97202-1-wangwensheng4@huawei.com>
+Subject: [PATCH -next] IB/hfi1: Fix error return code in parse_platform_config()
+Date:   Thu, 8 Apr 2021 11:31:40 +0000
+Message-ID: <20210408113140.103032-1-wangwensheng4@huawei.com>
 X-Mailer: git-send-email 2.9.4
 MIME-Version: 1.0
 Content-Type: text/plain
@@ -47,25 +47,25 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 Fix to return a negative error code from the error handling
 case instead of 0, as done elsewhere in this function.
 
-Fixes: 1ac5a4047975 ("RDMA/bnxt_re: Add bnxt_re RoCE driver")
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
 Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: Wang Wensheng <wangwensheng4@huawei.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 1 +
+ drivers/infiniband/hw/hfi1/firmware.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 995d463..d4d4959 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -2784,6 +2784,7 @@ static int bnxt_qplib_cq_process_terminal(struct bnxt_qplib_cq *cq,
- 		dev_err(&cq->hwq.pdev->dev,
- 			"FP: CQ Processed terminal reported rq_cons_idx 0x%x exceeds max 0x%x\n",
- 			cqe_cons, rq->max_wqe);
-+		rc = -EINVAL;
- 		goto done;
- 	}
- 
+diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+index 0e83d4b..2cf102b 100644
+--- a/drivers/infiniband/hw/hfi1/firmware.c
++++ b/drivers/infiniband/hw/hfi1/firmware.c
+@@ -1916,6 +1916,7 @@ int parse_platform_config(struct hfi1_devdata *dd)
+ 			dd_dev_err(dd, "%s: Failed CRC check at offset %ld\n",
+ 				   __func__, (ptr -
+ 				   (u32 *)dd->platform_config.data));
++			ret = -EINVAL;
+ 			goto bail;
+ 		}
+ 		/* Jump the CRC DWORD */
 -- 
 2.9.4
 
