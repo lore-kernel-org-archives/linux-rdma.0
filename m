@@ -2,115 +2,151 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DATE_IN_FUTURE_12_24,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 664DCC43460
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Apr 2021 09:58:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84B08C43603
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Apr 2021 10:15:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C7946120B
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Apr 2021 09:58:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 618186127B
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Apr 2021 10:15:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233873AbhDIJ66 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Apr 2021 05:58:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53390 "EHLO
+        id S234114AbhDIKPm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Apr 2021 06:15:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233715AbhDIJ56 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Apr 2021 05:57:58 -0400
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A64E0C0613E2
-        for <linux-rdma@vger.kernel.org>; Fri,  9 Apr 2021 02:57:45 -0700 (PDT)
-Received: by mail-ej1-x62e.google.com with SMTP id r12so7728015ejr.5
-        for <linux-rdma@vger.kernel.org>; Fri, 09 Apr 2021 02:57:45 -0700 (PDT)
+        with ESMTP id S233537AbhDIKNx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Apr 2021 06:13:53 -0400
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 092CBC0613F0
+        for <linux-rdma@vger.kernel.org>; Fri,  9 Apr 2021 03:12:13 -0700 (PDT)
+Received: by mail-oi1-x22e.google.com with SMTP id m13so5202172oiw.13
+        for <linux-rdma@vger.kernel.org>; Fri, 09 Apr 2021 03:12:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=t9vjeDIq4ZMTrGb//SJ+YMICh7YJ4BNlbXxJJdfevNY=;
-        b=bzrR3or/bP+YKw44BmfouMLKsWxi/3nQ1zha+Rff7KCJOo1aFAmcJkdMV00CfHTIUl
-         9lKVQSHr0Q5qcEDNuhxY+5WnCCr/4nFthcF69kyLCON8ZTTm+dxFO9ZlewBFxmZbYiMk
-         9pQukfN8aRh80kvih6BYaYPJL33mSrzBWO8J18oSNw3V11LJZp1YiAXg1DHjYu1eQ94L
-         QAkVCJI7Olch7e+ovsUR0Bf59PJwOM0kp+aPztlrmFgwccqH1OUIGYKBlIRZN3myPzBp
-         JLxcmBmXcDOUkdl8gSQdo3xpeKCiBfkJcvyzmb8ig/qMy2+UXKioznNrL5jKx2TeWJXN
-         7tjQ==
+        bh=Uu3qVfx+7w9jxHiUwAe7eFdK6umncczG0xdPmz1lIjQ=;
+        b=ttKUSNCz4tE8mNbjpd64JV0uh7lVymP7ooThi/BJuEJV5dtKiGlT25JdSMpw2KacZq
+         Fq8JShgXP39lHTw5g/mSRrJiIEDA/nupOFF0x6XibOIiMAFiTwWhvJV1bjUhMg9GW0m7
+         j71rfkeKb3N8PmfGGFFl1K/9zOy/pTiltWel6FzfoDjtsQGxsuvh8rk7BksuOt0zj4Hd
+         lFr8oZt7MEB843U8+dd1+tXPHFHksFhx24hFjn8vqg2yaVFFevgCe9J4CEKwa4VA9mt1
+         MUog4nXPUKZvqjMIvSHCgdFagl9s867zHysCYFYn88x31slwAkc5Mrw2ekuripM6B9fq
+         fYuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=t9vjeDIq4ZMTrGb//SJ+YMICh7YJ4BNlbXxJJdfevNY=;
-        b=t7euFFe4nP2xSZ8jihW3zmS1ojPzX4lR2hL9YDHrTATtysN0VwDAGhf9mv2Zfcw/Po
-         KVmulwZmaoX3KePJuFRVrrh71ygH00NRbHUMqdLgK8FoexRoNEXgf2vfSoquYq+XILnc
-         I04kCOZMfFPbpkZPv/zf45PFR3Ih1NOmaMHrR20eNtTkHRPcnel/P1aBCBoz8Pu7Pmmt
-         zGjsB6H35xjgjdyLnyrdgqTteZlMJxVyqViEQ1fmxwJzpKAc5uv3qDtFrEVQ607ix0JI
-         h2Ek9w46DHPV3oG4hm5Qhgi/5jv/A+msqEEJXya8oyH5zEat17X/pYtb6/IL0RIjOoMh
-         0a6A==
-X-Gm-Message-State: AOAM530Rfqx95lhgjgN4rBHu2/hfppUM2Zjz/UqtZRfTHhrUn1/aRMrA
-        wQeVymTDz5PvSiYJXCxBejaNhrqwYppQNgsDnIi+Dw==
-X-Google-Smtp-Source: ABdhPJz/pst9Dtqs2xAaBLpTXdTg7PpZ4UZL3ajzn3xUUfKnlbgflz9oKsHbqZ1eMrpazll2Z6FMoB0mtovjO5QpJ7c=
-X-Received: by 2002:a17:906:f42:: with SMTP id h2mr14393452ejj.317.1617962264382;
- Fri, 09 Apr 2021 02:57:44 -0700 (PDT)
+        bh=Uu3qVfx+7w9jxHiUwAe7eFdK6umncczG0xdPmz1lIjQ=;
+        b=PCevMd/Z/oG5ynr1ENMwrkAbVvfY0ZqnQu0eWeX9N6xPhLUaUhmoxw1zRd3gAHKzSc
+         V/GHo7Ojy9Mm4PlzuBVIXtsfnFlJyc3HyJHeWPsqwI42mn/D/5yOiiBet8Gt0GTjSP0Q
+         EM29mcWL9uDdd42pDsl7MjSU0KyYv8B+TrwI9r3z9DxOE76PNcksW2LLvRMbKO3AyI/d
+         fx14Rt0wSg07gT9sI2aBfGGfKMLMd+FkDPF3dNLNiX40rQHX8mlH9nDLVECGz3vGvNoI
+         Ti9xxxedeAw7IJmD+nyMrd1hCRf0W2tEr1uvQX55+ucei6WSHovvgAtlHxrj8GFNNJ/n
+         KYcw==
+X-Gm-Message-State: AOAM532Pxox50I1ckA0qnlwF0StGFaKwn977cE8amhUPlAe+3/3dRp6s
+        SnEC+lJl4RSnPHwxZbZeHtUUgmAGmtDgr3F//RM=
+X-Google-Smtp-Source: ABdhPJxAZICXVI1dlvJlU5lDvI29TRSRJcAmkckMYX3PJL1xoNQdQaEbNKauco16OmrGRSDwP16ibm8IU7SAaIKR3iM=
+X-Received: by 2002:aca:490e:: with SMTP id w14mr214510oia.169.1617963131556;
+ Fri, 09 Apr 2021 03:12:11 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210406123639.202899-1-gi-oh.kim@ionos.com> <20210406123639.202899-2-gi-oh.kim@ionos.com>
- <YGxXD/TODlXHp2sK@unreal>
-In-Reply-To: <YGxXD/TODlXHp2sK@unreal>
-From:   Gioh Kim <gi-oh.kim@ionos.com>
-Date:   Fri, 9 Apr 2021 11:57:08 +0200
-Message-ID: <CAJX1YtZ9DPHzdBBVPff2+=eRMRPnVXvzccMA1h6tUj1vYa=Yrg@mail.gmail.com>
-Subject: Re: [PATCHv2 for-next 1/3] RDMA/rtrs-clt: Print more info when an
- error happens
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
-        Bart Van Assche <bvanassche@acm.org>,
+References: <20210326012723.41769-1-yanjun.zhu@intel.com> <20210408183359.GA676678@nvidia.com>
+In-Reply-To: <20210408183359.GA676678@nvidia.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Fri, 9 Apr 2021 22:36:42 -0400
+Message-ID: <CAD=hENehGzGn=nxNO0B8u=nevFx1CGsiovxtir3OCZ2ffVB1gQ@mail.gmail.com>
+Subject: Re: [PATCHv3 for-next 1/1] RDMA/rxe: Disable ipv6 features when
+ ipv6.disable set in cmdline
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Zhu Yanjun <yanjun.zhu@intel.com>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Haris Iqbal <haris.iqbal@ionos.com>,
-        Jinpu Wang <jinpu.wang@ionos.com>,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Yi Zhang <yi.zhang@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Apr 6, 2021 at 2:41 PM Leon Romanovsky <leon@kernel.org> wrote:
+On Thu, Apr 8, 2021 at 2:34 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
 >
-> On Tue, Apr 06, 2021 at 02:36:37PM +0200, Gioh Kim wrote:
-> > From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+> On Thu, Mar 25, 2021 at 09:27:23PM -0400, Zhu Yanjun wrote:
+> > From: Zhu Yanjun <zyjzyj2000@gmail.com>
 > >
-> > Client prints only error value and it is not enough for debugging.
+> > When ipv6.disable=1 is set in cmdline, ipv6 is actually disabled
+> > in the stack. As such, the operations of ipv6 in RXE will fail.
+> > So ipv6 features in RXE should also be disabled in RXE.
 > >
-> > 1. When client receives an error from server:
-> > the client does not only print the error value but also
-> > more information of server connection.
+> > Fixes: 8700e3e7c4857 ("Soft RoCE driver")
+> > Reported-by: Yi Zhang <yi.zhang@redhat.com>
+> > Signed-off-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+> > Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+> > Tested-by: Yi Zhang <yi.zhang@redhat.com>
+> > V2->V3: Remove print message
+> > V1->V2: Modify the pr_info messages
+> >  drivers/infiniband/sw/rxe/rxe_net.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
 > >
-> > 2. When client failes to send IO:
-> > the client gets an error from RDMA layer. It also
-> > print more information of server connection.
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> > index 01662727dca0..3b8ed007e8af 100644
+> > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> > @@ -72,6 +72,9 @@ static struct dst_entry *rxe_find_route6(struct net_device *ndev,
+> >       struct dst_entry *ndst;
+> >       struct flowi6 fl6 = { { 0 } };
 > >
-> > Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-> > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-> > ---
-> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 33 ++++++++++++++++++++++----
-> >  1 file changed, 29 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > index 5062328ac577..a534b2b09e13 100644
-> > --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > @@ -437,6 +437,11 @@ static void complete_rdma_req(struct rtrs_clt_io_req *req, int errno,
-> >       req->in_use = false;
-> >       req->con = NULL;
-> >
-> > +     if (unlikely(errno)) {
+> > +     if (!ipv6_mod_enabled())
+> > +             return NULL;
+> > +
+> >       memset(&fl6, 0, sizeof(fl6));
+> >       fl6.flowi6_oif = ndev->ifindex;
+> >       memcpy(&fl6.saddr, saddr, sizeof(*saddr));
 >
-> I'm sorry, but all your patches are full of these likely/unlikely cargo
-> cult. Can you please provide supportive performance data or delete all
-> likely/unlikely in all rtrs code?
+> What is this actually fixing?
 >
-> Thanks
+> ndst = ipv6_stub->ipv6_dst_lookup_flow() will return an error if the
+> ipv6 support is not loaded so why do we need more tests?
 
-Hi Leon,
+As what I said in commit log, when "When ipv6.disable=1 is set in
+cmdline, ipv6 is actually disabled"
+That is, when cat /proc/cmdline, the command line is
+"
+cat /proc/cmdline
+BOOT_IMAGE=(hd0,msdos1)/vmlinuz-5.12.0-rc3+ root=/dev/mapper/cl-root
+ro resume=/dev/mapper/cl-swap rd.lvm.lv=cl/root rd.lvm.lv=cl/swap
+crashkernel=512M ipv6.disable=1
+"
+And if you make the above configurations, then modprobe rdma_rxe should work.
+then ''rdma link add rxe0 type rxe netdev eth0" should work well.
+ndst = ipv6_stub->ipv6_dst_lookup_flow should not be called.
+Can you tell me how to disable IPV6 in your test host?
 
-Let me check my colleagues if there is any data about it.
-I will inform you soon.
+> in the stack. As such, the operations of ipv6 in RXE will fail.
+> So ipv6 features in RXE should also be disabled in RXE."
+
+>
+> > @@ -616,6 +619,8 @@ static int rxe_net_ipv4_init(void)
+> >  static int rxe_net_ipv6_init(void)
+> >  {
+> >  #if IS_ENABLED(CONFIG_IPV6)
+> > +     if (!ipv6_mod_enabled())
+> > +             return 0;
+> >
+> >       recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
+> >                                               htons(ROCE_V2_UDP_DPORT), true);
+>
+> rxe_setup_udp_tunnel() should already fail naturally because the V6
+> socket won't be created
+>
+> What is the actual symptom this patch is trying to address?
+
+This patch is try to fix the problem in the link
+https://lore.kernel.org/linux-rdma/880d7b59-4b17-a44f-1a91-88257bfc3aaa@redhat.com/T/#t
+
+Zhu Yanjun
+
+>
+> Jason
