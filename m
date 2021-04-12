@@ -2,73 +2,68 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA7C1C433B4
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Apr 2021 14:51:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA52C433ED
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Apr 2021 14:51:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8531B61354
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Apr 2021 14:51:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E52061354
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Apr 2021 14:51:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242495AbhDLOv1 convert rfc822-to-8bit (ORCPT
+        id S240199AbhDLOvj convert rfc822-to-8bit (ORCPT
         <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Apr 2021 10:51:27 -0400
-Received: from mga17.intel.com ([192.55.52.151]:5872 "EHLO mga17.intel.com"
+        Mon, 12 Apr 2021 10:51:39 -0400
+Received: from mga03.intel.com ([134.134.136.65]:13079 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240199AbhDLOv1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 12 Apr 2021 10:51:27 -0400
-IronPort-SDR: yB/ejnOqAaisjrAuOxun9WeScIZ8ibucFv1Is2Jao84OKXlys2YQmeYjDQuuKgfQNY5MilLnLb
- sCGnXosrCsyg==
-X-IronPort-AV: E=McAfee;i="6200,9189,9952"; a="174305552"
+        id S242544AbhDLOvj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 12 Apr 2021 10:51:39 -0400
+IronPort-SDR: Hx/P2ugnxe+u00oo+coGDEaaqpruLn5IwbC9IIXhL2ZRnUm+HX8Jv9yZhbun4icyPSuIHuRWZL
+ Kxrv/eIyjuiA==
+X-IronPort-AV: E=McAfee;i="6200,9189,9952"; a="194237754"
 X-IronPort-AV: E=Sophos;i="5.82,216,1613462400"; 
-   d="scan'208";a="174305552"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2021 07:51:09 -0700
-IronPort-SDR: 9xgLoaWutoHkbsKsk5VCLeF4FI74Et21DQMrRwTYzk7ucQhpoKsHisxjU0LD3+PpdFcPTQigNg
- V9EjFTU6H+tQ==
+   d="scan'208";a="194237754"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2021 07:51:21 -0700
+IronPort-SDR: aLOnJAL5S4Oq9ldJCskKLYsILXHx1/iKdhJ4v5KHBgfWUpdmY4dQfoq9N1lCTdsEqjDdfrv6rp
+ NgXCaraQRgUg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,216,1613462400"; 
-   d="scan'208";a="521209430"
-Received: from fmsmsx604.amr.corp.intel.com ([10.18.126.84])
-  by fmsmga001.fm.intel.com with ESMTP; 12 Apr 2021 07:50:54 -0700
+   d="scan'208";a="417422733"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga008.fm.intel.com with ESMTP; 12 Apr 2021 07:51:20 -0700
 Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx604.amr.corp.intel.com (10.18.126.84) with Microsoft SMTP Server
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Mon, 12 Apr 2021 07:50:53 -0700
+ 15.1.2106.2; Mon, 12 Apr 2021 07:51:20 -0700
 Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
  fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Mon, 12 Apr 2021 07:50:52 -0700
+ 15.1.2106.2; Mon, 12 Apr 2021 07:51:19 -0700
 Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
  fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2106.013;
- Mon, 12 Apr 2021 07:50:52 -0700
+ Mon, 12 Apr 2021 07:51:19 -0700
 From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 CC:     "dledford@redhat.com" <dledford@redhat.com>,
         "kuba@kernel.org" <kuba@kernel.org>,
         "davem@davemloft.net" <davem@davemloft.net>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "Lacombe, John S" <john.s.lacombe@intel.com>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "Ertman, David M" <david.m.ertman@intel.com>,
         "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>,
         "Williams, Dan J" <dan.j.williams@intel.com>,
-        "Hefty, Sean" <sean.hefty@intel.com>,
-        "Keller, Jacob E" <jacob.e.keller@intel.com>
-Subject: RE: [PATCH v4 05/23] ice: Add devlink params support
-Thread-Topic: [PATCH v4 05/23] ice: Add devlink params support
-Thread-Index: AQHXKyglet/OMpr4HUC3+2oFUaS+kaqpm5SA///RCKCAALIhgIABT5TA
-Date:   Mon, 12 Apr 2021 14:50:51 +0000
-Message-ID: <c5a38fcf137e49c0af0bfa6edd3ec605@intel.com>
-References: <20210406210125.241-1-shiraz.saleem@intel.com>
- <20210406210125.241-6-shiraz.saleem@intel.com>
- <20210407145705.GA499950@nvidia.com>
- <e516fa3940984b0cb0134364b923fc8e@intel.com>
- <20210407224631.GI282464@nvidia.com>
-In-Reply-To: <20210407224631.GI282464@nvidia.com>
+        "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [PATCH v4 resend 01/23] iidc: Introduce iidc.h
+Thread-Topic: [PATCH v4 resend 01/23] iidc: Introduce iidc.h
+Thread-Index: AQHXK0MoREaUeG1gK0SxdZvV8XgX6Kqp0AGAgAK0eZA=
+Date:   Mon, 12 Apr 2021 14:51:18 +0000
+Message-ID: <2ee289f620154810921df2bc2c903192@intel.com>
+References: <20210407001502.1890-1-shiraz.saleem@intel.com>
+ <20210407001502.1890-2-shiraz.saleem@intel.com>
+ <20210407180529.GA547588@nvidia.com>
+In-Reply-To: <20210407180529.GA547588@nvidia.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -84,79 +79,95 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH v4 05/23] ice: Add devlink params support
+> Subject: Re: [PATCH v4 resend 01/23] iidc: Introduce iidc.h
 > 
-> On Wed, Apr 07, 2021 at 08:58:25PM +0000, Saleem, Shiraz wrote:
-> > > Subject: Re: [PATCH v4 05/23] ice: Add devlink params support
-> > >
-> > > On Tue, Apr 06, 2021 at 04:01:07PM -0500, Shiraz Saleem wrote:
-> > > > Add a new generic runtime devlink parameter 'rdma_protocol'
-> > > > and use it in ice PCI driver. Configuration changes result in
-> > > > unplugging the auxiliary RDMA device and re-plugging it with
-> > > > updated values for irdma auxiiary driver to consume at
-> > > > drv.probe()
-> > > >
-> > > > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
-> > > >  .../networking/devlink/devlink-params.rst          |  6 ++
-> > > >  Documentation/networking/devlink/ice.rst           | 13 +++
-> > > >  drivers/net/ethernet/intel/ice/ice_devlink.c       | 92
-> +++++++++++++++++++++-
-> > > >  drivers/net/ethernet/intel/ice/ice_devlink.h       |  5 ++
-> > > >  drivers/net/ethernet/intel/ice/ice_main.c          |  2 +
-> > > >  include/net/devlink.h                              |  4 +
-> > > >  net/core/devlink.c                                 |  5 ++
-> > > >  7 files changed, 125 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/Documentation/networking/devlink/devlink-params.rst
-> > > > b/Documentation/networking/devlink/devlink-params.rst
-> > > > index 54c9f10..0b454c3 100644
-> > > > +++ b/Documentation/networking/devlink/devlink-params.rst
-> > > > @@ -114,3 +114,9 @@ own name.
-> > > >         will NACK any attempt of other host to reset the device. This parameter
-> > > >         is useful for setups where a device is shared by different hosts, such
-> > > >         as multi-host setup.
-> > > > +   * - ``rdma_protocol``
-> > > > +     - string
-> > > > +     - Selects the RDMA protocol selected for multi-protocol devices.
-> > > > +        - ``iwarp`` iWARP
-> > > > +	- ``roce`` RoCE
-> > > > +	- ``ib`` Infiniband
-> > >
-> > > I'm still not sure this belongs in devlink.
-> >
-> > I believe you suggested we use devlink for protocol switch.
+> On Tue, Apr 06, 2021 at 07:14:40PM -0500, Shiraz Saleem wrote:
+> > +/* Structure representing auxiliary driver tailored information about
+> > +the core
+> > + * PCI dev, each auxiliary driver using the IIDC interface will have
+> > +an
+> > + * instance of this struct dedicated to it.
+> > + */
+> > +struct iidc_core_dev_info {
+> > +	struct pci_dev *pdev; /* PCI device of corresponding to main function */
+> > +	struct auxiliary_device *adev;
+> > +	/* KVA / Linear address corresponding to BAR0 of underlying
+> > +	 * pci_device.
+> > +	 */
+> > +	u8 __iomem *hw_addr;
+> > +	int cdev_info_id;
+> > +
+> > +	u8 ftype;	/* PF(false) or VF (true) */
 > 
-> Yes, devlink is the right place, but selecting a *single* protocol doesn't seem right,
-> or general enough.
-> 
-> Parav is talking about generic ways to customize the aux devices created and that
-> would seem to serve the same function as this.
+> Where is ftype initialized?
 
-Is there an RFC or something posted for us to look at?
+Today it is just pf. But the upcoming Intel ethernet VF driver will set it to true.
 
 > 
-> > > I know Parav is looking at the general problem of how to customize
-> > > what aux devices are created, that may be a better fit for this.
-> > >
-> > > Can you remove the devlink parts to make progress?
-> >
-> > It is important since otherwise the customer will have no way to use RoCEv2 on
-> this device.
+> > +	u16 vport_id;
+> > +	enum iidc_rdma_protocol rdma_protocol;
 > 
-> I'm not saying to not having it eventually, I'm just getting tired of looking at 23
-> patches. You can argue it out after
+> This duplicates the aux device name, not really sure why it is needed. One user just
+> uses it to make the string, the rest is entangled with the devlink and doesn't need
+> to be stored here.
+
+It is used to pass the type of protocol at drv.probe() in aux RDMA driver.
+
+> 
+> > +	struct iidc_qos_params qos_info;
+> > +	struct net_device *netdev;
+> > +
+> > +	struct msix_entry *msix_entries;
+> > +	u16 msix_count; /* How many vectors are reserved for this device */
+> > +
+> > +	/* Following struct contains function pointers to be initialized
+> > +	 * by core PCI driver and called by auxiliary driver
+> > +	 */
+> > +	const struct iidc_core_ops *ops;
+> > +};
+> 
+> I spent a while trying to understand this struct and why it exists and..
+> 
+> > +
+> > +struct iidc_auxiliary_dev {
+> > +	struct auxiliary_device adev;
+> > +	struct iidc_core_dev_info *cdev_info;
+> 
+> This cdev_info should just be a 'struct ice_pf *' and the "struct iidc_core_dev_info"
+> should be deleted entirely. You'll notice this ends up looking nearly exactly like
+> mlx5 does after this.
+
+It was intentionally designed to be core device object carving out only pieces of the PF
+information required by the rdma driver. The next near-term PCI driver using IIDC can also
+this. Why expose the whole PF? This is a design choice no? Why do we need to follow mlx5?
+
+> 
+> You can see it clearly based on how this gets initialized:
+> 
+> 		cdev_info->pdev = pf->pdev;
+> 		cdev_info->hw_addr = (u8 __iomem *)pf->hw.hw_addr;
+> 
+>                 struct ice_vsi *vsi = ice_get_main_vsi(pf);
+> 		cdev_info->vport_id = vsi->vsi_num;
+> 		cdev_info->netdev = vsi->netdev;
+> 		cdev_info->msix_count = pf->num_rdma_msix;
+> 		cdev_info->msix_entries = &pf->msix_entries[pf-
+> >rdma_base_vector];
+> 
+> 		ice_setup_dcb_qos_info(pf, cdev_info->qos_info);
+> 
+> Since the main place this cdev_info appears is in the ops API between the two
+> modules, it looks to me like this is being designed in this obfuscated way to try
+> and create a stable ABI between two modules.
+> 
+> Remove all the stable module ABI hackery before you resend it.
 > 
 
-Since this device cannot do concurrent protocols per function,
-is having a driver specific devlink to switch between the 2 also a NACK?
+I don't follow what the hackery is. Just because we use cdev_info in the .ops callbacks as opposed to ice_pf?
 
-There is something similar in another PCI driver.
-https://www.kernel.org/doc/html/latest/networking/devlink/qed.html
+This is a private interface for Intel RDMA/PCI drivers and yes it is designed to be forward
+looking especially since when we have near-term plans to use it.
 
-Can we not adapt to Parav's solution (if it's a good fit) when it becomes available?
+Can you explain what you mean by stable module ABI hackery?
 
 Shiraz
-
-
-
-
