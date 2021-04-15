@@ -8,61 +8,61 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E82C433ED
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Apr 2021 02:55:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94736C433B4
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Apr 2021 02:55:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69E6661158
-	for <linux-rdma@archiver.kernel.org>; Thu, 15 Apr 2021 02:55:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6BE556109F
+	for <linux-rdma@archiver.kernel.org>; Thu, 15 Apr 2021 02:55:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229727AbhDOCzd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 14 Apr 2021 22:55:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55416 "EHLO
+        id S229701AbhDOCze (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 14 Apr 2021 22:55:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229726AbhDOCzc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Apr 2021 22:55:32 -0400
-Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26020C061574
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Apr 2021 19:55:09 -0700 (PDT)
-Received: by mail-oi1-x22e.google.com with SMTP id m13so22802979oiw.13
-        for <linux-rdma@vger.kernel.org>; Wed, 14 Apr 2021 19:55:09 -0700 (PDT)
+        with ESMTP id S229726AbhDOCze (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 14 Apr 2021 22:55:34 -0400
+Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2847C061756
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Apr 2021 19:55:10 -0700 (PDT)
+Received: by mail-oi1-x230.google.com with SMTP id i81so22827286oif.6
+        for <linux-rdma@vger.kernel.org>; Wed, 14 Apr 2021 19:55:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=0oK6GdjgEoldENJJRDmDumo1Lxa+DQ2oSoWDS5c4v9I=;
-        b=dSoHHDVYJ18hENn4ahbGmKEb2I1Z2Djjl/6Bjx4WTifwolN/9Rh9hisq+vbyK6fq0F
-         cxf0Mx5/t5vf1QZedA6kbCSqNtCXH82ssWyfP0IQll7WLNOJJ3A47u+djsTjaQ5WRHqY
-         8TxE6LUESZVqy2VDFdcEQwc2HbsHLNRfD63LEeIlbA1kZx0zuOl/Jpb7DpCDmG7mWv9b
-         DPlNFhEFezb+4tS9wCsHR5cwO8eZGP2ZAp8C3X1cmACR5KH2o6omS173GeXovmxoU+fa
-         zykwEZ5giYjtFU1RzW1T57E5WJ9nn+/tZ2+y7INrYfP008JFMDbgc83+RR1nu098vrwh
-         XIbA==
+        bh=K3HvFw+RtgfAZ5giUI6FTWhZ270iUlqbGN0Kkgaz328=;
+        b=r3trwnyqfuWIkipnN5PEhSa7cna4mJezWXpcZOnoKrNkBSlmpwrPpvcUlyp6y+qr72
+         Q8vss/D3jgzebGdiTXbf9m1nTYgLt0HI1MIMOCjFA27pvLn3jw3NAMbTwtyNM0vZdUVE
+         lQfO69PxBbwOKXWZSXPsZanMkzRNRyCo72oeqwBLDqOmx8qM7bG72XZhKYTQJyVqF+Xx
+         389JKkJsZiE7Pp8F8JQhjyXdmwJxOFCEYO2SbVBbd68n+fT/c/ETNY1IvoZGXhM9hWH0
+         gExaRH2919CEL7ORJjxBq84HpgE+uYc9hVfialbQIhgrbDkadJxJkQ0K5pY3sDXl1O9o
+         0yNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=0oK6GdjgEoldENJJRDmDumo1Lxa+DQ2oSoWDS5c4v9I=;
-        b=aX66qp3ZWg9F8Zg9tHJ+jSIJRBe7VOX3lA9H3YanGO4LUhCev6eTbjooHOKzQlMPab
-         EBciHavh3Va7+5nyAvhJb7KdWe350ml720zOofZZVv7GG/JrrnwQZwf9nmma3bg7xOxF
-         x65k/dFxYk1wpCWy4rq3HGMtdxfTykI+PdZn9CpO9N96EWb9zJtKJN/hV64oHoHMbZSW
-         oYtu/DH/Gu/wUljyk1edB6nLJGP4oXa+X7Csss/h74JASV9SvPBhGOksVvsu0To/WWXs
-         8Ny/HJ2CyfwcqM1gf6Q1ImG5Ag0wY3SIOOawRNfTKYtkfcTiPl/xTQSd5VTeN7m0wjLX
-         c+wA==
-X-Gm-Message-State: AOAM530awIBQOB0blobDI3h3dj0pOlurtSwGhfmCEpDBEWx6CjP5o54P
-        59/KkDL5SZIXk3qJZ7kjrzwoSi0fH2Q=
-X-Google-Smtp-Source: ABdhPJyE8yaSF0mVBigIWrAcaI7Ak+PBC+jhTm8tY9lahVbPSUHzhIChA33N/MQv50k8I+rgOEcHCg==
-X-Received: by 2002:aca:f245:: with SMTP id q66mr972792oih.179.1618455308606;
-        Wed, 14 Apr 2021 19:55:08 -0700 (PDT)
+        bh=K3HvFw+RtgfAZ5giUI6FTWhZ270iUlqbGN0Kkgaz328=;
+        b=skDDhRXXQR1yg5wUpopxYSMN83rvr2p4ntfJqsVIrQsI6ZLrZaDl9wl37RdmMpGKKT
+         YDfXQqYzgyHH0kyIbvoPaCljKXsYDux3l1wG1efj13WlI36r00gXsoqJRCH+P05Hq05j
+         6TaO8HqM+tDVxs8kzYpZB7hgUDqQecYAk50zqkBxBnwL7c92SrEBN4A9q9SEUimGQqnN
+         pviZcKoG7y8d+mDwJAeiL0SXB3jnKONTqSFpUcoYACoo9NWnFMPF5+miNs/tZ+nyC3rE
+         EAUSYPkrvK78z+h3AIJ83yewEv+3ZEyOqvJOruilsim9ddQASx6mo7Uktd1YWyv1SWW4
+         AX+A==
+X-Gm-Message-State: AOAM530CEiRJb/nEoaw66ZymKQaN5j3yOktoMkpWFZXq33/TOGz/SUFK
+        Z/dOh22yYg+Oj7j7UVm/Gvg=
+X-Google-Smtp-Source: ABdhPJxUoKWRwnhNcOIYUZA7vx1bZabb33Xz8oTuT038iBpAzRYe7blb9mLDu9bDoAQvWMilyBmYqg==
+X-Received: by 2002:a54:4005:: with SMTP id x5mr996433oie.66.1618455310176;
+        Wed, 14 Apr 2021 19:55:10 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-9ee3-9764-577f-477e.res6.spectrum.com. [2603:8081:140c:1a00:9ee3:9764:577f:477e])
-        by smtp.gmail.com with ESMTPSA id j20sm315173ooc.29.2021.04.14.19.55.08
+        by smtp.gmail.com with ESMTPSA id h8sm349661oib.55.2021.04.14.19.55.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Apr 2021 19:55:08 -0700 (PDT)
+        Wed, 14 Apr 2021 19:55:09 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 X-Google-Original-From: Bob Pearson <rpearson@hpe.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH for-next v2 3/9] RDMA/rxe: Enable MW object pool
-Date:   Wed, 14 Apr 2021 21:54:24 -0500
-Message-Id: <20210415025429.11053-4-rpearson@hpe.com>
+Subject: [PATCH for-next v2 5/9] RDMA/rxe: Replace WR_REG_MASK by WR_LOCAL_OP_MASK
+Date:   Wed, 14 Apr 2021 21:54:26 -0500
+Message-Id: <20210415025429.11053-6-rpearson@hpe.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210415025429.11053-1-rpearson@hpe.com>
 References: <20210415025429.11053-1-rpearson@hpe.com>
@@ -72,112 +72,79 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rxe driver has a rxe_mw struct object but
-nothing about memory windows is enabled. This patch
-turns on memory windows and some minor cleanup.
-
-Set device attribute in rxe.c so max_mw = MAX_MW.
-Change parameters in rxe_param.h so that MAX_MW is the same as MAX_MR.
-Reduce the number of MRs and MWs to 4K from 256K.
-Add device capability bits for 2a and 2b memory windows.
-Removed RXE_MR_TYPE_MW from the rxe_mr_type enum.
+Rxe has two mask bits WR_LOCAL_MASK and WR_REG_MASK with
+WR_REG_MASK used to indicate any local operation and WR_LOCAL_MASK
+unused. This patch replaces both of these with one mask bit
+WR_LOCAL_OP_MASK which is clearer.
 
 Signed-off-by: Bob Pearson <rpearson@hpe.com>
 ---
- drivers/infiniband/sw/rxe/rxe.c       |  1 +
- drivers/infiniband/sw/rxe/rxe_param.h | 19 ++++++++++++-------
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 -
- 3 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_opcode.c | 4 ++--
+ drivers/infiniband/sw/rxe/rxe_opcode.h | 3 +--
+ drivers/infiniband/sw/rxe/rxe_req.c    | 2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c  | 2 +-
+ 4 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 95f0de0c8b49..8e0f9c489cab 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -54,6 +54,7 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
- 	rxe->attr.max_cq			= RXE_MAX_CQ;
- 	rxe->attr.max_cqe			= (1 << RXE_MAX_LOG_CQE) - 1;
- 	rxe->attr.max_mr			= RXE_MAX_MR;
-+	rxe->attr.max_mw			= RXE_MAX_MW;
- 	rxe->attr.max_pd			= RXE_MAX_PD;
- 	rxe->attr.max_qp_rd_atom		= RXE_MAX_QP_RD_ATOM;
- 	rxe->attr.max_res_rd_atom		= RXE_MAX_RES_RD_ATOM;
-diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-index 25ab50d9b7c2..742e6ec93686 100644
---- a/drivers/infiniband/sw/rxe/rxe_param.h
-+++ b/drivers/infiniband/sw/rxe/rxe_param.h
-@@ -37,7 +37,6 @@ static inline enum ib_mtu eth_mtu_int_to_enum(int mtu)
- enum rxe_device_param {
- 	RXE_MAX_MR_SIZE			= -1ull,
- 	RXE_PAGE_SIZE_CAP		= 0xfffff000,
--	RXE_MAX_QP			= 0x10000,
- 	RXE_MAX_QP_WR			= 0x4000,
- 	RXE_DEVICE_CAP_FLAGS		= IB_DEVICE_BAD_PKEY_CNTR
- 					| IB_DEVICE_BAD_QKEY_CNTR
-@@ -49,7 +48,10 @@ enum rxe_device_param {
- 					| IB_DEVICE_RC_RNR_NAK_GEN
- 					| IB_DEVICE_SRQ_RESIZE
- 					| IB_DEVICE_MEM_MGT_EXTENSIONS
--					| IB_DEVICE_ALLOW_USER_UNREG,
-+					| IB_DEVICE_ALLOW_USER_UNREG
-+					| IB_DEVICE_MEM_WINDOW
-+					| IB_DEVICE_MEM_WINDOW_TYPE_2A
-+					| IB_DEVICE_MEM_WINDOW_TYPE_2B,
- 	RXE_MAX_SGE			= 32,
- 	RXE_MAX_WQE_SIZE		= sizeof(struct rxe_send_wqe) +
- 					  sizeof(struct ib_sge) * RXE_MAX_SGE,
-@@ -58,7 +60,6 @@ enum rxe_device_param {
- 	RXE_MAX_SGE_RD			= 32,
- 	RXE_MAX_CQ			= 16384,
- 	RXE_MAX_LOG_CQE			= 15,
--	RXE_MAX_MR			= 256 * 1024,
- 	RXE_MAX_PD			= 0x7ffc,
- 	RXE_MAX_QP_RD_ATOM		= 128,
- 	RXE_MAX_RES_RD_ATOM		= 0x3f000,
-@@ -67,7 +68,6 @@ enum rxe_device_param {
- 	RXE_MAX_MCAST_QP_ATTACH		= 56,
- 	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
- 	RXE_MAX_AH			= 100,
--	RXE_MAX_SRQ			= 960,
- 	RXE_MAX_SRQ_WR			= 0x4000,
- 	RXE_MIN_SRQ_WR			= 1,
- 	RXE_MAX_SRQ_SGE			= 27,
-@@ -80,16 +80,21 @@ enum rxe_device_param {
- 
- 	RXE_NUM_PORT			= 1,
- 
-+	RXE_MAX_QP			= 0x10000,
- 	RXE_MIN_QP_INDEX		= 16,
- 	RXE_MAX_QP_INDEX		= 0x00020000,
- 
-+	RXE_MAX_SRQ			= 0x00001000,
- 	RXE_MIN_SRQ_INDEX		= 0x00020001,
- 	RXE_MAX_SRQ_INDEX		= 0x00040000,
- 
-+	RXE_MAX_MR			= 0x00001000,
-+	RXE_MAX_MW			= 0x00001000,
- 	RXE_MIN_MR_INDEX		= 0x00000001,
--	RXE_MAX_MR_INDEX		= 0x00040000,
--	RXE_MIN_MW_INDEX		= 0x00040001,
--	RXE_MAX_MW_INDEX		= 0x00060000,
-+	RXE_MAX_MR_INDEX		= 0x00010000,
-+	RXE_MIN_MW_INDEX		= 0x00010001,
-+	RXE_MAX_MW_INDEX		= 0x00020000,
-+
- 	RXE_MAX_PKT_PER_ACK		= 64,
- 
- 	RXE_MAX_UNACKED_PSNS		= 128,
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 11eba7a3ba8f..8d32e3f50813 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -273,7 +273,6 @@ enum rxe_mr_type {
- 	RXE_MR_TYPE_NONE,
- 	RXE_MR_TYPE_DMA,
- 	RXE_MR_TYPE_MR,
--	RXE_MR_TYPE_MW,
+diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.c b/drivers/infiniband/sw/rxe/rxe_opcode.c
+index 0cb4b01fd910..1e4b67b048f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_opcode.c
++++ b/drivers/infiniband/sw/rxe/rxe_opcode.c
+@@ -87,13 +87,13 @@ struct rxe_wr_opcode_info rxe_wr_opcode_info[] = {
+ 	[IB_WR_LOCAL_INV]				= {
+ 		.name	= "IB_WR_LOCAL_INV",
+ 		.mask	= {
+-			[IB_QPT_RC]	= WR_REG_MASK,
++			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
+ 		},
+ 	},
+ 	[IB_WR_REG_MR]					= {
+ 		.name	= "IB_WR_REG_MR",
+ 		.mask	= {
+-			[IB_QPT_RC]	= WR_REG_MASK,
++			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
+ 		},
+ 	},
  };
+diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.h b/drivers/infiniband/sw/rxe/rxe_opcode.h
+index 1041ac9a9233..e02f039b8c44 100644
+--- a/drivers/infiniband/sw/rxe/rxe_opcode.h
++++ b/drivers/infiniband/sw/rxe/rxe_opcode.h
+@@ -19,8 +19,7 @@ enum rxe_wr_mask {
+ 	WR_SEND_MASK			= BIT(2),
+ 	WR_READ_MASK			= BIT(3),
+ 	WR_WRITE_MASK			= BIT(4),
+-	WR_LOCAL_MASK			= BIT(5),
+-	WR_REG_MASK			= BIT(6),
++	WR_LOCAL_OP_MASK		= BIT(5),
  
- #define RXE_BUF_PER_MAP		(PAGE_SIZE / sizeof(struct rxe_phys_buf))
+ 	WR_READ_OR_WRITE_MASK		= WR_READ_MASK | WR_WRITE_MASK,
+ 	WR_READ_WRITE_OR_SEND_MASK	= WR_READ_OR_WRITE_MASK | WR_SEND_MASK,
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 3664cdae7e1f..0d4dcd514c55 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -593,7 +593,7 @@ int rxe_requester(void *arg)
+ 	if (unlikely(!wqe))
+ 		goto exit;
+ 
+-	if (wqe->mask & WR_REG_MASK) {
++	if (wqe->mask & WR_LOCAL_OP_MASK) {
+ 		if (wqe->wr.opcode == IB_WR_LOCAL_INV) {
+ 			struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+ 			struct rxe_mr *rmr;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index fff81bf78a86..d22f011a20f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -577,7 +577,7 @@ static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	init_send_wr(qp, &wqe->wr, ibwr);
+ 
+ 	/* local operation */
+-	if (unlikely(mask & WR_REG_MASK)) {
++	if (unlikely(mask & WR_LOCAL_OP_MASK)) {
+ 		wqe->mask = mask;
+ 		wqe->state = wqe_state_posted;
+ 		return;
 -- 
 2.27.0
 
