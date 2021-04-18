@@ -2,68 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3A3EC433ED
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95926C43461
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CAE461354
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 601E261354
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230029AbhDRN41 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 18 Apr 2021 09:56:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47088 "EHLO mail.kernel.org"
+        id S231433AbhDRN4b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 18 Apr 2021 09:56:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229630AbhDRN41 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 18 Apr 2021 09:56:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8ECA061278;
-        Sun, 18 Apr 2021 13:55:58 +0000 (UTC)
+        id S229630AbhDRN4a (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 18 Apr 2021 09:56:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0FFCA6134F;
+        Sun, 18 Apr 2021 13:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618754159;
-        bh=SXlb86Bwtf3yK5dvUTLBvq0yc2SThnd7/EjKGW5Mw1s=;
-        h=From:To:Cc:Subject:Date:From;
-        b=BCVz9VikUzrF47EW7Vttc7g6y6bIuETyt3fW5ZeRCOeLeF4yW13JGTBsjKaZOb/kc
-         tejpZlcZOaDuNiEl3e4B9qqzgEoaEssAr3I7Re9fyD+UGDIbkMkrz1+n014Biod/xA
-         PISDgXMPQNU9FippZoJAU69njjsR6+q3Q/MatwR2Vpp5MOlL31bmEQ72osjgB/LHrt
-         s9aD20yrf9cs5a5tcU/0wQvvrr/gRoNMP5rYb4f0nWYyjy1/upfu8uqad3Hcep5MqI
-         i0hL6nTtQcpj630t77b4yPxPvUXA+b5TOO1XLq0UjvGaoKS0Lx4WKLxqpSQjvyBE9r
-         zjlUmnJjV61dg==
+        s=k20201202; t=1618754162;
+        bh=qQ1yd2ryIzr37VFuu7iTWK3GnvRzPLu5wRht3JxBvg0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=tB/IsoP0SHbRgtFgFDK7cjzmbmdqMgPb1DBCnBKiJCwopyb9O7xQ27Vo2xUF3YQ41
+         mN+FgEeLNYlqvuqeP20w6TUoWabD5jTVZ4GcrEcvDR85T0gQU8qYFytzcwZnEUWY2c
+         spOR6/USVHERc4KrupVood0Wqe0EgRVZW6V2P+NH82ZGpwU1EC80eS+LfeeTEpdcaW
+         FG7a0whhaYFqw9GzA9PZ6LiUfaUHQ19UGxBJWsBsgwYSCP1RPezhNiQNLb3tUHCz1K
+         Ay8VE6WJ52/OlAgdByHKcXV1ObSPvBGniAoTtTfQxPvfm+VHYSWjwXJOmrNfpjLFP5
+         I43CFZsMD4GDw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Krishna Kumar <krkumar2@in.ibm.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Parav Pandit <parav@nvidia.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Shay Drory <shayd@nvidia.com>
-Subject: [PATCH rdma-next 0/3] CMA fixes
-Date:   Sun, 18 Apr 2021 16:55:51 +0300
-Message-Id: <cover.1618753862.git.leonro@nvidia.com>
+Cc:     Shay Drory <shayd@nvidia.com>, Krishna Kumar <krkumar2@in.ibm.com>,
+        linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>
+Subject: [PATCH rdma-next 2/3] RDMA/core: Fix check of device in rdma_listen()
+Date:   Sun, 18 Apr 2021 16:55:53 +0300
+Message-Id: <b925e11d639726afbaaeea5aeaa58572b3aacf8e.1618753862.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <cover.1618753862.git.leonro@nvidia.com>
+References: <cover.1618753862.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Shay Drory <shayd@nvidia.com>
 
-Another round of fixes to cma.c
+rdma_listen() checks if device already attached to rdma_id_priv,
+based on the response the its decide to what to listen, however
+this is different when the listeners are canceled.
 
-Parav Pandit (1):
-  RDMA/cma: Skip device which doesn't support CM
+This leads to a mismatch between rdma_listen() and cma_cancel_operation(),
+and causes to bellow wild-memory-access. Fix it by aligning rdma_listen()
+according to the cma_cancel_operation().
 
-Shay Drory (2):
-  RDMA/core: Fix check of device in rdma_listen()
-  RDMA/core: Add CM to restrack after successful attachment to a device
+Found by syzcaller:
+BUG: KASAN: wild-memory-access in __list_del include/linux/list.h:112 [inline]
+BUG: KASAN: wild-memory-access in __list_del_entry include/linux/list.h:135 [inline]
+BUG: KASAN: wild-memory-access in list_del include/linux/list.h:146 [inline]
+BUG: KASAN: wild-memory-access in cma_cancel_listens drivers/infiniband/core/cma.c:1767 [inline]
+BUG: KASAN: wild-memory-access in cma_cancel_operation drivers/infiniband/core/cma.c:1795 [inline]
+BUG: KASAN: wild-memory-access in cma_cancel_operation+0x1f4/0x4b0 drivers/infiniband/core/cma.c:1783
+Write of size 8 at addr dead000000000108 by task syz-executor716/334
 
- drivers/infiniband/core/cma.c | 28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+CPU: 0 PID: 334 Comm: syz-executor716 Not tainted 5.11.0+ #271
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
+rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0xbe/0xf9 lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:400 [inline]
+ kasan_report.cold+0x5f/0xd5 mm/kasan/report.c:413
+ __list_del include/linux/list.h:112 [inline]
+ __list_del_entry include/linux/list.h:135 [inline]
+ list_del include/linux/list.h:146 [inline]
+ cma_cancel_listens drivers/infiniband/core/cma.c:1767 [inline]
+ cma_cancel_operation drivers/infiniband/core/cma.c:1795 [inline]
+ cma_cancel_operation+0x1f4/0x4b0 drivers/infiniband/core/cma.c:1783
+ _destroy_id+0x29/0x460 drivers/infiniband/core/cma.c:1862
+ ucma_close_id+0x36/0x50 drivers/infiniband/core/ucma.c:185
+ ucma_destroy_private_ctx+0x58d/0x5b0 drivers/infiniband/core/ucma.c:576
+ ucma_close+0x91/0xd0 drivers/infiniband/core/ucma.c:1797
+ __fput+0x169/0x540 fs/file_table.c:280
+ task_work_run+0xb7/0x100 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0x7da/0x17f0 kernel/exit.c:825
+ do_group_exit+0x9e/0x190 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x2d/0x30 kernel/exit.c:931
+ do_syscall_64+0x2d/0x40 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44a326
+Code: Unable to access opcode bytes at RIP 0x44a2fc.
+RSP: 002b:00007ffd14306748 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000006c4490 RCX: 000000000044a326
+RDX: 0000000000000001 RSI: 000000000000003c RDI: 0000000000000001
+RBP: 0000000000000001 R08: 00000000000000e7 R09: ffffffffffffffc0
+R10: bb1414ac000000c2 R11: 0000000000000246 R12: 00000000006c4490
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+==================================================================
 
+Fixes: 255d0c14b375 ("RDMA/cma: rdma_bind_addr() leaks a cma_dev reference count")
+Signed-off-by: Shay Drory <shayd@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 2dc302a83014..cc990adaf2b5 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3768,7 +3768,7 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 	}
+ 
+ 	id_priv->backlog = backlog;
+-	if (id->device) {
++	if (id_priv->cma_dev) {
+ 		if (rdma_cap_ib_cm(id->device, 1)) {
+ 			ret = cma_ib_listen(id_priv);
+ 			if (ret)
 -- 
 2.30.2
 
