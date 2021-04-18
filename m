@@ -2,114 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47DEFC433B4
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B598C433B4
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 20:04:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2931F61278
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 13:56:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C1B5610E9
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Apr 2021 20:04:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231434AbhDRN4j (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 18 Apr 2021 09:56:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47266 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231460AbhDRN4h (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 18 Apr 2021 09:56:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB2EA61278;
-        Sun, 18 Apr 2021 13:56:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1618754169;
-        bh=LzjajMkmrKzNp+lPlzX93b5lQw7lfFXlvRIpwzMrtsA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oNG21P5OQ+R7LvXlQDVNShfFCoNXsxmTG7h54pNEOqRVa7ZlFzkkjSoZcFrtTSqCq
-         k2+nnXe5rL3kOgw0ioslqFhzOmwcttSnK0oxWW7Yv5EX4/FrhUm9dGNGL8wPhR3RD+
-         Xzz/6kkvs4CfGKDNOUDDaijzdwWiH5TZ7WT2unNPcq13p4+W5wbfNVxkp48i2mn6PR
-         bKTr1HowanscVqJQkWo2KTXS3XajREmTueL4DeOsNDyn9PypsZstRyp/LYMoKrMaMe
-         /SDYUkvJnNRa9nt1LIVQFBLeUR9Sr7uBthWxicfLPaJhLPlSk+xpWCbi/xgRGAH5Bq
-         0hlTpkAaQtlOw==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Parav Pandit <parav@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next 1/3] RDMA/cma: Skip device which doesn't support CM
-Date:   Sun, 18 Apr 2021 16:55:52 +0300
-Message-Id: <f9cac00d52864ea7c61295e43fb64cf4db4fdae6.1618753862.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <cover.1618753862.git.leonro@nvidia.com>
-References: <cover.1618753862.git.leonro@nvidia.com>
+        id S232738AbhDRUE0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 18 Apr 2021 16:04:26 -0400
+Received: from mail-pl1-f177.google.com ([209.85.214.177]:40470 "EHLO
+        mail-pl1-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229488AbhDRUE0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 18 Apr 2021 16:04:26 -0400
+Received: by mail-pl1-f177.google.com with SMTP id 20so12648056pll.7;
+        Sun, 18 Apr 2021 13:03:56 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=ocpvHH0OfSXrZ6ZZMO0Iq2R7HY+eWtpOHZ6cffg0O+U=;
+        b=nzbrwGdsiOVYoKUwqIJA/Dsk4TB0S7h1ScWbM557BYuJAdubV+VH/lm/MZ9ItOmKfO
+         cBk/d0LoBFwwetoMb5+Z8c1I/M3SLzROqJ8IiwqpL6ujwgKcijzwnOcaUb4S9dw8pot+
+         vTuqNAmn5YZnZ7pmC1WFWpwtrEXmt785W7UqfT+olAnztz6QICSdlT7zbtFUNLlXIY8X
+         zmzpW1Sh+GxhIzyXzdBnAcDGhhBIQpYB5cgMo1gg9AUDi5o8DjVNHo6ur8zjwndW6xkH
+         OyXsiIo4G7ROBca8DML5khdbKusCeA8DQcsSE+g5HPISPP3apTnq1nqCTZtv6za6fqXz
+         WdYQ==
+X-Gm-Message-State: AOAM531d9VPZzKW6O5PYuoT87wnum1eHxKQGuvyosDH1pQQFPyU8ccuy
+        1giidAAEI3NXd/NZGVc9CobnoWvy1WI=
+X-Google-Smtp-Source: ABdhPJwVMeZX60Cq/LEZaC2MurSw6/8c7B9QK4fEJcoFPFcW7/3smnviEnjy7bNu7xBPskHuzhoDOw==
+X-Received: by 2002:a17:90a:fb4c:: with SMTP id iq12mr20945436pjb.121.1618776235751;
+        Sun, 18 Apr 2021 13:03:55 -0700 (PDT)
+Received: from ?IPv6:2601:647:4000:d7:93db:a33:19a8:2126? ([2601:647:4000:d7:93db:a33:19a8:2126])
+        by smtp.gmail.com with ESMTPSA id k13sm12472311pji.14.2021.04.18.13.03.54
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 18 Apr 2021 13:03:54 -0700 (PDT)
+Subject: Re: [PATCH] net/mlx5: Use kasprintf instead of hand-writing it
+To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        saeedm@nvidia.com, leon@kernel.org, davem@davemloft.net,
+        kuba@kernel.org
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <46235ec010551d2788483ce636686a61345e40ba.1618643703.git.christophe.jaillet@wanadoo.fr>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <131988e1-2327-99f8-95e1-778d653c36ec@acm.org>
+Date:   Sun, 18 Apr 2021 13:03:53 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.9.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <46235ec010551d2788483ce636686a61345e40ba.1618643703.git.christophe.jaillet@wanadoo.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@nvidia.com>
+On 4/17/21 12:16 AM, Christophe JAILLET wrote:
+> 'kasprintf()' can replace a kmalloc/strcpy/strcat sequence.
+> It is less verbose and avoid the use of a magic number (64).
+> 
+> Anyway, the underlying 'alloc_workqueue()' would only keep the 24 first
+> chars (i.e. sizeof(struct workqueue_struct->name) = WQ_NAME_LEN).
+> 
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/health.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+> index 9ff163c5bcde..a5383e701b4b 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+> @@ -802,12 +802,10 @@ int mlx5_health_init(struct mlx5_core_dev *dev)
+>  	mlx5_fw_reporters_create(dev);
+>  
+>  	health = &dev->priv.health;
+> -	name = kmalloc(64, GFP_KERNEL);
+> +	name = kasprintf(GFP_KERNEL, "mlx5_health%s", dev_name(dev->device));
+>  	if (!name)
+>  		goto out_err;
+>  
+> -	strcpy(name, "mlx5_health");
+> -	strcat(name, dev_name(dev->device));
+>  	health->wq = create_singlethread_workqueue(name);
+>  	kfree(name);
+>  	if (!health->wq)
 
-A switchdev RDMA device do not support IB CM. When such device is added
-to the RDMA CM's device list, when application invokes rdma_listen(),
-cma attempts to listen to such device, however it has IB CM attribute
-disabled
-.
-Due to this, rdma_listen() call fails to listen for other non
-switchdev devices as well.
+Instead of modifying the mlx5 driver, please change the definition of
+the create_singlethread_workqueue() such that it accept a format
+specifier and a variable number of arguments.
 
-A below error message can be seen.
+Thanks,
 
-infiniband mlx5_0: RDMA CMA: cma_listen_on_dev, error -38
+Bart.
 
-A failing call flow is below.
-
-rdma_listen()
-  cma_listen_on_all()
-    cma_listen_on_dev()
-      _cma_attach_to_dev()
-      rdma_listen() <- fails on a specific switchdev device
-
-Hence, when a IB device doesn't support IB CM or IW CM, avoid adding
-such device to the cma list.
-
-Signed-off-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/cma.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index bb7bd024f3bd..2dc302a83014 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4900,6 +4900,17 @@ static void cma_process_remove(struct cma_device *cma_dev)
- 	wait_for_completion(&cma_dev->comp);
- }
- 
-+static bool cma_supported(struct ib_device *device)
-+{
-+	u32 i;
-+
-+	rdma_for_each_port(device, i) {
-+		if (rdma_cap_ib_cm(device, i) || rdma_cap_iw_cm(device, i))
-+			return true;
-+	}
-+	return false;
-+}
-+
- static int cma_add_one(struct ib_device *device)
- {
- 	struct rdma_id_private *to_destroy;
-@@ -4909,6 +4920,9 @@ static int cma_add_one(struct ib_device *device)
- 	int ret;
- 	u32 i;
- 
-+	if (!cma_supported(device))
-+		return -EOPNOTSUPP;
-+
- 	cma_dev = kmalloc(sizeof(*cma_dev), GFP_KERNEL);
- 	if (!cma_dev)
- 		return -ENOMEM;
--- 
-2.30.2
 
