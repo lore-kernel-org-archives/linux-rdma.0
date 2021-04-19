@@ -2,241 +2,134 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C8E5C43617
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Apr 2021 07:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D068C43460
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Apr 2021 07:47:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 673D46102A
-	for <linux-rdma@archiver.kernel.org>; Mon, 19 Apr 2021 07:38:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A04F610CC
+	for <linux-rdma@archiver.kernel.org>; Mon, 19 Apr 2021 07:47:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237960AbhDSHid (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 19 Apr 2021 03:38:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39632 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237979AbhDSHic (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 19 Apr 2021 03:38:32 -0400
-Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF6DDC061763
-        for <linux-rdma@vger.kernel.org>; Mon, 19 Apr 2021 00:38:02 -0700 (PDT)
-Received: by mail-ej1-x630.google.com with SMTP id r20so1565117ejo.11
-        for <linux-rdma@vger.kernel.org>; Mon, 19 Apr 2021 00:38:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=6Ol0LrZCvE5dH2E8oH5l2wl0+ueRQwWjooW1k9QXypo=;
-        b=RbMBNs3DQD+nVFI3O/iNsYrbO54hOcK3wJUpUoyj0gaHGQ6W03fNF/7E08xbBqyV2n
-         CXxz5UrCPHClPBFtYNYKYHAeEjiZ0fvhWtpKG/091bF0WngU/mgYa99FkKAGxyfDXJJ4
-         aU8k/Yp6072rItlde2dXiS4fc+D4BBAAhEiB5s6tPrtGqm6LZdpUsxLprcVyQsVE2SKr
-         8qc6wVWZ9Q2Y03kzlUGN3K/bQTPeX2P9spvhECgKMw8dzeBk2liY7Of0DbreVgjJ1lo3
-         nwQRPR5cGdWvZuhrLq6HHxwZC0uA5aruYQG/PX2PHsTI3ONWek6fRFMkVlVwavulm048
-         tfvg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=6Ol0LrZCvE5dH2E8oH5l2wl0+ueRQwWjooW1k9QXypo=;
-        b=tPkNPZoSTi63norgRvHLuKwfrnp3RCMrx1SEviBTOrzTIiNa15FNkW7w0sc1+UrkOe
-         28Zgf/hkZVFN+NluQLXbwkMp58kv3H0yDeOgXyv09o0jIKvm1vZXe/t4OJzrPRt+jDkr
-         IPJip092zOeocyx6YKwy7iBH30XCCsgu8njMkminVyVLOAo+/Zu7qPdRl9qn71B1TXB4
-         H2eNPHZ+eUCjGjsKPRY+wh8LlAD477047IzSdUQnBag+xLnZoX0CXyMVyp0RlVnuT6d2
-         oQgzZSMqPFa0xWuVtb15jp4BqfOOab5LLmJ99jzgAa+3bepoTROycAQrmjj33DDnM9Se
-         nfzQ==
-X-Gm-Message-State: AOAM5317NWpkAtokASaJPNnI6NcQLT8bOy8eRzUvb2VDRoT8doZfdmLz
-        dtfgHvnUSHUiK7fzrXrKps12FsmEvdoVWVTz
-X-Google-Smtp-Source: ABdhPJyVCfyNTKITacxmTNiOaR3AEHgee/Ayc4fmmxjdpSH+cSNUMHPuXK/3iQeILvQ8LAlXgD5IrQ==
-X-Received: by 2002:a17:906:7c52:: with SMTP id g18mr20246722ejp.362.1618817881516;
-        Mon, 19 Apr 2021 00:38:01 -0700 (PDT)
-Received: from localhost.localdomain (ip5f5aeee5.dynamic.kabel-deutschland.de. [95.90.238.229])
-        by smtp.googlemail.com with ESMTPSA id g22sm8701833ejz.46.2021.04.19.00.38.00
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Apr 2021 00:38:01 -0700 (PDT)
-From:   Gioh Kim <gi-oh.kim@ionos.com>
-To:     linux-block@vger.kernel.org, linux-doc@vger.kernel.org
-Cc:     axboe@kernel.dk, akinobu.mita@gmail.com, corbet@lwn.net,
-        hch@infradead.org, sagi@grimberg.me, bvanassche@acm.org,
-        haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        id S237916AbhDSHrd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 19 Apr 2021 03:47:33 -0400
+Received: from mail-dm6nam08on2041.outbound.protection.outlook.com ([40.107.102.41]:39265
+        "EHLO NAM04-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S237895AbhDSHrd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 19 Apr 2021 03:47:33 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=CgBVfa1u+qFkOYCtg7esAVx1SeQVFazGR6rv+A9WI56ebYTDRTBq6ztZEITNioWPgOoB80BQ3clYOEBkppzTj6birfvfRFj0mX0B6SZJAZZmOVV7wRPeQdjLM+66yX9g23pIyNm0iUorpSIQhW9+XZtukgfclbX85fygOmXxzcp0s0jYWv2zF0AeaZzoSHTAxJ8gjFMYNYOPssM03MUsvtS/T/Akxbtob2x9fI7WEn/kospdCuER67ntvNUFjM+uc4mVSkR7Sa34KZN9zE0FozeXs6utLUFJ2iTmttTuC0gvcCo0nYN5MU0dfv5m1BvYZms0GKK6D0b1TuYaKmKFNQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6I9sOkmxN1NXQf6UemQxx9sLypH914o0KvHa35ZAHcA=;
+ b=MfeKQRWQTWj81eLMoK1ohZQGowx7deeTCRfOTrn6lt3y90foRjWwJiNNuA+a2NWskTSUF+xZK60RsR95KOvG0AmL+xMAfCNLtdcfiBZvNbNSg5WiYD1PozukuMTY3Br0xCHoXTzeqWFjwApwIt+65LkEuk7QO+y7yJynWuB1m7bjfhnNP8j+a/allskPnwWQoohw79Ffj66HRvpKkQNI/fRIJM7Fj//t8j0TJyc2yDEbUDx3t1135sEfbVS1S9tYGRtPZqbYsYya4Cl/Elh4AMrMa7Qh6B21uKLRXJ76tlbrtV7glFGk4CDdJCfCZBoaQZ4kf5Gu22fHBQc9Elt6zw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.112.34) smtp.rcpttodomain=ionos.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6I9sOkmxN1NXQf6UemQxx9sLypH914o0KvHa35ZAHcA=;
+ b=aqesMWh5kaY9MmujtVuO+GKJMMifaxIyn2wamn56R4/cY6KXKxZwD5ZcQ5MYtYkQUcChj5r3RZbVuf206mUpmjhlARCCMK3XZmPefYMwRaCXwPxam0n5okH7UXMzBel0BuHFsC30qKhPdV47W+jf4wWCVzZouuGQOqqkSfsrXwP09+vAfUVxfq4hCzB2c3RGLZfceDDE4k5brO34YnJ6El8mffQBIv35T7D9XdbygBUSpCsK7EF1n5vWPFeqlBYLeLAZNkZ3K+PsuRuM8P8NywboWZA0us6YY9SJBkTfvk7OO2zoCUxOgp8MRzCyJNXFeT2EphPjDbhmd8+3v+Fn2Q==
+Received: from BN6PR16CA0002.namprd16.prod.outlook.com (2603:10b6:404:f5::12)
+ by DM6PR12MB3354.namprd12.prod.outlook.com (2603:10b6:5:11f::33) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4042.24; Mon, 19 Apr
+ 2021 07:47:01 +0000
+Received: from BN8NAM11FT026.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:404:f5:cafe::3) by BN6PR16CA0002.outlook.office365.com
+ (2603:10b6:404:f5::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4042.16 via Frontend
+ Transport; Mon, 19 Apr 2021 07:47:01 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.112.34)
+ smtp.mailfrom=nvidia.com; ionos.com; dkim=none (message not signed)
+ header.d=none;ionos.com; dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.112.34 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.112.34; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (216.228.112.34) by
+ BN8NAM11FT026.mail.protection.outlook.com (10.13.177.51) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.4042.16 via Frontend Transport; Mon, 19 Apr 2021 07:47:00 +0000
+Received: from localhost (172.20.145.6) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 19 Apr
+ 2021 07:46:59 +0000
+Date:   Mon, 19 Apr 2021 10:46:56 +0300
+From:   Leon Romanovsky <leonro@nvidia.com>
+To:     Gioh Kim <gi-oh.kim@ionos.com>
+CC:     <linux-block@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <axboe@kernel.dk>, <akinobu.mita@gmail.com>, <corbet@lwn.net>,
+        <hch@infradead.org>, <sagi@grimberg.me>, <bvanassche@acm.org>,
+        <haris.iqbal@ionos.com>, <jinpu.wang@ionos.com>,
         Gioh Kim <gi-oh.kim@cloud.ionos.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org,
-        Aleksei Marov <aleksei.marov@ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>,
+        <linux-rdma@vger.kernel.org>,
+        Guoqing Jiang <guoqing.jiang@ionos.com>,
         Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Subject: [PATCHv5 for-next 15/19] block/rnbd-srv: Remove unused arguments of rnbd_srv_rdma_ev
-Date:   Mon, 19 Apr 2021 09:37:18 +0200
-Message-Id: <20210419073722.15351-16-gi-oh.kim@ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210419073722.15351-1-gi-oh.kim@ionos.com>
+Subject: Re: [PATCHv5 for-next 08/19] block/rnbd-clt: Replace {NO_WAIT,WAIT}
+ with RTRS_PERMIT_{WAIT,NOWAIT}
+Message-ID: <YH01cJefECbRDZLl@unreal>
 References: <20210419073722.15351-1-gi-oh.kim@ionos.com>
+ <20210419073722.15351-9-gi-oh.kim@ionos.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20210419073722.15351-9-gi-oh.kim@ionos.com>
+X-Originating-IP: [172.20.145.6]
+X-ClientProxiedBy: HQMAIL105.nvidia.com (172.20.187.12) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 2fc2847e-c6ca-4506-6e6f-08d9030750fc
+X-MS-TrafficTypeDiagnostic: DM6PR12MB3354:
+X-Microsoft-Antispam-PRVS: <DM6PR12MB33548EEF6182E995FDE26E13BD499@DM6PR12MB3354.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:639;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: T+5nUJVelGkvmcVybpjr5srHE5xlUVyItwY003b6dXZNHTzUbMZ5288Ue8qYh7Z6vI4R/1rk7SOhPbWg71fMujwFTjRdonMdcW0EvFQH8qAS3HAyfK1brX6VoihLT344TNpy22RqFfajV1j0Z1F3vt36AS54uMotaKCo8gNHtyVgK1sLY26dPSFBAP4Mg/ek4w9AplMx29J9/lBcxNKv1OXrcJ0NONi10etX2URXZuxG5+FijoosAduxp4d8C55IPmxRKSvr79m6JtpX9cTEqcxqT1NULZM39z7um/x1xnldB9iC/tfrlSniLbGqdYSnI9BsY5YvVip0dtb19qqqW/VIXMlQgT5hQ3UhoCC9wDgAsg9WiPdhti7s+jhp6FmS1DjNOPCPK2A4JSqQ7Yvcx78pQaWqatU37a3Hd9jzAsiMszG7O1mCTQIR5DmMm5w5ziTYgsXCZIcSBvf8ops2RTRoOBLzt9KNIZYhTxZ3ZQmLjrCu1nruOaI8SXYarjsCa9o/lfbnemmPZ7FYlo8QxADERX200d29Ak1BIMeLDiiJL8C9Gzfv+ZwLLLlIE/Z0H0wHuya2/AZTB/AbU0D6rPMLIsmeigqT5rJBWaRtF/TpaEyD3fb9E01BnrX+qa6Ky+LjYzWnhVPF0BZ8orHESQ==
+X-Forefront-Antispam-Report: CIP:216.228.112.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:schybrid03.nvidia.com;CAT:NONE;SFS:(4636009)(7916004)(346002)(376002)(39860400002)(396003)(136003)(36840700001)(46966006)(426003)(5660300002)(82310400003)(107886003)(54906003)(6916009)(316002)(4326008)(70206006)(478600001)(2906002)(47076005)(33716001)(83380400001)(26005)(186003)(7636003)(70586007)(36860700001)(8936002)(82740400003)(6666004)(336012)(356005)(9686003)(16526019)(86362001)(4744005)(8676002)(7416002);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Apr 2021 07:47:00.6321
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2fc2847e-c6ca-4506-6e6f-08d9030750fc
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.112.34];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT026.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB3354
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+On Mon, Apr 19, 2021 at 09:37:11AM +0200, Gioh Kim wrote:
+> From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+> 
+> They are defined with the same value and similar meaning, let's remove
+> one of them, then we can remove {WAIT,NOWAIT}.
+> 
+> Also change the type of 'wait' from 'int' to 'enum wait_type' to make
+> it clear.
+> 
+> Cc: Leon Romanovsky <leonro@nvidia.com>
+> Cc: linux-rdma@vger.kernel.org
+> Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
+> Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+> Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+> Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+> Reviewed-by: Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>
+> Acked-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+>  drivers/block/rnbd/rnbd-clt.c          | 42 +++++++++++---------------
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.c |  4 +--
+>  drivers/infiniband/ulp/rtrs/rtrs.h     |  6 ++--
+>  3 files changed, 22 insertions(+), 30 deletions(-)
+> 
 
-struct rtrs_srv is not used when handling rnbd_srv_rdma_ev messages, so
-cleaned up
-rdma_ev function pointer in rtrs_srv_ops also is changed.
-
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Aleksei Marov <aleksei.marov@ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-Reviewed-by: Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>
-Acked-by: Jason Gunthorpe <jgg@nvidia.com>
----
- drivers/block/rnbd/rnbd-srv.c          | 39 ++++++++++----------------
- drivers/infiniband/ulp/rtrs/rtrs-srv.c |  4 +--
- drivers/infiniband/ulp/rtrs/rtrs.h     |  3 +-
- 3 files changed, 18 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
-index a9bb414f7442..abacd9ef10d6 100644
---- a/drivers/block/rnbd/rnbd-srv.c
-+++ b/drivers/block/rnbd/rnbd-srv.c
-@@ -114,8 +114,7 @@ rnbd_get_sess_dev(int dev_id, struct rnbd_srv_session *srv_sess)
- 	return sess_dev;
- }
- 
--static int process_rdma(struct rtrs_srv *sess,
--			struct rnbd_srv_session *srv_sess,
-+static int process_rdma(struct rnbd_srv_session *srv_sess,
- 			struct rtrs_srv_op *id, void *data, u32 datalen,
- 			const void *usr, size_t usrlen)
- {
-@@ -344,8 +343,7 @@ void rnbd_srv_sess_dev_force_close(struct rnbd_srv_sess_dev *sess_dev,
- 	mutex_unlock(&sess->lock);
- }
- 
--static int process_msg_close(struct rtrs_srv *rtrs,
--			     struct rnbd_srv_session *srv_sess,
-+static int process_msg_close(struct rnbd_srv_session *srv_sess,
- 			     void *data, size_t datalen, const void *usr,
- 			     size_t usrlen)
- {
-@@ -364,20 +362,18 @@ static int process_msg_close(struct rtrs_srv *rtrs,
- 	return 0;
- }
- 
--static int process_msg_open(struct rtrs_srv *rtrs,
--			    struct rnbd_srv_session *srv_sess,
-+static int process_msg_open(struct rnbd_srv_session *srv_sess,
- 			    const void *msg, size_t len,
- 			    void *data, size_t datalen);
- 
--static int process_msg_sess_info(struct rtrs_srv *rtrs,
--				 struct rnbd_srv_session *srv_sess,
-+static int process_msg_sess_info(struct rnbd_srv_session *srv_sess,
- 				 const void *msg, size_t len,
- 				 void *data, size_t datalen);
- 
--static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
--			     struct rtrs_srv_op *id, int dir,
--			     void *data, size_t datalen, const void *usr,
--			     size_t usrlen)
-+static int rnbd_srv_rdma_ev(void *priv,
-+			    struct rtrs_srv_op *id, int dir,
-+			    void *data, size_t datalen, const void *usr,
-+			    size_t usrlen)
- {
- 	struct rnbd_srv_session *srv_sess = priv;
- 	const struct rnbd_msg_hdr *hdr = usr;
-@@ -391,19 +387,16 @@ static int rnbd_srv_rdma_ev(struct rtrs_srv *rtrs, void *priv,
- 
- 	switch (type) {
- 	case RNBD_MSG_IO:
--		return process_rdma(rtrs, srv_sess, id, data, datalen, usr,
--				    usrlen);
-+		return process_rdma(srv_sess, id, data, datalen, usr, usrlen);
- 	case RNBD_MSG_CLOSE:
--		ret = process_msg_close(rtrs, srv_sess, data, datalen,
--					usr, usrlen);
-+		ret = process_msg_close(srv_sess, data, datalen, usr, usrlen);
- 		break;
- 	case RNBD_MSG_OPEN:
--		ret = process_msg_open(rtrs, srv_sess, usr, usrlen,
--				       data, datalen);
-+		ret = process_msg_open(srv_sess, usr, usrlen, data, datalen);
- 		break;
- 	case RNBD_MSG_SESS_INFO:
--		ret = process_msg_sess_info(rtrs, srv_sess, usr, usrlen,
--					    data, datalen);
-+		ret = process_msg_sess_info(srv_sess, usr, usrlen, data,
-+					    datalen);
- 		break;
- 	default:
- 		pr_warn("Received unexpected message type %d with dir %d from session %s\n",
-@@ -656,8 +649,7 @@ static char *rnbd_srv_get_full_path(struct rnbd_srv_session *srv_sess,
- 	return full_path;
- }
- 
--static int process_msg_sess_info(struct rtrs_srv *rtrs,
--				 struct rnbd_srv_session *srv_sess,
-+static int process_msg_sess_info(struct rnbd_srv_session *srv_sess,
- 				 const void *msg, size_t len,
- 				 void *data, size_t datalen)
- {
-@@ -698,8 +690,7 @@ find_srv_sess_dev(struct rnbd_srv_session *srv_sess, const char *dev_name)
- 	return NULL;
- }
- 
--static int process_msg_open(struct rtrs_srv *rtrs,
--			    struct rnbd_srv_session *srv_sess,
-+static int process_msg_open(struct rnbd_srv_session *srv_sess,
- 			    const void *msg, size_t len,
- 			    void *data, size_t datalen)
- {
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index d071809e3ed2..f7aa2a7e7442 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -998,7 +998,7 @@ static void process_read(struct rtrs_srv_con *con,
- 	usr_len = le16_to_cpu(msg->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
--	ret = ctx->ops.rdma_ev(srv, srv->priv, id, READ, data, data_len,
-+	ret = ctx->ops.rdma_ev(srv->priv, id, READ, data, data_len,
- 			   data + data_len, usr_len);
- 
- 	if (unlikely(ret)) {
-@@ -1051,7 +1051,7 @@ static void process_write(struct rtrs_srv_con *con,
- 	usr_len = le16_to_cpu(req->usr_len);
- 	data_len = off - usr_len;
- 	data = page_address(srv->chunks[buf_id]);
--	ret = ctx->ops.rdma_ev(srv, srv->priv, id, WRITE, data, data_len,
-+	ret = ctx->ops.rdma_ev(srv->priv, id, WRITE, data, data_len,
- 			   data + data_len, usr_len);
- 	if (unlikely(ret)) {
- 		rtrs_err_rl(s,
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
-index f891fbe7abe6..b0f56ffeff88 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.h
-@@ -139,7 +139,6 @@ struct rtrs_srv_ops {
- 	 *			message for the data transfer will be sent to
- 	 *			the client.
- 
--	 *	@sess:		Session
- 	 *	@priv:		Private data set by rtrs_srv_set_sess_priv()
- 	 *	@id:		internal RTRS operation id
- 	 *	@dir:		READ/WRITE
-@@ -153,7 +152,7 @@ struct rtrs_srv_ops {
- 	 *	@usr:		The extra user message sent by the client (%vec)
- 	 *	@usrlen:	Size of the user message
- 	 */
--	int (*rdma_ev)(struct rtrs_srv *sess, void *priv,
-+	int (*rdma_ev)(void *priv,
- 		       struct rtrs_srv_op *id, int dir,
- 		       void *data, size_t datalen, const void *usr,
- 		       size_t usrlen);
--- 
-2.25.1
-
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
