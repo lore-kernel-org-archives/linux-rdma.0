@@ -2,244 +2,127 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33476C433ED
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Apr 2021 05:50:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D9CFC433B4
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Apr 2021 11:43:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 052DE613F6
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Apr 2021 05:50:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E65C4613AF
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Apr 2021 11:43:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232966AbhDWFu6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Apr 2021 01:50:58 -0400
-Received: from mga02.intel.com ([134.134.136.20]:31575 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229456AbhDWFu6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 23 Apr 2021 01:50:58 -0400
-IronPort-SDR: BB3vJjmZBC2igGWr9K9GDGAUWq+Lw4MlyqFpujG4AQVj+1qyXqmTizTlMvSSHO/F7ZOq4ugvam
- YAuVgLEHmrzQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,9962"; a="183150757"
-X-IronPort-AV: E=Sophos;i="5.82,244,1613462400"; 
-   d="scan'208";a="183150757"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2021 22:50:20 -0700
-IronPort-SDR: A1PKZQU7vGJVrrnYdvsFx3PO9YKnfcJYt007DM78n5MBJHSQHfnJeFF9FAUwcQDylcn4SZ9tY7
- 39yvZPHWNwYA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.82,244,1613462400"; 
-   d="scan'208";a="385002331"
-Received: from lkp-server01.sh.intel.com (HELO a48ff7ddd223) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 22 Apr 2021 22:50:17 -0700
-Received: from kbuild by a48ff7ddd223 with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1lZohk-0004YE-C6; Fri, 23 Apr 2021 05:50:16 +0000
-Date:   Fri, 23 Apr 2021 13:50:07 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- c6c11ad3ab9fe5eb279479879e3461da99f6fdf0
-Message-ID: <6082600f.MXZ3OqjLEb6URTPJ%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S230243AbhDWLnq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Apr 2021 07:43:46 -0400
+Received: from aserp2130.oracle.com ([141.146.126.79]:50200 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229957AbhDWLnq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Apr 2021 07:43:46 -0400
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+        by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 13NBea49169184;
+        Fri, 23 Apr 2021 11:43:06 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
+ bh=S66XGWsxtWw3KFeNK/zMFkU4+OP6l6K4EheP3hlTzoI=;
+ b=BgWwaFiOwJahgfkC+kjgUCbCf5bM6NZdufF/jdoeHVkUUHzNWJDNA5xPF+Cn+rKvfz9R
+ kkDV7Z5q6732IG5j8SwbBl9YWMUzRDB3+8yoKuAc5kx/PS4M4jxsQi7U+L6aToczTfU0
+ piliPw2KdZ5el9XzF87DPSHA3fnVBZ7EpFJzuFwEDGZHomcj7yWEyxoVXmhnPKuKKJS5
+ kyH52vf+HxNFeqruhAAgTJUndvkNUpDHbtEkHXdxfXXSsP6rjBYLNjVpVXkFHKpIuh8u
+ WiGCQJp6HwfAMAaYxm4LLJx+5XQWUUECb3f5KQO1az87MCNuR9sKKLM0QT+Cjdj0Wbh/ jg== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+        by aserp2130.oracle.com with ESMTP id 37yn6cg8dm-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 23 Apr 2021 11:43:06 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 13NBduR4013295;
+        Fri, 23 Apr 2021 11:43:06 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by aserp3030.oracle.com with ESMTP id 383ccffnsg-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 23 Apr 2021 11:43:06 +0000
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [127.0.0.1])
+        by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 13NBh5pM018898;
+        Fri, 23 Apr 2021 11:43:05 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+        by aserp3030.oracle.com with ESMTP id 383ccffns7-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 23 Apr 2021 11:43:05 +0000
+Received: from abhmp0012.oracle.com (abhmp0012.oracle.com [141.146.116.18])
+        by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 13NBh4EF001372;
+        Fri, 23 Apr 2021 11:43:04 GMT
+Received: from mwanda (/102.36.221.92)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 23 Apr 2021 04:43:03 -0700
+Date:   Fri, 23 Apr 2021 14:42:57 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Saeed Mahameed <saeedm@nvidia.com>,
+        Yevgeny Kliteynik <kliteyn@nvidia.com>
+Cc:     Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH net-next] net/mlx5: Fix some error messages
+Message-ID: <YIKywXhusLj4cDFM@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+X-Mailer: git-send-email haha only kidding
+X-Proofpoint-GUID: YSFmQf3h8wS6QcxzcBUv3cQJ8cimGK3h
+X-Proofpoint-ORIG-GUID: YSFmQf3h8wS6QcxzcBUv3cQJ8cimGK3h
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9962 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 priorityscore=1501
+ bulkscore=0 suspectscore=0 impostorscore=0 mlxscore=0 lowpriorityscore=0
+ clxscore=1011 spamscore=0 mlxlogscore=999 adultscore=0 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104060000
+ definitions=main-2104230076
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-branch HEAD: c6c11ad3ab9fe5eb279479879e3461da99f6fdf0  RDMA/nldev: Add QP numbers to SRQ information
+This code was using IS_ERR() instead of PTR_ERR() so it prints 1 instead
+of the correct error code.
 
-elapsed time: 724m
-
-configs tested: 174
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-arm64                            allyesconfig
-arm64                               defconfig
-x86_64                           allyesconfig
-riscv                            allmodconfig
-riscv                            allyesconfig
-powerpc                 mpc834x_itx_defconfig
-powerpc                     redwood_defconfig
-m68k                          atari_defconfig
-powerpc                      cm5200_defconfig
-powerpc                 mpc85xx_cds_defconfig
-powerpc                 xes_mpc85xx_defconfig
-mips                           mtx1_defconfig
-sh                               allmodconfig
-ia64                            zx1_defconfig
-arm                          lpd270_defconfig
-sh                          kfr2r09_defconfig
-sh                            titan_defconfig
-powerpc                  storcenter_defconfig
-powerpc                 mpc834x_mds_defconfig
-m68k                         apollo_defconfig
-sh                   sh7770_generic_defconfig
-um                               allyesconfig
-mips                            e55_defconfig
-sh                        sh7757lcr_defconfig
-sh                          lboxre2_defconfig
-powerpc                       maple_defconfig
-nds32                             allnoconfig
-arm                       aspeed_g5_defconfig
-m68k                       m5275evb_defconfig
-xtensa                  audio_kc705_defconfig
-arc                     nsimosci_hs_defconfig
-powerpc                  mpc885_ads_defconfig
-mips                          rm200_defconfig
-arc                           tb10x_defconfig
-powerpc                      acadia_defconfig
-sh                                  defconfig
-powerpc                       eiger_defconfig
-arm                           h5000_defconfig
-sh                         microdev_defconfig
-powerpc                 mpc832x_mds_defconfig
-arm                       spear13xx_defconfig
-ia64                             alldefconfig
-arm                           sama5_defconfig
-mips                malta_qemu_32r6_defconfig
-mips                     cu1000-neo_defconfig
-arm                           u8500_defconfig
-sh                           se7343_defconfig
-mips                           ip32_defconfig
-sh                        sh7763rdp_defconfig
-csky                             alldefconfig
-powerpc                  iss476-smp_defconfig
-powerpc                     kmeter1_defconfig
-arm                     eseries_pxa_defconfig
-mips                     decstation_defconfig
-powerpc                        fsp2_defconfig
-powerpc                      ppc64e_defconfig
-arm                          badge4_defconfig
-sh                           se7750_defconfig
-powerpc                      arches_defconfig
-powerpc                   currituck_defconfig
-mips                         tb0287_defconfig
-arm                          pcm027_defconfig
-um                             i386_defconfig
-arm                           spitz_defconfig
-arm                         nhk8815_defconfig
-powerpc                         ps3_defconfig
-arm                    vt8500_v6_v7_defconfig
-nios2                         3c120_defconfig
-arm                          gemini_defconfig
-arm                            dove_defconfig
-arm                        neponset_defconfig
-mips                 decstation_r4k_defconfig
-mips                      maltaaprp_defconfig
-um                           x86_64_defconfig
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-arc                              allyesconfig
-nios2                               defconfig
-nios2                            allyesconfig
-alpha                               defconfig
-alpha                            allyesconfig
-nds32                               defconfig
-csky                                defconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-s390                                defconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-parisc                           allyesconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a004-20210421
-x86_64               randconfig-a002-20210421
-x86_64               randconfig-a001-20210421
-x86_64               randconfig-a005-20210421
-x86_64               randconfig-a006-20210421
-x86_64               randconfig-a003-20210421
-i386                 randconfig-a005-20210421
-i386                 randconfig-a002-20210421
-i386                 randconfig-a001-20210421
-i386                 randconfig-a006-20210421
-i386                 randconfig-a004-20210421
-i386                 randconfig-a003-20210421
-i386                 randconfig-a005-20210423
-i386                 randconfig-a002-20210423
-i386                 randconfig-a001-20210423
-i386                 randconfig-a006-20210423
-i386                 randconfig-a004-20210423
-i386                 randconfig-a003-20210423
-x86_64               randconfig-a015-20210422
-x86_64               randconfig-a016-20210422
-x86_64               randconfig-a011-20210422
-x86_64               randconfig-a014-20210422
-x86_64               randconfig-a012-20210422
-x86_64               randconfig-a013-20210422
-i386                 randconfig-a014-20210421
-i386                 randconfig-a015-20210421
-i386                 randconfig-a016-20210421
-i386                 randconfig-a012-20210421
-i386                 randconfig-a011-20210421
-i386                 randconfig-a013-20210421
-i386                 randconfig-a014-20210422
-i386                 randconfig-a012-20210422
-i386                 randconfig-a011-20210422
-i386                 randconfig-a013-20210422
-i386                 randconfig-a015-20210422
-i386                 randconfig-a016-20210422
-riscv                    nommu_k210_defconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-um                               allmodconfig
-um                                allnoconfig
-um                                  defconfig
-x86_64                    rhel-8.3-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                      rhel-8.3-kbuiltin
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a015-20210421
-x86_64               randconfig-a016-20210421
-x86_64               randconfig-a011-20210421
-x86_64               randconfig-a014-20210421
-x86_64               randconfig-a013-20210421
-x86_64               randconfig-a012-20210421
-x86_64               randconfig-a015-20210423
-x86_64               randconfig-a016-20210423
-x86_64               randconfig-a011-20210423
-x86_64               randconfig-a014-20210423
-x86_64               randconfig-a012-20210423
-x86_64               randconfig-a013-20210423
-x86_64               randconfig-a002-20210422
-x86_64               randconfig-a004-20210422
-x86_64               randconfig-a001-20210422
-x86_64               randconfig-a005-20210422
-x86_64               randconfig-a006-20210422
-x86_64               randconfig-a003-20210422
-
+Fixes: 25cb31768042 ("net/mlx5: E-Switch, Improve error messages in term table creation")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ .../mellanox/mlx5/core/eswitch_offloads_termtbl.c    | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
+index a81ece94f599..95f5c1a27718 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads_termtbl.c
+@@ -83,16 +83,16 @@ mlx5_eswitch_termtbl_create(struct mlx5_core_dev *dev,
+ 	ft_attr.autogroup.max_num_groups = 1;
+ 	tt->termtbl = mlx5_create_auto_grouped_flow_table(root_ns, &ft_attr);
+ 	if (IS_ERR(tt->termtbl)) {
+-		esw_warn(dev, "Failed to create termination table (error %d)\n",
+-			 IS_ERR(tt->termtbl));
++		esw_warn(dev, "Failed to create termination table (error %ld)\n",
++			 PTR_ERR(tt->termtbl));
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+ 	tt->rule = mlx5_add_flow_rules(tt->termtbl, NULL, flow_act,
+ 				       &tt->dest, 1);
+ 	if (IS_ERR(tt->rule)) {
+-		esw_warn(dev, "Failed to create termination table rule (error %d)\n",
+-			 IS_ERR(tt->rule));
++		esw_warn(dev, "Failed to create termination table rule (error %ld)\n",
++			 PTR_ERR(tt->rule));
+ 		goto add_flow_err;
+ 	}
+ 	return 0;
+@@ -283,8 +283,8 @@ mlx5_eswitch_add_termtbl_rule(struct mlx5_eswitch *esw,
+ 		tt = mlx5_eswitch_termtbl_get_create(esw, &term_tbl_act,
+ 						     &dest[i], attr);
+ 		if (IS_ERR(tt)) {
+-			esw_warn(esw->dev, "Failed to get termination table (error %d)\n",
+-				 IS_ERR(tt));
++			esw_warn(esw->dev, "Failed to get termination table (error %ld)\n",
++				 PTR_ERR(tt));
+ 			goto revert_changes;
+ 		}
+ 		attr->dests[num_vport_dests].termtbl = tt;
+-- 
+2.30.2
+
