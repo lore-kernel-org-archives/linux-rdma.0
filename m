@@ -2,303 +2,430 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F39C43461
-	for <linux-rdma@archiver.kernel.org>; Sun, 25 Apr 2021 11:54:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 990E8C433B4
+	for <linux-rdma@archiver.kernel.org>; Sun, 25 Apr 2021 13:03:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBD51611B0
-	for <linux-rdma@archiver.kernel.org>; Sun, 25 Apr 2021 11:54:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7233E61184
+	for <linux-rdma@archiver.kernel.org>; Sun, 25 Apr 2021 13:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230171AbhDYLyT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 25 Apr 2021 07:54:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48026 "EHLO mail.kernel.org"
+        id S229837AbhDYNEa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 25 Apr 2021 09:04:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230173AbhDYLyR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 25 Apr 2021 07:54:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7538661165;
-        Sun, 25 Apr 2021 11:53:37 +0000 (UTC)
+        id S229688AbhDYNEa (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 25 Apr 2021 09:04:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 376DB61360;
+        Sun, 25 Apr 2021 13:03:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1619351618;
-        bh=GUamF/j9inaWdwzjFFLUCVoM6Qq1wIxAtSiXLt4WARE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=joGxogSuDXSej21YeoxMJ/e1bBGSMVn/Pc6QFXCw9UvziA1Qdsz9lB8RpZl8y/+Wo
-         KJjNZ22P6sddv2XrCuiefP3oDQv9Krkwk3q5mNKe9yhesg4xIOxF2ZM2rfz4GruuhX
-         5b7dtptbl5etM+eGJjtTyi6sZbIoD/wjOp+YNo/IAAmTsHxQOI+yqFgA3Yu7RGGoFR
-         AIfhhfMfVAPNSylyimG7+Y3CUAomS+zTcM2gM3eu7QzhtGVxmpVMCfqIgD0qgQcvmc
-         dB94ElrVRYI5YgdhPgQjMBj3HftOBTFeA3msUYvLjh+KK7m2UkeOvGEOPorcwese37
-         dVBYxrU2MHtLA==
+        s=k20201202; t=1619355830;
+        bh=SlHzui/IXNs3I0iMECo2Xdyzv72vCl8Gukhb8hYsLko=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ZQ78ix/XwnD82A2FybloMvnthLgyzr9EoxPahHoe2UCWcsJusTId2u95/WwhIMY6r
+         uXHhWRZ/z++UiTiJ2GfPf2VpTtQTNeNz7fUNuhpKwEYMI9riHxecwRiMpUV5Tx2LGa
+         KMJEt9fHcdQXQNF+mYb5QluLkYDeBJOkZ8vQ+Rjq+2eG1YTv602o3NLRIKWzIopPKD
+         GMj5Wu52mBwb/UXInbGsnw4scvewPv8azGP1EsO14jSs5JwTXEPWXU1QexNCkSc6gA
+         jHfRBsPFonzrg0XdQAGykbp8hVr9jhM9ArnlNV4MSJD3pEZQaTTk9Y5gegAN/P6+I3
+         og0NUWHlL25pw==
+Date:   Sun, 25 Apr 2021 16:03:47 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     David Ahern <dsahern@gmail.com>
-Cc:     Neta Ostrovsky <netao@nvidia.com>, Ido Kalir <idok@nvidia.com>,
-        linux-netdev <netdev@vger.kernel.org>,
-        Mark Zhang <markz@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Subject: [PATCH iproute2-next 2/3] rdma: Add context resource tracking information
-Date:   Sun, 25 Apr 2021 14:53:21 +0300
-Message-Id: <42633040e133fdaa15158ffc006b68fc405cd034.1619351025.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <cover.1619351025.git.leonro@nvidia.com>
-References: <cover.1619351025.git.leonro@nvidia.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Doug Ledford <dledford@redhat.com>, Shay Drory <shayd@nvidia.com>,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH rdma-next] RDMA/restrack: Delay QP deletion till all
+ users are gone
+Message-ID: <YIVosxurbZGlmCOw@unreal>
+References: <9ba5a611ceac86774d3d0fda12704cecc30606f9.1618753038.git.leonro@nvidia.com>
+ <20210420123950.GA2138447@nvidia.com>
+ <YH7Ru5ZSr1kWGZoa@unreal>
+ <20210420152541.GC1370958@nvidia.com>
+ <YH+yGj3cLuA5ga8s@unreal>
+ <20210422142939.GA2407382@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210422142939.GA2407382@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Neta Ostrovsky <netao@nvidia.com>
+On Thu, Apr 22, 2021 at 11:29:39AM -0300, Jason Gunthorpe wrote:
+> On Wed, Apr 21, 2021 at 08:03:22AM +0300, Leon Romanovsky wrote:
+> 
+> > I didn't understand when reviewed either, but decided to post it anyway
+> > to get possible explanation for this RDMA_RESTRACK_MR || RDMA_RESTRACK_QP
+> > check.
+> 
+> I think the whole thing should look more like this and we delete the
+> if entirely.
 
-Sample output:
+I have mixed feelings about this approach. Before "destroy can fail disaster",
+the restrack goal was to provide the following flow:
+1. create new memory object - rdma_restrack_new()
+2. create new HW object - .create_XXX() callback in the driver
+3. add HW object to the DB - rdma_restrack_del()
+....
+4. wait for any work on this HW object to complete - rdma_restrack_del()
+5. safely destroy HW object - .destroy_XXX()
 
-$ rdma res show ctx
-dev ibp8s0f0 ctxn 0 pid 980 comm ibv_rc_pingpong
-dev ibp8s0f0 ctxn 1 pid 981 comm ibv_rc_pingpong
-dev ibp8s0f0 ctxn 2 pid 992 comm ibv_rc_pingpong
-dev ibp8s0f1 ctxn 0 pid 984 comm ibv_rc_pingpong
-dev ibp8s0f1 ctxn 1 pid 987 comm ibv_rc_pingpong
+I really would like to stay with this flow and block any access to the
+object that failed to destruct - maybe add to some zombie list.
 
-$ rdma res show ctx dev ibp8s0f1
-dev ibp8s0f1 ctxn 0 pid 984 comm ibv_rc_pingpong
-dev ibp8s0f1 ctxn 1 pid 987 comm ibv_rc_pingpong
+The proposed prepare/abort/finish flow is much harder to implement correctly.
+Let's take as an example ib_destroy_qp_user(), we called to rdma_rw_cleanup_mrs(),
+but didn't restore them after .destroy_qp() failure.
 
-Reviewed-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Ido Kalir <idok@nvidia.com>
-Signed-off-by: Neta Ostrovsky <netao@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- man/man8/rdma-resource.8 |   7 ++-
- rdma/Makefile            |   2 +-
- rdma/res-ctx.c           | 103 +++++++++++++++++++++++++++++++++++++++
- rdma/res.c               |   5 +-
- rdma/res.h               |  12 +++++
- rdma/utils.c             |   3 ++
- 6 files changed, 129 insertions(+), 3 deletions(-)
- create mode 100644 rdma/res-ctx.c
+Thanks
 
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index 8d0d14c6..c2102853 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -13,7 +13,7 @@ rdma-resource \- rdma resource configuration
- 
- .ti -8
- .IR RESOURCE " := { "
--.BR cm_id " | " cq " | " mr " | " pd " | " qp " }"
-+.BR cm_id " | " cq " | " mr " | " pd " | " qp " | " ctx " }"
- .sp
- 
- .ti -8
-@@ -103,6 +103,11 @@ rdma resource show cq pid 30489
- Show CQs belonging to pid 30489
- .RE
- .PP
-+rdma resource show ctx ctxn 1
-+.RS 4
-+Show contexts that have index equal to 1.
-+.RE
-+.PP
- 
- .SH SEE ALSO
- .BR rdma (8),
-diff --git a/rdma/Makefile b/rdma/Makefile
-index aa5ce822..32f504fc 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -7,7 +7,7 @@ ifeq ($(HAVE_MNL),y)
- CFLAGS += -I./include/uapi/
- 
- RDMA_OBJ = rdma.o utils.o dev.o link.o res.o res-pd.o res-mr.o res-cq.o \
--	   res-cmid.o res-qp.o sys.o stat.o stat-mr.o
-+	   res-cmid.o res-qp.o sys.o stat.o stat-mr.o res-ctx.o
- 
- TARGETS += rdma
- endif
-diff --git a/rdma/res-ctx.c b/rdma/res-ctx.c
-new file mode 100644
-index 00000000..30afe97a
---- /dev/null
-+++ b/rdma/res-ctx.c
-@@ -0,0 +1,103 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * res-ctx.c	RDMA tool
-+ * Authors:     Neta Ostrovsky <netao@nvidia.com>
-+ */
-+
-+#include "res.h"
-+#include <inttypes.h>
-+
-+static int res_ctx_line(struct rd *rd, const char *name, int idx,
-+			struct nlattr **nla_line)
-+{
-+	char *comm = NULL;
-+	uint32_t ctxn = 0;
-+	uint32_t pid = 0;
-+
-+	if (!nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+		return MNL_CB_ERROR;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
-+		pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+		comm = get_task_name(pid);
-+	}
-+
-+	if (rd_is_filtered_attr(rd, "pid", pid,
-+				nla_line[RDMA_NLDEV_ATTR_RES_PID]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+		ctxn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+
-+	if (rd_is_filtered_attr(rd, "ctxn", ctxn,
-+				nla_line[RDMA_NLDEV_ATTR_RES_CTXN]))
-+		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
-+		/* discard const from mnl_attr_get_str */
-+		comm = (char *)mnl_attr_get_str(
-+			nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
-+
-+	open_json_object(NULL);
-+	print_dev(rd, idx, name);
-+	res_print_uint(rd, "ctxn", ctxn, nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+	res_print_uint(rd, "pid", pid, nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+	print_comm(rd, comm, nla_line);
-+
-+	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
-+	newline(rd);
-+
-+out:
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
-+		free(comm);
-+	return MNL_CB_OK;
-+}
-+
-+int res_ctx_idx_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct rd *rd = data;
-+	const char *name;
-+	uint32_t idx;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME])
-+		return MNL_CB_ERROR;
-+
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+
-+	return res_ctx_line(rd, name, idx, tb);
-+}
-+
-+int res_ctx_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct nlattr *nla_table, *nla_entry;
-+	struct rd *rd = data;
-+	int ret = MNL_CB_OK;
-+	const char *name;
-+	uint32_t idx;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
-+	    !tb[RDMA_NLDEV_ATTR_RES_CTX])
-+		return MNL_CB_ERROR;
-+
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	nla_table = tb[RDMA_NLDEV_ATTR_RES_CTX];
-+
-+	mnl_attr_for_each_nested(nla_entry, nla_table) {
-+		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-+
-+		ret = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
-+		if (ret != MNL_CB_OK)
-+			break;
-+
-+		ret = res_ctx_line(rd, name, idx, nla_line);
-+		if (ret != MNL_CB_OK)
-+			break;
-+	}
-+	return ret;
-+}
-diff --git a/rdma/res.c b/rdma/res.c
-index f42ae938..dbc3179e 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -11,7 +11,7 @@ static int res_help(struct rd *rd)
- {
- 	pr_out("Usage: %s resource\n", rd->filename);
- 	pr_out("          resource show [DEV]\n");
--	pr_out("          resource show [qp|cm_id|pd|mr|cq]\n");
-+	pr_out("          resource show [qp|cm_id|pd|mr|cq|ctx]\n");
- 	pr_out("          resource show qp link [DEV/PORT]\n");
- 	pr_out("          resource show qp link [DEV/PORT] [FILTER-NAME FILTER-VALUE]\n");
- 	pr_out("          resource show cm_id link [DEV/PORT]\n");
-@@ -22,6 +22,8 @@ static int res_help(struct rd *rd)
- 	pr_out("          resource show pd dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
- 	pr_out("          resource show mr dev [DEV]\n");
- 	pr_out("          resource show mr dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
-+	pr_out("          resource show ctx dev [DEV]\n");
-+	pr_out("          resource show ctx dev [DEV] [FILTER-NAME FILTER-VALUE]\n");
- 	return 0;
- }
- 
-@@ -224,6 +226,7 @@ static int res_show(struct rd *rd)
- 		{ "cq",		res_cq		},
- 		{ "mr",		res_mr		},
- 		{ "pd",		res_pd		},
-+		{ "ctx",	res_ctx		},
- 		{ 0 }
- 	};
- 
-diff --git a/rdma/res.h b/rdma/res.h
-index e8bd02e4..a8093d15 100644
---- a/rdma/res.h
-+++ b/rdma/res.h
-@@ -22,6 +22,8 @@ int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_cm_id_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data);
- int res_qp_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
-+int res_ctx_parse_cb(const struct nlmsghdr *nlh, void *data);
-+int res_ctx_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
- 
- static inline uint32_t res_get_command(uint32_t command, struct rd *rd)
- {
-@@ -155,6 +157,16 @@ filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- RES_FUNC(res_qp, RDMA_NLDEV_CMD_RES_QP_GET, qp_valid_filters, false,
- 	 RDMA_NLDEV_ATTR_RES_LQPN);
- 
-+static const
-+struct filters ctx_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-+	{ .name = "dev", .is_number = false },
-+	{ .name = "pid", .is_number = true },
-+	{ .name = "ctxn", .is_number = true, .is_doit = true },
-+};
-+
-+RES_FUNC(res_ctx, RDMA_NLDEV_CMD_RES_CTX_GET, ctx_valid_filters, true,
-+	 RDMA_NLDEV_ATTR_RES_CTXN);
-+
- void print_dev(struct rd *rd, uint32_t idx, const char *name);
- void print_link(struct rd *rd, uint32_t idx, const char *name, uint32_t port,
- 		struct nlattr **nla_line);
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 292e1808..e2c9bb6f 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -435,6 +435,9 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_RES_LKEY] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_RES_IOVA] = MNL_TYPE_U64,
- 	[RDMA_NLDEV_ATTR_RES_MRLEN] = MNL_TYPE_U64,
-+	[RDMA_NLDEV_ATTR_RES_CTX] = MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_CTX_ENTRY] = MNL_TYPE_NESTED,
-+	[RDMA_NLDEV_ATTR_RES_CTXN] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_NDEV_INDEX]		= MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_NDEV_NAME]		= MNL_TYPE_NUL_STRING,
- 	[RDMA_NLDEV_ATTR_DRIVER] = MNL_TYPE_NESTED,
--- 
-2.30.2
-
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 2b9ffc21cbc4ad..479b16b8f6723a 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -1860,6 +1860,7 @@ static void _destroy_id(struct rdma_id_private *id_priv,
+>  				iw_destroy_cm_id(id_priv->cm_id.iw);
+>  		}
+>  		cma_leave_mc_groups(id_priv);
+> +		rdma_restrack_del(&id_priv->res);
+>  		cma_release_dev(id_priv);
+>  	}
+>  
+> @@ -1873,7 +1874,6 @@ static void _destroy_id(struct rdma_id_private *id_priv,
+>  	kfree(id_priv->id.route.path_rec);
+>  
+>  	put_net(id_priv->id.route.addr.dev_addr.net);
+> -	rdma_restrack_del(&id_priv->res);
+>  	kfree(id_priv);
+>  }
+>  
+> diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+> index 15493357cfef09..1808bc2533f155 100644
+> --- a/drivers/infiniband/core/counters.c
+> +++ b/drivers/infiniband/core/counters.c
+> @@ -176,6 +176,8 @@ static void rdma_counter_free(struct rdma_counter *counter)
+>  {
+>  	struct rdma_port_counter *port_counter;
+>  
+> +	rdma_restrack_del(&counter->res);
+> +
+>  	port_counter = &counter->device->port_data[counter->port].port_counter;
+>  	mutex_lock(&port_counter->lock);
+>  	port_counter->num_counters--;
+> @@ -185,7 +187,6 @@ static void rdma_counter_free(struct rdma_counter *counter)
+>  
+>  	mutex_unlock(&port_counter->lock);
+>  
+> -	rdma_restrack_del(&counter->res);
+>  	kfree(counter->stats);
+>  	kfree(counter);
+>  }
+> diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+> index 433b426729d4ce..3884db637d33ab 100644
+> --- a/drivers/infiniband/core/cq.c
+> +++ b/drivers/infiniband/core/cq.c
+> @@ -339,11 +339,15 @@ void ib_free_cq(struct ib_cq *cq)
+>  		WARN_ON_ONCE(1);
+>  	}
+>  
+> +	rdma_restrack_prepare_del(&cq->res);
+>  	rdma_dim_destroy(cq);
+>  	trace_cq_free(cq);
+>  	ret = cq->device->ops.destroy_cq(cq, NULL);
+> -	WARN_ONCE(ret, "Destroy of kernel CQ shouldn't fail");
+> -	rdma_restrack_del(&cq->res);
+> +	if (WARN_ON(ret)) {
+> +		rdma_restrack_abort_del(&cq->res);
+> +		return;
+> +	}
+> +	rdma_restrack_finish_del(&cq->res);
+>  	kfree(cq->wc);
+>  	kfree(cq);
+>  }
+> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+> index 94d83b665a2fe0..f57234ced93ca1 100644
+> --- a/drivers/infiniband/core/rdma_core.c
+> +++ b/drivers/infiniband/core/rdma_core.c
+> @@ -854,6 +854,8 @@ static void ufile_destroy_ucontext(struct ib_uverbs_file *ufile,
+>  	struct ib_ucontext *ucontext = ufile->ucontext;
+>  	struct ib_device *ib_dev = ucontext->device;
+>  
+> +	rdma_restrack_prepare_del(&ucontext->res);
+> +
+>  	/*
+>  	 * If we are closing the FD then the user mmap VMAs must have
+>  	 * already been destroyed as they hold on to the filep, otherwise
+> @@ -868,9 +870,8 @@ static void ufile_destroy_ucontext(struct ib_uverbs_file *ufile,
+>  	ib_rdmacg_uncharge(&ucontext->cg_obj, ib_dev,
+>  			   RDMACG_RESOURCE_HCA_HANDLE);
+>  
+> -	rdma_restrack_del(&ucontext->res);
+> -
+>  	ib_dev->ops.dealloc_ucontext(ucontext);
+> +	rdma_restrack_finish_del(&ucontext->res);
+>  	WARN_ON(!xa_empty(&ucontext->mmap_xa));
+>  	kfree(ucontext);
+>  
+> diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+> index 033207882c82ce..8aa1dae40f38a7 100644
+> --- a/drivers/infiniband/core/restrack.c
+> +++ b/drivers/infiniband/core/restrack.c
+> @@ -315,11 +315,49 @@ int rdma_restrack_put(struct rdma_restrack_entry *res)
+>  }
+>  EXPORT_SYMBOL(rdma_restrack_put);
+>  
+> -/**
+> - * rdma_restrack_del() - delete object from the reource tracking database
+> - * @res:  resource entry
+> - */
+> -void rdma_restrack_del(struct rdma_restrack_entry *res)
+> +void rdma_restrack_prepare_del(struct rdma_restrack_entry *res)
+> +{
+> +	struct rdma_restrack_entry *old;
+> +	struct rdma_restrack_root *rt;
+> +	struct ib_device *dev;
+> +
+> +	if (!res->valid)
+> +		return;
+> +
+> +	dev = res_to_dev(res);
+> +	rt = &dev->res[res->type];
+> +
+> +	if (!res->no_track) {
+> +		old = xa_cmpxchg(&rt->xa, res->id, res, XA_ZERO_ENTRY,
+> +				 GFP_KERNEL);
+> +		WARN_ON(old != res);
+> +	}
+> +
+> +	/* Fence access from all concurrent threads, like netlink */
+> +	rdma_restrack_put(res);
+> +	wait_for_completion(&res->comp);
+> +}
+> +EXPORT_SYMBOL(rdma_restrack_prepare_del);
+> +
+> +void rdma_restrack_abort_del(struct rdma_restrack_entry *res)
+> +{
+> +	struct rdma_restrack_entry *old;
+> +	struct rdma_restrack_root *rt;
+> +	struct ib_device *dev;
+> +
+> +	if (!res->valid || res->no_track)
+> +		return;
+> +
+> +	dev = res_to_dev(res);
+> +	rt = &dev->res[res->type];
+> +
+> +	kref_init(&res->kref);
+> +	old = xa_cmpxchg(&rt->xa, res->id, XA_ZERO_ENTRY, res, GFP_KERNEL);
+> +	WARN_ON(old != res);
+> +}
+> +EXPORT_SYMBOL(rdma_restrack_abort_del);
+> +
+> +void rdma_restrack_finish_del(struct rdma_restrack_entry *res)
+>  {
+>  	struct rdma_restrack_entry *old;
+>  	struct rdma_restrack_root *rt;
+> @@ -332,24 +370,22 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+>  		}
+>  		return;
+>  	}
+> -
+> -	if (res->no_track)
+> -		goto out;
+> +	res->valid = false;
+>  
+>  	dev = res_to_dev(res);
+> -	if (WARN_ON(!dev))
+> -		return;
+> -
+>  	rt = &dev->res[res->type];
+> -
+>  	old = xa_erase(&rt->xa, res->id);
+> -	if (res->type == RDMA_RESTRACK_MR || res->type == RDMA_RESTRACK_QP)
+> -		return;
+> -	WARN_ON(old != res);
+> +	WARN_ON(old != NULL);
+> +}
+> +EXPORT_SYMBOL(rdma_restrack_finish_del);
+>  
+> -out:
+> -	res->valid = false;
+> -	rdma_restrack_put(res);
+> -	wait_for_completion(&res->comp);
+> +/**
+> + * rdma_restrack_del() - delete object from the reource tracking database
+> + * @res:  resource entry
+> + */
+> +void rdma_restrack_del(struct rdma_restrack_entry *res)
+> +{
+> +	rdma_restrack_prepare_del(res);
+> +	rdma_restrack_finish_del(res);
+>  }
+>  EXPORT_SYMBOL(rdma_restrack_del);
+> diff --git a/drivers/infiniband/core/restrack.h b/drivers/infiniband/core/restrack.h
+> index 6a04fc41f73801..87a670334acabe 100644
+> --- a/drivers/infiniband/core/restrack.h
+> +++ b/drivers/infiniband/core/restrack.h
+> @@ -27,6 +27,9 @@ int rdma_restrack_init(struct ib_device *dev);
+>  void rdma_restrack_clean(struct ib_device *dev);
+>  void rdma_restrack_add(struct rdma_restrack_entry *res);
+>  void rdma_restrack_del(struct rdma_restrack_entry *res);
+> +void rdma_restrack_prepare_del(struct rdma_restrack_entry *res);
+> +void rdma_restrack_finish_del(struct rdma_restrack_entry *res);
+> +void rdma_restrack_abort_del(struct rdma_restrack_entry *res);
+>  void rdma_restrack_new(struct rdma_restrack_entry *res,
+>  		       enum rdma_restrack_type type);
+>  void rdma_restrack_set_name(struct rdma_restrack_entry *res,
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 2b0798151fb753..2e761a7eb92847 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -346,13 +346,16 @@ int ib_dealloc_pd_user(struct ib_pd *pd, struct ib_udata *udata)
+>  	 */
+>  	WARN_ON(atomic_read(&pd->usecnt));
+>  
+> +	rdma_restrack_prepare_del(&pd->res);
+>  	ret = pd->device->ops.dealloc_pd(pd, udata);
+> -	if (ret)
+> +	if (ret) {
+> +		rdma_restrack_abort_del(&pd->res);
+>  		return ret;
+> +	}
+>  
+> -	rdma_restrack_del(&pd->res);
+> +	rdma_restrack_finish_del(&pd->res);
+>  	kfree(pd);
+> -	return ret;
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_dealloc_pd_user);
+>  
+> @@ -1085,19 +1088,22 @@ int ib_destroy_srq_user(struct ib_srq *srq, struct ib_udata *udata)
+>  	if (atomic_read(&srq->usecnt))
+>  		return -EBUSY;
+>  
+> +	rdma_restrack_prepare_del(&srq->res);
+>  	ret = srq->device->ops.destroy_srq(srq, udata);
+> -	if (ret)
+> +	if (ret) {
+> +		rdma_restrack_abort_del(&srq->res);
+>  		return ret;
+> +	}
+> +	rdma_restrack_finish_del(&srq->res);
+>  
+>  	atomic_dec(&srq->pd->usecnt);
+>  	if (srq->srq_type == IB_SRQT_XRC)
+>  		atomic_dec(&srq->ext.xrc.xrcd->usecnt);
+>  	if (ib_srq_has_cq(srq->srq_type))
+>  		atomic_dec(&srq->ext.cq->usecnt);
+> -	rdma_restrack_del(&srq->res);
+>  	kfree(srq);
+>  
+> -	return ret;
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_destroy_srq_user);
+>  
+> @@ -1963,31 +1969,33 @@ int ib_destroy_qp_user(struct ib_qp *qp, struct ib_udata *udata)
+>  		rdma_rw_cleanup_mrs(qp);
+>  
+>  	rdma_counter_unbind_qp(qp, true);
+> -	rdma_restrack_del(&qp->res);
+> +	rdma_restrack_prepare_del(&qp->res);
+>  	ret = qp->device->ops.destroy_qp(qp, udata);
+> -	if (!ret) {
+> -		if (alt_path_sgid_attr)
+> -			rdma_put_gid_attr(alt_path_sgid_attr);
+> -		if (av_sgid_attr)
+> -			rdma_put_gid_attr(av_sgid_attr);
+> -		if (pd)
+> -			atomic_dec(&pd->usecnt);
+> -		if (scq)
+> -			atomic_dec(&scq->usecnt);
+> -		if (rcq)
+> -			atomic_dec(&rcq->usecnt);
+> -		if (srq)
+> -			atomic_dec(&srq->usecnt);
+> -		if (ind_tbl)
+> -			atomic_dec(&ind_tbl->usecnt);
+> -		if (sec)
+> -			ib_destroy_qp_security_end(sec);
+> -	} else {
+> +	if (ret) {
+> +		rdma_restrack_abort_del(&qp->res);
+>  		if (sec)
+>  			ib_destroy_qp_security_abort(sec);
+> +		return ret;
+>  	}
+>  
+> -	return ret;
+> +	rdma_restrack_finish_del(&qp->res);
+> +	if (alt_path_sgid_attr)
+> +		rdma_put_gid_attr(alt_path_sgid_attr);
+> +	if (av_sgid_attr)
+> +		rdma_put_gid_attr(av_sgid_attr);
+> +	if (pd)
+> +		atomic_dec(&pd->usecnt);
+> +	if (scq)
+> +		atomic_dec(&scq->usecnt);
+> +	if (rcq)
+> +		atomic_dec(&rcq->usecnt);
+> +	if (srq)
+> +		atomic_dec(&srq->usecnt);
+> +	if (ind_tbl)
+> +		atomic_dec(&ind_tbl->usecnt);
+> +	if (sec)
+> +		ib_destroy_qp_security_end(sec);
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_destroy_qp_user);
+>  
+> @@ -2050,13 +2058,16 @@ int ib_destroy_cq_user(struct ib_cq *cq, struct ib_udata *udata)
+>  	if (atomic_read(&cq->usecnt))
+>  		return -EBUSY;
+>  
+> +	rdma_restrack_prepare_del(&cq->res);
+>  	ret = cq->device->ops.destroy_cq(cq, udata);
+> -	if (ret)
+> +	if (ret) {
+> +		rdma_restrack_abort_del(&cq->res);
+>  		return ret;
+> +	}
+>  
+> -	rdma_restrack_del(&cq->res);
+> +	rdma_restrack_finish_del(&cq->res);
+>  	kfree(cq);
+> -	return ret;
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_destroy_cq_user);
+>  
+> @@ -2126,16 +2137,19 @@ int ib_dereg_mr_user(struct ib_mr *mr, struct ib_udata *udata)
+>  	int ret;
+>  
+>  	trace_mr_dereg(mr);
+> -	rdma_restrack_del(&mr->res);
+> +	rdma_restrack_prepare_del(&mr->res);
+>  	ret = mr->device->ops.dereg_mr(mr, udata);
+> -	if (!ret) {
+> -		atomic_dec(&pd->usecnt);
+> -		if (dm)
+> -			atomic_dec(&dm->usecnt);
+> -		kfree(sig_attrs);
+> +	if (ret) {
+> +		rdma_restrack_abort_del(&mr->res);
+> +		return ret;
+>  	}
+>  
+> -	return ret;
+> +	rdma_restrack_finish_del(&mr->res);
+> +	atomic_dec(&pd->usecnt);
+> +	if (dm)
+> +		atomic_dec(&dm->usecnt);
+> +	kfree(sig_attrs);
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_dereg_mr_user);
+>  
