@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A96C433B4
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF27C433ED
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:55:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CD3861419
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:48:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64CE061419
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:55:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239147AbhD2GtO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Apr 2021 02:49:14 -0400
-Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:53159 "EHLO
-        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239097AbhD2GtO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Apr 2021 02:49:14 -0400
+        id S231179AbhD2G4T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Apr 2021 02:56:19 -0400
+Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:22279 "EHLO
+        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237146AbhD2G4T (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Apr 2021 02:56:19 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1619678909; x=1651214909;
+  t=1619679333; x=1651215333;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=jisvsmXSS9hiUqpGnzFUMeYtD+Lk4C7wFOXWw7+yy7o=;
-  b=IBAkOiK4pHSS0K8Rb3EA65Gc4WZJMLrgvJzrC9AeSOOQJbcgu2PPSeE4
-   YizzXc97ICmsGPWoxhooH6h9i1wvGcswGdlPOGV7F7Wo+LsDeXG0N1miQ
-   jzEKLLReUddFBgNPtJKM3JN0oaftszjNwhyW/r96LS1nOnxdPHtx1IhK/
-   4=;
+  bh=76XTOd1vl8Um82kU9b9uNSfrIRZPi/Si+ad1IrDBPgM=;
+  b=d/jkrU1BToPojkJ0nFuyqRGulRA86O9gyIxROGAap+MygqlwgGh3LyiX
+   xyeuql4DPDAx1Ym76uDE9IyhlR9k8Jd9jda3NiD6tsh2Yn+6MwPWSAzfU
+   P2QFjRSOMIVab5/VzSk44U6Sne7PWIEeHHjq9pLHsFs5G+Tddd90iukz/
+   s=;
 X-IronPort-AV: E=Sophos;i="5.82,258,1613433600"; 
-   d="scan'208";a="131706902"
-Received: from pdx4-co-svc-p1-lb2-vlan2.amazon.com (HELO email-inbound-relay-1d-37fd6b3d.us-east-1.amazon.com) ([10.25.36.210])
-  by smtp-border-fw-9102.sea19.amazon.com with ESMTP; 29 Apr 2021 06:48:28 +0000
-Received: from EX13D02EUC002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
-        by email-inbound-relay-1d-37fd6b3d.us-east-1.amazon.com (Postfix) with ESMTPS id 43F8C281FAE;
-        Thu, 29 Apr 2021 06:48:25 +0000 (UTC)
+   d="scan'208";a="104668397"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1e-c7c08562.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-4101.iad4.amazon.com with ESMTP; 29 Apr 2021 06:48:23 +0000
+Received: from EX13D19EUA003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-1e-c7c08562.us-east-1.amazon.com (Postfix) with ESMTPS id BE06C240ACA;
+        Thu, 29 Apr 2021 06:48:21 +0000 (UTC)
 Received: from EX13MTAUWA001.ant.amazon.com (10.43.160.58) by
- EX13D02EUC002.ant.amazon.com (10.43.164.14) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Thu, 29 Apr 2021 06:48:24 +0000
+ EX13D19EUA003.ant.amazon.com (10.43.165.175) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2; Thu, 29 Apr 2021 06:48:20 +0000
 Received: from 8c85908914bf.ant.amazon.com.com (10.85.98.110) by
  mail-relay.amazon.com (10.43.160.118) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Thu, 29 Apr 2021 06:48:21 +0000
+ 15.0.1497.2 via Frontend Transport; Thu, 29 Apr 2021 06:48:17 +0000
 From:   Gal Pressman <galpress@amazon.com>
 To:     David Ahern <dsahern@gmail.com>
 CC:     <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
@@ -50,9 +50,9 @@ CC:     <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
         Leon Romanovsky <leonro@nvidia.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Gal Pressman <galpress@amazon.com>
-Subject: [PATCH iproute2-next v2 2/2] rdma: Add copy-on-fork to get sys command
-Date:   Thu, 29 Apr 2021 09:48:03 +0300
-Message-ID: <20210429064803.58458-3-galpress@amazon.com>
+Subject: [PATCH iproute2-next v2 1/2] rdma: update uapi headers
+Date:   Thu, 29 Apr 2021 09:48:02 +0300
+Message-ID: <20210429064803.58458-2-galpress@amazon.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210429064803.58458-1-galpress@amazon.com>
 References: <20210429064803.58458-1-galpress@amazon.com>
@@ -63,52 +63,28 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The new attribute indicates that the kernel copies DMA pages on fork,
-hence fork support through madvise and MADV_DONTFORK is not needed.
-
-If the attribute is not reported (expected on older kernels),
-copy-on-fork is disabled.
-
-Example:
-$ rdma sys
-netns shared copy-on-fork on
+Update rdma_netlink.h file upto kernel commit
+6cc9e215eb27 ("RDMA/nldev: Add copy-on-fork attribute to get sys command")
 
 Signed-off-by: Gal Pressman <galpress@amazon.com>
 ---
- rdma/sys.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ rdma/include/uapi/rdma/rdma_netlink.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/rdma/sys.c b/rdma/sys.c
-index 8fb565d70598..fd785b253e20 100644
---- a/rdma/sys.c
-+++ b/rdma/sys.c
-@@ -20,6 +20,7 @@ static const char *netns_modes_str[] = {
- static int sys_show_parse_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	bool cof = false;
+diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
+index e161c245bf71..37f583ee58fc 100644
+--- a/rdma/include/uapi/rdma/rdma_netlink.h
++++ b/rdma/include/uapi/rdma/rdma_netlink.h
+@@ -546,6 +546,9 @@ enum rdma_nldev_attr {
  
- 	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
- 
-@@ -35,9 +36,17 @@ static int sys_show_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		else
- 			mode_str = "unknown";
- 
--		print_color_string(PRINT_ANY, COLOR_NONE, "netns", "netns %s\n",
-+		print_color_string(PRINT_ANY, COLOR_NONE, "netns", "netns %s ",
- 				   mode_str);
- 	}
+ 	RDMA_NLDEV_ATTR_MIN_RANGE,		/* u32 */
+ 	RDMA_NLDEV_ATTR_MAX_RANGE,		/* u32 */
 +
-+	if (tb[RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK])
-+		cof = mnl_attr_get_u8(tb[RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK]);
++	RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK,	/* u8 */
 +
-+	print_color_on_off(PRINT_ANY, COLOR_NONE, "copy-on-fork",
-+			   "copy-on-fork %s\n",
-+			   cof);
-+
- 	return MNL_CB_OK;
- }
- 
+ 	/*
+ 	 * Always the end
+ 	 */
 -- 
 2.31.1
 
