@@ -2,89 +2,63 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF27C433ED
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:55:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 975B3C433B4
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 07:13:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64CE061419
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 06:55:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E11361431
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Apr 2021 07:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231179AbhD2G4T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Apr 2021 02:56:19 -0400
-Received: from smtp-fw-4101.amazon.com ([72.21.198.25]:22279 "EHLO
-        smtp-fw-4101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237146AbhD2G4T (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Apr 2021 02:56:19 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1619679333; x=1651215333;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=76XTOd1vl8Um82kU9b9uNSfrIRZPi/Si+ad1IrDBPgM=;
-  b=d/jkrU1BToPojkJ0nFuyqRGulRA86O9gyIxROGAap+MygqlwgGh3LyiX
-   xyeuql4DPDAx1Ym76uDE9IyhlR9k8Jd9jda3NiD6tsh2Yn+6MwPWSAzfU
-   P2QFjRSOMIVab5/VzSk44U6Sne7PWIEeHHjq9pLHsFs5G+Tddd90iukz/
-   s=;
-X-IronPort-AV: E=Sophos;i="5.82,258,1613433600"; 
-   d="scan'208";a="104668397"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1e-c7c08562.us-east-1.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-4101.iad4.amazon.com with ESMTP; 29 Apr 2021 06:48:23 +0000
-Received: from EX13D19EUA003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
-        by email-inbound-relay-1e-c7c08562.us-east-1.amazon.com (Postfix) with ESMTPS id BE06C240ACA;
-        Thu, 29 Apr 2021 06:48:21 +0000 (UTC)
-Received: from EX13MTAUWA001.ant.amazon.com (10.43.160.58) by
- EX13D19EUA003.ant.amazon.com (10.43.165.175) with Microsoft SMTP Server (TLS)
- id 15.0.1497.2; Thu, 29 Apr 2021 06:48:20 +0000
-Received: from 8c85908914bf.ant.amazon.com.com (10.85.98.110) by
- mail-relay.amazon.com (10.43.160.118) with Microsoft SMTP Server id
- 15.0.1497.2 via Frontend Transport; Thu, 29 Apr 2021 06:48:17 +0000
-From:   Gal Pressman <galpress@amazon.com>
-To:     David Ahern <dsahern@gmail.com>
-CC:     <linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
-        Yossi Leybovich <sleybo@amazon.com>,
+        id S237620AbhD2HO3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Apr 2021 03:14:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33804 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S237080AbhD2HO2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 29 Apr 2021 03:14:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 57C2761431;
+        Thu, 29 Apr 2021 07:13:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1619680422;
+        bh=lrF04FUENMdw0IZ00PxxH9+4e5XTu/SM4i+LDIRp/I8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=MSryo71rf3VLlNiLxRDx9PQb2uRHpSIsi9RG4mBhsIEh2t1ZiJUuTBP+YaeUo6i3D
+         7QzFEBOrVlLZYEPJMuWJzfPe5HgbLP3+YFdlLe44ZTUlLMTSDd9CY8ijXGd/b4ia9f
+         Z1K/IDSeO1HvWRXQ9zjR9qnbMZhSe3aaULo4oQ9Idyta0RSduK/AzbfLNlu743gVCG
+         vPWEijkduJGgOHfFfcjHGovyKbIyFLwnx2DrG9ljwx/Dqvz6Vyd/Y/MmK+99Ec7hQ5
+         0zAriAadSkWWowqFUElpwtGk+Jb0zm1uB+ZAV3NRuJyDmY230hzWcG3e8Vm5y5Kqfs
+         4fNqjWu23FJng==
+Date:   Thu, 29 Apr 2021 10:13:36 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Gal Pressman <galpress@amazon.com>
+Cc:     David Ahern <dsahern@gmail.com>, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Yossi Leybovich <sleybo@amazon.com>,
         Alexander Matushevsky <matua@amazon.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Gal Pressman <galpress@amazon.com>
-Subject: [PATCH iproute2-next v2 1/2] rdma: update uapi headers
-Date:   Thu, 29 Apr 2021 09:48:02 +0300
-Message-ID: <20210429064803.58458-2-galpress@amazon.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210429064803.58458-1-galpress@amazon.com>
+        Jason Gunthorpe <jgg@nvidia.com>
+Subject: Re: [PATCH iproute2-next v2 1/2] rdma: update uapi headers
+Message-ID: <YIpcoDk4xMm8Llar@unreal>
 References: <20210429064803.58458-1-galpress@amazon.com>
+ <20210429064803.58458-2-galpress@amazon.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210429064803.58458-2-galpress@amazon.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Update rdma_netlink.h file upto kernel commit
-6cc9e215eb27 ("RDMA/nldev: Add copy-on-fork attribute to get sys command")
+On Thu, Apr 29, 2021 at 09:48:02AM +0300, Gal Pressman wrote:
+> Update rdma_netlink.h file upto kernel commit
+> 6cc9e215eb27 ("RDMA/nldev: Add copy-on-fork attribute to get sys command")
+> 
+> Signed-off-by: Gal Pressman <galpress@amazon.com>
+> ---
+>  rdma/include/uapi/rdma/rdma_netlink.h | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
 
-Signed-off-by: Gal Pressman <galpress@amazon.com>
----
- rdma/include/uapi/rdma/rdma_netlink.h | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index e161c245bf71..37f583ee58fc 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -546,6 +546,9 @@ enum rdma_nldev_attr {
- 
- 	RDMA_NLDEV_ATTR_MIN_RANGE,		/* u32 */
- 	RDMA_NLDEV_ATTR_MAX_RANGE,		/* u32 */
-+
-+	RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK,	/* u8 */
-+
- 	/*
- 	 * Always the end
- 	 */
--- 
-2.31.1
-
+Thanks,
+Acked-by: Leon Romanovsky <leonro@nvidia.com>
