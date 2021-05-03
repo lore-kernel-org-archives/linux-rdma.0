@@ -2,128 +2,101 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76EAAC433ED
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E9C2C433ED
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3148B61244
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 476DA611BD
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233204AbhECLtQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 3 May 2021 07:49:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41676 "EHLO
+        id S233400AbhECLtT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 3 May 2021 07:49:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229823AbhECLtP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 May 2021 07:49:15 -0400
-Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9378CC06174A
-        for <linux-rdma@vger.kernel.org>; Mon,  3 May 2021 04:48:22 -0700 (PDT)
-Received: by mail-ed1-x52a.google.com with SMTP id c22so5902047edn.7
-        for <linux-rdma@vger.kernel.org>; Mon, 03 May 2021 04:48:22 -0700 (PDT)
+        with ESMTP id S229823AbhECLtR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 May 2021 07:49:17 -0400
+Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02C46C061761
+        for <linux-rdma@vger.kernel.org>; Mon,  3 May 2021 04:48:24 -0700 (PDT)
+Received: by mail-ej1-x62e.google.com with SMTP id f24so7382302ejc.6
+        for <linux-rdma@vger.kernel.org>; Mon, 03 May 2021 04:48:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=KlgjX89Rr/7BLuyVCwzxlD3tiv0FfQYTpRIbP6WwSyc=;
-        b=R6V4q70J1yiT7d12Ba7NZUIRCNhw5jeoPnBZaVAClhXUc/wHQuG29M+XIhbollI23V
-         facNTFKPnxE/HzX5t5KSmwK/iCr2EzbJtjIljYjbI6ll5IN7IRxHw+TEoJhhJ6y7TZeW
-         B7SBVd2kVaOA2N/KZr9y/SP4Q2y6M1kS75Ivjm0RV5NEdMsrT3MQhl+IPdrFhR+E+cZL
-         BBw521FlFAZqqeyuo4NtQNXxkBBiG3vieW63ZT02IG/N72h/vdy3Fatk5nxuAG6Koju+
-         xKDXrULwdzNySUJtPnZjqKkTTFtvHt4n3fqY0LjCXY5CBSCrwswfOZTDvAm4OvF3HnS3
-         IMKg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=yLFpOE+TdrRPkoVKHWUcTph7C4sZk65kVFl88lmOKh8=;
+        b=Nw0i0OFc3969sS45hd+dLpdQAFB84A9h4P28VSj0BC9aboqP8XQV8242g1EL71Vd+C
+         3EySNZ091v3MovtH5tdGLg2ghCvw3X8OPRbENY4L3fARt3cxKJ4vbP7LjeoUZ1MObKVv
+         TqU3dpG4aO076ObKRu9lBMTOZ0g++yVwtWyPAzWWaNWwV3dFaQpOVVnST5tOTX3c1lSz
+         uMo6Uh30vHFjLnuaBWXwUMR1pKFZdNspN3AwqUjgDqYIH8D1iIGvXxt7HVIPmK+0S3Wt
+         p32uN3uaeB5kaaNP01y/NIGU5G5Ho/J+LeNQEL4fZ7ajN+rIOV7Ffz7hnndDAUMzP7kv
+         618Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=KlgjX89Rr/7BLuyVCwzxlD3tiv0FfQYTpRIbP6WwSyc=;
-        b=h8xl7/S+fvAKfB4uV7yTyk+gM/IkeK5fLIUqVXheJ67Sn/bol1epPmP9n80pdJ/LRe
-         r0oxrabOhK718U/UmkxeVp44wFgy2WsHaejPwyRxpNbvsxcyepFFwPjXWUMMgESsGzMx
-         oP8nP3+ZS8we11UPqeIlPWYDFeaMzZIpcf+8K2roQUmBV81Odn+o7ooYV3o926GQJpPM
-         +bDbtXsEFx8coDLdHudjD4nKCIGmwDOttC0EsGLZuE2gFx3K243EmVaHJIIKnOds8pgJ
-         KS2/FrkNFXgHl2ANGBekFUWJUFX+LJESykr3OnJW5WoYFxCgCf8DHpjxhWqkMxi4Wsld
-         ltKg==
-X-Gm-Message-State: AOAM532Ba4YOez7VJB2WOlvQqCl3f1dfeurLlR2/xr1TS/m1TKgpiRPj
-        jne5I0u5zJcvHnsv/Fg5SuTzGJH9H+wduQ==
-X-Google-Smtp-Source: ABdhPJxEqI1XsPOnT1nhBzUR1HIsjLA939O4+0Cf30pljrORpxY7Y+M2f7TyfpkmRa9cVElI2+O6cw==
-X-Received: by 2002:a05:6402:617:: with SMTP id n23mr19638862edv.45.1620042501244;
-        Mon, 03 May 2021 04:48:21 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=yLFpOE+TdrRPkoVKHWUcTph7C4sZk65kVFl88lmOKh8=;
+        b=VOFcEdz1bGyRtoFIb/RPn2JvfXyar8p2UumXgnk4NwAV+Dw8VNDi8eOFKonOBI+bpg
+         3znlw5Tb9F2gmLkL6S/heM2A8CLeHzx8fcDC03rP3l9p2Fetz6umr5IiJeYaX1BIs/zq
+         Lz7//HP7bSaBTOqTdEFexQg5E16xwTP+LIjcBNg1JaV0XoQRheP0gweXxUjI6GZnOLaI
+         d/d8wbh9+/ZsTEggVd0SfJnDWALOyaR2mrc+cUSQFmNibTSWjuPT00xcW+t5+B7szgZp
+         lFrmrRt/K0aXg1AKQxktw+Ft4biaUaxqxNAls35TRBYdJA75u47pudIpSEn/Xf8rZVau
+         jQPw==
+X-Gm-Message-State: AOAM531QDQezUi4pRLnwH5JaFhsT65SZNipaO4+OKbkTOd7MbFO8aQ9y
+        aWctwIeowm9F7YmytAB2FR1Mo7hTqlun1A==
+X-Google-Smtp-Source: ABdhPJys+41TBWppM8KIv94blXEi3HipWJ3vSV7YFuc9nK2Mox7N7BounQn9KGhr4hPCxQ5CzgP5Ww==
+X-Received: by 2002:a17:907:399:: with SMTP id ss25mr16490828ejb.134.1620042502593;
+        Mon, 03 May 2021 04:48:22 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
-        by smtp.googlemail.com with ESMTPSA id z12sm7307705ejd.83.2021.05.03.04.48.20
+        by smtp.googlemail.com with ESMTPSA id z12sm7307705ejd.83.2021.05.03.04.48.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 May 2021 04:48:21 -0700 (PDT)
+        Mon, 03 May 2021 04:48:22 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
         Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCH for-next 00/20] Misc update for rtrs
-Date:   Mon,  3 May 2021 13:47:58 +0200
-Message-Id: <20210503114818.288896-1-gi-oh.kim@ionos.com>
+Subject: [PATCH for-next 02/20] RDMA/rtrs-clt: Remove MAX_SESS_QUEUE_DEPTH from rtrs_send_sess_info
+Date:   Mon,  3 May 2021 13:48:00 +0200
+Message-Id: <20210503114818.288896-3-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210503114818.288896-1-gi-oh.kim@ionos.com>
+References: <20210503114818.288896-1-gi-oh.kim@ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason, hi Doug,
+From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 
-Please consider to include following changes to the next merge window.
-It contains:
-- Patch 01 ~ 12: Typical code refactoring patches
-- Patch 13: Requested by Jason
-https://www.spinics.net/lists/linux-rdma/msg102009.html
-- Patch 14 ~ 20: Bug fixes
+Client receives queue_depth value from server. There is no need
+to use MAX_SESS_QUEUE_DEPTH value.
 
-Dima Stepanov (1):
-  RDMA/rtrs: Use strscpy instead of strlcpy
+Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Gioh Kim (8):
-  RDMA/rtrs-clt: Remove MAX_SESS_QUEUE_DEPTH from rtrs_send_sess_info
-  RDMA/rtrs-clt: No need to check queue_depth when receiving
-  RDMA/rtrs: Change MAX_SESS_QUEUE_DEPTH
-  RDMA/rtrs: Define MIN_CHUNK_SIZE
-  RDMA/rtrs: Do not reset hb_missed_max after re-connection
-  RDMA/rtrs-srv: Duplicated session name is not allowed
-  RDMA/rtrs-srv: Fix memory leak of unfreed rtrs_srv_stats object
-  RDMA/rtrs-clt: Fix memory leak of not-freed sess->stats and
-    stats->pcpu_stats
-
-Guoqing Jiang (6):
-  RDMA/rtrs-srv: Kill reject_w_econnreset label
-  RDMA/rtrs-srv: Clean up the code in __rtrs_srv_change_state
-  RDMA/rtrs-clt: Kill rtrs_clt_{start,stop}_hb
-  RDMA/rtrs-clt: Kill rtrs_clt_disconnect_from_sysfs
-  RDMA/rtrs-srv: Kill __rtrs_srv_change_state
-  RDMA/rtrs-clt: Remove redundant 'break'
-
-Jack Wang (1):
-  RDMA/rtrs-srv: Fix memory leak when having multiple sessions
-
-Md Haris Iqbal (4):
-  RDMA/rtrs-srv: Add error messages for cases when failing RDMA
-    connection
-  RDMA/rtrs-clt: Check state of the rtrs_clt_sess before reading its
-    stats
-  RDMA/rtrs-srv: Replace atomic_t with percpu_ref for ids_inflight
-  RDMA/rtrs-clt: Check if the queue_depth has changed during a
-    reconnection
-
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c |   5 +-
- drivers/infiniband/ulp/rtrs/rtrs-clt.c       |  59 ++++---
- drivers/infiniband/ulp/rtrs/rtrs-clt.h       |   2 +-
- drivers/infiniband/ulp/rtrs/rtrs-pri.h       |  14 +-
- drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c |  12 +-
- drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |   1 +
- drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 163 +++++++++++--------
- drivers/infiniband/ulp/rtrs/rtrs-srv.h       |   4 +-
- drivers/infiniband/ulp/rtrs/rtrs.c           |   1 -
- 9 files changed, 144 insertions(+), 117 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 5e94686bb22d..930a1b496f84 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -2455,7 +2455,7 @@ static int rtrs_send_sess_info(struct rtrs_clt_sess *sess)
+ 	int err;
+ 
+ 	rx_sz  = sizeof(struct rtrs_msg_info_rsp);
+-	rx_sz += sizeof(u64) * MAX_SESS_QUEUE_DEPTH;
++	rx_sz += sizeof(struct rtrs_sg_desc) * sess->queue_depth;
+ 
+ 	tx_iu = rtrs_iu_alloc(1, sizeof(struct rtrs_msg_info_req), GFP_KERNEL,
+ 			       sess->s.dev->ib_dev, DMA_TO_DEVICE,
 -- 
 2.25.1
 
