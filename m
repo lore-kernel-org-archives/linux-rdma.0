@@ -7,64 +7,63 @@ X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A2F9C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87C27C43461
 	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA41361221
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FA4C611BD
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 May 2021 11:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229823AbhECLtT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S233245AbhECLtT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 3 May 2021 07:49:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41684 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233245AbhECLtR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 May 2021 07:49:17 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D95AC06174A
-        for <linux-rdma@vger.kernel.org>; Mon,  3 May 2021 04:48:23 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id y7so7366313ejj.9
-        for <linux-rdma@vger.kernel.org>; Mon, 03 May 2021 04:48:23 -0700 (PDT)
+        with ESMTP id S233251AbhECLtS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 May 2021 07:49:18 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8889AC061763
+        for <linux-rdma@vger.kernel.org>; Mon,  3 May 2021 04:48:24 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id a4so7414109ejk.1
+        for <linux-rdma@vger.kernel.org>; Mon, 03 May 2021 04:48:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=a6EI52IIlNI4w1Nlt/vfdZD9cdsfvEGqc5T/50OPfZE=;
-        b=FnoLLnB9Q0QeycX82/UAcNew5Bs5UCU2dsVOQgKHQOGLaX/6I0R3VAfZVtaJOOaQFm
-         A9RA92e4LN+rYvkfPJho5vydRz2RwFSoNm7Fwb5H8oHQvUIw9Id2dm/9Gjj+P/IEDEze
-         ID6ANeEldcFQP4iHK0xtyQ8ptvdlpZuMR3xZtQOEPJaRs0tqM7RDg3dJYO9pvQLa2OE6
-         LE95+RPTiJ/GTlSIEGAL8Qy8NIOlcpxhpXmuy0bKcqKRDffyXdeOrcYnZJxoaNseZ948
-         alJmwSHVm7eW1N7FBzdMO22mwZVxPiv8NgbsOiq2keF93TILIdibo8fQTLGR2a7R8Iwt
-         MNKg==
+        bh=rpuDjvDwrAl+4Do92O+UgpuhmW8xe1GkSLXNGhMxOe8=;
+        b=HGIhJHyZZ4ybWyaT/Zig9Z/WzTZY3w2cL0xRxyx7qIuViKBHmoR+ciCClprF2ondKj
+         BsRwfJVMjlaZOC0JhDk94hTQKISQMZ4lSjMvhjaAYbrP5iCfnQywBHgNnPN52TCUV1Ic
+         UASOtfpDBCWqS23yCKXYNHxiPvx46TsmMKklJYJLjFG5mFEqtqMhkl+f3ypI4AwAs3/7
+         EautqMs0cW81zXALuK5tk6EDNlumHfwn0QEuEh/8c6JmJ5v2iLl226QEt4qjB+hbn0CP
+         blzfm4Iy/zT29uC/fyUX2xNE4Sock/l5q3VlfeDieYnZFeDeKnAIA5RH5tKb6Nlb7un9
+         7NOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=a6EI52IIlNI4w1Nlt/vfdZD9cdsfvEGqc5T/50OPfZE=;
-        b=iqMmAd8OTK3DFMfbIqJpmAtiG8Z4JsCjFD2fVA/uUStWkE+4G/mQWMlmlJgihVYYs+
-         sz3mMmt3OywBUQ8G5pt9vy6QHhYYyULJbrPHNBsTVVadEXmcRCyg/HY8JGE9HS+IAVsw
-         Bli9/JtRUjNsxs9tYQ8C81Ms/QQU/W0Xcm5osjwqn6v+g1q/zaRiRh9j1hr0/5KIK9Ei
-         888Xmg9sgMfCiUvXUr/h27BjBxnq4Zrmt1HVoKji59HILSY/Mo3RpCHhCPvXudYNwpza
-         3CGCwEzosdO2nweqmEgV2PihtoC9O8ELkY/PiIAS1AaBh2oDFdYAH2JH88o9NJFKpQW8
-         Myeg==
-X-Gm-Message-State: AOAM533KEBxzJF4//L/yI2wYstCZk1VgwVMu7s5wbwu43Y4cGr+pAfay
-        LpSrvmo8PzAoHulzBIIJ78oF4yxzJud4yw==
-X-Google-Smtp-Source: ABdhPJwN1JROtBko1a3rW6NqcAWFhhS3ccXtU+H3Tw1pzZkwc/lX7Svd9tj4d6Kpxxk1jQA8e8GWCg==
-X-Received: by 2002:a17:906:3111:: with SMTP id 17mr15931235ejx.403.1620042501959;
-        Mon, 03 May 2021 04:48:21 -0700 (PDT)
+        bh=rpuDjvDwrAl+4Do92O+UgpuhmW8xe1GkSLXNGhMxOe8=;
+        b=W1rl6A5VbRqUP7DJYCeZS9TdCDVjalOE3Mf0YH+BsNmX/A7LhpKT/VLCwCZWLzQL92
+         7qS3BdbXGb3h04ABGzVXfLh/T4C/6fcNKNakx0h1FPZRw72IiPbWBqj0lnpCNUXvcjJJ
+         Y+9Pevj2XnvOU9MSJb42YeehNQmfucA33gc/435fVk+g7YqofJl+7u8USzMrDHRCPAvh
+         uDVOWgqXPl9pb/w9ia3TUFSx7nSKqtDaKv/wXHPDJPaw2Atdlr/7TpJ+/EmynbZDXr7j
+         rxi28WO1wogYjqfUMDf7Ze42PChz95uxXy08DssO3VHLYU7/B+/lwNAPtcGiw6jaDGex
+         uYQQ==
+X-Gm-Message-State: AOAM530Yp8xtYaA7SGpTRFyb3PAuWcMxpWHGo1IW/DQ/MwHrc4Kh3TVR
+        8RofeLX9J4ANdTZUrNgNHQk7ZtNgk2HJHg==
+X-Google-Smtp-Source: ABdhPJz86dp692j2MrnkvONrjmUyHBkQD9oknB5RQaC49cTM6dR0T4s6IkJhYXnwNnAkXO4ZZeGKpA==
+X-Received: by 2002:a17:906:8904:: with SMTP id fr4mr9162979ejc.146.1620042503209;
+        Mon, 03 May 2021 04:48:23 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
-        by smtp.googlemail.com with ESMTPSA id z12sm7307705ejd.83.2021.05.03.04.48.21
+        by smtp.googlemail.com with ESMTPSA id z12sm7307705ejd.83.2021.05.03.04.48.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 May 2021 04:48:21 -0700 (PDT)
+        Mon, 03 May 2021 04:48:23 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
-        Guoqing Jiang <guoqing.jiang@ionos.com>,
+        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
         Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCH for-next 01/20] RDMA/rtrs-srv: Kill reject_w_econnreset label
-Date:   Mon,  3 May 2021 13:47:59 +0200
-Message-Id: <20210503114818.288896-2-gi-oh.kim@ionos.com>
+Subject: [PATCH for-next 03/20] RDMA/rtrs-clt: No need to check queue_depth when receiving
+Date:   Mon,  3 May 2021 13:48:01 +0200
+Message-Id: <20210503114818.288896-4-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210503114818.288896-1-gi-oh.kim@ionos.com>
 References: <20210503114818.288896-1-gi-oh.kim@ionos.com>
@@ -74,96 +73,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 
-We can goto reject_w_err label after initialize err with -ECONNRESET.
+The queue_depth size is sent from server and
+server already checks validity of the value.
 
-Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
 Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 740cafffb7ef..3d09d01e34b4 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -1780,33 +1780,33 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- 
- 	u16 version, con_num, cid;
- 	u16 recon_cnt;
--	int err;
-+	int err = -ECONNRESET;
- 
- 	if (len < sizeof(*msg)) {
- 		pr_err("Invalid RTRS connection request\n");
--		goto reject_w_econnreset;
-+		goto reject_w_err;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 930a1b496f84..0c828ea0f500 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1772,12 +1772,6 @@ static int rtrs_rdma_conn_established(struct rtrs_clt_con *con,
  	}
- 	if (le16_to_cpu(msg->magic) != RTRS_MAGIC) {
- 		pr_err("Invalid RTRS magic\n");
--		goto reject_w_econnreset;
-+		goto reject_w_err;
- 	}
- 	version = le16_to_cpu(msg->version);
- 	if (version >> 8 != RTRS_PROTO_VER_MAJOR) {
- 		pr_err("Unsupported major RTRS version: %d, expected %d\n",
- 		       version >> 8, RTRS_PROTO_VER_MAJOR);
--		goto reject_w_econnreset;
-+		goto reject_w_err;
- 	}
- 	con_num = le16_to_cpu(msg->cid_num);
- 	if (con_num > 4096) {
- 		/* Sanity check */
- 		pr_err("Too many connections requested: %d\n", con_num);
--		goto reject_w_econnreset;
-+		goto reject_w_err;
- 	}
- 	cid = le16_to_cpu(msg->cid);
- 	if (cid >= con_num) {
- 		/* Sanity check */
- 		pr_err("Incorrect cid: %d >= %d\n", cid, con_num);
--		goto reject_w_econnreset;
-+		goto reject_w_err;
- 	}
- 	recon_cnt = le16_to_cpu(msg->recon_cnt);
- 	srv = get_or_create_srv(ctx, &msg->paths_uuid, msg->first_conn);
-@@ -1826,7 +1826,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- 			rtrs_err(s, "Session in wrong state: %s\n",
- 				  rtrs_srv_state_str(sess->state));
- 			mutex_unlock(&srv->paths_mutex);
--			goto reject_w_econnreset;
-+			goto reject_w_err;
- 		}
- 		/*
- 		 * Sanity checks
-@@ -1835,13 +1835,13 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- 			rtrs_err(s, "Incorrect request: %d, %d\n",
- 				  cid, con_num);
- 			mutex_unlock(&srv->paths_mutex);
--			goto reject_w_econnreset;
-+			goto reject_w_err;
- 		}
- 		if (s->con[cid]) {
- 			rtrs_err(s, "Connection already exists: %d\n",
- 				  cid);
- 			mutex_unlock(&srv->paths_mutex);
--			goto reject_w_econnreset;
-+			goto reject_w_err;
- 		}
- 	} else {
- 		sess = __alloc_sess(srv, cm_id, con_num, recon_cnt,
-@@ -1882,9 +1882,6 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- reject_w_err:
- 	return rtrs_rdma_do_reject(cm_id, err);
- 
--reject_w_econnreset:
--	return rtrs_rdma_do_reject(cm_id, -ECONNRESET);
+ 	if (con->c.cid == 0) {
+ 		queue_depth = le16_to_cpu(msg->queue_depth);
 -
- close_and_return_err:
- 	mutex_unlock(&srv->paths_mutex);
- 	close_sess(sess);
+-		if (queue_depth > MAX_SESS_QUEUE_DEPTH) {
+-			rtrs_err(clt, "Invalid RTRS message: queue=%d\n",
+-				  queue_depth);
+-			return -ECONNRESET;
+-		}
+ 		if (!sess->rbufs || sess->queue_depth < queue_depth) {
+ 			kfree(sess->rbufs);
+ 			sess->rbufs = kcalloc(queue_depth, sizeof(*sess->rbufs),
 -- 
 2.25.1
 
