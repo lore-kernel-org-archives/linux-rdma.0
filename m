@@ -2,119 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9B21C433B4
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48876C433ED
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB87260FF2
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F199610FB
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231883AbhEFXh7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 May 2021 19:37:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56748 "EHLO
+        id S230387AbhEFXiN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 6 May 2021 19:38:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230387AbhEFXh7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 May 2021 19:37:59 -0400
+        with ESMTP id S232466AbhEFXiM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 May 2021 19:38:12 -0400
 Received: from hr2.samba.org (hr2.samba.org [IPv6:2a01:4f8:192:486::2:0])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98F3BC061574
-        for <linux-rdma@vger.kernel.org>; Thu,  6 May 2021 16:36:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB2D1C061574
+        for <linux-rdma@vger.kernel.org>; Thu,  6 May 2021 16:37:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
          s=42; h=Message-Id:Date:Cc:To:From;
-        bh=HEhI1uX59CHq4mvBJkxKLkk0tilSIJx6eBLA9GbPMt8=; b=L/iWcYdYHL0Jn2XG6S8g/nkUFe
-        DkzKmCMBhIAHJA+9YuJCdOspYEJ1RiLkQZsfTxsR5BObef7i+FMKBkaG6/0LZCyYr3JeWy+LiA/aq
-        6uiLAHOj1yzsz8x4Od4qZeaCdHp3GvWptWxx59vAH6zR3btBuSWQF19uDjvWEosX96AIgrvYCTq7h
-        EiYbX61W2vUnmcZXOo9SJEpL1VfekIO0vt8hEbIFNn6QBHp3CyV0NP/7E+NA35pJHci5daAie3V7G
-        xyNQcky7XHfo7oXCkrTJW87g/rkBjEgBosZqtKv/j/EoG5zeNEr9PkE8rjbPTQDJaBEpODE8srixu
-        +zqB443hLQ91NX0/v8DbBmb1Q9GtBjf7EUXHzZsn/ntFYBwNHOmlDdF2Dh458SBtpjaBULDO7MuZ2
-        UfGY9D9xGpupRBn8IbSyZ7DzFBEGqdYL3S+lZbc8DCj7kFwr2UC3HuB0y0CKdqGlhrVNHkrUofHTG
-        yruV2KxiurpIxdAaq7UH4dIi;
+        bh=y26Xj1XG2gca4jDBkijfpjPGS784fVXX09iFUz+bJbg=; b=noRlAoeiy/PCKExiPjsoaUFqwr
+        Yy+NcpnTUaPdYagry8GnBlklDTGlbHVmq43NvMhMQTUxOoixAs88EMvfNxiuPro0dV8PgSa9JW1oC
+        7uDydx59NSJDLRDx2q+F+Ceso/a7pFfMvKax9WmmryktCj6qhhkmPH3srV5LTToXO/PAmQwhi/n9i
+        QhsZxu8pmxKc0qBV+yaUc+h7IYST5UzRQmywFWPSNa7PeX29IJKcx+9zP1Cqdq30oEzzqPFQKXrgp
+        5KaP1jpt0B0qVPacFbXV3Ku8GLrXnxRbUb5SE7WM6SgxkMEulTIwApWc2HU3B7eTECsxolWPf1JSq
+        YsyunE7U+g5PFY0HyYBlUZ8sbXr/nDoHVzSFARLT0s2UXQAnrRGM2P7QDvZtZBE+8t9Vz3HFaeyre
+        BnaDQRzlPGCuR/WFFJKDZi3FznZ8qP+Z+5+uV3LP6+QoajsqH7nc+VHnwVkHbWwD1whyLm3Gcbtuh
+        n/INrwC0dLl3lQ6KTau0Zr3/;
 Received: from [127.0.0.2] (localhost [127.0.0.1])
         by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_RSA_CHACHA20_POLY1305:256)
         (Exim)
-        id 1lenY7-0004I0-57; Thu, 06 May 2021 23:36:55 +0000
+        id 1lenYK-0004IL-PF; Thu, 06 May 2021 23:37:08 +0000
 From:   Stefan Metzmacher <metze@samba.org>
 To:     Bernard Metzler <bmt@zurich.ibm.com>
 Cc:     linux-rdma@vger.kernel.org, Stefan Metzmacher <metze@samba.org>
-Subject: [PATCH 00/31] rdma/siw: fix a lot of deadlocks and use after free bugs
-Date:   Fri,  7 May 2021 01:36:06 +0200
-Message-Id: <cover.1620343860.git.metze@samba.org>
+Subject: [PATCH 02/31] rdma/siw: call smp_mb() after mem->stag_valid = 0 in siw_invalidate_stag() too
+Date:   Fri,  7 May 2021 01:36:08 +0200
+Message-Id: <04384dc3dd5396ae770aebf5434810f489605c63.1620343860.git.metze@samba.org>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <cover.1620343860.git.metze@samba.org>
+References: <cover.1620343860.git.metze@samba.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Bernard,
+We already do the same in siw_mr_drop_mem().
 
-while testing with my smbdirect driver I hit a lot of
-bugs in the siw.ko driver. They all cause problems where
-the siw driver was not able to unload anymore and I had to
-reboot the machine.
+Fixes: 2251334dcac9 ("rdma/siw: application buffer management")
+Signed-off-by: Stefan Metzmacher <metze@samba.org>
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: linux-rdma@vger.kernel.org
+---
+ drivers/infiniband/sw/siw/siw_mem.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I implemented:
-- a non blocking connect
-- fixed a lot of bugs where siw_cep_put() was called too often.
-- fixed bugs where siw_cm_upcall() confused the core IWCM logic
-
-I have some more changes to follow, but I wanted to send them
-finally out after having them one and a half year sitting in some
-private branch...
-
-Stefan Metzmacher (31):
-  rdma/siw: fix warning in siw_proc_send()
-  rdma/siw: call smp_mb() after mem->stag_valid = 0 in
-    siw_invalidate_stag() too
-  rdma/siw: remove superfluous siw_cep_put() from siw_connect() error
-    path
-  rdma/siw: let siw_accept() deferr RDMA_MODE until EVENT_ESTABLISHED
-  rdma/siw: make use of kernel_{bind,connect,listen}()
-  rdma/siw: make siw_cm_upcall() a noop without valid 'id'
-  rdma/siw: split out a __siw_cep_terminate_upcall() function
-  rdma/siw: use __siw_cep_terminate_upcall() for indirect
-    SIW_CM_WORK_CLOSE_LLP
-  rdma/siw: use __siw_cep_terminate_upcall() for SIW_CM_WORK_PEER_CLOSE
-  rdma/siw: use __siw_cep_terminate_upcall() for SIW_CM_WORK_MPATIMEOUT
-  rdma/siw: introduce SIW_EPSTATE_ACCEPTING/REJECTING for
-    rdma_accept/rdma_reject
-  rdma/siw: add some debugging of state and sk_state to the teardown
-    process
-  rdma/siw: handle SIW_EPSTATE_CONNECTING in
-    __siw_cep_terminate_upcall()
-  rdma/siw: let siw_connect() set AWAIT_MPAREP before
-    siw_send_mpareqrep()
-  rdma/siw: create a temporary copy of private data
-  rdma/siw: use error and out logic at the end of siw_connect()
-  rdma/siw: start mpa timer before calling siw_send_mpareqrep()
-  rdma/siw: call the blocking kernel_bindconnect() just before
-    siw_send_mpareqrep()
-  rdma/siw: split out a __siw_cep_close() function
-  rdma/siw: implement non-blocking connect.
-  rdma/siw: let siw_listen_address() call siw_cep_alloc() first
-  rdma/siw: let siw_listen_address() call siw_cep_set_inuse() early
-  rdma/siw: make use of __siw_cep_close() in siw_accept()
-  rdma/siw: do the full disassociation of cep and qp in
-    siw_qp_llp_close()
-  rdma/siw: fix double siw_cep_put() in siw_cm_work_handler()
-  rdma/siw: make use of __siw_cep_close() in siw_cm_work_handler()
-  rdma/siw: fix the "close" logic in siw_qp_cm_drop()
-  rdma/siw: make use of __siw_cep_close() in siw_qp_cm_drop()
-  rdma/siw: make use of __siw_cep_close() in siw_reject()
-  rdma/siw: make use of __siw_cep_close() in siw_listen_address()
-  rdma/siw: make use of __siw_cep_close() in siw_drop_listeners()
-
- drivers/infiniband/sw/siw/siw_cm.c    | 537 +++++++++++++++-----------
- drivers/infiniband/sw/siw/siw_cm.h    |   3 +
- drivers/infiniband/sw/siw/siw_mem.c   |   2 +
- drivers/infiniband/sw/siw/siw_qp.c    |   3 +
- drivers/infiniband/sw/siw/siw_qp_rx.c |   2 +-
- 5 files changed, 316 insertions(+), 231 deletions(-)
-
+diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
+index 61c17db70d65..8596ce1ef5a3 100644
+--- a/drivers/infiniband/sw/siw/siw_mem.c
++++ b/drivers/infiniband/sw/siw/siw_mem.c
+@@ -309,6 +309,8 @@ int siw_invalidate_stag(struct ib_pd *pd, u32 stag)
+ 	 * state if invalidation is requested. So no state check here.
+ 	 */
+ 	mem->stag_valid = 0;
++	/* make STag invalid visible asap */
++	smp_mb();
+ 
+ 	siw_dbg_pd(pd, "STag 0x%08x now invalid\n", stag);
+ out:
 -- 
 2.25.1
 
