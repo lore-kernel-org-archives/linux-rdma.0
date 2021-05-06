@@ -7,83 +7,117 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 354ABC433ED
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34305C433B4
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EE4961164
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1591D610FB
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 May 2021 23:37:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232578AbhEFXiU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 May 2021 19:38:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56830 "EHLO
+        id S232696AbhEFXiX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 6 May 2021 19:38:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232642AbhEFXiT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 May 2021 19:38:19 -0400
+        with ESMTP id S232642AbhEFXiW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 May 2021 19:38:22 -0400
 Received: from hr2.samba.org (hr2.samba.org [IPv6:2a01:4f8:192:486::2:0])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2D6CC061574
-        for <linux-rdma@vger.kernel.org>; Thu,  6 May 2021 16:37:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E73CFC061574
+        for <linux-rdma@vger.kernel.org>; Thu,  6 May 2021 16:37:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
          s=42; h=Message-Id:Date:Cc:To:From;
-        bh=l5TAd/20QZ8OSJ+6jWJNzrr1+IYZ42ZUw0bVB2P7asY=; b=Pv6xo1zrOOa6LfTpR4vACUmVny
-        5mhuUgxz1sCax6om6GflbKcebXsLRAuOFFK4bCCSRlwuS4LQhBk92PjtVYLLOdPG5DYN9cg2csJP4
-        QnZ++tcAKZp6AP+x91nhOKcXFOBAic4dxRbSXa7N2VQcSU5gX9C8ZkU39CScqI7Ry+A1e7EK1xz1o
-        lz0Us1Xql5oWDn3mU3VCqFH7dIjmxirHki61kU6mMTViL2fdU1LjdnE2wO2PqnsaFWZ1lha/0ZV0q
-        HeYO6J9YnUCQhtu5+XsIN5OfXqES/zGPm/bm39q1XlrEYMx40rRiILxxPpJ80c7ID7lTSR8YKTklW
-        mlhZ2bLtCQwGb48YToHTZDhx3rtMXsTCLanv2EqE/05QWHxCzvuADz9Ky0/anPsOkKbwyOMWNDwl+
-        fpOY9zIl9mkWGAwTHTxDC+USY3MUxng0TMMNB9/4vvEuqIwWTVah3bW9wySrRh1HYSNpmHgViAVtl
-        PLdYk5N9Mchy7Sg8y8qff0bg;
+        bh=OXSE4EbkQdJLLrNmd52YoLQxbyDtmOHKK06g1ZuDyKk=; b=1fJ+tIrWjGTw2RXiOtK+i1VJgr
+        75TeaQ88PFrS23LJ6gzn7bOsv57ZXp5MgEPW28uJgWth5oLzdVBS9Kl3tqgPViB/C8FxeoePULwsK
+        P3V9ow6tVRy790q1tM47geh5dd8sOow1dmf8VgQL1CgV8tJSoqBlCF0xaMbtd8Kv7GWdB/08DepG8
+        udgCRos8X5YyN02KAI1FTp4zq7pcf7P+fnPucXsRt6Je62VYkaw7mbLoS8/uwmP5X0g6X89HK7t0q
+        d6wax2VrecnUmRFfFS9yV/MY0LwdkHfcvfGP8NWSzS5HP4yEsUhGOuUxGYeF34SUY5Xi7279cyhBy
+        +ltCLc80onbgUYj5ElcBW2h5RAUSXeul9Wzhe0vJShx59UTJWABbWhZvR/zcIQjryfVHADAVePkm2
+        Gbp9RlIY5K51V7HG9tf3FkQ5wOcPMB4dg8PqP1sD9tvIgprD2XZqIAuwV2aWOchMAbKZp1/Z04NkO
+        3MfmTnOmG7uwnTdNio13GzI5;
 Received: from [127.0.0.2] (localhost [127.0.0.1])
         by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_RSA_CHACHA20_POLY1305:256)
         (Exim)
-        id 1lenYD-0004ID-Tb; Thu, 06 May 2021 23:37:01 +0000
+        id 1lenYY-0004Iy-2f; Thu, 06 May 2021 23:37:22 +0000
 From:   Stefan Metzmacher <metze@samba.org>
 To:     Bernard Metzler <bmt@zurich.ibm.com>
 Cc:     linux-rdma@vger.kernel.org, Stefan Metzmacher <metze@samba.org>
-Subject: [PATCH 01/31] rdma/siw: fix warning in siw_proc_send()
-Date:   Fri,  7 May 2021 01:36:07 +0200
-Message-Id: <1aa26782ef60cc69aa49886a4c478fbbf74a186e.1620343860.git.metze@samba.org>
+Subject: [PATCH 04/31] rdma/siw: let siw_accept() deferr RDMA_MODE until EVENT_ESTABLISHED
+Date:   Fri,  7 May 2021 01:36:10 +0200
+Message-Id: <4d26a4cfd96bfcb3fe0362a37d595608b09ddd91.1620343860.git.metze@samba.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1620343860.git.metze@samba.org>
 References: <cover.1620343860.git.metze@samba.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-  CC [M]  drivers/infiniband/sw/siw/siw_qp_rx.o
-In file included from ./include/linux/wait.h:9:0,
-                 from ./include/linux/net.h:19,
-                 from drivers/infiniband/sw/siw/siw_qp_rx.c:8:
-drivers/infiniband/sw/siw/siw_qp_rx.c: In function ‘siw_proc_send’:
-./include/linux/spinlock.h:288:3: warning: ‘flags’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-   _raw_spin_unlock_irqrestore(lock, flags); \
-   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/infiniband/sw/siw/siw_qp_rx.c:335:16: note: ‘flags’ was declared here
-  unsigned long flags;
+If we receive an TCP FIN before sending the MPA response
+we'll get an error and posted IW_CM_EVENT_CLOSE.
+But the IWCM layer didn't receive IW_CM_EVENT_ESTABLISHED
+yet and doesn't expect IW_CM_EVENT_CLOSE. Instead
+it expects IW_CM_EVENT_CONNECT_REPLY.
+
+If we stay in SIW_EPSTATE_RECVD_MPAREQ until we posted
+IW_CM_EVENT_ESTABLISHED __siw_cep_terminate_upcall()
+will use IW_CM_EVENT_CONNECT_REPLY.
+
+This can be triggered by the following change on the
+client:
+
+   --- a/drivers/infiniband/sw/siw/siw_cm.c
+   +++ b/drivers/infiniband/sw/siw/siw_cm.c
+   @@ -1507,6 +1507,9 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+           if (rv >= 0) {
+                   rv = siw_cm_queue_work(cep, SIW_CM_WORK_MPATIMEOUT);
+                   if (!rv) {
+   +                       rv = -ECONNRESET;
+   +                       msleep_interruptible(100);
+   +                       goto error;
+                           siw_dbg_cep(cep, "[QP %u]: exit\n", qp_id(qp));
+                           siw_cep_set_free(cep);
+                           return 0;
 
 Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
 Signed-off-by: Stefan Metzmacher <metze@samba.org>
 Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/sw/siw/siw_qp_rx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/siw/siw_cm.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_rx.c b/drivers/infiniband/sw/siw/siw_qp_rx.c
-index 60116f20653c..0170c05d2cc3 100644
---- a/drivers/infiniband/sw/siw/siw_qp_rx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_rx.c
-@@ -333,7 +333,7 @@ static struct siw_wqe *siw_rqe_get(struct siw_qp *qp)
- 	struct siw_srq *srq;
- 	struct siw_wqe *wqe = NULL;
- 	bool srq_event = false;
--	unsigned long flags;
-+	unsigned long flags = 0;
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index da84686a21fd..145ab6e4e0ed 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -129,8 +129,10 @@ static void siw_rtr_data_ready(struct sock *sk)
+ 	 * Failed data processing would have already scheduled
+ 	 * connection drop.
+ 	 */
+-	if (!qp->rx_stream.rx_suspend)
++	if (!qp->rx_stream.rx_suspend) {
+ 		siw_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
++		cep->state = SIW_EPSTATE_RDMA_MODE;
++	}
+ out:
+ 	read_unlock(&sk->sk_callback_lock);
+ 	if (qp)
+@@ -1656,8 +1658,6 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 	/* siw_qp_get(qp) already done by QP lookup */
+ 	cep->qp = qp;
  
- 	srq = qp->srq;
- 	if (srq) {
+-	cep->state = SIW_EPSTATE_RDMA_MODE;
+-
+ 	/* Move socket RX/TX under QP control */
+ 	rv = siw_qp_modify(qp, &qp_attrs,
+ 			   SIW_QP_ATTR_STATE | SIW_QP_ATTR_LLP_HANDLE |
+@@ -1683,6 +1683,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 		rv = siw_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
+ 		if (rv)
+ 			goto error;
++		cep->state = SIW_EPSTATE_RDMA_MODE;
+ 	}
+ 	siw_cep_set_free(cep);
+ 
 -- 
 2.25.1
 
