@@ -2,143 +2,143 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B8CC43616
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8521CC43460
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 587F961624
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AF4D613DF
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240825AbhEJNXJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 May 2021 09:23:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60304 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344877AbhEJMUu (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 10 May 2021 08:20:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 43B33613EE;
-        Mon, 10 May 2021 12:19:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620649186;
-        bh=QCdW+nkSeJFNMUSJY4+5i12O755R83pH8nPUoWHgQeg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Rei8RKaQTeoKstH7Z3ptMvHtcKOICTvM8QuPLf9jSYotHo8U8KG8fbYg8riwIwmzK
-         yve1xETbbc3kHJGIVVophavAWHxFXgrz6tDb1iwKiL4MNHTBgKjXuuEkyVc9YEpCf3
-         Hi1Y5TdAxI1Eh/SUpTXvVxFODPhsyyTR0pqyrx6PDmmaTbJXMgbY5Ud2bAobS9Mg2p
-         r+XrNtKtLjBIXGqXEK8mXl0SPIjblGy9VR/w0tnw+Xf5A4PUUwl/ePmYNdjON5fn0d
-         9hN498sK/0DT9zhQYjEY4gjBY6pBIIerdzJPOG3MknWYVyVPFKM+Yg/RW1mKMWSpYY
-         zwwg2eAWj72bw==
-Date:   Mon, 10 May 2021 15:19:42 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Haris Iqbal <haris.iqbal@ionos.com>
-Cc:     Gioh Kim <gi-oh.kim@ionos.com>, linux-rdma@vger.kernel.org,
-        bvanassche@acm.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jinpu Wang <jinpu.wang@ionos.com>,
-        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-Subject: Re: [PATCH for-next 04/20] RDMA/rtrs-srv: Add error messages for
- cases when failing RDMA connection
-Message-ID: <YJkk3lihskAtbBIv@unreal>
-References: <20210503114818.288896-1-gi-oh.kim@ionos.com>
- <20210503114818.288896-5-gi-oh.kim@ionos.com>
- <YJfHDvkc4BK7plTK@unreal>
- <CAJpMwygX36AhWH=_qCAPzcHh4BSLL6eA_1Tw0J6Sa25k9qg7Mw@mail.gmail.com>
- <YJkhIcw4xMfd9Dgm@unreal>
- <CAJpMwyjhtNQ+k2NUa7iuDSde_XdG4fBSaxyOuB9jmur013F+1w@mail.gmail.com>
+        id S240850AbhEJNXL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 May 2021 09:23:11 -0400
+Received: from mail-il1-f198.google.com ([209.85.166.198]:50109 "EHLO
+        mail-il1-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347139AbhEJMdY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 08:33:24 -0400
+Received: by mail-il1-f198.google.com with SMTP id a6-20020a056e021206b02901a532cdf439so13556864ilq.16
+        for <linux-rdma@vger.kernel.org>; Mon, 10 May 2021 05:32:18 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=odmkibldUbiwFggnW0nDh4OAVXIo2X/IT1wmt/9TM3I=;
+        b=dOmuysNntLAue80ukMDb+VQmEfDbpZWniyan2Mr6/qp7I7nos573b/0X0twEpDFeYE
+         jZSuPsvUJUk4pmGanSexQrq5p7c24Zzn32mfPVvaLJMr6JVRUC/9J29w7HBMl/6lVes1
+         S5tl2X2fxcsGrBIck5tIIpGM8Q13LQGdKbFnwbrVUCMeg6tZRtn7+JG5jsozGLaodg6y
+         IZa/FeEU+KXU5hVVaOnz2c7fgsaz0iYOxo9gdpwl4pPxZuw94QSTQfhQFNbpvkta0lZS
+         08aJv2LGA9bRc16jlRmYfCYVDCJMKGC0R57mb7nNj3+9RUjq2LD5yBhaYe1OxJ+xG8xe
+         haGA==
+X-Gm-Message-State: AOAM530aL20tuNfYpotmYq+ZxGmLBjE+Nj3NixDfA1S77cqy+l5EOfhO
+        9z7zzhUr6XeJ5KqQCKlb0q+O5mGc/Kz2q+Un/RFOH+R6t5ip
+X-Google-Smtp-Source: ABdhPJwNXYY5T23GCs9vinYV8f/uVNNg+81bMtfJSaaXK/6cbHvUnE0CKYIJ46hT0g7GrIOxS+Vwq/cJGRTLqIQM4XUOA/XtTiKp
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJpMwyjhtNQ+k2NUa7iuDSde_XdG4fBSaxyOuB9jmur013F+1w@mail.gmail.com>
+X-Received: by 2002:a02:91c1:: with SMTP id s1mr21010543jag.61.1620649938133;
+ Mon, 10 May 2021 05:32:18 -0700 (PDT)
+Date:   Mon, 10 May 2021 05:32:18 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000de267605c1f8f7ad@google.com>
+Subject: [syzbot] WARNING: refcount bug in rxe_qp_do_cleanup
+From:   syzbot <syzbot+36a7f280de4e11c6f04e@syzkaller.appspotmail.com>
+To:     dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        zyjzyj2000@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, May 10, 2021 at 02:16:02PM +0200, Haris Iqbal wrote:
-> On Mon, May 10, 2021 at 2:03 PM Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > On Mon, May 10, 2021 at 12:55:42PM +0200, Haris Iqbal wrote:
-> > > On Sun, May 9, 2021 at 1:27 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > >
-> > > > On Mon, May 03, 2021 at 01:48:02PM +0200, Gioh Kim wrote:
-> > > > > From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-> > > > >
-> > > > > It was difficult to find out why it failed to establish RDMA
-> > > > > connection. This patch adds some messages to show which function
-> > > > > has failed why.
-> > > > >
-> > > > > Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-> > > > > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-> > > > > Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-> > > > > ---
-> > > > >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 8 +++++++-
-> > > > >  1 file changed, 7 insertions(+), 1 deletion(-)
-> > > > >
-> > > > > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > > > > index 3d09d01e34b4..df17dd4c1e28 100644
-> > > > > --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > > > > +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > > > > @@ -1356,8 +1356,10 @@ static struct rtrs_srv *get_or_create_srv(struct rtrs_srv_ctx *ctx,
-> > > > >        * If this request is not the first connection request from the
-> > > > >        * client for this session then fail and return error.
-> > > > >        */
-> > > > > -     if (!first_conn)
-> > > > > +     if (!first_conn) {
-> > > > > +             pr_err("Error: Not the first connection request for this session\n");
-> > > > >               return ERR_PTR(-ENXIO);
-> > > > > +     }
-> > > > >
-> > > > >       /* need to allocate a new srv */
-> > > > >       srv = kzalloc(sizeof(*srv), GFP_KERNEL);
-> > > > > @@ -1812,6 +1814,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
-> > > > >       srv = get_or_create_srv(ctx, &msg->paths_uuid, msg->first_conn);
-> > > > >       if (IS_ERR(srv)) {
-> > > > >               err = PTR_ERR(srv);
-> > > > > +             pr_err("get_or_create_srv(), error %d\n", err);
-> > > > >               goto reject_w_err;
-> > > > >       }
-> > > > >       mutex_lock(&srv->paths_mutex);
-> > > > > @@ -1850,11 +1853,13 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
-> > > > >                       mutex_unlock(&srv->paths_mutex);
-> > > > >                       put_srv(srv);
-> > > > >                       err = PTR_ERR(sess);
-> > > > > +                     pr_err("RTRS server session allocation failed: %d\n", err);
-> > > > >                       goto reject_w_err;
-> > > > >               }
-> > > > >       }
-> > > > >       err = create_con(sess, cm_id, cid);
-> > > > >       if (err) {
-> > > > > +             rtrs_err((&sess->s), "create_con(), error %d\n", err);
-> > > > >               (void)rtrs_rdma_do_reject(cm_id, err);
-> > > >
-> > > > Unrelated to this change, but this (void) casting should be go.
-> > >
-> > > Hi Leon
-> > >
-> > > We wanted to explicitly signal that the code is ignoring the return
-> > > value of the function. Is there a strong reason for the casting to be
-> > > removed?
-> >
-> > "Don't write useless code and don't assume that the kernel developers
-> > are first year college students" - is this strong enough reason for you?
-> 
-> I am all for simple and minimum code; but this casting does have a
-> decent reason.
-> 
-> Anyway if the RDMA code style calls for this to be removed; will
-> remove them in a separate patch and send out with the next batch of
-> patches.
+Hello,
 
-Yes, please, we prefer proper APIs that don't require any special
-comments to use them.
+syzbot found the following issue on:
 
-Thanks
+HEAD commit:    d2b6f8a1 Merge tag 'xfs-5.13-merge-3' of git://git.kernel...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13c0e569d00000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d360b81e47df40ea
+dashboard link: https://syzkaller.appspot.com/bug?extid=36a7f280de4e11c6f04e
 
-> 
-> >
-> > Your (void) casting doesn't give anything extra, just churn and even
-> > more suspicious review over such code.
-> >
-> > Thanks
+Unfortunately, I don't have any reproducer for this issue yet.
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+36a7f280de4e11c6f04e@syzkaller.appspotmail.com
+
+infiniband syz1: set active
+infiniband syz1: added bridge_slave_0
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 1 PID: 12560 at lib/refcount.c:28 refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Modules linked in:
+CPU: 1 PID: 12560 Comm: syz-executor.4 Not tainted 5.12.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Code: e9 db fe ff ff 48 89 df e8 2c c2 ea fd e9 8a fe ff ff e8 72 6a a7 fd 48 c7 c7 e0 b2 c1 89 c6 05 dc 3a e6 09 01 e8 ee 74 fb 04 <0f> 0b e9 af fe ff ff 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55
+RSP: 0018:ffffc900097ceba8 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000040000 RSI: ffffffff815bb075 RDI: fffff520012f9d67
+RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815b4eae R11: 0000000000000000 R12: ffff8880322a4800
+R13: ffff8880322a4940 R14: ffff888033044e00 R15: 0000000000000000
+FS:  00007f6eb2be3700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fdbe5d41000 CR3: 000000001d181000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ rxe_qp_do_cleanup+0x96f/0xaf0 drivers/infiniband/sw/rxe/rxe_qp.c:805
+ execute_in_process_context+0x37/0x150 kernel/workqueue.c:3327
+ rxe_elem_release+0x9f/0x180 drivers/infiniband/sw/rxe/rxe_pool.c:391
+ kref_put include/linux/kref.h:65 [inline]
+ rxe_create_qp+0x2cd/0x310 drivers/infiniband/sw/rxe/rxe_verbs.c:425
+ _ib_create_qp drivers/infiniband/core/core_priv.h:331 [inline]
+ ib_create_named_qp+0x2ad/0x1370 drivers/infiniband/core/verbs.c:1231
+ ib_create_qp include/rdma/ib_verbs.h:3644 [inline]
+ create_mad_qp+0x177/0x2d0 drivers/infiniband/core/mad.c:2920
+ ib_mad_port_open drivers/infiniband/core/mad.c:3001 [inline]
+ ib_mad_init_device+0xd6f/0x1400 drivers/infiniband/core/mad.c:3092
+ add_client_context+0x405/0x5e0 drivers/infiniband/core/device.c:717
+ enable_device_and_get+0x1cd/0x3b0 drivers/infiniband/core/device.c:1331
+ ib_register_device drivers/infiniband/core/device.c:1413 [inline]
+ ib_register_device+0x7c7/0xa50 drivers/infiniband/core/device.c:1365
+ rxe_register_device+0x3d5/0x4a0 drivers/infiniband/sw/rxe/rxe_verbs.c:1147
+ rxe_add+0x12fe/0x16d0 drivers/infiniband/sw/rxe/rxe.c:247
+ rxe_net_add+0x8c/0xe0 drivers/infiniband/sw/rxe/rxe_net.c:503
+ rxe_newlink drivers/infiniband/sw/rxe/rxe.c:269 [inline]
+ rxe_newlink+0xb7/0xe0 drivers/infiniband/sw/rxe/rxe.c:250
+ nldev_newlink+0x30e/0x550 drivers/infiniband/core/nldev.c:1555
+ rdma_nl_rcv_msg+0x36d/0x690 drivers/infiniband/core/netlink.c:195
+ rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
+ rdma_nl_rcv+0x2ee/0x430 drivers/infiniband/core/netlink.c:259
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665f9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f6eb2be3188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000056bf60 RCX: 00000000004665f9
+RDX: 0000000000000000 RSI: 0000000020000600 RDI: 0000000000000003
+RBP: 00000000004bfce1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
+R13: 00007ffc54e34f4f R14: 00007f6eb2be3300 R15: 0000000000022000
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
