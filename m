@@ -2,24 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A51C8C43611
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FAD6C433B4
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 75AF1613CD
+	by mail.kernel.org (Postfix) with ESMTP id E1F8B6128D
 	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242365AbhEJNYh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 May 2021 09:24:37 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2613 "EHLO
+        id S242375AbhEJNYj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 May 2021 09:24:39 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2612 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352236AbhEJNOW (ORCPT
+        with ESMTP id S1352239AbhEJNOW (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 09:14:22 -0400
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Ff1cL2LBMzQlns;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Ff1cL1tq9zQlnn;
         Mon, 10 May 2021 21:09:54 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
@@ -27,10 +28,12 @@ Received: from localhost.localdomain (10.69.192.56) by
 From:   Weihang Li <liweihang@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 0/6] libhns: Add support for Dynamic Context Attachment
-Date:   Mon, 10 May 2021 21:12:58 +0800
-Message-ID: <1620652384-34097-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH rdma-core 3/6] libhns: Add support for shrinking DCA memory pool
+Date:   Mon, 10 May 2021 21:13:01 +0800
+Message-ID: <1620652384-34097-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1620652384-34097-1-git-send-email-liweihang@huawei.com>
+References: <1620652384-34097-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -39,74 +42,184 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The HIP09 introduces the DCA(Dynamic Context Attachment) feature which
-supports many RC QPs to share the WQE buffer in a memory pool. If a QP
-enables DCA feature, the WQE's buffer will not be allocated when creating
-but when the users start to post WRs. This will reduce the memory
-consumption when there are too many QPs are inactive.
+From: Xi Wang <wangxi11@huawei.com>
 
-For more detailed information, please refer to the man pages provided by
-the last patch of this series.
+The QP's WQE buffer may be detached after QP is modified or CQE is polled,
+and the state of DCA mem object may be changed as clean for no QP is using
+it. So shrink the clean DCA mem from the memory pool and destroy the DCA
+mem's buffer to reduce the memory consumption.
 
-This series is associated with the kernel one "RDMA/hns: Add support for
-Dynamic Context Attachment", and two RFC versions of this series has been
-sent before.
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ providers/hns/hns_roce_u.h       |  2 +
+ providers/hns/hns_roce_u_buf.c   | 96 ++++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_hw_v2.c |  7 +++
+ 3 files changed, 105 insertions(+)
 
-No changes since RFC v2.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1614847759-33139-1-git-send-email-liweihang@huawei.com/
-
-Changes since RFC v1:
-* Add direct verbs to set the parameters about size that used to
-  configuring DCA. 
-* Add man pages to explain what is DCA, how does it works and how to use
-  it.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1612667574-56673-1-git-send-email-liweihang@huawei.com/
-
-Weihang Li (1):
-  Update kernel headers
-
-Xi Wang (5):
-  libhns: Introduce DCA for RC QP
-  libhns: Add support for shrinking DCA memory pool
-  libhns: Add support for attaching QP's WQE buffer
-  libhns: Add direct verbs support to config DCA
-  libhns: Add man pages to introduce DCA feature
-
- CMakeLists.txt                             |   1 +
- debian/control                             |   2 +-
- debian/ibverbs-providers.install           |   1 +
- debian/ibverbs-providers.lintian-overrides |   4 +-
- debian/ibverbs-providers.symbols           |   6 +
- debian/libibverbs-dev.install              |   6 +
- kernel-headers/rdma/hns-abi.h              |  64 +++++
- providers/hns/CMakeLists.txt               |   9 +-
- providers/hns/hns_roce_u.c                 | 100 ++++++++
- providers/hns/hns_roce_u.h                 |  44 ++++
- providers/hns/hns_roce_u_abi.h             |   1 +
- providers/hns/hns_roce_u_buf.c             | 387 +++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_hw_v2.c           | 130 ++++++++--
- providers/hns/hns_roce_u_hw_v2.h           |   7 +
- providers/hns/hns_roce_u_verbs.c           |  67 ++++-
- providers/hns/hnsdv.h                      |  61 +++++
- providers/hns/libhns.map                   |   9 +
- providers/hns/man/CMakeLists.txt           |   7 +
- providers/hns/man/hns_dca.7.md             |  35 +++
- providers/hns/man/hnsdv.7.md               |  34 +++
- providers/hns/man/hnsdv_create_qp.3.md     |  69 +++++
- providers/hns/man/hnsdv_is_supported.3.md  |  39 +++
- providers/hns/man/hnsdv_open_device.3.md   |  70 ++++++
- redhat/rdma-core.spec                      |   7 +-
- suse/rdma-core.spec                        |  21 +-
- 25 files changed, 1149 insertions(+), 32 deletions(-)
- create mode 100644 providers/hns/hnsdv.h
- create mode 100644 providers/hns/libhns.map
- create mode 100644 providers/hns/man/CMakeLists.txt
- create mode 100644 providers/hns/man/hns_dca.7.md
- create mode 100644 providers/hns/man/hnsdv.7.md
- create mode 100644 providers/hns/man/hnsdv_create_qp.3.md
- create mode 100644 providers/hns/man/hnsdv_is_supported.3.md
- create mode 100644 providers/hns/man/hnsdv_open_device.3.md
-
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index d26ef9c..a8a007e 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -152,6 +152,7 @@ struct hns_roce_dca_ctx {
+ 	struct list_head mem_list;
+ 	pthread_spinlock_t lock;
+ 	uint64_t max_size;
++	uint64_t min_size;
+ 	uint64_t curr_size;
+ 	int mem_cnt;
+ 	unsigned int unit_size;
+@@ -439,6 +440,7 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
+ 
+ void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
+ 
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
+ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
+ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
+ 
+diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
+index 82a8849..4970eac 100644
+--- a/providers/hns/hns_roce_u_buf.c
++++ b/providers/hns/hns_roce_u_buf.c
+@@ -101,6 +101,20 @@ static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
+ 	return (uintptr_t)dca_mem;
+ }
+ 
++static struct hns_roce_dca_mem *key_to_dca_mem(struct hns_roce_dca_ctx *ctx,
++					       uint64_t key)
++{
++	struct hns_roce_dca_mem *mem;
++	struct hns_roce_dca_mem *tmp;
++
++	list_for_each_safe(&ctx->mem_list, mem, tmp, entry) {
++		if (dca_mem_to_key(mem) == key)
++			return mem;
++	}
++
++	return NULL;
++}
++
+ static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
+ {
+ 	return dca_mem->buf.buf + offset;
+@@ -147,6 +161,25 @@ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
+ 		deregister_dca_mem(ctx, mem->handle);
+ }
+ 
++struct hns_dca_mem_shrink_resp {
++	uint32_t free_mems;
++	uint64_t free_key;
++};
++
++static int shrink_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
++			  uint64_t size, struct hns_dca_mem_shrink_resp *resp)
++{
++	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
++			       HNS_IB_METHOD_DCA_MEM_SHRINK, 4);
++	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE, handle);
++	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE, size);
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
++		      &resp->free_key, sizeof(resp->free_key));
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
++		      &resp->free_mems, sizeof(resp->free_mems));
++
++	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
++}
+ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
+ 				uint32_t alloc_size)
+ {
+@@ -197,3 +230,66 @@ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
+ 
+ 	return 0;
+ }
++
++static bool shrink_dca_mem_enabled(struct hns_roce_dca_ctx *ctx)
++{
++	bool enable;
++
++	pthread_spin_lock(&ctx->lock);
++	enable = ctx->mem_cnt > 0 && ctx->min_size < ctx->max_size;
++	pthread_spin_unlock(&ctx->lock);
++
++	return enable;
++}
++
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	struct hns_dca_mem_shrink_resp resp = {};
++	struct hns_roce_dca_mem *mem;
++	int dca_mem_cnt;
++	uint32_t handle;
++	int ret;
++
++	pthread_spin_lock(&dca_ctx->lock);
++	dca_mem_cnt = ctx->dca_ctx.mem_cnt;
++	pthread_spin_unlock(&dca_ctx->lock);
++	while (dca_mem_cnt > 0 && shrink_dca_mem_enabled(dca_ctx)) {
++		resp.free_mems = 0;
++		/* Step 1: Use any DCA mem uobject to shrink pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = list_tail(&dca_ctx->mem_list,
++				struct hns_roce_dca_mem, entry);
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
++
++		ret = shrink_dca_mem(ctx, handle, dca_ctx->min_size, &resp);
++		if (ret || likely(resp.free_mems < 1))
++			break;
++
++		/* Step 2: Remove shrunk DCA mem node from pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = key_to_dca_mem(dca_ctx, resp.free_key);
++		if (mem) {
++			list_del(&mem->entry);
++			dca_ctx->mem_cnt--;
++			dca_ctx->curr_size -= mem->buf.length;
++		}
++
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
++
++		/* Step 3: Destroy DCA mem uobject */
++		deregister_dca_mem(ctx, handle);
++		free_dca_mem(ctx, mem);
++		/* No any free memory after deregister 1 DCA mem */
++		if (resp.free_mems <= 1)
++			break;
++
++		dca_mem_cnt--;
++	}
++}
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 4988943..16f033c 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -654,6 +654,10 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
+ 
+ 	pthread_spin_unlock(&cq->lock);
+ 
++	/* Try to shrink the DCA mem */
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
++
+ 	return err == V2_CQ_POLL_ERR ? err : npolled;
+ }
+ 
+@@ -1524,6 +1528,9 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
+ 
+ 	free(qp);
+ 
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
++
+ 	return ret;
+ }
+ 
 -- 
 2.7.4
 
