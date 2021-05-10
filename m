@@ -2,114 +2,252 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1E1C43470
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A31C433B4
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE14661627
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0EC1161288
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:22:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240872AbhEJNXN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 May 2021 09:23:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37698 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347219AbhEJMdm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 08:33:42 -0400
-Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BACB5C05BD04
-        for <linux-rdma@vger.kernel.org>; Mon, 10 May 2021 05:27:05 -0700 (PDT)
-Received: by mail-lf1-x12d.google.com with SMTP id x19so23077817lfa.2
-        for <linux-rdma@vger.kernel.org>; Mon, 10 May 2021 05:27:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=L9JfpmIuJozAEh6JZILZuGz09TWjadk94GHyLoZsvX8=;
-        b=GwzlhW0WlrHN9luhOzzon40i/ZhSAN0LKEkTpt4aHy1u9qvrZKEZTz3+YvmXh1XJ3n
-         yIRmSkv6Ye1crHj6u7CczMGaqUXdCa+zc0IzYMXsbvosE0Zxkk7yWGeVM7gx4GK7Xwwb
-         18lGYQ12FelZsyvQwgRQWCzC+cl3H9nlLfAloo6fzLvAHVCnaFQaJ/Zw0e0VYmwEmvmC
-         ZXc0n4IUmq1duOC+8i0qW1ksi9z7iBpGCtBcyHm5l/Af9YKATNojMbn/tm8WZYYa2Ake
-         wAYmpgNFC2RlonlxARgVT0DiNXwZWjDY7FjlhoQ2QJBn57OLFxMj+TpOnZ9TUcVhotir
-         Ddfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=L9JfpmIuJozAEh6JZILZuGz09TWjadk94GHyLoZsvX8=;
-        b=LcCPj3gfvcRCGBIsS8JmYNBPfsh771jwPH9PJYJE99bMMGHAbwkP5my90EfXNzqwbP
-         DS+fHdztbzmXaAnRj6/bkXS4WMjwVotIAnUEArIPPW62zzt7rEBj9VFGFl9otzc/J05f
-         uy13523pyTI+Q6YZ8rkP+JIvL93JmzU7tnY7rBFj3fHJtTArS7nUlK7sZ064X1efs+7E
-         uTCU2Lwgojv9bugtPE7UB8koK7mWsarBTMHPC6Wpk39+Ml86WFbfx4aWzmfwNVJ1ojMw
-         hL8Wv3xnlVgDH1tPMOVA/A2laOZzn5VpMtRADBlpvFXtNfp3FgYLBMDYjji/9UeBRq9H
-         KLSQ==
-X-Gm-Message-State: AOAM530fruPhGa0a5eQMoOIKnTRjpDRJ/orL91i52HXM0HOHEn1KIBpj
-        5YmMN11yo9hd8+TVvmGUTA3a+gxfB6swfVlksBVM7A==
-X-Google-Smtp-Source: ABdhPJzxQB2qvb5MzR34YKl/LoFhPnZwM3l0v28cvmqRubF9xKNINr/m0T6r+ZLrHIfd+RgAe8koP9SBMT72kTIzDCI=
-X-Received: by 2002:a19:df54:: with SMTP id q20mr17326308lfj.109.1620649624274;
- Mon, 10 May 2021 05:27:04 -0700 (PDT)
+        id S240884AbhEJNXQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 May 2021 09:23:16 -0400
+Received: from szxga07-in.huawei.com ([45.249.212.35]:2431 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241765AbhEJMu5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 08:50:57 -0400
+Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Ff1672JllzCr8C;
+        Mon, 10 May 2021 20:47:11 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
+ 14.3.498.0; Mon, 10 May 2021 20:49:44 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>, "Xi Wang" <wangxi11@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH for-next 7/7] RDMA/hns: Add method to query WQE buffer's address
+Date:   Mon, 10 May 2021 20:48:09 +0800
+Message-ID: <1620650889-61650-8-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1620650889-61650-1-git-send-email-liweihang@huawei.com>
+References: <1620650889-61650-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-References: <20210503114818.288896-1-gi-oh.kim@ionos.com> <20210503114818.288896-4-gi-oh.kim@ionos.com>
- <YJfGcFlJCHrf2quT@unreal> <CAJpMwyiXbqTK-pB=nQ4sfzXeeo8=dd5KJVZ_57apGF5cbpM5dA@mail.gmail.com>
- <YJkerTfjpXOGW7X+@unreal> <CAJpMwyitTn2oFxyWwr+bnFh3cQDdPwmN8L8JKPnBGqMc4a1aiw@mail.gmail.com>
- <YJkkdKRCHC1mrR1M@unreal>
-In-Reply-To: <YJkkdKRCHC1mrR1M@unreal>
-From:   Haris Iqbal <haris.iqbal@ionos.com>
-Date:   Mon, 10 May 2021 14:26:53 +0200
-Message-ID: <CAJpMwygafjUSKuVhBYMF0ue6BPexN8+_d88Tp+GhH_36qoLxhA@mail.gmail.com>
-Subject: Re: [PATCH for-next 03/20] RDMA/rtrs-clt: No need to check
- queue_depth when receiving
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Gioh Kim <gi-oh.kim@ionos.com>, linux-rdma@vger.kernel.org,
-        bvanassche@acm.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jinpu Wang <jinpu.wang@ionos.com>,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, May 10, 2021 at 2:18 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Mon, May 10, 2021 at 02:06:55PM +0200, Haris Iqbal wrote:
-> > On Mon, May 10, 2021 at 1:53 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > >
-> > > On Mon, May 10, 2021 at 01:00:33PM +0200, Haris Iqbal wrote:
-> > > > On Sun, May 9, 2021 at 1:24 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > > >
-> > > > > On Mon, May 03, 2021 at 01:48:01PM +0200, Gioh Kim wrote:
-> > > > > > From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
-> > > > > >
-> > > > > > The queue_depth size is sent from server and
-> > > > > > server already checks validity of the value.
-> > > > >
-> > > > > Do you trust server? What will be if server is not reliable and sends
-> > > > > garbage?
-> > > >
-> > > > Hi Leon,
-> > > >
-> > > > The server code checks for the queue_depth before sending. If the
-> > > > server is really running malicious code, then the queue_depth is the
-> > > > last thing that the client needs to worry about.
-> > >
-> > > Like what? for an example?
-> >
-> > Like accessing compromised block devices. If the queue_depth is
-> > garbage, the client would fail at allocation with ENOMEM; thats it.
->
-> The client will get wrong data, check it and discard. The case of ENOMEM triggered
-> by remote side is different. It can cause to DDOS on the client.
+From: Xi Wang <wangxi11@huawei.com>
 
-True. This makes sense. Will drop this patch.
+If a uQP works in DCA mode, the userspace driver need to get the buffer's
+address in DCA memory pool by calling the 'HNS_IB_METHOD_DCA_MEM_QUERY'
+method after the QP was attached by calling the
+'HNS_IB_METHOD_DCA_MEM_ATTACH' method.
 
-Thanks.
+This method will return the DCA mem object's key and the offset to let the
+userspace driver get the WQE's virtual address in DCA memory pool.
 
->
-> Thanks
->
-> >
-> > >
-> > > Thanks
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_dca.c | 112 ++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_dca.h |   6 ++
+ include/uapi/rdma/hns-abi.h              |  10 +++
+ 3 files changed, 127 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.c b/drivers/infiniband/hw/hns/hns_roce_dca.c
+index 0a12559..0d018c0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.c
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.c
+@@ -80,6 +80,14 @@ static inline bool dca_page_is_attached(struct hns_dca_page_state *state,
+ 			(HNS_DCA_OWN_MASK & state->buf_id);
+ }
+ 
++static inline bool dca_page_is_active(struct hns_dca_page_state *state,
++				      u32 buf_id)
++{
++	/* all buf id bits must be matched */
++	return (HNS_DCA_ID_MASK & buf_id) == state->buf_id &&
++		!state->lock && state->active;
++}
++
+ static inline bool dca_page_is_allocated(struct hns_dca_page_state *state,
+ 					 u32 buf_id)
+ {
+@@ -792,6 +800,64 @@ static int attach_dca_mem(struct hns_roce_dev *hr_dev,
+ 	return 0;
+ }
+ 
++struct dca_page_query_active_attr {
++	u32 buf_id;
++	u32 curr_index;
++	u32 start_index;
++	u32 page_index;
++	u32 page_count;
++	u64 mem_key;
++};
++
++static int query_dca_active_pages_proc(struct dca_mem *mem, int index,
++				       void *param)
++{
++	struct hns_dca_page_state *state = &mem->states[index];
++	struct dca_page_query_active_attr *attr = param;
++
++	if (!dca_page_is_active(state, attr->buf_id))
++		return 0;
++
++	if (attr->curr_index < attr->start_index) {
++		attr->curr_index++;
++		return 0;
++	} else if (attr->curr_index > attr->start_index) {
++		return DCA_MEM_STOP_ITERATE;
++	}
++
++	/* Search first page in DCA mem */
++	attr->page_index = index;
++	attr->mem_key = mem->key;
++	/* Search active pages in continuous addresses */
++	while (index < mem->page_count) {
++		state = &mem->states[index];
++		if (!dca_page_is_active(state, attr->buf_id))
++			break;
++
++		index++;
++		attr->page_count++;
++	}
++
++	return DCA_MEM_STOP_ITERATE;
++}
++
++static int query_dca_mem(struct hns_roce_qp *hr_qp, u32 page_index,
++			 struct hns_dca_query_resp *resp)
++{
++	struct hns_roce_dca_ctx *ctx = hr_qp_to_dca_ctx(hr_qp);
++	struct dca_page_query_active_attr attr = {};
++
++	attr.buf_id = hr_qp->dca_cfg.buf_id;
++	attr.start_index = page_index;
++	travel_dca_pages(ctx, &attr, query_dca_active_pages_proc);
++
++	resp->mem_key = attr.mem_key;
++	resp->mem_ofs = attr.page_index << HNS_HW_PAGE_SHIFT;
++	resp->page_count = attr.page_count;
++
++	return attr.page_count ? 0 : -ENOMEM;
++}
++
+ struct dca_page_free_buf_attr {
+ 	u32 buf_id;
+ 	u32 max_pages;
+@@ -1131,13 +1197,57 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 	UVERBS_ATTR_PTR_IN(HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
+ 			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
+ 
++static int UVERBS_HANDLER(HNS_IB_METHOD_DCA_MEM_QUERY)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct hns_roce_qp *hr_qp = uverbs_attr_to_hr_qp(attrs);
++	struct hns_dca_query_resp resp = {};
++	u32 page_idx;
++	int ret;
++
++	if (!hr_qp)
++		return -EINVAL;
++
++	if (uverbs_copy_from(&page_idx, attrs,
++			     HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX))
++		return -EFAULT;
++
++	ret = query_dca_mem(hr_qp, page_idx, &resp);
++	if (ret)
++		return ret;
++
++	if (uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++			   &resp.mem_key, sizeof(resp.mem_key)) ||
++	    uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++			   &resp.mem_ofs, sizeof(resp.mem_ofs)) ||
++	    uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++			   &resp.page_count, sizeof(resp.page_count)))
++		return -EFAULT;
++
++	return 0;
++}
++
++DECLARE_UVERBS_NAMED_METHOD(
++	HNS_IB_METHOD_DCA_MEM_QUERY,
++	UVERBS_ATTR_IDR(HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE, UVERBS_OBJECT_QP,
++			UVERBS_ACCESS_READ, UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
++			   UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++			    UVERBS_ATTR_TYPE(u64), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY),
++	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
++
+ DECLARE_UVERBS_NAMED_OBJECT(HNS_IB_OBJECT_DCA_MEM,
+ 			    UVERBS_TYPE_ALLOC_IDR(dca_cleanup),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_REG),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DEREG),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_SHRINK),
+ 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_ATTACH),
+-			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DETACH));
++			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DETACH),
++			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_QUERY));
+ 
+ static bool dca_is_supported(struct ib_device *device)
+ {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.h b/drivers/infiniband/hw/hns/hns_roce_dca.h
+index 8155903..3e9971a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.h
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.h
+@@ -50,6 +50,12 @@ struct hns_dca_detach_attr {
+ 	u32 sq_idx;
+ };
+ 
++struct hns_dca_query_resp {
++	u64 mem_key;
++	u32 mem_ofs;
++	u32 page_count;
++};
++
+ void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_ucontext *uctx);
+ void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index 119fa4e..edcecc1 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -113,6 +113,7 @@ enum hns_ib_dca_mem_methods {
+ 	HNS_IB_METHOD_DCA_MEM_SHRINK,
+ 	HNS_IB_METHOD_DCA_MEM_ATTACH,
+ 	HNS_IB_METHOD_DCA_MEM_DETACH,
++	HNS_IB_METHOD_DCA_MEM_QUERY,
+ };
+ 
+ enum hns_ib_dca_mem_reg_attrs {
+@@ -148,4 +149,13 @@ enum hns_ib_dca_mem_detach_attrs {
+ 	HNS_IB_ATTR_DCA_MEM_DETACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
+ 	HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
+ };
++
++enum hns_ib_dca_mem_query_attrs {
++	HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
++	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
++};
++
+ #endif /* HNS_ABI_USER_H */
+-- 
+2.7.4
+
