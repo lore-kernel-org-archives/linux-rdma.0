@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE072C43618
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6D7C4361A
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B26FA613C5
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BC4C6128D
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 13:26:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242395AbhEJNYk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 May 2021 09:24:40 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2610 "EHLO
+        id S242418AbhEJNYn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 May 2021 09:24:43 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2611 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352238AbhEJNOW (ORCPT
+        with ESMTP id S1352240AbhEJNOW (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 09:14:22 -0400
 Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Ff1cL2XMjzQlnv;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Ff1cL2631zQlnq;
         Mon, 10 May 2021 21:09:54 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS404-HUB.china.huawei.com (10.3.19.204) with Microsoft SMTP Server id
- 14.3.498.0; Mon, 10 May 2021 21:13:07 +0800
+ 14.3.498.0; Mon, 10 May 2021 21:13:06 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 4/6] libhns: Add support for attaching QP's WQE buffer
-Date:   Mon, 10 May 2021 21:13:02 +0800
-Message-ID: <1620652384-34097-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH rdma-core 2/6] libhns: Introduce DCA for RC QP
+Date:   Mon, 10 May 2021 21:13:00 +0800
+Message-ID: <1620652384-34097-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1620652384-34097-1-git-send-email-liweihang@huawei.com>
 References: <1620652384-34097-1-git-send-email-liweihang@huawei.com>
@@ -44,555 +44,295 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-If a uQP works in DCA mode, the WQE's buffer will be split as many blocks
-and be stored into a list. The blocks are allocated from the DCA's memory
-pool before posting WRs and are dropped when the QP's CI is equal to PI
-after polling CQ.
+The HIP09 introduces the DCA(Dynamic context attachment) feature which
+supports many RC QPs to share the WQE buffer in a memory pool, this will
+reduce the memory consumption when there are too many QPs inactive.
+
+This patch wraps two functions for adding buffers to memory pool and
+removing buffers from memory pool by calling ib cmd implemented in hns
+kernel driver.
+
+If a QP enables DCA feature, the WQE's buffer will be attached to the
+memory pool when the users start to post WRs and be detached when all CQEs
+has been polled.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- providers/hns/hns_roce_u.h       |  24 +++++-
- providers/hns/hns_roce_u_buf.c   | 156 ++++++++++++++++++++++++++++++++++++++-
- providers/hns/hns_roce_u_hw_v2.c | 123 ++++++++++++++++++++++++++----
- providers/hns/hns_roce_u_hw_v2.h |   7 ++
- providers/hns/hns_roce_u_verbs.c |  32 ++++++--
- 5 files changed, 318 insertions(+), 24 deletions(-)
+ providers/hns/hns_roce_u.c     |  45 ++++++++++++++
+ providers/hns/hns_roce_u.h     |  18 ++++++
+ providers/hns/hns_roce_u_buf.c | 137 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 200 insertions(+)
 
+diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
+index 3b31ad3..a4e0997 100644
+--- a/providers/hns/hns_roce_u.c
++++ b/providers/hns/hns_roce_u.c
+@@ -95,6 +95,40 @@ static const struct verbs_context_ops hns_common_ops = {
+ 	.get_srq_num = hns_roce_u_get_srq_num,
+ };
+ 
++static int init_dca_context(struct hns_roce_context *ctx, int page_size)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	int ret;
++
++	if (!(ctx->cap_flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
++		return 0;
++
++	list_head_init(&dca_ctx->mem_list);
++	ret = pthread_spin_init(&dca_ctx->lock, PTHREAD_PROCESS_PRIVATE);
++	if (ret)
++		return ret;
++
++	dca_ctx->unit_size = page_size * HNS_DCA_DEFAULT_UNIT_PAGES;
++	dca_ctx->max_size = HNS_DCA_MAX_MEM_SIZE;
++	dca_ctx->mem_cnt = 0;
++
++	return 0;
++}
++
++static void uninit_dca_context(struct hns_roce_context *ctx)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++
++	if (!(ctx->cap_flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
++		return;
++
++	pthread_spin_lock(&dca_ctx->lock);
++	hns_roce_cleanup_dca_mem(ctx);
++	pthread_spin_unlock(&dca_ctx->lock);
++
++	pthread_spin_destroy(&dca_ctx->lock);
++}
++
+ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+ 						    int cmd_fd,
+ 						    void *private_data)
+@@ -123,6 +157,8 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+ 	else
+ 		context->cqe_size = HNS_ROCE_V3_CQE_SIZE;
+ 
++	context->cap_flags = resp.cap_flags;
++
+ 	context->num_qps = resp.qp_tab_size;
+ 	context->num_srqs = resp.srq_tab_size;
+ 
+@@ -178,8 +214,15 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
+ 	verbs_set_ops(&context->ibv_ctx, &hns_common_ops);
+ 	verbs_set_ops(&context->ibv_ctx, &hr_dev->u_hw->hw_ops);
+ 
++	if (init_dca_context(context, hr_dev->page_size))
++		goto tptr_free;
++
+ 	return &context->ibv_ctx;
+ 
++tptr_free:
++	if (hr_dev->hw_version == HNS_ROCE_HW_VER1)
++		munmap(context->cq_tptr_base, HNS_ROCE_CQ_DB_BUF_SIZE);
++
+ db_free:
+ 	munmap(context->uar, hr_dev->page_size);
+ 	context->uar = NULL;
+@@ -199,6 +242,8 @@ static void hns_roce_free_context(struct ibv_context *ibctx)
+ 	if (hr_dev->hw_version == HNS_ROCE_HW_VER1)
+ 		munmap(context->cq_tptr_base, HNS_ROCE_CQ_DB_BUF_SIZE);
+ 
++	uninit_dca_context(context);
++
+ 	verbs_uninit_context(&context->ibv_ctx);
+ 	free(context);
+ }
 diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index a8a007e..a488694 100644
+index 8f805dd..d26ef9c 100644
 --- a/providers/hns/hns_roce_u.h
 +++ b/providers/hns/hns_roce_u.h
-@@ -122,6 +122,12 @@ struct hns_roce_device {
- 	int				hw_version;
+@@ -145,8 +145,21 @@ struct hns_roce_db_page {
+ 	bitmap			*bitmap;
  };
  
-+struct hns_roce_buf_list {
-+	void **bufs;
-+	unsigned int max_cnt;
-+	unsigned int shift;
++#define HNS_DCA_MAX_MEM_SIZE ~0UL
++#define HNS_DCA_DEFAULT_UNIT_PAGES 16
++
++struct hns_roce_dca_ctx {
++	struct list_head mem_list;
++	pthread_spinlock_t lock;
++	uint64_t max_size;
++	uint64_t curr_size;
++	int mem_cnt;
++	unsigned int unit_size;
 +};
 +
- struct hns_roce_buf {
- 	void				*buf;
- 	unsigned int			length;
-@@ -282,9 +288,20 @@ struct hns_roce_rinl_buf {
- 	unsigned int			wqe_cnt;
+ struct hns_roce_context {
+ 	struct verbs_context		ibv_ctx;
++	uint32_t			cap_flags;
+ 	void				*uar;
+ 	pthread_spinlock_t		uar_lock;
+ 
+@@ -179,6 +192,8 @@ struct hns_roce_context {
+ 	unsigned int			max_srq_sge;
+ 	int				max_cqe;
+ 	unsigned int			cqe_size;
++
++	struct hns_roce_dca_ctx		dca_ctx;
  };
  
-+struct hns_roce_dca_attach_attr {
-+	uint32_t sq_offset;
-+	uint32_t sge_offset;
-+	uint32_t rq_offset;
-+};
-+
-+struct hns_roce_dca_detach_attr {
-+	uint32_t sq_index;
-+};
-+
- struct hns_roce_qp {
- 	struct verbs_qp			verbs_qp;
- 	struct hns_roce_buf		buf;
-+	struct hns_roce_buf_list	page_list;
- 	int				max_inline_data;
- 	int				buf_size;
- 	unsigned int			sq_signal_bits;
-@@ -331,6 +348,7 @@ struct hns_roce_u_hw {
-  * minimum page size.
-  */
- #define hr_hw_page_align(x) align(x, HNS_HW_PAGE_SIZE)
-+#define hr_hw_page_count(x) (hr_hw_page_align(x) / HNS_HW_PAGE_SIZE)
- 
- static inline unsigned int to_hr_hem_entries_size(int count, int buf_shift)
- {
-@@ -440,9 +458,13 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
+ struct hns_roce_pd {
+@@ -424,6 +439,9 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
  
  void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
  
-+int hns_roce_attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			    struct hns_roce_dca_attach_attr *attr,
-+			    uint32_t size, struct hns_roce_buf_list *buf_list);
-+void hns_roce_detach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			     struct hns_roce_dca_detach_attr *attr);
- void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
- void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
--int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
- 
++void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
++int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
++
  void hns_roce_init_qp_indices(struct hns_roce_qp *qp);
  
+ extern const struct hns_roce_u_hw hns_roce_u_hw_v1;
 diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
-index 4970eac..d3e90d2 100644
+index 471dd9c..82a8849 100644
 --- a/providers/hns/hns_roce_u_buf.c
 +++ b/providers/hns/hns_roce_u_buf.c
-@@ -180,6 +180,66 @@ static int shrink_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
+@@ -60,3 +60,140 @@ void hns_roce_free_buf(struct hns_roce_buf *buf)
  
- 	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
+ 	munmap(buf->buf, buf->length);
  }
 +
-+struct hns_dca_mem_query_resp {
-+	uint64_t key;
-+	uint32_t offset;
-+	uint32_t page_count;
++struct hns_roce_dca_mem {
++	uint32_t handle;
++	struct list_node entry;
++	struct hns_roce_buf buf;
++	struct hns_roce_context *ctx;
 +};
 +
-+static int query_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			 uint32_t index, struct hns_dca_mem_query_resp *resp)
++static void free_dca_mem(struct hns_roce_context *ctx,
++			 struct hns_roce_dca_mem *mem)
 +{
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_QUERY, 5);
-+	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE, handle);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX, index);
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
-+		      &resp->key, sizeof(resp->key));
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
-+		      &resp->offset, sizeof(resp->offset));
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
-+		      &resp->page_count, sizeof(resp->page_count));
-+	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
++	hns_roce_free_buf(&mem->buf);
++	free(mem);
 +}
 +
-+static int detach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			  struct hns_roce_dca_detach_attr *attr)
++static struct hns_roce_dca_mem *alloc_dca_mem(uint32_t size)
 +{
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_DETACH, 4);
-+	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_DETACH_HANDLE, handle);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
-+			    attr->sq_index);
-+	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
-+}
++	struct hns_roce_dca_mem *mem = NULL;
++	int ret;
 +
-+struct hns_dca_mem_attach_resp {
-+#define HNS_DCA_ATTACH_OUT_FLAGS_NEW_BUFFER BIT(0)
-+	uint32_t alloc_flags;
-+	uint32_t alloc_pages;
-+};
-+
-+static int attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			  struct hns_roce_dca_attach_attr *attr,
-+			  struct hns_dca_mem_attach_resp *resp)
-+{
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_ATTACH, 6);
-+	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_HANDLE, handle);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_SQ_OFFSET,
-+			    attr->sq_offset);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_SGE_OFFSET,
-+			    attr->sge_offset);
-+	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_RQ_OFFSET,
-+			    attr->rq_offset);
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_FLAGS,
-+		      &resp->alloc_flags, sizeof(resp->alloc_flags));
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_PAGES,
-+		      &resp->alloc_pages, sizeof(resp->alloc_pages));
-+	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
-+}
-+
- static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
- 				uint32_t alloc_size)
- {
-@@ -199,7 +259,7 @@ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
- 	return enable;
- }
- 
--int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
-+static int add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
- {
- 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
- 	struct hns_roce_dca_mem *mem;
-@@ -293,3 +353,97 @@ void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx)
- 		dca_mem_cnt--;
- 	}
- }
-+
-+static void config_page_list(void *addr, struct hns_roce_buf_list *page_list,
-+			     uint32_t page_index, int page_count)
-+{
-+	void **bufs = &page_list->bufs[page_index];
-+	int page_size = 1 << page_list->shift;
-+	int i;
-+
-+	for (i = 0; i < page_count; i++) {
-+		bufs[i] = addr;
-+		addr += page_size;
++	mem = malloc(sizeof(struct hns_roce_dca_mem));
++	if (!mem) {
++		errno = ENOMEM;
++		return NULL;
 +	}
++
++	ret = hns_roce_alloc_buf(&mem->buf, size, HNS_HW_PAGE_SIZE);
++	if (ret) {
++		errno = ENOMEM;
++		free(mem);
++		return NULL;
++	}
++
++	return mem;
 +}
 +
-+static int setup_dca_buf_list(struct hns_roce_context *ctx, uint32_t handle,
-+			      struct hns_roce_buf_list *buf_list,
-+			      uint32_t page_count)
++static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
++{
++	return (uintptr_t)dca_mem;
++}
++
++static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
++{
++	return dca_mem->buf.buf + offset;
++}
++
++static int register_dca_mem(struct hns_roce_context *ctx, uint64_t key,
++			    void *addr, uint32_t size, uint32_t *handle)
++{
++	struct ib_uverbs_attr *attr;
++	int ret;
++
++	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
++			       HNS_IB_METHOD_DCA_MEM_REG, 4);
++	fill_attr_in_uint32(cmd, HNS_IB_ATTR_DCA_MEM_REG_LEN, size);
++	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_REG_ADDR,
++			    ioctl_ptr_to_u64(addr));
++	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_REG_KEY, key);
++	attr = fill_attr_out_obj(cmd, HNS_IB_ATTR_DCA_MEM_REG_HANDLE);
++
++	ret = execute_ioctl(&ctx->ibv_ctx.context, cmd);
++	if (ret)
++		return ret;
++
++	*handle = read_attr_obj(HNS_IB_ATTR_DCA_MEM_REG_HANDLE, attr);
++
++	return ret;
++}
++
++static void deregister_dca_mem(struct hns_roce_context *ctx, uint32_t handle)
++{
++	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
++			       HNS_IB_METHOD_DCA_MEM_DEREG, 1);
++	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE, handle);
++	execute_ioctl(&ctx->ibv_ctx.context, cmd);
++}
++
++void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
 +{
 +	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+	struct hns_dca_mem_query_resp resp = {};
 +	struct hns_roce_dca_mem *mem;
-+	uint32_t idx = 0;
-+	int ret;
++	struct hns_roce_dca_mem *tmp;
 +
-+	while (idx < page_count && idx < buf_list->max_cnt) {
-+		resp.page_count = 0;
-+		ret = query_dca_mem(ctx, handle, idx, &resp);
-+		if (ret)
-+			return -ENOMEM;
-+
-+		if (resp.page_count < 1)
-+			break;
-+
-+		pthread_spin_lock(&dca_ctx->lock);
-+		mem = key_to_dca_mem(dca_ctx, resp.key);
-+		if (mem && resp.offset < mem->buf.length) {
-+			config_page_list(dca_mem_addr(mem, resp.offset),
-+					 buf_list, idx, resp.page_count);
-+		} else {
-+			pthread_spin_unlock(&dca_ctx->lock);
-+			break;
-+		}
-+
-+		pthread_spin_unlock(&dca_ctx->lock);
-+
-+		idx += resp.page_count;
-+	}
-+
-+	return (idx >= page_count) ? 0 : ENOMEM;
++	list_for_each_safe(&dca_ctx->mem_list, mem, tmp, entry)
++		deregister_dca_mem(ctx, mem->handle);
 +}
 +
-+#define DCA_EXPAND_MEM_TRY_TIMES 3
-+int hns_roce_attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			    struct hns_roce_dca_attach_attr *attr,
-+			    uint32_t size, struct hns_roce_buf_list *buf_list)
++static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
++				uint32_t alloc_size)
 +{
-+	uint32_t buf_pages = size >> buf_list->shift;
-+	struct hns_dca_mem_attach_resp resp = {};
-+	bool is_new_buf = true;
-+	int try_times = 0;
++	bool enable;
++
++	pthread_spin_lock(&ctx->lock);
++
++	if (ctx->unit_size == 0) /* Pool size can't be increased */
++		enable = false;
++	else if (ctx->max_size == HNS_DCA_MAX_MEM_SIZE) /* Pool size no limit */
++		enable = true;
++	else /* Pool size doesn't exceed max size */
++		enable = (ctx->curr_size + alloc_size) < ctx->max_size;
++
++	pthread_spin_unlock(&ctx->lock);
++
++	return enable;
++}
++
++int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	struct hns_roce_dca_mem *mem;
 +	int ret;
 +
-+	do {
-+		resp.alloc_pages = 0;
-+		ret = attach_dca_mem(ctx, handle, attr, &resp);
-+		if (ret)
-+			break;
-+
-+		if (resp.alloc_pages >= buf_pages) {
-+			is_new_buf = !!(resp.alloc_flags &
-+				     HNS_DCA_ATTACH_OUT_FLAGS_NEW_BUFFER);
-+			break;
-+		}
-+
-+		ret = add_dca_mem(ctx, size);
-+		if (ret)
-+			break;
-+	} while (try_times++ < DCA_EXPAND_MEM_TRY_TIMES);
-+
-+	if (ret || resp.alloc_pages < buf_pages)
++	if (!add_dca_mem_enabled(&ctx->dca_ctx, size))
 +		return -ENOMEM;
 +
-+	/* DCA config not changed */
-+	if (!is_new_buf && buf_list->bufs[0])
-+		return 0;
++	/* Step 1: Alloc DCA mem address */
++	mem = alloc_dca_mem(DIV_ROUND_UP(size, dca_ctx->unit_size));
++	if (!mem)
++		return -ENOMEM;
 +
-+	return setup_dca_buf_list(ctx, handle, buf_list, buf_pages);
-+}
-+
-+void hns_roce_detach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			     struct hns_roce_dca_detach_attr *attr)
-+{
-+	detach_dca_mem(ctx, handle, attr);
-+}
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 16f033c..d80c83d 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -227,19 +227,28 @@ static struct hns_roce_v2_cqe *next_cqe_sw_v2(struct hns_roce_cq *cq)
- 	return get_sw_cqe_v2(cq, cq->cons_index);
- }
- 
-+static inline void *get_wqe(struct hns_roce_qp *qp, unsigned int offset)
-+{
-+	if (qp->page_list.bufs)
-+		return qp->page_list.bufs[offset >> qp->page_list.shift] +
-+			(offset & ((1 << qp->page_list.shift) - 1));
-+	else
-+		return qp->buf.buf + offset;
-+}
-+
- static void *get_recv_wqe_v2(struct hns_roce_qp *qp, unsigned int n)
- {
--	return qp->buf.buf + qp->rq.offset + (n << qp->rq.wqe_shift);
-+	return get_wqe(qp, qp->rq.offset + (n << qp->rq.wqe_shift));
- }
- 
- static void *get_send_wqe(struct hns_roce_qp *qp, unsigned int n)
- {
--	return qp->buf.buf + qp->sq.offset + (n << qp->sq.wqe_shift);
-+	return get_wqe(qp, qp->sq.offset + (n << qp->sq.wqe_shift));
- }
- 
- static void *get_send_sge_ex(struct hns_roce_qp *qp, unsigned int n)
- {
--	return qp->buf.buf + qp->ex_sge.offset + (n << qp->ex_sge.sge_shift);
-+	return get_wqe(qp, qp->ex_sge.offset + (n << qp->ex_sge.sge_shift));
- }
- 
- static void *get_srq_wqe(struct hns_roce_srq *srq, int n)
-@@ -502,6 +511,62 @@ static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
- 	return V2_CQ_OK;
- }
- 
-+static inline bool check_qp_dca_enable(struct hns_roce_qp *qp)
-+{
-+	return !!qp->page_list.bufs && (qp->flags & HNS_ROCE_QP_CAP_DCA);
-+}
-+
-+static int dca_attach_qp_buf(struct hns_roce_context *ctx,
-+			     struct hns_roce_qp *qp)
-+{
-+	struct hns_roce_dca_attach_attr attr = {};
-+	uint32_t idx;
-+
-+	pthread_spin_lock(&qp->sq.lock);
-+	pthread_spin_lock(&qp->rq.lock);
-+
-+	if (qp->sq.wqe_cnt > 0) {
-+		idx = qp->sq.head & (qp->sq.wqe_cnt - 1);
-+		attr.sq_offset = idx << qp->sq.wqe_shift;
++	/* Step 2: Register DCA mem uobject to pin user address */
++	ret = register_dca_mem(ctx, dca_mem_to_key(mem), dca_mem_addr(mem, 0),
++			       mem->buf.length, &mem->handle);
++	if (ret) {
++		free_dca_mem(ctx, mem);
++		return ret;
 +	}
 +
-+	if (qp->ex_sge.sge_cnt > 0) {
-+		idx = qp->next_sge & (qp->ex_sge.sge_cnt - 1);
-+		attr.sge_offset = idx << qp->ex_sge.sge_shift;
-+	}
++	/* Step 3: Add DCA mem node to pool */
++	pthread_spin_lock(&dca_ctx->lock);
++	list_add_tail(&dca_ctx->mem_list, &mem->entry);
++	dca_ctx->mem_cnt++;
++	dca_ctx->curr_size += mem->buf.length;
++	pthread_spin_unlock(&dca_ctx->lock);
 +
-+	if (qp->rq.wqe_cnt > 0) {
-+		idx = qp->rq.head & (qp->rq.wqe_cnt - 1);
-+		attr.rq_offset = idx << qp->rq.wqe_shift;
-+	}
-+
-+	pthread_spin_unlock(&qp->rq.lock);
-+	pthread_spin_unlock(&qp->sq.lock);
-+
-+	return hns_roce_attach_dca_mem(ctx, qp->verbs_qp.qp.handle, &attr,
-+				       qp->buf_size, &qp->page_list);
++	return 0;
 +}
-+
-+static void dca_detach_qp_buf(struct hns_roce_context *ctx,
-+			      struct hns_roce_qp *qp)
-+{
-+	struct hns_roce_dca_detach_attr attr;
-+	bool is_empty;
-+
-+	pthread_spin_lock(&qp->sq.lock);
-+	pthread_spin_lock(&qp->rq.lock);
-+
-+	is_empty = qp->sq.head == qp->sq.tail && qp->rq.head == qp->rq.tail;
-+	if (is_empty && qp->sq.wqe_cnt > 0)
-+		attr.sq_index = qp->sq.head & (qp->sq.wqe_cnt - 1);
-+
-+	pthread_spin_unlock(&qp->rq.lock);
-+	pthread_spin_unlock(&qp->sq.lock);
-+
-+	if (is_empty)
-+		hns_roce_detach_dca_mem(ctx, qp->verbs_qp.qp.handle, &attr);
-+}
-+
- static int hns_roce_v2_poll_one(struct hns_roce_cq *cq,
- 				struct hns_roce_qp **cur_qp, struct ibv_wc *wc)
- {
-@@ -641,6 +706,9 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
- 
- 	for (npolled = 0; npolled < ne; ++npolled) {
- 		err = hns_roce_v2_poll_one(cq, &qp, wc + npolled);
-+		if (qp && check_qp_dca_enable(qp))
-+			dca_detach_qp_buf(ctx, qp);
-+
- 		if (err != V2_CQ_OK)
- 			break;
- 	}
-@@ -690,18 +758,23 @@ static int hns_roce_u_v2_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	return 0;
- }
- 
--static int check_qp_send(struct ibv_qp *qp, struct hns_roce_context *ctx)
-+static int check_qp_send(struct hns_roce_qp *qp, struct hns_roce_context *ctx)
- {
--	if (unlikely(qp->qp_type != IBV_QPT_RC &&
--		     qp->qp_type != IBV_QPT_UD) &&
--		     qp->qp_type != IBV_QPT_XRC_SEND)
-+	struct ibv_qp *ibvqp = &qp->verbs_qp.qp;
-+
-+	if (unlikely(ibvqp->qp_type != IBV_QPT_RC &&
-+		     ibvqp->qp_type != IBV_QPT_UD) &&
-+		     ibvqp->qp_type != IBV_QPT_XRC_SEND)
- 		return -EINVAL;
- 
--	if (unlikely(qp->state == IBV_QPS_RESET ||
--		     qp->state == IBV_QPS_INIT ||
--		     qp->state == IBV_QPS_RTR))
-+	if (unlikely(ibvqp->state == IBV_QPS_RESET ||
-+		     ibvqp->state == IBV_QPS_INIT ||
-+		     ibvqp->state == IBV_QPS_RTR))
- 		return -EINVAL;
- 
-+	if (check_qp_dca_enable(qp))
-+		return dca_attach_qp_buf(ctx, qp);
-+
- 	return 0;
- }
- 
-@@ -1019,6 +1092,16 @@ static int set_rc_inl(struct hns_roce_qp *qp, const struct ibv_send_wr *wr,
- 	return 0;
- }
- 
-+static inline void fill_rc_dca_fields(uint32_t qp_num,
-+				      struct hns_roce_rc_sq_wqe *wqe)
-+{
-+	roce_set_field(wqe->byte_4, RC_SQ_WQE_BYTE_4_SQPN_L_M,
-+		       RC_SQ_WQE_BYTE_4_SQPN_L_S, qp_num);
-+	roce_set_field(wqe->byte_4, RC_SQ_WQE_BYTE_4_SQPN_H_M,
-+		       RC_SQ_WQE_BYTE_4_SQPN_H_S,
-+		       qp_num >> RC_SQ_WQE_BYTE_4_SQPN_L_W);
-+}
-+
- static void set_bind_mw_seg(struct hns_roce_rc_sq_wqe *wqe,
- 			    const struct ibv_send_wr *wr)
- {
-@@ -1134,6 +1217,9 @@ static int set_rc_wqe(void *wqe, struct hns_roce_qp *qp, struct ibv_send_wr *wr,
- 		return ret;
- 
- wqe_valid:
-+	if (check_qp_dca_enable(qp))
-+		fill_rc_dca_fields(qp->verbs_qp.qp.qp_num, rc_sq_wqe);
-+
- 	/*
- 	 * The pipeline can sequentially post all valid WQEs into WQ buffer,
- 	 * including new WQEs waiting for the doorbell to update the PI again.
-@@ -1160,7 +1246,7 @@ int hns_roce_u_v2_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 	struct ibv_qp_attr attr;
- 	int ret;
- 
--	ret = check_qp_send(ibvqp, ctx);
-+	ret = check_qp_send(qp, ctx);
- 	if (unlikely(ret)) {
- 		*bad_wr = wr;
- 		return ret;
-@@ -1235,15 +1321,20 @@ out:
- 	return ret;
- }
- 
--static int check_qp_recv(struct ibv_qp *qp, struct hns_roce_context *ctx)
-+static int check_qp_recv(struct hns_roce_qp *qp, struct hns_roce_context *ctx)
- {
--	if (unlikely(qp->qp_type != IBV_QPT_RC &&
--		     qp->qp_type != IBV_QPT_UD))
-+	struct ibv_qp *ibvqp = &qp->verbs_qp.qp;
-+
-+	if (unlikely(ibvqp->qp_type != IBV_QPT_RC &&
-+		     ibvqp->qp_type != IBV_QPT_UD))
- 		return -EINVAL;
- 
--	if (qp->state == IBV_QPS_RESET || qp->srq)
-+	if (ibvqp->state == IBV_QPS_RESET || ibvqp->srq)
- 		return -EINVAL;
- 
-+	if (check_qp_dca_enable(qp))
-+		return dca_attach_qp_buf(ctx, qp);
-+
- 	return 0;
- }
- 
-@@ -1286,7 +1377,7 @@ static int hns_roce_u_v2_post_recv(struct ibv_qp *ibvqp, struct ibv_recv_wr *wr,
- 	struct ibv_qp_attr attr;
- 	int ret;
- 
--	ret = check_qp_recv(ibvqp, ctx);
-+	ret = check_qp_recv(qp, ctx);
- 	if (unlikely(ret)) {
- 		*bad_wr = wr;
- 		return ret;
-diff --git a/providers/hns/hns_roce_u_hw_v2.h b/providers/hns/hns_roce_u_hw_v2.h
-index c13d82e..be6be73 100644
---- a/providers/hns/hns_roce_u_hw_v2.h
-+++ b/providers/hns/hns_roce_u_hw_v2.h
-@@ -239,6 +239,13 @@ struct hns_roce_rc_sq_wqe {
- 
- #define RC_SQ_WQE_BYTE_4_RDMA_WRITE_S 22
- 
-+#define RC_SQ_WQE_BYTE_4_SQPN_L_W 2
-+#define RC_SQ_WQE_BYTE_4_SQPN_L_S 5
-+#define RC_SQ_WQE_BYTE_4_SQPN_L_M GENMASK(6, 5)
-+
-+#define RC_SQ_WQE_BYTE_4_SQPN_H_S 13
-+#define RC_SQ_WQE_BYTE_4_SQPN_H_M GENMASK(30, 13)
-+
- #define RC_SQ_WQE_BYTE_16_XRC_SRQN_S 0
- #define RC_SQ_WQE_BYTE_16_XRC_SRQN_M \
- 	(((1UL << 24) - 1) << RC_SQ_WQE_BYTE_16_XRC_SRQN_S)
-diff --git a/providers/hns/hns_roce_u_verbs.c b/providers/hns/hns_roce_u_verbs.c
-index abff092..21e295a 100644
---- a/providers/hns/hns_roce_u_verbs.c
-+++ b/providers/hns/hns_roce_u_verbs.c
-@@ -870,6 +870,14 @@ static int calc_qp_buff_size(struct hns_roce_device *hr_dev,
- 	return 0;
- }
- 
-+static inline bool check_qp_support_dca(bool pool_en, enum ibv_qp_type qp_type)
-+{
-+	if (pool_en && (qp_type == IBV_QPT_RC || qp_type == IBV_QPT_XRC_SEND))
-+		return true;
-+
-+	return false;
-+}
-+
- static void qp_free_wqe(struct hns_roce_qp *qp)
- {
- 	qp_free_recv_inl_buf(qp);
-@@ -881,8 +889,8 @@ static void qp_free_wqe(struct hns_roce_qp *qp)
- 	hns_roce_free_buf(&qp->buf);
- }
- 
--static int qp_alloc_wqe(struct ibv_qp_cap *cap, struct hns_roce_qp *qp,
--			struct hns_roce_context *ctx)
-+static int qp_alloc_wqe(struct ibv_qp_init_attr_ex *attr,
-+			struct hns_roce_qp *qp, struct hns_roce_context *ctx)
- {
- 	struct hns_roce_device *hr_dev = to_hr_dev(ctx->ibv_ctx.context.device);
- 
-@@ -900,12 +908,24 @@ static int qp_alloc_wqe(struct ibv_qp_cap *cap, struct hns_roce_qp *qp,
- 	}
- 
- 	if (qp->rq_rinl_buf.wqe_cnt) {
--		if (qp_alloc_recv_inl_buf(cap, qp))
-+		if (qp_alloc_recv_inl_buf(&attr->cap, qp))
- 			goto err_alloc;
- 	}
- 
--	if (hns_roce_alloc_buf(&qp->buf, qp->buf_size, HNS_HW_PAGE_SIZE))
--		goto err_alloc;
-+	if (check_qp_support_dca(ctx->dca_ctx.max_size != 0, attr->qp_type)) {
-+		/* when DCA is enabled, use a buffer list to store page addr */
-+		qp->buf.buf = NULL;
-+		qp->page_list.max_cnt = hr_hw_page_count(qp->buf_size);
-+		qp->page_list.shift = HNS_HW_PAGE_SHIFT;
-+		qp->page_list.bufs = calloc(qp->page_list.max_cnt,
-+					    sizeof(void *));
-+		if (!qp->page_list.bufs)
-+			goto err_alloc;
-+	} else {
-+		if (hns_roce_alloc_buf(&qp->buf, qp->buf_size,
-+				       HNS_HW_PAGE_SIZE))
-+			goto err_alloc;
-+	}
- 
- 	return 0;
- 
-@@ -1123,7 +1143,7 @@ static int hns_roce_alloc_qp_buf(struct ibv_qp_init_attr_ex *attr,
- 	    pthread_spin_init(&qp->rq.lock, PTHREAD_PROCESS_PRIVATE))
- 		return -ENOMEM;
- 
--	ret = qp_alloc_wqe(&attr->cap, qp, ctx);
-+	ret = qp_alloc_wqe(attr, qp, ctx);
- 	if (ret)
- 		return ret;
- 
 -- 
 2.7.4
 
