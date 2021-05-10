@@ -2,149 +2,117 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 629E8C433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9079C43470
 	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 11:31:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D8FD610CA
+	by mail.kernel.org (Postfix) with ESMTP id 7910F610CA
 	for <linux-rdma@archiver.kernel.org>; Mon, 10 May 2021 11:31:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233162AbhEJLbj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 May 2021 07:31:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45498 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235759AbhEJLGD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 May 2021 07:06:03 -0400
-Received: from mail-lj1-x22e.google.com (mail-lj1-x22e.google.com [IPv6:2a00:1450:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 704D4C061574
-        for <linux-rdma@vger.kernel.org>; Mon, 10 May 2021 03:55:54 -0700 (PDT)
-Received: by mail-lj1-x22e.google.com with SMTP id w15so20222044ljo.10
-        for <linux-rdma@vger.kernel.org>; Mon, 10 May 2021 03:55:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ds6mF6OY7Rorjeq2urEHkQxjNfm66R7NIc5SQcAKQDw=;
-        b=VSciqoDZM+4RO+6aCl7U78XN6ufJNqc9r36+12sx6inno0VgM4lfc4b1xmv++Veczv
-         1TZ2vhWQtETcB1fw1oSeDlfse5WaIpA2oOh4jwuQDITJ7BFwXYql92g5Zq/KAV1TI7WO
-         Z2vdHAKxu1YetARDmKu9vXa8D0m9Fsi0sHTffXv2osvf1NTQ0eyB41uN9gLnwA5gSYPm
-         e8qVwjQrOaQ6aGc+m5QHIry+PZ6Sp9EC4zuVLCeHfe6VRB+zbbO92wSEmpaTHRm7FPxe
-         VETW3aVxpbufwxGwfe0qwSXK2/pf7n4n0nQ75yu++mrwSKR9q+c067JqpGsr7Xdcxowf
-         F/rg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ds6mF6OY7Rorjeq2urEHkQxjNfm66R7NIc5SQcAKQDw=;
-        b=Pkg1Z3lPavmoMKhgHzUY0mLSoV7/AREANabNy2iF3D0n033MSDnNuCH51ZHvfXcFcW
-         gETc7VeSxQ4PXDGKtoEKF1Swpo6xl1Y2VidQpwisZWGRBygTx6f1S29XdQL+3SKyU9tx
-         /FK5DJy6pXeqPTO0MQlnJzYYWNNBHcMw8xcTHWVCSOEIJxMxAbLMOZwdR1AUa5tkvviX
-         FP35tdlL92ZzoC39hJunbwtwxmAWYNrrnclVWc+gTSfrx8pEdQbSN0Dzm8IXB1kCmdmI
-         JHzo4ImUjhlcmwOF9skLSuFY990nFKIOdnImEzqXpbXO0QlZ1uDWxGq4hT/gcSSdHxcH
-         hLiA==
-X-Gm-Message-State: AOAM532PhHE4a6oaRgt5T64vCQq1OpzO0xH1KdhYgwIJ7/h0LjVlXbO/
-        BvBOFz4q3MtWYXnM0hACBpmfy3a2X5wF/st83CNfSA==
-X-Google-Smtp-Source: ABdhPJxFftBGLDh3qRn32uflYXAxBkiUtF4/Swq/KXk16uGWlgmkOpCxxargBInvC0R0/GJtUI3ilCGK/XxjyC4zo5Q=
-X-Received: by 2002:a05:651c:232:: with SMTP id z18mr11742174ljn.489.1620644152937;
- Mon, 10 May 2021 03:55:52 -0700 (PDT)
+        id S235994AbhEJLbr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 May 2021 07:31:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40598 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S239112AbhEJLVG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 10 May 2021 07:21:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CC8EA6101E;
+        Mon, 10 May 2021 11:19:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1620645601;
+        bh=W7iAKST7BRDMlEttXNNjJ33EX76A4qp8I6GEgdSMv7U=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=gmDmb0dM5IcZQ9rSlubjtF+K7WR5CTuBYzK7hGG8NgJ6VoZl1xWTpOcwkH/5/0zA/
+         vlx1VxEGYzpDqoIrEOS4Gq4vleDywsH/Tbkz7KjwQOxa0gHoTz3ZfhQBobu6oYwUNn
+         Apktwvurhr0XmVvzqYbUbTW3FMnBkgNdhIrbGi6F2SzZTvdCwG1IcEdUG7Tg53VOjZ
+         rsHYuTEPmzH2qPOyCxJC2wx/q7V+K8nhKe4JHOwCkQGI9ADck3Kw17WLNRkmbFOBip
+         a9pcqsOJVVBc05NJGVPFoJfSO03eP8zjvIV4wRYaZYLrBIVfbDQLgQs1bXlcp7w7lK
+         9KVTRb7Ve04dg==
+Date:   Mon, 10 May 2021 13:19:50 +0200
+From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To:     Thorsten Leemhuis <linux@leemhuis.info>
+Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        alsa-devel@alsa-project.org, coresight@lists.linaro.org,
+        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
+        kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        linux-fpga@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-sgx@vger.kernel.org, linux-usb@vger.kernel.org,
+        mjpeg-users@lists.sourceforge.net, netdev@vger.kernel.org,
+        rcu@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 00/53] Get rid of UTF-8 chars that can be mapped as
+ ASCII
+Message-ID: <20210510131950.063f0608@coco.lan>
+In-Reply-To: <c4479ced-f4d8-1a1e-ee54-9abc55344187@leemhuis.info>
+References: <cover.1620641727.git.mchehab+huawei@kernel.org>
+        <c4479ced-f4d8-1a1e-ee54-9abc55344187@leemhuis.info>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-References: <20210503114818.288896-1-gi-oh.kim@ionos.com> <20210503114818.288896-5-gi-oh.kim@ionos.com>
- <YJfHDvkc4BK7plTK@unreal>
-In-Reply-To: <YJfHDvkc4BK7plTK@unreal>
-From:   Haris Iqbal <haris.iqbal@ionos.com>
-Date:   Mon, 10 May 2021 12:55:42 +0200
-Message-ID: <CAJpMwygX36AhWH=_qCAPzcHh4BSLL6eA_1Tw0J6Sa25k9qg7Mw@mail.gmail.com>
-Subject: Re: [PATCH for-next 04/20] RDMA/rtrs-srv: Add error messages for
- cases when failing RDMA connection
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Gioh Kim <gi-oh.kim@ionos.com>, linux-rdma@vger.kernel.org,
-        bvanassche@acm.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Jinpu Wang <jinpu.wang@ionos.com>,
-        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, May 9, 2021 at 1:27 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> On Mon, May 03, 2021 at 01:48:02PM +0200, Gioh Kim wrote:
-> > From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-> >
-> > It was difficult to find out why it failed to establish RDMA
-> > connection. This patch adds some messages to show which function
-> > has failed why.
-> >
-> > Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-> > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-> > Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-> > ---
-> >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 8 +++++++-
-> >  1 file changed, 7 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > index 3d09d01e34b4..df17dd4c1e28 100644
-> > --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-> > @@ -1356,8 +1356,10 @@ static struct rtrs_srv *get_or_create_srv(struct rtrs_srv_ctx *ctx,
-> >        * If this request is not the first connection request from the
-> >        * client for this session then fail and return error.
-> >        */
-> > -     if (!first_conn)
-> > +     if (!first_conn) {
-> > +             pr_err("Error: Not the first connection request for this session\n");
-> >               return ERR_PTR(-ENXIO);
-> > +     }
-> >
-> >       /* need to allocate a new srv */
-> >       srv = kzalloc(sizeof(*srv), GFP_KERNEL);
-> > @@ -1812,6 +1814,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
-> >       srv = get_or_create_srv(ctx, &msg->paths_uuid, msg->first_conn);
-> >       if (IS_ERR(srv)) {
-> >               err = PTR_ERR(srv);
-> > +             pr_err("get_or_create_srv(), error %d\n", err);
-> >               goto reject_w_err;
-> >       }
-> >       mutex_lock(&srv->paths_mutex);
-> > @@ -1850,11 +1853,13 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
-> >                       mutex_unlock(&srv->paths_mutex);
-> >                       put_srv(srv);
-> >                       err = PTR_ERR(sess);
-> > +                     pr_err("RTRS server session allocation failed: %d\n", err);
-> >                       goto reject_w_err;
-> >               }
-> >       }
-> >       err = create_con(sess, cm_id, cid);
-> >       if (err) {
-> > +             rtrs_err((&sess->s), "create_con(), error %d\n", err);
-> >               (void)rtrs_rdma_do_reject(cm_id, err);
->
-> Unrelated to this change, but this (void) casting should be go.
+Em Mon, 10 May 2021 12:52:44 +0200
+Thorsten Leemhuis <linux@leemhuis.info> escreveu:
 
-Hi Leon
-
-We wanted to explicitly signal that the code is ignoring the return
-value of the function. Is there a strong reason for the casting to be
-removed?
-
->
-> Thanks
->
-> >               /*
-> >                * Since session has other connections we follow normal way
-> > @@ -1865,6 +1870,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
-> >       }
-> >       err = rtrs_rdma_do_accept(sess, cm_id);
-> >       if (err) {
-> > +             rtrs_err((&sess->s), "rtrs_rdma_do_accept(), error %d\n", err);
-> >               (void)rtrs_rdma_do_reject(cm_id, err);
-> >               /*
-> >                * Since current connection was successfully added to the
-> > --
-> > 2.25.1
+> On 10.05.21 12:26, Mauro Carvalho Chehab wrote:
 > >
+> > As Linux developers are all around the globe, and not everybody has UTF=
+-8
+> > as their default charset, better to use UTF-8 only on cases where it is=
+ really
+> > needed.
+> > [=E2=80=A6]
+> > The remaining patches on series address such cases on *.rst files and=20
+> > inside the Documentation/ABI, using this perl map table in order to do =
+the
+> > charset conversion:
+> >=20
+> > my %char_map =3D (
+> > [=E2=80=A6]
+> > 	0x2013 =3D> '-',		# EN DASH
+> > 	0x2014 =3D> '-',		# EM DASH =20
+
+
+> I might be performing bike shedding here, but wouldn't it be better to
+> replace those two with "--", as explained in
+> https://en.wikipedia.org/wiki/Dash#Approximating_the_em_dash_with_two_or_=
+three_hyphens
+>=20
+> For EM DASH there seems to be even "---", but I'd say that is a bit too
+> much.
+
+Yeah, we can do, instead:
+
+ 	0x2013 =3D> '--',		# EN DASH
+ 	0x2014 =3D> '---',	# EM DASH =20
+
+I was actually in doubt about those ;-)
+
+Btw, when producing HTML documentation,  Sphinx should convert:
+	-- into EN DASH
+and:
+	--- into EM DASH
+
+So, the resulting html will be identical.
+
+> Or do you fear the extra work as some lines then might break the
+> 80-character limit then?
+
+No, I suspect that the line size won't be an issue. Some care should
+taken when EN DASH and EM DASH are used inside tables.
+
+Thanks,
+Mauro
