@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFE55C43461
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4377AC43611
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAC10611C9
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12764611C2
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231150AbhEKIcm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 11 May 2021 04:32:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42550 "EHLO mail.kernel.org"
+        id S231162AbhEKIcn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 11 May 2021 04:32:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230486AbhEKIci (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 11 May 2021 04:32:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BB4366192E;
-        Tue, 11 May 2021 08:22:43 +0000 (UTC)
+        id S230333AbhEKIcj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 11 May 2021 04:32:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 239A961928;
+        Tue, 11 May 2021 08:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620721364;
-        bh=2nP8Ko0C7D3HKZqDrCRhXV8tFaTyj6Sttgh/p6V3Y1U=;
+        s=k20201202; t=1620721356;
+        bh=9BZAAzBXUsFnxzBksVs8V35KTMzLRNT1T8uiN0llGBY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aA3eskYcZpLvniUFME+bvpf8n01C2PF74ExE3kUFlP6v98cm7R3C8AyvYehDNBoBb
-         QxbMSWSCi2H4uwc/WKKk6x5x4k1WV1ba8T2SLPLWb2JVSpPZbBC2VNHYEwYBmFJtTg
-         CApiiLGv7RftT0M/ybQVoh+lCtBt7e/A8QzRWVBC8qgrFwbIl7R+DTakivKE8Q8U4c
-         XpRwavQ0ljXHBhS3OguLPtzXdnib46ABgA5gaJ9ZfUfesvEwWgw6xNIgk3ZQURy+lp
-         20QfPGxs3hAC3seLsAg3ZEWXaMb8UaEAwLHVWQO5vO5mJKwtlvRkhP+rdvQCeW+qV+
-         nz/jtlfMBSs8Q==
+        b=H7Kf27d7iss6/EhpRGz72Q3VdPMJlJvC/jIZseQo7Yu3hyYKLFy0+uz+ZM2jsIfpc
+         ovfaC9tuciJyEWCk+aZu1e1qP9kza6Bo9gbvpVel6vYCxXMxCuoW2PTPCY+EQTr6ov
+         DzWAFJr9kXYd/ZToDQzmPG7QLAmZRz08rW8NPGxojw4zVUVMQxqsVlVl1Tq5TwIpKi
+         6UYF4Pdzw1Wff0CYX3oEdgGDIBuq0sewvolAoiBEu7Lprp6buZ4YtevaHIFiROL4em
+         P+tHhMYGT7HMg6abd47luIWOSMImGq8lMjk93QaoLPh9CZyahLx6KSpQ3IDSpGDqo7
+         mYm62fqCOYGJA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Mark Zhang <markzhang@nvidia.com>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v3 1/8] IB/cm: Pair cm_alloc_response_msg() with a cm_free_response_msg()
-Date:   Tue, 11 May 2021 11:22:05 +0300
-Message-Id: <598e654b67ebdfaa52c6659113d360fabec7a5e8.1620720467.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v3 3/8] IB/cm: Call the correct message free functions in cm_send_handler()
+Date:   Tue, 11 May 2021 11:22:07 +0300
+Message-Id: <2b7b09d9c9f53a5c7c3695919828234e9f873fe4.1620720467.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1620720467.git.leonro@nvidia.com>
 References: <cover.1620720467.git.leonro@nvidia.com>
@@ -51,119 +51,124 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-This is not a functional change, but it helps make the purpose of all the
-cm_free_msg() calls clearer. In this case a response msg has a NULL
-context[0], and is never placed in cm_id_priv->msg.
+There are now three destroy functions for the cm_msg, and all places
+except the general send completion handler use the correct function.
+
+Fix cm_send_handler() to detect which kind of message is being completed
+and destroy it using the correct function with the correct locking.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cm.c | 29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ drivers/infiniband/core/cm.c | 52 +++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 0ead0d223154..6e20ba5d32e1 100644
+index 94613275edcc..8dbc39ea4612 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -413,7 +413,7 @@ static int cm_alloc_response_msg(struct cm_port *port,
- 
- 	ret = cm_create_response_msg_ah(port, mad_recv_wc, m);
- 	if (ret) {
--		cm_free_msg(m);
-+		ib_free_send_mad(m);
- 		return ret;
- 	}
- 
-@@ -421,6 +421,13 @@ static int cm_alloc_response_msg(struct cm_port *port,
- 	return 0;
+@@ -3795,22 +3795,26 @@ static int cm_sidr_rep_handler(struct cm_work *work)
+ 	return -EINVAL;
  }
  
-+static void cm_free_response_msg(struct ib_mad_send_buf *msg)
-+{
-+	if (msg->ah)
-+		rdma_destroy_ah(msg->ah, 0);
-+	ib_free_send_mad(msg);
-+}
-+
- static void *cm_copy_private_data(const void *private_data, u8 private_data_len)
+-static void cm_process_send_error(struct ib_mad_send_buf *msg,
++static void cm_process_send_error(struct cm_id_private *cm_id_priv,
++				  struct ib_mad_send_buf *msg,
++				  enum ib_cm_state state,
+ 				  enum ib_wc_status wc_status)
  {
- 	void *data;
-@@ -1569,16 +1576,16 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
- 	ret = ib_post_send_mad(cm_id_priv->msg, NULL);
- 	if (ret) {
-+		cm_free_msg(cm_id_priv->msg);
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		goto error2;
-+		goto out;
- 	}
- 	BUG_ON(cm_id->state != IB_CM_IDLE);
- 	cm_id->state = IB_CM_REQ_SENT;
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 	return 0;
+-	struct cm_id_private *cm_id_priv;
+-	struct ib_cm_event cm_event;
+-	enum ib_cm_state state;
++	struct ib_cm_event cm_event = {};
+ 	int ret;
+ 
+-	memset(&cm_event, 0, sizeof cm_event);
+-	cm_id_priv = msg->context[0];
 -
--error2:	cm_free_msg(cm_id_priv->msg);
--out:	return ret;
-+out:
-+	return ret;
- }
- EXPORT_SYMBOL(ib_send_cm_req);
+ 	/* Discard old sends or ones without a response. */
+ 	spin_lock_irq(&cm_id_priv->lock);
+-	state = (enum ib_cm_state) (unsigned long) msg->context[1];
+-	if (msg != cm_id_priv->msg || state != cm_id_priv->id.state)
+-		goto discard;
++	if (msg != cm_id_priv->msg) {
++		spin_unlock_irq(&cm_id_priv->lock);
++		cm_free_msg(msg);
++		return;
++	}
++	cm_free_priv_msg(msg);
++
++	if (state != cm_id_priv->id.state || wc_status == IB_WC_SUCCESS ||
++	    wc_status == IB_WC_WR_FLUSH_ERR)
++		goto out_unlock;
  
-@@ -1618,7 +1625,7 @@ static int cm_issue_rej(struct cm_port *port,
- 		IBA_GET(CM_REJ_REMOTE_COMM_ID, rcv_msg));
- 	ret = ib_post_send_mad(msg, NULL);
+ 	trace_icm_mad_send_err(state, wc_status);
+ 	switch (state) {
+@@ -3833,26 +3837,27 @@ static void cm_process_send_error(struct ib_mad_send_buf *msg,
+ 		cm_event.event = IB_CM_SIDR_REQ_ERROR;
+ 		break;
+ 	default:
+-		goto discard;
++		goto out_unlock;
+ 	}
+ 	spin_unlock_irq(&cm_id_priv->lock);
+ 	cm_event.param.send_status = wc_status;
+ 
+ 	/* No other events can occur on the cm_id at this point. */
+ 	ret = cm_id_priv->id.cm_handler(&cm_id_priv->id, &cm_event);
+-	cm_free_msg(msg);
  	if (ret)
--		cm_free_msg(msg);
-+		cm_free_response_msg(msg);
- 
- 	return ret;
- }
-@@ -1974,7 +1981,7 @@ static void cm_dup_req_handler(struct cm_work *work,
+ 		ib_destroy_cm_id(&cm_id_priv->id);
  	return;
- 
- unlock:	spin_unlock_irq(&cm_id_priv->lock);
--free:	cm_free_msg(msg);
-+free:	cm_free_response_msg(msg);
+-discard:
++out_unlock:
+ 	spin_unlock_irq(&cm_id_priv->lock);
+-	cm_free_msg(msg);
  }
  
- static struct cm_id_private *cm_match_req(struct cm_work *work,
-@@ -2453,7 +2460,7 @@ static void cm_dup_rep_handler(struct cm_work *work)
- 	goto deref;
+ static void cm_send_handler(struct ib_mad_agent *mad_agent,
+ 			    struct ib_mad_send_wc *mad_send_wc)
+ {
+ 	struct ib_mad_send_buf *msg = mad_send_wc->send_buf;
++	struct cm_id_private *cm_id_priv = msg->context[0];
++	enum ib_cm_state state =
++		(enum ib_cm_state)(unsigned long)msg->context[1];
+ 	struct cm_port *port;
+ 	u16 attr_index;
  
- unlock:	spin_unlock_irq(&cm_id_priv->lock);
--free:	cm_free_msg(msg);
-+free:	cm_free_response_msg(msg);
- deref:	cm_deref_id(cm_id_priv);
- }
+@@ -3865,7 +3870,7 @@ static void cm_send_handler(struct ib_mad_agent *mad_agent,
+ 	 * set to a cm_id), and is not a REJ, then it is a send that was
+ 	 * manually retried.
+ 	 */
+-	if (!msg->context[0] && (attr_index != CM_REJ_COUNTER))
++	if (!cm_id_priv && (attr_index != CM_REJ_COUNTER))
+ 		msg->retries = 1;
  
-@@ -2794,7 +2801,7 @@ static int cm_issue_drep(struct cm_port *port,
- 		IBA_GET(CM_DREQ_REMOTE_COMM_ID, dreq_msg));
- 	ret = ib_post_send_mad(msg, NULL);
- 	if (ret)
+ 	atomic_long_add(1 + msg->retries,
+@@ -3875,18 +3880,11 @@ static void cm_send_handler(struct ib_mad_agent *mad_agent,
+ 				&port->counter_group[CM_XMIT_RETRIES].
+ 				counter[attr_index]);
+ 
+-	switch (mad_send_wc->status) {
+-	case IB_WC_SUCCESS:
+-	case IB_WC_WR_FLUSH_ERR:
 -		cm_free_msg(msg);
+-		break;
+-	default:
+-		if (msg->context[0] && msg->context[1])
+-			cm_process_send_error(msg, mad_send_wc->status);
+-		else
+-			cm_free_msg(msg);
+-		break;
+-	}
++	if (cm_id_priv)
++		cm_process_send_error(cm_id_priv, msg, state,
++				      mad_send_wc->status);
++	else
 +		cm_free_response_msg(msg);
- 
- 	return ret;
  }
-@@ -2853,7 +2860,7 @@ static int cm_dreq_handler(struct cm_work *work)
  
- 		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
- 		    ib_post_send_mad(msg, NULL))
--			cm_free_msg(msg);
-+			cm_free_response_msg(msg);
- 		goto deref;
- 	case IB_CM_DREQ_RCVD:
- 		atomic_long_inc(&work->port->counter_group[CM_RECV_DUPLICATES].
-@@ -3343,7 +3350,7 @@ static int cm_lap_handler(struct cm_work *work)
- 
- 		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
- 		    ib_post_send_mad(msg, NULL))
--			cm_free_msg(msg);
-+			cm_free_response_msg(msg);
- 		goto deref;
- 	case IB_CM_LAP_RCVD:
- 		atomic_long_inc(&work->port->counter_group[CM_RECV_DUPLICATES].
+ static void cm_work_handler(struct work_struct *_work)
 -- 
 2.31.1
 
