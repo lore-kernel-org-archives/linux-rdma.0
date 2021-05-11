@@ -2,196 +2,435 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 284D8C433B4
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:04:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE91CC43470
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF15B610F8
-	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:04:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8047C6134F
+	for <linux-rdma@archiver.kernel.org>; Tue, 11 May 2021 08:31:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230238AbhEKIGA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 11 May 2021 04:06:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46182 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229995AbhEKIGA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 11 May 2021 04:06:00 -0400
-Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63B1EC061574;
-        Tue, 11 May 2021 01:04:54 -0700 (PDT)
-Received: by mail-oi1-x22e.google.com with SMTP id v22so13404458oic.2;
-        Tue, 11 May 2021 01:04:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=+s7Q6HeMDVe3VxU+zVpnFtWeMKWBHbhimZCBxLkHHCc=;
-        b=Dm6J034CLl7HowSsz0ys2fkOcajezjyRzkK9Ni67jTW5QWQogGeXE3szI3djZBxBKF
-         mgVOBKw4OhkNeLyEGoLw2FqEbpW42uhSVHpOGzGzvwjC2rgJrJF5hZRkg1uLnzR2AksN
-         kXHErr9P8Nr027H0b7ckqQLTx0cf85uVH+AAQVcHJQotoKDxpx3B4PGKQGhEF6Aftqfg
-         WzGl5NIqLeib7iwRt7Jw6IOIK8gKLKk4kVFYAGKNiU37X7AYnWhTIzjUBWXNFBKxjsPF
-         I+/+MOPJSKoy6hgRRIMEHSJYm79r2xwCI7B6gOU7jrVHKKP44VPhEvD3OZS5LOpdxxFM
-         Fd1g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=+s7Q6HeMDVe3VxU+zVpnFtWeMKWBHbhimZCBxLkHHCc=;
-        b=VWKXNzZry891GHGXVmThtdqrTYyuBqShpHtXRwhYxRHunefLM4DDo6Q7FCVBEBl6EN
-         PxjWe/4POlb3675DiJdojuc+8Y2FOjN9uknJeluuScWJ6/3akvj22Zeyuv0wbJR0NLnF
-         zVuojFYxDOgsM5TgP3E5erMYW4dHz80d8r0xn+6fS6IKwsLxPu7uTWzNJwumQMIztnlw
-         89ydNCcks3BPqzwBSub3E+QliXoouCsqO1YBU1kMDJRZDqxI6Jeu18pmOLHnaZTXViiB
-         LKjedwAhdb/7IoWnFCR1aHW86qpotb2Z/1ca2Y3pkGv1Y3oJ2Cmv1+h1N8FgiU8RIX1K
-         LrKQ==
-X-Gm-Message-State: AOAM532tx7oM9o5sZKaBYz9adSQfjzvmEh7qbALdJU25kH9B2rkjO4Qi
-        PSpzKaO4RZJNVJMuJ2zca0Ivo6pm4mw4D4cPZdg=
-X-Google-Smtp-Source: ABdhPJyIsoHE2BnePrMyCHgxu9DgM6EVMCRPHXKBqQXRcLfhhUcWYPfM19EM+N+5v4gJKvqHE0nYasn7A1o0Zuhv8eI=
-X-Received: by 2002:aca:c685:: with SMTP id w127mr2550780oif.89.1620720293876;
- Tue, 11 May 2021 01:04:53 -0700 (PDT)
+        id S230519AbhEKIcj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 11 May 2021 04:32:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42540 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230464AbhEKIci (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 11 May 2021 04:32:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EF2D61584;
+        Tue, 11 May 2021 08:22:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1620721349;
+        bh=TmYP+pfyU+sGUGC5INPFqTbHjGUlf9MYdjV6GCjghlE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=J+ktot/eg7KJY+w6Yh14HIoaq4yUPLAaLopFGl/eOM2e82qD2rBY0EKcf+iWCvWHN
+         HE8swqy1n16H1k0zt4Ypgl3fT0S2NPB3aluJ7vLtusrVy/tXsK1tv5DJU8b85yHDal
+         hTUzpysCDlKg5rGxN9TUEYt9rG/Y7S2+QHkFHCfWTfZPhzqtYdpyjUGEsmF9RdlwX1
+         IwViSi5ck177Igl1Le3k2JdQN8QmY970mz4OVEAQkaVya3pMILPPdyE1VNh9v0FHHr
+         R05MdeLF6EcXvv+DIM/GZ1pq+mxIsc/Y4soFiL+G4BNuv978aNGLIYtQgEe0wDEmna
+         BJfIKU7ixJT1w==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Mark Zhang <markzhang@nvidia.com>,
+        Sean Hefty <sean.hefty@intel.com>
+Subject: [PATCH rdma-next v3 2/8] IB/cm: Split cm_alloc_msg()
+Date:   Tue, 11 May 2021 11:22:06 +0300
+Message-Id: <88179e5e4b87f9a989b9e954df1b758bf666478a.1620720467.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1620720467.git.leonro@nvidia.com>
+References: <cover.1620720467.git.leonro@nvidia.com>
 MIME-Version: 1.0
-References: <7bf8d548764d406dbbbaf4b574960ebfd5af8387.1620717918.git.leonro@nvidia.com>
-In-Reply-To: <7bf8d548764d406dbbbaf4b574960ebfd5af8387.1620717918.git.leonro@nvidia.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Tue, 11 May 2021 16:04:42 +0800
-Message-ID: <CAD=hENfsutV7Pig=64e52OADieLTxeQ=aCjNQ06xvUm_PM5JOQ@mail.gmail.com>
-Subject: Re: [PATCH rdma-rc] RDMA/rxe: Clear all QP fields if creation failed
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Moni Shoua <monis@mellanox.com>,
-        syzbot+36a7f280de4e11c6f04e@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 11, 2021 at 3:26 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> From: Leon Romanovsky <leonro@nvidia.com>
->
-> rxe_qp_do_cleanup() relies on valid pointer values in QP for the
-> properly created ones, but in case rxe_qp_from_init() failed it was
-> filled with garbage and caused tot the following error.
->
-> ------------[ cut here ]------------
-> refcount_t: underflow; use-after-free.
-> WARNING: CPU: 1 PID: 12560 at lib/refcount.c:28 refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
-> Modules linked in:
-> CPU: 1 PID: 12560 Comm: syz-executor.4 Not tainted 5.12.0-syzkaller #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-> RIP: 0010:refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
-> Code: e9 db fe ff ff 48 89 df e8 2c c2 ea fd e9 8a fe ff ff e8 72 6a a7 fd 48 c7 c7 e0 b2 c1 89 c6 05 dc 3a e6 09 01 e8 ee 74 fb 04 <0f> 0b e9 af fe ff ff 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55
-> RSP: 0018:ffffc900097ceba8 EFLAGS: 00010286
-> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-> RDX: 0000000000040000 RSI: ffffffff815bb075 RDI: fffff520012f9d67
-> RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000000
-> R10: ffffffff815b4eae R11: 0000000000000000 R12: ffff8880322a4800
-> R13: ffff8880322a4940 R14: ffff888033044e00 R15: 0000000000000000
-> FS:  00007f6eb2be3700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007fdbe5d41000 CR3: 000000001d181000 CR4: 00000000001506e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> Call Trace:
->  __refcount_sub_and_test include/linux/refcount.h:283 [inline]
->  __refcount_dec_and_test include/linux/refcount.h:315 [inline]
->  refcount_dec_and_test include/linux/refcount.h:333 [inline]
->  kref_put include/linux/kref.h:64 [inline]
->  rxe_qp_do_cleanup+0x96f/0xaf0 drivers/infiniband/sw/rxe/rxe_qp.c:805
->  execute_in_process_context+0x37/0x150 kernel/workqueue.c:3327
->  rxe_elem_release+0x9f/0x180 drivers/infiniband/sw/rxe/rxe_pool.c:391
->  kref_put include/linux/kref.h:65 [inline]
->  rxe_create_qp+0x2cd/0x310 drivers/infiniband/sw/rxe/rxe_verbs.c:425
->  _ib_create_qp drivers/infiniband/core/core_priv.h:331 [inline]
->  ib_create_named_qp+0x2ad/0x1370 drivers/infiniband/core/verbs.c:1231
->  ib_create_qp include/rdma/ib_verbs.h:3644 [inline]
->  create_mad_qp+0x177/0x2d0 drivers/infiniband/core/mad.c:2920
->  ib_mad_port_open drivers/infiniband/core/mad.c:3001 [inline]
->  ib_mad_init_device+0xd6f/0x1400 drivers/infiniband/core/mad.c:3092
->  add_client_context+0x405/0x5e0 drivers/infiniband/core/device.c:717
->  enable_device_and_get+0x1cd/0x3b0 drivers/infiniband/core/device.c:1331
->  ib_register_device drivers/infiniband/core/device.c:1413 [inline]
->  ib_register_device+0x7c7/0xa50 drivers/infiniband/core/device.c:1365
->  rxe_register_device+0x3d5/0x4a0 drivers/infiniband/sw/rxe/rxe_verbs.c:1147
->  rxe_add+0x12fe/0x16d0 drivers/infiniband/sw/rxe/rxe.c:247
->  rxe_net_add+0x8c/0xe0 drivers/infiniband/sw/rxe/rxe_net.c:503
->  rxe_newlink drivers/infiniband/sw/rxe/rxe.c:269 [inline]
->  rxe_newlink+0xb7/0xe0 drivers/infiniband/sw/rxe/rxe.c:250
->  nldev_newlink+0x30e/0x550 drivers/infiniband/core/nldev.c:1555
->  rdma_nl_rcv_msg+0x36d/0x690 drivers/infiniband/core/netlink.c:195
->  rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
->  rdma_nl_rcv+0x2ee/0x430 drivers/infiniband/core/netlink.c:259
->  netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
->  netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
->  netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1927
->  sock_sendmsg_nosec net/socket.c:654 [inline]
->  sock_sendmsg+0xcf/0x120 net/socket.c:674
->  ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
->  ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
->  __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
->  do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
->  entry_SYSCALL_64_after_hwframe+0x44/0xae
-> RIP: 0033:0x4665f9
-> Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
-> RSP: 002b:00007f6eb2be3188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-> RAX: ffffffffffffffda RBX: 000000000056bf60 RCX: 00000000004665f9
-> RDX: 0000000000000000 RSI: 0000000020000600 RDI: 0000000000000003
-> RBP: 00000000004bfce1 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
-> R13: 00007ffc54e34f4f R14: 00007f6eb2be3300 R15: 0000000000022000
->
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Reported-by: syzbot+36a7f280de4e11c6f04e@syzkaller.appspotmail.com
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-Thanks.
-Reviewed-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+This is being used with two quite different flows, one attaches the
+message to the priv and the other does not.
 
-Zhu Yanjun
+Ensure the message attach is consistently done under the spinlock and
+ensure that the free on error always detaches the message from the
+cm_id_priv, also always under lock.
 
-> ---
->  drivers/infiniband/sw/rxe/rxe_qp.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-> index 34ae957a315c..b0f350d674fd 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_qp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-> @@ -242,6 +242,7 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
->         if (err) {
->                 vfree(qp->sq.queue->buf);
->                 kfree(qp->sq.queue);
-> +               qp->sq.queue = NULL;
->                 return err;
->         }
->
-> @@ -295,6 +296,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
->                 if (err) {
->                         vfree(qp->rq.queue->buf);
->                         kfree(qp->rq.queue);
-> +                       qp->rq.queue = NULL;
->                         return err;
->                 }
->         }
-> @@ -355,6 +357,11 @@ int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
->  err2:
->         rxe_queue_cleanup(qp->sq.queue);
->  err1:
-> +       qp->pd = NULL;
-> +       qp->rcq = NULL;
-> +       qp->scq = NULL;
-> +       qp->srq = NULL;
-> +
->         if (srq)
->                 rxe_drop_ref(srq);
->         rxe_drop_ref(scq);
-> --
-> 2.31.1
->
+This makes read/write to the cm_id_priv->msg consistently locked and
+consistently NULL'd when the message is freed, even in all error paths.
+
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/cm.c | 190 +++++++++++++++++++++--------------
+ 1 file changed, 115 insertions(+), 75 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 6e20ba5d32e1..94613275edcc 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -305,8 +305,7 @@ static inline void cm_deref_id(struct cm_id_private *cm_id_priv)
+ 		complete(&cm_id_priv->comp);
+ }
+ 
+-static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+-			struct ib_mad_send_buf **msg)
++static struct ib_mad_send_buf *cm_alloc_msg(struct cm_id_private *cm_id_priv)
+ {
+ 	struct ib_mad_agent *mad_agent;
+ 	struct ib_mad_send_buf *m;
+@@ -359,12 +358,42 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 	m->retries = cm_id_priv->max_cm_retries;
+ 
+ 	refcount_inc(&cm_id_priv->refcount);
++	spin_unlock_irqrestore(&cm.state_lock, flags2);
+ 	m->context[0] = cm_id_priv;
+-	*msg = m;
++	return m;
+ 
+ out:
+ 	spin_unlock_irqrestore(&cm.state_lock, flags2);
+-	return ret;
++	return ERR_PTR(ret);
++}
++
++static struct ib_mad_send_buf *
++cm_alloc_priv_msg(struct cm_id_private *cm_id_priv)
++{
++	struct ib_mad_send_buf *msg;
++
++	lockdep_assert_held(&cm_id_priv->lock);
++
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return msg;
++	cm_id_priv->msg = msg;
++	return msg;
++}
++
++static void cm_free_priv_msg(struct ib_mad_send_buf *msg)
++{
++	struct cm_id_private *cm_id_priv = msg->context[0];
++
++	lockdep_assert_held(&cm_id_priv->lock);
++
++	if (!WARN_ON(cm_id_priv->msg != msg))
++		cm_id_priv->msg = NULL;
++
++	if (msg->ah)
++		rdma_destroy_ah(msg->ah, 0);
++	cm_deref_id(cm_id_priv);
++	ib_free_send_mad(msg);
+ }
+ 
+ static struct ib_mad_send_buf *cm_alloc_response_msg_no_ah(struct cm_port *port,
+@@ -1508,6 +1537,7 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 		   struct ib_cm_req_param *param)
+ {
+ 	struct cm_id_private *cm_id_priv;
++	struct ib_mad_send_buf *msg;
+ 	struct cm_req_msg *req_msg;
+ 	unsigned long flags;
+ 	int ret;
+@@ -1559,31 +1589,34 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 	cm_id_priv->pkey = param->primary_path->pkey;
+ 	cm_id_priv->qp_type = param->qp_type;
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &cm_id_priv->msg);
+-	if (ret)
+-		goto out;
++	spin_lock_irqsave(&cm_id_priv->lock, flags);
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
++		goto out_unlock;
++	}
+ 
+-	req_msg = (struct cm_req_msg *) cm_id_priv->msg->mad;
++	req_msg = (struct cm_req_msg *)msg->mad;
+ 	cm_format_req(req_msg, cm_id_priv, param);
+ 	cm_id_priv->tid = req_msg->hdr.tid;
+-	cm_id_priv->msg->timeout_ms = cm_id_priv->timeout_ms;
+-	cm_id_priv->msg->context[1] = (void *) (unsigned long) IB_CM_REQ_SENT;
++	msg->timeout_ms = cm_id_priv->timeout_ms;
++	msg->context[1] = (void *)(unsigned long)IB_CM_REQ_SENT;
+ 
+ 	cm_id_priv->local_qpn = cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
+ 	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REQ_STARTING_PSN, req_msg));
+ 
+ 	trace_icm_send_req(&cm_id_priv->id);
+-	spin_lock_irqsave(&cm_id_priv->lock, flags);
+-	ret = ib_post_send_mad(cm_id_priv->msg, NULL);
+-	if (ret) {
+-		cm_free_msg(cm_id_priv->msg);
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		goto out;
+-	}
++	ret = ib_post_send_mad(msg, NULL);
++	if (ret)
++		goto out_free;
+ 	BUG_ON(cm_id->state != IB_CM_IDLE);
+ 	cm_id->state = IB_CM_REQ_SENT;
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return 0;
++out_free:
++	cm_free_priv_msg(msg);
++out_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ out:
+ 	return ret;
+ }
+@@ -2290,9 +2323,11 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 		goto out;
+ 	}
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
+ 		goto out;
++	}
+ 
+ 	rep_msg = (struct cm_rep_msg *) msg->mad;
+ 	cm_format_rep(rep_msg, cm_id_priv, param);
+@@ -2301,14 +2336,10 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 
+ 	trace_icm_send_rep(cm_id);
+ 	ret = ib_post_send_mad(msg, NULL);
+-	if (ret) {
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		cm_free_msg(msg);
+-		return ret;
+-	}
++	if (ret)
++		goto out_free;
+ 
+ 	cm_id->state = IB_CM_REP_SENT;
+-	cm_id_priv->msg = msg;
+ 	cm_id_priv->initiator_depth = param->initiator_depth;
+ 	cm_id_priv->responder_resources = param->responder_resources;
+ 	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REP_STARTING_PSN, rep_msg));
+@@ -2316,8 +2347,13 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 		  "IBTA declares QPN to be 24 bits, but it is 0x%X\n",
+ 		  param->qp_num);
+ 	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num & 0xFFFFFF);
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++	return 0;
+ 
+-out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++out_free:
++	cm_free_priv_msg(msg);
++out:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_rep);
+@@ -2364,9 +2400,11 @@ int ib_send_cm_rtu(struct ib_cm_id *cm_id,
+ 		goto error;
+ 	}
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
+ 		goto error;
++	}
+ 
+ 	cm_format_rtu((struct cm_rtu_msg *) msg->mad, cm_id_priv,
+ 		      private_data, private_data_len);
+@@ -2664,10 +2702,10 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
+ 	    cm_id_priv->id.lap_state == IB_CM_MRA_LAP_RCVD)
+ 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret) {
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
+ 		cm_enter_timewait(cm_id_priv);
+-		return ret;
++		return PTR_ERR(msg);
+ 	}
+ 
+ 	cm_format_dreq((struct cm_dreq_msg *) msg->mad, cm_id_priv,
+@@ -2679,12 +2717,11 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
+ 	ret = ib_post_send_mad(msg, NULL);
+ 	if (ret) {
+ 		cm_enter_timewait(cm_id_priv);
+-		cm_free_msg(msg);
++		cm_free_priv_msg(msg);
+ 		return ret;
+ 	}
+ 
+ 	cm_id_priv->id.state = IB_CM_DREQ_SENT;
+-	cm_id_priv->msg = msg;
+ 	return 0;
+ }
+ 
+@@ -2739,9 +2776,9 @@ static int cm_send_drep_locked(struct cm_id_private *cm_id_priv,
+ 	cm_set_private_data(cm_id_priv, private_data, private_data_len);
+ 	cm_enter_timewait(cm_id_priv);
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		return ret;
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
+ 
+ 	cm_format_drep((struct cm_drep_msg *) msg->mad, cm_id_priv,
+ 		       private_data, private_data_len);
+@@ -2934,9 +2971,9 @@ static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
+ 	case IB_CM_REP_RCVD:
+ 	case IB_CM_MRA_REP_SENT:
+ 		cm_reset_to_idle(cm_id_priv);
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			return ret;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg))
++			return PTR_ERR(msg);
+ 		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
+ 			      ari, ari_length, private_data, private_data_len,
+ 			      state);
+@@ -2944,9 +2981,9 @@ static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
+ 	case IB_CM_REP_SENT:
+ 	case IB_CM_MRA_REP_RCVD:
+ 		cm_enter_timewait(cm_id_priv);
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			return ret;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg))
++			return PTR_ERR(msg);
+ 		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
+ 			      ari, ari_length, private_data, private_data_len,
+ 			      state);
+@@ -3124,13 +3161,15 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 	default:
+ 		trace_icm_send_mra_unknown_err(&cm_id_priv->id);
+ 		ret = -EINVAL;
+-		goto error1;
++		goto error_unlock;
+ 	}
+ 
+ 	if (!(service_timeout & IB_CM_MRA_FLAG_DELAY)) {
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			goto error1;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg)) {
++			ret = PTR_ERR(msg);
++			goto error_unlock;
++		}
+ 
+ 		cm_format_mra((struct cm_mra_msg *) msg->mad, cm_id_priv,
+ 			      msg_response, service_timeout,
+@@ -3138,7 +3177,7 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 		trace_icm_send_mra(cm_id);
+ 		ret = ib_post_send_mad(msg, NULL);
+ 		if (ret)
+-			goto error2;
++			goto error_free_msg;
+ 	}
+ 
+ 	cm_id->state = cm_state;
+@@ -3148,13 +3187,11 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return 0;
+ 
+-error1:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-	kfree(data);
+-	return ret;
+-
+-error2:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-	kfree(data);
++error_free_msg:
+ 	cm_free_msg(msg);
++error_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++	kfree(data);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_mra);
+@@ -3490,38 +3527,41 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
+ 				 &cm_id_priv->av,
+ 				 cm_id_priv);
+ 	if (ret)
+-		goto out;
++		return ret;
+ 
+ 	cm_id->service_id = param->service_id;
+ 	cm_id->service_mask = ~cpu_to_be64(0);
+ 	cm_id_priv->timeout_ms = param->timeout_ms;
+ 	cm_id_priv->max_cm_retries = param->max_cm_retries;
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		goto out;
+-
+-	cm_format_sidr_req((struct cm_sidr_req_msg *) msg->mad, cm_id_priv,
+-			   param);
+-	msg->timeout_ms = cm_id_priv->timeout_ms;
+-	msg->context[1] = (void *) (unsigned long) IB_CM_SIDR_REQ_SENT;
+ 
+ 	spin_lock_irqsave(&cm_id_priv->lock, flags);
+-	if (cm_id->state == IB_CM_IDLE) {
+-		trace_icm_send_sidr_req(&cm_id_priv->id);
+-		ret = ib_post_send_mad(msg, NULL);
+-	} else {
++	if (cm_id->state != IB_CM_IDLE) {
+ 		ret = -EINVAL;
++		goto out_unlock;
+ 	}
+ 
+-	if (ret) {
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		cm_free_msg(msg);
+-		goto out;
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
++		goto out_unlock;
+ 	}
++
++	cm_format_sidr_req((struct cm_sidr_req_msg *)msg->mad, cm_id_priv,
++			   param);
++	msg->timeout_ms = cm_id_priv->timeout_ms;
++	msg->context[1] = (void *)(unsigned long)IB_CM_SIDR_REQ_SENT;
++
++	trace_icm_send_sidr_req(&cm_id_priv->id);
++	ret = ib_post_send_mad(msg, NULL);
++	if (ret)
++		goto out_free;
+ 	cm_id->state = IB_CM_SIDR_REQ_SENT;
+-	cm_id_priv->msg = msg;
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-out:
++	return 0;
++out_free:
++	cm_free_priv_msg(msg);
++out_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_sidr_req);
+@@ -3668,9 +3708,9 @@ static int cm_send_sidr_rep_locked(struct cm_id_private *cm_id_priv,
+ 	if (cm_id_priv->id.state != IB_CM_SIDR_REQ_RCVD)
+ 		return -EINVAL;
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		return ret;
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
+ 
+ 	cm_format_sidr_rep((struct cm_sidr_rep_msg *) msg->mad, cm_id_priv,
+ 			   param);
+-- 
+2.31.1
+
