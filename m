@@ -2,24 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9569BC43460
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D9FC433B4
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 08:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F78F610CA
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 08:12:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4FE84613B5
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 08:12:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230336AbhELINk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 May 2021 04:13:40 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2637 "EHLO
+        id S230334AbhELINj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 May 2021 04:13:39 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2638 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230176AbhELINi (ORCPT
+        with ESMTP id S230314AbhELINi (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 May 2021 04:13:38 -0400
 Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fg6rM3RPCzQmH8;
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fg6rM3BYYzQmH5;
         Wed, 12 May 2021 16:09:07 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
@@ -27,11 +28,15 @@ Received: from localhost.localdomain (10.69.192.56) by
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 0/4] RDMA: Remove unused parameter udata
-Date:   Wed, 12 May 2021 16:12:18 +0800
-Message-ID: <1620807142-39157-1-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        "Weihang Li" <liweihang@huawei.com>
+Subject: [PATCH for-next 2/4] RDMA/mlx4: Remove unused parameter udata
+Date:   Wed, 12 May 2021 16:12:20 +0800
+Message-ID: <1620807142-39157-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1620807142-39157-1-git-send-email-liweihang@huawei.com>
+References: <1620807142-39157-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -40,33 +45,52 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The first parameter of ib_umem_get() has been changed from udata to
-device, but some of its callers retain 'udata' as a parameter without
-using it.
+From: Lang Cheng <chenglang@huawei.com>
 
-Lang Cheng (4):
-  RDMA/hns: Remove unused parameter udata
-  RDMA/mlx4: Remove unused parameter udata
-  RDMA/mlx5: Remove unused parameter udata
-  RDMA/rxe: Remove unused parameter udata
+The old version of ib_umem_get() need these udata as a parameter but now
+they are unnecessary.
 
- drivers/infiniband/hw/hns/hns_roce_cq.c     | 3 +--
- drivers/infiniband/hw/hns/hns_roce_db.c     | 3 +--
- drivers/infiniband/hw/hns/hns_roce_device.h | 3 +--
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 4 ++--
- drivers/infiniband/hw/mlx4/cq.c             | 8 ++++----
- drivers/infiniband/hw/mlx5/cq.c             | 2 +-
- drivers/infiniband/hw/mlx5/doorbell.c       | 3 +--
- drivers/infiniband/hw/mlx5/mlx5_ib.h        | 4 +---
- drivers/infiniband/hw/mlx5/mr.c             | 2 +-
- drivers/infiniband/hw/mlx5/odp.c            | 1 -
- drivers/infiniband/hw/mlx5/qp.c             | 4 ++--
- drivers/infiniband/hw/mlx5/srq.c            | 2 +-
- drivers/infiniband/sw/rxe/rxe_loc.h         | 2 +-
- drivers/infiniband/sw/rxe/rxe_mr.c          | 2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c       | 2 +-
- 15 files changed, 19 insertions(+), 26 deletions(-)
+Fixes: c320e527e154 ("IB: Allow calls to ib_umem_get from kernel ULPs")
+Cc: Yishai Hadas <yishaih@nvidia.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/mlx4/cq.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index e9b5a4d..4cd738a 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -135,7 +135,7 @@ static void mlx4_ib_free_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
+ 	mlx4_buf_free(dev->dev, (cqe + 1) * buf->entry_size, &buf->buf);
+ }
+ 
+-static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_udata *udata,
++static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev,
+ 			       struct mlx4_ib_cq_buf *buf,
+ 			       struct ib_umem **umem, u64 buf_addr, int cqe)
+ {
+@@ -210,7 +210,7 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		}
+ 
+ 		buf_addr = (void *)(unsigned long)ucmd.buf_addr;
+-		err = mlx4_ib_get_cq_umem(dev, udata, &cq->buf, &cq->umem,
++		err = mlx4_ib_get_cq_umem(dev, &cq->buf, &cq->umem,
+ 					  ucmd.buf_addr, entries);
+ 		if (err)
+ 			goto err_cq;
+@@ -327,8 +327,8 @@ static int mlx4_alloc_resize_umem(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq
+ 	if (!cq->resize_buf)
+ 		return -ENOMEM;
+ 
+-	err = mlx4_ib_get_cq_umem(dev, udata, &cq->resize_buf->buf,
+-				  &cq->resize_umem, ucmd.buf_addr, entries);
++	err = mlx4_ib_get_cq_umem(dev, &cq->resize_buf->buf, &cq->resize_umem,
++				  ucmd.buf_addr, entries);
+ 	if (err) {
+ 		kfree(cq->resize_buf);
+ 		cq->resize_buf = NULL;
 -- 
 2.7.4
 
