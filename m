@@ -7,33 +7,32 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E0EC433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1DF2C43461
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 08:12:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7604E613BC
+	by mail.kernel.org (Postfix) with ESMTP id 8D381613B5
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 08:12:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230157AbhELINk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230176AbhELINk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 12 May 2021 04:13:40 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2640 "EHLO
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2639 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230328AbhELINj (ORCPT
+        with ESMTP id S230326AbhELINj (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 May 2021 04:13:39 -0400
-Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fg6rM3t7XzQmKL;
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.58])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fg6rM4g5HzQmQd;
         Wed, 12 May 2021 16:09:07 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
- 14.3.498.0; Wed, 12 May 2021 16:12:24 +0800
+ 14.3.498.0; Wed, 12 May 2021 16:12:23 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>,
-        "Weihang Li" <liweihang@huawei.com>
-Subject: [PATCH for-next 4/4] RDMA/rxe: Remove unused parameter udata
-Date:   Wed, 12 May 2021 16:12:22 +0800
-Message-ID: <1620807142-39157-5-git-send-email-liweihang@huawei.com>
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH for-next 1/4] RDMA/hns: Remove unused parameter udata
+Date:   Wed, 12 May 2021 16:12:19 +0800
+Message-ID: <1620807142-39157-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1620807142-39157-1-git-send-email-liweihang@huawei.com>
 References: <1620807142-39157-1-git-send-email-liweihang@huawei.com>
@@ -51,54 +50,79 @@ The old version of ib_umem_get() need these udata as a parameter but now
 they are unnecessary.
 
 Fixes: c320e527e154 ("IB: Allow calls to ib_umem_get from kernel ULPs")
-Cc: Zhu Yanjun <zyjzyj2000@gmail.com>
 Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h   | 2 +-
- drivers/infiniband/sw/rxe/rxe_mr.c    | 2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 3 +--
+ drivers/infiniband/hw/hns/hns_roce_db.c     | 3 +--
+ drivers/infiniband/hw/hns/hns_roce_device.h | 3 +--
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 4 ++--
+ 4 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index ef8061d..b21038c 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -79,7 +79,7 @@ enum copy_direction {
- void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 800884b..488d86b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -234,8 +234,7 @@ static int alloc_cq_db(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq,
+ 		    udata->outlen >= offsetofend(typeof(*resp), cap_flags)) {
+ 			uctx = rdma_udata_to_drv_context(udata,
+ 					struct hns_roce_ucontext, ibucontext);
+-			err = hns_roce_db_map_user(uctx, udata, addr,
+-						   &hr_cq->db);
++			err = hns_roce_db_map_user(uctx, addr, &hr_cq->db);
+ 			if (err)
+ 				return err;
+ 			hr_cq->flags |= HNS_ROCE_CQ_FLAG_RECORD_DB;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_db.c b/drivers/infiniband/hw/hns/hns_roce_db.c
+index 5cb7376c..d40ea3d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_db.c
++++ b/drivers/infiniband/hw/hns/hns_roce_db.c
+@@ -8,8 +8,7 @@
+ #include <rdma/ib_umem.h>
+ #include "hns_roce_device.h"
  
- int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
--		     int access, struct ib_udata *udata, struct rxe_mr *mr);
-+		     int access, struct rxe_mr *mr);
- 
- int rxe_mr_init_fast(struct rxe_pd *pd, int max_pages, struct rxe_mr *mr);
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 9f63947..373b46aa 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -121,7 +121,7 @@ void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr)
- }
- 
- int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
--		     int access, struct ib_udata *udata, struct rxe_mr *mr)
-+		     int access, struct rxe_mr *mr)
+-int hns_roce_db_map_user(struct hns_roce_ucontext *context,
+-			 struct ib_udata *udata, unsigned long virt,
++int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
+ 			 struct hns_roce_db *db)
  {
- 	struct rxe_map		**map;
- 	struct rxe_phys_buf	*buf = NULL;
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index aeb5e23..86a0965 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -899,7 +899,7 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
+ 	unsigned long page_addr = virt & PAGE_MASK;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 97800d2..d93dfba 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1248,8 +1248,7 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 		       struct ib_udata *udata);
  
- 	rxe_add_ref(pd);
+ int hns_roce_destroy_cq(struct ib_cq *ib_cq, struct ib_udata *udata);
+-int hns_roce_db_map_user(struct hns_roce_ucontext *context,
+-			 struct ib_udata *udata, unsigned long virt,
++int hns_roce_db_map_user(struct hns_roce_ucontext *context, unsigned long virt,
+ 			 struct hns_roce_db *db);
+ void hns_roce_db_unmap_user(struct hns_roce_ucontext *context,
+ 			    struct hns_roce_db *db);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 230a909..c6e120e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -826,7 +826,7 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
  
--	err = rxe_mr_init_user(pd, start, length, iova, access, udata, mr);
-+	err = rxe_mr_init_user(pd, start, length, iova, access, mr);
- 	if (err)
- 		goto err3;
+ 	if (udata) {
+ 		if (user_qp_has_sdb(hr_dev, init_attr, udata, resp, ucmd)) {
+-			ret = hns_roce_db_map_user(uctx, udata, ucmd->sdb_addr,
++			ret = hns_roce_db_map_user(uctx, ucmd->sdb_addr,
+ 						   &hr_qp->sdb);
+ 			if (ret) {
+ 				ibdev_err(ibdev,
+@@ -839,7 +839,7 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 		}
  
+ 		if (user_qp_has_rdb(hr_dev, init_attr, udata, resp)) {
+-			ret = hns_roce_db_map_user(uctx, udata, ucmd->db_addr,
++			ret = hns_roce_db_map_user(uctx, ucmd->db_addr,
+ 						   &hr_qp->rdb);
+ 			if (ret) {
+ 				ibdev_err(ibdev,
 -- 
 2.7.4
 
