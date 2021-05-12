@@ -2,106 +2,82 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_2 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38308C18E7B
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 15:50:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5925C43461
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 17:02:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00CA561DDD
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 15:50:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DF3C6134F
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 May 2021 17:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234750AbhELPwA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 May 2021 11:52:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49178 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235091AbhELPfS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 12 May 2021 11:35:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 455F961C3E;
-        Wed, 12 May 2021 15:17:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620832672;
-        bh=zB2G4t5ozyJ72g68BGRplKf2lQRTS6CtRvJ7FVX3NWE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=DBjrvZcbfODq6o/u3ovhcKp34o3mQ/2g2kqOKbw7rqi0UbJcuDmNkgLMMy0M05dFs
-         mwfV7fdqIvkaHvs5FkFIxP3pQ5mW2wuelKsM0Zg1XI928MZ1g6hDtwlC/lZ6mTYtDn
-         L0yXyxJPdKzjgMXD6Vs/vdQOXuvQV+DBBKSwRDhM/LlZ9x9/DV6Qnq7MjBym4Ue3He
-         LklNFflnfSaW1SCikrvqRJriPDliUiNhIaGm2pb/3nXItDzT/4/obeOPpO0NPN/v0m
-         Pwish5sD0axq4vDEIuCSUJZyKrnPcy3P6Nd30IKN+fHXybC5E+QSyK+xdLgaNeWw/l
-         +EUyGcBOd8VUw==
-Date:   Wed, 12 May 2021 17:17:41 +0200
-From:   Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-To:     "Theodore Ts'o" <tytso@mit.edu>
-Cc:     Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        Mali DP Maintainers <malidp@foss.arm.com>,
-        alsa-devel@alsa-project.org, coresight@lists.linaro.org,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        intel-wired-lan@lists.osuosl.org, keyrings@vger.kernel.org,
-        kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
-        linux-hwmon@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-sgx@vger.kernel.org, linux-usb@vger.kernel.org,
-        mjpeg-users@lists.sourceforge.net, netdev@vger.kernel.org,
-        rcu@vger.kernel.org
-Subject: Re: [PATCH v2 00/40] Use ASCII subset instead of UTF-8 alternate
- symbols
-Message-ID: <20210512171741.2870bcbc@coco.lan>
-In-Reply-To: <YJvi1L2ss5Tfi+My@mit.edu>
-References: <cover.1620823573.git.mchehab+huawei@kernel.org>
-        <YJvi1L2ss5Tfi+My@mit.edu>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+        id S238610AbhELRDg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 May 2021 13:03:36 -0400
+Received: from mail-pj1-f42.google.com ([209.85.216.42]:51824 "EHLO
+        mail-pj1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S238896AbhELQPV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 May 2021 12:15:21 -0400
+Received: by mail-pj1-f42.google.com with SMTP id k5so4197996pjj.1
+        for <linux-rdma@vger.kernel.org>; Wed, 12 May 2021 09:14:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=b7PcZ4OA9VLB05I8vuEMVpELWUm55hCKbKjpjARuWgY=;
+        b=NO7B9C4CCNoU8VYdT9hoHSQMqhkLrhMFPmJ3MIKawmx2WaRXChiP5WIUmXTrVAfCvA
+         JCIwg7aHrWzXFdCPgbSKMqewR2s1c7DNuLmVqq42s5hadfn9dLcw5iOpboBIOfVv372w
+         qJIcKWLu5NPDpt0/JemdznGCb2Edl8RlwPvkKm95u85hLM5Z1iM5psKuEj3ij/3jy1sq
+         N08j+H+xmEx+TK7rfeBnI/VflAzBjBIotH+Dr0oQtPs2TxmGAEmeKW+AwBAX4z8IjpP4
+         Sim3oQevBDzyJliRvoNuscjy7nB96smN08P0+yPy/vO6S4IGFzDT6HCItwd7XAl31pKw
+         hHnw==
+X-Gm-Message-State: AOAM5322xK5dtg/hF5EmUeA9azPjADmMcRG75crnpp7hqocAoFPNyL+k
+        jEq3Es9CrJ/ytP5O5l9QL0o=
+X-Google-Smtp-Source: ABdhPJy4ySZhO3sRTjPnwttCG83YI+S/x37Iog3447hvEAal6Nuh6FuBXUp7fiSZKBs0VHky5a67PQ==
+X-Received: by 2002:a17:90a:df08:: with SMTP id gp8mr41156054pjb.199.1620836052884;
+        Wed, 12 May 2021 09:14:12 -0700 (PDT)
+Received: from ?IPv6:2601:647:4000:d7:993e:1516:b2ba:76fe? ([2601:647:4000:d7:993e:1516:b2ba:76fe])
+        by smtp.gmail.com with ESMTPSA id p15sm238155pfn.197.2021.05.12.09.14.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 12 May 2021 09:14:12 -0700 (PDT)
+Subject: Re: [PATCH 4/5] RDMA/srp: Fix a recently introduced memory leak
+To:     Max Gurtovoy <mgurtovoy@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Leon Romanovsky <leonro@mellanox.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        Max Gurtovoy <maxg@mellanox.com>,
+        Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>
+References: <20210512032752.16611-1-bvanassche@acm.org>
+ <20210512032752.16611-5-bvanassche@acm.org>
+ <e7e0bb73-4bcc-61f7-1db8-67a676150a26@nvidia.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+Message-ID: <84dd1e27-2143-32a7-0535-cfbe4fdc65cc@acm.org>
+Date:   Wed, 12 May 2021 09:14:10 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <e7e0bb73-4bcc-61f7-1db8-67a676150a26@nvidia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Em Wed, 12 May 2021 10:14:44 -0400
-"Theodore Ts'o" <tytso@mit.edu> escreveu:
+On 5/12/21 1:15 AM, Max Gurtovoy wrote:
+> maybe we can remove the local mr_list variable while we're here ?
+> 
+> otherwise,
+> 
+> Reviewed-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 
-> On Wed, May 12, 2021 at 02:50:04PM +0200, Mauro Carvalho Chehab wrote:
-> > v2:
-> > - removed EM/EN DASH conversion from this patchset; =20
->=20
-> Are you still thinking about doing the
->=20
-> EN DASH --> "--"
-> EM DASH --> "---"
->=20
-> conversion? =20
+Hi Max,
 
-Yes, but I intend to submit it on a separate patch series, probably after
-having this one merged. Let's first cleanup the large part of the=20
-conversion-generated UTF-8 char noise ;-)
-
-> That's not going to change what the documentation will
-> look like in the HTML and PDF output forms, and I think it would make
-> life easier for people are reading and editing the Documentation/*
-> files in text form.
-
-Agreed. I'm also considering to add a couple of cases of this char:
-
-	- U+2026 ('=E2=80=A6'): HORIZONTAL ELLIPSIS
-
-As Sphinx also replaces "..." into HORIZONTAL ELLIPSIS.
-
--
-
-Anyway, I'm opting to submitting those in separate because it seems
-that at least some maintainers added EM/EN DASH intentionally.
-
-So, it may generate case-per-case discussions.
-
-Also, IMO, at least a couple of EN/EM DASH cases would be better served=20
-with a single hyphen.
+I will remove the mr_list variable if I have to repost this patch series.
 
 Thanks,
-Mauro
+
+Bart.
+
+
