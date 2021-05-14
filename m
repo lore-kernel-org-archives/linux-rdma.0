@@ -3,152 +3,292 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35FC7C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C82FC43460
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 15:32:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1070D61408
+	by mail.kernel.org (Postfix) with ESMTP id 684866144F
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 15:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234828AbhENPdQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232686AbhENPdQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 14 May 2021 11:33:16 -0400
 Received: from mga11.intel.com ([192.55.52.93]:25047 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232626AbhENPdQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S234808AbhENPdQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 14 May 2021 11:33:16 -0400
-IronPort-SDR: 7QR7iKCURDsaFh661PbB5pLsC3BA72mUnC11dN4ZQvQZG/Nyk122yeqMYbBh1gvmIMuhsuycoa
- xNPkuLQeqk+Q==
-X-IronPort-AV: E=McAfee;i="6200,9189,9984"; a="197107465"
+IronPort-SDR: MkIuLvu/NmEFT+cWzaHrTCNL38MLseMImxiSkGbcmjwt4IuJXg9cLkSxPU3F7OwCc6lXsxsFU4
+ 0abCwAnewDkA==
+X-IronPort-AV: E=McAfee;i="6200,9189,9984"; a="197107474"
 X-IronPort-AV: E=Sophos;i="5.82,300,1613462400"; 
-   d="scan'208";a="197107465"
+   d="scan'208";a="197107474"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2021 08:32:00 -0700
-IronPort-SDR: Ui45u1I+8xr9Z0LvY9fqKdP1lNT8eFsAqHcilKdyPYTTAUlax9HHixQeKvjADsB3zfSCuAA8FL
- R9291cj5ufkA==
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2021 08:32:04 -0700
+IronPort-SDR: gq9YYE5JM/izqnOiOhvAKAN7ldLkXWsnlgFuaWmGrxZr6reC1X1iJCiC1iY8zT2aru6U3yQVeO
+ ppAsk8qQYDBw==
 X-IronPort-AV: E=Sophos;i="5.82,300,1613462400"; 
-   d="scan'208";a="624738879"
+   d="scan'208";a="624738910"
 Received: from sremersa-mobl1.amr.corp.intel.com (HELO tenikolo-mobl1.amr.corp.intel.com) ([10.209.178.103])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2021 08:31:59 -0700
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2021 08:32:03 -0700
 From:   Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To:     jgg@nvidia.com, dledford@redhat.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 0/5] Add irdma user space provider for Intel Ethernet RDMA
-Date:   Fri, 14 May 2021 10:31:30 -0500
-Message-Id: <20210514153135.1972-1-tatyana.e.nikolova@intel.com>
+Cc:     linux-rdma@vger.kernel.org,
+        Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+Subject: [PATCH 2/5] rdma-core/irdma: Add irdma to Makefiles, distro files and kernel-headers
+Date:   Fri, 14 May 2021 10:31:32 -0500
+Message-Id: <20210514153135.1972-3-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20210514153135.1972-1-tatyana.e.nikolova@intel.com>
+References: <20210514153135.1972-1-tatyana.e.nikolova@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series replaces the current i40iw library with
-a unified Intel Ethernet RDMA library that supports a new network
-device E810 (iWARP and RoCEv2 capable) and the existing X722 iWARP device.
-The new library is fully backward compatible with the i40iw driver and
-is designed to be used with multiple future HW generations.
+Add irdma to rdma-core Makefiles, distro files and
+kernel headers and update the MAINTAINERS file.
 
-This patch series can be viewed at
-https://github.com/tatyana-en/rdma-core/commits/libirdma-051321
+Add Makefile and ABI definitions for the irdma provider and
+utility macros which irdma uses to rdma-core util.h.
 
-The corresponding irdma driver patch series is at 
-https://lore.kernel.org/linux-rdma/20210514141214.2120-1-shiraz.saleem@intel.com/
-
-v2-->v3
-* Limit "Remove provider i40iw" changes to code removal only 
-* Use the rdma-core provided definition for modify_qp cmd
-* Convert all single implementation indirect .ops into direct function calls 
-* Misc. library fixes in irdma
-  
-v1-->v2:
-* Replace mfence with a compiler barrier
-* Replace ibv_cmd_create_cq() with the new ibv_cmd_create_ext()
-* Remove unnecessary #ifdef ICE_DEV_ID_xxx
-* Remove fprintf debug prints
-* Do not bump ABI ver. to 6 in irdma. Maintain irdma ABI ver. at 5 for legacy i40iw user-provider compatibility.
-* Use utility macros like FIELD_PREP/FIELD_GET/GENMASK/etc from rdma-core util.h
-* Remove irdma-abi.h file since it is provided by the driver
-* Misc. library fixes in irdma
-
-The library passes the azp sparse, CI checks and pyverbs for RoCEv2 and iWARP.
-
-Tatyana Nikolova (5):
-  rdma-core/i40iw: Remove provider i40iw
-  rdma-core/irdma: Add irdma to Makefiles, distro files and
-    kernel-headers
-  rdma-core/irdma: Add user/kernel shared libraries
-  rdma-core/irdma: Add library setup and utility definitions
-  rdma-core/irdma: Implement device supported verb APIs
-
- CMakeLists.txt                            |    2 +-
- MAINTAINERS                               |    7 +-
- debian/control                            |    2 +-
- debian/copyright                          |    8 +-
- kernel-headers/CMakeLists.txt             |    4 +-
- kernel-headers/rdma/i40iw-abi.h           |  107 --
- kernel-headers/rdma/ib_user_ioctl_verbs.h |    2 +-
- libibverbs/verbs.h                        |    2 +-
- providers/i40iw/CMakeLists.txt            |    5 -
- providers/i40iw/i40e_devids.h             |   72 --
- providers/i40iw/i40iw-abi.h               |   55 -
- providers/i40iw/i40iw_d.h                 | 1746 --------------------------
- providers/i40iw/i40iw_osdep.h             |  108 --
- providers/i40iw/i40iw_register.h          | 1030 ---------------
- providers/i40iw/i40iw_status.h            |  101 --
- providers/i40iw/i40iw_uk.c                | 1266 -------------------
- providers/i40iw/i40iw_umain.c             |  226 ----
- providers/i40iw/i40iw_umain.h             |  181 ---
- providers/i40iw/i40iw_user.h              |  456 -------
- providers/i40iw/i40iw_uverbs.c            |  983 ---------------
- providers/irdma/CMakeLists.txt            |    8 +
- providers/irdma/abi.h                     |   33 +
- providers/irdma/defs.h                    |  334 +++++
- providers/irdma/i40e_devids.h             |   36 +
- providers/irdma/i40iw_hw.h                |   31 +
- providers/irdma/ice_devids.h              |   59 +
- providers/irdma/irdma.h                   |   53 +
- providers/irdma/osdep.h                   |   21 +
- providers/irdma/status.h                  |   72 ++
- providers/irdma/uk.c                      | 1686 +++++++++++++++++++++++++
- providers/irdma/umain.c                   |  233 ++++
- providers/irdma/umain.h                   |  204 +++
- providers/irdma/user.h                    |  439 +++++++
- providers/irdma/uverbs.c                  | 1924 +++++++++++++++++++++++++++++
- redhat/rdma-core.spec                     |    6 +-
- suse/rdma-core.spec                       |    4 +-
- util/util.h                               |    8 +-
- 37 files changed, 5158 insertions(+), 6356 deletions(-)
- delete mode 100644 kernel-headers/rdma/i40iw-abi.h
- delete mode 100644 providers/i40iw/CMakeLists.txt
- delete mode 100644 providers/i40iw/i40e_devids.h
- delete mode 100644 providers/i40iw/i40iw-abi.h
- delete mode 100644 providers/i40iw/i40iw_d.h
- delete mode 100644 providers/i40iw/i40iw_osdep.h
- delete mode 100644 providers/i40iw/i40iw_register.h
- delete mode 100644 providers/i40iw/i40iw_status.h
- delete mode 100644 providers/i40iw/i40iw_uk.c
- delete mode 100644 providers/i40iw/i40iw_umain.c
- delete mode 100644 providers/i40iw/i40iw_umain.h
- delete mode 100644 providers/i40iw/i40iw_user.h
- delete mode 100644 providers/i40iw/i40iw_uverbs.c
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+---
+ CMakeLists.txt                            |  1 +
+ MAINTAINERS                               |  6 ++++++
+ debian/control                            |  1 +
+ debian/copyright                          |  4 ++++
+ kernel-headers/CMakeLists.txt             |  2 ++
+ kernel-headers/rdma/ib_user_ioctl_verbs.h |  1 +
+ libibverbs/verbs.h                        |  1 +
+ providers/irdma/CMakeLists.txt            |  8 ++++++++
+ providers/irdma/abi.h                     | 33 +++++++++++++++++++++++++++++++
+ redhat/rdma-core.spec                     |  3 +++
+ suse/rdma-core.spec                       |  2 ++
+ util/util.h                               |  8 ++++++--
+ 12 files changed, 68 insertions(+), 2 deletions(-)
  create mode 100644 providers/irdma/CMakeLists.txt
  create mode 100644 providers/irdma/abi.h
- create mode 100644 providers/irdma/defs.h
- create mode 100644 providers/irdma/i40e_devids.h
- create mode 100644 providers/irdma/i40iw_hw.h
- create mode 100644 providers/irdma/ice_devids.h
- create mode 100644 providers/irdma/irdma.h
- create mode 100644 providers/irdma/osdep.h
- create mode 100644 providers/irdma/status.h
- create mode 100644 providers/irdma/uk.c
- create mode 100644 providers/irdma/umain.c
- create mode 100644 providers/irdma/umain.h
- create mode 100644 providers/irdma/user.h
- create mode 100644 providers/irdma/uverbs.c
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b07565f..2a1c4e5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -662,6 +662,7 @@ add_subdirectory(providers/cxgb4) # NO SPARSE
+ add_subdirectory(providers/efa)
+ add_subdirectory(providers/efa/man)
+ add_subdirectory(providers/hns)
++add_subdirectory(providers/irdma)
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx4/man)
+ add_subdirectory(providers/mlx5)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a3dba9d..9fec124 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -74,6 +74,12 @@ M:	Wei Hu(Xavier) <xavier.huwei@huawei.com>
+ S:	Supported
+ F:	providers/hns/
+ 
++IRDMA USERSPACE PROVIDER (for i40iw.ko and irdma.ko)
++M:	Sindhu Devale <sindhu.devale@intel.com>
++M:	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
++S:	Supported
++F:	providers/irdma/
++
+ RDMA Communication Manager Assistant (for librdmacm.so)
+ M:	Haakon Bugge <haakon.bugge@oracle.com>
+ M:	Mark Haywood <mark.haywood@oracle.com>
+diff --git a/debian/control b/debian/control
+index 3822ee5..a400707 100644
+--- a/debian/control
++++ b/debian/control
+@@ -96,6 +96,7 @@ Description: User space provider drivers for libibverbs
+   - hfi1verbs: Intel Omni-Path HFI
+   - hns: HiSilicon Hip06 SoC
+   - ipathverbs: QLogic InfiniPath HCAs
++  - irdma: Intel Ethernet Connection RDMA
+   - mlx4: Mellanox ConnectX-3 InfiniBand HCAs
+   - mlx5: Mellanox Connect-IB/X-4+ InfiniBand HCAs
+   - mthca: Mellanox InfiniBand HCAs
+diff --git a/debian/copyright b/debian/copyright
+index 252c423..d58aa77 100644
+--- a/debian/copyright
++++ b/debian/copyright
+@@ -172,6 +172,10 @@ Copyright: 2006-2010, QLogic Corp.
+            2013, Intel Corporation
+ License: BSD-MIT or GPL-2
+ 
++Files: providers/irdma/*
++Copyright: 2015-2021, Intel Corporation.
++License: BSD-MIT or GPL-2
++
+ Files: providers/mlx4/*
+ Copyright: 2004-2005, Topspin Communications.
+            2005-2007, Cisco, Inc.
+diff --git a/kernel-headers/CMakeLists.txt b/kernel-headers/CMakeLists.txt
+index 82a1f64..b961892 100644
+--- a/kernel-headers/CMakeLists.txt
++++ b/kernel-headers/CMakeLists.txt
+@@ -8,6 +8,7 @@ publish_internal_headers(rdma
+   rdma/ib_user_mad.h
+   rdma/ib_user_sa.h
+   rdma/ib_user_verbs.h
++  rdma/irdma-abi.h
+   rdma/mlx4-abi.h
+   rdma/mlx5-abi.h
+   rdma/mlx5_user_ioctl_cmds.h
+@@ -61,6 +62,7 @@ rdma_kernel_provider_abi(
+   rdma/efa-abi.h
+   rdma/hns-abi.h
+   rdma/ib_user_verbs.h
++  rdma/irdma-abi.h
+   rdma/mlx4-abi.h
+   rdma/mlx5-abi.h
+   rdma/mthca-abi.h
+diff --git a/kernel-headers/rdma/ib_user_ioctl_verbs.h b/kernel-headers/rdma/ib_user_ioctl_verbs.h
+index f978ae3..d4c98ef 100644
+--- a/kernel-headers/rdma/ib_user_ioctl_verbs.h
++++ b/kernel-headers/rdma/ib_user_ioctl_verbs.h
+@@ -239,6 +239,7 @@ enum rdma_driver_id {
+ 	RDMA_DRIVER_BNXT_RE,
+ 	RDMA_DRIVER_OCRDMA,
+ 	RDMA_DRIVER_NES,
++	RDMA_DRIVER_IRDMA,
+ 	RDMA_DRIVER_VMW_PVRDMA,
+ 	RDMA_DRIVER_QEDR,
+ 	RDMA_DRIVER_HNS,
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index e943c57..10e841d 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -2209,6 +2209,7 @@ extern const struct verbs_device_ops verbs_provider_efa;
+ extern const struct verbs_device_ops verbs_provider_hfi1verbs;
+ extern const struct verbs_device_ops verbs_provider_hns;
+ extern const struct verbs_device_ops verbs_provider_ipathverbs;
++extern const struct verbs_device_ops verbs_provider_irdma;
+ extern const struct verbs_device_ops verbs_provider_mlx4;
+ extern const struct verbs_device_ops verbs_provider_mlx5;
+ extern const struct verbs_device_ops verbs_provider_mthca;
+diff --git a/providers/irdma/CMakeLists.txt b/providers/irdma/CMakeLists.txt
+new file mode 100644
+index 0000000..1542482
+--- /dev/null
++++ b/providers/irdma/CMakeLists.txt
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright (c) 2019, Intel Corporation.
++
++rdma_provider(irdma
++  uk.c
++  umain.c
++  uverbs.c
++)
+diff --git a/providers/irdma/abi.h b/providers/irdma/abi.h
+new file mode 100644
+index 0000000..e3d0397
+--- /dev/null
++++ b/providers/irdma/abi.h
+@@ -0,0 +1,33 @@
++/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
++/* Copyright (C) 2019 - 2020 Intel Corporation */
++#ifndef PROVIDER_IRDMA_ABI_H
++#define PROVIDER_IRDMA_ABI_H
++
++#include "irdma.h"
++#include <infiniband/kern-abi.h>
++#include <rdma/irdma-abi.h>
++#include <kernel-abi/irdma-abi.h>
++
++#define IRDMA_MIN_ABI_VERSION	0
++#define IRDMA_MAX_ABI_VERSION	5
++
++DECLARE_DRV_CMD(irdma_ualloc_pd, IB_USER_VERBS_CMD_ALLOC_PD,
++		empty, irdma_alloc_pd_resp);
++DECLARE_DRV_CMD(irdma_ucreate_cq, IB_USER_VERBS_CMD_CREATE_CQ,
++		irdma_create_cq_req, irdma_create_cq_resp);
++DECLARE_DRV_CMD(irdma_ucreate_cq_ex, IB_USER_VERBS_EX_CMD_CREATE_CQ,
++		irdma_create_cq_req, irdma_create_cq_resp);
++DECLARE_DRV_CMD(irdma_uresize_cq, IB_USER_VERBS_CMD_RESIZE_CQ,
++		irdma_resize_cq_req, empty);
++DECLARE_DRV_CMD(irdma_ucreate_qp, IB_USER_VERBS_CMD_CREATE_QP,
++		irdma_create_qp_req, irdma_create_qp_resp);
++DECLARE_DRV_CMD(irdma_umodify_qp, IB_USER_VERBS_EX_CMD_MODIFY_QP,
++		irdma_modify_qp_req, irdma_modify_qp_resp);
++DECLARE_DRV_CMD(irdma_get_context, IB_USER_VERBS_CMD_GET_CONTEXT,
++		irdma_alloc_ucontext_req, irdma_alloc_ucontext_resp);
++DECLARE_DRV_CMD(irdma_ureg_mr, IB_USER_VERBS_CMD_REG_MR,
++		irdma_mem_reg_req, empty);
++DECLARE_DRV_CMD(irdma_ucreate_ah, IB_USER_VERBS_CMD_CREATE_AH,
++		empty, irdma_create_ah_resp);
++
++#endif /* PROVIDER_IRDMA_ABI_H */
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index cbad6aa..7d75ed5 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -153,6 +153,8 @@ Provides: libhfi1 = %{version}-%{release}
+ Obsoletes: libhfi1 < %{version}-%{release}
+ Provides: libipathverbs = %{version}-%{release}
+ Obsoletes: libipathverbs < %{version}-%{release}
++Provides: libirdma = %{version}-%{release}
++Obsoletes: libirdma < %{version}-%{release}
+ Provides: libmlx4 = %{version}-%{release}
+ Obsoletes: libmlx4 < %{version}-%{release}
+ Provides: libmlx5 = %{version}-%{release}
+@@ -178,6 +180,7 @@ Device-specific plug-in ibverbs userspace drivers are included:
+ - libhfi1: Intel Omni-Path HFI
+ - libhns: HiSilicon Hip06 SoC
+ - libipathverbs: QLogic InfiniPath HCA
++- libirdma: Intel Ethernet Connection RDMA
+ - libmlx4: Mellanox ConnectX-3 InfiniBand HCA
+ - libmlx5: Mellanox Connect-IB/X-4+ InfiniBand HCA
+ - libmthca: Mellanox InfiniBand HCA
+diff --git a/suse/rdma-core.spec b/suse/rdma-core.spec
+index db831b9..9243e19 100644
+--- a/suse/rdma-core.spec
++++ b/suse/rdma-core.spec
+@@ -186,6 +186,7 @@ Obsoletes:      libcxgb4-rdmav2 < %{version}-%{release}
+ Obsoletes:      libefa-rdmav2 < %{version}-%{release}
+ Obsoletes:      libhfi1verbs-rdmav2 < %{version}-%{release}
+ Obsoletes:      libipathverbs-rdmav2 < %{version}-%{release}
++Obsoletes:      libirdma-rdmav2 < %{version}-%{release}
+ Obsoletes:      libmlx4-rdmav2 < %{version}-%{release}
+ Obsoletes:      libmlx5-rdmav2 < %{version}-%{release}
+ Obsoletes:      libmthca-rdmav2 < %{version}-%{release}
+@@ -213,6 +214,7 @@ Device-specific plug-in ibverbs userspace drivers are included:
+ - libhfi1: Intel Omni-Path HFI
+ - libhns: HiSilicon Hip06 SoC
+ - libipathverbs: QLogic InfiniPath HCA
++- libirdma: Intel Ethernet Connection RDMA
+ - libmlx4: Mellanox ConnectX-3 InfiniBand HCA
+ - libmlx5: Mellanox Connect-IB/X-4+ InfiniBand HCA
+ - libmthca: Mellanox InfiniBand HCA
+diff --git a/util/util.h b/util/util.h
+index 6db46b1..2c05631 100644
+--- a/util/util.h
++++ b/util/util.h
+@@ -26,12 +26,16 @@ static inline bool __good_snprintf(size_t len, int rc)
+ #define offsetofend(_type, _member)                                            \
+ 	(offsetof(_type, _member) + sizeof(((_type *)0)->_member))
+ 
+-#define BITS_PER_LONG	(8 * sizeof(long))
++#define BITS_PER_LONG	   (8 * sizeof(long))
++#define BITS_PER_LONG_LONG (8 * sizeof(long long))
+ 
+ #define GENMASK(h, l) \
+ 	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
++#define GENMASK_ULL(h, l) \
++	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+ 
+-#define BIT(nr) (1UL << (nr))
++#define BIT(nr)     (1UL << (nr))
++#define BIT_ULL(nr) (1ULL << (nr))
+ 
+ #define __bf_shf(x) (__builtin_ffsll(x) - 1)
+ 
 -- 
 1.8.3.1
 
