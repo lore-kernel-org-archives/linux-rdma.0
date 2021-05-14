@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 802F9C433ED
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E0ACC433B4
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 02:11:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E9FD61396
+	by mail.kernel.org (Postfix) with ESMTP id 6D12E6140E
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 02:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230030AbhENCNF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 13 May 2021 22:13:05 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:2727 "EHLO
+        id S229544AbhENCNG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 13 May 2021 22:13:06 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3660 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbhENCNF (ORCPT
+        with ESMTP id S229986AbhENCNF (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 13 May 2021 22:13:05 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FhBm76qJTz1BMNH;
-        Fri, 14 May 2021 10:09:11 +0800 (CST)
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FhBm80QXzz1BMNQ;
+        Fri, 14 May 2021 10:09:12 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 14 May 2021 10:11:44 +0800
+ 14.3.498.0; Fri, 14 May 2021 10:11:43 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 6/6] RDMA/ipoib: Use refcount_t instead of atomic_t for reference counting
-Date:   Fri, 14 May 2021 10:11:39 +0800
-Message-ID: <1620958299-4869-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 3/6] RDMA/hns: Use refcount_t APIs for HEM
+Date:   Fri, 14 May 2021 10:11:36 +0800
+Message-ID: <1620958299-4869-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1620958299-4869-1-git-send-email-liweihang@huawei.com>
 References: <1620958299-4869-1-git-send-email-liweihang@huawei.com>
@@ -43,77 +43,119 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The refcount_t API will WARN on underflow and overflow of a reference
-counter, and avoid use-after-free risks.
+refcount_t is better than integer for reference counting, it will WARN on
+overflow/underflow and avoid use-after-free risks.
 
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h      | 4 ++--
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 33 ++++++++++++++++----------------
+ drivers/infiniband/hw/hns/hns_roce_hem.h |  4 ++--
+ 2 files changed, 18 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 75cd447..44d8d15 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -454,7 +454,7 @@ struct ipoib_neigh {
- 	struct list_head    list;
- 	struct ipoib_neigh __rcu *hnext;
- 	struct rcu_head     rcu;
--	atomic_t	    refcnt;
-+	refcount_t	    refcnt;
- 	unsigned long       alive;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index cfd2e1b..84f3cd1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -271,7 +271,7 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
+ 	if (!hem)
+ 		return NULL;
+ 
+-	hem->refcount = 0;
++	refcount_set(&hem->refcount, 0);
+ 	INIT_LIST_HEAD(&hem->chunk_list);
+ 
+ 	order = get_order(hem_alloc_size);
+@@ -618,7 +618,7 @@ static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
+ 
+ 	mutex_lock(&table->mutex);
+ 	if (table->hem[index.buf]) {
+-		++table->hem[index.buf]->refcount;
++		refcount_inc(&table->hem[index.buf]->refcount);
+ 		goto out;
+ 	}
+ 
+@@ -637,7 +637,7 @@ static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
+ 		}
+ 	}
+ 
+-	++table->hem[index.buf]->refcount;
++	refcount_set(&table->hem[index.buf]->refcount, 1);
+ 	goto out;
+ 
+ err_alloc:
+@@ -663,7 +663,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 	mutex_lock(&table->mutex);
+ 
+ 	if (table->hem[i]) {
+-		++table->hem[i]->refcount;
++		refcount_inc(&table->hem[i]->refcount);
+ 		goto out;
+ 	}
+ 
+@@ -686,7 +686,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 		goto out;
+ 	}
+ 
+-	++table->hem[i]->refcount;
++	refcount_set(&table->hem[i]->refcount, 1);
+ out:
+ 	mutex_unlock(&table->mutex);
+ 	return ret;
+@@ -753,11 +753,11 @@ static void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
+ 		return;
+ 	}
+ 
+-	mutex_lock(&table->mutex);
+-	if (check_refcount && (--table->hem[index.buf]->refcount > 0)) {
+-		mutex_unlock(&table->mutex);
++	if (!check_refcount)
++		mutex_lock(&table->mutex);
++	else if (!refcount_dec_and_mutex_lock(&table->hem[index.buf]->refcount,
++					      &table->mutex))
+ 		return;
+-	}
+ 
+ 	clear_mhop_hem(hr_dev, table, obj, &mhop, &index);
+ 	free_mhop_hem(hr_dev, table, &mhop, &index);
+@@ -779,16 +779,15 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
+ 	i = (obj & (table->num_obj - 1)) /
+ 	    (table->table_chunk_size / table->obj_size);
+ 
+-	mutex_lock(&table->mutex);
++	if (!refcount_dec_and_mutex_lock(&table->hem[i]->refcount,
++					 &table->mutex))
++		return;
+ 
+-	if (--table->hem[i]->refcount == 0) {
+-		/* Clear HEM base address */
+-		if (hr_dev->hw->clear_hem(hr_dev, table, obj, 0))
+-			dev_warn(dev, "Clear HEM base address failed.\n");
++	if (hr_dev->hw->clear_hem(hr_dev, table, obj, 0))
++		dev_warn(dev, "failed to clear HEM base address.\n");
+ 
+-		hns_roce_free_hem(hr_dev, table->hem[i]);
+-		table->hem[i] = NULL;
+-	}
++	hns_roce_free_hem(hr_dev, table->hem[i]);
++	table->hem[i] = NULL;
+ 
+ 	mutex_unlock(&table->mutex);
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
+index 13fdeb3..ffa65e8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
+@@ -88,8 +88,8 @@ struct hns_roce_hem_chunk {
  };
  
-@@ -464,7 +464,7 @@ struct ipoib_neigh {
- void ipoib_neigh_dtor(struct ipoib_neigh *neigh);
- static inline void ipoib_neigh_put(struct ipoib_neigh *neigh)
- {
--	if (atomic_dec_and_test(&neigh->refcnt))
-+	if (refcount_dec_and_test(&neigh->refcnt))
- 		ipoib_neigh_dtor(neigh);
- }
- struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index bbb1808..ac39610 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1287,7 +1287,7 @@ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr)
- 	     neigh = rcu_dereference_bh(neigh->hnext)) {
- 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
- 			/* found, take one ref on behalf of the caller */
--			if (!atomic_inc_not_zero(&neigh->refcnt)) {
-+			if (!refcount_inc_not_zero(&neigh->refcnt)) {
- 				/* deleted */
- 				neigh = NULL;
- 				goto out_unlock;
-@@ -1382,7 +1382,7 @@ static struct ipoib_neigh *ipoib_neigh_ctor(u8 *daddr,
- 	INIT_LIST_HEAD(&neigh->list);
- 	ipoib_cm_set(neigh, NULL);
- 	/* one ref on behalf of the caller */
--	atomic_set(&neigh->refcnt, 1);
-+	refcount_set(&neigh->refcnt, 1);
+ struct hns_roce_hem {
+-	struct list_head	 chunk_list;
+-	int			 refcount;
++	struct list_head chunk_list;
++	refcount_t refcount;
+ };
  
- 	return neigh;
- }
-@@ -1414,7 +1414,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
- 					       lockdep_is_held(&priv->lock))) {
- 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
- 			/* found, take one ref on behalf of the caller */
--			if (!atomic_inc_not_zero(&neigh->refcnt)) {
-+			if (!refcount_inc_not_zero(&neigh->refcnt)) {
- 				/* deleted */
- 				neigh = NULL;
- 				break;
-@@ -1429,7 +1429,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
- 		goto out_unlock;
- 
- 	/* one ref on behalf of the hash table */
--	atomic_inc(&neigh->refcnt);
-+	refcount_inc(&neigh->refcnt);
- 	neigh->alive = jiffies;
- 	/* put in hash */
- 	rcu_assign_pointer(neigh->hnext,
+ struct hns_roce_hem_iter {
 -- 
 2.7.4
 
