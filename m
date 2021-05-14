@@ -2,36 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 833CDC43460
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 802F9C433ED
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 02:11:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F2BC61354
+	by mail.kernel.org (Postfix) with ESMTP id 4E9FD61396
 	for <linux-rdma@archiver.kernel.org>; Fri, 14 May 2021 02:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229980AbhENCNF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230030AbhENCNF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 13 May 2021 22:13:05 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:2726 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:2727 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229544AbhENCNF (ORCPT
+        with ESMTP id S229980AbhENCNF (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 13 May 2021 22:13:05 -0400
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FhBm76YRHz1BMNF;
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4FhBm76qJTz1BMNH;
         Fri, 14 May 2021 10:09:11 +0800 (CST)
 Received: from localhost.localdomain (10.69.192.56) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.498.0; Fri, 14 May 2021 10:11:42 +0800
+ 14.3.498.0; Fri, 14 May 2021 10:11:44 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 0/6] RDMA: Use refcount_t for reference counting
-Date:   Fri, 14 May 2021 10:11:33 +0800
-Message-ID: <1620958299-4869-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/6] RDMA/ipoib: Use refcount_t instead of atomic_t for reference counting
+Date:   Fri, 14 May 2021 10:11:39 +0800
+Message-ID: <1620958299-4869-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1620958299-4869-1-git-send-email-liweihang@huawei.com>
+References: <1620958299-4869-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -40,46 +43,77 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There are some refcnt in type of atomic_t in RDMA subsystem, almost all of
-them is wrote before the refcount_t is acheived in kernel. refcount_t is
-better than integer for reference counting, it will WARN on
-overflow/underflow and avoid use-after-free risks.
+The refcount_t API will WARN on underflow and overflow of a reference
+counter, and avoid use-after-free risks.
 
-Weihang Li (6):
-  RDMA/core: Use refcount_t instead of atomic_t for reference counting
-  RDMA/hns: Use refcount_t instead of atomic_t for reference counting
-  RDMA/hns: Use refcount_t APIs for HEM
-  RDMA/cxgb4: Use refcount_t instead of atomic_t for reference counting
-  RDMA/i40iw: Use refcount_t instead of atomic_t for reference counting
-  RDMA/ipoib: Use refcount_t instead of atomic_t for reference counting
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h      | 4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
- drivers/infiniband/core/iwcm.c              |  9 +++--
- drivers/infiniband/core/iwcm.h              |  2 +-
- drivers/infiniband/core/iwpm_util.c         | 12 ++++---
- drivers/infiniband/core/iwpm_util.h         |  2 +-
- drivers/infiniband/core/mad_priv.h          |  2 +-
- drivers/infiniband/core/multicast.c         | 30 ++++++++--------
- drivers/infiniband/core/uverbs.h            |  2 +-
- drivers/infiniband/core/uverbs_main.c       | 12 +++----
- drivers/infiniband/hw/cxgb4/cq.c            |  6 ++--
- drivers/infiniband/hw/cxgb4/ev.c            |  8 ++---
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  2 +-
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  8 ++---
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 ++--
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 33 +++++++++---------
- drivers/infiniband/hw/hns/hns_roce_hem.h    |  4 +--
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 12 +++----
- drivers/infiniband/hw/hns/hns_roce_srq.c    |  8 ++---
- drivers/infiniband/hw/i40iw/i40iw.h         |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_cm.c      | 54 ++++++++++++++---------------
- drivers/infiniband/hw/i40iw/i40iw_cm.h      |  4 +--
- drivers/infiniband/hw/i40iw/i40iw_main.c    |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_puda.h    |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_utils.c   | 10 +++---
- drivers/infiniband/ulp/ipoib/ipoib.h        |  4 +--
- drivers/infiniband/ulp/ipoib/ipoib_main.c   |  8 ++---
- 25 files changed, 123 insertions(+), 121 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 75cd447..44d8d15 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -454,7 +454,7 @@ struct ipoib_neigh {
+ 	struct list_head    list;
+ 	struct ipoib_neigh __rcu *hnext;
+ 	struct rcu_head     rcu;
+-	atomic_t	    refcnt;
++	refcount_t	    refcnt;
+ 	unsigned long       alive;
+ };
+ 
+@@ -464,7 +464,7 @@ struct ipoib_neigh {
+ void ipoib_neigh_dtor(struct ipoib_neigh *neigh);
+ static inline void ipoib_neigh_put(struct ipoib_neigh *neigh)
+ {
+-	if (atomic_dec_and_test(&neigh->refcnt))
++	if (refcount_dec_and_test(&neigh->refcnt))
+ 		ipoib_neigh_dtor(neigh);
+ }
+ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index bbb1808..ac39610 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1287,7 +1287,7 @@ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr)
+ 	     neigh = rcu_dereference_bh(neigh->hnext)) {
+ 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
+ 			/* found, take one ref on behalf of the caller */
+-			if (!atomic_inc_not_zero(&neigh->refcnt)) {
++			if (!refcount_inc_not_zero(&neigh->refcnt)) {
+ 				/* deleted */
+ 				neigh = NULL;
+ 				goto out_unlock;
+@@ -1382,7 +1382,7 @@ static struct ipoib_neigh *ipoib_neigh_ctor(u8 *daddr,
+ 	INIT_LIST_HEAD(&neigh->list);
+ 	ipoib_cm_set(neigh, NULL);
+ 	/* one ref on behalf of the caller */
+-	atomic_set(&neigh->refcnt, 1);
++	refcount_set(&neigh->refcnt, 1);
+ 
+ 	return neigh;
+ }
+@@ -1414,7 +1414,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
+ 					       lockdep_is_held(&priv->lock))) {
+ 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
+ 			/* found, take one ref on behalf of the caller */
+-			if (!atomic_inc_not_zero(&neigh->refcnt)) {
++			if (!refcount_inc_not_zero(&neigh->refcnt)) {
+ 				/* deleted */
+ 				neigh = NULL;
+ 				break;
+@@ -1429,7 +1429,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
+ 		goto out_unlock;
+ 
+ 	/* one ref on behalf of the hash table */
+-	atomic_inc(&neigh->refcnt);
++	refcount_inc(&neigh->refcnt);
+ 	neigh->alive = jiffies;
+ 	/* put in hash */
+ 	rcu_assign_pointer(neigh->hnext,
 -- 
 2.7.4
 
