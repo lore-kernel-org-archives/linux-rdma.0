@@ -2,820 +2,237 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14681C433B4
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 512F2C43470
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E245B61028
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30971611BF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238752AbhEQQte (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 May 2021 12:49:34 -0400
+        id S239486AbhEQQth (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 May 2021 12:49:37 -0400
 Received: from mail-mw2nam10on2063.outbound.protection.outlook.com ([40.107.94.63]:14656
         "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S237996AbhEQQtK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 17 May 2021 12:49:10 -0400
+        id S240504AbhEQQtR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 17 May 2021 12:49:17 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mpdPmiqnHOnIpcsptQlDKWGwxFMJuadprVOLRtLTQnnsTGqZ9IlS+gTM71LHJPkpU2MklwEhyZPoldLts0ITaX6bunKsejxxxNPZAz6ukqiEH11tuMcyAOiIhrQQtYwFubEdVwZoeQeGhDiQx3EAheTHgl5XCgDXWbfwh8m69ALzBPOw2rvslWqIfLHZ5Iuz7J/ZRfgNbV30vt5inXyT3eoGi9hKiBiPtTBR7rTmnsWciFXN/tiZDqU/bQC8Y1SebkqIrO1PrhvzOIen+Kr+MZ50ZwDxDe/X9UmZ95IbIJ2wimeumrqekYRpvZjCHSuTZK5/lIMn8eaO16jbVJc5RQ==
+ b=XsGy09jvzAuUKhtph+mAF8JaAVNVeiwRsjwBM9JX2B22flhcO0W9QMJkEuaist71SN3ieZ4Ld7WNmAgL+SdU0mGzOv5MclqHJCrpndp0DoYT6g1Qe5ddzB66SueGjtF9WSwV4wpK+zEMcl15PHNhgcpK7dvHB8Wz8Z7O/LS8hyxv555dPLOISwpNvsNxMeFSzVltWjS10fWHufNStV0G0oceKGvsGE3AV+YBb9adC1r86cDvDyM5ZqgNX9E8ay5QwCiGwriGKmrLASMjHlRy5KSIWBGq1TpSIXq8fLpIe/AzPbcgDa1CRz6cddYsx3j0wSMrm9qey/LPdfBsGJYteQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2xO15ZxGy5MNGV12VE4Xd6fLI68vRw2erWsdjCJQW3U=;
- b=WP1puGmvvaCYX+E2qFuQHeN92gezFihePsclO5XBN3zJ4jHwx3Qgg/4LXBbzaJWeq/NNPDiVvfxfmeqTFLKNvRokqPP5Novd84JXsQqmWJaumQazMp35FdgLPinJDfBH038qD9Y7L4GG41PUdPFzW/hCPOOAyZIi1o9ADbL4DmiI7ZgPbNX4VhGXM2OmudI6QQkU9GhwAjNfAOuvFlHwq4PfEAGnd9h9iubHKsFpjudr/jnUfM1QXoTgMDoBOmv96dd1tUCgPvF6ly5EPxmLk3xYaEILbSUkSmeW40RnXbtncBJwbcUce1O/uY1cujUOO964/4YipEs2YQUevEDQzQ==
+ bh=w4trntPRBi12qCS0o1Ip8Pss73ZdKATBQ10rPUxnpQs=;
+ b=HN3KW/x12a7Ia4j9GkdS0OuPfVIKKk/lYXUJeyQljfm0i8B5S3BOB/6/o9SxvdqNdtDHxzakbu+lHKlBs6xzswVVJzGkrjQiAGGaOaTBxWA+FC6C1k2qpmG16o9KlufJqXn7CpWHHwS7qQsaCMM+7YZLHb+DmObEjH6cNjASVLmS/4u4I3qWZS6aKMNonQrAgLdDGvE/iWynycTjweHNC97ibgzAS1e9QBRoG87T6qlTwPXnnz6+ax9ciVxceYzA2oIPb2fZU7G1cXk7+JvBzjjrNrCXD62avd1Swv4qUDnk/eNeV/12KNXmg5PbeVwWlWGn8sVE0bP8aRG9D+71KA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2xO15ZxGy5MNGV12VE4Xd6fLI68vRw2erWsdjCJQW3U=;
- b=fTExg+Lt0Y7thRhgIJS0nJ47HZ/Tqw3+iDOKM3HH22Kbg0B09aDA4yqvgSABp99FtaXwHHllLShl7nM0ref6eaWC/ZadEIHbM5hAOHreW71/mJxCswbhBKUjObBuQRTgFrWFQldSZkfL1aorJ48xv38Tr2pJ+s+LPqMFUu4nkeyhLxQKCj34dGy9MXMEqKmgB/D/zQow5Ly6SGA4Ucqvb06mz56B3FPyOHKoGTMLApb35sW3pKJGM5OXLUl0uyKBsDuAsK1Hf2aMZIpZvGEhiNJkhRnIlUpXDsKANNPtEclBxxEjz6JQ2sKaTWKtm7sbOfYXgr7n2EaFGiv0w81rHw==
-Authentication-Results: cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;cornelisnetworks.com; dmarc=none action=none
- header.from=nvidia.com;
+ bh=w4trntPRBi12qCS0o1Ip8Pss73ZdKATBQ10rPUxnpQs=;
+ b=sbB4nVT+DNWkX3nleJPEpkkYsDBFKKyffg9GgdmN4JU4FXQbb7fc6FUpl4gGydE8Ilxqfdvq56+TSMp12/SfQcohZ3B7+7306MfnBXIQ7RiwTz3RX0g+ejUWcrEl+0XnitwbNh+TOxG2NstMd91IaHL+M1ndkLcqCjoXdGG8jTGgPxJ/ziMdCUQUtJyrtUPea6CchdgPzeuAO7DvJ+WqsU02VQ1fNROK0ITd9LVaMOTVqbDQNiwKl2N839sIwf6fIGLY+afk9UJsCJwnZsMlA3dMhJIcwJAfdIyPK0+r1iE+GoFBh6xsOGi9IefW6Q/cQ9SNQF2NyF2KAeKobZEsBw==
+Authentication-Results: redhat.com; dkim=none (message not signed)
+ header.d=none;redhat.com; dmarc=none action=none header.from=nvidia.com;
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM6PR12MB2858.namprd12.prod.outlook.com (2603:10b6:5:182::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4129.26; Mon, 17 May
- 2021 16:47:44 +0000
+ 2021 16:47:46 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::ddb4:2cbb:4589:f039]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::ddb4:2cbb:4589:f039%4]) with mapi id 15.20.4129.031; Mon, 17 May 2021
- 16:47:44 +0000
+ 16:47:46 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+To:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 Cc:     Greg KH <gregkh@linuxfoundation.org>,
         Kees Cook <keescook@chromium.org>,
         Nathan Chancellor <nathan@kernel.org>
-Subject: [PATCH 12/13] RDMA/hfi1: Use attributes for the port sysfs
-Date:   Mon, 17 May 2021 13:47:40 -0300
-Message-Id: <12-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
+Subject: [PATCH 02/13] RDMA/core: Replace the ib_port_data hw_stats pointers with a ib_port pointer
+Date:   Mon, 17 May 2021 13:47:30 -0300
+Message-Id: <2-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
 In-Reply-To: <0-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [47.55.113.94]
-X-ClientProxiedBy: BLAPR03CA0094.namprd03.prod.outlook.com
- (2603:10b6:208:32a::9) To DM6PR12MB3834.namprd12.prod.outlook.com
+X-ClientProxiedBy: MN2PR03CA0030.namprd03.prod.outlook.com
+ (2603:10b6:208:23a::35) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (47.55.113.94) by BLAPR03CA0094.namprd03.prod.outlook.com (2603:10b6:208:32a::9) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4108.25 via Frontend Transport; Mon, 17 May 2021 16:47:43 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1ligP8-009LZ4-9r; Mon, 17 May 2021 13:47:42 -0300
+Received: from mlx.ziepe.ca (47.55.113.94) by MN2PR03CA0030.namprd03.prod.outlook.com (2603:10b6:208:23a::35) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4108.25 via Frontend Transport; Mon, 17 May 2021 16:47:44 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1ligP7-009LYP-QO; Mon, 17 May 2021 13:47:41 -0300
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b64b60d2-3813-4793-1d73-08d919537dd7
+X-MS-Office365-Filtering-Correlation-Id: 885a31e6-361c-42b9-f590-08d919537e62
 X-MS-TrafficTypeDiagnostic: DM6PR12MB2858:
-X-Microsoft-Antispam-PRVS: <DM6PR12MB285806007EB6B579B01AC081C22D9@DM6PR12MB2858.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3631;
+X-Microsoft-Antispam-PRVS: <DM6PR12MB285837FCAAA94E533358CCD0C22D9@DM6PR12MB2858.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:5516;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 9Y9q7fMSx+AR7AtFJxV0bBN2GETJKyxZeAu48EuB3KBKt1hSKbgebwBHoEyzEdvpsnQYK5HOQVXy2yc8X5AQ/s97t1BTAX8Ncu6PVwOcZaTRuU7POQzIncg92mYHFP3EF8v1wjmpjMIB3GARQZzBPqrf1VWgRF2+fgZmTDBePHDolvMnWp1TCq5alqHKevUPeq+7lHC9ZQ/gKG60dezwW/4sfAdlXE4SCnTUOrg70NmVvy9Iw8yKPM5+CRjssL3TZUPSctQfpsFBY6OXja9rfvrGgCquDlkJ4XBHlPC1+ISRKbMbsPh5JGGL0tHwLacFlf7KBw7YYsj4Un7icCjVtTB4nopwdWHxUHD/KId1eJkWNbB4X0vyC6B/noQTiIr04O91BRCMJAd76F7f6co28ItPYWvVYoQps5RkGtevNjB7Prt6kVQ3lyLzETTZ5pR4o7H1iT6Of1TJmW2tnf196FtgeQ2ooiiembsqXxynbxVzEVOMtUMwgThw+g92bwefyuP+Ib8gzuD9apN0SH0Vyp8sDU/fFdWVfWx7l/10Y7DRPCKippeDTm8cBfDki0/Djm6TXu2H+AMs9f0jtGQXHNrsI8e9WQ7s1jQLjNegjvg=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(366004)(39860400002)(376002)(54906003)(110136005)(9746002)(8676002)(66556008)(426003)(83380400001)(36756003)(30864003)(9786002)(26005)(66946007)(38100700002)(316002)(66476007)(4326008)(478600001)(86362001)(5660300002)(186003)(8936002)(2616005)(2906002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?jRVxxSgNNmahRM5uhg/In07CVbyIUAYhxvPAtqVddPqKBwW/BPito+d46ne1?=
- =?us-ascii?Q?xaIALQfcQh1QbQGlwym7SeDejqL34+wnxXzGyX6S9vSsrnsIYXsS3Znebt00?=
- =?us-ascii?Q?m0Y5JbaWNoMli/VnWoR0X8BI8Di2L7E//asXuA4e/42OPsbigmy6jvCjFX/j?=
- =?us-ascii?Q?mVPgkOQoMy/APVJhcdlRrW+WO0A+b6DGomH80tmMQczWqrKXW24KfMWrKoSn?=
- =?us-ascii?Q?UfKY/YDD9IsVFPXOQoo7vkAHswu05Xtuzq1oSCJ1cKGhjcRVeEw+KyO0hFbT?=
- =?us-ascii?Q?yxxTwe3NMaTai9MGA9PFGYAdwxDbbaKlBOHvxLZOxSFszWozHWLQni2xAMHu?=
- =?us-ascii?Q?3hXqIA2K1mT0hC1zvmjKpOekita62rPux+QwBQ/VCb47szlw7+GG9TdKqs/3?=
- =?us-ascii?Q?Sr8uW1ynTxoIvOD26WiZuRQgpMwM/jsaepjzD99xtBGN4nDdnOo8IWBPxGTt?=
- =?us-ascii?Q?O4LQkngEeeYSHILvtQJpec2pyp8782nNsp0v7gbgykAppsUTdw2r42Xv2UqS?=
- =?us-ascii?Q?GvL0HziHZ3QKizC0cPpeyNJSWRqAC3wNJbAqW0D9IdCemL4hAeSWUDVRz2Jm?=
- =?us-ascii?Q?UT0P/A1c9G+l29Y4sWnkbd/wixygohRCG8L0bNIp0JAxFsfrCZfOPKNhJpaH?=
- =?us-ascii?Q?mDxuiNXcGAIxqwvDdVSEVgrwIupUGssjZn5hNL6olRKY1cUyt6z2VVtE5wLS?=
- =?us-ascii?Q?PwHO6rwdNPho9NRLZ8ljY7BdBDKvO+ftoQtuWseXu2i5jDvV6L9JWzzhHND1?=
- =?us-ascii?Q?a8VnzP9cdyZDCCMJsRzG594RrzOOPI2ocZZBTxugS70NQ2OoEMj2WBrYf0ME?=
- =?us-ascii?Q?u69D3kFB+ggZ4PtdRyZerVF0zinVdP1sl4rriObZwYKXKQh58uEkNwwlK6BT?=
- =?us-ascii?Q?o1QnkKEKl8V8LQfQKCGI1s0S8FSSmpj8wXYDjuVe/dPljalKDg5+izY7ECIx?=
- =?us-ascii?Q?neFK7GlLOnS6rjZLNkuXyfPGVFaQF68LSH15SxYueHcvZ7wb6OeQY+N14btp?=
- =?us-ascii?Q?JyS3prlJBEVuzXs7rX5fs96iaY6MounCKeKwRKM+ARoRNiOWutt+8YDv5u80?=
- =?us-ascii?Q?lBnfljB5+N4nKre6grcbImKtPL6zETXxTPRAKBcNqwizTM++BQOI5vQU76GH?=
- =?us-ascii?Q?TPMbk9FlZxmN1rTkkbWH0bEAkae6ZvgbUFYaRGSkZf/gmA8/PqbPBenxw7NW?=
- =?us-ascii?Q?Qdurz6jk3gvIUqDb0aLuazcNrIlfKTN2F4d/lFUgmd8X3ENc/VGIT8hCQWlw?=
- =?us-ascii?Q?R/WckuiSEhup+em7PLG5KT9CWop4HVD3TJ4vqufNYUFLqR+DCzjp5rwFeDV5?=
- =?us-ascii?Q?BWZJo9UnIZYmQhwP7habyhcy?=
+X-Microsoft-Antispam-Message-Info: 2yYxfsGoSjBE6jipeBJHA+kKY53qwekh8qN5/BTX4lNbaz9+1qTfsH/MQPOSNAMTcHWptgKLuUOiVUj+hA2h9aNjgKz6jbrhWhcCrPZC/XQLDr/lOLV02sLMk/+mvjYoyANGOq6X9upcYtT39bUSXDq+Gp4Tin7csltkl6We7q6r54AMF/FNViQWdCtRSoahjxmGOQibDYAXKdhiw98NjcYqSCpp7lGJH0/EREABh0zZ+7olGWi1z+Lpp3H7GmVhk+oc2TZ7K19i1ieakLvd42scBpkgBGek3igA/cpgL0BXlKOuJJKQQfeTpVP6+0NnS9Igrw4pSnXTNOrMQiYlExk/N/KgTeddBTqV0R4+ySkdgRsgynIZfWsnPl0iR0dU5PemsgGYczM4YFIECuNrFk+14CZCwOtWqQiovz28JbTBjWlvOhzBcO1qIwA8vrXZrETBObzDe3HojBOtWTHYUU8fCrrtbej9pdhhnEnyqpa/ClcPTvDTL/LVskk/TvP3U2y2A+ixV6KcxYV7suzPyT7Zprz4YLghvzjEfQOFQwJbv5rIXx1dbJdCtzP0rLHw21yKK8rkpN4iVRgke/SsjnLa5oeBnEJoPxOCEMEb1D9ZZz2Tf4DWuex1y199a3Gyko/M+bAy7sSEDbKbTw8tYw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(366004)(39860400002)(376002)(54906003)(6666004)(9746002)(8676002)(66556008)(426003)(83380400001)(36756003)(9786002)(26005)(66946007)(38100700002)(316002)(66476007)(4326008)(478600001)(86362001)(5660300002)(186003)(8936002)(2616005)(2906002)(4216001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?z03RZuTpN1G9B7BjuXZEZCro/YvGoMEy0CW+ndTpGp1lOlff0Ps9KamGBoSY?=
+ =?us-ascii?Q?gke16F1IgPkO+cnW381q+fpBLV/CD2G/Gpdp0YLpzTUtf9w1tWfw6mNE801U?=
+ =?us-ascii?Q?2BMaKxr7kI9QSOwNib9Ch/AGeiMLvci2DyP1LIgAT60pYJUYPDUfxMe4Qcvk?=
+ =?us-ascii?Q?SZd3CWq5qOl92x8CrMVBt+fFnuRs56k9stW71nJA0hsRilYQi3zBe0Jizsis?=
+ =?us-ascii?Q?PT27gwv0nR2ID/SSdIxtu/PBzFoIHP8QO4qrsu2thE9eO9zfLwbdwLB3oXd6?=
+ =?us-ascii?Q?Sq8Ln3BchBb2BTFD01fqTelFrDrp+vP8dgKk03TGLTjMNBhwMA+HGimmJjKA?=
+ =?us-ascii?Q?5ola9eKfNI6mp/M5Tw/hFDUHQ7Ne46zj2bPWMxCga/eWgHVOgaiqC1Hy7Ogp?=
+ =?us-ascii?Q?K7AfO++cx0ifuWhVf3MK/kQ7PBKGM1mH0PAhtNSiGRf0+L0MENUWuhHxD991?=
+ =?us-ascii?Q?nbeB6n+9Xy2/hffAxuzW9ZG0OaiJUiPBeqG1FxCPft9dq0FZzI1AY2dEGaTi?=
+ =?us-ascii?Q?8F+XC1IXz6MHJ5MbvelxbA9q24k9Q9nkDAOxEBPlwBZvq1HBJslMm+B20h64?=
+ =?us-ascii?Q?jn2BW/Z9pE4ySuxoV8ozoLjhsnMsfXxXjNnZcnWlnJJMXqFJSobgOY+S9M6A?=
+ =?us-ascii?Q?XbJ/UoYhJMTAbLmJfTqX2jESAe4oHf/jsdfftloExJZj05cr6D03H8pzITdO?=
+ =?us-ascii?Q?Znt5ME28MTamx3RvCl/Tj6iRTZqWsFv7eJ1k84hjrYrRyjc6uv5oLJbCr5XU?=
+ =?us-ascii?Q?t0g7pf29CoZGdxau57DBmWEVn6SR9F00lFCgClk7jONYN+kGgT0HNFk2+Gw6?=
+ =?us-ascii?Q?A//RexHGBdytyi+LHuVdmwsHbUzqe/2D82ej9slF5cqPydngyeDCalD5YqmJ?=
+ =?us-ascii?Q?zP+Z6FUv+kQagQJ/bX0sj1TEMEZfwA/McxHBZklhZWyEgAHgJaykg45EWVgO?=
+ =?us-ascii?Q?GyHrb2q5oiYWNyK8p8W8hiHRnZNfguwL9IMqwQcwDVgvU0CzwR9HYRFbdOOF?=
+ =?us-ascii?Q?Df1aTqsDw+lGY1zRyIGTyyHQOg6px3HTb/uas4apxgruQg8Awv/suoY0vsQR?=
+ =?us-ascii?Q?ThLeLc/3K+enJ4HDcvRC488kOFDFGkEAepahOS4vLwMKaNd39/JM2h+VnVXT?=
+ =?us-ascii?Q?J0WBc9F3Y9lPrNjWsNd154kSQvYnUyvaUOA8bni6Vl2kiCF1lc/Y9Yfczexr?=
+ =?us-ascii?Q?lrIbsllzN4myr33vqisCu5/jre+C/LjyIUaNEKc0fmQqunX4HJ/iYx59f6mV?=
+ =?us-ascii?Q?n+LZlMd8LZjQxEwm5hTXa5tbc970zYwgzbiJJ29eVEmS07ZJJ2dx6dTymfb5?=
+ =?us-ascii?Q?ElvDj6Rk3qsnCxe3LmCoCJoK?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b64b60d2-3813-4793-1d73-08d919537dd7
+X-MS-Exchange-CrossTenant-Network-Message-Id: 885a31e6-361c-42b9-f590-08d919537e62
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 May 2021 16:47:43.6444
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 May 2021 16:47:44.4509
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ru9b4Fcw9ohQBIAfx0Qefdjx5SGt3M9x5tZTzv9OjQP+rfqb5ZPo5NU2Uj9OxRDW
+X-MS-Exchange-CrossTenant-UserPrincipalName: bS8oA78q7GveCH9GpaF6kOF+iih+jntkBpE/e75Kj6X9fMRcSPcmOss/96c5MVPK
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB2858
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-hfi1 should not be creating a mess of kobjects to attach to the port
-kobject - this is all attributes. The proper API is to create an
-attribute_group list and create it against the port's kobject.
+It is much saner to store a pointer to the kobject structure that contains
+the cannonical stats pointer than to copy the stats pointers into a public
+structure.
+
+Future patches will require the sysfs pointer for other purposes.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/hw/hfi1/hfi.h   |   4 -
- drivers/infiniband/hw/hfi1/sysfs.c | 529 +++++++++++------------------
- 2 files changed, 193 insertions(+), 340 deletions(-)
+ drivers/infiniband/core/core_priv.h |  1 +
+ drivers/infiniband/core/nldev.c     |  8 ++------
+ drivers/infiniband/core/sysfs.c     | 14 +++++++++++---
+ include/rdma/ib_verbs.h             |  3 ++-
+ 4 files changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 867ae0b1aa9593..87e101fb1f658a 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -772,10 +772,6 @@ struct hfi1_pportdata {
- 	struct hfi1_ibport ibport_data;
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 29809dd300419f..ec5c2c3db42303 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -378,6 +378,7 @@ struct net_device *rdma_read_gid_attr_ndev_rcu(const struct ib_gid_attr *attr);
  
- 	struct hfi1_devdata *dd;
--	struct kobject pport_cc_kobj;
--	struct kobject sc2vl_kobj;
--	struct kobject sl2sc_kobj;
--	struct kobject vl2mtu_kobj;
+ void ib_free_port_attrs(struct ib_core_device *coredev);
+ int ib_setup_port_attrs(struct ib_core_device *coredev);
++struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev, u32 port_num);
  
- 	/* PHY support */
- 	struct qsfp_data qsfp_info;
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
-index eaf441ece25eb8..326c6c2842f2f3 100644
---- a/drivers/infiniband/hw/hfi1/sysfs.c
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -45,11 +45,21 @@
-  *
-  */
- #include <linux/ctype.h>
-+#include <rdma/ib_sysfs.h>
+ int rdma_compatdev_set(u8 enable);
  
- #include "hfi.h"
- #include "mad.h"
- #include "trace.h"
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 01316926cef63d..e9b4b2cccaa0ff 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -2066,7 +2066,8 @@ static int stat_get_doit_default_counter(struct sk_buff *skb,
+ 	}
  
-+static struct hfi1_pportdata *hfi1_get_pportdata_kobj(struct kobject *kobj)
+ 	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
+-	if (!rdma_is_port_valid(device, port)) {
++	stats = ib_get_hw_stats_port(device, port);
++	if (!stats) {
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+@@ -2088,11 +2089,6 @@ static int stat_get_doit_default_counter(struct sk_buff *skb,
+ 		goto err_msg;
+ 	}
+ 
+-	stats = device->port_data ? device->port_data[port].hw_stats : NULL;
+-	if (stats == NULL) {
+-		ret = -EINVAL;
+-		goto err_msg;
+-	}
+ 	mutex_lock(&stats->lock);
+ 
+ 	num_cnts = device->ops.get_hw_stats(device, stats, port, 0);
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 29082d8d45fc4f..5f8b1677e1237b 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1036,8 +1036,6 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 			goto err;
+ 		port->hw_stats_ag = hsag;
+ 		port->hw_stats = stats;
+-		if (device->port_data)
+-			device->port_data[port_num].hw_stats = stats;
+ 	} else {
+ 		struct kobject *kobj = &device->dev.kobj;
+ 		ret = sysfs_create_group(kobj, hsag);
+@@ -1058,6 +1056,14 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 	kfree(stats);
+ }
+ 
++struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev,
++					   u32 port_num)
 +{
-+	u32 port_num;
-+	struct ib_device *ibdev = ib_port_sysfs_get_ibdev_kobj(kobj, &port_num);
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+
-+	return &dd->pport[port_num - 1];
++	if (!ibdev->port_data || !rdma_is_port_valid(ibdev, port_num))
++		return NULL;
++	return ibdev->port_data[port_num].sysfs->hw_stats;
 +}
 +
- /*
-  * Start of per-port congestion control structures and support code
-  */
-@@ -57,13 +67,12 @@
- /*
-  * Congestion control table size followed by table entries
-  */
--static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
--				 struct bin_attribute *bin_attr,
--				 char *buf, loff_t pos, size_t count)
-+static ssize_t cc_table_bin_read(struct file *filp, struct kobject *kobj,
-+				 struct bin_attribute *bin_attr, char *buf,
-+				 loff_t pos, size_t count)
+ static int add_port(struct ib_core_device *coredev, int port_num)
  {
- 	int ret;
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
-+	struct hfi1_pportdata *ppd = hfi1_get_pportdata_kobj(kobj);
- 	struct cc_state *cc_state;
+ 	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
+@@ -1176,6 +1182,8 @@ static int add_port(struct ib_core_device *coredev, int port_num)
+ 		setup_hw_stats(device, p, port_num);
  
- 	ret = ppd->total_cct_entry * sizeof(struct ib_cc_table_entry_shadow)
-@@ -89,30 +98,19 @@ static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
+ 	list_add_tail(&p->kobj.entry, &coredev->port_list);
++	if (device->port_data && is_full_dev)
++		device->port_data[port_num].sysfs = p;
  
- 	return count;
- }
--
--static void port_release(struct kobject *kobj)
--{
--	/* nothing to do since memory is freed by hfi1_free_devdata() */
--}
--
--static const struct bin_attribute cc_table_bin_attr = {
--	.attr = {.name = "cc_table_bin", .mode = 0444},
--	.read = read_cc_table_bin,
--	.size = PAGE_SIZE,
--};
-+static BIN_ATTR_RO(cc_table_bin, PAGE_SIZE);
+ 	kobject_uevent(&p->kobj, KOBJ_ADD);
+ 	return 0;
+@@ -1366,7 +1374,7 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
+ 			free_hsag(&port->kobj, port->hw_stats_ag);
+ 		kfree(port->hw_stats);
+ 		if (device->port_data && is_full_dev)
+-			device->port_data[port->port_num].hw_stats = NULL;
++			device->port_data[port->port_num].sysfs = NULL;
  
- /*
-  * Congestion settings: port control, control map and an array of 16
-  * entries for the congestion entries - increase, timer, event log
-  * trigger threshold and the minimum injection rate delay.
-  */
--static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
-+static ssize_t cc_setting_bin_read(struct file *filp, struct kobject *kobj,
- 				   struct bin_attribute *bin_attr,
- 				   char *buf, loff_t pos, size_t count)
- {
-+	struct hfi1_pportdata *ppd = hfi1_get_pportdata_kobj(kobj);
- 	int ret;
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
- 	struct cc_state *cc_state;
+ 		if (port->pma_table)
+ 			sysfs_remove_group(p, port->pma_table);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8fa7fd20e94aa7..e3be93e7096616 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -50,6 +50,7 @@ struct ib_uqp_object;
+ struct ib_usrq_object;
+ struct ib_uwq_object;
+ struct rdma_cm_id;
++struct ib_port;
  
- 	ret = sizeof(struct opa_congestion_setting_attr_shadow);
-@@ -136,27 +134,30 @@ static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
- 
- 	return count;
- }
-+static BIN_ATTR_RO(cc_setting_bin, PAGE_SIZE);
- 
--static const struct bin_attribute cc_setting_bin_attr = {
--	.attr = {.name = "cc_settings_bin", .mode = 0444},
--	.read = read_cc_setting_bin,
--	.size = PAGE_SIZE,
--};
--
--struct hfi1_port_attr {
--	struct attribute attr;
--	ssize_t	(*show)(struct hfi1_pportdata *, char *);
--	ssize_t	(*store)(struct hfi1_pportdata *, const char *, size_t);
-+static struct bin_attribute *port_cc_bin_attributes[] = {
-+	&bin_attr_cc_setting_bin,
-+	&bin_attr_cc_table_bin,
-+	NULL
+ extern struct workqueue_struct *ib_wq;
+ extern struct workqueue_struct *ib_comp_wq;
+@@ -2183,7 +2184,7 @@ struct ib_port_data {
+ 	struct net_device __rcu *netdev;
+ 	struct hlist_node ndev_hash_link;
+ 	struct rdma_port_counter port_counter;
+-	struct rdma_hw_stats *hw_stats;
++	struct ib_port *sysfs;
  };
  
--static ssize_t cc_prescan_show(struct hfi1_pportdata *ppd, char *buf)
-+static ssize_t cc_prescan_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
- {
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi1_pportdata *ppd = &dd->pport[port_num - 1];
-+
- 	return sysfs_emit(buf, "%s\n", ppd->cc_prescan ? "on" : "off");
- }
- 
--static ssize_t cc_prescan_store(struct hfi1_pportdata *ppd, const char *buf,
-+static ssize_t cc_prescan_store(struct ib_device *ibdev, u32 port_num,
-+				struct ib_port_attribute *attr, const char *buf,
- 				size_t count)
- {
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi1_pportdata *ppd = &dd->pport[port_num - 1];
-+
- 	if (!memcmp(buf, "on", 2))
- 		ppd->cc_prescan = true;
- 	else if (!memcmp(buf, "off", 3))
-@@ -164,60 +165,41 @@ static ssize_t cc_prescan_store(struct hfi1_pportdata *ppd, const char *buf,
- 
- 	return count;
- }
-+static IB_PORT_ATTR_ADMIN_RW(cc_prescan);
- 
--static struct hfi1_port_attr cc_prescan_attr =
--		__ATTR(cc_prescan, 0600, cc_prescan_show, cc_prescan_store);
--
--static ssize_t cc_attr_show(struct kobject *kobj, struct attribute *attr,
--			    char *buf)
--{
--	struct hfi1_port_attr *port_attr =
--		container_of(attr, struct hfi1_port_attr, attr);
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
--
--	return port_attr->show(ppd, buf);
--}
--
--static ssize_t cc_attr_store(struct kobject *kobj, struct attribute *attr,
--			     const char *buf, size_t count)
--{
--	struct hfi1_port_attr *port_attr =
--		container_of(attr, struct hfi1_port_attr, attr);
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, pport_cc_kobj);
--
--	return port_attr->store(ppd, buf, count);
--}
--
--static const struct sysfs_ops port_cc_sysfs_ops = {
--	.show = cc_attr_show,
--	.store = cc_attr_store
--};
--
--static struct attribute *port_cc_default_attributes[] = {
--	&cc_prescan_attr.attr,
-+static struct attribute *port_cc_attributes[] = {
-+	&ib_port_attr_cc_prescan.attr,
- 	NULL
- };
- 
--static struct kobj_type port_cc_ktype = {
--	.release = port_release,
--	.sysfs_ops = &port_cc_sysfs_ops,
--	.default_attrs = port_cc_default_attributes
-+static const struct attribute_group port_cc_group = {
-+	.name = "CCMgtA",
-+	.attrs = port_cc_attributes,
-+	.bin_attrs = port_cc_bin_attributes,
- };
- 
- /* Start sc2vl */
--#define HFI1_SC2VL_ATTR(N)				    \
--	static struct hfi1_sc2vl_attr hfi1_sc2vl_attr_##N = { \
--		.attr = { .name = __stringify(N), .mode = 0444 }, \
--		.sc = N \
--	}
--
- struct hfi1_sc2vl_attr {
--	struct attribute attr;
-+	struct ib_port_attribute attr;
- 	int sc;
- };
- 
-+static ssize_t sc2vl_attr_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi1_sc2vl_attr *sattr =
-+		container_of(attr, struct hfi1_sc2vl_attr, attr);
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+
-+	return sysfs_emit(buf, "%u\n", *((u8 *)dd->sc2vl + sattr->sc));
-+}
-+
-+#define HFI1_SC2VL_ATTR(N)                                                     \
-+	static struct hfi1_sc2vl_attr hfi1_sc2vl_attr_##N = {                  \
-+		.attr = __ATTR(N, 0444, sc2vl_attr_show, NULL),                \
-+		.sc = N,                                                       \
-+	}
-+
- HFI1_SC2VL_ATTR(0);
- HFI1_SC2VL_ATTR(1);
- HFI1_SC2VL_ATTR(2);
-@@ -251,78 +233,70 @@ HFI1_SC2VL_ATTR(29);
- HFI1_SC2VL_ATTR(30);
- HFI1_SC2VL_ATTR(31);
- 
--static struct attribute *sc2vl_default_attributes[] = {
--	&hfi1_sc2vl_attr_0.attr,
--	&hfi1_sc2vl_attr_1.attr,
--	&hfi1_sc2vl_attr_2.attr,
--	&hfi1_sc2vl_attr_3.attr,
--	&hfi1_sc2vl_attr_4.attr,
--	&hfi1_sc2vl_attr_5.attr,
--	&hfi1_sc2vl_attr_6.attr,
--	&hfi1_sc2vl_attr_7.attr,
--	&hfi1_sc2vl_attr_8.attr,
--	&hfi1_sc2vl_attr_9.attr,
--	&hfi1_sc2vl_attr_10.attr,
--	&hfi1_sc2vl_attr_11.attr,
--	&hfi1_sc2vl_attr_12.attr,
--	&hfi1_sc2vl_attr_13.attr,
--	&hfi1_sc2vl_attr_14.attr,
--	&hfi1_sc2vl_attr_15.attr,
--	&hfi1_sc2vl_attr_16.attr,
--	&hfi1_sc2vl_attr_17.attr,
--	&hfi1_sc2vl_attr_18.attr,
--	&hfi1_sc2vl_attr_19.attr,
--	&hfi1_sc2vl_attr_20.attr,
--	&hfi1_sc2vl_attr_21.attr,
--	&hfi1_sc2vl_attr_22.attr,
--	&hfi1_sc2vl_attr_23.attr,
--	&hfi1_sc2vl_attr_24.attr,
--	&hfi1_sc2vl_attr_25.attr,
--	&hfi1_sc2vl_attr_26.attr,
--	&hfi1_sc2vl_attr_27.attr,
--	&hfi1_sc2vl_attr_28.attr,
--	&hfi1_sc2vl_attr_29.attr,
--	&hfi1_sc2vl_attr_30.attr,
--	&hfi1_sc2vl_attr_31.attr,
-+static struct attribute *port_sc2vl_attributes[] = {
-+	&hfi1_sc2vl_attr_0.attr.attr,
-+	&hfi1_sc2vl_attr_1.attr.attr,
-+	&hfi1_sc2vl_attr_2.attr.attr,
-+	&hfi1_sc2vl_attr_3.attr.attr,
-+	&hfi1_sc2vl_attr_4.attr.attr,
-+	&hfi1_sc2vl_attr_5.attr.attr,
-+	&hfi1_sc2vl_attr_6.attr.attr,
-+	&hfi1_sc2vl_attr_7.attr.attr,
-+	&hfi1_sc2vl_attr_8.attr.attr,
-+	&hfi1_sc2vl_attr_9.attr.attr,
-+	&hfi1_sc2vl_attr_10.attr.attr,
-+	&hfi1_sc2vl_attr_11.attr.attr,
-+	&hfi1_sc2vl_attr_12.attr.attr,
-+	&hfi1_sc2vl_attr_13.attr.attr,
-+	&hfi1_sc2vl_attr_14.attr.attr,
-+	&hfi1_sc2vl_attr_15.attr.attr,
-+	&hfi1_sc2vl_attr_16.attr.attr,
-+	&hfi1_sc2vl_attr_17.attr.attr,
-+	&hfi1_sc2vl_attr_18.attr.attr,
-+	&hfi1_sc2vl_attr_19.attr.attr,
-+	&hfi1_sc2vl_attr_20.attr.attr,
-+	&hfi1_sc2vl_attr_21.attr.attr,
-+	&hfi1_sc2vl_attr_22.attr.attr,
-+	&hfi1_sc2vl_attr_23.attr.attr,
-+	&hfi1_sc2vl_attr_24.attr.attr,
-+	&hfi1_sc2vl_attr_25.attr.attr,
-+	&hfi1_sc2vl_attr_26.attr.attr,
-+	&hfi1_sc2vl_attr_27.attr.attr,
-+	&hfi1_sc2vl_attr_28.attr.attr,
-+	&hfi1_sc2vl_attr_29.attr.attr,
-+	&hfi1_sc2vl_attr_30.attr.attr,
-+	&hfi1_sc2vl_attr_31.attr.attr,
- 	NULL
- };
- 
--static ssize_t sc2vl_attr_show(struct kobject *kobj, struct attribute *attr,
--			       char *buf)
--{
--	struct hfi1_sc2vl_attr *sattr =
--		container_of(attr, struct hfi1_sc2vl_attr, attr);
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, sc2vl_kobj);
--	struct hfi1_devdata *dd = ppd->dd;
--
--	return sysfs_emit(buf, "%u\n", *((u8 *)dd->sc2vl + sattr->sc));
--}
--
--static const struct sysfs_ops hfi1_sc2vl_ops = {
--	.show = sc2vl_attr_show,
-+static const struct attribute_group port_sc2vl_group = {
-+	.name = "sc2vl",
-+	.attrs = port_sc2vl_attributes,
- };
--
--static struct kobj_type hfi1_sc2vl_ktype = {
--	.release = port_release,
--	.sysfs_ops = &hfi1_sc2vl_ops,
--	.default_attrs = sc2vl_default_attributes
--};
--
- /* End sc2vl */
- 
- /* Start sl2sc */
--#define HFI1_SL2SC_ATTR(N)				    \
--	static struct hfi1_sl2sc_attr hfi1_sl2sc_attr_##N = {	  \
--		.attr = { .name = __stringify(N), .mode = 0444 }, \
--		.sl = N						  \
--	}
--
- struct hfi1_sl2sc_attr {
--	struct attribute attr;
-+	struct ib_port_attribute attr;
- 	int sl;
- };
- 
-+static ssize_t sl2sc_attr_show(struct ib_device *ibdev, u32 port_num,
-+			       struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi1_sl2sc_attr *sattr =
-+		container_of(attr, struct hfi1_sl2sc_attr, attr);
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	struct hfi1_ibport *ibp = &dd->pport[port_num - 1].ibport_data;
-+
-+	return sysfs_emit(buf, "%u\n", ibp->sl_to_sc[sattr->sl]);
-+}
-+
-+#define HFI1_SL2SC_ATTR(N)                                                     \
-+	static struct hfi1_sl2sc_attr hfi1_sl2sc_attr_##N = {                  \
-+		.attr = __ATTR(N, 0444, sl2sc_attr_show, NULL), .sl = N        \
-+	}
-+
- HFI1_SL2SC_ATTR(0);
- HFI1_SL2SC_ATTR(1);
- HFI1_SL2SC_ATTR(2);
-@@ -356,79 +330,72 @@ HFI1_SL2SC_ATTR(29);
- HFI1_SL2SC_ATTR(30);
- HFI1_SL2SC_ATTR(31);
- 
--static struct attribute *sl2sc_default_attributes[] = {
--	&hfi1_sl2sc_attr_0.attr,
--	&hfi1_sl2sc_attr_1.attr,
--	&hfi1_sl2sc_attr_2.attr,
--	&hfi1_sl2sc_attr_3.attr,
--	&hfi1_sl2sc_attr_4.attr,
--	&hfi1_sl2sc_attr_5.attr,
--	&hfi1_sl2sc_attr_6.attr,
--	&hfi1_sl2sc_attr_7.attr,
--	&hfi1_sl2sc_attr_8.attr,
--	&hfi1_sl2sc_attr_9.attr,
--	&hfi1_sl2sc_attr_10.attr,
--	&hfi1_sl2sc_attr_11.attr,
--	&hfi1_sl2sc_attr_12.attr,
--	&hfi1_sl2sc_attr_13.attr,
--	&hfi1_sl2sc_attr_14.attr,
--	&hfi1_sl2sc_attr_15.attr,
--	&hfi1_sl2sc_attr_16.attr,
--	&hfi1_sl2sc_attr_17.attr,
--	&hfi1_sl2sc_attr_18.attr,
--	&hfi1_sl2sc_attr_19.attr,
--	&hfi1_sl2sc_attr_20.attr,
--	&hfi1_sl2sc_attr_21.attr,
--	&hfi1_sl2sc_attr_22.attr,
--	&hfi1_sl2sc_attr_23.attr,
--	&hfi1_sl2sc_attr_24.attr,
--	&hfi1_sl2sc_attr_25.attr,
--	&hfi1_sl2sc_attr_26.attr,
--	&hfi1_sl2sc_attr_27.attr,
--	&hfi1_sl2sc_attr_28.attr,
--	&hfi1_sl2sc_attr_29.attr,
--	&hfi1_sl2sc_attr_30.attr,
--	&hfi1_sl2sc_attr_31.attr,
-+static struct attribute *port_sl2sc_attributes[] = {
-+	&hfi1_sl2sc_attr_0.attr.attr,
-+	&hfi1_sl2sc_attr_1.attr.attr,
-+	&hfi1_sl2sc_attr_2.attr.attr,
-+	&hfi1_sl2sc_attr_3.attr.attr,
-+	&hfi1_sl2sc_attr_4.attr.attr,
-+	&hfi1_sl2sc_attr_5.attr.attr,
-+	&hfi1_sl2sc_attr_6.attr.attr,
-+	&hfi1_sl2sc_attr_7.attr.attr,
-+	&hfi1_sl2sc_attr_8.attr.attr,
-+	&hfi1_sl2sc_attr_9.attr.attr,
-+	&hfi1_sl2sc_attr_10.attr.attr,
-+	&hfi1_sl2sc_attr_11.attr.attr,
-+	&hfi1_sl2sc_attr_12.attr.attr,
-+	&hfi1_sl2sc_attr_13.attr.attr,
-+	&hfi1_sl2sc_attr_14.attr.attr,
-+	&hfi1_sl2sc_attr_15.attr.attr,
-+	&hfi1_sl2sc_attr_16.attr.attr,
-+	&hfi1_sl2sc_attr_17.attr.attr,
-+	&hfi1_sl2sc_attr_18.attr.attr,
-+	&hfi1_sl2sc_attr_19.attr.attr,
-+	&hfi1_sl2sc_attr_20.attr.attr,
-+	&hfi1_sl2sc_attr_21.attr.attr,
-+	&hfi1_sl2sc_attr_22.attr.attr,
-+	&hfi1_sl2sc_attr_23.attr.attr,
-+	&hfi1_sl2sc_attr_24.attr.attr,
-+	&hfi1_sl2sc_attr_25.attr.attr,
-+	&hfi1_sl2sc_attr_26.attr.attr,
-+	&hfi1_sl2sc_attr_27.attr.attr,
-+	&hfi1_sl2sc_attr_28.attr.attr,
-+	&hfi1_sl2sc_attr_29.attr.attr,
-+	&hfi1_sl2sc_attr_30.attr.attr,
-+	&hfi1_sl2sc_attr_31.attr.attr,
- 	NULL
- };
- 
--static ssize_t sl2sc_attr_show(struct kobject *kobj, struct attribute *attr,
--			       char *buf)
--{
--	struct hfi1_sl2sc_attr *sattr =
--		container_of(attr, struct hfi1_sl2sc_attr, attr);
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, sl2sc_kobj);
--	struct hfi1_ibport *ibp = &ppd->ibport_data;
--
--	return sysfs_emit(buf, "%u\n", ibp->sl_to_sc[sattr->sl]);
--}
--
--static const struct sysfs_ops hfi1_sl2sc_ops = {
--	.show = sl2sc_attr_show,
--};
--
--static struct kobj_type hfi1_sl2sc_ktype = {
--	.release = port_release,
--	.sysfs_ops = &hfi1_sl2sc_ops,
--	.default_attrs = sl2sc_default_attributes
-+static const struct attribute_group port_sl2sc_group = {
-+	.name = "sl2sc",
-+	.attrs = port_sl2sc_attributes,
- };
- 
- /* End sl2sc */
- 
- /* Start vl2mtu */
- 
--#define HFI1_VL2MTU_ATTR(N) \
--	static struct hfi1_vl2mtu_attr hfi1_vl2mtu_attr_##N = { \
--		.attr = { .name = __stringify(N), .mode = 0444 }, \
--		.vl = N						  \
--	}
--
- struct hfi1_vl2mtu_attr {
--	struct attribute attr;
-+	struct ib_port_attribute attr;
- 	int vl;
- };
- 
-+static ssize_t vl2mtu_attr_show(struct ib_device *ibdev, u32 port_num,
-+				struct ib_port_attribute *attr, char *buf)
-+{
-+	struct hfi1_vl2mtu_attr *vlattr =
-+		container_of(attr, struct hfi1_vl2mtu_attr, attr);
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+
-+	return sysfs_emit(buf, "%u\n", dd->vld[vlattr->vl].mtu);
-+}
-+
-+#define HFI1_VL2MTU_ATTR(N)                                                    \
-+	static struct hfi1_vl2mtu_attr hfi1_vl2mtu_attr_##N = {                \
-+		.attr = __ATTR(N, 0444, vl2mtu_attr_show, NULL),               \
-+		.vl = N,                                                       \
-+	}
-+
- HFI1_VL2MTU_ATTR(0);
- HFI1_VL2MTU_ATTR(1);
- HFI1_VL2MTU_ATTR(2);
-@@ -446,46 +413,29 @@ HFI1_VL2MTU_ATTR(13);
- HFI1_VL2MTU_ATTR(14);
- HFI1_VL2MTU_ATTR(15);
- 
--static struct attribute *vl2mtu_default_attributes[] = {
--	&hfi1_vl2mtu_attr_0.attr,
--	&hfi1_vl2mtu_attr_1.attr,
--	&hfi1_vl2mtu_attr_2.attr,
--	&hfi1_vl2mtu_attr_3.attr,
--	&hfi1_vl2mtu_attr_4.attr,
--	&hfi1_vl2mtu_attr_5.attr,
--	&hfi1_vl2mtu_attr_6.attr,
--	&hfi1_vl2mtu_attr_7.attr,
--	&hfi1_vl2mtu_attr_8.attr,
--	&hfi1_vl2mtu_attr_9.attr,
--	&hfi1_vl2mtu_attr_10.attr,
--	&hfi1_vl2mtu_attr_11.attr,
--	&hfi1_vl2mtu_attr_12.attr,
--	&hfi1_vl2mtu_attr_13.attr,
--	&hfi1_vl2mtu_attr_14.attr,
--	&hfi1_vl2mtu_attr_15.attr,
-+static struct attribute *port_vl2mtu_attributes[] = {
-+	&hfi1_vl2mtu_attr_0.attr.attr,
-+	&hfi1_vl2mtu_attr_1.attr.attr,
-+	&hfi1_vl2mtu_attr_2.attr.attr,
-+	&hfi1_vl2mtu_attr_3.attr.attr,
-+	&hfi1_vl2mtu_attr_4.attr.attr,
-+	&hfi1_vl2mtu_attr_5.attr.attr,
-+	&hfi1_vl2mtu_attr_6.attr.attr,
-+	&hfi1_vl2mtu_attr_7.attr.attr,
-+	&hfi1_vl2mtu_attr_8.attr.attr,
-+	&hfi1_vl2mtu_attr_9.attr.attr,
-+	&hfi1_vl2mtu_attr_10.attr.attr,
-+	&hfi1_vl2mtu_attr_11.attr.attr,
-+	&hfi1_vl2mtu_attr_12.attr.attr,
-+	&hfi1_vl2mtu_attr_13.attr.attr,
-+	&hfi1_vl2mtu_attr_14.attr.attr,
-+	&hfi1_vl2mtu_attr_15.attr.attr,
- 	NULL
- };
- 
--static ssize_t vl2mtu_attr_show(struct kobject *kobj, struct attribute *attr,
--				char *buf)
--{
--	struct hfi1_vl2mtu_attr *vlattr =
--		container_of(attr, struct hfi1_vl2mtu_attr, attr);
--	struct hfi1_pportdata *ppd =
--		container_of(kobj, struct hfi1_pportdata, vl2mtu_kobj);
--	struct hfi1_devdata *dd = ppd->dd;
--
--	return sysfs_emit(buf, "%u\n", dd->vld[vlattr->vl].mtu);
--}
--
--static const struct sysfs_ops hfi1_vl2mtu_ops = {
--	.show = vl2mtu_attr_show,
--};
--
--static struct kobj_type hfi1_vl2mtu_ktype = {
--	.release = port_release,
--	.sysfs_ops = &hfi1_vl2mtu_ops,
--	.default_attrs = vl2mtu_default_attributes
-+static const struct attribute_group port_vl2mtu_group = {
-+	.name = "vl2mtu",
-+	.attrs = port_vl2mtu_attributes,
- };
- 
- /* end of per-port file structures and support code */
-@@ -649,100 +599,17 @@ const struct attribute_group ib_hfi1_attr_group = {
- 	.attrs = hfi1_attributes,
- };
- 
-+static const struct attribute_group *hfi1_port_groups[] = {
-+	&port_sc2vl_group,
-+	&port_sl2sc_group,
-+	&port_vl2mtu_group,
-+	NULL,
-+};
-+
- int hfi1_create_port_files(struct ib_device *ibdev, u32 port_num,
- 			   struct kobject *kobj)
- {
--	struct hfi1_pportdata *ppd;
--	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
--	int ret;
--
--	if (!port_num || port_num > dd->num_pports) {
--		dd_dev_err(dd,
--			   "Skipping infiniband class with invalid port %u\n",
--			   port_num);
--		return -ENODEV;
--	}
--	ppd = &dd->pport[port_num - 1];
--
--	ret = kobject_init_and_add(&ppd->sc2vl_kobj, &hfi1_sc2vl_ktype, kobj,
--				   "sc2vl");
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping sc2vl sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		/*
--		 * Based on the documentation for kobject_init_and_add(), the
--		 * caller should call kobject_put even if this call fails.
--		 */
--		goto bail_sc2vl;
--	}
--	kobject_uevent(&ppd->sc2vl_kobj, KOBJ_ADD);
--
--	ret = kobject_init_and_add(&ppd->sl2sc_kobj, &hfi1_sl2sc_ktype, kobj,
--				   "sl2sc");
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping sl2sc sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		goto bail_sl2sc;
--	}
--	kobject_uevent(&ppd->sl2sc_kobj, KOBJ_ADD);
--
--	ret = kobject_init_and_add(&ppd->vl2mtu_kobj, &hfi1_vl2mtu_ktype, kobj,
--				   "vl2mtu");
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping vl2mtu sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		goto bail_vl2mtu;
--	}
--	kobject_uevent(&ppd->vl2mtu_kobj, KOBJ_ADD);
--
--	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &port_cc_ktype,
--				   kobj, "CCMgtA");
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping Congestion Control sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		goto bail_cc;
--	}
--
--	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
--
--	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj, &cc_setting_bin_attr);
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		goto bail_cc;
--	}
--
--	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj, &cc_table_bin_attr);
--	if (ret) {
--		dd_dev_err(dd,
--			   "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
--			   ret, port_num);
--		goto bail_cc_entry_bin;
--	}
--
--	dd_dev_info(dd,
--		    "Congestion Control Agent enabled for port %d\n",
--		    port_num);
--
--	return 0;
--
--bail_cc_entry_bin:
--	sysfs_remove_bin_file(&ppd->pport_cc_kobj,
--			      &cc_setting_bin_attr);
--bail_cc:
--	kobject_put(&ppd->pport_cc_kobj);
--bail_vl2mtu:
--	kobject_put(&ppd->vl2mtu_kobj);
--bail_sl2sc:
--	kobject_put(&ppd->sl2sc_kobj);
--bail_sc2vl:
--	kobject_put(&ppd->sc2vl_kobj);
--	return ret;
-+	return ib_port_sysfs_create_groups(ibdev, port_num, hfi1_port_groups);
- }
- 
- struct sde_attribute {
-@@ -868,23 +735,13 @@ int hfi1_verbs_register_sysfs(struct hfi1_devdata *dd)
-  */
- void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd)
- {
--	struct hfi1_pportdata *ppd;
- 	int i;
- 
- 	/* Unwind operations in hfi1_verbs_register_sysfs() */
- 	for (i = 0; i < dd->num_sdma; i++)
- 		kobject_put(&dd->per_sdma[i].kobj);
- 
--	for (i = 0; i < dd->num_pports; i++) {
--		ppd = &dd->pport[i];
--
--		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
--				      &cc_setting_bin_attr);
--		sysfs_remove_bin_file(&ppd->pport_cc_kobj,
--				      &cc_table_bin_attr);
--		kobject_put(&ppd->pport_cc_kobj);
--		kobject_put(&ppd->vl2mtu_kobj);
--		kobject_put(&ppd->sl2sc_kobj);
--		kobject_put(&ppd->sc2vl_kobj);
--	}
-+	for (i = 0; i < dd->num_pports; i++)
-+		ib_port_sysfs_remove_groups(&dd->verbs_dev.rdi.ibdev, i + 1,
-+					    hfi1_port_groups);
- }
+ /* rdma netdev type - specifies protocol type */
 -- 
 2.31.1
 
