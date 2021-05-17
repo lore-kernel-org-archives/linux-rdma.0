@@ -7,64 +7,64 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31218C43460
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B9ADC43461
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 150046108B
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EDC361042
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235887AbhEQJU7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 May 2021 05:20:59 -0400
+        id S235900AbhEQJVF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 May 2021 05:21:05 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235894AbhEQJUm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:42 -0400
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A118C06138E
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:25 -0700 (PDT)
-Received: by mail-ej1-x62a.google.com with SMTP id l4so8090626ejc.10
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:25 -0700 (PDT)
+        with ESMTP id S235908AbhEQJUq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:46 -0400
+Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EA2BC061756
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:28 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id l1so8119938ejb.6
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=i04jIEHt0SHV5b8xWDkxZkH0VbzuRCFB00lLNNPbPvE=;
-        b=PNCzHoQYL3wR/UWhPsKy2fzUIpgTmwsJ2/TImMiFo+YpJYjdq2FXmXwEFnoJJeCelf
-         kgPaA4gRP4344Yh2Lla7H8mZBW9H4+z4+LodcNjSmlMRLdXA56vR3+jZHTZx1GuvQccj
-         PWKhFyLoKzfPGxmcmqK7McsNd0n/o/ioAj07r/iS+qozRXua4LbpY6jfAQCSGHmaXgcR
-         djjqicmqaDWTqJJfnKmq8JJ4WV5bbB1GV/1tJi8DLEF5Sodtkq1nKeP7APhX8XyIeOox
-         mQioyIdE0RuTN9uM8ipsDeCfJjAnlUuwchfy6tkUSUqICwMTcE4KZQvRKuK9TjPozrBu
-         mnLg==
+        bh=AFssk4vYn87Je19kU9X+lMnM4szgEIphFe9y5zVq/iY=;
+        b=M5HnIie45Fk67PiYjVv1n07D23/2m/7ZbN7iG6sfU4Hr9ekgJEqegBp/2BH81TOBqb
+         pZH2j4Dd3bES47UVx2b78wpPbUUhCo0KzRE1f2zihiEonOC8NQKwrcm3QEQ8WbgYsdR1
+         LMzmkqYoX3L9SQSjSLmx9J/FCF1KQb3ZOZ6LBbSPJz2DkJ6cBtETRtH34qKl/7SFUtys
+         +gffZNt+kNePbMiXJsHy6NNr7Dr2xTQzwO6O35mJVvu0oHhmr82ce5SEHXo92AdKd7Rt
+         0+9zpMMDIU1wYVtNzGg6byZzCIrxRVqtYRsMUZBXngQA8K/LcePVTLDLReeGzFQlzP6F
+         SOag==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=i04jIEHt0SHV5b8xWDkxZkH0VbzuRCFB00lLNNPbPvE=;
-        b=ryNo4VMFtnbk3YIVAu+Opx183sDTlAUWhPMG+sqXD3cI+2hv0ZSMUq1gVZ/8llODSL
-         WBtWOq9KE6MxoxnBrIWGGBMiSo6oH24TavExlJt1hXkE+uNgoIfF/wGIQM+UequqLdRD
-         LOx5l1SaC8UjrepzQ3ftOQgElBSYm0qKKgzAFeDdfQRfroZR2kNTXK+MUs+ejOvjKLvk
-         vLyYUzKJZCEbKTjFCc2kCBC/oDdgWY2q2fByEo2HAI86OdIbMmD9UUWGbwpleRMiMgn+
-         SbkOudc1uppEDW2Vp3RSMRTji1TPHeLrisEJfq6AmrhxBDiJfZYMGbqYaoxSbuizZ5Xw
-         XA2A==
-X-Gm-Message-State: AOAM533KVMMRw5HAaBfMD9yHz9spU7tIwqz/M1HlP6Ax8HOvmJ+4A00j
-        NSJM+ChFXADEX5u/nqsRTOMQpU1ZHz0lVg==
-X-Google-Smtp-Source: ABdhPJwzkgRuv19uObHmhS5aQvuO4ZqGiQD8P/mF339R4PBxGTkeTRq/r4C/qHBiihav92zEcnq4oQ==
-X-Received: by 2002:a17:906:1e44:: with SMTP id i4mr60367937ejj.61.1621243163724;
-        Mon, 17 May 2021 02:19:23 -0700 (PDT)
+        bh=AFssk4vYn87Je19kU9X+lMnM4szgEIphFe9y5zVq/iY=;
+        b=pfnPikotH34uqruf6BHFSdR5hFJl+YPpLKTTePVej3CDm3u5eLT9w7ipw+6yzGVSca
+         1yPrC4aWm1qNaS2BzbUVeLx7+1Ilmjlzm2zHKFMRtUFoTXIpe26lhv1Dq/s+mmKeKfDd
+         YvpTt5TR8I/b5hcGOyrIkN+epyqiZl8uKNLJGqv6bZMydNw3INRSgVqtKUs78/3UTArH
+         aEyBoaOOMG7N6s6E4BNBvxIU6rd16EyWl1TevheeIppjRtCdi46CWmo0DPeAzEL3VXWg
+         KOpjb6D7NgwMu/n7Wk9OP4/KPh/8yq+KMT0AHAXRHM7rIqqm58GuJp6ImPTb0DqUmItb
+         nfDw==
+X-Gm-Message-State: AOAM533dI85Tlj2ZConNooao9b3Ez3vKdyv/vJMc6GfkV1jnCQHL55lv
+        WAZmBswbYo6iGoE7QYXVE0PVhjykyBtYNA==
+X-Google-Smtp-Source: ABdhPJxzv4dhKhCSUji6tB8HaCyNUggHPNGQ51KlWSZwznJZjiSik/v6Dz1TFOZJO8yfyjiSM2goOw==
+X-Received: by 2002:a17:906:170f:: with SMTP id c15mr60385477eje.358.1621243167169;
+        Mon, 17 May 2021 02:19:27 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
-        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.23
+        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 May 2021 02:19:23 -0700 (PDT)
+        Mon, 17 May 2021 02:19:27 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
-        Guoqing Jiang <guoqing.jiang@ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv2 for-next 11/19] RDMA/rtrs-clt: Remove redundant 'break'
-Date:   Mon, 17 May 2021 11:18:35 +0200
-Message-Id: <20210517091844.260810-12-gi-oh.kim@ionos.com>
+        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
+        Gioh Kim <gi-oh.kim@ionos.com>,
+        Aleksei Marov <aleksei.marov@ionos.com>
+Subject: [PATCHv2 for-next 15/19] RDMA/rtrs-srv: Duplicated session name is not allowed
+Date:   Mon, 17 May 2021 11:18:39 +0200
+Message-Id: <20210517091844.260810-16-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210517091844.260810-1-gi-oh.kim@ionos.com>
 References: <20210517091844.260810-1-gi-oh.kim@ionos.com>
@@ -74,29 +74,90 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
 
-It is duplicated with the very next line
+If two clients try to use the same session name, rtrs-server generates a
+kernel error that it failed to create the sysfs because the filename
+is duplicated.
 
-Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
-Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+This patch adds code to check if there already exists the same session
+name with the different UUID. If a client tries to add more session,
+it sends the UUID and the session name. Therefore it is ok if there is
+already same session name with the same UUID. The rtrs-server must fail
+only-if there is the same session name with the different UUID.
+
 Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Signed-off-by: Aleksei Marov <aleksei.marov@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 42 +++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 1de72784e1c0..757a4394fdb6 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -655,7 +655,6 @@ static void rtrs_clt_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
- 			rtrs_err(con->c.sess, "rtrs_post_recv_empty(): %d\n",
- 				  err);
- 			rtrs_rdma_error_recovery(con);
--			break;
- 		}
- 		break;
- 	case IB_WC_RECV:
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index f66f2be9f519..0e1e303dcbee 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -753,7 +753,40 @@ static void rtrs_srv_sess_down(struct rtrs_srv_sess *sess)
+ 	mutex_unlock(&srv->paths_ev_mutex);
+ }
+ 
++static bool exist_sessname(struct rtrs_srv_ctx *ctx,
++			   const char *sessname, const uuid_t *path_uuid)
++{
++	struct rtrs_srv *srv;
++	struct rtrs_srv_sess *sess;
++	bool found = false;
++
++	mutex_lock(&ctx->srv_mutex);
++	list_for_each_entry(srv, &ctx->srv_list, ctx_list) {
++		mutex_lock(&srv->paths_mutex);
++
++		/* when a client with same uuid and same sessname tried to add a path */
++		if (uuid_equal(&srv->paths_uuid, path_uuid)) {
++			mutex_unlock(&srv->paths_mutex);
++			continue;
++		}
++
++		list_for_each_entry(sess, &srv->paths_list, s.entry) {
++			if (strlen(sess->s.sessname) == strlen(sessname) &&
++			    !strcmp(sess->s.sessname, sessname)) {
++				found = true;
++				break;
++			}
++		}
++		mutex_unlock(&srv->paths_mutex);
++		if (found)
++			break;
++	}
++	mutex_unlock(&ctx->srv_mutex);
++	return found;
++}
++
+ static int post_recv_sess(struct rtrs_srv_sess *sess);
++static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno);
+ 
+ static int process_info_req(struct rtrs_srv_con *con,
+ 			    struct rtrs_msg_info_req *msg)
+@@ -772,10 +805,17 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 		rtrs_err(s, "post_recv_sess(), err: %d\n", err);
+ 		return err;
+ 	}
++
++	if (exist_sessname(sess->srv->ctx,
++			   msg->sessname, &sess->srv->paths_uuid)) {
++		rtrs_err(s, "sessname is duplicated: %s\n", msg->sessname);
++		return -EPERM;
++	}
++	strscpy(sess->s.sessname, msg->sessname, sizeof(sess->s.sessname));
++
+ 	rwr = kcalloc(sess->mrs_num, sizeof(*rwr), GFP_KERNEL);
+ 	if (unlikely(!rwr))
+ 		return -ENOMEM;
+-	strscpy(sess->s.sessname, msg->sessname, sizeof(sess->s.sessname));
+ 
+ 	tx_sz  = sizeof(*rsp);
+ 	tx_sz += sizeof(rsp->desc[0]) * sess->mrs_num;
 -- 
 2.25.1
 
