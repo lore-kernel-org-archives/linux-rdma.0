@@ -7,64 +7,64 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98383C433ED
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F8CC433B4
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BF0C61042
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2647261042
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235883AbhEQJU4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S235882AbhEQJU4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 17 May 2021 05:20:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54970 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235882AbhEQJUm (ORCPT
+        with ESMTP id S235885AbhEQJUm (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:42 -0400
-Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2824CC06138A
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:22 -0700 (PDT)
-Received: by mail-ej1-x62d.google.com with SMTP id k14so4625925eji.2
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:22 -0700 (PDT)
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D21A7C06138C
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:23 -0700 (PDT)
+Received: by mail-ed1-x52f.google.com with SMTP id n25so6002031edr.5
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=sau5iekBbmjCCggqbzRjsAgo7kkG9VsIP1EEGY5j7Zc=;
-        b=Dw4pNwnsp4K/9S5lFpBS5A0i89eowUm+AEg0BtgBEy2s2qYVd1m0WI4q6GnFVU9DGM
-         7hY+gtBhaKBqQwyTWO1HGMZRVKBnizS3ErCPbKak9IqupOiXUwRSZCFQzFoST14cmPSo
-         2F1TZDn0zCwcjm1wk7p04uenIrPBq9B7zvK2aUCskf0eIHVnjbbPvsICtc1fn6IXDfE2
-         oU0Adn1DO7zRt5Pd3sgebCJFV/Myb76E894zjV0ACH4NOTyi6S1rKyQ8IChqTGFfBrP7
-         mo0S/QRTEjwGh1s6T5t6SjdvA7mxfpN2BRMTBCKtvq5LNKXILfHwd7dEOJHeZ5BEAUlP
-         1S9A==
+        bh=+GKl0MddXRuonEJEjz0CxXLWo+V6CCyFMssNddaPwzk=;
+        b=RZC/R7UaS7pH91P0stnbGX7SAaomxY5I/TX7qGjklYfHcnz6FVcuJhdAayEwPX3G/D
+         OHiXNZtrYDkHgKmvPV9eeQn+r4NDG3PnHZ9VAznaAuqeL0hIacioaRVU8Z4mENxC41ws
+         KKg7i8M21D0UxUkV0yuMVYxMP84cLdbgF25eRPjo/+lu7WbfBN6K9a0J6YRb0Tkwo9xL
+         daPWY3sTpTrhsun1KgcFT293AZZZScbhTUXvbRA0mp+DlMdQpBzb5aArmNK8O3Yx4PsW
+         MBPXNTg3rNvPmZmy4SUlakaN2n+GRt8/qiPBgNcPNZXMEtzdN1TELJPhCiHhrG0xbZYy
+         xVlw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=sau5iekBbmjCCggqbzRjsAgo7kkG9VsIP1EEGY5j7Zc=;
-        b=DQ7OEgKtWFzH8+DQFG/r6nIBawmh6CCiYyJ8LwYcdTjN2XTvgB46EAXUXsYYMRoxEb
-         tDZxFdGLfi2AUyCvMdIA7WCzXA6HqnTN0Uch/9kEl1es+w187nfXuQncYWmrFREKG8Kl
-         47XEIx5mjcE8ujvlYFLdUUh2zlpUTYMbmOuaaFkbU+3sWEG/l0eufP5pAI/YAGmyuFHT
-         GDC0MUwwF6kGvCjwQt06Tzn38FrJILN5Zp+vI0906XWDlOpDDGQFCj7R4cOZQ3jGfaXh
-         3AzIUwsuxy6nbeziU1lfYOBUhxnqSELeu1h/ZJpcOgXdkIMp5XWbza9qKsoz5mlz6bdL
-         F7rQ==
-X-Gm-Message-State: AOAM533qRiDetLd4fNzoJJ2d7MZIKSpzcsilCpWhpC6aTf1SoDNjJhbm
-        kUiquLDeY7+6/Qw8y7SXqH3yLKhBWhYmFA==
-X-Google-Smtp-Source: ABdhPJwnCZJDOstoqi7MS5V66nmYQ6U3gRLzmuC3aR8STpTtlzonoobTs43q8/0yf+OGj7DJ+oISGA==
-X-Received: by 2002:a17:906:14c1:: with SMTP id y1mr63147656ejc.481.1621243160745;
-        Mon, 17 May 2021 02:19:20 -0700 (PDT)
+        bh=+GKl0MddXRuonEJEjz0CxXLWo+V6CCyFMssNddaPwzk=;
+        b=MDva7HPM0WMjDlWASbSntgs6/tMYwtczVQ4EdGudnvtbi5MPb7ipnh1jhsj2os4dhA
+         0kmaqMcGepdE2MEhYIiCHCdM8liT6K6t+fEGFh7kz1lqM0aX8E13jz5NcJRCq4tmp2Gp
+         sFxR7Tsb5FOVrrq79RKCCBBgVepiHP7ag6D2sdmTGGEuRCm4uQfWPQqhNF0HneJLnZzI
+         3aizE9q7WV1MZYYmjp0aBu6IyRhOgAdDiAhBNT+N/JdmH+gyt5K2qOpho8qdYsPsl99L
+         dAl2ym36CLeghF3n/JYoD4iV8KRKCAFhS6rbUuaCnfeAiKcxbALo9WykZqQ5484cmDTV
+         cyAg==
+X-Gm-Message-State: AOAM533O5s1AmeYjEm8EOizzQcLKSrKGoMYm5bk6rdnnBhsQ1YS+1sLB
+        iK77TKALHXoWmZwJOfjbv7j1AQ+2ZPLViQ==
+X-Google-Smtp-Source: ABdhPJxBKtuasTYmlHRMbWhFbkQBJCBNpOO6heb8tskh97fWGZVz0+LX/wFirJ8TSkCnjc8g7AfzIA==
+X-Received: by 2002:a05:6402:40c:: with SMTP id q12mr37888257edv.0.1621243162400;
+        Mon, 17 May 2021 02:19:22 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
-        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.20
+        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 May 2021 02:19:20 -0700 (PDT)
+        Mon, 17 May 2021 02:19:22 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Dima Stepanov <dmitrii.stepanov@cloud.ionos.com>,
-        Dima Stepanov <dmitrii.stepanov@ionos.com>,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@ionos.com>,
         Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv2 for-next 07/19] RDMA/rtrs: Use strscpy instead of strlcpy
-Date:   Mon, 17 May 2021 11:18:31 +0200
-Message-Id: <20210517091844.260810-8-gi-oh.kim@ionos.com>
+Subject: [PATCHv2 for-next 09/19] RDMA/rtrs-clt: Kill rtrs_clt_disconnect_from_sysfs
+Date:   Mon, 17 May 2021 11:18:33 +0200
+Message-Id: <20210517091844.260810-10-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210517091844.260810-1-gi-oh.kim@ionos.com>
 References: <20210517091844.260810-1-gi-oh.kim@ionos.com>
@@ -74,73 +74,83 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dima Stepanov <dmitrii.stepanov@cloud.ionos.com>
+From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-During checkpatch analyzing the following warning message was found:
-  WARNING:STRLCPY: Prefer strscpy over strlcpy - see:
-  https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Fix it by using strscpy calls instead of strlcpy.
+The function is just a wrapper of rtrs_clt_close_conns, let's call
+rtrs_clt_close_conns directly.
 
-Signed-off-by: Dima Stepanov <dmitrii.stepanov@ionos.com>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 4 ++--
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 5 +----
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 9 +--------
+ drivers/infiniband/ulp/rtrs/rtrs-clt.h       | 2 +-
+ 3 files changed, 3 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+index 7d53d18a5004..4ee592ccf979 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
+@@ -250,7 +250,6 @@ static ssize_t rtrs_clt_disconnect_store(struct kobject *kobj,
+ 					  const char *buf, size_t count)
+ {
+ 	struct rtrs_clt_sess *sess;
+-	int ret;
+ 
+ 	sess = container_of(kobj, struct rtrs_clt_sess, kobj);
+ 	if (!sysfs_streq(buf, "1")) {
+@@ -258,9 +257,7 @@ static ssize_t rtrs_clt_disconnect_store(struct kobject *kobj,
+ 			  attr->attr.name, buf);
+ 		return -EINVAL;
+ 	}
+-	ret = rtrs_clt_disconnect_from_sysfs(sess);
+-	if (ret)
+-		return ret;
++	rtrs_clt_close_conns(sess, true);
+ 
+ 	return count;
+ }
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 930a1b496f84..a2505ea4a7a2 100644
+index 0f19c133b7cc..1de72784e1c0 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -1499,7 +1499,7 @@ static struct rtrs_clt_sess *alloc_sess(struct rtrs_clt *clt,
- 	if (path->src)
- 		memcpy(&sess->s.src_addr, path->src,
- 		       rdma_addr_size((struct sockaddr *)path->src));
--	strlcpy(sess->s.sessname, clt->sessname, sizeof(sess->s.sessname));
-+	strscpy(sess->s.sessname, clt->sessname, sizeof(sess->s.sessname));
- 	sess->s.con_num = con_num;
- 	sess->clt = clt;
- 	sess->max_pages_per_mr = max_segments * max_segment_size >> 12;
-@@ -2644,7 +2644,7 @@ static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
- 	clt->priv = priv;
- 	clt->link_ev = link_ev;
- 	clt->mp_policy = MP_POLICY_MIN_INFLIGHT;
--	strlcpy(clt->sessname, sessname, sizeof(clt->sessname));
-+	strscpy(clt->sessname, sessname, sizeof(clt->sessname));
- 	init_waitqueue_head(&clt->permits_wait);
- 	mutex_init(&clt->paths_ev_mutex);
- 	mutex_init(&clt->paths_mutex);
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 02bc704667a8..afa63f06586b 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -780,7 +780,7 @@ static int process_info_req(struct rtrs_srv_con *con,
- 	rwr = kcalloc(sess->mrs_num, sizeof(*rwr), GFP_KERNEL);
- 	if (unlikely(!rwr))
- 		return -ENOMEM;
--	strlcpy(sess->s.sessname, msg->sessname, sizeof(sess->s.sessname));
-+	strscpy(sess->s.sessname, msg->sessname, sizeof(sess->s.sessname));
+@@ -1849,7 +1849,7 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
+ 	return -ECONNRESET;
+ }
  
- 	tx_sz  = sizeof(*rsp);
- 	tx_sz += sizeof(rsp->desc[0]) * sess->mrs_num;
-@@ -1261,7 +1261,7 @@ int rtrs_srv_get_sess_name(struct rtrs_srv *srv, char *sessname, size_t len)
- 	list_for_each_entry(sess, &srv->paths_list, s.entry) {
- 		if (sess->state != RTRS_SRV_CONNECTED)
- 			continue;
--		strlcpy(sessname, sess->s.sessname,
-+		strscpy(sessname, sess->s.sessname,
- 		       min_t(size_t, sizeof(sess->s.sessname), len));
- 		err = 0;
- 		break;
-@@ -1715,7 +1715,7 @@ static struct rtrs_srv_sess *__alloc_sess(struct rtrs_srv *srv,
- 	path.src = &sess->s.src_addr;
- 	path.dst = &sess->s.dst_addr;
- 	rtrs_addr_to_str(&path, str, sizeof(str));
--	strlcpy(sess->s.sessname, str, sizeof(sess->s.sessname));
-+	strscpy(sess->s.sessname, str, sizeof(sess->s.sessname));
+-static void rtrs_clt_close_conns(struct rtrs_clt_sess *sess, bool wait)
++void rtrs_clt_close_conns(struct rtrs_clt_sess *sess, bool wait)
+ {
+ 	if (rtrs_clt_change_state_get_old(sess, RTRS_CLT_CLOSING, NULL))
+ 		queue_work(rtrs_wq, &sess->close_work);
+@@ -2824,13 +2824,6 @@ int rtrs_clt_reconnect_from_sysfs(struct rtrs_clt_sess *sess)
+ 	return err;
+ }
  
- 	sess->s.con_num = con_num;
- 	sess->s.recon_cnt = recon_cnt;
+-int rtrs_clt_disconnect_from_sysfs(struct rtrs_clt_sess *sess)
+-{
+-	rtrs_clt_close_conns(sess, true);
+-
+-	return 0;
+-}
+-
+ int rtrs_clt_remove_path_from_sysfs(struct rtrs_clt_sess *sess,
+ 				     const struct attribute *sysfs_self)
+ {
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
+index ef15927dfeda..0a0ea43d2b46 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
+@@ -203,7 +203,7 @@ static inline struct rtrs_permit *get_permit(struct rtrs_clt *clt, int idx)
+ }
+ 
+ int rtrs_clt_reconnect_from_sysfs(struct rtrs_clt_sess *sess);
+-int rtrs_clt_disconnect_from_sysfs(struct rtrs_clt_sess *sess);
++void rtrs_clt_close_conns(struct rtrs_clt_sess *sess, bool wait);
+ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt *clt,
+ 				     struct rtrs_addr *addr);
+ int rtrs_clt_remove_path_from_sysfs(struct rtrs_clt_sess *sess,
 -- 
 2.25.1
 
