@@ -2,203 +2,168 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 390CAC433B4
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 08:25:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF1FC433B4
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16574611EE
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 08:25:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE3E761042
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235633AbhEQI1E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 May 2021 04:27:04 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2995 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235423AbhEQI1D (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 04:27:03 -0400
-Received: from dggems705-chm.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4FkBvF2f8lzQpPG;
-        Mon, 17 May 2021 16:22:17 +0800 (CST)
-Received: from dggpemm500005.china.huawei.com (7.185.36.74) by
- dggems705-chm.china.huawei.com (10.3.19.182) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Mon, 17 May 2021 16:25:45 +0800
-Received: from [127.0.0.1] (10.69.30.204) by dggpemm500005.china.huawei.com
- (7.185.36.74) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2176.2; Mon, 17 May
- 2021 16:25:44 +0800
-Subject: Re: [PATCH net-next v5 3/5] page_pool: Allow drivers to hint on SKB
- recycling
-To:     Ilias Apalodimas <ilias.apalodimas@linaro.org>
-CC:     Matteo Croce <mcroce@linux.microsoft.com>,
-        <netdev@vger.kernel.org>, <linux-mm@kvack.org>,
-        Ayush Sawal <ayush.sawal@chelsio.com>,
-        "Vinay Kumar Yadav" <vinay.yadav@chelsio.com>,
-        Rohit Maheshwari <rohitm@chelsio.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Marcin Wojtas <mw@semihalf.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mirko Lindner <mlindner@marvell.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        "Tariq Toukan" <tariqt@nvidia.com>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        "Alexei Starovoitov" <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        "John Fastabend" <john.fastabend@gmail.com>,
-        Boris Pismenny <borisp@nvidia.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Vlastimil Babka <vbabka@suse.cz>, Yu Zhao <yuzhao@google.com>,
-        Will Deacon <will@kernel.org>,
-        Fenghua Yu <fenghua.yu@intel.com>,
-        Roman Gushchin <guro@fb.com>, Hugh Dickins <hughd@google.com>,
-        Peter Xu <peterx@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Alexander Lobakin <alobakin@pm.me>,
-        Cong Wang <cong.wang@bytedance.com>, wenxu <wenxu@ucloud.cn>,
-        Kevin Hao <haokexin@gmail.com>,
-        Jakub Sitnicki <jakub@cloudflare.com>,
-        Marco Elver <elver@google.com>,
-        Willem de Bruijn <willemb@google.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        Guillaume Nault <gnault@redhat.com>,
-        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <bpf@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>,
-        Eric Dumazet <edumazet@google.com>,
-        David Ahern <dsahern@gmail.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Andrew Lunn <andrew@lunn.ch>, Paolo Abeni <pabeni@redhat.com>,
-        Sven Auhagen <sven.auhagen@voleatech.de>
-References: <20210513165846.23722-1-mcroce@linux.microsoft.com>
- <20210513165846.23722-4-mcroce@linux.microsoft.com>
- <798d6dad-7950-91b2-46a5-3535f44df4e2@huawei.com>
- <YJ4ocslvURa/H+6f@apalos.home>
- <212498cf-376b-2dac-e1cd-12c7cc7910c6@huawei.com>
- <YJ5APhzabmAKIKCE@apalos.home>
- <cd0c0a2b-986e-a672-de7e-798ab2843d76@huawei.com>
- <YKIPcF9ACNmFtksz@enceladus>
-From:   Yunsheng Lin <linyunsheng@huawei.com>
-Message-ID: <fade4bc7-c1c7-517e-a775-0a5bb2e66be6@huawei.com>
-Date:   Mon, 17 May 2021 16:25:43 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.0
+        id S235913AbhEQJUm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 May 2021 05:20:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54930 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235906AbhEQJUf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:35 -0400
+Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D325BC061756
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:17 -0700 (PDT)
+Received: by mail-ej1-x62e.google.com with SMTP id b25so8132152eju.5
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=a6EI52IIlNI4w1Nlt/vfdZD9cdsfvEGqc5T/50OPfZE=;
+        b=HCMS7Is0fRrk3ofF1gCAKqFFwG6vXMZbxfLH4FJx5Tpi3GGSoKbeeuW3ziHB19iJvM
+         yzIIauDtn1gkZnctiPJnt9kwNJuhlx3GdjXkt9GmNPW3R5MxsHLyciKc5F/Caq6R08aM
+         4ZDipFKwb1FqMy/Tb21PYYdChzZomc9KWWH5/S/XW/bR71m4ge7MiUmhT12Gb3jAGcTQ
+         gxFyGSh7Q85hjOf1vNbHBDBCwvhTn5AdG2Xeuu0l1mwzinhpTENPxvh50wcqwqPAJmr2
+         DUOEbJM7GDS2tJ/z6AdmpGjm8Pg1fpAuRQQ56rpAeNlIqZr5HvpVUa62f3dbfhvuYpkv
+         PhAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=a6EI52IIlNI4w1Nlt/vfdZD9cdsfvEGqc5T/50OPfZE=;
+        b=kjL/WsqZoIiaxsKwxokCYJRDdzwrVTCjV5CxCa4BMTTi9oqFxQbDil3sM/NND4GuSv
+         jFkxd/tBM/befMn+inmybNPMkh5Zq1K4/QJiBFgbDP8XmRSpuAt2t+db85YeXzo5ldXl
+         MUMl8Q4lV03QQSEalW/8L9EVDAQXK5CivbyTSm2X48gNejeYaXLXN3kXzcKDwMmSLDOY
+         2Gh135/FiRdTr+8VkBe0DbKRvzlawrs2+sDT7vmH2mwJuAgtwqRZu09AdjQlNShVu2iJ
+         0n1yug/+GrgsEf+c1agsUVeRG3Xj37PvCAJqBf4jU5eXZmtm2bEe88id2J4SrNBBxSzQ
+         gCSg==
+X-Gm-Message-State: AOAM532eyI+0c2GMLwchDKJJIrgSb0dPWOhtHpIxfygL7sVoZjqFyRVm
+        UvSGD6ZvVipWhsLaMP/9WaLjCU1R0UIM7A==
+X-Google-Smtp-Source: ABdhPJxr8fWjPr5wSFW0rELfg9iGrnjK8U3kGOhtaFsL5sK41rRsB8A/74Xe1s8oTM9+iOBJ2QI56A==
+X-Received: by 2002:a17:906:bb0e:: with SMTP id jz14mr60487620ejb.285.1621243156468;
+        Mon, 17 May 2021 02:19:16 -0700 (PDT)
+Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
+        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 17 May 2021 02:19:16 -0700 (PDT)
+From:   Gioh Kim <gi-oh.kim@ionos.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
+        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@ionos.com>,
+        Gioh Kim <gi-oh.kim@ionos.com>
+Subject: [PATCHv2 for-next 01/19] RDMA/rtrs-srv: Kill reject_w_econnreset label
+Date:   Mon, 17 May 2021 11:18:25 +0200
+Message-Id: <20210517091844.260810-2-gi-oh.kim@ionos.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210517091844.260810-1-gi-oh.kim@ionos.com>
+References: <20210517091844.260810-1-gi-oh.kim@ionos.com>
 MIME-Version: 1.0
-In-Reply-To: <YKIPcF9ACNmFtksz@enceladus>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.69.30.204]
-X-ClientProxiedBy: dggeme712-chm.china.huawei.com (10.1.199.108) To
- dggpemm500005.china.huawei.com (7.185.36.74)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/5/17 14:38, Ilias Apalodimas wrote:
-> [...]
->>
->>>
->>>> Maybe we can add a parameter in "struct page_pool_params" to let driver
->>>> to decide if the page pool ptr is stored in page->pp while the page pool
->>>> owns the page?
->>>
->>> Then you'd have to check the page pool config before saving the meta-data,
->>
->> I am not sure what the "saving the meta-data" meant?
-> 
-> I was referring to struct page_pool* and the signature we store in struct
-> page.
-> 
->>
->>> and you would have to make the skb path aware of that as well (I assume you
->>> mean replace pp_recycle with this?).
->>
->> I meant we could set the in page->pp when the page is allocated from
->> alloc_pages() in __page_pool_alloc_pages_slow() unconditionally or
->> according to a newly add filed in pool->p, and only clear it in
->> page_pool_release_page(), between which the page is owned by page pool,
->> right?
->>
->>> If not and you just want to add an extra flag on page_pool_params and be able 
->>> to enable recycling depending on that flag, we just add a patch afterwards.
->>> I am not sure we need an extra if for each packet though.
->>
->> In that case, the skb_mark_for_recycle() could only set the skb->pp_recycle,
->> but not the pool->p.
->>
->>>
->>>>
->>>> Another thing accured to me is that if the driver use page from the
->>>> page pool to form a skb, and it does not call skb_mark_for_recycle(),
->>>> then there will be resource leaking, right? if yes, it seems the
->>>> skb_mark_for_recycle() call does not seems to add any value?
->>>>
->>>
->>> Not really, the driver has 2 choices:
->>> - call page_pool_release_page() once it receives the payload. That will
->>>   clean up dma mappings (if page pool is responsible for them) and free the
->>>   buffer
->>
->> The is only needed before SKB recycling is supported or the driver does not
->> want the SKB recycling support explicitly, right?
->>
-> 
-> This is needed in general even before recycling.  It's used to unmap the
-> buffer, so once you free the SKB you don't leave any stale DMA mappings.  So
-> that's what all the drivers that use page_pool call today.
+From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-As my understanding:
-1. If the driver is using page allocated from page allocator directly to
-   form a skb, let's say the page is owned by skb(or not owned by anyone:)),
-   when a skb is freed, the put_page() should be called.
+We can goto reject_w_err label after initialize err with -ECONNRESET.
 
-2. If the driver is using page allocated from page pool to form a skb, let's
-   say the page is owned by page pool, when a skb is freed, page_pool_put_page()
-   should be called.
+Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
+Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-What page_pool_release_page() mainly do is to make page in case 2 return back
-to case 1.
-
-And page_pool_release_page() is replaced with skb_mark_for_recycle() in patch
-4/5 to avoid the above "case 2" -> "case 1" changing, so that the page is still
-owned by page pool, right?
-
-So the point is that skb_mark_for_recycle() does not really do anything about
-the owner of the page, it is still owned by page pool, so it makes more sense
-to keep the page pool ptr instead of setting it every time when
-skb_mark_for_recycle() is called?
-
-> 
->>> - call skb_mark_for_recycle(). Which will end up recycling the buffer.
->>
->> If the driver need to add extra flag to enable recycling based on skb
->> instead of page pool, then adding skb_mark_for_recycle() makes sense to
->> me too, otherwise it seems adding a field in pool->p to recycling based
->> on skb makes more sense?
->>
-> 
-> The recycling is essentially an SKB feature though isn't it?  You achieve the
-> SKB recycling with the help of page_pool API, not the other way around.  So I
-> think this should remain on the SKB and maybe in the future find ways to turn
-> in on/off?
-
-As above, does it not make more sense to call page_pool_release_page() if the
-driver does not need the SKB recycling?
-
-Even if when skb->pp_recycle is 1, pages allocated from page allocator directly
-or page pool are both supported, so it seems page->signature need to be reliable
-to indicate a page is indeed owned by a page pool, which means the skb->pp_recycle
-is used mainly to short cut the code path for skb->pp_recycle is 0 case, so that
-the page->signature does not need checking?
-
-> 
-> Thanks
-> /Ilias
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 740cafffb7ef..3d09d01e34b4 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -1780,33 +1780,33 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 
+ 	u16 version, con_num, cid;
+ 	u16 recon_cnt;
+-	int err;
++	int err = -ECONNRESET;
+ 
+ 	if (len < sizeof(*msg)) {
+ 		pr_err("Invalid RTRS connection request\n");
+-		goto reject_w_econnreset;
++		goto reject_w_err;
+ 	}
+ 	if (le16_to_cpu(msg->magic) != RTRS_MAGIC) {
+ 		pr_err("Invalid RTRS magic\n");
+-		goto reject_w_econnreset;
++		goto reject_w_err;
+ 	}
+ 	version = le16_to_cpu(msg->version);
+ 	if (version >> 8 != RTRS_PROTO_VER_MAJOR) {
+ 		pr_err("Unsupported major RTRS version: %d, expected %d\n",
+ 		       version >> 8, RTRS_PROTO_VER_MAJOR);
+-		goto reject_w_econnreset;
++		goto reject_w_err;
+ 	}
+ 	con_num = le16_to_cpu(msg->cid_num);
+ 	if (con_num > 4096) {
+ 		/* Sanity check */
+ 		pr_err("Too many connections requested: %d\n", con_num);
+-		goto reject_w_econnreset;
++		goto reject_w_err;
+ 	}
+ 	cid = le16_to_cpu(msg->cid);
+ 	if (cid >= con_num) {
+ 		/* Sanity check */
+ 		pr_err("Incorrect cid: %d >= %d\n", cid, con_num);
+-		goto reject_w_econnreset;
++		goto reject_w_err;
+ 	}
+ 	recon_cnt = le16_to_cpu(msg->recon_cnt);
+ 	srv = get_or_create_srv(ctx, &msg->paths_uuid, msg->first_conn);
+@@ -1826,7 +1826,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 			rtrs_err(s, "Session in wrong state: %s\n",
+ 				  rtrs_srv_state_str(sess->state));
+ 			mutex_unlock(&srv->paths_mutex);
+-			goto reject_w_econnreset;
++			goto reject_w_err;
+ 		}
+ 		/*
+ 		 * Sanity checks
+@@ -1835,13 +1835,13 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 			rtrs_err(s, "Incorrect request: %d, %d\n",
+ 				  cid, con_num);
+ 			mutex_unlock(&srv->paths_mutex);
+-			goto reject_w_econnreset;
++			goto reject_w_err;
+ 		}
+ 		if (s->con[cid]) {
+ 			rtrs_err(s, "Connection already exists: %d\n",
+ 				  cid);
+ 			mutex_unlock(&srv->paths_mutex);
+-			goto reject_w_econnreset;
++			goto reject_w_err;
+ 		}
+ 	} else {
+ 		sess = __alloc_sess(srv, cm_id, con_num, recon_cnt,
+@@ -1882,9 +1882,6 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ reject_w_err:
+ 	return rtrs_rdma_do_reject(cm_id, err);
+ 
+-reject_w_econnreset:
+-	return rtrs_rdma_do_reject(cm_id, -ECONNRESET);
+-
+ close_and_return_err:
+ 	mutex_unlock(&srv->paths_mutex);
+ 	close_sess(sess);
+-- 
+2.25.1
 
