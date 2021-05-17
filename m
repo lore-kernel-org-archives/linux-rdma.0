@@ -7,63 +7,64 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58A0CC43460
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A270C43470
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EF1861042
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18F2161042
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 09:19:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235821AbhEQJUy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 May 2021 05:20:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54962 "EHLO
+        id S235863AbhEQJU4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 May 2021 05:20:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235911AbhEQJUl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:41 -0400
-Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BA37C0613ED
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:21 -0700 (PDT)
-Received: by mail-ed1-x52c.google.com with SMTP id t15so5965726edr.11
-        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:21 -0700 (PDT)
+        with ESMTP id S235883AbhEQJUm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 May 2021 05:20:42 -0400
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0480C06138B
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:22 -0700 (PDT)
+Received: by mail-ed1-x530.google.com with SMTP id h16so5995433edr.6
+        for <linux-rdma@vger.kernel.org>; Mon, 17 May 2021 02:19:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=5hfBn9GhMfx7I0EOUEgaTpDRmXZT14MLT0af7KVBCEc=;
-        b=SYuwFK5WT90Kv2mwVFuJ9Y0zU3I9R/tEqgH2j2Ns1D6B45UxC8VB4PZ3TF7g9+pJtp
-         llqcQ/oA/k3LYSQoQ/GV+UefhrgRY/OwZiOyXXWO+Hb50LszeDDAfGVTJ3bC1JvkmFIu
-         aiOZJKrnOwXYeqH0VKgFHX8Rr6tee4mBFE3iuY/PEWVSztD8nkScA0X7truiNmqtmL6/
-         E/B9AFuPhGafRX6X+gtx7BoYcB1sXnCDqBSD3rusWu0fJFF0oyvLl+1okVL/pHEEfujN
-         gto+0iIAJxdpHs5kDUDsc6TDqBQL1wqoSfSxVsIl/b3/76ezZ8gr9KgLe3liaBO508e5
-         3s7Q==
+        bh=QdCAwu4GIfez2JsFvxw8TKqtVpDtoR+sxsJV0Fs4i0A=;
+        b=heBIZhyeUYw+UYE4xtk17Vw7frMyzSMhXmHn3pBazFYq/eps8bjJOjvNEOkoppmLyZ
+         sRhs7q4N5mXBfS9cT8+XI4u3pTMeHVhvr4lVaq1BlwRbJwFSIZUbIPqqXkI6q0z3oJOF
+         gxeUf4VMqwrsF6eXyeKwBBmh5DTIa27OZA312J3i1HH8KQpP9etBezELdw5vzBoGgTI7
+         82ZV1j3VjzNHPtACPb75ay0Q0CnqodF+3WqSLEpuDEw8Gu0upBtv/kKjv6jwGPwJjR3g
+         2nV5HBKi5pIkfzxxPhEA4GXzg1Go2ET+ZGnPu1aMWnwnAVG6BHBnMq0OyJlQ/09pNpoK
+         qgKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=5hfBn9GhMfx7I0EOUEgaTpDRmXZT14MLT0af7KVBCEc=;
-        b=L/EfGZhvD87h8GfqUa95kOwIahi0WpbC4/C++Vdbsmn9Uf3cmBwgVpMU+80Vh6Aw2s
-         RFClT8U3jatquqkxGCW/qmznIj3a9ciVZnHgj7H39KEXygITWpnrnPjmcBIn5NuBiuXO
-         6YDy6QB3lDfpseAkQpM+QSxnStcfdyj4Z3mevc7Ew/C56WqZGZZmrfQQRdWNOwAmRGyH
-         wasWX5wgFHlFWRMW8dcf3Z9IXqKRlAC2WyX6JbMXlbCBiHK6c7iW067moNcdG6fUyT8v
-         sbRjtouso3cNSALcTHf6ZZjVNbHqVP3IQxEmTLQ0ivKwRYoAqT4WgLgDWmAGHgfdUUEa
-         GsfQ==
-X-Gm-Message-State: AOAM530m/g34XTZ6ZriEuH/u4hBkBd0MXq7BYzdG2f8KmzWqaaOdlFtF
-        FiEhCxS/IPRMXcJ9bXRDTRxt8G+qLlbSow==
-X-Google-Smtp-Source: ABdhPJzxrjorSrzvJoIghQhxHN4pSvzLwh9cDSVzi2nwWmCn+Dl3N1sjx8/LcrLMW6OfJhRK9B5QvA==
-X-Received: by 2002:a50:ff08:: with SMTP id a8mr38301725edu.46.1621243160077;
-        Mon, 17 May 2021 02:19:20 -0700 (PDT)
+        bh=QdCAwu4GIfez2JsFvxw8TKqtVpDtoR+sxsJV0Fs4i0A=;
+        b=cy7khMD/cXxxkzCcAjQl710dgQoCQAI3m7v9zO0MCgCE4/5qxQ+qPlhRt2EXZVsEJG
+         E03CoaIveb6jnCvfjlB2LNq0nCWj6euuH1VRNkkklbavbly/9WyzrBP/jEiQLWbHmGTt
+         vTRhSMIfROXSxgdn7aGakIxPd0CtiNWnFl4WWqbaHf+cVq93o6bO7GRHBPK5HzYgJMuD
+         D6FSz+qW+C0yAYUatTOHNfwIFv3kaVJN+OpJzIgG7jpXpDAHrF0BnQq3i5kO3tFzzI6l
+         NcdhyDVnbi9QFKZyWAZmf0t1dLl9V8kQr5O6hkC67pgprnCiYAFl/JSV2eIf1ypYseju
+         V4XA==
+X-Gm-Message-State: AOAM533lqeqAmmNYN5D4VleNrjbgvXmLk1kG5ozvXsN9F5P0gzCu0yxa
+        RYbEdcETqa9giuyackT98JO5+ejvU4bdXQ==
+X-Google-Smtp-Source: ABdhPJywDujAR5EM+JNlrn6es/HceFehWbpJb489HnVMy3805ocfAeWJud7NW3ycFPisThxzBJId7A==
+X-Received: by 2002:a05:6402:176f:: with SMTP id da15mr25646476edb.380.1621243161564;
+        Mon, 17 May 2021 02:19:21 -0700 (PDT)
 Received: from gkim-laptop.fkb.profitbricks.net (ip5f5aef30.dynamic.kabel-deutschland.de. [95.90.239.48])
-        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.19
+        by smtp.googlemail.com with ESMTPSA id g10sm7925845ejd.109.2021.05.17.02.19.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 May 2021 02:19:19 -0700 (PDT)
+        Mon, 17 May 2021 02:19:21 -0700 (PDT)
 From:   Gioh Kim <gi-oh.kim@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
         jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Gioh Kim <gi-oh.kim@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>,
+        Guoqing Jiang <guoqing.jiang@ionos.com>,
         Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv2 for-next 06/19] RDMA/rtrs: Define MIN_CHUNK_SIZE
-Date:   Mon, 17 May 2021 11:18:30 +0200
-Message-Id: <20210517091844.260810-7-gi-oh.kim@ionos.com>
+Subject: [PATCHv2 for-next 08/19] RDMA/rtrs-clt: Kill rtrs_clt_{start,stop}_hb
+Date:   Mon, 17 May 2021 11:18:32 +0200
+Message-Id: <20210517091844.260810-9-gi-oh.kim@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210517091844.260810-1-gi-oh.kim@ionos.com>
 References: <20210517091844.260810-1-gi-oh.kim@ionos.com>
@@ -73,45 +74,56 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 
-Define MIN_CHUNK_SIZE to replace the hard-coding number.
-We need 4k for metadata, so MIN_CHUNK_SIZE should be at least 8k.
+The two wrappers are not needed since we can call rtrs_{start,stop}_hb
+directly.
 
-Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-pri.h | 1 +
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-pri.h b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-index 62924ad5362d..a092f7d7c7b3 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-@@ -56,6 +56,7 @@ enum {
- 	 * somewhere between 1 and 65536 and it depends on the system.
- 	 */
- 	MAX_SESS_QUEUE_DEPTH = 65536,
-+	MIN_CHUNK_SIZE = 8192,
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index a2505ea4a7a2..0f19c133b7cc 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1449,16 +1449,6 @@ static void rtrs_clt_init_hb(struct rtrs_clt_sess *sess)
+ 		      rtrs_wq);
+ }
  
- 	RTRS_HB_INTERVAL_MS = 5000,
- 	RTRS_HB_MISSED_MAX = 5,
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 74a5dfe85813..02bc704667a8 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -2165,9 +2165,9 @@ static int check_module_params(void)
- 		       sess_queue_depth, 1, MAX_SESS_QUEUE_DEPTH);
- 		return -EINVAL;
- 	}
--	if (max_chunk_size < 4096 || !is_power_of_2(max_chunk_size)) {
-+	if (max_chunk_size < MIN_CHUNK_SIZE || !is_power_of_2(max_chunk_size)) {
- 		pr_err("Invalid max_chunk_size value %d, has to be >= %d and should be power of two.\n",
--		       max_chunk_size, 4096);
-+		       max_chunk_size, MIN_CHUNK_SIZE);
- 		return -EINVAL;
- 	}
+-static void rtrs_clt_start_hb(struct rtrs_clt_sess *sess)
+-{
+-	rtrs_start_hb(&sess->s);
+-}
+-
+-static void rtrs_clt_stop_hb(struct rtrs_clt_sess *sess)
+-{
+-	rtrs_stop_hb(&sess->s);
+-}
+-
+ static void rtrs_clt_reconnect_work(struct work_struct *work);
+ static void rtrs_clt_close_work(struct work_struct *work);
+ 
+@@ -2088,7 +2078,7 @@ static void rtrs_clt_stop_and_destroy_conns(struct rtrs_clt_sess *sess)
+ 	 */
+ 	synchronize_rcu();
+ 
+-	rtrs_clt_stop_hb(sess);
++	rtrs_stop_hb(&sess->s);
+ 
+ 	/*
+ 	 * The order it utterly crucial: firstly disconnect and complete all
+@@ -2281,7 +2271,7 @@ static int init_conns(struct rtrs_clt_sess *sess)
+ 	if (err)
+ 		goto destroy;
+ 
+-	rtrs_clt_start_hb(sess);
++	rtrs_start_hb(&sess->s);
+ 
+ 	return 0;
  
 -- 
 2.25.1
