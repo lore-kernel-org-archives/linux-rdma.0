@@ -8,608 +8,927 @@ X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 127ACC43603
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81524C43611
 	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E57CD61028
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 665D1611BF
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 May 2021 16:48:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239626AbhEQQti (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S240159AbhEQQti (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 17 May 2021 12:49:38 -0400
-Received: from mail-mw2nam10on2062.outbound.protection.outlook.com ([40.107.94.62]:7601
+Received: from mail-mw2nam10on2063.outbound.protection.outlook.com ([40.107.94.63]:14656
         "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S240701AbhEQQtS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 17 May 2021 12:49:18 -0400
+        id S241473AbhEQQt2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 17 May 2021 12:49:28 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=eFs7Z2y9lzfgCVEhDfhOIDRZzMsQrssAiEI4tgaadS6FCsngmcMfQIzmFRsz52oZkgJIG2I3Dc8z6fQ/X9mbzuQ6fWLkuwCDCfYAbAijgptUMEKStS0oZ4IqPjHz8WpEmtT6EGGTt0F+hgVsnVjPCCH8/3YEnHQ7p4DfjkxI0IzB8zYqtAPW7XjIvzqSH8YONKxCr4bDQ9oUbL4HmlnpOvInGmbkD/5SZbmg48/Q6gAVxi8MimK4PM6rxvYipZXj0NECyiJ4qDwuYC1HqUUKUbft1uwP4xSZt+18yOR8phj3IdSAZwAZg3lqqCHjBX55MNV7sAkNE2ijnY5F6EuA6g==
+ b=k8jB1GbFVNw7cAP4KwXHtmbddMFimOZyWHc7mfzF+e4Nr9wi/3yWzLFH4ZEo6rUIDy6XfWldgVsSbOrhJKVAADxasvDcjdq10V3XWkil8pTRcPWmEWCvLgi72XnxVXJO+EMgi++P6gnh36f5u15U82Vu/0X3VvSXvJeq6HMu0s9/nR2JMFQCFKXzOSACuav1bTNZ/nLyhNt01uruNbhTGKsO5Y81x9o85RkzIc9dDoGjHXxycXT8eL6IXrNS8haeCl0m6PoNDbNu2zpO4bTcnL8ee5oP9+7a0M2Qp/pEY3yJtzNX8pr+AGN0IHmY/NwN5Yul0e53Ft47bQY/eOR7Rw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ZHpOdrXBgajIh5l/zciUhVu/dVlG7o7N/a5l1oobY8U=;
- b=FU1+mczkvSBFKZGzhUPNSyAsLmxGrcq8zDGjoIi8rWnBPp2FCA329t65vXTbPmNh6DLSMTJHTW5oNenE5+rlytow3+/RY6UVE3eUqgNhKdVN5ILPuc+dyd/YEhaWQKAZoOL5REP5JvFY7wX7kT7OhCQJVLV3Sq5JsseiZb0Hl8h3f0gUfGnbxkdmEOamBAyOq12MwAkvQ1BJ2oH5YWJ4L+Z7qFHXvlZj8H5O5XRkSpptQ29J5s2q17h4BktdXlOc0kk7xpSKKfcQrCZIcGrAXWjiDQpcSrCJ38hLZ1YfJovpB0aedQCLHBaf9dakK0EhEuoBxnoOaUfpomXM+7C4Yw==
+ bh=D/IKekmtCEnhAqa/eOG0TcPSUJfIqBebcOmg/UY6vvg=;
+ b=A5GuiN4MtjdJ0vlrzJVxNp0jw3/Xtnq21Xg5hdtkYlXrNrR8kIgNdQsPAU7i+gjvtCs+I2XN8QgSIHNGPX4nvsvDHgPt5ezO/Y+HbhWAKn6fUJ0eB64WsetPq0vg6CrPGlE2BAUc3ZwiaZYR7R2W2QFUEwGg5qicWdGHZWNrhdUdwCcX/I07k6BZeGWmXHFGDFwHkZri6E6Km8erkyyAffrcLTX5mVpovnvTnf12nMgMf4mvKsq/bg46aplhMM7L8gKJaTez3P8YArCQ03SdEZ/ZGbHTLNSny5fv/36BDo4Dk2mSGah8fR/pmwkeD/8aNXtoQ3WhN+1ocsstpouebg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ZHpOdrXBgajIh5l/zciUhVu/dVlG7o7N/a5l1oobY8U=;
- b=UFNo0MoLKJtjAVOr6wkvhwEzXwz7u+h1Dvh0toKvkAB832lO0+2vNCGBgLAtYGjck2DIizV7Kzs/8SbBapW7K6uwzEeG1w9DH4bcufH+Ybu1sSRLqG0kG7qvEOrUGd4AwRRX6FNiF1Nfm7tHZ53z56tEJoPCwvGPeWQafkXFdAF/MhWz4RxF/Wwoab61caC1GW1BKkDXnzT8E4ZphmhMLVMWs6dvuYy0xXPja2UhyZdzbgm8OGFXYkezcneo7wkaDDU9iwf6xUvbRbAMyxPUn41lULkicX6DJUUsua+zRONjiPxbs1qannces192eCdtXrL3Z6dumRG66/fyK2vZJQ==
-Authentication-Results: redhat.com; dkim=none (message not signed)
- header.d=none;redhat.com; dmarc=none action=none header.from=nvidia.com;
+ bh=D/IKekmtCEnhAqa/eOG0TcPSUJfIqBebcOmg/UY6vvg=;
+ b=ENVGlzFD8rGUzMzeTOnk/f/nfSrnLoRcoR3Z438Zh3TbLdkhBg13ZVLbIUupfTGmB4/C9kS3l2jrEY8A5nBVV49ZyoLLp/wgfkYWbi760g+gzmsnwkCE/joctBDrxeBXTgNvt1t/+OB/sVRIpWUibvKY7Bpk7aBR0ZbAZe9HqwlR15c5gyj+P9F3Ci1hyTDTyuX3qmpytezlgTetNE7ilNGXggKKk4OWbBag4B64XMlbTC+PQ0xODQE4fRLe7E/+KcMqsuIaKtQ5EWaomcn2j6ij6ZjutMO2ektGo9X2OAvbSj16Gb7a5kTuevKou7qttCXS2f5MsdKPK2lmeBLCew==
+Authentication-Results: cornelisnetworks.com; dkim=none (message not signed)
+ header.d=none;cornelisnetworks.com; dmarc=none action=none
+ header.from=nvidia.com;
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com (2603:10b6:5:14a::12)
  by DM6PR12MB2858.namprd12.prod.outlook.com (2603:10b6:5:182::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4129.26; Mon, 17 May
- 2021 16:47:46 +0000
+ 2021 16:47:48 +0000
 Received: from DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::ddb4:2cbb:4589:f039]) by DM6PR12MB3834.namprd12.prod.outlook.com
  ([fe80::ddb4:2cbb:4589:f039%4]) with mapi id 15.20.4129.031; Mon, 17 May 2021
- 16:47:46 +0000
+ 16:47:48 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
 Cc:     Greg KH <gregkh@linuxfoundation.org>,
         Kees Cook <keescook@chromium.org>,
         Nathan Chancellor <nathan@kernel.org>
-Subject: [PATCH 06/13] RDMA/core: Simplify how the port sysfs is created
-Date:   Mon, 17 May 2021 13:47:34 -0300
-Message-Id: <6-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
+Subject: [PATCH 11/13] RDMA/qib: Use attributes for the port sysfs
+Date:   Mon, 17 May 2021 13:47:39 -0300
+Message-Id: <11-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
 In-Reply-To: <0-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [47.55.113.94]
-X-ClientProxiedBy: MN2PR03CA0010.namprd03.prod.outlook.com
- (2603:10b6:208:23a::15) To DM6PR12MB3834.namprd12.prod.outlook.com
+X-ClientProxiedBy: BL1PR13CA0201.namprd13.prod.outlook.com
+ (2603:10b6:208:2be::26) To DM6PR12MB3834.namprd12.prod.outlook.com
  (2603:10b6:5:14a::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (47.55.113.94) by MN2PR03CA0010.namprd03.prod.outlook.com (2603:10b6:208:23a::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4108.25 via Frontend Transport; Mon, 17 May 2021 16:47:44 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1ligP8-009LYg-0D; Mon, 17 May 2021 13:47:42 -0300
+Received: from mlx.ziepe.ca (47.55.113.94) by BL1PR13CA0201.namprd13.prod.outlook.com (2603:10b6:208:2be::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4150.11 via Frontend Transport; Mon, 17 May 2021 16:47:44 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1ligP8-009LZ0-7G; Mon, 17 May 2021 13:47:42 -0300
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 685af235-4782-44f2-ff25-08d919537e55
+X-MS-Office365-Filtering-Correlation-Id: 34ebfd8d-e25d-42ca-b98f-08d919537e97
 X-MS-TrafficTypeDiagnostic: DM6PR12MB2858:
-X-Microsoft-Antispam-PRVS: <DM6PR12MB28584C6A4C09F4979B061064C22D9@DM6PR12MB2858.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:1824;
+X-Microsoft-Antispam-PRVS: <DM6PR12MB2858EE5232CE942E258CA8E6C22D9@DM6PR12MB2858.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2201;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: ashxCYCnKe7TysEldkVjGrfe3WgI6MWGpiQsjiNiAYK1xQQo2yNsX03LM39Iyqg0Ylu322idwg7Qa8yCRG6R7c5mmAfQbf04/CQUFqM+hn7ND3vHuuJcgtdZCZ/XT17WfOPtq+kpB+6LHrIWs5fOsmigWEehC/sGgQIvnFPtuwrYo8oRrW1UFeUkuIG5z9jFUgDav/RvSZ1FmZ4RXtDV+r3C1pJkKzlRUMz1LOElo9dt9kYe1H3lWh2vd0d+fyCcBhcwGX9lsav0G1KlJ1RZoWAq+Vjor2Rndn8Cjmp3SczwYnIjKdiQsYK6nnv/brCBB3gt0hM5cWZP0RCe5euZ4Tu9jiL9EqXlzALmjnGE/RCpWOWzfS4bsyB1gl6g6zlMwuaWoY77kgP3fdIw86cR2AXQZrwUJt0jSR6rrmHmlm3H32SHG69KZ4X81mzuSXJrHYQpbyL95AgYCUut2RgzFGJhLPxmDhGjDhzCgMoYFpvyIhpfNBEWyDzvLUXM0b5yuy9XWehl7QJ5KdlRaEBIonX/CdWpO1sHzQRONC0jUrV2cnnWqisDJtrLVo92nbIZNBlW3I9QAeif9rd7jGBSzORGZujcSuRAmPWNN+jEauBGSAZMMGsoqZNA8ZPdsUmsDSTCoSMvKLiOLPG1Sex1kg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(366004)(39860400002)(376002)(54906003)(6666004)(9746002)(8676002)(66556008)(426003)(83380400001)(36756003)(30864003)(9786002)(26005)(66946007)(38100700002)(316002)(66476007)(4326008)(478600001)(86362001)(5660300002)(186003)(8936002)(2616005)(2906002)(4216001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?wXL6Rvs1geeQ49Pv+6nknMWCR4SIX+eyBUcb7TAeITK3k2cRTYNdZofrA2kz?=
- =?us-ascii?Q?jOzA5Ee/0K8zvekP/G4k3nj5A007RMC2sOuFnwAOJV8YTzK7N4+i8fjo9tb6?=
- =?us-ascii?Q?1IeHOKUFMzPFgNZp2Z1HsfGCgwKzpwMf+dv8aIDhzkDiFek+Fvo+58kBBUW3?=
- =?us-ascii?Q?ApZKRnCfZBIua9uvi4DRD/zrwOqMPE7mH44uKbLGnqkxMTBWAFIGMLAOrt2G?=
- =?us-ascii?Q?i6spXAjfzJoV9cMUZJRgg+qug6ysIbDUndF4Zp7yEnmzTDQ+OWjYO5USQmq/?=
- =?us-ascii?Q?mTxoxI9lql8l4YZ4bwQ6tsolUOMiGwsWzrx8ornpSqHAh6NyZkVpT5hPqb+o?=
- =?us-ascii?Q?7M5qkMTmqLblvH0Zx1McoMc9MuOZrfhgTfRBWlPdabdwgbyjOHWnv+FjAMyF?=
- =?us-ascii?Q?XQ7+5bvqQs9zGPNN5myRq2jQUiA5R8R+3r1kNw4G74HA2HBusXmvJvdheOTN?=
- =?us-ascii?Q?kdNpLrd/0Fm3aL3gG6AScMAYkCYwGQumoxxAhkiq8+9jWPginK3t2H/wtzb7?=
- =?us-ascii?Q?eMUmPeMIWVBV3Knxhjc1vl8MNwZbIt8eWvo95OGkONuOn7SogpGGU7BabwkU?=
- =?us-ascii?Q?aLbLP91RQuQj23PizuAbVHU7Op7A+l/nR8g9l3ULsOZ2qZs1teEZKZ/sbZ84?=
- =?us-ascii?Q?eE0jez3L1HRFCuV+GPIQXIwLIqak9+5jVLrjtyjFL48CHd9C4lKi25oLUfr3?=
- =?us-ascii?Q?Y7dYxCqDqefz7ND71wMqImiuCBlaeiUjs8NueD5brY+yC8JWAhMXu8undj+U?=
- =?us-ascii?Q?YKC4N5LkGd45IcKPYKDblRDhzIIBI+JGmOk5n8okCfXN9ptXjiOc6perAHOx?=
- =?us-ascii?Q?4aE0tkwvU1fM61iEaTD5BpYf6Wi0JIoLdHcrUqLTzluxtcYKyxr2luNeIL+P?=
- =?us-ascii?Q?UIMHFfnA9b+JMZUu+yYdNo+GSqtYepIt41PEjpQkdInwEopPbtaBXNfPh96X?=
- =?us-ascii?Q?220o7RC2XVXM5tdkUQtYlyawXiWkDwx/XNTaWG7nlhDvXSAcrU9gxeKiCxM6?=
- =?us-ascii?Q?4v8bNXtkrkRJBILnM8vkWarXwc7QHLDP+q7gTVRVgWzYCH3FHHJOo+XgeB42?=
- =?us-ascii?Q?15utWYe+1YpggyjULV9o/Tbt0grswApYf+xmkoOZ+Oyh4Xe+4pBPH07zoE6s?=
- =?us-ascii?Q?MlRnUsSi/7Zb5r9nQnhhmO3zry9c8nztEXb5CIDhTSR3ZfeOyLLeMBd4RRf9?=
- =?us-ascii?Q?ZspOTO7j8qLIB3msRXElJNVgTbzMT3uHM9i8l6xgU+VdPzGOXeWLFSFscFMc?=
- =?us-ascii?Q?/lDAx8JJBGV/A3NKV1pYm+YyMkNvOJHqDA+otjeE7shPR9vn1l9BYCUExtAS?=
- =?us-ascii?Q?HCmBb1MsIBOByfc8IYr2kvkf?=
+X-Microsoft-Antispam-Message-Info: SsX4tYItjr6+DTWMKUEEtWDfKOejb2H72oJU9hOx8VzV1Rmfr9cxNC5uPiGpVVeHjpJB6jcRo11VuRy4+ckp4rZ+c5gNeOmMsyXtU2H+njvgqcCliPGedKyxB2HCkNqZ1r5I71BKH+g+TiYEun7OvZB+zJZBSw2CyCVuvUW9ilZVwyqNmqOYmRbNviEsDbSmtFPvVcRzN44l8CmfMw0boEPiN3zyB0MN+0t9lEjkGt6YleYwLBUonOD2CdMtY/0jqMRXp/cxe7s+H0KQehlEjiQvltIe8skQ9+aiTODKmXb4UjIc9vsl9Pe4SAW/OKUvA62j6lo2hbPzEUhorZL1wQoWicIj+v9Oqhf8sn8U8dP2SKThRGX9fneQcvhxgdaQjRJhCnJWNo59jDN+d2UZsQaqnN3A8+90QLc3PITyqzIOGL6YvPjEDv7kghJ+ev7IetHQxJVRcxVTtfo6/7uru142xhbYCEA6TP6afl/rVv25dQPmWMw3gcPY+6V65xebkABM6f6WKAPe/eeNG5A3xveJIiC/ZAGjJfRNNhJZe2SC0AWdKdJRfigc6TdJBj9yuG18+d2C9nwFzYw2Ur+lmsfChDvybJcM0EWV5ccw5uQ=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3834.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(366004)(39860400002)(376002)(54906003)(6666004)(110136005)(9746002)(8676002)(66556008)(426003)(83380400001)(36756003)(30864003)(9786002)(26005)(66946007)(38100700002)(316002)(66476007)(4326008)(478600001)(86362001)(5660300002)(186003)(8936002)(2616005)(2906002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData: =?us-ascii?Q?HMmNZBpRgc0gSmusgmQ9HqrgiCtNOGdjlOfDj0U/SSNGAFtcg/omDLDJ0hvP?=
+ =?us-ascii?Q?cjdyI/t7uLlp24lGskBUYd02Wlh6kTsbCRvsVhNAggCgIgcBf8yELko9E/MQ?=
+ =?us-ascii?Q?LtFxe1HWRjOj5wwU72qKeHHygopOU1JXG34pDOjPZKFZvOuDkyeieAdfzNU+?=
+ =?us-ascii?Q?HMc86TUJkZgFANL+/CqUrqvInKRdIMxYnzYA/A5FnDtaSaJIZoCrQhn3k71Y?=
+ =?us-ascii?Q?PhcNij5lQn+lYctse1NWZYsFye1A1UoKlKZhaYLp6vXEJU+lbw+bs9UHiEzg?=
+ =?us-ascii?Q?Ha6AyuIaMNpj+Rl7//cDfOhPnTDYJIJ856WBSUd2HjeEQj/rWzYO0tWBEWNG?=
+ =?us-ascii?Q?J4LgQ5Qmxr784OiWTVQ5sUb+AVvVib+OsHHLi3zpLf26/HC7zyMxPnd5Q5cy?=
+ =?us-ascii?Q?afiXg02BHNXLrYBTKJPw25EUk2gbbimq2xIabquTaQJh1IS9yWfFQs8AnuED?=
+ =?us-ascii?Q?UR/GoM+ej22fvc/kBKSYcWPi/LbWxrpTCsQIFBZP6/+2Fk2R8/IF8O/2OTjR?=
+ =?us-ascii?Q?k2cFY/1S583nbSeGpNubXFeNRIZrGKFx2X9XLOLH5CkTxaE4eFwevjgB+QRV?=
+ =?us-ascii?Q?Y1GzUPyZxQ7XLDOA9wc4xyzYOS9ip5wWSE2WoT82ckDaKoJZtaSVoLS+jvWR?=
+ =?us-ascii?Q?Yv5fIz1MVt3m699gWmdnJtydobYt9s7ntU0AXTs6tyd9sgZTrsQ8OB8gdMQ4?=
+ =?us-ascii?Q?QEO6rFClTR/bHJ4mHCEdx9l/R9mJDZZZznrgmCeqAKuW2LYbd/enMV1puRi1?=
+ =?us-ascii?Q?moR5j1eRO1atCU/tH9TWtyDIpRe9dVBo7Z5GJ5ui9/aTfsrBsbDzaPC+mlaR?=
+ =?us-ascii?Q?6rCxIkjjzAdoyR6PAU0BDI9jeCu1tNfZYaFRt26UYWiYvSYdLc29x8g61Bs+?=
+ =?us-ascii?Q?XYlbjsalaNXUDYSoUbPQm/QOi+cz9l4aStgd87G1s08d14izOCoTdPugpj6x?=
+ =?us-ascii?Q?MtNjyk273VzUnaCpNXiMQEBt0e9TRf6wC8CQHFIvbCgo8K2+NESs4lgRNb8p?=
+ =?us-ascii?Q?TSwuzSgk51ML98y90oAdL2TAxOEZaX7YuPX8DnFlBaN9xFPrB1KuIFp7knka?=
+ =?us-ascii?Q?47Pmw6aK7f39BOK3IBP01PyaqmaK0rIKPy6oP37ONX7s8DsHpPKKkAWw5XST?=
+ =?us-ascii?Q?DPqcv1AIWKM4sdzR9ETqU1hXxpG+mZ+B9HZqlgYkFbwrlPepf1IXJMMlvhcK?=
+ =?us-ascii?Q?vFucAUY4JQOqY3YVNlyK0FVGUWNL+xW6L61KEGHHumAh0tnOuHAySvDUEX/y?=
+ =?us-ascii?Q?z3hLuZ2wL7/Dd+/wn7mRapAy07tcoR2AkrfYu5TQyfkM1iLuCmGhLXQmUDvB?=
+ =?us-ascii?Q?DDum9VOLZ3UqF6psK6cFw9c1?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 685af235-4782-44f2-ff25-08d919537e55
+X-MS-Exchange-CrossTenant-Network-Message-Id: 34ebfd8d-e25d-42ca-b98f-08d919537e97
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3834.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 May 2021 16:47:44.4599
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 May 2021 16:47:44.9696
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: pCp4KicDC1RkuQIQlpQBzERvL9zkDC7PiHcyTBt0vP8MqlmVQCwfZdsLKQulNHiU
+X-MS-Exchange-CrossTenant-UserPrincipalName: V9aT8rVccpXUnglb/4X6CdNbHhgWb+1HXwg4yzgzeNSvaneW1qTpoZV2eL4mcW3p
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB2858
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use the same technique as gid_attrs now uses to manage the port
-sysfs. Bundle everything into three allocations and use a single
-sysfs_create_groups() to build everything in one shot.
-
-All the memory is always freed in the kobj release function, removing most
-of the error unwinding.
-
-The gid_attr technique and the hw_counters are very similar, merge the two
-together and combine the sysfs_create_group() call for hw_counters with
-the single sysfs group setup.
+qib should not be creating a mess of kobjects to attach to the port
+kobject - this is all attributes. The proper API is to create an
+attribute_group list and create it against the port's kobject.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/core/sysfs.c | 321 ++++++++++----------------------
- 1 file changed, 103 insertions(+), 218 deletions(-)
+ drivers/infiniband/hw/qib/qib.h       |   5 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c | 596 +++++++++++---------------
+ 2 files changed, 248 insertions(+), 353 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 569e847757b944..53838bce574264 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -79,11 +79,12 @@ struct ib_port {
- 	struct kobject kobj;
- 	struct ib_device *ibdev;
- 	struct gid_attr_group *gid_attr_group;
--	struct attribute_group gid_group;
--	struct attribute_group *pkey_group;
--	const struct attribute_group *pma_table;
- 	struct hw_stats_port_data *hw_stats_data;
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 88497739029e02..3decd6d0843172 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -521,10 +521,7 @@ struct qib_pportdata {
+ 
+ 	struct qib_devdata *dd;
+ 	struct qib_chippport_specific *cpspec; /* chip-specific per-port */
+-	struct kobject pport_kobj;
+-	struct kobject pport_cc_kobj;
+-	struct kobject sl2vl_kobj;
+-	struct kobject diagc_kobj;
++	const struct attribute_group *groups[5];
+ 
+ 	/* GUID for this interface, in network order */
+ 	__be64 guid;
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index 5e9e66f2706479..2c81285d245fa7 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -32,25 +32,38 @@
+  * SOFTWARE.
+  */
+ #include <linux/ctype.h>
++#include <rdma/ib_sysfs.h>
+ 
+ #include "qib.h"
+ #include "qib_mad.h"
+ 
+-/* start of per-port functions */
++static struct qib_pportdata *qib_get_pportdata_kobj(struct kobject *kobj)
++{
++	u32 port_num;
++	struct ib_device *ibdev = ib_port_sysfs_get_ibdev_kobj(kobj, &port_num);
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
 +
-+	struct attribute_group groups[3];
-+	const struct attribute_group *groups_list[5];
- 	u32 port_num;
-+	struct port_table_attribute attrs_list[];
- };
- 
- struct hw_stats_device_attribute {
-@@ -112,7 +113,6 @@ struct hw_stats_device_data {
- };
- 
- struct hw_stats_port_data {
--	struct attribute_group group;
- 	struct rdma_hw_stats *stats;
- 	struct hw_stats_port_attribute attrs[];
- };
-@@ -750,30 +750,16 @@ static const struct attribute_group pma_group_noietf = {
- 
- static void ib_port_release(struct kobject *kobj)
- {
--	struct ib_port *p = container_of(kobj, struct ib_port, kobj);
--	struct attribute *a;
-+	struct ib_port *port = container_of(kobj, struct ib_port, kobj);
- 	int i;
- 
--	if (p->gid_group.attrs) {
--		for (i = 0; (a = p->gid_group.attrs[i]); ++i)
--			kfree(a);
--
--		kfree(p->gid_group.attrs);
-+	for (i = 0; i != ARRAY_SIZE(port->groups); i++)
-+		kfree(port->groups[i].attrs);
-+	if (port->hw_stats_data) {
-+		kfree(port->hw_stats_data->stats);
-+		kfree(port->hw_stats_data);
- 	}
--
--	if (p->pkey_group) {
--		if (p->pkey_group->attrs) {
--			for (i = 0; (a = p->pkey_group->attrs[i]); ++i)
--				kfree(a);
--
--			kfree(p->pkey_group->attrs);
--		}
--
--		kfree(p->pkey_group);
--		p->pkey_group = NULL;
--	}
--
--	kfree(p);
-+	kfree(port);
- }
- 
- static void ib_port_gid_attr_release(struct kobject *kobj)
-@@ -798,49 +784,6 @@ static struct kobj_type gid_attr_type = {
- 	.release        = ib_port_gid_attr_release
- };
- 
--static struct attribute **
--alloc_group_attrs(ssize_t (*show)(struct ib_port *,
--				  struct port_attribute *, char *buf),
--		  int len)
--{
--	struct attribute **tab_attr;
--	struct port_table_attribute *element;
--	int i;
--
--	tab_attr = kcalloc(1 + len, sizeof(struct attribute *), GFP_KERNEL);
--	if (!tab_attr)
--		return NULL;
--
--	for (i = 0; i < len; i++) {
--		element = kzalloc(sizeof(struct port_table_attribute),
--				  GFP_KERNEL);
--		if (!element)
--			goto err;
--
--		if (snprintf(element->name, sizeof(element->name),
--			     "%d", i) >= sizeof(element->name)) {
--			kfree(element);
--			goto err;
--		}
--
--		element->attr.attr.name  = element->name;
--		element->attr.attr.mode  = S_IRUGO;
--		element->attr.show       = show;
--		element->index		 = i;
--		sysfs_attr_init(&element->attr.attr);
--
--		tab_attr[i] = &element->attr.attr;
--	}
--
--	return tab_attr;
--
--err:
--	while (--i >= 0)
--		kfree(tab_attr[i]);
--	kfree(tab_attr);
--	return NULL;
--}
--
- /*
-  * Figure out which counter table to use depending on
-  * the device capabilities.
-@@ -1051,7 +994,8 @@ static void destroy_hw_device_stats(struct ib_device *ibdev)
- 	ibdev->hw_stats_data = NULL;
- }
- 
--static struct hw_stats_port_data *alloc_hw_stats_port(struct ib_port *port)
-+static struct hw_stats_port_data *
-+alloc_hw_stats_port(struct ib_port *port, struct attribute_group *group)
- {
- 	struct ib_device *ibdev = port->ibdev;
- 	struct hw_stats_port_data *data;
-@@ -1073,13 +1017,13 @@ static struct hw_stats_port_data *alloc_hw_stats_port(struct ib_port *port)
- 		       GFP_KERNEL);
- 	if (!data)
- 		goto err_free_stats;
--	data->group.attrs = kcalloc(stats->num_counters + 2,
--				    sizeof(*data->group.attrs), GFP_KERNEL);
--	if (!data->group.attrs)
-+	group->attrs = kcalloc(stats->num_counters + 2,
-+				    sizeof(*group->attrs), GFP_KERNEL);
-+	if (!group->attrs)
- 		goto err_free_data;
- 
- 	mutex_init(&stats->lock);
--	data->group.name = "hw_counters";
-+	group->name = "hw_counters";
- 	data->stats = stats;
- 	return data;
- 
-@@ -1090,20 +1034,14 @@ static struct hw_stats_port_data *alloc_hw_stats_port(struct ib_port *port)
- 	return ERR_PTR(-ENOMEM);
- }
- 
--static void free_hw_stats_port(struct hw_stats_port_data *data)
--{
--	kfree(data->group.attrs);
--	kfree(data->stats);
--	kfree(data);
--}
--
--static int setup_hw_port_stats(struct ib_port *port)
-+static int setup_hw_port_stats(struct ib_port *port,
-+			       struct attribute_group *group)
- {
- 	struct hw_stats_port_attribute *attr;
- 	struct hw_stats_port_data *data;
- 	int i, ret;
- 
--	data = alloc_hw_stats_port(port);
-+	data = alloc_hw_stats_port(port, group);
- 	if (IS_ERR(data))
- 		return PTR_ERR(data);
- 
-@@ -1112,9 +1050,10 @@ static int setup_hw_port_stats(struct ib_port *port)
- 					    data->stats->num_counters);
- 	if (ret != data->stats->num_counters) {
- 		if (WARN_ON(ret >= 0))
--			ret = -EINVAL;
--		goto err_free;
-+			return -EINVAL;
-+		return ret;
- 	}
-+
- 	data->stats->timestamp = jiffies;
- 
- 	for (i = 0; i < data->stats->num_counters; i++) {
-@@ -1124,7 +1063,7 @@ static int setup_hw_port_stats(struct ib_port *port)
- 		attr->attr.attr.mode = 0444;
- 		attr->attr.show = hw_stat_port_show;
- 		attr->show = show_hw_stats;
--		data->group.attrs[i] = &attr->attr.attr;
-+		group->attrs[i] = &attr->attr.attr;
- 	}
- 
- 	attr = &data->attrs[i];
-@@ -1135,27 +1074,10 @@ static int setup_hw_port_stats(struct ib_port *port)
- 	attr->show = show_stats_lifespan;
- 	attr->attr.store = hw_stat_port_store;
- 	attr->store = set_stats_lifespan;
--	data->group.attrs[i] = &attr->attr.attr;
-+	group->attrs[i] = &attr->attr.attr;
- 
- 	port->hw_stats_data = data;
--	ret = sysfs_create_group(&port->kobj, &data->group);
--	if (ret)
--		goto err_free;
- 	return 0;
--
--err_free:
--	free_hw_stats_port(data);
--	port->hw_stats_data = NULL;
--	return ret;
--}
--
--static void destroy_hw_port_stats(struct ib_port *port)
--{
--	if (!port->hw_stats_data)
--		return;
--	sysfs_remove_group(&port->kobj, &port->hw_stats_data->group);
--	free_hw_stats_port(port->hw_stats_data);
--	port->hw_stats_data = NULL;
- }
- 
- struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev,
-@@ -1266,68 +1188,42 @@ static void destroy_gid_attrs(struct ib_port *port)
- 	kobject_put(&gid_attr_group->kobj);
- }
- 
--static int add_port(struct ib_core_device *coredev, int port_num)
-+/*
-+ * Create the sysfs:
-+ *  ibp0s9/ports/XX/{gids,pkeys,counters}/YYY
-+ */
-+static struct ib_port *setup_port(struct ib_core_device *coredev, int port_num,
-+				  const struct ib_port_attr *attr)
- {
- 	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
- 	bool is_full_dev = &device->coredev == coredev;
-+	const struct attribute_group **cur_group;
- 	struct ib_port *p;
--	struct ib_port_attr attr;
--	int i;
- 	int ret;
- 
--	ret = ib_query_port(device, port_num, &attr);
--	if (ret)
--		return ret;
--
--	p = kzalloc(sizeof *p, GFP_KERNEL);
-+	p = kzalloc(struct_size(p, attrs_list,
-+				attr->gid_tbl_len + attr->pkey_tbl_len),
-+		    GFP_KERNEL);
- 	if (!p)
--		return -ENOMEM;
--
--	p->ibdev      = device;
--	p->port_num   = port_num;
-+		return ERR_PTR(-ENOMEM);
-+	p->ibdev = device;
-+	p->port_num = port_num;
-+	kobject_init(&p->kobj, &port_type);
- 
--	ret = kobject_init_and_add(&p->kobj, &port_type,
--				   coredev->ports_kobj,
--				   "%d", port_num);
-+	cur_group = p->groups_list;
-+	ret = alloc_port_table_group("gids", &p->groups[0], p->attrs_list,
-+				     attr->gid_tbl_len, show_port_gid);
- 	if (ret)
- 		goto err_put;
-+	*cur_group++ = &p->groups[0];
- 
--	if (device->ops.process_mad && is_full_dev) {
--		p->pma_table = get_counter_table(device, port_num);
--		ret = sysfs_create_group(&p->kobj, p->pma_table);
-+	if (attr->pkey_tbl_len) {
-+		ret = alloc_port_table_group("pkeys", &p->groups[1],
-+					     p->attrs_list + attr->gid_tbl_len,
-+					     attr->pkey_tbl_len, show_port_pkey);
- 		if (ret)
- 			goto err_put;
--	}
--
--	p->gid_group.name  = "gids";
--	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
--	if (!p->gid_group.attrs) {
--		ret = -ENOMEM;
--		goto err_remove_pma;
--	}
--
--	ret = sysfs_create_group(&p->kobj, &p->gid_group);
--	if (ret)
--		goto err_free_gid;
--
--	if (attr.pkey_tbl_len) {
--		p->pkey_group = kzalloc(sizeof(*p->pkey_group), GFP_KERNEL);
--		if (!p->pkey_group) {
--			ret = -ENOMEM;
--			goto err_remove_gid;
--		}
--
--		p->pkey_group->name  = "pkeys";
--		p->pkey_group->attrs = alloc_group_attrs(show_port_pkey,
--							 attr.pkey_tbl_len);
--		if (!p->pkey_group->attrs) {
--			ret = -ENOMEM;
--			goto err_free_pkey_group;
--		}
--
--		ret = sysfs_create_group(&p->kobj, p->pkey_group);
--		if (ret)
--			goto err_free_pkey;
-+		*cur_group++ = &p->groups[1];
- 	}
- 
- 	/*
-@@ -1336,66 +1232,45 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	 * counter initialization.
- 	 */
- 	if (port_num && is_full_dev) {
--		ret = setup_hw_port_stats(p);
-+		ret = setup_hw_port_stats(p, &p->groups[2]);
- 		if (ret && ret != -EOPNOTSUPP)
--			goto err_remove_pkey;
-+			goto err_put;
-+		if (!ret)
-+			*cur_group++ = &p->groups[2];
- 	}
--	ret = setup_gid_attrs(p, &attr);
--	if (ret)
--		goto err_remove_stats;
- 
--	if (device->ops.init_port && is_full_dev) {
--		ret = device->ops.init_port(device, port_num, &p->kobj);
--		if (ret)
--			goto err_remove_gid_attrs;
--	}
-+	if (device->ops.process_mad && is_full_dev)
-+		*cur_group++ = get_counter_table(device, port_num);
-+
-+	ret = kobject_add(&p->kobj, coredev->ports_kobj, "%d", port_num);
-+	if (ret)
-+		goto err_put;
-+	ret = sysfs_create_groups(&p->kobj, p->groups_list);
-+	if (ret)
-+		goto err_del;
- 
- 	list_add_tail(&p->kobj.entry, &coredev->port_list);
- 	if (device->port_data && is_full_dev)
- 		device->port_data[port_num].sysfs = p;
- 
--	kobject_uevent(&p->kobj, KOBJ_ADD);
--	return 0;
--
--err_remove_gid_attrs:
--	destroy_gid_attrs(p);
--
--err_remove_stats:
--	destroy_hw_port_stats(p);
--
--err_remove_pkey:
--	if (p->pkey_group)
--		sysfs_remove_group(&p->kobj, p->pkey_group);
--
--err_free_pkey:
--	if (p->pkey_group) {
--		for (i = 0; i < attr.pkey_tbl_len; ++i)
--			kfree(p->pkey_group->attrs[i]);
--
--		kfree(p->pkey_group->attrs);
--		p->pkey_group->attrs = NULL;
--	}
--
--err_free_pkey_group:
--	kfree(p->pkey_group);
--
--err_remove_gid:
--	sysfs_remove_group(&p->kobj, &p->gid_group);
--
--err_free_gid:
--	for (i = 0; i < attr.gid_tbl_len; ++i)
--		kfree(p->gid_group.attrs[i]);
--
--	kfree(p->gid_group.attrs);
--	p->gid_group.attrs = NULL;
--
--err_remove_pma:
--	if (p->pma_table)
--		sysfs_remove_group(&p->kobj, p->pma_table);
-+	return p;
- 
-+err_del:
-+	kobject_del(&p->kobj);
- err_put:
- 	kobject_put(&p->kobj);
--	return ret;
-+	return ERR_PTR(ret);
++	return &dd->pport[port_num - 1];
 +}
 +
-+static void destroy_port(struct ib_port *port)
-+{
-+	if (port->ibdev->port_data &&
-+	    port->ibdev->port_data[port->port_num].sysfs == port)
-+		port->ibdev->port_data[port->port_num].sysfs = NULL;
-+	list_del(&port->kobj.entry);
-+	sysfs_remove_groups(&port->kobj, port->groups_list);
-+	kobject_del(&port->kobj);
-+	kobject_put(&port->kobj);
+ /*
+  * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
+  */
+-static ssize_t show_hrtbt_enb(struct qib_pportdata *ppd, char *buf)
++static ssize_t hrtbt_enable_show(struct ib_device *ibdev, u32 port_num,
++				 struct ib_port_attribute *attr, char *buf)
+ {
+-	struct qib_devdata *dd = ppd->dd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
+ 
+ 	return sysfs_emit(buf, "%d\n", dd->f_get_ib_cfg(ppd, QIB_IB_CFG_HRTBT));
  }
  
- static const char *node_type_string(int node_type)
-@@ -1512,25 +1387,13 @@ const struct attribute_group ib_dev_attr_group = {
- 
- void ib_free_port_attrs(struct ib_core_device *coredev)
+-static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
+-			       size_t count)
++static ssize_t hrtbt_enable_store(struct ib_device *ibdev, u32 port_num,
++				  struct ib_port_attribute *attr,
++				  const char *buf, size_t count)
  {
--	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
--	bool is_full_dev = &device->coredev == coredev;
- 	struct kobject *p, *t;
+-	struct qib_devdata *dd = ppd->dd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
+ 	int ret;
+ 	u16 val;
  
- 	list_for_each_entry_safe(p, t, &coredev->port_list, entry) {
- 		struct ib_port *port = container_of(p, struct ib_port, kobj);
+@@ -70,11 +83,14 @@ static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
+ 	ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
+ 	return ret < 0 ? ret : count;
+ }
++static IB_PORT_ATTR_RW(hrtbt_enable);
  
--		list_del(&p->entry);
--		destroy_hw_port_stats(port);
--		if (device->port_data && is_full_dev)
--			device->port_data[port->port_num].sysfs = NULL;
+-static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
++static ssize_t loopback_store(struct ib_device *ibdev, u32 port_num,
++			      struct ib_port_attribute *attr, const char *buf,
+ 			      size_t count)
+ {
+-	struct qib_devdata *dd = ppd->dd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
+ 	int ret = count, r;
+ 
+ 	r = dd->f_set_ib_loopback(ppd, buf);
+@@ -83,11 +99,14 @@ static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
+ 
+ 	return ret;
+ }
++static IB_PORT_ATTR_WO(loopback);
+ 
+-static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
+-				  size_t count)
++static ssize_t led_override_store(struct ib_device *ibdev, u32 port_num,
++				  struct ib_port_attribute *attr,
++				  const char *buf, size_t count)
+ {
+-	struct qib_devdata *dd = ppd->dd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
+ 	int ret;
+ 	u16 val;
+ 
+@@ -100,14 +119,20 @@ static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
+ 	qib_set_led_override(ppd, val);
+ 	return count;
+ }
++static IB_PORT_ATTR_WO(led_override);
+ 
+-static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
++static ssize_t status_show(struct ib_device *ibdev, u32 port_num,
++			   struct ib_port_attribute *attr, char *buf)
+ {
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
++
+ 	if (!ppd->statusp)
+ 		return -EINVAL;
+ 
+ 	return sysfs_emit(buf, "0x%llx\n", (unsigned long long)*(ppd->statusp));
+ }
++static IB_PORT_ATTR_RO(status);
+ 
+ /*
+  * For userland compatibility, these offsets must remain fixed.
+@@ -127,8 +152,11 @@ static const char * const qib_status_str[] = {
+ 	NULL,
+ };
+ 
+-static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
++static ssize_t status_str_show(struct ib_device *ibdev, u32 port_num,
++			       struct ib_port_attribute *attr, char *buf)
+ {
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
+ 	int i, any;
+ 	u64 s;
+ 	ssize_t ret;
+@@ -160,38 +188,22 @@ static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
+ bail:
+ 	return ret;
+ }
++static IB_PORT_ATTR_RO(status_str);
+ 
+ /* end of per-port functions */
+ 
+-/*
+- * Start of per-port file structures and support code
+- * Because we are fitting into other infrastructure, we have to supply the
+- * full set of kobject/sysfs_ops structures and routines.
+- */
+-#define QIB_PORT_ATTR(name, mode, show, store) \
+-	static struct qib_port_attr qib_port_attr_##name = \
+-		__ATTR(name, mode, show, store)
 -
--		if (port->pma_table)
--			sysfs_remove_group(p, port->pma_table);
--		if (port->pkey_group)
--			sysfs_remove_group(p, port->pkey_group);
--		sysfs_remove_group(p, &port->gid_group);
- 		destroy_gid_attrs(port);
--		kobject_put(p);
-+		destroy_port(port);
+-struct qib_port_attr {
+-	struct attribute attr;
+-	ssize_t (*show)(struct qib_pportdata *, char *);
+-	ssize_t (*store)(struct qib_pportdata *, const char *, size_t);
++static struct attribute *port_linkcontrol_attributes[] = {
++	&ib_port_attr_loopback.attr,
++	&ib_port_attr_led_override.attr,
++	&ib_port_attr_hrtbt_enable.attr,
++	&ib_port_attr_status.attr,
++	&ib_port_attr_status_str.attr,
++	NULL
+ };
+ 
+-QIB_PORT_ATTR(loopback, S_IWUSR, NULL, store_loopback);
+-QIB_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
+-QIB_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
+-	      store_hrtbt_enb);
+-QIB_PORT_ATTR(status, S_IRUGO, show_status, NULL);
+-QIB_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
+-
+-static struct attribute *port_default_attributes[] = {
+-	&qib_port_attr_loopback.attr,
+-	&qib_port_attr_led_override.attr,
+-	&qib_port_attr_hrtbt_enable.attr,
+-	&qib_port_attr_status.attr,
+-	&qib_port_attr_status_str.attr,
+-	NULL
++static const struct attribute_group port_linkcontrol_group = {
++	.name = "linkcontrol",
++	.attrs = port_linkcontrol_attributes,
+ };
+ 
+ /*
+@@ -201,13 +213,12 @@ static struct attribute *port_default_attributes[] = {
+ /*
+  * Congestion control table size followed by table entries
+  */
+-static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
+-		struct bin_attribute *bin_attr,
+-		char *buf, loff_t pos, size_t count)
++static ssize_t cc_table_bin_read(struct file *filp, struct kobject *kobj,
++				 struct bin_attribute *bin_attr, char *buf,
++				 loff_t pos, size_t count)
+ {
++	struct qib_pportdata *ppd = qib_get_pportdata_kobj(kobj);
+ 	int ret;
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
+ 
+ 	if (!qib_cc_table_size || !ppd->ccti_entries_shadow)
+ 		return -EINVAL;
+@@ -230,34 +241,19 @@ static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
+ 
+ 	return count;
+ }
+-
+-static void qib_port_release(struct kobject *kobj)
+-{
+-	/* nothing to do since memory is freed by qib_free_devdata() */
+-}
+-
+-static struct kobj_type qib_port_cc_ktype = {
+-	.release = qib_port_release,
+-};
+-
+-static const struct bin_attribute cc_table_bin_attr = {
+-	.attr = {.name = "cc_table_bin", .mode = 0444},
+-	.read = read_cc_table_bin,
+-	.size = PAGE_SIZE,
+-};
++static BIN_ATTR_RO(cc_table_bin, PAGE_SIZE);
+ 
+ /*
+  * Congestion settings: port control, control map and an array of 16
+  * entries for the congestion entries - increase, timer, event log
+  * trigger threshold and the minimum injection rate delay.
+  */
+-static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
+-		struct bin_attribute *bin_attr,
+-		char *buf, loff_t pos, size_t count)
++static ssize_t cc_setting_bin_read(struct file *filp, struct kobject *kobj,
++				   struct bin_attribute *bin_attr, char *buf,
++				   loff_t pos, size_t count)
+ {
++	struct qib_pportdata *ppd = qib_get_pportdata_kobj(kobj);
+ 	int ret;
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, pport_cc_kobj);
+ 
+ 	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
+ 		return -EINVAL;
+@@ -278,67 +274,43 @@ static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
+ 
+ 	return count;
+ }
++static BIN_ATTR_RO(cc_setting_bin, PAGE_SIZE);
+ 
+-static const struct bin_attribute cc_setting_bin_attr = {
+-	.attr = {.name = "cc_settings_bin", .mode = 0444},
+-	.read = read_cc_setting_bin,
+-	.size = PAGE_SIZE,
++static struct bin_attribute *port_ccmgta_attributes[] = {
++	&bin_attr_cc_setting_bin,
++	&bin_attr_cc_table_bin,
++	NULL,
+ };
+ 
++static const struct attribute_group port_ccmgta_attribute_group = {
++	.name = "CCMgtA",
++	.bin_attrs = port_ccmgta_attributes,
++};
+ 
+-static ssize_t qib_portattr_show(struct kobject *kobj,
+-	struct attribute *attr, char *buf)
+-{
+-	struct qib_port_attr *pattr =
+-		container_of(attr, struct qib_port_attr, attr);
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, pport_kobj);
+-
+-	if (!pattr->show)
+-		return -EIO;
++/* Start sl2vl */
+ 
+-	return pattr->show(ppd, buf);
+-}
++struct qib_sl2vl_attr {
++	struct ib_port_attribute attr;
++	int sl;
++};
+ 
+-static ssize_t qib_portattr_store(struct kobject *kobj,
+-	struct attribute *attr, const char *buf, size_t len)
++static ssize_t sl2vl_attr_show(struct ib_device *ibdev, u32 port_num,
++			       struct ib_port_attribute *attr, char *buf)
+ {
+-	struct qib_port_attr *pattr =
+-		container_of(attr, struct qib_port_attr, attr);
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, pport_kobj);
+-
+-	if (!pattr->store)
+-		return -EIO;
++	struct qib_sl2vl_attr *sattr =
++		container_of(attr, struct qib_sl2vl_attr, attr);
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
+ 
+-	return pattr->store(ppd, buf, len);
++	return sysfs_emit(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
+ }
+ 
+-
+-static const struct sysfs_ops qib_port_ops = {
+-	.show = qib_portattr_show,
+-	.store = qib_portattr_store,
+-};
+-
+-static struct kobj_type qib_port_ktype = {
+-	.release = qib_port_release,
+-	.sysfs_ops = &qib_port_ops,
+-	.default_attrs = port_default_attributes
+-};
+-
+-/* Start sl2vl */
+-
+-#define QIB_SL2VL_ATTR(N) \
+-	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = { \
+-		.attr = { .name = __stringify(N), .mode = 0444 }, \
+-		.sl = N \
++#define QIB_SL2VL_ATTR(N)                                                      \
++	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = {                    \
++		.attr = __ATTR(N, 0444, sl2vl_attr_show, NULL),                \
++		.sl = N,                                                       \
  	}
  
- 	kobject_put(coredev->ports_kobj);
-@@ -1539,7 +1402,8 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
- int ib_setup_port_attrs(struct ib_core_device *coredev)
- {
- 	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
--	u32 port;
-+	bool is_full_dev = &device->coredev == coredev;
-+	u32 port_num;
- 	int ret;
+-struct qib_sl2vl_attr {
+-	struct attribute attr;
+-	int sl;
+-};
+-
+ QIB_SL2VL_ATTR(0);
+ QIB_SL2VL_ATTR(1);
+ QIB_SL2VL_ATTR(2);
+@@ -356,72 +328,74 @@ QIB_SL2VL_ATTR(13);
+ QIB_SL2VL_ATTR(14);
+ QIB_SL2VL_ATTR(15);
  
- 	coredev->ports_kobj = kobject_create_and_add("ports",
-@@ -1547,12 +1411,33 @@ int ib_setup_port_attrs(struct ib_core_device *coredev)
- 	if (!coredev->ports_kobj)
- 		return -ENOMEM;
+-static struct attribute *sl2vl_default_attributes[] = {
+-	&qib_sl2vl_attr_0.attr,
+-	&qib_sl2vl_attr_1.attr,
+-	&qib_sl2vl_attr_2.attr,
+-	&qib_sl2vl_attr_3.attr,
+-	&qib_sl2vl_attr_4.attr,
+-	&qib_sl2vl_attr_5.attr,
+-	&qib_sl2vl_attr_6.attr,
+-	&qib_sl2vl_attr_7.attr,
+-	&qib_sl2vl_attr_8.attr,
+-	&qib_sl2vl_attr_9.attr,
+-	&qib_sl2vl_attr_10.attr,
+-	&qib_sl2vl_attr_11.attr,
+-	&qib_sl2vl_attr_12.attr,
+-	&qib_sl2vl_attr_13.attr,
+-	&qib_sl2vl_attr_14.attr,
+-	&qib_sl2vl_attr_15.attr,
++static struct attribute *port_sl2vl_attributes[] = {
++	&qib_sl2vl_attr_0.attr.attr,
++	&qib_sl2vl_attr_1.attr.attr,
++	&qib_sl2vl_attr_2.attr.attr,
++	&qib_sl2vl_attr_3.attr.attr,
++	&qib_sl2vl_attr_4.attr.attr,
++	&qib_sl2vl_attr_5.attr.attr,
++	&qib_sl2vl_attr_6.attr.attr,
++	&qib_sl2vl_attr_7.attr.attr,
++	&qib_sl2vl_attr_8.attr.attr,
++	&qib_sl2vl_attr_9.attr.attr,
++	&qib_sl2vl_attr_10.attr.attr,
++	&qib_sl2vl_attr_11.attr.attr,
++	&qib_sl2vl_attr_12.attr.attr,
++	&qib_sl2vl_attr_13.attr.attr,
++	&qib_sl2vl_attr_14.attr.attr,
++	&qib_sl2vl_attr_15.attr.attr,
+ 	NULL
+ };
  
--	rdma_for_each_port (device, port) {
--		ret = add_port(coredev, port);
-+	rdma_for_each_port (device, port_num) {
-+		struct ib_port_attr attr;
-+		struct ib_port *port;
-+
-+		ret = ib_query_port(device, port_num, &attr);
-+		if (ret)
-+			goto err_put;
-+
-+		port = setup_port(coredev, port_num, &attr);
-+		if (IS_ERR(port)) {
-+			ret = PTR_ERR(port);
-+			goto err_put;
-+		}
-+
-+		ret = setup_gid_attrs(port, &attr);
- 		if (ret)
- 			goto err_put;
+-static ssize_t sl2vl_attr_show(struct kobject *kobj, struct attribute *attr,
+-			       char *buf)
+-{
+-	struct qib_sl2vl_attr *sattr =
+-		container_of(attr, struct qib_sl2vl_attr, attr);
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, sl2vl_kobj);
+-	struct qib_ibport *qibp = &ppd->ibport_data;
+-
+-	return sysfs_emit(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
+-}
+-
+-static const struct sysfs_ops qib_sl2vl_ops = {
+-	.show = sl2vl_attr_show,
+-};
+-
+-static struct kobj_type qib_sl2vl_ktype = {
+-	.release = qib_port_release,
+-	.sysfs_ops = &qib_sl2vl_ops,
+-	.default_attrs = sl2vl_default_attributes
++static const struct attribute_group port_sl2vl_group = {
++	.name = "sl2vl",
++	.attrs = port_sl2vl_attributes,
+ };
+ 
+ /* End sl2vl */
+ 
+ /* Start diag_counters */
+ 
+-#define QIB_DIAGC_ATTR(N) \
+-	static struct qib_diagc_attr qib_diagc_attr_##N = { \
+-		.attr = { .name = __stringify(N), .mode = 0664 }, \
+-		.counter = offsetof(struct qib_ibport, rvp.n_##N) \
 -	}
+-
+-#define QIB_DIAGC_ATTR_PER_CPU(N) \
+-	static struct qib_diagc_attr qib_diagc_attr_##N = { \
+-		.attr = { .name = __stringify(N), .mode = 0664 }, \
+-		.counter = offsetof(struct qib_ibport, rvp.z_##N) \
+-	}
+-
+ struct qib_diagc_attr {
+-	struct attribute attr;
++	struct ib_port_attribute attr;
+ 	size_t counter;
+ };
  
-+		if (device->ops.init_port && is_full_dev) {
-+			ret = device->ops.init_port(device, port_num,
-+						    &port->kobj);
-+			if (ret)
-+				goto err_put;
-+		}
+-QIB_DIAGC_ATTR_PER_CPU(rc_acks);
+-QIB_DIAGC_ATTR_PER_CPU(rc_qacks);
+-QIB_DIAGC_ATTR_PER_CPU(rc_delayed_comp);
++static ssize_t diagc_attr_show(struct ib_device *ibdev, u32 port_num,
++			       struct ib_port_attribute *attr, char *buf)
++{
++	struct qib_diagc_attr *dattr =
++		container_of(attr, struct qib_diagc_attr, attr);
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
 +
-+		kobject_uevent(&port->kobj, KOBJ_ADD);
++	return sysfs_emit(buf, "%llu\n", *((u64 *)qibp + dattr->counter));
++}
++
++static ssize_t diagc_attr_store(struct ib_device *ibdev, u32 port_num,
++				struct ib_port_attribute *attr, const char *buf,
++				size_t count)
++{
++	struct qib_diagc_attr *dattr =
++		container_of(attr, struct qib_diagc_attr, attr);
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
++	u64 val;
++	int ret;
++
++	ret = kstrtou64(buf, 0, &val);
++	if (ret)
++		return ret;
++	*((u64 *)qibp + dattr->counter) = val;
++	return count;
++}
++
++#define QIB_DIAGC_ATTR(N)                                                      \
++	static struct qib_diagc_attr qib_diagc_attr_##N = {                    \
++		.attr = __ATTR(N, 0664, diagc_attr_show, diagc_attr_store),    \
++		.counter = &((struct qib_ibport *)0)->rvp.n_##N - (u64 *)0,    \
 +	}
- 	return 0;
  
- err_put:
+ QIB_DIAGC_ATTR(rc_resends);
+ QIB_DIAGC_ATTR(seq_naks);
+@@ -437,26 +411,6 @@ QIB_DIAGC_ATTR(rc_dupreq);
+ QIB_DIAGC_ATTR(rc_seqnak);
+ QIB_DIAGC_ATTR(rc_crwaits);
+ 
+-static struct attribute *diagc_default_attributes[] = {
+-	&qib_diagc_attr_rc_resends.attr,
+-	&qib_diagc_attr_rc_acks.attr,
+-	&qib_diagc_attr_rc_qacks.attr,
+-	&qib_diagc_attr_rc_delayed_comp.attr,
+-	&qib_diagc_attr_seq_naks.attr,
+-	&qib_diagc_attr_rdma_seq.attr,
+-	&qib_diagc_attr_rnr_naks.attr,
+-	&qib_diagc_attr_other_naks.attr,
+-	&qib_diagc_attr_rc_timeouts.attr,
+-	&qib_diagc_attr_loop_pkts.attr,
+-	&qib_diagc_attr_pkt_drops.attr,
+-	&qib_diagc_attr_dmawait.attr,
+-	&qib_diagc_attr_unaligned.attr,
+-	&qib_diagc_attr_rc_dupreq.attr,
+-	&qib_diagc_attr_rc_seqnak.attr,
+-	&qib_diagc_attr_rc_crwaits.attr,
+-	NULL
+-};
+-
+ static u64 get_all_cpu_total(u64 __percpu *cntr)
+ {
+ 	int cpu;
+@@ -467,82 +421,115 @@ static u64 get_all_cpu_total(u64 __percpu *cntr)
+ 	return counter;
+ }
+ 
+-#define def_write_per_cpu(cntr) \
+-static void write_per_cpu_##cntr(struct qib_pportdata *ppd, u32 data)	\
+-{									\
+-	struct qib_devdata *dd = ppd->dd;				\
+-	struct qib_ibport *qibp = &ppd->ibport_data;			\
+-	/*  A write can only zero the counter */			\
+-	if (data == 0)							\
+-		qibp->rvp.z_##cntr = get_all_cpu_total(qibp->rvp.cntr); \
+-	else								\
+-		qib_dev_err(dd, "Per CPU cntrs can only be zeroed");	\
++static ssize_t qib_store_per_cpu(struct qib_devdata *dd, const char *buf,
++				 size_t count, u64 *zero, u64 cur)
++{
++	u32 val;
++	int ret;
++
++	ret = kstrtou32(buf, 0, &val);
++	if (ret)
++		return ret;
++	if (val != 0) {
++		qib_dev_err(dd, "Per CPU cntrs can only be zeroed");
++		return count;
++	}
++	*zero = cur;
++	return count;
+ }
+ 
+-def_write_per_cpu(rc_acks)
+-def_write_per_cpu(rc_qacks)
+-def_write_per_cpu(rc_delayed_comp)
++static ssize_t rc_acks_show(struct ib_device *ibdev, u32 port_num,
++			    struct ib_port_attribute *attr, char *buf)
++{
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
+ 
+-#define READ_PER_CPU_CNTR(cntr) (get_all_cpu_total(qibp->rvp.cntr) - \
+-							qibp->rvp.z_##cntr)
++	return sysfs_emit(buf, "%llu\n",
++			  get_all_cpu_total(qibp->rvp.rc_acks) -
++				  qibp->rvp.z_rc_acks);
++}
+ 
+-static ssize_t diagc_attr_show(struct kobject *kobj, struct attribute *attr,
+-			       char *buf)
++static ssize_t rc_acks_store(struct ib_device *ibdev, u32 port_num,
++			     struct ib_port_attribute *attr, const char *buf,
++			     size_t count)
+ {
+-	struct qib_diagc_attr *dattr =
+-		container_of(attr, struct qib_diagc_attr, attr);
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, diagc_kobj);
+-	struct qib_ibport *qibp = &ppd->ibport_data;
+-	u64 val;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
+ 
+-	if (!strncmp(dattr->attr.name, "rc_acks", 7))
+-		val = READ_PER_CPU_CNTR(rc_acks);
+-	else if (!strncmp(dattr->attr.name, "rc_qacks", 8))
+-		val = READ_PER_CPU_CNTR(rc_qacks);
+-	else if (!strncmp(dattr->attr.name, "rc_delayed_comp", 15))
+-		val = READ_PER_CPU_CNTR(rc_delayed_comp);
+-	else
+-		val = *(u32 *)((char *)qibp + dattr->counter);
++	return qib_store_per_cpu(dd, buf, count, &qibp->rvp.z_rc_acks,
++				 get_all_cpu_total(qibp->rvp.rc_acks));
++}
++static IB_PORT_ATTR_RW(rc_acks);
+ 
+-	return sysfs_emit(buf, "%llu\n", val);
++static ssize_t rc_qacks_show(struct ib_device *ibdev, u32 port_num,
++			     struct ib_port_attribute *attr, char *buf)
++{
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
++
++	return sysfs_emit(buf, "%llu\n",
++			  get_all_cpu_total(qibp->rvp.rc_qacks) -
++				  qibp->rvp.z_rc_qacks);
+ }
+ 
+-static ssize_t diagc_attr_store(struct kobject *kobj, struct attribute *attr,
+-				const char *buf, size_t size)
++static ssize_t rc_qacks_store(struct ib_device *ibdev, u32 port_num,
++			      struct ib_port_attribute *attr, const char *buf,
++			      size_t count)
+ {
+-	struct qib_diagc_attr *dattr =
+-		container_of(attr, struct qib_diagc_attr, attr);
+-	struct qib_pportdata *ppd =
+-		container_of(kobj, struct qib_pportdata, diagc_kobj);
+-	struct qib_ibport *qibp = &ppd->ibport_data;
+-	u32 val;
+-	int ret;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
+ 
+-	ret = kstrtou32(buf, 0, &val);
+-	if (ret)
+-		return ret;
++	return qib_store_per_cpu(dd, buf, count, &qibp->rvp.z_rc_qacks,
++				 get_all_cpu_total(qibp->rvp.rc_qacks));
++}
++static IB_PORT_ATTR_RW(rc_qacks);
++
++static ssize_t rc_delayed_comp_show(struct ib_device *ibdev, u32 port_num,
++				    struct ib_port_attribute *attr, char *buf)
++{
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
+ 
+-	if (!strncmp(dattr->attr.name, "rc_acks", 7))
+-		write_per_cpu_rc_acks(ppd, val);
+-	else if (!strncmp(dattr->attr.name, "rc_qacks", 8))
+-		write_per_cpu_rc_qacks(ppd, val);
+-	else if (!strncmp(dattr->attr.name, "rc_delayed_comp", 15))
+-		write_per_cpu_rc_delayed_comp(ppd, val);
+-	else
+-		*(u32 *)((char *)qibp + dattr->counter) = val;
+-	return size;
++	return sysfs_emit(buf, "%llu\n",
++			 get_all_cpu_total(qibp->rvp.rc_delayed_comp) -
++				 qibp->rvp.z_rc_delayed_comp);
+ }
+ 
+-static const struct sysfs_ops qib_diagc_ops = {
+-	.show = diagc_attr_show,
+-	.store = diagc_attr_store,
++static ssize_t rc_delayed_comp_store(struct ib_device *ibdev, u32 port_num,
++				     struct ib_port_attribute *attr,
++				     const char *buf, size_t count)
++{
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	struct qib_ibport *qibp = &dd->pport[port_num - 1].ibport_data;
++
++	return qib_store_per_cpu(dd, buf, count, &qibp->rvp.z_rc_delayed_comp,
++				 get_all_cpu_total(qibp->rvp.rc_delayed_comp));
++}
++static IB_PORT_ATTR_RW(rc_delayed_comp);
++
++static struct attribute *port_diagc_attributes[] = {
++	&qib_diagc_attr_rc_resends.attr.attr,
++	&qib_diagc_attr_seq_naks.attr.attr,
++	&qib_diagc_attr_rdma_seq.attr.attr,
++	&qib_diagc_attr_rnr_naks.attr.attr,
++	&qib_diagc_attr_other_naks.attr.attr,
++	&qib_diagc_attr_rc_timeouts.attr.attr,
++	&qib_diagc_attr_loop_pkts.attr.attr,
++	&qib_diagc_attr_pkt_drops.attr.attr,
++	&qib_diagc_attr_dmawait.attr.attr,
++	&qib_diagc_attr_unaligned.attr.attr,
++	&qib_diagc_attr_rc_dupreq.attr.attr,
++	&qib_diagc_attr_rc_seqnak.attr.attr,
++	&qib_diagc_attr_rc_crwaits.attr.attr,
++	&ib_port_attr_rc_acks.attr,
++	&ib_port_attr_rc_qacks.attr,
++	&ib_port_attr_rc_delayed_comp.attr,
++	NULL
+ };
+ 
+-static struct kobj_type qib_diagc_ktype = {
+-	.release = qib_port_release,
+-	.sysfs_ops = &qib_diagc_ops,
+-	.default_attrs = diagc_default_attributes
++static const struct attribute_group port_diagc_group = {
++	.name = "linkcontrol",
++	.attrs = port_diagc_attributes,
+ };
+ 
+ /* End diag_counters */
+@@ -731,99 +718,19 @@ const struct attribute_group qib_attr_group = {
+ int qib_create_port_files(struct ib_device *ibdev, u32 port_num,
+ 			  struct kobject *kobj)
+ {
+-	struct qib_pportdata *ppd;
+ 	struct qib_devdata *dd = dd_from_ibdev(ibdev);
+-	int ret;
++	struct qib_pportdata *ppd = &dd->pport[port_num - 1];
++	const struct attribute_group **cur_group;
+ 
+-	if (!port_num || port_num > dd->num_pports) {
+-		qib_dev_err(dd,
+-			"Skipping infiniband class with invalid port %u\n",
+-			port_num);
+-		ret = -ENODEV;
+-		goto bail;
+-	}
+-	ppd = &dd->pport[port_num - 1];
++	cur_group = &ppd->groups[0];
++	*cur_group++ = &port_linkcontrol_group;
++	*cur_group++ = &port_sl2vl_group;
++	*cur_group++ = &port_diagc_group;
+ 
+-	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
+-				   "linkcontrol");
+-	if (ret) {
+-		qib_dev_err(dd,
+-			"Skipping linkcontrol sysfs info, (err %d) port %u\n",
+-			ret, port_num);
+-		goto bail_link;
+-	}
+-	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
++	if (qib_cc_table_size && ppd->congestion_entries_shadow)
++		*cur_group++ = &port_ccmgta_attribute_group;
+ 
+-	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
+-				   "sl2vl");
+-	if (ret) {
+-		qib_dev_err(dd,
+-			"Skipping sl2vl sysfs info, (err %d) port %u\n",
+-			ret, port_num);
+-		goto bail_sl;
+-	}
+-	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
+-
+-	ret = kobject_init_and_add(&ppd->diagc_kobj, &qib_diagc_ktype, kobj,
+-				   "diag_counters");
+-	if (ret) {
+-		qib_dev_err(dd,
+-			"Skipping diag_counters sysfs info, (err %d) port %u\n",
+-			ret, port_num);
+-		goto bail_diagc;
+-	}
+-	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
+-
+-	if (!qib_cc_table_size || !ppd->congestion_entries_shadow)
+-		return 0;
+-
+-	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &qib_port_cc_ktype,
+-				kobj, "CCMgtA");
+-	if (ret) {
+-		qib_dev_err(dd,
+-		 "Skipping Congestion Control sysfs info, (err %d) port %u\n",
+-		 ret, port_num);
+-		goto bail_cc;
+-	}
+-
+-	kobject_uevent(&ppd->pport_cc_kobj, KOBJ_ADD);
+-
+-	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
+-				&cc_setting_bin_attr);
+-	if (ret) {
+-		qib_dev_err(dd,
+-		 "Skipping Congestion Control setting sysfs info, (err %d) port %u\n",
+-		 ret, port_num);
+-		goto bail_cc;
+-	}
+-
+-	ret = sysfs_create_bin_file(&ppd->pport_cc_kobj,
+-				&cc_table_bin_attr);
+-	if (ret) {
+-		qib_dev_err(dd,
+-		 "Skipping Congestion Control table sysfs info, (err %d) port %u\n",
+-		 ret, port_num);
+-		goto bail_cc_entry_bin;
+-	}
+-
+-	qib_devinfo(dd->pcidev,
+-		"IB%u: Congestion Control Agent enabled for port %d\n",
+-		dd->unit, port_num);
+-
+-	return 0;
+-
+-bail_cc_entry_bin:
+-	sysfs_remove_bin_file(&ppd->pport_cc_kobj, &cc_setting_bin_attr);
+-bail_cc:
+-	kobject_put(&ppd->pport_cc_kobj);
+-bail_diagc:
+-	kobject_put(&ppd->diagc_kobj);
+-bail_sl:
+-	kobject_put(&ppd->sl2vl_kobj);
+-bail_link:
+-	kobject_put(&ppd->pport_kobj);
+-bail:
+-	return ret;
++	return ib_port_sysfs_create_groups(ibdev, port_num, ppd->groups);
+ }
+ 
+ /*
+@@ -831,21 +738,12 @@ int qib_create_port_files(struct ib_device *ibdev, u32 port_num,
+  */
+ void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
+ {
+-	struct qib_pportdata *ppd;
+ 	int i;
+ 
+ 	for (i = 0; i < dd->num_pports; i++) {
+-		ppd = &dd->pport[i];
+-		if (qib_cc_table_size &&
+-			ppd->congestion_entries_shadow) {
+-			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
+-				&cc_setting_bin_attr);
+-			sysfs_remove_bin_file(&ppd->pport_cc_kobj,
+-				&cc_table_bin_attr);
+-			kobject_put(&ppd->pport_cc_kobj);
+-		}
+-		kobject_put(&ppd->diagc_kobj);
+-		kobject_put(&ppd->sl2vl_kobj);
+-		kobject_put(&ppd->pport_kobj);
++		struct qib_pportdata *ppd = &dd->pport[i];
++
++		ib_port_sysfs_remove_groups(&dd->verbs_dev.rdi.ibdev, i,
++					    ppd->groups);
+ 	}
+ }
 -- 
 2.31.1
 
