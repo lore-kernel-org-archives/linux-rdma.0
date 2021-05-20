@@ -2,28 +2,27 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F5F1C433B4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B36C433ED
 	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:54:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 574C160E09
+	by mail.kernel.org (Postfix) with ESMTP id 19D8B60E09
 	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:54:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbhETD4F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 May 2021 23:56:05 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3599 "EHLO
+        id S230246AbhETD4E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 May 2021 23:56:04 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4551 "EHLO
         szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230232AbhETD4E (ORCPT
+        with ESMTP id S230062AbhETD4E (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 May 2021 23:56:04 -0400
-Received: from dggems703-chm.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Flwl40nkgzQpBN;
-        Thu, 20 May 2021 11:51:12 +0800 (CST)
+Received: from dggems704-chm.china.huawei.com (unknown [172.30.72.58])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Flwlv6Q7VzkYC9;
+        Thu, 20 May 2021 11:51:55 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems703-chm.china.huawei.com (10.3.19.180) with Microsoft SMTP Server
+ dggems704-chm.china.huawei.com (10.3.19.181) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
  15.1.2176.2; Thu, 20 May 2021 11:54:42 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -33,14 +32,11 @@ Received: from localhost.localdomain (10.69.192.56) by
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
-        Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v2 for-next 3/3] RDMA/hns: Remove unused CMDQ member
-Date:   Thu, 20 May 2021 11:54:36 +0800
-Message-ID: <1621482876-35780-4-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v2 for-next 0/3] RDMA/hns: Cleanups on CMDQ
+Date:   Thu, 20 May 2021 11:54:33 +0800
+Message-ID: <1621482876-35780-1-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1621482876-35780-1-git-send-email-liweihang@huawei.com>
-References: <1621482876-35780-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -51,31 +47,25 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+This series first rename the CMDQ pointers to make it better
+understandable, then remove some dead code.
 
-The hcr_mutex was used to serialize mailbox post. Now that mailbox supports
-concurrency, this variable is no longer useful.
+Changes since v1:
+* Remove the print in hns_roce_alloc_cmq_desc() in #2 because the caller
+  already has a print.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1620904578-29829-1-git-send-email-liweihang@huawei.com/
 
-Fixes: a389d016c030 ("RDMA/hns: Enable all CMDQ context")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h | 1 -
- 1 file changed, 1 deletion(-)
+Lang Cheng (3):
+  RDMA/hns: Rename CMDQ head/tail pointer to PI/CI
+  RDMA/hns: Remove Receive Queue of CMDQ
+  RDMA/hns: Remove unused CMDQ member
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 97800d2..90135dd 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -555,7 +555,6 @@ struct hns_roce_cmd_context {
- 
- struct hns_roce_cmdq {
- 	struct dma_pool		*pool;
--	struct mutex		hcr_mutex;
- 	struct semaphore	poll_sem;
- 	/*
- 	 * Event mode: cmd register mutex protection,
+ drivers/infiniband/hw/hns/hns_roce_common.h |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |   1 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 103 ++++++++--------------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   1 -
+ 4 files changed, 30 insertions(+), 79 deletions(-)
+
 -- 
 2.7.4
 
