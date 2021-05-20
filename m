@@ -2,508 +2,257 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D14C43461
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 11:26:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF23C43461
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 11:56:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBDAD611BD
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 11:26:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 011B261090
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 11:56:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240802AbhETL1a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 20 May 2021 07:27:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46002 "EHLO mail.kernel.org"
+        id S240081AbhETL5g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 20 May 2021 07:57:36 -0400
+Received: from mga18.intel.com ([134.134.136.126]:11258 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241719AbhETLZY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 20 May 2021 07:25:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 771A6613CC;
-        Thu, 20 May 2021 10:13:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1621505626;
-        bh=k7ZQxn96Ut7dPs9xt1MIvhK0dxLO0bKpGQ96/Vo6da8=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pqoBgG9EvxtZofs9Zy16qksYkVlxUK/nlikBOilbt4XvSxFjJ5tHnmE2DdWFCcOp2
-         U0rSXPerreHfzCIkLJQG5zjGk5qD/jvU6EsZ8JdnSgGiH6f1beySg5E0J1ypzpwj80
-         elJawLnTVksjKSgpgPv4b1rHTfB9KS9iiHLuWf9gYE620gUxlJaeerEXKhC1oNGa2u
-         LLUPKJyz2kxmVzflT0JOvEm8/mTg0D701J/PZFmB7jW8RkkzTp5N2lXGdT8v5a0BwW
-         ZOrt6fgQhRn+ZGrVDkJM8Got+LMgTltcU5+kz0HferAsFh5HavwuarhwPJm/5xIUx3
-         eVQcazxzihz3A==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Avihai Horon <avihaih@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 1/2] RDMA: Enable Relaxed Ordering by default for kernel ULPs
-Date:   Thu, 20 May 2021 13:13:35 +0300
-Message-Id: <73af770234656d5f884ead5b8d40132d9ed289d6.1621505111.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1621505111.git.leonro@nvidia.com>
-References: <cover.1621505111.git.leonro@nvidia.com>
+        id S239663AbhETLze (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 20 May 2021 07:55:34 -0400
+IronPort-SDR: dkBgI9Da8VwApcymhIg9zZGGsyInGq/0WD9Wi9vWWAnjbhLvK5MsEGatxqPnn+CBgsnnH8BuRn
+ KPowGhpKcvDg==
+X-IronPort-AV: E=McAfee;i="6200,9189,9989"; a="188610315"
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="188610315"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2021 04:51:08 -0700
+IronPort-SDR: cHPPUPsdCE8l+r1KQ/m9OEKyZpsEbxtTwpB/IAy4c05PJz4PzOI1kIKYjOHlneuHd9Bs0+PlWf
+ 8ABZqTG5swDA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="543501855"
+Received: from lkp-server02.sh.intel.com (HELO 1b329be5b008) ([10.239.97.151])
+  by fmsmga001.fm.intel.com with ESMTP; 20 May 2021 04:51:06 -0700
+Received: from kbuild by 1b329be5b008 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1ljhCk-0000aV-1N; Thu, 20 May 2021 11:51:06 +0000
+Date:   Thu, 20 May 2021 19:50:40 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ 463a3f66473b58d71428a1c3ce69ea52c05440e5
+Message-ID: <60a64d10.Lk/aXUWT0cXIVO7/%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Avihai Horon <avihaih@nvidia.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
+branch HEAD: 463a3f66473b58d71428a1c3ce69ea52c05440e5  RDMA/uverbs: Fix a NULL vs IS_ERR() bug
 
-Add a new flag IB_ACCESS_DISABLE_RELAXED_ORDERING which replaces
-IB_ACCESS_RELAXED_ORDERING and has inverse functionality, and invert all
-logic related to it. Since a new flag is added to IB layer, uverbs flags
-are now translated into IB flags.
+elapsed time: 724m
 
-This allows us to enable Relaxed Ordering by default for kernel ULPs
-without modifying any ULP code. In addition, new ULPs will get Relaxed
-Ordering automatically without the need to explicitly ask for it. Since
-all kernel ULPs support Relaxed Ordering, this is a desired behavior.
+configs tested: 188
+configs skipped: 3
 
-On the other hand, not all user space apps support Relaxed Ordering, so
-we keep it disabled by default for them. Thus, user space apps have to
-explicitly enable Relaxed Ordering if they want it. This is the current
-behavior for user space, and it is not changed in the scope of this
-series.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Note that Relaxed ordering is an optional capability, and as such, it is
-ignored by vendors that don't support it.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+sh                           se7206_defconfig
+sh                 kfr2r09-romimage_defconfig
+h8300                    h8300h-sim_defconfig
+xtensa                           alldefconfig
+arc                          axs103_defconfig
+powerpc                     mpc5200_defconfig
+openrisc                         alldefconfig
+powerpc                      walnut_defconfig
+mips                      malta_kvm_defconfig
+mips                           mtx1_defconfig
+sh                         microdev_defconfig
+powerpc                    amigaone_defconfig
+arm                             mxs_defconfig
+arm64                            alldefconfig
+powerpc                      katmai_defconfig
+powerpc                       eiger_defconfig
+mips                         tb0226_defconfig
+arm                      tct_hammer_defconfig
+m68k                             allmodconfig
+arm                            hisi_defconfig
+xtensa                  audio_kc705_defconfig
+x86_64                            allnoconfig
+sh                   rts7751r2dplus_defconfig
+m68k                       m5208evb_defconfig
+arm                          pcm027_defconfig
+sh                         ap325rxa_defconfig
+arm                         socfpga_defconfig
+powerpc                 mpc8272_ads_defconfig
+arm                           sama5_defconfig
+m68k                       bvme6000_defconfig
+m68k                        m5307c3_defconfig
+m68k                         apollo_defconfig
+mips                        bcm47xx_defconfig
+powerpc                 mpc836x_rdk_defconfig
+mips                           ip27_defconfig
+powerpc                      ep88xc_defconfig
+arm                             rpc_defconfig
+arm                         assabet_defconfig
+mips                           ci20_defconfig
+xtensa                         virt_defconfig
+m68k                       m5275evb_defconfig
+powerpc                  mpc885_ads_defconfig
+arc                                 defconfig
+sh                            hp6xx_defconfig
+sh                           se7721_defconfig
+powerpc                 mpc832x_rdb_defconfig
+s390                             allyesconfig
+csky                                defconfig
+arc                           tb10x_defconfig
+sh                        edosk7705_defconfig
+arc                        vdk_hs38_defconfig
+powerpc                     rainier_defconfig
+arm                         lubbock_defconfig
+riscv                    nommu_virt_defconfig
+powerpc                  storcenter_defconfig
+sh                          rsk7203_defconfig
+arm                           corgi_defconfig
+powerpc                 mpc832x_mds_defconfig
+arm                      jornada720_defconfig
+h8300                            allyesconfig
+arm                         vf610m4_defconfig
+sh                           sh2007_defconfig
+mips                      maltasmvp_defconfig
+arm                        multi_v7_defconfig
+powerpc                     powernv_defconfig
+um                             i386_defconfig
+x86_64                              defconfig
+ia64                                defconfig
+arm                         lpc18xx_defconfig
+mips                     cu1000-neo_defconfig
+powerpc                      cm5200_defconfig
+mips                          rb532_defconfig
+arm                          ixp4xx_defconfig
+arm                         shannon_defconfig
+powerpc                      obs600_defconfig
+mips                           jazz_defconfig
+arm                        keystone_defconfig
+mips                   sb1250_swarm_defconfig
+sh                           se7712_defconfig
+powerpc                     taishan_defconfig
+sh                        dreamcast_defconfig
+arm                        oxnas_v6_defconfig
+powerpc                     tqm5200_defconfig
+arm                             ezx_defconfig
+sh                          lboxre2_defconfig
+sh                        edosk7760_defconfig
+powerpc                      arches_defconfig
+m68k                         amcore_defconfig
+mips                         cobalt_defconfig
+ia64                            zx1_defconfig
+arm                      integrator_defconfig
+powerpc                 mpc836x_mds_defconfig
+ia64                             allmodconfig
+ia64                             allyesconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+nds32                               defconfig
+nios2                            allyesconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+s390                                defconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a001-20210520
+x86_64               randconfig-a006-20210520
+x86_64               randconfig-a005-20210520
+x86_64               randconfig-a003-20210520
+x86_64               randconfig-a004-20210520
+x86_64               randconfig-a002-20210520
+i386                 randconfig-a003-20210519
+i386                 randconfig-a001-20210519
+i386                 randconfig-a005-20210519
+i386                 randconfig-a004-20210519
+i386                 randconfig-a002-20210519
+i386                 randconfig-a006-20210519
+i386                 randconfig-a001-20210520
+i386                 randconfig-a005-20210520
+i386                 randconfig-a002-20210520
+i386                 randconfig-a006-20210520
+i386                 randconfig-a004-20210520
+i386                 randconfig-a003-20210520
+x86_64               randconfig-a012-20210519
+x86_64               randconfig-a015-20210519
+x86_64               randconfig-a013-20210519
+x86_64               randconfig-a011-20210519
+x86_64               randconfig-a016-20210519
+x86_64               randconfig-a014-20210519
+i386                 randconfig-a016-20210520
+i386                 randconfig-a011-20210520
+i386                 randconfig-a015-20210520
+i386                 randconfig-a012-20210520
+i386                 randconfig-a014-20210520
+i386                 randconfig-a013-20210520
+i386                 randconfig-a014-20210519
+i386                 randconfig-a016-20210519
+i386                 randconfig-a011-20210519
+i386                 randconfig-a015-20210519
+i386                 randconfig-a012-20210519
+i386                 randconfig-a013-20210519
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allmodconfig
+um                               allmodconfig
+um                                allnoconfig
+um                               allyesconfig
+um                                  defconfig
+x86_64                           allyesconfig
+x86_64                    rhel-8.3-kselftests
+x86_64                               rhel-8.3
+x86_64                      rhel-8.3-kbuiltin
+x86_64                                  kexec
 
-Signed-off-by: Avihai Horon <avihaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+clang tested configs:
+x86_64               randconfig-b001-20210520
+x86_64               randconfig-b001-20210519
+x86_64               randconfig-a003-20210519
+x86_64               randconfig-a004-20210519
+x86_64               randconfig-a005-20210519
+x86_64               randconfig-a001-20210519
+x86_64               randconfig-a002-20210519
+x86_64               randconfig-a006-20210519
+x86_64               randconfig-a013-20210520
+x86_64               randconfig-a014-20210520
+x86_64               randconfig-a012-20210520
+x86_64               randconfig-a016-20210520
+x86_64               randconfig-a015-20210520
+x86_64               randconfig-a011-20210520
+
 ---
- drivers/infiniband/core/umem.c                |  2 +-
- drivers/infiniband/core/uverbs_cmd.c          | 64 +++++++++++++++--
- drivers/infiniband/core/uverbs_std_types_mr.c | 21 ++++--
- drivers/infiniband/hw/mlx5/devx.c             | 10 ++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          | 10 +--
- drivers/infiniband/hw/mlx5/mr.c               | 22 +++---
- drivers/infiniband/hw/mlx5/wr.c               |  8 +--
- include/rdma/ib_verbs.h                       | 68 ++++++++++++++++++-
- 8 files changed, 170 insertions(+), 35 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index c26537d2c241..3aa538bd8851 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -242,7 +242,7 @@ static struct ib_umem *__ib_umem_get(struct ib_device *device,
- 		}
- 	}
- 
--	if (access & IB_ACCESS_RELAXED_ORDERING)
-+	if (!(access & IB_ACCESS_DISABLE_RELAXED_ORDERING))
- 		dma_attr |= DMA_ATTR_WEAK_ORDERING;
- 
- 	umem->nmap =
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index d5e15a8c870d..4f890bff80f8 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -701,6 +701,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	struct ib_mr                *mr;
- 	int                          ret;
- 	struct ib_device *ib_dev;
-+	u32 access_flags;
- 
- 	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
- 	if (ret)
-@@ -713,7 +714,11 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	if (IS_ERR(uobj))
- 		return PTR_ERR(uobj);
- 
--	ret = ib_check_mr_access(ib_dev, cmd.access_flags);
-+	ret = copy_mr_access_flags(&access_flags, cmd.access_flags);
-+	if (ret)
-+		goto err_free;
-+
-+	ret = ib_check_mr_access(ib_dev, access_flags);
- 	if (ret)
- 		goto err_free;
- 
-@@ -724,8 +729,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	}
- 
- 	mr = pd->device->ops.reg_user_mr(pd, cmd.start, cmd.length, cmd.hca_va,
--					 cmd.access_flags,
--					 &attrs->driver_udata);
-+					 access_flags, &attrs->driver_udata);
- 	if (IS_ERR(mr)) {
- 		ret = PTR_ERR(mr);
- 		goto err_put;
-@@ -772,6 +776,7 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 	struct ib_pd *orig_pd;
- 	struct ib_pd *new_pd;
- 	struct ib_mr *new_mr;
-+	u32 access_flags;
- 
- 	ret = uverbs_request(attrs, &cmd, sizeof(cmd));
- 	if (ret)
-@@ -799,7 +804,11 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 	}
- 
- 	if (cmd.flags & IB_MR_REREG_ACCESS) {
--		ret = ib_check_mr_access(mr->device, cmd.access_flags);
-+		ret = copy_mr_access_flags(&access_flags, cmd.access_flags);
-+		if (ret)
-+			goto put_uobjs;
-+
-+		ret = ib_check_mr_access(mr->device, access_flags);
- 		if (ret)
- 			goto put_uobjs;
- 	}
-@@ -827,7 +836,7 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 	}
- 
- 	new_mr = ib_dev->ops.rereg_user_mr(mr, cmd.flags, cmd.start, cmd.length,
--					   cmd.hca_va, cmd.access_flags, new_pd,
-+					   cmd.hca_va, access_flags, new_pd,
- 					   &attrs->driver_udata);
- 	if (IS_ERR(new_mr)) {
- 		ret = PTR_ERR(new_mr);
-@@ -1660,6 +1669,27 @@ static void copy_ah_attr_to_uverbs(struct ib_uverbs_qp_dest *uverb_attr,
- 	uverb_attr->port_num          = rdma_ah_get_port_num(rdma_attr);
- }
- 
-+static void copy_qp_access_flags(unsigned int *dest_flags,
-+				 unsigned int src_flags)
-+{
-+	*dest_flags = 0;
-+
-+	process_access_flag(dest_flags, IB_UVERBS_ACCESS_LOCAL_WRITE,
-+			    &src_flags, IB_ACCESS_LOCAL_WRITE);
-+
-+	process_access_flag(dest_flags, IB_UVERBS_ACCESS_REMOTE_WRITE,
-+			    &src_flags, IB_ACCESS_REMOTE_WRITE);
-+
-+	process_access_flag(dest_flags, IB_UVERBS_ACCESS_REMOTE_READ,
-+			    &src_flags, IB_ACCESS_REMOTE_READ);
-+
-+	process_access_flag(dest_flags, IB_UVERBS_ACCESS_REMOTE_ATOMIC,
-+			    &src_flags, IB_ACCESS_REMOTE_ATOMIC);
-+
-+	process_access_flag(dest_flags, IB_UVERBS_ACCESS_MW_BIND, &src_flags,
-+			    IB_ACCESS_MW_BIND);
-+}
-+
- static int ib_uverbs_query_qp(struct uverbs_attr_bundle *attrs)
- {
- 	struct ib_uverbs_query_qp      cmd;
-@@ -1704,7 +1734,9 @@ static int ib_uverbs_query_qp(struct uverbs_attr_bundle *attrs)
- 	resp.rq_psn                 = attr->rq_psn;
- 	resp.sq_psn                 = attr->sq_psn;
- 	resp.dest_qp_num            = attr->dest_qp_num;
--	resp.qp_access_flags        = attr->qp_access_flags;
-+
-+	copy_qp_access_flags(&resp.qp_access_flags, attr->qp_access_flags);
-+
- 	resp.pkey_index             = attr->pkey_index;
- 	resp.alt_pkey_index         = attr->alt_pkey_index;
- 	resp.sq_draining            = attr->sq_draining;
-@@ -1774,6 +1806,17 @@ static void copy_ah_attr_from_uverbs(struct ib_device *dev,
- 	rdma_ah_set_make_grd(rdma_attr, false);
- }
- 
-+static int check_qp_access_flags(unsigned int qp_access_flags)
-+{
-+	if (qp_access_flags &
-+	    ~(IB_UVERBS_ACCESS_LOCAL_WRITE | IB_UVERBS_ACCESS_REMOTE_WRITE |
-+	      IB_UVERBS_ACCESS_REMOTE_READ | IB_UVERBS_ACCESS_REMOTE_ATOMIC |
-+	      IB_UVERBS_ACCESS_MW_BIND))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static int modify_qp(struct uverbs_attr_bundle *attrs,
- 		     struct ib_uverbs_ex_modify_qp *cmd)
- {
-@@ -1868,6 +1911,12 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
- 		goto release_qp;
- 	}
- 
-+	if (cmd->base.attr_mask & IB_QP_ACCESS_FLAGS &&
-+	    check_qp_access_flags(cmd->base.qp_access_flags)) {
-+		ret = -EINVAL;
-+		goto release_qp;
-+	}
-+
- 	if (cmd->base.attr_mask & IB_QP_STATE)
- 		attr->qp_state = cmd->base.qp_state;
- 	if (cmd->base.attr_mask & IB_QP_CUR_STATE)
-@@ -1885,7 +1934,8 @@ static int modify_qp(struct uverbs_attr_bundle *attrs,
- 	if (cmd->base.attr_mask & IB_QP_DEST_QPN)
- 		attr->dest_qp_num = cmd->base.dest_qp_num;
- 	if (cmd->base.attr_mask & IB_QP_ACCESS_FLAGS)
--		attr->qp_access_flags = cmd->base.qp_access_flags;
-+		copy_qp_access_flags(&attr->qp_access_flags,
-+				     cmd->base.qp_access_flags);
- 	if (cmd->base.attr_mask & IB_QP_PKEY_INDEX)
- 		attr->pkey_index = cmd->base.pkey_index;
- 	if (cmd->base.attr_mask & IB_QP_EN_SQD_ASYNC_NOTIFY)
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index f782d5e1aa25..c9df57da7eed 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -109,7 +109,12 @@ static int UVERBS_HANDLER(UVERBS_METHOD_DM_MR_REG)(
- 
- 	ret = uverbs_get_flags32(&attr.access_flags, attrs,
- 				 UVERBS_ATTR_REG_DM_MR_ACCESS_FLAGS,
--				 IB_ACCESS_SUPPORTED);
-+				 ((IB_UVERBS_ACCESS_HUGETLB << 1) - 1) |
-+					 IB_UVERBS_ACCESS_OPTIONAL_RANGE);
-+	if (ret)
-+		return ret;
-+
-+	ret = copy_mr_access_flags(&attr.access_flags, attr.access_flags);
- 	if (ret)
- 		return ret;
- 
-@@ -225,11 +230,15 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
- 
- 	ret = uverbs_get_flags32(&access_flags, attrs,
- 				 UVERBS_ATTR_REG_DMABUF_MR_ACCESS_FLAGS,
--				 IB_ACCESS_LOCAL_WRITE |
--				 IB_ACCESS_REMOTE_READ |
--				 IB_ACCESS_REMOTE_WRITE |
--				 IB_ACCESS_REMOTE_ATOMIC |
--				 IB_ACCESS_RELAXED_ORDERING);
-+				 IB_UVERBS_ACCESS_LOCAL_WRITE |
-+				 IB_UVERBS_ACCESS_REMOTE_READ |
-+				 IB_UVERBS_ACCESS_REMOTE_WRITE |
-+				 IB_UVERBS_ACCESS_REMOTE_ATOMIC |
-+				 IB_UVERBS_ACCESS_RELAXED_ORDERING);
-+	if (ret)
-+		return ret;
-+
-+	ret = copy_mr_access_flags(&access_flags, access_flags);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 3678b0a8710b..72a0828388de 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -2169,9 +2169,13 @@ static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
- 
- 	err = uverbs_get_flags32(&access, attrs,
- 				 MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS,
--				 IB_ACCESS_LOCAL_WRITE |
--				 IB_ACCESS_REMOTE_WRITE |
--				 IB_ACCESS_REMOTE_READ);
-+				 IB_UVERBS_ACCESS_LOCAL_WRITE |
-+				 IB_UVERBS_ACCESS_REMOTE_WRITE |
-+				 IB_UVERBS_ACCESS_REMOTE_READ);
-+	if (err)
-+		return err;
-+
-+	err = copy_mr_access_flags(&access, access);
- 	if (err)
- 		return err;
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index e9a3f34a30b8..bbfed67e6fc9 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -625,12 +625,14 @@ struct mlx5_user_mmap_entry {
- 					 IB_ACCESS_REMOTE_WRITE  |\
- 					 IB_ACCESS_REMOTE_READ   |\
- 					 IB_ACCESS_REMOTE_ATOMIC |\
--					 IB_ZERO_BASED)
-+					 IB_ZERO_BASED		 |\
-+					 IB_ACCESS_DISABLE_RELAXED_ORDERING)
- 
- #define MLX5_IB_DM_SW_ICM_ALLOWED_ACCESS (IB_ACCESS_LOCAL_WRITE   |\
- 					  IB_ACCESS_REMOTE_WRITE  |\
- 					  IB_ACCESS_REMOTE_READ   |\
--					  IB_ZERO_BASED)
-+					  IB_ZERO_BASED		  |\
-+					  IB_ACCESS_DISABLE_RELAXED_ORDERING)
- 
- #define mlx5_update_odp_stats(mr, counter_name, value)		\
- 	atomic64_add(value, &((mr)->odp_stats.counter_name))
-@@ -1570,12 +1572,12 @@ static inline bool mlx5_ib_can_reconfig_with_umr(struct mlx5_ib_dev *dev,
- 	    MLX5_CAP_GEN(dev->mdev, umr_modify_atomic_disabled))
- 		return false;
- 
--	if ((diffs & IB_ACCESS_RELAXED_ORDERING) &&
-+	if ((diffs & IB_ACCESS_DISABLE_RELAXED_ORDERING) &&
- 	    MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write) &&
- 	    !MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write_umr))
- 		return false;
- 
--	if ((diffs & IB_ACCESS_RELAXED_ORDERING) &&
-+	if ((diffs & IB_ACCESS_DISABLE_RELAXED_ORDERING) &&
- 	    MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read) &&
- 	    !MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read_umr))
- 		return false;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 44e14d273b45..d2dd0fb870f6 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -76,12 +76,12 @@ static void set_mkc_access_pd_addr_fields(void *mkc, int acc, u64 start_addr,
- 	MLX5_SET(mkc, mkc, lw, !!(acc & IB_ACCESS_LOCAL_WRITE));
- 	MLX5_SET(mkc, mkc, lr, 1);
- 
--	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write))
-+	if (!(acc & IB_ACCESS_DISABLE_RELAXED_ORDERING)) {
- 		MLX5_SET(mkc, mkc, relaxed_ordering_write,
--			 !!(acc & IB_ACCESS_RELAXED_ORDERING));
--	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read))
-+			 MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write));
- 		MLX5_SET(mkc, mkc, relaxed_ordering_read,
--			 !!(acc & IB_ACCESS_RELAXED_ORDERING));
-+			 MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read));
-+	}
- 
- 	MLX5_SET(mkc, mkc, pd, to_mpd(pd)->pdn);
- 	MLX5_SET(mkc, mkc, qpn, 0xffffff);
-@@ -181,7 +181,8 @@ static struct mlx5_ib_mr *alloc_cache_mr(struct mlx5_cache_ent *ent, void *mkc)
- 		return NULL;
- 	mr->cache_ent = ent;
- 
--	set_mkc_access_pd_addr_fields(mkc, 0, 0, ent->dev->umrc.pd);
-+	set_mkc_access_pd_addr_fields(mkc, IB_ACCESS_DISABLE_RELAXED_ORDERING,
-+				      0, ent->dev->umrc.pd);
- 	MLX5_SET(mkc, mkc, free, 1);
- 	MLX5_SET(mkc, mkc, umr_en, 1);
- 	MLX5_SET(mkc, mkc, access_mode_1_0, ent->access_mode & 0x3);
-@@ -574,7 +575,8 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev,
- 		return ERR_PTR(-EINVAL);
- 
- 	/* Matches access in alloc_cache_mr() */
--	if (!mlx5_ib_can_reconfig_with_umr(dev, 0, access_flags))
-+	if (!mlx5_ib_can_reconfig_with_umr(
-+		    dev, IB_ACCESS_DISABLE_RELAXED_ORDERING, access_flags))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
- 	ent = &cache->ent[entry];
-@@ -953,7 +955,8 @@ static struct mlx5_ib_mr *alloc_cacheable_mr(struct ib_pd *pd,
- 	 * cache then synchronously create an uncached one.
- 	 */
- 	if (!ent || ent->limit == 0 ||
--	    !mlx5_ib_can_reconfig_with_umr(dev, 0, access_flags)) {
-+	    !mlx5_ib_can_reconfig_with_umr(
-+		    dev, IB_ACCESS_DISABLE_RELAXED_ORDERING, access_flags)) {
- 		mutex_lock(&dev->slow_path_mutex);
- 		mr = reg_create(pd, umem, iova, access_flags, page_size, false);
- 		mutex_unlock(&dev->slow_path_mutex);
-@@ -1685,8 +1688,9 @@ static bool can_use_umr_rereg_access(struct mlx5_ib_dev *dev,
- {
- 	unsigned int diffs = current_access_flags ^ target_access_flags;
- 
--	if (diffs & ~(IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE |
--		      IB_ACCESS_REMOTE_READ | IB_ACCESS_RELAXED_ORDERING))
-+	if (diffs &
-+	    ~(IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE |
-+	      IB_ACCESS_REMOTE_READ | IB_ACCESS_DISABLE_RELAXED_ORDERING))
- 		return false;
- 	return mlx5_ib_can_reconfig_with_umr(dev, current_access_flags,
- 					     target_access_flags);
-diff --git a/drivers/infiniband/hw/mlx5/wr.c b/drivers/infiniband/hw/mlx5/wr.c
-index cf2852cba45c..54caa6a54451 100644
---- a/drivers/infiniband/hw/mlx5/wr.c
-+++ b/drivers/infiniband/hw/mlx5/wr.c
-@@ -415,12 +415,12 @@ static void set_reg_mkey_segment(struct mlx5_ib_dev *dev,
- 	MLX5_SET(mkc, seg, rr, !!(umrwr->access_flags & IB_ACCESS_REMOTE_READ));
- 	MLX5_SET(mkc, seg, lw, !!(umrwr->access_flags & IB_ACCESS_LOCAL_WRITE));
- 	MLX5_SET(mkc, seg, lr, 1);
--	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write_umr))
-+	if (!(umrwr->access_flags & IB_ACCESS_DISABLE_RELAXED_ORDERING)) {
- 		MLX5_SET(mkc, seg, relaxed_ordering_write,
--			 !!(umrwr->access_flags & IB_ACCESS_RELAXED_ORDERING));
--	if (MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read_umr))
-+			 MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write_umr));
- 		MLX5_SET(mkc, seg, relaxed_ordering_read,
--			 !!(umrwr->access_flags & IB_ACCESS_RELAXED_ORDERING));
-+			 MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read_umr));
-+	}
- 
- 	if (umrwr->pd)
- 		MLX5_SET(mkc, seg, pd, to_mpd(umrwr->pd)->pdn);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 05dbc216eb64..b7bda44e9189 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1440,7 +1440,7 @@ enum ib_access_flags {
- 	IB_ZERO_BASED = IB_UVERBS_ACCESS_ZERO_BASED,
- 	IB_ACCESS_ON_DEMAND = IB_UVERBS_ACCESS_ON_DEMAND,
- 	IB_ACCESS_HUGETLB = IB_UVERBS_ACCESS_HUGETLB,
--	IB_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_RELAXED_ORDERING,
-+	IB_ACCESS_DISABLE_RELAXED_ORDERING = IB_UVERBS_ACCESS_OPTIONAL_FIRST,
- 
- 	IB_ACCESS_OPTIONAL = IB_UVERBS_ACCESS_OPTIONAL_RANGE,
- 	IB_ACCESS_SUPPORTED =
-@@ -4679,4 +4679,70 @@ static inline u32 rdma_calc_flow_label(u32 lqpn, u32 rqpn)
- 
- const struct ib_port_immutable*
- ib_port_immutable_read(struct ib_device *dev, unsigned int port);
-+
-+static inline void process_access_flag(unsigned int *dest_flags,
-+				       unsigned int out_flag,
-+				       unsigned int *src_flags,
-+				       unsigned int in_flag)
-+{
-+	if (!(*src_flags & in_flag))
-+		return;
-+
-+	*dest_flags |= out_flag;
-+	*src_flags &= ~in_flag;
-+}
-+
-+static inline void process_access_flag_inv(unsigned int *dest_flags,
-+					   unsigned int out_flag,
-+					   unsigned int *src_flags,
-+					   unsigned int in_flag)
-+{
-+	if (*src_flags & in_flag) {
-+		*dest_flags &= ~out_flag;
-+		*src_flags &= ~in_flag;
-+		return;
-+	}
-+
-+	*dest_flags |= out_flag;
-+}
-+
-+static inline int copy_mr_access_flags(unsigned int *dest_flags,
-+				       unsigned int src_flags)
-+{
-+	*dest_flags = 0;
-+
-+	process_access_flag(dest_flags, IB_ACCESS_LOCAL_WRITE, &src_flags,
-+			    IB_UVERBS_ACCESS_LOCAL_WRITE);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_REMOTE_WRITE, &src_flags,
-+			    IB_UVERBS_ACCESS_REMOTE_WRITE);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_REMOTE_READ, &src_flags,
-+			    IB_UVERBS_ACCESS_REMOTE_READ);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_REMOTE_ATOMIC, &src_flags,
-+			    IB_UVERBS_ACCESS_REMOTE_ATOMIC);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_MW_BIND, &src_flags,
-+			    IB_UVERBS_ACCESS_MW_BIND);
-+
-+	process_access_flag(dest_flags, IB_ZERO_BASED, &src_flags,
-+			    IB_UVERBS_ACCESS_ZERO_BASED);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_ON_DEMAND, &src_flags,
-+			    IB_UVERBS_ACCESS_ON_DEMAND);
-+
-+	process_access_flag(dest_flags, IB_ACCESS_HUGETLB, &src_flags,
-+			    IB_UVERBS_ACCESS_HUGETLB);
-+
-+	process_access_flag_inv(dest_flags, IB_ACCESS_DISABLE_RELAXED_ORDERING,
-+				&src_flags, IB_UVERBS_ACCESS_RELAXED_ORDERING);
-+
-+	/**
-+	 * Don't fail on optional flags as they are not mandatory.
-+	 */
-+	src_flags &= ~IB_UVERBS_ACCESS_OPTIONAL_RANGE;
-+
-+	return (src_flags) ? -EINVAL : 0;
-+}
- #endif /* IB_VERBS_H */
--- 
-2.31.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
