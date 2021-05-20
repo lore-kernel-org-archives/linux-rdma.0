@@ -2,125 +2,116 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC43CC43460
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:54:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2276C433ED
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:56:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9636060E09
-	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:54:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 776E7611BD
+	for <linux-rdma@archiver.kernel.org>; Thu, 20 May 2021 03:56:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230232AbhETD4F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 May 2021 23:56:05 -0400
-Received: from szxga07-in.huawei.com ([45.249.212.35]:3438 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229993AbhETD4E (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 May 2021 23:56:04 -0400
-Received: from dggems701-chm.china.huawei.com (unknown [172.30.72.58])
-        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Flwlv2ncdzCsx4;
-        Thu, 20 May 2021 11:51:55 +0800 (CST)
+        id S229534AbhETD5n convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 May 2021 23:57:43 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4552 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229498AbhETD5m (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 May 2021 23:57:42 -0400
+Received: from dggems703-chm.china.huawei.com (unknown [172.30.72.59])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Flwnn3RbCzkYC9;
+        Thu, 20 May 2021 11:53:33 +0800 (CST)
+Received: from dggpeml100021.china.huawei.com (7.185.36.148) by
+ dggems703-chm.china.huawei.com (10.3.19.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Thu, 20 May 2021 11:56:19 +0800
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems701-chm.china.huawei.com (10.3.19.178) with Microsoft SMTP Server
+ dggpeml100021.china.huawei.com (7.185.36.148) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Thu, 20 May 2021 11:54:42 +0800
-Received: from localhost.localdomain (10.69.192.56) by
- dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Thu, 20 May 2021 11:54:42 +0800
-From:   Weihang Li <liweihang@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
-        Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v2 for-next 1/3] RDMA/hns: Rename CMDQ head/tail pointer to PI/CI
-Date:   Thu, 20 May 2021 11:54:34 +0800
-Message-ID: <1621482876-35780-2-git-send-email-liweihang@huawei.com>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1621482876-35780-1-git-send-email-liweihang@huawei.com>
-References: <1621482876-35780-1-git-send-email-liweihang@huawei.com>
+ 15.1.2176.2; Thu, 20 May 2021 11:56:19 +0800
+Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
+ dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2176.012;
+ Thu, 20 May 2021 11:56:19 +0800
+From:   liweihang <liweihang@huawei.com>
+To:     "dledford@redhat.com" <dledford@redhat.com>,
+        "jgg@nvidia.com" <jgg@nvidia.com>
+CC:     "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Linuxarm <linuxarm@huawei.com>
+Subject: Re: [PATCH v2 for-next 0/7] RDMA/hns: Add support for Dynamic Context
+ Attachment
+Thread-Topic: [PATCH v2 for-next 0/7] RDMA/hns: Add support for Dynamic
+ Context Attachment
+Thread-Index: AQHXRlf62+7thPJ5jkK+TA/Qw2h+Ew==
+Date:   Thu, 20 May 2021 03:56:19 +0000
+Message-ID: <d3edf24af30740a98d5da2df03570e4a@huawei.com>
+References: <1620732161-27180-1-git-send-email-liweihang@huawei.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.67.100.165]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.69.192.56]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggema753-chm.china.huawei.com (10.1.198.195)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+On 2021/5/11 19:22, liweihang wrote:
+> The HIP09 introduces the DCA(Dynamic Context Attachment) feature which
+> supports many RC QPs to share the WQE buffer in a memory pool. If a QP
+> enables DCA feature, the WQE's buffer will not be allocated when creating
+> but when the users start to post WRs. This will reduce the memory
+> consumption when there are too many QPs are inactive.
+> 
+> Changes since v1:
+> * Modify return type of hns_roce_enable_dca() to void.
+> * Link: https://patchwork.kernel.org/project/linux-rdma/cover/1620650889-61650-1-git-send-email-liweihang@huawei.com/
+> 
+> Two RFC versions of this series has been sent before, and it's associated
+> with the userspace one "libhns: Add support for Dynamic Context
+> Attachment".
+> 
+> Changes since RFC v2:
+> * Just fix a typo in commit message of #6.
+> * Link: https://patchwork.kernel.org/project/linux-rdma/cover/1611394994-50363-1-git-send-email-liweihang@huawei.com/
+> 
+> Changes since RFC v1:
+> * Replace all GFP_ATOMIC with GFP_NOWAIT, because the former may use
+>   emergency pool if no regular memory can be found.
+> * Change size of cap_flags of alloc_ucontext_resp from 32 to 64 to avoid
+>   a potential problem when pass it back to the userspace.
+> * Move definition of HNS_ROCE_CAP_FLAG_DCA_MODE to hns-abi.h.
+> * Rename free_mem_states() to free_dca_states() in #1.
+> * Link: https://patchwork.kernel.org/project/linux-rdma/cover/1610706138-4219-1-git-send-email-liweihang@huawei.com/
+> 
+> Xi Wang (7):
+>   RDMA/hns: Introduce DCA for RC QP
+>   RDMA/hns: Add method for shrinking DCA memory pool
+>   RDMA/hns: Configure DCA mode for the userspace QP
+>   RDMA/hns: Add method for attaching WQE buffer
+>   RDMA/hns: Setup the configuration of WQE addressing to QPC
+>   RDMA/hns: Add method to detach WQE buffer
+>   RDMA/hns: Add method to query WQE buffer's address
+> 
+>  drivers/infiniband/hw/hns/Makefile          |    2 +-
+>  drivers/infiniband/hw/hns/hns_roce_dca.c    | 1262 +++++++++++++++++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_dca.h    |   69 ++
+>  drivers/infiniband/hw/hns/hns_roce_device.h |   33 +
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  223 ++++-
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |    3 +
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |   27 +-
+>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  105 ++-
+>  include/uapi/rdma/hns-abi.h                 |   64 ++
+>  9 files changed, 1746 insertions(+), 42 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.c
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.h
+> 
 
-the same name represents opposite meanings in new/old driver, it
-is hard to maintain, so rename them to PI/CI.
+We have received new comments on v1, so please ignore this version.
 
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Weihang Li <liweihang@huawei.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/hns/hns_roce_common.h |  4 ++--
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 10 +++++-----
- 2 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index d5fe56c..3a5658f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_common.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -373,8 +373,8 @@
- #define ROCEE_TX_CMQ_BASEADDR_L_REG		0x07000
- #define ROCEE_TX_CMQ_BASEADDR_H_REG		0x07004
- #define ROCEE_TX_CMQ_DEPTH_REG			0x07008
--#define ROCEE_TX_CMQ_HEAD_REG			0x07010
--#define ROCEE_TX_CMQ_TAIL_REG			0x07014
-+#define ROCEE_TX_CMQ_PI_REG			0x07010
-+#define ROCEE_TX_CMQ_CI_REG			0x07014
- 
- #define ROCEE_RX_CMQ_BASEADDR_L_REG		0x07018
- #define ROCEE_RX_CMQ_BASEADDR_H_REG		0x0701c
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 49bb4f5..b58d65f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1255,8 +1255,8 @@ static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
- 			   (u32)ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S);
- 
- 		/* Make sure to write tail first and then head */
--		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
--		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
-+		roce_write(hr_dev, ROCEE_TX_CMQ_CI_REG, 0);
-+		roce_write(hr_dev, ROCEE_TX_CMQ_PI_REG, 0);
- 	} else {
- 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_L_REG, (u32)dma);
- 		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
-@@ -1338,7 +1338,7 @@ static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
- 
- static int hns_roce_cmq_csq_done(struct hns_roce_dev *hr_dev)
- {
--	u32 tail = roce_read(hr_dev, ROCEE_TX_CMQ_TAIL_REG);
-+	u32 tail = roce_read(hr_dev, ROCEE_TX_CMQ_CI_REG);
- 	struct hns_roce_v2_priv *priv = hr_dev->priv;
- 
- 	return tail == priv->cmq.csq.head;
-@@ -1366,7 +1366,7 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	/* Write to hardware */
--	roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, csq->head);
-+	roce_write(hr_dev, ROCEE_TX_CMQ_PI_REG, csq->head);
- 
- 	/* If the command is sync, wait for the firmware to write back,
- 	 * if multi descriptors to be sent, use the first one to check
-@@ -1397,7 +1397,7 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 		}
- 	} else {
- 		/* FW/HW reset or incorrect number of desc */
--		tail = roce_read(hr_dev, ROCEE_TX_CMQ_TAIL_REG);
-+		tail = roce_read(hr_dev, ROCEE_TX_CMQ_CI_REG);
- 		dev_warn(hr_dev->dev, "CMDQ move tail from %d to %d\n",
- 			 csq->head, tail);
- 		csq->head = tail;
--- 
-2.7.4
-
+Thanks
+Weihang
