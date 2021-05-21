@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88AFDC4707F
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 18:20:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 321D3C4707A
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 18:20:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 660FE613DA
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 18:20:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1418161019
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 18:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231330AbhEUSVr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 May 2021 14:21:47 -0400
-Received: from mga06.intel.com ([134.134.136.31]:33089 "EHLO mga06.intel.com"
+        id S238696AbhEUSVs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 May 2021 14:21:48 -0400
+Received: from mga06.intel.com ([134.134.136.31]:33081 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238611AbhEUSVp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S238623AbhEUSVp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Fri, 21 May 2021 14:21:45 -0400
-IronPort-SDR: uP8xpqY41dYVd0iEla4zNoxLLGnP2UiEtv7tjTGxnRd/ySzDVYsfTV9Z6/IWgoyzISxo31qru5
- D8ZX8QLw/EnQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,9991"; a="262760039"
+IronPort-SDR: UWtD3pYaRgATi0v+oSqcQQJz6ej6sykc3EhkdGSJgPo2RrwGZkKBQglPFV/vkO5yC0Aa17uYLs
+ X+M4jagZWDYg==
+X-IronPort-AV: E=McAfee;i="6200,9189,9991"; a="262760036"
 X-IronPort-AV: E=Sophos;i="5.82,319,1613462400"; 
-   d="scan'208";a="262760039"
+   d="scan'208";a="262760036"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2021 11:19:58 -0700
-IronPort-SDR: YdVPKSkqOilz/izUQwjpa7NmyZAFhGGZhUZCFqW7I4htynZ6aXRv/6snuUQBfX2cBaeRlcs3Pt
- OIXQbKfjkkcg==
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2021 11:19:57 -0700
+IronPort-SDR: 2q2XeZQu8c+Gv3sZ1waJskwNf3vhoAHizIjDgDwQwWOxbaLesqImLqRaiqesrqBDecBCuQJb72
+ JIRu6I5hy8/w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.82,319,1613462400"; 
-   d="scan'208";a="545488381"
+   d="scan'208";a="545488372"
 Received: from anguy11-desk2.jf.intel.com ([10.166.244.147])
   by orsmga004.jf.intel.com with ESMTP; 21 May 2021 11:19:57 -0700
 From:   Tony Nguyen <anthony.l.nguyen@intel.com>
@@ -39,9 +39,9 @@ To:     davem@davemloft.net, kuba@kernel.org, dledford@redhat.com,
 Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, anthony.l.nguyen@intel.com,
         shiraz.saleem@intel.com
-Subject: [PATCH net-next v1 4/6] ice: Register auxiliary device to provide RDMA
-Date:   Fri, 21 May 2021 11:22:03 -0700
-Message-Id: <20210521182205.3823642-5-anthony.l.nguyen@intel.com>
+Subject: [PATCH net-next v1 1/6] iidc: Introduce iidc.h
+Date:   Fri, 21 May 2021 11:22:00 -0700
+Message-Id: <20210521182205.3823642-2-anthony.l.nguyen@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210521182205.3823642-1-anthony.l.nguyen@intel.com>
 References: <20210521182205.3823642-1-anthony.l.nguyen@intel.com>
@@ -53,218 +53,137 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Dave Ertman <david.m.ertman@intel.com>
 
-Register ice client auxiliary RDMA device on the auxiliary bus per
-PCIe device function for the auxiliary driver (irdma) to attach to.
-It allows to realize a single RDMA driver (irdma) capable of working with
-multiple netdev drivers over multi-generation Intel HW supporting RDMA.
-There is no load ordering dependencies between ice and irdma.
+Introduce a shared header file used by the 'ice' Intel networking driver
+providing RDMA support and the 'irdma' driver to provide a private
+interface.
 
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 ---
- drivers/net/ethernet/intel/Kconfig        |  1 +
- drivers/net/ethernet/intel/ice/ice.h      |  8 ++-
- drivers/net/ethernet/intel/ice/ice_idc.c  | 71 ++++++++++++++++++++++-
- drivers/net/ethernet/intel/ice/ice_main.c | 11 +++-
- 4 files changed, 87 insertions(+), 4 deletions(-)
+ MAINTAINERS                    |   1 +
+ include/linux/net/intel/iidc.h | 100 +++++++++++++++++++++++++++++++++
+ 2 files changed, 101 insertions(+)
+ create mode 100644 include/linux/net/intel/iidc.h
 
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index c1d155690341..d8a12da5c49a 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -294,6 +294,7 @@ config ICE
- 	tristate "Intel(R) Ethernet Connection E800 Series Support"
- 	default n
- 	depends on PCI_MSI
-+	select AUXILIARY_BUS
- 	select DIMLIB
- 	select NET_DEVLINK
- 	select PLDMFW
-diff --git a/drivers/net/ethernet/intel/ice/ice.h b/drivers/net/ethernet/intel/ice/ice.h
-index 225f8a55eb3f..228055e8f33b 100644
---- a/drivers/net/ethernet/intel/ice/ice.h
-+++ b/drivers/net/ethernet/intel/ice/ice.h
-@@ -34,6 +34,7 @@
- #include <linux/if_bridge.h>
- #include <linux/ctype.h>
- #include <linux/bpf.h>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bd7aff0c120f..34d2bf36b5ad 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9130,6 +9130,7 @@ F:	Documentation/networking/device_drivers/ethernet/intel/
+ F:	drivers/net/ethernet/intel/
+ F:	drivers/net/ethernet/intel/*/
+ F:	include/linux/avf/virtchnl.h
++F:	include/linux/net/intel/iidc.h
+ 
+ INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
+ M:	Maik Broemme <mbroemme@libmpq.org>
+diff --git a/include/linux/net/intel/iidc.h b/include/linux/net/intel/iidc.h
+new file mode 100644
+index 000000000000..e32f6712aee0
+--- /dev/null
++++ b/include/linux/net/intel/iidc.h
+@@ -0,0 +1,100 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2021, Intel Corporation. */
++
++#ifndef _IIDC_H_
++#define _IIDC_H_
++
 +#include <linux/auxiliary_bus.h>
- #include <linux/avf/virtchnl.h>
- #include <linux/cpu_rmap.h>
- #include <linux/dim.h>
-@@ -647,6 +648,8 @@ int ice_get_rss_key(struct ice_vsi *vsi, u8 *seed);
- void ice_fill_rss_lut(u8 *lut, u16 rss_table_size, u16 rss_size);
- int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset);
- void ice_print_link_msg(struct ice_vsi *vsi, bool isup);
-+int ice_plug_aux_dev(struct ice_pf *pf);
-+void ice_unplug_aux_dev(struct ice_pf *pf);
- int ice_init_rdma(struct ice_pf *pf);
- const char *ice_stat_str(enum ice_status stat_err);
- const char *ice_aq_str(enum ice_aq_err aq_err);
-@@ -678,8 +681,10 @@ void ice_service_task_schedule(struct ice_pf *pf);
-  */
- static inline void ice_set_rdma_cap(struct ice_pf *pf)
- {
--	if (pf->hw.func_caps.common_cap.rdma && pf->num_rdma_msix)
-+	if (pf->hw.func_caps.common_cap.rdma && pf->num_rdma_msix) {
- 		set_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+		ice_plug_aux_dev(pf);
-+	}
- }
- 
- /**
-@@ -688,6 +693,7 @@ static inline void ice_set_rdma_cap(struct ice_pf *pf)
-  */
- static inline void ice_clear_rdma_cap(struct ice_pf *pf)
- {
-+	ice_unplug_aux_dev(pf);
- 	clear_bit(ICE_FLAG_RDMA_ENA, pf->flags);
- }
- #endif /* _ICE_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-index ffca0d57c13b..e7bb8f650ae2 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc.c
-+++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -254,6 +254,71 @@ static int ice_reserve_rdma_qvector(struct ice_pf *pf)
- 	return 0;
- }
- 
-+/**
-+ * ice_adev_release - function to be mapped to AUX dev's release op
-+ * @dev: pointer to device to free
++#include <linux/dcbnl.h>
++#include <linux/device.h>
++#include <linux/if_ether.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++
++enum iidc_event_type {
++	IIDC_EVENT_BEFORE_MTU_CHANGE,
++	IIDC_EVENT_AFTER_MTU_CHANGE,
++	IIDC_EVENT_BEFORE_TC_CHANGE,
++	IIDC_EVENT_AFTER_TC_CHANGE,
++	IIDC_EVENT_CRIT_ERR,
++	IIDC_EVENT_NBITS		/* must be last */
++};
++
++enum iidc_reset_type {
++	IIDC_PFR,
++	IIDC_CORER,
++	IIDC_GLOBR,
++};
++
++#define IIDC_MAX_USER_PRIORITY		8
++
++/* Struct to hold per RDMA Qset info */
++struct iidc_rdma_qset_params {
++	/* Qset TEID returned to the RDMA driver in
++	 * ice_add_rdma_qset and used by RDMA driver
++	 * for calls to ice_del_rdma_qset
++	 */
++	u32 teid;	/* Qset TEID */
++	u16 qs_handle; /* RDMA driver provides this */
++	u16 vport_id; /* VSI index */
++	u8 tc; /* TC branch the Qset should belong to */
++};
++
++struct iidc_qos_info {
++	u64 tc_ctx;
++	u8 rel_bw;
++	u8 prio_type;
++	u8 egress_virt_up;
++	u8 ingress_virt_up;
++};
++
++/* Struct to pass QoS info */
++struct iidc_qos_params {
++	struct iidc_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
++	u8 up2tc[IIDC_MAX_USER_PRIORITY];
++	u8 vport_relative_bw;
++	u8 vport_priority_type;
++	u8 num_tc;
++};
++
++struct iidc_event {
++	DECLARE_BITMAP(type, IIDC_EVENT_NBITS);
++	u32 reg;
++};
++
++struct ice_pf;
++
++int ice_add_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_del_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_rdma_request_reset(struct ice_pf *pf, enum iidc_reset_type reset_type);
++int ice_rdma_update_vsi_filter(struct ice_pf *pf, u16 vsi_id, bool enable);
++void ice_get_qos_params(struct ice_pf *pf, struct iidc_qos_params *qos);
++
++#define IIDC_RDMA_ROCE_NAME	"roce"
++
++/* Structure representing auxiliary driver tailored information about the core
++ * PCI dev, each auxiliary driver using the IIDC interface will have an
++ * instance of this struct dedicated to it.
 + */
-+static void ice_adev_release(struct device *dev)
-+{
-+	struct iidc_auxiliary_dev *iadev;
 +
-+	iadev = container_of(dev, struct iidc_auxiliary_dev, adev.dev);
-+	kfree(iadev);
-+}
++struct iidc_auxiliary_dev {
++	struct auxiliary_device adev;
++	struct ice_pf *pf;
++};
 +
-+/**
-+ * ice_plug_aux_dev - allocate and register AUX device
-+ * @pf: pointer to pf struct
++/* structure representing the auxiliary driver. This struct is to be
++ * allocated and populated by the auxiliary driver's owner. The core PCI
++ * driver will access these ops by performing a container_of on the
++ * auxiliary_device->dev.driver.
 + */
-+int ice_plug_aux_dev(struct ice_pf *pf)
-+{
-+	struct iidc_auxiliary_dev *iadev;
-+	struct auxiliary_device *adev;
-+	int ret;
++struct iidc_auxiliary_drv {
++	struct auxiliary_driver adrv;
++	/* This event_handler is meant to be a blocking call.  For instance,
++	 * when a BEFORE_MTU_CHANGE event comes in, the event_handler will not
++	 * return until the auxiliary driver is ready for the MTU change to
++	 * happen.
++	 */
++	void (*event_handler)(struct ice_pf *pf, struct iidc_event *event);
++};
 +
-+	iadev = kzalloc(sizeof(*iadev), GFP_KERNEL);
-+	if (!iadev)
-+		return -ENOMEM;
-+
-+	adev = &iadev->adev;
-+	pf->adev = adev;
-+	iadev->pf = pf;
-+
-+	adev->id = pf->aux_idx;
-+	adev->dev.release = ice_adev_release;
-+	adev->dev.parent = &pf->pdev->dev;
-+	adev->name = IIDC_RDMA_ROCE_NAME;
-+
-+	ret = auxiliary_device_init(adev);
-+	if (ret) {
-+		pf->adev = NULL;
-+		kfree(iadev);
-+		return ret;
-+	}
-+
-+	ret = auxiliary_device_add(adev);
-+	if (ret) {
-+		pf->adev = NULL;
-+		auxiliary_device_uninit(adev);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/* ice_unplug_aux_dev - unregister and free AUX device
-+ * @pf: pointer to pf struct
-+ */
-+void ice_unplug_aux_dev(struct ice_pf *pf)
-+{
-+	if (!pf->adev)
-+		return;
-+
-+	auxiliary_device_delete(pf->adev);
-+	auxiliary_device_uninit(pf->adev);
-+	pf->adev = NULL;
-+}
-+
- /**
-  * ice_init_rdma - initializes PF for RDMA use
-  * @pf: ptr to ice_pf
-@@ -265,8 +330,10 @@ int ice_init_rdma(struct ice_pf *pf)
- 
- 	/* Reserve vector resources */
- 	ret = ice_reserve_rdma_qvector(pf);
--	if (ret < 0)
-+	if (ret < 0) {
- 		dev_err(dev, "failed to reserve vectors for RDMA\n");
-+		return ret;
-+	}
- 
--	return ret;
-+	return ice_plug_aux_dev(pf);
- }
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index 9d4570b862aa..254cfc14d6b4 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -456,6 +456,8 @@ ice_prepare_for_reset(struct ice_pf *pf)
- 	if (test_bit(ICE_PREPARED_FOR_RESET, pf->state))
- 		return;
- 
-+	ice_unplug_aux_dev(pf);
-+
- 	/* Notify VFs of impending reset */
- 	if (ice_check_sq_alive(hw, &hw->mailboxq))
- 		ice_vc_notify_reset(pf);
-@@ -2120,6 +2122,8 @@ int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset)
- 		return -EBUSY;
- 	}
- 
-+	ice_unplug_aux_dev(pf);
-+
- 	switch (reset) {
- 	case ICE_RESET_PFR:
- 		set_bit(ICE_PFR_REQ, pf->state);
-@@ -4456,11 +4460,12 @@ static void ice_remove(struct pci_dev *pdev)
- 		ice_free_vfs(pf);
- 	}
- 
--	set_bit(ICE_DOWN, pf->state);
- 	ice_service_task_stop(pf);
- 
- 	ice_aq_cancel_waiting_tasks(pf);
-+	ice_unplug_aux_dev(pf);
- 	ida_free(&ice_aux_ida, pf->aux_idx);
-+	set_bit(ICE_DOWN, pf->state);
- 
- 	mutex_destroy(&(&pf->hw)->fdir_fltr_lock);
- 	ice_deinit_lag(pf);
-@@ -4616,6 +4621,8 @@ static int __maybe_unused ice_suspend(struct device *dev)
- 	 */
- 	disabled = ice_service_task_stop(pf);
- 
-+	ice_unplug_aux_dev(pf);
-+
- 	/* Already suspended?, then there is nothing to do */
- 	if (test_and_set_bit(ICE_SUSPENDED, pf->state)) {
- 		if (!disabled)
-@@ -6286,6 +6293,8 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
- 
- 	/* if we get here, reset flow is successful */
- 	clear_bit(ICE_RESET_FAILED, pf->state);
-+
-+	ice_plug_aux_dev(pf);
- 	return;
- 
- err_vsi_rebuild:
++#endif /* _IIDC_H_*/
 -- 
 2.26.2
 
