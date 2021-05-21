@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 143BCC43462
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9C7C43600
 	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED7016135C
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52EFD6135C
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235435AbhEUJ5L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S237854AbhEUJ5L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 21 May 2021 05:57:11 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3615 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235483AbhEUJzT (ORCPT
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5720 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235740AbhEUJzT (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:55:19 -0400
-Received: from dggems706-chm.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fmhg32BJwzQq8v;
-        Fri, 21 May 2021 17:50:23 +0800 (CST)
+Received: from dggems702-chm.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fmhg42fLlzqVWQ;
+        Fri, 21 May 2021 17:50:24 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems706-chm.china.huawei.com (10.3.19.183) with Microsoft SMTP Server
+ dggems702-chm.china.huawei.com (10.3.19.179) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Fri, 21 May 2021 17:53:55 +0800
+ 15.1.2176.2; Fri, 21 May 2021 17:53:56 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
@@ -33,10 +33,12 @@ Received: from localhost.localdomain (10.69.192.56) by
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v2 for-next 10/17] RDMA/hns: Use refcount_t instead of atomic_t for QP reference counting
-Date:   Fri, 21 May 2021 17:53:38 +0800
-Message-ID: <1621590825-60693-11-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH v2 for-next 14/17] RDMA/i40iw: Use refcount_t instead of atomic_t on refcount of i40iw_puda_buf
+Date:   Fri, 21 May 2021 17:53:42 +0800
+Message-ID: <1621590825-60693-15-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
 References: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
@@ -53,83 +55,67 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 The refcount_t API will WARN on underflow and overflow of a reference
 counter, and avoid use-after-free risks.
 
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c   | 8 ++++----
+ drivers/infiniband/hw/i40iw/i40iw_puda.h | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 24d177c..501b48f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -641,7 +641,7 @@ struct hns_roce_qp {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index c1becb9..9bb86a4 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -77,7 +77,7 @@ void i40iw_free_sqbuf(struct i40iw_sc_vsi *vsi, void *bufp)
+ 	struct i40iw_puda_buf *buf = (struct i40iw_puda_buf *)bufp;
+ 	struct i40iw_puda_rsrc *ilq = vsi->ilq;
  
- 	u32			xrcdn;
- 
--	atomic_t		refcount;
-+	refcount_t		refcount;
- 	struct completion	free;
- 
- 	struct hns_roce_sge	sge;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index c6e120e..ad26d4d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -65,7 +65,7 @@ static void flush_work_handle(struct work_struct *work)
- 	 * make sure we signal QP destroy leg that flush QP was completed
- 	 * so that it can safely proceed ahead now and destroy QP
- 	 */
--	if (atomic_dec_and_test(&hr_qp->refcount))
-+	if (refcount_dec_and_test(&hr_qp->refcount))
- 		complete(&hr_qp->free);
+-	if (!atomic_dec_return(&buf->refcount))
++	if (refcount_dec_and_test(&buf->refcount))
+ 		i40iw_puda_ret_bufpool(ilq, buf);
  }
  
-@@ -75,7 +75,7 @@ void init_flush_work(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+@@ -531,7 +531,7 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
+ 	if (pdata && pdata->addr)
+ 		memcpy(buf, pdata->addr, pdata->size);
  
- 	flush_work->hr_dev = hr_dev;
- 	INIT_WORK(&flush_work->work, flush_work_handle);
--	atomic_inc(&hr_qp->refcount);
-+	refcount_inc(&hr_qp->refcount);
- 	queue_work(hr_dev->irq_workq, &flush_work->work);
+-	atomic_set(&sqbuf->refcount, 1);
++	refcount_set(&sqbuf->refcount, 1);
+ 
+ 	return sqbuf;
  }
+@@ -1096,7 +1096,7 @@ int i40iw_schedule_cm_timer(struct i40iw_cm_node *cm_node,
+ 		spin_unlock_irqrestore(&cm_node->retrans_list_lock, flags);
+ 		new_send->timetosend = jiffies + I40IW_RETRY_TIMEOUT;
  
-@@ -87,7 +87,7 @@ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
- 	xa_lock(&hr_dev->qp_table_xa);
- 	qp = __hns_roce_qp_lookup(hr_dev, qpn);
- 	if (qp)
--		atomic_inc(&qp->refcount);
-+		refcount_inc(&qp->refcount);
- 	xa_unlock(&hr_dev->qp_table_xa);
+-		atomic_inc(&sqbuf->refcount);
++		refcount_inc(&sqbuf->refcount);
+ 		i40iw_puda_send_buf(vsi->ilq, sqbuf);
+ 		if (!send_retrans) {
+ 			i40iw_cleanup_retrans_entry(cm_node);
+@@ -1286,7 +1286,7 @@ static void i40iw_cm_timer_tick(struct timer_list *t)
+ 		vsi = &cm_node->iwdev->vsi;
  
- 	if (!qp) {
-@@ -108,7 +108,7 @@ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
- 
- 	qp->event(qp, (enum hns_roce_event)event_type);
- 
--	if (atomic_dec_and_test(&qp->refcount))
-+	if (refcount_dec_and_test(&qp->refcount))
- 		complete(&qp->free);
- }
- 
-@@ -1076,7 +1076,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 
- 	hr_qp->ibqp.qp_num = hr_qp->qpn;
- 	hr_qp->event = hns_roce_ib_qp_event;
--	atomic_set(&hr_qp->refcount, 1);
-+	refcount_set(&hr_qp->refcount, 1);
- 	init_completion(&hr_qp->free);
- 
- 	return 0;
-@@ -1099,7 +1099,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 			 struct ib_udata *udata)
- {
--	if (atomic_dec_and_test(&hr_qp->refcount))
-+	if (refcount_dec_and_test(&hr_qp->refcount))
- 		complete(&hr_qp->free);
- 	wait_for_completion(&hr_qp->free);
- 
+ 		if (!cm_node->ack_rcvd) {
+-			atomic_inc(&send_entry->sqbuf->refcount);
++			refcount_inc(&send_entry->sqbuf->refcount);
+ 			i40iw_puda_send_buf(vsi->ilq, send_entry->sqbuf);
+ 			cm_node->cm_core->stats_pkt_retrans++;
+ 		}
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.h b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+index 53a7d58..5996626 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+@@ -90,7 +90,7 @@ struct i40iw_puda_buf {
+ 	u8 tcphlen;		/* tcp length in bytes */
+ 	u8 maclen;		/* mac length in bytes */
+ 	u32 totallen;		/* machlen+iphlen+tcphlen+datalen */
+-	atomic_t refcount;
++	refcount_t refcount;
+ 	u8 hdrlen;
+ 	bool ipv4;
+ 	u32 seqnum;
 -- 
 2.7.4
 
