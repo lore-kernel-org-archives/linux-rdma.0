@@ -2,29 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5333AC43460
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:30:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66236C43462
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:30:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36D6F6100A
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:30:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A5BD613C4
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:30:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232276AbhEUJb5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S236460AbhEUJb5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 21 May 2021 05:31:57 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:3613 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236589AbhEUJbp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:31:45 -0400
-Received: from dggems704-chm.china.huawei.com (unknown [172.30.72.58])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fmh7V38kzzQqdM;
-        Fri, 21 May 2021 17:26:30 +0800 (CST)
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5647 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236502AbhEUJbq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:31:46 -0400
+Received: from dggems705-chm.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fmh8M4gxQz16PJL;
+        Fri, 21 May 2021 17:27:15 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems704-chm.china.huawei.com (10.3.19.181) with Microsoft SMTP Server
+ dggems705-chm.china.huawei.com (10.3.19.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Fri, 21 May 2021 17:30:02 +0800
+ 15.1.2176.2; Fri, 21 May 2021 17:30:03 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
@@ -33,10 +34,12 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 0/5] RDMA/hns: Changes about memory allocation and configuration
-Date:   Fri, 21 May 2021 17:29:50 +0800
-Message-ID: <1621589395-2435-1-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 4/5] RDMA/hns: Use refcount_t APIs for HEM
+Date:   Fri, 21 May 2021 17:29:54 +0800
+Message-ID: <1621589395-2435-5-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1621589395-2435-1-git-send-email-liweihang@huawei.com>
+References: <1621589395-2435-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -47,30 +50,118 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-These series includes several cleanups and fixes for HEM and MTR.
+refcount_t is better than integer for reference counting, it will WARN on
+overflow/underflow and avoid use-after-free risks.
 
-Weihang Li (1):
-  RDMA/hns: Use refcount_t APIs for HEM
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 32 +++++++++++++++-----------------
+ drivers/infiniband/hw/hns/hns_roce_hem.h |  4 ++--
+ 2 files changed, 17 insertions(+), 19 deletions(-)
 
-Xi Wang (4):
-  RDMA/hns: Optimize the base address table config for MTR
-  RDMA/hns: Refactor root BT allocation for MTR
-  RDMA/hns: Fix wrong timer context buffer page size
-  RDMA/hns: Clean the hardware related code for HEM
-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |  51 ++---
- drivers/infiniband/hw/hns/hns_roce_cq.c     |   4 +-
- drivers/infiniband/hw/hns/hns_roce_device.h |  17 +-
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 342 +++++++++++++---------------
- drivers/infiniband/hw/hns/hns_roce_hem.h    |  13 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  77 +++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |   5 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  32 ++-
- drivers/infiniband/hw/hns/hns_roce_mr.c     |  14 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c     |   2 +-
- drivers/infiniband/hw/hns/hns_roce_srq.c    |  10 +-
- 11 files changed, 315 insertions(+), 252 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 63776da..fe6940b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -271,7 +271,6 @@ static struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev,
+ 	if (!hem)
+ 		return NULL;
+ 
+-	hem->refcount = 0;
+ 	INIT_LIST_HEAD(&hem->chunk_list);
+ 
+ 	order = get_order(hem_alloc_size);
+@@ -618,7 +617,7 @@ static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
+ 
+ 	mutex_lock(&table->mutex);
+ 	if (table->hem[index.buf]) {
+-		++table->hem[index.buf]->refcount;
++		refcount_inc(&table->hem[index.buf]->refcount);
+ 		goto out;
+ 	}
+ 
+@@ -637,7 +636,7 @@ static int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
+ 		}
+ 	}
+ 
+-	++table->hem[index.buf]->refcount;
++	refcount_set(&table->hem[index.buf]->refcount, 1);
+ 	goto out;
+ 
+ err_alloc:
+@@ -663,7 +662,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 	mutex_lock(&table->mutex);
+ 
+ 	if (table->hem[i]) {
+-		++table->hem[i]->refcount;
++		refcount_inc(&table->hem[i]->refcount);
+ 		goto out;
+ 	}
+ 
+@@ -686,7 +685,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 		goto out;
+ 	}
+ 
+-	++table->hem[i]->refcount;
++	refcount_set(&table->hem[i]->refcount, 1);
+ out:
+ 	mutex_unlock(&table->mutex);
+ 	return ret;
+@@ -753,11 +752,11 @@ static void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
+ 		return;
+ 	}
+ 
+-	mutex_lock(&table->mutex);
+-	if (check_refcount && (--table->hem[index.buf]->refcount > 0)) {
+-		mutex_unlock(&table->mutex);
++	if (!check_refcount)
++		mutex_lock(&table->mutex);
++	else if (!refcount_dec_and_mutex_lock(&table->hem[index.buf]->refcount,
++					      &table->mutex))
+ 		return;
+-	}
+ 
+ 	clear_mhop_hem(hr_dev, table, obj, &mhop, &index);
+ 	free_mhop_hem(hr_dev, table, &mhop, &index);
+@@ -779,16 +778,15 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
+ 	i = (obj & (table->num_obj - 1)) /
+ 	    (table->table_chunk_size / table->obj_size);
+ 
+-	mutex_lock(&table->mutex);
++	if (!refcount_dec_and_mutex_lock(&table->hem[i]->refcount,
++					 &table->mutex))
++		return;
+ 
+-	if (--table->hem[i]->refcount == 0) {
+-		/* Clear HEM base address */
+-		if (hr_dev->hw->clear_hem(hr_dev, table, obj, 0))
+-			dev_warn(dev, "Clear HEM base address failed.\n");
++	if (hr_dev->hw->clear_hem(hr_dev, table, obj, 0))
++		dev_warn(dev, "failed to clear HEM base address.\n");
+ 
+-		hns_roce_free_hem(hr_dev, table->hem[i]);
+-		table->hem[i] = NULL;
+-	}
++	hns_roce_free_hem(hr_dev, table->hem[i]);
++	table->hem[i] = NULL;
+ 
+ 	mutex_unlock(&table->mutex);
+ }
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
+index 13fdeb3..ffa65e8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
+@@ -88,8 +88,8 @@ struct hns_roce_hem_chunk {
+ };
+ 
+ struct hns_roce_hem {
+-	struct list_head	 chunk_list;
+-	int			 refcount;
++	struct list_head chunk_list;
++	refcount_t refcount;
+ };
+ 
+ struct hns_roce_hem_iter {
 -- 
 2.7.4
 
