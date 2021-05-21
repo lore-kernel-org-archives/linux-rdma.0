@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95999C43461
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B949C43460
 	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78DF3613CA
+	by mail.kernel.org (Postfix) with ESMTP id 0925E6135C
 	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235661AbhEUJ5N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 May 2021 05:57:13 -0400
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4573 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235560AbhEUJzT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:55:19 -0400
-Received: from dggems704-chm.china.huawei.com (unknown [172.30.72.59])
-        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fmhgw0xpHzqVJZ;
+        id S237862AbhEUJ5M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 May 2021 05:57:12 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5651 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235661AbhEUJzU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:55:20 -0400
+Received: from dggems701-chm.china.huawei.com (unknown [172.30.72.60])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fmhgw2GzXz16QWx;
         Fri, 21 May 2021 17:51:08 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems704-chm.china.huawei.com (10.3.19.181) with Microsoft SMTP Server
+ dggems701-chm.china.huawei.com (10.3.19.178) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
  15.1.2176.2; Fri, 21 May 2021 17:53:55 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -34,10 +34,11 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>,
-        Potnuri Bharat Teja <bharat@chelsio.com>
-Subject: [PATCH v2 for-next 11/17] RDMA/cxgb4: Use refcount_t instead of atomic_t for reference counting
-Date:   Fri, 21 May 2021 17:53:39 +0800
-Message-ID: <1621590825-60693-12-git-send-email-liweihang@huawei.com>
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH v2 for-next 13/17] RDMA/i40iw: Use refcount_t instead of atomic_t on refcount of i40iw_cm_listener
+Date:   Fri, 21 May 2021 17:53:41 +0800
+Message-ID: <1621590825-60693-14-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
 References: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
@@ -54,89 +55,76 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 The refcount_t API will WARN on underflow and overflow of a reference
 counter, and avoid use-after-free risks.
 
-Cc: Potnuri Bharat Teja <bharat@chelsio.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/cxgb4/cq.c       | 6 +++---
- drivers/infiniband/hw/cxgb4/ev.c       | 8 ++++----
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 10 +++++-----
+ drivers/infiniband/hw/i40iw/i40iw_cm.h |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 44c2416..6c8c910 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -976,8 +976,8 @@ int c4iw_destroy_cq(struct ib_cq *ib_cq, struct ib_udata *udata)
- 	chp = to_c4iw_cq(ib_cq);
- 
- 	xa_erase_irq(&chp->rhp->cqs, chp->cq.cqid);
--	atomic_dec(&chp->refcnt);
--	wait_event(chp->wait, !atomic_read(&chp->refcnt));
-+	refcount_dec(&chp->refcnt);
-+	wait_event(chp->wait, !refcount_read(&chp->refcnt));
- 
- 	ucontext = rdma_udata_to_drv_context(udata, struct c4iw_ucontext,
- 					     ibucontext);
-@@ -1080,7 +1080,7 @@ int c4iw_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	chp->ibcq.cqe = entries - 2;
- 	spin_lock_init(&chp->lock);
- 	spin_lock_init(&chp->comp_handler_lock);
--	atomic_set(&chp->refcnt, 1);
-+	refcount_set(&chp->refcnt, 1);
- 	init_waitqueue_head(&chp->wait);
- 	ret = xa_insert_irq(&rhp->cqs, chp->cq.cqid, chp, GFP_KERNEL);
- 	if (ret)
-diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
-index 4cd877b..7798d090 100644
---- a/drivers/infiniband/hw/cxgb4/ev.c
-+++ b/drivers/infiniband/hw/cxgb4/ev.c
-@@ -151,7 +151,7 @@ void c4iw_ev_dispatch(struct c4iw_dev *dev, struct t4_cqe *err_cqe)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 2450b7d..c1becb9 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1491,7 +1491,7 @@ static struct i40iw_cm_listener *i40iw_find_listener(
+ 		     !memcmp(listen_addr, ip_zero, sizeof(listen_addr))) &&
+ 		     (listen_port == dst_port) &&
+ 		     (listener_state & listen_node->listener_state)) {
+-			atomic_inc(&listen_node->ref_count);
++			refcount_inc(&listen_node->ref_count);
+ 			spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
+ 			return listen_node;
+ 		}
+@@ -1910,7 +1910,7 @@ static int i40iw_dec_refcnt_listen(struct i40iw_cm_core *cm_core,
+ 		}
  	}
  
- 	c4iw_qp_add_ref(&qhp->ibqp);
--	atomic_inc(&chp->refcnt);
-+	refcount_inc(&chp->refcnt);
- 	xa_unlock_irq(&dev->qps);
+-	if (!atomic_dec_return(&listener->ref_count)) {
++	if (refcount_dec_and_test(&listener->ref_count)) {
+ 		spin_lock_irqsave(&cm_core->listen_list_lock, flags);
+ 		list_del(&listener->list);
+ 		spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
+@@ -2870,7 +2870,7 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
+ 				       I40IW_CM_LISTENER_EITHER_STATE);
+ 	if (listener &&
+ 	    (listener->listener_state == I40IW_CM_LISTENER_ACTIVE_STATE)) {
+-		atomic_dec(&listener->ref_count);
++		refcount_dec(&listener->ref_count);
+ 		i40iw_debug(cm_core->dev,
+ 			    I40IW_DEBUG_CM,
+ 			    "Not creating listener since it already exists\n");
+@@ -2888,7 +2888,7 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
  
- 	/* Bad incoming write */
-@@ -213,7 +213,7 @@ void c4iw_ev_dispatch(struct c4iw_dev *dev, struct t4_cqe *err_cqe)
- 		break;
- 	}
- done:
--	if (atomic_dec_and_test(&chp->refcnt))
-+	if (refcount_dec_and_test(&chp->refcnt))
- 		wake_up(&chp->wait);
- 	c4iw_qp_rem_ref(&qhp->ibqp);
- out:
-@@ -228,13 +228,13 @@ int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
- 	xa_lock_irqsave(&dev->cqs, flag);
- 	chp = xa_load(&dev->cqs, qid);
- 	if (chp) {
--		atomic_inc(&chp->refcnt);
-+		refcount_inc(&chp->refcnt);
- 		xa_unlock_irqrestore(&dev->cqs, flag);
- 		t4_clear_cq_armed(&chp->cq);
- 		spin_lock_irqsave(&chp->comp_handler_lock, flag);
- 		(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
- 		spin_unlock_irqrestore(&chp->comp_handler_lock, flag);
--		if (atomic_dec_and_test(&chp->refcnt))
-+		if (refcount_dec_and_test(&chp->refcnt))
- 			wake_up(&chp->wait);
+ 		INIT_LIST_HEAD(&listener->child_listen_list);
+ 
+-		atomic_set(&listener->ref_count, 1);
++		refcount_set(&listener->ref_count, 1);
  	} else {
- 		pr_debug("unknown cqid 0x%x\n", qid);
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index cdec5de..3883af3 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -427,7 +427,7 @@ struct c4iw_cq {
- 	struct t4_cq cq;
- 	spinlock_t lock;
- 	spinlock_t comp_handler_lock;
--	atomic_t refcnt;
-+	refcount_t refcnt;
- 	wait_queue_head_t wait;
- 	struct c4iw_wr_wait *wr_waitp;
- };
+ 		listener->reused_node = 1;
+ 	}
+@@ -3213,7 +3213,7 @@ void i40iw_receive_ilq(struct i40iw_sc_vsi *vsi, struct i40iw_puda_buf *rbuf)
+ 				    I40IW_DEBUG_CM,
+ 				    "%s allocate node failed\n",
+ 				    __func__);
+-			atomic_dec(&listener->ref_count);
++			refcount_dec(&listener->ref_count);
+ 			return;
+ 		}
+ 		if (!tcph->rst && !tcph->fin) {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+index 6e43e4d..839966a 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
+@@ -291,7 +291,7 @@ struct i40iw_cm_listener {
+ 	u32 loc_addr[4];
+ 	u16 loc_port;
+ 	struct iw_cm_id *cm_id;
+-	atomic_t ref_count;
++	refcount_t ref_count;
+ 	struct i40iw_device *iwdev;
+ 	atomic_t pend_accepts_cnt;
+ 	int backlog;
 -- 
 2.7.4
 
