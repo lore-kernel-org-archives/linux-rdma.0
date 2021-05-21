@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B949C43460
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 090BCC43470
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0925E6135C
+	by mail.kernel.org (Postfix) with ESMTP id DBDC06135C
 	for <linux-rdma@archiver.kernel.org>; Fri, 21 May 2021 09:55:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237862AbhEUJ5M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 May 2021 05:57:12 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:5651 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235661AbhEUJzU (ORCPT
+        id S237870AbhEUJ5N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 May 2021 05:57:13 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:4574 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235792AbhEUJzU (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 May 2021 05:55:20 -0400
-Received: from dggems701-chm.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fmhgw2GzXz16QWx;
-        Fri, 21 May 2021 17:51:08 +0800 (CST)
+Received: from dggems705-chm.china.huawei.com (unknown [172.30.72.60])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fmhgx0TDGzqVJd;
+        Fri, 21 May 2021 17:51:09 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems701-chm.china.huawei.com (10.3.19.178) with Microsoft SMTP Server
+ dggems705-chm.china.huawei.com (10.3.19.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Fri, 21 May 2021 17:53:55 +0800
+ 15.1.2176.2; Fri, 21 May 2021 17:53:56 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Fri, 21 May 2021 17:53:55 +0800
+ 15.1.2176.2; Fri, 21 May 2021 17:53:56 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v2 for-next 13/17] RDMA/i40iw: Use refcount_t instead of atomic_t on refcount of i40iw_cm_listener
-Date:   Fri, 21 May 2021 17:53:41 +0800
-Message-ID: <1621590825-60693-14-git-send-email-liweihang@huawei.com>
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Subject: [PATCH v2 for-next 17/17] RDMA/rdmavt: Use refcount_t instead of atomic_t on refcount of rvt_mcast
+Date:   Fri, 21 May 2021 17:53:45 +0800
+Message-ID: <1621590825-60693-18-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
 References: <1621590825-60693-1-git-send-email-liweihang@huawei.com>
@@ -53,78 +53,107 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 The refcount_t API will WARN on underflow and overflow of a reference
-counter, and avoid use-after-free risks.
+counter, and avoid use-after-free risks. Increase refcount_t from 0 to 1 is
+regarded as there is a risk about use-after-free. So it should be set to 1
+directly during initialization.
 
-Cc: Faisal Latif <faisal.latif@intel.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 10 +++++-----
- drivers/infiniband/hw/i40iw/i40iw_cm.h |  2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/verbs.c    |  3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.c |  3 ++-
+ drivers/infiniband/sw/rdmavt/mcast.c  | 11 +++++------
+ include/rdma/rdmavt_qp.h              |  2 +-
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 2450b7d..c1becb9 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -1491,7 +1491,7 @@ static struct i40iw_cm_listener *i40iw_find_listener(
- 		     !memcmp(listen_addr, ip_zero, sizeof(listen_addr))) &&
- 		     (listen_port == dst_port) &&
- 		     (listener_state & listen_node->listener_state)) {
--			atomic_inc(&listen_node->ref_count);
-+			refcount_inc(&listen_node->ref_count);
- 			spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
- 			return listen_node;
- 		}
-@@ -1910,7 +1910,7 @@ static int i40iw_dec_refcnt_listen(struct i40iw_cm_core *cm_core,
- 		}
- 	}
- 
--	if (!atomic_dec_return(&listener->ref_count)) {
-+	if (refcount_dec_and_test(&listener->ref_count)) {
- 		spin_lock_irqsave(&cm_core->listen_list_lock, flags);
- 		list_del(&listener->list);
- 		spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
-@@ -2870,7 +2870,7 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
- 				       I40IW_CM_LISTENER_EITHER_STATE);
- 	if (listener &&
- 	    (listener->listener_state == I40IW_CM_LISTENER_ACTIVE_STATE)) {
--		atomic_dec(&listener->ref_count);
-+		refcount_dec(&listener->ref_count);
- 		i40iw_debug(cm_core->dev,
- 			    I40IW_DEBUG_CM,
- 			    "Not creating listener since it already exists\n");
-@@ -2888,7 +2888,7 @@ static struct i40iw_cm_listener *i40iw_make_listen_node(
- 
- 		INIT_LIST_HEAD(&listener->child_listen_list);
- 
--		atomic_set(&listener->ref_count, 1);
-+		refcount_set(&listener->ref_count, 1);
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 5542943..d67f707 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -534,7 +534,8 @@ static inline void hfi1_handle_packet(struct hfi1_packet *packet,
+ 		 * Notify rvt_multicast_detach() if it is waiting for us
+ 		 * to finish.
+ 		 */
+-		if (atomic_dec_return(&mcast->refcount) <= 1)
++		refcount_dec(&mcast->refcount);
++		if (refcount_read(&mcast->refcount) <= 1)
+ 			wake_up(&mcast->wait);
  	} else {
- 		listener->reused_node = 1;
- 	}
-@@ -3213,7 +3213,7 @@ void i40iw_receive_ilq(struct i40iw_sc_vsi *vsi, struct i40iw_puda_buf *rbuf)
- 				    I40IW_DEBUG_CM,
- 				    "%s allocate node failed\n",
- 				    __func__);
--			atomic_dec(&listener->ref_count);
-+			refcount_dec(&listener->ref_count);
- 			return;
- 		}
- 		if (!tcph->rst && !tcph->fin) {
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.h b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-index 6e43e4d..839966a 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.h
-@@ -291,7 +291,7 @@ struct i40iw_cm_listener {
- 	u32 loc_addr[4];
- 	u16 loc_port;
- 	struct iw_cm_id *cm_id;
--	atomic_t ref_count;
-+	refcount_t ref_count;
- 	struct i40iw_device *iwdev;
- 	atomic_t pend_accepts_cnt;
- 	int backlog;
+ 		/* Get the destination QP number. */
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index d17d034..d6a7cc9 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -336,7 +336,8 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 		 * Notify rvt_multicast_detach() if it is waiting for us
+ 		 * to finish.
+ 		 */
+-		if (atomic_dec_return(&mcast->refcount) <= 1)
++		refcount_dec(&mcast->refcount);
++		if (refcount_read(&mcast->refcount) <= 1)
+ 			wake_up(&mcast->wait);
+ 	} else {
+ 		rcu_read_lock();
+diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+index 951abac..7746d5c 100644
+--- a/drivers/infiniband/sw/rdmavt/mcast.c
++++ b/drivers/infiniband/sw/rdmavt/mcast.c
+@@ -117,7 +117,6 @@ static struct rvt_mcast *rvt_mcast_alloc(union ib_gid *mgid, u16 lid)
+ 
+ 	INIT_LIST_HEAD(&mcast->qp_list);
+ 	init_waitqueue_head(&mcast->wait);
+-	atomic_set(&mcast->refcount, 0);
+ 
+ bail:
+ 	return mcast;
+@@ -169,7 +168,7 @@ struct rvt_mcast *rvt_mcast_find(struct rvt_ibport *ibp, union ib_gid *mgid,
+ 		} else {
+ 			/* MGID/MLID must match */
+ 			if (mcast->mcast_addr.lid == lid) {
+-				atomic_inc(&mcast->refcount);
++				refcount_inc(&mcast->refcount);
+ 				found = mcast;
+ 			}
+ 			break;
+@@ -257,7 +256,7 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
+ 
+ 	list_add_tail_rcu(&mqp->list, &mcast->qp_list);
+ 
+-	atomic_inc(&mcast->refcount);
++	refcount_set(&mcast->refcount, 1);
+ 	rb_link_node(&mcast->rb_node, pn, n);
+ 	rb_insert_color(&mcast->rb_node, &ibp->mcast_tree);
+ 
+@@ -410,12 +409,12 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	 * Wait for any list walkers to finish before freeing the
+ 	 * list element.
+ 	 */
+-	wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
++	wait_event(mcast->wait, refcount_read(&mcast->refcount) <= 1);
+ 	rvt_mcast_qp_free(delp);
+ 
+ 	if (last) {
+-		atomic_dec(&mcast->refcount);
+-		wait_event(mcast->wait, !atomic_read(&mcast->refcount));
++		refcount_dec(&mcast->refcount);
++		wait_event(mcast->wait, !refcount_read(&mcast->refcount));
+ 		rvt_mcast_free(mcast);
+ 		spin_lock_irq(&rdi->n_mcast_grps_lock);
+ 		rdi->n_mcast_grps_allocated--;
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 8275954..cd19573 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -520,7 +520,7 @@ struct rvt_mcast {
+ 	struct rvt_mcast_addr mcast_addr;
+ 	struct list_head qp_list;
+ 	wait_queue_head_t wait;
+-	atomic_t refcount;
++	refcount_t refcount;
+ 	int n_attached;
+ };
+ 
 -- 
 2.7.4
 
