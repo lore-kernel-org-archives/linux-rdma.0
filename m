@@ -2,85 +2,90 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A9FAC04FF3
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 May 2021 04:12:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EABDC47080
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 May 2021 04:12:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 184EC600CD
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 May 2021 04:12:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0D7C61168
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 May 2021 04:12:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231222AbhEXENs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 May 2021 00:13:48 -0400
-Received: from mail-pj1-f42.google.com ([209.85.216.42]:44922 "EHLO
-        mail-pj1-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229564AbhEXENs (ORCPT
+        id S230251AbhEXENu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 May 2021 00:13:50 -0400
+Received: from mail-pl1-f182.google.com ([209.85.214.182]:46606 "EHLO
+        mail-pl1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230418AbhEXENs (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 May 2021 00:13:48 -0400
-Received: by mail-pj1-f42.google.com with SMTP id h20-20020a17090aa894b029015db8f3969eso9763615pjq.3
-        for <linux-rdma@vger.kernel.org>; Sun, 23 May 2021 21:12:18 -0700 (PDT)
+Received: by mail-pl1-f182.google.com with SMTP id s20so13956134plr.13
+        for <linux-rdma@vger.kernel.org>; Sun, 23 May 2021 21:12:21 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=stvT+gMKDC+K5sqDtXmcJoHHbh700ztn3oGcfv259FQ=;
-        b=WLOHHRZVG6auf/3onRkxOMJdf7UoTB4ZQv9XIo6epCxXox/xgYZg2stA8NMqlnftY8
-         iFwRYMz7ROwAgtTr5UzxyeXYGFjUdazfOK0SxF6pCewqP2X484PfBH2y68ZjefhWZNMQ
-         8t54F8qG1IGriLbUMgDPfgQsdeYN1E9omV3wNE5MwNoES3yH2+MMWeCTfQLyQpnCUGWF
-         0sY61nxMq3Y/YY0GG91um8x3p5DvKbY6WXYZxw3GfYvUm0I2n4PQF3yb+kn1eCWRJztK
-         hBJo4NinIUvn8x1OX5rLke5muYIscdnzIsSN8CMX/cAO9WSCdH7C/BwXDXoR6HyZPysf
-         EBwA==
-X-Gm-Message-State: AOAM531rb5vXwZ1sWEXb4J62XAL2Pcv3aTcKj9k024Q9L+KIJM06PYBZ
-        ZrA8Akw/rPHpP6zELDfEU54=
-X-Google-Smtp-Source: ABdhPJy85DpSgg2bqUGemFUnDsQpNQe/H3BEaBKmM2SjD9+zZ+70LrZlj9bo7rwGrDqieyd/Xe+NvQ==
-X-Received: by 2002:a17:903:52:b029:f0:c3b2:15ac with SMTP id l18-20020a1709030052b02900f0c3b215acmr23817647pla.82.1621829537706;
-        Sun, 23 May 2021 21:12:17 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=qDxxjBHBfDrwbjpAHiE6hoHF9REhV4NABhq3WWNfXPE=;
+        b=O6PIzZuWQ4gd+V+gMGQ+GEq6sueKm5195bQVDP8xnztP9qOw/BCCB5fimD2ye7IKVO
+         bKuSjF1cPHl9nrH7seIwoNdJVxUPaKRg1wfbWswV6A2miWcL8c4VbFfpsiRVS/MHx1OO
+         22NQHWA2d3ufzMizOn2oJ8+inrpmjan8/32QyC1FCQZYGEN9IBWXHGIMYQnLnVC3p+ct
+         jgyNYll/1ZDgEFTovn98+5SS/iHmag4OaoiKIXOZ7I2aSE1qMAESdw+D6zZn2um4tzb7
+         6Qn5Ou4pd8ClhBcdYBGDBQ7KSEDPUKcLRK/KYcXaHl5dwo1ExybTUxqn1+z7E//Noffz
+         xtgQ==
+X-Gm-Message-State: AOAM533BDNW4Zx+RffSe8a/GCwoj0qOftFdbPPpGKOScIZlxD1tYgb6r
+        5oAe4gE3qsqWtk40YdCFC+U=
+X-Google-Smtp-Source: ABdhPJxhf2qqbFLtJNeO7E4OBFZNzTPp+MdpfgOQNT9+2xTepZVVp64hUJmtsdxlkdioaXF298Yprw==
+X-Received: by 2002:a17:90b:108e:: with SMTP id gj14mr23416896pjb.109.1621829540860;
+        Sun, 23 May 2021 21:12:20 -0700 (PDT)
 Received: from asus.hsd1.ca.comcast.net (c-73-241-217-19.hsd1.ca.comcast.net. [73.241.217.19])
-        by smtp.gmail.com with ESMTPSA id q9sm13141979pjm.23.2021.05.23.21.12.16
+        by smtp.gmail.com with ESMTPSA id q9sm13141979pjm.23.2021.05.23.21.12.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 May 2021 21:12:17 -0700 (PDT)
+        Sun, 23 May 2021 21:12:20 -0700 (PDT)
 From:   Bart Van Assche <bvanassche@acm.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Leon Romanovsky <leonro@mellanox.com>,
         Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
-        Bart Van Assche <bvanassche@acm.org>
-Subject: [PATCH v2 0/5] RDMA kernel patches for kernel v5.14
-Date:   Sun, 23 May 2021 21:12:06 -0700
-Message-Id: <20210524041211.9480-1-bvanassche@acm.org>
+        Bart Van Assche <bvanassche@acm.org>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>
+Subject: [PATCH v2 2/5] RDMA/srp: Add more structure size checks
+Date:   Sun, 23 May 2021 21:12:08 -0700
+Message-Id: <20210524041211.9480-3-bvanassche@acm.org>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210524041211.9480-1-bvanassche@acm.org>
+References: <20210524041211.9480-1-bvanassche@acm.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason,
+Before modifying how the __packed attribute is used, add compile time
+size checks for the structures that will be modified.
 
-Please consider the five patches in this series for kernel v5.14.
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Cc: Nicolas Morey-Chaisemartin <nmoreychaisemartin@suse.com>
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks,
-
-Bart.
-
-Changes compared to v1:
-- Reworked patch 1/5 based on Leon's feedback.
-- Changed __packed into __packed __aligned(4) in patch 3/5.
-- Removed the mr_list variable in patch 4/5.
-- Removed one if-test from patch 5/5.
-
-Bart Van Assche (5):
-  IB/hfi1: Move a function from a header file into a .c file
-  RDMA/srp: Add more structure size checks
-  RDMA/srp: Apply the __packed attribute to members instead of
-    structures
-  RDMA/srp: Fix a recently introduced memory leak
-  RDMA/srp: Make struct scsi_cmnd and struct srp_request adjacent
-
- drivers/infiniband/hw/hfi1/trace.c  |   5 +
- drivers/infiniband/ulp/srp/ib_srp.c | 157 ++++++++++++----------------
- drivers/infiniband/ulp/srp/ib_srp.h |   2 -
- include/rdma/ib_hdrs.h              |   5 -
- include/scsi/srp.h                  |  26 ++---
- 5 files changed, 80 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 31f8aa2c40ed..0f66bf015db6 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -4078,10 +4078,13 @@ static int __init srp_init_module(void)
+ {
+ 	int ret;
+ 
++	BUILD_BUG_ON(sizeof(struct srp_aer_req) != 36);
++	BUILD_BUG_ON(sizeof(struct srp_cmd) != 48);
+ 	BUILD_BUG_ON(sizeof(struct srp_imm_buf) != 4);
++	BUILD_BUG_ON(sizeof(struct srp_indirect_buf) != 20);
+ 	BUILD_BUG_ON(sizeof(struct srp_login_req) != 64);
+ 	BUILD_BUG_ON(sizeof(struct srp_login_req_rdma) != 56);
+-	BUILD_BUG_ON(sizeof(struct srp_cmd) != 48);
++	BUILD_BUG_ON(sizeof(struct srp_rsp) != 36);
+ 
+ 	if (srp_sg_tablesize) {
+ 		pr_warn("srp_sg_tablesize is deprecated, please use cmd_sg_entries\n");
