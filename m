@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E446C2B9F8
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:51:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A2B3C47089
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A021611B0
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:51:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EB1A6113E
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231395AbhEYGx0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 May 2021 02:53:26 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:3996 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231245AbhEYGx0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:26 -0400
-Received: from dggems702-chm.china.huawei.com (unknown [172.30.72.59])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4Fq4Sb0fGSzmWYR;
-        Tue, 25 May 2021 14:49:35 +0800 (CST)
+        id S231384AbhEYGx3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 May 2021 02:53:29 -0400
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5544 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231391AbhEYGx2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:28 -0400
+Received: from dggems706-chm.china.huawei.com (unknown [172.30.72.58])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fq4S322cBzwT51;
+        Tue, 25 May 2021 14:49:07 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems702-chm.china.huawei.com (10.3.19.179) with Microsoft SMTP Server
+ dggems706-chm.china.huawei.com (10.3.19.183) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Tue, 25 May 2021 14:51:55 +0800
+ 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
@@ -34,9 +34,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v3 for-next 07/13] RDMA/core: Use refcount_t instead of atomic_t on refcount of ib_uverbs_device
-Date:   Tue, 25 May 2021 14:51:38 +0800
-Message-ID: <1621925504-33019-8-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 03/13] RDMA/core: Use refcount_t instead of atomic_t on refcount of ib_mad_snoop_private
+Date:   Tue, 25 May 2021 14:51:34 +0800
+Message-ID: <1621925504-33019-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
 References: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
@@ -55,81 +55,22 @@ counter, and avoid use-after-free risks.
 
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/core/uverbs.h      |  2 +-
- drivers/infiniband/core/uverbs_main.c | 12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/mad_priv.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 53a1047..821d93c 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -97,7 +97,7 @@ ib_uverbs_init_udata_buf_or_null(struct ib_udata *udata,
-  */
+diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
+index 4aa16b3..25e573d 100644
+--- a/drivers/infiniband/core/mad_priv.h
++++ b/drivers/infiniband/core/mad_priv.h
+@@ -115,7 +115,7 @@ struct ib_mad_snoop_private {
+ 	struct ib_mad_qp_info *qp_info;
+ 	int snoop_index;
+ 	int mad_snoop_flags;
+-	atomic_t refcount;
++	refcount_t refcount;
+ 	struct completion comp;
+ };
  
- struct ib_uverbs_device {
--	atomic_t				refcount;
-+	refcount_t				refcount;
- 	u32					num_comp_vectors;
- 	struct completion			comp;
- 	struct device				dev;
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index f173ecd..d544340 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -197,7 +197,7 @@ void ib_uverbs_release_file(struct kref *ref)
- 		module_put(ib_dev->ops.owner);
- 	srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
- 
--	if (atomic_dec_and_test(&file->device->refcount))
-+	if (refcount_dec_and_test(&file->device->refcount))
- 		ib_uverbs_comp_dev(file->device);
- 
- 	if (file->default_async_file)
-@@ -891,7 +891,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	int srcu_key;
- 
- 	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
--	if (!atomic_inc_not_zero(&dev->refcount))
-+	if (!refcount_inc_not_zero(&dev->refcount))
- 		return -ENXIO;
- 
- 	get_device(&dev->dev);
-@@ -955,7 +955,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- err:
- 	mutex_unlock(&dev->lists_mutex);
- 	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
--	if (atomic_dec_and_test(&dev->refcount))
-+	if (refcount_dec_and_test(&dev->refcount))
- 		ib_uverbs_comp_dev(dev);
- 
- 	put_device(&dev->dev);
-@@ -1124,7 +1124,7 @@ static int ib_uverbs_add_one(struct ib_device *device)
- 	uverbs_dev->dev.release = ib_uverbs_release_dev;
- 	uverbs_dev->groups[0] = &dev_attr_group;
- 	uverbs_dev->dev.groups = uverbs_dev->groups;
--	atomic_set(&uverbs_dev->refcount, 1);
-+	refcount_set(&uverbs_dev->refcount, 1);
- 	init_completion(&uverbs_dev->comp);
- 	uverbs_dev->xrcd_tree = RB_ROOT;
- 	mutex_init(&uverbs_dev->xrcd_tree_mutex);
-@@ -1166,7 +1166,7 @@ static int ib_uverbs_add_one(struct ib_device *device)
- err_uapi:
- 	ida_free(&uverbs_ida, devnum);
- err:
--	if (atomic_dec_and_test(&uverbs_dev->refcount))
-+	if (refcount_dec_and_test(&uverbs_dev->refcount))
- 		ib_uverbs_comp_dev(uverbs_dev);
- 	wait_for_completion(&uverbs_dev->comp);
- 	put_device(&uverbs_dev->dev);
-@@ -1229,7 +1229,7 @@ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data)
- 		wait_clients = 0;
- 	}
- 
--	if (atomic_dec_and_test(&uverbs_dev->refcount))
-+	if (refcount_dec_and_test(&uverbs_dev->refcount))
- 		ib_uverbs_comp_dev(uverbs_dev);
- 	if (wait_clients)
- 		wait_for_completion(&uverbs_dev->comp);
 -- 
 2.7.4
 
