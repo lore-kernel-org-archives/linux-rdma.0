@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C3DC47084
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F2EAC47086
 	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E5F061408
+	by mail.kernel.org (Postfix) with ESMTP id 620666113E
 	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231365AbhEYGx2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S231410AbhEYGx2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 25 May 2021 02:53:28 -0400
-Received: from szxga06-in.huawei.com ([45.249.212.32]:3995 "EHLO
-        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231384AbhEYGx1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:27 -0400
-Received: from dggems704-chm.china.huawei.com (unknown [172.30.72.58])
-        by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4Fq4SZ4NT5zmWVD;
-        Tue, 25 May 2021 14:49:34 +0800 (CST)
+Received: from szxga05-in.huawei.com ([45.249.212.191]:5543 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231394AbhEYGx2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:28 -0400
+Received: from dggems704-chm.china.huawei.com (unknown [172.30.72.60])
+        by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Fq4S12ltjzwSxD;
+        Tue, 25 May 2021 14:49:05 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
  dggems704-chm.china.huawei.com (10.3.19.181) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+ 15.1.2176.2; Tue, 25 May 2021 14:51:56 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+ 15.1.2176.2; Tue, 25 May 2021 14:51:55 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v3 for-next 04/13] RDMA/core: Use refcount_t instead of atomic_t on refcount of mcast_member
-Date:   Tue, 25 May 2021 14:51:35 +0800
-Message-ID: <1621925504-33019-5-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Subject: [PATCH v3 for-next 13/13] RDMA/rdmavt: Use refcount_t instead of atomic_t on refcount of rvt_mcast
+Date:   Tue, 25 May 2021 14:51:44 +0800
+Message-ID: <1621925504-33019-14-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
 References: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
@@ -51,71 +53,107 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 The refcount_t API will WARN on underflow and overflow of a reference
-counter, and avoid use-after-free risks.
+counter, and avoid use-after-free risks. Increase refcount_t from 0 to 1 is
+regarded as there is a risk about use-after-free. So it should be set to 1
+directly during initialization.
 
+Cc: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/core/multicast.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/verbs.c    |  3 ++-
+ drivers/infiniband/hw/qib/qib_verbs.c |  3 ++-
+ drivers/infiniband/sw/rdmavt/mcast.c  | 11 +++++------
+ include/rdma/rdmavt_qp.h              |  2 +-
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index a5dd4b7..de134a4 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -117,7 +117,7 @@ struct mcast_member {
- 	struct mcast_group	*group;
- 	struct list_head	list;
- 	enum mcast_state	state;
--	atomic_t		refcount;
-+	refcount_t		refcount;
- 	struct completion	comp;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 5542943..d67f707 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -534,7 +534,8 @@ static inline void hfi1_handle_packet(struct hfi1_packet *packet,
+ 		 * Notify rvt_multicast_detach() if it is waiting for us
+ 		 * to finish.
+ 		 */
+-		if (atomic_dec_return(&mcast->refcount) <= 1)
++		refcount_dec(&mcast->refcount);
++		if (refcount_read(&mcast->refcount) <= 1)
+ 			wake_up(&mcast->wait);
+ 	} else {
+ 		/* Get the destination QP number. */
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index d17d034..d6a7cc9 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -336,7 +336,8 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 		 * Notify rvt_multicast_detach() if it is waiting for us
+ 		 * to finish.
+ 		 */
+-		if (atomic_dec_return(&mcast->refcount) <= 1)
++		refcount_dec(&mcast->refcount);
++		if (refcount_read(&mcast->refcount) <= 1)
+ 			wake_up(&mcast->wait);
+ 	} else {
+ 		rcu_read_lock();
+diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+index 951abac..7746d5c 100644
+--- a/drivers/infiniband/sw/rdmavt/mcast.c
++++ b/drivers/infiniband/sw/rdmavt/mcast.c
+@@ -117,7 +117,6 @@ static struct rvt_mcast *rvt_mcast_alloc(union ib_gid *mgid, u16 lid)
+ 
+ 	INIT_LIST_HEAD(&mcast->qp_list);
+ 	init_waitqueue_head(&mcast->wait);
+-	atomic_set(&mcast->refcount, 0);
+ 
+ bail:
+ 	return mcast;
+@@ -169,7 +168,7 @@ struct rvt_mcast *rvt_mcast_find(struct rvt_ibport *ibp, union ib_gid *mgid,
+ 		} else {
+ 			/* MGID/MLID must match */
+ 			if (mcast->mcast_addr.lid == lid) {
+-				atomic_inc(&mcast->refcount);
++				refcount_inc(&mcast->refcount);
+ 				found = mcast;
+ 			}
+ 			break;
+@@ -257,7 +256,7 @@ static int rvt_mcast_add(struct rvt_dev_info *rdi, struct rvt_ibport *ibp,
+ 
+ 	list_add_tail_rcu(&mqp->list, &mcast->qp_list);
+ 
+-	atomic_inc(&mcast->refcount);
++	refcount_set(&mcast->refcount, 1);
+ 	rb_link_node(&mcast->rb_node, pn, n);
+ 	rb_insert_color(&mcast->rb_node, &ibp->mcast_tree);
+ 
+@@ -410,12 +409,12 @@ int rvt_detach_mcast(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	 * Wait for any list walkers to finish before freeing the
+ 	 * list element.
+ 	 */
+-	wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
++	wait_event(mcast->wait, refcount_read(&mcast->refcount) <= 1);
+ 	rvt_mcast_qp_free(delp);
+ 
+ 	if (last) {
+-		atomic_dec(&mcast->refcount);
+-		wait_event(mcast->wait, !atomic_read(&mcast->refcount));
++		refcount_dec(&mcast->refcount);
++		wait_event(mcast->wait, !refcount_read(&mcast->refcount));
+ 		rvt_mcast_free(mcast);
+ 		spin_lock_irq(&rdi->n_mcast_grps_lock);
+ 		rdi->n_mcast_grps_allocated--;
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 8275954..cd19573 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -520,7 +520,7 @@ struct rvt_mcast {
+ 	struct rvt_mcast_addr mcast_addr;
+ 	struct list_head qp_list;
+ 	wait_queue_head_t wait;
+-	atomic_t refcount;
++	refcount_t refcount;
+ 	int n_attached;
  };
  
-@@ -199,7 +199,7 @@ static void release_group(struct mcast_group *group)
- 
- static void deref_member(struct mcast_member *member)
- {
--	if (atomic_dec_and_test(&member->refcount))
-+	if (refcount_dec_and_test(&member->refcount))
- 		complete(&member->comp);
- }
- 
-@@ -401,7 +401,7 @@ static void process_group_error(struct mcast_group *group)
- 	while (!list_empty(&group->active_list)) {
- 		member = list_entry(group->active_list.next,
- 				    struct mcast_member, list);
--		atomic_inc(&member->refcount);
-+		refcount_inc(&member->refcount);
- 		list_del_init(&member->list);
- 		adjust_membership(group, member->multicast.rec.join_state, -1);
- 		member->state = MCAST_ERROR;
-@@ -445,7 +445,7 @@ static void mcast_work_handler(struct work_struct *work)
- 				    struct mcast_member, list);
- 		multicast = &member->multicast;
- 		join_state = multicast->rec.join_state;
--		atomic_inc(&member->refcount);
-+		refcount_inc(&member->refcount);
- 
- 		if (join_state == (group->rec.join_state & join_state)) {
- 			status = cmp_rec(&group->rec, &multicast->rec,
-@@ -497,7 +497,7 @@ static void process_join_error(struct mcast_group *group, int status)
- 	member = list_entry(group->pending_list.next,
- 			    struct mcast_member, list);
- 	if (group->last_join == member) {
--		atomic_inc(&member->refcount);
-+		refcount_inc(&member->refcount);
- 		list_del_init(&member->list);
- 		spin_unlock_irq(&group->lock);
- 		ret = member->multicast.callback(status, &member->multicast);
-@@ -632,7 +632,7 @@ ib_sa_join_multicast(struct ib_sa_client *client,
- 	member->multicast.callback = callback;
- 	member->multicast.context = context;
- 	init_completion(&member->comp);
--	atomic_set(&member->refcount, 1);
-+	refcount_set(&member->refcount, 1);
- 	member->state = MCAST_JOINING;
- 
- 	member->group = acquire_group(&dev->port[port_num - dev->start_port],
 -- 
 2.7.4
 
