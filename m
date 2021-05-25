@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C2FC4708D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3924C4707F
 	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0D9D610A2
+	by mail.kernel.org (Postfix) with ESMTP id CC7A461413
 	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231421AbhEYGxb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S231423AbhEYGxb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 25 May 2021 02:53:31 -0400
-Received: from szxga04-in.huawei.com ([45.249.212.190]:6701 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231416AbhEYGx3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:29 -0400
-Received: from dggems705-chm.china.huawei.com (unknown [172.30.72.60])
-        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fq4R91zHnzlYJf;
-        Tue, 25 May 2021 14:48:21 +0800 (CST)
+Received: from szxga07-in.huawei.com ([45.249.212.35]:3937 "EHLO
+        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231406AbhEYGxa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:30 -0400
+Received: from dggems702-chm.china.huawei.com (unknown [172.30.72.60])
+        by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4Fq4S35f7szBvgG;
+        Tue, 25 May 2021 14:49:07 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggems705-chm.china.huawei.com (10.3.19.182) with Microsoft SMTP Server
+ dggems702-chm.china.huawei.com (10.3.19.179) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+ 15.1.2176.2; Tue, 25 May 2021 14:51:59 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+ 15.1.2176.2; Tue, 25 May 2021 14:51:55 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v3 for-next 02/13] RDMA/core: Use refcount_t instead of atomic_t on refcount of iwpm_admin_data
-Date:   Tue, 25 May 2021 14:51:33 +0800
-Message-ID: <1621925504-33019-3-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v3 for-next 12/13] RDMA/ipoib: Use refcount_t instead of atomic_t for reference counting
+Date:   Tue, 25 May 2021 14:51:43 +0800
+Message-ID: <1621925504-33019-13-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
 References: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
@@ -51,71 +51,76 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 The refcount_t API will WARN on underflow and overflow of a reference
-counter, and avoid use-after-free risks. Increase refcount_t from 0 to 1 is
-regarded as there is a risk about use-after-free. So it should be set to 1
-directly during initialization.
+counter, and avoid use-after-free risks.
 
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/core/iwpm_util.c | 12 ++++++++----
- drivers/infiniband/core/iwpm_util.h |  2 +-
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h      | 4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index f80e555..b8f40e6 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -61,7 +61,7 @@ int iwpm_init(u8 nl_client)
- {
- 	int ret = 0;
- 	mutex_lock(&iwpm_admin_lock);
--	if (atomic_read(&iwpm_admin.refcount) == 0) {
-+	if (!refcount_read(&iwpm_admin.refcount)) {
- 		iwpm_hash_bucket = kcalloc(IWPM_MAPINFO_HASH_SIZE,
- 					   sizeof(struct hlist_head),
- 					   GFP_KERNEL);
-@@ -77,8 +77,12 @@ int iwpm_init(u8 nl_client)
- 			ret = -ENOMEM;
- 			goto init_exit;
- 		}
-+
-+		refcount_set(&iwpm_admin.refcount, 1);
-+	} else {
-+		refcount_inc(&iwpm_admin.refcount);
- 	}
--	atomic_inc(&iwpm_admin.refcount);
-+
- init_exit:
- 	mutex_unlock(&iwpm_admin_lock);
- 	if (!ret) {
-@@ -105,12 +109,12 @@ int iwpm_exit(u8 nl_client)
- 	if (!iwpm_valid_client(nl_client))
- 		return -EINVAL;
- 	mutex_lock(&iwpm_admin_lock);
--	if (atomic_read(&iwpm_admin.refcount) == 0) {
-+	if (!refcount_read(&iwpm_admin.refcount)) {
- 		mutex_unlock(&iwpm_admin_lock);
- 		pr_err("%s Incorrect usage - negative refcount\n", __func__);
- 		return -EINVAL;
- 	}
--	if (atomic_dec_and_test(&iwpm_admin.refcount)) {
-+	if (refcount_dec_and_test(&iwpm_admin.refcount)) {
- 		free_hash_bucket();
- 		free_reminfo_bucket();
- 		pr_debug("%s: Resources are destroyed\n", __func__);
-diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
-index eeb8e60..5002ac6 100644
---- a/drivers/infiniband/core/iwpm_util.h
-+++ b/drivers/infiniband/core/iwpm_util.h
-@@ -90,7 +90,7 @@ struct iwpm_remote_info {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 75cd447..44d8d15 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -454,7 +454,7 @@ struct ipoib_neigh {
+ 	struct list_head    list;
+ 	struct ipoib_neigh __rcu *hnext;
+ 	struct rcu_head     rcu;
+-	atomic_t	    refcnt;
++	refcount_t	    refcnt;
+ 	unsigned long       alive;
  };
  
- struct iwpm_admin_data {
--	atomic_t refcount;
-+	refcount_t refcount;
- 	atomic_t nlmsg_seq;
- 	int      client_list[RDMA_NL_NUM_CLIENTS];
- 	u32      reg_list[RDMA_NL_NUM_CLIENTS];
+@@ -464,7 +464,7 @@ struct ipoib_neigh {
+ void ipoib_neigh_dtor(struct ipoib_neigh *neigh);
+ static inline void ipoib_neigh_put(struct ipoib_neigh *neigh)
+ {
+-	if (atomic_dec_and_test(&neigh->refcnt))
++	if (refcount_dec_and_test(&neigh->refcnt))
+ 		ipoib_neigh_dtor(neigh);
+ }
+ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index bbb1808..ac39610 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1287,7 +1287,7 @@ struct ipoib_neigh *ipoib_neigh_get(struct net_device *dev, u8 *daddr)
+ 	     neigh = rcu_dereference_bh(neigh->hnext)) {
+ 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
+ 			/* found, take one ref on behalf of the caller */
+-			if (!atomic_inc_not_zero(&neigh->refcnt)) {
++			if (!refcount_inc_not_zero(&neigh->refcnt)) {
+ 				/* deleted */
+ 				neigh = NULL;
+ 				goto out_unlock;
+@@ -1382,7 +1382,7 @@ static struct ipoib_neigh *ipoib_neigh_ctor(u8 *daddr,
+ 	INIT_LIST_HEAD(&neigh->list);
+ 	ipoib_cm_set(neigh, NULL);
+ 	/* one ref on behalf of the caller */
+-	atomic_set(&neigh->refcnt, 1);
++	refcount_set(&neigh->refcnt, 1);
+ 
+ 	return neigh;
+ }
+@@ -1414,7 +1414,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
+ 					       lockdep_is_held(&priv->lock))) {
+ 		if (memcmp(daddr, neigh->daddr, INFINIBAND_ALEN) == 0) {
+ 			/* found, take one ref on behalf of the caller */
+-			if (!atomic_inc_not_zero(&neigh->refcnt)) {
++			if (!refcount_inc_not_zero(&neigh->refcnt)) {
+ 				/* deleted */
+ 				neigh = NULL;
+ 				break;
+@@ -1429,7 +1429,7 @@ struct ipoib_neigh *ipoib_neigh_alloc(u8 *daddr,
+ 		goto out_unlock;
+ 
+ 	/* one ref on behalf of the hash table */
+-	atomic_inc(&neigh->refcnt);
++	refcount_inc(&neigh->refcnt);
+ 	neigh->alive = jiffies;
+ 	/* put in hash */
+ 	rcu_assign_pointer(neigh->hnext,
 -- 
 2.7.4
 
