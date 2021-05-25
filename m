@@ -2,123 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C1AAC2B9F8
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAE11C4707F
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:51:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 70D5C613F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:20:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D0F4611B0
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:51:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230509AbhEYGVz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 May 2021 02:21:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49122 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230495AbhEYGVz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:21:55 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ACCBC061574
-        for <linux-rdma@vger.kernel.org>; Mon, 24 May 2021 23:20:25 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id h9so29334190oih.4
-        for <linux-rdma@vger.kernel.org>; Mon, 24 May 2021 23:20:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WltsMgCSbTax675eL/BCIPutsbhRbdmxCbF1/sxXCcg=;
-        b=FOuhXwG0oT3cpuW/u7k25epBUi7q37xFv++SS8SeD+M2FFGJWBvqlK9T+Mn2NB7fQz
-         1S2E6T04M2+FvR8KR3AIscHyo/AFn0Z17h01/wjjVqq187fFlewP0WrjIof5ezCPi1Qz
-         An1pENOzCDU8KOrh0UOgQbtJlUtjfqRhfgfUMqBsJMrXyBl6ddXg3+3ip1c+EsnzzSIM
-         oxwZ8/hsxykuNMsWhDUnGIvYuNSKSL60+9VXbBVO09s2pvZL0cmebPX6YsQ3dmk0igMi
-         7fK75lPkbngQGWa01f/JZJCJuVECpZrXnnFpWhvxJOW7CfAbSMgoh+t80hAfVgw7TdOQ
-         OR6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WltsMgCSbTax675eL/BCIPutsbhRbdmxCbF1/sxXCcg=;
-        b=nW2AOeuyJKp5gOlhk7PuwgVlUundiut/VE9Aq/oHoPB/Qu++U+PWHIGlZXl0+BVg66
-         Ime7RdAHQyQDOS3PatCsXDaVtDP0WjMnPNTyI03fZlnnltIp+3vSWhd4Gw5pma7YZPAT
-         S3KtMCO340R9kbUsscnPMNOlMGlx9E24g2GilAhIAGgZtd94sQ+7xAxs0+W/wPX1U5bi
-         5uejRRWEbZ7z4FqrTzgbAO5rEhUDpNqh9hupUSQAtqoCNZLnL68bv+dtUv6jx5bXR4yS
-         R/NkaiNhxwxOQ3FQ6CVHn/vexNiLZg3FIA0NZ+6hXXjYWvqsKCYC+Q6MEjwhXUkUA/3O
-         d07Q==
-X-Gm-Message-State: AOAM530totjid8A6OZaybG8YopkgnAje6Hi2c2eC+M3Z0stvh7zUpiMe
-        4+ALzr9ItrFPFvgG0x6y/1uN+KiHY+Go0/MEsm0=
-X-Google-Smtp-Source: ABdhPJxQGLyzRreLDCz8tx5KT3e9A6BWYpuqvB6Sq8lTHJ3/Xy8Dgs2b6x3ND5hHzgx6CToDt+0OdUmfFU9x7azTbU8=
-X-Received: by 2002:aca:5f8b:: with SMTP id t133mr1662703oib.163.1621923624804;
- Mon, 24 May 2021 23:20:24 -0700 (PDT)
+        id S231415AbhEYGx1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 May 2021 02:53:27 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:5696 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231365AbhEYGx0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:53:26 -0400
+Received: from dggems701-chm.china.huawei.com (unknown [172.30.72.59])
+        by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Fq4S00s2kz1BQGt;
+        Tue, 25 May 2021 14:49:04 +0800 (CST)
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggems701-chm.china.huawei.com (10.3.19.178) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
+ 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2176.2; Tue, 25 May 2021 14:51:54 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v3 for-next 06/13] RDMA/core: Use refcount_t instead of atomic_t on refcount of mcast_group
+Date:   Tue, 25 May 2021 14:51:37 +0800
+Message-ID: <1621925504-33019-7-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
+References: <1621925504-33019-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-References: <20210525223222.17636-1-yanjun.zhu@intel.com>
-In-Reply-To: <20210525223222.17636-1-yanjun.zhu@intel.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Tue, 25 May 2021 14:20:13 +0800
-Message-ID: <CAD=hENdRoYTuh=iJo1F2nPJpGfBQD6rVK6U+6b8OJfD3zV4vWw@mail.gmail.com>
-Subject: Re: [PATCH 1/1] Update kernel headers
-To:     Zhu Yanjun <yanjun.zhu@intel.com>
-Cc:     RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Leon Romanovsky <leonro@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggema753-chm.china.huawei.com (10.1.198.195)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 25, 2021 at 2:07 PM Zhu Yanjun <yanjun.zhu@intel.com> wrote:
->
-> From: Zhu Yanjun <zyjzyj2000@gmail.com>
->
-> After the patches "RDMA/rxe: Implement memory windows", the kernel headers
-> are changed. This causes about 17 errors and 1 failure when running
-> "run_test.py" with rxe.
-> This commit will fix these errors and failures.
+The refcount_t API will WARN on underflow and overflow of a reference
+counter, and avoid use-after-free risks. Increase refcount_t from 0 to 1 is
+regarded as there is a risk about use-after-free. So it should be set to 1
+directly during initialization.
 
-This commit is for rdma-core.
-https://github.com/linux-rdma/rdma-core.git
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/core/multicast.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-Zhu Yanjun
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index a236532..17abc21 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -103,7 +103,7 @@ struct mcast_group {
+ 	struct list_head	active_list;
+ 	struct mcast_member	*last_join;
+ 	int			members[NUM_JOIN_MEMBERSHIP_TYPES];
+-	atomic_t		refcount;
++	refcount_t		refcount;
+ 	enum mcast_group_state	state;
+ 	struct ib_sa_query	*query;
+ 	u16			pkey_index;
+@@ -188,7 +188,7 @@ static void release_group(struct mcast_group *group)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+-	if (atomic_dec_and_test(&group->refcount)) {
++	if (refcount_dec_and_test(&group->refcount)) {
+ 		rb_erase(&group->node, &port->table);
+ 		spin_unlock_irqrestore(&port->lock, flags);
+ 		kfree(group);
+@@ -212,7 +212,7 @@ static void queue_join(struct mcast_member *member)
+ 	list_add_tail(&member->list, &group->pending_list);
+ 	if (group->state == MCAST_IDLE) {
+ 		group->state = MCAST_BUSY;
+-		atomic_inc(&group->refcount);
++		refcount_inc(&group->refcount);
+ 		queue_work(mcast_wq, &group->work);
+ 	}
+ 	spin_unlock_irqrestore(&group->lock, flags);
+@@ -565,8 +565,11 @@ static struct mcast_group *acquire_group(struct mcast_port *port,
+ 	if (!is_mgid0) {
+ 		spin_lock_irqsave(&port->lock, flags);
+ 		group = mcast_find(port, mgid);
+-		if (group)
++		if (group) {
++			refcount_inc(&group->refcount);
+ 			goto found;
++		}
++
+ 		spin_unlock_irqrestore(&port->lock, flags);
+ 	}
+ 
+@@ -590,8 +593,10 @@ static struct mcast_group *acquire_group(struct mcast_port *port,
+ 		group = cur_group;
+ 	} else
+ 		refcount_inc(&port->refcount);
++
++	refcount_set(&group->refcount, 1);
++
+ found:
+-	atomic_inc(&group->refcount);
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 	return group;
+ }
+@@ -780,7 +785,7 @@ static void mcast_groups_event(struct mcast_port *port,
+ 		group = rb_entry(node, struct mcast_group, node);
+ 		spin_lock(&group->lock);
+ 		if (group->state == MCAST_IDLE) {
+-			atomic_inc(&group->refcount);
++			refcount_inc(&group->refcount);
+ 			queue_work(mcast_wq, &group->work);
+ 		}
+ 		if (group->state != MCAST_GROUP_ERROR)
+-- 
+2.7.4
 
->
-> Signed-off-by: Zhu Yanjun <zyjzyj2000@gmail.com>
-> ---
->  kernel-headers/rdma/rdma_user_rxe.h | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->
-> diff --git a/kernel-headers/rdma/rdma_user_rxe.h b/kernel-headers/rdma/rdma_user_rxe.h
-> index 068433e2..90ea477f 100644
-> --- a/kernel-headers/rdma/rdma_user_rxe.h
-> +++ b/kernel-headers/rdma/rdma_user_rxe.h
-> @@ -99,7 +99,17 @@ struct rxe_send_wr {
->                         __u32   remote_qkey;
->                         __u16   pkey_index;
->                 } ud;
-> +               struct {
-> +                       __aligned_u64   addr;
-> +                       __aligned_u64   length;
-> +                       __u32           mr_lkey;
-> +                       __u32           mw_rkey;
-> +                       __u32           rkey;
-> +                       __u32           access;
-> +                       __u32           flags;
-> +               } mw;
->                 /* reg is only used by the kernel and is not part of the uapi */
-> +#ifdef __KERNEL__
->                 struct {
->                         union {
->                                 struct ib_mr *mr;
-> @@ -108,6 +118,7 @@ struct rxe_send_wr {
->                         __u32        key;
->                         __u32        access;
->                 } reg;
-> +#endif
->         } wr;
->  };
->
-> --
-> 2.30.2
->
