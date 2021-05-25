@@ -2,92 +2,123 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,
-	DATE_IN_FUTURE_12_24,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88684C2B9F8
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:07:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C1AAC2B9F8
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:20:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5D49E613E6
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:07:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70D5C613F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 06:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230382AbhEYGJU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 May 2021 02:09:20 -0400
-Received: from mga05.intel.com ([192.55.52.43]:63859 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230308AbhEYGJU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 25 May 2021 02:09:20 -0400
-IronPort-SDR: S0VoJzJKqVDUSG3jtl6buVqF8156WCfmDF/Wx27vfj8Cn4srA0PezxBhqO6RkNbomyMMD9EKSf
- p7H8L7r1MzQg==
-X-IronPort-AV: E=McAfee;i="6200,9189,9994"; a="287685396"
-X-IronPort-AV: E=Sophos;i="5.82,327,1613462400"; 
-   d="scan'208";a="287685396"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 May 2021 23:07:50 -0700
-IronPort-SDR: 0uhjj8xJ/xFaqaiIDJUtfVV+RZqkKdA+oOaQzacYoLXE+WOBFzSv7nZ6brLRIXCOFHE/B+5hOy
- 3WWPXzIswn3w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.82,327,1613462400"; 
-   d="scan'208";a="443182805"
-Received: from unknown (HELO intel-86.bj.intel.com) ([10.238.154.86])
-  by fmsmga008.fm.intel.com with ESMTP; 24 May 2021 23:07:49 -0700
-From:   Zhu Yanjun <yanjun.zhu@intel.com>
-To:     linux-rdma@vger.kernel.org, zyjzyj2000@gmail.com, jgg@nvidia.com,
-        dledford@redhat.com, leonro@nvidia.com
-Subject: [PATCH 1/1] Update kernel headers
-Date:   Tue, 25 May 2021 18:32:22 -0400
-Message-Id: <20210525223222.17636-1-yanjun.zhu@intel.com>
-X-Mailer: git-send-email 2.27.0
+        id S230509AbhEYGVz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 May 2021 02:21:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49122 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230495AbhEYGVz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 02:21:55 -0400
+Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ACCBC061574
+        for <linux-rdma@vger.kernel.org>; Mon, 24 May 2021 23:20:25 -0700 (PDT)
+Received: by mail-oi1-x234.google.com with SMTP id h9so29334190oih.4
+        for <linux-rdma@vger.kernel.org>; Mon, 24 May 2021 23:20:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WltsMgCSbTax675eL/BCIPutsbhRbdmxCbF1/sxXCcg=;
+        b=FOuhXwG0oT3cpuW/u7k25epBUi7q37xFv++SS8SeD+M2FFGJWBvqlK9T+Mn2NB7fQz
+         1S2E6T04M2+FvR8KR3AIscHyo/AFn0Z17h01/wjjVqq187fFlewP0WrjIof5ezCPi1Qz
+         An1pENOzCDU8KOrh0UOgQbtJlUtjfqRhfgfUMqBsJMrXyBl6ddXg3+3ip1c+EsnzzSIM
+         oxwZ8/hsxykuNMsWhDUnGIvYuNSKSL60+9VXbBVO09s2pvZL0cmebPX6YsQ3dmk0igMi
+         7fK75lPkbngQGWa01f/JZJCJuVECpZrXnnFpWhvxJOW7CfAbSMgoh+t80hAfVgw7TdOQ
+         OR6A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WltsMgCSbTax675eL/BCIPutsbhRbdmxCbF1/sxXCcg=;
+        b=nW2AOeuyJKp5gOlhk7PuwgVlUundiut/VE9Aq/oHoPB/Qu++U+PWHIGlZXl0+BVg66
+         Ime7RdAHQyQDOS3PatCsXDaVtDP0WjMnPNTyI03fZlnnltIp+3vSWhd4Gw5pma7YZPAT
+         S3KtMCO340R9kbUsscnPMNOlMGlx9E24g2GilAhIAGgZtd94sQ+7xAxs0+W/wPX1U5bi
+         5uejRRWEbZ7z4FqrTzgbAO5rEhUDpNqh9hupUSQAtqoCNZLnL68bv+dtUv6jx5bXR4yS
+         R/NkaiNhxwxOQ3FQ6CVHn/vexNiLZg3FIA0NZ+6hXXjYWvqsKCYC+Q6MEjwhXUkUA/3O
+         d07Q==
+X-Gm-Message-State: AOAM530totjid8A6OZaybG8YopkgnAje6Hi2c2eC+M3Z0stvh7zUpiMe
+        4+ALzr9ItrFPFvgG0x6y/1uN+KiHY+Go0/MEsm0=
+X-Google-Smtp-Source: ABdhPJxQGLyzRreLDCz8tx5KT3e9A6BWYpuqvB6Sq8lTHJ3/Xy8Dgs2b6x3ND5hHzgx6CToDt+0OdUmfFU9x7azTbU8=
+X-Received: by 2002:aca:5f8b:: with SMTP id t133mr1662703oib.163.1621923624804;
+ Mon, 24 May 2021 23:20:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210525223222.17636-1-yanjun.zhu@intel.com>
+In-Reply-To: <20210525223222.17636-1-yanjun.zhu@intel.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Tue, 25 May 2021 14:20:13 +0800
+Message-ID: <CAD=hENdRoYTuh=iJo1F2nPJpGfBQD6rVK6U+6b8OJfD3zV4vWw@mail.gmail.com>
+Subject: Re: [PATCH 1/1] Update kernel headers
+To:     Zhu Yanjun <yanjun.zhu@intel.com>
+Cc:     RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Leon Romanovsky <leonro@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <zyjzyj2000@gmail.com>
+On Tue, May 25, 2021 at 2:07 PM Zhu Yanjun <yanjun.zhu@intel.com> wrote:
+>
+> From: Zhu Yanjun <zyjzyj2000@gmail.com>
+>
+> After the patches "RDMA/rxe: Implement memory windows", the kernel headers
+> are changed. This causes about 17 errors and 1 failure when running
+> "run_test.py" with rxe.
+> This commit will fix these errors and failures.
 
-After the patches "RDMA/rxe: Implement memory windows", the kernel headers
-are changed. This causes about 17 errors and 1 failure when running
-"run_test.py" with rxe.
-This commit will fix these errors and failures.
+This commit is for rdma-core.
+https://github.com/linux-rdma/rdma-core.git
 
-Signed-off-by: Zhu Yanjun <zyjzyj2000@gmail.com>
----
- kernel-headers/rdma/rdma_user_rxe.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Zhu Yanjun
 
-diff --git a/kernel-headers/rdma/rdma_user_rxe.h b/kernel-headers/rdma/rdma_user_rxe.h
-index 068433e2..90ea477f 100644
---- a/kernel-headers/rdma/rdma_user_rxe.h
-+++ b/kernel-headers/rdma/rdma_user_rxe.h
-@@ -99,7 +99,17 @@ struct rxe_send_wr {
- 			__u32	remote_qkey;
- 			__u16	pkey_index;
- 		} ud;
-+		struct {
-+			__aligned_u64	addr;
-+			__aligned_u64	length;
-+			__u32		mr_lkey;
-+			__u32		mw_rkey;
-+			__u32		rkey;
-+			__u32		access;
-+			__u32		flags;
-+		} mw;
- 		/* reg is only used by the kernel and is not part of the uapi */
-+#ifdef __KERNEL__
- 		struct {
- 			union {
- 				struct ib_mr *mr;
-@@ -108,6 +118,7 @@ struct rxe_send_wr {
- 			__u32	     key;
- 			__u32	     access;
- 		} reg;
-+#endif
- 	} wr;
- };
- 
--- 
-2.30.2
-
+>
+> Signed-off-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+> ---
+>  kernel-headers/rdma/rdma_user_rxe.h | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+>
+> diff --git a/kernel-headers/rdma/rdma_user_rxe.h b/kernel-headers/rdma/rdma_user_rxe.h
+> index 068433e2..90ea477f 100644
+> --- a/kernel-headers/rdma/rdma_user_rxe.h
+> +++ b/kernel-headers/rdma/rdma_user_rxe.h
+> @@ -99,7 +99,17 @@ struct rxe_send_wr {
+>                         __u32   remote_qkey;
+>                         __u16   pkey_index;
+>                 } ud;
+> +               struct {
+> +                       __aligned_u64   addr;
+> +                       __aligned_u64   length;
+> +                       __u32           mr_lkey;
+> +                       __u32           mw_rkey;
+> +                       __u32           rkey;
+> +                       __u32           access;
+> +                       __u32           flags;
+> +               } mw;
+>                 /* reg is only used by the kernel and is not part of the uapi */
+> +#ifdef __KERNEL__
+>                 struct {
+>                         union {
+>                                 struct ib_mr *mr;
+> @@ -108,6 +118,7 @@ struct rxe_send_wr {
+>                         __u32        key;
+>                         __u32        access;
+>                 } reg;
+> +#endif
+>         } wr;
+>  };
+>
+> --
+> 2.30.2
+>
