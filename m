@@ -2,162 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-21.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFA4FC47086
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 21:38:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 749C8C47086
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 22:59:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5D03613D5
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 21:38:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5597D613D8
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 May 2021 22:59:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233482AbhEYVkL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 25 May 2021 17:40:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59990 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233477AbhEYVkJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 May 2021 17:40:09 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28F75C06175F
-        for <linux-rdma@vger.kernel.org>; Tue, 25 May 2021 14:38:38 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id b25so31756010oic.0
-        for <linux-rdma@vger.kernel.org>; Tue, 25 May 2021 14:38:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=cE7E6256nwQASA75N374ABr0fpgsDymtSFvOShfQN9I=;
-        b=ulIyfKjHTJEBstBpD8nKwYA+G6Tg870t4KcTNQmpVRmKDuVO63w8JiamFujiS0nCc9
-         uulYtYlTo34jdMM2m3uBbM6dVV5JsIJJDsXHcGyiq9kKSQbwKM+xcYredaAqrJQJ+Qt1
-         F+TG6D3dgZ2WoZU5nckJfN2uyg9pebK63qcLKs2Qtjv8UYHQ+8VCCKlUwmloKezszVuz
-         oq+El8ckMIGiakRwFrwkWr7HePGLZzPWzJ5QqGySn4NzT0o7CbFeGaA41WOwJC5bO+sL
-         7tfVcUdh1DvUX6E9REzm/BzT3hUYMqOSPqCUdSxFY+qe78f2bFeWyBgrsaxdy3qrFwBR
-         7zmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=cE7E6256nwQASA75N374ABr0fpgsDymtSFvOShfQN9I=;
-        b=HySibKoyWHVpllXfhTcXoTyKiiROTd+rm/4JwVzTStYdt6DIqgrxNQ1KMZV63bewAT
-         /DyDzXcewvKdjLXyRB0ld5LrI25tIdRLQnReVamsDsAUq6E/ZX5D4FAvvDwMS8wmBxc8
-         olh3kcAS3qYjF7gYcMTCf+8NuCJGFXCCZl0iuiMadpjThYh+taT8CrBRnpgLNsDhRw8X
-         ZrO7irHUUgmItymb03t5khiabmpKgyuq4hmh8aEPU1MaXi2g7x8+LJsJDsIPjF9bLp7c
-         dxh4xEVQqxzsggC6btu4xDmlOXQNbpHfOEDwQ58XvH/PO8IJHWsCiQfnmr+O6egsa+Le
-         fMtQ==
-X-Gm-Message-State: AOAM533GoZsacsCFKJJyd3FlxKZW+iXXtIiU7CIVhpeioNjjKVFFMrVQ
-        dyCpmXsRpCCbG81p/Jf6ihs=
-X-Google-Smtp-Source: ABdhPJxmLrzC8Ste33EsqOoDkZoE3MLNx8D6PDWFQRn3x3rvQ4gbpqEwU08rsq3OPztsl5X6Ow6TjQ==
-X-Received: by 2002:aca:75c6:: with SMTP id q189mr274748oic.124.1621978717486;
-        Tue, 25 May 2021 14:38:37 -0700 (PDT)
-Received: from localhost (2603-8081-140c-1a00-e4a4-ac6f-8cca-71ad.res6.spectrum.com. [2603:8081:140c:1a00:e4a4:ac6f:8cca:71ad])
-        by smtp.gmail.com with ESMTPSA id e22sm3949961otl.74.2021.05.25.14.38.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 May 2021 14:38:37 -0700 (PDT)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     jgg@nvidia.com, zyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v8 10/10] RDMA/rxe: Disallow MR dereg and invalidate when bound
-Date:   Tue, 25 May 2021 16:37:52 -0500
-Message-Id: <20210525213751.629017-11-rpearsonhpe@gmail.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210525213751.629017-1-rpearsonhpe@gmail.com>
-References: <20210525213751.629017-1-rpearsonhpe@gmail.com>
+        id S231319AbhEYXBM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 May 2021 19:01:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32838 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230097AbhEYXBM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 25 May 2021 19:01:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E8BD1613D5;
+        Tue, 25 May 2021 22:59:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1621983581;
+        bh=gTZAgrzB4+T/6N1sAeSXHaiO0/ElpJNF7LZZgYhlfYQ=;
+        h=Date:From:To:Cc:Subject:From;
+        b=PipcE7xDG+yf/31f2wV1b8p7s8c0CmOAE+z4YUwdAaSwQ5QJp5XOhxU3s18vGKm0b
+         bheC0DmbiAyIshUQbGdb00isAsklfM7saJNNl+LqnF6TAtQPrRG4O7qPeU5gkqTO7o
+         u9lsT3FlXOK1DrVC7takFogdo6P/s9DSWGxy1wyMdhceKXJWJsk7/lx5rMVyiLLjII
+         bDPtNjvD+i3BxO4Reu5+FqHeF0KfYKFjz/qcmiNLKe6tsy1GF98LJ35s9fxdxSCKfd
+         dr0C+86CkWhy2E+gA9aDXW/6WM2JkpwGrhfsQ0PiyWgZm+zd2P8sjx8PRJ8uszXIo0
+         y9/M/ZOqbF7zA==
+Date:   Tue, 25 May 2021 18:00:38 -0500
+From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
+To:     Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-hardening@vger.kernel.org
+Subject: [PATCH][next] i40e: Replace one-element array with flexible-array
+ member
+Message-ID: <20210525230038.GA175516@embeddedor>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Check that an MR has no bound MWs before allowing a dereg or invalidate
-operation.
+There is a regular need in the kernel to provide a way to declare having a
+dynamically sized set of trailing elements in a structure. Kernel code
+should always use “flexible array members”[1] for these cases. The older
+style of one-element or zero-length arrays should no longer be used[2].
 
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+Refactor the code according to the use of a flexible-array member in struct
+i40e_qvlist_info instead of one-element array, and use the struct_size()
+helper.
+
+[1] https://en.wikipedia.org/wiki/Flexible_array_member
+[2] https://www.kernel.org/doc/html/v5.10/process/deprecated.html#zero-length-and-one-element-arrays
+
+Link: https://github.com/KSPP/linux/issues/79
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h   |  1 +
- drivers/infiniband/sw/rxe/rxe_mr.c    | 25 +++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_verbs.c | 11 -----------
- 3 files changed, 26 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_main.c      | 5 ++---
+ drivers/net/ethernet/intel/i40e/i40e_client.c | 2 +-
+ include/linux/net/intel/i40e_client.h         | 2 +-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 6e4b5e22541e..1ddb20855dee 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -87,6 +87,7 @@ struct rxe_mr *lookup_mr(struct rxe_pd *pd, int access, u32 key,
- int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length);
- int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
- int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey);
-+int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
- void rxe_mr_cleanup(struct rxe_pool_entry *arg);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+index b496f30ce066..364f69cd620f 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_main.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+@@ -1423,7 +1423,7 @@ static enum i40iw_status_code i40iw_save_msix_info(struct i40iw_device *iwdev,
+ 	struct i40e_qv_info *iw_qvinfo;
+ 	u32 ceq_idx;
+ 	u32 i;
+-	u32 size;
++	size_t size;
  
- /* rxe_mw.c */
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 3fb58d2c7814..7f169329a8bf 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -546,6 +546,13 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey)
- 		goto err_drop_ref;
- 	}
+ 	if (!ldev->msix_count) {
+ 		i40iw_pr_err("No MSI-X vectors\n");
+@@ -1433,8 +1433,7 @@ static enum i40iw_status_code i40iw_save_msix_info(struct i40iw_device *iwdev,
+ 	iwdev->msix_count = ldev->msix_count;
  
-+	if (atomic_read(&mr->num_mw) > 0) {
-+		pr_warn("%s: Attempt to invalidate an MR while bound to MWs\n",
-+			__func__);
-+		ret = -EINVAL;
-+		goto err_drop_ref;
-+	}
-+
- 	mr->state = RXE_MR_STATE_FREE;
- 	ret = 0;
+ 	size = sizeof(struct i40iw_msix_vector) * iwdev->msix_count;
+-	size += sizeof(struct i40e_qvlist_info);
+-	size +=  sizeof(struct i40e_qv_info) * iwdev->msix_count - 1;
++	size += struct_size(iw_qvlist, qv_info, iwdev->msix_count);
+ 	iwdev->iw_msixtbl = kzalloc(size, GFP_KERNEL);
  
-@@ -555,6 +562,24 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey)
- 	return ret;
- }
+ 	if (!iwdev->iw_msixtbl)
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_client.c b/drivers/net/ethernet/intel/i40e/i40e_client.c
+index 32f3facbed1a..63eab14a26df 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_client.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_client.c
+@@ -579,7 +579,7 @@ static int i40e_client_setup_qvlist(struct i40e_info *ldev,
+ 	u32 v_idx, i, reg_idx, reg;
  
-+int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
-+{
-+	struct rxe_mr *mr = to_rmr(ibmr);
-+
-+	if (atomic_read(&mr->num_mw) > 0) {
-+		pr_warn("%s: Attempt to deregister an MR while bound to MWs\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	mr->state = RXE_MR_STATE_ZOMBIE;
-+	rxe_drop_ref(mr_pd(mr));
-+	rxe_drop_index(mr);
-+	rxe_drop_ref(mr);
-+
-+	return 0;
-+}
-+
- void rxe_mr_cleanup(struct rxe_pool_entry *arg)
- {
- 	struct rxe_mr *mr = container_of(arg, typeof(*mr), pelem);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 4860e8ab378e..3e0bab4994d1 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -913,17 +913,6 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
- 	return ERR_PTR(err);
- }
+ 	ldev->qvlist_info = kzalloc(struct_size(ldev->qvlist_info, qv_info,
+-				    qvlist_info->num_vectors - 1), GFP_KERNEL);
++				    qvlist_info->num_vectors), GFP_KERNEL);
+ 	if (!ldev->qvlist_info)
+ 		return -ENOMEM;
+ 	ldev->qvlist_info->num_vectors = qvlist_info->num_vectors;
+diff --git a/include/linux/net/intel/i40e_client.h b/include/linux/net/intel/i40e_client.h
+index f41387a8969f..fd7bc860a241 100644
+--- a/include/linux/net/intel/i40e_client.h
++++ b/include/linux/net/intel/i40e_client.h
+@@ -48,7 +48,7 @@ struct i40e_qv_info {
  
--static int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
--{
--	struct rxe_mr *mr = to_rmr(ibmr);
--
--	mr->state = RXE_MR_STATE_ZOMBIE;
--	rxe_drop_ref(mr_pd(mr));
--	rxe_drop_index(mr);
--	rxe_drop_ref(mr);
--	return 0;
--}
--
- static struct ib_mr *rxe_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
- 				  u32 max_num_sg)
- {
+ struct i40e_qvlist_info {
+ 	u32 num_vectors;
+-	struct i40e_qv_info qv_info[1];
++	struct i40e_qv_info qv_info[];
+ };
+ 
+ 
 -- 
-2.30.2
+2.27.0
 
