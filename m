@@ -2,137 +2,109 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-18.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MIME_NO_TEXT,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8646FC4708A
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 May 2021 15:23:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F7DC47082
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 May 2021 15:36:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6968461378
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 May 2021 15:23:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D23D61002
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 May 2021 15:36:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235457AbhEZPZC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 May 2021 11:25:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45770 "EHLO
+        id S233819AbhEZPiR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 May 2021 11:38:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232692AbhEZPY6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 May 2021 11:24:58 -0400
-Received: from mail-qv1-xf2f.google.com (mail-qv1-xf2f.google.com [IPv6:2607:f8b0:4864:20::f2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6827C061574
-        for <linux-rdma@vger.kernel.org>; Wed, 26 May 2021 08:23:26 -0700 (PDT)
-Received: by mail-qv1-xf2f.google.com with SMTP id ee9so901496qvb.8
-        for <linux-rdma@vger.kernel.org>; Wed, 26 May 2021 08:23:26 -0700 (PDT)
+        with ESMTP id S232913AbhEZPiQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 May 2021 11:38:16 -0400
+Received: from mail-pj1-x1041.google.com (mail-pj1-x1041.google.com [IPv6:2607:f8b0:4864:20::1041])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48DCCC061574
+        for <linux-rdma@vger.kernel.org>; Wed, 26 May 2021 08:36:43 -0700 (PDT)
+Received: by mail-pj1-x1041.google.com with SMTP id o17-20020a17090a9f91b029015cef5b3c50so535587pjp.4
+        for <linux-rdma@vger.kernel.org>; Wed, 26 May 2021 08:36:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=LZBQpWPLLixKGFB++k1JU4X9ETaU41fEYC6I8r5A+wQ=;
-        b=HcG1Mlbtxvyql08LKRvZBKds+bi8pMF1iGxX8rnB8tsYH6Ttbagqup+ABIJIN2rX7J
-         Ub0ouB3a/CEIqszLHOukjOdoU+jc42mtVJJQMcnhjJCbGswwajk/IdTyghAEzL9D2aAL
-         qdA9Sg1Wyly6YEGxCK5C+WqQbv8SBaxxQsdj4=
+        h=from:to:cc:subject:date:message-id:mime-version;
+        bh=TdLQRDWnUaViMWcP8Zk5idvOXRnFJ0hjK/Ri7RYyjcI=;
+        b=H6P9u2PTc2BU3DHtZlhqWxIW0Y6k/1FGWAenuVTbdluNHFxvbMzZU9gqZR3X4eD2h8
+         bquP7ifbCwG12OvOdSNji10EoxVCAE3octA8VDNxTIppvsf+y28aCqUWTKiIp1yBR4lC
+         7q2KoKe+THJYD9R8MGCNCp0pVy8AnDFMC4Q8U=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=LZBQpWPLLixKGFB++k1JU4X9ETaU41fEYC6I8r5A+wQ=;
-        b=jSjsOqN8qCsJh68kzDMW2lXz85g+bPicfU92QGYmLs0zYojw6m4BA+JCBmw2fpgtNV
-         pAUUfW5ygl27/8rNcmvKD+GcAF5PO031oyDzaj80ZPo4mdTBzFiPjOt9fIrEOE7RHzbN
-         Y6riQVWdOZzXKh0pgSTBFJXpICRREddbRH9SfA37HlN2FqV4R6BuMRAk3eo64jcl1hyi
-         nHBKvU6rPACKVhXRDDIEdjyW+/R1+04TdFtZgiyJwAXc01adIVtJv7UJcBMsXo7F5CAy
-         JaMKIY4uJy9EtdK4VinWaMvre51iVV6/RG/uAPwQG+zsD+b4urMBBkWpd2f1VvEGthN9
-         AFiA==
-X-Gm-Message-State: AOAM533hnNM8m/0Fc1Zvr2mKRkDLRaoPrvgx+n/Vr66xvpWV+DtZ8WJx
-        Cxgl0Ay1Z1Dm2jGF/Ms9XCYj/TC0IdB7reXNKerI6Q==
-X-Google-Smtp-Source: ABdhPJx73/U1nMpX67LoPajwZYjGOtGo6DMvu5Q8uUQi97pVkBO7YmC3lEgorX0kTvuTFxaWBRToSzYvqLL3SpoaH+4=
-X-Received: by 2002:a05:6214:242d:: with SMTP id gy13mr43714665qvb.18.1622042605301;
- Wed, 26 May 2021 08:23:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210517133532.774998-1-devesh.sharma@broadcom.com>
- <CANjDDBgR_wP5WHWWRue_Pg8XYujcuoqFs2J-zHD0c2g9+bRfjg@mail.gmail.com>
- <CANjDDBjO4dOXCb5rVe1UOd6foeFp8FLTqJbz8w6c36eTZSZtkg@mail.gmail.com>
- <YKUwKa6fNfBq8b8a@unreal> <CANjDDBhNFh4VqPdD09ssUMVZKHgvnRxS8MuttNS1JjeFSk23EQ@mail.gmail.com>
- <CANjDDBiymTXPo2Oj=vfpNUgOXbX8HDjsoiDQs5nh=5QUiMYavQ@mail.gmail.com> <20210526132600.GZ1096940@ziepe.ca>
-In-Reply-To: <20210526132600.GZ1096940@ziepe.ca>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version;
+        bh=TdLQRDWnUaViMWcP8Zk5idvOXRnFJ0hjK/Ri7RYyjcI=;
+        b=NuGAR9Bvh2VbTLHBjBPAb5E7d3IbGoTruklqnMERs7NgofxHpqrZCl1MoW9evg3Nav
+         iiJEOLhh+FA7h5vT6vIsRDMvy23x+cQieQmJOWOx30L+WN+1HG5ExwYfnOCmaSQli4hn
+         krY8P4DrPv0Mko2msmvroBDkd0UIroYCKmeG6vGRFN+xyBd7P7f3ZjYSLPrWIdtfyagX
+         Wkr+pEzwHyFtis9xVbBtWeSFVJgansuNQodGf2uuMJ6lrA28iFdDccQF8BKGC6mpSaen
+         9Bab2R6rKHFUrwiYx1s2UcR9zdZMHgfqasjJpwlOKAL/iZcyA4TUgdfc38OwUwe3tQzK
+         SAEw==
+X-Gm-Message-State: AOAM5310h+yIjt4R9h4vk44qdsm24tJLuDt7yDgTC/K9Ne1X08CeN/dY
+        IGAiJNcXKj6buWIAct50N6b2WVH65Km8KIpc6SvzrADX3iwf5S3ApzNHFFCIJUBJUM8pW3Gkm0M
+        5JEwKaTHY/xa3SDpHVbg4bqjFQVNrLHJq4PGq8n9I1hsJuM/QP6SHwqgt3Qb3f0Ubgo4Zmde+SO
+        CDboH3T6eB
+X-Google-Smtp-Source: ABdhPJxy49YgK7tBx9zUOhlRWjZVSv72pX0rQBJa0rp/xY7+zACh0zAYyYD2ZIwbc/r3UKGyjnNZhA==
+X-Received: by 2002:a17:90a:4545:: with SMTP id r5mr4571678pjm.51.1622043402057;
+        Wed, 26 May 2021 08:36:42 -0700 (PDT)
+Received: from dev01.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id 125sm15887052pfg.52.2021.05.26.08.36.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 26 May 2021 08:36:41 -0700 (PDT)
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
-Date:   Wed, 26 May 2021 20:52:49 +0530
-Message-ID: <CANjDDBjyq12g++p_MWjFG-k0Bw6QqbSAvG+6=MoQQ-gs8sTNiQ@mail.gmail.com>
-Subject: Re: [PATCH V2 INTERNAL 0/4] Broadcom's user library update
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>
+To:     linux-rdma@vger.kernel.org
+Cc:     Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: [PATCH for-next V3 0/3] Broadcom's driver add global atomics
+Date:   Wed, 26 May 2021 21:06:26 +0530
+Message-Id: <20210526153629.872796-1-devesh.sharma@broadcom.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000005bc8d405c33d39a7"
+        boundary="000000000000d6a91305c33d68ce"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---0000000000005bc8d405c33d39a7
-Content-Type: text/plain; charset="UTF-8"
+--000000000000d6a91305c33d68ce
+Content-Transfer-Encoding: 8bit
 
-On Wed, May 26, 2021 at 6:56 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Wed, May 26, 2021 at 11:03:09AM +0530, Devesh Sharma wrote:
-> > On Mon, May 24, 2021 at 6:32 PM Devesh Sharma
-> > <devesh.sharma@broadcom.com> wrote:
-> > >
-> > > On Wed, May 19, 2021 at 9:05 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > >
-> > > > On Wed, May 19, 2021 at 08:45:20PM +0530, Devesh Sharma wrote:
-> > > > > On Mon, May 17, 2021 at 7:08 PM Devesh Sharma
-> > > > > <devesh.sharma@broadcom.com> wrote:
-> > > > > >
-> > > > > > On Mon, May 17, 2021 at 7:05 PM Devesh Sharma
-> > > > > > <devesh.sharma@broadcom.com> wrote:
-> > > > > > >
-> > > > > > > The main focus of this patch series is to move SQ and RQ
-> > > > > > > wqe posting indices from 128B fixed stride to 16B aligned stride.
-> > > > > > > This allows more flexibility in choosing wqe size.
-> > > > > > >
-> > > > > > >
-> > > > > > > Devesh Sharma (4):
-> > > > > > >   bnxt_re/lib: Read wqe mode from the driver
-> > > > > > >   bnxt_re/lib: add a function to initialize software queue
-> > > > > > >   bnxt_re/lib: Use separate indices for shadow queue
-> > > > > > >   bnxt_re/lib: Move hardware queue to 16B aligned indices
-> > > > > > >
-> > > > > > >  kernel-headers/rdma/bnxt_re-abi.h |   5 +-
-> > > > > > >  providers/bnxt_re/bnxt_re-abi.h   |   5 +
-> > > > > > >  providers/bnxt_re/db.c            |  10 +-
-> > > > > > >  providers/bnxt_re/main.c          |   4 +
-> > > > > > >  providers/bnxt_re/main.h          |  26 ++
-> > > > > > >  providers/bnxt_re/memory.h        |  37 ++-
-> > > > > > >  providers/bnxt_re/verbs.c         | 522 ++++++++++++++++++++----------
-> > > > > > >  7 files changed, 431 insertions(+), 178 deletions(-)
-> > > > > > >
-> > > > > > >
-> > > > > > Please ignore the "Internal" keyword in the subject line.
-> > > > > >
-> > > > > Hi Leon,
-> > > > >
-> > > > > Do you have any comments on this series. For the subject line I can
-> > > > > resend the series.
-> > > >
-> > > > Yes, the change in kernel-headers/rdma/bnxt_re-abi.h should be separate
-> > > > commit created with kernel-headers/update script.
-> > > Leon, I need to have my abi changes in the upstream kernel before I
-> > > change user ABI in rdmacore? The script is popping out some errors.
-> > Leon Ping!
->
-> You have to point the script at your private tree and then recreate
-> the commit when it is eventually merged
->
-Meaning kernel has to be updated first as I understand it.
-> Jason
+Adding automated detection and enablement of global PCI atomic
+operation support.
+Updated to ABI to pass wqe-mode to user to support rdma-core
+pull request:
+https://github.com/linux-rdma/rdma-core/pull/1007
 
 
+v2->v3
+Added additional patch to update ABI. A PR corresponding to this
+is open.
+
+V1->V2
+renamed bnxt_qplib_enable_atomic_ops_to_root to
+bnxt_qplib_determine_atomics
+
+Devesh Sharma (3):
+  RDMA/bnxt_re: Enable global atomic ops if platform supports
+  bnxt_re: Update maintainers list
+  RDMA/bnxt_re: update ABI to pass wqe-mode to user space
+
+ MAINTAINERS                               |  2 --
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c  |  7 +++++++
+ drivers/infiniband/hw/bnxt_re/main.c      |  4 ++++
+ drivers/infiniband/hw/bnxt_re/qplib_res.c | 15 +++++++++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_res.h |  1 +
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 13 ++++++++++++-
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 --
+ include/uapi/rdma/bnxt_re-abi.h           |  5 ++++-
+ 8 files changed, 43 insertions(+), 6 deletions(-)
 
 -- 
--Regards
-Devesh
+2.25.1
 
---0000000000005bc8d405c33d39a7
+
+--000000000000d6a91305c33d68ce
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -203,13 +175,13 @@ G6Yi9ScSuy1K8yGKKgHn/ZDCLAVEG92Ax5kxUaivh1BLKdo3kZX8Ot/0mmWvFcjEqRyCE5CL9WAo
 PU3wdmxYDWOzX5HgFsvArQl4oXob3zKc58TNeGivC9m1KwWJphsMkZNjc2IVVC8gIryWh90xggJt
 MIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYD
 VQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwhg1OJo0VLRNay
-SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIIslYAxVDSMzXH4s4q/X0JqNDG0J
-yslrBZTHao6ejgHGMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
-MDUyNjE1MjMyNlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
+SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIMUocA4LzBZzWBPBs0R5OmWIRA/h
+JJEhfVmjd8xqhJMmMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
+MDUyNjE1MzY0MlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
 CWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEHMAsGCWCGSAFl
-AwQCATANBgkqhkiG9w0BAQEFAASCAQCJ6qt9coKF+Ip2xHQ3wEqrnxGrzDwvm7sW2g4P5okJCq4H
-KclUeDxCqh3uaVBf7DFreoebqfacKofPgO7af4Xes/jT8/519qFchCmRMxSw43+7mT5Brfgp6mAG
-bMRQx3ilEs/IlaXINUCkpTc1VL2gOhak3ycsGirUZteHzOZZF+an+fjbsc0rYOTr4FJ43rljfbUF
-qzexS0nlQqZQ9l+gKZJvayuMlkJJ+Gkn+twfp8KCSkq5X3FjNVVw6kqCefdntXFDRtv5eCUwHmba
-y51rmOgbZ+Oam/yeSoQWiG166mvmvGFlAyd9936RQAhg1qsvoh2g8z5Ka1i0qDpN6ry6
---0000000000005bc8d405c33d39a7--
+AwQCATANBgkqhkiG9w0BAQEFAASCAQCjVjOXLnR0CNjZh1mhwnfdHycIzqEGhd4drHterc2OGDNX
+Zmqn/7Bk8YtjdYUzr3hm5Ep4cshvXZSfcz1g54FH9OEa/wl+ApQykVoyvQozCzZFhLvb+JE1BFDm
+W1g0ohFbeSSZ2Hc9FxOlbaqvKLGSszTvGGY41E4AxGvlUB/kCUlo+44IgzjlFfDfQjpurh2PadWB
+AsajOBWyLh2w68uCOpdDTOba7gfdKbXFl1p7tLYgUBtctfmrPC55QKiP6OQSfv+6+Ht2AJPi/7Aq
+1yWNJaFcxo3f4HDTwrJkXwoF7lhxDTwmOgs1dIsKQPjOChfssYt8+CLZX5TH6V9KdOpQ
+--000000000000d6a91305c33d68ce--
