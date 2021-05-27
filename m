@@ -2,83 +2,188 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 909D1C4708A
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 May 2021 15:08:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCC30C47089
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 May 2021 17:28:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71BBD606A5
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 May 2021 15:08:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6FBA6128B
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 May 2021 17:28:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236877AbhE0PKP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 May 2021 11:10:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57232 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236885AbhE0PJc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 May 2021 11:09:32 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99832C06138A;
-        Thu, 27 May 2021 08:07:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=1s+6QDFBX8Mw27bzQ3Jot3pBebhUbhaY0z0KFk7Dj10=; b=OEuTEn+54fMK3IBeWKRZDhlbYy
-        R/+jQl96Q8ceGti8Qp9+IXuX5PhFiu++DcZrNrioYymQEClUivGaSPq1xOyMxUUdyCS9QHdC17MEt
-        1L6QZSTo4AtNceJwCDCwFYNpVwfijo3/O/ujZJxcxAxvit4TFhiWCnq4yFllydkbdbnLCtBKbTAiQ
-        /hBswydB20IPRDxGE4wC5k863nU62HBjsDxJUOQQ/zhspWhwMkjZmx4rCanWDfLb2m7hNDTnOppqd
-        bbi7hDgaORAFRj3gmEqfl8xqZffjvgDGQlVdmA+COxWf08KE0La0zzWI8dr4oWOCTHchytNYigdex
-        l4S5JyUA==;
-Received: from hch by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
-        id 1lmHaM-005efr-6M; Thu, 27 May 2021 15:06:20 +0000
-Date:   Thu, 27 May 2021 16:06:10 +0100
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Avihai Horon <avihaih@nvidia.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH rdma-next v1 2/2] RDMA/mlx5: Allow modifying Relaxed
- Ordering via fast registration
-Message-ID: <YK+1YoO8SR5Z/4b9@infradead.org>
-References: <cover.1621505111.git.leonro@nvidia.com>
- <9442b0de75f4ee029e7c306fce34b1f6f94a9e34.1621505111.git.leonro@nvidia.com>
- <20210526194906.GA3646419@nvidia.com>
- <YK992cLoTRWG30H9@infradead.org>
- <20210527145710.GF1002214@nvidia.com>
+        id S236969AbhE0RaI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 May 2021 13:30:08 -0400
+Received: from mga18.intel.com ([134.134.136.126]:44424 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235259AbhE0RaF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 27 May 2021 13:30:05 -0400
+IronPort-SDR: RkA6tA6iUd1YbT75kFCQ1lq70ICNp7aJHTmzYKiD7lzMVY3FC2SkuZoSm7T+c5dYlkrm0LjBA1
+ QAELUcfEiYTw==
+X-IronPort-AV: E=McAfee;i="6200,9189,9997"; a="190164935"
+X-IronPort-AV: E=Sophos;i="5.83,228,1616482800"; 
+   d="scan'208";a="190164935"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2021 10:27:52 -0700
+IronPort-SDR: Tyb78F9E1NjkT00eFfu5jZqumzF7BD/d6yiLSnXUmfAZgNoSrPmmecgycco/iXeMUNmKwzlFuB
+ z42xc1Oztaig==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,228,1616482800"; 
+   d="scan'208";a="480682800"
+Received: from anguy11-desk2.jf.intel.com ([10.166.244.147])
+  by fmsmga002.fm.intel.com with ESMTP; 27 May 2021 10:27:52 -0700
+From:   Tony Nguyen <anthony.l.nguyen@intel.com>
+To:     davem@davemloft.net, kuba@kernel.org, dledford@redhat.com,
+        jgg@mellanox.com
+Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, anthony.l.nguyen@intel.com,
+        shiraz.saleem@intel.com
+Subject: [PATCH net-next v2 2/7] iidc: Introduce iidc.h
+Date:   Thu, 27 May 2021 10:30:09 -0700
+Message-Id: <20210527173014.362216-3-anthony.l.nguyen@intel.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20210527173014.362216-1-anthony.l.nguyen@intel.com>
+References: <20210527173014.362216-1-anthony.l.nguyen@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210527145710.GF1002214@nvidia.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, May 27, 2021 at 11:57:10AM -0300, Jason Gunthorpe wrote:
-> >  2) IB_UVERBS_ACCESS_*.  These just get checked using ib_check_mr_access
-> >     and then passed into ->reg_user_mr, ->rereg_user_mr and
-> >     ->reg_user_mr_dmabuf
-> 
-> Yes. Using the kernerl flags for those user marked APIs is intended to
-> simplify the drivers as the user/kernel MR logic should have shared
-> elements
+From: Dave Ertman <david.m.ertman@intel.com>
 
-I'd rather map between these flags somewhere low done if and when this
-actually happens.  Usually the driver will map to their internal flags
-somewhere, and I bet not doing a detour will clean this up while also
-removing the possibility for stupid errors.
+Introduce a shared header file used by the 'ice' Intel networking driver
+providing RDMA support and the 'irdma' driver to provide a private
+interface.
 
-> 
-> >  3) in-kernel FRWR uses IB_ACCESS_*, but all users seem to hardcode it
-> >     to IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_READ |
-> >     IB_ACCESS_REMOTE_WRITE anyway
-> 
-> So when a ULP is processing a READ it doesn't create a FRWR with
-> read-only rights? Isn't that security wrong?
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
+---
+ MAINTAINERS                    |   1 +
+ include/linux/net/intel/iidc.h | 100 +++++++++++++++++++++++++++++++++
+ 2 files changed, 101 insertions(+)
+ create mode 100644 include/linux/net/intel/iidc.h
 
-Probably.  We probably want a helper that does the right thing based
-off a enum dma_data_direction parameter.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bd7aff0c120f..34d2bf36b5ad 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9130,6 +9130,7 @@ F:	Documentation/networking/device_drivers/ethernet/intel/
+ F:	drivers/net/ethernet/intel/
+ F:	drivers/net/ethernet/intel/*/
+ F:	include/linux/avf/virtchnl.h
++F:	include/linux/net/intel/iidc.h
+ 
+ INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
+ M:	Maik Broemme <mbroemme@libmpq.org>
+diff --git a/include/linux/net/intel/iidc.h b/include/linux/net/intel/iidc.h
+new file mode 100644
+index 000000000000..e32f6712aee0
+--- /dev/null
++++ b/include/linux/net/intel/iidc.h
+@@ -0,0 +1,100 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2021, Intel Corporation. */
++
++#ifndef _IIDC_H_
++#define _IIDC_H_
++
++#include <linux/auxiliary_bus.h>
++#include <linux/dcbnl.h>
++#include <linux/device.h>
++#include <linux/if_ether.h>
++#include <linux/kernel.h>
++#include <linux/netdevice.h>
++
++enum iidc_event_type {
++	IIDC_EVENT_BEFORE_MTU_CHANGE,
++	IIDC_EVENT_AFTER_MTU_CHANGE,
++	IIDC_EVENT_BEFORE_TC_CHANGE,
++	IIDC_EVENT_AFTER_TC_CHANGE,
++	IIDC_EVENT_CRIT_ERR,
++	IIDC_EVENT_NBITS		/* must be last */
++};
++
++enum iidc_reset_type {
++	IIDC_PFR,
++	IIDC_CORER,
++	IIDC_GLOBR,
++};
++
++#define IIDC_MAX_USER_PRIORITY		8
++
++/* Struct to hold per RDMA Qset info */
++struct iidc_rdma_qset_params {
++	/* Qset TEID returned to the RDMA driver in
++	 * ice_add_rdma_qset and used by RDMA driver
++	 * for calls to ice_del_rdma_qset
++	 */
++	u32 teid;	/* Qset TEID */
++	u16 qs_handle; /* RDMA driver provides this */
++	u16 vport_id; /* VSI index */
++	u8 tc; /* TC branch the Qset should belong to */
++};
++
++struct iidc_qos_info {
++	u64 tc_ctx;
++	u8 rel_bw;
++	u8 prio_type;
++	u8 egress_virt_up;
++	u8 ingress_virt_up;
++};
++
++/* Struct to pass QoS info */
++struct iidc_qos_params {
++	struct iidc_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
++	u8 up2tc[IIDC_MAX_USER_PRIORITY];
++	u8 vport_relative_bw;
++	u8 vport_priority_type;
++	u8 num_tc;
++};
++
++struct iidc_event {
++	DECLARE_BITMAP(type, IIDC_EVENT_NBITS);
++	u32 reg;
++};
++
++struct ice_pf;
++
++int ice_add_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_del_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_rdma_request_reset(struct ice_pf *pf, enum iidc_reset_type reset_type);
++int ice_rdma_update_vsi_filter(struct ice_pf *pf, u16 vsi_id, bool enable);
++void ice_get_qos_params(struct ice_pf *pf, struct iidc_qos_params *qos);
++
++#define IIDC_RDMA_ROCE_NAME	"roce"
++
++/* Structure representing auxiliary driver tailored information about the core
++ * PCI dev, each auxiliary driver using the IIDC interface will have an
++ * instance of this struct dedicated to it.
++ */
++
++struct iidc_auxiliary_dev {
++	struct auxiliary_device adev;
++	struct ice_pf *pf;
++};
++
++/* structure representing the auxiliary driver. This struct is to be
++ * allocated and populated by the auxiliary driver's owner. The core PCI
++ * driver will access these ops by performing a container_of on the
++ * auxiliary_device->dev.driver.
++ */
++struct iidc_auxiliary_drv {
++	struct auxiliary_driver adrv;
++	/* This event_handler is meant to be a blocking call.  For instance,
++	 * when a BEFORE_MTU_CHANGE event comes in, the event_handler will not
++	 * return until the auxiliary driver is ready for the MTU change to
++	 * happen.
++	 */
++	void (*event_handler)(struct ice_pf *pf, struct iidc_event *event);
++};
++
++#endif /* _IIDC_H_*/
+-- 
+2.26.2
+
