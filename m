@@ -7,63 +7,61 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3EB2C4708E
-	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 11:30:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA435C4708C
+	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 11:30:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8F4A613D1
-	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 11:30:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA725613D1
+	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 11:30:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234338AbhE1LcN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 28 May 2021 07:32:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49436 "EHLO
+        id S234677AbhE1LcO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 28 May 2021 07:32:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233734AbhE1LcG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 28 May 2021 07:32:06 -0400
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4D20C06174A
-        for <linux-rdma@vger.kernel.org>; Fri, 28 May 2021 04:30:31 -0700 (PDT)
-Received: by mail-ed1-x533.google.com with SMTP id j9so4464614edt.6
-        for <linux-rdma@vger.kernel.org>; Fri, 28 May 2021 04:30:31 -0700 (PDT)
+        with ESMTP id S233296AbhE1LcH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 28 May 2021 07:32:07 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D951C061763
+        for <linux-rdma@vger.kernel.org>; Fri, 28 May 2021 04:30:33 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id j9so4464696edt.6
+        for <linux-rdma@vger.kernel.org>; Fri, 28 May 2021 04:30:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=UFAQcFQf4D29+rb3R9Oj+VbFp3/JqstR5WQkYTNsMzA=;
-        b=K5E7JFqm+27uKc4Ahy1Glp+OvCBYV7s/EAd3Om1CzM/r90UmaU9x+wRnoYz/zNhJ4l
-         dKGhyBnLddtvqW0FGiBCqDTSoVI/kc1WwNvVjLhHbcfvIiPRgXAfTQBWHksKNNh3g9dh
-         WAKrcSzOkjje7VNURaS8yCoQW1877VDVt2Oe4sud9pDnIuMPrhGpo6J2qPjnzSh0IEEn
-         MfxSVqaBDRQde0aSOHXcLnACf0ptBVJial/rr5+weDedZS315HeZmXJNvsrJI9t69qQn
-         kfWLFl+O2jDwkPgAY7MExIvLjMy5xE0oX/dt04Kqn5lQUOGGSDQheANBWestnlgjbM1x
-         yL3w==
+        bh=T0q/jMZciVG2+7gzShTXuQ1XSOgTAm8wBpLFKZiDIbE=;
+        b=WMvSS6XOjck+Tz+YELscOm87RKF1soInSdKRuADY6bIh17LyctbGXMz8PCMLDxQudk
+         YVzLCF+5g4PZMupVhIBMGb8v+Dh5o4JeZG8HhO3i6FzBklcZJtiIzlx47pCdmtnipAUp
+         dC9rxNZFMSQkJx4gxCj8mCQM0ZgSvLHzzkYHnjlG5Aps8pH/atM2PxJlop1LKyUOG2aM
+         8VlCOwwQwm1BYKhMtbrH/kM9cVeo70kjN+/pPsRooNN6L/Ya96pGwGh2M2HwsmgV/Scs
+         yjO9CZ1NBJiGVBWuTqUppI1mnS6/s1ha7t+IlFNO9NM+btiHNx6z7yd/ZYH2KPjK+1UY
+         x+2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=UFAQcFQf4D29+rb3R9Oj+VbFp3/JqstR5WQkYTNsMzA=;
-        b=EqK5qX5kFjqQGg9ofkdA+XGoCG3hbCMQNE3U3TzhLMAtSdix8FK1w6+r34tMkheEwM
-         9f+KSQZLmi7iZdDbEiaZSo7S4xaLGYN6jbn5eAJQauouz/7/KMEgyPKO6DXvPTDPD0SW
-         FFlBqFdR7gnkxjMRRYWYsSkNu9rILiG5mruLJXXjWgyiawdgk7OndwxeGhYlvEmv1+k5
-         ePA+f0MOWqQHk9qo44ZIwvDc+31oTa1PsgQG4fo5MIAnNSzz+32FquSX7bedZ6Qs3WRE
-         LxHPYVdPmBmFZaRcfr+wazBbyODD02OVi2RKHcQWIUxGJO3sYTPpWXL2n7KaW2Bc3YOj
-         F9vA==
-X-Gm-Message-State: AOAM530s1INyqc5w9yCR1JaMLP3hYd6GP5V4OEW6ucPXYsFZaf1lAFlF
-        3/Ifh/fdfbzBmHAzUe+tKgp3wMWBClrmZg==
-X-Google-Smtp-Source: ABdhPJxBCMsratx5yMro5kqFto/jfrYyk8gDOn8i7VWBuASt+xq0sb0k4TvwOgMi4f8WnfEG0QptiA==
-X-Received: by 2002:a50:fb17:: with SMTP id d23mr9265353edq.338.1622201430116;
-        Fri, 28 May 2021 04:30:30 -0700 (PDT)
+        bh=T0q/jMZciVG2+7gzShTXuQ1XSOgTAm8wBpLFKZiDIbE=;
+        b=rLaaCol3gGnKs3PVmXwOUIKIn9xSl+BVG8qHErqy22M2847RT5yddz1wlpsqBoL05e
+         MgtqZ9kGhkw7qCfonS1eE8RT55I+jjxt6jeTLIXp4fWPlWr+jf2QXNusm/9Pu7SfJTtn
+         h1JInjPcrf9QftHGvF4Md+Wy5IlAsHuhraUN6S4L8kXzPc/zZC+HwawW7v3EPPO4Qm/h
+         9luOzd8t2A4G98u7N7DlQDYzUmOir469jN7U4Hsrcd6kGRpDoaDs+LO4cYbwK9t96njW
+         iCChITKPKQV3qW61zg/PdeDYT3Dz7/gu0jHjyDlyez2binRM7fULNNy+47Xf9/6yeI+0
+         fIvA==
+X-Gm-Message-State: AOAM5308qAePpyvEEIi2Dt7GsjRQ0K2+LK9la39+DDZLLoFEzHgUbMlP
+        SBW2TfPWZj+Ai1flXCHFIOcMsVxc2MdDcQ==
+X-Google-Smtp-Source: ABdhPJy9lIMEA5NoPxFckHl8EkB5SkNPvI5t2aLtGD1gQSJ2lKgcts47K1ERydZpTCg5BMPoqEntYw==
+X-Received: by 2002:a50:ef15:: with SMTP id m21mr9200172eds.226.1622201431696;
+        Fri, 28 May 2021 04:30:31 -0700 (PDT)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:497d:7d00:983b:122a:4685:3849])
-        by smtp.gmail.com with ESMTPSA id p15sm2594578edr.50.2021.05.28.04.30.29
+        by smtp.gmail.com with ESMTPSA id p15sm2594578edr.50.2021.05.28.04.30.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 May 2021 04:30:29 -0700 (PDT)
+        Fri, 28 May 2021 04:30:31 -0700 (PDT)
 From:   Jack Wang <jinpu.wang@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>
-Subject: [PATCHv3 for-next 12/20] RDMA/rtrs-clt: Check state of the rtrs_clt_sess before reading its stats
-Date:   Fri, 28 May 2021 13:30:10 +0200
-Message-Id: <20210528113018.52290-13-jinpu.wang@ionos.com>
+        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com
+Subject: [PATCHv3 for-next 14/20] RDMA/rtrs-srv: convert scnprintf to sysfs_emit
+Date:   Fri, 28 May 2021 13:30:12 +0200
+Message-Id: <20210528113018.52290-15-jinpu.wang@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210528113018.52290-1-jinpu.wang@ionos.com>
 References: <20210528113018.52290-1-jinpu.wang@ionos.com>
@@ -73,51 +71,24 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
-
-When get_next_path_min_inflight is called to select the next path, it
-iterates over the list of available rtrs_clt_sess (paths). It then reads
-the number of inflight IOs for that path to select one which has the least
-inflight IO.
-
-But it may so happen that rtrs_clt_sess (path) is no longer in the
-connected state because closing or error recovery paths can change the status
-of the rtrs_clt_Sess.
-
-For example, the client sent the heart-beat and did not get the
-response, it would change the session status and stop IO processing.
-The added checking of this patch can prevent accessing the broken path
-and generating duplicated error messages.
-
-It is ok if the status is changed after checking the status because
-the error recovery path does not free memory and only tries to
-reconnection. And also it is ok if the session is closed after checking
-the status because closing the session changes the session status and
-flush all IO beforing free memory. If the session is being accessed for
-IO processing, the closing session will wait.
-
-Fixes: 6a98d71daea18 ("RDMA/rtrs: client: main functionality")
-Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Reviewed-by: Gioh Kim <gi-oh.kim@ionos.com>
-Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 79324138df9a..88a1c93f244a 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -813,6 +813,9 @@ static struct rtrs_clt_sess *get_next_path_min_inflight(struct path_it *it)
- 	int inflight;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
+index 520c24773229..12c374b5eb6e 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c
+@@ -28,7 +28,7 @@ ssize_t rtrs_srv_stats_rdma_to_str(struct rtrs_srv_stats *stats,
+ {
+ 	struct rtrs_srv_stats_rdma_stats *r = &stats->rdma_stats;
  
- 	list_for_each_entry_rcu(sess, &clt->paths_list, s.entry) {
-+		if (unlikely(READ_ONCE(sess->state) != RTRS_CLT_CONNECTED))
-+			continue;
-+
- 		if (unlikely(!list_empty(raw_cpu_ptr(sess->mp_skip_entry))))
- 			continue;
- 
+-	return scnprintf(page, len, "%lld %lld %lld %lldn %u\n",
++	return sysfs_emit(page, "%lld %lld %lld %lldn %u\n",
+ 			  (s64)atomic64_read(&r->dir[READ].cnt),
+ 			  (s64)atomic64_read(&r->dir[READ].size_total),
+ 			  (s64)atomic64_read(&r->dir[WRITE].cnt),
 -- 
 2.25.1
 
