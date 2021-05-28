@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B69C8C47090
-	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 09:38:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 421C0C47091
+	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 09:38:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DFBF61183
-	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 09:38:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26A8261183
+	for <linux-rdma@archiver.kernel.org>; Fri, 28 May 2021 09:38:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235818AbhE1Jjg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 28 May 2021 05:39:36 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:2394 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235956AbhE1Jjc (ORCPT
+        id S235845AbhE1Jjh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 28 May 2021 05:39:37 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:2080 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235972AbhE1Jjc (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 28 May 2021 05:39:32 -0400
-Received: from dggeml766-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4FrzzF2cQ4z65Zp;
-        Fri, 28 May 2021 17:34:17 +0800 (CST)
+Received: from dggeml765-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Frzy82yxfzWnSV;
+        Fri, 28 May 2021 17:33:20 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggeml766-chm.china.huawei.com (10.1.199.176) with Microsoft SMTP Server
+ dggeml765-chm.china.huawei.com (10.1.199.175) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
  15.1.2176.2; Fri, 28 May 2021 17:37:56 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -34,9 +34,9 @@ From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v4 for-next 06/12] RDMA/core: Use refcount_t instead of atomic_t on refcount of mcast_group
-Date:   Fri, 28 May 2021 17:37:37 +0800
-Message-ID: <1622194663-2383-7-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v4 for-next 08/12] RDMA/hns: Use refcount_t instead of atomic_t for CQ reference counting
+Date:   Fri, 28 May 2021 17:37:39 +0800
+Message-ID: <1622194663-2383-9-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1622194663-2383-1-git-send-email-liweihang@huawei.com>
 References: <1622194663-2383-1-git-send-email-liweihang@huawei.com>
@@ -51,80 +51,67 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 The refcount_t API will WARN on underflow and overflow of a reference
-counter, and avoid use-after-free risks. Increase refcount_t from 0 to 1 is
-regarded as there is a risk about use-after-free. So it should be set to 1
-directly during initialization.
+counter, and avoid use-after-free risks.
 
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/core/multicast.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cq.c     | 8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_device.h | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index a236532..17abc21 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -103,7 +103,7 @@ struct mcast_group {
- 	struct list_head	active_list;
- 	struct mcast_member	*last_join;
- 	int			members[NUM_JOIN_MEMBERSHIP_TYPES];
--	atomic_t		refcount;
-+	refcount_t		refcount;
- 	enum mcast_group_state	state;
- 	struct ib_sa_query	*query;
- 	u16			pkey_index;
-@@ -188,7 +188,7 @@ static void release_group(struct mcast_group *group)
- 	unsigned long flags;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 488d86b..1422bdc 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -154,7 +154,7 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	hr_cq->cons_index = 0;
+ 	hr_cq->arm_sn = 1;
  
- 	spin_lock_irqsave(&port->lock, flags);
--	if (atomic_dec_and_test(&group->refcount)) {
-+	if (refcount_dec_and_test(&group->refcount)) {
- 		rb_erase(&group->node, &port->table);
- 		spin_unlock_irqrestore(&port->lock, flags);
- 		kfree(group);
-@@ -212,7 +212,7 @@ static void queue_join(struct mcast_member *member)
- 	list_add_tail(&member->list, &group->pending_list);
- 	if (group->state == MCAST_IDLE) {
- 		group->state = MCAST_BUSY;
--		atomic_inc(&group->refcount);
-+		refcount_inc(&group->refcount);
- 		queue_work(mcast_wq, &group->work);
- 	}
- 	spin_unlock_irqrestore(&group->lock, flags);
-@@ -565,8 +565,11 @@ static struct mcast_group *acquire_group(struct mcast_port *port,
- 	if (!is_mgid0) {
- 		spin_lock_irqsave(&port->lock, flags);
- 		group = mcast_find(port, mgid);
--		if (group)
-+		if (group) {
-+			refcount_inc(&group->refcount);
- 			goto found;
-+		}
-+
- 		spin_unlock_irqrestore(&port->lock, flags);
+-	atomic_set(&hr_cq->refcount, 1);
++	refcount_set(&hr_cq->refcount, 1);
+ 	init_completion(&hr_cq->free);
+ 
+ 	return 0;
+@@ -188,7 +188,7 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	synchronize_irq(hr_dev->eq_table.eq[hr_cq->vector].irq);
+ 
+ 	/* wait for all interrupt processed */
+-	if (atomic_dec_and_test(&hr_cq->refcount))
++	if (refcount_dec_and_test(&hr_cq->refcount))
+ 		complete(&hr_cq->free);
+ 	wait_for_completion(&hr_cq->free);
+ 
+@@ -480,7 +480,7 @@ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type)
+ 		return;
  	}
  
-@@ -590,8 +593,10 @@ static struct mcast_group *acquire_group(struct mcast_port *port,
- 		group = cur_group;
- 	} else
- 		refcount_inc(&port->refcount);
-+
-+	refcount_set(&group->refcount, 1);
-+
- found:
--	atomic_inc(&group->refcount);
- 	spin_unlock_irqrestore(&port->lock, flags);
- 	return group;
+-	atomic_inc(&hr_cq->refcount);
++	refcount_inc(&hr_cq->refcount);
+ 
+ 	ibcq = &hr_cq->ib_cq;
+ 	if (ibcq->event_handler) {
+@@ -490,7 +490,7 @@ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type)
+ 		ibcq->event_handler(&event, ibcq->cq_context);
+ 	}
+ 
+-	if (atomic_dec_and_test(&hr_cq->refcount))
++	if (refcount_dec_and_test(&hr_cq->refcount))
+ 		complete(&hr_cq->free);
  }
-@@ -780,7 +785,7 @@ static void mcast_groups_event(struct mcast_port *port,
- 		group = rb_entry(node, struct mcast_group, node);
- 		spin_lock(&group->lock);
- 		if (group->state == MCAST_IDLE) {
--			atomic_inc(&group->refcount);
-+			refcount_inc(&group->refcount);
- 			queue_work(mcast_wq, &group->work);
- 		}
- 		if (group->state != MCAST_GROUP_ERROR)
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 111cab5..d90a39c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -446,7 +446,7 @@ struct hns_roce_cq {
+ 	int				cqe_size;
+ 	unsigned long			cqn;
+ 	u32				vector;
+-	atomic_t			refcount;
++	refcount_t			refcount;
+ 	struct completion		free;
+ 	struct list_head		sq_list; /* all qps on this send cq */
+ 	struct list_head		rq_list; /* all qps on this recv cq */
 -- 
 2.7.4
 
