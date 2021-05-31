@@ -2,116 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC3D1C47080
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 May 2021 12:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE022C47082
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 May 2021 12:59:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 951A1610C9
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 May 2021 12:32:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CBD1361279
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 May 2021 12:59:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231580AbhEaMdj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 31 May 2021 08:33:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45878 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231643AbhEaMdX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 May 2021 08:33:23 -0400
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BA25C0613ED
-        for <linux-rdma@vger.kernel.org>; Mon, 31 May 2021 05:31:43 -0700 (PDT)
-Received: by mail-ej1-x632.google.com with SMTP id lz27so16400693ejb.11
-        for <linux-rdma@vger.kernel.org>; Mon, 31 May 2021 05:31:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WXQLdS59fbL30bBnmeToTKfV0UTTgBIP/vkt1KK2HWU=;
-        b=eecje7j2KEpcaIgG+PC2ha1DEA/syXdWn5fKjqb/S2z6kQbYmj2NELTU0hHAAkNxMi
-         5cKKgWdR59wozkmUUyN/0m9qEwtIF7Nv6v202rgLqAtCQ9HKX2ifUwRsatWBz1O/z+oH
-         SzwX5nt4tGumea+VBRhzEG3BOG9Kfns7rOReNbsNWw7d6LAGMJV/tJVLuXmTR6OmaDNa
-         7Yd8+RvfRoXcDNj9NR4ZTf6UP8PUrYFnIFLEsAo3QMzfDKTdmKTGRlQGtOxSRPS8xkUM
-         gZyebpW9Ejgtt9byTv0jup2ppPAxw+HG9o/NqecuNtYvJ02maumNvmQ5yulVfU+x9MRX
-         z9Og==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WXQLdS59fbL30bBnmeToTKfV0UTTgBIP/vkt1KK2HWU=;
-        b=Sro98VakS/DkGyXZ0YHJ8HFpKJNlbc5dEj9ijr/Gn0r+NlwCYCutXAW6XKJzBEISD0
-         SdAVb8jATBjhuBAWE7egN77LYGXK51VDx00Ck1CUUeSbb3K2O83zgPyF5YHwGCBRSluN
-         /ib+TBawnmxpxCf2kG0cBQOW2g9l4vUTinE1SF6qKTCKaeKdwDiA0Tbpwgt+kADddfv1
-         akv6DXoFftd0kc30zOmsqVyK8Y/C7VsXiL6uOsGQG7wL/RrQ1b9ieUVCj8KdsgQ5fMXm
-         T/5Zj/QL/oX8Tv2v9LNVkti9QM6Htv1aTUzndslkjtwiMPBUeZ5SCoxmASwnzQFHRNze
-         OR8A==
-X-Gm-Message-State: AOAM5326U6EYvnqM10+Kv3+TOJEX9T92DfRvWeNjLagGQ4Lpw6LWFu8o
-        okmPzqAtf+EUxBrI8OMhaGHr1FwxpvMu1FYwsbJ5yg==
-X-Google-Smtp-Source: ABdhPJzPbGT4vXgPK/rMHikumyH/h0cvDwDVbvng5Ylt7L2/uY+5yxtdCFykHjeUH2a9KX7GblQvHOmrsHPgBBETsog=
-X-Received: by 2002:a17:906:b794:: with SMTP id dt20mr22443077ejb.521.1622464301861;
- Mon, 31 May 2021 05:31:41 -0700 (PDT)
+        id S231485AbhEaNBf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 31 May 2021 09:01:35 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:3351 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231330AbhEaNBb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 May 2021 09:01:31 -0400
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4FtwJl4drFz67RM;
+        Mon, 31 May 2021 20:56:07 +0800 (CST)
+Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
+ 15.1.2176.2; Mon, 31 May 2021 20:59:50 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2176.2; Mon, 31 May 2021 20:59:49 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v2 for-next 1/7] RDMA/hns: Fix potential compile warnings on hr_reg_write()
+Date:   Mon, 31 May 2021 20:59:28 +0800
+Message-ID: <1622465974-20415-2-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1622465974-20415-1-git-send-email-liweihang@huawei.com>
+References: <1622465974-20415-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-References: <635def71048cbffe76e2dd324cf420d8a465ee9d.1622460676.git.leonro@nvidia.com>
-In-Reply-To: <635def71048cbffe76e2dd324cf420d8a465ee9d.1622460676.git.leonro@nvidia.com>
-From:   Jinpu Wang <jinpu.wang@ionos.com>
-Date:   Mon, 31 May 2021 14:31:31 +0200
-Message-ID: <CAMGffEkNKcpKz_YL6CCrGfRpOh8m9G8ir6p=AkY_UgBd-5Bbpw@mail.gmail.com>
-Subject: Re: [PATCH rdma-next] RDMA: Fix kernel-doc warnings about wrong comment
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        open list <linux-kernel@vger.kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Max Gurtovoy <mgurtovoy@nvidia.com>,
-        "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        target-devel <target-devel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ dggema753-chm.china.huawei.com (10.1.198.195)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, May 31, 2021 at 2:03 PM Leon Romanovsky <leon@kernel.org> wrote:
->
-> From: Leon Romanovsky <leonro@nvidia.com>
->
-> Compilation with W=1 produces warnings similar to the below.
->
->   drivers/infiniband/ulp/ipoib/ipoib_main.c:320: warning: This comment
->         starts with '/**', but isn't a kernel-doc comment. Refer
->         Documentation/doc-guide/kernel-doc.rst
->
-> All such occurrences were found with the following one line
->  git grep -A 1 "\/\*\*" drivers/infiniband/
->
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->  * Straightforward change to make our CI happy.
-> ---
->  drivers/infiniband/core/iwpm_util.h       |  2 +-
->  drivers/infiniband/core/roce_gid_mgmt.c   |  5 +++--
->  drivers/infiniband/hw/hfi1/chip.c         |  4 ++--
->  drivers/infiniband/hw/hfi1/file_ops.c     |  6 +++---
->  drivers/infiniband/hw/hfi1/hfi.h          |  2 +-
->  drivers/infiniband/hw/hfi1/init.c         |  4 ++--
->  drivers/infiniband/hw/hfi1/pio.c          |  2 +-
->  drivers/infiniband/hw/i40iw/i40iw.h       |  3 ---
->  drivers/infiniband/hw/i40iw/i40iw_cm.c    | 10 +++++-----
->  drivers/infiniband/hw/i40iw/i40iw_hmc.c   |  2 +-
->  drivers/infiniband/hw/i40iw/i40iw_utils.c |  2 +-
->  drivers/infiniband/sw/rdmavt/mr.c         |  4 ++--
->  drivers/infiniband/sw/rdmavt/qp.c         |  3 ++-
->  drivers/infiniband/sw/rdmavt/vt.c         |  4 ++--
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |  7 ++++---
->  drivers/infiniband/ulp/iser/iser_verbs.c  |  2 +-
->  drivers/infiniband/ulp/isert/ib_isert.c   |  4 ++--
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c    |  4 ++--
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c    |  2 +-
-for rtrs, looks good to me, thx!
-Reviewed-by: Jack Wang <jinpu.wang@ionos.com>
+From: Lang Cheng <chenglang@huawei.com>
+
+GCC may reports an running time assert error when a value calculated from
+ib_mtu_enum_to_int() is using as 'val' in FIELD_PREDP:
+
+include/linux/compiler_types.h:328:38: error: call to
+'__compiletime_assert_1524' declared with attribute error: FIELD_PREP:
+value too large for the field
+
+But actually this error will still exists even if the driver can ensure
+that ib_mtu_enum_to_int() returns a legal value. So add a mask in
+hr_reg_write() to avoid above warning.
+
+Also fix complains from sparse about "dubious: x & !y" when
+hr_reg_write(ctx, field, !!val)，Use temporary variables to avoid this.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_common.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
+index 3a5658f..dc7a9fe 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_common.h
++++ b/drivers/infiniband/hw/hns/hns_roce_common.h
+@@ -79,9 +79,11 @@
+ 
+ #define _hr_reg_write(ptr, field_type, field_h, field_l, val)                  \
+ 	({                                                                     \
++		u32 _val = val;                                                \
+ 		_hr_reg_clear(ptr, field_type, field_h, field_l);              \
+-		*((__le32 *)ptr + (field_h) / 32) |= cpu_to_le32(FIELD_PREP(   \
+-			GENMASK((field_h) % 32, (field_l) % 32), val));        \
++		*((__le32 *)ptr + (field_h) / 32) |= cpu_to_le32(              \
++			FIELD_PREP(GENMASK((field_h) % 32, (field_l) % 32),    \
++				   _val & GENMASK((field_h) - (field_l), 0))); \
+ 	})
+ 
+ #define hr_reg_write(ptr, field, val) _hr_reg_write(ptr, field, val)
+-- 
+2.7.4
+
