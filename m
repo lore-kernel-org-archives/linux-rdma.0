@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E74C47080
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Jun 2021 16:24:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C8E4C47093
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Jun 2021 16:24:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B995610CB
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Jun 2021 16:24:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AE70611CB
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Jun 2021 16:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234359AbhFAQ0P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Jun 2021 12:26:15 -0400
+        id S234475AbhFAQ0R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Jun 2021 12:26:17 -0400
 Received: from mga12.intel.com ([192.55.52.136]:25275 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233925AbhFAQ0M (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 1 Jun 2021 12:26:12 -0400
-IronPort-SDR: eOgK4CAVQROPMpLzDZj3fD30hvyOj8xyjPkpaDoSbbUj3H2YVE1i3CIbBOpDspJz/pO7qJRR7X
- f3km6BPArzOg==
-X-IronPort-AV: E=McAfee;i="6200,9189,10002"; a="183263187"
+        id S234135AbhFAQ0O (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 1 Jun 2021 12:26:14 -0400
+IronPort-SDR: duV7FDJwhNOwTSyjf0tAVVHEbe19p30uYaNGnBs22AI9JzespQ+J1y74Xy/JlVq8sRRxEp2+3a
+ NacqbBCHcwLg==
+X-IronPort-AV: E=McAfee;i="6200,9189,10002"; a="183263196"
 X-IronPort-AV: E=Sophos;i="5.83,240,1616482800"; 
-   d="scan'208";a="183263187"
+   d="scan'208";a="183263196"
 Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2021 09:24:23 -0700
-IronPort-SDR: 7lgMseBqHGlrAVQbIrKvAUnkq/FGppoAN8JFyfD+SQlGJKa5eKwSCsVjHS+EDRyI39jeUwarPr
- yIfMf8z81dnA==
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2021 09:24:24 -0700
+IronPort-SDR: gMMr90NZXMOuNPLmDZhqmIFt3/jC38y8OshAOMMH7DN1sNF/UXnXj1OVYJ9D6W3puBYnGqt+sz
+ iRJ4K3Inxsmg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.83,240,1616482800"; 
-   d="scan'208";a="411292754"
+   d="scan'208";a="411292762"
 Received: from anguy11-desk2.jf.intel.com ([10.166.244.147])
-  by fmsmga007.fm.intel.com with ESMTP; 01 Jun 2021 09:24:22 -0700
+  by fmsmga007.fm.intel.com with ESMTP; 01 Jun 2021 09:24:23 -0700
 From:   Tony Nguyen <anthony.l.nguyen@intel.com>
 To:     davem@davemloft.net, kuba@kernel.org, dledford@redhat.com,
         jgg@mellanox.com
 Cc:     Dave Ertman <david.m.ertman@intel.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, anthony.l.nguyen@intel.com,
         shiraz.saleem@intel.com
-Subject: [PATCH net-next v3 3/7] ice: Initialize RDMA support
-Date:   Tue,  1 Jun 2021 09:26:40 -0700
-Message-Id: <20210601162644.1469616-4-anthony.l.nguyen@intel.com>
+Subject: [PATCH net-next v3 5/7] ice: Register auxiliary device to provide RDMA
+Date:   Tue,  1 Jun 2021 09:26:42 -0700
+Message-Id: <20210601162644.1469616-6-anthony.l.nguyen@intel.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20210601162644.1469616-1-anthony.l.nguyen@intel.com>
 References: <20210601162644.1469616-1-anthony.l.nguyen@intel.com>
@@ -53,459 +53,218 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Dave Ertman <david.m.ertman@intel.com>
 
-Probe the device's capabilities to see if it supports RDMA. If so, allocate
-and reserve resources to support its operation; populate structures with
-initial values.
+Register ice client auxiliary RDMA device on the auxiliary bus per
+PCIe device function for the auxiliary driver (irdma) to attach to.
+It allows to realize a single RDMA driver (irdma) capable of working with
+multiple netdev drivers over multi-generation Intel HW supporting RDMA.
+There is no load ordering dependencies between ice and irdma.
 
 Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 ---
- drivers/net/ethernet/intel/ice/Makefile       |  1 +
- drivers/net/ethernet/intel/ice/ice.h          | 30 ++++++-
- .../net/ethernet/intel/ice/ice_adminq_cmd.h   |  1 +
- drivers/net/ethernet/intel/ice/ice_common.c   | 17 +++-
- drivers/net/ethernet/intel/ice/ice_idc.c      | 43 ++++++++++
- drivers/net/ethernet/intel/ice/ice_lag.c      |  2 +
- drivers/net/ethernet/intel/ice/ice_lib.c      | 11 +++
- drivers/net/ethernet/intel/ice/ice_lib.h      |  2 +-
- drivers/net/ethernet/intel/ice/ice_main.c     | 84 +++++++++++++++++--
- drivers/net/ethernet/intel/ice/ice_type.h     |  1 +
- 10 files changed, 183 insertions(+), 9 deletions(-)
- create mode 100644 drivers/net/ethernet/intel/ice/ice_idc.c
+ drivers/net/ethernet/intel/Kconfig        |  1 +
+ drivers/net/ethernet/intel/ice/ice.h      |  8 ++-
+ drivers/net/ethernet/intel/ice/ice_idc.c  | 71 ++++++++++++++++++++++-
+ drivers/net/ethernet/intel/ice/ice_main.c | 11 +++-
+ 4 files changed, 87 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/intel/ice/Makefile b/drivers/net/ethernet/intel/ice/Makefile
-index 07fe857e9e3a..dfb64fb504a2 100644
---- a/drivers/net/ethernet/intel/ice/Makefile
-+++ b/drivers/net/ethernet/intel/ice/Makefile
-@@ -22,6 +22,7 @@ ice-y := ice_main.o	\
- 	 ice_ethtool_fdir.o \
- 	 ice_flex_pipe.o \
- 	 ice_flow.o	\
-+	 ice_idc.o	\
- 	 ice_devlink.o	\
- 	 ice_fw_update.o \
- 	 ice_lag.o	\
+diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
+index c1d155690341..d8a12da5c49a 100644
+--- a/drivers/net/ethernet/intel/Kconfig
++++ b/drivers/net/ethernet/intel/Kconfig
+@@ -294,6 +294,7 @@ config ICE
+ 	tristate "Intel(R) Ethernet Connection E800 Series Support"
+ 	default n
+ 	depends on PCI_MSI
++	select AUXILIARY_BUS
+ 	select DIMLIB
+ 	select NET_DEVLINK
+ 	select PLDMFW
 diff --git a/drivers/net/ethernet/intel/ice/ice.h b/drivers/net/ethernet/intel/ice/ice.h
-index e35db3ff583b..64e3633493c1 100644
+index 225f8a55eb3f..228055e8f33b 100644
 --- a/drivers/net/ethernet/intel/ice/ice.h
 +++ b/drivers/net/ethernet/intel/ice/ice.h
-@@ -78,6 +78,8 @@
- #define ICE_MIN_LAN_OICR_MSIX	1
- #define ICE_MIN_MSIX		(ICE_MIN_LAN_TXRX_MSIX + ICE_MIN_LAN_OICR_MSIX)
- #define ICE_FDIR_MSIX		2
-+#define ICE_RDMA_NUM_AEQ_MSIX	4
-+#define ICE_MIN_RDMA_MSIX	2
- #define ICE_NO_VSI		0xffff
- #define ICE_VSI_MAP_CONTIG	0
- #define ICE_VSI_MAP_SCATTER	1
-@@ -88,8 +90,9 @@
- #define ICE_MAX_LG_RSS_QS	256
- #define ICE_RES_VALID_BIT	0x8000
- #define ICE_RES_MISC_VEC_ID	(ICE_RES_VALID_BIT - 1)
-+#define ICE_RES_RDMA_VEC_ID	(ICE_RES_MISC_VEC_ID - 1)
- /* All VF control VSIs share the same IRQ, so assign a unique ID for them */
--#define ICE_RES_VF_CTRL_VEC_ID	(ICE_RES_MISC_VEC_ID - 1)
-+#define ICE_RES_VF_CTRL_VEC_ID	(ICE_RES_RDMA_VEC_ID - 1)
- #define ICE_INVAL_Q_INDEX	0xffff
- #define ICE_INVAL_VFID		256
- 
-@@ -373,12 +376,14 @@ struct ice_q_vector {
- 
- enum ice_pf_flags {
- 	ICE_FLAG_FLTR_SYNC,
-+	ICE_FLAG_RDMA_ENA,
- 	ICE_FLAG_RSS_ENA,
- 	ICE_FLAG_SRIOV_ENA,
- 	ICE_FLAG_SRIOV_CAPABLE,
- 	ICE_FLAG_DCB_CAPABLE,
- 	ICE_FLAG_DCB_ENA,
- 	ICE_FLAG_FD_ENA,
-+	ICE_FLAG_AUX_ENA,
- 	ICE_FLAG_ADV_FEATURES,
- 	ICE_FLAG_LINK_DOWN_ON_CLOSE_ENA,
- 	ICE_FLAG_TOTAL_PORT_SHUTDOWN_ENA,
-@@ -439,6 +444,8 @@ struct ice_pf {
- 	struct mutex sw_mutex;		/* lock for protecting VSI alloc flow */
- 	struct mutex tc_mutex;		/* lock to protect TC changes */
- 	u32 msg_enable;
-+	u16 num_rdma_msix;		/* Total MSIX vectors for RDMA driver */
-+	u16 rdma_base_vector;
- 
- 	/* spinlock to protect the AdminQ wait list */
- 	spinlock_t aq_wait_lock;
-@@ -471,6 +478,8 @@ struct ice_pf {
- 	unsigned long tx_timeout_last_recovery;
- 	u32 tx_timeout_recovery_level;
- 	char int_name[ICE_INT_NAME_STR_LEN];
-+	struct auxiliary_device *adev;
-+	int aux_idx;
- 	u32 sw_int_count;
- 
- 	__le64 nvm_phy_type_lo; /* NVM PHY type low */
-@@ -636,6 +645,7 @@ int ice_get_rss_key(struct ice_vsi *vsi, u8 *seed);
+@@ -34,6 +34,7 @@
+ #include <linux/if_bridge.h>
+ #include <linux/ctype.h>
+ #include <linux/bpf.h>
++#include <linux/auxiliary_bus.h>
+ #include <linux/avf/virtchnl.h>
+ #include <linux/cpu_rmap.h>
+ #include <linux/dim.h>
+@@ -647,6 +648,8 @@ int ice_get_rss_key(struct ice_vsi *vsi, u8 *seed);
  void ice_fill_rss_lut(u8 *lut, u16 rss_table_size, u16 rss_size);
  int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset);
  void ice_print_link_msg(struct ice_vsi *vsi, bool isup);
-+int ice_init_rdma(struct ice_pf *pf);
++int ice_plug_aux_dev(struct ice_pf *pf);
++void ice_unplug_aux_dev(struct ice_pf *pf);
+ int ice_init_rdma(struct ice_pf *pf);
  const char *ice_stat_str(enum ice_status stat_err);
  const char *ice_aq_str(enum ice_aq_err aq_err);
- bool ice_is_wol_supported(struct ice_hw *hw);
-@@ -660,4 +670,22 @@ int ice_open_internal(struct net_device *netdev);
- int ice_stop(struct net_device *netdev);
- void ice_service_task_schedule(struct ice_pf *pf);
- 
-+/**
-+ * ice_set_rdma_cap - enable RDMA support
-+ * @pf: PF struct
-+ */
-+static inline void ice_set_rdma_cap(struct ice_pf *pf)
-+{
-+	if (pf->hw.func_caps.common_cap.rdma && pf->num_rdma_msix)
-+		set_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+}
-+
-+/**
-+ * ice_clear_rdma_cap - disable RDMA support
-+ * @pf: PF struct
-+ */
-+static inline void ice_clear_rdma_cap(struct ice_pf *pf)
-+{
-+	clear_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+}
- #endif /* _ICE_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h b/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-index 5cdfe406af84..cba6933a7a0e 100644
---- a/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-+++ b/drivers/net/ethernet/intel/ice/ice_adminq_cmd.h
-@@ -115,6 +115,7 @@ struct ice_aqc_list_caps_elem {
- #define ICE_AQC_CAPS_PENDING_OROM_VER			0x004B
- #define ICE_AQC_CAPS_NET_VER				0x004C
- #define ICE_AQC_CAPS_PENDING_NET_VER			0x004D
-+#define ICE_AQC_CAPS_RDMA				0x0051
- #define ICE_AQC_CAPS_NVM_MGMT				0x0080
- 
- 	u8 major_ver;
-diff --git a/drivers/net/ethernet/intel/ice/ice_common.c b/drivers/net/ethernet/intel/ice/ice_common.c
-index e93b1e40f627..6d649e5d1a19 100644
---- a/drivers/net/ethernet/intel/ice/ice_common.c
-+++ b/drivers/net/ethernet/intel/ice/ice_common.c
-@@ -1062,7 +1062,8 @@ enum ice_status ice_check_reset(struct ice_hw *hw)
- 				 GLNVM_ULD_POR_DONE_1_M |\
- 				 GLNVM_ULD_PCIER_DONE_2_M)
- 
--	uld_mask = ICE_RESET_DONE_MASK;
-+	uld_mask = ICE_RESET_DONE_MASK | (hw->func_caps.common_cap.rdma ?
-+					  GLNVM_ULD_PE_DONE_M : 0);
- 
- 	/* Device is Active; check Global Reset processes are done */
- 	for (cnt = 0; cnt < ICE_PF_RESET_WAIT_COUNT; cnt++) {
-@@ -1938,6 +1939,10 @@ ice_parse_common_caps(struct ice_hw *hw, struct ice_hw_common_caps *caps,
- 		ice_debug(hw, ICE_DBG_INIT, "%s: nvm_unified_update = %d\n", prefix,
- 			  caps->nvm_unified_update);
- 		break;
-+	case ICE_AQC_CAPS_RDMA:
-+		caps->rdma = (number == 1);
-+		ice_debug(hw, ICE_DBG_INIT, "%s: rdma = %d\n", prefix, caps->rdma);
-+		break;
- 	case ICE_AQC_CAPS_MAX_MTU:
- 		caps->max_mtu = number;
- 		ice_debug(hw, ICE_DBG_INIT, "%s: max_mtu = %d\n",
-@@ -1971,6 +1976,16 @@ ice_recalc_port_limited_caps(struct ice_hw *hw, struct ice_hw_common_caps *caps)
- 		caps->maxtc = 4;
- 		ice_debug(hw, ICE_DBG_INIT, "reducing maxtc to %d (based on #ports)\n",
- 			  caps->maxtc);
-+		if (caps->rdma) {
-+			ice_debug(hw, ICE_DBG_INIT, "forcing RDMA off\n");
-+			caps->rdma = 0;
-+		}
-+
-+		/* print message only when processing device capabilities
-+		 * during initialization.
-+		 */
-+		if (caps == &hw->dev_caps.common_cap)
-+			dev_info(ice_hw_to_dev(hw), "RDMA functionality is not available with the current device configuration.\n");
- 	}
+@@ -678,8 +681,10 @@ void ice_service_task_schedule(struct ice_pf *pf);
+  */
+ static inline void ice_set_rdma_cap(struct ice_pf *pf)
+ {
+-	if (pf->hw.func_caps.common_cap.rdma && pf->num_rdma_msix)
++	if (pf->hw.func_caps.common_cap.rdma && pf->num_rdma_msix) {
+ 		set_bit(ICE_FLAG_RDMA_ENA, pf->flags);
++		ice_plug_aux_dev(pf);
++	}
  }
  
+ /**
+@@ -688,6 +693,7 @@ static inline void ice_set_rdma_cap(struct ice_pf *pf)
+  */
+ static inline void ice_clear_rdma_cap(struct ice_pf *pf)
+ {
++	ice_unplug_aux_dev(pf);
+ 	clear_bit(ICE_FLAG_RDMA_ENA, pf->flags);
+ }
+ #endif /* _ICE_H_ */
 diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-new file mode 100644
-index 000000000000..c419c9cb316d
---- /dev/null
+index adc9015ed0ed..1f2afdf6cd48 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc.c
 +++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -0,0 +1,43 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (C) 2021, Intel Corporation. */
+@@ -249,6 +249,71 @@ static int ice_reserve_rdma_qvector(struct ice_pf *pf)
+ 	return 0;
+ }
+ 
++/**
++ * ice_adev_release - function to be mapped to AUX dev's release op
++ * @dev: pointer to device to free
++ */
++static void ice_adev_release(struct device *dev)
++{
++	struct iidc_auxiliary_dev *iadev;
 +
-+/* Inter-Driver Communication */
-+#include "ice.h"
-+#include "ice_lib.h"
-+#include "ice_dcb_lib.h"
++	iadev = container_of(dev, struct iidc_auxiliary_dev, adev.dev);
++	kfree(iadev);
++}
 +
 +/**
-+ * ice_reserve_rdma_qvector - Reserve vector resources for RDMA driver
-+ * @pf: board private structure to initialize
++ * ice_plug_aux_dev - allocate and register AUX device
++ * @pf: pointer to pf struct
 + */
-+static int ice_reserve_rdma_qvector(struct ice_pf *pf)
++int ice_plug_aux_dev(struct ice_pf *pf)
 +{
-+	if (test_bit(ICE_FLAG_RDMA_ENA, pf->flags)) {
-+		int index;
++	struct iidc_auxiliary_dev *iadev;
++	struct auxiliary_device *adev;
++	int ret;
 +
-+		index = ice_get_res(pf, pf->irq_tracker, pf->num_rdma_msix,
-+				    ICE_RES_RDMA_VEC_ID);
-+		if (index < 0)
-+			return index;
-+		pf->num_avail_sw_msix -= pf->num_rdma_msix;
-+		pf->rdma_base_vector = (u16)index;
++	iadev = kzalloc(sizeof(*iadev), GFP_KERNEL);
++	if (!iadev)
++		return -ENOMEM;
++
++	adev = &iadev->adev;
++	pf->adev = adev;
++	iadev->pf = pf;
++
++	adev->id = pf->aux_idx;
++	adev->dev.release = ice_adev_release;
++	adev->dev.parent = &pf->pdev->dev;
++	adev->name = IIDC_RDMA_ROCE_NAME;
++
++	ret = auxiliary_device_init(adev);
++	if (ret) {
++		pf->adev = NULL;
++		kfree(iadev);
++		return ret;
 +	}
++
++	ret = auxiliary_device_add(adev);
++	if (ret) {
++		pf->adev = NULL;
++		auxiliary_device_uninit(adev);
++		return ret;
++	}
++
 +	return 0;
 +}
 +
-+/**
-+ * ice_init_rdma - initializes PF for RDMA use
-+ * @pf: ptr to ice_pf
++/* ice_unplug_aux_dev - unregister and free AUX device
++ * @pf: pointer to pf struct
 + */
-+int ice_init_rdma(struct ice_pf *pf)
++void ice_unplug_aux_dev(struct ice_pf *pf)
 +{
-+	struct device *dev = &pf->pdev->dev;
-+	int ret;
++	if (!pf->adev)
++		return;
 +
-+	/* Reserve vector resources */
-+	ret = ice_reserve_rdma_qvector(pf);
-+	if (ret < 0)
-+		dev_err(dev, "failed to reserve vectors for RDMA\n");
-+
-+	return ret;
-+}
-diff --git a/drivers/net/ethernet/intel/ice/ice_lag.c b/drivers/net/ethernet/intel/ice/ice_lag.c
-index 4599fc3b4ed8..37c18c66b5c7 100644
---- a/drivers/net/ethernet/intel/ice/ice_lag.c
-+++ b/drivers/net/ethernet/intel/ice/ice_lag.c
-@@ -172,6 +172,7 @@ ice_lag_link(struct ice_lag *lag, struct netdev_notifier_changeupper_info *info)
- 	}
- 
- 	ice_clear_sriov_cap(pf);
-+	ice_clear_rdma_cap(pf);
- 
- 	lag->bonded = true;
- 	lag->role = ICE_LAG_UNSET;
-@@ -222,6 +223,7 @@ ice_lag_unlink(struct ice_lag *lag,
- 	}
- 
- 	ice_set_sriov_cap(pf);
-+	ice_set_rdma_cap(pf);
- 	lag->bonded = false;
- 	lag->role = ICE_LAG_NONE;
- }
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.c b/drivers/net/ethernet/intel/ice/ice_lib.c
-index 82e2ce23df3d..56e1ae558761 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.c
-@@ -616,6 +616,17 @@ bool ice_is_safe_mode(struct ice_pf *pf)
- 	return !test_bit(ICE_FLAG_ADV_FEATURES, pf->flags);
- }
- 
-+/**
-+ * ice_is_aux_ena
-+ * @pf: pointer to the PF struct
-+ *
-+ * returns true if AUX devices/drivers are supported, false otherwise
-+ */
-+bool ice_is_aux_ena(struct ice_pf *pf)
-+{
-+	return test_bit(ICE_FLAG_AUX_ENA, pf->flags);
++	auxiliary_device_delete(pf->adev);
++	auxiliary_device_uninit(pf->adev);
++	pf->adev = NULL;
 +}
 +
  /**
-  * ice_vsi_clean_rss_flow_fld - Delete RSS configuration
-  * @vsi: the VSI being cleaned up
-diff --git a/drivers/net/ethernet/intel/ice/ice_lib.h b/drivers/net/ethernet/intel/ice/ice_lib.h
-index 511c2316c40c..5ec857f71459 100644
---- a/drivers/net/ethernet/intel/ice/ice_lib.h
-+++ b/drivers/net/ethernet/intel/ice/ice_lib.h
-@@ -102,7 +102,7 @@ enum ice_status
- ice_vsi_cfg_mac_fltr(struct ice_vsi *vsi, const u8 *macaddr, bool set);
+  * ice_init_rdma - initializes PF for RDMA use
+  * @pf: ptr to ice_pf
+@@ -260,8 +325,10 @@ int ice_init_rdma(struct ice_pf *pf)
  
- bool ice_is_safe_mode(struct ice_pf *pf);
--
-+bool ice_is_aux_ena(struct ice_pf *pf);
- bool ice_is_dflt_vsi_in_use(struct ice_sw *sw);
+ 	/* Reserve vector resources */
+ 	ret = ice_reserve_rdma_qvector(pf);
+-	if (ret < 0)
++	if (ret < 0) {
+ 		dev_err(dev, "failed to reserve vectors for RDMA\n");
++		return ret;
++	}
  
- bool ice_is_vsi_dflt_vsi(struct ice_sw *sw, struct ice_vsi *vsi);
+-	return ret;
++	return ice_plug_aux_dev(pf);
+ }
 diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index 4ee85a217c6f..e307317e819a 100644
+index 9d4570b862aa..254cfc14d6b4 100644
 --- a/drivers/net/ethernet/intel/ice/ice_main.c
 +++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -35,6 +35,8 @@ MODULE_PARM_DESC(debug, "netif level (0=none,...,16=all), hw debug_mask (0x8XXXX
- MODULE_PARM_DESC(debug, "netif level (0=none,...,16=all)");
- #endif /* !CONFIG_DYNAMIC_DEBUG */
+@@ -456,6 +456,8 @@ ice_prepare_for_reset(struct ice_pf *pf)
+ 	if (test_bit(ICE_PREPARED_FOR_RESET, pf->state))
+ 		return;
  
-+static DEFINE_IDA(ice_aux_ida);
++	ice_unplug_aux_dev(pf);
 +
- static struct workqueue_struct *ice_wq;
- static const struct net_device_ops ice_netdev_safe_mode_ops;
- static const struct net_device_ops ice_netdev_ops;
-@@ -3276,6 +3278,12 @@ static void ice_set_pf_caps(struct ice_pf *pf)
- {
- 	struct ice_hw_func_caps *func_caps = &pf->hw.func_caps;
- 
-+	clear_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+	clear_bit(ICE_FLAG_AUX_ENA, pf->flags);
-+	if (func_caps->common_cap.rdma) {
-+		set_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+		set_bit(ICE_FLAG_AUX_ENA, pf->flags);
-+	}
- 	clear_bit(ICE_FLAG_DCB_CAPABLE, pf->flags);
- 	if (func_caps->common_cap.dcb)
- 		set_bit(ICE_FLAG_DCB_CAPABLE, pf->flags);
-@@ -3355,11 +3363,12 @@ static int ice_init_pf(struct ice_pf *pf)
-  */
- static int ice_ena_msix_range(struct ice_pf *pf)
- {
--	int v_left, v_actual, v_other, v_budget = 0;
-+	int num_cpus, v_left, v_actual, v_other, v_budget = 0;
- 	struct device *dev = ice_pf_to_dev(pf);
- 	int needed, err, i;
- 
- 	v_left = pf->hw.func_caps.common_cap.num_msix_vectors;
-+	num_cpus = num_online_cpus();
- 
- 	/* reserve for LAN miscellaneous handler */
- 	needed = ICE_MIN_LAN_OICR_MSIX;
-@@ -3381,13 +3390,23 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 	v_other = v_budget;
- 
- 	/* reserve vectors for LAN traffic */
--	needed = min_t(int, num_online_cpus(), v_left);
-+	needed = num_cpus;
- 	if (v_left < needed)
- 		goto no_hw_vecs_left_err;
- 	pf->num_lan_msix = needed;
- 	v_budget += needed;
- 	v_left -= needed;
- 
-+	/* reserve vectors for RDMA auxiliary driver */
-+	if (test_bit(ICE_FLAG_RDMA_ENA, pf->flags)) {
-+		needed = num_cpus + ICE_RDMA_NUM_AEQ_MSIX;
-+		if (v_left < needed)
-+			goto no_hw_vecs_left_err;
-+		pf->num_rdma_msix = needed;
-+		v_budget += needed;
-+		v_left -= needed;
-+	}
-+
- 	pf->msix_entries = devm_kcalloc(dev, v_budget,
- 					sizeof(*pf->msix_entries), GFP_KERNEL);
- 	if (!pf->msix_entries) {
-@@ -3417,16 +3436,46 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 			err = -ERANGE;
- 			goto msix_err;
- 		} else {
--			int v_traffic = v_actual - v_other;
-+			int v_remain = v_actual - v_other;
-+			int v_rdma = 0, v_min_rdma = 0;
-+
-+			if (test_bit(ICE_FLAG_RDMA_ENA, pf->flags)) {
-+				/* Need at least 1 interrupt in addition to
-+				 * AEQ MSIX
-+				 */
-+				v_rdma = ICE_RDMA_NUM_AEQ_MSIX + 1;
-+				v_min_rdma = ICE_MIN_RDMA_MSIX;
-+			}
- 
- 			if (v_actual == ICE_MIN_MSIX ||
--			    v_traffic < ICE_MIN_LAN_TXRX_MSIX)
-+			    v_remain < ICE_MIN_LAN_TXRX_MSIX + v_min_rdma) {
-+				dev_warn(dev, "Not enough MSI-X vectors to support RDMA.\n");
-+				clear_bit(ICE_FLAG_RDMA_ENA, pf->flags);
-+
-+				pf->num_rdma_msix = 0;
- 				pf->num_lan_msix = ICE_MIN_LAN_TXRX_MSIX;
--			else
--				pf->num_lan_msix = v_traffic;
-+			} else if ((v_remain < ICE_MIN_LAN_TXRX_MSIX + v_rdma) ||
-+				   (v_remain - v_rdma < v_rdma)) {
-+				/* Support minimum RDMA and give remaining
-+				 * vectors to LAN MSIX
-+				 */
-+				pf->num_rdma_msix = v_min_rdma;
-+				pf->num_lan_msix = v_remain - v_min_rdma;
-+			} else {
-+				/* Split remaining MSIX with RDMA after
-+				 * accounting for AEQ MSIX
-+				 */
-+				pf->num_rdma_msix = (v_remain - ICE_RDMA_NUM_AEQ_MSIX) / 2 +
-+						    ICE_RDMA_NUM_AEQ_MSIX;
-+				pf->num_lan_msix = v_remain - pf->num_rdma_msix;
-+			}
- 
- 			dev_notice(dev, "Enabled %d MSI-X vectors for LAN traffic.\n",
- 				   pf->num_lan_msix);
-+
-+			if (test_bit(ICE_FLAG_RDMA_ENA, pf->flags))
-+				dev_notice(dev, "Enabled %d MSI-X vectors for RDMA.\n",
-+					   pf->num_rdma_msix);
- 		}
+ 	/* Notify VFs of impending reset */
+ 	if (ice_check_sq_alive(hw, &hw->mailboxq))
+ 		ice_vc_notify_reset(pf);
+@@ -2120,6 +2122,8 @@ int ice_schedule_reset(struct ice_pf *pf, enum ice_reset_req reset)
+ 		return -EBUSY;
  	}
  
-@@ -3441,6 +3490,7 @@ static int ice_ena_msix_range(struct ice_pf *pf)
- 		needed, v_left);
- 	err = -ERANGE;
- exit_err:
-+	pf->num_rdma_msix = 0;
- 	pf->num_lan_msix = 0;
- 	return err;
- }
-@@ -4268,8 +4318,29 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- 
- 	/* ready to go, so clear down state bit */
- 	clear_bit(ICE_DOWN, pf->state);
-+	if (ice_is_aux_ena(pf)) {
-+		pf->aux_idx = ida_alloc(&ice_aux_ida, GFP_KERNEL);
-+		if (pf->aux_idx < 0) {
-+			dev_err(dev, "Failed to allocate device ID for AUX driver\n");
-+			err = -ENOMEM;
-+			goto err_netdev_reg;
-+		}
++	ice_unplug_aux_dev(pf);
 +
-+		err = ice_init_rdma(pf);
-+		if (err) {
-+			dev_err(dev, "Failed to initialize RDMA: %d\n", err);
-+			err = -EIO;
-+			goto err_init_aux_unroll;
-+		}
-+	} else {
-+		dev_warn(dev, "RDMA is not supported on this device\n");
-+	}
-+
- 	return 0;
+ 	switch (reset) {
+ 	case ICE_RESET_PFR:
+ 		set_bit(ICE_PFR_REQ, pf->state);
+@@ -4456,11 +4460,12 @@ static void ice_remove(struct pci_dev *pdev)
+ 		ice_free_vfs(pf);
+ 	}
  
-+err_init_aux_unroll:
-+	pf->adev = NULL;
-+	ida_free(&ice_aux_ida, pf->aux_idx);
- err_netdev_reg:
- err_send_version_unroll:
- 	ice_vsi_release_all(pf);
-@@ -4383,6 +4454,7 @@ static void ice_remove(struct pci_dev *pdev)
+-	set_bit(ICE_DOWN, pf->state);
  	ice_service_task_stop(pf);
  
  	ice_aq_cancel_waiting_tasks(pf);
-+	ida_free(&ice_aux_ida, pf->aux_idx);
++	ice_unplug_aux_dev(pf);
+ 	ida_free(&ice_aux_ida, pf->aux_idx);
++	set_bit(ICE_DOWN, pf->state);
  
  	mutex_destroy(&(&pf->hw)->fdir_fltr_lock);
  	ice_deinit_lag(pf);
-diff --git a/drivers/net/ethernet/intel/ice/ice_type.h b/drivers/net/ethernet/intel/ice/ice_type.h
-index 4474dd6a7ba1..b86ae7910a02 100644
---- a/drivers/net/ethernet/intel/ice/ice_type.h
-+++ b/drivers/net/ethernet/intel/ice/ice_type.h
-@@ -262,6 +262,7 @@ struct ice_hw_common_caps {
- 	u8 rss_table_entry_width;	/* RSS Entry width in bits */
+@@ -4616,6 +4621,8 @@ static int __maybe_unused ice_suspend(struct device *dev)
+ 	 */
+ 	disabled = ice_service_task_stop(pf);
  
- 	u8 dcb;
-+	u8 rdma;
++	ice_unplug_aux_dev(pf);
++
+ 	/* Already suspended?, then there is nothing to do */
+ 	if (test_and_set_bit(ICE_SUSPENDED, pf->state)) {
+ 		if (!disabled)
+@@ -6286,6 +6293,8 @@ static void ice_rebuild(struct ice_pf *pf, enum ice_reset_req reset_type)
  
- 	bool nvm_update_pending_nvm;
- 	bool nvm_update_pending_orom;
+ 	/* if we get here, reset flow is successful */
+ 	clear_bit(ICE_RESET_FAILED, pf->state);
++
++	ice_plug_aux_dev(pf);
+ 	return;
+ 
+ err_vsi_rebuild:
 -- 
 2.26.2
 
