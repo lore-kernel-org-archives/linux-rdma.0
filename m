@@ -2,44 +2,47 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89244C47093
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E1C3C47096
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 743E8613DC
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 301C3613D5
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232986AbhFBI77 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232988AbhFBI77 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 2 Jun 2021 04:59:59 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:3385 "EHLO
+Received: from szxga03-in.huawei.com ([45.249.212.189]:3388 "EHLO
         szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231346AbhFBI76 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Jun 2021 04:59:58 -0400
+        with ESMTP id S232982AbhFBI77 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Jun 2021 04:59:59 -0400
 Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Fw2s24LDFz65J6;
-        Wed,  2 Jun 2021 16:54:30 +0800 (CST)
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Fw2s314ylz67r3;
+        Wed,  2 Jun 2021 16:54:31 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
  dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 16:58:09 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 16:58:10 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Wed, 2 Jun 2021 16:58:09 +0800
+ 15.1.2176.2; Wed, 2 Jun 2021 16:58:10 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH RESEND v2 for-next 0/7] RDMA/hns: Use new interfaces to write/read fields 
-Date:   Wed, 2 Jun 2021 16:57:38 +0800
-Message-ID: <1622624265-44796-1-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Yixing Liu <liuyixing1@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH RESEND v2 for-next 5/7] RDMA/hns: Use new interface to write FRMR fields
+Date:   Wed, 2 Jun 2021 16:57:43 +0800
+Message-ID: <1622624265-44796-6-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1622624265-44796-1-git-send-email-liweihang@huawei.com>
+References: <1622624265-44796-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
 X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
  dggema753-chm.china.huawei.com (10.1.198.195)
@@ -48,32 +51,103 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-hr_reg_*() is simpler than roce_set_*(), and the field/bit can be generated
-automatically and accurately.
+From: Yixing Liu <liuyixing1@huawei.com>
 
-Changes since v1:
-* Add a patch to fix gcc warnings about PREP_FIELD().
-* Fix a typo in #5.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1622281154-49867-1-git-send-email-liweihang@huawei.com/
+Use "hr_reg_write" to replace "roce_set_filed".
 
-Lang Cheng (3):
-  RDMA/hns: Fix potential compile warnings on hr_reg_write()
-  RDMA/hns: Use new interface to modify QP context
-  RDMA/hns: Use new interface to get CQE fields
+Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 23 +++++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 26 ++++++++++++--------------
+ 2 files changed, 21 insertions(+), 28 deletions(-)
 
-Xi Wang (1):
-  RDMA/hns: Clean SRQC structure definition
-
-Yixing Liu (3):
-  RDMA/hns: Use new interface to write CQ context.
-  RDMA/hns: Use new interface to write FRMR fields
-  RDMA/hns: Use new interface to write DB related fields
-
- drivers/infiniband/hw/hns/hns_roce_common.h |    6 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 1065 +++++++++------------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  862 +++++++---------------
- 3 files changed, 644 insertions(+), 1289 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index a65cebc..047b27c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -105,16 +105,12 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 	u64 pbl_ba;
+ 
+ 	/* use ib_access_flags */
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_BIND_EN_S,
+-		     !!(wr->access & IB_ACCESS_MW_BIND));
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_ATOMIC_S,
++	hr_reg_write(fseg, FRMR_BIND_EN, !!(wr->access & IB_ACCESS_MW_BIND));
++	hr_reg_write(fseg, FRMR_ATOMIC,
+ 		     !!(wr->access & IB_ACCESS_REMOTE_ATOMIC));
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_RR_S,
+-		     !!(wr->access & IB_ACCESS_REMOTE_READ));
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_RW_S,
+-		     !!(wr->access & IB_ACCESS_REMOTE_WRITE));
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_LW_S,
+-		     !!(wr->access & IB_ACCESS_LOCAL_WRITE));
++	hr_reg_write(fseg, FRMR_RR, !!(wr->access & IB_ACCESS_REMOTE_READ));
++	hr_reg_write(fseg, FRMR_RW, !!(wr->access & IB_ACCESS_REMOTE_WRITE));
++	hr_reg_write(fseg, FRMR_LW, !!(wr->access & IB_ACCESS_LOCAL_WRITE));
+ 
+ 	/* Data structure reuse may lead to confusion */
+ 	pbl_ba = mr->pbl_mtr.hem_cfg.root_ba;
+@@ -126,11 +122,10 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 	rc_sq_wqe->rkey = cpu_to_le32(wr->key);
+ 	rc_sq_wqe->va = cpu_to_le64(wr->mr->iova);
+ 
+-	fseg->pbl_size = cpu_to_le32(mr->npages);
+-	roce_set_field(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_M,
+-		       V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_S,
+-		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
+-	roce_set_bit(fseg->byte_40, V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S, 0);
++	hr_reg_write(fseg, FRMR_PBL_SIZE, mr->npages);
++	hr_reg_write(fseg, FRMR_PBL_BUF_PG_SZ,
++		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
++	hr_reg_clear(fseg, FRMR_BLK_MODE);
+ }
+ 
+ static void set_atomic_seg(const struct ib_send_wr *wr,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 76d946e..4cdeac9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1062,16 +1062,6 @@ struct hns_roce_v2_rc_send_wqe {
+ 
+ #define V2_RC_SEND_WQE_BYTE_4_INLINE_S 12
+ 
+-#define V2_RC_FRMR_WQE_BYTE_40_BIND_EN_S 10
+-
+-#define V2_RC_FRMR_WQE_BYTE_40_ATOMIC_S 11
+-
+-#define V2_RC_FRMR_WQE_BYTE_40_RR_S 12
+-
+-#define V2_RC_FRMR_WQE_BYTE_40_RW_S 13
+-
+-#define V2_RC_FRMR_WQE_BYTE_40_LW_S 14
+-
+ #define V2_RC_SEND_WQE_BYTE_4_FLAG_S 31
+ 
+ #define	V2_RC_SEND_WQE_BYTE_16_XRC_SRQN_S 0
+@@ -1090,10 +1080,18 @@ struct hns_roce_wqe_frmr_seg {
+ 	__le32	byte_40;
+ };
+ 
+-#define V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_S	4
+-#define V2_RC_FRMR_WQE_BYTE_40_PBL_BUF_PG_SZ_M	GENMASK(7, 4)
+-
+-#define V2_RC_FRMR_WQE_BYTE_40_BLK_MODE_S 8
++#define FRMR_WQE_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_wqe_frmr_seg, h, l)
++
++#define FRMR_PBL_SIZE FRMR_WQE_FIELD_LOC(31, 0)
++#define FRMR_BLOCK_SIZE FRMR_WQE_FIELD_LOC(35, 32)
++#define FRMR_PBL_BUF_PG_SZ FRMR_WQE_FIELD_LOC(39, 36)
++#define FRMR_BLK_MODE FRMR_WQE_FIELD_LOC(40, 40)
++#define FRMR_ZBVA FRMR_WQE_FIELD_LOC(41, 41)
++#define FRMR_BIND_EN FRMR_WQE_FIELD_LOC(42, 42)
++#define FRMR_ATOMIC FRMR_WQE_FIELD_LOC(43, 43)
++#define FRMR_RR FRMR_WQE_FIELD_LOC(44, 44)
++#define FRMR_RW FRMR_WQE_FIELD_LOC(45, 45)
++#define FRMR_LW FRMR_WQE_FIELD_LOC(46, 46)
+ 
+ struct hns_roce_v2_wqe_data_seg {
+ 	__le32    len;
 -- 
 2.7.4
 
