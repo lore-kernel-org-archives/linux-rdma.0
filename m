@@ -2,180 +2,84 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A982C47083
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 04:29:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39C77C4708F
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 04:33:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24B0361075
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 04:29:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 175FC610CB
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 04:33:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229516AbhFBEbh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Jun 2021 00:31:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44168 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229625AbhFBEbe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Jun 2021 00:31:34 -0400
-Received: from mail-pg1-x52e.google.com (mail-pg1-x52e.google.com [IPv6:2607:f8b0:4864:20::52e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 985F1C061756
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Jun 2021 21:28:56 -0700 (PDT)
-Received: by mail-pg1-x52e.google.com with SMTP id e22so1193884pgv.10
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Jun 2021 21:28:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version;
-        bh=0j3AXUZfn6Utm78ytcxICWTmrOouB6v6ujLLlD5rAMY=;
-        b=Cr2BL1DINmidzJKCForXvzvaWxG6YM8/mc9/O9lbiCjgdSH9Fo4K4jxkZXuugJAK7e
-         QWmaPguqM9jPEKNwFeHfioPyOu0eLy7PoSLOnKMqgDeJgV5Ep6dYjRfhY4VeM3kAC96f
-         TJn1VDVz/SA5lb76GLdSvZf666wBXXGmO9h8g=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version;
-        bh=0j3AXUZfn6Utm78ytcxICWTmrOouB6v6ujLLlD5rAMY=;
-        b=UqvdVkAe4CKaYY3pwpmVYU4LKAY58nU9tQW4JiDG3yMZhmmhbqpb8cDn/WqHpgWReQ
-         /ik+xC5Miadgh/xGFZH9OAW7n9iHa0HOGLaum6DNkrcblA+ssIHGb806KiCDHRWAP8/q
-         AAS0eRkQwgUu3AlweHPK/Q1WkAWdMdLD2uctwiuj/Hw++qrCwcSiaTDkGVeNbYS7niJO
-         xtwlpLinUo0VMD9Jll9usxNkQ9hAV5mwkbWciEEQEPbQkgvSBG80Way75NMH0tuHpTcR
-         lV6lGhxhTEXp4fqxTQlIRk0kin5C9ROK8DDXbhwTmwL+tl5KsE/7UAGBjwVVJevJIkan
-         7/kQ==
-X-Gm-Message-State: AOAM532Yd2dq3Y4Mhj4HF0BftZBRf0f4bBhNDzy7MFUVdV+3MCzL1T47
-        rwIb2mBjYH36xcKXYNWXm56AwlTcipXM8nGx8Iyq++2ZJQ12zvSQ9WjuFBMcYzfvHQoEbPYfLez
-        rPjlpjdLbHppvB9WLfRELfolGgr29frugph1mLRbzhVUHxTogbJpjCCk+o6AXZNg1exIBeY/CxN
-        ZWsgteNw==
-X-Google-Smtp-Source: ABdhPJx5wPLRXyuAALPLfxmS+ZKTLcjoc8CPNEmq7pVdZYNC3J/e6p6nTy7a/6fYXEkkWGeos/se+A==
-X-Received: by 2002:a63:4c41:: with SMTP id m1mr31587227pgl.394.1622608135305;
-        Tue, 01 Jun 2021 21:28:55 -0700 (PDT)
-Received: from dev01.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id b7sm14052547pfv.149.2021.06.01.21.28.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Jun 2021 21:28:55 -0700 (PDT)
-From:   Devesh Sharma <devesh.sharma@broadcom.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Devesh Sharma <devesh.sharma@broadcom.com>
-Subject: [PATCH V4 for-next 2/3] bnxt_re: Update maintainers list
-Date:   Wed,  2 Jun 2021 09:58:38 +0530
-Message-Id: <20210602042839.968833-3-devesh.sharma@broadcom.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210602042839.968833-1-devesh.sharma@broadcom.com>
-References: <20210602042839.968833-1-devesh.sharma@broadcom.com>
+        id S229586AbhFBEe4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Jun 2021 00:34:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36112 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229571AbhFBEez (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Jun 2021 00:34:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 44EF660FDB;
+        Wed,  2 Jun 2021 04:33:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1622608393;
+        bh=9a9dDkujkT1nzgYKXZW5zFQGI0FPKBB4qk+ZfH6F86o=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tFBGYLvUfw50mplmr5oFMwLkSPN5R9zirH56Png4LMAS6EeNMlRHHsGvV5Y+GoIy6
+         FGg9ghyd7wZ6i/GvpJAyOa1NyrHb6+xKSZhAyXkIsNNWY8P7pdhoJ5hEYX0IrKw6Ye
+         b+tpbrSCwWYDrNQDC1l+aTOd1h3WQkOCVl8urXvhyRAEByYbrvueAKx16HZz0W01qU
+         nzkxi4WO5RghcI3W1terBwOSKUWcAfHyg5q4c0INm+i+xuYZW4ZXOs5ttR8TjqqZF6
+         JaFsPPKNuskmp0BlDFaBK+BReaFps9xmYDjahdr6t8Ag5oTeaETXhZ+28mcJpXQgTw
+         oK5VLTCjSe4Tw==
+Date:   Wed, 2 Jun 2021 07:33:09 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        "Marciniszyn, Mike" <mike.marciniszyn@cornelisnetworks.com>,
+        Doug Ledford <dledford@redhat.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH rdma-next] RDMA/rdmavt: Decouple QP and SGE lists
+ allocations
+Message-ID: <YLcKBb3/Oir2Bdm5@unreal>
+References: <CH0PR01MB71533DE9DBEEAEC7C250F8F8F2509@CH0PR01MB7153.prod.exchangelabs.com>
+ <20210514150237.GJ1002214@nvidia.com>
+ <YKTDPm6j29jziSxT@unreal>
+ <0b3cc247-b67b-6151-2a32-e4682ff9af22@cornelisnetworks.com>
+ <20210519182941.GQ1002214@nvidia.com>
+ <1ceb34ec-eafb-697e-672c-17f9febb2e82@cornelisnetworks.com>
+ <20210519202623.GU1002214@nvidia.com>
+ <983802a6-0fa2-e181-832e-13a2d5f0fa82@cornelisnetworks.com>
+ <20210525131358.GU1002214@nvidia.com>
+ <4e4df8bd-4e3a-fe35-041d-ed3ed95be1cb@cornelisnetworks.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000009091b405c3c0e501"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4e4df8bd-4e3a-fe35-041d-ed3ed95be1cb@cornelisnetworks.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---0000000000009091b405c3c0e501
-Content-Transfer-Encoding: 8bit
+On Tue, May 25, 2021 at 10:10:47AM -0400, Dennis Dalessandro wrote:
+> On 5/25/21 9:13 AM, Jason Gunthorpe wrote:
+> > On Thu, May 20, 2021 at 06:02:09PM -0400, Dennis Dalessandro wrote:
 
-Updated the maintainers list and removed
-non-active members.
+<...>
 
-Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
----
- MAINTAINERS | 2 --
- 1 file changed, 2 deletions(-)
+> We are already mid 5.13 cycle. So the earliest this could be queued up to go
+> in is 5.14. Can this wait one more cycle? If we can't get it tested/proven
+> to make a difference mid 5.14, we will drop the objection and Leon's patch
+> can go ahead in for 5.15. Fair compromise?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bd7aff0c120f..786573a556b9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3736,8 +3736,6 @@ F:	drivers/gpio/gpio-bcm-kona.c
- BROADCOM NETXTREME-E ROCE DRIVER
- M:	Selvin Xavier <selvin.xavier@broadcom.com>
- M:	Devesh Sharma <devesh.sharma@broadcom.com>
--M:	Somnath Kotur <somnath.kotur@broadcom.com>
--M:	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
- M:	Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
- L:	linux-rdma@vger.kernel.org
- S:	Supported
--- 
-2.25.1
+I sent this patch as early as I could to make sure that it won't
+jeopardize the restrack QP flow fixes. Delaying one more cycle means
+that QP conversion will be delayed too which is needed to close the race
+between netlink query QP call and simultaneous ibv_destroy_qp() call.
 
+Thanks
 
---0000000000009091b405c3c0e501
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-TUsFTOuxP4FZ9JSu9FWkGJGPobx8FmEvg+HybmXuUG0+PU7EDHKNoW8AcgZvIQYbwfevqWBFwwRD
-Paihaaj18xGk21lqZcO0BecWKYyV4k9E8poof1dH+GnKqwIDAQABo4IB2zCCAdcwDgYDVR0PAQH/
-BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDovL3NlY3VyZS5nbG9i
-YWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAuY3J0MEEGCCsGAQUF
-BzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29uYWxzaWduMmNhMjAy
-MDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0cHM6Ly93d3cuZ2xv
-YmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBAMD6gPKA6hjhodHRw
-Oi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2EyMDIwLmNybDAlBgNV
-HREEHjAcgRpkZXZlc2guc2hhcm1hQGJyb2FkY29tLmNvbTATBgNVHSUEDDAKBggrBgEFBQcDBDAf
-BgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQUEe3qNwswWXCeWt/hTDSC
-KajMvUgwDQYJKoZIhvcNAQELBQADggEBAGm+rkHFWdX4Z3YnpNuhM5Sj6w4b4z1pe+LtSquNyt9X
-SNuffkoBuPMkEpU3AF9DKJQChG64RAf5UWT/7pOK6lx2kZwhjjXjk9bQVlo6bpojz99/6cqmUyxG
-PsH1dIxDlPUxwxCksGuW65DORNZgmD6mIwNhKI4Thtdf5H6zGq2ke0523YysUqecSws1AHeA1B3d
-G6Yi9ScSuy1K8yGKKgHn/ZDCLAVEG92Ax5kxUaivh1BLKdo3kZX8Ot/0mmWvFcjEqRyCE5CL9WAo
-PU3wdmxYDWOzX5HgFsvArQl4oXob3zKc58TNeGivC9m1KwWJphsMkZNjc2IVVC8gIryWh90xggJt
-MIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYD
-VQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwhg1OJo0VLRNay
-SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIL2Y3qh345HRSO7UKudbxn9EVGmz
-ro4bROn1sfoiA3tbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
-MDYwMjA0Mjg1NlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
-CWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEHMAsGCWCGSAFl
-AwQCATANBgkqhkiG9w0BAQEFAASCAQB5+0QLi19Izt1enBD6VeBPr1ZyKq1F3gifKtqRvknQ0b0r
-E2N40uYUbazp0/9dr4xB3yPHX5aUSiuQdZzbwta6D/1cLrH6AEEMGmLsltXVU/b6vz+cTfJBAA8Y
-0O8jNYqaLgWGsFG/Y7Sn50AsUJ57UTmm13ZHIRO6Xm4virf5qD72H7d3dvpZNtdodbE05bfeGf3q
-+UkzYBajKoRGyopxhLtj7bf6kzopTCEsK/OWPvIT56xJo0NPwVGvObIb3YsYHigic1X42Q207WUa
-XQ2vQFa3lPiUo9+xUB+GX2kKP2xkpYnznkHXnzgZod0zX1spmWTISwI8bXpC4N7nJV2+
---0000000000009091b405c3c0e501--
+> 
+> -Denny
+> 
+> 
+> 
+> 
