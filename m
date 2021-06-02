@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB0C1C47093
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F387EC4708F
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B3EF60FEE
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8A93613DC
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbhFBUzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Jun 2021 16:55:11 -0400
-Received: from mga11.intel.com ([192.55.52.93]:38824 "EHLO mga11.intel.com"
+        id S229761AbhFBUzN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Jun 2021 16:55:13 -0400
+Received: from mga05.intel.com ([192.55.52.43]:25929 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229767AbhFBUy5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Jun 2021 16:54:57 -0400
-IronPort-SDR: HPuKA1U8hJvwR1Qo16vLGt/a8unk6tOGtJE6s3XW5t4sEDWwN7aIRjj/THzvw9NOnxD0Seq3t6
- EkJYjBXFfFew==
-X-IronPort-AV: E=McAfee;i="6200,9189,10003"; a="200879819"
+        id S229772AbhFBUy6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Jun 2021 16:54:58 -0400
+IronPort-SDR: sQ/RxnAgWwDXaS+eBNQVvjo++oIAzWsj9IB7gDUiJdw2I37VZPJ7rgFkq0dZuATLD4YtxPpnMV
+ Yvpqb5sB+50A==
+X-IronPort-AV: E=McAfee;i="6200,9189,10003"; a="289522877"
 X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="200879819"
+   d="scan'208";a="289522877"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:11 -0700
-IronPort-SDR: iR3BR5NyLVmfmpalptGN3NnvLKNz0/qYmlaiJHAb4+WMTUH77B82mZfnVHSsc7Tu9lKGO9RHUl
- Hu2Q8SqKA0XA==
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:02 -0700
+IronPort-SDR: VmfKmwSJjQGFZbZT5BCrPkJXH4la4sN0VAxEjo5jOCCDZ+89UGLFa9SgjZRmFGJ0w43hytLsZb
+ Ey2xUZtuSXMg==
 X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="447561087"
+   d="scan'208";a="447561002"
 Received: from ssaleem-mobl.amr.corp.intel.com ([10.212.38.74])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:10 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:01 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
         davem@davemloft.net
 Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
-        gustavoars@kernel.org,
-        "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
+        gustavoars@kernel.org, Mustafa Ismail <mustafa.ismail@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v7 13/16] RDMA/irdma: Add dynamic tracing for CM
-Date:   Wed,  2 Jun 2021 15:51:35 -0500
-Message-Id: <20210602205138.889-14-shiraz.saleem@intel.com>
+Subject: [PATCH v7 06/16] RDMA/irdma: Add QoS definitions
+Date:   Wed,  2 Jun 2021 15:51:28 -0500
+Message-Id: <20210602205138.889-7-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.31.0
 In-Reply-To: <20210602205138.889-1-shiraz.saleem@intel.com>
 References: <20210602205138.889-1-shiraz.saleem@intel.com>
@@ -52,613 +51,484 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Add dynamic tracing functionality to debug connection
-management issues.
+Add definitions for managing the RDMA HW work scheduler (WS) tree.
 
-Signed-off-by: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+A WS node is created via a control QP operation with the bandwidth
+allocation, arbitration scheme, and traffic class of the QP specified.
+The Qset handle returned associates the QoS parameters for the QP.
+The Qset is registered with the LAN and an equivalent node is created
+in the LAN packet scheduler tree.
+
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/trace.c    | 112 ++++++++
- drivers/infiniband/hw/irdma/trace.h    |   3 +
- drivers/infiniband/hw/irdma/trace_cm.h | 458 +++++++++++++++++++++++++++++++++
- 3 files changed, 573 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/trace.c
- create mode 100644 drivers/infiniband/hw/irdma/trace.h
- create mode 100644 drivers/infiniband/hw/irdma/trace_cm.h
+ drivers/infiniband/hw/irdma/ws.c | 406 +++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/ws.h |  41 ++++
+ 2 files changed, 447 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/ws.c
+ create mode 100644 drivers/infiniband/hw/irdma/ws.h
 
-diff --git a/drivers/infiniband/hw/irdma/trace.c b/drivers/infiniband/hw/irdma/trace.c
+diff --git a/drivers/infiniband/hw/irdma/ws.c b/drivers/infiniband/hw/irdma/ws.c
 new file mode 100644
-index 0000000..b5133f4
+index 0000000..b68c575
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/trace.c
-@@ -0,0 +1,112 @@
++++ b/drivers/infiniband/hw/irdma/ws.c
+@@ -0,0 +1,406 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2019 Intel Corporation */
-+#define CREATE_TRACE_POINTS
-+#include "trace.h"
++/* Copyright (c) 2017 - 2021 Intel Corporation */
++#include "osdep.h"
++#include "status.h"
++#include "hmc.h"
++#include "defs.h"
++#include "type.h"
++#include "protos.h"
 +
-+const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ipv4)
++#include "ws.h"
++
++/**
++ * irdma_alloc_node - Allocate a WS node and init
++ * @vsi: vsi pointer
++ * @user_pri: user priority
++ * @node_type: Type of node, leaf or parent
++ * @parent: parent node pointer
++ */
++static struct irdma_ws_node *irdma_alloc_node(struct irdma_sc_vsi *vsi,
++					      u8 user_pri,
++					      enum irdma_ws_node_type node_type,
++					      struct irdma_ws_node *parent)
 +{
-+	const char *ret = trace_seq_buffer_ptr(p);
++	struct irdma_virt_mem ws_mem;
++	struct irdma_ws_node *node;
++	u16 node_index = 0;
 +
-+	if (ipv4) {
-+		__be32 myaddr = htonl(*addr);
++	ws_mem.size = sizeof(struct irdma_ws_node);
++	ws_mem.va = kzalloc(ws_mem.size, GFP_KERNEL);
++	if (!ws_mem.va)
++		return NULL;
 +
-+		trace_seq_printf(p, "%pI4:%d", &myaddr, htons(port));
-+	} else {
-+		trace_seq_printf(p, "%pI6:%d", addr, htons(port));
++	if (parent) {
++		node_index = irdma_alloc_ws_node_id(vsi->dev);
++		if (node_index == IRDMA_WS_NODE_INVALID) {
++			kfree(ws_mem.va);
++			return NULL;
++		}
 +	}
-+	trace_seq_putc(p, 0);
 +
++	node = ws_mem.va;
++	node->index = node_index;
++	node->vsi_index = vsi->vsi_idx;
++	INIT_LIST_HEAD(&node->child_list_head);
++	if (node_type == WS_NODE_TYPE_LEAF) {
++		node->type_leaf = true;
++		node->traffic_class = vsi->qos[user_pri].traffic_class;
++		node->user_pri = user_pri;
++		node->rel_bw = vsi->qos[user_pri].rel_bw;
++		if (!node->rel_bw)
++			node->rel_bw = 1;
++
++		node->lan_qs_handle = vsi->qos[user_pri].lan_qos_handle;
++		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
++	} else {
++		node->rel_bw = 1;
++		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
++		node->enable = true;
++	}
++
++	node->parent = parent;
++
++	return node;
++}
++
++/**
++ * irdma_free_node - Free a WS node
++ * @vsi: VSI stricture of device
++ * @node: Pointer to node to free
++ */
++static void irdma_free_node(struct irdma_sc_vsi *vsi,
++			    struct irdma_ws_node *node)
++{
++	struct irdma_virt_mem ws_mem;
++
++	if (node->index)
++		irdma_free_ws_node_id(vsi->dev, node->index);
++
++	ws_mem.va = node;
++	ws_mem.size = sizeof(struct irdma_ws_node);
++	kfree(ws_mem.va);
++}
++
++/**
++ * irdma_ws_cqp_cmd - Post CQP work scheduler node cmd
++ * @vsi: vsi pointer
++ * @node: pointer to node
++ * @cmd: add, remove or modify
++ */
++static enum irdma_status_code
++irdma_ws_cqp_cmd(struct irdma_sc_vsi *vsi, struct irdma_ws_node *node, u8 cmd)
++{
++	struct irdma_ws_node_info node_info = {};
++
++	node_info.id = node->index;
++	node_info.vsi = node->vsi_index;
++	if (node->parent)
++		node_info.parent_id = node->parent->index;
++	else
++		node_info.parent_id = node_info.id;
++
++	node_info.weight = node->rel_bw;
++	node_info.tc = node->traffic_class;
++	node_info.prio_type = node->prio_type;
++	node_info.type_leaf = node->type_leaf;
++	node_info.enable = node->enable;
++	if (irdma_cqp_ws_node_cmd(vsi->dev, cmd, &node_info)) {
++		ibdev_dbg(to_ibdev(vsi->dev), "WS: CQP WS CMD failed\n");
++		return IRDMA_ERR_NO_MEMORY;
++	}
++
++	if (node->type_leaf && cmd == IRDMA_OP_WS_ADD_NODE) {
++		node->qs_handle = node_info.qs_handle;
++		vsi->qos[node->user_pri].qs_handle = node_info.qs_handle;
++	}
++
++	return 0;
++}
++
++/**
++ * ws_find_node - Find SC WS node based on VSI id or TC
++ * @parent: parent node of First VSI or TC node
++ * @match_val: value to match
++ * @type: match type VSI/TC
++ */
++static struct irdma_ws_node *ws_find_node(struct irdma_ws_node *parent,
++					  u16 match_val,
++					  enum irdma_ws_match_type type)
++{
++	struct irdma_ws_node *node;
++
++	switch (type) {
++	case WS_MATCH_TYPE_VSI:
++		list_for_each_entry(node, &parent->child_list_head, siblings) {
++			if (node->vsi_index == match_val)
++				return node;
++		}
++		break;
++	case WS_MATCH_TYPE_TC:
++		list_for_each_entry(node, &parent->child_list_head, siblings) {
++			if (node->traffic_class == match_val)
++				return node;
++		}
++		break;
++	default:
++		break;
++	}
++
++	return NULL;
++}
++
++/**
++ * irdma_tc_in_use - Checks to see if a leaf node is in use
++ * @vsi: vsi pointer
++ * @user_pri: user priority
++ */
++static bool irdma_tc_in_use(struct irdma_sc_vsi *vsi, u8 user_pri)
++{
++	int i;
++
++	mutex_lock(&vsi->qos[user_pri].qos_mutex);
++	if (!list_empty(&vsi->qos[user_pri].qplist)) {
++		mutex_unlock(&vsi->qos[user_pri].qos_mutex);
++		return true;
++	}
++
++	/* Check if the traffic class associated with the given user priority
++	 * is in use by any other user priority. If so, nothing left to do
++	 */
++	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
++		if (vsi->qos[i].traffic_class == vsi->qos[user_pri].traffic_class &&
++		    !list_empty(&vsi->qos[i].qplist)) {
++			mutex_unlock(&vsi->qos[user_pri].qos_mutex);
++			return true;
++		}
++	}
++	mutex_unlock(&vsi->qos[user_pri].qos_mutex);
++
++	return false;
++}
++
++/**
++ * irdma_remove_leaf - Remove leaf node unconditionally
++ * @vsi: vsi pointer
++ * @user_pri: user priority
++ */
++static void irdma_remove_leaf(struct irdma_sc_vsi *vsi, u8 user_pri)
++{
++	struct irdma_ws_node *ws_tree_root, *vsi_node, *tc_node;
++	int i;
++	u16 traffic_class;
++
++	traffic_class = vsi->qos[user_pri].traffic_class;
++	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++)
++		if (vsi->qos[i].traffic_class == traffic_class)
++			vsi->qos[i].valid = false;
++
++	ws_tree_root = vsi->dev->ws_tree_root;
++	if (!ws_tree_root)
++		return;
++
++	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
++				WS_MATCH_TYPE_VSI);
++	if (!vsi_node)
++		return;
++
++	tc_node = ws_find_node(vsi_node,
++			       vsi->qos[user_pri].traffic_class,
++			       WS_MATCH_TYPE_TC);
++	if (!tc_node)
++		return;
++
++	irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_DELETE_NODE);
++	vsi->unregister_qset(vsi, tc_node);
++	list_del(&tc_node->siblings);
++	irdma_free_node(vsi, tc_node);
++	/* Check if VSI node can be freed */
++	if (list_empty(&vsi_node->child_list_head)) {
++		irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE);
++		list_del(&vsi_node->siblings);
++		irdma_free_node(vsi, vsi_node);
++		/* Free head node there are no remaining VSI nodes */
++		if (list_empty(&ws_tree_root->child_list_head)) {
++			irdma_ws_cqp_cmd(vsi, ws_tree_root,
++					 IRDMA_OP_WS_DELETE_NODE);
++			irdma_free_node(vsi, ws_tree_root);
++			vsi->dev->ws_tree_root = NULL;
++		}
++	}
++}
++
++/**
++ * irdma_ws_add - Build work scheduler tree, set RDMA qs_handle
++ * @vsi: vsi pointer
++ * @user_pri: user priority
++ */
++enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri)
++{
++	struct irdma_ws_node *ws_tree_root;
++	struct irdma_ws_node *vsi_node;
++	struct irdma_ws_node *tc_node;
++	u16 traffic_class;
++	enum irdma_status_code ret = 0;
++	int i;
++
++	mutex_lock(&vsi->dev->ws_mutex);
++	if (vsi->tc_change_pending) {
++		ret = IRDMA_ERR_NOT_READY;
++		goto exit;
++	}
++
++	if (vsi->qos[user_pri].valid)
++		goto exit;
++
++	ws_tree_root = vsi->dev->ws_tree_root;
++	if (!ws_tree_root) {
++		ibdev_dbg(to_ibdev(vsi->dev), "WS: Creating root node\n");
++		ws_tree_root = irdma_alloc_node(vsi, user_pri,
++						WS_NODE_TYPE_PARENT, NULL);
++		if (!ws_tree_root) {
++			ret = IRDMA_ERR_NO_MEMORY;
++			goto exit;
++		}
++
++		ret = irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_ADD_NODE);
++		if (ret) {
++			irdma_free_node(vsi, ws_tree_root);
++			goto exit;
++		}
++
++		vsi->dev->ws_tree_root = ws_tree_root;
++	}
++
++	/* Find a second tier node that matches the VSI */
++	vsi_node = ws_find_node(ws_tree_root, vsi->vsi_idx,
++				WS_MATCH_TYPE_VSI);
++
++	/* If VSI node doesn't exist, add one */
++	if (!vsi_node) {
++		ibdev_dbg(to_ibdev(vsi->dev),
++			  "WS: Node not found matching VSI %d\n",
++			  vsi->vsi_idx);
++		vsi_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_PARENT,
++					    ws_tree_root);
++		if (!vsi_node) {
++			ret = IRDMA_ERR_NO_MEMORY;
++			goto vsi_add_err;
++		}
++
++		ret = irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_ADD_NODE);
++		if (ret) {
++			irdma_free_node(vsi, vsi_node);
++			goto vsi_add_err;
++		}
++
++		list_add(&vsi_node->siblings, &ws_tree_root->child_list_head);
++	}
++
++	ibdev_dbg(to_ibdev(vsi->dev),
++		  "WS: Using node %d which represents VSI %d\n",
++		  vsi_node->index, vsi->vsi_idx);
++	traffic_class = vsi->qos[user_pri].traffic_class;
++	tc_node = ws_find_node(vsi_node, traffic_class,
++			       WS_MATCH_TYPE_TC);
++	if (!tc_node) {
++		/* Add leaf node */
++		ibdev_dbg(to_ibdev(vsi->dev),
++			  "WS: Node not found matching VSI %d and TC %d\n",
++			  vsi->vsi_idx, traffic_class);
++		tc_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_LEAF,
++					   vsi_node);
++		if (!tc_node) {
++			ret = IRDMA_ERR_NO_MEMORY;
++			goto leaf_add_err;
++		}
++
++		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_ADD_NODE);
++		if (ret) {
++			irdma_free_node(vsi, tc_node);
++			goto leaf_add_err;
++		}
++
++		list_add(&tc_node->siblings, &vsi_node->child_list_head);
++		/*
++		 * callback to LAN to update the LAN tree with our node
++		 */
++		ret = vsi->register_qset(vsi, tc_node);
++		if (ret)
++			goto reg_err;
++
++		tc_node->enable = true;
++		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_MODIFY_NODE);
++		if (ret)
++			goto reg_err;
++	}
++	ibdev_dbg(to_ibdev(vsi->dev),
++		  "WS: Using node %d which represents VSI %d TC %d\n",
++		  tc_node->index, vsi->vsi_idx, traffic_class);
++	/*
++	 * Iterate through other UPs and update the QS handle if they have
++	 * a matching traffic class.
++	 */
++	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
++		if (vsi->qos[i].traffic_class == traffic_class) {
++			vsi->qos[i].qs_handle = tc_node->qs_handle;
++			vsi->qos[i].lan_qos_handle = tc_node->lan_qs_handle;
++			vsi->qos[i].l2_sched_node_id = tc_node->l2_sched_node_id;
++			vsi->qos[i].valid = true;
++		}
++	}
++	goto exit;
++
++leaf_add_err:
++	if (list_empty(&vsi_node->child_list_head)) {
++		if (irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE))
++			goto exit;
++		list_del(&vsi_node->siblings);
++		irdma_free_node(vsi, vsi_node);
++	}
++
++vsi_add_err:
++	/* Free head node there are no remaining VSI nodes */
++	if (list_empty(&ws_tree_root->child_list_head)) {
++		irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_DELETE_NODE);
++		vsi->dev->ws_tree_root = NULL;
++		irdma_free_node(vsi, ws_tree_root);
++	}
++
++exit:
++	mutex_unlock(&vsi->dev->ws_mutex);
++	return ret;
++
++reg_err:
++	mutex_unlock(&vsi->dev->ws_mutex);
++	irdma_ws_remove(vsi, user_pri);
 +	return ret;
 +}
 +
-+const char *parse_iw_event_type(enum iw_cm_event_type iw_type)
++/**
++ * irdma_ws_remove - Free WS scheduler node, update WS tree
++ * @vsi: vsi pointer
++ * @user_pri: user priority
++ */
++void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri)
 +{
-+	switch (iw_type) {
-+	case IW_CM_EVENT_CONNECT_REQUEST:
-+		return "IwRequest";
-+	case IW_CM_EVENT_CONNECT_REPLY:
-+		return "IwReply";
-+	case IW_CM_EVENT_ESTABLISHED:
-+		return "IwEstablished";
-+	case IW_CM_EVENT_DISCONNECT:
-+		return "IwDisconnect";
-+	case IW_CM_EVENT_CLOSE:
-+		return "IwClose";
-+	}
-+
-+	return "Unknown";
++	mutex_lock(&vsi->dev->ws_mutex);
++	if (irdma_tc_in_use(vsi, user_pri))
++		goto exit;
++	irdma_remove_leaf(vsi, user_pri);
++exit:
++	mutex_unlock(&vsi->dev->ws_mutex);
 +}
 +
-+const char *parse_cm_event_type(enum irdma_cm_event_type cm_type)
++/**
++ * irdma_ws_reset - Reset entire WS tree
++ * @vsi: vsi pointer
++ */
++void irdma_ws_reset(struct irdma_sc_vsi *vsi)
 +{
-+	switch (cm_type) {
-+	case IRDMA_CM_EVENT_ESTABLISHED:
-+		return "CmEstablished";
-+	case IRDMA_CM_EVENT_MPA_REQ:
-+		return "CmMPA_REQ";
-+	case IRDMA_CM_EVENT_MPA_CONNECT:
-+		return "CmMPA_CONNECT";
-+	case IRDMA_CM_EVENT_MPA_ACCEPT:
-+		return "CmMPA_ACCEPT";
-+	case IRDMA_CM_EVENT_MPA_REJECT:
-+		return "CmMPA_REJECT";
-+	case IRDMA_CM_EVENT_MPA_ESTABLISHED:
-+		return "CmMPA_ESTABLISHED";
-+	case IRDMA_CM_EVENT_CONNECTED:
-+		return "CmConnected";
-+	case IRDMA_CM_EVENT_RESET:
-+		return "CmReset";
-+	case IRDMA_CM_EVENT_ABORTED:
-+		return "CmAborted";
-+	case IRDMA_CM_EVENT_UNKNOWN:
-+		return "none";
-+	}
-+	return "Unknown";
-+}
++	u8 i;
 +
-+const char *parse_cm_state(enum irdma_cm_node_state state)
-+{
-+	switch (state) {
-+	case IRDMA_CM_STATE_UNKNOWN:
-+		return "UNKNOWN";
-+	case IRDMA_CM_STATE_INITED:
-+		return "INITED";
-+	case IRDMA_CM_STATE_LISTENING:
-+		return "LISTENING";
-+	case IRDMA_CM_STATE_SYN_RCVD:
-+		return "SYN_RCVD";
-+	case IRDMA_CM_STATE_SYN_SENT:
-+		return "SYN_SENT";
-+	case IRDMA_CM_STATE_ONE_SIDE_ESTABLISHED:
-+		return "ONE_SIDE_ESTABLISHED";
-+	case IRDMA_CM_STATE_ESTABLISHED:
-+		return "ESTABLISHED";
-+	case IRDMA_CM_STATE_ACCEPTING:
-+		return "ACCEPTING";
-+	case IRDMA_CM_STATE_MPAREQ_SENT:
-+		return "MPAREQ_SENT";
-+	case IRDMA_CM_STATE_MPAREQ_RCVD:
-+		return "MPAREQ_RCVD";
-+	case IRDMA_CM_STATE_MPAREJ_RCVD:
-+		return "MPAREJ_RECVD";
-+	case IRDMA_CM_STATE_OFFLOADED:
-+		return "OFFLOADED";
-+	case IRDMA_CM_STATE_FIN_WAIT1:
-+		return "FIN_WAIT1";
-+	case IRDMA_CM_STATE_FIN_WAIT2:
-+		return "FIN_WAIT2";
-+	case IRDMA_CM_STATE_CLOSE_WAIT:
-+		return "CLOSE_WAIT";
-+	case IRDMA_CM_STATE_TIME_WAIT:
-+		return "TIME_WAIT";
-+	case IRDMA_CM_STATE_LAST_ACK:
-+		return "LAST_ACK";
-+	case IRDMA_CM_STATE_CLOSING:
-+		return "CLOSING";
-+	case IRDMA_CM_STATE_LISTENER_DESTROYED:
-+		return "LISTENER_DESTROYED";
-+	case IRDMA_CM_STATE_CLOSED:
-+		return "CLOSED";
-+	}
-+	return ("Bad state");
++	mutex_lock(&vsi->dev->ws_mutex);
++	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; ++i)
++		irdma_remove_leaf(vsi, i);
++	mutex_unlock(&vsi->dev->ws_mutex);
 +}
-diff --git a/drivers/infiniband/hw/irdma/trace.h b/drivers/infiniband/hw/irdma/trace.h
+diff --git a/drivers/infiniband/hw/irdma/ws.h b/drivers/infiniband/hw/irdma/ws.h
 new file mode 100644
-index 0000000..702e4ef
+index 0000000..f0e16f6
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/trace.h
-@@ -0,0 +1,3 @@
++++ b/drivers/infiniband/hw/irdma/ws.h
+@@ -0,0 +1,41 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2019 Intel Corporation */
-+#include "trace_cm.h"
-diff --git a/drivers/infiniband/hw/irdma/trace_cm.h b/drivers/infiniband/hw/irdma/trace_cm.h
-new file mode 100644
-index 0000000..bcf10ec
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/trace_cm.h
-@@ -0,0 +1,458 @@
-+/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2019 - 2021 Intel Corporation */
-+#if !defined(__TRACE_CM_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __TRACE_CM_H
++/* Copyright (c) 2015 - 2020 Intel Corporation */
++#ifndef IRDMA_WS_H
++#define IRDMA_WS_H
 +
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
++#include "osdep.h"
 +
-+#include "main.h"
++enum irdma_ws_node_type {
++	WS_NODE_TYPE_PARENT,
++	WS_NODE_TYPE_LEAF,
++};
 +
-+const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ivp4);
-+const char *parse_iw_event_type(enum iw_cm_event_type iw_type);
-+const char *parse_cm_event_type(enum irdma_cm_event_type cm_type);
-+const char *parse_cm_state(enum irdma_cm_node_state);
-+#define __print_ip_addr(addr, port, ipv4) print_ip_addr(p, addr, port, ipv4)
++enum irdma_ws_match_type {
++	WS_MATCH_TYPE_VSI,
++	WS_MATCH_TYPE_TC,
++};
 +
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM irdma_cm
++struct irdma_ws_node {
++	struct list_head siblings;
++	struct list_head child_list_head;
++	struct irdma_ws_node *parent;
++	u64 lan_qs_handle; /* opaque handle used by LAN */
++	u32 l2_sched_node_id;
++	u16 index;
++	u16 qs_handle;
++	u16 vsi_index;
++	u8 traffic_class;
++	u8 user_pri;
++	u8 rel_bw;
++	u8 abstraction_layer; /* used for splitting a TC */
++	u8 prio_type;
++	bool type_leaf:1;
++	bool enable:1;
++};
 +
-+TRACE_EVENT(irdma_create_listen,
-+	    TP_PROTO(struct irdma_device *iwdev, struct irdma_cm_info *cm_info),
-+	    TP_ARGS(iwdev, cm_info),
-+	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+			     __dynamic_array(u32, laddr, 4)
-+			     __field(u16, lport)
-+			     __field(bool, ipv4)
-+		    ),
-+	    TP_fast_assign(__entry->iwdev = iwdev;
-+			   __entry->lport = cm_info->loc_port;
-+			   __entry->ipv4 = cm_info->ipv4;
-+			   memcpy(__get_dynamic_array(laddr),
-+				  cm_info->loc_addr, 4);
-+		    ),
-+	    TP_printk("iwdev=%p  loc: %s",
-+		      __entry->iwdev,
-+		      __print_ip_addr(__get_dynamic_array(laddr),
-+				      __entry->lport, __entry->ipv4)
-+		    )
-+);
++struct irdma_sc_vsi;
++enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri);
++void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri);
++void irdma_ws_reset(struct irdma_sc_vsi *vsi);
 +
-+TRACE_EVENT(irdma_dec_refcnt_listen,
-+	    TP_PROTO(struct irdma_cm_listener *listener, void *caller),
-+	    TP_ARGS(listener, caller),
-+	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+		    __field(u32, refcnt)
-+		    __dynamic_array(u32, laddr, 4)
-+		    __field(u16, lport)
-+		    __field(bool, ipv4)
-+		    __field(void *, caller)
-+		    ),
-+	    TP_fast_assign(__entry->iwdev = listener->iwdev;
-+			   __entry->lport = listener->loc_port;
-+			   __entry->ipv4 = listener->ipv4;
-+			   memcpy(__get_dynamic_array(laddr),
-+				  listener->loc_addr, 4);
-+		    ),
-+	    TP_printk("iwdev=%p  caller=%pS  loc: %s",
-+		      __entry->iwdev,
-+		      __entry->caller,
-+		      __print_ip_addr(__get_dynamic_array(laddr),
-+				      __entry->lport, __entry->ipv4)
-+		    )
-+);
-+
-+DECLARE_EVENT_CLASS(listener_template,
-+		    TP_PROTO(struct irdma_cm_listener *listener),
-+		    TP_ARGS(listener),
-+		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+				     __field(u16, lport)
-+				     __field(u16, vlan_id)
-+				     __field(bool, ipv4)
-+				     __field(enum irdma_cm_listener_state,
-+					     state)
-+				     __dynamic_array(u32, laddr, 4)
-+			    ),
-+		    TP_fast_assign(__entry->iwdev = listener->iwdev;
-+				   __entry->lport = listener->loc_port;
-+				   __entry->vlan_id = listener->vlan_id;
-+				   __entry->ipv4 = listener->ipv4;
-+				   __entry->state = listener->listener_state;
-+				   memcpy(__get_dynamic_array(laddr),
-+					  listener->loc_addr, 4);
-+			    ),
-+		    TP_printk("iwdev=%p  vlan=%d  loc: %s",
-+			      __entry->iwdev,
-+			      __entry->vlan_id,
-+			      __print_ip_addr(__get_dynamic_array(laddr),
-+					      __entry->lport, __entry->ipv4)
-+			    )
-+);
-+
-+DEFINE_EVENT(listener_template, irdma_find_listener,
-+	     TP_PROTO(struct irdma_cm_listener *listener),
-+	     TP_ARGS(listener));
-+
-+DEFINE_EVENT(listener_template, irdma_del_multiple_qhash,
-+	     TP_PROTO(struct irdma_cm_listener *listener),
-+	     TP_ARGS(listener));
-+
-+TRACE_EVENT(irdma_negotiate_mpa_v2,
-+	    TP_PROTO(struct irdma_cm_node *cm_node),
-+	    TP_ARGS(cm_node),
-+	    TP_STRUCT__entry(__field(struct irdma_cm_node *, cm_node)
-+			     __field(u16, ord_size)
-+			     __field(u16, ird_size)
-+		    ),
-+	    TP_fast_assign(__entry->cm_node = cm_node;
-+			   __entry->ord_size = cm_node->ord_size;
-+			   __entry->ird_size = cm_node->ird_size;
-+		    ),
-+	    TP_printk("MPVA2 Negotiated cm_node=%p ORD:[%d], IRD:[%d]",
-+		      __entry->cm_node,
-+		      __entry->ord_size,
-+		      __entry->ird_size
-+		    )
-+);
-+
-+DECLARE_EVENT_CLASS(tos_template,
-+		    TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
-+		    TP_ARGS(iwdev, tos, user_pri),
-+		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+				     __field(u8, tos)
-+				     __field(u8, user_pri)
-+			    ),
-+		    TP_fast_assign(__entry->iwdev = iwdev;
-+				   __entry->tos = tos;
-+				   __entry->user_pri = user_pri;
-+			    ),
-+		    TP_printk("iwdev=%p  TOS:[%d]  UP:[%d]",
-+			      __entry->iwdev,
-+			      __entry->tos,
-+			      __entry->user_pri
-+			    )
-+);
-+
-+DEFINE_EVENT(tos_template, irdma_listener_tos,
-+	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
-+	     TP_ARGS(iwdev, tos, user_pri));
-+
-+DEFINE_EVENT(tos_template, irdma_dcb_tos,
-+	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
-+	     TP_ARGS(iwdev, tos, user_pri));
-+
-+DECLARE_EVENT_CLASS(qhash_template,
-+		    TP_PROTO(struct irdma_device *iwdev,
-+			     struct irdma_cm_listener *listener,
-+			     char *dev_addr),
-+		    TP_ARGS(iwdev, listener, dev_addr),
-+		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+				     __field(u16, lport)
-+				     __field(u16, vlan_id)
-+				     __field(bool, ipv4)
-+				     __dynamic_array(u32, laddr, 4)
-+				     __dynamic_array(u32, mac, ETH_ALEN)
-+			    ),
-+		    TP_fast_assign(__entry->iwdev = iwdev;
-+				   __entry->lport = listener->loc_port;
-+				   __entry->vlan_id = listener->vlan_id;
-+				   __entry->ipv4 = listener->ipv4;
-+				   memcpy(__get_dynamic_array(laddr),
-+					  listener->loc_addr, 4);
-+				   ether_addr_copy(__get_dynamic_array(mac),
-+						   dev_addr);
-+			    ),
-+		    TP_printk("iwdev=%p  vlan=%d  MAC=%6phC  loc: %s",
-+			      __entry->iwdev,
-+			      __entry->vlan_id,
-+			      __get_dynamic_array(mac),
-+			      __print_ip_addr(__get_dynamic_array(laddr),
-+					      __entry->lport, __entry->ipv4)
-+		    )
-+);
-+
-+DEFINE_EVENT(qhash_template, irdma_add_mqh_6,
-+	     TP_PROTO(struct irdma_device *iwdev,
-+		      struct irdma_cm_listener *listener, char *dev_addr),
-+	     TP_ARGS(iwdev, listener, dev_addr));
-+
-+DEFINE_EVENT(qhash_template, irdma_add_mqh_4,
-+	     TP_PROTO(struct irdma_device *iwdev,
-+		      struct irdma_cm_listener *listener, char *dev_addr),
-+	     TP_ARGS(iwdev, listener, dev_addr));
-+
-+TRACE_EVENT(irdma_addr_resolve,
-+	    TP_PROTO(struct irdma_device *iwdev, char *dev_addr),
-+	    TP_ARGS(iwdev, dev_addr),
-+	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+		    __dynamic_array(u8, mac, ETH_ALEN)
-+		    ),
-+	    TP_fast_assign(__entry->iwdev = iwdev;
-+		    ether_addr_copy(__get_dynamic_array(mac), dev_addr);
-+		    ),
-+	    TP_printk("iwdev=%p   MAC=%6phC", __entry->iwdev,
-+		      __get_dynamic_array(mac)
-+		    )
-+);
-+
-+TRACE_EVENT(irdma_send_cm_event,
-+	    TP_PROTO(struct irdma_cm_node *cm_node, struct iw_cm_id *cm_id,
-+		     enum iw_cm_event_type type, int status, void *caller),
-+	    TP_ARGS(cm_node, cm_id, type, status, caller),
-+	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+			     __field(struct irdma_cm_node *, cm_node)
-+			     __field(struct iw_cm_id *, cm_id)
-+			     __field(u32, refcount)
-+			     __field(u16, lport)
-+			     __field(u16, rport)
-+			     __field(enum irdma_cm_node_state, state)
-+			     __field(bool, ipv4)
-+			     __field(u16, vlan_id)
-+			     __field(int, accel)
-+			     __field(enum iw_cm_event_type, type)
-+			     __field(int, status)
-+			     __field(void *, caller)
-+			     __dynamic_array(u32, laddr, 4)
-+			     __dynamic_array(u32, raddr, 4)
-+		    ),
-+	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
-+			   __entry->cm_node = cm_node;
-+			   __entry->cm_id = cm_id;
-+			   __entry->refcount = refcount_read(&cm_node->refcnt);
-+			   __entry->state = cm_node->state;
-+			   __entry->lport = cm_node->loc_port;
-+			   __entry->rport = cm_node->rem_port;
-+			   __entry->ipv4 = cm_node->ipv4;
-+			   __entry->vlan_id = cm_node->vlan_id;
-+			   __entry->accel = cm_node->accelerated;
-+			   __entry->type = type;
-+			   __entry->status = status;
-+			   __entry->caller = caller;
-+			   memcpy(__get_dynamic_array(laddr),
-+				  cm_node->loc_addr, 4);
-+			   memcpy(__get_dynamic_array(raddr),
-+				  cm_node->rem_addr, 4);
-+		    ),
-+	    TP_printk("iwdev=%p  caller=%pS  cm_id=%p  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  status=%d  loc: %s  rem: %s",
-+		      __entry->iwdev,
-+		      __entry->caller,
-+		      __entry->cm_id,
-+		      __entry->cm_node,
-+		      __entry->refcount,
-+		      __entry->vlan_id,
-+		      __entry->accel,
-+		      parse_cm_state(__entry->state),
-+		      parse_iw_event_type(__entry->type),
-+		      __entry->status,
-+		      __print_ip_addr(__get_dynamic_array(laddr),
-+				      __entry->lport, __entry->ipv4),
-+		      __print_ip_addr(__get_dynamic_array(raddr),
-+				      __entry->rport, __entry->ipv4)
-+		    )
-+);
-+
-+TRACE_EVENT(irdma_send_cm_event_no_node,
-+	    TP_PROTO(struct iw_cm_id *cm_id, enum iw_cm_event_type type,
-+		     int status, void *caller),
-+	    TP_ARGS(cm_id, type, status, caller),
-+	    TP_STRUCT__entry(__field(struct iw_cm_id *, cm_id)
-+			     __field(enum iw_cm_event_type, type)
-+			     __field(int, status)
-+			     __field(void *, caller)
-+		    ),
-+	    TP_fast_assign(__entry->cm_id = cm_id;
-+			   __entry->type = type;
-+			   __entry->status = status;
-+			   __entry->caller = caller;
-+		    ),
-+	    TP_printk("cm_id=%p  caller=%pS  event_type=%s  status=%d",
-+		      __entry->cm_id,
-+		      __entry->caller,
-+		      parse_iw_event_type(__entry->type),
-+		      __entry->status
-+		    )
-+);
-+
-+DECLARE_EVENT_CLASS(cm_node_template,
-+		    TP_PROTO(struct irdma_cm_node *cm_node,
-+			     enum irdma_cm_event_type type, void *caller),
-+		    TP_ARGS(cm_node, type, caller),
-+		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+				     __field(struct irdma_cm_node *, cm_node)
-+				     __field(u32, refcount)
-+				     __field(u16, lport)
-+				     __field(u16, rport)
-+				     __field(enum irdma_cm_node_state, state)
-+				     __field(bool, ipv4)
-+				     __field(u16, vlan_id)
-+				     __field(int, accel)
-+				     __field(enum irdma_cm_event_type, type)
-+				     __field(void *, caller)
-+				     __dynamic_array(u32, laddr, 4)
-+				     __dynamic_array(u32, raddr, 4)
-+			    ),
-+		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
-+				   __entry->cm_node = cm_node;
-+				   __entry->refcount = refcount_read(&cm_node->refcnt);
-+				   __entry->state = cm_node->state;
-+				   __entry->lport = cm_node->loc_port;
-+				   __entry->rport = cm_node->rem_port;
-+				   __entry->ipv4 = cm_node->ipv4;
-+				   __entry->vlan_id = cm_node->vlan_id;
-+				   __entry->accel = cm_node->accelerated;
-+				   __entry->type = type;
-+				   __entry->caller = caller;
-+				   memcpy(__get_dynamic_array(laddr),
-+					  cm_node->loc_addr, 4);
-+				   memcpy(__get_dynamic_array(raddr),
-+					  cm_node->rem_addr, 4);
-+			    ),
-+		    TP_printk("iwdev=%p  caller=%pS  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  loc: %s  rem: %s",
-+			      __entry->iwdev,
-+			      __entry->caller,
-+			      __entry->cm_node,
-+			      __entry->refcount,
-+			      __entry->vlan_id,
-+			      __entry->accel,
-+			      parse_cm_state(__entry->state),
-+			      parse_cm_event_type(__entry->type),
-+			      __print_ip_addr(__get_dynamic_array(laddr),
-+					      __entry->lport, __entry->ipv4),
-+			      __print_ip_addr(__get_dynamic_array(raddr),
-+					      __entry->rport, __entry->ipv4)
-+		    )
-+);
-+
-+DEFINE_EVENT(cm_node_template, irdma_create_event,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_accept,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_connect,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_reject,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_find_node,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_send_reset,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_rem_ref_cm_node,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+DEFINE_EVENT(cm_node_template, irdma_cm_event_handler,
-+	     TP_PROTO(struct irdma_cm_node *cm_node,
-+		      enum irdma_cm_event_type type, void *caller),
-+	     TP_ARGS(cm_node, type, caller));
-+
-+TRACE_EVENT(open_err_template,
-+	    TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
-+	    TP_ARGS(cm_node, reset, caller),
-+	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+			     __field(struct irdma_cm_node *, cm_node)
-+			     __field(enum irdma_cm_node_state, state)
-+			     __field(bool, reset)
-+			     __field(void *, caller)
-+		    ),
-+	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
-+			   __entry->cm_node = cm_node;
-+			   __entry->state = cm_node->state;
-+			   __entry->reset = reset;
-+			   __entry->caller = caller;
-+		    ),
-+	    TP_printk("iwdev=%p  caller=%pS  node%p reset=%d  state=%s",
-+		      __entry->iwdev,
-+		      __entry->caller,
-+		      __entry->cm_node,
-+		      __entry->reset,
-+		      parse_cm_state(__entry->state)
-+		    )
-+);
-+
-+DEFINE_EVENT(open_err_template, irdma_active_open_err,
-+	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
-+	     TP_ARGS(cm_node, reset, caller));
-+
-+DEFINE_EVENT(open_err_template, irdma_passive_open_err,
-+	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
-+	     TP_ARGS(cm_node, reset, caller));
-+
-+DECLARE_EVENT_CLASS(cm_node_ah_template,
-+		    TP_PROTO(struct irdma_cm_node *cm_node),
-+		    TP_ARGS(cm_node),
-+		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
-+				     __field(struct irdma_cm_node *, cm_node)
-+				     __field(struct irdma_sc_ah *, ah)
-+				     __field(u32, refcount)
-+				     __field(u16, lport)
-+				     __field(u16, rport)
-+				     __field(enum irdma_cm_node_state, state)
-+				     __field(bool, ipv4)
-+				     __field(u16, vlan_id)
-+				     __field(int, accel)
-+				     __dynamic_array(u32, laddr, 4)
-+				     __dynamic_array(u32, raddr, 4)
-+			    ),
-+		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
-+				   __entry->cm_node = cm_node;
-+				   __entry->ah = cm_node->ah;
-+				   __entry->refcount = refcount_read(&cm_node->refcnt);
-+				   __entry->lport = cm_node->loc_port;
-+				   __entry->rport = cm_node->rem_port;
-+				   __entry->state = cm_node->state;
-+				   __entry->ipv4 = cm_node->ipv4;
-+				   __entry->vlan_id = cm_node->vlan_id;
-+				   __entry->accel = cm_node->accelerated;
-+				   memcpy(__get_dynamic_array(laddr),
-+					  cm_node->loc_addr, 4);
-+				   memcpy(__get_dynamic_array(raddr),
-+					  cm_node->rem_addr, 4);
-+			    ),
-+		    TP_printk("iwdev=%p  node=%p  ah=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s loc: %s  rem: %s",
-+			      __entry->iwdev,
-+			      __entry->cm_node,
-+			      __entry->ah,
-+			      __entry->refcount,
-+			      __entry->vlan_id,
-+			      __entry->accel,
-+			      parse_cm_state(__entry->state),
-+			      __print_ip_addr(__get_dynamic_array(laddr),
-+					      __entry->lport, __entry->ipv4),
-+			      __print_ip_addr(__get_dynamic_array(raddr),
-+					      __entry->rport, __entry->ipv4)
-+		    )
-+);
-+
-+DEFINE_EVENT(cm_node_ah_template, irdma_cm_free_ah,
-+	     TP_PROTO(struct irdma_cm_node *cm_node),
-+	     TP_ARGS(cm_node));
-+
-+DEFINE_EVENT(cm_node_ah_template, irdma_create_ah,
-+	     TP_PROTO(struct irdma_cm_node *cm_node),
-+	     TP_ARGS(cm_node));
-+
-+#endif  /* __TRACE_CM_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_cm
-+#include <trace/define_trace.h>
++#endif /* IRDMA_WS_H */
 -- 
 1.8.3.1
 
