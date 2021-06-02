@@ -2,46 +2,47 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1959C47092
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB0C1C47093
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9940A613DC
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B3EF60FEE
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 20:53:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229568AbhFBUzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229736AbhFBUzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 2 Jun 2021 16:55:11 -0400
-Received: from mga09.intel.com ([134.134.136.24]:34717 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:38824 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229758AbhFBUyx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Jun 2021 16:54:53 -0400
-IronPort-SDR: RmYAOW/JF/boIHzNwgSyacJCNzASE9XkvlefDmFtB1vBC+VptB3GGcE/v71UV17ggdVR8zdx5o
- eGaqpu+vsfKA==
-X-IronPort-AV: E=McAfee;i="6200,9189,10003"; a="203886297"
+        id S229767AbhFBUy5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Jun 2021 16:54:57 -0400
+IronPort-SDR: HPuKA1U8hJvwR1Qo16vLGt/a8unk6tOGtJE6s3XW5t4sEDWwN7aIRjj/THzvw9NOnxD0Seq3t6
+ EkJYjBXFfFew==
+X-IronPort-AV: E=McAfee;i="6200,9189,10003"; a="200879819"
 X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="203886297"
+   d="scan'208";a="200879819"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:08 -0700
-IronPort-SDR: rS2KokJ6UHqmh54Je7LaPuvSaUKaGrNFRclyHsPfmyq1DFxSJd5XRm/wOtcYNZPDZQ1jOMyQ06
- QbW6e+wB+dZA==
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:11 -0700
+IronPort-SDR: iR3BR5NyLVmfmpalptGN3NnvLKNz0/qYmlaiJHAb4+WMTUH77B82mZfnVHSsc7Tu9lKGO9RHUl
+ Hu2Q8SqKA0XA==
 X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="447561065"
+   d="scan'208";a="447561087"
 Received: from ssaleem-mobl.amr.corp.intel.com ([10.212.38.74])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:07 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 13:53:10 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     dledford@redhat.com, jgg@nvidia.com, kuba@kernel.org,
         davem@davemloft.net
 Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         david.m.ertman@intel.com, anthony.l.nguyen@intel.com,
-        gustavoars@kernel.org, Mustafa Ismail <mustafa.ismail@intel.com>,
+        gustavoars@kernel.org,
+        "Michael J. Ruhl" <michael.j.ruhl@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v7 10/16] RDMA/irdma: Add RoCEv2 UD OP support
-Date:   Wed,  2 Jun 2021 15:51:32 -0500
-Message-Id: <20210602205138.889-11-shiraz.saleem@intel.com>
+Subject: [PATCH v7 13/16] RDMA/irdma: Add dynamic tracing for CM
+Date:   Wed,  2 Jun 2021 15:51:35 -0500
+Message-Id: <20210602205138.889-14-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.31.0
 In-Reply-To: <20210602205138.889-1-shiraz.saleem@intel.com>
 References: <20210602205138.889-1-shiraz.saleem@intel.com>
@@ -51,529 +52,613 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 
-Add the header, data structures and functions
-to populate the WQE descriptors and issue the
-Control QP commands that support RoCEv2 UD operations.
+Add dynamic tracing functionality to debug connection
+management issues.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/uda.c   | 271 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/uda.h   |  89 ++++++++++++
- drivers/infiniband/hw/irdma/uda_d.h | 128 +++++++++++++++++
- 3 files changed, 488 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/uda.c
- create mode 100644 drivers/infiniband/hw/irdma/uda.h
- create mode 100644 drivers/infiniband/hw/irdma/uda_d.h
+ drivers/infiniband/hw/irdma/trace.c    | 112 ++++++++
+ drivers/infiniband/hw/irdma/trace.h    |   3 +
+ drivers/infiniband/hw/irdma/trace_cm.h | 458 +++++++++++++++++++++++++++++++++
+ 3 files changed, 573 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/trace.c
+ create mode 100644 drivers/infiniband/hw/irdma/trace.h
+ create mode 100644 drivers/infiniband/hw/irdma/trace_cm.h
 
-diff --git a/drivers/infiniband/hw/irdma/uda.c b/drivers/infiniband/hw/irdma/uda.c
+diff --git a/drivers/infiniband/hw/irdma/trace.c b/drivers/infiniband/hw/irdma/trace.c
 new file mode 100644
-index 0000000..f5b1b61
+index 0000000..b5133f4
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.c
-@@ -0,0 +1,271 @@
++++ b/drivers/infiniband/hw/irdma/trace.c
+@@ -0,0 +1,112 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+#include "uda.h"
-+#include "uda_d.h"
++/* Copyright (c) 2019 Intel Corporation */
++#define CREATE_TRACE_POINTS
++#include "trace.h"
 +
-+/**
-+ * irdma_sc_access_ah() - Create, modify or delete AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @op: Operation
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+enum irdma_status_code irdma_sc_access_ah(struct irdma_sc_cqp *cqp,
-+					  struct irdma_ah_info *info,
-+					  u32 op, u64 scratch)
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ipv4)
 +{
-+	__le64 *wqe;
-+	u64 qw1, qw2;
++	const char *ret = trace_seq_buffer_ptr(p);
 +
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe)
-+		return IRDMA_ERR_RING_FULL;
++	if (ipv4) {
++		__be32 myaddr = htonl(*addr);
 +
-+	set_64bit_val(wqe, 0, ether_addr_to_u64(info->mac_addr) << 16);
-+	qw1 = FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_PDINDEXLO, info->pd_idx) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_TC, info->tc_tos) |
-+	      FIELD_PREP(IRDMA_UDAQPC_VLANTAG, info->vlan_tag);
-+
-+	qw2 = FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ARPINDEX, info->dst_arpindex) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_FLOWLABEL, info->flow_label) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_HOPLIMIT, info->hop_ttl) |
-+	      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_PDINDEXHI, info->pd_idx >> 16);
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe, 40,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->dest_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->dest_ip_addr[1]));
-+		set_64bit_val(wqe, 32,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->dest_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[3]));
-+
-+		set_64bit_val(wqe, 56,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->src_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->src_ip_addr[1]));
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->src_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->src_ip_addr[3]));
++		trace_seq_printf(p, "%pI4:%d", &myaddr, htons(port));
 +	} else {
-+		set_64bit_val(wqe, 32,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[0]));
-+
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->src_ip_addr[0]));
++		trace_seq_printf(p, "%pI6:%d", addr, htons(port));
 +	}
++	trace_seq_putc(p, 0);
 +
-+	set_64bit_val(wqe, 8, qw1);
-+	set_64bit_val(wqe, 16, qw2);
-+
-+	dma_wmb(); /* need write block before writing WQE header */
-+
-+	set_64bit_val(
-+		wqe, 24,
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_WQEVALID, cqp->polarity) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_OPCODE, op) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK, info->do_lpbk) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_IPV4VALID, info->ipv4_valid) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_AVIDX, info->ah_idx) |
-+		FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG, info->insert_vlan_tag));
-+
-+	print_hex_dump_debug("WQE: MANAGE_AH WQE", DUMP_PREFIX_OFFSET, 16, 8,
-+			     wqe, IRDMA_CQP_WQE_SIZE * 8, false);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
++	return ret;
 +}
 +
-+/**
-+ * irdma_create_mg_ctx() - create a mcg context
-+ * @info: multicast group context info
-+ */
-+static enum irdma_status_code
-+irdma_create_mg_ctx(struct irdma_mcast_grp_info *info)
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type)
 +{
-+	struct irdma_mcast_grp_ctx_entry_info *entry_info = NULL;
-+	u8 idx = 0; /* index in the array */
-+	u8 ctx_idx = 0; /* index in the MG context */
-+
-+	memset(info->dma_mem_mc.va, 0, IRDMA_MAX_MGS_PER_CTX * sizeof(u64));
-+
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		entry_info = &info->mg_ctx_info[idx];
-+		if (entry_info->valid_entry) {
-+			set_64bit_val((__le64 *)info->dma_mem_mc.va,
-+				      ctx_idx * sizeof(u64),
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_DESTPORT, entry_info->dest_port) |
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_VALIDENT, entry_info->valid_entry) |
-+				      FIELD_PREP(IRDMA_UDA_MGCTX_QPID, entry_info->qp_id));
-+			ctx_idx++;
-+		}
++	switch (iw_type) {
++	case IW_CM_EVENT_CONNECT_REQUEST:
++		return "IwRequest";
++	case IW_CM_EVENT_CONNECT_REPLY:
++		return "IwReply";
++	case IW_CM_EVENT_ESTABLISHED:
++		return "IwEstablished";
++	case IW_CM_EVENT_DISCONNECT:
++		return "IwDisconnect";
++	case IW_CM_EVENT_CLOSE:
++		return "IwClose";
 +	}
 +
-+	return 0;
++	return "Unknown";
 +}
 +
-+/**
-+ * irdma_access_mcast_grp() - Access mcast group based on op
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @op: operation to perform
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+enum irdma_status_code irdma_access_mcast_grp(struct irdma_sc_cqp *cqp,
-+					      struct irdma_mcast_grp_info *info,
-+					      u32 op, u64 scratch)
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type)
 +{
-+	__le64 *wqe;
-+	enum irdma_status_code ret_code = 0;
-+
-+	if (info->mg_id >= IRDMA_UDA_MAX_FSI_MGS) {
-+		ibdev_dbg(to_ibdev(cqp->dev), "WQE: mg_id out of range\n");
-+		return IRDMA_ERR_PARAM;
++	switch (cm_type) {
++	case IRDMA_CM_EVENT_ESTABLISHED:
++		return "CmEstablished";
++	case IRDMA_CM_EVENT_MPA_REQ:
++		return "CmMPA_REQ";
++	case IRDMA_CM_EVENT_MPA_CONNECT:
++		return "CmMPA_CONNECT";
++	case IRDMA_CM_EVENT_MPA_ACCEPT:
++		return "CmMPA_ACCEPT";
++	case IRDMA_CM_EVENT_MPA_REJECT:
++		return "CmMPA_REJECT";
++	case IRDMA_CM_EVENT_MPA_ESTABLISHED:
++		return "CmMPA_ESTABLISHED";
++	case IRDMA_CM_EVENT_CONNECTED:
++		return "CmConnected";
++	case IRDMA_CM_EVENT_RESET:
++		return "CmReset";
++	case IRDMA_CM_EVENT_ABORTED:
++		return "CmAborted";
++	case IRDMA_CM_EVENT_UNKNOWN:
++		return "none";
 +	}
-+
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe) {
-+		ibdev_dbg(to_ibdev(cqp->dev), "WQE: ring full\n");
-+		return IRDMA_ERR_RING_FULL;
-+	}
-+
-+	ret_code = irdma_create_mg_ctx(info);
-+	if (ret_code)
-+		return ret_code;
-+
-+	set_64bit_val(wqe, 32, info->dma_mem_mc.pa);
-+	set_64bit_val(wqe, 16,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_VLANID, info->vlan_id) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_QS_HANDLE, info->qs_handle));
-+	set_64bit_val(wqe, 0, ether_addr_to_u64(info->dest_mac_addr));
-+	set_64bit_val(wqe, 8,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID, info->hmc_fcn_id));
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe, 56,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR0, info->dest_ip_addr[0]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR1, info->dest_ip_addr[1]));
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR2, info->dest_ip_addr[2]) |
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[3]));
-+	} else {
-+		set_64bit_val(wqe, 48,
-+			      FIELD_PREP(IRDMA_UDA_CQPSQ_MAV_ADDR3, info->dest_ip_addr[0]));
-+	}
-+
-+	dma_wmb(); /* need write memory block before writing the WQE header. */
-+
-+	set_64bit_val(wqe, 24,
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_WQEVALID, cqp->polarity) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_OPCODE, op) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_MGIDX, info->mg_id) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_VLANVALID, info->vlan_valid) |
-+		      FIELD_PREP(IRDMA_UDA_CQPSQ_MG_IPV4VALID, info->ipv4_valid));
-+
-+	print_hex_dump_debug("WQE: MANAGE_MCG WQE", DUMP_PREFIX_OFFSET, 16, 8,
-+			     wqe, IRDMA_CQP_WQE_SIZE * 8, false);
-+	print_hex_dump_debug("WQE: MCG_HOST CTX WQE", DUMP_PREFIX_OFFSET, 16,
-+			     8, info->dma_mem_mc.va,
-+			     IRDMA_MAX_MGS_PER_CTX * 8, false);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
++	return "Unknown";
 +}
 +
-+/**
-+ * irdma_compare_mgs - Compares two multicast group structures
-+ * @entry1: Multcast group info
-+ * @entry2: Multcast group info in context
-+ */
-+static bool irdma_compare_mgs(struct irdma_mcast_grp_ctx_entry_info *entry1,
-+			      struct irdma_mcast_grp_ctx_entry_info *entry2)
++const char *parse_cm_state(enum irdma_cm_node_state state)
 +{
-+	if (entry1->dest_port == entry2->dest_port &&
-+	    entry1->qp_id == entry2->qp_id)
-+		return true;
-+
-+	return false;
-+}
-+
-+/**
-+ * irdma_sc_add_mcast_grp - Allocates mcast group entry in ctx
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ */
-+enum irdma_status_code irdma_sc_add_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+					      struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+	bool free_entry_found = false;
-+	u32 free_entry_idx = 0;
-+
-+	/* find either an identical or a free entry for a multicast group */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (ctx->mg_ctx_info[idx].valid_entry) {
-+			if (irdma_compare_mgs(&ctx->mg_ctx_info[idx], mg)) {
-+				ctx->mg_ctx_info[idx].use_cnt++;
-+				return 0;
-+			}
-+			continue;
-+		}
-+		if (!free_entry_found) {
-+			free_entry_found = true;
-+			free_entry_idx = idx;
-+		}
++	switch (state) {
++	case IRDMA_CM_STATE_UNKNOWN:
++		return "UNKNOWN";
++	case IRDMA_CM_STATE_INITED:
++		return "INITED";
++	case IRDMA_CM_STATE_LISTENING:
++		return "LISTENING";
++	case IRDMA_CM_STATE_SYN_RCVD:
++		return "SYN_RCVD";
++	case IRDMA_CM_STATE_SYN_SENT:
++		return "SYN_SENT";
++	case IRDMA_CM_STATE_ONE_SIDE_ESTABLISHED:
++		return "ONE_SIDE_ESTABLISHED";
++	case IRDMA_CM_STATE_ESTABLISHED:
++		return "ESTABLISHED";
++	case IRDMA_CM_STATE_ACCEPTING:
++		return "ACCEPTING";
++	case IRDMA_CM_STATE_MPAREQ_SENT:
++		return "MPAREQ_SENT";
++	case IRDMA_CM_STATE_MPAREQ_RCVD:
++		return "MPAREQ_RCVD";
++	case IRDMA_CM_STATE_MPAREJ_RCVD:
++		return "MPAREJ_RECVD";
++	case IRDMA_CM_STATE_OFFLOADED:
++		return "OFFLOADED";
++	case IRDMA_CM_STATE_FIN_WAIT1:
++		return "FIN_WAIT1";
++	case IRDMA_CM_STATE_FIN_WAIT2:
++		return "FIN_WAIT2";
++	case IRDMA_CM_STATE_CLOSE_WAIT:
++		return "CLOSE_WAIT";
++	case IRDMA_CM_STATE_TIME_WAIT:
++		return "TIME_WAIT";
++	case IRDMA_CM_STATE_LAST_ACK:
++		return "LAST_ACK";
++	case IRDMA_CM_STATE_CLOSING:
++		return "CLOSING";
++	case IRDMA_CM_STATE_LISTENER_DESTROYED:
++		return "LISTENER_DESTROYED";
++	case IRDMA_CM_STATE_CLOSED:
++		return "CLOSED";
 +	}
-+
-+	if (free_entry_found) {
-+		ctx->mg_ctx_info[free_entry_idx] = *mg;
-+		ctx->mg_ctx_info[free_entry_idx].valid_entry = true;
-+		ctx->mg_ctx_info[free_entry_idx].use_cnt = 1;
-+		ctx->no_of_mgs++;
-+		return 0;
-+	}
-+
-+	return IRDMA_ERR_NO_MEMORY;
++	return ("Bad state");
 +}
-+
-+/**
-+ * irdma_sc_del_mcast_grp - Delete mcast group
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ *
-+ * Finds and removes a specific mulicast group from context, all
-+ * parameters must match to remove a multicast group.
-+ */
-+enum irdma_status_code irdma_sc_del_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+					      struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+
-+	/* find an entry in multicast group context */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (!ctx->mg_ctx_info[idx].valid_entry)
-+			continue;
-+
-+		if (irdma_compare_mgs(mg, &ctx->mg_ctx_info[idx])) {
-+			ctx->mg_ctx_info[idx].use_cnt--;
-+
-+			if (!ctx->mg_ctx_info[idx].use_cnt) {
-+				ctx->mg_ctx_info[idx].valid_entry = false;
-+				ctx->no_of_mgs--;
-+				/* Remove gap if element was not the last */
-+				if (idx != ctx->no_of_mgs &&
-+				    ctx->no_of_mgs > 0) {
-+					memcpy(&ctx->mg_ctx_info[idx],
-+					       &ctx->mg_ctx_info[ctx->no_of_mgs - 1],
-+					       sizeof(ctx->mg_ctx_info[idx]));
-+					ctx->mg_ctx_info[ctx->no_of_mgs - 1].valid_entry = false;
-+				}
-+			}
-+
-+			return 0;
-+		}
-+	}
-+
-+	return IRDMA_ERR_PARAM;
-+}
-diff --git a/drivers/infiniband/hw/irdma/uda.h b/drivers/infiniband/hw/irdma/uda.h
+diff --git a/drivers/infiniband/hw/irdma/trace.h b/drivers/infiniband/hw/irdma/trace.h
 new file mode 100644
-index 0000000..a4ad036
+index 0000000..702e4ef
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.h
-@@ -0,0 +1,89 @@
++++ b/drivers/infiniband/hw/irdma/trace.h
+@@ -0,0 +1,3 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#ifndef IRDMA_UDA_H
-+#define IRDMA_UDA_H
-+
-+#define IRDMA_UDA_MAX_FSI_MGS	4096
-+#define IRDMA_UDA_MAX_PFS	16
-+#define IRDMA_UDA_MAX_VFS	128
-+
-+struct irdma_sc_cqp;
-+
-+struct irdma_ah_info {
-+	struct irdma_sc_vsi *vsi;
-+	u32 pd_idx;
-+	u32 dst_arpindex;
-+	u32 dest_ip_addr[4];
-+	u32 src_ip_addr[4];
-+	u32 flow_label;
-+	u32 ah_idx;
-+	u16 vlan_tag;
-+	u8 insert_vlan_tag;
-+	u8 tc_tos;
-+	u8 hop_ttl;
-+	u8 mac_addr[ETH_ALEN];
-+	bool ah_valid:1;
-+	bool ipv4_valid:1;
-+	bool do_lpbk:1;
-+};
-+
-+struct irdma_sc_ah {
-+	struct irdma_sc_dev *dev;
-+	struct irdma_ah_info ah_info;
-+};
-+
-+enum irdma_status_code irdma_sc_add_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+					      struct irdma_mcast_grp_ctx_entry_info *mg);
-+enum irdma_status_code irdma_sc_del_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+					      struct irdma_mcast_grp_ctx_entry_info *mg);
-+enum irdma_status_code irdma_sc_access_ah(struct irdma_sc_cqp *cqp, struct irdma_ah_info *info,
-+					  u32 op, u64 scratch);
-+enum irdma_status_code irdma_access_mcast_grp(struct irdma_sc_cqp *cqp,
-+					      struct irdma_mcast_grp_info *info,
-+					      u32 op, u64 scratch);
-+
-+static inline void irdma_sc_init_ah(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah)
-+{
-+	ah->dev = dev;
-+}
-+
-+static inline enum irdma_status_code irdma_sc_create_ah(struct irdma_sc_cqp *cqp,
-+							struct irdma_ah_info *info,
-+							u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_CREATE_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+static inline enum irdma_status_code irdma_sc_destroy_ah(struct irdma_sc_cqp *cqp,
-+							 struct irdma_ah_info *info,
-+							 u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp, info, IRDMA_CQP_OP_DESTROY_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+static inline enum irdma_status_code irdma_sc_create_mcast_grp(struct irdma_sc_cqp *cqp,
-+							       struct irdma_mcast_grp_info *info,
-+							       u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_CREATE_MCAST_GRP,
-+				      scratch);
-+}
-+
-+static inline enum irdma_status_code irdma_sc_modify_mcast_grp(struct irdma_sc_cqp *cqp,
-+							       struct irdma_mcast_grp_info *info,
-+							       u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_MODIFY_MCAST_GRP,
-+				      scratch);
-+}
-+
-+static inline enum irdma_status_code irdma_sc_destroy_mcast_grp(struct irdma_sc_cqp *cqp,
-+								struct irdma_mcast_grp_info *info,
-+								u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp, info, IRDMA_CQP_OP_DESTROY_MCAST_GRP,
-+				      scratch);
-+}
-+#endif /* IRDMA_UDA_H */
-diff --git a/drivers/infiniband/hw/irdma/uda_d.h b/drivers/infiniband/hw/irdma/uda_d.h
++/* Copyright (c) 2019 Intel Corporation */
++#include "trace_cm.h"
+diff --git a/drivers/infiniband/hw/irdma/trace_cm.h b/drivers/infiniband/hw/irdma/trace_cm.h
 new file mode 100644
-index 0000000..bfc81ca
+index 0000000..bcf10ec
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda_d.h
-@@ -0,0 +1,128 @@
++++ b/drivers/infiniband/hw/irdma/trace_cm.h
+@@ -0,0 +1,458 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
-+/* Copyright (c) 2016 - 2021 Intel Corporation */
-+#ifndef IRDMA_UDA_D_H
-+#define IRDMA_UDA_D_H
++/* Copyright (c) 2019 - 2021 Intel Corporation */
++#if !defined(__TRACE_CM_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __TRACE_CM_H
 +
-+/* L4 packet type */
-+#define IRDMA_E_UDA_SQ_L4T_UNKNOWN	0
-+#define IRDMA_E_UDA_SQ_L4T_TCP		1
-+#define IRDMA_E_UDA_SQ_L4T_SCTP		2
-+#define IRDMA_E_UDA_SQ_L4T_UDP		3
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
-+/* Inner IP header type */
-+#define IRDMA_E_UDA_SQ_IIPT_UNKNOWN		0
-+#define IRDMA_E_UDA_SQ_IIPT_IPV6		1
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_NO_CSUM	2
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_CSUM		3
-+#define IRDMA_UDA_QPSQ_PUSHWQE BIT_ULL(56)
-+#define IRDMA_UDA_QPSQ_INLINEDATAFLAG BIT_ULL(57)
-+#define IRDMA_UDA_QPSQ_INLINEDATALEN GENMASK_ULL(55, 48)
-+#define IRDMA_UDA_QPSQ_ADDFRAGCNT GENMASK_ULL(41, 38)
-+#define IRDMA_UDA_QPSQ_IPFRAGFLAGS GENMASK_ULL(43, 42)
-+#define IRDMA_UDA_QPSQ_NOCHECKSUM BIT_ULL(45)
-+#define IRDMA_UDA_QPSQ_AHIDXVALID BIT_ULL(46)
-+#define IRDMA_UDA_QPSQ_LOCAL_FENCE BIT_ULL(61)
-+#define IRDMA_UDA_QPSQ_AHIDX GENMASK_ULL(16, 0)
-+#define IRDMA_UDA_QPSQ_PROTOCOL GENMASK_ULL(23, 16)
-+#define IRDMA_UDA_QPSQ_EXTHDRLEN GENMASK_ULL(40, 32)
-+#define IRDMA_UDA_QPSQ_MULTICAST BIT_ULL(63)
-+#define IRDMA_UDA_QPSQ_MACLEN GENMASK_ULL(62, 56)
-+#define IRDMA_UDA_QPSQ_MACLEN_LINE 2
-+#define IRDMA_UDA_QPSQ_IPLEN GENMASK_ULL(54, 48)
-+#define IRDMA_UDA_QPSQ_IPLEN_LINE 2
-+#define IRDMA_UDA_QPSQ_L4T GENMASK_ULL(31, 30)
-+#define IRDMA_UDA_QPSQ_L4T_LINE 2
-+#define IRDMA_UDA_QPSQ_IIPT GENMASK_ULL(29, 28)
-+#define IRDMA_UDA_QPSQ_IIPT_LINE 2
++#include "main.h"
 +
-+#define IRDMA_UDA_QPSQ_DO_LPB_LINE 3
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM BIT_ULL(45)
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_LINE 3
-+#define IRDMA_UDA_QPSQ_IMMDATA GENMASK_ULL(63, 0)
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ivp4);
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type);
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type);
++const char *parse_cm_state(enum irdma_cm_node_state);
++#define __print_ip_addr(addr, port, ipv4) print_ip_addr(p, addr, port, ipv4)
 +
-+/* Byte Offset 0 */
-+#define IRDMA_UDAQPC_IPV4_M BIT_ULL(3)
-+#define IRDMA_UDAQPC_INSERTVLANTAG BIT_ULL(5)
-+#define IRDMA_UDAQPC_ISQP1 BIT_ULL(6)
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM irdma_cm
 +
-+#define IRDMA_UDAQPC_ECNENABLE BIT_ULL(14)
-+#define IRDMA_UDAQPC_PDINDEXHI GENMASK_ULL(21, 20)
-+#define IRDMA_UDAQPC_DCTCPENABLE BIT_ULL(25)
++TRACE_EVENT(irdma_create_listen,
++	    TP_PROTO(struct irdma_device *iwdev, struct irdma_cm_info *cm_info),
++	    TP_ARGS(iwdev, cm_info),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __dynamic_array(u32, laddr, 4)
++			     __field(u16, lport)
++			     __field(bool, ipv4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++			   __entry->lport = cm_info->loc_port;
++			   __entry->ipv4 = cm_info->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_info->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  loc: %s",
++		      __entry->iwdev,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
 +
-+#define IRDMA_UDAQPC_RCVTPHEN IRDMAQPC_RCVTPHEN
-+#define IRDMA_UDAQPC_XMITTPHEN IRDMAQPC_XMITTPHEN
-+#define IRDMA_UDAQPC_RQTPHEN IRDMAQPC_RQTPHEN
-+#define IRDMA_UDAQPC_SQTPHEN IRDMAQPC_SQTPHEN
-+#define IRDMA_UDAQPC_PPIDX IRDMAQPC_PPIDX
-+#define IRDMA_UDAQPC_PMENA IRDMAQPC_PMENA
-+#define IRDMA_UDAQPC_INSERTTAG2 BIT_ULL(11)
-+#define IRDMA_UDAQPC_INSERTTAG3 BIT_ULL(14)
++TRACE_EVENT(irdma_dec_refcnt_listen,
++	    TP_PROTO(struct irdma_cm_listener *listener, void *caller),
++	    TP_ARGS(listener, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __field(u32, refcnt)
++		    __dynamic_array(u32, laddr, 4)
++		    __field(u16, lport)
++		    __field(bool, ipv4)
++		    __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = listener->iwdev;
++			   __entry->lport = listener->loc_port;
++			   __entry->ipv4 = listener->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  listener->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  loc: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
 +
-+#define IRDMA_UDAQPC_RQSIZE IRDMAQPC_RQSIZE
-+#define IRDMA_UDAQPC_SQSIZE IRDMAQPC_SQSIZE
-+#define IRDMA_UDAQPC_TXCQNUM IRDMAQPC_TXCQNUM
-+#define IRDMA_UDAQPC_RXCQNUM IRDMAQPC_RXCQNUM
-+#define IRDMA_UDAQPC_QPCOMPCTX IRDMAQPC_QPCOMPCTX
-+#define IRDMA_UDAQPC_SQTPHVAL IRDMAQPC_SQTPHVAL
-+#define IRDMA_UDAQPC_RQTPHVAL IRDMAQPC_RQTPHVAL
-+#define IRDMA_UDAQPC_QSHANDLE IRDMAQPC_QSHANDLE
-+#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE GENMASK_ULL(49, 48)
-+#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE GENMASK_ULL(33, 32)
-+#define IRDMA_UDAQPC_PRIVILEGEENABLE BIT_ULL(25)
-+#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE BIT_ULL(26)
-+#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX GENMASK_ULL(6, 0)
-+#define IRDMA_UDAQPC_PRIVHDRGENENABLE BIT_ULL(0)
-+#define IRDMA_UDAQPC_RQHDRSPLITENABLE BIT_ULL(3)
-+#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE BIT_ULL(2)
-+#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE BIT_ULL(1)
-+#define IRDMA_UDAQPC_IPID GENMASK_ULL(47, 32)
-+#define IRDMA_UDAQPC_SNDMSS GENMASK_ULL(29, 16)
-+#define IRDMA_UDAQPC_VLANTAG GENMASK_ULL(15, 0)
++DECLARE_EVENT_CLASS(listener_template,
++		    TP_PROTO(struct irdma_cm_listener *listener),
++		    TP_ARGS(listener),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __field(enum irdma_cm_listener_state,
++					     state)
++				     __dynamic_array(u32, laddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = listener->iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   __entry->state = listener->listener_state;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++			    )
++);
 +
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI GENMASK_ULL(21, 20)
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO GENMASK_ULL(63, 48)
-+#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX GENMASK_ULL(29, 24)
-+#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX GENMASK_ULL(63, 48)
-+#define IRDMA_UDA_CQPSQ_MAV_TC GENMASK_ULL(39, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT GENMASK_ULL(39, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL GENMASK_ULL(19, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR0 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR1 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR2 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR3 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_MAV_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK BIT_ULL(62)
-+#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID BIT_ULL(59)
-+#define IRDMA_UDA_CQPSQ_MAV_AVIDX GENMASK_ULL(16, 0)
-+#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG BIT_ULL(60)
-+#define IRDMA_UDA_MGCTX_VFFLAG BIT_ULL(29)
-+#define IRDMA_UDA_MGCTX_DESTPORT GENMASK_ULL(47, 32)
-+#define IRDMA_UDA_MGCTX_VFID GENMASK_ULL(28, 22)
-+#define IRDMA_UDA_MGCTX_VALIDENT BIT_ULL(31)
-+#define IRDMA_UDA_MGCTX_PFID GENMASK_ULL(21, 18)
-+#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT BIT_ULL(30)
-+#define IRDMA_UDA_MGCTX_QPID GENMASK_ULL(17, 0)
-+#define IRDMA_UDA_CQPSQ_MG_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_MG_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_MG_MGIDX GENMASK_ULL(12, 0)
-+#define IRDMA_UDA_CQPSQ_MG_IPV4VALID BIT_ULL(60)
-+#define IRDMA_UDA_CQPSQ_MG_VLANVALID BIT_ULL(59)
-+#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID GENMASK_ULL(5, 0)
-+#define IRDMA_UDA_CQPSQ_MG_VLANID GENMASK_ULL(43, 32)
-+#define IRDMA_UDA_CQPSQ_QS_HANDLE GENMASK_ULL(9, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_QPN GENMASK_ULL(49, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ BIT_ULL(0)
-+#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT GENMASK_ULL(31, 16)
-+#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT GENMASK_ULL(15, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR0 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR1 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR2 GENMASK_ULL(63, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR3 GENMASK_ULL(31, 0)
-+#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID BIT_ULL(63)
-+#define IRDMA_UDA_CQPSQ_QHASH_OPCODE GENMASK_ULL(37, 32)
-+#define IRDMA_UDA_CQPSQ_QHASH_MANAGE GENMASK_ULL(62, 61)
-+#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID GENMASK_ULL(60, 60)
-+#define IRDMA_UDA_CQPSQ_QHASH_LANFWD GENMASK_ULL(59, 59)
-+#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE GENMASK_ULL(44, 42)
-+#endif /* IRDMA_UDA_D_H */
++DEFINE_EVENT(listener_template, irdma_find_listener,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
++
++DEFINE_EVENT(listener_template, irdma_del_multiple_qhash,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
++
++TRACE_EVENT(irdma_negotiate_mpa_v2,
++	    TP_PROTO(struct irdma_cm_node *cm_node),
++	    TP_ARGS(cm_node),
++	    TP_STRUCT__entry(__field(struct irdma_cm_node *, cm_node)
++			     __field(u16, ord_size)
++			     __field(u16, ird_size)
++		    ),
++	    TP_fast_assign(__entry->cm_node = cm_node;
++			   __entry->ord_size = cm_node->ord_size;
++			   __entry->ird_size = cm_node->ird_size;
++		    ),
++	    TP_printk("MPVA2 Negotiated cm_node=%p ORD:[%d], IRD:[%d]",
++		      __entry->cm_node,
++		      __entry->ord_size,
++		      __entry->ird_size
++		    )
++);
++
++DECLARE_EVENT_CLASS(tos_template,
++		    TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++		    TP_ARGS(iwdev, tos, user_pri),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u8, tos)
++				     __field(u8, user_pri)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->tos = tos;
++				   __entry->user_pri = user_pri;
++			    ),
++		    TP_printk("iwdev=%p  TOS:[%d]  UP:[%d]",
++			      __entry->iwdev,
++			      __entry->tos,
++			      __entry->user_pri
++			    )
++);
++
++DEFINE_EVENT(tos_template, irdma_listener_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
++
++DEFINE_EVENT(tos_template, irdma_dcb_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
++
++DECLARE_EVENT_CLASS(qhash_template,
++		    TP_PROTO(struct irdma_device *iwdev,
++			     struct irdma_cm_listener *listener,
++			     char *dev_addr),
++		    TP_ARGS(iwdev, listener, dev_addr),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, mac, ETH_ALEN)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++				   ether_addr_copy(__get_dynamic_array(mac),
++						   dev_addr);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  MAC=%6phC  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __get_dynamic_array(mac),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(qhash_template, irdma_add_mqh_6,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++DEFINE_EVENT(qhash_template, irdma_add_mqh_4,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++TRACE_EVENT(irdma_addr_resolve,
++	    TP_PROTO(struct irdma_device *iwdev, char *dev_addr),
++	    TP_ARGS(iwdev, dev_addr),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __dynamic_array(u8, mac, ETH_ALEN)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++		    ether_addr_copy(__get_dynamic_array(mac), dev_addr);
++		    ),
++	    TP_printk("iwdev=%p   MAC=%6phC", __entry->iwdev,
++		      __get_dynamic_array(mac)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event,
++	    TP_PROTO(struct irdma_cm_node *cm_node, struct iw_cm_id *cm_id,
++		     enum iw_cm_event_type type, int status, void *caller),
++	    TP_ARGS(cm_node, cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(struct iw_cm_id *, cm_id)
++			     __field(u32, refcount)
++			     __field(u16, lport)
++			     __field(u16, rport)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, ipv4)
++			     __field(u16, vlan_id)
++			     __field(int, accel)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++			     __dynamic_array(u32, laddr, 4)
++			     __dynamic_array(u32, raddr, 4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->cm_id = cm_id;
++			   __entry->refcount = refcount_read(&cm_node->refcnt);
++			   __entry->state = cm_node->state;
++			   __entry->lport = cm_node->loc_port;
++			   __entry->rport = cm_node->rem_port;
++			   __entry->ipv4 = cm_node->ipv4;
++			   __entry->vlan_id = cm_node->vlan_id;
++			   __entry->accel = cm_node->accelerated;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_node->loc_addr, 4);
++			   memcpy(__get_dynamic_array(raddr),
++				  cm_node->rem_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  cm_id=%p  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  status=%d  loc: %s  rem: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_id,
++		      __entry->cm_node,
++		      __entry->refcount,
++		      __entry->vlan_id,
++		      __entry->accel,
++		      parse_cm_state(__entry->state),
++		      parse_iw_event_type(__entry->type),
++		      __entry->status,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4),
++		      __print_ip_addr(__get_dynamic_array(raddr),
++				      __entry->rport, __entry->ipv4)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event_no_node,
++	    TP_PROTO(struct iw_cm_id *cm_id, enum iw_cm_event_type type,
++		     int status, void *caller),
++	    TP_ARGS(cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct iw_cm_id *, cm_id)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->cm_id = cm_id;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("cm_id=%p  caller=%pS  event_type=%s  status=%d",
++		      __entry->cm_id,
++		      __entry->caller,
++		      parse_iw_event_type(__entry->type),
++		      __entry->status
++		    )
++);
++
++DECLARE_EVENT_CLASS(cm_node_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node,
++			     enum irdma_cm_event_type type, void *caller),
++		    TP_ARGS(cm_node, type, caller),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __field(enum irdma_cm_event_type, type)
++				     __field(void *, caller)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->refcount = refcount_read(&cm_node->refcnt);
++				   __entry->state = cm_node->state;
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   __entry->type = type;
++				   __entry->caller = caller;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  caller=%pS  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->caller,
++			      __entry->cm_node,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      parse_cm_event_type(__entry->type),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_template, irdma_create_event,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_accept,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_connect,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_reject,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_find_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_send_reset,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_rem_ref_cm_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_cm_event_handler,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++TRACE_EVENT(open_err_template,
++	    TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	    TP_ARGS(cm_node, reset, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, reset)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->state = cm_node->state;
++			   __entry->reset = reset;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  node%p reset=%d  state=%s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_node,
++		      __entry->reset,
++		      parse_cm_state(__entry->state)
++		    )
++);
++
++DEFINE_EVENT(open_err_template, irdma_active_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DEFINE_EVENT(open_err_template, irdma_passive_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DECLARE_EVENT_CLASS(cm_node_ah_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node),
++		    TP_ARGS(cm_node),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(struct irdma_sc_ah *, ah)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->ah = cm_node->ah;
++				   __entry->refcount = refcount_read(&cm_node->refcnt);
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->state = cm_node->state;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  node=%p  ah=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->cm_node,
++			      __entry->ah,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_ah_template, irdma_cm_free_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++DEFINE_EVENT(cm_node_ah_template, irdma_create_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++#endif  /* __TRACE_CM_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_cm
++#include <trace/define_trace.h>
 -- 
 1.8.3.1
 
