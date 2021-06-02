@@ -2,80 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UPPERCASE_50_75 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DABCC47083
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4317EC47093
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5522A613AC
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:28:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 23EA6613AE
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 08:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232572AbhFBIaV convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Jun 2021 04:30:21 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:3383 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230525AbhFBIaV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Jun 2021 04:30:21 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4Fw2Br03Jlz67S3;
-        Wed,  2 Jun 2021 16:24:52 +0800 (CST)
-Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 16:28:33 +0800
+        id S232973AbhFBI74 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Jun 2021 04:59:56 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:6136 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231462AbhFBI7y (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Jun 2021 04:59:54 -0400
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Fw2t53V2NzYpxk;
+        Wed,  2 Jun 2021 16:55:25 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Wed, 2 Jun 2021 16:28:32 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2176.012;
- Wed, 2 Jun 2021 16:28:32 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     "dledford@redhat.com" <dledford@redhat.com>,
-        "jgg@nvidia.com" <jgg@nvidia.com>
-CC:     "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>, chenglang <chenglang@huawei.com>
-Subject: Re: [PATCH v2 for-next 3/7] RDMA/hns: Use new interface to modify QP
- context
-Thread-Topic: [PATCH v2 for-next 3/7] RDMA/hns: Use new interface to modify QP
- context
-Thread-Index: AQHXVhzXF+kB4ZPb2kapX2a5uLt4QQ==
-Date:   Wed, 2 Jun 2021 08:28:32 +0000
-Message-ID: <3670a41073ee412c8b1c941e15423664@huawei.com>
-References: <1622465974-20415-1-git-send-email-liweihang@huawei.com>
- <1622465974-20415-4-git-send-email-liweihang@huawei.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+ 15.1.2176.2; Wed, 2 Jun 2021 16:58:09 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2176.2; Wed, 2 Jun 2021 16:58:09 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH RESEND v2 for-next 1/7] RDMA/hns: Fix potential compile warnings on hr_reg_write()
+Date:   Wed, 2 Jun 2021 16:57:39 +0800
+Message-ID: <1622624265-44796-2-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1622624265-44796-1-git-send-email-liweihang@huawei.com>
+References: <1622624265-44796-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggema753-chm.china.huawei.com (10.1.198.195)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/5/31 20:59, liweihang wrote:
-> +#define QPC_OWNER_MODE QPC_FIELD_LOC(1536, 1536)
-> +#define QPC_CIRE_SLV_SQ_EN QPC_FIELD_LOC(1537, 1537)
-> +#define QPC_CIRE_DOING QPC_FIELD_LOC(1538, 1538)
-> +#define QPC_CIRE_RESULT QPC_FIELD_LOC(1539, 1539)
-> +#define QPC_OWNER_DB_WAIT_DO QPC_FIELD_LOC(1540, 1540)
-> +#define QPC_SQ_WQE_INVLD QPC_FIELD_LOC(1541, 1541)
-> +#define QPC_DCA_MODE QPC_FIELD_LOC(1542, 1542)
-> +#define QPC_RTY_OWNER_NOCHK QPC_FIELD_LOC(1543, 1543)
-> +#define QPC_V2_IRRL_HEAD QPC_FIELD_LOC(1543, 1536) //
+From: Lang Cheng <chenglang@huawei.com>
 
-This '//' is added by mistake, I will resend this series, thanks.
+GCC may reports an running time assert error when a value calculated from
+ib_mtu_enum_to_int() is using as 'val' in FIELD_PREDP:
 
-Weihang
+include/linux/compiler_types.h:328:38: error: call to
+'__compiletime_assert_1524' declared with attribute error: FIELD_PREP:
+value too large for the field
 
-> +#define QPC_SQ_MAX_PSN QPC_FIELD_LOC(1567, 1544)
-> +#define QPC_SQ_MAX_IDX QPC_FIELD_LOC(1583, 1568)
+But actually this error will still exists even if the driver can ensure
+that ib_mtu_enum_to_int() returns a legal value. So add a mask in
+hr_reg_write() to avoid above warning.
+
+Also fix complains from sparse about "dubious: x & !y" when
+hr_reg_write(ctx, field, !!val)，Use temporary variables to avoid this.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_common.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
+index 3a5658f..dc7a9fe 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_common.h
++++ b/drivers/infiniband/hw/hns/hns_roce_common.h
+@@ -79,9 +79,11 @@
+ 
+ #define _hr_reg_write(ptr, field_type, field_h, field_l, val)                  \
+ 	({                                                                     \
++		u32 _val = val;                                                \
+ 		_hr_reg_clear(ptr, field_type, field_h, field_l);              \
+-		*((__le32 *)ptr + (field_h) / 32) |= cpu_to_le32(FIELD_PREP(   \
+-			GENMASK((field_h) % 32, (field_l) % 32), val));        \
++		*((__le32 *)ptr + (field_h) / 32) |= cpu_to_le32(              \
++			FIELD_PREP(GENMASK((field_h) % 32, (field_l) % 32),    \
++				   _val & GENMASK((field_h) - (field_l), 0))); \
+ 	})
+ 
+ #define hr_reg_write(ptr, field, val) _hr_reg_write(ptr, field, val)
+-- 
+2.7.4
 
