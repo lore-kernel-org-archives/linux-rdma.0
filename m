@@ -2,100 +2,436 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 331B0C47083
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 10:27:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BEDC47083
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 10:27:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D5AF6138C
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 10:27:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD187613B4
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Jun 2021 10:27:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229603AbhFBK24 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Jun 2021 06:28:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60006 "EHLO mail.kernel.org"
+        id S231652AbhFBK3A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Jun 2021 06:29:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229524AbhFBK24 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 2 Jun 2021 06:28:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9E745613AA;
-        Wed,  2 Jun 2021 10:27:12 +0000 (UTC)
+        id S229524AbhFBK27 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 2 Jun 2021 06:28:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EFFB0613AA;
+        Wed,  2 Jun 2021 10:27:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1622629633;
-        bh=E6SVPVzky9EFJdZ+sn6m8Cl7asDLYsWYrlx32eg/a64=;
-        h=From:To:Cc:Subject:Date:From;
-        b=mNDBwfmpgqvf2U2easzaQLVZXJ6/Et3GqT93qZX+j8wYwxhjBS9DUVs7MsdLW43fy
-         tlTYysNZ3BkXMlzQzG04L7lZKeHVZonXfg6bNtasUN1ptkabcpmIP6Zx7GS6hVX/Y+
-         7/63sMF1z7OSwQkcj/73Cqv4O/kqLhZr3o84tlZBgSH/f/epUNdHRuSw57i4fhLv7g
-         uG0/zoGgnzkF1j6v/w4+b+BvaACYMZzsbAWX2fmswwH+pFnYNHE3UxNhwTcOqAMiFe
-         aNqT1t7Ti9xSaLv49s5+FB3zi3U1FOywqLRj5Rq/37uE/Da0dFKWoH5CfenhdoaCGi
-         9EUQJ+S94jkiA==
+        s=k20201202; t=1622629636;
+        bh=TmYP+pfyU+sGUGC5INPFqTbHjGUlf9MYdjV6GCjghlE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=pDE+vnb3teRa4g0mbN9aqp1AXHdXws/Mg0XGywyoYsRESclt65Zr+nJ/tzZyRKgxh
+         7iQ9xSK0BZ6TMPowHFbm80T0rcm7bA7XeJyQlmsTq+9cQjGqZ3ikrM73y/Rxkg37Oa
+         I5KUpbtmkVV7j4MOtAk8kScfVrfeUDgQBFiZ2HowcKvjQ9i9LM/XjtDr7K6imcFdmv
+         gh94BIzMR3BufMIAsNOIdGMxVUmSBEtcNXha9XaF1c5xZKmbO8r6ctA1SVSuGquzIC
+         /p5E+MdTvsCFuKrGYI4sQs39TVWivyMBL8b9oMac4aWp2Keh79xQ9+S87FvDsHYRCE
+         QVCcO+MGwv+nA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Mark Zhang <markzhang@nvidia.com>,
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Mark Zhang <markzhang@nvidia.com>,
         Roland Dreier <rolandd@cisco.com>,
         Sean Hefty <sean.hefty@intel.com>
-Subject: [PATCH rdma-next v4 0/8] Fix memory corruption in CM
-Date:   Wed,  2 Jun 2021 13:27:00 +0300
-Message-Id: <cover.1622629024.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v4 2/8] IB/cm: Split cm_alloc_msg()
+Date:   Wed,  2 Jun 2021 13:27:02 +0300
+Message-Id: <f692b8c89eecb34fd82244f317e478bea6c97688.1622629024.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1622629024.git.leonro@nvidia.com>
+References: <cover.1622629024.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-Changelog:
-v4:
- * Added comment near cm_destroy_av()
- * Changed "unregistration lock" to be "mad_agent_lock" in the comment
- * Removed unclear comment
-v3: https://lore.kernel.org/lkml/cover.1620720467.git.leonro@nvidia.com
- * Removed double unlock
- * Changes in cma_release flow
-v2: https://lore.kernel.org/lkml/cover.1619004798.git.leonro@nvidia.com
- * Included Jason's patches in this series
-v1: https://lore.kernel.org/linux-rdma/20210411122152.59274-1-leon@kernel.org
- * Squashed "remove mad_agent ..." patches to make sure that we don't
-   need to check for the NULL argument.
-v0: https://lore.kernel.org/lkml/20210318100309.670344-1-leon@kernel.org
+This is being used with two quite different flows, one attaches the
+message to the priv and the other does not.
 
--------------------------------------------------------------------------------
+Ensure the message attach is consistently done under the spinlock and
+ensure that the free on error always detaches the message from the
+cm_id_priv, also always under lock.
 
-Hi,
+This makes read/write to the cm_id_priv->msg consistently locked and
+consistently NULL'd when the message is freed, even in all error paths.
 
-This series from Mark fixes long standing bug in CM migration logic,
-reported by Ryan [1].
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/cm.c | 190 +++++++++++++++++++++--------------
+ 1 file changed, 115 insertions(+), 75 deletions(-)
 
-Thanks
-
-[1] https://lore.kernel.org/linux-rdma/CAFMmRNx9cg--NUnZjFM8yWqFaEtsmAWV4EogKb3a0+hnjdtJFA@mail.gmail.com/
-
-Jason Gunthorpe (4):
-  IB/cm: Pair cm_alloc_response_msg() with a cm_free_response_msg()
-  IB/cm: Split cm_alloc_msg()
-  IB/cm: Call the correct message free functions in cm_send_handler()
-  IB/cm: Tidy remaining cm_msg free paths
-
-Mark Zhang (4):
-  Revert "IB/cm: Mark stale CM id's whenever the mad agent was
-    unregistered"
-  IB/cm: Simplify ib_cancel_mad() and ib_modify_mad() calls
-  IB/cm: Improve the calling of cm_init_av_for_lap and
-    cm_init_av_by_path
-  IB/cm: Protect cm_dev, cm_ports and mad_agent with kref and lock
-
- drivers/infiniband/core/cm.c       | 621 +++++++++++++++--------------
- drivers/infiniband/core/mad.c      |  17 +-
- drivers/infiniband/core/sa_query.c |   4 +-
- include/rdma/ib_mad.h              |  27 +-
- 4 files changed, 346 insertions(+), 323 deletions(-)
-
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 6e20ba5d32e1..94613275edcc 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -305,8 +305,7 @@ static inline void cm_deref_id(struct cm_id_private *cm_id_priv)
+ 		complete(&cm_id_priv->comp);
+ }
+ 
+-static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+-			struct ib_mad_send_buf **msg)
++static struct ib_mad_send_buf *cm_alloc_msg(struct cm_id_private *cm_id_priv)
+ {
+ 	struct ib_mad_agent *mad_agent;
+ 	struct ib_mad_send_buf *m;
+@@ -359,12 +358,42 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 	m->retries = cm_id_priv->max_cm_retries;
+ 
+ 	refcount_inc(&cm_id_priv->refcount);
++	spin_unlock_irqrestore(&cm.state_lock, flags2);
+ 	m->context[0] = cm_id_priv;
+-	*msg = m;
++	return m;
+ 
+ out:
+ 	spin_unlock_irqrestore(&cm.state_lock, flags2);
+-	return ret;
++	return ERR_PTR(ret);
++}
++
++static struct ib_mad_send_buf *
++cm_alloc_priv_msg(struct cm_id_private *cm_id_priv)
++{
++	struct ib_mad_send_buf *msg;
++
++	lockdep_assert_held(&cm_id_priv->lock);
++
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return msg;
++	cm_id_priv->msg = msg;
++	return msg;
++}
++
++static void cm_free_priv_msg(struct ib_mad_send_buf *msg)
++{
++	struct cm_id_private *cm_id_priv = msg->context[0];
++
++	lockdep_assert_held(&cm_id_priv->lock);
++
++	if (!WARN_ON(cm_id_priv->msg != msg))
++		cm_id_priv->msg = NULL;
++
++	if (msg->ah)
++		rdma_destroy_ah(msg->ah, 0);
++	cm_deref_id(cm_id_priv);
++	ib_free_send_mad(msg);
+ }
+ 
+ static struct ib_mad_send_buf *cm_alloc_response_msg_no_ah(struct cm_port *port,
+@@ -1508,6 +1537,7 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 		   struct ib_cm_req_param *param)
+ {
+ 	struct cm_id_private *cm_id_priv;
++	struct ib_mad_send_buf *msg;
+ 	struct cm_req_msg *req_msg;
+ 	unsigned long flags;
+ 	int ret;
+@@ -1559,31 +1589,34 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
+ 	cm_id_priv->pkey = param->primary_path->pkey;
+ 	cm_id_priv->qp_type = param->qp_type;
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &cm_id_priv->msg);
+-	if (ret)
+-		goto out;
++	spin_lock_irqsave(&cm_id_priv->lock, flags);
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
++		goto out_unlock;
++	}
+ 
+-	req_msg = (struct cm_req_msg *) cm_id_priv->msg->mad;
++	req_msg = (struct cm_req_msg *)msg->mad;
+ 	cm_format_req(req_msg, cm_id_priv, param);
+ 	cm_id_priv->tid = req_msg->hdr.tid;
+-	cm_id_priv->msg->timeout_ms = cm_id_priv->timeout_ms;
+-	cm_id_priv->msg->context[1] = (void *) (unsigned long) IB_CM_REQ_SENT;
++	msg->timeout_ms = cm_id_priv->timeout_ms;
++	msg->context[1] = (void *)(unsigned long)IB_CM_REQ_SENT;
+ 
+ 	cm_id_priv->local_qpn = cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
+ 	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REQ_STARTING_PSN, req_msg));
+ 
+ 	trace_icm_send_req(&cm_id_priv->id);
+-	spin_lock_irqsave(&cm_id_priv->lock, flags);
+-	ret = ib_post_send_mad(cm_id_priv->msg, NULL);
+-	if (ret) {
+-		cm_free_msg(cm_id_priv->msg);
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		goto out;
+-	}
++	ret = ib_post_send_mad(msg, NULL);
++	if (ret)
++		goto out_free;
+ 	BUG_ON(cm_id->state != IB_CM_IDLE);
+ 	cm_id->state = IB_CM_REQ_SENT;
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return 0;
++out_free:
++	cm_free_priv_msg(msg);
++out_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ out:
+ 	return ret;
+ }
+@@ -2290,9 +2323,11 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 		goto out;
+ 	}
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
+ 		goto out;
++	}
+ 
+ 	rep_msg = (struct cm_rep_msg *) msg->mad;
+ 	cm_format_rep(rep_msg, cm_id_priv, param);
+@@ -2301,14 +2336,10 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 
+ 	trace_icm_send_rep(cm_id);
+ 	ret = ib_post_send_mad(msg, NULL);
+-	if (ret) {
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		cm_free_msg(msg);
+-		return ret;
+-	}
++	if (ret)
++		goto out_free;
+ 
+ 	cm_id->state = IB_CM_REP_SENT;
+-	cm_id_priv->msg = msg;
+ 	cm_id_priv->initiator_depth = param->initiator_depth;
+ 	cm_id_priv->responder_resources = param->responder_resources;
+ 	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REP_STARTING_PSN, rep_msg));
+@@ -2316,8 +2347,13 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 		  "IBTA declares QPN to be 24 bits, but it is 0x%X\n",
+ 		  param->qp_num);
+ 	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num & 0xFFFFFF);
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++	return 0;
+ 
+-out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++out_free:
++	cm_free_priv_msg(msg);
++out:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_rep);
+@@ -2364,9 +2400,11 @@ int ib_send_cm_rtu(struct ib_cm_id *cm_id,
+ 		goto error;
+ 	}
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
+ 		goto error;
++	}
+ 
+ 	cm_format_rtu((struct cm_rtu_msg *) msg->mad, cm_id_priv,
+ 		      private_data, private_data_len);
+@@ -2664,10 +2702,10 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
+ 	    cm_id_priv->id.lap_state == IB_CM_MRA_LAP_RCVD)
+ 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret) {
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
+ 		cm_enter_timewait(cm_id_priv);
+-		return ret;
++		return PTR_ERR(msg);
+ 	}
+ 
+ 	cm_format_dreq((struct cm_dreq_msg *) msg->mad, cm_id_priv,
+@@ -2679,12 +2717,11 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
+ 	ret = ib_post_send_mad(msg, NULL);
+ 	if (ret) {
+ 		cm_enter_timewait(cm_id_priv);
+-		cm_free_msg(msg);
++		cm_free_priv_msg(msg);
+ 		return ret;
+ 	}
+ 
+ 	cm_id_priv->id.state = IB_CM_DREQ_SENT;
+-	cm_id_priv->msg = msg;
+ 	return 0;
+ }
+ 
+@@ -2739,9 +2776,9 @@ static int cm_send_drep_locked(struct cm_id_private *cm_id_priv,
+ 	cm_set_private_data(cm_id_priv, private_data, private_data_len);
+ 	cm_enter_timewait(cm_id_priv);
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		return ret;
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
+ 
+ 	cm_format_drep((struct cm_drep_msg *) msg->mad, cm_id_priv,
+ 		       private_data, private_data_len);
+@@ -2934,9 +2971,9 @@ static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
+ 	case IB_CM_REP_RCVD:
+ 	case IB_CM_MRA_REP_SENT:
+ 		cm_reset_to_idle(cm_id_priv);
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			return ret;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg))
++			return PTR_ERR(msg);
+ 		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
+ 			      ari, ari_length, private_data, private_data_len,
+ 			      state);
+@@ -2944,9 +2981,9 @@ static int cm_send_rej_locked(struct cm_id_private *cm_id_priv,
+ 	case IB_CM_REP_SENT:
+ 	case IB_CM_MRA_REP_RCVD:
+ 		cm_enter_timewait(cm_id_priv);
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			return ret;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg))
++			return PTR_ERR(msg);
+ 		cm_format_rej((struct cm_rej_msg *)msg->mad, cm_id_priv, reason,
+ 			      ari, ari_length, private_data, private_data_len,
+ 			      state);
+@@ -3124,13 +3161,15 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 	default:
+ 		trace_icm_send_mra_unknown_err(&cm_id_priv->id);
+ 		ret = -EINVAL;
+-		goto error1;
++		goto error_unlock;
+ 	}
+ 
+ 	if (!(service_timeout & IB_CM_MRA_FLAG_DELAY)) {
+-		ret = cm_alloc_msg(cm_id_priv, &msg);
+-		if (ret)
+-			goto error1;
++		msg = cm_alloc_msg(cm_id_priv);
++		if (IS_ERR(msg)) {
++			ret = PTR_ERR(msg);
++			goto error_unlock;
++		}
+ 
+ 		cm_format_mra((struct cm_mra_msg *) msg->mad, cm_id_priv,
+ 			      msg_response, service_timeout,
+@@ -3138,7 +3177,7 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 		trace_icm_send_mra(cm_id);
+ 		ret = ib_post_send_mad(msg, NULL);
+ 		if (ret)
+-			goto error2;
++			goto error_free_msg;
+ 	}
+ 
+ 	cm_id->state = cm_state;
+@@ -3148,13 +3187,11 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return 0;
+ 
+-error1:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-	kfree(data);
+-	return ret;
+-
+-error2:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-	kfree(data);
++error_free_msg:
+ 	cm_free_msg(msg);
++error_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++	kfree(data);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_mra);
+@@ -3490,38 +3527,41 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
+ 				 &cm_id_priv->av,
+ 				 cm_id_priv);
+ 	if (ret)
+-		goto out;
++		return ret;
+ 
+ 	cm_id->service_id = param->service_id;
+ 	cm_id->service_mask = ~cpu_to_be64(0);
+ 	cm_id_priv->timeout_ms = param->timeout_ms;
+ 	cm_id_priv->max_cm_retries = param->max_cm_retries;
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		goto out;
+-
+-	cm_format_sidr_req((struct cm_sidr_req_msg *) msg->mad, cm_id_priv,
+-			   param);
+-	msg->timeout_ms = cm_id_priv->timeout_ms;
+-	msg->context[1] = (void *) (unsigned long) IB_CM_SIDR_REQ_SENT;
+ 
+ 	spin_lock_irqsave(&cm_id_priv->lock, flags);
+-	if (cm_id->state == IB_CM_IDLE) {
+-		trace_icm_send_sidr_req(&cm_id_priv->id);
+-		ret = ib_post_send_mad(msg, NULL);
+-	} else {
++	if (cm_id->state != IB_CM_IDLE) {
+ 		ret = -EINVAL;
++		goto out_unlock;
+ 	}
+ 
+-	if (ret) {
+-		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-		cm_free_msg(msg);
+-		goto out;
++	msg = cm_alloc_priv_msg(cm_id_priv);
++	if (IS_ERR(msg)) {
++		ret = PTR_ERR(msg);
++		goto out_unlock;
+ 	}
++
++	cm_format_sidr_req((struct cm_sidr_req_msg *)msg->mad, cm_id_priv,
++			   param);
++	msg->timeout_ms = cm_id_priv->timeout_ms;
++	msg->context[1] = (void *)(unsigned long)IB_CM_SIDR_REQ_SENT;
++
++	trace_icm_send_sidr_req(&cm_id_priv->id);
++	ret = ib_post_send_mad(msg, NULL);
++	if (ret)
++		goto out_free;
+ 	cm_id->state = IB_CM_SIDR_REQ_SENT;
+-	cm_id_priv->msg = msg;
+ 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+-out:
++	return 0;
++out_free:
++	cm_free_priv_msg(msg);
++out_unlock:
++	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_send_cm_sidr_req);
+@@ -3668,9 +3708,9 @@ static int cm_send_sidr_rep_locked(struct cm_id_private *cm_id_priv,
+ 	if (cm_id_priv->id.state != IB_CM_SIDR_REQ_RCVD)
+ 		return -EINVAL;
+ 
+-	ret = cm_alloc_msg(cm_id_priv, &msg);
+-	if (ret)
+-		return ret;
++	msg = cm_alloc_msg(cm_id_priv);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
+ 
+ 	cm_format_sidr_rep((struct cm_sidr_rep_msg *) msg->mad, cm_id_priv,
+ 			   param);
 -- 
 2.31.1
 
