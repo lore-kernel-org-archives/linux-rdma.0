@@ -2,118 +2,103 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MIME_NO_TEXT,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A570C47096
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D34C47096
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49CA5613B8
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 694C36101C
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230131AbhFCNRf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Jun 2021 09:17:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55826 "EHLO
+        id S231312AbhFCNRj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Jun 2021 09:17:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231312AbhFCNRe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Jun 2021 09:17:34 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DB7EC06174A
-        for <linux-rdma@vger.kernel.org>; Thu,  3 Jun 2021 06:15:50 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id h12so2841627plf.11
-        for <linux-rdma@vger.kernel.org>; Thu, 03 Jun 2021 06:15:50 -0700 (PDT)
+        with ESMTP id S230114AbhFCNRj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Jun 2021 09:17:39 -0400
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D8ADC06174A
+        for <linux-rdma@vger.kernel.org>; Thu,  3 Jun 2021 06:15:54 -0700 (PDT)
+Received: by mail-pj1-x102e.google.com with SMTP id i22so3658470pju.0
+        for <linux-rdma@vger.kernel.org>; Thu, 03 Jun 2021 06:15:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=broadcom.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version;
-        bh=/2z9DHgALYhCRI/SMbgKCS1CLY3xF8iJ9fFWK0sGxTE=;
-        b=CM0GQ3Tj/a842zm23AAD6FZ7FkJsjwZi/4KpT/Yr789Aam1KX6voPeGiwSDVa3VWIF
-         rKbNR2ZC9cYX5TCqZl4wkG9R03Fcu0HHZSRh5cP/+qx8QI1cWkU/xDFP5uGjfCTzZVtQ
-         C5cNOBlxej4zI3Nl4l29s073k+KkyH/nNgBLE=
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version;
+        bh=b8ZPO8p+/9yGzQiewOSwh33yzp7R//w8WWWjlTHOYeI=;
+        b=W47yYNNPhniNCYnFo1qwsUhbJe5cn4GRRbKCD1S1IbBfGpD/SQWupGQdnTHlNIyDVD
+         5AZZshypssG5osjmHdqlB23InNzLwK8nnqMI3RhetY+tni327JPAOO2jG3ohgomBVLw3
+         IYsVN6L4E1MfdtfvYLk/UtNVfZqLI0PJGqIZg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version;
-        bh=/2z9DHgALYhCRI/SMbgKCS1CLY3xF8iJ9fFWK0sGxTE=;
-        b=pgzeD6pW772KEj16YbE32fwJTPWL8pCn2o4dWtniA36D8Mticr3GfkE08G60PPVAXz
-         v3F6ATWUiBrWQ1NxTON17DfSo64rQ7zG3HVJpXrn3DUH9cgmV+vB1Ys98v3xg+GgUF++
-         48zqfpM5Y9tZGBOmlS5ZD/b9pUzUMkMzw7DLACDChtPvHiC6t6tfGCqnSg0/npPQ9c13
-         RA0/o+qqrB7E7c+V6kuPAn4pcweHPSsWpPCZVErgdKyWIrJRM6Y70QW6oZ6Schk0GFvo
-         B8ydx0Q0j0zl4N6jfiyAOvJ81pVJG4t/dOOkG1GpNzFi0BwLTYKeC4zXhLEOIT5bmuXV
-         jvXg==
-X-Gm-Message-State: AOAM533BQVcz8AYKc4xXrw/ScDX5uHTPQpWZQhRye4f3qgKmkE+L16Un
-        P9GPnQv2OoKSCjPdrswV7ccXolpZkhh7VY7H8b4Qqe/oe/b/WnTnIVVisb9RE7LWInE3UNZ7f3z
-        lXwfiXMODV0Qoqhhjr5SGs7jr/UFhAhtRKw8QxBTooa9vLjRSD15Z7XngVs3bo9Ourrnpb+pdbk
-        ujUNXbTw==
-X-Google-Smtp-Source: ABdhPJzO0PSgQP4MKHZWNM+Vc7XdRKZP9pQ/XBt73a7h5Hq9WTikUqjXLSjGNt4geRvO1nobz2zzeA==
-X-Received: by 2002:a17:90a:16c2:: with SMTP id y2mr36065005pje.236.1622726148390;
-        Thu, 03 Jun 2021 06:15:48 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version;
+        bh=b8ZPO8p+/9yGzQiewOSwh33yzp7R//w8WWWjlTHOYeI=;
+        b=TDQyp0WBOK/CiTP/F8nLrkU7Rl0nifodZAZGWOHAvJlBXSGsYIk9zm9N0pXu1HEQde
+         PuDK+p55elNSNRZLCnApBNLcpXiV23cZGT5TPOamaQuaF9u+mQEmdx7QlDKRjUxNgV8n
+         OCO3EFW/OxQwRSS0oWWYW2jmNTxUkpxDWT+MbUJGy6bPWKN2DzeTwn6fgpWaRWUdLn8p
+         5BkQReVIZluHgLNZlp1tF12FT/SoILN3Nq+8DZJ0j1s4RJTxkQ5lTG1b9WGJLl49H9rm
+         SIP6vbqKvVfga57S7I9zPVb8Q0ilL08RL5DLarUq6amkPxAKWvDpCxt1NBOS7vxwkkV8
+         1q7A==
+X-Gm-Message-State: AOAM530UHheyNb87W6RLOBxnZM+jgC/8m94EVmxNqnA3hPQAGwBYagA0
+        60L2up8sLu5KrqJYpXwZhetPwYBuyIyyLuAmDmf60df5B1zaDb1fm4xVAjVqLT8Qr9UbkLmMpwt
+        d0CE8Iw8rwI5cGgTPlKBiIfblgZczky7RPOxWINObFav+Z36cD2YUIJ/1rJIA6BefgAOtgxClHQ
+        LPK00Uig==
+X-Google-Smtp-Source: ABdhPJzSTbWX5Ee8IY8DUKEDyl0ZXMUHgisWg/uIexkJo9OhEGRVHIrz7xH8P0tV0RDn3ShBNySWjA==
+X-Received: by 2002:a17:90a:df13:: with SMTP id gp19mr24071946pjb.11.1622726153052;
+        Thu, 03 Jun 2021 06:15:53 -0700 (PDT)
 Received: from dev01.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id t24sm2336917pji.56.2021.06.03.06.15.46
+        by smtp.gmail.com with ESMTPSA id t24sm2336917pji.56.2021.06.03.06.15.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Jun 2021 06:15:47 -0700 (PDT)
+        Thu, 03 Jun 2021 06:15:52 -0700 (PDT)
 From:   Devesh Sharma <devesh.sharma@broadcom.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Devesh Sharma <devesh.sharma@broadcom.com>
-Subject: [PATCH V7 for-next 0/3] Broadcom's driver add global atomics
-Date:   Thu,  3 Jun 2021 18:45:31 +0530
-Message-Id: <20210603131534.982257-1-devesh.sharma@broadcom.com>
+Subject: [PATCH V7 for-next 2/3] bnxt_re: Update maintainers list
+Date:   Thu,  3 Jun 2021 18:45:33 +0530
+Message-Id: <20210603131534.982257-3-devesh.sharma@broadcom.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210603131534.982257-1-devesh.sharma@broadcom.com>
+References: <20210603131534.982257-1-devesh.sharma@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000af9dda05c3dc5f3b"
+        boundary="000000000000f8565b05c3dc5fe8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000af9dda05c3dc5f3b
+--000000000000f8565b05c3dc5fe8
 Content-Transfer-Encoding: 8bit
 
-Adding automated detection and enablement of global PCI atomic
-operation support.
-Updated to ABI to pass wqe-mode to user to support rdma-core
-pull request:
-https://github.com/linux-rdma/rdma-core/pull/1007
+Updated the maintainers list and removed
+non-active members.
 
-v6->v7
- updated error return type to -EOPNOTSUPP
-v5->v6
- dropped fixes tag
-v4->v5
- fixed commit msg in patch 0001
- fixed mixing of int with bool
-v3->v4
- removed redundant code to enable global atomics
- refactored to honor standard error codes.
-v2->v3
- Added additional patch to update ABI. A PR corresponding to this
- is open.
+Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+---
+ MAINTAINERS | 2 --
+ 1 file changed, 2 deletions(-)
 
-V1->V2
- renamed bnxt_qplib_enable_atomic_ops_to_root to
- bnxt_qplib_determine_atomics
-
-Devesh Sharma (3):
-  RDMA/bnxt_re: Enable global atomic ops if platform supports
-  bnxt_re: Update maintainers list
-  RDMA/bnxt_re: update ABI to pass wqe-mode to user space
-
- MAINTAINERS                               |  2 --
- drivers/infiniband/hw/bnxt_re/ib_verbs.c  |  7 +++++++
- drivers/infiniband/hw/bnxt_re/main.c      |  3 +++
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 17 +++++++++++++++++
- drivers/infiniband/hw/bnxt_re/qplib_res.h |  1 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 13 ++++++++++++-
- drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 --
- include/uapi/rdma/bnxt_re-abi.h           |  5 ++++-
- 8 files changed, 44 insertions(+), 6 deletions(-)
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bd7aff0c120f..786573a556b9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3736,8 +3736,6 @@ F:	drivers/gpio/gpio-bcm-kona.c
+ BROADCOM NETXTREME-E ROCE DRIVER
+ M:	Selvin Xavier <selvin.xavier@broadcom.com>
+ M:	Devesh Sharma <devesh.sharma@broadcom.com>
+-M:	Somnath Kotur <somnath.kotur@broadcom.com>
+-M:	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+ M:	Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
+ L:	linux-rdma@vger.kernel.org
+ S:	Supported
 -- 
 2.25.1
 
 
---000000000000af9dda05c3dc5f3b
+--000000000000f8565b05c3dc5fe8
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -184,13 +169,13 @@ G6Yi9ScSuy1K8yGKKgHn/ZDCLAVEG92Ax5kxUaivh1BLKdo3kZX8Ot/0mmWvFcjEqRyCE5CL9WAo
 PU3wdmxYDWOzX5HgFsvArQl4oXob3zKc58TNeGivC9m1KwWJphsMkZNjc2IVVC8gIryWh90xggJt
 MIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYD
 VQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwhg1OJo0VLRNay
-SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEINxFR88ySghuvIniwGofIEKQW0VL
-LL+g7F9eQ/wAMc7iMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
-MDYwMzEzMTU0OVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
+SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIL2Y3qh345HRSO7UKudbxn9EVGmz
+ro4bROn1sfoiA3tbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
+MDYwMzEzMTU1M1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
 CWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEHMAsGCWCGSAFl
-AwQCATANBgkqhkiG9w0BAQEFAASCAQCIdGDWNpuTESvnw66fHT1Z+pYWgQrKbo6Wh7OKoohJnMtW
-XpxaZIOQ9pIXIeKtknKZm4xcd5Ni4ADid0/J1KWP9wGsRmdHelOiNyrY+Tc12X1YcXHiYCJaKs42
-CtgHTFQ9p8ZD7oF6/EjxMb7y4fBoI8+8vwOSW/I2GRuLjRnq8XMMye+jxUPZVIY2iHVFxFomFqrO
-tuPNH1H9yGtaWdw2yhBAfkOkFCyZaLs5Gr8X2cIachFizgAAt7QV1qP+6GMdJ31wyahWGDtXiGAC
-4FbVD8xLmiRAN5X9Ixp8ildIr4GrQDF4eYM8EEztNom6S9PZce26gSTqx8V1qhcA5CXX
---000000000000af9dda05c3dc5f3b--
+AwQCATANBgkqhkiG9w0BAQEFAASCAQCF9N3pejdTBskWAqUkHW9vW6i8tzYY904O7aT7m8FOIVit
+sg5no7TLvEKp7R57E/LX7XJOv25d4JtdKP98buupuYyLtGPoUFnoDNsHoJYU/RAbz/tyltXQTIEP
+mBPrPgCkWIiaYaV1ean8qxK3PB//+poEt2sls50I0Yg7tbme9wicwffSkBK3OrvCZXbopCGKzKUP
+SrPuYxe2d7R2IUr5+OM2nn/IbOl8Y0aLi6M615nceWax6cK/un0FOyE9yJo0P6KvkA8wZvqLxKij
+JarJDF6CLRNf0FhRmPF9NrsJ5cupvlM46+Xs4sIiAuqAXgiB4zT7b9A/KdjtfvNcMZQ6
+--000000000000f8565b05c3dc5fe8--
