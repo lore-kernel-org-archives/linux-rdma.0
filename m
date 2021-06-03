@@ -2,180 +2,366 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D34C47096
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F8BAC47082
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:16:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 694C36101C
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:15:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35070613BF
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Jun 2021 13:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231312AbhFCNRj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Jun 2021 09:17:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55844 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230114AbhFCNRj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Jun 2021 09:17:39 -0400
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D8ADC06174A
-        for <linux-rdma@vger.kernel.org>; Thu,  3 Jun 2021 06:15:54 -0700 (PDT)
-Received: by mail-pj1-x102e.google.com with SMTP id i22so3658470pju.0
-        for <linux-rdma@vger.kernel.org>; Thu, 03 Jun 2021 06:15:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version;
-        bh=b8ZPO8p+/9yGzQiewOSwh33yzp7R//w8WWWjlTHOYeI=;
-        b=W47yYNNPhniNCYnFo1qwsUhbJe5cn4GRRbKCD1S1IbBfGpD/SQWupGQdnTHlNIyDVD
-         5AZZshypssG5osjmHdqlB23InNzLwK8nnqMI3RhetY+tni327JPAOO2jG3ohgomBVLw3
-         IYsVN6L4E1MfdtfvYLk/UtNVfZqLI0PJGqIZg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version;
-        bh=b8ZPO8p+/9yGzQiewOSwh33yzp7R//w8WWWjlTHOYeI=;
-        b=TDQyp0WBOK/CiTP/F8nLrkU7Rl0nifodZAZGWOHAvJlBXSGsYIk9zm9N0pXu1HEQde
-         PuDK+p55elNSNRZLCnApBNLcpXiV23cZGT5TPOamaQuaF9u+mQEmdx7QlDKRjUxNgV8n
-         OCO3EFW/OxQwRSS0oWWYW2jmNTxUkpxDWT+MbUJGy6bPWKN2DzeTwn6fgpWaRWUdLn8p
-         5BkQReVIZluHgLNZlp1tF12FT/SoILN3Nq+8DZJ0j1s4RJTxkQ5lTG1b9WGJLl49H9rm
-         SIP6vbqKvVfga57S7I9zPVb8Q0ilL08RL5DLarUq6amkPxAKWvDpCxt1NBOS7vxwkkV8
-         1q7A==
-X-Gm-Message-State: AOAM530UHheyNb87W6RLOBxnZM+jgC/8m94EVmxNqnA3hPQAGwBYagA0
-        60L2up8sLu5KrqJYpXwZhetPwYBuyIyyLuAmDmf60df5B1zaDb1fm4xVAjVqLT8Qr9UbkLmMpwt
-        d0CE8Iw8rwI5cGgTPlKBiIfblgZczky7RPOxWINObFav+Z36cD2YUIJ/1rJIA6BefgAOtgxClHQ
-        LPK00Uig==
-X-Google-Smtp-Source: ABdhPJzSTbWX5Ee8IY8DUKEDyl0ZXMUHgisWg/uIexkJo9OhEGRVHIrz7xH8P0tV0RDn3ShBNySWjA==
-X-Received: by 2002:a17:90a:df13:: with SMTP id gp19mr24071946pjb.11.1622726153052;
-        Thu, 03 Jun 2021 06:15:53 -0700 (PDT)
-Received: from dev01.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id t24sm2336917pji.56.2021.06.03.06.15.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Jun 2021 06:15:52 -0700 (PDT)
-From:   Devesh Sharma <devesh.sharma@broadcom.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Devesh Sharma <devesh.sharma@broadcom.com>
-Subject: [PATCH V7 for-next 2/3] bnxt_re: Update maintainers list
-Date:   Thu,  3 Jun 2021 18:45:33 +0530
-Message-Id: <20210603131534.982257-3-devesh.sharma@broadcom.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210603131534.982257-1-devesh.sharma@broadcom.com>
-References: <20210603131534.982257-1-devesh.sharma@broadcom.com>
+        id S229976AbhFCNS0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Jun 2021 09:18:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53602 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230351AbhFCNS0 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 3 Jun 2021 09:18:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 05D2960C3F;
+        Thu,  3 Jun 2021 13:16:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1622726201;
+        bh=Eao1Fk5zhAqEghrBtVz+h4jzFX1GujkoQ8FJycUfGa8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Jl539L3zqNn/WpgKoPGTbkLUKnjw5BhKenL0Mvyu4jDmoD+CUhlurf7XXqYuzmXha
+         dRzZXyNaEb1CvS/18ylXZiaUyHLMZPU1gZepmYDFa1KDOwMmyp9OzhdA/xYbX3SE+r
+         KNoR32C5mK7lyPM2iu3NN4YGTScbXbM6AHvpQkE66ucCdKa+boIY/Twe1LtbvAgHKe
+         kgW+SJSifUlEwCGHASIZQMzMFzA8wQ6EnmXmfxAUwAceARrwXIFzKaPu7DblKp3GEK
+         h1xEZo/1752BWnPgNf8p6OGkR6SlquBN9CSjcnJxoFdoR092VxGOCCV6BRVJ+Gb+IH
+         y0t+slKTgzchg==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jack Wang <jinpu.wang@ionos.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Max Gurtovoy <mgurtovoy@nvidia.com>,
+        "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Sagi Grimberg <sagi@grimberg.me>, target-devel@vger.kernel.org
+Subject: [PATCH rdma-next v1] RDMA: Fix kernel-doc warnings about wrong comment
+Date:   Thu,  3 Jun 2021 16:16:36 +0300
+Message-Id: <8b40bbff098247962af5a7b35d47b2e964daa523.1622726066.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000f8565b05c3dc5fe8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000f8565b05c3dc5fe8
-Content-Transfer-Encoding: 8bit
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Updated the maintainers list and removed
-non-active members.
+Compilation with W=1 produces warnings similar to the below.
 
-Signed-off-by: Devesh Sharma <devesh.sharma@broadcom.com>
+  drivers/infiniband/ulp/ipoib/ipoib_main.c:320: warning: This comment
+	starts with '/**', but isn't a kernel-doc comment. Refer
+	Documentation/doc-guide/kernel-doc.rst
+
+All such occurrences were found with the following one line
+ git grep -A 1 "\/\*\*" drivers/infiniband/
+
+Reviewed-by: Jack Wang <jinpu.wang@ionos.com> #rtrs
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- MAINTAINERS | 2 --
- 1 file changed, 2 deletions(-)
+ Changelog:
+ v0 https://lore.kernel.org/lkml/635def71048cbffe76e2dd324cf420d8a465ee9d.1622460676.git.leonro@nvidia.com:
+ * Rebased to drop i40iw
+ * Added Jack's ROB
+---
+ drivers/infiniband/core/iwpm_util.h       | 2 +-
+ drivers/infiniband/core/roce_gid_mgmt.c   | 5 +++--
+ drivers/infiniband/hw/hfi1/chip.c         | 4 ++--
+ drivers/infiniband/hw/hfi1/file_ops.c     | 6 +++---
+ drivers/infiniband/hw/hfi1/hfi.h          | 2 +-
+ drivers/infiniband/hw/hfi1/init.c         | 4 ++--
+ drivers/infiniband/hw/hfi1/pio.c          | 2 +-
+ drivers/infiniband/sw/rdmavt/mr.c         | 4 ++--
+ drivers/infiniband/sw/rdmavt/qp.c         | 3 ++-
+ drivers/infiniband/sw/rdmavt/vt.c         | 4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 7 ++++---
+ drivers/infiniband/ulp/iser/iser_verbs.c  | 2 +-
+ drivers/infiniband/ulp/isert/ib_isert.c   | 4 ++--
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c    | 4 ++--
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c    | 2 +-
+ 15 files changed, 29 insertions(+), 26 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index bd7aff0c120f..786573a556b9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3736,8 +3736,6 @@ F:	drivers/gpio/gpio-bcm-kona.c
- BROADCOM NETXTREME-E ROCE DRIVER
- M:	Selvin Xavier <selvin.xavier@broadcom.com>
- M:	Devesh Sharma <devesh.sharma@broadcom.com>
--M:	Somnath Kotur <somnath.kotur@broadcom.com>
--M:	Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
- M:	Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
- L:	linux-rdma@vger.kernel.org
- S:	Supported
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index eeb8e6010907..61380583d2a6 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -183,7 +183,7 @@ u32 iwpm_check_registration(u8 nl_client, u32 reg);
+ void iwpm_set_registration(u8 nl_client, u32 reg);
+ 
+ /**
+- * iwpm_get_registration
++ * iwpm_get_registration - Get the client registration
+  * @nl_client: The index of the netlink client
+  *
+  * Returns the client registration type
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 7b638d91a4ec..68197e576433 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -186,12 +186,13 @@ is_eth_port_inactive_slave_filter(struct ib_device *ib_dev, u32 port,
+ 	return res;
+ }
+ 
+-/** is_ndev_for_default_gid_filter - Check if a given netdevice
++/**
++ * is_ndev_for_default_gid_filter - Check if a given netdevice
+  * can be considered for default GIDs or not.
+  * @ib_dev:		IB device to check
+  * @port:		Port to consider for adding default GID
+  * @rdma_ndev:		rdma netdevice pointer
+- * @cookie_ndev:	Netdevice to consider to form a default GID
++ * @cookie:             Netdevice to consider to form a default GID
+  *
+  * is_ndev_for_default_gid_filter() returns true if a given netdevice can be
+  * considered for deriving default RoCE GID, returns false otherwise.
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 5eeae8df415b..c97544638367 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -14186,7 +14186,7 @@ static void init_kdeth_qp(struct hfi1_devdata *dd)
+ }
+ 
+ /**
+- * hfi1_get_qp_map
++ * hfi1_get_qp_map - get qp map
+  * @dd: device data
+  * @idx: index to read
+  */
+@@ -14199,7 +14199,7 @@ u8 hfi1_get_qp_map(struct hfi1_devdata *dd, u8 idx)
+ }
+ 
+ /**
+- * init_qpmap_table
++ * init_qpmap_table - init qp map
+  * @dd: device data
+  * @first_ctxt: first context
+  * @last_ctxt: first context
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 3b7bbc7b9d10..955c3637980e 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -736,7 +736,7 @@ static u64 kvirt_to_phys(void *addr)
+ }
+ 
+ /**
+- * complete_subctxt
++ * complete_subctxt - complete sub-context info
+  * @fd: valid filedata pointer
+  *
+  * Sub-context info can only be set up after the base context
+@@ -841,7 +841,7 @@ static int assign_ctxt(struct hfi1_filedata *fd, unsigned long arg, u32 len)
+ }
+ 
+ /**
+- * match_ctxt
++ * match_ctxt - match context
+  * @fd: valid filedata pointer
+  * @uinfo: user info to compare base context with
+  * @uctxt: context to compare uinfo to.
+@@ -898,7 +898,7 @@ static int match_ctxt(struct hfi1_filedata *fd,
+ }
+ 
+ /**
+- * find_sub_ctxt
++ * find_sub_ctxt - fund sub-context
+  * @fd: valid filedata pointer
+  * @uinfo: matching info to use to find a possible context to share.
+  *
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 867ae0b1aa95..9e020bb6f405 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1764,7 +1764,7 @@ static inline void pause_for_credit_return(struct hfi1_devdata *dd)
+ }
+ 
+ /**
+- * sc_to_vlt() reverse lookup sc to vl
++ * sc_to_vlt() - reverse lookup sc to vl
+  * @dd - devdata
+  * @sc5 - 5 bit sc
+  */
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index e3a8a420c045..0986aa065418 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -312,7 +312,7 @@ struct hfi1_ctxtdata *hfi1_rcd_get_by_index_safe(struct hfi1_devdata *dd,
+ }
+ 
+ /**
+- * hfi1_rcd_get_by_index
++ * hfi1_rcd_get_by_index - get by index
+  * @dd: pointer to a valid devdata structure
+  * @ctxt: the index of an possilbe rcd
+  *
+@@ -499,7 +499,7 @@ int hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, int numa,
+ }
+ 
+ /**
+- * hfi1_free_ctxt
++ * hfi1_free_ctxt - free context
+  * @rcd: pointer to an initialized rcd data structure
+  *
+  * This wrapper is the free function that matches hfi1_create_ctxtdata().
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index ff864f6f0266..e276522104c6 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -993,7 +993,7 @@ static bool is_sc_halted(struct hfi1_devdata *dd, u32 hw_context)
+ }
+ 
+ /**
+- * sc_wait_for_packet_egress
++ * sc_wait_for_packet_egress - wait for packet
+  * @sc: valid send context
+  * @pause: wait for credit return
+  *
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 601d18dda1f5..34b7af6ab9c2 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -101,8 +101,8 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
+ }
+ 
+ /**
+- *rvt_mr_exit: clean up MR
+- *@rdi: rvt dev structure
++ * rvt_mr_exit - clean up MR
++ * @rdi: rvt dev structure
+  *
+  * called when drivers have unregistered or perhaps failed to register with us
+  */
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 4522071fc220..1111eee8d05a 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -984,7 +984,8 @@ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 	spin_unlock_irq(&qp->r_lock);
+ }
+ 
+-/** rvt_free_qpn - Free a qpn from the bit map
++/**
++ * rvt_free_qpn - Free a qpn from the bit map
+  * @qpt: QP table
+  * @qpn: queue pair number to free
+  */
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 12ebe041a5da..3749380ff193 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -144,7 +144,7 @@ static int rvt_modify_device(struct ib_device *device,
+ }
+ 
+ /**
+- * rvt_query_port: Passes the query port call to the driver
++ * rvt_query_port - Passes the query port call to the driver
+  * @ibdev: Verbs IB dev
+  * @port_num: port number, 1 based from ib core
+  * @props: structure to hold returned properties
+@@ -175,7 +175,7 @@ static int rvt_query_port(struct ib_device *ibdev, u32 port_num,
+ }
+ 
+ /**
+- * rvt_modify_port
++ * rvt_modify_port - modify port
+  * @ibdev: Verbs IB dev
+  * @port_num: Port number, 1 based from ib core
+  * @port_modify_mask: How to change the port
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index a4f9220161ad..b3dfa973b377 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -316,7 +316,7 @@ static bool ipoib_is_dev_match_addr_rcu(const struct sockaddr *addr,
+ 	return false;
+ }
+ 
+-/**
++/*
+  * Find the master net_device on top of the given net_device.
+  * @dev: base IPoIB net_device
+  *
+@@ -361,8 +361,9 @@ static int ipoib_upper_walk(struct net_device *upper,
+ }
+ 
+ /**
+- * Find a net_device matching the given address, which is an upper device of
+- * the given net_device.
++ * ipoib_get_net_dev_match_addr - Find a net_device matching
++ * the given address, which is an upper device of the given net_device.
++ *
+  * @addr: IP address to look for.
+  * @dev: base IPoIB net_device
+  *
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 136f6c4492e0..b44cbb8e84eb 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -761,7 +761,7 @@ void iser_conn_init(struct iser_conn *iser_conn)
+ 	ib_conn->reg_cqe.done = iser_reg_comp;
+ }
+ 
+- /**
++/*
+  * starts the process of connecting to the target
+  * sleeps until the connection is established or rejected
+  */
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 160efef66031..8634c83067da 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2397,10 +2397,10 @@ isert_accept_np(struct iscsi_np *np, struct iscsi_conn *conn)
+ 		spin_unlock_bh(&np->np_thread_lock);
+ 		isert_dbg("np_thread_state %d\n",
+ 			 np->np_thread_state);
+-		/**
++		/*
+ 		 * No point in stalling here when np_thread
+ 		 * is in state RESET/SHUTDOWN/EXIT - bail
+-		 **/
++		 */
+ 		return -ENODEV;
+ 	}
+ 	spin_unlock_bh(&np->np_thread_lock);
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index f1fd7ae9ac53..948eb51026ed 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -915,7 +915,7 @@ static inline void path_it_deinit(struct path_it *it)
+ }
+ 
+ /**
+- * rtrs_clt_init_req() Initialize an rtrs_clt_io_req holding information
++ * rtrs_clt_init_req() - Initialize an rtrs_clt_io_req holding information
+  * about an inflight IO.
+  * The user buffer holding user control message (not data) is copied into
+  * the corresponding buffer of rtrs_iu (req->iu->buf), which later on will
+@@ -1221,7 +1221,7 @@ static int rtrs_clt_read_req(struct rtrs_clt_io_req *req)
+ }
+ 
+ /**
+- * rtrs_clt_failover_req() Try to find an active path for a failed request
++ * rtrs_clt_failover_req() - Try to find an active path for a failed request
+  * @clt: clt context
+  * @fail_req: a failed io request.
+  */
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 5639b29b8b02..658bf4e1f732 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -1308,7 +1308,7 @@ int rtrs_srv_get_sess_name(struct rtrs_srv *srv, char *sessname, size_t len)
+ EXPORT_SYMBOL(rtrs_srv_get_sess_name);
+ 
+ /**
+- * rtrs_srv_get_sess_qdepth() - Get rtrs_srv qdepth.
++ * rtrs_srv_get_queue_depth() - Get rtrs_srv qdepth.
+  * @srv:	Session
+  */
+ int rtrs_srv_get_queue_depth(struct rtrs_srv *srv)
 -- 
-2.25.1
+2.31.1
 
-
---000000000000f8565b05c3dc5fe8
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-TUsFTOuxP4FZ9JSu9FWkGJGPobx8FmEvg+HybmXuUG0+PU7EDHKNoW8AcgZvIQYbwfevqWBFwwRD
-Paihaaj18xGk21lqZcO0BecWKYyV4k9E8poof1dH+GnKqwIDAQABo4IB2zCCAdcwDgYDVR0PAQH/
-BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDovL3NlY3VyZS5nbG9i
-YWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAuY3J0MEEGCCsGAQUF
-BzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29uYWxzaWduMmNhMjAy
-MDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0cHM6Ly93d3cuZ2xv
-YmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBAMD6gPKA6hjhodHRw
-Oi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2EyMDIwLmNybDAlBgNV
-HREEHjAcgRpkZXZlc2guc2hhcm1hQGJyb2FkY29tLmNvbTATBgNVHSUEDDAKBggrBgEFBQcDBDAf
-BgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQUEe3qNwswWXCeWt/hTDSC
-KajMvUgwDQYJKoZIhvcNAQELBQADggEBAGm+rkHFWdX4Z3YnpNuhM5Sj6w4b4z1pe+LtSquNyt9X
-SNuffkoBuPMkEpU3AF9DKJQChG64RAf5UWT/7pOK6lx2kZwhjjXjk9bQVlo6bpojz99/6cqmUyxG
-PsH1dIxDlPUxwxCksGuW65DORNZgmD6mIwNhKI4Thtdf5H6zGq2ke0523YysUqecSws1AHeA1B3d
-G6Yi9ScSuy1K8yGKKgHn/ZDCLAVEG92Ax5kxUaivh1BLKdo3kZX8Ot/0mmWvFcjEqRyCE5CL9WAo
-PU3wdmxYDWOzX5HgFsvArQl4oXob3zKc58TNeGivC9m1KwWJphsMkZNjc2IVVC8gIryWh90xggJt
-MIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYD
-VQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwhg1OJo0VLRNay
-SHwwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIL2Y3qh345HRSO7UKudbxn9EVGmz
-ro4bROn1sfoiA3tbMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTIx
-MDYwMzEzMTU1M1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsG
-CWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEHMAsGCWCGSAFl
-AwQCATANBgkqhkiG9w0BAQEFAASCAQCF9N3pejdTBskWAqUkHW9vW6i8tzYY904O7aT7m8FOIVit
-sg5no7TLvEKp7R57E/LX7XJOv25d4JtdKP98buupuYyLtGPoUFnoDNsHoJYU/RAbz/tyltXQTIEP
-mBPrPgCkWIiaYaV1ean8qxK3PB//+poEt2sls50I0Yg7tbme9wicwffSkBK3OrvCZXbopCGKzKUP
-SrPuYxe2d7R2IUr5+OM2nn/IbOl8Y0aLi6M615nceWax6cK/un0FOyE9yJo0P6KvkA8wZvqLxKij
-JarJDF6CLRNf0FhRmPF9NrsJ5cupvlM46+Xs4sIiAuqAXgiB4zT7b9A/KdjtfvNcMZQ6
---000000000000f8565b05c3dc5fe8--
