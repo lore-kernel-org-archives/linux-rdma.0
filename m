@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9F3EC4743F
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CACC48BC2
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C0AE46141D
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C53D61420
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230019AbhFDSgS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Jun 2021 14:36:18 -0400
-Received: from mail-ed1-f52.google.com ([209.85.208.52]:35729 "EHLO
-        mail-ed1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230210AbhFDSgR (ORCPT
+        id S230262AbhFDSgT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Jun 2021 14:36:19 -0400
+Received: from mail-ej1-f45.google.com ([209.85.218.45]:35389 "EHLO
+        mail-ej1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230214AbhFDSgR (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Jun 2021 14:36:17 -0400
-Received: by mail-ed1-f52.google.com with SMTP id ba2so10507852edb.2;
-        Fri, 04 Jun 2021 11:34:21 -0700 (PDT)
+Received: by mail-ej1-f45.google.com with SMTP id h24so15964677ejy.2;
+        Fri, 04 Jun 2021 11:34:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=rABHcNSMbMSTtq6U4R3ZDnLi8VWhQ8MxkVRZq0z6MO8=;
-        b=PvcYaii1ZDCd0CQNecWBkxD6wkVrO/E7tDfPgnaxHjdWMU8ZkwHtF2luITSm69vN6u
-         ZTpVWpRvf6zuZuwUxW+ws25MJpdpFAlgEXRRHrWt63i3Tb7+Dcg7Gxls9zOncX45hRGK
-         TU8EOJXRaxQGVqwCYc13UwmkyfxO3zjW5Bsc3GyM/E3mcK7KWchbY2mg9vivh2LZC86J
-         SxF3bWRgXuFI0/SRF5SZ9OFS/oIFLOhthGNa+d/vrqeKeOEziGSLb0JIlX0AeLg8I08/
-         /ZuGu0Hya6k1/Ajb4FVkALxeUszNBdKCY9lnXEuYbfCXDGByu7VAkbuNgBA4QnGsIB2N
-         TJtA==
-X-Gm-Message-State: AOAM530NcxZsgJ/I52nUXl0LTg/wp9IsSNOiMkeCcRSpm+E7VMsbf/c+
-        1YZY1L1s0s3E+37oqL7n29WddQZ2CAWbgw==
-X-Google-Smtp-Source: ABdhPJwVTSbX20acx+Ma5Fka4UHK7wy+7JB8YWFIUp4OQhlYxBE8dzHqI1IKFIo4RCyzrVxAOwHvkA==
-X-Received: by 2002:aa7:d64f:: with SMTP id v15mr6058376edr.255.1622831660873;
-        Fri, 04 Jun 2021 11:34:20 -0700 (PDT)
+        bh=gE1hCISNh35haYkCX09NyfgUq9+VCgnI6QikE3p2Dzw=;
+        b=oYFjHTS/nSvg8H4Bo9KvPajujBLsaSDsq/3pGlLpDVXcYv26IZyPoWHbPDM3Ph2DlH
+         EpWc6iec4Sbhs3/0cGunJpxBkfuwwQwqbsVInZ98dToWzllrrgPnRdPn4URzQLQShhlq
+         tmus/voXJc5T2jjkaALBAr5aGtF/fG04cR51r0EVB0pC8YhS/t2Rkkj3HPPawsI7TUkQ
+         Rgvo/lSL1xRkxPKXpXQiIBSwO2n3iPToVlPAcb7hHxRz1VBPrJkesGxb1z2OUewqCycs
+         M6huNzXgpd3YVVMDODAR49ynFGCbahBtdLROZxeqwC8of64dJDNShc8XSbKvusrEsLZ0
+         410Q==
+X-Gm-Message-State: AOAM5313Rp1gdKlWtueDHFg2lJNQ1iYdpYv6JoQKk3+MRqrox6JajzMI
+        Apai6o7GobkONvEfh5+i/+RNfJ5YZRHMeA==
+X-Google-Smtp-Source: ABdhPJxunb7uALobRWGFkQnRIzdB63cbNGyvd6w8CqQbQP/l5q+H05Bq8PKfCehy0dvU6Wz/mHbShA==
+X-Received: by 2002:a17:906:27d3:: with SMTP id k19mr5400711ejc.368.1622831668864;
+        Fri, 04 Jun 2021 11:34:28 -0700 (PDT)
 Received: from msft-t490s.teknoraver.net (net-37-119-128-179.cust.vodafonedsl.it. [37.119.128.179])
-        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.18
+        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Jun 2021 11:34:20 -0700 (PDT)
+        Fri, 04 Jun 2021 11:34:28 -0700 (PDT)
 From:   Matteo Croce <mcroce@linux.microsoft.com>
 To:     netdev@vger.kernel.org, linux-mm@kvack.org
 Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
@@ -86,9 +86,9 @@ Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Andrew Lunn <andrew@lunn.ch>, Paolo Abeni <pabeni@redhat.com>,
         Sven Auhagen <sven.auhagen@voleatech.de>
-Subject: [PATCH net-next v7 1/5] mm: add a signature in struct page
-Date:   Fri,  4 Jun 2021 20:33:45 +0200
-Message-Id: <20210604183349.30040-2-mcroce@linux.microsoft.com>
+Subject: [PATCH net-next v7 4/5] mvpp2: recycle buffers
+Date:   Fri,  4 Jun 2021 20:33:48 +0200
+Message-Id: <20210604183349.30040-5-mcroce@linux.microsoft.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210604183349.30040-1-mcroce@linux.microsoft.com>
 References: <20210604183349.30040-1-mcroce@linux.microsoft.com>
@@ -100,139 +100,91 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Matteo Croce <mcroce@microsoft.com>
 
-This is needed by the page_pool to avoid recycling a page not allocated
-via page_pool.
+Use the new recycling API for page_pool.
+In a drop rate test, the packet rate is almost doubled,
+from 1110 Kpps to 2128 Kpps.
 
-The page->signature field is aliased to page->lru.next and
-page->compound_head, but it can't be set by mistake because the
-signature value is a bad pointer, and can't trigger a false positive
-in PageTail() because the last bit is 0.
+perf top on a stock system shows:
 
-Co-developed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Overhead  Shared Object     Symbol
+  34.88%  [kernel]          [k] page_pool_release_page
+   8.06%  [kernel]          [k] free_unref_page
+   6.42%  [mvpp2]           [k] mvpp2_rx
+   6.07%  [kernel]          [k] eth_type_trans
+   5.18%  [kernel]          [k] __netif_receive_skb_core
+   4.95%  [kernel]          [k] build_skb
+   4.88%  [kernel]          [k] kmem_cache_free
+   3.97%  [kernel]          [k] kmem_cache_alloc
+   3.45%  [kernel]          [k] dev_gro_receive
+   2.73%  [kernel]          [k] page_frag_free
+   2.07%  [kernel]          [k] __alloc_pages_bulk
+   1.99%  [kernel]          [k] arch_local_irq_save
+   1.84%  [kernel]          [k] skb_release_data
+   1.20%  [kernel]          [k] netif_receive_skb_list_internal
+
+With packet rate stable at 1100 Kpps:
+
+tx: 0 bps 0 pps rx: 532.7 Mbps 1110 Kpps
+tx: 0 bps 0 pps rx: 532.6 Mbps 1110 Kpps
+tx: 0 bps 0 pps rx: 532.4 Mbps 1109 Kpps
+tx: 0 bps 0 pps rx: 532.1 Mbps 1109 Kpps
+tx: 0 bps 0 pps rx: 531.9 Mbps 1108 Kpps
+tx: 0 bps 0 pps rx: 531.9 Mbps 1108 Kpps
+
+And this is the same output with recycling enabled:
+
+Overhead  Shared Object     Symbol
+  12.91%  [kernel]          [k] eth_type_trans
+  12.54%  [mvpp2]           [k] mvpp2_rx
+   9.67%  [kernel]          [k] build_skb
+   9.63%  [kernel]          [k] __netif_receive_skb_core
+   8.44%  [kernel]          [k] page_pool_put_page
+   8.07%  [kernel]          [k] kmem_cache_free
+   7.79%  [kernel]          [k] kmem_cache_alloc
+   6.86%  [kernel]          [k] dev_gro_receive
+   3.19%  [kernel]          [k] skb_release_data
+   2.41%  [kernel]          [k] netif_receive_skb_list_internal
+   2.18%  [kernel]          [k] page_pool_refill_alloc_cache
+   1.76%  [kernel]          [k] napi_gro_receive
+   1.61%  [kernel]          [k] kfree_skb
+   1.20%  [kernel]          [k] dma_sync_single_for_device
+   1.16%  [mvpp2]           [k] mvpp2_poll
+   1.12%  [mvpp2]           [k] mvpp2_read
+
+With packet rate above 2100 Kpps:
+
+tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
+tx: 0 bps 0 pps rx: 1021 Mbps 2127 Kpps
+tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
+tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
+tx: 0 bps 0 pps rx: 1022 Mbps 2128 Kpps
+tx: 0 bps 0 pps rx: 1022 Mbps 2129 Kpps
+
+The major performance increase is explained by the fact that the most CPU
+consuming functions (page_pool_release_page, page_frag_free and
+free_unref_page) are no longer called on a per packet basis.
+
+The test was done by sending to the macchiatobin 64 byte ethernet frames
+with an invalid ethertype, so the packets are dropped early in the RX path.
+
 Signed-off-by: Matteo Croce <mcroce@microsoft.com>
 ---
- include/linux/mm.h       | 12 +++++++-----
- include/linux/mm_types.h | 12 +++++++++++-
- include/linux/poison.h   |  3 +++
- net/core/page_pool.c     |  6 ++++++
- 4 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c274f75efcf9..b71074a5e82b 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1668,10 +1668,12 @@ struct address_space *page_mapping(struct page *page);
- static inline bool page_is_pfmemalloc(const struct page *page)
- {
- 	/*
--	 * Page index cannot be this large so this must be
--	 * a pfmemalloc page.
-+	 * This is not a tail page; compound_head of a head page is unused
-+	 * at return from the page allocator, and will be overwritten
-+	 * by callers who do not care whether the page came from the
-+	 * reserves.
- 	 */
--	return page->index == -1UL;
-+	return page->compound_head & BIT(1);
- }
- 
- /*
-@@ -1680,12 +1682,12 @@ static inline bool page_is_pfmemalloc(const struct page *page)
-  */
- static inline void set_page_pfmemalloc(struct page *page)
- {
--	page->index = -1UL;
-+	page->compound_head = BIT(1);
- }
- 
- static inline void clear_page_pfmemalloc(struct page *page)
- {
--	page->index = 0;
-+	page->compound_head = 0;
- }
- 
- /*
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 5aacc1c10a45..09f90598ff63 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -96,6 +96,13 @@ struct page {
- 			unsigned long private;
- 		};
- 		struct {	/* page_pool used by netstack */
-+			/**
-+			 * @pp_magic: magic value to avoid recycling non
-+			 * page_pool allocated pages.
-+			 */
-+			unsigned long pp_magic;
-+			struct page_pool *pp;
-+			unsigned long _pp_mapping_pad;
- 			/**
- 			 * @dma_addr: might require a 64-bit value on
- 			 * 32-bit architectures.
-@@ -130,7 +137,10 @@ struct page {
- 			};
- 		};
- 		struct {	/* Tail pages of compound page */
--			unsigned long compound_head;	/* Bit zero is set */
-+			/* Bit zero is set
-+			 * Bit one if pfmemalloc page
-+			 */
-+			unsigned long compound_head;
- 
- 			/* First tail page only */
- 			unsigned char compound_dtor;
-diff --git a/include/linux/poison.h b/include/linux/poison.h
-index aff1c9250c82..d62ef5a6b4e9 100644
---- a/include/linux/poison.h
-+++ b/include/linux/poison.h
-@@ -78,4 +78,7 @@
- /********** security/ **********/
- #define KEY_DESTROY		0xbd
- 
-+/********** net/core/page_pool.c **********/
-+#define PP_SIGNATURE		(0x40 + POISON_POINTER_DELTA)
-+
- #endif
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index 3c4c4c7a0402..e1321bc9d316 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -17,6 +17,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/page-flags.h>
- #include <linux/mm.h> /* for __put_page() */
-+#include <linux/poison.h>
- 
- #include <trace/events/page_pool.h>
- 
-@@ -221,6 +222,8 @@ static struct page *__page_pool_alloc_page_order(struct page_pool *pool,
- 		return NULL;
- 	}
- 
-+	page->pp_magic |= PP_SIGNATURE;
-+
- 	/* Track how many pages are held 'in-flight' */
- 	pool->pages_state_hold_cnt++;
- 	trace_page_pool_state_hold(pool, page, pool->pages_state_hold_cnt);
-@@ -263,6 +266,7 @@ static struct page *__page_pool_alloc_pages_slow(struct page_pool *pool,
- 			put_page(page);
- 			continue;
+diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+index d4fb620f53f3..b1d186abcc6c 100644
+--- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
++++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+@@ -3997,7 +3997,7 @@ static int mvpp2_rx(struct mvpp2_port *port, struct napi_struct *napi,
  		}
-+		page->pp_magic |= PP_SIGNATURE;
- 		pool->alloc.cache[pool->alloc.count++] = page;
- 		/* Track how many pages are held 'in-flight' */
- 		pool->pages_state_hold_cnt++;
-@@ -341,6 +345,8 @@ void page_pool_release_page(struct page_pool *pool, struct page *page)
- 			     DMA_ATTR_SKIP_CPU_SYNC);
- 	page_pool_set_dma_addr(page, 0);
- skip_dma_unmap:
-+	page->pp_magic = 0;
-+
- 	/* This may be the last page returned, releasing the pool, so
- 	 * it is not safe to reference pool afterwards.
- 	 */
+ 
+ 		if (pp)
+-			page_pool_release_page(pp, virt_to_page(data));
++			skb_mark_for_recycle(skb, virt_to_page(data), pp);
+ 		else
+ 			dma_unmap_single_attrs(dev->dev.parent, dma_addr,
+ 					       bm_pool->buf_size, DMA_FROM_DEVICE,
 -- 
 2.31.1
 
