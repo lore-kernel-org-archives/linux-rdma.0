@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E91CC4743F
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF322C4743C
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0938F61423
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7BDA6140B
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230242AbhFDSg1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Jun 2021 14:36:27 -0400
-Received: from mail-ej1-f49.google.com ([209.85.218.49]:41852 "EHLO
-        mail-ej1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230311AbhFDSgY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Jun 2021 14:36:24 -0400
-Received: by mail-ej1-f49.google.com with SMTP id ho18so4943545ejc.8;
-        Fri, 04 Jun 2021 11:34:24 -0700 (PDT)
+        id S230351AbhFDSgc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Jun 2021 14:36:32 -0400
+Received: from mail-ej1-f48.google.com ([209.85.218.48]:37563 "EHLO
+        mail-ej1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230344AbhFDSgc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Jun 2021 14:36:32 -0400
+Received: by mail-ej1-f48.google.com with SMTP id ce15so15930001ejb.4;
+        Fri, 04 Jun 2021 11:34:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=d5R/Y787deGXI27/C5ydk9yyfai3EZKj2N6INNdZwRE=;
-        b=HENm+1/9g87Gj5fN4bYWSujf2JyNe55aqwgE9ymMnFP+SY1VS9ZrIgGzV8o5TIAi4v
-         AMzdTLAW+LNmqxBAYlJ0qvQMXWiMXA0JkIJ1FTLXK2foGYw1I1/4kHmP0lZEP///N62g
-         aHMTJjr0X29wy2U/hPBnpXDZTxlCJtVIwOtZAPeAIUHs3PN30SZ3OlE6jM5yUqH+BveO
-         m4FMMC8JfVEFWQK6b+Wc+WtVqehr3ZBdVrmkEkAWqpb1BO0R9UL1nXYIMysEWsSQN46i
-         U7y9yWLnsiumQADq/48CfU0sZFVeev1g8MHkpUpeLGCQa4gZDCqFZAwjIDANTU3DWQaz
-         JT+A==
-X-Gm-Message-State: AOAM532DmIz8kwsl1SuAoWXugLU4dQThbdkBeCRCFHO3ctnUKo3mUulY
-        49BHlhUd1GjphP6uzunec6kuYdh/SgWVxA==
-X-Google-Smtp-Source: ABdhPJxkkRYKIDGRuSQ777kLhj0RtZhQRhx15wdcBmj23ZVlKk+eQFKyKCbrQbL7WpTDvESKUH4JbA==
-X-Received: by 2002:a17:907:2044:: with SMTP id pg4mr5491887ejb.447.1622831663585;
-        Fri, 04 Jun 2021 11:34:23 -0700 (PDT)
+        bh=KVXA2B0j0E76Hw4rKgteG9BP+cY/0VQ2EiVfHUNMg/4=;
+        b=nlkGuBMd+Vty6+XLHkc2LbiSbwqfINiZ/ReNk8htptoFZbKJd4j2KgwYSoht5E5Wqe
+         c6Za3C57g7wbv7IzS8m5R2Nry1bmPbbzNpLd4jYp2QY9jMXLxhS2A9DE2wDfHGeOB+aK
+         3SgbN6soIrUNvwHNmClCEoU8fW4uDLkaHySq5QeBe4T9t4Mfrncw8G4PxHN3sWJqQi+3
+         74+ByQ6lqGbWdZ9lTOi0ikr8wEmE5/SmExv8tGHXwzh/6EqJzCqanW/ZOwJ8y8uRHe8B
+         jlzxaRhMnV7g7eQOrj0K+aAbn/0jHHTSEUc2Il9M4yHndUQmc+Evu1c0wVXx3tYp+auR
+         uf3Q==
+X-Gm-Message-State: AOAM532Xqv9vvQNeR7kEp2xOlQIMPig8BED5NzFcu5nyXyT7BW4uZFiL
+        SzjvsZY4Jxsvm4vJbhxPX8F4z8bKZIecfA==
+X-Google-Smtp-Source: ABdhPJwzWy/UpSiAT2oGFWyX5XJHteunpsaqe2BdTWj7r5QsxGM1CjDsIVuG2Daau4lDB2+8+7DnXg==
+X-Received: by 2002:a17:907:7808:: with SMTP id la8mr3285635ejc.13.1622831671378;
+        Fri, 04 Jun 2021 11:34:31 -0700 (PDT)
 Received: from msft-t490s.teknoraver.net (net-37-119-128-179.cust.vodafonedsl.it. [37.119.128.179])
-        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.21
+        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Jun 2021 11:34:23 -0700 (PDT)
+        Fri, 04 Jun 2021 11:34:30 -0700 (PDT)
 From:   Matteo Croce <mcroce@linux.microsoft.com>
 To:     netdev@vger.kernel.org, linux-mm@kvack.org
 Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
@@ -86,9 +86,9 @@ Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Andrew Lunn <andrew@lunn.ch>, Paolo Abeni <pabeni@redhat.com>,
         Sven Auhagen <sven.auhagen@voleatech.de>
-Subject: [PATCH net-next v7 2/5] skbuff: add a parameter to __skb_frag_unref
-Date:   Fri,  4 Jun 2021 20:33:46 +0200
-Message-Id: <20210604183349.30040-3-mcroce@linux.microsoft.com>
+Subject: [PATCH net-next v7 5/5] mvneta: recycle buffers
+Date:   Fri,  4 Jun 2021 20:33:49 +0200
+Message-Id: <20210604183349.30040-6-mcroce@linux.microsoft.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210604183349.30040-1-mcroce@linux.microsoft.com>
 References: <20210604183349.30040-1-mcroce@linux.microsoft.com>
@@ -100,107 +100,98 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Matteo Croce <mcroce@microsoft.com>
 
-This is a prerequisite patch, the next one is enabling recycling of
-skbs and fragments. Add an extra argument on __skb_frag_unref() to
-handle recycling, and update the current users of the function with that.
+Use the new recycling API for page_pool.
+In a drop rate test, the packet rate increased by 10%,
+from 296 Kpps to 326 Kpps.
+
+perf top on a stock system shows:
+
+Overhead  Shared Object     Symbol
+  23.66%  [kernel]          [k] __pi___inval_dcache_area
+  22.85%  [mvneta]          [k] mvneta_rx_swbm
+   7.54%  [kernel]          [k] kmem_cache_alloc
+   6.49%  [kernel]          [k] eth_type_trans
+   3.94%  [kernel]          [k] dev_gro_receive
+   3.91%  [kernel]          [k] __netif_receive_skb_core
+   3.91%  [kernel]          [k] kmem_cache_free
+   3.76%  [kernel]          [k] page_pool_release_page
+   3.56%  [kernel]          [k] free_unref_page
+   2.40%  [kernel]          [k] build_skb
+   1.49%  [kernel]          [k] skb_release_data
+   1.45%  [kernel]          [k] __alloc_pages_bulk
+   1.30%  [kernel]          [k] page_frag_free
+
+And this is the same output with recycling enabled:
+
+Overhead  Shared Object     Symbol
+  26.41%  [kernel]          [k] __pi___inval_dcache_area
+  25.00%  [mvneta]          [k] mvneta_rx_swbm
+   8.14%  [kernel]          [k] kmem_cache_alloc
+   6.84%  [kernel]          [k] eth_type_trans
+   4.44%  [kernel]          [k] __netif_receive_skb_core
+   4.38%  [kernel]          [k] kmem_cache_free
+   4.16%  [kernel]          [k] dev_gro_receive
+   3.21%  [kernel]          [k] page_pool_put_page
+   2.41%  [kernel]          [k] build_skb
+   1.82%  [kernel]          [k] skb_release_data
+   1.61%  [kernel]          [k] napi_gro_receive
+   1.25%  [kernel]          [k] page_pool_refill_alloc_cache
+   1.16%  [kernel]          [k] __netif_receive_skb_list_core
+
+We can see that page_pool_release_page(), free_unref_page() and
+__alloc_pages_bulk() are no longer on top of the list when receiving
+traffic.
+
+The test was done with mausezahn on the TX side with 64 byte raw
+ethernet frames.
 
 Signed-off-by: Matteo Croce <mcroce@microsoft.com>
 ---
- drivers/net/ethernet/marvell/sky2.c        | 2 +-
- drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
- include/linux/skbuff.h                     | 8 +++++---
- net/core/skbuff.c                          | 4 ++--
- net/tls/tls_device.c                       | 2 +-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/marvell/mvneta.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
-index 324c280cc22c..8b8bff59c8fe 100644
---- a/drivers/net/ethernet/marvell/sky2.c
-+++ b/drivers/net/ethernet/marvell/sky2.c
-@@ -2503,7 +2503,7 @@ static void skb_put_frags(struct sk_buff *skb, unsigned int hdr_space,
- 
- 		if (length == 0) {
- 			/* don't need this page */
--			__skb_frag_unref(frag);
-+			__skb_frag_unref(frag, false);
- 			--skb_shinfo(skb)->nr_frags;
- 		} else {
- 			size = min(length, (unsigned) PAGE_SIZE);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-index e35e4d7ef4d1..cea62b8f554c 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-@@ -526,7 +526,7 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_priv *priv,
- fail:
- 	while (nr > 0) {
- 		nr--;
--		__skb_frag_unref(skb_shinfo(skb)->frags + nr);
-+		__skb_frag_unref(skb_shinfo(skb)->frags + nr, false);
- 	}
- 	return 0;
+diff --git a/drivers/net/ethernet/marvell/mvneta.c b/drivers/net/ethernet/marvell/mvneta.c
+index 7d5cd9bc6c99..c15ce06427d0 100644
+--- a/drivers/net/ethernet/marvell/mvneta.c
++++ b/drivers/net/ethernet/marvell/mvneta.c
+@@ -2320,7 +2320,7 @@ mvneta_swbm_add_rx_fragment(struct mvneta_port *pp,
  }
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index dbf820a50a39..7fcfea7e7b21 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -3081,10 +3081,12 @@ static inline void skb_frag_ref(struct sk_buff *skb, int f)
- /**
-  * __skb_frag_unref - release a reference on a paged fragment.
-  * @frag: the paged fragment
-+ * @recycle: recycle the page if allocated via page_pool
-  *
-- * Releases a reference on the paged fragment @frag.
-+ * Releases a reference on the paged fragment @frag
-+ * or recycles the page via the page_pool API.
-  */
--static inline void __skb_frag_unref(skb_frag_t *frag)
-+static inline void __skb_frag_unref(skb_frag_t *frag, bool recycle)
+ 
+ static struct sk_buff *
+-mvneta_swbm_build_skb(struct mvneta_port *pp, struct mvneta_rx_queue *rxq,
++mvneta_swbm_build_skb(struct mvneta_port *pp, struct page_pool *pool,
+ 		      struct xdp_buff *xdp, u32 desc_status)
  {
- 	put_page(skb_frag_page(frag));
- }
-@@ -3098,7 +3100,7 @@ static inline void __skb_frag_unref(skb_frag_t *frag)
-  */
- static inline void skb_frag_unref(struct sk_buff *skb, int f)
- {
--	__skb_frag_unref(&skb_shinfo(skb)->frags[f]);
-+	__skb_frag_unref(&skb_shinfo(skb)->frags[f], false);
- }
+ 	struct skb_shared_info *sinfo = xdp_get_shared_info_from_buff(xdp);
+@@ -2331,7 +2331,7 @@ mvneta_swbm_build_skb(struct mvneta_port *pp, struct mvneta_rx_queue *rxq,
+ 	if (!skb)
+ 		return ERR_PTR(-ENOMEM);
  
- /**
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 3ad22870298c..12b7e90dd2b5 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -664,7 +664,7 @@ static void skb_release_data(struct sk_buff *skb)
- 	skb_zcopy_clear(skb, true);
+-	page_pool_release_page(rxq->page_pool, virt_to_page(xdp->data));
++	skb_mark_for_recycle(skb, virt_to_page(xdp->data), pool);
  
- 	for (i = 0; i < shinfo->nr_frags; i++)
--		__skb_frag_unref(&shinfo->frags[i]);
-+		__skb_frag_unref(&shinfo->frags[i], false);
- 
- 	if (shinfo->frag_list)
- 		kfree_skb_list(shinfo->frag_list);
-@@ -3495,7 +3495,7 @@ int skb_shift(struct sk_buff *tgt, struct sk_buff *skb, int shiftlen)
- 		fragto = &skb_shinfo(tgt)->frags[merge];
- 
- 		skb_frag_size_add(fragto, skb_frag_size(fragfrom));
--		__skb_frag_unref(fragfrom);
-+		__skb_frag_unref(fragfrom, false);
+ 	skb_reserve(skb, xdp->data - xdp->data_hard_start);
+ 	skb_put(skb, xdp->data_end - xdp->data);
+@@ -2343,7 +2343,10 @@ mvneta_swbm_build_skb(struct mvneta_port *pp, struct mvneta_rx_queue *rxq,
+ 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
+ 				skb_frag_page(frag), skb_frag_off(frag),
+ 				skb_frag_size(frag), PAGE_SIZE);
+-		page_pool_release_page(rxq->page_pool, skb_frag_page(frag));
++		/* We don't need to reset pp_recycle here. It's already set, so
++		 * just mark fragments for recycling.
++		 */
++		page_pool_store_mem_info(skb_frag_page(frag), pool);
  	}
  
- 	/* Reposition in the original skb */
-diff --git a/net/tls/tls_device.c b/net/tls/tls_device.c
-index 76a6f8c2eec4..ad11db2c4f63 100644
---- a/net/tls/tls_device.c
-+++ b/net/tls/tls_device.c
-@@ -127,7 +127,7 @@ static void destroy_record(struct tls_record_info *record)
- 	int i;
+ 	return skb;
+@@ -2425,7 +2428,7 @@ static int mvneta_rx_swbm(struct napi_struct *napi,
+ 		    mvneta_run_xdp(pp, rxq, xdp_prog, &xdp_buf, frame_sz, &ps))
+ 			goto next;
  
- 	for (i = 0; i < record->num_frags; i++)
--		__skb_frag_unref(&record->frags[i]);
-+		__skb_frag_unref(&record->frags[i], false);
- 	kfree(record);
- }
+-		skb = mvneta_swbm_build_skb(pp, rxq, &xdp_buf, desc_status);
++		skb = mvneta_swbm_build_skb(pp, rxq->page_pool, &xdp_buf, desc_status);
+ 		if (IS_ERR(skb)) {
+ 			struct mvneta_pcpu_stats *stats = this_cpu_ptr(pp->stats);
  
 -- 
 2.31.1
