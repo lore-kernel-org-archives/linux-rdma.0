@@ -7,40 +7,40 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CACC48BC2
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E91CC4743F
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C53D61420
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0938F61423
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Jun 2021 18:34:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230262AbhFDSgT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Jun 2021 14:36:19 -0400
-Received: from mail-ej1-f45.google.com ([209.85.218.45]:35389 "EHLO
-        mail-ej1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230214AbhFDSgR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Jun 2021 14:36:17 -0400
-Received: by mail-ej1-f45.google.com with SMTP id h24so15964677ejy.2;
-        Fri, 04 Jun 2021 11:34:29 -0700 (PDT)
+        id S230242AbhFDSg1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Jun 2021 14:36:27 -0400
+Received: from mail-ej1-f49.google.com ([209.85.218.49]:41852 "EHLO
+        mail-ej1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230311AbhFDSgY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Jun 2021 14:36:24 -0400
+Received: by mail-ej1-f49.google.com with SMTP id ho18so4943545ejc.8;
+        Fri, 04 Jun 2021 11:34:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=gE1hCISNh35haYkCX09NyfgUq9+VCgnI6QikE3p2Dzw=;
-        b=oYFjHTS/nSvg8H4Bo9KvPajujBLsaSDsq/3pGlLpDVXcYv26IZyPoWHbPDM3Ph2DlH
-         EpWc6iec4Sbhs3/0cGunJpxBkfuwwQwqbsVInZ98dToWzllrrgPnRdPn4URzQLQShhlq
-         tmus/voXJc5T2jjkaALBAr5aGtF/fG04cR51r0EVB0pC8YhS/t2Rkkj3HPPawsI7TUkQ
-         Rgvo/lSL1xRkxPKXpXQiIBSwO2n3iPToVlPAcb7hHxRz1VBPrJkesGxb1z2OUewqCycs
-         M6huNzXgpd3YVVMDODAR49ynFGCbahBtdLROZxeqwC8of64dJDNShc8XSbKvusrEsLZ0
-         410Q==
-X-Gm-Message-State: AOAM5313Rp1gdKlWtueDHFg2lJNQ1iYdpYv6JoQKk3+MRqrox6JajzMI
-        Apai6o7GobkONvEfh5+i/+RNfJ5YZRHMeA==
-X-Google-Smtp-Source: ABdhPJxunb7uALobRWGFkQnRIzdB63cbNGyvd6w8CqQbQP/l5q+H05Bq8PKfCehy0dvU6Wz/mHbShA==
-X-Received: by 2002:a17:906:27d3:: with SMTP id k19mr5400711ejc.368.1622831668864;
-        Fri, 04 Jun 2021 11:34:28 -0700 (PDT)
+        bh=d5R/Y787deGXI27/C5ydk9yyfai3EZKj2N6INNdZwRE=;
+        b=HENm+1/9g87Gj5fN4bYWSujf2JyNe55aqwgE9ymMnFP+SY1VS9ZrIgGzV8o5TIAi4v
+         AMzdTLAW+LNmqxBAYlJ0qvQMXWiMXA0JkIJ1FTLXK2foGYw1I1/4kHmP0lZEP///N62g
+         aHMTJjr0X29wy2U/hPBnpXDZTxlCJtVIwOtZAPeAIUHs3PN30SZ3OlE6jM5yUqH+BveO
+         m4FMMC8JfVEFWQK6b+Wc+WtVqehr3ZBdVrmkEkAWqpb1BO0R9UL1nXYIMysEWsSQN46i
+         U7y9yWLnsiumQADq/48CfU0sZFVeev1g8MHkpUpeLGCQa4gZDCqFZAwjIDANTU3DWQaz
+         JT+A==
+X-Gm-Message-State: AOAM532DmIz8kwsl1SuAoWXugLU4dQThbdkBeCRCFHO3ctnUKo3mUulY
+        49BHlhUd1GjphP6uzunec6kuYdh/SgWVxA==
+X-Google-Smtp-Source: ABdhPJxkkRYKIDGRuSQ777kLhj0RtZhQRhx15wdcBmj23ZVlKk+eQFKyKCbrQbL7WpTDvESKUH4JbA==
+X-Received: by 2002:a17:907:2044:: with SMTP id pg4mr5491887ejb.447.1622831663585;
+        Fri, 04 Jun 2021 11:34:23 -0700 (PDT)
 Received: from msft-t490s.teknoraver.net (net-37-119-128-179.cust.vodafonedsl.it. [37.119.128.179])
-        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.26
+        by smtp.gmail.com with ESMTPSA id k12sm3732039edi.87.2021.06.04.11.34.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Jun 2021 11:34:28 -0700 (PDT)
+        Fri, 04 Jun 2021 11:34:23 -0700 (PDT)
 From:   Matteo Croce <mcroce@linux.microsoft.com>
 To:     netdev@vger.kernel.org, linux-mm@kvack.org
 Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
@@ -86,9 +86,9 @@ Cc:     Ayush Sawal <ayush.sawal@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Andrew Lunn <andrew@lunn.ch>, Paolo Abeni <pabeni@redhat.com>,
         Sven Auhagen <sven.auhagen@voleatech.de>
-Subject: [PATCH net-next v7 4/5] mvpp2: recycle buffers
-Date:   Fri,  4 Jun 2021 20:33:48 +0200
-Message-Id: <20210604183349.30040-5-mcroce@linux.microsoft.com>
+Subject: [PATCH net-next v7 2/5] skbuff: add a parameter to __skb_frag_unref
+Date:   Fri,  4 Jun 2021 20:33:46 +0200
+Message-Id: <20210604183349.30040-3-mcroce@linux.microsoft.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210604183349.30040-1-mcroce@linux.microsoft.com>
 References: <20210604183349.30040-1-mcroce@linux.microsoft.com>
@@ -100,91 +100,108 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Matteo Croce <mcroce@microsoft.com>
 
-Use the new recycling API for page_pool.
-In a drop rate test, the packet rate is almost doubled,
-from 1110 Kpps to 2128 Kpps.
-
-perf top on a stock system shows:
-
-Overhead  Shared Object     Symbol
-  34.88%  [kernel]          [k] page_pool_release_page
-   8.06%  [kernel]          [k] free_unref_page
-   6.42%  [mvpp2]           [k] mvpp2_rx
-   6.07%  [kernel]          [k] eth_type_trans
-   5.18%  [kernel]          [k] __netif_receive_skb_core
-   4.95%  [kernel]          [k] build_skb
-   4.88%  [kernel]          [k] kmem_cache_free
-   3.97%  [kernel]          [k] kmem_cache_alloc
-   3.45%  [kernel]          [k] dev_gro_receive
-   2.73%  [kernel]          [k] page_frag_free
-   2.07%  [kernel]          [k] __alloc_pages_bulk
-   1.99%  [kernel]          [k] arch_local_irq_save
-   1.84%  [kernel]          [k] skb_release_data
-   1.20%  [kernel]          [k] netif_receive_skb_list_internal
-
-With packet rate stable at 1100 Kpps:
-
-tx: 0 bps 0 pps rx: 532.7 Mbps 1110 Kpps
-tx: 0 bps 0 pps rx: 532.6 Mbps 1110 Kpps
-tx: 0 bps 0 pps rx: 532.4 Mbps 1109 Kpps
-tx: 0 bps 0 pps rx: 532.1 Mbps 1109 Kpps
-tx: 0 bps 0 pps rx: 531.9 Mbps 1108 Kpps
-tx: 0 bps 0 pps rx: 531.9 Mbps 1108 Kpps
-
-And this is the same output with recycling enabled:
-
-Overhead  Shared Object     Symbol
-  12.91%  [kernel]          [k] eth_type_trans
-  12.54%  [mvpp2]           [k] mvpp2_rx
-   9.67%  [kernel]          [k] build_skb
-   9.63%  [kernel]          [k] __netif_receive_skb_core
-   8.44%  [kernel]          [k] page_pool_put_page
-   8.07%  [kernel]          [k] kmem_cache_free
-   7.79%  [kernel]          [k] kmem_cache_alloc
-   6.86%  [kernel]          [k] dev_gro_receive
-   3.19%  [kernel]          [k] skb_release_data
-   2.41%  [kernel]          [k] netif_receive_skb_list_internal
-   2.18%  [kernel]          [k] page_pool_refill_alloc_cache
-   1.76%  [kernel]          [k] napi_gro_receive
-   1.61%  [kernel]          [k] kfree_skb
-   1.20%  [kernel]          [k] dma_sync_single_for_device
-   1.16%  [mvpp2]           [k] mvpp2_poll
-   1.12%  [mvpp2]           [k] mvpp2_read
-
-With packet rate above 2100 Kpps:
-
-tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
-tx: 0 bps 0 pps rx: 1021 Mbps 2127 Kpps
-tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
-tx: 0 bps 0 pps rx: 1021 Mbps 2128 Kpps
-tx: 0 bps 0 pps rx: 1022 Mbps 2128 Kpps
-tx: 0 bps 0 pps rx: 1022 Mbps 2129 Kpps
-
-The major performance increase is explained by the fact that the most CPU
-consuming functions (page_pool_release_page, page_frag_free and
-free_unref_page) are no longer called on a per packet basis.
-
-The test was done by sending to the macchiatobin 64 byte ethernet frames
-with an invalid ethertype, so the packets are dropped early in the RX path.
+This is a prerequisite patch, the next one is enabling recycling of
+skbs and fragments. Add an extra argument on __skb_frag_unref() to
+handle recycling, and update the current users of the function with that.
 
 Signed-off-by: Matteo Croce <mcroce@microsoft.com>
 ---
- drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/marvell/sky2.c        | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c | 2 +-
+ include/linux/skbuff.h                     | 8 +++++---
+ net/core/skbuff.c                          | 4 ++--
+ net/tls/tls_device.c                       | 2 +-
+ 5 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-index d4fb620f53f3..b1d186abcc6c 100644
---- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-+++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
-@@ -3997,7 +3997,7 @@ static int mvpp2_rx(struct mvpp2_port *port, struct napi_struct *napi,
- 		}
+diff --git a/drivers/net/ethernet/marvell/sky2.c b/drivers/net/ethernet/marvell/sky2.c
+index 324c280cc22c..8b8bff59c8fe 100644
+--- a/drivers/net/ethernet/marvell/sky2.c
++++ b/drivers/net/ethernet/marvell/sky2.c
+@@ -2503,7 +2503,7 @@ static void skb_put_frags(struct sk_buff *skb, unsigned int hdr_space,
  
- 		if (pp)
--			page_pool_release_page(pp, virt_to_page(data));
-+			skb_mark_for_recycle(skb, virt_to_page(data), pp);
- 		else
- 			dma_unmap_single_attrs(dev->dev.parent, dma_addr,
- 					       bm_pool->buf_size, DMA_FROM_DEVICE,
+ 		if (length == 0) {
+ 			/* don't need this page */
+-			__skb_frag_unref(frag);
++			__skb_frag_unref(frag, false);
+ 			--skb_shinfo(skb)->nr_frags;
+ 		} else {
+ 			size = min(length, (unsigned) PAGE_SIZE);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+index e35e4d7ef4d1..cea62b8f554c 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -526,7 +526,7 @@ static int mlx4_en_complete_rx_desc(struct mlx4_en_priv *priv,
+ fail:
+ 	while (nr > 0) {
+ 		nr--;
+-		__skb_frag_unref(skb_shinfo(skb)->frags + nr);
++		__skb_frag_unref(skb_shinfo(skb)->frags + nr, false);
+ 	}
+ 	return 0;
+ }
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index dbf820a50a39..7fcfea7e7b21 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -3081,10 +3081,12 @@ static inline void skb_frag_ref(struct sk_buff *skb, int f)
+ /**
+  * __skb_frag_unref - release a reference on a paged fragment.
+  * @frag: the paged fragment
++ * @recycle: recycle the page if allocated via page_pool
+  *
+- * Releases a reference on the paged fragment @frag.
++ * Releases a reference on the paged fragment @frag
++ * or recycles the page via the page_pool API.
+  */
+-static inline void __skb_frag_unref(skb_frag_t *frag)
++static inline void __skb_frag_unref(skb_frag_t *frag, bool recycle)
+ {
+ 	put_page(skb_frag_page(frag));
+ }
+@@ -3098,7 +3100,7 @@ static inline void __skb_frag_unref(skb_frag_t *frag)
+  */
+ static inline void skb_frag_unref(struct sk_buff *skb, int f)
+ {
+-	__skb_frag_unref(&skb_shinfo(skb)->frags[f]);
++	__skb_frag_unref(&skb_shinfo(skb)->frags[f], false);
+ }
+ 
+ /**
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 3ad22870298c..12b7e90dd2b5 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -664,7 +664,7 @@ static void skb_release_data(struct sk_buff *skb)
+ 	skb_zcopy_clear(skb, true);
+ 
+ 	for (i = 0; i < shinfo->nr_frags; i++)
+-		__skb_frag_unref(&shinfo->frags[i]);
++		__skb_frag_unref(&shinfo->frags[i], false);
+ 
+ 	if (shinfo->frag_list)
+ 		kfree_skb_list(shinfo->frag_list);
+@@ -3495,7 +3495,7 @@ int skb_shift(struct sk_buff *tgt, struct sk_buff *skb, int shiftlen)
+ 		fragto = &skb_shinfo(tgt)->frags[merge];
+ 
+ 		skb_frag_size_add(fragto, skb_frag_size(fragfrom));
+-		__skb_frag_unref(fragfrom);
++		__skb_frag_unref(fragfrom, false);
+ 	}
+ 
+ 	/* Reposition in the original skb */
+diff --git a/net/tls/tls_device.c b/net/tls/tls_device.c
+index 76a6f8c2eec4..ad11db2c4f63 100644
+--- a/net/tls/tls_device.c
++++ b/net/tls/tls_device.c
+@@ -127,7 +127,7 @@ static void destroy_record(struct tls_record_info *record)
+ 	int i;
+ 
+ 	for (i = 0; i < record->num_frags; i++)
+-		__skb_frag_unref(&record->frags[i]);
++		__skb_frag_unref(&record->frags[i], false);
+ 	kfree(record);
+ }
+ 
 -- 
 2.31.1
 
