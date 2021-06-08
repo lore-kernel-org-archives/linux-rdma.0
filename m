@@ -2,67 +2,67 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D96E1C4743E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5543C47082
 	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 04:26:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B405F600EF
+	by mail.kernel.org (Postfix) with ESMTP id A7AA860240
 	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 04:26:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230223AbhFHE22 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230268AbhFHE22 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 8 Jun 2021 00:28:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39300 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230251AbhFHE2Z (ORCPT
+        with ESMTP id S230223AbhFHE2Z (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Jun 2021 00:28:25 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE89DC061789
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Jun 2021 21:26:18 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id u11so20357450oiv.1
-        for <linux-rdma@vger.kernel.org>; Mon, 07 Jun 2021 21:26:18 -0700 (PDT)
+Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB31CC06178B
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Jun 2021 21:26:19 -0700 (PDT)
+Received: by mail-oi1-x22a.google.com with SMTP id r17so10090640oic.7
+        for <linux-rdma@vger.kernel.org>; Mon, 07 Jun 2021 21:26:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=MweJodyMfd5S1X8O7Yk0+lyl4lshU779R7fjC0A5hks=;
-        b=TaxE3tmpyIYKLud0qjIwfxa3Ck9bbH17TVZCHGd1RaRWTFCiYMK76Wlo7oUbsfNPBd
-         7p+jB7hj1v00/Xb3YpTwI9Yihwkt8QdddUP5W9lH+HlubYDY9mrQlkZqo/whGaeGZelo
-         q1769cL04QPMcX1op2VeKX1z1VX5DMs4SQYHotL9PTYY/UlMaH7CAIob6R5yPifptgfx
-         2dP5PL/SKtuYUJAdRBhidKZlqcy1bZMwTIKAy0JRFG6WcPwVi4PrAGiEVLyXA+JCLYmz
-         AE9iZZZhw+bAUlUbklCAGq3mo5zcRilpKYsOKyLFpPhyxd/t/LUGztOVJESbdkwcdD0V
-         x8yA==
+        bh=cMvBAEQuMBFtNREjn+AvA1qtn5/GXMySLD9mvP59vxI=;
+        b=AjWdvUdNY9IMzymDEI/X0G4bXD8dLOfEYYXWuzdCE+q1L8fibLtDWC745rWsZbqPfu
+         cp+Jbk2hOty3X0Wc0SVdlSoByhAwp6HMR4WLkshU//axS60WoGmkNiGibR0wtv9b4zXt
+         gsdxsOrYXjhZm97inHp4vyAuNYzBz+3vZHdZwPv+R1ry6Zulv7zkdDU1Ddz9OwkX3V5S
+         kSJvSg1gwFgRrIPtZtwwjCxV2epTDPl10m8dvRJ+wYAqi4p+Her7kdyUUY0gETiQmSQU
+         onKJV5gF34Q7Q6oSCMIMLMbjhKfrO7o2Gl7vROr6nVLjoDYqxnIiDumDHtZ0oicCHLkq
+         fq2w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=MweJodyMfd5S1X8O7Yk0+lyl4lshU779R7fjC0A5hks=;
-        b=dl07vP0okk32E4k1TuWO/8dC2H8gcHhiEtPP9C+WAiblAKQov15FBo/Up8jiL7icEX
-         4wVq9agVounIVr/n9kBzEH34+zSSg8gUvNZdqDv3+hN5JE4oEV4xXivMV2kM95toxyu9
-         o4hsLhC4dy1gK2gNSSTBQ6Ndzl7O5hn7TSfi415op3CYTMGQY3r8ZlyXAg/sQ55iTm5H
-         Y+RyPcw1uZ6TCZNoPKecfJdermgsmFCjtw1bWpW4ApoUYxLSKBW0h8vQpJ4/mVlfMuJN
-         JVy7/+/VKpirdC12NHV498uGmnyXrDuQHF5YG1BNQ4KAM5XBa/YWeVtc+Qyfe4wZqcq6
-         1BUQ==
-X-Gm-Message-State: AOAM532Dq+bg1qhxTM5OwS1s0lDlE2Rv+1yV9mkRHyuSQDZ4WsUZhL/x
-        zXBfCRyJck7tjjUu9Aluuio=
-X-Google-Smtp-Source: ABdhPJzsuADCbagPnQvbMsD7vXmJrcnvedjFouDC4zsFKERKN7gYZXHpJ30mcNu3wdeBtw+qr9YXzg==
-X-Received: by 2002:aca:aad2:: with SMTP id t201mr1607866oie.117.1623126376499;
-        Mon, 07 Jun 2021 21:26:16 -0700 (PDT)
+        bh=cMvBAEQuMBFtNREjn+AvA1qtn5/GXMySLD9mvP59vxI=;
+        b=KEqNvveelNstdkDjHXCqKTEDGeEg6wMRCQVG+8/eWdSbiJMs+hh3iWRGGXrCtft5wc
+         9WpGHEe7xlBKMtAj3gaWLmZyEF701ITCqF6BQ5q+GIZKhMjrv572qy3wePGbmv4CFQ4z
+         VooHvRfmpZHTTu+24Xpn/+PFb+61kHiIIVe6ZBFEavNLb+70ExyhgTBYoX5JUeyIYSat
+         rFwJ+GmoxDLI+4p6/aFw5VWMXsWyWgQnxbnusr3c+eEF6vJvHr3KMT0GMzjCirnN+NjO
+         Y+1yLqiAVsNxUzgpYwi+4Z3FFOI71GEZK4p5M2MW9aS7mBNsy1c14cpzYbvNaKvgNs4R
+         LK1g==
+X-Gm-Message-State: AOAM532441e8s9zVgKjfa4tKYUaH/vlZ7b6odkEMv4AOQoR5JvDXjClV
+        IK6/jFiaSUGkDGSAnHw7bWg=
+X-Google-Smtp-Source: ABdhPJxALMMXNOUhhmdtnBYytQ2oxOeiLIaforEGH8RQyLa9Rx0VrKxwCYYTu22ndx6FKv2MY1FrLQ==
+X-Received: by 2002:a05:6808:1448:: with SMTP id x8mr1629903oiv.148.1623126379122;
+        Mon, 07 Jun 2021 21:26:19 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-cb25-4f27-0965-41cc.res6.spectrum.com. [2603:8081:140c:1a00:cb25:4f27:965:41cc])
-        by smtp.gmail.com with ESMTPSA id b8sm2869815ots.6.2021.06.07.21.26.16
+        by smtp.gmail.com with ESMTPSA id 88sm2828873otb.7.2021.06.07.21.26.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Jun 2021 21:26:16 -0700 (PDT)
+        Mon, 07 Jun 2021 21:26:18 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, monis@mellanox.com,
         linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v9 06/10] RDMA/rxe: Move local ops to subroutine
-Date:   Mon,  7 Jun 2021 23:25:49 -0500
-Message-Id: <20210608042552.33275-7-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v9 09/10] RDMA/rxe: Implement memory access through MWs
+Date:   Mon,  7 Jun 2021 23:25:52 -0500
+Message-Id: <20210608042552.33275-10-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210608042552.33275-1-rpearsonhpe@gmail.com>
 References: <20210608042552.33275-1-rpearsonhpe@gmail.com>
@@ -72,177 +72,216 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Simplify rxe_requester() by moving the local operations to a subroutine.
-Add an error return for illegal send WR opcode.  Moved next_index ahead
-of rxe_run_task which fixed a small bug where work completions were
-delayed until after the next wqe which was not the intended behavior.
-Let errors return their own WC status. Previously all errors were
-reported as protection errors which was incorrect. Changed the return of
-errors from rxe_do_local_ops() to err: which causes an immediate completion.
-Without this an error on a last WR may get lost. Changed fill_packet() to
-finish_packet() which is more accurate.
+Add code to implement memory access through memory windows.
 
-Fixes: 8700e2e7c485 ("The software RoCE driver")
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
-v9:
-  Fixed long standing incorrect WC status values and error returns.
----
- drivers/infiniband/sw/rxe/rxe_req.c | 103 +++++++++++++++++-----------
- 1 file changed, 63 insertions(+), 40 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  1 +
+ drivers/infiniband/sw/rxe/rxe_mw.c    | 23 +++++++++++
+ drivers/infiniband/sw/rxe/rxe_resp.c  | 55 +++++++++++++++++++--------
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 11 ++++++
+ 4 files changed, 75 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 889c7fea6f18..80872ec54219 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -462,7 +462,7 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
- 	return skb;
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 8a4633aeb2a8..6e4b5e22541e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -94,6 +94,7 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
+ int rxe_dealloc_mw(struct ib_mw *ibmw);
+ int rxe_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
+ int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey);
++struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey);
+ void rxe_mw_cleanup(struct rxe_pool_entry *arg);
+ 
+ /* rxe_net.c */
+diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
+index 594f8cef0a08..5ba77df7598e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mw.c
++++ b/drivers/infiniband/sw/rxe/rxe_mw.c
+@@ -312,6 +312,29 @@ int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey)
+ 	return ret;
  }
  
--static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
-+static int finish_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 		       struct rxe_pkt_info *pkt, struct sk_buff *skb,
- 		       int paylen)
- {
-@@ -578,6 +578,54 @@ static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 			  jiffies + qp->qp_timeout_jiffies);
- }
- 
-+static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
++struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey)
 +{
-+	u8 opcode = wqe->wr.opcode;
-+	struct rxe_dev *rxe;
-+	struct rxe_mr *mr;
-+	u32 rkey;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_pd *pd = to_rpd(qp->ibqp.pd);
++	struct rxe_mw *mw;
++	int index = rkey >> 8;
 +
-+	switch (opcode) {
-+	case IB_WR_LOCAL_INV:
-+		rxe = to_rdev(qp->ibqp.device);
-+		rkey = wqe->wr.ex.invalidate_rkey;
-+		mr = rxe_pool_get_index(&rxe->mr_pool, rkey >> 8);
-+		if (!mr) {
-+			pr_err("No MR for rkey %#x\n", rkey);
-+			wqe->status = IB_WC_LOC_QP_OP_ERR;
-+			return -EINVAL;
-+		}
-+		mr->state = RXE_MR_STATE_FREE;
-+		rxe_drop_ref(mr);
-+		break;
-+	case IB_WR_REG_MR:
-+		mr = to_rmr(wqe->wr.wr.reg.mr);
++	mw = rxe_pool_get_index(&rxe->mw_pool, index);
++	if (!mw)
++		return NULL;
 +
-+		rxe_add_ref(mr);
-+		mr->state = RXE_MR_STATE_VALID;
-+		mr->access = wqe->wr.wr.reg.access;
-+		mr->ibmr.lkey = wqe->wr.wr.reg.key;
-+		mr->ibmr.rkey = wqe->wr.wr.reg.key;
-+		mr->iova = wqe->wr.wr.reg.mr->iova;
-+		rxe_drop_ref(mr);
-+		break;
-+	default:
-+		pr_err("Unexpected send wqe opcode %d\n", opcode);
-+		wqe->status = IB_WC_LOC_QP_OP_ERR;
-+		return -EINVAL;
++	if (unlikely((rxe_mw_rkey(mw) != rkey) || rxe_mw_pd(mw) != pd ||
++		     (mw->ibmw.type == IB_MW_TYPE_2 && mw->qp != qp) ||
++		     (mw->length == 0) ||
++		     (access && !(access & mw->access)) ||
++		     mw->state != RXE_MW_STATE_VALID)) {
++		rxe_drop_ref(mw);
++		return NULL;
 +	}
 +
-+	wqe->state = wqe_state_done;
-+	wqe->status = IB_WC_SUCCESS;
-+	qp->req.wqe_index = next_index(qp->sq.queue, qp->req.wqe_index);
-+
-+	if ((wqe->wr.send_flags & IB_SEND_SIGNALED) ||
-+	    qp->sq_sig_type == IB_SIGNAL_ALL_WR)
-+		rxe_run_task(&qp->comp.task, 1);
-+
-+	return 0;
++	return mw;
 +}
 +
- int rxe_requester(void *arg)
+ void rxe_mw_cleanup(struct rxe_pool_entry *elem)
  {
- 	struct rxe_qp *qp = (struct rxe_qp *)arg;
-@@ -618,42 +666,11 @@ int rxe_requester(void *arg)
- 		goto exit;
+ 	struct rxe_mw *mw = container_of(elem, typeof(*mw), pelem);
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 759e9789cd4d..1ea576d42882 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -394,6 +394,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 				   struct rxe_pkt_info *pkt)
+ {
+ 	struct rxe_mr *mr = NULL;
++	struct rxe_mw *mw = NULL;
+ 	u64 va;
+ 	u32 rkey;
+ 	u32 resid;
+@@ -405,6 +406,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 	if (pkt->mask & (RXE_READ_MASK | RXE_WRITE_MASK)) {
+ 		if (pkt->mask & RXE_RETH_MASK) {
+ 			qp->resp.va = reth_va(pkt);
++			qp->resp.offset = 0;
+ 			qp->resp.rkey = reth_rkey(pkt);
+ 			qp->resp.resid = reth_len(pkt);
+ 			qp->resp.length = reth_len(pkt);
+@@ -413,6 +415,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 						     : IB_ACCESS_REMOTE_WRITE;
+ 	} else if (pkt->mask & RXE_ATOMIC_MASK) {
+ 		qp->resp.va = atmeth_va(pkt);
++		qp->resp.offset = 0;
+ 		qp->resp.rkey = atmeth_rkey(pkt);
+ 		qp->resp.resid = sizeof(u64);
+ 		access = IB_ACCESS_REMOTE_ATOMIC;
+@@ -432,18 +435,36 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 	resid	= qp->resp.resid;
+ 	pktlen	= payload_size(pkt);
  
- 	if (wqe->mask & WR_LOCAL_OP_MASK) {
--		if (wqe->wr.opcode == IB_WR_LOCAL_INV) {
--			struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
--			struct rxe_mr *rmr;
--
--			rmr = rxe_pool_get_index(&rxe->mr_pool,
--						 wqe->wr.ex.invalidate_rkey >> 8);
--			if (!rmr) {
--				pr_err("No mr for key %#x\n",
--				       wqe->wr.ex.invalidate_rkey);
--				wqe->state = wqe_state_error;
--				wqe->status = IB_WC_MW_BIND_ERR;
--				goto exit;
--			}
--			rmr->state = RXE_MR_STATE_FREE;
--			rxe_drop_ref(rmr);
--			wqe->state = wqe_state_done;
--			wqe->status = IB_WC_SUCCESS;
--		} else if (wqe->wr.opcode == IB_WR_REG_MR) {
--			struct rxe_mr *rmr = to_rmr(wqe->wr.wr.reg.mr);
--
--			rmr->state = RXE_MR_STATE_VALID;
--			rmr->access = wqe->wr.wr.reg.access;
--			rmr->ibmr.lkey = wqe->wr.wr.reg.key;
--			rmr->ibmr.rkey = wqe->wr.wr.reg.key;
--			rmr->iova = wqe->wr.wr.reg.mr->iova;
--			wqe->state = wqe_state_done;
--			wqe->status = IB_WC_SUCCESS;
--		} else {
--			goto exit;
--		}
--		if ((wqe->wr.send_flags & IB_SEND_SIGNALED) ||
--		    qp->sq_sig_type == IB_SIGNAL_ALL_WR)
--			rxe_run_task(&qp->comp.task, 1);
--		qp->req.wqe_index = next_index(qp->sq.queue,
--						qp->req.wqe_index);
--		goto next_wqe;
-+		ret = rxe_do_local_ops(qp, wqe);
-+		if (unlikely(ret))
+-	mr = lookup_mr(qp->pd, access, rkey, RXE_LOOKUP_REMOTE);
+-	if (!mr) {
+-		state = RESPST_ERR_RKEY_VIOLATION;
+-		goto err;
+-	}
++	if (rkey_is_mw(rkey)) {
++		mw = rxe_lookup_mw(qp, access, rkey);
++		if (!mw) {
++			pr_err("%s: no MW matches rkey %#x\n", __func__, rkey);
++			state = RESPST_ERR_RKEY_VIOLATION;
 +			goto err;
-+		else
-+			goto next_wqe;
++		}
+ 
+-	if (unlikely(mr->state == RXE_MR_STATE_FREE)) {
+-		state = RESPST_ERR_RKEY_VIOLATION;
+-		goto err;
++		mr = mw->mr;
++		if (!mr) {
++			pr_err("%s: MW doesn't have an MR\n", __func__);
++			state = RESPST_ERR_RKEY_VIOLATION;
++			goto err;
++		}
++
++		if (mw->access & IB_ZERO_BASED)
++			qp->resp.offset = mw->addr;
++
++		rxe_drop_ref(mw);
++		rxe_add_ref(mr);
++	} else {
++		mr = lookup_mr(qp->pd, access, rkey, RXE_LOOKUP_REMOTE);
++		if (!mr) {
++			pr_err("%s: no MR matches rkey %#x\n", __func__, rkey);
++			state = RESPST_ERR_RKEY_VIOLATION;
++			goto err;
++		}
  	}
  
- 	if (unlikely(qp_type(qp) == IB_QPT_RC &&
-@@ -711,11 +728,17 @@ int rxe_requester(void *arg)
- 	skb = init_req_packet(qp, wqe, opcode, payload, &pkt);
- 	if (unlikely(!skb)) {
- 		pr_err("qp#%d Failed allocating skb\n", qp_num(qp));
-+		wqe->status = IB_WC_LOC_QP_OP_ERR;
+-	if (mr_check_range(mr, va, resid)) {
++	if (mr_check_range(mr, va + qp->resp.offset, resid)) {
+ 		state = RESPST_ERR_RKEY_VIOLATION;
  		goto err;
  	}
- 
--	if (fill_packet(qp, wqe, &pkt, skb, payload)) {
--		pr_debug("qp#%d Error during fill packet\n", qp_num(qp));
-+	ret = finish_packet(qp, wqe, &pkt, skb, payload);
-+	if (unlikely(ret)) {
-+		pr_debug("qp#%d Error during finish packet\n", qp_num(qp));
-+		if (ret == -EFAULT)
-+			wqe->status = IB_WC_LOC_PROT_ERR;
-+		else
-+			wqe->status = IB_WC_LOC_QP_OP_ERR;
- 		kfree_skb(skb);
- 		goto err;
- 	}
-@@ -740,6 +763,7 @@ int rxe_requester(void *arg)
- 			goto exit;
- 		}
- 
-+		wqe->status = IB_WC_LOC_QP_OP_ERR;
- 		goto err;
- 	}
- 
-@@ -748,7 +772,6 @@ int rxe_requester(void *arg)
- 	goto next_wqe;
- 
+@@ -477,6 +498,9 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
  err:
--	wqe->status = IB_WC_LOC_PROT_ERR;
- 	wqe->state = wqe_state_error;
- 	__rxe_do_task(&qp->comp.task);
+ 	if (mr)
+ 		rxe_drop_ref(mr);
++	if (mw)
++		rxe_drop_ref(mw);
++
+ 	return state;
+ }
  
+@@ -501,8 +525,8 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
+ 	int	err;
+ 	int data_len = payload_size(pkt);
+ 
+-	err = rxe_mr_copy(qp->resp.mr, qp->resp.va, payload_addr(pkt), data_len,
+-			  RXE_TO_MR_OBJ, NULL);
++	err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
++			  payload_addr(pkt), data_len, RXE_TO_MR_OBJ, NULL);
+ 	if (err) {
+ 		rc = RESPST_ERR_RKEY_VIOLATION;
+ 		goto out;
+@@ -521,7 +545,6 @@ static DEFINE_SPINLOCK(atomic_ops_lock);
+ static enum resp_states process_atomic(struct rxe_qp *qp,
+ 				       struct rxe_pkt_info *pkt)
+ {
+-	u64 iova = atmeth_va(pkt);
+ 	u64 *vaddr;
+ 	enum resp_states ret;
+ 	struct rxe_mr *mr = qp->resp.mr;
+@@ -531,7 +554,7 @@ static enum resp_states process_atomic(struct rxe_qp *qp,
+ 		goto out;
+ 	}
+ 
+-	vaddr = iova_to_vaddr(mr, iova, sizeof(u64));
++	vaddr = iova_to_vaddr(mr, qp->resp.va + qp->resp.offset, sizeof(u64));
+ 
+ 	/* check vaddr is 8 bytes aligned. */
+ 	if (!vaddr || (uintptr_t)vaddr & 7) {
+@@ -655,8 +678,10 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 		res->type		= RXE_READ_MASK;
+ 		res->replay		= 0;
+ 
+-		res->read.va		= qp->resp.va;
+-		res->read.va_org	= qp->resp.va;
++		res->read.va		= qp->resp.va +
++					  qp->resp.offset;
++		res->read.va_org	= qp->resp.va +
++					  qp->resp.offset;
+ 
+ 		res->first_psn		= req_pkt->psn;
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 74fcd871757d..cf8cae64f7df 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -183,6 +183,7 @@ struct rxe_resp_info {
+ 
+ 	/* RDMA read / atomic only */
+ 	u64			va;
++	u64			offset;
+ 	struct rxe_mr		*mr;
+ 	u32			resid;
+ 	u32			rkey;
+@@ -480,6 +481,16 @@ static inline u32 mr_rkey(struct rxe_mr *mr)
+ 	return mr->ibmr.rkey;
+ }
+ 
++static inline struct rxe_pd *rxe_mw_pd(struct rxe_mw *mw)
++{
++	return to_rpd(mw->ibmw.pd);
++}
++
++static inline u32 rxe_mw_rkey(struct rxe_mw *mw)
++{
++	return mw->ibmw.rkey;
++}
++
+ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name);
+ 
+ void rxe_mc_cleanup(struct rxe_pool_entry *arg);
 -- 
 2.30.2
 
