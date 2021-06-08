@@ -2,130 +2,149 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01997C47082
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 03:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88826C47082
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 04:26:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD65660C41
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 03:50:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E11461249
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 04:26:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230254AbhFHDwL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Jun 2021 23:52:11 -0400
-Received: from mail-oi1-f177.google.com ([209.85.167.177]:45888 "EHLO
-        mail-oi1-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230323AbhFHDwK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Jun 2021 23:52:10 -0400
-Received: by mail-oi1-f177.google.com with SMTP id w127so20243142oig.12
-        for <linux-rdma@vger.kernel.org>; Mon, 07 Jun 2021 20:50:05 -0700 (PDT)
+        id S229507AbhFHE2J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Jun 2021 00:28:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39290 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229451AbhFHE2I (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Jun 2021 00:28:08 -0400
+Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C281C061789
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Jun 2021 21:26:16 -0700 (PDT)
+Received: by mail-oi1-x231.google.com with SMTP id u11so20357404oiv.1
+        for <linux-rdma@vger.kernel.org>; Mon, 07 Jun 2021 21:26:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4V1UKngQb1OfdlMJvAzivz52HPO3vyo6u+Kdok2BV68=;
-        b=sqkxVOnRnoz/b2srZ+7OLyfPVFnOjEe4sCYUrfm+Q/UcQjV94ZvFEJEQahMyKtGPbf
-         r7yQqbWQJHOg5+N2ReSn8ee5BZ9gdGAz38c7J9zAKPpbtYr3SW2qfreoqa+idOV4rEJs
-         rjN4FnCeYGmWDyiHNGE5pKN4B78frLx59QE9UT5JNFrScBk6oby5ElLpdnOJ7arau0ge
-         K66fS/F5cnPjjhxVo/nPQxQRcmq4o4Ua7QcDnWyiRzf/RLLf6j1F9/bfsC1BQzE8Goe6
-         ASSws2EEAiuI3vLTTZSEQbvfn8Ki9YFTdvkObm2bibfG5opErWNn3tJSuuomU0vFjY5l
-         tW1Q==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=U5rPLEnmJZPFrJiSUM0o7pDJxLnxJTWiGzt2ZHYvHDE=;
+        b=Q66JVqYVKnfHFsA2Qzl6o4uk88+v0SQPBTsxEInZ8nllhVl5DvOiaxv2QI0ypUMkcG
+         lvNfCcufia44/sZL43wK8SdqD5DHhms7IWdgnQA1z3LdOmxfqC8aXDWv1xOLlkDyTt0Z
+         kT4d4t60h08yJ6XHuf9j69xCqmiN62CaTrnTs0Nd8kgRrHaSZGaQFAIwOAyMLGAdm2lQ
+         JOiyy9MkJH4aFupuIkilboddPv6KxVc2vmwJqnLctsWgJO8go+mXK0Cru4K5ZlPcuCKW
+         KSL0imFcHpnhloc0XeXAEH2mvC5eHfWroTgAcYRzlv3oleDpoDsv0MtTQfzQuRuUu/Db
+         2xCw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4V1UKngQb1OfdlMJvAzivz52HPO3vyo6u+Kdok2BV68=;
-        b=MyqA7SheoBEpOyFATsd62Xs0rcJkXMcnzkZeb7boVDU0Z5lXdaMpdp1hP69fUk/2Vu
-         MN0zwgLMLh7fVjFKA4mKcJQRzuOAHCKBdOIa5GsMF/6+efFTuvwTm0qtNVhIxBWEGgOr
-         OBbUyBcicaEsGlO/SclrubwirBROz/qu/xg0IBoyVJ6IYS9F71axViHG5gVhzPxaAUFB
-         iQh97XGYPomflcMsgnCm16vlc31a06mW3AodheZ5xiNuhF9vVEWuwvj+3Fqf70BPjX86
-         UC4jb4c9hIWEZFRMqIe2cNuoCbuk1qcbbOc/jpJbLX1cr2dBxtYChiP/O94sjosPMVq1
-         PoKw==
-X-Gm-Message-State: AOAM533TUS/hetEfkwKUf95BRf+4C1ka7Xe1Us2a9ezyxB/Nw5+7NeQY
-        KGq2eEQUSb0Irz0Zo84oZc7k2ImTv6TS1UkLslQ=
-X-Google-Smtp-Source: ABdhPJxnoEe6hrRu3lDnUl/N/3M0a1FK9i74y1FpdyICd8/oNO7yZ6eUL3Z6qnpFx9nWJKfqDkbkI34Ew6Olb52/wyg=
-X-Received: by 2002:aca:2404:: with SMTP id n4mr1542587oic.169.1623124144914;
- Mon, 07 Jun 2021 20:49:04 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=U5rPLEnmJZPFrJiSUM0o7pDJxLnxJTWiGzt2ZHYvHDE=;
+        b=R0kCh9vqhNVXAe4KhvSPUSKlP6WIp2AGH/CQ2ymCGJunOkkWieqyzDNNtxDUtdiI44
+         41h7RshSXGJlrQ+nEKpjvIMOoducAwg+UFg9O1ybDc1MvzaqA8niN62ftcpG/5Rgik1l
+         kATfehT+nkaRcyrvt2laLu6q8gFKuhIOlNkq4FjUNZhGAAyYYow+AfE8lDya6Vn6z+mt
+         RLoZ/L6j4A3COPPkWDLDzw/26J/aQQYpRbfNwuIEIgnvSAgOR6SIukX6UmOKhMc1FrSr
+         +Q6H4RQZfw2R7gMTAuDKCvqvsDhiCCDO+3kEL9/fA1LpXVAmE3MlndpjPhv7BM3HpQpV
+         dpBA==
+X-Gm-Message-State: AOAM531P7oKDjoaADxFx5UTIlpMW9eXIe2ralohz8mM7n+ewQlwxAS24
+        QSGYCB0PpL5ibQkIWGgpZLM=
+X-Google-Smtp-Source: ABdhPJwj/dfJvzTTxtYNS6BryeviLcVBD4vTGM5c7OKixgaHHITrM5/7pzKBSf8D3Z9aOqK/0v5e2A==
+X-Received: by 2002:aca:c60c:: with SMTP id w12mr1617264oif.46.1623126375643;
+        Mon, 07 Jun 2021 21:26:15 -0700 (PDT)
+Received: from localhost (2603-8081-140c-1a00-cb25-4f27-0965-41cc.res6.spectrum.com. [2603:8081:140c:1a00:cb25:4f27:965:41cc])
+        by smtp.gmail.com with ESMTPSA id s187sm2683886oig.6.2021.06.07.21.26.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Jun 2021 21:26:15 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, monis@mellanox.com,
+        linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v9 05/10] RDMA/rxe: Replace WR_REG_MASK by WR_LOCAL_OP_MASK
+Date:   Mon,  7 Jun 2021 23:25:48 -0500
+Message-Id: <20210608042552.33275-6-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210608042552.33275-1-rpearsonhpe@gmail.com>
+References: <20210608042552.33275-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
-References: <20210604230558.4812-1-rpearsonhpe@gmail.com> <CAD=hENcwwjS8X2R24+cFRyyrA5_k=F5LuC4bx1tzCVW969uvuQ@mail.gmail.com>
- <YL389Dqd8+akhb1i@unreal> <CAD=hENd6J=1eTPn3u8M5rvym1xP_A30DnreKOCvi+hLTh0iuNw@mail.gmail.com>
- <e0be8fe4-dcda-ddbe-faa4-104d36442b96@gmail.com> <CAD=hENeoK7971B4koPPaJ+u_DL=VSgL8zoF3GZXexozSHuK8pA@mail.gmail.com>
- <95a4ddf1-fcbc-51fd-6cc7-932f065c61bf@gmail.com>
-In-Reply-To: <95a4ddf1-fcbc-51fd-6cc7-932f065c61bf@gmail.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Tue, 8 Jun 2021 11:48:53 +0800
-Message-ID: <CAD=hENdJeroo5+MaxBFMKfF8zJjVkEbMXFffUjBKZjODLxQgvg@mail.gmail.com>
-Subject: Re: [PATCH for-next] RDMA/rxe: Fix qp reference counting for atomic ops
-To:     "Pearson, Robert B" <rpearsonhpe@gmail.com>
-Cc:     Leon Romanovsky <leon@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jun 8, 2021 at 10:01 AM Pearson, Robert B <rpearsonhpe@gmail.com> wrote:
->
->
-> On 6/7/2021 8:39 PM, Zhu Yanjun wrote:
-> > On Tue, Jun 8, 2021 at 12:14 AM Pearson, Robert B <rpearsonhpe@gmail.com> wrote:
-> >>
-> >> On 6/7/2021 6:12 AM, Zhu Yanjun wrote:
-> >>> On Mon, Jun 7, 2021 at 7:03 PM Leon Romanovsky <leon@kernel.org> wrote:
-> >>>> On Mon, Jun 07, 2021 at 04:16:37PM +0800, Zhu Yanjun wrote:
-> >>>>> On Sat, Jun 5, 2021 at 7:07 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
-> >>>>>> Currently the rdma_rxe driver attempts to protect atomic responder
-> >>>>>> resources by taking a reference to the qp which is only freed when the
-> >>>>>> resource is recycled for a new read or atomic operation. This means that
-> >>>>>> in normal circumstances there is almost always an extra qp reference
-> >>>>>> once an atomic operation has been executed which prevents cleaning up
-> >>>>>> the qp and associated pd and cqs when the qp is destroyed.
-> >>>>>>
-> >>>>>> This patch removes the call to rxe_add_ref() in send_atomic_ack() and the
-> >>>>>> call to rxe_drop_ref() in free_rd_atomic_resource(). If the qp is
-> >>>>> Not sure if it is a good way to fix this problem by removing the call
-> >>>>> to rxe_add_ref.
-> >>>>> Because taking a reference to the qp is to protect atomic responder resources.
-> >>>>>
-> >>>>> Removing rxe_add_ref is to decrease the protection of the atomic
-> >>>>> responder resources.
-> >>>> All those rxe_add_ref/rxe_drop_ref in RXE are horrid. It will be good to delete them all.
-> >>>>
-> >>> I made tests with this commit. After this commit is applied, this
-> >>> problem disappeared.
-> >> You were testing MW when you saw this bug. Does that mean that now MW is
-> >> working for you?
-> > Your MW patches are huge. After these patches are applied, I found 2
-> > problems in my test environment.
->
-> The trace you showed looked like the pyverbs tests all passed and then
-> there were leaked QP/PD/CQ. I also saw those. After fixing the QP
-> reference count bug (not in MW) I did not see any errors from the
-> pyverbs tests of MW. Or any other errors for that matter. What was the
-> other problem? Was that the memory barrier one (also not in MW)?
->
-> Mostly I want to know if you currently see any errors in the kernel
-> related to MW. The test case bug (in test_qpex.py) is a separate issue
+Rxe has two mask bits WR_LOCAL_MASK and WR_REG_MASK with WR_REG_MASK
+used to indicate any local operation and WR_LOCAL_MASK unused. This
+patch replaces both of these with one mask bit WR_LOCAL_OP_MASK which
+is clearer.
 
-The current test cases in rdma-core just confirm a regression in RXE.
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_opcode.c | 4 ++--
+ drivers/infiniband/sw/rxe/rxe_opcode.h | 3 +--
+ drivers/infiniband/sw/rxe/rxe_req.c    | 2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c  | 2 +-
+ 4 files changed, 5 insertions(+), 6 deletions(-)
 
-Zhu Yanjun
+diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.c b/drivers/infiniband/sw/rxe/rxe_opcode.c
+index 0cb4b01fd910..1e4b67b048f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_opcode.c
++++ b/drivers/infiniband/sw/rxe/rxe_opcode.c
+@@ -87,13 +87,13 @@ struct rxe_wr_opcode_info rxe_wr_opcode_info[] = {
+ 	[IB_WR_LOCAL_INV]				= {
+ 		.name	= "IB_WR_LOCAL_INV",
+ 		.mask	= {
+-			[IB_QPT_RC]	= WR_REG_MASK,
++			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
+ 		},
+ 	},
+ 	[IB_WR_REG_MR]					= {
+ 		.name	= "IB_WR_REG_MR",
+ 		.mask	= {
+-			[IB_QPT_RC]	= WR_REG_MASK,
++			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
+ 		},
+ 	},
+ };
+diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.h b/drivers/infiniband/sw/rxe/rxe_opcode.h
+index 1041ac9a9233..e02f039b8c44 100644
+--- a/drivers/infiniband/sw/rxe/rxe_opcode.h
++++ b/drivers/infiniband/sw/rxe/rxe_opcode.h
+@@ -19,8 +19,7 @@ enum rxe_wr_mask {
+ 	WR_SEND_MASK			= BIT(2),
+ 	WR_READ_MASK			= BIT(3),
+ 	WR_WRITE_MASK			= BIT(4),
+-	WR_LOCAL_MASK			= BIT(5),
+-	WR_REG_MASK			= BIT(6),
++	WR_LOCAL_OP_MASK		= BIT(5),
+ 
+ 	WR_READ_OR_WRITE_MASK		= WR_READ_MASK | WR_WRITE_MASK,
+ 	WR_READ_WRITE_OR_SEND_MASK	= WR_READ_OR_WRITE_MASK | WR_SEND_MASK,
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 3664cdae7e1f..0d4dcd514c55 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -593,7 +593,7 @@ int rxe_requester(void *arg)
+ 	if (unlikely(!wqe))
+ 		goto exit;
+ 
+-	if (wqe->mask & WR_REG_MASK) {
++	if (wqe->mask & WR_LOCAL_OP_MASK) {
+ 		if (wqe->wr.opcode == IB_WR_LOCAL_INV) {
+ 			struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+ 			struct rxe_mr *rmr;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 552a1ea9c8b7..4860e8ab378e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -577,7 +577,7 @@ static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+ 	init_send_wr(qp, &wqe->wr, ibwr);
+ 
+ 	/* local operation */
+-	if (unlikely(mask & WR_REG_MASK)) {
++	if (unlikely(mask & WR_LOCAL_OP_MASK)) {
+ 		wqe->mask = mask;
+ 		wqe->state = wqe_state_posted;
+ 		return;
+-- 
+2.30.2
 
-> that is not a rxe bug at all.
->
-> Bob
->
-> > So IMO, can you send the test cases about MW to rdma-core? So we can
-> > verify these MW patches with them.
-> >
-> > In previous mails, you mentioned these MW test cases.
-> >
-> > Thanks a lot.
-> > Zhu Yanjun
-> >
-> >>> Zhu Yanjun
-> >>>
-> >>>> Thanks
