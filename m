@@ -2,100 +2,148 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F9EC47082
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:05:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5897C47082
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:20:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E6D960FEE
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:05:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6D9961184
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235253AbhFHXHB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Jun 2021 19:07:01 -0400
-Received: from mail-wr1-f54.google.com ([209.85.221.54]:38464 "EHLO
-        mail-wr1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235198AbhFHXHA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Jun 2021 19:07:00 -0400
-Received: by mail-wr1-f54.google.com with SMTP id c9so14592909wrt.5
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Jun 2021 16:04:55 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=nTinY+c+OIhObfTEmkTUdRD4dUhuH9fxaFlVcwqJwBU=;
-        b=SndYwFT1AFAGsjzMkBviCxOB2eQp4GfzNx5VGqBWzXAGAb7gvaf6H6WwkFB7IjQ6vT
-         S2GMrXANvX7Fo31yjzyT4XEige9d7y0C+iAac3DE/DgPvt/OLlad4XxQCGNXLEv3TiFu
-         lTaNwVEB+YOSrJiRlPry1o66VuLec7RedsesvN0NSZm6lTn5fOqVLIp0woxHRC6gXDrn
-         /QfQn0pvJlfagmxx0FLNDtG1mc5oAb6PyKGaAji2v7h9LO9t3GfuvxNr2zKyofvpxel0
-         wpoog4c3xZDFySg+4HaTp3IAf0vZD9z63xeUbyab+15fdHwiNwuFXEfte9KiXs5O0uUr
-         DrDg==
-X-Gm-Message-State: AOAM532nYm2HVljjr9h92JY+O6VBAE9KcXo5zdclQtR2/2OF2VrrAY0S
-        Xprk7y4D/hHSi/xbCbQjZe4=
-X-Google-Smtp-Source: ABdhPJzZbFY4NEm4XeJIiuCjuk2EeKE2uBvvDITRRhwDUYjJ5StROqbcE6WrNKkbwRBbMGvTgw60Sw==
-X-Received: by 2002:a05:6000:2ce:: with SMTP id o14mr25407099wry.145.1623193495309;
-        Tue, 08 Jun 2021 16:04:55 -0700 (PDT)
-Received: from ?IPv6:2601:647:4802:9070:12a9:2416:ca98:264f? ([2601:647:4802:9070:12a9:2416:ca98:264f])
-        by smtp.gmail.com with ESMTPSA id 30sm22942734wrl.37.2021.06.08.16.04.53
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Jun 2021 16:04:55 -0700 (PDT)
-Subject: Re: [PATCH 1/1] IB/isert: align target max I/O size to initiator size
-To:     Max Gurtovoy <mgurtovoy@nvidia.com>, Kamal Heib <kheib@redhat.com>
-Cc:     israelr@nvidia.com, alaa@nvidia.com, linux-rdma@vger.kernel.org,
-        jgg@nvidia.com
-References: <20210524085215.29005-1-mgurtovoy@nvidia.com>
- <46c4d30d-510d-b329-4793-8a354642632e@grimberg.me>
- <fdef3991-74e1-63f1-593e-ac2018286ae9@nvidia.com>
- <b62e5d29-025a-0827-ecad-a48812114220@redhat.com>
- <e6623d9e-0122-ea0c-e148-f739bd15b0bb@nvidia.com>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <0e4f17d0-5237-e9ae-44a0-4891a53bb26a@grimberg.me>
-Date:   Tue, 8 Jun 2021 16:04:51 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
-MIME-Version: 1.0
-In-Reply-To: <e6623d9e-0122-ea0c-e148-f739bd15b0bb@nvidia.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+        id S234005AbhFHXV4 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Jun 2021 19:21:56 -0400
+Received: from mga02.intel.com ([134.134.136.20]:52974 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234935AbhFHXV4 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 8 Jun 2021 19:21:56 -0400
+IronPort-SDR: MXt3pJdBD6nEcc1RwXn0zN3XbvRw1fH9dIMCnqFKoqtQXNL0iee5qZE5jLTSYkMbTK0jvRA5rG
+ WPBMsI6jtVbA==
+X-IronPort-AV: E=McAfee;i="6200,9189,10009"; a="192073617"
+X-IronPort-AV: E=Sophos;i="5.83,259,1616482800"; 
+   d="scan'208";a="192073617"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2021 16:20:01 -0700
+IronPort-SDR: KkTY5Z5XgiTVKbjF4CMt8dRyVqpD1jLTswMaok1hNW10RFQqiUjaGkkE5nzTsetAC1hJbtlBHu
+ Fw9R1TA+hhAg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,259,1616482800"; 
+   d="scan'208";a="485492702"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga002.fm.intel.com with ESMTP; 08 Jun 2021 16:20:00 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.4; Tue, 8 Jun 2021 16:20:00 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.4; Tue, 8 Jun 2021 16:19:59 -0700
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2242.008;
+ Tue, 8 Jun 2021 16:19:59 -0700
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: RE: [PATCH rdma-next v1] irdma: Use list_last_entry/list_first_entry
+Thread-Topic: [PATCH rdma-next v1] irdma: Use list_last_entry/list_first_entry
+Thread-Index: AQHXXKtJOg723JZ3GkKQmWFOucdPbqsLMV0A//+MguA=
+Date:   Tue, 8 Jun 2021 23:19:58 +0000
+Message-ID: <8d892696e01c47998b104579f489da25@intel.com>
+References: <20210608211415.680-1-shiraz.saleem@intel.com>
+ <20210608230448.GS1002214@nvidia.com>
+In-Reply-To: <20210608230448.GS1002214@nvidia.com>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+x-originating-ip: [10.1.200.100]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+> Subject: Re: [PATCH rdma-next v1] irdma: Use list_last_entry/list_first_entry
+> 
+> On Tue, Jun 08, 2021 at 04:14:16PM -0500, Shiraz Saleem wrote:
+> > Use list_last_entry and list_first_entry instead of using prev and
+> > next pointers.
+> >
+> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > ---
+> > v0->v1: create patch on more recent git version
+> >
+> >  drivers/infiniband/hw/irdma/puda.c  | 2 +-
+> > drivers/infiniband/hw/irdma/utils.c | 4 ++--
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> This still doesn't apply to the rdma tree.. You need to use the exact rdma tree, not
+> wherever this came from.
+> 
+> Anyhow I fixed it up by hand.
+> 
 
->> On 5/25/21 7:22 PM, Max Gurtovoy wrote:
->>> On 5/25/2021 6:54 PM, Sagi Grimberg wrote:
->>>>> Since the Linux iser initiator default max I/O size set to 512KB and
->>>>> since there is no handshake procedure for this size in iser protocol,
->>>>> set the default max IO size of the target to 512KB as well.
->>>>>
->>>>> For changing the default values, there is a module parameter for both
->>>>> drivers.
->>>> Is this solving a bug?
->>> No. Only OOB for some old connect-IB devices.
->>>
->>> I think it's reasonable to align initiator and target defaults anyway.
->>>
->>>
->> Actually, this patch is solving a bug when trying iser over 
->> Connect-IB, We see
->> the following failure when trying to do discovery:
-> 
-> You can work around this using the ib_isert sg_tablesize module param 
-> and set it to 128.
-> 
-> So it's more OOB behavior than a bug.
-> 
-> Anyway, This is good practice to be able to establish connections also 
-> for old devices without WAs and we also aligning to the sg_table size in 
-> the initiator side.
-> 
-> Jason/Sagi,
-> 
-> can you comment on this patch for 5.14 ?
+I am not really sure what is going on. This applies cleanly for me to the tip of for-next. Here is snippet of git log -p.
 
-Actually, if this is the case, why not have a fallback when creating the
-QP? Seems more reasonable to have the exception for the old devices
-rather than having those mandate the common denominator no?
+commit fc7f645ca3c1b7a7e9f8eabc83a6ee462b277194 (HEAD -> rdma-for-next)
+Author: Shiraz Saleem <shiraz.saleem@intel.com>
+Date:   Tue Jun 8 12:02:30 2021 -0500
+
+    irdma: Use list_last_entry/list_first_entry
+    
+    Use list_last_entry and list_first_entry instead of using prev and next
+    pointers.
+    
+    Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+    Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+
+diff --git a/drivers/infiniband/hw/irdma/puda.c b/drivers/infiniband/hw/irdma/puda.c
+index 18057139817d..e09d3be90771 100644
+--- a/drivers/infiniband/hw/irdma/puda.c
++++ b/drivers/infiniband/hw/irdma/puda.c
+@@ -1419,7 +1419,7 @@ irdma_ieq_handle_partial(struct irdma_puda_rsrc *ieq, struct irdma_pfpdu *pfpdu,
+ 
+ error:
+        while (!list_empty(&pbufl)) {
+-               buf = (struct irdma_puda_buf *)(pbufl.prev);
++               buf = list_last_entry(&pbufl, struct irdma_puda_buf, list);
+                list_del(&buf->list);
+                list_add(&buf->list, rxlist);
+        }
+diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+index 8f04347be52c..b4b91cb81cca 100644
+--- a/drivers/infiniband/hw/irdma/utils.c
++++ b/drivers/infiniband/hw/irdma/utils.c
+@@ -425,8 +425,8 @@ struct irdma_cqp_request *irdma_alloc_and_get_cqp_request(struct irdma_cqp *cqp,
+ 
+        spin_lock_irqsave(&cqp->req_lock, flags);
+        if (!list_empty(&cqp->cqp_avail_reqs)) {
+-               cqp_request = list_entry(cqp->cqp_avail_reqs.next,
+-                                        struct irdma_cqp_request, list);
++               cqp_request = list_first_entry(&cqp->cqp_avail_reqs,
++                                              struct irdma_cqp_request, list);
+                list_del_init(&cqp_request->list);
+        }
+        spin_unlock_irqrestore(&cqp->req_lock, flags);
+
+commit 61c7d826b81769ea57d094305c900f903768f322 (upstream_v2/for-next)
+Author: Kamal Heib <kamalheib1@gmail.com>
+Date:   Tue Jun 8 01:15:43 2021 +0300
+
+    RDMA/irdma: Fix return error sign from irdma_modify_qp
+    
+    There is a typo in the returned error code sign from irdma_modify_qp()
+    when the attr_mask is not supported - Fix it.
+
+[....]
