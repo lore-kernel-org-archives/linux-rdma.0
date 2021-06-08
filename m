@@ -2,407 +2,168 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE9AC47082
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1241C47082
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:25:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B27FB61184
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:20:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A15A861278
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:25:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235025AbhFHXWB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Jun 2021 19:22:01 -0400
-Received: from mail-oo1-f45.google.com ([209.85.161.45]:44767 "EHLO
-        mail-oo1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234935AbhFHXWB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Jun 2021 19:22:01 -0400
-Received: by mail-oo1-f45.google.com with SMTP id o5-20020a4a2c050000b0290245d6c7b555so5418938ooo.11
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Jun 2021 16:19:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=WPMXNAaJ5a2DOCi38KoUoknWWNjeq6snOJaUTnnQxI4=;
-        b=TIzfBtWF8y92tkxDSPUJu1X4PkfPKjdlwRm5xHVsTlcOrINjWbrUSkiEydEF2pdlYD
-         a9a7B7Zf9+HMvIT9tyS/dror45WFNWwEmFSGoDdiF4zzJ1ce6j5jCbksX9wIh6tAjaZO
-         PjoL/CXZuKYaOWoTwGsgJLPOCyf4iM4FIGRgWH2LYyyakVZY3bFULq1RvCgGk8LbWNwU
-         ATycB2wwIApasAissqGysIO9TEUO5eVXb9Qhw2i2QfwF3eGDjBZzp102oGI+r+GDW4Y1
-         Gtix05GtYiUF+Nm2iW/D37BqnyRf3yBYoTlkO8apLY1idqvY6LYAvJeRn3j8sxCFz60O
-         M6bg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=WPMXNAaJ5a2DOCi38KoUoknWWNjeq6snOJaUTnnQxI4=;
-        b=iOnoWEOMkZljKO5mwNOpZBFQ+oEQ2kw3AIPBzzmgraiSqgOdhnhigB9s1jHUQQkyIQ
-         l0mevpKWkdwPheSdtT44TaGGUOE3ld/P1YCHyXBmfLTItJ2HbvJhe984mceANA6xkqGL
-         fDY4GOwib6FAn1MwvlRIMaL6Yee//UlDCGeWCpvvcSURmY6StKzZIJr0fv80zCIg1ONV
-         RKnT0KXrhhwvD6dvVW9a4NL3kffj5SDNOZzfH+SCYtluPGuY7lgEowYruetGZICHcG4X
-         CrQ+Hnw0NY7GEhqbZvdiB1EynEH+HujGhMjfQB+vb+RJiuqW2xDelEU/rAzdu8+3dJMG
-         s6Mw==
-X-Gm-Message-State: AOAM531L88HnhhYmZajuPCbNt1dU8SMtjNgDf7sGkr+eNIUZtu0p27d/
-        Rw3YfzYLyFsI9YRiX/4jFfZLgo7/Pow=
-X-Google-Smtp-Source: ABdhPJx8iUIHTFDtrFCUZ+RL+Ypy31x7pv6faZjqRkWbN+GrwVJfiMDRq/YE1YCWYoqX7mE35SE0Tg==
-X-Received: by 2002:a4a:94ef:: with SMTP id l44mr19161030ooi.84.1623194331767;
-        Tue, 08 Jun 2021 16:18:51 -0700 (PDT)
-Received: from ?IPv6:2603:8081:140c:1a00:e53f:9e9b:cd17:cd87? (2603-8081-140c-1a00-e53f-9e9b-cd17-cd87.res6.spectrum.com. [2603:8081:140c:1a00:e53f:9e9b:cd17:cd87])
-        by smtp.gmail.com with ESMTPSA id l8sm3116853ooo.13.2021.06.08.16.18.51
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Jun 2021 16:18:51 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] Providers/rxe: Implement memory windows
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>, Moni Shoua <monis@mellanox.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-References: <20210608042802.33419-1-rpearsonhpe@gmail.com>
- <20210608042802.33419-3-rpearsonhpe@gmail.com>
- <CAD=hENc53Loz3vF3xDQNQcrorS_gHtjE0psGODuctDn6c+pAMw@mail.gmail.com>
- <d9eae5b5-8866-b932-9b63-b76b670d52a2@gmail.com>
- <CAD=hENc06piOhuGPA=WTWqk6prhCa0VyorP1JHRh7+uDpjCGtw@mail.gmail.com>
-From:   "Pearson, Robert B" <rpearsonhpe@gmail.com>
-Message-ID: <bed5deb9-e2d2-ad23-f96b-4952d98c421f@gmail.com>
-Date:   Tue, 8 Jun 2021 18:18:50 -0500
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+        id S233618AbhFHX1W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Jun 2021 19:27:22 -0400
+Received: from mail-dm6nam12on2064.outbound.protection.outlook.com ([40.107.243.64]:25953
+        "EHLO NAM12-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S232208AbhFHX1T (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 8 Jun 2021 19:27:19 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=nR0xPV8ZHbldI/SIYaxSi2BtHzuGlJbS5Jp63Mw++4pLAP9ETaTJWtlkvePJ43fs3QISp+EU9Pdc8gyQnL8nAHOnhNByJxMGMyDkhqIm0CU0egaqwdaY7J4EsnIMvCO/FsmN07MycFuQAnXLmmjDxkEVTduADrl5euwg9z7GLub4WTXXvns/4duHIltJPcGuCGuhDr25OdG8QJ8fv6srDeXIBYxuSbs4fdDZywPuGkI9YC8lFUADl++aUvb821c8kYl8DYxGpJWWzsw6n2EcR59DDogyLmMGeYEPn7RNnaWI9fI20M77HrdSXFCsFGnWzNM4wUTZK5t8+GSSRfmNmQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=M+gaWBuoQOYqNcRnwqu6XPHjzv+L3CZaAtGcJOuyF3c=;
+ b=DrvirzGKRhzPWig2R4mBea1ljqz+Ydawx4ZtRA4aTm6ZfcxkoS4fJN2xhtSuOlVCiIoKLrvp+qkzJredl+M9hlDOd2eE8nHkAwdUjRMMO8ji1Y7HDvE7hCBi3F7Cm3xDrbSo5S8V4gz+DlM4qkXARxMN5V1px+0YqscyUUEEy7wr9FlkxEHKvy9EZro5XXT/NTXIT8P5RteasD3Jm2QrYoWS6Ul4LZyG1ZnaTFchuA2ut5vrPQe9xufirqHIhAuPbqCQWrUpSKwGxfqYw3PiKFRv+Aux9pHwQ55QZRJm7tnlQMhkQMCJCcwCYSbEP0CN/tTGi//LglKeTvIjqSrFSg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=M+gaWBuoQOYqNcRnwqu6XPHjzv+L3CZaAtGcJOuyF3c=;
+ b=PfwSYlOorwYTP4dHw/Nn7VYsI7BbUv78MVBhNcdFm8jPRKpFRirNT2zxcsrmKz5nz+K7tUNBRtmoDGCfysbsLZY125fT+8qgHB3/mKpJCcWbGmSilQIPQ3cL5Y01eRKvgXTPhYh3wHpdzQqDrSLYI+GlxI25bpvOT2g0w8y/bh7FHy3NtawY+jj/WjKKgFTeCdkNP4/qjGLr/SgM2Wyioy2waxUsPA6uR6s3K88Nn0wf6BD8k4GAKV2tP8A/0pkOqBXhi8PT704Fk7+SK7GWT2xJM3YzBSFSx9EVz7mOu9pyxye7EMtuK0GjBGDq+MJ6RA4ltsfszgnbXAbIbgt3Zw==
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
+ by BL1PR12MB5223.namprd12.prod.outlook.com (2603:10b6:208:315::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4195.22; Tue, 8 Jun
+ 2021 23:25:23 +0000
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::3d51:a3b9:8611:684e]) by BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::3d51:a3b9:8611:684e%7]) with mapi id 15.20.4219.021; Tue, 8 Jun 2021
+ 23:25:23 +0000
+Date:   Tue, 8 Jun 2021 20:25:23 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     "dledford@redhat.com" <dledford@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH rdma-next v1] irdma: Use list_last_entry/list_first_entry
+Message-ID: <20210608232523.GU1002214@nvidia.com>
+References: <20210608211415.680-1-shiraz.saleem@intel.com>
+ <20210608230448.GS1002214@nvidia.com>
+ <8d892696e01c47998b104579f489da25@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8d892696e01c47998b104579f489da25@intel.com>
+X-Originating-IP: [47.55.113.94]
+X-ClientProxiedBy: BL0PR05CA0014.namprd05.prod.outlook.com
+ (2603:10b6:208:91::24) To BL0PR12MB5506.namprd12.prod.outlook.com
+ (2603:10b6:208:1cb::22)
 MIME-Version: 1.0
-In-Reply-To: <CAD=hENc06piOhuGPA=WTWqk6prhCa0VyorP1JHRh7+uDpjCGtw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (47.55.113.94) by BL0PR05CA0014.namprd05.prod.outlook.com (2603:10b6:208:91::24) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4219.10 via Frontend Transport; Tue, 8 Jun 2021 23:25:23 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lql63-004JnV-0m; Tue, 08 Jun 2021 20:25:23 -0300
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 34df91ab-7eb5-492b-be61-08d92ad4b0cb
+X-MS-TrafficTypeDiagnostic: BL1PR12MB5223:
+X-Microsoft-Antispam-PRVS: <BL1PR12MB522301F8E654E1A82DF81E7FC2379@BL1PR12MB5223.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: x2oO5HGXubB7C+HaQBU7RS680u8fu48ff6gU4pDhEdL2dK9aA8NXV5ExowEFURV0LdOqF2VE45AbFKIZTDWUmRoVeEBPubRbDilPZc2C6i4POFFnC0LQpIT+iPtCBnZ8cbqb/XQN6QkWcy1fmkbowqMLfXeGAlvp2yv45Vak3pUoioHPaNUqvfLuE5c/zoJYIeSc5nu1GTNO7aUn8X5xyS3FCtscXjDcZNMl9j0V2fkE9qNLXzBU8i1jSEh9VFTgtCjcupaCawPRuI20wLwEjR9/xY/GqxL05hej+21Q0rZTHxvan2cX2J05nGUWT1YICyn6wP0JB5H2/mttt/mp0wvDjTxgb7+Bn9g2bPU8SUqA2y8rMAqLwg7xfbi2u816p7m4TQBihfi/6/QBy1s94BlB5/p0NO3z2mDZsy4JSlfc0bfNiy3x53NpuJjWbv5oNzYoxksUMMvpGCKpNrmw+MihYg8Gsp/sj/jtKLCIR2X43ZQxSoKtjTYuWsZCA84kpRSglo4DTmFIAoSXlY+WRIApLIPYTbq/VDchcmAbaCKECWbUzs3ZKH3ybRI4LMU2rW+56eGBOicU7mvpwigKEHAKSHashpPRIlKShM4psbQ=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(376002)(39860400002)(346002)(396003)(136003)(86362001)(316002)(54906003)(5660300002)(33656002)(8676002)(38100700002)(1076003)(66556008)(66476007)(83380400001)(66946007)(186003)(8936002)(36756003)(426003)(478600001)(2616005)(9746002)(4326008)(9786002)(6916009)(26005)(2906002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?T/5wzoX+NJvEzKmvbW75vFzbxYFRQHev3PDNZfniCthq0nfkcdThQ3xrgaLT?=
+ =?us-ascii?Q?X1XN2h/wNFJmn1b+bL4vozbIhDDTc7FAplglY/oCCvyn8Tj4V6WbWqf1LUVt?=
+ =?us-ascii?Q?UNXjEfR0D9KZFtf3aTuF1ZH0QWvXdLIzlV7QFMnxYC8u0FfbCAdhtyLF1Njw?=
+ =?us-ascii?Q?82ZzGfwtmHuog5Oe+HAptKOwXtMQt2elWzB0jojckjgptWvgsRZgUHnm9HcC?=
+ =?us-ascii?Q?8398xotCo9DVYvie9M3bLOMYM7XdCSeV9zVbIhYmSbvKS+9aJuGNEXWACQ8/?=
+ =?us-ascii?Q?/Ekj4X/xoZ/OKwjadGaeBq0E3BgVvAHZSOF7mhdqMAMBefM4XpYE0dSyJ7x0?=
+ =?us-ascii?Q?m9BC79AqBUqGbOAA+jkkkRjhhbwKiq+8xNZZugLuqq4Byg9+0fUEsgkTbDdP?=
+ =?us-ascii?Q?FHkTryKoVNgeFn3/s91R2ol+jTpHCsy0omfbzeYPr+o8p1wtJasWkd1EW05u?=
+ =?us-ascii?Q?jT2zV2uYb5qYgzMZxknke7yt0cY55My+R6hZrikPftOHdbQfeazbh48BxbLA?=
+ =?us-ascii?Q?e4+OqL2/8DFI1911uFKzwVGky9RYUFXFhoWHVrfxofoI9P6HYvTew7JaC/TO?=
+ =?us-ascii?Q?J/cg/wBEL8mxulJLIEVKCCshM8ppk2XSVHlIzWgYl2y1wphNNrDbCQJxgw9f?=
+ =?us-ascii?Q?jUomuoek/VAB2T7jh+1Wz7BVlZoHOmYQJmdc3sshd30apzHMQvTxl5s68GlL?=
+ =?us-ascii?Q?aJ9pKThZfGmpJgxZO09/GE+3uZWi5/CGzLiJCXmpC2PIdn2e4gP4MQFzzwgo?=
+ =?us-ascii?Q?RERqXuOYp7dogREMZQ35lExq9ylUvh/jfDYNv1AzPAkSxQJ5bT/1h/A6JkIz?=
+ =?us-ascii?Q?nsDGii06dyMx2/sjNH3hiZBHV2XQaLguLXypHnp8z7mtXP93yRLXdpwWdtT5?=
+ =?us-ascii?Q?VWwKWDnrxDYqpjDBLvE9K6aErEiC1EjjpnrV66Wd36tD3O+DCrs7QB4mMmV+?=
+ =?us-ascii?Q?y/AzUZGFejxzbB6smyyr6B3lartSn6Cksqu9AxkLJMkDU6FP9SL22ldXr7c1?=
+ =?us-ascii?Q?R4R/Td8To3x2SSPhi4kvNTjMD0n1BjSlXP52Qzq9ZNHGaxx3tJ2q3CEbs2Fn?=
+ =?us-ascii?Q?XEeRbDjksDDLVNPX3Hqoo/g272Hhq8T3j6nUOToPXA/UlMV/RdvPyUIFmks3?=
+ =?us-ascii?Q?3slnwQw+pjzAs56LUGcgWQLLn8ZVPE8NtHwGXlnrE4J3QOXqpn836Vn+BJTR?=
+ =?us-ascii?Q?ZgSmiF5k/S9se66Dy6n+Yjy2bvVkIUyTlTohRcMPWbjD583ELcJyPQyE5LDa?=
+ =?us-ascii?Q?KXVPJxp6kK53sguErTfLBGrwL+6zHGNFe6/15aPDSr6laPTWsfMxBoBUvCL3?=
+ =?us-ascii?Q?1VgQuX6/jfyix9mq8HBDdvNz?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 34df91ab-7eb5-492b-be61-08d92ad4b0cb
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Jun 2021 23:25:23.8287
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: j4jp2defZ0CqnMBO5hZl/Zh+qSZQkhZU2ndMsgfmGF3Ek8dOe9vjBIt/nDW63nj7
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5223
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Tue, Jun 08, 2021 at 11:19:58PM +0000, Saleem, Shiraz wrote:
+> > Subject: Re: [PATCH rdma-next v1] irdma: Use list_last_entry/list_first_entry
+> > 
+> > On Tue, Jun 08, 2021 at 04:14:16PM -0500, Shiraz Saleem wrote:
+> > > Use list_last_entry and list_first_entry instead of using prev and
+> > > next pointers.
+> > >
+> > > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > > v0->v1: create patch on more recent git version
+> > >
+> > >  drivers/infiniband/hw/irdma/puda.c  | 2 +-
+> > > drivers/infiniband/hw/irdma/utils.c | 4 ++--
+> > >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > This still doesn't apply to the rdma tree.. You need to use the exact rdma tree, not
+> > wherever this came from.
+> > 
+> > Anyhow I fixed it up by hand.
+> > 
+> 
+> I am not really sure what is going on. This applies cleanly for me
+> to the tip of for-next.
 
-On 6/8/2021 2:17 AM, Zhu Yanjun wrote:
-> On Tue, Jun 8, 2021 at 3:01 PM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->> On 6/8/21 1:54 AM, Zhu Yanjun wrote:
->>> On Tue, Jun 8, 2021 at 12:28 PM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->>>> This patch makes the required changes to the rxe provider to support the
->>>> kernel memory windows patches to the rxe driver.
->>>>
->>>> The following changes are made:
->>>>    - Add ibv_alloc_mw verb
->>>>    - Add ibv_dealloc_mw verb
->>>>    - Add ibv_bind_mw verb for type 1 MWs
->>>>    - Add support for bind MW send work requests through the traditional
->>>>      QP API and the extended QP API.
->>>>
->>>> Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
->>>> ---
->>>> v2:
->>>>    Added support for extended QP bind MW work requests.
->>> I got the following errors.
->>> Is it a known issue?
->>>
->>> # ./bin/run_tests.py --dev rxe0
->>> .............sssssssss.............ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss........sssssssssssssssssss....ssss.........s...s.....E.......ssssssssss..ss
->>> ======================================================================
->>> ERROR: test_qp_ex_rc_bind_mw (tests.test_qpex.QpExTestCase)
->>> Verify bind memory window operation using the new post_send API.
->>> ----------------------------------------------------------------------
->>> Traceback (most recent call last):
->>>    File "/root/rdma-core/tests/test_qpex.py", line 292, in test_qp_ex_rc_bind_mw
->>>      u.poll_cq(server.cq)
->>>    File "/root/rdma-core/tests/utils.py", line 538, in poll_cq
->>>      raise PyverbsRDMAError('Completion status is {s}'.
->>> pyverbs.pyverbs_error.PyverbsRDMAError: Completion status is Memory
->>> window bind error. Errno: 6, No such device or address
->>>
->>> ----------------------------------------------------------------------
->>> Ran 193 tests in 2.544s
->>>
->>> FAILED (errors=1, skipped=128)
->>>
->>> Zhu Yanjun
->> Yes. It is because the test is not setting the BIND_MW access for the MR. It is not permitted to bind an MW to a MR that does not have the BIND_MW access flag set. But this test mistakenly thinks it is going to work. The other MW tests in test_mr.py do set the BIND_MW access flag.
-> Thanks a lot.
-> If the root cause to this problem is correct, and setting the BIND_MW
-> access for the MR can fix this problem,
->
-> Please file a commit to fix this problem.
->
-> I am fine with this MW patch series if all the problems (including
-> rdma-core and rxe in kernel) are fixed.
->
-> Thanks for your effort.
->
-> Zhu Yanjun
+It is git magic because you have the right blobs and I don't
 
-Zhu,
+> diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+> index 8f04347be52c..b4b91cb81cca 100644
+        ^^^^^^^^^^^^
 
-There was a second test bug, now fixed. And all the python tests are 
-passing or skipped. No errors. There is a message to the liux-rdma list 
-from Edward Srouji indicating that the patch is upstream at github or 
-you can use the one in my email to him. It will be a while until his PR 
-goes up stream I would guess.
+This is the right blob, but the v1 from before had this:
 
-I sent a fresh set of patches last night for both the kernel and user 
-space provider.
+index 8ce3535cdc21..81e590fb77b1 100644
 
-Bob
+And I don't have 8ce3535cdc21 at all. So git gives up if things aren't
+a perfect match.
 
->> Bob
->>>> ---
->>>>   providers/rxe/rxe.c | 157 +++++++++++++++++++++++++++++++++++++++++++-
->>>>   1 file changed, 155 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
->>>> index a68656ae..bb39ef04 100644
->>>> --- a/providers/rxe/rxe.c
->>>> +++ b/providers/rxe/rxe.c
->>>> @@ -128,6 +128,95 @@ static int rxe_dealloc_pd(struct ibv_pd *pd)
->>>>          return ret;
->>>>   }
->>>>
->>>> +static struct ibv_mw *rxe_alloc_mw(struct ibv_pd *ibpd, enum ibv_mw_type type)
->>>> +{
->>>> +       int ret;
->>>> +       struct ibv_mw *ibmw;
->>>> +       struct ibv_alloc_mw cmd = {};
->>>> +       struct ib_uverbs_alloc_mw_resp resp = {};
->>>> +
->>>> +       ibmw = calloc(1, sizeof(*ibmw));
->>>> +       if (!ibmw)
->>>> +               return NULL;
->>>> +
->>>> +       ret = ibv_cmd_alloc_mw(ibpd, type, ibmw, &cmd, sizeof(cmd),
->>>> +                                               &resp, sizeof(resp));
->>>> +       if (ret) {
->>>> +               free(ibmw);
->>>> +               return NULL;
->>>> +       }
->>>> +
->>>> +       return ibmw;
->>>> +}
->>>> +
->>>> +static int rxe_dealloc_mw(struct ibv_mw *ibmw)
->>>> +{
->>>> +       int ret;
->>>> +
->>>> +       ret = ibv_cmd_dealloc_mw(ibmw);
->>>> +       if (ret)
->>>> +               return ret;
->>>> +
->>>> +       free(ibmw);
->>>> +       return 0;
->>>> +}
->>>> +
->>>> +static int next_rkey(int rkey)
->>>> +{
->>>> +       return (rkey & 0xffffff00) | ((rkey + 1) & 0x000000ff);
->>>> +}
->>>> +
->>>> +static int rxe_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr_list,
->>>> +                        struct ibv_send_wr **bad_wr);
->>>> +
->>>> +static int rxe_bind_mw(struct ibv_qp *ibqp, struct ibv_mw *ibmw,
->>>> +                       struct ibv_mw_bind *mw_bind)
->>>> +{
->>>> +       int ret;
->>>> +       struct ibv_mw_bind_info *bind_info = &mw_bind->bind_info;
->>>> +       struct ibv_send_wr ibwr;
->>>> +       struct ibv_send_wr *bad_wr;
->>>> +
->>>> +       if (!bind_info->mr && (bind_info->addr || bind_info->length)) {
->>>> +               ret = EINVAL;
->>>> +               goto err;
->>>> +       }
->>>> +
->>>> +       if (bind_info->mw_access_flags & IBV_ACCESS_ZERO_BASED) {
->>>> +               ret = EINVAL;
->>>> +               goto err;
->>>> +       }
->>>> +
->>>> +       if (bind_info->mr) {
->>>> +               if (ibmw->pd != bind_info->mr->pd) {
->>>> +                       ret = EPERM;
->>>> +                       goto err;
->>>> +               }
->>>> +       }
->>>> +
->>>> +       memset(&ibwr, 0, sizeof(ibwr));
->>>> +
->>>> +       ibwr.opcode             = IBV_WR_BIND_MW;
->>>> +       ibwr.next               = NULL;
->>>> +       ibwr.wr_id              = mw_bind->wr_id;
->>>> +       ibwr.send_flags         = mw_bind->send_flags;
->>>> +       ibwr.bind_mw.bind_info  = mw_bind->bind_info;
->>>> +       ibwr.bind_mw.mw         = ibmw;
->>>> +       ibwr.bind_mw.rkey       = next_rkey(ibmw->rkey);
->>>> +
->>>> +       ret = rxe_post_send(ibqp, &ibwr, &bad_wr);
->>>> +       if (ret)
->>>> +               goto err;
->>>> +
->>>> +       /* user has to undo this if he gets an error wc */
->>>> +       ibmw->rkey = ibwr.bind_mw.rkey;
->>>> +
->>>> +       return 0;
->>>> +err:
->>>> +       errno = ret;
->>>> +       return errno;
->>>> +}
->>>> +
->>>>   static struct ibv_mr *rxe_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
->>>>                                   uint64_t hca_va, int access)
->>>>   {
->>>> @@ -715,6 +804,31 @@ static void wr_atomic_fetch_add(struct ibv_qp_ex *ibqp, uint32_t rkey,
->>>>          advance_qp_cur_index(qp);
->>>>   }
->>>>
->>>> +static void wr_bind_mw(struct ibv_qp_ex *ibqp, struct ibv_mw *ibmw,
->>>> +                      uint32_t rkey, const struct ibv_mw_bind_info *info)
->>>> +{
->>>> +       struct rxe_qp *qp = container_of(ibqp, struct rxe_qp, vqp.qp_ex);
->>>> +       struct rxe_send_wqe *wqe = addr_from_index(qp->sq.queue, qp->cur_index);
->>>> +
->>>> +       if (check_qp_queue_full(qp))
->>>> +               return;
->>>> +
->>>> +       memset(wqe, 0, sizeof(*wqe));
->>>> +
->>>> +       wqe->wr.wr_id = ibqp->wr_id;
->>>> +       wqe->wr.opcode = IBV_WR_BIND_MW;
->>>> +       wqe->wr.send_flags = qp->vqp.qp_ex.wr_flags;
->>>> +       wqe->wr.wr.mw.addr = info->addr;
->>>> +       wqe->wr.wr.mw.length = info->length;
->>>> +       wqe->wr.wr.mw.mr_lkey = info->mr->lkey;
->>>> +       wqe->wr.wr.mw.mw_rkey = ibmw->rkey;
->>>> +       wqe->wr.wr.mw.rkey = rkey;
->>>> +       wqe->wr.wr.mw.access = info->mw_access_flags;
->>>> +       wqe->ssn = qp->ssn++;
->>>> +
->>>> +       advance_qp_cur_index(qp);
->>>> +}
->>>> +
->>>>   static void wr_local_inv(struct ibv_qp_ex *ibqp, uint32_t invalidate_rkey)
->>>>   {
->>>>          struct rxe_qp *qp = container_of(ibqp, struct rxe_qp, vqp.qp_ex);
->>>> @@ -1106,6 +1220,7 @@ enum {
->>>>                  | IBV_QP_EX_WITH_ATOMIC_CMP_AND_SWP
->>>>                  | IBV_QP_EX_WITH_ATOMIC_FETCH_AND_ADD
->>>>                  | IBV_QP_EX_WITH_LOCAL_INV
->>>> +               | IBV_QP_EX_WITH_BIND_MW
->>>>                  | IBV_QP_EX_WITH_SEND_WITH_INV,
->>>>
->>>>          RXE_SUP_UC_QP_SEND_OPS_FLAGS =
->>>> @@ -1113,6 +1228,7 @@ enum {
->>>>                  | IBV_QP_EX_WITH_RDMA_WRITE_WITH_IMM
->>>>                  | IBV_QP_EX_WITH_SEND
->>>>                  | IBV_QP_EX_WITH_SEND_WITH_IMM
->>>> +               | IBV_QP_EX_WITH_BIND_MW
->>>>                  | IBV_QP_EX_WITH_SEND_WITH_INV,
->>>>
->>>>          RXE_SUP_UD_QP_SEND_OPS_FLAGS =
->>>> @@ -1162,6 +1278,9 @@ static void set_qp_send_ops(struct rxe_qp *qp, uint64_t flags)
->>>>          if (flags & IBV_QP_EX_WITH_ATOMIC_FETCH_AND_ADD)
->>>>                  qp->vqp.qp_ex.wr_atomic_fetch_add = wr_atomic_fetch_add;
->>>>
->>>> +       if (flags & IBV_QP_EX_WITH_BIND_MW)
->>>> +               qp->vqp.qp_ex.wr_bind_mw = wr_bind_mw;
->>>> +
->>>>          if (flags & IBV_QP_EX_WITH_LOCAL_INV)
->>>>                  qp->vqp.qp_ex.wr_local_inv = wr_local_inv;
->>>>
->>>> @@ -1275,9 +1394,10 @@ static int rxe_destroy_qp(struct ibv_qp *ibqp)
->>>>   }
->>>>
->>>>   /* basic sanity checks for send work request */
->>>> -static int validate_send_wr(struct rxe_wq *sq, struct ibv_send_wr *ibwr,
->>>> +static int validate_send_wr(struct rxe_qp *qp, struct ibv_send_wr *ibwr,
->>>>                              unsigned int length)
->>>>   {
->>>> +       struct rxe_wq *sq = &qp->sq;
->>>>          enum ibv_wr_opcode opcode = ibwr->opcode;
->>>>
->>>>          if (ibwr->num_sge > sq->max_sge)
->>>> @@ -1291,11 +1411,26 @@ static int validate_send_wr(struct rxe_wq *sq, struct ibv_send_wr *ibwr,
->>>>          if ((ibwr->send_flags & IBV_SEND_INLINE) && (length > sq->max_inline))
->>>>                  return -EINVAL;
->>>>
->>>> +       if (ibwr->opcode == IBV_WR_BIND_MW) {
->>>> +               if (length)
->>>> +                       return -EINVAL;
->>>> +               if (ibwr->num_sge)
->>>> +                       return -EINVAL;
->>>> +               if (ibwr->imm_data)
->>>> +                       return -EINVAL;
->>>> +               if ((qp_type(qp) != IBV_QPT_RC) &&
->>>> +                   (qp_type(qp) != IBV_QPT_UC))
->>>> +                       return -EINVAL;
->>>> +       }
->>>> +
->>>>          return 0;
->>>>   }
->>>>
->>>>   static void convert_send_wr(struct rxe_send_wr *kwr, struct ibv_send_wr *uwr)
->>>>   {
->>>> +       struct ibv_mw *ibmw;
->>>> +       struct ibv_mr *ibmr;
->>>> +
->>>>          memset(kwr, 0, sizeof(*kwr));
->>>>
->>>>          kwr->wr_id              = uwr->wr_id;
->>>> @@ -1326,6 +1461,18 @@ static void convert_send_wr(struct rxe_send_wr *kwr, struct ibv_send_wr *uwr)
->>>>                  kwr->wr.atomic.rkey             = uwr->wr.atomic.rkey;
->>>>                  break;
->>>>
->>>> +       case IBV_WR_BIND_MW:
->>>> +               ibmr = uwr->bind_mw.bind_info.mr;
->>>> +               ibmw = uwr->bind_mw.mw;
->>>> +
->>>> +               kwr->wr.mw.addr = uwr->bind_mw.bind_info.addr;
->>>> +               kwr->wr.mw.length = uwr->bind_mw.bind_info.length;
->>>> +               kwr->wr.mw.mr_lkey = ibmr->lkey;
->>>> +               kwr->wr.mw.mw_rkey = ibmw->rkey;
->>>> +               kwr->wr.mw.rkey = uwr->bind_mw.rkey;
->>>> +               kwr->wr.mw.access = uwr->bind_mw.bind_info.mw_access_flags;
->>>> +               break;
->>>> +
->>>>          default:
->>>>                  break;
->>>>          }
->>>> @@ -1348,6 +1495,8 @@ static int init_send_wqe(struct rxe_qp *qp, struct rxe_wq *sq,
->>>>          if (ibwr->send_flags & IBV_SEND_INLINE) {
->>>>                  uint8_t *inline_data = wqe->dma.inline_data;
->>>>
->>>> +               wqe->dma.resid = 0;
->>>> +
->>>>                  for (i = 0; i < num_sge; i++) {
->>>>                          memcpy(inline_data,
->>>>                                 (uint8_t *)(long)ibwr->sg_list[i].addr,
->>>> @@ -1363,6 +1512,7 @@ static int init_send_wqe(struct rxe_qp *qp, struct rxe_wq *sq,
->>>>                  wqe->iova       = ibwr->wr.atomic.remote_addr;
->>>>          else
->>>>                  wqe->iova       = ibwr->wr.rdma.remote_addr;
->>>> +
->>>>          wqe->dma.length         = length;
->>>>          wqe->dma.resid          = length;
->>>>          wqe->dma.num_sge        = num_sge;
->>>> @@ -1385,7 +1535,7 @@ static int post_one_send(struct rxe_qp *qp, struct rxe_wq *sq,
->>>>          for (i = 0; i < ibwr->num_sge; i++)
->>>>                  length += ibwr->sg_list[i].length;
->>>>
->>>> -       err = validate_send_wr(sq, ibwr, length);
->>>> +       err = validate_send_wr(qp, ibwr, length);
->>>>          if (err) {
->>>>                  printf("validate send failed\n");
->>>>                  return err;
->>>> @@ -1579,6 +1729,9 @@ static const struct verbs_context_ops rxe_ctx_ops = {
->>>>          .dealloc_pd = rxe_dealloc_pd,
->>>>          .reg_mr = rxe_reg_mr,
->>>>          .dereg_mr = rxe_dereg_mr,
->>>> +       .alloc_mw = rxe_alloc_mw,
->>>> +       .dealloc_mw = rxe_dealloc_mw,
->>>> +       .bind_mw = rxe_bind_mw,
->>>>          .create_cq = rxe_create_cq,
->>>>          .create_cq_ex = rxe_create_cq_ex,
->>>>          .poll_cq = rxe_poll_cq,
->>>> --
->>>> 2.30.2
->>>>
+You have 8ce3535cdc21 so when you tried to apply your own patch it
+would have done a 3 way merge and fixed it.
+
+This is why it is important to actually generate diffs against common
+commits that other people have because it allows git magic to work
+properly. Even if the diffs are nearly identical having the blob be
+correct covers alot of sins.
+
+What I tell other people to do is publish everything they send in a
+branch in a git repo and I then just keep a local copy of it up to
+date and get the needed stuff from there.
+
+Jason
