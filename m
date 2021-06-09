@@ -3,73 +3,75 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B4CC47082
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:40:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1198C4743D
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Jun 2021 01:33:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7533E61285
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Jun 2021 23:40:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BCA1161027
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Jun 2021 01:33:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234768AbhFHXl6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Jun 2021 19:41:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58600 "EHLO mail.kernel.org"
+        id S235946AbhFIBfq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Jun 2021 21:35:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234187AbhFHXl5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 8 Jun 2021 19:41:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPS id 3D0AD61278;
-        Tue,  8 Jun 2021 23:40:04 +0000 (UTC)
+        id S235919AbhFIBfq (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 8 Jun 2021 21:35:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 272CC61208;
+        Wed,  9 Jun 2021 01:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1623195604;
-        bh=JumYyIwURcTnjjP/XTcO0I5yPTPsc44UpUoLGgb8KsU=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=X2X5kYol2h+W6MxwAFn7ZYe6zsPqKnPe4WqX9FA1079vIuUKmLANCSwRQmjhwqNGh
-         IOGkDa0u7zfA0JsL+sl16DWokIuSyk2FbShdGTjBqA6heCZ63aQzoCzg1qTuj2dnog
-         l9whgr8FIvQy7K6djJwwJ1zMpdSQ/dGyDq2Vw76k6AbAwhYPaYGPEWQGdGg6qmVM9l
-         DjmKIJVkt0AsfgRSj04Ju/FfxnnpnlckuEhV4LWEbDSqtC68Y/QgFaLMedhT5xeKew
-         jFD1wt1qGZe/ZWXwkd1Vrxyq4NaGz/E/kFX42bHvmEIWDKq3vyE/1wM7yPlOK3F5YP
-         g21pVcDaY/0qQ==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2] net: rds: fix memory leak in rds_recvmsg
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <162319560419.24693.834854597233838069.git-patchwork-notify@kernel.org>
-Date:   Tue, 08 Jun 2021 23:40:04 +0000
-References: <20210608080641.16543-1-paskripkin@gmail.com>
-In-Reply-To: <20210608080641.16543-1-paskripkin@gmail.com>
-To:     Pavel Skripkin <paskripkin@gmail.com>
-Cc:     santosh.shilimkar@oracle.com, davem@davemloft.net, kuba@kernel.org,
+        s=k20201202; t=1623202432;
+        bh=v156cAft9LyaIoQEz4RJ53s9TOtRVo94rIr9C4Gt/S0=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=ZDdVMHcebRQRJXL2EjGMYHZ+KFW0qzjqGMOna1/+HD1mMaDNlCXxKv2eCtwyHz0Fy
+         armkRNmqRMF965QVfNDxLj1VgopMvcgYL5Kcnk3mQVpYmRlj6c/DBCrymK3JbqNNTZ
+         dxwtJKnr1UTdQWt9uOVEYQkvr959w2QjF72iJ70GPDgceqjt5KqH2Khs0Z74/tPnYi
+         we+idD+gy8uEmrMekaSH5z7lYL6mRu6L6oeN+zE5Nqq+cP3xsoLgP+thIgXM79M3/F
+         3+sFQijB7hC08mSsDRXARm92O7/KzawF4fTcilL9JzO4j0bXWOGZRVMApCj9iiijno
+         rHxnVyyNUdErQ==
+Message-ID: <1190c96c38df650d7fdf3aa6d12674359ad16e51.camel@kernel.org>
+Subject: Re: [PATCH v2] net/mlx5e: Fix an error code in
+ mlx5e_arfs_create_tables()
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     Yang Li <yang.lee@linux.alibaba.com>
+Cc:     leon@kernel.org, davem@davemloft.net, kuba@kernel.org,
         netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org,
-        syzbot+5134cdf021c4ed5aaa5f@syzkaller.appspotmail.com
+        linux-kernel@vger.kernel.org
+Date:   Tue, 08 Jun 2021 18:33:51 -0700
+In-Reply-To: <1622801307-34745-1-git-send-email-yang.lee@linux.alibaba.com>
+References: <1622801307-34745-1-git-send-email-yang.lee@linux.alibaba.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.40.1 (3.40.1-1.fc34) 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello:
-
-This patch was applied to netdev/net.git (refs/heads/master):
-
-On Tue,  8 Jun 2021 11:06:41 +0300 you wrote:
-> Syzbot reported memory leak in rds. The problem
-> was in unputted refcount in case of error.
+On Fri, 2021-06-04 at 18:08 +0800, Yang Li wrote:
+> When the code execute 'if (!priv->fs.arfs->wq)', the value of err is
+> 0.
+> So, we use -ENOMEM to indicate that the function
+> create_singlethread_workqueue() return NULL.
 > 
-> int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
-> 		int msg_flags)
-> {
-> ...
+> Clean up smatch warning:
+> drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c:373
+> mlx5e_arfs_create_tables() warn: missing error code 'err'.
 > 
-> [...]
+> Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+> Fixes: f6755b80d693 ("net/mlx5e: Dynamic alloc arfs table for netdev
+> when needed")
+> Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+> ---
+> 
+> Changes in v2:
+> --According to Saeed's suggestion, we modify the format of Fixes tag,
+> --and initialize err to -ENOMEM.
+> https://lore.kernel.org/patchwork/patch/1440018/
+> 
 
-Here is the summary with links:
-  - [v2] net: rds: fix memory leak in rds_recvmsg
-    https://git.kernel.org/netdev/net/c/49bfcbfd989a
+applied to net-mlx5.
 
-You are awesome, thank you!
---
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+thanks !
 
