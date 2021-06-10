@@ -2,27 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA8CC48BD1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA24EC47094
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7DC8613CA
+	by mail.kernel.org (Postfix) with ESMTP id BBBD260FD8
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230236AbhFJLwf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230330AbhFJLwf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 10 Jun 2021 07:52:35 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:3942 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230130AbhFJLwe (ORCPT
+Received: from szxga03-in.huawei.com ([45.249.212.189]:5374 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230236AbhFJLwe (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Jun 2021 07:52:34 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G12Jz60Zbz6xDX;
-        Thu, 10 Jun 2021 19:47:31 +0800 (CST)
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4G12J401qbz6vFh;
+        Thu, 10 Jun 2021 19:46:44 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
  15.1.2176.2; Thu, 10 Jun 2021 19:50:36 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -32,11 +33,14 @@ Received: from localhost.localdomain (10.69.192.56) by
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 0/6] RDMA/hns: Use ida to manage index of some resources
-Date:   Thu, 10 Jun 2021 19:50:08 +0800
-Message-ID: <1623325814-55737-1-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Yangyang Li <liyangyang20@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH for-next 2/6] RDMA/hns: Remove the unused hns_roce_bitmap_free_range function
+Date:   Thu, 10 Jun 2021 19:50:10 +0800
+Message-ID: <1623325814-55737-3-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1623325814-55737-1-git-send-email-liweihang@huawei.com>
+References: <1623325814-55737-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -47,26 +51,60 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Index of some resources is managed by bitmap in driver, we first do some
-cleanups on the bitmap functions, than replace them with ida interfaces.
+From: Yangyang Li <liyangyang20@huawei.com>
 
-Yangyang Li (6):
-  RDMA/hns: Remove the unused hns_roce_bitmap_alloc_range function
-  RDMA/hns: Remove the unused hns_roce_bitmap_free_range function
-  RDMA/hns: Remove unused RR mechanism
-  RDMA/hns: Use IDA interface to manage mtpt index
-  RDMA/hns: Use IDA interface to manage pd index
-  RDMA/hns: Use IDA interface to manage xrcd index
+hns_roce_bitmap_free_range() is only called inside hns_roce_bitmap_free(),
+and the input parameter "cnt" is set to a constant 1. In addition, the
+driver does not use alloc_range scenarios, so free_range does not need to
+exist.
 
- drivers/infiniband/hw/hns/hns_roce_alloc.c  | 63 ++-----------------
- drivers/infiniband/hw/hns/hns_roce_device.h | 32 ++++------
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |  3 +-
- drivers/infiniband/hw/hns/hns_roce_main.c   | 32 +++-------
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 66 ++++++++++----------
- drivers/infiniband/hw/hns/hns_roce_pd.c     | 94 ++++++++++++-----------------
- drivers/infiniband/hw/hns/hns_roce_srq.c    |  4 +-
- 7 files changed, 100 insertions(+), 194 deletions(-)
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  | 12 +-----------
+ drivers/infiniband/hw/hns/hns_roce_device.h |  3 ---
+ 2 files changed, 1 insertion(+), 14 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index 8b68f93..f950ec4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -66,20 +66,10 @@ int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
+ void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
+ 			  int rr)
+ {
+-	hns_roce_bitmap_free_range(bitmap, obj, 1, rr);
+-}
+-
+-void hns_roce_bitmap_free_range(struct hns_roce_bitmap *bitmap,
+-				unsigned long obj, int cnt,
+-				int rr)
+-{
+-	int i;
+-
+ 	obj &= bitmap->max + bitmap->reserved_top - 1;
+ 
+ 	spin_lock(&bitmap->lock);
+-	for (i = 0; i < cnt; i++)
+-		clear_bit(obj + i, bitmap->table);
++	clear_bit(obj, bitmap->table);
+ 
+ 	if (!rr)
+ 		bitmap->last = min(bitmap->last, obj);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 0048e5f..cbf3b9b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1163,9 +1163,6 @@ int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
+ 			 u32 reserved_bot, u32 resetrved_top);
+ void hns_roce_bitmap_cleanup(struct hns_roce_bitmap *bitmap);
+ void hns_roce_cleanup_bitmap(struct hns_roce_dev *hr_dev);
+-void hns_roce_bitmap_free_range(struct hns_roce_bitmap *bitmap,
+-				unsigned long obj, int cnt,
+-				int rr);
+ 
+ int hns_roce_create_ah(struct ib_ah *ah, struct rdma_ah_init_attr *init_attr,
+ 		       struct ib_udata *udata);
 -- 
 2.7.4
 
