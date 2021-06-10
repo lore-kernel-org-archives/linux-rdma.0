@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86563C48BDF
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7707DC47094
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7582160FD8
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5DFED613CA
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Jun 2021 11:50:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230255AbhFJLwg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Jun 2021 07:52:36 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:5490 "EHLO
+        id S230321AbhFJLwi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Jun 2021 07:52:38 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:5491 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230321AbhFJLwe (ORCPT
+        with ESMTP id S230329AbhFJLwe (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Jun 2021 07:52:34 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G12KG1CbSzZf0v;
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G12KG4dK4zZfZq;
         Thu, 10 Jun 2021 19:47:46 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
  dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
@@ -29,15 +29,15 @@ Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Thu, 10 Jun 2021 19:50:36 +0800
+ 15.1.2176.2; Thu, 10 Jun 2021 19:50:37 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Yangyang Li <liyangyang20@huawei.com>,
         Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 3/6] RDMA/hns: Remove unused RR mechanism
-Date:   Thu, 10 Jun 2021 19:50:11 +0800
-Message-ID: <1623325814-55737-4-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 6/6] RDMA/hns: Use IDA interface to manage xrcd index
+Date:   Thu, 10 Jun 2021 19:50:14 +0800
+Message-ID: <1623325814-55737-7-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1623325814-55737-1-git-send-email-liweihang@huawei.com>
 References: <1623325814-55737-1-git-send-email-liweihang@huawei.com>
@@ -53,166 +53,169 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yangyang Li <liyangyang20@huawei.com>
 
-Round-robin (RR) is no longer used in the allocation of the bitmap table,
-and all the function input parameters that use this mechanism are
-BITMAP_NO_RR. The code that defines and uses the RR needs to be deleted.
+Switch xrcd index allocation and release from hns own bitmap interface
+to IDA interface.
 
 Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_alloc.c  | 6 ++----
- drivers/infiniband/hw/hns/hns_roce_device.h | 6 +-----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 2 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 6 +++---
- drivers/infiniband/hw/hns/hns_roce_pd.c     | 7 +++----
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 4 ++--
- 6 files changed, 12 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  5 ++--
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 13 ++------
+ drivers/infiniband/hw/hns/hns_roce_pd.c     | 46 ++++++++++++-----------------
+ 4 files changed, 25 insertions(+), 41 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index f950ec4..eef5df1 100644
+index dcdfcc7..1b02d3b 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -63,16 +63,14 @@ int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
- 	return ret;
- }
- 
--void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
--			  int rr)
-+void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj)
+@@ -245,7 +245,7 @@ int hns_roce_get_umem_bufs(struct hns_roce_dev *hr_dev, dma_addr_t *bufs,
+ void hns_roce_cleanup_bitmap(struct hns_roce_dev *hr_dev)
  {
- 	obj &= bitmap->max + bitmap->reserved_top - 1;
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_XRC)
+-		hns_roce_cleanup_xrcd_table(hr_dev);
++		ida_destroy(&hr_dev->xrcd_ida.ida);
  
- 	spin_lock(&bitmap->lock);
- 	clear_bit(obj, bitmap->table);
- 
--	if (!rr)
--		bitmap->last = min(bitmap->last, obj);
-+	bitmap->last = min(bitmap->last, obj);
- 	bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
- 		       & bitmap->mask;
- 	spin_unlock(&bitmap->lock);
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_cleanup_srq_table(hr_dev);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index cbf3b9b..18ec35a 100644
+index b70c977..d87bab0 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -95,9 +95,6 @@
+@@ -963,7 +963,7 @@ struct hns_roce_dev {
  
- #define HNS_ROCE_HOP_NUM_0			0xff
+ 	struct hns_roce_cmdq	cmd;
+ 	struct hns_roce_ida pd_ida;
+-	struct hns_roce_bitmap xrcd_bitmap;
++	struct hns_roce_ida xrcd_ida;
+ 	struct hns_roce_uar_table uar_table;
+ 	struct hns_roce_mr_table  mr_table;
+ 	struct hns_roce_cq_table  cq_table;
+@@ -1149,13 +1149,12 @@ void hns_roce_init_mr_table(struct hns_roce_dev *hr_dev);
+ void hns_roce_init_cq_table(struct hns_roce_dev *hr_dev);
+ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev);
+ int hns_roce_init_srq_table(struct hns_roce_dev *hr_dev);
+-int hns_roce_init_xrcd_table(struct hns_roce_dev *hr_dev);
++void hns_roce_init_xrcd_table(struct hns_roce_dev *hr_dev);
  
--#define BITMAP_NO_RR				0
--#define BITMAP_RR				1
--
- #define MR_TYPE_MR				0x00
- #define MR_TYPE_FRMR				0x01
- #define MR_TYPE_DMA				0x03
-@@ -1157,8 +1154,7 @@ void hns_roce_cleanup_srq_table(struct hns_roce_dev *hr_dev);
- void hns_roce_cleanup_xrcd_table(struct hns_roce_dev *hr_dev);
+ void hns_roce_cleanup_eq_table(struct hns_roce_dev *hr_dev);
+ void hns_roce_cleanup_cq_table(struct hns_roce_dev *hr_dev);
+ void hns_roce_cleanup_qp_table(struct hns_roce_dev *hr_dev);
+ void hns_roce_cleanup_srq_table(struct hns_roce_dev *hr_dev);
+-void hns_roce_cleanup_xrcd_table(struct hns_roce_dev *hr_dev);
  
  int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj);
--void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
--			 int rr);
-+void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj);
- int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
- 			 u32 reserved_bot, u32 resetrved_top);
- void hns_roce_bitmap_cleanup(struct hns_roce_bitmap *bitmap);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 0c836cc..94214c1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1200,7 +1200,7 @@ static int hns_roce_v1_dereg_mr(struct hns_roce_dev *hr_dev,
- 		mr->key, jiffies_to_usecs(jiffies) - jiffies_to_usecs(start));
+ void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 0e558b5..2d79cf6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -750,14 +750,8 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
  
- 	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap,
--			     key_to_hw_index(mr->key), 0);
-+			     key_to_hw_index(mr->key));
- 	hns_roce_mtr_destroy(hr_dev, &mr->pbl_mtr);
- 	kfree(mr);
+ 	hns_roce_init_pd_table(hr_dev);
  
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 8e6b1ae..ce3ceec 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -91,7 +91,7 @@ static int alloc_mr_key(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+-	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_XRC) {
+-		ret = hns_roce_init_xrcd_table(hr_dev);
+-		if (ret) {
+-			dev_err(dev, "failed to init xrcd table, ret = %d.\n",
+-				ret);
+-			goto err_pd_table_free;
+-		}
+-	}
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_XRC)
++		hns_roce_init_xrcd_table(hr_dev);
  
- 	return 0;
- err_free_bitmap:
--	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap, obj, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap, obj);
- 	return err;
- }
+ 	hns_roce_init_mr_table(hr_dev);
  
-@@ -100,7 +100,7 @@ static void free_mr_key(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
- 	unsigned long obj = key_to_hw_index(mr->key);
+@@ -788,9 +782,8 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ 	ida_destroy(&hr_dev->mr_table.mtpt_ida.ida);
  
- 	hns_roce_table_put(hr_dev, &hr_dev->mr_table.mtpt_table, obj);
--	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap, obj, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap, obj);
- }
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_XRC)
+-		hns_roce_cleanup_xrcd_table(hr_dev);
++		ida_destroy(&hr_dev->xrcd_ida.ida);
  
- static int alloc_mr_pbl(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr,
-@@ -504,7 +504,7 @@ static void hns_roce_mw_free(struct hns_roce_dev *hr_dev,
- 	}
+-err_pd_table_free:
+ 	ida_destroy(&hr_dev->pd_ida.ida);
+ 	hns_roce_uar_free(hr_dev, &hr_dev->priv_uar);
  
- 	hns_roce_bitmap_free(&hr_dev->mr_table.mtpt_bitmap,
--			     key_to_hw_index(mw->rkey), BITMAP_NO_RR);
-+			     key_to_hw_index(mw->rkey));
- }
- 
- static int hns_roce_mw_enable(struct hns_roce_dev *hr_dev,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index a5813bf..25e52cd 100644
+index c2f67a7..ea56636 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_pd.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -41,7 +41,7 @@ static int hns_roce_pd_alloc(struct hns_roce_dev *hr_dev, unsigned long *pdn)
+@@ -134,35 +134,27 @@ void hns_roce_cleanup_uar_table(struct hns_roce_dev *hr_dev)
  
- static void hns_roce_pd_free(struct hns_roce_dev *hr_dev, unsigned long pdn)
+ static int hns_roce_xrcd_alloc(struct hns_roce_dev *hr_dev, u32 *xrcdn)
  {
--	hns_roce_bitmap_free(&hr_dev->pd_bitmap, pdn, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&hr_dev->pd_bitmap, pdn);
+-	unsigned long obj;
+-	int ret;
+-
+-	ret = hns_roce_bitmap_alloc(&hr_dev->xrcd_bitmap, &obj);
+-	if (ret)
+-		return ret;
++	struct hns_roce_ida *xrcd_ida = &hr_dev->xrcd_ida;
++	int id;
+ 
+-	*xrcdn = obj;
++	id = ida_alloc_range(&xrcd_ida->ida, xrcd_ida->min, xrcd_ida->max,
++			     GFP_KERNEL);
++	if (id < 0) {
++		ibdev_err(&hr_dev->ib_dev, "failed to alloc xrcdn(%d).\n", id);
++		return -ENOMEM;
++	}
++	*xrcdn = (u32)id;
+ 
+ 	return 0;
  }
  
- int hns_roce_init_pd_table(struct hns_roce_dev *hr_dev)
-@@ -121,8 +121,7 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- 
- void hns_roce_uar_free(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+-static void hns_roce_xrcd_free(struct hns_roce_dev *hr_dev,
+-			       u32 xrcdn)
++void hns_roce_init_xrcd_table(struct hns_roce_dev *hr_dev)
  {
--	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->logic_idx,
--			     BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->logic_idx);
+-	hns_roce_bitmap_free(&hr_dev->xrcd_bitmap, xrcdn);
+-}
++	struct hns_roce_ida *xrcd_ida = &hr_dev->xrcd_ida;
+ 
+-int hns_roce_init_xrcd_table(struct hns_roce_dev *hr_dev)
+-{
+-	return hns_roce_bitmap_init(&hr_dev->xrcd_bitmap,
+-				    hr_dev->caps.num_xrcds,
+-				    hr_dev->caps.num_xrcds - 1,
+-				    hr_dev->caps.reserved_xrcds, 0);
+-}
+-
+-void hns_roce_cleanup_xrcd_table(struct hns_roce_dev *hr_dev)
+-{
+-	hns_roce_bitmap_cleanup(&hr_dev->xrcd_bitmap);
++	ida_init(&xrcd_ida->ida);
++	xrcd_ida->max = hr_dev->caps.num_xrcds - 1;
++	xrcd_ida->min = hr_dev->caps.reserved_xrcds;
  }
  
- int hns_roce_init_uar_table(struct hns_roce_dev *hr_dev)
-@@ -155,7 +154,7 @@ static int hns_roce_xrcd_alloc(struct hns_roce_dev *hr_dev, u32 *xrcdn)
- static void hns_roce_xrcd_free(struct hns_roce_dev *hr_dev,
- 			       u32 xrcdn)
+ int hns_roce_alloc_xrcd(struct ib_xrcd *ib_xrcd, struct ib_udata *udata)
+@@ -175,18 +167,18 @@ int hns_roce_alloc_xrcd(struct ib_xrcd *ib_xrcd, struct ib_udata *udata)
+ 		return -EINVAL;
+ 
+ 	ret = hns_roce_xrcd_alloc(hr_dev, &xrcd->xrcdn);
+-	if (ret) {
+-		dev_err(hr_dev->dev, "failed to alloc xrcdn, ret = %d.\n", ret);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	return 0;
+ }
+ 
+ int hns_roce_dealloc_xrcd(struct ib_xrcd *ib_xrcd, struct ib_udata *udata)
  {
--	hns_roce_bitmap_free(&hr_dev->xrcd_bitmap, xrcdn, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&hr_dev->xrcd_bitmap, xrcdn);
+-	hns_roce_xrcd_free(to_hr_dev(ib_xrcd->device),
+-			   to_hr_xrcd(ib_xrcd)->xrcdn);
++	struct hns_roce_dev *hr_dev = to_hr_dev(ib_xrcd->device);
++	u32 xrcdn = to_hr_xrcd(ib_xrcd)->xrcdn;
++
++	ida_free(&hr_dev->xrcd_ida.ida, (int)xrcdn);
+ 
+ 	return 0;
  }
- 
- int hns_roce_init_xrcd_table(struct hns_roce_dev *hr_dev)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index d668051..6f2992f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -132,7 +132,7 @@ static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- err_put:
- 	hns_roce_table_put(hr_dev, &srq_table->table, srq->srqn);
- err_out:
--	hns_roce_bitmap_free(&srq_table->bitmap, srq->srqn, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&srq_table->bitmap, srq->srqn);
- 
- 	return ret;
- }
-@@ -154,7 +154,7 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- 	wait_for_completion(&srq->free);
- 
- 	hns_roce_table_put(hr_dev, &srq_table->table, srq->srqn);
--	hns_roce_bitmap_free(&srq_table->bitmap, srq->srqn, BITMAP_NO_RR);
-+	hns_roce_bitmap_free(&srq_table->bitmap, srq->srqn);
- }
- 
- static int alloc_srq_idx(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq,
 -- 
 2.7.4
 
