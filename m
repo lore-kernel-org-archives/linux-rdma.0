@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCC1C48BE5
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E07FC48BD1
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66869613E3
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E893613FA
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231431AbhFKQDL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:03:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38756 "EHLO mail.kernel.org"
+        id S231239AbhFKQDM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Jun 2021 12:03:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231164AbhFKQC6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:02:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 79FE4613EE;
-        Fri, 11 Jun 2021 16:00:59 +0000 (UTC)
+        id S231156AbhFKQDB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 11 Jun 2021 12:03:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D2ED2613EA;
+        Fri, 11 Jun 2021 16:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1623427260;
-        bh=/di9EtO1qUTxZxjUHov6WOvYGqgKTY+3igWpQOk8nUs=;
+        s=k20201202; t=1623427263;
+        bh=Nf+bTG3O8MGyyVyyfv2aXxeV4I51PtfyJ13mcjwvEKk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Xka6ZqHC/6MPSTtWr9BSFEBRN+9bZZylVGyx9ib26NfYx1NHkZXo+Wukq4lGsomd6
-         h05CFUSzzU0dtdlvZItvN4r8G2o3Z1B81DCC56tc3u0+9zU8Ul7XHzCOb4fYeM2t3T
-         OX/kNbOqe5kAD+jeZUFuVppde+cCjvRljcjYAuRoAYI/gUgFIE5BLknF2kgThvCiQz
-         Z4JlOtU3AiWl3dpn9QrFhuYsvC718EcHCIloMHm7DrR6T/uVrR9lFjZ0x59jHceCkQ
-         zA7LgAEWkBioO3PoibGtyIVa4V9cerFS5NJ1WzwIpwcSMrZd282uVMxBZHTZYRsqXM
-         vrnmZUdgYCFzQ==
+        b=NHVpFplAUpohIH2Gn6lkqwXnaQwRHAxivMFGYaFiyqHjjuNFf2uZRxILuALcFgKJy
+         YP8yH7UZFfAUv6dsciThtzrdBXoSzWntDcNFzITTr1ZF8byZKconhpmCJtADIXsBgT
+         7GeugWwCVOvYUJKQH9pKt8RYfuYVO3a8UtSoINvd4chVe8+9fMGQU8J0LJBQ8H8Jsk
+         VPJGl3xhJKjrXHpaTvASGdTXO2hSewbmGwQlnUUsanRAdjPfpfke0tJMcVDVGtd+ky
+         le53OVSAVGCRp+14/CRZiJMpApO+/H8Nq7Bs7Evu8699SlMGcITJhQPMNABAyiZFZI
+         ldZwmPYH5c0Sg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -58,9 +58,9 @@ Cc:     Greg KH <gregkh@linuxfoundation.org>,
         VMware PV-Drivers <pv-drivers@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v2 07/15] RDMA/core: Create the device hw_counters through the normal groups mechanism
-Date:   Fri, 11 Jun 2021 19:00:26 +0300
-Message-Id: <666250d937b64f6fdf45da9e2dc0b6e5e4f7abd8.1623427137.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v2 05/15] RDMA/core: Simplify how the gid_attrs sysfs is created
+Date:   Fri, 11 Jun 2021 19:00:24 +0300
+Message-Id: <f4149d379db7178d37d11d75e3026bf550f818a1.1623427137.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1623427137.git.leonro@nvidia.com>
 References: <cover.1623427137.git.leonro@nvidia.com>
@@ -72,238 +72,258 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-Instead of calling device_add_groups() add the group to the existing
-groups array which is managed through device_add().
+Instead of having an whole bunch of different allocations to create the
+gid_attr kobjects reduce it to three, one for the kobj struct plus the
+attributes, and one for the attribute list for each of the two
+groups.
 
-This requires setting up the hw_counters before device_add(), so it gets
-split up from the already split port sysfs flow.
+Move the freeing of all allocations to the release function.
 
-Move all the memory freeing to the release function.
+Reorder the operations so all the allocations happen first then the
+kobject & sysfs operations are last.
+
+This removes the majority of the complicated error unwind since the
+release function will always undo all the memory allocations. Freeing the
+memory is also much simpler since there is a lot less of it.
+
+Consolidate creating the "group of array indexes" pattern into one helper
+function. Ensure kobject_del is used.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/core_priv.h |  4 +-
- drivers/infiniband/core/device.c    | 11 ++++-
- drivers/infiniband/core/sysfs.c     | 66 +++++++----------------------
- include/rdma/ib_verbs.h             |  9 ++--
- 4 files changed, 32 insertions(+), 58 deletions(-)
+ drivers/infiniband/core/sysfs.c | 170 +++++++++++++++++---------------
+ 1 file changed, 89 insertions(+), 81 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index ec5c2c3db423..6066c4b39876 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -78,8 +78,6 @@ static inline struct rdma_dev_net *rdma_net_to_dev_net(struct net *net)
- 	return net_generic(net, rdma_dev_net_id);
- }
- 
--int ib_device_register_sysfs(struct ib_device *device);
--void ib_device_unregister_sysfs(struct ib_device *device);
- int ib_device_rename(struct ib_device *ibdev, const char *name);
- int ib_device_set_dim(struct ib_device *ibdev, u8 use_dim);
- 
-@@ -379,6 +377,8 @@ struct net_device *rdma_read_gid_attr_ndev_rcu(const struct ib_gid_attr *attr);
- void ib_free_port_attrs(struct ib_core_device *coredev);
- int ib_setup_port_attrs(struct ib_core_device *coredev);
- struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev, u32 port_num);
-+void ib_device_release_hw_stats(struct hw_stats_device_data *data);
-+int ib_setup_device_attrs(struct ib_device *ibdev);
- 
- int rdma_compatdev_set(u8 enable);
- 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 86a16cd7d7fd..030a4041b2e0 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -491,6 +491,8 @@ static void ib_device_release(struct device *device)
- 
- 	free_netdevs(dev);
- 	WARN_ON(refcount_read(&dev->refcount));
-+	if (dev->hw_stats_data)
-+		ib_device_release_hw_stats(dev->hw_stats_data);
- 	if (dev->port_data) {
- 		ib_cache_release_one(dev);
- 		ib_security_release_port_pkey_list(dev);
-@@ -1394,6 +1396,10 @@ int ib_register_device(struct ib_device *device, const char *name,
- 		return ret;
- 	}
- 
-+	ret = ib_setup_device_attrs(device);
-+	if (ret)
-+		goto cache_cleanup;
-+
- 	ib_device_register_rdmacg(device);
- 
- 	rdma_counter_init(device);
-@@ -1407,7 +1413,7 @@ int ib_register_device(struct ib_device *device, const char *name,
- 	if (ret)
- 		goto cg_cleanup;
- 
--	ret = ib_device_register_sysfs(device);
-+	ret = ib_setup_port_attrs(&device->coredev);
- 	if (ret) {
- 		dev_warn(&device->dev,
- 			 "Couldn't register device with driver model\n");
-@@ -1449,6 +1455,7 @@ int ib_register_device(struct ib_device *device, const char *name,
- cg_cleanup:
- 	dev_set_uevent_suppress(&device->dev, false);
- 	ib_device_unregister_rdmacg(device);
-+cache_cleanup:
- 	ib_cache_cleanup_one(device);
- 	return ret;
- }
-@@ -1473,7 +1480,7 @@ static void __ib_unregister_device(struct ib_device *ib_dev)
- 	/* Expedite removing unregistered pointers from the hash table */
- 	free_netdevs(ib_dev);
- 
--	ib_device_unregister_sysfs(ib_dev);
-+	ib_free_port_attrs(&ib_dev->coredev);
- 	device_del(&ib_dev->dev);
- 	ib_device_unregister_rdmacg(ib_dev);
- 	ib_cache_cleanup_one(ib_dev);
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 2631c179e004..07a00d3d3d44 100644
+index d2a089a6f666..006bf759e890 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -107,7 +107,6 @@ struct hw_stats_port_attribute {
+@@ -47,23 +47,6 @@
  
- struct hw_stats_device_data {
- 	struct attribute_group group;
--	const struct attribute_group *groups[2];
- 	struct rdma_hw_stats *stats;
- 	struct hw_stats_device_attribute attrs[];
+ struct ib_port;
+ 
+-struct gid_attr_group {
+-	struct ib_port		*port;
+-	struct kobject		kobj;
+-	struct attribute_group	ndev;
+-	struct attribute_group	type;
+-};
+-struct ib_port {
+-	struct kobject         kobj;
+-	struct ib_device      *ibdev;
+-	struct gid_attr_group *gid_attr_group;
+-	struct attribute_group gid_group;
+-	struct attribute_group *pkey_group;
+-	const struct attribute_group *pma_table;
+-	struct hw_stats_port_data *hw_stats_data;
+-	u32                     port_num;
+-};
+-
+ struct port_attribute {
+ 	struct attribute attr;
+ 	ssize_t (*show)(struct ib_port *, struct port_attribute *, char *buf);
+@@ -84,6 +67,25 @@ struct port_table_attribute {
+ 	__be16			attr_id;
  };
-@@ -915,7 +914,6 @@ alloc_hw_stats_device(struct ib_device *ibdev)
- 	mutex_init(&stats->lock);
- 	data->group.name = "hw_counters";
- 	data->stats = stats;
--	data->groups[0] = &data->group;
- 	return data;
  
- err_free_data:
-@@ -925,29 +923,33 @@ alloc_hw_stats_device(struct ib_device *ibdev)
- 	return ERR_PTR(-ENOMEM);
- }
++struct gid_attr_group {
++	struct ib_port *port;
++	struct kobject kobj;
++	struct attribute_group groups[2];
++	const struct attribute_group *groups_list[3];
++	struct port_table_attribute attrs_list[];
++};
++
++struct ib_port {
++	struct kobject kobj;
++	struct ib_device *ibdev;
++	struct gid_attr_group *gid_attr_group;
++	struct attribute_group gid_group;
++	struct attribute_group *pkey_group;
++	const struct attribute_group *pma_table;
++	struct hw_stats_port_data *hw_stats_data;
++	u32 port_num;
++};
++
+ struct hw_stats_device_attribute {
+ 	struct device_attribute attr;
+ 	ssize_t (*show)(struct ib_device *ibdev, struct rdma_hw_stats *stats,
+@@ -776,26 +778,13 @@ static void ib_port_release(struct kobject *kobj)
  
--static void free_hw_stats_device(struct hw_stats_device_data *data)
-+void ib_device_release_hw_stats(struct hw_stats_device_data *data)
+ static void ib_port_gid_attr_release(struct kobject *kobj)
  {
- 	kfree(data->group.attrs);
- 	kfree(data->stats);
- 	kfree(data);
- }
+-	struct gid_attr_group *g = container_of(kobj, struct gid_attr_group,
+-						kobj);
+-	struct attribute *a;
++	struct gid_attr_group *gid_attr_group =
++		container_of(kobj, struct gid_attr_group, kobj);
+ 	int i;
  
--static int setup_hw_device_stats(struct ib_device *ibdev)
-+int ib_setup_device_attrs(struct ib_device *ibdev)
- {
- 	struct hw_stats_device_attribute *attr;
- 	struct hw_stats_device_data *data;
- 	int i, ret;
- 
- 	data = alloc_hw_stats_device(ibdev);
--	if (IS_ERR(data))
-+	if (IS_ERR(data)) {
-+		if (PTR_ERR(data) == -EOPNOTSUPP)
-+			return 0;
- 		return PTR_ERR(data);
-+	}
-+	ibdev->hw_stats_data = data;
- 
- 	ret = ibdev->ops.get_hw_stats(ibdev, data->stats, 0,
- 				      data->stats->num_counters);
- 	if (ret != data->stats->num_counters) {
- 		if (WARN_ON(ret >= 0))
--			ret = -EINVAL;
--		goto err_free;
-+			return -EINVAL;
-+		return ret;
- 	}
- 
- 	data->stats->timestamp = jiffies;
-@@ -971,26 +973,13 @@ static int setup_hw_device_stats(struct ib_device *ibdev)
- 	attr->attr.store = hw_stat_device_store;
- 	attr->store = set_stats_lifespan;
- 	data->group.attrs[i] = &attr->attr.attr;
+-	if (g->ndev.attrs) {
+-		for (i = 0; (a = g->ndev.attrs[i]); ++i)
+-			kfree(a);
 -
--	ibdev->hw_stats_data = data;
--	ret = device_add_groups(&ibdev->dev, data->groups);
--	if (ret)
--		goto err_free;
--	return 0;
--
--err_free:
--	free_hw_stats_device(data);
--	ibdev->hw_stats_data = NULL;
--	return ret;
--}
--
--static void destroy_hw_device_stats(struct ib_device *ibdev)
--{
--	if (!ibdev->hw_stats_data)
--		return;
--	device_remove_groups(&ibdev->dev, ibdev->hw_stats_data->groups);
--	free_hw_stats_device(ibdev->hw_stats_data);
--	ibdev->hw_stats_data = NULL;
-+	for (i = 0; i != ARRAY_SIZE(ibdev->groups); i++)
-+		if (!ibdev->groups[i]) {
-+			ibdev->groups[i] = &data->group;
-+			return 0;
-+		}
-+	WARN(true, "struct ib_device->groups is too small");
-+	return -EINVAL;
- }
- 
- static struct hw_stats_port_data *
-@@ -1443,29 +1432,6 @@ int ib_setup_port_attrs(struct ib_core_device *coredev)
- 	return ret;
- }
- 
--int ib_device_register_sysfs(struct ib_device *device)
--{
--	int ret;
--
--	ret = ib_setup_port_attrs(&device->coredev);
--	if (ret)
--		return ret;
--
--	ret = setup_hw_device_stats(device);
--	if (ret && ret != -EOPNOTSUPP) {
--		ib_free_port_attrs(&device->coredev);
--		return ret;
+-		kfree(g->ndev.attrs);
 -	}
 -
--	return 0;
--}
+-	if (g->type.attrs) {
+-		for (i = 0; (a = g->type.attrs[i]); ++i)
+-			kfree(a);
 -
--void ib_device_unregister_sysfs(struct ib_device *device)
--{
--	destroy_hw_device_stats(device);
--	ib_free_port_attrs(&device->coredev);
--}
+-		kfree(g->type.attrs);
+-	}
 -
- /**
-  * ib_port_register_module_stat - add module counters under relevant port
-  *  of IB device.
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0dc7ab1a8dcf..5ca1cb82a543 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2677,11 +2677,12 @@ struct ib_device {
- 		struct ib_core_device	coredev;
- 	};
+-	kfree(g);
++	for (i = 0; i != ARRAY_SIZE(gid_attr_group->groups); i++)
++		kfree(gid_attr_group->groups[i].attrs);
++	kfree(gid_attr_group);
+ }
  
--	/* First group for device attributes,
--	 * Second group for driver provided attributes (optional).
--	 * It is NULL terminated array.
-+	/* First group is for device attributes,
-+	 * Second group is for driver provided attributes (optional).
-+	 * Third group is for the hw_stats
-+	 * It is a NULL terminated array.
- 	 */
--	const struct attribute_group	*groups[3];
-+	const struct attribute_group	*groups[4];
+ static struct kobj_type port_type = {
+@@ -1178,6 +1167,41 @@ struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev,
+ 	return ibdev->port_data[port_num].sysfs->hw_stats_data->stats;
+ }
  
- 	u64			     uverbs_cmd_mask;
++static int alloc_port_table_group(
++	const char *name, struct attribute_group *group,
++	struct port_table_attribute *attrs, size_t num,
++	ssize_t (*show)(struct ib_port *, struct port_attribute *, char *buf))
++{
++	struct attribute **attr_list;
++	int i;
++
++	attr_list = kcalloc(num + 1, sizeof(*attr_list), GFP_KERNEL);
++	if (!attr_list)
++		return -ENOMEM;
++
++	for (i = 0; i < num; i++) {
++		struct port_table_attribute *element = &attrs[i];
++
++		if (snprintf(element->name, sizeof(element->name), "%d", i) >=
++		    sizeof(element->name))
++			goto err;
++
++		sysfs_attr_init(&element->attr.attr);
++		element->attr.attr.name = element->name;
++		element->attr.attr.mode = 0444;
++		element->attr.show = show;
++		element->index = i;
++
++		attr_list[i] = &element->attr.attr;
++	}
++	group->name = name;
++	group->attrs = attr_list;
++	return 0;
++err:
++	kfree(attr_list);
++	return -EINVAL;
++}
++
+ /*
+  * Create the sysfs:
+  *  ibp0s9/ports/XX/gid_attrs/{ndevs,types}/YYY
+@@ -1188,60 +1212,44 @@ static int setup_gid_attrs(struct ib_port *port,
+ {
+ 	struct gid_attr_group *gid_attr_group;
+ 	int ret;
+-	int i;
+ 
+-	gid_attr_group = kzalloc(sizeof(*gid_attr_group), GFP_KERNEL);
++	gid_attr_group = kzalloc(struct_size(gid_attr_group, attrs_list,
++					     attr->gid_tbl_len * 2),
++				 GFP_KERNEL);
+ 	if (!gid_attr_group)
+ 		return -ENOMEM;
+-
+ 	gid_attr_group->port = port;
+-	ret = kobject_init_and_add(&gid_attr_group->kobj, &gid_attr_type,
+-				   &port->kobj, "gid_attrs");
+-	if (ret)
+-		goto err_put_gid_attrs;
+-
+-	gid_attr_group->ndev.name = "ndevs";
+-	gid_attr_group->ndev.attrs =
+-		alloc_group_attrs(show_port_gid_attr_ndev, attr->gid_tbl_len);
+-	if (!gid_attr_group->ndev.attrs) {
+-		ret = -ENOMEM;
+-		goto err_put_gid_attrs;
+-	}
++	kobject_init(&gid_attr_group->kobj, &gid_attr_type);
+ 
+-	ret = sysfs_create_group(&gid_attr_group->kobj, &gid_attr_group->ndev);
++	ret = alloc_port_table_group("ndevs", &gid_attr_group->groups[0],
++				     gid_attr_group->attrs_list,
++				     attr->gid_tbl_len,
++				     show_port_gid_attr_ndev);
+ 	if (ret)
+-		goto err_free_gid_ndev;
+-
+-	gid_attr_group->type.name = "types";
+-	gid_attr_group->type.attrs = alloc_group_attrs(
+-		show_port_gid_attr_gid_type, attr->gid_tbl_len);
+-	if (!gid_attr_group->type.attrs) {
+-		ret = -ENOMEM;
+-		goto err_remove_gid_ndev;
+-	}
++		goto err_put;
++	gid_attr_group->groups_list[0] = &gid_attr_group->groups[0];
+ 
+-	ret = sysfs_create_group(&gid_attr_group->kobj, &gid_attr_group->type);
++	ret = alloc_port_table_group(
++		"types", &gid_attr_group->groups[1],
++		gid_attr_group->attrs_list + attr->gid_tbl_len,
++		attr->gid_tbl_len, show_port_gid_attr_gid_type);
+ 	if (ret)
+-		goto err_free_gid_type;
++		goto err_put;
++	gid_attr_group->groups_list[1] = &gid_attr_group->groups[1];
+ 
++	ret = kobject_add(&gid_attr_group->kobj, &port->kobj, "gid_attrs");
++	if (ret)
++		goto err_put;
++	ret = sysfs_create_groups(&gid_attr_group->kobj,
++				  gid_attr_group->groups_list);
++	if (ret)
++		goto err_del;
+ 	port->gid_attr_group = gid_attr_group;
+ 	return 0;
+ 
+-err_free_gid_type:
+-	for (i = 0; i < attr->gid_tbl_len; ++i)
+-		kfree(gid_attr_group->type.attrs[i]);
+-
+-	kfree(gid_attr_group->type.attrs);
+-	gid_attr_group->type.attrs = NULL;
+-err_remove_gid_ndev:
+-	sysfs_remove_group(&gid_attr_group->kobj, &gid_attr_group->ndev);
+-err_free_gid_ndev:
+-	for (i = 0; i < attr->gid_tbl_len; ++i)
+-		kfree(gid_attr_group->ndev.attrs[i]);
+-
+-	kfree(gid_attr_group->ndev.attrs);
+-	gid_attr_group->ndev.attrs = NULL;
+-err_put_gid_attrs:
++err_del:
++	kobject_del(&gid_attr_group->kobj);
++err_put:
+ 	kobject_put(&gid_attr_group->kobj);
+ 	return ret;
+ }
+@@ -1250,10 +1258,10 @@ static void destroy_gid_attrs(struct ib_port *port)
+ {
+ 	struct gid_attr_group *gid_attr_group = port->gid_attr_group;
+ 
+-	sysfs_remove_group(&gid_attr_group->kobj,
+-			   &gid_attr_group->ndev);
+-	sysfs_remove_group(&gid_attr_group->kobj,
+-			   &gid_attr_group->type);
++	if (!gid_attr_group)
++		return;
++	sysfs_remove_groups(&gid_attr_group->kobj, gid_attr_group->groups_list);
++	kobject_del(&gid_attr_group->kobj);
+ 	kobject_put(&gid_attr_group->kobj);
+ }
  
 -- 
 2.31.1
