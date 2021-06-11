@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6CBAC48BE6
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC79C48BE0
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:02:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8968613EA
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14B09613EA
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231892AbhFKQDs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:03:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39308 "EHLO mail.kernel.org"
+        id S230331AbhFKQDx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Jun 2021 12:03:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231534AbhFKQDW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:03:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E0CDE61403;
-        Fri, 11 Jun 2021 16:01:22 +0000 (UTC)
+        id S231575AbhFKQDZ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 11 Jun 2021 12:03:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 402BA61400;
+        Fri, 11 Jun 2021 16:01:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1623427283;
-        bh=GyuTv5Uo2tGxBsG8YiByMA7WNuLic0u8DRYfE0+c+Ek=;
+        s=k20201202; t=1623427286;
+        bh=yuGrchRppYyMb9x3dKgOdh+N9rVrG8C+z7TXWcH0ji4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=A3wjERgLT+2a5o+m6BI8DPzHnWpp1JOA1vNutV7uZXPwa6vtBs2DWliYqmkAptO17
-         sJedP7Q+8koOQ/jCZ39k1KeeSPvi2kDAeA8A8qKPVtUdz7IC6JSnR8iO541QpVplnj
-         ZnVYy0rMt9lRljm1fKQiB0yR0EV9//Zyd3dcZHqOqWU+uo6D53rjF43EjO+twovTlG
-         CL+SOvEmuyM56XbyiFU7+58bB7mTOBWIwxPF3bmjCviA+bj34QQ12Ex5besvItJFr7
-         lCHM9MynejaVfhwW/eGqIpVRIOHlN0uHvHcXiDC3qL0E2hsvuRU0H+O/Mqih4SgksR
-         43xY9cXD+l4Vw==
+        b=JyxPevFWTH6CvJj4HIDOXn324jVw1tDqNe1+kKj3dB1TXq2JhbcwGkUAI7oz+uvcM
+         eDJBpLPKF3EAnKKXgd4wrGekQVag9Wb67GJtdTLYHrvZsjOzEMZXjqF5lu2IoZWMA4
+         W3BSVCAbVRIKq4mBLffYFSGnCkeMYI8SIxQMJIJayp7XxMoYmkyxoJ9YIh6K8nE+jF
+         weQm5Qvp+IrQ916cXp6Dm3y359VhkClO/RRTCz3i1IkmMMbJV6JiHPetem7SofCFyQ
+         buXV+GzGIqCQyAP85bhitbVxnP8ouxPbp5n8njYQRt5X0TypFzLVjybvJjxyxcOukz
+         y2CNmUm6MMDQw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -58,9 +58,9 @@ Cc:     Greg KH <gregkh@linuxfoundation.org>,
         VMware PV-Drivers <pv-drivers@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v2 13/15] RDMA: Change ops->init_port to ops->port_groups
-Date:   Fri, 11 Jun 2021 19:00:32 +0300
-Message-Id: <114f68f3d921460eafe14cea5a80ca65d81729c3.1623427137.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v2 15/15] RDMA: Remove rdma_set_device_sysfs_group()
+Date:   Fri, 11 Jun 2021 19:00:34 +0300
+Message-Id: <8964785a34fd3a29ff5b6693493f575b717e594d.1623427137.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1623427137.git.leonro@nvidia.com>
 References: <cover.1623427137.git.leonro@nvidia.com>
@@ -72,355 +72,355 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-init_port was only being used to register sysfs attributes against the
-port kobject. Now that all users are creating static attribute_group's we can
-simply set the attribute_group list in the ops and the core code can just
-handle it directly.
-
-This makes all the sysfs management quite straightforward and prevents any
-driver from abusing the naked port kobject in future because no driver
-code can access it.
+The driver's device group can be specified as part of the ops structure
+like the device's port group. No need for the complicated API.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/device.c      |  4 +--
- drivers/infiniband/core/sysfs.c       | 39 +++++++++------------------
- drivers/infiniband/hw/hfi1/hfi.h      |  3 +--
- drivers/infiniband/hw/hfi1/sysfs.c    | 12 +--------
- drivers/infiniband/hw/hfi1/verbs.c    |  2 +-
- drivers/infiniband/hw/qib/qib.h       |  4 +--
- drivers/infiniband/hw/qib/qib_sysfs.c | 20 +-------------
- drivers/infiniband/hw/qib/qib_verbs.c |  4 +--
- drivers/infiniband/sw/rdmavt/vt.c     |  2 +-
- include/rdma/ib_sysfs.h               |  4 ---
- include/rdma/ib_verbs.h               |  9 +++----
- 11 files changed, 25 insertions(+), 78 deletions(-)
+ drivers/infiniband/core/device.c              |  4 ++-
+ drivers/infiniband/hw/bnxt_re/main.c          |  2 +-
+ drivers/infiniband/hw/cxgb4/provider.c        |  2 +-
+ drivers/infiniband/hw/hfi1/verbs.c            |  4 +--
+ drivers/infiniband/hw/mlx4/main.c             |  2 +-
+ drivers/infiniband/hw/mlx5/main.c             |  2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c  |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c    |  2 +-
+ drivers/infiniband/hw/qedr/main.c             |  2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c         |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c   |  3 +-
+ .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |  2 +-
+ include/rdma/ib_verbs.h                       | 30 +++++--------------
+ 14 files changed, 22 insertions(+), 39 deletions(-)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 030a4041b2e0..2cbd77933ea5 100644
+index 92f224a97481..53a7ec66e0d1 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -1703,7 +1703,7 @@ int ib_device_set_netns_put(struct sk_buff *skb,
- 	 * port_cleanup infrastructure is implemented, this limitation will be
- 	 * removed.
- 	 */
--	if (!dev->ops.disassociate_ucontext || dev->ops.init_port ||
-+	if (!dev->ops.disassociate_ucontext || dev->ops.port_groups ||
- 	    ib_devices_shared_netns) {
- 		ret = -EOPNOTSUPP;
- 		goto ns_err;
-@@ -2668,7 +2668,6 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, get_vf_config);
- 	SET_DEVICE_OP(dev_ops, get_vf_guid);
- 	SET_DEVICE_OP(dev_ops, get_vf_stats);
--	SET_DEVICE_OP(dev_ops, init_port);
- 	SET_DEVICE_OP(dev_ops, iw_accept);
- 	SET_DEVICE_OP(dev_ops, iw_add_ref);
- 	SET_DEVICE_OP(dev_ops, iw_connect);
-@@ -2691,6 +2690,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, modify_wq);
- 	SET_DEVICE_OP(dev_ops, peek_cq);
- 	SET_DEVICE_OP(dev_ops, poll_cq);
-+	SET_DEVICE_OP(dev_ops, port_groups);
- 	SET_DEVICE_OP(dev_ops, post_recv);
- 	SET_DEVICE_OP(dev_ops, post_send);
- 	SET_DEVICE_OP(dev_ops, post_srq_recv);
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index e550a7eb37f6..09a2e1066df0 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -128,22 +128,6 @@ static ssize_t port_attr_store(struct kobject *kobj,
- 	return port_attr->store(p->ibdev, p->port_num, port_attr, buf, count);
- }
+@@ -586,7 +586,6 @@ struct ib_device *_ib_alloc_device(size_t size)
+ 		return NULL;
+ 	}
  
--int ib_port_sysfs_create_groups(struct ib_device *ibdev, u32 port_num,
--				const struct attribute_group **groups)
--{
--	return sysfs_create_groups(&ibdev->port_data[port_num].sysfs->kobj,
--				   groups);
--}
--EXPORT_SYMBOL_GPL(ib_port_sysfs_create_groups);
--
--void ib_port_sysfs_remove_groups(struct ib_device *ibdev, u32 port_num,
--				 const struct attribute_group **groups)
--{
--	return sysfs_remove_groups(&ibdev->port_data[port_num].sysfs->kobj,
--				   groups);
--}
--EXPORT_SYMBOL_GPL(ib_port_sysfs_remove_groups);
--
- struct ib_device *ib_port_sysfs_get_ibdev_kobj(struct kobject *kobj,
- 					       u32 *port_num)
- {
-@@ -1252,6 +1236,11 @@ static struct ib_port *setup_port(struct ib_core_device *coredev, int port_num,
- 	ret = sysfs_create_groups(&p->kobj, p->groups_list);
+-	device->groups[0] = &ib_dev_attr_group;
+ 	rdma_init_coredev(&device->coredev, device, &init_net);
+ 
+ 	INIT_LIST_HEAD(&device->event_handler_list);
+@@ -1396,6 +1395,8 @@ int ib_register_device(struct ib_device *device, const char *name,
+ 		return ret;
+ 	}
+ 
++	device->groups[0] = &ib_dev_attr_group;
++	device->groups[1] = device->ops.device_group;
+ 	ret = ib_setup_device_attrs(device);
  	if (ret)
- 		goto err_del;
-+	if (is_full_dev) {
-+		ret = sysfs_create_groups(&p->kobj, device->ops.port_groups);
-+		if (ret)
-+			goto err_groups;
-+	}
+ 		goto cache_cleanup;
+@@ -2643,6 +2644,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, destroy_rwq_ind_table);
+ 	SET_DEVICE_OP(dev_ops, destroy_srq);
+ 	SET_DEVICE_OP(dev_ops, destroy_wq);
++	SET_DEVICE_OP(dev_ops, device_group);
+ 	SET_DEVICE_OP(dev_ops, detach_mcast);
+ 	SET_DEVICE_OP(dev_ops, disassociate_ucontext);
+ 	SET_DEVICE_OP(dev_ops, drain_rq);
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 58bd905048ae..2798a03a6c31 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -647,6 +647,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
+ 	.destroy_cq = bnxt_re_destroy_cq,
+ 	.destroy_qp = bnxt_re_destroy_qp,
+ 	.destroy_srq = bnxt_re_destroy_srq,
++	.device_group = &bnxt_re_dev_attr_group,
+ 	.get_dev_fw_str = bnxt_re_query_fw_str,
+ 	.get_dma_mr = bnxt_re_get_dma_mr,
+ 	.get_hw_stats = bnxt_re_ib_get_hw_stats,
+@@ -693,7 +694,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->dev.parent = &rdev->en_dev->pdev->dev;
+ 	ibdev->local_dma_lkey = BNXT_QPLIB_RSVD_LKEY;
  
- 	list_add_tail(&p->kobj.entry, &coredev->port_list);
- 	if (device->port_data && is_full_dev)
-@@ -1259,6 +1248,8 @@ static struct ib_port *setup_port(struct ib_core_device *coredev, int port_num,
+-	rdma_set_device_sysfs_group(ibdev, &bnxt_re_dev_attr_group);
+ 	ib_set_device_ops(ibdev, &bnxt_re_dev_ops);
+ 	ret = ib_device_set_netdev(&rdev->ibdev, rdev->netdev, 1);
+ 	if (ret)
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index 4e453d1dde11..881d515eb15a 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -465,6 +465,7 @@ static const struct ib_device_ops c4iw_dev_ops = {
+ 	.destroy_cq = c4iw_destroy_cq,
+ 	.destroy_qp = c4iw_destroy_qp,
+ 	.destroy_srq = c4iw_destroy_srq,
++	.device_group = &c4iw_attr_group,
+ 	.fill_res_cq_entry = c4iw_fill_res_cq_entry,
+ 	.fill_res_cm_id_entry = c4iw_fill_res_cm_id_entry,
+ 	.fill_res_mr_entry = c4iw_fill_res_mr_entry,
+@@ -539,7 +540,6 @@ void c4iw_register_device(struct work_struct *work)
+ 	memcpy(dev->ibdev.iw_ifname, dev->rdev.lldi.ports[0]->name,
+ 	       sizeof(dev->ibdev.iw_ifname));
  
- 	return p;
- 
-+err_groups:
-+	sysfs_remove_groups(&p->kobj, p->groups_list);
- err_del:
- 	kobject_del(&p->kobj);
- err_put:
-@@ -1266,12 +1257,16 @@ static struct ib_port *setup_port(struct ib_core_device *coredev, int port_num,
- 	return ERR_PTR(ret);
- }
- 
--static void destroy_port(struct ib_port *port)
-+static void destroy_port(struct ib_core_device *coredev, struct ib_port *port)
- {
-+	bool is_full_dev = &port->ibdev->coredev == coredev;
-+
- 	if (port->ibdev->port_data &&
- 	    port->ibdev->port_data[port->port_num].sysfs == port)
- 		port->ibdev->port_data[port->port_num].sysfs = NULL;
- 	list_del(&port->kobj.entry);
-+	if (is_full_dev)
-+		sysfs_remove_groups(&port->kobj, port->ibdev->ops.port_groups);
- 	sysfs_remove_groups(&port->kobj, port->groups_list);
- 	kobject_del(&port->kobj);
- 	kobject_put(&port->kobj);
-@@ -1397,7 +1392,7 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
- 		struct ib_port *port = container_of(p, struct ib_port, kobj);
- 
- 		destroy_gid_attrs(port);
--		destroy_port(port);
-+		destroy_port(coredev, port);
- 	}
- 
- 	kobject_put(coredev->ports_kobj);
-@@ -1406,7 +1401,6 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
- int ib_setup_port_attrs(struct ib_core_device *coredev)
- {
- 	struct ib_device *device = rdma_device_to_ibdev(&coredev->dev);
--	bool is_full_dev = &device->coredev == coredev;
- 	u32 port_num;
- 	int ret;
- 
-@@ -1432,13 +1426,6 @@ int ib_setup_port_attrs(struct ib_core_device *coredev)
- 		ret = setup_gid_attrs(port, &attr);
- 		if (ret)
- 			goto err_put;
--
--		if (device->ops.init_port && is_full_dev) {
--			ret = device->ops.init_port(device, port_num,
--						    &port->kobj);
--			if (ret)
--				goto err_put;
--		}
- 	}
- 	return 0;
- 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 4bb807c154b2..31664f43c27f 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -2184,12 +2184,11 @@ static inline bool hfi1_packet_present(struct hfi1_ctxtdata *rcd)
- 
- extern const char ib_hfi1_version[];
- extern const struct attribute_group ib_hfi1_attr_group;
-+extern const struct attribute_group *hfi1_attr_port_groups[];
- 
- int hfi1_device_create(struct hfi1_devdata *dd);
- void hfi1_device_remove(struct hfi1_devdata *dd);
- 
--int hfi1_create_port_files(struct ib_device *ibdev, u32 port_num,
--			   struct kobject *kobj);
- int hfi1_verbs_register_sysfs(struct hfi1_devdata *dd);
- void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd);
- /* Hook for sysfs read of QSFP */
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
-index 98bb0b3aac09..acfcbedebe0d 100644
---- a/drivers/infiniband/hw/hfi1/sysfs.c
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -599,7 +599,7 @@ const struct attribute_group ib_hfi1_attr_group = {
- 	.attrs = hfi1_attributes,
- };
- 
--static const struct attribute_group *hfi1_port_groups[] = {
-+const struct attribute_group *hfi1_attr_port_groups[] = {
- 	&port_cc_group,
- 	&port_sc2vl_group,
- 	&port_sl2sc_group,
-@@ -607,12 +607,6 @@ static const struct attribute_group *hfi1_port_groups[] = {
- 	NULL,
- };
- 
--int hfi1_create_port_files(struct ib_device *ibdev, u32 port_num,
--			   struct kobject *kobj)
--{
--	return ib_port_sysfs_create_groups(ibdev, port_num, hfi1_port_groups);
--}
--
- struct sde_attribute {
- 	struct attribute attr;
- 	ssize_t (*show)(struct sdma_engine *sde, char *buf);
-@@ -741,8 +735,4 @@ void hfi1_verbs_unregister_sysfs(struct hfi1_devdata *dd)
- 	/* Unwind operations in hfi1_verbs_register_sysfs() */
- 	for (i = 0; i < dd->num_sdma; i++)
- 		kobject_put(&dd->per_sdma[i].kobj);
--
--	for (i = 0; i < dd->num_pports; i++)
--		ib_port_sysfs_remove_groups(&dd->verbs_dev.rdi.ibdev, i + 1,
--					    hfi1_port_groups);
- }
+-	rdma_set_device_sysfs_group(&dev->ibdev, &c4iw_attr_group);
+ 	ib_set_device_ops(&dev->ibdev, &c4iw_dev_ops);
+ 	ret = set_netdevs(&dev->ibdev, &dev->rdev);
+ 	if (ret)
 diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 85deba07a675..49c6ed267a47 100644
+index 49c6ed267a47..9b198c35e1a1 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.c
 +++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1791,8 +1791,8 @@ static const struct ib_device_ops hfi1_dev_ops = {
+@@ -1789,6 +1789,7 @@ static const struct ib_device_ops hfi1_dev_ops = {
+ 	.alloc_hw_device_stats = hfi1_alloc_hw_device_stats,
+ 	.alloc_hw_port_stats = hfi_alloc_hw_port_stats,
  	.alloc_rdma_netdev = hfi1_vnic_alloc_rn,
++	.device_group = &ib_hfi1_attr_group,
  	.get_dev_fw_str = hfi1_get_dev_fw_str,
  	.get_hw_stats = get_hw_stats,
--	.init_port = hfi1_create_port_files,
  	.modify_device = modify_device,
-+	.port_groups = hfi1_attr_port_groups,
- 	/* keep process mad in the driver */
- 	.process_mad = hfi1_process_mad,
- 	.rdma_netdev_get_params = hfi1_ipoib_rn_get_params,
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index b8a2deb5b4d2..9363bccfc6e7 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1361,13 +1361,11 @@ static inline u32 qib_get_rcvhdrtail(const struct qib_ctxtdata *rcd)
+@@ -1927,9 +1928,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 			      i,
+ 			      ppd->pkeys);
  
- extern const char ib_qib_version[];
- extern const struct attribute_group qib_attr_group;
-+extern const struct attribute_group *qib_attr_port_groups[];
- 
- int qib_device_create(struct qib_devdata *);
- void qib_device_remove(struct qib_devdata *);
- 
--int qib_create_port_files(struct ib_device *ibdev, u32 port_num,
--			  struct kobject *kobj);
--void qib_verbs_unregister_sysfs(struct qib_devdata *);
- /* Hook for sysfs read of QSFP */
- extern int qib_qsfp_dump(struct qib_pportdata *ppd, char *buf, int len);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
-index a1e22c498712..d57e49de6650 100644
---- a/drivers/infiniband/hw/qib/qib_sysfs.c
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -545,7 +545,7 @@ static const struct attribute_group port_diagc_group = {
- 
- /* End diag_counters */
- 
--static const struct attribute_group *qib_port_groups[] = {
-+const struct attribute_group *qib_attr_port_groups[] = {
- 	&port_linkcontrol_group,
- 	&port_ccmgta_attribute_group,
- 	&port_sl2vl_group,
-@@ -733,21 +733,3 @@ static struct attribute *qib_attributes[] = {
- const struct attribute_group qib_attr_group = {
- 	.attrs = qib_attributes,
- };
+-	rdma_set_device_sysfs_group(&dd->verbs_dev.rdi.ibdev,
+-				    &ib_hfi1_attr_group);
 -
--int qib_create_port_files(struct ib_device *ibdev, u32 port_num,
--			  struct kobject *kobj)
--{
--	return ib_port_sysfs_create_groups(ibdev, port_num, qib_port_groups);
--}
--
--/*
-- * Unregister and remove our files in /sys/class/infiniband.
-- */
--void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
--{
--	int i;
--
--	for (i = 0; i < dd->num_pports; i++)
--		ib_port_sysfs_remove_groups(&dd->verbs_dev.rdi.ibdev, i,
--					    qib_port_groups);
--}
+ 	ret = rvt_register_device(&dd->verbs_dev.rdi);
+ 	if (ret)
+ 		goto err_verbs_txreq;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 341162aa2175..6cdcbbc53843 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2547,6 +2547,7 @@ static const struct ib_device_ops mlx4_ib_dev_ops = {
+ 	.destroy_qp = mlx4_ib_destroy_qp,
+ 	.destroy_srq = mlx4_ib_destroy_srq,
+ 	.detach_mcast = mlx4_ib_mcg_detach,
++	.device_group = &mlx4_attr_group,
+ 	.disassociate_ucontext = mlx4_ib_disassociate_ucontext,
+ 	.drain_rq = mlx4_ib_drain_rq,
+ 	.drain_sq = mlx4_ib_drain_sq,
+@@ -2806,7 +2807,6 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (mlx4_ib_alloc_diag_counters(ibdev))
+ 		goto err_steer_free_bitmap;
+ 
+-	rdma_set_device_sysfs_group(&ibdev->ib_dev, &mlx4_attr_group);
+ 	if (ib_register_device(&ibdev->ib_dev, "mlx4_%d",
+ 			       &dev->persist->pdev->dev))
+ 		goto err_diag_counters;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e541a9f5f163..c12517b63a8d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3752,6 +3752,7 @@ static const struct ib_device_ops mlx5_ib_dev_ops = {
+ 	.disassociate_ucontext = mlx5_ib_disassociate_ucontext,
+ 	.drain_rq = mlx5_ib_drain_rq,
+ 	.drain_sq = mlx5_ib_drain_sq,
++	.device_group = &mlx5_attr_group,
+ 	.enable_driver = mlx5_ib_enable_driver,
+ 	.get_dev_fw_str = get_dev_fw_str,
+ 	.get_dma_mr = mlx5_ib_get_dma_mr,
+@@ -4039,7 +4040,6 @@ static int mlx5_ib_stage_ib_reg_init(struct mlx5_ib_dev *dev)
+ {
+ 	const char *name;
+ 
+-	rdma_set_device_sysfs_group(&dev->ib_dev, &mlx5_attr_group);
+ 	if (!mlx5_lag_is_roce(dev->mdev))
+ 		name = "mlx5_%d";
+ 	else
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 522bb606120e..adf4fcf0fee4 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -1099,6 +1099,7 @@ static const struct ib_device_ops mthca_dev_ops = {
+ 	.destroy_cq = mthca_destroy_cq,
+ 	.destroy_qp = mthca_destroy_qp,
+ 	.detach_mcast = mthca_multicast_detach,
++	.device_group = &mthca_attr_group,
+ 	.get_dev_fw_str = get_dev_fw_str,
+ 	.get_dma_mr = mthca_get_dma_mr,
+ 	.get_port_immutable = mthca_port_immutable,
+@@ -1186,7 +1187,6 @@ int mthca_register_device(struct mthca_dev *dev)
+ 
+ 	mutex_init(&dev->cap_mask_mutex);
+ 
+-	rdma_set_device_sysfs_group(&dev->ib_dev, &mthca_attr_group);
+ 	ret = ib_register_device(&dev->ib_dev, "mthca%d", &dev->pdev->dev);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 4882b3156edb..f329db0c591f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -161,6 +161,7 @@ static const struct ib_device_ops ocrdma_dev_ops = {
+ 	.destroy_ah = ocrdma_destroy_ah,
+ 	.destroy_cq = ocrdma_destroy_cq,
+ 	.destroy_qp = ocrdma_destroy_qp,
++	.device_group = &ocrdma_attr_group,
+ 	.get_dev_fw_str = get_dev_fw_str,
+ 	.get_dma_mr = ocrdma_get_dma_mr,
+ 	.get_link_layer = ocrdma_link_layer,
+@@ -218,7 +219,6 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
+ 	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R)
+ 		ib_set_device_ops(&dev->ibdev, &ocrdma_dev_srq_ops);
+ 
+-	rdma_set_device_sysfs_group(&dev->ibdev, &ocrdma_attr_group);
+ 	ret = ib_device_set_netdev(&dev->ibdev, dev->nic_info.netdev, 1);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index 8334a9850220..de98e0604f91 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -208,6 +208,7 @@ static const struct ib_device_ops qedr_dev_ops = {
+ 	.destroy_cq = qedr_destroy_cq,
+ 	.destroy_qp = qedr_destroy_qp,
+ 	.destroy_srq = qedr_destroy_srq,
++	.device_group = &qedr_attr_group,
+ 	.get_dev_fw_str = qedr_get_dev_fw_str,
+ 	.get_dma_mr = qedr_get_dma_mr,
+ 	.get_link_layer = qedr_link_layer,
+@@ -256,7 +257,6 @@ static int qedr_register_device(struct qedr_dev *dev)
+ 	dev->ibdev.num_comp_vectors = dev->num_cnq;
+ 	dev->ibdev.dev.parent = &dev->pdev->dev;
+ 
+-	rdma_set_device_sysfs_group(&dev->ibdev, &qedr_attr_group);
+ 	ib_set_device_ops(&dev->ibdev, &qedr_dev_ops);
+ 
+ 	rc = ib_device_set_netdev(&dev->ibdev, dev->ndev, 1);
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index d17d034ecdfd..8640a75d61d9 100644
+index 8640a75d61d9..ef91bff5c23c 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1483,7 +1483,7 @@ static const struct ib_device_ops qib_dev_ops = {
- 	.owner = THIS_MODULE,
+@@ -1484,6 +1484,7 @@ static const struct ib_device_ops qib_dev_ops = {
  	.driver_id = RDMA_DRIVER_QIB,
  
--	.init_port = qib_create_port_files,
-+	.port_groups = qib_attr_port_groups,
+ 	.port_groups = qib_attr_port_groups,
++	.device_group = &qib_attr_group,
  	.modify_device = qib_modify_device,
  	.process_mad = qib_process_mad,
  };
-@@ -1644,8 +1644,6 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
- {
- 	struct qib_ibdev *dev = &dd->verbs_dev;
+@@ -1612,7 +1613,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 			      i,
+ 			      dd->rcd[ctxt]->pkeys);
+ 	}
+-	rdma_set_device_sysfs_group(&dd->verbs_dev.rdi.ibdev, &qib_attr_group);
  
--	qib_verbs_unregister_sysfs(dd);
+ 	ib_set_device_ops(ibdev, &qib_dev_ops);
+ 	ret = rvt_register_device(&dd->verbs_dev.rdi);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index ff6a40e259d5..c49f9e19d926 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -347,6 +347,7 @@ static const struct ib_device_ops usnic_dev_ops = {
+ 	.dereg_mr = usnic_ib_dereg_mr,
+ 	.destroy_cq = usnic_ib_destroy_cq,
+ 	.destroy_qp = usnic_ib_destroy_qp,
++	.device_group = &usnic_attr_group,
+ 	.get_dev_fw_str = usnic_get_dev_fw_str,
+ 	.get_link_layer = usnic_ib_port_link_layer,
+ 	.get_port_immutable = usnic_port_immutable,
+@@ -400,8 +401,6 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 
+ 	ib_set_device_ops(&us_ibdev->ib_dev, &usnic_dev_ops);
+ 
+-	rdma_set_device_sysfs_group(&us_ibdev->ib_dev, &usnic_attr_group);
 -
- 	rvt_unregister_device(&dd->verbs_dev.rdi);
+ 	ret = ib_device_set_netdev(&us_ibdev->ib_dev, us_ibdev->netdev, 1);
+ 	if (ret)
+ 		goto err_fwd_dealloc;
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+index 6bf2d2e47d07..8ed8bc24c69f 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+@@ -162,6 +162,7 @@ static const struct ib_device_ops pvrdma_dev_ops = {
+ 	.destroy_ah = pvrdma_destroy_ah,
+ 	.destroy_cq = pvrdma_destroy_cq,
+ 	.destroy_qp = pvrdma_destroy_qp,
++	.device_group = &pvrdma_attr_group,
+ 	.get_dev_fw_str = pvrdma_get_fw_ver_str,
+ 	.get_dma_mr = pvrdma_get_dma_mr,
+ 	.get_link_layer = pvrdma_port_link_layer,
+@@ -240,7 +241,6 @@ static int pvrdma_register_device(struct pvrdma_dev *dev)
+ 	if (ret)
+ 		goto err_srq_free;
+ 	spin_lock_init(&dev->srq_tbl_lock);
+-	rdma_set_device_sysfs_group(&dev->ib_dev, &pvrdma_attr_group);
  
- 	if (!list_empty(&dev->piowait))
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 3749380ff193..ac17209816cd 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -418,7 +418,7 @@ static noinline int check_support(struct rvt_dev_info *rdi, int verb)
- 		 * These functions are not part of verbs specifically but are
- 		 * required for rdmavt to function.
- 		 */
--		if ((!rdi->ibdev.ops.init_port) ||
-+		if ((!rdi->ibdev.ops.port_groups) ||
- 		    (!rdi->driver_f.get_pci_dev))
- 			return -EINVAL;
- 		break;
-diff --git a/include/rdma/ib_sysfs.h b/include/rdma/ib_sysfs.h
-index f869d0e4fd30..3b77cfd74d9a 100644
---- a/include/rdma/ib_sysfs.h
-+++ b/include/rdma/ib_sysfs.h
-@@ -31,10 +31,6 @@ struct ib_port_attribute {
- #define IB_PORT_ATTR_WO(_name)                                                 \
- 	struct ib_port_attribute ib_port_attr_##_name = __ATTR_WO(_name)
+ 	ret = ib_register_device(&dev->ib_dev, "vmw_pvrdma%d", &dev->pdev->dev);
+ 	if (ret)
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index d3df59d897a7..90dd513cf993 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1123,6 +1123,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.destroy_qp = rxe_destroy_qp,
+ 	.destroy_srq = rxe_destroy_srq,
+ 	.detach_mcast = rxe_detach_mcast,
++	.device_group = &rxe_attr_group,
+ 	.enable_driver = rxe_enable_driver,
+ 	.get_dma_mr = rxe_get_dma_mr,
+ 	.get_hw_stats = rxe_ib_get_hw_stats,
+@@ -1189,7 +1190,6 @@ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name)
+ 	}
+ 	rxe->tfm = tfm;
  
--int ib_port_sysfs_create_groups(struct ib_device *ibdev, u32 port_num,
--				const struct attribute_group **groups);
--void ib_port_sysfs_remove_groups(struct ib_device *ibdev, u32 port_num,
--				 const struct attribute_group **groups);
- struct ib_device *ib_port_sysfs_get_ibdev_kobj(struct kobject *kobj,
- 					       u32 *port_num);
- 
+-	rdma_set_device_sysfs_group(dev, &rxe_attr_group);
+ 	err = ib_register_device(dev, ibdev_name, NULL);
+ 	if (err)
+ 		pr_warn("%s failed with error %d\n", __func__, err);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5ca1cb82a543..303471585dde 100644
+index 303471585dde..9423e70a881c 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2300,6 +2300,8 @@ struct ib_device_ops {
+@@ -2300,6 +2300,12 @@ struct ib_device_ops {
  	u32 uverbs_abi_ver;
  	unsigned int uverbs_no_driver_id_binding:1;
  
-+	const struct attribute_group **port_groups;
-+
++	/*
++	 * NOTE: New drivers should not make use of device_group; instead new
++	 * device parameter should be exposed via netlink command. This
++	 * mechanism exists only for existing drivers.
++	 */
++	const struct attribute_group *device_group;
+ 	const struct attribute_group **port_groups;
+ 
  	int (*post_send)(struct ib_qp *qp, const struct ib_send_wr *send_wr,
- 			 const struct ib_send_wr **bad_send_wr);
- 	int (*post_recv)(struct ib_qp *qp, const struct ib_recv_wr *recv_wr,
-@@ -2546,12 +2548,7 @@ struct ib_device_ops {
- 	 */
- 	int (*get_hw_stats)(struct ib_device *device,
- 			    struct rdma_hw_stats *stats, u32 port, int index);
--	/*
--	 * This function is called once for each port when a ib device is
--	 * registered.
--	 */
--	int (*init_port)(struct ib_device *device, u32 port_num,
--			 struct kobject *port_sysfs);
-+
- 	/**
- 	 * Allows rdma drivers to add their own restrack attributes.
- 	 */
+@@ -4567,28 +4573,6 @@ int rdma_init_netdev(struct ib_device *device, u32 port_num,
+ 		     void (*setup)(struct net_device *),
+ 		     struct net_device *netdev);
+ 
+-/**
+- * rdma_set_device_sysfs_group - Set device attributes group to have
+- *				 driver specific sysfs entries at
+- *				 for infiniband class.
+- *
+- * @device:	device pointer for which attributes to be created
+- * @group:	Pointer to group which should be added when device
+- *		is registered with sysfs.
+- * rdma_set_device_sysfs_group() allows existing drivers to expose one
+- * group per device to have sysfs attributes.
+- *
+- * NOTE: New drivers should not make use of this API; instead new device
+- * parameter should be exposed via netlink command. This API and mechanism
+- * exist only for existing drivers.
+- */
+-static inline void
+-rdma_set_device_sysfs_group(struct ib_device *dev,
+-			    const struct attribute_group *group)
+-{
+-	dev->groups[1] = group;
+-}
+-
+ /**
+  * rdma_device_to_ibdev - Get ib_device pointer from device pointer
+  *
+@@ -4624,7 +4608,7 @@ static inline int ibdev_to_node(struct ib_device *ibdev)
+  *
+  * NOTE: New drivers should not make use of this API; This API is only for
+  * existing drivers who have exposed sysfs entries using
+- * rdma_set_device_sysfs_group().
++ * ops->device_group.
+  */
+ #define rdma_device_to_drv_device(dev, drv_dev_struct, ibdev_member)           \
+ 	container_of(rdma_device_to_ibdev(dev), drv_dev_struct, ibdev_member)
 -- 
 2.31.1
 
