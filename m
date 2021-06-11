@@ -2,160 +2,182 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F625C48BD1
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 12:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D99FC48BD1
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:00:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7964660FE6
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 12:11:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12DBD613FA
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:00:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230468AbhFKMNh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Jun 2021 08:13:37 -0400
-Received: from mail-ed1-f45.google.com ([209.85.208.45]:33581 "EHLO
-        mail-ed1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230467AbhFKMNg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Jun 2021 08:13:36 -0400
-Received: by mail-ed1-f45.google.com with SMTP id f5so31833782eds.0
-        for <linux-rdma@vger.kernel.org>; Fri, 11 Jun 2021 05:11:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=uL+EN0zWidH6/P9/6QcLFHezjtyZ+PTsZ+hns4lgn3w=;
-        b=KeMuNPrRgYKVQKs80mICPP7/D37u2GiJEUAMufD9943ekORkZq1lOQ/VH57mUGzz9w
-         S34lP1bM34TiKktJm72uBqEmzcg9mHkRDiQwn/Bu7NO3EhVBSbOKlPZgBou4vhE+EU8f
-         39t5ifUaMu+2jkZSZXD9Y9N6PBLWKmoT6NVZktVtl94EDEDoJCZmMFI5//mIdGvc89te
-         Iq7zp4GgWwtkjuhu5tcalkRTGX4IZL1bGNBgHPdAozwG+ICsory73Wo99NNnq9w/fXiV
-         rduqumsd3sSAB62QbSOJrMkj/gP8S7OwHW+a3d30QO/H0kmVOtB+917eWw37D3K1nWxE
-         26mA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=uL+EN0zWidH6/P9/6QcLFHezjtyZ+PTsZ+hns4lgn3w=;
-        b=Z38CSalh0OWf5GXg9FSIkwI2s1o+x3hhsxb0cqdSYE7mZobKqcmzFZPmb1NALLmOjm
-         a9PIWI9xyQ6gRP68xYZE3TXN5Q4dsjh//l0BWOf7a0Kp/pjvQnBPCn3J9vX/S7aMr9Lm
-         +g2gt6BAdt9s6ep0kslz2KxIkGwwltjk9Vdq7E4G5R8odwU3x7E72Exk/kUhDVLNEere
-         09KlI62bwYzVI9J5evLdv2E75ckTHgG0r7+vQ7GQNV647U9lwSHoWn9bpguV6RDoFtLh
-         zpl/kunCWHMmiJyoB8zV/qgV9OvuG4MaLC71czqxjzGoOO1Sj4aVupHRMD9v+L1LoL08
-         LHuQ==
-X-Gm-Message-State: AOAM530kNODGQgQVVKk4RT61FRG5zD8TMM2Nn4jBt0d5s93Nvng/r3tb
-        ng/D9E02zl80bjVlvhnex8NneFw4wim+Uw==
-X-Google-Smtp-Source: ABdhPJzbf/Hf5qCJBEknMMOIKIgCwCKhSfHytRhDjLyMeD7qwKSxjqt7SxzT247HsrLT6N/t27Q6KA==
-X-Received: by 2002:a05:6402:520b:: with SMTP id s11mr3313970edd.111.1623413437628;
-        Fri, 11 Jun 2021 05:10:37 -0700 (PDT)
-Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4954:2e00:fd6f:fc71:2689:4a7a])
-        by smtp.gmail.com with ESMTPSA id n11sm2084116ejg.43.2021.06.11.05.10.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jun 2021 05:10:37 -0700 (PDT)
-From:   Jack Wang <jinpu.wang@ionos.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
-        Jack Wang <jinpu.wang@cloud.ionos.com>,
-        Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: [PATCHv2 for-next 2/5] RDMA/rtrs-clt: Use minimal max_send_sge when create qp
-Date:   Fri, 11 Jun 2021 14:10:31 +0200
-Message-Id: <20210611121034.48837-3-jinpu.wang@ionos.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210611121034.48837-1-jinpu.wang@ionos.com>
-References: <20210611121034.48837-1-jinpu.wang@ionos.com>
+        id S231177AbhFKQCo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Jun 2021 12:02:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38372 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230511AbhFKQCi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 11 Jun 2021 12:02:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7AC73613EE;
+        Fri, 11 Jun 2021 16:00:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1623427240;
+        bh=AYCjSRiA7MOVAgL8C74NLeUPsyYwawhjVdH2ejk7qrk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=XGyPAZCZyBODjwuShIY3AQDb0Po7xfRaw8NN+jQ8Pq/Z7x2IVsOmc7Oomv5uoGS5t
+         v8BojlZZwtwsKInnRAISoHMkmHWrBjmpQgPXkrf374ND3i84zPpkSG6kgpxYU2LK0b
+         HtQCaQl8RT9aPyPZG3KQDuCMjiqwszP+aPBXaWhf+tA78owUQV5A+8aBrp+pzCQfHp
+         duJB2XvbT8W49BrXZeJCxrw7CMkooDpwQNotG01GxODAUlF8iO5XJQxKF1ZJrwHzJl
+         P4Z+ieqchm9s5lRp0T++2rVivuGJdQSe3bIHLTNEpeBGG+K0PQNfJMuBKLntU92C/R
+         ynX7gkJ8uxwAQ==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Leon Romanovsky <leonro@nvidia.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Adit Ranadive <aditr@vmware.com>,
+        Ariel Elior <aelior@marvell.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        clang-built-linux@googlegroups.com,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        Gal Pressman <galpress@amazon.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        Nelson Escobar <neescoba@cisco.com>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        VMware PV-Drivers <pv-drivers@vmware.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        Zhu Yanjun <zyjzyj2000@gmail.com>
+Subject: [PATCH rdma-next v2 00/15] Reorganize sysfs file creation for struct ib_devices
+Date:   Fri, 11 Jun 2021 19:00:19 +0300
+Message-Id: <cover.1623427137.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@cloud.ionos.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-We use device limit max_send_sge, which is suboptimal for memory usage.
-We don't need that much for User Con, 1 is enough. And for IO con,
-sess->max_segments + 1 is enough
+Changelog:
+v2:
+ * Make port_attributes visible in init_net namespace.
+ * Fixed hfi1 compilation warning.
+v1: https://lore.kernel.org/lkml/cover.1623053078.git.leonro@nvidia.com
+ * Added two new patches to the series
+     RDMA/core: Allow port_groups to be used with namespaces
+     RDMA: Remove rdma_set_device_sysfs_group()
+ * Fixed missing ops definition in device.c
+ * Passed proper internal validation and review
+ * changed EXPORT_SYMBOL to be EXPORT_SYMBOL_GPL for the ib_port_sysfs_create_groups
+ * qib was converted to use .is_visible() callback together with static
+   attribute_group declaration.
+v0: https://lore.kernel.org/linux-rdma/0-v1-34c90fa45f1c+3c7b0-port_sysfs_jgg@nvidia.com/
 
-Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
-Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
----
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 14 ++++++++------
- drivers/infiniband/ulp/rtrs/rtrs-clt.h |  1 -
- 2 files changed, 8 insertions(+), 7 deletions(-)
+-------------------------------------------------------------------------------
+From Jason,
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index f1fd7ae9ac53..cd53edddfe1f 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -1417,7 +1417,6 @@ static void query_fast_reg_mode(struct rtrs_clt_sess *sess)
- 	sess->max_pages_per_mr =
- 		min3(sess->max_pages_per_mr, (u32)max_pages_per_mr,
- 		     ib_dev->attrs.max_fast_reg_page_list_len);
--	sess->max_send_sge = ib_dev->attrs.max_send_sge;
- }
- 
- static bool rtrs_clt_change_state_get_old(struct rtrs_clt_sess *sess,
-@@ -1573,7 +1572,7 @@ static void destroy_con(struct rtrs_clt_con *con)
- static int create_con_cq_qp(struct rtrs_clt_con *con)
- {
- 	struct rtrs_clt_sess *sess = to_clt_sess(con->c.sess);
--	u32 max_send_wr, max_recv_wr, cq_size;
-+	u32 max_send_wr, max_recv_wr, cq_size, max_send_sge;
- 	int err, cq_vector;
- 	struct rtrs_msg_rkey_rsp *rsp;
- 
-@@ -1587,6 +1586,7 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
- 		 */
- 		max_send_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
- 		max_recv_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
-+		max_send_sge = 1;
- 		/* We must be the first here */
- 		if (WARN_ON(sess->s.dev))
- 			return -EINVAL;
-@@ -1625,25 +1625,27 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
- 		max_recv_wr =
- 			min_t(int, sess->s.dev->ib_dev->attrs.max_qp_wr,
- 			      sess->queue_depth * 3 + 1);
-+		max_send_sge = sess->clt->max_segments + 1;
- 	}
-+	cq_size = max_send_wr + max_recv_wr;
- 	/* alloc iu to recv new rkey reply when server reports flags set */
- 	if (sess->flags & RTRS_MSG_NEW_RKEY_F || con->c.cid == 0) {
--		con->rsp_ius = rtrs_iu_alloc(max_recv_wr, sizeof(*rsp),
-+		con->rsp_ius = rtrs_iu_alloc(cq_size, sizeof(*rsp),
- 					      GFP_KERNEL, sess->s.dev->ib_dev,
- 					      DMA_FROM_DEVICE,
- 					      rtrs_clt_rdma_done);
- 		if (!con->rsp_ius)
- 			return -ENOMEM;
--		con->queue_size = max_recv_wr;
-+		con->queue_size = cq_size;
- 	}
- 	cq_size = max_send_wr + max_recv_wr;
- 	cq_vector = con->cpu % sess->s.dev->ib_dev->num_comp_vectors;
- 	if (con->c.cid >= sess->s.irq_con_num)
--		err = rtrs_cq_qp_create(&sess->s, &con->c, sess->max_send_sge,
-+		err = rtrs_cq_qp_create(&sess->s, &con->c, max_send_sge,
- 					cq_vector, cq_size, max_send_wr,
- 					max_recv_wr, IB_POLL_DIRECT);
- 	else
--		err = rtrs_cq_qp_create(&sess->s, &con->c, sess->max_send_sge,
-+		err = rtrs_cq_qp_create(&sess->s, &con->c, max_send_sge,
- 					cq_vector, cq_size, max_send_wr,
- 					max_recv_wr, IB_POLL_SOFTIRQ);
- 	/*
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-index 919c9f96f25b..822a820540d4 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-@@ -141,7 +141,6 @@ struct rtrs_clt_sess {
- 	u32			chunk_size;
- 	size_t			queue_depth;
- 	u32			max_pages_per_mr;
--	int			max_send_sge;
- 	u32			flags;
- 	struct kobject		kobj;
- 	u8			for_new_clt;
+IB has a complex sysfs with a deep nesting of attributes. Nathan and Kees
+recently noticed this was not even slightly sane with how it was handling
+attributes and a deeper inspection shows the whole thing is a pretty
+"ick" coding style.
+
+Further review shows the ick extends outward from the ib_port sysfs and
+basically everything is pretty crazy.
+
+Simplify all of it:
+
+ - Organize the ib_port and gid_attr's kobj's to have clear setup/destroy
+   function pairings that work only on their own kobjs.
+
+ - All memory allocated in service of a kobject's attributes is freed as
+   part of the kobj release function. Thus all the error handling defers
+   the memory frees to a put.
+
+ - Build up lists of groups for every kobject and add the entire group
+   list as a one-shot operation as the last thing in setup function.
+
+ - Remove essentially all the error cleanup. The final kobject_put() will
+   always free any memory allocated or do an internal kobject_del() if
+   required. The new ordering eliminates all the other cleanup cases.
+
+ - Make all attributes use proper typing for the kobj they are attached
+   to. Split device and port hw_stats handling.
+
+ - Create a ib_port_attribute type and change hfi1, qib and the CM code to
+   work with attribute lists of ib_port_attribute type instead of building
+   their own kobject madness
+
+Thanks
+
+Jason Gunthorpe (15):
+  RDMA: Split the alloc_hw_stats() ops to port and device variants
+  RDMA/core: Replace the ib_port_data hw_stats pointers with a ib_port
+    pointer
+  RDMA/core: Split port and device counter sysfs attributes
+  RDMA/core: Split gid_attrs related sysfs from add_port()
+  RDMA/core: Simplify how the gid_attrs sysfs is created
+  RDMA/core: Simplify how the port sysfs is created
+  RDMA/core: Create the device hw_counters through the normal groups
+    mechanism
+  RDMA/core: Remove the kobject_uevent() NOP
+  RDMA/core: Expose the ib port sysfs attribute machinery
+  RDMA/cm: Use an attribute_group on the ib_port_attribute intead of
+    kobj's
+  RDMA/qib: Use attributes for the port sysfs
+  RDMA/hfi1: Use attributes for the port sysfs
+  RDMA: Change ops->init_port to ops->port_groups
+  RDMA/core: Allow port_groups to be used with namespaces
+  RDMA: Remove rdma_set_device_sysfs_group()
+
+ drivers/infiniband/core/cm.c                  |  227 ++--
+ drivers/infiniband/core/core_priv.h           |   13 +-
+ drivers/infiniband/core/counters.c            |    4 +-
+ drivers/infiniband/core/device.c              |   30 +-
+ drivers/infiniband/core/nldev.c               |   10 +-
+ drivers/infiniband/core/sysfs.c               | 1100 ++++++++---------
+ drivers/infiniband/hw/bnxt_re/hw_counters.c   |    7 +-
+ drivers/infiniband/hw/bnxt_re/hw_counters.h   |    4 +-
+ drivers/infiniband/hw/bnxt_re/main.c          |    4 +-
+ drivers/infiniband/hw/cxgb4/provider.c        |   11 +-
+ drivers/infiniband/hw/efa/efa.h               |    3 +-
+ drivers/infiniband/hw/efa/efa_main.c          |    3 +-
+ drivers/infiniband/hw/efa/efa_verbs.c         |   11 +-
+ drivers/infiniband/hw/hfi1/hfi.h              |    7 +-
+ drivers/infiniband/hw/hfi1/sysfs.c            |  530 +++-----
+ drivers/infiniband/hw/hfi1/verbs.c            |   92 +-
+ drivers/infiniband/hw/irdma/verbs.c           |   11 +-
+ drivers/infiniband/hw/mlx4/main.c             |   27 +-
+ drivers/infiniband/hw/mlx5/counters.c         |   42 +-
+ drivers/infiniband/hw/mlx5/main.c             |    2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c  |    2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c    |    2 +-
+ drivers/infiniband/hw/qedr/main.c             |    2 +-
+ drivers/infiniband/hw/qib/qib.h               |    8 +-
+ drivers/infiniband/hw/qib/qib_sysfs.c         |  616 ++++-----
+ drivers/infiniband/hw/qib/qib_verbs.c         |    6 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c   |    3 +-
+ .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/vt.c             |    2 +-
+ drivers/infiniband/sw/rxe/rxe_hw_counters.c   |    7 +-
+ drivers/infiniband/sw/rxe/rxe_hw_counters.h   |    4 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c         |    4 +-
+ include/rdma/ib_sysfs.h                       |   37 +
+ include/rdma/ib_verbs.h                       |   68 +-
+ 34 files changed, 1319 insertions(+), 1582 deletions(-)
+ create mode 100644 include/rdma/ib_sysfs.h
+
 -- 
-2.25.1
+2.31.1
 
