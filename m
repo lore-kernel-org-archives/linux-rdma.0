@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F3EC48BE5
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:00:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C518C48BE0
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:01:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 79D01613EA
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:00:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E415E613F9
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Jun 2021 16:00:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230077AbhFKQCq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Jun 2021 12:02:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38438 "EHLO mail.kernel.org"
+        id S231186AbhFKQCy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Jun 2021 12:02:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231149AbhFKQCm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 11 Jun 2021 12:02:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7C9A613F0;
-        Fri, 11 Jun 2021 16:00:42 +0000 (UTC)
+        id S231158AbhFKQCp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 11 Jun 2021 12:02:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 813B8613F9;
+        Fri, 11 Jun 2021 16:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1623427244;
-        bh=LRDhNxzToTeGKfczk5dEy3qOsOGOBiQSUpQHL/KuTLI=;
+        s=k20201202; t=1623427247;
+        bh=tQQB4PtxfCxw7kXjHJdc37cps7bFY5A2WnTx09kx/Uk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=a9j9a5NCIkDnBpZ5MSWVrKkj+0CyHR/VtIXu1zn3o4A03PoOF5DWVOqz2AfTZVcZ6
-         Klg7AofzLbQFyaJLs5Lro+/hX+VCSoB1TeXlaZCoCrqt+8Yg729ONsyTA2005sqYhq
-         z6ifhbZyAYE3UfpM6LEjSCDIQd5OPlGP1uBgJNtK2gL05sLbEMelI53jQxiDEru5bw
-         O6b4VaxIEjw0LDXB7YPs8gcvN7RXZ9rBl9r+hgYENMhVestaPAsHJpDf7DWIYOqgEn
-         2Ad1bFE81MVvJiBuah5b3f6pjCycJdf4xUrqXOngB+EMwVwAvEPXrK6+6ZyuZj5C+x
-         145f8VL2vZaAw==
+        b=AR32zn9+m0AX/gjs4ACk+qcnCMdwkzkGYmCeee6p7G0tbGHib/KdAHJCOj1mlTEqb
+         v8+CamsZmQppdQQ+ZheBNzdiZXXlghPhDsBJ0uu6dLOFSEru3FpzTpKg6y8RqL7rqa
+         918E+WwVSopU6HA8T7bJMKVfmnirJLJdlWmL/KfBNV/9Q69OGhH6JLshKqc8MoSWsL
+         6J0VAjz9gHJ71QENki8gQNixfGZ4qfGffTriFn+UQTyAIMLmC3sFA2GWJ4lNwNc1f3
+         c5AkO+wH6Nzk/WW79NKvPBA/wBe94XXmB77GwW5L8ZFmt5SuXCEQeqQ/XrbKDfw3xw
+         mOsRQAKVxvlkA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -58,9 +58,9 @@ Cc:     Greg KH <gregkh@linuxfoundation.org>,
         VMware PV-Drivers <pv-drivers@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v2 01/15] RDMA: Split the alloc_hw_stats() ops to port and device variants
-Date:   Fri, 11 Jun 2021 19:00:20 +0300
-Message-Id: <1955c154197b2a159adc2dc97266ddc74afe420c.1623427137.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v2 03/15] RDMA/core: Split port and device counter sysfs attributes
+Date:   Fri, 11 Jun 2021 19:00:22 +0300
+Message-Id: <a8b3864b4e722aed3657512af6aa47dc3c5033be.1623427137.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1623427137.git.leonro@nvidia.com>
 References: <cover.1623427137.git.leonro@nvidia.com>
@@ -72,595 +72,672 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@nvidia.com>
 
-This is being used to implement both the port and device global stats,
-which is causing some confusion in the drivers. For instance EFA and i40iw
-both seem to be misusing the device stats.
+This code creates a 'struct hw_stats_attribute' for each sysfs entry that
+contains a naked 'struct attribute' inside.
 
-Split it into two ops so drivers that don't support one or the other can
-leave the op NULL'd, making the calling code a little simpler to
-understand.
+It then proceeds to attach this same structure to a 'struct device' kobj
+and a 'struct ib_port' kobj. However, this violates the typing
+requirements.  'struct device' requires the attribute to be a 'struct
+device_attribute' and 'struct ib_port' requires the attribute to be
+'struct port_attribute'.
 
-Tested-by: Gal Pressman <galpress@amazon.com>
+This happens to work because the show/store function pointers in all three
+structures happen to be at the same offset and happen to be nearly the
+same signature. This means when container_of() was used to go between the
+wrong two types it still managed to work.
+
+However clang CFI detection notices that the function pointers have a
+slightly different signature. As with show/store this was only working
+because the device and port struct layouts happened to have the kobj at
+the front.
+
+Correct this by have two independent sets of data structures for the port
+and device case. The two different attributes correctly include the
+port/device_attribute struct and everything from there up is kept
+split. The show/store function call chains start with device/port unique
+functions that invoke a common show/store function pointer.
+
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/counters.c          |  4 +-
- drivers/infiniband/core/device.c            |  3 +-
- drivers/infiniband/core/nldev.c             |  2 +-
- drivers/infiniband/core/sysfs.c             | 10 ++-
- drivers/infiniband/hw/bnxt_re/hw_counters.c |  7 +-
- drivers/infiniband/hw/bnxt_re/hw_counters.h |  4 +-
- drivers/infiniband/hw/bnxt_re/main.c        |  2 +-
- drivers/infiniband/hw/cxgb4/provider.c      |  9 +--
- drivers/infiniband/hw/efa/efa.h             |  3 +-
- drivers/infiniband/hw/efa/efa_main.c        |  3 +-
- drivers/infiniband/hw/efa/efa_verbs.c       | 11 ++-
- drivers/infiniband/hw/hfi1/verbs.c          | 86 ++++++++++-----------
- drivers/infiniband/hw/irdma/verbs.c         | 11 +--
- drivers/infiniband/hw/mlx4/main.c           | 25 ++++--
- drivers/infiniband/hw/mlx5/counters.c       | 42 +++++++---
- drivers/infiniband/sw/rxe/rxe_hw_counters.c |  7 +-
- drivers/infiniband/sw/rxe/rxe_hw_counters.h |  4 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c       |  2 +-
- include/rdma/ib_verbs.h                     | 13 ++--
- 19 files changed, 142 insertions(+), 106 deletions(-)
+ drivers/infiniband/core/sysfs.c | 458 ++++++++++++++++++++------------
+ include/rdma/ib_verbs.h         |   4 +-
+ 2 files changed, 292 insertions(+), 170 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index 15493357cfef..df9e6c5e4ddf 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -605,10 +605,10 @@ void rdma_counter_init(struct ib_device *dev)
- 		port_counter->mode.mode = RDMA_COUNTER_MODE_NONE;
- 		mutex_init(&port_counter->lock);
- 
--		if (!dev->ops.alloc_hw_stats)
-+		if (!dev->ops.alloc_hw_port_stats)
- 			continue;
- 
--		port_counter->hstats = dev->ops.alloc_hw_stats(dev, port);
-+		port_counter->hstats = dev->ops.alloc_hw_port_stats(dev, port);
- 		if (!port_counter->hstats)
- 			goto fail;
- 	}
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index c660cef66ac6..86a16cd7d7fd 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2595,7 +2595,8 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, add_gid);
- 	SET_DEVICE_OP(dev_ops, advise_mr);
- 	SET_DEVICE_OP(dev_ops, alloc_dm);
--	SET_DEVICE_OP(dev_ops, alloc_hw_stats);
-+	SET_DEVICE_OP(dev_ops, alloc_hw_device_stats);
-+	SET_DEVICE_OP(dev_ops, alloc_hw_port_stats);
- 	SET_DEVICE_OP(dev_ops, alloc_mr);
- 	SET_DEVICE_OP(dev_ops, alloc_mr_integrity);
- 	SET_DEVICE_OP(dev_ops, alloc_mw);
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 34d0cc1a4147..01316926cef6 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -2060,7 +2060,7 @@ static int stat_get_doit_default_counter(struct sk_buff *skb,
- 	if (!device)
- 		return -EINVAL;
- 
--	if (!device->ops.alloc_hw_stats || !device->ops.get_hw_stats) {
-+	if (!device->ops.alloc_hw_port_stats || !device->ops.get_hw_stats) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 05b702de00e8..d11ceff2b4e4 100644
+index b153dee1e0fa..114fecda9764 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -981,8 +981,10 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
- 	struct rdma_hw_stats *stats;
- 	int i, ret;
+@@ -60,8 +60,7 @@ struct ib_port {
+ 	struct attribute_group gid_group;
+ 	struct attribute_group *pkey_group;
+ 	const struct attribute_group *pma_table;
+-	struct attribute_group *hw_stats_ag;
+-	struct rdma_hw_stats   *hw_stats;
++	struct hw_stats_port_data *hw_stats_data;
+ 	u32                     port_num;
+ };
  
--	stats = device->ops.alloc_hw_stats(device, port_num);
+@@ -85,16 +84,35 @@ struct port_table_attribute {
+ 	__be16			attr_id;
+ };
+ 
+-struct hw_stats_attribute {
+-	struct attribute	attr;
+-	ssize_t			(*show)(struct kobject *kobj,
+-					struct attribute *attr, char *buf);
+-	ssize_t			(*store)(struct kobject *kobj,
+-					 struct attribute *attr,
+-					 const char *buf,
+-					 size_t count);
+-	int			index;
+-	u32			port_num;
++struct hw_stats_device_attribute {
++	struct device_attribute attr;
++	ssize_t (*show)(struct ib_device *ibdev, struct rdma_hw_stats *stats,
++			unsigned int index, unsigned int port_num, char *buf);
++	ssize_t (*store)(struct ib_device *ibdev, struct rdma_hw_stats *stats,
++			 unsigned int index, unsigned int port_num,
++			 const char *buf, size_t count);
++};
++
++struct hw_stats_port_attribute {
++	struct port_attribute attr;
++	ssize_t (*show)(struct ib_device *ibdev, struct rdma_hw_stats *stats,
++			unsigned int index, unsigned int port_num, char *buf);
++	ssize_t (*store)(struct ib_device *ibdev, struct rdma_hw_stats *stats,
++			 unsigned int index, unsigned int port_num,
++			 const char *buf, size_t count);
++};
++
++struct hw_stats_device_data {
++	struct attribute_group group;
++	const struct attribute_group *groups[2];
++	struct rdma_hw_stats *stats;
++	struct hw_stats_device_attribute attrs[];
++};
++
++struct hw_stats_port_data {
++	struct attribute_group group;
++	struct rdma_hw_stats *stats;
++	struct hw_stats_port_attribute attrs[];
+ };
+ 
+ static ssize_t port_attr_show(struct kobject *kobj,
+@@ -128,6 +146,53 @@ static const struct sysfs_ops port_sysfs_ops = {
+ 	.store	= port_attr_store
+ };
+ 
++static ssize_t hw_stat_device_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	struct hw_stats_device_attribute *stat_attr =
++		container_of(attr, struct hw_stats_device_attribute, attr);
++	struct ib_device *ibdev = container_of(dev, struct ib_device, dev);
++
++	return stat_attr->show(ibdev, ibdev->hw_stats_data->stats,
++			       stat_attr - ibdev->hw_stats_data->attrs, 0, buf);
++}
++
++static ssize_t hw_stat_device_store(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf, size_t count)
++{
++	struct hw_stats_device_attribute *stat_attr =
++		container_of(attr, struct hw_stats_device_attribute, attr);
++	struct ib_device *ibdev = container_of(dev, struct ib_device, dev);
++
++	return stat_attr->store(ibdev, ibdev->hw_stats_data->stats,
++				stat_attr - ibdev->hw_stats_data->attrs, 0, buf,
++				count);
++}
++
++static ssize_t hw_stat_port_show(struct ib_port *port,
++				 struct port_attribute *attr, char *buf)
++{
++	struct hw_stats_port_attribute *stat_attr =
++		container_of(attr, struct hw_stats_port_attribute, attr);
++
++	return stat_attr->show(port->ibdev, port->hw_stats_data->stats,
++			       stat_attr - port->hw_stats_data->attrs,
++			       port->port_num, buf);
++}
++
++static ssize_t hw_stat_port_store(struct ib_port *port,
++				  struct port_attribute *attr, const char *buf,
++				  size_t count)
++{
++	struct hw_stats_port_attribute *stat_attr =
++		container_of(attr, struct hw_stats_port_attribute, attr);
++
++	return stat_attr->store(port->ibdev, port->hw_stats_data->stats,
++				stat_attr - port->hw_stats_data->attrs,
++				port->port_num, buf, count);
++}
++
+ static ssize_t gid_attr_show(struct kobject *kobj,
+ 			     struct attribute *attr, char *buf)
+ {
+@@ -835,56 +900,30 @@ static int print_hw_stat(struct ib_device *dev, int port_num,
+ 	return sysfs_emit(buf, "%llu\n", stats->value[index] + v);
+ }
+ 
+-static ssize_t show_hw_stats(struct kobject *kobj, struct attribute *attr,
+-			     char *buf)
++static ssize_t show_hw_stats(struct ib_device *ibdev,
++			     struct rdma_hw_stats *stats, unsigned int index,
++			     unsigned int port_num, char *buf)
+ {
+-	struct ib_device *dev;
+-	struct ib_port *port;
+-	struct hw_stats_attribute *hsa;
+-	struct rdma_hw_stats *stats;
+ 	int ret;
+ 
+-	hsa = container_of(attr, struct hw_stats_attribute, attr);
+-	if (!hsa->port_num) {
+-		dev = container_of((struct device *)kobj,
+-				   struct ib_device, dev);
+-		stats = dev->hw_stats;
+-	} else {
+-		port = container_of(kobj, struct ib_port, kobj);
+-		dev = port->ibdev;
+-		stats = port->hw_stats;
+-	}
+ 	mutex_lock(&stats->lock);
+-	ret = update_hw_stats(dev, stats, hsa->port_num, hsa->index);
++	ret = update_hw_stats(ibdev, stats, port_num, index);
+ 	if (ret)
+ 		goto unlock;
+-	ret = print_hw_stat(dev, hsa->port_num, stats, hsa->index, buf);
++	ret = print_hw_stat(ibdev, port_num, stats, index, buf);
+ unlock:
+ 	mutex_unlock(&stats->lock);
+ 
+ 	return ret;
+ }
+ 
+-static ssize_t show_stats_lifespan(struct kobject *kobj,
+-				   struct attribute *attr,
++static ssize_t show_stats_lifespan(struct ib_device *ibdev,
++				   struct rdma_hw_stats *stats,
++				   unsigned int index, unsigned int port_num,
+ 				   char *buf)
+ {
+-	struct hw_stats_attribute *hsa;
+-	struct rdma_hw_stats *stats;
+ 	int msecs;
+ 
+-	hsa = container_of(attr, struct hw_stats_attribute, attr);
+-	if (!hsa->port_num) {
+-		struct ib_device *dev = container_of((struct device *)kobj,
+-						     struct ib_device, dev);
 -
-+	if (port_num)
-+		stats = device->ops.alloc_hw_port_stats(device, port_num);
-+	else
-+		stats = device->ops.alloc_hw_device_stats(device);
+-		stats = dev->hw_stats;
+-	} else {
+-		struct ib_port *p = container_of(kobj, struct ib_port, kobj);
+-
+-		stats = p->hw_stats;
+-	}
+-
+ 	mutex_lock(&stats->lock);
+ 	msecs = jiffies_to_msecs(stats->lifespan);
+ 	mutex_unlock(&stats->lock);
+@@ -892,12 +931,11 @@ static ssize_t show_stats_lifespan(struct kobject *kobj,
+ 	return sysfs_emit(buf, "%d\n", msecs);
+ }
+ 
+-static ssize_t set_stats_lifespan(struct kobject *kobj,
+-				  struct attribute *attr,
+-				  const char *buf, size_t count)
++static ssize_t set_stats_lifespan(struct ib_device *ibdev,
++				   struct rdma_hw_stats *stats,
++				   unsigned int index, unsigned int port_num,
++				   const char *buf, size_t count)
+ {
+-	struct hw_stats_attribute *hsa;
+-	struct rdma_hw_stats *stats;
+ 	int msecs;
+ 	int jiffies;
+ 	int ret;
+@@ -908,17 +946,6 @@ static ssize_t set_stats_lifespan(struct kobject *kobj,
+ 	if (msecs < 0 || msecs > 10000)
+ 		return -EINVAL;
+ 	jiffies = msecs_to_jiffies(msecs);
+-	hsa = container_of(attr, struct hw_stats_attribute, attr);
+-	if (!hsa->port_num) {
+-		struct ib_device *dev = container_of((struct device *)kobj,
+-						     struct ib_device, dev);
+-
+-		stats = dev->hw_stats;
+-	} else {
+-		struct ib_port *p = container_of(kobj, struct ib_port, kobj);
+-
+-		stats = p->hw_stats;
+-	}
+ 
+ 	mutex_lock(&stats->lock);
+ 	stats->lifespan = jiffies;
+@@ -927,67 +954,125 @@ static ssize_t set_stats_lifespan(struct kobject *kobj,
+ 	return count;
+ }
+ 
+-static void free_hsag(struct kobject *kobj, struct attribute_group *attr_group)
++static struct hw_stats_device_data *
++alloc_hw_stats_device(struct ib_device *ibdev)
+ {
+-	struct attribute **attr;
++	struct hw_stats_device_data *data;
++	struct rdma_hw_stats *stats;
++
++	if (!ibdev->ops.alloc_hw_device_stats)
++		return ERR_PTR(-EOPNOTSUPP);
++	stats = ibdev->ops.alloc_hw_device_stats(ibdev);
++	if (!stats)
++		return ERR_PTR(-ENOMEM);
++	if (!stats->names || stats->num_counters <= 0)
++		goto err_free_stats;
++
++	/*
++	 * Two extra attribue elements here, one for the lifespan entry and
++	 * one to NULL terminate the list for the sysfs core code
++	 */
++	data = kzalloc(struct_size(data, attrs, stats->num_counters + 1),
++		       GFP_KERNEL);
++	if (!data)
++		goto err_free_stats;
++	data->group.attrs = kcalloc(stats->num_counters + 2,
++				    sizeof(*data->group.attrs), GFP_KERNEL);
++	if (!data->group.attrs)
++		goto err_free_data;
+ 
+-	sysfs_remove_group(kobj, attr_group);
++	mutex_init(&stats->lock);
++	data->group.name = "hw_counters";
++	data->stats = stats;
++	data->groups[0] = &data->group;
++	return data;
+ 
+-	for (attr = attr_group->attrs; *attr; attr++)
+-		kfree(*attr);
+-	kfree(attr_group);
++err_free_data:
++	kfree(data);
++err_free_stats:
++	kfree(stats);
++	return ERR_PTR(-ENOMEM);
+ }
+ 
+-static struct attribute *alloc_hsa(int index, u32 port_num, const char *name)
++static void free_hw_stats_device(struct hw_stats_device_data *data)
+ {
+-	struct hw_stats_attribute *hsa;
++	kfree(data->group.attrs);
++	kfree(data->stats);
++	kfree(data);
++}
+ 
+-	hsa = kmalloc(sizeof(*hsa), GFP_KERNEL);
+-	if (!hsa)
+-		return NULL;
++static int setup_hw_device_stats(struct ib_device *ibdev)
++{
++	struct hw_stats_device_attribute *attr;
++	struct hw_stats_device_data *data;
++	int i, ret;
+ 
+-	hsa->attr.name = (char *)name;
+-	hsa->attr.mode = S_IRUGO;
+-	hsa->show = show_hw_stats;
+-	hsa->store = NULL;
+-	hsa->index = index;
+-	hsa->port_num = port_num;
++	data = alloc_hw_stats_device(ibdev);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
+ 
+-	return &hsa->attr;
+-}
++	ret = ibdev->ops.get_hw_stats(ibdev, data->stats, 0,
++				      data->stats->num_counters);
++	if (ret != data->stats->num_counters) {
++		if (WARN_ON(ret >= 0))
++			ret = -EINVAL;
++		goto err_free;
++	}
+ 
+-static struct attribute *alloc_hsa_lifespan(char *name, u32 port_num)
+-{
+-	struct hw_stats_attribute *hsa;
++	data->stats->timestamp = jiffies;
+ 
+-	hsa = kmalloc(sizeof(*hsa), GFP_KERNEL);
+-	if (!hsa)
+-		return NULL;
++	for (i = 0; i < data->stats->num_counters; i++) {
++		attr = &data->attrs[i];
++		sysfs_attr_init(&attr->attr.attr);
++		attr->attr.attr.name = data->stats->names[i];
++		attr->attr.attr.mode = 0444;
++		attr->attr.show = hw_stat_device_show;
++		attr->show = show_hw_stats;
++		data->group.attrs[i] = &attr->attr.attr;
++	}
++
++	attr = &data->attrs[i];
++	sysfs_attr_init(&attr->attr.attr);
++	attr->attr.attr.name = "lifespan";
++	attr->attr.attr.mode = 0644;
++	attr->attr.show = hw_stat_device_show;
++	attr->show = show_stats_lifespan;
++	attr->attr.store = hw_stat_device_store;
++	attr->store = set_stats_lifespan;
++	data->group.attrs[i] = &attr->attr.attr;
++
++	ibdev->hw_stats_data = data;
++	ret = device_add_groups(&ibdev->dev, data->groups);
++	if (ret)
++		goto err_free;
++	return 0;
+ 
+-	hsa->attr.name = name;
+-	hsa->attr.mode = S_IWUSR | S_IRUGO;
+-	hsa->show = show_stats_lifespan;
+-	hsa->store = set_stats_lifespan;
+-	hsa->index = 0;
+-	hsa->port_num = port_num;
++err_free:
++	free_hw_stats_device(data);
++	ibdev->hw_stats_data = NULL;
++	return ret;
++}
+ 
+-	return &hsa->attr;
++static void destroy_hw_device_stats(struct ib_device *ibdev)
++{
++	if (!ibdev->hw_stats_data)
++		return;
++	device_remove_groups(&ibdev->dev, ibdev->hw_stats_data->groups);
++	free_hw_stats_device(ibdev->hw_stats_data);
++	ibdev->hw_stats_data = NULL;
+ }
+ 
+-static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+-			   u32 port_num)
++static struct hw_stats_port_data *alloc_hw_stats_port(struct ib_port *port)
+ {
+-	struct attribute_group *hsag;
++	struct ib_device *ibdev = port->ibdev;
++	struct hw_stats_port_data *data;
+ 	struct rdma_hw_stats *stats;
+-	int i, ret;
+ 
+-	if (port_num)
+-		stats = device->ops.alloc_hw_port_stats(device, port_num);
+-	else
+-		stats = device->ops.alloc_hw_device_stats(device);
++	if (!ibdev->ops.alloc_hw_port_stats)
++		return ERR_PTR(-EOPNOTSUPP);
++	stats = ibdev->ops.alloc_hw_port_stats(port->ibdev, port->port_num);
  	if (!stats)
- 		return;
+-		return;
+-
++		return ERR_PTR(-ENOMEM);
+ 	if (!stats->names || stats->num_counters <= 0)
+ 		goto err_free_stats;
  
-@@ -1165,7 +1167,7 @@ static int add_port(struct ib_core_device *coredev, int port_num)
- 	 * port, so holder should be device. Therefore skip per port conunter
- 	 * initialization.
+@@ -995,68 +1080,102 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 	 * Two extra attribue elements here, one for the lifespan entry and
+ 	 * one to NULL terminate the list for the sysfs core code
  	 */
--	if (device->ops.alloc_hw_stats && port_num && is_full_dev)
-+	if (device->ops.alloc_hw_port_stats && port_num && is_full_dev)
- 		setup_hw_stats(device, p, port_num);
+-	hsag = kzalloc(sizeof(*hsag) +
+-		       sizeof(void *) * (stats->num_counters + 2),
++	data = kzalloc(struct_size(data, attrs, stats->num_counters + 1),
+ 		       GFP_KERNEL);
+-	if (!hsag)
++	if (!data)
+ 		goto err_free_stats;
++	data->group.attrs = kcalloc(stats->num_counters + 2,
++				    sizeof(*data->group.attrs), GFP_KERNEL);
++	if (!data->group.attrs)
++		goto err_free_data;
  
+-	ret = device->ops.get_hw_stats(device, stats, port_num,
+-				       stats->num_counters);
+-	if (ret != stats->num_counters)
+-		goto err_free_hsag;
++	mutex_init(&stats->lock);
++	data->group.name = "hw_counters";
++	data->stats = stats;
++	return data;
+ 
+-	stats->timestamp = jiffies;
++err_free_data:
++	kfree(data);
++err_free_stats:
++	kfree(stats);
++	return ERR_PTR(-ENOMEM);
++}
+ 
+-	hsag->name = "hw_counters";
+-	hsag->attrs = (void *)hsag + sizeof(*hsag);
++static void free_hw_stats_port(struct hw_stats_port_data *data)
++{
++	kfree(data->group.attrs);
++	kfree(data->stats);
++	kfree(data);
++}
+ 
+-	for (i = 0; i < stats->num_counters; i++) {
+-		hsag->attrs[i] = alloc_hsa(i, port_num, stats->names[i]);
+-		if (!hsag->attrs[i])
+-			goto err;
+-		sysfs_attr_init(hsag->attrs[i]);
+-	}
++static int setup_hw_port_stats(struct ib_port *port)
++{
++	struct hw_stats_port_attribute *attr;
++	struct hw_stats_port_data *data;
++	int i, ret;
+ 
+-	mutex_init(&stats->lock);
+-	/* treat an error here as non-fatal */
+-	hsag->attrs[i] = alloc_hsa_lifespan("lifespan", port_num);
+-	if (hsag->attrs[i])
+-		sysfs_attr_init(hsag->attrs[i]);
+-
+-	if (port) {
+-		struct kobject *kobj = &port->kobj;
+-		ret = sysfs_create_group(kobj, hsag);
+-		if (ret)
+-			goto err;
+-		port->hw_stats_ag = hsag;
+-		port->hw_stats = stats;
+-	} else {
+-		struct kobject *kobj = &device->dev.kobj;
+-		ret = sysfs_create_group(kobj, hsag);
+-		if (ret)
+-			goto err;
+-		device->hw_stats_ag = hsag;
+-		device->hw_stats = stats;
++	data = alloc_hw_stats_port(port);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	ret = port->ibdev->ops.get_hw_stats(port->ibdev, data->stats,
++					    port->port_num,
++					    data->stats->num_counters);
++	if (ret != data->stats->num_counters) {
++		if (WARN_ON(ret >= 0))
++			ret = -EINVAL;
++		goto err_free;
++	}
++	data->stats->timestamp = jiffies;
++
++	for (i = 0; i < data->stats->num_counters; i++) {
++		attr = &data->attrs[i];
++		sysfs_attr_init(&attr->attr.attr);
++		attr->attr.attr.name = data->stats->names[i];
++		attr->attr.attr.mode = 0444;
++		attr->attr.show = hw_stat_port_show;
++		attr->show = show_hw_stats;
++		data->group.attrs[i] = &attr->attr.attr;
+ 	}
+ 
+-	return;
++	attr = &data->attrs[i];
++	sysfs_attr_init(&attr->attr.attr);
++	attr->attr.attr.name = "lifespan";
++	attr->attr.attr.mode = 0644;
++	attr->attr.show = hw_stat_port_show;
++	attr->show = show_stats_lifespan;
++	attr->attr.store = hw_stat_port_store;
++	attr->store = set_stats_lifespan;
++	data->group.attrs[i] = &attr->attr.attr;
++
++	port->hw_stats_data = data;
++	ret = sysfs_create_group(&port->kobj, &data->group);
++	if (ret)
++		goto err_free;
++	return 0;
+ 
+-err:
+-	for (; i >= 0; i--)
+-		kfree(hsag->attrs[i]);
+-err_free_hsag:
+-	kfree(hsag);
+-err_free_stats:
+-	kfree(stats);
++err_free:
++	free_hw_stats_port(data);
++	port->hw_stats_data = NULL;
++	return ret;
++}
++
++static void destroy_hw_port_stats(struct ib_port *port)
++{
++	if (!port->hw_stats_data)
++		return;
++	sysfs_remove_group(&port->kobj, &port->hw_stats_data->group);
++	free_hw_stats_port(port->hw_stats_data);
++	port->hw_stats_data = NULL;
+ }
+ 
+ struct rdma_hw_stats *ib_get_hw_stats_port(struct ib_device *ibdev,
+ 					   u32 port_num)
+ {
+-	if (!ibdev->port_data || !rdma_is_port_valid(ibdev, port_num))
++	if (!ibdev->port_data || !rdma_is_port_valid(ibdev, port_num) ||
++	    !ibdev->port_data[port_num].sysfs->hw_stats_data)
+ 		return NULL;
+-	return ibdev->port_data[port_num].sysfs->hw_stats;
++	return ibdev->port_data[port_num].sysfs->hw_stats_data->stats;
+ }
+ 
+ static int add_port(struct ib_core_device *coredev, int port_num)
+@@ -1161,21 +1280,23 @@ static int add_port(struct ib_core_device *coredev, int port_num)
+ 			goto err_free_pkey;
+ 	}
+ 
++	/*
++	 * If port == 0, it means hw_counters are per device and not per
++	 * port, so holder should be device. Therefore skip per port
++	 * counter initialization.
++	 */
++	if (port_num && is_full_dev) {
++		ret = setup_hw_port_stats(p);
++		if (ret && ret != -EOPNOTSUPP)
++			goto err_remove_pkey;
++	}
+ 
+ 	if (device->ops.init_port && is_full_dev) {
+ 		ret = device->ops.init_port(device, port_num, &p->kobj);
+ 		if (ret)
+-			goto err_remove_pkey;
++			goto err_remove_stats;
+ 	}
+ 
+-	/*
+-	 * If port == 0, it means hw_counters are per device and not per
+-	 * port, so holder should be device. Therefore skip per port conunter
+-	 * initialization.
+-	 */
+-	if (device->ops.alloc_hw_port_stats && port_num && is_full_dev)
+-		setup_hw_stats(device, p, port_num);
+-
  	list_add_tail(&p->kobj.entry, &coredev->port_list);
-@@ -1409,7 +1411,7 @@ int ib_device_register_sysfs(struct ib_device *device)
+ 	if (device->port_data && is_full_dev)
+ 		device->port_data[port_num].sysfs = p;
+@@ -1183,6 +1304,9 @@ static int add_port(struct ib_core_device *coredev, int port_num)
+ 	kobject_uevent(&p->kobj, KOBJ_ADD);
+ 	return 0;
+ 
++err_remove_stats:
++	destroy_hw_port_stats(p);
++
+ err_remove_pkey:
+ 	if (p->pkey_group)
+ 		sysfs_remove_group(&p->kobj, p->pkey_group);
+@@ -1365,9 +1489,7 @@ void ib_free_port_attrs(struct ib_core_device *coredev)
+ 		struct ib_port *port = container_of(p, struct ib_port, kobj);
+ 
+ 		list_del(&p->entry);
+-		if (port->hw_stats_ag)
+-			free_hsag(&port->kobj, port->hw_stats_ag);
+-		kfree(port->hw_stats);
++		destroy_hw_port_stats(port);
+ 		if (device->port_data && is_full_dev)
+ 			device->port_data[port->port_num].sysfs = NULL;
+ 
+@@ -1419,18 +1541,18 @@ int ib_device_register_sysfs(struct ib_device *device)
  	if (ret)
  		return ret;
  
--	if (device->ops.alloc_hw_stats)
-+	if (device->ops.alloc_hw_device_stats)
- 		setup_hw_stats(device, NULL, 0);
+-	if (device->ops.alloc_hw_device_stats)
+-		setup_hw_stats(device, NULL, 0);
++	ret = setup_hw_device_stats(device);
++	if (ret && ret != -EOPNOTSUPP) {
++		ib_free_port_attrs(&device->coredev);
++		return ret;
++	}
  
  	return 0;
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-index 3e54e1ae75b4..7ba07797845c 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-@@ -234,13 +234,10 @@ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
- 	return ARRAY_SIZE(bnxt_re_stat_name);
  }
  
--struct rdma_hw_stats *bnxt_re_ib_alloc_hw_stats(struct ib_device *ibdev,
--						u32 port_num)
-+struct rdma_hw_stats *bnxt_re_ib_alloc_hw_port_stats(struct ib_device *ibdev,
-+						     u32 port_num)
+ void ib_device_unregister_sysfs(struct ib_device *device)
  {
- 	BUILD_BUG_ON(ARRAY_SIZE(bnxt_re_stat_name) != BNXT_RE_NUM_COUNTERS);
--	/* We support only per port stats */
--	if (!port_num)
--		return NULL;
- 
- 	return rdma_alloc_hw_stats_struct(bnxt_re_stat_name,
- 					  ARRAY_SIZE(bnxt_re_stat_name),
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.h b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-index ede048607d6c..6f2d2f91d9ff 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.h
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-@@ -96,8 +96,8 @@ enum bnxt_re_hw_stats {
- 	BNXT_RE_NUM_COUNTERS
- };
- 
--struct rdma_hw_stats *bnxt_re_ib_alloc_hw_stats(struct ib_device *ibdev,
--						u32 port_num);
-+struct rdma_hw_stats *bnxt_re_ib_alloc_hw_port_stats(struct ib_device *ibdev,
-+						     u32 port_num);
- int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
- 			    struct rdma_hw_stats *stats,
- 			    u32 port, int index);
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 58c2a7dfb438..58bd905048ae 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -629,7 +629,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
- 	.uverbs_abi_ver = BNXT_RE_ABI_VERSION,
- 
- 	.add_gid = bnxt_re_add_gid,
--	.alloc_hw_stats = bnxt_re_ib_alloc_hw_stats,
-+	.alloc_hw_port_stats = bnxt_re_ib_alloc_hw_port_stats,
- 	.alloc_mr = bnxt_re_alloc_mr,
- 	.alloc_pd = bnxt_re_alloc_pd,
- 	.alloc_ucontext = bnxt_re_alloc_ucontext,
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 3f1893e180dd..4e453d1dde11 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -377,14 +377,11 @@ static const char * const names[] = {
- 	[IP6OUTRSTS] = "ip6OutRsts"
- };
- 
--static struct rdma_hw_stats *c4iw_alloc_stats(struct ib_device *ibdev,
--					      u32 port_num)
-+static struct rdma_hw_stats *c4iw_alloc_device_stats(struct ib_device *ibdev)
- {
- 	BUILD_BUG_ON(ARRAY_SIZE(names) != NR_COUNTERS);
- 
--	if (port_num != 0)
--		return NULL;
+-	if (device->hw_stats_ag)
+-		free_hsag(&device->dev.kobj, device->hw_stats_ag);
+-	kfree(device->hw_stats);
 -
-+	/* FIXME: these look like port stats */
- 	return rdma_alloc_hw_stats_struct(names, NR_COUNTERS,
- 					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
-@@ -455,7 +452,7 @@ static const struct ib_device_ops c4iw_dev_ops = {
- 	.driver_id = RDMA_DRIVER_CXGB4,
- 	.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION,
- 
--	.alloc_hw_stats = c4iw_alloc_stats,
-+	.alloc_hw_device_stats = c4iw_alloc_device_stats,
- 	.alloc_mr = c4iw_alloc_mr,
- 	.alloc_pd = c4iw_allocate_pd,
- 	.alloc_ucontext = c4iw_alloc_ucontext,
-diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
-index ea322cec27d2..2b8ca099b381 100644
---- a/drivers/infiniband/hw/efa/efa.h
-+++ b/drivers/infiniband/hw/efa/efa.h
-@@ -157,7 +157,8 @@ int efa_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 		  int qp_attr_mask, struct ib_udata *udata);
- enum rdma_link_layer efa_port_link_layer(struct ib_device *ibdev,
- 					 u32 port_num);
--struct rdma_hw_stats *efa_alloc_hw_stats(struct ib_device *ibdev, u32 port_num);
-+struct rdma_hw_stats *efa_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num);
-+struct rdma_hw_stats *efa_alloc_hw_device_stats(struct ib_device *ibdev);
- int efa_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
- 		     u32 port_num, int index);
- 
-diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
-index 816cfd65b7ac..203e6ddcacbc 100644
---- a/drivers/infiniband/hw/efa/efa_main.c
-+++ b/drivers/infiniband/hw/efa/efa_main.c
-@@ -242,7 +242,8 @@ static const struct ib_device_ops efa_dev_ops = {
- 	.driver_id = RDMA_DRIVER_EFA,
- 	.uverbs_abi_ver = EFA_UVERBS_ABI_VERSION,
- 
--	.alloc_hw_stats = efa_alloc_hw_stats,
-+	.alloc_hw_port_stats = efa_alloc_hw_port_stats,
-+	.alloc_hw_device_stats = efa_alloc_hw_device_stats,
- 	.alloc_pd = efa_alloc_pd,
- 	.alloc_ucontext = efa_alloc_ucontext,
- 	.create_cq = efa_create_cq,
-diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index 51572f1dc611..be6d3ff0f1be 100644
---- a/drivers/infiniband/hw/efa/efa_verbs.c
-+++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -1904,13 +1904,22 @@ int efa_destroy_ah(struct ib_ah *ibah, u32 flags)
- 	return 0;
++	destroy_hw_device_stats(device);
+ 	ib_free_port_attrs(&device->coredev);
  }
  
--struct rdma_hw_stats *efa_alloc_hw_stats(struct ib_device *ibdev, u32 port_num)
-+struct rdma_hw_stats *efa_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num)
- {
- 	return rdma_alloc_hw_stats_struct(efa_stats_names,
- 					  ARRAY_SIZE(efa_stats_names),
- 					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
- 
-+struct rdma_hw_stats *efa_alloc_hw_device_stats(struct ib_device *ibdev)
-+{
-+	/*
-+	 * It is probably a bug that efa reports its port stats as device
-+	 * stats
-+	 */
-+	return efa_alloc_hw_port_stats(ibdev, 0);
-+}
-+
- int efa_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
- 		     u32 port_num, int index)
- {
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 554294340caa..85deba07a675 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1693,54 +1693,53 @@ static int init_cntr_names(const char *names_in,
- 	return 0;
- }
- 
--static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
--					    u32 port_num)
-+static int init_counters(struct ib_device *ibdev)
- {
--	int i, err;
-+	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
-+	int i, err = 0;
- 
- 	mutex_lock(&cntr_names_lock);
--	if (!cntr_names_initialized) {
--		struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
--
--		err = init_cntr_names(dd->cntrnames,
--				      dd->cntrnameslen,
--				      num_driver_cntrs,
--				      &num_dev_cntrs,
--				      &dev_cntr_names);
--		if (err) {
--			mutex_unlock(&cntr_names_lock);
--			return NULL;
--		}
--
--		for (i = 0; i < num_driver_cntrs; i++)
--			dev_cntr_names[num_dev_cntrs + i] =
--				driver_cntr_names[i];
--
--		err = init_cntr_names(dd->portcntrnames,
--				      dd->portcntrnameslen,
--				      0,
--				      &num_port_cntrs,
--				      &port_cntr_names);
--		if (err) {
--			kfree(dev_cntr_names);
--			dev_cntr_names = NULL;
--			mutex_unlock(&cntr_names_lock);
--			return NULL;
--		}
--		cntr_names_initialized = 1;
-+	if (cntr_names_initialized)
-+		goto out_unlock;
-+
-+	err = init_cntr_names(dd->cntrnames, dd->cntrnameslen, num_driver_cntrs,
-+			      &num_dev_cntrs, &dev_cntr_names);
-+	if (err)
-+		goto out_unlock;
-+
-+	for (i = 0; i < num_driver_cntrs; i++)
-+		dev_cntr_names[num_dev_cntrs + i] = driver_cntr_names[i];
-+
-+	err = init_cntr_names(dd->portcntrnames, dd->portcntrnameslen, 0,
-+			      &num_port_cntrs, &port_cntr_names);
-+	if (err) {
-+		kfree(dev_cntr_names);
-+		dev_cntr_names = NULL;
-+		goto out_unlock;
- 	}
-+	cntr_names_initialized = 1;
-+
-+out_unlock:
- 	mutex_unlock(&cntr_names_lock);
-+	return err;
-+}
- 
--	if (!port_num)
--		return rdma_alloc_hw_stats_struct(
--				dev_cntr_names,
--				num_dev_cntrs + num_driver_cntrs,
--				RDMA_HW_STATS_DEFAULT_LIFESPAN);
--	else
--		return rdma_alloc_hw_stats_struct(
--				port_cntr_names,
--				num_port_cntrs,
--				RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+static struct rdma_hw_stats *hfi1_alloc_hw_device_stats(struct ib_device *ibdev)
-+{
-+	if (init_counters(ibdev))
-+		return NULL;
-+	return rdma_alloc_hw_stats_struct(dev_cntr_names,
-+					  num_dev_cntrs + num_driver_cntrs,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
-+
-+static struct rdma_hw_stats *hfi_alloc_hw_port_stats(struct ib_device *ibdev,
-+						     u32 port_num)
-+{
-+	if (init_counters(ibdev))
-+		return NULL;
-+	return rdma_alloc_hw_stats_struct(port_cntr_names, num_port_cntrs,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
- 
- static u64 hfi1_sps_ints(void)
-@@ -1787,7 +1786,8 @@ static const struct ib_device_ops hfi1_dev_ops = {
- 	.owner = THIS_MODULE,
- 	.driver_id = RDMA_DRIVER_HFI1,
- 
--	.alloc_hw_stats = alloc_hw_stats,
-+	.alloc_hw_device_stats = hfi1_alloc_hw_device_stats,
-+	.alloc_hw_port_stats = hfi_alloc_hw_port_stats,
- 	.alloc_rdma_netdev = hfi1_vnic_alloc_rn,
- 	.get_dev_fw_str = hfi1_get_dev_fw_str,
- 	.get_hw_stats = get_hw_stats,
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index f81371901517..8ecacef8e88c 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3727,20 +3727,17 @@ static void irdma_get_dev_fw_str(struct ib_device *dev, char *str)
- }
- 
- /**
-- * irdma_alloc_hw_stats - Allocate a hw stats structure
-+ * irdma_alloc_hw_port_stats - Allocate a hw stats structure
-  * @ibdev: device pointer from stack
-  * @port_num: port number
-  */
--static struct rdma_hw_stats *irdma_alloc_hw_stats(struct ib_device *ibdev,
--						  u32 port_num)
-+static struct rdma_hw_stats *irdma_alloc_hw_port_stats(struct ib_device *ibdev,
-+						       u32 port_num)
- {
- 	int num_counters = IRDMA_HW_STAT_INDEX_MAX_32 +
- 			   IRDMA_HW_STAT_INDEX_MAX_64;
- 	unsigned long lifespan = RDMA_HW_STATS_DEFAULT_LIFESPAN;
- 
--	if (!port_num)
--		return NULL;
--
- 	BUILD_BUG_ON(ARRAY_SIZE(irdma_hw_stat_names) !=
- 		     (IRDMA_HW_STAT_INDEX_MAX_32 + IRDMA_HW_STAT_INDEX_MAX_64));
- 
-@@ -4354,7 +4351,7 @@ static const struct ib_device_ops irdma_dev_ops = {
- 	.driver_id = RDMA_DRIVER_IRDMA,
- 	.uverbs_abi_ver = IRDMA_ABI_VER,
- 
--	.alloc_hw_stats = irdma_alloc_hw_stats,
-+	.alloc_hw_port_stats = irdma_alloc_hw_port_stats,
- 	.alloc_mr = irdma_alloc_mr,
- 	.alloc_mw = irdma_alloc_mw,
- 	.alloc_pd = irdma_alloc_pd,
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 22898d97ecbd..341162aa2175 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2105,17 +2105,29 @@ static const struct diag_counter diag_device_only[] = {
- 	DIAG_COUNTER(rq_num_udsdprd, 0x118),
- };
- 
--static struct rdma_hw_stats *mlx4_ib_alloc_hw_stats(struct ib_device *ibdev,
--						    u32 port_num)
-+static struct rdma_hw_stats *
-+mlx4_ib_alloc_hw_device_stats(struct ib_device *ibdev)
- {
- 	struct mlx4_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx4_ib_diag_counters *diag = dev->diag_counters;
- 
--	if (!diag[!!port_num].name)
-+	if (!diag[0].name)
- 		return NULL;
- 
--	return rdma_alloc_hw_stats_struct(diag[!!port_num].name,
--					  diag[!!port_num].num_counters,
-+	return rdma_alloc_hw_stats_struct(diag[0].name, diag[0].num_counters,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
-+
-+static struct rdma_hw_stats *
-+mlx4_ib_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num)
-+{
-+	struct mlx4_ib_dev *dev = to_mdev(ibdev);
-+	struct mlx4_ib_diag_counters *diag = dev->diag_counters;
-+
-+	if (!diag[1].name)
-+		return NULL;
-+
-+	return rdma_alloc_hw_stats_struct(diag[1].name, diag[1].num_counters,
- 					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
- 
-@@ -2206,7 +2218,8 @@ static void mlx4_ib_fill_diag_counters(struct mlx4_ib_dev *ibdev,
- }
- 
- static const struct ib_device_ops mlx4_ib_hw_stats_ops = {
--	.alloc_hw_stats = mlx4_ib_alloc_hw_stats,
-+	.alloc_hw_device_stats = mlx4_ib_alloc_hw_device_stats,
-+	.alloc_hw_port_stats = mlx4_ib_alloc_hw_port_stats,
- 	.get_hw_stats = mlx4_ib_get_hw_stats,
- };
- 
-diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
-index e365341057cb..224ba36f2946 100644
---- a/drivers/infiniband/hw/mlx5/counters.c
-+++ b/drivers/infiniband/hw/mlx5/counters.c
-@@ -161,22 +161,29 @@ u16 mlx5_ib_get_counters_id(struct mlx5_ib_dev *dev, u32 port_num)
- 	return cnts->set_id;
- }
- 
--static struct rdma_hw_stats *mlx5_ib_alloc_hw_stats(struct ib_device *ibdev,
--						    u32 port_num)
-+static struct rdma_hw_stats *
-+mlx5_ib_alloc_hw_device_stats(struct ib_device *ibdev)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
--	const struct mlx5_ib_counters *cnts;
--	bool is_switchdev = is_mdev_switchdev_mode(dev->mdev);
-+	const struct mlx5_ib_counters *cnts = &dev->port[0].cnts;
- 
--	if ((is_switchdev && port_num) || (!is_switchdev && !port_num))
--		return NULL;
-+	return rdma_alloc_hw_stats_struct(cnts->names,
-+					  cnts->num_q_counters +
-+						  cnts->num_cong_counters +
-+						  cnts->num_ext_ppcnt_counters,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
- 
--	cnts = get_counters(dev, port_num - 1);
-+static struct rdma_hw_stats *
-+mlx5_ib_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	const struct mlx5_ib_counters *cnts = &dev->port[port_num - 1].cnts;
- 
- 	return rdma_alloc_hw_stats_struct(cnts->names,
- 					  cnts->num_q_counters +
--					  cnts->num_cong_counters +
--					  cnts->num_ext_ppcnt_counters,
-+						  cnts->num_cong_counters +
-+						  cnts->num_ext_ppcnt_counters,
- 					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
- 
-@@ -666,7 +673,17 @@ void mlx5_ib_counters_clear_description(struct ib_counters *counters)
- }
- 
- static const struct ib_device_ops hw_stats_ops = {
--	.alloc_hw_stats = mlx5_ib_alloc_hw_stats,
-+	.alloc_hw_port_stats = mlx5_ib_alloc_hw_port_stats,
-+	.get_hw_stats = mlx5_ib_get_hw_stats,
-+	.counter_bind_qp = mlx5_ib_counter_bind_qp,
-+	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
-+	.counter_dealloc = mlx5_ib_counter_dealloc,
-+	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
-+	.counter_update_stats = mlx5_ib_counter_update_stats,
-+};
-+
-+static const struct ib_device_ops hw_switchdev_stats_ops = {
-+	.alloc_hw_device_stats = mlx5_ib_alloc_hw_device_stats,
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
- 	.counter_bind_qp = mlx5_ib_counter_bind_qp,
- 	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
-@@ -690,7 +707,10 @@ int mlx5_ib_counters_init(struct mlx5_ib_dev *dev)
- 	if (!MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
- 		return 0;
- 
--	ib_set_device_ops(&dev->ib_dev, &hw_stats_ops);
-+	if (is_mdev_switchdev_mode(dev->mdev))
-+		ib_set_device_ops(&dev->ib_dev, &hw_switchdev_stats_ops);
-+	else
-+		ib_set_device_ops(&dev->ib_dev, &hw_stats_ops);
- 	return mlx5_ib_alloc_counters(dev);
- }
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.c b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-index f469fd1c753d..d5ceb706d964 100644
---- a/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-+++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-@@ -40,13 +40,10 @@ int rxe_ib_get_hw_stats(struct ib_device *ibdev,
- 	return ARRAY_SIZE(rxe_counter_name);
- }
- 
--struct rdma_hw_stats *rxe_ib_alloc_hw_stats(struct ib_device *ibdev,
--					    u32 port_num)
-+struct rdma_hw_stats *rxe_ib_alloc_hw_port_stats(struct ib_device *ibdev,
-+						 u32 port_num)
- {
- 	BUILD_BUG_ON(ARRAY_SIZE(rxe_counter_name) != RXE_NUM_OF_COUNTERS);
--	/* We support only per port stats */
--	if (!port_num)
--		return NULL;
- 
- 	return rdma_alloc_hw_stats_struct(rxe_counter_name,
- 					  ARRAY_SIZE(rxe_counter_name),
-diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.h b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
-index 2f369acb46d7..71f4d4fa9dc8 100644
---- a/drivers/infiniband/sw/rxe/rxe_hw_counters.h
-+++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
-@@ -29,8 +29,8 @@ enum rxe_counters {
- 	RXE_NUM_OF_COUNTERS
- };
- 
--struct rdma_hw_stats *rxe_ib_alloc_hw_stats(struct ib_device *ibdev,
--					    u32 port_num);
-+struct rdma_hw_stats *rxe_ib_alloc_hw_port_stats(struct ib_device *ibdev,
-+						 u32 port_num);
- int rxe_ib_get_hw_stats(struct ib_device *ibdev,
- 			struct rdma_hw_stats *stats,
- 			u32 port, int index);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 33731b5dd9c3..d3df59d897a7 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1104,7 +1104,7 @@ static const struct ib_device_ops rxe_dev_ops = {
- 	.driver_id = RDMA_DRIVER_RXE,
- 	.uverbs_abi_ver = RXE_UVERBS_ABI_VERSION,
- 
--	.alloc_hw_stats = rxe_ib_alloc_hw_stats,
-+	.alloc_hw_port_stats = rxe_ib_alloc_hw_port_stats,
- 	.alloc_mr = rxe_alloc_mr,
- 	.alloc_pd = rxe_alloc_pd,
- 	.alloc_ucontext = rxe_alloc_ucontext,
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 05dbc216eb64..849a06441e29 100644
+index 7a4cb7022f91..0dc7ab1a8dcf 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2522,13 +2522,14 @@ struct ib_device_ops {
- 			    unsigned int *meta_sg_offset);
+@@ -51,6 +51,7 @@ struct ib_usrq_object;
+ struct ib_uwq_object;
+ struct rdma_cm_id;
+ struct ib_port;
++struct hw_stats_device_data;
  
- 	/**
--	 * alloc_hw_stats - Allocate a struct rdma_hw_stats and fill in the
--	 *   driver initialized data.  The struct is kfree()'ed by the sysfs
--	 *   core when the device is removed.  A lifespan of -1 in the return
--	 *   struct tells the core to set a default lifespan.
-+	 * alloc_hw_[device,port]_stats - Allocate a struct rdma_hw_stats and
-+	 *   fill in the driver initialized data.  The struct is kfree()'ed by
-+	 *   the sysfs core when the device is removed.  A lifespan of -1 in the
-+	 *   return struct tells the core to set a default lifespan.
- 	 */
--	struct rdma_hw_stats *(*alloc_hw_stats)(struct ib_device *device,
--						u32 port_num);
-+	struct rdma_hw_stats *(*alloc_hw_device_stats)(struct ib_device *device);
-+	struct rdma_hw_stats *(*alloc_hw_port_stats)(struct ib_device *device,
-+						     u32 port_num);
- 	/**
- 	 * get_hw_stats - Fill in the counter value(s) in the stats struct.
- 	 * @index - The index in the value array we wish to have updated, or
+ extern struct workqueue_struct *ib_wq;
+ extern struct workqueue_struct *ib_comp_wq;
+@@ -2695,8 +2696,7 @@ struct ib_device {
+ 	u8                           node_type;
+ 	u32			     phys_port_cnt;
+ 	struct ib_device_attr        attrs;
+-	struct attribute_group	     *hw_stats_ag;
+-	struct rdma_hw_stats         *hw_stats;
++	struct hw_stats_device_data *hw_stats_data;
+ 
+ #ifdef CONFIG_CGROUP_RDMA
+ 	struct rdmacg_device         cg_device;
 -- 
 2.31.1
 
