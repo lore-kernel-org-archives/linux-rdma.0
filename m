@@ -2,114 +2,124 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E1F4C48BE8
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Jun 2021 09:04:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7418C48BE6
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Jun 2021 09:04:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52ABF611CA
-	for <linux-rdma@archiver.kernel.org>; Mon, 14 Jun 2021 09:04:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAE2E6128B
+	for <linux-rdma@archiver.kernel.org>; Mon, 14 Jun 2021 09:04:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232565AbhFNJGm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Jun 2021 05:06:42 -0400
-Received: from mail-ej1-f48.google.com ([209.85.218.48]:45990 "EHLO
-        mail-ej1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232528AbhFNJGm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Jun 2021 05:06:42 -0400
-Received: by mail-ej1-f48.google.com with SMTP id k7so15390572ejv.12
-        for <linux-rdma@vger.kernel.org>; Mon, 14 Jun 2021 02:04:39 -0700 (PDT)
+        id S232579AbhFNJGp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Jun 2021 05:06:45 -0400
+Received: from mail-ej1-f50.google.com ([209.85.218.50]:37755 "EHLO
+        mail-ej1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232528AbhFNJGo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Jun 2021 05:06:44 -0400
+Received: by mail-ej1-f50.google.com with SMTP id ce15so15379842ejb.4
+        for <linux-rdma@vger.kernel.org>; Mon, 14 Jun 2021 02:04:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=/8skk959+yJZ6i3vudYxWQePThQjvG9B3KzS7DG1fG8=;
-        b=MgYULn2nhpUAjsCI2eBhF7ssm03PpZ2rVBmx5TN53KJEzPbyDqoVNJlMajHvVKUb8J
-         /D26okvFmfwI633Y3I5UKMzSPOZ8/bWKmRes+qPj/ZNEkuAR98mTrQxMc7PAM9vqVSNN
-         Zmu7ebKCHJgIhIcyHw45jBN5bXb606PeM9Gqr5HTA8TTzihwnd2QRt+bq7VKKOATD0Pg
-         IB+8d+ZnR/Js0R/jheR2uS+K9uhWKSBJEauDcqJlz5x3Mwh9vNgKi7Jdhdnv5ZWNfFBE
-         rmmB481jz6I6orkfHQjse33EsuB9t2dQ8+wPFhZPdwAkZ5jVes/ZXBLKIGsn1kYPQ/5U
-         /LTw==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=rhYuxdAj+v+J7dVbCJyHI7fFT2uXU9rnwpNgP+b6Koo=;
+        b=gvlkMUi1q0mnRPMIw2wcuKloU352yxtunIt1xMkbpSJEPJspuNxjNmLKO0tuKNQwY4
+         upz+C63zSlYIiQv4Xs9AnM/54eJXM6HTGWpgp9X7goOs/pZSBD3RT2h7g/i/anOcj0he
+         byw+MROK8ZqvtLBW8SdCvci8nf1pVz2j+/VwcPkNoAlagLoBTW5Q0ntmsRSNED0RXYt3
+         +bsVF6J60l9lqiW3m/NMHym1Xml3LNWixU8XOe+dmX7yui3hmFRR7e/yskijknvibz76
+         wfbNQ6+uABjj4ScXrlgc5RqX4uwHzmdV/c/RLzgipauzXRdOomycnc/qkMd/wK3xxmfN
+         RElg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=/8skk959+yJZ6i3vudYxWQePThQjvG9B3KzS7DG1fG8=;
-        b=n5zg5krLHXJowGtLaOq1yZQuDfEorr4kQVYfeglOfMuInegilRFblmmVLW93Ng4FXt
-         XmROu9DH0vrDT6sPAtPFIQIzziD4tHf76kh3eV5LWrjiS+gyGyMEWs85TaNcTyL3Ph5v
-         3qRDLufh+hF6btLsW9NzXGQCV3Bb9g2RzanEBdbaPQA3lt/IqetOSjaT+wioMUZhLt6e
-         CZwBqtEu5ZHcq6q4sh7o8ccl2qMAyXMgswoayNIXqkNpAOmW25dL/L5D+3+cfcRrAlP6
-         broESPz1FrLCDt8eSGxrS1BROyiuRrm/bY7ROxRwRKOMd8pJ6pQgRx84Iqo8n1lbzbVT
-         hIUw==
-X-Gm-Message-State: AOAM531BFyeqZ8FWG8UAecOpWnBoms5lJD/mSP8lIwuNuKaIm7c+BCOv
-        zjzS5HMRP+j04xIwdDUBYPq1ZzI9dm/GnA==
-X-Google-Smtp-Source: ABdhPJzugzjgTBjnwfw4IBM3P5g2eRnUVMzjR3VWlTz/wfjLIFNT2FY82Gbiuagqidk/qsSw0/zLwQ==
-X-Received: by 2002:a17:906:264c:: with SMTP id i12mr14277968ejc.101.1623661418686;
-        Mon, 14 Jun 2021 02:03:38 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=rhYuxdAj+v+J7dVbCJyHI7fFT2uXU9rnwpNgP+b6Koo=;
+        b=LpXI0V8QpagcfGyq4iltt+bJEflz5yrMuW6khtucELjXlsJoX9SwATJAW3xnasaQDI
+         /N52N4cV3rh2JRp7pmiZvIoEqclru1EOC5GpqobavRN6KgCkHhsgtwEWs32Qgl9Sc+26
+         TeU0A+WBy7gTTBhQs+/msHsmsoZdlNHA4qYRB+1WY+YVsYA3pmZolyA1IVnQMGY/S6Ef
+         VzuU+LPiqUTQtLKe3KJeSXLFq9sqOzE4MEWNQzOJQCV6eN9fBoDw23hyk+4gdGUOvyze
+         pSKUU4PaYEjsf42JM9+LYEFkX8rZvUvP6iGBvp2jvGJIgQeZQ8Cmxe0BDr/gTU3jzuM+
+         g24g==
+X-Gm-Message-State: AOAM531C9p1lFXDZIiyfPJs6dVYj5yI3VLRg1OjfXj4RYSIYqlGpAJgF
+        MQcioEuqFQTWtQr5d++CclmRXEjLCqbhbA==
+X-Google-Smtp-Source: ABdhPJwdeckwywDcCJQuTSfwx2srsH91N4gXKhcEn3wLAOptL6CWV8GemZertthx+TinWi2UJtHhHg==
+X-Received: by 2002:a17:906:2459:: with SMTP id a25mr14009116ejb.306.1623661421288;
+        Mon, 14 Jun 2021 02:03:41 -0700 (PDT)
 Received: from jwang-Latitude-5491.fkb.profitbricks.net ([2001:16b8:4960:8600:dc5e:964f:b034:cb7d])
-        by smtp.gmail.com with ESMTPSA id qq26sm6764355ejb.6.2021.06.14.02.03.38
+        by smtp.gmail.com with ESMTPSA id qq26sm6764355ejb.6.2021.06.14.02.03.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 14 Jun 2021 02:03:38 -0700 (PDT)
+        Mon, 14 Jun 2021 02:03:41 -0700 (PDT)
 From:   Jack Wang <jinpu.wang@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com
-Subject: [PATCHv3 for-next 0/5] Misc update for RTRS
-Date:   Mon, 14 Jun 2021 11:03:32 +0200
-Message-Id: <20210614090337.29557-1-jinpu.wang@ionos.com>
+        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
+        Jack Wang <jinpu.wang@cloud.ionos.com>,
+        Gioh Kim <gi-oh.kim@ionos.com>,
+        Leon Romanovsky <leonro@nvidia.com>
+Subject: [PATCHv3 for-next 3/5] RDMA/rtrs: RDMA_RXE requires more number of WR
+Date:   Mon, 14 Jun 2021 11:03:35 +0200
+Message-Id: <20210614090337.29557-4-jinpu.wang@ionos.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210614090337.29557-1-jinpu.wang@ionos.com>
+References: <20210614090337.29557-1-jinpu.wang@ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason, hi Doug,
+From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
 
-Please consider to include following changes to the next merge window.
-It contains:
-- first 2 patches are for reducing the memory usage when create QP.
-- the third one are to make testing on RXE working.
-- the fourth one is just cleanup for variables.
-- the last one is new to check max_qp_wr as suggested by Leon
+When using rdma_rxe, post_one_recv() returns
+ENOMEM error due to the full recv queue.
+This patch increase the number of WR for receive queue
+to support all devices.
 
-v3->v2:
-- added R-b from Leon for all 5 patches.
-- s/NOMEM/ENOMEM in patch3 commit message as suggested by Leon.
-- Rephrase the commit message for the renaming (patch4) as suggested by Leon
-v2->v1:
-- A new patch to check device map_qp_wr when create QP.
+Signed-off-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+Signed-off-by: Jack Wang <jinpu.wang@cloud.ionos.com>
+Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 7 ++++---
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-v2: https://lore.kernel.org/linux-rdma/20210611121034.48837-1-jinpu.wang@ionos.com/T/#t
-v1: https://lore.kernel.org/linux-rdma/20210608103039.39080-1-jinpu.wang@ionos.com/T/#t
-
-This patchset is based on rdma/for-next branch.
-
-Note: I tried the patchset for fast memory registration on write path can still apply.
-https://lore.kernel.org/linux-rdma/20210608113536.42965-1-jinpu.wang@ionos.com/T/#t
-
-Thanks!
-
-Guoqing Jiang (1):
-  RDMA/rtrs: Rename cq_size/queue_size to cq_num/queue_num
-
-Jack Wang (3):
-  RDMA/rtrs-srv: Set minimal max_send_wr and max_recv_wr
-  RDMA/rtrs-clt: Use minimal max_send_sge when create qp
-  RDMA/rtrs: Check device max_qp_wr limit when create QP
-
-Md Haris Iqbal (1):
-  RDMA/rtrs: RDMA_RXE requires more number of WR
-
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 50 ++++++++++++++------------
- drivers/infiniband/ulp/rtrs/rtrs-clt.h |  3 +-
- drivers/infiniband/ulp/rtrs/rtrs-pri.h | 10 +++---
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 34 ++++++++++--------
- drivers/infiniband/ulp/rtrs/rtrs.c     | 24 ++++++-------
- 5 files changed, 65 insertions(+), 56 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index cd53edddfe1f..acf0fde410c3 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -1579,10 +1579,11 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
+ 	lockdep_assert_held(&con->con_mutex);
+ 	if (con->c.cid == 0) {
+ 		/*
+-		 * One completion for each receive and two for each send
+-		 * (send request + registration)
++		 * Two (request + registration) completion for send
++		 * Two for recv if always_invalidate is set on server
++		 * or one for recv.
+ 		 * + 2 for drain and heartbeat
+-		 * in case qp gets into error state
++		 * in case qp gets into error state.
+ 		 */
+ 		max_send_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
+ 		max_recv_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 04ec3080e9b5..bb73f7762a87 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -1656,7 +1656,7 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 		 * + 2 for drain and heartbeat
+ 		 */
+ 		max_send_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
+-		max_recv_wr = SERVICE_CON_QUEUE_DEPTH + 2;
++		max_recv_wr = SERVICE_CON_QUEUE_DEPTH * 2 + 2;
+ 		cq_size = max_send_wr + max_recv_wr;
+ 	} else {
+ 		/*
 -- 
 2.25.1
 
