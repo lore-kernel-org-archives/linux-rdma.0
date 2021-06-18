@@ -2,42 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ADD1C48BE8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE2C9C49EA2
 	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:06:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FF1B60C41
+	by mail.kernel.org (Postfix) with ESMTP id A062360C41
 	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233214AbhFRKJC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232871AbhFRKJC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 18 Jun 2021 06:09:02 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:5039 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232871AbhFRKJB (ORCPT
+Received: from szxga08-in.huawei.com ([45.249.212.255]:8272 "EHLO
+        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233003AbhFRKJB (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 06:09:01 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G5vZx6qgQzXhDS;
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4G5vZx4Ds1z1BNvd;
         Fri, 18 Jun 2021 18:01:29 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
  15.1.2176.2; Fri, 18 Jun 2021 18:06:33 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Fri, 18 Jun 2021 18:06:33 +0800
+ 15.1.2176.2; Fri, 18 Jun 2021 18:06:32 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
         <linuxarm@huawei.com>, Yixing Liu <liuyixing1@huawei.com>,
         Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v4 for-next 7/8] RDMA/hns: Use new interface to write DB related fields
-Date:   Fri, 18 Jun 2021 18:06:04 +0800
-Message-ID: <1624010765-1029-8-git-send-email-liweihang@huawei.com>
+Subject: [PATCH v4 for-next 3/8] RDMA/hns: Use new interface to write CQ context.
+Date:   Fri, 18 Jun 2021 18:06:00 +0800
+Message-ID: <1624010765-1029-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1624010765-1029-1-git-send-email-liweihang@huawei.com>
 References: <1624010765-1029-1-git-send-email-liweihang@huawei.com>
@@ -53,233 +53,282 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Yixing Liu <liuyixing1@huawei.com>
 
-Use hr_write_reg() instead of roce_set_field().
+Use hr_reg_*() to write CQ context, it's simpler than roce_set_*().
 
 Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 85 ++++++++++++------------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 42 ++++++---------
- 2 files changed, 49 insertions(+), 78 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 111 ++++++++++-------------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  87 +++++++++++-----------
+ 2 files changed, 78 insertions(+), 120 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 972a4fe..37661d3 100644
+index 0938e00..a02efc5 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -643,17 +643,10 @@ static inline void update_sq_db(struct hns_roce_dev *hr_dev,
- 	} else {
- 		struct hns_roce_v2_db sq_db = {};
+@@ -3280,73 +3280,44 @@ static void hns_roce_v2_write_cqc(struct hns_roce_dev *hr_dev,
+ 	cq_context = mb_buf;
+ 	memset(cq_context, 0, sizeof(*cq_context));
  
--		roce_set_field(sq_db.byte_4, V2_DB_TAG_M, V2_DB_TAG_S,
--			       qp->doorbell_qpn);
--		roce_set_field(sq_db.byte_4, V2_DB_CMD_M, V2_DB_CMD_S,
--			       HNS_ROCE_V2_SQ_DB);
+-	roce_set_field(cq_context->byte_4_pg_ceqn, V2_CQC_BYTE_4_CQ_ST_M,
+-		       V2_CQC_BYTE_4_CQ_ST_S, V2_CQ_STATE_VALID);
+-	roce_set_field(cq_context->byte_4_pg_ceqn, V2_CQC_BYTE_4_ARM_ST_M,
+-		       V2_CQC_BYTE_4_ARM_ST_S, REG_NXT_CEQE);
+-	roce_set_field(cq_context->byte_4_pg_ceqn, V2_CQC_BYTE_4_SHIFT_M,
+-		       V2_CQC_BYTE_4_SHIFT_S, ilog2(hr_cq->cq_depth));
+-	roce_set_field(cq_context->byte_4_pg_ceqn, V2_CQC_BYTE_4_CEQN_M,
+-		       V2_CQC_BYTE_4_CEQN_S, hr_cq->vector);
 -
--		/* indicates data on new BAR, 0 : SQ doorbell, 1 : DWQE */
--		roce_set_bit(sq_db.byte_4, V2_DB_FLAG_S, 0);
--		roce_set_field(sq_db.parameter, V2_DB_PRODUCER_IDX_M,
--			       V2_DB_PRODUCER_IDX_S, qp->sq.head);
--		roce_set_field(sq_db.parameter, V2_DB_SL_M, V2_DB_SL_S,
--			       qp->sl);
-+		hr_reg_write(&sq_db, DB_TAG, qp->doorbell_qpn);
-+		hr_reg_write(&sq_db, DB_CMD, HNS_ROCE_V2_SQ_DB);
-+		hr_reg_write(&sq_db, DB_PI, qp->sq.head);
-+		hr_reg_write(&sq_db, DB_SL, qp->sl);
- 
- 		hns_roce_write64(hr_dev, (__le32 *)&sq_db, qp->sq.db_reg);
- 	}
-@@ -681,12 +674,9 @@ static inline void update_rq_db(struct hns_roce_dev *hr_dev,
- 		} else {
- 			struct hns_roce_v2_db rq_db = {};
- 
--			roce_set_field(rq_db.byte_4, V2_DB_TAG_M, V2_DB_TAG_S,
--				       qp->qpn);
--			roce_set_field(rq_db.byte_4, V2_DB_CMD_M, V2_DB_CMD_S,
--				       HNS_ROCE_V2_RQ_DB);
--			roce_set_field(rq_db.parameter, V2_DB_PRODUCER_IDX_M,
--				       V2_DB_PRODUCER_IDX_S, qp->rq.head);
-+			hr_reg_write(&rq_db, DB_TAG, qp->qpn);
-+			hr_reg_write(&rq_db, DB_CMD, HNS_ROCE_V2_RQ_DB);
-+			hr_reg_write(&rq_db, DB_PI, qp->rq.head);
- 
- 			hns_roce_write64(hr_dev, (__le32 *)&rq_db,
- 					 qp->rq.db_reg);
-@@ -1003,6 +993,13 @@ static void fill_wqe_idx(struct hns_roce_srq *srq, unsigned int wqe_idx)
- 	idx_que->head++;
- }
- 
-+static void update_srq_db(struct hns_roce_v2_db *db, struct hns_roce_srq *srq)
-+{
-+	hr_reg_write(db, DB_TAG, srq->srqn);
-+	hr_reg_write(db, DB_CMD, HNS_ROCE_V2_SRQ_DB);
-+	hr_reg_write(db, DB_PI, srq->idx_que.head);
-+}
+-	roce_set_field(cq_context->byte_8_cqn, V2_CQC_BYTE_8_CQN_M,
+-		       V2_CQC_BYTE_8_CQN_S, hr_cq->cqn);
+-
+-	roce_set_field(cq_context->byte_8_cqn, V2_CQC_BYTE_8_CQE_SIZE_M,
+-		       V2_CQC_BYTE_8_CQE_SIZE_S, hr_cq->cqe_size ==
+-		       HNS_ROCE_V3_CQE_SIZE ? 1 : 0);
++	hr_reg_write(cq_context, CQC_CQ_ST, V2_CQ_STATE_VALID);
++	hr_reg_write(cq_context, CQC_ARM_ST, REG_NXT_CEQE);
++	hr_reg_write(cq_context, CQC_SHIFT, ilog2(hr_cq->cq_depth));
++	hr_reg_write(cq_context, CQC_CEQN, hr_cq->vector);
++	hr_reg_write(cq_context, CQC_CQN, hr_cq->cqn);
 +
- static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 				     const struct ib_recv_wr *wr,
- 				     const struct ib_recv_wr **bad_wr)
-@@ -1040,12 +1037,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 	}
++	if (hr_cq->cqe_size == HNS_ROCE_V3_CQE_SIZE)
++		hr_reg_write(cq_context, CQC_CQE_SIZE, CQE_SIZE_64B);
  
- 	if (likely(nreq)) {
--		roce_set_field(srq_db.byte_4, V2_DB_TAG_M, V2_DB_TAG_S,
--			       srq->srqn);
--		roce_set_field(srq_db.byte_4, V2_DB_CMD_M, V2_DB_CMD_S,
--			       HNS_ROCE_V2_SRQ_DB);
--		roce_set_field(srq_db.parameter, V2_DB_PRODUCER_IDX_M,
--			       V2_DB_PRODUCER_IDX_S, srq->idx_que.head);
-+		update_srq_db(&srq_db, srq);
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_STASH)
+ 		hr_reg_enable(cq_context, CQC_STASH);
  
- 		hns_roce_write64(hr_dev, (__le32 *)&srq_db, srq->db_reg);
- 	}
-@@ -3199,14 +3191,10 @@ static inline void update_cq_db(struct hns_roce_dev *hr_dev,
- 	} else {
- 		struct hns_roce_v2_db cq_db = {};
- 
--		roce_set_field(cq_db.byte_4, V2_DB_TAG_M, V2_DB_TAG_S,
--			       hr_cq->cqn);
--		roce_set_field(cq_db.byte_4, V2_DB_CMD_M, V2_DB_CMD_S,
--			       HNS_ROCE_V2_CQ_DB);
--		roce_set_field(cq_db.parameter, V2_CQ_DB_CONS_IDX_M,
--			       V2_CQ_DB_CONS_IDX_S, hr_cq->cons_index);
--		roce_set_field(cq_db.parameter, V2_CQ_DB_CMD_SN_M,
--			       V2_CQ_DB_CMD_SN_S, 1);
-+		hr_reg_write(&cq_db, DB_TAG, hr_cq->cqn);
-+		hr_reg_write(&cq_db, DB_CMD, HNS_ROCE_V2_CQ_DB);
-+		hr_reg_write(&cq_db, DB_CQ_CI, hr_cq->cons_index);
-+		hr_reg_write(&cq_db, DB_CQ_CMD_SN, 1);
- 
- 		hns_roce_write64(hr_dev, (__le32 *)&cq_db, hr_cq->db_reg);
- 	}
-@@ -3327,14 +3315,11 @@ static int hns_roce_v2_req_notify_cq(struct ib_cq *ibcq,
- 	notify_flag = (flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
- 		      V2_CQ_DB_REQ_NOT : V2_CQ_DB_REQ_NOT_SOL;
- 
--	roce_set_field(cq_db.byte_4, V2_DB_TAG_M, V2_DB_TAG_S, hr_cq->cqn);
--	roce_set_field(cq_db.byte_4, V2_DB_CMD_M, V2_DB_CMD_S,
--		       HNS_ROCE_V2_CQ_DB_NOTIFY);
--	roce_set_field(cq_db.parameter, V2_CQ_DB_CONS_IDX_M,
--		       V2_CQ_DB_CONS_IDX_S, hr_cq->cons_index);
--	roce_set_field(cq_db.parameter, V2_CQ_DB_CMD_SN_M,
--		       V2_CQ_DB_CMD_SN_S, hr_cq->arm_sn);
--	roce_set_bit(cq_db.parameter, V2_CQ_DB_NOTIFY_TYPE_S, notify_flag);
-+	hr_reg_write(&cq_db, DB_TAG, hr_cq->cqn);
-+	hr_reg_write(&cq_db, DB_CMD, HNS_ROCE_V2_CQ_DB_NOTIFY);
-+	hr_reg_write(&cq_db, DB_CQ_CI, hr_cq->cons_index);
-+	hr_reg_write(&cq_db, DB_CQ_CMD_SN, hr_cq->arm_sn);
-+	hr_reg_write(&cq_db, DB_CQ_NOTIFY, notify_flag);
- 
- 	hns_roce_write64(hr_dev, (__le32 *)&cq_db, hr_cq->db_reg);
- 
-@@ -5554,22 +5539,20 @@ static void update_eq_db(struct hns_roce_eq *eq)
- 	struct hns_roce_v2_db eq_db = {};
- 
- 	if (eq->type_flag == HNS_ROCE_AEQ) {
--		roce_set_field(eq_db.byte_4, V2_EQ_DB_CMD_M, V2_EQ_DB_CMD_S,
--			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
--			       HNS_ROCE_EQ_DB_CMD_AEQ :
--			       HNS_ROCE_EQ_DB_CMD_AEQ_ARMED);
-+		hr_reg_write(&eq_db, EQ_DB_CMD,
-+			     eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
-+			     HNS_ROCE_EQ_DB_CMD_AEQ :
-+			     HNS_ROCE_EQ_DB_CMD_AEQ_ARMED);
- 	} else {
--		roce_set_field(eq_db.byte_4, V2_EQ_DB_TAG_M, V2_EQ_DB_TAG_S,
--			       eq->eqn);
-+		hr_reg_write(&eq_db, EQ_DB_TAG, eq->eqn);
- 
--		roce_set_field(eq_db.byte_4, V2_EQ_DB_CMD_M, V2_EQ_DB_CMD_S,
--			       eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
--			       HNS_ROCE_EQ_DB_CMD_CEQ :
--			       HNS_ROCE_EQ_DB_CMD_CEQ_ARMED);
-+		hr_reg_write(&eq_db, EQ_DB_CMD,
-+			     eq->arm_st == HNS_ROCE_V2_EQ_ALWAYS_ARMED ?
-+			     HNS_ROCE_EQ_DB_CMD_CEQ :
-+			     HNS_ROCE_EQ_DB_CMD_CEQ_ARMED);
- 	}
- 
--	roce_set_field(eq_db.parameter, V2_EQ_DB_CONS_IDX_M,
--		       V2_EQ_DB_CONS_IDX_S, eq->cons_index);
-+	hr_reg_write(&eq_db, EQ_DB_CI, eq->cons_index);
- 
- 	hns_roce_write64(hr_dev, (__le32 *)&eq_db, eq->db_reg);
+-	cq_context->cqe_cur_blk_addr = cpu_to_le32(to_hr_hw_page_addr(mtts[0]));
+-
+-	roce_set_field(cq_context->byte_16_hop_addr,
+-		       V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_M,
+-		       V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_S,
+-		       upper_32_bits(to_hr_hw_page_addr(mtts[0])));
+-	roce_set_field(cq_context->byte_16_hop_addr,
+-		       V2_CQC_BYTE_16_CQE_HOP_NUM_M,
+-		       V2_CQC_BYTE_16_CQE_HOP_NUM_S, hr_dev->caps.cqe_hop_num ==
+-		       HNS_ROCE_HOP_NUM_0 ? 0 : hr_dev->caps.cqe_hop_num);
+-
+-	cq_context->cqe_nxt_blk_addr = cpu_to_le32(to_hr_hw_page_addr(mtts[1]));
+-	roce_set_field(cq_context->byte_24_pgsz_addr,
+-		       V2_CQC_BYTE_24_CQE_NXT_BLK_ADDR_M,
+-		       V2_CQC_BYTE_24_CQE_NXT_BLK_ADDR_S,
+-		       upper_32_bits(to_hr_hw_page_addr(mtts[1])));
+-	roce_set_field(cq_context->byte_24_pgsz_addr,
+-		       V2_CQC_BYTE_24_CQE_BA_PG_SZ_M,
+-		       V2_CQC_BYTE_24_CQE_BA_PG_SZ_S,
+-		       to_hr_hw_page_shift(hr_cq->mtr.hem_cfg.ba_pg_shift));
+-	roce_set_field(cq_context->byte_24_pgsz_addr,
+-		       V2_CQC_BYTE_24_CQE_BUF_PG_SZ_M,
+-		       V2_CQC_BYTE_24_CQE_BUF_PG_SZ_S,
+-		       to_hr_hw_page_shift(hr_cq->mtr.hem_cfg.buf_pg_shift));
+-
+-	cq_context->cqe_ba = cpu_to_le32(dma_handle >> 3);
+-
+-	roce_set_field(cq_context->byte_40_cqe_ba, V2_CQC_BYTE_40_CQE_BA_M,
+-		       V2_CQC_BYTE_40_CQE_BA_S, (dma_handle >> (32 + 3)));
+-
+-	roce_set_bit(cq_context->byte_44_db_record,
+-		     V2_CQC_BYTE_44_DB_RECORD_EN_S,
++	hr_reg_write(cq_context, CQC_CQE_CUR_BLK_ADDR_L,
++		     to_hr_hw_page_addr(mtts[0]));
++	hr_reg_write(cq_context, CQC_CQE_CUR_BLK_ADDR_H,
++		     upper_32_bits(to_hr_hw_page_addr(mtts[0])));
++	hr_reg_write(cq_context, CQC_CQE_HOP_NUM, hr_dev->caps.cqe_hop_num ==
++		     HNS_ROCE_HOP_NUM_0 ? 0 : hr_dev->caps.cqe_hop_num);
++	hr_reg_write(cq_context, CQC_CQE_NEX_BLK_ADDR_L,
++		     to_hr_hw_page_addr(mtts[1]));
++	hr_reg_write(cq_context, CQC_CQE_NEX_BLK_ADDR_H,
++		     upper_32_bits(to_hr_hw_page_addr(mtts[1])));
++	hr_reg_write(cq_context, CQC_CQE_BAR_PG_SZ,
++		     to_hr_hw_page_shift(hr_cq->mtr.hem_cfg.ba_pg_shift));
++	hr_reg_write(cq_context, CQC_CQE_BUF_PG_SZ,
++		     to_hr_hw_page_shift(hr_cq->mtr.hem_cfg.buf_pg_shift));
++	hr_reg_write(cq_context, CQC_CQE_BA_L, dma_handle >> 3);
++	hr_reg_write(cq_context, CQC_CQE_BA_H, (dma_handle >> (32 + 3)));
++	hr_reg_write(cq_context, CQC_DB_RECORD_EN,
+ 		     (hr_cq->flags & HNS_ROCE_CQ_FLAG_RECORD_DB) ? 1 : 0);
+-
+-	roce_set_field(cq_context->byte_44_db_record,
+-		       V2_CQC_BYTE_44_DB_RECORD_ADDR_M,
+-		       V2_CQC_BYTE_44_DB_RECORD_ADDR_S,
+-		       ((u32)hr_cq->db.dma) >> 1);
+-	cq_context->db_record_addr = cpu_to_le32(hr_cq->db.dma >> 32);
+-
+-	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_MAX_CNT_M,
+-		       V2_CQC_BYTE_56_CQ_MAX_CNT_S,
+-		       HNS_ROCE_V2_CQ_DEFAULT_BURST_NUM);
+-	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_PERIOD_M,
+-		       V2_CQC_BYTE_56_CQ_PERIOD_S,
+-		       HNS_ROCE_V2_CQ_DEFAULT_INTERVAL);
++	hr_reg_write(cq_context, CQC_CQE_DB_RECORD_ADDR_L,
++		     ((u32)hr_cq->db.dma) >> 1);
++	hr_reg_write(cq_context, CQC_CQE_DB_RECORD_ADDR_H,
++		     hr_cq->db.dma >> 32);
++	hr_reg_write(cq_context, CQC_CQ_MAX_CNT,
++		     HNS_ROCE_V2_CQ_DEFAULT_BURST_NUM);
++	hr_reg_write(cq_context, CQC_CQ_PERIOD,
++		     HNS_ROCE_V2_CQ_DEFAULT_INTERVAL);
  }
+ 
+ static int hns_roce_v2_req_notify_cq(struct ib_cq *ibcq,
+@@ -5753,18 +5724,10 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 
+ 	memset(cqc_mask, 0xff, sizeof(*cqc_mask));
+ 
+-	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
+-		       cq_count);
+-	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_MAX_CNT_M, V2_CQC_BYTE_56_CQ_MAX_CNT_S,
+-		       0);
+-	roce_set_field(cq_context->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
+-		       cq_period);
+-	roce_set_field(cqc_mask->byte_56_cqe_period_maxcnt,
+-		       V2_CQC_BYTE_56_CQ_PERIOD_M, V2_CQC_BYTE_56_CQ_PERIOD_S,
+-		       0);
++	hr_reg_write(cq_context, CQC_CQ_MAX_CNT, cq_count);
++	hr_reg_clear(cqc_mask, CQC_CQ_MAX_CNT);
++	hr_reg_write(cq_context, CQC_CQ_PERIOD, cq_period);
++	hr_reg_clear(cqc_mask, CQC_CQ_PERIOD);
+ 
+ 	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_cq->cqn, 1,
+ 				HNS_ROCE_CMD_MODIFY_CQC,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 4cdeac9..974f8c1 100644
+index cd361c0..ce7068d 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -943,28 +943,30 @@ struct hns_roce_v2_mpt_entry {
- #define V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S 28
- #define V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M GENMASK(31, 28)
- 
--#define V2_DB_TAG_S 0
--#define V2_DB_TAG_M GENMASK(23, 0)
-+struct hns_roce_v2_db {
-+	__le32	data[2];
-+};
- 
--#define V2_DB_CMD_S 24
--#define V2_DB_CMD_M GENMASK(27, 24)
-+#define DB_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_v2_db, h, l)
- 
--#define V2_DB_FLAG_S 31
-+#define DB_TAG DB_FIELD_LOC(23, 0)
-+#define DB_CMD DB_FIELD_LOC(27, 24)
-+#define DB_FLAG DB_FIELD_LOC(31, 31)
-+#define DB_PI DB_FIELD_LOC(47, 32)
-+#define DB_SL DB_FIELD_LOC(50, 48)
-+#define DB_CQ_CI DB_FIELD_LOC(55, 32)
-+#define DB_CQ_NOTIFY DB_FIELD_LOC(56, 56)
-+#define DB_CQ_CMD_SN DB_FIELD_LOC(58, 57)
-+#define EQ_DB_TAG DB_FIELD_LOC(7, 0)
-+#define EQ_DB_CMD DB_FIELD_LOC(17, 16)
-+#define EQ_DB_CI DB_FIELD_LOC(55, 32)
- 
- #define V2_DB_PRODUCER_IDX_S 0
- #define V2_DB_PRODUCER_IDX_M GENMASK(15, 0)
- 
--#define V2_DB_SL_S 16
--#define V2_DB_SL_M GENMASK(18, 16)
--
- #define V2_CQ_DB_CONS_IDX_S 0
- #define V2_CQ_DB_CONS_IDX_M GENMASK(23, 0)
- 
--#define V2_CQ_DB_NOTIFY_TYPE_S 24
--
--#define V2_CQ_DB_CMD_SN_S 25
--#define V2_CQ_DB_CMD_SN_M GENMASK(26, 25)
--
- struct hns_roce_v2_ud_send_wqe {
- 	__le32	byte_4;
- 	__le32	msg_len;
-@@ -1099,11 +1101,6 @@ struct hns_roce_v2_wqe_data_seg {
- 	__le64    addr;
+@@ -165,6 +165,11 @@ enum {
+ 	REG_NXT_SE_CEQE = 0x3
  };
  
--struct hns_roce_v2_db {
--	__le32	byte_4;
--	__le32	parameter;
--};
--
- struct hns_roce_query_version {
- 	__le16 rocee_vendor_id;
- 	__le16 rocee_hw_version;
-@@ -1627,15 +1624,6 @@ struct hns_roce_dip {
- #define HNS_ROCE_V2_AEQE_SUB_TYPE_S 8
- #define HNS_ROCE_V2_AEQE_SUB_TYPE_M GENMASK(15, 8)
++enum {
++	CQE_SIZE_32B = 0x0,
++	CQE_SIZE_64B = 0x1
++};
++
+ #define V2_CQ_DB_REQ_NOT_SOL			0
+ #define V2_CQ_DB_REQ_NOT			1
  
--#define V2_EQ_DB_TAG_S	0
--#define V2_EQ_DB_TAG_M	GENMASK(7, 0)
--
--#define V2_EQ_DB_CMD_S	16
--#define V2_EQ_DB_CMD_M	GENMASK(17, 16)
--
--#define V2_EQ_DB_CONS_IDX_S 0
--#define V2_EQ_DB_CONS_IDX_M GENMASK(23, 0)
--
- #define HNS_ROCE_V2_AEQE_EVENT_QUEUE_NUM_S 0
- #define HNS_ROCE_V2_AEQE_EVENT_QUEUE_NUM_M GENMASK(23, 0)
+@@ -306,67 +311,24 @@ struct hns_roce_v2_cq_context {
+ #define HNS_ROCE_V2_CQ_DEFAULT_BURST_NUM 0x0
+ #define HNS_ROCE_V2_CQ_DEFAULT_INTERVAL	0x0
  
+-#define	V2_CQC_BYTE_4_CQ_ST_S 0
+-#define V2_CQC_BYTE_4_CQ_ST_M GENMASK(1, 0)
+-
+-#define	V2_CQC_BYTE_4_POLL_S 2
+-
+-#define	V2_CQC_BYTE_4_SE_S 3
+-
+-#define	V2_CQC_BYTE_4_OVER_IGNORE_S 4
+-
+-#define	V2_CQC_BYTE_4_COALESCE_S 5
+-
+ #define	V2_CQC_BYTE_4_ARM_ST_S 6
+ #define V2_CQC_BYTE_4_ARM_ST_M GENMASK(7, 6)
+ 
+-#define	V2_CQC_BYTE_4_SHIFT_S 8
+-#define V2_CQC_BYTE_4_SHIFT_M GENMASK(12, 8)
+-
+-#define	V2_CQC_BYTE_4_CMD_SN_S 13
+-#define V2_CQC_BYTE_4_CMD_SN_M GENMASK(14, 13)
+-
+ #define	V2_CQC_BYTE_4_CEQN_S 15
+ #define V2_CQC_BYTE_4_CEQN_M GENMASK(23, 15)
+ 
+-#define	V2_CQC_BYTE_4_PAGE_OFFSET_S 24
+-#define V2_CQC_BYTE_4_PAGE_OFFSET_M GENMASK(31, 24)
+-
+ #define	V2_CQC_BYTE_8_CQN_S 0
+ #define V2_CQC_BYTE_8_CQN_M GENMASK(23, 0)
+ 
+-#define V2_CQC_BYTE_8_CQE_SIZE_S 27
+-#define V2_CQC_BYTE_8_CQE_SIZE_M GENMASK(28, 27)
+-
+-#define	V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_S 0
+-#define V2_CQC_BYTE_16_CQE_CUR_BLK_ADDR_M GENMASK(19, 0)
+-
+ #define	V2_CQC_BYTE_16_CQE_HOP_NUM_S 30
+ #define V2_CQC_BYTE_16_CQE_HOP_NUM_M GENMASK(31, 30)
+ 
+-#define	V2_CQC_BYTE_24_CQE_NXT_BLK_ADDR_S 0
+-#define V2_CQC_BYTE_24_CQE_NXT_BLK_ADDR_M GENMASK(19, 0)
+-
+-#define	V2_CQC_BYTE_24_CQE_BA_PG_SZ_S 24
+-#define V2_CQC_BYTE_24_CQE_BA_PG_SZ_M GENMASK(27, 24)
+-
+-#define	V2_CQC_BYTE_24_CQE_BUF_PG_SZ_S 28
+-#define V2_CQC_BYTE_24_CQE_BUF_PG_SZ_M GENMASK(31, 28)
+-
+ #define	V2_CQC_BYTE_28_CQ_PRODUCER_IDX_S 0
+ #define V2_CQC_BYTE_28_CQ_PRODUCER_IDX_M GENMASK(23, 0)
+ 
+ #define	V2_CQC_BYTE_32_CQ_CONSUMER_IDX_S 0
+ #define V2_CQC_BYTE_32_CQ_CONSUMER_IDX_M GENMASK(23, 0)
+ 
+-#define	V2_CQC_BYTE_40_CQE_BA_S 0
+-#define V2_CQC_BYTE_40_CQE_BA_M GENMASK(28, 0)
+-
+-#define	V2_CQC_BYTE_44_DB_RECORD_EN_S 0
+-
+-#define	V2_CQC_BYTE_44_DB_RECORD_ADDR_S 1
+-#define	V2_CQC_BYTE_44_DB_RECORD_ADDR_M GENMASK(31, 1)
+-
+ #define	V2_CQC_BYTE_52_CQE_CNT_S 0
+ #define	V2_CQC_BYTE_52_CQE_CNT_M GENMASK(23, 0)
+ 
+@@ -376,12 +338,45 @@ struct hns_roce_v2_cq_context {
+ #define	V2_CQC_BYTE_56_CQ_PERIOD_S 16
+ #define V2_CQC_BYTE_56_CQ_PERIOD_M GENMASK(31, 16)
+ 
+-#define	V2_CQC_BYTE_64_SE_CQE_IDX_S 0
+-#define	V2_CQC_BYTE_64_SE_CQE_IDX_M GENMASK(23, 0)
+-
+ #define CQC_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_v2_cq_context, h, l)
+ 
++#define CQC_CQ_ST CQC_FIELD_LOC(1, 0)
++#define CQC_POLL CQC_FIELD_LOC(2, 2)
++#define CQC_SE CQC_FIELD_LOC(3, 3)
++#define CQC_OVER_IGNORE CQC_FIELD_LOC(4, 4)
++#define CQC_ARM_ST CQC_FIELD_LOC(7, 6)
++#define CQC_SHIFT CQC_FIELD_LOC(12, 8)
++#define CQC_CMD_SN CQC_FIELD_LOC(14, 13)
++#define CQC_CEQN CQC_FIELD_LOC(23, 15)
++#define CQC_CQN CQC_FIELD_LOC(55, 32)
++#define CQC_POE_EN CQC_FIELD_LOC(56, 56)
++#define CQC_POE_NUM CQC_FIELD_LOC(58, 57)
++#define CQC_CQE_SIZE CQC_FIELD_LOC(60, 59)
++#define CQC_CQ_CNT_MODE CQC_FIELD_LOC(61, 61)
+ #define CQC_STASH CQC_FIELD_LOC(63, 63)
++#define CQC_CQE_CUR_BLK_ADDR_L CQC_FIELD_LOC(95, 64)
++#define CQC_CQE_CUR_BLK_ADDR_H CQC_FIELD_LOC(115, 96)
++#define CQC_POE_QID CQC_FIELD_LOC(125, 116)
++#define CQC_CQE_HOP_NUM CQC_FIELD_LOC(127, 126)
++#define CQC_CQE_NEX_BLK_ADDR_L CQC_FIELD_LOC(159, 128)
++#define CQC_CQE_NEX_BLK_ADDR_H CQC_FIELD_LOC(179, 160)
++#define CQC_CQE_BAR_PG_SZ CQC_FIELD_LOC(187, 184)
++#define CQC_CQE_BUF_PG_SZ CQC_FIELD_LOC(191, 188)
++#define CQC_CQ_PRODUCER_IDX CQC_FIELD_LOC(215, 192)
++#define CQC_CQ_CONSUMER_IDX CQC_FIELD_LOC(247, 224)
++#define CQC_CQE_BA_L CQC_FIELD_LOC(287, 256)
++#define CQC_CQE_BA_H CQC_FIELD_LOC(316, 288)
++#define CQC_POE_QID_H_0 CQC_FIELD_LOC(319, 317)
++#define CQC_DB_RECORD_EN CQC_FIELD_LOC(320, 320)
++#define CQC_CQE_DB_RECORD_ADDR_L CQC_FIELD_LOC(351, 321)
++#define CQC_CQE_DB_RECORD_ADDR_H CQC_FIELD_LOC(383, 352)
++#define CQC_CQE_CNT CQC_FIELD_LOC(407, 384)
++#define CQC_CQ_MAX_CNT CQC_FIELD_LOC(431, 416)
++#define CQC_CQ_PERIOD CQC_FIELD_LOC(447, 432)
++#define CQC_CQE_REPORT_TIMER CQC_FIELD_LOC(471, 448)
++#define CQC_WR_CQE_IDX CQC_FIELD_LOC(479, 472)
++#define CQC_SE_CQE_IDX CQC_FIELD_LOC(503, 480)
++#define CQC_POE_QID_H_1 CQC_FIELD_LOC(511, 511)
+ 
+ struct hns_roce_srq_context {
+ 	__le32 byte_4_srqn_srqst;
 -- 
 2.7.4
 
