@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C49F2C48BDF
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:10:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30FD3C49361
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:10:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC11060C41
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:10:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D32660C41
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232835AbhFRKNC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Jun 2021 06:13:02 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:5041 "EHLO
+        id S232793AbhFRKND (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Jun 2021 06:13:03 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:5043 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232793AbhFRKNC (ORCPT
+        with ESMTP id S232806AbhFRKNC (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 06:13:02 -0400
 Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G5vgw35ZgzXhCN;
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G5vgw3nDKzXhFN;
         Fri, 18 Jun 2021 18:05:48 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
  dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Fri, 18 Jun 2021 18:10:48 +0800
+ 15.1.2176.2; Fri, 18 Jun 2021 18:10:50 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Fri, 18 Jun 2021 18:10:48 +0800
+ 15.1.2176.2; Fri, 18 Jun 2021 18:10:49 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Yangyang Li <liyangyang20@huawei.com>,
+        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
         Weihang Li <liweihang@huawei.com>
-Subject: [PATCH for-next 04/10] RDMA/hns: Add member assignments for qp_init_attr
-Date:   Fri, 18 Jun 2021 18:10:14 +0800
-Message-ID: <1624011020-16992-5-git-send-email-liweihang@huawei.com>
+Subject: [PATCH for-next 10/10] RDMA/hns: Fix spelling mistakes of original
+Date:   Fri, 18 Jun 2021 18:10:20 +0800
+Message-ID: <1624011020-16992-11-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1624011020-16992-1-git-send-email-liweihang@huawei.com>
 References: <1624011020-16992-1-git-send-email-liweihang@huawei.com>
@@ -51,34 +51,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
+From: Lang Cheng <chenglang@huawei.com>
 
-Some kernel ULPs need to use the return value of qp_init_attr, so add
-member assignments for qp_init_attr.
+'orignal' should be 'original'.
 
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index e71df58..65ed472 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5411,6 +5411,11 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 		qp_attr->cap.max_send_sge = 0;
- 	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 9467b3e..3a519e8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -336,7 +336,7 @@ struct hns_roce_mw {
  
-+	qp_init_attr->qp_context = ibqp->qp_context;
-+	qp_init_attr->qp_type = ibqp->qp_type;
-+	qp_init_attr->recv_cq = ibqp->recv_cq;
-+	qp_init_attr->send_cq = ibqp->send_cq;
-+	qp_init_attr->srq = ibqp->srq;
- 	qp_init_attr->cap = qp_attr->cap;
- 	qp_init_attr->sq_sig_type = hr_qp->sq_signal_bits;
- 
+ struct hns_roce_mr {
+ 	struct ib_mr		ibmr;
+-	u64			iova; /* MR's virtual orignal addr */
++	u64			iova; /* MR's virtual original addr */
+ 	u64			size; /* Address range of MR */
+ 	u32			key; /* Key of MR */
+ 	u32			pd;   /* PD num of MR */
 -- 
 2.7.4
 
