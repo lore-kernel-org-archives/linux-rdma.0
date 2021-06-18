@@ -8,60 +8,60 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F505C48BDF
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 05:00:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7FFAC49EA3
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 05:00:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66E9961209
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 05:00:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9069E61209
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 05:00:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232144AbhFRFCg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Jun 2021 01:02:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58944 "EHLO
+        id S232143AbhFRFCi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Jun 2021 01:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231848AbhFRFCf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 01:02:35 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61403C06175F
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Jun 2021 22:00:26 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id t140so9255765oih.0
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Jun 2021 22:00:26 -0700 (PDT)
+        with ESMTP id S232149AbhFRFCh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 01:02:37 -0400
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84545C061574
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Jun 2021 22:00:28 -0700 (PDT)
+Received: by mail-oi1-x233.google.com with SMTP id m137so9203690oig.6
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Jun 2021 22:00:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ADvuAn3NIofhjjOp5lFsWXSlVvEoS3sGNqks4pM/Ag4=;
-        b=Lk122pBFN1AZyqBZ7RtYX4TKFvscimj1/Q3rWZEQujx3yDOsLxK5IGoDRMWI/vPGhM
-         q3Bhkvc2WnPEjv6iycY8NCNaXgPGMag1eksHEvxQFVsL6N3QyG3+ONQD9rZ8xL0qqzQr
-         0relmfQRqmMQd1J1IK9xmaFcWMGdlsnr+cZV9327S9g2jeNT008BbvtYNPFImQZz3WXs
-         M+/l7o+wFKP4Fo/thypFzKEW8NThsdQDnyzV3e/VSXcSJmyJrMiiHeIM7msx8oOguYVA
-         DDO4uG3wRhYPFVF5aIgqhZZmmBoSspOuZsgFxFgIpheQwLTWiR5ZZgFdgYHbpN7HXxY9
-         o60g==
+        bh=O6avt2oKazTUpNnHS78IcfZ7EDhGCVauqOO+MfFKryU=;
+        b=DQjCoQLpm7ewWmBuQIVT+U7Odl43jDU6RILZlTBN8fb/J+BbvjzoL3/rAvBR1Np9rt
+         mXL5ezDqA7xlQcBMjthxf0tFs2i+mY4ogylhocFS+YTt9Ob8TLEI9KyzA7mq4W5fXvCU
+         owSP7822RMZAdz5ga2u6ehH4r9eBtpVlh5VBxCcftOm7S096H0fXnWhXpeRVbag0ixX5
+         n70/sfqnoiY9hrF6T4IhWv09TYjLo/DyqW9qA3Lu0S7JT1gDOWXZXuucqSVOa/A4Wc9/
+         4vSlYjJiscihnN8NoLpKMBhW/nO3imEzfi0BW34AgW1CmbTcf4GDBcN5Uf4q09FlfGaY
+         BOzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ADvuAn3NIofhjjOp5lFsWXSlVvEoS3sGNqks4pM/Ag4=;
-        b=fe9PF2dQ3n4DqPxWtIpswxiidc0W7I1WGkykn/lAdkbYw+e1VwKjnAF9PkB6MMzipN
-         T+BvORgknyPlvHP3pSBBBecylahFjz1k0pT/uXiwb0fN9SQRHuuo07ywN++78UQoXmf2
-         sVemw0Uteli6WG+kJj4CjoNcFNTEivLTbX1ZGDunfGeFx+eirDCv9aS7pD1p9V1ev42C
-         d2PACaInI8YBNiLRrsGrGfi6WPDRfnitW4vvR1zqEVSPMK3GuhhaqQvOWKDzeIJjKM/E
-         FfdOumkp/gJo6qUju6Q1QwCL/FuVIDGms6TUDCLtCuJ7PDGQz6vVGNcGFmf9O5QnS5OW
-         9m8g==
-X-Gm-Message-State: AOAM531W+5HCGOtCWuGUKvDAfobM5jT9R65Uw1/gYinF69cqSQ3OcYpZ
-        r1oWbw4bFbP6MBEAVKSmMno=
-X-Google-Smtp-Source: ABdhPJzKMphzmulypNrGASu9nJoSUwlDQOBbPfObhoJQRzrg8WgpJDG6xwM4dczVe5WLU0xAgC9rUg==
-X-Received: by 2002:aca:4d46:: with SMTP id a67mr5675627oib.52.1623992425826;
-        Thu, 17 Jun 2021 22:00:25 -0700 (PDT)
+        bh=O6avt2oKazTUpNnHS78IcfZ7EDhGCVauqOO+MfFKryU=;
+        b=F+91XJgJi2OELYFf7rbUrukioLtPTkC2tqlEccwQ8JAcsNTldccf0qQ0o7ZzWelKJv
+         IcxHR+y0hn60YZL585fIto7FNhHO+VlGtSUaDC+AaaDS9utKcdj/JH2nBa16UdNJ95ik
+         TN8iUpvHHhhTAi/rIT6dn3ZQF2sEuXjI96TgM1/Vs80omuv3xkCKFDjafDwkVg2gedce
+         E+jNxot0O8XE95hMajfsKi0IXiHCk+BNbj8Juh9uOVYVKcbzOnhnUFPvKl8iqbDoBSCo
+         yk5VbqE47ZZk+ZpPLNNvVozw1W/9p0z243Gh5U7WBxqaSnbabibTaPW4LwtirmI97khV
+         gcNw==
+X-Gm-Message-State: AOAM531jkhHiMB+u5+fVNEX3TYHI92VnHElW64AbX6l34bG9Wrg7M17k
+        hMi5JK6FwxFgEk7m8nZ/tWc=
+X-Google-Smtp-Source: ABdhPJwfY5wvzR7uLOoVHf+HH3gC1NnGR9sOyVv+pUwr7BUkE40Y8Zkp0zaHwYJmFsBv4clqQUr7Fg==
+X-Received: by 2002:aca:f488:: with SMTP id s130mr5596131oih.5.1623992427963;
+        Thu, 17 Jun 2021 22:00:27 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-2fce-3453-431e-5204.res6.spectrum.com. [2603:8081:140c:1a00:2fce:3453:431e:5204])
-        by smtp.gmail.com with ESMTPSA id j3sm1566751oii.46.2021.06.17.22.00.25
+        by smtp.gmail.com with ESMTPSA id e23sm1788418otk.67.2021.06.17.22.00.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Jun 2021 22:00:25 -0700 (PDT)
+        Thu, 17 Jun 2021 22:00:27 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearson@hpe.com>
-Subject: [PATCH for-next 1/6] RDMA/rxe: Fix useless copy in send_atomic_ack
-Date:   Thu, 17 Jun 2021 23:57:38 -0500
-Message-Id: <20210618045742.204195-2-rpearsonhpe@gmail.com>
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 4/6] RDMA/rxe: Fix over copying in get_srq_wqe
+Date:   Thu, 17 Jun 2021 23:57:41 -0500
+Message-Id: <20210618045742.204195-5-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210618045742.204195-1-rpearsonhpe@gmail.com>
 References: <20210618045742.204195-1-rpearsonhpe@gmail.com>
@@ -71,35 +71,48 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Bob Pearson <rpearson@hpe.com>
+Currently get_srq_wqe() in rxe_resp.c copies the maximum possible number
+of bytes from the wqe into the QPs copy of the SRQ wqe. This is usually
+extra work and risks reading past the end of the SRQ circular buffer if
+the SRQ is configured with less than the maximum possible number of SGEs.
 
-In send_atomic_ack() in rxe_resp.c there is code copying ack_pkt
-into the skb->cb[]. This doesn't do anything useful because the
-cb[] is not used in the transmit path by the rxe driver.
+Check the number of SGEs is not too large.
+Compute the actual number of bytes in the WR and copy only those.
 
-Remove this code.
-
-Fixes: 4c93496f18ce ("IB/rxe: do not copy extra stack memory to skb")
-Signed-off-by: Bob Pearson <rpearson@hpe.com>
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_resp.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_resp.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index f8a7ccd4d8b7..5565d88e0261 100644
+index 5718c8bb28ac..93322d20c0ab 100644
 --- a/drivers/infiniband/sw/rxe/rxe_resp.c
 +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -1023,10 +1023,6 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 	free_rd_atomic_resource(qp, res);
- 	rxe_advance_resp_resource(qp);
+@@ -296,6 +296,7 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
+ 	struct rxe_recv_wqe *wqe;
+ 	struct ib_event ev;
+ 	unsigned int count;
++	size_t size;
  
--	memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(ack_pkt));
--	memset((unsigned char *)SKB_TO_PKT(skb) + sizeof(ack_pkt), 0,
--	       sizeof(skb->cb) - sizeof(ack_pkt));
--
- 	skb_get(skb);
- 	res->type = RXE_ATOMIC_MASK;
- 	res->atomic.skb = skb;
+ 	if (srq->error)
+ 		return RESPST_ERR_RNR;
+@@ -311,8 +312,13 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
+ 		return RESPST_ERR_RNR;
+ 	}
+ 
+-	/* note kernel and user space recv wqes have same size */
+-	memcpy(&qp->resp.srq_wqe, wqe, sizeof(qp->resp.srq_wqe));
++	/* don't trust user space data */
++	if (unlikely(wqe->dma.num_sge > srq->rq.max_sge)) {
++		pr_warn("%s: invalid num_sge in SRQ entry\n", __func__);
++		return RESPST_ERR_MALFORMED_WQE;
++	}
++	size = sizeof(wqe) + wqe->dma.num_sge*sizeof(struct rxe_sge);
++	memcpy(&qp->resp.srq_wqe, wqe, size);
+ 
+ 	qp->resp.wqe = &qp->resp.srq_wqe.wqe;
+ 	if (qp->is_user) {
 -- 
 2.30.2
 
