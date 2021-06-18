@@ -2,93 +2,117 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A603AC48BDF
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 09:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8228C48BDF
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:06:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8170361260
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 09:17:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FF2960FE7
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Jun 2021 10:06:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231418AbhFRJTx convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Jun 2021 05:19:53 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:11063 "EHLO
+        id S233274AbhFRKJA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Jun 2021 06:09:00 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:11066 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231167AbhFRJTx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 05:19:53 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G5tY111wfzZfsT;
-        Fri, 18 Jun 2021 17:14:45 +0800 (CST)
-Received: from dggpeml100022.china.huawei.com (7.185.36.176) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Fri, 18 Jun 2021 17:17:42 +0800
+        with ESMTP id S231565AbhFRKIn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Jun 2021 06:08:43 -0400
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G5vdN05C6zZgD6;
+        Fri, 18 Jun 2021 18:03:36 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggpeml100022.china.huawei.com (7.185.36.176) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Fri, 18 Jun 2021 17:17:41 +0800
-Received: from dggema753-chm.china.huawei.com ([10.9.48.84]) by
- dggema753-chm.china.huawei.com ([10.9.48.84]) with mapi id 15.01.2176.012;
- Fri, 18 Jun 2021 17:17:41 +0800
-From:   liweihang <liweihang@huawei.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     "dledford@redhat.com" <dledford@redhat.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Linuxarm <linuxarm@huawei.com>, chenglang <chenglang@huawei.com>
-Subject: Re: [PATCH v3 for-next 1/8] RDMA/hns: Use temporary variables to fix
- warning about hr_reg_write()
-Thread-Topic: [PATCH v3 for-next 1/8] RDMA/hns: Use temporary variables to fix
- warning about hr_reg_write()
-Thread-Index: AQHXY0royWnjr0kOt0ufbx14sYWfVw==
-Date:   Fri, 18 Jun 2021 09:17:41 +0000
-Message-ID: <f3ff5a5b41af4fddb7072d550f95d196@huawei.com>
-References: <1623915111-43630-1-git-send-email-liweihang@huawei.com>
- <1623915111-43630-2-git-send-email-liweihang@huawei.com>
- <20210617224142.GU1002214@nvidia.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.67.100.165]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+ 15.1.2176.2; Fri, 18 Jun 2021 18:06:32 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2176.2; Fri, 18 Jun 2021 18:06:32 +0800
+From:   Weihang Li <liweihang@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v4 for-next 2/8] RDMA/hns: Add a check to ensure integer mtu is positive
+Date:   Fri, 18 Jun 2021 18:05:59 +0800
+Message-ID: <1624010765-1029-3-git-send-email-liweihang@huawei.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1624010765-1029-1-git-send-email-liweihang@huawei.com>
+References: <1624010765-1029-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ dggema753-chm.china.huawei.com (10.1.198.195)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2021/6/18 6:41, Jason Gunthorpe wrote:
-> On Thu, Jun 17, 2021 at 03:31:44PM +0800, Weihang Li wrote:
->> From: Lang Cheng <chenglang@huawei.com>
->>
->> Fix complains from sparse about "dubious: x & !y" when calling
->> hr_reg_write(ctx, field, !!val).
-> 
-> Where is this from?
-> 
-> I'm not convinced you should have the temporary here given how much
-> magics are involved in this stuff that rely on builtin_constant_p
-> 
-> Jason
-> 
+GCC may reports an running time assert error when a value calculated from
+ib_mtu_enum_to_int() is using as 'val' in FIELD_PREDP:
 
-The warning comes from:
+include/linux/compiler_types.h:328:38: error: call to
+'__compiletime_assert_1524' declared with attribute error: FIELD_PREP:
+value too large for the field
 
-#define __BF_FIELD_CHECK(_mask, _reg, _val, _pfx)			\
-		...
+So a check is added about whether integer mtu from ib_mtu_enum_to_int() is
+negative to avoid this warning.
 
-		BUILD_BUG_ON_MSG(__builtin_constant_p(_val) ?		\
-				 ~((_mask) >> __bf_shf(_mask)) & (_val) : 0, \
-				 _pfx "value too large for the field"); \
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-I will change 'hr_reg_write(ctx, field, !!val)' to 'hr_reg_write(ctx, field, val
-? 1 : 0)'. The latter is not as succinct as the former, but can avoid the sparse
-warning.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 6452ccc..0938e00 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4412,12 +4412,13 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	dma_addr_t trrl_ba;
+ 	dma_addr_t irrl_ba;
+-	enum ib_mtu mtu;
++	enum ib_mtu ib_mtu;
+ 	u8 lp_pktn_ini;
+ 	u64 *mtts;
+ 	u8 *dmac;
+ 	u8 *smac;
+ 	u32 port;
++	int mtu;
+ 	int ret;
+ 
+ 	ret = config_qp_rq_buf(hr_dev, hr_qp, context, qpc_mask);
+@@ -4501,19 +4502,23 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 	roce_set_field(qpc_mask->byte_52_udpspn_dmac, V2_QPC_BYTE_52_DMAC_M,
+ 		       V2_QPC_BYTE_52_DMAC_S, 0);
+ 
+-	mtu = get_mtu(ibqp, attr);
+-	hr_qp->path_mtu = mtu;
++	ib_mtu = get_mtu(ibqp, attr);
++	hr_qp->path_mtu = ib_mtu;
++
++	mtu = ib_mtu_enum_to_int(ib_mtu);
++	if (WARN_ON(mtu < 0))
++		return -EINVAL;
+ 
+ 	if (attr_mask & IB_QP_PATH_MTU) {
+ 		roce_set_field(context->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
+-			       V2_QPC_BYTE_24_MTU_S, mtu);
++			       V2_QPC_BYTE_24_MTU_S, ib_mtu);
+ 		roce_set_field(qpc_mask->byte_24_mtu_tc, V2_QPC_BYTE_24_MTU_M,
+ 			       V2_QPC_BYTE_24_MTU_S, 0);
+ 	}
+ 
+ #define MAX_LP_MSG_LEN 65536
+ 	/* MTU * (2 ^ LP_PKTN_INI) shouldn't be bigger than 64KB */
+-	lp_pktn_ini = ilog2(MAX_LP_MSG_LEN / ib_mtu_enum_to_int(mtu));
++	lp_pktn_ini = ilog2(MAX_LP_MSG_LEN / mtu);
+ 
+ 	roce_set_field(context->byte_56_dqpn_err, V2_QPC_BYTE_56_LP_PKTN_INI_M,
+ 		       V2_QPC_BYTE_56_LP_PKTN_INI_S, lp_pktn_ini);
+-- 
+2.7.4
 
-Thanks
-Weihang
