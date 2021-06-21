@@ -2,25 +2,26 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE9D9C49EA2
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC59CC48BE5
 	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4BC161156
+	by mail.kernel.org (Postfix) with ESMTP id C84E5610EA
 	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230118AbhFUIDc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229641AbhFUIDc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 21 Jun 2021 04:03:32 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:7495 "EHLO
+Received: from szxga02-in.huawei.com ([45.249.212.188]:5410 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230121AbhFUID3 (ORCPT
+        with ESMTP id S230144AbhFUID3 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Jun 2021 04:03:29 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G7hjK5PM9zZksW;
-        Mon, 21 Jun 2021 15:58:13 +0800 (CST)
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G7hj35XPpz72Z6;
+        Mon, 21 Jun 2021 15:57:59 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
  dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
@@ -28,15 +29,18 @@ Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Mon, 21 Jun 2021 16:01:12 +0800
+ 15.1.2176.2; Mon, 21 Jun 2021 16:01:13 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v5 for-next 0/9] RDMA/hns: Use new interfaces to write/read fields
-Date:   Mon, 21 Jun 2021 16:00:34 +0800
-Message-ID: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v5 for-next 3/9] RDMA/hns: Add hr_reg_write_bool()
+Date:   Mon, 21 Jun 2021 16:00:37 +0800
+Message-ID: <1624262443-24528-4-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
+References: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.69.192.56]
@@ -47,54 +51,82 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-hr_reg_*() is simpler than roce_set_*(), and the field/bit can be generated
-automatically and accurately. This series first fixes two issues on
-hr_reg_*(), then introduces hr_reg_write_bool() for 1 bit-width field, does
-the replacement at last.
+From: Lang Cheng <chenglang@huawei.com>
 
-Changes since v4:
-* Change the way to fix the sparse warning, we introduce
-  hr_reg_write_bool() for 1 bit-width field.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1624010765-1029-1-git-send-email-liweihang@huawei.com/
+In order to avoid to do bitwise operations on a boolean value, add a new
+register interface to avoid sparse comlaint about "dubious: x & !y" when
+calling hr_reg_write(ctx, field, !!val).
 
-Changes since v3:
-* Use "val ? 1 : 0" instead of "!!val" for hr_reg_write to avoid sparse
-  warnings.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1623915111-43630-1-git-send-email-liweihang@huawei.com/
+Fixes: dc504774408b ("RDMA/hns: Use new interface to set MPT related fields")
+Fixes: 495c24808ce7 ("RDMA/hns: Add XRC subtype in QPC and XRC type in SRQC")
+Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Signed-off-by: Weihang Li <liweihang@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_common.h |  8 ++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 24 ++++++++++++------------
+ 2 files changed, 20 insertions(+), 12 deletions(-)
 
-Changes since v2:
-* Add a patch to solve the gcc warnings about PREP_FIELD() by adding a
-  check for mtu. Therefore only the parts which fix the sparse warning is
-  reserved in #1.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1622624265-44796-1-git-send-email-liweihang@huawei.com/
-
-Changes since v1:
-* Add a patch to fix gcc warnings about PREP_FIELD().
-* Fix a typo in #5.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1622281154-49867-1-git-send-email-liweihang@huawei.com/
-
-Lang Cheng (3):
-  RDMA/hns: Add hr_reg_write_bool()
-  RDMA/hns: Use new interface to modify QP context
-  RDMA/hns: Use new interface to get CQE fields
-
-Weihang Li (2):
-  RDMA/hns: Fix sparse warnings when calling hr_reg_write()
-  RDMA/hns: Add a check to ensure integer mtu is positive
-
-Xi Wang (1):
-  RDMA/hns: Clean SRQC structure definition
-
-Yixing Liu (3):
-  RDMA/hns: Use new interface to write CQ context.
-  RDMA/hns: Use new interface to write FRMR fields
-  RDMA/hns: Use new interface to write DB related fields
-
- drivers/infiniband/hw/hns/hns_roce_common.h |    8 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 1124 ++++++++++-----------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  862 +++++++-------------
- 3 files changed, 679 insertions(+), 1315 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
+index 3a5658f..b73e55d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_common.h
++++ b/drivers/infiniband/hw/hns/hns_roce_common.h
+@@ -77,6 +77,14 @@
+ 
+ #define hr_reg_clear(ptr, field) _hr_reg_clear(ptr, field)
+ 
++#define _hr_reg_write_bool(ptr, field_type, field_h, field_l, val)             \
++	({                                                                     \
++		(val) ? _hr_reg_enable(ptr, field_type, field_h, field_l) :    \
++			_hr_reg_clear(ptr, field_type, field_h, field_l);      \
++	})
++
++#define hr_reg_write_bool(ptr, field, val) _hr_reg_write_bool(ptr, field, val)
++
+ #define _hr_reg_write(ptr, field_type, field_h, field_l, val)                  \
+ 	({                                                                     \
+ 		_hr_reg_clear(ptr, field_type, field_h, field_l);              \
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 2a4d748..7afecc6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -3109,16 +3109,16 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
+ 	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
+ 	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
+ 
+-	hr_reg_write(mpt_entry, MPT_BIND_EN,
+-		     !!(mr->access & IB_ACCESS_MW_BIND));
+-	hr_reg_write(mpt_entry, MPT_ATOMIC_EN,
+-		     !!(mr->access & IB_ACCESS_REMOTE_ATOMIC));
+-	hr_reg_write(mpt_entry, MPT_RR_EN,
+-		     !!(mr->access & IB_ACCESS_REMOTE_READ));
+-	hr_reg_write(mpt_entry, MPT_RW_EN,
+-		     !!(mr->access & IB_ACCESS_REMOTE_WRITE));
+-	hr_reg_write(mpt_entry, MPT_LW_EN,
+-		     !!((mr->access & IB_ACCESS_LOCAL_WRITE)));
++	hr_reg_write_bool(mpt_entry, MPT_BIND_EN,
++			  mr->access & IB_ACCESS_MW_BIND);
++	hr_reg_write_bool(mpt_entry, MPT_ATOMIC_EN,
++			  mr->access & IB_ACCESS_REMOTE_ATOMIC);
++	hr_reg_write_bool(mpt_entry, MPT_RR_EN,
++			  mr->access & IB_ACCESS_REMOTE_READ);
++	hr_reg_write_bool(mpt_entry, MPT_RW_EN,
++			  mr->access & IB_ACCESS_REMOTE_WRITE);
++	hr_reg_write_bool(mpt_entry, MPT_LW_EN,
++			  mr->access & IB_ACCESS_LOCAL_WRITE);
+ 
+ 	mpt_entry->len_l = cpu_to_le32(lower_32_bits(mr->size));
+ 	mpt_entry->len_h = cpu_to_le32(upper_32_bits(mr->size));
+@@ -5718,8 +5718,8 @@ static int hns_roce_v2_write_srqc(struct hns_roce_srq *srq, void *mb_buf)
+ 	}
+ 
+ 	hr_reg_write(ctx, SRQC_SRQ_ST, 1);
+-	hr_reg_write(ctx, SRQC_SRQ_TYPE,
+-		     !!(srq->ibsrq.srq_type == IB_SRQT_XRC));
++	hr_reg_write_bool(ctx, SRQC_SRQ_TYPE,
++			  srq->ibsrq.srq_type == IB_SRQT_XRC);
+ 	hr_reg_write(ctx, SRQC_PD, to_hr_pd(srq->ibsrq.pd)->pdn);
+ 	hr_reg_write(ctx, SRQC_SRQN, srq->srqn);
+ 	hr_reg_write(ctx, SRQC_XRCD, srq->xrcdn);
 -- 
 2.7.4
 
