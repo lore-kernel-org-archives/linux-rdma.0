@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC59CC48BE5
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1694DC49EA3
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C84E5610EA
+	by mail.kernel.org (Postfix) with ESMTP id EF27561206
 	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229641AbhFUIDc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Jun 2021 04:03:32 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:5410 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbhFUID3 (ORCPT
+        id S230144AbhFUIDd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Jun 2021 04:03:33 -0400
+Received: from szxga08-in.huawei.com ([45.249.212.255]:8284 "EHLO
+        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230157AbhFUID3 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Jun 2021 04:03:29 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4G7hj35XPpz72Z6;
-        Mon, 21 Jun 2021 15:57:59 +0800 (CST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4G7hfs6DKPz1BQ8q;
+        Mon, 21 Jun 2021 15:56:05 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
  15.1.2176.2; Mon, 21 Jun 2021 16:01:13 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Mon, 21 Jun 2021 16:01:13 +0800
+ 15.1.2176.2; Mon, 21 Jun 2021 16:01:12 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Lang Cheng <chenglang@huawei.com>,
-        Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v5 for-next 3/9] RDMA/hns: Add hr_reg_write_bool()
-Date:   Mon, 21 Jun 2021 16:00:37 +0800
-Message-ID: <1624262443-24528-4-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v5 for-next 1/9] RDMA/hns: Fix sparse warnings when calling hr_reg_write()
+Date:   Mon, 21 Jun 2021 16:00:35 +0800
+Message-ID: <1624262443-24528-2-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
 References: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
@@ -51,82 +50,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+There is no need to use "!!" before "eq->eqe_size == HNS_ROCE_V3_EQE_SIZE",
+or sparse will complain about "dubious: x & !y".
 
-In order to avoid to do bitwise operations on a boolean value, add a new
-register interface to avoid sparse comlaint about "dubious: x & !y" when
-calling hr_reg_write(ctx, field, !!val).
-
-Fixes: dc504774408b ("RDMA/hns: Use new interface to set MPT related fields")
-Fixes: 495c24808ce7 ("RDMA/hns: Add XRC subtype in QPC and XRC type in SRQC")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
+Fixes: 782832f25404 ("RDMA/hns: Simplify the function config_eqc()")
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_common.h |  8 ++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 24 ++++++++++++------------
- 2 files changed, 20 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index 3a5658f..b73e55d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_common.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -77,6 +77,14 @@
- 
- #define hr_reg_clear(ptr, field) _hr_reg_clear(ptr, field)
- 
-+#define _hr_reg_write_bool(ptr, field_type, field_h, field_l, val)             \
-+	({                                                                     \
-+		(val) ? _hr_reg_enable(ptr, field_type, field_h, field_l) :    \
-+			_hr_reg_clear(ptr, field_type, field_h, field_l);      \
-+	})
-+
-+#define hr_reg_write_bool(ptr, field, val) _hr_reg_write_bool(ptr, field, val)
-+
- #define _hr_reg_write(ptr, field_type, field_h, field_l, val)                  \
- 	({                                                                     \
- 		_hr_reg_clear(ptr, field_type, field_h, field_l);              \
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2a4d748..7afecc6 100644
+index f67b175..de2af11 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -3109,16 +3109,16 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
- 	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
- 	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
+@@ -6264,8 +6264,7 @@ static int config_eqc(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq,
+ 	hr_reg_write(eqc, EQC_EQ_CONS_INDX, HNS_ROCE_EQ_INIT_CONS_IDX);
+ 	hr_reg_write(eqc, EQC_NEX_EQE_BA_L, eqe_ba[1] >> 12);
+ 	hr_reg_write(eqc, EQC_NEX_EQE_BA_H, eqe_ba[1] >> 44);
+-	hr_reg_write(eqc, EQC_EQE_SIZE,
+-		     !!(eq->eqe_size == HNS_ROCE_V3_EQE_SIZE));
++	hr_reg_write(eqc, EQC_EQE_SIZE, eq->eqe_size == HNS_ROCE_V3_EQE_SIZE);
  
--	hr_reg_write(mpt_entry, MPT_BIND_EN,
--		     !!(mr->access & IB_ACCESS_MW_BIND));
--	hr_reg_write(mpt_entry, MPT_ATOMIC_EN,
--		     !!(mr->access & IB_ACCESS_REMOTE_ATOMIC));
--	hr_reg_write(mpt_entry, MPT_RR_EN,
--		     !!(mr->access & IB_ACCESS_REMOTE_READ));
--	hr_reg_write(mpt_entry, MPT_RW_EN,
--		     !!(mr->access & IB_ACCESS_REMOTE_WRITE));
--	hr_reg_write(mpt_entry, MPT_LW_EN,
--		     !!((mr->access & IB_ACCESS_LOCAL_WRITE)));
-+	hr_reg_write_bool(mpt_entry, MPT_BIND_EN,
-+			  mr->access & IB_ACCESS_MW_BIND);
-+	hr_reg_write_bool(mpt_entry, MPT_ATOMIC_EN,
-+			  mr->access & IB_ACCESS_REMOTE_ATOMIC);
-+	hr_reg_write_bool(mpt_entry, MPT_RR_EN,
-+			  mr->access & IB_ACCESS_REMOTE_READ);
-+	hr_reg_write_bool(mpt_entry, MPT_RW_EN,
-+			  mr->access & IB_ACCESS_REMOTE_WRITE);
-+	hr_reg_write_bool(mpt_entry, MPT_LW_EN,
-+			  mr->access & IB_ACCESS_LOCAL_WRITE);
- 
- 	mpt_entry->len_l = cpu_to_le32(lower_32_bits(mr->size));
- 	mpt_entry->len_h = cpu_to_le32(upper_32_bits(mr->size));
-@@ -5718,8 +5718,8 @@ static int hns_roce_v2_write_srqc(struct hns_roce_srq *srq, void *mb_buf)
- 	}
- 
- 	hr_reg_write(ctx, SRQC_SRQ_ST, 1);
--	hr_reg_write(ctx, SRQC_SRQ_TYPE,
--		     !!(srq->ibsrq.srq_type == IB_SRQT_XRC));
-+	hr_reg_write_bool(ctx, SRQC_SRQ_TYPE,
-+			  srq->ibsrq.srq_type == IB_SRQT_XRC);
- 	hr_reg_write(ctx, SRQC_PD, to_hr_pd(srq->ibsrq.pd)->pdn);
- 	hr_reg_write(ctx, SRQC_SRQN, srq->srqn);
- 	hr_reg_write(ctx, SRQC_XRCD, srq->xrcdn);
+ 	return 0;
+ }
 -- 
 2.7.4
 
