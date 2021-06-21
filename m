@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1694DC49EA3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE1AC49EA4
 	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EF27561206
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 119346112D
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 08:01:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230144AbhFUIDd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Jun 2021 04:03:33 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:8284 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230157AbhFUID3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Jun 2021 04:03:29 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4G7hfs6DKPz1BQ8q;
-        Mon, 21 Jun 2021 15:56:05 +0800 (CST)
+        id S230175AbhFUIDe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Jun 2021 04:03:34 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:11075 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230180AbhFUIDa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Jun 2021 04:03:30 -0400
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4G7hjM3S5dzZhG9;
+        Mon, 21 Jun 2021 15:58:15 +0800 (CST)
 Received: from dggema753-chm.china.huawei.com (10.1.198.195) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Mon, 21 Jun 2021 16:01:13 +0800
+ 15.1.2176.2; Mon, 21 Jun 2021 16:01:14 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggema753-chm.china.huawei.com (10.1.198.195) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Mon, 21 Jun 2021 16:01:12 +0800
+ 15.1.2176.2; Mon, 21 Jun 2021 16:01:14 +0800
 From:   Weihang Li <liweihang@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <leon@kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, Weihang Li <liweihang@huawei.com>
-Subject: [PATCH v5 for-next 1/9] RDMA/hns: Fix sparse warnings when calling hr_reg_write()
-Date:   Mon, 21 Jun 2021 16:00:35 +0800
-Message-ID: <1624262443-24528-2-git-send-email-liweihang@huawei.com>
+        <linuxarm@huawei.com>, "Xi Wang" <wangxi11@huawei.com>,
+        Weihang Li <liweihang@huawei.com>
+Subject: [PATCH v5 for-next 9/9] RDMA/hns: Clean SRQC structure definition
+Date:   Mon, 21 Jun 2021 16:00:43 +0800
+Message-ID: <1624262443-24528-10-git-send-email-liweihang@huawei.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
 References: <1624262443-24528-1-git-send-email-liweihang@huawei.com>
@@ -50,29 +51,157 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There is no need to use "!!" before "eq->eqe_size == HNS_ROCE_V3_EQE_SIZE",
-or sparse will complain about "dubious: x & !y".
+From: Xi Wang <wangxi11@huawei.com>
 
-Fixes: 782832f25404 ("RDMA/hns: Simplify the function config_eqc()")
+Remove unused members in srq context structure.
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Weihang Li <liweihang@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 15 ++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 82 +-----------------------------
+ 2 files changed, 4 insertions(+), 93 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index f67b175..de2af11 100644
+index 6358567..069c7cd 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6264,8 +6264,7 @@ static int config_eqc(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq,
- 	hr_reg_write(eqc, EQC_EQ_CONS_INDX, HNS_ROCE_EQ_INIT_CONS_IDX);
- 	hr_reg_write(eqc, EQC_NEX_EQE_BA_L, eqe_ba[1] >> 12);
- 	hr_reg_write(eqc, EQC_NEX_EQE_BA_H, eqe_ba[1] >> 44);
--	hr_reg_write(eqc, EQC_EQE_SIZE,
--		     !!(eq->eqe_size == HNS_ROCE_V3_EQE_SIZE));
-+	hr_reg_write(eqc, EQC_EQE_SIZE, eq->eqe_size == HNS_ROCE_V3_EQE_SIZE);
+@@ -5450,12 +5450,8 @@ static int hns_roce_v2_modify_srq(struct ib_srq *ibsrq,
  
- 	return 0;
- }
+ 		memset(srqc_mask, 0xff, sizeof(*srqc_mask));
+ 
+-		roce_set_field(srq_context->byte_8_limit_wl,
+-			       SRQC_BYTE_8_SRQ_LIMIT_WL_M,
+-			       SRQC_BYTE_8_SRQ_LIMIT_WL_S, srq_attr->srq_limit);
+-		roce_set_field(srqc_mask->byte_8_limit_wl,
+-			       SRQC_BYTE_8_SRQ_LIMIT_WL_M,
+-			       SRQC_BYTE_8_SRQ_LIMIT_WL_S, 0);
++		hr_reg_write(srq_context, SRQC_LIMIT_WL, srq_attr->srq_limit);
++		hr_reg_clear(srqc_mask, SRQC_LIMIT_WL);
+ 
+ 		ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, srq->srqn, 0,
+ 					HNS_ROCE_CMD_MODIFY_SRQC,
+@@ -5478,7 +5474,6 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ 	struct hns_roce_srq *srq = to_hr_srq(ibsrq);
+ 	struct hns_roce_srq_context *srq_context;
+ 	struct hns_roce_cmd_mailbox *mailbox;
+-	int limit_wl;
+ 	int ret;
+ 
+ 	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
+@@ -5496,11 +5491,7 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ 		goto out;
+ 	}
+ 
+-	limit_wl = roce_get_field(srq_context->byte_8_limit_wl,
+-				  SRQC_BYTE_8_SRQ_LIMIT_WL_M,
+-				  SRQC_BYTE_8_SRQ_LIMIT_WL_S);
+-
+-	attr->srq_limit = limit_wl;
++	attr->srq_limit = hr_reg_read(srq_context, SRQC_LIMIT_WL);
+ 	attr->max_wr = srq->wqe_cnt;
+ 	attr->max_sge = srq->max_gs - srq->rsv_sge;
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index b25212a..04b4ad4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -379,22 +379,7 @@ struct hns_roce_v2_cq_context {
+ #define CQC_POE_QID_H_1 CQC_FIELD_LOC(511, 511)
+ 
+ struct hns_roce_srq_context {
+-	__le32 byte_4_srqn_srqst;
+-	__le32 byte_8_limit_wl;
+-	__le32 byte_12_xrcd;
+-	__le32 byte_16_pi_ci;
+-	__le32 wqe_bt_ba;
+-	__le32 byte_24_wqe_bt_ba;
+-	__le32 byte_28_rqws_pd;
+-	__le32 idx_bt_ba;
+-	__le32 rsv_idx_bt_ba;
+-	__le32 idx_cur_blk_addr;
+-	__le32 byte_44_idxbufpgsz_addr;
+-	__le32 idx_nxt_blk_addr;
+-	__le32 rsv_idxnxtblkaddr;
+-	__le32 byte_56_xrc_cqn;
+-	__le32 db_record_addr_record_en;
+-	__le32 db_record_addr;
++	__le32 data[16];
+ };
+ 
+ #define SRQC_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_srq_context, h, l)
+@@ -435,71 +420,6 @@ struct hns_roce_srq_context {
+ #define SRQC_DB_RECORD_ADDR_L SRQC_FIELD_LOC(479, 449)
+ #define SRQC_DB_RECORD_ADDR_H SRQC_FIELD_LOC(511, 480)
+ 
+-#define SRQC_BYTE_4_SRQ_ST_S 0
+-#define SRQC_BYTE_4_SRQ_ST_M GENMASK(1, 0)
+-
+-#define SRQC_BYTE_4_SRQ_WQE_HOP_NUM_S 2
+-#define SRQC_BYTE_4_SRQ_WQE_HOP_NUM_M GENMASK(3, 2)
+-
+-#define SRQC_BYTE_4_SRQ_SHIFT_S 4
+-#define SRQC_BYTE_4_SRQ_SHIFT_M GENMASK(7, 4)
+-
+-#define SRQC_BYTE_4_SRQN_S 8
+-#define SRQC_BYTE_4_SRQN_M GENMASK(31, 8)
+-
+-#define SRQC_BYTE_8_SRQ_LIMIT_WL_S 0
+-#define SRQC_BYTE_8_SRQ_LIMIT_WL_M GENMASK(15, 0)
+-
+-#define SRQC_BYTE_12_SRQ_XRCD_S 0
+-#define SRQC_BYTE_12_SRQ_XRCD_M GENMASK(23, 0)
+-
+-#define SRQC_BYTE_16_SRQ_PRODUCER_IDX_S 0
+-#define SRQC_BYTE_16_SRQ_PRODUCER_IDX_M GENMASK(15, 0)
+-
+-#define SRQC_BYTE_16_SRQ_CONSUMER_IDX_S 0
+-#define SRQC_BYTE_16_SRQ_CONSUMER_IDX_M GENMASK(31, 16)
+-
+-#define SRQC_BYTE_24_SRQ_WQE_BT_BA_S 0
+-#define SRQC_BYTE_24_SRQ_WQE_BT_BA_M GENMASK(28, 0)
+-
+-#define SRQC_BYTE_28_PD_S 0
+-#define SRQC_BYTE_28_PD_M GENMASK(23, 0)
+-
+-#define SRQC_BYTE_28_RQWS_S 24
+-#define SRQC_BYTE_28_RQWS_M GENMASK(27, 24)
+-
+-#define SRQC_BYTE_36_SRQ_IDX_BT_BA_S 0
+-#define SRQC_BYTE_36_SRQ_IDX_BT_BA_M GENMASK(28, 0)
+-
+-#define SRQC_BYTE_44_SRQ_IDX_CUR_BLK_ADDR_S 0
+-#define SRQC_BYTE_44_SRQ_IDX_CUR_BLK_ADDR_M GENMASK(19, 0)
+-
+-#define SRQC_BYTE_44_SRQ_IDX_HOP_NUM_S 22
+-#define SRQC_BYTE_44_SRQ_IDX_HOP_NUM_M GENMASK(23, 22)
+-
+-#define SRQC_BYTE_44_SRQ_IDX_BA_PG_SZ_S 24
+-#define SRQC_BYTE_44_SRQ_IDX_BA_PG_SZ_M GENMASK(27, 24)
+-
+-#define SRQC_BYTE_44_SRQ_IDX_BUF_PG_SZ_S 28
+-#define SRQC_BYTE_44_SRQ_IDX_BUF_PG_SZ_M GENMASK(31, 28)
+-
+-#define SRQC_BYTE_52_SRQ_IDX_NXT_BLK_ADDR_S 0
+-#define SRQC_BYTE_52_SRQ_IDX_NXT_BLK_ADDR_M GENMASK(19, 0)
+-
+-#define SRQC_BYTE_56_SRQ_XRC_CQN_S 0
+-#define SRQC_BYTE_56_SRQ_XRC_CQN_M GENMASK(23, 0)
+-
+-#define SRQC_BYTE_56_SRQ_WQE_BA_PG_SZ_S 24
+-#define SRQC_BYTE_56_SRQ_WQE_BA_PG_SZ_M GENMASK(27, 24)
+-
+-#define SRQC_BYTE_56_SRQ_WQE_BUF_PG_SZ_S 28
+-#define SRQC_BYTE_56_SRQ_WQE_BUF_PG_SZ_M GENMASK(31, 28)
+-
+-#define SRQC_BYTE_60_SRQ_RECORD_EN_S 0
+-
+-#define SRQC_BYTE_60_SRQ_DB_RECORD_ADDR_S 1
+-#define SRQC_BYTE_60_SRQ_DB_RECORD_ADDR_M GENMASK(31, 1)
+-
+ enum {
+ 	V2_MPT_ST_VALID = 0x1,
+ 	V2_MPT_ST_FREE	= 0x2,
 -- 
 2.7.4
 
