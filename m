@@ -2,130 +2,157 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA3F5C4743C
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 16:55:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C419FC48BC2
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 18:04:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A78C660200
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 16:55:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1B41611CE
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Jun 2021 18:04:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232743AbhFUQ5u (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Jun 2021 12:57:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34928 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233499AbhFUQ4o (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Jun 2021 12:56:44 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ABB5C09B05B;
-        Mon, 21 Jun 2021 09:26:38 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id g19-20020a9d12930000b0290457fde18ad0so4417845otg.1;
-        Mon, 21 Jun 2021 09:26:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=yoCwDUxZJP3Ut8z/hr4sZH2+48UBBB2zck9Vy5dLtgU=;
-        b=pM+MoLSU0LSJh98DQrRsTPmTh+95pmfRHHbTmKcyhP9ovDKRhZcvBC02S/55ftG/og
-         ruYrldynFgVUzXcJ5cpWd8IKQzedGdpH4I+1WfQpqdIufPWiWf72S0LDFysmflufYM4y
-         4wEreRKEOPdT1VnnTfvE5bFAmShhQkzdbAuUs7Mj25c7MYRwZ3OzmCVuPeHzDrwJTziw
-         rDSCsQLsvjXiYpI4vGyZmIa5HkJhW6dIjnKxwkKEFk6v9qnpGL7nodqGKszpOHNAzcK7
-         CHo/Eex5i6JrEqmb0tCi7M7hZujczlekBuIR9iw4PZd+ucMGW5rl9ynK99eEaKLIYyZD
-         Yulg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=yoCwDUxZJP3Ut8z/hr4sZH2+48UBBB2zck9Vy5dLtgU=;
-        b=aZ3mam2bc6fZtI/oiZtfbZ08v2dsF0LIzdq/vTRGPbzu/RxfVvSwuiOsqpEPOCnWPu
-         pgzEhKtbDGCX08hcrn/mfGKRvOfwhYZnzvcszOf9lWv+fjDAdLcw9PTx0+lyzvnCka6n
-         8JuEDGQ7AeNYU3EisxnJrjgtfBMfNdLpVICCiliLr/q7gYYzR+GbG3LpwZ92+LiVWVER
-         bqbZGLsg5YIdtKWfdcvNZtmcunNCR1KGxtsZ/sOEOSwffUt0iV8szH8+l9FP9mW5iyPL
-         TBFN579YUbQuzJuQCRKsx60XjaKkbcoEwXlWKsQyWqFhi+NLQhIEEx4aSjpkzlnxnhSD
-         PDPQ==
-X-Gm-Message-State: AOAM533faXcsOwUwcsHz4H7u3JUbTbX/pEDDoZOC2sIqZdOOnY++cQQ5
-        4vEtU8CtFwDxeJ5wUvcKBosPTGG6z6jVO9r7aZ8=
-X-Google-Smtp-Source: ABdhPJyCAxXTkhs7AspbVL/ypAtCWxFLyf2+jHwkfD8UredO9wC4bcv1TQdaRkBRCIklexFbhcAJuyI6ee0+SeGt/NU=
-X-Received: by 2002:a9d:4581:: with SMTP id x1mr22307079ote.145.1624292797889;
- Mon, 21 Jun 2021 09:26:37 -0700 (PDT)
+        id S233855AbhFUSHA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Jun 2021 14:07:00 -0400
+Received: from mail-sn1anam02on2088.outbound.protection.outlook.com ([40.107.96.88]:53427
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S233965AbhFUSEW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 21 Jun 2021 14:04:22 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=efuDMTxRzxyc4kGa7UB7YL6FD7x8jJSzw3jNRN6BuJ1yAkzJHe+UkYkDIm/yB8YNOlBaGfocidyh9xiHKwRt/8Q9TJGSltDniYstlksLa+YB+ka4LZ9J/5rD7eY22gdMweXq1r2fk/vhroZFelnbm8aWXMyuInmTGo/NdDcuCmSKiGS/23t1iO1Y1OBRgB2LXjoBbIOERO9O5RuAcRn/l1sN7jJXdKIjif/Gyz/qp5ajRnoZZ3Lxa2bKok19G8uB6FJY0DWZl7dbMweaPVfzHwXtkUkAS6/SUspjQPF1po39bm58Rp8+D0oWGzaPWQA23rZ8Z/mVroiuZM9qH9283A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aZjcHsDq2DmoNdXHcwvuFD3Qvzf8qtKVB9NAc2hVQHA=;
+ b=eYNPjHaFzOZmFihICTHdfbdXI24EVlEVdkCpaUNJpGDe8PaCIHmgLDlX68owECx92837KFbTHzRItSP1M9FcbEk9XUmH+jRGUC9Z/4VVqfdmNxadM0mpr4EzFxRp2TjLpf6p6M/CTaq7WvWGB9n7u9MtTYxGS79yBngcdtl6BfA34tGr/NVbM/0otQ4PuVvrp5RTIKAErPxJfhQt9xv5PkTWhExQvjJpMMwNaN71OnVmOtFKl1zMk2hsFj6wKeq1Vy2n7wytjo4cOX0EH8UFXI6WNdGRyxLt02olmI2oCj/ECuCXghvmRMQUgpmE22fXcbksVLLXp2trBt5/kQZTcQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aZjcHsDq2DmoNdXHcwvuFD3Qvzf8qtKVB9NAc2hVQHA=;
+ b=pM34ZHA4P+PjtWgBTpzbbcfgl3uKjmeCSMVt+OdehMGq/c9xywD0irKXjaJEU7c6925sRCH7a6uYzKGJlk0hIYYkV5XoQ2V3GssXOI+x3iedwh680V8HjQZilteKxSSWkJE27oyO4dDrc+TrMSZJbSeThTj+Gz0o4ZjILUylYH4v9S+iLHX+T5m8kJr1feUQocPgoLE4L8SxWA91C9EX4eusEZLKKE2fCSwAcPvO3zy/L3A2l4FBHNW19rGnwcHOgYkjYm42+rAtH3ISS8ZjzVjx52eKh7BZXvd3JIYPDyKVeTSqQS+fCwYgg6T2fqyM9wdIQ9i3CJYNkb5UgWd59g==
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
+ by BL0PR12MB5505.namprd12.prod.outlook.com (2603:10b6:208:1ce::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.16; Mon, 21 Jun
+ 2021 18:02:06 +0000
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::3d51:a3b9:8611:684e]) by BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::3d51:a3b9:8611:684e%8]) with mapi id 15.20.4242.023; Mon, 21 Jun 2021
+ 18:02:06 +0000
+Date:   Mon, 21 Jun 2021 15:02:05 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Avihai Horon <avihaih@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Christoph Hellwig <hch@lst.de>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Tom Talpey <tom@talpey.com>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        Chuck Lever III <chuck.lever@oracle.com>,
+        Keith Busch <kbusch@kernel.org>,
+        David Laight <David.Laight@ACULAB.COM>,
+        Honggang LI <honli@redhat.com>,
+        Max Gurtovoy <mgurtovoy@nvidia.com>
+Subject: Re: [PATCH v2 rdma-next] RDMA/mlx5: Enable Relaxed Ordering by
+ default for kernel ULPs
+Message-ID: <20210621180205.GA2332110@nvidia.com>
+References: <b7e820aab7402b8efa63605f4ea465831b3b1e5e.1623236426.git.leonro@nvidia.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b7e820aab7402b8efa63605f4ea465831b3b1e5e.1623236426.git.leonro@nvidia.com>
+X-Originating-IP: [47.55.113.94]
+X-ClientProxiedBy: MN2PR16CA0048.namprd16.prod.outlook.com
+ (2603:10b6:208:234::17) To BL0PR12MB5506.namprd12.prod.outlook.com
+ (2603:10b6:208:1cb::22)
 MIME-Version: 1.0
-References: <20210618123615.11456-1-ogabbay@kernel.org> <CAKMK7uFOfoxbD2Z5mb-qHFnUe5rObGKQ6Ygh--HSH9M=9bziGg@mail.gmail.com>
- <YNCN0ulL6DQiRJaB@kroah.com> <20210621141217.GE1096940@ziepe.ca>
-In-Reply-To: <20210621141217.GE1096940@ziepe.ca>
-From:   Oded Gabbay <oded.gabbay@gmail.com>
-Date:   Mon, 21 Jun 2021 19:26:14 +0300
-Message-ID: <CAFCwf10KvCh0zfHEHqYR-Na6KJh4j+9i-6+==QaMdHHpLH1yEA@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] habanalabs: define uAPI to export FD for DMA-BUF
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Greg KH <gregkh@linuxfoundation.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oded Gabbay <ogabbay@kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK" 
-        <linux-media@vger.kernel.org>, Doug Ledford <dledford@redhat.com>,
-        "airlied@gmail.com" <airlied@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        Gal Pressman <galpress@amazon.com>, sleybo@amazon.com,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Tomer Tayar <ttayar@habana.ai>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from mlx.ziepe.ca (47.55.113.94) by MN2PR16CA0048.namprd16.prod.outlook.com (2603:10b6:208:234::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.18 via Frontend Transport; Mon, 21 Jun 2021 18:02:06 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1lvOFJ-009mhO-8v; Mon, 21 Jun 2021 15:02:05 -0300
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 8a2a5532-2e05-4c61-ebeb-08d934deae64
+X-MS-TrafficTypeDiagnostic: BL0PR12MB5505:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <BL0PR12MB5505C7A799788BC188B44E5CC20A9@BL0PR12MB5505.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 0dKFglOvrEQIN8zyx82ACkII27vQQIXF6f8FUba59w+PsviIwAcfeZKMRc9WGUlWooZ8vjrQrdgmL0z2leciOqjzpA+n4u/NlSX7tFhdHpUFO8LPSHME+HorNJ/MWfabka7W0fG6b+irED++YdocbUw/96IFvCuXIu9KF1pf112/ilTtmzTuVyqu86S2lIsIRfNaUK+06pt9Q5aG8rPNsBAPpUP8rlCZxNz9m4/6yBiGB0fgIQy7Q78mG+XbsJ+aLXQtLQ4SzAFoZFpwPNNIlngoriVKPSMqJzYQ6scz0lSH087Ww1VoAixu4vlg3KJRR2GFkcxGaA+Oi+3Sn5bH9fup5vUI+gpvvjZrg01l40eGXVmWiNhhoBfZ3UgnX4rmfdSFlzBIdSoYewE1fQGU77x9wJIcTnJcejeaZgocluNBLsVo+OksZwYtaQI9rwnXNlVTRwvLdyZ2BxqRtyXK0NoOqQle+QQRIRdd1t6TDPVCAlCIYlC/dXkbeWpGbxkmLLsBAMjl8v2NBzG86/rSmHQNYogfwOwTobNCErTpkMYYC8UVPbEY2q9ZmTp8qN1YovEyf9mVSpQybSFPpK/EbWdRft12JljdurDEMmypKGgsnsRxsAuG70uo5cAxoe3X3WJcHcQQlCZ8s1Iv3AvILTUzckJoMe/Gp64RqABzwCNo+Vmd8Q7J2SeE9n6LgyZ14wcr94hPBXGB+pc/bdUs/Fc+jAA9XyJDI0Wgl5NcAPPP5eQywi9llVQdCwWWyviI
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(366004)(136003)(39860400002)(346002)(396003)(107886003)(2906002)(38100700002)(966005)(7416002)(5660300002)(8676002)(2616005)(83380400001)(186003)(26005)(4326008)(66946007)(8936002)(36756003)(86362001)(316002)(54906003)(9746002)(6916009)(426003)(478600001)(66476007)(9786002)(1076003)(66556008)(33656002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?JHi+LAJ6Bgj+Y5O+i8yTqqLjUTtM4fKuSeytWZxGuIE27wnRAuUUKQuge3+1?=
+ =?us-ascii?Q?h2EsJJidsJt+jwGm/KaG5qzRAkmWQTp2yqoPsNn+IvjLoIx6TDEkosN4f5m2?=
+ =?us-ascii?Q?AW+Yfgnh/d3hUbCp0PkjQyakFSGEW6/mj4V57d8pNN4YGttjyz0DANdBtOZl?=
+ =?us-ascii?Q?IJcY5FW1ZutVYuh/dev/2MK1eULxWjPr3qGE96H+U/ELl5Ch8TOSkRthQMb1?=
+ =?us-ascii?Q?uu5Ml8ZIyI/8jQ2UmfLZuLUgICq6pq5EJvB9RK7Pij0K6qiGaR7AqDM+inO8?=
+ =?us-ascii?Q?+1Ux8r3QrahHslylSTX9MX3LcuzgfQXjb9F/PDxWisdIy3qHK1mg2+Jg54ot?=
+ =?us-ascii?Q?kInZAfJ00hnb/g3mzEkZ78nTyZLCpF0BRCJVpEA9s0P7WQduj/quSsNrM+0S?=
+ =?us-ascii?Q?be/YRVNxvT1m52tLCI41YPuxmcl7L2TlzI+mcUwPc9/c37bxAyfRJ+cQ+4H+?=
+ =?us-ascii?Q?CF3DhaADIjdxq3ZwhQPfX4xbFeBMuol9OtuGaUqyo9LW9/cdIdCn7od8cWi1?=
+ =?us-ascii?Q?ok/QkoTMp/7ugMOOo2M0LmcAxvvjEvOZnlfVXIpSjGOz0EKdaxA05DFzTyPl?=
+ =?us-ascii?Q?5exTb1W3nJJ+miU7XA61f7J7NVTMDKSz4xZhdV7CtHO2yGf+v6WxHnhLVbXC?=
+ =?us-ascii?Q?WS0Z3SP3a9MIVcTEK+HzKW0gbxm9dtLUsq5WCpzze8G4JNeVz7K351FSV0gz?=
+ =?us-ascii?Q?e2otZQJcDPb1bBHF4qHnS9r8fMASo4jIyWE4j9VMuf2TfUzPf0GGLeL1i+Ri?=
+ =?us-ascii?Q?C2hrvB7yrMnjPbeEwLAjs9MpGjc/8+X1kYV1kuaOR4LbJcB5mOVbbGp0j0sP?=
+ =?us-ascii?Q?8t8JKrn3bvBaotcwEL46XsVFW10Qg7/sNfIdzzryZjwst++cAMMiyEjThb6a?=
+ =?us-ascii?Q?+yQAjXkL03efv7esLzVSl4S6w2+O43U71wK7zPm/MtTT3Gv8by9P/XGVgMW0?=
+ =?us-ascii?Q?W3QX96pVJ4efBmYj8k2+4dcAjSF/HVluIgVm1iYlcFwzRrkOewQWWUCx4ZYE?=
+ =?us-ascii?Q?Vl0zrOpF/MRGlBV7n8Kn4LiaZ0aC5coDSwT0TEwvFKfvaNhvjs3sNvqySx98?=
+ =?us-ascii?Q?Iw7C4+KJeCYa6JDBVXi0Nay6ElaX09gROvOWiHBBbli1nURXV1cH8RtBn4qJ?=
+ =?us-ascii?Q?JCDI6FQ9Q0jRpHbPaafUPRKfNZQWFz2s9wy4xN0zMyv8bbjA8TfOTMEjJkpm?=
+ =?us-ascii?Q?wtVBO7lOpl1lsDFwn71CfUQODngcvXPNixUar8MY5ylvLdSo/akBKsWrcnIq?=
+ =?us-ascii?Q?GCprlFSjKmisqeJPAWlzt2eXciAQStuB/PehNfz5CLjuyaQiH9HzigsUDqwj?=
+ =?us-ascii?Q?+5dVmRa8WR99TpzpUbIgo92u?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8a2a5532-2e05-4c61-ebeb-08d934deae64
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2021 18:02:06.4173
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ws5L9cuPc8V6rqVFDv04SQ9a5gJlQ2mzPzA22ymjOO1Mb6SJfoHc/1dpih1Qf0OL
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB5505
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 21, 2021 at 5:12 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Mon, Jun 21, 2021 at 03:02:10PM +0200, Greg KH wrote:
-> > On Mon, Jun 21, 2021 at 02:28:48PM +0200, Daniel Vetter wrote:
->
-> > > Also I'm wondering which is the other driver that we share buffers
-> > > with. The gaudi stuff doesn't have real struct pages as backing
-> > > storage, it only fills out the dma_addr_t. That tends to blow up with
-> > > other drivers, and the only place where this is guaranteed to work is
-> > > if you have a dynamic importer which sets the allow_peer2peer flag.
-> > > Adding maintainers from other subsystems who might want to chime in
-> > > here. So even aside of the big question as-is this is broken.
-> >
-> > From what I can tell this driver is sending the buffers to other
-> > instances of the same hardware,
->
-> A dmabuf is consumed by something else in the kernel calling
-> dma_buf_map_attachment() on the FD.
->
-> What is the other side of this? I don't see any
-> dma_buf_map_attachment() calls in drivers/misc, or added in this patch
-> set.
+On Wed, Jun 09, 2021 at 02:05:03PM +0300, Leon Romanovsky wrote:
+> From: Avihai Horon <avihaih@nvidia.com>
+> 
+> Relaxed Ordering is a capability that can only benefit users that support
+> it. All kernel ULPs should support Relaxed Ordering, as they are designed
+> to read data only after observing the CQE and use the DMA API correctly.
+> 
+> Hence, implicitly enable Relaxed Ordering by default for kernel ULPs.
+> 
+> Signed-off-by: Avihai Horon <avihaih@nvidia.com>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+> Changelog:
+> v2:
+>  * Dropped IB/core patch and set RO implicitly in mlx5 exactly like in
+>    eth side of mlx5 driver.
+> v1: https://lore.kernel.org/lkml/cover.1621505111.git.leonro@nvidia.com
+>  * Enabled by default RO in IB/core instead of changing all users
+> v0: https://lore.kernel.org/lkml/20210405052404.213889-1-leon@kernel.org
+> ---
+>  drivers/infiniband/hw/mlx5/mr.c | 10 ++++++----
+>  drivers/infiniband/hw/mlx5/wr.c |  5 ++++-
+>  2 files changed, 10 insertions(+), 5 deletions(-)
 
-This patch-set is only to enable the support for the exporter side.
-The "other side" is any generic RDMA networking device that will want
-to perform p2p communication over PCIe with our GAUDI accelerator.
-An example is indeed the mlnx5 card which has already integrated
-support for being an "importer".
+Applied to for-next, with the extra comment, thanks
 
-This is *not* used for communication with another GAUDI device. If I
-want to communicate with another GAUDI device, our userspace
-communications library will use our internal network links, without
-any need for dma-buf.
+Someone is working on dis-entangling the access flags? It took a long
+time to sort out that this mess in wr.c actually does have a
+distinct user/kernel call chain too..
 
-Oded
-
->
-> AFAIK the only viable in-tree other side is in mlx5 (look in
-> umem_dmabuf.c)
->
-> Though as we already talked habana has their own networking (out of
-> tree, presumably) so I suspect this is really to support some out of
-> tree stuff??
->
-> Jason
+Jason
