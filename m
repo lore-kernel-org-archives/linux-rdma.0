@@ -2,85 +2,126 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEAD3C2B9F4
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 267B7C2B9F4
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:16:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9130F6100A
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:14:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0063C6113E
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230047AbhFVGQ4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Jun 2021 02:16:56 -0400
-Received: from mga02.intel.com ([134.134.136.20]:63359 "EHLO mga02.intel.com"
+        id S229667AbhFVGSn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Jun 2021 02:18:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33700 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229810AbhFVGQx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 22 Jun 2021 02:16:53 -0400
-IronPort-SDR: Z6S05p7pLJ2ptLOyTatItj2LIh4mlQnOgENWZMiiJJDODGKo5Qq9oPI+C34NX8F3lpKBnT5NkU
- AgOeowe5KQ1w==
-X-IronPort-AV: E=McAfee;i="6200,9189,10022"; a="194131560"
-X-IronPort-AV: E=Sophos;i="5.83,291,1616482800"; 
-   d="scan'208";a="194131560"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2021 23:14:32 -0700
-IronPort-SDR: dUxdZGhfZb6+NVPzyfJSt0om/nnqEWmkNKCMT9DRTUIv8WKzgU+ZSQWeUCN8RYRKTxAfqGY1Dd
- 290YzY5zx30g==
-X-IronPort-AV: E=Sophos;i="5.83,291,1616482800"; 
-   d="scan'208";a="486783249"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2021 23:14:25 -0700
-From:   ira.weiny@intel.com
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Ira Weiny <ira.weiny@intel.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        id S229574AbhFVGSn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 22 Jun 2021 02:18:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 292B060FDC;
+        Tue, 22 Jun 2021 06:16:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1624342587;
+        bh=z15Kwl8oV1sBDp03uYbCoqoT/uw5Ys7M76aR3X1yf+s=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=eswEkGgwPDBT5jTXngsC9JVGDoKB4HSkeJ+4BeAaUX01vdQp3Q0/bNQh5fScUJbmX
+         sPdEfQkIB/kWLWUp9KPV82I016Z+V2ddeUMo73mAzu5L9NRlhRwwPjRVDlVIt0lsok
+         C5oWvSqU59H9zIst/XukCJ6NXvomqHRXiYc01v0AM92A89OzPb8hQSpaqHNo5UZRLF
+         0eG1q4B+3hwaV3aYoPe+PFfhPpOQ4FXBS5D4AXk2OFKVtUIDSGkVRHGw+R5EUEvzeG
+         kbwTgwXmZ+DxeitY8OJhEOFT03V2S3U5KDLF5KC3gdijiuuNhRYrmG7qwIJo7gLs2s
+         FazhQnvpFXqjg==
+Date:   Tue, 22 Jun 2021 09:16:23 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Haakon Bugge <haakon.bugge@oracle.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
         Doug Ledford <dledford@redhat.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Kamal Heib <kheib@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 0/4] Remove use of kmap()
-Date:   Mon, 21 Jun 2021 23:14:18 -0700
-Message-Id: <20210622061422.2633501-1-ira.weiny@intel.com>
-X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        Hans Ry <hans.westgaard.ry@oracle.com>
+Subject: Re: [PATCH for-next v2] RDMA/cma: Replace RMW with atomic bit-ops
+Message-ID: <YNGAN4eGYXkrFMCg@unreal>
+References: <1623934765-31435-1-git-send-email-haakon.bugge@oracle.com>
+ <YNA7ZnKIKC217pCw@unreal>
+ <C8E39F1F-14D5-4DBE-ABE0-2EFC20353D83@oracle.com>
+ <YNBhuZNjGvUsJHUy@unreal>
+ <FB3E1A32-A1BA-48B8-A20D-99662CDAC921@oracle.com>
+ <20210621143758.GP1002214@nvidia.com>
+ <36906AC6-B2DB-40D4-972C-8058FF0B462C@oracle.com>
+ <20210621151240.GQ1002214@nvidia.com>
+ <AFF46FA1-4679-4625-89CD-B608FCBE14C1@oracle.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <AFF46FA1-4679-4625-89CD-B608FCBE14C1@oracle.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Mon, Jun 21, 2021 at 03:55:40PM +0000, Haakon Bugge wrote:
+> 
+> 
+> > On 21 Jun 2021, at 17:12, Jason Gunthorpe <jgg@nvidia.com> wrote:
+> > 
+> > On Mon, Jun 21, 2021 at 02:58:46PM +0000, Haakon Bugge wrote:
+> >> 
+> >> 
+> >>> On 21 Jun 2021, at 16:37, Jason Gunthorpe <jgg@nvidia.com> wrote:
+> >>> 
+> >>> On Mon, Jun 21, 2021 at 10:46:26AM +0000, Haakon Bugge wrote:
+> >>> 
+> >>>>>> You're running an old checkpatch. Since commit bdc48fa11e46 ("checkpatch/coding-style: deprecate 80-column warning"), the default line-length is 100. As Linus states in:
+> >>>>>> 
+> >>>>>> https://lkml.org/lkml/2009/12/17/229
+> >>>>>> 
+> >>>>>> "... But 80 characters is causing too many idiotic changes."
+> >>>>> 
+> >>>>> I'm aware of that thread, but RDMA subsystem continues to use 80 symbols limit.
+> >>>> 
+> >>>> I wasn't aware. Where is that documented? Further, it must be a
+> >>>> limit that is not enforced. Of the last 100 commits in
+> >>>> drivers/infiniband, there are 630 lines longer than 80.
+> >>> 
+> >>> Linus said stick to 80 but use your best judgement if going past
+> >>> 
+> >>> It was not a blanket allowance to needless long lines all over the
+> >>> place.
+> >> 
+> >> That is not how I interpreted him:
+> > 
+> > There was a much newer thread on this from Linus, 2009 is really old
+> 
+> Yes, from last year, lkml.org/lkml/2020/5/29/1038
+> 
+> <quote>
+> Excessive line breaks are BAD. They cause real and every-day problems.
+> 
+> They cause problems for things like "grep" both in the patterns and in
+> the output, since grep (and a lot of other very basic unix utilities)
+> is fundamentally line-based.
+> 
+> So the fact is, many of us have long long since skipped the whole
+> "80-column terminal" model, for the same reason that we have many more
+> lines than 25 lines visible at a time.
+> 
+> And honestly, I don't want to see patches that make the kernel reading
+> experience worse for me and likely for the vast majority of people,
+> based on the argument that some odd people have small terminal
+> windows.
+> </quote>
+> 
+> Occasionally enforcing 80-chars line lengths in the RDMA subsystem seems like a strange policy to me :-)
 
-kmap() is being deprecated and will break uses of device dax after PKS
-protection is introduced.[1]
+I prefer to be strict here. We are submitting patches to different
+subsystems with different reviewers.
 
-These kmap() usages don't need to be global and work fine as thread local
-mappings.
+"This adds a few pointles > 80 char lines."
+https://lore.kernel.org/linux-rdma/20200907072921.GC19875@lst.de/
 
-Replace these kmap() calls with kmap_local_page() which is more appropriate.
-
-The only final use of kmap() in the RDMA subsystem is in the qib driver which
-is pretty old at this point.  The use is pretty convoluted and I doubt systems
-using that driver are using persistent memory.  So it is left as is.  If this
-is a problem I can dig into converting it as well.
-
-[1] https://lore.kernel.org/lkml/20201009195033.3208459-59-ira.weiny@intel.com/
-
-Ira Weiny (4):
-  RDMA/hfi1: Remove use of kmap()
-  RDMA/i40iw: Remove use of kmap()
-  RDMA/siw: Remove kmap()
-  RDMA/siw: Convert siw_tx_hdt() to kmap_local_page()
-
- drivers/infiniband/hw/hfi1/sdma.c      |  4 +--
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 10 +++---
- drivers/infiniband/sw/siw/siw_qp_tx.c  | 47 +++++++++++++++-----------
- 3 files changed, 34 insertions(+), 27 deletions(-)
-
--- 
-2.28.0.rc0.12.gb6a658bd00c9
-
+> 
+> 
+> Thxs, Håkon
+> 
+> 
+> > 
+> > Jason
+> 
