@@ -4,75 +4,95 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C34C2B9F4
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D848BC2B9F4
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:14:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBD2960FF2
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:09:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9B0B6100A
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 06:14:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbhFVGLu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Jun 2021 02:11:50 -0400
-Received: from out30-57.freemail.mail.aliyun.com ([115.124.30.57]:40369 "EHLO
-        out30-57.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229490AbhFVGLr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 22 Jun 2021 02:11:47 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=alimailimapcm10staff010182156082;MF=jiapeng.chong@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0UdHolaH_1624342164;
-Received: from j63c13417.sqa.eu95.tbsite.net(mailfrom:jiapeng.chong@linux.alibaba.com fp:SMTPD_---0UdHolaH_1624342164)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 22 Jun 2021 14:09:30 +0800
-From:   Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-To:     saeedm@nvidia.com
-Cc:     leon@kernel.org, davem@davemloft.net, kuba@kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: [PATCH v2] net/mlx5: Fix missing error code in mlx5_init_fs()
-Date:   Tue, 22 Jun 2021 14:09:21 +0800
-Message-Id: <1624342161-84389-1-git-send-email-jiapeng.chong@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
+        id S229628AbhFVGQl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Jun 2021 02:16:41 -0400
+Received: from mga17.intel.com ([192.55.52.151]:25148 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229490AbhFVGQl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 22 Jun 2021 02:16:41 -0400
+IronPort-SDR: 04FZbNjMBOOreiP3CNuzHXsD8xj+i4HlI4+oZIuVe6LUQ066Y/Q/T7wxVxHuoyJWeK5s98T4pg
+ VK1aNyBmUcwA==
+X-IronPort-AV: E=McAfee;i="6200,9189,10022"; a="187373703"
+X-IronPort-AV: E=Sophos;i="5.83,291,1616482800"; 
+   d="scan'208";a="187373703"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2021 23:14:25 -0700
+IronPort-SDR: Ir+4ZlduStZgrjV86BlzGR1j2rSP/gVwinsIwzf8uS6DKa9u2BFNJr8pwmgAY7ZlpP/SEd2p5G
+ mZ4K/f7QIlzw==
+X-IronPort-AV: E=Sophos;i="5.83,291,1616482800"; 
+   d="scan'208";a="641551752"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jun 2021 23:14:25 -0700
+From:   ira.weiny@intel.com
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Ira Weiny <ira.weiny@intel.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Faisal Latif <faisal.latif@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Kamal Heib <kheib@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/4] RDMA/hfi1: Remove use of kmap()
+Date:   Mon, 21 Jun 2021 23:14:19 -0700
+Message-Id: <20210622061422.2633501-2-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
+In-Reply-To: <20210622061422.2633501-1-ira.weiny@intel.com>
+References: <20210622061422.2633501-1-ira.weiny@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The error code is missing in this code scenario, add the error code
-'-ENOMEM' to the return value 'err'.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Eliminate the follow smatch warning:
+kmap() is being deprecated and will break uses of device dax after PKS
+protection is introduced.[1]
 
-drivers/net/ethernet/mellanox/mlx5/core/fs_core.c:2973 mlx5_init_fs()
-warn: missing error code 'err'.
+The kmap() used in sdma does not need to be global.  Use the new
+kmap_local_page() which works with PKS and may provide better
+performance for this thread local mapping anyway.
 
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Fixes: 4a98544d1827 ("net/mlx5: Move chains ft pool to be used by all firmware steering").
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+[1] https://lore.kernel.org/lkml/20201009195033.3208459-59-ira.weiny@intel.com/
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
-Changes in v2:
-  - For the follow advice: https://lore.kernel.org/patchwork/patch/1446816/
+ drivers/infiniband/hw/hfi1/sdma.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 2cd7aea..b861745 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -2969,8 +2969,11 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 		return err;
+diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
+index 46b5290b2839..af43dcbb0928 100644
+--- a/drivers/infiniband/hw/hfi1/sdma.c
++++ b/drivers/infiniband/hw/hfi1/sdma.c
+@@ -3130,7 +3130,7 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 		}
  
- 	steering = kzalloc(sizeof(*steering), GFP_KERNEL);
--	if (!steering)
-+	if (!steering) {
-+		err = -ENOMEM;
- 		goto err;
-+	}
-+
- 	steering->dev = dev;
- 	dev->priv.steering = steering;
+ 		if (type == SDMA_MAP_PAGE) {
+-			kvaddr = kmap(page);
++			kvaddr = kmap_local_page(page);
+ 			kvaddr += offset;
+ 		} else if (WARN_ON(!kvaddr)) {
+ 			__sdma_txclean(dd, tx);
+@@ -3140,7 +3140,7 @@ int ext_coal_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx,
+ 		memcpy(tx->coalesce_buf + tx->coalesce_idx, kvaddr, len);
+ 		tx->coalesce_idx += len;
+ 		if (type == SDMA_MAP_PAGE)
+-			kunmap(page);
++			kunmap_local(kvaddr);
  
+ 		/* If there is more data, return */
+ 		if (tx->tlen - tx->coalesce_idx)
 -- 
-1.8.3.1
+2.28.0.rc0.12.gb6a658bd00c9
 
