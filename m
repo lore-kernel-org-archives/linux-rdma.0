@@ -2,42 +2,48 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A56CC2B9F4
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 21:39:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8A12C48BE5
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 21:39:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11ECB61042
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 21:39:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 997BB61042
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Jun 2021 21:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhFVVls (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Jun 2021 17:41:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37850 "EHLO mail.kernel.org"
+        id S230143AbhFVVmI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Jun 2021 17:42:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229501AbhFVVls (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 22 Jun 2021 17:41:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A4056611CE;
-        Tue, 22 Jun 2021 21:39:31 +0000 (UTC)
+        id S230102AbhFVVmI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 22 Jun 2021 17:42:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B3389611CE;
+        Tue, 22 Jun 2021 21:39:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1624397971;
-        bh=KrqQZkuc2v8UKfQtKPrmZLL9zizscgEQlptNhY4lDWo=;
+        s=k20201202; t=1624397992;
+        bh=kommuqBjiKEJ9MZCZd8KbLWec9n4TlQInYNyu0qeQe8=;
         h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=uj+M3fhA/6rRya5rnteO8kngiKeMrUucTea1t9QyAymYsDRvCs9L4u+Y6qkkYlm5P
-         AVfXDIBNsXOcvSvxw/IWpo/q5ntZn3Bt/pN3zwAeCQ/GMKA9U9fZkwvvUoVbKrdcE7
-         VHcZj50ndXZeHDNBqHpA1jByySPbvpdlXAzmD8VyzPldCOKB+oRbvG8/FmtJwl02LJ
-         Wgm/cIKWtLiOsY7INM66JBbndL332KhDFjq02nD7YPlhEnaemDatROK9QbXHpkwo9M
-         C2+WssMczgMaSzPk0GW8YX2xL0nf6gixJacO5kTSalRVF6X/e9xcLV12OAG4w+j0bt
-         0+QbMuChQpzIA==
-Message-ID: <c24520cceb031b8f690c4dda815997f81a59f82c.camel@kernel.org>
-Subject: Re: [PATCH] net/mlx5: remove "default n" from Kconfig
+        b=sp3FKCfwuOwoK/czFSrMZqIplj6nJGyUlQeLnlZEv3Ispw8iQp241mQ7Q4gqXzcQ5
+         GNIJY1TBFRpYQySHW7k9jejLH9cY1mMWrTPRZRdbiWRU+37i2mIQpMPRR29VWSqfwr
+         nYseeMGFWQAZGRTEr2gMTQBncX8gHwfad8bhKyHyBwmHBFRCeSenyyp2A3tDlPpxEZ
+         NGzch9NAvahLtNkRbVZsjV8zEXw3XGwJPCt8pdOkvIecmlen03rnoFpKZw5ODOsjAQ
+         37Pq89vkF7cwJGEZImJ/0yKOnnLJ1C6iA9NlD/xVX6QtBpZjhlAlHi17VO+lD8CLM7
+         mLFX5izRxVMIw==
+Message-ID: <34371cac54608e0b4e1ffc00a0e2af4b2b6809e4.camel@kernel.org>
+Subject: Re: [PATCH][next] net/mlx5: Fix spelling mistake "enught" ->
+ "enough"
 From:   Saeed Mahameed <saeed@kernel.org>
-To:     Cai Huoqing <caihuoqing@baidu.com>, leonro@nvidia.com
-Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Date:   Tue, 22 Jun 2021 14:39:31 -0700
-In-Reply-To: <20210617023215.176-1-caihuoqing@baidu.com>
-References: <20210617023215.176-1-caihuoqing@baidu.com>
+To:     Colin King <colin.king@canonical.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Tue, 22 Jun 2021 14:39:51 -0700
+In-Reply-To: <20210616141950.12389-1-colin.king@canonical.com>
+References: <20210616141950.12389-1-colin.king@canonical.com>
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.40.2 (3.40.2-1.fc34) 
 MIME-Version: 1.0
@@ -46,10 +52,13 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, 2021-06-17 at 10:32 +0800, Cai Huoqing wrote:
-> From: caihuoqing <caihuoqing@baidu.com>
+On Wed, 2021-06-16 at 15:19 +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> remove "default n" and "No" is default
+> There is a spelling mistake in a mlx5_core_err error message. Fix it.
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
 
 Applied to net-next-mlx5
 Thanks!
