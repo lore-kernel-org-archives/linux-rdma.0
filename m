@@ -2,149 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A32FC4743C
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Jun 2021 15:35:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C72BC48BC2
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Jun 2021 17:12:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F47C61166
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Jun 2021 15:35:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B72E611AC
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Jun 2021 17:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231282AbhFWPhl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Jun 2021 11:37:41 -0400
-Received: from mga06.intel.com ([134.134.136.31]:41948 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229523AbhFWPhl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 23 Jun 2021 11:37:41 -0400
-IronPort-SDR: 5R0YjPbfnam1ka79dpZLE3E2iC6/1CgsfiNb6svrlCm+U6M4CgijBDUrj7fcpre0f0Ai4OeVZ9
- iwI7guBcVVzQ==
-X-IronPort-AV: E=McAfee;i="6200,9189,10024"; a="268427698"
-X-IronPort-AV: E=Sophos;i="5.83,294,1616482800"; 
-   d="scan'208";a="268427698"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2021 08:34:38 -0700
-IronPort-SDR: Ic+vQ/72rh0752HjI3D182s5di1XZZ7LJCwJJMEdDhjv+PSx0YXGbpbY2D68Ezz1sQqUgrxic1
- vrslBJTFw63Q==
-X-IronPort-AV: E=Sophos;i="5.83,294,1616482800"; 
-   d="scan'208";a="487358319"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2021 08:34:37 -0700
-Date:   Wed, 23 Jun 2021 08:34:37 -0700
-From:   Ira Weiny <ira.weiny@intel.com>
-To:     Bernard Metzler <BMT@zurich.ibm.com>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        id S229959AbhFWROY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Jun 2021 13:14:24 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:37939 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229688AbhFWROX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Jun 2021 13:14:23 -0400
+Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
+        by youngberry.canonical.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <colin.king@canonical.com>)
+        id 1lw6Pz-0008Oj-69; Wed, 23 Jun 2021 17:12:03 +0000
+From:   Colin King <colin.king@canonical.com>
+To:     Selvin Xavier <selvin.xavier@broadcom.com>,
+        Devesh Sharma <devesh.sharma@broadcom.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
         Doug Ledford <dledford@redhat.com>,
-        Faisal Latif <faisal.latif@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Kamal Heib <kheib@redhat.com>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH V2] RDMA/siw: Convert siw_tx_hdt() to kmap_local_page()
-Message-ID: <20210623153437.GR1905674@iweiny-DESK2.sc.intel.com>
-References: <20210622203432.2715659-1-ira.weiny@intel.com>
- <20210622061422.2633501-5-ira.weiny@intel.com>
- <OF951DAF0B.941A938D-ON002586FD.003F1610-002586FD.00504522@notes.na.collabserv.com>
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH][next] RDMA/bnxt_re: Fix uninitialized struct bit field rsvd1
+Date:   Wed, 23 Jun 2021 18:12:02 +0100
+Message-Id: <20210623171202.161107-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <OF951DAF0B.941A938D-ON002586FD.003F1610-002586FD.00504522@notes.na.collabserv.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jun 23, 2021 at 02:36:45PM +0000, Bernard Metzler wrote:
-> -----ira.weiny@intel.com wrote: -----
-> 
-> >@@ -506,11 +513,12 @@ static int siw_tx_hdt(struct siw_iwarp_tx
-> >*c_tx, struct socket *s)
-> > 				page_array[seg] = p;
-> > 
-> > 				if (!c_tx->use_sendpage) {
-> >-					iov[seg].iov_base = kmap(p) + fp_off;
-> >-					iov[seg].iov_len = plen;
-> >+					void *kaddr = kmap_local_page(page_array[seg]);
-> 
-> we can use 'kmap_local_page(p)' here
+From: Colin Ian King <colin.king@canonical.com>
 
-Yes but I actually did this on purpose as it makes the code read clearly that
-the mapping is 'seg' element of the array.  Do you prefer 'p' because this is a
-performant path?
+The bit field rsvd1 in resp is not being initialized and garbage data
+is being copied from the stack back to userspace via the ib_copy_to_udata
+call. Fix this by setting rsvd1 to zero. Also remove some whitespace.
 
-> > 
-> > 					/* Remember for later kunmap() */
-> > 					kmap_mask |= BIT(seg);
-> >+					iov[seg].iov_base = kaddr + fp_off;
-> >+					iov[seg].iov_len = plen;
-> > 
-> > 					if (do_crc)
-> > 						crypto_shash_update(
-> >@@ -518,7 +526,7 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx,
-> >struct socket *s)
-> > 							iov[seg].iov_base,
-> > 							plen);
-> 
-> This patch does not apply for me. Would I have to install first
-> your [Patch 3/4] -- since the current patch references kmap_local_page()
-> already? Maybe it is better to apply if it would be just one siw
-> related patch in that series?
+Addresses-Coverity: ("Uninitialized scalar variable")
+Fixes: 879740517dab ("RDMA/bnxt_re: Update ABI to pass wqe-mode to user space")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Yes the other patch goes first.  I split it out to make this more difficult
-change more reviewable.  I could squash them as it is probably straight forward
-enough but I've been careful with this in other subsystems.
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 5955713234cb..45398f1777aa 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3880,7 +3880,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
+ 	resp.pg_size = PAGE_SIZE;
+ 	resp.cqe_sz = sizeof(struct cq_base);
+ 	resp.max_cqd = dev_attr->max_cq_wqes;
+-	resp.rsvd    = 0;
++	resp.rsvd = 0;
++	resp.rsvd1 = 0;
+ 
+ 	resp.comp_mask |= BNXT_RE_UCNTX_CMASK_HAVE_MODE;
+ 	resp.mode = rdev->chip_ctx->modes.wqe_mode;
+-- 
+2.31.1
 
-Jason, do you have any issue with squashing the 2 patches?
-
-> 
-> 
-> 
-> > 				} else if (do_crc) {
-> >-					kaddr = kmap_local_page(p);
-> >+					kaddr = kmap_local_page(page_array[seg]);
-> 
-> using 'kmap_local_page(p)' as you had it is straightforward
-> and I would prefer it.
-
-OK.  I think this reads cleaner but I can see 'p' being more performant.
-
-> 
-> > 					crypto_shash_update(c_tx->mpa_crc_hd,
-> > 							    kaddr + fp_off,
-> > 							    plen);
-> >@@ -542,7 +550,7 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx,
-> >struct socket *s)
-> > 
-> > 			if (++seg > (int)MAX_ARRAY) {
-> > 				siw_dbg_qp(tx_qp(c_tx), "to many fragments\n");
-> >-				siw_unmap_pages(page_array, kmap_mask);
-> >+				siw_unmap_pages(iov, kmap_mask, MAX_ARRAY);
-> 
-> to minimize the iterations over the byte array in 'siw_unmap_pages()',
-> we may pass seg-1 instead of MAX_ARRAY
-
-Sounds good.
-
-> 
-> 
-> > 				wqe->processed -= c_tx->bytes_unsent;
-> > 				rv = -EMSGSIZE;
-> > 				goto done_crc;
-> >@@ -593,7 +601,7 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx,
-> >struct socket *s)
-> > 	} else {
-> > 		rv = kernel_sendmsg(s, &msg, iov, seg + 1,
-> > 				    hdr_len + data_len + trl_len);
-> >-		siw_unmap_pages(page_array, kmap_mask);
-> >+		siw_unmap_pages(iov, kmap_mask, MAX_ARRAY);
-> 
-> to minimize the iterations over the byte array in 'siw_unmap_pages()',
-> we may pass seg instead of MAX_ARRAY
-
-Will do.
-
-Thanks for the review!  :-D
-Ira
