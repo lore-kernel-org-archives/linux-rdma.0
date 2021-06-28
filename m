@@ -2,136 +2,115 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDA13C2B9F4
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Jun 2021 12:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52FC3C2B9F4
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Jun 2021 17:03:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE58561C67
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Jun 2021 12:59:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34B7361998
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Jun 2021 17:03:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232613AbhF1NBz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 28 Jun 2021 09:01:55 -0400
-Received: from mail-mw2nam08on2087.outbound.protection.outlook.com ([40.107.101.87]:2784
-        "EHLO NAM04-MW2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S232598AbhF1NBz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 28 Jun 2021 09:01:55 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hxlnMTyuFUuP81FA760WTxbNXMjreDsTyeGMn31MADTFlZiE7mzXLbx02K1tvLfzxsandiTgUQRHk2YXermybXLW2o6vJxTgsHQaXseh2WdvBMgclXek3/iUBoO+mD28kJaGUk2J/APX17qwQDem0azvxjrCtM5I0SrdKdv/cH6G8FHppbV4l+j/Kaua5l+1MmDIXEUQmjFn3XayGc8hD08ldpVivOHyePuE3JJp+9ZmHjeE29XiAcBB7HwUz9B4cI2MIh/dNI5MthBQSixOQOdnhqngsk9Nd+VvgX06H5r4aVu9YlpBQZNlo0ktoytQq9f6dR66oHF+p/DyHGt0dQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rXLI5lLkp9m5B9/VcV+3OxgiQNETcRbKT0m9p5BflR4=;
- b=BrzAUrVO9yXPQFrCxX/JLYkWH23W/cEeCTXAdJA+9xsBdmovRBWDRN56aAp9XhEir2g+s3HAz72Gc+VIG7+cwZeaak7aPXapzMpvPq6/Iy3rRKexhEixOQnWl6OulD+6U9qMlgZyAbsXWE6ALmEX5GPkj4q9DG/wtIbk4i1bV1Sgf7x3NZ352HJAnqAZGoqAwXwsVsmGCTpopIL/fOtImKBldONtojZ0lK+OEX6pNCZTqz2A2zxrAjxo1oG/0nrV3VxuV8nRGQD6iCkTxsdzfJk8ju0gZN7oq+Ot1bjImeJZIRWCQ39IG1aFGiJ7oDOGejtw1fsDliMH/lWdKuqQjw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rXLI5lLkp9m5B9/VcV+3OxgiQNETcRbKT0m9p5BflR4=;
- b=I7epm2lf7SvPJ4lLZ9VvXvBAuI7I1HKznjJ4Wtte+AkPtQCp3BRmrvEVMD4mv3/lD84bAIhQjOZrLP/JiwLknBOkjeRqHcRJ4eTUoPk7G5sLyt32eHEEAsm1xpXXIgsuc42CjVL9v/l1DMkrip3gTlQsDYCEzfve+Py8wwixSCXmeIG2C5i4jKv9RGywFTewDKzcBdtDo/3kfQmH1Vvu8eBDixaC8pFEkpqVD1w58jdBjc/3AlWv/hw60skcVrMcS6bjx+0b1SgofTGMH6cbOBKLzT7sqiD/jE/hPv3IvX73k1aTd+cJfpSEy7E/W9rLiUO6Y2xS42z7a8jcL0SdTQ==
-Authentication-Results: kernel.org; dkim=none (message not signed)
- header.d=none;kernel.org; dmarc=none action=none header.from=nvidia.com;
-Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
- by BL1PR12MB5142.namprd12.prod.outlook.com (2603:10b6:208:312::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4264.18; Mon, 28 Jun
- 2021 12:59:28 +0000
-Received: from BL0PR12MB5506.namprd12.prod.outlook.com
- ([fe80::3d51:a3b9:8611:684e]) by BL0PR12MB5506.namprd12.prod.outlook.com
- ([fe80::3d51:a3b9:8611:684e%8]) with mapi id 15.20.4264.026; Mon, 28 Jun 2021
- 12:59:28 +0000
-Date:   Mon, 28 Jun 2021 08:38:13 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
+        id S232132AbhF1RF0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 28 Jun 2021 13:05:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42654 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232063AbhF1RF0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 28 Jun 2021 13:05:26 -0400
+Received: from mail-qk1-x72f.google.com (mail-qk1-x72f.google.com [IPv6:2607:f8b0:4864:20::72f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E2F1C061574
+        for <linux-rdma@vger.kernel.org>; Mon, 28 Jun 2021 10:03:00 -0700 (PDT)
+Received: by mail-qk1-x72f.google.com with SMTP id j184so28159221qkd.6
+        for <linux-rdma@vger.kernel.org>; Mon, 28 Jun 2021 10:03:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=l2biafiss9BBHd7k9NtviXn2L7h+FuR+Y1QggEGLz5U=;
+        b=YTFj++LWjpfANHTFDoiuzF33MH0SygYF4hrrKMUCi12buIdK2VGAETtTuQff03Wisw
+         fAbMynLG93xc6TZUSxcE3xbR8lFGaGp1/TibTimGKty/4YMopXSIXYUwbY/CmuWwt0Hm
+         iTFiNIobAmeXXbDNydZB7bUOMK7fkiPHoTxbBhyEjKE5be23kfs04HcvhLc9V79ZLhxz
+         ttnYH3f/SRTHhbSDb3+4xYwhJm6rWez1GkV6Te2GkxzYtyoQUCFaDSf9Kj1Vgmmfqdev
+         MbNUq6krZ9swoy61dO3ynpPfPLvrgqCA4g8C57CjEdC4ee2tA4C5+N5/3WW4kI40Znum
+         ag9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=l2biafiss9BBHd7k9NtviXn2L7h+FuR+Y1QggEGLz5U=;
+        b=m5SG3anc/qZ0Js8TxDyYREDXqg3zv6hj+dbdT6n1RpZIoHsGXLUlsvAhRYFRWJxes9
+         VSXzpzboZVWPB7clS0p8OmI9osMMipvkFH32i6pfsIJAuCSberT2b8fa2zj38wMJAeFB
+         MjPIQSFqbovEj2h86bxv/b9oNwO+G5hFFc86C6Il5n3jzw+ytDD7A51GQ/lh5OSmehBe
+         xdfoR6FP9FbEYq5B8knQDfTomWra3ydiGOiClqYiVPqJB3SgmhMD++BJbhjriZzVHhXi
+         7AyuJpczP3XEqtsceUMsH+XEyvtdQdAXr3qdgSqDTaUwyd7cj9ZJjmgnVoLFzRxTqdWA
+         VCag==
+X-Gm-Message-State: AOAM533Axlu7yF5j7Z07iglm6442c1ahTcapM9UV8hkzffLGKVSBnoxw
+        Lu6uLsq2MDZQ826gg/wyrNRKow==
+X-Google-Smtp-Source: ABdhPJxFNUT87DB1AwYwdXjC4/VjS4Cc78YfiZqIK07/DC1ZxKM7Bgify7U+VhCFarhy7jSWX/rNxA==
+X-Received: by 2002:a05:620a:5ed:: with SMTP id z13mr8918649qkg.422.1624899779716;
+        Mon, 28 Jun 2021 10:02:59 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-47-55-113-94.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.113.94])
+        by smtp.gmail.com with ESMTPSA id p64sm4245461qka.114.2021.06.28.10.02.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 28 Jun 2021 10:02:58 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1lxuew-000gKn-37; Mon, 28 Jun 2021 14:02:58 -0300
+Date:   Mon, 28 Jun 2021 14:02:58 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
 To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Pavel Skripkin <paskripkin@gmail.com>,
-        Shay Drory <shayd@nvidia.com>
-Subject: Re: [PATCH rdma-rc v2] RDMA/core: Simplify addition of restrack
- object
-Message-ID: <20210628113813.GA21676@nvidia.com>
-References: <e2eed941f912b2068e371fd37f43b8cf5082a0e6.1623129597.git.leonro@nvidia.com>
- <20210624174841.GA2906108@nvidia.com>
- <YNgxxTQ4NW0yGHq1@unreal>
- <20210627231528.GA4459@nvidia.com>
- <YNlcpfdsdJdwMp5l@unreal>
+Cc:     Haakon Bugge <haakon.bugge@oracle.com>,
+        Anand Khoje <anand.a.khoje@oracle.com>,
+        OFED mailing list <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dledford@redhat.com" <dledford@redhat.com>
+Subject: Re: [PATCH v6 for-next 0/2] IB/core: Obtaining subnet_prefix from
+ cache in
+Message-ID: <20210628170258.GD4604@ziepe.ca>
+References: <20210627064753.1012-1-anand.a.khoje@oracle.com>
+ <YNhThN0tiA5v5Q4v@unreal>
+ <19EE4BE9-063D-4820-A1F7-5E1D0016A51D@oracle.com>
+ <YNhiC45Si+XHP87i@unreal>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YNlcpfdsdJdwMp5l@unreal>
-X-Originating-IP: [47.55.113.94]
-X-ClientProxiedBy: BL0PR03CA0035.namprd03.prod.outlook.com
- (2603:10b6:208:2d::48) To BL0PR12MB5506.namprd12.prod.outlook.com
- (2603:10b6:208:1cb::22)
-MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from mlx.ziepe.ca (47.55.113.94) by BL0PR03CA0035.namprd03.prod.outlook.com (2603:10b6:208:2d::48) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4264.18 via Frontend Transport; Mon, 28 Jun 2021 12:59:28 +0000
-Received: from jgg by jggl with local (Exim 4.93)       (envelope-from <jgg@nvidia.com>)        id 1lxpaf-0005eD-Km; Mon, 28 Jun 2021 08:38:13 -0300
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 424822fa-0853-47d7-7b31-08d93a34902d
-X-MS-TrafficTypeDiagnostic: BL1PR12MB5142:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <BL1PR12MB514235DAF3904B2AA090CD33C2039@BL1PR12MB5142.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:6108;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: WZKydhX5O5yU8YTV8JxcK/jmA3UMQdUtqBvrbvebGG1eeyXMQezbhEb4fe6n84A4s7R8QdSJi3XhnRJHo0PnAmSBWYhR01XQ8hzcHnviJuok9BcmJPR627g9R6kOOJkLQBfNNp9E5knR+Y/L8oanCx25olb7+T9PJr6UBZkyBAdXtfrPISbt19ci6CbGcXJzZGy+adzjpbibBX9emBNnYCYLdvv9G0UQPmMInhlZSi+n7Hk5LUZft4dGjizWKHYr6PWd400uSrm+3BN9VOHjWxaPuFNFXP6+lVxfRfwLpceBALrnpzZiVJQZgUtIyxZbJQVP/HLWGRv0p37K7BWVOAByqbRx7VMoJJAp7Xu0A19W/vCUQbppOCAXBqN6fRpLx7PxnYc+SeTEHYxXVuYSpnpZ2NlbAmXzerzYMYQuvIJPLUwRL4UDtw0d7AF982M9hBM41CYSuNUdUbl/juPOC0sUd2PfQBmWnOXt1Il+hcx+WsieCRxNOL03ipXRxTL3zqpK44/mUSaXE6wz5sMKQI/RrGtQupBV0MWVghx7HGH13QTsxbLnYxZqJsU1pdREe/T/2boxLxUln6ZBxmw9kYehncxLr9sO+luppnnRYlk=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(396003)(346002)(39860400002)(376002)(136003)(33656002)(8676002)(316002)(54906003)(8936002)(426003)(4326008)(6916009)(186003)(26005)(2616005)(9746002)(9786002)(478600001)(107886003)(66556008)(5660300002)(66946007)(1076003)(36756003)(66476007)(38100700002)(2906002)(86362001)(4744005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?lC3titLz7FFNFKFB1c2WIdQyLFaU5jri/P6Gidxz7iOSp04hwExCdAPJyiPH?=
- =?us-ascii?Q?JVMUVsSzegsjecnTta3/KmfYM1qwaN0GFy0pCFsahK29US1aUgeTRwMSO+MD?=
- =?us-ascii?Q?2ctyWvL3EgNt4o4r4Q67bLVJLXzAtNzpuicKRWhUcGjxz80TgBWrq+Vjc/6n?=
- =?us-ascii?Q?wY/mRXYS0vV1i29PRTNxnoES4ScTV1OMvuw8f1S4KDHOx7yXLz+RDofdPxnF?=
- =?us-ascii?Q?YRxXeC0pSN2CwyrB2PDA6JE6LXw3xio9DxMIGmRYSwPa9kuR60FkeRDmdWun?=
- =?us-ascii?Q?CaeMiek6N2maFbEQyLfpeOVMTaP+JgoY9/aiYQTmi96xS+FkAsBbgMAAl3fT?=
- =?us-ascii?Q?fCusmcvWN2h3COovC3ZCbS+9E+A2QcN4Kawjuts/A3BskmG01c9zIMMcO6/B?=
- =?us-ascii?Q?7DiEqWXL2Gm4p6ZWL7RYGpM1z2qQf/XXUll97UAbiYBEh/jujBRdSsl/6ifW?=
- =?us-ascii?Q?JSA+4uJ8imwfLgVscFbSuL591e+2HjMcOVbpc13He4xkexC0ZR3Etx4AgKm9?=
- =?us-ascii?Q?yiHkT5tBFVGQYf0Rzuno52/ZAWDKzYXv+5Kdhg+zJHp1/pfCDW2/VYrdxyId?=
- =?us-ascii?Q?BQt/8vXzoI+ZNKuBoAapJs8aGfoO/Uwpro8MkE4VuSpEmHDKVpR1wJ2+DgjM?=
- =?us-ascii?Q?rMS5hyctfV1t9S8iR9cdWXgJpSwvx6EblIu7ftFFxf3PjrFYX/s7pOx8P7S1?=
- =?us-ascii?Q?40J+yxUD3d7jFPACK6aNTWIvhUlOfIzWE7EjFZ4aI3xwXpr+T/Ri7jn2svN8?=
- =?us-ascii?Q?un7omEprqB5ltZ40DKwyJAdzCneIciWQdhdFSg7ruY4Xk1R6OnM+IHEDyXaD?=
- =?us-ascii?Q?6DvizlpgfNrYtEz7W1Y1OKFeHVLOVjkteN4cRTANI6S3VB+yXiAgCSFf88zw?=
- =?us-ascii?Q?ON8AAn7TQzSaDw7XOyV6LBbUOIoz49WxI9VE46aSgMZKiWTvrxD/AuRL1lok?=
- =?us-ascii?Q?Xuqav8DKidEZ8MppDO6HOpaKiGsmUw0wi2DTjU5xYUxt+R8YJw6tEs6A8qWv?=
- =?us-ascii?Q?oJJMB4pAVyrVeMZQLnH4KOJYzzx/qUsn8PCe71HZM8C94eZAxFWGpqgkQsKk?=
- =?us-ascii?Q?FOMn+EIBDxf3Rtf21X7t/y1/RekUw+f5xRTBgLzSlSw+j+7ZdoEFfvpx7FkR?=
- =?us-ascii?Q?ahe+gQehj4KkdONApdhlfg8g19mlMNnnj0v5BdER5fCfwaiVIcwfq7BOrt4N?=
- =?us-ascii?Q?KR3RnTQRYtbOxLc9WaliTssbUOAgjUfxvTeNDzLftv6Vb5t8B1oXWF6O+gvH?=
- =?us-ascii?Q?D0IV+7gR2WYujlJcGXJ/IxnCuKmH4x6DiE++dxh15bu1V/ascgF1MwoPcgfQ?=
- =?us-ascii?Q?uoTqm4nf4drGYJiwUe21DgCs?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 424822fa-0853-47d7-7b31-08d93a34902d
-X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jun 2021 12:59:28.2689
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8t1kLeTS3PaUIlex/eDQeL0uuElYRbU57UqaXMduxB9wyHwjqUWkef9/B2IzQIgg
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5142
+In-Reply-To: <YNhiC45Si+XHP87i@unreal>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 28, 2021 at 08:22:45AM +0300, Leon Romanovsky wrote:
-> > The previous code didn't call restrack_del. restrack_del undoes the
-> > restrack_set_name stuff, not just add - so it does not leave things
-> > back the way it found them
+On Sun, Jun 27, 2021 at 02:33:31PM +0300, Leon Romanovsky wrote:
+> On Sun, Jun 27, 2021 at 10:40:43AM +0000, Haakon Bugge wrote:
+> > 
+> > 
+> > > On 27 Jun 2021, at 12:31, Leon Romanovsky <leon@kernel.org> wrote:
+> > > 
+> > > On Sun, Jun 27, 2021 at 12:17:51PM +0530, Anand Khoje wrote:
+> > >> This v6 patch series is used to read the port_attribute subnet_prefix
+> > >> from a valid cache entry instead of having to call
+> > >> device->ops.query_gid() for Infiniband link-layer devices in
+> > >> __ib_query_port().
+> > >> 
+> > >> In the event of a cache update, the value for subnet_prefix gets read
+> > >> using device->ops.query_gid() in config_non_roce_gid_cache().
+> > >> 
+> > >> Anand Khoje (2):
+> > >>  IB/core: Updating cache for subnet_prefix in
+> > >>    config_non_roce_gid_cache()
+> > >>  IB/core: Read subnet_prefix in ib_query_port via cache.
+> > > 
+> > > This series breaks mlx4/mlx5. You forgot to call to lock_init or
+> > > something like that.
+> > 
+> > Thanks for catching!
+> > 
+> > Sure, in ib_register_device(), setup_device() (which ends up calling __ib_query_port()) is called before ib_cache_setup_one(). Can these two calls have their order swapped?
 > 
-> The previous code didn't call to restrack_add and this is why it didn't
-> call to restrack_del later. In old and new code, we are still calling to
-> acquire and release dev (cma_acquire_dev_by_src_ip/cma_release_dev) and
-> this is where the CM_ID is actually attached.
+> I don't think so, if I didn't miss anything, we are relying in gid_table_setup_one()
+> on some properties from setup_device().
 
-Which is my point, you can't call restrack_del anyplace except the
-final destroy. It cannot be used for error unwinding in these kinds of
-functions
+Just reorder things enough so that the cache_lock is setup earlier, it
+has no business being in cache_setup_one anyhow.
 
 Jason
