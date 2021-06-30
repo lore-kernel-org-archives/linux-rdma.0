@@ -2,38 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71124C11F65
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 06:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50EF7C11F65
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 06:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C6BC61D0C
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 06:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A32161D0B
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 06:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231698AbhF3GcY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 30 Jun 2021 02:32:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43126 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229933AbhF3GcX (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 30 Jun 2021 02:32:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B354861459;
-        Wed, 30 Jun 2021 06:29:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625034595;
-        bh=7okMDfPJvuf4xALqZkt0/Ib+PKZ5zUye1p/vGQTvVzY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=MDkWhrgCWo/ElLUGgWRWMpMXvIfkWj01IYdHjO0pPaK/yhIFDyycPXCKGNOlypeoI
-         9sJaRM5xXvo+YQa22zCNFkNIveI1XJkTI7RkKlVT53DpcyAZClZ1FzptULpBoHIzCO
-         uidzhZM3ak/r/9PT/DuHXQjfvQyO+ZqEaP0wFJh4WDTaf4bKan9Afw+0u4c+WplSh6
-         un0LYGX82NAZUyzbqwUw7dPYWWR/Ymy5JN33IGpL4NU6HLbarcHmAcCcZCTN7GMleK
-         YEV8ir0DA7sGyOKkk1QmKgHehHHsaavj/lcjeRuFvkJaTrGN0PvJhQKftdQUG4a2Uc
-         XPKSd1/SfNfQA==
-Date:   Wed, 30 Jun 2021 09:29:51 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
+        id S232018AbhF3Gge (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 30 Jun 2021 02:36:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60990 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229933AbhF3Gge (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 30 Jun 2021 02:36:34 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44A7BC061766;
+        Tue, 29 Jun 2021 23:34:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=s7sfPSKomuf1f0Wmri9pkg7H5FgMkGeqUuukUkPYBw4=; b=bDxkUfCB9DBNCSJ5pKDUiiLE0c
+        I3P40JU98JOtXN1eHqyJRrtQSb4BB9NqNa6V5k2n6RCFnDpPYBeqwHj3FiKrzCBBJGS2ObiEUbyhS
+        ozyaQwbKrd1erV7NHHssqMaABAL5h6cNYLsq9i6vHNZJNxtIcKiGZyd7sZGCNotgoQ+JCBkiPc4oR
+        vSmWidy1mlt+8vLxjL6J8pnZlhynoLLAz6lM45O7Og7clkhps4OD0tSwz1YaoY7zIR3YezD0bsB+o
+        6GR7eKmu3XDGK+QIhq6LKTMOdalq/ovZ5XZEpmHiLZ48YfrphXtHRxFZGFBMd+q424ei1UuDqcD+Y
+        BU3nKJjA==;
+Received: from hch by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1lyTmf-004zWT-AC; Wed, 30 Jun 2021 06:33:23 +0000
+Date:   Wed, 30 Jun 2021 07:33:17 +0100
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Christoph Hellwig <hch@infradead.org>,
+        Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Maor Gottlieb <maorg@nvidia.com>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
@@ -43,45 +47,41 @@ Cc:     Doug Ledford <dledford@redhat.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
 Subject: Re: [PATCH rdma-next v1 1/2] lib/scatterlist: Fix wrong update of
  orig_nents
-Message-ID: <YNwPX7BxPl22En9U@unreal>
+Message-ID: <YNwQLV87aBdclTYe@infradead.org>
 References: <cover.1624955710.git.leonro@nvidia.com>
  <dadb01a81e7498f6415233cf19cfc2a0d9b312f2.1624955710.git.leonro@nvidia.com>
  <YNwIL4OguRO/CH6K@infradead.org>
+ <YNwPX7BxPl22En9U@unreal>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <YNwIL4OguRO/CH6K@infradead.org>
+In-Reply-To: <YNwPX7BxPl22En9U@unreal>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jun 30, 2021 at 06:59:11AM +0100, Christoph Hellwig wrote:
-> On Tue, Jun 29, 2021 at 11:40:01AM +0300, Leon Romanovsky wrote:
-> > 2. Add a new field total_nents to reflect the total number of entries
-> >    in the table. This is required for the release flow (sg_free_table).
-> >    This filed should be used internally only by scatterlist.
+On Wed, Jun 30, 2021 at 09:29:51AM +0300, Leon Romanovsky wrote:
+> On Wed, Jun 30, 2021 at 06:59:11AM +0100, Christoph Hellwig wrote:
+> > On Tue, Jun 29, 2021 at 11:40:01AM +0300, Leon Romanovsky wrote:
+> > > 2. Add a new field total_nents to reflect the total number of entries
+> > >    in the table. This is required for the release flow (sg_free_table).
+> > >    This filed should be used internally only by scatterlist.
+> > 
+> > No, please don't bloat the common structure.
 > 
-> No, please don't bloat the common structure.
-
-Somehow we need to store that total_nents value and our internal
-proposal was to wrap sg_table with another private structure that is
-visible in lib/scatterlist.c only.
-
-Something like that:
-struct sg_table_private {
-  struct sg_table table;
-  unsigned int total_nents;
-};
-
-But it looks awkward.
-
+> Somehow we need to store that total_nents value and our internal
+> proposal was to wrap sg_table with another private structure that is
+> visible in lib/scatterlist.c only.
 > 
-> > +	/* The fields below should be used internally only by
-> > +	 * scatterlist implementation.
-> > +	 */
+> Something like that:
+> struct sg_table_private {
+>   struct sg_table table;
+>   unsigned int total_nents;
+> };
 > 
-> And this is not the way kernel comments work.
+> But it looks awkward.
 
-It is netdev style.
-
-Thanks
+Well, the important point is that we only need it for the new
+way of collapsing, appending allocations.  We should not burden
+it on all other users.
