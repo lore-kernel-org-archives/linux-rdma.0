@@ -2,92 +2,64 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD9D1C11F65
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 11:17:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A1DC11F68
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 11:28:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91D626141C
-	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 11:17:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D0076197F
+	for <linux-rdma@archiver.kernel.org>; Wed, 30 Jun 2021 11:28:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234148AbhF3LT2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 30 Jun 2021 07:19:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52112 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233706AbhF3LT2 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 30 Jun 2021 07:19:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 71FDC61416;
-        Wed, 30 Jun 2021 11:16:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625051819;
-        bh=gUK7CVS8e2cXpIkn5P9a80Ni/fjjiEdxLr686zwbYwo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=LrE5xBZGvBzxMMDr7xPpC0LgFueWQu9wnpPgxKFozVNI8/77In5i8c/hdO5MtVNMC
-         RVEOP5F5mHswSXrFPMxFi7/iAel9d4oGLGucGIc7r9FEpoKRJZcQ2HVWGjvG5VU69Q
-         c6cjOrpWuI+1VjsBTf1qKdsQQ3D4afJAQrbf/4rqnfptmLydhn4PAhaWaB9I/Tsbdp
-         ldRiKGTkwLmboPAvmvH0tfaKael5yebU5xrM108RV5xDelyF1SYVwz4c8V7MQGY2LB
-         okwz61hRCid9ECCu5DhsCWAgdpyNIkdX0wBxVdoeQjrUMcUxYe1uL0oLn267Ja83oM
-         bDJsfPF7DHZvg==
-Date:   Wed, 30 Jun 2021 14:16:56 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Marek Szyprowski <m.szyprowski@samsung.com>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH rdma-next v1 1/2] lib/scatterlist: Fix wrong update of
- orig_nents
-Message-ID: <YNxSqOeECXGG2fX8@unreal>
-References: <cover.1624955710.git.leonro@nvidia.com>
- <dadb01a81e7498f6415233cf19cfc2a0d9b312f2.1624955710.git.leonro@nvidia.com>
- <CGME20210630111227eucas1p2212b63f5d9da6788e57319c35ce9eaf4@eucas1p2.samsung.com>
- <a9462d67-2279-93f1-e042-d46033c208df@samsung.com>
+        id S234301AbhF3LbM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 30 Jun 2021 07:31:12 -0400
+Received: from smtprelay0064.hostedemail.com ([216.40.44.64]:58038 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S234148AbhF3LbM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 30 Jun 2021 07:31:12 -0400
+Received: from omf01.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+        by smtprelay01.hostedemail.com (Postfix) with ESMTP id 670E2100E7B4F;
+        Wed, 30 Jun 2021 11:28:42 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf01.hostedemail.com (Postfix) with ESMTPA id 6764C1727C;
+        Wed, 30 Jun 2021 11:28:40 +0000 (UTC)
+Message-ID: <e3a04d2554bfbe6a7e516c18b5f2848aa040e498.camel@perches.com>
+Subject: Re: [PATCH V2] treewide: Add missing semicolons to __assign_str uses
+From:   Joe Perches <joe@perches.com>
+To:     Steven Rostedt <rostedt@goodmis.org>
+Cc:     amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, lima@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org
+Date:   Wed, 30 Jun 2021 04:28:39 -0700
+In-Reply-To: <48a056adabd8f70444475352f617914cef504a45.camel@perches.com>
+References: <cover.1621024265.git.bristot@redhat.com>
+         <2c59beee3b36b15592bfbb9f26dee7f8b55fd814.1621024265.git.bristot@redhat.com>
+         <20210603172902.41648183@gandalf.local.home>
+         <1e068d21106bb6db05b735b4916bb420e6c9842a.camel@perches.com>
+         <20210604122128.0d348960@oasis.local.home>
+         <48a056adabd8f70444475352f617914cef504a45.camel@perches.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.40.0-1 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a9462d67-2279-93f1-e042-d46033c208df@samsung.com>
+Content-Transfer-Encoding: 7bit
+X-Stat-Signature: whcnsbfbnesep8uuw6hx4999zh9dre4t
+X-Rspamd-Server: rspamout04
+X-Rspamd-Queue-Id: 6764C1727C
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-Session-ID: U2FsdGVkX19avg+OhJp2lgEOQwhdkfQyil/n7SIpQsE=
+X-HE-Tag: 1625052520-537384
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Jun 30, 2021 at 01:12:26PM +0200, Marek Szyprowski wrote:
-> Hi Leon,
-> 
-> On 29.06.2021 10:40, Leon Romanovsky wrote:
-> > From: Maor Gottlieb <maorg@nvidia.com>
-> >
-> > orig_nents should represent the number of entries with pages,
-> > but __sg_alloc_table_from_pages sets orig_nents as the number of
-> > total entries in the table. This is wrong when the API is used for
-> > dynamic allocation where not all the table entries are mapped with
-> > pages. It wasn't observed until now, since RDMA umem who uses this
-> > API in the dynamic form doesn't use orig_nents implicit or explicit
-> > by the scatterlist APIs.
-> >
-> > Fix it by:
-> > 1. Set orig_nents as number of entries with pages also in
-> >     __sg_alloc_table_from_pages.
-> > 2. Add a new field total_nents to reflect the total number of entries
-> >     in the table. This is required for the release flow (sg_free_table).
-> >     This filed should be used internally only by scatterlist.
-> >
-> > Fixes: 07da1223ec93 ("lib/scatterlist: Add support in dynamic allocation of SG table from pages")
-> > Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+On Sat, 2021-06-12 at 08:42 -0700, Joe Perches wrote:
+> The __assign_str macro has an unusual ending semicolon but the vast
+> majority of uses of the macro already have semicolon termination.
 
-<...>
+ping?
 
-> For now I would suggest to revert this change.
 
-Thanks for the report, we will drop this patch.
