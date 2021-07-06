@@ -7,44 +7,41 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD48BC11F66
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E227FC11F67
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B722861E53
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8F2961E92
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236948AbhGFLri (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jul 2021 07:47:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42502 "EHLO mail.kernel.org"
+        id S237204AbhGFLrm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jul 2021 07:47:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234569AbhGFLdf (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:33:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C56761E03;
-        Tue,  6 Jul 2021 11:22:57 +0000 (UTC)
+        id S237250AbhGFLgC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:36:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A1B261EE9;
+        Tue,  6 Jul 2021 11:26:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570578;
-        bh=x1TvY+knuN5gDF07XZ/Q+PwYNswhi2uTCeBf1ReKKX8=;
+        s=k20201202; t=1625570787;
+        bh=eSSeVjX4tABcygdynp3aCwh5KTzk60SBxkDdrdVEiRs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=LReabAhsSlJ4x4jPEYk07oKGwDdjRT7S7Z8B2U2GABOv2CDdcLPdD9XMU4QApo335
-         hX+r9FaohKdqQ9u/ZiR2bBYZ5ET+G3GmlXVoz0K3UCRK14XuTV6ArZKn38rYk97l0w
-         ZFqv46Yru3OY2PPe4y9WYh7bM8ed21EOJHX10qJ5oqEjycEIPejd3rXGsCl6kqnpT9
-         bloJxoykDwIrtoxTIQjSmhSfHkXBNPB9rtXuAnUPo7FDyuIIEc2gBNovr7jtzu19vS
-         7YJ44kQoDgTu97eAxb469FcgYmUJJ0hy73ZAMf9WjSjx/gHggvjSNpF+lU9PjJ733d
-         hn5rpSz380ZFA==
+        b=K+3Wgea/axzVa6Wvx+T0F8rq35JWKiN2x75OHBc17Tfs2egdchJp5GP/UDzk8bx09
+         roULUIlGn5WC0Q54b9giWF2MZ1o/mmS1SwUI/0NFPF/V1OFQHGa0rKsXmx3mIh8Zx8
+         KcdF4la9ZSL6ke10PMHtS6KXkPE0d73q4bJ4oL1SEqSkeLj2LgABdbOQ+HXkI/VA/n
+         fX3UXKNV3iH5Czknw1QYRB7N+BVTNlpFf+2QCXC5VDcqlWazEflPpg/bL/FVN0umEr
+         Kdu6OTQbba6rBbD3ywVEenIXNe+UZ8ralW/VJFophUoaOdEK241UYEhXw7LHtQ2j6y
+         iwblqLxPsdQUQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Gioh Kim <gi-oh.kim@cloud.ionos.com>,
-        Gioh Kim <gi-oh.kim@ionos.com>,
-        Jack Wang <jinpu.wang@ionos.com>,
-        kernel test robot <lkp@intel.com>,
+Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 042/137] RDMA/rtrs: Change MAX_SESS_QUEUE_DEPTH
-Date:   Tue,  6 Jul 2021 07:20:28 -0400
-Message-Id: <20210706112203.2062605-42-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 66/74] RDMA/cma: Fix rdma_resolve_route() memory leak
+Date:   Tue,  6 Jul 2021 07:24:54 -0400
+Message-Id: <20210706112502.2064236-66-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210706112203.2062605-1-sashal@kernel.org>
-References: <20210706112203.2062605-1-sashal@kernel.org>
+In-Reply-To: <20210706112502.2064236-1-sashal@kernel.org>
+References: <20210706112502.2064236-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -53,49 +50,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Gioh Kim <gi-oh.kim@cloud.ionos.com>
+From: Gerd Rausch <gerd.rausch@oracle.com>
 
-[ Upstream commit 3a98ea7041b7d18ac356da64823c2ba2f8391b3e ]
+[ Upstream commit 74f160ead74bfe5f2b38afb4fcf86189f9ff40c9 ]
 
-Max IB immediate data size is 2^28 (MAX_IMM_PAYL_BITS)
-and the minimum chunk size is 4096 (2^12).
-Therefore the maximum sess_queue_depth is 65536 (2^16).
+Fix a memory leak when "mda_resolve_route() is called more than once on
+the same "rdma_cm_id".
 
-Link: https://lore.kernel.org/r/20210528113018.52290-6-jinpu.wang@ionos.com
-Signed-off-by: Gioh Kim <gi-oh.kim@ionos.com>
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-Reported-by: kernel test robot <lkp@intel.com>
+This is possible if cma_query_handler() triggers the
+RDMA_CM_EVENT_ROUTE_ERROR flow which puts the state machine back and
+allows rdma_resolve_route() to be called again.
+
+Link: https://lore.kernel.org/r/f6662b7b-bdb7-2706-1e12-47c61d3474b6@oracle.com
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-pri.h | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/cma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-pri.h b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-index 8caad0a2322b..51c60f542876 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-pri.h
-@@ -47,12 +47,15 @@ enum {
- 	MAX_PATHS_NUM = 128,
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 92428990f0cc..ec9e9598894f 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2719,7 +2719,8 @@ static int cma_resolve_ib_route(struct rdma_id_private *id_priv,
  
- 	/*
--	 * With the size of struct rtrs_permit allocated on the client, 4K
--	 * is the maximum number of rtrs_permits we can allocate. This number is
--	 * also used on the client to allocate the IU for the user connection
--	 * to receive the RDMA addresses from the server.
-+	 * Max IB immediate data size is 2^28 (MAX_IMM_PAYL_BITS)
-+	 * and the minimum chunk size is 4096 (2^12).
-+	 * So the maximum sess_queue_depth is 65536 (2^16) in theory.
-+	 * But mempool_create, create_qp and ib_post_send fail with
-+	 * "cannot allocate memory" error if sess_queue_depth is too big.
-+	 * Therefore the pratical max value of sess_queue_depth is
-+	 * somewhere between 1 and 65536 and it depends on the system.
- 	 */
--	MAX_SESS_QUEUE_DEPTH = 4096,
-+	MAX_SESS_QUEUE_DEPTH = 65536,
+ 	cma_init_resolve_route_work(work, id_priv);
  
- 	RTRS_HB_INTERVAL_MS = 5000,
- 	RTRS_HB_MISSED_MAX = 5,
+-	route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
++	if (!route->path_rec)
++		route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
+ 	if (!route->path_rec) {
+ 		ret = -ENOMEM;
+ 		goto err1;
 -- 
 2.30.2
 
