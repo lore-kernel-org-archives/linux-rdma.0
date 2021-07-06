@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D314C11F66
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:31:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E22AC07E96
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:33:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08A0661C65
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:31:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2BF3608FC
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234735AbhGFLdl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jul 2021 07:33:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42474 "EHLO mail.kernel.org"
+        id S234788AbhGFLdm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jul 2021 07:33:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235470AbhGFLaG (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:30:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5B3DF61CE0;
-        Tue,  6 Jul 2021 11:21:08 +0000 (UTC)
+        id S235695AbhGFLaT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:30:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EF2861DD2;
+        Tue,  6 Jul 2021 11:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570468;
-        bh=EfgEJylRHF1NQY/Yx5XZyMIOkbTSyQmMOC7KGA5XTKQ=;
+        s=k20201202; t=1625570497;
+        bh=0PZas54liueM+G30NDsphL41VxKQF2xVITgwU8+fxtw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uC9J5F0vM8KZMBqMZqcol6gtRfFtmIeVHbLxKSsNxosj73SuIeEtYdDwlEEI1c5aE
-         4PUmZoVwtXkYSpvu+bkphxmlLfgMSvCWZO8mpJcKHI6RjQxMluOiueKsFQZkxZtKrg
-         vkGWF96jExyEp5Z9k0x6LJthMoxJqmxK+EiS1sTzgt4/Ji0Wf6/aaPJ5EJjdpZCQdC
-         p10xORuc38O+j/5c23LxE6jwZP2buhfj8BRoVMdZbq5YFFQESKwJ9dGHmHdAWhfa/4
-         w5a+irawtqOtwgnAqFczQ/bN6WTe2q4xDNxzourMjK7/bv+oC7on8OuEOvGCHZ+Z7t
-         C+1hcqM1Ac5ag==
+        b=ny4uq/6Xkx84z0u0y0Bvbvid8zxf7jxs6jHFfAitAzzVYQ1eCghtGrmg7QN+Kje7O
+         vNXH4nWLoq36RZA2A694vu3ZwAy2YHj6ad2/aSVVnsRS+Aj9OjUdO6rCb1qaX6UBFr
+         YWQuBYZmN6fJFNOIyRh0ZdgT6W6M09t3BJeUGbT7FRgqH/Xcfigmgmwss75VszIOQ8
+         xxpVKZ2A8qcM+k9OMPy5IXrokXmX8YUi/mRmHrTjronAyumLKPruylUftzKncNxs04
+         NDjYd92lHONeINtCaURJ4yoIZWob+nGxKfjCKazhDb2RijIm9yNr5IiY+YoWlLllYa
+         QLiA6C6ik5Y9Q==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Xiao Yang <yangx.jy@fujitsu.com>, Jason Gunthorpe <jgg@nvidia.com>,
+Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 120/160] RDMA/rxe: Don't overwrite errno from ib_umem_get()
-Date:   Tue,  6 Jul 2021 07:17:46 -0400
-Message-Id: <20210706111827.2060499-120-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.12 141/160] RDMA/cma: Fix rdma_resolve_route() memory leak
+Date:   Tue,  6 Jul 2021 07:18:07 -0400
+Message-Id: <20210706111827.2060499-141-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210706111827.2060499-1-sashal@kernel.org>
 References: <20210706111827.2060499-1-sashal@kernel.org>
@@ -49,38 +50,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xiao Yang <yangx.jy@fujitsu.com>
+From: Gerd Rausch <gerd.rausch@oracle.com>
 
-[ Upstream commit 20ec0a6d6016aa28b9b3299be18baef1a0f91cd2 ]
+[ Upstream commit 74f160ead74bfe5f2b38afb4fcf86189f9ff40c9 ]
 
-rxe_mr_init_user() always returns the fixed -EINVAL when ib_umem_get()
-fails so it's hard for user to know which actual error happens in
-ib_umem_get(). For example, ib_umem_get() will return -EOPNOTSUPP when
-trying to pin pages on a DAX file.
+Fix a memory leak when "mda_resolve_route() is called more than once on
+the same "rdma_cm_id".
 
-Return actual error as mlx4/mlx5 does.
+This is possible if cma_query_handler() triggers the
+RDMA_CM_EVENT_ROUTE_ERROR flow which puts the state machine back and
+allows rdma_resolve_route() to be called again.
 
-Link: https://lore.kernel.org/r/20210621071456.4259-1-ice_yangxiao@163.com
-Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
+Link: https://lore.kernel.org/r/f6662b7b-bdb7-2706-1e12-47c61d3474b6@oracle.com
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/cma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 9f63947bab12..fe2b7d223183 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -135,7 +135,7 @@ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
- 	if (IS_ERR(umem)) {
- 		pr_warn("err %d from rxe_umem_get\n",
- 			(int)PTR_ERR(umem));
--		err = -EINVAL;
-+		err = PTR_ERR(umem);
- 		goto err1;
- 	}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 5b9022a8c9ec..3f92a29d5a5d 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2785,7 +2785,8 @@ static int cma_resolve_ib_route(struct rdma_id_private *id_priv,
  
+ 	cma_init_resolve_route_work(work, id_priv);
+ 
+-	route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
++	if (!route->path_rec)
++		route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
+ 	if (!route->path_rec) {
+ 		ret = -ENOMEM;
+ 		goto err1;
 -- 
 2.30.2
 
