@@ -2,75 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89926C07E9E
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 13:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6514C07E96
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 14:39:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 749EB6192B
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 13:17:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFAC361380
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 14:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231509AbhGFNTw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jul 2021 09:19:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43512 "EHLO
+        id S232422AbhGFOmO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jul 2021 10:42:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231492AbhGFNTv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jul 2021 09:19:51 -0400
-Received: from mail-ot1-x32a.google.com (mail-ot1-x32a.google.com [IPv6:2607:f8b0:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90F74C061574
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jul 2021 06:17:12 -0700 (PDT)
-Received: by mail-ot1-x32a.google.com with SMTP id d21-20020a9d72d50000b02904604cda7e66so21495905otk.7
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Jul 2021 06:17:12 -0700 (PDT)
+        with ESMTP id S232606AbhGFOmM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jul 2021 10:42:12 -0400
+Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DCA0C08EC38
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jul 2021 07:39:31 -0700 (PDT)
+Received: by mail-ot1-x329.google.com with SMTP id h24-20020a9d64180000b029036edcf8f9a6so21772804otl.3
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Jul 2021 07:39:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ffwll.ch; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=U9D/asRW8RIRRhOKKkNY/c0bgyv3JnZBPRvStuSKb28=;
-        b=cB9WV9sNtYm4EIQPRYYsOGXCyC85KX4IvPilkqi+DXH4BpSsZyGkNpW3uSI8JnhhUm
-         Uoplzu3pWcmKt7UBmyg4GG/1Ehm8EZCdN1AUKXSFMtmPdYVFA4tSUwyZPyO+z/eahKfZ
-         PrBc3UQ6AHFgqTPV3OhYjDG9m5j2bWR34qSio=
+        bh=zm0DaryDqZq3vejGZ3jPeBiO1tR+wTWZk5xnShXCnO4=;
+        b=G30UzRcjxEx6Xt1b6aM3vMaunEynpsORVhKQH6x0woz09DwXifJzfkCwSyC/RCtJF6
+         0dlH0FE/N9kBHKK6ACyKzCL9AAOx7O6sYOnj6Loko6p9DlXanIsMowNmzYBNl9TxrrVf
+         GOw2Y2m6AMmOya+oUGFCdCcJKjukWk6zcmTM4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=U9D/asRW8RIRRhOKKkNY/c0bgyv3JnZBPRvStuSKb28=;
-        b=DWE+1SsVTvn29fjVDX9hpMc3Vx0fjASyu0yBiDD37ZBC9kK3RIjKNytmmwUsc/rAq5
-         fj7g3MzGf7oOKFIVjNPfQ4CZUH8oPEOUo3pV7PnRIfnkYvV4/6y3WRnonJDBJMFqE+pY
-         NXHQEas5YdQWv6b2ZPgXxqzsCJI47M13kkE/d0+zKvD79xTJlrwqbsM5Ro2li8UguNYo
-         kFleLMFu/pXN3gUdfmVMcqWjFL33K8VCRAxs04R5ogKUkmm6B3ZXpefrmmy1vI6zLPAG
-         rcuDsyJyS6Z6L7vqSCdtsfDPq6+EtC2Ox7Qn37QdiribgET1scObcZJ7+eEWwUoUZx0V
-         bg/Q==
-X-Gm-Message-State: AOAM530dOM2Sr1nynndmkbnEi6i3htJ3f9c1ql6GDnOyxictaxBWrcBb
-        JTjq3dmJNXyqjgXrUSvORZ7vW7QsAu6V9sLzyglGWQ==
-X-Google-Smtp-Source: ABdhPJyhU38uAVUSjr8gRwHKDTIhLNjZ02bjGpdJaQ/Zri9HQUmeedc5h+sEGm5UwpWhHyQGUQa0Ps8orpOzhY8rJNs=
-X-Received: by 2002:a05:6830:2366:: with SMTP id r6mr14854251oth.188.1625577431903;
- Tue, 06 Jul 2021 06:17:11 -0700 (PDT)
+        bh=zm0DaryDqZq3vejGZ3jPeBiO1tR+wTWZk5xnShXCnO4=;
+        b=uZL1KqVA+l470yBSNX961CbZ/dYgyF6tnV4VBbR+3CNs1PGscWdzTzED2RpvusasaK
+         QgovW3idnF0zAI94zmUE3nSgZyCr0gQ4hQX4OAs95cyHdUctLgK6wC9kD54mCHh50MLe
+         kJ2xbD3D35mxuypby7sphtHqNSKYU3KQO8NDgxN4+GtMhD2KYyeVOlHeCjrFxS6+LZl1
+         b+VyrCPTkrzylucJbcxlfAoZ6aEPJ/JofqMSdXJ5wXFdNMYNAHfbpT1k3WssLo8smkdv
+         ZYzoyRwPr6Bu0qpiBOXBWern+40mp2kFtuybuEpCA9YQaBmQrdzt05kPpyLZCRoxoxw0
+         FFtA==
+X-Gm-Message-State: AOAM531fpMsVnrmXeKNsqikOKYWhvX80RdaWhxiU11ipVWqs1K3sFCPF
+        dTSop+rWkqstMS0R/7V9s/SN5dInKSvHPzDrRnlqEw==
+X-Google-Smtp-Source: ABdhPJzgkWaB0S4HP/SYLFWoigqz0+uVa0qbfzt618JpPtslruMLA86ntCgmp9G7+R8uc+hgYBv5HiSGfZAE493M7OE=
+X-Received: by 2002:a9d:27a4:: with SMTP id c33mr15519363otb.281.1625582370636;
+ Tue, 06 Jul 2021 07:39:30 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210705130314.11519-1-ogabbay@kernel.org> <YOQXBWpo3whVjOyh@phenom.ffwll.local>
- <20210706122110.GA18273@lst.de> <YORLTmyoXDtoM9Ta@phenom.ffwll.local> <CAFCwf114KEH-kO6w+nmbqKKdaGuqy3iOpHJi=5ZWqT3cgDm4Cw@mail.gmail.com>
-In-Reply-To: <CAFCwf114KEH-kO6w+nmbqKKdaGuqy3iOpHJi=5ZWqT3cgDm4Cw@mail.gmail.com>
-From:   Daniel Vetter <daniel@ffwll.ch>
-Date:   Tue, 6 Jul 2021 15:17:00 +0200
-Message-ID: <CAKMK7uHfCbNQJwbXgLC9ibk71kVG7TBK4bfFxzX82ziSgqG9nw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH v4 0/2] Add p2p via dmabuf to habanalabs
-To:     Oded Gabbay <oded.gabbay@gmail.com>
-Cc:     Christoph Hellwig <hch@lst.de>, Oded Gabbay <ogabbay@kernel.org>,
+ <CAFCwf10_rTYL2Fy6tCRVAUCf4-6_TtcWCv5gEEkGnQ0KxqMUBg@mail.gmail.com>
+ <CAKMK7uEAJZUHNLreBB839BZOfnTGNU4rCx-0k55+67Nbxtdx3A@mail.gmail.com> <20210706142357.GN4604@ziepe.ca>
+In-Reply-To: <20210706142357.GN4604@ziepe.ca>
+From:   Daniel Vetter <daniel.vetter@ffwll.ch>
+Date:   Tue, 6 Jul 2021 16:39:19 +0200
+Message-ID: <CAKMK7uELNzwUe+hhVWRg=Pk5Wt_vOOX922H48Kd6dTyO2PeBbg@mail.gmail.com>
+Subject: Re: [PATCH v4 0/2] Add p2p via dmabuf to habanalabs
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Oded Gabbay <oded.gabbay@gmail.com>,
+        Oded Gabbay <ogabbay@kernel.org>,
         "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
         Gal Pressman <galpress@amazon.com>, sleybo@amazon.com,
         Maling list - DRI developers 
-        <dri-devel@lists.freedesktop.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+        <dri-devel@lists.freedesktop.org>,
         linux-rdma <linux-rdma@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Doug Ledford <dledford@redhat.com>,
         Dave Airlie <airlied@gmail.com>,
         Alex Deucher <alexander.deucher@amd.com>,
         Leon Romanovsky <leonro@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
         amd-gfx list <amd-gfx@lists.freedesktop.org>,
         "moderated list:DMA BUFFER SHARING FRAMEWORK" 
         <linaro-mm-sig@lists.linaro.org>
@@ -79,104 +82,78 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 6, 2021 at 2:46 PM Oded Gabbay <oded.gabbay@gmail.com> wrote:
+On Tue, Jul 6, 2021 at 4:23 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
 >
-> On Tue, Jul 6, 2021 at 3:23 PM Daniel Vetter <daniel@ffwll.ch> wrote:
-> >
-> > On Tue, Jul 06, 2021 at 02:21:10PM +0200, Christoph Hellwig wrote:
-> > > On Tue, Jul 06, 2021 at 10:40:37AM +0200, Daniel Vetter wrote:
-> > > > > Greg, I hope this will be good enough for you to merge this code.
-> > > >
-> > > > So we're officially going to use dri-devel for technical details review
-> > > > and then Greg for merging so we don't have to deal with other merge
-> > > > criteria dri-devel folks have?
-> > > >
-> > > > I don't expect anything less by now, but it does make the original claim
-> > > > that drivers/misc will not step all over accelerators folks a complete
-> > > > farce under the totally-not-a-gpu banner.
-> > > >
-> > > > This essentially means that for any other accelerator stack that doesn't
-> > > > fit the dri-devel merge criteria, even if it's acting like a gpu and uses
-> > > > other gpu driver stuff, you can just send it to Greg and it's good to go.
-> > > >
-> > > > There's quite a lot of these floating around actually (and many do have
-> > > > semi-open runtimes, like habanalabs have now too, just not open enough to
-> > > > be actually useful). It's going to be absolutely lovely having to explain
-> > > > to these companies in background chats why habanalabs gets away with their
-> > > > stack and they don't.
-> > >
-> > > FYI, I fully agree with Daniel here.  Habanlabs needs to open up their
-> > > runtime if they want to push any additional feature in the kernel.
-> > > The current situation is not sustainable.
-> Well, that's like, your opinion...
+> On Tue, Jul 06, 2021 at 12:36:51PM +0200, Daniel Vetter wrote:
 >
-> >
-> > Before anyone replies: The runtime is open, the compiler is still closed.
-> > This has become the new default for accel driver submissions, I think
-> > mostly because all the interesting bits for non-3d accelerators are in the
-> > accel ISA, and no longer in the runtime. So vendors are fairly happy to
-> > throw in the runtime as a freebie.
-> >
-> > It's still incomplete, and it's still useless if you want to actually hack
-> > on the driver stack.
-> > -Daniel
-> > --
-> I don't understand what's not sustainable here.
+> > If that means AI companies don't want to open our their hw specs
+> > enough to allow that, so be it - all you get in that case is
+> > offloading the kernel side  of the stack for convenience, with zero
+> > long term prospects to ever make this into a cross vendor subsystem
+> > stack that does something useful.
 >
-> There is zero code inside the driver that communicates or interacts
-> with our TPC code (TPC is the Tensor Processing Core).
-> Even submitting works to the TPC is done via a generic queue
-> interface. And that queue IP is common between all our engines
-> (TPC/DMA/NIC). The driver provides all the specs of that queue IP,
-> because the driver's code is handling that queue. But why is the TPC
-> compiler code even relevant here ?
+> I don't think this is true at all - nouveau is probably the best
+> example.
+>
+> nouveau reverse engineered a userspace stack for one of these devices.
+>
+> How much further ahead would they have been by now if they had a
+> vendor supported, fully featured, open kernel driver to build the
+> userspace upon?
 
-Can I use the hw how it's intended to be used without it?
+There is actually tons of example here, most of the arm socs have
+fully open kernel drivers, supported by the vendor (out of tree).
 
-If the answer is no, then essentially what you're doing with your
-upstream driver is getting all the benefits of an upstream driver,
-while upstream gets nothing. We can't use your stack, not as-is. Sure
-we can use the queue, but we can't actually submit anything
-interesting. And I'm pretty sure the point of your hw is to do more
-than submit no-op packets to a queue.
+The hard part is the userspace driver and all the things you're
+submitting to it. We've had open kernel drivers for mail/qualcomm/...
+years before any believable open implementation started existing.
+Typing up the memory manager and hw submission queue handling is
+comparitively trivial. Generally the kernel driver is also done last,
+you bring up the userspace first, often by just directly programming
+the hw from userspace. Kernel driver only gets in the way with this
+stuff (nouveau is entirely developed as a userspace driver, as the
+most extreme example).
 
-This is all "I want my cake and eat it too" approach to upstreaming,
-and it's totally fine attitude to have, but if you don't see why
-there's maybe an different side to it then I don't get what you're
-arguing. Upstream isn't free lunch for nothing.
+This is a bit different for the display side, but nowadays those
+drivers are fully in-kernel so they're all open. Well except the
+nvidia one, and I've not heard of nvidia working on even an
+out-of-tree open display driver, so that won't help the in-tree effort
+at all.
 
-Frankly I'm starting to assume you're arguing this all in bad faith
-just because habanalabds doesn't want to actually have an open driver
-stack, so any attack is good, no matter what. Which is also what
-everyone else does who submits their accel driver to upstream, and
-which gets us back to the starting point of this sub-thread of me
-really appreciation how this will improve background discussions going
-forward for everyone.
+Where it would have helped is if this open driver would come with
+redistributable firmware, because that is right now the thing making
+nouveau reverse-engineering painful enough to be non-feasible. Well
+not the reverse-engineering, but the "shipping the result as a working
+driver stack".
 
-Like if the requirement for accel drivers truly is that you can submit
-a dummy command to the queues then I have about 5-10 drivers at least
-I could merge instantly. For something like the intel gpu driver it
-would be about 50 lines of code (including all the structure boiler
-plate the ioctls require)in userspace to submit a dummy queue command.
-GPU and accel vendors would really love that, because it would allow
-them to freeload on upstream and do essentially nothing in return.
+I don't think the facts on the ground support your claim here, aside
+from the practical problem that nvidia is unwilling to even create an
+open driver to begin with. So there isn't anything to merge.
 
-And we'd end up with an unmaintainable disaster of a gpu or well
-accelerator subsystem because there's nothing you can change or
-improve because all the really useful bits of the stack are closed.
-And ofc that's not any companies problem anymore, so ofc you with the
-habanalabs hat on don't care and call this *extreme*.
+> > open up your hw enough for that, I really don't see the point in
+> > merging such a driver, it'll be an unmaintainable stack by anyone else
+> > who's not having access to those NDA covered specs and patents and
+> > everything.
+>
+> My perspective from RDMA is that the drivers are black boxes. I can
+> hack around the interface layers but there is a lot of wild stuff in
+> there that can't be understood without access to the HW documentation.
 
-> btw, you can today see our TPC code at
-> https://github.com/HabanaAI/Habana_Custom_Kernel
-> There is a link there to the TPC user guide and link to download the
-> LLVM compiler.
+There's shipping gpu drivers with entirely reverse-engineered stacks.
+And I don't mean "shipping in fedora" but "shipping in Chrome tablets
+sold by OEM partners of Google". So it's very much possible, even if
+the vendor is maximally stubborn about things.
 
-I got stuck clicking links before I found the source for that llvm
-compiler. Can you give me a direct link to the repo with sourcecode
-instead please?
+> I think only HW that has open specs, like say NVMe, can really be
+> properly community oriented. Otherwise we have to work in a community
+> partnership with the vendor.
 
-Thanks, Daniel
+Well sure that's the ideal case, but most vendors in the accel space
+arent interested actual partnership with the wider community. It's
+"merge this kernel driver and have no further demands about anything
+else". Well there are some who are on board, but it does take pretty
+enormous amounts of coercion.
+-Daniel
 -- 
 Daniel Vetter
 Software Engineer, Intel Corporation
