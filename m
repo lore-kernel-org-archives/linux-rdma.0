@@ -7,40 +7,42 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46931C11F6C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E17EEC11F77
 	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37EDC61EB8
+	by mail.kernel.org (Postfix) with ESMTP id D960761ED5
 	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237394AbhGFLry (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jul 2021 07:47:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47602 "EHLO mail.kernel.org"
+        id S233963AbhGFLr7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jul 2021 07:47:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237412AbhGFLgI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:36:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 42D1F61D67;
-        Tue,  6 Jul 2021 11:27:30 +0000 (UTC)
+        id S237643AbhGFLgU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:36:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6058A61F18;
+        Tue,  6 Jul 2021 11:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570850;
-        bh=5Z5yOYQ0o8pG1pSfroH3j/bq5+6tKzgx0kwokEttSOQ=;
+        s=k20201202; t=1625570946;
+        bh=/FmABL8P8Kzp/tSylSEns/F+lkGB7N4r8tCDR2G54pg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VrnfvuFunHaP6GqaElBuUiyUe628adncRxIuZeHA7zujDXQohgJPDVzhc/Zbe4y9F
-         G2e75H7nyqtvtdSebPLUvhm43Gqxmp1GToebIVgPVL2D1aomqEAh62DkZ0BTp+taAz
-         6Vx0SQMZKf0VVugG4exSFGNnVTVpeRslfJWCWao7PMwv2OsdDFtHiMFnVmXFoqZyoZ
-         aIjqUYd9ibvlUs1i4/vu5eyypBthSnqJvwBz8GyArawwm9uExyVSvA2tFQDrwzIIsi
-         Zzh46CavO8U0jWtDkCeib7ZHawk1nRkZUtk9ylKu2aAl9VDQK8jOFdnfeJJRaGMGkE
-         ZFD4LP+LDbvfQ==
+        b=SUWTFAIThj49jkB/Jbv8rDjTymKZlm3M460KwX4SnmzFSmjFxKoZeY1LvPHEdAXcJ
+         cQIUBX0PZjMdBhenF8jUytpPitVwQaomk1vTT3XTTBPN3gDtU4tDlFErz/momhBYoJ
+         TT2MdhqJOF+Oj82ZcXgU8DqKHnJ2ld9i0GqGaMpm/n465rO0P4PXXFz+BAo9L8xfvp
+         DUwHdxMFa7Mph/gmKwrRnmIgngjxMuID5ZO4SYzEc9H2oMr2XonSfTVOaF1e1OYhZm
+         e59zlI1CLXTcN9B0coiHULJrPSRETSnppntDQjGimAl3VqxdttHv+OVEk9wXIOQaCw
+         22thZ+TW5ci7w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Xiao Yang <yangx.jy@fujitsu.com>, Jason Gunthorpe <jgg@nvidia.com>,
+Cc:     Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
+        Abaci Robot <abaci@linux.alibaba.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 41/55] RDMA/rxe: Don't overwrite errno from ib_umem_get()
-Date:   Tue,  6 Jul 2021 07:26:24 -0400
-Message-Id: <20210706112638.2065023-41-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 14/35] RDMA/cxgb4: Fix missing error code in create_qp()
+Date:   Tue,  6 Jul 2021 07:28:26 -0400
+Message-Id: <20210706112848.2066036-14-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210706112638.2065023-1-sashal@kernel.org>
-References: <20210706112638.2065023-1-sashal@kernel.org>
+In-Reply-To: <20210706112848.2066036-1-sashal@kernel.org>
+References: <20210706112848.2066036-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -49,36 +51,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xiao Yang <yangx.jy@fujitsu.com>
+From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
 
-[ Upstream commit 20ec0a6d6016aa28b9b3299be18baef1a0f91cd2 ]
+[ Upstream commit aeb27bb76ad8197eb47890b1ff470d5faf8ec9a5 ]
 
-rxe_mr_init_user() always returns the fixed -EINVAL when ib_umem_get()
-fails so it's hard for user to know which actual error happens in
-ib_umem_get(). For example, ib_umem_get() will return -EOPNOTSUPP when
-trying to pin pages on a DAX file.
+The error code is missing in this code scenario so 0 will be returned. Add
+the error code '-EINVAL' to the return value 'ret'.
 
-Return actual error as mlx4/mlx5 does.
+Eliminates the follow smatch warning:
 
-Link: https://lore.kernel.org/r/20210621071456.4259-1-ice_yangxiao@163.com
-Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
+drivers/infiniband/hw/cxgb4/qp.c:298 create_qp() warn: missing error code 'ret'.
+
+Link: https://lore.kernel.org/r/1622545669-20625-1-git-send-email-jiapeng.chong@linux.alibaba.com
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/cxgb4/qp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 2cca89ca08cd..375e5520865e 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -175,7 +175,7 @@ int rxe_mem_init_user(struct rxe_pd *pd, u64 start,
- 	if (IS_ERR(umem)) {
- 		pr_warn("err %d from rxe_umem_get\n",
- 			(int)PTR_ERR(umem));
--		err = -EINVAL;
-+		err = PTR_ERR(umem);
- 		goto err1;
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 36bdb04f8f01..87bc7b0db892 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -277,6 +277,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+ 	if (user && (!wq->sq.bar2_pa || !wq->rq.bar2_pa)) {
+ 		pr_warn(MOD "%s: sqid %u or rqid %u not in BAR2 range.\n",
+ 			pci_name(rdev->lldi.pdev), wq->sq.qid, wq->rq.qid);
++		ret = -EINVAL;
+ 		goto free_dma;
  	}
  
 -- 
