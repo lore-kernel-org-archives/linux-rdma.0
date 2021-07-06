@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75C9FC11F70
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72DC4C11F6E
 	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6151361EB8
+	by mail.kernel.org (Postfix) with ESMTP id 5913F61E92
 	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jul 2021 11:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234885AbhGFLr4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S237445AbhGFLr4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 6 Jul 2021 07:47:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47572 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237500AbhGFLgL (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:36:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B592261F1E;
-        Tue,  6 Jul 2021 11:28:13 +0000 (UTC)
+        id S237435AbhGFLgK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:36:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2506961D81;
+        Tue,  6 Jul 2021 11:27:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570894;
-        bh=XVELak/A53j3wbXPO7smMGauYy+KwP/a/wsJCFJNp/g=;
+        s=k20201202; t=1625570860;
+        bh=IRPEpEYxB0BX+tGtZoRbR9CFvmpTsjSrVMI6u1tpC74=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ETaDQgFa1mpNsygMtB96S7inywHFqjOqQ2CIWnX4tEFrTWtSwth157LY2Aya2vH3u
-         FPHkBBi+u2kaV2X4rKVibikF/iTFNIUjrlsrZVaExGaRzoM8pKEOV4WvrwNVQ3xyjn
-         e5G2qnfsaYppNGizdmNIY5qV8rMbt8yXQBsfrtUhkcf04PR3hS4vfsq5IpDLNSf+FI
-         hgqHr1RKwYsUaun0q0MtFoXDgYURiApW5vKtLow1j8fKckmrP2z5ArPZneHboHgAAE
-         0hw5fLaNRGjz+rLoi5WK54NwEjAfhiBqB2DZ0WJgMdQKe5kCDgKCi48mK2KMxph35A
-         uSoGE+NRkm5Jg==
+        b=bPnsi8lnLDTEpIAlVZbSLsQ2YAAyKkqp89U2J93iO1qQVdDqb0BZcGUFnOzM+KA3s
+         6Ob2R5vjJAAvmC5EtlobCRwowTVoXEh9l6NWVEzjduRjp0vgXT3YrG6nnv3unsD6qs
+         MBdYlU0WvAL/SMi5KPBqBaVJCkCkdIGu/3BEQIKdVGybUsPuDjb3mcrAvaA1dyVL5X
+         Siw+uiZlTA1Ruy0B5DGwOIYApex/sQZ5GucIqDMIwkRip78Ozq/HVijHmzLlwFyZRN
+         JOYtxBxSoj8dBc2XSXNzafgQgVeQD/JnLJetl8PMEEgyXUl2iRPkI7vQjqTlJ5DVkg
+         62L067S9edMnA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
-        Abaci Robot <abaci@linux.alibaba.com>,
+Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 19/45] RDMA/cxgb4: Fix missing error code in create_qp()
-Date:   Tue,  6 Jul 2021 07:27:23 -0400
-Message-Id: <20210706112749.2065541-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 49/55] RDMA/cma: Fix rdma_resolve_route() memory leak
+Date:   Tue,  6 Jul 2021 07:26:32 -0400
+Message-Id: <20210706112638.2065023-49-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210706112749.2065541-1-sashal@kernel.org>
-References: <20210706112749.2065541-1-sashal@kernel.org>
+In-Reply-To: <20210706112638.2065023-1-sashal@kernel.org>
+References: <20210706112638.2065023-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -51,38 +50,39 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+From: Gerd Rausch <gerd.rausch@oracle.com>
 
-[ Upstream commit aeb27bb76ad8197eb47890b1ff470d5faf8ec9a5 ]
+[ Upstream commit 74f160ead74bfe5f2b38afb4fcf86189f9ff40c9 ]
 
-The error code is missing in this code scenario so 0 will be returned. Add
-the error code '-EINVAL' to the return value 'ret'.
+Fix a memory leak when "mda_resolve_route() is called more than once on
+the same "rdma_cm_id".
 
-Eliminates the follow smatch warning:
+This is possible if cma_query_handler() triggers the
+RDMA_CM_EVENT_ROUTE_ERROR flow which puts the state machine back and
+allows rdma_resolve_route() to be called again.
 
-drivers/infiniband/hw/cxgb4/qp.c:298 create_qp() warn: missing error code 'ret'.
-
-Link: https://lore.kernel.org/r/1622545669-20625-1-git-send-email-jiapeng.chong@linux.alibaba.com
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Link: https://lore.kernel.org/r/f6662b7b-bdb7-2706-1e12-47c61d3474b6@oracle.com
+Signed-off-by: Gerd Rausch <gerd.rausch@oracle.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/qp.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/cma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 15a867d62d02..325561580729 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -277,6 +277,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
- 	if (user && (!wq->sq.bar2_pa || !wq->rq.bar2_pa)) {
- 		pr_warn("%s: sqid %u or rqid %u not in BAR2 range\n",
- 			pci_name(rdev->lldi.pdev), wq->sq.qid, wq->rq.qid);
-+		ret = -EINVAL;
- 		goto free_dma;
- 	}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 8cdf933310d1..842a30947bdc 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2558,7 +2558,8 @@ static int cma_resolve_ib_route(struct rdma_id_private *id_priv, int timeout_ms)
  
+ 	cma_init_resolve_route_work(work, id_priv);
+ 
+-	route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
++	if (!route->path_rec)
++		route->path_rec = kmalloc(sizeof *route->path_rec, GFP_KERNEL);
+ 	if (!route->path_rec) {
+ 		ret = -ENOMEM;
+ 		goto err1;
 -- 
 2.30.2
 
