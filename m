@@ -8,60 +8,60 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEB4EC07E95
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 444F3C07E9E
 	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 04:01:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 93831608FE
+	by mail.kernel.org (Postfix) with ESMTP id 1B41860E0C
 	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 04:01:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229538AbhGGEE1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Jul 2021 00:04:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41674 "EHLO
+        id S229477AbhGGEEZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Jul 2021 00:04:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229717AbhGGEEZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jul 2021 00:04:25 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A363C061574
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jul 2021 21:01:46 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id b2so1903452oiy.6
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Jul 2021 21:01:46 -0700 (PDT)
+        with ESMTP id S229475AbhGGEEX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jul 2021 00:04:23 -0400
+Received: from mail-oi1-x22b.google.com (mail-oi1-x22b.google.com [IPv6:2607:f8b0:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1303DC061574
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jul 2021 21:01:43 -0700 (PDT)
+Received: by mail-oi1-x22b.google.com with SMTP id w74so1878125oiw.8
+        for <linux-rdma@vger.kernel.org>; Tue, 06 Jul 2021 21:01:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Q/sZ5yhZkLWFf8OuiXd+lEDsqtGzklgaAqQA/VHIlMs=;
-        b=J7lUNeC+ESfSyk9kfQShR+McycqRC0umn+ookz5NVRb7/0DpRwK6wqknoQ1QL63cmc
-         SiYlRvgQINP5yNnc+SvsU3CiuyLRhwn9YL0trMNrnCJ7E1YKtWw2QyOBEX0zqXp9fr7X
-         cNfqSsF/qqCab7b1tstyGrRTWG2gH7YN3lqpkWwmUeoV6j9nvIVaKA65Y0RUbUmmx6ks
-         xN5imd9RdKaEhcaq9lrqmALyiDmcaomYVl5ejmMvrVmlTcRsoOmb9gDi+B6XP16/3OiT
-         vEy6CDBV7v+oj9LpZYeDci8qeW1KvrCesNb8Xb77saZ7iO9eTa8im6i2V5LXhIFwFBF/
-         CpgQ==
+        bh=c5kzeczmKMiT45siTmiezKJGqHqWKuD9+r+3Zvf7KAs=;
+        b=l6ILIkk7MGfiYbK9lmIIaWK4HlEh9BnvyBydeNmUlY2v/t8kyhGeO3trfOd303bd6t
+         rG4oilYSxqXKmBZCbWgDTQzFdpEfF4YYoHtdH8bFJN9Bmx1VaTYW1R8swrb8mY2MLUSf
+         uypxHPM63VQnBZQdTkXXHji6Lj8uHnWrSk8Qe4Mk+UDugsKw1o+NRe6o9e8J/DpjTZjf
+         h2pLsk92qUJtiV7O1VQ7fW3cEcLIyGcnxf1avf5Jnf0coLR5M9t3DCyvf3zRV6Lg6NQ0
+         nkhG1SiGp0LJzzG1fXSxgG9+XAV9FIjHDvHSEpssuX6us0xOamqkuXFn3roGSKhzB2v1
+         9dwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Q/sZ5yhZkLWFf8OuiXd+lEDsqtGzklgaAqQA/VHIlMs=;
-        b=bSUbIKTrxH4zfIWtPK/FbkJAI5Ai1MwQK7BhdrY7OJ17cm++s18E3X3+yO/BIy3o/h
-         qm7bm6zb7pS/2+rUx63+97P01om2/4zZy5AR5WQAgP/DYTLYHetvHEh5afHSvQ0qKEfS
-         zg34ec4BRK6FBmzvWRr0kvd/OVD/SY+3MGvNDWCe3A0v0Md9VxgbpmFTe7v6DkWbJE/x
-         UqOuPhrAHq1RJ8BnKNGhNPmD/6yilEUw1N7Cppmh5iAD7Gi/FCqEt7qmanlXUrQkiy1T
-         hknCf5IkHQhTL6tLjVSH5X0ojwpv4LIz85qACYSIGWr9l6Qd76X+Z4zh727jZ86ZVyk1
-         dHBw==
-X-Gm-Message-State: AOAM533I1imAvOX9+RiQjH1D/akOFgcReM6eY5eVd8L7CsGKuUnq7t3k
-        QkP+C83naEWzvKuTEdh3dC8=
-X-Google-Smtp-Source: ABdhPJzJAEd4b9A4/NV4Lm8IOit09NJ0Ez9tqcGDu6WtUqsoUQ1+toWrq3WLojO2mLEftA9fUfhA5Q==
-X-Received: by 2002:aca:ab4a:: with SMTP id u71mr3385918oie.174.1625630505698;
-        Tue, 06 Jul 2021 21:01:45 -0700 (PDT)
+        bh=c5kzeczmKMiT45siTmiezKJGqHqWKuD9+r+3Zvf7KAs=;
+        b=EWGodT1Kh5XJKfk2CrjYNyq+QYc904rzUK5rwmnC7nnGbh455paqSyxws2F0EkBexB
+         +BPZASAGIUFPwpAy99RR7CIIg4JkiXzd58L9kb9OB/2iSg5yBlGugEqyXDBQk1hZbobg
+         QIr+DmU2wt7pvbvdvCyEYmIS9dHHikV8UeWwfLLTwjSsWRQqDFoV7JsZBJOrmDH+v2j6
+         fYGU8EED/XApk33qWBQXoznecFlQa6CnTp1WV23vRvO+kZuxDRTQDbFBidC+VQfv5Cq1
+         HIIEYOJetMO9BGU4aQsRSL9s/NazTRnC1qZV1QddbuaEUDGV/SNjX3jmz2XWew9Z/93O
+         MmvA==
+X-Gm-Message-State: AOAM531c297xsdZRpgpCd3WwPxrmBKKLt2xVpYbMQ5yQ6IDQ9s3R+MfG
+        zsdgjIQnso5uarUTJKwCmkM=
+X-Google-Smtp-Source: ABdhPJwJmfipPhwkUpBV06YNEJApknT8Tt9gbGJ3l57i/P4hJpmS7sxMXuHHaxAHZdr5dMq/s9kf9A==
+X-Received: by 2002:aca:eb43:: with SMTP id j64mr3224641oih.101.1625630502506;
+        Tue, 06 Jul 2021 21:01:42 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-3e85-59b9-418d-5cfe.res6.spectrum.com. [2603:8081:140c:1a00:3e85:59b9:418d:5cfe])
-        by smtp.gmail.com with ESMTPSA id a16sm2630323oiy.17.2021.07.06.21.01.45
+        by smtp.gmail.com with ESMTPSA id 104sm1727558otm.55.2021.07.06.21.01.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Jul 2021 21:01:45 -0700 (PDT)
+        Tue, 06 Jul 2021 21:01:42 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH v2 5/9] RDMA/rxe: Move rxe_crc32 to a subroutine
-Date:   Tue,  6 Jul 2021 23:00:37 -0500
-Message-Id: <20210707040040.15434-6-rpearsonhpe@gmail.com>
+Subject: [PATCH v2 2/9] RDMA/rxe: Move rxe_xmit_packet to a subroutine
+Date:   Tue,  6 Jul 2021 23:00:34 -0500
+Message-Id: <20210707040040.15434-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210707040040.15434-1-rpearsonhpe@gmail.com>
 References: <20210707040040.15434-1-rpearsonhpe@gmail.com>
@@ -71,77 +71,129 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move rxe_crc32() from rxe.h to rxe_icrc.c as a static local function.
+rxe_xmit_packet() was an overlong inline subroutine. This patch moves it
+into rxe_net.c as an ordinary subroutine.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe.h      | 21 ---------------------
- drivers/infiniband/sw/rxe/rxe_icrc.c | 21 +++++++++++++++++++++
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_loc.h | 45 ++---------------------------
+ drivers/infiniband/sw/rxe/rxe_net.c | 43 +++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.h b/drivers/infiniband/sw/rxe/rxe.h
-index 623fd17df02d..65a73c1c8b35 100644
---- a/drivers/infiniband/sw/rxe/rxe.h
-+++ b/drivers/infiniband/sw/rxe/rxe.h
-@@ -42,27 +42,6 @@
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 015777e31ec9..409d10f20948 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -104,6 +104,8 @@ int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb);
+ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+ 				int paylen, struct rxe_pkt_info *pkt);
+ int rxe_prepare(struct rxe_pkt_info *pkt, struct sk_buff *skb, u32 *crc);
++int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
++		    struct sk_buff *skb);
+ const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num);
+ int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid);
+ int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid);
+@@ -206,47 +208,4 @@ static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
+ 	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
+ }
  
- extern bool rxe_initialized;
- 
--static inline u32 rxe_crc32(struct rxe_dev *rxe,
--			    u32 crc, void *next, size_t len)
+-static inline int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+-				  struct sk_buff *skb)
 -{
--	u32 retval;
 -	int err;
+-	int is_request = pkt->mask & RXE_REQ_MASK;
+-	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
 -
--	SHASH_DESC_ON_STACK(shash, rxe->tfm);
--
--	shash->tfm = rxe->tfm;
--	*(u32 *)shash_desc_ctx(shash) = crc;
--	err = crypto_shash_update(shash, next, len);
--	if (unlikely(err)) {
--		pr_warn_ratelimited("failed crc calculation, err: %d\n", err);
--		return crc32_le(crc, next, len);
+-	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
+-	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
+-		pr_info("Packet dropped. QP is not in ready state\n");
+-		goto drop;
 -	}
 -
--	retval = *(u32 *)shash_desc_ctx(shash);
--	barrier_data(shash_desc_ctx(shash));
--	return retval;
+-	if (pkt->mask & RXE_LOOPBACK_MASK) {
+-		memcpy(SKB_TO_PKT(skb), pkt, sizeof(*pkt));
+-		rxe_loopback(skb);
+-		err = 0;
+-	} else {
+-		err = rxe_send(pkt, skb);
+-	}
+-
+-	if (err) {
+-		rxe->xmit_errors++;
+-		rxe_counter_inc(rxe, RXE_CNT_SEND_ERR);
+-		return err;
+-	}
+-
+-	if ((qp_type(qp) != IB_QPT_RC) &&
+-	    (pkt->mask & RXE_END_MASK)) {
+-		pkt->wqe->state = wqe_state_done;
+-		rxe_run_task(&qp->comp.task, 1);
+-	}
+-
+-	rxe_counter_inc(rxe, RXE_CNT_SENT_PKTS);
+-	goto done;
+-
+-drop:
+-	kfree_skb(skb);
+-	err = 0;
+-done:
+-	return err;
 -}
 -
- void rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu);
+ #endif /* RXE_LOC_H */
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index dec92928a1cd..c93a379a1b28 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -421,6 +421,49 @@ void rxe_loopback(struct sk_buff *skb)
+ 		rxe_rcv(skb);
+ }
  
- int rxe_add(struct rxe_dev *rxe, unsigned int mtu, const char *ibdev_name);
-diff --git a/drivers/infiniband/sw/rxe/rxe_icrc.c b/drivers/infiniband/sw/rxe/rxe_icrc.c
-index 08ab32eb6445..00916440f17b 100644
---- a/drivers/infiniband/sw/rxe/rxe_icrc.c
-+++ b/drivers/infiniband/sw/rxe/rxe_icrc.c
-@@ -7,6 +7,27 @@
- #include "rxe.h"
- #include "rxe_loc.h"
- 
-+static u32 rxe_crc32(struct rxe_dev *rxe, u32 crc, void *next, size_t len)
++int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
++		    struct sk_buff *skb)
 +{
-+	u32 icrc;
 +	int err;
++	int is_request = pkt->mask & RXE_REQ_MASK;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
 +
-+	SHASH_DESC_ON_STACK(shash, rxe->tfm);
-+
-+	shash->tfm = rxe->tfm;
-+	*(u32 *)shash_desc_ctx(shash) = crc;
-+	err = crypto_shash_update(shash, next, len);
-+	if (unlikely(err)) {
-+		pr_warn_ratelimited("failed crc calculation, err: %d\n", err);
-+		return crc32_le(crc, next, len);
++	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
++	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
++		pr_info("Packet dropped. QP is not in ready state\n");
++		goto drop;
 +	}
 +
-+	icrc = *(u32 *)shash_desc_ctx(shash);
-+	barrier_data(shash_desc_ctx(shash));
++	if (pkt->mask & RXE_LOOPBACK_MASK) {
++		memcpy(SKB_TO_PKT(skb), pkt, sizeof(*pkt));
++		rxe_loopback(skb);
++		err = 0;
++	} else {
++		err = rxe_send(pkt, skb);
++	}
 +
-+	return icrc;
++	if (err) {
++		rxe->xmit_errors++;
++		rxe_counter_inc(rxe, RXE_CNT_SEND_ERR);
++		return err;
++	}
++
++	if ((qp_type(qp) != IB_QPT_RC) &&
++	    (pkt->mask & RXE_END_MASK)) {
++		pkt->wqe->state = wqe_state_done;
++		rxe_run_task(&qp->comp.task, 1);
++	}
++
++	rxe_counter_inc(rxe, RXE_CNT_SENT_PKTS);
++	goto done;
++
++drop:
++	kfree_skb(skb);
++	err = 0;
++done:
++	return err;
 +}
 +
- /* Compute a partial ICRC for all the IB transport headers. */
- u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
+ 				int paylen, struct rxe_pkt_info *pkt)
  {
 -- 
 2.30.2
