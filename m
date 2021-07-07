@@ -2,153 +2,140 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE675C07E95
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 04:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C50C11F68
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 12:17:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D57B260E0C
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 04:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1700F61CA8
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jul 2021 12:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbhGGEEc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Jul 2021 00:04:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41696 "EHLO
+        id S231449AbhGGMTz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Jul 2021 08:19:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230038AbhGGEE3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jul 2021 00:04:29 -0400
-Received: from mail-ot1-x331.google.com (mail-ot1-x331.google.com [IPv6:2607:f8b0:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 807F4C06175F
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jul 2021 21:01:49 -0700 (PDT)
-Received: by mail-ot1-x331.google.com with SMTP id i12-20020a05683033ecb02903346fa0f74dso965893otu.10
-        for <linux-rdma@vger.kernel.org>; Tue, 06 Jul 2021 21:01:49 -0700 (PDT)
+        with ESMTP id S231358AbhGGMTz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jul 2021 08:19:55 -0400
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE1CFC061574;
+        Wed,  7 Jul 2021 05:17:14 -0700 (PDT)
+Received: by mail-wr1-x42c.google.com with SMTP id d12so2200170wre.13;
+        Wed, 07 Jul 2021 05:17:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ZW62XsamrXQDM8qOOE9QxYBZaa7HOU2EbGz8Tu41ogw=;
-        b=R60jA6dCY0BocyND5JS8Hq4ZCK4NV0yhOFGqC/j/PKHL5C3YlnrbuFI3bh8yg6rlnp
-         Ifz3lo7ibMSLvb/rn0KEiMFnOLpQYBr+N7WMcdzzsPa6oPA6bsm/472xsurQXsQALSjj
-         xbuTMG/xiPfXa2BTnpw+70Q+UqujsMh2HmVbYqNSckF/HS9pdqQLocubKp6VwqqwV2fQ
-         v2yfg1U7rgNKA1IhbPlpoADfkMMVVcIS5ahk8AcF3C8NV/9ZoLo9WYsfeYGO/a84LJJp
-         3k/LWAO3wzgewNJnVBmdBEr6+Bq8S/KLtY3jWmk1IgfNSQ/DsLIl67qNZ1sPAJNrBnvw
-         YfJA==
+        h=subject:to:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-transfer-encoding:content-language;
+        bh=gFcpO09X9eqmjEev1StyvxVCY7X0AALnaeQkmkAwWuA=;
+        b=ZjJsQUBAGSRzwkesl+g70QlwkbvYhuHJtn9TzO41zn/XqXK0HsPfSJXxQ1uubM80r2
+         QYeHYcYzl3pdaIKusWL8Cd7Wu51RMb/uf3qRgfVEUeKySy/8psgPpeGYTaM+zPTnUhPF
+         9xKe5V78YV9n8JpqoYRiJqSsCkiLrBbIA9ZtSqYpocicMRidvhtcTJamlaqtccNRyFEN
+         02DbkAeA4CUIOThsqvoQeKbSJh5ta3Oe42xfSOVaXDxn0ln/B0etndt5ICGG0ZrG3npQ
+         LpRDrwUb4cIJSkCzDubfh19bl4gMUkqIeaYnL4XjUhz4gGqkC155BwFDxgWq0MBa3QsZ
+         xebw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ZW62XsamrXQDM8qOOE9QxYBZaa7HOU2EbGz8Tu41ogw=;
-        b=Y4SlLOEie8KB5KOoSc2LORJ9z9Wy6zi2dcp/ARwuoGa7HPKGSU9Gr0MYkF/sffwpZF
-         LTJG2fW+LneJsvWfLdV0Z8Sw58VmVWhscz5sh0efiq2veSS5GQYSyj6mXFXOX3XW8KwQ
-         T5p04yu0X5h+SjAxig9gzC5Z8B5TA10z+BcGu2zZ6sRAujPQNvKuVSs/JUM3eyCtHH82
-         axFZ/PUwQvEmC19ln9cxWVip099CVTC3Y73QDfNu4snKU4Sy1XgfkZRBeR4vijeGHX55
-         fbpAN3I3tEBOwpCpvxpmoWJ3JH2K2EdGBm7nXUWjpsGKD/hoPPS6dcODVIhJDxCDjVmA
-         fmUQ==
-X-Gm-Message-State: AOAM532F2ej1e6kDl7V9oP2SR02ec0e2dRRYjFFiCDG419Rvkeb6mWa0
-        F9yiE096PRpmtixPQfEw6HA=
-X-Google-Smtp-Source: ABdhPJy6c9E5ctS8DjFcXFCtRPk4X3Aeb+nbPU9n27gyjDqCm5PZgpNLMA62tx5ObZXlEVTL9bshZQ==
-X-Received: by 2002:a05:6830:34a2:: with SMTP id c34mr17709093otu.59.1625630508983;
-        Tue, 06 Jul 2021 21:01:48 -0700 (PDT)
-Received: from localhost (2603-8081-140c-1a00-3e85-59b9-418d-5cfe.res6.spectrum.com. [2603:8081:140c:1a00:3e85:59b9:418d:5cfe])
-        by smtp.gmail.com with ESMTPSA id r25sm3762122otp.21.2021.07.06.21.01.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Jul 2021 21:01:48 -0700 (PDT)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH v2 8/9] RDMA/rxe: Add kernel-doc comments to rxe_icrc.c
-Date:   Tue,  6 Jul 2021 23:00:40 -0500
-Message-Id: <20210707040040.15434-9-rpearsonhpe@gmail.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210707040040.15434-1-rpearsonhpe@gmail.com>
-References: <20210707040040.15434-1-rpearsonhpe@gmail.com>
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=gFcpO09X9eqmjEev1StyvxVCY7X0AALnaeQkmkAwWuA=;
+        b=pAACjh16ceqY2dnrPo8i6UULmcT07c5TUhWTFwsFbRZYiLzYvQPyZcb3BDxTGAT/WX
+         kX4dNCIV4g+rjuJZ85XnkzndpE3TaJwoAdGjgTzQnujLWOAjY1M8HG07kNYdNUxzxAsI
+         S92TgEQ1UDdHgFT4zYm4vuIdQAIGi6kI4JxPkMJw99fOL5yTyKbmHSqkEKPpVuYAqIUX
+         Ir0VtFqgs68THh2leAdkiWAtiLR/DfqpMxCZqe+G+1cGB8WXh0Bm4i1PWgJLXX6S28FJ
+         04sa7jbwXCi4PxZ/MGpx+Xk8aUEf5e9b3QcgTmaws7P3S3e/L4go0euuGkt6H2O3VkYf
+         tsyg==
+X-Gm-Message-State: AOAM531GyYFyde6Ge+aqbymCmaEIC6I/EpIi82Yq303/mmw8Gpo+6nuw
+        JwR8M8XyEXLUKiFBH0KLJ/Y=
+X-Google-Smtp-Source: ABdhPJw+KpKKmv799GNloUfwlu8fKZlyMeia+T+6lyR5kx2E0g6ByA5UB8esUFEyQkPer8zSwXyRww==
+X-Received: by 2002:a5d:680b:: with SMTP id w11mr15450397wru.426.1625660233375;
+        Wed, 07 Jul 2021 05:17:13 -0700 (PDT)
+Received: from ?IPv6:2a02:908:1252:fb60:7671:3328:2129:96b5? ([2a02:908:1252:fb60:7671:3328:2129:96b5])
+        by smtp.gmail.com with ESMTPSA id u2sm13550473wmc.42.2021.07.07.05.17.12
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 07 Jul 2021 05:17:12 -0700 (PDT)
+Subject: Re: [Linaro-mm-sig] [PATCH v4 0/2] Add p2p via dmabuf to habanalabs
+To:     Christoph Hellwig <hch@lst.de>, Oded Gabbay <ogabbay@kernel.org>,
+        linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
+        sumit.semwal@linaro.org, christian.koenig@amd.com,
+        galpress@amazon.com, sleybo@amazon.com,
+        dri-devel@lists.freedesktop.org, jgg@ziepe.ca,
+        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
+        dledford@redhat.com, airlied@gmail.com, alexander.deucher@amd.com,
+        leonro@nvidia.com, amd-gfx@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+References: <20210705130314.11519-1-ogabbay@kernel.org>
+ <YOQXBWpo3whVjOyh@phenom.ffwll.local> <20210706122110.GA18273@lst.de>
+ <YORLTmyoXDtoM9Ta@phenom.ffwll.local>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <9af554b1-e4d8-4dd4-5a6a-830f3112941d@gmail.com>
+Date:   Wed, 7 Jul 2021 14:17:11 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <YORLTmyoXDtoM9Ta@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch adds kernel-doc style comments to rxe_icrc.c
+Am 06.07.21 um 14:23 schrieb Daniel Vetter:
+> On Tue, Jul 06, 2021 at 02:21:10PM +0200, Christoph Hellwig wrote:
+>> On Tue, Jul 06, 2021 at 10:40:37AM +0200, Daniel Vetter wrote:
+>>>> Greg, I hope this will be good enough for you to merge this code.
+>>> So we're officially going to use dri-devel for technical details review
+>>> and then Greg for merging so we don't have to deal with other merge
+>>> criteria dri-devel folks have?
+>>>
+>>> I don't expect anything less by now, but it does make the original claim
+>>> that drivers/misc will not step all over accelerators folks a complete
+>>> farce under the totally-not-a-gpu banner.
+>>>
+>>> This essentially means that for any other accelerator stack that doesn't
+>>> fit the dri-devel merge criteria, even if it's acting like a gpu and uses
+>>> other gpu driver stuff, you can just send it to Greg and it's good to go.
+>>>
+>>> There's quite a lot of these floating around actually (and many do have
+>>> semi-open runtimes, like habanalabs have now too, just not open enough to
+>>> be actually useful). It's going to be absolutely lovely having to explain
+>>> to these companies in background chats why habanalabs gets away with their
+>>> stack and they don't.
+>> FYI, I fully agree with Daniel here.  Habanlabs needs to open up their
+>> runtime if they want to push any additional feature in the kernel.
+>> The current situation is not sustainable.
+> Before anyone replies: The runtime is open, the compiler is still closed.
+> This has become the new default for accel driver submissions, I think
+> mostly because all the interesting bits for non-3d accelerators are in the
+> accel ISA, and no longer in the runtime. So vendors are fairly happy to
+> throw in the runtime as a freebie.
 
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
----
- drivers/infiniband/sw/rxe/rxe_icrc.c | 32 +++++++++++++++++++++++++---
- 1 file changed, 29 insertions(+), 3 deletions(-)
+Well a compiler and runtime makes things easier, but the real question 
+is if they are really required for upstreaming a kernel driver?
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_icrc.c b/drivers/infiniband/sw/rxe/rxe_icrc.c
-index 62bcdfc8e96a..4473d38c171f 100644
---- a/drivers/infiniband/sw/rxe/rxe_icrc.c
-+++ b/drivers/infiniband/sw/rxe/rxe_icrc.c
-@@ -9,6 +9,12 @@
- #include "rxe.h"
- #include "rxe_loc.h"
- 
-+/**
-+ * rxe_icrc_init() - Initialize crypto function for computing crc32
-+ * @rxe: rdma_rxe device object
-+ *
-+ * Return: 0 on success else an error
-+ */
- int rxe_icrc_init(struct rxe_dev *rxe)
- {
- 	struct crypto_shash *tfm;
-@@ -25,6 +31,15 @@ int rxe_icrc_init(struct rxe_dev *rxe)
- 	return 0;
- }
- 
-+/**
-+ * rxe_crc32() - Compute cumulative crc32 for a contiguous segment
-+ * @rxe: rdma_rxe device object
-+ * @crc: starting crc32 value from previous segments
-+ * @next: starting address of current segment
-+ * @len: length of current segment
-+ *
-+ * Return: the cumulative crc32 checksum
-+ */
- static u32 rxe_crc32(struct rxe_dev *rxe, u32 crc, void *next, size_t len)
- {
- 	u32 icrc;
-@@ -46,7 +61,14 @@ static u32 rxe_crc32(struct rxe_dev *rxe, u32 crc, void *next, size_t len)
- 	return icrc;
- }
- 
--/* Compute a partial ICRC for all the IB transport headers. */
-+/**
-+ * rxe_icrc_hdr() - Compute the partial ICRC for the network and transport
-+ *		  headers of a packet.
-+ * @skb: packet buffer
-+ * @pkt: packet information
-+ *
-+ * Return: the partial ICRC
-+ */
- static u32 rxe_icrc_hdr(struct sk_buff *skb, struct rxe_pkt_info *pkt)
- {
- 	unsigned int bth_offset = 0;
-@@ -111,7 +133,7 @@ static u32 rxe_icrc_hdr(struct sk_buff *skb, struct rxe_pkt_info *pkt)
-  * rxe_icrc_check() - Compute ICRC for a packet and compare to the ICRC
-  *		      delivered in the packet.
-  * @skb: packet buffer
-- * @pkt: packet info
-+ * @pkt: packet information
-  *
-  * Return: 0 if the values match else an error
-  */
-@@ -145,7 +167,11 @@ int rxe_icrc_check(struct sk_buff *skb, struct rxe_pkt_info *pkt)
- 	return 0;
- }
- 
--/* rxe_icrc_generate- compute ICRC for a packet. */
-+/**
-+ * rxe_icrc_generate() - compute ICRC for a packet.
-+ * @skb: packet buffer
-+ * @pkt: packet information
-+ */
- void rxe_icrc_generate(struct sk_buff *skb, struct rxe_pkt_info *pkt)
- {
- 	__be32 *icrcp;
--- 
-2.30.2
+I mean what we need is to be able to exercise the functionality. So 
+wouldn't (for example) an assembler be sufficient?
+
+> It's still incomplete, and it's still useless if you want to actually hack
+> on the driver stack.
+
+Yeah, when you want to hack on it in the sense of extending it then this 
+requirement is certainly true.
+
+But as far as I can see userspace don't need to be extendable to justify 
+a kernel driver. It just needs to have enough glue to thoughtfully 
+exercise the relevant kernel interfaces.
+
+Applying that to GPUs I think what you need to be able to is to write 
+shaders, but that doesn't need to be in a higher language requiring a 
+compiler and runtime. Released opcodes and a low level assembler should 
+be sufficient.
+
+Regards,
+Christian.
+
+> -Daniel
 
