@@ -2,84 +2,135 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5953CC07E99
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Jul 2021 10:25:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F74C07E99
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Jul 2021 13:21:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E6E361248
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Jul 2021 10:25:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC8F9608FE
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Jul 2021 13:21:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232107AbhGIK1p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Jul 2021 06:27:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32796 "EHLO
+        id S232333AbhGINXz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Jul 2021 09:23:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232006AbhGIK1p (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Jul 2021 06:27:45 -0400
-Received: from mail-lj1-x22f.google.com (mail-lj1-x22f.google.com [IPv6:2a00:1450:4864:20::22f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CCFAC0613DD
-        for <linux-rdma@vger.kernel.org>; Fri,  9 Jul 2021 03:25:01 -0700 (PDT)
-Received: by mail-lj1-x22f.google.com with SMTP id 11so3237261ljv.1
-        for <linux-rdma@vger.kernel.org>; Fri, 09 Jul 2021 03:25:01 -0700 (PDT)
+        with ESMTP id S232474AbhGINXx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Jul 2021 09:23:53 -0400
+Received: from mail-qk1-x72a.google.com (mail-qk1-x72a.google.com [IPv6:2607:f8b0:4864:20::72a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C98CC0613E9
+        for <linux-rdma@vger.kernel.org>; Fri,  9 Jul 2021 06:21:07 -0700 (PDT)
+Received: by mail-qk1-x72a.google.com with SMTP id s6so6379261qkc.8
+        for <linux-rdma@vger.kernel.org>; Fri, 09 Jul 2021 06:21:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=igel-co-jp.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=7eYg2OORZqFMxEkSST4c5MTXIQq7mqljuPAsGPZpLPI=;
-        b=G49PFH5ygg3gH93BnCgxj8e6m8bKrsoQK6Bo+D/LwEy+oV3GHLXqc1FDuAC55BFCnX
-         UoNrx5Iv7BHj1ZLz533xL2RBi15jHBeRHTCJwD8CTqEFw4BLCHBv18ZXZHwZ+lkhqt2g
-         ngxTQ5j40jCjpBnkJPhLqWSfJBLf+8TMgSfnidJ9mkBD0dWD1tEIKUhqJ4fuB/tPlT4H
-         ueehsCTtQoGo0ShFH3vK6e0buub6sGRV+QBw1Yzvc0njbO2td4qzZmO86GDAmm1bvAnT
-         FxGUptVLlB1OUI+JPeQoNvNfSGXnD9r4Ey4MQ7NdxfBNPbbl7J0SLOQJnknT6+F/Bf88
-         /r1w==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=7IzGLjKVrrwjN0uTt13PXB3jJvt8l9fcKIkCTP7vqaM=;
+        b=ilZvJqekdiaNoyDUelqtd1Mr2MELdhK7NOPy97RgyCP0M/65g1uZgZ9UQ2c12JIUS0
+         Zj/nHUdDAdpCHCqhwHVYPL4uV0Jql3W8XsheURr1cyp13JMkeq9mm5KjdmWiKiGit3f+
+         e0jmeXNXHV3MDibDZkmtB+pzf3RgYofJMCgUIahjknN+uBmf92VM6L/OBpMjH7ROIO2p
+         vlK5A8BNbzwXIftIyjqVSfvCZ+l3lOQ18bMKdfJE7WujGTNFEwK8Y/Bq4V6iamP3vbFc
+         d1trFDgWRAxIT25wKPE8EfJecY99+N9NwYsBihnhuwz8URVrE3pU8OKf8l6PcTYMTAYR
+         UQoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=7eYg2OORZqFMxEkSST4c5MTXIQq7mqljuPAsGPZpLPI=;
-        b=tsQXVTg6KaZiblL2gJFnnrBozrFYLl2Gdq368ri+YHXr6lp1W5ZVcRSQz6Ncp/oGCy
-         l1qjLIKpaiHBc+plz9pdBZDinM883CJmt09lUup6rEgVmEukGdINWOESlgGgF4B/Y2Y/
-         FOKOyWtuDj81Co7VvRIZhnSouxnzgreB947jLJIUfI2Ny6BS4UUuDOHOQ+DQ7CEbBjl2
-         alfHToSmeVS3f+S9dJ0J42fnnjDC8KdE5xtVltCo6hoJTsWNkgb7w6Cs5hE75qcLW0yN
-         k3p+YJ2qlv7NwPKkgFTw1gS3dPI/brb07c/ou1ux3EQ1gKBO+kRcf7ZQRMsC7JQhwEFn
-         M+Bw==
-X-Gm-Message-State: AOAM533pxR3GO64eRgMOfCdtil5hjpEfxww0JCaJw60htsCapmgUHtRp
-        jfNjsqFu6ClniZDSlUPRIwFx1H4LHyEwEOoalMymfCwJNI2wAyPz
-X-Google-Smtp-Source: ABdhPJxwPpQi6cah3sxjlzwFMPXnNvcsN1KEUS9vt46PfZiSnuZMVXlt82MKifMCy1oqoxKfCKMchb7urylv7dAw6bs=
-X-Received: by 2002:a2e:95c9:: with SMTP id y9mr28170948ljh.401.1625826299581;
- Fri, 09 Jul 2021 03:24:59 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=7IzGLjKVrrwjN0uTt13PXB3jJvt8l9fcKIkCTP7vqaM=;
+        b=Qtqa6WMBkGervpJ/lAP2CZoWLXyA9+vCmw1dk37KTzrGD8IXRyBytr3DCgEbTf++oO
+         PTDO4iaqQCyTnZbvAkm6Q3DUBJ4HY+rocG+bnJC/wDhEY/XKrKE8x4qVBRLsiJizpX7y
+         An5K0EVKcT5kN9u/S3fZ/QXoyx6XdrHFkAvdBeUlfpM35jXRX9sI08+ldXfB+3mu9uvg
+         Xb2/rdRcKwFmV2y6TOWFfiiTNfATb0639IUBNrpY6GYVDzrgfTJJNXzcT/f9LNIGoCCO
+         1gnV1Be9yj2/nG44MnUgRJZacZhU+6ecOktCGagX0PS/7teaJ6xwLBpeS+1noJIG/2nM
+         dTZw==
+X-Gm-Message-State: AOAM5308DXwCy9L/FQPlMT5ua3RvQtSluDOXxzfePVxuu1Zenpml71FN
+        b7UB7M6NRz1i7LFZvpLbjuGncg==
+X-Google-Smtp-Source: ABdhPJznSn3h0MnwLX5ELC2apWnAD6ffHhakwHbcf/hDcrFHnP0g5lW4SvaTIjZo+RvkTwaQr/P99A==
+X-Received: by 2002:a05:620a:1996:: with SMTP id bm22mr2618839qkb.262.1625836866657;
+        Fri, 09 Jul 2021 06:21:06 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-47-55-113-94.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.113.94])
+        by smtp.gmail.com with ESMTPSA id u4sm2132747qtw.86.2021.07.09.06.21.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Jul 2021 06:21:05 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1m1qRE-0075Wj-Qt; Fri, 09 Jul 2021 10:21:04 -0300
+Date:   Fri, 9 Jul 2021 10:21:04 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Anand Khoje <anand.a.khoje@oracle.com>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dledford@redhat.com, haakon.bugge@oracle.com, leon@kernel.org
+Subject: Re: [PATCH v7 for-next 0/3] IB/core: Obtaining subnet_prefix from
+ cache in
+Message-ID: <20210709132104.GA1582827@ziepe.ca>
+References: <20210630094615.808-1-anand.a.khoje@oracle.com>
+ <309d7800-73a3-41c6-542f-cdcb5a72e969@oracle.com>
 MIME-Version: 1.0
-From:   Shunsuke Mie <mie@igel.co.jp>
-Date:   Fri, 9 Jul 2021 19:24:48 +0900
-Message-ID: <CANXvt5oKHQFcKm5ypgS1FyMm_K9KntpmDVHDQRH3fsKXOXoc5A@mail.gmail.com>
-Subject: [RFC] RDMA with Continuous Memory Allocator
-To:     linux-rdma@vger.kernel.org, Takanari Hayama <taki@igel.co.jp>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <309d7800-73a3-41c6-542f-cdcb5a72e969@oracle.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi all,
+On Tue, Jul 06, 2021 at 12:55:48PM +0530, Anand Khoje wrote:
+> On 6/30/2021 3:16 PM, Anand Khoje wrote:
+> > This v7 of patch series is used to read the port_attribute subnet_prefix
+> > from a valid cache entry instead of having to call
+> > device->ops.query_gid() for Infiniband link-layer devices in
+> > __ib_query_port().
+> > 
+> > In the event of a cache update, the value for subnet_prefix gets read
+> > using device->ops.query_gid() in config_non_roce_gid_cache().
+> > 
+> > Anand Khoje (3):
+> >    IB/core: Updating cache for subnet_prefix in
+> >      config_non_roce_gid_cache()
+> >    IB/core: Shifting initialization of device->cache_lock.
+> >    IB/core: Read subnet_prefix in ib_query_port via cache.
+> > v1 -> v2:
+> >      -   Split the v1 patch in 3 patches as per Leon's suggestion.
+> > 
+> > v2 -> v3:
+> >      -   Added changes as per Mark Zhang's suggestion of clearing
+> >          flags in git_table_cleanup_one().
+> > v3 -> v4:
+> >      -   Removed the enum ib_port_data_flags and 8 byte flags from
+> >          struct ib_port_data, and the set_bit()/clear_bit() API
+> >          used to update this flag as that was not necessary.
+> >          Done to keep the code simple.
+> >      -   Added code to read subnet_prefix from updated GID cache in the
+> >          event of cache update. Prior to this change, ib_cache_update
+> >          was reading the value for subnet_prefix via ib_query_port(),
+> >          due to this patch, we ended up reading a stale cached value of
+> >          subnet_prefix.
+> > v4 -> v5:
+> >      -   Removed the code to reset cache_is_initialised bit from cleanup
+> >          as per Leon's suggestion.
+> >      -   Removed ib_cache_is_initialised() function.
+> > 
+> > v5 -> v6:
+> >      -   Added changes as per Jason's suggestion of updating subnet_prefix
+> >          in config_non_roce_gid_cache() and removing the flag
+> >          cache_is_initialized in __ib_query_port().
+> > 
+> > v6 -> v7:
+> >      -	Reordering the initialization of cache_lock, as the previous
+> > 	version caused an access to uninitialized cache_lock.
+> > 
+> >   drivers/infiniband/core/cache.c  | 10 +++++-----
+> >   drivers/infiniband/core/device.c | 10 ++++------
+> >   2 files changed, 9 insertions(+), 11 deletions(-)
+> > 
+> 
+> Hi,
+> 
+> This is just a reminder note requesting review for this patch-set.
 
-I tried to use Continuous Memory Allocator (CMA) allocated memory for
-RDMA transfer buffer in userspace, but it failed.
+You'll probably have to resend it after the merge window closed on
+Monday, rebased on the new rc1
 
-For more details, an ibv_reg_mr() API fails when I pass an mmaped
-memory region of allocated memory by the CMA. The reason why, a CMA
-mmap function, __dma_mmap_from_coherent(), sets  VM_IO and VM_PFNMAP
-to vma->vm_flags, and an ib_uverbs_reg_mr(), kernel function
-corresponding to the ibv_reg_mr(), tries to pin the memory region but,
-it becomes to fail. because VM_IO or VM_PFNMAP regions cannot be
-pined. As a result, the ibv_reg_mr() returns an error.
-
-I think the ib_umem_get() that is called in the ib_uverbs_reg_mr() and
-pins memories needs some modifications to support RDMA transfer
-to/from the CMA memory.
-
-I=E2=80=99d like to know your comments, ideas, and other solution.
-
-Thanks a lot,
-Shunsuke.
+Jason
