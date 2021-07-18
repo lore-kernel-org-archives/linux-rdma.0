@@ -8,106 +8,134 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2D43C636CB
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B2EC636C8
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:29:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D401760E09
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14C5F60FEA
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:29:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230225AbhGRVal (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 18 Jul 2021 17:30:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57358 "EHLO
+        id S232904AbhGRVcO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 18 Jul 2021 17:32:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232898AbhGRVak (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 18 Jul 2021 17:30:40 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91E1AC061764
-        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:41 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id w194so18439797oie.5
-        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:41 -0700 (PDT)
+        with ESMTP id S232459AbhGRVcO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 18 Jul 2021 17:32:14 -0400
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B14BC061764
+        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:29:15 -0700 (PDT)
+Received: by mail-ot1-x32f.google.com with SMTP id b18-20020a0568303112b02904cf73f54f4bso2613151ots.2
+        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:29:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=EFI/GfRFGOP1NZOrOUXrnngHrueYs1pXzobn8r6/VKQ=;
-        b=Ph6HDs9svMcNdly1XHDgh8oyNxF/rS6Ivm2iTnO6h/77P7Q6HG/ERRG4FfM2cMO6Fe
-         Qlen+01fNKyIRn7WYBhwJ2GWs8RdGcFCMTfEqAbtqkdi3VDFpVQsfHwVVYjUJU9VTzUX
-         O5DEefBZk4uEJMG9FVzzKwRIfws64ik19uvp/qfNHEyIP0MywGF4z/N7eARNOEAyG7JZ
-         Nf+KsIdxT3Kgw50I8kF0G/rq2amMiB90WD+E7PqkhAreHu9yoRNrKRlKJyUw7VOP4VoD
-         m9I+TTlxdN7McvPQEUzBQrqVaEA2mvTqZmwd+pdM0inw/+kkmr+Z98v7M0UDSxcsxhCi
-         VDYA==
+        bh=Rnph8n3lz4XfDGvrHQ9k3gv+YZef3cwysa36LX/XIz4=;
+        b=UD/dgRc/0rG1jgfQyRwYztJ5b9O8VSETDpfGGSw9hNbnaRcVW7GksEItnojDP53Kzb
+         DHeMk9y3tDN25jxmJokuMPK8BV3oL0XLvGme56n8LV4H/yxfNDAx+3lF632KAd4lbZ9d
+         8t+aDRiLPmoRUuy4ot1lfW3tl6j7079X9beLi8vFgDUZpIRGLNV9KV1nsaXNUI7dn+/J
+         /aoPqSqGhF9+2QKLvbczAbbC3Gw3NJRywsQ1PHGnCKHOrJVQxTYT5lunhvoNCcWRRowN
+         i5CfdiI56ax0VviA63I66mH+gqyt3WkK5yaRtj5s3fIxiIGAF8D65sVa0kKVqzbHOasf
+         71OQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=EFI/GfRFGOP1NZOrOUXrnngHrueYs1pXzobn8r6/VKQ=;
-        b=ji0M8I+A63Q8/7Oomk3ldLW+Wt6Rr7tBOYos6LLrU+Eaj+Er+zH/4mV1th2Z3HkO/Z
-         Dbkr+peyfC7dcaae+DsKLy7reITQ0CYnT3PDrFv7hR97TzUVHeKhUNuEC3rxg7Qkg0wc
-         Om92pj7h8Cbj5Ku1ew6x7DCsGjt9C/LfzENJsYU4PQsEmBQiPcj/2hurT80n8JGE8JaJ
-         eGlEvzDJqa9itPyrw0guAQDlp/eslrLAqBd/PMF8PYy/4ta1dzEKvu+WRfZ0NMd830dx
-         k/qK5xqMqKJPVP7jz8iGJsCU6DElT7EsigItX3zk0677aXNevG3QSkoSas2dkVFyWR5d
-         H/Og==
-X-Gm-Message-State: AOAM5336ZEBe+BlF0med79EYobqnGoDb5pzEiX73NpqDuelnCaCXdRF/
-        v2PvJbVvqIhZ1kkjqY3XLkw=
-X-Google-Smtp-Source: ABdhPJzWGiGx/mUiKnMxM4HKDBdAypS7x2lVRtJOPoL6H/jxgtZZqxPcuwAawyfCKdNeHOfPcrYwCg==
-X-Received: by 2002:a54:4094:: with SMTP id i20mr3698661oii.159.1626643661057;
-        Sun, 18 Jul 2021 14:27:41 -0700 (PDT)
+        bh=Rnph8n3lz4XfDGvrHQ9k3gv+YZef3cwysa36LX/XIz4=;
+        b=oLLGh1C1p8nz28HprgM/mWgRw45/j5HhnExLy0eIUuzGS5BFmDAo4NXcBEI3lOdmxb
+         govisRSfAsGs/Z+t67kCPoMtvjTW2hsa4Wb1Zop75VXDNHD51JfIL44xtxc58MgrI2N/
+         9WQOSjTAt6dviEkHHGVLqOl0PrTtAhhL7HEj2S/tKIKFqcIHJnZNVBsF9gRLAGB6DK5R
+         r8BI6/xxP+tTAJ8+lYJt9iLo1SbSCmCLY5gHJi9IC3gVls1LgQK60QVQ0R6JofhLRsq9
+         viRAejomgvwXcAPMEB8NwwABKnzZHA6B9d8LkGjmQVJI+ndBQAptKvxc+qSmvSHvaZQW
+         j6wQ==
+X-Gm-Message-State: AOAM53359BRmHVKVGQRIqQlQ3m15FFZJdtFwTfeLMdCao5/VQ/OUWMoP
+        L7sMwitEA0vwITMgm0HNi5jvxbadiRI=
+X-Google-Smtp-Source: ABdhPJzc6BRXEk235AclC0vhzaEZq8y4PAwmjJ8UuaLrT0xiGP+hAa7TCcdT0e8CVxQ2vBqICScfmg==
+X-Received: by 2002:a9d:bc5:: with SMTP id 63mr16596753oth.284.1626643755046;
+        Sun, 18 Jul 2021 14:29:15 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-0284-9a3c-0f8a-4ac7.res6.spectrum.com. [2603:8081:140c:1a00:284:9a3c:f8a:4ac7])
-        by smtp.gmail.com with ESMTPSA id 39sm3199152otg.36.2021.07.18.14.27.40
+        by smtp.gmail.com with ESMTPSA id u18sm3482726oif.9.2021.07.18.14.29.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 18 Jul 2021 14:27:40 -0700 (PDT)
+        Sun, 18 Jul 2021 14:29:14 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v2 5/5] RDMA/rxe: Convert kernel UD post send to use ah_num
-Date:   Sun, 18 Jul 2021 16:27:04 -0500
-Message-Id: <20210718212703.21471-6-rpearsonhpe@gmail.com>
+Subject: [PATCH v2 1/2] Update kernel headers
+Date:   Sun, 18 Jul 2021 16:28:42 -0500
+Message-Id: <20210718212842.21559-2-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210718212703.21471-1-rpearsonhpe@gmail.com>
-References: <20210718212703.21471-1-rpearsonhpe@gmail.com>
+In-Reply-To: <20210718212842.21559-1-rpearsonhpe@gmail.com>
+References: <20210718212842.21559-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Modify ib_post_send for kernel UD sends to put the AH index into the
-WQE instead of the address vector.
+To commit ?? ("RDMA/rxe: Convert kernel UD post send to use ah_num").
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ kernel-headers/rdma/rdma_user_rxe.h | 10 +++++++++-
+ providers/rxe/rxe.c                 |  4 ++--
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 1cc12c913e39..5d63e276306c 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -558,8 +558,11 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
- 	if (qp_type(qp) == IB_QPT_UD ||
- 	    qp_type(qp) == IB_QPT_SMI ||
- 	    qp_type(qp) == IB_QPT_GSI) {
-+		struct ib_ah *ibah = ud_wr(ibwr)->ah;
-+
- 		wr->wr.ud.remote_qpn = ud_wr(ibwr)->remote_qpn;
- 		wr->wr.ud.remote_qkey = ud_wr(ibwr)->remote_qkey;
-+		wr->wr.ud.ah_num = to_rah(ibah)->ah_num;
- 		if (qp_type(qp) == IB_QPT_GSI)
- 			wr->wr.ud.pkey_index = ud_wr(ibwr)->pkey_index;
- 		if (wr->opcode == IB_WR_SEND_WITH_IMM)
-@@ -631,12 +634,6 @@ static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 		return;
- 	}
+diff --git a/kernel-headers/rdma/rdma_user_rxe.h b/kernel-headers/rdma/rdma_user_rxe.h
+index e283c222..ad7da77d 100644
+--- a/kernel-headers/rdma/rdma_user_rxe.h
++++ b/kernel-headers/rdma/rdma_user_rxe.h
+@@ -98,6 +98,10 @@ struct rxe_send_wr {
+ 			__u32	remote_qpn;
+ 			__u32	remote_qkey;
+ 			__u16	pkey_index;
++			__u16	reserved;
++			__u32	ah_num;
++			__u32	pad[4];
++			struct rxe_av av;	/* deprecated */
+ 		} ud;
+ 		struct {
+ 			__aligned_u64	addr;
+@@ -148,7 +152,6 @@ struct rxe_dma_info {
  
--	if (qp_type(qp) == IB_QPT_UD ||
--	    qp_type(qp) == IB_QPT_SMI ||
--	    qp_type(qp) == IB_QPT_GSI)
--		memcpy(&wqe->wr.wr.ud.av, &to_rah(ud_wr(ibwr)->ah)->av,
--		       sizeof(struct rxe_av));
--
- 	if (unlikely(ibwr->send_flags & IB_SEND_INLINE))
- 		copy_inline_data_to_wqe(wqe, ibwr);
- 	else
+ struct rxe_send_wqe {
+ 	struct rxe_send_wr	wr;
+-	struct rxe_av		av;
+ 	__u32			status;
+ 	__u32			state;
+ 	__aligned_u64		iova;
+@@ -168,6 +171,11 @@ struct rxe_recv_wqe {
+ 	struct rxe_dma_info	dma;
+ };
+ 
++struct rxe_create_ah_resp {
++	__u32 ah_num;
++	__u32 reserved;
++};
++
+ struct rxe_create_cq_resp {
+ 	struct mminfo mi;
+ };
+diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
+index 3c3ea8bb..d19aa9df 100644
+--- a/providers/rxe/rxe.c
++++ b/providers/rxe/rxe.c
+@@ -982,7 +982,7 @@ static void wr_set_ud_addr(struct ibv_qp_ex *ibqp, struct ibv_ah *ibah,
+ 	if (qp->err)
+ 		return;
+ 
+-	memcpy(&wqe->av, &ah->av, sizeof(ah->av));
++	memcpy(&wqe->wr.wr.ud.av, &ah->av, sizeof(ah->av));
+ 	wqe->wr.wr.ud.remote_qpn = remote_qpn;
+ 	wqe->wr.wr.ud.remote_qkey = remote_qkey;
+ }
+@@ -1467,7 +1467,7 @@ static int init_send_wqe(struct rxe_qp *qp, struct rxe_wq *sq,
+ 	convert_send_wr(&wqe->wr, ibwr);
+ 
+ 	if (qp_type(qp) == IBV_QPT_UD)
+-		memcpy(&wqe->av, &to_rah(ibwr->wr.ud.ah)->av,
++		memcpy(&wqe->wr.wr.ud.av, &to_rah(ibwr->wr.ud.ah)->av,
+ 		       sizeof(struct rxe_av));
+ 
+ 	if (ibwr->send_flags & IBV_SEND_INLINE) {
 -- 
 2.30.2
 
