@@ -7,424 +7,199 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65F15C636CB
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 11:09:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2080C636C8
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 11:54:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 486446100B
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 11:09:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB8E461040
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 11:54:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232895AbhGRLMb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 18 Jul 2021 07:12:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56426 "EHLO mail.kernel.org"
+        id S232831AbhGRL5Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 18 Jul 2021 07:57:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232845AbhGRLMW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 18 Jul 2021 07:12:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 385AE61108;
-        Sun, 18 Jul 2021 11:09:24 +0000 (UTC)
+        id S232685AbhGRL5Q (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 18 Jul 2021 07:57:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B152461040;
+        Sun, 18 Jul 2021 11:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1626606564;
-        bh=9I9suquaeUoy7KIKMGoROMwdPP0OyiicuKCa0o4yGMg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=a1mzsgZy5c1Eg0AJacl+hISBGmuLwlGqyOZf2HsHdsHIgRokBv8E6ZZL/6IhYfHxR
-         g1UTiQF4ToPUmRXSut65zXJ9ywAsH6WnX7281Rki3Ar1MpVaxcbzKM0BwZRQLQEYCb
-         G3iLNdpPi10y0LMDMz1xE59fh6bEadc8SlpXloiftEIIVOlwPMIV8JsNSYOtQ6Jcnd
-         VB7Xxijzh4YsyX6n1KpUOiWwQsFwdd0+3M60a2S9s2CLmWJhCkeZesrI8zYOvcQUnW
-         he9kdkpitK3JSgV/VLJO4YimNLE0l6t+LdOAweP30QwMdrYXA0J5xLrg7WgjWFCycz
-         kXgcev36t1VyQ==
+        s=k20201202; t=1626609258;
+        bh=J+Ypxx9ComWDmWZ+Oxy1Q4AusaFM9UVaVCI3jF221iM=;
+        h=From:To:Cc:Subject:Date:From;
+        b=jHqO0m/4ZbVdNR3yxUv/Nj2P4cvLxewaRnXfqyip4j4OC5v6iGqHKkHs4BHB5ibuL
+         PZeMsYCapvgq6a7PDciQphyqr5G8skEHMjRysKr0nwaGhYm7QJsDyUl4vyZ1ZF4Unq
+         rgMzuXjCGlrMHRaqoWaMw8W5oNGYthqDT15lsddYIHIEjQJafkFaTJEV4pyxspx1Dt
+         gOtX4d8+tIO4kafRmGVZquwr2TT/V8nMKpJCIbJrPgJPyuN6tbco2mxtBel4IWcxkg
+         2K3/Qj9TPWass1wZxIwqGm5aXk1MyW/12V3S3qvFeNNgkhw1aTcgMX8B/g4G/igqAE
+         L1fgRKY3tWfqg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Christoph Hellwig <hch@infradead.org>
-Cc:     Maor Gottlieb <maorg@nvidia.com>, Daniel Vetter <daniel@ffwll.ch>,
-        David Airlie <airlied@linux.ie>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Maxime Ripard <mripard@kernel.org>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Roland Scheidegger <sroland@vmware.com>,
-        Thomas Zimmermann <tzimmermann@suse.de>,
-        VMware Graphics <linux-graphics-maintainer@vmware.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        Zack Rusin <zackr@vmware.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v2 1/2] lib/scatterlist: Fix wrong update of orig_nents
-Date:   Sun, 18 Jul 2021 14:09:12 +0300
-Message-Id: <36d655a0ff45f4c86762358c7b6a7b58939313fb.1626605893.git.leonro@nvidia.com>
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Tal Gilboa <talgi@nvidia.com>, Jakub Kicinski <kuba@kernel.org>,
+        Jason Wang <jasowang@redhat.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, "Michael S. Tsirkin" <mst@redhat.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        virtualization@lists.linux-foundation.org
+Subject: [PATCH mlx5-next] IB/mlx5: Rename is_apu_thread_cq function to is_apu_cq
+Date:   Sun, 18 Jul 2021 14:54:13 +0300
+Message-Id: <0e3364dab7e0e4eea5423878b01aa42470be8d36.1626609184.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1626605893.git.leonro@nvidia.com>
-References: <cover.1626605893.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@nvidia.com>
+From: Tal Gilboa <talgi@nvidia.com>
 
-orig_nents should represent the number of entries with pages,
-but __sg_alloc_table_from_pages sets orig_nents as the number of
-total entries in the table. This is wrong when the API is used for
-dynamic allocation where not all the table entries are mapped with
-pages. It wasn't observed until now, since RDMA umem who uses this
-API in the dynamic form doesn't use orig_nents implicit or explicit
-by the scatterlist APIs.
+is_apu_thread_cq() used to detect CQs which are attached to APU
+threads. This was extended to support other elements as well,
+so the function was renamed to is_apu_cq().
 
-Fix it by:
-1. Set orig_nents as number of entries with pages also in
-   __sg_alloc_table_from_pages.
-2. To fix the release flow, add a new output argument to
-   __sg_alloc_table_from_pages which will be set to the
-   number of total entries in the table. User like umem that use
-   this function for dynamic allocation, should free the table by
-   calling to sg_free_table_entries and pass the number of entries.
+c_eqn_or_apu_element was extended from 8 bits to 32 bits, which wan't
+reflected when the APU support was first introduced.
 
-Fixes: 07da1223ec93 ("lib/scatterlist: Add support in dynamic allocation of SG table from pages")
-Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Tal Gilboa <talgi@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/gpu/drm/drm_prime.c                 |  2 +-
- drivers/gpu/drm/i915/gem/i915_gem_userptr.c |  2 +-
- drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c  |  2 +-
- drivers/infiniband/core/umem.c              |  5 +-
- include/linux/scatterlist.h                 |  3 +-
- include/rdma/ib_umem.h                      |  3 +-
- lib/scatterlist.c                           | 88 ++++++++++++++-------
- tools/testing/scatterlist/main.c            | 15 +++-
- 8 files changed, 80 insertions(+), 40 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c                            | 2 +-
+ drivers/infiniband/hw/mlx5/devx.c                          | 7 +++----
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c               | 3 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c          | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c        | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c | 2 +-
+ drivers/vdpa/mlx5/net/mlx5_vnet.c                          | 2 +-
+ include/linux/mlx5/mlx5_ifc.h                              | 5 ++---
+ 8 files changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index 2a54f86856af..1739d10a2c55 100644
---- a/drivers/gpu/drm/drm_prime.c
-+++ b/drivers/gpu/drm/drm_prime.c
-@@ -821,7 +821,7 @@ struct sg_table *drm_prime_pages_to_sg(struct drm_device *dev,
- 	sge = __sg_alloc_table_from_pages(sg, pages, nr_pages, 0,
- 					  nr_pages << PAGE_SHIFT,
- 					  max_segment,
--					  NULL, 0, GFP_KERNEL);
-+					  NULL, 0, GFP_KERNEL, NULL);
- 	if (IS_ERR(sge)) {
- 		kfree(sg);
- 		sg = ERR_CAST(sge);
-diff --git a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-index 7487bab11f0b..c341d3e3386c 100644
---- a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-+++ b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-@@ -155,7 +155,7 @@ static int i915_gem_userptr_get_pages(struct drm_i915_gem_object *obj)
- alloc_table:
- 	sg = __sg_alloc_table_from_pages(st, pvec, num_pages, 0,
- 					 num_pages << PAGE_SHIFT, max_segment,
--					 NULL, 0, GFP_KERNEL);
-+					 NULL, 0, GFP_KERNEL, NULL);
- 	if (IS_ERR(sg)) {
- 		ret = PTR_ERR(sg);
- 		goto err;
-diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
-index 0488042fb287..2ad889272b0a 100644
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
-+++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
-@@ -390,7 +390,7 @@ static int vmw_ttm_map_dma(struct vmw_ttm_tt *vmw_tt)
- 				vsgt->num_pages, 0,
- 				(unsigned long) vsgt->num_pages << PAGE_SHIFT,
- 				dma_get_max_seg_size(dev_priv->drm.dev),
--				NULL, 0, GFP_KERNEL);
-+				NULL, 0, GFP_KERNEL, NULL);
- 		if (IS_ERR(sg)) {
- 			ret = PTR_ERR(sg);
- 			goto out_sg_alloc_fail;
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 0eb40025075f..cf4197363346 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -59,7 +59,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 		unpin_user_page_range_dirty_lock(sg_page(sg),
- 			DIV_ROUND_UP(sg->length, PAGE_SIZE), make_dirty);
- 
--	sg_free_table(&umem->sg_head);
-+	sg_free_table_entries(&umem->sg_head, umem->total_nents);
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index aef87a7c01ff..464e6a1ecdb0 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -997,7 +997,7 @@ int mlx5_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 				  MLX5_IB_CQ_PR_FLAGS_CQE_128_PAD));
+ 	MLX5_SET(cqc, cqc, log_cq_size, ilog2(entries));
+ 	MLX5_SET(cqc, cqc, uar_page, index);
+-	MLX5_SET(cqc, cqc, c_eqn, eqn);
++	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
+ 	MLX5_SET64(cqc, cqc, dbr_addr, cq->db.dma);
+ 	if (cq->create_flags & IB_UVERBS_CQ_FLAGS_IGNORE_OVERRUN)
+ 		MLX5_SET(cqc, cqc, oi, 1);
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index edcac8b3f384..31f5f4c73d25 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -1437,11 +1437,10 @@ static void devx_cq_comp(struct mlx5_core_cq *mcq, struct mlx5_eqe *eqe)
+ 	rcu_read_unlock();
  }
  
- /**
-@@ -229,8 +229,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 		sg = __sg_alloc_table_from_pages(&umem->sg_head, page_list, ret,
- 				0, ret << PAGE_SHIFT,
- 				ib_dma_max_seg_size(device), sg, npages,
--				GFP_KERNEL);
--		umem->sg_nents = umem->sg_head.nents;
-+				GFP_KERNEL, &umem->total_nents);
- 		if (IS_ERR(sg)) {
- 			unpin_user_pages_dirty_lock(page_list, ret, 0);
- 			ret = PTR_ERR(sg);
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index ecf87484814f..c796c165d5ee 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -282,6 +282,7 @@ typedef void (sg_free_fn)(struct scatterlist *, unsigned int);
- void __sg_free_table(struct sg_table *, unsigned int, unsigned int,
- 		     sg_free_fn *);
- void sg_free_table(struct sg_table *);
-+void sg_free_table_entries(struct sg_table *sgt, unsigned int num_entries);
- int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
- 		     struct scatterlist *, unsigned int, gfp_t, sg_alloc_fn *);
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
-@@ -289,7 +290,7 @@ struct scatterlist *__sg_alloc_table_from_pages(struct sg_table *sgt,
- 		struct page **pages, unsigned int n_pages, unsigned int offset,
- 		unsigned long size, unsigned int max_segment,
- 		struct scatterlist *prv, unsigned int left_pages,
--		gfp_t gfp_mask);
-+		gfp_t gfp_mask, unsigned int *total_nents);
- int sg_alloc_table_from_pages(struct sg_table *sgt, struct page **pages,
- 			      unsigned int n_pages, unsigned int offset,
- 			      unsigned long size, gfp_t gfp_mask);
-diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-index 676c57f5ca80..5a65212efc2e 100644
---- a/include/rdma/ib_umem.h
-+++ b/include/rdma/ib_umem.h
-@@ -27,8 +27,7 @@ struct ib_umem {
- 	u32 is_dmabuf : 1;
- 	struct work_struct	work;
- 	struct sg_table sg_head;
--	int             nmap;
--	unsigned int    sg_nents;
-+	unsigned int total_nents;
- };
- 
- struct ib_umem_dmabuf {
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 27efa6178153..5cc41ae962ec 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -175,22 +175,11 @@ static void sg_kfree(struct scatterlist *sg, unsigned int nents)
- 		kfree(sg);
- }
- 
--/**
-- * __sg_free_table - Free a previously mapped sg table
-- * @table:	The sg table header to use
-- * @max_ents:	The maximum number of entries per single scatterlist
-- * @nents_first_chunk: Number of entries int the (preallocated) first
-- * 	scatterlist chunk, 0 means no such preallocated first chunk
-- * @free_fn:	Free function
-- *
-- *  Description:
-- *    Free an sg table previously allocated and setup with
-- *    __sg_alloc_table().  The @max_ents value must be identical to
-- *    that previously used with __sg_alloc_table().
-- *
-- **/
--void __sg_free_table(struct sg_table *table, unsigned int max_ents,
--		     unsigned int nents_first_chunk, sg_free_fn *free_fn)
-+static void __sg_free_table_entries(struct sg_table *table,
-+				    unsigned int max_ents,
-+				    unsigned int nents_first_chunk,
-+				    sg_free_fn *free_fn,
-+				    unsigned int num_entries)
+-static bool is_apu_thread_cq(struct mlx5_ib_dev *dev, const void *in)
++static bool is_apu_cq(struct mlx5_ib_dev *dev, const void *in)
  {
- 	struct scatterlist *sgl, *next;
- 	unsigned curr_max_ents = nents_first_chunk ?: max_ents;
-@@ -199,8 +188,8 @@ void __sg_free_table(struct sg_table *table, unsigned int max_ents,
- 		return;
+ 	if (!MLX5_CAP_GEN(dev->mdev, apu) ||
+-	    !MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context),
+-		      apu_thread_cq))
++	    !MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), apu_cq))
+ 		return false;
  
- 	sgl = table->sgl;
--	while (table->orig_nents) {
--		unsigned int alloc_size = table->orig_nents;
-+	while (num_entries) {
-+		unsigned int alloc_size = num_entries;
- 		unsigned int sg_size;
- 
- 		/*
-@@ -218,7 +207,7 @@ void __sg_free_table(struct sg_table *table, unsigned int max_ents,
- 			next = NULL;
- 		}
- 
--		table->orig_nents -= sg_size;
-+		num_entries -= sg_size;
- 		if (nents_first_chunk)
- 			nents_first_chunk = 0;
- 		else
-@@ -229,6 +218,43 @@ void __sg_free_table(struct sg_table *table, unsigned int max_ents,
- 
- 	table->sgl = NULL;
- }
-+
-+/**
-+ * sg_free_table_entries - Free a previously allocated sg table according to
-+ *                         the total number of entries in the table.
-+ * @table:	 The mapped sg table header
-+ * @num_entries: The number of entries in the table.
-+ *
-+ **/
-+void sg_free_table_entries(struct sg_table *table, unsigned int num_entries)
-+{
-+	__sg_free_table_entries(table, SG_MAX_SINGLE_ALLOC, false, sg_kfree,
-+				num_entries);
-+}
-+EXPORT_SYMBOL(sg_free_table_entries);
-+
-+/**
-+ * __sg_free_table - Free a previously mapped sg table
-+ * @table:	The sg table header to use
-+ * @max_ents:	The maximum number of entries per single scatterlist
-+ * @total_ents:	The total number of entries in the table
-+ * @nents_first_chunk: Number of entries int the (preallocated) first
-+ *                     scatterlist chunk, 0 means no such preallocated
-+ *                     first chunk
-+ * @free_fn:	Free function
-+ *
-+ *  Description:
-+ *    Free an sg table previously allocated and setup with
-+ *    __sg_alloc_table().  The @max_ents value must be identical to
-+ *    that previously used with __sg_alloc_table().
-+ *
-+ **/
-+void __sg_free_table(struct sg_table *table, unsigned int max_ents,
-+		     unsigned int nents_first_chunk, sg_free_fn *free_fn)
-+{
-+	__sg_free_table_entries(table, max_ents, nents_first_chunk, free_fn,
-+				table->orig_nents);
-+}
- EXPORT_SYMBOL(__sg_free_table);
- 
- /**
-@@ -238,7 +264,8 @@ EXPORT_SYMBOL(__sg_free_table);
-  **/
- void sg_free_table(struct sg_table *table)
+ 	return true;
+@@ -1501,7 +1500,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 		err = mlx5_core_create_dct(dev, &obj->core_dct, cmd_in,
+ 					   cmd_in_len, cmd_out, cmd_out_len);
+ 	} else if (opcode == MLX5_CMD_OP_CREATE_CQ &&
+-		   !is_apu_thread_cq(dev, cmd_in)) {
++		   !is_apu_cq(dev, cmd_in)) {
+ 		obj->flags |= DEVX_OBJ_FLAGS_CQ;
+ 		obj->core_cq.comp = devx_cq_comp;
+ 		err = mlx5_core_create_cq(dev->mdev, &obj->core_cq,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+index df3e4938ecdd..99ec278d0370 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+@@ -89,7 +89,8 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq,
+ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 			u32 *in, int inlen, u32 *out, int outlen)
  {
--	__sg_free_table(table, SG_MAX_SINGLE_ALLOC, false, sg_kfree);
-+	__sg_free_table_entries(table, SG_MAX_SINGLE_ALLOC, false, sg_kfree,
-+				table->orig_nents);
- }
- EXPORT_SYMBOL(sg_free_table);
+-	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context), c_eqn);
++	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context),
++			   c_eqn_or_apu_element);
+ 	u32 din[MLX5_ST_SZ_DW(destroy_cq_in)] = {};
+ 	struct mlx5_eq_comp *eq;
+ 	int err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index c47603a952f3..308ccace48d0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1626,7 +1626,7 @@ static int mlx5e_create_cq(struct mlx5e_cq *cq, struct mlx5e_cq_param *param)
+ 				  (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas));
  
-@@ -368,7 +395,8 @@ EXPORT_SYMBOL(sg_alloc_table);
- static struct scatterlist *get_next_sg(struct sg_table *table,
- 				       struct scatterlist *cur,
- 				       unsigned long needed_sges,
--				       gfp_t gfp_mask)
-+				       gfp_t gfp_mask,
-+				       unsigned int *total_nents)
- {
- 	struct scatterlist *new_sg, *next_sg;
- 	unsigned int alloc_size;
-@@ -386,12 +414,14 @@ static struct scatterlist *get_next_sg(struct sg_table *table,
- 		return ERR_PTR(-ENOMEM);
- 	sg_init_table(new_sg, alloc_size);
- 	if (cur) {
-+		if (total_nents)
-+			*total_nents += alloc_size - 1;
- 		__sg_chain(next_sg, new_sg);
--		table->orig_nents += alloc_size - 1;
- 	} else {
- 		table->sgl = new_sg;
--		table->orig_nents = alloc_size;
- 		table->nents = 0;
-+		if (total_nents)
-+			*total_nents = alloc_size;
- 	}
- 	return new_sg;
- }
-@@ -408,6 +438,7 @@ static struct scatterlist *get_next_sg(struct sg_table *table,
-  * @prv:	 Last populated sge in sgt
-  * @left_pages:  Left pages caller have to set after this call
-  * @gfp_mask:	 GFP allocation mask
-+ * @total_nents: Output of total number of entries in the table
-  *
-  * Description:
-  *    If @prv is NULL, allocate and initialize an sg table from a list of pages,
-@@ -419,7 +450,8 @@ static struct scatterlist *get_next_sg(struct sg_table *table,
-  *
-  * Returns:
-  *   Last SGE in sgt on success, PTR_ERR on otherwise.
-- *   The allocation in @sgt must be released by sg_free_table.
-+ *   The allocation in @sgt must be released by sg_free_table or
-+ *   sg_free_table_entries.
-  *
-  * Notes:
-  *   If this function returns non-0 (eg failure), the caller must call
-@@ -429,7 +461,7 @@ struct scatterlist *__sg_alloc_table_from_pages(struct sg_table *sgt,
- 		struct page **pages, unsigned int n_pages, unsigned int offset,
- 		unsigned long size, unsigned int max_segment,
- 		struct scatterlist *prv, unsigned int left_pages,
--		gfp_t gfp_mask)
-+		gfp_t gfp_mask, unsigned int *total_nents)
- {
- 	unsigned int chunks, cur_page, seg_len, i, prv_len = 0;
- 	unsigned int added_nents = 0;
-@@ -496,7 +528,8 @@ struct scatterlist *__sg_alloc_table_from_pages(struct sg_table *sgt,
- 		}
+ 	MLX5_SET(cqc,   cqc, cq_period_mode, param->cq_period_mode);
+-	MLX5_SET(cqc,   cqc, c_eqn,         eqn);
++	MLX5_SET(cqc,   cqc, c_eqn_or_apu_element, eqn);
+ 	MLX5_SET(cqc,   cqc, uar_page,      mdev->priv.uar->index);
+ 	MLX5_SET(cqc,   cqc, log_page_size, cq->wq_ctrl.buf.page_shift -
+ 					    MLX5_ADAPTER_PAGE_SHIFT);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index 6f78716ff321..9bb4944820df 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -454,7 +454,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
  
- 		/* Pass how many chunks might be left */
--		s = get_next_sg(sgt, s, chunks - i + left_pages, gfp_mask);
-+		s = get_next_sg(sgt, s, chunks - i + left_pages, gfp_mask,
-+				total_nents);
- 		if (IS_ERR(s)) {
- 			/*
- 			 * Adjust entry length to be as before function was
-@@ -515,6 +548,7 @@ struct scatterlist *__sg_alloc_table_from_pages(struct sg_table *sgt,
- 		cur_page = j;
- 	}
- 	sgt->nents += added_nents;
-+	sgt->orig_nents = sgt->nents;
- out:
- 	if (!left_pages)
- 		sg_mark_end(s);
-@@ -547,7 +581,7 @@ int sg_alloc_table_from_pages(struct sg_table *sgt, struct page **pages,
- 			      unsigned long size, gfp_t gfp_mask)
- {
- 	return PTR_ERR_OR_ZERO(__sg_alloc_table_from_pages(sgt, pages, n_pages,
--			offset, size, UINT_MAX, NULL, 0, gfp_mask));
-+			offset, size, UINT_MAX, NULL, 0, gfp_mask, NULL));
- }
- EXPORT_SYMBOL(sg_alloc_table_from_pages);
+ 	cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
+ 	MLX5_SET(cqc, cqc, log_cq_size, ilog2(cq_size));
+-	MLX5_SET(cqc, cqc, c_eqn, eqn);
++	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
+ 	MLX5_SET(cqc, cqc, uar_page, fdev->conn_res.uar->index);
+ 	MLX5_SET(cqc, cqc, log_page_size, conn->cq.wq_ctrl.buf.page_shift -
+ 			   MLX5_ADAPTER_PAGE_SHIFT);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+index d1300b16d054..a4a3ee87a903 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+@@ -790,7 +790,7 @@ static struct mlx5dr_cq *dr_create_cq(struct mlx5_core_dev *mdev,
  
-diff --git a/tools/testing/scatterlist/main.c b/tools/testing/scatterlist/main.c
-index 652254754b4c..00576c86971e 100644
---- a/tools/testing/scatterlist/main.c
-+++ b/tools/testing/scatterlist/main.c
-@@ -88,11 +88,14 @@ int main(void)
- 		struct page *pages[MAX_PAGES];
- 		struct sg_table st;
- 		struct scatterlist *sg;
-+		unsigned int total_nents;
+ 	cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
+ 	MLX5_SET(cqc, cqc, log_cq_size, ilog2(ncqe));
+-	MLX5_SET(cqc, cqc, c_eqn, eqn);
++	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
+ 	MLX5_SET(cqc, cqc, uar_page, uar->index);
+ 	MLX5_SET(cqc, cqc, log_page_size, cq->wq_ctrl.buf.page_shift -
+ 		 MLX5_ADAPTER_PAGE_SHIFT);
+diff --git a/drivers/vdpa/mlx5/net/mlx5_vnet.c b/drivers/vdpa/mlx5/net/mlx5_vnet.c
+index 0121c7c49396..83fa3c26cbd2 100644
+--- a/drivers/vdpa/mlx5/net/mlx5_vnet.c
++++ b/drivers/vdpa/mlx5/net/mlx5_vnet.c
+@@ -573,7 +573,7 @@ static int cq_create(struct mlx5_vdpa_net *ndev, u16 idx, u32 num_ent)
+ 	cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
+ 	MLX5_SET(cqc, cqc, log_cq_size, ilog2(num_ent));
+ 	MLX5_SET(cqc, cqc, uar_page, ndev->mvdev.res.uar->index);
+-	MLX5_SET(cqc, cqc, c_eqn, eqn);
++	MLX5_SET(cqc, cqc, c_eqn_or_apu_element, eqn);
+ 	MLX5_SET64(cqc, cqc, dbr_addr, vcq->db.dma);
  
- 		set_pages(pages, test->pfn, test->num_pages);
+ 	err = mlx5_core_create_cq(mdev, &vcq->mcq, in, inlen, out, sizeof(out));
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index c980eab89867..e93f16b87312 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -3923,7 +3923,7 @@ struct mlx5_ifc_cqc_bits {
+ 	u8         status[0x4];
+ 	u8         reserved_at_4[0x2];
+ 	u8         dbr_umem_valid[0x1];
+-	u8         apu_thread_cq[0x1];
++	u8         apu_cq[0x1];
+ 	u8         cqe_sz[0x3];
+ 	u8         cc[0x1];
+ 	u8         reserved_at_c[0x1];
+@@ -3949,8 +3949,7 @@ struct mlx5_ifc_cqc_bits {
+ 	u8         cq_period[0xc];
+ 	u8         cq_max_count[0x10];
  
- 		sg = __sg_alloc_table_from_pages(&st, pages, test->num_pages, 0,
--				test->size, test->max_seg, NULL, left_pages, GFP_KERNEL);
-+						 test->size, test->max_seg,
-+						 NULL, left_pages, GFP_KERNEL,
-+						 &total_nents);
- 		assert(PTR_ERR_OR_ZERO(sg) == test->alloc_ret);
+-	u8         reserved_at_a0[0x18];
+-	u8         c_eqn[0x8];
++	u8         c_eqn_or_apu_element[0x20];
  
- 		if (test->alloc_ret)
-@@ -100,8 +103,9 @@ int main(void)
- 
- 		if (test->pfn_app) {
- 			set_pages(pages, test->pfn_app, test->num_pages);
--			sg = __sg_alloc_table_from_pages(&st, pages, test->num_pages, 0,
--					test->size, test->max_seg, sg, 0, GFP_KERNEL);
-+			sg = __sg_alloc_table_from_pages(
-+				&st, pages, test->num_pages, 0, test->size,
-+				test->max_seg, sg, 0, GFP_KERNEL, &total_nents);
- 
- 			assert(PTR_ERR_OR_ZERO(sg) == test->alloc_ret);
- 		}
-@@ -110,7 +114,10 @@ int main(void)
- 		if (!test->pfn_app)
- 			VALIDATE(st.orig_nents == test->expected_segments, &st, test);
- 
--		sg_free_table(&st);
-+		if (test->pfn_app)
-+			sg_free_table_entries(&st, total_nents);
-+		else
-+			sg_free_table(&st);
- 	}
- 
- 	assert(i == (sizeof(tests) / sizeof(tests[0])) - 1);
+ 	u8         reserved_at_c0[0x3];
+ 	u8         log_page_size[0x5];
 -- 
 2.31.1
 
