@@ -2,103 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8CFC636C8
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FB59C636CB
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 061A460FEA
-	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6388560FEA
+	for <linux-rdma@archiver.kernel.org>; Sun, 18 Jul 2021 21:27:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230156AbhGRVag (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 18 Jul 2021 17:30:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57332 "EHLO
+        id S231222AbhGRVai (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 18 Jul 2021 17:30:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229697AbhGRVag (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 18 Jul 2021 17:30:36 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1051EC061762
-        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:38 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id o72-20020a9d224e0000b02904bb9756274cso16195226ota.6
-        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:38 -0700 (PDT)
+        with ESMTP id S229697AbhGRVah (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 18 Jul 2021 17:30:37 -0400
+Received: from mail-oo1-xc34.google.com (mail-oo1-xc34.google.com [IPv6:2607:f8b0:4864:20::c34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66615C061764
+        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:39 -0700 (PDT)
+Received: by mail-oo1-xc34.google.com with SMTP id 128-20020a4a11860000b029024b19a4d98eso3963758ooc.5
+        for <linux-rdma@vger.kernel.org>; Sun, 18 Jul 2021 14:27:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=YQacgArEqfF7a1jsdVI4PzVNx5cf51pLSMFO4emwAYc=;
-        b=VlHcv8sJu57xk9XYIJ0/1s4RPmsJv0laPFCEFzSM9rJ8vQCKCphT7VZ3nKZXC7+f8T
-         AE2r71uYq6jRVsrVhaSuWy4DFT/MB4IwIlmof9G0pIEo+8ewXsGTh0czTCJtL7TFccxu
-         c1P+xJvwfrJino4os7NsIY2hMvfv+2uh+grHoOQyJFMIwY5Rthox6ywn40zPNsRbF5dL
-         7XirBy6CfgNAbuJSl+sHnxFHFLov+y287HTSkqCwx/DN5xwrtEgEuo44LCUD6RWmDXFL
-         czqu7kEWQ9wFCn93zwKAL+mQas51mo9IQTfX0SlK2KqKiBetnGbr+kIkGeEm9feGgEOi
-         Eqbg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=f0Y/ocDdRQ4XTDM8mFWl3U3xVeDb3pxbEATe5M1rfu8=;
+        b=P+Pcp6VV0oOVpwZb0Fhky3M1wT1jN4l5pZbXEN8C0C3iEn4v2W6MefSKfZUl7cjuJF
+         r/nUkN402KNF/gnUHMXqc6kcBMEjdOnPMuTt0xUnPi2cc3ANMQ1MPfKsYOZeVbLOzwyP
+         GiHwwLw3Tc8b1l5PmaPLDU1e9jHL9moB7WnibeMFloWm4ySnw1nKC/DiGkv5nhgTRgdt
+         Us/XB7SlWo+k+wP4tSMgZMbKKdNfJMKx3HPaTFGco3E7Sc8vdNnuE4/z26M80A26DRG6
+         KztqxIQ0JNpAvzzZ2/3hlta/1t2SpD+YhSQ9MIiD0Vm3szCUroNrgTjoQKona0tu9Wq0
+         jZeQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=YQacgArEqfF7a1jsdVI4PzVNx5cf51pLSMFO4emwAYc=;
-        b=tkxr+lxawfP54uDuAEW+rZs858P/dz5VfyIjeGIqDM+4pZX2n6EOU0DU+TxUb8q0pl
-         d2A5uYXJxQOfbayv6xFojlZgNcWZ8oXn3dFcg86rTlL6gMHurZQXR5vQhXrnkK6Rzblb
-         OBw7zIxTS4EB0bi33/tVB9sjTvg0oFbJkJHBm2krtsya+Oa7MKbaLc2826g4d3C3BSEe
-         iNREknHt7qNeUmKMy2YtbIRcQQHbct1f1xdxVhHzVWmpK7NEI8MHhqdmzZuhrYyMz3CP
-         bO6ntKmka1z0ogS9yS0TE2pxn4KOUihE+ojGJ0pyyex0RGg7prDX5i2m/sIodElShgw8
-         4x0g==
-X-Gm-Message-State: AOAM530geq3wM3X3+hN65Hx4nWFaPYRdejHRq61iOmR7RuXTgBUIC0le
-        Vk5G4K2fF97zFdzXUMRmiW4=
-X-Google-Smtp-Source: ABdhPJx9E7Ba2N7JakZAO+t4WHi/kZgl+CAMo07TYNUlwrrhp+AJV3JVld5jmpyCVGef6iMKqDfjKg==
-X-Received: by 2002:a05:6830:1141:: with SMTP id x1mr17238605otq.104.1626643657446;
-        Sun, 18 Jul 2021 14:27:37 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=f0Y/ocDdRQ4XTDM8mFWl3U3xVeDb3pxbEATe5M1rfu8=;
+        b=dlY/02MmqsOp/xdX4bDUxO81hV3vmIEgPGnIP3vrz/yOtU72X6OcFgM3R9ZQg1d9hm
+         Cs1Z9h+vIIioT344EcAlcMQ1J6DyuqVoFjG7jE5lWB3kvzMxN8K7DvQ2Xc+yPFT/Ytd1
+         GTzog3x7fqvyXlQL4uy/Hz6NjEE5zsRaZGiP8a+cQMp/5GxfPq8pyHS4YGXBPKcPwyON
+         2qjOHhU9xe4BnIrcoiMHlL0cA9722nRBH7WY7WkB6hlcmcYk2/YKjhRGk0P9pwdbrjmv
+         WZyC0fLqEiR7uqw3n3n8e2ESaQnH/qttKWstT0wQcaC98sD/tJUJ91eXjcVmuCeLtigw
+         +ETw==
+X-Gm-Message-State: AOAM531NPZYGrVLkjuylnUjAaO3X7XePVckBhQR1TM/OnGYt0/BYCmaP
+        +I6K9M6FwAeJW4dks6Hd5Zg=
+X-Google-Smtp-Source: ABdhPJxY7xmLVGJbCGK8eMs5AhMZ8dCBjWkjeSwyw9K2dIeNsPcbrdCEFGb03zxhvuPg+tylRvnEpw==
+X-Received: by 2002:a4a:98b0:: with SMTP id a45mr15598616ooj.22.1626643658863;
+        Sun, 18 Jul 2021 14:27:38 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-0284-9a3c-0f8a-4ac7.res6.spectrum.com. [2603:8081:140c:1a00:284:9a3c:f8a:4ac7])
-        by smtp.gmail.com with ESMTPSA id t10sm3242900otd.73.2021.07.18.14.27.36
+        by smtp.gmail.com with ESMTPSA id z3sm1268376oti.29.2021.07.18.14.27.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 18 Jul 2021 14:27:37 -0700 (PDT)
+        Sun, 18 Jul 2021 14:27:38 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v2 0/5] Replace AV by AH in UD sends
-Date:   Sun, 18 Jul 2021 16:26:59 -0500
-Message-Id: <20210718212703.21471-1-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v2 2/5] RDMA/rxe: Change AH objects to indexed
+Date:   Sun, 18 Jul 2021 16:27:01 -0500
+Message-Id: <20210718212703.21471-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210718212703.21471-1-rpearsonhpe@gmail.com>
+References: <20210718212703.21471-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rdma_rxe driver and its user space provider exchange
-addressing information for UD sends by having the provider compute an
-address vector (AV) and send it with each WQE. This is not the way
-that the RDMA verbs API was intended to operate.
+Make changes to rxe_param.h and rxe_pool.c to allow indexing of AH
+objects. Valid indices are non-zero so older providers can be detected.
 
-This series of patches modifies the way UD send WQEs work by exchanging
-an index identifying the AH replacing the 88 byte AV by a 4 byte AH
-index. In order to not break compatibility with the existing API the
-rdma_rxe driver will recognise when an older version of the provider
-is not sending an index (i.e. it is 0) and will use the AV instead.
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_param.h | 4 +++-
+ drivers/infiniband/sw/rxe/rxe_pool.c  | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-v2:
-  Rearranged AV in rxe_send_wqe to be in the ud struct but padded to the
-  same offset as the original preserving ABI compatibility.
-
-Bob Pearson (5):
-  RDMA/rxe: Change user/kernel API to allow indexing AH
-  RDMA/rxe: Change AH objects to indexed
-  RDMA/rxe: Create AH index and return to user space
-  RDMA/rxe: Lookup kernel AH from ah index in UD WQEs
-  RDMA/rxe: Convert kernel UD post send to use ah_num
-
- drivers/infiniband/sw/rxe/rxe_av.c    | 20 +++++++++++++-
- drivers/infiniband/sw/rxe/rxe_param.h |  4 ++-
- drivers/infiniband/sw/rxe/rxe_pool.c  |  4 ++-
- drivers/infiniband/sw/rxe/rxe_req.c   |  8 +++---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 39 ++++++++++++++++++++++-----
- drivers/infiniband/sw/rxe/rxe_verbs.h |  8 +++++-
- include/uapi/rdma/rdma_user_rxe.h     | 14 +++++++++-
- 7 files changed, 83 insertions(+), 14 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 742e6ec93686..ec5c6331bee8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -67,7 +67,9 @@ enum rxe_device_param {
+ 	RXE_MAX_MCAST_GRP		= 8192,
+ 	RXE_MAX_MCAST_QP_ATTACH		= 56,
+ 	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
+-	RXE_MAX_AH			= 100,
++	RXE_MAX_AH			= 16383,
++	RXE_MIN_AH_INDEX		= 1,
++	RXE_MAX_AH_INDEX		= 16383,
+ 	RXE_MAX_SRQ_WR			= 0x4000,
+ 	RXE_MIN_SRQ_WR			= 1,
+ 	RXE_MAX_SRQ_SGE			= 27,
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 0b8e7c6255a2..342f090152d1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -26,7 +26,9 @@ struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+ 		.name		= "rxe-ah",
+ 		.size		= sizeof(struct rxe_ah),
+ 		.elem_offset	= offsetof(struct rxe_ah, pelem),
+-		.flags		= RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.min_index	= RXE_MIN_AH_INDEX,
++		.max_index	= RXE_MAX_AH_INDEX,
+ 	},
+ 	[RXE_TYPE_SRQ] = {
+ 		.name		= "rxe-srq",
 -- 
 2.30.2
 
