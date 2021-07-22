@@ -2,34 +2,34 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA0E9C6377D
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 07:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC7BAC63793
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 08:09:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C659610CC
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 07:59:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94E7661289
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 08:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231255AbhGVHSf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Jul 2021 03:18:35 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:7412 "EHLO
+        id S230152AbhGVH2p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Jul 2021 03:28:45 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:7413 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230474AbhGVHSc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jul 2021 03:18:32 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GVl9n3xKvz7tkq;
-        Thu, 22 Jul 2021 15:55:25 +0800 (CST)
+        with ESMTP id S230100AbhGVH2p (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jul 2021 03:28:45 -0400
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GVlPZ05J9z7xx3;
+        Thu, 22 Jul 2021 16:05:38 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 22 Jul 2021 15:59:05 +0800
+ 15.1.2176.2; Thu, 22 Jul 2021 16:08:59 +0800
 Received: from [10.40.238.78] (10.40.238.78) by dggpeml500017.china.huawei.com
  (7.185.36.243) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2176.2; Thu, 22 Jul
- 2021 15:59:05 +0800
+ 2021 16:08:59 +0800
 Subject: Re: [PATCH rdma-next 8/9] RDMA: Globally allocate and release QP
  memory
 To:     Leon Romanovsky <leon@kernel.org>,
@@ -59,8 +59,8 @@ CC:     Leon Romanovsky <leonro@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
-Message-ID: <2d36585e-97da-1b27-4e2c-f3a7d2b76db7@huawei.com>
-Date:   Thu, 22 Jul 2021 15:59:04 +0800
+Message-ID: <7a38e424-8ccc-72ee-170b-f025ae6d6950@huawei.com>
+Date:   Thu, 22 Jul 2021 16:08:59 +0800
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
  Thunderbird/45.7.1
 MIME-Version: 1.0
@@ -68,7 +68,7 @@ In-Reply-To: <5b3bff16da4b6f925c872594262cd8ed72b301cd.1626609283.git.leonro@nvi
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 X-Originating-IP: [10.40.238.78]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
  dggpeml500017.china.huawei.com (7.185.36.243)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -78,27 +78,20 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 
 On 2021/7/18 20:00, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> Convert QP object to follow IB/core general allocation scheme.
-> That change allows us to make sure that restrack properly kref
-> the memory.
-> 
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> +	qp = rdma_zalloc_drv_obj_numa(dev, ib_qp);
+> +	if (!qp)
+> +		return ERR_PTR(-ENOMEM);
+>  
+>  	qp->device = dev;
+>  	qp->pd = pd;
+> @@ -337,14 +338,11 @@ _ib_create_qp(struct ib_device *dev, struct ib_pd *pd,
+>  
+>  	qp->qp_type = attr->qp_type;
+>  	qp->rwq_ind_tbl = attr->rwq_ind_tbl;
+> -	qp->send_cq = attr->send_cq;
+> -	qp->recv_cq = attr->recv_cq;
+>  	qp->srq = attr->srq;
+>  	qp->rwq_ind_tbl = attr->rwq_ind_tbl;
 
-Hi, Leon, I tested your patchset, it looks good to hns.
-But there is a redundant assignment in hns.
-This is the patch.
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 364f404..fd0f71a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -959,8 +959,6 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-        struct ib_device *ibdev = &hr_dev->ib_dev;
-        int ret;
-
--       hr_qp->ibqp.qp_type = init_attr->qp_type;
--
-        if (init_attr->cap.max_inline_data > hr_dev->caps.max_sq_inline)
-                init_attr->cap.max_inline_data = hr_dev->caps.max_sq_inline;
+Hi, Leon, "qp->rwq_ind_tbl = attr->rwq_ind_tbl;" seems to be duplicate,
+would you consider deleting one of them in this patchset?
