@@ -2,93 +2,107 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC903C4338F
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 19:54:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA942C4338F
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 21:23:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A223E60EB5
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 19:54:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AD0260C41
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jul 2021 21:23:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229556AbhGVTN5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Jul 2021 15:13:57 -0400
-Received: from mail-wm1-f46.google.com ([209.85.128.46]:36682 "EHLO
-        mail-wm1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbhGVTN5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jul 2021 15:13:57 -0400
-Received: by mail-wm1-f46.google.com with SMTP id l11-20020a7bc34b0000b029021f84fcaf75so2240862wmj.1
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Jul 2021 12:54:31 -0700 (PDT)
+        id S231260AbhGVUnF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Jul 2021 16:43:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57260 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231295AbhGVUnE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jul 2021 16:43:04 -0400
+Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63DD4C061575
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Jul 2021 14:23:38 -0700 (PDT)
+Received: by mail-ot1-x329.google.com with SMTP id 68-20020a9d0f4a0000b02904b1f1d7c5f4so101898ott.9
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Jul 2021 14:23:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+vjrKEVbgCZ0aezxH2+LG9GQm+EQJL38sfPP0A5OvlI=;
+        b=uw2nc6tZAPYV1ZRKRSCfq2OOGg+UGZw6EptoW9eNJaoqh3isS2Sg0OBNU3E5N3zbx6
+         NHKWzDQNSLImoAMx+9o0Jxr4QBr5BUX24taPa52Oz0i3mdSVjntnpfjWDdPrZLcR47N8
+         6SNSSg3z7FGsGYO5DaMmqSTtYe1rR65kjJEiXqaLqJXyBO8rHe2x9AffZnIL6Mn+KdLk
+         2Bq/5gU7VQq4cFn9hjqou+FQDtuP7d6uMl88nWU52Xh54djo5bT1KKaB+9HIoPYeDdmY
+         E0oPa/Umava0wKPX8fSCKV95tYRsYymCkH6wL3zAv5b+3xKENT1JpNcxl+VZCY7jeBvH
+         dDQQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=3JobQHdK18zGQ2iPygAVP81myTdaAVg9uL/XgSOhojs=;
-        b=uVzQWg5rV/kaXg4puluElyxZ7leuVI+9mV+O4wezI5i2lyS2oG/wimveIHxLwE1/oN
-         oPtlCs0vxQAemW8KWA7ER2PtrC68NDLxCTKs5KyQ/1InT8YP7+1WIHOJHqDZfTKkvLZw
-         W8qFn9UbRqrp3GixD31AKiHMzL+YGbVTuvmngM50ZCTEOw4tHH3GMzNrv8W95qaQXiqb
-         5vz2lUAcAWeyYDL68AZMAJl0hsh7QqOdq7BUvQCvzmr/YpbAWIM9989EyvBcbttEj2MM
-         J2A1Dwdu+Dzl3d7W0J8UNvpX4w+jEzOgMI8tPkYhMPBtyyfXW3MAK6NcoFK8LbEjDVLO
-         BCnA==
-X-Gm-Message-State: AOAM5304C2VycECQ5fBR5opdj+G6PquAoJJCMjUZaFubFVepo+OD+bTo
-        PwISK3atiII3UQMG9MdvMUE=
-X-Google-Smtp-Source: ABdhPJyalpwun3u6lm9He/Bt6VhnCaGIOSe5Q4bRHpM1ASzA+gXInPIiW5GRS1Xf6cL20pXZHml9rQ==
-X-Received: by 2002:a7b:c30f:: with SMTP id k15mr10844062wmj.128.1626983671199;
-        Thu, 22 Jul 2021 12:54:31 -0700 (PDT)
-Received: from ?IPv6:2601:647:4802:9070:b070:1d59:88d7:1405? ([2601:647:4802:9070:b070:1d59:88d7:1405])
-        by smtp.gmail.com with ESMTPSA id w8sm19470155wrk.10.2021.07.22.12.54.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 22 Jul 2021 12:54:30 -0700 (PDT)
-Subject: Re: [PATCH 1/1] iser-target: Fix handling of
- RDMA_CV_EVENT_ADDR_CHANGE
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Chesnokov Gleb <Chesnokov.G@raidix.com>,
-        "lanevdenoche@gmail.com" <lanevdenoche@gmail.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "dledford@redhat.com" <dledford@redhat.com>
-References: <20210714182646.112181-1-Chesnokov.G@raidix.com>
- <20210719121302.GA1048368@nvidia.com>
- <2ea098b2bbfc4f5c9e9b590804e0dcb5@raidix.com>
- <0e6e8da9-5d14-92ef-39d9-99d7a0792f62@grimberg.me>
- <20210722142346.GL1117491@nvidia.com>
-From:   Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <d7cba69f-42f1-c86e-8c01-9ddba87332e8@grimberg.me>
-Date:   Thu, 22 Jul 2021 12:54:26 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+        bh=+vjrKEVbgCZ0aezxH2+LG9GQm+EQJL38sfPP0A5OvlI=;
+        b=DqnXqi1MsWdwKACOVYKa9n4xy2jVvqjkkqeK7Y4sBhmm+HQ4mbpWFCjPFCZhDHk3Vz
+         K5R/NirTEBZlmKvgbLOjcNPojoRvEgvtZhkd+963y8A3X56d+puWJ3qxWKyJKiF6SsWf
+         As1BfajpUOBkdWFVCUcpvAfyy22y29PaDeTt+O2HgjGxoa616OqwiDbIyqZMgKPVVmaE
+         nXrl1p2yJdnMbe2Q2310HDNziLbB0guOjzg4x1SYaCSIFoDrmQk9wYLKn5qFGiYnoEbW
+         eIvOL/dh/M3vhfkWwKLVOJ5auyClveZmDcs4iInnFoPjJK58yDa4M0tuWsYte5NguDKq
+         swPw==
+X-Gm-Message-State: AOAM531XSk+2LbE4HzUIlxJZ++hFCQTmedvGo7o8iYWcMh+HHw4RxADi
+        6t8nR3uYRnEbVQvihNq0LZQ=
+X-Google-Smtp-Source: ABdhPJy/4NNnXY1t66c4H/8QfzcX5D8DsNfpS7xaLAQHOSJlaID6tLzNiojp2TphsTQALxTHuc9QgQ==
+X-Received: by 2002:a9d:4813:: with SMTP id c19mr1147021otf.208.1626989017731;
+        Thu, 22 Jul 2021 14:23:37 -0700 (PDT)
+Received: from localhost (2603-8081-140c-1a00-d50d-298a-08dc-a5ed.res6.spectrum.com. [2603:8081:140c:1a00:d50d:298a:8dc:a5ed])
+        by smtp.gmail.com with ESMTPSA id z18sm2714872oto.71.2021.07.22.14.23.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Jul 2021 14:23:37 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v3 0/5] Replace AV by AH in UD sends
+Date:   Thu, 22 Jul 2021 16:22:39 -0500
+Message-Id: <20210722212244.412157-1-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-In-Reply-To: <20210722142346.GL1117491@nvidia.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Currently the rdma_rxe driver and its user space provider exchange
+addressing information for UD sends by having the provider compute an
+address vector (AV) and send it with each WQE. This is not the way
+that the RDMA verbs API was intended to operate.
 
->>>> What is this trying to do anyhow? If the addr has truely changed why
->>>> does the bind fail?
->>>
->>> When the active physical link member of bonding interface in active-standby
->>> mode gets faulty, the standby link will represent the assigned addresses on
->>> behalf of the active link.
->>> Therefore, RDMA communication manager will notify iSER target with
->>> RDMA_CM_EVENT_ADDR_CHANGE.
->>
->> Ah, here is my recollection...
->>
->> However I think that if we move that into a work, we should do it
->> periodically until we succeed or until the endpoint is torn down so
->> we can handle address removed and restore use-cases.
-> 
-> That soudns better, but still I would say this shouldn't even happen
-> in the first place, check the address and don't initiate rebinding if
-> it hasn't changed.
+This series of patches modifies the way UD send WQEs work by exchanging
+an index identifying the AH replacing the 88 byte AV by a 4 byte AH
+index. In order to not break compatibility with the existing API the
+rdma_rxe driver will recognise when an older version of the provider
+is not sending an index (i.e. it is 0) and will use the AV instead.
 
-But don't you need to setup a new cm_id for the this notification? It
-will remain active?
+v3:
+  Split up commits into smaller steps.
 
-Also it's a bit cumbersome to match addresses in some cases like multi
-address interfaces. Almost seems easier to setup a new one...
+v2:
+  Rearranged AV in rxe_send_wqe to be in the ud struct but padded to the
+  same offset as the original preserving ABI compatibility.
+
+Bob Pearson (6):
+  RDMA/rxe: Move AV from rxe_send_wqe to rxe_send_wr
+  RDMA/rxe: Change AH objects to indexed
+  RDMA/rxe: Create AH index and return to user space
+  RDMA/rxe: Replace ah->pd by ah->ibah.pd
+  RDMA/rxe: Lookup kernel AH from ah index in UD WQEs
+  RDMA/rxe: Convert kernel UD post send to use ah_num
+
+ drivers/infiniband/sw/rxe/rxe_av.c    | 20 +++++++++++++-
+ drivers/infiniband/sw/rxe/rxe_param.h |  4 ++-
+ drivers/infiniband/sw/rxe/rxe_pool.c  |  4 ++-
+ drivers/infiniband/sw/rxe/rxe_req.c   |  8 +++---
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 39 ++++++++++++++++++++++-----
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  8 +++++-
+ include/uapi/rdma/rdma_user_rxe.h     | 10 ++++++-
+ 7 files changed, 79 insertions(+), 14 deletions(-)
+
+-- 
+2.30.2
+
