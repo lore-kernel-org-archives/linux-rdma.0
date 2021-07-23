@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 465CEC4338F
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10DA2C4338F
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2EAAC60ED4
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8DCA60EBD
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234601AbhGWK7h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Jul 2021 06:59:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38812 "EHLO mail.kernel.org"
+        id S234677AbhGWK7j (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Jul 2021 06:59:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38866 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234631AbhGWK7e (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 23 Jul 2021 06:59:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B57BD60E8C;
-        Fri, 23 Jul 2021 11:40:06 +0000 (UTC)
+        id S234385AbhGWK7h (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 23 Jul 2021 06:59:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A992608FE;
+        Fri, 23 Jul 2021 11:40:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627040407;
-        bh=cAnq0DG8YTB9VFO8VFMDen4mU9E05ik62n+FRZ0hxdc=;
+        s=k20201202; t=1627040411;
+        bh=gVSQ/YeQ1MMaDZCW2lOow3B0ynjImk/fL65vA11Rx9w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=i2N9EKWPqUlKKjBmi7Zh+kmONGHhXmQrK+9D8v7kcolrukCQovHkuPoO0OxBbM+MD
-         RArt3/YJWpFx7IkaA9L4L8db6a70QdorO1IVOhVaBDKG3/DejmUKbW5x9gTRdMglZX
-         Hy6Q7vcDmp8M37CUACOrku7gvQYSWYuagQbSH2wp4iSqnQP5/tZ7NYTm+fTy2BlusA
-         myypV2TO8TLcuTzfWZIwti7YI+4oCQaWcJpyA6yAhVwlhXAG/Wyu0FszEsYuFMkB4X
-         Iodn8c3HPUxDxPwGIm3AaqZIxHZ9spLv1m4rFtYfivIcamCP1HgYb2Y2qzPuV3t4i5
-         KUstvmeFvx15A==
+        b=rvpeEC0OG13mIs8tRxvqKtynXrnDqxlDeCZTKOLBrF4yu4dYKP+eNpXvXZ/o7OahN
+         7FNUj5/VE+gpMChl0QYYd3vh60PFpGnC5MsQlvLRAh8OKiK2RIezi/ESVmYW/sU1V9
+         qLc8Xo98IPdLanHSTG8Q2d6LEHBdbvyE0ZL7nQ0Sh+8CQCfVL1z2+1aK1olEMR7BF/
+         Yerj6n/XL13kHtophY46VN1Ml0y8VzDRvAfjKqZLTBdPFzjjssjN0nzfLCE6ZCJyp9
+         DGdYQLE1CTO7u97oHZh7JPVxgaZWwbnPAo5TAVK9p6a9t/Y05LuqzntmPx7y1pgJzl
+         CaYyjh/Byg/Cg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -56,9 +56,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Wenpeng Liang <liangwenpeng@huawei.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v1 4/9] RDMA/mlx5: Cancel pkey work before destroying device resources
-Date:   Fri, 23 Jul 2021 14:39:46 +0300
-Message-Id: <f2b1ea1bad952e4e7a48a6f731de9e0344986b29.1627040189.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v1 3/9] RDMA/efa: Remove double QP type assignment
+Date:   Fri, 23 Jul 2021 14:39:45 +0300
+Message-Id: <838c40134c1590167b888ca06ad51071139ff2ae.1627040189.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1627040189.git.leonro@nvidia.com>
 References: <cover.1627040189.git.leonro@nvidia.com>
@@ -70,47 +70,27 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-In the driver release flow, we are ensuring that notifier is disabled
-and no new works can be added to pkey_change_handler. It means that
-we can cancel that handler before destroying resources to make sure
-that our unwind routine is symmetrical to the allocation one.
+The QP type is set by the IB/core and shouldn't be set in the driver.
 
+Fixes: 40909f664d27 ("RDMA/efa: Add EFA verbs implementation")
+Acked-by: Gal Pressman <galpress@amazon.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/efa/efa_verbs.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9b8dd7a604c9..75d5de14f80b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2908,6 +2908,15 @@ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
- 	struct mlx5_ib_resources *devr = &dev->devr;
- 	int port;
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index b4cfb656ddd5..b1c4780e86be 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -727,7 +727,6 @@ struct ib_qp *efa_create_qp(struct ib_pd *ibpd,
  
-+	/*
-+	 * Make sure no change P_Key work items are still executing.
-+	 *
-+	 * At this stage, the mlx5_ib_event should be unregistered
-+	 * and it ensures that no new works are added.
-+	 */
-+	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
-+		cancel_work_sync(&devr->ports[port].pkey_change_work);
-+
- 	mlx5_ib_destroy_srq(devr->s1, NULL);
- 	kfree(devr->s1);
- 	mlx5_ib_destroy_srq(devr->s0, NULL);
-@@ -2918,10 +2927,6 @@ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
- 	kfree(devr->c0);
- 	mlx5_ib_dealloc_pd(devr->p0, NULL);
- 	kfree(devr->p0);
--
--	/* Make sure no change P_Key work items are still executing */
--	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
--		cancel_work_sync(&devr->ports[port].pkey_change_work);
- }
- 
- static u32 get_core_cap_flags(struct ib_device *ibdev,
+ 	qp->qp_handle = create_qp_resp.qp_handle;
+ 	qp->ibqp.qp_num = create_qp_resp.qp_num;
+-	qp->ibqp.qp_type = init_attr->qp_type;
+ 	qp->max_send_wr = init_attr->cap.max_send_wr;
+ 	qp->max_recv_wr = init_attr->cap.max_recv_wr;
+ 	qp->max_send_sge = init_attr->cap.max_send_sge;
 -- 
 2.31.1
 
