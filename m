@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 119E9C4338F
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 14:09:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC42DC4338F
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 14:09:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDA7660EB4
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 14:09:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EB9F60EB4
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 14:09:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235094AbhGWN23 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Jul 2021 09:28:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34846 "EHLO mail.kernel.org"
+        id S235351AbhGWN2c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Jul 2021 09:28:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233610AbhGWN23 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 23 Jul 2021 09:28:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BAEA9608FE;
-        Fri, 23 Jul 2021 14:09:01 +0000 (UTC)
+        id S235349AbhGWN2c (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 23 Jul 2021 09:28:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7AC0F608FE;
+        Fri, 23 Jul 2021 14:09:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627049342;
-        bh=OmOgV2LxwmEpY2a85t9MhbJvDr97ZQPfEs4J2RiaCoU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=MDDhQRFwI98qGG5rlNYqangP/uDfIZiDKpAfqumai5SBxIUqR4O8hW9zdBpl5T7kd
-         mxiwjbghp1opcRewmXfzbVl8nCwgXNokIMGfIDO4IYVSv8Ag0Qw1K6hUziAq6lEDeH
-         E/r1myShgzv6PKx9a88HxayWRAxqf0HIka8QZ5Kzv/Vtdk5C8An65qcDiOblIf3u7z
-         zjy+iz8flwMmkoj2uXXWsyw1W8Eg2cJm5ynDV6qdJGicKW0uYc71WbkAsUWg9gdm/O
-         FBeSAC797RPgglmC0B7B6Jc7RkA7arHhCeYD7dH6qGD1TXUX6dplDpxJOYGEvmEZVQ
-         uoyLdOcZdm58g==
+        s=k20201202; t=1627049346;
+        bh=1SE9z8tw+fs+3jTSXADkCQu8cHFPE+X1USwTvTucJ8s=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ML9AkpuI5zQ+pq1q8RxcXAbA41gZFoshbFPLFeSBsTFAHUeCr/o04BmXUXM+7EcKq
+         c+bG2N2a8gsxH2d+7MQmLPo7nZRcv2Jf8erWb0zZxwnSDa3aW5r9sSmYdmEf271ape
+         c3kMNxuTLtjwNKOzxy883Xf9t+GgXuVzyHRNONj99qQLVFJhCN95av7PslC23DeVqU
+         EJNig8Z7PZpWAFz0PEqvNWVEMwHY/LDpO8rCy3nUa8D9/zHkcLtj0c4ygk9mgbjOyW
+         ziFAzP/JDvNNXyGOKSGlEL9ZsBFohUYe8QAiXSJ1pjew29utmjIOCwpq6090fiOrRT
+         s92cR0uVvs8cg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -40,10 +40,12 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Mustafa Ismail <mustafa.ismail@intel.com>,
         Steve Wise <larrystevenwise@gmail.com>,
         "Tatyana E. Nikolova" <tatyana.e.nikolova@intel.com>
-Subject: [PATCH rdma-next 0/3] Remove not possible checks
-Date:   Fri, 23 Jul 2021 17:08:54 +0300
-Message-Id: <cover.1627048781.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 2/3] RDMA/iwpm: Remove not-needed reference counting
+Date:   Fri, 23 Jul 2021 17:08:56 +0300
+Message-Id: <1778ded873ba58c9fadc5bb25038de1cec843bec.1627048781.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1627048781.git.leonro@nvidia.com>
+References: <cover.1627048781.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -52,24 +54,117 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The iwpm is part of iw_cm module load, it ensures that iwpm is valid
-prior to execution of any commands.
+iwpm_init() and iwpm_exit() are called only once during iw_cm module
+load. This makes whole reference count implementation not needed at all.
 
-This series deletes such checks.
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/iwpm_util.c | 62 ++++++++---------------------
+ drivers/infiniband/core/iwpm_util.h |  1 -
+ 2 files changed, 16 insertions(+), 47 deletions(-)
 
-Thanks
-
-Leon Romanovsky (3):
-  RDMA/iwcm: Release resources if iw_cm module initialization fails
-  RDMA/iwpm: Remove not-needed reference counting
-  RDMA/iwpm: Rely on the upper to ensure that requests are valid
-
- drivers/infiniband/core/iwcm.c      | 19 ++++---
- drivers/infiniband/core/iwpm_msg.c  | 34 +------------
- drivers/infiniband/core/iwpm_util.c | 78 ++++++-----------------------
- drivers/infiniband/core/iwpm_util.h | 18 -------
- 4 files changed, 28 insertions(+), 121 deletions(-)
-
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 3f8c019c7260..45e9aa503a44 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -48,7 +48,6 @@ static DEFINE_SPINLOCK(iwpm_mapinfo_lock);
+ static struct hlist_head *iwpm_reminfo_bucket;
+ static DEFINE_SPINLOCK(iwpm_reminfo_lock);
+ 
+-static DEFINE_MUTEX(iwpm_admin_lock);
+ static struct iwpm_admin_data iwpm_admin;
+ 
+ /**
+@@ -59,39 +58,22 @@ static struct iwpm_admin_data iwpm_admin;
+  */
+ int iwpm_init(u8 nl_client)
+ {
+-	int ret = 0;
+-	mutex_lock(&iwpm_admin_lock);
+-	if (!refcount_read(&iwpm_admin.refcount)) {
+-		iwpm_hash_bucket = kcalloc(IWPM_MAPINFO_HASH_SIZE,
+-					   sizeof(struct hlist_head),
+-					   GFP_KERNEL);
+-		if (!iwpm_hash_bucket) {
+-			ret = -ENOMEM;
+-			goto init_exit;
+-		}
+-		iwpm_reminfo_bucket = kcalloc(IWPM_REMINFO_HASH_SIZE,
+-					      sizeof(struct hlist_head),
+-					      GFP_KERNEL);
+-		if (!iwpm_reminfo_bucket) {
+-			kfree(iwpm_hash_bucket);
+-			ret = -ENOMEM;
+-			goto init_exit;
+-		}
++	iwpm_hash_bucket = kcalloc(IWPM_MAPINFO_HASH_SIZE,
++				   sizeof(struct hlist_head), GFP_KERNEL);
++	if (!iwpm_hash_bucket)
++		return -ENOMEM;
+ 
+-		refcount_set(&iwpm_admin.refcount, 1);
+-	} else {
+-		refcount_inc(&iwpm_admin.refcount);
++	iwpm_reminfo_bucket = kcalloc(IWPM_REMINFO_HASH_SIZE,
++				      sizeof(struct hlist_head), GFP_KERNEL);
++	if (!iwpm_reminfo_bucket) {
++		kfree(iwpm_hash_bucket);
++		return -ENOMEM;
+ 	}
+ 
+-init_exit:
+-	mutex_unlock(&iwpm_admin_lock);
+-	if (!ret) {
+-		iwpm_set_valid(nl_client, 1);
+-		iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
+-		pr_debug("%s: Mapinfo and reminfo tables are created\n",
+-				__func__);
+-	}
+-	return ret;
++	iwpm_set_valid(nl_client, 1);
++	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
++	pr_debug("%s: Mapinfo and reminfo tables are created\n", __func__);
++	return 0;
+ }
+ 
+ static void free_hash_bucket(void);
+@@ -105,21 +87,9 @@ static void free_reminfo_bucket(void);
+  */
+ int iwpm_exit(u8 nl_client)
+ {
+-
+-	if (!iwpm_valid_client(nl_client))
+-		return -EINVAL;
+-	mutex_lock(&iwpm_admin_lock);
+-	if (!refcount_read(&iwpm_admin.refcount)) {
+-		mutex_unlock(&iwpm_admin_lock);
+-		pr_err("%s Incorrect usage - negative refcount\n", __func__);
+-		return -EINVAL;
+-	}
+-	if (refcount_dec_and_test(&iwpm_admin.refcount)) {
+-		free_hash_bucket();
+-		free_reminfo_bucket();
+-		pr_debug("%s: Resources are destroyed\n", __func__);
+-	}
+-	mutex_unlock(&iwpm_admin_lock);
++	free_hash_bucket();
++	free_reminfo_bucket();
++	pr_debug("%s: Resources are destroyed\n", __func__);
+ 	iwpm_set_valid(nl_client, 0);
+ 	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
+ 	return 0;
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index e201835de733..e2eacc017078 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -90,7 +90,6 @@ struct iwpm_remote_info {
+ };
+ 
+ struct iwpm_admin_data {
+-	refcount_t refcount;
+ 	atomic_t nlmsg_seq;
+ 	int      client_list[RDMA_NL_NUM_CLIENTS];
+ 	u32      reg_list[RDMA_NL_NUM_CLIENTS];
 -- 
 2.31.1
 
