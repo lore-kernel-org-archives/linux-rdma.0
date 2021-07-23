@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0297FC432BE
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F11C8C4320E
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC455608FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DD9C760F45
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jul 2021 11:40:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234785AbhGWLAA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Jul 2021 07:00:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39164 "EHLO mail.kernel.org"
+        id S234725AbhGWLAC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Jul 2021 07:00:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234706AbhGWK7r (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 23 Jul 2021 06:59:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 874A9608FE;
-        Fri, 23 Jul 2021 11:40:20 +0000 (UTC)
+        id S234695AbhGWK7v (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 23 Jul 2021 06:59:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DCFFE60EBD;
+        Fri, 23 Jul 2021 11:40:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627040421;
-        bh=uzq54RD5rZlPgk1E6YmXI5XtGyehCEp6l22OvYxcfvA=;
+        s=k20201202; t=1627040424;
+        bh=/xVusLaIisjwDrhXsvTfDCOTo4UomSFhxaE4UNzqDKw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BRpAZ1WqRjXc63+QCaaronnpb3QA67q8SivW4fPYCpytoVj20vbLfckCbHNaVDFdi
-         D+ANdQUkDRk+kY+oc3lydz6DifrUMVYK7kJPWYGybeivru4MD3JUJS3CLBch05QZAx
-         p/HCZOOrw04Eqwx+NUr3AxpcIof6qqKPzhAvpuQF2tMlOgue30skt7R+O8i49J9+aQ
-         2kJsvQfrrXK8w+mmF/MOKofJ1bEoWHohvmBngPrvigQ3uviQ31u3KS0K1sb1XitjH7
-         tWZ5MpszVchF+h9aSLg4DtWGXe2ADeQRCiBym8ExikJC0riIdQduTAvRyCNTIIHRBG
-         kAKByIxnAuRiw==
+        b=oJk42kHHuKCAQSlMqKfq+hbQ4nyNypoEASZQIJTdZbQgJI4KeRpDO9V7TQyQB2p83
+         W6oDn2hiQCCtFGCIfpRAMoIIN4MjSxjRFK9vaWqMB3pMb8Hq66wYowV7q9mxlgp+6W
+         XXGS3eeW7yuoGsB70GYiByfmB+IrWsKT87aVw3RRDID8S+blBcQDpyYbh4kwOflV8V
+         RIpF0TZrF5Nh7EoZgVOz5MMBLgscC3uJHgV9Y1Jp1+AFKwpFicl+ie2Y5JC3EeAgNH
+         Gqb8SU6JycvVSJwmu/bk/curN+jZ+hr4r/PvBeekOITuiw8oh4wfLUH3lqSuxUc7H0
+         IFOwirx+ka8dQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -56,9 +56,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Wenpeng Liang <liangwenpeng@huawei.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v1 5/9] RDMA/mlx5: Delete device resource mutex that didn't protect anything
-Date:   Fri, 23 Jul 2021 14:39:47 +0300
-Message-Id: <6e338c561033df20d92e1371fc6a7a0d93aad945.1627040189.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v1 9/9] RDMA/mlx5: Drop in-driver verbs object creations
+Date:   Fri, 23 Jul 2021 14:39:51 +0300
+Message-Id: <f745590e5fb7d56f90fdb25f64ee3983ba17e1e4.1627040189.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1627040189.git.leonro@nvidia.com>
 References: <cover.1627040189.git.leonro@nvidia.com>
@@ -70,155 +70,193 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-The dev->devr.mutex was intended to protect GSI QP pointer change
-in the struct mlx5_ib_port_resources when it is accessed from the
-pkey_change_work. However that pointer isn't changed during the
-runtime and once IB/core adds MAD, it stays stable.
+There is no real value in bypassing IB/core APIs for creating standard
+objects with standard types. The open-coded variant didn't have any
+restrack task management calls and caused to such objects to be not
+present when running rdmatoool.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/gsi.c     | 34 ++++++++--------------------
- drivers/infiniband/hw/mlx5/main.c    |  9 ++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 --
- 3 files changed, 16 insertions(+), 29 deletions(-)
+ drivers/infiniband/core/verbs.c   |  7 ++-
+ drivers/infiniband/hw/mlx5/main.c | 92 +++++++------------------------
+ 2 files changed, 25 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/gsi.c b/drivers/infiniband/hw/mlx5/gsi.c
-index 7fcad9135276..e549d6fa4a41 100644
---- a/drivers/infiniband/hw/mlx5/gsi.c
-+++ b/drivers/infiniband/hw/mlx5/gsi.c
-@@ -116,8 +116,6 @@ int mlx5_ib_create_gsi(struct ib_pd *pd, struct mlx5_ib_qp *mqp,
- 		goto err_free_tx;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index a164609c2ee7..89c6987cb5eb 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1035,7 +1035,8 @@ struct ib_srq *ib_create_srq_user(struct ib_pd *pd,
  	}
+ 	if (srq->srq_type == IB_SRQT_XRC) {
+ 		srq->ext.xrc.xrcd = srq_init_attr->ext.xrc.xrcd;
+-		atomic_inc(&srq->ext.xrc.xrcd->usecnt);
++		if (srq->ext.xrc.xrcd)
++			atomic_inc(&srq->ext.xrc.xrcd->usecnt);
+ 	}
+ 	atomic_inc(&pd->usecnt);
  
--	mutex_lock(&dev->devr.mutex);
--
- 	if (dev->devr.ports[port_num - 1].gsi) {
- 		mlx5_ib_warn(dev, "GSI QP already exists on port %d\n",
- 			     port_num);
-@@ -167,15 +165,11 @@ int mlx5_ib_create_gsi(struct ib_pd *pd, struct mlx5_ib_qp *mqp,
- 	INIT_LIST_HEAD(&gsi->rx_qp->sig_mrs);
- 
- 	dev->devr.ports[attr->port_num - 1].gsi = gsi;
--
--	mutex_unlock(&dev->devr.mutex);
--
- 	return 0;
- 
- err_destroy_cq:
- 	ib_free_cq(gsi->cq);
- err_free_wrs:
--	mutex_unlock(&dev->devr.mutex);
- 	kfree(gsi->outstanding_wrs);
- err_free_tx:
- 	kfree(gsi->tx_qps);
-@@ -190,16 +184,13 @@ int mlx5_ib_destroy_gsi(struct mlx5_ib_qp *mqp)
- 	int qp_index;
- 	int ret;
- 
--	mutex_lock(&dev->devr.mutex);
- 	ret = mlx5_ib_destroy_qp(gsi->rx_qp, NULL);
+@@ -1046,7 +1047,7 @@ struct ib_srq *ib_create_srq_user(struct ib_pd *pd,
  	if (ret) {
- 		mlx5_ib_warn(dev, "unable to destroy hardware GSI QP. error %d\n",
- 			     ret);
--		mutex_unlock(&dev->devr.mutex);
+ 		rdma_restrack_put(&srq->res);
+ 		atomic_dec(&srq->pd->usecnt);
+-		if (srq->srq_type == IB_SRQT_XRC)
++		if (srq->srq_type == IB_SRQT_XRC && srq->ext.xrc.xrcd)
+ 			atomic_dec(&srq->ext.xrc.xrcd->usecnt);
+ 		if (ib_srq_has_cq(srq->srq_type))
+ 			atomic_dec(&srq->ext.cq->usecnt);
+@@ -1090,7 +1091,7 @@ int ib_destroy_srq_user(struct ib_srq *srq, struct ib_udata *udata)
  		return ret;
- 	}
- 	dev->devr.ports[port_num - 1].gsi = NULL;
--	mutex_unlock(&dev->devr.mutex);
- 	gsi->rx_qp = NULL;
  
- 	for (qp_index = 0; qp_index < gsi->num_qps; ++qp_index) {
-@@ -339,23 +330,13 @@ static void setup_qp(struct mlx5_ib_gsi_qp *gsi, u16 qp_index)
- 	WARN_ON_ONCE(qp);
- }
- 
--static void setup_qps(struct mlx5_ib_gsi_qp *gsi)
--{
--	struct mlx5_ib_dev *dev = to_mdev(gsi->rx_qp->device);
--	u16 qp_index;
--
--	mutex_lock(&dev->devr.mutex);
--	for (qp_index = 0; qp_index < gsi->num_qps; ++qp_index)
--		setup_qp(gsi, qp_index);
--	mutex_unlock(&dev->devr.mutex);
--}
--
- int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 			  int attr_mask)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
- 	struct mlx5_ib_qp *mqp = to_mqp(qp);
- 	struct mlx5_ib_gsi_qp *gsi = &mqp->gsi;
-+	u16 qp_index;
- 	int ret;
- 
- 	mlx5_ib_dbg(dev, "modifying GSI QP to state %d\n", attr->qp_state);
-@@ -366,8 +347,11 @@ int mlx5_ib_gsi_modify_qp(struct ib_qp *qp, struct ib_qp_attr *attr,
- 		return ret;
- 	}
- 
--	if (to_mqp(gsi->rx_qp)->state == IB_QPS_RTS)
--		setup_qps(gsi);
-+	if (to_mqp(gsi->rx_qp)->state != IB_QPS_RTS)
-+		return 0;
-+
-+	for (qp_index = 0; qp_index < gsi->num_qps; ++qp_index)
-+		setup_qp(gsi, qp_index);
- 	return 0;
- }
- 
-@@ -511,8 +495,8 @@ int mlx5_ib_gsi_post_recv(struct ib_qp *qp, const struct ib_recv_wr *wr,
- 
- void mlx5_ib_gsi_pkey_change(struct mlx5_ib_gsi_qp *gsi)
- {
--	if (!gsi)
--		return;
-+	u16 qp_index;
- 
--	setup_qps(gsi);
-+	for (qp_index = 0; qp_index < gsi->num_qps; ++qp_index)
-+		setup_qp(gsi, qp_index);
- }
+ 	atomic_dec(&srq->pd->usecnt);
+-	if (srq->srq_type == IB_SRQT_XRC)
++	if (srq->srq_type == IB_SRQT_XRC && srq->ext.xrc.xrcd)
+ 		atomic_dec(&srq->ext.xrc.xrcd->usecnt);
+ 	if (ib_srq_has_cq(srq->srq_type))
+ 		atomic_dec(&srq->ext.cq->usecnt);
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 75d5de14f80b..cac05bbe14c2 100644
+index 7a6bafc19c9b..fbed9e4241e1 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2501,6 +2501,13 @@ static void pkey_change_handler(struct work_struct *work)
- 		container_of(work, struct mlx5_ib_port_resources,
- 			     pkey_change_work);
- 
-+	if (!ports->gsi)
-+		/*
-+		 * We got this event before device was fully configured
-+		 * and MAD registration code wasn't called/finished yet.
-+		 */
-+		return;
-+
- 	mlx5_ib_gsi_pkey_change(ports->gsi);
- }
- 
-@@ -2795,8 +2802,6 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+@@ -2802,31 +2802,16 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
  	if (!MLX5_CAP_GEN(dev->mdev, xrc))
  		return -EOPNOTSUPP;
  
--	mutex_init(&devr->mutex);
+-	devr->p0 = rdma_zalloc_drv_obj(ibdev, ib_pd);
+-	if (!devr->p0)
+-		return -ENOMEM;
 -
- 	devr->p0 = rdma_zalloc_drv_obj(ibdev, ib_pd);
- 	if (!devr->p0)
- 		return -ENOMEM;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index dbbcb53d2ca2..f2c8a6375b16 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -813,8 +813,6 @@ struct mlx5_ib_resources {
- 	struct ib_srq	*s0;
- 	struct ib_srq	*s1;
- 	struct mlx5_ib_port_resources ports[2];
--	/* Protects changes to the port resources */
--	struct mutex	mutex;
- };
+-	devr->p0->device  = ibdev;
+-	devr->p0->uobject = NULL;
+-	atomic_set(&devr->p0->usecnt, 0);
++	devr->p0 = ib_alloc_pd(ibdev, 0);
++	if (IS_ERR(devr->p0))
++		return PTR_ERR(devr->p0);
  
- struct mlx5_ib_counters {
+-	ret = mlx5_ib_alloc_pd(devr->p0, NULL);
+-	if (ret)
+-		goto error0;
+-
+-	devr->c0 = rdma_zalloc_drv_obj(ibdev, ib_cq);
+-	if (!devr->c0) {
+-		ret = -ENOMEM;
++	devr->c0 = ib_create_cq(ibdev, NULL, NULL, NULL, &cq_attr);
++	if (IS_ERR(devr->c0)) {
++		ret = PTR_ERR(devr->c0);
+ 		goto error1;
+ 	}
+ 
+-	devr->c0->device = &dev->ib_dev;
+-	atomic_set(&devr->c0->usecnt, 0);
+-
+-	ret = mlx5_ib_create_cq(devr->c0, &cq_attr, NULL);
+-	if (ret)
+-		goto err_create_cq;
+-
+ 	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &devr->xrcdn0, 0);
+ 	if (ret)
+ 		goto error2;
+@@ -2841,45 +2826,22 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+ 	attr.srq_type = IB_SRQT_XRC;
+ 	attr.ext.cq = devr->c0;
+ 
+-	devr->s0 = rdma_zalloc_drv_obj(ibdev, ib_srq);
+-	if (!devr->s0) {
+-		ret = -ENOMEM;
+-		goto error4;
+-	}
+-
+-	devr->s0->device	= &dev->ib_dev;
+-	devr->s0->pd		= devr->p0;
+-	devr->s0->srq_type      = IB_SRQT_XRC;
+-	devr->s0->ext.cq	= devr->c0;
+-	ret = mlx5_ib_create_srq(devr->s0, &attr, NULL);
+-	if (ret)
++	devr->s0 = ib_create_srq(devr->p0, &attr);
++	if (IS_ERR(devr->s0)) {
++		ret = PTR_ERR(devr->s0);
+ 		goto err_create;
+-
+-	atomic_inc(&devr->s0->ext.cq->usecnt);
+-	atomic_inc(&devr->p0->usecnt);
+-	atomic_set(&devr->s0->usecnt, 0);
++	}
+ 
+ 	memset(&attr, 0, sizeof(attr));
+ 	attr.attr.max_sge = 1;
+ 	attr.attr.max_wr = 1;
+ 	attr.srq_type = IB_SRQT_BASIC;
+-	devr->s1 = rdma_zalloc_drv_obj(ibdev, ib_srq);
+-	if (!devr->s1) {
+-		ret = -ENOMEM;
+-		goto error5;
+-	}
+-
+-	devr->s1->device	= &dev->ib_dev;
+-	devr->s1->pd		= devr->p0;
+-	devr->s1->srq_type      = IB_SRQT_BASIC;
+-	devr->s1->ext.cq	= devr->c0;
+ 
+-	ret = mlx5_ib_create_srq(devr->s1, &attr, NULL);
+-	if (ret)
++	devr->s1 = ib_create_srq(devr->p0, &attr);
++	if (IS_ERR(devr->s1)) {
++		ret = PTR_ERR(devr->s1);
+ 		goto error6;
+-
+-	atomic_inc(&devr->p0->usecnt);
+-	atomic_set(&devr->s1->usecnt, 0);
++	}
+ 
+ 	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
+ 		INIT_WORK(&devr->ports[port].pkey_change_work,
+@@ -2888,23 +2850,15 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+ 	return 0;
+ 
+ error6:
+-	kfree(devr->s1);
+-error5:
+-	mlx5_ib_destroy_srq(devr->s0, NULL);
++	ib_destroy_srq(devr->s0);
+ err_create:
+-	kfree(devr->s0);
+-error4:
+ 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn1, 0);
+ error3:
+ 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn0, 0);
+ error2:
+-	mlx5_ib_destroy_cq(devr->c0, NULL);
+-err_create_cq:
+-	kfree(devr->c0);
++	ib_destroy_cq(devr->c0);
+ error1:
+-	mlx5_ib_dealloc_pd(devr->p0, NULL);
+-error0:
+-	kfree(devr->p0);
++	ib_dealloc_pd(devr->p0);
+ 	return ret;
+ }
+ 
+@@ -2922,16 +2876,12 @@ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
+ 	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
+ 		cancel_work_sync(&devr->ports[port].pkey_change_work);
+ 
+-	mlx5_ib_destroy_srq(devr->s1, NULL);
+-	kfree(devr->s1);
+-	mlx5_ib_destroy_srq(devr->s0, NULL);
+-	kfree(devr->s0);
++	ib_destroy_srq(devr->s1);
++	ib_destroy_srq(devr->s0);
+ 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn1, 0);
+ 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn0, 0);
+-	mlx5_ib_destroy_cq(devr->c0, NULL);
+-	kfree(devr->c0);
+-	mlx5_ib_dealloc_pd(devr->p0, NULL);
+-	kfree(devr->p0);
++	ib_destroy_cq(devr->c0);
++	ib_dealloc_pd(devr->p0);
+ }
+ 
+ static u32 get_core_cap_flags(struct ib_device *ibdev,
 -- 
 2.31.1
 
