@@ -2,57 +2,56 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33A8DC432BE
-	for <linux-rdma@archiver.kernel.org>; Sun, 25 Jul 2021 08:38:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C33C4338F
+	for <linux-rdma@archiver.kernel.org>; Sun, 25 Jul 2021 09:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FF5560F26
-	for <linux-rdma@archiver.kernel.org>; Sun, 25 Jul 2021 08:38:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 434BE6056B
+	for <linux-rdma@archiver.kernel.org>; Sun, 25 Jul 2021 09:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229883AbhGYH5P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 25 Jul 2021 03:57:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55236 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229853AbhGYH5P (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 25 Jul 2021 03:57:15 -0400
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF625C061757;
-        Sun, 25 Jul 2021 01:37:45 -0700 (PDT)
-Subject: Re: [PATCH] mlx4: Fix missing error code in mlx4_load_one()
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1627202261;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XMDPb1pPl3PoQQ83a9gmENv6+Js5xeBQrgRul+VOSA8=;
-        b=NMob4IOxzOJIflzmWNgdGZpMurTIcvdCJcDmG3YjcOCWkVGU1V/BiETNFBlfO8qsMvKgUg
-        gruh7+sVDdprhByWJ4snzZeHR0jd7pPKSVjzWxQQh1nNwB+ex1hidp65gcP800GQUe8nyo
-        1G6THX5FnUllnpgbBpIFT4XDg6SsNOs=
-To:     Jiapeng Chong <jiapeng.chong@linux.alibaba.com>, tariqt@nvidia.com
-Cc:     davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1627036569-71880-1-git-send-email-jiapeng.chong@linux.alibaba.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Gal Pressman <gal.pressman@linux.dev>
-Message-ID: <9a9cfded-cbce-b36d-77f1-020caeaf6052@linux.dev>
-Date:   Sun, 25 Jul 2021 11:37:38 +0300
+        id S230461AbhGYJJe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 25 Jul 2021 05:09:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54364 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230370AbhGYJJe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 25 Jul 2021 05:09:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id 8669A60F26;
+        Sun, 25 Jul 2021 09:50:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1627206604;
+        bh=U9rECIpUm/XacYfhUYSayFYjKoTXF4eXWtqLVGy/kFc=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=gIuHj6lRE6tOh8xTqc67m/iNokF5BLs8vMaujKRwQzbTLmhoMgrNJ5Ticvq2YL+Qe
+         5H4sQVNc6ZlzRp7fqQZUyglUxVRRGgOnBUR9UxCE15GxwuaccQdXtlA/XoOcuOBHhQ
+         f8iUDXRpDd5nzDxhKQxbPYjFCXNIPbUvVTk2liqkqhXDZVVru69LJbDHO/c7OQMV1L
+         glp1QzorkjPx+agOnsVFUDtmgEGqRshFqilOASeVR5nq6cFSk12N9AMKtuP+EvqJPF
+         3568hkhGgh+k4VV1LsNiUuUeOzcFfXjGhtYN7NIE4o9iwz6C842PLyxWSoFUvDdBjp
+         wZee9EtbHfHEQ==
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] mlx4: Fix missing error code in mlx4_load_one()
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <162720660449.12734.8611771205877417069.git-patchwork-notify@kernel.org>
+Date:   Sun, 25 Jul 2021 09:50:04 +0000
+References: <1627036569-71880-1-git-send-email-jiapeng.chong@linux.alibaba.com>
 In-Reply-To: <1627036569-71880-1-git-send-email-jiapeng.chong@linux.alibaba.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: gal.pressman@linux.dev
+To:     Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Cc:     tariqt@nvidia.com, davem@davemloft.net, kuba@kernel.org,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 23/07/2021 13:36, Jiapeng Chong wrote:
+Hello:
+
+This patch was applied to netdev/net.git (refs/heads/master):
+
+On Fri, 23 Jul 2021 18:36:09 +0800 you wrote:
 > The error code is missing in this code scenario, add the error code
 > '-EINVAL' to the return value 'err'.
 > 
@@ -61,32 +60,15 @@ On 23/07/2021 13:36, Jiapeng Chong wrote:
 > drivers/net/ethernet/mellanox/mlx4/main.c:3538 mlx4_load_one() warn:
 > missing error code 'err'.
 > 
-> Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-> Fixes: 7ae0e400cd93 ("net/mlx4_core: Flexible (asymmetric) allocation of
-> EQs and MSI-X vectors for PF/VFs")
+> [...]
 
-Fixes line shouldn't be wrapped.
+Here is the summary with links:
+  - mlx4: Fix missing error code in mlx4_load_one()
+    https://git.kernel.org/netdev/net/c/7e4960b3d66d
 
-> Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx4/main.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-> index 00c8465..28ac469 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-> @@ -3535,6 +3535,7 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
->  
->  		if (!SRIOV_VALID_STATE(dev->flags)) {
->  			mlx4_err(dev, "Invalid SRIOV state\n");
-> +			err = -EINVAL;
->  			goto err_close;
->  		}
->  	}
-> 
+You are awesome, thank you!
+--
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-I think this patch is missing a few occurrences:
-https://elixir.bootlin.com/linux/v5.14-rc2/source/drivers/net/ethernet/mellanox/mlx4/main.c#L3455
-https://elixir.bootlin.com/linux/v5.14-rc2/source/drivers/net/ethernet/mellanox/mlx4/main.c#L3468
-https://elixir.bootlin.com/linux/v5.14-rc2/source/drivers/net/ethernet/mellanox/mlx4/main.c#L3490
+
