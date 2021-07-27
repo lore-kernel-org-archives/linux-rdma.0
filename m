@@ -7,23 +7,23 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E08C43214
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0967C4338F
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A271460249
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3B8060249
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234803AbhG0Cup (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Jul 2021 22:50:45 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:7437 "EHLO
+        id S234915AbhG0Cuw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Jul 2021 22:50:52 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:12409 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234422AbhG0Cup (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:50:45 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GYj0H19hPz80fp;
-        Tue, 27 Jul 2021 11:27:27 +0800 (CST)
+        with ESMTP id S234833AbhG0Cur (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:50:47 -0400
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GYj0g05KszcjWM;
+        Tue, 27 Jul 2021 11:27:47 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2176.2; Tue, 27 Jul 2021 11:31:07 +0800
 Received: from localhost.localdomain (10.67.165.24) by
@@ -34,9 +34,9 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>, Xi Wang <wangxi11@huawei.com>
-Subject: [PATCH v3 for-next 03/12] RDMA/hns: Configure DCA mode for the userspace QP
-Date:   Tue, 27 Jul 2021 11:27:23 +0800
-Message-ID: <1627356452-30564-4-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v3 for-next 06/12] RDMA/hns: Setup the configuration of WQE addressing to QPC
+Date:   Tue, 27 Jul 2021 11:27:26 +0800
+Message-ID: <1627356452-30564-7-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
@@ -52,369 +52,147 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-If the userspace driver assign a NULL to the field of 'buf_addr' in
-'struct hns_roce_ib_create_qp' when creating QP, this means the kernel
-driver need setup the QP as DCA mode. So add a QP capability bit in
-response to indicate the userspace driver that the DCA mode has been
-enabled.
+Add a new command to update the configuration of WQE buffer addressing to
+QPC in DCA mode.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_dca.c    |  15 ++++
- drivers/infiniband/hw/hns/hns_roce_dca.h    |   6 +-
- drivers/infiniband/hw/hns/hns_roce_device.h |   5 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  19 ++++-
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 106 ++++++++++++++++++++++------
- include/uapi/rdma/hns-abi.h                 |   1 +
- 6 files changed, 127 insertions(+), 25 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 82 +++++++++++++++++++++++++++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  1 +
+ 2 files changed, 77 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.c b/drivers/infiniband/hw/hns/hns_roce_dca.c
-index 81b3c58..b14b23e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_dca.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_dca.c
-@@ -342,6 +342,21 @@ static void free_dca_mem(struct dca_mem *mem)
- 	spin_unlock(&mem->lock);
- }
- 
-+void hns_roce_enable_dca(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
-+{
-+	struct hns_roce_dca_cfg *cfg = &hr_qp->dca_cfg;
-+
-+	cfg->buf_id = HNS_DCA_INVALID_BUF_ID;
-+}
-+
-+void hns_roce_disable_dca(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_qp *hr_qp)
-+{
-+	struct hns_roce_dca_cfg *cfg = &hr_qp->dca_cfg;
-+
-+	cfg->buf_id = HNS_DCA_INVALID_BUF_ID;
-+}
-+
- static struct hns_roce_ucontext *
- uverbs_attr_to_hr_uctx(struct uverbs_attr_bundle *attrs)
- {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.h b/drivers/infiniband/hw/hns/hns_roce_dca.h
-index a82ed5e..a13a2d6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_dca.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_dca.h
-@@ -14,16 +14,20 @@ struct hns_dca_page_state {
- 	u32 head : 1; /* This page is the head in a continuous address range. */
- };
- 
-+#define HNS_DCA_INVALID_BUF_ID 0UL
- struct hns_dca_shrink_resp {
- 	u64 free_key; /* free buffer's key which registered by the user */
- 	u32 free_mems; /* free buffer count which no any QP be using */
- };
- 
--#define HNS_DCA_INVALID_BUF_ID 0UL
- 
- void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
- 			    struct hns_roce_ucontext *uctx);
- void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_ucontext *uctx);
- 
-+void hns_roce_enable_dca(struct hns_roce_dev *hr_dev,
-+			 struct hns_roce_qp *hr_qp);
-+void hns_roce_disable_dca(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_qp *hr_qp);
- #endif
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index d18bc22..00f80b3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -331,6 +331,10 @@ struct hns_roce_mtr {
- 	struct hns_roce_hem_cfg  hem_cfg; /* config for hardware addressing */
- };
- 
-+struct hns_roce_dca_cfg {
-+	u32 buf_id;
-+};
-+
- struct hns_roce_mw {
- 	struct ib_mw		ibmw;
- 	u32			pdn;
-@@ -631,6 +635,7 @@ struct hns_roce_qp {
- 	struct hns_roce_wq	sq;
- 
- 	struct hns_roce_mtr	mtr;
-+	struct hns_roce_dca_cfg	dca_cfg;
- 
- 	u32			buff_size;
- 	struct mutex		mutex;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 594d4ce..ced0c44 100644
+index b31b493..7e44128 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -345,6 +345,12 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	return 0;
+@@ -2782,6 +2782,17 @@ static void hns_roce_v2_exit(struct hns_roce_dev *hr_dev)
+ 		free_dip_list(hr_dev);
  }
  
-+static bool check_dca_attach_enable(struct hns_roce_qp *hr_qp)
++static inline void mbox_desc_init(struct hns_roce_post_mbox *mb, u64 in_param,
++				  u64 out_param, u32 in_modifier,
++				  u8 op_modifier, u16 op)
 +{
-+	return hr_qp->en_flags & HNS_ROCE_QP_CAP_DYNAMIC_CTX_ATTACH;
++	mb->in_param_l = cpu_to_le32(in_param);
++	mb->in_param_h = cpu_to_le32(in_param >> 32);
++	mb->out_param_l = cpu_to_le32(out_param);
++	mb->out_param_h = cpu_to_le32(out_param >> 32);
++	mb->cmd_tag = cpu_to_le32(in_modifier << 8 | op);
 +}
 +
-+
- static int check_send_valid(struct hns_roce_dev *hr_dev,
- 			    struct hns_roce_qp *hr_qp)
- {
-@@ -4371,6 +4377,17 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
- 	hr_reg_write(context, QPC_TRRL_BA_H, trrl_ba >> (32 + 16 + 4));
- 	hr_reg_clear(qpc_mask, QPC_TRRL_BA_H);
+ static int hns_roce_mbox_post(struct hns_roce_dev *hr_dev, u64 in_param,
+ 			      u64 out_param, u32 in_modifier, u8 op_modifier,
+ 			      u16 op, u16 token, int event)
+@@ -2790,17 +2801,34 @@ static int hns_roce_mbox_post(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	struct hns_roce_post_mbox *mb = (struct hns_roce_post_mbox *)desc.data;
  
-+	/* hip09 reused the IRRL_HEAD fileds in hip08 */
-+	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
-+		if (check_dca_attach_enable(hr_qp)) {
-+			hr_reg_enable(context, QPC_DCA_MODE);
-+			hr_reg_clear(qpc_mask, QPC_DCA_MODE);
-+		}
-+	} else {
-+		/* reset IRRL_HEAD */
-+		hr_reg_clear(qpc_mask, QPC_V2_IRRL_HEAD);
-+	}
-+
- 	context->irrl_ba = cpu_to_le32(irrl_ba >> 6);
- 	qpc_mask->irrl_ba = 0;
- 	hr_reg_write(context, QPC_IRRL_BA_H, irrl_ba >> (32 + 6));
-@@ -4489,8 +4506,6 @@ static int modify_qp_rtr_to_rts(struct ib_qp *ibqp,
- 	hr_reg_write(context, QPC_LSN, 0x100);
- 	hr_reg_clear(qpc_mask, QPC_LSN);
- 
--	hr_reg_clear(qpc_mask, QPC_V2_IRRL_HEAD);
+ 	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_POST_MB, false);
 -
- 	return 0;
+-	mb->in_param_l = cpu_to_le32(in_param);
+-	mb->in_param_h = cpu_to_le32(in_param >> 32);
+-	mb->out_param_l = cpu_to_le32(out_param);
+-	mb->out_param_h = cpu_to_le32(out_param >> 32);
+-	mb->cmd_tag = cpu_to_le32(in_modifier << 8 | op);
++	mbox_desc_init(mb, in_param, out_param, in_modifier, op_modifier, op);
+ 	mb->token_event_en = cpu_to_le32(event << 16 | token);
+ 
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
  }
  
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index b101b7e5..91311a0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -39,6 +39,7 @@
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
- #include "hns_roce_hem.h"
-+#include "hns_roce_dca.h"
- 
- static void flush_work_handle(struct work_struct *work)
- {
-@@ -604,8 +605,21 @@ static int set_user_sq_size(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
- 
-+static bool check_dca_is_enable(struct hns_roce_dev *hr_dev, bool is_user,
-+				unsigned long addr)
++static int hns_roce_mbox_send(struct hns_roce_dev *hr_dev, u64 in_param,
++			      u64 out_param, u32 in_modifier, u8 op_modifier,
++			      u16 op)
 +{
-+	if (!(hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_DCA_MODE))
-+		return false;
++	struct hns_roce_cmq_desc desc;
++	struct hns_roce_post_mbox *mb = (struct hns_roce_post_mbox *)desc.data;
 +
-+	/* If the user QP's buffer addr is 0, the DCA mode should be enabled */
-+	if (is_user)
-+		return !addr;
++	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_SYNC_MB, false);
 +
-+	return false;
++	mbox_desc_init(mb, in_param, out_param, in_modifier, op_modifier, op);
++
++	/* The hardware doesn't care about the token fields when working in
++	 * sync mode.
++	 */
++	mb->token_event_en = 0;
++
++	/* The cmdq send returns 0 indicates that the hardware has already
++	 * finished the operation defined in this mbox.
++	 */
++	return hns_roce_cmq_send(hr_dev, &desc, 1);
 +}
 +
- static int set_wqe_buf_attr(struct hns_roce_dev *hr_dev,
--			    struct hns_roce_qp *hr_qp,
-+			    struct hns_roce_qp *hr_qp, bool dca_en,
- 			    struct hns_roce_buf_attr *buf_attr)
+ static int v2_wait_mbox_complete(struct hns_roce_dev *hr_dev, u32 timeout,
+ 				 u8 *complete_status)
  {
- 	int buf_size;
-@@ -649,9 +663,21 @@ static int set_wqe_buf_attr(struct hns_roce_dev *hr_dev,
- 	if (hr_qp->buff_size < 1)
- 		return -EINVAL;
- 
--	buf_attr->page_shift = HNS_HW_PAGE_SHIFT + hr_dev->caps.mtt_buf_pg_sz;
- 	buf_attr->region_count = idx;
- 
-+	if (dca_en) {
-+		/*
-+		 * When enable DCA, there's no need to alloc buffer now, and
-+		 * the page shift should be fixed to 4K.
-+		 */
-+		buf_attr->mtt_only = true;
-+		buf_attr->page_shift = HNS_HW_PAGE_SHIFT;
-+	} else {
-+		buf_attr->mtt_only = false;
-+		buf_attr->page_shift = HNS_HW_PAGE_SHIFT +
-+				       hr_dev->caps.mtt_buf_pg_sz;
-+	}
-+
- 	return 0;
+@@ -5062,6 +5090,47 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	return ret;
  }
  
-@@ -748,12 +774,48 @@ static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
- 	kfree(hr_qp->rq_inl_buf.wqe_list);
- }
- 
--static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+static int alloc_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+			 bool dca_en, struct hns_roce_buf_attr *buf_attr,
-+			 struct ib_udata *udata, unsigned long addr)
++static int hns_roce_v2_set_dca_buf(struct hns_roce_dev *hr_dev,
++				   struct hns_roce_qp *hr_qp)
 +{
 +	struct ib_device *ibdev = &hr_dev->ib_dev;
++	struct hns_roce_v2_qp_context *qpc, *msk;
++	dma_addr_t dma_handle;
++	int qpc_sz;
 +	int ret;
 +
-+	if (dca_en) {
-+		/* DCA must be enabled after the buffer attr is configured. */
-+		hns_roce_enable_dca(hr_dev, hr_qp);
++	qpc_sz = hr_dev->caps.qpc_sz;
++	WARN_ON(2 * qpc_sz > HNS_ROCE_MAILBOX_SIZE);
++	qpc = dma_pool_alloc(hr_dev->cmd.pool, GFP_NOWAIT, &dma_handle);
++	if (!qpc)
++		return -ENOMEM;
 +
-+		hr_qp->en_flags |= HNS_ROCE_QP_CAP_DYNAMIC_CTX_ATTACH;
-+	}
++	msk = (struct hns_roce_v2_qp_context *)((void *)qpc + qpc_sz);
++	memset(msk, 0xff, qpc_sz);
 +
-+	ret = hns_roce_mtr_create(hr_dev, &hr_qp->mtr, buf_attr,
-+				  HNS_HW_PAGE_SHIFT + hr_dev->caps.mtt_ba_pg_sz,
-+				  udata, addr);
++	ret = config_qp_rq_buf(hr_dev, hr_qp, qpc, msk);
 +	if (ret) {
-+		ibdev_err(ibdev, "failed to create WQE mtr, ret = %d.\n", ret);
-+		if (dca_en)
-+			hns_roce_disable_dca(hr_dev, hr_qp);
++		ibdev_err(ibdev, "failed to config rq qpc, ret = %d.\n", ret);
++		goto done;
 +	}
++
++	ret = config_qp_sq_buf(hr_dev, hr_qp, qpc, msk);
++	if (ret) {
++		ibdev_err(ibdev, "failed to config sq qpc, ret = %d.\n", ret);
++		goto done;
++	}
++
++	ret = hns_roce_mbox_send(hr_dev, dma_handle, 0, hr_qp->qpn, 0,
++				 HNS_ROCE_CMD_MODIFY_QPC);
++	if (ret)
++		ibdev_err(ibdev, "failed to modify DCA buf, ret = %d.\n", ret);
++
++done:
++	dma_pool_free(hr_dev->cmd.pool, qpc, dma_handle);
 +
 +	return ret;
 +}
 +
-+static void free_wqe_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+			 struct ib_udata *udata)
-+{
-+	hns_roce_mtr_destroy(hr_dev, &hr_qp->mtr);
-+
-+	if (hr_qp->en_flags & HNS_ROCE_QP_CAP_DYNAMIC_CTX_ATTACH)
-+		hns_roce_disable_dca(hr_dev, hr_qp);
-+}
-+
-+static int alloc_qp_wqe(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 			struct ib_qp_init_attr *init_attr,
- 			struct ib_udata *udata, unsigned long addr)
+ static int to_ib_qp_st(enum hns_roce_v2_qp_state state)
  {
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	struct hns_roce_buf_attr buf_attr = {};
-+	bool dca_en;
- 	int ret;
- 
- 	if (!udata && hr_qp->rq_inl_buf.wqe_cnt) {
-@@ -768,16 +830,16 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 		hr_qp->rq_inl_buf.wqe_list = NULL;
- 	}
- 
--	ret = set_wqe_buf_attr(hr_dev, hr_qp, &buf_attr);
-+	dca_en = check_dca_is_enable(hr_dev, !!udata, addr);
-+	ret = set_wqe_buf_attr(hr_dev, hr_qp, dca_en, &buf_attr);
- 	if (ret) {
--		ibdev_err(ibdev, "failed to split WQE buf, ret = %d.\n", ret);
-+		ibdev_err(ibdev, "failed to set WQE attr, ret = %d.\n", ret);
- 		goto err_inline;
- 	}
--	ret = hns_roce_mtr_create(hr_dev, &hr_qp->mtr, &buf_attr,
--				  PAGE_SHIFT + hr_dev->caps.mtt_ba_pg_sz,
--				  udata, addr);
-+
-+	ret = alloc_wqe_buf(hr_dev, hr_qp, dca_en, &buf_attr, udata, addr);
- 	if (ret) {
--		ibdev_err(ibdev, "failed to create WQE mtr, ret = %d.\n", ret);
-+		ibdev_err(ibdev, "failed to alloc WQE buf, ret = %d.\n", ret);
- 		goto err_inline;
- 	}
- 
-@@ -788,9 +850,10 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	return ret;
- }
- 
--static void free_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
-+static void free_qp_wqe(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
-+			struct ib_udata *udata)
- {
--	hns_roce_mtr_destroy(hr_dev, &hr_qp->mtr);
-+	free_wqe_buf(hr_dev, hr_qp, udata);
- 	free_rq_inline_buf(hr_qp);
- }
- 
-@@ -848,7 +911,6 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 				goto err_out;
- 			}
- 			hr_qp->en_flags |= HNS_ROCE_QP_CAP_SQ_RECORD_DB;
--			resp->cap_flags |= HNS_ROCE_QP_CAP_SQ_RECORD_DB;
- 		}
- 
- 		if (user_qp_has_rdb(hr_dev, init_attr, udata, resp)) {
-@@ -861,7 +923,6 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 				goto err_sdb;
- 			}
- 			hr_qp->en_flags |= HNS_ROCE_QP_CAP_RQ_RECORD_DB;
--			resp->cap_flags |= HNS_ROCE_QP_CAP_RQ_RECORD_DB;
- 		}
- 	} else {
- 		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
-@@ -1040,18 +1101,18 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 		}
- 	}
- 
--	ret = alloc_qp_buf(hr_dev, hr_qp, init_attr, udata, ucmd.buf_addr);
--	if (ret) {
--		ibdev_err(ibdev, "failed to alloc QP buffer, ret = %d.\n", ret);
--		goto err_buf;
--	}
--
- 	ret = alloc_qpn(hr_dev, hr_qp);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to alloc QPN, ret = %d.\n", ret);
- 		goto err_qpn;
- 	}
- 
-+	ret = alloc_qp_wqe(hr_dev, hr_qp, init_attr, udata, ucmd.buf_addr);
-+	if (ret) {
-+		ibdev_err(ibdev, "failed to alloc QP buffer, ret = %d.\n", ret);
-+		goto err_buf;
-+	}
-+
- 	ret = alloc_qp_db(hr_dev, hr_qp, init_attr, udata, &ucmd, &resp);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to alloc QP doorbell, ret = %d.\n",
-@@ -1073,6 +1134,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	if (udata) {
-+		resp.cap_flags = hr_qp->en_flags;
- 		ret = ib_copy_to_udata(udata, &resp,
- 				       min(udata->outlen, sizeof(resp)));
- 		if (ret) {
-@@ -1101,10 +1163,10 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- err_qpc:
- 	free_qp_db(hr_dev, hr_qp, udata);
- err_db:
-+	free_qp_wqe(hr_dev, hr_qp, udata);
-+err_buf:
- 	free_qpn(hr_dev, hr_qp);
- err_qpn:
--	free_qp_buf(hr_dev, hr_qp);
--err_buf:
- 	free_kernel_wrid(hr_qp);
- 	return ret;
- }
-@@ -1118,7 +1180,7 @@ void hns_roce_qp_destroy(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 
- 	free_qpc(hr_dev, hr_qp);
- 	free_qpn(hr_dev, hr_qp);
--	free_qp_buf(hr_dev, hr_qp);
-+	free_qp_wqe(hr_dev, hr_qp, udata);
- 	free_kernel_wrid(hr_qp);
- 	free_qp_db(hr_dev, hr_qp, udata);
- 
-diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-index bcca5be..4452b17 100644
---- a/include/uapi/rdma/hns-abi.h
-+++ b/include/uapi/rdma/hns-abi.h
-@@ -77,6 +77,7 @@ enum hns_roce_qp_cap_flags {
- 	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
- 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
- 	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
-+	HNS_ROCE_QP_CAP_DYNAMIC_CTX_ATTACH = 1 << 4,
+ 	static const enum ib_qp_state map[] = {
+@@ -6239,6 +6308,7 @@ static const struct hns_roce_hw hns_roce_hw_v2 = {
+ 	.write_cqc = hns_roce_v2_write_cqc,
+ 	.set_hem = hns_roce_v2_set_hem,
+ 	.clear_hem = hns_roce_v2_clear_hem,
++	.set_dca_buf = hns_roce_v2_set_dca_buf,
+ 	.modify_qp = hns_roce_v2_modify_qp,
+ 	.qp_flow_control_init = hns_roce_v2_qp_flow_control_init,
+ 	.init_eq = hns_roce_v2_init_eq_table,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index b8a09d4..3f758d6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -257,6 +257,7 @@ enum hns_roce_opcode_type {
+ 	HNS_ROCE_OPC_QUERY_VF_RES			= 0x850e,
+ 	HNS_ROCE_OPC_CFG_GMV_TBL			= 0x850f,
+ 	HNS_ROCE_OPC_CFG_GMV_BT				= 0x8510,
++	HNS_ROCE_OPC_SYNC_MB				= 0x8511,
+ 	HNS_ROCE_OPC_EXT_CFG				= 0x8512,
+ 	HNS_SWITCH_PARAMETER_CFG			= 0x1033,
  };
- 
- struct hns_roce_ib_create_qp_resp {
 -- 
 2.8.1
 
