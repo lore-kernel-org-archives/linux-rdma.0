@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8295BC432BE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B0D0C4320E
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E16361053
+	by mail.kernel.org (Postfix) with ESMTP id 849D761009
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234960AbhG0CvJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234841AbhG0CvJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 26 Jul 2021 22:51:09 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:7062 "EHLO
+Received: from szxga01-in.huawei.com ([45.249.212.187]:7063 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234909AbhG0CvI (ORCPT
+        with ESMTP id S234914AbhG0CvI (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:51:08 -0400
 Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GYhyF01r1zYgkb;
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GYhyF0TQPzYgmF;
         Tue, 27 Jul 2021 11:25:41 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
@@ -33,9 +33,9 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 01/10] Update kernel headers
-Date:   Tue, 27 Jul 2021 11:27:51 +0800
-Message-ID: <1627356480-41805-2-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v2 rdma-core 03/10] libhns: Add support for shrinking DCA memory pool
+Date:   Tue, 27 Jul 2021 11:27:53 +0800
+Message-ID: <1627356480-41805-4-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
@@ -49,182 +49,191 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-To commit ?? ("RDMA/hns: Dump detailed driver-specific UCTX").
+From: Xi Wang <wangxi11@huawei.com>
 
+The QP's WQE buffer may be detached after QP is modified or CQE is polled,
+and the state of DCA mem object may be changed as clean for no QP is using
+it. So shrink the clean DCA mem from the memory pool and destroy the DCA
+mem's buffer to reduce the memory consumption.
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- kernel-headers/rdma/hns-abi.h  | 86 ++++++++++++++++++++++++++++++++++++++++++
- kernel-headers/rdma/mlx5-abi.h | 17 ++++++++-
- 2 files changed, 101 insertions(+), 2 deletions(-)
+ providers/hns/hns_roce_u.h       |  2 +
+ providers/hns/hns_roce_u_buf.c   | 96 ++++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_hw_v2.c |  7 +++
+ 3 files changed, 105 insertions(+)
 
-diff --git a/kernel-headers/rdma/hns-abi.h b/kernel-headers/rdma/hns-abi.h
-index 42b1776..40ac2c3 100644
---- a/kernel-headers/rdma/hns-abi.h
-+++ b/kernel-headers/rdma/hns-abi.h
-@@ -77,21 +77,107 @@ enum hns_roce_qp_cap_flags {
- 	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
- 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
- 	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
-+	HNS_ROCE_QP_CAP_DYNAMIC_CTX_ATTACH = 1 << 4,
-+	HNS_ROCE_QP_CAP_DYNAMIC_CTX_DETACH = 1 << 6,
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index dc56b16..bddd3dd 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -155,6 +155,7 @@ struct hns_roce_dca_ctx {
+ 	int mem_cnt;
+ 	unsigned int unit_size;
+ 	uint64_t max_size;
++	uint64_t min_size;
+ 	uint64_t curr_size;
  };
  
- struct hns_roce_ib_create_qp_resp {
- 	__aligned_u64 cap_flags;
- };
+@@ -439,6 +440,7 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
  
-+enum {
-+	HNS_ROCE_ALLOC_UCTX_COMP_DCA_MAX_QPS = 1 << 0,
-+};
-+
-+struct hns_roce_ib_alloc_ucontext {
-+	__u32 comp;
-+	__u32 dca_max_qps;
-+};
-+
-+enum {
-+	HNS_ROCE_CAP_FLAG_DCA_MODE = 1 << 15,
-+};
-+
- struct hns_roce_ib_alloc_ucontext_resp {
- 	__u32	qp_tab_size;
- 	__u32	cqe_size;
- 	__u32	srq_tab_size;
- 	__u32	reserved;
-+	__aligned_u64 cap_flags;
-+	__u32	dca_qps;
-+	__u32	dca_mmap_size;
- };
+ void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
  
- struct hns_roce_ib_alloc_pd_resp {
- 	__u32 pdn;
- };
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
+ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
+ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
  
-+enum {
-+	HNS_ROCE_MMAP_REGULAR_PAGE,
-+	HNS_ROCE_MMAP_DCA_PAGE,
-+};
-+
-+struct hns_roce_ib_modify_qp_resp {
-+	__u32	dcan;
-+	__u32	reserved;
-+};
-+
-+#define UVERBS_ID_NS_MASK 0xF000
-+#define UVERBS_ID_NS_SHIFT 12
-+
-+enum hns_ib_objects {
-+	HNS_IB_OBJECT_DCA_MEM = (1U << UVERBS_ID_NS_SHIFT),
-+};
-+
-+enum hns_ib_dca_mem_methods {
-+	HNS_IB_METHOD_DCA_MEM_REG = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_METHOD_DCA_MEM_DEREG,
-+	HNS_IB_METHOD_DCA_MEM_SHRINK,
-+	HNS_IB_METHOD_DCA_MEM_ATTACH,
-+	HNS_IB_METHOD_DCA_MEM_DETACH,
-+	HNS_IB_METHOD_DCA_MEM_QUERY,
-+};
-+
-+enum hns_ib_dca_mem_reg_attrs {
-+	HNS_IB_ATTR_DCA_MEM_REG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_REG_LEN,
-+	HNS_IB_ATTR_DCA_MEM_REG_ADDR,
-+	HNS_IB_ATTR_DCA_MEM_REG_KEY,
-+};
-+
-+enum hns_ib_dca_mem_dereg_attrs {
-+	HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+};
-+
-+enum hns_ib_dca_mem_shrink_attrs {
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE,
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
-+};
-+
-+#define HNS_IB_ATTACH_FLAGS_NEW_BUFFER 1U
-+
-+enum hns_ib_dca_mem_attach_attrs {
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_SQ_OFFSET,
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_SGE_OFFSET,
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_RQ_OFFSET,
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_FLAGS,
-+	HNS_IB_ATTR_DCA_MEM_ATTACH_OUT_ALLOC_PAGES,
-+};
-+
-+enum hns_ib_dca_mem_detach_attrs {
-+	HNS_IB_ATTR_DCA_MEM_DETACH_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_DETACH_SQ_INDEX,
-+};
-+
-+enum hns_ib_dca_mem_query_attrs {
-+	HNS_IB_ATTR_DCA_MEM_QUERY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_QUERY_PAGE_INDEX,
-+	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_KEY,
-+	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_OFFSET,
-+	HNS_IB_ATTR_DCA_MEM_QUERY_OUT_PAGE_COUNT,
-+};
-+
- #endif /* HNS_ABI_USER_H */
-diff --git a/kernel-headers/rdma/mlx5-abi.h b/kernel-headers/rdma/mlx5-abi.h
-index 8597e6f..86be4a9 100644
---- a/kernel-headers/rdma/mlx5-abi.h
-+++ b/kernel-headers/rdma/mlx5-abi.h
-@@ -50,6 +50,7 @@ enum {
- 	MLX5_QP_FLAG_ALLOW_SCATTER_CQE	= 1 << 8,
- 	MLX5_QP_FLAG_PACKET_BASED_CREDIT_MODE	= 1 << 9,
- 	MLX5_QP_FLAG_UAR_PAGE_INDEX = 1 << 10,
-+	MLX5_QP_FLAG_DCI_STREAM	= 1 << 11,
- };
+diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
+index 2de0e86..ff9e9a7 100644
+--- a/providers/hns/hns_roce_u_buf.c
++++ b/providers/hns/hns_roce_u_buf.c
+@@ -101,6 +101,20 @@ static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
+ 	return (uintptr_t)dca_mem;
+ }
  
- enum {
-@@ -238,6 +239,11 @@ struct mlx5_ib_striding_rq_caps {
- 	__u32 reserved;
- };
++static struct hns_roce_dca_mem *key_to_dca_mem(struct hns_roce_dca_ctx *ctx,
++					       uint64_t key)
++{
++	struct hns_roce_dca_mem *mem;
++	struct hns_roce_dca_mem *tmp;
++
++	list_for_each_safe(&ctx->mem_list, mem, tmp, entry) {
++		if (dca_mem_to_key(mem) == key)
++			return mem;
++	}
++
++	return NULL;
++}
++
+ static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
+ {
+ 	return dca_mem->buf.buf + offset;
+@@ -147,6 +161,25 @@ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
+ 		deregister_dca_mem(ctx, mem->handle);
+ }
  
-+struct mlx5_ib_dci_streams_caps {
-+	__u8 max_log_num_concurent;
-+	__u8 max_log_num_errored;
++struct hns_dca_mem_shrink_resp {
++	uint32_t free_mems;
++	uint64_t free_key;
 +};
 +
- enum mlx5_ib_query_dev_resp_flags {
- 	/* Support 128B CQE compression */
- 	MLX5_IB_QUERY_DEV_RESP_FLAGS_CQE_128B_COMP = 1 << 0,
-@@ -266,7 +272,8 @@ struct mlx5_ib_query_device_resp {
- 	struct mlx5_ib_sw_parsing_caps sw_parsing_caps;
- 	struct mlx5_ib_striding_rq_caps striding_rq_caps;
- 	__u32	tunnel_offloads_caps; /* enum mlx5_ib_tunnel_offloads */
--	__u32	reserved;
-+	struct  mlx5_ib_dci_streams_caps dci_streams_caps;
-+	__u16 reserved;
- };
- 
- enum mlx5_ib_create_cq_flags {
-@@ -313,6 +320,11 @@ struct mlx5_ib_create_srq_resp {
- 	__u32	reserved;
- };
- 
-+struct mlx5_ib_create_qp_dci_streams {
-+	__u8 log_num_concurent;
-+	__u8 log_num_errored;
-+};
++static int shrink_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
++			  uint64_t size, struct hns_dca_mem_shrink_resp *resp)
++{
++	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
++			       HNS_IB_METHOD_DCA_MEM_SHRINK, 4);
++	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE, handle);
++	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE, size);
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
++		      &resp->free_key, sizeof(resp->free_key));
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
++		      &resp->free_mems, sizeof(resp->free_mems));
 +
- struct mlx5_ib_create_qp {
- 	__aligned_u64 buf_addr;
- 	__aligned_u64 db_addr;
-@@ -327,7 +339,8 @@ struct mlx5_ib_create_qp {
- 		__aligned_u64 access_key;
- 	};
- 	__u32  ece_options;
--	__u32  reserved;
-+	struct  mlx5_ib_create_qp_dci_streams dci_streams;
-+	__u16 reserved;
- };
++	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
++}
+ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
+ 				uint32_t alloc_size)
+ {
+@@ -166,6 +199,17 @@ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
+ 	return enable;
+ }
  
- /* RX Hash function flags */
++static bool shrink_dca_mem_enabled(struct hns_roce_dca_ctx *ctx)
++{
++	bool enable;
++
++	pthread_spin_lock(&ctx->lock);
++	enable = ctx->mem_cnt > 0 && ctx->min_size < ctx->max_size;
++	pthread_spin_unlock(&ctx->lock);
++
++	return enable;
++}
++
+ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
+ {
+ 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
+@@ -198,3 +242,55 @@ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
+ 
+ 	return 0;
+ }
++
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	struct hns_dca_mem_shrink_resp resp = {};
++	struct hns_roce_dca_mem *mem;
++	int dca_mem_cnt;
++	uint32_t handle;
++	int ret;
++
++	pthread_spin_lock(&dca_ctx->lock);
++	dca_mem_cnt = ctx->dca_ctx.mem_cnt;
++	pthread_spin_unlock(&dca_ctx->lock);
++	while (dca_mem_cnt > 0 && shrink_dca_mem_enabled(dca_ctx)) {
++		resp.free_mems = 0;
++		/* Step 1: Use any DCA mem uobject to shrink pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = list_tail(&dca_ctx->mem_list,
++				struct hns_roce_dca_mem, entry);
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
++
++		ret = shrink_dca_mem(ctx, handle, dca_ctx->min_size, &resp);
++		if (ret || likely(resp.free_mems < 1))
++			break;
++
++		/* Step 2: Remove shrunk DCA mem node from pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = key_to_dca_mem(dca_ctx, resp.free_key);
++		if (mem) {
++			list_del(&mem->entry);
++			dca_ctx->mem_cnt--;
++			dca_ctx->curr_size -= mem->buf.length;
++		}
++
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
++
++		/* Step 3: Destroy DCA mem uobject */
++		deregister_dca_mem(ctx, handle);
++		free_dca_mem(ctx, mem);
++		/* No any free memory after deregister 1 DCA mem */
++		if (resp.free_mems <= 1)
++			break;
++
++		dca_mem_cnt--;
++	}
++}
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 2308f78..bec2a45 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -654,6 +654,10 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
+ 
+ 	pthread_spin_unlock(&cq->lock);
+ 
++	/* Try to shrink the DCA mem */
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
++
+ 	return err == V2_CQ_POLL_ERR ? err : npolled;
+ }
+ 
+@@ -1563,6 +1567,9 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
+ 
+ 	free(qp);
+ 
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
++
+ 	return ret;
+ }
+ 
 -- 
 2.8.1
 
