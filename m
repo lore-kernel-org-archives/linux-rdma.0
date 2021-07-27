@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BC47C43216
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC050C4338F
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F93261009
+	by mail.kernel.org (Postfix) with ESMTP id D708161053
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234914AbhG0CvK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234963AbhG0CvK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 26 Jul 2021 22:51:10 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:7066 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234928AbhG0CvI (ORCPT
+Received: from szxga03-in.huawei.com ([45.249.212.189]:12312 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234930AbhG0CvI (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:51:08 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GYhyF18hxzYglB;
-        Tue, 27 Jul 2021 11:25:41 +0800 (CST)
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYhzd3CQJz7yKc;
+        Tue, 27 Jul 2021 11:26:53 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2176.2; Tue, 27 Jul 2021 11:31:35 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 11:31:34 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:35 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 05/10] libhns: Use shared memory to sync DCA status
-Date:   Tue, 27 Jul 2021 11:27:55 +0800
-Message-ID: <1627356480-41805-6-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v2 rdma-core 08/10] libhns: Add man pages to introduce DCA feature
+Date:   Tue, 27 Jul 2021 11:27:58 +0800
+Message-ID: <1627356480-41805-9-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
@@ -51,272 +51,79 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-The user DCA needs to check the QP attaching state before filling wqe
-buffer by the response from uverbs 'HNS_IB_METHOD_DCA_MEM_ATTACH', but
-this will result in too much time being wasted on system calls, so use a
-shared table between user driver and kernel driver to sync DCA status.
+Document hns DCA feature and related direct verbs.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- providers/hns/hns_roce_u.c     | 135 +++++++++++++++++++++++++++++++----------
- providers/hns/hns_roce_u.h     |  11 ++++
- providers/hns/hns_roce_u_abi.h |   3 +-
- 3 files changed, 116 insertions(+), 33 deletions(-)
+ CMakeLists.txt                   | 1 +
+ debian/ibverbs-providers.install | 2 +-
+ debian/libibverbs-dev.install    | 2 ++
+ redhat/rdma-core.spec            | 2 ++
+ 4 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index a4e0997..3b13d0f 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -95,7 +95,46 @@ static const struct verbs_context_ops hns_common_ops = {
- 	.get_srq_num = hns_roce_u_get_srq_num,
- };
- 
--static int init_dca_context(struct hns_roce_context *ctx, int page_size)
-+/* command value is offset[15:8] */
-+static void hns_roce_mmap_set_command(int command, off_t *offset)
-+{
-+	*offset |= (command & 0xff) << 8;
-+}
-+
-+/* index value is offset[63:16] | offset[7:0] */
-+static void hns_roce_mmap_set_index(unsigned long index, off_t *offset)
-+{
-+	*offset |= (index & 0xff) | ((index >> 8) << 16);
-+}
-+
-+static off_t get_uar_mmap_offset(unsigned long idx, int page_size, int cmd)
-+{
-+	off_t offset = 0;
-+
-+	hns_roce_mmap_set_command(cmd, &offset);
-+	hns_roce_mmap_set_index(idx, &offset);
-+
-+	return offset * page_size;
-+}
-+
-+static int mmap_dca(struct hns_roce_dca_ctx *dca_ctx, int cmd_fd, int page_size,
-+		    size_t size)
-+{
-+	void *addr;
-+
-+	addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd,
-+		    get_uar_mmap_offset(0, page_size, HNS_ROCE_MMAP_DCA_PAGE));
-+	if (addr == MAP_FAILED)
-+		return -EINVAL;
-+
-+	dca_ctx->buf_status = addr;
-+	dca_ctx->sync_status = addr + size / 2;
-+
-+	return 0;
-+}
-+
-+static int init_dca_context(struct hns_roce_context *ctx, int cmd_fd,
-+			    int page_size, int max_qps, int mmap_size)
- {
- 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
- 	int ret;
-@@ -112,6 +151,16 @@ static int init_dca_context(struct hns_roce_context *ctx, int page_size)
- 	dca_ctx->max_size = HNS_DCA_MAX_MEM_SIZE;
- 	dca_ctx->mem_cnt = 0;
- 
-+	if (mmap_size > 0) {
-+		const unsigned int bits_per_qp = 2 * HNS_DCA_BITS_PER_STATUS;
-+
-+		if (!mmap_dca(dca_ctx, cmd_fd, page_size, mmap_size)) {
-+			dca_ctx->status_size = mmap_size;
-+			dca_ctx->max_qps = min_t(int, max_qps,
-+						 mmap_size *  8 / bits_per_qp);
-+		}
-+	}
-+
- 	return 0;
- }
- 
-@@ -126,19 +175,60 @@ static void uninit_dca_context(struct hns_roce_context *ctx)
- 	hns_roce_cleanup_dca_mem(ctx);
- 	pthread_spin_unlock(&dca_ctx->lock);
- 
-+	if (dca_ctx->buf_status)
-+		munmap(dca_ctx->buf_status, dca_ctx->status_size);
-+
- 	pthread_spin_destroy(&dca_ctx->lock);
- }
- 
-+static int hns_roce_mmap(struct hns_roce_device *hr_dev,
-+			 struct hns_roce_context *context, int cmd_fd)
-+{
-+	int page_size = hr_dev->page_size;
-+	off_t offset;
-+
-+	offset = get_uar_mmap_offset(0, page_size, HNS_ROCE_MMAP_REGULAR_PAGE);
-+	context->uar = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+			    MAP_SHARED, cmd_fd, offset);
-+	if (context->uar == MAP_FAILED)
-+		return -EINVAL;
-+
-+	offset = get_uar_mmap_offset(1, page_size, HNS_ROCE_MMAP_REGULAR_PAGE);
-+	if (hr_dev->hw_version == HNS_ROCE_HW_VER1) {
-+		/*
-+		 * when vma->vm_pgoff is 1, the cq_tptr_base includes 64K CQ,
-+		 * a pointer of CQ need 2B size
-+		 */
-+		context->cq_tptr_base = mmap(NULL, HNS_ROCE_CQ_DB_BUF_SIZE,
-+					     PROT_READ | PROT_WRITE, MAP_SHARED,
-+					     cmd_fd, offset);
-+		if (context->cq_tptr_base == MAP_FAILED)
-+			goto db_free;
-+	}
-+
-+	return 0;
-+
-+db_free:
-+	munmap(context->uar, hr_dev->page_size);
-+
-+	return -EINVAL;
-+}
-+
-+static void ucontext_set_cmd(struct hns_roce_alloc_ucontext *cmd, int page_size)
-+{
-+	cmd->comp = HNS_ROCE_ALLOC_UCTX_COMP_DCA_MAX_QPS;
-+	cmd->dca_max_qps = page_size * 8 / 2 * HNS_DCA_BITS_PER_STATUS;
-+}
-+
- static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 						    int cmd_fd,
- 						    void *private_data)
- {
- 	struct hns_roce_device *hr_dev = to_hr_dev(ibdev);
- 	struct hns_roce_alloc_ucontext_resp resp = {};
-+	struct hns_roce_alloc_ucontext cmd = {};
- 	struct ibv_device_attr dev_attrs;
- 	struct hns_roce_context *context;
--	struct ibv_get_context cmd;
--	int offset = 0;
- 	int i;
- 
- 	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
-@@ -146,7 +236,8 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 	if (!context)
- 		return NULL;
- 
--	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd, sizeof(cmd),
-+	ucontext_set_cmd(&cmd, hr_dev->page_size);
-+	if (ibv_cmd_get_context(&context->ibv_ctx, &cmd.ibv_cmd, sizeof(cmd),
- 				&resp.ibv_resp, sizeof(resp)))
- 		goto err_free;
- 
-@@ -190,42 +281,22 @@ static struct verbs_context *hns_roce_alloc_context(struct ibv_device *ibdev,
- 	context->max_srq_wr = dev_attrs.max_srq_wr;
- 	context->max_srq_sge = dev_attrs.max_srq_sge;
- 
--	context->uar = mmap(NULL, hr_dev->page_size, PROT_READ | PROT_WRITE,
--			    MAP_SHARED, cmd_fd, offset);
--	if (context->uar == MAP_FAILED)
--		goto err_free;
--
--	offset += hr_dev->page_size;
--
--	if (hr_dev->hw_version == HNS_ROCE_HW_VER1) {
--		/*
--		 * when vma->vm_pgoff is 1, the cq_tptr_base includes 64K CQ,
--		 * a pointer of CQ need 2B size
--		 */
--		context->cq_tptr_base = mmap(NULL, HNS_ROCE_CQ_DB_BUF_SIZE,
--					     PROT_READ | PROT_WRITE, MAP_SHARED,
--					     cmd_fd, offset);
--		if (context->cq_tptr_base == MAP_FAILED)
--			goto db_free;
--	}
--
- 	pthread_spin_init(&context->uar_lock, PTHREAD_PROCESS_PRIVATE);
- 
- 	verbs_set_ops(&context->ibv_ctx, &hns_common_ops);
- 	verbs_set_ops(&context->ibv_ctx, &hr_dev->u_hw->hw_ops);
- 
--	if (init_dca_context(context, hr_dev->page_size))
--		goto tptr_free;
-+	if (init_dca_context(context, cmd_fd, hr_dev->page_size, resp.dca_qps,
-+			     resp.dca_mmap_size))
-+		goto err_free;
- 
--	return &context->ibv_ctx;
-+	if (hns_roce_mmap(hr_dev, context, cmd_fd))
-+		goto dca_free;
- 
--tptr_free:
--	if (hr_dev->hw_version == HNS_ROCE_HW_VER1)
--		munmap(context->cq_tptr_base, HNS_ROCE_CQ_DB_BUF_SIZE);
-+	return &context->ibv_ctx;
- 
--db_free:
--	munmap(context->uar, hr_dev->page_size);
--	context->uar = NULL;
-+dca_free:
-+	uninit_dca_context(context);
- 
- err_free:
- 	verbs_uninit_context(&context->ibv_ctx);
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index 08e60b7..95e8046 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -35,6 +35,7 @@
- 
- #include <stddef.h>
- #include <endian.h>
-+#include <stdatomic.h>
- #include <util/compiler.h>
- 
- #include <infiniband/driver.h>
-@@ -44,6 +45,8 @@
- #include <ccan/array_size.h>
- #include <ccan/bitmap.h>
- #include <ccan/container_of.h>
-+#include <ccan/minmax.h>
-+
- #include <linux/if_ether.h>
- #include "hns_roce_u_abi.h"
- 
-@@ -54,6 +57,8 @@
- 
- #define PFX				"hns: "
- 
-+typedef _Atomic(uint64_t) atomic_bitmap_t;
-+
- /* The minimum page size is 4K for hardware */
- #define HNS_HW_PAGE_SHIFT 12
- #define HNS_HW_PAGE_SIZE (1 << HNS_HW_PAGE_SHIFT)
-@@ -157,6 +162,12 @@ struct hns_roce_dca_ctx {
- 	uint64_t max_size;
- 	uint64_t min_size;
- 	uint64_t curr_size;
-+
-+#define HNS_DCA_BITS_PER_STATUS 1
-+	unsigned int max_qps;
-+	unsigned int status_size;
-+	atomic_bitmap_t *buf_status;
-+	atomic_bitmap_t *sync_status;
- };
- 
- struct hns_roce_context {
-diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
-index e56f9d3..23509c1 100644
---- a/providers/hns/hns_roce_u_abi.h
-+++ b/providers/hns/hns_roce_u_abi.h
-@@ -39,10 +39,11 @@
- 
- DECLARE_DRV_CMD(hns_roce_alloc_pd, IB_USER_VERBS_CMD_ALLOC_PD,
- 		empty, hns_roce_ib_alloc_pd_resp);
-+
- DECLARE_DRV_CMD(hns_roce_create_cq, IB_USER_VERBS_CMD_CREATE_CQ,
- 		hns_roce_ib_create_cq, hns_roce_ib_create_cq_resp);
- DECLARE_DRV_CMD(hns_roce_alloc_ucontext, IB_USER_VERBS_CMD_GET_CONTEXT,
--		empty, hns_roce_ib_alloc_ucontext_resp);
-+		hns_roce_ib_alloc_ucontext, hns_roce_ib_alloc_ucontext_resp);
- 
- DECLARE_DRV_CMD(hns_roce_create_qp, IB_USER_VERBS_CMD_CREATE_QP,
- 		hns_roce_ib_create_qp, hns_roce_ib_create_qp_resp);
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 743a109..da4b435 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -669,6 +669,7 @@ add_subdirectory(providers/cxgb4) # NO SPARSE
+ add_subdirectory(providers/efa)
+ add_subdirectory(providers/efa/man)
+ add_subdirectory(providers/hns)
++add_subdirectory(providers/hns/man)
+ add_subdirectory(providers/irdma)
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx4/man)
+diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
+index c6ecbbc..c4c4c11 100644
+--- a/debian/ibverbs-providers.install
++++ b/debian/ibverbs-providers.install
+@@ -1,6 +1,6 @@
+ etc/libibverbs.d/
+ usr/lib/*/libefa.so.*
+-usr/lib/*/libibverbs/lib*-rdmav*.so
+ usr/lib/*/libhns.so.*
++usr/lib/*/libibverbs/lib*-rdmav*.so
+ usr/lib/*/libmlx4.so.*
+ usr/lib/*/libmlx5.so.*
+diff --git a/debian/libibverbs-dev.install b/debian/libibverbs-dev.install
+index 7d6e6a2..2c2feaf 100644
+--- a/debian/libibverbs-dev.install
++++ b/debian/libibverbs-dev.install
+@@ -29,11 +29,13 @@ usr/lib/*/pkgconfig/libibverbs.pc
+ usr/lib/*/pkgconfig/libmlx4.pc
+ usr/lib/*/pkgconfig/libmlx5.pc
+ usr/share/man/man3/efadv_*.3
++usr/share/man/man3/hns*.3
+ usr/share/man/man3/ibv_*
+ usr/share/man/man3/mbps_to_ibv_rate.3
+ usr/share/man/man3/mlx4dv_*.3
+ usr/share/man/man3/mlx5dv_*.3
+ usr/share/man/man3/mult_to_ibv_rate.3
+ usr/share/man/man7/efadv.7
++usr/share/man/man7/hns*.7
+ usr/share/man/man7/mlx4dv.7
+ usr/share/man/man7/mlx5dv.7
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 0d99e1c..9a24552 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -440,6 +440,7 @@ fi
+ %{_libdir}/lib*.so
+ %{_libdir}/pkgconfig/*.pc
+ %{_mandir}/man3/efadv*
++%{_mandir}/man3/hns*
+ %{_mandir}/man3/ibv_*
+ %{_mandir}/man3/rdma*
+ %{_mandir}/man3/umad*
+@@ -448,6 +449,7 @@ fi
+ %{_mandir}/man3/mlx5dv*
+ %{_mandir}/man3/mlx4dv*
+ %{_mandir}/man7/efadv*
++%{_mandir}/man7/hns*
+ %{_mandir}/man7/mlx5dv*
+ %{_mandir}/man7/mlx4dv*
+ %{_mandir}/man3/ibnd_*
 -- 
 2.8.1
 
