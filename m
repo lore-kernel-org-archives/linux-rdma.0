@@ -2,44 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E21D7C43214
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC196C4320E
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF99E61009
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF65760F11
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234866AbhG0Cu4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Jul 2021 22:50:56 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:12310 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234856AbhG0Cuz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:50:55 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYhzN0Txqz7yY3;
-        Tue, 27 Jul 2021 11:26:40 +0800 (CST)
+        id S234833AbhG0Cuz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Jul 2021 22:50:55 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:7438 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234823AbhG0Cuy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:50:54 -0400
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GYj0S3P8vz8084;
+        Tue, 27 Jul 2021 11:27:36 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 11:31:08 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:17 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 11:31:08 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:06 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>, Xi Wang <wangxi11@huawei.com>
-Subject: [PATCH v3 for-next 11/12] RDMA/nldev: Add detailed CTX information support
-Date:   Tue, 27 Jul 2021 11:27:31 +0800
-Message-ID: <1627356452-30564-12-git-send-email-liangwenpeng@huawei.com>
+        <liangwenpeng@huawei.com>
+Subject: [PATCH v3 for-next 00/12] RDMA/hns: Add support for Dynamic Context Attachment
+Date:   Tue, 27 Jul 2021 11:27:20 +0800
+Message-ID: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
-References: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -50,69 +47,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xi Wang <wangxi11@huawei.com>
+The HIP09 introduces the DCA(Dynamic Context Attachment) feature which
+supports many RC QPs to share the WQE buffer in a memory pool. If a QP
+enables DCA feature, the WQE's buffer will not be allocated when creating
+but when the users start to post WRs. This will reduce the memory
+consumption when there are too many QPs are inactive.
 
-Implement the RDMA nldev netlink interface for dumping detailed CTX
-information.
+Changes since v2:
+* Refactor flow of modify_qp and then add a shared memory mechanism to
+  synchronize status of DCA, which can save more memory than previous
+  scheme.
+* Remove some inline functions from #1.
+* Add support for dumping DCA mem status in restrack.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1620732161-27180-1-git-send-email-liweihang@huawei.com/
 
-Signed-off-by: Xi Wang <wangxi11@huawei.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/core/device.c | 1 +
- drivers/infiniband/core/nldev.c  | 8 +++++++-
- include/rdma/ib_verbs.h          | 1 +
- 3 files changed, 9 insertions(+), 1 deletion(-)
+Changes since v1:
+* Modify return type of hns_roce_enable_dca() to void.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1620650889-61650-1-git-send-email-liweihang@huawei.com/
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 9056f48..195986f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2641,6 +2641,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, drain_rq);
- 	SET_DEVICE_OP(dev_ops, drain_sq);
- 	SET_DEVICE_OP(dev_ops, enable_driver);
-+	SET_DEVICE_OP(dev_ops, fill_res_ctx_entry);
- 	SET_DEVICE_OP(dev_ops, fill_res_cm_id_entry);
- 	SET_DEVICE_OP(dev_ops, fill_res_cq_entry);
- 	SET_DEVICE_OP(dev_ops, fill_res_cq_entry_raw);
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index e9b4b2c..e8c99b7 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -716,6 +716,7 @@ static int fill_res_ctx_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 			      struct rdma_restrack_entry *res, uint32_t port)
- {
- 	struct ib_ucontext *ctx = container_of(res, struct ib_ucontext, res);
-+	struct ib_device *dev = ctx->device;
- 
- 	if (rdma_is_kernel_res(res))
- 		return 0;
-@@ -723,7 +724,12 @@ static int fill_res_ctx_entry(struct sk_buff *msg, bool has_cap_net_admin,
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_RES_CTXN, ctx->res.id))
- 		return -EMSGSIZE;
- 
--	return fill_res_name_pid(msg, res);
-+	if (fill_res_name_pid(msg, res))
-+		return -EMSGSIZE;
-+
-+	return (dev->ops.fill_res_ctx_entry) ?
-+		       dev->ops.fill_res_ctx_entry(msg, ctx) :
-+		       0;
- }
- 
- static int fill_res_range_qp_entry(struct sk_buff *msg, uint32_t min_range,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 371df1c..b0277c5 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2568,6 +2568,7 @@ struct ib_device_ops {
- 	/**
- 	 * Allows rdma drivers to add their own restrack attributes.
- 	 */
-+	int (*fill_res_ctx_entry)(struct sk_buff *msg, struct ib_ucontext *ctx);
- 	int (*fill_res_mr_entry)(struct sk_buff *msg, struct ib_mr *ibmr);
- 	int (*fill_res_mr_entry_raw)(struct sk_buff *msg, struct ib_mr *ibmr);
- 	int (*fill_res_cq_entry)(struct sk_buff *msg, struct ib_cq *ibcq);
--- 
+Two RFC versions of this series has been sent before, and it's associated
+with the userspace one "libhns: Add support for Dynamic Context
+Attachment".
+
+Changes since RFC v2:
+* Just fix a typo in commit message of #6.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1611394994-50363-1-git-send-email-liweihang@huawei.com/
+
+Changes since RFC v1:
+* Replace all GFP_ATOMIC with GFP_NOWAIT, because the former may use
+  emergency pool if no regular memory can be found.
+* Change size of cap_flags of alloc_ucontext_resp from 32 to 64 to avoid
+  a potential problem when pass it back to the userspace.
+* Move definition of HNS_ROCE_CAP_FLAG_DCA_MODE to hns-abi.h.
+* Rename free_mem_states() to free_dca_states() in #1.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1610706138-4219-1-git-send-email-liweihang@huawei.com/
+
+Xi Wang (12):
+  RDMA/hns: Introduce DCA for RC QP
+  RDMA/hns: Add method for shrinking DCA memory pool
+  RDMA/hns: Configure DCA mode for the userspace QP
+  RDMA/hns: Refactor QP modify flow
+  RDMA/hns: Add method for attaching WQE buffer
+  RDMA/hns: Setup the configuration of WQE addressing to QPC
+  RDMA/hns: Add method to detach WQE buffer
+  RDMA/hns: Add method to query WQE buffer's address
+  RDMA/hns: Add a shared memory to sync DCA status
+  RDMA/hns: Sync DCA status by the shared memory
+  RDMA/nldev: Add detailed CTX information support
+  RDMA/hns: Dump detailed driver-specific UCTX
+
+ drivers/infiniband/core/device.c              |    1 +
+ drivers/infiniband/core/nldev.c               |    8 +-
+ drivers/infiniband/hw/hns/Makefile            |    2 +-
+ drivers/infiniband/hw/hns/hns_roce_dca.c      | 1438 +++++++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_dca.h      |   73 ++
+ drivers/infiniband/hw/hns/hns_roce_device.h   |   47 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c    |   12 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  173 ++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h    |    1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c     |  128 ++-
+ drivers/infiniband/hw/hns/hns_roce_qp.c       |  169 ++-
+ drivers/infiniband/hw/hns/hns_roce_restrack.c |   85 ++
+ include/rdma/ib_verbs.h                       |    1 +
+ include/uapi/rdma/hns-abi.h                   |   86 ++
+ 14 files changed, 2148 insertions(+), 76 deletions(-)
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_dca.h
+
+--
 2.8.1
 
