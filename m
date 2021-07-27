@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1993C19F31
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D35FC19F33
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A77B6611CE
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63D0561009
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235786AbhG0HcC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 27 Jul 2021 03:32:02 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:12317 "EHLO
+        id S235810AbhG0HcD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 27 Jul 2021 03:32:03 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:12319 "EHLO
         szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235740AbhG0HcB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Jul 2021 03:32:01 -0400
+        with ESMTP id S235746AbhG0HcC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Jul 2021 03:32:02 -0400
 Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYpK15Zj0z7yf6;
-        Tue, 27 Jul 2021 15:27:17 +0800 (CST)
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYpK20LdHz7yfL;
+        Tue, 27 Jul 2021 15:27:18 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 15:31:56 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 15:31:57 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -33,9 +33,9 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 03/10] libhns: Add support for shrinking DCA memory pool
-Date:   Tue, 27 Jul 2021 15:28:14 +0800
-Message-ID: <1627370901-10054-4-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v2 rdma-core 08/10] libhns: Add man pages to introduce DCA feature
+Date:   Tue, 27 Jul 2021 15:28:19 +0800
+Message-ID: <1627370901-10054-9-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627370901-10054-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627370901-10054-1-git-send-email-liangwenpeng@huawei.com>
@@ -51,189 +51,385 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-The QP's WQE buffer may be detached after QP is modified or CQE is polled,
-and the state of DCA mem object may be changed as clean for no QP is using
-it. So shrink the clean DCA mem from the memory pool and destroy the DCA
-mem's buffer to reduce the memory consumption.
+Document hns DCA feature and related direct verbs.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- providers/hns/hns_roce_u.h       |  2 +
- providers/hns/hns_roce_u_buf.c   | 96 ++++++++++++++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_hw_v2.c |  7 +++
- 3 files changed, 105 insertions(+)
+ CMakeLists.txt                            |  1 +
+ debian/ibverbs-providers.install          |  2 +-
+ debian/libibverbs-dev.install             |  2 +
+ providers/hns/man/CMakeLists.txt          |  7 +++
+ providers/hns/man/hns_dca.7.md            | 35 +++++++++++++++
+ providers/hns/man/hnsdv.7.md              | 34 ++++++++++++++
+ providers/hns/man/hnsdv_create_qp.3.md    | 69 ++++++++++++++++++++++++++++
+ providers/hns/man/hnsdv_is_supported.3.md | 39 ++++++++++++++++
+ providers/hns/man/hnsdv_open_device.3.md  | 74 +++++++++++++++++++++++++++++++
+ redhat/rdma-core.spec                     |  2 +
+ 10 files changed, 264 insertions(+), 1 deletion(-)
+ create mode 100644 providers/hns/man/CMakeLists.txt
+ create mode 100644 providers/hns/man/hns_dca.7.md
+ create mode 100644 providers/hns/man/hnsdv.7.md
+ create mode 100644 providers/hns/man/hnsdv_create_qp.3.md
+ create mode 100644 providers/hns/man/hnsdv_is_supported.3.md
+ create mode 100644 providers/hns/man/hnsdv_open_device.3.md
 
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index dc56b16..bddd3dd 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -155,6 +155,7 @@ struct hns_roce_dca_ctx {
- 	int mem_cnt;
- 	unsigned int unit_size;
- 	uint64_t max_size;
-+	uint64_t min_size;
- 	uint64_t curr_size;
- };
- 
-@@ -439,6 +440,7 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
- 
- void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
- 
-+void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
- void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
- int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
- 
-diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
-index 2de0e86..ff9e9a7 100644
---- a/providers/hns/hns_roce_u_buf.c
-+++ b/providers/hns/hns_roce_u_buf.c
-@@ -101,6 +101,20 @@ static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
- 	return (uintptr_t)dca_mem;
- }
- 
-+static struct hns_roce_dca_mem *key_to_dca_mem(struct hns_roce_dca_ctx *ctx,
-+					       uint64_t key)
-+{
-+	struct hns_roce_dca_mem *mem;
-+	struct hns_roce_dca_mem *tmp;
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 743a109..da4b435 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -669,6 +669,7 @@ add_subdirectory(providers/cxgb4) # NO SPARSE
+ add_subdirectory(providers/efa)
+ add_subdirectory(providers/efa/man)
+ add_subdirectory(providers/hns)
++add_subdirectory(providers/hns/man)
+ add_subdirectory(providers/irdma)
+ add_subdirectory(providers/mlx4)
+ add_subdirectory(providers/mlx4/man)
+diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
+index c6ecbbc..c4c4c11 100644
+--- a/debian/ibverbs-providers.install
++++ b/debian/ibverbs-providers.install
+@@ -1,6 +1,6 @@
+ etc/libibverbs.d/
+ usr/lib/*/libefa.so.*
+-usr/lib/*/libibverbs/lib*-rdmav*.so
+ usr/lib/*/libhns.so.*
++usr/lib/*/libibverbs/lib*-rdmav*.so
+ usr/lib/*/libmlx4.so.*
+ usr/lib/*/libmlx5.so.*
+diff --git a/debian/libibverbs-dev.install b/debian/libibverbs-dev.install
+index 7d6e6a2..2c2feaf 100644
+--- a/debian/libibverbs-dev.install
++++ b/debian/libibverbs-dev.install
+@@ -29,11 +29,13 @@ usr/lib/*/pkgconfig/libibverbs.pc
+ usr/lib/*/pkgconfig/libmlx4.pc
+ usr/lib/*/pkgconfig/libmlx5.pc
+ usr/share/man/man3/efadv_*.3
++usr/share/man/man3/hns*.3
+ usr/share/man/man3/ibv_*
+ usr/share/man/man3/mbps_to_ibv_rate.3
+ usr/share/man/man3/mlx4dv_*.3
+ usr/share/man/man3/mlx5dv_*.3
+ usr/share/man/man3/mult_to_ibv_rate.3
+ usr/share/man/man7/efadv.7
++usr/share/man/man7/hns*.7
+ usr/share/man/man7/mlx4dv.7
+ usr/share/man/man7/mlx5dv.7
+diff --git a/providers/hns/man/CMakeLists.txt b/providers/hns/man/CMakeLists.txt
+new file mode 100644
+index 0000000..b375a65
+--- /dev/null
++++ b/providers/hns/man/CMakeLists.txt
+@@ -0,0 +1,7 @@
++rdma_man_pages(
++  hnsdv_is_supported.3.md
++  hnsdv_open_device.3.md
++  hnsdv_create_qp.3.md
++  hnsdv.7
++  hns_dca.7
++)
+diff --git a/providers/hns/man/hns_dca.7.md b/providers/hns/man/hns_dca.7.md
+new file mode 100644
+index 0000000..2cdd90a
+--- /dev/null
++++ b/providers/hns/man/hns_dca.7.md
+@@ -0,0 +1,35 @@
++---
++layout: page
++title: DCA
++section: 7
++tagline: DCA
++date: 2021-07-13
++header: "HNS DCA Manual"
++footer: hns
++---
 +
-+	list_for_each_safe(&ctx->mem_list, mem, tmp, entry) {
-+		if (dca_mem_to_key(mem) == key)
-+			return mem;
-+	}
++# NAME
 +
-+	return NULL;
-+}
++DCA - Dynamic Context Attachment
 +
- static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
- {
- 	return dca_mem->buf.buf + offset;
-@@ -147,6 +161,25 @@ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
- 		deregister_dca_mem(ctx, mem->handle);
- }
- 
-+struct hns_dca_mem_shrink_resp {
-+	uint32_t free_mems;
-+	uint64_t free_key;
++This allows all WQEs to share a memory pool that belongs to the user context.
++
++# DESCRIPTION
++
++The DCA feature aims to reduce memory consumption by sharing WQE memory for QPs working in sparse traffic scenarios.
++
++The DCA memory pool consists of multiple umem objects. Each umem object is a buffer allocated in user driver and register into kernel driver. The ULP need to setup the memory pool's parameter by calling hnsdv_open_device() and the driver will expand or shrink the memory pool based on this parameter.
++
++When a QP's DCA was enabled by setting create flags through ibv_create_qp_ex(), the WQE buffer will not be allocated directly until the ULP invokes the ibv_post_xxx(). If the memory in the pool is insufficient and the capacity expansion conditions are met, the driver will add new umem objects to the pool.
++
++When all WQEs of a QP are not used by the ROCEE after ibv_poll_cq() or ibv_modify_qp() are invoked, the WQE buffer will be reclaimed to the DCA memory pool. If the free memory in the pool meets the shrink conditions, the driver will delete the unused umem object.
++
++# SEE ALSO
++
++*hnsdv_open_device(3)*, *hnsdv_create_qp(3)*
++
++# AUTHORS
++
++Xi Wang <wangxi11@huawei.com>
++
++Weihang Li <liweihang@huawei.com>
+diff --git a/providers/hns/man/hnsdv.7.md b/providers/hns/man/hnsdv.7.md
+new file mode 100644
+index 0000000..dd47379
+--- /dev/null
++++ b/providers/hns/man/hnsdv.7.md
+@@ -0,0 +1,34 @@
++---
++layout: page
++title: HNSDV
++section: 7
++tagline: Verbs
++date: 2021-07-13
++header: "HNS Direct Verbs Manual"
++footer: hns
++---
++
++# NAME
++
++hnsdv - Direct verbs for hns devices
++
++This provides low level access to hns devices to perform direct operations,
++without general branching performed by libibverbs.
++
++# DESCRIPTION
++
++The libibverbs API is an abstract one. It is agnostic to any underlying provider specific implementation. While this abstraction has the advantage of user applications portability, it has a performance penalty. For some applications optimizing performance is more important than portability.
++
++The hns direct verbs API is intended for such applications. It exposes hns specific low level operations, allowing the application to bypass the libibverbs API.
++
++The direct include of hnsdv.h together with linkage to hns library will allow usage of this new interface.
++
++# SEE ALSO
++
++**verbs**(7)
++
++# AUTHORS
++
++Xi Wang <wangxi11@huawei.com>
++
++Weihang Li <liweihang@huawei.com>
+diff --git a/providers/hns/man/hnsdv_create_qp.3.md b/providers/hns/man/hnsdv_create_qp.3.md
+new file mode 100644
+index 0000000..27d6db1
+--- /dev/null
++++ b/providers/hns/man/hnsdv_create_qp.3.md
+@@ -0,0 +1,69 @@
++---
++layout: page
++title: hnsdv_create_qp
++section: 3
++tagline: Verbs
++date: 2021-07-13
++header: "hns Programmer's Manual"
++footer: hns
++---
++
++# NAME
++
++hnsdv_create_qp - creates a queue pair (QP)
++
++# SYNOPSIS
++
++```c
++#include <infiniband/hnsdv.h>
++
++struct ibv_qp *hnsdv_create_qp(struct ibv_context *context,
++			       struct ibv_qp_init_attr_ex *attr,
++			       struct hnsdv_qp_init_attr *hns_attr)
++```
++
++
++# DESCRIPTION
++
++**hnsdv_create_qp()** creates a queue pair (QP) with specific driver properties.
++
++# ARGUMENTS
++
++Please see *ibv_create_qp_ex(3)* man page for *context* and *attr*.
++
++## hns_attr
++
++```c
++struct hnsdv_qp_init_attr {
++	uint64_t comp_mask;
++	uint32_t create_flags;
 +};
++```
 +
-+static int shrink_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
-+			  uint64_t size, struct hns_dca_mem_shrink_resp *resp)
-+{
-+	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
-+			       HNS_IB_METHOD_DCA_MEM_SHRINK, 4);
-+	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE, handle);
-+	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE, size);
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
-+		      &resp->free_key, sizeof(resp->free_key));
-+	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
-+		      &resp->free_mems, sizeof(resp->free_mems));
++*comp_mask*
++:	Bitmask specifying what fields in the structure are valid:
++	HNSDV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS:
++		valid values in *create_flags*
 +
-+	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
-+}
- static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
- 				uint32_t alloc_size)
- {
-@@ -166,6 +199,17 @@ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
- 	return enable;
- }
- 
-+static bool shrink_dca_mem_enabled(struct hns_roce_dca_ctx *ctx)
-+{
-+	bool enable;
++*create_flags*
++:	A bitwise OR of the various values described below.
 +
-+	pthread_spin_lock(&ctx->lock);
-+	enable = ctx->mem_cnt > 0 && ctx->min_size < ctx->max_size;
-+	pthread_spin_unlock(&ctx->lock);
++	HNSDV_QP_CREATE_DYNAMIC_CONTEXT_ATTACH :
++		Enable DCA feature for QP, the WQE buffer will allocate
++		from DCA memory pool when calling ibv_post_send() or
++		ibv_post_recv().
 +
-+	return enable;
-+}
++# RETURN VALUE
 +
- int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
- {
- 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-@@ -198,3 +242,55 @@ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
- 
- 	return 0;
- }
++**hnsdv_create_qp()**
++returns a pointer to the created QP, on error NULL will be returned and errno will be set.
 +
-+void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx)
-+{
-+	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
-+	struct hns_dca_mem_shrink_resp resp = {};
-+	struct hns_roce_dca_mem *mem;
-+	int dca_mem_cnt;
-+	uint32_t handle;
-+	int ret;
++# SEE ALSO
 +
-+	pthread_spin_lock(&dca_ctx->lock);
-+	dca_mem_cnt = ctx->dca_ctx.mem_cnt;
-+	pthread_spin_unlock(&dca_ctx->lock);
-+	while (dca_mem_cnt > 0 && shrink_dca_mem_enabled(dca_ctx)) {
-+		resp.free_mems = 0;
-+		/* Step 1: Use any DCA mem uobject to shrink pool */
-+		pthread_spin_lock(&dca_ctx->lock);
-+		mem = list_tail(&dca_ctx->mem_list,
-+				struct hns_roce_dca_mem, entry);
-+		handle = mem ? mem->handle : 0;
-+		pthread_spin_unlock(&dca_ctx->lock);
-+		if (!mem)
-+			break;
++**ibv_create_qp_ex**(3),
 +
-+		ret = shrink_dca_mem(ctx, handle, dca_ctx->min_size, &resp);
-+		if (ret || likely(resp.free_mems < 1))
-+			break;
++# AUTHOR
 +
-+		/* Step 2: Remove shrunk DCA mem node from pool */
-+		pthread_spin_lock(&dca_ctx->lock);
-+		mem = key_to_dca_mem(dca_ctx, resp.free_key);
-+		if (mem) {
-+			list_del(&mem->entry);
-+			dca_ctx->mem_cnt--;
-+			dca_ctx->curr_size -= mem->buf.length;
-+		}
++Xi Wang <wangxi11@huawei.com>
 +
-+		handle = mem ? mem->handle : 0;
-+		pthread_spin_unlock(&dca_ctx->lock);
-+		if (!mem)
-+			break;
++Weihang Li <liweihang@huawei.com>
+diff --git a/providers/hns/man/hnsdv_is_supported.3.md b/providers/hns/man/hnsdv_is_supported.3.md
+new file mode 100644
+index 0000000..b5f00bd
+--- /dev/null
++++ b/providers/hns/man/hnsdv_is_supported.3.md
+@@ -0,0 +1,39 @@
++---
++layout: page
++title: hnsdv_is_supported
++section: 3
++tagline: Verbs
++---
 +
-+		/* Step 3: Destroy DCA mem uobject */
-+		deregister_dca_mem(ctx, handle);
-+		free_dca_mem(ctx, mem);
-+		/* No any free memory after deregister 1 DCA mem */
-+		if (resp.free_mems <= 1)
-+			break;
++# NAME
 +
-+		dca_mem_cnt--;
-+	}
-+}
-diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
-index 2308f78..bec2a45 100644
---- a/providers/hns/hns_roce_u_hw_v2.c
-+++ b/providers/hns/hns_roce_u_hw_v2.c
-@@ -654,6 +654,10 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
- 
- 	pthread_spin_unlock(&cq->lock);
- 
-+	/* Try to shrink the DCA mem */
-+	if (ctx->dca_ctx.mem_cnt > 0)
-+		hns_roce_shrink_dca_mem(ctx);
++hnsdv_is_supported - Check whether an RDMA device implemented by the hns provider
 +
- 	return err == V2_CQ_POLL_ERR ? err : npolled;
- }
- 
-@@ -1563,6 +1567,9 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
- 
- 	free(qp);
- 
-+	if (ctx->dca_ctx.mem_cnt > 0)
-+		hns_roce_shrink_dca_mem(ctx);
++# SYNOPSIS
 +
- 	return ret;
- }
- 
++```c
++#include <infiniband/hnsdv.h>
++
++bool hnsdv_is_supported(struct ibv_device *device);
++```
++
++# DESCRIPTION
++
++hnsdv functions may be called only if this function returns true for the RDMA device.
++
++# ARGUMENTS
++
++*device*
++:	RDMA device to check.
++
++# RETURN VALUE
++
++Returns true if device is implemented by hns provider.
++
++# SEE ALSO
++
++*hnsdv(7)*
++
++# AUTHOR
++
++Xi Wang <wangxi11@huawei.com>
+diff --git a/providers/hns/man/hnsdv_open_device.3.md b/providers/hns/man/hnsdv_open_device.3.md
+new file mode 100644
+index 0000000..c2d8262
+--- /dev/null
++++ b/providers/hns/man/hnsdv_open_device.3.md
+@@ -0,0 +1,74 @@
++---
++layout: page
++title: hnsdv_open_device
++section: 3
++tagline: Verbs
++---
++
++# NAME
++
++hnsdv_open_device - Open an RDMA device context for the hns provider
++
++# SYNOPSIS
++
++```c
++#include <infiniband/hnsdv.h>
++
++struct ibv_context *
++hnsdv_open_device(struct ibv_device *device, struct hnsdv_context_attr *attr);
++```
++
++# DESCRIPTION
++
++Open an RDMA device context with specific hns provider attributes.
++
++# ARGUMENTS
++
++*device*
++:	RDMA device to open.
++
++## *attr* argument
++
++```c
++struct hnsdv_context_attr {
++	uint64_t flags;
++	uint64_t comp_mask;
++	uint32_t dca_prime_qps;
++	uint32_t dca_unit_size;
++	uint64_t dca_max_size;
++	uint64_t dca_min_size;
++};
++```
++
++*flags*
++:       A bitwise OR of the various values described below.
++
++        *HNSDV_CONTEXT_FLAGS_DCA*:
++        Create a DCA memory pool to support all QPs share it.
++
++*comp_mask*
++:       Bitmask specifying what fields in the structure are valid
++
++*dca_prime_qps*
++:       The DCA status will sync by shared memory when DCA num is small than prime qps .
++
++*dca_unit_size*
++:       The unit size when adding a new buffer to DCA memory pool.
++
++*dca_max_size*
++:       The DCA pool will be expanded when the total size is smaller than maximal size.
++
++*dca_min_size*
++:       The DCA pool will be shrunk when the free size is bigger than minimal size.
++
++# RETURN VALUE
++
++Returns a pointer to the allocated device context, or NULL if the request fails.
++
++# SEE ALSO
++
++*hnsdv_create_qp(3)*, *hns_dca(7)*
++
++# AUTHOR
++
++Xi Wang <wangxi11@huawei.com>
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 0d99e1c..9a24552 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -440,6 +440,7 @@ fi
+ %{_libdir}/lib*.so
+ %{_libdir}/pkgconfig/*.pc
+ %{_mandir}/man3/efadv*
++%{_mandir}/man3/hns*
+ %{_mandir}/man3/ibv_*
+ %{_mandir}/man3/rdma*
+ %{_mandir}/man3/umad*
+@@ -448,6 +449,7 @@ fi
+ %{_mandir}/man3/mlx5dv*
+ %{_mandir}/man3/mlx4dv*
+ %{_mandir}/man7/efadv*
++%{_mandir}/man7/hns*
+ %{_mandir}/man7/mlx5dv*
+ %{_mandir}/man7/mlx4dv*
+ %{_mandir}/man3/ibnd_*
 -- 
 2.8.1
 
