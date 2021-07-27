@@ -2,127 +2,358 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B276C4338F
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Jul 2021 23:12:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50933C4320A
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40AD460F6E
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Jul 2021 23:12:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3378260249
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233707AbhGZWbx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Jul 2021 18:31:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37660 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233607AbhGZWbw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 18:31:52 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E37D7C061757
-        for <linux-rdma@vger.kernel.org>; Mon, 26 Jul 2021 16:12:19 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id t14so12987508oiw.0
-        for <linux-rdma@vger.kernel.org>; Mon, 26 Jul 2021 16:12:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=H9MjnPD/chnGGdYxbnuiVFdSjhRbZOHJIupfbQKJ8pc=;
-        b=X2terY+7j6WcR0vYRJtU3oghni0JN6ZvdzBSh8mAlLrWOFIjmq2cZiRCRZSynal7QO
-         uXC7TrPTbPhbNzX9OMcM7i/8nxdXNUaBfLF/f+whZ29WYuP+gpOZxaLDf+1uhdsNjeTr
-         io0p7kbhyKm8FnPHfwkcWSWVfPsmSReLLgtsEFKAovJ9SC3zVad5yz+0QOhLUPgt1vPh
-         RtrWAb4MTmMLDjxDXK7oUp3ljI1lwx1Rv7nj9/zlOTgSKL3Cf8oo06ad6RwdqydTCsFl
-         Pc/y3PpWppEI6Rzq3uFEHXwGs2F2IUz0rsHW0vQI8SYp1UA7WF8Nmr1thorFkWtU1AQm
-         NCRA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=H9MjnPD/chnGGdYxbnuiVFdSjhRbZOHJIupfbQKJ8pc=;
-        b=XeO3zrSkwLJUTY2YjFMaD/cfPKsvzH7D/iM01x/4ZL8Ilt5h0uBKLOxNO1PIqNhQkF
-         b9P6MWWNclqn10eIoaR5yxv27xPnV04x/PxpQMFd7MRqRlKCG4Dbu1WX/Gg2g6ypPpAc
-         3aK+fz5/RtFWdODZ0FjlGf8CerIPpvmWdpRR0TYDGbob/dte29mKHoLGIcuzqvnCwHtc
-         47782QC+nTy9iarYY9BiuzeF7hJaIpVJndsKPJKdQ13/GoudgE4hyS/w0sH/AwDyltiR
-         hL1DI/rh3V0FXFndcPnvpjBReIqG13mhnX1bqIp00WSjSRq5YUVqIDD8ifl99dUf817+
-         DiQg==
-X-Gm-Message-State: AOAM533UXnblhRyxxUQ9NBRk3xGK/uEkmuATWlUjyPwSaZ0cHf2L5qv0
-        JrPu50Sa0t7NcDbBrgM7/04=
-X-Google-Smtp-Source: ABdhPJy1DMZaDFm8HKFoGeM642Sx3X+o+MzyIkh1atPezbKQ4Etlz4duJLyzzNQd7AgZ3iVObYHRjA==
-X-Received: by 2002:aca:c412:: with SMTP id u18mr999775oif.10.1627341139343;
-        Mon, 26 Jul 2021 16:12:19 -0700 (PDT)
-Received: from localhost (2603-8081-140c-1a00-f80f-33e2-d912-0c74.res6.spectrum.com. [2603:8081:140c:1a00:f80f:33e2:d912:c74])
-        by smtp.gmail.com with ESMTPSA id a7sm222055ooo.9.2021.07.26.16.12.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Jul 2021 16:12:19 -0700 (PDT)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next] IB/core: Add xrc opcodes to ib_pack.h
-Date:   Mon, 26 Jul 2021 18:10:10 -0500
-Message-Id: <20210726231009.24020-1-rpearsonhpe@gmail.com>
-X-Mailer: git-send-email 2.30.2
+        id S234731AbhG0Cun (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Jul 2021 22:50:43 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:7432 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234422AbhG0Cum (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:50:42 -0400
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GYj0D5Qpmz80Cm;
+        Tue, 27 Jul 2021 11:27:24 +0800 (CST)
+Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:08 +0800
+Received: from localhost.localdomain (10.67.165.24) by
+ dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:07 +0800
+From:   Wenpeng Liang <liangwenpeng@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <liangwenpeng@huawei.com>, Xi Wang <wangxi11@huawei.com>
+Subject: [PATCH v3 for-next 09/12] RDMA/hns: Add a shared memory to sync DCA status
+Date:   Tue, 27 Jul 2021 11:27:29 +0800
+Message-ID: <1627356452-30564-10-git-send-email-liangwenpeng@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
+References: <1627356452-30564-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpeml500017.china.huawei.com (7.185.36.243)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-ib_pack.h defines enums for all the RDMA opcodes except for the XRC
-opcodes. This patch adds those opcodes.
+From: Xi Wang <wangxi11@huawei.com>
 
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+The user DCA needs to check the QP attaching state before filling wqe
+buffer by the resp from uverbs 'HNS_IB_METHOD_DCA_MEM_ATTACH', but this
+will result in too much time being wasted on system calls, so add a shared
+table between user driver and kernel driver to sync DCA status.
+
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- include/rdma/ib_pack.h | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_dca.c    |  40 ++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_dca.h    |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |   7 ++
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 104 +++++++++++++++++++++++++---
+ include/uapi/rdma/hns-abi.h                 |  16 +++++
+ 5 files changed, 157 insertions(+), 12 deletions(-)
 
-diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index a9162f25beaf..afbf78a6669e 100644
---- a/include/rdma/ib_pack.h
-+++ b/include/rdma/ib_pack.h
-@@ -56,6 +56,7 @@ enum {
- 	IB_OPCODE_UD                                = 0x60,
- 	/* per IBTA 1.3 vol 1 Table 38, A10.3.2 */
- 	IB_OPCODE_CNP                               = 0x80,
-+	IB_OPCODE_XRC                               = 0xa0,
- 	/* Manufacturer specific */
- 	IB_OPCODE_MSP                               = 0xe0,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.c b/drivers/infiniband/hw/hns/hns_roce_dca.c
+index 8f0e910..2e7952c 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.c
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.c
+@@ -414,16 +414,50 @@ static void cleanup_dca_context(struct hns_roce_dev *hr_dev,
+ 	spin_unlock_irqrestore(&ctx->pool_lock, flags);
+ }
  
-@@ -152,7 +153,32 @@ enum {
- 
- 	/* UD */
- 	IB_OPCODE(UD, SEND_ONLY),
--	IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
-+	IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE),
+-void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
++static void init_udca_status(struct hns_roce_dca_ctx *ctx, int udca_max_qps,
++			     unsigned int dev_max_qps)
++{
++	const unsigned int bits_per_qp = 2 * HNS_DCA_BITS_PER_STATUS;
++	void *kaddr;
++	size_t size;
 +
-+	/* XRC */
-+	IB_OPCODE(XRC, SEND_FIRST),
-+	IB_OPCODE(XRC, SEND_MIDDLE),
-+	IB_OPCODE(XRC, SEND_LAST),
-+	IB_OPCODE(XRC, SEND_LAST_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, SEND_ONLY),
-+	IB_OPCODE(XRC, SEND_ONLY_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_WRITE_FIRST),
-+	IB_OPCODE(XRC, RDMA_WRITE_MIDDLE),
-+	IB_OPCODE(XRC, RDMA_WRITE_LAST),
-+	IB_OPCODE(XRC, RDMA_WRITE_LAST_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_WRITE_ONLY),
-+	IB_OPCODE(XRC, RDMA_WRITE_ONLY_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_READ_REQUEST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_FIRST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_MIDDLE),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_LAST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_ONLY),
-+	IB_OPCODE(XRC, ACKNOWLEDGE),
-+	IB_OPCODE(XRC, ATOMIC_ACKNOWLEDGE),
-+	IB_OPCODE(XRC, COMPARE_SWAP),
-+	IB_OPCODE(XRC, FETCH_ADD),
-+	IB_OPCODE(XRC, SEND_LAST_WITH_INVALIDATE),
-+	IB_OPCODE(XRC, SEND_ONLY_WITH_INVALIDATE)
++	size = BITS_TO_BYTES(udca_max_qps * bits_per_qp);
++	ctx->status_npage = DIV_ROUND_UP(size, PAGE_SIZE);
++
++	size = ctx->status_npage * PAGE_SIZE;
++	ctx->max_qps = min_t(unsigned int, dev_max_qps,
++			     size * BITS_PER_BYTE / bits_per_qp);
++
++	kaddr = alloc_pages_exact(size, GFP_KERNEL | __GFP_ZERO);
++	if (!kaddr)
++		return;
++
++	ctx->buf_status = (unsigned long *)kaddr;
++	ctx->sync_status = (unsigned long *)(kaddr + size / 2);
++}
++
++void hns_roce_register_udca(struct hns_roce_dev *hr_dev, int max_qps,
+ 			    struct hns_roce_ucontext *uctx)
+ {
+-	init_dca_context(&uctx->dca_ctx);
++	struct hns_roce_dca_ctx *ctx = to_hr_dca_ctx(uctx);
++
++	init_dca_context(ctx);
++	if (max_qps > 0)
++		init_udca_status(ctx, max_qps, hr_dev->caps.num_qps);
+ }
+ 
+ void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
+ 			      struct hns_roce_ucontext *uctx)
+ {
+-	cleanup_dca_context(hr_dev, &uctx->dca_ctx);
++	struct hns_roce_dca_ctx *ctx = to_hr_dca_ctx(uctx);
++
++	cleanup_dca_context(hr_dev, ctx);
++
++	if (ctx->buf_status) {
++		free_pages_exact(ctx->buf_status,
++				 ctx->status_npage * PAGE_SIZE);
++		ctx->buf_status = NULL;
++	}
+ }
+ 
+ static struct dca_mem *alloc_dca_mem(struct hns_roce_dca_ctx *ctx)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.h b/drivers/infiniband/hw/hns/hns_roce_dca.h
+index cb7bd6a..1f59a62 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_dca.h
++++ b/drivers/infiniband/hw/hns/hns_roce_dca.h
+@@ -56,7 +56,7 @@ struct hns_dca_query_resp {
+ 	u32 page_count;
+ };
+ 
+-void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
++void hns_roce_register_udca(struct hns_roce_dev *hr_dev, int max_qps,
+ 			    struct hns_roce_ucontext *uctx);
+ void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
+ 			      struct hns_roce_ucontext *uctx);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index fcaa004..ac53a44 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -232,6 +232,13 @@ struct hns_roce_dca_ctx {
+ 	size_t free_size; /* free mem size in pool */
+ 	size_t total_size; /* total size in pool */
+ 
++	unsigned int max_qps;
++	unsigned int status_npage;
++
++#define HNS_DCA_BITS_PER_STATUS 1
++	unsigned long *buf_status;
++	unsigned long *sync_status;
++
+ 	bool exit_aging;
+ 	struct list_head aging_proc_list;
+ 	struct list_head aging_new_list;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 3df95d4..e37ece8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -293,20 +293,54 @@ static int hns_roce_modify_device(struct ib_device *ib_dev, int mask,
+ 	return 0;
+ }
+ 
++static void ucontext_set_resp(struct ib_ucontext *uctx,
++			      struct hns_roce_ib_alloc_ucontext_resp *resp)
++{
++	struct hns_roce_ucontext *context = to_hr_ucontext(uctx);
++	struct hns_roce_dev *hr_dev = to_hr_dev(uctx->device);
++
++	resp->qp_tab_size = hr_dev->caps.num_qps;
++	resp->cap_flags = hr_dev->caps.flags;
++	resp->cqe_size = hr_dev->caps.cqe_sz;
++	resp->srq_tab_size = hr_dev->caps.num_srqs;
++	resp->dca_qps = context->dca_ctx.max_qps;
++	resp->dca_mmap_size = PAGE_SIZE * context->dca_ctx.status_npage;
++}
++
++static u32 get_udca_max_qps(struct hns_roce_dev *hr_dev,
++			    struct hns_roce_ib_alloc_ucontext *ucmd)
++{
++	u32 qp_num;
++
++	if (ucmd->comp & HNS_ROCE_ALLOC_UCTX_COMP_DCA_MAX_QPS) {
++		qp_num = ucmd->dca_max_qps;
++		if (!qp_num)
++			qp_num = hr_dev->caps.num_qps;
++	} else {
++		qp_num = 0;
++	}
++
++	return qp_num;
++}
++
+ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 				   struct ib_udata *udata)
+ {
+ 	struct hns_roce_ucontext *context = to_hr_ucontext(uctx);
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(uctx->device);
+ 	struct hns_roce_ib_alloc_ucontext_resp resp = {};
++	struct hns_roce_ib_alloc_ucontext ucmd = {};
+ 	int ret;
+ 
+ 	if (!hr_dev->active)
+ 		return -EAGAIN;
+ 
+-	resp.qp_tab_size = hr_dev->caps.num_qps;
+-	resp.srq_tab_size = hr_dev->caps.num_srqs;
+-	resp.cap_flags = hr_dev->caps.flags;
++	if (udata->inlen == sizeof(struct hns_roce_ib_alloc_ucontext)) {
++		ret = ib_copy_from_udata(&ucmd, udata,
++					 min(udata->inlen, sizeof(ucmd)));
++		if (ret)
++			return ret;
++	}
+ 
+ 	ret = hns_roce_uar_alloc(hr_dev, &context->uar);
+ 	if (ret)
+@@ -319,9 +353,10 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 	}
+ 
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_DCA_MODE)
+-		hns_roce_register_udca(hr_dev, context);
++		hns_roce_register_udca(hr_dev, get_udca_max_qps(hr_dev, &ucmd),
++				       context);
+ 
+-	resp.cqe_size = hr_dev->caps.cqe_sz;
++	ucontext_set_resp(uctx, &resp);
+ 
+ 	ret = ib_copy_to_udata(udata, &resp,
+ 			       min(udata->outlen, sizeof(resp)));
+@@ -340,6 +375,17 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 	return ret;
+ }
+ 
++/* command value is offset[15:8] */
++static int hns_roce_mmap_get_command(unsigned long offset)
++{
++	return (offset >> 8) & 0xff;
++}
++
++/* index value is offset[63:16] | offset[7:0] */
++static unsigned long hns_roce_mmap_get_index(unsigned long offset)
++{
++	return ((offset >> 16) << 8) | (offset & 0xff);
++}
+ static void hns_roce_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ {
+ 	struct hns_roce_ucontext *context = to_hr_ucontext(ibcontext);
+@@ -351,12 +397,11 @@ static void hns_roce_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 		hns_roce_unregister_udca(hr_dev, context);
+ }
+ 
+-static int hns_roce_mmap(struct ib_ucontext *context,
+-			 struct vm_area_struct *vma)
++static int mmap_uar(struct ib_ucontext *context, struct vm_area_struct *vma)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(context->device);
+ 
+-	switch (vma->vm_pgoff) {
++	switch (hns_roce_mmap_get_index(vma->vm_pgoff)) {
+ 	case 0:
+ 		return rdma_user_mmap_io(context, vma,
+ 					 to_hr_ucontext(context)->uar.pfn,
+@@ -383,6 +428,49 @@ static int hns_roce_mmap(struct ib_ucontext *context,
+ 	}
+ }
+ 
++static int mmap_dca(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct hns_roce_ucontext *uctx = to_hr_ucontext(context);
++	struct hns_roce_dca_ctx *ctx = &uctx->dca_ctx;
++	struct page **pages;
++	unsigned long num;
++	int ret;
++
++	if ((vma->vm_end - vma->vm_start != (ctx->status_npage * PAGE_SIZE) ||
++	    !(vma->vm_flags & VM_SHARED)))
++		return -EINVAL;
++
++	if (!(vma->vm_flags & VM_WRITE) || (vma->vm_flags & VM_EXEC))
++		return -EPERM;
++
++	if (!ctx->buf_status)
++		return -EOPNOTSUPP;
++
++	pages = kcalloc(ctx->status_npage, sizeof(struct page *), GFP_KERNEL);
++	if (!pages)
++		return -ENOMEM;
++
++	for (num = 0; num < ctx->status_npage; num++)
++		pages[num] = virt_to_page(ctx->buf_status + num * PAGE_SIZE);
++
++	ret = vm_insert_pages(vma, vma->vm_start, pages, &num);
++	kfree(pages);
++
++	return ret;
++}
++
++static int hns_roce_mmap(struct ib_ucontext *uctx, struct vm_area_struct *vma)
++{
++	switch (hns_roce_mmap_get_command(vma->vm_pgoff)) {
++	case HNS_ROCE_MMAP_REGULAR_PAGE:
++		return mmap_uar(uctx, vma);
++	case HNS_ROCE_MMAP_DCA_PAGE:
++		return mmap_dca(uctx, vma);
++	default:
++		return -EINVAL;
++	}
++}
++
+ static int hns_roce_port_immutable(struct ib_device *ib_dev, u32 port_num,
+ 				   struct ib_port_immutable *immutable)
+ {
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index 7f5d2d5..476ea81 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -86,6 +86,15 @@ struct hns_roce_ib_create_qp_resp {
  };
  
  enum {
++	HNS_ROCE_ALLOC_UCTX_COMP_DCA_MAX_QPS = 1 << 0,
++};
++
++struct hns_roce_ib_alloc_ucontext {
++	__u32 comp;
++	__u32 dca_max_qps;
++};
++
++enum {
+ 	HNS_ROCE_CAP_FLAG_DCA_MODE = 1 << 15,
+ };
+ 
+@@ -95,12 +104,19 @@ struct hns_roce_ib_alloc_ucontext_resp {
+ 	__u32	srq_tab_size;
+ 	__u32	reserved;
+ 	__aligned_u64 cap_flags;
++	__u32	dca_qps;
++	__u32	dca_mmap_size;
+ };
+ 
+ struct hns_roce_ib_alloc_pd_resp {
+ 	__u32 pdn;
+ };
+ 
++enum {
++	HNS_ROCE_MMAP_REGULAR_PAGE,
++	HNS_ROCE_MMAP_DCA_PAGE,
++};
++
+ #define UVERBS_ID_NS_MASK 0xF000
+ #define UVERBS_ID_NS_SHIFT 12
+ 
 -- 
-2.30.2
+2.8.1
 
