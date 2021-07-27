@@ -2,41 +2,43 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 803B3C4338F
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2447EC4320A
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6942861077
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D0516108D
+	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 03:31:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234948AbhG0CvI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Jul 2021 22:51:08 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:16003 "EHLO
+        id S234909AbhG0CvJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Jul 2021 22:51:09 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:16004 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234422AbhG0CvI (ORCPT
+        with ESMTP id S234841AbhG0CvI (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jul 2021 22:51:08 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GYj131xVXzZtKq;
-        Tue, 27 Jul 2021 11:28:07 +0800 (CST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GYj1413blzZtL0;
+        Tue, 27 Jul 2021 11:28:08 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 11:31:34 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:35 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 11:31:34 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 11:31:35 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 00/10] libhns: Add support for Dynamic Context Attachment
-Date:   Tue, 27 Jul 2021 11:27:50 +0800
-Message-ID: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v2 rdma-core 06/10] libhns: Sync DCA status by shared memory
+Date:   Tue, 27 Jul 2021 11:27:56 +0800
+Message-ID: <1627356480-41805-7-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
+References: <1627356480-41805-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -47,89 +49,246 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The HIP09 introduces the DCA(Dynamic Context Attachment) feature which
-supports many RC QPs to share the WQE buffer in a memory pool. If a QP
-enables DCA feature, the WQE's buffer will not be allocated when creating
-but when the users start to post WRs. This will reduce the memory
-consumption when there are too many QPs are inactive.
+From: Xi Wang <wangxi11@huawei.com>
 
-For more detailed information, please refer to the man pages provided by
-the last patch of this series.
+Use DCA num from the resp of modify_qp() and indicate the DCA status bit in
+the shared memory, if the num is valid, the user DCA can get the DCA status
+by testing the bit in the shared memory for each QP, othewise invoke the
+verbs 'HNS_IB_METHOD_DCA_MEM_ATTACH' to check the DCA status.
 
-This series is associated with the kernel one "RDMA/hns: Add support for
-Dynamic Context Attachment", and two RFC versions of this series has been
-sent before.
+Each QP has 2 bits in shared memory, 1 bit is used to lock the DCA status
+changing by kernel driver or user driver, another bit is used to indicate
+the DCA attaching status.
 
-Changes since v1:
-* Add DCA pyverbs test cases.
-* Add a shared memory mechanism to synchronize status of DCA.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1620652384-34097-1-git-send-email-liweihang@huawei.com/
+Signed-off-by: Xi Wang <wangxi11@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ providers/hns/hns_roce_u.h       | 31 +++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_abi.h   |  3 +++
+ providers/hns/hns_roce_u_buf.c   | 42 ++++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_hw_v2.c | 28 +++++++++++++++++++++++----
+ 4 files changed, 100 insertions(+), 4 deletions(-)
 
-No changes since RFC v2.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1614847759-33139-1-git-send-email-liweihang@huawei.com/
-
-Changes since RFC v1:
-* Add direct verbs to set the parameters about size that used to
-  configuring DCA.
-* Add man pages to explain what is DCA, how does it works and how to use
-  it.
-* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1612667574-56673-1-git-send-email-liweihang@huawei.com/
-
-Wenpeng Liang (1):
-  Update kernel headers
-
-Xi Wang (9):
-  libhns: Introduce DCA for RC QP
-  libhns: Add support for shrinking DCA memory pool
-  libhns: Add support for attaching QP's WQE buffer
-  libhns: Use shared memory to sync DCA status
-  libhns: Sync DCA status by shared memory
-  libhns: Add direct verbs support to config DCA
-  libhns: Add man pages to introduce DCA feature
-  pyverbs/hns: Initial support for HNS direct verbs
-  tests: Add traffic test of send on HNS DCA QPEx
-
- CMakeLists.txt                             |   1 +
- debian/control                             |   2 +-
- debian/ibverbs-providers.install           |   1 +
- debian/ibverbs-providers.lintian-overrides |   4 +-
- debian/ibverbs-providers.symbols           |   6 +
- debian/libibverbs-dev.install              |   6 +
- kernel-headers/rdma/hns-abi.h              |  86 ++++++
- kernel-headers/rdma/mlx5-abi.h             |  17 +-
- providers/hns/CMakeLists.txt               |   9 +-
- providers/hns/hns_roce_u.c                 | 229 ++++++++++++++--
- providers/hns/hns_roce_u.h                 |  88 +++++-
- providers/hns/hns_roce_u_abi.h             |   7 +-
- providers/hns/hns_roce_u_buf.c             | 422 +++++++++++++++++++++++++++++
- providers/hns/hns_roce_u_hw_v2.c           | 178 ++++++++++--
- providers/hns/hns_roce_u_hw_v2.h           |   7 +
- providers/hns/hns_roce_u_verbs.c           |  67 ++++-
- pyverbs/CMakeLists.txt                     |   1 +
- pyverbs/providers/hns/CMakeLists.txt       |   7 +
- pyverbs/providers/hns/__init__.pxd         |   0
- pyverbs/providers/hns/__init__.py          |   0
- pyverbs/providers/hns/hns_enums.pyx        |   1 +
- pyverbs/providers/hns/hnsdv.pxd            |  25 ++
- pyverbs/providers/hns/hnsdv.pyx            | 158 +++++++++++
- pyverbs/providers/hns/hnsdv_enums.pxd      |  21 ++
- pyverbs/providers/hns/libhns.pxd           |  28 ++
- redhat/rdma-core.spec                      |   7 +-
- suse/rdma-core.spec                        |  21 +-
- tests/hns_base.py                          |  80 ++++++
- tests/test_hns_dca.py                      |  37 +++
- 29 files changed, 1449 insertions(+), 67 deletions(-)
- create mode 100644 pyverbs/providers/hns/CMakeLists.txt
- create mode 100644 pyverbs/providers/hns/__init__.pxd
- create mode 100644 pyverbs/providers/hns/__init__.py
- create mode 120000 pyverbs/providers/hns/hns_enums.pyx
- create mode 100644 pyverbs/providers/hns/hnsdv.pxd
- create mode 100644 pyverbs/providers/hns/hnsdv.pyx
- create mode 100644 pyverbs/providers/hns/hnsdv_enums.pxd
- create mode 100644 pyverbs/providers/hns/libhns.pxd
- create mode 100644 tests/hns_base.py
- create mode 100644 tests/test_hns_dca.py
-
---
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index 95e8046..fb7b864 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -298,6 +298,7 @@ struct hns_roce_dca_buf {
+ 	void **bufs;
+ 	unsigned int max_cnt;
+ 	unsigned int shift;
++	unsigned int dcan;
+ };
+ 
+ struct hns_roce_qp {
+@@ -349,6 +350,7 @@ struct hns_roce_dca_attach_attr {
+ 	uint32_t sq_offset;
+ 	uint32_t sge_offset;
+ 	uint32_t rq_offset;
++	bool force;
+ };
+ 
+ struct hns_roce_dca_detach_attr {
+@@ -402,6 +404,32 @@ static inline struct hns_roce_ah *to_hr_ah(struct ibv_ah *ibv_ah)
+ 	return container_of(ibv_ah, struct hns_roce_ah, ibv_ah);
+ }
+ 
++#define HNS_ROCE_BIT_MASK(nr) (1UL << ((nr) % 64))
++#define HNS_ROCE_BIT_WORD(nr) ((nr) / 64)
++
++static inline bool atomic_test_bit(atomic_bitmap_t *p, uint32_t nr)
++{
++	p += HNS_ROCE_BIT_WORD(nr);
++	return !!(atomic_load(p) & HNS_ROCE_BIT_MASK(nr));
++}
++
++static inline bool test_and_set_bit_lock(atomic_bitmap_t *p, uint32_t nr)
++{
++	uint64_t mask = HNS_ROCE_BIT_MASK(nr);
++
++	p += HNS_ROCE_BIT_WORD(nr);
++	if (atomic_load(p) & mask)
++		return true;
++
++	return (atomic_fetch_or(p, mask) & mask) != 0;
++}
++
++static inline void clear_bit_unlock(atomic_bitmap_t *p, uint32_t nr)
++{
++	p += HNS_ROCE_BIT_WORD(nr);
++	atomic_fetch_and(p, ~HNS_ROCE_BIT_MASK(nr));
++}
++
+ int hns_roce_u_query_device(struct ibv_context *context,
+ 			    const struct ibv_query_device_ex_input *input,
+ 			    struct ibv_device_attr_ex *attr, size_t attr_size);
+@@ -474,6 +502,9 @@ int hns_roce_attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
+ 			    uint32_t size, struct hns_roce_dca_buf *buf);
+ void hns_roce_detach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
+ 			     struct hns_roce_dca_detach_attr *attr);
++bool hns_roce_dca_start_post(struct hns_roce_dca_ctx *ctx, uint32_t dcan);
++void hns_roce_dca_stop_post(struct hns_roce_dca_ctx *ctx, uint32_t dcan);
++
+ void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
+ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
+ 
+diff --git a/providers/hns/hns_roce_u_abi.h b/providers/hns/hns_roce_u_abi.h
+index 23509c1..3a9aacf 100644
+--- a/providers/hns/hns_roce_u_abi.h
++++ b/providers/hns/hns_roce_u_abi.h
+@@ -57,4 +57,7 @@ DECLARE_DRV_CMD(hns_roce_create_srq, IB_USER_VERBS_CMD_CREATE_SRQ,
+ DECLARE_DRV_CMD(hns_roce_create_srq_ex, IB_USER_VERBS_CMD_CREATE_XSRQ,
+ 		hns_roce_ib_create_srq, hns_roce_ib_create_srq_resp);
+ 
++DECLARE_DRV_CMD(hns_roce_modify_qp_ex, IB_USER_VERBS_EX_CMD_MODIFY_QP,
++		empty, hns_roce_ib_modify_qp_resp);
++
+ #endif /* _HNS_ROCE_U_ABI_H */
+diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
+index 8142fcd..9a26aff 100644
+--- a/providers/hns/hns_roce_u_buf.c
++++ b/providers/hns/hns_roce_u_buf.c
+@@ -402,6 +402,45 @@ static int setup_dca_buf(struct hns_roce_context *ctx, uint32_t handle,
+ 	return (idx >= page_count) ? 0 : -ENOMEM;
+ }
+ 
++#define DCAN_TO_SYNC_BIT(n) ((n) * HNS_DCA_BITS_PER_STATUS)
++#define DCAN_TO_STAT_BIT(n) DCAN_TO_SYNC_BIT(n)
++
++#define MAX_DCA_TRY_LOCK_TIMES 10
++bool hns_roce_dca_start_post(struct hns_roce_dca_ctx *ctx, uint32_t dcan)
++{
++	atomic_bitmap_t *st = ctx->sync_status;
++	int try_times = 0;
++
++	if (!st || dcan >= ctx->max_qps)
++		return true;
++
++	while (test_and_set_bit_lock(st, DCAN_TO_SYNC_BIT(dcan)))
++		if (try_times++ > MAX_DCA_TRY_LOCK_TIMES)
++			return false;
++
++	return true;
++}
++
++void hns_roce_dca_stop_post(struct hns_roce_dca_ctx *ctx, uint32_t dcan)
++{
++	atomic_bitmap_t *st = ctx->sync_status;
++
++	if (!st || dcan >= ctx->max_qps)
++		return;
++
++	clear_bit_unlock(st, DCAN_TO_SYNC_BIT(dcan));
++}
++
++static bool check_dca_is_attached(struct hns_roce_dca_ctx *ctx, uint32_t dcan)
++{
++	atomic_bitmap_t *st = ctx->buf_status;
++
++	if (!st || dcan >= ctx->max_qps)
++		return false;
++
++	return atomic_test_bit(st, DCAN_TO_STAT_BIT(dcan));
++}
++
+ #define DCA_EXPAND_MEM_TRY_TIMES	3
+ int hns_roce_attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
+ 			    struct hns_roce_dca_attach_attr *attr,
+@@ -413,6 +452,9 @@ int hns_roce_attach_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
+ 	int try_times = 0;
+ 	int ret = 0;
+ 
++	if (!attr->force && check_dca_is_attached(&ctx->dca_ctx, buf->dcan))
++		return 0;
++
+ 	do {
+ 		resp.alloc_pages = 0;
+ 		ret = attach_dca_mem(ctx, handle, attr, &resp);
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index dff0e42..8989a08 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -533,6 +533,7 @@ static int dca_attach_qp_buf(struct hns_roce_context *ctx,
+ 			     struct hns_roce_qp *qp)
+ {
+ 	struct hns_roce_dca_attach_attr attr = {};
++	bool enable_detach;
+ 	uint32_t idx;
+ 	int ret;
+ 
+@@ -554,9 +555,16 @@ static int dca_attach_qp_buf(struct hns_roce_context *ctx,
+ 		attr.rq_offset = idx << qp->rq.wqe_shift;
+ 	}
+ 
++	enable_detach = check_dca_detach_enable(qp);
++	if (enable_detach &&
++	    !hns_roce_dca_start_post(&ctx->dca_ctx, qp->dca_wqe.dcan))
++		/* Force attach if failed to sync dca status */
++		attr.force = true;
+ 
+ 	ret = hns_roce_attach_dca_mem(ctx, qp->verbs_qp.qp.handle, &attr,
+-								  qp->buf_size, &qp->dca_wqe);
++				      qp->buf_size, &qp->dca_wqe);
++	if (ret && enable_detach)
++		hns_roce_dca_stop_post(&ctx->dca_ctx, qp->dca_wqe.dcan);
+ 
+ 	pthread_spin_unlock(&qp->rq.lock);
+ 	pthread_spin_unlock(&qp->sq.lock);
+@@ -1368,6 +1376,9 @@ out:
+ 
+ 	pthread_spin_unlock(&qp->sq.lock);
+ 
++	if (check_dca_detach_enable(qp))
++		hns_roce_dca_stop_post(&ctx->dca_ctx, qp->dca_wqe.dcan);
++
+ 	if (ibvqp->state == IBV_QPS_ERR) {
+ 		attr.qp_state = IBV_QPS_ERR;
+ 
+@@ -1475,6 +1486,9 @@ out:
+ 
+ 	pthread_spin_unlock(&qp->rq.lock);
+ 
++	if (check_dca_detach_enable(qp))
++		hns_roce_dca_stop_post(&ctx->dca_ctx, qp->dca_wqe.dcan);
++
+ 	if (ibvqp->state == IBV_QPS_ERR) {
+ 		attr.qp_state = IBV_QPS_ERR;
+ 		hns_roce_u_v2_modify_qp(ibvqp, &attr, IBV_QP_STATE);
+@@ -1563,8 +1577,9 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 				   int attr_mask)
+ {
+ 	int ret;
+-	struct ibv_modify_qp cmd;
++	struct hns_roce_modify_qp_ex cmd_ex = {};
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(qp);
++	struct hns_roce_modify_qp_ex_resp resp_ex = {};
+ 	bool flag = false; /* modify qp to error */
+ 	struct hns_roce_context *ctx = to_hr_ctx(qp->context);
+ 
+@@ -1574,7 +1589,9 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 		flag = true;
+ 	}
+ 
+-	ret = ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
++	ret = ibv_cmd_modify_qp_ex(qp, attr, attr_mask, &cmd_ex.ibv_cmd,
++				   sizeof(cmd_ex), &resp_ex.ibv_resp,
++				   sizeof(resp_ex));
+ 
+ 	if (flag) {
+ 		pthread_spin_unlock(&hr_qp->rq.lock);
+@@ -1584,8 +1601,11 @@ static int hns_roce_u_v2_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	if (ret)
+ 		return ret;
+ 
+-	if (attr_mask & IBV_QP_STATE)
++	if (attr_mask & IBV_QP_STATE) {
+ 		qp->state = attr->qp_state;
++		if (attr->qp_state == IBV_QPS_RTR)
++			hr_qp->dca_wqe.dcan = resp_ex.drv_payload.dcan;
++	}
+ 
+ 	if ((attr_mask & IBV_QP_STATE) && attr->qp_state == IBV_QPS_RESET) {
+ 		if (qp->recv_cq)
+-- 
 2.8.1
 
