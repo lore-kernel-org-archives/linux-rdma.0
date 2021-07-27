@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5069FC4338F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1993C19F31
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 38A49611CE
+	by mail.kernel.org (Postfix) with ESMTP id A77B6611CE
 	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 07:32:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235679AbhG0HcC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S235786AbhG0HcC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 27 Jul 2021 03:32:02 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:12316 "EHLO
+Received: from szxga03-in.huawei.com ([45.249.212.189]:12317 "EHLO
         szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235731AbhG0HcA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Jul 2021 03:32:00 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYpJz665bz7x6T;
-        Tue, 27 Jul 2021 15:27:15 +0800 (CST)
+        with ESMTP id S235740AbhG0HcB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 27 Jul 2021 03:32:01 -0400
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GYpK15Zj0z7yf6;
+        Tue, 27 Jul 2021 15:27:17 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 15:31:57 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 15:31:56 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Tue, 27 Jul 2021 15:31:57 +0800
+ 15.1.2176.2; Tue, 27 Jul 2021 15:31:56 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v2 rdma-core 10/10] tests: Add traffic test of send on HNS DCA QPEx
-Date:   Tue, 27 Jul 2021 15:28:21 +0800
-Message-ID: <1627370901-10054-11-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v2 rdma-core 03/10] libhns: Add support for shrinking DCA memory pool
+Date:   Tue, 27 Jul 2021 15:28:14 +0800
+Message-ID: <1627370901-10054-4-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627370901-10054-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627370901-10054-1-git-send-email-liangwenpeng@huawei.com>
@@ -51,146 +51,189 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-Add traffic test of old send on QPEx class.
+The QP's WQE buffer may be detached after QP is modified or CQE is polled,
+and the state of DCA mem object may be changed as clean for no QP is using
+it. So shrink the clean DCA mem from the memory pool and destroy the DCA
+mem's buffer to reduce the memory consumption.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- tests/hns_base.py     | 80 +++++++++++++++++++++++++++++++++++++++++++++++++++
- tests/test_hns_dca.py | 37 ++++++++++++++++++++++++
- 2 files changed, 117 insertions(+)
- create mode 100644 tests/hns_base.py
- create mode 100644 tests/test_hns_dca.py
+ providers/hns/hns_roce_u.h       |  2 +
+ providers/hns/hns_roce_u_buf.c   | 96 ++++++++++++++++++++++++++++++++++++++++
+ providers/hns/hns_roce_u_hw_v2.c |  7 +++
+ 3 files changed, 105 insertions(+)
 
-diff --git a/tests/hns_base.py b/tests/hns_base.py
-new file mode 100644
-index 0000000..46d6a28
---- /dev/null
-+++ b/tests/hns_base.py
-@@ -0,0 +1,80 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2021 HiSilicon Limited. All rights reserved.
+diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
+index dc56b16..bddd3dd 100644
+--- a/providers/hns/hns_roce_u.h
++++ b/providers/hns/hns_roce_u.h
+@@ -155,6 +155,7 @@ struct hns_roce_dca_ctx {
+ 	int mem_cnt;
+ 	unsigned int unit_size;
+ 	uint64_t max_size;
++	uint64_t min_size;
+ 	uint64_t curr_size;
+ };
+ 
+@@ -439,6 +440,7 @@ void hns_roce_free_buf(struct hns_roce_buf *buf);
+ 
+ void hns_roce_free_qp_buf(struct hns_roce_qp *qp, struct hns_roce_context *ctx);
+ 
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx);
+ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx);
+ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size);
+ 
+diff --git a/providers/hns/hns_roce_u_buf.c b/providers/hns/hns_roce_u_buf.c
+index 2de0e86..ff9e9a7 100644
+--- a/providers/hns/hns_roce_u_buf.c
++++ b/providers/hns/hns_roce_u_buf.c
+@@ -101,6 +101,20 @@ static inline uint64_t dca_mem_to_key(struct hns_roce_dca_mem *dca_mem)
+ 	return (uintptr_t)dca_mem;
+ }
+ 
++static struct hns_roce_dca_mem *key_to_dca_mem(struct hns_roce_dca_ctx *ctx,
++					       uint64_t key)
++{
++	struct hns_roce_dca_mem *mem;
++	struct hns_roce_dca_mem *tmp;
 +
-+import unittest
-+import random
-+import errno
++	list_for_each_safe(&ctx->mem_list, mem, tmp, entry) {
++		if (dca_mem_to_key(mem) == key)
++			return mem;
++	}
 +
-+from pyverbs.providers.hns.hnsdv import HnsContext, HnsDVContextAttr, \
-+    HnsDVQPInitAttr, HnsQP
-+from tests.base import RCResources, RDMATestCase, PyverbsAPITestCase
-+from pyverbs.pyverbs_error import PyverbsRDMAError, PyverbsUserError
-+from pyverbs.qp import QPCap, QPInitAttrEx
-+import pyverbs.providers.hns.hns_enums as dve
-+import pyverbs.device as d
-+import pyverbs.enums as e
-+from pyverbs.mr import MR
++	return NULL;
++}
 +
+ static inline void *dca_mem_addr(struct hns_roce_dca_mem *dca_mem, int offset)
+ {
+ 	return dca_mem->buf.buf + offset;
+@@ -147,6 +161,25 @@ void hns_roce_cleanup_dca_mem(struct hns_roce_context *ctx)
+ 		deregister_dca_mem(ctx, mem->handle);
+ }
+ 
++struct hns_dca_mem_shrink_resp {
++	uint32_t free_mems;
++	uint64_t free_key;
++};
 +
-+HUAWEI_VENDOR_ID = 0x19e5
++static int shrink_dca_mem(struct hns_roce_context *ctx, uint32_t handle,
++			  uint64_t size, struct hns_dca_mem_shrink_resp *resp)
++{
++	DECLARE_COMMAND_BUFFER(cmd, HNS_IB_OBJECT_DCA_MEM,
++			       HNS_IB_METHOD_DCA_MEM_SHRINK, 4);
++	fill_attr_in_obj(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE, handle);
++	fill_attr_in_uint64(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE, size);
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
++		      &resp->free_key, sizeof(resp->free_key));
++	fill_attr_out(cmd, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
++		      &resp->free_mems, sizeof(resp->free_mems));
 +
-+def is_hns_dev(ctx):
-+    dev_attrs = ctx.query_device()
-+    return dev_attrs.vendor_id == HUAWEI_VENDOR_ID
++	return execute_ioctl(&ctx->ibv_ctx.context, cmd);
++}
+ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
+ 				uint32_t alloc_size)
+ {
+@@ -166,6 +199,17 @@ static bool add_dca_mem_enabled(struct hns_roce_dca_ctx *ctx,
+ 	return enable;
+ }
+ 
++static bool shrink_dca_mem_enabled(struct hns_roce_dca_ctx *ctx)
++{
++	bool enable;
 +
++	pthread_spin_lock(&ctx->lock);
++	enable = ctx->mem_cnt > 0 && ctx->min_size < ctx->max_size;
++	pthread_spin_unlock(&ctx->lock);
 +
-+def skip_if_not_hns_dev(ctx):
-+    if not is_hns_dev(ctx):
-+        raise unittest.SkipTest('Can not run the test over non HNS device')
++	return enable;
++}
 +
+ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
+ {
+ 	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
+@@ -198,3 +242,55 @@ int hns_roce_add_dca_mem(struct hns_roce_context *ctx, uint32_t size)
+ 
+ 	return 0;
+ }
 +
-+class HnsPyverbsAPITestCase(PyverbsAPITestCase):
-+    def setUp(self):
-+        super().setUp()
-+        skip_if_not_hns_dev(self.ctx)
++void hns_roce_shrink_dca_mem(struct hns_roce_context *ctx)
++{
++	struct hns_roce_dca_ctx *dca_ctx = &ctx->dca_ctx;
++	struct hns_dca_mem_shrink_resp resp = {};
++	struct hns_roce_dca_mem *mem;
++	int dca_mem_cnt;
++	uint32_t handle;
++	int ret;
 +
++	pthread_spin_lock(&dca_ctx->lock);
++	dca_mem_cnt = ctx->dca_ctx.mem_cnt;
++	pthread_spin_unlock(&dca_ctx->lock);
++	while (dca_mem_cnt > 0 && shrink_dca_mem_enabled(dca_ctx)) {
++		resp.free_mems = 0;
++		/* Step 1: Use any DCA mem uobject to shrink pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = list_tail(&dca_ctx->mem_list,
++				struct hns_roce_dca_mem, entry);
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
 +
-+class HnsRDMATestCase(RDMATestCase):
-+    def setUp(self):
-+        super().setUp()
-+        skip_if_not_hns_dev(d.Context(name=self.dev_name))
++		ret = shrink_dca_mem(ctx, handle, dca_ctx->min_size, &resp);
++		if (ret || likely(resp.free_mems < 1))
++			break;
 +
++		/* Step 2: Remove shrunk DCA mem node from pool */
++		pthread_spin_lock(&dca_ctx->lock);
++		mem = key_to_dca_mem(dca_ctx, resp.free_key);
++		if (mem) {
++			list_del(&mem->entry);
++			dca_ctx->mem_cnt--;
++			dca_ctx->curr_size -= mem->buf.length;
++		}
 +
-+class HnsDcaResources(RCResources):
-+    def create_context(self):
-+        hnsdv_attr = HnsDVContextAttr(flags=dve.HNSDV_CONTEXT_FLAGS_DCA)
-+        try:
-+            self.ctx = HnsContext(hnsdv_attr, name=self.dev_name)
-+        except PyverbsUserError as ex:
-+            raise unittest.SkipTest(f'Could not open hns context ({ex})')
-+        except PyverbsRDMAError:
-+            raise unittest.SkipTest('Opening hns context is not supported')
++		handle = mem ? mem->handle : 0;
++		pthread_spin_unlock(&dca_ctx->lock);
++		if (!mem)
++			break;
 +
-+    def create_qp_cap(self):
-+        return QPCap(100, 0, 10, 0)
++		/* Step 3: Destroy DCA mem uobject */
++		deregister_dca_mem(ctx, handle);
++		free_dca_mem(ctx, mem);
++		/* No any free memory after deregister 1 DCA mem */
++		if (resp.free_mems <= 1)
++			break;
 +
-+    def create_qp_init_attr(self):
-+        return QPInitAttrEx(cap=self.create_qp_cap(), pd=self.pd, scq=self.cq,
-+                            rcq=self.cq, srq=self.srq, qp_type=e.IBV_QPT_RC,
-+                            comp_mask=e.IBV_QP_INIT_ATTR_PD,
-+                            sq_sig_all=1)
++		dca_mem_cnt--;
++	}
++}
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 2308f78..bec2a45 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -654,6 +654,10 @@ static int hns_roce_u_v2_poll_cq(struct ibv_cq *ibvcq, int ne,
+ 
+ 	pthread_spin_unlock(&cq->lock);
+ 
++	/* Try to shrink the DCA mem */
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
 +
-+    def create_qps(self):
-+        # Create the DCA QPs.
-+        qp_init_attr = self.create_qp_init_attr()
-+        try:
-+            for _ in range(self.qp_count):
-+                attr = HnsDVQPInitAttr(comp_mask=dve.HNSDV_QP_INIT_ATTR_MASK_QP_CREATE_FLAGS,
-+                                       create_flags=dve.HNSDV_QP_CREATE_ENABLE_DCA_MODE)
-+                qp = HnsQP(self.ctx, qp_init_attr, attr)
-+                self.qps.append(qp)
-+                self.qps_num.append(qp.qp_num)
-+                self.psns.append(random.getrandbits(24))
-+        except PyverbsRDMAError as ex:
-+            if ex.error_code == errno.EOPNOTSUPP:
-+                raise unittest.SkipTest(f'Create DCA QP is not supported')
-+            raise ex
+ 	return err == V2_CQ_POLL_ERR ? err : npolled;
+ }
+ 
+@@ -1563,6 +1567,9 @@ static int hns_roce_u_v2_destroy_qp(struct ibv_qp *ibqp)
+ 
+ 	free(qp);
+ 
++	if (ctx->dca_ctx.mem_cnt > 0)
++		hns_roce_shrink_dca_mem(ctx);
 +
-+    def create_mr(self):
-+        access = e.IBV_ACCESS_REMOTE_WRITE | e.IBV_ACCESS_LOCAL_WRITE
-+        self.mr = MR(self.pd, self.msg_size, access)
-diff --git a/tests/test_hns_dca.py b/tests/test_hns_dca.py
-new file mode 100644
-index 0000000..8f47fb1
---- /dev/null
-+++ b/tests/test_hns_dca.py
-@@ -0,0 +1,37 @@
-+# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
-+# Copyright (c) 2021 HiSilicon Limited. All rights reserved.
-+
-+import unittest
-+import errno
-+
-+from pyverbs.pyverbs_error import PyverbsRDMAError
-+import pyverbs.enums as e
-+
-+from tests.hns_base import HnsRDMATestCase
-+from tests.hns_base import HnsDcaResources
-+import tests.utils as u
-+
-+
-+
-+class QPDCATestCase(HnsRDMATestCase):
-+    def setUp(self):
-+        super().setUp()
-+        self.iters = 100
-+        self.server = None
-+        self.client = None
-+
-+    def create_players(self, qp_count=8):
-+        try:
-+            self.client = HnsDcaResources(self.dev_name, self.ib_port, self.gid_index, qp_count)
-+            self.server = HnsDcaResources(self.dev_name, self.ib_port, self.gid_index, qp_count)
-+        except PyverbsRDMAError as ex:
-+            if ex.error_code == errno.EOPNOTSUPP:
-+                raise unittest.SkipTest('Create DCA Resources is not supported')
-+            raise ex
-+        self.client.pre_run(self.server.psns, self.server.qps_num)
-+        self.server.pre_run(self.client.psns, self.client.qps_num)
-+
-+    def test_qp_ex_dca_send(self):
-+        self.create_players()
-+        u.traffic(self.client, self.server, self.iters, self.gid_index, self.ib_port,
-+                  new_send=False)
+ 	return ret;
+ }
+ 
 -- 
 2.8.1
 
