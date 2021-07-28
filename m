@@ -2,92 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47262C4338F
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 23:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DE92C4338F
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Jul 2021 04:31:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 285DB60F90
-	for <linux-rdma@archiver.kernel.org>; Tue, 27 Jul 2021 23:10:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 253FE601FD
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Jul 2021 04:31:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232314AbhG0XKf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 27 Jul 2021 19:10:35 -0400
-Received: from mx0b-00069f02.pphosted.com ([205.220.177.32]:43378 "EHLO
-        mx0b-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232198AbhG0XKf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 27 Jul 2021 19:10:35 -0400
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16RN0gB5020810;
-        Tue, 27 Jul 2021 23:10:28 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : references : in-reply-to : content-type :
- content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=wagBlfBAWsxDDzYhPVN7+5B+imRA1HNSNWiL4y39r5A=;
- b=1E78BSyCr2MKP5u1/pixQsHdEX3U7WGtd5cPqogTDHVGvApUjGiXjgeeAq/HYshDgQ9F
- r0+HmHPAaJ0cioufePkOgXiMKUJD93JwT7tAvZ4t2UccWJxtJ72Iq/hjnMNc6eZxx3xA
- UQS7WEx04fnfqeFp2ntH17zJeSdfbxn0SYpFYz5YeffIddg5aUS2NbSQZT2B3GYKsszK
- XhPfQ2bZ0iLyfWEfNg/BEVSsscvJsf8M+hwvQ3nDEBx7eEXMLjFCDcC+0bwGcwlUvYFF
- yBAOWUzr+tw9W/xB+NFcV0B8vnW/tWueHEGkO6MtLu/gGu8zaEfxEXGXhlu4lRhAtNN/ cQ== 
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : references : in-reply-to : content-type :
- content-id : content-transfer-encoding : mime-version; s=corp-2020-01-29;
- bh=wagBlfBAWsxDDzYhPVN7+5B+imRA1HNSNWiL4y39r5A=;
- b=WfkfJpn158GVCmKYpyNNzMPMrpxCmK/+p7QDGruSvBrzOeyguS5vy3V8Cizuo73UWbWu
- j0F1qgTOYAXnygKbMG6O+Ce0BN7kLke2sMnGCT0SqQMVkY3cFf2gqNjdU92GHurgADcK
- l6P8fWBHhW2a1TACSoEx8KHWHVBXjHPnnZGW6sjwoVRmHxvsAeFWLxMhS5p9X1kEl0mq
- cgYzB8dTX5gJpqiLRkPu90oeCxCDQt97jakEJ3+TxofVxjp0AiwyHOsIYbLf4aMSkZ56
- JR9CtkXR1HWgss7lM93+2dwP3yQY5d0o+36GZRIUTdTAWYfKq1RKAlc27TabQ5fG02Me Aw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by mx0b-00069f02.pphosted.com with ESMTP id 3a2jkf9bnp-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 27 Jul 2021 23:10:28 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 16RN0o7C142436;
-        Tue, 27 Jul 2021 23:10:27 GMT
-Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2172.outbound.protection.outlook.com [104.47.57.172])
-        by userp3020.oracle.com with ESMTP id 3a234we54c-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 27 Jul 2021 23:10:27 +0000
+        id S234441AbhG1EbY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Jul 2021 00:31:24 -0400
+Received: from mail-mw2nam08on2084.outbound.protection.outlook.com ([40.107.101.84]:50752
+        "EHLO NAM04-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S234852AbhG1EbU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 28 Jul 2021 00:31:20 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=I9dZrNo5W7WGditNAB7EazaBGb0z8C1IHcjoQ0uD+vDjptljGcwfpNxBMElK3g08vTJ+P6U0tcF7W+tsIocngk19WVO7l4QfINjozDPDM7JdEhf8fW2jwi74ctWt3+QvFRF9qGHSH6K3C5loVn7i/4b62FVXzbem9xULBR3JdRwYntQs+CkcGpmT6S4VLOZi6MVIcSD+8x1V8/Pmy9Y0pwySBoXobqpDrtNyqed9VzpiLsRK6LvDJW7YFo9+FWHpA8vtd+0zjsvhVIS0MlnDDxbCnBbFiBeWuoKilLgqyVXjStJ5DwBfWyENlZyKH+u1l7o5Eu4jV17e5hBCYVNMLQ==
+ b=C7jXSbBo2tW/qKG3t2t+qxCZ2SarDarM7YNu/r/3pUJUtzlksRgRMQRsF8Qc0MW3EDgXW25hNOyhygYLLw+nGcWD9udT8XOz/Wn1cv45lqiIfxfKv6kSnOjtlvVWViyQ++aZllUbhvdKwZgXvZM1GZY4b3eyf00yfLIP/nu2BwrCI46bDJdM55YRZ9L2nntt7gtRqJnIPaPhdAUFGbsMsR6jjhU3tNq9xJ+UbQrIVfozyPPyJM3pVIPWLC7VwpSBzPg2dd7EL4MZ2/yApQorD5qE7osrJC3kteRvPpoQ/9lLnhAEALBDhuvMg0YbdA2ZHEVGkeUGedcMlA9rSb8CEA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wagBlfBAWsxDDzYhPVN7+5B+imRA1HNSNWiL4y39r5A=;
- b=jTYfNLIq9rwZLm95mKMhlW8vKRzXKnH9AoJuIF+P34w//TPGEpxkY00sZVdQrMLxMwKKCjvR0CcBEMTSidwC9HMMzWHluNiehiIWfoV14PqLba/n2IEdNst1TsGP4ZZOYEAGrpvc0vW5GdnJR2+z5LT2iDUykh7Lamcp8IdDuoYpqcNvyBMWUD7s9YTVqFuy2qI/ur33qJ6zDc1zXkfAIc9S+yrCYCSE/mfkZwwo8WBDObmi8oeDw7qMpsHZ9IPP3JAtKAgc/+J1cmC2ANdC3i4CP03dNnaIGGWVK50LvyAsaTA/7V7LorUQzYCkVPdQHP3WkDvszq2MgpdafWSyBQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ bh=2FAfv/mp0LaX3X0leoUqsRCMaYkXQovVU6cjWCH7F1c=;
+ b=RQFgDgbtE4Hz5G7HMnNtHrLas5FaG99OkhyuFWyYNXBkLnKPAuWAzvWDiza38FwgRAX+wGvEdrbYRRM5WgQplyTTrxufFOgsxoIk8x0OrUomttvDy9FHucKFVzTA5tLeahl6CF+oxX7nLuRWqZBAs2zO9gofJDf5d5/5wNd8Al8cgt4RlGUcHEcK5AQFDJSrilJ2FLXUqK7eyu/CoBjsYtaK73heongGPay7hSO/7U4GQRKNSCOhAJGfjW73oKwfa7DGT4YuaMRqpDt04gf7PTjfFfYD9Za10sK/FZXz1ApsXWohHmmZiyNryAcergRxUhnlgnj4XW5CGvfotUzMbA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.112.34) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wagBlfBAWsxDDzYhPVN7+5B+imRA1HNSNWiL4y39r5A=;
- b=Nzo2v3FOXaTB5HjzwXyQa1XTfsab1wdP330M9SwbzlOwEOCa8Z/eBe23wui7oMSf1k7B5AK2oUZI3/9ZgrcX1d3adWkF1M06sVvTtJ2kJuxywiMJ9U9JX7DbNgz5X1GXul1pno9bU4QGKEH9mH0knKQBlgPjWYUOxfZaufI3pNQ=
-Received: from SJ0PR10MB4688.namprd10.prod.outlook.com (2603:10b6:a03:2db::24)
- by BYAPR10MB3110.namprd10.prod.outlook.com (2603:10b6:a03:152::14) with
+ bh=2FAfv/mp0LaX3X0leoUqsRCMaYkXQovVU6cjWCH7F1c=;
+ b=dmpjnIkwjzlqVIPruNubT8BQ+f+qTRXRSy7D7Ag+nz6SUhRs5BomzvakUxg5mUzYT5MxIfvoeMztKUa1MJIdPlMd2cI+/LwGzIiHtLdFbWJLuMg1cxpgiesvRaGc30WPx8kt975FUGgxQHBXDvaECg6lKfarlZVMni1UA5tufh8OD9cRDM6Fv/IsSYfE1UM6RWXk2zkQ3LFT2qkqF9JyFNfobr87Nbz4UA9e5s93fjDSE2SotaNaC7X95NigXf01AYyBMsi76BBFBh4mvjL9WefMrSm0enfiERFeFf9yZP2NGXc5eO0y2L30TgJX31CE7ypWGPG67QxeUyNVouRORQ==
+Received: from BN9PR03CA0296.namprd03.prod.outlook.com (2603:10b6:408:f5::31)
+ by MWHPR1201MB0078.namprd12.prod.outlook.com (2603:10b6:301:56::20) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.18; Tue, 27 Jul
- 2021 23:10:25 +0000
-Received: from SJ0PR10MB4688.namprd10.prod.outlook.com
- ([fe80::9dee:998a:9134:5fcb]) by SJ0PR10MB4688.namprd10.prod.outlook.com
- ([fe80::9dee:998a:9134:5fcb%3]) with mapi id 15.20.4373.018; Tue, 27 Jul 2021
- 23:10:25 +0000
-From:   Chuck Lever III <chuck.lever@oracle.com>
-To:     "Marciniszyn, Mike" <mike.marciniszyn@cornelisnetworks.com>
-CC:     Jason Gunthorpe <jgg@nvidia.com>,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4352.29; Wed, 28 Jul
+ 2021 04:31:18 +0000
+Received: from BN8NAM11FT053.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:f5:cafe::84) by BN9PR03CA0296.outlook.office365.com
+ (2603:10b6:408:f5::31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4352.29 via Frontend
+ Transport; Wed, 28 Jul 2021 04:31:17 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.112.34)
+ smtp.mailfrom=nvidia.com; vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.112.34 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.112.34; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (216.228.112.34) by
+ BN8NAM11FT053.mail.protection.outlook.com (10.13.177.209) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.4373.18 via Frontend Transport; Wed, 28 Jul 2021 04:31:17 +0000
+Received: from localhost (172.20.187.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Wed, 28 Jul
+ 2021 04:31:16 +0000
+Date:   Wed, 28 Jul 2021 07:31:13 +0300
+From:   Leon Romanovsky <leonro@nvidia.com>
+To:     Chuck Lever III <chuck.lever@oracle.com>
+CC:     "Marciniszyn, Mike" <mike.marciniszyn@cornelisnetworks.com>,
+        "Jason Gunthorpe" <jgg@nvidia.com>,
         Haakon Bugge <haakon.bugge@oracle.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         "Dalessandro, Dennis" <dennis.dalessandro@cornelisnetworks.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
         Doug Ledford <dledford@redhat.com>
 Subject: Re: NFS RDMA test failure as of 5.14-rc1
-Thread-Topic: NFS RDMA test failure as of 5.14-rc1
-Thread-Index: AdeC6xneRTsXNTlrTWuqxyNIUrjEqgAHw3HQAACUb4AAAE5b4AAAJPuAAAA+IwAABkXSIAAFD3AA
-Date:   Tue, 27 Jul 2021 23:10:25 +0000
-Message-ID: <9D442FCF-D0F8-40F1-9AA1-B85BAE91631A@oracle.com>
+Message-ID: <YQDdkZ83yYI4US3A@unreal>
 References: <CH0PR01MB7153D5381BBC3D1D0F146E8AF2E99@CH0PR01MB7153.prod.exchangelabs.com>
  <CH0PR01MB7153166CD64AE0097B72608CF2E99@CH0PR01MB7153.prod.exchangelabs.com>
  <CA7DAB52-ED96-4B47-A49D-88C3B8C6F052@oracle.com>
@@ -95,96 +77,65 @@ References: <CH0PR01MB7153D5381BBC3D1D0F146E8AF2E99@CH0PR01MB7153.prod.exchangel
  <20210727173857.GI1721383@nvidia.com>
  <29236B57-4AEA-4DEA-AC6F-4402FF8A1A83@oracle.com>
  <CH0PR01MB7153BED95409DC4C26CC5A4FF2E99@CH0PR01MB7153.prod.exchangelabs.com>
-In-Reply-To: <CH0PR01MB7153BED95409DC4C26CC5A4FF2E99@CH0PR01MB7153.prod.exchangelabs.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;cornelisnetworks.com; dmarc=none action=none
- header.from=oracle.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: b437c311-3e8c-4115-0e74-08d95153b779
-x-ms-traffictypediagnostic: BYAPR10MB3110:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <BYAPR10MB311010FFF6011408DDF3D63993E99@BYAPR10MB3110.namprd10.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: qIWsMuiVaR4VtMcXTNT1fY9GToM58xOOkMEO2b9vOgbWSP28FSDZbU9tUd1rVkOrlsqirndrAjWBTLe4lRvB17wGghVZm1w44Ias0UC4jeQ4CMg4Tt5Vdm0D9eZZYw3icepbQ3tF90rA/GDbqtmkuk64XDKr63fVWJGhleIaJ8wTEXiWmKujt07qZ6FzFliy/1/DMPy3pZoDxEpR3yDieZwx2tIFHhiNNQG1HjLSkct/8M0pHW9aAROEZhbfwHyTBQ4OBGnp9Y++AtW7PWcczVEJs78mv2gagFyYTwTJHcebL6K3SkTPpeXl+LtTOCjpSE4yG1vcDZjKlmgfR8AXZtd4CIEYtzVfjW4HHBtBdDFoxAA178+jSv49mF2bBAER3XkEXGoi7sQeX8p/GlRDoxkLWDIo5cKqb560WwKUXdZF+fOvTybLz+qjqeM8gLYD04tNaP49vJA5nBl7aCdVsOYha2uCi/LQmYYfp6I0LscGZN4YRLWqZuIJPdOtI+mrC6duwK8AQInpvBqRJ8hxydaqi4vLq3d6qMSaJyax4kRDlq0T6Fh9HTS0I4yR9HClEKIi5DRHQMQfpOCEIr8Xd9sWL/kyeKs1qMdvsKLLZZC7JDX66ABY7A7XKwBdunB8TEeQYMih8FhVR2z/XhTleIx6JJGo5KEE2RFEiuV0lYhIMj0FUMg7e5D4VhAMzNHHYZojg26wleQBtW2QZ4U5qmantsuAr3X0pKGd1j+w7U7n9MWaLjdVPSAfDcqnW4ru
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4688.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(346002)(136003)(376002)(39860400002)(366004)(33656002)(478600001)(122000001)(186003)(6916009)(5660300002)(38100700002)(6486002)(54906003)(8676002)(4326008)(2616005)(71200400001)(66946007)(6512007)(86362001)(53546011)(8936002)(316002)(6506007)(64756008)(66556008)(76116006)(91956017)(66446008)(66476007)(36756003)(2906002)(26005)(4744005)(38070700005)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?br+pB6+Y1xENBCiIp7RR9lqzg1GBWCnEiK+cfS5gbfDpSTQBt5uMuOaZt4ih?=
- =?us-ascii?Q?pW0qkpJtQOuA69RCtDvacGxhI77QexUnmm92c94SQUqnyUPSkxWPLY1Bunx6?=
- =?us-ascii?Q?beNqjhmx/sTr/dJNgiTbMMj2rEsy3HAmcaw6zvUBc9VNw3Z2z4Z2Wneqx/4C?=
- =?us-ascii?Q?UI18k8m1PSvY608Haf5nmD1L4o+KyWajZwPwmopP31hcT3sZ3oT6uhCYR0MZ?=
- =?us-ascii?Q?aiUsilImYaMacJ1touXkGP+7gd8T9kM59ATh4LL8RBsn3CoMf4+RnEbZnhHg?=
- =?us-ascii?Q?gC+CBRwKtVkBHyrbi7BjP53PPdCDlD+ZyAsUueTfFDYLgDoazmMpmBBJcgP+?=
- =?us-ascii?Q?DfFkMqs2NRHXYsIQ/gygnRzi88Mocjcmj3mLEZtCwjAKWHBvJKVzOts587QP?=
- =?us-ascii?Q?FHDCmFZQXIIPAfTh1T40ZbwRzWhCESZITPJz94hN58v3kjNPR0xlfLj8OkVg?=
- =?us-ascii?Q?YEQiCszgL+oQGfbDXamPXiOBDtl53T2Px64oGi94A8XvJ/boZARmi6YGba24?=
- =?us-ascii?Q?5ME/Uk3HaENmEXNy51A8AD/1Oh9ewe7oY5O3nO3ShzoXmxJ2AmXBXsftmxfM?=
- =?us-ascii?Q?eIM2eCAL8fQmraKK6UOvjD2ezXcLk5jU5pp8dqOnzTUyAk05Xe5YSorXDE83?=
- =?us-ascii?Q?PTKOVbceVuWP/X5MdNvez8UJ+W5aXmYFMGmOPQInkVdJokzvEPMFhNnPrfqT?=
- =?us-ascii?Q?45iRSTbQhMhg6NdZn12HfI3faNmF3m8GxYItzgfpzyMtG87WdFNjo51jRhFV?=
- =?us-ascii?Q?g3AV1cvJMIRObykqsbiDvpIEvpRXa1XozlHs3smlhmgd71ufdyHfkGgdnih7?=
- =?us-ascii?Q?cWS7FASzyoWx+AR9PqxlBAfKMPE4SjUmAV4Vh2tioOcnFpXh0Ni9IW1ktGfp?=
- =?us-ascii?Q?fM5dtgpRa2Mx7z8yNcqUo6WoqMqqyihGuAbRWarVGfJSQ2GD8WoxxAgp+6wC?=
- =?us-ascii?Q?maF7me+GgPvmO4foJlDFru3GnRyMuPX0lvJLBhFHE1icLlV6/YwSTH7Pk2IZ?=
- =?us-ascii?Q?K0CrDnsI7mAZquG+SZ1hLziXxADUrDSqnNL4gR2fjmi6yBQfHQuXHZcG2yCV?=
- =?us-ascii?Q?mLZxY/UiIhUpZSMgzTZ7yrIPEQSoRehNQLKLZ/TuWDWWmdMOjAUiZqzaeWOi?=
- =?us-ascii?Q?wG0VTOvem8Frl67BE7lRethdWG1Cvo5QIUjDCJOg5dF6V1xuThTGK12Sf3Wp?=
- =?us-ascii?Q?CZS/qyRUSIkOKckDIW1A3bvt1sKM7nXg+puh19Y9OonVRsDkOp2FFrXQYhOq?=
- =?us-ascii?Q?WAmhayCmtkZYPJvPXqfAsR2kEggv5SG5b4raMDdbM2OZCUcfUL44tv6aTfGV?=
- =?us-ascii?Q?Ixf257cNzhmR3eW7jiHkwxLk?=
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <2C21B95357A4D141A03590EFD096185F@namprd10.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+ <9D442FCF-D0F8-40F1-9AA1-B85BAE91631A@oracle.com>
 MIME-Version: 1.0
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4688.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b437c311-3e8c-4115-0e74-08d95153b779
-X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Jul 2021 23:10:25.0899
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <9D442FCF-D0F8-40F1-9AA1-B85BAE91631A@oracle.com>
+X-Originating-IP: [172.20.187.5]
+X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 75ebc421-3bed-4d12-1646-08d951808afe
+X-MS-TrafficTypeDiagnostic: MWHPR1201MB0078:
+X-Microsoft-Antispam-PRVS: <MWHPR1201MB0078712761DDCC7BB122BA1ABDEA9@MWHPR1201MB0078.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ghXlMROkhhtwamYaL4qeSpMIeYD5IR8BTs8y9/Jj40eBS+vBcjGJSBDg3k+mFd041S//3QFr+2oAdxUKjjxWIqmo6cAH/IFawX7BriAtouewf2ZUfoq29zhsYUhj1kB/1+yjCT44D7Ikpffw1mCSPx7tuyL3cLCgeKXFnv2452Fmj12rLYcNtElo2bPjS14Axi07IdO+QeIWmKVg1k02G8LIcBD1mGAhVNQO1hd55D4IB4H3R7lrkcnjoMEr57hBofUdxW2R+QGGwMILjVYfaRroMQPeKqSyLW4sCQ2X7tILXLjgxsl1Lmwric2sc2dzuZRPFRvaI7Au8HCqfw+49vPnrIFFCa9zEsoH9wCUlhpqvof6fZ02O5zBep/PnWXskmF+PYPGTWtQZQUEPffuR8dRkdGGAXI16SJSAw+FjEYnYF4QNLxCjxSOUkJ/mzWMjGhl05ajS0IeL8LqamOx909QikoFnNJVmsTmYrdXmHSLckpMJOcUN7JrbRbP7yRYqv+AkUD6nZ6nKhAQw7vqaN/oWqm/lbzxcZWflWO8Qq3ZzNfgHcX0eEX3oKg+M0PT8VBpFRInEQFomDZ7b7fzlhlwedd2vFBc7Ll2RwD64S6iXQv5rmLN/Qs6hO4++tikuXuDaWhB4ahhcDHJ0P14+RHvqSVmkWvwaB/NloOlq5IqbBdAy/tA/rAPtsZCV7irIi2a+tI/nm9zdTvF2ijdDQ==
+X-Forefront-Antispam-Report: CIP:216.228.112.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:schybrid03.nvidia.com;CAT:NONE;SFS:(4636009)(7916004)(346002)(136003)(39860400002)(396003)(376002)(46966006)(36840700001)(356005)(7636003)(16526019)(82310400003)(478600001)(82740400003)(26005)(316002)(186003)(2906002)(4744005)(8676002)(426003)(336012)(36906005)(36860700001)(4326008)(54906003)(47076005)(5660300002)(70586007)(86362001)(53546011)(6916009)(70206006)(33716001)(8936002)(9686003)(6666004);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jul 2021 04:31:17.7598
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: SkBqrwLPKFJlEz7QHv1LEmiKoyNmNGOa3s2u05k9G5XB6r7f6C9XFYMU+TgwAlrTkCll4PROSavAvR+ZI6BfFw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB3110
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=10058 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0
- mlxlogscore=989 bulkscore=0 mlxscore=0 phishscore=0 suspectscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2107140000 definitions=main-2107270133
-X-Proofpoint-GUID: Q_0DY5rt26aRNeu6v4CdZSVvxvQHVrLT
-X-Proofpoint-ORIG-GUID: Q_0DY5rt26aRNeu6v4CdZSVvxvQHVrLT
+X-MS-Exchange-CrossTenant-Network-Message-Id: 75ebc421-3bed-4d12-1646-08d951808afe
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.112.34];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT053.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR1201MB0078
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Tue, Jul 27, 2021 at 11:10:25PM +0000, Chuck Lever III wrote:
+> 
+> > On Jul 27, 2021, at 5:20 PM, Marciniszyn, Mike <mike.marciniszyn@cornelisnetworks.com> wrote:
+> > 
+> >>> Haakon's original analysis said that this was an INIT->INIT
+> >>> transition, so I'm a bit confused why we lost a RESET->INIT transition
+> >>> in the end?
+> >> 
+> >> Perhaps the patch should have removed the ib_modify_qp() from
+> >> cma_modify_qp_rtr() instead.
+> > 
+> > I think that will work.
+> 
+> Implemented and tested. It doesn't work. :-)
+> 
+> The conclusion I draw is that there are still spots that depend
+> on one or the other of those state transitions remaining where
+> they are.
 
-> On Jul 27, 2021, at 5:20 PM, Marciniszyn, Mike <mike.marciniszyn@cornelis=
-networks.com> wrote:
->=20
->>> Haakon's original analysis said that this was an INIT->INIT
->>> transition, so I'm a bit confused why we lost a RESET->INIT transition
->>> in the end?
->>=20
->> Perhaps the patch should have removed the ib_modify_qp() from
->> cma_modify_qp_rtr() instead.
->=20
-> I think that will work.
+So let's revert this patch.
 
-Implemented and tested. It doesn't work. :-)
+Thanks
 
-The conclusion I draw is that there are still spots that depend
-on one or the other of those state transitions remaining where
-they are.
-
---
-Chuck Lever
-
-
-
+> 
+> --
+> Chuck Lever
+> 
+> 
+> 
