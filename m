@@ -8,60 +8,60 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1CB7C4320E
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8FB9C432BE
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB21F604D7
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEC62604D7
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234595AbhG2Wuk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Jul 2021 18:50:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41758 "EHLO
+        id S233896AbhG2Wum (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Jul 2021 18:50:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234591AbhG2Wuk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Jul 2021 18:50:40 -0400
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1436C0613C1
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:35 -0700 (PDT)
-Received: by mail-ot1-x32f.google.com with SMTP id f20-20020a9d6c140000b02904bb9756274cso7502415otq.6
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:35 -0700 (PDT)
+        with ESMTP id S234724AbhG2Wul (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Jul 2021 18:50:41 -0400
+Received: from mail-oo1-xc30.google.com (mail-oo1-xc30.google.com [IPv6:2607:f8b0:4864:20::c30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CC48C061765
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:37 -0700 (PDT)
+Received: by mail-oo1-xc30.google.com with SMTP id h7-20020a4ab4470000b0290263c143bcb2so1975555ooo.7
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=H9MjnPD/chnGGdYxbnuiVFdSjhRbZOHJIupfbQKJ8pc=;
-        b=PypyLHZ5vWMZI5hCCVdwqOG75nTaWxWHpF5sogF/hWNzN2RgoA/vlZCSWxRR9Z88tk
-         U63qq77KRdjKN6xkKvb/5FCKY/sM7q+nQbqq2dYVjrXOKcU6IJhbT9soNZpkBA0eypMl
-         AOFcMa+ZEszT/TIJ+zEDDK61vJ0+AR84QIU35gEmU/CsqK6LX6+Li9qWh8za6ctbCQvc
-         znXv+HdY6K8k37541H3eNIm3JUvji4tKbTEWbT+GCr0w3117x9D+kn9Rhu4jY0kT0OW0
-         wUikBmtHJyGvyxgSkf+Sjx40roph+LCkourXgtj9NFGKj4wNEnK3N2ATwd2AMh0ebCiw
-         VA7w==
+        bh=cFaVSnJSikM0I7j89ygvHRvWQHX9DmYxRz16Xu4kLLA=;
+        b=nQ8SFlfpimiQlAQbOE5aCKQKKzVwT/J/W4o0cZXjTwTbVN3zW6cWbHFp5Xo9QtUi9h
+         e/Vu4zcOA+AgeiEdNsC9+fVf/XJJB68/kWrLXBXvq74Y6uCAEYDqOlCM+FjfZaAnObSN
+         FczckSUgN+pFwHRmF6YHTvzYQ8Ae3CpgOaVB3M23oqP5wlprq5Io8uX+sseaCC/G44ae
+         3bxEhuLwHQ7Hs5wSNmTE0WIAWN1zfX2JG/4iVYaDJl9bfMQ6mH+mwg3234aYTVnm9+2k
+         apLp1LHDsfGE6fPSXHZ7CrMhcvKPT/Mz/jh9KQFJdeRbzKIEr2LUjw6OhEV3JYLPhfUs
+         jsbQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=H9MjnPD/chnGGdYxbnuiVFdSjhRbZOHJIupfbQKJ8pc=;
-        b=Z4MEtzC9CMmoMIdGrwgfkDI0Nd7ZVlb5czDYz8hZZTZlOqFjN9UH+baDidiTj17CWm
-         nbU+Bb1flFHlCctBEbq98GkgYp7mi4ih0bY3ln8Q/tsTehKDqMuO856aoKVd4auJrQ+D
-         yaejy/SvVul7P+iOpL6D4RZhVjjkBFyXCW98mFp5RSIljYvqv4yNHm1DBQN5e+6gBpuh
-         EH4/eBoCsAVUiFRkt0tNi4Du6A9sqgDOFo5TYOEgCv06Rvptb0jy3W3PzjKlxepiDT1V
-         prbm/ykOJA1QuUV/1q7YHdBWcMt4+5u5WNXyvYmt+tlPzTCtC0iJYCGKrWjV6WLb2RnF
-         A+EQ==
-X-Gm-Message-State: AOAM533zx1jV8e/DczjGl40dhvBjrjhtFQN2U6e/vSDmnIk3TyMthOBe
-        svASrTdPokzH2gPTzym44k0=
-X-Google-Smtp-Source: ABdhPJzYnzvp0XJL3ysRE/9uTT/6E9aqYtCOa0iOqSbJIZMgK6XFJe8a2SJk/8o+0K0eFK24BEHgLQ==
-X-Received: by 2002:a05:6830:10c5:: with SMTP id z5mr5002936oto.154.1627599035181;
-        Thu, 29 Jul 2021 15:50:35 -0700 (PDT)
+        bh=cFaVSnJSikM0I7j89ygvHRvWQHX9DmYxRz16Xu4kLLA=;
+        b=lo09KA37+0enzn2MGK7Lv9JVv4FEHcP8TPglkNmoeTm/nDx/WRC5sRlrOPP+7z1TUr
+         wLXHKuzbRmKGMXm50DMq4XE6UmmvorgYzh9YzLX6PcKY8UtyLJ78gHYhardDgR3YcX5x
+         +W8p6YiL0vFjFpKS+3BxTymbT36qQD7inJweRimezv3oJPBM9Od+GXVpnmW1Vlx7ArPD
+         8P35Bc/cUWaOLJiv2G+swNvhvsFoLI4cn3NmcCFuBjkllDLJKrpRTZF1uourf48Hsxj3
+         NDBbD9Gi0Fmsq8JmFHx1s5Ks//WKJ+XL5CN0ujnFyCR7ppLMld6Tz7L3/8t+1NeePBKj
+         Rmaw==
+X-Gm-Message-State: AOAM530N+xqdfnu7O7mNWx4n8qEjZ08O/e684m4U8zdwzD08lO32P/+x
+        iKpc15TK4odgCFsYIZAHXSo=
+X-Google-Smtp-Source: ABdhPJwpN/MroRpQ499TwZADieZVKtvLI79nuCeRuzPNio7POaQF5BC4RY1FrPw3XsbM670zX7kDzA==
+X-Received: by 2002:a4a:da0f:: with SMTP id e15mr4506588oou.53.1627599036754;
+        Thu, 29 Jul 2021 15:50:36 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-80ca-c9ae-640f-0f9a.res6.spectrum.com. [2603:8081:140c:1a00:80ca:c9ae:640f:f9a])
-        by smtp.gmail.com with ESMTPSA id n202sm876070oig.10.2021.07.29.15.50.34
+        by smtp.gmail.com with ESMTPSA id t16sm776469otm.63.2021.07.29.15.50.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jul 2021 15:50:34 -0700 (PDT)
+        Thu, 29 Jul 2021 15:50:36 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 02/13] IB/core: Add xrc opcodes to ib_pack.h
-Date:   Thu, 29 Jul 2021 17:49:05 -0500
-Message-Id: <20210729224915.38986-3-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 04/13] RDMA/rxe: Extend rxe_opcode.h to support xrc
+Date:   Thu, 29 Jul 2021 17:49:07 -0500
+Message-Id: <20210729224915.38986-5-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210729224915.38986-1-rpearsonhpe@gmail.com>
 References: <20210729224915.38986-1-rpearsonhpe@gmail.com>
@@ -71,60 +71,82 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-ib_pack.h defines enums for all the RDMA opcodes except for the XRC
-opcodes. This patch adds those opcodes.
+Extend rxe_wr_opcode_info to support more QP types.
+
+Extend rxe_hdr_type and rxe_hdr_mask enums to support XRCETH headers.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- include/rdma/ib_pack.h | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_opcode.h | 38 +++++++++++++-------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index a9162f25beaf..afbf78a6669e 100644
---- a/include/rdma/ib_pack.h
-+++ b/include/rdma/ib_pack.h
-@@ -56,6 +56,7 @@ enum {
- 	IB_OPCODE_UD                                = 0x60,
- 	/* per IBTA 1.3 vol 1 Table 38, A10.3.2 */
- 	IB_OPCODE_CNP                               = 0x80,
-+	IB_OPCODE_XRC                               = 0xa0,
- 	/* Manufacturer specific */
- 	IB_OPCODE_MSP                               = 0xe0,
- 
-@@ -152,7 +153,32 @@ enum {
- 
- 	/* UD */
- 	IB_OPCODE(UD, SEND_ONLY),
--	IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
-+	IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE),
-+
-+	/* XRC */
-+	IB_OPCODE(XRC, SEND_FIRST),
-+	IB_OPCODE(XRC, SEND_MIDDLE),
-+	IB_OPCODE(XRC, SEND_LAST),
-+	IB_OPCODE(XRC, SEND_LAST_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, SEND_ONLY),
-+	IB_OPCODE(XRC, SEND_ONLY_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_WRITE_FIRST),
-+	IB_OPCODE(XRC, RDMA_WRITE_MIDDLE),
-+	IB_OPCODE(XRC, RDMA_WRITE_LAST),
-+	IB_OPCODE(XRC, RDMA_WRITE_LAST_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_WRITE_ONLY),
-+	IB_OPCODE(XRC, RDMA_WRITE_ONLY_WITH_IMMEDIATE),
-+	IB_OPCODE(XRC, RDMA_READ_REQUEST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_FIRST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_MIDDLE),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_LAST),
-+	IB_OPCODE(XRC, RDMA_READ_RESPONSE_ONLY),
-+	IB_OPCODE(XRC, ACKNOWLEDGE),
-+	IB_OPCODE(XRC, ATOMIC_ACKNOWLEDGE),
-+	IB_OPCODE(XRC, COMPARE_SWAP),
-+	IB_OPCODE(XRC, FETCH_ADD),
-+	IB_OPCODE(XRC, SEND_LAST_WITH_INVALIDATE),
-+	IB_OPCODE(XRC, SEND_ONLY_WITH_INVALIDATE)
+diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.h b/drivers/infiniband/sw/rxe/rxe_opcode.h
+index e02f039b8c44..a5349eecc9c0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_opcode.h
++++ b/drivers/infiniband/sw/rxe/rxe_opcode.h
+@@ -27,28 +27,27 @@ enum rxe_wr_mask {
+ 	WR_ATOMIC_OR_READ_MASK		= WR_ATOMIC_MASK | WR_READ_MASK,
  };
  
- enum {
+-#define WR_MAX_QPT		(8)
+-
+ struct rxe_wr_opcode_info {
+ 	char			*name;
+-	enum rxe_wr_mask	mask[WR_MAX_QPT];
++	enum rxe_wr_mask	mask[IB_QPT_MAX];
+ };
+ 
+ extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
+ 
+ enum rxe_hdr_type {
+-	RXE_LRH,
+-	RXE_GRH,
+-	RXE_BTH,
+-	RXE_RETH,
+-	RXE_AETH,
+-	RXE_ATMETH,
+-	RXE_ATMACK,
+-	RXE_IETH,
+-	RXE_RDETH,
+-	RXE_DETH,
+-	RXE_IMMDT,
+-	RXE_PAYLOAD,
++	RXE_LRH,		/* IBA 5.2.1 not used by rxe */
++	RXE_GRH,		/* IBA 5.2.2 */
++	RXE_BTH,		/* IBA 5.2.3 */
++	RXE_RDETH,		/* IBA 5.2.4 not supported by rxe */
++	RXE_DETH,		/* IBA 5.2.5 */
++	RXE_RETH,		/* IBA 5.2.6 */
++	RXE_ATMETH,		/* IBA 5.2.7 */
++	RXE_XRCETH,		/* IBA 5.2.8 */
++	RXE_AETH,		/* IBA 5.2.9 */
++	RXE_ATMACK,		/* IBA 5.2.10 */
++	RXE_IMMDT,		/* IBA 5.2.11 */
++	RXE_IETH,		/* IBA 5.2.12 */
++	RXE_PAYLOAD,		/* IBA 5.2.13 */
+ 	NUM_HDR_TYPES
+ };
+ 
+@@ -56,14 +55,15 @@ enum rxe_hdr_mask {
+ 	RXE_LRH_MASK		= BIT(RXE_LRH),
+ 	RXE_GRH_MASK		= BIT(RXE_GRH),
+ 	RXE_BTH_MASK		= BIT(RXE_BTH),
+-	RXE_IMMDT_MASK		= BIT(RXE_IMMDT),
++	RXE_RDETH_MASK		= BIT(RXE_RDETH),
++	RXE_DETH_MASK		= BIT(RXE_DETH),
+ 	RXE_RETH_MASK		= BIT(RXE_RETH),
+-	RXE_AETH_MASK		= BIT(RXE_AETH),
+ 	RXE_ATMETH_MASK		= BIT(RXE_ATMETH),
++	RXE_XRCETH_MASK		= BIT(RXE_XRCETH),
++	RXE_AETH_MASK		= BIT(RXE_AETH),
+ 	RXE_ATMACK_MASK		= BIT(RXE_ATMACK),
++	RXE_IMMDT_MASK		= BIT(RXE_IMMDT),
+ 	RXE_IETH_MASK		= BIT(RXE_IETH),
+-	RXE_RDETH_MASK		= BIT(RXE_RDETH),
+-	RXE_DETH_MASK		= BIT(RXE_DETH),
+ 	RXE_PAYLOAD_MASK	= BIT(RXE_PAYLOAD),
+ 
+ 	RXE_REQ_MASK		= BIT(NUM_HDR_TYPES + 0),
 -- 
 2.30.2
 
