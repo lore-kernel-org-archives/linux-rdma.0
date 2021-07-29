@@ -7,20 +7,20 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08E5EC04FE3
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D214BC43216
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E610060F01
+	by mail.kernel.org (Postfix) with ESMTP id B672E6103A
 	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233507AbhG2CXH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S233516AbhG2CXH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 28 Jul 2021 22:23:07 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:16019 "EHLO
+Received: from szxga01-in.huawei.com ([45.249.212.187]:16020 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233488AbhG2CXG (ORCPT
+        with ESMTP id S233507AbhG2CXG (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Jul 2021 22:23:06 -0400
 Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GZvP20QgfzZv7w;
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GZvP20yQhzZtcr;
         Thu, 29 Jul 2021 10:19:34 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
@@ -29,15 +29,15 @@ Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 29 Jul 2021 10:22:59 +0800
+ 15.1.2176.2; Thu, 29 Jul 2021 10:23:00 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <leon@kernel.org>, <liangwenpeng@huawei.com>,
         Xi Wang <wangxi11@huawei.com>
-Subject: [PATCH v4 for-next 04/12] RDMA/hns: Refactor QP modify flow
-Date:   Thu, 29 Jul 2021 10:19:15 +0800
-Message-ID: <1627525163-1683-5-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v4 for-next 06/12] RDMA/hns: Setup the configuration of WQE addressing to QPC
+Date:   Thu, 29 Jul 2021 10:19:17 +0800
+Message-ID: <1627525163-1683-7-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627525163-1683-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627525163-1683-1-git-send-email-liangwenpeng@huawei.com>
@@ -53,95 +53,147 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-Warp the qp modify checking logic as a funciton to make the code more
-readable.
+Add a new command to update the configuration of WQE buffer addressing to
+QPC in DCA mode.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 50 ++++++++++++++++++++++-----------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 82 +++++++++++++++++++++++++++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  1 +
+ 2 files changed, 77 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 91311a0..4b8e850 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1343,21 +1343,17 @@ static int hns_roce_check_qp_attr(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	return 0;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index b31b493..7e44128 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2782,6 +2782,17 @@ static void hns_roce_v2_exit(struct hns_roce_dev *hr_dev)
+ 		free_dip_list(hr_dev);
  }
  
--int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
--		       int attr_mask, struct ib_udata *udata)
-+static int check_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+			   int attr_mask, enum ib_qp_state cur_state,
-+			   enum ib_qp_state new_state)
- {
--	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
--	enum ib_qp_state cur_state, new_state;
--	int ret = -EINVAL;
--
--	mutex_lock(&hr_qp->mutex);
--
--	if (attr_mask & IB_QP_CUR_STATE && attr->cur_qp_state != hr_qp->state)
--		goto out;
-+	int ret;
- 
--	cur_state = hr_qp->state;
--	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
-+	if (attr_mask & IB_QP_CUR_STATE && attr->cur_qp_state != hr_qp->state) {
-+		ibdev_err(ibqp->device, "failed to check modify curr state\n");
-+		return -EINVAL;
-+	}
- 
- 	if (ibqp->uobject &&
- 	    (attr_mask & IB_QP_STATE) && new_state == IB_QPS_ERR) {
-@@ -1367,19 +1363,41 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 			if (hr_qp->en_flags & HNS_ROCE_QP_CAP_RQ_RECORD_DB)
- 				hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
- 		} else {
--			ibdev_warn(&hr_dev->ib_dev,
-+			ibdev_warn(ibqp->device,
- 				  "flush cqe is not supported in userspace!\n");
--			goto out;
-+			return -EINVAL;
- 		}
- 	}
- 
- 	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
- 				attr_mask)) {
--		ibdev_err(&hr_dev->ib_dev, "ib_modify_qp_is_ok failed\n");
--		goto out;
-+		ibdev_err(ibqp->device, "failed to check modify qp state\n");
-+		return -EINVAL;
- 	}
- 
- 	ret = hns_roce_check_qp_attr(ibqp, attr, attr_mask);
-+	if (ret) {
-+		ibdev_err(ibqp->device, "failed to check modify qp attr\n");
-+		return ret;
-+	}
-+
-+	return 0;
++static inline void mbox_desc_init(struct hns_roce_post_mbox *mb, u64 in_param,
++				  u64 out_param, u32 in_modifier,
++				  u8 op_modifier, u16 op)
++{
++	mb->in_param_l = cpu_to_le32(in_param);
++	mb->in_param_h = cpu_to_le32(in_param >> 32);
++	mb->out_param_l = cpu_to_le32(out_param);
++	mb->out_param_h = cpu_to_le32(out_param >> 32);
++	mb->cmd_tag = cpu_to_le32(in_modifier << 8 | op);
 +}
 +
-+int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
-+		       int attr_mask, struct ib_udata *udata)
+ static int hns_roce_mbox_post(struct hns_roce_dev *hr_dev, u64 in_param,
+ 			      u64 out_param, u32 in_modifier, u8 op_modifier,
+ 			      u16 op, u16 token, int event)
+@@ -2790,17 +2801,34 @@ static int hns_roce_mbox_post(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	struct hns_roce_post_mbox *mb = (struct hns_roce_post_mbox *)desc.data;
+ 
+ 	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_POST_MB, false);
+-
+-	mb->in_param_l = cpu_to_le32(in_param);
+-	mb->in_param_h = cpu_to_le32(in_param >> 32);
+-	mb->out_param_l = cpu_to_le32(out_param);
+-	mb->out_param_h = cpu_to_le32(out_param >> 32);
+-	mb->cmd_tag = cpu_to_le32(in_modifier << 8 | op);
++	mbox_desc_init(mb, in_param, out_param, in_modifier, op_modifier, op);
+ 	mb->token_event_en = cpu_to_le32(event << 16 | token);
+ 
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
+ }
+ 
++static int hns_roce_mbox_send(struct hns_roce_dev *hr_dev, u64 in_param,
++			      u64 out_param, u32 in_modifier, u8 op_modifier,
++			      u16 op)
 +{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
-+	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-+	enum ib_qp_state cur_state, new_state;
++	struct hns_roce_cmq_desc desc;
++	struct hns_roce_post_mbox *mb = (struct hns_roce_post_mbox *)desc.data;
++
++	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_SYNC_MB, false);
++
++	mbox_desc_init(mb, in_param, out_param, in_modifier, op_modifier, op);
++
++	/* The hardware doesn't care about the token fields when working in
++	 * sync mode.
++	 */
++	mb->token_event_en = 0;
++
++	/* The cmdq send returns 0 indicates that the hardware has already
++	 * finished the operation defined in this mbox.
++	 */
++	return hns_roce_cmq_send(hr_dev, &desc, 1);
++}
++
+ static int v2_wait_mbox_complete(struct hns_roce_dev *hr_dev, u32 timeout,
+ 				 u8 *complete_status)
+ {
+@@ -5062,6 +5090,47 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	return ret;
+ }
+ 
++static int hns_roce_v2_set_dca_buf(struct hns_roce_dev *hr_dev,
++				   struct hns_roce_qp *hr_qp)
++{
++	struct ib_device *ibdev = &hr_dev->ib_dev;
++	struct hns_roce_v2_qp_context *qpc, *msk;
++	dma_addr_t dma_handle;
++	int qpc_sz;
 +	int ret;
 +
-+	mutex_lock(&hr_qp->mutex);
++	qpc_sz = hr_dev->caps.qpc_sz;
++	WARN_ON(2 * qpc_sz > HNS_ROCE_MAILBOX_SIZE);
++	qpc = dma_pool_alloc(hr_dev->cmd.pool, GFP_NOWAIT, &dma_handle);
++	if (!qpc)
++		return -ENOMEM;
 +
-+	cur_state = hr_qp->state;
-+	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
++	msk = (struct hns_roce_v2_qp_context *)((void *)qpc + qpc_sz);
++	memset(msk, 0xff, qpc_sz);
 +
-+	ret = check_modify_qp(ibqp, attr, attr_mask, cur_state, new_state);
- 	if (ret)
- 		goto out;
- 
++	ret = config_qp_rq_buf(hr_dev, hr_qp, qpc, msk);
++	if (ret) {
++		ibdev_err(ibdev, "failed to config rq qpc, ret = %d.\n", ret);
++		goto done;
++	}
++
++	ret = config_qp_sq_buf(hr_dev, hr_qp, qpc, msk);
++	if (ret) {
++		ibdev_err(ibdev, "failed to config sq qpc, ret = %d.\n", ret);
++		goto done;
++	}
++
++	ret = hns_roce_mbox_send(hr_dev, dma_handle, 0, hr_qp->qpn, 0,
++				 HNS_ROCE_CMD_MODIFY_QPC);
++	if (ret)
++		ibdev_err(ibdev, "failed to modify DCA buf, ret = %d.\n", ret);
++
++done:
++	dma_pool_free(hr_dev->cmd.pool, qpc, dma_handle);
++
++	return ret;
++}
++
+ static int to_ib_qp_st(enum hns_roce_v2_qp_state state)
+ {
+ 	static const enum ib_qp_state map[] = {
+@@ -6239,6 +6308,7 @@ static const struct hns_roce_hw hns_roce_hw_v2 = {
+ 	.write_cqc = hns_roce_v2_write_cqc,
+ 	.set_hem = hns_roce_v2_set_hem,
+ 	.clear_hem = hns_roce_v2_clear_hem,
++	.set_dca_buf = hns_roce_v2_set_dca_buf,
+ 	.modify_qp = hns_roce_v2_modify_qp,
+ 	.qp_flow_control_init = hns_roce_v2_qp_flow_control_init,
+ 	.init_eq = hns_roce_v2_init_eq_table,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index b8a09d4..3f758d6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -257,6 +257,7 @@ enum hns_roce_opcode_type {
+ 	HNS_ROCE_OPC_QUERY_VF_RES			= 0x850e,
+ 	HNS_ROCE_OPC_CFG_GMV_TBL			= 0x850f,
+ 	HNS_ROCE_OPC_CFG_GMV_BT				= 0x8510,
++	HNS_ROCE_OPC_SYNC_MB				= 0x8511,
+ 	HNS_ROCE_OPC_EXT_CFG				= 0x8512,
+ 	HNS_SWITCH_PARAMETER_CFG			= 0x1033,
+ };
 -- 
 2.8.1
 
