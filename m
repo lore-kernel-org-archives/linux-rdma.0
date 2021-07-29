@@ -4,28 +4,28 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83D6CC43214
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08E5EC04FE3
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 699926103A
+	by mail.kernel.org (Postfix) with ESMTP id E610060F01
 	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 02:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233341AbhG2CXG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Jul 2021 22:23:06 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:16017 "EHLO
+        id S233507AbhG2CXH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Jul 2021 22:23:07 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:16019 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233384AbhG2CXG (ORCPT
+        with ESMTP id S233488AbhG2CXG (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Jul 2021 22:23:06 -0400
 Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GZvP16B3yzZv7p;
-        Thu, 29 Jul 2021 10:19:33 +0800 (CST)
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GZvP20QgfzZv7w;
+        Thu, 29 Jul 2021 10:19:34 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 29 Jul 2021 10:22:59 +0800
+ 15.1.2176.2; Thu, 29 Jul 2021 10:23:00 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -35,9 +35,9 @@ To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <leon@kernel.org>, <liangwenpeng@huawei.com>,
         Xi Wang <wangxi11@huawei.com>
-Subject: [PATCH v4 for-next 02/12] RDMA/hns: Add method for shrinking DCA memory pool
-Date:   Thu, 29 Jul 2021 10:19:13 +0800
-Message-ID: <1627525163-1683-3-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH v4 for-next 04/12] RDMA/hns: Refactor QP modify flow
+Date:   Thu, 29 Jul 2021 10:19:15 +0800
+Message-ID: <1627525163-1683-5-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1627525163-1683-1-git-send-email-liangwenpeng@huawei.com>
 References: <1627525163-1683-1-git-send-email-liangwenpeng@huawei.com>
@@ -53,236 +53,95 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Xi Wang <wangxi11@huawei.com>
 
-If no QP is using a DCA mem object, the userspace driver can destroy it.
-So add a new method 'HNS_IB_METHOD_DCA_MEM_SHRINK' to allow the userspace
-dirver to remove an object from DCA memory pool.
-
-If a DCA mem object has been shrunk, the userspace driver can destroy it
-by 'HNS_IB_METHOD_DCA_MEM_DEREG' method and free the buffer which is
-allocated in userspace.
+Warp the qp modify checking logic as a funciton to make the code more
+readable.
 
 Signed-off-by: Xi Wang <wangxi11@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_dca.c | 136 ++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_dca.h |   7 ++
- include/uapi/rdma/hns-abi.h              |   9 ++
- 3 files changed, 151 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 50 ++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.c b/drivers/infiniband/hw/hns/hns_roce_dca.c
-index 6a3ff12..92256784a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_dca.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_dca.c
-@@ -35,6 +35,10 @@ struct dca_mem_attr {
- 	u32 size;
- };
- 
-+#define dca_page_is_free(s) ((s)->buf_id == HNS_DCA_INVALID_BUF_ID)
-+#define dca_mem_is_available(m) \
-+	((m)->flags == (DCA_MEM_FLAGS_ALLOCED | DCA_MEM_FLAGS_REGISTERED))
-+
- static void *alloc_dca_pages(struct hns_roce_dev *hr_dev, struct dca_mem *mem,
- 			     struct dca_mem_attr *attr)
- {
-@@ -89,6 +93,41 @@ static struct hns_dca_page_state *alloc_dca_states(void *pages, int count)
- 	return states;
- }
- 
-+#define DCA_MEM_STOP_ITERATE -1
-+#define DCA_MEM_NEXT_ITERATE -2
-+static void travel_dca_pages(struct hns_roce_dca_ctx *ctx, void *param,
-+			     int (*cb)(struct dca_mem *, int, void *))
-+{
-+	struct dca_mem *mem, *tmp;
-+	unsigned long flags;
-+	bool avail;
-+	int ret;
-+	int i;
-+
-+	spin_lock_irqsave(&ctx->pool_lock, flags);
-+	list_for_each_entry_safe(mem, tmp, &ctx->pool, list) {
-+		spin_unlock_irqrestore(&ctx->pool_lock, flags);
-+
-+		spin_lock(&mem->lock);
-+		avail = dca_mem_is_available(mem);
-+		ret = 0;
-+		for (i = 0; avail && i < mem->page_count; i++) {
-+			ret = cb(mem, i, param);
-+			if (ret == DCA_MEM_STOP_ITERATE ||
-+			    ret == DCA_MEM_NEXT_ITERATE)
-+				break;
-+		}
-+		spin_unlock(&mem->lock);
-+		spin_lock_irqsave(&ctx->pool_lock, flags);
-+
-+		if (ret == DCA_MEM_STOP_ITERATE)
-+			goto done;
-+	}
-+
-+done:
-+	spin_unlock_irqrestore(&ctx->pool_lock, flags);
-+}
-+
- /* user DCA is managed by ucontext */
- #define to_hr_dca_ctx(uctx) (&(uctx)->dca_ctx)
- 
-@@ -156,6 +195,63 @@ static int register_dca_mem(struct hns_roce_dev *hr_dev,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 91311a0..4b8e850 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1343,21 +1343,17 @@ static int hns_roce_check_qp_attr(struct ib_qp *ibqp, struct ib_qp_attr *attr,
  	return 0;
  }
  
-+struct dca_mem_shrink_attr {
-+	u64 shrink_key;
-+	u32 shrink_mems;
-+};
-+
-+static int shrink_dca_page_proc(struct dca_mem *mem, int index, void *param)
-+{
-+	struct dca_mem_shrink_attr *attr = param;
-+	struct hns_dca_page_state *state;
-+	int i, free_pages;
-+
-+	free_pages = 0;
-+	for (i = 0; i < mem->page_count; i++) {
-+		state = &mem->states[i];
-+		if (dca_page_is_free(state))
-+			free_pages++;
+-int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+-		       int attr_mask, struct ib_udata *udata)
++static int check_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			   int attr_mask, enum ib_qp_state cur_state,
++			   enum ib_qp_state new_state)
+ {
+-	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+-	enum ib_qp_state cur_state, new_state;
+-	int ret = -EINVAL;
+-
+-	mutex_lock(&hr_qp->mutex);
+-
+-	if (attr_mask & IB_QP_CUR_STATE && attr->cur_qp_state != hr_qp->state)
+-		goto out;
++	int ret;
+ 
+-	cur_state = hr_qp->state;
+-	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
++	if (attr_mask & IB_QP_CUR_STATE && attr->cur_qp_state != hr_qp->state) {
++		ibdev_err(ibqp->device, "failed to check modify curr state\n");
++		return -EINVAL;
 +	}
-+
-+	/* No pages are in use */
-+	if (free_pages == mem->page_count) {
-+		/* unregister first empty DCA mem */
-+		if (!attr->shrink_mems) {
-+			mem->flags &= ~DCA_MEM_FLAGS_REGISTERED;
-+			attr->shrink_key = mem->key;
-+		}
-+
-+		attr->shrink_mems++;
+ 
+ 	if (ibqp->uobject &&
+ 	    (attr_mask & IB_QP_STATE) && new_state == IB_QPS_ERR) {
+@@ -1367,19 +1363,41 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			if (hr_qp->en_flags & HNS_ROCE_QP_CAP_RQ_RECORD_DB)
+ 				hr_qp->rq.head = *(int *)(hr_qp->rdb.virt_addr);
+ 		} else {
+-			ibdev_warn(&hr_dev->ib_dev,
++			ibdev_warn(ibqp->device,
+ 				  "flush cqe is not supported in userspace!\n");
+-			goto out;
++			return -EINVAL;
+ 		}
+ 	}
+ 
+ 	if (!ib_modify_qp_is_ok(cur_state, new_state, ibqp->qp_type,
+ 				attr_mask)) {
+-		ibdev_err(&hr_dev->ib_dev, "ib_modify_qp_is_ok failed\n");
+-		goto out;
++		ibdev_err(ibqp->device, "failed to check modify qp state\n");
++		return -EINVAL;
+ 	}
+ 
+ 	ret = hns_roce_check_qp_attr(ibqp, attr, attr_mask);
++	if (ret) {
++		ibdev_err(ibqp->device, "failed to check modify qp attr\n");
++		return ret;
 +	}
-+
-+	if (attr->shrink_mems > 1)
-+		return DCA_MEM_STOP_ITERATE;
-+	else
-+		return DCA_MEM_NEXT_ITERATE;
-+}
-+
-+static int shrink_dca_mem(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_ucontext *uctx, u64 reserved_size,
-+			  struct hns_dca_shrink_resp *resp)
-+{
-+	struct hns_roce_dca_ctx *ctx = to_hr_dca_ctx(uctx);
-+	struct dca_mem_shrink_attr attr = {};
-+	unsigned long flags;
-+	bool need_shink;
-+
-+	spin_lock_irqsave(&ctx->pool_lock, flags);
-+	need_shink = ctx->free_mems > 0 && ctx->free_size > reserved_size;
-+	spin_unlock_irqrestore(&ctx->pool_lock, flags);
-+	if (!need_shink)
-+		return 0;
-+
-+	travel_dca_pages(ctx, &attr, shrink_dca_page_proc);
-+	resp->free_mems = attr.shrink_mems;
-+	resp->free_key = attr.shrink_key;
 +
 +	return 0;
 +}
 +
- static void init_dca_context(struct hns_roce_dca_ctx *ctx)
- {
- 	INIT_LIST_HEAD(&ctx->pool);
-@@ -323,10 +419,48 @@ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
- 	UVERBS_ATTR_IDR(HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE, HNS_IB_OBJECT_DCA_MEM,
- 			UVERBS_ACCESS_DESTROY, UA_MANDATORY));
- 
-+static int UVERBS_HANDLER(HNS_IB_METHOD_DCA_MEM_SHRINK)(
-+	struct uverbs_attr_bundle *attrs)
++int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		       int attr_mask, struct ib_udata *udata)
 +{
-+	struct hns_roce_ucontext *uctx = uverbs_attr_to_hr_uctx(attrs);
-+	struct hns_dca_shrink_resp resp = {};
-+	u64 reserved_size = 0;
++	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
++	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
++	enum ib_qp_state cur_state, new_state;
 +	int ret;
 +
-+	if (uverbs_copy_from(&reserved_size, attrs,
-+			     HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE))
-+		return -EFAULT;
++	mutex_lock(&hr_qp->mutex);
 +
-+	ret = shrink_dca_mem(to_hr_dev(uctx->ibucontext.device), uctx,
-+			     reserved_size, &resp);
-+	if (ret)
-+		return ret;
++	cur_state = hr_qp->state;
++	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
 +
-+	if (uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
-+			   &resp.free_key, sizeof(resp.free_key)) ||
-+	    uverbs_copy_to(attrs, HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
-+			   &resp.free_mems, sizeof(resp.free_mems)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+DECLARE_UVERBS_NAMED_METHOD(
-+	HNS_IB_METHOD_DCA_MEM_SHRINK,
-+	UVERBS_ATTR_IDR(HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE,
-+			HNS_IB_OBJECT_DCA_MEM, UVERBS_ACCESS_WRITE,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE,
-+			   UVERBS_ATTR_TYPE(u64), UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
-+			    UVERBS_ATTR_TYPE(u64), UA_MANDATORY),
-+	UVERBS_ATTR_PTR_OUT(HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
-+			    UVERBS_ATTR_TYPE(u32), UA_MANDATORY));
- DECLARE_UVERBS_NAMED_OBJECT(HNS_IB_OBJECT_DCA_MEM,
- 			    UVERBS_TYPE_ALLOC_IDR(dca_cleanup),
- 			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_REG),
--			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DEREG));
-+			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_DEREG),
-+			    &UVERBS_METHOD(HNS_IB_METHOD_DCA_MEM_SHRINK));
++	ret = check_modify_qp(ibqp, attr, attr_mask, cur_state, new_state);
+ 	if (ret)
+ 		goto out;
  
- static bool dca_is_supported(struct ib_device *device)
- {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_dca.h b/drivers/infiniband/hw/hns/hns_roce_dca.h
-index aad198c..a82ed5e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_dca.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_dca.h
-@@ -14,6 +14,13 @@ struct hns_dca_page_state {
- 	u32 head : 1; /* This page is the head in a continuous address range. */
- };
- 
-+struct hns_dca_shrink_resp {
-+	u64 free_key; /* free buffer's key which registered by the user */
-+	u32 free_mems; /* free buffer count which no any QP be using */
-+};
-+
-+#define HNS_DCA_INVALID_BUF_ID 0UL
-+
- void hns_roce_register_udca(struct hns_roce_dev *hr_dev,
- 			    struct hns_roce_ucontext *uctx);
- void hns_roce_unregister_udca(struct hns_roce_dev *hr_dev,
-diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
-index c17ec91..bcca5be 100644
---- a/include/uapi/rdma/hns-abi.h
-+++ b/include/uapi/rdma/hns-abi.h
-@@ -109,6 +109,7 @@ enum hns_ib_objects {
- enum hns_ib_dca_mem_methods {
- 	HNS_IB_METHOD_DCA_MEM_REG = (1U << UVERBS_ID_NS_SHIFT),
- 	HNS_IB_METHOD_DCA_MEM_DEREG,
-+	HNS_IB_METHOD_DCA_MEM_SHRINK,
- };
- 
- enum hns_ib_dca_mem_reg_attrs {
-@@ -121,4 +122,12 @@ enum hns_ib_dca_mem_reg_attrs {
- enum hns_ib_dca_mem_dereg_attrs {
- 	HNS_IB_ATTR_DCA_MEM_DEREG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
- };
-+
-+enum hns_ib_dca_mem_shrink_attrs {
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_RESERVED_SIZE,
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_KEY,
-+	HNS_IB_ATTR_DCA_MEM_SHRINK_OUT_FREE_MEMS,
-+};
-+
- #endif /* HNS_ABI_USER_H */
 -- 
 2.8.1
 
