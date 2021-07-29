@@ -2,66 +2,66 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF323C43216
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78CABC4320E
 	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99B51604D7
+	by mail.kernel.org (Postfix) with ESMTP id 5CF9C60F4A
 	for <linux-rdma@archiver.kernel.org>; Thu, 29 Jul 2021 22:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234680AbhG2Wut (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234019AbhG2Wut (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 29 Jul 2021 18:50:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41830 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234753AbhG2Wur (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Jul 2021 18:50:47 -0400
-Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85368C061798
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:43 -0700 (PDT)
-Received: by mail-oi1-x22d.google.com with SMTP id 21so10527181oin.8
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:43 -0700 (PDT)
+        with ESMTP id S234737AbhG2Wuq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Jul 2021 18:50:46 -0400
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1076CC0613CF
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:42 -0700 (PDT)
+Received: by mail-ot1-x32f.google.com with SMTP id o2-20020a9d22020000b0290462f0ab0800so7487480ota.11
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Jul 2021 15:50:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=iF8ZKl65ur4InZCGAnaUDd4r4zm2LFpKfwy0uOdsUNQ=;
-        b=t0j+hpbeLlJw/OjV80YM3KuWuRXrW9XvEdoqvJi62+hrC8hpt+k44vR87Dfav4ONGT
-         6iiJEXywdGGKVBrpm+bhHjMinLJIeOA67CFmxOkSZRov7tg4BzeLx9eCYn0C+hjniLM/
-         iltiNMseUxjL11S6TexjTWTrk2B9wwlhc6Lg0KRR+0UhpdGnZiHgkTAU572tGtMI1Ksu
-         ynXsJznV0dK4CYCoM955gyGhMuky5mx9rmpUQKI237bCd0+IbID76FkKZ92JqwlCkTYM
-         aG2K0+iHjCGNq6I831zvBEhQc/qcNIfuXztfjQwpmTsy0zL5Ylw+3GENGOiSZ4j3td+u
-         CPDg==
+        bh=/R0wIXOAOx3/OwhfrTMtZFTqyUixpX3jPEUzgt8Nf4I=;
+        b=FD9IrG8v/4IEsAI7NJ4PbNnZxyw8MeCJOyJO3e2XlbR9420hvOqV5WKF0vKpDyZwQO
+         dCw7ZQcYU71VR6Ly5uUqOFXOLsdnuYPxNfiE/lnemw4J6LqL+0yX9zTtL8LUXNarJMNQ
+         cPJJOxIVw8ghGH0xnhOUIOBxQEMCkWArdN2+HeQo8evwB668NLUB+IcCtWHJPDejO0DI
+         /+/fxpg55PAfkfo6pLgCM41ukfjQYu1GlWUpxv1MUhnGTkJo5NYCxRYCFsZaFU5SzcWc
+         /yNYtOFNX7jG7UGd4ypvwZcAtHfPJD0PQIeC5WpYLjNnXPxkAcN/HpWwmsHNjEMQBlHe
+         HPJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=iF8ZKl65ur4InZCGAnaUDd4r4zm2LFpKfwy0uOdsUNQ=;
-        b=VntbiR0zuhrc59NSI3uZgOoWHwE/o+VRw0grBem8Sv1epJr6P9yrIQhEQThj7uDq4u
-         458NgtklvJtYsu9urRKWrkMCVuyr0dtePnVcCUt9DUFVfdMk69ZuNIywInurYu5XSbbS
-         mSup7qLkjXXHTSJaJCVpBJO4yzrbFRSx+JkgWo72p0SBr6SuzpSZWtIA9vBSWMy2iZ37
-         diokNEVIWvDe5uG8yeTYIQ/gFOdPCeHsMFW0FwsNy0q6yNhj8yZV04DkqhUBN9aoqOjG
-         8nNe0vBG1yKtf29/GmtNw9Q/bgCdXYWdgSo0JiayO72//Gels4TgS81+Gx3wo1R6w4Fv
-         Qsqg==
-X-Gm-Message-State: AOAM530gszTrfCnNiXvvrIK0yOePz9DLfZjCob4SaRnng/g5Quv4zqrr
-        x6PXOSV20qgwIXlAqlz0aF0=
-X-Google-Smtp-Source: ABdhPJxeqw3PamWPiKBdICMkhCtYmmlkUfjU51fIdZU9Wj7OLeOyuLGG7aqrhkIS8wf/2MU8cCs0Pg==
-X-Received: by 2002:a05:6808:1490:: with SMTP id e16mr11204725oiw.91.1627599042951;
-        Thu, 29 Jul 2021 15:50:42 -0700 (PDT)
+        bh=/R0wIXOAOx3/OwhfrTMtZFTqyUixpX3jPEUzgt8Nf4I=;
+        b=ZgJ5Kiw2oCOkkDlnJd7+x6mYr/TcY7r1GE8cFSkK1xvTrULRnR5/OWAEhF5/DOvQif
+         KLMAnsICJcqHrHXHrgorI7fTactoMpJYI+u1KJ5G+UgmsYtLWsxG57E5DJAvFRVB1rdb
+         G/uaaj16E9cqlw81dTJGlFsM1tkINaw+Ry8wWc15lFzdXFua1yqGHKhlBd6s/CJCg1eM
+         Y+ooKLNNub/CvwP7WYrSuVqQlT3wx2YqIHSHo+yiPisG9clj5D8qNd03ZOR7UHnXwFqj
+         pPjpOnynWRNun8VYnr5dVukGmYoGdvYYBuW6rFSHqum6yMphdVSIhicb6CjxaFlTEjbd
+         kE+A==
+X-Gm-Message-State: AOAM530WfUImlSFmcRWi6WmBz5kAPVWb+7qUjgTkgURWdafrTKVS94U8
+        oyDZn9lIbzGzK2AS26wxZ9g=
+X-Google-Smtp-Source: ABdhPJy4gfBcNEQD12Y5FNupCJXZ+R3rNvrGaWmxFgRevqAAzIaZWEXvWbzy9yIvQcHD2J1G1FnoTA==
+X-Received: by 2002:a05:6830:11ca:: with SMTP id v10mr4967020otq.127.1627599041505;
+        Thu, 29 Jul 2021 15:50:41 -0700 (PDT)
 Received: from localhost (2603-8081-140c-1a00-80ca-c9ae-640f-0f9a.res6.spectrum.com. [2603:8081:140c:1a00:80ca:c9ae:640f:f9a])
-        by smtp.gmail.com with ESMTPSA id 190sm729172ooi.36.2021.07.29.15.50.42
+        by smtp.gmail.com with ESMTPSA id f26sm772430oto.65.2021.07.29.15.50.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jul 2021 15:50:42 -0700 (PDT)
+        Thu, 29 Jul 2021 15:50:41 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 12/13] RDMA/rxe: Extend rxe send XRC packets
-Date:   Thu, 29 Jul 2021 17:49:15 -0500
-Message-Id: <20210729224915.38986-13-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 10/13] RDMA/rxe: Compute next opcode for XRC
+Date:   Thu, 29 Jul 2021 17:49:13 -0500
+Message-Id: <20210729224915.38986-11-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210729224915.38986-1-rpearsonhpe@gmail.com>
 References: <20210729224915.38986-1-rpearsonhpe@gmail.com>
@@ -71,117 +71,106 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extend the rxe driver to support sending XRC packets. This patch
-  - Expands lists of QP types to include IB_XRC_INIT and IB_XRC_TGT
-    as appropriate.
-  - Fills in XRCETH header in XRC packets
+Extend rxe_req.c to compute next opcodes for XRC work requests.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_av.c  |  4 +++-
- drivers/infiniband/sw/rxe/rxe_net.c | 14 ++++++++++----
- drivers/infiniband/sw/rxe/rxe_req.c | 13 ++++++++++---
- 3 files changed, 23 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 75 +++++++++++++++++++++++++++--
+ 1 file changed, 72 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-index 46cd7e2d2806..05d4cb772dc6 100644
---- a/drivers/infiniband/sw/rxe/rxe_av.c
-+++ b/drivers/infiniband/sw/rxe/rxe_av.c
-@@ -108,7 +108,9 @@ struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt)
- 		return NULL;
- 
- 	if (rxe_qp_type(pkt->qp) == IB_QPT_RC ||
--	    rxe_qp_type(pkt->qp) == IB_QPT_UC)
-+	    rxe_qp_type(pkt->qp) == IB_QPT_UC ||
-+	    rxe_qp_type(pkt->qp) == IB_QPT_XRC_INI ||
-+	    rxe_qp_type(pkt->qp) == IB_QPT_XRC_TGT)
- 		return &pkt->qp->pri_av;
- 
- 	if (!pkt->wqe)
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 6212e61d267b..b1353d456a4c 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -114,7 +114,9 @@ static struct dst_entry *rxe_find_route(struct net_device *ndev,
- {
- 	struct dst_entry *dst = NULL;
- 
--	if (rxe_qp_type(qp) == IB_QPT_RC)
-+	if (rxe_qp_type(qp) == IB_QPT_RC ||
-+	    rxe_qp_type(qp) == IB_QPT_XRC_INI ||
-+	    rxe_qp_type(qp) == IB_QPT_XRC_TGT)
- 		dst = sk_dst_get(qp->sk->sk);
- 
- 	if (!dst || !dst_check(dst, qp->dst_cookie)) {
-@@ -142,7 +144,9 @@ static struct dst_entry *rxe_find_route(struct net_device *ndev,
- #endif
- 		}
- 
--		if (dst && (rxe_qp_type(qp) == IB_QPT_RC)) {
-+		if (dst && (rxe_qp_type(qp) == IB_QPT_RC ||
-+			    rxe_qp_type(qp) == IB_QPT_XRC_INI ||
-+			    rxe_qp_type(qp) == IB_QPT_XRC_TGT)) {
- 			dst_hold(dst);
- 			sk_dst_set(qp->sk->sk, dst);
- 		}
-@@ -459,8 +463,10 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 		return err;
- 	}
- 
--	if ((rxe_qp_type(qp) != IB_QPT_RC) &&
--	    (pkt->mask & RXE_END_MASK)) {
-+	if ((rxe_qp_type(qp) != IB_QPT_RC &&
-+	     rxe_qp_type(qp) != IB_QPT_XRC_INI &&
-+	     rxe_qp_type(qp) != IB_QPT_XRC_TGT) &&
-+	     pkt->mask & RXE_END_MASK) {
- 		pkt->wqe->state = wqe_state_done;
- 		rxe_run_task(&qp->comp.task, 1);
- 	}
 diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index b6f6614a3f32..166d4aeef5e9 100644
+index 3eee4d8dbe48..b6f6614a3f32 100644
 --- a/drivers/infiniband/sw/rxe/rxe_req.c
 +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -423,7 +423,9 @@ static inline int get_mtu(struct rxe_qp *qp)
- {
- 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
- 
--	if ((rxe_qp_type(qp) == IB_QPT_RC) || (rxe_qp_type(qp) == IB_QPT_UC))
-+	if (rxe_qp_type(qp) == IB_QPT_RC ||
-+	    rxe_qp_type(qp) == IB_QPT_UC ||
-+	    rxe_qp_type(qp) == IB_QPT_XRC_INI)
- 		return qp->mtu;
- 
- 	return rxe->port.mtu_cap;
-@@ -487,6 +489,9 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
- 		 ack_req, pkt->psn);
- 
- 	/* init optional headers */
-+	if (pkt->mask & RXE_XRCETH_MASK)
-+		xrceth_set_xrcsrq(pkt, ibwr->wr.xrc.srq_num);
+@@ -240,9 +240,75 @@ static int next_opcode_rc(struct rxe_qp *qp, u32 opcode, int fits)
+ 		else
+ 			return fits ? IB_OPCODE_RC_SEND_ONLY_WITH_INVALIDATE :
+ 				IB_OPCODE_RC_SEND_FIRST;
+-	case IB_WR_REG_MR:
+-	case IB_WR_LOCAL_INV:
+-		return opcode;
++	}
 +
- 	if (pkt->mask & RXE_RETH_MASK) {
- 		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
- 		reth_set_va(pkt, wqe->iova);
-@@ -562,7 +567,8 @@ static void update_wqe_state(struct rxe_qp *qp,
- 		struct rxe_pkt_info *pkt)
- {
- 	if (pkt->mask & RXE_END_MASK) {
--		if (rxe_qp_type(qp) == IB_QPT_RC)
-+		if (rxe_qp_type(qp) == IB_QPT_RC ||
-+		    rxe_qp_type(qp) == IB_QPT_XRC_INI)
- 			wqe->state = wqe_state_pending;
- 	} else {
- 		wqe->state = wqe_state_processing;
-@@ -730,7 +736,8 @@ int rxe_requester(void *arg)
- 			goto next_wqe;
++	return -EINVAL;
++}
++
++static int next_opcode_xrc(struct rxe_qp *qp, u32 opcode, int fits)
++{
++	switch (opcode) {
++	case IB_WR_RDMA_WRITE:
++		if (qp->req.opcode == IB_OPCODE_XRC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_XRC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_XRC_RDMA_WRITE_LAST :
++				IB_OPCODE_XRC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_XRC_RDMA_WRITE_ONLY :
++				IB_OPCODE_XRC_RDMA_WRITE_FIRST;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_XRC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_XRC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_XRC_RDMA_WRITE_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_XRC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_XRC_RDMA_WRITE_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_XRC_RDMA_WRITE_FIRST;
++
++	case IB_WR_SEND:
++		if (qp->req.opcode == IB_OPCODE_XRC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_XRC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_XRC_SEND_LAST :
++				IB_OPCODE_XRC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_XRC_SEND_ONLY :
++				IB_OPCODE_XRC_SEND_FIRST;
++
++	case IB_WR_SEND_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_XRC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_XRC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_XRC_SEND_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_XRC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_XRC_SEND_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_XRC_SEND_FIRST;
++
++	case IB_WR_RDMA_READ:
++		return IB_OPCODE_XRC_RDMA_READ_REQUEST;
++
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++		return IB_OPCODE_XRC_COMPARE_SWAP;
++
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		return IB_OPCODE_XRC_FETCH_ADD;
++
++	case IB_WR_SEND_WITH_INV:
++		if (qp->req.opcode == IB_OPCODE_XRC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_XRC_SEND_MIDDLE)
++			return fits ? IB_OPCODE_XRC_SEND_LAST_WITH_INVALIDATE :
++				IB_OPCODE_XRC_SEND_MIDDLE;
++		else
++			return fits ? IB_OPCODE_XRC_SEND_ONLY_WITH_INVALIDATE :
++				IB_OPCODE_XRC_SEND_FIRST;
  	}
  
--	if (unlikely(rxe_qp_type(qp) == IB_QPT_RC &&
-+	if (unlikely((rxe_qp_type(qp) == IB_QPT_RC ||
-+		      rxe_qp_type(qp) == IB_QPT_XRC_INI) &&
- 		psn_compare(qp->req.psn, (qp->comp.psn +
- 				RXE_MAX_UNACKED_PSNS)) > 0)) {
- 		qp->req.wait_psn = 1;
+ 	return -EINVAL;
+@@ -323,6 +389,9 @@ static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 		}
+ 		break;
+ 
++	case IB_QPT_XRC_INI:
++		return next_opcode_xrc(qp, opcode, fits);
++
+ 	default:
+ 		break;
+ 	}
 -- 
 2.30.2
 
