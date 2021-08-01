@@ -2,64 +2,89 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53420C4338F
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Aug 2021 11:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD72C4338F
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Aug 2021 15:37:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FD1D60EBD
-	for <linux-rdma@archiver.kernel.org>; Sun,  1 Aug 2021 11:27:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40AE2610A6
+	for <linux-rdma@archiver.kernel.org>; Sun,  1 Aug 2021 15:37:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231470AbhHAL16 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Aug 2021 07:27:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53792 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231461AbhHAL16 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 1 Aug 2021 07:27:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 27EE860F46;
-        Sun,  1 Aug 2021 11:27:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627817270;
-        bh=C3z33tqBperSCk84d9sEKrhG3x66XBirfJNluhRCJ9c=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=qtVacoZKe8jlk1KrjjGUYmfOQ4HNczUH8o9ncNIU6MrVoYbTlmWo1jgjh499jrslv
-         ZWnYYDBxuXnWFp+nNRV4YRrzpE4Nff1DNHV1+eKEmV9DkrSFtcAhhnVtan1WyH71rf
-         qMNw9l3O6AewS4hMrLL9CANjwmP69c3vKXmSaoPhZYu3d8khdcwc2DGS9spTZyquH1
-         sRSimLYDYr+36/g/REgmIPEAXdDfwZLUguI3p6TonfJZOnXH+4QLRNG1JNqD9UrVCG
-         ot9x2jUpTVyiAYcM7LTqeSuzUd8ljRxnvewyBJKa5Fs+9LNYCfz0ww6zCtMH/Rk42d
-         fGKlBP91dZYvw==
-Date:   Sun, 1 Aug 2021 14:27:47 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Li Zhijian <lizhijian@cn.fujitsu.com>
-Cc:     dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/mlx5: return the EFAULT per ibv_advise_mr(3)
-Message-ID: <YQaFM8OTlmde+ZFV@unreal>
-References: <20210801092050.6322-1-lizhijian@cn.fujitsu.com>
+        id S232166AbhHAPhz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 1 Aug 2021 11:37:55 -0400
+Received: from smtp-relay-canonical-0.canonical.com ([185.125.188.120]:34980
+        "EHLO smtp-relay-canonical-0.canonical.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232117AbhHAPhy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Aug 2021 11:37:54 -0400
+Received: from localhost (1.general.cking.uk.vpn [10.172.193.212])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 5EE3A3F0A6;
+        Sun,  1 Aug 2021 15:37:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1627832265;
+        bh=iLN8TLgdbvtmYaSUrV7g9uz/p2+EVNuytQVWi86ahzk=;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type;
+        b=t8Fam8VC535Ic8aJxhQoRDVyQCzWKu3d4lIVBZ/POU19Bi0STVDy2y8lyutq5WdAD
+         8Q8BHNSVEF63yv55++n7UOgmygzQcvouHNFDq28M8b6dhJgk9Zt+R99ewDHavGOyqR
+         Yu8khXUp6YYRbol1kJNsKAu+zPIr6CC/eteiCc7haB7MENS2p3FX1Dq3w15jqh45Lk
+         8AsVEzReRJNwxQg+GTFkqgqxtm7VvntT8dWYubiW/4wxyZOtjPDI3Wuh9G2l8VXKxe
+         Zxc3TObvjpl9iTgua6GC5RSg/vrTUYjAxJbdKnqHQUo/SBRlVWzLIdFpwUhjWzps1F
+         pVBGXzRqmML8w==
+From:   Colin King <colin.king@canonical.com>
+To:     Tariq Toukan <tariqt@nvidia.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] net/mlx4: make the array states static const, makes object smaller
+Date:   Sun,  1 Aug 2021 16:37:42 +0100
+Message-Id: <20210801153742.147304-1-colin.king@canonical.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210801092050.6322-1-lizhijian@cn.fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Aug 01, 2021 at 05:20:50PM +0800, Li Zhijian wrote:
-> ibv_advise_mr(3) says:
-> EFAULT In one of the following: o When the range requested is out of the  MR  bounds,
->        or  when  parts of it are not part of the process address space. o One of the
->        lkeys provided in the scatter gather list is invalid or with wrong write access
-> 
-> Actually get_prefetchable_mr() will return NULL if it see above conditions
-> 
-> Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
-> ---
->  drivers/infiniband/hw/mlx5/odp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
+From: Colin Ian King <colin.king@canonical.com>
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Don't populate the array states on the stack but instead it
+static const. Makes the object code smaller by 79 bytes.
+
+Before:
+   text   data   bss    dec    hex filename
+  21309   8304   192  29805   746d drivers/net/ethernet/mellanox/mlx4/qp.o
+
+After:
+   text   data   bss    dec    hex filename
+  21166   8368   192  29726   741e drivers/net/ethernet/mellanox/mlx4/qp.o
+
+(gcc version 10.2.0)
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
+index 427e7a31862c..2584bc038f94 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
+@@ -917,7 +917,7 @@ int mlx4_qp_to_ready(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+ {
+ 	int err;
+ 	int i;
+-	enum mlx4_qp_state states[] = {
++	static const enum mlx4_qp_state states[] = {
+ 		MLX4_QP_STATE_RST,
+ 		MLX4_QP_STATE_INIT,
+ 		MLX4_QP_STATE_RTR,
+-- 
+2.31.1
+
