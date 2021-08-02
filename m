@@ -2,107 +2,91 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F83DC4338F
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:24:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EF39C4320A
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:24:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E601E60F36
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:24:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04B9060F36
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234211AbhHBOYp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234313AbhHBOYp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 2 Aug 2021 10:24:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46490 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236296AbhHBOYS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 2 Aug 2021 10:24:18 -0400
-Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C51CFC09B13D
-        for <linux-rdma@vger.kernel.org>; Mon,  2 Aug 2021 07:17:34 -0700 (PDT)
-Received: by mail-lf1-x12c.google.com with SMTP id p38so19056208lfa.0
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Aug 2021 07:17:34 -0700 (PDT)
+        with ESMTP id S236730AbhHBOYc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 2 Aug 2021 10:24:32 -0400
+Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C9CFC00EB19
+        for <linux-rdma@vger.kernel.org>; Mon,  2 Aug 2021 07:19:00 -0700 (PDT)
+Received: by mail-lf1-x129.google.com with SMTP id h14so33975716lfv.7
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Aug 2021 07:19:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=JwDms3Y4aTQx7akZQL6jzCNGn1GluDtvl9bo30R0CA4=;
-        b=frH/fMyNQk3WqSLcljvuj9FLp7AdgeZGSTcnaiLdDh3QZl2Ylipgk/amFztkBZLJtx
-         hLnxmK2QagDOMJIhLdU0IkA2CR1F3JsH7fbanjgnlNdhVzbLNXZIR4SCd3Mqszdw3tly
-         WO1uXyT2vcX+pGmR9dXrlXebLTxv+kiPIpYxmWXLgCpndFG/6LUMjwUlbVH18EiR37+7
-         N45LdWHkS7BUBNO4tdSUlbckVEX6HCCbSQrFDgGrcsBBOhG1cmBFwTox1lbT2gkjWJcj
-         Z9rUkxzqNnPxEFfdu1Dan9m8L2k0tglVGs/w+vk3PS9PTirkdtmiExU9bxJMCSQcA/qT
-         6guQ==
+        bh=YjS28k19BDaYm10Hg0Xzj3NNfyyFREVhBdM24dfS9A4=;
+        b=h5BvfLFLIi0DXlDQBXrIIzS2CcW5nl5W/LHrx25OAxydKCN7h6szKc2juyzfoHcW2x
+         cfy9bVQ+3dWU73z1BfydRQimpu981MMZ9FQbXkf8cQiHBlAIWRqdRmeJqlBo2FkcFqDg
+         d7LLKVtAJV3J5cK+4iAjImDYK4xM9b0Ob/eK7QFM3zeAAlHlaK3wFbBdboi/4XDKxJVh
+         zUBqwMfNerfuDag+dG9+Y82OVtwI8S6ab3lNNBlMlzxzUtz+Wjc3I5cXC3l9QFTpSOrW
+         wUTSHPoJYA8ThRLLDlbYRh78lECvA4H0fqJyNM4bfORCFjakIZC8NoMpTmJnlycHbaRT
+         ZESg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=JwDms3Y4aTQx7akZQL6jzCNGn1GluDtvl9bo30R0CA4=;
-        b=snI9Q4RdjO5sl8slp0j8WNEYcQZ0ei53+qCJ1BTlGaZpGzCaLVeljCEvWelDew0u2w
-         400mGcHlXQQX5ksLV4uALfuwAQp7diU4aWc0N4FjKj4lTI55wCsARTG2u8By/LyjE+ws
-         AoRLU9UFuMZ8HA2BVW70UV+xESC/aVYL5ddohS60MVrEjmbTWYiBtnYzZYbmncKb8ScI
-         +tFJaRj1ME7NfYN0hW1QL7xcDx/+Ssny92DaIJXTsqgLzBTgGAvx9gj3ewYd5VNQROTM
-         00SbAURqUMgd+Uw50EXm42TbE5tssvC8uGktm81fOLBmEHNob0i430zFOxCe6V5UMorr
-         A0WA==
-X-Gm-Message-State: AOAM531BO9rCkb8AIU5lbXCXC1hDamxe86cikj6SHC9HEHiQaAxibw8O
-        YqE/g9VzAZFjlRVeqAbIutjYYL+VeC8eIr/vCFTMWQ==
-X-Google-Smtp-Source: ABdhPJylGs/MFRPFntvx4My7Gf6OhDbeXV8QEhJ3ukOgIo/SNMvoBCafk3hOn2nPMRLBlb6ZyAJHMVlY9EJ70qeDD8E=
-X-Received: by 2002:a05:6512:537:: with SMTP id o23mr12454037lfc.58.1627913853041;
- Mon, 02 Aug 2021 07:17:33 -0700 (PDT)
+        bh=YjS28k19BDaYm10Hg0Xzj3NNfyyFREVhBdM24dfS9A4=;
+        b=F4q1xYnxSCIV6StcbyfUp+cvkHpc8sHHiUw2d/CksUYP0a/KiDeSykZ7z4seucdqwR
+         XENduCXOL5doHq6DF6oeHoZKow1uqE1YOtwQcxDLx2cRPYdOPZN68kkU/PqIOjmFyOgl
+         XYsfC3NlLYSkP/dK85jdZRftBhJE8DyilM6kIPb3ao+GBy2M8gKP/yNcUdR6nTZiLLW3
+         3ftm9SnkEUyvDW3mBhhvAMJDi+Fx1LNtao/Siie3r39RDEZ2r60fRyCM5vu0U4mXEEuI
+         lQgSpnzvgiYpAvhoE4xgjbW5pqsHgrXP977mAmPSjeSODDShIKqxECvbG2FNgOnVCeI4
+         M4kA==
+X-Gm-Message-State: AOAM5302SHn4MxGtRzHIQTyzzdXErxJjdq9qj55p4hZHAOS4aQDHe5wO
+        MABLS7dX0Vf6/8fj96MuKv558mA+JCVUSBb98JmBYg==
+X-Google-Smtp-Source: ABdhPJw28t9I2rELg++/d0ZVrO9VGudxfMNqCWFQiYypie3jekxiIBZHawlZOJ6j3k1WJo15XkvVrGlxbsXrEorIagA=
+X-Received: by 2002:a19:c192:: with SMTP id r140mr12106178lff.109.1627913938834;
+ Mon, 02 Aug 2021 07:18:58 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210730131832.118865-1-jinpu.wang@ionos.com> <20210730131832.118865-2-jinpu.wang@ionos.com>
- <YQeTUUMJNpyohHX/@unreal>
-In-Reply-To: <YQeTUUMJNpyohHX/@unreal>
+References: <20210730131832.118865-1-jinpu.wang@ionos.com> <20210730131832.118865-6-jinpu.wang@ionos.com>
+ <YQeZkTIOHdqK6noK@unreal>
+In-Reply-To: <YQeZkTIOHdqK6noK@unreal>
 From:   Haris Iqbal <haris.iqbal@ionos.com>
-Date:   Mon, 2 Aug 2021 16:17:22 +0200
-Message-ID: <CAJpMwyh0peojnNSAmyL9+GjVGi3nh+gQThTAWDUj-CB11TYO2A@mail.gmail.com>
-Subject: Re: [PATCH for-next 01/10] RDMA/rtrs-clt: During add_path change
- for_new_clt according to path_num
+Date:   Mon, 2 Aug 2021 16:18:48 +0200
+Message-ID: <CAJpMwyj2hM8y9=QBRpD5AUb0hozE8=PU_807fZJhAsvZCngOBQ@mail.gmail.com>
+Subject: Re: [PATCH for-next 05/10] RDMA/rtrs: Fix warning when use poll mode
 To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Jack Wang <jinpu.wang@ionos.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@ziepe.ca>, Gioh Kim <gi-oh.kim@ionos.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 2, 2021 at 8:40 AM Leon Romanovsky <leon@kernel.org> wrote:
+On Mon, Aug 2, 2021 at 9:07 AM Leon Romanovsky <leon@kernel.org> wrote:
 >
-> On Fri, Jul 30, 2021 at 03:18:23PM +0200, Jack Wang wrote:
-> > From: Md Haris Iqbal <haris.iqbal@ionos.com>
+> On Fri, Jul 30, 2021 at 03:18:27PM +0200, Jack Wang wrote:
+> > when test with poll mode, it will fail and lead to warning below:
+> > echo "sessname=bla path=gid:fe80::2:c903:4e:d0b3@gid:fe80::2:c903:8:ca17
+> > device_path=/dev/nullb2 nr_poll_queues=-1" |
+> > sudo tee /sys/devices/virtual/rnbd-client/ctl/map_device
 > >
-> > When all the paths are removed for a session, the addition of the first
-> > path is like a new session for the storage server.
+> > rnbd_client L597: Mapping device /dev/nullb2 on session bla,
+> > (access_mode: rw, nr_poll_queues: 8)
+> > WARNING: CPU: 3 PID: 9886 at drivers/infiniband/core/cq.c:447 ib_cq_pool_get+0x26f/0x2a0 [ib_core]
 > >
-> > Hence, for_new_clt has to be set to 1.
-> >
-> > Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-> > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
-> > ---
-> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 9 +++++++++
-> >  1 file changed, 9 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > index ece3205531b8..e048bfa12755 100644
-> > --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> > @@ -3083,6 +3083,15 @@ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt *clt,
-> >       if (IS_ERR(sess))
-> >               return PTR_ERR(sess);
-> >
-> > +     if (clt->paths_num == 0) {
+> > The problem is in case of poll queue, we need to still call
+> > ib_alloc_cq/ib_free_cq, we can't use cq_poll api for poll queue.
 >
-> Don't you need some protection to read paths_num?
-> rcu_read_lock() or mutex_lock?
+> It will be great to see an explanation here.
 
-Good catch. The lock should be added.
-
-Thanks
+Will add and resend. Thanks
 
 >
 > Thanks
