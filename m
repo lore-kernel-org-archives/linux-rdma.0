@@ -2,78 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=BAYES_05,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A855C4338F
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 01:28:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5848C4338F
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 06:40:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F0D86052B
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 01:28:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3F0C61042
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 06:40:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231432AbhHBB2x convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 1 Aug 2021 21:28:53 -0400
-Received: from smtp-internal.canonical.com ([91.189.90.122]:48642 "EHLO
-        erinyes.canonical.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S231361AbhHBB2x (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 1 Aug 2021 21:28:53 -0400
-X-Greylist: delayed 44589 seconds by postgrey-1.27 at vger.kernel.org; Sun, 01 Aug 2021 21:28:53 EDT
-Received: from alphecca.canonical.com ([91.189.89.254])
-        by erinyes.canonical.com with esmtp (Exim 4.93 #5 (Debian))
-        id 1mAB9r-00038l-Po
-        for <linux-rdma@vger.kernel.org>; Sun, 01 Aug 2021 13:05:35 +0000
-Received: from alphecca.canonical.com (localhost [IPv6:::1])
-        by alphecca.canonical.com (Postfix) with ESMTP id BE1E9E00271
-        for <linux-rdma@vger.kernel.org>; Sun,  1 Aug 2021 13:05:35 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        id S232108AbhHBGkb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 2 Aug 2021 02:40:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33360 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229734AbhHBGka (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 2 Aug 2021 02:40:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D85660F39;
+        Mon,  2 Aug 2021 06:40:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1627886420;
+        bh=Col9JMMWe4S8DpI2otNkcY1Yr6S0x+VV8AcISm18DN0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fGH3uvFYIwyPUlOhKwJmPxZiSOIqpE7l1FxsCKRWeRqgWOO6Mb0uHDLDsdeEpi8O5
+         CjK3CgDXFn2kY2wc0t2Q2AhNMnYALFpR0+/0gD7OEnwPC3wcI7a60jG0c9HsGwT9vA
+         0sWyOKbWgo2nDSDW+BqNJF5Bo12FYqMdiC3UUduHID1Wjs4DQVygYJFn2TZ+KSNGQD
+         1KlWgV7LjK19CEzYeC/jerdQA/MXzHBVjkoAEdDsAx7GYKiNfRqeOq73kuGNcDfOP4
+         YpNt2ag90DFu6uweXUrHT04yQYqxzjmcw97WlruYgNQJ0cWtrRL2oVz4NEoghHKV+6
+         3d/cUYi5jtd4A==
+Date:   Mon, 2 Aug 2021 09:40:17 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jack Wang <jinpu.wang@ionos.com>
+Cc:     linux-rdma@vger.kernel.org, bvanassche@acm.org,
+        dledford@redhat.com, jgg@ziepe.ca, haris.iqbal@ionos.com
+Subject: Re: [PATCH for-next 01/10] RDMA/rtrs-clt: During add_path change
+ for_new_clt according to path_num
+Message-ID: <YQeTUUMJNpyohHX/@unreal>
+References: <20210730131832.118865-1-jinpu.wang@ionos.com>
+ <20210730131832.118865-2-jinpu.wang@ionos.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-X-Launchpad-Message-Rationale: Creator @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-build-status
-X-Launchpad-Build-Component: main
-X-Creator-Recipient: linux-rdma@vger.kernel.org
-X-Launchpad-Build-State: FAILEDTOBUILD
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-Arch: i386
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   Launchpad Buildd System <noreply@launchpad.net>
-Subject: [Build #21827825] i386 build of rdma-core 37.0~202108010758+git3592de91~ubuntu18.04.1 in ubuntu bionic RELEASE [~linux-rdma/ubuntu/rdma-core-daily]
-Message-Id: <162782313574.23023.16177627475675830238.launchpad@alphecca.canonical.com>
-Date:   Sun, 01 Aug 2021 13:05:35 -0000
-Reply-To: Launchpad Buildd System <noreply@launchpad.net>
-Sender: noreply@launchpad.net
-X-Generated-By: Launchpad (canonical.com); Revision="af482a5ac43407efa89ffdeaa6862ca648e3c776"; Instance="buildmaster"
-X-Launchpad-Hash: 814783a836f7431ab20218c3633279ccfb8e5a8b
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210730131832.118865-2-jinpu.wang@ionos.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Fri, Jul 30, 2021 at 03:18:23PM +0200, Jack Wang wrote:
+> From: Md Haris Iqbal <haris.iqbal@ionos.com>
+> 
+> When all the paths are removed for a session, the addition of the first
+> path is like a new session for the storage server.
+> 
+> Hence, for_new_clt has to be set to 1.
+> 
+> Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+> Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+> ---
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> index ece3205531b8..e048bfa12755 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> @@ -3083,6 +3083,15 @@ int rtrs_clt_create_path_from_sysfs(struct rtrs_clt *clt,
+>  	if (IS_ERR(sess))
+>  		return PTR_ERR(sess);
+>  
+> +	if (clt->paths_num == 0) {
 
- * Source Package: rdma-core
- * Version: 37.0~202108010758+git3592de91~ubuntu18.04.1
- * Architecture: i386
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Component: main
- * State: Failed to build
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/21827825/+files/buildlog_ubuntu-bionic-i386.rdma-core_37.0~202108010758+git3592de91~ubuntu18.04.1_BUILDING.txt.gz
- * Builder: https://launchpad.net/builders/lgw01-amd64-020
- * Source: not available
+Don't you need some protection to read paths_num?
+rcu_read_lock() or mutex_lock?
 
-
-
-If you want further information about this situation, feel free to
-contact us by asking a question on Launchpad
-(https://answers.launchpad.net/launchpad/+addquestion).
-
--- 
-i386 build of rdma-core 37.0~202108010758+git3592de91~ubuntu18.04.1 in ubuntu bionic RELEASE
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+build/21827825
-
-You are receiving this email because you created this version of this
-package.
-
+Thanks
