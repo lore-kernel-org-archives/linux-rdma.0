@@ -7,111 +7,202 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60CE9C4320A
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77FE1C432BE
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:31:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3796B60EC0
-	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:26:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E56960EC0
+	for <linux-rdma@archiver.kernel.org>; Mon,  2 Aug 2021 14:31:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233939AbhHBO0S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 2 Aug 2021 10:26:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46552 "EHLO
+        id S234148AbhHBObY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 2 Aug 2021 10:31:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236707AbhHBOYb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 2 Aug 2021 10:24:31 -0400
-Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 162C4C04986B
-        for <linux-rdma@vger.kernel.org>; Mon,  2 Aug 2021 07:18:42 -0700 (PDT)
-Received: by mail-lf1-x12b.google.com with SMTP id p38so19062436lfa.0
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Aug 2021 07:18:41 -0700 (PDT)
+        with ESMTP id S234106AbhHBObY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 2 Aug 2021 10:31:24 -0400
+Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A457C06175F
+        for <linux-rdma@vger.kernel.org>; Mon,  2 Aug 2021 07:31:14 -0700 (PDT)
+Received: by mail-lj1-x231.google.com with SMTP id q2so24191206ljq.5
+        for <linux-rdma@vger.kernel.org>; Mon, 02 Aug 2021 07:31:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=GRBm0+UevPs0YU5RTOdmVbbXAy2pyV8IK/mATwhCgsA=;
-        b=NUeEEidP+BWUlt7vv/PigFniB6EPnVkgMdfhd0kqXikjRjnai6hliFMwi/H89UsLca
-         M19P7tPHn9DA4mPc+ZCCTyrkrR5i+PTo81B/lWQJVd5pmadkJMjB/RqS4QNtI/Q0tkYt
-         MUI+Yqrah4WsdW8D0lsBqamGThP/aNWOE5Z4YVpDJIbD5rVgwd5RWAhFwp+frgjIbefb
-         +HW1AVUSPTh8Dmxw3BYuq4gz8G0P/slii8o6+DcTKmZEpSrGYpZd6srbEnqMpCbynLEM
-         6PwcgToPtvNoBXfeM6Icghxytx9tee4wvYIldvb/2vkTntCRWTevA911AHusOnZF6yAo
-         irew==
+        bh=XwDZ/iGU4xBTiETru+bI8rQ5dNWiOGMzY1GmXDOJ3h8=;
+        b=LCkZ+kRjUSoBY2zGCgnfpendpmi5V6eyrnBTfseA2LumRdWFAUGZ3Urq20OSYRtvgZ
+         rKw13vKPOh4ii7xEPhOO42SthY6ma68A9k9dCw4jTrhIXBVL9MLjgOYlD2HXSlgimE2j
+         zzpcFPvVXUIOcq+wsFOHuLBnkhM4slmXBw5+IzhaisezwQY2rrqw+81jeVLlJoqN1Ffm
+         h0ULXwkKQ7vvQKny3yTeLM3k2HB32xouy7KJRb+mj7otLqzBxQ0kjzRy5n918U0XBFef
+         CCOlb1QLcAzo4BO+WXEG6DrUyu+PLclcZJQVGiJ4K2Vc9SNsiJDns1TnT30pj2FQ+Hw7
+         E2Bg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=GRBm0+UevPs0YU5RTOdmVbbXAy2pyV8IK/mATwhCgsA=;
-        b=ZaktUpcFLwZASTOAhfWcv3jnYgmy83JLsB58IhiLY6OKzkFygQdX2OWpQb/1l0cHS+
-         7oVoqNp6RLGVExcu81NhnhNUqYtQ9BgLaR19bHZojV4LpDIzKqOp1AusmvvzqTzekZJ4
-         UFNoh3W6yxETUzd/LA2Yt0aPUlSyHM6fknRLvy+MuHE35UgmMfH5GxJRMQYwnpOAEi4v
-         XNzTsJLc2o09sIrVY2EYgmzNTmef9zZK3k+dUL1rP56QoY44/E75rtOPqaeB7BaJUDlS
-         KSLkJ/6lG3NGB4ams7zggyN3a0cjxPQQSZKrsZzQBnahCLatVjN0eP6Y2IkzKCUQXv3h
-         BqaQ==
-X-Gm-Message-State: AOAM530Rv1wDZd9+/PFcljGSWzunlxlm3GVCAD1r9mxFTuNxGpLmA3P7
-        DAfW5CCqZLX1dcBw5NzYDrWF7+BuYZuMk/8aNyyYig==
-X-Google-Smtp-Source: ABdhPJxaCpYRX7//h4BPnKF+umIQS+3IriCkJ85+JZEznh7hJD8FtbyQLb9M53Zag0MAghHEHjeiBZrvItNjQVlYPmg=
-X-Received: by 2002:a05:6512:517:: with SMTP id o23mr2085060lfb.657.1627913920395;
- Mon, 02 Aug 2021 07:18:40 -0700 (PDT)
+        bh=XwDZ/iGU4xBTiETru+bI8rQ5dNWiOGMzY1GmXDOJ3h8=;
+        b=s/fKycEO8bBVzGEWb2Ri2JpJowS6QnUpEfa2LrVayGHKgIzao72w9dZrUVTMFmDw6S
+         zDhenHJtgsQAPzfpzCMdrsdhrnG2uCMOaR2K1UZa0I9p77M/bnYpNHFWek768X60apGZ
+         84w6zSMHfBt5kq4KbgNXj2h4JTsMiIjErpp5Dr5sACYiRUvlz7prTX1QpDYq7DcWBsbk
+         TkVuGzrlTs5mE85g/Ag0zWCg9NZP1qxz3aUeHGkS3e363KuqKy62+VUdQLzw5T22ou8U
+         IZrpocJGFh9FbEpa1AUQ5rVzvh1uaHJVBtpRYhJ7jP+uZlvBtEDDmetSnpFSFr3lH9Ak
+         B8Cw==
+X-Gm-Message-State: AOAM530M/8VCtUx1dt29NP0SjM5eJAVyNprNIAozSf4V7P4eI+MxemPl
+        EzZfCz+QCg3/gntUmZIaIg78UYSLtnAott+saIwc3g==
+X-Google-Smtp-Source: ABdhPJzSBJmPRm/bdQqLDX5Onm5HA5409rn8GmE9F1i8DSi0SE4JaaAhsrKOEXHJyBMB+QwnLAPwmYPWPfZe3rLbLhY=
+X-Received: by 2002:a2e:9f17:: with SMTP id u23mr11953270ljk.489.1627914672674;
+ Mon, 02 Aug 2021 07:31:12 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210730131832.118865-1-jinpu.wang@ionos.com> <20210730131832.118865-4-jinpu.wang@ionos.com>
- <YQeWKlcIqvXVm8PO@unreal>
-In-Reply-To: <YQeWKlcIqvXVm8PO@unreal>
+References: <20210730131832.118865-1-jinpu.wang@ionos.com> <20210730131832.118865-10-jinpu.wang@ionos.com>
+ <YQee8091rXaXU4vL@unreal>
+In-Reply-To: <YQee8091rXaXU4vL@unreal>
 From:   Haris Iqbal <haris.iqbal@ionos.com>
-Date:   Mon, 2 Aug 2021 16:18:29 +0200
-Message-ID: <CAJpMwyiX0v4L4epeA8xmPfzw_5YYjCza5fZh5BinZnXJpdBCMg@mail.gmail.com>
-Subject: Re: [PATCH for-next 03/10] RDMA/rtrs: Use sysfs_emit instead of
- s*printf function for sysfs show
+Date:   Mon, 2 Aug 2021 16:31:01 +0200
+Message-ID: <CAJpMwyj6SjO+yNsA9uMDZP1Cu2gUfXHAeRGgaGf46xbxDBrk5g@mail.gmail.com>
+Subject: Re: [PATCH for-next 09/10] RDMA/rtrs: Add support to disable an IB
+ port on the storage side
 To:     Leon Romanovsky <leon@kernel.org>
 Cc:     Jack Wang <jinpu.wang@ionos.com>,
         RDMA mailing list <linux-rdma@vger.kernel.org>,
         Bart Van Assche <bvanassche@acm.org>,
         Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Md Haris Iqbal <haris.iqbal@cloud.ionos.com>,
+        Gioh Kim <gi-oh.kim@ionos.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 2, 2021 at 8:52 AM Leon Romanovsky <leon@kernel.org> wrote:
+On Mon, Aug 2, 2021 at 9:30 AM Leon Romanovsky <leon@kernel.org> wrote:
 >
-> On Fri, Jul 30, 2021 at 03:18:25PM +0200, Jack Wang wrote:
-> > From: Md Haris Iqbal <haris.iqbal@ionos.com>
+> On Fri, Jul 30, 2021 at 03:18:31PM +0200, Jack Wang wrote:
+> > From: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
 > >
-> > sysfs_emit function was added to be aware of the PAGE_SIZE maximum of
-> > the temporary buffer used for outputting sysfs content, so there is no
-> > possible overruns. So replace the uses of any s*printf functions for
-> > the sysfs show functions with sysfs_emit.
+> > This commit adds support to reject connection on a specific IB port which
+> > can be specified in the added sysfs entry for the rtrs-server module.
 > >
-> > Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+> > Example,
+> >
+> > $ echo "mlx4_0 1" > /sys/class/rtrs-server/ctl/disable_port
+> >
+> > When a connection request is received on the above IB port, rtrs_srv
+> > rejects the connection and notifies the client to disable reconnection
+> > attempts. A manual reconnect has to be triggerred in such a case.
+> >
+> > A manual reconnect can be triggered by doing the following,
+> >
+> > echo 1 > /sys/class/rtrs-client/blya/paths/<select-path>/reconnect
+> >
+> > Signed-off-by: Md Haris Iqbal <haris.iqbal@cloud.ionos.com>
+> > Reviewed-by: Gioh Kim <gi-oh.kim@ionos.com>
 > > Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 > > ---
-> >  drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c | 24 +++++++++-----------
-> >  drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  2 +-
-> >  2 files changed, 12 insertions(+), 14 deletions(-)
+> >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 10 ++++
+> >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 82 +++++++++++++++++++++++++-
+> >  2 files changed, 90 insertions(+), 2 deletions(-)
 > >
-> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c
-> > index 26bbe5d6dff5..c5c047aa45a4 100644
-> > --- a/drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c
-> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c
-> > @@ -45,24 +45,23 @@ int rtrs_clt_stats_migration_cnt_to_str(struct rtrs_clt_stats *stats,
-> >       size_t used;
-> >       int cpu;
+> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> > index 5cce727abca0..21001818e607 100644
+> > --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> > @@ -1898,6 +1898,7 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
+> >                                   struct rdma_cm_event *ev)
+> >  {
+> >       struct rtrs_sess *s = con->c.sess;
+> > +     struct rtrs_clt_sess *sess = to_clt_sess(s);
+> >       const struct rtrs_msg_conn_rsp *msg;
+> >       const char *rej_msg;
+> >       int status, errno;
+> > @@ -1916,6 +1917,15 @@ static int rtrs_rdma_conn_rejected(struct rtrs_clt_con *con,
+> >                       rtrs_err(s,
+> >                                 "Connect rejected: status %d (%s), rtrs errno %d\n",
+> >                                 status, rej_msg, errno);
+> > +
+> > +             if (errno == -ENETDOWN) {
+> > +                     /*
+> > +                      * Stop reconnection attempts
+> > +                      */
+> > +                     sess->reconnect_attempts = -1;
+> > +                     rtrs_err(s,
+> > +                             "Disabling auto-reconnect. Trigger a manual reconnect after issue is resolved\n");
+> > +             }
+> >       } else {
+> >               rtrs_err(s,
+> >                         "Connect rejected but with malformed message: status %d (%s)\n",
+> > diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> > index cc65cffdc65a..90d833041ccf 100644
+> > --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> > +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+> > @@ -32,7 +32,9 @@ MODULE_LICENSE("GPL");
+> >  static struct rtrs_rdma_dev_pd dev_pd;
+> >  static mempool_t *chunk_pool;
+> >  struct class *rtrs_dev_class;
+> > +static struct device *rtrs_dev;
+> >  static struct rtrs_srv_ib_ctx ib_ctx;
+> > +static char disabled_port[NAME_MAX];
 > >
-> > -     used = scnprintf(buf, len, "    ");
-> > +     used = sysfs_emit(buf, "    ");
-> >       for_each_possible_cpu(cpu)
-> > -             used += scnprintf(buf + used, len - used, " CPU%u", cpu);
-> > +             used += sysfs_emit_at(buf, used, " CPU%u", cpu);
+> >  static int __read_mostly max_chunk_size = DEFAULT_MAX_CHUNK_SIZE;
+> >  static int __read_mostly sess_queue_depth = DEFAULT_SESS_QUEUE_DEPTH;
+> > @@ -1826,6 +1828,20 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+> >       u16 recon_cnt;
+> >       int err = -ECONNRESET;
 > >
-> > -     used += scnprintf(buf + used, len - used, "\nfrom:");
-> > +     used += sysfs_emit_at(buf, used, "\nfrom:");
+> > +     if (strnlen(disabled_port, NAME_MAX) > 0) {
+> > +             char ib_device[NAME_MAX];
+> > +
+> > +             snprintf(ib_device, NAME_MAX, "%s %u", cm_id->device->name, cm_id->port_num);
+> > +             if (strncmp(disabled_port, ib_device, NAME_MAX) == 0) {
+> > +                     /*
+> > +                      * Reject connection attempt on disabled port
+> > +                      */
+> > +                     pr_err("Error: Connection request on a disabled port");
+> > +                     err = -ENETDOWN;
+> > +                     goto reject_w_err;
+> > +             }
+> > +     }
+> > +
+> >       if (len < sizeof(*msg)) {
+> >               pr_err("Invalid RTRS connection request\n");
+> >               goto reject_w_err;
+> > @@ -2242,6 +2258,56 @@ static int check_module_params(void)
+> >       return 0;
+> >  }
+> >
+> > +static ssize_t disable_port_show(struct kobject *kobj,
+> > +                              struct kobj_attribute *attr,
+> > +                              char *page)
+> > +{
+> > +     return sysfs_emit(page, "%s\n", disabled_port);
+> > +}
+> > +
+> > +static ssize_t disable_port_store(struct kobject *kobj,
+> > +                               struct kobj_attribute *attr,
+> > +                               const char *buf, size_t count)
+> > +{
+> > +     int ret, len;
+> > +
+> > +     if (count > 1 && strnlen(disabled_port, NAME_MAX) > 0) {
+> > +             pr_err("A disabled port already exists.\n");
+> > +             return -EINVAL;
+> > +     }
+> > +
+> > +     ret = strscpy(disabled_port, buf, NAME_MAX);
+> > +     if (ret == -E2BIG) {
+> > +             pr_err("String too big.\n");
+> > +             disabled_port[0] = '\0';
+> > +             return ret;
+> > +     }
+> > +
+> > +     len = strlen(disabled_port);
+> > +     if (len > 0 && disabled_port[len-1] == '\n')
 >
-> "\nfrom" and "\nto" are abuse of sysfs rules.
-> https://lore.kernel.org/kernelnewbies/7a353c64-a81f-a149-9541-ef328a197761@gmail.com/T/#m8bf898fcdb4a5371781bbc9646993a50fa950fbc
-> https://lore.kernel.org/kernelnewbies/7a353c64-a81f-a149-9541-ef328a197761@gmail.com/T/#m9ce6f045a863597922012d71a6719d6d90c8e0a6
+> All the "\n" checks in rtrs sysfs looks like cargo cult. You don't need
+> them.
 
-I see. We will discuss internally and see what can be done about this.
+Thanks. Will change and resend.
 
-Thanks
-
+>
+> And maybe Jason thinks differently, but I don't feel comfortable with
+> such new sysfs file at all.
 >
 > Thanks
