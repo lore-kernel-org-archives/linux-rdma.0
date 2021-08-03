@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A29AAC4338F
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Aug 2021 18:20:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 775F4C4338F
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Aug 2021 18:20:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83E0B600D4
-	for <linux-rdma@archiver.kernel.org>; Tue,  3 Aug 2021 18:20:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AF2C6044F
+	for <linux-rdma@archiver.kernel.org>; Tue,  3 Aug 2021 18:20:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238992AbhHCSU7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Aug 2021 14:20:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60534 "EHLO mail.kernel.org"
+        id S239044AbhHCSVE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 3 Aug 2021 14:21:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239000AbhHCSU6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 3 Aug 2021 14:20:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2102C61029;
-        Tue,  3 Aug 2021 18:20:45 +0000 (UTC)
+        id S239012AbhHCSVB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 3 Aug 2021 14:21:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BE2861029;
+        Tue,  3 Aug 2021 18:20:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1628014846;
-        bh=Mq9Lyit/rS/pWQeUYyPnS73CPPvgoNfWe3rE8aWTde8=;
+        s=k20201202; t=1628014850;
+        bh=tbn33wjjVuiv3kzeE4HsxsCHrdDaV9aipcwfnmjZej8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qssHuvbxkZz67iFE6H3EkHR1h7VTJprgfomAglNba1QU66UVUotLhjWwnqqD5Qdhx
-         e/Z4TEUmxNecRHl/3kw/g6fKv2v7vpUmGUPbS3hwMcadyvUzOPJA9JB2dU5PYIyzVo
-         qXnVD/9Mvl2h6PJMGnqBXPXWuspIUu5Csv30WgTmtxNGyDik9YLES6GD2XRiCeYK9O
-         IkS8h97v6duE/Ni75qUzAN1IjocwJpf6fMI/zqvO3Oy8abC5XazXbwfRveSzTzWtOB
-         D1Kbw7E8SJ/M1mZwLvRfuBBntnCUNSufGwSHmL5WZj4MgEaG6x/mOPGRUrlJ7NaUNy
-         7Q5zx7ryCiyKA==
+        b=GZ9rF5NdQphOWYFlczaO3f5nyLBZn7cSNZBFaRS22qlG4dc25pRp4OY/Ay7QotulQ
+         7EL6pwXGZfDEgfRgHFxz5nbXzEb6l+rN2mstiL4Le7dGI799m7HIc96XPcG9ajYsBu
+         hxTtvEWmxci8BqNKA/AvmOwKc2XFvOTeBonRe8Uc/YYCkfzl+jGWh0KlNcOtzg0lqq
+         hZDJgsP0o1W6jCkbLIhmoSEeNApC7M7ivUVQRjiws4MtGqd8MNeON5DfIfyswhMyvx
+         VhzEOFORjIkUUrSoFnrXgjFp00RHxCOtFDwesUPZSqnOYTXXkXQTi1ooVatfJCiWMK
+         zM8Rvu5qOdnKA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, Mark Zhang <markz@mellanox.com>
-Subject: [PATCH rdma-next v2 1/7] RDMA/mlx5: Delete not-available udata check
-Date:   Tue,  3 Aug 2021 21:20:32 +0300
-Message-Id: <b68228597e730675020aa5162745390a2d39d3a2.1628014762.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v2 3/7] RDMA/core: Remove protection from wrong in-kernel API usage
+Date:   Tue,  3 Aug 2021 21:20:34 +0300
+Message-Id: <b9b9e981d1af148b750750196e686199dbbf61f8.1628014762.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1628014762.git.leonro@nvidia.com>
 References: <cover.1628014762.git.leonro@nvidia.com>
@@ -50,36 +50,39 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-XRC_TGT QPs are created through kernel verbs and don't have udata at all.
+The ib_create_named_qp() is kernel verb that is not used for user
+supplied attributes. In such case, it is ULP responsibility to provide
+valid QP attributes.
 
-Fixes: 6eefa839c4dd ("RDMA/mlx5: Protect from kernel crash if XRC_TGT doesn't have udata")
-Fixes: e383085c2425 ("RDMA/mlx5: Set ECE options during QP create")
+In-kernel API shouldn't check it, exactly like other functions that
+don't check device capabilities.
+
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/core/verbs.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 9d20c838974f..556b5e7acd46 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1906,7 +1906,6 @@ static int get_atomic_mode(struct mlx5_ib_dev *dev,
- static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 			     struct mlx5_create_qp_params *params)
- {
--	struct mlx5_ib_create_qp *ucmd = params->ucmd;
- 	struct ib_qp_init_attr *attr = params->attr;
- 	u32 uidx = params->uidx;
- 	struct mlx5_ib_resources *devr = &dev->devr;
-@@ -1926,8 +1925,6 @@ static int create_xrc_tgt_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	if (!in)
- 		return -ENOMEM;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 635642a3ecbc..2090f3c9f689 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1219,16 +1219,6 @@ struct ib_qp *ib_create_named_qp(struct ib_pd *pd,
+ 	struct ib_qp *qp;
+ 	int ret;
  
--	if (MLX5_CAP_GEN(mdev, ece_support) && ucmd)
--		MLX5_SET(create_qp_in, in, ece, ucmd->ece_options);
- 	qpc = MLX5_ADDR_OF(create_qp_in, in, qpc);
- 
- 	MLX5_SET(qpc, qpc, st, MLX5_QP_ST_XRC);
+-	if (qp_init_attr->rwq_ind_tbl &&
+-	    (qp_init_attr->recv_cq ||
+-	    qp_init_attr->srq || qp_init_attr->cap.max_recv_wr ||
+-	    qp_init_attr->cap.max_recv_sge))
+-		return ERR_PTR(-EINVAL);
+-
+-	if ((qp_init_attr->create_flags & IB_QP_CREATE_INTEGRITY_EN) &&
+-	    !(device->attrs.device_cap_flags & IB_DEVICE_INTEGRITY_HANDOVER))
+-		return ERR_PTR(-EINVAL);
+-
+ 	/*
+ 	 * If the callers is using the RDMA API calculate the resources
+ 	 * needed for the RDMA READ/WRITE operations.
 -- 
 2.31.1
 
