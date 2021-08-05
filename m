@@ -2,68 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF07C4320A
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:57:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D26D2C4338F
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 21:02:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0623C60EBB
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:57:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4AA560ED6
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 21:02:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239501AbhHET6M convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Aug 2021 15:58:12 -0400
-Received: from smtp-relay-services-0.canonical.com ([185.125.188.250]:41458
-        "EHLO smtp-relay-services-0.canonical.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229970AbhHET6L (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Aug 2021 15:58:11 -0400
-Received: from alphecca.canonical.com (alphecca.canonical.com [91.189.89.254])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 06DD04203B
-        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:57:56 +0000 (UTC)
-Received: from alphecca.canonical.com (localhost [IPv6:::1])
-        by alphecca.canonical.com (Postfix) with ESMTP id 01DBEE001C2
-        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:57:56 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        id S231159AbhHEVCs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Aug 2021 17:02:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57890 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230359AbhHEVCr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 5 Aug 2021 17:02:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E9D6560ED6;
+        Thu,  5 Aug 2021 21:02:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1628197353;
+        bh=F7bxRg5LJfVYQAg2hfvdz+rTQBnSUFwYrzmL/mG3yao=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=YDdvAeKtHPtLqantd3oxnZOjVZFKQuDppzItSmRUxYBf6FLaBJzqoe6eUrUTnvj5Q
+         xL05Ves8PfIBxk1q6CpM24uNQb5H0DX0iPjTBw6dvoz5Tfp3ZiRxV4Gw+mrD9rihi8
+         5FvpuX4ZHL5SzHU1mXuQMorVG+CcDp7YCx3dn2ifi1FhMqMyOe1eb4LsFuk+kBv9W3
+         Ac++QvjeMMoCG0qisrzhbaj/JMW5VEAuZf3xg3N91eVcL9/ZLjmMNZTPVBLk4hnij7
+         uMqPRcA8va3hUlHOsxoH5COR8jl1DPDU+NLND2M3xnPtIdWjymB4oW3yhLp8vbbEhQ
+         J+IhX6WXtCm3A==
+Message-ID: <875ef4b7f25f86d84d846a16aa69c4b9d5b5235d.camel@kernel.org>
+Subject: Re: [PATCH mlx5-next 00/14] mlx5 single FDB for lag
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     Leon Romanovsky <leonro@nvidia.com>
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Date:   Thu, 05 Aug 2021 14:02:32 -0700
+In-Reply-To: <20210803231959.26513-1-saeed@kernel.org>
+References: <20210803231959.26513-1-saeed@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.40.3 (3.40.3-1.fc34) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-X-Launchpad-Message-Rationale: Changed-By @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: package-upload
-X-Katie: Launchpad actually
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-PPA: linux-rdma-rdma-core-daily
-To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   Ubuntu Installer <archive@ubuntu.com>
-Subject: [~linux-rdma/ubuntu/rdma-core-daily] rdma-core_37.0~202108040743+git313509f8~ubuntu20.04.1_source.changes (Rejected)
-Message-Id: <162819347599.13190.2220553815866267960.launchpad@alphecca.canonical.com>
-Date:   Thu, 05 Aug 2021 19:57:55 -0000
-Reply-To: Ubuntu Installer <archive@ubuntu.com>
-Sender: noreply@launchpad.net
-X-Generated-By: Launchpad (canonical.com); Revision="c08a1e23be9b835a8d0e7a32b2e55270fac05933"; Instance="buildmaster"
-X-Launchpad-Hash: bc40d22d3ed24f98219ac772fef1b7bd60b7380b
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Rejected:
-File rdma-core_37.0~202108040743+git313509f8~ubuntu20.04.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
-Files specified in DSC are broken or missing, skipping package unpack verification.
+On Tue, 2021-08-03 at 16:19 -0700, Saeed Mahameed wrote:
+> From: Saeed Mahameed <saeedm@nvidia.com>
+> 
+> This series is aimed at mlx5-next branch to be pulled later by both
+> rdma and netdev subsystems as it contains patches to both trees.
+> 
+> The series provides support for single shared FDB table for lag:
 
-rdma-core (37.0~202108040743+git313509f8~ubuntu20.04.1) focal; urgency=low
-
-  * Auto build.
-
-===
-
-If you don't understand why your files were rejected please send an email
-to launchpad-users@lists.launchpad.net for help (requires membership).
-
--- 
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily
-You are receiving this email because your team Linux RDMA is the most
-recent person listed in this package's changelog.
+applied to mlx5-next, Thanks !
 
