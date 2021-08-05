@@ -2,75 +2,68 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A09AC4338F
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:54:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 224C8C4338F
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:54:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A3BF60720
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:54:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 03362603E7
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Aug 2021 19:54:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240236AbhHETyR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Aug 2021 15:54:17 -0400
-Received: from smtp-relay-services-0.canonical.com ([185.125.188.250]:40890
-        "EHLO smtp-relay-services-0.canonical.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S239921AbhHETyP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Aug 2021 15:54:15 -0400
+        id S239946AbhHETy1 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Aug 2021 15:54:27 -0400
+Received: from smtp-relay-services-1.canonical.com ([185.125.188.251]:46972
+        "EHLO smtp-relay-services-1.canonical.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S239872AbhHETy1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Aug 2021 15:54:27 -0400
 Received: from alphecca.canonical.com (alphecca.canonical.com [91.189.89.254])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 377204203B
-        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:53:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-        s=20210803; t=1628193239;
-        bh=ugVjZubrhh47ofhwHU1Tm4j5soxdZmEnA3HHEj+t3BI=;
-        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-         Reply-To;
-        b=UxMsBvZMFN51SYDWkvSsbUSdrrt3ZSZkyYw9VgQdNdWa1XUbjfg2srMz7FE09z1Py
-         zuTIzNTHRbMSeYBOrAXB0LybWQQ8Y7V2Xj/fuIOYfUfDyfX4BOFrnur9HXhjYPndos
-         4HynKTti0f9ZzG4iwrXw2eBSu9DWzsz4yrHn4APs5UnxZMfJe7IX+auy7CBAWezaYp
-         E5P7xz6vMTAmhJ1RYsCfNn0mpfTqX5hrVgyQVhHGuuMvjUZi5q8GdtyzrWLelZIlZR
-         2n0R3WAO/r4D1njskieh7XnX4aF3zHKhTGEhpA+Oi/oAHA8Hbr03bDQI3Thhtn1cVi
-         yKGjb7l6CJxTw==
+        by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 0CA823F31B
+        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:54:12 +0000 (UTC)
 Received: from alphecca.canonical.com (localhost [IPv6:::1])
-        by alphecca.canonical.com (Postfix) with ESMTP id 31EF4E002AC
-        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:53:59 +0000 (UTC)
+        by alphecca.canonical.com (Postfix) with ESMTP id 08560E001FD
+        for <linux-rdma@vger.kernel.org>; Thu,  5 Aug 2021 19:54:12 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
+Content-Transfer-Encoding: 8BIT
+X-Launchpad-Message-Rationale: Changed-By @linux-rdma
 X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Notification-Type: package-upload
+X-Katie: Launchpad actually
 X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOUPLOAD
+X-Launchpad-PPA: linux-rdma-rdma-core-daily
 To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   noreply@launchpad.net
-Subject: [recipe build #2846208] of ~linux-rdma rdma-core-daily in xenial: Failed to upload
-Message-Id: <162819323920.9394.2562049811370600308.launchpad@alphecca.canonical.com>
-Date:   Thu, 05 Aug 2021 19:53:59 -0000
-Reply-To: noreply@launchpad.net
+From:   Ubuntu Installer <archive@ubuntu.com>
+Subject: [~linux-rdma/ubuntu/rdma-core-daily] rdma-core_37.0~202108040743+git313509f8~ubuntu21.10.1_source.changes (Rejected)
+Message-Id: <162819325203.9394.236303164336815660.launchpad@alphecca.canonical.com>
+Date:   Thu, 05 Aug 2021 19:54:12 -0000
+Reply-To: Ubuntu Installer <archive@ubuntu.com>
 Sender: noreply@launchpad.net
 X-Generated-By: Launchpad (canonical.com); Revision="c08a1e23be9b835a8d0e7a32b2e55270fac05933"; Instance="buildmaster"
-X-Launchpad-Hash: 38e54c569f65ef4041a754d835b5f387a71dee29
+X-Launchpad-Hash: 5bd7951c58844c9c0c6853f8ac97169173b616f1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
- * State: Failed to upload
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 4 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/2846208/+files/buildlog.txt.gz
- * Upload Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-=
-daily/+recipebuild/2846208/+files/upload_2846208_log.txt
- * Builder: https://launchpad.net/builders/lgw01-amd64-058
+Rejected:
+File rdma-core_37.0~202108040743+git313509f8~ubuntu21.10.1.tar.xz already exists in PPA named rdma-core-daily for Linux RDMA, but uploaded version has different contents. See more information about this error in https://help.launchpad.net/Packaging/UploadErrors.
+Files specified in DSC are broken or missing, skipping package unpack verification.
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/2846208
-Your team Linux RDMA is the requester of the build.
+rdma-core (37.0~202108040743+git313509f8~ubuntu21.10.1) impish; urgency=low
+
+  * Auto build.
+
+===
+
+If you don't understand why your files were rejected please send an email
+to launchpad-users@lists.launchpad.net for help (requires membership).
+
+-- 
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily
+You are receiving this email because your team Linux RDMA is the most
+recent person listed in this package's changelog.
 
