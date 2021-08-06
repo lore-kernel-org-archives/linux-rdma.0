@@ -2,135 +2,112 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A76C4338F
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Aug 2021 13:31:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 730CEC4338F
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Aug 2021 13:49:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 702326052B
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Aug 2021 13:31:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 57CB6606A5
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Aug 2021 13:49:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234112AbhHFNb2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Aug 2021 09:31:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
+        id S230035AbhHFNt6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 6 Aug 2021 09:49:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230021AbhHFNb1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Aug 2021 09:31:27 -0400
-Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB342C061798;
-        Fri,  6 Aug 2021 06:31:11 -0700 (PDT)
-Received: by mail-pl1-x62b.google.com with SMTP id c16so7060592plh.7;
-        Fri, 06 Aug 2021 06:31:11 -0700 (PDT)
+        with ESMTP id S231694AbhHFNt5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Aug 2021 09:49:57 -0400
+Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D520C0613CF
+        for <linux-rdma@vger.kernel.org>; Fri,  6 Aug 2021 06:49:41 -0700 (PDT)
+Received: by mail-qv1-xf35.google.com with SMTP id js7so4899820qvb.4
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Aug 2021 06:49:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=KAztCBArtZC7HRKhC7762eisKH/x8j781ZnsXWVLa00=;
-        b=aQoU9ha/sqeKILrBMF1n75POJb4TtHrBPhPtSalXxDmceP2K+ZD02SX/Ov38fqCiWF
-         mkJoJX0h5PO/8Kvscb3kCME3ZRPQ6ovBirX8LKBUKqm+GUE0dGuft5/vXGANQFZ/vNZQ
-         7yZXRa7wXtD5K7e0V51D959yNV1uOEbWgoX3nLJmQEgqOX6AWTTuTFhYjIULyA0EpBqu
-         rBmzpkWJSagzdNGH9VK+oQQzqsnlMlDRWWBuhSYn50bQN11WLjzSH9dvqXU9ESLUM9Lp
-         ubfY80HfvOM4jJbUltdAZSGQf95ZR/EqOWJzTYpCIah9oca9bUjeNSMzZUFG8DQQjo7x
-         k6Gg==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=jbiC7cFEWti1YXy9WPyVT65ZcgBTUeGUO+V0/R7zwWg=;
+        b=YctemMllS/qVRPBFP0/vcEbUHAwMkXV1S7hWpLT2qbtJrRoZpBRSWLrkRokwTjylEf
+         m5ZVqezvANUixXCCMW6Ibckr9phe4Kob2fCyVwlBIRXZvfCxxl8VXQehkhU8R+0JiaHS
+         nGmvTVnaKIUk4QZBC0/iImG2iCQ6xKvXHUBrD22K3SG65PGsgFSv8ah/BXUmqk83zEkN
+         ArNFMumuvbZ0mdTOsKL//XFwdBc5qHkaipz81trPvSu14Y5f1kxCZX8HcKH6tcWV1QfL
+         GqGA0eLUdQ9GfvTrMtyMTC7K6LEDT+E58PZuRGqza7wie042UUGR0i+M/GK/+zxYBisZ
+         6W7g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=KAztCBArtZC7HRKhC7762eisKH/x8j781ZnsXWVLa00=;
-        b=TQCxkBOlO0U5gqyJRKB804+tLY+HBnlXkpVRFbemrAwJWTWYWCqX1kYjfTzf3g8M+a
-         Vq9C1xa1JpX+QgAFIjesmlVQubhjgxAHARDa9u3YpVgPkZDGlTVM4Eeun5y6IpbyI7PD
-         r4Bzjb7Qm3Hfqj42LehmLQMyJm1Tvlgd+mGCIzM4NIE9wRkYmZc3GgUs4CD2GCWUWKXT
-         7RJTCrJTFYZJeTlu7FLQjBPomtrWiOuRvjQwWCIGYgNoUxFRWyhHZsl0OMNbRJxdqyPe
-         J6bZPAGbpKVcusOghGL+nfCzQVj9Hi4+eVigDGAtP+sz8wW0oQQn5IoIBtjy00LRuw+A
-         haKg==
-X-Gm-Message-State: AOAM531ejPAcAkWHcozbtQeBldzcaVnSakBXXvnc2/2rNsmvXYdgXycJ
-        yPKsHcqaCEM5jyI7P/AWi8k=
-X-Google-Smtp-Source: ABdhPJxen66KJ8USlvrVknakga7eaRL+dQuLBI2B6TcLIka2a0XfcpPcAkmAgBAfi++Iu2bN9pDODQ==
-X-Received: by 2002:a17:90a:98b:: with SMTP id 11mr10585748pjo.144.1628256671475;
-        Fri, 06 Aug 2021 06:31:11 -0700 (PDT)
-Received: from localhost.localdomain ([45.135.186.81])
-        by smtp.gmail.com with ESMTPSA id o127sm10949491pfb.48.2021.08.06.06.31.09
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=jbiC7cFEWti1YXy9WPyVT65ZcgBTUeGUO+V0/R7zwWg=;
+        b=DOOsO7vgNH92AZjVsLvZfJOVf3TnTS+AeF6QxqnKyqM8tEWj250ah1Gnvj1yRzlXyF
+         //WkvCC7YLyIX8oOmw5I7WivB19kKvk89aZ/v8h51Qan0fxsA5PbBtQik9Ng/A5Z1hyI
+         +n2DxvjVUzvv3h0/GyiWhPdg7+ybn0qC6gBov93HaBgepV5l9qPuowL7UPIDzSreDLWb
+         PsMTWnXGvRqHZpjLodctvGJiMppm5i5v0BCFceX24ZAgNLRn6nLP53FGRRLodOCfHOd8
+         6PnOH+5RSNfy7aNzGscsTSWzbKvHQrPG12A9Jj2r/NC83eXxBvmnPHOtqacCpy2YShWt
+         YPIw==
+X-Gm-Message-State: AOAM532l/WE4TQ2BdoFNj7CexjCiVq+t+fV60U9U3XfxJbAXh6J6i99Y
+        GJbdidGOJt7wxUFtHHLfByLEqA==
+X-Google-Smtp-Source: ABdhPJzwtSENkf6wm7ul2O9rirC7wEEF/Z0EXO8Jf+f2kj2giKmxE4DmqrIBlVCwQNeI9eYwwH184Q==
+X-Received: by 2002:a05:6214:19e9:: with SMTP id q9mr24172qvc.28.1628257780343;
+        Fri, 06 Aug 2021 06:49:40 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id o63sm4672932qkf.4.2021.08.06.06.49.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Aug 2021 06:31:11 -0700 (PDT)
-From:   Tuo Li <islituo@gmail.com>
-To:     mike.marciniszyn@cornelisnetworks.com,
-        dennis.dalessandro@cornelisnetworks.com, dledford@redhat.com,
-        jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        baijiaju1990@gmail.com, Tuo Li <islituo@gmail.com>,
-        TOTE Robot <oslab@tsinghua.edu.cn>
-Subject: [PATCH v3] IB/hfi1: Fix possible null-pointer dereference in _extend_sdma_tx_descs()
-Date:   Fri,  6 Aug 2021 06:30:29 -0700
-Message-Id: <20210806133029.194964-1-islituo@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Fri, 06 Aug 2021 06:49:39 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1mC0EF-00EGD5-1f; Fri, 06 Aug 2021 10:49:39 -0300
+Date:   Fri, 6 Aug 2021 10:49:39 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Shoaib Rao <rao.shoaib@oracle.com>
+Cc:     "Pearson, Robert B" <robert.pearson2@hpe.com>,
+        Zhu Yanjun <zyjzyj2000@gmail.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH v3 0/1] RDMA/rxe: Bump up default maximum values used via
+ uverbs
+Message-ID: <20210806134939.GN543798@ziepe.ca>
+References: <20210718225905.58728-1-Rao.Shoaib@oracle.com>
+ <54817f70-e7e5-d145-badf-268ba7533110@oracle.com>
+ <20210727174144.GE543798@ziepe.ca>
+ <CAD=hENdOrfyq2buP269LQVhq+QkZ=hpA3jpbZH+CAFt=CGLV-w@mail.gmail.com>
+ <6687ea04-c402-1b4e-dce0-386d29948ecc@oracle.com>
+ <CAD=hENcTYfV1LT1=_e=eCNxdjr1Nmi+R3hH_CQn70MGRTKG7LA@mail.gmail.com>
+ <eb24b781-396f-5bb9-89c7-3ca0f8b83849@oracle.com>
+ <20210729195034.GF543798@ziepe.ca>
+ <DF4PR8401MB1081385A8812159BA8E96A03BCEB9@DF4PR8401MB1081.NAMPRD84.PROD.OUTLOOK.COM>
+ <d89b2a2d-e72b-4942-28d6-c2a528053416@oracle.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d89b2a2d-e72b-4942-28d6-c2a528053416@oracle.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-kmalloc_array() is called to allocate memory for tx->descp. If it fails,
-the function __sdma_txclean() is called:
-  __sdma_txclean(dd, tx);
+On Wed, Aug 04, 2021 at 11:11:15PM -0700, Shoaib Rao wrote:
+> Bob,
+> 
+> Your third patch has an issue.
+> 
+> In rxe_cq_post()
+> 
+> 
+> addr = producer_addr(cq->queue, QUEUE_TYPE_TO_CLIENT);
+> 
+> It should be
+> 
+> addr = producer_addr(cq->queue, QUEUE_TYPE_FROM_CLIENT);
+> 
+> After making this change, I have tested my patch and rping works.
+> 
+> Bob can you please point me to the discussion which lead to the current
+> changes, particularly the need for user barrier.
+> 
+> Zhu can you apply Bob's 3 patches + the change above + my patch and report
+> back. In my testing it works.
 
-However, in the function __sdma_txclean(), tx-descp is dereferenced if
-tx->num_desc is not zero:
-  sdma_unmap_desc(dd, &tx->descp[0]);
+I'll expect Bob to resend
 
-To fix this possible null-pointer dereference, assign the return value of
-kmalloc_array() to a local variable descp, and then assign it to tx->descp
-if it is not NULL. Otherwise, go to enomem.
+	[for-next,v2,3/3] RDMA/rxe: Add memory barriers to kernel queues
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
-Signed-off-by: Tuo Li <islituo@gmail.com>
----
-v3:
-* Add fixes line.
-  Thank Jason Gunthorpe for helpful advice.
-v2:
-* Assign the return value of kmalloc_array() to a local variable and then
-check it instead of assigning 0 to tx->num_desc when memory allocation
-fails.
-  Thank Mike Marciniszyn for helpful advice.
----
- drivers/infiniband/hw/hfi1/sdma.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index eb15c310d63d..6ca8d065f44e 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -3055,6 +3055,7 @@ static void __sdma_process_event(struct sdma_engine *sde,
- static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
- {
- 	int i;
-+	struct sdma_desc *descp;
- 
- 	/* Handle last descriptor */
- 	if (unlikely((tx->num_desc == (MAX_DESC - 1)))) {
-@@ -3075,12 +3076,12 @@ static int _extend_sdma_tx_descs(struct hfi1_devdata *dd, struct sdma_txreq *tx)
- 	if (unlikely(tx->num_desc == MAX_DESC))
- 		goto enomem;
- 
--	tx->descp = kmalloc_array(
--			MAX_DESC,
--			sizeof(struct sdma_desc),
--			GFP_ATOMIC);
--	if (!tx->descp)
-+	descp = kmalloc_array(MAX_DESC,
-+					sizeof(struct sdma_desc),
-+					GFP_ATOMIC);
-+	if (!descp)
- 		goto enomem;
-+	tx->descp = descp;
- 
- 	/* reserve last descriptor for coalescing */
- 	tx->desc_limit = MAX_DESC - 1;
--- 
-2.25.1
-
+Jason
