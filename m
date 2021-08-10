@@ -2,106 +2,211 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1575AC432BE
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Aug 2021 13:08:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C09CC4338F
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Aug 2021 13:24:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E14A060EBB
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Aug 2021 13:08:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0D5761008
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Aug 2021 13:24:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239302AbhHJNIt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Aug 2021 09:08:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238793AbhHJNIs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Aug 2021 09:08:48 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B935AC0613D3;
-        Tue, 10 Aug 2021 06:08:26 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id e19so35299192ejs.9;
-        Tue, 10 Aug 2021 06:08:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=xs/+O7rAz0hyKzsctUcio2WQZUKn46iac13X1YxyLOs=;
-        b=HCCl7rgFmcy3zKwIxkaZ/SBUd8zqPrb094075z1tmOI4VPtPFJxydk1aoQ4B2mcRJ2
-         cQbJUQDbzcm1dkhCvmLco8Me5ubngY8nbgtYF0sJ4eL85zbQyFqLGyp/ySVX1oMF/iSG
-         vbjIbxMCaeikvl+bgs/I6KvQSlwON8h6QIJ/y4JkTJzU3UePnUxBhQOh1L7I7o6lC6Va
-         ajSBOfrGIA0UG06ic10DngwwBxhWDA2POkbpQH93j60p7JEWn4jt32GvxfG2iNSy4hfj
-         yyCxV6P1vKnmRiuGGEdWGMZQPJ5OaIGrTF36KT7jCgkXxKcljAlP0sCWBR/x3nM56IYM
-         tq6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=xs/+O7rAz0hyKzsctUcio2WQZUKn46iac13X1YxyLOs=;
-        b=H3uO4uX3kTzkyDqsI6ddJbwdtQ5lQL+5yR9AaGTABOvQqiWqC6881CxtuyfW90vwKg
-         Pd0xAdu9HKfusKypLX2RTIba4WeYUe3t8Z62/85XeXxQzvHm6Jz6TIpJacgJD1ajaIAt
-         F/pHvixOkWZS0d1D+Pcn0dgDKh81sB1l7hkGe1ayWUjhgQbX5CaTGSmurI4epFQ8iSXb
-         JjD/cvQgJuA5MG991EpQBD2WYeA/9egyxS3e4R4Ze/SCuTWlYBg4RI07ZWdteNON15Il
-         rDMQwPiBRqIIK85oTQ2uY//atSLvBBxT677/Sg9TGtMdapQSnuO+hHj0h/a3q+EAFkwI
-         nltA==
-X-Gm-Message-State: AOAM531SegdyiacFQIUb8leS8bsyYS9U3zWeZTbi8FvEUBrZSiM/Rwxk
-        cb3VbqIMO/h8EQl1SNToMLE=
-X-Google-Smtp-Source: ABdhPJwUr/73rEkMhaIveh98iMIskFOJfJbfcePSx7fWzOrGY6Gd0FewqY2WalFFgiQ4kd1+ecE4PA==
-X-Received: by 2002:a17:906:dfe5:: with SMTP id lc5mr27153744ejc.20.1628600905375;
-        Tue, 10 Aug 2021 06:08:25 -0700 (PDT)
-Received: from skbuf ([188.25.144.60])
-        by smtp.gmail.com with ESMTPSA id b25sm9645288edv.9.2021.08.10.06.08.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Aug 2021 06:08:24 -0700 (PDT)
-Date:   Tue, 10 Aug 2021 16:08:21 +0300
-From:   Vladimir Oltean <olteanv@gmail.com>
-To:     Karsten Graul <kgraul@linux.ibm.com>
-Cc:     Vladimir Oltean <vladimir.oltean@nxp.com>, netdev@vger.kernel.org,
-        Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vadym Kochan <vkochan@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jiri Pirko <jiri@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
-        Lars Povlsen <lars.povlsen@microchip.com>,
-        Steen Hegelund <Steen.Hegelund@microchip.com>,
-        UNGLinuxDriver@microchip.com,
-        Grygorii Strashko <grygorii.strashko@ti.com>,
-        Julian Wiedmann <jwi@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Jianbo Liu <jianbol@nvidia.com>,
-        Vlad Buslov <vladbu@nvidia.com>,
-        Bjarni Jonasson <bjarni.jonasson@microchip.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Tobias Waldekranz <tobias@waldekranz.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-s390@vger.kernel.org, Russell King <linux@armlinux.org.uk>,
-        Ido Schimmel <idosch@idosch.org>
-Subject: Re: [PATCH v2 net] net: switchdev: zero-initialize struct
- switchdev_notifier_fdb_info emitted by drivers towards the bridge
-Message-ID: <20210810130821.7gdngordzzxkpws3@skbuf>
-References: <20210810115024.1629983-1-vladimir.oltean@nxp.com>
- <dfa98bf7-cab4-4076-ef5f-880a8baa89ee@linux.ibm.com>
+        id S241358AbhHJNZG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Aug 2021 09:25:06 -0400
+Received: from mail-dm6nam11on2085.outbound.protection.outlook.com ([40.107.223.85]:42080
+        "EHLO NAM11-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S241334AbhHJNZE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 10 Aug 2021 09:25:04 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HdK2dBFG9L54MEQAqNjCwV6MYQUTxgjbCCRHlUIpo/MqAx2zDaK9oKd6BNpzQx3KDHkfJyFjZsJI+kyCn+GUq6hMjM40UghZJAhVct+GGzsza+UE3PbZgdm/+Itcuz2IzkypZt+wVcrDuw4OJh/XlO7rTZvr/8RyoOmih9HAs2EIOfoa1dfzxsIdXed+hbAzXDhq9ZdG2JNkLkEN6qHjYyq2zkeliBN1AxEMaGlrE7fu5t3WFRKHFsLeSaScKKv+0L27SwNrhlqygvRP8VchjLW3H9ukz85nTapq14i86ifGGNvI7tT/nEQAA2UIp6nsURYuhr4sqnr3KrWvqW5Vsg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XIZz0T7KW/x9ZpJKkdADEz/jphyki1j0IWRbQqPrBQA=;
+ b=NU8vfxiggZ29MLm8wWk0j3vsg/7XVdtBhwQF338PGbRTGvHuvpcU+1J6aH4A0pwHmNHUVZt1Z+ewk+1spSWPeBPJ5Zc4t7BKVgn93AV/HqV/stmPOvZhmAr90eFEwMFpD+FZJ8MMhTAcvhkssU+0GT9N1GQRKpleZRTGDJJ8/PwjRisELEIt0KXrhRbxKInC5GZgez9PPtZ1kmYx/Hb80A9z8B+EZhAcSz3lNuZwHLyUvLRCq/+FGQlBaqP8UmCXIkkombqGWcs0TMCRnwTYu+y0j2e2sIgP7LF5fYwYyUJzOQARII/d2yXm3867xcSBrZesMIR+m4T5mYdb+Ri9TA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.112.34) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XIZz0T7KW/x9ZpJKkdADEz/jphyki1j0IWRbQqPrBQA=;
+ b=phi+ExbBda7JleGEU12VRQVdMBfbHqaKqUiycGJaXhjzjrkDVktkGl2IJAyxk7B8JifXH1E57JZfhi7U2JgUDISEaHcspUXSHn0bTx1Zyr23IPnVlLEzYeZLk15PHOY2MEkkgEKK4Kx0D4kuvuXKgKfO0z6PgwcqWFZLawiV3Qz2e23qO7dVv8ff+YoqWzzT1pERwpSe3P9spKlgNEs8xQE1ohUmlwAx+SIv7EeZmETRf25u7Cm43IokcRZSiQv7Ee6vabL9F6Nm0rNJFPOuBNE6VRyeHp+/XbS4yGxYpcrNQ0SIDIN7zFtjYoWKKaA3flWAgSCW4t0G5BXXrVNMeQ==
+Received: from CO2PR05CA0088.namprd05.prod.outlook.com (2603:10b6:104:1::14)
+ by CY4PR12MB1494.namprd12.prod.outlook.com (2603:10b6:910:f::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4394.21; Tue, 10 Aug
+ 2021 13:24:38 +0000
+Received: from CO1NAM11FT067.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:104:1:cafe::5d) by CO2PR05CA0088.outlook.office365.com
+ (2603:10b6:104:1::14) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4415.4 via Frontend
+ Transport; Tue, 10 Aug 2021 13:24:38 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.112.34)
+ smtp.mailfrom=nvidia.com; vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.112.34 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.112.34; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (216.228.112.34) by
+ CO1NAM11FT067.mail.protection.outlook.com (10.13.174.212) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.4394.16 via Frontend Transport; Tue, 10 Aug 2021 13:24:38 +0000
+Received: from sw-mtx-036.mtx.labs.mlnx (172.20.187.5) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Tue, 10 Aug
+ 2021 13:24:37 +0000
+From:   Parav Pandit <parav@nvidia.com>
+To:     <davem@davemloft.net>, <kuba@kernel.org>, <netdev@vger.kernel.org>
+CC:     <linux-rdma@vger.kernel.org>,
+        <virtualization@lists.linux-foundation.org>,
+        Parav Pandit <parav@nvidia.com>
+Subject: [PATCH RESEND net-next 00/10] devlink: Control auxiliary devices
+Date:   Tue, 10 Aug 2021 16:24:14 +0300
+Message-ID: <20210810132424.9129-1-parav@nvidia.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dfa98bf7-cab4-4076-ef5f-880a8baa89ee@linux.ibm.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [172.20.187.5]
+X-ClientProxiedBy: HQMAIL111.nvidia.com (172.20.187.18) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 69523da0-d9fa-4e7e-d197-08d95c023422
+X-MS-TrafficTypeDiagnostic: CY4PR12MB1494:
+X-Microsoft-Antispam-PRVS: <CY4PR12MB1494C98E85E0F49A28834A3EDCF79@CY4PR12MB1494.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: WQBEUZdo9aHnYfM5l8crs/O6BVS+QoS2dthrQ4UTyKLUkIATnYUZFsMjb9CYMaGAoNu9x/z1gJUvg0sizpLl/qTHMLmGHYqYcEoBM0ubG+geTEElQLqSuo3rWxsSzRQqZUe+/w5VW1ovtKnZn21cVqlcYhsvHg4xmx/Vdw5wx+GQvHK+AgGu3Z8/ewTFBYc09Lta8wZGzuDMMtzLRneAshtbqoC+6IHlHcgqeP6aVXoGQ0pFFtuxhPBtP+ZY1gGBpeTKXrHTNM6/j/SA1ia9PMZ+HoBTiZbhmGSDplPJzpKzNk5giCKpPlFHxaZRpdFvdR1cizQFmxhJ1RA3Nm1UxV5xXITz2TIK0IVd8ezcX1m/xMXRYMEg4OgE0F8WEMw21mBfEiFD2FKv6pjqavTkJ1UJxh/QZ67v4aVLz/YfyNlKDXaneDoEtJHDUOdRf5BBb7o3DYjAuCjgA9tpTmF4r6CZfc4QradY8vgflIL34cH7Jiak4asQXCkQea1ucvMv7xV9bgQOa+hYf+plaF+IjuekWB44FQ0Llte6N3HP4h0Ww3GXq6JXUSole0T0xQXF0xWgCDqC4rWKLSt+GvSkQfJecduj3mJVdeKXacgQyJk393cNJuCmBOJijhpsfBzOgpLVMQ7QCEw0Q8tDhl9IfWl3sL/KhKik0L46LvPt4xwPG7m8+K6TMj5kko+93Mw087ziRtMrpUTOgrISQ1f1fvubAfX4LbjutDDr1Kc6mjR/ILgMT8DSyz6bMWA4ddyBAAXEhcD0OhJRCNx1VZD9J2U0ETCvINQ5O8Cjo9pRQ9E=
+X-Forefront-Antispam-Report: CIP:216.228.112.34;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:schybrid03.nvidia.com;CAT:NONE;SFS:(4636009)(136003)(346002)(376002)(396003)(39860400002)(46966006)(36840700001)(54906003)(316002)(36906005)(110136005)(4326008)(6666004)(82740400003)(426003)(1076003)(966005)(82310400003)(47076005)(478600001)(7636003)(336012)(5660300002)(2906002)(36756003)(2616005)(8936002)(26005)(36860700001)(83380400001)(356005)(186003)(70206006)(70586007)(8676002)(86362001)(107886003)(16526019);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Aug 2021 13:24:38.3013
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 69523da0-d9fa-4e7e-d197-08d95c023422
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.112.34];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT067.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR12MB1494
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Aug 10, 2021 at 02:41:48PM +0200, Karsten Graul wrote:
-> On 10/08/2021 13:50, Vladimir Oltean wrote:
-> > The blamed commit a new field to struct switchdev_notifier_fdb_info, but
->                   ^^^ added?
+(Resend to CC RDMA and vdpa mailing lists).
 
-yes. but I won't send a v3 just for that. thanks for noticing.
+Hi Dave, Jakub,
+
+Currently, for mlx5 multi-function device, a user is not able to control
+which functionality to enable/disable. For example, each PCI
+PF, VF, SF function by default has netdevice, RDMA and vdpa-net
+devices always enabled.
+
+Hence, enable user to control which device functionality to enable/disable.
+
+This is achieved by using existing devlink params [1] to
+enable/disable eth, rdma and vdpa net functionality control knob.
+
+For example user interested in only vdpa device function: performs,
+
+$ devlink dev param set pci/0000:06:00.0 name enable_rdma value false \
+                   cmode driverinit
+$ devlink dev param set pci/0000:06:00.0 name enable_eth value false \
+                   cmode driverinit
+$ devlink dev param set pci/0000:06:00.0 name enable_vnet value true \
+                   cmode driverinit
+
+$ devlink dev reload pci/0000:06:00.0
+
+Reload command honors parameters set, initializes the device that user
+has composed using devlink dev params and resources.
+Devices before reload:
+
+            mlx5_core.sf.4
+         (subfunction device)
+                  /\
+                 /| \
+                / |  \
+               /  |   \
+ mlx5_core.eth.4  |  mlx5_core.rdma.4
+(SF eth aux dev)  |  (SF rdma aux dev)
+    |             |        |
+    |             |        |
+ enp6s0f0s88      |      mlx5_0
+ (SF netdev)      |  (SF rdma device)
+                  |
+         mlx5_core.vnet.4
+         (SF vnet aux dev)
+                 |
+                 |
+        auxiliary/mlx5_core.sf.4
+        (vdpa net mgmt device)
+
+Above example reconfigures the device with only VDPA functionality.
+Devices after reload:
+
+            mlx5_core.sf.4
+         (subfunction device)
+                  /\
+                 /  \
+                /    \
+               /      \
+ mlx5_core.vnet.4     no eth, no rdma aux devices
+ (SF vnet aux dev) 
+
+Above parameters enable user to compose the device as needed based
+on the use case.
+
+Since devlink params are done on the devlink instance, these
+knobs are uniformly usable for PCI PF, VF and SF devices.
+
+Patch summary:
+patch-1 adds generic enable_eth devlink parameter to control Ethernet
+        auxiliary device function
+patch-2 adds generic enable_rdma devlink parameter to control RDMA
+        auxiliary device function
+patch-3 adds generic enable_vnet devlink parameter to control VDPA net
+        auxilariy device function
+patch-4 rework the code to register single device parameter
+patch-5 added APIs to register, unregister single device parameter
+patch-6 added APIs to publish, unpublishe single device parameter
+patch-7 Fixed missing parameter unpublish call in mlx5 driver
+patch-8 extends mlx5 driver to support enable_eth devlink parameter
+patch-9 extends mlx5 driver to support enable_rdma devlink parameter
+patch-10 extends mlx5 driver to support enable_vnet devlink parameter
+
+Subsequent to this series, in future mlx5 driver will be updated to use
+single device parameter API for metadata enable/disable knob which is
+only applicable on the eswitch manager device.
+
+[1] https://www.kernel.org/doc/html/latest/networking/devlink/devlink-params.html
+
+Parav Pandit (10):
+  devlink: Add new "enable_eth" generic device param
+  devlink: Add new "enable_rdma" generic device param
+  devlink: Add new "enable_vnet" generic device param
+  devlink: Create a helper function for one parameter registration
+  devlink: Add API to register and unregister single parameter
+  devlink: Add APIs to publish, unpublish individual parameter
+  net/mlx5: Fix unpublish devlink parameters
+  net/mlx5: Support enable_eth devlink dev param
+  net/mlx5: Support enable_rdma devlink dev param
+  net/mlx5: Support enable_vnet devlink dev param
+
+ .../networking/devlink/devlink-params.rst     |  12 ++
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c |  74 +++++++-
+ .../net/ethernet/mellanox/mlx5/core/devlink.c | 159 ++++++++++++++++++
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   5 +
+ include/net/devlink.h                         |  20 +++
+ net/core/devlink.c                            | 124 +++++++++++++-
+ 6 files changed, 382 insertions(+), 12 deletions(-)
+
+-- 
+2.26.2
+
