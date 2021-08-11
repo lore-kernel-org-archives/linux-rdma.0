@@ -4,54 +4,58 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BBBCC4338F
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B62EC432BE
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E425C60F21
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6716460FC3
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232726AbhHKPM0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 11 Aug 2021 11:12:26 -0400
-Received: from smtp-fw-33001.amazon.com ([207.171.190.10]:32071 "EHLO
-        smtp-fw-33001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232614AbhHKPM0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Aug 2021 11:12:26 -0400
+        id S232894AbhHKPNN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 11 Aug 2021 11:13:13 -0400
+Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:23824 "EHLO
+        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232906AbhHKPNL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Aug 2021 11:13:11 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1628694724; x=1660230724;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=MKk1E/3xvyM/5aKKbQ1/0alMrDeoQi2iRQ46XVuzfps=;
-  b=G5lsW3lg+IuGbKgPSH8Bhmaye/p0qCae08nPpautEWvHxountGAccy6R
-   oXeJHFQQLR8wcwFnmjImIo9eqXr5qHP8ZZw5DI2KGqiFHufxJZSXahXEh
-   0QaQc65a51Qu+honILIZK3j3ldds2/fYFaZPhKdYwks5lMSEjHNZQVgJi
+  t=1628694768; x=1660230768;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=PUilMmo0sQUNdAun7MkBkFo03LtjLFGU6kVPIhBZT44=;
+  b=VTj7KG+NVBvdzewM3USzUohHUK/PhDmss7Lr5CxuILX831ovFDVeWMYA
+   xtmjIm3q57KNxLsES6jvrSZUcB3jhYIXJ0FtlbvRU7RbsRdL8HlxO5G2X
+   ltAD5H9BHqBxLtZlO3EG/wF9O/H82Hs1jy9YWuW1RYEJjyOiXtsVqUXe6
    c=;
 X-IronPort-AV: E=Sophos;i="5.84,313,1620691200"; 
-   d="scan'208";a="141210525"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-33001.sea14.amazon.com with ESMTP; 11 Aug 2021 15:11:56 +0000
-Received: from EX13D19EUA003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
-        by email-inbound-relay-2b-a7fdc47a.us-west-2.amazon.com (Postfix) with ESMTPS id A3476C033E;
-        Wed, 11 Aug 2021 15:11:54 +0000 (UTC)
+   d="scan'208";a="133210799"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1a-807d4a99.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-6001.iad6.amazon.com with ESMTP; 11 Aug 2021 15:12:40 +0000
+Received: from EX13D02EUC004.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
+        by email-inbound-relay-1a-807d4a99.us-east-1.amazon.com (Postfix) with ESMTPS id 84640A07DC;
+        Wed, 11 Aug 2021 15:12:38 +0000 (UTC)
 Received: from EX13MTAUEA002.ant.amazon.com (10.43.61.77) by
- EX13D19EUA003.ant.amazon.com (10.43.165.175) with Microsoft SMTP Server (TLS)
- id 15.0.1497.23; Wed, 11 Aug 2021 15:11:53 +0000
+ EX13D02EUC004.ant.amazon.com (10.43.164.117) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.23; Wed, 11 Aug 2021 15:12:37 +0000
 Received: from 8c85908914bf.ant.amazon.com.com (10.1.212.21) by
  mail-relay.amazon.com (10.43.61.169) with Microsoft SMTP Server id
- 15.0.1497.23 via Frontend Transport; Wed, 11 Aug 2021 15:11:51 +0000
+ 15.0.1497.23 via Frontend Transport; Wed, 11 Aug 2021 15:12:35 +0000
 From:   Gal Pressman <galpress@amazon.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>,
         Doug Ledford <dledford@redhat.com>
 CC:     <linux-rdma@vger.kernel.org>,
         Alexander Matushevsky <matua@amazon.com>,
-        Gal Pressman <galpress@amazon.com>
-Subject: [PATCH for-next 0/4] EFA CQ notifications
-Date:   Wed, 11 Aug 2021 18:11:27 +0300
-Message-ID: <20210811151131.39138-1-galpress@amazon.com>
+        Gal Pressman <galpress@amazon.com>,
+        Firas JahJah <firasj@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>
+Subject: [PATCH for-next 2/4] RDMA/efa: Remove unused cpu field from irq struct
+Date:   Wed, 11 Aug 2021 18:11:29 +0300
+Message-ID: <20210811151131.39138-3-galpress@amazon.com>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210811151131.39138-1-galpress@amazon.com>
+References: <20210811151131.39138-1-galpress@amazon.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -59,40 +63,48 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series adds support for CQ notifications through the verbs api
-(ibv_req_notify_cq/ibv_get_cq_event).
+The cpu field in efa_irq struct is unused, remove it.
 
-In order to achieve that, a new event queue (EQ) object is introduced,
-which is in charge of reporting completion events to the driver.
+Reviewed-by: Firas JahJah <firasj@amazon.com>
+Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+Signed-off-by: Gal Pressman <galpress@amazon.com>
+---
+ drivers/infiniband/hw/efa/efa.h      | 3 +--
+ drivers/infiniband/hw/efa/efa_main.c | 1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-In addition, a new CQ doorbell is introduced that is mmapped to the
-userspace provider in order to arm the CQ when requested by the user.
-
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/1044
-
-Thanks,
-Gal
-
-Gal Pressman (4):
-  RDMA/efa: Free IRQ vectors on error flow
-  RDMA/efa: Remove unused cpu field from irq struct
-  RDMA/efa: Rename vector field in efa_irq struct to irqn
-  RDMA/efa: CQ notifications
-
- drivers/infiniband/hw/efa/efa.h               |  19 +-
- .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 100 ++++++++-
- drivers/infiniband/hw/efa/efa_admin_defs.h    |  41 ++++
- drivers/infiniband/hw/efa/efa_com.c           | 171 +++++++++++++++
- drivers/infiniband/hw/efa/efa_com.h           |  38 +++-
- drivers/infiniband/hw/efa/efa_com_cmd.c       |  35 +++-
- drivers/infiniband/hw/efa/efa_com_cmd.h       |  10 +-
- drivers/infiniband/hw/efa/efa_main.c          | 196 +++++++++++++++---
- drivers/infiniband/hw/efa/efa_regs_defs.h     |   7 +-
- drivers/infiniband/hw/efa/efa_verbs.c         |  60 +++++-
- include/uapi/rdma/efa-abi.h                   |  18 +-
- 11 files changed, 631 insertions(+), 64 deletions(-)
-
+diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
+index 1a1e60eee1dc..1148b308d3f6 100644
+--- a/drivers/infiniband/hw/efa/efa.h
++++ b/drivers/infiniband/hw/efa/efa.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
+ /*
+- * Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All rights reserved.
++ * Copyright 2018-2021 Amazon.com, Inc. or its affiliates. All rights reserved.
+  */
+ 
+ #ifndef _EFA_H_
+@@ -27,7 +27,6 @@
+ struct efa_irq {
+ 	irq_handler_t handler;
+ 	void *data;
+-	int cpu;
+ 	u32 vector;
+ 	cpumask_t affinity_hint_mask;
+ 	char name[EFA_IRQNAME_SIZE];
+diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
+index 42f9ac3f586e..5b2fcfe9be20 100644
+--- a/drivers/infiniband/hw/efa/efa_main.c
++++ b/drivers/infiniband/hw/efa/efa_main.c
+@@ -109,7 +109,6 @@ static void efa_setup_mgmnt_irq(struct efa_dev *dev)
+ 	dev->admin_irq.vector =
+ 		pci_irq_vector(dev->pdev, dev->admin_msix_vector_idx);
+ 	cpu = cpumask_first(cpu_online_mask);
+-	dev->admin_irq.cpu = cpu;
+ 	cpumask_set_cpu(cpu,
+ 			&dev->admin_irq.affinity_hint_mask);
+ 	dev_info(&dev->pdev->dev, "Setup irq:0x%p vector:%d name:%s\n",
 -- 
 2.32.0
 
