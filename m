@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D50B8C4320A
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14765C4338F
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B87BD60FC3
+	by mail.kernel.org (Postfix) with ESMTP id EC16860FC3
 	for <linux-rdma@archiver.kernel.org>; Wed, 11 Aug 2021 15:12:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232748AbhHKPNN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232878AbhHKPNN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 11 Aug 2021 11:13:13 -0400
-Received: from smtp-fw-2101.amazon.com ([72.21.196.25]:4605 "EHLO
-        smtp-fw-2101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232878AbhHKPNK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Aug 2021 11:13:10 -0400
+Received: from smtp-fw-80007.amazon.com ([99.78.197.218]:25160 "EHLO
+        smtp-fw-80007.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232814AbhHKPNN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 11 Aug 2021 11:13:13 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1628694768; x=1660230768;
+  t=1628694769; x=1660230769;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=0IxpAeJmDs7VAznGjulWQvvFCJXpZa8y4P5kq9CSImI=;
-  b=wIG0lcBLkR0gjknQbvN5Nx9hAz0aPrBDn2rqQuGjjvI8sh3UQGZAGWF+
-   2xbJFtGFA4oBp+XaPOvas6e0J0JpZULfCKtqFnxYoJGrqebGuGCgaZ71x
-   bxd2St4J6b94jGY4fubUqgk7VaYUnoif5ak2Cywk6p+gKUehvG+JdIs/y
-   A=;
+  bh=HiWdvnOuicCk9FNTzMD9lpRsyTXUJRgnFPcs4QdDbaQ=;
+  b=Z/6g52yQDtzddFdcJfNDoahoUlOUdSxXXzP92t48gt4ClFiYivacDTiE
+   LbRVTvlWVw1CpiQ8SeY+bPNvpv0wTTv9HWhea7Lngnol5lqNv68EsANAB
+   tjOUknfCJgGqrLfxXsFRgdUfsu4kLoO4EOHOB5rlyj/uLhRNV6dRpCemc
+   4=;
 X-IronPort-AV: E=Sophos;i="5.84,313,1620691200"; 
-   d="scan'208";a="128755113"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-1d-74cf8b49.us-east-1.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-2101.iad2.amazon.com with ESMTP; 11 Aug 2021 15:12:38 +0000
-Received: from EX13D13EUB002.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
-        by email-inbound-relay-1d-74cf8b49.us-east-1.amazon.com (Postfix) with ESMTPS id A942CC01B1;
-        Wed, 11 Aug 2021 15:12:35 +0000 (UTC)
+   d="scan'208";a="18574463"
+Received: from pdx4-co-svc-p1-lb2-vlan2.amazon.com (HELO email-inbound-relay-2a-f14f4a47.us-west-2.amazon.com) ([10.25.36.210])
+  by smtp-border-fw-80007.pdx80.corp.amazon.com with ESMTP; 11 Aug 2021 15:12:42 +0000
+Received: from EX13D19EUB001.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan2.pdx.amazon.com [10.236.137.194])
+        by email-inbound-relay-2a-f14f4a47.us-west-2.amazon.com (Postfix) with ESMTPS id 71095A256C;
+        Wed, 11 Aug 2021 15:12:42 +0000 (UTC)
 Received: from EX13MTAUEA002.ant.amazon.com (10.43.61.77) by
- EX13D13EUB002.ant.amazon.com (10.43.166.205) with Microsoft SMTP Server (TLS)
- id 15.0.1497.23; Wed, 11 Aug 2021 15:12:34 +0000
+ EX13D19EUB001.ant.amazon.com (10.43.166.229) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.23; Wed, 11 Aug 2021 15:12:41 +0000
 Received: from 8c85908914bf.ant.amazon.com.com (10.1.212.21) by
  mail-relay.amazon.com (10.43.61.169) with Microsoft SMTP Server id
- 15.0.1497.23 via Frontend Transport; Wed, 11 Aug 2021 15:12:31 +0000
+ 15.0.1497.23 via Frontend Transport; Wed, 11 Aug 2021 15:12:38 +0000
 From:   Gal Pressman <galpress@amazon.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>,
         Doug Ledford <dledford@redhat.com>
@@ -49,13 +49,10 @@ CC:     <linux-rdma@vger.kernel.org>,
         Alexander Matushevsky <matua@amazon.com>,
         Gal Pressman <galpress@amazon.com>,
         Firas JahJah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>,
-        Steve Wise <larrystevenwise@gmail.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-next 1/4] RDMA/efa: Free IRQ vectors on error flow
-Date:   Wed, 11 Aug 2021 18:11:28 +0300
-Message-ID: <20210811151131.39138-2-galpress@amazon.com>
+        Yossi Leybovich <sleybo@amazon.com>
+Subject: [PATCH for-next 3/4] RDMA/efa: Rename vector field in efa_irq struct to irqn
+Date:   Wed, 11 Aug 2021 18:11:30 +0300
+Message-ID: <20210811151131.39138-4-galpress@amazon.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210811151131.39138-1-galpress@amazon.com>
 References: <20210811151131.39138-1-galpress@amazon.com>
@@ -66,29 +63,84 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Make sure to free the IRQ vectors in case the allocation doesn't return
-the expected number of IRQs.
+The vector field naming is quite confusing, it is better referred to as
+irqn.
 
-Fixes: b7f5e880f377 ("RDMA/efa: Add the efa module")
 Reviewed-by: Firas JahJah <firasj@amazon.com>
 Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
 Signed-off-by: Gal Pressman <galpress@amazon.com>
 ---
- drivers/infiniband/hw/efa/efa_main.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/efa/efa.h      |  2 +-
+ drivers/infiniband/hw/efa/efa_main.c | 18 ++++++++----------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
+index 1148b308d3f6..87b1dadeb7fe 100644
+--- a/drivers/infiniband/hw/efa/efa.h
++++ b/drivers/infiniband/hw/efa/efa.h
+@@ -27,7 +27,7 @@
+ struct efa_irq {
+ 	irq_handler_t handler;
+ 	void *data;
+-	u32 vector;
++	u32 irqn;
+ 	cpumask_t affinity_hint_mask;
+ 	char name[EFA_IRQNAME_SIZE];
+ };
 diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
-index 997947d77de6..42f9ac3f586e 100644
+index 5b2fcfe9be20..417dea5f90cf 100644
 --- a/drivers/infiniband/hw/efa/efa_main.c
 +++ b/drivers/infiniband/hw/efa/efa_main.c
-@@ -358,6 +358,7 @@ static int efa_enable_msix(struct efa_dev *dev)
+@@ -83,8 +83,7 @@ static int efa_request_mgmnt_irq(struct efa_dev *dev)
+ 	int err;
+ 
+ 	irq = &dev->admin_irq;
+-	err = request_irq(irq->vector, irq->handler, 0, irq->name,
+-			  irq->data);
++	err = request_irq(irq->irqn, irq->handler, 0, irq->name, irq->data);
+ 	if (err) {
+ 		dev_err(&dev->pdev->dev, "Failed to request admin irq (%d)\n",
+ 			err);
+@@ -92,8 +91,8 @@ static int efa_request_mgmnt_irq(struct efa_dev *dev)
  	}
  
- 	if (irq_num != msix_vecs) {
-+		efa_disable_msix(dev);
- 		dev_err(&dev->pdev->dev,
- 			"Allocated %d MSI-X (out of %d requested)\n",
- 			irq_num, msix_vecs);
+ 	dev_dbg(&dev->pdev->dev, "Set affinity hint of mgmnt irq to %*pbl (irq vector: %d)\n",
+-		nr_cpumask_bits, &irq->affinity_hint_mask, irq->vector);
+-	irq_set_affinity_hint(irq->vector, &irq->affinity_hint_mask);
++		nr_cpumask_bits, &irq->affinity_hint_mask, irq->irqn);
++	irq_set_affinity_hint(irq->irqn, &irq->affinity_hint_mask);
+ 
+ 	return 0;
+ }
+@@ -106,14 +105,13 @@ static void efa_setup_mgmnt_irq(struct efa_dev *dev)
+ 		 "efa-mgmnt@pci:%s", pci_name(dev->pdev));
+ 	dev->admin_irq.handler = efa_intr_msix_mgmnt;
+ 	dev->admin_irq.data = dev;
+-	dev->admin_irq.vector =
++	dev->admin_irq.irqn =
+ 		pci_irq_vector(dev->pdev, dev->admin_msix_vector_idx);
+ 	cpu = cpumask_first(cpu_online_mask);
+ 	cpumask_set_cpu(cpu,
+ 			&dev->admin_irq.affinity_hint_mask);
+-	dev_info(&dev->pdev->dev, "Setup irq:0x%p vector:%d name:%s\n",
+-		 &dev->admin_irq,
+-		 dev->admin_irq.vector,
++	dev_info(&dev->pdev->dev, "Setup irq:%d name:%s\n",
++		 dev->admin_irq.irqn,
+ 		 dev->admin_irq.name);
+ }
+ 
+@@ -122,8 +120,8 @@ static void efa_free_mgmnt_irq(struct efa_dev *dev)
+ 	struct efa_irq *irq;
+ 
+ 	irq = &dev->admin_irq;
+-	irq_set_affinity_hint(irq->vector, NULL);
+-	free_irq(irq->vector, irq->data);
++	irq_set_affinity_hint(irq->irqn, NULL);
++	free_irq(irq->irqn, irq->data);
+ }
+ 
+ static int efa_set_mgmnt_irq(struct efa_dev *dev)
 -- 
 2.32.0
 
