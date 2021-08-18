@@ -2,108 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAE8EC4338F
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 08:34:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2E63C432BE
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 08:38:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4BE160C3E
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 08:34:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E88D60C3E
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 08:38:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238345AbhHRIfD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Aug 2021 04:35:03 -0400
-Received: from esa2.hc1455-7.c3s2.iphmx.com ([207.54.90.48]:57945 "EHLO
-        esa2.hc1455-7.c3s2.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S238324AbhHRIfB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 18 Aug 2021 04:35:01 -0400
-X-Greylist: delayed 429 seconds by postgrey-1.27 at vger.kernel.org; Wed, 18 Aug 2021 04:35:01 EDT
-IronPort-SDR: eZOYNhwR0QcwmckGAcHN1S7jtL4dKW61EFLfHs6Cz/Adw12ea2cO9bp8tuhDzyx03zjLDPnI0Y
- 5r7vFsdHR/Kig7nkqWgj3lAipTkqobTGBUv5WMDF3a2D/ErklBaWFFu5nBU5LL4b/uAKzqKKOZ
- TPTnHWjeZYZQiZYJt/aPqoJXWY0it9wWIK3y9XsV6tQ0SRGNeEgxfYJxmv/kpesX4f6EQDSl7e
- B2rRmk+VqJYWSe6qoxzDFurE5OXIkPEYq62ihctuqxl3xQ7n0PT3a8kZsqoqX5fZVx2NyVzz55
- pTp763m4mGriyN39giynBY+u
-X-IronPort-AV: E=McAfee;i="6200,9189,10079"; a="40636994"
-X-IronPort-AV: E=Sophos;i="5.84,330,1620658800"; 
-   d="scan'208";a="40636994"
-Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP; 18 Aug 2021 17:27:15 +0900
-Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
-        by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 42FFC6CCA0
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Aug 2021 17:27:14 +0900 (JST)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
-        by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 98EB83918B
-        for <linux-rdma@vger.kernel.org>; Wed, 18 Aug 2021 17:27:13 +0900 (JST)
-Received: from jegan.fujitsu.com (unknown [10.124.72.187])
-        by m3050.s.css.fujitsu.com (Postfix) with ESMTP id 74CA3A7;
-        Wed, 18 Aug 2021 17:27:13 +0900 (JST)
-From:   Yasunori Goto <y-goto@fujitsu.com>
-To:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     y-goto@fujitsu.com
-Subject: [PATCH] RDMA/core: EPERM should be returned when # of pined pages is over ulimit
-Date:   Wed, 18 Aug 2021 17:27:02 +0900
-Message-Id: <20210818082702.692117-1-y-goto@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
+        id S238533AbhHRIim (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Aug 2021 04:38:42 -0400
+Received: from smtp-fw-6001.amazon.com ([52.95.48.154]:19281 "EHLO
+        smtp-fw-6001.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237883AbhHRIim (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Aug 2021 04:38:42 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1629275889; x=1660811889;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=Cs2eoNXPps/j86YzVA6CeH9OzMSl/g0AtoxGtzsYxzY=;
+  b=qSapbQxehzaU32dJowTQiT9U5GMy1Wr/Wm99Ww4jPUbNgboz3Q6i9sRU
+   M3T48yGXJWEUnzClJfY6llfwzINb++3ADoPka39soto670rtKrRl3Pmy+
+   l08f/KN4DebOwXOq7TkM8UGxN2ykxof1Ll+lBfkVac4MJUYAzCPA6Rkxu
+   E=;
+X-IronPort-AV: E=Sophos;i="5.84,330,1620691200"; 
+   d="scan'208";a="134675497"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-1d-38ae4ad2.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-6001.iad6.amazon.com with ESMTP; 18 Aug 2021 08:38:01 +0000
+Received: from EX13D19EUB003.ant.amazon.com (iad55-ws-svc-p15-lb9-vlan3.iad.amazon.com [10.40.159.166])
+        by email-inbound-relay-1d-38ae4ad2.us-east-1.amazon.com (Postfix) with ESMTPS id E0809A299E;
+        Wed, 18 Aug 2021 08:37:56 +0000 (UTC)
+Received: from 8c85908914bf.ant.amazon.com (10.43.160.90) by
+ EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.23; Wed, 18 Aug 2021 08:37:49 +0000
+Subject: Re: [RFC] Make use of non-dynamic dmabuf in RDMA
+To:     =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+CC:     <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        Oded Gabbay <ogabbay@habana.ai>,
+        Tomer Tayar <ttayar@habana.ai>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Jianxin Xiong <jianxin.xiong@intel.com>
+References: <20210818074352.29950-1-galpress@amazon.com>
+ <3abaef49-2733-8b5e-3eaa-662a2a57b96e@amd.com>
+From:   Gal Pressman <galpress@amazon.com>
+Message-ID: <01573693-cf7a-a160-2f60-5049dfba1ecd@amazon.com>
+Date:   Wed, 18 Aug 2021 11:37:31 +0300
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.13.0
 MIME-Version: 1.0
+In-Reply-To: <3abaef49-2733-8b5e-3eaa-662a2a57b96e@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
+X-Originating-IP: [10.43.160.90]
+X-ClientProxiedBy: EX13D42UWB003.ant.amazon.com (10.43.161.45) To
+ EX13D19EUB003.ant.amazon.com (10.43.166.69)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello,
+On 18/08/2021 11:00, Christian König wrote:
+> Am 18.08.21 um 09:43 schrieb Gal Pressman:
+>> Hey all,
+>>
+>> Currently, the RDMA subsystem can only work with dynamic dmabuf
+>> attachments, which requires the RDMA device to support on-demand-paging
+>> (ODP) which is not common on most devices (only supported by mlx5).
+>>
+>> While the dynamic requirement makes sense for certain GPUs, some devices
+>> (such as habanalabs) have device memory that is always "pinned" and do
+>> not need/use the move_notify operation.
+>>
+>> The motivation of this RFC is to use habanalabs as the dmabuf exporter,
+>> and EFA as the importer to allow for peer2peer access through libibverbs.
+>>
+>> This draft patch changes the dmabuf driver to differentiate between
+>> static/dynamic attachments by looking at the move_notify op instead of
+>> the importer_ops struct, and allowing the peer2peer flag to be enabled
+>> in case of a static exporter.
+> 
+> Well NAK to the general approach, this can be solved much easier.
+> 
+> If you can't support dynamic moves while using the buffer then just pin all
+> buffers during import/export.
+> 
+> This avoids the move notification and the framework/exporter can still correctly
+> account for pinned buffers.
+> 
+> But please note that at least amdgpu never uses P2P support for pinned buffers
+> since we want to avoid that unmoveable buffers clutter video memory and create
+> conflicts with V4L and scanout.
+> 
+> If you don't have such concerns in habanalabs then you can implement the pinning
+> there while keeping P2P still enabled.
+Thanks Christian!
 
-When I started to use SoftRoCE, I'm very confused by
-ENOMEM error output even if I gave enough memory.
-
-I think EPERM is more suitable for uses to solve error rather than
-ENOMEM at here of ib_umem_get() when # of pinned pages is over ulimit.
-This is not "memory is not enough" problem, because driver can
-succeed to pin enough amount of pages, but it is larger than ulimit value.
-
-The hard limit of "max locked memory" can be changed by limit.conf.
-In addition, this checks also CAP_IPC_LOCK, it is indeed permmission check.
-So, I think the following patch.
-
-If there is a intention why ENOMEM is used here, please let me know.
-Otherwise, I'm glad if this is merged.
-
-Thanks.
-
-
----
-When # of pinned pages are larger than ulimit of "max locked memory"
-without CAP_IPC_LOCK, current ib_umem_get() returns ENOMEM.
-But it does not mean "not enough memory", because driver could succeed to
-pinned enough pages.
-This is just capability error. Even if a normal user is limited
-his/her # of pinned pages, system administrator can give permission
-by change hard limit of this ulimit value.
-To notify correct information to user, ib_umem_get()
-should return EPERM instead of ENOMEM at here.
-
-Signed-off-by: Yasunori Goto <y-goto@fujitsu.com>
----
- drivers/infiniband/core/umem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 0eb40025075f..9771134649e9 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -205,7 +205,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
- 	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
- 		atomic64_sub(npages, &mm->pinned_vm);
--		ret = -ENOMEM;
-+		ret = -EPERM;
- 		goto out;
- 	}
- 
--- 
-2.31.1
-
+Are you suggesting to pass an empty move_notify callback instead of passing NULL?
+Also, doesn't the pin operation move the memory from the device to host memory?
