@@ -2,43 +2,43 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4138EC4338F
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 20:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23D93C4338F
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 20:57:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 231E9610A1
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 20:57:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A8A96102A
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 20:57:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233338AbhHRU6U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Aug 2021 16:58:20 -0400
-Received: from relay.smtp-ext.broadcom.com ([192.19.11.229]:41468 "EHLO
+        id S233807AbhHRU6W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Aug 2021 16:58:22 -0400
+Received: from saphodev.broadcom.com ([192.19.11.229]:41472 "EHLO
         relay.smtp-ext.broadcom.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233798AbhHRU6T (ORCPT
+        by vger.kernel.org with ESMTP id S233798AbhHRU6V (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 18 Aug 2021 16:58:19 -0400
+        Wed, 18 Aug 2021 16:58:21 -0400
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net (dhcp-10-123-156-118.dhcp.broadcom.net [10.123.156.118])
-        by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id 09A7C89A3;
-        Wed, 18 Aug 2021 13:57:42 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com 09A7C89A3
+        by relay.smtp-ext.broadcom.com (Postfix) with ESMTP id DFBD77A21;
+        Wed, 18 Aug 2021 13:57:44 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 relay.smtp-ext.broadcom.com DFBD77A21
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=broadcom.com;
-        s=dkimrelay; t=1629320264;
-        bh=MDUa583p1LyQlRKHFB/ppvO/e+RnChJuBpIZiy3FxzE=;
+        s=dkimrelay; t=1629320266;
+        bh=DwSY61xYq492Pv4BaUB7pMO5Me20+0qO76ocGtgwS94=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=scbVLS1biCRI+5fsvVWLSFTuwSlCP/7RcOr54w2qgG9U92s9skOmDZV5pd6mpMtbV
-         L1Hrnz0gyAe33+wrQkySuJrCqBmRU4O8qyJsA2virCCQc6KJARxGAnAi36n5AaVXgH
-         gwzqif3f5Qj2pr/o/O6DsUGp+x8/tnFiNfzbpxCU=
+        b=cdRzQGN0O7bttkZ3QwRDIQjdD2huraA+gG/7xLnssl7tMTFgMfj5s3pVQsXorxETn
+         Q9qxCbytaVE+haqt88Feu0sfsCdSHfT8sty7hbt9ks6xIW+omxnvJog4PDtDe+2FZx
+         Ht4ySbKQqSCev0hlmdyNjtexxUdAv5Q/KNI/9aBo=
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
 Cc:     linux-rdma@vger.kernel.org,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH rdma-rc 2/3] RDMA/bnxt_re: Add missing spin lock initialization
-Date:   Wed, 18 Aug 2021 13:57:35 -0700
-Message-Id: <1629320256-4034-3-git-send-email-selvin.xavier@broadcom.com>
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
+Subject: [PATCH rdma-rc 3/3] RDMA/bnxt_re: Fix query SRQ failure
+Date:   Wed, 18 Aug 2021 13:57:36 -0700
+Message-Id: <1629320256-4034-4-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
 In-Reply-To: <1629320256-4034-1-git-send-email-selvin.xavier@broadcom.com>
 References: <1629320256-4034-1-git-send-email-selvin.xavier@broadcom.com>
@@ -46,29 +46,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
-
-Add the missing initialization of srq lock.
+Fill the missing parameters for the FW command while
+querying SRQ.
 
 Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
 Signed-off-by: Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 283b6b8..ea0054c 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1681,6 +1681,7 @@ int bnxt_re_create_srq(struct ib_srq *ib_srq,
- 	if (nq)
- 		nq->budget++;
- 	atomic_inc(&rdev->srq_count);
-+	spin_lock_init(&srq->lock);
- 
- 	return 0;
- 
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index d4d4959..312bf25 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -713,6 +713,8 @@ int bnxt_qplib_query_srq(struct bnxt_qplib_res *res,
+ 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
+ 	if (!sbuf)
+ 		return -ENOMEM;
++	req.resp_size = sizeof(*sb) / BNXT_QPLIB_CMDQE_UNITS;
++	req.srq_cid = cpu_to_le32(srq->id);
+ 	sb = sbuf->sb;
+ 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+ 					  (void *)sbuf, 0);
 -- 
 2.5.5
 
