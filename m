@@ -8,74 +8,75 @@ X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71170C4320E
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 06:19:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBFC3C4320E
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 06:25:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F0B760F35
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 06:19:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC15B60FA0
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Aug 2021 06:25:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238762AbhHRGU1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Aug 2021 02:20:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45662 "EHLO
+        id S239487AbhHRG0E (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Aug 2021 02:26:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240293AbhHRGRd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Aug 2021 02:17:33 -0400
-Received: from mail-pj1-x102f.google.com (mail-pj1-x102f.google.com [IPv6:2607:f8b0:4864:20::102f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6E38C028C31
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Aug 2021 23:14:25 -0700 (PDT)
-Received: by mail-pj1-x102f.google.com with SMTP id m24-20020a17090a7f98b0290178b1a81700so1615275pjl.4
-        for <linux-rdma@vger.kernel.org>; Tue, 17 Aug 2021 23:14:25 -0700 (PDT)
+        with ESMTP id S238341AbhHRGY4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Aug 2021 02:24:56 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99A4AC0611C6
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Aug 2021 23:24:18 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id i21so1103411pfd.8
+        for <linux-rdma@vger.kernel.org>; Tue, 17 Aug 2021 23:24:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Hcl1ccbFJs4ud/H3xoT9ZSR2o1n+o5k4Vuh9ApRTkZE=;
-        b=X+6d81/MvLfT3RwS/Jq3LliSZFdydCpZduBL+K5p5bTjFlP//w2o7lGFMk764ByK2j
-         4XbCrV8JHtasAStK7sUNoD/ilVbmVoDcq6+ER+OvyegySoWauDTXTIy6SbVa851KB7Q1
-         KUnRDP7SH/0Kg/x5GtujVKZ0O006edjI9Mme8=
+        bh=cNmalVG+pbxPr3mreA9zKEEd2H4tBC2vGc39RgbA9Tk=;
+        b=T0mB0uwkd+Bwr8IQl/3YD/ORZ/h6GcZHHAfw4qTPS7nphYkQehERGSWj59cSMbAgzk
+         KKR0vMG5a88SolHec9ej2zYoy9ZdaOnCLwqfmIhA/oS2OWR89diIyEBz4j3SQO5zhg8O
+         FN6UWEuMg4e4CXhSW8Hsl565xQ91qeHwCgvM4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Hcl1ccbFJs4ud/H3xoT9ZSR2o1n+o5k4Vuh9ApRTkZE=;
-        b=QyaJA+FnhRYF/K9bLulvk5L6peN/Tx5hCFXJwbQwLilX2SFClSj+MAsAm2NcAi6z1i
-         tFqu/Ei4r1t/BvpopgcjwTmlfOW/PMuF3RkT5epYWinlHw29k2FI64utWuVwQb1uVvPu
-         5zADrphZWHsTDWZKPH7KzaG/BfUcC585zeqER74khGPiydxE9NbDoKxgMUOUXHnzJSbr
-         3KNgy3eZcdXvVIvOUIBu5blMlO9TMlwgcKkyPuIN4nqCbHyvZdHnOGNvOMJ8HXWxqDV6
-         qzyYmjOzZDPUHsWmhS4z4ClgL+p8hvkRlk/kQEGmInsraewzjDdsi0DROvz0ety2gbv7
-         yprA==
-X-Gm-Message-State: AOAM533AO0Q98Hma460JaDJaYB5/uT8QH+92ofPBxQuwo5HZsLh+cngn
-        x+j8CO+tMWuaUSbO0wqbxvdG/w==
-X-Google-Smtp-Source: ABdhPJyVdGO+k0ZXLSuBZU6Emb1T8tVPxMBOZys/2ngcwdzE26txO/yjwg2d2fDStsZ38dVCxGAyrA==
-X-Received: by 2002:a17:90b:2313:: with SMTP id mt19mr7827471pjb.230.1629267265564;
-        Tue, 17 Aug 2021 23:14:25 -0700 (PDT)
+        bh=cNmalVG+pbxPr3mreA9zKEEd2H4tBC2vGc39RgbA9Tk=;
+        b=c6dEbztsz/iA4XPq9hVfSCVuMxOOdyI/yTwAN3UxmoJjK5ItU2ae7UxKvUAxzHqmWc
+         Tg4LA2Bd333GdGP/15qvLWeBU6NcLobLbGRkh1/2PP3yCVSLSduU+mZb8uB7K8liCJqj
+         rblCiNtRH0x7cEfAaPQ3il82SDiLkMevqrwiD4yVMRSsnVSQEiCuO5woTcNVDskEsbYa
+         lXsCe0+Uzou39knRKBYO2uHfr3VDlIframFr1eulu2sFbHy6hhnOgbTNxyg1InbebDzV
+         1F2uTs6xxWnuqud9C/tSaHHf/kfWlY6ctCVBolsEuigWXCiOdmOfWuZsOH6y5zcD/yUW
+         Tu+w==
+X-Gm-Message-State: AOAM531VMWuuI1eW1d7YfIlYFZVZA23Qd3wvZSHx4rDiMDoBdoLXJWn0
+        yVKcqYcaiei/SWi1PdoSEmac+w==
+X-Google-Smtp-Source: ABdhPJzoElJdRbLlcznm9p1v4fqVMxPQQbVFbTyyeunVo+q1c4LPSW+dleh3870/C7uQRKu+J9kAIA==
+X-Received: by 2002:aa7:82cf:0:b029:3c4:4daa:fd68 with SMTP id f15-20020aa782cf0000b02903c44daafd68mr7700665pfn.66.1629267858224;
+        Tue, 17 Aug 2021 23:24:18 -0700 (PDT)
 Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id j23sm3858038pjn.12.2021.08.17.23.14.19
+        by smtp.gmail.com with ESMTPSA id 64sm4749129pfy.114.2021.08.17.23.24.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Aug 2021 23:14:21 -0700 (PDT)
+        Tue, 17 Aug 2021 23:24:15 -0700 (PDT)
 From:   Kees Cook <keescook@chromium.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Kees Cook <keescook@chromium.org>,
+        Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-staging@lists.linux.dev,
-        linux-block@vger.kernel.org, linux-kbuild@vger.kernel.org,
-        clang-built-linux@googlegroups.com,
+        linux-wireless@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-staging@lists.linux.dev, linux-block@vger.kernel.org,
+        linux-kbuild@vger.kernel.org, clang-built-linux@googlegroups.com,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         linux-hardening@vger.kernel.org
-Subject: [PATCH v2 56/63] RDMA/mlx5: Use struct_group() to zero struct mlx5_ib_mr
-Date:   Tue, 17 Aug 2021 23:05:26 -0700
-Message-Id: <20210818060533.3569517-57-keescook@chromium.org>
+Subject: [PATCH v2 21/63] net/mlx5e: Use struct_group() for memcpy() region
+Date:   Tue, 17 Aug 2021 23:04:51 -0700
+Message-Id: <20210818060533.3569517-22-keescook@chromium.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210818060533.3569517-1-keescook@chromium.org>
 References: <20210818060533.3569517-1-keescook@chromium.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1421; h=from:subject; bh=VDjxwOfX2cjaEibL8dkCGTlxM9AleppD3q/+715fBPc=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBhHKMq8O5UKAKpb/rvp5Y2SurRHZONXPPy2R7JrBHQ 07WmcZaJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYRyjKgAKCRCJcvTf3G3AJqH3D/ 4gNGySY8SCnjrDzEUM7CyrdchqF//a5m2rqxinozby7V9IS5+ycLOFfGvEx1AbtsgpvkKu6IjRZUA5 U67OxhqHOeDoB2W0JrzMD4ZiEf7aeNYRL/FcCw1nfsLjyJUn/7TFORuKQzen2TzINw05zF7xASgg/i xaqv+EuCKtewRoiXcWah1s7jrT1+hp4WtAkQzn/+YaIOVXblb9eHzxMGHhaGDiVNUWryg50fZiOvzo syChMqPaE84IoJx1X3nrdGMbSgJMU0FmsGXcNzY1ouOxqnAlCdt78oxn0N/v+Iddyi/oJlPfrrkCFW zTE3FtjwfhE243hFenyrDn/NEq85myRaQoC3GPPw9uiO1gSwK5OxTciBWBWEY9hT8f55X/K1hRf7Dx z/+mVftkYQIBCPASioBF7UrH+t8vHnUbHcJrYUXmmKNFE8Ki+9oeB0OLJaSo/Yw6PdoabOW4EplCRJ oGAyyzxgxgNTQUYlJOMczrc1z9W3IFlWitdqcPrmsHApkLxRvze0yN1bBp2+BP8kp5Sul0WwUPwAOF gCblqx3UOeJuqqaMUUha9/HfetNzO8oyaLg80znWlEWSXZcMWHgubHnQLVPMv7nqUCEbhdDoN09B46 k0l6F+LB0Ns/6YfKNGhM3NCkF2iuaqgxu0NW66r4tv309D5se4J8ucLMUhmQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2287; h=from:subject; bh=H1NJrCbG/+gkFDDOH1HKv+jRsuxCwz9I+sItTuJPxig=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBhHKMie0CZ8QknrFWsSjQNv2Z5IJELFExqf7lN7Wwc 5aQQO+qJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYRyjIgAKCRCJcvTf3G3AJhJRD/ 96K2w+o05X7hhRITOYKyJKbH37CP3Ty7ALSuqaRioqi5222xg1OlnDlOmTcxm36KPLSYb9gNOPa98l 7az22zZD/h+540iMnPR/nKUQpztke9KGCWfI6q0E264noieiOeBk645rAPlBm4GwcsyT0YYPKqC1ZQ UTpt6I53LSvfaDvqvAqf+r8OlgAEKrvseNyt6qPuA13XUHguBBpovSDddi8OEqv/t5Q2wj7UEMmW9J IV+m0C3UpQKXOeOhTy23oZX7PjawKd6/ah6FLBqp6AKcedGBTDdkEtjHbu8o9trfR1W1JUsvMCcv9S 8dO2gsGyuF0n5SykLaKxqeSKyvE8fjXBmALhef7xIECWwU3oMeXXcDnEKC00an8WKoTI/p3sdBuwGx hjBgHLa6fYkRSNX07ZrUHUpURPOef9SB6ijFamo9WBDRCJqk7AaNFp4cIkmEoupJpZdmr/Cm7s7jzG oQUq+6Tbv7TkwMP3GX9S0UgzY5hbFKCx8+nqIQ8qQxp/nmFHZZ9/B1u/uzYcV0mZ0Z2HD8SsYnTNtT +36VQ5kEs/5D+CCjDnJyxpY0zbiwB11VKD/JrZ8xY1p1Y4YjDHvtOjkykedRvOU0ltxWDBDoGf26q8 mtK38NkfvvezjBrpRzYDrxRYSxWAIcOs6jVAkBvNvKCrsZueeLXchKsyUi4w==
 X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -83,48 +84,59 @@ List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memset(), avoid intentionally writing across
-neighboring fields.
+field bounds checking for memcpy(), memmove(), and memset(), avoid
+intentionally writing across neighboring fields.
 
-Add struct_group() to mark region of struct mlx5_ib_mr that should be
-initialized to zero.
+Use struct_group() in struct vlan_ethhdr around members h_dest and
+h_source, so they can be referenced together. This will allow memcpy()
+and sizeof() to more easily reason about sizes, improve readability,
+and avoid future warnings about writing beyond the end of h_dest.
 
+"pahole" shows no size nor member offset changes to struct vlan_ethhdr.
+"objdump -d" shows no object code changes.
+
+Cc: Saeed Mahameed <saeedm@nvidia.com>
 Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 2 +-
+ include/linux/if_vlan.h                         | 6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index bf20a388eabe..f63bf204a7a1 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -644,6 +644,7 @@ struct mlx5_ib_mr {
- 	struct ib_umem *umem;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index c63d78eda606..39942a952736 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -207,7 +207,7 @@ static inline void mlx5e_insert_vlan(void *start, struct sk_buff *skb, u16 ihs)
+ 	int cpy1_sz = 2 * ETH_ALEN;
+ 	int cpy2_sz = ihs - cpy1_sz;
  
- 	/* This is zero'd when the MR is allocated */
-+	struct_group(cleared,
- 	union {
- 		/* Used only while the MR is in the cache */
- 		struct {
-@@ -691,12 +692,13 @@ struct mlx5_ib_mr {
- 			bool is_odp_implicit;
- 		};
- 	};
+-	memcpy(vhdr, skb->data, cpy1_sz);
++	memcpy(&vhdr->addrs, skb->data, cpy1_sz);
+ 	vhdr->h_vlan_proto = skb->vlan_proto;
+ 	vhdr->h_vlan_TCI = cpu_to_be16(skb_vlan_tag_get(skb));
+ 	memcpy(&vhdr->h_vlan_encapsulated_proto, skb->data + cpy1_sz, cpy2_sz);
+diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
+index 41a518336673..45aad461aa34 100644
+--- a/include/linux/if_vlan.h
++++ b/include/linux/if_vlan.h
+@@ -46,8 +46,10 @@ struct vlan_hdr {
+  *	@h_vlan_encapsulated_proto: packet type ID or len
+  */
+ struct vlan_ethhdr {
+-	unsigned char	h_dest[ETH_ALEN];
+-	unsigned char	h_source[ETH_ALEN];
++	struct_group(addrs,
++		unsigned char	h_dest[ETH_ALEN];
++		unsigned char	h_source[ETH_ALEN];
 +	);
- };
- 
- /* Zero the fields in the mr that are variant depending on usage */
- static inline void mlx5_clear_mr(struct mlx5_ib_mr *mr)
- {
--	memset(mr->out, 0, sizeof(*mr) - offsetof(struct mlx5_ib_mr, out));
-+	memset(&mr->cleared, 0, sizeof(mr->cleared));
- }
- 
- static inline bool is_odp_mr(struct mlx5_ib_mr *mr)
+ 	__be16		h_vlan_proto;
+ 	__be16		h_vlan_TCI;
+ 	__be16		h_vlan_encapsulated_proto;
 -- 
 2.30.2
 
