@@ -2,223 +2,181 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C23C4320A
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Aug 2021 20:28:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6235C4338F
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Aug 2021 22:01:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32462610FA
-	for <linux-rdma@archiver.kernel.org>; Thu, 19 Aug 2021 20:28:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 975DC604AC
+	for <linux-rdma@archiver.kernel.org>; Thu, 19 Aug 2021 22:01:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235430AbhHSU3M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Aug 2021 16:29:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43062 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235217AbhHSU3G (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Aug 2021 16:29:06 -0400
-Received: from mail-pg1-x530.google.com (mail-pg1-x530.google.com [IPv6:2607:f8b0:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B860C061764
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Aug 2021 13:28:29 -0700 (PDT)
-Received: by mail-pg1-x530.google.com with SMTP id n18so6985933pgm.12
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Aug 2021 13:28:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=LmJ99teUGdinNbfoKjiCNsrT2KdowhAH1C31uHkGRNA=;
-        b=Dj15yo21NCrkIvM7NC1lrgzKnXjpR6Ran1CaUSVIc7SDs+XJQu4+4SIyboeBH2p0+3
-         N8nGdctdwQHRXi+AuCSq4u8lcVPv+/dBJ6wSYJ3XdJGosYQ6TiqS0KWc1gyWYzhKmmYw
-         3lPlg0n+jRA26KK/nvtftN5I3bOswZf505Pqk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=LmJ99teUGdinNbfoKjiCNsrT2KdowhAH1C31uHkGRNA=;
-        b=CzJgS79xjx+zbxiF5Kj5068b+Z/7/H46at+dIB3U8LIBwp6DMk+/H8BoK72vMtxJDq
-         w+7E2pRzhqq4QEGSP4Llu/WAVFlwNEeaEAKvtjGvzsNSEytjMTduZNoF62660g+bgsnW
-         +vQMRIOuTaFSiTPhPaaER7fL4kJpWLEasH/MvNZ3YmdDtlihHmNq2hguHPbe2gfwPkvw
-         jCvP1yO0lGVoQ5j/mVLniAkzMiVMdVCme8ep+yLJ+++wEzgevANCCGGV+AJjvXyrJCMf
-         O02dNLTcjHEmBNFpyeD2LJ5g6k9DaWgp2vzVNPvVaMOZ45rno3BBQw1e8AzDQoI+0279
-         +7uA==
-X-Gm-Message-State: AOAM533t+E7NC5nqw32DziUg6OSfRZB0d8z0181MIoBDPcvTk117zV3r
-        OUEl/HmVx+VlfytBdm/Yw/V6aw==
-X-Google-Smtp-Source: ABdhPJyDdCH7kBGcDAaf55svTOs4FrH/0oEtzY2oPb1XFGfb9dMJOJHOnZ1x6JELh6d01qnrUV728Q==
-X-Received: by 2002:a65:468c:: with SMTP id h12mr15916127pgr.423.1629404908650;
-        Thu, 19 Aug 2021 13:28:28 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id x14sm4439825pfa.127.2021.08.19.13.28.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Aug 2021 13:28:27 -0700 (PDT)
-From:   Kees Cook <keescook@chromium.org>
-To:     netdev@vger.kernel.org
-Cc:     Kees Cook <keescook@chromium.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        John Fastabend <john.fastabend@gmail.com>,
-        linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
-        Stanislav Yakovlev <stas.yakovlev@gmail.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH 2/3] net/mlx5e: Avoid field-overflowing memcpy()
-Date:   Thu, 19 Aug 2021 13:28:24 -0700
-Message-Id: <20210819202825.3545692-3-keescook@chromium.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210819202825.3545692-1-keescook@chromium.org>
-References: <20210819202825.3545692-1-keescook@chromium.org>
+        id S232769AbhHSWCa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Aug 2021 18:02:30 -0400
+Received: from mga02.intel.com ([134.134.136.20]:48545 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229605AbhHSWC3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 19 Aug 2021 18:02:29 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10081"; a="203856566"
+X-IronPort-AV: E=Sophos;i="5.84,335,1620716400"; 
+   d="scan'208";a="203856566"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2021 15:01:52 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.84,335,1620716400"; 
+   d="scan'208";a="506245931"
+Received: from orsmsx605.amr.corp.intel.com ([10.22.229.18])
+  by orsmga001.jf.intel.com with ESMTP; 19 Aug 2021 15:01:52 -0700
+Received: from orsmsx604.amr.corp.intel.com (10.22.229.17) by
+ ORSMSX605.amr.corp.intel.com (10.22.229.18) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.4; Thu, 19 Aug 2021 15:01:51 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.10 via Frontend Transport; Thu, 19 Aug 2021 15:01:51 -0700
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.45) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2242.10; Thu, 19 Aug 2021 15:01:51 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Kmhid3WrEVxnxjW6WbTOLhPhX0KX+DsbnOLJq6hf9JF0cvxnO5piQkn6QslzHAW/T278q7NdD94CO7xTGTkBVucVLf7nVxV2rqlDvYTPku2m+XrURAww1N2IE2szMJgJ+/gCIARaxODn3+LmOMpqpRJy0i5UW9nrecUx/r1ophIxNTgLxp9yPX6AnkK2GINPHyRqDxNQeDLQxSR/WOS5w7Bdrn150l05ITTYJfGRq+z/srkpjR4LU9IWd9K4U/dm4PDrFDCOmRh3ZKG8vtBBDaXF475BCBTJtt9YxCjvJ/hSOu3cpJ6mvBN/f2kYy+WbK+yMvvOE+z3zt9fjeYQnBw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=NRIvmeIIpxPu7YyDWXnA80hkT0m15H2rBC5pIIu8Si0=;
+ b=PcVEMrCr+jeSY2XjZjgo5REO7Z3N10Cy366E017ABwdIMkW+l48SfJW9dGVOSj/J0ZZBtzDowmfh9DgA2LMonOiZkESfnmkTtgg2EqrHAwm2gid9Pjq5JaeP8u9KJ4sXigJz57h52MC1Y4yOFjcJwgAFmLP8CB0m/IuWH3bTPhehnqTcd8tvu+e6VoD6r4xJOUSi9AZormV5lfnpWG8NraX1VW3RZVixTuoW/ZHBxI/9JzL6uD42xrxlXM4PFgdCpb7dRW4hybIvvJRakFcEyyaaZx8lFPSO+h/IhzbcZg3t4FOWJ4sTMePJBl/xN7il/4NHlQby2fWk3Jz6C7qZew==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=NRIvmeIIpxPu7YyDWXnA80hkT0m15H2rBC5pIIu8Si0=;
+ b=etScXn+QPQQg9SeHYJejMxQRrU7Dp6+DHIngK3ZsBk+5N7Y3FyQl6Mf8s/s7u+/b+xgtlNgQ1gE5pj7taPHohHiJskw1nfwWuti03ikur63zfeclrLmyxwRampki2Xu5b89qInxnSLlyc4oymDPL3DpFt8RwyIBNJDtXRXaqS/A=
+Received: from DM6PR11MB4692.namprd11.prod.outlook.com (2603:10b6:5:2aa::11)
+ by DM5PR11MB1932.namprd11.prod.outlook.com (2603:10b6:3:114::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4436.19; Thu, 19 Aug
+ 2021 22:01:50 +0000
+Received: from DM6PR11MB4692.namprd11.prod.outlook.com
+ ([fe80::a136:f190:7e89:d7c]) by DM6PR11MB4692.namprd11.prod.outlook.com
+ ([fe80::a136:f190:7e89:d7c%3]) with mapi id 15.20.4436.019; Thu, 19 Aug 2021
+ 22:01:50 +0000
+From:   "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+CC:     "dledford@redhat.com" <dledford@redhat.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: [PATCH rdma-core] irdma: Restore full memory barrier for doorbell
+ optimization
+Thread-Topic: [PATCH rdma-core] irdma: Restore full memory barrier for
+ doorbell optimization
+Thread-Index: AQHXihS+EJKXfIrCVkG1+TWSsRynBqtlsKuAgAXsBECAAQ2EgIAFZfmAgAd9soCAAeKYkA==
+Date:   Thu, 19 Aug 2021 22:01:50 +0000
+Message-ID: <DM6PR11MB4692DCA80480234AAD298313CBC09@DM6PR11MB4692.namprd11.prod.outlook.com>
+References: <20210810115933.GB5158@nvidia.com>
+ <20210813222549.739-1-tatyana.e.nikolova@intel.com>
+ <20210818164931.GC5673@nvidia.com>
+In-Reply-To: <20210818164931.GC5673@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.5.1.3
+authentication-results: nvidia.com; dkim=none (message not signed)
+ header.d=none;nvidia.com; dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: f8327719-1e32-4184-9ee5-08d9635cf23d
+x-ms-traffictypediagnostic: DM5PR11MB1932:
+x-microsoft-antispam-prvs: <DM5PR11MB1932BA55E5E959FF8CD90B51CBC09@DM5PR11MB1932.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:7691;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: pFnLt2u6ExeUhNOKj5VZa3gQqoHIE/ZckX8bXs1siinNB2MLzbHqnGMejiFZcbWzRuKF+8VpyKiaZfunySAL1LUNANE/PIZVtghcCjXmNZav6jvCjFDbylz8vxdInx+cdb++8kPugQZNcUCSv5Od7IfrrRGA3hJrUn3AnBsNuVxxvmRl82AZlh6KAiZUN4BBESS0uJzHERGbQKfGRCnNlaCuqtNvMgA+UeGi0pyy7rhuPCK4Cp1mGgjPNqC7RgjKkjnZatuLQRrtQlGPT/KmmIpsZGYkMGVxcM4FzqrL+CnOVn6qK7aqE2RkuRf5IpSWADpWkhjCcicKv1aInGxPe2j82xj8TlHNdmf+2Z+a0UghRwY4NJbRuca46QZnYc/rtQeahJLA+Pz9L0hp0Ovr3DKvFlUwoeJGyv7w57yCqfKwOuP3bAQhXA4lXTlH4odMR50erjvMl+FunI5P0ZfhxVt+HtZczcLzDN1S1TRkFiSAFz4Y7wF6GLMCGVX6PhOMOczLhvyXJmHAF0YJ9BlkD46Iz5Dlk8vCvDiAHCYp2CZ44Ss/t6fRkTx54Kwh7NDLEegMeie9rl7roLnjeCM4aSfZmG1SPki/r9dxFykgKp+QjhFeZYXVyeRi6CpMSbbdCYV+K9x3gM03Mt7tPfZJp9IK52/Us7faoQDiMZui3JWanUsqCRdYYMsSaSNVKNt7JwDWYevBzE6DD3TxIGlzng==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR11MB4692.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(39860400002)(376002)(136003)(396003)(366004)(8936002)(76116006)(66946007)(71200400001)(52536014)(64756008)(66446008)(38070700005)(53546011)(66556008)(66476007)(7696005)(6506007)(186003)(316002)(5660300002)(54906003)(6916009)(26005)(86362001)(122000001)(4326008)(38100700002)(9686003)(55016002)(83380400001)(8676002)(2906002)(33656002)(478600001);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?5HEYwGblNPEd4ejKhX5Dh+hcxs8rnr+JUmPTfG/lgmOtH1Tq1+vu1J3wrkm6?=
+ =?us-ascii?Q?KOhh1usE67VJxusoNJdT6wYSoBu6IaYlYLV/X16NNAR3Y2ogHzJEDuOGWoP9?=
+ =?us-ascii?Q?zhTEFqeqfah4grzwR1oGLBi9mzqDRLzg9r7Te5QSNmbZ4OrnEviJMHh6zJdT?=
+ =?us-ascii?Q?qrUQ2xtlIwGqHJPjhbHLejtqkQD7M9vGQUcde86RpdOURFZxjAcUWneFCiXq?=
+ =?us-ascii?Q?cEmYyX4til5Ww3DNQLfDputqlWffpUOXlmypDnUAc88wNCwxbwoPPYMeGIQB?=
+ =?us-ascii?Q?QG3MhsDdzRd8VgdpCmzPKYfuZlI704K2l6hkJq3cQ5X5/gHs3XMmFc2OAA6K?=
+ =?us-ascii?Q?Uwbo3y1QZde8GTFkJJIt345dMwhwio3Iynfu8GGs0ur5J+/1W+XJaNvbsZ+9?=
+ =?us-ascii?Q?fPaX3wBwsrzwiM6kIFxLCh4srkjuTBNMLHaltGbM3bIu4/3qoUcZRfRISiet?=
+ =?us-ascii?Q?AeTmcVYcsbSubG99/3tW+XXuxOWj/wxyqr6wYBbUxboGGEmYKsgrG+arWQY6?=
+ =?us-ascii?Q?AbKZhTGmX6ytWK7KwVKOooiwIbkLtFqUuIr0Xt9LKyZGGC1684RP/UqCoRMQ?=
+ =?us-ascii?Q?G/iX23bkjO8fLTg8Nf+zMY7k9i4o/sdFQhxtoGNzr2fsB383Q+tEqckECyP3?=
+ =?us-ascii?Q?7BXWEkYALbK/D8rxEy/Cb+26kH+C8POr+qFNf8ZtYwhvlTxygBUvAigpD0ks?=
+ =?us-ascii?Q?14q16NYn8nTTKUbzCSGQ3sVRBAVHw1awkaDQD7XHFssaqhN0HFClOqIxjNj2?=
+ =?us-ascii?Q?NEk2leuD/njjV+Zz4rZdCBW6xvzHs22ltWLxJGMfOkVv2YF63gdRrP3xOW9P?=
+ =?us-ascii?Q?zpYXmzLUBeJzHaSkwBrqIiFmvyeb1ra8FLtWBRhdepgeie3CnoHewWSMztaf?=
+ =?us-ascii?Q?OmxT67A5V2BmR0DCSFpryt2xL7828jSmYy8nz333v/88/nAwd89dGY2Mm9ts?=
+ =?us-ascii?Q?nAAhynL10QtWcM+/5bfsbk6T1HgzcnnUbFn0fThq19cCd8OXstA3CIiPGdlP?=
+ =?us-ascii?Q?0thrzeuLQcpvKbzvenzvOIVOgFni1MabfX9lvCaEA9rENO64B/INSH5yiE6j?=
+ =?us-ascii?Q?zC3Jj7Q5Q6L1iPfYH/4o/iwCRF2JND24djiMKHP5JDl9YMzoRHUMnCgCu2n+?=
+ =?us-ascii?Q?uCrHBcRqSbGiPwMr28HJOrcWEdiBXuRy6P3m+uGEWOwVWLzegWBE2cx/Eyy8?=
+ =?us-ascii?Q?cCkdLf2ouQEbPSVvudWbJaJTDgz7ye7a2cJhggvO2vwvl33sQ+duYXCNJCbf?=
+ =?us-ascii?Q?x6vo0pnBrFdmM3/s/g817ddLFlnwpcx1S1lQT00F18zimKg36JOuQmaXwQvh?=
+ =?us-ascii?Q?rn4Fz4MjydtV3fwNeJ6zDrIu?=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5945; h=from:subject; bh=aAhXgOvjd8fFl6HHAOH2dNe1RpxfNiJeVAevXZn1G1s=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBhHr7os55xLZsomlfyqNbHN963vbWsu6lq/7sGdDVv bsZ6eIyJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYR6+6AAKCRCJcvTf3G3AJt4zD/ sHmmUuEJhefcu1/BIWauiIG3HeHJeUZKq/wb8kvLmppRsA5tE5R8SCtTbNOLGdb5P1FZoq/2nSAtlB Jg3AjDzmiNAVMiF+TmElADQXKuoGQE4qy+GV4RXJEJZ8U03o4eHw0KWWg4elHpCA4WPUveev5SI5gW WrW9hq4yscbuASX4gRfrp8EuwinBveG0xhjB1TZh7qb4u8TAW5OOIovOFIzxYOz6A9Zb98Gx1Vu7ZN 3/BpRrAPSKgKoBB6yMWoLMCugPVDG0Cn4PQRUfW+KwNZDUsLpZube9hmCXe0Ujs/f0H97jfVvaX1bz 7hWcaE5rWoSBj63Uqom5NIHhwPjvg54h4KPCNDZ9KLmG0ToxwmqDhk7F798BIs7estEA2YpZTEsyOR +9tYFwDtPOb7EOG9e5Y8x/BswkIyutAAGkGMd9c9LUiHu5zV2nbF/yiPGECcAhVL8uldcIBzDwJPE9 goDkibmTjyrsaa4i4Vept+fpSjR3D7fg8nMtlneYdzSN9ZL+L8RofiQtRy+8aj/1/dJ/oFim9ddoBz e17OLMyoVP9lixwQZxCqQN4wH+9Cu3H2zsTeY7pVhBnqYpoXOB2WcWa2CoK8TV0dj8DEoTOPX1NwFi sfWnuW/PQPEQP7GSt52LOkvFLNkl5tPpWq5cqouM4sWlz9Q0n5dzRvYdx39w==
-X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DM6PR11MB4692.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f8327719-1e32-4184-9ee5-08d9635cf23d
+X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Aug 2021 22:01:50.1105
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: iA57VIWIcetlRa6t7zEO74kiKm1USL0cowstwPJyR/kXta2fJzr3tCdma/h3P9lZrhJ0ALJj/GW6JTysKSQmDrTBvITTUHOANW2UM6xkG7k=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR11MB1932
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memcpy(), memmove(), and memset(), avoid
-intentionally writing across neighboring fields.
 
-Use flexible arrays instead of zero-element arrays (which look like they
-are always overflowing) and split the cross-field memcpy() into two halves
-that can be appropriately bounds-checked by the compiler.
 
-We were doing:
+> -----Original Message-----
+> From: Jason Gunthorpe <jgg@nvidia.com>
+> Sent: Wednesday, August 18, 2021 11:50 AM
+> To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
+> Cc: dledford@redhat.com; leon@kernel.org; linux-rdma@vger.kernel.org
+> Subject: Re: [PATCH rdma-core] irdma: Restore full memory barrier for
+> doorbell optimization
+>=20
+> On Fri, Aug 13, 2021 at 05:25:49PM -0500, Tatyana Nikolova wrote:
+> > >> 1.	Software writing the valid bit in the WQE.
+> > >> 2.	Software reading shadow memory (hw_tail) value.
+> >
+> > > You are missing an ordered atomic on this read it looks like
+> >
+> > Hi Jason,
+> >
+> > Why do you think we need atomic ops in this case? We aren't trying to
+> > protect from multiple threads but CPU re-ordering of a write and a
+> > read.
+>=20
+> Which is what the atomics will do.
+>=20
+> Barriers are only appropriate when you can't add atomic markers to the
+> actual data that needs ordering.
 
-	#define ETH_HLEN  14
-	#define VLAN_HLEN  4
-	...
-	#define MLX5E_XDP_MIN_INLINE (ETH_HLEN + VLAN_HLEN)
-	...
-        struct mlx5e_tx_wqe      *wqe  = mlx5_wq_cyc_get_wqe(wq, pi);
-	...
-        struct mlx5_wqe_eth_seg  *eseg = &wqe->eth;
-        struct mlx5_wqe_data_seg *dseg = wqe->data;
-	...
-	memcpy(eseg->inline_hdr.start, xdptxd->data, MLX5E_XDP_MIN_INLINE);
+Hi Jason,
 
-target is wqe->eth.inline_hdr.start (which the compiler sees as being
-2 bytes in size), but copying 18, intending to write across start
-(really vlan_tci, 2 bytes). The remaining 16 bytes get written into
-wqe->data[0], covering byte_count (4 bytes), lkey (4 bytes), and addr
-(8 bytes).
+We aren't sure what you mean by atomic markers. We ran a few experiments wi=
+th atomics, but none of the barriers we tried smp_mb__{before,after}_atomic=
+(), smp_load_acquire() and smp_store_release() translates to a full memory =
+barrier on X86.=20
 
-struct mlx5e_tx_wqe {
-        struct mlx5_wqe_ctrl_seg   ctrl;                 /*     0    16 */
-        struct mlx5_wqe_eth_seg    eth;                  /*    16    16 */
-        struct mlx5_wqe_data_seg   data[];               /*    32     0 */
+Could you give us an example?
 
-        /* size: 32, cachelines: 1, members: 3 */
-        /* last cacheline: 32 bytes */
-};
-
-struct mlx5_wqe_eth_seg {
-        u8                         swp_outer_l4_offset;  /*     0     1 */
-        u8                         swp_outer_l3_offset;  /*     1     1 */
-        u8                         swp_inner_l4_offset;  /*     2     1 */
-        u8                         swp_inner_l3_offset;  /*     3     1 */
-        u8                         cs_flags;             /*     4     1 */
-        u8                         swp_flags;            /*     5     1 */
-        __be16                     mss;                  /*     6     2 */
-        __be32                     flow_table_metadata;  /*     8     4 */
-        union {
-                struct {
-                        __be16     sz;                   /*    12     2 */
-                        u8         start[2];             /*    14     2 */
-                } inline_hdr;                            /*    12     4 */
-                struct {
-                        __be16     type;                 /*    12     2 */
-                        __be16     vlan_tci;             /*    14     2 */
-                } insert;                                /*    12     4 */
-                __be32             trailer;              /*    12     4 */
-        };                                               /*    12     4 */
-
-        /* size: 16, cachelines: 1, members: 9 */
-        /* last cacheline: 16 bytes */
-};
-
-struct mlx5_wqe_data_seg {
-        __be32                     byte_count;           /*     0     4 */
-        __be32                     lkey;                 /*     4     4 */
-        __be64                     addr;                 /*     8     8 */
-
-        /* size: 16, cachelines: 1, members: 3 */
-        /* last cacheline: 16 bytes */
-};
-
-So, split the memcpy() so the compiler can reason about the buffer
-sizes.
-
-"pahole" shows no size nor member offset changes to struct mlx5e_tx_wqe
-nor struct mlx5e_umr_wqe. "objdump -d" shows no meaningful object
-code changes (i.e. only source line number induced differences and
-optimizations).
-
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: bpf@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/en.h     | 4 ++--
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c | 4 +++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 4f6897c1ea8d..8997476c20cc 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -200,7 +200,7 @@ static inline int mlx5e_get_max_num_channels(struct mlx5_core_dev *mdev)
- struct mlx5e_tx_wqe {
- 	struct mlx5_wqe_ctrl_seg ctrl;
- 	struct mlx5_wqe_eth_seg  eth;
--	struct mlx5_wqe_data_seg data[0];
-+	struct mlx5_wqe_data_seg data[];
- };
- 
- struct mlx5e_rx_wqe_ll {
-@@ -216,7 +216,7 @@ struct mlx5e_umr_wqe {
- 	struct mlx5_wqe_ctrl_seg       ctrl;
- 	struct mlx5_wqe_umr_ctrl_seg   uctrl;
- 	struct mlx5_mkey_seg           mkc;
--	struct mlx5_mtt                inline_mtts[0];
-+	struct mlx5_mtt                inline_mtts[];
- };
- 
- extern const char mlx5e_self_tests[][ETH_GSTRING_LEN];
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-index 2f0df5cc1a2d..efae2444c26f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -341,8 +341,10 @@ mlx5e_xmit_xdp_frame(struct mlx5e_xdpsq *sq, struct mlx5e_xmit_data *xdptxd,
- 
- 	/* copy the inline part if required */
- 	if (sq->min_inline_mode != MLX5_INLINE_MODE_NONE) {
--		memcpy(eseg->inline_hdr.start, xdptxd->data, MLX5E_XDP_MIN_INLINE);
-+		memcpy(eseg->inline_hdr.start, xdptxd->data, sizeof(eseg->inline_hdr.start));
- 		eseg->inline_hdr.sz = cpu_to_be16(MLX5E_XDP_MIN_INLINE);
-+		memcpy(dseg, xdptxd->data + sizeof(eseg->inline_hdr.start),
-+		       MLX5E_XDP_MIN_INLINE - sizeof(eseg->inline_hdr.start));
- 		dma_len  -= MLX5E_XDP_MIN_INLINE;
- 		dma_addr += MLX5E_XDP_MIN_INLINE;
- 		dseg++;
--- 
-2.30.2
-
+Thank you,
+Tatyana
