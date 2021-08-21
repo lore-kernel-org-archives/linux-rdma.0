@@ -2,144 +2,100 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F486C432BE
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDE9C4320A
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 10:12:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27B4D61206
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E21F9611F2
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 10:12:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233654AbhHUJ55 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 Aug 2021 05:57:57 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:8760 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231673AbhHUJ54 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 Aug 2021 05:57:56 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GsDRz4JK5zYrG5;
-        Sat, 21 Aug 2021 17:56:47 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Sat, 21 Aug 2021 17:57:15 +0800
-Received: from localhost.localdomain (10.67.165.24) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Sat, 21 Aug 2021 17:57:15 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 1/3] RDMA/hns: Remove unsupport cmdq mode
-Date:   Sat, 21 Aug 2021 17:53:25 +0800
-Message-ID: <1629539607-33217-2-git-send-email-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
-References: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
+        id S234200AbhHUKMi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 Aug 2021 06:12:38 -0400
+Received: from m43-7.mailgun.net ([69.72.43.7]:17994 "EHLO m43-7.mailgun.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233859AbhHUKMi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 21 Aug 2021 06:12:38 -0400
+DKIM-Signature: a=rsa-sha256; v=1; c=relaxed/relaxed; d=mg.codeaurora.org; q=dns/txt;
+ s=smtp; t=1629540719; h=Content-Type: MIME-Version: Message-ID:
+ In-Reply-To: Date: References: Subject: Cc: To: From: Sender;
+ bh=DtreSWuXzdy5PnILjEf5ZoEUDjROdOZk8ywtPP/mAQM=; b=ISkg44BvWqCq3AotnjTL36E71xC/srW2ZgMkzdvzJwgVFBRcJr3VGuJXp9mu1bz0Y/s4aVeo
+ GBtjAGI1TQaTcUZbWDoTMxRBi/IgU9YkgQgYHluse33ccLyQFl9MML3ciEqsDzfWRlYQNwZF
+ cZ/x3ciQiqlK2NVscCB5q924BLs=
+X-Mailgun-Sending-Ip: 69.72.43.7
+X-Mailgun-Sid: WyI3Mjk5YSIsICJsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZyIsICJiZTllNGEiXQ==
+Received: from smtp.codeaurora.org
+ (ec2-35-166-182-171.us-west-2.compute.amazonaws.com [35.166.182.171]) by
+ smtp-out-n04.prod.us-east-1.postgun.com with SMTP id
+ 6120d16aa2d1fbf62b011a67 (version=TLS1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256); Sat, 21 Aug 2021 10:11:54
+ GMT
+Sender: kvalo=codeaurora.org@mg.codeaurora.org
+Received: by smtp.codeaurora.org (Postfix, from userid 1001)
+        id 9DAB4C4360C; Sat, 21 Aug 2021 10:11:53 +0000 (UTC)
+Received: from tykki (tynnyri.adurom.net [51.15.11.48])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: kvalo)
+        by smtp.codeaurora.org (Postfix) with ESMTPSA id 8F2BAC4338F;
+        Sat, 21 Aug 2021 10:11:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.1 smtp.codeaurora.org 8F2BAC4338F
+Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
+Authentication-Results: aws-us-west-2-caf-mail-1.web.codeaurora.org; spf=fail smtp.mailfrom=codeaurora.org
+From:   Kalle Valo <kvalo@codeaurora.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
+        Stanislav Yakovlev <stas.yakovlev@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Leon Romanovsky <leon@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        KP Singh <kpsingh@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org,
+        bpf@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH 0/3] net: Cleanups for FORTIFY_SOURCE
+References: <20210819202825.3545692-1-keescook@chromium.org>
+        <20210820100151.25f7ccd4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Date:   Sat, 21 Aug 2021 13:11:46 +0300
+In-Reply-To: <20210820100151.25f7ccd4@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        (Jakub Kicinski's message of "Fri, 20 Aug 2021 10:01:51 -0700")
+Message-ID: <87tujjt8d9.fsf@codeaurora.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Lang Cheng <chenglang@huawei.com>
+Jakub Kicinski <kuba@kernel.org> writes:
 
-CMDQ support un-interrupt mode only, and firmware ignores this mode flag,
-so remove it.
+> On Thu, 19 Aug 2021 13:28:22 -0700 Kees Cook wrote:
+>> Hi,
+>> 
+>> In preparation for FORTIFY_SOURCE performing compile-time and run-time
+>> field bounds checking for memcpy(), memmove(), and memset(), avoid
+>> intentionally writing across neighboring fields.
+>> 
+>> These three changes have been living in my memcpy() series[1], but have
+>> no external dependencies. It's probably better to have these go via
+>> netdev.
+>
+> Thanks.
+>
+> Kalle, Saeed - would you like to take the relevant changes? Presumably
+> they would get into net-next anyway by the time the merge window opens.
 
-Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
-Signed-off-by: Lang Cheng <chenglang@huawei.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 21 +++++++--------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 20 +++++++-------------
- 2 files changed, 14 insertions(+), 27 deletions(-)
+Ok, I'll take patch 1 to wireless-drivers-next.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 4677c48..514473f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1255,8 +1255,7 @@ static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
- {
- 	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
- 	desc->opcode = cpu_to_le16(opcode);
--	desc->flag =
--		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
-+	desc->flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
- 	if (is_read)
- 		desc->flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_WR);
- 	else
-@@ -1295,16 +1294,11 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	/* Write to hardware */
- 	roce_write(hr_dev, ROCEE_TX_CMQ_PI_REG, csq->head);
- 
--	/* If the command is sync, wait for the firmware to write back,
--	 * if multi descriptors to be sent, use the first one to check
--	 */
--	if (le16_to_cpu(desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
--		do {
--			if (hns_roce_cmq_csq_done(hr_dev))
--				break;
--			udelay(1);
--		} while (++timeout < priv->cmq.tx_timeout);
--	}
-+	do {
-+		if (hns_roce_cmq_csq_done(hr_dev))
-+			break;
-+		udelay(1);
-+	} while (++timeout < priv->cmq.tx_timeout);
- 
- 	if (hns_roce_cmq_csq_done(hr_dev)) {
- 		for (ret = 0, i = 0; i < num; i++) {
-@@ -1768,8 +1762,7 @@ static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
- 	if (ret)
- 		return ret;
- 
--	desc.flag =
--		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
-+	desc.flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
- 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
- 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
- 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 3f758d6..212799d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -129,19 +129,13 @@
- 
- #define HNS_ROCE_V2_TABLE_CHUNK_SIZE		(1 << 18)
- 
--#define HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT	0
--#define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
--#define HNS_ROCE_CMD_FLAG_NEXT_SHIFT		2
--#define HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT	3
--#define HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT		4
--#define HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT	5
--
--#define HNS_ROCE_CMD_FLAG_IN		BIT(HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT)
--#define HNS_ROCE_CMD_FLAG_OUT		BIT(HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT)
--#define HNS_ROCE_CMD_FLAG_NEXT		BIT(HNS_ROCE_CMD_FLAG_NEXT_SHIFT)
--#define HNS_ROCE_CMD_FLAG_WR		BIT(HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT)
--#define HNS_ROCE_CMD_FLAG_NO_INTR	BIT(HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT)
--#define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
-+enum {
-+	HNS_ROCE_CMD_FLAG_IN = BIT(0),
-+	HNS_ROCE_CMD_FLAG_OUT = BIT(1),
-+	HNS_ROCE_CMD_FLAG_NEXT = BIT(2),
-+	HNS_ROCE_CMD_FLAG_WR = BIT(3),
-+	HNS_ROCE_CMD_FLAG_ERR_INTR = BIT(5),
-+};
- 
- #define HNS_ROCE_CMQ_DESC_NUM_S		3
- 
 -- 
-2.8.1
+https://patchwork.kernel.org/project/linux-wireless/list/
 
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
