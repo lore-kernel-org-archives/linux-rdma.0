@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28829C4320E
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F486C432BE
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0383161037
+	by mail.kernel.org (Postfix) with ESMTP id 27B4D61206
 	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231673AbhHUJ56 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 Aug 2021 05:57:58 -0400
-Received: from szxga03-in.huawei.com ([45.249.212.189]:14311 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233492AbhHUJ55 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 Aug 2021 05:57:57 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4GsDSK2NL7z87NF;
-        Sat, 21 Aug 2021 17:57:05 +0800 (CST)
+        id S233654AbhHUJ55 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 Aug 2021 05:57:57 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:8760 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231673AbhHUJ54 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 Aug 2021 05:57:56 -0400
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GsDRz4JK5zYrG5;
+        Sat, 21 Aug 2021 17:56:47 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Sat, 21 Aug 2021 17:57:16 +0800
+ 15.1.2176.2; Sat, 21 Aug 2021 17:57:15 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -34,9 +34,9 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 3/3] RDMA/hns: Ownerbit mode add control field
-Date:   Sat, 21 Aug 2021 17:53:27 +0800
-Message-ID: <1629539607-33217-4-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 1/3] RDMA/hns: Remove unsupport cmdq mode
+Date:   Sat, 21 Aug 2021 17:53:25 +0800
+Message-ID: <1629539607-33217-2-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
 In-Reply-To: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
 References: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
@@ -52,30 +52,94 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Lang Cheng <chenglang@huawei.com>
 
-The ownerbit mode is for external card mode. Make it controlled by the
-firmware.
+CMDQ support un-interrupt mode only, and firmware ignores this mode flag,
+so remove it.
 
-Fixes:aba457ca890c("RDMA/hns: Support owner mode doorbell")
+Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
 Signed-off-by: Lang Cheng <chenglang@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 21 +++++++--------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 20 +++++++-------------
+ 2 files changed, 14 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index cbc8739..9188dd6 100644
+index 4677c48..514473f 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4143,6 +4143,9 @@ static void modify_qp_reset_to_init(struct ib_qp *ibqp,
- 	if (hr_qp->en_flags & HNS_ROCE_QP_CAP_RQ_RECORD_DB)
- 		hr_reg_enable(context, QPC_RQ_RECORD_EN);
+@@ -1255,8 +1255,7 @@ static void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
+ {
+ 	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
+ 	desc->opcode = cpu_to_le16(opcode);
+-	desc->flag =
+-		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
++	desc->flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
+ 	if (is_read)
+ 		desc->flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_WR);
+ 	else
+@@ -1295,16 +1294,11 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 	/* Write to hardware */
+ 	roce_write(hr_dev, ROCEE_TX_CMQ_PI_REG, csq->head);
  
-+	if (hr_qp->en_flags & HNS_ROCE_QP_CAP_OWNER_DB)
-+		hr_reg_enable(context, QPC_OWNER_MODE);
-+
- 	hr_reg_write(context, QPC_RQ_DB_RECORD_ADDR_L,
- 		     lower_32_bits(hr_qp->rdb.dma) >> 1);
- 	hr_reg_write(context, QPC_RQ_DB_RECORD_ADDR_H,
+-	/* If the command is sync, wait for the firmware to write back,
+-	 * if multi descriptors to be sent, use the first one to check
+-	 */
+-	if (le16_to_cpu(desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
+-		do {
+-			if (hns_roce_cmq_csq_done(hr_dev))
+-				break;
+-			udelay(1);
+-		} while (++timeout < priv->cmq.tx_timeout);
+-	}
++	do {
++		if (hns_roce_cmq_csq_done(hr_dev))
++			break;
++		udelay(1);
++	} while (++timeout < priv->cmq.tx_timeout);
+ 
+ 	if (hns_roce_cmq_csq_done(hr_dev)) {
+ 		for (ret = 0, i = 0; i < num; i++) {
+@@ -1768,8 +1762,7 @@ static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
+ 	if (ret)
+ 		return ret;
+ 
+-	desc.flag =
+-		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
++	desc.flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
+ 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
+ 	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 3f758d6..212799d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -129,19 +129,13 @@
+ 
+ #define HNS_ROCE_V2_TABLE_CHUNK_SIZE		(1 << 18)
+ 
+-#define HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT	0
+-#define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
+-#define HNS_ROCE_CMD_FLAG_NEXT_SHIFT		2
+-#define HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT	3
+-#define HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT		4
+-#define HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT	5
+-
+-#define HNS_ROCE_CMD_FLAG_IN		BIT(HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT)
+-#define HNS_ROCE_CMD_FLAG_OUT		BIT(HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT)
+-#define HNS_ROCE_CMD_FLAG_NEXT		BIT(HNS_ROCE_CMD_FLAG_NEXT_SHIFT)
+-#define HNS_ROCE_CMD_FLAG_WR		BIT(HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT)
+-#define HNS_ROCE_CMD_FLAG_NO_INTR	BIT(HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT)
+-#define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
++enum {
++	HNS_ROCE_CMD_FLAG_IN = BIT(0),
++	HNS_ROCE_CMD_FLAG_OUT = BIT(1),
++	HNS_ROCE_CMD_FLAG_NEXT = BIT(2),
++	HNS_ROCE_CMD_FLAG_WR = BIT(3),
++	HNS_ROCE_CMD_FLAG_ERR_INTR = BIT(5),
++};
+ 
+ #define HNS_ROCE_CMQ_DESC_NUM_S		3
+ 
 -- 
 2.8.1
 
