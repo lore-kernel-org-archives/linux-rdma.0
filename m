@@ -2,27 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A33C4320A
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9EBBC4338F
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D651161037
+	by mail.kernel.org (Postfix) with ESMTP id BC18A61206
 	for <linux-rdma@archiver.kernel.org>; Sat, 21 Aug 2021 09:57:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233311AbhHUJ55 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 Aug 2021 05:57:57 -0400
-Received: from szxga02-in.huawei.com ([45.249.212.188]:14406 "EHLO
+        id S233548AbhHUJ54 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 Aug 2021 05:57:56 -0400
+Received: from szxga02-in.huawei.com ([45.249.212.188]:14407 "EHLO
         szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233492AbhHUJ54 (ORCPT
+        with ESMTP id S233311AbhHUJ54 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 Aug 2021 05:57:56 -0400
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GsDN84YDxzdcLf;
+Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GsDN86VYXzdbX3;
         Sat, 21 Aug 2021 17:53:28 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2176.2; Sat, 21 Aug 2021 17:57:15 +0800
 Received: from localhost.localdomain (10.67.165.24) by
@@ -33,10 +34,12 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 0/3] Enable or remove hardware features
-Date:   Sat, 21 Aug 2021 17:53:24 +0800
-Message-ID: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 2/3] RDMA/hns: Enable stash feature of HIP09
+Date:   Sat, 21 Aug 2021 17:53:26 +0800
+Message-ID: <1629539607-33217-3-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
+References: <1629539607-33217-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -47,19 +50,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-No bugs occur, just enable features or remove redundant flags.
+From: Yixing Liu <liuyixing1@huawei.com>
 
-Lang Cheng (2):
-  RDMA/hns: Remove unsupport cmdq mode
-  RDMA/hns: Ownerbit mode add control field
+The stash feature is enabled by default on HIP09.
 
-Yixing Liu (1):
-  RDMA/hns: Enable stash feature of HIP09
+Fixes: f93c39bc9547 ("RDMA/hns: Add support for QP stash")
+Fixes: bfefae9f108d ("RDMA/hns: Add support for CQ stash")
+Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++++--------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 20 +++++++-------------
- 2 files changed, 18 insertions(+), 27 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 514473f..cbc8739 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2004,6 +2004,7 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
+ 	caps->gid_table_len[0] = HNS_ROCE_V2_GID_INDEX_NUM;
+ 
+ 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
++		caps->flags |= HNS_ROCE_CAP_FLAG_STASH;
+ 		caps->max_sq_inline = HNS_ROCE_V3_MAX_SQ_INLINE;
+ 	} else {
+ 		caps->max_sq_inline = HNS_ROCE_V2_MAX_SQ_INLINE;
+-- 
 2.8.1
 
