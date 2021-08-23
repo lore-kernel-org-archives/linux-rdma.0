@@ -2,98 +2,121 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD02C4338F
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:51:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE96C4338F
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:54:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 339666102A
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:51:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A4A06121E
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:54:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235601AbhHWIwA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Aug 2021 04:52:00 -0400
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:5179 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S235577AbhHWIwA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 23 Aug 2021 04:52:00 -0400
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AwekCDas7vhbDd//IZg2lTs7h7skDStV00zEX?=
- =?us-ascii?q?/kB9WHVpm62j5qSTdZEguCMc5wx+ZJheo7q90cW7IE80lqQFhLX5X43SPzUO0V?=
- =?us-ascii?q?HARO5fBODZsl/d8kPFltJ15ONJdqhSLJnKB0FmsMCS2mKFOudl7N6Z0K3Av4vj?=
- =?us-ascii?q?80s=3D?=
-X-IronPort-AV: E=Sophos;i="5.84,344,1620662400"; 
-   d="scan'208";a="113319383"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 23 Aug 2021 16:51:16 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-        by cn.fujitsu.com (Postfix) with ESMTP id 146B04D0DC81;
-        Mon, 23 Aug 2021 16:51:16 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Mon, 23 Aug 2021 16:51:04 +0800
-Received: from Fedora-31.g08.fujitsu.local (10.167.220.99) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Mon, 23 Aug 2021 16:51:04 +0800
-From:   Xiao Yang <yangx.jy@fujitsu.com>
-To:     <linux-rdma@vger.kernel.org>
-CC:     <rpearsonhpe@gmail.com>, <zyjzyj2000@gmail.com>, <jgg@nvidia.com>,
-        <leon@kernel.org>, Xiao Yang <yangx.jy@fujitsu.com>
-Subject: [PATCH 3/3] RDMA/rxe: Change the is_user member of struct rxe_cq to bool
-Date:   Mon, 23 Aug 2021 17:22:56 +0800
-Message-ID: <20210823092256.287154-4-yangx.jy@fujitsu.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210823092256.287154-1-yangx.jy@fujitsu.com>
-References: <20210823092256.287154-1-yangx.jy@fujitsu.com>
+        id S229967AbhHWIy6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Aug 2021 04:54:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51792 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229902AbhHWIy6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Aug 2021 04:54:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4C40B6102A
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Aug 2021 08:54:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1629708856;
+        bh=5TjLg0Q6ovISQUP2RuleMZX62O3hdYnt8GY1WWFDf4s=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Gysh5b+BL8ukNv1sk5xSu95IiLTgivm4zMynZhV+fKt2SE4ydmZNpgrRrfgKJ/gGL
+         VITxSVxaJvjEJdac9+bi8Ho3TwZnrMpJiwuKvKvkuEM8DRwirW67DwFTMqKeD6dkHJ
+         a4CcNToHc53aS0mw+JWAd329qO8LYCttxm6adgNGi0mcKiPch5jRuc6i3txty3gqXf
+         gMVFzlTefq7Vr/qnBZiuWJWhbeKPtxqY+Ru/Q5SNyyBLSkHhWxtggR8GLD2JtmStHr
+         8wqExY9jmXl3YM2XsENvTikRmHkZ9BLfNwPtU6c32CAUfcJCRp9nvkxm8qZwi/d49H
+         VCxqokMkK6oJw==
+Received: by mail-ot1-f46.google.com with SMTP id l7-20020a0568302b0700b0051c0181deebso2772202otv.12
+        for <linux-rdma@vger.kernel.org>; Mon, 23 Aug 2021 01:54:16 -0700 (PDT)
+X-Gm-Message-State: AOAM532IaaC6AVzoQGxBIYXPSSOkzhb578wSKKgrvvvtaoQeJBnQpX1b
+        bC9hJ3/nZIsSINXZKmxIlvQ6x7BqBZHZhhK3Joc=
+X-Google-Smtp-Source: ABdhPJzhygBk5bIlDkN50ny+q1J4SGvCfoE7jNVsiU6jAA1Yw8c6eKHCMPdFC+FQaLiVOWozWmIgqJOnkls68wa9iPA=
+X-Received: by 2002:a05:6830:20c4:: with SMTP id z4mr27064548otq.339.1629708855658;
+ Mon, 23 Aug 2021 01:54:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 146B04D0DC81.A7655
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
+References: <CAFCwf12o_Hq8Ci4o1H9xvqDJT9DeVmXUc7d21EqZz1meNdU3qg@mail.gmail.com>
+ <20210822223128.GZ543798@ziepe.ca>
+In-Reply-To: <20210822223128.GZ543798@ziepe.ca>
+From:   Oded Gabbay <ogabbay@kernel.org>
+Date:   Mon, 23 Aug 2021 11:53:48 +0300
+X-Gmail-Original-Message-ID: <CAFCwf10LXiAxf7Xr+pMcmSk-_q1FEY_YcBjoH05K0mkK9hMCYA@mail.gmail.com>
+Message-ID: <CAFCwf10LXiAxf7Xr+pMcmSk-_q1FEY_YcBjoH05K0mkK9hMCYA@mail.gmail.com>
+Subject: Re: Creating new RDMA driver for habanalabs
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Make all is_user members of struct rxe_sq/rxe_cq/rxe_srq/rxe_cq
-has the same type.
+On Mon, Aug 23, 2021 at 1:31 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Sun, Aug 22, 2021 at 12:40:26PM +0300, Oded Gabbay wrote:
+> > Hi Jason,
+> >
+> > I think that about a year ago we talked about the custom RDMA code of
+> > habanalabs. I tried to upstream it and you, rightfully, rejected that.
+> >
+> > Now that I have enough b/w to do this work, I want to start writing a
+> > proper RDMA driver for the habanalabs Gaudi device, which I will be
+> > able to upstream to the infiniband subsystem.
+> >
+> > I don't know if you remember but the Gaudi h/w is somewhat limited in
+> > its RDMA capabilities. We are not selling a stand-alone NIC :) We just
+> > use RDMA (or more precisely, ROCEv2) to connect between Gaudi devices.
+> >
+> > I'm sure I will have more specific questions down the line, but I had
+> > hoped you could point me to a basic/not-too-complex existing driver
+> > that I can use as a modern template. I'm also aware that I will need
+> > to write matching code in rdma-core.
+> >
+> > Also, I would like to add we will use the auxiliary bus feature to
+> > connect between this driver, the main (compute) driver and the
+> > Ethernet driver (which we are going to publish soon I hope).
+>
+> It sounds fine, as Leon mentions EFA is a good starting point for
+> something simple but non-spec compliant
+>
+> If I recall properly you'll want to have some special singular PD for
+> the HW and some specialty QPs?
+>
+> Jason
 
-Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe_cq.c    | 3 +--
- drivers/infiniband/sw/rxe/rxe_verbs.h | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+Yes, we will have a singular PD.
+Regarding the QPs, I don't think we have anything special there, but I
+might be proven wrong.
+I was worried about reg_mr but I think we found a solution for that.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index aef288f164fd..fd655e41d621 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -81,8 +81,7 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 		return err;
- 	}
- 
--	if (uresp)
--		cq->is_user = 1;
-+	cq->is_user = uresp ? true : false;
- 
- 	cq->is_dying = false;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index bb5fb157d073..645eaea564ca 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -64,7 +64,7 @@ struct rxe_cq {
- 	spinlock_t		cq_lock;
- 	u8			notify;
- 	bool			is_dying;
--	int			is_user;
-+	bool			is_user;
- 	struct tasklet_struct	comp_task;
- };
- 
--- 
-2.25.1
+I may be ahead of myself a little, but one of the issues I will need
+help with is how to handle ports that are not exposed to the
+Networking/Ethernet subsystem.
+In a box with Gaudis, some ports are connected back-to-back (between
+Gaudi devices) and some are exposed externally.
 
+The ports that are exposed externally will be registered as an
+Ethernet device and will be also handled by the Ethernet driver. I
+think that is pretty much standard.
 
+However, the "internal" ports won't be registered as an Ethernet
+device, as we don't want to expose them to the user as an interface.
+They are used only for back-to-back communication between Gaudi
+devices inside the same box. You can imagine them to be similar to
+NVlink, but instead of a proprietary protocol, they run ROCEv2.
+Registering them to netdev creates a very poor user experience and
+potentially degrades the host CPU performance (I can elaborate more on
+that).
 
+For those ports, we want to prevent the user from sending raw Ethernet
+data (opening a socket). We also want to avoid the need for the user
+to handle them with ifconfig/ethtool/etc. We only want to expose the
+IBverbs interface to those ports.
+
+Do you see any issue with that ?
+
+Thanks,
+Oded
