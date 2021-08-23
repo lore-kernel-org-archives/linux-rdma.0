@@ -2,121 +2,181 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE96C4338F
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:54:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FECBC432BE
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 10:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A4A06121E
-	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 08:54:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 038C56135F
+	for <linux-rdma@archiver.kernel.org>; Mon, 23 Aug 2021 10:43:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229967AbhHWIy6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Aug 2021 04:54:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51792 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229902AbhHWIy6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 23 Aug 2021 04:54:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4C40B6102A
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Aug 2021 08:54:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629708856;
-        bh=5TjLg0Q6ovISQUP2RuleMZX62O3hdYnt8GY1WWFDf4s=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Gysh5b+BL8ukNv1sk5xSu95IiLTgivm4zMynZhV+fKt2SE4ydmZNpgrRrfgKJ/gGL
-         VITxSVxaJvjEJdac9+bi8Ho3TwZnrMpJiwuKvKvkuEM8DRwirW67DwFTMqKeD6dkHJ
-         a4CcNToHc53aS0mw+JWAd329qO8LYCttxm6adgNGi0mcKiPch5jRuc6i3txty3gqXf
-         gMVFzlTefq7Vr/qnBZiuWJWhbeKPtxqY+Ru/Q5SNyyBLSkHhWxtggR8GLD2JtmStHr
-         8wqExY9jmXl3YM2XsENvTikRmHkZ9BLfNwPtU6c32CAUfcJCRp9nvkxm8qZwi/d49H
-         VCxqokMkK6oJw==
-Received: by mail-ot1-f46.google.com with SMTP id l7-20020a0568302b0700b0051c0181deebso2772202otv.12
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Aug 2021 01:54:16 -0700 (PDT)
-X-Gm-Message-State: AOAM532IaaC6AVzoQGxBIYXPSSOkzhb578wSKKgrvvvtaoQeJBnQpX1b
-        bC9hJ3/nZIsSINXZKmxIlvQ6x7BqBZHZhhK3Joc=
-X-Google-Smtp-Source: ABdhPJzhygBk5bIlDkN50ny+q1J4SGvCfoE7jNVsiU6jAA1Yw8c6eKHCMPdFC+FQaLiVOWozWmIgqJOnkls68wa9iPA=
-X-Received: by 2002:a05:6830:20c4:: with SMTP id z4mr27064548otq.339.1629708855658;
- Mon, 23 Aug 2021 01:54:15 -0700 (PDT)
+        id S234006AbhHWKoB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Aug 2021 06:44:01 -0400
+Received: from mail-bn7nam10on2077.outbound.protection.outlook.com ([40.107.92.77]:13761
+        "EHLO NAM10-BN7-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S233589AbhHWKoB (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Aug 2021 06:44:01 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cqgFNr/bZX4SiKes6zbGB7/THYKNmNkCNaAMM+r6saZA5QpcXMayvfN910mXldoAx8uNWZBiMuQWDoP9TQHgZm/Ea4Xj5JuMnr2KpxXmjbJQVjhrpuhOFIvxpGTDjmDmNzyEbVvZNjTMsABiDYtsNtNs1A3AxfPUVSJoYN4jLdVoNtSYrfERkmTbXEjbss7NBri0P0pjfN2xYChzlGo/S5RnJi9TQ65Fe3ESr+Ztt0HXhi4BzpbR/tAsBx+5zyPpr49uBbSvHR6jcq6xN38Z8QEmRsm7wD+2eeUdnhO6XXZr8WeqKf4eo1YpoRPv2pVfb1whkhyJRfR9i1UYbQxZZQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=l9S4l15mVr5rUvsKt+b+6yxc9h8iYJDpmesZTkVI7B8=;
+ b=M+newe5oKanAWVhcpD22DHhPsxippLqzGn/hHibPfO0lf4nKxbZGf8xXnG+ovx+b1aXymkNp3ZPJaIOayHrnWYndWaN/WlUwfLfMrQYDupoA0r/CSdVada3QfthphGLsr+Z6d5SPyN6vkPryhcfau/Ue+YSXhO4yjfJS6YKyvBMARaU3eysYFlthNbePGYb8HImocl67pO2zDrBGbQMzHGw0aH7Qc1y/+zma2DPLVGgEwkewj97xJPJBbjCVC9xCDNbBYfr9q5gq0oVqtXWa7TSxaqNmdyy+rV8fsWAmu7w7wdlUWVoNQ4cDsJJFTO/ZpfleUp0F3fTWxz6KQbu22w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=l9S4l15mVr5rUvsKt+b+6yxc9h8iYJDpmesZTkVI7B8=;
+ b=FzA0J5IOo5DXnTaw4EPhPacIb2NOcd1Fr1m/iXI6t92L4hKoCSPCFilVhsBh2Y0x88gkap0JmcSUJny6witfmmOHMmv1fhfm/HsITyWGBUYch0RjcPKcmHy/6WaWxASnpWfwvMkY3miiAnnpqWEavindFro8DuGdCrbaJxs1r1c=
+Authentication-Results: nvidia.com; dkim=none (message not signed)
+ header.d=none;nvidia.com; dmarc=none action=none header.from=amd.com;
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com (2603:10b6:208:159::19)
+ by MN2PR12MB4239.namprd12.prod.outlook.com (2603:10b6:208:1d2::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4436.19; Mon, 23 Aug
+ 2021 10:43:17 +0000
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::dce2:96e5:aba2:66fe]) by MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::dce2:96e5:aba2:66fe%6]) with mapi id 15.20.4436.024; Mon, 23 Aug 2021
+ 10:43:16 +0000
+Subject: Re: [RFC] Make use of non-dynamic dmabuf in RDMA
+To:     Gal Pressman <galpress@amazon.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     Daniel Vetter <daniel@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Doug Ledford <dledford@redhat.com>,
+        "open list:DMA BUFFER SHARING FRAMEWORK" 
+        <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Oded Gabbay <ogabbay@habana.ai>,
+        Tomer Tayar <ttayar@habana.ai>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Jianxin Xiong <jianxin.xiong@intel.com>,
+        John Hubbard <jhubbard@nvidia.com>
+References: <20210818074352.29950-1-galpress@amazon.com>
+ <CAKMK7uGZ_eX+XfYJU6EkKEOVrHz3q6QMxaEbyyD3_1iqj9YSjw@mail.gmail.com>
+ <20210819230602.GU543798@ziepe.ca>
+ <CAKMK7uGgQWcs4Va6TGN9akHSSkmTs1i0Kx+6WpeiXWhJKpasLA@mail.gmail.com>
+ <20210820123316.GV543798@ziepe.ca>
+ <0fc94ac0-2bb9-4835-62b8-ea14f85fe512@amazon.com>
+ <20210820143248.GX543798@ziepe.ca>
+ <da6364b7-9621-a384-23b0-9aa88ae232e5@amazon.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <fa124990-ee0c-7401-019e-08109e338042@amd.com>
+Date:   Mon, 23 Aug 2021 12:43:10 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
+In-Reply-To: <da6364b7-9621-a384-23b0-9aa88ae232e5@amazon.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: AM0PR04CA0017.eurprd04.prod.outlook.com
+ (2603:10a6:208:122::30) To MN2PR12MB3775.namprd12.prod.outlook.com
+ (2603:10b6:208:159::19)
 MIME-Version: 1.0
-References: <CAFCwf12o_Hq8Ci4o1H9xvqDJT9DeVmXUc7d21EqZz1meNdU3qg@mail.gmail.com>
- <20210822223128.GZ543798@ziepe.ca>
-In-Reply-To: <20210822223128.GZ543798@ziepe.ca>
-From:   Oded Gabbay <ogabbay@kernel.org>
-Date:   Mon, 23 Aug 2021 11:53:48 +0300
-X-Gmail-Original-Message-ID: <CAFCwf10LXiAxf7Xr+pMcmSk-_q1FEY_YcBjoH05K0mkK9hMCYA@mail.gmail.com>
-Message-ID: <CAFCwf10LXiAxf7Xr+pMcmSk-_q1FEY_YcBjoH05K0mkK9hMCYA@mail.gmail.com>
-Subject: Re: Creating new RDMA driver for habanalabs
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     linux-rdma <linux-rdma@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.178.21] (91.14.161.181) by AM0PR04CA0017.eurprd04.prod.outlook.com (2603:10a6:208:122::30) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4436.19 via Frontend Transport; Mon, 23 Aug 2021 10:43:14 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: ffbc018c-619b-4572-2441-08d96622d0b3
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4239:
+X-Microsoft-Antispam-PRVS: <MN2PR12MB4239D4E00E5BF89B42E176CB83C49@MN2PR12MB4239.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: YVC+pNkg7VJxv6v4k01z12k9Naq8qgBfG64JEVQFtko4+rdt8eLZ4RHShtmE5bggSNjp2E2dblBvqj3cinrhgAp4tprdwYoUzLgK8ASVHsvJHwmzgJ/rqh+2i/tdt9KhkVEuE59/djcIvcZof6gaoRU8Tqg6gkIgCRbT2gP5PT4pCr9J2yjuEVUTGxXWiRNsiNGpecxludEYbYKAyYXFOi6qelhoDyT3rDj05LyQDpI2GsJj21vVVBosKm88KEixmMhSExz2jEgFx7BQD6IDtaOCppPcTN6f1vzuSS+MBjWNKGvUP9BAe9aT5MJUZTRgK5iROQCLOcVFybTrxhW+Q8ncfYGgGTPvpYr7WFa2Ozv28b+HyMoCuYIMugx9x+jDLdvsVHLmlDpx53ZSXgVWiaK2wqAXm4aEQxlE3e1qyqqkkbWRerJchRTvvF/2owpZ37c7DPWX6xy3wNm+tm/Y5bYMN2iFtS3i9sahGtzU4f65sv3drObi+TCk8cx5ni0dWwA07WHBiIRKI8jwYEp3g1fglK47GWdl1fpQvENSa5BQsExppX6XF5+eCgXJqUkv3BIvGG0xy1Skv94/0/k//qi2AnpOW48EwIRYKP1cIrtYYBrtqrYPg83QB72syjX3uzIuVSIn/HYbMJCzw54Hq/UTvvwkHd0MD7+CKn8ZBitvaM60twjJIm3hRRrvHZSVFebL75E0Dz9BrpVYva++xPdHp668lgV35uYcIrxili4=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3775.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(376002)(39860400002)(366004)(396003)(136003)(346002)(8936002)(478600001)(36756003)(26005)(53546011)(6486002)(110136005)(86362001)(186003)(83380400001)(6666004)(316002)(956004)(16576012)(31686004)(2616005)(2906002)(38100700002)(8676002)(4326008)(66476007)(66946007)(66556008)(7416002)(5660300002)(54906003)(31696002)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?aVczUEd3ejZ3a3o3Y1hsNzVxeHBQSk9idzNkcm5FMkd1VHZ6ZkhvMjZ2dllI?=
+ =?utf-8?B?VElHUG1Kb1Nxd2ZjQ1FUNjVOQzlpbklDRHlRWXdPSWtHb0dxbjBhZ0U0eldR?=
+ =?utf-8?B?NXpuZjI3T2o4WnNSbVFIdXd0VEtrcHpCeTk0NWJnR0gzTWJMaTU2UzVmVTN1?=
+ =?utf-8?B?d203WjVZbHdLSDRUUndqUjdqWWlBOW9MaVM4eTJpN3AxR1RxV2xDQWJpanVq?=
+ =?utf-8?B?S01NRUhXU0RpVzNuK05DeVI5b2FKQUVXMHhHNFY4WG5ZdFRWNW9zNCt6MVVK?=
+ =?utf-8?B?ajNpOEdWK1M0NXFvRkg3elFTbXp1WUR3dFZhRkNoQ3FWRmoxcGMwaERydW5M?=
+ =?utf-8?B?YW4rZk5ONnYrbFpSUDFyMjJpOGtXOEYzeDMvWWpHTDgyTThaLzFQTm8rVU5X?=
+ =?utf-8?B?cGNDMENrNDdJV2NabzJOOFE3RnZORThWaVUzMEZzYTErSEdZbndDdzFPblVZ?=
+ =?utf-8?B?NDNOTnRTT3ZPOGtZNFVHNmhoY1J1NTFQV0doTXBxSG1OSWhHQ1ltRHVBazdl?=
+ =?utf-8?B?NWY2RnF0WUJJTnp5TzN6Z3U1MENscWtwTzM2cXd5OHlyRDcrN01UUlNOdmVN?=
+ =?utf-8?B?MS9TVjdZcy94TXVpWjhhNVEwZW9GdDVta2hWRzBNcUx4eEs0bEcrWm91eXJ1?=
+ =?utf-8?B?UE40dW1ob3dIMEp6MUN4RkpKQ2JkUmUxelo5dWFDd29acGhETUFvYXRINWZZ?=
+ =?utf-8?B?bkxYdE1EWUk2TVZQQSsreTdHRnBYVnFQVlUrUVBob2dlM2JEcFU3cVlHTDVt?=
+ =?utf-8?B?cnZtSzEwTlZGMkxGblFYME84Nm50NHRWNGtDd0M3Y0JpUnRqVUZiQkVzVEdP?=
+ =?utf-8?B?VnJZczFBME91ZXh3S2dsVnZNVSt4RjBOb0NTWjd2MkVCWGR2T0ZRTXlpUXdx?=
+ =?utf-8?B?c201MmNyQ1U0MFNlTmV1Q2szZEVvN2JiMDVPbDBnWlhqcHhqalZ3WFRzWElk?=
+ =?utf-8?B?RFAzT3NPQ291Z0RuVndCM1ZDZEwyU3BtL28vWUtrUGRQYzNzd2ZMNFh5Qmxr?=
+ =?utf-8?B?VnBpaFhFYUVaWTcrenh3UWliTTZ3S1Q1VXBQcS9JRGZHNGpIdmFnZFlRRU1x?=
+ =?utf-8?B?M1JFeS93ZzdscFVCN280RTk1SWhSTVRPKzY3NWFOaGR5b2hBK0NlSTJaZlBh?=
+ =?utf-8?B?Z09rbU1iQ1JkeVRFd3VLeHRzY282SmpwSGUzb3c5eXRlcmczYnUxWGV4MDBq?=
+ =?utf-8?B?UEwyUWMyNzkzMFl0MlBSUmx3SVl2ZkJ0ZDZpVm1Id0VHaklrNFJ5ZnhLcDIv?=
+ =?utf-8?B?MVlwREJtU05uMEI4em91VFBRalVpQnJOZHIvcGRVV0lQSU83SWNXUnZGSmxY?=
+ =?utf-8?B?dTNQVjhLZkEwN3lDUm10cGdGMFlYSzRSMkk5bnR2SHIvRjdTbVZrcXJQNEdL?=
+ =?utf-8?B?c3VzV0JuNW5vK3JqVnFrTUFDajN3NnFKZm1oUTRmVEVKQTQwOFhDaWV6MWVE?=
+ =?utf-8?B?ejY4REZaVkpxV1Z2bkU3THFwUzVUZ2l0UVc5d29rZnJqRCt2YUNRZTA3QnJn?=
+ =?utf-8?B?RTEwZGN5RUd1dkw3Zm5NUnNFVzVicHl1WmYrNlZMekNRZEtlWE9HYkczT1Uy?=
+ =?utf-8?B?T2k5WjQxalVsRDgrcmZyLzF6Vm1HazdSVzQ0dzF0ZDBWZGhpL1hROVQ3SFJz?=
+ =?utf-8?B?UHJCNXJxc2d1YzgwZXNnMDIrRk9YKzk4cnFyaE5BQkpNenFxaXg5K3QvWVZJ?=
+ =?utf-8?B?a1k4SFhibUZLc2F6R2NjZExhaDVjenJ0Ym1sMUZydnNIcXk5UmVNZmFwM0lO?=
+ =?utf-8?Q?GSEaQuvkj7ZG3lrj7bT899stx0g9RX5vsx+rf5y?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ffbc018c-619b-4572-2441-08d96622d0b3
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB3775.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Aug 2021 10:43:16.8706
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: bk0iPlq5mXEdhxGPktLItuIIgVFg4/5SL0IHHT2yP+7j/TSbIQ+SOf+HT2fSEhC/
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4239
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 23, 2021 at 1:31 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+Am 21.08.21 um 11:16 schrieb Gal Pressman:
+> On 20/08/2021 17:32, Jason Gunthorpe wrote:
+>> On Fri, Aug 20, 2021 at 03:58:33PM +0300, Gal Pressman wrote:
+>>
+>>> Though it would've been nicer if we could agree on a solution that could work
+>>> for more than 1-2 RDMA devices, using the existing tools the RDMA subsystem has.
+>> I don't think it can really be done, revoke is necessary, and isn't a
+>> primitive we have today.
+>>
+>> Revoke is sort of like rereg MR, but with a guaranteed no-change to
+>> the lkey/rkey
+>>
+>> Then there is the locking complexity of linking the mr creation and
+>> destruction to the lifecycle of the pages, which is messy and maybe
+>> not general. For instance mlx5 would call its revoke_mr, disconnect
+>> the dmabuf then destroy the mkey - but this is only safe because mlx5
+>> HW can handle concurrent revokes.
+> Thanks, that makes sense.
 >
-> On Sun, Aug 22, 2021 at 12:40:26PM +0300, Oded Gabbay wrote:
-> > Hi Jason,
-> >
-> > I think that about a year ago we talked about the custom RDMA code of
-> > habanalabs. I tried to upstream it and you, rightfully, rejected that.
-> >
-> > Now that I have enough b/w to do this work, I want to start writing a
-> > proper RDMA driver for the habanalabs Gaudi device, which I will be
-> > able to upstream to the infiniband subsystem.
-> >
-> > I don't know if you remember but the Gaudi h/w is somewhat limited in
-> > its RDMA capabilities. We are not selling a stand-alone NIC :) We just
-> > use RDMA (or more precisely, ROCEv2) to connect between Gaudi devices.
-> >
-> > I'm sure I will have more specific questions down the line, but I had
-> > hoped you could point me to a basic/not-too-complex existing driver
-> > that I can use as a modern template. I'm also aware that I will need
-> > to write matching code in rdma-core.
-> >
-> > Also, I would like to add we will use the auxiliary bus feature to
-> > connect between this driver, the main (compute) driver and the
-> > Ethernet driver (which we are going to publish soon I hope).
+>>> That's why I tried to approach this by denying such attachments for non-ODP
+>>> importers instead of exposing a "limited" dynamic importer.
+>> That is fine if there is no revoke - once revoke exists we must have
+>> driver and HW support.
+> Agree.
+> IIUC, we're talking about three different exporter "types":
+> - Dynamic with move_notify (requires ODP)
+> - Dynamic with revoke_notify
+> - Static
 >
-> It sounds fine, as Leon mentions EFA is a good starting point for
-> something simple but non-spec compliant
->
-> If I recall properly you'll want to have some special singular PD for
-> the HW and some specialty QPs?
->
-> Jason
+> Which changes do we need to make the third one work?
 
-Yes, we will have a singular PD.
-Regarding the QPs, I don't think we have anything special there, but I
-might be proven wrong.
-I was worried about reg_mr but I think we found a solution for that.
+Basically none at all in the framework.
 
-I may be ahead of myself a little, but one of the issues I will need
-help with is how to handle ports that are not exposed to the
-Networking/Ethernet subsystem.
-In a box with Gaudis, some ports are connected back-to-back (between
-Gaudi devices) and some are exposed externally.
+You just need to properly use the dma_buf_pin() function when you start 
+using a buffer (e.g. before you create an attachment) and the 
+dma_buf_unpin() function after you are done with the DMA-buf.
 
-The ports that are exposed externally will be registered as an
-Ethernet device and will be also handled by the Ethernet driver. I
-think that is pretty much standard.
-
-However, the "internal" ports won't be registered as an Ethernet
-device, as we don't want to expose them to the user as an interface.
-They are used only for back-to-back communication between Gaudi
-devices inside the same box. You can imagine them to be similar to
-NVlink, but instead of a proprietary protocol, they run ROCEv2.
-Registering them to netdev creates a very poor user experience and
-potentially degrades the host CPU performance (I can elaborate more on
-that).
-
-For those ports, we want to prevent the user from sending raw Ethernet
-data (opening a socket). We also want to avoid the need for the user
-to handle them with ifconfig/ethtool/etc. We only want to expose the
-IBverbs interface to those ports.
-
-Do you see any issue with that ?
-
-Thanks,
-Oded
+Regards,
+Christian.
