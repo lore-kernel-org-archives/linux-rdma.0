@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89CE1C43214
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Aug 2021 00:55:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A81DC4338F
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Aug 2021 00:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73FD9617E3
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Aug 2021 00:55:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63C1D61165
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Aug 2021 00:56:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233899AbhHXA4L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 23 Aug 2021 20:56:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48138 "EHLO mail.kernel.org"
+        id S233626AbhHXA4o (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 23 Aug 2021 20:56:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233804AbhHXAzR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 23 Aug 2021 20:55:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 22DFE61501;
-        Tue, 24 Aug 2021 00:54:29 +0000 (UTC)
+        id S234556AbhHXAzz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 23 Aug 2021 20:55:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 21811615A7;
+        Tue, 24 Aug 2021 00:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629766470;
+        s=k20201202; t=1629766497;
         bh=mhnDZFp6Bvgo7d3AsSNxcg0qsh7TMyBGCIQMQVcAJ2w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gygA7mGNIvTcJTmQRj1+Nu4k6TORBRbN1DtYPNh0mgiKrSC0kOmIS2bpJklBokda/
-         Xe/Z9IWoVR9orgPuRHxzTyJ+hlc4jiDgBDE8/moGNchnTg15LWXILOcixLqoTHhVzT
-         ve9CTtIW3Zo4p9VRB+LJcErKwOtS1N1wFyVkavn1gV5eUQiGHjdmFkcNU20ANrbuDt
-         w9/K2KjcicjNwvBaz4/u1WVTAdyIz/aVzjY9U5NJdPx8nZUXiIUn9/o/dkdNEP/ycX
-         o9XrIeSSPDKW+q2UBR90qBBvJXzVGhF7yD6F9l/Ct+CEhmSpyBJw67MFUXEY3HnfzN
-         Wb5mdD3OkoLzQ==
+        b=JKk41D2ZAoYLGPOlIkQcECjOsBzBvEFGdvKlgzyRxuDvY29j8DDMl/wJznqJQedyV
+         xQO0AEr+J8pwocI8PO4L4Fh9y5Qjw+5j317btY3MwqKiYaS3GOEH7ufKOKRIde08Nv
+         jk5/I6L6sput/yEb2LPNlzZJkVi2tX6xsghIxycjMXfjNZIulgMGXWAHkwux+ZYJGB
+         lWkUYUT/GSUIcr7w3spWHqtEfp6T1YEVm16sH+/DxHeHpf1HwMRrcsU6HkYZPk02RA
+         0tyvrMgz5YuTNnjou1FsgzbsYyz/WufwH3tKRWikDYC0KVfxdR4+ic/nJCFck4JbL2
+         llGKv8yU8n1Cg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
@@ -38,12 +38,12 @@ Cc:     Gerd Rausch <gerd.rausch@oracle.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: [PATCH AUTOSEL 5.13 25/26] net/rds: dma_map_sg is entitled to merge entries
-Date:   Mon, 23 Aug 2021 20:53:55 -0400
-Message-Id: <20210824005356.630888-25-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 18/18] net/rds: dma_map_sg is entitled to merge entries
+Date:   Mon, 23 Aug 2021 20:54:32 -0400
+Message-Id: <20210824005432.631154-18-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210824005356.630888-1-sashal@kernel.org>
-References: <20210824005356.630888-1-sashal@kernel.org>
+In-Reply-To: <20210824005432.631154-1-sashal@kernel.org>
+References: <20210824005432.631154-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
