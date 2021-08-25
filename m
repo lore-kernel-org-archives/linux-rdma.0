@@ -2,132 +2,82 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67890C4338F
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Aug 2021 09:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5CAC4338F
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Aug 2021 09:47:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4AB1A61100
-	for <linux-rdma@archiver.kernel.org>; Wed, 25 Aug 2021 09:44:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD852610FD
+	for <linux-rdma@archiver.kernel.org>; Wed, 25 Aug 2021 09:47:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239640AbhHYJpC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 25 Aug 2021 05:45:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55574 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239638AbhHYJpA (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 25 Aug 2021 05:45:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DF03661153;
-        Wed, 25 Aug 2021 09:44:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629884654;
-        bh=EcXTSg4v+DooFRFJCzTs3wn3E8EhXif8cyJUl4VW21E=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=fN6npZA/bbcT6FP8ITe59m9/SCT1XPwtGQ6QbJKye3tFhi9JZPju13haWT3AfJCw6
-         A/Ro675HKPOI5upr5QKURFyltWrFnRTJDSOSSvkBCNE56eYgkkbsdh/DAd/UV2ckAB
-         zOsDRhRPeRR8tuCBi5+jwjnVxkvrDyqA3ALdMdSNXs7KBo1aHvfKsygaXDOCdsHEi/
-         xVisoh1SJ9cXOSF+4KHr3nGu8935CrxKkRDiEjMqwHZ63kw5gOpR1b/tNWfWShYa1Y
-         7C3l/WQ+h7ZRCk7Bfec18pjloTPU3KStrlXoEsXshBftRUxgyKZlBZbQv6KZyTZ5d+
-         fevEqjJ6q5yWQ==
-Date:   Wed, 25 Aug 2021 12:44:10 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Subject: Re: [PATCH v2] providers/rxe: Set the correct value of resid for
- inline data
-Message-ID: <YSYQ6hLAebrnGow6@unreal>
-References: <20210809150738.150596-1-yangx.jy@fujitsu.com>
- <7279c618-d373-d7ce-c67c-97e519b48e94@gmail.com>
- <CAD=hENc2gt98YyhOC=EsSTsN0=-EZ7Pz1Kht96HYNA+qvdfWyQ@mail.gmail.com>
- <324764c2-4f41-0106-70e0-aaccb3c50c15@gmail.com>
- <6122FAE1.4080306@fujitsu.com>
+        id S234177AbhHYJrv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 25 Aug 2021 05:47:51 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:8772 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237047AbhHYJru (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 Aug 2021 05:47:50 -0400
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Gvh2G2bwgzYsp6;
+        Wed, 25 Aug 2021 17:46:30 +0800 (CST)
+Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Wed, 25 Aug 2021 17:47:03 +0800
+Received: from localhost.localdomain (10.67.165.24) by
+ dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Wed, 25 Aug 2021 17:47:03 +0800
+From:   Wenpeng Liang <liangwenpeng@huawei.com>
+To:     <dledford@redhat.com>, <jgg@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <liangwenpeng@huawei.com>
+Subject: [PATCH for-next 2/3] RDMA/hns: Bugfix for the missing assignment for dip_idx
+Date:   Wed, 25 Aug 2021 17:43:11 +0800
+Message-ID: <1629884592-23424-3-git-send-email-liangwenpeng@huawei.com>
+X-Mailer: git-send-email 2.8.1
+In-Reply-To: <1629884592-23424-1-git-send-email-liangwenpeng@huawei.com>
+References: <1629884592-23424-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6122FAE1.4080306@fujitsu.com>
+Content-Type: text/plain
+X-Originating-IP: [10.67.165.24]
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ dggpeml500017.china.huawei.com (7.185.36.243)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 23, 2021 at 01:33:24AM +0000, yangx.jy@fujitsu.com wrote:
-> Hi Leon,
-> 
-> Could you review the patch?
+From: Junxian Huang <huangjunxian4@hisilicon.com>
 
-There is no need, I trust to Zhu's and Bob's review.
+When the dgid-dip_idx mapping relationship exists, dip should be assigned.
 
-Thanks
+Fixes: f91696f2f053 ("RDMA/hns: Support congestion control type selection according to the FW")
 
-> 
-> Best Regards,
-> Xiao Yang
-> On 2021/8/17 2:52, Bob Pearson wrote:
-> > On 8/15/21 10:55 PM, Zhu Yanjun wrote:
-> >> On Sat, Aug 14, 2021 at 6:11 AM Bob Pearson<rpearsonhpe@gmail.com>  wrote:
-> >>> On 8/9/21 10:07 AM, Xiao Yang wrote:
-> >>>> Resid indicates the residual length of transmitted bytes but current
-> >>>> rxe sets it to zero for inline data at the beginning.  In this case,
-> >>>> request will transmit zero byte to responder wrongly.
-> >>>>
-> >>>> Resid should be set to the total length of transmitted bytes at the
-> >>>> beginning.
-> >>>>
-> >>>> Note:
-> >>>> Just remove the useless setting of resid in init_send_wqe().
-> >>>>
-> >>>> Fixes: 1a894ca10105 ("Providers/rxe: Implement ibv_create_qp_ex verb")
-> >>>> Fixes: 8337db5df125 ("Providers/rxe: Implement memory windows")
-> >>>> Signed-off-by: Xiao Yang<yangx.jy@fujitsu.com>
-> >>>> ---
-> >>>>   providers/rxe/rxe.c | 5 ++---
-> >>>>   1 file changed, 2 insertions(+), 3 deletions(-)
-> >>>>
-> >>>> diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
-> >>>> index 3c3ea8bb..3533a325 100644
-> >>>> --- a/providers/rxe/rxe.c
-> >>>> +++ b/providers/rxe/rxe.c
-> >>>> @@ -1004,7 +1004,7 @@ static void wr_set_inline_data(struct ibv_qp_ex *ibqp, void *addr,
-> >>>>
-> >>>>        memcpy(wqe->dma.inline_data, addr, length);
-> >>>>        wqe->dma.length = length;
-> >>>> -     wqe->dma.resid = 0;
-> >>>> +     wqe->dma.resid = length;
-> >>>>   }
-> >>>>
-> >>>>   static void wr_set_inline_data_list(struct ibv_qp_ex *ibqp, size_t num_buf,
-> >>>> @@ -1035,6 +1035,7 @@ static void wr_set_inline_data_list(struct ibv_qp_ex *ibqp, size_t num_buf,
-> >>>>        }
-> >>>>
-> >>>>        wqe->dma.length = tot_length;
-> >>>> +     wqe->dma.resid = tot_length;
-> >>>>   }
-> >>>>
-> >>>>   static void wr_set_sge(struct ibv_qp_ex *ibqp, uint32_t lkey, uint64_t addr,
-> >>>> @@ -1473,8 +1474,6 @@ static int init_send_wqe(struct rxe_qp *qp, struct rxe_wq *sq,
-> >>>>        if (ibwr->send_flags&  IBV_SEND_INLINE) {
-> >>>>                uint8_t *inline_data = wqe->dma.inline_data;
-> >>>>
-> >>>> -             wqe->dma.resid = 0;
-> >>>> -
-> >>>>                for (i = 0; i<  num_sge; i++) {
-> >>>>                        memcpy(inline_data,
-> >>>>                               (uint8_t *)(long)ibwr->sg_list[i].addr,
-> >>>>
-> >>> Signed-off-by: Bob Pearson<rpearsonhpe@gmail.com>
-> >> The Signed-off-by: tag indicates that the signer was involved in the
-> >> development of the patch, or that he/she was in the patch’s delivery
-> >> path.
-> >>
-> >> Zhu Yanjun
-> >>
-> > Sorry, my misunderstanding. Then I want to say
-> >
-> > Reviewed-by: Bob Pearson<rpearsonhpe@gmail.com>
-> >
-> > The patch looks correct to me.
+Signed-off-by: Junxian Huang <huangjunxian4@hisilicon.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index d00be78..1ad2a91 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -4511,8 +4511,10 @@ static int get_dip_ctx_idx(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 	spin_lock_irqsave(&hr_dev->dip_list_lock, flags);
+ 
+ 	list_for_each_entry(hr_dip, &hr_dev->dip_list, node) {
+-		if (!memcmp(grh->dgid.raw, hr_dip->dgid, 16))
++		if (!memcmp(grh->dgid.raw, hr_dip->dgid, 16)) {
++			*dip_idx = hr_dip->dip_idx;
+ 			goto out;
++		}
+ 	}
+ 
+ 	/* If no dgid is found, a new dip and a mapping between dgid and
+-- 
+2.8.1
+
