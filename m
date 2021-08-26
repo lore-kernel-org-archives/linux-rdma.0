@@ -7,105 +7,79 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B2DC4320E
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 13:41:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5FC5C432BE
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 14:28:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 349BD60E73
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 13:41:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A595760F91
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 14:28:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242696AbhHZNmc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 26 Aug 2021 09:42:32 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:18980 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242738AbhHZNmb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 26 Aug 2021 09:42:31 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GwP6l58FjzbjH9;
-        Thu, 26 Aug 2021 21:37:51 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 26 Aug 2021 21:41:28 +0800
-Received: from localhost.localdomain (10.67.165.24) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Thu, 26 Aug 2021 21:41:28 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 7/7] RDMA/hns: Delete unnecessary blank lines.
-Date:   Thu, 26 Aug 2021 21:37:36 +0800
-Message-ID: <1629985056-57004-8-git-send-email-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1629985056-57004-1-git-send-email-liangwenpeng@huawei.com>
-References: <1629985056-57004-1-git-send-email-liangwenpeng@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.165.24]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
+        id S242708AbhHZO3j (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 26 Aug 2021 10:29:39 -0400
+Received: from smtp23.cstnet.cn ([159.226.251.23]:42292 "EHLO cstnet.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S231458AbhHZO3i (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 26 Aug 2021 10:29:38 -0400
+Received: from localhost.localdomain (unknown [202.189.3.195])
+        by APP-03 (Coremail) with SMTP id rQCowAC3Oo4OpSdhgC9WAA--.24574S2;
+        Thu, 26 Aug 2021 22:28:30 +0800 (CST)
+From:   kangning <kangning18z@ict.ac.cn>
+To:     haakon.bugge@oracle.com
+Cc:     linux-rdma@vger.kernel.org, kangning <kangning18z@ict.ac.cn>
+Subject: [PATCH v2] Fix one error in mthca_alloc
+Date:   Thu, 26 Aug 2021 22:28:28 +0800
+Message-Id: <20210826142828.9169-1-kangning18z@ict.ac.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID: rQCowAC3Oo4OpSdhgC9WAA--.24574S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrtr1rtryDuw4rCFW8AryftFb_yoWkJrc_CF
+        18tFn7Z3y5CF1Iyr1fWa1UZa4IvF18Kw4xAwn0vrW3JFWjgF48Xw1ktrW5Zw1xAFyrCr43
+        t34UKr4IkrnIgjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbs8YjsxI4VWDJwAYFVCjjxCrM7AC8VAFwI0_Jr0_Gr1l1xkIjI8I
+        6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM2
+        8CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWUCVW8JwA2z4x0Y4vE2Ix0
+        cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26F4UJVW0owA2z4x0Y4vEx4
+        A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IE
+        w4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r4UJVWxJr
+        1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IE
+        rcIFxwCY02Avz4vEFs4l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2
+        IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v2
+        6r1Y6r17MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2
+        IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMIIF0xvEx4A2
+        jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43
+        ZEXa7sRdWrAUUUUUU==
+X-Originating-IP: [202.189.3.195]
+X-CM-SenderInfo: pndqw0plqjimn26lu3wodfhubq/1tbiBggFCl0Tfg9SWgAAs2
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xinhao Liu <liuxinhao5@hisilicon.com>
+drivers/infiniband/hw/mthca/mthca_allocator.c: alloc->last left unchanged in mthca_alloc, which
+has impact on performance of function find_next_zero_bit in mthca_alloc. And the parenthesis and
+braces are removed in this version.
 
-Just delete unnecessary blank lines.
-
-Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+Signed-off-by: kangning <kangning18z@ict.ac.cn>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 --
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 1 -
- drivers/infiniband/hw/hns/hns_roce_qp.c    | 1 -
- 3 files changed, 4 deletions(-)
+ Thanks for your review, and the parenthesis and braces have been removed in this version.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index c27dc68..5b99531 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5220,7 +5220,6 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 
- 		if (send_cq && send_cq != recv_cq)
- 			__hns_roce_v2_cq_clean(send_cq, hr_qp->qpn, NULL);
--
+ drivers/infiniband/hw/mthca/mthca_allocator.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mthca/mthca_allocator.c b/drivers/infiniband/hw/mthca/mthca_allocator.c
+index e81bb0fcd08e..1141695093e7 100644
+--- a/drivers/infiniband/hw/mthca/mthca_allocator.c
++++ b/drivers/infiniband/hw/mthca/mthca_allocator.c
+@@ -51,10 +51,9 @@ u32 mthca_alloc(struct mthca_alloc *alloc)
  	}
  
- 	hns_roce_qp_remove(hr_dev, hr_qp);
-@@ -6360,7 +6359,6 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
- 
- 	handle->rinfo.instance_state = HNS_ROCE_STATE_INITED;
- 
--
- 	return 0;
- 
- reset_chk_err:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 0b91a1a..4d904d5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -1407,7 +1407,6 @@ struct hns_roce_cmq_desc {
- 			__le32 rsv[4];
- 		} func_info;
- 	};
--
- };
- 
- struct hns_roce_v2_cmq_ring {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 74c9101..9af4509 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -715,7 +715,6 @@ static int alloc_rq_inline_buf(struct hns_roce_qp *hr_qp,
- 	/* allocate recv inline buf */
- 	wqe_list = kcalloc(wqe_cnt, sizeof(struct hns_roce_rinl_wqe),
- 			   GFP_KERNEL);
--
- 	if (!wqe_list)
- 		goto err;
- 
+ 	if (obj < alloc->max) {
+-		alloc->last = (obj + 1);
+-		if (alloc->last == alloc->max) {
++		alloc->last = obj + 1;
++		if (alloc->last == alloc->max)
+ 			alloc->last = 0;
+-		}
+ 		set_bit(obj, alloc->table);
+ 		obj |= alloc->top;
+ 	} else
 -- 
-2.8.1
+2.17.1
 
