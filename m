@@ -2,25 +2,24 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC69C4320E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA3FC4320A
 	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 13:41:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11D4760F44
+	by mail.kernel.org (Postfix) with ESMTP id B105360E73
 	for <linux-rdma@archiver.kernel.org>; Thu, 26 Aug 2021 13:41:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241640AbhHZNm3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S242709AbhHZNm3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 26 Aug 2021 09:42:29 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:18978 "EHLO
+Received: from szxga01-in.huawei.com ([45.249.212.187]:18976 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242723AbhHZNm2 (ORCPT
+        with ESMTP id S242716AbhHZNm2 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 26 Aug 2021 09:42:28 -0400
 Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GwP6h4rm8zbhmy;
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4GwP6h4Sq0zbhfN;
         Thu, 26 Aug 2021 21:37:48 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
@@ -34,12 +33,10 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <dledford@redhat.com>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 2/7] RDMA/hns: Fix QP's resp incomplete assignment
-Date:   Thu, 26 Aug 2021 21:37:31 +0800
-Message-ID: <1629985056-57004-3-git-send-email-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 0/7] RDMA/hns: Updates for 5.15
+Date:   Thu, 26 Aug 2021 21:37:29 +0800
+Message-ID: <1629985056-57004-1-git-send-email-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.8.1
-In-Reply-To: <1629985056-57004-1-git-send-email-liangwenpeng@huawei.com>
-References: <1629985056-57004-1-git-send-email-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.165.24]
@@ -50,45 +47,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The resp passed to the user space represents the enable flag of qp,
-incomplete assignment will cause some features of the user space to be
-disabled.
+As usual, this series collects some miscellaneous fixes and cleanups at the
+end of 5.15 for the hns driver:
 
-Fixes: 90ae0b57e4a5 ("RDMA/hns: Combine enable flags of qp")
-Fixes: aba457ca890c ("RDMA/hns: Support owner mode doorbell")
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_qp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+* #1 ~ #2 are fixes.
+* #3 ~ #7 are some small cleanups.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 0d0d5aa..bddc952 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -848,7 +848,6 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 				goto err_out;
- 			}
- 			hr_qp->en_flags |= HNS_ROCE_QP_CAP_SQ_RECORD_DB;
--			resp->cap_flags |= HNS_ROCE_QP_CAP_SQ_RECORD_DB;
- 		}
- 
- 		if (user_qp_has_rdb(hr_dev, init_attr, udata, resp)) {
-@@ -861,7 +860,6 @@ static int alloc_qp_db(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 				goto err_sdb;
- 			}
- 			hr_qp->en_flags |= HNS_ROCE_QP_CAP_RQ_RECORD_DB;
--			resp->cap_flags |= HNS_ROCE_QP_CAP_RQ_RECORD_DB;
- 		}
- 	} else {
- 		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
-@@ -1071,6 +1069,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	if (udata) {
-+		resp.cap_flags = hr_qp->en_flags;
- 		ret = ib_copy_to_udata(udata, &resp,
- 				       min(udata->outlen, sizeof(resp)));
- 		if (ret) {
--- 
+Weihang Li (1):
+  RDMA/hns: Remove RST2RST error prints for hw v1
+
+Wenpeng Liang (4):
+  RDMA/hns: Fix query destination qpn
+  RDMA/hns: Fix QP's resp incomplete assignment
+  RDMA/hns: Remove dqpn filling when modify qp from Init to Init
+  RDMA/hns: Adjust the order in which irq are requested and enabled
+
+Xinhao Liu (1):
+  RDMA/hns: Delete unnecessary blank lines.
+
+Yixing Liu (1):
+  RDMA/hns: Encapsulate the qp db as a function
+
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  40 +++-----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |   1 -
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 150 ++++++++++++++++-------------
+ 3 files changed, 98 insertions(+), 93 deletions(-)
+
+--
 2.8.1
 
