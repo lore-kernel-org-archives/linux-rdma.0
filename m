@@ -2,81 +2,133 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD54C4320E
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Aug 2021 00:52:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBAE4C4320A
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Aug 2021 03:18:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDB0560E76
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Aug 2021 00:52:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9824F60E99
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Aug 2021 03:18:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243823AbhH0Axk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 26 Aug 2021 20:53:40 -0400
-Received: from smtp21.cstnet.cn ([159.226.251.21]:57626 "EHLO cstnet.cn"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S243811AbhH0Axk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 26 Aug 2021 20:53:40 -0400
-Received: from localhost.localdomain (unknown [202.189.3.195])
-        by APP-01 (Coremail) with SMTP id qwCowAAnUtBPNyhh70WtAA--.33361S2;
-        Fri, 27 Aug 2021 08:52:32 +0800 (CST)
-From:   kangning <kangning18z@ict.ac.cn>
-To:     haakon.bugge@oracle.com
-Cc:     linux-rdma@vger.kernel.org, kangning <kangning18z@ict.ac.cn>
-Subject: [PATCH v3] Fix one error in mthca_alloc
-Date:   Fri, 27 Aug 2021 08:52:28 +0800
-Message-Id: <20210827005228.15671-1-kangning18z@ict.ac.cn>
-X-Mailer: git-send-email 2.17.1
-X-CM-TRANSID: qwCowAAnUtBPNyhh70WtAA--.33361S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrtr1rtryDuw4rCFW8AryftFb_yoWfAwb_C3
-        W8tFn7ZrW5CF1Iyr1SqF17Za40vr1rKw4xuwnIqry3XFWqgF48Jw1vqrWrua1xAFy5CF43
-        t34UtF4IkrsxKjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUIcSsGvfJTRUUUbIkYjsxI4VW3JwAYFVCjjxCrM7AC8VAFwI0_Jr0_Gr1l1xkIjI8I
-        6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM2
-        8CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWUCVW8JwA2z4x0Y4vE2Ix0
-        cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26r4j6F4UM28EF7xvwVC2z2
-        80aVCY1x0267AKxVW8JVW8Jr1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IE
-        w4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jrv_JF1lYx0Ex4A2jsIE14v26r4j6F4UMc
-        vjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v
-        4I1lc2xSY4AK64IkMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I
-        0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWU
-        XVWUAwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcV
-        CY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv
-        67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf
-        9x0zEHUDJUUUUU=
-X-Originating-IP: [202.189.3.195]
-X-CM-SenderInfo: pndqw0plqjimn26lu3wodfhubq/1tbiCQcGCl02ad-GYAABs4
+        id S244169AbhH0DTJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 26 Aug 2021 23:19:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37700 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244100AbhH0DTJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 26 Aug 2021 23:19:09 -0400
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3BC5C061757;
+        Thu, 26 Aug 2021 20:18:20 -0700 (PDT)
+Received: by mail-oi1-x22e.google.com with SMTP id c79so7638585oib.11;
+        Thu, 26 Aug 2021 20:18:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=HkiUCwn+INwVF7n2fHOf14UuZAzqGm715MmqTg6MEAA=;
+        b=KTKbytqUsklpN0IGxbIplhgOTdO07otuT08QHpjqgrRzhF71OInEO9qOYwDktesG1H
+         kaPN/YbW0Zp7SFBmNBiNzAjraqPm+5xHdK4mozHej7eOsdOUhH8VwyNrlAYLWl2DFC0B
+         SiPBRGWDPvTnPf8Yt+54r24eemAStR+hWIuceiMu60q1JX1cNlJ/x1YKqrbQzwPzcmmS
+         LakqYFQILf+ZYBrrHhlRsoDjD9foHY8znT8dPGnL4eDD6n/xiML/LWpNGFEIx9hpyqZk
+         b/ZjQHeAqR1bIteBtb2YW4kxwcO74A4TxCq5oui3ed7tN430xALxJ42ESERFnXs9FPkH
+         HO4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HkiUCwn+INwVF7n2fHOf14UuZAzqGm715MmqTg6MEAA=;
+        b=uAjcnAIsNS1sX+1Xyc4rjmXoSTHQ0islOPqXqteBxYv0FPouBgxhOjacMYmmYMowhE
+         RA4/C0P5QRIRWrW1uN70M0RX2t/tDGd9pjcpQwAajI1tRo1We8vKGAJen84098V2EaIr
+         LYSZKVr9QM7NUwNVJWWzwFrsfaCkfe9KoieJpm7fr6GHzbOfRUdBrJZCxTn/nkOc9cFk
+         HiBILQBa/gxa1vGdYFvBLKAjxzMwkQHlE2XtmX+M0mwlv81j/G/6udfXbnf0MbBv/kCN
+         K7YNS5bZJm6/ZLbqsF9QNtcg7NoCJyKBqPyscrhwE2H/m8YDgZw4JzZrRF/L1s53c0E0
+         O5+Q==
+X-Gm-Message-State: AOAM531/Q+YQL5mam2lYBpNZUkoeu6/mxeR1F0j631PfCh6UH2afr2bb
+        bH5UiUm5hyEEW70DdmGK4cH8w2OJD/slT+xyxm5SjJex
+X-Google-Smtp-Source: ABdhPJyBeovfknMfzqNbVIN5r2wmR5Az7NPNz+7BFNncrnIwQyLmtSnS6jaeZg66/i6YQBzP9Sb1JovrdrbCJyY3Se4=
+X-Received: by 2002:aca:2814:: with SMTP id 20mr12989870oix.89.1630034300095;
+ Thu, 26 Aug 2021 20:18:20 -0700 (PDT)
+MIME-Version: 1.0
+References: <c3d1a966-b9b0-d015-38ec-86270b5045fc@acm.org> <CAD=hENcriq-mwnvzY3UdowuGpKb=Uekvk-v8Lj0G=QB-qK0kJg@mail.gmail.com>
+ <20210825163219.GY543798@ziepe.ca> <5ab2f7f1-2e76-b3f2-7dee-39d38dfeb25e@gmail.com>
+In-Reply-To: <5ab2f7f1-2e76-b3f2-7dee-39d38dfeb25e@gmail.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Fri, 27 Aug 2021 11:18:08 +0800
+Message-ID: <CAD=hENcgJSFoU0a0M8HMdLRcssfAmv73LjS=2n-yrFmOhwTJKA@mail.gmail.com>
+Subject: Re: v5.14 RXE driver broken?
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Bart Van Assche <bvanassche@acm.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-drivers/infiniband/hw/mthca/mthca_allocator.c: alloc->last left unchanged in mthca_alloc, which
-has impact on performance of function find_next_zero_bit in mthca_alloc.
+On Fri, Aug 27, 2021 at 3:03 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
+>
+> On 8/25/21 11:32 AM, Jason Gunthorpe wrote:
+> > On Wed, Aug 25, 2021 at 11:02:14AM +0800, Zhu Yanjun wrote:
+> >> On Tue, Aug 24, 2021 at 11:02 AM Bart Van Assche <bvanassche@acm.org> wrote:
+> >>>
+> >>> Hi Bob,
+> >>>
+> >>> If I run the following test against Linus' master branch then that test
+> >>> passes (commit d5ae8d7f85b7 ("Revert "media: dvb header files: move some
+> >>> headers to staging"")):
+> >>>
+> >>> # export use_siw=1 && modprobe brd && (cd blktests && ./check -q srp/002)
+> >>> srp/002 (File I/O on top of multipath concurrently with logout and login (mq)) [passed]
+> >>>     runtime    ...  48.849s
+> >>>
+> >>> The following test fails:
+> >>>
+> >>> # export use_siw= && modprobe brd && (cd blktests && ./check -q srp/002)
+> >>> srp/002 (File I/O on top of multipath concurrently with logout and login (mq)) [failed]
+> >>>     runtime  48.849s  ...  15.024s
+> >>>     +++ /home/bart/software/blktests/results/nodev/srp/002.out.bad      2021-08-23 19:51:05.182958728 -0700
+> >>>     @@ -1,2 +1 @@
+> >>>      Configured SRP target driver
+> >>>     -Passed
+> >>
+> >> Can this commit "RDMA/rxe: Zero out index member of struct rxe_queue"
+> >> in the link https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-rc
+> >> fix this problem?
+> >>
+> >> And the commit will be merged into linux upstream very soon.
+> >
+> > Please let me know Bart, if the rxe driver is still broken I will
+> > definitely punt all the changes for RXE to the next cycle until it can
+> > be fixed.
+> >
+> > Jason
+> >
+>
+> Jason, Bart, Zhu
+>
+> I have succeeded in getting blktest to pass on 5.14. There is a bug in rxe that I had to fix. In
+> loopback mode when an RNR NAK is received it requests the requester to start a retry sequence
+> before the rnr timer fires which results in the command being retried immediately regardless of the
+> value of the timeout. I made a small change which requires the requester to wait for either the
+> timer to fire or an ack to arrive. The srp/002 test case in blktest spends a long time before posting
 
-Signed-off-by: kangning <kangning18z@ict.ac.cn>
----
- 
- I squashed two commits into one in this version.
- 
- drivers/infiniband/hw/mthca/mthca_allocator.c | 3 +++
- 1 file changed, 3 insertions(+)
+Can this problem be reproduced with 5.13? From Bart, this problem will
+not occur with v5.13.
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_allocator.c b/drivers/infiniband/hw/mthca/mthca_allocator.c
-index aef1d274a14e..1141695093e7 100644
---- a/drivers/infiniband/hw/mthca/mthca_allocator.c
-+++ b/drivers/infiniband/hw/mthca/mthca_allocator.c
-@@ -51,6 +51,9 @@ u32 mthca_alloc(struct mthca_alloc *alloc)
- 	}
- 
- 	if (obj < alloc->max) {
-+		alloc->last = obj + 1;
-+		if (alloc->last == alloc->max)
-+			alloc->last = 0;
- 		set_bit(obj, alloc->table);
- 		obj |= alloc->top;
- 	} else
--- 
-2.17.1
+Thanks
+Zhu Yanjun
 
+> a receive in some cases which caused a soft lockup. There is a second non-bug which is the number of
+> MRs was too small to run the test. I increased these by a factor of 256 which fixed that.
+>
+> My test setup has for-next + 5 recent rxe fix patches applied in addition to the RNR timing one above.
+>
+> I will submit a patch for the rnr fix.
+>
+> Bob
+>
