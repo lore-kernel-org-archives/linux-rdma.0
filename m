@@ -2,74 +2,69 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E52BEC433FE
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 19:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EC0C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 21:41:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C862460F92
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 19:49:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A288610A0
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 21:41:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231670AbhIBTuO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Sep 2021 15:50:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38440 "EHLO
+        id S1347069AbhIBVmQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:42:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231467AbhIBTuK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Sep 2021 15:50:10 -0400
-Received: from mail-ot1-x336.google.com (mail-ot1-x336.google.com [IPv6:2607:f8b0:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C54C9C061575
-        for <linux-rdma@vger.kernel.org>; Thu,  2 Sep 2021 12:49:11 -0700 (PDT)
-Received: by mail-ot1-x336.google.com with SMTP id c42-20020a05683034aa00b0051f4b99c40cso4025525otu.0
-        for <linux-rdma@vger.kernel.org>; Thu, 02 Sep 2021 12:49:11 -0700 (PDT)
+        with ESMTP id S1347065AbhIBVmQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Sep 2021 17:42:16 -0400
+Received: from mail-oo1-xc2d.google.com (mail-oo1-xc2d.google.com [IPv6:2607:f8b0:4864:20::c2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CF64C061575
+        for <linux-rdma@vger.kernel.org>; Thu,  2 Sep 2021 14:41:17 -0700 (PDT)
+Received: by mail-oo1-xc2d.google.com with SMTP id g4-20020a4ab044000000b002900bf3b03fso989320oon.1
+        for <linux-rdma@vger.kernel.org>; Thu, 02 Sep 2021 14:41:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=EzyrU+xa0Yrkk9Q3P/3AlPjyEmcIvLAv99Z9aOwVVvo=;
-        b=XUyymOwsXKkB9Dfk0BjcvSdj4fJGG7dLlsVJgBW3FE8dCgHDiy/JeLrqj6e3eXkBdp
-         yEj0nnRZh8PR/D2Y6u+pIHzQuWhdSMomQ9UCKzAHHQPZGcFmVYRCtCATF8VUHTEGvoGb
-         y0kvPnupdfaU01p2ImdzNAWeezf7h92/qMRba20NyO+tRFT6bDTsAsv2iFPA+6aV62ZZ
-         Qz3o5eBQzUWS7P5HPeIDQntptPnEkDvnbrV63r3GujoZZQpQY/nzYNTKrB/1Hw7b+Hs8
-         DA8eWkCYYuIQJaWIijo21CYy7/RMBsVh/tYtqEfi79OgLBv/Knsq4MpYCCDZXdnINvwb
-         /Xaw==
+        h=to:from:subject:message-id:date:user-agent:mime-version
+         :content-language:content-transfer-encoding;
+        bh=cx4qVIqAIUlKi2nKucEur7d6HYlykzwuplF2bqq/RfM=;
+        b=MmizLW7gczE1l+FV92TldCt/o1CyvPdI9P3A/MT7Pgt1UBlZng7PIfs8JI8e58pgKh
+         CSabWLg0m1crqo9DqRvzZYsXx/OjFP223G8FsHwUneG5HecWX5DhbhWA88SBB55yQVmI
+         LXMbJHxWY88r+M1mMVQMS76hUjJafeuQZopQ3a+O2MjR6sXetTl1VBQ2gwf6r2lcGDwZ
+         U1SCIfPduR5ae1af9SMlNVgrF7TiaHwj3qVIln2ix/Oe/NzCMK96r8ba6HqFqUuLvXnt
+         WaNgvLO6iV9fqGq7y9ZTMg0/jTI3yT2llkIPhHwu557FpmR2VkebY/1AqhsjdxlOhgun
+         PkVw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=EzyrU+xa0Yrkk9Q3P/3AlPjyEmcIvLAv99Z9aOwVVvo=;
-        b=iOrnTscKEPw5Fm8VEyeR4TxTY0jyPRbuHF90Yx3Br70mlaQaTGPoyTFwQE49cK3SKR
-         Ht9j7bbRCU5WKViy5r4xZ3M5EYV85mp+yU3dZx4zdnTOI9laxb0qDna5erKgx+BZ9mo0
-         Qf4kiNDFwdO3zFRNJ1+egN1hs2U/eTzLydE7cMS8qAYo9r/tJIOArEDqJjYSRJBJtmwz
-         F5ubtFxYRjeC5eQGWlj0cRBwcVh1ssCQ3AMGMYDd+110aAt6xmcgKf43wHJa/sRvOk93
-         P/rM7fLTSn81Q5XoSJ44JFwGBp/roQg6+ee16lfIaesgRcjbFSIBhmos6N2l4zs2eanG
-         5O2A==
-X-Gm-Message-State: AOAM530T388HIu+Tqebup+SaIsyloNKSzgQ6e3y6YgyO6feUP/a5/CwE
-        2VL+Padrm530hGbXBFcboTT4f1GcVRg=
-X-Google-Smtp-Source: ABdhPJxcYuesZtdUSY2GF4PWaxLVy7JXNkY9N+4TOnHp6muWEhhCcgqWf5uSgZG3sQohcHm4hrF/Ug==
-X-Received: by 2002:a9d:70cc:: with SMTP id w12mr4014255otj.306.1630612151094;
-        Thu, 02 Sep 2021 12:49:11 -0700 (PDT)
-Received: from ?IPv6:2603:8081:140c:1a00:4eab:3b55:82a2:257? (2603-8081-140c-1a00-4eab-3b55-82a2-0257.res6.spectrum.com. [2603:8081:140c:1a00:4eab:3b55:82a2:257])
-        by smtp.gmail.com with ESMTPSA id bi41sm565947oib.54.2021.09.02.12.49.10
+        h=x-gm-message-state:to:from:subject:message-id:date:user-agent
+         :mime-version:content-language:content-transfer-encoding;
+        bh=cx4qVIqAIUlKi2nKucEur7d6HYlykzwuplF2bqq/RfM=;
+        b=YQJ/ad4PnVBrrAb7NGtoVFvqbpGX3w8zQT4oG8FVMjWhcNJCtowsqfvhAMB1wCiD4r
+         E875TqA3YYa4E1i/H5CRseg4/wUGPORwuxIYOghkG4OgAZqkvu2TDzgLd+v1eefNTveJ
+         Yy5obUvMQ3Pnzl68cZG84aPCTX1bAQtAEdUp4jx0vs8SrXnZWsZ2uW/+FXbREve6cFuO
+         UCSge7lXCAGjneeThQ/pQgZbF1AdOrZcsUaXo8RGeioDAt0ti6ngzK8Ecwcc954drvmc
+         xkj5xOgPPID6OdbHvq5ArmvjhsG1vuRyBbZAjSZfJe8Gz6/abBuXVL5p/TMyytFzSw4I
+         AstA==
+X-Gm-Message-State: AOAM532ao/1Sp2D8qskf/6NwfBxclXcs4YhDvW6vZSPI9NbFrLvPzoHW
+        gqMN/G4sjvd7GIC4jKvIBXBy+zA/NWk=
+X-Google-Smtp-Source: ABdhPJyCuouXvEplaGDbpILjRK4MRT8RMSSiemJEcBI54XX3HSt28weVE2u8gC4cWR3hiZ8qPHK4lg==
+X-Received: by 2002:a4a:cb19:: with SMTP id r25mr211181ooq.39.1630618876469;
+        Thu, 02 Sep 2021 14:41:16 -0700 (PDT)
+Received: from ?IPv6:2603:8081:140c:1a00:4e8b:d9ac:5f99:519a? (2603-8081-140c-1a00-4e8b-d9ac-5f99-519a.res6.spectrum.com. [2603:8081:140c:1a00:4e8b:d9ac:5f99:519a])
+        by smtp.gmail.com with ESMTPSA id u15sm658887oon.35.2021.09.02.14.41.15
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 02 Sep 2021 12:49:10 -0700 (PDT)
-Subject: Re: rdma link add NAME type rxe netdev IFACE stopped working
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Zhu Yanjun <zyjzyj2000@gmail.com>,
+        Thu, 02 Sep 2021 14:41:16 -0700 (PDT)
+To:     Bart Van Assche <bvanassche@acm.org>,
+        Jason Gunthorpe <jgg@nvidia.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-References: <f1c73298-b37f-8589-bdb1-a727c3b7c844@gmail.com>
- <b4a1e866-95ed-7bf1-f9da-bca5700db7e1@gmail.com>
- <20210902130213.GT1200268@ziepe.ca>
 From:   Bob Pearson <rpearsonhpe@gmail.com>
-Message-ID: <629283f9-2833-62c1-c3cc-e22084bb076a@gmail.com>
-Date:   Thu, 2 Sep 2021 14:49:10 -0500
+Subject: blktest/rxe almost working
+Message-ID: <c7557529-d07d-3e35-0f03-2bbe867af4a1@gmail.com>
+Date:   Thu, 2 Sep 2021 16:41:15 -0500
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+ Thunderbird/78.13.0
 MIME-Version: 1.0
-In-Reply-To: <20210902130213.GT1200268@ziepe.ca>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -77,39 +72,13 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 9/2/21 8:02 AM, Jason Gunthorpe wrote:
-> On Wed, Sep 01, 2021 at 10:25:25PM -0500, Bob Pearson wrote:
->> On 9/1/21 10:04 PM, Bob Pearson wrote:
->>> rdma link has started to fail today reporting an error as follows after working before.
->>>
->>> bob@ubunto-21:~$ sudo rdma link add rxe0 type rxe netdev enp0s3
->>>
->>> error: Invalid argument
->>>
->>> bob@ubunto-21:
->>>
->>> Nothing has changed in the past day or two except I pulled recent changes into rdma-core. This runs after
->>> typing
->>>
->>> export LD_LIBRARY_PATH=/home/bob/src/rdma-core/build/lib/:/usr/local/lib:/usr/lib
->>>
->>> which is also the same. Any ideas?
->>>
->>> Bob
->>>
->>
->> Update. I then recompiled the kernel after pulling latest changes
->> and now it works. In theory this shouldn't be necessary. The kernel
->> APIs should be beckwards compatible.
-> 
-> I don't think anything has changed here in a long time, so I have no
-> guess
-> 
-> 'rdma link' has no relation to rdma-core either
-> 
-> Perhaps your kernel got in a bad state?
-> 
-> Jason
-> 
+Now that for-next is on 5.14.0-rc6+ blktest srp/002 is very close to working for rxe but there is
+still one error. After adding MW support I added a test to local invalidate to check and see if the l/rkey matched the key actually contained in the MR/MW when local invalidate is called. This is failing
+for srp/002 with the key portion of the rkey off by one. Looking at ib_srp.c I see code that does in fact
+increment the rkey by one and also has code that posts a local invalidate. This was never checked before
+and is now failing to match. If I mask off the key portion in the test the whole test case passes so
+the other problems appear to have been fixed. If the increment and invalidate are out of sync this could
+result in the error. I suspect this may be a bug in srp. Worst case I can remove this test but I would
+rather not.
 
-Must have. Thanks. -- Bob
+Bob
