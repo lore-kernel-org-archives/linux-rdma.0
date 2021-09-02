@@ -2,225 +2,227 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEF4C87FC7
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 16:30:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07B8FC83026
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 17:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 660D061250
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 16:13:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D068961054
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 17:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234547AbhIBQOt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Sep 2021 12:14:49 -0400
-Received: from mga17.intel.com ([192.55.52.151]:56610 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233599AbhIBQOt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 2 Sep 2021 12:14:49 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10095"; a="199397373"
-X-IronPort-AV: E=Sophos;i="5.85,262,1624345200"; 
-   d="scan'208";a="199397373"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 09:13:50 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,262,1624345200"; 
-   d="scan'208";a="499874370"
-Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
-  by fmsmga008.fm.intel.com with ESMTP; 02 Sep 2021 09:13:49 -0700
-Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
- ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2242.12; Thu, 2 Sep 2021 09:13:48 -0700
-Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
- ORSMSX612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2242.12; Thu, 2 Sep 2021 09:13:47 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2242.12 via Frontend Transport; Thu, 2 Sep 2021 09:13:47 -0700
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.46) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2242.10; Thu, 2 Sep 2021 09:13:45 -0700
+        id S1346546AbhIBRKT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Sep 2021 13:10:19 -0400
+Received: from mail-bn8nam11on2068.outbound.protection.outlook.com ([40.107.236.68]:57536
+        "EHLO NAM11-BN8-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1346540AbhIBRKT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 2 Sep 2021 13:10:19 -0400
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TkdafkrdaPXWjd3++zH81SCqoVfzK7NOHQFsOL46ajir257tZsJF4g1tJUAmUxq/PHeQS2GeJSZLPBrVBnlz+aoEYO8lx1Op/bEV7ZNq8V4kzAvX+XOYltIHZ9cdA50Enn56S8mnklCp6STbvfs4ZnStGMMpoXrneC1Ac5WCFxlFh3t5GeL7Wz8p9nzdH/q+SB379y8oHw/73zP8tpE3X8bCqTiT6fnZM/2IQ8T3tQrNoMzSrUdn3t4JNsJRsMaLCUN1kW9p8RGylGlBJSFJ6ESoY4hKEjQrG6yqMCM+f5gkfBSkw3xAgqi9TZ31g764ejjQCF4tHIHlARMd8DJZtw==
+ b=RTTbD2XD386X6h13vBptvfT5HRyXoVsHuE+gcnDxElADLu+8npN60rK8/Rp0+l8CB7fzBmhgu8qkXDjowhwNFiS7OROvZDrsyq+W57OUEo+O/GUx8zp+MVG90gI3BbeDNr1OwUFHUnCxotB+Ms2N7eltP+MU1AmedwPfbGhKuu6Rmq/Jxdkca3a4pKva7YswG2aerahLq7VTdh4FrXrzWTvC3c0Hv2Ixubxn+VScVts+7fAq9jBolq8wPugKsR86xVWXqcdkmNBQ7JtvSX6fw0TCe8Ufb6p00MZj30Ss0yj/e7QnNuAgyT7vmPYySRUdin7+jr+Nzi1tM2if8QaLHQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
- bh=64xLK3ezoBV66H428AvNQZgPX8yWxMTFcGe5BT/azrY=;
- b=bnUCG/VtRLdIYjA1C2W0Z8Nh3RyYLBXkCz5SrtLxmTnFEkQ412fZUN/1BxBnxLHlceE5tw4DGj7SbaHA9i4PNecM/ZREBGQGlDbzn4SBGH7mMqcXtcL6Z0uJNNApBnY1hHGpbJEveNZdwaSq73H3FnOjAMmn2Plqe5DyS+ZqzT8WsNlMS+YdjfdY8H6CLxm5s/Grsxu2RLs0agDSALfFIfs7Lwqr4iln/fJbE5zYJeP0pkmrlFm54AKYi7pdKwbhickZHLheDREwZXV2rSeZ7fRTYnNnADCo1F2cLQq8mrSds504/KpVpGGCim8uk37FqDdgvShYMkFfAPXwyqx3fw==
+ bh=rNOK2AbJMhNBuqqpr2FTc5NN+KeG/4ZrxUaMxnJ3Ubo=;
+ b=dheBWECkklwDROA1sWV9oKk8r0m+7OIORG2xcasPfo/X5zT0xkaMLCKj+2P7mdvyo0rRZbH2OkGwmDkE5Sb6hBZZAAfhlEDuWqZuxFWi3+rh3Fb2nCJddJJIxsgmpsNejDq7qf73zCr6yhrz2p78vSUBCz/5tnySajReDsT/+6KF/i+kpO2vBHnUwAxJKwR7PwkLEhl4lexcHWY3E496Lp/PM55xGgYDOwyV1vZIAiL3t1oIH6zENoCr6U8lyAXyZ6gBU0N7Zyd0prLWBNHECYnsM4rVJ8eiDVLEKBYaHuLeQuRAR1jXFVmmjmnTJP1oPx5e1zbOpJ1E3BLrn1rUjg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=64xLK3ezoBV66H428AvNQZgPX8yWxMTFcGe5BT/azrY=;
- b=oI16iN/LQMwl+qWrkXUANkWlX+7Yvi1KKI4ggv/KqyRblBkgtGNX1WIt2XY15NViPiqlkbvPfqzTK8W6qZF3pglkqwiVH5xf4q7blQowivRDozuVlkMk0bOaU3EsHWHzdj/p4aorZwb+ZTLeoPxlHqnq4hGP0wOmqzpQZY+Z6YE=
-Received: from DM6PR11MB4692.namprd11.prod.outlook.com (2603:10b6:5:2aa::11)
- by DM6PR11MB4155.namprd11.prod.outlook.com (2603:10b6:5:19a::24) with
+ bh=rNOK2AbJMhNBuqqpr2FTc5NN+KeG/4ZrxUaMxnJ3Ubo=;
+ b=Cers8zSgxZmI+ql+ci2/z7F839uNx1djqkJ95JVrzEN3VCDH5hCkdkpxsm37t1ktM3p+qXq+vEIixARqwT1lHxgToqPf0UFn8rLccrAaetc9Nf8Jr4Szkh66lb3nrd9iNAld5Yuh0E+KaA2mnTRdTTZIrPkOhTfv85IFG7jVMO/tNk29sfIkli3d9Dq6LCCItBIur7bT0EwWpxH93ApLwHbMzrYSq9YQrwzGhfjWle7oFfPK3Zvy/AtCqUwB3i33j59CZSGT/i3JkUUZj4HYVabA2NUGk3IGqaUZh7NH3vc6BPUPnEJCpT8boLRyyxhGfDU9LxawMUt4dK47+oDEmw==
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
+ by BL0PR12MB5539.namprd12.prod.outlook.com (2603:10b6:208:1c3::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.19; Thu, 2 Sep
- 2021 16:13:44 +0000
-Received: from DM6PR11MB4692.namprd11.prod.outlook.com
- ([fe80::31db:f34d:bdc9:8f32]) by DM6PR11MB4692.namprd11.prod.outlook.com
- ([fe80::31db:f34d:bdc9:8f32%7]) with mapi id 15.20.4478.022; Thu, 2 Sep 2021
- 16:13:44 +0000
-From:   "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>
-To:     Leon Romanovsky <leon@kernel.org>
-CC:     Jason Gunthorpe <jgg@nvidia.com>,
-        "dledford@redhat.com" <dledford@redhat.com>,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.20; Thu, 2 Sep
+ 2021 17:09:19 +0000
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::e8af:232:915e:2f95]) by BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::e8af:232:915e:2f95%8]) with mapi id 15.20.4478.020; Thu, 2 Sep 2021
+ 17:09:19 +0000
+Date:   Thu, 2 Sep 2021 14:09:17 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>
+Cc:     "dledford@redhat.com" <dledford@redhat.com>,
+        "leon@kernel.org" <leon@kernel.org>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [PATCH v2 rdma-core] irdma: Add ice and irdma to kernel-boot
- rules
-Thread-Topic: [PATCH v2 rdma-core] irdma: Add ice and irdma to kernel-boot
- rules
-Thread-Index: AQHXmDZjOykQbRhbB0OylwgVwYR9l6uBQpMAgA+prJCAAAtggIAAAhuQ
-Date:   Thu, 2 Sep 2021 16:13:44 +0000
-Message-ID: <DM6PR11MB4692524C197F055A727468F4CBCE9@DM6PR11MB4692.namprd11.prod.outlook.com>
-References: <20210823154816.2027-1-tatyana.e.nikolova@intel.com>
- <20210823161116.GO1721383@nvidia.com>
- <DM6PR11MB46922D3AE92E34B4E1D3AC9FCBCE9@DM6PR11MB4692.namprd11.prod.outlook.com>
- <YTD1vWjFToPt7JLC@unreal>
-In-Reply-To: <YTD1vWjFToPt7JLC@unreal>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-authentication-results: kernel.org; dkim=none (message not signed)
- header.d=none;kernel.org; dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 86e5510d-73e0-4d21-23ee-08d96e2ca32d
-x-ms-traffictypediagnostic: DM6PR11MB4155:
-x-microsoft-antispam-prvs: <DM6PR11MB41552A274031EBF0521A9BB6CBCE9@DM6PR11MB4155.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: +UQwJuLNSBE4JrWHShjoLzD37Oj+6KeVUpgAMsx7L/zqao0GAjVzNYNMwolyyA6o9oA0kn2XBZa2nP0r2EMsD8E5hj8yRUHs0Jq7XcL9JKE6S+o5PiOBHSu9YnEB64WJIRjYRt+ZCpS0Ng9BK6/2HYsUPHRtvobZcvbMlqdVjpcqnAgiMQXlC4JXrMZJ+UrsjxYfFcv0E3nCRXyQyWG/VbM34GYnhpCT4Pt6bobF3reIGhhZdn72qoD+UxCp/7/MdhBi3bmO25GqNKRqxUyMxtYdXkNEeHgH7u1g0yB6IV9kIGr/ZZNVKAxODAz+hdaWUikigIgRkYuavkn9hSXOzryPXMqZenvr53nA0Br3Ug5wN3FldmezxJQI4aXEUEo8Pqho83NOZafS70RPvbEHZt/6igtPgp0OTBW6CbDz/R/BHx3iPOk4PPYJ+ee7E823dnnhZZdl2t/5tBupL9O04io1vDrqt0ql9Ms86mz/wz114WxNhsrfzcmkRCPCVWXWH3MK4FKejonBprZVvGtljr/5tFjPrEgwVr7Qaefrw6luWgqK//aP0Y4wG+HVLe/SVpBkTKeFhF9DA+gTn7LXT+YkIMtIf8azcn2SNhD7EfrCWDhDET7TDrklt6cDHMDPpQrQvj3D/mUcrtzjIT3NIyPjJSZyF2ctwkmOKU+MlnIzxiBX9j8eYF3lnF+YBqA8yP+BeLT8d0ORh0ellChkLA==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR11MB4692.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(376002)(346002)(136003)(39860400002)(366004)(4326008)(83380400001)(6506007)(316002)(55016002)(66476007)(186003)(9686003)(86362001)(53546011)(6916009)(8936002)(8676002)(478600001)(66446008)(54906003)(52536014)(2906002)(7696005)(33656002)(71200400001)(38100700002)(64756008)(5660300002)(66556008)(66946007)(122000001)(38070700005)(76116006);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?957nx2XQOMCB/k7i5NbLScqrwQ5n6o3H+L7UAqoTqe2Eqa49gGKCeSP2IUuS?=
- =?us-ascii?Q?g4JCQkJgX1Id/HNCq1WPMUweAo723QsUo7dLMiLwMXRkWj5oXXUGMo0lQz6A?=
- =?us-ascii?Q?6AzOAWDbr+dFm1mhU+Pdjn2MxFIa1hvuh2KpxKsfM8SNRKZuqe+VPdR6hm5X?=
- =?us-ascii?Q?dz7Fqz1cXXFVrVJZE2SwhyfIgPen28QMF+XvNtQfBReIft8ScqEAuD875vz8?=
- =?us-ascii?Q?0oOIrY4xbPgSSDXgs6RvzCcwd4D6UBSL7FPq2tE8SdRziPlos7sv5nkOGhGq?=
- =?us-ascii?Q?5/ouBs7Tm3SnWh0ocG7exYzsA6dxGwEnJgzwSv8qUOBG71MgMo3k/rojuymH?=
- =?us-ascii?Q?uP03ggyyK4W+zQX9mOJ7Y5qx1H01G0A5hszW5JSwBzKDOQZXglqkmDt0mxuk?=
- =?us-ascii?Q?FtYJ54ec7ZpAzvuJDBzT666aCZVwRpEfyvs6K0pkbtjnga+CU66W+1F6O1qT?=
- =?us-ascii?Q?AiRdOn5Jp3vfA4IjhcNj+/9lShVnmszSliXAjy1pRBP+rn1vOCFbyLx2CFp1?=
- =?us-ascii?Q?adQeWq8bd0pDNaxouSmpPqRgszL3qgzD6lmw+3OUd8Mi8emvlHMKrphJDIk5?=
- =?us-ascii?Q?mDw1ndQAlByS7VJF9EWwsJWgcCLGhoNi93i8EME7ZPwQkKGqIO8G0j76pumw?=
- =?us-ascii?Q?M7uAbkJ4me0Pxjhx68w3TvjkHIGyekLjeZ2c3F5tDXZp9OA62QB7a/e+kmKe?=
- =?us-ascii?Q?xITte2EoLB0bBWwldLb/oFORm28diAepOAhQ2DTpf+9GXDT/DS2/DETmSuhw?=
- =?us-ascii?Q?2Vn/AsK9nv2K7MjeI9cYGqeXRbapUIEdVFATKDVH4NurGxPdoHVANznF0MlD?=
- =?us-ascii?Q?FNLXkYrIJt2GvnV5C5ET6SuJL3n/PDwa0D2AGJ+JdOCLAF20CsxivJeHjnEc?=
- =?us-ascii?Q?n9IOh1QoXiLq+mntGCSH4zGL8EYKsV0bRqhNdI7cyeYpLeLY/0yMDGm5rkR3?=
- =?us-ascii?Q?GyzfZy6HnO5tTekTcaCzraH3pN+GIsGv+KcN1qM82mRdMXsrH/+UvuRbGzxa?=
- =?us-ascii?Q?jCRfBq7LjEqpqEe0RboGWJa29PNy0fOa+e4KPrqht9laHOIoc374aWiw0ZQD?=
- =?us-ascii?Q?eOk6hf7Nz4jba38ZbVEUcyXeakFycXEYirv8md7FMIKaiRJCSQFvmUGIZb5B?=
- =?us-ascii?Q?5MqBnwcsdlrYRphYTwFp+uhaAJzjPD/sBqq9mGBsaVfOQouTc8pOaLoZ0x/r?=
- =?us-ascii?Q?Uumc+byXK4V9gtVckHO2u1cKW40aIKlPHL1ZsGle0CjB8TiF1Jf1MPhnygPc?=
- =?us-ascii?Q?7XvX72mun+eP1e7FovQ1KxIFSAuBNnHfYIMBosSx0eBfD59q+aYz/Tlq4ifP?=
- =?us-ascii?Q?/9+46mrkx+fyEKSGdxoLJVeOP7CF1vDaIxvB+s59i1BJbxV7UzqouONF8bVo?=
- =?us-ascii?Q?68EIHxovBKRKyGEMul2QJU7gJLRp?=
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH rdma-core] irdma: Restore full memory barrier for
+ doorbell optimization
+Message-ID: <20210902170917.GZ1721383@nvidia.com>
+References: <20210810115933.GB5158@nvidia.com>
+ <20210813222549.739-1-tatyana.e.nikolova@intel.com>
+ <20210818164931.GC5673@nvidia.com>
+ <DM6PR11MB4692DCA80480234AAD298313CBC09@DM6PR11MB4692.namprd11.prod.outlook.com>
+ <20210819224408.GE1721383@nvidia.com>
+ <DM6PR11MB4692BD4BB222DAA58C264000CBCE9@DM6PR11MB4692.namprd11.prod.outlook.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <DM6PR11MB4692BD4BB222DAA58C264000CBCE9@DM6PR11MB4692.namprd11.prod.outlook.com>
+X-ClientProxiedBy: MN2PR11CA0016.namprd11.prod.outlook.com
+ (2603:10b6:208:23b::21) To BL0PR12MB5506.namprd12.prod.outlook.com
+ (2603:10b6:208:1cb::22)
 MIME-Version: 1.0
+Received: from mlx.ziepe.ca (142.162.113.129) by MN2PR11CA0016.namprd11.prod.outlook.com (2603:10b6:208:23b::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.20 via Frontend Transport; Thu, 2 Sep 2021 17:09:19 +0000
+Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1mLqDF-00APzf-RM; Thu, 02 Sep 2021 14:09:17 -0300
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: c44f86de-34d8-463a-6a7d-08d96e3466bf
+X-MS-TrafficTypeDiagnostic: BL0PR12MB5539:
+X-Microsoft-Antispam-PRVS: <BL0PR12MB5539000E0BFCB2A12E6CB641C2CE9@BL0PR12MB5539.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: JcX33znJODRQrrJMNKoccOIenP/zScReZBRKw+Tnh3EnvS3hQKWG7UtnupGdXNXTR7VDxbvoIwxXYdvpBhRvU7jHB3s/zGu3e3ebuJI1qwuEJ+00nXHksYI0noLj/iZhqVCb4yaaEZUtwoesBCxw8jDMDK9uI9ls8UJcGWVAMW/wNrQbWRGRUlutV0sjf+2xQIqDHzUoQWS6cKOuDiAOu+JqpU+67C+s+ivQiF3dhsIgMwmLPzc+griqjo7OjIT1cWQ/uJyKC/fTfrhkGFvU96Dzj2ljOfT1QmGl/lVn27jEGz99qEDUZkAS0CpZQGZU8f4D1643Y51sOmM1dnwWFNdTUERJTywQd6xXg6p/PxZAWDHu6G7d5xCeatX33OOSr7qfZ/O5GXJ56p8+mGWSAq88vmjDX8DR6j+NRQ7zNa+cbJU1q1OrLzkKNkFbP4kLTvT6XBXGGn9NDEee/8GtP0EXFlZwrLfVUSyvT3e9mGIBGNOJnRAPCEW9SB5mmY/gwGtPDCx0THLAXfAzy2YeE9I7GZeRphlUSqH3yS+0VeEiCLnGT9uhLJIhdQ10WfX3j6DQ/SIM2mmjpgGRyCLJbJyyam0RDKRAqnHHJSn1GaMmOZ+QYajZQKqRTIhBH/Ie6+2EVomFGP+fUCWK4uibEg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(4326008)(66556008)(66476007)(26005)(9746002)(53546011)(9786002)(36756003)(2906002)(66946007)(5660300002)(316002)(508600001)(8676002)(1076003)(83380400001)(38100700002)(86362001)(186003)(6916009)(33656002)(2616005)(426003)(8936002)(54906003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?rZrWOijYksISO+VSYMAPJsu5hIzrNB4/OhJqXie79cDt61qNffRu26Q/JAq7?=
+ =?us-ascii?Q?z6pTc5ETOYacZ7dRHT8htxtzfeRArolxAHqUzqXwU0Y63bsWyL7xiKgjXybX?=
+ =?us-ascii?Q?SomNEDF3mneJJT3HcjrrpKWlQKeK9m2blVReN8Uxr3DiKIcfBi+2LyqjFinf?=
+ =?us-ascii?Q?44JxfeyahwGxCQpKc0B9pe6Q5KaDLXUWpSN+HESObiKDFS2KwjPkUfFav4T6?=
+ =?us-ascii?Q?T5h4DjpnebVCEaLMxcrR5FwZp4GNExW3zgnsNeKmon9EGdkEz5tHclSPvtiS?=
+ =?us-ascii?Q?Ux/YfnQtLi6oG6s1mXiKu4+kX02L8bX+p6i5lFVkyB+sczyClV4PAWlQEha5?=
+ =?us-ascii?Q?UAIDPCuS8fa3xqYAOpy3wp4vnRHyfsGkEKTA4df3AxMYknCA62zptyIwDlWj?=
+ =?us-ascii?Q?pQwrtNCHD+70Ylirn/sutDEs96QTUlZBFb+ej+Rfwr2dYoNrGtzEGAQ/+cvc?=
+ =?us-ascii?Q?jGoMgJ2tFyBBmSGGyR0MzLDcBytBV7KqHH4SylHwENynB3bySyjGABITu2hn?=
+ =?us-ascii?Q?P7EFs9dkmSdEFhOQ6P9A8yywKqcnnYhvSybbbdFGpkfMzFBDRduyk5wVd93h?=
+ =?us-ascii?Q?kP5XKE176sCS5+NFJEGVcyq5f+NxSBetQmf1XHUIdyWkM+/q2hzQ2FNpYaVL?=
+ =?us-ascii?Q?3cA9lAN4ZWsvPHf9ttQ2X6PY2RwItCg6yvpHbvRwMJBEfJ6fqYzSPRgHXSZF?=
+ =?us-ascii?Q?4xLab/InPZyVsoDPu52hSnFUUtdY8ABuix/i6oqWBx4tO45T858cF65jFyZ/?=
+ =?us-ascii?Q?h7jxgxC34pQNKjJczZNO9MAbviZqph5VPk/xtI2B/+pEO79zOb0bIMKPB4hZ?=
+ =?us-ascii?Q?d1gJBNuiJxRxHWE2UnpbyLhtbF6jnTjGQh7GGqke6QCmfPNIGYRa0/luPMxj?=
+ =?us-ascii?Q?KjxnQFMtKOdE4mEvlmEJ2S78soveMRAZ+JU58ITQYgkldbLeuD1OK2uZ3abg?=
+ =?us-ascii?Q?55fpkLJm2wnFNl1PHMkgCqwrd9m+ICBrh6i5WGJxjrO2Rwq2frQvkX2UYvTN?=
+ =?us-ascii?Q?81dlPbigeRHSynvHDt/1duxgXANxWWwjCoG9sPdXAS1lwc0Sc4kh2SaI4VOU?=
+ =?us-ascii?Q?b4hoAwumRGpolPTH2dSeUROuvgyArsi27fJ7/TpS5djbQ1QEVPjbYJuKLO6t?=
+ =?us-ascii?Q?z8mE9nGQoBZhUcpUmP4IdLlP2jvdMAyM+edUIXOXtqB9VPjhC0e5B39FJjZ+?=
+ =?us-ascii?Q?llcoJbYeuY6f3UuRuwuKAS+1gWSSOUg2DXeR8pDPaK28juord7hx2ahg+GSB?=
+ =?us-ascii?Q?nZJMAXs2q2lEUueEuKaWExHGTt/1OwiJxSfA/3be/QK+dt8arT/jLx6jpBU5?=
+ =?us-ascii?Q?CeAxQXYRpfbSHxfFa22idxEgi64hcuhXRZivZJWqpnEyEQ=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c44f86de-34d8-463a-6a7d-08d96e3466bf
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR11MB4692.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 86e5510d-73e0-4d21-23ee-08d96e2ca32d
-X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Sep 2021 16:13:44.4219
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2021 17:09:19.1956
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: jZOZ69Sd/vg746f7l/gU7V+gNsVPxNGSMKvSCCZJ6ClIvVzsgLdVHKrCnkHR3RhA4bOnigF7ndrKHK4cEZe0oOsCZIlVtDghHYkpbweFv1c=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4155
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: gZc/HnITupFgxtMJbE0nlRD4qaP+Kbnxf9/zi5cU8Jj13dam1xkINuPgDk8v0T8H
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB5539
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Leon Romanovsky <leon@kernel.org>
-> Sent: Thursday, September 2, 2021 11:03 AM
-> To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
-> Cc: Jason Gunthorpe <jgg@nvidia.com>; dledford@redhat.com; linux-
-> rdma@vger.kernel.org
-> Subject: Re: [PATCH v2 rdma-core] irdma: Add ice and irdma to kernel-boot
-> rules
->=20
-> On Thu, Sep 02, 2021 at 03:29:43PM +0000, Nikolova, Tatyana E wrote:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Jason Gunthorpe <jgg@nvidia.com>
-> > > Sent: Monday, August 23, 2021 11:11 AM
-> > > To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
-> > > Cc: dledford@redhat.com; leon@kernel.org; linux-rdma@vger.kernel.org
-> > > Subject: Re: [PATCH v2 rdma-core] irdma: Add ice and irdma to
-> > > kernel-boot rules
+On Thu, Sep 02, 2021 at 04:27:37PM +0000, Nikolova, Tatyana E wrote:
+> 
+> 
+> > From: Jason Gunthorpe <jgg@nvidia.com>
+> > Sent: Thursday, August 19, 2021 5:44 PM
+> > To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
+> > Cc: dledford@redhat.com; leon@kernel.org; linux-rdma@vger.kernel.org
+> > Subject: Re: [PATCH rdma-core] irdma: Restore full memory barrier for
+> > doorbell optimization
+> > 
+> > On Thu, Aug 19, 2021 at 10:01:50PM +0000, Nikolova, Tatyana E wrote:
 > > >
-> > > On Mon, Aug 23, 2021 at 10:48:16AM -0500, Tatyana Nikolova wrote:
-> > > > Add ice and irdma to kernel-boot rules so that these devices are
-> > > > recognized as iWARP and RoCE capable.
-> > > >
-> > > > Otherwise the port mapper service which is only relevant for iWARP
-> > > > devices may not start automatically after boot.
-> > > >
-> > > > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-> > > > kernel-boot/rdma-description.rules | 2 ++
-> > > >  1 file changed, 2 insertions(+)
 > > >
-> > > Given that ice is both iwarp and roce, is there some better way to
-> > > detect this? Doesn't the aux device encode it?
-> >
-> > Hi Jason,
-> >
-> > We tried a few experiments without success. The auxiliary devices alias
-> with our driver and not ice, so maybe this is the reason?
-> >
-> > Here is an example of what we tried.
-> >
-> > udevadm info
-> > /sys/devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> > P: /devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> > E: DEVPATH=3D/devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> > E: DRIVER=3Dirdma
-> > E: MODALIAS=3Dauxiliary:ice.roce
-> > E: SUBSYSTEM=3Dauxiliary
-> >
-> > udevadm info /sys/bus/auxiliary/devices/ice.roce.0
-> > P: /devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> > E: DEVPATH=3D/devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> > E: DRIVER=3Dirdma
-> > E: MODALIAS=3Dauxiliary:ice.roce
-> > E: SUBSYSTEM=3Dauxiliary
->=20
-> Everything will be much easier if you follow my initial review comment ab=
-out
-> auxiliary bus naming when irdma driver was added.
->=20
-> The RoCE device should be:
-> P: /devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.roce.0
-> E: MODALIAS=3Dauxiliary:ice.roce
->=20
-> and the iWARP device needs to be:
-> P: /devices/pci0000:2e/0000:2e:00.0/0000:2f:00.0/ice.iwarp.0
-> E: MODALIAS=3Dauxiliary:ice.iwarp
+> > > > From: Jason Gunthorpe <jgg@nvidia.com>
+> > > > Sent: Wednesday, August 18, 2021 11:50 AM
+> > > > To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
+> > > > Cc: dledford@redhat.com; leon@kernel.org; linux-rdma@vger.kernel.org
+> > > > Subject: Re: [PATCH rdma-core] irdma: Restore full memory barrier
+> > > > for doorbell optimization
+> > > >
+> > > > On Fri, Aug 13, 2021 at 05:25:49PM -0500, Tatyana Nikolova wrote:
+> > > > > >> 1.	Software writing the valid bit in the WQE.
+> > > > > >> 2.	Software reading shadow memory (hw_tail) value.
+> > > > >
+> > > > > > You are missing an ordered atomic on this read it looks like
+> > > > >
+> > > > > Hi Jason,
+> > > > >
+> > > > > Why do you think we need atomic ops in this case? We aren't trying
+> > > > > to protect from multiple threads but CPU re-ordering of a write
+> > > > > and a read.
+> > > >
+> > > > Which is what the atomics will do.
+> > > >
+> > > > Barriers are only appropriate when you can't add atomic markers to
+> > > > the actual data that needs ordering.
+> > >
+> > > Hi Jason,
+> > >
+> > > We aren't sure what you mean by atomic markers. We ran a few
+> > > experiments with atomics, but none of the barriers we tried
+> > > smp_mb__{before,after}_atomic(), smp_load_acquire() and
+> > > smp_store_release() translates to a full memory barrier on X86.
+> > 
+> > Huh? Those are kernel primitives, this is a userspace patch.
+> > 
+> > Userspace follows the C11 atomics memory model.
+> > 
+> > So I'd expect
+> > 
+> >   atomic_store_explicit(tail, memory_order_release)
+> >   atomic_load_explicit(tail, memory_order_acquire)
+> > 
+> > To be the atomics you need. This will ensure that the read/writes to valid
+> > before the atomics are sequenced correctly, eg no CPU thread can observe
+> > an updated tail without also observing the set valid.
+> > 
+> 
+> Hi Jason,
+> 
+> We tried these atomic ops as shown bellow, but they don't fix the issue.
+> 
+> atomic_store_explicit(hdr, memory_order_release) atomic_load_explicit(tail, memory_order_acquire)
+> 
+> In assembly they look like this:
+> 
+> //set_64bit_val(wqe, 24, hdr);
+> atomic_store_explicit((_Atomic(uint64_t) *)(wqe + (24 >> 3)), hdr, memory_order_release);
+>                      2130:       49 89 5f 18             mov    %rbx,0x18(%r15)
+> /root/CVL-3.0-V26.4C00390/rdma-core-27.0/build/../providers/irdma/uk.c:747
+> 
+> 
+> /root/CVL-3.0-V26.4C00390/rdma-core-27.0/build/../providers/irdma/uk.c:123
+>         temp = atomic_load_explicit((_Atomic(__u64) *)qp->shadow_area, memory_order_acquire);
+>     1c32:       15 00 00 28 84          adc    $0x84280000,%eax
+> 
+> 
+> However, the following works:
+>  atomic_store_explicit(hdr, memory_order_seq_cst)
+> 
+> //set_64bit_val(wqe, 24, hdr);
+>  atomic_store_explicit((_Atomic(uint64_t) *)(wqe + (24 >> 3)), hdr,  memory_order_seq_cst);
+>     2130:       49 89 5f 18             mov    %rbx,0x18(%r15)
+>     2134:       0f ae f0                mfence
+> /root/CVL-3.0-V26.4C00390/rdma-core-27.0/build/../providers/irdma/uk.c:748
+>  
+> 
+> atomic_load_explicit(tail, memory_order_seq_cst) - same assembly as with memory_order_acquire
 
-Hi Leon,
-=20
-This is what we have now. We just provided an example with RoCE.
+Again, you shouldn't need the mfence unless you are doing something
+very special, and so far nothing you've explained reaches to what that
+special thing is.
 
->=20
-> Thanks
+According to the x86 memory model when you do a store release then all
+writes made by the current CPU will be observed by the CPU that does
+the load acquire. Which matches what you asked for.
+
+The main purpose of the atomic notations on x86 is to force the
+compiler to put all load/stores in the correct order when going to
+assembly. The x86 architecture takes care of the rest without MFENCE,
+and from your prior description it seems the issue was compiler
+re-ordering of load/stores around a serializing load/sore.
+
+MFENCE is about preventing future stores from becoming visible until
+prior stores are, which you shouldn't need with the simple
+acquire/release semantics that you described..
+
+Jason
