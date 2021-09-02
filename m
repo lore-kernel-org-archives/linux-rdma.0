@@ -2,131 +2,80 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEAD6C432BE
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 07:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B5FC432BE
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 08:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97D86610C9
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 07:03:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA5E460FC0
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Sep 2021 08:14:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242956AbhIBHEb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Sep 2021 03:04:31 -0400
-Received: from smtp-fw-6002.amazon.com ([52.95.49.90]:50095 "EHLO
-        smtp-fw-6002.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242875AbhIBHEb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Sep 2021 03:04:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1630566214; x=1662102214;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=aNvIJIxasNCrDoXPix03/CFYbVuPbiGgTXIiPFUnDfI=;
-  b=jsLtPZHYIHN/ENwggNdhti4m/ArKIs/Q/9OH1m8zpO/7VqvL5Mr4I6AG
-   du6j6KAzC/UiJSD2IXlpORVpsXziziUYIotcGRoGBY8ZZ5np5wqhcaHK3
-   2oxWdwcJQa0PCPqY2Gx2wZF2d+SpfI0Qfr+GmNyphaLn0/a0uXJdzunYY
-   Y=;
-X-IronPort-AV: E=Sophos;i="5.84,371,1620691200"; 
-   d="scan'208";a="137256772"
-Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO email-inbound-relay-1e-28209b7b.us-east-1.amazon.com) ([10.43.8.2])
-  by smtp-border-fw-6002.iad6.amazon.com with ESMTP; 02 Sep 2021 07:03:27 +0000
-Received: from EX13D19EUB003.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan3.iad.amazon.com [10.40.163.38])
-        by email-inbound-relay-1e-28209b7b.us-east-1.amazon.com (Postfix) with ESMTPS id 09EE9BBC59;
-        Thu,  2 Sep 2021 07:03:24 +0000 (UTC)
-Received: from 8c85908914bf.ant.amazon.com (10.43.161.176) by
- EX13D19EUB003.ant.amazon.com (10.43.166.69) with Microsoft SMTP Server (TLS)
- id 15.0.1497.23; Thu, 2 Sep 2021 07:03:20 +0000
-Subject: Re: [PATCH for-next 4/4] RDMA/efa: CQ notifications
-To:     Jason Gunthorpe <jgg@nvidia.com>
-CC:     Doug Ledford <dledford@redhat.com>, <linux-rdma@vger.kernel.org>,
-        Alexander Matushevsky <matua@amazon.com>,
-        Firas JahJah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>
-References: <20210811151131.39138-1-galpress@amazon.com>
- <20210811151131.39138-5-galpress@amazon.com>
- <20210820182702.GA550455@nvidia.com>
- <7a4963ea-f028-e787-a5ba-fabf907c6d6b@amazon.com>
- <20210901115716.GG1721383@nvidia.com>
- <c8549e51-47a2-1426-b44b-f1c4ade3dce2@amazon.com>
- <20210901153659.GL1721383@nvidia.com>
-From:   Gal Pressman <galpress@amazon.com>
-Message-ID: <d1b2dc01-5a42-371e-c4b6-2f9b3425f5b6@amazon.com>
-Date:   Thu, 2 Sep 2021 10:03:16 +0300
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
- Gecko/20100101 Thunderbird/78.13.0
+        id S233498AbhIBIPt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Sep 2021 04:15:49 -0400
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:29095 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S233427AbhIBIPt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Sep 2021 04:15:49 -0400
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A62DoYarZedc+oZNtcGmHgr8aV5rDeYIsimQD?=
+ =?us-ascii?q?101hICG8cqSj+fxG+85rsSMc6QxhP03I9urhBEDtex/hHP1OkOws1NWZLWrbUQ?=
+ =?us-ascii?q?KTRekIh+bfKlbbehEWmNQz6U4ZSdkdNDTvNykAse/KpBm/D807wMSKtIShheLl?=
+ =?us-ascii?q?xX9rSg1wApsQljtRO0KKFFFsXglaCd4cHJqY3MBOoD2tYjA5dcK+b0N1J9Trlp?=
+ =?us-ascii?q?nako78ex4aC1oC4AmKtzmh77n3CFy5834lIlVy/Ys=3D?=
+X-IronPort-AV: E=Sophos;i="5.84,371,1620662400"; 
+   d="scan'208";a="113894782"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 02 Sep 2021 16:14:50 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+        by cn.fujitsu.com (Postfix) with ESMTP id 492C04D0D9DC;
+        Thu,  2 Sep 2021 16:14:48 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 2 Sep 2021 16:14:42 +0800
+Received: from Fedora-31.g08.fujitsu.local (10.167.220.99) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Thu, 2 Sep 2021 16:14:41 +0800
+From:   Xiao Yang <yangx.jy@fujitsu.com>
+To:     <linux-rdma@vger.kernel.org>
+CC:     <rpearsonhpe@gmail.com>, <zyjzyj2000@gmail.com>, <jgg@nvidia.com>,
+        <leon@kernel.org>, Xiao Yang <yangx.jy@fujitsu.com>
+Subject: [PATCH v2 0/5] RDMA/rxe: Do some cleanup
+Date:   Thu, 2 Sep 2021 16:46:35 +0800
+Message-ID: <20210902084640.679744-1-yangx.jy@fujitsu.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <20210901153659.GL1721383@nvidia.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.43.161.176]
-X-ClientProxiedBy: EX13D17UWB002.ant.amazon.com (10.43.161.141) To
- EX13D19EUB003.ant.amazon.com (10.43.166.69)
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-yoursite-MailScanner-ID: 492C04D0D9DC.A9990
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 01/09/2021 18:36, Jason Gunthorpe wrote:
-> On Wed, Sep 01, 2021 at 05:24:43PM +0300, Gal Pressman wrote:
->> On 01/09/2021 14:57, Jason Gunthorpe wrote:
->>> On Wed, Sep 01, 2021 at 02:50:42PM +0300, Gal Pressman wrote:
->>>> On 20/08/2021 21:27, Jason Gunthorpe wrote:
->>>>> On Wed, Aug 11, 2021 at 06:11:31PM +0300, Gal Pressman wrote:
->>>>>> diff --git a/drivers/infiniband/hw/efa/efa_main.c b/drivers/infiniband/hw/efa/efa_main.c
->>>>>> index 417dea5f90cf..29db4dec02f0 100644
->>>>>> +++ b/drivers/infiniband/hw/efa/efa_main.c
->>>>>> @@ -67,6 +67,46 @@ static void efa_release_bars(struct efa_dev *dev, int bars_mask)
->>>>>>  	pci_release_selected_regions(pdev, release_bars);
->>>>>>  }
->>>>>>  
->>>>>> +static void efa_process_comp_eqe(struct efa_dev *dev, struct efa_admin_eqe *eqe)
->>>>>> +{
->>>>>> +	u16 cqn = eqe->u.comp_event.cqn;
->>>>>> +	struct efa_cq *cq;
->>>>>> +
->>>>>> +	cq = xa_load(&dev->cqs_xa, cqn);
->>>>>> +	if (unlikely(!cq)) {
->>>>>
->>>>> This seems unlikely to be correct, what prevents cq from being
->>>>> destroyed concurrently?
->>>>>
->>>>> A comp_handler cannot be running after cq destroy completes.
->>>>
->>>> Sorry for the long turnaround, was OOO.
->>>>
->>>> The CQ cannot be destroyed until all completion events are acked.
->>>> https://github.com/linux-rdma/rdma-core/blob/7fd01f0c6799f0ecb99cae03c22cf7ff61ffbf5a/libibverbs/man/ibv_get_cq_event.3#L45
->>>> https://github.com/linux-rdma/rdma-core/blob/7fd01f0c6799f0ecb99cae03c22cf7ff61ffbf5a/libibverbs/cmd_cq.c#L208
->>>
->>> That is something quite different, and in userspace.
->>>
->>> What in the kernel prevents tha xa_load and the xa_erase from racing together?
->>
->> Good point.
->> I think we need to surround efa_process_comp_eqe() with an rcu_read_lock() and
->> have a synchronize_rcu() after removing it from the xarray in
->> destroy_cq.
-> 
-> Try to avoid synchronize_rcu()
+V1->V2:
+Add two patches.
 
-I don't see how that's possible?
+Xiao Yang (5):
+  RDMA/rxe: Remove unnecessary check for qp->is_user/cq->is_user
+  RDMA/rxe: Remove the common is_user member of struct rxe_qp
+  RDMA/rxe: Change the is_user member of struct rxe_cq to bool
+  RDMA/rxe: Set partial attributes when completion status !=
+    IBV_WC_SUCCESS
+  RDMA/rxe: Remove duplicate settings
 
->> Though I'd like to avoid copy-pasting xa_load() in order to use the
->> advanced xas_load() function.
-> 
-> Why would you need that? Just call xa_load() while holding the
-> rcu_read_lock() if that is what you want. Can you put the whole
-> function under the rcu_read_lock()?
+ drivers/infiniband/sw/rxe/rxe_comp.c  | 51 +++++++++++++++------------
+ drivers/infiniband/sw/rxe/rxe_cq.c    |  3 +-
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  5 +--
+ drivers/infiniband/sw/rxe/rxe_req.c   |  4 +--
+ drivers/infiniband/sw/rxe/rxe_resp.c  | 14 +++-----
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 42 ++++++----------------
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  3 +-
+ 7 files changed, 50 insertions(+), 72 deletions(-)
 
-Sure, I wasn't sure if it's OK to nest rcu_read_lock() calls.
+-- 
+2.23.0
 
->> Do you have any better ideas?
-> 
-> Other common alternative is to use the xa_lock(), but that doesn't
-> seem suitable for an EQ
 
-Right, I think I'll go with the rcu approach.
+
