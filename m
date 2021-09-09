@@ -2,141 +2,103 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60F58C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 20:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D8ECC4332F
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 20:46:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C1946113E
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 20:46:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAFD76054F
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 20:46:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245624AbhIIUrb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Sep 2021 16:47:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46688 "EHLO
+        id S232891AbhIIUrg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Sep 2021 16:47:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232891AbhIIUra (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Sep 2021 16:47:30 -0400
+        with ESMTP id S1345513AbhIIUrf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Sep 2021 16:47:35 -0400
 Received: from mail-oo1-xc31.google.com (mail-oo1-xc31.google.com [IPv6:2607:f8b0:4864:20::c31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5BACC061574
-        for <linux-rdma@vger.kernel.org>; Thu,  9 Sep 2021 13:46:20 -0700 (PDT)
-Received: by mail-oo1-xc31.google.com with SMTP id j11-20020a4a92cb000000b002902ae8cb10so984095ooh.7
-        for <linux-rdma@vger.kernel.org>; Thu, 09 Sep 2021 13:46:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A4D1C061575
+        for <linux-rdma@vger.kernel.org>; Thu,  9 Sep 2021 13:46:22 -0700 (PDT)
+Received: by mail-oo1-xc31.google.com with SMTP id t2-20020a4ae9a2000000b0028c7144f106so988267ood.6
+        for <linux-rdma@vger.kernel.org>; Thu, 09 Sep 2021 13:46:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=c7tQeun2L4MGCukgq/vyhQSgRQZg82+y9KRqFYHtvTM=;
-        b=ICLeWnuIVbSqUcbnTOKyGjRts9o89qr7o1WABFkVA8M9WGKx4xn0EmYTm0jvM4ZnHv
-         /3abAR+oCSTfVBFDBMtxwn5uzDouWmQr5kr4LtGUgGZIQqVzY5a2A4JFsaXCvEnMG1Wf
-         Lhn5NDMpS2P3JEoeRTvtjmKgVZcFt6UEOFLcBsQ0uuw3BM5zXBbTaHQJd3MHm4IEwy39
-         EN+7ut7ez4f7bu7iXdWvuWwYWBdiTQoNcTDGc9rJSzu6dCTRYA2FBlhXvldvwyEz49+9
-         Ebi1isbuptG099vhucKidnLXq2osClrw/Aft7zlxoSOVCroUIWNMM/u5d4/4YSxOezz3
-         p7dQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=K8QclyT6YwReg2Sbj3mCsph2JF/Ghr33vsgZB5KMcDU=;
+        b=pvuKbZFzgjlAFn3C4uyXGsounND1LuyCDATrC8r0EdNEw5lESfKgzdKomfRs2S8E+l
+         po8uTZoHbHY1DPUVAJ1lOu8lJ8OWTx7i4lBMzX1gjlXKq9gcn9jRQEPqUwk0VeTOzNPI
+         YmaQuX64zVdBwmkkEkw1gBLeU8rTF3SNZioycdMRIhfAB0Xo2mjG3ppfeTIlK5UDKhZV
+         NnYDF6bO9CeJWH3kDX2aZYDI3nEhjyE1vo+HFZBneVquqE2MtYUuTYA3mrYZ94Zg6shu
+         xZt0JoyTDqj8J2B23sT21HaZYoI12PqbPlzMwQxd2XfNxUrtokKQ0ngf1LCarehNna3j
+         u85A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=c7tQeun2L4MGCukgq/vyhQSgRQZg82+y9KRqFYHtvTM=;
-        b=BFlvP8rgK2CIqWrSRhBkQiNQfU+vPE4SmVYfX6uyb5VrwqrDfGFNg7C4Ep6MrS2CUG
-         VmN1bwjCJQBXT9evwndL/5jJVVtxYPNnauQVJvSKya7UBl4W4iTsUym24u6w6DOJWwaa
-         uZPpQPqa9p2NFahaHz7BZ+NvTFkGqBxysG8KHIc6h6CKBXEtkoJ+5OWq2m77rjUgj2aX
-         tfF65pDuU52lGDZAdNVmURmsMzmRrHwSmhZMefPB4uT5THSECCKKY/jdHkIyoiaqc3sL
-         ZVxxhHU889opWPY5xe0GSuIPNUWTigxRMeUZcEj1HkyEa31xyMB/xschcT4fh6fGdDnV
-         8tlQ==
-X-Gm-Message-State: AOAM530BxAPmf9ac0RnhHl1K9QB7QyOQzpkDPtSvabGBdXM9yxRggefC
-        kbjW7B66ySZ8j2VweCEJaYw=
-X-Google-Smtp-Source: ABdhPJxp2wnASVbA69v+SFQNrmsZJksN/NgWlhFSOv7qqTXkNIJ2yK2eGR3LuLZku97bTu1teLuksA==
-X-Received: by 2002:a05:6820:16a8:: with SMTP id bc40mr1452440oob.63.1631220380102;
-        Thu, 09 Sep 2021 13:46:20 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=K8QclyT6YwReg2Sbj3mCsph2JF/Ghr33vsgZB5KMcDU=;
+        b=blkeSDgvOhv6fUqeQDYTUF3qO+v4meCEjnRX2N4Z4v7TpBRrCRGng0aDHhMgJljNLq
+         yISfU7SuUPMnKC761uPTD7x/4+QH1nz06hj5Tazy0DVGKzGynpA6mb5aq1dMRpInP73X
+         /MtULnI369H9hDF8UhzbAdzlwxDglgmqA4kUdiaRY/L19xpIqcujUyBvBjyWqG+tyQvq
+         rUjjqA0jETl/lgniaxL6cr4dMjFn3JZHxV2YBlrKua4+s8kJggNtYQ878EemrJtfMaoO
+         rR3Mx0S8gukWDSZzHpWpM7IwV4Cn2rnkMMZ4jx+Rv17w666iifSe98Toqsffpx9YDmFC
+         rmUA==
+X-Gm-Message-State: AOAM532TfQj0t4aHfBTB7DTVU4kxab9i5ncuKD0F118MERyT6gzH+Vma
+        u4YiptI/tuuTjcvpU9NkSUk=
+X-Google-Smtp-Source: ABdhPJxb4jAqL+jebywRgzelC52pjxfMIJRBgnch83MjxmrgwByHbm6boKyOAJJ8zxiu+pmEMrWIvw==
+X-Received: by 2002:a4a:db86:: with SMTP id s6mr1515247oou.58.1631220381979;
+        Thu, 09 Sep 2021 13:46:21 -0700 (PDT)
 Received: from ubunto-21.tx.rr.com (2603-8081-140c-1a00-a0a5-b98f-837d-887f.res6.spectrum.com. [2603:8081:140c:1a00:a0a5:b98f:837d:887f])
-        by smtp.gmail.com with ESMTPSA id i9sm719892otp.18.2021.09.09.13.46.19
+        by smtp.gmail.com with ESMTPSA id i9sm719892otp.18.2021.09.09.13.46.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Sep 2021 13:46:19 -0700 (PDT)
+        Thu, 09 Sep 2021 13:46:21 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
         mie@igel.co.jp, bvanassche@acm.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-rc v3 0/6] RDMA/rxe: Various bug fixes.
-Date:   Thu,  9 Sep 2021 15:44:51 -0500
-Message-Id: <20210909204456.7476-1-rpearsonhpe@gmail.com>
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH for-rc v3 2/6] RDMA/rxe: Fix memory allocation while locked
+Date:   Thu,  9 Sep 2021 15:44:53 -0500
+Message-Id: <20210909204456.7476-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210909204456.7476-1-rpearsonhpe@gmail.com>
+References: <20210909204456.7476-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series of patches implements several bug fixes and minor
-cleanups of the rxe driver. Specifically these fix a bug exposed
-by blktest.
+rxe_mcast_add_grp_elem() in rxe_mcast.c calls rxe_alloc() while holding
+spinlocks which in turn calls kzalloc(size, GFP_KERNEL) which is
+incorrect.  This patch replaces rxe_alloc() by rxe_alloc_locked() which
+uses GFP_ATOMIC. This bug was caused by the below mentioned commit and
+failing to handle the need for the atomic allocate.
 
-They apply cleanly to both
-commit 2169b908894df2ce83e7eb4a399d3224b2635126 (origin/for-rc, for-rc)
-commit 6a217437f9f5482a3f6f2dc5fcd27cf0f62409ac (HEAD -> for-next,
-	origin/wip/jgg-for-next, origin/for-next, origin/HEAD)
+Fixes: 4276fd0dddc9 ("Remove RXE_POOL_ATOMIC")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-These are being resubmitted to for-rc instead of for-next.
-
-The v2 version had a typo which broke clean application to for-next.
-Additionally in v3 the order of the patches was changed to make
-it a little cleaner.
-
-The first patch is a repeat of an earlier patch after rebasing.
-It adds memory barriers to kernel to kernel queues. The logic for this
-is the same as an earlier patch that only treated user to kernel queues.
-Without this patch kernel to kernel queues are expected to intermittently
-fail at low frequency as was seen for the other queues.
-
-The second patch is also a repeat after rebasing. It fixes a multicast
-bug.
-
-The third patch cleans up the state and type enums used by MRs.
-
-The fourth patch separates the keys in rxe_mr and ib_mr. This allows
-the following sequence seen in the srp driver to work correctly.
-
-	do {
-		ib_post_send( IB_WR_LOCAL_INV )
-		ib_update_fast_reg_key()
-		ib_map_mr_sg()
-		ib_post_send( IB_WR_REG_MR )
-	} while ( !done )
-
-The fifth patch creates duplicate mapping tables for fast MRs. This
-prevents rkeys referencing fast MRs from accessing data from an updated
-map after the call to ib_map_mr_sg() call by keeping the new and old
-mappings separate and atomically swapping them when a reg mr WR is
-executed.
-
-The sixth patch checks the type of MRs which receive local or remote
-invalidate operations to prevent invalidating user MRs.
-
-Bob Pearson (6):
-  RDMA/rxe: Add memory barriers to kernel queues
-  RDMA/rxe: Fix memory allocation while locked
-  RDMA/rxe: Cleanup MR status and type enums
-  RDMA/rxe: Separate HW and SW l/rkeys
-  RDMA/rxe: Create duplicate mapping tables for FMRs
-  RDMA/rxe: Only allow invalidate for appropriate MRs
-
- drivers/infiniband/sw/rxe/rxe_comp.c  |  10 +-
- drivers/infiniband/sw/rxe/rxe_cq.c    |  25 +--
- drivers/infiniband/sw/rxe/rxe_loc.h   |   2 +
- drivers/infiniband/sw/rxe/rxe_mcast.c |   2 +-
- drivers/infiniband/sw/rxe/rxe_mr.c    | 267 +++++++++++++++++++-------
- drivers/infiniband/sw/rxe/rxe_mw.c    |  36 ++--
- drivers/infiniband/sw/rxe/rxe_qp.c    |  10 +-
- drivers/infiniband/sw/rxe/rxe_queue.h |  73 ++-----
- drivers/infiniband/sw/rxe/rxe_req.c   |  35 +---
- drivers/infiniband/sw/rxe/rxe_resp.c  |  38 +---
- drivers/infiniband/sw/rxe/rxe_srq.c   |   2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c |  92 +++------
- drivers/infiniband/sw/rxe/rxe_verbs.h |  48 ++---
- 13 files changed, 305 insertions(+), 335 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+index 0ea9a5aa4ec0..1c1d1b53312d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mcast.c
++++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+@@ -85,7 +85,7 @@ int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 		goto out;
+ 	}
+ 
+-	elem = rxe_alloc(&rxe->mc_elem_pool);
++	elem = rxe_alloc_locked(&rxe->mc_elem_pool);
+ 	if (!elem) {
+ 		err = -ENOMEM;
+ 		goto out;
 -- 
 2.30.2
 
