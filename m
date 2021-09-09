@@ -5,44 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6676FC433F5
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 11:54:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CDCCC4332F
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 12:06:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52B5061B7C
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 11:54:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3601A60FE3
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 12:06:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241446AbhIILyK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Sep 2021 07:54:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54736 "EHLO mail.kernel.org"
+        id S242024AbhIIMIE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Sep 2021 08:08:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240211AbhIILwJ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 9 Sep 2021 07:52:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFC5D6135D;
-        Thu,  9 Sep 2021 11:44:16 +0000 (UTC)
+        id S242042AbhIIMA1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 9 Sep 2021 08:00:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 001CE6139D;
+        Thu,  9 Sep 2021 11:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631187857;
-        bh=sYydYxRyDsnWxhv0ACQkOPeeGjMFpExS/qG7QDvFyBU=;
+        s=k20201202; t=1631187975;
+        bh=20N7xoLr4PRRg/0ghZb/xVzS0Tot4rz49UzpNxcUcFM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Ap9PZr4V66Bsa3yqBKUUwQixqUBhBR2yt+Vx3+4BUwm9K8phxW5cgvTtG6zBfILpq
-         j//h5NTgBU102DkSE6fLxsoinEmsnSfYEqTkrPsumIQp0EjVsVawoIsflU2QVQXGUI
-         1AL9Mk6PYh9jaZqUv5XKT47uN346rMGNesri+sWokVEoegJst2lm9RQ/11e5T9k1e3
-         nnI0Tv9S8t0wL5QReUgsXohGvMdmiQh9YpIQzEF+ljs3ScFN7dheiGkXlmSBQMXVsh
-         Uhlo4fqzmPi9oNuo1DLx5ChW94D8/KEsybxEkkmoFxRpAaN4nEtUdMEztL+qRsgP58
-         wcffXeAyPngDw==
+        b=SkDm0y1R27GgzYhDVI73PagX4SE2HY7ONgOsDVqucw3MEMcdVf5nf8F7uuLlbYl3r
+         WQ7P5cYvbSNF+YgQ1FjfVCEwVjmwVqAt0mtpDhHLdLpi2c5mG5/LWCuuuvpDi7FsvT
+         fGu/2qdL0Rz2yirfcDnQ6f2wk0uRSI5Mg3vvXKrp7si4zjthVGLIl4rp8Bey0azBKw
+         3id3Vq0PnsZz1mPvjox52PsTSiLdeWl3j9nPNjdMFMXnUP+RZeeE200RjVslNYPD4+
+         aBnzNrWp36bfEzX7n1ZfmatfeGWdZph3JXyaRiPOgITBVBplN75dK9nLxYArgd6qSx
+         9feSEHJxubdsg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Eran Ben Elisha <eranbe@nvidia.com>,
-        kernel test robot <lkp@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Moshe Shemesh <moshe@nvidia.com>,
+Cc:     Yevgeny Kliteynik <kliteyn@nvidia.com>,
+        Alex Vesker <valex@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.14 146/252] net/mlx5: Fix variable type to match 64bit
-Date:   Thu,  9 Sep 2021 07:39:20 -0400
-Message-Id: <20210909114106.141462-146-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.14 238/252] net/mlx5: DR, Enable QP retransmission
+Date:   Thu,  9 Sep 2021 07:40:52 -0400
+Message-Id: <20210909114106.141462-238-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210909114106.141462-1-sashal@kernel.org>
 References: <20210909114106.141462-1-sashal@kernel.org>
@@ -54,65 +52,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Eran Ben Elisha <eranbe@nvidia.com>
+From: Yevgeny Kliteynik <kliteyn@nvidia.com>
 
-[ Upstream commit 979aa51967add26b37f9d77e01729d44a2da8e5f ]
+[ Upstream commit ec449ed8230cd30769de3cb70ee0fce293047372 ]
 
-Fix the following smatch warning:
-wait_func_handle_exec_timeout() warn: should '1 << ent->idx' be a 64 bit type?
+Under high stress, SW steering might get stuck on polling for completion
+that never comes.
+For such cases QP needs to have protocol retransmission mechanism enabled.
+Currently the retransmission timeout is defined as 0 (unlimited). Fix this
+by defining a real timeout.
 
-Use 1ULL, to have a 64 bit type variable.
-
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Eran Ben Elisha <eranbe@nvidia.com>
-Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
+Reviewed-by: Alex Vesker <valex@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 9d79c5ec31e9..db5dfff585c9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -877,7 +877,7 @@ static void cb_timeout_handler(struct work_struct *work)
- 	ent->ret = -ETIMEDOUT;
- 	mlx5_core_warn(dev, "cmd[%d]: %s(0x%x) Async, timeout. Will cause a leak of a command resource\n",
- 		       ent->idx, mlx5_command_str(msg_to_opcode(ent->in)), msg_to_opcode(ent->in));
--	mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+	mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+index 9df0e73d1c35..69b49deb66b2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
+@@ -620,6 +620,7 @@ static int dr_cmd_modify_qp_rtr2rts(struct mlx5_core_dev *mdev,
  
- out:
- 	cmd_ent_put(ent); /* for the cmd_ent_get() took on schedule delayed work */
-@@ -994,7 +994,7 @@ static void cmd_work_handler(struct work_struct *work)
- 		MLX5_SET(mbox_out, ent->out, status, status);
- 		MLX5_SET(mbox_out, ent->out, syndrome, drv_synd);
+ 	MLX5_SET(qpc, qpc, retry_count, attr->retry_cnt);
+ 	MLX5_SET(qpc, qpc, rnr_retry, attr->rnr_retry);
++	MLX5_SET(qpc, qpc, primary_address_path.ack_timeout, 0x8); /* ~1ms */
  
--		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+		mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
- 		return;
- 	}
- 
-@@ -1008,7 +1008,7 @@ static void cmd_work_handler(struct work_struct *work)
- 		poll_timeout(ent);
- 		/* make sure we read the descriptor after ownership is SW */
- 		rmb();
--		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, (ent->ret == -ETIMEDOUT));
-+		mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, (ent->ret == -ETIMEDOUT));
- 	}
- }
- 
-@@ -1068,7 +1068,7 @@ static void wait_func_handle_exec_timeout(struct mlx5_core_dev *dev,
- 		       mlx5_command_str(msg_to_opcode(ent->in)), msg_to_opcode(ent->in));
- 
- 	ent->ret = -ETIMEDOUT;
--	mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+	mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
- }
- 
- static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
+ 	MLX5_SET(rtr2rts_qp_in, in, opcode, MLX5_CMD_OP_RTR2RTS_QP);
+ 	MLX5_SET(rtr2rts_qp_in, in, qpn, dr_qp->qpn);
 -- 
 2.30.2
 
