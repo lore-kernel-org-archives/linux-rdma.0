@@ -2,117 +2,64 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D638AC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 13:44:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CF59C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 18:54:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B86746120D
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 13:44:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65D6D610FF
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Sep 2021 18:54:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239765AbhIINoM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Sep 2021 09:44:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40990 "EHLO mail.kernel.org"
+        id S237417AbhIIS4B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Sep 2021 14:56:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352861AbhIIMrH (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 9 Sep 2021 08:47:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 614726321C;
-        Thu,  9 Sep 2021 11:56:24 +0000 (UTC)
+        id S232029AbhIIS4A (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 9 Sep 2021 14:56:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPS id BEB396113A;
+        Thu,  9 Sep 2021 18:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631188585;
-        bh=TAK3zWuiiK3K2bVBG95XemzgVJ/xddGw6AnGraNwrmY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=H4WNLtg7tZUtQQ594pjH/PYO/6V4zgpF43+GGC5f87Zi4zolyCAz4O+thRZ+EIvAk
-         GMA7arSievm2pzlbRxBNkgF9wqXJMNfNtmCHnNS7WcUDeZK5Z5l+Q9lZ0s9m112nnP
-         CILMupcucqOiyLY2bn+ktwvzgxKQ3vai6PCpHzIgLfX3MXv93WKHlQQaC9dozE64Lc
-         xZ6BwQGSwKa3I8xI1WoM6dER/VSc6neIoHbUEYLOHOQA7x7OgCnQAZHAaB+VgP5/Mw
-         19Vx6AmP6e8wDlsRksqkiQhJtErSomeyd1iSKqxOQzj9LYU9EiaoIYnvlfV7Yu7bMP
-         wmzuVTvqvspew==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Eran Ben Elisha <eranbe@nvidia.com>,
-        kernel test robot <lkp@intel.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Moshe Shemesh <moshe@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 061/109] net/mlx5: Fix variable type to match 64bit
-Date:   Thu,  9 Sep 2021 07:54:18 -0400
-Message-Id: <20210909115507.147917-61-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210909115507.147917-1-sashal@kernel.org>
-References: <20210909115507.147917-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+        s=k20201202; t=1631213690;
+        bh=IiV6BnLJaJ+FV+6kSSF2RYEdIVVXISpDEMd1BcgdO/w=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=P8Z2RrHD+zbbdbqQN49muFSRPzfo1soud/Dk84C1YDTkPPmDvVMsYk8dkrkUtyrs4
+         sCFQ4pAsbofxpA0n+at27a8C9Vj/s4YMtX+p/qadHN7pWcPihpoYn7qO8ZhE9krTnO
+         1B8g3jifb0Bhk+48+dhHsfj/8o2AN/zZmdkP6JMORP+++Cdo0aLh6ftdS7zQYftkjA
+         2KKaJsATsjzrdU/z1XUAhvEOR73SM0ka8rRKDT5ZyEVi2rObUVKQNB7AKLP4tZaqmp
+         Q82jEirpoXZo6h77Bd1nXgT/CsHeuL2Lzq13qlWxhsuCL01nYOWQHEoyMSJLcJ68tP
+         jyEUhZF+4nhEA==
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20210908234032.GA3545321@nvidia.com>
+References: <20210908234032.GA3545321@nvidia.com>
+X-PR-Tracked-List-Id: <linux-rdma.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20210908234032.GA3545321@nvidia.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+X-PR-Tracked-Commit-Id: 2169b908894df2ce83e7eb4a399d3224b2635126
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 4b105f4a256ae629522a7ed1611aba28fd282bd5
+Message-Id: <163121369064.14164.18212912952254007610.pr-tracker-bot@kernel.org>
+Date:   Thu, 09 Sep 2021 18:54:50 +0000
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Eran Ben Elisha <eranbe@nvidia.com>
+The pull request you sent on Wed, 8 Sep 2021 20:40:32 -0300:
 
-[ Upstream commit 979aa51967add26b37f9d77e01729d44a2da8e5f ]
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-Fix the following smatch warning:
-wait_func_handle_exec_timeout() warn: should '1 << ent->idx' be a 64 bit type?
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/4b105f4a256ae629522a7ed1611aba28fd282bd5
 
-Use 1ULL, to have a 64 bit type variable.
+Thank you!
 
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Eran Ben Elisha <eranbe@nvidia.com>
-Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 76547d35cd0e..bf091a6c0cd2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -865,7 +865,7 @@ static void cb_timeout_handler(struct work_struct *work)
- 	ent->ret = -ETIMEDOUT;
- 	mlx5_core_warn(dev, "cmd[%d]: %s(0x%x) Async, timeout. Will cause a leak of a command resource\n",
- 		       ent->idx, mlx5_command_str(msg_to_opcode(ent->in)), msg_to_opcode(ent->in));
--	mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+	mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
- 
- out:
- 	cmd_ent_put(ent); /* for the cmd_ent_get() took on schedule delayed work */
-@@ -977,7 +977,7 @@ static void cmd_work_handler(struct work_struct *work)
- 		MLX5_SET(mbox_out, ent->out, status, status);
- 		MLX5_SET(mbox_out, ent->out, syndrome, drv_synd);
- 
--		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+		mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
- 		return;
- 	}
- 
-@@ -991,7 +991,7 @@ static void cmd_work_handler(struct work_struct *work)
- 		poll_timeout(ent);
- 		/* make sure we read the descriptor after ownership is SW */
- 		rmb();
--		mlx5_cmd_comp_handler(dev, 1UL << ent->idx, (ent->ret == -ETIMEDOUT));
-+		mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, (ent->ret == -ETIMEDOUT));
- 	}
- }
- 
-@@ -1051,7 +1051,7 @@ static void wait_func_handle_exec_timeout(struct mlx5_core_dev *dev,
- 		       mlx5_command_str(msg_to_opcode(ent->in)), msg_to_opcode(ent->in));
- 
- 	ent->ret = -ETIMEDOUT;
--	mlx5_cmd_comp_handler(dev, 1UL << ent->idx, true);
-+	mlx5_cmd_comp_handler(dev, 1ULL << ent->idx, true);
- }
- 
- static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
 -- 
-2.30.2
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
