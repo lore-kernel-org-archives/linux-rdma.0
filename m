@@ -4,44 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71392C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D16B8C4167B
 	for <linux-rdma@archiver.kernel.org>; Fri, 10 Sep 2021 00:45:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A5A461206
+	by mail.kernel.org (Postfix) with ESMTP id BB2B861108
 	for <linux-rdma@archiver.kernel.org>; Fri, 10 Sep 2021 00:45:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242203AbhIJAq3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Sep 2021 20:46:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47018 "EHLO mail.kernel.org"
+        id S242234AbhIJAqa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Sep 2021 20:46:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231688AbhIJAVD (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 9 Sep 2021 20:21:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2BEF7610A3;
-        Fri, 10 Sep 2021 00:19:53 +0000 (UTC)
+        id S234515AbhIJAXb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 9 Sep 2021 20:23:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 337B360FDA;
+        Fri, 10 Sep 2021 00:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631233193;
-        bh=7jlOgkdKVe7hA6Z6ANWR/t8EF2ywyinc3JPE2mS7ib0=;
+        s=k20201202; t=1631233341;
+        bh=CwhQ68CEcb5Xp6duDNuoiPXaTXRQUvHQERNLQ17GpNE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VNwZ4MggTtTSQNUeBeotd1bux4/IyCNO6FqYUliL2YcOFnH0I2OvD3Zm2C4Ap6H+J
-         zzortN8NwJDUF7nUjmZdiFQlyTULFszlakz3fv+uA4Xfk+wytc9QIHQhzMZbV9HihR
-         iX+nJDqBIidfk/gR2L+LO3+eN9RGXp5fFMyhFcYWOup+5jXLNldOzztrxlZ0ptV05/
-         04X5xF2MhH9qqVmrn94SkQkwL2qvDKYh3ENIVer6y7kFhgammxnN/aPXqmkjsM7hib
-         LwKTH5wjlSS9w0LhFzE0bc4bOlTKwBnygygr2kRXkJy2Mj8O9XLM2Zc05gkFPZq9cU
-         jD/afFUzcuc6Q==
+        b=bOuk0d3hIupZMuQERms1qhw0qx+I2UqxMHmbGd7ElXL9Amaigkswr6qnPZfUuxfah
+         T5XBQWDzwUVnyLYCXTTXdaZjB47t7NhETPa5wAIgOCNh1JyYLtDsswqh4NW6V351E0
+         LI17YkkBcx1q7uQb7rcvAR6cxrco32KRbmzyYo6Fkkg3IIFZu4s4RIRc3SOuWJ+uKP
+         HhvHi0bRi5FOFv3gdOPh3UlcrkmdTxSEGkLY5oZnPBsiOW78Kwn5v16gPpkqcNl44q
+         xM8O53d+U/5Y9nu/GJAlS/5ll6aBkNfTisArbcpFlYq/XOFKAAATigShm6v7AIBLRy
+         63Gj+50cOlXTA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.13 66/88] RDMA/core/sa_query: Retry SA queries
-Date:   Thu,  9 Sep 2021 20:17:58 -0400
-Message-Id: <20210910001820.174272-66-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 29/37] RDMA/core/sa_query: Retry SA queries
+Date:   Thu,  9 Sep 2021 20:21:34 -0400
+Message-Id: <20210910002143.175731-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210910001820.174272-1-sashal@kernel.org>
-References: <20210910001820.174272-1-sashal@kernel.org>
+In-Reply-To: <20210910002143.175731-1-sashal@kernel.org>
+References: <20210910002143.175731-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
@@ -92,10 +92,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 5d3b8b8d163d..c40791baced5 100644
+index ec9e9598894f..261d284e5ff3 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -3132,6 +3132,9 @@ int rdma_resolve_route(struct rdma_cm_id *id, unsigned long timeout_ms)
+@@ -2937,6 +2937,9 @@ int rdma_resolve_route(struct rdma_cm_id *id, unsigned long timeout_ms)
  	struct rdma_id_private *id_priv;
  	int ret;
  
@@ -106,7 +106,7 @@ index 5d3b8b8d163d..c40791baced5 100644
  	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED, RDMA_CM_ROUTE_QUERY))
  		return -EINVAL;
 diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 8f1705c403b4..753d66158146 100644
+index d2d70c89193f..8c0ff50cbcfc 100644
 --- a/drivers/infiniband/core/sa_query.c
 +++ b/drivers/infiniband/core/sa_query.c
 @@ -1360,6 +1360,7 @@ static int send_mad(struct ib_sa_query *query, unsigned long timeout_ms,
