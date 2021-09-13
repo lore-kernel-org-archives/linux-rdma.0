@@ -7,62 +7,80 @@ X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CC5C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Sep 2021 10:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F571C433F5
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Sep 2021 11:11:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC0CF61056
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Sep 2021 10:57:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1559A61029
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Sep 2021 11:11:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238710AbhIMK6c (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Sep 2021 06:58:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53264 "EHLO mail.kernel.org"
+        id S239238AbhIMLMS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Sep 2021 07:12:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234958AbhIMK6b (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Sep 2021 06:58:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B689B61004;
-        Mon, 13 Sep 2021 10:57:15 +0000 (UTC)
+        id S239218AbhIMLMS (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Sep 2021 07:12:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 27B3860FE6;
+        Mon, 13 Sep 2021 11:11:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631530636;
-        bh=otu7enRDsNjQxipwMsrwmLGKcC2VXEBR1nqPoix2y+w=;
+        s=k20201202; t=1631531462;
+        bh=imV1HdFIM3pWMGHcbCzgqQqzQy79AxR5aFL/ExL4tEQ=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=RnkW5v0UWFzC18CyUSlIGeAvjnwhLd9xFcmf30dfmUWkmSafQuaOwCtyohaWLF8lJ
-         J5Ar5S024yqqyV+H7kGw6WUft5lVbHYoFCXeJKQKZIMlPKG+4Kj4tISLO0ht+KH5Sf
-         vnofElZxnYt3P9Ef1wHaAh95owibfj4brKrZ8NFITjZLW9cOPyvSsu+x6dpsuyM0Ak
-         5u8oa07sJSTmgyKzTpM0jpxylJujZTA5q2zaJOTHOXMJDSBXMHUPGdfuu/1Yzu2u6P
-         /Om6rX+4P8Dh2oZTfyfbyqG1hNFnMAMJHIw0l5rdrCp4Ikp2rAWjRcycV/DOLc/mSu
-         BFTqkv5eTQzFA==
-Date:   Mon, 13 Sep 2021 13:57:12 +0300
+        b=p/KGibOz3nPy6r4cvtm2PXB7OLjYg8CN2IE40G2XaeZfknjt8cY0STBPghvSjyvsw
+         mkWujswNCdI0hyw7SxjXPiiEf1h3UiHOV0BbZIbXUXhZoLOIon53xtVD+E7arjJRc1
+         lBb4hMOZ3lrFZQdXWRtFcvH9x6KukBZpdswJB/KNc+e3m1AlA6tVNmaDHjjA3nFhZ+
+         F0LOTGzwVrDeyye/dKHOcjmBObXrNmhxOJjWxhvpTR4hsNxlpkW/1OVrMIJp6RaMiU
+         14LQarEIZvKsU9vDSf7C1LqM/bP2+PYc63JknQUMTfgDDWVzSxVX3VM+520F9FrHTN
+         Jvm1n0fNkEFfQ==
+Date:   Mon, 13 Sep 2021 14:10:58 +0300
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Selvin Xavier <selvin.xavier@broadcom.com>
 Cc:     dledford@redhat.com, jgg@nvidia.com, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH for-next 08/12] RDMA/bnxt_re: Fix FRMR issue with single
- page MR allocation
-Message-ID: <YT8uiBFv+2BZgtcO@unreal>
+Subject: Re: [PATCH for-next 09/12] RDMA/bnxt_re: Use GFP_KERNEL in non
+ atomic context
+Message-ID: <YT8xwteMlzaUuEkb@unreal>
 References: <1631470526-22228-1-git-send-email-selvin.xavier@broadcom.com>
- <1631470526-22228-9-git-send-email-selvin.xavier@broadcom.com>
+ <1631470526-22228-10-git-send-email-selvin.xavier@broadcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1631470526-22228-9-git-send-email-selvin.xavier@broadcom.com>
+In-Reply-To: <1631470526-22228-10-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Sep 12, 2021 at 11:15:22AM -0700, Selvin Xavier wrote:
-> When the FRMR is allocated with single page, driver is
-> attempting to create a level 0 HWQ and not allocating any page
-> because the nopte field is set. This causes the crash during post_send
-> as the pbl is not populated.
-> 
-> To avoid this crash, check for the nopte bit during HWQ
-> creation with single page and create a level 1 page table
-> and populate the pbl address correctly.
+On Sun, Sep 12, 2021 at 11:15:23AM -0700, Selvin Xavier wrote:
+> Use GFP_KERNEL instead of GFP_ATOMIC while allocating
+> control path structures which will be only called from
+> non atomic context
 > 
 > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > ---
->  drivers/infiniband/hw/bnxt_re/qplib_res.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> index 947e8c5..3de8547 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> @@ -848,13 +848,13 @@ struct bnxt_qplib_rcfw_sbuf *bnxt_qplib_rcfw_alloc_sbuf(
+>  {
+>  	struct bnxt_qplib_rcfw_sbuf *sbuf;
+>  
+> -	sbuf = kzalloc(sizeof(*sbuf), GFP_ATOMIC);
+> +	sbuf = kzalloc(sizeof(*sbuf), GFP_KERNEL);
+>  	if (!sbuf)
+>  		return NULL;
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+I think that you can do same change in bnxt_re_netdev_event() too.
+
+>  
+>  	sbuf->size = size;
+>  	sbuf->sb = dma_alloc_coherent(&rcfw->pdev->dev, sbuf->size,
+> -				      &sbuf->dma_addr, GFP_ATOMIC);
+> +				      &sbuf->dma_addr, GFP_KERNEL);
+>  	if (!sbuf->sb)
+>  		goto bail;
+>  
+> -- 
+> 2.5.5
+> 
