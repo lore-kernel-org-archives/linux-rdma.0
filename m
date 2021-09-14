@@ -2,165 +2,205 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15604C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:07:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C60C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:07:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E654060F46
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:07:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0560761178
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:07:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234320AbhINXIy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Sep 2021 19:08:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45048 "EHLO mail.kernel.org"
+        id S235587AbhINXI5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Sep 2021 19:08:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231559AbhINXIx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 14 Sep 2021 19:08:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2E7661165;
-        Tue, 14 Sep 2021 23:07:34 +0000 (UTC)
+        id S235594AbhINXI5 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 14 Sep 2021 19:08:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7872561175;
+        Tue, 14 Sep 2021 23:07:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631660855;
-        bh=AvmdHBEV9K2J31gkeEwlU6AlZerrMIwB/huPokwGtJQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Cj5dHOClv9iMhicqFN+mL8qB5LxUrQmghyPQLF48OTXzoZDrKAnFP7XzXL4NXiwdf
-         SeGDhHSX6T/FyJktZn7qs8T4FqWGrlbooOMcgfwa1g0xpvpBRwrKlmoT20LIpgwUZU
-         dPM5iATnmK7lcMZbSIrixEUuNZGvqH21P6JEJNvONbszEDMqU9xj3TbSKB8Yrdiz2U
-         k5XSo/mYoeCYK6pYIXRUCxWTMPSjW9vVfL2H3oGV4JJfO+nSahweAo9WFf/tKPDH8P
-         SKEzMnCrG6H6o3rmfY201I1gHufPy8AMwuZ7z6pEgK+fWwTEamGrtc/GhyKYsrFAeE
-         TtIiY3qyKWu2g==
+        s=k20201202; t=1631660859;
+        bh=/JRyAnT5evEytQDDgxWGtZA22o9QDPBtDHQ4Wj2be8U=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=rUMZJVBeVxOh36ZNAzoVUSCLsP+sAmIKqA4BMHmv/bJaqaBiH6/A4NI5PYUWyYF7J
+         8WDuR3zQkJtk4wgPtocHaa3U8NUPqCo/CS0Dqk51yvxv0X2SgrBGaSVbMwi42sVuSb
+         3yQGtEm564LfV9Hg+8VoT1IxBnOcSLnTezRhMpgoQpaGAwNQEgYpGLW4TSdh+9prn4
+         CXF7ByeI5VFcHjGRJxdeX2yxhub0RZM8fQq87r/W1hEk+QlryyMsTCfGqFk3i55EYw
+         asugghZT1mSUJbBYckulIxeDuYZwIpnACGKUcZ5NqC27XGab81ZG/BfHTT10JJcX+T
+         ZgX2EFlC1YW0g==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Aharon Landau <aharonl@nvidia.com>,
+Cc:     Aharon Landau <aharonl@nvidia.com>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Gal Pressman <galpress@amazon.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
         Mark Zhang <markzhang@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Mustafa Ismail <mustafa.ismail@intel.com>,
         Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        Neta Ostrovsky <netao@nvidia.com>, netdev@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
+        netdev@vger.kernel.org, Potnuri Bharat Teja <bharat@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v1 00/11] Optional counter statistics support
-Date:   Wed, 15 Sep 2021 02:07:19 +0300
-Message-Id: <cover.1631660727.git.leonro@nvidia.com>
+Subject: [PATCH mlx5-next v1 02/11] net/mlx5: Add priorities for counters in RDMA namespaces
+Date:   Wed, 15 Sep 2021 02:07:21 +0300
+Message-Id: <eab53af5450b57a9065ed0a174915bbd98b2b19f.1631660727.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1631660727.git.leonro@nvidia.com>
+References: <cover.1631660727.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Aharon Landau <aharonl@nvidia.com>
 
-Change Log:
-v1:
-* Add a descriptor structure to replace name in struct rdma_hw_stats;
-* Add a bitmap in struct rdma_hw_stats to indicate the enable/disable
-  status of all counters;
-* Add a "flag" field in counter descriptor and define
-  IB_STAT_FLAG_OPTIONAL flag;
-* add/remove_op_stat() are replaced by modify_op_stat();
-* Use "set/unset" in command line and send full opcounters list through
-  netlink, and send opcounter indexes instead of names;
-* Patches are re-ordered.
-v0: https://lore.kernel.org/all/20210818112428.209111-1-markzhang@nvidia.com
+Add additional flow steering priorities in the RDMA namespace.
+This allows adding flow counters to count filtered RDMA traffic and then
+continue processing in the regular RDMA steering flow.
 
-----------------------------------------------------------------------
-Hi,
+Signed-off-by: Aharon Landau <aharonl@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c | 54 ++++++++++++++++---
+ include/linux/mlx5/device.h                   |  2 +
+ include/linux/mlx5/fs.h                       |  2 +
+ 3 files changed, 50 insertions(+), 8 deletions(-)
 
-This series from Neta and Aharon provides an extension to the rdma
-statistics tool that allows to set optional counters dynamically, using
-netlink.
-
-The idea of having optional counters is to provide to the users the
-ability to get statistics of counters that hurts performance.
-
-Once an optional counter was added, its statistics will be presented
-along with all the counters, using the show command.
-
-Binding objects to the optional counters is currently not supported,
-neither in auto mode nor in manual mode.
-
-To get the list of optional counters that are supported on this device,
-use "rdma statistic mode supported". To see which counters are currently
-enabled, use "rdma statistic mode".
-
-Examples:
-
-$ rdma statistic mode supported
-link rocep8s0f0/1 supported optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts,cc_tx_cnp_pkts
-link rocep8s0f1/1 supported optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts,cc_tx_cnp_pkts
-
-$ sudo rdma statistic set link rocep8s0f0/1 optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts
-$ rdma statistic mode link rocep8s0f0/1
-link rocep8s0f0/1 optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts
-
-$ rdma statistic show link rocep8s0f0/1
-link rocep8s0f0/1 rx_write_requests 0 rx_read_requests 0 rx_atomic_requests 0 out_of_buffer 0
-out_of_sequence 0 duplicate_request 0 rnr_nak_retry_err 0 packet_seq_err 0 implied_nak_seq_err 0
-local_ack_timeout_err 0 resp_local_length_error 0 resp_cqe_error 0 req_cqe_error 0
-req_remote_invalid_request 0 req_remote_access_errors 0 resp_remote_access_errors 0
-resp_cqe_flush_error 0 req_cqe_flush_error 0 roce_adp_retrans 0 roce_adp_retrans_to 0
-roce_slow_restart 0 roce_slow_restart_cnps 0 roce_slow_restart_trans 0 rp_cnp_ignored 0
-rp_cnp_handled 0 np_ecn_marked_roce_packets 0 np_cnp_sent 0 rx_icrc_encapsulated 0 cc_rx_ce_pkts 0
-cc_rx_cnp_pkts 0
-
-$ sudo rdma statistic set link rocep8s0f0/1 optional-counters cc_rx_ce_pkts
-$ rdma statistic mode link rocep8s0f0/1
-link rocep8s0f0/1 optional-counters cc_rx_ce_pkts
-
-Thanks
-
-Aharon Landau (11):
-  net/mlx5: Add ifc bits to support optional counters
-  net/mlx5: Add priorities for counters in RDMA namespaces
-  RDMA/counter: Add a descriptor in struct rdma_hw_stats
-  RDMA/counter: Add an is_disabled field in struct rdma_hw_stats
-  RDMA/counter: Add optional counter support
-  RDMA/nldev: Add support to get status of all counters
-  RDMA/nldev: Allow optional-counter status configuration through RDMA
-    netlink
-  RDMA/mlx5: Support optional counters in hw_stats initialization
-  RDMA/mlx5: Add steering support in optional flow counters
-  RDMA/mlx5: Add modify_op_stat() support
-  RDMA/mlx5: Add optional counter support in get_hw_stats callback
-
- drivers/infiniband/core/counters.c            |  30 +-
- drivers/infiniband/core/device.c              |   1 +
- drivers/infiniband/core/nldev.c               | 289 +++++++++++++-----
- drivers/infiniband/core/sysfs.c               |  41 ++-
- drivers/infiniband/hw/bnxt_re/hw_counters.c   | 114 +++----
- drivers/infiniband/hw/cxgb4/provider.c        |  22 +-
- drivers/infiniband/hw/efa/efa_verbs.c         |  19 +-
- drivers/infiniband/hw/hfi1/verbs.c            |  43 +--
- drivers/infiniband/hw/irdma/verbs.c           |  98 +++---
- drivers/infiniband/hw/mlx4/main.c             |  37 +--
- drivers/infiniband/hw/mlx4/mlx4_ib.h          |   2 +-
- drivers/infiniband/hw/mlx5/counters.c         | 280 ++++++++++++++---
- drivers/infiniband/hw/mlx5/fs.c               | 187 ++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  28 +-
- drivers/infiniband/sw/rxe/rxe_hw_counters.c   |  42 +--
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |  54 +++-
- include/linux/mlx5/device.h                   |   2 +
- include/linux/mlx5/fs.h                       |   2 +
- include/linux/mlx5/mlx5_ifc.h                 |  22 +-
- include/rdma/ib_hdrs.h                        |   1 +
- include/rdma/ib_verbs.h                       |  48 ++-
- include/rdma/rdma_counter.h                   |   2 +
- include/uapi/rdma/rdma_netlink.h              |   3 +
- 23 files changed, 1041 insertions(+), 326 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 9fe8e3c204d6..c9e2d2b0e2d1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -99,6 +99,9 @@
+ #define LEFTOVERS_NUM_LEVELS 1
+ #define LEFTOVERS_NUM_PRIOS 1
+ 
++#define RDMA_RX_COUNTERS_PRIO_NUM_LEVELS 1
++#define RDMA_TX_COUNTERS_PRIO_NUM_LEVELS 1
++
+ #define BY_PASS_PRIO_NUM_LEVELS 1
+ #define BY_PASS_MIN_LEVEL (ETHTOOL_MIN_LEVEL + MLX5_BY_PASS_NUM_PRIOS +\
+ 			   LEFTOVERS_NUM_PRIOS)
+@@ -206,34 +209,63 @@ static struct init_tree_node egress_root_fs = {
+ 	}
+ };
+ 
+-#define RDMA_RX_BYPASS_PRIO 0
+-#define RDMA_RX_KERNEL_PRIO 1
++enum {
++	RDMA_RX_COUNTERS_PRIO,
++	RDMA_RX_BYPASS_PRIO,
++	RDMA_RX_KERNEL_PRIO,
++};
++
++#define RDMA_RX_BYPASS_MIN_LEVEL MLX5_BY_PASS_NUM_REGULAR_PRIOS
++#define RDMA_RX_KERNEL_MIN_LEVEL (RDMA_RX_BYPASS_MIN_LEVEL + 1)
++#define RDMA_RX_COUNTERS_MIN_LEVEL (RDMA_RX_KERNEL_MIN_LEVEL + 2)
++
+ static struct init_tree_node rdma_rx_root_fs = {
+ 	.type = FS_TYPE_NAMESPACE,
+-	.ar_size = 2,
++	.ar_size = 3,
+ 	.children = (struct init_tree_node[]) {
++		[RDMA_RX_COUNTERS_PRIO] =
++		ADD_PRIO(0, RDMA_RX_COUNTERS_MIN_LEVEL, 0,
++			 FS_CHAINING_CAPS,
++			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
++				ADD_MULTIPLE_PRIO(MLX5_RDMA_RX_NUM_COUNTERS_PRIOS,
++						  RDMA_RX_COUNTERS_PRIO_NUM_LEVELS))),
+ 		[RDMA_RX_BYPASS_PRIO] =
+-		ADD_PRIO(0, MLX5_BY_PASS_NUM_REGULAR_PRIOS, 0,
++		ADD_PRIO(0, RDMA_RX_BYPASS_MIN_LEVEL, 0,
+ 			 FS_CHAINING_CAPS,
+ 			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
+ 				ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_REGULAR_PRIOS,
+ 						  BY_PASS_PRIO_NUM_LEVELS))),
+ 		[RDMA_RX_KERNEL_PRIO] =
+-		ADD_PRIO(0, MLX5_BY_PASS_NUM_REGULAR_PRIOS + 1, 0,
++		ADD_PRIO(0, RDMA_RX_KERNEL_MIN_LEVEL, 0,
+ 			 FS_CHAINING_CAPS,
+ 			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_SWITCH_DOMAIN,
+ 				ADD_MULTIPLE_PRIO(1, 1))),
+ 	}
+ };
+ 
++enum {
++	RDMA_TX_COUNTERS_PRIO,
++	RDMA_TX_BYPASS_PRIO,
++};
++
++#define RDMA_TX_BYPASS_MIN_LEVEL MLX5_BY_PASS_NUM_PRIOS
++#define RDMA_TX_COUNTERS_MIN_LEVEL (RDMA_TX_BYPASS_MIN_LEVEL + 1)
++
+ static struct init_tree_node rdma_tx_root_fs = {
+ 	.type = FS_TYPE_NAMESPACE,
+-	.ar_size = 1,
++	.ar_size = 2,
+ 	.children = (struct init_tree_node[]) {
+-		ADD_PRIO(0, MLX5_BY_PASS_NUM_PRIOS, 0,
++		[RDMA_TX_COUNTERS_PRIO] =
++		ADD_PRIO(0, RDMA_TX_COUNTERS_MIN_LEVEL, 0,
++			 FS_CHAINING_CAPS,
++			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
++				ADD_MULTIPLE_PRIO(MLX5_RDMA_TX_NUM_COUNTERS_PRIOS,
++						  RDMA_TX_COUNTERS_PRIO_NUM_LEVELS))),
++		[RDMA_TX_BYPASS_PRIO] =
++		ADD_PRIO(0, RDMA_TX_BYPASS_MIN_LEVEL, 0,
+ 			 FS_CHAINING_CAPS_RDMA_TX,
+ 			 ADD_NS(MLX5_FLOW_TABLE_MISS_ACTION_DEF,
+-				ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
++				ADD_MULTIPLE_PRIO(RDMA_TX_BYPASS_MIN_LEVEL,
+ 						  BY_PASS_PRIO_NUM_LEVELS))),
+ 	}
+ };
+@@ -2216,6 +2248,12 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
+ 		prio = RDMA_RX_KERNEL_PRIO;
+ 	} else if (type == MLX5_FLOW_NAMESPACE_RDMA_TX) {
+ 		root_ns = steering->rdma_tx_root_ns;
++	} else if (type == MLX5_FLOW_NAMESPACE_RDMA_RX_COUNTERS) {
++		root_ns = steering->rdma_rx_root_ns;
++		prio = RDMA_RX_COUNTERS_PRIO;
++	} else if (type == MLX5_FLOW_NAMESPACE_RDMA_TX_COUNTERS) {
++		root_ns = steering->rdma_tx_root_ns;
++		prio = RDMA_TX_COUNTERS_PRIO;
+ 	} else { /* Must be NIC RX */
+ 		root_ns = steering->root_ns;
+ 		prio = type;
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 66eaf0aa7f69..ed0230ff9422 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -1456,6 +1456,8 @@ static inline u16 mlx5_to_sw_pkey_sz(int pkey_sz)
+ 	return MLX5_MIN_PKEY_TABLE_SIZE << pkey_sz;
+ }
+ 
++#define MLX5_RDMA_RX_NUM_COUNTERS_PRIOS 2
++#define MLX5_RDMA_TX_NUM_COUNTERS_PRIOS 1
+ #define MLX5_BY_PASS_NUM_REGULAR_PRIOS 16
+ #define MLX5_BY_PASS_NUM_DONT_TRAP_PRIOS 16
+ #define MLX5_BY_PASS_NUM_MULTICAST_PRIOS 1
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 0106c67e8ccb..f2c3da2006d9 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -83,6 +83,8 @@ enum mlx5_flow_namespace_type {
+ 	MLX5_FLOW_NAMESPACE_RDMA_RX,
+ 	MLX5_FLOW_NAMESPACE_RDMA_RX_KERNEL,
+ 	MLX5_FLOW_NAMESPACE_RDMA_TX,
++	MLX5_FLOW_NAMESPACE_RDMA_RX_COUNTERS,
++	MLX5_FLOW_NAMESPACE_RDMA_TX_COUNTERS,
+ };
+ 
+ enum {
 -- 
 2.31.1
 
