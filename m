@@ -8,61 +8,61 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C306C43217
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F97C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 267FA60FD7
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B19E61151
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229846AbhINQoX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Sep 2021 12:44:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42060 "EHLO
+        id S229968AbhINQoY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Sep 2021 12:44:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbhINQoL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Sep 2021 12:44:11 -0400
-Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1190DC061574
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
-Received: by mail-oi1-x22f.google.com with SMTP id 6so19852858oiy.8
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
+        with ESMTP id S229934AbhINQoN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Sep 2021 12:44:13 -0400
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9F2AC061574
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:55 -0700 (PDT)
+Received: by mail-oi1-x233.google.com with SMTP id bi4so19842030oib.9
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=PzztxkAcLUiuVPSLe9AQASCqJgbtb/3TYkJ/REhI35I=;
-        b=e1A86/39dlnQw231USDJXfVW2SQMJ4QgkJ+knkoH45oyTwKG9htME3sfu8NoJMyoRA
-         QpsTFeZAK+L4XeU97+U0p3QgdvclvaGsb3p+9JQXw9ik2N8WASSQLq7oWC7UuUebYWzj
-         x3KszVN/Irhuei9BuCJlB06i3mc8QbRCzHIrEhj4fGlOJJQxqRbRho+UBq7AhGwKoyhU
-         ffJcW4Qdd+HKGxH5vLBPu9FvFgy+Lwg+yAO6vLkt1d8eDW3DddoJhwLh3wHqf7vcIfqE
-         eF8KKndNfUN36CjNFrPqBBwG1DPWOtsf6A4NeY20b6y/IDq1D4FW3342VjKECwLKUOK7
-         ZnGg==
+        bh=cPoJTfPdHp/LeXcgMLIb9FBaUbIGu0QL53pSwedsxQU=;
+        b=oHMkbQvpZg8IAefGZY9Q3sdT+VWK6nWrZYz+7ZYfGSY8hjmlx7aNwaf5Tf0FWDDeBN
+         SiA6gEyiRLry10xG+v+LDE70qET2YVHSomisp2QhyrxVdzkk4Af83+XX3xR9DnT1eONo
+         5NtTbiWAEtwK6q1m8wZNKPftRRtVVa9NW689apXXyKkSp+lfltIpG0RPK/hPYWr8DLr8
+         TZB0pNYS1JujxPbKdnntZvuov1/MyxLWMGsyRX0EWvlLSqftythaB9w2NcPMZLlBiX8O
+         Z46V/Pl1WFLWX/NNdxNduylaT1lEKBkY0IKz+UNG21frfeR7CcDDGI5zbtdqMEajMf5C
+         8H5g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=PzztxkAcLUiuVPSLe9AQASCqJgbtb/3TYkJ/REhI35I=;
-        b=bpiARN+Mo2oQwt1zPi06tRdtc0ZEPUcLtmx6xeeGmrkoRRSXKvOb1WA3jRvh6rZOHx
-         AJvg2Eb3K89L7B2GbJNMwDg9zVzl4wAuPZsUbGtC4T/TxKhVFlxC54ng8IdtokfjuYn3
-         i7cXjpmsYpyq65xMg8T6YygjcK+yS9v2ejADtNMLQf08NXuWfKxPn63Hllx0Uzqq5kDV
-         2jVJ8ETtgNNU35VMT8PhkRjXsIhCoxLo2tAjUdrwR8pMQYo+itzbOx2YXZxAsW0lImyi
-         jxIT0BmQmxsDC54HJcHnMK+XksOB5I2z0cNY9733jYfogOUcwlrllbKGkw/jJoWmOVkr
-         8F/w==
-X-Gm-Message-State: AOAM531AHSVQI0IXlfUifuM05vJ+iQyuyFcuyRJf4NmNIvkaS3P9LGpp
-        1x3Xa/MgdZzwbEArX8G+E2o=
-X-Google-Smtp-Source: ABdhPJwiBuyKcnVIBF1R3wZzRM1lRXEDYQtJkkL36Zz0yQcYFs5q5X8a749IDBqyYbDgpVyauM3rlA==
-X-Received: by 2002:a05:6808:56:: with SMTP id v22mr2183501oic.49.1631637773431;
-        Tue, 14 Sep 2021 09:42:53 -0700 (PDT)
+        bh=cPoJTfPdHp/LeXcgMLIb9FBaUbIGu0QL53pSwedsxQU=;
+        b=SPZ0LOwkIkiLTi1aNcDvP9XjE4JS7PSAusX7AJZfXtexkZDzf0I4Wl1VdzBnwVMATK
+         t9/3zhywIlqUxmL8wq7UiDtK+E/S3nRidve/0Y7wxgiAxNVn27Jq4FEkpTLQMAIlHsRP
+         shcFPASwOT7q+VZRRo5wmg+kUOoU/vz8WddWWZZHlhjT7SIX91E0ofvUD9FVFkEIKJ93
+         yqYDtRkfD2MI0wrsaFszmEBr4F+nqpr9QgG6Aww5REaZZGHhf0KrGSsZTkjVYq33YPAI
+         rEEUn+xOCe8ehOR34NQzZlEKsgaF7Sa/2rOyQs87XlII2MVUMa5FXUq74k0XuLCH6CSJ
+         crog==
+X-Gm-Message-State: AOAM53143CprxFsXa/zcvSUwUHyuG3TcPJp2VBKk2I+HGmqoAgFCrlco
+        Y85sP+cz7zcusy8KVES0fvo=
+X-Google-Smtp-Source: ABdhPJzsg8Bh55/Q3UmUjFeaGDYV3OSGpq15CjIRLFXS+0GJcLAv9wLP85mI4Wh3izXFVDSZGnQ7xg==
+X-Received: by 2002:aca:af0d:: with SMTP id y13mr2099598oie.161.1631637775337;
+        Tue, 14 Sep 2021 09:42:55 -0700 (PDT)
 Received: from ubunto-21.tx.rr.com (2603-8081-140c-1a00-61e3-00cf-5364-0046.res6.spectrum.com. [2603:8081:140c:1a00:61e3:cf:5364:46])
-        by smtp.gmail.com with ESMTPSA id k1sm2850263otr.43.2021.09.14.09.42.52
+        by smtp.gmail.com with ESMTPSA id k1sm2850263otr.43.2021.09.14.09.42.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Sep 2021 09:42:53 -0700 (PDT)
+        Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
         bvanassche@acm.org, mie@igel.co.jp, rao.shoaib@oracle.com
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-rc v4 2/5] RDMA/rxe: Cleanup MR status and type enums
-Date:   Tue, 14 Sep 2021 11:42:04 -0500
-Message-Id: <20210914164206.19768-3-rpearsonhpe@gmail.com>
+Subject: [PATCH for-rc v4 5/5] RDMA/rxe: Only allow invalidate for appropriate MRs
+Date:   Tue, 14 Sep 2021 11:42:07 -0500
+Message-Id: <20210914164206.19768-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210914164206.19768-1-rpearsonhpe@gmail.com>
 References: <20210914164206.19768-1-rpearsonhpe@gmail.com>
@@ -72,132 +72,32 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Eliminate RXE_MR_STATE_ZOMBIE which is not compatible with IBA.
-RXE_MR_STATE_INVALID is better.
-
-Replace RXE_MR_TYPE_XXX by IB_MR_TYPE_XXX which covers all the needed
-types.
+Local and remote invalidate operations are not allowed by IBA for
+MRs created by (re)register memory verbs. This patch checks the
+MR type in rxe_invalidate_mr().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c    | 20 ++++++++++++--------
- drivers/infiniband/sw/rxe/rxe_verbs.h |  9 +--------
- 2 files changed, 13 insertions(+), 16 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 5890a8246216..0cc24154762c 100644
+index 8d658d42abed..53271df10e47 100644
 --- a/drivers/infiniband/sw/rxe/rxe_mr.c
 +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -24,17 +24,22 @@ u8 rxe_get_next_key(u32 last_key)
- 
- int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
- {
-+
-+
- 	switch (mr->type) {
--	case RXE_MR_TYPE_DMA:
-+	case IB_MR_TYPE_DMA:
- 		return 0;
- 
--	case RXE_MR_TYPE_MR:
-+	case IB_MR_TYPE_USER:
-+	case IB_MR_TYPE_MEM_REG:
- 		if (iova < mr->iova || length > mr->length ||
- 		    iova > mr->iova + mr->length - length)
- 			return -EFAULT;
- 		return 0;
- 
- 	default:
-+		pr_warn("%s: mr type (%d) not supported\n",
-+			__func__, mr->type);
- 		return -EFAULT;
+@@ -605,6 +605,12 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey)
+ 		goto err_drop_ref;
  	}
- }
-@@ -51,7 +56,6 @@ static void rxe_mr_init(int access, struct rxe_mr *mr)
- 	mr->ibmr.lkey = lkey;
- 	mr->ibmr.rkey = rkey;
- 	mr->state = RXE_MR_STATE_INVALID;
--	mr->type = RXE_MR_TYPE_NONE;
- 	mr->map_shift = ilog2(RXE_BUF_PER_MAP);
- }
  
-@@ -100,7 +104,7 @@ void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr)
- 	mr->ibmr.pd = &pd->ibpd;
- 	mr->access = access;
- 	mr->state = RXE_MR_STATE_VALID;
--	mr->type = RXE_MR_TYPE_DMA;
-+	mr->type = IB_MR_TYPE_DMA;
- }
- 
- int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
-@@ -173,7 +177,7 @@ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
- 	mr->va = start;
- 	mr->offset = ib_umem_offset(umem);
- 	mr->state = RXE_MR_STATE_VALID;
--	mr->type = RXE_MR_TYPE_MR;
-+	mr->type = IB_MR_TYPE_USER;
- 
- 	return 0;
- 
-@@ -203,7 +207,7 @@ int rxe_mr_init_fast(struct rxe_pd *pd, int max_pages, struct rxe_mr *mr)
- 	mr->ibmr.pd = &pd->ibpd;
- 	mr->max_buf = max_pages;
++	if (unlikely(mr->type != IB_MR_TYPE_MEM_REG)) {
++		pr_warn("%s: mr->type (%d) is wrong type\n", __func__, mr->type);
++		ret = -EINVAL;
++		goto err_drop_ref;
++	}
++
  	mr->state = RXE_MR_STATE_FREE;
--	mr->type = RXE_MR_TYPE_MR;
-+	mr->type = IB_MR_TYPE_MEM_REG;
+ 	ret = 0;
  
- 	return 0;
- 
-@@ -302,7 +306,7 @@ int rxe_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 	if (length == 0)
- 		return 0;
- 
--	if (mr->type == RXE_MR_TYPE_DMA) {
-+	if (mr->type == IB_MR_TYPE_DMA) {
- 		u8 *src, *dest;
- 
- 		src = (dir == RXE_TO_MR_OBJ) ? addr : ((void *)(uintptr_t)iova);
-@@ -564,7 +568,7 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- 		return -EINVAL;
- 	}
- 
--	mr->state = RXE_MR_STATE_ZOMBIE;
-+	mr->state = RXE_MR_STATE_INVALID;
- 	rxe_drop_ref(mr_pd(mr));
- 	rxe_drop_index(mr);
- 	rxe_drop_ref(mr);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index ac2a2148027f..c6aca2293294 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -267,18 +267,11 @@ struct rxe_qp {
- };
- 
- enum rxe_mr_state {
--	RXE_MR_STATE_ZOMBIE,
- 	RXE_MR_STATE_INVALID,
- 	RXE_MR_STATE_FREE,
- 	RXE_MR_STATE_VALID,
- };
- 
--enum rxe_mr_type {
--	RXE_MR_TYPE_NONE,
--	RXE_MR_TYPE_DMA,
--	RXE_MR_TYPE_MR,
--};
--
- enum rxe_mr_copy_dir {
- 	RXE_TO_MR_OBJ,
- 	RXE_FROM_MR_OBJ,
-@@ -314,7 +307,7 @@ struct rxe_mr {
- 	struct ib_umem		*umem;
- 
- 	enum rxe_mr_state	state;
--	enum rxe_mr_type	type;
-+	enum ib_mr_type		type;
- 	u64			va;
- 	u64			iova;
- 	size_t			length;
 -- 
 2.30.2
 
