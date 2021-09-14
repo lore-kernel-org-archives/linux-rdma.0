@@ -2,142 +2,392 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5736C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15F2CC43219
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C8656112E
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 008BC6112E
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 16:43:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229770AbhINQoV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Sep 2021 12:44:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42052 "EHLO
+        id S229801AbhINQoW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Sep 2021 12:44:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229627AbhINQoK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Sep 2021 12:44:10 -0400
-Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F40C1C061574
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:52 -0700 (PDT)
-Received: by mail-oi1-x232.google.com with SMTP id h133so19853860oib.7
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:52 -0700 (PDT)
+        with ESMTP id S229829AbhINQoM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Sep 2021 12:44:12 -0400
+Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE1C5C061762
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
+Received: by mail-ot1-x332.google.com with SMTP id g66-20020a9d12c8000000b0051aeba607f1so19395257otg.11
+        for <linux-rdma@vger.kernel.org>; Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=iAx4OwiOg2GOmKrHldXySA00x4zR8vAEigybmxCgIdo=;
-        b=UE7pT6gWcxK0wq0NONPxc7mVXk0Ayhmgt10dryZUQzTSKrrUBycGbODSzVRmvoQwON
-         cnj0iWL19WrFnU/xtCzJdxHXAQ5tHS22jwsv53OZEZAvKFs2HzERveEW8CK/0j8rqANL
-         +Q/RWkix0P4Ls3eOaasUFMQTgyBmWLagqj9N+U3qS1XlD4lV2hUr9VcjwOIluQfFNVnA
-         T9mhUsZFoo+FlDFppy0J4IvJOT0UVZrJIdxRYZjtfRO1aKK4VF0Wwb2UTA0yfFmDwjGY
-         JRGZwrCXce+TLaDSSOZxMEr7i8pyp/KApDqqwX+qZUgqHaK/ul8qhYcQzg6cHFjJ+30/
-         7bHg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=JeZm+H35lDFYaK5R4oGaGXYmKA/IF1XeBSLQKNBoETc=;
+        b=hWYeUbHsTsxE+hznW1IOmEQLtnUyOm3Z8VVWQB6NiJ7tNEo/OomuSRmAu1j6pLmyHi
+         Ww6DAq2HnSE+p6vVjO/TKqIxTU1PelIJervBgpYwYwIrydts5mrUr5Zf2r0tXlf4ZZDV
+         Cm+tLQcHESVTwcD/StXSvB2LXYpQCggRTJtP74834r3RSVpZW9iWp+Ffpza4Awvz03/M
+         HSzR1rbA4/8kC1f+io5T71dfkGVyN57QRSDYiDmLlQdRYoMfltFUHb4c6eGYE6bgILSX
+         TQxixsMkl9rjBiHipanFHg5BleWNGY0a+l3YF4+3J1o+t5FsOi3rxslrMH2+665prm9f
+         dYdw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=iAx4OwiOg2GOmKrHldXySA00x4zR8vAEigybmxCgIdo=;
-        b=ivN/4oe3T7aFpvEzW2lpJQvvSjWKJnOmOFcLfAQRewa4fODFLyn7kJW82kQwB2vaoL
-         PaArQ31ehsgo8ScGG2xnYDR4g/ki/szvUNYHLliTbpG2h8HKjpb38Uxnqhp2uG1W0CWq
-         ZqJ10p7Ag/gQ9km0WgBm0VASgbmWV0Oos/cavd8nszU5Rrmy/Dwg16bX3FXxhWwqszdc
-         6UtPROUEDafuteeg6m2gVqmUxF5Eo0qxlMBEOmsPixPDqNZjvBN7gDZ9AeBYwr5DodO9
-         omDHaEB2hx7o9IgjgU56b6UjQi0b3XMBEoEog/6tNWPMok/AGTL4IVyVe3uSk8RGxXwf
-         GhgA==
-X-Gm-Message-State: AOAM530WJJk3tGfr5kB3noC/5CSO5S0Vd9Z2Mk2dstvRVRLMpNnVo/jQ
-        XGXovdwSN4bQswKCfgbZQLk=
-X-Google-Smtp-Source: ABdhPJxMiiSAvdqTJbzhcGgoYyGWcXknXxbH55KSgVjRFs65qOQUeXApPBEgnS48R/SbKrL1tJS4lw==
-X-Received: by 2002:a54:458f:: with SMTP id z15mr2128092oib.42.1631637772295;
-        Tue, 14 Sep 2021 09:42:52 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=JeZm+H35lDFYaK5R4oGaGXYmKA/IF1XeBSLQKNBoETc=;
+        b=wDTuCagFnW3uVAAuTlXSMUIU88+I3/DmSRhgPO8+x/hmrrb13RdaKcBHmPa4/KnaTk
+         qtEHr11CUiTiGisngK/ry/Q/pH9mZ++bzYN39TG/55xaFpiRlUGR7BpaGFX5s30jkRD8
+         wb6lZMccjuj3njkBpfw6bMMs6qJwaNWiz0IKVra+cfTpZlIb99bT0dBC5tD1tHCwgHxA
+         SMHVbdLbkdB58PAyV5oBnQaIr73aBxeihh7x5u6VXVC5UhSCmm3rSrfN5Ko+oWzZnvPc
+         GawUo44Kb3RbVw5FEdNcPAAjXKMAigDVgafXahXde9JjwtbXZBikgjGhgK9dniuc9gJ+
+         qbLg==
+X-Gm-Message-State: AOAM531fYYs3O/OiYbfiIxeuv5gzGIDsTehdh7YtQNzpTIKQ8vMVtLpw
+        geMCxVwzlmM5msboMFNzrWWSL1flvi5R5A==
+X-Google-Smtp-Source: ABdhPJxPwVkApDyRcp2iJa0fq6go113OK8WsdyEaxOoWRpshrjWcA7+ruAL8/UEh35NjIcaQCKgxqQ==
+X-Received: by 2002:a9d:4694:: with SMTP id z20mr15731931ote.379.1631637774015;
+        Tue, 14 Sep 2021 09:42:54 -0700 (PDT)
 Received: from ubunto-21.tx.rr.com (2603-8081-140c-1a00-61e3-00cf-5364-0046.res6.spectrum.com. [2603:8081:140c:1a00:61e3:cf:5364:46])
-        by smtp.gmail.com with ESMTPSA id k1sm2850263otr.43.2021.09.14.09.42.51
+        by smtp.gmail.com with ESMTPSA id k1sm2850263otr.43.2021.09.14.09.42.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Sep 2021 09:42:51 -0700 (PDT)
+        Tue, 14 Sep 2021 09:42:53 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
         bvanassche@acm.org, mie@igel.co.jp, rao.shoaib@oracle.com
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-rc v4 0/5] RDMA/rxe: Various bug fixes.
-Date:   Tue, 14 Sep 2021 11:42:02 -0500
-Message-Id: <20210914164206.19768-1-rpearsonhpe@gmail.com>
+Subject: [PATCH for-rc v4 3/5] RDMA/rxe: Separate HW and SW l/rkeys
+Date:   Tue, 14 Sep 2021 11:42:05 -0500
+Message-Id: <20210914164206.19768-4-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210914164206.19768-1-rpearsonhpe@gmail.com>
+References: <20210914164206.19768-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series of patches implements several bug fixes and minor
-cleanups of the rxe driver. Specifically these fix a bug exposed
-by blktest.
+Separate software and simulated hardware lkeys and rkeys for MRs and MWs.
+This makes struct ib_mr and struct ib_mw isolated from hardware changes
+triggered by executing work requests.
 
-They apply cleanly to both
-commit 1b789bd4dbd48a92f5427d9c37a72a8f6ca17754 (origin/for-rc)
-commit 6a217437f9f5482a3f6f2dc5fcd27cf0f62409ac (origin/for-next)
+This change fixes a bug seen in blktest.
 
-The first patch is a rewrite of an earlier patch.
-It adds memory barriers to kernel to kernel queues. The logic for this
-is the same as an earlier patch that only treated user to kernel queues.
-Without this patch kernel to kernel queues are expected to intermittently
-fail at low frequency as was seen for the other queues.
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  1 +
+ drivers/infiniband/sw/rxe/rxe_mr.c    | 69 ++++++++++++++++++++++-----
+ drivers/infiniband/sw/rxe/rxe_mw.c    | 30 ++++++------
+ drivers/infiniband/sw/rxe/rxe_req.c   | 14 ++----
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 18 ++-----
+ 5 files changed, 81 insertions(+), 51 deletions(-)
 
-The second patch cleans up the state and type enums used by MRs.
-
-The third patch separates the keys in rxe_mr and ib_mr. This allows
-the following sequence seen in the srp driver to work correctly.
-
-	do {
-		ib_post_send( IB_WR_LOCAL_INV )
-		ib_update_fast_reg_key()
-		ib_map_mr_sg()
-		ib_post_send( IB_WR_REG_MR )
-	} while ( !done )
-
-The fourth patch creates duplicate mapping tables for fast MRs. This
-prevents rkeys referencing fast MRs from accessing data from an updated
-map after the call to ib_map_mr_sg() call by keeping the new and old
-mappings separate and atomically swapping them when a reg mr WR is
-executed.
-
-The fifth patch checks the type of MRs which receive local or remote
-invalidate operations to prevent invalidating user MRs.
-
-v3->v4:
-Two of the patches in v3 were accepted in v5.15 so have been dropped
-here.
-
-The first patch was rewritten to correctly deal with queue operations
-in rxe_verbs.c where the code is the client and not the server.
-
-v2->v3:
-The v2 version had a typo which broke clean application to for-next.
-Additionally in v3 the order of the patches was changed to make
-it a little cleaner.
-
-Bob Pearson (5):
-  RDMA/rxe: Add memory barriers to kernel queues
-  RDMA/rxe: Cleanup MR status and type enums
-  RDMA/rxe: Separate HW and SW l/rkeys
-  RDMA/rxe: Create duplicate mapping tables for FMRs
-  RDMA/rxe: Only allow invalidate for appropriate MRs
-
- drivers/infiniband/sw/rxe/rxe_comp.c  |  12 +-
- drivers/infiniband/sw/rxe/rxe_cq.c    |  25 +--
- drivers/infiniband/sw/rxe/rxe_loc.h   |   2 +
- drivers/infiniband/sw/rxe/rxe_mr.c    | 267 ++++++++++++++++-------
- drivers/infiniband/sw/rxe/rxe_mw.c    |  36 ++--
- drivers/infiniband/sw/rxe/rxe_qp.c    |  12 +-
- drivers/infiniband/sw/rxe/rxe_queue.c |  30 ++-
- drivers/infiniband/sw/rxe/rxe_queue.h | 292 +++++++++++---------------
- drivers/infiniband/sw/rxe/rxe_req.c   |  51 ++---
- drivers/infiniband/sw/rxe/rxe_resp.c  |  40 +---
- drivers/infiniband/sw/rxe/rxe_srq.c   |   2 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c |  92 ++------
- drivers/infiniband/sw/rxe/rxe_verbs.h |  48 ++---
- 13 files changed, 438 insertions(+), 471 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index f0c954575bde..4fd73b51fabf 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -86,6 +86,7 @@ struct rxe_mr *lookup_mr(struct rxe_pd *pd, int access, u32 key,
+ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length);
+ int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
+ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey);
++int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
+ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
+ void rxe_mr_cleanup(struct rxe_pool_entry *arg);
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 0cc24154762c..370212801abc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -53,8 +53,14 @@ static void rxe_mr_init(int access, struct rxe_mr *mr)
+ 	u32 lkey = mr->pelem.index << 8 | rxe_get_next_key(-1);
+ 	u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
+ 
+-	mr->ibmr.lkey = lkey;
+-	mr->ibmr.rkey = rkey;
++	/* set ibmr->l/rkey and also copy into private l/rkey
++	 * for user MRs these will always be the same
++	 * for cases where caller 'owns' the key portion
++	 * they may be different until REG_MR WQE is executed.
++	 */
++	mr->lkey = mr->ibmr.lkey = lkey;
++	mr->rkey = mr->ibmr.rkey = rkey;
++
+ 	mr->state = RXE_MR_STATE_INVALID;
+ 	mr->map_shift = ilog2(RXE_BUF_PER_MAP);
+ }
+@@ -195,10 +201,8 @@ int rxe_mr_init_fast(struct rxe_pd *pd, int max_pages, struct rxe_mr *mr)
+ {
+ 	int err;
+ 
+-	rxe_mr_init(0, mr);
+-
+-	/* In fastreg, we also set the rkey */
+-	mr->ibmr.rkey = mr->ibmr.lkey;
++	/* always allow remote access for FMRs */
++	rxe_mr_init(IB_ACCESS_REMOTE, mr);
+ 
+ 	err = rxe_mr_alloc(mr, max_pages);
+ 	if (err)
+@@ -511,8 +515,8 @@ struct rxe_mr *lookup_mr(struct rxe_pd *pd, int access, u32 key,
+ 	if (!mr)
+ 		return NULL;
+ 
+-	if (unlikely((type == RXE_LOOKUP_LOCAL && mr_lkey(mr) != key) ||
+-		     (type == RXE_LOOKUP_REMOTE && mr_rkey(mr) != key) ||
++	if (unlikely((type == RXE_LOOKUP_LOCAL && mr->lkey != key) ||
++		     (type == RXE_LOOKUP_REMOTE && mr->rkey != key) ||
+ 		     mr_pd(mr) != pd || (access && !(access & mr->access)) ||
+ 		     mr->state != RXE_MR_STATE_VALID)) {
+ 		rxe_drop_ref(mr);
+@@ -535,9 +539,9 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey)
+ 		goto err;
+ 	}
+ 
+-	if (rkey != mr->ibmr.rkey) {
+-		pr_err("%s: rkey (%#x) doesn't match mr->ibmr.rkey (%#x)\n",
+-			__func__, rkey, mr->ibmr.rkey);
++	if (rkey != mr->rkey) {
++		pr_err("%s: rkey (%#x) doesn't match mr->rkey (%#x)\n",
++			__func__, rkey, mr->rkey);
+ 		ret = -EINVAL;
+ 		goto err_drop_ref;
+ 	}
+@@ -558,6 +562,49 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey)
+ 	return ret;
+ }
+ 
++/* user can (re)register fast MR by executing a REG_MR WQE.
++ * user is expected to hold a reference on the ib mr until the
++ * WQE completes.
++ * Once a fast MR is created this is the only way to change the
++ * private keys. It is the responsibility of the user to maintain
++ * the ib mr keys in sync with rxe mr keys.
++ */
++int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
++{
++	struct rxe_mr *mr = to_rmr(wqe->wr.wr.reg.mr);
++	u32 key = wqe->wr.wr.reg.key;
++	u32 access = wqe->wr.wr.reg.access;
++
++	/* user can only register MR in free state */
++	if (unlikely(mr->state != RXE_MR_STATE_FREE)) {
++		pr_warn("%s: mr->lkey = 0x%x not free\n",
++			__func__, mr->lkey);
++		return -EINVAL;
++	}
++
++	/* user can only register mr with qp in same protection domain */
++	if (unlikely(qp->ibqp.pd != mr->ibmr.pd)) {
++		pr_warn("%s: qp->pd and mr->pd don't match\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	/* user is only allowed to change key portion of l/rkey */
++	if (unlikely((mr->lkey & ~0xff) != (key & ~0xff))) {
++		pr_warn("%s: key = 0x%x has wrong index mr->lkey = 0x%x\n",
++			__func__, key, mr->lkey);
++		return -EINVAL;
++	}
++
++	mr->access = access;
++	mr->lkey = key;
++	mr->rkey = (access & IB_ACCESS_REMOTE) ? key : 0;
++	mr->iova = wqe->wr.wr.reg.mr->iova;
++	mr->state = RXE_MR_STATE_VALID;
++
++	return 0;
++}
++
+ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct rxe_mr *mr = to_rmr(ibmr);
+diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
+index 5ba77df7598e..a5e2ea7d80f0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mw.c
++++ b/drivers/infiniband/sw/rxe/rxe_mw.c
+@@ -21,7 +21,7 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
+ 	}
+ 
+ 	rxe_add_index(mw);
+-	ibmw->rkey = (mw->pelem.index << 8) | rxe_get_next_key(-1);
++	mw->rkey = ibmw->rkey = (mw->pelem.index << 8) | rxe_get_next_key(-1);
+ 	mw->state = (mw->ibmw.type == IB_MW_TYPE_2) ?
+ 			RXE_MW_STATE_FREE : RXE_MW_STATE_VALID;
+ 	spin_lock_init(&mw->lock);
+@@ -71,6 +71,8 @@ int rxe_dealloc_mw(struct ib_mw *ibmw)
+ static int rxe_check_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 			 struct rxe_mw *mw, struct rxe_mr *mr)
+ {
++	u32 key = wqe->wr.wr.mw.rkey & 0xff;
++
+ 	if (mw->ibmw.type == IB_MW_TYPE_1) {
+ 		if (unlikely(mw->state != RXE_MW_STATE_VALID)) {
+ 			pr_err_once(
+@@ -108,7 +110,7 @@ static int rxe_check_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 		}
+ 	}
+ 
+-	if (unlikely((wqe->wr.wr.mw.rkey & 0xff) == (mw->ibmw.rkey & 0xff))) {
++	if (unlikely(key == (mw->rkey & 0xff))) {
+ 		pr_err_once("attempt to bind MW with same key\n");
+ 		return -EINVAL;
+ 	}
+@@ -161,13 +163,9 @@ static int rxe_check_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ static void rxe_do_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 		      struct rxe_mw *mw, struct rxe_mr *mr)
+ {
+-	u32 rkey;
+-	u32 new_rkey;
+-
+-	rkey = mw->ibmw.rkey;
+-	new_rkey = (rkey & 0xffffff00) | (wqe->wr.wr.mw.rkey & 0x000000ff);
++	u32 key = wqe->wr.wr.mw.rkey & 0xff;
+ 
+-	mw->ibmw.rkey = new_rkey;
++	mw->rkey = (mw->rkey & ~0xff) | key;
+ 	mw->access = wqe->wr.wr.mw.access;
+ 	mw->state = RXE_MW_STATE_VALID;
+ 	mw->addr = wqe->wr.wr.mw.addr;
+@@ -197,29 +195,29 @@ int rxe_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 	struct rxe_mw *mw;
+ 	struct rxe_mr *mr;
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	u32 mw_rkey = wqe->wr.wr.mw.mw_rkey;
++	u32 mr_lkey = wqe->wr.wr.mw.mr_lkey;
+ 	unsigned long flags;
+ 
+-	mw = rxe_pool_get_index(&rxe->mw_pool,
+-				wqe->wr.wr.mw.mw_rkey >> 8);
++	mw = rxe_pool_get_index(&rxe->mw_pool, mw_rkey >> 8);
+ 	if (unlikely(!mw)) {
+ 		ret = -EINVAL;
+ 		goto err;
+ 	}
+ 
+-	if (unlikely(mw->ibmw.rkey != wqe->wr.wr.mw.mw_rkey)) {
++	if (unlikely(mw->rkey != mw_rkey)) {
+ 		ret = -EINVAL;
+ 		goto err_drop_mw;
+ 	}
+ 
+ 	if (likely(wqe->wr.wr.mw.length)) {
+-		mr = rxe_pool_get_index(&rxe->mr_pool,
+-					wqe->wr.wr.mw.mr_lkey >> 8);
++		mr = rxe_pool_get_index(&rxe->mr_pool, mr_lkey >> 8);
+ 		if (unlikely(!mr)) {
+ 			ret = -EINVAL;
+ 			goto err_drop_mw;
+ 		}
+ 
+-		if (unlikely(mr->ibmr.lkey != wqe->wr.wr.mw.mr_lkey)) {
++		if (unlikely(mr->lkey != mr_lkey)) {
+ 			ret = -EINVAL;
+ 			goto err_drop_mr;
+ 		}
+@@ -292,7 +290,7 @@ int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey)
+ 		goto err;
+ 	}
+ 
+-	if (rkey != mw->ibmw.rkey) {
++	if (rkey != mw->rkey) {
+ 		ret = -EINVAL;
+ 		goto err_drop_ref;
+ 	}
+@@ -323,7 +321,7 @@ struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey)
+ 	if (!mw)
+ 		return NULL;
+ 
+-	if (unlikely((rxe_mw_rkey(mw) != rkey) || rxe_mw_pd(mw) != pd ||
++	if (unlikely((mw->rkey != rkey) || rxe_mw_pd(mw) != pd ||
+ 		     (mw->ibmw.type == IB_MW_TYPE_2 && mw->qp != qp) ||
+ 		     (mw->length == 0) ||
+ 		     (access && !(access & mw->access)) ||
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 801e36cefc29..2981b3ef3cc0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -562,7 +562,6 @@ static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ {
+ 	u8 opcode = wqe->wr.opcode;
+-	struct rxe_mr *mr;
+ 	u32 rkey;
+ 	int ret;
+ 
+@@ -580,14 +579,11 @@ static int rxe_do_local_ops(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
+ 		}
+ 		break;
+ 	case IB_WR_REG_MR:
+-		mr = to_rmr(wqe->wr.wr.reg.mr);
+-		rxe_add_ref(mr);
+-		mr->state = RXE_MR_STATE_VALID;
+-		mr->access = wqe->wr.wr.reg.access;
+-		mr->ibmr.lkey = wqe->wr.wr.reg.key;
+-		mr->ibmr.rkey = wqe->wr.wr.reg.key;
+-		mr->iova = wqe->wr.wr.reg.mr->iova;
+-		rxe_drop_ref(mr);
++		ret = rxe_reg_fast_mr(qp, wqe);
++		if (unlikely(ret)) {
++			wqe->status = IB_WC_LOC_QP_OP_ERR;
++			return ret;
++		}
+ 		break;
+ 	case IB_WR_BIND_MW:
+ 		ret = rxe_bind_mw(qp, wqe);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index c6aca2293294..31c38b2f7d0a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -306,6 +306,8 @@ struct rxe_mr {
+ 
+ 	struct ib_umem		*umem;
+ 
++	u32			lkey;
++	u32			rkey;
+ 	enum rxe_mr_state	state;
+ 	enum ib_mr_type		type;
+ 	u64			va;
+@@ -343,6 +345,7 @@ struct rxe_mw {
+ 	enum rxe_mw_state	state;
+ 	struct rxe_qp		*qp; /* Type 2 only */
+ 	struct rxe_mr		*mr;
++	u32			rkey;
+ 	int			access;
+ 	u64			addr;
+ 	u64			length;
+@@ -467,26 +470,11 @@ static inline struct rxe_pd *mr_pd(struct rxe_mr *mr)
+ 	return to_rpd(mr->ibmr.pd);
+ }
+ 
+-static inline u32 mr_lkey(struct rxe_mr *mr)
+-{
+-	return mr->ibmr.lkey;
+-}
+-
+-static inline u32 mr_rkey(struct rxe_mr *mr)
+-{
+-	return mr->ibmr.rkey;
+-}
+-
+ static inline struct rxe_pd *rxe_mw_pd(struct rxe_mw *mw)
+ {
+ 	return to_rpd(mw->ibmw.pd);
+ }
+ 
+-static inline u32 rxe_mw_rkey(struct rxe_mw *mw)
+-{
+-	return mw->ibmw.rkey;
+-}
+-
+ int rxe_register_device(struct rxe_dev *rxe, const char *ibdev_name);
+ 
+ void rxe_mc_cleanup(struct rxe_pool_entry *arg);
 -- 
 2.30.2
 
