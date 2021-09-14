@@ -7,261 +7,159 @@ X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87377C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B1DC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F5CE61165
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D03561175
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236217AbhINXJu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Sep 2021 19:09:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45814 "EHLO mail.kernel.org"
+        id S236128AbhINXKF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Sep 2021 19:10:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236249AbhINXJb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 14 Sep 2021 19:09:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26BFB61178;
-        Tue, 14 Sep 2021 23:08:12 +0000 (UTC)
+        id S236360AbhINXJs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 14 Sep 2021 19:09:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C592E60F46;
+        Tue, 14 Sep 2021 23:08:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631660893;
-        bh=HclTZuEnwOFX+BSnHkk3S2SI8xOs+O1dQLIccbMjKYs=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Wpcw+MT6M0W62oRD3FzoUjEVaxENad19hKuhzrDIsbMp0XNmbIbObD7LaT8ZnrUxM
-         ClYU7ptMmrnAmnuAta3Z7ywuz533eq2+m8emZBKTU2igI9zZ/XFTeD8BKcwl6qFiAe
-         rxVEpThCilWcJLIiO8MLM3OrGaNyKE7VjtqjDp9yc59qqFoXWKUJ8LRoEC9AG2EJae
-         oNuaIZK7j0PuQxEYejN/1BunBWORfKMBc5H7ycEUpJPMQd12UzH7HbEDydQ4LgIdgC
-         Vqod+7sCwNf8FpN/iS7SR6n2JW3qYjGGJZ3BvRbJrGpp1QvOZ5G51Y584q/MVerlBl
-         Nnm8TbSNbP92Q==
+        s=k20201202; t=1631660910;
+        bh=3Kkx0Uhy+H9fUZSLKru8YYLp+dTH4+uckqZAhNytfIg=;
+        h=From:To:Cc:Subject:Date:From;
+        b=rTs9bn0OGrsUmjOb6MNOL2HT5UL+xrK/lbYDRJYKMsTvEeZ1nD9BuAYkvnVrG+sWV
+         ynMfrRSEZD1eQSv6nTCkVXUjtjM2kG+q3WgFDlUHPegKvUfce2KLdrMHfkWA4w7f/3
+         3CwbeOzQFwhKnJGERGGuWL13JCdGiNMuY365TWk1PRuTBry46B6H2eJfm86MbUg6po
+         bdp276TGbsQBjUHsIezlou/T0/erKVb5ruRG0otz9ckB2UFrBLX+tVk5wwq0Q27LnU
+         De3VQzt1cnsIWqq6JQWBgLqTceFqbtrB4uX9oTLFPxVKCOBkvrqQwgLNj63SR3+jW6
+         zjg8CeN4LHkZg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
-        Mark Zhang <markzhang@nvidia.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
-        Neta Ostrovsky <netao@nvidia.com>, netdev@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v1 10/11] RDMA/mlx5: Add modify_op_stat() support
-Date:   Wed, 15 Sep 2021 02:07:29 +0300
-Message-Id: <d3a6b47b67add7d155748f0485d4f3511c15c124.1631660727.git.leonro@nvidia.com>
+Cc:     Alaa Hleihel <alaa@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc] RDMA/mlx5: Add dummy umem to IB_MR_TYPE_DM
+Date:   Wed, 15 Sep 2021 02:08:25 +0300
+Message-Id: <9c6478b70dc23cfec3a7bfc345c30ff817e7e799.1631660866.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1631660727.git.leonro@nvidia.com>
-References: <cover.1631660727.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+From: Alaa Hleihel <alaa@nvidia.com>
 
-Add support for ib callback modify_op_stat() to add or remove an
-optional counter. When adding, a steering flow table is created
-with a rule that catches and counts all the matching packets;
-When removing, the table and flow counter are destroyed.
+After the cited patch, and for the case of IB_MR_TYPE_DM that doesn't
+have a umem (even though it is a user MR), function mlx5_free_priv_descs()
+will think that it's a kernel MR, leading to wrongly accessing mr->descs
+that will get wrong values in the union which leads to attempting to
+release resources that were not allocated in the first place.
 
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Reviewed-by: Mark Zhang <markzhang@nvidia.com>
+For example:
+ DMA-API: mlx5_core 0000:08:00.1: device driver tries to free DMA memory it has not allocated [device address=0x0000000000000000] [size=0 bytes]
+ WARNING: CPU: 8 PID: 1021 at kernel/dma/debug.c:961 check_unmap+0x54f/0x8b0
+ RIP: 0010:check_unmap+0x54f/0x8b0
+ Call Trace:
+  debug_dma_unmap_page+0x57/0x60
+  mlx5_free_priv_descs+0x57/0x70 [mlx5_ib]
+  mlx5_ib_dereg_mr+0x1fb/0x3d0 [mlx5_ib]
+  ib_dereg_mr_user+0x60/0x140 [ib_core]
+  uverbs_destroy_uobject+0x59/0x210 [ib_uverbs]
+  uobj_destroy+0x3f/0x80 [ib_uverbs]
+  ib_uverbs_cmd_verbs+0x435/0xd10 [ib_uverbs]
+  ? uverbs_finalize_object+0x50/0x50 [ib_uverbs]
+  ? lock_acquire+0xc4/0x2e0
+  ? lock_acquired+0x12/0x380
+  ? lock_acquire+0xc4/0x2e0
+  ? lock_acquire+0xc4/0x2e0
+  ? ib_uverbs_ioctl+0x7c/0x140 [ib_uverbs]
+  ? lock_release+0x28a/0x400
+  ib_uverbs_ioctl+0xc0/0x140 [ib_uverbs]
+  ? ib_uverbs_ioctl+0x7c/0x140 [ib_uverbs]
+  __x64_sys_ioctl+0x7f/0xb0
+  do_syscall_64+0x38/0x90
+
+Fix it by adding a dummy umem to IB_MR_TYPE_DM MRs.
+
+Fixes: f18ec4223117 ("RDMA/mlx5: Use a union inside mlx5_ib_mr")
+Signed-off-by: Alaa Hleihel <alaa@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/counters.c | 79 +++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |  1 +
- include/rdma/ib_verbs.h               |  2 +
- 3 files changed, 76 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/umem.c  | 21 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mr.c |  5 +++++
+ include/rdma/ib_umem.h          |  5 +++++
+ 3 files changed, 31 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
-index 6aa54ee441db..627077514e14 100644
---- a/drivers/infiniband/hw/mlx5/counters.c
-+++ b/drivers/infiniband/hw/mlx5/counters.c
-@@ -12,6 +12,7 @@
- struct mlx5_ib_counter {
- 	const char *name;
- 	size_t offset;
-+	u32 type;
- };
- 
- #define INIT_Q_COUNTER(_name)		\
-@@ -75,19 +76,19 @@ static const struct mlx5_ib_counter ext_ppcnt_cnts[] = {
- 	INIT_EXT_PPCNT_COUNTER(rx_icrc_encapsulated),
- };
- 
--#define INIT_OP_COUNTER(_name)                                          \
--	{ .name = #_name }
-+#define INIT_OP_COUNTER(_name, _type)		\
-+	{ .name = #_name, .type = MLX5_IB_OPCOUNTER_##_type}
- 
- static const struct mlx5_ib_counter basic_op_cnts[] = {
--	INIT_OP_COUNTER(cc_rx_ce_pkts),
-+	INIT_OP_COUNTER(cc_rx_ce_pkts, CC_RX_CE_PKTS),
- };
- 
- static const struct mlx5_ib_counter rdmarx_cnp_op_cnts[] = {
--	INIT_OP_COUNTER(cc_rx_cnp_pkts),
-+	INIT_OP_COUNTER(cc_rx_cnp_pkts, CC_RX_CNP_PKTS),
- };
- 
- static const struct mlx5_ib_counter rdmatx_cnp_op_cnts[] = {
--	INIT_OP_COUNTER(cc_tx_cnp_pkts),
-+	INIT_OP_COUNTER(cc_tx_cnp_pkts, CC_TX_CNP_PKTS),
- };
- 
- static int mlx5_ib_read_counters(struct ib_counters *counters,
-@@ -453,6 +454,7 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
- 	for (i = 0; i < ARRAY_SIZE(basic_op_cnts); i++, j++) {
- 		descs[j].name = basic_op_cnts[i].name;
- 		descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
-+		descs[j].priv = &basic_op_cnts[i].type;
- 	}
- 
- 	if (MLX5_CAP_FLOWTABLE(dev->mdev,
-@@ -460,6 +462,7 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
- 		for (i = 0; i < ARRAY_SIZE(rdmarx_cnp_op_cnts); i++, j++) {
- 			descs[j].name = rdmarx_cnp_op_cnts[i].name;
- 			descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
-+			descs[j].priv = &rdmarx_cnp_op_cnts[i].type;
- 		}
- 	}
- 
-@@ -468,6 +471,7 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
- 		for (i = 0; i < ARRAY_SIZE(rdmatx_cnp_op_cnts); i++, j++) {
- 			descs[j].name = rdmatx_cnp_op_cnts[i].name;
- 			descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
-+			descs[j].priv = &rdmatx_cnp_op_cnts[i].type;
- 		}
- 	}
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 44a0f0b2570f..518682a64daf 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -299,6 +299,27 @@ struct ib_umem *ib_umem_get_peer(struct ib_device *device, unsigned long addr,
  }
-@@ -537,7 +541,7 @@ static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
- {
- 	u32 in[MLX5_ST_SZ_DW(dealloc_q_counter_in)] = {};
- 	int num_cnt_ports;
--	int i;
-+	int i, j;
+ EXPORT_SYMBOL(ib_umem_get_peer);
  
- 	num_cnt_ports = is_mdev_switchdev_mode(dev->mdev) ? 1 : dev->num_ports;
- 
-@@ -552,6 +556,18 @@ static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
- 		}
- 		kfree(dev->port[i].cnts.descs);
- 		kfree(dev->port[i].cnts.offsets);
-+
-+		for (j = 0; j < MLX5_IB_OPCOUNTER_MAX; j++) {
-+			if (!dev->port[i].cnts.opfcs[j].fc)
-+				continue;
-+
-+			mlx5_ib_fs_remove_op_fc(dev,
-+						&dev->port[i].cnts.opfcs[j],
-+						j);
-+			mlx5_fc_destroy(dev->mdev,
-+					dev->port[i].cnts.opfcs[j].fc);
-+			dev->port[i].cnts.opfcs[j].fc = NULL;
-+		}
- 	}
- }
- 
-@@ -731,6 +747,56 @@ void mlx5_ib_counters_clear_description(struct ib_counters *counters)
- 	mutex_unlock(&mcounters->mcntrs_mutex);
- }
- 
-+static int mlx5_ib_modify_stat(struct ib_device *device, u32 port,
-+			       int index, bool enable)
++/**
++ * ib_umem_get_dummy - Create an empty umem
++ *
++ * @device: IB device to connect UMEM
++ */
++struct ib_umem *ib_umem_get_dummy(struct ib_device *device)
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(device);
-+	struct mlx5_ib_counters *cnts;
-+	struct mlx5_ib_op_fc *opfc;
-+	u32 num_hw_counters, type;
-+	int ret = 0;
++	struct ib_umem *umem;
 +
-+	cnts = &dev->port[port - 1].cnts;
-+	num_hw_counters = cnts->num_q_counters + cnts->num_cong_counters +
-+		cnts->num_ext_ppcnt_counters;
-+	if ((index < num_hw_counters) ||
-+	    (index >= num_hw_counters + cnts->num_op_counters))
-+		return -EINVAL;
++	umem = kzalloc(sizeof(*umem), GFP_KERNEL);
++	if (!umem)
++		return ERR_PTR(-ENOMEM);
 +
-+	if (!(cnts->descs[index].flags & IB_STAT_FLAG_OPTIONAL))
-+		return -EINVAL;
++	umem->ibdev = device;
++	umem->owning_mm = current->mm;
++	mmgrab(umem->owning_mm);
 +
-+	type = *(u32 *)cnts->descs[index].priv;
-+	if (type >= MLX5_IB_OPCOUNTER_MAX)
-+		return -EINVAL;
-+
-+	opfc = &cnts->opfcs[type];
-+
-+	if (enable) {
-+		if (opfc->fc)
-+			return -EEXIST;
-+
-+		opfc->fc = mlx5_fc_create(dev->mdev, false);
-+		if (IS_ERR(opfc->fc))
-+			return PTR_ERR(opfc->fc);
-+
-+		ret = mlx5_ib_fs_add_op_fc(dev, port, opfc, type);
-+		if (ret) {
-+			mlx5_fc_destroy(dev->mdev, opfc->fc);
-+			opfc->fc = NULL;
-+		}
-+	} else {
-+		if (!opfc->fc)
-+			return -EINVAL;
-+
-+		mlx5_ib_fs_remove_op_fc(dev, opfc, type);
-+		mlx5_fc_destroy(dev->mdev, opfc->fc);
-+		opfc->fc = NULL;
-+	}
-+
-+	return ret;
++	return umem;
 +}
++EXPORT_SYMBOL(ib_umem_get_dummy);
 +
- static const struct ib_device_ops hw_stats_ops = {
- 	.alloc_hw_port_stats = mlx5_ib_alloc_hw_port_stats,
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
-@@ -739,6 +805,7 @@ static const struct ib_device_ops hw_stats_ops = {
- 	.counter_dealloc = mlx5_ib_counter_dealloc,
- 	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
- 	.counter_update_stats = mlx5_ib_counter_update_stats,
-+	.modify_hw_stat = mlx5_ib_modify_stat,
- };
- 
- static const struct ib_device_ops hw_switchdev_stats_ops = {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d81ff5078e5e..cf8b0653f0ce 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -821,6 +821,7 @@ struct mlx5_ib_counters {
- 	u32 num_ext_ppcnt_counters;
- 	u32 num_op_counters;
- 	u16 set_id;
-+	struct mlx5_ib_op_fc opfcs[MLX5_IB_OPCOUNTER_MAX];
- };
- 
- int mlx5_ib_fs_add_op_fc(struct mlx5_ib_dev *dev, u32 port_num,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e825e8e7accf..3e8d570b5852 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -553,10 +553,12 @@ enum ib_stat_flag {
-  * struct rdma_stat_desc
-  * @name - The name of the counter
-  * @flags - Flags of the counter; For example, IB_STAT_FLAG_OPTIONAL
-+ * @priv - Driver private information; Core code should not use
-  */
- struct rdma_stat_desc {
- 	const char *name;
- 	unsigned int flags;
-+	const void *priv;
- };
- 
  /**
+  * ib_umem_release - release memory pinned with ib_umem_get
+  * @umem: umem struct to release
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 94f2c0c0f42c..2d54db152e54 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1386,6 +1386,11 @@ static struct ib_mr *mlx5_ib_get_dm_mr(struct ib_pd *pd, u64 start_addr,
+ 	kfree(in);
+ 
+ 	set_mr_fields(dev, mr, length, acc);
++	mr->umem = ib_umem_get_dummy(&dev->ib_dev);
++	if (IS_ERR(mr->umem)) {
++		err = PTR_ERR(mr->umem);
++		goto err_free;
++	}
+ 
+ 	return &mr->ibmr;
+ 
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index bd64e6749951..18ea9c25207d 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -106,6 +106,7 @@ static inline void __rdma_umem_block_iter_start(struct ib_block_iter *biter,
+ 
+ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
+ 			    size_t size, int access);
++struct ib_umem *ib_umem_get_dummy(struct ib_device *device);
+ void ib_umem_release(struct ib_umem *umem);
+ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ 		      size_t length);
+@@ -167,6 +168,10 @@ static inline struct ib_umem *ib_umem_get(struct ib_device *device,
+ {
+ 	return ERR_PTR(-EOPNOTSUPP);
+ }
++static struct ib_umem *ib_umem_get_dummy(struct ib_device *device)
++{
++	return ERR_PTR(-EOPNOTSUPP);
++}
+ static inline void ib_umem_release(struct ib_umem *umem) { }
+ static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ 		      		    size_t length) {
 -- 
 2.31.1
 
