@@ -4,33 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE1AC433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B088C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18B1161175
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14E4F60F46
+	for <linux-rdma@archiver.kernel.org>; Tue, 14 Sep 2021 23:08:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236174AbhINXJd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Sep 2021 19:09:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45552 "EHLO mail.kernel.org"
+        id S236318AbhINXJl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 14 Sep 2021 19:09:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236173AbhINXJU (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 14 Sep 2021 19:09:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DDED861175;
-        Tue, 14 Sep 2021 23:08:01 +0000 (UTC)
+        id S236160AbhINXJY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 14 Sep 2021 19:09:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 57BD660F46;
+        Tue, 14 Sep 2021 23:08:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631660882;
-        bh=15PY2ejusdGx6QhwsKMJIrqBAsRGLqhJhT1VDDbuxRw=;
+        s=k20201202; t=1631660886;
+        bh=MF/dxjTtUffh8+OcPsREHYqy7izg2J5B+2RWPBjZjJY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sPvZFZpBrjtBUSVJP63B4R9/hjL+pAYDIdWkesI9x+C+0c8NXYkDDWbfXvXTee5H3
-         BbH+z1srgTRNuJ35yAkrO9V9OVpn1wDeChWH1BRofBcrc/Yf6OTjfTrzG7WtnIx9fm
-         AOBPN7F+7nRdmfQlo9hMPs2LFFmuQ9sTrEbdupPOUFXxqgBAJUqvx8NCdbRQp/AWVt
-         1odg1375oyJI5P+NAmgfo8vPMJlytmzy3eruJevJVTYyWl0rSaMwNrIKTDlq669MVO
-         Dl2EniQ3e+0OrLBF1X4fRApVv2NDOVS3nBElpapxPj8PWAG807q86U1OTiVtQ3ltcC
-         W0bZfjeN3zbYQ==
+        b=BWzUffeCJyne/hInhBWlhWtiYPutSuU3Bh983vNngXKQttlMgUTgUihdfZrrUemYc
+         b9WPpKpELBrvPehUDNeEUlew6/iDtKygmBroC5GfiEpu5ptgdcwJ6d3AzfH/u35qPk
+         eSqsr2/pXcJkJJck248wqmgjE112Mb93wLsIYYMWSHlnJX8Fpz+M/SeccS6OWKf2Yt
+         pFV5YkvX4sRiUKHEwiec78m18Kp4ad5K+ABMacncmp8z2AhYS0FBDVp5NbpzPMzmsZ
+         zFRjTLeS7lZLd+AKwDIemdgxWSU37g0AZXI/Zey1njYWbBPeA+LTHD2m+OZveJScV8
+         S6JVaINL/phPA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -51,9 +51,9 @@ Cc:     Aharon Landau <aharonl@nvidia.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v1 09/11] RDMA/mlx5: Add steering support in optional flow counters
-Date:   Wed, 15 Sep 2021 02:07:28 +0300
-Message-Id: <109bb354ac572b844f0a9e679f3c8680937934d8.1631660727.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v1 07/11] RDMA/nldev: Allow optional-counter status configuration through RDMA netlink
+Date:   Wed, 15 Sep 2021 02:07:26 +0300
+Message-Id: <ed88592c676c5926195a6f89926146acaa466641.1631660727.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1631660727.git.leonro@nvidia.com>
 References: <cover.1631660727.git.leonro@nvidia.com>
@@ -65,298 +65,184 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-Adding steering infrastructure for adding and removing optional counter.
-This allows to add and remove the counters dynamically in order not to
-hurt performance.
+Provide an option to allow users to enable/disable optional counters
+through RDMA netlink. Limiting it to users with ADMIN capability only.
+
+Examples:
+1. Enable optional counters cc_rx_ce_pkts and cc_rx_cnp_pkts (and
+   disable all others):
+$ sudo rdma statistic set link rocep8s0f0/1 optional-counters \
+    cc_rx_ce_pkts,cc_rx_cnp_pkts
+
+2. Remove all optional counters:
+$ sudo rdma statistic unset link rocep8s0f0/1 optional-counters
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
+Reviewed-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/fs.c      | 187 +++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  24 ++++
- include/rdma/ib_hdrs.h               |   1 +
- 3 files changed, 212 insertions(+)
+ drivers/infiniband/core/nldev.c | 118 ++++++++++++++++++++++++--------
+ 1 file changed, 88 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
-index 5fbc0a8454b9..b780185d9dc6 100644
---- a/drivers/infiniband/hw/mlx5/fs.c
-+++ b/drivers/infiniband/hw/mlx5/fs.c
-@@ -10,12 +10,14 @@
- #include <rdma/uverbs_std_types.h>
- #include <rdma/mlx5_user_ioctl_cmds.h>
- #include <rdma/mlx5_user_ioctl_verbs.h>
-+#include <rdma/ib_hdrs.h>
- #include <rdma/ib_umem.h>
- #include <linux/mlx5/driver.h>
- #include <linux/mlx5/fs.h>
- #include <linux/mlx5/fs_helpers.h>
- #include <linux/mlx5/accel.h>
- #include <linux/mlx5/eswitch.h>
-+#include <net/inet_ecn.h>
- #include "mlx5_ib.h"
- #include "counters.h"
- #include "devx.h"
-@@ -847,6 +849,191 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 	return prio;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index d9443983efdc..b00e4257823d 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -1897,42 +1897,65 @@ static int nldev_set_sys_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return err;
  }
  
-+enum {
-+	RDMA_RX_ECN_OPCOUNTER_PRIO,
-+	RDMA_RX_CNP_OPCOUNTER_PRIO,
-+};
+-static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+-			       struct netlink_ext_ack *extack)
++static int nldev_stat_set_counter_dynamic_doit(struct nlattr *tb[],
++					       struct ib_device *device,
++					       u32 port)
+ {
+-	u32 index, port, mode, mask = 0, qpn, cntn = 0;
+-	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
+-	struct ib_device *device;
+-	struct sk_buff *msg;
+-	int ret;
++	struct rdma_hw_stats *stats;
++	int rem, i, index, ret = 0;
++	bool need_enable, disabled;
++	struct nlattr *entry_attr;
+ 
+-	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
+-			  nldev_policy, extack);
+-	/* Currently only counter for QP is supported */
+-	if (ret || !tb[RDMA_NLDEV_ATTR_STAT_RES] ||
+-	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
+-	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX] || !tb[RDMA_NLDEV_ATTR_STAT_MODE])
++	stats = ib_get_hw_stats_port(device, port);
++	if (!stats)
+ 		return -EINVAL;
+ 
+-	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
+-		return -EINVAL;
++	for (i = 0; i < stats->num_counters; i++) {
++		if (!(stats->descs[i].flags & IB_STAT_FLAG_OPTIONAL))
++			continue;
+ 
+-	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
+-	device = ib_device_get_by_index(sock_net(skb->sk), index);
+-	if (!device)
+-		return -EINVAL;
++		need_enable = false;
++		disabled = test_bit(i, stats->is_disabled);
++		nla_for_each_nested(entry_attr,
++				    tb[RDMA_NLDEV_ATTR_STAT_HWCOUNTERS], rem) {
++			index = nla_get_u32(entry_attr);
++			if (index >= stats->num_counters)
++				return -EINVAL;
++			if (i == index) {
++				need_enable = true;
++				break;
++			}
++		}
+ 
+-	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
+-	if (!rdma_is_port_valid(device, port)) {
+-		ret = -EINVAL;
+-		goto err;
++		if (disabled && need_enable)
++			ret = rdma_counter_modify(device, port, i, true);
++		else if (!disabled && !need_enable)
++			ret = rdma_counter_modify(device, port, i, false);
 +
-+enum {
-+	RDMA_TX_CNP_OPCOUNTER_PRIO,
-+};
-+
-+static int set_vhca_port_spec(struct mlx5_ib_dev *dev, u32 port_num,
-+			      struct mlx5_flow_spec *spec)
-+{
-+	if (!MLX5_CAP_FLOWTABLE_RDMA_RX(dev->mdev,
-+					ft_field_support.source_vhca_port) ||
-+	    !MLX5_CAP_FLOWTABLE_RDMA_TX(dev->mdev,
-+					ft_field_support.source_vhca_port))
-+		return -EOPNOTSUPP;
-+
-+	MLX5_SET_TO_ONES(fte_match_param, &spec->match_criteria,
-+			 misc_parameters.source_vhca_port);
-+	MLX5_SET(fte_match_param, &spec->match_value,
-+		 misc_parameters.source_vhca_port, port_num);
-+
-+	return 0;
++		if (ret)
++			break;
+ 	}
+ 
++	return ret;
 +}
 +
-+static int set_ecn_ce_spec(struct mlx5_ib_dev *dev, u32 port_num,
-+			   struct mlx5_flow_spec *spec, int ipv)
++static int nldev_stat_set_mode_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++				    struct netlink_ext_ack *extack,
++				    struct nlattr *tb[],
++				    struct ib_device *device, u32 port)
 +{
-+	if (!MLX5_CAP_FLOWTABLE_RDMA_RX(dev->mdev,
-+					ft_field_support.outer_ip_version))
-+		return -EOPNOTSUPP;
++	u32 mode, mask = 0, qpn, cntn = 0;
++	struct sk_buff *msg;
++	int ret;
 +
-+	if (mlx5_core_mp_enabled(dev->mdev) &&
-+	    set_vhca_port_spec(dev, port_num, spec))
-+		return -EOPNOTSUPP;
++	/* Currently only counter for QP is supported */
++	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
++		return -EINVAL;
 +
-+	MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
-+			 outer_headers.ip_ecn);
-+	MLX5_SET(fte_match_param, spec->match_value, outer_headers.ip_ecn,
-+		 INET_ECN_CE);
-+	MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
-+			 outer_headers.ip_version);
-+	MLX5_SET(fte_match_param, spec->match_value, outer_headers.ip_version,
-+		 ipv);
-+
-+	spec->match_criteria_enable =
-+		get_match_criteria_enable(spec->match_criteria);
-+
-+	return 0;
-+}
-+
-+static int set_cnp_spec(struct mlx5_ib_dev *dev, u32 port_num,
-+			struct mlx5_flow_spec *spec)
-+{
-+	if (mlx5_core_mp_enabled(dev->mdev) &&
-+	    set_vhca_port_spec(dev, port_num, spec))
-+		return -EOPNOTSUPP;
-+
-+	MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
-+			 misc_parameters.bth_opcode);
-+	MLX5_SET(fte_match_param, spec->match_value, misc_parameters.bth_opcode,
-+		 IB_BTH_OPCODE_CNP);
-+
-+	spec->match_criteria_enable =
-+		get_match_criteria_enable(spec->match_criteria);
-+
-+	return 0;
-+}
-+
-+int mlx5_ib_fs_add_op_fc(struct mlx5_ib_dev *dev, u32 port_num,
-+			 struct mlx5_ib_op_fc *opfc,
-+			 enum mlx5_ib_optional_counter_type type)
-+{
-+	enum mlx5_flow_namespace_type fn_type;
-+	int priority, i, err, spec_num;
-+	struct mlx5_flow_act flow_act = {};
-+	struct mlx5_flow_destination dst;
-+	struct mlx5_flow_namespace *ns;
-+	struct mlx5_ib_flow_prio *prio;
-+	struct mlx5_flow_spec *spec;
-+
-+	spec = kcalloc(MAX_OPFC_RULES, sizeof(*spec), GFP_KERNEL);
-+	if (!spec)
+ 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (!msg) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
++	if (!msg)
 +		return -ENOMEM;
 +
-+	switch (type) {
-+	case MLX5_IB_OPCOUNTER_CC_RX_CE_PKTS:
-+		if (set_ecn_ce_spec(dev, port_num, &spec[0],
-+				    MLX5_FS_IPV4_VERSION) ||
-+		    set_ecn_ce_spec(dev, port_num, &spec[1],
-+				    MLX5_FS_IPV6_VERSION)) {
-+			err = -EOPNOTSUPP;
-+			goto free;
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
+ 					 RDMA_NLDEV_CMD_STAT_SET),
+@@ -1947,8 +1970,10 @@ static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		if (ret)
+ 			goto err_msg;
+ 	} else {
+-		if (!tb[RDMA_NLDEV_ATTR_RES_LQPN])
++		if (!tb[RDMA_NLDEV_ATTR_RES_LQPN]) {
++			ret = -EINVAL;
+ 			goto err_msg;
 +		}
-+		spec_num = 2;
-+		fn_type = MLX5_FLOW_NAMESPACE_RDMA_RX_COUNTERS;
-+		priority = RDMA_RX_ECN_OPCOUNTER_PRIO;
-+		break;
-+
-+	case MLX5_IB_OPCOUNTER_CC_RX_CNP_PKTS:
-+		if (!MLX5_CAP_FLOWTABLE(dev->mdev,
-+					ft_field_support_2_nic_receive_rdma.bth_opcode) ||
-+		    set_cnp_spec(dev, port_num, &spec[0])) {
-+			err = -EOPNOTSUPP;
-+			goto free;
-+		}
-+		spec_num = 1;
-+		fn_type = MLX5_FLOW_NAMESPACE_RDMA_RX_COUNTERS;
-+		priority = RDMA_RX_CNP_OPCOUNTER_PRIO;
-+		break;
-+
-+	case MLX5_IB_OPCOUNTER_CC_TX_CNP_PKTS:
-+		if (!MLX5_CAP_FLOWTABLE(dev->mdev,
-+					ft_field_support_2_nic_transmit_rdma.bth_opcode) ||
-+		    set_cnp_spec(dev, port_num, &spec[0])) {
-+			err = -EOPNOTSUPP;
-+			goto free;
-+		}
-+		spec_num = 1;
-+		fn_type = MLX5_FLOW_NAMESPACE_RDMA_TX_COUNTERS;
-+		priority = RDMA_TX_CNP_OPCOUNTER_PRIO;
-+		break;
-+
-+	default:
-+		err = -EOPNOTSUPP;
-+		goto free;
-+	}
-+
-+	ns = mlx5_get_flow_namespace(dev->mdev, fn_type);
-+	if (!ns) {
-+		err = -EOPNOTSUPP;
-+		goto free;
-+	}
-+
-+	prio = &dev->flow_db->opfcs[type];
-+	if (!prio->flow_table) {
-+		prio = _get_prio(ns, prio, priority,
-+				 dev->num_ports * MAX_OPFC_RULES, 1, 0);
-+		if (IS_ERR(prio)) {
-+			err = PTR_ERR(prio);
-+			goto free;
-+		}
-+	}
-+
-+	dst.type = MLX5_FLOW_DESTINATION_TYPE_COUNTER;
-+	dst.counter_id = mlx5_fc_id(opfc->fc);
-+
-+	flow_act.action =
-+		MLX5_FLOW_CONTEXT_ACTION_COUNT | MLX5_FLOW_CONTEXT_ACTION_ALLOW;
-+
-+	for (i = 0; i < spec_num; i++) {
-+		opfc->rule[i] = mlx5_add_flow_rules(prio->flow_table, &spec[i],
-+						    &flow_act, &dst, 1);
-+		if (IS_ERR(opfc->rule[i])) {
-+			err = PTR_ERR(opfc->rule[i]);
-+			goto del_rules;
-+		}
-+	}
-+	prio->refcount += spec_num;
-+	kfree(spec);
-+
-+	return 0;
-+
-+del_rules:
-+	for (i -= 1; i >= 0; i--)
-+		mlx5_del_flow_rules(opfc->rule[i]);
-+	put_flow_table(dev, prio, false);
-+free:
-+	kfree(spec);
-+	return err;
+ 		qpn = nla_get_u32(tb[RDMA_NLDEV_ATTR_RES_LQPN]);
+ 		if (tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]) {
+ 			cntn = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]);
+@@ -1970,14 +1995,47 @@ static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	}
+ 
+ 	nlmsg_end(msg, nlh);
+-	ib_device_put(device);
+ 	return rdma_nl_unicast(sock_net(skb->sk), msg, NETLINK_CB(skb).portid);
+ 
+ err_fill:
+ 	rdma_counter_unbind_qpn(device, port, qpn, cntn);
+ err_msg:
+ 	nlmsg_free(msg);
+-err:
++	return ret;
 +}
 +
-+void mlx5_ib_fs_remove_op_fc(struct mlx5_ib_dev *dev,
-+			     struct mlx5_ib_op_fc *opfc,
-+			     enum mlx5_ib_optional_counter_type type)
++static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			       struct netlink_ext_ack *extack)
 +{
-+	int i;
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	u32 index, port;
++	int ret;
 +
-+	for (i = 0; i < MAX_OPFC_RULES && opfc->rule[i]; i++) {
-+		mlx5_del_flow_rules(opfc->rule[i]);
-+		put_flow_table(dev, &dev->flow_db->opfcs[type], true);
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1, nldev_policy,
++			  extack);
++	if (ret)
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(sock_net(skb->sk), index);
++	if (!device)
++		return -EINVAL;
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port)) {
++		ret = -EINVAL;
++		goto end;
 +	}
-+}
 +
- static void set_underlay_qp(struct mlx5_ib_dev *dev,
- 			    struct mlx5_flow_spec *spec,
- 			    u32 underlay_qpn)
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 8215d7ab579d..d81ff5078e5e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -263,6 +263,14 @@ struct mlx5_ib_pp {
- 	struct mlx5_core_dev *mdev;
- };
- 
-+enum mlx5_ib_optional_counter_type {
-+	MLX5_IB_OPCOUNTER_CC_RX_CE_PKTS,
-+	MLX5_IB_OPCOUNTER_CC_RX_CNP_PKTS,
-+	MLX5_IB_OPCOUNTER_CC_TX_CNP_PKTS,
-+
-+	MLX5_IB_OPCOUNTER_MAX,
-+};
-+
- struct mlx5_ib_flow_db {
- 	struct mlx5_ib_flow_prio	prios[MLX5_IB_NUM_FLOW_FT];
- 	struct mlx5_ib_flow_prio	egress_prios[MLX5_IB_NUM_FLOW_FT];
-@@ -271,6 +279,7 @@ struct mlx5_ib_flow_db {
- 	struct mlx5_ib_flow_prio	fdb;
- 	struct mlx5_ib_flow_prio	rdma_rx[MLX5_IB_NUM_FLOW_FT];
- 	struct mlx5_ib_flow_prio	rdma_tx[MLX5_IB_NUM_FLOW_FT];
-+	struct mlx5_ib_flow_prio	opfcs[MLX5_IB_OPCOUNTER_MAX];
- 	struct mlx5_flow_table		*lag_demux_ft;
- 	/* Protect flow steering bypass flow tables
- 	 * when add/del flow rules.
-@@ -797,6 +806,13 @@ struct mlx5_ib_resources {
- 	struct mlx5_ib_port_resources ports[2];
- };
- 
-+#define MAX_OPFC_RULES 2
-+
-+struct mlx5_ib_op_fc {
-+	struct mlx5_fc *fc;
-+	struct mlx5_flow_handle *rule[MAX_OPFC_RULES];
-+};
-+
- struct mlx5_ib_counters {
- 	struct rdma_stat_desc *descs;
- 	size_t *offsets;
-@@ -807,6 +823,14 @@ struct mlx5_ib_counters {
- 	u16 set_id;
- };
- 
-+int mlx5_ib_fs_add_op_fc(struct mlx5_ib_dev *dev, u32 port_num,
-+			 struct mlx5_ib_op_fc *opfc,
-+			 enum mlx5_ib_optional_counter_type type);
-+
-+void mlx5_ib_fs_remove_op_fc(struct mlx5_ib_dev *dev,
-+			     struct mlx5_ib_op_fc *opfc,
-+			     enum mlx5_ib_optional_counter_type type);
-+
- struct mlx5_ib_multiport_info;
- 
- struct mlx5_ib_multiport {
-diff --git a/include/rdma/ib_hdrs.h b/include/rdma/ib_hdrs.h
-index 7e542205861c..8ae07c0ecdf7 100644
---- a/include/rdma/ib_hdrs.h
-+++ b/include/rdma/ib_hdrs.h
-@@ -232,6 +232,7 @@ static inline u32 ib_get_sqpn(struct ib_other_headers *ohdr)
- #define IB_BTH_SE_SHIFT	23
- #define IB_BTH_TVER_MASK	0xf
- #define IB_BTH_TVER_SHIFT	16
-+#define IB_BTH_OPCODE_CNP	0x81
- 
- static inline u8 ib_bth_get_pad(struct ib_other_headers *ohdr)
- {
++	if (tb[RDMA_NLDEV_ATTR_STAT_MODE])
++		ret = nldev_stat_set_mode_doit(skb, nlh, extack, tb, device,
++					       port);
++	else if (tb[RDMA_NLDEV_ATTR_STAT_HWCOUNTER_DYNAMIC])
++		ret = nldev_stat_set_counter_dynamic_doit(tb, device, port);
++	else
++		ret = -EINVAL;
++end:
+ 	ib_device_put(device);
+ 	return ret;
+ }
 -- 
 2.31.1
 
