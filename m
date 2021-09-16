@@ -2,171 +2,135 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18D1BC433F5
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:44:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FFFC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 13:05:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8C2B6108F
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:44:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A42B460F48
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 13:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239561AbhIPMqO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Sep 2021 08:46:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47234 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230299AbhIPMqN (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 16 Sep 2021 08:46:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EBF4761108;
-        Thu, 16 Sep 2021 12:44:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631796293;
-        bh=KLzBiW3VVJ+O27eDAUHuH818CfcF0FIggjnNJ955TqI=;
-        h=References:In-Reply-To:From:Date:Subject:To:From;
-        b=Ufylq44NB1rynFax2+iP0pEyc1lFGZxtmemt4XTmxqqQXVkOF9rYMFRXt5I6zC1jY
-         2eYV6JOxKPkcQUuAeumz6QOIM6NJBa8ziT9lFeDqMlyL1Ycvtyb3U9GmCbHBkhpZMx
-         EXB5Eq7occlceD/WiPQ2kPhoTBl7twxT+nFovEAE9QE4/pAtCmwA33rUowdoPMCI+F
-         ZeVevgvTXw21w3Eo3TslI1jqLMAoybOMV2ihcZGyKgbOimzwSYxuy+4RYMOTE5g/t2
-         c/Tx7icnJShaG/sQHI8DazpmhP0/GIoOMYQSGAkyVNOLb7f7f/iu9071Hqjmd5RpK6
-         so0eXkmFZge8w==
-Received: by mail-ot1-f54.google.com with SMTP id 97-20020a9d006a000000b00545420bff9eso1217864ota.8;
-        Thu, 16 Sep 2021 05:44:52 -0700 (PDT)
-X-Gm-Message-State: AOAM530x00I2kdKGpggE8AKliBULgRyIwUrGvMep5brVQmFssuqzsBW9
-        eLgvZa5WIBBF+xv8hSw8aDP9uk/PnTl6JPpcUlo=
-X-Google-Smtp-Source: ABdhPJzYLUSJZsh0jo8CcdLUrWa60FoaIm/wgPz4w5rfGXbsO/CMqYBIPFe4um0VFr4rFpmdHQF7TW4xUd8HJFD8LqY=
-X-Received: by 2002:a05:6830:12d7:: with SMTP id a23mr4519312otq.102.1631796292308;
- Thu, 16 Sep 2021 05:44:52 -0700 (PDT)
+        id S239809AbhIPNGW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Sep 2021 09:06:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56780 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239805AbhIPNGW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Sep 2021 09:06:22 -0400
+Received: from mail-qv1-xf2c.google.com (mail-qv1-xf2c.google.com [IPv6:2607:f8b0:4864:20::f2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAA05C061764
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 06:05:01 -0700 (PDT)
+Received: by mail-qv1-xf2c.google.com with SMTP id cf2so4012229qvb.10
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 06:05:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=acPxGanWudVp0KiXHdjtVTDLfzNEsbUYMSqmQk92sDI=;
+        b=BqSjPT7X1NzzdHsX8YIObaF7E3kv9ttGWXhE/fKF8+/SvXJmsRT3sVeBJ5loU/NEk5
+         tHTgHEFmuVAGxxQfkVXVbvvAgxxPDrtkPgdc/i1e871vE2JFhiY8AjQLUhlADU7zDY+l
+         AwneVt4STcQs7miWFgJ/7sZaylwFoRBKc0KCUzsp+wmGjk9ZfbF1iSFUaKYXAOao0/5o
+         qFtMNtOf1oH+ZBVuj2SlES7EEdBPFotKIJKkfK941TYw6ZuiCgPRJxdDFXOBpxWFgDHm
+         6k6Mq64k36gK/cuDtlhvLY7sz/29XDjRwhTVxlaaKYxU7poxfKeBNLB/1ra/SiW0RVMA
+         adhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=acPxGanWudVp0KiXHdjtVTDLfzNEsbUYMSqmQk92sDI=;
+        b=O3hBPAroQeKoANLcgc70xY3nKFmKO+9mBLy4j77kVyKJO7PQvtLfrpVRiwhINErQlY
+         Lx8MFOyPHgKWbF3OVi1qwbW3ECj43bv7Re0AA10lIDNyqtddMNR+BJaAXqy04awEYZzp
+         jA9uy1LGAXKuDxFc1QtLHp9FhHIrbVyqhIj3QnAih3UL/xJKkvxXJKf4wqbYT/Gc25vn
+         wRb+IhHsfX2BPCMSIXxlyqZM5aPkDKZ/qDKM8+E3+FG3DA6Upk50uOfqnVB8nTcycdl6
+         1PgqMv2OGH41QF7AQbEe5433C51t9RYOLy7W6TzbE0qK31EJckvJGwuRsnNcq1AfmXzx
+         xz7Q==
+X-Gm-Message-State: AOAM532mfNPpEDNBRKak2z3MXjOctAZ8mM5igkLGTEL/PWc5bgGsogrG
+        X/Ed7tj+l5EUGfMK9Y+a7Nm1BQ==
+X-Google-Smtp-Source: ABdhPJwGR/9rt1lMFSmo/fGCtn7y0alVkwxO63R7/ik+cH+HR/fyXg+bbMT6Ll22OSbvRsdIhIoowA==
+X-Received: by 2002:a0c:be85:: with SMTP id n5mr5081009qvi.59.1631797500834;
+        Thu, 16 Sep 2021 06:05:00 -0700 (PDT)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id h17sm1964816qtu.68.2021.09.16.06.05.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Sep 2021 06:05:00 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1mQr4V-001Me8-4O; Thu, 16 Sep 2021 10:04:59 -0300
+Date:   Thu, 16 Sep 2021 10:04:59 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Dmitry Vyukov <dvyukov@google.com>
+Cc:     syzbot <syzbot+dc3dfba010d7671e05f5@syzkaller.appspotmail.com>,
+        dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] KASAN: use-after-free Read in addr_handler (4)
+Message-ID: <20210916130459.GJ3544071@ziepe.ca>
+References: <000000000000ffdae005cc08037e@google.com>
+ <20210915193601.GI3544071@ziepe.ca>
+ <CACT4Y+bxDuLggCzkLAchrGkKQxC2v4bhc01ciBg+oc17q2=HHw@mail.gmail.com>
 MIME-Version: 1.0
-References: <20210912165309.98695-1-ogabbay@kernel.org> <YUCvNzpyC091KeaJ@phenom.ffwll.local>
- <20210914161218.GF3544071@ziepe.ca> <CAFCwf13322953Txr3Afa_MomuD148vnfpEog0xzW7FPWH9=6fg@mail.gmail.com>
- <YUM5JoMMK7gceuKZ@phenom.ffwll.local>
-In-Reply-To: <YUM5JoMMK7gceuKZ@phenom.ffwll.local>
-From:   Oded Gabbay <ogabbay@kernel.org>
-Date:   Thu, 16 Sep 2021 15:44:25 +0300
-X-Gmail-Original-Message-ID: <CAFCwf10MnK5KPBaeWar4tALGz9n8+-B8toXnqurcebZ8Y_Jjpw@mail.gmail.com>
-Message-ID: <CAFCwf10MnK5KPBaeWar4tALGz9n8+-B8toXnqurcebZ8Y_Jjpw@mail.gmail.com>
-Subject: Re: [PATCH v6 0/2] Add p2p via dmabuf to habanalabs
-To:     Oded Gabbay <ogabbay@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        Gal Pressman <galpress@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>,
-        Maling list - DRI developers 
-        <dri-devel@lists.freedesktop.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Dave Airlie <airlied@gmail.com>,
-        Alex Deucher <alexander.deucher@amd.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Christoph Hellwig <hch@lst.de>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
-        <linaro-mm-sig@lists.linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+bxDuLggCzkLAchrGkKQxC2v4bhc01ciBg+oc17q2=HHw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 16, 2021 at 3:31 PM Daniel Vetter <daniel@ffwll.ch> wrote:
->
-> On Wed, Sep 15, 2021 at 10:45:36AM +0300, Oded Gabbay wrote:
-> > On Tue, Sep 14, 2021 at 7:12 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Thu, Sep 16, 2021 at 09:43:19AM +0200, Dmitry Vyukov wrote:
+> On Wed, 15 Sept 2021 at 21:36, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> >
+> > On Wed, Sep 15, 2021 at 05:41:22AM -0700, syzbot wrote:
+> > > Hello,
 > > >
-> > > On Tue, Sep 14, 2021 at 04:18:31PM +0200, Daniel Vetter wrote:
-> > > > On Sun, Sep 12, 2021 at 07:53:07PM +0300, Oded Gabbay wrote:
-> > > > > Hi,
-> > > > > Re-sending this patch-set following the release of our user-space TPC
-> > > > > compiler and runtime library.
-> > > > >
-> > > > > I would appreciate a review on this.
-> > > >
-> > > > I think the big open we have is the entire revoke discussions. Having the
-> > > > option to let dma-buf hang around which map to random local memory ranges,
-> > > > without clear ownership link and a way to kill it sounds bad to me.
-> > > >
-> > > > I think there's a few options:
-> > > > - We require revoke support. But I've heard rdma really doesn't like that,
-> > > >   I guess because taking out an MR while holding the dma_resv_lock would
-> > > >   be an inversion, so can't be done. Jason, can you recap what exactly the
-> > > >   hold-up was again that makes this a no-go?
+> > > syzbot found the following issue on:
 > > >
-> > > RDMA HW can't do revoke.
->
-> Like why? I'm assuming when the final open handle or whatever for that MR
-> is closed, you do clean up everything? Or does that MR still stick around
-> forever too?
->
-> > > So we have to exclude almost all the HW and several interesting use
-> > > cases to enable a revoke operation.
+> > > HEAD commit:    926de8c4326c Merge tag 'acpi-5.15-rc1-3' of git://git.kern..
+> > > git tree:       upstream
+> > > console output: https://syzkaller.appspot.com/x/log.txt?x=11fd67ed300000
+> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=37df9ef5660a8387
+> > > dashboard link: https://syzkaller.appspot.com/bug?extid=dc3dfba010d7671e05f5
+> > > compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
 > > >
-> > > >   - For non-revokable things like these dma-buf we'd keep a drm_master
-> > > >     reference around. This would prevent the next open to acquire
-> > > >     ownership rights, which at least prevents all the nasty potential
-> > > >     problems.
+> > > Unfortunately, I don't have any reproducer for this issue yet.
 > > >
-> > > This is what I generally would expect, the DMABUF FD and its DMA
-> > > memory just floats about until the unrevokable user releases it, which
-> > > happens when the FD that is driving the import eventually gets closed.
-> > This is exactly what we are doing in the driver. We make sure
-> > everything is valid until the unrevokable user releases it and that
-> > happens only when the dmabuf fd gets closed.
-> > And the user can't close it's fd of the device until he performs the
-> > above, so there is no leakage between users.
->
-> Maybe I got the device security model all wrong, but I thought Guadi is
-> single user, and the only thing it protects is the system against the
-> Gaudi device trhough iommu/device gart. So roughly the following can
-> happen:
->
-> 1. User A opens gaudi device, sets up dma-buf export
->
-> 2. User A registers that with RDMA, or anything else that doesn't support
-> revoke.
->
-> 3. User A closes gaudi device
-This can not happen without User A closing the FD of the dma-buf it exported.
-We prevent User A from closing the device because when it exported the
-dma-buf, the driver's code took a refcnt of the user's private
-structure. You can see that in export_dmabuf_common() in the 2nd
-patch. There is a call there to hl_ctx_get.
-So even if User A calls close(device_fd), the driver won't let any
-other user open the device until User A closes the fd of the dma-buf
-object.
+> > > IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> > > Reported-by: syzbot+dc3dfba010d7671e05f5@syzkaller.appspotmail.com
+> >
+> > #syz dup: KASAN: use-after-free Write in addr_resolve (2)
+> >
+> > Frankly, I still can't figure out how this is happening
+> >
+> > RDMA_USER_CM_CMD_RESOLVE_IP triggers a background work and
+> > RDMA_USER_CM_CMD_DESTROY_ID triggers destruction of the memory the
+> > work touches.
+> >
+> > rdma_addr_cancel() is supposed to ensure that the work isn't and won't
+> > run.
+> >
+> > So to hit this we have to either not call rdma_addr_cancel() when it
+> > is need, or rdma_addr_cancel() has to be broken and continue to allow
+> > the work.
+> >
+> > I could find nothing along either path, though rdma_addr_cancel()
+> > relies on some complicated properties of the workqueues I'm not
+> > entirely positive about.
+> 
+> I stared at the code, but it's too complex to grasp it all entirely.
+> There are definitely lots of tricky concurrent state transitions and
+> potential for unexpected interleavings. My bet would be on some tricky
+> hard-to-trigger thread interleaving.
 
-Moreover, once User A will close the dma-buf fd and the device is
-released, the driver will scrub the device memory (this is optional
-for systems who care about security).
+From a uapi perspective the entire thing is serialized with a mutex..
 
-And AFAIK, User A can't close the dma-buf fd once it registered it
-with RDMA, without doing unregister.
-This can be seen in ib_umem_dmabuf_get() which calls dma_buf_get()
-which does fget(fd)
+> The only thing I can think of is adding more WARNINGs to the code to
+> check more of these assumptions. But I don't know if there are any
+> useful testable assumptions...
 
+Do you have any idea why we can't get a reproduction out of syzkaller
+here? 
 
->
-> 4. User B opens gaudi device, assumes that it has full control over the
-> device and uploads some secrets, which happen to end up in the dma-buf
-> region user A set up
->
-> 5. User B extracts secrets.
->
-> > > I still don't think any of the complexity is needed, pinnable memory
-> > > is a thing in Linux, just account for it in mlocked and that is
-> > > enough.
->
-> It's not mlocked memory, it's mlocked memory and I can exfiltrate it.
-> Mlock is fine, exfiltration not so much. It's mlock, but a global pool and
-> if you didn't munlock then the next mlock from a completely different user
-> will alias with your stuff.
->
-> Or is there something that prevents that? Oded at least explain that gaudi
-> works like a gpu from 20 years ago, single user, no security at all within
-> the device.
-> -Daniel
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
+I feel less comfortable with syzkaller's debug output, can you give
+some idea what it might be doing concurrently?
+
+Jason
