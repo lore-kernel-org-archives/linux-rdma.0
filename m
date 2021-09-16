@@ -2,119 +2,178 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14953C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 16:02:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66221C433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 17:03:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E200560232
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 16:02:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 519E760EE4
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 17:03:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240473AbhIPQDr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Sep 2021 12:03:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42322 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240464AbhIPQDr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Sep 2021 12:03:47 -0400
-Received: from mail-qt1-x830.google.com (mail-qt1-x830.google.com [IPv6:2607:f8b0:4864:20::830])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4C5C061764
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 09:02:26 -0700 (PDT)
-Received: by mail-qt1-x830.google.com with SMTP id m9so5996081qtk.4
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 09:02:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=CmOTDYp80F4kUyraA9ML+LX4bjdl3k2IyBR2TsA9nis=;
-        b=YntFQPmuQYLQD9/0eLL1n2bggwYEgCI5uBCHuXiSN/yH+l8cBGuHRq5ZynaqF9dMzc
-         63fO3H7y5YN7JF/KRc1Oa5t4DFGzEGk9p9RlbKmdFmB78+H90sAuUBSh2bXUR645+vqP
-         XMh+fdOc+92Pfs8PAJf/jP0+FxUnVW+y1P4LXPCGHhO5+Yn51uzKoFKFtxIlRHQkLUmY
-         ilcTMYEI7KfP5oX+L83qizwQwyqSNxq03VNcKWKJ+b9DN7Iqq282t+9/IUUrvSPvJV4d
-         iMa6nZE/5yf8akhoxIIFRwJNoJ5ghBPiO15FbqEoL5/2qew9C0yoZfXsnkb1CXE+Vv8g
-         3omA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=CmOTDYp80F4kUyraA9ML+LX4bjdl3k2IyBR2TsA9nis=;
-        b=JGXRderFZofzIjc8jx/5kVU3eZLGyAlkXzq8ujFfNZYpETja2u830yuLejaSx5/xwD
-         4P/XeLSjMydslOpZXedrxN23qIa4fcc/3Nabrm6hpd7FwaIoTHJv9GJDubwzO2Po9BHm
-         h+Z8j/lzabjXuZUCxzZR9l1pzST5DaDCI0sG2F6/MfC/yOViKP96+ZYNFMiQuGvpc0zO
-         LvqxvO4COAuwnJCUg48/W2iuxpTOapegCDk7hhMfaYkcWHPC8aKLnTN+Iu5g8HGXSG3U
-         1VFkoWYzOi+QAFlyVCvnEcFwwtrnv7RjisVN9y1w1XMazAb+kXHpt22irHjZSGDB1+du
-         uOHA==
-X-Gm-Message-State: AOAM530Iura4TWq21lbNq+R80wNjjTqY53dMzalHg9E584K9jdg5RD9W
-        XZi/MVXVAE1x0ePuNAFWLj2EuOrNG92LlA==
-X-Google-Smtp-Source: ABdhPJwY8gWfa0MI0w0r5Y5Vr92o09KHHYetjPmTfkNKWw7/GxQb37zPUsm44nzsMjACNWnWgly8SQ==
-X-Received: by 2002:ac8:58d0:: with SMTP id u16mr5768320qta.189.1631808145628;
-        Thu, 16 Sep 2021 09:02:25 -0700 (PDT)
-Received: from ziepe.ca ([206.223.160.26])
-        by smtp.gmail.com with ESMTPSA id y185sm2759926qkb.36.2021.09.16.09.02.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Sep 2021 09:02:25 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1mQtqC-001nJt-6h; Thu, 16 Sep 2021 13:02:24 -0300
-Date:   Thu, 16 Sep 2021 13:02:24 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Dmitry Vyukov <dvyukov@google.com>
-Cc:     syzbot <syzbot+dc3dfba010d7671e05f5@syzkaller.appspotmail.com>,
-        dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-        Aleksandr Nogikh <nogikh@google.com>
-Subject: Re: [syzbot] KASAN: use-after-free Read in addr_handler (4)
-Message-ID: <20210916160224.GP3544071@ziepe.ca>
-References: <000000000000ffdae005cc08037e@google.com>
- <20210915193601.GI3544071@ziepe.ca>
- <CACT4Y+bxDuLggCzkLAchrGkKQxC2v4bhc01ciBg+oc17q2=HHw@mail.gmail.com>
- <20210916130459.GJ3544071@ziepe.ca>
- <CACT4Y+aUFbj3_+iBpeP2qrQ=RbGrssr0-6EZv1nx73at7fdbfA@mail.gmail.com>
+        id S245450AbhIPREw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Sep 2021 13:04:52 -0400
+Received: from mga03.intel.com ([134.134.136.65]:22328 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1348350AbhIPRCe (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Sep 2021 13:02:34 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10109"; a="222664738"
+X-IronPort-AV: E=Sophos;i="5.85,299,1624345200"; 
+   d="scan'208";a="222664738"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2021 09:54:52 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,299,1624345200"; 
+   d="scan'208";a="530236958"
+Received: from lkp-server01.sh.intel.com (HELO 285e7b116627) ([10.239.97.150])
+  by fmsmga004.fm.intel.com with ESMTP; 16 Sep 2021 09:54:50 -0700
+Received: from kbuild by 285e7b116627 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1mQuev-0001De-TO; Thu, 16 Sep 2021 16:54:49 +0000
+Date:   Fri, 17 Sep 2021 00:54:37 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ ad17bbef3dd573da937816edc0ab84fed6a17fa6
+Message-ID: <614376cd.2gu6824vD7XtJn/J%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACT4Y+aUFbj3_+iBpeP2qrQ=RbGrssr0-6EZv1nx73at7fdbfA@mail.gmail.com>
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 16, 2021 at 04:45:27PM +0200, Dmitry Vyukov wrote:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
+branch HEAD: ad17bbef3dd573da937816edc0ab84fed6a17fa6  RDMA/rxe: remove the unnecessary variable
 
-> It looks like a very hard to trigger race (few crashes, no reproducer,
-> but KASAN reports look sensible). That's probably the reason syzkaller
-> can't create a reproducer.
-> From the log it looks like it was triggered by one of these programs
-> below. But I tried to reproduce manually and had no success.
-> We are currently doing some improvements to race triggering code in
-> syzkaller, and may try to use this as a litmus test to see if
-> syzkaller will do any better:
-> https://github.com/google/syzkaller/issues/612#issuecomment-920961538
+elapsed time: 2636m
 
-I would suggest to look at this:
+configs tested: 111
+configs skipped: 3
 
-https://patchwork.kernel.org/project/linux-rdma/patch/0-v1-9fbb33f5e201+2a-cma_listen_jgg@nvidia.com/
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Which I think should be completely deterministic, just do the RDMA_CM
-ops in the right order, but syzbot didn't find a reproducer.
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+i386                 randconfig-c001-20210916
+riscv                            alldefconfig
+mips                malta_qemu_32r6_defconfig
+arm                        mvebu_v5_defconfig
+arm                         vf610m4_defconfig
+powerpc                      ppc40x_defconfig
+sh                          rsk7201_defconfig
+powerpc                    amigaone_defconfig
+powerpc                 mpc8540_ads_defconfig
+powerpc                 canyonlands_defconfig
+powerpc                     kmeter1_defconfig
+sh                     sh7710voipgw_defconfig
+arm                         cm_x300_defconfig
+sh                          polaris_defconfig
+mips                        omega2p_defconfig
+arm                        multi_v5_defconfig
+arc                          axs103_defconfig
+ia64                                defconfig
+nios2                            allyesconfig
+powerpc                    mvme5100_defconfig
+arm                       cns3420vb_defconfig
+mips                        nlm_xlr_defconfig
+sh                                  defconfig
+riscv                    nommu_virt_defconfig
+i386                                defconfig
+x86_64               randconfig-c001-20210916
+arm                  randconfig-c002-20210916
+ia64                             allmodconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+nds32                               defconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+xtensa                           allyesconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                                defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                             allyesconfig
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a016-20210916
+x86_64               randconfig-a013-20210916
+x86_64               randconfig-a012-20210916
+x86_64               randconfig-a011-20210916
+x86_64               randconfig-a014-20210916
+x86_64               randconfig-a015-20210916
+i386                 randconfig-a016-20210916
+i386                 randconfig-a015-20210916
+i386                 randconfig-a011-20210916
+i386                 randconfig-a012-20210916
+i386                 randconfig-a013-20210916
+i386                 randconfig-a014-20210916
+arc                  randconfig-r043-20210915
+riscv                randconfig-r042-20210916
+s390                 randconfig-r044-20210916
+arc                  randconfig-r043-20210916
+riscv                    nommu_k210_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+riscv                            allyesconfig
+riscv                            allmodconfig
+x86_64                    rhel-8.3-kselftests
+um                           x86_64_defconfig
+um                             i386_defconfig
+x86_64                           allyesconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                                  kexec
 
-The "healer" fork did however:
+clang tested configs:
+riscv                randconfig-c006-20210916
+x86_64               randconfig-c007-20210916
+mips                 randconfig-c004-20210916
+powerpc              randconfig-c003-20210916
+arm                  randconfig-c002-20210916
+i386                 randconfig-c001-20210916
+s390                 randconfig-c005-20210916
+x86_64               randconfig-a002-20210916
+x86_64               randconfig-a003-20210916
+x86_64               randconfig-a006-20210916
+x86_64               randconfig-a004-20210916
+x86_64               randconfig-a005-20210916
+x86_64               randconfig-a001-20210916
+i386                 randconfig-a004-20210916
+i386                 randconfig-a005-20210916
+i386                 randconfig-a006-20210916
+i386                 randconfig-a002-20210916
+i386                 randconfig-a003-20210916
+i386                 randconfig-a001-20210916
+riscv                randconfig-r042-20210915
+hexagon              randconfig-r045-20210915
+s390                 randconfig-r044-20210915
+hexagon              randconfig-r041-20210915
 
-https://lore.kernel.org/all/CACkBjsY-CNzO74XGo0uJrcaZTubC+Yw9Sg1bNNi+evUOGaZTCg@mail.gmail.com/#r
-
-> Answering your question re what was running concurrently with what.
-> Each of the syscalls in these programs can run up to 2 times and
-> ultimately any of these calls can race with any. Potentially syzkaller
-> can predict values kernel will return (e.g. id's) before kernel
-> actually returned them. I guess this does not restrict search area for
-> the bug a lot...
-
-Well, it does help if it is only those system calls
-
-And I think I can discount the workqueue as a problem as I'd expect a
-kasn hit on the 'req' allocation if the workqueue was malfunctioning -
-thus I must conclude we are not calling work cancelation for some
-reason.
-
-Jason
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
