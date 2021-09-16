@@ -2,140 +2,183 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67486C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:15:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04467C433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:31:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CAAF60E52
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:15:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9EED60231
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 12:31:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239308AbhIPMRG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Sep 2021 08:17:06 -0400
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:65178 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S239292AbhIPMRG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Sep 2021 08:17:06 -0400
-IronPort-Data: =?us-ascii?q?A9a23=3Axgv2samXVYOiELu01JGhb8vo5gxjJERdPkR7XQ2?=
- =?us-ascii?q?eYbTBsI5bpzIEzjQdD2CBMq7ZajDzLY1zPIS09U9SsZXWydBrTAI9+CA2RRqmi?=
- =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYuWJQUVUj/nSH+KtUbC?=
- =?us-ascii?q?cYEideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
- =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
- =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ2dxLuoz2S?=
- =?us-ascii?q?xYBMLDOmfgGTl9TFCQW0ahuoeabfCfl6ZPOp6HBWz62qxl0N2ksJYAR4P1wB2F?=
- =?us-ascii?q?W+NQXLTkMalaIgOfe6KCqSPt9hJ57dJHDM4YWu3UmxjbcZd4iTJfFa6bH/9lV2?=
- =?us-ascii?q?HE3nM8mNfTRaOIfdztjbR2GaBpKUn8TCZQjjKKyinz2WyNXpUjTpqct5WXXigt?=
- =?us-ascii?q?r39DQ3HD9EjCRbZwN2B/G+SSdpCKkaiz2/ee3kVKtmk9ATMeV9c8jZL8vKQ=3D?=
- =?us-ascii?q?=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A8jfVbK1vXFXAImpFrV8awwqjBNckLtp133Aq?=
- =?us-ascii?q?2lEZdPU1SKylfq+V8cjzuSWftN9zYhAdcLK7V5VoKEm0nfVICOEqTNSftWLd1F?=
- =?us-ascii?q?dAQrsN0bff?=
-X-IronPort-AV: E=Sophos;i="5.85,298,1624291200"; 
-   d="scan'208";a="114572075"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 16 Sep 2021 20:15:42 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-        by cn.fujitsu.com (Postfix) with ESMTP id 45D244D0DC6E;
-        Thu, 16 Sep 2021 20:15:41 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 16 Sep 2021 20:15:31 +0800
-Received: from Fedora-31.g08.fujitsu.local (10.167.220.99) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 16 Sep 2021 20:15:29 +0800
-From:   Xiao Yang <yangx.jy@fujitsu.com>
-To:     <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>
-CC:     <rpearsonhpe@gmail.com>, <zyjzyj2000@gmail.com>, <leon@kernel.org>,
-        "Xiao Yang" <yangx.jy@fujitsu.com>
-Subject: [PATCH v3 4/5] RDMA/rxe: Set partial attributes when completion status != IBV_WC_SUCCESS
-Date:   Thu, 16 Sep 2021 20:46:51 +0800
-Message-ID: <20210916124652.1304649-5-yangx.jy@fujitsu.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20210916124652.1304649-1-yangx.jy@fujitsu.com>
-References: <20210916124652.1304649-1-yangx.jy@fujitsu.com>
+        id S239511AbhIPMc7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Sep 2021 08:32:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48784 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239363AbhIPMc7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Sep 2021 08:32:59 -0400
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CADF9C061764
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 05:31:38 -0700 (PDT)
+Received: by mail-wr1-x42a.google.com with SMTP id w17so1071276wrv.10
+        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 05:31:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ffwll.ch; s=google;
+        h=date:from:to:cc:subject:message-id:mail-followup-to:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=yVn4bOUftTP0XsVCYOhP2MVjOD5RXLBjZ2je0UhYRc0=;
+        b=UllxjW1pQN4AmYZEbLg7VrErGUqD+1ja2ihP7bNIWt/uTZGlmL71/XP9jjO6KhmKY0
+         fiRtXpVcCH1hQKOY2jdfchmwYGS0XP4lfMRLycLsW6+OfxpIvDESU51aAUOmrcst/rON
+         qWFSoQtqfz711rHCKql1DqY94oNcjEZ2J6WVI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to;
+        bh=yVn4bOUftTP0XsVCYOhP2MVjOD5RXLBjZ2je0UhYRc0=;
+        b=LSSQn6mqUiEGRqz58HuU8IZ06c5VbQWTP0YmNuvJJVvp+gxoq/me8XmO6NS5OmwS3T
+         DWBo7wFJxGrwdPRoCbjOWyXUaASDx61CJfSFsAgZLLPOm6OOT9xgSmK/jveELpEMxxt8
+         7Ca6PlEGu/7iBizHx6skEb5a5Kvsd3kYPNwZepn2uvVkJbtXHrJa2CfSlD5aZlXmq1zl
+         PddMbXEMnstvg8m6cxPl6Q4UJNCsFeQd+5WkR5ey1PTfHP3M7DH3xU3M09TOSZ7KT1sN
+         0vQgDnlMa0V47Oys7U5/9VdGp1WDGDHak2PU4EHgDCP21aojq2BsrShh+sKbaGXv5EI9
+         xZJg==
+X-Gm-Message-State: AOAM533MSjH1JSzoDOPM7qcgx9kKaNaIsOIsUb0OZ2VM9rdIlyKZ2Kld
+        aOm5FceJsndaWayAIIJZzZB8vg==
+X-Google-Smtp-Source: ABdhPJyNeVVi6f4gVXn8CFkrZVMl66WAIJsG4jZYF2OG8FsFOYQQOCNHITS4sqBQA+1lZuWg++BXfA==
+X-Received: by 2002:a5d:6da9:: with SMTP id u9mr5766027wrs.155.1631795497459;
+        Thu, 16 Sep 2021 05:31:37 -0700 (PDT)
+Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
+        by smtp.gmail.com with ESMTPSA id g5sm3285526wrq.80.2021.09.16.05.31.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Sep 2021 05:31:36 -0700 (PDT)
+Date:   Thu, 16 Sep 2021 14:31:34 +0200
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     Oded Gabbay <ogabbay@kernel.org>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Maling list - DRI developers 
+        <dri-devel@lists.freedesktop.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Doug Ledford <dledford@redhat.com>,
+        Dave Airlie <airlied@gmail.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" 
+        <linaro-mm-sig@lists.linaro.org>
+Subject: Re: [PATCH v6 0/2] Add p2p via dmabuf to habanalabs
+Message-ID: <YUM5JoMMK7gceuKZ@phenom.ffwll.local>
+Mail-Followup-To: Oded Gabbay <ogabbay@kernel.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Maling list - DRI developers <dri-devel@lists.freedesktop.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Doug Ledford <dledford@redhat.com>, Dave Airlie <airlied@gmail.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Leon Romanovsky <leonro@nvidia.com>, Christoph Hellwig <hch@lst.de>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK" <linaro-mm-sig@lists.linaro.org>
+References: <20210912165309.98695-1-ogabbay@kernel.org>
+ <YUCvNzpyC091KeaJ@phenom.ffwll.local>
+ <20210914161218.GF3544071@ziepe.ca>
+ <CAFCwf13322953Txr3Afa_MomuD148vnfpEog0xzW7FPWH9=6fg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 45D244D0DC6E.AA178
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAFCwf13322953Txr3Afa_MomuD148vnfpEog0xzW7FPWH9=6fg@mail.gmail.com>
+X-Operating-System: Linux phenom 5.10.0-8-amd64 
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As ibv_poll_cq()'s manual said, only partial attributes are valid
-when completion status != IBV_WC_SUCCESS.
+On Wed, Sep 15, 2021 at 10:45:36AM +0300, Oded Gabbay wrote:
+> On Tue, Sep 14, 2021 at 7:12 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> >
+> > On Tue, Sep 14, 2021 at 04:18:31PM +0200, Daniel Vetter wrote:
+> > > On Sun, Sep 12, 2021 at 07:53:07PM +0300, Oded Gabbay wrote:
+> > > > Hi,
+> > > > Re-sending this patch-set following the release of our user-space TPC
+> > > > compiler and runtime library.
+> > > >
+> > > > I would appreciate a review on this.
+> > >
+> > > I think the big open we have is the entire revoke discussions. Having the
+> > > option to let dma-buf hang around which map to random local memory ranges,
+> > > without clear ownership link and a way to kill it sounds bad to me.
+> > >
+> > > I think there's a few options:
+> > > - We require revoke support. But I've heard rdma really doesn't like that,
+> > >   I guess because taking out an MR while holding the dma_resv_lock would
+> > >   be an inversion, so can't be done. Jason, can you recap what exactly the
+> > >   hold-up was again that makes this a no-go?
+> >
+> > RDMA HW can't do revoke.
 
-Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe_comp.c | 45 +++++++++++++++-------------
- 1 file changed, 25 insertions(+), 20 deletions(-)
+Like why? I'm assuming when the final open handle or whatever for that MR
+is closed, you do clean up everything? Or does that MR still stick around
+forever too?
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 148fe3dd3b32..6b71e020009b 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -383,30 +383,35 @@ static inline enum comp_state do_atomic(struct rxe_qp *qp,
- static void make_send_cqe(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 			  struct rxe_cqe *cqe)
- {
-+	struct ib_wc *wc = &cqe->ibwc;
-+	struct ib_uverbs_wc *uwc = &cqe->uibwc;
-+
- 	memset(cqe, 0, sizeof(*cqe));
- 
- 	if (!qp->sq.is_user) {
--		struct ib_wc		*wc	= &cqe->ibwc;
--
--		wc->wr_id		= wqe->wr.wr_id;
--		wc->status		= wqe->status;
--		wc->opcode		= wr_to_wc_opcode(wqe->wr.opcode);
--		if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
--		    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
--			wc->wc_flags = IB_WC_WITH_IMM;
--		wc->byte_len		= wqe->dma.length;
--		wc->qp			= &qp->ibqp;
-+		wc->wr_id = wqe->wr.wr_id;
-+		wc->status = wqe->status;
-+		wc->qp = &qp->ibqp;
- 	} else {
--		struct ib_uverbs_wc	*uwc	= &cqe->uibwc;
--
--		uwc->wr_id		= wqe->wr.wr_id;
--		uwc->status		= wqe->status;
--		uwc->opcode		= wr_to_wc_opcode(wqe->wr.opcode);
--		if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
--		    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
--			uwc->wc_flags = IB_WC_WITH_IMM;
--		uwc->byte_len		= wqe->dma.length;
--		uwc->qp_num		= qp->ibqp.qp_num;
-+		uwc->wr_id = wqe->wr.wr_id;
-+		uwc->status = wqe->status;
-+		uwc->qp_num = qp->ibqp.qp_num;
-+	}
-+
-+	if (wqe->status == IB_WC_SUCCESS) {
-+		if (!qp->sq.is_user) {
-+			wc->opcode = wr_to_wc_opcode(wqe->wr.opcode);
-+			if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
-+			    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
-+				wc->wc_flags = IB_WC_WITH_IMM;
-+			wc->byte_len = wqe->dma.length;
-+		} else {
-+			uwc->opcode = wr_to_wc_opcode(wqe->wr.opcode);
-+			if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
-+			    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
-+				uwc->wc_flags = IB_WC_WITH_IMM;
-+			uwc->byte_len = wqe->dma.length;
-+		}
- 	}
- }
- 
+> > So we have to exclude almost all the HW and several interesting use
+> > cases to enable a revoke operation.
+> >
+> > >   - For non-revokable things like these dma-buf we'd keep a drm_master
+> > >     reference around. This would prevent the next open to acquire
+> > >     ownership rights, which at least prevents all the nasty potential
+> > >     problems.
+> >
+> > This is what I generally would expect, the DMABUF FD and its DMA
+> > memory just floats about until the unrevokable user releases it, which
+> > happens when the FD that is driving the import eventually gets closed.
+> This is exactly what we are doing in the driver. We make sure
+> everything is valid until the unrevokable user releases it and that
+> happens only when the dmabuf fd gets closed.
+> And the user can't close it's fd of the device until he performs the
+> above, so there is no leakage between users.
+
+Maybe I got the device security model all wrong, but I thought Guadi is
+single user, and the only thing it protects is the system against the
+Gaudi device trhough iommu/device gart. So roughly the following can
+happen:
+
+1. User A opens gaudi device, sets up dma-buf export
+
+2. User A registers that with RDMA, or anything else that doesn't support
+revoke.
+
+3. User A closes gaudi device
+
+4. User B opens gaudi device, assumes that it has full control over the
+device and uploads some secrets, which happen to end up in the dma-buf
+region user A set up
+
+5. User B extracts secrets.
+
+> > I still don't think any of the complexity is needed, pinnable memory
+> > is a thing in Linux, just account for it in mlocked and that is
+> > enough.
+
+It's not mlocked memory, it's mlocked memory and I can exfiltrate it.
+Mlock is fine, exfiltration not so much. It's mlock, but a global pool and
+if you didn't munlock then the next mlock from a completely different user
+will alias with your stuff.
+
+Or is there something that prevents that? Oded at least explain that gaudi
+works like a gpu from 20 years ago, single user, no security at all within
+the device.
+-Daniel
 -- 
-2.25.1
-
-
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
