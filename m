@@ -2,96 +2,176 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAAABC433F5
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 19:03:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C0FC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 19:13:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4FBF61209
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 19:03:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5194E6120E
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Sep 2021 19:13:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233367AbhIPTEv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Sep 2021 15:04:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53168 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346331AbhIPTES (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Sep 2021 15:04:18 -0400
-Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6349FC0C6CA4
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 11:36:59 -0700 (PDT)
-Received: by mail-pf1-x42b.google.com with SMTP id m26so6783875pff.3
-        for <linux-rdma@vger.kernel.org>; Thu, 16 Sep 2021 11:36:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=eF3yoGSWauBjlP/PEtThaGKhCaV9nfWn2WtwyHMH5NA=;
-        b=fQ61flgpbxr+3ScvmslX6Y6UYzBrHyw+jxLOpGznkQ26CXbogaME6z2xm8KhJSqTnn
-         77lgkkMT6qVpSVnIMa9CA4IUAN0kgb27nXujFw1dSciBp8EZicTCozWpovAxRZAevT+M
-         3PJgfF7BblG4eAokXOWjQ1ObtUEq1NA0DMPduSUtk/8Z6AptRA77vHC+lN+6CI0dZ7iS
-         TlrJPbz77xVRa9MxLxts1RuG0yon5hKXJbxU7TTYE0S0roeX8RCMGqTTcoRHQiEheJWR
-         ZtJBPpysHanNjaKBKtSZ1ZOhPjcngD+VZRRKp1jNeA1evJj3KV7+WwMeqZhIbT+A+5CN
-         d3Yg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=eF3yoGSWauBjlP/PEtThaGKhCaV9nfWn2WtwyHMH5NA=;
-        b=Pl0NDXc9h7qyFg0h814GLA4fffsttfcVEmphUmB33021WSeCho6AU5/48YfCWg/M1S
-         FRkWcjUURlWDLHw8LyRf5wXtsnNOLGAQT5m1ALjwzNeqtcJoJaCLBfBoeMYb6mSPKGlM
-         VcXlNqeC5m352ZmNn/nzlBiqViF5I7Qqo4/SLOG5J0qG224WJIdtkiwI9r6skB6t1i5/
-         r/PcUR+LTiQY7y3gwElYSOp6rbs3IVE7wSouCZ1FF6hRlyfmeICIAFycYAU01MwzcTVM
-         6yqCemUGGR0qeV1q0tfPPn7sYzJ2TyAC9xWCH6ZD2z2aacXXxAm++4I5O6YIfWDU6zrs
-         AYnQ==
-X-Gm-Message-State: AOAM530Vzby0gllppBoGXgBZzOKsjVivApVaGZA/aWcUEyYEvy0rCZUZ
-        +sD+WhptySY9T3Ag29nvjhESCA==
-X-Google-Smtp-Source: ABdhPJwLJjgKEcXSC9TA+AobePDdZy/P1mekisB/+SUfd6z0VLYVgxBHgOvJIavtKHhdqdSbJdImwA==
-X-Received: by 2002:a65:5643:: with SMTP id m3mr6176916pgs.224.1631817418780;
-        Thu, 16 Sep 2021 11:36:58 -0700 (PDT)
-Received: from ziepe.ca ([206.223.160.26])
-        by smtp.gmail.com with ESMTPSA id t14sm3895421pga.62.2021.09.16.11.36.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Sep 2021 11:36:58 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1mQwFk-001qrZ-OF; Thu, 16 Sep 2021 15:36:56 -0300
-Date:   Thu, 16 Sep 2021 15:36:56 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Hao Sun <sunhao.th@gmail.com>
-Cc:     dledford@redhat.com, linux-rdma@vger.kernel.org, leon@kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: INFO: task hung in _destroy_id
-Message-ID: <20210916183656.GS3544071@ziepe.ca>
-References: <CACkBjsYvt46E2WqeJwEuemUr7pST_uk3=wvEBmdtdiAPmG40vQ@mail.gmail.com>
+        id S232357AbhIPTOV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Sep 2021 15:14:21 -0400
+Received: from mga04.intel.com ([192.55.52.120]:63939 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233819AbhIPTOO (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 16 Sep 2021 15:14:14 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10109"; a="220757289"
+X-IronPort-AV: E=Sophos;i="5.85,299,1624345200"; 
+   d="scan'208";a="220757289"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2021 12:12:36 -0700
+X-IronPort-AV: E=Sophos;i="5.85,299,1624345200"; 
+   d="scan'208";a="545830745"
+Received: from ssaleem-mobl.amr.corp.intel.com ([10.212.81.178])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2021 12:12:36 -0700
+From:   Shiraz Saleem <shiraz.saleem@intel.com>
+To:     dledford@redhat.com, jgg@nvidia.com
+Cc:     linux-rdma@vger.kernel.org,
+        Sindhu Devale <sindhu.devale@intel.com>,
+        LiLiang <liali@redhat.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH rdma-rc 1/4] RDMA/irdma: Skip CQP ring during a reset
+Date:   Thu, 16 Sep 2021 14:12:19 -0500
+Message-Id: <20210916191222.824-2-shiraz.saleem@intel.com>
+X-Mailer: git-send-email 2.31.0
+In-Reply-To: <20210916191222.824-1-shiraz.saleem@intel.com>
+References: <20210916191222.824-1-shiraz.saleem@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACkBjsYvt46E2WqeJwEuemUr7pST_uk3=wvEBmdtdiAPmG40vQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Sep 03, 2021 at 03:44:54PM +0800, Hao Sun wrote:
-> Hello,
-> 
-> When using Healer to fuzz the latest Linux kernel, the following crash
-> was triggered.
-> 
-> HEAD commit: 9e9fb7655ed58-Merge tag 'net-next-5.15'
-> git tree: upstream
-> console output:
-> https://drive.google.com/file/d/19ZvzEBJnFYlQJIn-TklSjE9ZWsxoEF7X/view?usp=sharing
-> kernel config: https://drive.google.com/file/d/1zgxbwaYkrM26KEmJ-5sUZX57gfXtRrwA/view?usp=sharing
-> 
-> Sorry, I don't have a reproducer for this crash, hope the symbolized
-> report can help.
-> If you fix this issue, please add the following tag to the commit:
-> Reported-by: Hao Sun <sunhao.th@gmail.com>
+From: Sindhu Devale <sindhu.devale@intel.com>
 
-I think this is probably fixed by this:
+Due to duplicate reset flags, CQP commands are processed during reset.
 
-https://lore.kernel.org/r/20210913093344.17230-1-thomas.liu@ucloud.cn
+This leads CQP failures such as below:
+irdma0: [Delete Local MAC Entry Cmd Error][op_code=49] status=-27 waiting=1 completion_err=0 maj=0x0 min=0x0
 
-Jason
+Remove the redundant flag and set the correct reset flag so CPQ is
+paused during reset
+
+Fixes: 8498a30e1b94 ("RDMA/irdma: Register auxiliary driver and implement private channel OPs")
+Reported-by: LiLiang <liali@redhat.com>
+Signed-off-by: Sindhu Devale <sindhu.devale@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+---
+ drivers/infiniband/hw/irdma/cm.c       | 4 ++--
+ drivers/infiniband/hw/irdma/hw.c       | 6 +++---
+ drivers/infiniband/hw/irdma/i40iw_if.c | 2 +-
+ drivers/infiniband/hw/irdma/main.h     | 1 -
+ drivers/infiniband/hw/irdma/utils.c    | 2 +-
+ drivers/infiniband/hw/irdma/verbs.c    | 3 +--
+ 6 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/infiniband/hw/irdma/cm.c b/drivers/infiniband/hw/irdma/cm.c
+index 6b62299abfbb..6dea0a49d171 100644
+--- a/drivers/infiniband/hw/irdma/cm.c
++++ b/drivers/infiniband/hw/irdma/cm.c
+@@ -3496,7 +3496,7 @@ static void irdma_cm_disconn_true(struct irdma_qp *iwqp)
+ 	     original_hw_tcp_state == IRDMA_TCP_STATE_TIME_WAIT ||
+ 	     last_ae == IRDMA_AE_RDMAP_ROE_BAD_LLP_CLOSE ||
+ 	     last_ae == IRDMA_AE_BAD_CLOSE ||
+-	     last_ae == IRDMA_AE_LLP_CONNECTION_RESET || iwdev->reset)) {
++	     last_ae == IRDMA_AE_LLP_CONNECTION_RESET || iwdev->rf->reset)) {
+ 		issue_close = 1;
+ 		iwqp->cm_id = NULL;
+ 		qp->term_flags = 0;
+@@ -4250,7 +4250,7 @@ void irdma_cm_teardown_connections(struct irdma_device *iwdev, u32 *ipaddr,
+ 				       teardown_entry);
+ 		attr.qp_state = IB_QPS_ERR;
+ 		irdma_modify_qp(&cm_node->iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+-		if (iwdev->reset)
++		if (iwdev->rf->reset)
+ 			irdma_cm_disconn(cm_node->iwqp);
+ 		irdma_rem_ref_cm_node(cm_node);
+ 	}
+diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
+index 00de5ee9a260..33c06a3a4f63 100644
+--- a/drivers/infiniband/hw/irdma/hw.c
++++ b/drivers/infiniband/hw/irdma/hw.c
+@@ -1489,7 +1489,7 @@ void irdma_reinitialize_ieq(struct irdma_sc_vsi *vsi)
+ 
+ 	irdma_puda_dele_rsrc(vsi, IRDMA_PUDA_RSRC_TYPE_IEQ, false);
+ 	if (irdma_initialize_ieq(iwdev)) {
+-		iwdev->reset = true;
++		iwdev->rf->reset = true;
+ 		rf->gen_ops.request_reset(rf);
+ 	}
+ }
+@@ -1632,13 +1632,13 @@ void irdma_rt_deinit_hw(struct irdma_device *iwdev)
+ 	case IEQ_CREATED:
+ 		if (!iwdev->roce_mode)
+ 			irdma_puda_dele_rsrc(&iwdev->vsi, IRDMA_PUDA_RSRC_TYPE_IEQ,
+-					     iwdev->reset);
++					     iwdev->rf->reset);
+ 		fallthrough;
+ 	case ILQ_CREATED:
+ 		if (!iwdev->roce_mode)
+ 			irdma_puda_dele_rsrc(&iwdev->vsi,
+ 					     IRDMA_PUDA_RSRC_TYPE_ILQ,
+-					     iwdev->reset);
++					     iwdev->rf->reset);
+ 		break;
+ 	default:
+ 		ibdev_warn(&iwdev->ibdev, "bad init_state = %d\n", iwdev->init_state);
+diff --git a/drivers/infiniband/hw/irdma/i40iw_if.c b/drivers/infiniband/hw/irdma/i40iw_if.c
+index bddf88194d09..d219f64b2c3d 100644
+--- a/drivers/infiniband/hw/irdma/i40iw_if.c
++++ b/drivers/infiniband/hw/irdma/i40iw_if.c
+@@ -55,7 +55,7 @@ static void i40iw_close(struct i40e_info *cdev_info, struct i40e_client *client,
+ 
+ 	iwdev = to_iwdev(ibdev);
+ 	if (reset)
+-		iwdev->reset = true;
++		iwdev->rf->reset = true;
+ 
+ 	iwdev->iw_status = 0;
+ 	irdma_port_ibevent(iwdev);
+diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
+index 743d9e143a99..b678fe712447 100644
+--- a/drivers/infiniband/hw/irdma/main.h
++++ b/drivers/infiniband/hw/irdma/main.h
+@@ -346,7 +346,6 @@ struct irdma_device {
+ 	bool roce_mode:1;
+ 	bool roce_dcqcn_en:1;
+ 	bool dcb:1;
+-	bool reset:1;
+ 	bool iw_ooo:1;
+ 	enum init_completion_state init_state;
+ 
+diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+index e94470991fe0..ac91ea5296db 100644
+--- a/drivers/infiniband/hw/irdma/utils.c
++++ b/drivers/infiniband/hw/irdma/utils.c
+@@ -2507,7 +2507,7 @@ void irdma_modify_qp_to_err(struct irdma_sc_qp *sc_qp)
+ 	struct irdma_qp *qp = sc_qp->qp_uk.back_qp;
+ 	struct ib_qp_attr attr;
+ 
+-	if (qp->iwdev->reset)
++	if (qp->iwdev->rf->reset)
+ 		return;
+ 	attr.qp_state = IB_QPS_ERR;
+ 
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 4fc323402073..829ddfa7e144 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -535,8 +535,7 @@ static int irdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 	irdma_qp_rem_ref(&iwqp->ibqp);
+ 	wait_for_completion(&iwqp->free_qp);
+ 	irdma_free_lsmm_rsrc(iwqp);
+-	if (!iwdev->reset)
+-		irdma_cqp_qp_destroy_cmd(&iwdev->rf->sc_dev, &iwqp->sc_qp);
++	irdma_cqp_qp_destroy_cmd(&iwdev->rf->sc_dev, &iwqp->sc_qp);
+ 
+ 	if (!iwqp->user_mode) {
+ 		if (iwqp->iwscq) {
+-- 
+2.27.0
+
