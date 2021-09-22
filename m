@@ -2,82 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F498C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1EB7C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D61361100
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:41:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9334961181
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236022AbhIVMme (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Sep 2021 08:42:34 -0400
-Received: from smtp181.sjtu.edu.cn ([202.120.2.181]:53428 "EHLO
-        smtp181.sjtu.edu.cn" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236023AbhIVMmd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Sep 2021 08:42:33 -0400
-X-Greylist: delayed 429 seconds by postgrey-1.27 at vger.kernel.org; Wed, 22 Sep 2021 08:42:32 EDT
-Received: from proxy02.sjtu.edu.cn (smtp188.sjtu.edu.cn [202.120.2.188])
-        by smtp181.sjtu.edu.cn (Postfix) with ESMTPS id 580D91008CBC0;
-        Wed, 22 Sep 2021 20:33:52 +0800 (CST)
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by proxy02.sjtu.edu.cn (Postfix) with ESMTP id 428A3200B574E;
-        Wed, 22 Sep 2021 20:33:52 +0800 (CST)
-X-Virus-Scanned: amavisd-new at 
-Received: from proxy02.sjtu.edu.cn ([127.0.0.1])
-        by localhost (proxy02.sjtu.edu.cn [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id gJlAHgw_BhhY; Wed, 22 Sep 2021 20:33:52 +0800 (CST)
-Received: from guozhi-ipads.ipads-lab.se.sjtu.edu.cn (unknown [202.120.40.82])
-        (Authenticated sender: qtxuning1999@sjtu.edu.cn)
-        by proxy02.sjtu.edu.cn (Postfix) with ESMTPSA id 750692008D5E6;
-        Wed, 22 Sep 2021 20:33:44 +0800 (CST)
-From:   Guo Zhi <qtxuning1999@sjtu.edu.cn>
-To:     mike.marciniszyn@cornelisnetworks.com,
-        dennis.dalessandro@cornelisnetworks.com, dledford@redhat.com
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Guo Zhi <qtxuning1999@sjtu.edu.cn>
-Subject: [PATCH] infiniband hfi1: fix misuse of %x in ipoib_tx.c
-Date:   Wed, 22 Sep 2021 20:33:41 +0800
-Message-Id: <20210922123341.601450-1-qtxuning1999@sjtu.edu.cn>
-X-Mailer: git-send-email 2.33.0
+        id S236002AbhIVMzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Sep 2021 08:55:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34314 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236026AbhIVMzL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Sep 2021 08:55:11 -0400
+Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 167A6C061574
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:41 -0700 (PDT)
+Received: by mail-wr1-x429.google.com with SMTP id q26so6464816wrc.7
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=2A7B7KUJUyfyLuFkX/hhYyVnS4wp9aLy2fQmORbo5jw=;
+        b=CvM9tBxQGJloLWWaYxZQBfhILkG7sgLZpvboUckxCEjQ2InMeVChM7e8r0fKnwZmL5
+         rsgHuNGlfWSz+72OMCwO4ZyEx911XA8FSV636IxSgxxdJ/mQ65WhLUxvBB9yLzhpPM37
+         gUF15gUVy6Ru3pQDXKg7EClkoWek1/jljL59zKnNCZy88jv5YlZfzFPs85/Idw61Bxiz
+         8SBjg3wOBI6myAuKJcqbfEJwGgGzVul2IzFRfbt1aPysa4L/x14YM7amxQ3nG4Bwj67L
+         SdeCl19VLUbEUqcHiLLlwrjFBf0Kz20ITAtor1D93qdECYPlFf9rZDEqTTk+vo+Vm6Q5
+         V0Kg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=2A7B7KUJUyfyLuFkX/hhYyVnS4wp9aLy2fQmORbo5jw=;
+        b=n/CqFdFc4sTbUu9H6uDpsHKEzBARnYBND6T514bDWnurVESM49OWI+VvGfaq+Mw1r2
+         9OMrISnIiMJiUbRPL6oZz4vhugCXic/Q/lj+ZZ2voqYoRXywqbkWNL12V2bGpg7L/NKr
+         FGNx9NgoERDY3lwku016U+MNqbck8Atz5zslQhMImSPXEzlPtiLaMs84mUqQLB9Yzw3g
+         0KzndF8x9uiLuMlN435M/aiV2qpsVYkwU0KNPqNRCj3I815PBEYaZEB0W8eeIG81C9/C
+         ziWhv9CQLUar7kQQc2hRQpUOYJhVQUIA+E2Tf8OQjZu2ZJ0eFY4bfVzajXbZiuRyspzy
+         XBZw==
+X-Gm-Message-State: AOAM532QQgOMzRPIUfySu2L+z/pXwHEpzV5MSo+2J1/9RjryOZkpHHFN
+        6yd3VPV8TwYExpCkRPCkj4y2jWmh6ZctiA==
+X-Google-Smtp-Source: ABdhPJyZtDC2osQywW/cc22PJFH18xad5UUzzO4xEUVzsZVFF0K5N3KYlSFvWBGTcYNP2+gZtwXVmA==
+X-Received: by 2002:a05:6000:2af:: with SMTP id l15mr13953038wry.129.1632315219507;
+        Wed, 22 Sep 2021 05:53:39 -0700 (PDT)
+Received: from nb01533.pb.local ([2001:1438:4010:2540:40a5:9868:5a83:f3b9])
+        by smtp.gmail.com with ESMTPSA id j20sm2173685wrb.5.2021.09.22.05.53.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Sep 2021 05:53:39 -0700 (PDT)
+From:   Md Haris Iqbal <haris.iqbal@ionos.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
+        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com
+Subject: [PATCH for-next 0/7] Misc update for RTRS
+Date:   Wed, 22 Sep 2021 14:53:26 +0200
+Message-Id: <20210922125333.351454-1-haris.iqbal@ionos.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Pointers should be printed with %p or %px rather than
-cast to (unsigned long long) and printed with %llx.
-Change %llx to %p to print the pointer.
+Hi Jason, hi Doug,
 
-Signed-off-by: Guo Zhi <qtxuning1999@sjtu.edu.cn>
----
- drivers/infiniband/hw/hfi1/ipoib_tx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Please consider to include following changes to the next merge window.
 
-diff --git a/drivers/infiniband/hw/hfi1/ipoib_tx.c b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-index e74ddbe4658..7381f352311 100644
---- a/drivers/infiniband/hw/hfi1/ipoib_tx.c
-+++ b/drivers/infiniband/hw/hfi1/ipoib_tx.c
-@@ -876,13 +876,13 @@ void hfi1_ipoib_tx_timeout(struct net_device *dev, unsigned int q)
- 	struct hfi1_ipoib_txq *txq = &priv->txqs[q];
- 	u64 completed = atomic64_read(&txq->complete_txreqs);
- 
--	dd_dev_info(priv->dd, "timeout txq %llx q %u stopped %u stops %d no_desc %d ring_full %d\n",
-+	dd_dev_info(priv->dd, "timeout txq %p q %u stopped %u stops %d no_desc %d ring_full %d\n",
- 		    (unsigned long long)txq, q,
- 		    __netif_subqueue_stopped(dev, txq->q_idx),
- 		    atomic_read(&txq->stops),
- 		    atomic_read(&txq->no_desc),
- 		    atomic_read(&txq->ring_full));
--	dd_dev_info(priv->dd, "sde %llx engine %u\n",
-+	dd_dev_info(priv->dd, "sde %p engine %u\n",
- 		    (unsigned long long)txq->sde,
- 		    txq->sde ? txq->sde->this_idx : 0);
- 	dd_dev_info(priv->dd, "flow %x\n", txq->flow.as_int);
+The patchset is orgnized as:
+- patch1 sysfs_emit conversion.
+- patch2 remove len parameter.
+- patch3 Fix warning with poll mode.
+- patch4 Replace duplicate check.
+- patch5 Introduce helper function
+- patch6 Disallow special characters.
+- patch7 One entry one value for sysfs
+
+Jack Wang (2):
+  RDMA/rtrs: Fix warning when use poll mode on client side.
+  RDMA/rtrs: Replace duplicate check with is_pollqueue helper
+
+Md Haris Iqbal (5):
+  RDMA/rtrs: Use sysfs_emit instead of s*printf function for sysfs show
+  RDMA/rtrs: Remove len parameter from helper print functions of sysfs
+  RDMA/rtrs: Introduce destroy_cq helper
+  RDMA/rtrs: Do not allow sessname to contain special symbols / and .
+  RDMA/rtrs-clt: Follow "one entry one value" rule for IO migration
+    stats
+
+ drivers/infiniband/ulp/rtrs/rtrs-clt-stats.c | 49 +++++++++++---------
+ drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 11 +++--
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c       |  6 +++
+ drivers/infiniband/ulp/rtrs/rtrs-clt.h       | 13 +++---
+ drivers/infiniband/ulp/rtrs/rtrs-pri.h       |  2 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv-stats.c |  3 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  2 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c       |  6 +++
+ drivers/infiniband/ulp/rtrs/rtrs-srv.h       |  3 +-
+ drivers/infiniband/ulp/rtrs/rtrs.c           | 31 ++++++++++---
+ 10 files changed, 80 insertions(+), 46 deletions(-)
+
 -- 
-2.33.0
+2.25.1
 
