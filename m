@@ -7,61 +7,63 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19C59C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18603C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB23661178
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 028C561178
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 12:53:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236021AbhIVMzP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Sep 2021 08:55:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34360 "EHLO
+        id S236084AbhIVMzS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Sep 2021 08:55:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236035AbhIVMzP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Sep 2021 08:55:15 -0400
-Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BB5FC061574
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:45 -0700 (PDT)
-Received: by mail-wr1-x42a.google.com with SMTP id w29so6437515wra.8
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:45 -0700 (PDT)
+        with ESMTP id S236158AbhIVMzR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Sep 2021 08:55:17 -0400
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C2CDC061766
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:47 -0700 (PDT)
+Received: by mail-wr1-x42c.google.com with SMTP id d21so6359095wra.12
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Sep 2021 05:53:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=t1QtuaSx1IRGfCpES7GFcGPcaoZguarMvSswnYe+X4c=;
-        b=VGiOq2CjGYzvVZzPzguwmSnLvJXZK9afLG9bTcyh2ye1Ye+pHVY5YqiJDC+WHCZT7z
-         WZK9wEuhkXnoN9ih1tKsXiKhy3F5QQhV7pK14/WCSGaH3Uwv05NXTPWpp3gTqFUyOIjM
-         WzX0nbSRtEE5gpMQ90DIbGyZBpmLT1+Rn2uLHmySNPqJuCz4Q8aojbPUtzWsfVDhkQz4
-         iZ09FWrza/+4PBuEA8S+yUtuoN95/Mgc9BF1w4eViImFc2RdYBvJ7d5+7wN4G0VgDWNQ
-         yfj2j/Wimex5JweZ1zgIlKa+EAnrbg+TvU8EgMskGDtMVGNZTjYsoVBI9UQMbNTSeNpy
-         hpnA==
+        bh=iEwXtwVC0+ySn9BAIWSFhSoxcbAilVScX8tg212FZcI=;
+        b=abzJiOLh+MIYBpuPOMHFQ7RlK/ztxnhXaz9yPA1WO/j3DswO3xaBc5QupkytwuqiAL
+         Z5VBzDU9Ffow0PII8y3rtCHGpk4MQIZ+uM0PYA0SP2vqfibOCaqm9sBZgV3sFD0WF2fk
+         dWh5aVpwox7eAk/mD7KFkyFKcAHoA/wxc4sXLyiKU7RvZcOWDKtFCk7db4MIU5XZvzHd
+         Ot9mvLsTPvq/r0atbr6dlyFtvnm/t+TaYv6/s8iN0YBrm5gOxBRYCCeAw1Ph3cIMW6Fy
+         ugSTuY+SR/zQlXbpKdBLOwG0uobTvEOiT+B3XMHDmfcldafBo/C1ddbIWASg4XP8ptpC
+         7n5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=t1QtuaSx1IRGfCpES7GFcGPcaoZguarMvSswnYe+X4c=;
-        b=60+at0NBuTe+kzGg9PuSJrbrn3zg6aaZHuNNFv9kLRH8aqj0W4xzOKPHCBfkW/gKYF
-         QF6vU3H97od6eXqre9DR5FOdzmYEWcGv1V8ry4P24fmNCO09kq7zgY3nrWcgUUTVEiIi
-         6aKmiug2TiCNVd31G+a30D5u0ZaoAu10oy704MYGbhlyz+pSzX9efWmq819tv8HJB5bE
-         nE5I82XRq8CQwzyLL8Zt5tfsGOgnkHngX5nU08DXU4pDQ6Y/W3LcCGY1i11pDCnA4V1X
-         KThFdU+HqkjuX7MSpf2KY7ZGw4JrZXzy6gGRaLyXSasxl+lOmJBINJLljvD4g4TjZ6GS
-         drTA==
-X-Gm-Message-State: AOAM532PlzbhMu2l+lEH3SWFCNcSTiavkvDFVAxwSrLfBTWKkkeruAFK
-        bcj9h1V8fvGndsYZqQ7DzwGFCtBsS+jWLw==
-X-Google-Smtp-Source: ABdhPJw0rE5wYyvU2auninJO9NipKfEJZpazuCzx1iar87d4Y5JLAh/AHz2fnjfXKsSCtIobtVI4ZQ==
-X-Received: by 2002:a7b:cf09:: with SMTP id l9mr10084701wmg.115.1632315223900;
-        Wed, 22 Sep 2021 05:53:43 -0700 (PDT)
+        bh=iEwXtwVC0+ySn9BAIWSFhSoxcbAilVScX8tg212FZcI=;
+        b=V2gP1C6ufBK38vp+N6e0WHJ6ky8vwaiQ55AymPYL+ku+pUz5Qj3j2sE/Q+kgHnICmh
+         Ywo5CVVnRL35Q/johxeuIB0XPxpezDV3Q0aPHqK1LLSnVBL0QCUnCblYG/CYALdfkFR+
+         /Y7LeO0caqZcTrJaJUvFlY9aNpAkgpH12kxCJzejtVVwQknsQpmMsNZkUmFBdfRJI0fU
+         t1gggFT4ILyQRPp9TiUB2iVdD2TLmHR4pyk4BlaZzxTSItO23A6W0IzV5Ncg9D1lzD0L
+         GBqN7cxcONrnGNSNUnMi2q3rOC+ytgpqmnNJW1TcDhtupf7KDjLFwwdD6LPL5mrDBZUB
+         y2Ow==
+X-Gm-Message-State: AOAM533lBNpOWAvB9BOcTS2vs95wEbWEb0JtRJE2BsQtEeQU61meaTEh
+        JZLpof2Rsm0Ud4IFgRCJ6sskirQizt96PA==
+X-Google-Smtp-Source: ABdhPJwTu1T3cVeGTLsX3xGRJW4chknWoZBzSH/GZ7SHDDkS3vGw2HcARVTyThOiKgegB08KV6fKqQ==
+X-Received: by 2002:a7b:c144:: with SMTP id z4mr10620724wmi.31.1632315226199;
+        Wed, 22 Sep 2021 05:53:46 -0700 (PDT)
 Received: from nb01533.pb.local ([2001:1438:4010:2540:40a5:9868:5a83:f3b9])
-        by smtp.gmail.com with ESMTPSA id j20sm2173685wrb.5.2021.09.22.05.53.43
+        by smtp.gmail.com with ESMTPSA id j20sm2173685wrb.5.2021.09.22.05.53.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Sep 2021 05:53:43 -0700 (PDT)
+        Wed, 22 Sep 2021 05:53:45 -0700 (PDT)
 From:   Md Haris Iqbal <haris.iqbal@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, dledford@redhat.com,
-        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com
-Subject: [PATCH for-next 4/7] RDMA/rtrs: Replace duplicate check with is_pollqueue helper
-Date:   Wed, 22 Sep 2021 14:53:30 +0200
-Message-Id: <20210922125333.351454-5-haris.iqbal@ionos.com>
+        jgg@ziepe.ca, haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Gioh Kim <gi-oh.kim@ionos.com>,
+        Aleksei Marov <aleksei.marov@ionos.com>
+Subject: [PATCH for-next 6/7] RDMA/rtrs: Do not allow sessname to contain special symbols / and .
+Date:   Wed, 22 Sep 2021 14:53:32 +0200
+Message-Id: <20210922125333.351454-7-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210922125333.351454-1-haris.iqbal@ionos.com>
 References: <20210922125333.351454-1-haris.iqbal@ionos.com>
@@ -71,59 +73,51 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@ionos.com>
+Allowing these characters in sessname can lead to unexpected results,
+particularly because / is used as a separator between files in a path,
+and . points to the current directory.
 
-if (con->cid >= con->sess->irq_con_num) check can be replaced with
-a is_pollqueue helper.
-
-Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+Reviewed-by: Gioh Kim <gi-oh.kim@ionos.com>
+Reviewed-by: Aleksei Marov <aleksei.marov@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 6 ++++++
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
-index 9bc323490ce3..ac83cd97f838 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.c
-@@ -222,13 +222,18 @@ static void qp_event_handler(struct ib_event *ev, void *ctx)
- 	}
- }
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index bc8824b4ee0d..15c0077dd27e 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -2788,6 +2788,12 @@ struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
+ 	struct rtrs_clt *clt;
+ 	int err, i;
  
-+static bool is_pollqueue(struct rtrs_con *con)
-+{
-+	return con->cid >= con->sess->irq_con_num;
-+}
++	if (strchr(sessname, '/') || strchr(sessname, '.')) {
++		pr_err("sessname cannot contain / and .\n");
++		err = -EINVAL;
++		goto out;
++	}
 +
- static int create_cq(struct rtrs_con *con, int cq_vector, int nr_cqe,
- 		     enum ib_poll_context poll_ctx)
- {
- 	struct rdma_cm_id *cm_id = con->cm_id;
- 	struct ib_cq *cq;
- 
--	if (con->cid >= con->sess->irq_con_num)
-+	if (is_pollqueue(con))
- 		cq = ib_alloc_cq(cm_id->device, con, nr_cqe, cq_vector,
- 				 poll_ctx);
- 	else
-@@ -288,7 +293,7 @@ int rtrs_cq_qp_create(struct rtrs_sess *sess, struct rtrs_con *con,
- 	err = create_qp(con, sess->dev->ib_pd, max_send_wr, max_recv_wr,
- 			max_send_sge);
- 	if (err) {
--		if (con->cid >= con->sess->irq_con_num)
-+		if (is_pollqueue(con))
- 			ib_free_cq(con->cq);
- 		else
- 			ib_cq_pool_put(con->cq, con->nr_cqe);
-@@ -308,7 +313,7 @@ void rtrs_cq_qp_destroy(struct rtrs_con *con)
- 		con->qp = NULL;
+ 	clt = alloc_clt(sessname, paths_num, port, pdu_sz, ops->priv,
+ 			ops->link_ev,
+ 			reconnect_delay_sec,
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index 078a1cbac90c..7df71f8cf149 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -803,6 +803,11 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 		return err;
  	}
- 	if (con->cq) {
--		if (con->cid >= con->sess->irq_con_num)
-+		if (is_pollqueue(con))
- 			ib_free_cq(con->cq);
- 		else
- 			ib_cq_pool_put(con->cq, con->nr_cqe);
+ 
++	if (strchr(msg->sessname, '/') || strchr(msg->sessname, '.')) {
++		rtrs_err(s, "sessname cannot contain / and .\n");
++		return -EINVAL;
++	}
++
+ 	if (exist_sessname(sess->srv->ctx,
+ 			   msg->sessname, &sess->srv->paths_uuid)) {
+ 		rtrs_err(s, "sessname is duplicated: %s\n", msg->sessname);
 -- 
 2.25.1
 
