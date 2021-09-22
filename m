@@ -2,112 +2,143 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7A6C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 09:40:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E1CAC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 247F86126A
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 09:40:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8566A61211
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234302AbhIVJlk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Sep 2021 05:41:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53702 "EHLO mail.kernel.org"
+        id S234936AbhIVKkf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Sep 2021 06:40:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234294AbhIVJlk (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Sep 2021 05:41:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DC8EE61211;
-        Wed, 22 Sep 2021 09:40:09 +0000 (UTC)
+        id S234734AbhIVKke (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 22 Sep 2021 06:40:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 476D261242;
+        Wed, 22 Sep 2021 10:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632303610;
-        bh=QQ1IBRI/vlB6loJudKjohvzWgOIaXu0mmiwtHhw2lZk=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=EIQcN6E/TlQeCRYVHhKUE9FoD38dR9lCmPQ8EdSpWzU6P4EP3E8V2LafHjCFSxZ+u
-         Sp0xgQDcxdlBgtFs0IsobwVdlK4rVwsKAN4Io5LPa/2UM3qSF/A9UUjDe1TEZ5lNq3
-         Ix7cH+sTb/CAUDRGDA36HOWCJLVbXcoU5adQjcaLP9vUmHOME3u6mwZWhAwu/VSTI3
-         eUw6znmUVxKGbL1CSbcTYMkWKAh4//N8Fz3pZBS//pP5KliivvMrv2PSCxnGs/NCTg
-         bPNxCNyqIJq3zt9t1wzy2Urn1xEjDakZ7L9CVfHJXPtyCg3pxZ9PZVRTzRfz2oTexs
-         Y3HsWzvZD/HjQ==
-Date:   Wed, 22 Sep 2021 12:40:06 +0300
+        s=k20201202; t=1632307145;
+        bh=BcqOr4/BxckdG0JgeNfJQFTFky8MX/TUfOd14KVupMg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=NO7+DDQKkUHe7MiF7RQT1bVBXOL2lYpqKp+0Ducw833CAOcSDD17RVIKO1Xlcmhha
+         qAK7XZgWeoTr0t3Sw0vnaMW+1qy9SG1EalylI50ryXMVFLn48PfrJIzysTvtIXI3Yd
+         edP8Z3l6ZdORIuDJ/c4Ae8J9Bxf7D9w8mZw8Hk3YUteyd76r6z7Q7MIedjHjGI1hZ/
+         KLNrcE8hCecIMtLEQYa5EAnj+NFB0Hl6Z7isQQT+2t6HppHdJmrb34STPrgi7Q2JpH
+         VxId5zhQyJLVystRl10Avj5WSMlmNPPwywY1/Od0m2dasU3bldr3ownauJ4LQyUoor
+         Vn/oZBE7cmBtQ==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Shai Malin <smalin@marvell.com>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
-        linux-rdma@vger.kernel.org, jgg@ziepe.ca, aelior@marvell.com,
-        malin1024@gmail.com, Michal Kalderon <mkalderon@marvell.com>
-Subject: Re: [PATCH net v2] qed: rdma - don't wait for resources under hw
- error recovery flow
-Message-ID: <YUr59luiezKbdOyW@unreal>
-References: <20210922073631.31626-1-smalin@marvell.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Yishai Hadas <yishaih@nvidia.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Kirti Wankhede <kwankhede@nvidia.com>, kvm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH mlx5-next 2/7] vfio: Add an API to check migration state transition validity
+Date:   Wed, 22 Sep 2021 13:38:51 +0300
+Message-Id: <c87f55d6fec77a22b110d3c9611744e6b28bba46.1632305919.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1632305919.git.leonro@nvidia.com>
+References: <cover.1632305919.git.leonro@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210922073631.31626-1-smalin@marvell.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Sep 22, 2021 at 10:36:31AM +0300, Shai Malin wrote:
-> If the HW device is during recovery, the HW resources will never return,
-> hence we shouldn't wait for the CID (HW context ID) bitmaps to clear.
-> This fix speeds up the error recovery flow.
-> 
-> Changes since v1:
-> - Fix race condition (thanks to Leon Romanovsky).
+From: Yishai Hadas <yishaih@nvidia.com>
 
-Please put changelog under "---", there is a little value for them in the
-commit message.
+Add an API in the core layer to check migration state transition validity
+as part of a migration flow.
 
-> 
-> Fixes: 64515dc899df ("qed: Add infrastructure for error detection and recovery")
-> Signed-off-by: Michal Kalderon <mkalderon@marvell.com>
-> Signed-off-by: Ariel Elior <aelior@marvell.com>
-> Signed-off-by: Shai Malin <smalin@marvell.com>
-> ---
->  drivers/net/ethernet/qlogic/qed/qed_iwarp.c | 8 ++++++++
->  drivers/net/ethernet/qlogic/qed/qed_roce.c  | 8 ++++++++
->  2 files changed, 16 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-> index fc8b3e64f153..186d0048a9d1 100644
-> --- a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-> +++ b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-> @@ -1297,6 +1297,14 @@ qed_iwarp_wait_cid_map_cleared(struct qed_hwfn *p_hwfn, struct qed_bmap *bmap)
->  	prev_weight = weight;
->  
->  	while (weight) {
-> +		/* If the HW device is during recovery, all resources are
-> +		 * immediately reset without receiving a per-cid indication
-> +		 * from HW. In this case we don't expect the cid_map to be
-> +		 * cleared.
-> +		 */
-> +		if (p_hwfn->cdev->recov_in_prog)
-> +			return 0;
-> +
->  		msleep(QED_IWARP_MAX_CID_CLEAN_TIME);
->  
->  		weight = bitmap_weight(bmap->bitmap, bmap->max_count);
-> diff --git a/drivers/net/ethernet/qlogic/qed/qed_roce.c b/drivers/net/ethernet/qlogic/qed/qed_roce.c
-> index f16a157bb95a..cf5baa5e59bc 100644
-> --- a/drivers/net/ethernet/qlogic/qed/qed_roce.c
-> +++ b/drivers/net/ethernet/qlogic/qed/qed_roce.c
-> @@ -77,6 +77,14 @@ void qed_roce_stop(struct qed_hwfn *p_hwfn)
->  	 * Beyond the added delay we clear the bitmap anyway.
->  	 */
->  	while (bitmap_weight(rcid_map->bitmap, rcid_map->max_count)) {
-> +		/* If the HW device is during recovery, all resources are
-> +		 * immediately reset without receiving a per-cid indication
-> +		 * from HW. In this case we don't expect the cid bitmap to be
-> +		 * cleared.
-> +		 */
-> +		if (p_hwfn->cdev->recov_in_prog)
-> +			return;
-> +
->  		msleep(100);
->  		if (wait_count++ > 20) {
->  			DP_NOTICE(p_hwfn, "cid bitmap wait timed out\n");
-> -- 
-> 2.27.0
-> 
+The valid transitions follow the expected usage as described in
+uapi/vfio.h and triggered by QEMU.
+
+This ensures that all migration implementations follow a consistent
+migration state machine.
+
+Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
+Reviewed-by: Kirti Wankhede <kwankhede@nvidia.com>
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/vfio/vfio.c  | 41 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/vfio.h |  1 +
+ 2 files changed, 42 insertions(+)
+
+diff --git a/drivers/vfio/vfio.c b/drivers/vfio/vfio.c
+index 3c034fe14ccb..c3ca33e513c8 100644
+--- a/drivers/vfio/vfio.c
++++ b/drivers/vfio/vfio.c
+@@ -1664,6 +1664,47 @@ static int vfio_device_fops_release(struct inode *inode, struct file *filep)
+ 	return 0;
+ }
+ 
++/**
++ * vfio_change_migration_state_allowed - Checks whether a migration state
++ *   transition is valid.
++ * @new_state: The new state to move to.
++ * @old_state: The old state.
++ * Return: true if the transition is valid.
++ */
++bool vfio_change_migration_state_allowed(u32 new_state, u32 old_state)
++{
++	enum { MAX_STATE = VFIO_DEVICE_STATE_RESUMING };
++	static const u8 vfio_from_state_table[MAX_STATE + 1][MAX_STATE + 1] = {
++		[VFIO_DEVICE_STATE_STOP] = {
++			[VFIO_DEVICE_STATE_RUNNING] = 1,
++			[VFIO_DEVICE_STATE_RESUMING] = 1,
++		},
++		[VFIO_DEVICE_STATE_RUNNING] = {
++			[VFIO_DEVICE_STATE_STOP] = 1,
++			[VFIO_DEVICE_STATE_SAVING] = 1,
++			[VFIO_DEVICE_STATE_SAVING | VFIO_DEVICE_STATE_RUNNING] = 1,
++		},
++		[VFIO_DEVICE_STATE_SAVING] = {
++			[VFIO_DEVICE_STATE_STOP] = 1,
++			[VFIO_DEVICE_STATE_RUNNING] = 1,
++		},
++		[VFIO_DEVICE_STATE_SAVING | VFIO_DEVICE_STATE_RUNNING] = {
++			[VFIO_DEVICE_STATE_RUNNING] = 1,
++			[VFIO_DEVICE_STATE_SAVING] = 1,
++		},
++		[VFIO_DEVICE_STATE_RESUMING] = {
++			[VFIO_DEVICE_STATE_RUNNING] = 1,
++			[VFIO_DEVICE_STATE_STOP] = 1,
++		},
++	};
++
++	if (new_state > MAX_STATE || old_state > MAX_STATE)
++		return false;
++
++	return vfio_from_state_table[old_state][new_state];
++}
++EXPORT_SYMBOL_GPL(vfio_change_migration_state_allowed);
++
+ static long vfio_device_fops_unl_ioctl(struct file *filep,
+ 				       unsigned int cmd, unsigned long arg)
+ {
+diff --git a/include/linux/vfio.h b/include/linux/vfio.h
+index b53a9557884a..e65137a708f1 100644
+--- a/include/linux/vfio.h
++++ b/include/linux/vfio.h
+@@ -83,6 +83,7 @@ extern struct vfio_device *vfio_device_get_from_dev(struct device *dev);
+ extern void vfio_device_put(struct vfio_device *device);
+ 
+ int vfio_assign_device_set(struct vfio_device *device, void *set_id);
++bool vfio_change_migration_state_allowed(u32 new_state, u32 old_state);
+ 
+ /* events for the backend driver notify callback */
+ enum vfio_iommu_notify_type {
+-- 
+2.31.1
+
