@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0652AC433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0AE1C4332F
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4A356127B
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF0A061350
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Sep 2021 10:39:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235070AbhIVKkn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Sep 2021 06:40:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48844 "EHLO mail.kernel.org"
+        id S235150AbhIVKk5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Sep 2021 06:40:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234734AbhIVKkl (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 22 Sep 2021 06:40:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 185B061211;
-        Wed, 22 Sep 2021 10:39:10 +0000 (UTC)
+        id S235122AbhIVKkp (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 22 Sep 2021 06:40:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BAD861267;
+        Wed, 22 Sep 2021 10:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632307151;
-        bh=Zadl6Tz0FhQmg6kXGXYq+M3fminDfVp/WJYOCet7ElI=;
+        s=k20201202; t=1632307155;
+        bh=1qzyHXULrGHTwODUKDiWXKGr1uQ4+mGgIlC+7I0WkZo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=tj9MYBxm7VeBHUWsrSjtKTY1ACo/vTmq3pah33yVHDgSsaHTXvQZLAF9FRNyZoBZw
-         hYGQBqyj3Mu8Ymv8QnKj4zeF3ugeEJgHW8uHlDXGYDLfiz+rcjxOZtf0AwfqVcpwMf
-         ioaWatENJY+6FTfYiGJGnGKmDI1ga8oX4IS+bZrJHv3wPyb0TtNEl1/Olti5nmLPNO
-         zxXRLzPIt160WFdUxeIN0lw9PwT4MeRx8kmkAMBwiA8nQ/P25m0pOIXauRP0ylMl05
-         avpd15AHvVluKQEYx/pZhZep1HE59BSu+bc3YQdfNQeTv8JlFFWlfMCIw5vhhKnQbw
-         lGvZhpG0XvQMg==
+        b=dtgZQCZ1fSQg9R/3fhVf72zdgoHr/LyJzOvOjgYivRPWggxSsxp1SZfmTDdXXzvY2
+         Wqqnf/nHCGoJRzYKFQAmaGJOn8cY8U4Z0qMuXcdO+YRXwl4mMT+AWGnqk/3id8mT70
+         UFcdTPRcaFqAeBUAa/4a+g5Gdf67eerRwN0AVTYwzHFHfNsETNbjBwtVSg6K3NSFEc
+         MvytLUBiggfx1/WbmiAdS3ZLSpII4T6V4b7oZVng1sijHi5qG9/dlpZMiqcALe4nis
+         kbQXr4xdJUKjsGRxC2sCbACYhQRuoPCGjDHReq1iYSuYAaBXf2gYej9U6mLE/BjmAo
+         m5G4izsSg7MgA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Alex Williamson <alex.williamson@redhat.com>,
+Cc:     Yishai Hadas <yishaih@nvidia.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, kvm@vger.kernel.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        Kirti Wankhede <kwankhede@nvidia.com>, kvm@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH mlx5-next 1/7] PCI/IOV: Provide internal VF index
-Date:   Wed, 22 Sep 2021 13:38:50 +0300
-Message-Id: <8d5bba9a6a1067989c3291fa2929528578812334.1632305919.git.leonro@nvidia.com>
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH mlx5-next 5/7] net/mlx5: Expose APIs to get/put the mlx5 core device
+Date:   Wed, 22 Sep 2021 13:38:54 +0300
+Message-Id: <25d023ef23ef78fcf9b99bf428244149e1f78e95.1632305919.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632305919.git.leonro@nvidia.com>
 References: <cover.1632305919.git.leonro@nvidia.com>
@@ -54,79 +54,104 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@nvidia.com>
+From: Yishai Hadas <yishaih@nvidia.com>
 
-The PCI core uses the VF index internally, often called the vf_id,
-during the setup of the VF, eg pci_iov_add_virtfn().
+Expose an API to get the mlx5 core device from a given PCI device if
+mlx5_core is its driver.
 
-This index is needed for device drivers that implement live migration
-for their internal operations that configure/control their VFs.
+Upon the get API we stay with the intf_state_mutex locked to make sure
+that the device can't be gone/unloaded till the caller will complete
+its job over the device, this expects to be for a short period of time
+for any flow that the lock is taken.
 
-Specifically, mlx5_vfio_pci driver that is introduced in coming patches
-from this series needs it and not the bus/device/function which is
-exposed today.
+Upon the put API we unlock the intf_state_mutex.
 
-Add pci_iov_vf_id() which computes the vf_id by reversing the math that
-was used to create the bus/device/function.
+The use case for those APIs is the migration flow of a VF over VFIO PCI.
+In that case the VF doesn't ride on mlx5_core, because the device is
+driving *two* different PCI devices, the PF owned by mlx5_core and the
+VF owned by the vfio driver.
+
+The mlx5_core of the PF is accessed only during the narrow window of the
+VF's ioctl that requires its services.
+
+This allows the PF driver to be more independent of the VF driver, so
+long as it doesn't reset the FW.
 
 Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/pci/iov.c   | 14 ++++++++++++++
- include/linux/pci.h |  7 ++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 43 +++++++++++++++++++
+ include/linux/mlx5/driver.h                   |  3 ++
+ 2 files changed, 46 insertions(+)
 
-diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
-index dafdc652fcd0..e7751fa3fe0b 100644
---- a/drivers/pci/iov.c
-+++ b/drivers/pci/iov.c
-@@ -33,6 +33,20 @@ int pci_iov_virtfn_devfn(struct pci_dev *dev, int vf_id)
- }
- EXPORT_SYMBOL_GPL(pci_iov_virtfn_devfn);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 79482824c64f..fcc8b7830421 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1795,6 +1795,49 @@ static struct pci_driver mlx5_core_driver = {
+ 	.sriov_set_msix_vec_count = mlx5_core_sriov_set_msix_vec_count,
+ };
  
-+int pci_iov_vf_id(struct pci_dev *dev)
++/**
++ * mlx5_get_core_dev - Get the mlx5 core device from a given PCI device if
++ *                     mlx5_core is its driver.
++ * @pdev: The associated PCI device.
++ *
++ * Upon return the interface state lock stay held to let caller uses it safely.
++ * Caller must ensure to use the returned mlx5 device for a narrow window
++ * and put it back with mlx5_put_core_dev() immediately once usage was over.
++ *
++ * Return: Pointer to the associated mlx5_core_dev or NULL.
++ */
++struct mlx5_core_dev *mlx5_get_core_dev(struct pci_dev *pdev)
++			__acquires(&mdev->intf_state_mutex)
 +{
-+	struct pci_dev *pf;
++	struct mlx5_core_dev *mdev;
 +
-+	if (!dev->is_virtfn)
-+		return -EINVAL;
++	device_lock(&pdev->dev);
++	if (pdev->driver != &mlx5_core_driver) {
++		device_unlock(&pdev->dev);
++		return NULL;
++	}
 +
-+	pf = pci_physfn(dev);
-+	return (((dev->bus->number << 8) + dev->devfn) -
-+		((pf->bus->number << 8) + pf->devfn + pf->sriov->offset)) /
-+	       pf->sriov->stride;
++	mdev = pci_get_drvdata(pdev);
++	mutex_lock(&mdev->intf_state_mutex);
++	device_unlock(&pdev->dev);
++
++	return mdev;
 +}
-+EXPORT_SYMBOL_GPL(pci_iov_vf_id);
++EXPORT_SYMBOL(mlx5_get_core_dev);
 +
- /*
-  * Per SR-IOV spec sec 3.3.10 and 3.3.11, First VF Offset and VF Stride may
-  * change when NumVFs changes.
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index cd8aa6fce204..4d6c73506e18 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -2153,7 +2153,7 @@ void __iomem *pci_ioremap_wc_bar(struct pci_dev *pdev, int bar);
- #ifdef CONFIG_PCI_IOV
- int pci_iov_virtfn_bus(struct pci_dev *dev, int id);
- int pci_iov_virtfn_devfn(struct pci_dev *dev, int id);
--
-+int pci_iov_vf_id(struct pci_dev *dev);
- int pci_enable_sriov(struct pci_dev *dev, int nr_virtfn);
- void pci_disable_sriov(struct pci_dev *dev);
- 
-@@ -2181,6 +2181,11 @@ static inline int pci_iov_virtfn_devfn(struct pci_dev *dev, int id)
++/**
++ * mlx5_put_core_dev - Put the mlx5 core device back.
++ * @mdev: The mlx5 core device.
++ *
++ * Upon return the interface state lock is unlocked and caller should not
++ * access the mdev any more.
++ */
++void mlx5_put_core_dev(struct mlx5_core_dev *mdev)
++{
++	mutex_unlock(&mdev->intf_state_mutex);
++}
++EXPORT_SYMBOL(mlx5_put_core_dev);
++
+ static void mlx5_core_verify_params(void)
  {
- 	return -ENOSYS;
- }
-+static inline int pci_iov_vf_id(struct pci_dev *dev)
-+{
-+	return -ENOSYS;
-+}
-+
- static inline int pci_enable_sriov(struct pci_dev *dev, int nr_virtfn)
- { return -ENODEV; }
+ 	if (prof_sel >= ARRAY_SIZE(profile)) {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 1b8bae246b28..e9a96904d6f1 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1156,6 +1156,9 @@ int mlx5_dm_sw_icm_alloc(struct mlx5_core_dev *dev, enum mlx5_sw_icm_type type,
+ int mlx5_dm_sw_icm_dealloc(struct mlx5_core_dev *dev, enum mlx5_sw_icm_type type,
+ 			   u64 length, u16 uid, phys_addr_t addr, u32 obj_id);
  
++struct mlx5_core_dev *mlx5_get_core_dev(struct pci_dev *pdev);
++void mlx5_put_core_dev(struct mlx5_core_dev *mdev);
++
+ #ifdef CONFIG_MLX5_CORE_IPOIB
+ struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
+ 					  struct ib_device *ibdev,
 -- 
 2.31.1
 
