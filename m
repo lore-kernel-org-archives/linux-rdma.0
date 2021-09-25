@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B542BC4332F
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 382BAC433EF
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4CB1610F7
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 220B76127A
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343578AbhIYL0Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:26:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57524 "EHLO mail.kernel.org"
+        id S245244AbhIYL00 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:26:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244756AbhIYLZx (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:25:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1B0761352;
-        Sat, 25 Sep 2021 11:24:17 +0000 (UTC)
+        id S245756AbhIYLZn (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:25:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CC77061288;
+        Sat, 25 Sep 2021 11:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632569058;
-        bh=iRLV6v3e7JYAyZzq3uX24jBWmOHmWur2DvK8Vt/2i+0=;
+        s=k20201202; t=1632569048;
+        bh=UGe1xR5nQjl5sitWRrZO39MCG615CkI/XgeO5EfkyHA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pR22exCjUS7YCkjkCvD8Rnb9sosGeBFWlArr/YA3QFWWrtyauBEi7+Tuhqd4afoJR
-         eRUaq5hWn2OMw9LPTV8rZEfeRlENaJNpc2E4GJnYKmRa7zvr8b5JTcEqZmvEYOvhf/
-         2YLSW8fytAdZTjkgmt/8HJ/SHvzIf7/eRAOikZt9Oa1UDm8a+EloI0pZzg2GkXLWp/
-         kbdu3Un5+qwR8prVYLnTt23VXb+LJjt7pgc76zL+oyZsh181Sb/7IqLOeqFUK9InuA
-         voqdYkfrjahsfJjF/DzkF/YIBNWKLGBMyC3/4eZXseBdGBO3ITOoLCyUVllM0CXPr8
-         8zF7KKkx596zg==
+        b=eXJnTqgMbORVHaUsGV03ryKJr6A1PfdhYoeVsyCNEges2Dn9WZ7FE4+7QH3xqJvR9
+         Mz5qz1HhsuOgoYQOxRRc2geSU+85mrlqpccGRTMS5HNtlTD9qpZiA6BDhj7DVZhKv7
+         sj2HzVf0JYXhCn2l9u3cBQBv5vEik7dYiF8tPoahtV6EPb5DdE99UK8bicH0CXAY1W
+         HNyqws6BMBbppxtt3484q7TdwfEfbBOeq/bgChcm6v6hSMl1crla5Ovo4z8W/DKqtc
+         ElB0gliFBoCj4F940uxkATHVFsfX4EYpq0KC0xZ9LpCNrkxbV9d5shVyGsAIldIE1K
+         SK3ShGOLcii1A==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 21/21] net: dsa: Move devlink registration to be last devlink command
-Date:   Sat, 25 Sep 2021 14:23:01 +0300
-Message-Id: <66dd7979b44ac307711c382054f428f9287666a8.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 19/21] ptp: ocp: Move devlink registration to be last devlink command
+Date:   Sat, 25 Sep 2021 14:22:59 +0300
+Message-Id: <1541e7cd8262ce9db7544669438d0f4360068dd2.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,70 +87,56 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-This change prevents from users to access device before devlink
-is fully configured.
+This change prevents from users to access device before devlink is
+fully configured.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- net/dsa/dsa2.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/ptp/ptp_ocp.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/dsa/dsa2.c b/net/dsa/dsa2.c
-index a020339e1973..8ca6a1170c9d 100644
---- a/net/dsa/dsa2.c
-+++ b/net/dsa/dsa2.c
-@@ -848,7 +848,6 @@ static int dsa_switch_setup(struct dsa_switch *ds)
- 	dl_priv = devlink_priv(ds->devlink);
- 	dl_priv->ds = ds;
- 
--	devlink_register(ds->devlink);
- 	/* Setup devlink port instances now, so that the switch
- 	 * setup() can register regions etc, against the ports
- 	 */
-@@ -874,8 +873,6 @@ static int dsa_switch_setup(struct dsa_switch *ds)
- 	if (err)
- 		goto teardown;
- 
--	devlink_params_publish(ds->devlink);
--
- 	if (!ds->slave_mii_bus && ds->ops->phy_read) {
- 		ds->slave_mii_bus = mdiobus_alloc();
- 		if (!ds->slave_mii_bus) {
-@@ -891,7 +888,7 @@ static int dsa_switch_setup(struct dsa_switch *ds)
+diff --git a/drivers/ptp/ptp_ocp.c b/drivers/ptp/ptp_ocp.c
+index 4c25467198e3..34f943c8c9fd 100644
+--- a/drivers/ptp/ptp_ocp.c
++++ b/drivers/ptp/ptp_ocp.c
+@@ -2455,7 +2455,6 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		return -ENOMEM;
  	}
  
- 	ds->setup = true;
+-	devlink_register(devlink);
+ 	err = pci_enable_device(pdev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "pci_enable_device\n");
+@@ -2497,7 +2496,7 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		goto out;
+ 
+ 	ptp_ocp_info(bp);
 -
-+	devlink_register(ds->devlink);
++	devlink_register(devlink);
  	return 0;
  
- free_slave_mii_bus:
-@@ -906,7 +903,6 @@ static int dsa_switch_setup(struct dsa_switch *ds)
- 	list_for_each_entry(dp, &ds->dst->ports, list)
- 		if (dp->ds == ds)
- 			dsa_port_devlink_teardown(dp);
--	devlink_unregister(ds->devlink);
- 	devlink_free(ds->devlink);
- 	ds->devlink = NULL;
+ out:
+@@ -2506,7 +2505,6 @@ ptp_ocp_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ out_disable:
+ 	pci_disable_device(pdev);
+ out_unregister:
+-	devlink_unregister(devlink);
+ 	devlink_free(devlink);
  	return err;
-@@ -919,6 +915,9 @@ static void dsa_switch_teardown(struct dsa_switch *ds)
- 	if (!ds->setup)
- 		return;
+ }
+@@ -2517,11 +2515,11 @@ ptp_ocp_remove(struct pci_dev *pdev)
+ 	struct ptp_ocp *bp = pci_get_drvdata(pdev);
+ 	struct devlink *devlink = priv_to_devlink(bp);
  
-+	if (ds->devlink)
-+		devlink_unregister(ds->devlink);
-+
- 	if (ds->slave_mii_bus && ds->ops->phy_read) {
- 		mdiobus_unregister(ds->slave_mii_bus);
- 		mdiobus_free(ds->slave_mii_bus);
-@@ -934,7 +933,6 @@ static void dsa_switch_teardown(struct dsa_switch *ds)
- 		list_for_each_entry(dp, &ds->dst->ports, list)
- 			if (dp->ds == ds)
- 				dsa_port_devlink_teardown(dp);
--		devlink_unregister(ds->devlink);
- 		devlink_free(ds->devlink);
- 		ds->devlink = NULL;
- 	}
++	devlink_unregister(devlink);
+ 	ptp_ocp_detach(bp);
+ 	pci_set_drvdata(pdev, NULL);
+ 	pci_disable_device(pdev);
+ 
+-	devlink_unregister(devlink);
+ 	devlink_free(devlink);
+ }
+ 
 -- 
 2.31.1
 
