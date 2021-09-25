@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8B57C433F5
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A79D7C433EF
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB48E61288
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F79161284
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244667AbhIYLYt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:24:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55400 "EHLO mail.kernel.org"
+        id S244795AbhIYLY4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:24:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244650AbhIYLYr (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:24:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CC4A6127A;
-        Sat, 25 Sep 2021 11:23:12 +0000 (UTC)
+        id S244725AbhIYLYv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:24:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD4986127C;
+        Sat, 25 Sep 2021 11:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632568993;
-        bh=0iCrJmusuY+MMUEQ//ywNHOofwBQzIGVnKfBKsYhLkY=;
+        s=k20201202; t=1632568996;
+        bh=cCL9OPu7ylTp3lXAkUh0UgmGr0ZctC2d0EdfzXcuSDs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Un2ZXGs141wGHS2WheoisAp7znQPAsLcvAkFWEs/VT1FH8znj6ZuQ78vXW/UxmcNq
-         DdEkagR3qqP2rfbHNVlg6STPvOVaZ0+ZfxAwDMiP0rNwXsJsLCfO7CIY/3nmp31XVw
-         mcfvBqqu2/PDLgeC0sROwOWx1xKrrBzrswzkASx/156P4VKWx/jPoSaUSBLxOv+cne
-         PBEte5Wz8kBJRU98ig/0GffGqKLmxAn3wYIyNB6qUMMgQN1ttlgrI02XyYZXimYavH
-         eVXwwgstpU2BJ4eCFTUjvdEV6IX0VLMZ42T2n7f7/dAzBcN+b2XqdPVm20ncAAMeFq
-         wP3LrJfUtJRLQ==
+        b=c9YNQD+E2p1TmAdtqT0WIwmiJu5kmUIVN+O+nplzesA2lLLcARe0V/utgO/vGx8lF
+         DaZJnAMul9QUW5QGKzdFYXLss2DIlj4VOai0ic6LDtd7+26oCTBwNaeAJviNFDzSA1
+         COwBr7dTsUw7g0++Wj9lyb3LuPDjKcbnr2Dsrt7/p3VwD6QwP7Umb69VvNtd/6+TTj
+         mlM+hoVAKG9BTNPfXEH//VST0WH4AcLFAK8sbQQC0r1UH4mERsDgPC0j9YYFdoNvy1
+         4toONRoZ2+u/r7lz48dgmissq7azoDonbkAMJLJxFHBliNJx9qw8YM63YO2F/FeYr6
+         6JQgCJMr6c7Cw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 02/21] bnxt_en: Register devlink instance at the end devlink configuration
-Date:   Sat, 25 Sep 2021 14:22:42 +0300
-Message-Id: <54d36bce5a78cdb4d51a9eaff6f2216fbbdd1004.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 04/21] dpaa2-eth: Register devlink instance at the end of probe
+Date:   Sat, 25 Sep 2021 14:22:44 +0300
+Message-Id: <c6abd202014523d6e685a97c0ec844d2756ffd34.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,71 +87,119 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Move devlink_register() to be last command in devlink configuration
-sequence, so no user space access will be possible till devlink instance
-is fully operable. As part of this change, the devlink_params_publish
-call is removed as not needed.
-
-This change fixes forgotten devlink_params_unpublish() too.
+Move devlink_register to be the last command in the initialization
+sequence.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ .../ethernet/freescale/dpaa2/dpaa2-eth-devlink.c   | 14 +++++++++++---
+ drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c   |  9 ++++++---
+ drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h   |  5 ++++-
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-index ed95e28d60ef..951c0c00cc95 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_devlink.c
-@@ -745,14 +745,10 @@ static int bnxt_dl_params_register(struct bnxt *bp)
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
+index 426926fb6fc6..7fefe1574b6a 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth-devlink.c
+@@ -189,7 +189,7 @@ static const struct devlink_ops dpaa2_eth_devlink_ops = {
+ 	.trap_group_action_set = dpaa2_eth_dl_trap_group_action_set,
+ };
  
- 	rc = devlink_params_register(bp->dl, bnxt_dl_params,
- 				     ARRAY_SIZE(bnxt_dl_params));
--	if (rc) {
-+	if (rc)
- 		netdev_warn(bp->dev, "devlink_params_register failed. rc=%d\n",
- 			    rc);
--		return rc;
--	}
--	devlink_params_publish(bp->dl);
--
+-int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
++int dpaa2_eth_dl_alloc(struct dpaa2_eth_priv *priv)
+ {
+ 	struct net_device *net_dev = priv->net_dev;
+ 	struct device *dev = net_dev->dev.parent;
+@@ -203,15 +203,23 @@ int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
+ 	}
+ 	dl_priv = devlink_priv(priv->devlink);
+ 	dl_priv->dpaa2_priv = priv;
++	return 0;
++}
++
++void dpaa2_eth_dl_free(struct dpaa2_eth_priv *priv)
++{
++	devlink_free(priv->devlink);
++}
++
+ 
++void dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv)
++{
+ 	devlink_register(priv->devlink);
 -	return 0;
-+	return rc;
  }
  
- static void bnxt_dl_params_unregister(struct bnxt *bp)
-@@ -792,9 +788,8 @@ int bnxt_dl_register(struct bnxt *bp)
- 	    bp->hwrm_spec_code > 0x10803)
- 		bp->eswitch_mode = DEVLINK_ESWITCH_MODE_LEGACY;
+ void dpaa2_eth_dl_unregister(struct dpaa2_eth_priv *priv)
+ {
+ 	devlink_unregister(priv->devlink);
+-	devlink_free(priv->devlink);
+ }
  
--	devlink_register(dl);
- 	if (!BNXT_PF(bp))
--		return 0;
-+		goto out;
+ int dpaa2_eth_dl_port_add(struct dpaa2_eth_priv *priv)
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
+index 7065c71ed7b8..03c168b1712f 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.c
+@@ -4431,7 +4431,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ 	if (err)
+ 		goto err_connect_mac;
  
- 	attrs.flavour = DEVLINK_PORT_FLAVOUR_PHYSICAL;
- 	attrs.phys.port_number = bp->pf.port_id;
-@@ -811,6 +806,8 @@ int bnxt_dl_register(struct bnxt *bp)
- 	if (rc)
- 		goto err_dl_port_unreg;
+-	err = dpaa2_eth_dl_register(priv);
++	err = dpaa2_eth_dl_alloc(priv);
+ 	if (err)
+ 		goto err_dl_register;
  
-+out:
-+	devlink_register(dl);
+@@ -4453,6 +4453,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ 	dpaa2_dbg_add(priv);
+ #endif
+ 
++	dpaa2_eth_dl_register(priv);
+ 	dev_info(dev, "Probed interface %s\n", net_dev->name);
  	return 0;
  
- err_dl_port_unreg:
-@@ -824,10 +821,10 @@ void bnxt_dl_unregister(struct bnxt *bp)
- {
- 	struct devlink *dl = bp->dl;
+@@ -4461,7 +4462,7 @@ static int dpaa2_eth_probe(struct fsl_mc_device *dpni_dev)
+ err_dl_port_add:
+ 	dpaa2_eth_dl_traps_unregister(priv);
+ err_dl_trap_register:
+-	dpaa2_eth_dl_unregister(priv);
++	dpaa2_eth_dl_free(priv);
+ err_dl_register:
+ 	dpaa2_eth_disconnect_mac(priv);
+ err_connect_mac:
+@@ -4508,6 +4509,8 @@ static int dpaa2_eth_remove(struct fsl_mc_device *ls_dev)
+ 	net_dev = dev_get_drvdata(dev);
+ 	priv = netdev_priv(net_dev);
  
-+	devlink_unregister(dl);
- 	if (BNXT_PF(bp)) {
- 		bnxt_dl_params_unregister(bp);
- 		devlink_port_unregister(&bp->dl_port);
- 	}
--	devlink_unregister(dl);
- 	devlink_free(dl);
- }
++	dpaa2_eth_dl_unregister(priv);
++
+ #ifdef CONFIG_DEBUG_FS
+ 	dpaa2_dbg_remove(priv);
+ #endif
+@@ -4519,7 +4522,7 @@ static int dpaa2_eth_remove(struct fsl_mc_device *ls_dev)
+ 
+ 	dpaa2_eth_dl_port_del(priv);
+ 	dpaa2_eth_dl_traps_unregister(priv);
+-	dpaa2_eth_dl_unregister(priv);
++	dpaa2_eth_dl_free(priv);
+ 
+ 	if (priv->do_link_poll)
+ 		kthread_stop(priv->poll_thread);
+diff --git a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
+index cdb623d5f2c1..628d2d45f045 100644
+--- a/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
++++ b/drivers/net/ethernet/freescale/dpaa2/dpaa2-eth.h
+@@ -725,7 +725,10 @@ void dpaa2_eth_set_rx_taildrop(struct dpaa2_eth_priv *priv,
+ 
+ extern const struct dcbnl_rtnl_ops dpaa2_eth_dcbnl_ops;
+ 
+-int dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv);
++int dpaa2_eth_dl_alloc(struct dpaa2_eth_priv *priv);
++void dpaa2_eth_dl_free(struct dpaa2_eth_priv *priv);
++
++void dpaa2_eth_dl_register(struct dpaa2_eth_priv *priv);
+ void dpaa2_eth_dl_unregister(struct dpaa2_eth_priv *priv);
+ 
+ int dpaa2_eth_dl_port_add(struct dpaa2_eth_priv *priv);
 -- 
 2.31.1
 
