@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCC9EC433FE
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE90C433F5
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF89E610F7
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 059596127A
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244918AbhIYL0A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:26:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56278 "EHLO mail.kernel.org"
+        id S245524AbhIYL0F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:26:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245431AbhIYLZ3 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:25:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 291B1610F7;
-        Sat, 25 Sep 2021 11:23:54 +0000 (UTC)
+        id S245514AbhIYLZd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:25:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90E1461283;
+        Sat, 25 Sep 2021 11:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632569035;
-        bh=8KdGOHxpJSC+PZ1rdlS7MYCY0+1MQwiYwEoCEiKpnEA=;
+        s=k20201202; t=1632569038;
+        bh=jJTdFkVIbFrNcti+vSAvnsUyuqLnAsTFH1czjUjL+4Q=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CK0GxpGxVjLr6RMM+yLXjKxbrpzgr1NnmO2ZnSXdEbzjFggId6zMbRa/xFtmvhjFN
-         mHKRHmRMWTn5ChvHLRZTYU+N7Q7pLuOMUtwQ6zn+pKMvS8zUMFcJGA2UcdEV1Fi8wM
-         +c4uZH2zSGoVvfTMbgqPCMGxTnbFCubhs5kpa1HJVcrcL7pJP3UkPHw4dGdT6rOHzZ
-         vWEjzOs1we9xOVQARO7alLjH6+/uytOgF3T8gLYPv/+La5k7Rs8Jacrqio9f7L7JMT
-         bxer9M0yfSRvZLSv+yTlkpTRGW7BuRn3qYcG2CV5E719HbqtOGSCHbvHuDasNw5RTr
-         DWyTQ/DNs4W6Q==
+        b=GPWtcrmfDyDMddu/oC/QnkpL4YXGkCgVKNf3L07H+kjGHXs6Chmk67nPjUN2TMJYc
+         Y9kmkd1dw01fVgTD+LUXZlcZ3cg5+8TF1hIIkMUJ4X/ZApnmufzf6TAJ5x76nwkVGT
+         39XuQ3/cKiPEhvAeAvluRwX/2k6/3qKwkZnOmrrXSdGNSptpGR2ZjNtLp2BV5aBgCH
+         O7dxVzOWEOsE10/q7niHhLSdvaOjOhSiRQVT26AgVpzP+XKdVRwGrt31w+yq2whnTX
+         jhfG5XJRtdzNemLyEOPxruOxcTh87Sovqe4PVHjmzMpcIbDWBa9VDvcW77pxSJNqC4
+         0r0M29pUOynaQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 12/21] net: mscc: ocelot: delay devlink registration to the end
-Date:   Sat, 25 Sep 2021 14:22:52 +0300
-Message-Id: <6c20043398a8543fb69795be5ab1e200613fb881.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 16/21] net: ethernet: ti: Move devlink registration to be last devlink command
+Date:   Sat, 25 Sep 2021 14:22:56 +0300
+Message-Id: <080c8889f80e48971dd9a1dadb4107882d83998d.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,54 +87,114 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Open access to the devlink interface when the driver fully initialized.
+This change prevents from users to access device before devlink is
+fully configured.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mscc/ocelot_vsc7514.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/ti/am65-cpsw-nuss.c | 15 ++++++---------
+ drivers/net/ethernet/ti/cpsw_new.c       |  7 ++-----
+ 2 files changed, 8 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/net/ethernet/mscc/ocelot_vsc7514.c b/drivers/net/ethernet/mscc/ocelot_vsc7514.c
-index 2b8ea48d2fc4..5d01993f6be0 100644
---- a/drivers/net/ethernet/mscc/ocelot_vsc7514.c
-+++ b/drivers/net/ethernet/mscc/ocelot_vsc7514.c
-@@ -1134,7 +1134,6 @@ static int mscc_ocelot_probe(struct platform_device *pdev)
- 	if (err)
- 		goto out_put_ports;
+diff --git a/drivers/net/ethernet/ti/am65-cpsw-nuss.c b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+index c2ea53ca92b6..0de5f4a4fe08 100644
+--- a/drivers/net/ethernet/ti/am65-cpsw-nuss.c
++++ b/drivers/net/ethernet/ti/am65-cpsw-nuss.c
+@@ -2429,7 +2429,6 @@ static int am65_cpsw_nuss_register_devlink(struct am65_cpsw_common *common)
+ 	dl_priv = devlink_priv(common->devlink);
+ 	dl_priv->common = common;
  
--	devlink_register(devlink);
- 	err = mscc_ocelot_init_ports(pdev, ports);
- 	if (err)
- 		goto out_ocelot_devlink_unregister;
-@@ -1157,6 +1156,7 @@ static int mscc_ocelot_probe(struct platform_device *pdev)
- 	register_switchdev_blocking_notifier(&ocelot_switchdev_blocking_nb);
+-	devlink_register(common->devlink);
+ 	/* Provide devlink hook to switch mode when multiple external ports
+ 	 * are present NUSS switchdev driver is enabled.
+ 	 */
+@@ -2442,7 +2441,6 @@ static int am65_cpsw_nuss_register_devlink(struct am65_cpsw_common *common)
+ 			dev_err(dev, "devlink params reg fail ret:%d\n", ret);
+ 			goto dl_unreg;
+ 		}
+-		devlink_params_publish(common->devlink);
+ 	}
  
- 	of_node_put(ports);
-+	devlink_register(devlink);
+ 	for (i = 1; i <= common->port_num; i++) {
+@@ -2463,7 +2461,7 @@ static int am65_cpsw_nuss_register_devlink(struct am65_cpsw_common *common)
+ 		}
+ 		devlink_port_type_eth_set(dl_port, port->ndev);
+ 	}
+-
++	devlink_register(common->devlink);
+ 	return ret;
  
- 	dev_info(&pdev->dev, "Ocelot switch probed\n");
+ dl_port_unreg:
+@@ -2474,7 +2472,6 @@ static int am65_cpsw_nuss_register_devlink(struct am65_cpsw_common *common)
+ 		devlink_port_unregister(dl_port);
+ 	}
+ dl_unreg:
+-	devlink_unregister(common->devlink);
+ 	devlink_free(common->devlink);
+ 	return ret;
+ }
+@@ -2485,6 +2482,8 @@ static void am65_cpsw_unregister_devlink(struct am65_cpsw_common *common)
+ 	struct am65_cpsw_port *port;
+ 	int i;
  
-@@ -1166,7 +1166,6 @@ static int mscc_ocelot_probe(struct platform_device *pdev)
- 	mscc_ocelot_release_ports(ocelot);
- 	mscc_ocelot_teardown_devlink_ports(ocelot);
- out_ocelot_devlink_unregister:
--	devlink_unregister(devlink);
- 	ocelot_deinit(ocelot);
- out_put_ports:
- 	of_node_put(ports);
-@@ -1179,11 +1178,11 @@ static int mscc_ocelot_remove(struct platform_device *pdev)
++	devlink_unregister(common->devlink);
++
+ 	for (i = 1; i <= common->port_num; i++) {
+ 		port = am65_common_get_port(common, i);
+ 		dl_port = &port->devlink_port;
+@@ -2493,13 +2492,11 @@ static void am65_cpsw_unregister_devlink(struct am65_cpsw_common *common)
+ 	}
+ 
+ 	if (!AM65_CPSW_IS_CPSW2G(common) &&
+-	    IS_ENABLED(CONFIG_TI_K3_AM65_CPSW_SWITCHDEV)) {
+-		devlink_params_unpublish(common->devlink);
+-		devlink_params_unregister(common->devlink, am65_cpsw_devlink_params,
++	    IS_ENABLED(CONFIG_TI_K3_AM65_CPSW_SWITCHDEV))
++		devlink_params_unregister(common->devlink,
++					  am65_cpsw_devlink_params,
+ 					  ARRAY_SIZE(am65_cpsw_devlink_params));
+-	}
+ 
+-	devlink_unregister(common->devlink);
+ 	devlink_free(common->devlink);
+ }
+ 
+diff --git a/drivers/net/ethernet/ti/cpsw_new.c b/drivers/net/ethernet/ti/cpsw_new.c
+index 204b4826303c..1530532748a8 100644
+--- a/drivers/net/ethernet/ti/cpsw_new.c
++++ b/drivers/net/ethernet/ti/cpsw_new.c
+@@ -1810,7 +1810,6 @@ static int cpsw_register_devlink(struct cpsw_common *cpsw)
+ 	dl_priv = devlink_priv(cpsw->devlink);
+ 	dl_priv->cpsw = cpsw;
+ 
+-	devlink_register(cpsw->devlink);
+ 	ret = devlink_params_register(cpsw->devlink, cpsw_devlink_params,
+ 				      ARRAY_SIZE(cpsw_devlink_params));
+ 	if (ret) {
+@@ -1818,21 +1817,19 @@ static int cpsw_register_devlink(struct cpsw_common *cpsw)
+ 		goto dl_unreg;
+ 	}
+ 
+-	devlink_params_publish(cpsw->devlink);
++	devlink_register(cpsw->devlink);
+ 	return ret;
+ 
+ dl_unreg:
+-	devlink_unregister(cpsw->devlink);
+ 	devlink_free(cpsw->devlink);
+ 	return ret;
+ }
+ 
+ static void cpsw_unregister_devlink(struct cpsw_common *cpsw)
  {
- 	struct ocelot *ocelot = platform_get_drvdata(pdev);
+-	devlink_params_unpublish(cpsw->devlink);
++	devlink_unregister(cpsw->devlink);
+ 	devlink_params_unregister(cpsw->devlink, cpsw_devlink_params,
+ 				  ARRAY_SIZE(cpsw_devlink_params));
+-	devlink_unregister(cpsw->devlink);
+ 	devlink_free(cpsw->devlink);
+ }
  
-+	devlink_unregister(ocelot->devlink);
- 	ocelot_deinit_timestamp(ocelot);
- 	ocelot_devlink_sb_unregister(ocelot);
- 	mscc_ocelot_release_ports(ocelot);
- 	mscc_ocelot_teardown_devlink_ports(ocelot);
--	devlink_unregister(ocelot->devlink);
- 	ocelot_deinit(ocelot);
- 	unregister_switchdev_blocking_notifier(&ocelot_switchdev_blocking_nb);
- 	unregister_switchdev_notifier(&ocelot_switchdev_nb);
 -- 
 2.31.1
 
