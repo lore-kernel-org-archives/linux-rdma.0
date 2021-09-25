@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D445C433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1953FC433EF
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 07C9C61353
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08F5961353
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:23:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245376AbhIYLZ1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:25:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56160 "EHLO mail.kernel.org"
+        id S244765AbhIYLZa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:25:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244871AbhIYLZI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:25:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 17AC6610F7;
-        Sat, 25 Sep 2021 11:23:33 +0000 (UTC)
+        id S244920AbhIYLZP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:25:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 137D361283;
+        Sat, 25 Sep 2021 11:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632569014;
-        bh=l4ubO1iNO/eKHGDuYjGRafB4EwpXo5nxoxsjU5XAGKM=;
+        s=k20201202; t=1632569021;
+        bh=pUbkHY0vLhXWzTqeqyikItDOpfddhvNos+1sgTUBTR4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ssn8r6T5ipfBUV1Bjq6AnhfL44IZyOMHmXeWU6/9hH1lTVCmQSiosocc/kJUbkg7Y
-         2ibqp53ysp4VfOvt0pQcVBcLBGi1uwBdc2dShLgM8OithU5F704lKTB7QVpgQDEKjC
-         xmoGjPqQuCIbs+A8gi2Xn5lorLDn3A7B3youjreW56czvxw13U73pZkmuVqZ04sCkz
-         ypZ5JISMkGCifzna5/Lo6ceMPQIjL0Wz/NZvKz7rozYwHq/LYCRWlYsOvw9BeKhkIu
-         yaZ08tgzL9k1IR8iSCJU4gK9wHDjHmylgObF4TNSoK+AUmkpzkf0/PSGQeyQ4+p2pj
-         19gPtbN90X9aw==
+        b=WQR4ljxZy+usZPnLesAejIasJivigRp0LS+HuMU22e7S386OBHOLwL+o8RUd5buz6
+         kguMzkCXimp2hkUSwGli2B2qJEbbZyTGl+AnA3IxA7sWJLTUeZlDap7zeqSr4Br767
+         ZsNPsfXFopKpTVZcRJNn+PdT1plW+K8YKdsZ9rvxhJSm2S9Oq5+IzENfjP8wwFybFm
+         UCFmt7LvKub5o/ollb3esYSpgq4fuv66Nbp36NTUbQnRrBGNy5++u6hsU0P7SWOEEP
+         ecUDd7szo5zQLBppMR5a4fWQNdDEmtj5gPLgVrqRuU8bGiB0fc/yAL5agDgI2BKkfy
+         iXGWWJeZvDQaw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 06/21] ice: Open devlink when device is ready
-Date:   Sat, 25 Sep 2021 14:22:46 +0300
-Message-Id: <23884bb7be2cc08ae00c551a6bb7d200a75b5117.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 11/21] mlxsw: core: Register devlink instance last
+Date:   Sat, 25 Sep 2021 14:22:51 +0300
+Message-Id: <ca198a30949abb3bdf283ff87e6e718be355d0cf.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,59 +87,88 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Move devlink_registration routine to be the last command, when the
-device is fully initialized.
+Make sure that devlink is open to receive user input when all
+parameters are initialized.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/intel/ice/ice_main.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlxsw/core.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index aacc0b345bbe..627adf8fb89d 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -4258,8 +4258,6 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/core.c b/drivers/net/ethernet/mellanox/mlxsw/core.c
+index 9a570fa167b6..9e831e8b607a 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/core.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/core.c
+@@ -1973,9 +1973,6 @@ __mlxsw_core_bus_device_register(const struct mlxsw_bus_info *mlxsw_bus_info,
+ 	if (err)
+ 		goto err_emad_init;
  
- 	pf->msg_enable = netif_msg_init(debug, ICE_DFLT_NETIF_M);
- 
--	ice_devlink_register(pf);
+-	if (!reload)
+-		devlink_register(devlink);
 -
- #ifndef CONFIG_DYNAMIC_DEBUG
- 	if (debug < -1)
- 		hw->debug_mask = debug;
-@@ -4493,6 +4491,7 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- 		dev_warn(dev, "RDMA is not supported on this device\n");
+ 	if (!reload) {
+ 		err = mlxsw_core_params_register(mlxsw_core);
+ 		if (err)
+@@ -2010,10 +2007,10 @@ __mlxsw_core_bus_device_register(const struct mlxsw_bus_info *mlxsw_bus_info,
+ 			goto err_driver_init;
  	}
  
-+	ice_devlink_register(pf);
+-	devlink_params_publish(devlink);
+-
+-	if (!reload)
++	if (!reload) {
++		devlink_register(devlink);
+ 		devlink_reload_enable(devlink);
++	}
+ 
  	return 0;
  
- err_init_aux_unroll:
-@@ -4516,7 +4515,6 @@ ice_probe(struct pci_dev *pdev, const struct pci_device_id __always_unused *ent)
- 	ice_devlink_destroy_regions(pf);
- 	ice_deinit_hw(hw);
- err_exit_unroll:
--	ice_devlink_unregister(pf);
- 	pci_disable_pcie_error_reporting(pdev);
- 	pci_disable_device(pdev);
- 	return err;
-@@ -4593,6 +4591,7 @@ static void ice_remove(struct pci_dev *pdev)
- 	struct ice_pf *pf = pci_get_drvdata(pdev);
- 	int i;
+@@ -2030,8 +2027,6 @@ __mlxsw_core_bus_device_register(const struct mlxsw_bus_info *mlxsw_bus_info,
+ 	if (!reload)
+ 		mlxsw_core_params_unregister(mlxsw_core);
+ err_register_params:
+-	if (!reload)
+-		devlink_unregister(devlink);
+ 	mlxsw_emad_fini(mlxsw_core);
+ err_emad_init:
+ 	kfree(mlxsw_core->lag.mapping);
+@@ -2080,8 +2075,10 @@ void mlxsw_core_bus_device_unregister(struct mlxsw_core *mlxsw_core,
+ {
+ 	struct devlink *devlink = priv_to_devlink(mlxsw_core);
  
-+	ice_devlink_unregister(pf);
- 	for (i = 0; i < ICE_MAX_RESET_WAIT; i++) {
- 		if (!ice_is_reset_in_progress(pf->state))
- 			break;
-@@ -4629,7 +4628,6 @@ static void ice_remove(struct pci_dev *pdev)
- 	ice_deinit_pf(pf);
- 	ice_devlink_destroy_regions(pf);
- 	ice_deinit_hw(&pf->hw);
--	ice_devlink_unregister(pf);
+-	if (!reload)
++	if (!reload) {
+ 		devlink_reload_disable(devlink);
++		devlink_unregister(devlink);
++	}
+ 	if (devlink_is_reload_failed(devlink)) {
+ 		if (!reload)
+ 			/* Only the parts that were not de-initialized in the
+@@ -2092,7 +2089,6 @@ void mlxsw_core_bus_device_unregister(struct mlxsw_core *mlxsw_core,
+ 			return;
+ 	}
  
- 	/* Issue a PFR as part of the prescribed driver unload flow.  Do not
- 	 * do it via ice_schedule_reset() since there is no need to rebuild
+-	devlink_params_unpublish(devlink);
+ 	if (mlxsw_core->driver->fini)
+ 		mlxsw_core->driver->fini(mlxsw_core);
+ 	mlxsw_env_fini(mlxsw_core->env);
+@@ -2101,8 +2097,6 @@ void mlxsw_core_bus_device_unregister(struct mlxsw_core *mlxsw_core,
+ 	mlxsw_core_health_fini(mlxsw_core);
+ 	if (!reload)
+ 		mlxsw_core_params_unregister(mlxsw_core);
+-	if (!reload)
+-		devlink_unregister(devlink);
+ 	mlxsw_emad_fini(mlxsw_core);
+ 	kfree(mlxsw_core->lag.mapping);
+ 	mlxsw_ports_fini(mlxsw_core, reload);
+@@ -2116,7 +2110,6 @@ void mlxsw_core_bus_device_unregister(struct mlxsw_core *mlxsw_core,
+ 
+ reload_fail_deinit:
+ 	mlxsw_core_params_unregister(mlxsw_core);
+-	devlink_unregister(devlink);
+ 	devlink_resources_unregister(devlink, NULL);
+ 	devlink_free(devlink);
+ }
 -- 
 2.31.1
 
