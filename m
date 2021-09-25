@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE2FC433FE
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF52FC433FE
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2AACD6127A
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADE1D6127A
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245690AbhIYL0M (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:26:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56468 "EHLO mail.kernel.org"
+        id S245218AbhIYL0N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:26:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57154 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245428AbhIYLZg (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:25:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 002256128A;
-        Sat, 25 Sep 2021 11:24:00 +0000 (UTC)
+        id S244574AbhIYLZj (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:25:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 68AA66127C;
+        Sat, 25 Sep 2021 11:24:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632569041;
-        bh=Cl3NV1NYQWAcpVSM6GygwU59q/PE56ay+2A5k8m+/J0=;
+        s=k20201202; t=1632569045;
+        bh=ghHAU3D0r/NE4ZoiVTD12PA4CEB5+DDXgtVw+z6KtRc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BFN1GH5Yf1Hsh8UTT6arSQ8EKwmk0uMdcSCGgM/dgkyj3ocPsN9Vib6wa5dZd1Vwz
-         u8rLDRoYW6di1kveNeOMohk6xPKcEvcce/XHpWBXbVjOIlFhpzFhJHHK+3QOzz2Zr9
-         UPBq95GV2ADYPAzc6L51cg9xLwD9Le8xe4Vc4UqonE/62LqGC9UUMf9agd++VJIEnk
-         1BjNKGV/rp1lfPh2q4rxGAM52rDVmF/gwCAivI1rzyB7FhJa0oKEDBVXsd+6pTJ0ZD
-         KPsnfCNXWwdH+x7un/bTHw9zKjbfqAmmcjpTdlnAKXgf/Elqbq1UnyzIKCBdF0jyOH
-         RvSInpbsT4LUg==
+        b=SwqFg7wTZGt5iCU3qK7f4wQnVFfowX010H/dNk0sKyf2Fpcrv5KOUcXlAIBhvhPoY
+         /sJUWV49DzbUxeN8p6I3AF6ECdTN7PmNiEByCCKEnxzM+ANBeNrqDkUBsa8wvx7pjY
+         l7gK1Mg98ck7OMfilfsXCN1BXu4T2LFhFzqSpS1+7D7Ik5V4yCfVtNXCTqVdBBLNgU
+         RYeFsB5DtlzpqCfBNk5OFoaCcrIqNg2aZv4c8yF/fZrRpXnW24LDPNyQYqG2Q48wD7
+         ygTcKaPuygBRzHa5ObPnkA9FWV/kwePaSjWQtO8VR3EO/b6nHsGW0c+0vdXzTYphjW
+         eun1aIUbsGYZg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 17/21] netdevsim: Move devlink registration to be last devlink command
-Date:   Sat, 25 Sep 2021 14:22:57 +0300
-Message-Id: <87822c7b4f20182c37758a2c0b9bb84a0a3edaf8.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 15/21] qed: Move devlink registration to be last devlink command
+Date:   Sat, 25 Sep 2021 14:22:55 +0300
+Message-Id: <01bc35bd99dc5d2dcbf55bbf4a86f0bde1c50087.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -92,55 +92,49 @@ fully configured.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/netdevsim/dev.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/qlogic/qed/qed_devlink.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
-index b2214bc9efe2..cb6645012a30 100644
---- a/drivers/net/netdevsim/dev.c
-+++ b/drivers/net/netdevsim/dev.c
-@@ -1470,7 +1470,6 @@ int nsim_dev_probe(struct nsim_bus_dev *nsim_bus_dev)
- 	if (err)
- 		goto err_devlink_free;
+diff --git a/drivers/net/ethernet/qlogic/qed/qed_devlink.c b/drivers/net/ethernet/qlogic/qed/qed_devlink.c
+index c51f9590fe19..6bb4e165b592 100644
+--- a/drivers/net/ethernet/qlogic/qed/qed_devlink.c
++++ b/drivers/net/ethernet/qlogic/qed/qed_devlink.c
+@@ -215,7 +215,6 @@ struct devlink *qed_devlink_register(struct qed_dev *cdev)
+ 	qdevlink = devlink_priv(dl);
+ 	qdevlink->cdev = cdev;
  
--	devlink_register(devlink);
- 	err = devlink_params_register(devlink, nsim_devlink_params,
- 				      ARRAY_SIZE(nsim_devlink_params));
- 	if (err)
-@@ -1511,9 +1510,9 @@ int nsim_dev_probe(struct nsim_bus_dev *nsim_bus_dev)
- 	if (err)
- 		goto err_psample_exit;
+-	devlink_register(dl);
+ 	rc = devlink_params_register(dl, qed_devlink_params,
+ 				     ARRAY_SIZE(qed_devlink_params));
+ 	if (rc)
+@@ -226,15 +225,13 @@ struct devlink *qed_devlink_register(struct qed_dev *cdev)
+ 					   QED_DEVLINK_PARAM_ID_IWARP_CMT,
+ 					   value);
  
--	devlink_params_publish(devlink);
--	devlink_reload_enable(devlink);
- 	nsim_dev->esw_mode = DEVLINK_ESWITCH_MODE_LEGACY;
-+	devlink_register(devlink);
-+	devlink_reload_enable(devlink);
- 	return 0;
+-	devlink_params_publish(dl);
+ 	cdev->iwarp_cmt = false;
  
- err_psample_exit:
-@@ -1534,7 +1533,6 @@ int nsim_dev_probe(struct nsim_bus_dev *nsim_bus_dev)
- 	devlink_params_unregister(devlink, nsim_devlink_params,
- 				  ARRAY_SIZE(nsim_devlink_params));
- err_dl_unregister:
--	devlink_unregister(devlink);
- 	devlink_resources_unregister(devlink, NULL);
- err_devlink_free:
- 	devlink_free(devlink);
-@@ -1569,6 +1567,7 @@ void nsim_dev_remove(struct nsim_bus_dev *nsim_bus_dev)
- 	struct devlink *devlink = priv_to_devlink(nsim_dev);
+ 	qed_fw_reporters_create(dl);
+-
++	devlink_register(dl);
+ 	return dl;
  
- 	devlink_reload_disable(devlink);
+ err_unregister:
+-	devlink_unregister(dl);
+ 	devlink_free(dl);
+ 
+ 	return ERR_PTR(rc);
+@@ -245,11 +242,11 @@ void qed_devlink_unregister(struct devlink *devlink)
+ 	if (!devlink)
+ 		return;
+ 
 +	devlink_unregister(devlink);
+ 	qed_fw_reporters_destroy(devlink);
  
- 	nsim_dev_reload_destroy(nsim_dev);
+ 	devlink_params_unregister(devlink, qed_devlink_params,
+ 				  ARRAY_SIZE(qed_devlink_params));
  
-@@ -1576,7 +1575,6 @@ void nsim_dev_remove(struct nsim_bus_dev *nsim_bus_dev)
- 	nsim_dev_debugfs_exit(nsim_dev);
- 	devlink_params_unregister(devlink, nsim_devlink_params,
- 				  ARRAY_SIZE(nsim_devlink_params));
 -	devlink_unregister(devlink);
- 	devlink_resources_unregister(devlink, NULL);
  	devlink_free(devlink);
  }
 -- 
