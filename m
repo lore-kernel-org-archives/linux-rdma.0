@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24F62C433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D89C433FE
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11C4D61350
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 62E4561368
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Sep 2021 11:24:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245255AbhIYLZk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Sep 2021 07:25:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56468 "EHLO mail.kernel.org"
+        id S1343593AbhIYLZu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Sep 2021 07:25:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245264AbhIYLZT (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 25 Sep 2021 07:25:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 862F36128E;
-        Sat, 25 Sep 2021 11:23:43 +0000 (UTC)
+        id S245343AbhIYLZW (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sat, 25 Sep 2021 07:25:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4D4856128B;
+        Sat, 25 Sep 2021 11:23:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632569024;
-        bh=PrFeKKukywHaBt62rZVuiu0/Btho0nWbpbcpWAnFbY8=;
+        s=k20201202; t=1632569028;
+        bh=PMH85H5qipZOBKpjQUuS38xXXX8zD2iZVNUxRrzSq2M=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Oa0/myPIOe/XULQJv4GvGl6mM8d548pm5n1JM2ZO4N/GjQ3/SuiSVVQurEYxdOB4t
-         cZavrhNx8GlJtSu+x4nmb8Qvyu+Rk1v7w7H71NzrI9xMf/ssB9cYB9TnrGB5M2suOR
-         Vat9GDPaYU2bERyJfmRXqyWB6h+dnwTtaTrkn5Q6SxLBsL5XEVF1ViKGb16wvvlRmz
-         oYUHPaJKGU9BCOODfK4K/2mNPBd5BekedAnYvyI+U4XbQRpNV3I/TzHLtLg4XjXbUA
-         3gb2u9jQ78tP5MnQQFI9e1+58aJKFPormH8cYFnoCewvS6S9P6VtOtPHaWiU4iR5ky
-         WySvKEg7HrWMQ==
+        b=bl6F2XX2QrtGJ/goSxrWiZ4kTfaDRalUW+JX64R4+f5tX2MkVbudqMboMu4+2r17G
+         9ypRSr6/TbxTX5ORpt0WdmEFf4Q9lTCPiz+FKtPuz9OazWtk3RxYg4dOQIG3qJItpb
+         pbsdhwETQqV8zGIh6DTOueiiB6dX2qdXhef22O55T8LHb5HQ/oDZd4nwPrZj/bqO7m
+         JhHZtPN0ApEbgjNw6XG7w2GgfEOi/wJOq/MBu65oKBl7Ftd6PTsLr9J/BfEnVlCops
+         Kpqi2qjOoxhp/Ux5Aml2oWUSJR2F3fXuK8NnJcOU5kQF7HvO859ztbO8XzHL22qlxH
+         S0xx6v652WI1Q==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -73,9 +73,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next v1 09/21] net/mlx4: Move devlink_register to be the last initialization command
-Date:   Sat, 25 Sep 2021 14:22:49 +0300
-Message-Id: <486f4512a0d472b8732067018d2ec8c4f3f45763.1632565508.git.leonro@nvidia.com>
+Subject: [PATCH net-next v1 13/21] nfp: Move delink_register to be last command
+Date:   Sat, 25 Sep 2021 14:22:53 +0300
+Message-Id: <f393212ad3906808ee7eb5cff06ef2e053eb9d2b.1632565508.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632565508.git.leonro@nvidia.com>
 References: <cover.1632565508.git.leonro@nvidia.com>
@@ -87,61 +87,78 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Refactor the code to make sure that devlink_register() is the last
-command during initialization stage.
+Open user space access to the devlink after driver is probed.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/netronome/nfp/devlink_param.c | 9 ++-------
+ drivers/net/ethernet/netronome/nfp/nfp_net_main.c  | 5 ++---
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 27ed4694fbea..9541f3a920c8 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -4015,7 +4015,6 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 	mutex_init(&dev->persist->interface_state_mutex);
- 	mutex_init(&dev->persist->pci_status_mutex);
+diff --git a/drivers/net/ethernet/netronome/nfp/devlink_param.c b/drivers/net/ethernet/netronome/nfp/devlink_param.c
+index 36491835ac65..db297ee4d7ad 100644
+--- a/drivers/net/ethernet/netronome/nfp/devlink_param.c
++++ b/drivers/net/ethernet/netronome/nfp/devlink_param.c
+@@ -233,13 +233,8 @@ int nfp_devlink_params_register(struct nfp_pf *pf)
+ 	if (err <= 0)
+ 		return err;
+ 
+-	err = devlink_params_register(devlink, nfp_devlink_params,
+-				      ARRAY_SIZE(nfp_devlink_params));
+-	if (err)
+-		return err;
+-
+-	devlink_params_publish(devlink);
+-	return 0;
++	return devlink_params_register(devlink, nfp_devlink_params,
++				       ARRAY_SIZE(nfp_devlink_params));
+ }
+ 
+ void nfp_devlink_params_unregister(struct nfp_pf *pf)
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net_main.c b/drivers/net/ethernet/netronome/nfp/nfp_net_main.c
+index 616872928ada..5fbb7c613ff1 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_net_main.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_net_main.c
+@@ -701,7 +701,6 @@ int nfp_net_pci_probe(struct nfp_pf *pf)
+ 	if (err)
+ 		goto err_unmap;
  
 -	devlink_register(devlink);
- 	ret = devlink_params_register(devlink, mlx4_devlink_params,
- 				      ARRAY_SIZE(mlx4_devlink_params));
- 	if (ret)
-@@ -4025,16 +4024,15 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (ret)
- 		goto err_params_unregister;
+ 	err = nfp_shared_buf_register(pf);
+ 	if (err)
+ 		goto err_devlink_unreg;
+@@ -731,6 +730,7 @@ int nfp_net_pci_probe(struct nfp_pf *pf)
+ 		goto err_stop_app;
  
--	devlink_params_publish(devlink);
--	devlink_reload_enable(devlink);
- 	pci_save_state(pdev);
+ 	mutex_unlock(&pf->lock);
 +	devlink_register(devlink);
-+	devlink_reload_enable(devlink);
+ 
  	return 0;
  
- err_params_unregister:
- 	devlink_params_unregister(devlink, mlx4_devlink_params,
- 				  ARRAY_SIZE(mlx4_devlink_params));
- err_devlink_unregister:
+@@ -748,7 +748,6 @@ int nfp_net_pci_probe(struct nfp_pf *pf)
+ 	nfp_shared_buf_unregister(pf);
+ err_devlink_unreg:
+ 	cancel_work_sync(&pf->port_refresh_work);
 -	devlink_unregister(devlink);
- 	kfree(dev->persist);
- err_devlink_free:
- 	devlink_free(devlink);
-@@ -4138,6 +4136,7 @@ static void mlx4_remove_one(struct pci_dev *pdev)
- 	int active_vfs = 0;
+ 	nfp_net_pf_app_clean(pf);
+ err_unmap:
+ 	nfp_net_pci_unmap_mem(pf);
+@@ -759,6 +758,7 @@ void nfp_net_pci_remove(struct nfp_pf *pf)
+ {
+ 	struct nfp_net *nn, *next;
  
- 	devlink_reload_disable(devlink);
-+	devlink_unregister(devlink);
++	devlink_unregister(priv_to_devlink(pf));
+ 	mutex_lock(&pf->lock);
+ 	list_for_each_entry_safe(nn, next, &pf->vnics, vnic_list) {
+ 		if (!nfp_net_is_data_vnic(nn))
+@@ -775,7 +775,6 @@ void nfp_net_pci_remove(struct nfp_pf *pf)
  
- 	if (mlx4_is_slave(dev))
- 		persist->interface_state |= MLX4_INTERFACE_STATE_NOWAIT;
-@@ -4173,7 +4172,6 @@ static void mlx4_remove_one(struct pci_dev *pdev)
- 	mlx4_pci_disable_device(dev);
- 	devlink_params_unregister(devlink, mlx4_devlink_params,
- 				  ARRAY_SIZE(mlx4_devlink_params));
--	devlink_unregister(devlink);
- 	kfree(dev->persist);
- 	devlink_free(devlink);
- }
+ 	nfp_devlink_params_unregister(pf);
+ 	nfp_shared_buf_unregister(pf);
+-	devlink_unregister(priv_to_devlink(pf));
+ 
+ 	nfp_net_pf_free_irqs(pf);
+ 	nfp_net_pf_app_clean(pf);
 -- 
 2.31.1
 
