@@ -2,148 +2,222 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C22C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Sep 2021 10:17:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0FCFC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Sep 2021 10:19:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F513613A5
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Sep 2021 10:17:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D944D61246
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Sep 2021 10:19:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245437AbhI2KSv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Sep 2021 06:18:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49632 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245475AbhI2KSm (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 29 Sep 2021 06:18:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 96C3A6135E;
-        Wed, 29 Sep 2021 10:17:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632910621;
-        bh=lXfh5WGrONF4SJ4gvPOiSDik2vUfqacZzHc0ckI9xmU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QsyKu2BnDHy4iS9k1fHzU0z8EZzQMPAA8eu/JdF1SJn/5mhvNoSUY3Dic/RyLrBUA
-         6Yw2Iln+5FbHhSzRe0prPx3P7XWIsuARbd6pZ1zoUp6eJuDd9OOliX2J87LBZ3KvKQ
-         rkljvN6tfBUB7aR4R358ExU9rcUK0CGO1wpUhodeBFSLJMN75s0M/+mEehs7yNGvDC
-         mKIXVQ7mxP9gBjWUq5WSSHxkIuFIK/38CZpkBwjjzVuAHrPxLKntuoloh8fGkOoo3L
-         vaklhaBR72HkLW+u5jkJpLJ1PqOc3sX3RRpQQah0ocIAcCOfk+QDmNJfF2H6ivw9u/
-         7baOCUE2lVn1Q==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Andrew Lunn <andrew@lunn.ch>, Ariel Elior <aelior@marvell.com>,
-        Bin Luo <luobin9@huawei.com>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Coiby Xu <coiby.xu@gmail.com>,
-        Derek Chickles <dchickles@marvell.com>, drivers@pensando.io,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Felix Manlunas <fmanlunas@marvell.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Geetha sowjanya <gakula@marvell.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        GR-everest-linux-l2@marvell.com, GR-Linux-NIC-Dev@marvell.com,
-        hariprasad <hkelam@marvell.com>,
-        Ido Schimmel <idosch@nvidia.com>,
-        intel-wired-lan@lists.osuosl.org,
-        Ioana Ciornei <ioana.ciornei@nxp.com>,
-        Jerin Jacob <jerinj@marvell.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Jiri Pirko <jiri@nvidia.com>,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        Linu Cherian <lcherian@marvell.com>,
-        linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-staging@lists.linux.dev,
-        Manish Chopra <manishc@marvell.com>,
-        Michael Chan <michael.chan@broadcom.com>,
-        Moshe Shemesh <moshe@nvidia.com>, netdev@vger.kernel.org,
-        oss-drivers@corigine.com,
-        Richard Cochran <richardcochran@gmail.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Satanand Burla <sburla@marvell.com>,
-        Shannon Nelson <snelson@pensando.io>,
-        Shay Drory <shayd@nvidia.com>,
-        Simon Horman <simon.horman@corigine.com>,
-        Subbaraya Sundeep <sbhatta@marvell.com>,
-        Sunil Goutham <sgoutham@marvell.com>,
-        Taras Chornyi <tchornyi@marvell.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        UNGLinuxDriver@microchip.com, Vadym Kochan <vkochan@marvell.com>,
-        Vivien Didelot <vivien.didelot@gmail.com>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next 4/5] net/mlx5: Register separate reload devlink ops for multiport device
-Date:   Wed, 29 Sep 2021 13:16:38 +0300
-Message-Id: <b76a027ca34978cb302eea24f6beaf519f5221c7.1632909221.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1632909221.git.leonro@nvidia.com>
-References: <cover.1632909221.git.leonro@nvidia.com>
+        id S245319AbhI2KU6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Sep 2021 06:20:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41848 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S245125AbhI2KU4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Sep 2021 06:20:56 -0400
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06926C06161C;
+        Wed, 29 Sep 2021 03:19:16 -0700 (PDT)
+Received: by mail-ed1-x52f.google.com with SMTP id dn26so6523960edb.13;
+        Wed, 29 Sep 2021 03:19:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=bx/2C+HXBotIPqznZhQEX8s1vNGSCbDgiHrtAcPp7ks=;
+        b=AY3G2dwDY10Je5oEMZqoZqLvv8DoF63AOwbgCdP2bd27LiggDdf03oqAqpJVjMa+U7
+         OwL8lUUebg0KLcGQy1DMZjcnkT+2KmjkghKxxCGJvm/76OAEpSUIE96/en2g8jPpPs7g
+         l2NHrW96iLGAJsHAflfLKGPbyJC1MMyy4PHTiU7CA7ntITLCeyS+roritsdFgUfzSZ73
+         YuGsOiIEUQG4oPReApkdgWiSQAYULNZjQdmuXox63KjRdQKcK83F8eVU77V3f/rTb/Mb
+         TX0aBoZwOWGVbToo2JkoloRBHnTvvrD7SdfCzKnPAvAX6bJ7icWj4xzZ3XiljDUs0Np/
+         Mp+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=bx/2C+HXBotIPqznZhQEX8s1vNGSCbDgiHrtAcPp7ks=;
+        b=6R2rzYB6N5hQspjX3weZ53kO/Mh0G+p18pUaTE/DyPtqb7++uvKO3VxYuffTCkoUT6
+         0NTLd79B2MpHJNhwk0yIy95iimCAdMlENwQJi9NftfhrZeqhKgGk36zw+k+1CeY2V3fe
+         vVDijHBHe3lKJ5fT/2BpLu4pyDNY1HuzV6JjfpC/ksPUYVGNVhyggzdDgwdbUprmfrRf
+         cBhU6Yfv7B/VUVrxiKFx4gufNumH9ZIQIydQyUWFFv8EMr5nXgTDDx7PEekibNVE8Ud5
+         E0vAWOpHNyvC6ISVzftaDGOHjvFgsERwzOFzSgWVGcFAbH4Lgkq3adfArkieuugiBfJA
+         87Rw==
+X-Gm-Message-State: AOAM530UTTXBvSy4bgTkmSpKuhh00GduXqKFKXeR8CrC+nLk0OMSknIR
+        C/4LCOXzF1tYxMGjyTM/N5ywflGRsgQ=
+X-Google-Smtp-Source: ABdhPJwFazyWhbockLmljqCImO6SEjvWsq2N53AGWc8uUHlhLZc1fFuY56HxIfrjDtQFwHi8YUsYOg==
+X-Received: by 2002:a05:6402:34d2:: with SMTP id w18mr14046853edc.222.1632910754458;
+        Wed, 29 Sep 2021 03:19:14 -0700 (PDT)
+Received: from [192.168.0.108] ([176.228.98.2])
+        by smtp.gmail.com with ESMTPSA id y4sm1092881ejr.101.2021.09.29.03.19.12
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 29 Sep 2021 03:19:14 -0700 (PDT)
+Subject: Re: [PATCH net-next] net: mlx4: Add XDP_REDIRECT statistics
+To:     Joshua Roys <roysjosh@gmail.com>, netdev@vger.kernel.org
+Cc:     ast@kernel.org, davem@davemloft.net, hawk@kernel.org,
+        john.fastabend@gmail.com, daniel@iogearbox.net, kuba@kernel.org,
+        bpf@vger.kernel.org, tariqt@nvidia.com, linux-rdma@vger.kernel.org
+References: <8d7773a0-054a-84d5-e0b6-66a13509149e@gmail.com>
+ <20210928132602.1488-1-roysjosh@gmail.com>
+From:   Tariq Toukan <ttoukan.linux@gmail.com>
+Message-ID: <490d45ff-187a-8e20-7eeb-ce73cfa2e335@gmail.com>
+Date:   Wed, 29 Sep 2021 13:19:11 +0300
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210928132602.1488-1-roysjosh@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
 
-Mulitport slave device doesn't support devlink reload, so instead of
-complicating initialization flow with devlink_reload_enable() which
-will be removed in next patch, set specialized devlink ops callbacks
-for reload operations.
+For changes in the mlx4 ethernet driver, please use "net/mlx4_en" prefix 
+in patch subject.
 
-This fixes an error when reload counters exposed (and equal zero) for
-the mode that is not supported at all.
+On 9/28/2021 4:26 PM, Joshua Roys wrote:
+> Address feedback for XDP_REDIRECT patch.
+> 
 
-Fixes: d89ddaae1766 ("net/mlx5: Disable devlink reload for multi port slave device")
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+Description is not helpful at all.
+Please provide technical description of the content, motivation, why it 
+is needed, etc...
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index 47c9f7f5bb79..e85eca6976a9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -309,14 +309,17 @@ static struct devlink_ops mlx5_devlink_ops = {
- #endif
- 	.flash_update = mlx5_devlink_flash_update,
- 	.info_get = mlx5_devlink_info_get,
-+	.trap_init = mlx5_devlink_trap_init,
-+	.trap_fini = mlx5_devlink_trap_fini,
-+	.trap_action_set = mlx5_devlink_trap_action_set,
-+};
-+
-+static struct devlink_ops mlx5_devlink_reload = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT) |
- 			  BIT(DEVLINK_RELOAD_ACTION_FW_ACTIVATE),
- 	.reload_limits = BIT(DEVLINK_RELOAD_LIMIT_NO_RESET),
- 	.reload_down = mlx5_devlink_reload_down,
- 	.reload_up = mlx5_devlink_reload_up,
--	.trap_init = mlx5_devlink_trap_init,
--	.trap_fini = mlx5_devlink_trap_fini,
--	.trap_action_set = mlx5_devlink_trap_action_set,
- };
- 
- void mlx5_devlink_trap_report(struct mlx5_core_dev *dev, int trap_id, struct sk_buff *skb,
-@@ -791,6 +794,7 @@ static void mlx5_devlink_traps_unregister(struct devlink *devlink)
- 
- int mlx5_devlink_register(struct devlink *devlink)
- {
-+	struct mlx5_core_dev *dev = devlink_priv(devlink);
- 	int err;
- 
- 	err = devlink_params_register(devlink, mlx5_devlink_params,
-@@ -808,6 +812,9 @@ int mlx5_devlink_register(struct devlink *devlink)
- 	if (err)
- 		goto traps_reg_err;
- 
-+	if (!mlx5_core_is_mp_slave(dev))
-+		devlink_set_ops(devlink, &mlx5_devlink_reload);
-+
- 	return 0;
- 
- traps_reg_err:
--- 
-2.31.1
+> Signed-off-by: Joshua Roys <roysjosh@gmail.com>
+> ---
+>   .../net/ethernet/mellanox/mlx4/en_ethtool.c    |  8 ++++++++
+>   drivers/net/ethernet/mellanox/mlx4/en_port.c   | 18 +++++++++++-------
+>   drivers/net/ethernet/mellanox/mlx4/en_rx.c     |  4 +++-
+>   drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   |  2 ++
+>   .../net/ethernet/mellanox/mlx4/mlx4_stats.h    |  4 +++-
+>   5 files changed, 27 insertions(+), 9 deletions(-)
+> 
+> Tested with VPP 21.06 on Fedora 34.
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+> index ef518b1040f7..66c8ae29bc7a 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+> @@ -197,6 +197,8 @@ static const char main_strings[][ETH_GSTRING_LEN] = {
+>   
+>   	/* xdp statistics */
+>   	"rx_xdp_drop",
+> +	"rx_xdp_redirect",
+> +	"rx_xdp_redirect_fail",
+>   	"rx_xdp_tx",
+>   	"rx_xdp_tx_full",
+>   
+> @@ -428,6 +430,8 @@ static void mlx4_en_get_ethtool_stats(struct net_device *dev,
+>   		data[index++] = priv->rx_ring[i]->bytes;
+>   		data[index++] = priv->rx_ring[i]->dropped;
+>   		data[index++] = priv->rx_ring[i]->xdp_drop;
+> +		data[index++] = priv->rx_ring[i]->xdp_redirect;
+> +		data[index++] = priv->rx_ring[i]->xdp_redirect_fail;
+>   		data[index++] = priv->rx_ring[i]->xdp_tx;
+>   		data[index++] = priv->rx_ring[i]->xdp_tx_full;
+>   	}
+> @@ -519,6 +523,10 @@ static void mlx4_en_get_strings(struct net_device *dev,
+>   				"rx%d_dropped", i);
+>   			sprintf(data + (index++) * ETH_GSTRING_LEN,
+>   				"rx%d_xdp_drop", i);
+> +			sprintf(data + (index++) * ETH_GSTRING_LEN,
+> +				"rx%d_xdp_redirect", i);
+> +			sprintf(data + (index++) * ETH_GSTRING_LEN,
+> +				"rx%d_xdp_redirect_fail", i);
+>   			sprintf(data + (index++) * ETH_GSTRING_LEN,
+>   				"rx%d_xdp_tx", i);
+>   			sprintf(data + (index++) * ETH_GSTRING_LEN,
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_port.c b/drivers/net/ethernet/mellanox/mlx4/en_port.c
+> index 0158b88bea5b..043cc9d75b3e 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_port.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_port.c
+> @@ -239,13 +239,15 @@ int mlx4_en_DUMP_ETH_STATS(struct mlx4_en_dev *mdev, u8 port, u8 reset)
+>   
+>   	mlx4_en_fold_software_stats(dev);
+>   
+> -	priv->port_stats.rx_chksum_good = 0;
+> -	priv->port_stats.rx_chksum_none = 0;
+> -	priv->port_stats.rx_chksum_complete = 0;
+> -	priv->port_stats.rx_alloc_pages = 0;
+> -	priv->xdp_stats.rx_xdp_drop    = 0;
+> -	priv->xdp_stats.rx_xdp_tx      = 0;
+> -	priv->xdp_stats.rx_xdp_tx_full = 0;
+> +	priv->port_stats.rx_chksum_good      = 0;
+> +	priv->port_stats.rx_chksum_none      = 0;
+> +	priv->port_stats.rx_chksum_complete  = 0;
+> +	priv->port_stats.rx_alloc_pages      = 0;
+> +	priv->xdp_stats.rx_xdp_drop          = 0;
+> +	priv->xdp_stats.rx_xdp_redirect      = 0;
+> +	priv->xdp_stats.rx_xdp_redirect_fail = 0;
+> +	priv->xdp_stats.rx_xdp_tx            = 0;
+> +	priv->xdp_stats.rx_xdp_tx_full       = 0;
 
+No need to touch existing lines.
+Add yours without fixing the existing indintations.
+
+>   	for (i = 0; i < priv->rx_ring_num; i++) {
+>   		const struct mlx4_en_rx_ring *ring = priv->rx_ring[i];
+>   
+> @@ -255,6 +257,8 @@ int mlx4_en_DUMP_ETH_STATS(struct mlx4_en_dev *mdev, u8 port, u8 reset)
+>   		priv->port_stats.rx_chksum_complete += READ_ONCE(ring->csum_complete);
+>   		priv->port_stats.rx_alloc_pages += READ_ONCE(ring->rx_alloc_pages);
+>   		priv->xdp_stats.rx_xdp_drop	+= READ_ONCE(ring->xdp_drop);
+> +		priv->xdp_stats.rx_xdp_redirect += READ_ONCE(ring->xdp_redirect);
+> +		priv->xdp_stats.rx_xdp_redirect_fail += READ_ONCE(ring->xdp_redirect_fail);
+>   		priv->xdp_stats.rx_xdp_tx	+= READ_ONCE(ring->xdp_tx);
+>   		priv->xdp_stats.rx_xdp_tx_full	+= READ_ONCE(ring->xdp_tx_full);
+>   	}
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> index 557d7daac2d3..8f09b1de4125 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+> @@ -793,11 +793,13 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
+>   			case XDP_PASS:
+>   				break;
+>   			case XDP_REDIRECT:
+> -				if (xdp_do_redirect(dev, &xdp, xdp_prog) >= 0) {
+> +				if (!xdp_do_redirect(dev, &xdp, xdp_prog)) {
+
+use likely()
+
+> +					ring->xdp_redirect++;
+>   					xdp_redir_flush = true;
+>   					frags[0].page = NULL;
+>   					goto next;
+>   				}
+> +				ring->xdp_redirect_fail++;
+>   				trace_xdp_exception(dev, xdp_prog, act);
+>   				goto xdp_drop_no_cnt;
+>   			case XDP_TX:
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> index f3d1a20201ef..f6c90e97b4cd 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+> @@ -340,6 +340,8 @@ struct mlx4_en_rx_ring {
+>   	unsigned long csum_complete;
+>   	unsigned long rx_alloc_pages;
+>   	unsigned long xdp_drop;
+> +	unsigned long xdp_redirect;
+> +	unsigned long xdp_redirect_fail;
+>   	unsigned long xdp_tx;
+>   	unsigned long xdp_tx_full;
+>   	unsigned long dropped;
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_stats.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_stats.h
+> index 7b51ae8cf759..e9cd4bb6f83d 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/mlx4_stats.h
+> +++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_stats.h
+> @@ -42,9 +42,11 @@ struct mlx4_en_port_stats {
+>   
+>   struct mlx4_en_xdp_stats {
+>   	unsigned long rx_xdp_drop;
+> +	unsigned long rx_xdp_redirect;
+> +	unsigned long rx_xdp_redirect_fail;
+>   	unsigned long rx_xdp_tx;
+>   	unsigned long rx_xdp_tx_full;
+> -#define NUM_XDP_STATS		3
+> +#define NUM_XDP_STATS		5
+>   };
+>   
+>   struct mlx4_en_phy_stats {
+> 
