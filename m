@@ -2,128 +2,131 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BEAC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 07:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C941BC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 551DD61527
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 07:53:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A362B615E0
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348801AbhI3HzW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Sep 2021 03:55:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58478 "EHLO mail.kernel.org"
+        id S1348998AbhI3IF5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Sep 2021 04:05:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348793AbhI3HzV (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 30 Sep 2021 03:55:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B5D961452;
-        Thu, 30 Sep 2021 07:53:38 +0000 (UTC)
+        id S1348955AbhI3IEb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 30 Sep 2021 04:04:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8600B615E2;
+        Thu, 30 Sep 2021 08:02:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632988419;
-        bh=wfufoGrDSlfUs9Me8/1bNDZ0YZoqlCww6ODrn49dbNg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=GNI69UF4V1CvlWRm/QV6RJYhAKi4GlTMlqxuNG0fGjMGs44HuMD2nomQJT19yd48w
-         M7p9jQH0lWhblY8T+9NlOALrKM4/+jsquy4eIaTM18tvBWBG53bGnzAop+dvHG2w7o
-         iXkHuDU1T3USJA6nXrz2jBfWzS301xT7BRyjz81QaZwmMkp5slxYKpzUUi4jKwD1Oc
-         tVUTTebjHZYqVYVUozHJ4pV3R/Ap/qGE/ml2ybDn2FNBOv1m19Xk1Z00hiGe+hQquS
-         /tm4oPFd0zZf33u+wg9JvV44xtTiGSD8pivXYPQEyE3fGg0LhxVG0meTPzaTS5aPA8
-         rp9Z2ZvumKPWg==
-Date:   Thu, 30 Sep 2021 10:53:36 +0300
+        s=k20201202; t=1632988958;
+        bh=B5x/YfaxZWZGgYG2OovoXwMqdWqPRWYihCWBUob24u4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=oJqXfPvIiHDaOB+avbUN10cNUsY0PybQRpOWg11rRwPBjFiYsYljpuHLhTVmRdelH
+         hLfOCnyNNjv7If2i+vlfrpeVtsl3iWXQTOB242a497GQmfLLP4rVIa/Yk3/n9ooA4e
+         vY0c3i0F/hlX64j/6JW2Ko0LNGqZHQQjezYlcHyWKEoUXz4xj55ZXi4PsGn7dT/4EN
+         9EZ4G/X97dm3W1y7DeCgMGabEfLPJGo6O5jmvNjPbVaTC7PAYrWRl1w3R6ZFXQ6eBF
+         vkk2w1tfQynMEnwc6drrB8EaT8FEodTxx9LSWLOMwr80EqmJV1LqAp7vo+fh5hmwjf
+         /2ExUHQhqiVNA==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jinpu Wang <jinpu.wang@ionos.com>
-Cc:     Jack Wang <xjtuwjp@gmail.com>,
-        Md Haris Iqbal <haris.iqbal@ionos.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Gioh Kim <gi-oh.kim@ionos.com>,
-        Aleksei Marov <aleksei.marov@ionos.com>
-Subject: Re: [PATCH for-next 6/7] RDMA/rtrs: Do not allow sessname to contain
- special symbols / and .
-Message-ID: <YVVtAFtOj0mPzSAR@unreal>
-References: <20210922125333.351454-1-haris.iqbal@ionos.com>
- <20210922125333.351454-7-haris.iqbal@ionos.com>
- <YVG3cme0KX9CD4oh@unreal>
- <CAD+HZHWTZY=6W4MNEGwVi=e64MJtntVE1Hwm6Lt_m=UaAW2W-A@mail.gmail.com>
- <YVLEIVz1mCV0cZlC@unreal>
- <CAD+HZHW5u1MiB-+C784yYXZc9Q-F0yB+1EvRKb4sAQJe4p2Yeg@mail.gmail.com>
- <YVRWXim7T0mReBu/@unreal>
- <CAMGffE=mv8jJYeNC7BjiGbOt4qEFAQhXWROk4Uwzg5ED4a0sug@mail.gmail.com>
- <YVVgunT1hSIzu1tA@unreal>
- <CAMGffE=NP-iNcAQyVF57tbeJ1QcyMt7=savh=5BLxaC9TuAkTw@mail.gmail.com>
+To:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Aharon Landau <aharonl@nvidia.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Gal Pressman <galpress@amazon.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
+        Mark Zhang <markzhang@nvidia.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Naresh Kumar PBS <nareshkumar.pbs@broadcom.com>,
+        netdev@vger.kernel.org, Potnuri Bharat Teja <bharat@chelsio.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        Zhu Yanjun <zyjzyj2000@gmail.com>
+Subject: [PATCH mlx5-next v2 01/13] net/mlx5: Add ifc bits to support optional counters
+Date:   Thu, 30 Sep 2021 11:02:17 +0300
+Message-Id: <8874035d636b5b68777e40ac9e3c5b9f1f14d22d.1632988543.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1632988543.git.leonro@nvidia.com>
+References: <cover.1632988543.git.leonro@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMGffE=NP-iNcAQyVF57tbeJ1QcyMt7=savh=5BLxaC9TuAkTw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 09:10:33AM +0200, Jinpu Wang wrote:
-> On Thu, Sep 30, 2021 at 9:01 AM Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > On Thu, Sep 30, 2021 at 08:03:40AM +0200, Jinpu Wang wrote:
-> > > On Wed, Sep 29, 2021 at 2:04 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > >
-> > > > On Wed, Sep 29, 2021 at 09:00:56AM +0200, Jack Wang wrote:
-> > > > > Leon Romanovsky <leon@kernel.org> 于2021年9月28日周二 上午9:28写道：
-> > > > > >
-> > > > > > On Tue, Sep 28, 2021 at 09:08:26AM +0200, Jack Wang wrote:
-> > > > > > > Leon Romanovsky <leon@kernel.org> 于2021年9月27日周一 下午2:23写道：
-> > > > > > > >
-> > > > > > > > On Wed, Sep 22, 2021 at 02:53:32PM +0200, Md Haris Iqbal wrote:
-> > > > > > > > > Allowing these characters in sessname can lead to unexpected results,
-> > > > > > > > > particularly because / is used as a separator between files in a path,
-> > > > > > > > > and . points to the current directory.
-> > > > > > > > >
-> > > > > > > > > Signed-off-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-> > > > > > > > > Reviewed-by: Gioh Kim <gi-oh.kim@ionos.com>
-> > > > > > > > > Reviewed-by: Aleksei Marov <aleksei.marov@ionos.com>
-> > > > > > > > > ---
-> > > > > > > > >  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 6 ++++++
-> > > > > > > > >  drivers/infiniband/ulp/rtrs/rtrs-srv.c | 5 +++++
-> > > > > > > > >  2 files changed, 11 insertions(+)
-> > > > > > > >
-> > > > > > > > It will be safer if you check for only allowed symbols and disallow
-> > > > > > > > everything else. Check for: a-Z, 0-9 and "-".
-> > > > > > > >
-> > > > > > > Hi Leon,
-> > > > > > >
-> > > > > > > Thanks for your suggestions.
-> > > > > > > The reasons we choose to do disallow only '/' and '.':
-> > > > > > > 1 more flexible, most UNIX filenames allow any 8-bit set, except '/' and null.
-> > > > > >
-> > > > > > So you need to add all possible protections and checks that VFS has to allow "random" name.
-> > > > > It's only about sysfs here, as we use sessname to create dir in sysfs,
-> > > > > and I checked the code, it allows any 8-bit set, and convert '/' to
-> > > > > '!', see https://elixir.bootlin.com/linux/latest/source/lib/kobject.c#L299
-> > > > > >
-> > > > > > > 2 matching for 2 characters is faster than checking all the allowed
-> > > > > > > symbols during session establishment.
-> > > > > >
-> > > > > > Extra CPU cycles won't make any difference here.
-> > > > > As we can have hundreds of sessions, in the end, it matters.
-> > > >
-> > > > Your rtrs_clt_open() function is far from being optimized for
-> > > > performance. It allocates memory, iterates over all paths, creates
-> > > > sysfs and kobject.
-> > > >
-> > > > So no, it doesn't matter here.
-> > > >
-> > > Let me reiterate, why do we want to further slow it down, what do you
-> > > anticipate if we only do the disallow approach
-> > > as we do it now?
-> >
-> > It is common practice to sanitize user input and explicitly allow known
-> > good input, instead of relying on deny of bad input. We don't know the
-> > future and can't be sure that "deny" is actually closed all holes.
-> 
-> Thanks for the clarification, but still what kind of holes do you have
-> in mind, the input string length is already checked and it's
-> not duplicated with other sessname. and sysfs does allow all 8 bit set IIUC.
+From: Aharon Landau <aharonl@nvidia.com>
 
-As an example, symbols like "/" and "\".
+Adding bth_opcode field and the relevant bits. This field will be used
+to capture and count congestion notification packets (CNP).
 
-> 
-> Thanks!
-> 
-> > Thanks
+Adding source_vhca_port support bit.
+This field will be used to check the capability to use the
+source_vhca_port as a match criteria in cases of dual port.
+
+Signed-off-by: Aharon Landau <aharonl@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index c1cef8f35e00..399ea52171fe 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -342,7 +342,7 @@ struct mlx5_ifc_flow_table_fields_supported_bits {
+ 	u8         outer_geneve_oam[0x1];
+ 	u8         outer_geneve_protocol_type[0x1];
+ 	u8         outer_geneve_opt_len[0x1];
+-	u8         reserved_at_1e[0x1];
++	u8         source_vhca_port[0x1];
+ 	u8         source_eswitch_port[0x1];
+ 
+ 	u8         inner_dmac[0x1];
+@@ -393,6 +393,14 @@ struct mlx5_ifc_flow_table_fields_supported_bits {
+ 	u8         metadata_reg_c_0[0x1];
+ };
+ 
++struct mlx5_ifc_flow_table_fields_supported_2_bits {
++	u8         reserved_at_0[0xe];
++	u8         bth_opcode[0x1];
++	u8         reserved_at_f[0x11];
++
++	u8         reserved_at_20[0x60];
++};
++
+ struct mlx5_ifc_flow_table_prop_layout_bits {
+ 	u8         ft_support[0x1];
+ 	u8         reserved_at_1[0x1];
+@@ -539,7 +547,7 @@ struct mlx5_ifc_fte_match_set_misc_bits {
+ 	union mlx5_ifc_gre_key_bits gre_key;
+ 
+ 	u8         vxlan_vni[0x18];
+-	u8         reserved_at_b8[0x8];
++	u8         bth_opcode[0x8];
+ 
+ 	u8         geneve_vni[0x18];
+ 	u8         reserved_at_d8[0x7];
+@@ -756,7 +764,15 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
+ 
+ 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_transmit_sniffer;
+ 
+-	u8         reserved_at_e00[0x1200];
++	u8         reserved_at_e00[0x700];
++
++	struct mlx5_ifc_flow_table_fields_supported_2_bits ft_field_support_2_nic_receive_rdma;
++
++	u8         reserved_at_1580[0x280];
++
++	struct mlx5_ifc_flow_table_fields_supported_2_bits ft_field_support_2_nic_transmit_rdma;
++
++	u8         reserved_at_1880[0x780];
+ 
+ 	u8         sw_steering_nic_rx_action_drop_icm_address[0x40];
+ 
+-- 
+2.31.1
+
