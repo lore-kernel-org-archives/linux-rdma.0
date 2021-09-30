@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85C61C43219
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5929DC43217
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D47E615E0
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 40698617E5
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348973AbhI3IGS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Sep 2021 04:06:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32886 "EHLO mail.kernel.org"
+        id S1348986AbhI3IGU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Sep 2021 04:06:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32888 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348967AbhI3IEs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S1348966AbhI3IEs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Thu, 30 Sep 2021 04:04:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 95D2261880;
-        Thu, 30 Sep 2021 08:02:54 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3B39861884;
+        Thu, 30 Sep 2021 08:03:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632988975;
-        bh=/cPEeBrJZTDJoVzYEQsj4dCWMKPjXSdrl2nFCOX7KwY=;
+        s=k20201202; t=1632988981;
+        bh=BKLRNSpziHIogTGyQwgRIzKdPL5GFjN/umPeU5uqcso=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JtQFobgSUcwlsSWHNaEGKV/glhKejC8sQgybBJwLmBDuowmJ0OHt4QL/VTCmjfdmk
-         RvkvZg99pI3fkvQ13qYs4RtXm+KiTcjYIsY4mbRnfeQ98WzLar+cJtF1HRBeKZstgx
-         GoIBvQj8H7eRPvuIhPEYNZDolohTW3ZjzdyUIe+fyQKqPq4DN9s6CsjnWFmTEkuP7v
-         3/lwyyiIdDfCZ/Q0YxowtSHgtoXNVbJ1gZRPIe4gugnDladFCHXDyt3j1tnb8cPb3C
-         vOutP8ho5VSFgnwBwuF1mVi9SJ0YKgR5AncxjuKq1h89dgUKb+72Vk6W2duEjqKlCQ
-         vPSbmy9UyKisw==
+        b=aE1bE2gFpVQ7gwvx8At0n2CizMl4vVmB/Ja8BbnCeOyAIUKmWDfmywqXsMrlNjlUb
+         Y64hP7Ns7jQTrnV+sCgLHwM+PkamINTF77PwYxAd4VjQ05TZHhCxNEWZ9cW2vBdvEP
+         3IVzblGYP5ixp5oTu2o1cze2zaNgjanLEfA0E+iu2WaZBOpFhNtBYzBbUNNIEiZV2o
+         ciaC616DxkEtLRhWR3kv+Mu/dI674YBC1n7HpGHGa1GP4QW4E7bDGJf/7Qg6+wX1gM
+         21ne5x/TwGJZCAVwXuWwqznu+100U0hD15gVQ+e2a5wXKfr5MJrC0R9qe8e/4Q/6qA
+         /kh73ilVZyQwg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
@@ -46,9 +46,9 @@ Cc:     Aharon Landau <aharonl@nvidia.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v2 07/13] RDMA/nldev: Add support to get status of all counters
-Date:   Thu, 30 Sep 2021 11:02:23 +0300
-Message-Id: <fde0ee20aa0e914ef4112522640bb4fb77bb0331.1632988543.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v2 09/13] RDMA/mlx5: Support optional counters in hw_stats initialization
+Date:   Thu, 30 Sep 2021 11:02:25 +0300
+Message-Id: <840fc0529c50b3988a5856b7a5b3b3ab8384d88c.1632988543.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1632988543.git.leonro@nvidia.com>
 References: <cover.1632988543.git.leonro@nvidia.com>
@@ -60,173 +60,178 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-This patch adds the ability to get the name, index and status of all
-counters for each link through RDMA netlink. This can be used for
-user-space to get the current optional-counter mode.
-
-Examples:
-$ rdma statistic mode
-link rocep8s0f0/1 optional-counters cc_rx_ce_pkts
-
-$ rdma statistic mode supported
-link rocep8s0f0/1 supported optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts,cc_tx_cnp_pkts
-link rocep8s0f1/1 supported optional-counters cc_rx_ce_pkts,cc_rx_cnp_pkts,cc_tx_cnp_pkts
+Add optional counter support when allocate and initialize hw_stats
+structure. Optional counters have IB_STAT_FLAG_OPTIONAL flag set
+and are disabled by default.
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Signed-off-by: Neta Ostrovsky <netao@nvidia.com>
 Reviewed-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/nldev.c  | 98 ++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  5 ++
- 2 files changed, 103 insertions(+)
+ drivers/infiniband/hw/mlx5/counters.c | 90 ++++++++++++++++++++++-----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h  |  1 +
+ 2 files changed, 75 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 67519730b1ac..210057fef7bd 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -154,6 +154,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_NET_NS_FD]			= { .type = NLA_U32 },
- 	[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK]	= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_STAT_HWCOUNTER_INDEX]	= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_HWCOUNTER_DYNAMIC] = { .type = NLA_U8 },
+diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
+index d2208b3c5925..6aa54ee441db 100644
+--- a/drivers/infiniband/hw/mlx5/counters.c
++++ b/drivers/infiniband/hw/mlx5/counters.c
+@@ -75,6 +75,21 @@ static const struct mlx5_ib_counter ext_ppcnt_cnts[] = {
+ 	INIT_EXT_PPCNT_COUNTER(rx_icrc_encapsulated),
  };
  
- static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
-@@ -2264,6 +2266,99 @@ static int nldev_stat_get_dumpit(struct sk_buff *skb,
- 	return ret;
++#define INIT_OP_COUNTER(_name)                                          \
++	{ .name = #_name }
++
++static const struct mlx5_ib_counter basic_op_cnts[] = {
++	INIT_OP_COUNTER(cc_rx_ce_pkts),
++};
++
++static const struct mlx5_ib_counter rdmarx_cnp_op_cnts[] = {
++	INIT_OP_COUNTER(cc_rx_cnp_pkts),
++};
++
++static const struct mlx5_ib_counter rdmatx_cnp_op_cnts[] = {
++	INIT_OP_COUNTER(cc_tx_cnp_pkts),
++};
++
+ static int mlx5_ib_read_counters(struct ib_counters *counters,
+ 				 struct ib_counters_read_attr *read_attr,
+ 				 struct uverbs_attr_bundle *attrs)
+@@ -161,17 +176,34 @@ u16 mlx5_ib_get_counters_id(struct mlx5_ib_dev *dev, u32 port_num)
+ 	return cnts->set_id;
  }
  
-+static int nldev_stat_get_counter_status_doit(struct sk_buff *skb,
-+					      struct nlmsghdr *nlh,
-+					      struct netlink_ext_ack *extack)
++static struct rdma_hw_stats *do_alloc_stats(const struct mlx5_ib_counters *cnts)
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX], *table, *entry;
 +	struct rdma_hw_stats *stats;
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 devid, port;
-+	int ret, i;
++	u32 num_hw_counters;
++	int i;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-+		return -EINVAL;
++	num_hw_counters = cnts->num_q_counters + cnts->num_cong_counters +
++			  cnts->num_ext_ppcnt_counters;
++	stats = rdma_alloc_hw_stats_struct(cnts->descs,
++					   num_hw_counters +
++					   cnts->num_op_counters,
++					   RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	if (!stats)
++		return NULL;
 +
-+	devid = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(sock_net(skb->sk), devid);
-+	if (!device)
-+		return -EINVAL;
++	for (i = 0; i < cnts->num_op_counters; i++)
++		set_bit(num_hw_counters + i, stats->is_disabled);
 +
-+	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+	if (!rdma_is_port_valid(device, port)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	stats = ib_get_hw_stats_port(device, port);
-+	if (!stats) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	nlh = nlmsg_put(
-+		msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+		RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_STAT_GET_STATUS),
-+		0, 0);
-+
-+	ret = -EMSGSIZE;
-+	if (fill_nldev_handle(msg, device) ||
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port))
-+		goto err_msg;
-+
-+	table = nla_nest_start(msg, RDMA_NLDEV_ATTR_STAT_HWCOUNTERS);
-+	if (!table)
-+		goto err_msg;
-+
-+	mutex_lock(&stats->lock);
-+	for (i = 0; i < stats->num_counters; i++) {
-+		entry = nla_nest_start(msg,
-+				       RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY);
-+		if (!entry)
-+			goto err_msg_table;
-+
-+		if (nla_put_string(msg,
-+				   RDMA_NLDEV_ATTR_STAT_HWCOUNTER_ENTRY_NAME,
-+				   stats->descs[i].name) ||
-+		    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_HWCOUNTER_INDEX, i))
-+			goto err_msg_entry;
-+
-+		if ((stats->descs[i].flags & IB_STAT_FLAG_OPTIONAL) &&
-+		    (nla_put_u8(msg, RDMA_NLDEV_ATTR_STAT_HWCOUNTER_DYNAMIC,
-+				!test_bit(i, stats->is_disabled))))
-+			goto err_msg_entry;
-+
-+		nla_nest_end(msg, entry);
-+	}
-+	mutex_unlock(&stats->lock);
-+
-+	nla_nest_end(msg, table);
-+	nlmsg_end(msg, nlh);
-+	ib_device_put(device);
-+	return rdma_nl_unicast(sock_net(skb->sk), msg, NETLINK_CB(skb).portid);
-+
-+err_msg_entry:
-+	nla_nest_cancel(msg, entry);
-+err_msg_table:
-+	mutex_unlock(&stats->lock);
-+	nla_nest_cancel(msg, table);
-+err_msg:
-+	nlmsg_free(msg);
-+err:
-+	ib_device_put(device);
-+	return ret;
++	return stats;
 +}
 +
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -2353,6 +2448,9 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.dump = nldev_res_get_mr_raw_dumpit,
- 		.flags = RDMA_NL_ADMIN_PERM,
- 	},
-+	[RDMA_NLDEV_CMD_STAT_GET_STATUS] = {
-+		.doit = nldev_stat_get_counter_status_doit,
-+	},
+ static struct rdma_hw_stats *
+ mlx5_ib_alloc_hw_device_stats(struct ib_device *ibdev)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 	const struct mlx5_ib_counters *cnts = &dev->port[0].cnts;
+ 
+-	return rdma_alloc_hw_stats_struct(cnts->descs,
+-					  cnts->num_q_counters +
+-						  cnts->num_cong_counters +
+-						  cnts->num_ext_ppcnt_counters,
+-					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	return do_alloc_stats(cnts);
+ }
+ 
+ static struct rdma_hw_stats *
+@@ -180,11 +212,7 @@ mlx5_ib_alloc_hw_port_stats(struct ib_device *ibdev, u32 port_num)
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 	const struct mlx5_ib_counters *cnts = &dev->port[port_num - 1].cnts;
+ 
+-	return rdma_alloc_hw_stats_struct(cnts->descs,
+-					  cnts->num_q_counters +
+-						  cnts->num_cong_counters +
+-						  cnts->num_ext_ppcnt_counters,
+-					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	return do_alloc_stats(cnts);
+ }
+ 
+ static int mlx5_ib_query_q_counters(struct mlx5_core_dev *mdev,
+@@ -302,11 +330,7 @@ mlx5_ib_counter_alloc_stats(struct rdma_counter *counter)
+ 	const struct mlx5_ib_counters *cnts =
+ 		get_counters(dev, counter->port - 1);
+ 
+-	return rdma_alloc_hw_stats_struct(cnts->descs,
+-					  cnts->num_q_counters +
+-					  cnts->num_cong_counters +
+-					  cnts->num_ext_ppcnt_counters,
+-					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	return do_alloc_stats(cnts);
+ }
+ 
+ static int mlx5_ib_counter_update_stats(struct rdma_counter *counter)
+@@ -425,13 +449,34 @@ static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
+ 			offsets[j] = ext_ppcnt_cnts[i].offset;
+ 		}
+ 	}
++
++	for (i = 0; i < ARRAY_SIZE(basic_op_cnts); i++, j++) {
++		descs[j].name = basic_op_cnts[i].name;
++		descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
++	}
++
++	if (MLX5_CAP_FLOWTABLE(dev->mdev,
++			       ft_field_support_2_nic_receive_rdma.bth_opcode)) {
++		for (i = 0; i < ARRAY_SIZE(rdmarx_cnp_op_cnts); i++, j++) {
++			descs[j].name = rdmarx_cnp_op_cnts[i].name;
++			descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
++		}
++	}
++
++	if (MLX5_CAP_FLOWTABLE(dev->mdev,
++			       ft_field_support_2_nic_transmit_rdma.bth_opcode)) {
++		for (i = 0; i < ARRAY_SIZE(rdmatx_cnp_op_cnts); i++, j++) {
++			descs[j].name = rdmatx_cnp_op_cnts[i].name;
++			descs[j].flags |= IB_STAT_FLAG_OPTIONAL;
++		}
++	}
+ }
+ 
+ 
+ static int __mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev,
+ 				    struct mlx5_ib_counters *cnts)
+ {
+-	u32 num_counters;
++	u32 num_counters, num_op_counters;
+ 
+ 	num_counters = ARRAY_SIZE(basic_q_cnts);
+ 
+@@ -457,6 +502,19 @@ static int __mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev,
+ 		cnts->num_ext_ppcnt_counters = ARRAY_SIZE(ext_ppcnt_cnts);
+ 		num_counters += ARRAY_SIZE(ext_ppcnt_cnts);
+ 	}
++
++	num_op_counters = ARRAY_SIZE(basic_op_cnts);
++
++	if (MLX5_CAP_FLOWTABLE(dev->mdev,
++			       ft_field_support_2_nic_receive_rdma.bth_opcode))
++		num_op_counters += ARRAY_SIZE(rdmarx_cnp_op_cnts);
++
++	if (MLX5_CAP_FLOWTABLE(dev->mdev,
++			       ft_field_support_2_nic_transmit_rdma.bth_opcode))
++		num_op_counters += ARRAY_SIZE(rdmatx_cnp_op_cnts);
++
++	cnts->num_op_counters = num_op_counters;
++	num_counters += num_op_counters;
+ 	cnts->descs = kcalloc(num_counters,
+ 			      sizeof(struct rdma_stat_desc), GFP_KERNEL);
+ 	if (!cnts->descs)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6f5451d96dd7..8215d7ab579d 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -803,6 +803,7 @@ struct mlx5_ib_counters {
+ 	u32 num_q_counters;
+ 	u32 num_cong_counters;
+ 	u32 num_ext_ppcnt_counters;
++	u32 num_op_counters;
+ 	u16 set_id;
  };
  
- void __init nldev_init(void)
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 75a1ae2311d8..e50c357367db 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -297,6 +297,8 @@ enum rdma_nldev_command {
- 
- 	RDMA_NLDEV_CMD_RES_SRQ_GET, /* can dump */
- 
-+	RDMA_NLDEV_CMD_STAT_GET_STATUS,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
-@@ -549,6 +551,9 @@ enum rdma_nldev_attr {
- 
- 	RDMA_NLDEV_SYS_ATTR_COPY_ON_FORK,	/* u8 */
- 
-+	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_INDEX,	/* u32 */
-+	RDMA_NLDEV_ATTR_STAT_HWCOUNTER_DYNAMIC, /* u8 */
-+
- 	/*
- 	 * Always the end
- 	 */
 -- 
 2.31.1
 
