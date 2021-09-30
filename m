@@ -2,87 +2,133 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6409C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 09:17:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAD77C433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 09:17:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE47D61880
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 09:17:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4D986140F
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Sep 2021 09:17:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349295AbhI3JTK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Sep 2021 05:19:10 -0400
+        id S1349267AbhI3JTL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Sep 2021 05:19:11 -0400
 Received: from mail.cn.fujitsu.com ([183.91.158.132]:31245 "EHLO
         heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1349294AbhI3JTJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Sep 2021 05:19:09 -0400
-IronPort-Data: =?us-ascii?q?A9a23=3AOI559a7X4ejqYt5VkLJUzQxRtNrFchMFZxGqfqr?=
- =?us-ascii?q?LsXjdYENShDYFmzMfC2CHPKuNZGSkc48jb4Ww9hkEscCByoVnSVc5pCpnJ55og?=
- =?us-ascii?q?ZCbXIzGdC8cHM8zwvXrFRsht4NHAjX5BJhcokT0+1H9b9ANkVEmjfvRHuunULa?=
- =?us-ascii?q?dUsxMbVQMpBkJ2EsLd9ER0tYAbeiRW2thiPuqyyHtEAbNNw1cbgr435m+RCZH5?=
- =?us-ascii?q?5wejt+3UmsWPpintHeG/5Uc4Ql2yauZdxMUSaEMdgK2qnqq8V23wo/Z109F5tK?=
- =?us-ascii?q?NmbC9fFAIQ6LJIE6FjX8+t6qK20AE/3JtlP1gcqd0hUR/0l1lm/hgwdNCpdqyW?=
- =?us-ascii?q?C8nI6/NhP8AFRJfFkmSOIUfoeKdeybi4JP7I0ruNiGEL+9VJFsuMIQC4eFxAXl?=
- =?us-ascii?q?D3fMdITEJKBuEgoqe0qO5WPhu3Jx7dOHkOYoevjdryjSxJfIrRpbrQKjQ49Jcm?=
- =?us-ascii?q?jAqiahmH/nRT8wHaDZuZVLLZBgnElMWDo8u2f2kg3DXbTJVshSWqLAx7myVyxZ?=
- =?us-ascii?q?+uIUBmvK9lseiHJ0TxxjH4DmduTmRP/3TD/THoRLtz55mrrancfvHZb8v?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ATwOAB64VW+bUzChHvQPXwPTXdLJyesId70hD?=
- =?us-ascii?q?6qkRc20wTiX8ra2TdZsguyMc9wx6ZJhNo7G90cq7MBbhHPxOkOos1N6ZNWGIhI?=
- =?us-ascii?q?LCFvAB0WKN+V3dMhy73utc+IMlSKJmFeD3ZGIQse/KpCW+DPYsqePqzJyV?=
+        with ESMTP id S1349293AbhI3JTK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Sep 2021 05:19:10 -0400
+IronPort-Data: =?us-ascii?q?A9a23=3AChMkUaj3b6d6Kjs7V6a27RDiX161ghIKZh0ujC4?=
+ =?us-ascii?q?5NGQNrF6WrkUOy2UfCzzQaamMYmSnL9ByPt6/pk5UuZLQyYNjGgpl+Hw8FHgiR?=
+ =?us-ascii?q?ejtX4rAdhiqV8+xwmwvdGo+toNGLICowPkcFhcwnT/wdOi8xZVA/fvQHOOkWbW?=
+ =?us-ascii?q?cYnkZqTJME0/NtzoywobVvaY42bBVMyvV0T/Di5W31G2NglaYAUpIg063ky6Di?=
+ =?us-ascii?q?dyp0N8uUvPSUtgQ1LPWvyF94JvyvshdJVOgKmVfNrbSq+ouUNiEEm3lExcFUrt?=
+ =?us-ascii?q?Jk57wdAsEX7zTIROTzHFRXsBOgDAb/mprjPl9b6FaNC+7iB3Q9zx14MREs5OgD?=
+ =?us-ascii?q?wU4FqPRmuUBSAQeGCZ7VUFD0OaefCLl75HCnyUqdFOpmZ2CFnoeJ5UV8/xsBmd?=
+ =?us-ascii?q?O7fEwJzUEbxTFjOWzqJqpW+t+l8Z5dJGzFIwas3BkizreCJ4ORZ3ERY3J6MVe0?=
+ =?us-ascii?q?TN2gdpBdd7caMUxbyRuYBXJJRZIPz8/DJM4gfftnHX6ehVGp1+P46k6+W7eyEp?=
+ =?us-ascii?q?2yreFDTZ/UrRmXu0MxgDB+D2ApD+/X3kn2BWk4WLt2hqRaiXnx0sXgL4vKYA?=
+ =?us-ascii?q?=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A/S0U2KErwGetTVsrpLqE1MeALOsnbusQ8zAX?=
+ =?us-ascii?q?PiFKOHhom6mj+vxG88506faKslwssR0b+OxoW5PwJE80l6QFgrX5VI3KNGbbUQ?=
+ =?us-ascii?q?CTXeNfBOXZowHIKmnX8+5x8eNaebFiNduYNzNHpPe/zA6mM9tI+rW6zJw=3D?=
 X-IronPort-AV: E=Sophos;i="5.85,335,1624291200"; 
-   d="scan'208";a="115226597"
+   d="scan'208";a="115226598"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 30 Sep 2021 17:17:26 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-        by cn.fujitsu.com (Postfix) with ESMTP id 582A54D0DC81;
-        Thu, 30 Sep 2021 17:17:24 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 30 Sep 2021 17:17:18 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+        by cn.fujitsu.com (Postfix) with ESMTP id 5963B4D0DC7C;
+        Thu, 30 Sep 2021 17:17:21 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 30 Sep 2021 17:17:18 +0800
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 30 Sep 2021 17:17:21 +0800
 Received: from Fedora-31.g08.fujitsu.local (10.167.220.99) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 30 Sep 2021 17:17:16 +0800
+ id 15.0.1497.23 via Frontend Transport; Thu, 30 Sep 2021 17:17:19 +0800
 From:   Xiao Yang <yangx.jy@fujitsu.com>
 To:     <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>
 CC:     <rpearsonhpe@gmail.com>, <zyjzyj2000@gmail.com>, <leon@kernel.org>,
         "Xiao Yang" <yangx.jy@fujitsu.com>
-Subject: [PATCH v4 0/4] RDMA/rxe: Do some cleanup
-Date:   Thu, 30 Sep 2021 17:48:09 +0800
-Message-ID: <20210930094813.226888-1-yangx.jy@fujitsu.com>
+Subject: [PATCH v4 3/4] RDMA/rxe: Set partial attributes when completion status != IBV_WC_SUCCESS
+Date:   Thu, 30 Sep 2021 17:48:12 +0800
+Message-ID: <20210930094813.226888-4-yangx.jy@fujitsu.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210930094813.226888-1-yangx.jy@fujitsu.com>
+References: <20210930094813.226888-1-yangx.jy@fujitsu.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 582A54D0DC81.A7018
+X-yoursite-MailScanner-ID: 5963B4D0DC7C.A9216
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-V3->V4:
-1) Rebase on the latest for-next branch.
-2) Remove [PATCH v3 1/5].
-3) Update [PATCH v3 2/5] to remove the is_user members of
-   struct rxe_sq/rxe_rq/rxe_srq.
+As ibv_poll_cq()'s manual said, only partial attributes are valid
+when completion status != IBV_WC_SUCCESS.
 
-Xiao Yang (4):
-  RDMA/rxe: Remove the is_user members of struct rxe_sq/rxe_rq/rxe_srq
-  RDMA/rxe: Change the is_user member of struct rxe_cq to bool
-  RDMA/rxe: Set partial attributes when completion status !=
-    IBV_WC_SUCCESS
-  RDMA/rxe: Remove duplicate settings
+Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
+---
+ drivers/infiniband/sw/rxe/rxe_comp.c | 45 +++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 20 deletions(-)
 
- drivers/infiniband/sw/rxe/rxe_comp.c  | 45 +++++++++++++++------------
- drivers/infiniband/sw/rxe/rxe_cq.c    |  3 +-
- drivers/infiniband/sw/rxe/rxe_qp.c    |  2 --
- drivers/infiniband/sw/rxe/rxe_resp.c  |  4 ---
- drivers/infiniband/sw/rxe/rxe_srq.c   |  1 -
- drivers/infiniband/sw/rxe/rxe_verbs.c |  3 --
- drivers/infiniband/sw/rxe/rxe_verbs.h |  5 +--
- 7 files changed, 27 insertions(+), 36 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 48a3864ada29..d771ba8449a1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -380,30 +380,35 @@ static inline enum comp_state do_atomic(struct rxe_qp *qp,
+ static void make_send_cqe(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 			  struct rxe_cqe *cqe)
+ {
++	struct ib_wc *wc = &cqe->ibwc;
++	struct ib_uverbs_wc *uwc = &cqe->uibwc;
++
+ 	memset(cqe, 0, sizeof(*cqe));
+ 
+ 	if (!qp->is_user) {
+-		struct ib_wc		*wc	= &cqe->ibwc;
+-
+-		wc->wr_id		= wqe->wr.wr_id;
+-		wc->status		= wqe->status;
+-		wc->opcode		= wr_to_wc_opcode(wqe->wr.opcode);
+-		if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
+-		    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
+-			wc->wc_flags = IB_WC_WITH_IMM;
+-		wc->byte_len		= wqe->dma.length;
+-		wc->qp			= &qp->ibqp;
++		wc->wr_id = wqe->wr.wr_id;
++		wc->status = wqe->status;
++		wc->qp = &qp->ibqp;
+ 	} else {
+-		struct ib_uverbs_wc	*uwc	= &cqe->uibwc;
+-
+-		uwc->wr_id		= wqe->wr.wr_id;
+-		uwc->status		= wqe->status;
+-		uwc->opcode		= wr_to_wc_opcode(wqe->wr.opcode);
+-		if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
+-		    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
+-			uwc->wc_flags = IB_WC_WITH_IMM;
+-		uwc->byte_len		= wqe->dma.length;
+-		uwc->qp_num		= qp->ibqp.qp_num;
++		uwc->wr_id = wqe->wr.wr_id;
++		uwc->status = wqe->status;
++		uwc->qp_num = qp->ibqp.qp_num;
++	}
++
++	if (wqe->status == IB_WC_SUCCESS) {
++		if (!qp->is_user) {
++			wc->opcode = wr_to_wc_opcode(wqe->wr.opcode);
++			if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
++			    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
++				wc->wc_flags = IB_WC_WITH_IMM;
++			wc->byte_len = wqe->dma.length;
++		} else {
++			uwc->opcode = wr_to_wc_opcode(wqe->wr.opcode);
++			if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
++			    wqe->wr.opcode == IB_WR_SEND_WITH_IMM)
++				uwc->wc_flags = IB_WC_WITH_IMM;
++			uwc->byte_len = wqe->dma.length;
++		}
+ 	}
+ }
+ 
 -- 
 2.25.1
 
