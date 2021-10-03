@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31DD2C433F5
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Oct 2021 18:12:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9973C433EF
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Oct 2021 18:12:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18CB161A35
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Oct 2021 18:12:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B397061A78
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Oct 2021 18:12:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231496AbhJCSOV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Oct 2021 14:14:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46112 "EHLO mail.kernel.org"
+        id S231440AbhJCSOZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 3 Oct 2021 14:14:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231449AbhJCSON (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sun, 3 Oct 2021 14:14:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D10E761A03;
-        Sun,  3 Oct 2021 18:12:24 +0000 (UTC)
+        id S231442AbhJCSOQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 3 Oct 2021 14:14:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4C3C761A38;
+        Sun,  3 Oct 2021 18:12:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633284745;
-        bh=ubBfXkJlfWk9vB5diL1cDnPrfyxhDRFVopndxkSNLHo=;
+        s=k20201202; t=1633284749;
+        bh=kmvqg5Sh9xOemSfm/3IvxuS1vadjnBCVVd+/5Nkwtn4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BbMUl87cCWT+97KqDP92fcWx1lVuUa4W8XKStdB2ZbTf1SW2GYZcHkZ2/qI+Jii+/
-         Ri7eMjFTMjDrLQpWoQuMRp69yPR/Kz1fwTX8xUjtQcrgdRCluu5G88bEiXlfzJzghh
-         +5TPkDuyNOK4KURDvatzlatieradDHJ+EfA6joHw6znQKDTSCHP0xpNs8/WNhAgE4J
-         suhj15keyLSoPCl+bTHZhGuTieX6KHadZuXJgJERBPaAXEwSmDh9Q/KX2YrYf4qS1P
-         4L57JhB15P5pBGGRXwCoPJCYInAEHhRlltaudJ5cPzq9FC/i/vHEaalRRHFn2ddBEX
-         Yyb1Wtb18cMlg==
+        b=ufRTQEcGZP0BVyT/adr4nvPP4mx13Dl0nZZWtRQ+eT8sXfD04J/35YUuo7KVr9t2p
+         EkkLZZSRDn1UPzu8EBDNBqPULmPzKv75EFoyI3HzIv/sdV4F8VzmrKF+qbXRMMMWzO
+         FWNGjq8LRcqEnnzyHFcg5EERMTKZfmdxPW5rTmFed8MctI3t1go6/aeeSteB9kVoH+
+         SXyUQ0RbseGP4HjXPxGvGh03MnbmmQ4mgaPQ6uDUXpLCtfJMEllJBirgMx+jDDPlAK
+         ojFzIemli6oFlxQNQQnbY6A+7UfO8Dgl4nVlzW25/23YBzMGOp1aIbq1L3Ze97Y0/W
+         mlfZGycVuxaWw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -40,9 +40,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Tariq Toukan <tariqt@nvidia.com>,
         Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next v2 2/5] devlink: Annotate devlink API calls
-Date:   Sun,  3 Oct 2021 21:12:03 +0300
-Message-Id: <f65772d429d2c259bbc18cf5b1bbe61e39eb7081.1633284302.git.leonro@nvidia.com>
+Subject: [PATCH net-next v2 5/5] devlink: Delete reload enable/disable interface
+Date:   Sun,  3 Oct 2021 21:12:06 +0300
+Message-Id: <06ebba9e115d421118b16ac4efda61c2e08f4d50.1633284302.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1633284302.git.leonro@nvidia.com>
 References: <cover.1633284302.git.leonro@nvidia.com>
@@ -54,72 +54,272 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Initial annotation patch to separate calls that needs to be executed
-before or after devlink_register().
+After changes to allow dynamically set the reload_up/_down callbacks,
+we ensure that properly supported devlink ops are not accessible before
+devlink_register, which is last command in the initialization sequence.
+
+It makes devlink_reload_enable/_disable not relevant anymore and can be
+safely deleted.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- net/core/devlink.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ .../hisilicon/hns3/hns3pf/hclge_devlink.c     |  3 --
+ .../hisilicon/hns3/hns3vf/hclgevf_devlink.c   |  3 --
+ drivers/net/ethernet/mellanox/mlx4/main.c     |  2 -
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  3 --
+ .../mellanox/mlx5/core/sf/dev/driver.c        |  5 +--
+ drivers/net/ethernet/mellanox/mlxsw/core.c    | 10 ++---
+ drivers/net/netdevsim/dev.c                   |  3 --
+ include/net/devlink.h                         |  2 -
+ net/core/devlink.c                            | 43 +------------------
+ 9 files changed, 5 insertions(+), 69 deletions(-)
 
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
+index 59b0ae7d59e0..c394c393421e 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
+@@ -120,7 +120,6 @@ int hclge_devlink_init(struct hclge_dev *hdev)
+ 	hdev->devlink = devlink;
+ 
+ 	devlink_register(devlink);
+-	devlink_reload_enable(devlink);
+ 	return 0;
+ }
+ 
+@@ -128,8 +127,6 @@ void hclge_devlink_uninit(struct hclge_dev *hdev)
+ {
+ 	struct devlink *devlink = hdev->devlink;
+ 
+-	devlink_reload_disable(devlink);
+-
+ 	devlink_unregister(devlink);
+ 
+ 	devlink_free(devlink);
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
+index d60cc9426f70..d67c151e024b 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
+@@ -122,7 +122,6 @@ int hclgevf_devlink_init(struct hclgevf_dev *hdev)
+ 	hdev->devlink = devlink;
+ 
+ 	devlink_register(devlink);
+-	devlink_reload_enable(devlink);
+ 	return 0;
+ }
+ 
+@@ -130,8 +129,6 @@ void hclgevf_devlink_uninit(struct hclgevf_dev *hdev)
+ {
+ 	struct devlink *devlink = hdev->devlink;
+ 
+-	devlink_reload_disable(devlink);
+-
+ 	devlink_unregister(devlink);
+ 
+ 	devlink_free(devlink);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 9541f3a920c8..8b410800f049 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -4026,7 +4026,6 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
+ 
+ 	pci_save_state(pdev);
+ 	devlink_register(devlink);
+-	devlink_reload_enable(devlink);
+ 	return 0;
+ 
+ err_params_unregister:
+@@ -4135,7 +4134,6 @@ static void mlx4_remove_one(struct pci_dev *pdev)
+ 	struct devlink *devlink = priv_to_devlink(priv);
+ 	int active_vfs = 0;
+ 
+-	devlink_reload_disable(devlink);
+ 	devlink_unregister(devlink);
+ 
+ 	if (mlx4_is_slave(dev))
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 5893fdd5aedb..65313448a47c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1538,8 +1538,6 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
+ 
+ 	pci_save_state(pdev);
+ 	devlink_register(devlink);
+-	if (!mlx5_core_is_mp_slave(dev))
+-		devlink_reload_enable(devlink);
+ 	return 0;
+ 
+ err_init_one:
+@@ -1559,7 +1557,6 @@ static void remove_one(struct pci_dev *pdev)
+ 	struct mlx5_core_dev *dev  = pci_get_drvdata(pdev);
+ 	struct devlink *devlink = priv_to_devlink(dev);
+ 
+-	devlink_reload_disable(devlink);
+ 	devlink_unregister(devlink);
+ 	mlx5_crdump_disable(dev);
+ 	mlx5_drain_health_wq(dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
+index 3cf272fa2164..7b4783ce213e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/driver.c
+@@ -47,7 +47,6 @@ static int mlx5_sf_dev_probe(struct auxiliary_device *adev, const struct auxilia
+ 		goto init_one_err;
+ 	}
+ 	devlink_register(devlink);
+-	devlink_reload_enable(devlink);
+ 	return 0;
+ 
+ init_one_err:
+@@ -62,10 +61,8 @@ static int mlx5_sf_dev_probe(struct auxiliary_device *adev, const struct auxilia
+ static void mlx5_sf_dev_remove(struct auxiliary_device *adev)
+ {
+ 	struct mlx5_sf_dev *sf_dev = container_of(adev, struct mlx5_sf_dev, adev);
+-	struct devlink *devlink;
++	struct devlink *devlink = priv_to_devlink(sf_dev->mdev);
+ 
+-	devlink = priv_to_devlink(sf_dev->mdev);
+-	devlink_reload_disable(devlink);
+ 	devlink_unregister(devlink);
+ 	mlx5_uninit_one(sf_dev->mdev);
+ 	iounmap(sf_dev->mdev->iseg);
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/core.c b/drivers/net/ethernet/mellanox/mlxsw/core.c
+index 9e831e8b607a..895b3ba88e45 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/core.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/core.c
+@@ -2007,11 +2007,8 @@ __mlxsw_core_bus_device_register(const struct mlxsw_bus_info *mlxsw_bus_info,
+ 			goto err_driver_init;
+ 	}
+ 
+-	if (!reload) {
++	if (!reload)
+ 		devlink_register(devlink);
+-		devlink_reload_enable(devlink);
+-	}
+-
+ 	return 0;
+ 
+ err_driver_init:
+@@ -2075,10 +2072,9 @@ void mlxsw_core_bus_device_unregister(struct mlxsw_core *mlxsw_core,
+ {
+ 	struct devlink *devlink = priv_to_devlink(mlxsw_core);
+ 
+-	if (!reload) {
+-		devlink_reload_disable(devlink);
++	if (!reload)
+ 		devlink_unregister(devlink);
+-	}
++
+ 	if (devlink_is_reload_failed(devlink)) {
+ 		if (!reload)
+ 			/* Only the parts that were not de-initialized in the
+diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
+index cb6645012a30..09e48fb232a9 100644
+--- a/drivers/net/netdevsim/dev.c
++++ b/drivers/net/netdevsim/dev.c
+@@ -1512,7 +1512,6 @@ int nsim_dev_probe(struct nsim_bus_dev *nsim_bus_dev)
+ 
+ 	nsim_dev->esw_mode = DEVLINK_ESWITCH_MODE_LEGACY;
+ 	devlink_register(devlink);
+-	devlink_reload_enable(devlink);
+ 	return 0;
+ 
+ err_psample_exit:
+@@ -1566,9 +1565,7 @@ void nsim_dev_remove(struct nsim_bus_dev *nsim_bus_dev)
+ 	struct nsim_dev *nsim_dev = dev_get_drvdata(&nsim_bus_dev->dev);
+ 	struct devlink *devlink = priv_to_devlink(nsim_dev);
+ 
+-	devlink_reload_disable(devlink);
+ 	devlink_unregister(devlink);
+-
+ 	nsim_dev_reload_destroy(nsim_dev);
+ 
+ 	nsim_bpf_dev_exit(nsim_dev);
+diff --git a/include/net/devlink.h b/include/net/devlink.h
+index 320146d95fb8..23355fd92553 100644
+--- a/include/net/devlink.h
++++ b/include/net/devlink.h
+@@ -1523,8 +1523,6 @@ static inline struct devlink *devlink_alloc(const struct devlink_ops *ops,
+ void devlink_set_ops(struct devlink *devlink, const struct devlink_ops *ops);
+ void devlink_register(struct devlink *devlink);
+ void devlink_unregister(struct devlink *devlink);
+-void devlink_reload_enable(struct devlink *devlink);
+-void devlink_reload_disable(struct devlink *devlink);
+ void devlink_free(struct devlink *devlink);
+ int devlink_port_register(struct devlink *devlink,
+ 			  struct devlink_port *devlink_port,
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 9642429cec65..4e484afeadea 100644
+index 25c2aa2b35cd..b45bdba9775d 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -154,6 +154,22 @@ static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_
- static DEFINE_XARRAY_FLAGS(devlinks, XA_FLAGS_ALLOC);
- #define DEVLINK_REGISTERED XA_MARK_1
+@@ -62,8 +62,7 @@ struct devlink {
+ 	 * port, sb, dpipe, resource, params, region, traps and more.
+ 	 */
+ 	struct mutex lock;
+-	u8 reload_failed:1,
+-	   reload_enabled:1;
++	u8 reload_failed:1;
+ 	refcount_t refcount;
+ 	struct completion comp;
+ 	char priv[0] __aligned(NETDEV_ALIGN);
+@@ -4033,9 +4032,6 @@ static int devlink_reload(struct devlink *devlink, struct net *dest_net,
+ 	struct net *curr_net;
+ 	int err;
  
-+/* devlink instances are open to the access from the user space after
-+ * devlink_register() call. Such logical barrier allows us to have certain
-+ * expectations related to locking.
-+ *
-+ * Before *_register() - we are in initialization stage and no parallel
-+ * access possible to the devlink instance. All drivers perform that phase
-+ * by implicitly holding device_lock.
-+ *
-+ * After *_register() - users and driver can access devlink instance at
-+ * the same time.
-+ */
-+#define ASSERT_DEVLINK_REGISTERED(d)                                           \
-+	WARN_ON_ONCE(!xa_get_mark(&devlinks, (d)->index, DEVLINK_REGISTERED))
-+#define ASSERT_DEVLINK_NOT_REGISTERED(d)                                       \
-+	WARN_ON_ONCE(xa_get_mark(&devlinks, (d)->index, DEVLINK_REGISTERED))
-+
- /* devlink_mutex
-  *
-  * An overall lock guarding every operation coming from userspace.
-@@ -9115,6 +9131,10 @@ static void devlink_notify_unregister(struct devlink *devlink)
-  */
- void devlink_register(struct devlink *devlink)
- {
-+	ASSERT_DEVLINK_NOT_REGISTERED(devlink);
-+	/* Make sure that we are in .probe() routine */
-+	device_lock_assert(devlink->dev);
-+
- 	mutex_lock(&devlink_mutex);
- 	xa_set_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
- 	devlink_notify_register(devlink);
-@@ -9129,6 +9149,10 @@ EXPORT_SYMBOL_GPL(devlink_register);
-  */
- void devlink_unregister(struct devlink *devlink)
- {
-+	ASSERT_DEVLINK_REGISTERED(devlink);
-+	/* Make sure that we are in .remove() routine */
-+	device_lock_assert(devlink->dev);
-+
- 	devlink_put(devlink);
+-	if (!devlink->reload_enabled)
+-		return -EOPNOTSUPP;
+-
+ 	memcpy(remote_reload_stats, devlink->stats.remote_reload_stats,
+ 	       sizeof(remote_reload_stats));
+ 
+@@ -9245,49 +9241,12 @@ void devlink_unregister(struct devlink *devlink)
  	wait_for_completion(&devlink->comp);
  
-@@ -9183,6 +9207,8 @@ EXPORT_SYMBOL_GPL(devlink_reload_disable);
-  */
- void devlink_free(struct devlink *devlink)
- {
-+	ASSERT_DEVLINK_NOT_REGISTERED(devlink);
-+
- 	mutex_destroy(&devlink->reporters_lock);
- 	mutex_destroy(&devlink->lock);
- 	WARN_ON(!list_empty(&devlink->trap_policer_list));
+ 	mutex_lock(&devlink_mutex);
+-	WARN_ON(devlink_reload_supported(&devlink->ops) &&
+-		devlink->reload_enabled);
+ 	devlink_notify_unregister(devlink);
+ 	xa_clear_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
+ 	mutex_unlock(&devlink_mutex);
+ }
+ EXPORT_SYMBOL_GPL(devlink_unregister);
+ 
+-/**
+- *	devlink_reload_enable - Enable reload of devlink instance
+- *
+- *	@devlink: devlink
+- *
+- *	Should be called at end of device initialization
+- *	process when reload operation is supported.
+- */
+-void devlink_reload_enable(struct devlink *devlink)
+-{
+-	mutex_lock(&devlink_mutex);
+-	devlink->reload_enabled = true;
+-	mutex_unlock(&devlink_mutex);
+-}
+-EXPORT_SYMBOL_GPL(devlink_reload_enable);
+-
+-/**
+- *	devlink_reload_disable - Disable reload of devlink instance
+- *
+- *	@devlink: devlink
+- *
+- *	Should be called at the beginning of device cleanup
+- *	process when reload operation is supported.
+- */
+-void devlink_reload_disable(struct devlink *devlink)
+-{
+-	mutex_lock(&devlink_mutex);
+-	/* Mutex is taken which ensures that no reload operation is in
+-	 * progress while setting up forbidded flag.
+-	 */
+-	devlink->reload_enabled = false;
+-	mutex_unlock(&devlink_mutex);
+-}
+-EXPORT_SYMBOL_GPL(devlink_reload_disable);
+-
+ /**
+  *	devlink_free - Free devlink instance resources
+  *
 -- 
 2.31.1
 
