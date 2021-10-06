@@ -2,52 +2,51 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C81AFC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A9FC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B32646109F
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C33A61151
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238142AbhJFJye (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Oct 2021 05:54:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50780 "EHLO mail.kernel.org"
+        id S238190AbhJFJyn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Oct 2021 05:54:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237952AbhJFJyb (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 Oct 2021 05:54:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5694B6109F;
-        Wed,  6 Oct 2021 09:52:38 +0000 (UTC)
+        id S238045AbhJFJye (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 Oct 2021 05:54:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 032B461139;
+        Wed,  6 Oct 2021 09:52:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633513959;
-        bh=mzKEN0EQc/b7YS5BzbKZbjSkPHo2FuHi9XCOU8juxTs=;
+        s=k20201202; t=1633513962;
+        bh=xzttZi/5poOy9K5iTOgUl8xLkGgYhWnKTEjW93RLZt8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RQHJi5wGEQSj2tOLvQ5FxS4xbXsyh30pNOQLyyz+Egk92R/qVr8gYXynyUGOlha8A
-         RwglsihjeKR6msA8Swop7HGAYY67BWj2x6NhOOg2vIWcK5ddHM8Wt4EMNTcI9z+H5b
-         mBif25HvcdfZ/bEqG+WLKeYjkPUTYQ9ypNIeTmXgCt1FQHm1HsEM3u6NodNP+dN4se
-         bO9iSW495euyvk9GimkehiMUd5SQxMdjyzdkGtossv1nfIFC0FofaGIKq24LPy5Awn
-         Koq3O7rCzlA0SiLqK0kaM5gXkOKdgKqJWaiFmuM9Uxn4uK0lnnTas8ugKeh/GklTrc
-         1GTgxx0ko7oFA==
+        b=jVtP1Zr0coed+XFwGz6Bln/zdS46ifZ3ImNoqmtlYREKWBnmViQhoC/Ikpuqmx06r
+         mIrbBH4ejJlkk5doboD66msYYp7AGvunA/gVBcTXaEoPHHi67rO6BRMeE7FjPRIKT2
+         b085h7LT7nP2HtiMyCbwCKCG5B18HFkeO0/MxaQKlwRaDnbewQEbAPSAVOVPFSb8Lp
+         cSTs8tDi+xGzzzAQibCFQvYlQCdXkq61OsJRLfKsZyht3PcQWboVryIxMEX4wzJHmO
+         rniZ/W2X4sp3l1AJ2y6/LkAJatJ7vKfShR9MDhni2j4IPmiVd8WwUtbB93SFuzobVM
+         Lk+gVL9crglag==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>,
+Cc:     Mark Zhang <markzhang@nvidia.com>,
+        Aharon Landau <aharonl@nvidia.com>,
         "David S. Miller" <davem@davemloft.net>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Gal Pressman <galpress@amazon.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
-        Mark Zhang <markzhang@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Mustafa Ismail <mustafa.ismail@intel.com>,
-        Neta Ostrovsky <netao@nvidia.com>, netdev@vger.kernel.org,
-        Potnuri Bharat Teja <bharat@chelsio.com>,
+        netdev@vger.kernel.org, Potnuri Bharat Teja <bharat@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v3 06/13] RDMA/counter: Add optional counter support
-Date:   Wed,  6 Oct 2021 12:52:09 +0300
-Message-Id: <54491e42ed12ff06ecabb1720589fd13eb5df33f.1633513239.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v3 04/13] RDMA/core: Add a helper API rdma_free_hw_stats_struct
+Date:   Wed,  6 Oct 2021 12:52:07 +0300
+Message-Id: <8402b0fc2e7502545463ac21fde61f097ee7091f.1633513239.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1633513239.git.leonro@nvidia.com>
 References: <cover.1633513239.git.leonro@nvidia.com>
@@ -57,230 +56,185 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+From: Mark Zhang <markzhang@nvidia.com>
 
-An optional counter is a vendor-specific counter that may be dynamically
-enabled/disabled.
-This enhancement allows us to expose counters which are for example
-mutual exclusive and cannot be enabled at the same time, counters that
-might degrades performance, optional debug counters, etc.
+Add a new API rdma_free_hw_stats_struct to pair with
+rdma_alloc_hw_stats_struct (which is also de-inlined).
 
-Optional counters are marked with IB_STAT_FLAG_OPTIONAL flag. They are
-not exported in sysfs, and must be at the end of all stats, otherwise
-the attr->show() in sysfs would get wrong indexes for hwcounters that
-are behind optional counters.
+This will be useful when there are more alloc/free works
+in following patches.
 
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Signed-off-by: Neta Ostrovsky <netao@nvidia.com>
-Reviewed-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/counters.c | 32 ++++++++++++++++++++++++++
- drivers/infiniband/core/device.c   |  1 +
- drivers/infiniband/core/sysfs.c    | 36 +++++++++++++++++++++---------
- include/rdma/ib_verbs.h            | 13 +++++++++++
- include/rdma/rdma_counter.h        |  2 ++
- 5 files changed, 74 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/counters.c |  8 +++----
+ drivers/infiniband/core/sysfs.c    |  8 +++----
+ drivers/infiniband/core/verbs.c    | 35 ++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h            | 27 ++++-------------------
+ 4 files changed, 47 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index 331cd29f0d61..af59486fe418 100644
+index df9e6c5e4ddf..331cd29f0d61 100644
 --- a/drivers/infiniband/core/counters.c
 +++ b/drivers/infiniband/core/counters.c
-@@ -106,6 +106,38 @@ static int __rdma_counter_bind_qp(struct rdma_counter *counter,
- 	return ret;
+@@ -165,7 +165,7 @@ static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u32 port,
+ 	return counter;
+ 
+ err_mode:
+-	kfree(counter->stats);
++	rdma_free_hw_stats_struct(counter->stats);
+ err_stats:
+ 	rdma_restrack_put(&counter->res);
+ 	kfree(counter);
+@@ -186,7 +186,7 @@ static void rdma_counter_free(struct rdma_counter *counter)
+ 	mutex_unlock(&port_counter->lock);
+ 
+ 	rdma_restrack_del(&counter->res);
+-	kfree(counter->stats);
++	rdma_free_hw_stats_struct(counter->stats);
+ 	kfree(counter);
  }
  
-+int rdma_counter_modify(struct ib_device *dev, u32 port,
-+			unsigned int index, bool enable)
-+{
-+	struct rdma_hw_stats *stats;
-+	int ret = 0;
-+
-+	if (!dev->ops.modify_hw_stat)
-+		return -EOPNOTSUPP;
-+
-+	stats = ib_get_hw_stats_port(dev, port);
-+	if (!stats || index >= stats->num_counters ||
-+	    !(stats->descs[index].flags & IB_STAT_FLAG_OPTIONAL))
-+		return -EINVAL;
-+
-+	mutex_lock(&stats->lock);
-+
-+	if (enable != test_bit(index, stats->is_disabled))
-+		goto out;
-+
-+	ret = dev->ops.modify_hw_stat(dev, port, index, enable);
-+	if (ret)
-+		goto out;
-+
-+	if (enable)
-+		clear_bit(index, stats->is_disabled);
-+	else
-+		set_bit(index, stats->is_disabled);
-+out:
-+	mutex_unlock(&stats->lock);
-+	return ret;
-+}
-+
- static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u32 port,
- 					   struct ib_qp *qp,
- 					   enum rdma_nl_counter_mode mode)
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index f4814bb7f082..22a4adda7981 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2676,6 +2676,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, modify_cq);
- 	SET_DEVICE_OP(dev_ops, modify_device);
- 	SET_DEVICE_OP(dev_ops, modify_flow_action_esp);
-+	SET_DEVICE_OP(dev_ops, modify_hw_stat);
- 	SET_DEVICE_OP(dev_ops, modify_port);
- 	SET_DEVICE_OP(dev_ops, modify_qp);
- 	SET_DEVICE_OP(dev_ops, modify_srq);
+@@ -618,7 +618,7 @@ void rdma_counter_init(struct ib_device *dev)
+ fail:
+ 	for (i = port; i >= rdma_start_port(dev); i--) {
+ 		port_counter = &dev->port_data[port].port_counter;
+-		kfree(port_counter->hstats);
++		rdma_free_hw_stats_struct(port_counter->hstats);
+ 		port_counter->hstats = NULL;
+ 		mutex_destroy(&port_counter->lock);
+ 	}
+@@ -631,7 +631,7 @@ void rdma_counter_release(struct ib_device *dev)
+ 
+ 	rdma_for_each_port(dev, port) {
+ 		port_counter = &dev->port_data[port].port_counter;
+-		kfree(port_counter->hstats);
++		rdma_free_hw_stats_struct(port_counter->hstats);
+ 		mutex_destroy(&port_counter->lock);
+ 	}
+ }
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 8d831d4fd2ad..1bf3aea4b71e 100644
+index c3663cfdcd52..8d831d4fd2ad 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -934,7 +934,8 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
+@@ -755,7 +755,7 @@ static void ib_port_release(struct kobject *kobj)
+ 	for (i = 0; i != ARRAY_SIZE(port->groups); i++)
+ 		kfree(port->groups[i].attrs);
+ 	if (port->hw_stats_data)
+-		kfree(port->hw_stats_data->stats);
++		rdma_free_hw_stats_struct(port->hw_stats_data->stats);
+ 	kfree(port->hw_stats_data);
+ 	kfree(port);
+ }
+@@ -919,14 +919,14 @@ alloc_hw_stats_device(struct ib_device *ibdev)
+ err_free_data:
+ 	kfree(data);
+ err_free_stats:
+-	kfree(stats);
++	rdma_free_hw_stats_struct(stats);
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
+ void ib_device_release_hw_stats(struct hw_stats_device_data *data)
  {
- 	struct hw_stats_device_attribute *attr;
- 	struct hw_stats_device_data *data;
--	int i, ret;
-+	bool opstat_skipped = false;
-+	int i, ret, pos = 0;
+ 	kfree(data->group.attrs);
+-	kfree(data->stats);
++	rdma_free_hw_stats_struct(data->stats);
+ 	kfree(data);
+ }
  
- 	data = alloc_hw_stats_device(ibdev);
- 	if (IS_ERR(data)) {
-@@ -955,16 +956,23 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
- 	data->stats->timestamp = jiffies;
+@@ -1018,7 +1018,7 @@ alloc_hw_stats_port(struct ib_port *port, struct attribute_group *group)
+ err_free_data:
+ 	kfree(data);
+ err_free_stats:
+-	kfree(stats);
++	rdma_free_hw_stats_struct(stats);
+ 	return ERR_PTR(-ENOMEM);
+ }
  
- 	for (i = 0; i < data->stats->num_counters; i++) {
--		attr = &data->attrs[i];
-+		if (data->stats->descs[i].flags & IB_STAT_FLAG_OPTIONAL) {
-+			opstat_skipped = true;
-+			continue;
-+		}
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 89a2b21976d6..c3319a7584a2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2976,3 +2976,38 @@ bool __rdma_block_iter_next(struct ib_block_iter *biter)
+ 	return true;
+ }
+ EXPORT_SYMBOL(__rdma_block_iter_next);
 +
-+		WARN_ON(opstat_skipped);
-+		attr = &data->attrs[pos];
- 		sysfs_attr_init(&attr->attr.attr);
- 		attr->attr.attr.name = data->stats->descs[i].name;
- 		attr->attr.attr.mode = 0444;
- 		attr->attr.show = hw_stat_device_show;
- 		attr->show = show_hw_stats;
--		data->group.attrs[i] = &attr->attr.attr;
-+		data->group.attrs[pos] = &attr->attr.attr;
-+		pos++;
- 	}
- 
--	attr = &data->attrs[i];
-+	attr = &data->attrs[pos];
- 	sysfs_attr_init(&attr->attr.attr);
- 	attr->attr.attr.name = "lifespan";
- 	attr->attr.attr.mode = 0644;
-@@ -972,7 +980,7 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
- 	attr->show = show_stats_lifespan;
- 	attr->attr.store = hw_stat_device_store;
- 	attr->store = set_stats_lifespan;
--	data->group.attrs[i] = &attr->attr.attr;
-+	data->group.attrs[pos] = &attr->attr.attr;
- 	for (i = 0; i != ARRAY_SIZE(ibdev->groups); i++)
- 		if (!ibdev->groups[i]) {
- 			ibdev->groups[i] = &data->group;
-@@ -1027,7 +1035,8 @@ static int setup_hw_port_stats(struct ib_port *port,
- {
- 	struct hw_stats_port_attribute *attr;
- 	struct hw_stats_port_data *data;
--	int i, ret;
-+	bool opstat_skipped = false;
-+	int i, ret, pos = 0;
- 
- 	data = alloc_hw_stats_port(port, group);
- 	if (IS_ERR(data))
-@@ -1045,16 +1054,23 @@ static int setup_hw_port_stats(struct ib_port *port,
- 	data->stats->timestamp = jiffies;
- 
- 	for (i = 0; i < data->stats->num_counters; i++) {
--		attr = &data->attrs[i];
-+		if (data->stats->descs[i].flags & IB_STAT_FLAG_OPTIONAL) {
-+			opstat_skipped = true;
-+			continue;
-+		}
++/**
++ * rdma_alloc_hw_stats_struct - Helper function to allocate dynamic struct
++ *   for the drivers.
++ * @descs: array of static descriptors
++ * @num_counters: number of elments in array
++ * @lifespan: milliseconds between updates
++ */
++struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
++	const struct rdma_stat_desc *descs, int num_counters,
++	unsigned long lifespan)
++{
++	struct rdma_hw_stats *stats;
 +
-+		WARN_ON(opstat_skipped);
-+		attr = &data->attrs[pos];
- 		sysfs_attr_init(&attr->attr.attr);
- 		attr->attr.attr.name = data->stats->descs[i].name;
- 		attr->attr.attr.mode = 0444;
- 		attr->attr.show = hw_stat_port_show;
- 		attr->show = show_hw_stats;
--		group->attrs[i] = &attr->attr.attr;
-+		group->attrs[pos] = &attr->attr.attr;
-+		pos++;
- 	}
- 
--	attr = &data->attrs[i];
-+	attr = &data->attrs[pos];
- 	sysfs_attr_init(&attr->attr.attr);
- 	attr->attr.attr.name = "lifespan";
- 	attr->attr.attr.mode = 0644;
-@@ -1062,7 +1078,7 @@ static int setup_hw_port_stats(struct ib_port *port,
- 	attr->show = show_stats_lifespan;
- 	attr->attr.store = hw_stat_port_store;
- 	attr->store = set_stats_lifespan;
--	group->attrs[i] = &attr->attr.attr;
-+	group->attrs[pos] = &attr->attr.attr;
- 
- 	port->hw_stats_data = data;
- 	return 0;
++	stats = kzalloc(struct_size(stats, value, num_counters), GFP_KERNEL);
++	if (!stats)
++		return NULL;
++
++	stats->descs = descs;
++	stats->num_counters = num_counters;
++	stats->lifespan = msecs_to_jiffies(lifespan);
++
++	return stats;
++}
++EXPORT_SYMBOL(rdma_alloc_hw_stats_struct);
++
++/**
++ * rdma_free_hw_stats_struct - Helper function to release rdma_hw_stats
++ * @stats: statistics to release
++ */
++void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats)
++{
++	kfree(stats);
++}
++EXPORT_SYMBOL(rdma_free_hw_stats_struct);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ae467365706b..2207f60b002f 100644
+index aa1e1029b736..938c0c0a1c19 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -545,12 +545,18 @@ enum ib_port_speed {
- 	IB_SPEED_NDR	= 128,
+@@ -582,31 +582,12 @@ struct rdma_hw_stats {
  };
  
-+enum ib_stat_flag {
-+	IB_STAT_FLAG_OPTIONAL = 1 << 0,
-+};
-+
- /**
-  * struct rdma_stat_desc
-  * @name - The name of the counter
-+ * @flags - Flags of the counter; For example, IB_STAT_FLAG_OPTIONAL
-  */
- struct rdma_stat_desc {
- 	const char *name;
-+	unsigned int flags;
- };
+ #define RDMA_HW_STATS_DEFAULT_LIFESPAN 10
+-/**
+- * rdma_alloc_hw_stats_struct - Helper function to allocate dynamic struct
+- *   for drivers.
+- * @descs - Array of static descriptors
+- * @num_counters - How many elements in array
+- * @lifespan - How many milliseconds between updates
+- */
+-static inline struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
+-		const struct rdma_stat_desc *descs, int num_counters,
+-		unsigned long lifespan)
+-{
+-	struct rdma_hw_stats *stats;
  
- /**
-@@ -2562,6 +2568,13 @@ struct ib_device_ops {
- 	int (*get_hw_stats)(struct ib_device *device,
- 			    struct rdma_hw_stats *stats, u32 port, int index);
+-	stats = kzalloc(sizeof(*stats) + num_counters * sizeof(u64),
+-			GFP_KERNEL);
+-	if (!stats)
+-		return NULL;
+-
+-	stats->descs = descs;
+-	stats->num_counters = num_counters;
+-	stats->lifespan = msecs_to_jiffies(lifespan);
+-
+-	return stats;
+-}
++struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
++	const struct rdma_stat_desc *descs, int num_counters,
++	unsigned long lifespan);
  
-+	/**
-+	 * modify_hw_stat - Modify the counter configuration
-+	 * @enable: true/false when enable/disable a counter
-+	 * Return codes - 0 on success or error code otherwise.
-+	 */
-+	int (*modify_hw_stat)(struct ib_device *device, u32 port,
-+			      unsigned int counter_index, bool enable);
- 	/**
- 	 * Allows rdma drivers to add their own restrack attributes.
- 	 */
-diff --git a/include/rdma/rdma_counter.h b/include/rdma/rdma_counter.h
-index 0295b22cd1cd..45d5481a7846 100644
---- a/include/rdma/rdma_counter.h
-+++ b/include/rdma/rdma_counter.h
-@@ -63,4 +63,6 @@ int rdma_counter_get_mode(struct ib_device *dev, u32 port,
- 			  enum rdma_nl_counter_mode *mode,
- 			  enum rdma_nl_counter_mask *mask);
++void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats);
  
-+int rdma_counter_modify(struct ib_device *dev, u32 port,
-+			unsigned int index, bool enable);
- #endif /* _RDMA_COUNTER_H_ */
+ /* Define bits for the various functionality this port needs to be supported by
+  * the core.
 -- 
 2.31.1
 
