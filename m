@@ -2,70 +2,80 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 648CEC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 12:37:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D70A4C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 13:36:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43EC060F9C
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 12:37:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B627161075
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 13:36:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230061AbhJFMjd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Oct 2021 08:39:33 -0400
-Received: from mga09.intel.com ([134.134.136.24]:30430 "EHLO mga09.intel.com"
+        id S237861AbhJFNhw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Oct 2021 09:37:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229894AbhJFMjd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 Oct 2021 08:39:33 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10128"; a="225873158"
-X-IronPort-AV: E=Sophos;i="5.85,350,1624345200"; 
-   d="scan'208";a="225873158"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2021 05:37:40 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,350,1624345200"; 
-   d="scan'208";a="488475364"
-Received: from unknown (HELO intel-73.bj.intel.com) ([10.238.154.73])
-  by orsmga008.jf.intel.com with ESMTP; 06 Oct 2021 05:37:39 -0700
-From:   yanjun.zhu@linux.dev
-To:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
-        dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        yanjun.zhu@linux.dev
-Subject: [PATCH 1/1] RDMA/irdma: compact the header file
-Date:   Wed,  6 Oct 2021 16:15:31 -0400
-Message-Id: <20211006201531.469650-1-yanjun.zhu@linux.dev>
-X-Mailer: git-send-email 2.27.0
+        id S230023AbhJFNhw (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 Oct 2021 09:37:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1BDB61076;
+        Wed,  6 Oct 2021 13:35:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1633527360;
+        bh=a0QQ3BdKFzREAG4YgeXQxom6x0nBUGn5ofM28WH6ccg=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Wjx6J/vP4Otob/UYgwjFKW/sJsmRTZftLGR07UXTSyuNmnCdrce8IcccWTBb28Mta
+         Q+z5I7t1xm8Jnerq3+kVI7i4H/82JHrGTbJUmsy3JMLnycYPnFlC5YLXn2GEiWCJHc
+         oQZKB+yFKkeve4aidu0yMTtX1B7usMQ2X2ivmik4VtEZ5dEQoFp9Rr8BGxP4BMzrQF
+         4l4o8GjHZjAzC8vFKRuIhlX8UW0BGoOvMxD4dnz+/TqFi14tLYzqrJuJffljPPc/T+
+         wp7esuL1Ftnb5HLwW5bsLjqhhdzD6QSRWFWS9ZN5ZZ9a/X74jc9cdQvbi3zkSLcTi4
+         FSyMuHAfryZQQ==
+Date:   Wed, 6 Oct 2021 06:35:58 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     "David S . Miller" <davem@davemloft.net>,
+        Ido Schimmel <idosch@nvidia.com>,
+        Ingo Molnar <mingo@redhat.com>, Jiri Pirko <jiri@nvidia.com>,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        mlxsw@nvidia.com, Moshe Shemesh <moshe@nvidia.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Shay Drory <shayd@nvidia.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>
+Subject: Re: [PATCH net-next v2 3/5] devlink: Allow set specific ops
+ callbacks dynamically
+Message-ID: <20211006063558.6f4ee82d@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+In-Reply-To: <YV0aCADY4WkLySv4@unreal>
+References: <cover.1633284302.git.leonro@nvidia.com>
+        <92971648bcad41d095d12f5296246fc44ab8f5c7.1633284302.git.leonro@nvidia.com>
+        <20211004164413.60e9ce80@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <YVv/nUe63nO8o8wz@unreal>
+        <20211005113213.0ee61358@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <YVykXLY7mX4K1ScW@unreal>
+        <20211005173940.35bc7bfa@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+        <YV0aCADY4WkLySv4@unreal>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+On Wed, 6 Oct 2021 06:37:44 +0300 Leon Romanovsky wrote:
+> Let's chose random kernel version (v5.11)
+> https://elixir.bootlin.com/linux/v5.11/source/net/core/devlink.c#L10245
+> as you can see, it doesn't hold ANY driver core locks,
 
-The struct irdma_bth is not used, so remove it.
+Nope, that is not what I see.
 
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
- drivers/infiniband/hw/irdma/cm.h | 8 --------
- 1 file changed, 8 deletions(-)
+> so it can be called in any time during driver .probe() or .remove(). 
 
-diff --git a/drivers/infiniband/hw/irdma/cm.h b/drivers/infiniband/hw/irdma/cm.h
-index d03cd29333ea..1fbe72e18625 100644
---- a/drivers/infiniband/hw/irdma/cm.h
-+++ b/drivers/infiniband/hw/irdma/cm.h
-@@ -159,14 +159,6 @@ enum irdma_cm_event_type {
- 	IRDMA_CM_EVENT_ABORTED,
- };
- 
--struct irdma_bth { /* Base Trasnport Header */
--	u8 opcode;
--	u8 flags;
--	__be16 pkey;
--	__be32 qpn;
--	__be32 apsn;
--};
--
- struct ietf_mpa_v1 {
- 	u8 key[IETF_MPA_KEY_SIZE];
- 	u8 flags;
--- 
-2.27.0
+Having a callback invoked after registering to a subsystem (which used
+to be the case for devlink before the changes) is _normal_.
 
+You keep talking about .probe() like it's some magic period of complete
+quiescence.
+
+> Drivers that have implemented ops.flash_update() have no idea about that.
+
+I bet.
+
+I don't think this discussion is going anywhere, count me out.
