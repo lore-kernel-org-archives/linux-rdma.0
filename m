@@ -2,51 +2,52 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A9FC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3C7CC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:53:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C33A61151
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E7E161151
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:53:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238190AbhJFJyn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Oct 2021 05:54:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50934 "EHLO mail.kernel.org"
+        id S238237AbhJFJyt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Oct 2021 05:54:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238045AbhJFJye (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 Oct 2021 05:54:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 032B461139;
-        Wed,  6 Oct 2021 09:52:41 +0000 (UTC)
+        id S238165AbhJFJyi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 Oct 2021 05:54:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3938461058;
+        Wed,  6 Oct 2021 09:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633513962;
-        bh=xzttZi/5poOy9K5iTOgUl8xLkGgYhWnKTEjW93RLZt8=;
+        s=k20201202; t=1633513966;
+        bh=c/Hp1N0fXhCQLZcsxZq3xVU0V8NBCDaxYzuDs/sA90w=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=jVtP1Zr0coed+XFwGz6Bln/zdS46ifZ3ImNoqmtlYREKWBnmViQhoC/Ikpuqmx06r
-         mIrbBH4ejJlkk5doboD66msYYp7AGvunA/gVBcTXaEoPHHi67rO6BRMeE7FjPRIKT2
-         b085h7LT7nP2HtiMyCbwCKCG5B18HFkeO0/MxaQKlwRaDnbewQEbAPSAVOVPFSb8Lp
-         cSTs8tDi+xGzzzAQibCFQvYlQCdXkq61OsJRLfKsZyht3PcQWboVryIxMEX4wzJHmO
-         rniZ/W2X4sp3l1AJ2y6/LkAJatJ7vKfShR9MDhni2j4IPmiVd8WwUtbB93SFuzobVM
-         Lk+gVL9crglag==
+        b=j+K9PRGDpNMZVcj3TJl/zSc26hDLqLpGgoEjptLbqug6zlf8/17B7W9zXlq0swn/x
+         9eP1keUiP+8rn44D8G07OOrSUNC4kCRoVJuZ1g+GxtYXYqISO4hCeZxx6BpYn86IKx
+         vooKmLk7qKLiabDaO7nERjvkZz5LfQOcMFWZiGkAuDNoYmm+Yj4auMcRJc0cD5U8s/
+         TVDPtG26RdYWwXvMp8oXqDHkuFEQ7tMJs/rI8GN3DDHT7rkL1tBx7ZgbC8AkHrNIE2
+         fYbaWgBghqKCS0RZc8ZSHM3x/VOnj3UNhIsXDrxXtT1KG+2HhZUm+lplmjmkVHI248
+         1/Jd3aSASbFVQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Mark Zhang <markzhang@nvidia.com>,
-        Aharon Landau <aharonl@nvidia.com>,
+Cc:     Aharon Landau <aharonl@nvidia.com>,
         "David S. Miller" <davem@davemloft.net>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Gal Pressman <galpress@amazon.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
+        Mark Zhang <markzhang@nvidia.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         Mustafa Ismail <mustafa.ismail@intel.com>,
-        netdev@vger.kernel.org, Potnuri Bharat Teja <bharat@chelsio.com>,
+        Neta Ostrovsky <netao@nvidia.com>, netdev@vger.kernel.org,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next v3 04/13] RDMA/core: Add a helper API rdma_free_hw_stats_struct
-Date:   Wed,  6 Oct 2021 12:52:07 +0300
-Message-Id: <8402b0fc2e7502545463ac21fde61f097ee7091f.1633513239.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v3 08/13] RDMA/nldev: Split nldev_stat_set_mode_doit out of nldev_stat_set_doit
+Date:   Wed,  6 Oct 2021 12:52:11 +0300
+Message-Id: <626a54dc0d9a11ab0bdb59ea18c1e0ed9479d538.1633513239.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1633513239.git.leonro@nvidia.com>
 References: <cover.1633513239.git.leonro@nvidia.com>
@@ -56,185 +57,132 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markzhang@nvidia.com>
+From: Aharon Landau <aharonl@nvidia.com>
 
-Add a new API rdma_free_hw_stats_struct to pair with
-rdma_alloc_hw_stats_struct (which is also de-inlined).
+In order to allow expansion of the set command with more set options,
+take the set mode out of the main set function.
 
-This will be useful when there are more alloc/free works
-in following patches.
-
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Aharon Landau <aharonl@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/counters.c |  8 +++----
- drivers/infiniband/core/sysfs.c    |  8 +++----
- drivers/infiniband/core/verbs.c    | 35 ++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h            | 27 ++++-------------------
- 4 files changed, 47 insertions(+), 31 deletions(-)
+ drivers/infiniband/core/nldev.c | 74 ++++++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index df9e6c5e4ddf..331cd29f0d61 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -165,7 +165,7 @@ static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u32 port,
- 	return counter;
- 
- err_mode:
--	kfree(counter->stats);
-+	rdma_free_hw_stats_struct(counter->stats);
- err_stats:
- 	rdma_restrack_put(&counter->res);
- 	kfree(counter);
-@@ -186,7 +186,7 @@ static void rdma_counter_free(struct rdma_counter *counter)
- 	mutex_unlock(&port_counter->lock);
- 
- 	rdma_restrack_del(&counter->res);
--	kfree(counter->stats);
-+	rdma_free_hw_stats_struct(counter->stats);
- 	kfree(counter);
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 210057fef7bd..bbe3dfca3d98 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -1897,42 +1897,23 @@ static int nldev_set_sys_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return err;
  }
  
-@@ -618,7 +618,7 @@ void rdma_counter_init(struct ib_device *dev)
- fail:
- 	for (i = port; i >= rdma_start_port(dev); i--) {
- 		port_counter = &dev->port_data[port].port_counter;
--		kfree(port_counter->hstats);
-+		rdma_free_hw_stats_struct(port_counter->hstats);
- 		port_counter->hstats = NULL;
- 		mutex_destroy(&port_counter->lock);
- 	}
-@@ -631,7 +631,7 @@ void rdma_counter_release(struct ib_device *dev)
- 
- 	rdma_for_each_port(dev, port) {
- 		port_counter = &dev->port_data[port].port_counter;
--		kfree(port_counter->hstats);
-+		rdma_free_hw_stats_struct(port_counter->hstats);
- 		mutex_destroy(&port_counter->lock);
- 	}
- }
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index c3663cfdcd52..8d831d4fd2ad 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -755,7 +755,7 @@ static void ib_port_release(struct kobject *kobj)
- 	for (i = 0; i != ARRAY_SIZE(port->groups); i++)
- 		kfree(port->groups[i].attrs);
- 	if (port->hw_stats_data)
--		kfree(port->hw_stats_data->stats);
-+		rdma_free_hw_stats_struct(port->hw_stats_data->stats);
- 	kfree(port->hw_stats_data);
- 	kfree(port);
- }
-@@ -919,14 +919,14 @@ alloc_hw_stats_device(struct ib_device *ibdev)
- err_free_data:
- 	kfree(data);
- err_free_stats:
--	kfree(stats);
-+	rdma_free_hw_stats_struct(stats);
- 	return ERR_PTR(-ENOMEM);
- }
- 
- void ib_device_release_hw_stats(struct hw_stats_device_data *data)
+-static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+-			       struct netlink_ext_ack *extack)
++static int nldev_stat_set_mode_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++				    struct netlink_ext_ack *extack,
++				    struct nlattr *tb[],
++				    struct ib_device *device, u32 port)
  {
- 	kfree(data->group.attrs);
--	kfree(data->stats);
-+	rdma_free_hw_stats_struct(data->stats);
- 	kfree(data);
- }
+-	u32 index, port, mode, mask = 0, qpn, cntn = 0;
+-	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
+-	struct ib_device *device;
++	u32 mode, mask = 0, qpn, cntn = 0;
+ 	struct sk_buff *msg;
+ 	int ret;
  
-@@ -1018,7 +1018,7 @@ alloc_hw_stats_port(struct ib_port *port, struct attribute_group *group)
- err_free_data:
- 	kfree(data);
- err_free_stats:
--	kfree(stats);
-+	rdma_free_hw_stats_struct(stats);
- 	return ERR_PTR(-ENOMEM);
- }
- 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 89a2b21976d6..c3319a7584a2 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2976,3 +2976,38 @@ bool __rdma_block_iter_next(struct ib_block_iter *biter)
- 	return true;
- }
- EXPORT_SYMBOL(__rdma_block_iter_next);
-+
-+/**
-+ * rdma_alloc_hw_stats_struct - Helper function to allocate dynamic struct
-+ *   for the drivers.
-+ * @descs: array of static descriptors
-+ * @num_counters: number of elments in array
-+ * @lifespan: milliseconds between updates
-+ */
-+struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
-+	const struct rdma_stat_desc *descs, int num_counters,
-+	unsigned long lifespan)
-+{
-+	struct rdma_hw_stats *stats;
-+
-+	stats = kzalloc(struct_size(stats, value, num_counters), GFP_KERNEL);
-+	if (!stats)
-+		return NULL;
-+
-+	stats->descs = descs;
-+	stats->num_counters = num_counters;
-+	stats->lifespan = msecs_to_jiffies(lifespan);
-+
-+	return stats;
-+}
-+EXPORT_SYMBOL(rdma_alloc_hw_stats_struct);
-+
-+/**
-+ * rdma_free_hw_stats_struct - Helper function to release rdma_hw_stats
-+ * @stats: statistics to release
-+ */
-+void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats)
-+{
-+	kfree(stats);
-+}
-+EXPORT_SYMBOL(rdma_free_hw_stats_struct);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index aa1e1029b736..938c0c0a1c19 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -582,31 +582,12 @@ struct rdma_hw_stats {
- };
- 
- #define RDMA_HW_STATS_DEFAULT_LIFESPAN 10
--/**
-- * rdma_alloc_hw_stats_struct - Helper function to allocate dynamic struct
-- *   for drivers.
-- * @descs - Array of static descriptors
-- * @num_counters - How many elements in array
-- * @lifespan - How many milliseconds between updates
-- */
--static inline struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
--		const struct rdma_stat_desc *descs, int num_counters,
--		unsigned long lifespan)
--{
--	struct rdma_hw_stats *stats;
- 
--	stats = kzalloc(sizeof(*stats) + num_counters * sizeof(u64),
--			GFP_KERNEL);
--	if (!stats)
--		return NULL;
+-	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
+-			  nldev_policy, extack);
+ 	/* Currently only counter for QP is supported */
+-	if (ret || !tb[RDMA_NLDEV_ATTR_STAT_RES] ||
+-	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
+-	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX] || !tb[RDMA_NLDEV_ATTR_STAT_MODE])
+-		return -EINVAL;
 -
--	stats->descs = descs;
--	stats->num_counters = num_counters;
--	stats->lifespan = msecs_to_jiffies(lifespan);
+ 	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
+ 		return -EINVAL;
+ 
+-	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
+-	device = ib_device_get_by_index(sock_net(skb->sk), index);
+-	if (!device)
+-		return -EINVAL;
 -
--	return stats;
--}
-+struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
-+	const struct rdma_stat_desc *descs, int num_counters,
-+	unsigned long lifespan);
+-	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
+-	if (!rdma_is_port_valid(device, port)) {
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+ 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (!msg) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
++	if (!msg)
++		return -ENOMEM;
++
+ 	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
+ 			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
+ 					 RDMA_NLDEV_CMD_STAT_SET),
+@@ -1947,8 +1928,10 @@ static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		if (ret)
+ 			goto err_msg;
+ 	} else {
+-		if (!tb[RDMA_NLDEV_ATTR_RES_LQPN])
++		if (!tb[RDMA_NLDEV_ATTR_RES_LQPN]) {
++			ret = -EINVAL;
+ 			goto err_msg;
++		}
+ 		qpn = nla_get_u32(tb[RDMA_NLDEV_ATTR_RES_LQPN]);
+ 		if (tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]) {
+ 			cntn = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID]);
+@@ -1970,14 +1953,45 @@ static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	}
  
-+void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats);
+ 	nlmsg_end(msg, nlh);
+-	ib_device_put(device);
+ 	return rdma_nl_unicast(sock_net(skb->sk), msg, NETLINK_CB(skb).portid);
  
- /* Define bits for the various functionality this port needs to be supported by
-  * the core.
+ err_fill:
+ 	rdma_counter_unbind_qpn(device, port, qpn, cntn);
+ err_msg:
+ 	nlmsg_free(msg);
+-err:
++	return ret;
++}
++
++static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			       struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	u32 index, port;
++	int ret;
++
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1, nldev_policy,
++			  extack);
++	if (ret)
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(sock_net(skb->sk), index);
++	if (!device)
++		return -EINVAL;
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port)) {
++		ret = -EINVAL;
++		goto end;
++	}
++
++	if (!tb[RDMA_NLDEV_ATTR_STAT_MODE]) {
++		ret = -EINVAL;
++		goto end;
++	}
++	ret = nldev_stat_set_mode_doit(skb, nlh, extack, tb, device, port);
++end:
+ 	ib_device_put(device);
+ 	return ret;
+ }
 -- 
 2.31.1
 
