@@ -2,34 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A87A2C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B4AC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 920D66109F
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1269561139
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 09:52:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238044AbhJFJy1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Oct 2021 05:54:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50528 "EHLO mail.kernel.org"
+        id S238079AbhJFJya (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Oct 2021 05:54:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238080AbhJFJyY (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 6 Oct 2021 05:54:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A5D6B61058;
-        Wed,  6 Oct 2021 09:52:31 +0000 (UTC)
+        id S238071AbhJFJy1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 Oct 2021 05:54:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2342661058;
+        Wed,  6 Oct 2021 09:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633513952;
-        bh=B5x/YfaxZWZGgYG2OovoXwMqdWqPRWYihCWBUob24u4=;
+        s=k20201202; t=1633513955;
+        bh=J47N86jVt3tE9x9assHV+NMaSGBUIvne0hDA/ezoEWk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Rx7IF2CTyk+0cIJEUDqNcTOg6TcevhXQUMls0FlibD5gROqMhoUvikiw+Q68sxXA/
-         Ek7Fv5yVNPODEGuU3okMDEGSHftJXDzb0QwVQeLqXTgDUFHwrTZ1bEEQplHVa6Emm1
-         t9rGLEhJsGEa7Lb2O2xSjofovp7uqunFhDRV9/rADQcfGRF9T02NZW2JSAAmqD5wQj
-         YWgouWYK20y29DCPD7f0BJW9EuCmDkgxkVkSiI32spkP5E0/TuTJ5n0aEm3NBiCn5p
-         UU0rC1aoHqMjbNKlaYPIMSnC40JJLjCc3In6TMIctBX1SCm6F5iAy01Cg1e8nXoMfB
-         jicdfCTf0UWQA==
+        b=tjBY8UuQblo+NNGu8fgzSKTau+A1VTv9+88JzLXm97EzbPSKRvf0YZbYBxa1kO6/e
+         m8+iUmxU9LOxbVvmtDoQwRtrcHMJEVtFmiW8D8ArdBGKocAB++9TO9QbSPWXX2VS1W
+         sO1RrGJtIQ68wq2eNRX1YwcLRhkJNi85rim7bMoWjqdhyCnmhLtXv0sPIPLHP+DXz6
+         0bVDwJSGcsI9TAmVbmI1nnBl7kfVtCj2J9kn0G9ItAW3QWwbhQ4eTlD61lzeLzYXXq
+         4slU9BUYAdZQRB8vGjK6DpC5YSjzDGj8uAkD+CkMHGCdcAlz57zquBsIFWIlH1JIFA
+         5UBqeMhVwDuSg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Aharon Landau <aharonl@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Gal Pressman <galpress@amazon.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
@@ -43,9 +44,9 @@ Cc:     Aharon Landau <aharonl@nvidia.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH mlx5-next v3 01/13] net/mlx5: Add ifc bits to support optional counters
-Date:   Wed,  6 Oct 2021 12:52:04 +0300
-Message-Id: <7afaf0a646c014ad1ba777377dd5d44f7d3ce337.1633513239.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next v3 05/13] RDMA/counter: Add an is_disabled field in struct rdma_hw_stats
+Date:   Wed,  6 Oct 2021 12:52:08 +0300
+Message-Id: <09596ef74f4c213cb236e057e20e98264b67f16e.1633513239.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1633513239.git.leonro@nvidia.com>
 References: <cover.1633513239.git.leonro@nvidia.com>
@@ -57,75 +58,110 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-Adding bth_opcode field and the relevant bits. This field will be used
-to capture and count congestion notification packets (CNP).
-
-Adding source_vhca_port support bit.
-This field will be used to check the capability to use the
-source_vhca_port as a match criteria in cases of dual port.
+Add a bitmap in rdma_hw_stat structure, with each bit indicates whether
+the corresponding counter is currently disabled or not. By default
+hwcounters are enabled.
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Reviewed-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/nldev.c | 11 ++++++++++-
+ drivers/infiniband/core/verbs.c | 10 ++++++++++
+ include/rdma/ib_verbs.h         |  3 +++
+ 3 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index c1cef8f35e00..399ea52171fe 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -342,7 +342,7 @@ struct mlx5_ifc_flow_table_fields_supported_bits {
- 	u8         outer_geneve_oam[0x1];
- 	u8         outer_geneve_protocol_type[0x1];
- 	u8         outer_geneve_opt_len[0x1];
--	u8         reserved_at_1e[0x1];
-+	u8         source_vhca_port[0x1];
- 	u8         source_eswitch_port[0x1];
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 3f6b98a87566..67519730b1ac 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -968,15 +968,21 @@ static int fill_stat_counter_hwcounters(struct sk_buff *msg,
+ 	if (!table_attr)
+ 		return -EMSGSIZE;
  
- 	u8         inner_dmac[0x1];
-@@ -393,6 +393,14 @@ struct mlx5_ifc_flow_table_fields_supported_bits {
- 	u8         metadata_reg_c_0[0x1];
+-	for (i = 0; i < st->num_counters; i++)
++	mutex_lock(&st->lock);
++	for (i = 0; i < st->num_counters; i++) {
++		if (test_bit(i, st->is_disabled))
++			continue;
+ 		if (rdma_nl_stat_hwcounter_entry(msg, st->descs[i].name,
+ 						 st->value[i]))
+ 			goto err;
++	}
++	mutex_unlock(&st->lock);
+ 
+ 	nla_nest_end(msg, table_attr);
+ 	return 0;
+ 
+ err:
++	mutex_unlock(&st->lock);
+ 	nla_nest_cancel(msg, table_attr);
+ 	return -EMSGSIZE;
+ }
+@@ -2104,6 +2110,9 @@ static int stat_get_doit_default_counter(struct sk_buff *skb,
+ 		goto err_stats;
+ 	}
+ 	for (i = 0; i < num_cnts; i++) {
++		if (test_bit(i, stats->is_disabled))
++			continue;
++
+ 		v = stats->value[i] +
+ 			rdma_counter_get_hwstat_value(device, port, i);
+ 		if (rdma_nl_stat_hwcounter_entry(msg,
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index c3319a7584a2..d957b23a0e23 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2994,11 +2994,20 @@ struct rdma_hw_stats *rdma_alloc_hw_stats_struct(
+ 	if (!stats)
+ 		return NULL;
+ 
++	stats->is_disabled = kcalloc(BITS_TO_LONGS(num_counters),
++				     sizeof(*stats->is_disabled), GFP_KERNEL);
++	if (!stats->is_disabled)
++		goto err;
++
+ 	stats->descs = descs;
+ 	stats->num_counters = num_counters;
+ 	stats->lifespan = msecs_to_jiffies(lifespan);
+ 
+ 	return stats;
++
++err:
++	kfree(stats);
++	return NULL;
+ }
+ EXPORT_SYMBOL(rdma_alloc_hw_stats_struct);
+ 
+@@ -3008,6 +3017,7 @@ EXPORT_SYMBOL(rdma_alloc_hw_stats_struct);
+  */
+ void rdma_free_hw_stats_struct(struct rdma_hw_stats *stats)
+ {
++	kfree(stats->is_disabled);
+ 	kfree(stats);
+ }
+ EXPORT_SYMBOL(rdma_free_hw_stats_struct);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 938c0c0a1c19..ae467365706b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -565,6 +565,8 @@ struct rdma_stat_desc {
+  *   their own value during their allocation routine.
+  * @descs - Array of pointers to static descriptors used for the counters
+  *   in directory.
++ * @is_disabled - A bitmap to indicate each counter is currently disabled
++ *   or not.
+  * @num_counters - How many hardware counters there are.  If name is
+  *   shorter than this number, a kernel oops will result.  Driver authors
+  *   are encouraged to leave BUILD_BUG_ON(ARRAY_SIZE(@name) < num_counters)
+@@ -577,6 +579,7 @@ struct rdma_hw_stats {
+ 	unsigned long	timestamp;
+ 	unsigned long	lifespan;
+ 	const struct rdma_stat_desc *descs;
++	unsigned long	*is_disabled;
+ 	int		num_counters;
+ 	u64		value[];
  };
- 
-+struct mlx5_ifc_flow_table_fields_supported_2_bits {
-+	u8         reserved_at_0[0xe];
-+	u8         bth_opcode[0x1];
-+	u8         reserved_at_f[0x11];
-+
-+	u8         reserved_at_20[0x60];
-+};
-+
- struct mlx5_ifc_flow_table_prop_layout_bits {
- 	u8         ft_support[0x1];
- 	u8         reserved_at_1[0x1];
-@@ -539,7 +547,7 @@ struct mlx5_ifc_fte_match_set_misc_bits {
- 	union mlx5_ifc_gre_key_bits gre_key;
- 
- 	u8         vxlan_vni[0x18];
--	u8         reserved_at_b8[0x8];
-+	u8         bth_opcode[0x8];
- 
- 	u8         geneve_vni[0x18];
- 	u8         reserved_at_d8[0x7];
-@@ -756,7 +764,15 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
- 
- 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_transmit_sniffer;
- 
--	u8         reserved_at_e00[0x1200];
-+	u8         reserved_at_e00[0x700];
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits ft_field_support_2_nic_receive_rdma;
-+
-+	u8         reserved_at_1580[0x280];
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits ft_field_support_2_nic_transmit_rdma;
-+
-+	u8         reserved_at_1880[0x780];
- 
- 	u8         sw_steering_nic_rx_action_drop_icm_address[0x40];
- 
 -- 
 2.31.1
 
