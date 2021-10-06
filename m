@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C67C4332F
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 01:58:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5ACDC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 01:58:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2345D6113A
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 01:58:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB4886113A
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 01:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbhJFCAQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Oct 2021 22:00:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35614 "EHLO
+        id S237102AbhJFCAR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Oct 2021 22:00:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233994AbhJFCAP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Oct 2021 22:00:15 -0400
-Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 696C9C061749
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Oct 2021 18:58:24 -0700 (PDT)
-Received: by mail-ot1-x332.google.com with SMTP id c6-20020a9d2786000000b005471981d559so1236950otb.5
-        for <linux-rdma@vger.kernel.org>; Tue, 05 Oct 2021 18:58:24 -0700 (PDT)
+        with ESMTP id S237148AbhJFCAR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Oct 2021 22:00:17 -0400
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49B26C061753
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Oct 2021 18:58:26 -0700 (PDT)
+Received: by mail-oi1-x232.google.com with SMTP id a3so1880227oid.6
+        for <linux-rdma@vger.kernel.org>; Tue, 05 Oct 2021 18:58:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Ln2CICo8MaUfdlYX/StcL4ROVFBeevggZ31VqY1hkwM=;
-        b=XGW/8Xkv/uddut++lyRdHr+L2fNwkYIUZQJDvMpBEi81Mp+cD2dum10LEZpadqlB4S
-         0Kj5odIuN6Iii6Z3LFO9CiY7AK81QLLWLW228ZEGU25VInIZ7M4Sm8YwdbFlC8kHuVIe
-         6nm1l31XA8slAVK47PRrwGI4XBLrWIVmIjFrSghI0iodgGFGjh0bdOmLy1mbmbLAJEki
-         kNaZezUkmfYtvVZz1RXA9XY2UlG6tj6atpHqA1cA5QyP6mogGT/KdDCu0k8PPMqveCem
-         JpOVShVvCtFD55GPXcSqKdcaMm6QqbP8IUtVnkTn48LOWoWPxyJQvtD9ck1ltBdmFYpR
-         7GTQ==
+        bh=R28ci1vfu6y2BAkpjnPtPdKQKjUHlIJGx5SO1oi5Sfc=;
+        b=jqHCOHuYALL+hOLkAqQKzqjyD+iQDZrgpiaXPnhVntAT7zx+tfySr+5PVn5G2o/iX+
+         ktiarojogUFg37hcyAeN/zLEy0XFMpPyAepMCT3R2j5yLdj9VJZFf59xTX1oanPV/1gd
+         rgK/jAevT7/NSdLO7tAof7fVn8S1dpD8rkvJ3jOnsLW9pD2N71lSSlIurmHgTQanHAj1
+         lRmBqkPEzo2C/Vt3y1dExb2oQ10Y+o/KAE6jYlGmZKhCnNi2UFqVsoEWA+sVC7nqcNnM
+         +wfB/9jR733yi1DEyDWcsKEYTB491xgg9OXtB04AbIs+yFldOLhAQgCFTghBVJ+WtskK
+         aLyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Ln2CICo8MaUfdlYX/StcL4ROVFBeevggZ31VqY1hkwM=;
-        b=L6ZdXbJuUuHXEjHe+PqlgQf7K9TYWe7t7IGsiXp/BeseaqRCh7ibRIHhgmd/6ibUDy
-         FCKq6h9qasddAC7v02qiDc01jEnjNPzbK6UXJBAzYu8Ys8GDGoBBCrLGHGngToMNTLBv
-         V1lGz7caMpu5HwTDjd+xZbPpLrzRbnykkb9Wsu8lFR982vkCJ93nCAaG9ToSBTE5e98L
-         b2E/dQmO5HosDH4dnoF/SOAGaUlRbDyiyyv9pF3gRLfWYG9nxyrdR4YoCJ69Unykyd9v
-         8KORK3aBlUoAQUrsZ5sdDSL00mYMZK+8uhQ12Vbxxx1DOn+uGG534nAJSZUp+HHaH90P
-         g8og==
-X-Gm-Message-State: AOAM531g/7B6KPEbQFQ79KIODrjAH+iM7dF78jtnKSHlWlZR7xh94lgR
-        i+qkzksRIK6yMfJBO5Hzq/U=
-X-Google-Smtp-Source: ABdhPJyTinWVupIbu+RpFPOc8bvKbhzxSeHCw/+1zQ5Fm5OtjPeOTSv+ctOdUET+1Ef+0XYg7vrHzg==
-X-Received: by 2002:a9d:bb1:: with SMTP id 46mr17261979oth.243.1633485503842;
-        Tue, 05 Oct 2021 18:58:23 -0700 (PDT)
+        bh=R28ci1vfu6y2BAkpjnPtPdKQKjUHlIJGx5SO1oi5Sfc=;
+        b=ocfjuM+wrB4wDLiL/H/KRhGWhP55YwbCunmNkMp3K1xjBdHXdw9eumuRCsMQmZfXw+
+         yt4Z8XpQsJHJVWylajEpd2RgBdfRIU8yiBthv35OxWjlLLLI6ubKkd69RLvuJpsvP9pK
+         1sGI9gCj1vl194WlGCrcEbbfadroWKt4N2LjQBQZyZ1TAO6IDHEGsp5n+iAKb9UYZhB4
+         8AdMoOGQEsJory6BZ4ONJ7cO21sQdqoUI9EqtuZ2DJQwlWepTt9VcTT00dHpdm0xq2cz
+         c7+Iktf2KKMheyzVpFlpolIKaGYJbW102uTxSIJvmIgnuGV9enyMNx8RmsSLL7pLTz+d
+         1sFQ==
+X-Gm-Message-State: AOAM533gYIHn3tlduyzBJAgq4oISzFnXWE0S9bnMbQpUK2eRZJ0MsuF9
+        FAy2OlQAn2RdLWutYi8GpSI=
+X-Google-Smtp-Source: ABdhPJxtROrsVM5K41FDCcPC6KxZsRWRT4lAN0YnWV2geK820cPJvgaZlvnF+uYifB3CpJuaXB70bA==
+X-Received: by 2002:a05:6808:1441:: with SMTP id x1mr5135455oiv.77.1633485505727;
+        Tue, 05 Oct 2021 18:58:25 -0700 (PDT)
 Received: from ubunto-21.tx.rr.com (2603-8081-140c-1a00-2b16-c5f3-6fcc-9065.res6.spectrum.com. [2603:8081:140c:1a00:2b16:c5f3:6fcc:9065])
-        by smtp.gmail.com with ESMTPSA id e2sm4016057otk.46.2021.10.05.18.58.23
+        by smtp.gmail.com with ESMTPSA id e2sm4016057otk.46.2021.10.05.18.58.25
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Oct 2021 18:58:23 -0700 (PDT)
+        Tue, 05 Oct 2021 18:58:25 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v5 2/6] RDMA/rxe: Change AH objects to indexed
-Date:   Tue,  5 Oct 2021 20:58:11 -0500
-Message-Id: <20211006015815.28350-3-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v5 5/6] RDMA/rxe: Lookup kernel AH from ah index in UD WQEs
+Date:   Tue,  5 Oct 2021 20:58:14 -0500
+Message-Id: <20211006015815.28350-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211006015815.28350-1-rpearsonhpe@gmail.com>
 References: <20211006015815.28350-1-rpearsonhpe@gmail.com>
@@ -65,45 +65,78 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Make changes to rxe_param.h and rxe_pool.c to allow indexing of AH
-objects. Valid indices are non-zero so older providers can be detected.
+Add code to rxe_get_av in rxe_av.c to use the AH index in UD send WQEs
+to lookup the kernel AH. For old user providers continue to use the AV
+passed in WQEs. Move setting pkt->rxe to before the call to rxe_get_av()
+to get access to the AH pool.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_param.h | 4 +++-
- drivers/infiniband/sw/rxe/rxe_pool.c  | 4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_av.c  | 20 +++++++++++++++++++-
+ drivers/infiniband/sw/rxe/rxe_req.c |  8 +++++---
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-index b5a70cbe94aa..d92d7edd712b 100644
---- a/drivers/infiniband/sw/rxe/rxe_param.h
-+++ b/drivers/infiniband/sw/rxe/rxe_param.h
-@@ -67,7 +67,9 @@ enum rxe_device_param {
- 	RXE_MAX_MCAST_GRP		= 8192,
- 	RXE_MAX_MCAST_QP_ATTACH		= 56,
- 	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
--	RXE_MAX_AH			= 100,
-+	RXE_MAX_AH			= 16383,
-+	RXE_MIN_AH_INDEX		= 1,
-+	RXE_MAX_AH_INDEX		= 16383,
- 	RXE_MAX_SRQ_WR			= 0x4000,
- 	RXE_MIN_SRQ_WR			= 1,
- 	RXE_MAX_SRQ_SGE			= 27,
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index ffa8420b4765..7b4cb46edfd9 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -26,7 +26,9 @@ struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
- 		.name		= "rxe-ah",
- 		.size		= sizeof(struct rxe_ah),
- 		.elem_offset	= offsetof(struct rxe_ah, pelem),
--		.flags		= RXE_POOL_NO_ALLOC,
-+		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
-+		.min_index	= RXE_MIN_AH_INDEX,
-+		.max_index	= RXE_MAX_AH_INDEX,
- 	},
- 	[RXE_TYPE_SRQ] = {
- 		.name		= "rxe-srq",
+diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+index 85580ea5eed0..38c7b6fb39d7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_av.c
++++ b/drivers/infiniband/sw/rxe/rxe_av.c
+@@ -101,11 +101,29 @@ void rxe_av_fill_ip_info(struct rxe_av *av, struct rdma_ah_attr *attr)
+ 
+ struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt)
+ {
++	struct rxe_ah *ah;
++	u32 ah_num;
++
+ 	if (!pkt || !pkt->qp)
+ 		return NULL;
+ 
+ 	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
+ 		return &pkt->qp->pri_av;
+ 
+-	return (pkt->wqe) ? &pkt->wqe->wr.wr.ud.av : NULL;
++	if (!pkt->wqe)
++		return NULL;
++
++	ah_num = pkt->wqe->wr.wr.ud.ah_num;
++	if (ah_num) {
++		/* only new user provider or kernel client */
++		ah = rxe_pool_get_index(&pkt->rxe->ah_pool, ah_num);
++		if (!ah || ah->ah_num != ah_num || rxe_ah_pd(ah) != pkt->qp->pd) {
++			pr_warn("Unable to find AH matching ah_num\n");
++			return NULL;
++		}
++		return &ah->av;
++	}
++
++	/* only old user provider for UD sends*/
++	return &pkt->wqe->wr.wr.ud.av;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index fe275fcaffbd..0c9d2af15f3d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -379,9 +379,8 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 	/* length from start of bth to end of icrc */
+ 	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
+ 
+-	/* pkt->hdr, rxe, port_num and mask are initialized in ifc
+-	 * layer
+-	 */
++	/* pkt->hdr, port_num and mask are initialized in ifc layer */
++	pkt->rxe	= rxe;
+ 	pkt->opcode	= opcode;
+ 	pkt->qp		= qp;
+ 	pkt->psn	= qp->req.psn;
+@@ -391,6 +390,9 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 
+ 	/* init skb */
+ 	av = rxe_get_av(pkt);
++	if (!av)
++		return NULL;
++
+ 	skb = rxe_init_packet(rxe, av, paylen, pkt);
+ 	if (unlikely(!skb))
+ 		return NULL;
 -- 
 2.30.2
 
