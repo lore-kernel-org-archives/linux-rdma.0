@@ -2,146 +2,70 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9A86C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 11:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 648CEC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 12:37:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5CB361077
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 11:56:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43EC060F9C
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Oct 2021 12:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238124AbhJFL6B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Oct 2021 07:58:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238117AbhJFL6B (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Oct 2021 07:58:01 -0400
-Received: from mail-lf1-x12e.google.com (mail-lf1-x12e.google.com [IPv6:2a00:1450:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25060C061749
-        for <linux-rdma@vger.kernel.org>; Wed,  6 Oct 2021 04:56:09 -0700 (PDT)
-Received: by mail-lf1-x12e.google.com with SMTP id t9so9384495lfd.1
-        for <linux-rdma@vger.kernel.org>; Wed, 06 Oct 2021 04:56:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=VN65crui0c/YziNjx9Uxptfdba9yCoXnD/cwOyJ+8UM=;
-        b=eF3+P+T1PDIhaV918isPZW4EZRYciwGHyWr1l/mZrb9h+S+zc+m64C3vCkO/uCh/0c
-         OjVVmIhlkB9+4qsTIzInzG2VbygcpZ+ncNIbt3hmAkA3sqnIhQp2ro+JZKfXDwW/nSxJ
-         MFn4LMSocrOnCGV8GVE4YhVARO/xikVkM9MwflJuPcDFxygQ6IxaTHR3Gi5cuaHg3aJZ
-         vaWx3ykPhH5V6o06l5ize2ZGZxh0M6A6RfuADT/sWJ7Qyg+Dg9n42OQQoRheECC9+/qy
-         pIn8FhFPMxbLnlxciilX6HZ+oMTvutnkct3DtudYFGx4uba6bmk0m0dNXOyxhK+eiB1a
-         e1vg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=VN65crui0c/YziNjx9Uxptfdba9yCoXnD/cwOyJ+8UM=;
-        b=MT+x+gklc8BsrIi45tiLczjApLRp1jRLuPaWPfUm4T1syCj61pJNkivWofbAfDYKkQ
-         +yysHsuVGasT1dzY7wg/1yfjhtdsKqlNXJN91J7ph8jz97LCzotxTNll0JnY215DB2+4
-         5gzfGSmyCif5KilRA5/rka1MpvYP1WID20l+l0jctX0qprXiDgTwMztNMGJCUK2u2gpu
-         D41Kvuxd2dRP1c7koiAczUUVja+IINE5WaaP/Lw12tlq5P6uuIULbEdUMwgGK+yr4Izm
-         Gaeu76dpxrA3RnspT9EYTLWRpru0c7K+GvzfeH9p3MVxlc31gE31qFzqUx47hmqmZUs+
-         sKEA==
-X-Gm-Message-State: AOAM533Pb6wSdLb7RAbUukg5bs48moW2bArJYb0meS/5xz5CBNq/joQ5
-        0sn1BtNLCcxXSrvbxyJNRaumBE4BnQzFg1/ELRLnt71rtcg=
-X-Google-Smtp-Source: ABdhPJzHtGU/+/qObybpRVIkKBjWGHh588Lt901M9WqUkCPpGHRrPGOxOn/RArfJrq214UbJamlyjF/vmER9I9VlEoI=
-X-Received: by 2002:a2e:1645:: with SMTP id 5mr26905620ljw.123.1633521366524;
- Wed, 06 Oct 2021 04:56:06 -0700 (PDT)
+        id S230061AbhJFMjd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Oct 2021 08:39:33 -0400
+Received: from mga09.intel.com ([134.134.136.24]:30430 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229894AbhJFMjd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 6 Oct 2021 08:39:33 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10128"; a="225873158"
+X-IronPort-AV: E=Sophos;i="5.85,350,1624345200"; 
+   d="scan'208";a="225873158"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Oct 2021 05:37:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,350,1624345200"; 
+   d="scan'208";a="488475364"
+Received: from unknown (HELO intel-73.bj.intel.com) ([10.238.154.73])
+  by orsmga008.jf.intel.com with ESMTP; 06 Oct 2021 05:37:39 -0700
+From:   yanjun.zhu@linux.dev
+To:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
+        dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        yanjun.zhu@linux.dev
+Subject: [PATCH 1/1] RDMA/irdma: compact the header file
+Date:   Wed,  6 Oct 2021 16:15:31 -0400
+Message-Id: <20211006201531.469650-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <20211006015815.28350-1-rpearsonhpe@gmail.com> <20211006015815.28350-6-rpearsonhpe@gmail.com>
-In-Reply-To: <20211006015815.28350-6-rpearsonhpe@gmail.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Wed, 6 Oct 2021 19:55:55 +0800
-Message-ID: <CAD=hENda99c3wDoub39EedNrU7cmeMORnW=q6K9EVdFXZaTUsg@mail.gmail.com>
-Subject: Re: [PATCH for-next v5 5/6] RDMA/rxe: Lookup kernel AH from ah index
- in UD WQEs
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Oct 6, 2021 at 9:58 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->
-> Add code to rxe_get_av in rxe_av.c to use the AH index in UD send WQEs
-> to lookup the kernel AH. For old user providers continue to use the AV
-> passed in WQEs. Move setting pkt->rxe to before the call to rxe_get_av()
-> to get access to the AH pool.
->
-> Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_av.c  | 20 +++++++++++++++++++-
->  drivers/infiniband/sw/rxe/rxe_req.c |  8 +++++---
->  2 files changed, 24 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-> index 85580ea5eed0..38c7b6fb39d7 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_av.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_av.c
-> @@ -101,11 +101,29 @@ void rxe_av_fill_ip_info(struct rxe_av *av, struct rdma_ah_attr *attr)
->
->  struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt)
->  {
-> +       struct rxe_ah *ah;
-> +       u32 ah_num;
-> +
->         if (!pkt || !pkt->qp)
->                 return NULL;
->
->         if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
->                 return &pkt->qp->pri_av;
->
-> -       return (pkt->wqe) ? &pkt->wqe->wr.wr.ud.av : NULL;
-> +       if (!pkt->wqe)
-> +               return NULL;
-> +
-> +       ah_num = pkt->wqe->wr.wr.ud.ah_num;
-> +       if (ah_num) {
-> +               /* only new user provider or kernel client */
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-struct rxe_ah *ah;
-ah is only used in this snippet. Is it better to move to here?
-It is only a trivial problem.
+The struct irdma_bth is not used, so remove it.
 
-Zhu Yanjun
-> +               ah = rxe_pool_get_index(&pkt->rxe->ah_pool, ah_num);
-> +               if (!ah || ah->ah_num != ah_num || rxe_ah_pd(ah) != pkt->qp->pd) {
-> +                       pr_warn("Unable to find AH matching ah_num\n");
-> +                       return NULL;
-> +               }
-> +               return &ah->av;
-> +       }
-> +
-> +       /* only old user provider for UD sends*/
-> +       return &pkt->wqe->wr.wr.ud.av;
->  }
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index fe275fcaffbd..0c9d2af15f3d 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -379,9 +379,8 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
->         /* length from start of bth to end of icrc */
->         paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
->
-> -       /* pkt->hdr, rxe, port_num and mask are initialized in ifc
-> -        * layer
-> -        */
-> +       /* pkt->hdr, port_num and mask are initialized in ifc layer */
-> +       pkt->rxe        = rxe;
->         pkt->opcode     = opcode;
->         pkt->qp         = qp;
->         pkt->psn        = qp->req.psn;
-> @@ -391,6 +390,9 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
->
->         /* init skb */
->         av = rxe_get_av(pkt);
-> +       if (!av)
-> +               return NULL;
-> +
->         skb = rxe_init_packet(rxe, av, paylen, pkt);
->         if (unlikely(!skb))
->                 return NULL;
-> --
-> 2.30.2
->
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+---
+ drivers/infiniband/hw/irdma/cm.h | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/infiniband/hw/irdma/cm.h b/drivers/infiniband/hw/irdma/cm.h
+index d03cd29333ea..1fbe72e18625 100644
+--- a/drivers/infiniband/hw/irdma/cm.h
++++ b/drivers/infiniband/hw/irdma/cm.h
+@@ -159,14 +159,6 @@ enum irdma_cm_event_type {
+ 	IRDMA_CM_EVENT_ABORTED,
+ };
+ 
+-struct irdma_bth { /* Base Trasnport Header */
+-	u8 opcode;
+-	u8 flags;
+-	__be16 pkey;
+-	__be32 qpn;
+-	__be32 apsn;
+-};
+-
+ struct ietf_mpa_v1 {
+ 	u8 key[IETF_MPA_KEY_SIZE];
+ 	u8 flags;
+-- 
+2.27.0
+
