@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BCCFC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 14:10:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADBBAC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 15:53:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF2C561090
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 14:10:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F2AC610E6
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 15:53:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241986AbhJGOM2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Oct 2021 10:12:28 -0400
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:57804 "EHLO
+        id S241991AbhJGPyz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Oct 2021 11:54:55 -0400
+Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:52192 "EHLO
         mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241812AbhJGOM2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Oct 2021 10:12:28 -0400
+        by vger.kernel.org with ESMTP id S241993AbhJGPyz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Oct 2021 11:54:55 -0400
 Received: from pps.filterd (m0045851.ppops.net [127.0.0.1])
-        by mx0b-0016f401.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 197E7MJC012419;
-        Thu, 7 Oct 2021 07:10:29 -0700
+        by mx0b-0016f401.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 197E1Vax012178;
+        Thu, 7 Oct 2021 08:52:56 -0700
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : mime-version : content-type :
  content-transfer-encoding; s=pfpt0220;
- bh=OxiBiwIOUqnU4gg64pI9Pm96DeK+92bZIXZXOoMjTy8=;
- b=QiCHUzp1FGFBiJaHs+RhMax7/YjrIh4JTpHwynTIp1nS/zM/fHVFCqVzFYnQhqS87fBy
- h0xrwZCCCovtDtY29xpK5Dibz6PvTDqBeIb9m1z6t4WWNqrGRdlhiUgR367TUuFjhzFR
- IqgqJkrlg0Jlq8gvzMYmwIrD9aOdqDmvJHJTp79tUZYtdszAgdHgllZ2mn6UvP3b++Fk
- lCoN+vENZADMkfcXc67BK35fdV5IPc51PxDPfUieLZ8pvQqz9SUqbOfKJ4t02lYUjTSD
- ynjFGSP8E4kbPgAyg3KIAzzne9JB7VOYLXapZWQJYzxj/wFC7Q5tkdMuTDTvMw1x0Wxp Jg== 
+ bh=6ioPN4uo+K4hsAg7R8Z942Zzjq+nqlKg+G+8OgsM8qc=;
+ b=kw6oHNf9FZNcDgcmRIcIW/+WVDtHpGFjP1Rl+YvyLUFWNpn0a5GUejpstblj2cpFXKVY
+ u6sUJh10TUpWbrl1QxSNdrbBenl1Ax8hVYiU2E36B2UkehQdW8oP4EXAXU6UUHAsbxkr
+ bzc9XRm7Aan/o9UTeM3tYIXWNowT1cCT86xcJK9SIzgO+9k4pDoqYm+RGvyZtAXFV6SQ
+ I0au/8U5je2H5253asB0ApoBpDfBUCF0FUsDZZVoX0paYFcr6dg4O+JrhKumQLd5vTaZ
+ IJOZaExj/OM6w/iR/bxk1e0QoRiOHiX2KbUjhXO0GBDO9ChS/JGTWpQGTgFZF8+Egas2 qw== 
 Received: from dc5-exch02.marvell.com ([199.233.59.182])
-        by mx0b-0016f401.pphosted.com with ESMTP id 3bhrg2ah94-1
+        by mx0b-0016f401.pphosted.com with ESMTP id 3bhrg2axrd-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Thu, 07 Oct 2021 07:09:03 -0700
+        Thu, 07 Oct 2021 08:52:56 -0700
 Received: from DC5-EXCH02.marvell.com (10.69.176.39) by DC5-EXCH02.marvell.com
  (10.69.176.39) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Thu, 7 Oct
- 2021 07:09:01 -0700
+ 2021 08:52:53 -0700
 Received: from lbtlvb-pcie154.il.qlogic.org (10.69.176.80) by
  DC5-EXCH02.marvell.com (10.69.176.39) with Microsoft SMTP Server id
- 15.0.1497.18 via Frontend Transport; Thu, 7 Oct 2021 07:08:57 -0700
+ 15.0.1497.18 via Frontend Transport; Thu, 7 Oct 2021 08:52:50 -0700
 From:   Prabhakar Kushwaha <pkushwaha@marvell.com>
 To:     <netdev@vger.kernel.org>, <davem@davemloft.net>, <kuba@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
         <martin.petersen@oracle.com>, <aelior@marvell.com>,
-        <smalin@marvell.com>, <pkushwaha@marvell.com>,
+        <smalin@marvell.com>, <jhasan@marvell.com>,
+        <mrangankar@marvell.com>, <pkushwaha@marvell.com>,
         <prabhakar.pkin@gmail.com>, <malin1024@gmail.com>,
-        <naresh.kamboju@linaro.org>, <jhasan@marvell.com>,
-        <mrangankar@marvell.com>, Omkar Kulkarni <okulkarni@marvell.com>
-Subject: [PATCH] qed: Fix compilation for CONFIG_QED_SRIOV undefined scenario
-Date:   Thu, 7 Oct 2021 17:08:39 +0300
-Message-ID: <20211007140839.21672-1-pkushwaha@marvell.com>
+        <naresh.kamboju@linaro.org>, Omkar Kulkarni <okulkarni@marvell.com>
+Subject: [PATCH][v2] qed: Fix compilation for CONFIG_QED_SRIOV undefined scenario
+Date:   Thu, 7 Oct 2021 18:52:38 +0300
+Message-ID: <20211007155238.4487-1-pkushwaha@marvell.com>
 X-Mailer: git-send-email 2.16.6
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: FEdk8M5le2vUBEDg2D7m3f23zv4u0IH3
-X-Proofpoint-ORIG-GUID: FEdk8M5le2vUBEDg2D7m3f23zv4u0IH3
+X-Proofpoint-GUID: rPUOTMY9-Gjcy6lJiXUb21cr9pxpkxvN
+X-Proofpoint-ORIG-GUID: rPUOTMY9-Gjcy6lJiXUb21cr9pxpkxvN
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.391,FMLib:17.0.607.475
- definitions=2021-10-07_01,2021-10-07_02,2020-04-07_01
+ definitions=2021-10-07_02,2021-10-07_02,2020-04-07_01
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -80,7 +80,6 @@ declaration of function ‘qed_sriov_eqe_event’; did you mean
           qed_common_eqe_event
 
 Fixes: fe40a830dcde ("qed: Update qed_hsi.h for fw 8.59.1.0")
-
 Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Ariel Elior <aelior@marvell.com>
@@ -90,6 +89,10 @@ Signed-off-by: Prabhakar Kushwaha <pkushwaha@marvell.com>
 ---
 This patch is targeted for the repo
 git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git
+
+Changes for v2:
+  - Fixed patchwork's netdev/verify_fixes "error".
+
 
  drivers/net/ethernet/qlogic/qed/qed_sriov.h | 12 ++++++++++++
  1 file changed, 12 insertions(+)
