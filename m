@@ -2,95 +2,102 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59FA1C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73755C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 10:43:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44AFA61245
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5876F60F6C
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 10:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240334AbhJGG5t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Oct 2021 02:57:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35828 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240319AbhJGG5f (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 Oct 2021 02:57:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 05F2A61245;
-        Thu,  7 Oct 2021 06:55:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633589741;
-        bh=a+rBVbxC2su0WUjhwNHbC68VaTfhjtVchRK6aUlv3+w=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TL7LR2CyRAtyAo6D9BbGnZ8umgCsy3HOpv5y9VUzs6dnt8NsC+E0vDqNNF/yrvOyA
-         IMG0TRbu2Kof/Fn65gA5XCpFhzkqaJ4A5LE2/qc3SpFIQGR4iG/mR8jPrGOMFmD3eW
-         6XyKhtMzBnfaApV6epMuwVPpL0v7LuAHccSzvLDT+XC/DfVSgTSCGMQbu/a1v6yX20
-         /+DITDlDVKtvqY1/1owg7Dvg+TPy4rg1iiTTQBZi4sIxFllDFOXJq5/7SKq8ygEpuU
-         t3OBbTnOea/ElHlGro6hxlW6lH+FYj/2unOW1v1rnzRswgRB5Guv1Qz4rW4zWK9pV8
-         Pm0yk4mg83o3Q==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Ido Schimmel <idosch@nvidia.com>,
-        Ingo Molnar <mingo@redhat.com>, Jiri Pirko <jiri@nvidia.com>,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        mlxsw@nvidia.com, Moshe Shemesh <moshe@nvidia.com>,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Shay Drory <shayd@nvidia.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next v3 4/5] net/mlx5: Separate reload devlink ops for multiport device
-Date:   Thu,  7 Oct 2021 09:55:18 +0300
-Message-Id: <7916d08b6cdcd946e7e2a243798faec99f90fb12.1633589385.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1633589385.git.leonro@nvidia.com>
-References: <cover.1633589385.git.leonro@nvidia.com>
+        id S240726AbhJGKp0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Oct 2021 06:45:26 -0400
+Received: from smtp-fw-9102.amazon.com ([207.171.184.29]:3078 "EHLO
+        smtp-fw-9102.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240800AbhJGKpZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Oct 2021 06:45:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1633603412; x=1665139412;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=NNoJ2JFFRziHZiTbB/PCsJ4bfqbQfqXZ170Oox+pA2I=;
+  b=RXVJj24tWBGv7yhk3UwT8fGRA4OoVyNKyDFe8XGiXapmsAN7zOer8jl5
+   6AtXxHOFD2Pe/GEHJUOWLLInQGP3fsHgJjDxkXRddnCjPHiyM882S+iSc
+   iEBRgWYh24Z24mdiz/J2116ovOP95E5Sbn5D81VWdJLVTjjzqW2wGHrou
+   g=;
+X-IronPort-AV: E=Sophos;i="5.85,354,1624320000"; 
+   d="scan'208";a="165371252"
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-iad-1a-4ba5c7da.us-east-1.amazon.com) ([10.25.36.214])
+  by smtp-border-fw-9102.sea19.amazon.com with ESMTP; 07 Oct 2021 10:43:22 +0000
+Received: from EX13D19EUB002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-iad-1a-4ba5c7da.us-east-1.amazon.com (Postfix) with ESMTPS id 73C5F8D8DB;
+        Thu,  7 Oct 2021 10:43:18 +0000 (UTC)
+Received: from EX13MTAUWC001.ant.amazon.com (10.43.162.135) by
+ EX13D19EUB002.ant.amazon.com (10.43.166.78) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.23; Thu, 7 Oct 2021 10:43:17 +0000
+Received: from 8c85908914bf.ant.amazon.com.com (10.1.213.27) by
+ mail-relay.amazon.com (10.43.162.232) with Microsoft SMTP Server id
+ 15.0.1497.23 via Frontend Transport; Thu, 7 Oct 2021 10:43:10 +0000
+From:   Gal Pressman <galpress@amazon.com>
+To:     Sumit Semwal <sumit.semwal@linaro.org>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+CC:     <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        Oded Gabbay <ogabbay@habana.ai>,
+        Tomer Tayar <ttayar@habana.ai>,
+        Yossi Leybovich <sleybo@amazon.com>,
+        Alexander Matushevsky <matua@amazon.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        Jianxin Xiong <jianxin.xiong@intel.com>,
+        Firas Jahjah <firasj@amazon.com>,
+        Gal Pressman <galpress@amazon.com>
+Subject: [RFC PATCH 0/2] EFA dmabuf memory regions
+Date:   Thu, 7 Oct 2021 13:42:58 +0300
+Message-ID: <20211007104301.76693-1-galpress@amazon.com>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Hey all,
 
-Mulitport slave device doesn't support devlink reload, so instead of
-complicating initialization flow with devlink_reload_enable() which
-will be removed in next patch, set specialized devlink ops callbacks
-for reload operations.
+This is a followup to my previous RFC [1], which now makes use of the
+dynamic attachment API implemented in the RDMA subsystem, but calls
+dma_buf_pin() in order to make sure that the move_notify callback will
+not be used, as suggested by Christian.
+As explained in the previous RFC, move_notify requires the RDMA device
+to support on-demand-paging (ODP) which is not common on most devices
+(only supported by mlx5).
 
-This fixes an error when reload counters exposed (and equal zero) for
-the mode that is not supported at all.
+While the dynamic requirement makes sense for certain GPUs, some devices
+(such as habanalabs) have device memory that is always "pinned" and do
+not need/use the move_notify operation.
 
-Fixes: d89ddaae1766 ("net/mlx5: Disable devlink reload for multi port slave device")
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The first patch changes the dmabuf documentation to make it clear that
+pinning does not necessarily mean the memory must be moved to system
+memory, it is up to the exporter to decide.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index 22c4afbc77dc..2eefed353e0a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -799,6 +799,7 @@ static void mlx5_devlink_traps_unregister(struct devlink *devlink)
- 
- int mlx5_devlink_register(struct devlink *devlink)
- {
-+	struct mlx5_core_dev *dev = devlink_priv(devlink);
- 	int err;
- 
- 	err = devlink_params_register(devlink, mlx5_devlink_params,
-@@ -816,7 +817,9 @@ int mlx5_devlink_register(struct devlink *devlink)
- 	if (err)
- 		goto traps_reg_err;
- 
--	devlink_set_reload_ops(devlink, &mlx5_devlink_reload_ops);
-+	if (!mlx5_core_is_mp_slave(dev))
-+		devlink_set_reload_ops(devlink, &mlx5_devlink_reload_ops);
-+
- 	return 0;
- 
- traps_reg_err:
+The motivation of this RFC is to use habanalabs as the dmabuf exporter,
+and EFA as the importer to allow for peer2peer access through libibverbs.
+
+[1] https://lore.kernel.org/linux-rdma/20210818074352.29950-1-galpress@amazon.com/
+
+Thanks
+
+Gal Pressman (2):
+  dma-buf: Fix pin callback comment
+  RDMA/efa: Add support for dmabuf memory regions
+
+ drivers/infiniband/hw/efa/efa.h       |   4 +
+ drivers/infiniband/hw/efa/efa_main.c  |   1 +
+ drivers/infiniband/hw/efa/efa_verbs.c | 166 +++++++++++++++++++++-----
+ include/linux/dma-buf.h               |   4 +-
+ 4 files changed, 142 insertions(+), 33 deletions(-)
+
 -- 
-2.31.1
+2.33.0
 
