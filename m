@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC50DC433F5
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F611C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B91256138F
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64148613A1
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240330AbhJGG5b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Oct 2021 02:57:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35658 "EHLO mail.kernel.org"
+        id S240311AbhJGG5e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Oct 2021 02:57:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240305AbhJGG5Y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 Oct 2021 02:57:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1D6B6135E;
-        Thu,  7 Oct 2021 06:55:30 +0000 (UTC)
+        id S240276AbhJGG52 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 Oct 2021 02:57:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 234C761371;
+        Thu,  7 Oct 2021 06:55:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633589731;
-        bh=VyKmKs3uexnRx4Qg22Ytb+0RmzuWEaXuX5WBQSO4P44=;
+        s=k20201202; t=1633589734;
+        bh=gy9VnMzNrCKl0to9j4YfbyqSSK884JNuEPUOmGRTxAc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DMHfhVDICB9ilPPLOcc15fDpiTyyQ7vmvLk4snNqrIeeK56wcnftNhmrlDumqze5V
-         aCBlChkos5bbXb7btLU/EsCsgZ0qFIwAEUcIj2SjIpQ+SZ+252MDwP3N9GnZTuWGcW
-         qAHFOQ2wRyvIFRlPs7L7T+3KVyPHrr0N5l4czmdSNGPApfWA3ecAte5g8tDuaTvPME
-         r3HrRoa2VzjHQfZhkyfYzwnJJ4+ijb5TqU7CpIDzVs3VIMT7n6kuoOEibmFPo5uP/+
-         AwSZZIkaCqB5vmBmvd8/gVXusnrBT62f8uXVsovPtlIBLJ0V4oUCYsCIyFtXA6qFhj
-         OCCL7OfChkE5Q==
+        b=FHe4zd33Euzr4+5dzPQByZg+bxQPDocn2RfrJ50KjM1Ibl9SOp93JJFMORB+UNrQG
+         YZ9VPL6Rp299ItVviYYcP6Vo2n5PX72SNGPDswZ8Eh45KfFPyQxRJhwzMXqD4LML8u
+         hxkYbN3D0ne822/0yN26uya22SiHjyHlOg28za9U7S0FMLyDzDgyryAzA6yIqeQJjN
+         ZUNltHE/89i34Xt5WpCFdx3vtUgPzw4ElV1+8OthW21UPSYv93jVSn/h73jaDtojX3
+         HGreF37dXwoRJl+OOvptWSxYmk3kIgw5LPjcoh3icIFyXBznszB2oclO/tUox0C2Kj
+         lkqv0Nlw2fi2Q==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -40,9 +40,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Tariq Toukan <tariqt@nvidia.com>,
         Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next v3 3/5] devlink: Allow set reload ops callbacks separately
-Date:   Thu,  7 Oct 2021 09:55:17 +0300
-Message-Id: <614978ec71da19e14dcc132f5f56daad49b5296c.1633589385.git.leonro@nvidia.com>
+Subject: [PATCH net-next v3 1/5] devlink: Reduce struct devlink exposure
+Date:   Thu,  7 Oct 2021 09:55:15 +0300
+Message-Id: <39692583a2aace1b9e435399344f097c72073522.1633589385.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1633589385.git.leonro@nvidia.com>
 References: <cover.1633589385.git.leonro@nvidia.com>
@@ -54,396 +54,327 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Introduce new devlink call to set reload ops callbacks during
-device initialization phase after devlink_alloc() is already
-called.
-
-This allows us to set reload ops based on device property which
-is not known at the beginning of driver initialization.
-
-For the sake of simplicity, this API lacks any type of locking and
-needs to be called before devlink_register() to make sure that no
-parallel access to the ops is possible at this stage.
+The declaration of struct devlink in general header provokes the
+situation where internal fields can be accidentally used by the driver
+authors. In order to reduce such possible situations, let's reduce the
+namespace exposure of struct devlink.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- .../hisilicon/hns3/hns3pf/hclge_devlink.c     |  4 ++
- .../hisilicon/hns3/hns3vf/hclgevf_devlink.c   |  4 ++
- drivers/net/ethernet/mellanox/mlx4/main.c     |  8 +++-
- .../net/ethernet/mellanox/mlx5/core/devlink.c | 10 ++--
- drivers/net/ethernet/mellanox/mlxsw/core.c    | 12 +++--
- drivers/net/netdevsim/dev.c                   | 10 ++--
- include/net/devlink.h                         | 25 ++++++----
- net/core/devlink.c                            | 48 ++++++++++++++-----
- 8 files changed, 87 insertions(+), 34 deletions(-)
+ drivers/net/ethernet/mellanox/mlxfw/mlxfw.h |  2 +-
+ include/net/devlink.h                       | 54 ++--------------
+ include/trace/events/devlink.h              | 72 ++++++++++-----------
+ net/core/devlink.c                          | 59 +++++++++++++++++
+ 4 files changed, 100 insertions(+), 87 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
-index 59b0ae7d59e0..27b485427c5d 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_devlink.c
-@@ -99,6 +99,9 @@ static int hclge_devlink_reload_up(struct devlink *devlink,
- 
- static const struct devlink_ops hclge_devlink_ops = {
- 	.info_get = hclge_devlink_info_get,
-+};
-+
-+static const struct devlink_reload_ops hclge_devlink_reload_ops = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
- 	.reload_down = hclge_devlink_reload_down,
- 	.reload_up = hclge_devlink_reload_up,
-@@ -119,6 +122,7 @@ int hclge_devlink_init(struct hclge_dev *hdev)
- 	priv->hdev = hdev;
- 	hdev->devlink = devlink;
- 
-+	devlink_set_reload_ops(devlink, &hclge_devlink_reload_ops);
- 	devlink_register(devlink);
- 	devlink_reload_enable(devlink);
- 	return 0;
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
-index d60cc9426f70..77545f841246 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_devlink.c
-@@ -100,6 +100,9 @@ static int hclgevf_devlink_reload_up(struct devlink *devlink,
- 
- static const struct devlink_ops hclgevf_devlink_ops = {
- 	.info_get = hclgevf_devlink_info_get,
-+};
-+
-+static const struct devlink_reload_ops hclgevf_devlink_reload_ops = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
- 	.reload_down = hclgevf_devlink_reload_down,
- 	.reload_up = hclgevf_devlink_reload_up,
-@@ -121,6 +124,7 @@ int hclgevf_devlink_init(struct hclgevf_dev *hdev)
- 	priv->hdev = hdev;
- 	hdev->devlink = devlink;
- 
-+	devlink_set_reload_ops(devlink, &hclgevf_devlink_reload_ops);
- 	devlink_register(devlink);
- 	devlink_reload_enable(devlink);
- 	return 0;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 9541f3a920c8..4c0846727888 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -3982,9 +3982,12 @@ static int mlx4_devlink_reload_up(struct devlink *devlink, enum devlink_reload_a
- 
- static const struct devlink_ops mlx4_devlink_ops = {
- 	.port_type_set	= mlx4_devlink_port_type_set,
-+};
-+
-+static const struct devlink_reload_ops mlx4_devlink_reload_ops = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
--	.reload_down	= mlx4_devlink_reload_down,
--	.reload_up	= mlx4_devlink_reload_up,
-+	.reload_down = mlx4_devlink_reload_down,
-+	.reload_up = mlx4_devlink_reload_up,
- };
- 
- static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
-@@ -4025,6 +4028,7 @@ static int mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 		goto err_params_unregister;
- 
- 	pci_save_state(pdev);
-+	devlink_set_reload_ops(devlink, &mlx4_devlink_reload_ops);
- 	devlink_register(devlink);
- 	devlink_reload_enable(devlink);
- 	return 0;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index b9a6cea03951..22c4afbc77dc 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -314,14 +314,17 @@ static const struct devlink_ops mlx5_devlink_ops = {
- #endif
- 	.flash_update = mlx5_devlink_flash_update,
- 	.info_get = mlx5_devlink_info_get,
-+	.trap_init = mlx5_devlink_trap_init,
-+	.trap_fini = mlx5_devlink_trap_fini,
-+	.trap_action_set = mlx5_devlink_trap_action_set,
-+};
-+
-+static const struct devlink_reload_ops mlx5_devlink_reload_ops = {
- 	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT) |
- 			  BIT(DEVLINK_RELOAD_ACTION_FW_ACTIVATE),
- 	.reload_limits = BIT(DEVLINK_RELOAD_LIMIT_NO_RESET),
- 	.reload_down = mlx5_devlink_reload_down,
- 	.reload_up = mlx5_devlink_reload_up,
--	.trap_init = mlx5_devlink_trap_init,
--	.trap_fini = mlx5_devlink_trap_fini,
--	.trap_action_set = mlx5_devlink_trap_action_set,
- };
- 
- void mlx5_devlink_trap_report(struct mlx5_core_dev *dev, int trap_id, struct sk_buff *skb,
-@@ -813,6 +816,7 @@ int mlx5_devlink_register(struct devlink *devlink)
- 	if (err)
- 		goto traps_reg_err;
- 
-+	devlink_set_reload_ops(devlink, &mlx5_devlink_reload_ops);
- 	return 0;
- 
- traps_reg_err:
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/core.c b/drivers/net/ethernet/mellanox/mlxsw/core.c
-index 9e831e8b607a..c42ab675a1d6 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/core.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/core.c
-@@ -1615,10 +1615,6 @@ mlxsw_devlink_trap_policer_counter_get(struct devlink *devlink,
+diff --git a/drivers/net/ethernet/mellanox/mlxfw/mlxfw.h b/drivers/net/ethernet/mellanox/mlxfw/mlxfw.h
+index 7654841a05c2..e6475ea77cd1 100644
+--- a/drivers/net/ethernet/mellanox/mlxfw/mlxfw.h
++++ b/drivers/net/ethernet/mellanox/mlxfw/mlxfw.h
+@@ -19,7 +19,7 @@ struct mlxfw_dev {
+ static inline
+ struct device *mlxfw_dev_dev(struct mlxfw_dev *mlxfw_dev)
+ {
+-	return mlxfw_dev->devlink->dev;
++	return devlink_to_dev(mlxfw_dev->devlink);
  }
  
- static const struct devlink_ops mlxsw_devlink_ops = {
--	.reload_actions		= BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT) |
--				  BIT(DEVLINK_RELOAD_ACTION_FW_ACTIVATE),
--	.reload_down		= mlxsw_devlink_core_bus_device_reload_down,
--	.reload_up		= mlxsw_devlink_core_bus_device_reload_up,
- 	.port_type_set			= mlxsw_devlink_port_type_set,
- 	.port_split			= mlxsw_devlink_port_split,
- 	.port_unsplit			= mlxsw_devlink_port_unsplit,
-@@ -1645,6 +1641,13 @@ static const struct devlink_ops mlxsw_devlink_ops = {
- 	.trap_policer_counter_get	= mlxsw_devlink_trap_policer_counter_get,
- };
- 
-+static const struct devlink_reload_ops mlxsw_devlink_reload_ops = {
-+	.reload_actions		= BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT) |
-+				  BIT(DEVLINK_RELOAD_ACTION_FW_ACTIVATE),
-+	.reload_down		= mlxsw_devlink_core_bus_device_reload_down,
-+	.reload_up		= mlxsw_devlink_core_bus_device_reload_up,
-+};
-+
- static int mlxsw_core_params_register(struct mlxsw_core *mlxsw_core)
- {
- 	int err;
-@@ -2008,6 +2011,7 @@ __mlxsw_core_bus_device_register(const struct mlxsw_bus_info *mlxsw_bus_info,
- 	}
- 
- 	if (!reload) {
-+		devlink_set_reload_ops(devlink, &mlxsw_devlink_reload_ops);
- 		devlink_register(devlink);
- 		devlink_reload_enable(devlink);
- 	}
-diff --git a/drivers/net/netdevsim/dev.c b/drivers/net/netdevsim/dev.c
-index cb6645012a30..a7a09d49a402 100644
---- a/drivers/net/netdevsim/dev.c
-+++ b/drivers/net/netdevsim/dev.c
-@@ -1246,9 +1246,6 @@ static const struct devlink_ops nsim_dev_devlink_ops = {
- 	.eswitch_mode_get = nsim_devlink_eswitch_mode_get,
- 	.supported_flash_update_params = DEVLINK_SUPPORT_FLASH_UPDATE_COMPONENT |
- 					 DEVLINK_SUPPORT_FLASH_UPDATE_OVERWRITE_MASK,
--	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
--	.reload_down = nsim_dev_reload_down,
--	.reload_up = nsim_dev_reload_up,
- 	.info_get = nsim_dev_info_get,
- 	.flash_update = nsim_dev_flash_update,
- 	.trap_init = nsim_dev_devlink_trap_init,
-@@ -1267,6 +1264,12 @@ static const struct devlink_ops nsim_dev_devlink_ops = {
- 	.trap_drop_counter_get = nsim_dev_devlink_trap_drop_counter_get,
- };
- 
-+static const struct devlink_reload_ops nsim_dev_devlink_reload_ops = {
-+	.reload_actions = BIT(DEVLINK_RELOAD_ACTION_DRIVER_REINIT),
-+	.reload_down = nsim_dev_reload_down,
-+	.reload_up = nsim_dev_reload_up,
-+};
-+
- #define NSIM_DEV_MAX_MACS_DEFAULT 32
- #define NSIM_DEV_TEST1_DEFAULT true
- 
-@@ -1511,6 +1514,7 @@ int nsim_dev_probe(struct nsim_bus_dev *nsim_bus_dev)
- 		goto err_psample_exit;
- 
- 	nsim_dev->esw_mode = DEVLINK_ESWITCH_MODE_LEGACY;
-+	devlink_set_reload_ops(devlink, &nsim_dev_devlink_reload_ops);
- 	devlink_register(devlink);
- 	devlink_reload_enable(devlink);
- 	return 0;
+ #define MLXFW_PRFX "mlxfw: "
 diff --git a/include/net/devlink.h b/include/net/devlink.h
-index ae03eb1c6cc9..568343cc45f5 100644
+index a7852a257bf6..ae03eb1c6cc9 100644
 --- a/include/net/devlink.h
 +++ b/include/net/devlink.h
-@@ -1193,15 +1193,6 @@ struct devlink_ops {
- 	 * implemementation.
- 	 */
- 	u32 supported_flash_update_params;
--	unsigned long reload_actions;
--	unsigned long reload_limits;
--	int (*reload_down)(struct devlink *devlink, bool netns_change,
--			   enum devlink_reload_action action,
--			   enum devlink_reload_limit limit,
--			   struct netlink_ext_ack *extack);
--	int (*reload_up)(struct devlink *devlink, enum devlink_reload_action action,
--			 enum devlink_reload_limit limit, u32 *actions_performed,
--			 struct netlink_ext_ack *extack);
- 	int (*port_type_set)(struct devlink_port *devlink_port,
- 			     enum devlink_port_type port_type);
- 	int (*port_split)(struct devlink *devlink, unsigned int port_index,
-@@ -1482,6 +1473,20 @@ struct devlink_ops {
+@@ -21,45 +21,7 @@
+ #include <linux/xarray.h>
+ #include <linux/firmware.h>
+ 
+-#define DEVLINK_RELOAD_STATS_ARRAY_SIZE \
+-	(__DEVLINK_RELOAD_LIMIT_MAX * __DEVLINK_RELOAD_ACTION_MAX)
+-
+-struct devlink_dev_stats {
+-	u32 reload_stats[DEVLINK_RELOAD_STATS_ARRAY_SIZE];
+-	u32 remote_reload_stats[DEVLINK_RELOAD_STATS_ARRAY_SIZE];
+-};
+-
+-struct devlink_ops;
+-
+-struct devlink {
+-	u32 index;
+-	struct list_head port_list;
+-	struct list_head rate_list;
+-	struct list_head sb_list;
+-	struct list_head dpipe_table_list;
+-	struct list_head resource_list;
+-	struct list_head param_list;
+-	struct list_head region_list;
+-	struct list_head reporter_list;
+-	struct mutex reporters_lock; /* protects reporter_list */
+-	struct devlink_dpipe_headers *dpipe_headers;
+-	struct list_head trap_list;
+-	struct list_head trap_group_list;
+-	struct list_head trap_policer_list;
+-	const struct devlink_ops *ops;
+-	struct xarray snapshot_ids;
+-	struct devlink_dev_stats stats;
+-	struct device *dev;
+-	possible_net_t _net;
+-	struct mutex lock; /* Serializes access to devlink instance specific objects such as
+-			    * port, sb, dpipe, resource, params, region, traps and more.
+-			    */
+-	u8 reload_failed:1,
+-	   reload_enabled:1;
+-	refcount_t refcount;
+-	struct completion comp;
+-	char priv[0] __aligned(NETDEV_ALIGN);
+-};
++struct devlink;
+ 
+ struct devlink_port_phys_attrs {
+ 	u32 port_number; /* Same value as "split group".
+@@ -1520,17 +1482,9 @@ struct devlink_ops {
  				    struct netlink_ext_ack *extack);
  };
  
-+struct devlink_reload_ops {
-+	unsigned long reload_actions;
-+	unsigned long reload_limits;
-+	int (*reload_down)(struct devlink *devlink, bool netns_change,
-+			   enum devlink_reload_action action,
-+			   enum devlink_reload_limit limit,
-+			   struct netlink_ext_ack *extack);
-+	int (*reload_up)(struct devlink *devlink,
-+			 enum devlink_reload_action action,
-+			 enum devlink_reload_limit limit,
-+			 u32 *actions_performed,
-+			 struct netlink_ext_ack *extack);
-+};
-+
- void *devlink_priv(struct devlink *devlink);
- struct devlink *priv_to_devlink(void *priv);
- struct device *devlink_to_dev(const struct devlink *devlink);
-@@ -1520,6 +1525,8 @@ static inline struct devlink *devlink_alloc(const struct devlink_ops *ops,
- {
- 	return devlink_alloc_ns(ops, priv_size, &init_net, dev);
- }
-+void devlink_set_reload_ops(struct devlink *devlink,
-+			    const struct devlink_reload_ops *ops);
- void devlink_register(struct devlink *devlink);
- void devlink_unregister(struct devlink *devlink);
- void devlink_reload_enable(struct devlink *devlink);
+-static inline void *devlink_priv(struct devlink *devlink)
+-{
+-	BUG_ON(!devlink);
+-	return &devlink->priv;
+-}
+-
+-static inline struct devlink *priv_to_devlink(void *priv)
+-{
+-	BUG_ON(!priv);
+-	return container_of(priv, struct devlink, priv);
+-}
++void *devlink_priv(struct devlink *devlink);
++struct devlink *priv_to_devlink(void *priv);
++struct device *devlink_to_dev(const struct devlink *devlink);
+ 
+ static inline struct devlink_port *
+ netdev_to_devlink_port(struct net_device *dev)
+diff --git a/include/trace/events/devlink.h b/include/trace/events/devlink.h
+index 44d8e2981065..2814f188d98c 100644
+--- a/include/trace/events/devlink.h
++++ b/include/trace/events/devlink.h
+@@ -21,9 +21,9 @@ TRACE_EVENT(devlink_hwmsg,
+ 	TP_ARGS(devlink, incoming, type, buf, len),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__field(bool, incoming)
+ 		__field(unsigned long, type)
+ 		__dynamic_array(u8, buf, len)
+@@ -31,9 +31,9 @@ TRACE_EVENT(devlink_hwmsg,
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__entry->incoming = incoming;
+ 		__entry->type = type;
+ 		memcpy(__get_dynamic_array(buf), buf, len);
+@@ -55,17 +55,17 @@ TRACE_EVENT(devlink_hwerr,
+ 	TP_ARGS(devlink, err, msg),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__field(int, err)
+ 		__string(msg, msg)
+ 		),
+ 
+ 	TP_fast_assign(
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__entry->err = err;
+ 		__assign_str(msg, msg);
+ 		),
+@@ -85,17 +85,17 @@ TRACE_EVENT(devlink_health_report,
+ 	TP_ARGS(devlink, reporter_name, msg),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__string(reporter_name, msg)
+ 		__string(msg, msg)
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__assign_str(reporter_name, reporter_name);
+ 		__assign_str(msg, msg);
+ 	),
+@@ -116,18 +116,18 @@ TRACE_EVENT(devlink_health_recover_aborted,
+ 	TP_ARGS(devlink, reporter_name, health_state, time_since_last_recover),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__string(reporter_name, reporter_name)
+ 		__field(bool, health_state)
+ 		__field(u64, time_since_last_recover)
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__assign_str(reporter_name, reporter_name);
+ 		__entry->health_state = health_state;
+ 		__entry->time_since_last_recover = time_since_last_recover;
+@@ -150,17 +150,17 @@ TRACE_EVENT(devlink_health_reporter_state_update,
+ 	TP_ARGS(devlink, reporter_name, new_state),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__string(reporter_name, reporter_name)
+ 		__field(u8, new_state)
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__assign_str(reporter_name, reporter_name);
+ 		__entry->new_state = new_state;
+ 	),
+@@ -181,9 +181,9 @@ TRACE_EVENT(devlink_trap_report,
+ 	TP_ARGS(devlink, skb, metadata),
+ 
+ 	TP_STRUCT__entry(
+-		__string(bus_name, devlink->dev->bus->name)
+-		__string(dev_name, dev_name(devlink->dev))
+-		__string(driver_name, devlink->dev->driver->name)
++		__string(bus_name, devlink_to_dev(devlink)->bus->name)
++		__string(dev_name, dev_name(devlink_to_dev(devlink)))
++		__string(driver_name, devlink_to_dev(devlink)->driver->name)
+ 		__string(trap_name, metadata->trap_name)
+ 		__string(trap_group_name, metadata->trap_group_name)
+ 		__dynamic_array(char, input_dev_name, IFNAMSIZ)
+@@ -192,9 +192,9 @@ TRACE_EVENT(devlink_trap_report,
+ 	TP_fast_assign(
+ 		struct net_device *input_dev = metadata->input_dev;
+ 
+-		__assign_str(bus_name, devlink->dev->bus->name);
+-		__assign_str(dev_name, dev_name(devlink->dev));
+-		__assign_str(driver_name, devlink->dev->driver->name);
++		__assign_str(bus_name, devlink_to_dev(devlink)->bus->name);
++		__assign_str(dev_name, dev_name(devlink_to_dev(devlink)));
++		__assign_str(driver_name, devlink_to_dev(devlink)->driver->name);
+ 		__assign_str(trap_name, metadata->trap_name);
+ 		__assign_str(trap_group_name, metadata->trap_group_name);
+ 		__assign_str(input_dev_name,
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 4e484afeadea..b0596a9065e2 100644
+index 4917112406a0..9642429cec65 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -54,6 +54,7 @@ struct devlink {
- 	struct list_head trap_group_list;
- 	struct list_head trap_policer_list;
- 	const struct devlink_ops *ops;
-+	const struct devlink_reload_ops *reload_ops;
- 	struct xarray snapshot_ids;
- 	struct devlink_dev_stats stats;
- 	struct device *dev;
-@@ -683,13 +684,15 @@ devlink_reload_combination_is_invalid(enum devlink_reload_action action,
- static bool
- devlink_reload_action_is_supported(struct devlink *devlink, enum devlink_reload_action action)
- {
--	return test_bit(action, &devlink->ops->reload_actions);
-+	return devlink->reload_ops &&
-+	       test_bit(action, &devlink->reload_ops->reload_actions);
- }
+@@ -30,6 +30,65 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/devlink.h>
  
- static bool
- devlink_reload_limit_is_supported(struct devlink *devlink, enum devlink_reload_limit limit)
- {
--	return test_bit(limit, &devlink->ops->reload_limits);
-+	return devlink->reload_ops &&
-+	       test_bit(limit, &devlink->reload_ops->reload_limits);
- }
- 
- static int devlink_reload_stat_put(struct sk_buff *msg,
-@@ -3954,9 +3957,9 @@ static void devlink_ns_change_notify(struct devlink *devlink,
- 		devlink_notify(devlink, DEVLINK_CMD_DEL);
- }
- 
--static bool devlink_reload_supported(const struct devlink_ops *ops)
-+static bool devlink_reload_supported(const struct devlink_reload_ops *ops)
- {
--	return ops->reload_down && ops->reload_up;
-+	return ops && ops->reload_down && ops->reload_up;
- }
- 
- static void devlink_reload_failed_set(struct devlink *devlink,
-@@ -4042,14 +4045,16 @@ static int devlink_reload(struct devlink *devlink, struct net *dest_net,
- 
- 	curr_net = devlink_net(devlink);
- 	devlink_ns_change_notify(devlink, dest_net, curr_net, false);
--	err = devlink->ops->reload_down(devlink, !!dest_net, action, limit, extack);
-+	err = devlink->reload_ops->reload_down(devlink, !!dest_net, action,
-+					       limit, extack);
- 	if (err)
- 		return err;
- 
- 	if (dest_net && !net_eq(dest_net, curr_net))
- 		write_pnet(&devlink->_net, dest_net);
- 
--	err = devlink->ops->reload_up(devlink, action, limit, actions_performed, extack);
-+	err = devlink->reload_ops->reload_up(devlink, action, limit,
-+					     actions_performed, extack);
- 	devlink_reload_failed_set(devlink, !!err);
- 	if (err)
- 		return err;
-@@ -4104,7 +4109,7 @@ static int devlink_nl_cmd_reload(struct sk_buff *skb, struct genl_info *info)
- 	u32 actions_performed;
- 	int err;
- 
--	if (!devlink_reload_supported(devlink->ops))
-+	if (!devlink_reload_supported(devlink->reload_ops))
- 		return -EOPNOTSUPP;
- 
- 	err = devlink_resources_validate(devlink, NULL, info);
-@@ -8958,7 +8963,7 @@ static struct genl_family devlink_nl_family __ro_after_init = {
- 	.n_mcgrps	= ARRAY_SIZE(devlink_nl_mcgrps),
- };
- 
--static bool devlink_reload_actions_valid(const struct devlink_ops *ops)
-+static bool devlink_reload_actions_valid(const struct devlink_reload_ops *ops)
- {
- 	const struct devlink_reload_combination *comb;
- 	int i;
-@@ -8987,6 +8992,25 @@ static bool devlink_reload_actions_valid(const struct devlink_ops *ops)
- 	return true;
- }
- 
-+/**
-+ *	devlink_set_reload_ops - Set devlink reload ops
-+ *
-+ *	@devlink: devlink
-+ *	@ops: devlink reload ops to set
-+ *
-+ *	This interface allows us to set reload ops separatelly from
-+ *	the devlink_alloc.
-+ */
-+void devlink_set_reload_ops(struct devlink *devlink,
-+			    const struct devlink_reload_ops *ops)
++#define DEVLINK_RELOAD_STATS_ARRAY_SIZE \
++	(__DEVLINK_RELOAD_LIMIT_MAX * __DEVLINK_RELOAD_ACTION_MAX)
++
++struct devlink_dev_stats {
++	u32 reload_stats[DEVLINK_RELOAD_STATS_ARRAY_SIZE];
++	u32 remote_reload_stats[DEVLINK_RELOAD_STATS_ARRAY_SIZE];
++};
++
++struct devlink {
++	u32 index;
++	struct list_head port_list;
++	struct list_head rate_list;
++	struct list_head sb_list;
++	struct list_head dpipe_table_list;
++	struct list_head resource_list;
++	struct list_head param_list;
++	struct list_head region_list;
++	struct list_head reporter_list;
++	struct mutex reporters_lock; /* protects reporter_list */
++	struct devlink_dpipe_headers *dpipe_headers;
++	struct list_head trap_list;
++	struct list_head trap_group_list;
++	struct list_head trap_policer_list;
++	const struct devlink_ops *ops;
++	struct xarray snapshot_ids;
++	struct devlink_dev_stats stats;
++	struct device *dev;
++	possible_net_t _net;
++	/* Serializes access to devlink instance specific objects such as
++	 * port, sb, dpipe, resource, params, region, traps and more.
++	 */
++	struct mutex lock;
++	u8 reload_failed:1,
++	   reload_enabled:1;
++	refcount_t refcount;
++	struct completion comp;
++	char priv[0] __aligned(NETDEV_ALIGN);
++};
++
++void *devlink_priv(struct devlink *devlink)
 +{
-+	WARN_ON(!devlink_reload_actions_valid(ops));
-+	ASSERT_DEVLINK_NOT_REGISTERED(devlink);
-+
-+	devlink->reload_ops = ops;
++	BUG_ON(!devlink);
++	return &devlink->priv;
 +}
-+EXPORT_SYMBOL_GPL(devlink_set_reload_ops);
++EXPORT_SYMBOL_GPL(devlink_priv);
 +
- /**
-  *	devlink_alloc_ns - Allocate new devlink instance resources
-  *	in specific namespace
-@@ -9008,8 +9032,6 @@ struct devlink *devlink_alloc_ns(const struct devlink_ops *ops,
- 	int ret;
- 
- 	WARN_ON(!ops || !dev);
--	if (!devlink_reload_actions_valid(ops))
--		return NULL;
- 
- 	devlink = kzalloc(sizeof(*devlink) + priv_size, GFP_KERNEL);
- 	if (!devlink)
-@@ -9157,7 +9179,7 @@ void devlink_unregister(struct devlink *devlink)
- 	wait_for_completion(&devlink->comp);
- 
- 	mutex_lock(&devlink_mutex);
--	WARN_ON(devlink_reload_supported(devlink->ops) &&
-+	WARN_ON(devlink_reload_supported(devlink->reload_ops) &&
- 		devlink->reload_enabled);
- 	devlink_notify_unregister(devlink);
- 	xa_clear_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
-@@ -10315,7 +10337,7 @@ int devlink_param_driverinit_value_get(struct devlink *devlink, u32 param_id,
- {
- 	struct devlink_param_item *param_item;
- 
--	if (!devlink_reload_supported(devlink->ops))
-+	if (!devlink_reload_supported(devlink->reload_ops))
- 		return -EOPNOTSUPP;
- 
- 	param_item = devlink_param_find_by_id(&devlink->param_list, param_id);
-@@ -11518,7 +11540,7 @@ static void __net_exit devlink_pernet_pre_exit(struct net *net)
- 		if (!net_eq(devlink_net(devlink), net))
- 			goto retry;
- 
--		WARN_ON(!devlink_reload_supported(devlink->ops));
-+		WARN_ON(!devlink_reload_supported(devlink->reload_ops));
- 		err = devlink_reload(devlink, &init_net,
- 				     DEVLINK_RELOAD_ACTION_DRIVER_REINIT,
- 				     DEVLINK_RELOAD_LIMIT_UNSPEC,
++struct devlink *priv_to_devlink(void *priv)
++{
++	BUG_ON(!priv);
++	return container_of(priv, struct devlink, priv);
++}
++EXPORT_SYMBOL_GPL(priv_to_devlink);
++
++struct device *devlink_to_dev(const struct devlink *devlink)
++{
++	return devlink->dev;
++}
++EXPORT_SYMBOL_GPL(devlink_to_dev);
++
+ static struct devlink_dpipe_field devlink_dpipe_fields_ethernet[] = {
+ 	{
+ 		.name = "destination mac",
 -- 
 2.31.1
 
