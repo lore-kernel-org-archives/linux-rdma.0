@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D6FBC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20905C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1401361260
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 081346137F
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Oct 2021 06:55:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240203AbhJGG5U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Oct 2021 02:57:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35528 "EHLO mail.kernel.org"
+        id S240284AbhJGG5X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Oct 2021 02:57:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240233AbhJGG5R (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 7 Oct 2021 02:57:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C455361245;
-        Thu,  7 Oct 2021 06:55:23 +0000 (UTC)
+        id S240233AbhJGG5W (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 7 Oct 2021 02:57:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 521E661261;
+        Thu,  7 Oct 2021 06:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633589724;
-        bh=H7TOUe6A7T7LiBmoEChxjG23mV1sfS3VhuwtUlXJPxw=;
-        h=From:To:Cc:Subject:Date:From;
-        b=DgWzoc93M3NoV2N66cXqwyfRo52yjZlOL9ay2WlX1YVN5mi89PLEq1nWnWGUoDNrR
-         Af43AQ8v/L+687s41V471CFzx4TMysoeL0J2IWsl/jhIWyzbYekxFYy1It3YDrpp0A
-         JRLaPojUE1UGHBsjVuEVnwoyAABFo7lQbIWkJaB03Y25Nc/v3+xVnOBVlV74vSazRe
-         Ik+RRVlGmwawopbeJ0TCp8u7PFgUbH1Qvi5AsmzoUIdms1Ol5bzE14F99ZUaGOVcfb
-         yvxCCZSyg6W9U7WPEFpT6KtwPHiO+e4166L3kMHc4nza8VodhwXuIypq6sygxsPDV+
-         RxFjkgwJxENiQ==
+        s=k20201202; t=1633589728;
+        bh=ubBfXkJlfWk9vB5diL1cDnPrfyxhDRFVopndxkSNLHo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=S+qO3gFaIC2YiK+qF0Li+9ZLcXO5JK2oRoxGvU8Dp6vd3MYz864zj/jNvHnC0TBQc
+         6D5nX//OJnLvnlcSDarDsges/HgnNZXZ0ZrslsgmjsqORpacvBv67daSVDJtOJGe6V
+         rDtV7GaTYRRQ3noWqpGjQqer4T7cMPpN1xAU7tnlkTw9+pM0xl+0b9LK6/B2InB/dD
+         uCCwf2QaDp+QOiJBM60xWgIvOVvEOYCEfFSZdu14j4xRzowQppuMitMTdsqDI0Qq1p
+         jR+FckUd5bkOQ0/FY17jNa2AkzOmcEriGCm+snkSVncgmrF2fGy2Uyv4a0g7vBuvp+
+         wx8ZST14rvh0g==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -40,10 +40,12 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Tariq Toukan <tariqt@nvidia.com>,
         Yisen Zhuang <yisen.zhuang@huawei.com>
-Subject: [PATCH net-next v3 0/5] devlink reload simplification
-Date:   Thu,  7 Oct 2021 09:55:14 +0300
-Message-Id: <cover.1633589385.git.leonro@nvidia.com>
+Subject: [PATCH net-next v3 2/5] devlink: Annotate devlink API calls
+Date:   Thu,  7 Oct 2021 09:55:16 +0300
+Message-Id: <19f798d89eae110593055db5e15eb3bbf07adb2c.1633589385.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <cover.1633589385.git.leonro@nvidia.com>
+References: <cover.1633589385.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -52,54 +54,72 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Changelog:
-v3:
- * Rewrote third patch to keep static const nature of ops. This is done
-   by extracting reload ops to separate ops structure.
- * Changed commit message in last patch as was suggested by Ido. 
-v2: https://lore.kernel.org/all/cover.1633284302.git.leonro@nvidia.com
- * Dropped const removal patch
- * Added new patch to hide struct devlink
- * Added new patch to annotate devlink API
- * Implemented copy of all callback in devlink ops
-v1: https://lore.kernel.org/all/cover.1632916329.git.leonro@nvidia.com
- * Missed removal of extra WARN_ON
- * Added "ops parameter to macro as Dan suggested.
-v0: https://lore.kernel.org/all/cover.1632909221.git.leonro@nvidia.com
+Initial annotation patch to separate calls that needs to be executed
+before or after devlink_register().
 
--------------------------------------------------------------------
-Hi,
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ net/core/devlink.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-This series fixes the bug with mlx5 device, which in some configurations
-doesn't support devlink reload and shouldn't have any reload statistics
-like any other net device. Unfortunately, it is not the case in the
-current implementation of devlink reload.
-
-This fix is done by simplification of internal API.
-
-Thanks
-
-Leon Romanovsky (5):
-  devlink: Reduce struct devlink exposure
-  devlink: Annotate devlink API calls
-  devlink: Allow set reload ops callbacks separately
-  net/mlx5: Separate reload devlink ops for multiport device
-  devlink: Delete reload enable/disable interface
-
- .../hisilicon/hns3/hns3pf/hclge_devlink.c     |   7 +-
- .../hisilicon/hns3/hns3vf/hclgevf_devlink.c   |   7 +-
- drivers/net/ethernet/mellanox/mlx4/main.c     |  10 +-
- .../net/ethernet/mellanox/mlx5/core/devlink.c |  13 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |   3 -
- .../mellanox/mlx5/core/sf/dev/driver.c        |   5 +-
- drivers/net/ethernet/mellanox/mlxfw/mlxfw.h   |   2 +-
- drivers/net/ethernet/mellanox/mlxsw/core.c    |  19 +-
- drivers/net/netdevsim/dev.c                   |  13 +-
- include/net/devlink.h                         |  79 ++------
- include/trace/events/devlink.h                |  72 ++++----
- net/core/devlink.c                            | 170 ++++++++++++------
- 12 files changed, 216 insertions(+), 184 deletions(-)
-
+diff --git a/net/core/devlink.c b/net/core/devlink.c
+index 9642429cec65..4e484afeadea 100644
+--- a/net/core/devlink.c
++++ b/net/core/devlink.c
+@@ -154,6 +154,22 @@ static const struct nla_policy devlink_function_nl_policy[DEVLINK_PORT_FUNCTION_
+ static DEFINE_XARRAY_FLAGS(devlinks, XA_FLAGS_ALLOC);
+ #define DEVLINK_REGISTERED XA_MARK_1
+ 
++/* devlink instances are open to the access from the user space after
++ * devlink_register() call. Such logical barrier allows us to have certain
++ * expectations related to locking.
++ *
++ * Before *_register() - we are in initialization stage and no parallel
++ * access possible to the devlink instance. All drivers perform that phase
++ * by implicitly holding device_lock.
++ *
++ * After *_register() - users and driver can access devlink instance at
++ * the same time.
++ */
++#define ASSERT_DEVLINK_REGISTERED(d)                                           \
++	WARN_ON_ONCE(!xa_get_mark(&devlinks, (d)->index, DEVLINK_REGISTERED))
++#define ASSERT_DEVLINK_NOT_REGISTERED(d)                                       \
++	WARN_ON_ONCE(xa_get_mark(&devlinks, (d)->index, DEVLINK_REGISTERED))
++
+ /* devlink_mutex
+  *
+  * An overall lock guarding every operation coming from userspace.
+@@ -9115,6 +9131,10 @@ static void devlink_notify_unregister(struct devlink *devlink)
+  */
+ void devlink_register(struct devlink *devlink)
+ {
++	ASSERT_DEVLINK_NOT_REGISTERED(devlink);
++	/* Make sure that we are in .probe() routine */
++	device_lock_assert(devlink->dev);
++
+ 	mutex_lock(&devlink_mutex);
+ 	xa_set_mark(&devlinks, devlink->index, DEVLINK_REGISTERED);
+ 	devlink_notify_register(devlink);
+@@ -9129,6 +9149,10 @@ EXPORT_SYMBOL_GPL(devlink_register);
+  */
+ void devlink_unregister(struct devlink *devlink)
+ {
++	ASSERT_DEVLINK_REGISTERED(devlink);
++	/* Make sure that we are in .remove() routine */
++	device_lock_assert(devlink->dev);
++
+ 	devlink_put(devlink);
+ 	wait_for_completion(&devlink->comp);
+ 
+@@ -9183,6 +9207,8 @@ EXPORT_SYMBOL_GPL(devlink_reload_disable);
+  */
+ void devlink_free(struct devlink *devlink)
+ {
++	ASSERT_DEVLINK_NOT_REGISTERED(devlink);
++
+ 	mutex_destroy(&devlink->reporters_lock);
+ 	mutex_destroy(&devlink->lock);
+ 	WARN_ON(!list_empty(&devlink->trap_policer_list));
 -- 
 2.31.1
 
