@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBE1DC4332F
-	for <linux-rdma@archiver.kernel.org>; Sat,  9 Oct 2021 17:01:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FAAFC433FE
+	for <linux-rdma@archiver.kernel.org>; Sat,  9 Oct 2021 17:01:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD4B460FC3
-	for <linux-rdma@archiver.kernel.org>; Sat,  9 Oct 2021 17:01:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FE6960FC3
+	for <linux-rdma@archiver.kernel.org>; Sat,  9 Oct 2021 17:01:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231835AbhJIRDv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 9 Oct 2021 13:03:51 -0400
+        id S229984AbhJIRDw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 9 Oct 2021 13:03:52 -0400
 Received: from mga11.intel.com ([192.55.52.93]:65332 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229984AbhJIRDv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S231848AbhJIRDv (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Sat, 9 Oct 2021 13:03:51 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10132"; a="224084136"
+X-IronPort-AV: E=McAfee;i="6200,9189,10132"; a="224084145"
 X-IronPort-AV: E=Sophos;i="5.85,360,1624345200"; 
-   d="scan'208";a="224084136"
+   d="scan'208";a="224084145"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2021 10:01:50 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2021 10:01:54 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.85,360,1624345200"; 
-   d="scan'208";a="440257520"
+   d="scan'208";a="440257533"
 Received: from unknown (HELO intel-73.bj.intel.com) ([10.238.154.73])
-  by orsmga006.jf.intel.com with ESMTP; 09 Oct 2021 10:01:48 -0700
+  by orsmga006.jf.intel.com with ESMTP; 09 Oct 2021 10:01:52 -0700
 From:   yanjun.zhu@linux.dev
 To:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
         dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
         yanjun.zhu@linux.dev, leonro@nvidia.com
-Subject: [PATCH 1/4] RDMA/irdma: compat the uk.c file
-Date:   Sat,  9 Oct 2021 20:41:07 -0400
-Message-Id: <20211010004110.3842-2-yanjun.zhu@linux.dev>
+Subject: [PATCH 3/4] RDMA/irdma: compat the utils.c file
+Date:   Sat,  9 Oct 2021 20:41:09 -0400
+Message-Id: <20211010004110.3842-4-yanjun.zhu@linux.dev>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20211010004110.3842-1-yanjun.zhu@linux.dev>
 References: <20211010004110.3842-1-yanjun.zhu@linux.dev>
@@ -42,97 +42,48 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-The function irdma_uk_mw_bind is not used. So remove it.
+The function irdma_get_hw_addr is not used. So remove it.
 
 Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- drivers/infiniband/hw/irdma/uk.c   | 57 ------------------------------
- drivers/infiniband/hw/irdma/user.h |  4 +--
- 2 files changed, 1 insertion(+), 60 deletions(-)
+ drivers/infiniband/hw/irdma/osdep.h |  1 -
+ drivers/infiniband/hw/irdma/utils.c | 11 -----------
+ 2 files changed, 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
-index 5fb92de1f015..ebcd93bb9e9d 100644
---- a/drivers/infiniband/hw/irdma/uk.c
-+++ b/drivers/infiniband/hw/irdma/uk.c
-@@ -866,63 +866,6 @@ irdma_uk_stag_local_invalidate(struct irdma_qp_uk *qp,
- 	return 0;
+diff --git a/drivers/infiniband/hw/irdma/osdep.h b/drivers/infiniband/hw/irdma/osdep.h
+index b2ab52335ca6..63d8bb3a6903 100644
+--- a/drivers/infiniband/hw/irdma/osdep.h
++++ b/drivers/infiniband/hw/irdma/osdep.h
+@@ -37,7 +37,6 @@ struct irdma_hw;
+ struct irdma_pci_f;
+ 
+ struct ib_device *to_ibdev(struct irdma_sc_dev *dev);
+-u8 __iomem *irdma_get_hw_addr(void *dev);
+ void irdma_ieq_mpa_crc_ae(struct irdma_sc_dev *dev, struct irdma_sc_qp *qp);
+ enum irdma_status_code irdma_vf_wait_vchnl_resp(struct irdma_sc_dev *dev);
+ bool irdma_vf_clear_to_send(struct irdma_sc_dev *dev);
+diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
+index ac91ea5296db..84bc7b659d76 100644
+--- a/drivers/infiniband/hw/irdma/utils.c
++++ b/drivers/infiniband/hw/irdma/utils.c
+@@ -767,17 +767,6 @@ struct ib_qp *irdma_get_qp(struct ib_device *device, int qpn)
+ 	return &iwdev->rf->qp_table[qpn]->ibqp;
  }
  
 -/**
-- * irdma_uk_mw_bind - bind Memory Window
-- * @qp: hw qp ptr
-- * @info: post sq information
-- * @post_sq: flag to post sq
+- * irdma_get_hw_addr - return hw addr
+- * @par: points to shared dev
 - */
--enum irdma_status_code irdma_uk_mw_bind(struct irdma_qp_uk *qp,
--					struct irdma_post_sq_info *info,
--					bool post_sq)
+-u8 __iomem *irdma_get_hw_addr(void *par)
 -{
--	__le64 *wqe;
--	struct irdma_bind_window *op_info;
--	u64 hdr;
--	u32 wqe_idx;
--	bool local_fence = false;
+-	struct irdma_sc_dev *dev = par;
 -
--	info->push_wqe = qp->push_db ? true : false;
--	op_info = &info->op.bind_window;
--	local_fence |= info->local_fence;
--
--	wqe = irdma_qp_get_next_send_wqe(qp, &wqe_idx, IRDMA_QP_WQE_MIN_QUANTA,
--					 0, info);
--	if (!wqe)
--		return IRDMA_ERR_QP_TOOMANY_WRS_POSTED;
--
--	irdma_clr_wqes(qp, wqe_idx);
--
--	qp->wqe_ops.iw_set_mw_bind_wqe(wqe, op_info);
--
--	hdr = FIELD_PREP(IRDMAQPSQ_OPCODE, IRDMA_OP_TYPE_BIND_MW) |
--	      FIELD_PREP(IRDMAQPSQ_STAGRIGHTS,
--			 ((op_info->ena_reads << 2) | (op_info->ena_writes << 3))) |
--	      FIELD_PREP(IRDMAQPSQ_VABASEDTO,
--			 (op_info->addressing_type == IRDMA_ADDR_TYPE_VA_BASED ? 1 : 0)) |
--	      FIELD_PREP(IRDMAQPSQ_MEMWINDOWTYPE,
--			 (op_info->mem_window_type_1 ? 1 : 0)) |
--	      FIELD_PREP(IRDMAQPSQ_PUSHWQE, info->push_wqe) |
--	      FIELD_PREP(IRDMAQPSQ_READFENCE, info->read_fence) |
--	      FIELD_PREP(IRDMAQPSQ_LOCALFENCE, local_fence) |
--	      FIELD_PREP(IRDMAQPSQ_SIGCOMPL, info->signaled) |
--	      FIELD_PREP(IRDMAQPSQ_VALID, qp->swqe_polarity);
--
--	dma_wmb(); /* make sure WQE is populated before valid bit is set */
--
--	set_64bit_val(wqe, 24, hdr);
--
--	if (info->push_wqe) {
--		irdma_qp_push_wqe(qp, wqe, IRDMA_QP_WQE_MIN_QUANTA, wqe_idx,
--				  post_sq);
--	} else {
--		if (post_sq)
--			irdma_uk_qp_post_wr(qp);
--	}
--
--	return 0;
+-	return dev->hw->hw_addr;
 -}
 -
  /**
-  * irdma_uk_post_receive - post receive wqe
-  * @qp: hw qp ptr
-diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
-index 3dcbb1fbf2c6..31d5e4e3f442 100644
---- a/drivers/infiniband/hw/irdma/user.h
-+++ b/drivers/infiniband/hw/irdma/user.h
-@@ -283,9 +283,7 @@ enum irdma_status_code irdma_uk_inline_rdma_write(struct irdma_qp_uk *qp,
- enum irdma_status_code irdma_uk_inline_send(struct irdma_qp_uk *qp,
- 					    struct irdma_post_sq_info *info,
- 					    bool post_sq);
--enum irdma_status_code irdma_uk_mw_bind(struct irdma_qp_uk *qp,
--					struct irdma_post_sq_info *info,
--					bool post_sq);
-+
- enum irdma_status_code irdma_uk_post_nop(struct irdma_qp_uk *qp, u64 wr_id,
- 					 bool signaled, bool post_sq);
- enum irdma_status_code irdma_uk_post_receive(struct irdma_qp_uk *qp,
+  * irdma_remove_cqp_head - return head entry and remove
+  * @dev: device
 -- 
 2.27.0
 
