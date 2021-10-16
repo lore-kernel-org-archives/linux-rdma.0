@@ -2,322 +2,164 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 517FEC433FE
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8302FC433F5
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:39:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A5BA60E96
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D38A61073
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:39:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243955AbhJPJkt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 16 Oct 2021 05:40:49 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:30478 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S243964AbhJPJkk (ORCPT
+        id S244007AbhJPJk6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 16 Oct 2021 05:40:58 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:26242 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S243969AbhJPJkk (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
         Sat, 16 Oct 2021 05:40:40 -0400
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 19G81xvX015593;
-        Sat, 16 Oct 2021 05:38:29 -0400
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 19G5xYtv004984;
+        Sat, 16 Oct 2021 05:38:31 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
  : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=pp1;
- bh=tw4saScUOpNGUzHaDQk0CkcUj6Le0i9z76n0F8p/444=;
- b=bs4wlmOWTJFhlaaQ31vVXKn/H5pICmqNL5pIIJBtTQIkeSPthHKFLYJkafG1tdIoX6g+
- zTBLqWcN/bpC/Iq0OJV/j4CGJrv8h5qxheVfg39L7qOnTf4TXq8CwLuVT+u9nqcbjEu8
- H1tJez4DZjaS+DiPWcPPIz574cQF+U4G3SntsSEwAsdtbcV5C47AkCg0h36lWGIIJ4iw
- rXQQIsj3zKaPdZRIReKWDTMhhqgAQAzZwo+V91I6DEkx0og8SmGOHbeqkXX/C6hk/KKI
- Vfj7gc09kS7F5wz2HAKbJu3X0Lgix+6m0DRSXtcw6W42V9CeP7NlpR04oLxhfSBHSgmL 1Q== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3bqtvche84-1
+ bh=ajtnnQPYsZIaOVWtFcDlVc5hApbamOHVoABLoj+q3Eo=;
+ b=nI+snleNOc6guflgc+JOrt4xMQB9fPOaJ0EdJhILKGGcTpayk7SPPl37kVE20gCUqynH
+ 2RZzTAKSPDSUCm0QE20kyB15bDA2euoopZMKCN7qw+iWBGSQP1ztoOdnZx6Vhug3hOQB
+ kMcQreo9TD/sxwUptk/9WscXdmczLiYxDetnhBBvvwOvctmfrtAKdohR2NvCnVSh9ev4
+ tnnR/QyldgaD1ZJ3/AboJtzPOsVt4vGfaOddBYkRoiiY8EZ0TeGWDwusVjYrBrQ4vkow
+ NFPctkRRF6S/9LO+A3P4kUHvJKnj3jdy9oWKMG+KmNeGh9+kXOV/vHSTxwQat79rrkLV YQ== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 3bqs2qk19d-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sat, 16 Oct 2021 05:38:29 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-        by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 19G9cD24011873;
-        Sat, 16 Oct 2021 09:38:27 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-        by ppma04ams.nl.ibm.com with ESMTP id 3bqpc9saeb-1
+        Sat, 16 Oct 2021 05:38:31 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+        by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 19G9biSC004105;
+        Sat, 16 Oct 2021 09:38:28 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+        by ppma03ams.nl.ibm.com with ESMTP id 3bqpc919xf-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sat, 16 Oct 2021 09:38:27 +0000
+        Sat, 16 Oct 2021 09:38:28 +0000
 Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 19G9Wh8V57278816
+        by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 19G9cQOO56492390
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 16 Oct 2021 09:32:43 GMT
+        Sat, 16 Oct 2021 09:38:26 GMT
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id E66DE4C040;
-        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id 1721E4C040;
+        Sat, 16 Oct 2021 09:38:26 +0000 (GMT)
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id AB6314C052;
-        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id D52544C044;
+        Sat, 16 Oct 2021 09:38:25 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
         by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
+        Sat, 16 Oct 2021 09:38:25 +0000 (GMT)
 From:   Karsten Graul <kgraul@linux.ibm.com>
 To:     David Miller <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         Heiko Carstens <hca@linux.ibm.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v3 06/10] net/smc: retrieve v2 gid from IB device
-Date:   Sat, 16 Oct 2021 11:37:48 +0200
-Message-Id: <20211016093752.3564615-7-kgraul@linux.ibm.com>
+Subject: [PATCH net-next v3 10/10] net/smc: stop links when their GID is removed
+Date:   Sat, 16 Oct 2021 11:37:52 +0200
+Message-Id: <20211016093752.3564615-11-kgraul@linux.ibm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211016093752.3564615-1-kgraul@linux.ibm.com>
 References: <20211016093752.3564615-1-kgraul@linux.ibm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: W7alRGXt_bKBLfdt3nbEWgwhuSeh17-u
-X-Proofpoint-GUID: W7alRGXt_bKBLfdt3nbEWgwhuSeh17-u
+X-Proofpoint-ORIG-GUID: QLmraRanIlq2CVmumSvC2pGPnLLGPu_w
+X-Proofpoint-GUID: QLmraRanIlq2CVmumSvC2pGPnLLGPu_w
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.425,FMLib:17.0.607.475
  definitions=2021-10-16_03,2021-10-14_02,2020-04-07_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 mlxlogscore=999
- impostorscore=0 malwarescore=0 spamscore=0 mlxscore=0 adultscore=0
- clxscore=1015 priorityscore=1501 lowpriorityscore=0 suspectscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ suspectscore=0 mlxscore=0 adultscore=0 phishscore=0 lowpriorityscore=0
+ bulkscore=0 priorityscore=1501 spamscore=0 clxscore=1015 mlxlogscore=999
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2109230001 definitions=main-2110160060
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In smc_ib.c, scan for RoCE devices that support UDP encapsulation.
-Find an eligible device and check that there is a route to the
-remote peer.
+With SMC-Rv2 the GID is an IP address that can be deleted from the
+device. When an IB_EVENT_GID_CHANGE event is provided then iterate over
+all active links and check if their GID is still defined. Otherwise
+stop the affected link.
 
 Signed-off-by: Karsten Graul <kgraul@linux.ibm.com>
 ---
- net/smc/smc_core.c |  4 ++-
- net/smc/smc_ib.c   | 77 ++++++++++++++++++++++++++++++++++++++--------
- net/smc/smc_ib.h   |  3 +-
- net/smc/smc_pnet.c | 41 +++++++++++++++---------
- 4 files changed, 95 insertions(+), 30 deletions(-)
+ net/smc/smc_ib.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index a081582e5669..6bbd71de6bc0 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -715,7 +715,9 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
- 	lnk->psn_initial = rndvec[0] + (rndvec[1] << 8) +
- 		(rndvec[2] << 16);
- 	rc = smc_ib_determine_gid(lnk->smcibdev, lnk->ibport,
--				  ini->vlan_id, lnk->gid, &lnk->sgid_index);
-+				  ini->vlan_id, lnk->gid, &lnk->sgid_index,
-+				  lgr->smc_version == SMC_V2 ?
-+						  &ini->smcrv2 : NULL);
- 	if (rc)
- 		goto out;
- 	rc = smc_llc_link_init(lnk);
 diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index 9f72910af1d0..d15bacbd73e0 100644
+index 32f9d2fdc474..d93055ec17ae 100644
 --- a/net/smc/smc_ib.c
 +++ b/net/smc/smc_ib.c
-@@ -17,6 +17,7 @@
- #include <linux/scatterlist.h>
- #include <linux/wait.h>
- #include <linux/mutex.h>
-+#include <linux/inetdevice.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_cache.h>
- 
-@@ -62,16 +63,23 @@ static int smc_ib_modify_qp_rtr(struct smc_link *lnk)
- 		IB_QP_STATE | IB_QP_AV | IB_QP_PATH_MTU | IB_QP_DEST_QPN |
- 		IB_QP_RQ_PSN | IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER;
- 	struct ib_qp_attr qp_attr;
-+	u8 hop_lim = 1;
- 
- 	memset(&qp_attr, 0, sizeof(qp_attr));
- 	qp_attr.qp_state = IB_QPS_RTR;
- 	qp_attr.path_mtu = min(lnk->path_mtu, lnk->peer_mtu);
- 	qp_attr.ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
- 	rdma_ah_set_port_num(&qp_attr.ah_attr, lnk->ibport);
--	rdma_ah_set_grh(&qp_attr.ah_attr, NULL, 0, lnk->sgid_index, 1, 0);
-+	if (lnk->lgr->smc_version == SMC_V2 && lnk->lgr->uses_gateway)
-+		hop_lim = IPV6_DEFAULT_HOPLIMIT;
-+	rdma_ah_set_grh(&qp_attr.ah_attr, NULL, 0, lnk->sgid_index, hop_lim, 0);
- 	rdma_ah_set_dgid_raw(&qp_attr.ah_attr, lnk->peer_gid);
--	memcpy(&qp_attr.ah_attr.roce.dmac, lnk->peer_mac,
--	       sizeof(lnk->peer_mac));
-+	if (lnk->lgr->smc_version == SMC_V2 && lnk->lgr->uses_gateway)
-+		memcpy(&qp_attr.ah_attr.roce.dmac, lnk->lgr->nexthop_mac,
-+		       sizeof(lnk->lgr->nexthop_mac));
-+	else
-+		memcpy(&qp_attr.ah_attr.roce.dmac, lnk->peer_mac,
-+		       sizeof(lnk->peer_mac));
- 	qp_attr.dest_qp_num = lnk->peer_qpn;
- 	qp_attr.rq_psn = lnk->peer_psn; /* starting receive packet seq # */
- 	qp_attr.max_dest_rd_atomic = 1; /* max # of resources for incoming
-@@ -210,9 +218,54 @@ int smc_ib_find_route(__be32 saddr, __be32 daddr,
- 	return -ENOENT;
+@@ -295,6 +295,58 @@ int smc_ib_determine_gid(struct smc_ib_device *smcibdev, u8 ibport,
+ 	return -ENODEV;
  }
  
-+static int smc_ib_determine_gid_rcu(const struct net_device *ndev,
-+				    const struct ib_gid_attr *attr,
-+				    u8 gid[], u8 *sgid_index,
-+				    struct smc_init_info_smcrv2 *smcrv2)
++/* check if gid is still defined on smcibdev */
++static bool smc_ib_check_link_gid(u8 gid[SMC_GID_SIZE], bool smcrv2,
++				  struct smc_ib_device *smcibdev, u8 ibport)
 +{
-+	if (!smcrv2 && attr->gid_type == IB_GID_TYPE_ROCE) {
-+		if (gid)
-+			memcpy(gid, &attr->gid, SMC_GID_SIZE);
-+		if (sgid_index)
-+			*sgid_index = attr->index;
-+		return 0;
-+	}
-+	if (smcrv2 && attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP &&
-+	    smc_ib_gid_to_ipv4((u8 *)&attr->gid) != cpu_to_be32(INADDR_NONE)) {
-+		struct in_device *in_dev = __in_dev_get_rcu(ndev);
-+		const struct in_ifaddr *ifa;
-+		bool subnet_match = false;
++	const struct ib_gid_attr *attr;
++	bool rc = false;
++	int i;
 +
-+		if (!in_dev)
-+			goto out;
-+		in_dev_for_each_ifa_rcu(ifa, in_dev) {
-+			if (!inet_ifa_match(smcrv2->saddr, ifa))
++	for (i = 0; !rc && i < smcibdev->pattr[ibport - 1].gid_tbl_len; i++) {
++		attr = rdma_get_gid_attr(smcibdev->ibdev, ibport, i);
++		if (IS_ERR(attr))
++			continue;
++
++		rcu_read_lock();
++		if ((!smcrv2 && attr->gid_type == IB_GID_TYPE_ROCE) ||
++		    (smcrv2 && attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP &&
++		     !(ipv6_addr_type((const struct in6_addr *)&attr->gid)
++				     & IPV6_ADDR_LINKLOCAL)))
++			if (!memcmp(gid, &attr->gid, SMC_GID_SIZE))
++				rc = true;
++		rcu_read_unlock();
++		rdma_put_gid_attr(attr);
++	}
++	return rc;
++}
++
++/* check all links if the gid is still defined on smcibdev */
++static void smc_ib_gid_check(struct smc_ib_device *smcibdev, u8 ibport)
++{
++	struct smc_link_group *lgr;
++	int i;
++
++	spin_lock_bh(&smc_lgr_list.lock);
++	list_for_each_entry(lgr, &smc_lgr_list.list, list) {
++		if (strncmp(smcibdev->pnetid[ibport - 1], lgr->pnet_id,
++			    SMC_MAX_PNETID_LEN))
++			continue; /* lgr is not affected */
++		if (list_empty(&lgr->list))
++			continue;
++		for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
++			if (lgr->lnk[i].state == SMC_LNK_UNUSED ||
++			    lgr->lnk[i].smcibdev != smcibdev)
 +				continue;
-+			subnet_match = true;
-+			break;
++			if (!smc_ib_check_link_gid(lgr->lnk[i].gid,
++						   lgr->smc_version == SMC_V2,
++						   smcibdev, ibport))
++				smcr_port_err(smcibdev, ibport);
 +		}
-+		if (!subnet_match)
-+			goto out;
-+		if (smcrv2->daddr && smc_ib_find_route(smcrv2->saddr,
-+						       smcrv2->daddr,
-+						       smcrv2->nexthop_mac,
-+						       &smcrv2->uses_gateway))
-+			goto out;
-+
-+		if (gid)
-+			memcpy(gid, &attr->gid, SMC_GID_SIZE);
-+		if (sgid_index)
-+			*sgid_index = attr->index;
-+		return 0;
 +	}
-+out:
-+	return -ENODEV;
++	spin_unlock_bh(&smc_lgr_list.lock);
 +}
 +
- /* determine the gid for an ib-device port and vlan id */
- int smc_ib_determine_gid(struct smc_ib_device *smcibdev, u8 ibport,
--			 unsigned short vlan_id, u8 gid[], u8 *sgid_index)
-+			 unsigned short vlan_id, u8 gid[], u8 *sgid_index,
-+			 struct smc_init_info_smcrv2 *smcrv2)
+ static int smc_ib_remember_port_attr(struct smc_ib_device *smcibdev, u8 ibport)
  {
- 	const struct ib_gid_attr *attr;
- 	const struct net_device *ndev;
-@@ -228,15 +281,13 @@ int smc_ib_determine_gid(struct smc_ib_device *smcibdev, u8 ibport,
- 		if (!IS_ERR(ndev) &&
- 		    ((!vlan_id && !is_vlan_dev(ndev)) ||
- 		     (vlan_id && is_vlan_dev(ndev) &&
--		      vlan_dev_vlan_id(ndev) == vlan_id)) &&
--		    attr->gid_type == IB_GID_TYPE_ROCE) {
--			rcu_read_unlock();
--			if (gid)
--				memcpy(gid, &attr->gid, SMC_GID_SIZE);
--			if (sgid_index)
--				*sgid_index = attr->index;
--			rdma_put_gid_attr(attr);
--			return 0;
-+		      vlan_dev_vlan_id(ndev) == vlan_id))) {
-+			if (!smc_ib_determine_gid_rcu(ndev, attr, gid,
-+						      sgid_index, smcrv2)) {
-+				rcu_read_unlock();
-+				rdma_put_gid_attr(attr);
-+				return 0;
-+			}
+ 	int rc;
+@@ -333,6 +385,7 @@ static void smc_ib_port_event_work(struct work_struct *work)
+ 		} else {
+ 			clear_bit(port_idx, smcibdev->ports_going_away);
+ 			smcr_port_add(smcibdev, port_idx + 1);
++			smc_ib_gid_check(smcibdev, port_idx + 1);
  		}
- 		rcu_read_unlock();
- 		rdma_put_gid_attr(attr);
-diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
-index c55cbd7be67a..07585937370e 100644
---- a/net/smc/smc_ib.h
-+++ b/net/smc/smc_ib.h
-@@ -101,7 +101,8 @@ void smc_ib_sync_sg_for_device(struct smc_link *lnk,
- 			       struct smc_buf_desc *buf_slot,
- 			       enum dma_data_direction data_direction);
- int smc_ib_determine_gid(struct smc_ib_device *smcibdev, u8 ibport,
--			 unsigned short vlan_id, u8 gid[], u8 *sgid_index);
-+			 unsigned short vlan_id, u8 gid[], u8 *sgid_index,
-+			 struct smc_init_info_smcrv2 *smcrv2);
- int smc_ib_find_route(__be32 saddr, __be32 daddr,
- 		      u8 nexthop_mac[], u8 *uses_gateway);
- bool smc_ib_is_valid_local_systemid(void);
-diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
-index 4a964e9190b0..67e9d9fde085 100644
---- a/net/smc/smc_pnet.c
-+++ b/net/smc/smc_pnet.c
-@@ -953,6 +953,26 @@ static int smc_pnet_find_ndev_pnetid_by_table(struct net_device *ndev,
- 	return rc;
+ 	}
  }
- 
-+static int smc_pnet_determine_gid(struct smc_ib_device *ibdev, int i,
-+				  struct smc_init_info *ini)
-+{
-+	if (!ini->check_smcrv2 &&
-+	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->ib_gid, NULL,
-+				  NULL)) {
-+		ini->ib_dev = ibdev;
-+		ini->ib_port = i;
-+		return 0;
-+	}
-+	if (ini->check_smcrv2 &&
-+	    !smc_ib_determine_gid(ibdev, i, ini->vlan_id, ini->smcrv2.ib_gid_v2,
-+				  NULL, &ini->smcrv2)) {
-+		ini->smcrv2.ib_dev_v2 = ibdev;
-+		ini->smcrv2.ib_port_v2 = i;
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+
- /* find a roce device for the given pnetid */
- static void _smc_pnet_find_roce_by_pnetid(u8 *pnet_id,
- 					  struct smc_init_info *ini,
-@@ -961,7 +981,6 @@ static void _smc_pnet_find_roce_by_pnetid(u8 *pnet_id,
- 	struct smc_ib_device *ibdev;
- 	int i;
- 
--	ini->ib_dev = NULL;
- 	mutex_lock(&smc_ib_devices.mutex);
- 	list_for_each_entry(ibdev, &smc_ib_devices.list, list) {
- 		if (ibdev == known_dev)
-@@ -971,12 +990,9 @@ static void _smc_pnet_find_roce_by_pnetid(u8 *pnet_id,
- 				continue;
- 			if (smc_pnet_match(ibdev->pnetid[i - 1], pnet_id) &&
- 			    smc_ib_port_active(ibdev, i) &&
--			    !test_bit(i - 1, ibdev->ports_going_away) &&
--			    !smc_ib_determine_gid(ibdev, i, ini->vlan_id,
--						  ini->ib_gid, NULL)) {
--				ini->ib_dev = ibdev;
--				ini->ib_port = i;
--				goto out;
-+			    !test_bit(i - 1, ibdev->ports_going_away)) {
-+				if (!smc_pnet_determine_gid(ibdev, i, ini))
-+					goto out;
- 			}
- 		}
- 	}
-@@ -1016,12 +1032,9 @@ static void smc_pnet_find_rdma_dev(struct net_device *netdev,
- 			dev_put(ndev);
- 			if (netdev == ndev &&
- 			    smc_ib_port_active(ibdev, i) &&
--			    !test_bit(i - 1, ibdev->ports_going_away) &&
--			    !smc_ib_determine_gid(ibdev, i, ini->vlan_id,
--						  ini->ib_gid, NULL)) {
--				ini->ib_dev = ibdev;
--				ini->ib_port = i;
--				break;
-+			    !test_bit(i - 1, ibdev->ports_going_away)) {
-+				if (!smc_pnet_determine_gid(ibdev, i, ini))
-+					break;
- 			}
- 		}
- 	}
-@@ -1083,8 +1096,6 @@ void smc_pnet_find_roce_resource(struct sock *sk, struct smc_init_info *ini)
- {
- 	struct dst_entry *dst = sk_dst_get(sk);
- 
--	ini->ib_dev = NULL;
--	ini->ib_port = 0;
- 	if (!dst)
- 		goto out;
- 	if (!dst->dev)
 -- 
 2.25.1
 
