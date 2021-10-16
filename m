@@ -2,347 +2,555 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5726C433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9315AC433F5
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE61060E96
-	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B08260E96
+	for <linux-rdma@archiver.kernel.org>; Sat, 16 Oct 2021 09:38:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243963AbhJPJkq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 16 Oct 2021 05:40:46 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:29096 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S243955AbhJPJki (ORCPT
+        id S243992AbhJPJkr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 16 Oct 2021 05:40:47 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:52842 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S243965AbhJPJkk (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 16 Oct 2021 05:40:38 -0400
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 19G7i8ck013309;
-        Sat, 16 Oct 2021 05:38:28 -0400
+        Sat, 16 Oct 2021 05:40:40 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 19G7C71b013491;
+        Sat, 16 Oct 2021 05:38:29 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
  : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=pp1;
- bh=feRCSBy57lYmEWN9LvNoBsv7wKPhZaA5EFLRsz2ZWr0=;
- b=qctmidL+osokq7ILjjWLKGQl2o+DaN815JeBgwWuis0x2+AIZQRJpGhhx+z1Y94JcNY+
- 0P7F60U7RZuaSZ7nd1PjU5kkWiG4XV2WF922h9i6cMwdEZZawTeou/BS6Tp5d2gP0vfb
- 0q/Av2o5kXmB/gwFWPliz1+efNEBr+EKJjqQ+G8WNrlN++/mvP7Zjnm6InpXPKxwCLqz
- CfnreuKVMR5e9S31lCnyvu0R5FEKW9m93hTcD62czpB91QutWCR7JeVU9xl+2JMJmwvQ
- GCkfQAU83c8IskMTTDb8BxHcu1yt+ZpSgtxPztESRH44OTnRH7SogoCgRBTbCN0pBw+x TQ== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3bqtkxsp2p-1
+ bh=1/7FauJuDC5iN9e0L2eMlYKuQkXTgwwiBHep53egnNc=;
+ b=VpS8IaHL8q+M/saBE3bvFfWR+RaQDqdCGnsAuIJ3Wjj0o6e4OVZO5t+D5bPXfWC8S0Jx
+ lBCil235Xnky8Xu4U9xisCWLUqW5IzHXv/Qztme6FhIYgmU918eMJBLUVwxQ5HVrEDsX
+ 24lyjbOssqRiP3avUZBlztOt4P3Or5hT4w4/Od4tDVB3GT0SHbkzJwAGpoK4HWTqQyoe
+ fPdo3dIhbspNsBRSEgr0ZzYejBAuFX0OoU8aKVUBe8PSDN6k683GHr8y+qwxrGi8IKmS
+ Y8LE2Gx6cbOuxtT55cOO/jdaVWppMZQJPYNjSNifeypd/hZ3TBLnsVlD9DnTwGGMX0hG ug== 
+Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 3bqt4pt1ks-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Sat, 16 Oct 2021 05:38:27 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-        by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 19G9bspw011805;
-        Sat, 16 Oct 2021 09:38:26 GMT
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-        by ppma04ams.nl.ibm.com with ESMTP id 3bqpc9sae6-1
+        Sat, 16 Oct 2021 05:38:28 -0400
+Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
+        by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 19G9cKoD004609;
+        Sat, 16 Oct 2021 09:38:27 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+        by ppma01fra.de.ibm.com with ESMTP id 3bqpc99624-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
         Sat, 16 Oct 2021 09:38:26 +0000
 Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 19G9cNH551839302
+        by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 19G9Webt63701450
         (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 16 Oct 2021 09:38:23 GMT
+        Sat, 16 Oct 2021 09:32:40 GMT
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B3D8B4C04A;
-        Sat, 16 Oct 2021 09:38:23 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id 5F2254C04E;
+        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 7747E4C044;
-        Sat, 16 Oct 2021 09:38:23 +0000 (GMT)
+        by IMSVA (Postfix) with ESMTP id 199D94C046;
+        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
 Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
         by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Sat, 16 Oct 2021 09:38:23 +0000 (GMT)
+        Sat, 16 Oct 2021 09:38:24 +0000 (GMT)
 From:   Karsten Graul <kgraul@linux.ibm.com>
 To:     David Miller <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
 Cc:     netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         Heiko Carstens <hca@linux.ibm.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v3 02/10] net/smc: prepare for SMC-Rv2 connection
-Date:   Sat, 16 Oct 2021 11:37:44 +0200
-Message-Id: <20211016093752.3564615-3-kgraul@linux.ibm.com>
+Subject: [PATCH net-next v3 04/10] net/smc: add listen processing for SMC-Rv2
+Date:   Sat, 16 Oct 2021 11:37:46 +0200
+Message-Id: <20211016093752.3564615-5-kgraul@linux.ibm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211016093752.3564615-1-kgraul@linux.ibm.com>
 References: <20211016093752.3564615-1-kgraul@linux.ibm.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: JDpcdvLbIpuvIpSoykStOJfXLWXnE6wa
-X-Proofpoint-GUID: JDpcdvLbIpuvIpSoykStOJfXLWXnE6wa
+X-Proofpoint-ORIG-GUID: UcKqOTtiFRE60in53BAwDyEqTPvgEY0g
+X-Proofpoint-GUID: UcKqOTtiFRE60in53BAwDyEqTPvgEY0g
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.425,FMLib:17.0.607.475
  definitions=2021-10-16_03,2021-10-14_02,2020-04-07_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 phishscore=0
- mlxlogscore=999 spamscore=0 priorityscore=1501 suspectscore=0
- clxscore=1015 lowpriorityscore=0 adultscore=0 impostorscore=0 bulkscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 impostorscore=0
+ suspectscore=0 spamscore=0 priorityscore=1501 clxscore=1015
+ mlxlogscore=999 malwarescore=0 phishscore=0 lowpriorityscore=0 mlxscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2109230001 definitions=main-2110160058
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Prepare the connection establishment with SMC-Rv2. Detect eligible
-RoCE cards and indicate all supported SMC modes for the connection.
+Implement the server side of the SMC-Rv2 processing. Process incoming
+CLC messages, find eligible devices and check for a valid route to the
+remote peer.
 
 Signed-off-by: Karsten Graul <kgraul@linux.ibm.com>
 ---
- net/smc/af_smc.c   | 97 +++++++++++++++++++++++++++++-----------------
- net/smc/smc_clc.c  | 11 ++++++
- net/smc/smc_clc.h  | 12 ++++++
- net/smc/smc_core.h | 28 +++++++++++++
- 4 files changed, 113 insertions(+), 35 deletions(-)
+ net/smc/af_smc.c   | 165 ++++++++++++++++++++++++++++++++-------------
+ net/smc/smc_clc.h  |   1 +
+ net/smc/smc_core.c |  64 +++++++++++++-----
+ net/smc/smc_core.h |   1 -
+ 4 files changed, 165 insertions(+), 66 deletions(-)
 
 diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index f69ef3f2019f..f21e74537f53 100644
+index d4280262b829..ce5feb68382f 100644
 --- a/net/smc/af_smc.c
 +++ b/net/smc/af_smc.c
-@@ -608,7 +608,9 @@ static int smc_find_rdma_device(struct smc_sock *smc, struct smc_init_info *ini)
- 	 * used for the internal TCP socket
- 	 */
- 	smc_pnet_find_roce_resource(smc->clcsock->sk, ini);
--	if (!ini->ib_dev)
-+	if (!ini->check_smcrv2 && !ini->ib_dev)
-+		return SMC_CLC_DECL_NOSMCRDEV;
-+	if (ini->check_smcrv2 && !ini->smcrv2.ib_dev_v2)
- 		return SMC_CLC_DECL_NOSMCRDEV;
- 	return 0;
- }
-@@ -692,27 +694,42 @@ static int smc_find_proposal_devices(struct smc_sock *smc,
- 	int rc = 0;
+@@ -1515,33 +1515,48 @@ static int smc_listen_v2_check(struct smc_sock *new_smc,
  
- 	/* check if there is an ism device available */
--	if (ini->smcd_version & SMC_V1) {
--		if (smc_find_ism_device(smc, ini) ||
--		    smc_connect_ism_vlan_setup(smc, ini)) {
--			if (ini->smc_type_v1 == SMC_TYPE_B)
--				ini->smc_type_v1 = SMC_TYPE_R;
--			else
--				ini->smc_type_v1 = SMC_TYPE_N;
--		} /* else ISM V1 is supported for this connection */
--		if (smc_find_rdma_device(smc, ini)) {
--			if (ini->smc_type_v1 == SMC_TYPE_B)
--				ini->smc_type_v1 = SMC_TYPE_D;
--			else
--				ini->smc_type_v1 = SMC_TYPE_N;
--		} /* else RDMA is supported for this connection */
--	}
--	if (smc_ism_is_v2_capable() && smc_find_ism_v2_device_clnt(smc, ini))
--		ini->smc_type_v2 = SMC_TYPE_N;
-+	if (!(ini->smcd_version & SMC_V1) ||
-+	    smc_find_ism_device(smc, ini) ||
-+	    smc_connect_ism_vlan_setup(smc, ini))
-+		ini->smcd_version &= ~SMC_V1;
-+	/* else ISM V1 is supported for this connection */
-+
-+	/* check if there is an rdma device available */
-+	if (!(ini->smcr_version & SMC_V1) ||
-+	    smc_find_rdma_device(smc, ini))
-+		ini->smcr_version &= ~SMC_V1;
-+	/* else RDMA is supported for this connection */
-+
-+	ini->smc_type_v1 = smc_indicated_type(ini->smcd_version & SMC_V1,
-+					      ini->smcr_version & SMC_V1);
-+
-+	/* check if there is an ism v2 device available */
-+	if (!(ini->smcd_version & SMC_V2) ||
-+	    !smc_ism_is_v2_capable() ||
-+	    smc_find_ism_v2_device_clnt(smc, ini))
-+		ini->smcd_version &= ~SMC_V2;
-+
-+	/* check if there is an rdma v2 device available */
-+	ini->check_smcrv2 = true;
-+	ini->smcrv2.saddr = smc->clcsock->sk->sk_rcv_saddr;
-+	if (!(ini->smcr_version & SMC_V2) ||
-+	    smc->clcsock->sk->sk_family != AF_INET ||
-+	    !smc_clc_ueid_count() ||
-+	    smc_find_rdma_device(smc, ini))
-+		ini->smcr_version &= ~SMC_V2;
-+	ini->check_smcrv2 = false;
-+
-+	ini->smc_type_v2 = smc_indicated_type(ini->smcd_version & SMC_V2,
-+					      ini->smcr_version & SMC_V2);
- 
- 	/* if neither ISM nor RDMA are supported, fallback */
--	if (!smcr_indicated(ini->smc_type_v1) &&
--	    ini->smc_type_v1 == SMC_TYPE_N && ini->smc_type_v2 == SMC_TYPE_N)
-+	if (ini->smc_type_v1 == SMC_TYPE_N && ini->smc_type_v2 == SMC_TYPE_N)
- 		rc = SMC_CLC_DECL_NOSMCDEV;
- 
- 	return rc;
-@@ -950,17 +967,24 @@ static int smc_connect_ism(struct smc_sock *smc,
- static int smc_connect_check_aclc(struct smc_init_info *ini,
- 				  struct smc_clc_msg_accept_confirm *aclc)
- {
--	if ((aclc->hdr.typev1 == SMC_TYPE_R &&
--	     !smcr_indicated(ini->smc_type_v1)) ||
--	    (aclc->hdr.typev1 == SMC_TYPE_D &&
--	     ((!smcd_indicated(ini->smc_type_v1) &&
--	       !smcd_indicated(ini->smc_type_v2)) ||
--	      (aclc->hdr.version == SMC_V1 &&
--	       !smcd_indicated(ini->smc_type_v1)) ||
--	      (aclc->hdr.version == SMC_V2 &&
--	       !smcd_indicated(ini->smc_type_v2)))))
-+	if (aclc->hdr.typev1 != SMC_TYPE_R &&
-+	    aclc->hdr.typev1 != SMC_TYPE_D)
- 		return SMC_CLC_DECL_MODEUNSUPP;
- 
-+	if (aclc->hdr.version >= SMC_V2) {
-+		if ((aclc->hdr.typev1 == SMC_TYPE_R &&
-+		     !smcr_indicated(ini->smc_type_v2)) ||
-+		    (aclc->hdr.typev1 == SMC_TYPE_D &&
-+		     !smcd_indicated(ini->smc_type_v2)))
-+			return SMC_CLC_DECL_MODEUNSUPP;
-+	} else {
-+		if ((aclc->hdr.typev1 == SMC_TYPE_R &&
-+		     !smcr_indicated(ini->smc_type_v1)) ||
-+		    (aclc->hdr.typev1 == SMC_TYPE_D &&
-+		     !smcd_indicated(ini->smc_type_v1)))
-+			return SMC_CLC_DECL_MODEUNSUPP;
+ 	ini->smc_type_v1 = pclc->hdr.typev1;
+ 	ini->smc_type_v2 = pclc->hdr.typev2;
+-	ini->smcd_version = ini->smc_type_v1 != SMC_TYPE_N ? SMC_V1 : 0;
+-	if (pclc->hdr.version > SMC_V1)
+-		ini->smcd_version |=
+-				ini->smc_type_v2 != SMC_TYPE_N ? SMC_V2 : 0;
+-	if (!(ini->smcd_version & SMC_V2)) {
++	ini->smcd_version = smcd_indicated(ini->smc_type_v1) ? SMC_V1 : 0;
++	ini->smcr_version = smcr_indicated(ini->smc_type_v1) ? SMC_V1 : 0;
++	if (pclc->hdr.version > SMC_V1) {
++		if (smcd_indicated(ini->smc_type_v2))
++			ini->smcd_version |= SMC_V2;
++		if (smcr_indicated(ini->smc_type_v2))
++			ini->smcr_version |= SMC_V2;
 +	}
-+
++	if (!(ini->smcd_version & SMC_V2) && !(ini->smcr_version & SMC_V2)) {
+ 		rc = SMC_CLC_DECL_PEERNOSMC;
+ 		goto out;
+ 	}
+-	if (!smc_ism_is_v2_capable()) {
+-		ini->smcd_version &= ~SMC_V2;
+-		rc = SMC_CLC_DECL_NOISM2SUPP;
+-		goto out;
+-	}
+ 	pclc_v2_ext = smc_get_clc_v2_ext(pclc);
+ 	if (!pclc_v2_ext) {
+ 		ini->smcd_version &= ~SMC_V2;
++		ini->smcr_version &= ~SMC_V2;
+ 		rc = SMC_CLC_DECL_NOV2EXT;
+ 		goto out;
+ 	}
+ 	pclc_smcd_v2_ext = smc_get_clc_smcd_v2_ext(pclc_v2_ext);
+-	if (!pclc_smcd_v2_ext) {
+-		ini->smcd_version &= ~SMC_V2;
+-		rc = SMC_CLC_DECL_NOV2DEXT;
++	if (ini->smcd_version & SMC_V2) {
++		if (!smc_ism_is_v2_capable()) {
++			ini->smcd_version &= ~SMC_V2;
++			rc = SMC_CLC_DECL_NOISM2SUPP;
++		} else if (!pclc_smcd_v2_ext) {
++			ini->smcd_version &= ~SMC_V2;
++			rc = SMC_CLC_DECL_NOV2DEXT;
++		} else if (!pclc_v2_ext->hdr.eid_cnt &&
++			   !pclc_v2_ext->hdr.flag.seid) {
++			ini->smcd_version &= ~SMC_V2;
++			rc = SMC_CLC_DECL_NOUEID;
++		}
++	}
++	if (ini->smcr_version & SMC_V2) {
++		if (!pclc_v2_ext->hdr.eid_cnt) {
++			ini->smcr_version &= ~SMC_V2;
++			rc = SMC_CLC_DECL_NOUEID;
++		}
+ 	}
+ 
+ out:
+-	if (!ini->smcd_version)
++	if (!ini->smcd_version && !ini->smcr_version)
+ 		return rc;
+ 
+ 	return 0;
+@@ -1661,10 +1676,6 @@ static void smc_find_ism_v2_device_serv(struct smc_sock *new_smc,
+ 	pclc_smcd = smc_get_clc_msg_smcd(pclc);
+ 	smc_v2_ext = smc_get_clc_v2_ext(pclc);
+ 	smcd_v2_ext = smc_get_clc_smcd_v2_ext(smc_v2_ext);
+-	if (!smcd_v2_ext) {
+-		smc_find_ism_store_rc(SMC_CLC_DECL_NOV2DEXT, ini);
+-		goto not_found;
+-	}
+ 
+ 	mutex_lock(&smcd_dev_list.mutex);
+ 	if (pclc_smcd->ism.chid)
+@@ -1682,8 +1693,10 @@ static void smc_find_ism_v2_device_serv(struct smc_sock *new_smc,
+ 	}
+ 	mutex_unlock(&smcd_dev_list.mutex);
+ 
+-	if (!ini->ism_dev[0])
++	if (!ini->ism_dev[0]) {
++		smc_find_ism_store_rc(SMC_CLC_DECL_NOSMCD2DEV, ini);
+ 		goto not_found;
++	}
+ 
+ 	smc_ism_get_system_eid(&eid);
+ 	if (!smc_clc_match_eid(ini->negotiated_eid, smc_v2_ext,
+@@ -1736,6 +1749,7 @@ static void smc_find_ism_v1_device_serv(struct smc_sock *new_smc,
+ 
+ not_found:
+ 	smc_find_ism_store_rc(rc, ini);
++	ini->smcd_version &= ~SMC_V1;
+ 	ini->ism_dev[0] = NULL;
+ 	ini->is_smcd = false;
+ }
+@@ -1754,24 +1768,69 @@ static int smc_listen_rdma_reg(struct smc_sock *new_smc, bool local_first)
  	return 0;
  }
  
-@@ -991,14 +1015,15 @@ static int __smc_connect(struct smc_sock *smc)
- 		return smc_connect_decline_fallback(smc, SMC_CLC_DECL_MEM,
- 						    version);
++static void smc_find_rdma_v2_device_serv(struct smc_sock *new_smc,
++					 struct smc_clc_msg_proposal *pclc,
++					 struct smc_init_info *ini)
++{
++	struct smc_clc_v2_extension *smc_v2_ext;
++	u8 smcr_version;
++	int rc;
++
++	if (!(ini->smcr_version & SMC_V2) || !smcr_indicated(ini->smc_type_v2))
++		goto not_found;
++
++	smc_v2_ext = smc_get_clc_v2_ext(pclc);
++	if (!smc_clc_match_eid(ini->negotiated_eid, smc_v2_ext, NULL, NULL))
++		goto not_found;
++
++	/* prepare RDMA check */
++	memcpy(ini->peer_systemid, pclc->lcl.id_for_peer, SMC_SYSTEMID_LEN);
++	memcpy(ini->peer_gid, smc_v2_ext->roce, SMC_GID_SIZE);
++	memcpy(ini->peer_mac, pclc->lcl.mac, ETH_ALEN);
++	ini->check_smcrv2 = true;
++	ini->smcrv2.clc_sk = new_smc->clcsock->sk;
++	ini->smcrv2.saddr = new_smc->clcsock->sk->sk_rcv_saddr;
++	ini->smcrv2.daddr = smc_ib_gid_to_ipv4(smc_v2_ext->roce);
++	rc = smc_find_rdma_device(new_smc, ini);
++	if (rc) {
++		smc_find_ism_store_rc(rc, ini);
++		goto not_found;
++	}
++	if (!ini->smcrv2.uses_gateway)
++		memcpy(ini->smcrv2.nexthop_mac, pclc->lcl.mac, ETH_ALEN);
++
++	smcr_version = ini->smcr_version;
++	ini->smcr_version = SMC_V2;
++	rc = smc_listen_rdma_init(new_smc, ini);
++	if (!rc)
++		rc = smc_listen_rdma_reg(new_smc, ini->first_contact_local);
++	if (!rc)
++		return;
++	ini->smcr_version = smcr_version;
++	smc_find_ism_store_rc(rc, ini);
++
++not_found:
++	ini->smcr_version &= ~SMC_V2;
++	ini->check_smcrv2 = false;
++}
++
+ static int smc_find_rdma_v1_device_serv(struct smc_sock *new_smc,
+ 					struct smc_clc_msg_proposal *pclc,
+ 					struct smc_init_info *ini)
+ {
+ 	int rc;
  
--	ini->smcd_version = SMC_V1;
--	ini->smcd_version |= smc_ism_is_v2_capable() ? SMC_V2 : 0;
-+	ini->smcd_version = SMC_V1 | SMC_V2;
-+	ini->smcr_version = SMC_V1 | SMC_V2;
- 	ini->smc_type_v1 = SMC_TYPE_B;
--	ini->smc_type_v2 = smc_ism_is_v2_capable() ? SMC_TYPE_D : SMC_TYPE_N;
-+	ini->smc_type_v2 = SMC_TYPE_B;
+-	if (!smcr_indicated(ini->smc_type_v1))
++	if (!(ini->smcr_version & SMC_V1) || !smcr_indicated(ini->smc_type_v1))
+ 		return SMC_CLC_DECL_NOSMCDEV;
+ 
+ 	/* prepare RDMA check */
+-	ini->ib_lcl = &pclc->lcl;
++	memcpy(ini->peer_systemid, pclc->lcl.id_for_peer, SMC_SYSTEMID_LEN);
++	memcpy(ini->peer_gid, pclc->lcl.gid, SMC_GID_SIZE);
++	memcpy(ini->peer_mac, pclc->lcl.mac, ETH_ALEN);
+ 	rc = smc_find_rdma_device(new_smc, ini);
+ 	if (rc) {
+ 		/* no RDMA device found */
+-		if (ini->smc_type_v1 == SMC_TYPE_B)
+-			/* neither ISM nor RDMA device found */
+-			rc = SMC_CLC_DECL_NOSMCDEV;
+-		return rc;
++		return SMC_CLC_DECL_NOSMCDEV;
+ 	}
+ 	rc = smc_listen_rdma_init(new_smc, ini);
+ 	if (rc)
+@@ -1784,51 +1843,60 @@ static int smc_listen_find_device(struct smc_sock *new_smc,
+ 				  struct smc_clc_msg_proposal *pclc,
+ 				  struct smc_init_info *ini)
+ {
+-	int rc;
++	int prfx_rc;
+ 
+ 	/* check for ISM device matching V2 proposed device */
+ 	smc_find_ism_v2_device_serv(new_smc, pclc, ini);
+ 	if (ini->ism_dev[0])
+ 		return 0;
+ 
+-	if (!(ini->smcd_version & SMC_V1))
+-		return ini->rc ?: SMC_CLC_DECL_NOSMCD2DEV;
+-
+-	/* check for matching IP prefix and subnet length */
+-	rc = smc_listen_prfx_check(new_smc, pclc);
+-	if (rc)
+-		return ini->rc ?: rc;
++	/* check for matching IP prefix and subnet length (V1) */
++	prfx_rc = smc_listen_prfx_check(new_smc, pclc);
++	if (prfx_rc)
++		smc_find_ism_store_rc(prfx_rc, ini);
  
  	/* get vlan id from IP device */
- 	if (smc_vlan_by_tcpsk(smc->clcsock, ini)) {
- 		ini->smcd_version &= ~SMC_V1;
-+		ini->smcr_version = 0;
- 		ini->smc_type_v1 = SMC_TYPE_N;
- 		if (!ini->smcd_version) {
- 			rc = SMC_CLC_DECL_GETVLANERR;
-@@ -1026,15 +1051,17 @@ static int __smc_connect(struct smc_sock *smc)
- 	/* check if smc modes and versions of CLC proposal and accept match */
- 	rc = smc_connect_check_aclc(ini, aclc);
- 	version = aclc->hdr.version == SMC_V1 ? SMC_V1 : SMC_V2;
--	ini->smcd_version = version;
- 	if (rc)
- 		goto vlan_cleanup;
+ 	if (smc_vlan_by_tcpsk(new_smc->clcsock, ini))
+ 		return ini->rc ?: SMC_CLC_DECL_GETVLANERR;
  
- 	/* depending on previous steps, connect using rdma or ism */
--	if (aclc->hdr.typev1 == SMC_TYPE_R)
-+	if (aclc->hdr.typev1 == SMC_TYPE_R) {
-+		ini->smcr_version = version;
- 		rc = smc_connect_rdma(smc, aclc, ini);
--	else if (aclc->hdr.typev1 == SMC_TYPE_D)
-+	} else if (aclc->hdr.typev1 == SMC_TYPE_D) {
-+		ini->smcd_version = version;
- 		rc = smc_connect_ism(smc, aclc, ini);
+ 	/* check for ISM device matching V1 proposed device */
+-	smc_find_ism_v1_device_serv(new_smc, pclc, ini);
++	if (!prfx_rc)
++		smc_find_ism_v1_device_serv(new_smc, pclc, ini);
+ 	if (ini->ism_dev[0])
+ 		return 0;
+ 
+-	if (pclc->hdr.typev1 == SMC_TYPE_D)
++	if (!smcr_indicated(pclc->hdr.typev1) &&
++	    !smcr_indicated(pclc->hdr.typev2))
+ 		/* skip RDMA and decline */
+ 		return ini->rc ?: SMC_CLC_DECL_NOSMCDDEV;
+ 
+-	/* check if RDMA is available */
+-	rc = smc_find_rdma_v1_device_serv(new_smc, pclc, ini);
+-	smc_find_ism_store_rc(rc, ini);
++	/* check if RDMA V2 is available */
++	smc_find_rdma_v2_device_serv(new_smc, pclc, ini);
++	if (ini->smcrv2.ib_dev_v2)
++		return 0;
+ 
+-	return (!rc) ? 0 : ini->rc;
++	/* check if RDMA V1 is available */
++	if (!prfx_rc) {
++		int rc;
++
++		rc = smc_find_rdma_v1_device_serv(new_smc, pclc, ini);
++		smc_find_ism_store_rc(rc, ini);
++		return (!rc) ? 0 : ini->rc;
 +	}
- 	if (rc)
- 		goto vlan_cleanup;
++	return SMC_CLC_DECL_NOSMCDEV;
+ }
  
-diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
-index 1cc8a76b39f9..8d44f06cf401 100644
---- a/net/smc/smc_clc.c
-+++ b/net/smc/smc_clc.c
-@@ -114,6 +114,17 @@ static int smc_clc_ueid_add(char *ueid)
+ /* listen worker: finish RDMA setup */
+ static int smc_listen_rdma_finish(struct smc_sock *new_smc,
+ 				  struct smc_clc_msg_accept_confirm *cclc,
+-				  bool local_first)
++				  bool local_first,
++				  struct smc_init_info *ini)
+ {
+ 	struct smc_link *link = new_smc->conn.lnk;
+ 	int reason_code = 0;
+ 
+ 	if (local_first)
+-		smc_link_save_peer_info(link, cclc, NULL);
++		smc_link_save_peer_info(link, cclc, ini);
+ 
+ 	if (smc_rmb_rtoken_handling(&new_smc->conn, link, cclc))
+ 		return SMC_CLC_DECL_ERR_RTOK;
+@@ -1849,12 +1917,13 @@ static void smc_listen_work(struct work_struct *work)
+ {
+ 	struct smc_sock *new_smc = container_of(work, struct smc_sock,
+ 						smc_listen_work);
+-	u8 version = smc_ism_is_v2_capable() ? SMC_V2 : SMC_V1;
+ 	struct socket *newclcsock = new_smc->clcsock;
+ 	struct smc_clc_msg_accept_confirm *cclc;
+ 	struct smc_clc_msg_proposal_area *buf;
+ 	struct smc_clc_msg_proposal *pclc;
+ 	struct smc_init_info *ini = NULL;
++	u8 proposal_version = SMC_V1;
++	u8 accept_version;
+ 	int rc = 0;
+ 
+ 	if (new_smc->listen_smc->sk.sk_state != SMC_LISTEN)
+@@ -1885,7 +1954,9 @@ static void smc_listen_work(struct work_struct *work)
+ 			      SMC_CLC_PROPOSAL, CLC_WAIT_TIME);
+ 	if (rc)
+ 		goto out_decl;
+-	version = pclc->hdr.version == SMC_V1 ? SMC_V1 : version;
++
++	if (pclc->hdr.version > SMC_V1)
++		proposal_version = SMC_V2;
+ 
+ 	/* IPSec connections opt out of SMC optimizations */
+ 	if (using_ipsec(new_smc)) {
+@@ -1915,9 +1986,9 @@ static void smc_listen_work(struct work_struct *work)
+ 		goto out_unlock;
+ 
+ 	/* send SMC Accept CLC message */
++	accept_version = ini->is_smcd ? ini->smcd_version : ini->smcr_version;
+ 	rc = smc_clc_send_accept(new_smc, ini->first_contact_local,
+-				 ini->smcd_version == SMC_V2 ? SMC_V2 : SMC_V1,
+-				 ini->negotiated_eid);
++				 accept_version, ini->negotiated_eid);
+ 	if (rc)
+ 		goto out_unlock;
+ 
+@@ -1939,7 +2010,7 @@ static void smc_listen_work(struct work_struct *work)
+ 	/* finish worker */
+ 	if (!ini->is_smcd) {
+ 		rc = smc_listen_rdma_finish(new_smc, cclc,
+-					    ini->first_contact_local);
++					    ini->first_contact_local, ini);
+ 		if (rc)
+ 			goto out_unlock;
+ 		mutex_unlock(&smc_server_lgr_pending);
+@@ -1953,7 +2024,7 @@ static void smc_listen_work(struct work_struct *work)
+ 	mutex_unlock(&smc_server_lgr_pending);
+ out_decl:
+ 	smc_listen_decline(new_smc, rc, ini ? ini->first_contact_local : 0,
+-			   version);
++			   proposal_version);
+ out_free:
+ 	kfree(ini);
+ 	kfree(buf);
+diff --git a/net/smc/smc_clc.h b/net/smc/smc_clc.h
+index 4f2fe278f404..22c079ed77a9 100644
+--- a/net/smc/smc_clc.h
++++ b/net/smc/smc_clc.h
+@@ -44,6 +44,7 @@
+ #define SMC_CLC_DECL_NOV2DEXT	0x03030005  /* peer sent no clc SMC-Dv2 ext.  */
+ #define SMC_CLC_DECL_NOSEID	0x03030006  /* peer sent no SEID	      */
+ #define SMC_CLC_DECL_NOSMCD2DEV	0x03030007  /* no SMC-Dv2 device found	      */
++#define SMC_CLC_DECL_NOUEID	0x03030008  /* peer sent no UEID	      */
+ #define SMC_CLC_DECL_MODEUNSUPP	0x03040000  /* smc modes do not match (R or D)*/
+ #define SMC_CLC_DECL_RMBE_EC	0x03050000  /* peer has eyecatcher in RMBE    */
+ #define SMC_CLC_DECL_OPTUNSUPP	0x03060000  /* fastopen sockopt not supported */
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 4d463701a759..a081582e5669 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -684,24 +684,30 @@ static void smcr_copy_dev_info_to_link(struct smc_link *link)
+ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
+ 		   u8 link_idx, struct smc_init_info *ini)
+ {
++	struct smc_ib_device *smcibdev;
+ 	u8 rndvec[3];
+ 	int rc;
+ 
+-	get_device(&ini->ib_dev->ibdev->dev);
+-	atomic_inc(&ini->ib_dev->lnk_cnt);
++	if (lgr->smc_version == SMC_V2) {
++		lnk->smcibdev = ini->smcrv2.ib_dev_v2;
++		lnk->ibport = ini->smcrv2.ib_port_v2;
++	} else {
++		lnk->smcibdev = ini->ib_dev;
++		lnk->ibport = ini->ib_port;
++	}
++	get_device(&lnk->smcibdev->ibdev->dev);
++	atomic_inc(&lnk->smcibdev->lnk_cnt);
++	lnk->path_mtu = lnk->smcibdev->pattr[lnk->ibport - 1].active_mtu;
+ 	lnk->link_id = smcr_next_link_id(lgr);
+ 	lnk->lgr = lgr;
+ 	lnk->link_idx = link_idx;
+-	lnk->smcibdev = ini->ib_dev;
+-	lnk->ibport = ini->ib_port;
+ 	smc_ibdev_cnt_inc(lnk);
+ 	smcr_copy_dev_info_to_link(lnk);
+-	lnk->path_mtu = ini->ib_dev->pattr[ini->ib_port - 1].active_mtu;
+ 	atomic_set(&lnk->conn_cnt, 0);
+ 	smc_llc_link_set_uid(lnk);
+ 	INIT_WORK(&lnk->link_down_wrk, smc_link_down_work);
+-	if (!ini->ib_dev->initialized) {
+-		rc = (int)smc_ib_setup_per_ibdev(ini->ib_dev);
++	if (!lnk->smcibdev->initialized) {
++		rc = (int)smc_ib_setup_per_ibdev(lnk->smcibdev);
+ 		if (rc)
+ 			goto out;
+ 	}
+@@ -740,11 +746,12 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
+ 	smc_llc_link_clear(lnk, false);
+ out:
+ 	smc_ibdev_cnt_dec(lnk);
+-	put_device(&ini->ib_dev->ibdev->dev);
++	put_device(&lnk->smcibdev->ibdev->dev);
++	smcibdev = lnk->smcibdev;
+ 	memset(lnk, 0, sizeof(struct smc_link));
+ 	lnk->state = SMC_LNK_UNUSED;
+-	if (!atomic_dec_return(&ini->ib_dev->lnk_cnt))
+-		wake_up(&ini->ib_dev->lnks_deleted);
++	if (!atomic_dec_return(&smcibdev->lnk_cnt))
++		wake_up(&smcibdev->lnks_deleted);
  	return rc;
  }
  
-+int smc_clc_ueid_count(void)
-+{
-+	int count;
+@@ -808,10 +815,25 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 		atomic_inc(&ini->ism_dev[ini->ism_selected]->lgr_cnt);
+ 	} else {
+ 		/* SMC-R specific settings */
++		struct smc_ib_device *ibdev;
++		int ibport;
 +
-+	read_lock(&smc_clc_eid_table.lock);
-+	count = smc_clc_eid_table.ueid_cnt;
-+	read_unlock(&smc_clc_eid_table.lock);
-+
-+	return count;
-+}
-+
- int smc_nl_add_ueid(struct sk_buff *skb, struct genl_info *info)
- {
- 	struct nlattr *nla_ueid = info->attrs[SMC_NLA_EID_TABLE_ENTRY];
-diff --git a/net/smc/smc_clc.h b/net/smc/smc_clc.h
-index 974d01d16bb5..37ce97f7fdb0 100644
---- a/net/smc/smc_clc.h
-+++ b/net/smc/smc_clc.h
-@@ -282,6 +282,17 @@ static inline bool smcd_indicated(int smc_type)
- 	return smc_type == SMC_TYPE_D || smc_type == SMC_TYPE_B;
+ 		lgr->role = smc->listen_smc ? SMC_SERV : SMC_CLNT;
+-		memcpy(lgr->peer_systemid, ini->ib_lcl->id_for_peer,
++		lgr->smc_version = ini->smcr_version;
++		memcpy(lgr->peer_systemid, ini->peer_systemid,
+ 		       SMC_SYSTEMID_LEN);
+-		memcpy(lgr->pnet_id, ini->ib_dev->pnetid[ini->ib_port - 1],
++		if (lgr->smc_version == SMC_V2) {
++			ibdev = ini->smcrv2.ib_dev_v2;
++			ibport = ini->smcrv2.ib_port_v2;
++			lgr->saddr = ini->smcrv2.saddr;
++			lgr->uses_gateway = ini->smcrv2.uses_gateway;
++			memcpy(lgr->nexthop_mac, ini->smcrv2.nexthop_mac,
++			       ETH_ALEN);
++		} else {
++			ibdev = ini->ib_dev;
++			ibport = ini->ib_port;
++		}
++		memcpy(lgr->pnet_id, ibdev->pnetid[ibport - 1],
+ 		       SMC_MAX_PNETID_LEN);
+ 		smc_llc_lgr_init(lgr, smc);
+ 
+@@ -1636,13 +1658,15 @@ int smc_vlan_by_tcpsk(struct socket *clcsock, struct smc_init_info *ini)
+ 	return rc;
  }
  
-+static inline u8 smc_indicated_type(int is_smcd, int is_smcr)
-+{
-+	if (is_smcd && is_smcr)
-+		return SMC_TYPE_B;
-+	if (is_smcd)
-+		return SMC_TYPE_D;
-+	if (is_smcr)
-+		return SMC_TYPE_R;
-+	return SMC_TYPE_N;
-+}
-+
- /* get SMC-D info from proposal message */
- static inline struct smc_clc_msg_smcd *
- smc_get_clc_msg_smcd(struct smc_clc_msg_proposal *prop)
-@@ -343,6 +354,7 @@ void smc_clc_get_hostname(u8 **host);
- bool smc_clc_match_eid(u8 *negotiated_eid,
- 		       struct smc_clc_v2_extension *smc_v2_ext,
- 		       u8 *peer_eid, u8 *local_eid);
-+int smc_clc_ueid_count(void);
- int smc_nl_dump_ueid(struct sk_buff *skb, struct netlink_callback *cb);
- int smc_nl_add_ueid(struct sk_buff *skb, struct genl_info *info);
- int smc_nl_remove_ueid(struct sk_buff *skb, struct genl_info *info);
+-static bool smcr_lgr_match(struct smc_link_group *lgr,
+-			   struct smc_clc_msg_local *lcl,
++static bool smcr_lgr_match(struct smc_link_group *lgr, u8 smcr_version,
++			   u8 peer_systemid[],
++			   u8 peer_gid[],
++			   u8 peer_mac_v1[],
+ 			   enum smc_lgr_role role, u32 clcqpn)
+ {
+ 	int i;
+ 
+-	if (memcmp(lgr->peer_systemid, lcl->id_for_peer, SMC_SYSTEMID_LEN) ||
++	if (memcmp(lgr->peer_systemid, peer_systemid, SMC_SYSTEMID_LEN) ||
+ 	    lgr->role != role)
+ 		return false;
+ 
+@@ -1650,8 +1674,9 @@ static bool smcr_lgr_match(struct smc_link_group *lgr,
+ 		if (!smc_link_active(&lgr->lnk[i]))
+ 			continue;
+ 		if ((lgr->role == SMC_SERV || lgr->lnk[i].peer_qpn == clcqpn) &&
+-		    !memcmp(lgr->lnk[i].peer_gid, &lcl->gid, SMC_GID_SIZE) &&
+-		    !memcmp(lgr->lnk[i].peer_mac, lcl->mac, sizeof(lcl->mac)))
++		    !memcmp(lgr->lnk[i].peer_gid, peer_gid, SMC_GID_SIZE) &&
++		    (smcr_version == SMC_V2 ||
++		     !memcmp(lgr->lnk[i].peer_mac, peer_mac_v1, ETH_ALEN)))
+ 			return true;
+ 	}
+ 	return false;
+@@ -1690,7 +1715,10 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 		if ((ini->is_smcd ?
+ 		     smcd_lgr_match(lgr, ini->ism_dev[ini->ism_selected],
+ 				    ini->ism_peer_gid[ini->ism_selected]) :
+-		     smcr_lgr_match(lgr, ini->ib_lcl, role, ini->ib_clcqpn)) &&
++		     smcr_lgr_match(lgr, ini->smcr_version,
++				    ini->peer_systemid,
++				    ini->peer_gid, ini->peer_mac, role,
++				    ini->ib_clcqpn)) &&
+ 		    !lgr->sync_err &&
+ 		    (ini->smcd_version == SMC_V2 ||
+ 		     lgr->vlan_id == ini->vlan_id) &&
 diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index 83d30b06016f..4a1778a7e3a5 100644
+index 128474f33b8f..dd3198bb6cb9 100644
 --- a/net/smc/smc_core.h
 +++ b/net/smc/smc_core.h
-@@ -302,6 +302,31 @@ struct smc_link_group {
- 
- struct smc_clc_msg_local;
- 
-+#define GID_LIST_SIZE	2
-+
-+struct smc_gidlist {
-+	u8			len;
-+	u8			list[GID_LIST_SIZE][SMC_GID_SIZE];
-+};
-+
-+struct smc_init_info_smcrv2 {
-+	/* Input fields */
-+	__be32			saddr;
-+	struct sock		*clc_sk;
-+	__be32			daddr;
-+
-+	/* Output fields when saddr is set */
-+	struct smc_ib_device	*ib_dev_v2;
-+	u8			ib_port_v2;
-+	u8			ib_gid_v2[SMC_GID_SIZE];
-+
-+	/* Additional output fields when clc_sk and daddr is set as well */
-+	u8			uses_gateway;
-+	u8			nexthop_mac[ETH_ALEN];
-+
-+	struct smc_gidlist	gidlist;
-+};
-+
- struct smc_init_info {
- 	u8			is_smcd;
- 	u8			smc_type_v1;
-@@ -313,10 +338,13 @@ struct smc_init_info {
+@@ -340,7 +340,6 @@ struct smc_init_info {
+ 	u32			rc;
  	u8			negotiated_eid[SMC_MAX_EID_LEN];
  	/* SMC-R */
- 	struct smc_clc_msg_local *ib_lcl;
-+	u8			smcr_version;
-+	u8			check_smcrv2;
- 	struct smc_ib_device	*ib_dev;
- 	u8			ib_gid[SMC_GID_SIZE];
- 	u8			ib_port;
- 	u32			ib_clcqpn;
-+	struct smc_init_info_smcrv2 smcrv2;
- 	/* SMC-D */
- 	u64			ism_peer_gid[SMC_MAX_ISM_DEVS + 1];
- 	struct smcd_dev		*ism_dev[SMC_MAX_ISM_DEVS + 1];
+-	struct smc_clc_msg_local *ib_lcl;
+ 	u8			smcr_version;
+ 	u8			check_smcrv2;
+ 	u8			peer_gid[SMC_GID_SIZE];
 -- 
 2.25.1
 
