@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43FD1C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Oct 2021 22:07:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4F80C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Oct 2021 22:07:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24C6B60551
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Oct 2021 22:07:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1B1660551
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Oct 2021 22:07:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230453AbhJTWJo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Oct 2021 18:09:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44242 "EHLO
+        id S230466AbhJTWJq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 Oct 2021 18:09:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229842AbhJTWJo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Oct 2021 18:09:44 -0400
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AFE9C061749
-        for <linux-rdma@vger.kernel.org>; Wed, 20 Oct 2021 15:07:29 -0700 (PDT)
-Received: by mail-ot1-x32f.google.com with SMTP id x27-20020a9d459b000000b0055303520cc4so9959503ote.13
-        for <linux-rdma@vger.kernel.org>; Wed, 20 Oct 2021 15:07:29 -0700 (PDT)
+        with ESMTP id S229842AbhJTWJp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Oct 2021 18:09:45 -0400
+Received: from mail-ot1-x333.google.com (mail-ot1-x333.google.com [IPv6:2607:f8b0:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A46FAC06161C
+        for <linux-rdma@vger.kernel.org>; Wed, 20 Oct 2021 15:07:30 -0700 (PDT)
+Received: by mail-ot1-x333.google.com with SMTP id e59-20020a9d01c1000000b00552c91a99f7so8759028ote.6
+        for <linux-rdma@vger.kernel.org>; Wed, 20 Oct 2021 15:07:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+kwDB+WyuiMNWaO6iHCXpNevUwT5XXkj0VKU7Sq+tro=;
-        b=GzybidH8pB5FS3vc2kSbMIhJwoHXBYJMjt2upop7bgfU7l0TjyNjz9IkJ4070EQ/1t
-         tfXG/WQ0ytxAw1jBQEZguYlwYIi03k9NJkEUehphyOE+wbZuhGoSZ+haBVW3sGoUCBVw
-         W9Ag8ELo8fts9/bYf/Mow8q6hmN6UEOKCNG4M3otmNqNy3NjnN+/bMnisIhA6bIkOVoN
-         Cbr7Qkgq8z54jI4WRFBh8DHKo2CLqvJg97nQB1ZJjeipYrivJ5+ZxzARUyukMTizn2Tv
-         shfBdemZ83QIRtccgwtVS0Qu/9982mu9rADQrD9k9ANAK65NAwvTNln2Eq87k3Zb57QB
-         6iuA==
+        bh=UPersv+1bSjKGYzblCBC5jYPMG1NT6+omf3MmqVlrak=;
+        b=fQWDxNSQxAtrw2O8p6IXZSNk47sPNuS3D9uKF2h1pvb/bB4PC86je+lZyUuc2cP4dd
+         9v1dIUyg2CE9dWj6AiDzMuqH4PJz6u3Tj6h69opQ8Bo0iby37k4kwgZdRE9stYiOSg6g
+         aMsFeeNH/6r0Q2NfSUG0BdQAygDvN05QMD2TWEwqsh/2G41Set40yfbU39b5lFHvvlZa
+         cXeK4cvc8YJelNdcpAGzq3fk0WXPsbd29C1lBO/zub8JgimHMgs7+zRMpSKPeDEr8OyY
+         NQdHp/gxe6nTETcEN4kAAEooU9fblhP790EI0+iOiu0yJTsABNkNFYeQkPZDRgCaDyd5
+         zLOg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+kwDB+WyuiMNWaO6iHCXpNevUwT5XXkj0VKU7Sq+tro=;
-        b=mWZzc3JzSm7NWycXiKfQeaDyXwGp+7pAH4iK/faqxRQGAli9P0Th105jmHtPdAXG7I
-         iGZSCT8jL2K2LEV3cq0QCLePiZ2dDdGGa2YQPqPVGsPSXfgFWeoZnd67mjQv8sZp+1tx
-         E8AtIxg0xaonvO8dRQBvLMpuflqNG6jyDREuVCLMfcUpIEdsjOScw4C0pkkBl/JGu3aW
-         jGEXCxODzK2U+A1K4/z9yVxgfFCsD6FFP2pdEvqfqBMDKBIPzs/j/2C77SYnCQa6zHcD
-         h/hrT8vKZNzsneSLlD6W6JqE521Bf8UFLVekWmRO7VDRpcfUnA7L0Cteru4V7ReDGYlF
-         O4PQ==
-X-Gm-Message-State: AOAM531oJUXQn19gcZoO64KpPxpfO5fb4e/rkdSOc+uNdY8kDcD9b1wZ
-        PQRnLXOpvhlMUUXwlNaZfegXffopU08=
-X-Google-Smtp-Source: ABdhPJw/hhxWft9cBcsTfG1O3HBHODotqTtP/Na8ab67+mZC2OVMQTTqMZ95eO2pwFN0K2zm1JQvXg==
-X-Received: by 2002:a05:6830:19f5:: with SMTP id t21mr1473321ott.293.1634767648620;
-        Wed, 20 Oct 2021 15:07:28 -0700 (PDT)
+        bh=UPersv+1bSjKGYzblCBC5jYPMG1NT6+omf3MmqVlrak=;
+        b=i64CpPWtM1pqaufcAScEU3PtlOQCOPHtfB9R5FFB4rsrdPxZXGKudOxCGCa8IFNqjs
+         jBAHI5B3GbarUnROQxqvKEsMk+sLDLqKTTN5D7H9ELskcLNCaLEGovhQrzsZ1KroJTnW
+         kIZCd3Emd20niHje+C5LuT1zZ6IH/y07WIw0mNNkyFqOc17BybBB6ix0DSCddXsW6zUI
+         N26dzlm4PuARXYYOudTN2Fs9LAAdhByLeRlxwgGvxlir8OklAHhitIFMnvecsKlkKlnR
+         90GqgxMMN1iMJVWV0LZjVTYjmbLLva2Ns1KgjF8h+DV6/zYEALZsx8nCudlVH863ONir
+         ahAQ==
+X-Gm-Message-State: AOAM531ELwCwDM7FRiZ/Ui63xoZO1QMAbXgGQPs7no81TPoR+p4gn2Dj
+        JgBR88Hm58xsglZCRenDHmg/DCWEP7M=
+X-Google-Smtp-Source: ABdhPJzEOq1UHNqS/qgBVtfLlX540dycaJGrDK1iX90w/8WMGr46iWWKZz3/WComUCdIbnsG0RiRbA==
+X-Received: by 2002:a9d:5f85:: with SMTP id g5mr1512744oti.139.1634767650096;
+        Wed, 20 Oct 2021 15:07:30 -0700 (PDT)
 Received: from ubunto-21.tx.rr.com (2603-8081-140c-1a00-8d65-dc0b-4dcc-2f9b.res6.spectrum.com. [2603:8081:140c:1a00:8d65:dc0b:4dcc:2f9b])
-        by smtp.gmail.com with ESMTPSA id v13sm725050otn.41.2021.10.20.15.07.27
+        by smtp.gmail.com with ESMTPSA id v13sm725050otn.41.2021.10.20.15.07.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Oct 2021 15:07:28 -0700 (PDT)
+        Wed, 20 Oct 2021 15:07:29 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 3/7] RDMA/rxe: Add xarray support to rxe_pool.c
-Date:   Wed, 20 Oct 2021 17:05:46 -0500
-Message-Id: <20211020220549.36145-4-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 5/7] RDMA/rxe: Convert remaining pools to xarrays
+Date:   Wed, 20 Oct 2021 17:05:48 -0500
+Message-Id: <20211020220549.36145-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211020220549.36145-1-rpearsonhpe@gmail.com>
 References: <20211020220549.36145-1-rpearsonhpe@gmail.com>
@@ -65,263 +65,62 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rxe driver uses red-black trees to add indices and keys
-to the rxe object pool. Linux xarrays provide a better way to implement
-the same functionality for indices but not keys. This patch adds a
-second alternative to adding indices based on cyclic allocating xarrays.
-The AH pool is modified to hold either xarrays or red-black trees.
-The code is tested for both options.
+This patch converts the remaining pools with RXE_POOL_INDEX set to
+RXE_POOL_XARRAY.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 100 ++++++++++++++++++++++-----
- drivers/infiniband/sw/rxe/rxe_pool.h |   9 +++
- 2 files changed, 92 insertions(+), 17 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 24ebd1b663c3..ba5c600fa9e8 100644
+index 1b7269dd6d9e..364449c284a3 100644
 --- a/drivers/infiniband/sw/rxe/rxe_pool.c
 +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -25,7 +25,8 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+@@ -25,7 +25,6 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
  		.name		= "rxe-ah",
  		.size		= sizeof(struct rxe_ah),
  		.elem_offset	= offsetof(struct rxe_ah, elem),
--		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
-+		//.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
-+		.flags		= RXE_POOL_XARRAY | RXE_POOL_NO_ALLOC,
+-		//.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
+ 		.flags		= RXE_POOL_XARRAY | RXE_POOL_NO_ALLOC,
  		.min_index	= RXE_MIN_AH_INDEX,
  		.max_index	= RXE_MAX_AH_INDEX,
+@@ -35,7 +34,7 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+ 		.size		= sizeof(struct rxe_srq),
+ 		.elem_offset	= offsetof(struct rxe_srq, elem),
+ 		.cleanup	= rxe_srq_cleanup,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_XARRAY | RXE_POOL_NO_ALLOC,
+ 		.min_index	= RXE_MIN_SRQ_INDEX,
+ 		.max_index	= RXE_MAX_SRQ_INDEX,
  	},
-@@ -128,15 +129,20 @@ int rxe_pool_init(
- 	pool->elem_size		= ALIGN(info->size, RXE_POOL_ALIGN);
- 	pool->elem_offset	= info->elem_offset;
- 	pool->flags		= info->flags;
--	pool->index.tree	= RB_ROOT;
--	pool->key.tree		= RB_ROOT;
- 	pool->cleanup		= info->cleanup;
- 
- 	atomic_set(&pool->num_elem, 0);
- 
- 	rwlock_init(&pool->pool_lock);
- 
-+	if (info->flags & RXE_POOL_XARRAY) {
-+		xa_init_flags(&pool->xarray.xa, XA_FLAGS_ALLOC);
-+		pool->xarray.limit.max = info->max_index;
-+		pool->xarray.limit.min = info->min_index;
-+	}
-+
- 	if (info->flags & RXE_POOL_INDEX) {
-+		pool->index.tree = RB_ROOT;
- 		err = rxe_pool_init_index(pool, info->max_index,
- 					  info->min_index);
- 		if (err)
-@@ -144,6 +150,7 @@ int rxe_pool_init(
- 	}
- 
- 	if (info->flags & RXE_POOL_KEY) {
-+		pool->key.tree = RB_ROOT;
- 		pool->key.key_offset = info->key_offset;
- 		pool->key.key_size = info->key_size;
- 	}
-@@ -158,7 +165,8 @@ void rxe_pool_cleanup(struct rxe_pool *pool)
- 		pr_warn("%s pool destroyed with unfree'd elem\n",
- 			pool->name);
- 
--	kfree(pool->index.table);
-+	if (pool->flags & RXE_POOL_INDEX)
-+		kfree(pool->index.table);
- }
- 
- /* should never fail because there are at least as many indices as
-@@ -272,28 +280,35 @@ static void *__rxe_alloc_locked(struct rxe_pool *pool)
- 	int err;
- 
- 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
--		goto out_cnt;
-+		goto err;
- 
- 	obj = kzalloc(pool->elem_size, GFP_ATOMIC);
- 	if (!obj)
--		goto out_cnt;
-+		goto err;
- 
- 	elem = (struct rxe_pool_elem *)((u8 *)obj + pool->elem_offset);
- 
- 	elem->pool = pool;
- 	elem->obj = obj;
- 
-+	if (pool->flags & RXE_POOL_XARRAY) {
-+		err = xa_alloc_cyclic_bh(&pool->xarray.xa, &elem->index, elem,
-+					 pool->xarray.limit,
-+					 &pool->xarray.next, GFP_KERNEL);
-+		if (err)
-+			goto err;
-+	}
-+
- 	if (pool->flags & RXE_POOL_INDEX) {
- 		err = rxe_add_index(elem);
--		if (err) {
--			kfree(obj);
--			goto out_cnt;
--		}
-+		if (err)
-+			goto err;
- 	}
- 
- 	return obj;
- 
--out_cnt:
-+err:
-+	kfree(obj);
- 	atomic_dec(&pool->num_elem);
- 	return NULL;
- }
-@@ -368,15 +383,23 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem)
- 
- 	write_lock_bh(&pool->pool_lock);
- 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
--		goto out_cnt;
-+		goto err;
- 
- 	elem->pool = pool;
- 	elem->obj = (u8 *)elem - pool->elem_offset;
- 
-+	if (pool->flags & RXE_POOL_XARRAY) {
-+		err = xa_alloc_cyclic_bh(&pool->xarray.xa, &elem->index, elem,
-+					 pool->xarray.limit,
-+					 &pool->xarray.next, GFP_KERNEL);
-+		if (err)
-+			goto err;
-+	}
-+
- 	if (pool->flags & RXE_POOL_INDEX) {
- 		err = rxe_add_index(elem);
- 		if (err)
--			goto out_cnt;
-+			goto err;
- 	}
- 
- 	refcount_set(&elem->refcnt, 1);
-@@ -384,13 +407,13 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem)
- 
- 	return 0;
- 
--out_cnt:
-+err:
- 	atomic_dec(&pool->num_elem);
- 	write_unlock_bh(&pool->pool_lock);
- 	return -EINVAL;
- }
- 
--void *rxe_pool_get_index_locked(struct rxe_pool *pool, u32 index)
-+static void *__rxe_get_index_locked(struct rxe_pool *pool, u32 index)
- {
- 	struct rb_node *node;
- 	struct rxe_pool_elem *elem;
-@@ -415,17 +438,58 @@ void *rxe_pool_get_index_locked(struct rxe_pool *pool, u32 index)
- 	return obj;
- }
- 
--void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
-+static void *__rxe_get_index(struct rxe_pool *pool, u32 index)
-+{
-+	void *obj;
-+
-+	read_lock_bh(&pool->pool_lock);
-+	obj = __rxe_get_index_locked(pool, index);
-+	read_unlock_bh(&pool->pool_lock);
-+
-+	return obj;
-+}
-+
-+static void *__rxe_get_xarray_locked(struct rxe_pool *pool, u32 index)
-+{
-+	struct rxe_pool_elem *elem;
-+	void *obj = NULL;
-+
-+	elem = xa_load(&pool->xarray.xa, index);
-+	if (elem && refcount_inc_not_zero(&elem->refcnt))
-+		obj = elem->obj;
-+
-+	return obj;
-+}
-+
-+static void *__rxe_get_xarray(struct rxe_pool *pool, u32 index)
- {
- 	void *obj;
- 
- 	read_lock_bh(&pool->pool_lock);
--	obj = rxe_pool_get_index_locked(pool, index);
-+	obj = __rxe_get_xarray_locked(pool, index);
- 	read_unlock_bh(&pool->pool_lock);
- 
- 	return obj;
- }
- 
-+void *rxe_pool_get_index_locked(struct rxe_pool *pool, u32 index)
-+{
-+	if (pool->flags & RXE_POOL_XARRAY)
-+		return __rxe_get_xarray_locked(pool, index);
-+	if (pool->flags & RXE_POOL_INDEX)
-+		return __rxe_get_index_locked(pool, index);
-+	return NULL;
-+}
-+
-+void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
-+{
-+	if (pool->flags & RXE_POOL_XARRAY)
-+		return __rxe_get_xarray(pool, index);
-+	if (pool->flags & RXE_POOL_INDEX)
-+		return __rxe_get_index(pool, index);
-+	return NULL;
-+}
-+
- void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
- {
- 	struct rb_node *node;
-@@ -519,6 +583,8 @@ static int __rxe_fini(struct rxe_pool_elem *elem)
- 
- 	done = refcount_dec_if_one(&elem->refcnt);
- 	if (done) {
-+		if (pool->flags & RXE_POOL_XARRAY)
-+			xa_erase(&pool->xarray.xa, elem->index);
- 		if (pool->flags & RXE_POOL_INDEX)
- 			rxe_drop_index(elem);
- 		if (pool->flags & RXE_POOL_KEY)
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
-index 3e78c275c7c5..f9c4f09cdcc9 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.h
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.h
-@@ -8,6 +8,7 @@
- #define RXE_POOL_H
- 
- #include <linux/refcount.h>
-+#include <linux/xarray.h>
- 
- #define RXE_POOL_ALIGN		(16)
- #define RXE_POOL_CACHE_FLAGS	(0)
-@@ -15,6 +16,7 @@
- enum rxe_pool_flags {
- 	RXE_POOL_INDEX		= BIT(1),
- 	RXE_POOL_KEY		= BIT(2),
-+	RXE_POOL_XARRAY		= BIT(3),
- 	RXE_POOL_NO_ALLOC	= BIT(4),
- };
- 
-@@ -72,6 +74,13 @@ struct rxe_pool {
- 	size_t			elem_size;
- 	size_t			elem_offset;
- 
-+	/* only used if xarray */
-+	struct {
-+		struct xarray		xa;
-+		struct xa_limit		limit;
-+		u32			next;
-+	} xarray;
-+
- 	/* only used if indexed */
- 	struct {
- 		struct rb_root		tree;
+@@ -44,7 +43,7 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+ 		.size		= sizeof(struct rxe_qp),
+ 		.elem_offset	= offsetof(struct rxe_qp, elem),
+ 		.cleanup	= rxe_qp_cleanup,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_XARRAY | RXE_POOL_NO_ALLOC,
+ 		.min_index	= RXE_MIN_QP_INDEX,
+ 		.max_index	= RXE_MAX_QP_INDEX,
+ 	},
+@@ -60,7 +59,7 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+ 		.size		= sizeof(struct rxe_mr),
+ 		.elem_offset	= offsetof(struct rxe_mr, elem),
+ 		.cleanup	= rxe_mr_cleanup,
+-		.flags		= RXE_POOL_INDEX,
++		.flags		= RXE_POOL_XARRAY,
+ 		.max_index	= RXE_MAX_MR_INDEX,
+ 		.min_index	= RXE_MIN_MR_INDEX,
+ 	},
+@@ -69,7 +68,7 @@ static const struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
+ 		.size		= sizeof(struct rxe_mw),
+ 		.elem_offset	= offsetof(struct rxe_mw, elem),
+ 		.cleanup	= rxe_mw_cleanup,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_XARRAY | RXE_POOL_NO_ALLOC,
+ 		.max_index	= RXE_MAX_MW_INDEX,
+ 		.min_index	= RXE_MIN_MW_INDEX,
+ 	},
 -- 
 2.30.2
 
