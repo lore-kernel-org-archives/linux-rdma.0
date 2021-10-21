@@ -2,62 +2,127 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65200C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:40:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD2CC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:53:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3630F61221
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:40:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11F49611F2
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:53:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230374AbhJUNnN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Oct 2021 09:43:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34334 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230372AbhJUNnM (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Oct 2021 09:43:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7F93561220;
-        Thu, 21 Oct 2021 13:40:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1634823656;
-        bh=ByZxuGhT085/mtPBLThK0m5ugXYlvYQdbeej36Q4VtY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lmNxXaCoomYWUa6+DnTdpKH/n4KXZXAZJqcd4TjG1OP6XYmBj4xMKvCMy2CcjV9vv
-         fsolO1WFskUzntPjLvY5WPB5w+fJ6S60kba7MWecGjWjsOiFSMp/35FJYmOe59vi36
-         jchEnH6lGCGnM/ipnkWMGfLtimkh8LT0dhVxdzWn7055AMEAvnH60oIeJeYvAwq5hz
-         ldIY8vT7aAdFjGxsq7JHzcM46VA54NYM5qO600e3mw0drzpetFn3ajNVTofTho816m
-         7VYje3XcSggvJOZp7mus+tsczjjqAy8kEJHa5Tq5uWtzdszD8IDqronAtLqyZNcNV9
-         qKPvaiQQ6sTgQ==
-Date:   Thu, 21 Oct 2021 16:40:53 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     dledford@redhat.com, jgg@nvidia.com, linux-rdma@vger.kernel.org,
-        saeedm@nvidia.com
-Subject: Re: [PATCH rdma-next 2/3] mlx5: use dev_addr_mod()
-Message-ID: <YXFt5Ygeh0u9dw0l@unreal>
-References: <20211019182604.1441387-1-kuba@kernel.org>
- <20211019182604.1441387-3-kuba@kernel.org>
+        id S231450AbhJUNz2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Oct 2021 09:55:28 -0400
+Received: from mx24.baidu.com ([111.206.215.185]:58514 "EHLO baidu.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S231431AbhJUNz1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Oct 2021 09:55:27 -0400
+Received: from BJHW-Mail-Ex14.internal.baidu.com (unknown [10.127.64.37])
+        by Forcepoint Email with ESMTPS id 5C8913B2146AA655D59E;
+        Thu, 21 Oct 2021 21:53:09 +0800 (CST)
+Received: from BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) by
+ BJHW-Mail-Ex14.internal.baidu.com (10.127.64.37) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.14; Thu, 21 Oct 2021 21:53:09 +0800
+Received: from localhost (172.31.63.8) by BJHW-MAIL-EX27.internal.baidu.com
+ (10.127.64.42) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Thu, 21
+ Oct 2021 21:53:08 +0800
+Date:   Thu, 21 Oct 2021 21:53:12 +0800
+From:   Cai Huoqing <caihuoqing@baidu.com>
+To:     Steven Rostedt <rostedt@goodmis.org>
+CC:     Bernard Metzler <bmt@zurich.ibm.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        Lai Jiangshan <jiangshanlai@gmail.com>,
+        Joel Fernandes <joel@joelfernandes.org>,
+        "Ingo Molnar" <mingo@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <rcu@vger.kernel.org>
+Subject: Re: [PATCH 1/6] kthread: Add the helper macro kthread_run_on_cpu()
+Message-ID: <20211021135312.GA3400@LAPTOP-UKSR4ENP.internal.baidu.com>
+References: <20211021120135.3003-1-caihuoqing@baidu.com>
+ <20211021120135.3003-2-caihuoqing@baidu.com>
+ <20211021091001.26c24d5b@gandalf.local.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Disposition: inline
-In-Reply-To: <20211019182604.1441387-3-kuba@kernel.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20211021091001.26c24d5b@gandalf.local.home>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Originating-IP: [172.31.63.8]
+X-ClientProxiedBy: BC-Mail-Ex11.internal.baidu.com (172.31.51.51) To
+ BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42)
+X-Baidu-BdMsfe-DateCheck: 1_BJHW-Mail-Ex14_2021-10-21 21:53:09:345
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 19, 2021 at 11:26:03AM -0700, Jakub Kicinski wrote:
-> Commit 406f42fa0d3c ("net-next: When a bond have a massive amount
-> of VLANs...") introduced a rbtree for faster Ethernet address look
-> up. To maintain netdev->dev_addr in this tree we need to make all
-> the writes to it got through appropriate helpers.
+On 21 10月 21 09:10:01, Steven Rostedt wrote:
+> On Thu, 21 Oct 2021 20:01:30 +0800
+> Cai Huoqing <caihuoqing@baidu.com> wrote:
 > 
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> ---
-> CC: saeedm@nvidia.com
-> CC: leon@kernel.org
-> CC: linux-rdma@vger.kernel.org
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
+> > the helper macro kthread_run_on_cpu() inculdes
 > 
+>  "includes"
+> 
+> > kthread_create_on_cpu/wake_up_process().
+> > In some cases, use kthread_run_on_cpu() directly instead of
+> > kthread_create_on_node/kthread_bind/wake_up_process() or
+> > kthread_create_on_cpu/wake_up_process() or
+> > kthreadd_create/kthread_bind/wake_up_process() to simplify the code.
+> > 
+> > Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
+> > ---
+> >  include/linux/kthread.h | 22 ++++++++++++++++++++++
+> >  1 file changed, 22 insertions(+)
+> > 
+> > diff --git a/include/linux/kthread.h b/include/linux/kthread.h
+> > index 346b0f269161..dfd125523aa9 100644
+> > --- a/include/linux/kthread.h
+> > +++ b/include/linux/kthread.h
+> > @@ -56,6 +56,28 @@ bool kthread_is_per_cpu(struct task_struct *k);
+> >  	__k;								   \
+> >  })
+> >  
+> > +/**
+> > + * kthread_run_on_cpu - create and wake a cpu bound thread.
+> > + * @threadfn: the function to run until signal_pending(current).
+> > + * @data: data ptr for @threadfn.
+> > + * @cpu: The cpu on which the thread should be bound,
+> > + * @namefmt: printf-style name for the thread. Format is restricted
+> > + *	     to "name.*%u". Code fills in cpu number.
+> > + *
+> > + * Description: Convenient wrapper for kthread_create_on_node()
+> > + * followed by wake_up_process().  Returns the kthread or
+> > + * ERR_PTR(-ENOMEM).
+> > + */
+> > +#define kthread_run_on_cpu(threadfn, data, cpu, namefmt)		  \
+> 
+> Why is this a macro and not a static inline function?
+> 
+> -- Steve
+Hi,Thanks for your feedback,
+
+I think using static inline function is nice, but here try to keep
+consistent with the other macros,
+sush as kthread_create/kthread_init_work...
 
 Thanks,
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Cai.
+> 
+> > +({									  \
+> > +	struct task_struct *__k						  \
+> > +		= kthread_create_on_cpu(threadfn, data, cpu_to_node(cpu), \
+> > +					namefmt);			  \
+> > +	if (!IS_ERR(__k))						  \
+> > +		wake_up_process(__k);					  \
+> > +	__k;								  \
+> > +})
+> > +
+> >  void free_kthread_struct(struct task_struct *k);
+> >  void kthread_bind(struct task_struct *k, unsigned int cpu);
+> >  void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
+> 
