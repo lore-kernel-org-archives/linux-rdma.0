@@ -2,93 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17DC8C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08EA9C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 14:07:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F35CE6112D
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 13:59:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3B1F60F59
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Oct 2021 14:07:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230329AbhJUOBd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Oct 2021 10:01:33 -0400
-Received: from mx22.baidu.com ([220.181.50.185]:34436 "EHLO baidu.com"
+        id S231169AbhJUOKL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Oct 2021 10:10:11 -0400
+Received: from mx22.baidu.com ([220.181.50.185]:41234 "EHLO baidu.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230072AbhJUOBd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Thu, 21 Oct 2021 10:01:33 -0400
-Received: from BC-Mail-Ex25.internal.baidu.com (unknown [172.31.51.19])
-        by Forcepoint Email with ESMTPS id E40531B02753C10474E3;
-        Thu, 21 Oct 2021 21:58:55 +0800 (CST)
+        id S229878AbhJUOKK (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Thu, 21 Oct 2021 10:10:10 -0400
+Received: from BC-Mail-Ex31.internal.baidu.com (unknown [172.31.51.25])
+        by Forcepoint Email with ESMTPS id 5EC8FA995A63A3F0F11B;
+        Thu, 21 Oct 2021 22:07:52 +0800 (CST)
 Received: from BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42) by
- BC-Mail-Ex25.internal.baidu.com (172.31.51.19) with Microsoft SMTP Server
+ BC-Mail-Ex31.internal.baidu.com (172.31.51.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2242.12; Thu, 21 Oct 2021 21:58:55 +0800
-Received: from BJHW-MAIL-EX27.internal.baidu.com ([169.254.58.247]) by
- BJHW-MAIL-EX27.internal.baidu.com ([169.254.58.247]) with mapi id
- 15.01.2308.014; Thu, 21 Oct 2021 21:58:55 +0800
-From:   "Cai,Huoqing" <caihuoqing@baidu.com>
-CC:     Bernard Metzler <bmt@zurich.ibm.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
+ 15.1.2242.12; Thu, 21 Oct 2021 22:07:52 +0800
+Received: from localhost (172.31.63.8) by BJHW-MAIL-EX27.internal.baidu.com
+ (10.127.64.42) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2308.14; Thu, 21
+ Oct 2021 22:07:51 +0800
+Date:   Thu, 21 Oct 2021 22:07:55 +0800
+From:   Cai Huoqing <caihuoqing@baidu.com>
+To:     Bernard Metzler <BMT@zurich.ibm.com>
+CC:     Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
         Davidlohr Bueso <dave@stgolabs.net>,
         "Paul E. McKenney" <paulmck@kernel.org>,
         Josh Triplett <josh@joshtriplett.org>,
-        "Steven Rostedt" <rostedt@goodmis.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
         Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
         Lai Jiangshan <jiangshanlai@gmail.com>,
         Joel Fernandes <joel@joelfernandes.org>,
-        Ingo Molnar <mingo@redhat.com>,
+        "Ingo Molnar" <mingo@redhat.com>,
         Daniel Bristot de Oliveira <bristot@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "rcu@vger.kernel.org" <rcu@vger.kernel.org>
-Subject: RE: [PATCH 0/6] kthread: Add the helper macro kthread_run_on_cpu()
-Thread-Topic: [PATCH 0/6] kthread: Add the helper macro kthread_run_on_cpu()
-Thread-Index: AQHXxnNpfugAUqUbeEyqP9NX9k+uv6vdeeGQ
-Date:   Thu, 21 Oct 2021 13:58:55 +0000
-Message-ID: <e886ea99c2d44932a53f597191a6d54e@baidu.com>
+        <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <rcu@vger.kernel.org>
+Subject: Re: [PATCH 0/6] kthread: Add the helper macro kthread_run_on_cpu()
+Message-ID: <20211021140755.GA3448@LAPTOP-UKSR4ENP.internal.baidu.com>
 References: <20211021120135.3003-1-caihuoqing@baidu.com>
-In-Reply-To: <20211021120135.3003-1-caihuoqing@baidu.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.12.190.132]
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+ <OFACD03FD5.99AACE16-ON00258775.004BD474-00258775.004BD47C@ibm.com>
 MIME-Version: 1.0
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <OFACD03FD5.99AACE16-ON00258775.004BD474-00258775.004BD47C@ibm.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Originating-IP: [172.31.63.8]
+X-ClientProxiedBy: BC-Mail-Ex10.internal.baidu.com (172.31.51.50) To
+ BJHW-MAIL-EX27.internal.baidu.com (10.127.64.42)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-SGksIGZvbGtzDQpWMiBpcyBoZXJlDQpodHRwczovL2xvcmUua2VybmVsLm9yZy9sa21sLzIwMjEx
-MDIxMTIyNzU4LjMwOTItMi1jYWlodW9xaW5nQGJhaWR1LmNvbS8NCg0KPiAtLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBDYWksSHVvcWluZyA8Y2FpaHVvcWluZ0BiYWlkdS5jb20+
-DQo+IFNlbnQ6IDIwMjHE6jEw1MIyMcjVIDIwOjAxDQo+IFRvOiBDYWksSHVvcWluZw0KPiBDYzog
-QmVybmFyZCBNZXR6bGVyOyBEb3VnIExlZGZvcmQ7IEphc29uIEd1bnRob3JwZTsgRGF2aWRsb2hy
-IEJ1ZXNvOyBQYXVsDQo+IEUuIE1jS2VubmV5OyBKb3NoIFRyaXBsZXR0OyBTdGV2ZW4gUm9zdGVk
-dDsgTWF0aGlldSBEZXNub3llcnM7IExhaQ0KPiBKaWFuZ3NoYW47IEpvZWwgRmVybmFuZGVzOyBJ
-bmdvIE1vbG5hcjsgRGFuaWVsIEJyaXN0b3QgZGUgT2xpdmVpcmE7IGxpbnV4LQ0KPiByZG1hQHZn
-ZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgcmN1QHZnZXIua2Vy
-bmVsLm9yZw0KPiBTdWJqZWN0OiBbUEFUQ0ggMC82XSBrdGhyZWFkOiBBZGQgdGhlIGhlbHBlciBt
-YWNybyBrdGhyZWFkX3J1bl9vbl9jcHUoKQ0KPiANCj4gdGhlIGhlbHBlciBtYWNybyBrdGhyZWFk
-X3J1bl9vbl9jcHUoKSBpbmN1bGRlcw0KPiBrdGhyZWFkX2NyZWF0ZV9vbl9jcHUvd2FrZV91cF9w
-cm9jZXNzKCkuDQo+IEluIHNvbWUgY2FzZXMsIHVzZSBrdGhyZWFkX3J1bl9vbl9jcHUoKSBkaXJl
-Y3RseSBpbnN0ZWFkIG9mDQo+IGt0aHJlYWRfY3JlYXRlX29uX25vZGUva3RocmVhZF9iaW5kL3dh
-a2VfdXBfcHJvY2VzcygpIG9yDQo+IGt0aHJlYWRfY3JlYXRlX29uX2NwdS93YWtlX3VwX3Byb2Nl
-c3MoKSBvcg0KPiBrdGhyZWFkZF9jcmVhdGUva3RocmVhZF9iaW5kL3dha2VfdXBfcHJvY2Vzcygp
-IHRvIHNpbXBsaWZ5IHRoZSBjb2RlLg0KPiANCj4gQ2FpIEh1b3FpbmcgKDYpOg0KPiAgIGt0aHJl
-YWQ6IEFkZCB0aGUgaGVscGVyIG1hY3JvIGt0aHJlYWRfcnVuX29uX2NwdSgpDQo+ICAgUkRNQS9z
-aXc6IE1ha2UgdXNlIG9mIHRoZSBoZWxwZXIgbWFjcm8ga3RocmVhZF9ydW5fb25fY3B1KCkNCj4g
-ICByaW5nLWJ1ZmZlcjogTWFrZSB1c2Ugb2YgdGhlIGhlbHBlciBtYWNybyBrdGhyZWFkX3J1bl9v
-bl9jcHUoKQ0KPiAgIHJjdXRvcnR1cmU6IE1ha2UgdXNlIG9mIHRoZSBoZWxwZXIgbWFjcm8ga3Ro
-cmVhZF9ydW5fb25fY3B1KCkNCj4gICB0cmFjZS9vc25vaXNlOiBNYWtlIHVzZSBvZiB0aGUgaGVs
-cGVyIG1hY3JvIGt0aHJlYWRfcnVuX29uX2NwdSgpDQo+ICAgdHJhY2UvaHdsYXQ6IE1ha2UgdXNl
-IG9mIHRoZSBoZWxwZXIgbWFjcm8ga3RocmVhZF9ydW5fb25fY3B1KCkNCj4gDQo+ICBkcml2ZXJz
-L2luZmluaWJhbmQvc3cvc2l3L3Npd19tYWluLmMgfCAgNyArKystLS0tDQo+ICBpbmNsdWRlL2xp
-bnV4L2t0aHJlYWQuaCAgICAgICAgICAgICAgfCAyMiArKysrKysrKysrKysrKysrKysrKysrDQo+
-ICBrZXJuZWwvcmN1L3JjdXRvcnR1cmUuYyAgICAgICAgICAgICAgfCAgNyArKy0tLS0tDQo+ICBr
-ZXJuZWwvdHJhY2UvcmluZ19idWZmZXIuYyAgICAgICAgICAgfCAgNyArKy0tLS0tDQo+ICBrZXJu
-ZWwvdHJhY2UvdHJhY2VfaHdsYXQuYyAgICAgICAgICAgfCAgNiArLS0tLS0NCj4gIGtlcm5lbC90
-cmFjZS90cmFjZV9vc25vaXNlLmMgICAgICAgICB8ICAzICstLQ0KPiAgNiBmaWxlcyBjaGFuZ2Vk
-LCAzMSBpbnNlcnRpb25zKCspLCAyMSBkZWxldGlvbnMoLSkNCj4gDQo+IC0tDQo+IDIuMjUuMQ0K
-DQo=
+On 21 10月 21 13:48:15, Bernard Metzler wrote:
+> -----"Cai Huoqing" <caihuoqing@baidu.com> wrote: -----
+> 
+> >To: <caihuoqing@baidu.com>
+> >From: "Cai Huoqing" <caihuoqing@baidu.com>
+> >Date: 10/21/2021 02:02PM
+> >Cc: "Bernard Metzler" <bmt@zurich.ibm.com>, "Doug Ledford"
+> ><dledford@redhat.com>, "Jason Gunthorpe" <jgg@ziepe.ca>, "Davidlohr
+> >Bueso" <dave@stgolabs.net>, "Paul E. McKenney" <paulmck@kernel.org>,
+> >"Josh Triplett" <josh@joshtriplett.org>, "Steven Rostedt"
+> ><rostedt@goodmis.org>, "Mathieu Desnoyers"
+> ><mathieu.desnoyers@efficios.com>, "Lai Jiangshan"
+> ><jiangshanlai@gmail.com>, "Joel Fernandes" <joel@joelfernandes.org>,
+> >"Ingo Molnar" <mingo@redhat.com>, "Daniel Bristot de Oliveira"
+> ><bristot@kernel.org>, <linux-rdma@vger.kernel.org>,
+> ><linux-kernel@vger.kernel.org>, <rcu@vger.kernel.org>
+> >Subject: [EXTERNAL] [PATCH 0/6] kthread: Add the helper macro
+> >kthread_run_on_cpu()
+> >
+> >the helper macro kthread_run_on_cpu() inculdes
+> >kthread_create_on_cpu/wake_up_process().
+> >In some cases, use kthread_run_on_cpu() directly instead of
+> >kthread_create_on_node/kthread_bind/wake_up_process() or
+> >kthread_create_on_cpu/wake_up_process() or
+> >kthreadd_create/kthread_bind/wake_up_process() to simplify the code.
+> 
+> I do not see kthread_bind() being covered by the helper,
+> as claimed? rcutorture, ring-buffer, siw are using it in
+> the code potentially being replaced by the helper.
+> kthread_bind() is best to be called before thread starts
+> running, so should be part of it.
+Hi,
+kthread_bind() is already part of kthread_create_on_cpu which is
+called by kthread_run_on_cpu() here.
+
+Thanks,
+Cai.
+> 
+> Thanks,
+> Bernard.
+> >
+> >Cai Huoqing (6):
+> >  kthread: Add the helper macro kthread_run_on_cpu()
+> >  RDMA/siw: Make use of the helper macro kthread_run_on_cpu()
+> >  ring-buffer: Make use of the helper macro kthread_run_on_cpu()
+> >  rcutorture: Make use of the helper macro kthread_run_on_cpu()
+> >  trace/osnoise: Make use of the helper macro kthread_run_on_cpu()
+> >  trace/hwlat: Make use of the helper macro kthread_run_on_cpu()
+> >
+> > drivers/infiniband/sw/siw/siw_main.c |  7 +++----
+> > include/linux/kthread.h              | 22 ++++++++++++++++++++++
+> > kernel/rcu/rcutorture.c              |  7 ++-----
+> > kernel/trace/ring_buffer.c           |  7 ++-----
+> > kernel/trace/trace_hwlat.c           |  6 +-----
+> > kernel/trace/trace_osnoise.c         |  3 +--
+> > 6 files changed, 31 insertions(+), 21 deletions(-)
+> >
+> >-- 
+> >2.25.1
+> >
+> >
