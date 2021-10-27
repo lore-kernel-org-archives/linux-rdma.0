@@ -2,122 +2,76 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33BEAC4321E
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Oct 2021 08:52:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1C45C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Oct 2021 10:04:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17EC5610A3
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Oct 2021 08:52:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89D5460FBF
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Oct 2021 10:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241052AbhJ0IzL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Oct 2021 04:55:11 -0400
-Received: from out30-54.freemail.mail.aliyun.com ([115.124.30.54]:35796 "EHLO
-        out30-54.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241060AbhJ0IzK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 27 Oct 2021 04:55:10 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0Uts5tnc_1635324763;
-Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0Uts5tnc_1635324763)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 27 Oct 2021 16:52:43 +0800
-From:   Tony Lu <tonylu@linux.alibaba.com>
-To:     kgraul@linux.ibm.com, davem@davemloft.net, kuba@kernel.org,
-        ubraun@linux.ibm.com
-Cc:     netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, jacob.qi@linux.alibaba.com,
-        xuanzhuo@linux.alibaba.com, guwen@linux.alibaba.com,
-        dust.li@linux.alibaba.com
-Subject: [PATCH net 4/4] net/smc: Fix wq mismatch issue caused by smc fallback
-Date:   Wed, 27 Oct 2021 16:52:10 +0800
-Message-Id: <20211027085208.16048-5-tonylu@linux.alibaba.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211027085208.16048-1-tonylu@linux.alibaba.com>
-References: <20211027085208.16048-1-tonylu@linux.alibaba.com>
+        id S237146AbhJ0KGt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Oct 2021 06:06:49 -0400
+Received: from mga07.intel.com ([134.134.136.100]:15712 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235840AbhJ0KGt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 27 Oct 2021 06:06:49 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10149"; a="293588109"
+X-IronPort-AV: E=Sophos;i="5.87,186,1631602800"; 
+   d="scan'208";a="293588109"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 03:04:23 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,186,1631602800"; 
+   d="scan'208";a="537471253"
+Received: from unknown (HELO intel-100.bj.intel.com) ([10.238.154.100])
+  by fmsmga008.fm.intel.com with ESMTP; 27 Oct 2021 03:04:21 -0700
+From:   yanjun.zhu@linux.dev
+To:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
+        dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        yanjun.zhu@linux.dev, leonro@nvidia.com
+Subject: [PATCH 1/1] RDMA/irdma: remove the unused variable local_qp
+Date:   Wed, 27 Oct 2021 13:54:57 -0400
+Message-Id: <20211027175457.201822-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Wen Gu <guwen@linux.alibaba.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-A socket_wq mismatch issue may occur because of fallback.
+Since the member variable local_qp is not used, remove it.
 
-When use SMC to replace TCP, applications add an epoll entry into SMC
-socket's wq, but kernel uses clcsock's wq instead of SMC socket's wq
-once fallback occurs, which means the application's epoll fd dosen't
-work anymore.
-
-For example:
-server: nginx -g 'daemon off;'
-
-client: smc_run wrk -c 1 -t 1 -d 5 http://11.200.15.93/index.html
-
-  Running 5s test @ http://11.200.15.93/index.html
-    1 threads and 1 connections
-    Thread Stats   Avg      Stdev     Max   +/- Stdev
-      Latency     0.00us    0.00us   0.00us    -nan%
-      Req/Sec     0.00      0.00     0.00      -nan%
-    0 requests in 5.00s, 0.00B read
-  Requests/sec:      0.00
-  Transfer/sec:       0.00B
-
-This patch fixes this issue by using clcsock's wq regardless of
-whether fallback occurs.
-
-Reported-by: Jacob Qi <jacob.qi@linux.alibaba.com>
-Signed-off-by: Wen Gu <guwen@linux.alibaba.com>
-Reviewed-by: Tony Lu <tonylu@linux.alibaba.com>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- net/smc/af_smc.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/infiniband/hw/irdma/type.h  | 1 -
+ drivers/infiniband/hw/irdma/verbs.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 78b663dbfa1f..3b7ec0abff52 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -546,6 +546,10 @@ static void smc_switch_to_fallback(struct smc_sock *smc, int reason_code)
- {
- 	smc->use_fallback = true;
- 	smc->fallback_rsn = reason_code;
-+
-+	/* clcsock's sock uses back to clcsock->wq, see also smc_create() */
-+	rcu_assign_pointer(smc->clcsock->sk->sk_wq, &smc->clcsock->wq);
-+
- 	smc_stat_fallback(smc);
- 	if (smc->sk.sk_socket && smc->sk.sk_socket->file) {
- 		smc->clcsock->file = smc->sk.sk_socket->file;
-@@ -1972,6 +1976,10 @@ static int smc_accept(struct socket *sock, struct socket *new_sock,
- 	if (rc)
- 		goto out;
- 
-+	/* new smc sock uses clcsock's wq. see also smc_create() */
-+	if (!smc_sk(nsk)->use_fallback)
-+		rcu_assign_pointer(nsk->sk_wq, &smc_sk(nsk)->clcsock->wq);
-+
- 	if (lsmc->sockopt_defer_accept && !(flags & O_NONBLOCK)) {
- 		/* wait till data arrives on the socket */
- 		timeo = msecs_to_jiffies(lsmc->sockopt_defer_accept *
-@@ -2108,6 +2116,9 @@ static __poll_t smc_poll(struct file *file, struct socket *sock,
- 		mask = smc->clcsock->ops->poll(file, smc->clcsock, wait);
- 		sk->sk_err = smc->clcsock->sk->sk_err;
- 	} else {
-+		/* use clcsock->wq in sock_poll_wait(), see also smc_create() */
-+		sock = smc->clcsock;
-+
- 		if (sk->sk_state != SMC_CLOSED)
- 			sock_poll_wait(file, sock, wait);
- 		if (sk->sk_err)
-@@ -2505,6 +2516,10 @@ static int smc_create(struct net *net, struct socket *sock, int protocol,
- 	smc->sk.sk_sndbuf = max(smc->clcsock->sk->sk_sndbuf, SMC_BUF_MIN_SIZE);
- 	smc->sk.sk_rcvbuf = max(smc->clcsock->sk->sk_rcvbuf, SMC_BUF_MIN_SIZE);
- 
-+	/* In case smc fallbacks to tcp, smc's sock will use clcsock's wq in advance */
-+	rcu_assign_pointer(sk->sk_wq, &smc->clcsock->wq);
-+	rcu_assign_pointer(smc->clcsock->sk->sk_wq, &smc->sk.sk_socket->wq);
-+
- out:
- 	return rc;
- }
+diff --git a/drivers/infiniband/hw/irdma/type.h b/drivers/infiniband/hw/irdma/type.h
+index 874bc25a938b..bca7bbe5c451 100644
+--- a/drivers/infiniband/hw/irdma/type.h
++++ b/drivers/infiniband/hw/irdma/type.h
+@@ -852,7 +852,6 @@ struct irdma_roce_offload_info {
+ 	u16 err_rq_idx;
+ 	u32 qkey;
+ 	u32 dest_qp;
+-	u32 local_qp;
+ 	u8 roce_tver;
+ 	u8 ack_credits;
+ 	u8 err_rq_idx_valid;
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 02ca1f80968e..754e873129a0 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -1197,7 +1197,6 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		av->attrs = attr->ah_attr;
+ 		rdma_gid2ip((struct sockaddr *)&av->sgid_addr, &sgid_attr->gid);
+ 		rdma_gid2ip((struct sockaddr *)&av->dgid_addr, &attr->ah_attr.grh.dgid);
+-		roce_info->local_qp = ibqp->qp_num;
+ 		if (av->sgid_addr.saddr.sa_family == AF_INET6) {
+ 			__be32 *daddr =
+ 				av->dgid_addr.saddr_in6.sin6_addr.in6_u.u6_addr32;
 -- 
-2.19.1.6.gb485710b
+2.27.0
 
