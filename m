@@ -2,355 +2,316 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 648ACC433EF
-	for <linux-rdma@archiver.kernel.org>; Fri, 29 Oct 2021 08:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EC33C433EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 29 Oct 2021 09:00:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4CB9961167
-	for <linux-rdma@archiver.kernel.org>; Fri, 29 Oct 2021 08:33:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69CEB61175
+	for <linux-rdma@archiver.kernel.org>; Fri, 29 Oct 2021 09:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232505AbhJ2Ifz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 29 Oct 2021 04:35:55 -0400
-Received: from mga05.intel.com ([192.55.52.43]:1914 "EHLO mga05.intel.com"
+        id S229986AbhJ2JCp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 29 Oct 2021 05:02:45 -0400
+Received: from mga04.intel.com ([192.55.52.120]:47930 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232500AbhJ2Ify (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 29 Oct 2021 04:35:54 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10151"; a="316819814"
+        id S229844AbhJ2JCo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 29 Oct 2021 05:02:44 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10151"; a="229352976"
 X-IronPort-AV: E=Sophos;i="5.87,192,1631602800"; 
-   d="scan'208";a="316819814"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2021 01:33:21 -0700
+   d="scan'208";a="229352976"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2021 01:59:55 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,192,1631602800"; 
-   d="scan'208";a="498827852"
-Received: from unknown (HELO intel-100.bj.intel.com) ([10.238.154.100])
-  by orsmga008.jf.intel.com with ESMTP; 29 Oct 2021 01:33:19 -0700
-From:   yanjun.zhu@linux.dev
-To:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
-        dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        yanjun.zhu@linux.dev, leonro@nvidia.com
-Subject: [PATCH 1/1] RDMA/irdma: optimize rx path by removing unnecessary copy
-Date:   Fri, 29 Oct 2021 12:23:40 -0400
-Message-Id: <20211029162340.241768-1-yanjun.zhu@linux.dev>
-X-Mailer: git-send-email 2.27.0
+   d="scan'208";a="665764642"
+Received: from lkp-server02.sh.intel.com (HELO c20d8bc80006) ([10.239.97.151])
+  by orsmga005.jf.intel.com with ESMTP; 29 Oct 2021 01:59:53 -0700
+Received: from kbuild by c20d8bc80006 with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1mgNjs-00009z-Oh; Fri, 29 Oct 2021 08:59:52 +0000
+Date:   Fri, 29 Oct 2021 16:59:28 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:for-rc] BUILD SUCCESS
+ 64733956ebba7cc629856f4a6ee35a52bc9c023f
+Message-ID: <617bb7f0.PPDZZQFSTL4EBSio%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-rc
+branch HEAD: 64733956ebba7cc629856f4a6ee35a52bc9c023f  RDMA/sa_query: Use strscpy_pad instead of memcpy to copy a string
 
-In the function irdma_post_recv, the function irdma_copy_sg_list is
-not needed since the struct irdma_sge and ib_sge have the similar
-member variables. The struct irdma_sge can be replaced with the
-struct ib_sge totally.
+elapsed time: 2574m
 
-This can increase the rx performance of irdma.
+configs tested: 249
+configs skipped: 4
 
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allmodconfig
+arm                              allyesconfig
+i386                 randconfig-c001-20211028
+mips                 randconfig-c004-20211027
+i386                 randconfig-c001-20211027
+powerpc              randconfig-c003-20211028
+mips                        workpad_defconfig
+mips                malta_qemu_32r6_defconfig
+mips                         tb0226_defconfig
+mips                      maltasmvp_defconfig
+powerpc                 mpc836x_rdk_defconfig
+mips                         db1xxx_defconfig
+mips                          rm200_defconfig
+parisc                generic-32bit_defconfig
+powerpc                   microwatt_defconfig
+mips                         rt305x_defconfig
+arm                   milbeaut_m10v_defconfig
+arm                          exynos_defconfig
+sh                           sh2007_defconfig
+powerpc                  iss476-smp_defconfig
+m68k                            q40_defconfig
+powerpc                          g5_defconfig
+m68k                         amcore_defconfig
+sh                            hp6xx_defconfig
+mips                 decstation_r4k_defconfig
+sh                      rts7751r2d1_defconfig
+xtensa                    smp_lx200_defconfig
+mips                          malta_defconfig
+arm                             pxa_defconfig
+m68k                          amiga_defconfig
+sh                            titan_defconfig
+sparc64                          alldefconfig
+arm                          ixp4xx_defconfig
+nios2                         3c120_defconfig
+arc                         haps_hs_defconfig
+m68k                       m5249evb_defconfig
+arc                     nsimosci_hs_defconfig
+sh                     magicpanelr2_defconfig
+sh                          lboxre2_defconfig
+mips                     cu1830-neo_defconfig
+powerpc                       eiger_defconfig
+arm                           sama7_defconfig
+powerpc                      ppc64e_defconfig
+arm                            hisi_defconfig
+powerpc                      ppc40x_defconfig
+xtensa                  cadence_csp_defconfig
+sh                          r7785rp_defconfig
+arm                           stm32_defconfig
+arm                          pxa168_defconfig
+mips                         cobalt_defconfig
+mips                  maltasmvp_eva_defconfig
+powerpc                 linkstation_defconfig
+sh                     sh7710voipgw_defconfig
+powerpc                 mpc836x_mds_defconfig
+s390                       zfcpdump_defconfig
+arm                       netwinder_defconfig
+h8300                               defconfig
+arm                           sunxi_defconfig
+sh                         apsh4a3a_defconfig
+mips                           rs90_defconfig
+powerpc                     mpc83xx_defconfig
+mips                            gpr_defconfig
+arm                          collie_defconfig
+arm                              alldefconfig
+mips                     loongson2k_defconfig
+arc                 nsimosci_hs_smp_defconfig
+sparc                       sparc64_defconfig
+arm                        cerfcube_defconfig
+powerpc                   currituck_defconfig
+arm                         nhk8815_defconfig
+sh                           se7750_defconfig
+mips                         bigsur_defconfig
+sh                          sdk7786_defconfig
+riscv             nommu_k210_sdcard_defconfig
+arm                         socfpga_defconfig
+mips                      malta_kvm_defconfig
+arm                            pleb_defconfig
+openrisc                    or1ksim_defconfig
+powerpc                       ebony_defconfig
+arm                          pcm027_defconfig
+arm                         lpc32xx_defconfig
+arm                          badge4_defconfig
+sh                          rsk7203_defconfig
+powerpc                      mgcoge_defconfig
+powerpc                      ppc44x_defconfig
+powerpc                      cm5200_defconfig
+powerpc                     tqm8560_defconfig
+powerpc                    sam440ep_defconfig
+sh                           se7751_defconfig
+powerpc                     mpc512x_defconfig
+arc                          axs101_defconfig
+powerpc                      pcm030_defconfig
+arm                         s3c6400_defconfig
+sh                           se7705_defconfig
+mips                           xway_defconfig
+mips                      bmips_stb_defconfig
+arm                           u8500_defconfig
+powerpc                     redwood_defconfig
+powerpc                 mpc8272_ads_defconfig
+powerpc                     rainier_defconfig
+arm                             rpc_defconfig
+powerpc                      ppc6xx_defconfig
+powerpc                    amigaone_defconfig
+powerpc                 xes_mpc85xx_defconfig
+mips                     decstation_defconfig
+arc                           tb10x_defconfig
+sh                           se7343_defconfig
+powerpc64                        alldefconfig
+powerpc                     kilauea_defconfig
+arm                        clps711x_defconfig
+sh                           se7721_defconfig
+arm                             mxs_defconfig
+arm                           omap1_defconfig
+arm                           h5000_defconfig
+mips                      loongson3_defconfig
+powerpc                  mpc866_ads_defconfig
+powerpc                     tqm5200_defconfig
+arm                           tegra_defconfig
+m68k                        stmark2_defconfig
+powerpc                     akebono_defconfig
+powerpc                      tqm8xx_defconfig
+openrisc                            defconfig
+arc                            hsdk_defconfig
+powerpc                     skiroot_defconfig
+mips                       lemote2f_defconfig
+powerpc                 mpc832x_mds_defconfig
+xtensa                          iss_defconfig
+arm                          imote2_defconfig
+mips                         tb0219_defconfig
+arm                          ep93xx_defconfig
+arm                    vt8500_v6_v7_defconfig
+powerpc                 mpc834x_itx_defconfig
+m68k                        mvme16x_defconfig
+microblaze                      mmu_defconfig
+arm                  randconfig-c002-20211028
+arm                  randconfig-c002-20211027
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                             allyesconfig
+m68k                                defconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+nds32                               defconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+nios2                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                                defconfig
+parisc                           allyesconfig
+s390                             allmodconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+sparc                               defconfig
+i386                                defconfig
+i386                              debian-10.3
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+i386                 randconfig-a004-20211028
+i386                 randconfig-a003-20211028
+i386                 randconfig-a002-20211028
+i386                 randconfig-a006-20211028
+i386                 randconfig-a001-20211028
+i386                 randconfig-a005-20211028
+x86_64               randconfig-a013-20211027
+x86_64               randconfig-a015-20211027
+x86_64               randconfig-a011-20211027
+x86_64               randconfig-a014-20211027
+x86_64               randconfig-a016-20211027
+x86_64               randconfig-a012-20211027
+i386                 randconfig-a012-20211027
+i386                 randconfig-a013-20211027
+i386                 randconfig-a011-20211027
+i386                 randconfig-a016-20211027
+i386                 randconfig-a015-20211027
+i386                 randconfig-a014-20211027
+x86_64               randconfig-a002-20211028
+x86_64               randconfig-a004-20211028
+x86_64               randconfig-a005-20211028
+x86_64               randconfig-a001-20211028
+x86_64               randconfig-a006-20211028
+x86_64               randconfig-a003-20211028
+riscv                            allmodconfig
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+x86_64                    rhel-8.3-kselftests
+um                           x86_64_defconfig
+um                             i386_defconfig
+x86_64                           allyesconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                          rhel-8.3-func
+x86_64                                  kexec
+
+clang tested configs:
+riscv                randconfig-c006-20211027
+powerpc              randconfig-c003-20211027
+arm                  randconfig-c002-20211027
+mips                 randconfig-c004-20211027
+x86_64               randconfig-c007-20211027
+i386                 randconfig-c001-20211027
+s390                 randconfig-c005-20211027
+arm                  randconfig-c002-20211028
+powerpc              randconfig-c003-20211028
+riscv                randconfig-c006-20211028
+x86_64               randconfig-c007-20211028
+mips                 randconfig-c004-20211028
+s390                 randconfig-c005-20211028
+i386                 randconfig-c001-20211028
+x86_64               randconfig-a002-20211027
+x86_64               randconfig-a004-20211027
+x86_64               randconfig-a005-20211027
+x86_64               randconfig-a006-20211027
+x86_64               randconfig-a001-20211027
+x86_64               randconfig-a003-20211027
+i386                 randconfig-a003-20211027
+i386                 randconfig-a004-20211027
+i386                 randconfig-a002-20211027
+i386                 randconfig-a005-20211027
+i386                 randconfig-a001-20211027
+i386                 randconfig-a006-20211027
+x86_64               randconfig-a015-20211028
+x86_64               randconfig-a013-20211028
+x86_64               randconfig-a011-20211028
+x86_64               randconfig-a014-20211028
+x86_64               randconfig-a012-20211028
+x86_64               randconfig-a016-20211028
+i386                 randconfig-a012-20211028
+i386                 randconfig-a013-20211028
+i386                 randconfig-a011-20211028
+i386                 randconfig-a015-20211028
+i386                 randconfig-a016-20211028
+i386                 randconfig-a014-20211028
+hexagon              randconfig-r045-20211028
+riscv                randconfig-r042-20211028
+s390                 randconfig-r044-20211028
+hexagon              randconfig-r041-20211028
+hexagon              randconfig-r045-20211027
+hexagon              randconfig-r041-20211027
+
 ---
- drivers/infiniband/hw/irdma/uk.c    | 38 +++++++++++++-------------
- drivers/infiniband/hw/irdma/user.h  | 23 ++++++----------
- drivers/infiniband/hw/irdma/verbs.c | 41 +++++++++--------------------
- 3 files changed, 39 insertions(+), 63 deletions(-)
-
-diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
-index 5fb92de1f015..0abbfa2538f1 100644
---- a/drivers/infiniband/hw/irdma/uk.c
-+++ b/drivers/infiniband/hw/irdma/uk.c
-@@ -13,16 +13,16 @@
-  * @sge: sge length and stag
-  * @valid: The wqe valid
-  */
--static void irdma_set_fragment(__le64 *wqe, u32 offset, struct irdma_sge *sge,
-+static void irdma_set_fragment(__le64 *wqe, u32 offset, struct ib_sge *sge,
- 			       u8 valid)
- {
- 	if (sge) {
- 		set_64bit_val(wqe, offset,
--			      FIELD_PREP(IRDMAQPSQ_FRAG_TO, sge->tag_off));
-+			      FIELD_PREP(IRDMAQPSQ_FRAG_TO, sge->addr));
- 		set_64bit_val(wqe, offset + 8,
- 			      FIELD_PREP(IRDMAQPSQ_VALID, valid) |
--			      FIELD_PREP(IRDMAQPSQ_FRAG_LEN, sge->len) |
--			      FIELD_PREP(IRDMAQPSQ_FRAG_STAG, sge->stag));
-+			      FIELD_PREP(IRDMAQPSQ_FRAG_LEN, sge->length) |
-+			      FIELD_PREP(IRDMAQPSQ_FRAG_STAG, sge->lkey));
- 	} else {
- 		set_64bit_val(wqe, offset, 0);
- 		set_64bit_val(wqe, offset + 8,
-@@ -38,14 +38,14 @@ static void irdma_set_fragment(__le64 *wqe, u32 offset, struct irdma_sge *sge,
-  * @valid: wqe valid flag
-  */
- static void irdma_set_fragment_gen_1(__le64 *wqe, u32 offset,
--				     struct irdma_sge *sge, u8 valid)
-+				     struct ib_sge *sge, u8 valid)
- {
- 	if (sge) {
- 		set_64bit_val(wqe, offset,
--			      FIELD_PREP(IRDMAQPSQ_FRAG_TO, sge->tag_off));
-+			      FIELD_PREP(IRDMAQPSQ_FRAG_TO, sge->addr));
- 		set_64bit_val(wqe, offset + 8,
--			      FIELD_PREP(IRDMAQPSQ_GEN1_FRAG_LEN, sge->len) |
--			      FIELD_PREP(IRDMAQPSQ_GEN1_FRAG_STAG, sge->stag));
-+			      FIELD_PREP(IRDMAQPSQ_GEN1_FRAG_LEN, sge->length) |
-+			      FIELD_PREP(IRDMAQPSQ_GEN1_FRAG_STAG, sge->lkey));
- 	} else {
- 		set_64bit_val(wqe, offset, 0);
- 		set_64bit_val(wqe, offset + 8, 0);
-@@ -289,7 +289,7 @@ enum irdma_status_code irdma_uk_rdma_write(struct irdma_qp_uk *qp,
- 		return IRDMA_ERR_INVALID_FRAG_COUNT;
- 
- 	for (i = 0; i < op_info->num_lo_sges; i++)
--		total_size += op_info->lo_sg_list[i].len;
-+		total_size += op_info->lo_sg_list[i].length;
- 
- 	read_fence |= info->read_fence;
- 
-@@ -310,7 +310,7 @@ enum irdma_status_code irdma_uk_rdma_write(struct irdma_qp_uk *qp,
- 	irdma_clr_wqes(qp, wqe_idx);
- 
- 	set_64bit_val(wqe, 16,
--		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.tag_off));
-+		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.addr));
- 
- 	if (info->imm_data_valid) {
- 		set_64bit_val(wqe, 0,
-@@ -339,7 +339,7 @@ enum irdma_status_code irdma_uk_rdma_write(struct irdma_qp_uk *qp,
- 			++addl_frag_cnt;
- 	}
- 
--	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.stag) |
-+	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.lkey) |
- 	      FIELD_PREP(IRDMAQPSQ_OPCODE, info->op_type) |
- 	      FIELD_PREP(IRDMAQPSQ_IMMDATAFLAG, info->imm_data_valid) |
- 	      FIELD_PREP(IRDMAQPSQ_REPORTRTT, info->report_rtt) |
-@@ -391,7 +391,7 @@ enum irdma_status_code irdma_uk_rdma_read(struct irdma_qp_uk *qp,
- 		return IRDMA_ERR_INVALID_FRAG_COUNT;
- 
- 	for (i = 0; i < op_info->num_lo_sges; i++)
--		total_size += op_info->lo_sg_list[i].len;
-+		total_size += op_info->lo_sg_list[i].length;
- 
- 	ret_code = irdma_fragcnt_to_quanta_sq(op_info->num_lo_sges, &quanta);
- 	if (ret_code)
-@@ -426,8 +426,8 @@ enum irdma_status_code irdma_uk_rdma_read(struct irdma_qp_uk *qp,
- 			++addl_frag_cnt;
- 	}
- 	set_64bit_val(wqe, 16,
--		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.tag_off));
--	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.stag) |
-+		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.addr));
-+	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.lkey) |
- 	      FIELD_PREP(IRDMAQPSQ_REPORTRTT, (info->report_rtt ? 1 : 0)) |
- 	      FIELD_PREP(IRDMAQPSQ_ADDFRAGCNT, addl_frag_cnt) |
- 	      FIELD_PREP(IRDMAQPSQ_OPCODE,
-@@ -477,7 +477,7 @@ enum irdma_status_code irdma_uk_send(struct irdma_qp_uk *qp,
- 		return IRDMA_ERR_INVALID_FRAG_COUNT;
- 
- 	for (i = 0; i < op_info->num_sges; i++)
--		total_size += op_info->sg_list[i].len;
-+		total_size += op_info->sg_list[i].length;
- 
- 	if (info->imm_data_valid)
- 		frag_cnt = op_info->num_sges + 1;
-@@ -705,9 +705,9 @@ irdma_uk_inline_rdma_write(struct irdma_qp_uk *qp, struct irdma_post_sq_info *in
- 
- 	read_fence |= info->read_fence;
- 	set_64bit_val(wqe, 16,
--		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.tag_off));
-+		      FIELD_PREP(IRDMAQPSQ_FRAG_TO, op_info->rem_addr.addr));
- 
--	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.stag) |
-+	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.lkey) |
- 	      FIELD_PREP(IRDMAQPSQ_OPCODE, info->op_type) |
- 	      FIELD_PREP(IRDMAQPSQ_INLINEDATALEN, op_info->len) |
- 	      FIELD_PREP(IRDMAQPSQ_REPORTRTT, info->report_rtt ? 1 : 0) |
-@@ -826,7 +826,7 @@ irdma_uk_stag_local_invalidate(struct irdma_qp_uk *qp,
- 	u64 hdr;
- 	u32 wqe_idx;
- 	bool local_fence = false;
--	struct irdma_sge sge = {};
-+	struct ib_sge sge = {};
- 
- 	info->push_wqe = qp->push_db ? true : false;
- 	op_info = &info->op.inv_local_stag;
-@@ -839,7 +839,7 @@ irdma_uk_stag_local_invalidate(struct irdma_qp_uk *qp,
- 
- 	irdma_clr_wqes(qp, wqe_idx);
- 
--	sge.stag = op_info->target_stag;
-+	sge.lkey = op_info->target_stag;
- 	qp->wqe_ops.iw_set_fragment(wqe, 0, &sge, 0);
- 
- 	set_64bit_val(wqe, 16, 0);
-diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
-index e0e9512ad3d5..2af5986039e2 100644
---- a/drivers/infiniband/hw/irdma/user.h
-+++ b/drivers/infiniband/hw/irdma/user.h
-@@ -16,7 +16,6 @@
- #define irdma_access_privileges u32
- #define irdma_physical_fragment u64
- #define irdma_address_list u64 *
--#define irdma_sgl struct irdma_sge *
- 
- #define	IRDMA_MAX_MR_SIZE       0x200000000000ULL
- 
-@@ -151,12 +150,6 @@ struct irdma_cq_uk;
- struct irdma_qp_uk_init_info;
- struct irdma_cq_uk_init_info;
- 
--struct irdma_sge {
--	irdma_tagged_offset tag_off;
--	u32 len;
--	irdma_stag stag;
--};
--
- struct irdma_ring {
- 	u32 head;
- 	u32 tail;
-@@ -172,7 +165,7 @@ struct irdma_extended_cqe {
- };
- 
- struct irdma_post_send {
--	irdma_sgl sg_list;
-+	struct ib_sge *sg_list;
- 	u32 num_sges;
- 	u32 qkey;
- 	u32 dest_qp;
-@@ -189,26 +182,26 @@ struct irdma_post_inline_send {
- 
- struct irdma_post_rq_info {
- 	u64 wr_id;
--	irdma_sgl sg_list;
-+	struct ib_sge *sg_list;
- 	u32 num_sges;
- };
- 
- struct irdma_rdma_write {
--	irdma_sgl lo_sg_list;
-+	struct ib_sge *lo_sg_list;
- 	u32 num_lo_sges;
--	struct irdma_sge rem_addr;
-+	struct ib_sge rem_addr;
- };
- 
- struct irdma_inline_rdma_write {
- 	void *data;
- 	u32 len;
--	struct irdma_sge rem_addr;
-+	struct ib_sge rem_addr;
- };
- 
- struct irdma_rdma_read {
--	irdma_sgl lo_sg_list;
-+	struct ib_sge *lo_sg_list;
- 	u32 num_lo_sges;
--	struct irdma_sge rem_addr;
-+	struct ib_sge rem_addr;
- };
- 
- struct irdma_bind_window {
-@@ -306,7 +299,7 @@ enum irdma_status_code irdma_uk_stag_local_invalidate(struct irdma_qp_uk *qp,
- struct irdma_wqe_uk_ops {
- 	void (*iw_copy_inline_data)(u8 *dest, u8 *src, u32 len, u8 polarity);
- 	u16 (*iw_inline_data_size_to_quanta)(u32 data_size);
--	void (*iw_set_fragment)(__le64 *wqe, u32 offset, struct irdma_sge *sge,
-+	void (*iw_set_fragment)(__le64 *wqe, u32 offset, struct ib_sge *sge,
- 				u8 valid);
- 	void (*iw_set_mw_bind_wqe)(__le64 *wqe,
- 				   struct irdma_bind_window *op_info);
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 02ca1f80968e..7ab9645d6f18 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3039,24 +3039,6 @@ static int irdma_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
- 	return 0;
- }
- 
--/**
-- * irdma_copy_sg_list - copy sg list for qp
-- * @sg_list: copied into sg_list
-- * @sgl: copy from sgl
-- * @num_sges: count of sg entries
-- */
--static void irdma_copy_sg_list(struct irdma_sge *sg_list, struct ib_sge *sgl,
--			       int num_sges)
--{
--	unsigned int i;
--
--	for (i = 0; (i < num_sges) && (i < IRDMA_MAX_WQ_FRAGMENT_COUNT); i++) {
--		sg_list[i].tag_off = sgl[i].addr;
--		sg_list[i].len = sgl[i].length;
--		sg_list[i].stag = sgl[i].lkey;
--	}
--}
--
- /**
-  * irdma_post_send -  kernel application wr
-  * @ibqp: qp ptr for wr
-@@ -3133,7 +3115,7 @@ static int irdma_post_send(struct ib_qp *ibqp,
- 				ret = irdma_uk_inline_send(ukqp, &info, false);
- 			} else {
- 				info.op.send.num_sges = ib_wr->num_sge;
--				info.op.send.sg_list = (struct irdma_sge *)
-+				info.op.send.sg_list = (struct ib_sge *)
- 						       ib_wr->sg_list;
- 				if (iwqp->ibqp.qp_type == IB_QPT_UD ||
- 				    iwqp->ibqp.qp_type == IB_QPT_GSI) {
-@@ -3169,15 +3151,18 @@ static int irdma_post_send(struct ib_qp *ibqp,
- 
- 			if (ib_wr->send_flags & IB_SEND_INLINE) {
- 				info.op.inline_rdma_write.data = (void *)(uintptr_t)ib_wr->sg_list[0].addr;
--				info.op.inline_rdma_write.len = ib_wr->sg_list[0].length;
--				info.op.inline_rdma_write.rem_addr.tag_off = rdma_wr(ib_wr)->remote_addr;
--				info.op.inline_rdma_write.rem_addr.stag = rdma_wr(ib_wr)->rkey;
-+				info.op.inline_rdma_write.len =
-+						ib_wr->sg_list[0].length;
-+				info.op.inline_rdma_write.rem_addr.addr =
-+						rdma_wr(ib_wr)->remote_addr;
-+				info.op.inline_rdma_write.rem_addr.lkey =
-+						rdma_wr(ib_wr)->rkey;
- 				ret = irdma_uk_inline_rdma_write(ukqp, &info, false);
- 			} else {
- 				info.op.rdma_write.lo_sg_list = (void *)ib_wr->sg_list;
- 				info.op.rdma_write.num_lo_sges = ib_wr->num_sge;
--				info.op.rdma_write.rem_addr.tag_off = rdma_wr(ib_wr)->remote_addr;
--				info.op.rdma_write.rem_addr.stag = rdma_wr(ib_wr)->rkey;
-+				info.op.rdma_write.rem_addr.addr = rdma_wr(ib_wr)->remote_addr;
-+				info.op.rdma_write.rem_addr.lkey = rdma_wr(ib_wr)->rkey;
- 				ret = irdma_uk_rdma_write(ukqp, &info, false);
- 			}
- 
-@@ -3198,8 +3183,8 @@ static int irdma_post_send(struct ib_qp *ibqp,
- 				break;
- 			}
- 			info.op_type = IRDMA_OP_TYPE_RDMA_READ;
--			info.op.rdma_read.rem_addr.tag_off = rdma_wr(ib_wr)->remote_addr;
--			info.op.rdma_read.rem_addr.stag = rdma_wr(ib_wr)->rkey;
-+			info.op.rdma_read.rem_addr.addr = rdma_wr(ib_wr)->remote_addr;
-+			info.op.rdma_read.rem_addr.lkey = rdma_wr(ib_wr)->rkey;
- 			info.op.rdma_read.lo_sg_list = (void *)ib_wr->sg_list;
- 			info.op.rdma_read.num_lo_sges = ib_wr->num_sge;
- 
-@@ -3286,7 +3271,6 @@ static int irdma_post_recv(struct ib_qp *ibqp,
- 	struct irdma_qp *iwqp;
- 	struct irdma_qp_uk *ukqp;
- 	struct irdma_post_rq_info post_recv = {};
--	struct irdma_sge sg_list[IRDMA_MAX_WQ_FRAGMENT_COUNT];
- 	enum irdma_status_code ret = 0;
- 	unsigned long flags;
- 	int err = 0;
-@@ -3301,8 +3285,7 @@ static int irdma_post_recv(struct ib_qp *ibqp,
- 	while (ib_wr) {
- 		post_recv.num_sges = ib_wr->num_sge;
- 		post_recv.wr_id = ib_wr->wr_id;
--		irdma_copy_sg_list(sg_list, ib_wr->sg_list, ib_wr->num_sge);
--		post_recv.sg_list = sg_list;
-+		post_recv.sg_list = ib_wr->sg_list;
- 		ret = irdma_uk_post_receive(ukqp, &post_recv);
- 		if (ret) {
- 			ibdev_dbg(&iwqp->iwdev->ibdev,
--- 
-2.27.0
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
