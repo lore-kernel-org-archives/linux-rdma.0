@@ -2,83 +2,95 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3637C433F5
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Oct 2021 02:55:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 649C1C433EF
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Oct 2021 04:09:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A149D6101B
-	for <linux-rdma@archiver.kernel.org>; Sat, 30 Oct 2021 02:55:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 337D76115B
+	for <linux-rdma@archiver.kernel.org>; Sat, 30 Oct 2021 04:09:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231569AbhJ3C5v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 29 Oct 2021 22:57:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43292 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbhJ3C5u (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 29 Oct 2021 22:57:50 -0400
-Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 800ADC061570
-        for <linux-rdma@vger.kernel.org>; Fri, 29 Oct 2021 19:55:21 -0700 (PDT)
+        id S230394AbhJ3ELv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 30 Oct 2021 00:11:51 -0400
+Received: from szxga01-in.huawei.com ([45.249.212.187]:13993 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229753AbhJ3ELu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 30 Oct 2021 00:11:50 -0400
+Received: from dggeml757-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Hh5NP4NVgzWl5s;
+        Sat, 30 Oct 2021 12:07:17 +0800 (CST)
+Received: from [10.174.179.200] (10.174.179.200) by
+ dggeml757-chm.china.huawei.com (10.1.199.137) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.15; Sat, 30 Oct 2021 12:09:16 +0800
+Subject: Re: [PATCH net] net: vlan: fix a UAF in vlan_dev_real_dev()
+To:     Jason Gunthorpe <jgg@nvidia.com>, Jakub Kicinski <kuba@kernel.org>
+CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+References: <20211027121606.3300860-1-william.xuanziyang@huawei.com>
+ <20211027184640.7955767e@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20211028114503.GM2744544@nvidia.com>
+ <20211028070050.6ca7893b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <b573b01c-2cc9-4722-6289-f7b9e0a43e19@huawei.com>
+ <20211029121324.GT2744544@nvidia.com>
+ <20211029064610.18daa788@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <20211029184752.GI2744544@nvidia.com>
+From:   "Ziyang Xuan (William)" <william.xuanziyang@huawei.com>
+Message-ID: <74ea44c7-7bf5-f4cd-c0aa-74e83cdc4448@huawei.com>
+Date:   Sat, 30 Oct 2021 12:09:16 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1635562519;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=5nXIs9d85YvUriooiiYhQ+zuEmnRGY78BItKZMKCcso=;
-        b=xLS2vPHgCqcBnsUotjZNKShMULhb+7wY0/1trmyhOTeA7k+uENFz/s5yUaOUTOSamXM8/r
-        1pZ6vOdCOEvUPPcGDVjmQTp3CPShUUJD6ozgObKIx+0c4/vVx+aNNnb2ZChp5FlAR42Sd/
-        3u93EyPJVzEgbqAgcLOAOkqMcccxKjc=
-Date:   Sat, 30 Oct 2021 02:55:18 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   yanjun.zhu@linux.dev
-Message-ID: <2b15fa90db74b2c4d200e058de3d9710@linux.dev>
-Subject: Re: [PATCH 1/1] RDMA/irdma: optimize rx path by removing
- unnecessary copy
-To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>, dledford@redhat.com,
-        jgg@ziepe.ca, linux-rdma@vger.kernel.org, leonro@nvidia.com
-In-Reply-To: <731072121b4245d2beefd07ce1cb757f@intel.com>
-References: <731072121b4245d2beefd07ce1cb757f@intel.com>
- <20211029162340.241768-1-yanjun.zhu@linux.dev>
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: yanjun.zhu@linux.dev
+In-Reply-To: <20211029184752.GI2744544@nvidia.com>
+Content-Type: text/plain; charset="gbk"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.179.200]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggeml757-chm.china.huawei.com (10.1.199.137)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-October 30, 2021 3:53 AM, "Saleem, Shiraz" <shiraz.saleem@intel.com> wrot=
-e:=0A=0A>> Subject: [PATCH 1/1] RDMA/irdma: optimize rx path by removing =
-unnecessary=0A>> copy=0A>> =0A>> From: Zhu Yanjun <yanjun.zhu@linux.dev>=
-=0A>> =0A>> In the function irdma_post_recv, the function irdma_copy_sg_l=
-ist is not needed=0A>> since the struct irdma_sge and ib_sge have the sim=
-ilar member variables. The=0A>> struct irdma_sge can be replaced with the=
- struct ib_sge totally.=0A>> =0A>> This can increase the rx performance o=
-f irdma.=0A>> =0A>> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>=0A>>=
- ---=0A>> drivers/infiniband/hw/irdma/uk.c | 38 +++++++++++++------------=
--=0A>> drivers/infiniband/hw/irdma/user.h | 23 ++++++----------=0A>> driv=
-ers/infiniband/hw/irdma/verbs.c | 41 +++++++++--------------------=0A>> 3=
- files changed, 39 insertions(+), 63 deletions(-)=0A> =0A> Thanks much fo=
-r the patch! Minor comment...=0A> =0A> [....]=0A> =0A>> a/drivers/infinib=
-and/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c=0A>> index 02c=
-a1f80968e..7ab9645d6f18 100644=0A>> --- a/drivers/infiniband/hw/irdma/ver=
-bs.c=0A>> +++ b/drivers/infiniband/hw/irdma/verbs.c=0A>> @@ -3039,24 +303=
-9,6 @@ static int irdma_dereg_mr(struct ib_mr *ib_mr, struct=0A>> ib_udat=
-a *udata)=0A>> return 0;=0A>> }=0A>> =0A>> -/**=0A>> - * irdma_copy_sg_li=
-st - copy sg list for qp=0A>> - * @sg_list: copied into sg_list=0A>> - * =
-@sgl: copy from sgl=0A>> - * @num_sges: count of sg entries=0A>> - */=0A>=
-> -static void irdma_copy_sg_list(struct irdma_sge *sg_list, struct ib_sg=
-e *sgl,=0A>> - int num_sges)=0A>> -{=0A>> - unsigned int i;=0A>> -=0A>> -=
- for (i =3D 0; (i < num_sges) && (i < IRDMA_MAX_WQ_FRAGMENT_COUNT);=0A>> =
-i++) {=0A>> - sg_list[i].tag_off =3D sgl[i].addr;=0A>> - sg_list[i].len =
-=3D sgl[i].length;=0A>> - sg_list[i].stag =3D sgl[i].lkey;=0A>> - }=0A>> =
--}=0A>> -=0A>> /**=0A>> * irdma_post_send - kernel application wr=0A>> * =
-@ibqp: qp ptr for wr=0A>> @@ -3133,7 +3115,7 @@ static int irdma_post_sen=
-d(struct ib_qp *ibqp,=0A>> ret =3D irdma_uk_inline_send(ukqp, &info, fals=
-e);=0A>> } else {=0A>> info.op.send.num_sges =3D ib_wr->num_sge;=0A>> - i=
-nfo.op.send.sg_list =3D (struct irdma_sge *)=0A>> + info.op.send.sg_list =
-=3D (struct ib_sge *)=0A>> ib_wr->sg_list;=0A> =0A> Don't think we need t=
-he typecast.=0A=0AGot it. Thanks. A new patch is sent for review.=0AIn th=
-e new patch, the unnecessary typecast is removed.=0A=0AZhu Yanjun=0A=0A> =
-=0A> Shiraz
+> On Fri, Oct 29, 2021 at 06:46:10AM -0700, Jakub Kicinski wrote:
+>> On Fri, 29 Oct 2021 09:13:24 -0300 Jason Gunthorpe wrote:
+>>> Jakub's path would be to test vlan_dev->reg_state != NETREG_REGISTERED
+>>> in the work queue, but that feels pretty hacky to me as the main point
+>>> of the UNREGISTERING state is to keep the object alive enough that
+>>> those with outstanding gets can compelte their work and release the
+>>> get. Leaving a wrecked object in UNREGISTERING is a bad design.
+>>
+>> That or we should investigate if we could hold the ref for real_dev all
+>> the way until vlan_dev_free().
+> 
+
+Synchronize test results with the following modification:
+
+@@ -123,9 +123,6 @@ void unregister_vlan_dev(struct net_device *dev, struct list_head *head)
+        }
+
+        vlan_vid_del(real_dev, vlan->vlan_proto, vlan_id);
+-
+-       /* Get rid of the vlan's reference to real_dev */
+-       dev_put(real_dev);
+ }
+
+@@ -843,6 +843,9 @@ static void vlan_dev_free(struct net_device *dev)
+
+        free_percpu(vlan->vlan_pcpu_stats);
+        vlan->vlan_pcpu_stats = NULL;
++
++       /* Get rid of the vlan's reference to real_dev */
++       dev_put(vlan->real_dev);
+ }
+
+It works on the UAF problem. And I have taken kmemleak tests for vlan_dev and real_dev,
+no kmemleak problem and new UAF problem.
+
+So take this modification for this problem?
+
+> The latter is certainly better if it works out, no circular deps, etc.
+> 
+> Thanks,
+> Jason
+> .
+> 
