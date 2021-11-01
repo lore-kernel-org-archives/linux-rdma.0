@@ -2,136 +2,136 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB22C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 17:41:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AAEC43219
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 23:47:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F49660E54
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 17:41:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F316760EE9
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 23:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230321AbhKARn7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 1 Nov 2021 13:43:59 -0400
-Received: from mail-co1nam11on2057.outbound.protection.outlook.com ([40.107.220.57]:49400
-        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S232635AbhKARnd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 1 Nov 2021 13:43:33 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=JE3nG2oILAdngdp2xs1h+V8QCBXtOqx2z6JMNp+S+Fh6mH96/UULSHWoupb+iqRGW0Gq7djduhtyczSHX1NDQxuKRTLf8PyZxFJSPJPepygA8wv5lUA1njRDRYlikGvZ/w5Nq4XS5iiIe0RSZFMX6Hcc1QFdilHp5jG/G48MIDneSjLXM+ijUhw2zw6cSLErGmlVUU+zYl66nV79sXhZfOBrCz6hMCIvSgVUzIkY0PZaWT7zjmIz9wObZHEDWZYF0kz7efGHUYfEN2wncG/InZ/4X4Gzj23l18APnBQsb91vLFhSyxvMjgQGJnv8Il7+P5xaPpoyecwJZwmgcKoDQA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oC2fZKJLUTKAcU5xSiES+GY2Ehlo8KvH9t7RYPdRUK0=;
- b=TFMWSGdQxy6hwZb87ZX114QSMsjFB/1OV9s14wfCN3wSIOJpc18hafqz2/QI1sbH/g4r+SwtRcKeHftPlyHN4MuV0POYYfEQs66JFCW467cq3icbDJX/6wvqYB9059Yly/haVSVYpF5yCjXZmnl4Y2ilvevEN3Vbo3GyUhQCHab5EJtxuhcMHGAnolQ0H4dHPrHMGpAB/be/WrjZIm6/IKJ5ijQBTysTp0ruVz7+aLj41Y1sLHEhj/VS/U4czsScd2z43aDZhcINrNUh5bb+stoeKGBzmQkQeVbfIs8FIhU7M3QxWUcYAVatoSw61ClwtH09aNFC8XPQO567gmPQBg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oC2fZKJLUTKAcU5xSiES+GY2Ehlo8KvH9t7RYPdRUK0=;
- b=hU09IPoPrgwiJ/acfOzuqWXH9kTlNOLOt2b2erqL7dB0dAg6PmERDBsPhaBddiICIOKEGGQqjoDThDLBtZGOdXwaP8e4SthclLch2ebqy5Mm47O4rkj9ThAbdjBtgUICwRaNdbpqd/Gh+bDO+ZPb1KfuuABo/OsETXDynX+gDjf0sKlGOOcTLUU26KEJZndDZzJnExo301H0LYc4gvnMG2xGJ/+hdcoJzFhfZT3OiWjQty8yg4Vxmja4k5Y74N5xLi5465pzQoSYN/R38wkTOXrf7balG8VslwuaedrXZDAS0UbRYh2KPfQiXDm5lr0XJFFsNZ5EWSfP7BH+Y3RgiA==
-Authentication-Results: linux.dev; dkim=none (message not signed)
- header.d=none;linux.dev; dmarc=none action=none header.from=nvidia.com;
-Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
- by BL0PR12MB5539.namprd12.prod.outlook.com (2603:10b6:208:1c3::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4649.14; Mon, 1 Nov
- 2021 17:40:58 +0000
-Received: from BL0PR12MB5506.namprd12.prod.outlook.com
- ([fe80::e8af:232:915e:2f95]) by BL0PR12MB5506.namprd12.prod.outlook.com
- ([fe80::e8af:232:915e:2f95%8]) with mapi id 15.20.4649.019; Mon, 1 Nov 2021
- 17:40:58 +0000
-Date:   Mon, 1 Nov 2021 14:40:56 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     yanjun.zhu@linux.dev
-Cc:     mustafa.ismail@intel.com, shiraz.saleem@intel.com,
-        dledford@redhat.com, linux-rdma@vger.kernel.org, leonro@nvidia.com
-Subject: Re: [PATCHv2 1/1] RDMA/irdma: optimize rx path by removing
- unnecessary copy
-Message-ID: <20211101174056.GA1091095@nvidia.com>
-References: <20211030104226.253346-1-yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211030104226.253346-1-yanjun.zhu@linux.dev>
-X-ClientProxiedBy: MN2PR22CA0026.namprd22.prod.outlook.com
- (2603:10b6:208:238::31) To BL0PR12MB5506.namprd12.prod.outlook.com
- (2603:10b6:208:1cb::22)
+        id S231690AbhKAXuC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 1 Nov 2021 19:50:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42044 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230396AbhKAXuB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 1 Nov 2021 19:50:01 -0400
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAD17C061714;
+        Mon,  1 Nov 2021 16:47:27 -0700 (PDT)
+Received: by mail-yb1-xb33.google.com with SMTP id t127so48522313ybf.13;
+        Mon, 01 Nov 2021 16:47:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Sf1MOARYDjP4TdzVuSLyJGMCk0C2bT96cLtb/iSHOvE=;
+        b=SmRguYNmZ65IXjC5kS7UQZRTfWQSdxG3tt0NMqEE3jWrUYTo0GxWeERHGJGqffLMhO
+         mUpNaR7C7soFG4z0owyxtBpWpkIIwvI7NmZ1X9AdSpHW94bF9X0F2JYuleAt/1sHg0L/
+         5zrYaqQwj0Suq5S5VsmoV1AZdC6+4yP/fsMOSEXMRg6e4wm0lhJ2QLDw5Gk9S7qwsRw+
+         4Ge1C6z+tXJAZUZgehS4GLqH1/7jQ+JcX7YrRez6DqCs2zac2rP50sEIyn+lO7WeZt0c
+         XBXE/edBJBpIPW+IBzEvHdctfSqV5hvPkoQfNas342hISax3YHARRiHhQ7FBsPBgRiOl
+         mZFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Sf1MOARYDjP4TdzVuSLyJGMCk0C2bT96cLtb/iSHOvE=;
+        b=My1n7WexEEoJyWD0Ge/ODEjUZvs1Jnmp9d4kfbwVKWLOP9p795tdQvBGZTDovLK9Um
+         ZSC1ZAX+MOxq2P37ETL6qyHv9dn7n8gy77QrXNPVm0V8MF23sydr4L7+6jCBmE1RkQmA
+         5jdV4TMyuihtQfoDuxRoJnRawc4Tx6nF4OvrKlOM3O5+LYQAwLTp9MSJ8gg80YlYQx63
+         vNsMthPCXzPetfHUx+KuQUAlh1kF2BTrtk35zQrprwZkfjmGH5s3+j+eXNQ78eelLokx
+         41lXtJ4o/zAAsqWuOpIjS+okT6xfPfKvlw+8WAdWCk7OJ9ubYxs9FVJiZu7yBlXnY+8N
+         SNZg==
+X-Gm-Message-State: AOAM531vNQDgGTCBKyxAn6ybAGcEa6eQ+RGhH2LOM21ESFkZt2CB2Fcg
+        66MNT14asz07ghieh1ghnV/jS7CGpdJoQo55MMOqKgH95w4=
+X-Google-Smtp-Source: ABdhPJxxytkF+I+xIYE57g7IWWkQCLnoV8y619WwaJHG8gGGeHV30HWL8AmkKNk7EfNuLQNSutDI8kZo20T/HYQbqVA=
+X-Received: by 2002:a25:d010:: with SMTP id h16mr25598551ybg.225.1635810447094;
+ Mon, 01 Nov 2021 16:47:27 -0700 (PDT)
 MIME-Version: 1.0
-Received: from mlx.ziepe.ca (142.162.113.129) by MN2PR22CA0026.namprd22.prod.outlook.com (2603:10b6:208:238::31) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4649.14 via Frontend Transport; Mon, 1 Nov 2021 17:40:57 +0000
-Received: from jgg by mlx with local (Exim 4.94)        (envelope-from <jgg@nvidia.com>)        id 1mhbIm-004ZrS-3t; Mon, 01 Nov 2021 14:40:56 -0300
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 3b5832b9-a552-48f5-fd4f-08d99d5ec347
-X-MS-TrafficTypeDiagnostic: BL0PR12MB5539:
-X-Microsoft-Antispam-PRVS: <BL0PR12MB5539B2DD84706FFD9549E645C28A9@BL0PR12MB5539.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4303;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: zO4rQFJobFhVbyeJw5wqvtGGLNyK2B+UNrtqz9VrFgLsgI5AjzfgXASf/g0xCUlVhWI3mlYNi2qAhuMf0/m3IcXps5J/kOUmiOrXwEWlksdcVdatVTtJbbc+lNP+r7PhArbgfStvAQ9khsvujLMi7utsU0AMc3juUvCUVlv44KlOXpaCOH8xegdvsBC1JGzVdr59gEe3mrLSCM5KjkhWpTp+6d8cCA8qpcXCdM1H+gP+//VmdqmMpZvcGwFRxVfOTI2PTyZC/RejlvX3/908FWG++wHGCKfSVinvDh2er+fST7wxZ3wYNQ4W1q6pA/crRSIHkgQfCm+EYL5L+jMPAqR9f97Q8XcExwVsnpFEq4kqk5+YlwcIN0eFk8hGxSqr5jMfFL9iK3+1mpK4D4LzWXXfA2ipJGztALL3GgG9qNB84utUcmXkfX+2jQX0w37K4pAw0tqMR5XcrGiN43YFSK7EPY6FYyhK9XyfH0JrAnzN7nGSRplHCeEOH0m5sgN4gP25QpglYBhpkhs1cXRx0+3KwXKMqAiSgX3Ht2BQ80CuYpsT769ki6VHkGnK1+E8AWbwm+QJ1Xc0NNECliWyfyY9KCAY6dpVcvN0lYTLOfNrq8wP8kXCZXgQMYg4WMHtK5FQi5WZI6dhh3DxiDrtAw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(66556008)(316002)(33656002)(86362001)(5660300002)(66946007)(9746002)(9786002)(107886003)(1076003)(66476007)(186003)(36756003)(4326008)(426003)(38100700002)(2906002)(2616005)(8936002)(26005)(8676002)(6916009)(83380400001)(508600001)(4744005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?4XWN6o45AN/vgV4hLb2jyNph++AdZopORu8Iv/MQ4cYYu37Go2PPHQTiZAd3?=
- =?us-ascii?Q?sRF1TpqiN8u1n2UewSoM7N9Ej5S6YTCukhDNHpEnHGhrNzvdjTqzj1Xtwa8p?=
- =?us-ascii?Q?dlIY6fLjAUttetnZgaDbiizthacQgcHud1q6INLGpIuO/J0PMpK3FlRa16K2?=
- =?us-ascii?Q?ik+yiLUx+Z3Q2AgZzQhFTn6d7T+lbGN/IC/LHWt6FGQeCP64goZoT1OBSrFq?=
- =?us-ascii?Q?kIwct4krAzm2HJSooU3yBwAIqOHxci+OOdz0iOkrPnrOZdXCG9+ACJJ4ExG5?=
- =?us-ascii?Q?aQl7jDbs/bOAWzn1xX9jm1dStPyhU1k3XPMfciwwmNoakVULlWwOZ4s/iew5?=
- =?us-ascii?Q?5UmdPqDlooynzPmBtZ192vhYWqyVB6G0Rx8SW+Ya4mN8U53Thr7899gbGa6p?=
- =?us-ascii?Q?vjyeC50FwoMsLCFbX1Y+x55wm1ROjgHQqnoJ+Gyy4gV4fnOkiUJphy8bCst/?=
- =?us-ascii?Q?sLXbdFRICiHk6A1t9MNpybUS+AsLWmq09YziTWuq1Ald7XogHolqd7pC2G63?=
- =?us-ascii?Q?YeVAIL8IWUDn0i64ecgQGVg7nlnrm8Eqibl7nuEA0yAcFlIh7tUT+GgxhcUT?=
- =?us-ascii?Q?vZv8tPNH+fJyW15h6ya5JC0o36lKPSMBn0gcPdGpYUnLJC8pW/HfRCe9lCCN?=
- =?us-ascii?Q?1LsoySj346oBntfNL6Sia0ocr2O8gkz6VAsZ2yn6keG9mCZkUG68LL2PWEAU?=
- =?us-ascii?Q?3wRNEUepYQzvoFAi4wvFOyodME1sDpWfzNFEuJun+5+0DYV3c3SLvUzH4Rzu?=
- =?us-ascii?Q?Db+z8rhjbPB/1dhc2DkmKw1udVFupENjEr0P7UFEMnN5I0DB52p211VtEnni?=
- =?us-ascii?Q?aUtIXjop5R9Lyn60Ar2IMzJ/XnRLlgbevxVoCsWT9TyoLRPzPQuYPVgsgeot?=
- =?us-ascii?Q?cd0OYn//Lj2PhO8dukAiaBIbrQjCG8u70ejqlGxmfcgHuVOTeUCk7HFbxNRh?=
- =?us-ascii?Q?BDAnYuM09BwZkpmRorNSRtVO0SGKaKfLR2pZiEbdNkU8+JecQnoCLc/w/rpD?=
- =?us-ascii?Q?ZfZOyaIIYRfVGaBDYdSQ1kbrKkwfljcxrXZTDS7iNym/VLwVVtdkyzZWdx/h?=
- =?us-ascii?Q?i2qbQvvo0KAHidH9SMZIp2XHwsZUJL7O+i44gN9wBndhej1/v1MyC75seoY7?=
- =?us-ascii?Q?V5SJiXxJYCqDID9B366fH/wWLeG2xtCG/Ip1oqKTHpIGGNilMmckhIqOy/FB?=
- =?us-ascii?Q?Ox4MpQy68KCVuslS/TS99+S9uo9+VJNLabYkbf39jjEsIEJ+JHOID/yMKSIS?=
- =?us-ascii?Q?KrOeYsKwYUv/dO7/8nZ7eGNjxLMrdDLooIef8T2jMN4a2ksv35+g0KB0I7EV?=
- =?us-ascii?Q?FYII4A9QEXUCTVjW18QlD7HxVNh5i67njaIKA9H/rifUi/uF4mGRVTs7mv2c?=
- =?us-ascii?Q?I9jPyWugCzoiLLByoBEpFlWpliv9dvGbwAYmPV4yt0wpxZMRQC3mHCxhWfEc?=
- =?us-ascii?Q?cUcQBYW+NaQ524AXUxJQGz3HR7pNdY4v1SrjxLs1A/AEUOGp+/bd30zAfJ5U?=
- =?us-ascii?Q?OZ+K34A7EFDGiyzwJxjJk3tJayvXW3vYVzdadhK1/MkOq2Tnhf+1U1Euww8C?=
- =?us-ascii?Q?dOX9FPemhElg/AIhYqg=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3b5832b9-a552-48f5-fd4f-08d99d5ec347
-X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Nov 2021 17:40:58.4321
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4o5skTuP8Q8o2+Dib0rnShGO/mVRmuoA753ecVOLa4zxFCJvYawvzZuIphfabgUi
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR12MB5539
+References: <20211101060419.4682-1-laoar.shao@gmail.com> <20211101060419.4682-10-laoar.shao@gmail.com>
+In-Reply-To: <20211101060419.4682-10-laoar.shao@gmail.com>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Mon, 1 Nov 2021 16:47:15 -0700
+Message-ID: <CAEf4BzafYdKmkJ_2sDMWibhWCZBPt=XLJwEAOgJDgnoYEvv4aA@mail.gmail.com>
+Subject: Re: [PATCH v7 09/11] tools/testing/selftests/bpf: make it adopt to
+ task comm size change
+To:     Yafang Shao <laoar.shao@gmail.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        Arnaldo Carvalho de Melo <arnaldo.melo@gmail.com>,
+        Petr Mladek <pmladek@suse.com>,
+        Peter Ziljstra <peterz@infradead.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Valentin Schneider <valentin.schneider@arm.com>,
+        Qiang Zhang <qiang.zhang@windriver.com>,
+        robdclark <robdclark@chromium.org>,
+        Christian Brauner <christian@brauner.io>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>, Martin Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        john fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        dennis.dalessandro@cornelisnetworks.com,
+        mike.marciniszyn@cornelisnetworks.com,
+        Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        Networking <netdev@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
+        "linux-perf-use." <linux-perf-users@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        kernel test robot <oliver.sang@intel.com>,
+        kbuild test robot <lkp@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Oct 30, 2021 at 06:42:26AM -0400, yanjun.zhu@linux.dev wrote:
-> From: Zhu Yanjun <yanjun.zhu@linux.dev>
-> 
-> In the function irdma_post_recv, the function irdma_copy_sg_list is
-> not needed since the struct irdma_sge and ib_sge have the similar
-> member variables. The struct irdma_sge can be replaced with the
-> struct ib_sge totally.
-> 
-> This can increase the rx performance of irdma.
-> 
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-> Reviewed-by: Shiraz Saleem <shiraz.saleem@intel.com>
+On Sun, Oct 31, 2021 at 11:04 PM Yafang Shao <laoar.shao@gmail.com> wrote:
+>
+> The hard-coded 16 is used in various bpf progs. These progs get task
+> comm either via bpf_get_current_comm() or prctl() or
+> bpf_core_read_str(), all of which can work well even if the task comm size
+> is changed.
+>
+> In these BPF programs, one thing to be improved is the
+> sched:sched_switch tracepoint args. As the tracepoint args are derived
+> from the kernel, we'd better make it same with the kernel. So the macro
+> TASK_COMM_LEN is converted to type enum, then all the BPF programs can
+> get it through BTF.
+>
+> The BPF program which wants to use TASK_COMM_LEN should include the header
+> vmlinux.h. Regarding the test_stacktrace_map and test_tracepoint, as the
+> type defined in linux/bpf.h are also defined in vmlinux.h, so we don't
+> need to include linux/bpf.h again.
+>
+> Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+> Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+> Cc: Arnaldo Carvalho de Melo <arnaldo.melo@gmail.com>
+> Cc: Andrii Nakryiko <andrii.nakryiko@gmail.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Steven Rostedt <rostedt@goodmis.org>
+> Cc: Al Viro <viro@zeniv.linux.org.uk>
+> Cc: Kees Cook <keescook@chromium.org>
+> Cc: Petr Mladek <pmladek@suse.com>
 > ---
-> V1->V2: remove the unnecessary typecast.
-> ---
->  drivers/infiniband/hw/irdma/uk.c    | 38 +++++++++++++-------------
->  drivers/infiniband/hw/irdma/user.h  | 23 ++++++----------
->  drivers/infiniband/hw/irdma/verbs.c | 42 +++++++++--------------------
->  3 files changed, 39 insertions(+), 64 deletions(-)
 
-Applied to for-next, thanks
+LGTM, thanks.
 
-Jason
+Acked-by: Andrii Nakryiko <andrii@kernel.org>
+
+>  include/linux/sched.h                                   | 9 +++++++--
+>  tools/testing/selftests/bpf/progs/test_stacktrace_map.c | 6 +++---
+>  tools/testing/selftests/bpf/progs/test_tracepoint.c     | 6 +++---
+>  3 files changed, 13 insertions(+), 8 deletions(-)
+>
+
+[...]
