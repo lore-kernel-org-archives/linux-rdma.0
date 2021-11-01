@@ -2,137 +2,77 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3BBBC433EF
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 07:41:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52553C433EF
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 12:50:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C7F3B60EFF
-	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 07:41:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EEC460F45
+	for <linux-rdma@archiver.kernel.org>; Mon,  1 Nov 2021 12:50:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231228AbhKAHoK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 1 Nov 2021 03:44:10 -0400
-Received: from out30-133.freemail.mail.aliyun.com ([115.124.30.133]:55027 "EHLO
-        out30-133.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231133AbhKAHoJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 1 Nov 2021 03:44:09 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0UuVlCTD_1635752494;
-Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0UuVlCTD_1635752494)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 01 Nov 2021 15:41:35 +0800
-From:   Tony Lu <tonylu@linux.alibaba.com>
-To:     kgraul@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, guwen@linux.alibaba.com,
-        dust.li@linux.alibaba.com, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next 3/3] net/smc: Introduce tracepoint for smcr link down
-Date:   Mon,  1 Nov 2021 15:39:16 +0800
-Message-Id: <20211101073912.60410-4-tonylu@linux.alibaba.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211101073912.60410-1-tonylu@linux.alibaba.com>
-References: <20211101073912.60410-1-tonylu@linux.alibaba.com>
+        id S232536AbhKAMxX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 1 Nov 2021 08:53:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34148 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232507AbhKAMxW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 1 Nov 2021 08:53:22 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24FEBC061714;
+        Mon,  1 Nov 2021 05:50:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=RL3hnt8gJU6frPUOEVXfNSSid9qg9EK1F0andJuRsYo=; b=PklqNkLpc8XThjjoH0WQp5PHjp
+        2P0kfCnLEMG73lnHd2wpZacv9Z0T6gd9jcv1KHpBh55JQBxZy3WKjvaSKGVRxPm7lxpw1wmTifrLF
+        WeubHfJwD7K1qzjPZ0h2/0cKQ8A93IceSwN4QnBJdLlQOWOgO7nru9NYqtVE/OI9PV42yGYYMmLdq
+        tO+2Rz8um+32jqjtFqQSnsk97MMI97giaV/eAmi2Ioe0uhmHAaFoO2pzBHvIBc+R8yWFzr5kMr+KE
+        mY2g9prbvDtsYBHabFLAxx5w2GljEq6zAZE8SEv3DSLtCFDfW/zXix/UnxIcHi1L3i1zlPg/LOLG9
+        ZtD9luvA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1mhWgN-003lwE-9H; Mon, 01 Nov 2021 12:45:15 +0000
+Date:   Mon, 1 Nov 2021 12:44:59 +0000
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Yafang Shao <laoar.shao@gmail.com>
+Cc:     akpm@linux-foundation.org, keescook@chromium.org,
+        rostedt@goodmis.org, mathieu.desnoyers@efficios.com,
+        arnaldo.melo@gmail.com, pmladek@suse.com, peterz@infradead.org,
+        viro@zeniv.linux.org.uk, valentin.schneider@arm.com,
+        qiang.zhang@windriver.com, robdclark@chromium.org,
+        christian@brauner.io, dietmar.eggemann@arm.com, mingo@redhat.com,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        davem@davemloft.net, kuba@kernel.org, ast@kernel.org,
+        daniel@iogearbox.net, andrii@kernel.org, kafai@fb.com,
+        songliubraving@fb.com, yhs@fb.com, john.fastabend@gmail.com,
+        kpsingh@kernel.org, dennis.dalessandro@cornelisnetworks.com,
+        mike.marciniszyn@cornelisnetworks.com, dledford@redhat.com,
+        jgg@ziepe.ca, linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        bpf@vger.kernel.org, linux-perf-users@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, oliver.sang@intel.com, lkp@intel.com
+Subject: Re: [PATCH v7 00/11] extend task comm from 16 to 24
+Message-ID: <YX/hS6nRisiiFiBD@casper.infradead.org>
+References: <20211101060419.4682-1-laoar.shao@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211101060419.4682-1-laoar.shao@gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-SMC-R link down event is important to help us find links' issues, we
-should track this event, especially in the single nic mode, which means
-upper layer connection would be shut down. Then find out the direct
-link-down reason in time, not only increased the counter, also the
-location of the code who triggered this event.
+On Mon, Nov 01, 2021 at 06:04:08AM +0000, Yafang Shao wrote:
+> There're many truncated kthreads in the kernel, which may make trouble
+> for the user, for example, the user can't get detailed device
+> information from the task comm.
+> 
+> This patchset tries to improve this problem fundamentally by extending
+> the task comm size from 16 to 24, which is a very simple way. 
 
-Signed-off-by: Tony Lu <tonylu@linux.alibaba.com>
-Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
----
- net/smc/smc_core.c       |  9 +++++++--
- net/smc/smc_tracepoint.c |  1 +
- net/smc/smc_tracepoint.h | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+), 2 deletions(-)
+It can't be that simple if we're on v7 and at 11 patches!
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 8e642f8f334f..49b8ba3bb683 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -34,6 +34,7 @@
- #include "smc_ism.h"
- #include "smc_netlink.h"
- #include "smc_stats.h"
-+#include "smc_tracepoint.h"
- 
- #define SMC_LGR_NUM_INCR		256
- #define SMC_LGR_FREE_DELAY_SERV		(600 * HZ)
-@@ -1620,15 +1621,19 @@ static void smcr_link_down(struct smc_link *lnk)
- /* must be called under lgr->llc_conf_mutex lock */
- void smcr_link_down_cond(struct smc_link *lnk)
- {
--	if (smc_link_downing(&lnk->state))
-+	if (smc_link_downing(&lnk->state)) {
-+		trace_smcr_link_down(lnk, __builtin_return_address(0));
- 		smcr_link_down(lnk);
-+	}
- }
- 
- /* will get the lgr->llc_conf_mutex lock */
- void smcr_link_down_cond_sched(struct smc_link *lnk)
- {
--	if (smc_link_downing(&lnk->state))
-+	if (smc_link_downing(&lnk->state)) {
-+		trace_smcr_link_down(lnk, __builtin_return_address(0));
- 		schedule_work(&lnk->link_down_wrk);
-+	}
- }
- 
- void smcr_port_err(struct smc_ib_device *smcibdev, u8 ibport)
-diff --git a/net/smc/smc_tracepoint.c b/net/smc/smc_tracepoint.c
-index af031811ddb3..8d47ced5a492 100644
---- a/net/smc/smc_tracepoint.c
-+++ b/net/smc/smc_tracepoint.c
-@@ -6,3 +6,4 @@
- EXPORT_TRACEPOINT_SYMBOL(smc_switch_to_fallback);
- EXPORT_TRACEPOINT_SYMBOL(smc_tx_sendmsg);
- EXPORT_TRACEPOINT_SYMBOL(smc_rx_recvmsg);
-+EXPORT_TRACEPOINT_SYMBOL(smcr_link_down);
-diff --git a/net/smc/smc_tracepoint.h b/net/smc/smc_tracepoint.h
-index eced1546afae..b4c36795a928 100644
---- a/net/smc/smc_tracepoint.h
-+++ b/net/smc/smc_tracepoint.h
-@@ -75,6 +75,36 @@ DEFINE_EVENT(smc_msg_event, smc_rx_recvmsg,
- 	     TP_ARGS(smc, len)
- );
- 
-+TRACE_EVENT(smcr_link_down,
-+
-+	    TP_PROTO(const struct smc_link *lnk, void *location),
-+
-+	    TP_ARGS(lnk, location),
-+
-+	    TP_STRUCT__entry(
-+			     __field(const void *, lnk)
-+			     __field(const void *, lgr)
-+			     __field(int, state)
-+			     __string(name, lnk->ibname)
-+			     __field(void *, location)
-+	    ),
-+
-+	    TP_fast_assign(
-+			   const struct smc_link_group *lgr = lnk->lgr;
-+
-+			   __entry->lnk = lnk;
-+			   __entry->lgr = lgr;
-+			   __entry->state = lnk->state;
-+			   __assign_str(name, lnk->ibname);
-+			   __entry->location = location;
-+	    ),
-+
-+	    TP_printk("lnk=%p lgr=%p state=%d dev=%s location=%p",
-+		      __entry->lnk, __entry->lgr,
-+		      __entry->state, __get_str(name),
-+		      __entry->location)
-+);
-+
- #endif /* _TRACE_SMC_H */
- 
- #undef TRACE_INCLUDE_PATH
--- 
-2.19.1.6.gb485710b
+It would be helpful if you included links to earlier postings.  I can
+only find v5 and v6 in my inbox, so I fear I'm going to re-ask some
+questions which were already answered.
+
+Why can't we shorten the names of these kthreads?  You didn't
+give any examples, so I can't suggest any possibilities.
 
