@@ -2,139 +2,96 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEAA9C433F5
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 Nov 2021 21:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D6EC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Nov 2021 08:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7BA876135A
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 Nov 2021 21:23:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E30D361208
+	for <linux-rdma@archiver.kernel.org>; Mon,  8 Nov 2021 08:03:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230412AbhKGVZt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 7 Nov 2021 16:25:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38922 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230338AbhKGVZt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 Nov 2021 16:25:49 -0500
-Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A440AC061570
-        for <linux-rdma@vger.kernel.org>; Sun,  7 Nov 2021 13:23:05 -0800 (PST)
-Received: by mail-wm1-x336.google.com with SMTP id j128-20020a1c2386000000b003301a98dd62so13660216wmj.5
-        for <linux-rdma@vger.kernel.org>; Sun, 07 Nov 2021 13:23:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=1z0SrrZATGiWo8n6NO3cgh9aYdGnQVL/NWhVaDjv62o=;
-        b=DDudDxY/Nk9COGcz3JrVeFydreUMy0EI/kNVLC7hA6plhmQ+f3vBgQuVjVk8I4kvUD
-         6m/rp5x2kszz0epgoX81KS1aktXRA8V/Xngk2iQGmdGpdgFFPCWC7Y62oS6tsR1Emb/D
-         Pa65h9N+AvWB0ItKH8fuxdQM7bZ+r1Sww2ILEziIhj4GgcSY7CT/KtGb9h2wKgBYA9o5
-         W41H0213EpjbP9DCyV1LquOGtAyuqcDkdG3zOaXMsO3LuinIZHxou7ATNOYk5XHinFzU
-         70gBAorAeK6gR4IO7d6RRi+oB/lLjoiIxCgiMx2eSIX9rBAgZ4QKQuM59s5yt3k3UbzR
-         I0LA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=1z0SrrZATGiWo8n6NO3cgh9aYdGnQVL/NWhVaDjv62o=;
-        b=HF8k6aWaMBr3LDyDwCZjyZx/gDvDtq/lRTn3WndGIPcbT5TfVGSohD6zo8Lw0z/U0l
-         CtlVoL8ngd/qcBqSbv+EMhtq9LdaeZPkLqSsn4PQVUifmnV/Yb7PAACJVYOES6nUwU3K
-         c0Rgz4EAi0p52b6Q4OGQSnsL3f0Nyq/DyZ3kOIRJDtgvhkaqTZeGXETCUYgrJNZ0oogG
-         cj26VZEGY1Nw4Kb7Oh8Mi9dpjKg+6eGbPCzoBJ//da9gm+ysX7d/rNer+kzbMVQV15As
-         JfUFoHZtMFNpvmmF3jp5PutrkpBv5sFjLCBgoat7QA8o54vKl1hrOTCVFAjwpmUNMKNk
-         CqZA==
-X-Gm-Message-State: AOAM533hXg4Ilv9XNYexY/x5BrGvYfVtH77nXxy42uzju8joWIjyELNN
-        op/e/rns7odvUPiN6CbdeufdwI9p6O72nw==
-X-Google-Smtp-Source: ABdhPJxfTcIMaOXz9tvKg6GJr4jgX6dF0A15+bkR74+649aISSxMQ1tVJuNWZDab0kQPsHN3axlPYg==
-X-Received: by 2002:a7b:c057:: with SMTP id u23mr49785801wmc.3.1636320184022;
-        Sun, 07 Nov 2021 13:23:04 -0800 (PST)
-Received: from fedora.redhat.com ([2a00:a040:19b:e02f::1007])
-        by smtp.gmail.com with ESMTPSA id r15sm15292799wru.9.2021.11.07.13.23.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 07 Nov 2021 13:23:03 -0800 (PST)
-From:   Kamal Heib <kamalheib1@gmail.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Kamal Heib <kamalheib1@gmail.com>
-Subject: [PATCH for-next] RDMA/irdma: Use helper function to set GUIDs
-Date:   Sun,  7 Nov 2021 23:22:27 +0200
-Message-Id: <20211107212227.44610-1-kamalheib1@gmail.com>
-X-Mailer: git-send-email 2.31.1
+        id S237423AbhKHIF4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 8 Nov 2021 03:05:56 -0500
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:33073 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230103AbhKHIF4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 8 Nov 2021 03:05:56 -0500
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id C67515C00F5;
+        Mon,  8 Nov 2021 03:03:11 -0500 (EST)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute5.internal (MEProxy); Mon, 08 Nov 2021 03:03:11 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=
+        date:from:to:cc:subject:message-id:references:mime-version
+        :content-type:in-reply-to; s=fm2; bh=6onizj35llXqjVpM6j57otHXMeO
+        F0HU8T031ZzfdTDY=; b=p1SiTNhrjwQHIlLFRrAghwR170Uv0ApZOV+uU+pdurL
+        ENoPRUZRGxQTxLXXvT9ToXaV1EzooOFeTFXsLT+SkJnd2pomKCp6UJrCvj+lH8nQ
+        pptNTR6xR+4bT7ac3/pvXRwTUvKP5q7CsbFIYZ8wuDftjCtVwI1SKY0a+KmHe/o2
+        aYUN606+xSTqPQj/6xMK3yM2cjdFaBNG+AQ3CfqaiPTzYM239BkQjCpz6RaJRb6U
+        gP2DFN4vaUz4Mg4F0aaH+wDn9Lj4ev8RC1dl9nkEenMD8cMsrfqGTMeTRHAzaHnL
+        X/dGksg3Ot0I6zvIxiZ4wg8nHuZSyNH4bXVCYBamUgA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=6onizj
+        35llXqjVpM6j57otHXMeOF0HU8T031ZzfdTDY=; b=gnpLzv89DhgLVmT3SIxD3P
+        0kH18QjgsIlwxL7KsxW3vynr+/4KiOURfNTB/Yyt7MmUpSDfl9gK+7LQFI56L9mi
+        sQHXHzhJi+3cXMKBeiRBhCewkG+aLXvu0deAL+acIF018EpYMn/qmemwu7/i9sev
+        Yzw2+AqqJ7/0G+EtniuggwbCzV02BO8cimIP1PYXjVdx3Z9yfpgSZHqu3i5lbcOL
+        MpCL6Kik9zYVpGvXi7HEEVHev7PK+EyHlftH5rj3Y1hVEGaM1CIJY+OkslrTCNvv
+        r8wWCbLMT/pa48+JxtLZYXXrQI1pPZ9k4PjzWV2YpNSNZxUCwkfi/ruEirO/S6tg
+        ==
+X-ME-Sender: <xms:v9mIYbVI6rX4db5KJi8VNQmK0vbwnGZuBibaNmdE5qVe8330Gii_Jg>
+    <xme:v9mIYTmv5TYdV1Y6_jzPJiBS_KfOnlX5ivUELYBzanQ_sOwQ8xVRCa9uLobZsvSjb
+    uFT8x2Y3v9ZRA>
+X-ME-Received: <xmr:v9mIYXYpJamQc8y1RrRXpoi0pi-SERovPL63dG1SDvN4Eg2RFUBPqXAhRD8Rgp6FKtQWM9NCDi3RGdz6-5oFJbIpHDiIK_WG>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvuddruddugddutdelucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucenucfjughrpeffhffvuffkfhggtggujgesthdtre
+    dttddtvdenucfhrhhomhepifhrvghgucfmjfcuoehgrhgvgheskhhrohgrhhdrtghomheq
+    necuggftrfgrthhtvghrnhepveeuheejgfffgfeivddukedvkedtleelleeghfeljeeiue
+    eggeevueduudekvdetnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghi
+    lhhfrhhomhepghhrvghgsehkrhhorghhrdgtohhm
+X-ME-Proxy: <xmx:v9mIYWUXvjlk5zQUHRxROE9rBVAobLiF4kfV58wPT9WjmhlClBmR5g>
+    <xmx:v9mIYVl4VMLvjLAtt3gvp67M-FcLJW2eoluHfY8ZnhN_K-SIQnmMTA>
+    <xmx:v9mIYTfQCUOZ7lDnMGJwVFxbcQszdus9_N3PsoafwsOToOThmNFoPQ>
+    <xmx:v9mIYeA-n0sxF7TzM07xFtcSN_DnlDYxWH6SavFYOSDRzR1J_3lNHg>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 8 Nov 2021 03:03:10 -0500 (EST)
+Date:   Mon, 8 Nov 2021 09:03:09 +0100
+From:   Greg KH <greg@kroah.com>
+To:     mike.marciniszyn@cornelisnetworks.com
+Cc:     stable@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 4.9-stable v2 0/2] Port upstream patch v2 to 4.9.x
+Message-ID: <YYjZve1RZIIFPfFW@kroah.com>
+References: <1636039416-138753-1-git-send-email-mike.marciniszyn@cornelisnetworks.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1636039416-138753-1-git-send-email-mike.marciniszyn@cornelisnetworks.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use the addrconf_addr_eui48() helper function to set the GUIDs for both
-RoCE and iWARP modes, Also make sure the GUIDs are valid EUI-64
-identifiers.
+On Thu, Nov 04, 2021 at 11:23:34AM -0400, mike.marciniszyn@cornelisnetworks.com wrote:
+> From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+> 
+> This series ports upstream commit:
+> 
+> d39bf40e55e6 ("IB/qib: Protect from buffer overflow in struct qib_user_sdma_pkt fields")
+> 
+> Gustavo A. R. Silva (1):
+>   IB/qib: Use struct_size() helper
+> 
+> Mike Marciniszyn (1):
+>   IB/qib: Protect from buffer overflow in struct qib_user_sdma_pkt
+>     fields
+> 
+>  drivers/infiniband/hw/qib/qib_user_sdma.c | 35 ++++++++++++++++++++++---------
+>  1 file changed, 25 insertions(+), 10 deletions(-)
+> 
+> -- 
+> Changes from v1:
+> Correct signed off for Mike Marciniszyn
 
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
----
- drivers/infiniband/hw/irdma/verbs.c | 27 ++++++---------------------
- 1 file changed, 6 insertions(+), 21 deletions(-)
+All now applied, thanks.
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 0f66e809d418..c3b8ba6036ff 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -21,7 +21,8 @@ static int irdma_query_device(struct ib_device *ibdev,
- 		return -EINVAL;
- 
- 	memset(props, 0, sizeof(*props));
--	ether_addr_copy((u8 *)&props->sys_image_guid, iwdev->netdev->dev_addr);
-+	addrconf_addr_eui48((u8 *)&props->sys_image_guid,
-+			    iwdev->netdev->dev_addr);
- 	props->fw_ver = (u64)irdma_fw_major_ver(&rf->sc_dev) << 32 |
- 			irdma_fw_minor_ver(&rf->sc_dev);
- 	props->device_cap_flags = iwdev->device_cap_flags;
-@@ -4308,24 +4309,6 @@ static enum rdma_link_layer irdma_get_link_layer(struct ib_device *ibdev,
- 	return IB_LINK_LAYER_ETHERNET;
- }
- 
--static __be64 irdma_mac_to_guid(struct net_device *ndev)
--{
--	const unsigned char *mac = ndev->dev_addr;
--	__be64 guid;
--	unsigned char *dst = (unsigned char *)&guid;
--
--	dst[0] = mac[0] ^ 2;
--	dst[1] = mac[1];
--	dst[2] = mac[2];
--	dst[3] = 0xff;
--	dst[4] = 0xfe;
--	dst[5] = mac[3];
--	dst[6] = mac[4];
--	dst[7] = mac[5];
--
--	return guid;
--}
--
- static const struct ib_device_ops irdma_roce_dev_ops = {
- 	.attach_mcast = irdma_attach_mcast,
- 	.create_ah = irdma_create_ah,
-@@ -4395,7 +4378,8 @@ static const struct ib_device_ops irdma_dev_ops = {
- static void irdma_init_roce_device(struct irdma_device *iwdev)
- {
- 	iwdev->ibdev.node_type = RDMA_NODE_IB_CA;
--	iwdev->ibdev.node_guid = irdma_mac_to_guid(iwdev->netdev);
-+	addrconf_addr_eui48((u8 *)&iwdev->ibdev.node_guid,
-+			    iwdev->netdev->dev_addr);
- 	ib_set_device_ops(&iwdev->ibdev, &irdma_roce_dev_ops);
- }
- 
-@@ -4408,7 +4392,8 @@ static int irdma_init_iw_device(struct irdma_device *iwdev)
- 	struct net_device *netdev = iwdev->netdev;
- 
- 	iwdev->ibdev.node_type = RDMA_NODE_RNIC;
--	ether_addr_copy((u8 *)&iwdev->ibdev.node_guid, netdev->dev_addr);
-+	addrconf_addr_eui48((u8 *)&iwdev->ibdev.node_guid,
-+			    netdev->dev_addr);
- 	iwdev->ibdev.ops.iw_add_ref = irdma_qp_add_ref;
- 	iwdev->ibdev.ops.iw_rem_ref = irdma_qp_rem_ref;
- 	iwdev->ibdev.ops.iw_get_qp = irdma_get_qp;
--- 
-2.31.1
-
+greg k-h
