@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24906C43219
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9EA8C433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0CFA3610E9
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8FC1A610A3
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244546AbhKIMsm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 9 Nov 2021 07:48:42 -0500
-Received: from szxga03-in.huawei.com ([45.249.212.189]:27192 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343608AbhKIMsZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Nov 2021 07:48:25 -0500
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4HpSMv2tkQz8vK6;
-        Tue,  9 Nov 2021 20:43:55 +0800 (CST)
+        id S244529AbhKIMsl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 9 Nov 2021 07:48:41 -0500
+Received: from szxga02-in.huawei.com ([45.249.212.188]:15377 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S245718AbhKIMsX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Nov 2021 07:48:23 -0500
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4HpSPR5wxpz90wS;
+        Tue,  9 Nov 2021 20:45:15 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2308.15; Tue, 9 Nov 2021 20:45:30 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.15; Tue, 9 Nov 2021 20:45:30 +0800
+ 15.1.2308.15; Tue, 9 Nov 2021 20:45:29 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 7/7] libhns: The function declaration should be the same as the definition
-Date:   Tue, 9 Nov 2021 20:41:03 +0800
-Message-ID: <20211109124103.54326-8-liangwenpeng@huawei.com>
+Subject: [PATCH rdma-core 2/7] libhns: Remove unsupported QP type
+Date:   Tue, 9 Nov 2021 20:40:58 +0800
+Message-ID: <20211109124103.54326-3-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20211109124103.54326-1-liangwenpeng@huawei.com>
 References: <20211109124103.54326-1-liangwenpeng@huawei.com>
@@ -45,33 +45,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xinhao Liu <liuxinhao5@hisilicon.com>
+Currently, user space does not support UC type QP.
 
-The parameter names should be the same when the function is declared and
-defined.
-
-Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- providers/hns/hns_roce_u.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ providers/hns/hns_roce_u_hw_v1.c | 1 -
+ providers/hns/hns_roce_u_hw_v2.c | 3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/providers/hns/hns_roce_u.h b/providers/hns/hns_roce_u.h
-index d5963941..1616db9f 100644
---- a/providers/hns/hns_roce_u.h
-+++ b/providers/hns/hns_roce_u.h
-@@ -368,9 +368,9 @@ int hns_roce_u_free_pd(struct ibv_pd *pd);
- 
- struct ibv_mr *hns_roce_u_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
- 				 uint64_t hca_va, int access);
--int hns_roce_u_rereg_mr(struct verbs_mr *mr, int flags, struct ibv_pd *pd,
-+int hns_roce_u_rereg_mr(struct verbs_mr *vmr, int flags, struct ibv_pd *pd,
- 			void *addr, size_t length, int access);
--int hns_roce_u_dereg_mr(struct verbs_mr *mr);
-+int hns_roce_u_dereg_mr(struct verbs_mr *vmr);
- 
- struct ibv_mw *hns_roce_u_alloc_mw(struct ibv_pd *pd, enum ibv_mw_type type);
- int hns_roce_u_dealloc_mw(struct ibv_mw *mw);
+diff --git a/providers/hns/hns_roce_u_hw_v1.c b/providers/hns/hns_roce_u_hw_v1.c
+index 5385d1c4..ef346424 100644
+--- a/providers/hns/hns_roce_u_hw_v1.c
++++ b/providers/hns/hns_roce_u_hw_v1.c
+@@ -539,7 +539,6 @@ static int hns_roce_u_v1_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			ctrl->flag |= htole32(ps_opcode);
+ 			wqe  += sizeof(struct hns_roce_wqe_raddr_seg);
+ 			break;
+-		case IBV_QPT_UC:
+ 		case IBV_QPT_UD:
+ 		default:
+ 			break;
+diff --git a/providers/hns/hns_roce_u_hw_v2.c b/providers/hns/hns_roce_u_hw_v2.c
+index 66ecd84a..1e8df6ef 100644
+--- a/providers/hns/hns_roce_u_hw_v2.c
++++ b/providers/hns/hns_roce_u_hw_v2.c
+@@ -460,8 +460,7 @@ static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
+ 					struct hns_roce_qp **cur_qp,
+ 					struct ibv_wc *wc, uint32_t opcode)
+ {
+-	if (((*cur_qp)->verbs_qp.qp.qp_type == IBV_QPT_RC ||
+-	     (*cur_qp)->verbs_qp.qp.qp_type == IBV_QPT_UC) &&
++	if (((*cur_qp)->verbs_qp.qp.qp_type == IBV_QPT_RC) &&
+ 	    (opcode == HNS_ROCE_RECV_OP_SEND ||
+ 	     opcode == HNS_ROCE_RECV_OP_SEND_WITH_IMM ||
+ 	     opcode == HNS_ROCE_RECV_OP_SEND_WITH_INV) &&
 -- 
 2.33.0
 
