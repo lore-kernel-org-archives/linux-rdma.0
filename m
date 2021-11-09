@@ -2,38 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1673C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 132DFC4167B
+	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB204610A8
+	by mail.kernel.org (Postfix) with ESMTP id F3244610A3
 	for <linux-rdma@archiver.kernel.org>; Tue,  9 Nov 2021 12:45:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244992AbhKIMsm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S245033AbhKIMsm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 9 Nov 2021 07:48:42 -0500
-Received: from szxga02-in.huawei.com ([45.249.212.188]:15812 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343641AbhKIMsZ (ORCPT
+Received: from szxga01-in.huawei.com ([45.249.212.187]:30930 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1343650AbhKIMsZ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Nov 2021 07:48:25 -0500
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4HpSPS366Fz90xV;
-        Tue,  9 Nov 2021 20:45:16 +0800 (CST)
+Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4HpSJ859dlzcZxQ;
+        Tue,  9 Nov 2021 20:40:40 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.15; Tue, 9 Nov 2021 20:45:30 +0800
+ 15.1.2308.15; Tue, 9 Nov 2021 20:45:29 +0800
 Received: from localhost.localdomain (10.67.165.24) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.15; Tue, 9 Nov 2021 20:45:30 +0800
+ 15.1.2308.15; Tue, 9 Nov 2021 20:45:29 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH rdma-core 6/7] libhns: The content of the header file should be protected with #define
-Date:   Tue, 9 Nov 2021 20:41:02 +0800
-Message-ID: <20211109124103.54326-7-liangwenpeng@huawei.com>
+Subject: [PATCH rdma-core 0/7] libhns: Cleanup about removing redundant code and cleaning up static alarms
+Date:   Tue, 9 Nov 2021 20:40:56 +0800
+Message-ID: <20211109124103.54326-1-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211109124103.54326-1-liangwenpeng@huawei.com>
-References: <20211109124103.54326-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -45,38 +43,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Xinhao Liu <liuxinhao5@hisilicon.com>
+Patch #1~#3: Remove redundant code.
+Patch #4~#5: Fix wrong type of printf format, variables and fields.
+Patch #6~#7: Other miscellaneous cleanup.
 
-Header files should be protected with #define to prevent repeated
-inclusion.
+Lang Cheng (1):
+  libhns: Remove unused macros
 
-Signed-off-by: Xinhao Liu <liuxinhao5@hisilicon.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- providers/hns/hns_roce_u_db.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Wenpeng Liang (1):
+  libhns: Remove unsupported QP type
 
-diff --git a/providers/hns/hns_roce_u_db.h b/providers/hns/hns_roce_u_db.h
-index b44e64d4..c3dd583a 100644
---- a/providers/hns/hns_roce_u_db.h
-+++ b/providers/hns/hns_roce_u_db.h
-@@ -30,13 +30,13 @@
-  * SOFTWARE.
-  */
- 
-+#ifndef _HNS_ROCE_U_DB_H
-+#define _HNS_ROCE_U_DB_H
-+
- #include <linux/types.h>
- 
- #include "hns_roce_u.h"
- 
--#ifndef _HNS_ROCE_U_DB_H
--#define _HNS_ROCE_U_DB_H
--
- #if __BYTE_ORDER == __LITTLE_ENDIAN
- #define HNS_ROCE_PAIR_TO_64(val) ((uint64_t) val[1] << 32 | val[0])
- #elif __BYTE_ORDER == __BIG_ENDIAN
--- 
+Xinhao Liu (4):
+  libhns: Fix wrong print format for unsigned type
+  libhns: Fix wrong type of variables and fields
+  libhns: The content of the header file should be protected with
+    #define
+  libhns: The function declaration should be the same as the definition
+
+Yixing Liu (1):
+  libhns: Remove redundant variable initialization
+
+ providers/hns/hns_roce_u.c       |  3 ---
+ providers/hns/hns_roce_u.h       | 10 +++++-----
+ providers/hns/hns_roce_u_db.h    |  6 +++---
+ providers/hns/hns_roce_u_hw_v1.c |  7 +++----
+ providers/hns/hns_roce_u_hw_v2.c | 16 +++++++---------
+ providers/hns/hns_roce_u_verbs.c |  2 +-
+ 6 files changed, 19 insertions(+), 25 deletions(-)
+
+--
 2.33.0
 
