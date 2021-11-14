@@ -2,274 +2,140 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC59C433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Nov 2021 19:34:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9623C433EF
+	for <linux-rdma@archiver.kernel.org>; Sun, 14 Nov 2021 06:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22E2461039
-	for <linux-rdma@archiver.kernel.org>; Fri, 12 Nov 2021 19:34:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E600610F9
+	for <linux-rdma@archiver.kernel.org>; Sun, 14 Nov 2021 06:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231795AbhKLThQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 12 Nov 2021 14:37:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54484 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232526AbhKLThP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 12 Nov 2021 14:37:15 -0500
-Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BB99C061766
-        for <linux-rdma@vger.kernel.org>; Fri, 12 Nov 2021 11:34:24 -0800 (PST)
-Received: by mail-il1-x12d.google.com with SMTP id s14so9993622ilv.10
-        for <linux-rdma@vger.kernel.org>; Fri, 12 Nov 2021 11:34:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=OVemCG8833KfSPadSkFQLeuvwkYJ9buVCXwa8gQcHsY=;
-        b=owHTEkNLhkZkWHZTU0NiGbCa1vRymflKaZ72wALI9gpDJXrwjaieUdQ+GTqTJL193z
-         VH5pCaXpmxh8z8iQlh5UPZHbihAWMvHhNUgXjZD8/RgtfFCa9K8dZudRmS6zYvx6aNqB
-         EdCjvritxwgiDyAz7BBGpcsSnaeJl1VfDh5MPCdui1ct51ZK4y+m4cttYxKrTFXxH1Kx
-         MyXB57c/iHuR38kxtKZRDK4e/3pYErjAcS9HpG5sMYbXh89ykMW2yGOtOma/6hzIyIq+
-         05B5cNTv/n6H7DHGuRbAeVe1NIkg6P9C1OAHVMJaRGRwgJs3nn7C80Wj39x6kWLDD/pt
-         Oubw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=OVemCG8833KfSPadSkFQLeuvwkYJ9buVCXwa8gQcHsY=;
-        b=eeaN/MJbG4fnvkaSWgWF+atDgwCuD2vgku3Oyzy3TL6kFNzw7w5GzqXc1ekOUkDM95
-         OO08dpAjICXUy/isdh84XT1cNdGbpbNHjIr02zn7yFaB+cfAQsOiIaFIPZjGg48qxhem
-         H7PtNuiwMMrq6CWUFQ6xkN2rhaDQ5xmDJevHj6O3k0xEfuD+goVAM9ugzdodxbVPp95H
-         Y8pfOZ+UeWYcZWYG8lCMdL7G67xmWKm+J5Bb5KH9fhoFTQiyjzsv5RigUjawuu0+Ni3O
-         ak0cz1KbU78wRFFxcGWw8mnxogrNce4afp9qPZhej6HRiHDOmSWhTB4WZb4IqBq6Du2S
-         AyUA==
-X-Gm-Message-State: AOAM5325YXEaHAVfXR0lt+huu+eWcAN3E2iplK9BPgja1sIh857Ze/nr
-        5+IVYwi1bfWTT7oJgy2NR0tRBUStCh4WyAWWaB3kbDMnDH4=
-X-Google-Smtp-Source: ABdhPJwDqne6O9BIedQE9VrVjQF9B3v3LNfvSG8kaU81vtn8lhSq/1mPQWOH9shHHh3RSPkoY7L+6JlF+QUMMw/LjAA=
-X-Received: by 2002:a05:6e02:1b8a:: with SMTP id h10mr10188303ili.237.1636745663415;
- Fri, 12 Nov 2021 11:34:23 -0800 (PST)
+        id S229908AbhKNGPu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 14 Nov 2021 01:15:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39374 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229537AbhKNGPt (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Sun, 14 Nov 2021 01:15:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D2DDC61057;
+        Sun, 14 Nov 2021 06:12:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1636870376;
+        bh=BtijAaolLcypRtYydUpK+anNEyF0BxN77mW8ft8RDqs=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=oJGJZvUMisU0TBjQOtimSdUT94T6mZNjMC22S0P95sSJLgiAV4zhiSjunppxmWcn5
+         ocG0aVcVTw2BMLsfhXQcNfYGleciyDdWXn3EQCIkJ6BX3NYajp5EuBbfEBkAb0vewE
+         DdNjgR7aNhNcWOD+hJUVpBsW5Lbu9EJOzdQwP6OIsWR4DW4FIwUgWkSwbh5tvaVRLS
+         W9P8d9u0ABHP0jOwl7sErZ0Y27ppEkXsvMgrat6riiEe6gNd7Wx4bkZV2sEuLuZgw2
+         zwU6xDZq5GkuyvA4vu3JG6nGPre8axvx2AgVtxdjCKJeDplGendOJDIrh3gZrbcngk
+         KZ4fiEQ+FCiAA==
+Date:   Sun, 14 Nov 2021 08:12:52 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Haris Iqbal <haris.iqbal@ionos.com>
+Cc:     RDMA mailing list <linux-rdma@vger.kernel.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Jinpu Wang <jinpu.wang@ionos.com>,
+        Danil Kipnis <danil.kipnis@ionos.com>,
+        Aleksei Marov <aleksei.marov@ionos.com>
+Subject: Re: Task hung while using RTRS with rxe and using "ip" utility to
+ down the interface
+Message-ID: <YZCo5BwbTgKtbImi@unreal>
+References: <CAJpMwyjTggq-q8YQd7iPyp_TA29z5mWcEFAKe_Zg0=Z3a843qA@mail.gmail.com>
 MIME-Version: 1.0
-References: <CAOTVd1UNAJxmdSWdkmrEaW_CzuZrd5T1cmZHZDOk7fbnOopHQg@mail.gmail.com>
-In-Reply-To: <CAOTVd1UNAJxmdSWdkmrEaW_CzuZrd5T1cmZHZDOk7fbnOopHQg@mail.gmail.com>
-From:   Drew Fitch <dacomusai@gmail.com>
-Date:   Fri, 12 Nov 2021 11:34:12 -0800
-Message-ID: <CAOTVd1VaW3Q2nyfu=9W9sUHD=y=hBvXA=J6-_AMH6XvuzuDHdA@mail.gmail.com>
-Subject: Fwd: Infiniband mthca driver crash on linux kernel 5.11 and higher
-To:     linux-rdma@vger.kernel.org
-Content-Type: multipart/mixed; boundary="000000000000db563e05d09c8b03"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJpMwyjTggq-q8YQd7iPyp_TA29z5mWcEFAKe_Zg0=Z3a843qA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000db563e05d09c8b03
-Content-Type: text/plain; charset="UTF-8"
+On Thu, Nov 11, 2021 at 05:25:11PM +0100, Haris Iqbal wrote:
+> Hi,
+> 
+> We are experiencing a hang while using RTRS with softROCE and
+> transitioning the network interface down using ifdown command.
+> 
+> Steps.
+> 1) Map an RNBD/RTRS device through softROCE port.
+> 2) Once mapped, transition the eth interface to down (on which the
+> softROCE interface was created) using command "ifconfig <ethx> down",
+> or "ip link set <ethx> down".
+> 3) The device errors out, and one can see RTRS connection errors in
+> dmesg. So far so good.
+> 4) After a while, we see task hung traces in dmesg.
+> 
+> [  550.866462] INFO: task kworker/1:2:170 blocked for more than 184 seconds.
+> [  550.868820]       Tainted: G           O      5.10.42-pserver+ #84
+> [  550.869337] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+> disables this message.
+> [  550.869963] task:kworker/1:2     state:D stack:    0 pid:  170
+> ppid:     2 flags:0x00004000
+> [  550.870619] Workqueue: rtrs_server_wq rtrs_srv_close_work [rtrs_server]
+> [  550.871134] Call Trace:
+> [  550.871375]  __schedule+0x421/0x810
+> [  550.871683]  schedule+0x46/0xb0
+> [  550.871964]  schedule_timeout+0x20e/0x2a0
+> [  550.872300]  ? internal_add_timer+0x44/0x70
+> [  550.872650]  wait_for_completion+0x86/0xe0
+> [  550.872994]  cm_destroy_id+0x18c/0x5a0 [ib_cm]
+> [  550.873357]  ? _cond_resched+0x15/0x30
+> [  550.873680]  ? wait_for_completion+0x33/0xe0
+> [  550.874036]  _destroy_id+0x57/0x210 [rdma_cm]
+> [  550.874395]  rtrs_srv_close_work+0xcc/0x250 [rtrs_server]
+> [  550.874819]  process_one_work+0x1d4/0x370
+> [  550.875156]  worker_thread+0x4a/0x3b0
+> [  550.875471]  ? process_one_work+0x370/0x370
+> [  550.875817]  kthread+0xfe/0x140
+> [  550.876098]  ? kthread_park+0x90/0x90
+> [  550.876453]  ret_from_fork+0x1f/0x30
+> 
+> 
+> Our observations till now.
+> 
+> 1) Does not occur if we use "ifdown <ethx>" instead. There is a
+> difference between the commands, but we are not sure if the above one
+> should lead to a task hang.
+> https://access.redhat.com/solutions/27166
+> 2) We have verified v5.10 and v.15.1 kernels, and both have this issue.
+> 3) We tried the same test with NvmeOf target and host over softROCE.
+> We get the same task hang after doing "ifconfig .. down".
+> 
+> [Tue Nov  9 14:28:51 2021] INFO: task kworker/1:1:34 blocked for more
+> than 184 seconds.
+> [Tue Nov  9 14:28:51 2021]       Tainted: G           O
+> 5.10.42-pserver+ #84
+> [Tue Nov  9 14:28:51 2021] "echo 0 >
+> /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> [Tue Nov  9 14:28:51 2021] task:kworker/1:1     state:D stack:    0
+> pid:   34 ppid:     2 flags:0x00004000
+> [Tue Nov  9 14:28:51 2021] Workqueue: events
+> nvmet_rdma_release_queue_work [nvmet_rdma]
+> [Tue Nov  9 14:28:51 2021] Call Trace:
+> [Tue Nov  9 14:28:51 2021]  __schedule+0x421/0x810
+> [Tue Nov  9 14:28:51 2021]  schedule+0x46/0xb0
+> [Tue Nov  9 14:28:51 2021]  schedule_timeout+0x20e/0x2a0
+> [Tue Nov  9 14:28:51 2021]  ? internal_add_timer+0x44/0x70
+> [Tue Nov  9 14:28:51 2021]  wait_for_completion+0x86/0xe0
+> [Tue Nov  9 14:28:51 2021]  cm_destroy_id+0x18c/0x5a0 [ib_cm]
+> [Tue Nov  9 14:28:51 2021]  ? _cond_resched+0x15/0x30
+> [Tue Nov  9 14:28:51 2021]  ? wait_for_completion+0x33/0xe0
+> [Tue Nov  9 14:28:51 2021]  _destroy_id+0x57/0x210 [rdma_cm]
+> [Tue Nov  9 14:28:51 2021]  nvmet_rdma_free_queue+0x2e/0xc0 [nvmet_rdma]
+> [Tue Nov  9 14:28:51 2021]  nvmet_rdma_release_queue_work+0x19/0x50 [nvmet_rdma]
+> [Tue Nov  9 14:28:51 2021]  process_one_work+0x1d4/0x370
+> [Tue Nov  9 14:28:51 2021]  worker_thread+0x4a/0x3b0
+> [Tue Nov  9 14:28:51 2021]  ? process_one_work+0x370/0x370
+> [Tue Nov  9 14:28:51 2021]  kthread+0xfe/0x140
+> [Tue Nov  9 14:28:51 2021]  ? kthread_park+0x90/0x90
+> [Tue Nov  9 14:28:51 2021]  ret_from_fork+0x1f/0x30
+> 
+> Is this an known issue with ifconfig or the rxe driver? Thoughts?
 
-To whom it may concern,
+It doesn't look related to RXE and if to judge by the call trace the
+issue is one of two: missing call to cm_deref_id() or extra call
+to refcount_inc(&cm_id_priv->refcount). Both can be related to the
+callers of rdma-cm interface. For example by not releasing cm_id
+properly.
 
-I hope this is the right place to submit Infiniband driver bug reports.
-As I understand it, cards that rely on the mthca driver are relatively
-old and I would understand if they are no longer supported.
-I've attached files detailing my tests and conditions and relevant
-dmesg snippets. If there is any other information I can provide, or
-somewhere else I should send this, please let me know.
+Thanks
 
-Thanks in advance!
-Andrew
-
---000000000000db563e05d09c8b03
-Content-Type: text/plain; charset="US-ASCII"; name="Infiniband MTHCA module crash.txt"
-Content-Disposition: attachment; 
-	filename="Infiniband MTHCA module crash.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <17d1579797d72c3b93e1>
-X-Attachment-Id: 17d1579797d72c3b93e1
-
-SW5maW5pYmFuZCBNVEhDQSBtb2R1bGUgY3Jhc2gNCg0KV29ya2luZyBvbiBVYnVudHUgMjAuMDQg
-a2VybmVsIDUuNA0KQ3Jhc2hpbmcgb24gQWxwaW5lIGtlcm5lbCA1LjE1LjEsIFhhbm1vZCBrZXJu
-ZWwgNS4xNC4xNywgVWJ1bnR1IDIxLjA0IGtlcm5lbCA1LjExDQpSb290ZnMgaXMgQWxwaW5lIExp
-bnV4IEVkZ2UgKG5mcyBzaGFyZWQgcm9vdGZzKQ0KYWxsIG5vZGVzIHJ1biB0aGUgc2FtZSByb290
-ZnMgcmVnYXJkbGVzcyBvZiBrZXJuZWwNCmFsbCBjYXJkcyBoYXZlIHRoZSBsYXRlc3QgZmlybXdh
-cmUuIFN3aXRjaCBpcyBhbiBJUzUwMjIuDQoNCk9wZW5TTSB2ZXJzaW9ucyB0ZXN0ZWQ6DQpEaXN0
-cmlidXRpb24gdmVyc2lvbihBbHBpbmUgVGVzdGluZyk7IE9GRUQgMy4zLjIwICh3aXRoIGFscGlu
-ZSBtdXNsIGZpeGVzIHBhdGNoKTsgbGludXgtcmRtYSAoYWxzbyB3aXRoIGFscGluZSBtdXNsIGZp
-eGVzIHBhdGNoKTsgVWJ1bnR1IDIwLjA0IGRpc3RyaWJ1dGlvbiAocnVuIGZyb20gY2hyb290KS4g
-DQoNCkNyYXNoIGNvbmRpdGlvbnMgYXMgdGVzdGVkOg0KUnVuIG9wZW5zbShhbnkgdmVyc2lvbiBs
-aXN0ZWQgYWJvdmUpDQpPcGVuc20gc2l0cyBhdCAiRW50ZXJpbmcgRElTQ09WRVJZIHN0YXRlIg0K
-ZG1lc2cgZW50cmllcyBhcyBhdHRhY2hlZA0KbW9kdWxlIGliX210aGNhIGNhbiBubyBsb25nZXIg
-YmUgdW5sb2FkZWQNCg0KV29ya2luZyBjb25kaXRpb25zICh3aXRoIFVidW50dSAyMC4wNCBrZXJu
-ZWwgNS40KQ0KUnVuIHVwIG9wZW5zbSBzYW1lIGFzIGFib3ZlDQoNCmlwb2liIGludGVyZmFjZXMg
-Y2FuIGJlIGJyb3VnaHQgdXAgYW5kIHBpbmcgb3RoZXIgbm9kZXMgdGhhdCBzaGFyZSB0aGUgc2Ft
-ZSBrZXJuZWwgKDUuNCkNCg0KTm90ZToNCk5vZGVzIHRoYXQgYXJlIG5vdCBydW5uaW5nIGtlcm5l
-bCA1LjQgb24gdGhlIHNhbWUgc3dpdGNoIHdpbGwgaGF2ZSB0aGVpciBrZXJuZWwgbW9kdWxlcyBj
-cmFzaCB3aGVuIG9wZW5zbSBpcyBydW4gb24gYSBub2RlIHJ1bm5pbmcga2VybmVsIDUuNA==
---000000000000db563e05d09c8b03
-Content-Type: text/plain; charset="US-ASCII"; 
-	name="Infiniband MTHCA module crash - 5.15.1.txt"
-Content-Disposition: attachment; 
-	filename="Infiniband MTHCA module crash - 5.15.1.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <17d157cd5f3865e30392>
-X-Attachment-Id: 17d157cd5f3865e30392
-
-SW5maW5pYmFuZCBNVEhDQSBtb2R1bGUgY3Jhc2ggLSA1LjE1LjENCg0KWyAgIDQyLjU0NTQ1Nl0g
-QlVHOiB1bmFibGUgdG8gaGFuZGxlIHBhZ2UgZmF1bHQgZm9yIGFkZHJlc3M6IDAwMDAwMDAwMDAw
-NDAwMjgNClsgICA0Mi41NDU0NjRdICNQRjogc3VwZXJ2aXNvciByZWFkIGFjY2VzcyBpbiBrZXJu
-ZWwgbW9kZQ0KWyAgIDQyLjU0NTQ2N10gI1BGOiBlcnJvcl9jb2RlKDB4MDAwMCkgLSBub3QtcHJl
-c2VudCBwYWdlDQpbICAgNDIuNTQ1NDY5XSBQR0QgMCBQNEQgMCANClsgICA0Mi41NDU0NzFdIE9v
-cHM6IDAwMDAgWyMxXSBTTVAgTk9QVEkNClsgICA0Mi41NDU0NzRdIENQVTogMTYgUElEOiA1MDkg
-Q29tbToga3dvcmtlci91NjU6MCBUYWludGVkOiBQICAgICAgICAgICBPICAgICAgNS4xNS4xLTMt
-bHRzICM0LUFscGluZQ0KWyAgIDQyLjU0NTQ3OF0gSGFyZHdhcmUgbmFtZTogTWljcm8tU3RhciBJ
-bnRlcm5hdGlvbmFsIENvLiwgTHRkLiBNUy03QTM0L0IzNTAgUEMgTUFURSAoTVMtN0EzNCksIEJJ
-T1MgQS5MUiAwNy8wMi8yMDIwDQpbICAgNDIuNTQ1NDgwXSBXb3JrcXVldWU6IGliLWNvbXAtdW5i
-LXdxIGliX2NxX3BvbGxfd29yayBbaWJfY29yZV0NClsgICA0Mi41NDU0OTldIFJJUDogMDAxMDpt
-dGhjYV9wb2xsX2NxKzB4MWUxLzB4ODYwIFtpYl9tdGhjYV0NClsgICA0Mi41NDU1MDVdIENvZGU6
-IDhkIDg0IDI0IDI4IDAyIDAwIDAwIDBmIGM5IDQxIDJiIDhjIDI0IDY0IDAyIDAwIDAwIDg5IGNl
-IDQxIDhiIDhjIDI0IDRjIDAyIDAwIDAwIGQzIGVlIDg5IGYxIDQxIDAzIGI0IDI0IGY0IDAxIDAw
-IDAwIDQ4IDYzIGY2IDw0OD4gOGIgMzQgZjcgNDkgODkgMzcgNDggODUgYzAgNzQgMWIgNDQgOGIg
-NDggMGMgOGIgNzggMTQgNDEgMzkgYzkNClsgICA0Mi41NDU1MDldIFJTUDogMDAxODpmZmZmYWVm
-ODgxNGE3Y2UwIEVGTEFHUzogMDAwMTAwMDYNClsgICA0Mi41NDU1MTFdIFJBWDogZmZmZjkzMzYw
-ODFkYTcyOCBSQlg6IGZmZmY5MzM2MzcxMzQwMDAgUkNYOiAwMDAwMDAwMDAwMDA4MDA1DQpbICAg
-NDIuNTQ1NTEzXSBSRFg6IDAwMDAwMDAwMDAwMDAwODAgUlNJOiAwMDAwMDAwMDAwMDA4MDA1IFJE
-STogMDAwMDAwMDAwMDAwMDAwMA0KWyAgIDQyLjU0NTUxNV0gUkJQOiBmZmZmOTMzNjA2MWM4NDAw
-IFIwODogMDAwMDAwMDAwMDAwMDAwYSBSMDk6IGZmZmY5MzM2MDVhZjI4YjQNClsgICA0Mi41NDU1
-MTddIFIxMDogMDAwMDAwMDAwMDAwMDI0NiBSMTE6IDAwMDAwMDAwMDAwMDAwMDAgUjEyOiBmZmZm
-OTMzNjA4MWRhNTAwDQpbICAgNDIuNTQ1NTE5XSBSMTM6IGZmZmY5MzM2MDYxYzg0ZTAgUjE0OiAw
-MDAwMDAwMDAwMDAwMDAwIFIxNTogZmZmZjkzMzYxMDhkNDgwMA0KWyAgIDQyLjU0NTUyMV0gRlM6
-ICAwMDAwMDAwMDAwMDAwMDAwKDAwMDApIEdTOmZmZmY5MzQ0Y2VjMDAwMDAoMDAwMCkga25sR1M6
-MDAwMDAwMDAwMDAwMDAwMA0KWyAgIDQyLjU0NTUyM10gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAw
-MDAwIENSMDogMDAwMDAwMDA4MDA1MDAzMw0KWyAgIDQyLjU0NTUyNV0gQ1IyOiAwMDAwMDAwMDAw
-MDQwMDI4IENSMzogMDAwMDAwMDEwNWNhYzAwMCBDUjQ6IDAwMDAwMDAwMDAzNTBlZTANClsgICA0
-Mi41NDU1MjddIENhbGwgVHJhY2U6DQpbICAgNDIuNTQ1NTMwXSAgPyB1cGRhdGVfbG9hZF9hdmcr
-MHg3OC8weDVhMA0KWyAgIDQyLjU0NTUzNV0gID8gbmV3aWRsZV9iYWxhbmNlKzB4MTIzLzB4M2Yw
-DQpbICAgNDIuNTQ1NTM4XSAgPyBfX3N3aXRjaF90b19hc20rMHg0Mi8weDcwDQpbICAgNDIuNTQ1
-NTQxXSAgPyBmaW5pc2hfdGFza19zd2l0Y2guaXNyYS4wKzB4YTcvMHgyODANClsgICA0Mi41NDU1
-NDVdICBfX2liX3Byb2Nlc3NfY3ErMHg1Ny8weDE1MCBbaWJfY29yZV0NClsgICA0Mi41NDU1NThd
-ICBpYl9jcV9wb2xsX3dvcmsrMHgyNi8weDgwIFtpYl9jb3JlXQ0KWyAgIDQyLjU0NTU3MF0gIHBy
-b2Nlc3Nfb25lX3dvcmsrMHgxZWMvMHgzOTANClsgICA0Mi41NDU1NzNdICB3b3JrZXJfdGhyZWFk
-KzB4NTMvMHgzYzANClsgICA0Mi41NDU1NzVdICA/IHByb2Nlc3Nfb25lX3dvcmsrMHgzOTAvMHgz
-OTANClsgICA0Mi41NDU1NzddICBrdGhyZWFkKzB4MTI3LzB4MTUwDQpbICAgNDIuNTQ1NTgwXSAg
-PyBzZXRfa3RocmVhZF9zdHJ1Y3QrMHg0MC8weDQwDQpbICAgNDIuNTQ1NTgzXSAgcmV0X2Zyb21f
-Zm9yaysweDIyLzB4MzANClsgICA0Mi41NDU1ODZdIE1vZHVsZXMgbGlua2VkIGluOiBib25kaW5n
-IHh0X0NIRUNLU1VNIHh0X01BU1FVRVJBREUgeHRfY29ubnRyYWNrIGlwdF9SRUpFQ1QgbmZfcmVq
-ZWN0X2lwdjQgeHRfdGNwdWRwIGlwNnRhYmxlX21hbmdsZSBpcDZ0YWJsZV9uYXQgaXA2dGFibGVf
-ZmlsdGVyIGlwNl90YWJsZXMgaXB0YWJsZV9tYW5nbGUgaXB0YWJsZV9uYXQgbmZfbmF0IG5mX2Nv
-bm50cmFjayBuZl9kZWZyYWdfaXB2NiBuZl9kZWZyYWdfaXB2NCBsaWJjcmMzMmMgaXB0YWJsZV9m
-aWx0ZXIgaXBfdGFibGVzIHhfdGFibGVzIGJyaWRnZSBzdHAgbGxjIG5mc2QgYXV0aF9ycGNnc3Mg
-bG9ja2QgZ3JhY2Ugc3VucnBjIG5sc191dGY4IG5sc19jcDQzNyB2ZmF0IGZhdCBmdGRpX3NpbyB1
-c2JzZXJpYWwgaWJfaXBvaWIgaWJfdW1hZCBpYl9jbSBhZl9wYWNrZXQgcjgxNTNfZWNtIGNkY19l
-dGhlciB1c2JuZXQgcjgxNTIgbWlpIHBjc3BrciBlZmlfcHN0b3JlIGliX210aGNhIGliX3V2ZXJi
-cyBpYl9jb3JlIGlwdjYgc3A1MTAwX3RjbyBpMmNfcGlpeDQgazEwdGVtcCBpbnB1dF9sZWRzIG1v
-dXNlZGV2IGludGVsX3JhcGxfbXNyIGpveWRldiBpbnRlbF9yYXBsX2NvbW1vbiBrdm1fYW1kIGNj
-cCBybmdfY29yZSBrdm0gaXJxYnlwYXNzIGNyY3QxMGRpZl9wY2xtdWwgZ2hhc2hfY2xtdWxuaV9p
-bnRlbCBhZXNuaV9pbnRlbCBjcnlwdG9fc2ltZCBjcnlwdGQgd21pX2Jtb2YgcmFwbCB3bWkgcGFy
-cG9ydF9wYyBwYXJwb3J0IGV2ZGV2IGJ1dHRvbiBhY3BpX2NwdWZyZXEgZWZpdmFyZnMgaGlkX2dl
-bmVyaWMgdXNiaGlkIGhpZCBjcmMzMl9wY2xtdWwgcjgxNjkgcmVhbHRlayBtZGlvX2RldnJlcyBs
-aWJwaHkgbnZtZSBudm1lX2NvcmUgaHdtb24gYWhjaSBsaWJhaGNpIGxpYmF0YSB4aGNpX3BjaSB4
-aGNpX3BjaV9yZW5lc2FzIHhoY2lfaGNkIHNpbXBsZWRybSBkcm1fa21zX2hlbHBlciBjZmJmaWxs
-cmVjdCBzeXNjb3B5YXJlYSBjZmJpbWdibHQgc3lzZmlsbHJlY3Qgc3lzaW1nYmx0DQpbICAgNDIu
-NTQ1NjMyXSAgZmJfc3lzX2ZvcHMgY2ZiY29weWFyZWEgY2VjIGRybSBpMmNfY29yZSBkcm1fcGFu
-ZWxfb3JpZW50YXRpb25fcXVpcmtzIGFncGdhcnQgbG9vcCB6ZnMoUE8pIHp1bmljb2RlKFBPKSB6
-enN0ZChPKSB6bHVhKE8pIHphdmwoUE8pIGljcChQTykgemNvbW1vbihQTykgem52cGFpcihQTykg
-c3BsKE8pIGV4dDQgY3JjMzJjX2dlbmVyaWMgY3JjMzJjX2ludGVsIGNyYzE2IG1iY2FjaGUgamJk
-MiB1c2Jfc3RvcmFnZSB1c2Jjb3JlIHVzYl9jb21tb24gc2RfbW9kIHQxMF9waSBzY3NpX21vZA0K
-WyAgIDQyLjU0NTY2Ml0gQ1IyOiAwMDAwMDAwMDAwMDQwMDI4DQpbICAgNDIuNTQ1NjY0XSAtLS1b
-IGVuZCB0cmFjZSA0NjM0ZDY1YjAzNTFmY2I4IF0tLS0NClsgICA0Mi41NDU2NjVdIFJJUDogMDAx
-MDptdGhjYV9wb2xsX2NxKzB4MWUxLzB4ODYwIFtpYl9tdGhjYV0NClsgICA0Mi41NDU2NzBdIENv
-ZGU6IDhkIDg0IDI0IDI4IDAyIDAwIDAwIDBmIGM5IDQxIDJiIDhjIDI0IDY0IDAyIDAwIDAwIDg5
-IGNlIDQxIDhiIDhjIDI0IDRjIDAyIDAwIDAwIGQzIGVlIDg5IGYxIDQxIDAzIGI0IDI0IGY0IDAx
-IDAwIDAwIDQ4IDYzIGY2IDw0OD4gOGIgMzQgZjcgNDkgODkgMzcgNDggODUgYzAgNzQgMWIgNDQg
-OGIgNDggMGMgOGIgNzggMTQgNDEgMzkgYzkNClsgICA0Mi41NDU2NzRdIFJTUDogMDAxODpmZmZm
-YWVmODgxNGE3Y2UwIEVGTEFHUzogMDAwMTAwMDYNClsgICA0Mi41NDU2NzZdIFJBWDogZmZmZjkz
-MzYwODFkYTcyOCBSQlg6IGZmZmY5MzM2MzcxMzQwMDAgUkNYOiAwMDAwMDAwMDAwMDA4MDA1DQpb
-ICAgNDIuNTQ1Njc3XSBSRFg6IDAwMDAwMDAwMDAwMDAwODAgUlNJOiAwMDAwMDAwMDAwMDA4MDA1
-IFJESTogMDAwMDAwMDAwMDAwMDAwMA0KWyAgIDQyLjU0NTY3OV0gUkJQOiBmZmZmOTMzNjA2MWM4
-NDAwIFIwODogMDAwMDAwMDAwMDAwMDAwYSBSMDk6IGZmZmY5MzM2MDVhZjI4YjQNClsgICA0Mi41
-NDU2ODFdIFIxMDogMDAwMDAwMDAwMDAwMDI0NiBSMTE6IDAwMDAwMDAwMDAwMDAwMDAgUjEyOiBm
-ZmZmOTMzNjA4MWRhNTAwDQpbICAgNDIuNTQ1NjgyXSBSMTM6IGZmZmY5MzM2MDYxYzg0ZTAgUjE0
-OiAwMDAwMDAwMDAwMDAwMDAwIFIxNTogZmZmZjkzMzYxMDhkNDgwMA0KWyAgIDQyLjU0NTY4NF0g
-RlM6ICAwMDAwMDAwMDAwMDAwMDAwKDAwMDApIEdTOmZmZmY5MzQ0Y2VjMDAwMDAoMDAwMCkga25s
-R1M6MDAwMDAwMDAwMDAwMDAwMA0KWyAgIDQyLjU0NTY4Nl0gQ1M6ICAwMDEwIERTOiAwMDAwIEVT
-OiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzMw0KWyAgIDQyLjU0NTY4OF0gQ1IyOiAwMDAwMDAw
-MDAwMDQwMDI4IENSMzogMDAwMDAwMDEwNWNhYzAwMCBDUjQ6IDAwMDAwMDAwMDAzNTBlZTA=
---000000000000db563e05d09c8b03
-Content-Type: text/plain; charset="US-ASCII"; 
-	name="Infiniband MTHCA module crash - 5.14.17.txt"
-Content-Disposition: attachment; 
-	filename="Infiniband MTHCA module crash - 5.14.17.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <17d157ce924dde59d833>
-X-Attachment-Id: 17d157ce924dde59d833
-
-SW5maW5pYmFuZCBNVEhDQSBtb2R1bGUgY3Jhc2ggLSA1LjE0LjE3DQoNClsgIDE2OS4yNjc5NzRd
-IEJVRzogdW5hYmxlIHRvIGhhbmRsZSBwYWdlIGZhdWx0IGZvciBhZGRyZXNzOiAwMDAwMDAwMDAw
-MDQwMDI4DQpbICAxNjkuMjY3OTgwXSAjUEY6IHN1cGVydmlzb3IgcmVhZCBhY2Nlc3MgaW4ga2Vy
-bmVsIG1vZGUNClsgIDE2OS4yNjc5ODJdICNQRjogZXJyb3JfY29kZSgweDAwMDApIC0gbm90LXBy
-ZXNlbnQgcGFnZQ0KWyAgMTY5LjI2Nzk4NF0gUEdEIDAgUDREIDAgDQpbICAxNjkuMjY3OTg2XSBP
-b3BzOiAwMDAwIFsjMV0gU01QIE5PUFRJDQpbICAxNjkuMjY3OTg5XSBDUFU6IDExIFBJRDogODkx
-IENvbW06IGt3b3JrZXIvdTY1OjIgTm90IHRhaW50ZWQgNS4xNC4xNy14YW5tb2QxICMwfmdpdDIw
-MjExMTA2LjJiZjMyYmINClsgIDE2OS4yNjc5OTJdIEhhcmR3YXJlIG5hbWU6IFRvIEJlIEZpbGxl
-ZCBCeSBPLkUuTS4gVG8gQmUgRmlsbGVkIEJ5IE8uRS5NLi9BNTIwTS1IRFYsIEJJT1MgUDEuNjAg
-MDMvMTgvMjAyMQ0KWyAgMTY5LjI2Nzk5NF0gV29ya3F1ZXVlOiBpYi1jb21wLXVuYi13cSBpYl9j
-cV9wb2xsX3dvcmsgW2liX2NvcmVdDQpbICAxNjkuMjY4MDA1XSBSSVA6IDAwMTA6bXRoY2FfcG9s
-bF9jcSsweDFkYi8weDgzMCBbaWJfbXRoY2FdDQpbICAxNjkuMjY4MDEwXSBDb2RlOiAwMiAwMCAw
-MCA0OSA4ZCA4NSAyOCAwMiAwMCAwMCAwZiBjOSA0MSAyYiA4ZCA2NCAwMiAwMCAwMCA4OSBjZSA0
-MSA4YiA4ZCA0YyAwMiAwMCAwMCBkMyBlZSA4OSBmMSA0MSAwMyBiNSBmNCAwMSAwMCAwMCA0OCA2
-MyBmNiA8NDg+IDhiIDM0IGY3IDQ5IDg5IDM3IDQ4IDg1IGMwIDc0IDFjIDQ0IDhiIDQ4IDBjIDhi
-IDc4IDE0IDQxIDM5IGM5DQpbICAxNjkuMjY4MDEzXSBSU1A6IDAwMTg6ZmZmZmI3MGI4MTBjZmNk
-MCBFRkxBR1M6IDAwMDEwMDA2DQpbICAxNjkuMjY4MDE0XSBSQVg6IGZmZmY5YTdlODc4NzhmMjgg
-UkJYOiBmZmZmOWE3ZTg3OGQ1MDAwIFJDWDogMDAwMDAwMDAwMDAwODAwNQ0KWyAgMTY5LjI2ODAx
-Nl0gUkRYOiAwMDAwMDAwMDAwMDAwMDgwIFJTSTogMDAwMDAwMDAwMDAwODAwNSBSREk6IDAwMDAw
-MDAwMDAwMDAwMDANClsgIDE2OS4yNjgwMTddIFJCUDogZmZmZmI3MGI4MTBjZmUxOCBSMDg6IDAw
-MDAwMDAwMDAwMDAwMGEgUjA5OiBmZmZmOWE3ZThhMTNhYTJjDQpbICAxNjkuMjY4MDE5XSBSMTA6
-IDAwMDAwMDAwMDAwMDAyODIgUjExOiAwMDAwMDAwMDAwMDAwMDAwIFIxMjogZmZmZjlhN2U4ZGIw
-OGMwMA0KWyAgMTY5LjI2ODAyMF0gUjEzOiBmZmZmOWE3ZTg3ODc4ZDAwIFIxNDogMDAwMDAwMDAw
-MDAwMDAwMCBSMTU6IGZmZmY5YTdlOGRlZDkwMDANClsgIDE2OS4yNjgwMjJdIEZTOiAgMDAwMDAw
-MDAwMDAwMDAwMCgwMDAwKSBHUzpmZmZmOWE4MWJlY2MwMDAwKDAwMDApIGtubEdTOjAwMDAwMDAw
-MDAwMDAwMDANClsgIDE2OS4yNjgwMjRdIENTOiAgMDAxMCBEUzogMDAwMCBFUzogMDAwMCBDUjA6
-IDAwMDAwMDAwODAwNTAwMzMNClsgIDE2OS4yNjgwMjVdIENSMjogMDAwMDAwMDAwMDA0MDAyOCBD
-UjM6IDAwMDAwMDAxMDZlZmMwMDAgQ1I0OiAwMDAwMDAwMDAwNzUwZWUwDQpbICAxNjkuMjY4MDI3
-XSBQS1JVOiA1NTU1NTU1NA0KWyAgMTY5LjI2ODAyOF0gQ2FsbCBUcmFjZToNClsgIDE2OS4yNjgw
-MzFdICA/IHJlbGVhc2Vfc29jaysweGEvMHg5MA0KWyAgMTY5LjI2ODAzNV0gID8gX19jb25kX3Jl
-c2NoZWQrMHgxMS8weDQwDQpbICAxNjkuMjY4MDM4XSAgPyB1cGRhdGVfbG9hZF9hdmcrMHg3YS8w
-eDUzMA0KWyAgMTY5LjI2ODA0MV0gID8gbmV3aWRsZV9iYWxhbmNlKzB4MTFiLzB4M2YwDQpbICAx
-NjkuMjY4MDQzXSAgPyBkZXF1ZXVlX2VudGl0eSsweGMxLzB4M2YwDQpbICAxNjkuMjY4MDQ1XSAg
-PyBfX3N3aXRjaF90b19hc20rMHg0Mi8weDcwDQpbICAxNjkuMjY4MDQ4XSAgPyBmaW5pc2hfdGFz
-a19zd2l0Y2guaXNyYS4wKzB4YTIvMHgyODANClsgIDE2OS4yNjgwNTBdICBfX2liX3Byb2Nlc3Nf
-Y3ErMHg0OS8weGQwIFtpYl9jb3JlXQ0KWyAgMTY5LjI2ODA1OF0gIGliX2NxX3BvbGxfd29yaysw
-eDIxLzB4ODAgW2liX2NvcmVdDQpbICAxNjkuMjY4MDY1XSAgcHJvY2Vzc19vbmVfd29yaysweDFm
-NS8weDM1MA0KWyAgMTY5LjI2ODA2OF0gIHdvcmtlcl90aHJlYWQrMHg0Yi8weDQwMA0KWyAgMTY5
-LjI2ODA2OV0gID8gcHJvY2Vzc19vbmVfd29yaysweDM1MC8weDM1MA0KWyAgMTY5LjI2ODA3MV0g
-IGt0aHJlYWQrMHgxMjIvMHgxNDANClsgIDE2OS4yNjgwNzNdICA/IHNldF9rdGhyZWFkX3N0cnVj
-dCsweDMwLzB4MzANClsgIDE2OS4yNjgwNzZdICByZXRfZnJvbV9mb3JrKzB4MjIvMHgzMA0KWyAg
-MTY5LjI2ODA3OV0gTW9kdWxlcyBsaW5rZWQgaW46IG92ZXJsYXkgeHRfQ0hFQ0tTVU0geHRfTUFT
-UVVFUkFERSB4dF9jb25udHJhY2sgaXB0X1JFSkVDVCBuZl9yZWplY3RfaXB2NCB4dF90Y3B1ZHAg
-aXA2dGFibGVfbWFuZ2xlIGlwNnRhYmxlX25hdCBpcDZ0YWJsZV9maWx0ZXIgaXA2X3RhYmxlcyBp
-cHRhYmxlX21hbmdsZSBpcHRhYmxlX25hdCBuZl9uYXQgbmZfY29ubnRyYWNrIG5mX2RlZnJhZ19p
-cHY2IG5mX2RlZnJhZ19pcHY0IGxpYmNyYzMyYyBpcHRhYmxlX2ZpbHRlciBpcF90YWJsZXMgeF90
-YWJsZXMgcnBjc2VjX2dzc19rcmI1IGJyaWRnZSBzdHAgbGxjIGF1dGhfcnBjZ3NzIG5mc3Y0IGli
-X3FpYiByZG1hdnQgZGNhIGliX2lwb2liIGliX3VtYWQgaWJfY20gd21pX2Jtb2YgcGNzcGtyIGVm
-aV9wc3RvcmUgbnZtZSBudm1lX2NvcmUgaWJfbXRoY2EgaWJfdXZlcmJzIGliX2NvcmUgc3A1MTAw
-X3RjbyBhaGNpIGxpYmFoY2kgazEwdGVtcCBpbnRlbF9yYXBsX21zciBtYWNfaGlkIGludGVsX3Jh
-cGxfY29tbW9uIGVkYWNfbWNlX2FtZCBrdm1fYW1kIGNjcCBrdm0gY3JjdDEwZGlmX3BjbG11bCBn
-aGFzaF9jbG11bG5pX2ludGVsIGFlc25pX2ludGVsIGNyeXB0b19zaW1kIGNyeXB0ZCByYXBsIG5m
-c3YzIG5mc19hY2wgbmZzIGxvY2tkIGdyYWNlIHN1bnJwYyBmc2NhY2hlIG5ldGZzIGZ0ZGlfc2lv
-IHVzYnNlcmlhbCByODE2OSBjcmMzMl9wY2xtdWwgcmVhbHRlayBtZGlvX2RldnJlcyBpMmNfcGlp
-eDQgbGlicGh5IHhoY2lfcGNpIHhoY2lfcGNpX3JlbmVzYXMgd21pIGdwaW9fYW1kcHQgZ3Bpb19n
-ZW5lcmljDQpbICAxNjkuMjY4MTE0XSBDUjI6IDAwMDAwMDAwMDAwNDAwMjgNClsgIDE2OS4yNjgx
-MTVdIC0tLVsgZW5kIHRyYWNlIDBiN2UzZDZlZTJhN2IwNGEgXS0tLQ0KWyAgMTY5LjMwNzAwM10g
-UklQOiAwMDEwOm10aGNhX3BvbGxfY3ErMHgxZGIvMHg4MzAgW2liX210aGNhXQ0KWyAgMTY5LjMw
-NzAwOV0gQ29kZTogMDIgMDAgMDAgNDkgOGQgODUgMjggMDIgMDAgMDAgMGYgYzkgNDEgMmIgOGQg
-NjQgMDIgMDAgMDAgODkgY2UgNDEgOGIgOGQgNGMgMDIgMDAgMDAgZDMgZWUgODkgZjEgNDEgMDMg
-YjUgZjQgMDEgMDAgMDAgNDggNjMgZjYgPDQ4PiA4YiAzNCBmNyA0OSA4OSAzNyA0OCA4NSBjMCA3
-NCAxYyA0NCA4YiA0OCAwYyA4YiA3OCAxNCA0MSAzOSBjOQ0KWyAgMTY5LjMwNzAxMV0gUlNQOiAw
-MDE4OmZmZmZiNzBiODEwY2ZjZDAgRUZMQUdTOiAwMDAxMDAwNg0KWyAgMTY5LjMwNzAxM10gUkFY
-OiBmZmZmOWE3ZTg3ODc4ZjI4IFJCWDogZmZmZjlhN2U4NzhkNTAwMCBSQ1g6IDAwMDAwMDAwMDAw
-MDgwMDUNClsgIDE2OS4zMDcwMTRdIFJEWDogMDAwMDAwMDAwMDAwMDA4MCBSU0k6IDAwMDAwMDAw
-MDAwMDgwMDUgUkRJOiAwMDAwMDAwMDAwMDAwMDAwDQpbICAxNjkuMzA3MDE1XSBSQlA6IGZmZmZi
-NzBiODEwY2ZlMTggUjA4OiAwMDAwMDAwMDAwMDAwMDBhIFIwOTogZmZmZjlhN2U4YTEzYWEyYw0K
-WyAgMTY5LjMwNzAxN10gUjEwOiAwMDAwMDAwMDAwMDAwMjgyIFIxMTogMDAwMDAwMDAwMDAwMDAw
-MCBSMTI6IGZmZmY5YTdlOGRiMDhjMDANClsgIDE2OS4zMDcwMThdIFIxMzogZmZmZjlhN2U4Nzg3
-OGQwMCBSMTQ6IDAwMDAwMDAwMDAwMDAwMDAgUjE1OiBmZmZmOWE3ZThkZWQ5MDAwDQpbICAxNjku
-MzA3MDE5XSBGUzogIDAwMDAwMDAwMDAwMDAwMDAoMDAwMCkgR1M6ZmZmZjlhODFiZWNjMDAwMCgw
-MDAwKSBrbmxHUzowMDAwMDAwMDAwMDAwMDAwDQpbICAxNjkuMzA3MDIwXSBDUzogIDAwMTAgRFM6
-IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzDQpbICAxNjkuMzA3MDIxXSBDUjI6
-IDAwMDAwMDAwMDAwNDAwMjggQ1IzOiAwMDAwMDAwMTA2ZWZjMDAwIENSNDogMDAwMDAwMDAwMDc1
-MGVlMA0KWyAgMTY5LjMwNzAyM10gUEtSVTogNTU1NTU1NTQ=
---000000000000db563e05d09c8b03--
+> 
+> Regards
+> -Haris
