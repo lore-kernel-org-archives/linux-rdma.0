@@ -2,56 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED2B0C4321E
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Nov 2021 09:01:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C0A5C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Nov 2021 11:44:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D2B7663220
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Nov 2021 09:01:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1468661A08
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Nov 2021 11:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232671AbhKPJEg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Nov 2021 04:04:36 -0500
-Received: from mail.bizjoindeal.pl ([80.211.97.164]:57940 "EHLO
-        mail.bizjoindeal.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232741AbhKPJEb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Nov 2021 04:04:31 -0500
-Received: by mail.bizjoindeal.pl (Postfix, from userid 1001)
-        id 2E973A1BE4; Tue, 16 Nov 2021 08:51:19 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bizjoindeal.pl;
-        s=mail; t=1637052687;
-        bh=JZuQ1fK7zFtz2oeUB7Xfid9vb7kUywdmDd2OluR8ywA=;
-        h=Date:From:To:Subject:From;
-        b=xuIBt1YHWPl5OxVv5RxE3mCyDmGyPThiUzYzyutG1aBPO8Bf0novqeo4f7oFeS27W
-         0pkCZFBrMr58Hlr0jSUnOhcr3OmjGraNHScj6kRfLxx1aYRSclRsVUr/C+YOttRKVh
-         WGP3kmN+4lsj1O40/hO1jKU76vcRAh8Sl4uhd04skHdNc29raPmvVoid5GJID3V1rS
-         LIflD1h0RnKMknm3TtDKr/bgzm8JJmMoK5T837v6PyWetF7pRg/s26tJpH0SYaBSQm
-         La/u7AXHnw8UVvL6v7qGCJzjDKvQJBr+mUIr+6ZJE+frDmivNI7Kxua2QpCJdLIqLj
-         ssEcjqV4fcJ4A==
-Received: by mail.bizjoindeal.pl for <linux-rdma@vger.kernel.org>; Tue, 16 Nov 2021 08:51:12 GMT
-Message-ID: <20211116074500-0.1.60.f0qy.0.lephyfenvh@bizjoindeal.pl>
-Date:   Tue, 16 Nov 2021 08:51:12 GMT
-From:   "Dorian Kwiatkowski" <dorian.kwiatkowski@bizjoindeal.pl>
-To:     <linux-rdma@vger.kernel.org>
-Subject: Fotowoltaika dla firm
-X-Mailer: mail.bizjoindeal.pl
+        id S235101AbhKPLrp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 16 Nov 2021 06:47:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235095AbhKPLrd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Nov 2021 06:47:33 -0500
+Received: from gentwo.de (gentwo.de [IPv6:2a02:c206:2048:5042::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD2F0C061766
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Nov 2021 03:44:35 -0800 (PST)
+Received: by gentwo.de (Postfix, from userid 1001)
+        id C92C7B00278; Tue, 16 Nov 2021 12:44:32 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by gentwo.de (Postfix) with ESMTP id C5D73B00192;
+        Tue, 16 Nov 2021 12:44:32 +0100 (CET)
+Date:   Tue, 16 Nov 2021 12:44:32 +0100 (CET)
+From:   Christoph Lameter <cl@vmi485042.contaboserver.net>
+To:     Leon Romanovsky <leon@kernel.org>
+cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>,
+        rpearson@gmail.com, Doug Ledford <dledford@redhat.com>
+Subject: Re: [RFC] RDMA bridge for ROCE and Infiniband
+In-Reply-To: <YZDSMCSmixPdS8hf@unreal>
+Message-ID: <alpine.DEB.2.22.394.2111161241100.78545@vmi485042.contaboserver.net>
+References: <alpine.DEB.2.22.394.2111121300290.380553@vmi485042.contaboserver.net> <YZDSMCSmixPdS8hf@unreal>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Sun, 14 Nov 2021, Leon Romanovsky wrote:
 
-kontaktuj=C4=99 si=C4=99 z Pa=C5=84stwem, poniewa=C5=BC dostrzegam mo=C5=BC=
-liwo=C5=9B=C4=87 redukcji op=C5=82at za pr=C4=85d.
+> > Any tips and suggestions on how to approach this problem would be appreciated.
+>
+> Mellanox has Skyway product, which is IB to ETH gateway.
+> https://www.nvidia.com/en-us/networking/infiniband/skyway/
+>
+> I imagine that it can be extended to perform IB to RoCE too,
+> because it uses steering to perform IB to ETH translation.
 
-Odpowiednio dobrana instalacja fotowoltaiczna to rozwi=C4=85zanie, kt=C3=B3=
-re pozwala wygenerowa=C4=87 spore oszcz=C4=99dno=C5=9Bci w skali roku.
+The Mellanox Gateways (4036E, 6036G and Skyway) are only for IP
+traffic and do not support ROCE or Native IB across the bridge. The newest
+version of it "Skyways" does not even support Multicast.
 
-Chcia=C5=82bym porozmawia=C4=87 z Pa=C5=84stwem o tego typu rozwi=C4=85za=
-niu, a tak=C5=BCe przedstawi=C4=87 wst=C4=99pne kalkulacje.
-
-Czy s=C4=85 Pa=C5=84stwo zainteresowani?
-
-Pozdrawiam,
-Dorian Kwiatkowski
+And these are appliance so they cannot be modified. If Mellanox would
+commit to do this then great but I guess that would need to be some high
+level decision and if a product comes out of it at all then it will take a
+couple of years.
