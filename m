@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B4E7C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Nov 2021 18:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C2EEC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Nov 2021 18:26:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8C4F161A62
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Nov 2021 18:26:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F52061BC1
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Nov 2021 18:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240021AbhKQS3k (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Nov 2021 13:29:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55732 "EHLO mail.kernel.org"
+        id S240081AbhKQS3w (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Nov 2021 13:29:52 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239997AbhKQS3j (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 17 Nov 2021 13:29:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EB1661BC1;
-        Wed, 17 Nov 2021 18:26:39 +0000 (UTC)
+        id S240040AbhKQS3n (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 17 Nov 2021 13:29:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 42EC261BD3;
+        Wed, 17 Nov 2021 18:26:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1637173600;
-        bh=izROKGtj2qGswj8IP0BBhpttn4JyaHRA3FFLjvXH5II=;
+        s=k20201202; t=1637173604;
+        bh=9GifBOLGSt92YGCLXeltZ5sxLbD7rh+yoqUpg2uHSto=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dY2SlZM5kOLoZwHT19k8dHtMl2WdlYpkOIi2kN8xtLC5ziMYIvzEW3pcnP2zJv8dB
-         dr3gj+TdWXE5Q9mNY2HkTF0qifPOddZzMSHgcmnB/ayolP+YJQ5OfOsx7Bn8bFUK59
-         nfJ4+LcbScXrGFTyuaH21nU7BOfKOKG2pkZ+ldUjl59xmDcBfb2VyQ1g0Ii8a/1sPV
-         115SjaHlKE1ND4ScrMlQFwKxYI8jabrvbueATCiYMkKIwgu2Xh/kiIvU6HFm3HyVHY
-         LbKwEzgbzvKyUubLQJvQ5XCD/TKvqWXE/6yzvf9rlkw6pRi+zDbYZHDkMaW8jLwlbH
-         MWr0QZ5m69SbQ==
+        b=kally2Xxf6HW0dc9sixj9XBFUhD0ZYcEmZeZ6/yG7ptkLtALMd+zjbI/E1Mlpd8lN
+         +XRvcYyQQSfQ+AVZr3g7XnTwVlRGUV6tRfEe0I2ui/WxTxhpFt9xkdXT7uq7SerEjo
+         9mLXZWyacsRbuZdMoEIkS4M/3r5Zi1ltJBimLdxs4kYYGLFnecIoj9yXd1WkEjcrzT
+         BLqEET89BTEGoHzsq2vvOEVCVBZixhAjr5tyWOmG5xkOIW3aSCGRsw15Enfh0TJatt
+         daiP2YoPM9jVpqPhQ6eBhAe0XAH98x6RlBV9ltBgbjtROttUs3+t8XKxQEGkTSJ6F7
+         /NPaG/PI+N9aw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -51,9 +51,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         UNGLinuxDriver@microchip.com,
         Vivien Didelot <vivien.didelot@gmail.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>
-Subject: [PATCH net-next 1/6] devlink: Remove misleading internal_flags from health reporter dump
-Date:   Wed, 17 Nov 2021 20:26:17 +0200
-Message-Id: <cbca8d8874fe2dc9d7b13975705916907df90899.1637173517.git.leonro@nvidia.com>
+Subject: [PATCH net-next 5/6] devlink: Reshuffle resource registration logic
+Date:   Wed, 17 Nov 2021 20:26:21 +0200
+Message-Id: <6176a137a4ded48501e8a06fda0e305f9cfc787c.1637173517.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <cover.1637173517.git.leonro@nvidia.com>
 References: <cover.1637173517.git.leonro@nvidia.com>
@@ -65,28 +65,77 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-DEVLINK_CMD_HEALTH_REPORTER_DUMP_GET command doesn't have .doit callback
-and has no use in internal_flags at all. Remove this misleading assignment.
+The devlink->lock doesn't need to be held during whole execution of
+function, but only when recursive path walk and list addition are
+performed. So reshuffle the resource registration logic to allocate
+resource and configure it without lock.
 
-Fixes: e44ef4e4516c ("devlink: Hang reporter's dump method on a dumpit cb")
+As part of this change, complain more louder if driver authors used
+already existed resource_id. It is performed outside of the locks as
+drivers were supposed to provide unique IDs and such error can't happen.
+
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- net/core/devlink.c | 2 --
- 1 file changed, 2 deletions(-)
+ net/core/devlink.c | 30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
 diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 5ba4f9434acd..1cb2e0ae9173 100644
+index 356057ea2e52..1dda313d6d1b 100644
 --- a/net/core/devlink.c
 +++ b/net/core/devlink.c
-@@ -8838,8 +8838,6 @@ static const struct genl_small_ops devlink_nl_ops[] = {
- 			    GENL_DONT_VALIDATE_DUMP_STRICT,
- 		.dumpit = devlink_nl_cmd_health_reporter_dump_get_dumpit,
- 		.flags = GENL_ADMIN_PERM,
--		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK_OR_PORT |
--				  DEVLINK_NL_FLAG_NO_LOCK,
- 	},
- 	{
- 		.cmd = DEVLINK_CMD_HEALTH_REPORTER_DUMP_CLEAR,
+@@ -9833,17 +9833,9 @@ int devlink_resource_register(struct devlink *devlink,
+ {
+ 	struct devlink_resource *resource;
+ 	struct list_head *resource_list;
+-	bool top_hierarchy;
+ 	int err = 0;
+ 
+-	top_hierarchy = parent_resource_id == DEVLINK_RESOURCE_ID_PARENT_TOP;
+-
+-	mutex_lock(&devlink->lock);
+-	resource = devlink_resource_find(devlink, NULL, resource_id);
+-	if (resource) {
+-		err = -EINVAL;
+-		goto out;
+-	}
++	WARN_ON(devlink_resource_find(devlink, NULL, resource_id));
+ 
+ 	resource = kzalloc(sizeof(*resource), GFP_KERNEL);
+ 	if (!resource) {
+@@ -9851,7 +9843,17 @@ int devlink_resource_register(struct devlink *devlink,
+ 		goto out;
+ 	}
+ 
+-	if (top_hierarchy) {
++	resource->name = resource_name;
++	resource->size = resource_size;
++	resource->size_new = resource_size;
++	resource->id = resource_id;
++	resource->size_valid = true;
++	memcpy(&resource->size_params, size_params,
++	       sizeof(resource->size_params));
++	INIT_LIST_HEAD(&resource->resource_list);
++
++	mutex_lock(&devlink->lock);
++	if (parent_resource_id == DEVLINK_RESOURCE_ID_PARENT_TOP) {
+ 		resource_list = &devlink->resource_list;
+ 	} else {
+ 		struct devlink_resource *parent_resource;
+@@ -9868,14 +9870,6 @@ int devlink_resource_register(struct devlink *devlink,
+ 		}
+ 	}
+ 
+-	resource->name = resource_name;
+-	resource->size = resource_size;
+-	resource->size_new = resource_size;
+-	resource->id = resource_id;
+-	resource->size_valid = true;
+-	memcpy(&resource->size_params, size_params,
+-	       sizeof(resource->size_params));
+-	INIT_LIST_HEAD(&resource->resource_list);
+ 	list_add_tail(&resource->list, resource_list);
+ out:
+ 	mutex_unlock(&devlink->lock);
 -- 
 2.33.1
 
