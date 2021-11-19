@@ -2,121 +2,108 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB1BFC4167B
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Nov 2021 14:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13DDBC433EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Nov 2021 15:38:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D29DE6121D
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 Nov 2021 14:06:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2BE661241
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 Nov 2021 15:38:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235652AbhKSOJq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 Nov 2021 09:09:46 -0500
-Received: from szxga01-in.huawei.com ([45.249.212.187]:14959 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235640AbhKSOJo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 Nov 2021 09:09:44 -0500
-Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Hwdgz0Jl1zZd7J;
-        Fri, 19 Nov 2021 22:04:15 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500026.china.huawei.com (7.185.36.106) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.15; Fri, 19 Nov 2021 22:06:41 +0800
-Received: from localhost.localdomain (10.67.165.24) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.15; Fri, 19 Nov 2021 22:06:40 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <dledford@redhat.com>, <jgg@nvidia.com>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 8/9] RDMA/hns: Remove macros that are no longer used
-Date:   Fri, 19 Nov 2021 22:02:07 +0800
-Message-ID: <20211119140208.40416-9-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211119140208.40416-1-liangwenpeng@huawei.com>
-References: <20211119140208.40416-1-liangwenpeng@huawei.com>
+        id S235102AbhKSPl7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 Nov 2021 10:41:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45866 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S235250AbhKSPl7 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 19 Nov 2021 10:41:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 34B9A6112E;
+        Fri, 19 Nov 2021 15:38:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1637336337;
+        bh=SiDyJ/VKAeOoI+SIN4+qGK8ta2JLIbvMWVnitDoSmOg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=SHoopEN12ABnOJrQbGs8O4BbaND7QMXx48wiMBfW/8wzoXRR2ZcjeK7A1l1VuChGU
+         Fuvl9doTKs+BETnCb+vWs32+C6Is7JnTr00XR3VcWVsnMd1DtxETI4xwPJgPbtzNo3
+         pW4hnUxqvm5DJDMd6QDv+KL0OJpRdwOkNW1HZ4NilDKCcLoT963XPkoicDMbI/pDR9
+         PYZML153hA+AxUyOvmTwJNfnBVfUfcebUttiMN6eaCN2WZ4kCbfTM9hMWoC8bUER3V
+         ZXeBu1SjuFEwMAWoe8ghOZ+MbxJZhwjCGWB2YnA8Wzwn0z0vOjPI/tgdVSzjCf2sHp
+         ruRiK3XHBQl2A==
+Date:   Fri, 19 Nov 2021 17:38:53 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     "David S . Miller" <davem@davemloft.net>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Andrew Lunn <andrew@lunn.ch>, Aya Levin <ayal@mellanox.com>,
+        Claudiu Manoil <claudiu.manoil@nxp.com>, drivers@pensando.io,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ido Schimmel <idosch@nvidia.com>,
+        intel-wired-lan@lists.osuosl.org,
+        Ioana Ciornei <ioana.ciornei@nxp.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Jiri Pirko <jiri@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Michael Chan <michael.chan@broadcom.com>,
+        netdev@vger.kernel.org, oss-drivers@corigine.com,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Shannon Nelson <snelson@pensando.io>,
+        Simon Horman <simon.horman@corigine.com>,
+        Taras Chornyi <tchornyi@marvell.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        UNGLinuxDriver@microchip.com,
+        Vivien Didelot <vivien.didelot@gmail.com>,
+        Vladimir Oltean <vladimir.oltean@nxp.com>
+Subject: Re: [PATCH net-next 5/6] devlink: Reshuffle resource registration
+ logic
+Message-ID: <YZfFDSnnjOG+wSyK@unreal>
+References: <cover.1637173517.git.leonro@nvidia.com>
+ <6176a137a4ded48501e8a06fda0e305f9cfc787c.1637173517.git.leonro@nvidia.com>
+ <20211117204956.6a36963b@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+ <YZYFvIK9mkP107tD@unreal>
+ <20211118174813.54c3731f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.24]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211118174813.54c3731f@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixing Liu <liuyixing1@huawei.com>
+On Thu, Nov 18, 2021 at 05:48:13PM -0800, Jakub Kicinski wrote:
+> On Thu, 18 Nov 2021 09:50:20 +0200 Leon Romanovsky wrote:
+> > And it shouldn't. devlink_resource_find() will return valid resource only
+> > if there driver is completely bogus with races or incorrect allocations of
+> > resource_id.
+> > 
+> > devlink_*_register(..)
+> >  mutex_lock(&devlink->lock);
+> >  if (devlink_*_find(...)) {
+> >     mutex_unlock(&devlink->lock);
+> >     return ....;
+> >  }
+> >  .....
+> > 
+> > It is almost always wrong from locking and layering perspective the pattern above,
+> > as it is racy by definition if not protected by top layer.
+> > 
+> > There are exceptions from the rule above, but devlink is clearly not the
+> > one of such exceptions.
+> 
+> Just drop the unnecessary "cleanup" patches and limit the amount 
+> of driver code we'll have to revert if your approach fails.
 
-These macros are no longer used, so remove them.
+My approach works, exactly like it works in other subsystems.
+https://lore.kernel.org/netdev/cover.1636390483.git.leonro@nvidia.com/
 
-Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 16 ----------------
- 1 file changed, 16 deletions(-)
+We are waiting to see your proposal extended to support parallel devlink
+execution and to be applied to real drivers.
+https://lore.kernel.org/netdev/20211030231254.2477599-1-kuba@kernel.org/
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 6858b939de63..fddb9bc3c14c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -35,26 +35,15 @@
- 
- #include <linux/bitops.h>
- 
--#define HNS_ROCE_VF_QPC_BT_NUM			256
--#define HNS_ROCE_VF_SCCC_BT_NUM			64
--#define HNS_ROCE_VF_SRQC_BT_NUM			64
--#define HNS_ROCE_VF_CQC_BT_NUM			64
--#define HNS_ROCE_VF_MPT_BT_NUM			64
--#define HNS_ROCE_VF_SMAC_NUM			32
--#define HNS_ROCE_VF_SL_NUM			8
--#define HNS_ROCE_VF_GMV_BT_NUM			256
--
- #define HNS_ROCE_V2_MAX_QP_NUM			0x1000
- #define HNS_ROCE_V2_MAX_QPC_TIMER_NUM		0x200
- #define HNS_ROCE_V2_MAX_WQE_NUM			0x8000
--#define	HNS_ROCE_V2_MAX_SRQ			0x100000
- #define HNS_ROCE_V2_MAX_SRQ_WR			0x8000
- #define HNS_ROCE_V2_MAX_SRQ_SGE			64
- #define HNS_ROCE_V2_MAX_CQ_NUM			0x100000
- #define HNS_ROCE_V2_MAX_CQC_TIMER_NUM		0x100
- #define HNS_ROCE_V2_MAX_SRQ_NUM			0x100000
- #define HNS_ROCE_V2_MAX_CQE_NUM			0x400000
--#define HNS_ROCE_V2_MAX_SRQWQE_NUM		0x8000
- #define HNS_ROCE_V2_MAX_RQ_SGE_NUM		64
- #define HNS_ROCE_V2_MAX_SQ_SGE_NUM		64
- #define HNS_ROCE_V2_MAX_EXTEND_SGE_NUM		0x200000
-@@ -63,13 +52,10 @@
- #define HNS_ROCE_V2_MAX_RC_INL_INN_SZ		32
- #define HNS_ROCE_V2_UAR_NUM			256
- #define HNS_ROCE_V2_PHY_UAR_NUM			1
--#define HNS_ROCE_V2_MAX_IRQ_NUM			65
--#define HNS_ROCE_V2_COMP_VEC_NUM		63
- #define HNS_ROCE_V2_AEQE_VEC_NUM		1
- #define HNS_ROCE_V2_ABNORMAL_VEC_NUM		1
- #define HNS_ROCE_V2_MAX_MTPT_NUM		0x100000
- #define HNS_ROCE_V2_MAX_MTT_SEGS		0x1000000
--#define HNS_ROCE_V2_MAX_CQE_SEGS		0x1000000
- #define HNS_ROCE_V2_MAX_SRQWQE_SEGS		0x1000000
- #define HNS_ROCE_V2_MAX_IDX_SEGS		0x1000000
- #define HNS_ROCE_V2_MAX_PD_NUM			0x1000000
-@@ -81,7 +67,6 @@
- #define HNS_ROCE_V2_MAX_RQ_DESC_SZ		16
- #define HNS_ROCE_V2_MAX_SRQ_DESC_SZ		64
- #define HNS_ROCE_V2_IRRL_ENTRY_SZ		64
--#define HNS_ROCE_V2_TRRL_ENTRY_SZ		48
- #define HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ	100
- #define HNS_ROCE_V2_CQC_ENTRY_SZ		64
- #define HNS_ROCE_V2_SRQC_ENTRY_SZ		64
-@@ -103,7 +88,6 @@
- #define HNS_ROCE_INVALID_LKEY			0x0
- #define HNS_ROCE_INVALID_SGE_LENGTH		0x80000000
- #define HNS_ROCE_CMQ_TX_TIMEOUT			30000
--#define HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE	2
- #define HNS_ROCE_V2_RSV_QPS			8
- 
- #define HNS_ROCE_V2_HW_RST_TIMEOUT		1000
--- 
-2.33.0
+Anyway, you are maintainer, you want half work, you will get half work.
 
+> 
+> I spent enough time going back and forth with you.
+> 
+> Please.
+
+Disagreements are hard for everyone, not only for you.
+
+Thanks
