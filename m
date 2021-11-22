@@ -2,20 +2,20 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22F0C433F5
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Nov 2021 06:18:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22ADFC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Nov 2021 06:18:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232422AbhKVGVq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230218AbhKVGVq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 22 Nov 2021 01:21:46 -0500
-Received: from szxga08-in.huawei.com ([45.249.212.255]:28089 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230218AbhKVGVq (ORCPT
+Received: from szxga01-in.huawei.com ([45.249.212.187]:14968 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232421AbhKVGVq (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Nov 2021 01:21:46 -0500
-Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.54])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4HyH8T4G9Rz1DJXX;
+Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.55])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4HyH8T1rBMzZd7T;
         Mon, 22 Nov 2021 14:16:09 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500025.china.huawei.com (7.185.36.35) with Microsoft SMTP Server
+ dggpeml500026.china.huawei.com (7.185.36.106) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2308.20; Mon, 22 Nov 2021 14:18:38 +0800
 Received: from localhost.localdomain (10.67.165.24) by
@@ -25,12 +25,10 @@ Received: from localhost.localdomain (10.67.165.24) by
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <leon@kernel.org>, <jgg@nvidia.com>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
-Subject: [PATCH v3 rdma-core 1/2] Update kernel headers
-Date:   Mon, 22 Nov 2021 14:14:04 +0800
-Message-ID: <20211122061405.39621-2-liangwenpeng@huawei.com>
+Subject: [PATCH v3 rdma-core 0/2] libhns: Add support for direct wqe
+Date:   Mon, 22 Nov 2021 14:14:03 +0800
+Message-ID: <20211122061405.39621-1-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211122061405.39621-1-liangwenpeng@huawei.com>
-References: <20211122061405.39621-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -42,30 +40,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-To commit ?? ("RDMA/hns: Support direct wqe of userspace").
+Direct wqe is a mechanism to fill wqe directly into the hardware. In the
+case of light load, the wqe will be filled into pcie bar space of the
+hardware, this will reduce one memory access operation and therefore reduce
+the latency.
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- kernel-headers/rdma/hns-abi.h | 2 ++
- 1 file changed, 2 insertions(+)
+The kernel parts is named "RDMA/hns: Support direct WQE of userspace".
 
-diff --git a/kernel-headers/rdma/hns-abi.h b/kernel-headers/rdma/hns-abi.h
-index 42b17765..f6fde06d 100644
---- a/kernel-headers/rdma/hns-abi.h
-+++ b/kernel-headers/rdma/hns-abi.h
-@@ -77,10 +77,12 @@ enum hns_roce_qp_cap_flags {
- 	HNS_ROCE_QP_CAP_RQ_RECORD_DB = 1 << 0,
- 	HNS_ROCE_QP_CAP_SQ_RECORD_DB = 1 << 1,
- 	HNS_ROCE_QP_CAP_OWNER_DB = 1 << 2,
-+	HNS_ROCE_QP_CAP_DIRECT_WQE = 1 << 5,
- };
- 
- struct hns_roce_ib_create_qp_resp {
- 	__aligned_u64 cap_flags;
-+	__aligned_u64 dwqe_mmap_key;
- };
- 
- struct hns_roce_ib_alloc_ucontext_resp {
--- 
+Changes since v2:
+* Only updated kernel-headers.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/20211116150316.21925-1-liangwenpeng@huawei.com/
+
+Changes since v1:
+* Changed the mapping scheme of direct wqe.
+* Use SIMD instructions to load and store dwqe data, and encapsulate instructions into macros.
+* Link: https://patchwork.kernel.org/project/linux-rdma/cover/1622194379-59868-1-git-send-email-liweihang@huawei.com/
+
+Wenpeng Liang (1):
+  Update kernel headers
+
+Yixing Liu (1):
+  libhns: Add support for direct wqe
+
+ kernel-headers/rdma/hns-abi.h    |  2 ++
+ providers/hns/hns_roce_u.h       |  5 +++-
+ providers/hns/hns_roce_u_hw_v2.c | 44 +++++++++++++++++++++++++-------
+ providers/hns/hns_roce_u_hw_v2.h | 31 ++++++++++++----------
+ providers/hns/hns_roce_u_verbs.c | 26 +++++++++++++++++--
+ util/mmio.h                      | 27 +++++++++++++++++++-
+ 6 files changed, 109 insertions(+), 26 deletions(-)
+
+--
 2.33.0
 
