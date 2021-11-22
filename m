@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 990D0C433F5
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Nov 2021 11:54:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F81AC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Nov 2021 11:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239478AbhKVL5T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 Nov 2021 06:57:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:33010 "EHLO mail.kernel.org"
+        id S239489AbhKVL5X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 Nov 2021 06:57:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239459AbhKVL5R (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 22 Nov 2021 06:57:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5EEFB60240;
-        Mon, 22 Nov 2021 11:54:10 +0000 (UTC)
+        id S239464AbhKVL5V (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 22 Nov 2021 06:57:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E75B8604DC;
+        Mon, 22 Nov 2021 11:54:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1637582051;
-        bh=/UfjuMxMloWjQpp8SissYGZGqNvquzZ24EkrpWjAC5Q=;
+        s=k20201202; t=1637582054;
+        bh=C+5JXSX+mCZ9QQp05BfiQhX1KSncWvCy3NwuPdtr3bg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JIBxA2I2WJLo3WLcVV3hVNDt2532jANyjR/0SWi1Um+HR5RRxrCjt0tRMeL40Uv6C
-         qipCkUGUKiaAL3mt3n/WachkMcJbT//KRGFtnk+F3f9UxyNvS5xn7nBl+vqbFaiLz8
-         8zTSuJ3DeTb+HwiFuS+DY31PHYAO6XLYnIZn+vWckBUhqzHTpdb7DwUuclb6f1IR/V
-         PDcvOrTVYfJks8408vDR7P8YcHlCe2bG1L5fm3qA1OQRE+6+h/Wl/z3LL4E6ZTQsUG
-         zGC7bOcQ1nc11YFs77CUaEhZJ0TAcxdof5jRJ3bc+wpxT2nrbKc6vQiUmFJqjD3Hr+
-         gZ2tfsI8g35VA==
+        b=tBnNZQU/sft1ok9YNp+0Vl1dLEosAmKb1nAVp5At5dFtRe4gZc4YCuubyFNMYPIV2
+         k7vCXuxBxBRclOQRCEJlVFMeZmdU89+0hfplb/WXo3JRHVcZ1eQA5vBV2U3DA7Ricr
+         jhl1iI4vQTgnjv206bJ+Q7441iWO9QKVLy1VZ2M1owC3WGAg9B1QpXOfOdfjbXORpH
+         82R9/2WlIV5+oLZM47/AeOGCuk/6ZJm0NNmQBX+wBWUhmSi82ai85RHv+C/hpHEbBT
+         TAxReKFoFkmoAsWX2eKYMb9e4BRc1iQge3ktMMy9xQzSEozkNntTpqe4f7mCim8OWV
+         59rS0l8J0FLTw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Doug Ledford <dledford@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Avihai Horon <avihaih@nvidia.com>, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, Mark Zhang <markzhang@nvidia.com>
-Subject: [PATCH rdma-next 3/3] RDMA/cma: Let cma_resolve_ib_dev() continue search even after empty entry
-Date:   Mon, 22 Nov 2021 13:53:58 +0200
-Message-Id: <3e133449a4c7484cafc0fe6bd7f9dbaec63a0c87.1637581778.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 1/3] RDMA/core: Modify rdma_query_gid() to return accurate error codes
+Date:   Mon, 22 Nov 2021 13:53:56 +0200
+Message-Id: <43f8d94766597cc2fa7f1c2e3f81a1b558f59128.1637581778.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <cover.1637581778.git.leonro@nvidia.com>
 References: <cover.1637581778.git.leonro@nvidia.com>
@@ -42,58 +42,36 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Avihai Horon <avihaih@nvidia.com>
 
-Currently, when cma_resolve_ib_dev() searches for a matching GID it will
-stop searching after encountering the first empty GID table entry. This
-behavior is wrong since neither IB nor RoCE spec enforce tightly packed
-GID tables.
+Modify rdma_query_gid() to return -ENOENT for empty entries. This will
+make error reporting more accurate and will be used in next patches.
 
-For example, when the matching valid GID entry exists at index N, and if
-a GID entry is empty at index N-1, cma_resolve_ib_dev() will fail to
-find the matching valid entry.
-
-Fix it by making cma_resolve_ib_dev() continue searching even after
-encountering missing entries.
-
-Fixes: f17df3b0dede ("RDMA/cma: Add support for AF_IB to rdma_resolve_addr()")
 Signed-off-by: Avihai Horon <avihaih@nvidia.com>
 Reviewed-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cma.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/cache.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 835ac54d4a24..b669002c9255 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -766,6 +766,7 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
- 	unsigned int p;
- 	u16 pkey, index;
- 	enum ib_port_state port_state;
-+	int ret;
- 	int i;
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index 0c98dd3dee67..dd66f1a6e792 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -963,9 +963,13 @@ int rdma_query_gid(struct ib_device *device, u32 port_num,
+ 	table = rdma_gid_table(device, port_num);
+ 	read_lock_irqsave(&table->rwlock, flags);
  
- 	cma_dev = NULL;
-@@ -784,9 +785,16 @@ static int cma_resolve_ib_dev(struct rdma_id_private *id_priv)
+-	if (index < 0 || index >= table->sz ||
+-	    !is_gid_entry_valid(table->data_vec[index]))
++	if (index < 0 || index >= table->sz)
++		goto done;
++
++	if (!is_gid_entry_valid(table->data_vec[index])) {
++		res = -ENOENT;
+ 		goto done;
++	}
  
- 			if (ib_get_cached_port_state(cur_dev->device, p, &port_state))
- 				continue;
--			for (i = 0; !rdma_query_gid(cur_dev->device,
--						    p, i, &gid);
--			     i++) {
-+
-+			for (i = 0; i < cur_dev->device->port_data[p].immutable.gid_tbl_len;
-+			     ++i) {
-+				ret = rdma_query_gid(cur_dev->device, p, i,
-+						     &gid);
-+				if (ret == -ENOENT)
-+					continue;
-+				if (ret)
-+					break;
-+
- 				if (!memcmp(&gid, dgid, sizeof(gid))) {
- 					cma_dev = cur_dev;
- 					sgid = gid;
+ 	memcpy(gid, &table->data_vec[index]->attr.gid, sizeof(*gid));
+ 	res = 0;
 -- 
 2.33.1
 
